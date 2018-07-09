@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2CDB9210D690C
- for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:23:10 -0700 (PDT)
-Subject: [PATCH v2 10/11] nfit_test: adding test support for Intel nvdimm
- security DSMs
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 05 Jul 2018 13:23:06 -0700
-Message-ID: <153082218672.61422.8416683709266903294.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
-References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B2B96209605A5
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 05:36:29 -0700 (PDT)
+Date: Mon, 9 Jul 2018 14:36:27 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 3/3] kvm: add a function to check if page is from NVDIMM
+ pmem.
+Message-ID: <20180709123627.wtbrsrfgqwuq7x65@quack2.suse.cz>
+References: <cover.1530716899.git.yi.z.zhang@linux.intel.com>
+ <359fdf0103b61014bf811d88d4ce36bc793d18f2.1530716899.git.yi.z.zhang@linux.intel.com>
+ <1efab832-8782-38f3-9fd5-7a8b45bde153@redhat.com>
+ <a6049ab7-19f4-3cdb-a954-c8ad7a05ed37@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <a6049ab7-19f4-3cdb-a954-c8ad7a05ed37@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,297 +23,57 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
+Cc: jack@suse.cz, yu.c.zhang@intel.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Paolo Bonzini <pbonzini@redhat.com>, hch@lst.de, yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding nfit_test support for DSM functions "Get Security State",
-"Set Passphrase", "Disable Passphrase", "Unlock Unit", "Freeze Lock",
-and "Secure Erase" for the fake DIMMs.
-
-Also adding a sysfs knob in order to put the DIMMs in "locked" state. The
-order of testing DIMM unlocking would be.
-1a. Set Passphrase to DIMM X.
-1b. Disable DIMM X.
-2. Write to
-/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimmX/lock_dimm
-3. Renable DIMM X
-4. Check DIMM X state via sysfs "security" attribute for nmemX.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- tools/testing/nvdimm/Kbuild      |    1 
- tools/testing/nvdimm/test/nfit.c |  186 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 187 insertions(+)
-
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 0392153a0009..29e43d64077f 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -36,6 +36,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
- obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
- 
- nfit-y := $(ACPI_SRC)/core.o
-+nfit-y += $(ACPI_SRC)/intel.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
- nfit-y += acpi_nfit_test.o
- nfit-y += config_check.o
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 7b3ce2194889..e5b62396c41f 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -24,6 +24,7 @@
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <nd-core.h>
-+#include <intel.h>
- #include <nfit.h>
- #include <nd.h>
- #include "nfit_test.h"
-@@ -155,6 +156,11 @@ struct nfit_dimm_dev {
- 	struct nfit_mem *nfit_mem;
- };
- 
-+struct nfit_test_sec {
-+	u8 state;
-+	u8 passphrase[32];
-+};
-+
- struct nfit_test {
- 	struct acpi_nfit_desc acpi_desc;
- 	struct platform_device pdev;
-@@ -192,6 +198,7 @@ struct nfit_test {
- 	struct badrange badrange;
- 	struct work_struct work;
- 	struct nfit_test_fw *fw;
-+	struct nfit_test_sec *sec;
- };
- 
- static struct workqueue_struct *nfit_wq;
-@@ -899,6 +906,138 @@ static int override_return_code(int dimm, unsigned int func, int rc)
- 	return rc;
- }
- 
-+static int nd_intel_test_cmd_security_status(struct nfit_test *t,
-+		struct nd_intel_get_security_state *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	nd_cmd->status = 0;
-+	nd_cmd->state = sec->state;
-+	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_unlock_unit(struct nfit_test *t,
-+		struct nd_intel_unlock_unit *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_LOCKED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "unlock unit: invalid state: %#x\n",
-+				sec->state);
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "unlock unit: invalid passphrase\n");
-+	} else {
-+		nd_cmd->status = 0;
-+		sec->state = ND_INTEL_SEC_STATE_ENABLED;
-+		dev_dbg(dev, "Unit unlocked\n");
-+	}
-+
-+	dev_dbg(dev, "unlocking status returned: %#x\n", nd_cmd->status);
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_set_pass(struct nfit_test *t,
-+		struct nd_intel_set_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "set passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->old_pass, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "set passphrase: wrong passphrase\n");
-+	} else {
-+		memcpy(sec->passphrase, nd_cmd->new_pass,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state |= ND_INTEL_SEC_STATE_ENABLED;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "passphrase updated\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_freeze_lock(struct nfit_test *t,
-+		struct nd_intel_freeze_lock *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "freeze lock: wrong security state\n");
-+	} else {
-+		sec->state |= ND_INTEL_SEC_STATE_FROZEN;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "security frozen\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_disable_pass(struct nfit_test *t,
-+		struct nd_intel_disable_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "disable passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "disable passphrase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "disable passphrase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
-+		struct nd_intel_secure_erase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "secure erase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "secure erase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "secure erase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -946,6 +1085,30 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				return i;
- 
- 			switch (func) {
-+			case NVDIMM_INTEL_GET_SECURITY_STATE:
-+				rc = nd_intel_test_cmd_security_status(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_UNLOCK_UNIT:
-+				rc = nd_intel_test_cmd_unlock_unit(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SET_PASSPHRASE:
-+				rc = nd_intel_test_cmd_set_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_DISABLE_PASSPHRASE:
-+				rc = nd_intel_test_cmd_disable_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_FREEZE_LOCK:
-+				rc = nd_intel_test_cmd_freeze_lock(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SECURE_ERASE:
-+				rc = nd_intel_test_cmd_secure_erase(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1280,10 +1443,23 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
- }
- static DEVICE_ATTR_RW(fail_cmd_code);
- 
-+static ssize_t lock_dimm_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int dimm = dimm_name_to_id(dev);
-+	struct nfit_test *t = dev_get_drvdata(dev);
-+	struct nfit_test_sec *sec = &t->sec[dimm];
-+
-+	sec->state = ND_INTEL_SEC_STATE_ENABLED | ND_INTEL_SEC_STATE_LOCKED;
-+	return size;
-+}
-+static DEVICE_ATTR_WO(lock_dimm);
-+
- static struct attribute *nfit_test_dimm_attributes[] = {
- 	&dev_attr_fail_cmd.attr,
- 	&dev_attr_fail_cmd_code.attr,
- 	&dev_attr_handle.attr,
-+	&dev_attr_lock_dimm.attr,
- 	NULL,
- };
- 
-@@ -2192,6 +2368,14 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_INTEL_FW_FINISH_UPDATE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_FW_FINISH_QUERY, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_ENABLE_LSS_STATUS, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_GET_SECURITY_STATE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SET_PASSPHRASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -2611,6 +2795,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				GFP_KERNEL);
- 		nfit_test->fw = devm_kcalloc(dev, num,
- 				sizeof(struct nfit_test_fw), GFP_KERNEL);
-+		nfit_test->sec = devm_kcalloc(dev, num,
-+				sizeof(struct nfit_test_sec), GFP_KERNEL);
- 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
- 				&& nfit_test->label_dma && nfit_test->dcr
- 				&& nfit_test->dcr_dma && nfit_test->flush
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gVGh1IDA1LTA3LTE4IDIxOjE5OjMwLCBaaGFuZyxZaSB3cm90ZToKPiAKPiAKPiBPbiAyMDE4
+5bm0MDfmnIgwNOaXpSAyMzoyNSwgUGFvbG8gQm9uemluaSB3cm90ZToKPiA+IE9uIDA0LzA3LzIw
+MTggMTc6MzAsIFpoYW5nIFlpIHdyb3RlOgo+ID4+IEZvciBkZXZpY2Ugc3BlY2lmaWMgbWVtb3J5
+IHNwYWNlLCB3aGVuIHdlIG1vdmUgdGhlc2UgYXJlYSBvZiBwZm4gdG8KPiA+PiBtZW1vcnkgem9u
+ZSwgd2Ugd2lsbCBzZXQgdGhlIHBhZ2UgcmVzZXJ2ZWQgZmxhZyBhdCB0aGF0IHRpbWUsIHNvbWUg
+b2YKPiA+PiB0aGVzZSByZXNlcnZlZCBmb3IgZGV2aWNlIG1taW8sIGFuZCBzb21lIG9mIHRoZXNl
+IGFyZSBub3QsIHN1Y2ggYXMKPiA+PiBOVkRJTU0gcG1lbS4KPiA+Pgo+ID4+IE5vdywgd2UgbWFw
+IHRoZXNlIGRldl9kYXggb3IgZnNfZGF4IHBhZ2VzIHRvIGt2bSBmb3IgRElNTS9OVkRJTU0KPiA+
+PiBiYWNrZW5kLCBzaW5jZSB0aGVzZSBwYWdlcyBhcmUgcmVzZXJ2ZWQuIHRoZSBjaGVjayBvZgo+
+ID4+IGt2bV9pc19yZXNlcnZlZF9wZm4oKSBtaXNjb25jZWl2ZXMgdGhvc2UgcGFnZXMgYXMgTU1J
+Ty4gVGhlcmVmb3IsIHdlCj4gPj4gaW50cm9kdWNlIDIgcGFnZSBtYXAgdHlwZXMsIE1FTU9SWV9E
+RVZJQ0VfRlNfREFYL01FTU9SWV9ERVZJQ0VfREVWX0RBWCwKPiA+PiB0byBpbmRlbnRpZnkgdGhl
+c2UgcGFnZXMgYXJlIGZyb20gTlZESU1NIHBtZW0uIGFuZCBsZXQga3ZtIHRyZWF0IHRoZXNlCj4g
+Pj4gYXMgbm9ybWFsIHBhZ2VzLgo+ID4+Cj4gPj4gV2l0aG91dCB0aGlzIHBhdGNoLCBNYW55IG9w
+ZXJhdGlvbnMgd2lsbCBiZSBtaXNzZWQgZHVlIHRvIHRoaXMKPiA+PiBtaXN0cmVhdG1lbnQgdG8g
+cG1lbSBwYWdlcy4gRm9yIGV4YW1wbGUsIGEgcGFnZSBtYXkgbm90IGhhdmUgY2hhbmNlIHRvCj4g
+Pj4gYmUgdW5waW5uZWQgZm9yIEtWTSBndWVzdChpbiBrdm1fcmVsZWFzZV9wZm5fY2xlYW4pOyBu
+b3QgYWJsZSB0byBiZQo+ID4+IG1hcmtlZCBhcyBkaXJ0eS9hY2Nlc3NlZChpbiBrdm1fc2V0X3Bm
+bl9kaXJ0eS9hY2Nlc3NlZCkgZXRjLgo+ID4+Cj4gPj4gU2lnbmVkLW9mZi1ieTogWmhhbmcgWWkg
+PHlpLnouemhhbmdAbGludXguaW50ZWwuY29tPgo+ID4+IFNpZ25lZC1vZmYtYnk6IFpoYW5nIFl1
+IDx5dS5jLnpoYW5nQGxpbnV4LmludGVsLmNvbT4KPiA+PiAtLS0KPiA+PiAgdmlydC9rdm0va3Zt
+X21haW4uYyB8IDE3ICsrKysrKysrKysrKysrKy0tCj4gPj4gIDEgZmlsZSBjaGFuZ2VkLCAxNSBp
+bnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQo+ID4+Cj4gPj4gZGlmZiAtLWdpdCBhL3ZpcnQv
+a3ZtL2t2bV9tYWluLmMgYi92aXJ0L2t2bS9rdm1fbWFpbi5jCj4gPj4gaW5kZXggYWZiMmU2ZS4u
+MTM2NWQxOCAxMDA2NDQKPiA+PiAtLS0gYS92aXJ0L2t2bS9rdm1fbWFpbi5jCj4gPj4gKysrIGIv
+dmlydC9rdm0va3ZtX21haW4uYwo+ID4+IEBAIC0xNDAsMTAgKzE0MCwyMyBAQCBfX3dlYWsgdm9p
+ZCBrdm1fYXJjaF9tbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9yYW5nZShzdHJ1Y3Qga3ZtICprdm0s
+Cj4gPj4gIHsKPiA+PiAgfQo+ID4+ICAKPiA+PiArc3RhdGljIGJvb2wga3ZtX2lzX25kX3Bmbihr
+dm1fcGZuX3QgcGZuKQo+ID4+ICt7Cj4gPj4gKwlzdHJ1Y3QgcGFnZSAqcGFnZSA9IHBmbl90b19w
+YWdlKHBmbik7Cj4gPj4gKwo+ID4+ICsJcmV0dXJuIGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkg
+JiYKPiA+PiArCQkoKHBhZ2UtPnBnbWFwLT50eXBlID09IE1FTU9SWV9ERVZJQ0VfRlNfREFYKSB8
+fAo+ID4+ICsJCSAocGFnZS0+cGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9ERVZfREFYKSk7
+Cj4gPj4gK30KPiA+IElmIHRoZSBtbSBwZW9wbGUgYWdyZWUsIEknZCBwcmVmZXIgc29tZXRoaW5n
+IHRoYXQgdGFrZXMgYSBzdHJ1Y3QgcGFnZSAqCj4gPiBhbmQgaXMgZXhwb3J0ZWQgYnkgaW5jbHVk
+ZS9saW51eC9tbS5oLiAgVGhlbiBLVk0gY2FuIGp1c3QgZG8gc29tZXRoaW5nIGxpa2UKPiA+Cj4g
+PiAJc3RydWN0IHBhZ2UgKnBhZ2U7Cj4gPiAJaWYgKCFwZm5fdmFsaWQocGZuKSkKPiA+IAkJcmV0
+dXJuIHRydWU7Cj4gPgo+ID4gCXBhZ2UgPSBwZm5fdG9fcGFnZShwZm4pOwo+ID4gCXJldHVybiBQ
+YWdlUmVzZXJ2ZWQocGFnZSkgJiYgIWlzX2RheF9wYWdlKHBhZ2UpOwo+ID4KPiA+IFRoYW5rcywK
+PiA+Cj4gPiBQYW9sbwo+IFllYWgsIHRoYXQgY291bGQgYmUgbXVjaCBiZXR0ZXIuIFRoYW5rcyBm
+b3IgeW91ciBjb21tZW50cyBQYW9sby4KPiAKPiBIaSBLYXJhLCBEbyB1IGhhdmUgQW55IG9waW5p
+b25zL2lkZWFzIHRvIGFkZCBzdWNoIGRlZmluaXRpb24gaW4gbW0/CgpXaGF0IFBhb2xvIHN1Z2dl
+c3RzIHNvdW5kcyBnb29kIHRvIG1lLgoKCQkJCQkJCQlIb256YQotLSAKSmFuIEthcmEgPGphY2tA
+c3VzZS5jb20+ClNVU0UgTGFicywgQ1IKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
