@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F42520985980
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 15:45:59 -0700 (PDT)
-Subject: [PATCH 5/6] ndctl: add support for secure erase
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 13 Jul 2018 15:45:58 -0700
-Message-ID: <153152195849.6787.147607747293528279.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
-References: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id A0301209688F3
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:23 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 5372CAC009C
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:17 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v10 2/4] ndctl,
+ monitor: add main ndctl monitor configuration file
+Date: Mon,  9 Jul 2018 23:17:16 +0900
+Message-Id: <20180709141718.6205-3-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,164 +22,238 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for secure erase to libndctl and also command line option
-of "secure-erase" for ndctl. This will initiate the request to securely
-erase a DIMM. ndctl does not actually handle the verification of the
-security. That is handled by the kernel and the key upcall mechanism.
+This patch adds the main configuration file(/etc/ndctl/monitor.conf)
+of ndctl monitor. It contains the configuration directives that give
+ndctl monitor instructions. Users can change the configuration by
+editing this file or using [--config-file] option to override this
+file. The changed value will work after restart ndctl monitor service.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- Documentation/ndctl/Makefile.am            |    1 +
- Documentation/ndctl/ndctl-secure-erase.txt |   21 +++++++++++++++++++++
- builtin.h                                  |    1 +
- ndctl/dimm.c                               |   21 +++++++++++++++++++++
- ndctl/lib/dimm.c                           |    5 +++++
- ndctl/lib/libndctl.sym                     |    1 +
- ndctl/libndctl.h                           |    1 +
- ndctl/ndctl.c                              |    1 +
- 8 files changed, 52 insertions(+)
- create mode 100644 Documentation/ndctl/ndctl-secure-erase.txt
+ ndctl/Makefile.am  |   5 ++
+ ndctl/monitor.c    | 115 +++++++++++++++++++++++++++++++++++++++++++++
+ ndctl/monitor.conf |  41 ++++++++++++++++
+ 3 files changed, 161 insertions(+)
+ create mode 100644 ndctl/monitor.conf
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 98348178..8a84c11c 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -49,6 +49,7 @@ man1_MANS = \
- 	ndctl-update-security.1 \
- 	ndctl-disable-security.1 \
- 	ndctl-freeze-security.1 \
-+	ndctl-secure-erase.1 \
- 	ndctl-list.1
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 7dbf223..ae3d894 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -42,3 +42,8 @@ ndctl_SOURCES += ../test/libndctl.c \
+ 		 ../test/multi-pmem.c \
+ 		 ../test/core.c
+ endif
++
++monitor_config_file = monitor.conf
++monitor_configdir = /etc/ndctl/
++monitor_config_DATA = $(monitor_config_file)
++EXTRA_DIST += $(monitor_config_file)
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index 700bd22..83f22af 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -19,6 +19,7 @@
  
- CLEANFILES = $(man1_MANS)
-diff --git a/Documentation/ndctl/ndctl-secure-erase.txt b/Documentation/ndctl/ndctl-secure-erase.txt
-new file mode 100644
-index 00000000..8f82248a
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-secure-erase.txt
-@@ -0,0 +1,21 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-secure-erase(1)
-+=====================
-+
-+NAME
-+----
-+ndctl-secure-erase - securely erasing the user data on the NVDIMM
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl secure-erase' <dimm>
-+
-+DESCRIPTION
-+-----------
-+Provide a generic interface to securely erase NVDIMM. This does not change
-+the label storage area. The use of this depends on support from the underlying
-+libndctl, kernel, as well as the platform itself.
-+
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 6e6ae069..a9b6443e 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -50,4 +50,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_update_security(int argc, const char **argv, void *ctx);
- int cmd_disable_security(int argc, const char **argv, void *ctx);
- int cmd_freeze_security(int argc, const char **argv, void *ctx);
-+int cmd_secure_erase(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 49097cff..45c9efce 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -857,6 +857,17 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
- 	return rc;
+ static struct monitor {
+ 	const char *logfile;
++	const char *config_file;
+ 	const char *dimm_event;
+ 	bool daemon;
+ 	unsigned int event_flags;
+@@ -429,6 +430,109 @@ dimm_event_all:
+ 	return 0;
  }
  
-+static int action_secure_erase(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
++static void parse_config(const char **arg, char *key, char *val, char *ident)
 +{
-+	int rc;
++	struct strbuf value = STRBUF_INIT;
++	size_t arg_len = *arg ? strlen(*arg) : 0;
 +
-+	rc = ndctl_dimm_secure_erase(dimm);
-+	if (rc < 0)
-+		error("Failed to secure erase for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
++	if (!ident || !key || (strcmp(ident, key) != 0))
++		return;
++
++	if (arg_len) {
++		strbuf_add(&value, *arg, arg_len);
++		strbuf_addstr(&value, " ");
++	}
++	strbuf_addstr(&value, val);
++	*arg = strbuf_detach(&value, NULL);
 +}
- static struct parameters {
- 	const char *bus;
- 	const char *outfile;
-@@ -1244,3 +1255,13 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
 +
-+int cmd_secure_erase(int argc, const char **argv, void *ctx)
++static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
++		struct util_filter_params *_param)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_secure_erase, base_options,
-+			"ndctl secure-erase <nmem0> [<nmem1>..<nmemN>] [<options>]");
++	FILE *f;
++	int line = 0;
++	size_t len = 0;
++	char *buf, *value, *config_file;
++	const char *def_config_file = "/etc/ndctl/monitor.conf";
 +
-+	fprintf(stderr, "secure erased %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
++	if (_monitor->config_file)
++		config_file = strdup(_monitor->config_file);
++	else
++		config_file = strdup(def_config_file);
++	if (!config_file) {
++		fail("strdup default config file failed\n");
++		goto out;
++	}
++
++	buf = malloc(BUF_SIZE);
++	if (!buf) {
++		fail("malloc read config-file buf error\n");
++		goto out;
++	}
++
++	f = fopen(config_file, "r");
++	if (!f) {
++		fail("config-file: %s cannot be opened\n", config_file);
++		goto out;
++	}
++
++	while (fgets(buf, BUF_SIZE, f)) {
++		value = NULL;
++		line++;
++
++		while (isspace(*buf))
++			buf++;
++
++		if (*buf == '#' || *buf == '\0')
++			continue;
++
++		value = strchr(buf, '=');
++		if (!value) {
++			fail("config-file syntax error, skip line[%i]\n", line);
++			continue;
++		}
++
++		value[0] = '\0';
++		value++;
++
++		while (isspace(value[0]))
++			value++;
++
++		len = strlen(buf);
++		if (len == 0)
++			continue;
++		while (isspace(buf[len-1]))
++			len--;
++		buf[len] = '\0';
++
++		len = strlen(value);
++		if (len == 0)
++			continue;
++		while (isspace(value[len-1]))
++			len--;
++		value[len] = '\0';
++
++		if (len == 0)
++			continue;
++
++		parse_config(&_param->bus, "bus", value, buf);
++		parse_config(&_param->dimm, "dimm", value, buf);
++		parse_config(&_param->region, "region", value, buf);
++		parse_config(&_param->namespace, "namespace", value, buf);
++		parse_config(&_monitor->dimm_event, "dimm-event", value, buf);
++
++		if (!_monitor->logfile)
++			parse_config(&_monitor->logfile, "logfile", value, buf);
++	}
++	fclose(f);
++	free(config_file);
++	return 0;
++out:
++	if (config_file)
++		free(config_file);
++	return 1;
 +}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 2ff68daa..bb896d21 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -625,3 +625,8 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++
+ int cmd_monitor(int argc, const char **argv, void *ctx)
  {
- 	return ndctl_dimm_write_security(dimm, "freeze");
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_write_security(dimm, "erase");
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 613d9bb2..08727f94 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -375,4 +375,5 @@ global:
- 	ndctl_dimm_set_change_key;
- 	ndctl_dimm_disable_security;
- 	ndctl_dimm_freeze_security;
-+	ndctl_dimm_secure_erase;
- } LIBNDCTL_16;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 4615ba09..88ba8a29 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -663,6 +663,7 @@ int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
- int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
- int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
-+int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm);
+ 	const struct option options[] = {
+@@ -441,6 +545,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+ 				"namespace-id", "filter by namespace id"),
+ 		OPT_FILENAME('l', "logfile", &monitor.logfile, "file | syslog",
+ 				"where to output the monitor's notification"),
++		OPT_FILENAME('c', "config-file", &monitor.config_file,
++				"config-file", "override the default config"),
+ 		OPT_BOOLEAN('f', "daemon", &monitor.daemon,
+ 				"run ndctl monitor as a daemon"),
+ 		OPT_STRING('D', "dimm-event", &monitor.dimm_event,
+@@ -470,6 +576,15 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+ 		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+ 	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
  
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 5a1a81e4..b1a91033 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
- 	{ "update-security", cmd_update_security },
- 	{ "disable-security", cmd_disable_security },
- 	{ "freeze-security", cmd_freeze_security },
-+	{ "secure-erase", cmd_secure_erase },
- 	{ "list", cmd_list },
- 	{ "help", cmd_help },
- 	#ifdef ENABLE_TEST
++	if (read_config_file((struct ndctl_ctx *)ctx, &monitor, &param))
++		goto out;
++
++	if (monitor.logfile && (strcmp(monitor.logfile, "./syslog") != 0)
++			&& (strcmp(monitor.logfile, "syslog") != 0)) {
++		fix_filename(prefix, (const char **)&monitor.logfile);
++		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
++	}
++
+ 	if (monitor.daemon) {
+ 		if (daemon(0, 0) != 0) {
+ 			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
+diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf
+new file mode 100644
+index 0000000..5c10a8d
+--- /dev/null
++++ b/ndctl/monitor.conf
+@@ -0,0 +1,41 @@
++# This is the main ndctl monitor configuration file. It contains the
++# configuration directives that give ndctl monitor instructions.
++# You can change the configuration of ndctl monitor by editing this
++# file or using [--config-file=<file>] option to override this one.
++# The changed value will work after restart ndctl monitor service.
++
++# In this file, lines starting with a hash (#) are comments.
++# The configurations should follow <key> = <value> style.
++# Multiple space-separated values are allowed, but except the following
++# characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
++
++# The objects to monitor are filtered via dimm's name by setting key "dimm".
++# If this value is different from the value of [--dimm=<value>] option,
++# both of the values will work.
++# dimm = all
++
++# The objects to monitor are filtered via its parent bus by setting key "bus".
++# If this value is different from the value of [--bus=<value>] option,
++# both of the values will work.
++# bus = all
++
++# The objects to monitor are filtered via region by setting key "region".
++# If this value is different from the value of [--region=<value>] option,
++# both of the values will work.
++# region = all
++
++# The objects to monitor are filtered via namespace by setting key "namespace".
++# If this value is different from the value of [--namespace=<value>] option,
++# both of the values will work.
++# namespace = all
++
++# The DIMM events to monitor are filtered via event type by setting key
++# "dimm-event". If this value is different from the value of
++# [--dimm-event=<value>] option, both of the values will work.
++# dimm-event = all
++
++# Users can choose to output the notifications to syslog (logfile=syslog)
++# or to write into a special file (logfile=<file>) by setting key "logfile".
++# If this value is in conflict with the value of [--logfile=<value>] option,
++# this value will be ignored.
++# logfile = /var/log/ndctl/monitor.log
+-- 
+2.18.0
+
 
 _______________________________________________
 Linux-nvdimm mailing list
