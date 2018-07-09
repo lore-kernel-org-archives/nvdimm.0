@@ -1,13 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EA5A2098EA8C
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 17:17:01 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] Documentation, create-namespace: clarify fsdax wording
-Date: Thu, 19 Jul 2018 18:16:56 -0600
-Message-Id: <20180720001656.16990-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F2CC120956071
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:24 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 70C72AC007E
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:20 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v10 4/4] ndctl, documentation: add manpage for monitor
+Date: Mon,  9 Jul 2018 23:17:18 +0900
+Message-Id: <20180709141718.6205-5-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,39 +29,134 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Reword the description of the fsdax mode in the create-namespace
-documentation to better distinguish when DAX can be used vs. how the raw
-block device will use the page cache.
+This patch is used to add manpage for ndctl monitor command.
 
-Link: https://github.com/pmem/issues/issues/915
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- Documentation/ndctl/ndctl-create-namespace.txt | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ Documentation/ndctl/Makefile.am       |  3 +-
+ Documentation/ndctl/ndctl-monitor.txt | 96 +++++++++++++++++++++++++++
+ 2 files changed, 98 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-monitor.txt
 
-diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
-index 4b8b0d1..343733d 100644
---- a/Documentation/ndctl/ndctl-create-namespace.txt
-+++ b/Documentation/ndctl/ndctl-create-namespace.txt
-@@ -68,10 +68,11 @@ OPTIONS
- 	  comes at the cost of allocating per-page metadata. The
- 	  capacity can be allocated from "System RAM", or from a
- 	  reserved portion of "Persistent Memory" (see the --map=
--	  option).  Note that a filesystem is required for dax
--	  operation, the resulting raw block device (/dev/pmemX) will
--	  use the page cache. See "devdax" mode for raw device access
--	  that supports dax.
-+	  option).  NOTE: A filesystem that supports DAX is required
-+	  for dax operation. If the raw block device (/dev/pmemX) is
-+	  used directly without a filesystem, it will use the page
-+	  cache. See "devdax" mode for raw device access that supports
-+	  dax.
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 4fd9636..a30b139 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -46,7 +46,8 @@ man1_MANS = \
+ 	ndctl-inject-error.1 \
+ 	ndctl-inject-smart.1 \
+ 	ndctl-update-firmware.1 \
+-	ndctl-list.1
++	ndctl-list.1 \
++	ndctl-monitor.1
  
- 	- "devdax": The device-dax character device interface is a
- 	  statically allocated / raw access analogue of filesystem-dax
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
+new file mode 100644
+index 0000000..037fdc7
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-monitor.txt
+@@ -0,0 +1,96 @@
++ndctl-monitor(1)
++================
++
++NAME
++----
++ndctl-monitor - Monitor the smart events of nvdimm objects
++
++SYNOPSIS
++--------
++[verse]
++'ndctl monitor' [<options>]
++
++DESCRIPTION
++-----------
++Ndctl monitor is used for monitoring the smart events of nvdimm
++objects and dumping the json format notifications to syslog or
++a logfile.
++
++The objects to monitor and smart evnets to notify can be selected
++by setting options and/or the default configuration file
++(/etc/ndctl/monitor.conf). Both of the values in configuration file
++and in options will work. If conflict, the values in options will
++override the values in configuration file. The changed values in
++configuration file will work after restart ndctl monitor.
++
++EXAMPLES
++--------
++
++Run a monitor as a daemon to monitor DIMMs on a provider named ndbus1
++[verse]
++ndctl monitor -b ndbus1 -f
++
++Run a monitor as a one-shot command and output the notifications to
++/var/log/ndctl.log
++[verse]
++ndctl monitor -l /var/log/ndctl.log
++
++Run a monitor daemon as a system service
++[verse]
++systemctl start ndctl-monitor.service
++
++OPTIONS
++-------
++-b::
++--bus=::
++	Enforce that the operation only be carried on devices that are
++	attached to the given bus. Where 'bus' can be a provider name
++	or a bus id number.
++
++-d::
++--dimm=::
++	A 'nmemX' device name, or dimm id number. Select the devices to
++	monitor refrerence the given dimm.
++
++-r::
++--region=::
++	A 'regionX' device name, or a region id number. The keyword 'all'
++	can be specified to carry out the operation on every region in
++	the system, optionally filtered by bus id (see --bus= option).
++
++-n::
++--namespace=::
++	A 'namespaceX.Y' device name, or namespace region plus id tuple
++	'X.Y'.
++
++-l <file | syslog>::
++--logfile=<file | syslog>::
++	Output notifications to <file> or syslog.
++
++-f::
++--daemon::
++	Run a monitor as a daemon.
++
++-D::
++--dimm-event=::
++	A name of smart events come NVDIMM DIMMs.
++	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
++	   below the pre-programmed threshold limit
++	- "dimm-media-temperature": NVDIMM Media temperature value has
++	   gone above the pre-programmed threshold limit
++	- "dimm-controller-temperature": NVDIMM Controller temperature
++	   value has gone above the pre-programmed threshold limit
++	- "dimm-health-state": NVDIMM Normal Health Status has changed
++	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a dirty
++	   shutdown.
++
++COPYRIGHT
++---------
++Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
++<http://gnu.org/licenses/gpl.html>. This is free software: you are
++free to change and redistribute it. There is NO WARRANTY, to the
++extent permitted by law.
++
++SEE ALSO
++--------
++linkndctl:ndctl-list[1]
 -- 
-2.14.4
+2.18.0
+
 
 _______________________________________________
 Linux-nvdimm mailing list
