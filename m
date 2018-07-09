@@ -1,9 +1,9 @@
-From: <sexbilder.von-wWbfSpUEOVvib0HD5BrFzQ@public.gmane.org>
-Subject: Staff Wanted
-Date: Mon, 09 Jul 2018 21:43:17 +0600
-Message-ID: <5B438295.4000703@bongfaschist.de>
+From: <fmfaqae-IWozMIuFO/tkvXmPx+7IGlaTQe2KTcn/@public.gmane.org>
+Subject: Good day!
+Date: 9 Jul 2018 22:10:22 +0100
+Message-ID: <5820A5A21BDD271C64E1E65F99635820@K3XFEN06ID0>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6668199392045047560=="
+Content-Type: multipart/mixed; boundary="===============6067948945674618265=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,8 +18,10 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format.
---===============6668199392045047560==
-Content-Type: text/plain; charset=CP-850; format=flowed
+
+--===============6067948945674618265==
+Content-Type: text/plain;
+	charset="cp-850"
 Content-Transfer-Encoding: quoted-printable
 
 Good day!
@@ -43,7 +45,7 @@ Attention! Accept applications only on this and next week.
 
 Respectively submitted
 Personnel department
---===============6668199392045047560==
+--===============6067948945674618265==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -54,4 +56,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============6668199392045047560==--
+--===============6067948945674618265==--
