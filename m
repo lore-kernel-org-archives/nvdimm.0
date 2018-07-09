@@ -1,15 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5322121B02845
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 16:00:15 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/4] ndctl, monitor: fix memory leak in read_config_file
-Date: Thu, 19 Jul 2018 16:59:56 -0600
-Message-Id: <20180719225958.6814-3-vishal.l.verma@intel.com>
-In-Reply-To: <20180719225958.6814-1-vishal.l.verma@intel.com>
-References: <20180719225958.6814-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 02E6D20336ABD
+ for <linux-nvdimm@lists.01.org>; Sun,  8 Jul 2018 23:31:10 -0700 (PDT)
+Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
+ (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
+ by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 778D6AC0146
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 15:31:03 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [PATCH v9 1/3] ndctl, monitor: add ndctl monitor
+Date: Mon, 9 Jul 2018 06:31:01 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA75AE5@g01jpexmbkw24>
+References: <20180629023050.29217-1-qi.fuli@jp.fujitsu.com>
+ <20180629023050.29217-2-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4iJDSutMKeosdrEFikJw=MSGNMgAJP--bO9jwoQ2iaAOQ@mail.gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3223DA75A82@g01jpexmbkw24>
+ <CAPcyv4hN6miOwApOzcsNa2GjFQFbNBDo5qV5gyTHBY71pMKWmw@mail.gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3223DA75AC6@g01jpexmbkw24>
+ <CAPcyv4jis9dsHEhen-n=sYrBJJrmgpZWCJvn3BaieOgkMFNk=Q@mail.gmail.com>
+In-Reply-To: <CAPcyv4jis9dsHEhen-n=sYrBJJrmgpZWCJvn3BaieOgkMFNk=Q@mail.gmail.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,137 +29,141 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: 'Dan Williams' <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis reports that we leak 'buf' in the above function. Free
-that, and refactor some of the error reporting to clean up the flow.
-Since the parser loop was modifying 'buf', it wasn't possible to
-directly free it. Introduce a 'seek' variable to seek within the buf so
-that buf itself remains untouched, and can later be freed.
-
-Fixes: 80dd56d82dd3 ("ndctl, monitor: add main ndctl monitor configuration file")
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/monitor.c | 44 +++++++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 21 deletions(-)
-
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index abab45f..4d25c2b 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -478,9 +478,9 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 		struct util_filter_params *_param)
- {
- 	FILE *f;
--	int line = 0;
- 	size_t len = 0;
--	char *buf, *value, *config_file;
-+	int line = 0, rc = 0;
-+	char *buf = NULL, *seek, *value, *config_file;
- 
- 	if (_monitor->config_file)
- 		config_file = strdup(_monitor->config_file);
-@@ -488,32 +488,36 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 		config_file = strdup(DEF_CONF_FILE);
- 	if (!config_file) {
- 		fail("strdup default config file failed\n");
-+		rc = -ENOMEM;
- 		goto out;
- 	}
- 
- 	buf = malloc(BUF_SIZE);
- 	if (!buf) {
- 		fail("malloc read config-file buf error\n");
-+		rc = -ENOMEM;
- 		goto out;
- 	}
-+	seek = buf;
- 
- 	f = fopen(config_file, "r");
- 	if (!f) {
- 		fail("config-file: %s cannot be opened\n", config_file);
-+		rc = -errno;
- 		goto out;
- 	}
- 
--	while (fgets(buf, BUF_SIZE, f)) {
-+	while (fgets(seek, BUF_SIZE, f)) {
- 		value = NULL;
- 		line++;
- 
--		while (isspace(*buf))
--			buf++;
-+		while (isspace(*seek))
-+			seek++;
- 
--		if (*buf == '#' || *buf == '\0')
-+		if (*seek == '#' || *seek == '\0')
- 			continue;
- 
--		value = strchr(buf, '=');
-+		value = strchr(seek, '=');
- 		if (!value) {
- 			fail("config-file syntax error, skip line[%i]\n", line);
- 			continue;
-@@ -525,12 +529,12 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 		while (isspace(value[0]))
- 			value++;
- 
--		len = strlen(buf);
-+		len = strlen(seek);
- 		if (len == 0)
- 			continue;
--		while (isspace(buf[len-1]))
-+		while (isspace(seek[len-1]))
- 			len--;
--		buf[len] = '\0';
-+		seek[len] = '\0';
- 
- 		len = strlen(value);
- 		if (len == 0)
-@@ -542,22 +546,20 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 		if (len == 0)
- 			continue;
- 
--		parse_config(&_param->bus, "bus", value, buf);
--		parse_config(&_param->dimm, "dimm", value, buf);
--		parse_config(&_param->region, "region", value, buf);
--		parse_config(&_param->namespace, "namespace", value, buf);
--		parse_config(&_monitor->dimm_event, "dimm-event", value, buf);
-+		parse_config(&_param->bus, "bus", value, seek);
-+		parse_config(&_param->dimm, "dimm", value, seek);
-+		parse_config(&_param->region, "region", value, seek);
-+		parse_config(&_param->namespace, "namespace", value, seek);
-+		parse_config(&_monitor->dimm_event, "dimm-event", value, seek);
- 
- 		if (!_monitor->log)
--			parse_config(&_monitor->log, "log", value, buf);
-+			parse_config(&_monitor->log, "log", value, seek);
- 	}
- 	fclose(f);
--	free(config_file);
--	return 0;
- out:
--	if (config_file)
--		free(config_file);
--	return 1;
-+	free(buf);
-+	free(config_file);
-+	return rc;
- }
- 
- int cmd_monitor(int argc, const char **argv, void *ctx)
--- 
-2.14.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0
+bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwgSnVseSA5LCAyMDE4
+IDM6MjcgUE0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5j
+b20+DQo+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQo+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggdjkgMS8zXSBuZGN0bCwgbW9uaXRvcjogYWRkIG5kY3RsIG1vbml0
+b3INCj4gDQo+IE9uIFN1biwgSnVsIDgsIDIwMTggYXQgMTE6MjIgUE0sIFFpLCBGdWxpIDxxaS5m
+dWxpQGpwLmZ1aml0c3UuY29tPiB3cm90ZToNCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
+LS0NCj4gPj4gRnJvbTogRGFuIFdpbGxpYW1zIFttYWlsdG86ZGFuLmoud2lsbGlhbXNAaW50ZWwu
+Y29tXQ0KPiA+PiBTZW50OiBNb25kYXksIEp1bHkgOSwgMjAxOCAzOjA0IFBNDQo+ID4+IFRvOiBR
+aSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPg0KPiA+PiBDYzogbGlu
+dXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPg0KPiA+PiBTdWJqZWN0OiBSZTog
+W1BBVENIIHY5IDEvM10gbmRjdGwsIG1vbml0b3I6IGFkZCBuZGN0bCBtb25pdG9yDQo+ID4+DQo+
+ID4+IE9uIFN1biwgSnVsIDgsIDIwMTggYXQgOTo1OSBQTSwgUWksIEZ1bGkgPHFpLmZ1bGlAanAu
+ZnVqaXRzdS5jb20+IHdyb3RlOg0KPiA+PiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+PiA+PiA+PiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0bzpkYW4uai53aWxsaWFtc0BpbnRlbC5j
+b21dDQo+ID4+ID4+IFNlbnQ6IFN1bmRheSwgSnVseSA4LCAyMDE4IDU6MDYgQU0NCj4gPj4gPj4g
+VG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+DQo+ID4+ID4+
+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQo+ID4+ID4+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggdjkgMS8zXSBuZGN0bCwgbW9uaXRvcjogYWRkIG5kY3RsIG1vbml0
+b3INCj4gPj4gPj4NCj4gPj4gPj4gT24gVGh1LCBKdW4gMjgsIDIwMTggYXQgNzozMCBQTSwgUUkg
+RnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4gd3JvdGU6DQo+ID4+ID4+ID4gTmRjdGwgbW9u
+aXRvciBpcyB1c2VkIGZvciBtb25pdG9yaW5nIHRoZSBzbWFydCBldmVudHMgb2YgbnZkaW1tIERJ
+TU1zLg0KPiA+PiA+PiA+IFdoZW4gYSBzbWFydCBldmVudCBmaXJlcywgbW9uaXRvciB3aWxsIG91
+dHB1dCB0aGUgbm90aWZpY2F0aW9ucw0KPiA+PiA+PiA+IHdoaWNoIGluY2x1ZGUgZGltbSBoZWFs
+dGggc3RhdHVzIGFuZCBldm5ldCBpbmZvcm1hdGlvbnMgdG8NCj4gPj4gPj4gPiBzeXNsb2cgb3Ig
+YSBsb2dmaWxlIGJ5IHNldHRpbmcgWy0tbG9nZmlsZV0gb3B0aW9uLiBUaGUNCj4gPj4gPj4gPiBu
+b3RpZmljYXRpb25zIGZvbGxvdyBqc29uIGZvcm1hdCBhbmQgY2FuIGJlIGNvbnN1bWVkIGJ5IGxv
+ZyBjb2xsZWN0b3JzIGxpa2UNCj4gRmx1ZW50ZC4NCj4gPj4gPj4gPg0KPiA+PiA+PiA+IFRoZSBv
+YmplY3RzIHRvIG1vbml0b3IgY2FuIGJlIHNlbGVjdGVkIGJ5IHNldHRpbmcgWy0tZGltbV0NCj4g
+Pj4gPj4gPiBbLS1yZWdpb25dIFstLW5hbWVzcGFjZV0gWy0tYnVzXSBvcHRpb25zIGFuZCB0aGUg
+ZXZlbnQgdHlwZSBjYW4NCj4gPj4gPj4gPiBiZSBmaWx0ZXJlZCBieSBzZXR0aW5nIFstLWRpbW0t
+ZXZlbnRdIG9wdGlvbi4gVGhlc2Ugb3B0aW9ucw0KPiA+PiA+PiA+IHN1cHBvcnQgbXVsdGlwbGUg
+c3BhY2Utc2VwYXJhdGVkIGFyZ3VtZW50cy4NCj4gPj4gPj4gPg0KPiA+PiA+PiA+IE5kY3RsIG1v
+bml0b3IgY2FuIGJlIGZvcmtlZCBhcyBhIGRhZW1vbiBieSB1c2luZyBbLS1kYWVtb25dDQo+ID4+
+ID4+ID4gb3B0aW9uLCBzdWNoIGFzOg0KPiA+PiA+PiA+ICAgICMgbmRjdGwgbW9uaXRvciAtLWRh
+ZW1vbiAtLWxvZ2ZpbGUgL3Zhci9sb2cvbmRjdGwvbW9uaXRvci5sb2cNCj4gPj4gPj4gPg0KPiA+
+PiA+PiA+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+DQo+
+ID4+ID4+ID4gLS0tDQo+ID4+ID4+ID4gIGJ1aWx0aW4uaCAgICAgICAgICAgICAgfCAgIDEgKw0K
+PiA+PiA+PiA+ICBuZGN0bC9NYWtlZmlsZS5hbSAgICAgIHwgICAzICstDQo+ID4+ID4+ID4gIG5k
+Y3RsL2xpYi9saWJuZGN0bC5zeW0gfCAgIDEgKw0KPiA+PiA+PiA+ICBuZGN0bC9saWIvc21hcnQu
+YyAgICAgIHwgIDE3ICsrDQo+ID4+ID4+ID4gIG5kY3RsL2xpYm5kY3RsLmggICAgICAgfCAgIDYg
+Kw0KPiA+PiA+PiA+ICBuZGN0bC9tb25pdG9yLmMgICAgICAgIHwgNTMxICsrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ID4+ID4+ID4gIG5kY3RsL25kY3RsLmMgICAg
+ICAgICAgfCAgIDEgKw0KPiA+PiA+PiA+ICB1dGlsL2ZpbHRlci5oICAgICAgICAgIHwgICA5ICsN
+Cj4gPj4gPj4gPiAgOCBmaWxlcyBjaGFuZ2VkLCA1NjggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlv
+bigtKSAgY3JlYXRlIG1vZGUNCj4gPj4gPj4gPiAxMDA2NDQgbmRjdGwvbW9uaXRvci5jDQo+ID4+
+ID4+ID4NCj4gPj4gPj4gPiBkaWZmIC0tZ2l0IGEvYnVpbHRpbi5oIGIvYnVpbHRpbi5oIGluZGV4
+IGQzY2M3MjMuLjY3NWE2Y2UgMTAwNjQ0DQo+ID4+ID4+ID4gLS0tIGEvYnVpbHRpbi5oDQo+ID4+
+ID4+ID4gKysrIGIvYnVpbHRpbi5oDQo+ID4+ID4+ID4gQEAgLTM5LDYgKzM5LDcgQEAgaW50IGNt
+ZF9pbmplY3RfZXJyb3IoaW50IGFyZ2MsIGNvbnN0IGNoYXINCj4gPj4gPj4gPiAqKmFyZ3YsIHZv
+aWQgKmN0eCk7ICBpbnQgY21kX3dhaXRfc2NydWIoaW50IGFyZ2MsIGNvbnN0IGNoYXINCj4gPj4g
+Pj4gPiAqKmFyZ3YsIHZvaWQgKmN0eCk7ICBpbnQgY21kX3N0YXJ0X3NjcnViKGludCBhcmdjLCBj
+b25zdCBjaGFyDQo+ID4+ID4+ID4gKiphcmd2LCB2b2lkICpjdHgpOyBpbnQgY21kX2xpc3QoaW50
+IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LA0KPiA+PiA+PiA+IHZvaWQgKmN0eCk7DQo+ID4+ID4+
+ID4gK2ludCBjbWRfbW9uaXRvcihpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHZvaWQgKmN0
+eCk7DQo+ID4+ID4+ID4gICNpZmRlZiBFTkFCTEVfVEVTVA0KPiA+PiA+PiA+ICBpbnQgY21kX3Rl
+c3QoaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCB2b2lkICpjdHgpOyAgI2VuZGlmDQo+ID4+
+ID4+ID4gZGlmZiAtLWdpdCBhL25kY3RsL01ha2VmaWxlLmFtIGIvbmRjdGwvTWFrZWZpbGUuYW0g
+aW5kZXgNCj4gPj4gPj4gPiBkMjJhMzc5Li43ZGJmMjIzDQo+ID4+ID4+ID4gMTAwNjQ0DQo+ID4+
+ID4+ID4gLS0tIGEvbmRjdGwvTWFrZWZpbGUuYW0NCj4gPj4gPj4gPiArKysgYi9uZGN0bC9NYWtl
+ZmlsZS5hbQ0KPiA+PiA+PiA+IEBAIC0xNiw3ICsxNiw4IEBAIG5kY3RsX1NPVVJDRVMgPSBuZGN0
+bC5jIFwNCj4gPj4gPj4gPiAgICAgICAgICAgICAgICAgdXRpbC9qc29uLXNtYXJ0LmMgXA0KPiA+
+PiA+PiA+ICAgICAgICAgICAgICAgICB1dGlsL2pzb24tZmlybXdhcmUuYyBcDQo+ID4+ID4+ID4g
+ICAgICAgICAgICAgICAgIGluamVjdC1lcnJvci5jIFwNCj4gPj4gPj4gPiAtICAgICAgICAgICAg
+ICAgaW5qZWN0LXNtYXJ0LmMNCj4gPj4gPj4gPiArICAgICAgICAgICAgICAgaW5qZWN0LXNtYXJ0
+LmMgXA0KPiA+PiA+PiA+ICsgICAgICAgICAgICAgICBtb25pdG9yLmMNCj4gPj4gPj4gPg0KPiA+
+PiA+PiA+ICBpZiBFTkFCTEVfREVTVFJVQ1RJVkUNCj4gPj4gPj4gPiAgbmRjdGxfU09VUkNFUyAr
+PSAuLi90ZXN0L2Jsa19uYW1lc3BhY2VzLmMgXCBkaWZmIC0tZ2l0DQo+ID4+ID4+ID4gYS9uZGN0
+bC9saWIvbGlibmRjdGwuc3ltIGIvbmRjdGwvbGliL2xpYm5kY3RsLnN5bSBpbmRleA0KPiA+PiA+
+PiA+IGU5Mzk5OTMuLmY2NGRmNTYgMTAwNjQ0DQo+ID4+ID4+ID4gLS0tIGEvbmRjdGwvbGliL2xp
+Ym5kY3RsLnN5bQ0KPiA+PiA+PiA+ICsrKyBiL25kY3RsL2xpYi9saWJuZGN0bC5zeW0NCj4gPj4g
+Pj4gPiBAQCAtMzY2LDQgKzM2Niw1IEBAIGdsb2JhbDoNCj4gPj4gPj4gPiAgICAgICAgIG5kY3Rs
+X25hbWVzcGFjZV9pbmplY3RfZXJyb3IyOw0KPiA+PiA+PiA+ICAgICAgICAgbmRjdGxfbmFtZXNw
+YWNlX3VuaW5qZWN0X2Vycm9yMjsNCj4gPj4gPj4gPiAgICAgICAgIG5kY3RsX2NtZF9hcnNfc3Rh
+dF9nZXRfZmxhZ19vdmVyZmxvdzsNCj4gPj4gPj4gPiArICAgICAgIG5kY3RsX2NtZF9zbWFydF9n
+ZXRfZXZlbnRfZmxhZ3M7DQo+ID4+ID4+ID4gIH0gTElCTkRDVExfMTU7DQo+ID4+ID4+ID4gZGlm
+ZiAtLWdpdCBhL25kY3RsL2xpYi9zbWFydC5jIGIvbmRjdGwvbGliL3NtYXJ0LmMgaW5kZXgNCj4g
+Pj4gPj4gPiAwNDU1MjUyLi45MGE2NWQwIDEwMDY0NA0KPiA+PiA+PiA+IC0tLSBhL25kY3RsL2xp
+Yi9zbWFydC5jDQo+ID4+ID4+ID4gKysrIGIvbmRjdGwvbGliL3NtYXJ0LmMNCj4gPj4gPj4gPiBA
+QCAtMTAxLDYgKzEwMSwyMyBAQCBORENUTF9FWFBPUlQgdW5zaWduZWQgaW50DQo+ID4+ID4+ID4g
+bmRjdGxfY21kX3NtYXJ0X3RocmVzaG9sZF9nZXRfdGVtcGVyYXR1cmUoDQo+ID4+ID4+ID4NCj4g
+Pj4gPj4gPiAgc21hcnRfY21kX29wKHNtYXJ0X3RocmVzaG9sZF9nZXRfc3VwcG9ydGVkX2FsYXJt
+cywgdW5zaWduZWQNCj4gPj4gPj4gPiBpbnQsIDApOw0KPiA+PiA+PiA+DQo+ID4+ID4+ID4gK05E
+Q1RMX0VYUE9SVCB1bnNpZ25lZCBpbnQNCj4gPj4gPj4gPiArbmRjdGxfY21kX3NtYXJ0X2dldF9l
+dmVudF9mbGFncyhzdHJ1Y3QNCj4gPj4gPj4gPiArbmRjdGxfY21kICpjbWQpDQo+ID4+ID4+DQo+
+ID4+ID4+IE15IGV4cGVjdGF0aW9uIGZvciB0aGlzIG5kY3RsXypfZ2V0X2V2ZW50X2ZsYWdzKCkg
+YXBpIHdhcyB0byBoYXZlIGl0IGJlOg0KPiA+PiA+Pg0KPiA+PiA+PiAgICAgbmRjdGxfZGltbV9n
+ZXRfZXZlbnRfZmxhZ3MoKQ0KPiA+PiA+Pg0KPiA+PiA+PiAuLi5hbmQgd2l0aCB0aGF0IGluIHBs
+YWNlIGdldCByaWQgb2YgdGhlICdzdHJ1Y3QgbW9uaXRvcl9kaW1tJyBvYmplY3QuDQo+ID4+ID4+
+IFB1c2ggZXZlcnl0aGluZyB0byBiZSByZXRyaWV2ZWQgdGhyb3VnaCBhcGkgY2FsbHMgYWdhaW5z
+dCBhICdzdHJ1Y3QgbmRjdGxfZGltbScNCj4gPj4gb2JqZWN0Lg0KPiA+PiA+PiBJbiBvdGhlciB3
+b3JkcywgdGhlIHVzYWdlIG9mICdzdHJ1Y3QgbmRjdGxfY21kJw0KPiA+PiA+PiBzaG91bGQgYmUg
+aGlkZGVuIGFuZCBhbGwgbW9uaXRvciBvcGVyYXRpb25zIHNob3VsZCBiZSBkb25lIGluDQo+ID4+
+ID4+IHRlcm1zIG9mICdzdHJ1Y3QgbmRjdGxfZGltbScgaGVscGVyIGNhbGxzLg0KPiA+PiA+Pg0K
+PiA+PiA+IEhpIERhbiwNCj4gPj4gPiBUaGFua3MgZm9yIHlvdXIgY29tbWVudHMuDQo+ID4+ID4N
+Cj4gPj4gPiBJbiB0aGUgdjkgb2YgbW9uaXRvciwgSSB1c2UgdGhlICdzdHJ1Y3QgbmRjdGxfY21k
+JyBvYmplY3QgaW4gdGhlIGZvbGxvd2luZyBwbGFjZXM6DQo+ID4+ID4gICAgICAgICBuZGN0bF9j
+bWRfc21hcnRfZ2V0X2ZsYWdzKHN0cnVjdCBuZGN0bF9jbWQgKmNtZCkNCj4gPj4gPiAgICAgICAg
+IG5kY3RsX2NtZF9zbWFydF9nZXRfaGVhbHRoKHN0cnVjdCBuZGN0bF9jbWQgKmNtZCkNCj4gPj4g
+PiAgICAgICAgIG5kY3RsX2NtZF9zbWFydF9nZXRfZXZlbnRfZmxhZ3Moc3RydWN0IG5kY3RsX2Nt
+ZCAqY21kKSBJcw0KPiA+PiA+IGl0IHRoYXQgeW91IHdhbnQgdG8gaGlkZSBhbGwgb2YgdGhlICdz
+dHJ1Y3QgbmRjdGxfY21kJyBvYmplY3RzIGFuZA0KPiA+PiA+IGFkZCB0aGUgZm9sbG93aW5nDQo+
+ID4+ICdzdHJ1Y3QgbmRjdGxfZGltbScgaGVscGVyIGNhbGxzPw0KPiA+Pg0KPiA+PiBJJ20gcHJp
+bWFyaWx5IHJlYWN0aW5nIHRvOg0KPiA+Pg0KPiA+PiArc3RydWN0IG1vbml0b3JfZGltbSB7DQo+
+ID4+ICsgICAgICAgc3RydWN0IG5kY3RsX2RpbW0gKmRpbW07DQo+ID4+ICsgICAgICAgaW50IGhl
+YWx0aF9ldmVudGZkOw0KPiA+PiArICAgICAgIHVuc2lnbmVkIGludCBoZWFsdGg7DQo+ID4+ICsg
+ICAgICAgdW5zaWduZWQgaW50IGV2ZW50X2ZsYWdzOw0KPiA+PiArICAgICAgIHN0cnVjdCBsaXN0
+X25vZGUgbGlzdDsNCj4gPj4gK307DQo+ID4+DQo+ID4+IFdoaWNoIGlzIGVmZmVjdGl2ZWx5IGR1
+cGxpY2F0aW5nIG5kY3RsX2RpbW0gaW50ZXJuYWwgZGF0YS4NCj4gPj4NCj4gPj4gPiAgICAgICAg
+IG5kY3RsX2RpbW1fZ2V0X2ZsYWdzKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tKQ0KPiA+PiA+ICAg
+ICAgICAgbmRjdGxfZGltbV9nZXRfaGVhbHRoKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tKQ0KPiA+
+PiA+ICAgICAgICAgbmRjdGxfZGltbV9nZXRfZXZlbnRfZmxhZ3Moc3RydWN0IG5kY3RsX2RpbW0g
+KmRpbW0pDQo+ID4+DQo+ID4+IEkgdW5kZXJzdGFuZCB3aHkgd2UgbmVlZCBuZGN0bF9kaW1tX2dl
+dF9ldmVudF9mbGFncygpIHNpbmNlIHRoYXQNCj4gPj4gdGVsbHMgeW91IHdoYXQgZXZlbnRzIGhh
+dmUgZmlyZWQuIFdoeSBkbyB3ZSBuZWVkIHRoZSBvdGhlciAyPyBJZiB0aGUNCj4gPj4gZXZlbnQg
+aGFzIGZpcmVkIHRoZW4gdGhlIG1vbml0b3IgcHJvY2VlZHMgdG8gY2FsbCB1dGlsX2RpbW1faGVh
+bHRoX3RvX2pzb24uDQo+ID4+IElzIHRoYXQgbm90IHN1ZmZpY2llbnQ/DQo+ID4+DQo+ID4gQWJv
+dXQgbmRjdGxfZGltbV9nZXRfZmxhZ3Moc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0pLCBJIHRoaW5r
+IHRoZQ0KPiBORF9TTUFSVF9BTEFSTV9WQUxJRCBvZiBESU1NIHNob3VsZCBiZSBjb25maXJtZWQg
+YmVmb3JlIG1vbml0b3Igc3RhcnQuDQo+ID4gSWYgdGhlIHNtYXJ0IGFsYXJtIGludmFsaWQsIHRo
+ZSBESU1NIG5vIG5lZWQgdG8gbW9uaXRvci4NCj4gPiBBbHNvLCB0aGUgbW9uaXRvciBzaG91bGQg
+a25vdyB0aGUgaGVhbHRoIG9mIERJTU0gd2hlbiBpdCBzdGFydHMuIFdoZW4gYW4gZXZlbnQNCj4g
+ZmlyZXMsIHRoZW4gY29tcGFyZSBpdCB3aXRoIGN1cnJlbnQgaGVhbHRoIG9mIERJTU0uDQo+ID4g
+VGhlcmVmb3JlLCB3ZSBjb3VsZCBrbm93IGlmIHRoZSBkaW1tLWhlYWx0aC1zdGF0ZSBldmVudCBm
+aXJlZC4NCj4gDQo+IE9rLCBidXQgdGhhdCBzb3VuZHMgbGlrZSB0d28gQVBJcy4gX2dldF9zdXBw
+b3J0ZWRfZmxhZ3MoKSBhbmQgX2dldF9mbGFncygpLg0KPiANCk9rLCBJIHdpbGwgYWRkIGJvdGgg
+X2dldF9zdXBwb3J0ZWRfZmxhZ3MoKSBhbmQgX2dldF9mbGFncygpLg0KVGhhbmsgeW91IHZlcnkg
+bXVjaC4NClFpDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
