@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBF61210C0F4C
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 00:16:55 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v3 3/6] tools/testing/nvdimm: kaddr and pfn can be NULL to
- ->direct_access()
-Date: Mon, 30 Jul 2018 15:15:45 +0800
-Message-Id: <20180730071548.9172-4-yehs2007@zoho.com>
-In-Reply-To: <20180730071548.9172-1-yehs2007@zoho.com>
-References: <20180730071548.9172-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3ADD202E5484
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 01:23:18 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V2 1/4] kvm: remove redundant reserved page check
+Date: Wed, 11 Jul 2018 01:01:33 +0800
+Message-Id: <3266d45a10db6d22e3978eacbe2683d43aec3100.1531241281.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
+References: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,61 +22,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: jack@suse.cz, snitzer@redhat.com, heiko.carstens@de.ibm.com, dm-devel@redhat.com, agk@redhat.com, linux-s390@vger.kernel.org, willy@infradead.org, bart.vanassche@wdc.com, keescook@chromium.org, chengnt@lenovo.com, colyli@suse.de, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, axboe@kernel.dk, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
+Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+PageReserved() is already checked inside kvm_is_reserved_pfn(),
+remove it from kvm_set_pfn_dirty().
 
-The mock / test version of pmem_direct_access() needs to check the
-validity of pointers kaddr and pfn for NULL assignment. If anyone
-equals to NULL, it doesn't need to calculate the value.
-
-If pointer equals to NULL, that is to say callers may have no need for
-kaddr or pfn, so this patch is prepared for allowing them to pass in
-NULL instead of having to pass in a local pointer or variable that
-they then just throw away.
-
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
 ---
- tools/testing/nvdimm/pmem-dax.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ virt/kvm/kvm_main.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
-index b53596a..2e7fd82 100644
---- a/tools/testing/nvdimm/pmem-dax.c
-+++ b/tools/testing/nvdimm/pmem-dax.c
-@@ -31,17 +31,21 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 	if (get_nfit_res(pmem->phys_addr + offset)) {
- 		struct page *page;
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index c7b2e92..afb2e6e 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -1673,12 +1673,8 @@ EXPORT_SYMBOL_GPL(kvm_release_pfn_dirty);
  
--		*kaddr = pmem->virt_addr + offset;
-+		if (kaddr)
-+			*kaddr = pmem->virt_addr + offset;
- 		page = vmalloc_to_page(pmem->virt_addr + offset);
--		*pfn = page_to_pfn_t(page);
-+		if (pfn)
-+			*pfn = page_to_pfn_t(page);
- 		pr_debug_ratelimited("%s: pmem: %p pgoff: %#lx pfn: %#lx\n",
- 				__func__, pmem, pgoff, page_to_pfn(page));
+ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
+ {
+-	if (!kvm_is_reserved_pfn(pfn)) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		if (!PageReserved(page))
+-			SetPageDirty(page);
+-	}
++	if (!kvm_is_reserved_pfn(pfn))
++		SetPageDirty(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL_GPL(kvm_set_pfn_dirty);
  
- 		return 1;
- 	}
- 
--	*kaddr = pmem->virt_addr + offset;
--	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
-+	if (kaddr)
-+		*kaddr = pmem->virt_addr + offset;
-+	if (pfn)
-+		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
- 
- 	/*
- 	 * If badblocks are present, limit known good range to the
 -- 
-1.8.3.1
-
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
