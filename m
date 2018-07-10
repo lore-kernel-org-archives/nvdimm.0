@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9B49E2097E277
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 08:47:33 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv3 2/2] libnvdimm: Export max available extent
-Date: Thu, 12 Jul 2018 09:47:09 -0600
-Message-Id: <20180712154709.16444-2-keith.busch@intel.com>
-In-Reply-To: <20180712154709.16444-1-keith.busch@intel.com>
-References: <20180712154709.16444-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 06831209605AF
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 20:11:07 -0700 (PDT)
+Date: Tue, 10 Jul 2018 11:10:55 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [kbuild-all] [PATCH v6 2/4] resource: Use list_head to link
+ sibling resource
+Message-ID: <20180710031055.GC1969@MiWiFi-R3L-srv>
+References: <20180704041038.8190-3-bhe@redhat.com>
+ <201807042347.hfDcKxmG%fengguang.wu@intel.com>
+ <20180708025946.GI3047@MiWiFi-R3L-srv>
+ <20180710005927.GG10005@yexl-desktop>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180710005927.GG10005@yexl-desktop>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,62 +23,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+To: Ye Xiaolong <xiaolong.ye@intel.com>
+Cc: nicolas.pitre@linaro.org, brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, andy.shevchenko@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, bp@suse.de, dyoung@redhat.com, kbuild-all@01.org, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, josh@joshtriplett.org, jglisse@redhat.com, robh+dt@kernel.org, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, ebiederm@xmission.com, devel@linuxdriverproject.org, akpm@linux-foundation.org, fengguang.wu@intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'available_size' attribute showing the combined total of all
-unallocated space isn't always useful to know how large of a namespace
-a user may be able to allocate if the region is fragmented. This patch
-will export the largest extent of unallocated space that may be allocated
-to create a new namespace.
+On 07/10/18 at 08:59am, Ye Xiaolong wrote:
+> Hi,
+> 
+> On 07/08, Baoquan He wrote:
+> >Hi,
+> >
+> >On 07/05/18 at 01:00am, kbuild test robot wrote:
+> >> Hi Baoquan,
+> >> 
+> >> I love your patch! Yet something to improve:
+> >> 
+> >> [auto build test ERROR on linus/master]
+> >> [also build test ERROR on v4.18-rc3 next-20180704]
+> >> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> >
+> >Thanks for telling. 
+> >
+> >I cloned 0day-ci/linut to my local pc.
+> >https://github.com/0day-ci/linux.git
+> >
+> >However, I didn't find below branch. And tried to open it in web
+> >broswer, also failed.
+> >
+> 
+> Sorry for the inconvenience, 0day bot didn't push the branch to github successfully,
+> Just push it manually, you can have a try again.
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- drivers/nvdimm/region_devs.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Thanks, Xiaolong, I have applied them on top of linux-next/master, and
+copy the config file attached, and run the command to reproduce as
+suggested. Now I have fixed all those issues reported, will repost.
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index c30d5af02cc2..fa37afcd43ff 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -434,6 +434,21 @@ static ssize_t available_size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(available_size);
- 
-+static ssize_t max_available_extent_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	unsigned long long available = 0;
-+
-+	nvdimm_bus_lock(dev);
-+	wait_nvdimm_bus_probe_idle(dev);
-+	available = nd_region_allocatable_dpa(nd_region);
-+	nvdimm_bus_unlock(dev);
-+
-+	return sprintf(buf, "%llu\n", available);
-+}
-+static DEVICE_ATTR_RO(max_available_extent);
-+
- static ssize_t init_namespaces_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -585,6 +600,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_read_only.attr,
- 	&dev_attr_set_cookie.attr,
- 	&dev_attr_available_size.attr,
-+	&dev_attr_max_available_extent.attr,
- 	&dev_attr_namespace_seed.attr,
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_badblocks.attr,
--- 
-2.14.3
-
+> 
+> >
+> >> url:    https://github.com/0day-ci/linux/commits/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180704-121402
+> >> config: mips-rb532_defconfig (attached as .config)
+> >> compiler: mipsel-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+> >> reproduce:
+> >>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+> >>         chmod +x ~/bin/make.cross
+> >>         # save the attached .config to linux build tree
+> >>         GCC_VERSION=7.2.0 make.cross ARCH=mips 
+> >
+> >I did find a old one which is for the old version 5 post.
+> >
+> >[bhe@linux]$ git remote -v
+> >0day-ci	https://github.com/0day-ci/linux.git (fetch)
+> >0day-ci	https://github.com/0day-ci/linux.git (push)
+> >[bhe@dhcp-128-28 linux]$ git branch -a| grep Baoquan| grep resource
+> >  remotes/0day-ci/Baoquan-He/resource-Use-list_head-to-link-sibling-resource/20180612-113600
+> >
+> >Could you help have a look at this?
+> >
+> >Thanks
+> >Baoquan
+> >
+> >> 
+> >> All error/warnings (new ones prefixed by >>):
+> >> 
+> >> >> arch/mips/pci/pci-rc32434.c:57:11: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
+> >>      .child = &rc32434_res_pci_mem2
+> >>               ^
+> >>    arch/mips/pci/pci-rc32434.c:57:11: note: (near initialization for 'rc32434_res_pci_mem1.child.next')
+> >> >> arch/mips/pci/pci-rc32434.c:51:47: warning: missing braces around initializer [-Wmissing-braces]
+> >>     static struct resource rc32434_res_pci_mem1 = {
+> >>                                                   ^
+> >>    arch/mips/pci/pci-rc32434.c:60:47: warning: missing braces around initializer [-Wmissing-braces]
+> >>     static struct resource rc32434_res_pci_mem2 = {
+> >>                                                   ^
+> >>    cc1: some warnings being treated as errors
+> >> 
+> >> vim +57 arch/mips/pci/pci-rc32434.c
+> >> 
+> >> 73b4390f Ralf Baechle 2008-07-16  50  
+> >> 73b4390f Ralf Baechle 2008-07-16 @51  static struct resource rc32434_res_pci_mem1 = {
+> >> 73b4390f Ralf Baechle 2008-07-16  52  	.name = "PCI MEM1",
+> >> 73b4390f Ralf Baechle 2008-07-16  53  	.start = 0x50000000,
+> >> 73b4390f Ralf Baechle 2008-07-16  54  	.end = 0x5FFFFFFF,
+> >> 73b4390f Ralf Baechle 2008-07-16  55  	.flags = IORESOURCE_MEM,
+> >> 73b4390f Ralf Baechle 2008-07-16  56  	.sibling = NULL,
+> >> 73b4390f Ralf Baechle 2008-07-16 @57  	.child = &rc32434_res_pci_mem2
+> >> 73b4390f Ralf Baechle 2008-07-16  58  };
+> >> 73b4390f Ralf Baechle 2008-07-16  59  
+> >> 
+> >> :::::: The code at line 57 was first introduced by commit
+> >> :::::: 73b4390fb23456964201abda79f1210fe337d01a [MIPS] Routerboard 532: Support for base system
+> >> 
+> >> :::::: TO: Ralf Baechle <ralf@linux-mips.org>
+> >> :::::: CC: Ralf Baechle <ralf@linux-mips.org>
+> >> 
+> >> ---
+> >> 0-DAY kernel test infrastructure                Open Source Technology Center
+> >> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> >
+> >
+> >_______________________________________________
+> >kbuild-all mailing list
+> >kbuild-all@lists.01.org
+> >https://lists.01.org/mailman/listinfo/kbuild-all
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
