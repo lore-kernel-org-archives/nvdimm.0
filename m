@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk0-x244.google.com (mail-qk0-x244.google.com
- [IPv6:2607:f8b0:400d:c09::244])
+Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
+ [IPv6:2607:f8b0:400d:c0d::244])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B489821A143EF
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 13:25:05 -0700 (PDT)
-Received: by mail-qk0-x244.google.com with SMTP id z74-v6so12296074qkb.10
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 13:25:05 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C9CFE2096FAB1
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 08:11:04 -0700 (PDT)
+Received: by mail-qt0-x244.google.com with SMTP id l10-v6so18610635qtj.0
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 08:11:04 -0700 (PDT)
 Subject: Re: [ndctl PATCH v4] ndctl, test: add a new unit test for monitor
 References: <20180710100457.23505-1-qi.fuli@jp.fujitsu.com>
-Message-ID: <ec1dec9f-1abf-9285-9d5c-bcb77bfd0f05@gmail.com>
-Date: Tue, 10 Jul 2018 16:25:03 -0400
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <130ee464-169d-6ec2-9cbf-44a4395400d3@gmail.com>
+Date: Tue, 10 Jul 2018 11:11:01 -0400
 MIME-Version: 1.0
 In-Reply-To: <20180710100457.23505-1-qi.fuli@jp.fujitsu.com>
 Content-Language: en-US
@@ -29,6 +29,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hi Qi
+
+Thank you for creating the v4 test, but unfortunately the test has failed...
 
 On 07/10/2018 06:04 AM, QI Fuli wrote:
 > Add a new unit test to test the following options of the monitor command.
@@ -38,22 +41,6 @@ On 07/10/2018 06:04 AM, QI Fuli wrote:
 >    --namespace
 >    --logfile
 >    --config-file
-
-Why don't you add '-D' option test? Like as:
-
-test_filter_dimmevent()
-{
-        get_monitor_dimm
-        monitor_dimms="$(echo $monitor_dimms | awk '{print $1}')"
-        start_monitor "-d $monitor_dimms -D dimm-unclean-shutdown"
-        $NDCTL inject-smart -U $monitor_dimms
-        check_result
-        stop_monitor
-}
-
-Thanks,
-Masa
-
 > 
 > Based-on-patch-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 > Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
@@ -353,9 +340,24 @@ Masa
 > +test_filter_namespace()
 > +{
 > +	monitor_dimms=""
+
 > +	monitor_namespace=$($NDCTL list -N -b $smart_supported_bus | jq -r .[0].dev)
 > +	[ -z $monitor_namespace ] && monitor_namespace="namespace1.0"
 > +	$NDCTL create-namespace -b $smart_supported_bus -n $monitor_namespace
+
+namespace1.0 may be used by the other bus. Actually my test failed because
+namespace1.0 was used by the other bus.
+How about the following instead?
+
+-       monitor_namespace=$($NDCTL list -N -b $smart_supported_bus | jq -r .[0].dev)
+-       [ -z $monitor_namespace ] && monitor_namespace="namespace1.0"
+-       $NDCTL create-namespace -b $smart_supported_bus -n $monitor_namespace
++       init
++       monitor_namespace=$($NDCTL create-namespace -b $smart_supported_bus | jq -r .dev)
+
+Thanks,
+Masa
+
 > +	get_monitor_dimm "-n $monitor_namespace"
 > +	start_monitor "-n $monitor_namespace"
 > +	call_notify
