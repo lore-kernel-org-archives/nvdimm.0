@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mail1.bemta24.messagelabs.com (mail1.bemta24.messagelabs.com
+ [67.219.250.2])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE78F210C2D6E
- for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 11:36:27 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl,
- inject-smart: Fix man page to match the current behavior
-Date: Fri, 27 Jul 2018 12:36:23 -0600
-Message-Id: <20180727183623.14176-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5D410209605A3
+ for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 20:20:24 -0700 (PDT)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External]  Re: A question about ndctl namespace
+Date: Tue, 10 Jul 2018 03:20:12 +0000
+Message-ID: <TY2PR03MB33435CCC43835DF31DF35604925B0@TY2PR03MB3343.apcprd03.prod.outlook.com>
+References: <TY2PR03MB3343CA3696614BA3B2D546CE925B0@TY2PR03MB3343.apcprd03.prod.outlook.com>
+ <CAPcyv4hAQSSWoGRQMSZ9BtSEW_0M982YbSF0dR8x5zyquvMUpw@mail.gmail.com>
+In-Reply-To: <CAPcyv4hAQSSWoGRQMSZ9BtSEW_0M982YbSF0dR8x5zyquvMUpw@mail.gmail.com>
+Content-Language: zh-CN
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,51 +21,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: NingTing Cheng <chengnt@lenovo.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The inject-smart man page had a -H option for health status, which was
-from a previous development iteration, and not how it actually works.
-Fix it to advertise a -f flag for setting fatal status, and remove an
-unnecessart '=' from the unsafe-shutdown option as it doesn't accept any
-additional arguments.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Documentation/ndctl/ndctl-inject-smart.txt | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/Documentation/ndctl/ndctl-inject-smart.txt b/Documentation/ndctl/ndctl-inject-smart.txt
-index 0dc6481..20a1621 100644
---- a/Documentation/ndctl/ndctl-inject-smart.txt
-+++ b/Documentation/ndctl/ndctl-inject-smart.txt
-@@ -77,13 +77,12 @@ OPTIONS
- --spares-alarm=::
- 	Enable or disable the smart spares alarm. Options are 'on' or 'off'.
- 
---H::
----health=::
--	Smart attribute for health status. Provide either 'fatal' or 'nominal'
--	to set the state of the attribute.
-+-f::
-+--fatal::
-+	Set the flag to spoof fatal health status.
- 
- -U::
----unsafe-shutdown=::
-+--unsafe-shutdown::
- 	Set the flag to spoof an unsafe shutdown on the next power down.
- 
- -v::
--- 
-2.14.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+
+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMTAsIDIwMTggOTo0MiBBTQ0KPiBPbiBNb24sIEp1bCA5LCAy
+MDE4IGF0IDY6MzMgUE0sIEh1YWlzaGVuZyBIUzEgWWUgPHllaHMxQGxlbm92by5jb20+IHdyb3Rl
+Og0KPiA+IEhpIEFsbCwNCj4gPg0KPiA+IEkgd2FudCB0byBkZXN0cm95IHNvbWUgcmVkdW5kYW50
+IG5hbWVzcGFjZXMgKG5hbWVzcGFjZTAuMCBhbmQgMC4xKSBmcm9tDQo+ID4gbXkgc3lzdGVtLg0K
+PiA+IEJ1dCBpdCBzdGlsbCBkb2VzbuKAmXQgd29yayBldmVuIEkgdXNlZCDigJhkZXN0cm95LW5h
+bWVzcGFjZeKAmSwgdGhlIHJlc3VsdA0KPiA+IG9mIGNvbW1hbmQgbG9va3Mgb2ssIGJ1dCBJIHN0
+aWxsIGNvdWxkIGZpbmQgdGhlbSB0aGVyZS4gSG93IGNhbiBJIHJlbW92ZQ0KPiA+IHRoZW0gc28g
+dGhleSB3b3VsZG4ndCBhcHBlYXIgaW4gbmV4dCBjb21tYW5kICduZGN0bCBsaXN0Jz8NCj4gDQo+
+IFNob3J0IGFuc3dlciwgeW91IGNhbid0Lg0KPiANCj4gVGhpcyBpcyBhIGdlbmVyYWwgbWlzY29u
+Y2VwdGlvbiBhYm91dCB3aGF0IHRoZSAnZGVzdHJveS1uYW1lc3BhY2UnDQo+IGNvbW1hbmQgZG9l
+cy4gSXQgZGVzdHJveXMgYW55IGluZm8tYmxvY2sgbWV0YWRhdGEgYW5kIGlmIHRoZSBuYW1lc3Bh
+Y2UNCj4gaXMgbm90IGEgJ3NlZWQnIGRldmljZSBvciB0aGUgMHRoIGRldmljZSBpdCBtYXkgYWRk
+aXRpb25hbGx5IGRlbGV0ZQ0KPiB0aGUga2VybmVsIGRldmljZSBvYmplY3QuIFNlZSB0aGlzIGNv
+bW1lbnQgZnJvbSB0aGUga2VybmVsIHNvdXJjZS4NCj4gDQo+ICAgICAgICAgLyoNCj4gICAgICAg
+ICAgKiBUcnkgdG8gZGVsZXRlIHRoZSBuYW1lc3BhY2UgaWYgd2UgZGVsZXRlZCBhbGwgb2YgaXRz
+DQo+ICAgICAgICAgICogYWxsb2NhdGlvbiwgdGhpcyBpcyBub3QgdGhlIHNlZWQgb3IgMHRoIGRl
+dmljZSBmb3IgdGhlDQo+ICAgICAgICAgICogcmVnaW9uLCBhbmQgaXQgaXMgbm90IGFjdGl2ZWx5
+IGNsYWltZWQgYnkgYSBidHQsIHBmbiwgb3IgZGF4DQo+ICAgICAgICAgICogaW5zdGFuY2UuDQo+
+ICAgICAgICAgICovDQo+ICAgICAgICAgaWYgKHZhbCA9PSAwICYmIGlkICE9IDAgJiYgbmRfcmVn
+aW9uLT5uc19zZWVkICE9IGRldiAmJiAhbmRucy0+Y2xhaW0pDQo+ICAgICAgICAgICAgICAgICBu
+ZF9kZXZpY2VfdW5yZWdpc3RlcihkZXYsIE5EX0FTWU5DKTsNCj4gDQo+IFRoZSByZWFzb24gd2Ug
+ZG9uJ3QgZGVsZXRlIHRoZSBzZWVkIGRldmljZSBpcyB0aGF0IHdlIGFsd2F5cyBuZWVkIGF0DQo+
+IGxlYXN0IG9uZSBzZWVkIGRldmljZSB0byBjb25maWd1cmUgdGhlIG5leHQgbmFtZXNwYWNlLCBh
+bmQgd2Uga2VlcCB0aGUNCj4gMHRoIGRldmljZSBhcm91bmQgdG8gdHJ5IHRvIG1ha2Ugc3VyZSB0
+aGUgZmlyc3QgbmFtZXNwYWNlIGluIGEgcmVnaW9uDQo+IGdldHMgdGhlIG5hbWVzcGFjZVguMCBk
+ZXZpY2UuDQoNClRoYW5rcyBmb3IgeW91ciBxdWljayByZXBseSBhbmQgZGV0YWlsZWQgZXhwbGFu
+YXRpb24sIGFuZCBpdCBsb29rcyBsaWtlDQpOYW1lc3BhY2VYLjEgYWxzbyBjb3VsZG4ndCBiZSBk
+ZWxldGVkLg0KDQpkbWVzZyBnZXRzIGluZm9ybWF0aW9uIGxpa2UgdGhpcywNCls3MjI1NC41ODM4
+NThdIG5kIG5hbWVzcGFjZTAuMTogKDApDQpbNzIyNTQuNTg5NDI0XSBuZCBuYW1lc3BhY2UwLjE6
+IF9fc2l6ZV9zdG9yZTogdXVpZCBub3Qgc2V0DQpbNzIyNTQuNTk2NDU0XSBuZCBuYW1lc3BhY2Uw
+LjE6IDAgZmFpbCAoLTYpDQoNClRoYXQgaXMgdG8gc2F5LCBfX3NpemVfc3RvcmUgZXhpdCBhdCBo
+ZXJlLA0KCS8qDQoJICogV2UgbmVlZCBhIHV1aWQgZm9yIHRoZSBhbGxvY2F0aW9uLWxhYmVsIGFu
+ZCBkaW1tKHMpIG9uIHdoaWNoDQoJICogdG8gc3RvcmUgdGhlIGxhYmVsLg0KCSAqLw0KCWlmICh1
+dWlkX25vdF9zZXQodXVpZCwgZGV2LCBfX2Z1bmNfXykpDQoJCXJldHVybiAtRU5YSU87DQoNCg0K
+Q2hlZXJzLA0KSHVhaXNoZW5nIFllDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
+cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
+bW0K
