@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2D1292097FAAC
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 12:35:33 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl,
- test/monitor: fix inject-smart field in test_filter_dimmevent
-Date: Mon, 30 Jul 2018 13:35:22 -0600
-Message-Id: <20180730193522.30458-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 93A5F2096F33E
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 12:10:37 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 1/2] dax: dax_layout_busy_page() warn on !exceptional
+Date: Tue, 10 Jul 2018 13:10:30 -0600
+Message-Id: <20180710191031.17919-2-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
+References: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,32 +22,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org, Lukas Czerner <lczerner@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change the inject-smart field from -s to -m when testing the
-dimm-media-temperature event. The -s seems to have been a copy-paste
-error.
+Inodes using DAX should only ever have exceptional entries in their page
+caches.  Make this clear by warning if the iteration in
+dax_layout_busy_page() ever sees a non-exceptional entry, and by adding a
+comment for the pagevec_release() call which only deals with struct page
+pointers.
 
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- test/monitor.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/test/monitor.sh b/test/monitor.sh
-index 1bbfd14..29d4ea1 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -152,7 +152,7 @@ test_filter_dimmevent()
- 	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."temperature_threshold")
- 	inject_value=$((inject_value + 1))
- 	start_monitor "-d $monitor_dimms -D dimm-media-temperature"
--	inject_smart "-s $inject_value"
-+	inject_smart "-m $inject_value"
- 	check_result "$monitor_dimms"
- 	stop_monitor
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index 641192808bb6..897b51e41d8f 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -566,7 +566,8 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 			if (index >= end)
+ 				break;
+ 
+-			if (!radix_tree_exceptional_entry(pvec_ent))
++			if (WARN_ON_ONCE(
++			     !radix_tree_exceptional_entry(pvec_ent)))
+ 				continue;
+ 
+ 			xa_lock_irq(&mapping->i_pages);
+@@ -578,6 +579,13 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 			if (page)
+ 				break;
+ 		}
++
++		/*
++		 * We don't expect normal struct page entries to exist in our
++		 * tree, but we keep these pagevec calls so that this code is
++		 * consistent with the common pattern for handling pagevecs
++		 * throughout the kernel.
++		 */
+ 		pagevec_remove_exceptionals(&pvec);
+ 		pagevec_release(&pvec);
+ 		index++;
 -- 
 2.14.4
 
