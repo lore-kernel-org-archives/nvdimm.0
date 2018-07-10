@@ -2,16 +2,23 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9DDB203B99A8
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 03:05:39 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id E9C2EAC00A7
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 19:05:35 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v4] ndctl, test: add a new unit test for monitor
-Date: Tue, 10 Jul 2018 19:04:57 +0900
-Message-Id: <20180710100457.23505-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 43A8A202E53EE
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 00:04:13 -0700 (PDT)
+Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
+ (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
+ by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id B1E5DAC0190
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 16:04:03 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [ndctl PATCH v3] ndctl, test: add a new unit test for monitor
+Date: Tue, 10 Jul 2018 07:04:00 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA7E4C1@g01jpexmbkw24>
+References: <20180707053555.3192-1-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4hTAXyOdfB0UuNPUD-LxrXbMFBvnvpcY4qUuM0042EDHg@mail.gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3223DA75CF2@g01jpexmbkw24>
+ <CAPcyv4htPPZDcrUt=eLnTUS1g8eJcZTbqn2sOwFcEXW3126PRQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4htPPZDcrUt=eLnTUS1g8eJcZTbqn2sOwFcEXW3126PRQ@mail.gmail.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,368 +26,133 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: 'Dan Williams' <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test to test the following options of the monitor command.
-   --dimm
-   --bus
-   --region
-   --namespace
-   --logfile
-   --config-file
-
-Based-on-patch-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
----
-v3 -> v4:
-   Add list-smart-dimm() helper to list and filter smart supported dimms
-v2 -> v3:
- - Add filter_obj instead of hard-coded values
-v1 -> v2:
- - Add init()
- - Add get_filter_dimm() to get the filter dimms by ndctl list command
-   instead of hard-cording
- - Add sleep to call_notify()
-
- .gitignore             |   1 +
- test/Makefile.am       |  14 +++-
- test/list-smart-dimm.c | 117 +++++++++++++++++++++++++++++++++
- test/monitor.sh        | 146 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 276 insertions(+), 2 deletions(-)
- create mode 100644 test/list-smart-dimm.c
- create mode 100755 test/monitor.sh
-
-diff --git a/.gitignore b/.gitignore
-index 1016b3b..0baace4 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -56,3 +56,4 @@ test/smart-notify
- test/fio.job
- test/local-write-0-verify.state
- test/ack-shutdown-count-set
-+test/list-smart-dimm
-diff --git a/test/Makefile.am b/test/Makefile.am
-index cd451e9..8c55056 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -21,7 +21,8 @@ TESTS =\
- 	btt-pad-compat.sh \
- 	firmware-update.sh \
- 	ack-shutdown-count-set \
--	rescan-partitions.sh
-+	rescan-partitions.sh \
-+	monitor.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-@@ -34,7 +35,8 @@ check_PROGRAMS =\
- 	smart-listen \
- 	hugetlb \
- 	daxdev-errors \
--	ack-shutdown-count-set
-+	ack-shutdown-count-set \
-+	list-smart-dimm
- 
- if ENABLE_DESTRUCTIVE
- TESTS +=\
-@@ -151,3 +153,11 @@ multi_pmem_LDADD = \
- 		$(UUID_LIBS) \
- 		$(KMOD_LIBS) \
- 		../libutil.a
-+
-+list_smart_dimm_SOURCES = \
-+		list-smart-dimm.c \
-+		../util/json.c
-+list_smart_dimm_LDADD = \
-+		$(LIBNDCTL_LIB) \
-+		$(JSON_LIBS) \
-+		../libutil.a
-diff --git a/test/list-smart-dimm.c b/test/list-smart-dimm.c
-new file mode 100644
-index 0000000..c9982d5
---- /dev/null
-+++ b/test/list-smart-dimm.c
-@@ -0,0 +1,117 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018, FUJITSU LIMITED. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <json-c/json.h>
-+#include <ndctl/libndctl.h>
-+#include <util/parse-options.h>
-+#include <ndctl.h>
-+
-+struct util_filter_params param;
-+static int did_fail;
-+static int jflag = JSON_C_TO_STRING_PRETTY;
-+
-+#define fail(fmt, ...) \
-+do { \
-+	did_fail = 1; \
-+	fprintf(stderr, "ndctl-%s:%s:%d: " fmt, \
-+			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
-+} while (0)
-+
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-+
-+static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *ctx)
-+{
-+	struct list_filter_arg *lfa = ctx->list;
-+	struct json_object *jdimm;
-+
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART))
-+		return;
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART_THRESHOLD))
-+		return;
-+	if (!ndctl_dimm_is_flag_supported(dimm, ND_SMART_ALARM_VALID))
-+		return;
-+
-+	if (!lfa->jdimms) {
-+		lfa->jdimms = json_object_new_array();
-+		if (!lfa->jdimms) {
-+			fail("\n");
-+			return;
-+		}
-+	}
-+
-+	jdimm = util_dimm_to_json(dimm, lfa->flags);
-+	if (!jdimm) {
-+		fail("\n");
-+		return;
-+	}
-+
-+	json_object_array_add(lfa->jdimms, jdimm);
-+}
-+
-+static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-+
-+static int list_display(struct list_filter_arg *lfa)
-+{
-+	struct json_object *jdimms = lfa->jdimms;
-+
-+	if (jdimms)
-+		util_display_json_array(stdout, jdimms, jflag);
-+	return 0;
-+}
-+
-+int main(int argc, const char *argv[])
-+{
-+	struct ndctl_ctx *ctx;
-+	int i, rc;
-+	const struct option options[] = {
-+		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
-+		OPT_STRING('r', "region", &param.region, "region-id",
-+				"filter by region"),
-+		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
-+				"filter by dimm"),
-+		OPT_STRING('n', "namespace", &param.namespace, "namespace-id",
-+				"filter by namespace id"),
-+		OPT_END(),
-+	};
-+	const char * const u[] = {
-+		"list-smart-dimm [<options>]",
-+		NULL
-+	};
-+	struct util_filter_ctx fctx = { 0 };
-+	struct list_filter_arg lfa = { 0 };
-+
-+	rc = ndctl_new(&ctx);
-+	if (rc < 0)
-+		return EXIT_FAILURE;
-+        argc = parse_options(argc, argv, options, u, 0);
-+	for (i = 0; i < argc; i++)
-+		error("unknown parameter \"%s\"\n", argv[i]);
-+	if (argc)
-+		usage_with_options(u, options);
-+
-+	fctx.filter_bus = filter_bus;
-+	fctx.filter_dimm = filter_dimm;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = NULL;
-+	fctx.list = &lfa;
-+	lfa.flags = 0;
-+
-+	rc = util_filter_walk(ctx, &fctx, &param);
-+	if (rc)
-+		return rc;
-+
-+	if (list_display(&lfa) || did_fail)
-+		return -ENOMEM;
-+	return 0;
-+}
-diff --git a/test/monitor.sh b/test/monitor.sh
-new file mode 100755
-index 0000000..1401983
---- /dev/null
-+++ b/test/monitor.sh
-@@ -0,0 +1,146 @@
-+#!/bin/bash -Ex
-+
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018, FUJITSU LIMITED. All rights reserved.
-+
-+rc=77
-+logfile=""
-+conf_file=""
-+monitor_dimms=""
-+monitor_regions=""
-+monitor_namespace=""
-+monitor_pid=65536
-+
-+. ./common
-+
-+trap 'err $LINENO' ERR
-+
-+check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
-+
-+start_monitor()
-+{
-+	logfile=$(mktemp)
-+	$NDCTL monitor -l $logfile $1 &
-+	monitor_pid=$!
-+	truncate --size 0 $logfile #remove startup log
-+}
-+
-+get_monitor_dimm()
-+{
-+	jlist=$(./list-smart-dimm -b $smart_supported_bus $1)
-+	monitor_dimms=$(jq '.[]."dev"?, ."dev"?' <<<$jlist | sort | uniq | xargs)
-+}
-+
-+call_notify()
-+{
-+	./smart-notify $smart_supported_bus
-+	sync; sleep 3
-+}
-+
-+check_result()
-+{
-+	jlog=$(cat $logfile)
-+	notify_dimms=$(jq ."dimm"."dev" <<<$jlog | sort | uniq | xargs)
-+	[[ $monitor_dimms == $notify_dimms ]]
-+}
-+
-+stop_monitor()
-+{
-+	kill $monitor_pid
-+	rm $logfile
-+}
-+
-+create_conf_file()
-+{
-+	conf_file=$(mktemp)
-+	echo "dimm = $1" > $conf_file
-+}
-+
-+test_filter_dimm()
-+{
-+	smart_supported_bus=$NFIT_TEST_BUS0
-+	monitor_dimms=$(./list-smart-dimm -b $smart_supported_bus | jq -r .[0].dev)
-+	if [ -z $monitor_dimms ]; then
-+		smart_supported_bus=$NFIT_TEST_BUS1
-+		monitor_dimms=$(./list-smart-dimm -b $smart_supported_bus | jq -r .[0].dev)
-+	fi
-+	start_monitor "-d $monitor_dimms"
-+	call_notify
-+	check_result
-+	stop_monitor
-+}
-+
-+test_filter_bus()
-+{
-+	monitor_dimms=""
-+	get_monitor_dimm
-+	start_monitor "-b $smart_supported_bus"
-+	call_notify
-+	check_result
-+	stop_monitor
-+}
-+
-+test_filter_region()
-+{
-+	monitor_dimms=""
-+	monitor_region=""
-+	count=$($NDCTL list -R -b $smart_supported_bus | jq -r .[].dev | wc -l)
-+	i=0
-+	while [ $i -lt $count ]; do
-+		monitor_region=$($NDCTL list -R -b $smart_supported_bus | jq -r .[$i].dev)
-+		get_monitor_dimm "-r $monitor_region"
-+		[ ! -z $monitor_dimms ] && break
-+		i=$[$i+1]
-+	done
-+	start_monitor "-r $monitor_region"
-+	call_notify
-+	check_result
-+	stop_monitor
-+}
-+
-+test_filter_namespace()
-+{
-+	monitor_dimms=""
-+	monitor_namespace=$($NDCTL list -N -b $smart_supported_bus | jq -r .[0].dev)
-+	[ -z $monitor_namespace ] && monitor_namespace="namespace1.0"
-+	$NDCTL create-namespace -b $smart_supported_bus -n $monitor_namespace
-+	get_monitor_dimm "-n $monitor_namespace"
-+	start_monitor "-n $monitor_namespace"
-+	call_notify
-+	check_result
-+	stop_monitor
-+	$NDCTL destroy-namespace $monitor_namespace -f
-+}
-+
-+test_conf_file()
-+{
-+	create_conf_file  "$monitor_dimms"
-+	start_monitor "-c $conf_file"
-+	call_notify
-+	check_result
-+	stop_monitor
-+	rm $conf_file
-+}
-+
-+do_tests()
-+{
-+	test_filter_dimm
-+	test_filter_bus
-+	test_filter_region
-+	test_filter_namespace
-+	test_conf_file
-+}
-+
-+init()
-+{
-+	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-+	$NDCTL zero-labels -b $NFIT_TEST_BUS0 all
-+	$NDCTL enable-region -b $NFIT_TEST_BUS0 all
-+}
-+
-+modprobe nfit_test
-+rc=1
-+init
-+do_tests
-+_cleanup
-+exit 0
--- 
-2.18.0
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gV2lsbGlhbXMgW21haWx0
+bzpkYW4uai53aWxsaWFtc0BpbnRlbC5jb21dDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMTAsIDIw
+MTggMTI6NDYgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVqaXRz
+dS5jb20+DQo+IENjOiBsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQo+
+IFN1YmplY3Q6IFJlOiBbbmRjdGwgUEFUQ0ggdjNdIG5kY3RsLCB0ZXN0OiBhZGQgYSBuZXcgdW5p
+dCB0ZXN0IGZvciBtb25pdG9yDQo+IA0KPiBPbiBNb24sIEp1bCA5LCAyMDE4IGF0IDQ6MzggQU0s
+IFFpLCBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPiB3cm90ZToNCj4gPiBIaSBEYW4sDQo+
+ID4gVGhhbmtzIGZvciB5b3VyIGNvbW1lbnRzLg0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVz
+c2FnZS0tLS0tDQo+ID4+IEZyb206IERhbiBXaWxsaWFtcyBbbWFpbHRvOmRhbi5qLndpbGxpYW1z
+QGludGVsLmNvbV0NCj4gPj4gU2VudDogU3VuZGF5LCBKdWx5IDgsIDIwMTggMzo1NiBBTQ0KPiA+
+PiBUbzogUWksIEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPj4g
+Q2M6IGxpbnV4LW52ZGltbSA8bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZz4NCj4gPj4gU3ViamVj
+dDogUmU6IFtuZGN0bCBQQVRDSCB2M10gbmRjdGwsIHRlc3Q6IGFkZCBhIG5ldyB1bml0IHRlc3Qg
+Zm9yDQo+ID4+IG1vbml0b3INCj4gPj4NCj4gPj4gT24gRnJpLCBKdWwgNiwgMjAxOCBhdCAxMDoz
+NSBQTSwgUUkgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4gd3JvdGU6DQo+ID4+ID4gQWRk
+IGEgbmV3IHVuaXQgdGVzdCB0byB0ZXN0IHRoZSBmb2xsb3dpbmcgb3B0aW9ucyBvZiB0aGUgbW9u
+aXRvciBjb21tYW5kLg0KPiA+PiA+ICAgIC0tZGltbQ0KPiA+PiA+ICAgIC0tYnVzDQo+ID4+ID4g
+ICAgLS1yZWdpb24NCj4gPj4gPiAgICAtLW5hbWVzcGFjZQ0KPiA+PiA+ICAgIC0tbG9nZmlsZQ0K
+PiA+PiA+ICAgIC0tY29uZmlnLWZpbGUNCj4gPj4gPg0KPiA+PiA+IEJhc2VkLW9uLXBhdGNoLWJ5
+OiBZYXN1bm9yaSBHb3RvIDx5LWdvdG9AanAuZnVqaXRzdS5jb20+DQo+ID4+ID4gU2lnbmVkLW9m
+Zi1ieTogUUkgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPj4gPiAtLS0NCj4gPj4g
+PiB2MiAtPiB2MzoNCj4gPj4gPiAgLSBBZGQgZmlsdGVyX29iaiBpbnN0ZWFkIG9mIGhhcmQtY29k
+ZWQgdmFsdWVzDQo+ID4+ID4gdjEgLT4gdjI6DQo+ID4+ID4gIC0gQWRkIGluaXQoKQ0KPiA+PiA+
+ICAtIEFkZCBnZXRfZmlsdGVyX2RpbW0oKSB0byBnZXQgdGhlIGZpbHRlciBkaW1tcyBieSBuZGN0
+bCBsaXN0IGNvbW1hbmQNCj4gPj4gPiAgICBpbnN0ZWFkIG9mIGhhcmQtY29yZGluZw0KPiA+PiA+
+ICAtIEFkZCBzbGVlcCB0byBjYWxsX25vdGlmeSgpDQo+ID4+ID4NCj4gPj4gPiAgdGVzdC9NYWtl
+ZmlsZS5hbSB8ICAgMyArLQ0KPiA+PiA+ICB0ZXN0L21vbml0b3Iuc2ggIHwgMTM0DQo+ID4+ID4g
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysNCj4gPj4gPiAg
+MiBmaWxlcyBjaGFuZ2VkLCAxMzYgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKSAgY3JlYXRl
+IG1vZGUNCj4gPj4gPiAxMDA3NTUgdGVzdC9tb25pdG9yLnNoDQo+ID4+DQo+ID4+IFRoaXMgdGVz
+dCBpcyBzdGlsbCBmYWlsaW5nIGZvciBtZSwgaGVyZSBpcyB0aGUgdGFpbCBvZiB0aGUgdGVzdC90
+ZXN0LXN1aXRlLmxvZw0KPiBvdXRwdXQ6DQo+ID4+DQo+ID4+ICsgc3luYw0KPiA+PiArIHNsZWVw
+IDMNCj4gPj4gKyBjaGVja19yZXN1bHQNCj4gPj4gKysgY2F0IC90bXAvdG1wLmRUM1RKNGw1SUUN
+Cj4gPj4gKyBqbG9nPSdubWVtMDogbm8gc21hcnQgc3VwcG9ydA0KPiA+Pg0KPiA+DQo+ID4gTXkg
+aWRlYSBvZiBbLS1kaW1tIG9wdGlvbl0gdW5pdCB0ZXN0IGlzIHRyeSB0byBnZXQgdGhlIGZpcnN0
+IGRpbW0gb24NCj4gPiBidXMgbmZpdF90ZXN0LjAsIHRoZW4gbGV0IG1vbml0b3IgdG8gcnVuIFst
+ZF0gb3B0aW9uIHdpdGggaXQsIHRoZSBzYW1lIGFzOg0KPiA+ICAgICAgICAgbmRjdGwgbW9uaXRv
+ciAtYiBuZml0X3Rlc3QuMCAtZCBubWVtMCBidXQgaW4geW91ciBlbnZpcm9ubWVudCwNCj4gPiBz
+aW5jZSB0aGUgIm5tZW0wIiBkaWRuJ3Qgc3VwcG9ydCBzbWFydCwgdGhlbiB0aGUgbW9uaXRvciBv
+dXRwdXR0ZWQgdGhlIGZvbGxvd2luZw0KPiBlcnJvciBtZXNzYWdlIGFuZCBzdG9wcGVkLg0KPiAN
+Cj4gUmlnaHQsIHRoZSB0ZXN0IGlzIGZyYWdpbGUgaWYgaXQgdHJpZXMgdG8gZ3Vlc3Mgbm1lbVgg
+ZGV2aWNlIG5hbWVzLg0KPiANCj4gPg0KPiA+PiBubyBkaW1tcyB0byBtb25pdG9yJw0KPiA+DQo+
+ID4+ICsrIGpxIC5kaW1tLmRldg0KPiA+PiArKyBzb3J0DQo+ID4+ICsrIHVuaXENCj4gPj4gKysg
+c2VkIC1lICc6bG9vcDsgTjsgJCFiIGxvb3A7IHMvXG4vOi9nJw0KPiA+PiArKyBzZWQgJ3MvXCIv
+L2cnDQo+ID4+IHBhcnNlIGVycm9yOiBJbnZhbGlkIGxpdGVyYWwgYXQgbGluZSAxLCBjb2x1bW4g
+Ng0KPiA+PiArIG5vdGlmeV9kaW1tcz0NCj4gPj4gKyBbWyAnJyA9PSAnJyBdXQ0KPiA+PiArIHN0
+b3BfbW9uaXRvcg0KPiA+PiArIGtpbGwgMzk0MTQNCj4gPj4gLi9tb25pdG9yLnNoOiBsaW5lIDQ4
+OiBraWxsOiAoMzk0MTQpIC0gTm8gc3VjaCBwcm9jZXNzDQo+ID4+ICsrIGVyciA0OA0KPiA+PiAr
+KysgYmFzZW5hbWUgLi9tb25pdG9yLnNoDQo+ID4+ICsrIGVjaG8gdGVzdC9tb25pdG9yLnNoOiBm
+YWlsZWQgYXQgbGluZSA0OA0KPiA+PiB0ZXN0L21vbml0b3Iuc2g6IGZhaWxlZCBhdCBsaW5lIDQ4
+DQo+ID4+ICsrICdbJyAtbiAnJyAnXScNCj4gPj4gKysgZXhpdCAxDQo+ID4+IEZBSUwgbW9uaXRv
+ci5zaCAoZXhpdCBzdGF0dXM6IDEpDQo+ID4+DQo+ID4+IEkgbm90aWNlIGVycm9ycyBhcm91bmQg
+Z2V0X2ZpbHRlcl9kaW1tKCkuIFdoeSBpcyB0aGF0IGZ1bmN0aW9uDQo+ID4+IG5lZWRlZCwgaXQg
+c2VlbXMgcmVkdW5kYW50IG5vdyB0aGF0ICRmaWx0ZXJfb2JqIGlzIGJlaW5nIHVzZWQ/DQo+ID4+
+DQo+ID4NCj4gPiBJIGFtIHNvcnJ5IHRoYXQgdGhlICJmaWx0ZXJfZGltbSIgaXMgbm90IGEgc3Vp
+dGFibGUgbmFtZSwgbWF5YmUgY2hhbmdpbmcgaXQgdG8NCj4gIm1vbml0b3JfZGltbSIgd2lsbCBi
+ZSBiZXR0ZXIgdG8gdW5kZXJzdGFuZC4NCj4gPiBUaGlzIGZ1bmN0aW9uIGlzIHVzZWQgdG8gZ2V0
+IGRpbW1zIHRvIGJlIG1vbml0b3JlZCBmcm9tICJuZGN0bCBsaXN0IC1EIC1iIG5maXRfdGVzdC4w
+DQo+ICQxIi4NCj4gPiBBZnRlciAiLi9zbWFydC1ub3RpZnkgbmZpdF90ZXN0LjAiLCBnZXQgIm5v
+dGlmeSBkaW1tcyIgZnJvbSBvdXRwdXQgbm90aWZpY2F0aW9ucy4NCj4gPiBUaGVuIGNvbXBhcmUg
+dGhlICJtb25pdG9yIGRpbW1zIiB3aXRoIHRoZSAibm90aWZ5IGRpbW1zIiwgaWYgc2FtZSB0aGF0
+IG1lYW5zIHRoZQ0KPiB1bml0IHRlc3Qgb3B0aW9uIHdvcmtzIHdlbGwuDQo+ID4gSSB3aWxsIGFk
+ZCB0aGUgYSBmaWx0ZXIgdG8gbWFrZSBzdXJlIHRoYXQgdGhlICJtb25pdG9yIGRpbW1zIiBzdXBw
+b3J0IHNtYXJ0IGV2ZW50DQo+IGluIG5leHQgdmVyc2lvbi4NCj4gDQo+IEknbSBjb25mdXNlZCwg
+aG93IGRvZXMgY2hlY2tpbmcgZm9yIHNtYXJ0IGV2ZW50IHN1cHBvcnQgZ2V0IGFyb3VuZCB0aGUg
+ZmFjdCB0aGF0DQo+IHRoZSB0ZXN0IGlzIGxvb2tpbmcgZm9yIHRoZSB3cm9uZyBESU1NIG5hbWVz
+IGluIHRoZSBmaXJzdCBwbGFjZT8NCj4gDQoNCkkgd2FudCB0byBhZGQgYSBoZWxwZXIgZnVuY3Rp
+b24gImxpc3Qtc21hcnQtZGltbSIsIHdoaWNoIGNhbiBsaXN0IGFuZCBmaWx0ZXIgYWxsIG9mIHRo
+ZSBzbWFydCBzdXBwb3J0ZWQgZGltbXMuDQpUaGUgImxpc3Qtc21hcnQtZGltbSIgY291bGQgaGF2
+ZSB0aGUgWy1kXSBbLWJdIFstbl0gWy1yXSBvcHRpb25zIHRoZSBzYW1lIGFzIGxpc3QuDQpGb3Ig
+ZXhhbXBsZSB0byB0ZXN0IHRoZSBbLXJdIG9wdGlvbiBvZiBtb25pdG9yOg0KRmlyc3QsIHdlIGNh
+biBnZXQgdGhlICJtb25pdG9yX2RpbW1zID0gbGlzdC1zbWFydC1kaW1tIC1iIG5maXRfdGVzdC4w
+IC1yIHJlZ2lvblgiLg0KSWYgIm1vbml0b3JfZGltbXMiIGlzIE5VTEwsIHRoZW4gZ2V0IHRoZSAi
+bW9uaXRvcl9kaW1tcyIgZm9ybSAibGlzdC1zbWFydC1kaW1tIC1iIG5maXRfdGVzdC4xIC1yIHJl
+Z2lvblgiLg0KTmV4dCwgc3RhcnQgbW9uaXRvciAibmRjdGwgbW9uaXRvciAtYiBuZml0X3Rlc3Qu
+MCAtciByZWdpb25YIi4NCldlIGNhbiBnZXQgdGhlICJub3RpZnlfZGltbXMiIGxvZ2dlZCBieSBt
+b25pdG9yIGFmdGVyIGRvIHRoZSAic21hcnQtbm90aWZ5IG5maXRfdGVzdC4wKDEpIi4NClRoZW4g
+Y2hlY2sgdGhlIHJlc3VsdCwgaWYgIm1vbml0b3JfZGltbXMiIGlzIHRoZSBzYW1lIGFzICJub3Rp
+ZnlfZGltbXMiLCBpdCBtZWFucyB0aGUgbW9uaXRvciB3b3JrcyB3ZWxsLg0KDQo+ID4NCj4gPj4g
+SG1tLCBpZiBJIGp1c3QgZGVsZXRlIGdldF9maWx0ZXJfZGltbSgpIEkgZ2V0IHRoaXM7DQo+ID4+
+DQo+ID4+ICsrIGpxIC5kaW1tLmRldg0KPiA+PiArKyBzb3J0DQo+ID4+ICsrIHVuaXENCj4gPj4g
+Kysgc2VkIC1lICc6bG9vcDsgTjsgJCFiIGxvb3A7IHMvXG4vOi9nJw0KPiA+PiArKyBzZWQgJ3Mv
+XCIvL2cnDQo+ID4+ICsgbm90aWZ5X2RpbW1zPW5tZW0zDQo+ID4+ICsgW1sgJycgPT0gbm1lbTMg
+XV0NCj4gPj4gKysgZXJyIDM0DQo+ID4+ICsrKyBiYXNlbmFtZSAuL21vbml0b3Iuc2gNCj4gPj4g
+KysgZWNobyB0ZXN0L21vbml0b3Iuc2g6IGZhaWxlZCBhdCBsaW5lIDM0DQo+ID4+IHRlc3QvbW9u
+aXRvci5zaDogZmFpbGVkIGF0IGxpbmUgMzQNCj4gPj4gKysgJ1snIC1uICcnICddJw0KPiA+PiAr
+KyBleGl0IDENCj4gPj4gRkFJTCBtb25pdG9yLnNoIChleGl0IHN0YXR1czogMSkNCj4gPj4NCj4g
+Pj4gSSBhc3N1bWUgdGhpcyB0ZXN0IGlzIHBhc3NpbmcgZm9yIHlvdT8gQ2FuIHlvdSB0cnkgcnVu
+bmluZyBpdCBpbnNpZGUNCj4gPj4gYSB2aXJ0dWFsIG1hY2hpbmUgdGhhdCBoYXMgYSB2aXJ0dWFs
+IE5WRElNTSBzbyB5b3UgY2FuIGRlYnVnIHRoZQ0KPiA+PiBjb2xsaXNpb25zIGJldHdlZW4gdGhl
+IG5maXRfdGVzdC4wIGJ1cyBvYmplY3RzIGFuZCB0aGUgQUNQSS5ORklUIG9uZXM/DQo+ID4+DQo+
+ID4NCj4gWy4uXQ0KPiANCj4gPj4gPiArew0KPiA+PiA+ICsgICAgICAgamxpc3Q9JCgkTkRDVEwg
+bGlzdCAtRCAtYiAkTkZJVF9URVNUX0JVUzAgJDEpDQo+ID4+ID4gKyAgICAgICBmaWx0ZXJfZGlt
+bXM9JChqcSAnLltdLiJkZXYiPywgLiJkZXYiPycgPDw8JGpsaXN0IHwgc29ydCB8DQo+ID4+ID4g
+K3VuaXEgfCBzZWQgLWUgJzpsb29wOyBOOyAkIWIgbG9vcDsgcy9cbi86L2cnIHwgc2VkICdzL1wi
+Ly9nJykgfQ0KPiA+Pg0KPiA+PiBDYW4gd2UganVzdCByZW1vdmUgdGhpcz8NCj4gPg0KPiA+IEFz
+IEkgbWVudGlvbmVkIGFib3ZlLCBJIGRvbid0IHRoaW5rIHNvLg0KPiANCj4gQWdhaW4sIEkgZG9u
+J3Qgc2VlIGhvdyB5b3UgY2FuIGFjaGlldmUgdGhlIHZlcmlmaWNhdGlvbiB5b3Ugd2FudCB3aXRo
+b3V0IGZpcnN0DQo+IGRpc2NvdmVyaW5nIHRoZSBuYW1lcyBvZiB0aGUgcG9zc2libGUgRElNTXMg
+b24gbmZpdF90ZXN0LjAuIFRoZXJlIGlzIG5vIHJlbGlhYmxlDQo+IHdheSB0aGF0IHlvdSBjYW4g
+aGFyZCBjb2RlIHRoZSBESU1NIG5hbWVzLg0KPiANCj4gPg0KPiA+Pg0KPiA+PiA+ICsNCj4gPj4g
+PiArY2FsbF9ub3RpZnkoKQ0KPiA+PiA+ICt7DQo+ID4+ID4gKyAgICAgICAuL3NtYXJ0LW5vdGlm
+eSAkTkZJVF9URVNUX0JVUzANCj4gPj4gPiArICAgICAgIHN5bmM7IHNsZWVwIDMNCj4gPj4gPiAr
+fQ0KPiA+PiA+ICsNCj4gPj4gPiArY2hlY2tfcmVzdWx0KCkNCj4gPj4gPiArew0KPiA+PiA+ICsg
+ICAgICAgamxvZz0kKGNhdCAkbG9nZmlsZSkNCj4gPj4gPiArICAgICAgIG5vdGlmeV9kaW1tcz0k
+KGpxIC4iZGltbSIuImRldiIgPDw8JGpsb2cgfCBzb3J0IHwgdW5pcSB8DQo+ID4+ID4gK3NlZCAt
+ZSAnOmxvb3A7IE47ICQhYiBsb29wOyBzL1xuLzovZycgfCBzZWQgJ3MvXCIvL2cnKQ0KPiA+Pg0K
+PiA+PiBDYW4geW91IGFkZCBhIGNvbW1lbnQgaGVyZSBhYm91dCB0aGF0IHNlZCBzY3JpcHQgaXMg
+dHJ5aW5nIHRvIGRvPyBJZg0KPiA+PiBpdCdzIGp1c3QgZmlsdGVyaW5nIGpzb24gSSdkIHJhdGhl
+ciBpdCBqdXN0IGpxIGRpcmVjdGx5Lg0KPiA+DQo+ID4gVGhlc2Ugc2VkIHNjcmlwdHMgYXJlIHVz
+ZWQgdG8gZm9ybWF0ICJtb25pdG9yIGRpbW1zIiBhbmQgIm5vdGlmeSBkaW1tcyIuDQo+ID4gVGhl
+IGZpcnN0IG9uZSBpcyB0YXNrIHRvIHJlcGxhY2UgIlxuIiB3aXRoICI6IiwgYW5kIHRoZSBzZWNv
+bmQgb25lIGlzIHVzZWQgdG8gcmVtb3ZlDQo+ICcgIiAnLg0KPiA+IEFmdGVyIHRoZXNlIHByb2Nl
+c3NlcywgdGhlIGZvcm1hdCB3aWxsIGJlY29tZSAibm1lbTA6bm1lbTE6bm1lbTIiLg0KPiANCj4g
+VGhhdCBzaGVsbCBzY3JpcHQganVzdCBzZWVtcyB0b28gZGVuc2UgZm9yIHdoYXQgaXQgaXMgdHJ5
+aW5nIHRvIGRvLg0KPiBIb3cgYWJvdXQgc29tZXRoaW5nIGxpa2U6DQo+IA0KPiAjIG5kY3RsIGxp
+c3QgLUQgfCBqcSAtciAuW10uZGV2IHwgeGFyZ3MNCj4gDQo+IFRoYXQgd2lsbCB0YWtlIHRoZSBv
+dXRwdXQgb2YgJ2xpc3QnIGFuZCBwcm9kdWNlIGEgc3BhY2Ugc2VwYXJhdGVkIGxpc3QuDQo+IA0K
+WWVzLCBJIHdpbGwgcmVwbGFjZSB0aGUgc2VkIHNjcmlwdHMgd2l0aCB4YXJncy4NClRoYW5rIHlv
+dSB2ZXJ5IG11Y2guDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
