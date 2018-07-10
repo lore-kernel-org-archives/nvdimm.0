@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 13EB420337377
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 12:10:36 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 0/2] ext4: fix DAX dma vs truncate/hole-punch
-Date: Tue, 10 Jul 2018 13:10:29 -0600
-Message-Id: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8EE9B20359E80
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 01:25:35 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V2 3/4] mm: add a function to differentiate the pages is from
+ DAX device memory
+Date: Wed, 11 Jul 2018 01:03:51 +0800
+Message-Id: <a0d220839ce0414f13e9394dffcd9abe8689dafe.1531241281.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
+References: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,58 +23,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org, Lukas Czerner <lczerner@redhat.com>
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
+Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3:
- * Added an ext4_break_layouts() call to ext4_insert_range() to ensure
-   that the {ext4,xfs}_break_layouts() calls have the same meaning.
-   (Dave, Darrick and Jan)
+DAX driver hotplug the device memory and move it to memory zone, these
+pages will be marked reserved flag, however, some other kernel componet
+will misconceive these pages are reserved mmio (ex: we map these dev_dax
+or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
+MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
+is DAX device memory or not.
 
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
 ---
+ include/linux/mm.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-This series from Dan:
-
-https://lists.01.org/pipermail/linux-nvdimm/2018-March/014913.html
-
-added synchronization between DAX dma and truncate/hole-punch in XFS.
-This short series adds analogous support to ext4.
-
-I've added calls to ext4_break_layouts() everywhere that ext4 removes
-blocks from an inode's map.
-
-The timings in XFS are such that it's difficult to hit this race.  Dan
-was able to show the race by manually introducing delays in the direct
-I/O path.
-
-For ext4, though, its trivial to hit this race, and a hit will result in
-a trigger of this WARN_ON_ONCE() in dax_disassociate_entry():
-
-        WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-
-I've made an xfstest which tests all the paths where we now call
-ext4_break_layouts(). Each of the four paths easily hits this race many
-times in my test setup with the xfstest.  You can find that test here:
-
-https://lists.01.org/pipermail/linux-nvdimm/2018-June/016435.html
-
-With these patches applied, I've still seen occasional hits of the above
-WARN_ON_ONCE(), which tells me that we still have some work to do.  I'll
-continue looking at these more rare hits.
-
-Ross Zwisler (2):
-  dax: dax_layout_busy_page() warn on !exceptional
-  ext4: handle layout changes to pinned DAX mappings
-
- fs/dax.c           | 10 +++++++++-
- fs/ext4/ext4.h     |  1 +
- fs/ext4/extents.c  | 17 +++++++++++++++++
- fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
- fs/ext4/truncate.h |  4 ++++
- 5 files changed, 77 insertions(+), 1 deletion(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 6e19265..9f0f690 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -856,6 +856,13 @@ static inline bool is_device_public_page(const struct page *page)
+ 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+ }
+ 
++static inline bool is_dax_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
++		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
++}
++
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline void dev_pagemap_get_ops(void)
+ {
+@@ -879,6 +886,11 @@ static inline bool is_device_public_page(const struct page *page)
+ {
+ 	return false;
+ }
++
++static inline bool is_dax_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline void get_page(struct page *page)
 -- 
-2.14.4
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
