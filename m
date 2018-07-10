@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A443B210D93A5
- for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:22:28 -0700 (PDT)
-Subject: [PATCH v2 03/11] nfit/libnvdimm: store dimm id as a member to
- struct nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 05 Jul 2018 13:22:27 -0700
-Message-ID: <153082214751.61422.7362687150263034718.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
-References: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id A1AAD20337377
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 12:10:39 -0700 (PDT)
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v4 2/2] ext4: handle layout changes to pinned DAX mappings
+Date: Tue, 10 Jul 2018 13:10:31 -0600
+Message-Id: <20180710191031.17919-3-ross.zwisler@linux.intel.com>
+In-Reply-To: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
+References: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,157 +17,170 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org, Lukas Czerner <lczerner@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The generated dimm id is needed for the sysfs attribute as well as being
-used as the identifier/description for the security key. Since it's
-constant and should never change, store it as a member of struct nvdimm.
+Follow the lead of xfs_break_dax_layouts() and add synchronization between
+operations in ext4 which remove blocks from an inode (hole punch, truncate
+down, etc.) and pages which are pinned due to DAX DMA operations.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
 ---
- drivers/acpi/nfit/core.c   |   35 +++++++++++++++++++++++------------
- drivers/acpi/nfit/nfit.h   |    1 +
- drivers/nvdimm/dimm_devs.c |    4 +++-
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    2 +-
- 5 files changed, 29 insertions(+), 14 deletions(-)
+ fs/ext4/ext4.h     |  1 +
+ fs/ext4/extents.c  | 17 +++++++++++++++++
+ fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/ext4/truncate.h |  4 ++++
+ 4 files changed, 68 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 195de2228088..d474d53473fe 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -71,6 +71,9 @@ struct nfit_table_prev {
- 
- static guid_t nfit_uuid[NFIT_UUID_MAX];
- 
-+static int acpi_nfit_get_dimm_id(struct acpi_nfit_control_region *dcr,
-+		char *buf);
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 0b127853c584..34bccd64d83d 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
+ extern int ext4_inode_attach_jinode(struct inode *inode);
+ extern int ext4_can_truncate(struct inode *inode);
+ extern int ext4_truncate(struct inode *);
++extern int ext4_break_layouts(struct inode *);
+ extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
+ extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
+ extern void ext4_set_inode_flags(struct inode *);
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index 0057fe3f248d..b8161e6b88d1 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
+ 		 * released from page cache.
+ 		 */
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
 +
- const guid_t *to_nfit_uuid(enum nfit_uuids id)
- {
- 	return &nfit_uuid[id];
-@@ -1570,18 +1573,10 @@ static DEVICE_ATTR_RO(flags);
- static ssize_t id_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
--	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
--		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				dcr->manufacturing_location,
--				be16_to_cpu(dcr->manufacturing_date),
--				be32_to_cpu(dcr->serial_number));
--	else
--		return sprintf(buf, "%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				be32_to_cpu(dcr->serial_number));
-+	return sprintf(buf, "%s\n", nfit_mem->id);
++		ret = ext4_break_layouts(inode);
++		if (ret) {
++			up_write(&EXT4_I(inode)->i_mmap_sem);
++			goto out_mutex;
++		}
++
+ 		ret = ext4_update_disksize_before_punch(inode, offset, len);
+ 		if (ret) {
+ 			up_write(&EXT4_I(inode)->i_mmap_sem);
+@@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
+ 	 * page cache.
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
++
++	ret = ext4_break_layouts(inode);
++	if (ret)
++		goto out_mmap;
++
+ 	/*
+ 	 * Need to round down offset to be aligned with page size boundary
+ 	 * for page size > block size.
+@@ -5641,6 +5653,11 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
+ 	 * page cache.
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
++
++	ret = ext4_break_layouts(inode);
++	if (ret)
++		goto out_mmap;
++
+ 	/*
+ 	 * Need to round down to align start offset to page size boundary
+ 	 * for page size > block size.
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 2ea07efbe016..fadb8ecacb1e 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4193,6 +4193,39 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+ 	return 0;
  }
- static DEVICE_ATTR_RO(id);
  
-@@ -1828,6 +1823,21 @@ static void shutdown_dimm_notify(void *data)
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-+static int acpi_nfit_get_dimm_id(struct acpi_nfit_control_region *dcr,
-+		char *buf)
++static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
 +{
-+	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
-+		return sprintf(buf, "%04x-%02x-%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				dcr->manufacturing_location,
-+				be16_to_cpu(dcr->manufacturing_date),
-+				be32_to_cpu(dcr->serial_number));
-+	else
-+		return sprintf(buf, "%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				be32_to_cpu(dcr->serial_number));
++	*did_unlock = true;
++	up_write(&ei->i_mmap_sem);
++	schedule();
++	down_write(&ei->i_mmap_sem);
 +}
 +
- static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
-@@ -1894,10 +1904,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 
- 		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
- 			: NULL;
-+		acpi_nfit_get_dimm_id(nfit_mem->dcr, nfit_mem->id);
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
- 				flags, cmd_mask, flush ? flush->hint_count : 0,
--				nfit_mem->flush_wpq);
-+				nfit_mem->flush_wpq, nfit_mem->id);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 4c9ca3c7ba0f..4465ef0266ef 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -157,6 +157,7 @@ struct nfit_mem {
- 	int family;
- 	bool has_lsr;
- 	bool has_lsw;
-+	char id[NVDIMM_KEY_DESC_LEN];
- };
- 
- struct acpi_nfit_desc {
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 1dcbb653455b..1842c74413fa 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq)
-+		struct resource *flush_wpq, const char *id)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -453,6 +453,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		kfree(nvdimm);
- 		return NULL;
- 	}
++int ext4_break_layouts(struct inode *inode)
++{
++	struct ext4_inode_info *ei = EXT4_I(inode);
++	struct page *page;
++	bool retry;
++	int error;
 +
-+	memcpy(nvdimm->dimm_id, id, NVDIMM_KEY_DESC_LEN);
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 2af0f89c4010..ea9227498dac 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -42,6 +42,7 @@ struct nvdimm {
- 	atomic_t busy;
- 	int id, num_flush;
- 	struct resource *flush_wpq;
-+	char dimm_id[NVDIMM_KEY_DESC_LEN];
- };
++	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
++		return -EINVAL;
++
++	do {
++		retry = false;
++		page = dax_layout_busy_page(inode->i_mapping);
++		if (!page)
++			return 0;
++
++		error = ___wait_var_event(&page->_refcount,
++				atomic_read(&page->_refcount) == 1,
++				TASK_INTERRUPTIBLE, 0, 0,
++				ext4_wait_dax_page(ei, &retry));
++	} while (error == 0 && retry);
++
++	return error;
++}
++
+ /*
+  * ext4_punch_hole: punches a hole in a file by releasing the blocks
+  * associated with the given offset and length
+@@ -4266,6 +4299,11 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+ 	 * page cache.
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
++
++	ret = ext4_break_layouts(inode);
++	if (ret)
++		goto out_dio;
++
+ 	first_block_offset = round_up(offset, sb->s_blocksize);
+ 	last_block_offset = round_down((offset + length), sb->s_blocksize) - 1;
  
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 09dd06f96f95..6d0247b95e6f 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -183,7 +183,7 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq);
-+		struct resource *flush_wpq, const char *dimm_id);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+@@ -5554,6 +5592,14 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
+ 				ext4_wait_for_tail_page_commit(inode);
+ 		}
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
++
++		rc = ext4_break_layouts(inode);
++		if (rc) {
++			up_write(&EXT4_I(inode)->i_mmap_sem);
++			error = rc;
++			goto err_out;
++		}
++
+ 		/*
+ 		 * Truncate pagecache after we've waited for commit
+ 		 * in data=journal mode to make pages freeable.
+diff --git a/fs/ext4/truncate.h b/fs/ext4/truncate.h
+index 0cb13badf473..bcbe3668c1d4 100644
+--- a/fs/ext4/truncate.h
++++ b/fs/ext4/truncate.h
+@@ -11,6 +11,10 @@
+  */
+ static inline void ext4_truncate_failed_write(struct inode *inode)
+ {
++	/*
++	 * We don't need to call ext4_break_layouts() because the blocks we
++	 * are truncating were never visible to userspace.
++	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
+ 	truncate_inode_pages(inode->i_mapping, inode->i_size);
+ 	ext4_truncate(inode);
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
