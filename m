@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 04909210DF4E2
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:39:35 -0700 (PDT)
-Subject: [PATCH 05/11] nfit/libnvdimm: add set passphrase support for Intel
- nvdimms
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 02 Jul 2018 16:39:34 -0700
-Message-ID: <153057477488.38125.10748005421631673877.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7E0A1203B99B6
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 11:44:23 -0700 (PDT)
+Date: Wed, 11 Jul 2018 12:44:21 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl, test: Fix dax.sh return code
+Message-ID: <20180711184231.GA20078@vverma7-desk1.amr.corp.intel.com>
+References: <153073826178.9647.3462886609135347418.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1530908758.7574.40.camel@intel.com>
+ <CAPcyv4hCTXSodetks8xxrwSnErw42-RBJhHGDaLOTso2a2xEhA@mail.gmail.com>
+ <1530909130.7574.41.camel@intel.com>
+ <CAPcyv4gRADddnVHo07EGebMthVfd6mPjHk3p6_-HTgEMgAENPA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gRADddnVHo07EGebMthVfd6mPjHk3p6_-HTgEMgAENPA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,248 +27,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding support for setting and/or updating passphrase on the Intel nvdimms.
-The passphrase is pulled from userspace through the kernel key management.
-We trigger the update via writing "update" to the sysfs attribute
-"security". The state of the security can also be read via the "security"
-attribute. libnvdimm will generically support the key_change API call.
+On 07/06, Dan Williams wrote:
+> On Fri, Jul 6, 2018 at 1:32 PM, Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+> >
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+[..]
+
+> > Yes, but that gets overriden by:
+> > https://github.com/pmem/ndctl/blob/master/test/dax.sh#L33
+> 
+> Hmm not sure. I instrumented dax-pmd.c and the shell script to dump
+> the rc value:
+> 
+>     test_dax_poison: rc: 0
+>     rc: 1
+>     FAIL dax.sh (exit status: 1)
+> 
+> diff --git a/test/dax-poison.c b/test/dax-poison.c
+> index a25bf0b17d61..3cf2c108ca81 100644
+> --- a/test/dax-poison.c
+> +++ b/test/dax-poison.c
+> @@ -145,7 +145,9 @@ clear_error:
+>         x = *(volatile unsigned *) addr + align / 2;
+>         rc = 0;
+> 
+> +       fprintf(stderr, "%s: rc: %d\n", __func__, rc);
+>  out:
+> +       fprintf(stderr, "%s: rc: %d\n", __func__, rc);
+>         if (addr != MAP_FAILED)
+>                 munmap(addr, 2 * align);
+>         free(buf);
+> diff --git a/test/dax.sh b/test/dax.sh
+> index 2a82281edb35..016fea5bb0bf 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -90,4 +90,5 @@ json=$($NDCTL create-namespace -m raw -f -e $dev)
+>  eval $(echo $json | sed -e "$json2var")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+> 
+> -exit 0
+> +echo "rc: $rc"
+> +exit $rc
+
+I went with the following since the original patch could potentially
+lose an rc=77 status.
+
+8<----
+
+
+>From 5f6e14c827c068ad892b4451844b4ad2135f2696 Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Fri, 6 Jul 2018 15:55:43 -0600
+Subject: [ndctl PATCH] ndctl, test: Fix dax.sh return code
+
+Commit 11b349b5236e "ndctl, test: Disable poison tests for now"
+inadvertently prevented the dax.sh test from ever succeeding. Make sure
+the test function actually overrides rc every time instead of only when
+there is an error so we don't propagate the initial rc=1 all the way to
+the end.
+
+Fixes: 11b349b5236e ("ndctl, test: Disable poison tests for now")
+Based-on-patch-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   54 ++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |  110 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    4 ++
- 3 files changed, 168 insertions(+)
+ test/dax.sh | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 1bdb493694e0..792a5c694a9e 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -16,6 +16,59 @@
- #include <acpi/nfit.h>
- #include "nfit.h"
- 
-+static int intel_dimm_security_update_passphrase(
-+		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
-+		const char *old_pass, const char *new_pass)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0, pkg_size;
-+	struct nd_intel_set_passphrase *cmd;
-+	struct nd_cmd_pkg *pkg;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+
-+	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	pkg_size = sizeof(*pkg) + sizeof(*cmd);
-+	pkg = kzalloc(pkg_size, GFP_KERNEL);
-+	if (!pkg)
-+		return -ENOMEM;
-+
-+	pkg->nd_command = NVDIMM_INTEL_SET_PASSPHRASE;
-+	pkg->nd_family = NVDIMM_FAMILY_INTEL;
-+	pkg->nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2;
-+	pkg->nd_size_out = ND_INTEL_STATUS_SIZE;
-+	pkg->nd_fw_size = pkg->nd_size_out;
-+	cmd = (struct nd_intel_set_passphrase *)&pkg->nd_payload;
-+	if (old_pass)
-+		memcpy(cmd->old_pass, old_pass, ND_INTEL_PASSPHRASE_SIZE);
-+	memcpy(cmd->new_pass, new_pass, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, pkg,
-+			sizeof(pkg_size), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (cmd->status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	kfree(pkg);
-+	return rc;
-+}
-+
- static int intel_dimm_security_unlock(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, const char *passphrase)
- {
-@@ -139,4 +192,5 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
-+	.change_key = intel_dimm_security_update_passphrase,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index f92bbe78e0df..d3d738c77adb 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -131,6 +131,75 @@ int nvdimm_security_unlock_dimm(struct device *dev)
- 	return rc;
+diff --git a/test/dax.sh b/test/dax.sh
+index 30fe167..b63d563 100755
+--- a/test/dax.sh
++++ b/test/dax.sh
+@@ -29,6 +29,7 @@ err() {
  }
  
-+static int nvdimm_security_change_key(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key = NULL, *old_key = NULL;
-+	int rc;
-+	char *old_pass, *new_pass;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
-+		return -EBUSY;
-+
-+	/* look for a key from keyring if exists and remove */
-+	old_key = nvdimm_search_key(dev);
-+	if (old_key) {
-+		dev_dbg(dev, "%s: killing old key: %#x\n",
-+				__func__, old_key->serial);
-+		key_invalidate(old_key);
-+		key_put(old_key);
-+		/* need key garbage collection to take effect */
-+		cond_resched();
-+	}
-+
-+	/* request new key from userspace */
-+	key = nvdimm_request_key(dev);
-+	if (!key) {
-+		dev_dbg(dev, "%s: failed to acquire new key\n", __func__);
-+		return -ENXIO;
-+	}
-+
-+	dev_dbg(dev, "%s: new key: %#x\n", __func__, key->serial);
-+
-+	if (key->datalen == NVDIMM_DEFAULT_PASSPHRASE_LEN) {
-+		old_pass = NULL;
-+		new_pass = key->payload.data[0];
-+	} else if (key->datalen == (NVDIMM_DEFAULT_PASSPHRASE_LEN * 2)) {
-+		old_pass = key->payload.data[0];
-+		new_pass = old_pass + NVDIMM_DEFAULT_PASSPHRASE_LEN;
-+	} else {
-+		key_invalidate(key);
-+		key_put(key);
-+		dev_warn(dev, "Incorrect key payload size for update: %u\n",
-+				key->datalen);
-+		return -EINVAL;
-+	}
-+
-+	down_read(&key->sem);
-+	rc = nvdimm->security_ops->change_key(nvdimm_bus, nvdimm, old_pass,
-+			new_pass);
-+	if (rc == 0 && key->datalen == (NVDIMM_DEFAULT_PASSPHRASE_LEN * 2))
-+		memcpy(old_pass, new_pass, NVDIMM_DEFAULT_PASSPHRASE_LEN);
-+	up_read(&key->sem);
-+
-+	/*
-+	 * If we successfully update, link the new key to our keyring,
-+	 * otherwise, nuke the key.
-+	 */
-+	if (rc == 0)
-+		key_link(nvdimm_cred->thread_keyring, key);
-+	else
-+		key_invalidate(key);
-+
-+	key_put(key);
-+	nvdimm_security_get_state(dev);
-+	return rc;
-+}
-+
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-@@ -488,11 +557,52 @@ static ssize_t available_slots_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(available_slots);
- 
-+static ssize_t security_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	switch (nvdimm->state) {
-+	case NVDIMM_SECURITY_DISABLED:
-+		return sprintf(buf, "disabled\n");
-+	case NVDIMM_SECURITY_UNLOCKED:
-+		return sprintf(buf, "unlocked\n");
-+	case NVDIMM_SECURITY_LOCKED:
-+		return sprintf(buf, "locked\n");
-+	case NVDIMM_SECURITY_FROZEN:
-+		return sprintf(buf, "frozen\n");
-+	case NVDIMM_SECURITY_UNSUPPORTED:
-+	default:
-+		return sprintf(buf, "unsupported\n");
-+	}
-+
-+	return -ENOTTY;
-+}
-+
-+static ssize_t security_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+
-+{
-+	ssize_t rc = -EINVAL;
-+
-+	if (strcmp(buf, "update") == 0 || strcmp(buf, "update\n") == 0)
-+		rc = nvdimm_security_change_key(dev);
-+	else
-+		return -EINVAL;
-+
-+	if (rc == 0)
-+		rc = len;
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RW(security);
-+
- static struct attribute *nvdimm_attributes[] = {
- 	&dev_attr_state.attr,
- 	&dev_attr_flags.attr,
- 	&dev_attr_commands.attr,
- 	&dev_attr_available_slots.attr,
-+	&dev_attr_security.attr,
- 	NULL,
- };
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index be98afb5f27e..7b609409042c 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -162,6 +162,7 @@ enum nvdimm_security_state {
- 	NVDIMM_SECURITY_DISABLED,
- 	NVDIMM_SECURITY_UNLOCKED,
- 	NVDIMM_SECURITY_LOCKED,
-+	NVDIMM_SECURITY_FROZEN,
- 	NVDIMM_SECURITY_UNSUPPORTED,
- };
- 
-@@ -173,6 +174,9 @@ struct nvdimm_security_ops {
- 			enum nvdimm_security_state *state);
- 	int (*unlock)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm, const char *passphrase);
-+	int (*change_key)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm, const char *old_pass,
-+			const char *new_pass);
- };
- 
- void badrange_init(struct badrange *badrange);
+ run_test() {
++	rc=0
+ 	if ! ./dax-pmd $MNT/$FILE; then
+ 		rc=$?
+ 		if [ $rc -ne 77 -a $rc -ne 0 ]; then
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
