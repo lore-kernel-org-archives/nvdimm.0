@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F1347203B99A2
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 19:48:21 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH v11 3/5] ndctl, monitor: add the unit file of
- systemd for ndctl-monitor service
-Date: Fri, 13 Jul 2018 02:46:58 +0000
-Message-ID: <1531450017.7574.107.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2845A20968910
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 20:01:05 -0700 (PDT)
+Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 2B745AC0104
+ for <linux-nvdimm@lists.01.org>;
+ Wed, 11 Jul 2018 12:01:00 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v11 3/5] ndctl,
+ monitor: add the unit file of systemd for ndctl-monitor service
+Date: Wed, 11 Jul 2018 12:00:10 +0900
+Message-Id: <20180711030012.9186-4-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
 References: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
- <20180711030012.9186-4-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180711030012.9186-4-qi.fuli@jp.fujitsu.com>
-Content-Language: en-US
-Content-ID: <4AA342B3C24CAB4A92044EC35214CC32@intel.com>
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,120 +22,113 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+This patch adds the systemd unit file for ndctl-monitor service.
+The systemd unit directory can be configured by setting environment
+variable "--with-systemd-unit-dir[=DIR]".
 
-On Wed, 2018-07-11 at 12:00 +0900, QI Fuli wrote:
-> This patch adds the systemd unit file for ndctl-monitor service.
-> The systemd unit directory can be configured by setting environment
-> variable "--with-systemd-unit-dir[=DIR]".
-> 
-> A monitor daemon can be started as a system service:
->    # systemctl start ndctl-monitor.service
-> 
-> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
-> ---
->  autogen.sh                  |  3 ++-
->  configure.ac                | 22 ++++++++++++++++++++++
->  ndctl/Makefile.am           |  4 ++++
->  ndctl/ndctl-monitor.service |  7 +++++++
->  4 files changed, 35 insertions(+), 1 deletion(-)
->  create mode 100644 ndctl/ndctl-monitor.service
+A monitor daemon can be started as a system service:
+   # systemctl start ndctl-monitor.service
 
-We install the service unit file when doing a 'make install', but I
-think this also needs an update to the RPM spec file so that RPM knows
-about this too.
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+---
+ autogen.sh                  |  3 ++-
+ configure.ac                | 22 ++++++++++++++++++++++
+ ndctl/Makefile.am           |  4 ++++
+ ndctl/ndctl-monitor.service |  7 +++++++
+ 4 files changed, 35 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl-monitor.service
 
-> 
-> diff --git a/autogen.sh b/autogen.sh
-> index 2a52688..21b0e25 100755
-> --- a/autogen.sh
-> +++ b/autogen.sh
-> @@ -17,7 +17,8 @@ libdir() {
->  
->  args="--prefix=/usr \
->  --sysconfdir=/etc \
-> ---libdir=$(libdir /usr/lib)"
-> +--libdir=$(libdir /usr/lib) \
-> +--with-systemd-unit-dir"
->  
->  echo
->  echo "------------------------------------------------------------
-> ----"
-> diff --git a/configure.ac b/configure.ac
-> index cf44260..a5ba9a1 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
->  	secure_getenv\
->  ])
->  
-> +PKG_PROG_PKG_CONFIG
-> +AC_ARG_WITH([systemd-unit-dir],
-> +	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
-> +		[Directory for systemd service files]),
-> +	[],
-> +	[with_systemd_unit_dir=yes])
-> +
-> +if test "x$with_systemd_unit_dir" = "xyes"; then
-> +	def_systemd_unit_dir=$($PKG_CONFIG --
-> variable=systemdsystemunitdir systemd)
-> +	if test "x$def_systemd_unit_dir" = "x"; then
-> +		AC_MSG_ERROR([systemd support requested but pkg-
-> config unable to query systemd package])
-> +		with_systemd_unit_dir=no
-> +	else
-> +		with_systemd_unit_dir="$def_systemd_unit_dir"
-> +	fi
-> +fi
-> +
-> +AS_IF([test "x$with_systemd_unit_dir" != "xno"],
-> +	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
-> +AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test
-> "x$with_systemd_unit_dir" != "xno"])
-> +
->  my_CFLAGS="\
->  -Wall \
->  -Wchar-subscripts \
-> @@ -184,6 +205,7 @@ AC_MSG_RESULT([
->          sysconfdir:             ${sysconfdir}
->          libdir:                 ${libdir}
->          includedir:             ${includedir}
-> +	systemd-unit-dir:	${systemd_unitdir}
->  
->          compiler:               ${CC}
->          cflags:                 ${CFLAGS}
-> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-> index ae3d894..9d008d5 100644
-> --- a/ndctl/Makefile.am
-> +++ b/ndctl/Makefile.am
-> @@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
->  monitor_configdir = /etc/ndctl/
->  monitor_config_DATA = $(monitor_config_file)
->  EXTRA_DIST += $(monitor_config_file)
-> +
-> +if ENABLE_SYSTEMD_UNIT_DIR
-> +systemd_unit_DATA = ndctl-monitor.service
-> +endif
-> diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-
-> monitor.service
-> new file mode 100644
-> index 0000000..44f9326
-> --- /dev/null
-> +++ b/ndctl/ndctl-monitor.service
-> @@ -0,0 +1,7 @@
-> +[Unit]
-> +Description=Ndctl Monitor Daemon
-> +
-> +[Service]
-> +Type=forking
-> +ExecStart=/usr/bin/ndctl monitor --daemon
-> +ExecStop=/bin/kill ${MAINPID}
+diff --git a/autogen.sh b/autogen.sh
+index 2a52688..21b0e25 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -17,7 +17,8 @@ libdir() {
+ 
+ args="--prefix=/usr \
+ --sysconfdir=/etc \
+---libdir=$(libdir /usr/lib)"
++--libdir=$(libdir /usr/lib) \
++--with-systemd-unit-dir"
+ 
+ echo
+ echo "----------------------------------------------------------------"
+diff --git a/configure.ac b/configure.ac
+index cf44260..a5ba9a1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
+ 	secure_getenv\
+ ])
+ 
++PKG_PROG_PKG_CONFIG
++AC_ARG_WITH([systemd-unit-dir],
++	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
++		[Directory for systemd service files]),
++	[],
++	[with_systemd_unit_dir=yes])
++
++if test "x$with_systemd_unit_dir" = "xyes"; then
++	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
++	if test "x$def_systemd_unit_dir" = "x"; then
++		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
++		with_systemd_unit_dir=no
++	else
++		with_systemd_unit_dir="$def_systemd_unit_dir"
++	fi
++fi
++
++AS_IF([test "x$with_systemd_unit_dir" != "xno"],
++	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
++AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
++
+ my_CFLAGS="\
+ -Wall \
+ -Wchar-subscripts \
+@@ -184,6 +205,7 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
++	systemd-unit-dir:	${systemd_unitdir}
+ 
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index ae3d894..9d008d5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+ monitor_configdir = /etc/ndctl/
+ monitor_config_DATA = $(monitor_config_file)
+ EXTRA_DIST += $(monitor_config_file)
++
++if ENABLE_SYSTEMD_UNIT_DIR
++systemd_unit_DATA = ndctl-monitor.service
++endif
+diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
+new file mode 100644
+index 0000000..44f9326
+--- /dev/null
++++ b/ndctl/ndctl-monitor.service
+@@ -0,0 +1,7 @@
++[Unit]
++Description=Ndctl Monitor Daemon
++
++[Service]
++Type=forking
++ExecStart=/usr/bin/ndctl monitor --daemon
++ExecStop=/bin/kill ${MAINPID}
+-- 
+2.18.0
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
