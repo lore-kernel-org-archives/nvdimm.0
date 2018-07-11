@@ -1,18 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
+Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1D28221A143EF
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 20:01:05 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 3EDE0AC0133
- for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 12:00:58 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v11 1/5] ndctl, monitor: add a new command - monitor
-Date: Wed, 11 Jul 2018 12:00:08 +0900
-Message-Id: <20180711030012.9186-2-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
-References: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7AA5A20336AD5
+ for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 18:27:44 -0700 (PDT)
+Received: from g01jpfmpwkw01.exch.g01.fujitsu.local
+ (g01jpfmpwkw01.exch.g01.fujitsu.local [10.0.193.38])
+ by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id ADF39AC00FD
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 10:27:39 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [ndctl PATCH v10 1/4] ndctl, monitor: add a new command - monitor
+Date: Wed, 11 Jul 2018 01:27:36 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA7EA10@g01jpexmbkw24>
+References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+ <20180709141718.6205-2-qi.fuli@jp.fujitsu.com>
+ <4e80d658-6753-68aa-e608-8f5186e662f0@gmail.com>
+In-Reply-To: <4e80d658-6753-68aa-e608-8f5186e662f0@gmail.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,768 +25,298 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: 'Masayoshi Mizuma' <msys.mizuma@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ndctl monitor is used for monitoring the smart events of nvdimm DIMMs.
-When a smart event fires, monitor will output the notifications which
-include dimm health status and event informations to syslog or a
-logfile by setting [--logfile] option. The notifications follow json
-format and can be consumed by log collectors like Fluentd.
-
-The objects to monitor can be selected by setting [--dimm] [--region]
-[--namespace] [--bus] options and the event type can be filtered by
-setting [--dimm-event] option. These options support multiple
-space-separated arguments.
-
-Ndctl monitor can be forked as a daemon by using [--daemon] option,
-such as:
-   # ndctl monitor --daemon --logfile /var/log/ndctl/monitor.log
-
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
----
- builtin.h              |   1 +
- ndctl/Makefile.am      |   3 +-
- ndctl/lib/libndctl.c   |  82 +++++++
- ndctl/lib/libndctl.sym |   4 +
- ndctl/libndctl.h       |  10 +
- ndctl/monitor.c        | 509 +++++++++++++++++++++++++++++++++++++++++
- ndctl/ndctl.c          |   1 +
- util/filter.h          |   9 +
- 8 files changed, 618 insertions(+), 1 deletion(-)
- create mode 100644 ndctl/monitor.c
-
-diff --git a/builtin.h b/builtin.h
-index d3cc723..675a6ce 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -39,6 +39,7 @@ int cmd_inject_error(int argc, const char **argv, void *ctx);
- int cmd_wait_scrub(int argc, const char **argv, void *ctx);
- int cmd_start_scrub(int argc, const char **argv, void *ctx);
- int cmd_list(int argc, const char **argv, void *ctx);
-+int cmd_monitor(int argc, const char **argv, void *ctx);
- #ifdef ENABLE_TEST
- int cmd_test(int argc, const char **argv, void *ctx);
- #endif
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index d22a379..7dbf223 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -16,7 +16,8 @@ ndctl_SOURCES = ndctl.c \
- 		util/json-smart.c \
- 		util/json-firmware.c \
- 		inject-error.c \
--		inject-smart.c
-+		inject-smart.c \
-+		monitor.c
- 
- if ENABLE_DESTRUCTIVE
- ndctl_SOURCES += ../test/blk_namespaces.c \
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 47e005e..969e4aa 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1635,6 +1635,88 @@ NDCTL_EXPORT int ndctl_dimm_get_health_eventfd(struct ndctl_dimm *dimm)
- 	return dimm->health_eventfd;
- }
- 
-+NDCTL_EXPORT unsigned int ndctl_dimm_get_health(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd = NULL;
-+	unsigned int health;
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	const char *devname = ndctl_dimm_get_devname(dimm);
-+
-+	cmd = ndctl_dimm_cmd_new_smart(dimm);
-+	if (!cmd) {
-+		err(ctx, "%s: no smart command support\n", devname);
-+		return UINT_MAX;
-+	}
-+	if (ndctl_cmd_submit(cmd)) {
-+		err(ctx, "%s: smart command failed\n", devname);
-+		return UINT_MAX;
-+	}
-+
-+	health = ndctl_cmd_smart_get_health(cmd);
-+	ndctl_cmd_unref(cmd);
-+	return health;
-+}
-+
-+NDCTL_EXPORT unsigned int ndctl_dimm_get_flags(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd = NULL;
-+	unsigned int flags;
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	const char *devname = ndctl_dimm_get_devname(dimm);
-+
-+	cmd = ndctl_dimm_cmd_new_smart(dimm);
-+	if (!cmd) {
-+		dbg(ctx, "%s: no smart command support\n", devname);
-+		return UINT_MAX;
-+	}
-+	if (ndctl_cmd_submit(cmd)) {
-+		dbg(ctx, "%s: smart command failed\n", devname);
-+		return UINT_MAX;
-+	}
-+
-+	flags = ndctl_cmd_smart_get_flags(cmd);
-+	ndctl_cmd_unref(cmd);
-+	return flags;
-+}
-+
-+NDCTL_EXPORT int ndctl_dimm_is_flag_supported(struct ndctl_dimm *dimm,
-+		unsigned int flag)
-+{
-+	unsigned int flags = ndctl_dimm_get_flags(dimm);
-+	return (flags ==  UINT_MAX) ? 0 : !!(flags & flag);
-+}
-+
-+NDCTL_EXPORT unsigned int ndctl_dimm_get_event_flags(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd = NULL;
-+	unsigned int alarm_flags, event_flags = 0;
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	const char *devname = ndctl_dimm_get_devname(dimm);
-+
-+	cmd = ndctl_dimm_cmd_new_smart(dimm);
-+	if (!cmd) {
-+		err(ctx, "%s: no smart command support\n", devname);
-+		return UINT_MAX;
-+	}
-+	if (ndctl_cmd_submit(cmd)) {
-+		err(ctx, "%s: smart command failed\n", devname);
-+		return UINT_MAX;
-+	}
-+
-+	alarm_flags = ndctl_cmd_smart_get_alarm_flags(cmd);
-+	if (alarm_flags & ND_SMART_SPARE_TRIP)
-+		event_flags |= ND_EVENT_SPARES_REMAINING;
-+	if (alarm_flags & ND_SMART_MTEMP_TRIP)
-+		event_flags |= ND_EVENT_MEDIA_TEMPERATURE;
-+	if (alarm_flags & ND_SMART_CTEMP_TRIP)
-+		event_flags |= ND_EVENT_CTRL_TEMPERATURE;
-+	if (ndctl_cmd_smart_get_shutdown_state(cmd))
-+		event_flags |= ND_EVENT_UNCLEAN_SHUTDOWN;
-+
-+	ndctl_cmd_unref(cmd);
-+	return event_flags;
-+}
-+
- NDCTL_EXPORT unsigned int ndctl_dimm_handle_get_node(struct ndctl_dimm *dimm)
- {
- 	return dimm->handle >> 16 & 0xfff;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index e939993..765b49d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -366,4 +366,8 @@ global:
- 	ndctl_namespace_inject_error2;
- 	ndctl_namespace_uninject_error2;
- 	ndctl_cmd_ars_stat_get_flag_overflow;
-+	ndctl_dimm_get_health;
-+	ndctl_dimm_get_flags;
-+	ndctl_dimm_get_event_flags;
-+	ndctl_dimm_is_flag_supported;
- } LIBNDCTL_15;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 9270bae..e4c37e1 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -73,6 +73,12 @@ typedef unsigned char uuid_t[16];
- extern "C" {
- #endif
- 
-+#define ND_EVENT_SPARES_REMAINING	(1 << 0)
-+#define ND_EVENT_MEDIA_TEMPERATURE	(1 << 1)
-+#define ND_EVENT_CTRL_TEMPERATURE	(1 << 2)
-+#define ND_EVENT_HEALTH_STATE	(1 << 3)
-+#define ND_EVENT_UNCLEAN_SHUTDOWN	(1 << 4)
-+
- size_t ndctl_min_namespace_size(void);
- size_t ndctl_sizeof_namespace_index(void);
- size_t ndctl_sizeof_namespace_label(void);
-@@ -170,6 +176,10 @@ int ndctl_dimm_failed_map(struct ndctl_dimm *dimm);
- int ndctl_dimm_smart_pending(struct ndctl_dimm *dimm);
- int ndctl_dimm_failed_flush(struct ndctl_dimm *dimm);
- int ndctl_dimm_get_health_eventfd(struct ndctl_dimm *dimm);
-+unsigned int ndctl_dimm_get_health(struct ndctl_dimm *dimm);
-+unsigned int ndctl_dimm_get_flags(struct ndctl_dimm *dimm);
-+unsigned int ndctl_dimm_get_event_flags(struct ndctl_dimm *dimm);
-+int ndctl_dimm_is_flag_supported(struct ndctl_dimm *dimm, unsigned int flag);
- unsigned int ndctl_dimm_handle_get_node(struct ndctl_dimm *dimm);
- unsigned int ndctl_dimm_handle_get_socket(struct ndctl_dimm *dimm);
- unsigned int ndctl_dimm_handle_get_imc(struct ndctl_dimm *dimm);
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-new file mode 100644
-index 0000000..8127bbc
---- /dev/null
-+++ b/ndctl/monitor.c
-@@ -0,0 +1,509 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018, FUJITSU LIMITED. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <json-c/json.h>
-+#include <libgen.h>
-+#include <dirent.h>
-+#include <util/log.h>
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <util/util.h>
-+#include <util/parse-options.h>
-+#include <util/strbuf.h>
-+#include <ndctl/lib/private.h>
-+#include <ndctl/libndctl.h>
-+#include <sys/epoll.h>
-+#define BUF_SIZE 2048
-+
-+
-+static struct monitor {
-+	const char *logfile;
-+	const char *dimm_event;
-+	bool daemon;
-+	unsigned int event_flags;
-+} monitor;
-+
-+struct monitor_dimm {
-+	struct ndctl_dimm *dimm;
-+	int health_eventfd;
-+	unsigned int health;
-+	unsigned int event_flags;
-+	struct list_node list;
-+};
-+
-+struct util_filter_params param;
-+
-+static int did_fail;
-+
-+#define fail(fmt, ...) \
-+do { \
-+	did_fail = 1; \
-+	dbg(ctx, "ndctl-%s:%s:%d: " fmt, \
-+			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
-+} while (0)
-+
-+static void log_syslog(struct ndctl_ctx *ctx, int priority, const char *file,
-+		int line, const char *fn, const char *format, va_list args)
-+{
-+	char *buf;
-+
-+	if (vasprintf(&buf, format, args) < 0) {
-+		fail("vasprintf error\n");
-+		return;
-+	}
-+	syslog(priority, "%s\n", buf);
-+
-+	free(buf);
-+	return;
-+}
-+
-+static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
-+		int line, const char *fn, const char *format, va_list args)
-+{
-+	FILE *f;
-+	char *buf;
-+
-+	if (vasprintf(&buf, format, args) < 0) {
-+		fail("vasprintf error\n");
-+		return;
-+	}
-+
-+	f = fopen(monitor.logfile, "a+");
-+	if (!f) {
-+		ndctl_set_log_fn(ctx, log_syslog);
-+		fail("open logfile %s failed\n%s", monitor.logfile, buf);
-+		goto end;
-+	}
-+	fprintf(f, "%s\n", buf);
-+	fflush(f);
-+	fclose(f);
-+end:
-+	free(buf);
-+	return;
-+}
-+
-+static struct json_object *dimm_event_to_json(struct monitor_dimm *mdimm)
-+{
-+	struct json_object *jevent, *jobj;
-+	bool spares_flag, media_temp_flag, ctrl_temp_flag,
-+			health_state_flag, unclean_shutdown_flag;
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(mdimm->dimm);
-+
-+	jevent = json_object_new_object();
-+	if (!jevent) {
-+		fail("\n");
-+		return NULL;
-+	}
-+
-+	if (monitor.event_flags & ND_EVENT_SPARES_REMAINING) {
-+		spares_flag = !!(mdimm->event_flags
-+				& ND_EVENT_SPARES_REMAINING);
-+		jobj = json_object_new_boolean(spares_flag);
-+		if (jobj)
-+			json_object_object_add(jevent,
-+				"dimm-spares-remaining", jobj);
-+	}
-+
-+	if (monitor.event_flags & ND_EVENT_MEDIA_TEMPERATURE) {
-+		media_temp_flag = !!(mdimm->event_flags
-+				& ND_EVENT_MEDIA_TEMPERATURE);
-+		jobj = json_object_new_boolean(media_temp_flag);
-+		if (jobj)
-+			json_object_object_add(jevent,
-+				"dimm-media-temperature", jobj);
-+	}
-+
-+	if (monitor.event_flags & ND_EVENT_CTRL_TEMPERATURE) {
-+		ctrl_temp_flag = !!(mdimm->event_flags
-+				& ND_EVENT_CTRL_TEMPERATURE);
-+		jobj = json_object_new_boolean(ctrl_temp_flag);
-+		if (jobj)
-+			json_object_object_add(jevent,
-+				"dimm-controller-temperature", jobj);
-+	}
-+
-+	if (monitor.event_flags & ND_EVENT_HEALTH_STATE) {
-+		health_state_flag = !!(mdimm->event_flags
-+				& ND_EVENT_HEALTH_STATE);
-+		jobj = json_object_new_boolean(health_state_flag);
-+		if (jobj)
-+			json_object_object_add(jevent,
-+				"dimm-health-state", jobj);
-+	}
-+
-+	if (monitor.event_flags & ND_EVENT_UNCLEAN_SHUTDOWN) {
-+		unclean_shutdown_flag = !!(mdimm->event_flags
-+				& ND_EVENT_UNCLEAN_SHUTDOWN);
-+		jobj = json_object_new_boolean(unclean_shutdown_flag);
-+		if (jobj)
-+			json_object_object_add(jevent,
-+				"dimm-unclean-shutdown", jobj);
-+	}
-+
-+	return jevent;
-+}
-+
-+static int notify_dimm_event(struct monitor_dimm *mdimm)
-+{
-+	struct json_object *jmsg, *jdimm, *jobj;
-+	struct timespec ts;
-+	char timestamp[32];
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(mdimm->dimm);
-+
-+	jmsg = json_object_new_object();
-+	if (!jmsg) {
-+		fail("\n");
-+		return -1;
-+	}
-+
-+	clock_gettime(CLOCK_REALTIME, &ts);
-+	sprintf(timestamp, "%10ld.%09ld", ts.tv_sec, ts.tv_nsec);
-+	jobj = json_object_new_string(timestamp);
-+	if (!jobj) {
-+		fail("\n");
-+		return -1;
-+	}
-+	json_object_object_add(jmsg, "timestamp", jobj);
-+
-+	jobj = json_object_new_int(getpid());
-+	if (!jobj) {
-+		fail("\n");
-+		return -1;
-+	}
-+	json_object_object_add(jmsg, "pid", jobj);
-+
-+	jobj = dimm_event_to_json(mdimm);
-+	if (!jobj) {
-+		fail("\n");
-+		return -1;
-+	}
-+	json_object_object_add(jmsg, "event", jobj);
-+
-+	jdimm = util_dimm_to_json(mdimm->dimm, 0);
-+	if (!jdimm) {
-+		fail("\n");
-+		return -1;
-+	}
-+	json_object_object_add(jmsg, "dimm", jdimm);
-+
-+	jobj = util_dimm_health_to_json(mdimm->dimm);
-+	if (!jobj) {
-+		fail("\n");
-+		return -1;
-+	}
-+	json_object_object_add(jdimm, "health", jobj);
-+
-+	notice(ctx, "%s",
-+		json_object_to_json_string_ext(jmsg, JSON_C_TO_STRING_PLAIN));
-+
-+	free(jobj);
-+	free(jdimm);
-+	free(jmsg);
-+	return 0;
-+}
-+
-+static struct monitor_dimm *util_dimm_event_filter(struct monitor_dimm *mdimm,
-+		unsigned int event_flags)
-+{
-+	unsigned int health;
-+
-+	mdimm->event_flags = ndctl_dimm_get_event_flags(mdimm->dimm);
-+	if (mdimm->event_flags == UINT_MAX)
-+		return NULL;
-+
-+	health = ndctl_dimm_get_health(mdimm->dimm);
-+	if (health == UINT_MAX)
-+		return NULL;
-+	if (mdimm->health != health)
-+		mdimm->event_flags |= ND_EVENT_HEALTH_STATE;
-+
-+	if (mdimm->event_flags & event_flags)
-+		return mdimm;
-+	return NULL;
-+}
-+
-+static int enable_dimm_supported_threshold_alarms(struct ndctl_dimm *dimm)
-+{
-+	unsigned int alarm;
-+	int rc = -EOPNOTSUPP;
-+	struct ndctl_cmd *st_cmd = NULL, *sst_cmd = NULL;
-+	const char *name = ndctl_dimm_get_devname(dimm);
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+
-+	st_cmd = ndctl_dimm_cmd_new_smart_threshold(dimm);
-+	if (!st_cmd) {
-+		err(ctx, "%s: no smart threshold command support\n", name);
-+		goto out;
-+	}
-+	if (ndctl_cmd_submit(st_cmd)) {
-+		err(ctx, "%s: smart threshold command failed\n", name);
-+		goto out;
-+	}
-+
-+	sst_cmd = ndctl_dimm_cmd_new_smart_set_threshold(st_cmd);
-+	if (!sst_cmd) {
-+		err(ctx, "%s: no smart set threshold command support\n", name);
-+		goto out;
-+	}
-+
-+	alarm = ndctl_cmd_smart_threshold_get_alarm_control(st_cmd);
-+	if (monitor.event_flags & ND_EVENT_SPARES_REMAINING)
-+		alarm |= ND_SMART_SPARE_TRIP;
-+	if (monitor.event_flags & ND_EVENT_MEDIA_TEMPERATURE)
-+		alarm |= ND_SMART_TEMP_TRIP;
-+	if (monitor.event_flags & ND_EVENT_CTRL_TEMPERATURE)
-+		alarm |= ND_SMART_CTEMP_TRIP;
-+	ndctl_cmd_smart_threshold_set_alarm_control(sst_cmd, alarm);
-+
-+	rc = ndctl_cmd_submit(sst_cmd);
-+	if (rc) {
-+		err(ctx, "%s: smart set threshold command failed\n", name);
-+		goto out;
-+	}
-+
-+out:
-+	ndctl_cmd_unref(sst_cmd);
-+	ndctl_cmd_unref(st_cmd);
-+	return rc;
-+}
-+
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *fctx)
-+{
-+	return true;
-+}
-+
-+static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *fctx)
-+{
-+	struct monitor_dimm *mdimm;
-+	struct monitor_filter_arg *mfa = fctx->monitor;
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	const char *name = ndctl_dimm_get_devname(dimm);
-+
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART)) {
-+		err(ctx, "%s: no smart support\n", name);
-+		return;
-+	}
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART_THRESHOLD)) {
-+		err(ctx, "%s: no smart threshold support\n", name);
-+		return;
-+	}
-+
-+	if (!ndctl_dimm_is_flag_supported(dimm, ND_SMART_ALARM_VALID)) {
-+		err(ctx, "%s: smart alarm invalid\n", name);
-+		return;
-+	}
-+
-+	if (enable_dimm_supported_threshold_alarms(dimm)) {
-+		err(ctx, "%s: enable supported threshold alarms failed\n", name);
-+		return;
-+	}
-+
-+	mdimm = calloc(1, sizeof(struct monitor_dimm));
-+	if (!mdimm) {
-+		err(ctx, "%s: calloc for monitor dimm failed\n", name);
-+		return;
-+	}
-+
-+	mdimm->dimm = dimm;
-+	mdimm->health_eventfd = ndctl_dimm_get_health_eventfd(dimm);
-+	mdimm->health = ndctl_dimm_get_health(dimm);
-+	mdimm->event_flags = ndctl_dimm_get_event_flags(dimm);
-+
-+	if (mdimm->event_flags
-+			&& util_dimm_event_filter(mdimm, monitor.event_flags)) {
-+		if (notify_dimm_event(mdimm)) {
-+			err(ctx, "%s: notify dimm event failed\n", name);
-+			free(mdimm);
-+			return;
-+		}
-+	}
-+
-+	list_add_tail(&mfa->dimms, &mdimm->list);
-+	if (mdimm->health_eventfd > mfa->maxfd_dimm)
-+		mfa->maxfd_dimm = mdimm->health_eventfd;
-+	mfa->num_dimm++;
-+	return;
-+}
-+
-+static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *fctx)
-+{
-+	return true;
-+}
-+
-+static int monitor_event(struct ndctl_ctx *ctx,
-+		struct monitor_filter_arg *mfa)
-+{
-+	struct epoll_event ev, *events;
-+	int nfds, epollfd, i, rc;
-+	struct monitor_dimm *mdimm;
-+	char buf;
-+
-+	events = calloc(mfa->num_dimm, sizeof(struct epoll_event));
-+	if (!events) {
-+		err(ctx, "malloc for events error\n");
-+		return 1;
-+	}
-+	epollfd = epoll_create1(0);
-+	if (epollfd == -1) {
-+		err(ctx, "epoll_create1 error\n");
-+		return 1;
-+	}
-+	list_for_each(&mfa->dimms, mdimm, list) {
-+		memset(&ev, 0, sizeof(ev));
-+		rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
-+		if (rc < 0) {
-+			err(ctx, "pread error\n");
-+			return 1;
-+		}
-+		ev.data.ptr = mdimm;
-+		if (epoll_ctl(epollfd, EPOLL_CTL_ADD,
-+				mdimm->health_eventfd, &ev) != 0) {
-+			err(ctx, "epoll_ctl error\n");
-+			return 1;
-+		}
-+	}
-+
-+	while (1) {
-+		did_fail = 0;
-+		nfds = epoll_wait(epollfd, events, mfa->num_dimm, -1);
-+		if (nfds <= 0) {
-+			err(ctx, "epoll_wait error\n");
-+			return 1;
-+		}
-+		for (i = 0; i < nfds; i++) {
-+			mdimm = events[i].data.ptr;
-+			if (util_dimm_event_filter(mdimm, monitor.event_flags)) {
-+				if (notify_dimm_event(mdimm))
-+					fail("%s: notify dimm event failed\n",
-+						ndctl_dimm_get_devname(mdimm->dimm));
-+			}
-+			rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
-+			if (rc < 0)
-+				fail("pread error\n");
-+		}
-+		if (did_fail)
-+			return 1;
-+	}
-+	return 0;
-+}
-+
-+static int parse_monitor_event(struct monitor *_monitor)
-+{
-+	char *dimm_event, *save;
-+	const char *event;
-+
-+	if (!_monitor->dimm_event)
-+		goto dimm_event_all;
-+	dimm_event = strdup(_monitor->dimm_event);
-+	if (!dimm_event)
-+		return 1;
-+
-+	for (event = strtok_r(dimm_event, " ", &save); event;
-+			event = strtok_r(NULL, " ", &save)) {
-+		if (strcmp(event, "all") == 0) {
-+			free(dimm_event);
-+			goto dimm_event_all;
-+		}
-+		if (strcmp(event, "dimm-spares-remaining") == 0)
-+			_monitor->event_flags |= ND_EVENT_SPARES_REMAINING;
-+		if (strcmp(event, "dimm-media-temperature") == 0)
-+			_monitor->event_flags |= ND_EVENT_MEDIA_TEMPERATURE;
-+		if (strcmp(event, "dimm-controller-temperature") == 0)
-+			_monitor->event_flags |= ND_EVENT_CTRL_TEMPERATURE;
-+		if (strcmp(event, "dimm-health-state") == 0)
-+			_monitor->event_flags |= ND_EVENT_HEALTH_STATE;
-+		if (strcmp(event, "dimm-unclean-shutdown") == 0)
-+			_monitor->event_flags |= ND_EVENT_UNCLEAN_SHUTDOWN;
-+	}
-+
-+	free(dimm_event);
-+	return 0;
-+
-+dimm_event_all:
-+	_monitor->event_flags = ND_EVENT_SPARES_REMAINING
-+			| ND_EVENT_MEDIA_TEMPERATURE
-+			| ND_EVENT_CTRL_TEMPERATURE
-+			| ND_EVENT_HEALTH_STATE
-+			| ND_EVENT_UNCLEAN_SHUTDOWN;
-+	return 0;
-+}
-+
-+int cmd_monitor(int argc, const char **argv, void *ctx)
-+{
-+	const struct option options[] = {
-+		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
-+		OPT_STRING('r', "region", &param.region, "region-id",
-+				"filter by region"),
-+		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
-+				"filter by dimm"),
-+		OPT_STRING('n', "namespace", &param.namespace,
-+				"namespace-id", "filter by namespace id"),
-+		OPT_FILENAME('l', "logfile", &monitor.logfile, "file | syslog",
-+				"where to output the monitor's notification"),
-+		OPT_BOOLEAN('f', "daemon", &monitor.daemon,
-+				"run ndctl monitor as a daemon"),
-+		OPT_STRING('D', "dimm-event", &monitor.dimm_event,
-+			"dimm-spares-remaining | dimm-media-temperature | dimm-controller-temperature | dimm-health-state | dimm-unclean-shutdown",
-+			"filter by DIMM event type"),
-+		OPT_END(),
-+	};
-+	const char * const u[] = {
-+		"ndctl monitor [<options>]",
-+		NULL
-+	};
-+	const char *prefix = "./";
-+	struct util_filter_ctx fctx = { 0 };
-+	struct monitor_filter_arg mfa = { 0 };
-+	int i;
-+
-+	argc = parse_options_prefix(argc, argv, prefix, options, u, 0);
-+	for (i = 0; i < argc; i++) {
-+		error("unknown parameter \"%s\"\n", argv[i]);
-+	}
-+	if (argc)
-+		usage_with_options(u, options);
-+
-+	if (monitor.logfile && (strcmp(monitor.logfile, "./syslog") != 0))
-+		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
-+	else
-+		ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
-+	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
-+
-+	if (monitor.daemon) {
-+		if (daemon(0, 0) != 0) {
-+			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
-+			goto out;
-+		}
-+		notice((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
-+	}
-+
-+	if (parse_monitor_event(&monitor))
-+		goto out;
-+
-+	fctx.filter_bus = filter_bus;
-+	fctx.filter_dimm = filter_dimm;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = NULL;
-+	fctx.arg = &mfa;
-+	list_head_init(&mfa.dimms);
-+	mfa.num_dimm = 0;
-+	mfa.maxfd_dimm = -1;
-+	mfa.flags = 0;
-+
-+	if (util_filter_walk(ctx, &fctx, &param))
-+		goto out;
-+
-+	if (!mfa.num_dimm) {
-+		err((struct ndctl_ctx *)ctx, "no dimms to monitor\n");
-+		goto out;
-+	}
-+
-+	if (monitor_event(ctx, &mfa))
-+		goto out;
-+
-+	return 0;
-+out:
-+	return 1;
-+}
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 7daadeb..73dabfa 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -89,6 +89,7 @@ static struct cmd_struct commands[] = {
- 	{ "wait-scrub", cmd_wait_scrub },
- 	{ "start-scrub", cmd_start_scrub },
- 	{ "list", cmd_list },
-+	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
- 	#ifdef ENABLE_TEST
- 	{ "test", cmd_test },
-diff --git a/util/filter.h b/util/filter.h
-index effda24..c2cdddf 100644
---- a/util/filter.h
-+++ b/util/filter.h
-@@ -13,6 +13,7 @@
- #ifndef _UTIL_FILTER_H_
- #define _UTIL_FILTER_H_
- #include <stdbool.h>
-+#include <ccan/list/list.h>
- 
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *ident);
- struct ndctl_region *util_region_filter(struct ndctl_region *region,
-@@ -50,6 +51,13 @@ struct list_filter_arg {
- 	unsigned long flags;
- };
- 
-+struct monitor_filter_arg {
-+	struct list_head dimms;
-+	int maxfd_dimm;
-+	int num_dimm;
-+	unsigned long flags;
-+};
-+
- /*
-  * struct util_filter_ctx - control and callbacks for util_filter_walk()
-  * ->filter_bus() and ->filter_region() return bool because the
-@@ -67,6 +75,7 @@ struct util_filter_ctx {
- 	union {
- 		void *arg;
- 		struct list_filter_arg *list;
-+		struct monitor_filter_arg *monitor;
- 	};
- };
- 
--- 
-2.18.0
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXNheW9zaGkgTWl6dW1hIFtt
+YWlsdG86bXN5cy5taXp1bWFAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEp1bHkgMTEs
+IDIwMTggNToxOSBBTQ0KPiBUbzogUWksIEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBqcC5mdWpp
+dHN1LmNvbT47IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gU3ViamVjdDogUmU6IFtuZGN0
+bCBQQVRDSCB2MTAgMS80XSBuZGN0bCwgbW9uaXRvcjogYWRkIGEgbmV3IGNvbW1hbmQgLSBtb25p
+dG9yDQo+IA0KPiANCj4gT24gMDcvMDkvMjAxOCAxMDoxNyBBTSwgUUkgRnVsaSB3cm90ZToNCj4g
+Wy4uLl0NCj4gPiArc3RhdGljIHZvaWQgbG9nX2ZpbGUoc3RydWN0IG5kY3RsX2N0eCAqY3R4LCBp
+bnQgcHJpb3JpdHksIGNvbnN0IGNoYXIgKmZpbGUsDQo+ID4gKwkJaW50IGxpbmUsIGNvbnN0IGNo
+YXIgKmZuLCBjb25zdCBjaGFyICpmb3JtYXQsIHZhX2xpc3QgYXJncykgew0KPiA+ICsJRklMRSAq
+ZjsNCj4gPiArCWNoYXIgKmJ1ZjsNCj4gPiArDQo+ID4gKwlpZiAodmFzcHJpbnRmKCZidWYsIGZv
+cm1hdCwgYXJncykgPCAwKSB7DQo+ID4gKwkJZmFpbCgidmFzcHJpbnRmIGVycm9yXG4iKTsNCj4g
+PiArCQlyZXR1cm47DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJZiA9IGZvcGVuKG1vbml0b3IubG9n
+ZmlsZSwgImErIik7DQo+ID4gKwlpZiAoIWYpIHsNCj4gPiArCQluZGN0bF9zZXRfbG9nX2ZuKGN0
+eCwgbG9nX3N5c2xvZyk7DQo+ID4gKwkJZmFpbCgib3BlbiBsb2dmaWxlICVzIGZhaWxlZFxuJXMi
+LCBtb25pdG9yLmxvZ2ZpbGUsIGJ1Zik7DQo+ID4gKwkJZ290byBlbmQ7DQo+ID4gKwl9DQo+ID4g
+KwlmcHJpbnRmKGYsICIlc1xuIiwgYnVmKTsNCj4gDQo+IFRoZSB1bml0IHRlc3Qgc29tZXRpbWVz
+IGZhaWxlZCBiZWNhdXNlIHRoZSBsb2cgZmlsZSBpcyBlbXB0eS4NCj4gSSB0aGluayBmZmx1c2go
+Zikgc2hvdWxkIGJlIG5lZWRlZCBoZXJlIHRvIGNvbXBsZXRlIHRoZSB3cml0ZS4NCj4gT3RoZXJ3
+aXNlLCBpZiB0aGUgbW9uaXRvciBkYWVtb24gc3RvcHMgYWNjaWRlbnRhbGx5LCB0aGUgYWxsIGxv
+ZyBpbiBidWZmZXIgYXJlIGdvbmUuLi4NCj4gDQpPaywgSSB3aWxsIGZpeCBpdC4NCg0KVGhhbmsg
+eW91IHZlcnkgbXVjaC4NClFpDQoNCj4gVGhhbmtzLA0KPiBNYXNhDQo+IA0KPiA+ICsJZmNsb3Nl
+KGYpOw0KPiA+ICtlbmQ6DQo+ID4gKwlmcmVlKGJ1Zik7DQo+ID4gKwlyZXR1cm47DQo+ID4gK30N
+Cj4gPiArDQo+ID4gK3N0YXRpYyBzdHJ1Y3QganNvbl9vYmplY3QgKmRpbW1fZXZlbnRfdG9fanNv
+bihzdHJ1Y3QgbW9uaXRvcl9kaW1tDQo+ID4gKyptZGltbSkgew0KPiA+ICsJc3RydWN0IGpzb25f
+b2JqZWN0ICpqZXZlbnQsICpqb2JqOw0KPiA+ICsJYm9vbCBzcGFyZXNfZmxhZywgbWVkaWFfdGVt
+cF9mbGFnLCBjdHJsX3RlbXBfZmxhZywNCj4gPiArCQkJaGVhbHRoX3N0YXRlX2ZsYWcsIHVuY2xl
+YW5fc2h1dGRvd25fZmxhZzsNCj4gPiArCXN0cnVjdCBuZGN0bF9jdHggKmN0eCA9IG5kY3RsX2Rp
+bW1fZ2V0X2N0eChtZGltbS0+ZGltbSk7DQo+ID4gKw0KPiA+ICsJamV2ZW50ID0ganNvbl9vYmpl
+Y3RfbmV3X29iamVjdCgpOw0KPiA+ICsJaWYgKCFqZXZlbnQpIHsNCj4gPiArCQlmYWlsKCJcbiIp
+Ow0KPiA+ICsJCXJldHVybiBOVUxMOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCWlmIChtb25pdG9y
+LmV2ZW50X2ZsYWdzICYgTkRfRVZFTlRfU1BBUkVTX1JFTUFJTklORykgew0KPiA+ICsJCXNwYXJl
+c19mbGFnID0gISEobWRpbW0tPmV2ZW50X2ZsYWdzDQo+ID4gKwkJCQkmIE5EX0VWRU5UX1NQQVJF
+U19SRU1BSU5JTkcpOw0KPiA+ICsJCWpvYmogPSBqc29uX29iamVjdF9uZXdfYm9vbGVhbihzcGFy
+ZXNfZmxhZyk7DQo+ID4gKwkJaWYgKGpvYmopDQo+ID4gKwkJCWpzb25fb2JqZWN0X29iamVjdF9h
+ZGQoamV2ZW50LA0KPiA+ICsJCQkJImRpbW0tc3BhcmVzLXJlbWFpbmluZyIsIGpvYmopOw0KPiA+
+ICsJfQ0KPiA+ICsNCj4gPiArCWlmIChtb25pdG9yLmV2ZW50X2ZsYWdzICYgTkRfRVZFTlRfTUVE
+SUFfVEVNUEVSQVRVUkUpIHsNCj4gPiArCQltZWRpYV90ZW1wX2ZsYWcgPSAhIShtZGltbS0+ZXZl
+bnRfZmxhZ3MNCj4gPiArCQkJCSYgTkRfRVZFTlRfTUVESUFfVEVNUEVSQVRVUkUpOw0KPiA+ICsJ
+CWpvYmogPSBqc29uX29iamVjdF9uZXdfYm9vbGVhbihtZWRpYV90ZW1wX2ZsYWcpOw0KPiA+ICsJ
+CWlmIChqb2JqKQ0KPiA+ICsJCQlqc29uX29iamVjdF9vYmplY3RfYWRkKGpldmVudCwNCj4gPiAr
+CQkJCSJkaW1tLW1lZGlhLXRlbXBlcmF0dXJlIiwgam9iaik7DQo+ID4gKwl9DQo+ID4gKw0KPiA+
+ICsJaWYgKG1vbml0b3IuZXZlbnRfZmxhZ3MgJiBORF9FVkVOVF9DVFJMX1RFTVBFUkFUVVJFKSB7
+DQo+ID4gKwkJY3RybF90ZW1wX2ZsYWcgPSAhIShtZGltbS0+ZXZlbnRfZmxhZ3MNCj4gPiArCQkJ
+CSYgTkRfRVZFTlRfQ1RSTF9URU1QRVJBVFVSRSk7DQo+ID4gKwkJam9iaiA9IGpzb25fb2JqZWN0
+X25ld19ib29sZWFuKGN0cmxfdGVtcF9mbGFnKTsNCj4gPiArCQlpZiAoam9iaikNCj4gPiArCQkJ
+anNvbl9vYmplY3Rfb2JqZWN0X2FkZChqZXZlbnQsDQo+ID4gKwkJCQkiZGltbS1jb250cm9sbGVy
+LXRlbXBlcmF0dXJlIiwgam9iaik7DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJaWYgKG1vbml0b3Iu
+ZXZlbnRfZmxhZ3MgJiBORF9FVkVOVF9IRUFMVEhfU1RBVEUpIHsNCj4gPiArCQloZWFsdGhfc3Rh
+dGVfZmxhZyA9ICEhKG1kaW1tLT5ldmVudF9mbGFncw0KPiA+ICsJCQkJJiBORF9FVkVOVF9IRUFM
+VEhfU1RBVEUpOw0KPiA+ICsJCWpvYmogPSBqc29uX29iamVjdF9uZXdfYm9vbGVhbihoZWFsdGhf
+c3RhdGVfZmxhZyk7DQo+ID4gKwkJaWYgKGpvYmopDQo+ID4gKwkJCWpzb25fb2JqZWN0X29iamVj
+dF9hZGQoamV2ZW50LA0KPiA+ICsJCQkJImRpbW0taGVhbHRoLXN0YXRlIiwgam9iaik7DQo+ID4g
+Kwl9DQo+ID4gKw0KPiA+ICsJaWYgKG1vbml0b3IuZXZlbnRfZmxhZ3MgJiBORF9FVkVOVF9VTkNM
+RUFOX1NIVVRET1dOKSB7DQo+ID4gKwkJdW5jbGVhbl9zaHV0ZG93bl9mbGFnID0gISEobWRpbW0t
+PmV2ZW50X2ZsYWdzDQo+ID4gKwkJCQkmIE5EX0VWRU5UX1VOQ0xFQU5fU0hVVERPV04pOw0KPiA+
+ICsJCWpvYmogPSBqc29uX29iamVjdF9uZXdfYm9vbGVhbih1bmNsZWFuX3NodXRkb3duX2ZsYWcp
+Ow0KPiA+ICsJCWlmIChqb2JqKQ0KPiA+ICsJCQlqc29uX29iamVjdF9vYmplY3RfYWRkKGpldmVu
+dCwNCj4gPiArCQkJCSJkaW1tLXVuY2xlYW4tc2h1dGRvd24iLCBqb2JqKTsNCj4gPiArCX0NCj4g
+PiArDQo+ID4gKwlyZXR1cm4gamV2ZW50Ow0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50
+IG5vdGlmeV9kaW1tX2V2ZW50KHN0cnVjdCBtb25pdG9yX2RpbW0gKm1kaW1tKSB7DQo+ID4gKwlz
+dHJ1Y3QganNvbl9vYmplY3QgKmptc2csICpqZGltbSwgKmpvYmo7DQo+ID4gKwlzdHJ1Y3QgdGlt
+ZXNwZWMgdHM7DQo+ID4gKwljaGFyIHRpbWVzdGFtcFszMl07DQo+ID4gKwlzdHJ1Y3QgbmRjdGxf
+Y3R4ICpjdHggPSBuZGN0bF9kaW1tX2dldF9jdHgobWRpbW0tPmRpbW0pOw0KPiA+ICsNCj4gPiAr
+CWptc2cgPSBqc29uX29iamVjdF9uZXdfb2JqZWN0KCk7DQo+ID4gKwlpZiAoIWptc2cpIHsNCj4g
+PiArCQlmYWlsKCJcbiIpOw0KPiA+ICsJCXJldHVybiAtMTsNCj4gPiArCX0NCj4gPiArDQo+ID4g
+KwljbG9ja19nZXR0aW1lKENMT0NLX1JFQUxUSU1FLCAmdHMpOw0KPiA+ICsJc3ByaW50Zih0aW1l
+c3RhbXAsICIlMTBsZC4lMDlsZCIsIHRzLnR2X3NlYywgdHMudHZfbnNlYyk7DQo+ID4gKwlqb2Jq
+ID0ganNvbl9vYmplY3RfbmV3X3N0cmluZyh0aW1lc3RhbXApOw0KPiA+ICsJaWYgKCFqb2JqKSB7
+DQo+ID4gKwkJZmFpbCgiXG4iKTsNCj4gPiArCQlyZXR1cm4gLTE7DQo+ID4gKwl9DQo+ID4gKwlq
+c29uX29iamVjdF9vYmplY3RfYWRkKGptc2csICJ0aW1lc3RhbXAiLCBqb2JqKTsNCj4gPiArDQo+
+ID4gKwlqb2JqID0ganNvbl9vYmplY3RfbmV3X2ludChnZXRwaWQoKSk7DQo+ID4gKwlpZiAoIWpv
+YmopIHsNCj4gPiArCQlmYWlsKCJcbiIpOw0KPiA+ICsJCXJldHVybiAtMTsNCj4gPiArCX0NCj4g
+PiArCWpzb25fb2JqZWN0X29iamVjdF9hZGQoam1zZywgInBpZCIsIGpvYmopOw0KPiA+ICsNCj4g
+PiArCWpvYmogPSBkaW1tX2V2ZW50X3RvX2pzb24obWRpbW0pOw0KPiA+ICsJaWYgKCFqb2JqKSB7
+DQo+ID4gKwkJZmFpbCgiXG4iKTsNCj4gPiArCQlyZXR1cm4gLTE7DQo+ID4gKwl9DQo+ID4gKwlq
+c29uX29iamVjdF9vYmplY3RfYWRkKGptc2csICJldmVudCIsIGpvYmopOw0KPiA+ICsNCj4gPiAr
+CWpkaW1tID0gdXRpbF9kaW1tX3RvX2pzb24obWRpbW0tPmRpbW0sIDApOw0KPiA+ICsJaWYgKCFq
+ZGltbSkgew0KPiA+ICsJCWZhaWwoIlxuIik7DQo+ID4gKwkJcmV0dXJuIC0xOw0KPiA+ICsJfQ0K
+PiA+ICsJanNvbl9vYmplY3Rfb2JqZWN0X2FkZChqbXNnLCAiZGltbSIsIGpkaW1tKTsNCj4gPiAr
+DQo+ID4gKwlqb2JqID0gdXRpbF9kaW1tX2hlYWx0aF90b19qc29uKG1kaW1tLT5kaW1tKTsNCj4g
+PiArCWlmICgham9iaikgew0KPiA+ICsJCWZhaWwoIlxuIik7DQo+ID4gKwkJcmV0dXJuIC0xOw0K
+PiA+ICsJfQ0KPiA+ICsJanNvbl9vYmplY3Rfb2JqZWN0X2FkZChqZGltbSwgImhlYWx0aCIsIGpv
+YmopOw0KPiA+ICsNCj4gPiArCW5vdGljZShjdHgsICIlcyIsDQo+ID4gKwkJanNvbl9vYmplY3Rf
+dG9fanNvbl9zdHJpbmdfZXh0KGptc2csIEpTT05fQ19UT19TVFJJTkdfUExBSU4pKTsNCj4gPiAr
+DQo+ID4gKwlmcmVlKGpvYmopOw0KPiA+ICsJZnJlZShqZGltbSk7DQo+ID4gKwlmcmVlKGptc2cp
+Ow0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBzdHJ1Y3QgbW9u
+aXRvcl9kaW1tICp1dGlsX2RpbW1fZXZlbnRfZmlsdGVyKHN0cnVjdCBtb25pdG9yX2RpbW0gKm1k
+aW1tLA0KPiA+ICsJCXVuc2lnbmVkIGludCBldmVudF9mbGFncykNCj4gPiArew0KPiA+ICsJdW5z
+aWduZWQgaW50IGhlYWx0aDsNCj4gPiArDQo+ID4gKwltZGltbS0+ZXZlbnRfZmxhZ3MgPSBuZGN0
+bF9kaW1tX2dldF9ldmVudF9mbGFncyhtZGltbS0+ZGltbSk7DQo+ID4gKwlpZiAobWRpbW0tPmV2
+ZW50X2ZsYWdzID09IFVJTlRfTUFYKQ0KPiA+ICsJCXJldHVybiBOVUxMOw0KPiA+ICsNCj4gPiAr
+CWhlYWx0aCA9IG5kY3RsX2RpbW1fZ2V0X2hlYWx0aChtZGltbS0+ZGltbSk7DQo+ID4gKwlpZiAo
+aGVhbHRoID09IFVJTlRfTUFYKQ0KPiA+ICsJCXJldHVybiBOVUxMOw0KPiA+ICsJaWYgKG1kaW1t
+LT5oZWFsdGggIT0gaGVhbHRoKQ0KPiA+ICsJCW1kaW1tLT5ldmVudF9mbGFncyB8PSBORF9FVkVO
+VF9IRUFMVEhfU1RBVEU7DQo+ID4gKw0KPiA+ICsJaWYgKG1kaW1tLT5ldmVudF9mbGFncyAmIGV2
+ZW50X2ZsYWdzKQ0KPiA+ICsJCXJldHVybiBtZGltbTsNCj4gPiArCXJldHVybiBOVUxMOw0KPiA+
+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50IGVuYWJsZV9kaW1tX3N1cHBvcnRlZF90aHJlc2hv
+bGRfYWxhcm1zKHN0cnVjdCBuZGN0bF9kaW1tDQo+ID4gKypkaW1tKSB7DQo+ID4gKwl1bnNpZ25l
+ZCBpbnQgYWxhcm07DQo+ID4gKwlpbnQgcmMgPSAtRU9QTk9UU1VQUDsNCj4gPiArCXN0cnVjdCBu
+ZGN0bF9jbWQgKnN0X2NtZCA9IE5VTEwsICpzc3RfY21kID0gTlVMTDsNCj4gPiArCWNvbnN0IGNo
+YXIgKm5hbWUgPSBuZGN0bF9kaW1tX2dldF9kZXZuYW1lKGRpbW0pOw0KPiA+ICsJc3RydWN0IG5k
+Y3RsX2N0eCAqY3R4ID0gbmRjdGxfZGltbV9nZXRfY3R4KGRpbW0pOw0KPiA+ICsNCj4gPiArCXN0
+X2NtZCA9IG5kY3RsX2RpbW1fY21kX25ld19zbWFydF90aHJlc2hvbGQoZGltbSk7DQo+ID4gKwlp
+ZiAoIXN0X2NtZCkgew0KPiA+ICsJCWVycihjdHgsICIlczogbm8gc21hcnQgdGhyZXNob2xkIGNv
+bW1hbmQgc3VwcG9ydFxuIiwgbmFtZSk7DQo+ID4gKwkJZ290byBvdXQ7DQo+ID4gKwl9DQo+ID4g
+KwlpZiAobmRjdGxfY21kX3N1Ym1pdChzdF9jbWQpKSB7DQo+ID4gKwkJZXJyKGN0eCwgIiVzOiBz
+bWFydCB0aHJlc2hvbGQgY29tbWFuZCBmYWlsZWRcbiIsIG5hbWUpOw0KPiA+ICsJCWdvdG8gb3V0
+Ow0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXNzdF9jbWQgPSBuZGN0bF9kaW1tX2NtZF9uZXdfc21h
+cnRfc2V0X3RocmVzaG9sZChzdF9jbWQpOw0KPiA+ICsJaWYgKCFzc3RfY21kKSB7DQo+ID4gKwkJ
+ZXJyKGN0eCwgIiVzOiBubyBzbWFydCBzZXQgdGhyZXNob2xkIGNvbW1hbmQgc3VwcG9ydFxuIiwg
+bmFtZSk7DQo+ID4gKwkJZ290byBvdXQ7DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJYWxhcm0gPSBu
+ZGN0bF9jbWRfc21hcnRfdGhyZXNob2xkX2dldF9hbGFybV9jb250cm9sKHN0X2NtZCk7DQo+ID4g
+KwlpZiAobW9uaXRvci5ldmVudF9mbGFncyAmIE5EX0VWRU5UX1NQQVJFU19SRU1BSU5JTkcpDQo+
+ID4gKwkJYWxhcm0gfD0gTkRfU01BUlRfU1BBUkVfVFJJUDsNCj4gPiArCWlmIChtb25pdG9yLmV2
+ZW50X2ZsYWdzICYgTkRfRVZFTlRfTUVESUFfVEVNUEVSQVRVUkUpDQo+ID4gKwkJYWxhcm0gfD0g
+TkRfU01BUlRfVEVNUF9UUklQOw0KPiA+ICsJaWYgKG1vbml0b3IuZXZlbnRfZmxhZ3MgJiBORF9F
+VkVOVF9DVFJMX1RFTVBFUkFUVVJFKQ0KPiA+ICsJCWFsYXJtIHw9IE5EX1NNQVJUX0NURU1QX1RS
+SVA7DQo+ID4gKwluZGN0bF9jbWRfc21hcnRfdGhyZXNob2xkX3NldF9hbGFybV9jb250cm9sKHNz
+dF9jbWQsIGFsYXJtKTsNCj4gPiArDQo+ID4gKwlyYyA9IG5kY3RsX2NtZF9zdWJtaXQoc3N0X2Nt
+ZCk7DQo+ID4gKwlpZiAocmMpIHsNCj4gPiArCQllcnIoY3R4LCAiJXM6IHNtYXJ0IHNldCB0aHJl
+c2hvbGQgY29tbWFuZCBmYWlsZWRcbiIsIG5hbWUpOw0KPiA+ICsJCWdvdG8gb3V0Ow0KPiA+ICsJ
+fQ0KPiA+ICsNCj4gPiArb3V0Og0KPiA+ICsJbmRjdGxfY21kX3VucmVmKHNzdF9jbWQpOw0KPiA+
+ICsJbmRjdGxfY21kX3VucmVmKHN0X2NtZCk7DQo+ID4gKwlyZXR1cm4gcmM7DQo+ID4gK30NCj4g
+PiArDQo+ID4gK3N0YXRpYyBib29sIGZpbHRlcl9yZWdpb24oc3RydWN0IG5kY3RsX3JlZ2lvbiAq
+cmVnaW9uLA0KPiA+ICsJCXN0cnVjdCB1dGlsX2ZpbHRlcl9jdHggKmZjdHgpDQo+ID4gK3sNCj4g
+PiArCXJldHVybiB0cnVlOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBmaWx0ZXJf
+ZGltbShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwgc3RydWN0DQo+ID4gK3V0aWxfZmlsdGVyX2N0
+eCAqZmN0eCkgew0KPiA+ICsJc3RydWN0IG1vbml0b3JfZGltbSAqbWRpbW07DQo+ID4gKwlzdHJ1
+Y3QgbW9uaXRvcl9maWx0ZXJfYXJnICptZmEgPSBmY3R4LT5tb25pdG9yOw0KPiA+ICsJc3RydWN0
+IG5kY3RsX2N0eCAqY3R4ID0gbmRjdGxfZGltbV9nZXRfY3R4KGRpbW0pOw0KPiA+ICsJY29uc3Qg
+Y2hhciAqbmFtZSA9IG5kY3RsX2RpbW1fZ2V0X2Rldm5hbWUoZGltbSk7DQo+ID4gKw0KPiA+ICsJ
+aWYgKCFuZGN0bF9kaW1tX2lzX2NtZF9zdXBwb3J0ZWQoZGltbSwgTkRfQ01EX1NNQVJUKSkgew0K
+PiA+ICsJCWVycihjdHgsICIlczogbm8gc21hcnQgc3VwcG9ydFxuIiwgbmFtZSk7DQo+ID4gKwkJ
+cmV0dXJuOw0KPiA+ICsJfQ0KPiA+ICsJaWYgKCFuZGN0bF9kaW1tX2lzX2NtZF9zdXBwb3J0ZWQo
+ZGltbSwgTkRfQ01EX1NNQVJUX1RIUkVTSE9MRCkpIHsNCj4gPiArCQllcnIoY3R4LCAiJXM6IG5v
+IHNtYXJ0IHRocmVzaG9sZCBzdXBwb3J0XG4iLCBuYW1lKTsNCj4gPiArCQlyZXR1cm47DQo+ID4g
+Kwl9DQo+ID4gKw0KPiA+ICsJaWYgKCFuZGN0bF9kaW1tX2lzX2ZsYWdfc3VwcG9ydGVkKGRpbW0s
+IE5EX1NNQVJUX0FMQVJNX1ZBTElEKSkgew0KPiA+ICsJCWVycihjdHgsICIlczogc21hcnQgYWxh
+cm0gaW52YWxpZFxuIiwgbmFtZSk7DQo+ID4gKwkJcmV0dXJuOw0KPiA+ICsJfQ0KPiA+ICsNCj4g
+PiArCWlmIChlbmFibGVfZGltbV9zdXBwb3J0ZWRfdGhyZXNob2xkX2FsYXJtcyhkaW1tKSkgew0K
+PiA+ICsJCWVycihjdHgsICIlczogZW5hYmxlIHN1cHBvcnRlZCB0aHJlc2hvbGQgYWxhcm1zIGZh
+aWxlZFxuIiwgbmFtZSk7DQo+ID4gKwkJcmV0dXJuOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCW1k
+aW1tID0gY2FsbG9jKDEsIHNpemVvZihzdHJ1Y3QgbW9uaXRvcl9kaW1tKSk7DQo+ID4gKwlpZiAo
+IW1kaW1tKSB7DQo+ID4gKwkJZXJyKGN0eCwgIiVzOiBjYWxsb2MgZm9yIG1vbml0b3IgZGltbSBm
+YWlsZWRcbiIsIG5hbWUpOw0KPiA+ICsJCXJldHVybjsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwlt
+ZGltbS0+ZGltbSA9IGRpbW07DQo+ID4gKwltZGltbS0+aGVhbHRoX2V2ZW50ZmQgPSBuZGN0bF9k
+aW1tX2dldF9oZWFsdGhfZXZlbnRmZChkaW1tKTsNCj4gPiArCW1kaW1tLT5oZWFsdGggPSBuZGN0
+bF9kaW1tX2dldF9oZWFsdGgoZGltbSk7DQo+ID4gKwltZGltbS0+ZXZlbnRfZmxhZ3MgPSBuZGN0
+bF9kaW1tX2dldF9ldmVudF9mbGFncyhkaW1tKTsNCj4gPiArDQo+ID4gKwlpZiAobWRpbW0tPmV2
+ZW50X2ZsYWdzDQo+ID4gKwkJCSYmIHV0aWxfZGltbV9ldmVudF9maWx0ZXIobWRpbW0sIG1vbml0
+b3IuZXZlbnRfZmxhZ3MpKSB7DQo+ID4gKwkJaWYgKG5vdGlmeV9kaW1tX2V2ZW50KG1kaW1tKSkg
+ew0KPiA+ICsJCQllcnIoY3R4LCAiJXM6IG5vdGlmeSBkaW1tIGV2ZW50IGZhaWxlZFxuIiwgbmFt
+ZSk7DQo+ID4gKwkJCWZyZWUobWRpbW0pOw0KPiA+ICsJCQlyZXR1cm47DQo+ID4gKwkJfQ0KPiA+
+ICsJfQ0KPiA+ICsNCj4gPiArCWxpc3RfYWRkX3RhaWwoJm1mYS0+ZGltbXMsICZtZGltbS0+bGlz
+dCk7DQo+ID4gKwlpZiAobWRpbW0tPmhlYWx0aF9ldmVudGZkID4gbWZhLT5tYXhmZF9kaW1tKQ0K
+PiA+ICsJCW1mYS0+bWF4ZmRfZGltbSA9IG1kaW1tLT5oZWFsdGhfZXZlbnRmZDsNCj4gPiArCW1m
+YS0+bnVtX2RpbW0rKzsNCj4gPiArCXJldHVybjsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGlj
+IGJvb2wgZmlsdGVyX2J1cyhzdHJ1Y3QgbmRjdGxfYnVzICpidXMsIHN0cnVjdCB1dGlsX2ZpbHRl
+cl9jdHgNCj4gPiArKmZjdHgpIHsNCj4gPiArCXJldHVybiB0cnVlOw0KPiA+ICt9DQo+ID4gKw0K
+PiA+ICtzdGF0aWMgaW50IG1vbml0b3JfZXZlbnQoc3RydWN0IG5kY3RsX2N0eCAqY3R4LA0KPiA+
+ICsJCXN0cnVjdCBtb25pdG9yX2ZpbHRlcl9hcmcgKm1mYSkNCj4gPiArew0KPiA+ICsJc3RydWN0
+IGVwb2xsX2V2ZW50IGV2LCAqZXZlbnRzOw0KPiA+ICsJaW50IG5mZHMsIGVwb2xsZmQsIGksIHJj
+Ow0KPiA+ICsJc3RydWN0IG1vbml0b3JfZGltbSAqbWRpbW07DQo+ID4gKwljaGFyIGJ1ZjsNCj4g
+PiArDQo+ID4gKwlldmVudHMgPSBjYWxsb2MobWZhLT5udW1fZGltbSwgc2l6ZW9mKHN0cnVjdCBl
+cG9sbF9ldmVudCkpOw0KPiA+ICsJaWYgKCFldmVudHMpIHsNCj4gPiArCQllcnIoY3R4LCAibWFs
+bG9jIGZvciBldmVudHMgZXJyb3JcbiIpOw0KPiA+ICsJCXJldHVybiAxOw0KPiA+ICsJfQ0KPiA+
+ICsJZXBvbGxmZCA9IGVwb2xsX2NyZWF0ZTEoMCk7DQo+ID4gKwlpZiAoZXBvbGxmZCA9PSAtMSkg
+ew0KPiA+ICsJCWVycihjdHgsICJlcG9sbF9jcmVhdGUxIGVycm9yXG4iKTsNCj4gPiArCQlyZXR1
+cm4gMTsNCj4gPiArCX0NCj4gPiArCWxpc3RfZm9yX2VhY2goJm1mYS0+ZGltbXMsIG1kaW1tLCBs
+aXN0KSB7DQo+ID4gKwkJbWVtc2V0KCZldiwgMCwgc2l6ZW9mKGV2KSk7DQo+ID4gKwkJcmMgPSBw
+cmVhZChtZGltbS0+aGVhbHRoX2V2ZW50ZmQsICZidWYsIHNpemVvZihidWYpLCAwKTsNCj4gPiAr
+CQlpZiAocmMgPCAwKSB7DQo+ID4gKwkJCWVycihjdHgsICJwcmVhZCBlcnJvclxuIik7DQo+ID4g
+KwkJCXJldHVybiAxOw0KPiA+ICsJCX0NCj4gPiArCQlldi5kYXRhLnB0ciA9IG1kaW1tOw0KPiA+
+ICsJCWlmIChlcG9sbF9jdGwoZXBvbGxmZCwgRVBPTExfQ1RMX0FERCwNCj4gPiArCQkJCW1kaW1t
+LT5oZWFsdGhfZXZlbnRmZCwgJmV2KSAhPSAwKSB7DQo+ID4gKwkJCWVycihjdHgsICJlcG9sbF9j
+dGwgZXJyb3JcbiIpOw0KPiA+ICsJCQlyZXR1cm4gMTsNCj4gPiArCQl9DQo+ID4gKwl9DQo+ID4g
+Kw0KPiA+ICsJd2hpbGUgKDEpIHsNCj4gPiArCQlkaWRfZmFpbCA9IDA7DQo+ID4gKwkJbmZkcyA9
+IGVwb2xsX3dhaXQoZXBvbGxmZCwgZXZlbnRzLCBtZmEtPm51bV9kaW1tLCAtMSk7DQo+ID4gKwkJ
+aWYgKG5mZHMgPD0gMCkgew0KPiA+ICsJCQllcnIoY3R4LCAiZXBvbGxfd2FpdCBlcnJvclxuIik7
+DQo+ID4gKwkJCXJldHVybiAxOw0KPiA+ICsJCX0NCj4gPiArCQlmb3IgKGkgPSAwOyBpIDwgbmZk
+czsgaSsrKSB7DQo+ID4gKwkJCW1kaW1tID0gZXZlbnRzW2ldLmRhdGEucHRyOw0KPiA+ICsJCQlp
+ZiAodXRpbF9kaW1tX2V2ZW50X2ZpbHRlcihtZGltbSwgbW9uaXRvci5ldmVudF9mbGFncykpIHsN
+Cj4gPiArCQkJCWlmIChub3RpZnlfZGltbV9ldmVudChtZGltbSkpDQo+ID4gKwkJCQkJZmFpbCgi
+JXM6IG5vdGlmeSBkaW1tIGV2ZW50IGZhaWxlZFxuIiwNCj4gPiArDQo+IAluZGN0bF9kaW1tX2dl
+dF9kZXZuYW1lKG1kaW1tLT5kaW1tKSk7DQo+ID4gKwkJCX0NCj4gPiArCQkJcmMgPSBwcmVhZCht
+ZGltbS0+aGVhbHRoX2V2ZW50ZmQsICZidWYsIHNpemVvZihidWYpLCAwKTsNCj4gPiArCQkJaWYg
+KHJjIDwgMCkNCj4gPiArCQkJCWZhaWwoInByZWFkIGVycm9yXG4iKTsNCj4gPiArCQl9DQo+ID4g
+KwkJaWYgKGRpZF9mYWlsKQ0KPiA+ICsJCQlyZXR1cm4gMTsNCj4gPiArCX0NCj4gPiArCXJldHVy
+biAwOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50IHBhcnNlX21vbml0b3JfZXZlbnQo
+c3RydWN0IG1vbml0b3IgKl9tb25pdG9yKSB7DQo+ID4gKwljaGFyICpkaW1tX2V2ZW50LCAqc2F2
+ZTsNCj4gPiArCWNvbnN0IGNoYXIgKmV2ZW50Ow0KPiA+ICsNCj4gPiArCWlmICghX21vbml0b3It
+PmRpbW1fZXZlbnQpDQo+ID4gKwkJZ290byBkaW1tX2V2ZW50X2FsbDsNCj4gPiArCWRpbW1fZXZl
+bnQgPSBzdHJkdXAoX21vbml0b3ItPmRpbW1fZXZlbnQpOw0KPiA+ICsJaWYgKCFkaW1tX2V2ZW50
+KQ0KPiA+ICsJCXJldHVybiAxOw0KPiA+ICsNCj4gPiArCWZvciAoZXZlbnQgPSBzdHJ0b2tfcihk
+aW1tX2V2ZW50LCAiICIsICZzYXZlKTsgZXZlbnQ7DQo+ID4gKwkJCWV2ZW50ID0gc3RydG9rX3Io
+TlVMTCwgIiAiLCAmc2F2ZSkpIHsNCj4gPiArCQlpZiAoc3RyY21wKGV2ZW50LCAiYWxsIikgPT0g
+MCkgew0KPiA+ICsJCQlmcmVlKGRpbW1fZXZlbnQpOw0KPiA+ICsJCQlnb3RvIGRpbW1fZXZlbnRf
+YWxsOw0KPiA+ICsJCX0NCj4gPiArCQlpZiAoc3RyY21wKGV2ZW50LCAiZGltbS1zcGFyZXMtcmVt
+YWluaW5nIikgPT0gMCkNCj4gPiArCQkJX21vbml0b3ItPmV2ZW50X2ZsYWdzIHw9IE5EX0VWRU5U
+X1NQQVJFU19SRU1BSU5JTkc7DQo+ID4gKwkJaWYgKHN0cmNtcChldmVudCwgImRpbW0tbWVkaWEt
+dGVtcGVyYXR1cmUiKSA9PSAwKQ0KPiA+ICsJCQlfbW9uaXRvci0+ZXZlbnRfZmxhZ3MgfD0gTkRf
+RVZFTlRfTUVESUFfVEVNUEVSQVRVUkU7DQo+ID4gKwkJaWYgKHN0cmNtcChldmVudCwgImRpbW0t
+Y29udHJvbGxlci10ZW1wZXJhdHVyZSIpID09IDApDQo+ID4gKwkJCV9tb25pdG9yLT5ldmVudF9m
+bGFncyB8PSBORF9FVkVOVF9DVFJMX1RFTVBFUkFUVVJFOw0KPiA+ICsJCWlmIChzdHJjbXAoZXZl
+bnQsICJkaW1tLWhlYWx0aC1zdGF0ZSIpID09IDApDQo+ID4gKwkJCV9tb25pdG9yLT5ldmVudF9m
+bGFncyB8PSBORF9FVkVOVF9IRUFMVEhfU1RBVEU7DQo+ID4gKwkJaWYgKHN0cmNtcChldmVudCwg
+ImRpbW0tdW5jbGVhbi1zaHV0ZG93biIpID09IDApDQo+ID4gKwkJCV9tb25pdG9yLT5ldmVudF9m
+bGFncyB8PSBORF9FVkVOVF9VTkNMRUFOX1NIVVRET1dOOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiAr
+CWZyZWUoZGltbV9ldmVudCk7DQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArDQo+ID4gK2RpbW1fZXZl
+bnRfYWxsOg0KPiA+ICsJX21vbml0b3ItPmV2ZW50X2ZsYWdzID0gTkRfRVZFTlRfU1BBUkVTX1JF
+TUFJTklORw0KPiA+ICsJCQl8IE5EX0VWRU5UX01FRElBX1RFTVBFUkFUVVJFDQo+ID4gKwkJCXwg
+TkRfRVZFTlRfQ1RSTF9URU1QRVJBVFVSRQ0KPiA+ICsJCQl8IE5EX0VWRU5UX0hFQUxUSF9TVEFU
+RQ0KPiA+ICsJCQl8IE5EX0VWRU5UX1VOQ0xFQU5fU0hVVERPV047DQo+ID4gKwlyZXR1cm4gMDsN
+Cj4gPiArfQ0KPiA+ICsNCj4gPiAraW50IGNtZF9tb25pdG9yKGludCBhcmdjLCBjb25zdCBjaGFy
+ICoqYXJndiwgdm9pZCAqY3R4KSB7DQo+ID4gKwljb25zdCBzdHJ1Y3Qgb3B0aW9uIG9wdGlvbnNb
+XSA9IHsNCj4gPiArCQlPUFRfU1RSSU5HKCdiJywgImJ1cyIsICZwYXJhbS5idXMsICJidXMtaWQi
+LCAiZmlsdGVyIGJ5IGJ1cyIpLA0KPiA+ICsJCU9QVF9TVFJJTkcoJ3InLCAicmVnaW9uIiwgJnBh
+cmFtLnJlZ2lvbiwgInJlZ2lvbi1pZCIsDQo+ID4gKwkJCQkiZmlsdGVyIGJ5IHJlZ2lvbiIpLA0K
+PiA+ICsJCU9QVF9TVFJJTkcoJ2QnLCAiZGltbSIsICZwYXJhbS5kaW1tLCAiZGltbS1pZCIsDQo+
+ID4gKwkJCQkiZmlsdGVyIGJ5IGRpbW0iKSwNCj4gPiArCQlPUFRfU1RSSU5HKCduJywgIm5hbWVz
+cGFjZSIsICZwYXJhbS5uYW1lc3BhY2UsDQo+ID4gKwkJCQkibmFtZXNwYWNlLWlkIiwgImZpbHRl
+ciBieSBuYW1lc3BhY2UgaWQiKSwNCj4gPiArCQlPUFRfRklMRU5BTUUoJ2wnLCAibG9nZmlsZSIs
+ICZtb25pdG9yLmxvZ2ZpbGUsICJmaWxlIHwgc3lzbG9nIiwNCj4gPiArCQkJCSJ3aGVyZSB0byBv
+dXRwdXQgdGhlIG1vbml0b3IncyBub3RpZmljYXRpb24iKSwNCj4gPiArCQlPUFRfQk9PTEVBTign
+ZicsICJkYWVtb24iLCAmbW9uaXRvci5kYWVtb24sDQo+ID4gKwkJCQkicnVuIG5kY3RsIG1vbml0
+b3IgYXMgYSBkYWVtb24iKSwNCj4gPiArCQlPUFRfU1RSSU5HKCdEJywgImRpbW0tZXZlbnQiLCAm
+bW9uaXRvci5kaW1tX2V2ZW50LA0KPiA+ICsJCQkiZGltbS1zcGFyZXMtcmVtYWluaW5nIHwgZGlt
+bS1tZWRpYS10ZW1wZXJhdHVyZSB8DQo+IGRpbW0tY29udHJvbGxlci10ZW1wZXJhdHVyZSB8IGRp
+bW0taGVhbHRoLXN0YXRlIHwgZGltbS11bmNsZWFuLXNodXRkb3duIiwNCj4gPiArCQkJImZpbHRl
+ciBieSBESU1NIGV2ZW50IHR5cGUiKSwNCj4gPiArCQlPUFRfRU5EKCksDQo+ID4gKwl9Ow0KPiA+
+ICsJY29uc3QgY2hhciAqIGNvbnN0IHVbXSA9IHsNCj4gPiArCQkibmRjdGwgbW9uaXRvciBbPG9w
+dGlvbnM+XSIsDQo+ID4gKwkJTlVMTA0KPiA+ICsJfTsNCj4gPiArCWNvbnN0IGNoYXIgKnByZWZp
+eCA9ICIuLyI7DQo+ID4gKwlzdHJ1Y3QgdXRpbF9maWx0ZXJfY3R4IGZjdHggPSB7IDAgfTsNCj4g
+PiArCXN0cnVjdCBtb25pdG9yX2ZpbHRlcl9hcmcgbWZhID0geyAwIH07DQo+ID4gKwlpbnQgaTsN
+Cj4gPiArDQo+ID4gKwlhcmdjID0gcGFyc2Vfb3B0aW9uc19wcmVmaXgoYXJnYywgYXJndiwgcHJl
+Zml4LCBvcHRpb25zLCB1LCAwKTsNCj4gPiArCWZvciAoaSA9IDA7IGkgPCBhcmdjOyBpKyspIHsN
+Cj4gPiArCQllcnJvcigidW5rbm93biBwYXJhbWV0ZXIgXCIlc1wiXG4iLCBhcmd2W2ldKTsNCj4g
+PiArCX0NCj4gPiArCWlmIChhcmdjKQ0KPiA+ICsJCXVzYWdlX3dpdGhfb3B0aW9ucyh1LCBvcHRp
+b25zKTsNCj4gPiArDQo+ID4gKwlpZiAobW9uaXRvci5sb2dmaWxlICYmIChzdHJjbXAobW9uaXRv
+ci5sb2dmaWxlLCAiLi9zeXNsb2ciKSAhPSAwKSkNCj4gPiArCQluZGN0bF9zZXRfbG9nX2ZuKChz
+dHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCBsb2dfZmlsZSk7DQo+ID4gKwllbHNlDQo+ID4gKwkJbmRj
+dGxfc2V0X2xvZ19mbigoc3RydWN0IG5kY3RsX2N0eCAqKWN0eCwgbG9nX3N5c2xvZyk7DQo+ID4g
+KwluZGN0bF9zZXRfbG9nX3ByaW9yaXR5KChzdHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCBMT0dfTk9U
+SUNFKTsNCj4gPiArDQo+ID4gKwlpZiAobW9uaXRvci5kYWVtb24pIHsNCj4gPiArCQlpZiAoZGFl
+bW9uKDAsIDApICE9IDApIHsNCj4gPiArCQkJZXJyKChzdHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCAi
+ZGFlbW9uIHN0YXJ0IGZhaWxlZFxuIik7DQo+ID4gKwkJCWdvdG8gb3V0Ow0KPiA+ICsJCX0NCj4g
+PiArCQlub3RpY2UoKHN0cnVjdCBuZGN0bF9jdHggKiljdHgsICJuZGN0bCBtb25pdG9yIGRhZW1v
+biBzdGFydGVkXG4iKTsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwlpZiAocGFyc2VfbW9uaXRvcl9l
+dmVudCgmbW9uaXRvcikpDQo+ID4gKwkJZ290byBvdXQ7DQo+ID4gKw0KPiA+ICsJZmN0eC5maWx0
+ZXJfYnVzID0gZmlsdGVyX2J1czsNCj4gPiArCWZjdHguZmlsdGVyX2RpbW0gPSBmaWx0ZXJfZGlt
+bTsNCj4gPiArCWZjdHguZmlsdGVyX3JlZ2lvbiA9IGZpbHRlcl9yZWdpb247DQo+ID4gKwlmY3R4
+LmZpbHRlcl9uYW1lc3BhY2UgPSBOVUxMOw0KPiA+ICsJZmN0eC5hcmcgPSAmbWZhOw0KPiA+ICsJ
+bGlzdF9oZWFkX2luaXQoJm1mYS5kaW1tcyk7DQo+ID4gKwltZmEubnVtX2RpbW0gPSAwOw0KPiA+
+ICsJbWZhLm1heGZkX2RpbW0gPSAtMTsNCj4gPiArCW1mYS5mbGFncyA9IDA7DQo+ID4gKw0KPiA+
+ICsJaWYgKHV0aWxfZmlsdGVyX3dhbGsoY3R4LCAmZmN0eCwgJnBhcmFtKSkNCj4gPiArCQlnb3Rv
+IG91dDsNCj4gPiArDQo+ID4gKwlpZiAoIW1mYS5udW1fZGltbSkgew0KPiA+ICsJCWVycigoc3Ry
+dWN0IG5kY3RsX2N0eCAqKWN0eCwgIm5vIGRpbW1zIHRvIG1vbml0b3JcbiIpOw0KPiA+ICsJCWdv
+dG8gb3V0Ow0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCWlmIChtb25pdG9yX2V2ZW50KGN0eCwgJm1m
+YSkpDQo+ID4gKwkJZ290byBvdXQ7DQo+ID4gKw0KPiA+ICsJcmV0dXJuIDA7DQo+ID4gK291dDoN
+Cj4gPiArCXJldHVybiAxOw0KPiA+ICt9DQo+ID4gZGlmZiAtLWdpdCBhL25kY3RsL25kY3RsLmMg
+Yi9uZGN0bC9uZGN0bC5jIGluZGV4IDdkYWFkZWIuLjczZGFiZmENCj4gPiAxMDA2NDQNCj4gPiAt
+LS0gYS9uZGN0bC9uZGN0bC5jDQo+ID4gKysrIGIvbmRjdGwvbmRjdGwuYw0KPiA+IEBAIC04OSw2
+ICs4OSw3IEBAIHN0YXRpYyBzdHJ1Y3QgY21kX3N0cnVjdCBjb21tYW5kc1tdID0gew0KPiA+ICAJ
+eyAid2FpdC1zY3J1YiIsIGNtZF93YWl0X3NjcnViIH0sDQo+ID4gIAl7ICJzdGFydC1zY3J1YiIs
+IGNtZF9zdGFydF9zY3J1YiB9LA0KPiA+ICAJeyAibGlzdCIsIGNtZF9saXN0IH0sDQo+ID4gKwl7
+ICJtb25pdG9yIiwgY21kX21vbml0b3J9LA0KPiA+ICAJeyAiaGVscCIsIGNtZF9oZWxwIH0sDQo+
+ID4gIAkjaWZkZWYgRU5BQkxFX1RFU1QNCj4gPiAgCXsgInRlc3QiLCBjbWRfdGVzdCB9LA0KPiA+
+IGRpZmYgLS1naXQgYS91dGlsL2ZpbHRlci5oIGIvdXRpbC9maWx0ZXIuaCBpbmRleCBlZmZkYTI0
+Li5jMmNkZGRmDQo+ID4gMTAwNjQ0DQo+ID4gLS0tIGEvdXRpbC9maWx0ZXIuaA0KPiA+ICsrKyBi
+L3V0aWwvZmlsdGVyLmgNCj4gPiBAQCAtMTMsNiArMTMsNyBAQA0KPiA+ICAjaWZuZGVmIF9VVElM
+X0ZJTFRFUl9IXw0KPiA+ICAjZGVmaW5lIF9VVElMX0ZJTFRFUl9IXw0KPiA+ICAjaW5jbHVkZSA8
+c3RkYm9vbC5oPg0KPiA+ICsjaW5jbHVkZSA8Y2Nhbi9saXN0L2xpc3QuaD4NCj4gPg0KPiA+ICBz
+dHJ1Y3QgbmRjdGxfYnVzICp1dGlsX2J1c19maWx0ZXIoc3RydWN0IG5kY3RsX2J1cyAqYnVzLCBj
+b25zdCBjaGFyDQo+ID4gKmlkZW50KTsgIHN0cnVjdCBuZGN0bF9yZWdpb24gKnV0aWxfcmVnaW9u
+X2ZpbHRlcihzdHJ1Y3QgbmRjdGxfcmVnaW9uDQo+ID4gKnJlZ2lvbiwgQEAgLTUwLDYgKzUxLDEz
+IEBAIHN0cnVjdCBsaXN0X2ZpbHRlcl9hcmcgew0KPiA+ICAJdW5zaWduZWQgbG9uZyBmbGFnczsN
+Cj4gPiAgfTsNCj4gPg0KPiA+ICtzdHJ1Y3QgbW9uaXRvcl9maWx0ZXJfYXJnIHsNCj4gPiArCXN0
+cnVjdCBsaXN0X2hlYWQgZGltbXM7DQo+ID4gKwlpbnQgbWF4ZmRfZGltbTsNCj4gPiArCWludCBu
+dW1fZGltbTsNCj4gPiArCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+ID4gK307DQo+ID4gKw0KPiA+
+ICAvKg0KPiA+ICAgKiBzdHJ1Y3QgdXRpbF9maWx0ZXJfY3R4IC0gY29udHJvbCBhbmQgY2FsbGJh
+Y2tzIGZvciB1dGlsX2ZpbHRlcl93YWxrKCkNCj4gPiAgICogLT5maWx0ZXJfYnVzKCkgYW5kIC0+
+ZmlsdGVyX3JlZ2lvbigpIHJldHVybiBib29sIGJlY2F1c2UgdGhlIEBADQo+ID4gLTY3LDYgKzc1
+LDcgQEAgc3RydWN0IHV0aWxfZmlsdGVyX2N0eCB7DQo+ID4gIAl1bmlvbiB7DQo+ID4gIAkJdm9p
+ZCAqYXJnOw0KPiA+ICAJCXN0cnVjdCBsaXN0X2ZpbHRlcl9hcmcgKmxpc3Q7DQo+ID4gKwkJc3Ry
+dWN0IG1vbml0b3JfZmlsdGVyX2FyZyAqbW9uaXRvcjsNCj4gPiAgCX07DQo+ID4gIH07DQo+ID4N
+Cj4gPg0KPiANCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0
+dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
