@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A1AAD20337377
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 12:10:39 -0700 (PDT)
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v4 2/2] ext4: handle layout changes to pinned DAX mappings
-Date: Tue, 10 Jul 2018 13:10:31 -0600
-Message-Id: <20180710191031.17919-3-ross.zwisler@linux.intel.com>
-In-Reply-To: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
-References: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D7850203B99C2
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 15:34:39 -0700 (PDT)
+Subject: [PATCH v3 09/11] nfit_test: add context to dimm_dev for nfit_test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 11 Jul 2018 15:34:39 -0700
+Message-ID: <153134847894.41955.11567817298515479543.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
+References: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,170 +18,128 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, Jeff Moyer <jmoyer@redhat.com>, linux-ext4@vger.kernel.org, Lukas Czerner <lczerner@redhat.com>
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Follow the lead of xfs_break_dax_layouts() and add synchronization between
-operations in ext4 which remove blocks from an inode (hole punch, truncate
-down, etc.) and pages which are pinned due to DAX DMA operations.
+In order to access the nfit_test context via sideband sysfs knobs, the
+dimm_dev needs to be more than struct device in order to point back to
+struct nfit_test. Wrapping the original struct device with a struct
+nfit_dimm_dev and saving the nfit_test as private driver data. Also
+changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
+saving as private driver data of that device. This is in preparation for
+adding security DSM support and allowing the locking of DIMMs for testing
+via sideband.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/ext4/ext4.h     |  1 +
- fs/ext4/extents.c  | 17 +++++++++++++++++
- fs/ext4/inode.c    | 46 ++++++++++++++++++++++++++++++++++++++++++++++
- fs/ext4/truncate.h |  4 ++++
- 4 files changed, 68 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
-index 0b127853c584..34bccd64d83d 100644
---- a/fs/ext4/ext4.h
-+++ b/fs/ext4/ext4.h
-@@ -2460,6 +2460,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
- extern int ext4_inode_attach_jinode(struct inode *inode);
- extern int ext4_can_truncate(struct inode *inode);
- extern int ext4_truncate(struct inode *);
-+extern int ext4_break_layouts(struct inode *);
- extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
- extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
- extern void ext4_set_inode_flags(struct inode *);
-diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
-index 0057fe3f248d..b8161e6b88d1 100644
---- a/fs/ext4/extents.c
-+++ b/fs/ext4/extents.c
-@@ -4820,6 +4820,13 @@ static long ext4_zero_range(struct file *file, loff_t offset,
- 		 * released from page cache.
- 		 */
- 		down_write(&EXT4_I(inode)->i_mmap_sem);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 18157b0c0d0d..7b3ce2194889 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -150,6 +150,11 @@ struct nfit_test_fw {
+ 	u64 end_time;
+ };
+ 
++struct nfit_dimm_dev {
++	struct device dev;
++	struct nfit_mem *nfit_mem;
++};
 +
-+		ret = ext4_break_layouts(inode);
-+		if (ret) {
-+			up_write(&EXT4_I(inode)->i_mmap_sem);
-+			goto out_mutex;
-+		}
-+
- 		ret = ext4_update_disksize_before_punch(inode, offset, len);
- 		if (ret) {
- 			up_write(&EXT4_I(inode)->i_mmap_sem);
-@@ -5493,6 +5500,11 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
- 	 * page cache.
- 	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+	ret = ext4_break_layouts(inode);
-+	if (ret)
-+		goto out_mmap;
-+
- 	/*
- 	 * Need to round down offset to be aligned with page size boundary
- 	 * for page size > block size.
-@@ -5641,6 +5653,11 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
- 	 * page cache.
- 	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+	ret = ext4_break_layouts(inode);
-+	if (ret)
-+		goto out_mmap;
-+
- 	/*
- 	 * Need to round down to align start offset to page size boundary
- 	 * for page size > block size.
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 2ea07efbe016..fadb8ecacb1e 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4193,6 +4193,39 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
- 	return 0;
+ struct nfit_test {
+ 	struct acpi_nfit_desc acpi_desc;
+ 	struct platform_device pdev;
+@@ -181,7 +186,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
+-	struct device *dimm_dev[NUM_DCR];
++	struct nfit_dimm_dev dimm_dev[NUM_DCR];
+ 	struct nd_intel_smart *smart;
+ 	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+@@ -981,7 +986,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			case ND_INTEL_SMART_INJECT:
+ 				rc = nfit_test_cmd_smart_inject(buf,
+@@ -989,7 +995,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			default:
+ 				return -ENOTTY;
+@@ -1187,8 +1194,7 @@ static void put_dimms(void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < t->num_dcr; i++)
+-		if (t->dimm_dev[i])
+-			device_unregister(t->dimm_dev[i]);
++		device_unregister(&t->dimm_dev[i].dev);
  }
  
-+static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
-+{
-+	*did_unlock = true;
-+	up_write(&ei->i_mmap_sem);
-+	schedule();
-+	down_write(&ei->i_mmap_sem);
-+}
-+
-+int ext4_break_layouts(struct inode *inode)
-+{
-+	struct ext4_inode_info *ei = EXT4_I(inode);
-+	struct page *page;
-+	bool retry;
-+	int error;
-+
-+	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
-+		return -EINVAL;
-+
-+	do {
-+		retry = false;
-+		page = dax_layout_busy_page(inode->i_mapping);
-+		if (!page)
-+			return 0;
-+
-+		error = ___wait_var_event(&page->_refcount,
-+				atomic_read(&page->_refcount) == 1,
-+				TASK_INTERRUPTIBLE, 0, 0,
-+				ext4_wait_dax_page(ei, &retry));
-+	} while (error == 0 && retry);
-+
-+	return error;
-+}
-+
- /*
-  * ext4_punch_hole: punches a hole in a file by releasing the blocks
-  * associated with the given offset and length
-@@ -4266,6 +4299,11 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
- 	 * page cache.
- 	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
-+
-+	ret = ext4_break_layouts(inode);
-+	if (ret)
-+		goto out_dio;
-+
- 	first_block_offset = round_up(offset, sb->s_blocksize);
- 	last_block_offset = round_down((offset + length), sb->s_blocksize) - 1;
+ static struct class *nfit_test_dimm;
+@@ -1290,19 +1296,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
  
-@@ -5554,6 +5592,14 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
- 				ext4_wait_for_tail_page_commit(inode);
- 		}
- 		down_write(&EXT4_I(inode)->i_mmap_sem);
++static void dimm_dev_release(struct device *dev)
++{
++}
 +
-+		rc = ext4_break_layouts(inode);
-+		if (rc) {
-+			up_write(&EXT4_I(inode)->i_mmap_sem);
-+			error = rc;
-+			goto err_out;
-+		}
-+
- 		/*
- 		 * Truncate pagecache after we've waited for commit
- 		 * in data=journal mode to make pages freeable.
-diff --git a/fs/ext4/truncate.h b/fs/ext4/truncate.h
-index 0cb13badf473..bcbe3668c1d4 100644
---- a/fs/ext4/truncate.h
-+++ b/fs/ext4/truncate.h
-@@ -11,6 +11,10 @@
-  */
- static inline void ext4_truncate_failed_write(struct inode *inode)
+ static int nfit_test_dimm_init(struct nfit_test *t)
  {
-+	/*
-+	 * We don't need to call ext4_break_layouts() because the blocks we
-+	 * are truncating were never visible to userspace.
-+	 */
- 	down_write(&EXT4_I(inode)->i_mmap_sem);
- 	truncate_inode_pages(inode->i_mapping, inode->i_size);
- 	ext4_truncate(inode);
--- 
-2.14.4
+-	int i;
++	int i, rc;
+ 
+ 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
+ 		return -ENOMEM;
+ 	for (i = 0; i < t->num_dcr; i++) {
+-		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
+-				&t->pdev.dev, 0, NULL,
+-				nfit_test_dimm_attribute_groups,
+-				"test_dimm%d", i + t->dcr_idx);
+-		if (!t->dimm_dev[i])
+-			return -ENOMEM;
++		t->dimm_dev[i].dev.parent = &t->pdev.dev;
++		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
++				i + t->dcr_idx);
++		t->dimm_dev[i].dev.class = nfit_test_dimm;
++		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
++		t->dimm_dev[i].dev.release = dimm_dev_release;
++		rc = device_register(&t->dimm_dev[i].dev);
++		if (rc < 0)
++			return rc;
++		dev_set_drvdata(&t->dimm_dev[i].dev, t);
+ 	}
+ 	return 0;
+ }
+@@ -2665,8 +2679,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 
+ 		for (i = 0; i < NUM_DCR; i++)
+ 			if (nfit_handle == handle[i])
+-				dev_set_drvdata(nfit_test->dimm_dev[i],
+-						nfit_mem);
++				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
