@@ -1,11 +1,13 @@
-From: <pisarikova-OjVSx6SeZKc@public.gmane.org>
-Subject: Good day!
-Date: 11 Jul 2018 21:32:47 +0600
-Message-ID: <002301d4192d$04e82545$82d049bc$@uan.cz>
+From: =?utf-8?B?5bSU6Zyt?= <ebfkvzesc-XOe8vtcoICU@public.gmane.org>
+Subject: =?utf-8?B?6Zy45rCUIeaUr+S7mOWunee6ouWMhemHjeejheWKoOegge+8gTEw5Lq/5pSv5LuY5a6d57qi?=
+ =?utf-8?B?5YyF55av54uC6YCB77yB77yI5LiA5a6a6KaB6K6w5b6X57qi5YyF6aKG5Y+W5Y+356CB77yaIDc=?=
+ =?utf-8?B?ODA3Mjk5ICDvvIjmr4/lpKnpg73lj6/ku6Xpooblk6bvvInvvIk=?=
+Date: Wed, 11 Jul 2018 18:58:48 +0800
+Message-ID: <20180711185901788305@itrb.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5962088978964306675=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,47 +17,57 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============5962088978964306675==
-Content-Language: en
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-Good day!
-
-We considered your resume to be very attractive and we thought the =
-vacant position in our company could be interesting for you.
-
-Our firm specializes in online services in the matter of business =
-administration.
-We cooperate with different countries and currently we have many clients =
-in yours region.
-Due to this fact, we need to increase the number of our destination =
-representatives' regular staff.
-
-Part-time and full-time employment are both currently important.
-We offer a flat wage from $1500 up to $7000 per month.
-
-If you are interested in our offer, please visit our web page.
-
-Attention! Accept applications only on this and next week.
-
-Respectively submitted
-Personnel department
---===============5962088978964306675==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============5962088978964306675==--
+5bCP5LyZ5Ly05Lus6L+Y6K6w5b6X5pSv5LuY5a6d5Y675bm055qE6LaF5aSn5raI6LS557qi5YyF
+5LmI77yfDQrlsJHnmoTmnInlh6DlnZfvvIzlpJrnmoTmnInlh6Dnmb7jgIINCuWQjuadpeWboOS4
+uuiWhee+iuavm+eahOS6uuWkquWkmu+8jOW4guWcuuW9seWTjeS5n+S4jeaYr+WkquWlve+8jOaU
+r+S7mOWuneWFs+mXreS6hui/meS4qua0u+WKqOOAgg0K5Y+v5piv77yM5bCx5Zyo6L+Z5Lik5aSp
+5pSv5LuY5a6d57qi5YyF5Y+I54Gr5LqG77yBDQrlkozljrvlubTnm7jmr5TvvIzlroPlgbflgbfm
+jaLkuobnp43njqnms5XvvIzkvYbnuqLljIXov5jmmK/lkIzmoLfnu5nlipvvvIzlsJHnmoTmnInl
+h6DlnZflpJrnmoTmnInlh6DljYHjgIINCuebruWJjeWwseaIkeefpemBk+eahO+8jOacgOmrmOac
+iemihuWIsOS4iueZvueahOOAgg0K6aKG5Y+W57qi5YyF55qE5pa55byP5b6I566A5Y2V77yM5q+P
+5aSp55u05o6l5Zyo5pSv5LuY5a6d6aaW6aG15pCc57Si4oCcIDc4MDcyOTkg4oCd5bCx5Y+v5Lul
+6aKG5Y+W5LqG44CCDQrvvIjkuIDlrpropoHorrDlvpfnuqLljIXpooblj5blj7fnoIHvvJogNzgw
+NzI5OSAg77yI5q+P5aSp6YO95Y+v5Lul6aKG5ZOm77yJ77yJDQrkvb/nlKjkvZnpop3lrp3nuqLl
+jIXvvJog5b+F6aG75YWI5byA6YCa5L2Z6aKd5a6d5bm25LiU5L2Z6aKd5a6d6KaB5pyJ6ZKx77yB
+77yI5a2Y5Yeg5YiG6YO96KGM77yJDQoNCiANCui/m+WFpemihuWPlueVjOmdouWQju+8jOacieS4
+pOS4que6ouWMheWPr+S7pemihuOAgg0K56ys5LiA5Liq5piv5pmu6YCa55qE5raI6LS557qi5YyF
+77yM6L+Z5Liq5rKh5aSa5bCR6ZKx77yM5LiA6Iis5Lmf5bCx5Yeg5q+b5Yeg5YiG44CCDQrnu5nl
+ipvnmoTmmK/kuIvpnaLkvZnpop3lrp3mtojotLnnuqLljIXvvIzngrnlh7vlkI7kuIDoiKzpg73o
+g73pooblh6DlnZfpkrHvvIEoKCAg5L2Z6aKd5a6d5raI6LS557qi5YyF5LuK5aSp6aKG55qE5LuK
+5aSp5bCx6KaB6Iqx5o6J5ZOm77yM5LiN54S256ys5LqM5aSp5LiN6IO96aKG5LqG77yB77yB77yB
+ICkpDQoNCg0KICANCg0KDQoNCuafpeeci+mihuWIsOeahOS9memineWunea2iOi0uee6ouWMhSAg
+DQogDQrkvZnpop3lrp3mtojotLnpop3nuqLljIXmgI7kuYjnlKjvvJ8NCuesrOS4gOeCue+8jOW/
+hemhu+W8gOmAmuS9memineWuneW5tuS4lOS9memineWuneimgeaciemSse+8geesrOS6jOeCue+8
+jOWcqOS9v+eUqOaUr+S7mOWuneS7mOasvuaXtu+8jOimgeaKiuS7mOasvuaWueW8j+iuvue9ruaI
+kOKAnOS9memineWuneKAneS7mOasvuaJjeiDveS9v+eUqOe6ouWMhe+8geesrOS4ieeCue+8jOS7
+mOasvueahOmHkemineS4gOeCueimgeWkp+S6jumihuWPlue6ouWMheeahOmHkemine+8gQ0K546w
+5Zyo5aSn5a625LiN5piv6YO95Zac5qyi5Zyo6aW/5LqG5LmI5oiW6ICF576O5Zui5LiK54K55aSW
+5Y2W77yM6YKj5LmI5L2g5Zyo54K55a6M6aSQ77yM6YCJ5oup5pSv5LuY5a6d5LuY5qy+55qE5pe2
+5YCZ77yM55u05o6l6YCJ5oup5LuO5L2Z6aKd5a6d5LuY5qy+5bCx5Y+v5Lul55u05o6l55So6L+Z
+5Liq5raI6LS557qi5YyF5LqG44CCKOW5s+aXtue9keS4iua3mOWuneWkqeeMq+i0reeJqe+8jOS5
+n+WPr+S7peeUqOi/meS4quS9memineWunea2iOi0ueminee6ouWMhea2iOi0ueWTpu+8iQ0K5oC7
+5LmL5rKh5pyJ5L2/55So6Zeo5qeb77yM5o2i5Y+l6K+d6K+05bCx5piv55m96YCB44CCDQromorl
+rZDohb/omb3lsI/vvIzmlL7lpJrkuobkuZ/mmK/kuKrlpKfojaTllYrjgIINCueci+WIsOi/meS4
+qua0u+WKqOaIkeWwsemprOS4iuWIhuS6q+e7meWkp+WutuS6hu+8jOiAgemTgeS5n+WPr+S7peWI
+huS6q+WcqOaci+WPi+WciO+8jOiuqeabtOWkmuS6uuefpemBk+OAgg0K5L2Z6aKd5a6d5raI6LS5
+57qi5YyF77yM5q+P5aSp6YO95Y+v5Lul6aKG5Y+W5ZOI77yM5aSn5a625q+P5aSp6K6w5b6X5Zyo
+5pSv5LuY5a6d5pCc57Si57qi5YyF5Luj56CB77yaNzgwNzI5OSAg5bCx5Y+v5Lul5LqG77yM5q+P
+5aSp6YO95Y+v5Lul6aKG6ZKx77yM5L2Z6aKd5a6d5raI6LS557qi5YyF5LuK5aSp6aKG55qE5LuK
+5aSp5bCx6KaB6Iqx5o6J5ZOm77yM5LiN54S256ys5LqM5aSp5LiN6IO96aKG5LqG77yB77yB77yM
+6LaF6L+HM+WkqeWwseS9nOW6n+S6huOAgg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLQ0KDQrlho3nu5nlsI/kvJnkvLTliIbkuqvkuKrnpo/liKnvvIHvvIHvvIEg
+DQrmt5jlrp3lpKnnjKvotK3niannjrDlnKjlj6/ku6Xnm7TmjqXnuqLljIXov5TliKnlk6YNCuWK
+oOW+ruS/oeecgemSseWwj+WKqeaJi++8mmJhaXl1bmZ1NTUg5reY5a6d5omA5pyJ5ZWG5ZOB77yM
+5Z2H5Y+v6L+U5YipMTAtNTAl77yMDQrmr4/ljZXov5TliKnlh6DlhYPliLDkuIrnmb7lhYPkuI3n
+rYnplb/mnJ/nrpfmnaXvvIzlj6/ku6XnnIHkuIvpnZ7luLjlpJrlk58hIA0K546w5Zyo5Yqg5YWl
+56ys5LiA5Y2V6LSt54mp5oiQ5Yqf77yM5pS26LSn5oiQ5Yqf5ZCO5Y+m5aSW5aSa6YCBM+WFg+e6
+ouWMheWTpu+8ge+8iOi/lOWIqee6ouWMhSsz5YWD57qi5YyF77yJICANCg0KLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQrnpZ3kurLmr4/lpKnnlJ/mtLvmhInlv6vv
+vIEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
