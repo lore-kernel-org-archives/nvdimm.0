@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 428CE210DC1C3
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 23:59:16 -0700 (PDT)
-Subject: [PATCH 03/13] mm: Teach memmap_init_zone() to initialize
- ZONE_DEVICE pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jul 2018 23:49:18 -0700
-Message-ID: <153077335821.40830.17705033415231166642.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 70D80203B99C2
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 10:14:04 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id 13-v6so50640511ois.1
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 10:14:04 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153132901164.57269.12329347241228490231.stgit@djiang5-desk3.ch.intel.com>
+References: <153132901164.57269.12329347241228490231.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 11 Jul 2018 10:14:03 -0700
+Message-ID: <CAPcyv4jjj9DUgpPfX06jhGNKS5eCVhHV3LFNNGrUGbwisL3wWQ@mail.gmail.com>
+Subject: Re: [PATCH] nfit: fix unchecked dereference in acpi_nfit_ctl
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,64 +21,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>, Vlastimil Babka <vbabka@suse.cz>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-UmF0aGVyIHRoYW4gcnVuIGEgbG9vcCBvdmVyIHRoZSBmcmVzaGx5IGluaXRpYWxpemVkIHBhZ2Vz
-IGluCmRldm1fbWVtcmVtYXBfcGFnZXMoKSAqYWZ0ZXIqIGFyY2hfYWRkX21lbW9yeSgpIHJldHVy
-bnMsIHRlYWNoCm1lbW1hcF9pbml0X3pvbmUoKSB0byByZXR1cm4gdGhlIHBhZ2VzIGZ1bGx5IGlu
-aXRpYWxpemVkLiBUaGlzIGlzIGluCnByZXBhcmF0aW9uIGZvciBtdWx0aS10aHJlYWRpbmcgcGFn
-ZSBpbml0aWFsaXphdGlvbiB3b3JrLCBidXQgaXQgYWxzbwpoYXMgc29tZSBzdHJhaWdodCBsaW5l
-IHBlcmZvcm1hbmNlIGJlbmVmaXRzIHRvIG5vdCBpbmN1ciBhbm90aGVyIGxvb3Agb2YKY2FjaGUg
-bWlzc2VzIGFjcm9zcyBhIGxhcmdlICgxMDBzIG9mIEdCcyB0byBUQnMpIGFkZHJlc3MgcmFuZ2Uu
-CgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KQ2M6IExvZ2Fu
-IEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KQ2M6ICJKw6lyw7RtZSBHbGlzc2UiIDxq
-Z2xpc3NlQHJlZGhhdC5jb20+CkNjOiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KQ2M6
-IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpDYzogVmxhc3RpbWlsIEJhYmthIDx2YmFi
-a2FAc3VzZS5jej4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
-bnRlbC5jb20+Ci0tLQoga2VybmVsL21lbXJlbWFwLmMgfCAgIDE2ICstLS0tLS0tLS0tLS0tLS0K
-IG1tL3BhZ2VfYWxsb2MuYyAgIHwgICAxOSArKysrKysrKysrKysrKysrKysrCiAyIGZpbGVzIGNo
-YW5nZWQsIDIwIGluc2VydGlvbnMoKyksIDE1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2tl
-cm5lbC9tZW1yZW1hcC5jIGIva2VybmVsL21lbXJlbWFwLmMKaW5kZXggYjg2MWZlOTA5OTMyLi44
-NWU0YTdjNTc2YjIgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9tZW1yZW1hcC5jCisrKyBiL2tlcm5lbC9t
-ZW1yZW1hcC5jCkBAIC0xNzMsOCArMTczLDggQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhz
-dHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAsCiAJc3RydWN0IHZt
-ZW1fYWx0bWFwICphbHRtYXAgPSBwZ21hcC0+YWx0bWFwX3ZhbGlkID8KIAkJCSZwZ21hcC0+YWx0
-bWFwIDogTlVMTDsKIAlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9ICZwZ21hcC0+cmVzOwotCXVuc2ln
-bmVkIGxvbmcgcGZuLCBwZ29mZiwgb3JkZXI7CiAJcGdwcm90X3QgcGdwcm90ID0gUEFHRV9LRVJO
-RUw7CisJdW5zaWduZWQgbG9uZyBwZ29mZiwgb3JkZXI7CiAJaW50IGVycm9yLCBuaWQsIGlzX3Jh
-bTsKIAogCWlmICghcGdtYXAtPnJlZiB8fCAha2lsbCkKQEAgLTI1MSwyMCArMjUxLDYgQEAgdm9p
-ZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFn
-ZW1hcCAqcGdtYXAsCiAJaWYgKGVycm9yKQogCQlnb3RvIGVycl9hZGRfbWVtb3J5OwogCi0JZm9y
-X2VhY2hfZGV2aWNlX3BmbihwZm4sIHBnbWFwKSB7Ci0JCXN0cnVjdCBwYWdlICpwYWdlID0gcGZu
-X3RvX3BhZ2UocGZuKTsKLQotCQkvKgotCQkgKiBaT05FX0RFVklDRSBwYWdlcyB1bmlvbiAtPmxy
-dSB3aXRoIGEgLT5wZ21hcCBiYWNrCi0JCSAqIHBvaW50ZXIuICBJdCBpcyBhIGJ1ZyBpZiBhIFpP
-TkVfREVWSUNFIHBhZ2UgaXMgZXZlcgotCQkgKiBmcmVlZCBvciBwbGFjZWQgb24gYSBkcml2ZXIt
-cHJpdmF0ZSBsaXN0LiAgU2VlZCB0aGUKLQkJICogc3RvcmFnZSB3aXRoIExJU1RfUE9JU09OKiB2
-YWx1ZXMuCi0JCSAqLwotCQlsaXN0X2RlbCgmcGFnZS0+bHJ1KTsKLQkJcGFnZS0+cGdtYXAgPSBw
-Z21hcDsKLQkJcGVyY3B1X3JlZl9nZXQocGdtYXAtPnJlZik7Ci0JfQotCiAJcGdtYXAtPmtpbGwg
-PSBraWxsOwogCWVycm9yID0gZGV2bV9hZGRfYWN0aW9uX29yX3Jlc2V0KGRldiwgZGV2bV9tZW1y
-ZW1hcF9wYWdlc19yZWxlYXNlLAogCQkJcGdtYXApOwpkaWZmIC0tZ2l0IGEvbW0vcGFnZV9hbGxv
-Yy5jIGIvbW0vcGFnZV9hbGxvYy5jCmluZGV4IGY4MzY4MmVmMDA2ZS4uZmI0NWNmZWI0YTUwIDEw
-MDY0NAotLS0gYS9tbS9wYWdlX2FsbG9jLmMKKysrIGIvbW0vcGFnZV9hbGxvYy5jCkBAIC01NTQ4
-LDYgKzU1NDgsMjUgQEAgdm9pZCBfX21lbWluaXQgbWVtbWFwX2luaXRfem9uZSh1bnNpZ25lZCBs
-b25nIHNpemUsIGludCBuaWQsIHVuc2lnbmVkIGxvbmcgem9uZSwKIAkJCXNldF9wYWdlYmxvY2tf
-bWlncmF0ZXR5cGUocGFnZSwgTUlHUkFURV9NT1ZBQkxFKTsKIAkJCWNvbmRfcmVzY2hlZCgpOwog
-CQl9CisKKwkJaWYgKGlzX3pvbmVfZGV2aWNlX3BhZ2UocGFnZSkpIHsKKwkJCWlmIChXQVJOX09O
-X09OQ0UoIXBnbWFwKSkKKwkJCQljb250aW51ZTsKKworCQkJLyogc2tpcCBpbnZhbGlkIGRldmlj
-ZSBwYWdlcyAqLworCQkJaWYgKGFsdG1hcCAmJiAocGZuIDwgKGFsdG1hcC0+YmFzZV9wZm4KKwkJ
-CQkJCSsgdm1lbV9hbHRtYXBfb2Zmc2V0KGFsdG1hcCkpKSkKKwkJCQljb250aW51ZTsKKwkJCS8q
-CisJCQkgKiBaT05FX0RFVklDRSBwYWdlcyB1bmlvbiAtPmxydSB3aXRoIGEgLT5wZ21hcCBiYWNr
-CisJCQkgKiBwb2ludGVyLiAgSXQgaXMgYSBidWcgaWYgYSBaT05FX0RFVklDRSBwYWdlIGlzIGV2
-ZXIKKwkJCSAqIGZyZWVkIG9yIHBsYWNlZCBvbiBhIGRyaXZlci1wcml2YXRlIGxpc3QuICBTZWVk
-IHRoZQorCQkJICogc3RvcmFnZSB3aXRoIHBvaXNvbi4KKwkJCSAqLworCQkJcGFnZS0+bHJ1LnBy
-ZXYgPSBMSVNUX1BPSVNPTjI7CisJCQlwYWdlLT5wZ21hcCA9IHBnbWFwOworCQkJcGVyY3B1X3Jl
-Zl9nZXQocGdtYXAtPnJlZik7CisJCX0KIAl9CiB9CiAKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
-bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2xpbnV4LW52ZGltbQo=
+On Wed, Jul 11, 2018 at 10:10 AM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Incremental patch to fix the unchecked dereference in acpi_nfit_ctl.
+> Reported by Dan Carpenter:
+>
+> "acpi/nfit: fix cmd_rc for acpi_nfit_ctl to
+> always return a value" from Jun 28, 2018, leads to the following
+> Smatch complaint:
+>
+>     drivers/acpi/nfit/core.c:578 acpi_nfit_ctl()
+>      warn: variable dereferenced before check 'cmd_rc' (see line 411)
+>
+> drivers/acpi/nfit/core.c
+>    410
+>    411          *cmd_rc = -EINVAL;
+>                 ^^^^^^^^^^^^^^^^^^
+> Patch adds unchecked dereference.
+
+Looks good, when committing I would add:
+
+Fixes: c1985cefd844 ("acpi/nfit: fix cmd_rc for acpi_nfit_ctl to
+always return a value")
+
+...and in the pull request to Linus note that this was the result of
+testing in -next so he knows why there is a fresh commit on the
+branch, and that the rest of the commits have survived -next with no
+issues.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
