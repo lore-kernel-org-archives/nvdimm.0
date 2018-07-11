@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40F06209605D9
- for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 13:54:43 -0700 (PDT)
-Subject: [PATCH v5 05/12] keys: add call key_put_sync() to flush key_gc_work
- when doing a key_put().
+ by ml01.01.org (Postfix) with ESMTPS id 117CE203B99C2
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 15:34:28 -0700 (PDT)
+Subject: [PATCH v3 07/11] nfit/libnvdimm: add freeze security support to
+ Intel nvdimm
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 17 Jul 2018 13:54:32 -0700
-Message-ID: <153186087257.27463.13382652631526471099.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
-References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 11 Jul 2018 15:34:27 -0700
+Message-ID: <153134846782.41955.4682516454046174420.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
+References: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,83 +27,145 @@ To: dan.j.williams@intel.com
 Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding key_put_sync() that calls flush_work on key_gc_work to ensure the
-key we want to remove is gone.
+Add support for freeze security on Intel nvdimm. This locks out any
+changes to security for the DIMM unless a reboot is done. This is triggered
+by writing "freeze" to the "security" sysfs attribute. libnvdimm will
+support the generic freeze_lock API call.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- include/linux/key.h |    1 +
- security/keys/key.c |   35 +++++++++++++++++++++++++++++------
- 2 files changed, 30 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   22 +++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 75 insertions(+)
 
-diff --git a/include/linux/key.h b/include/linux/key.h
-index e58ee10f6e58..4dffbd23d4e4 100644
---- a/include/linux/key.h
-+++ b/include/linux/key.h
-@@ -253,6 +253,7 @@ extern struct key *key_alloc(struct key_type *type,
- extern void key_revoke(struct key *key);
- extern void key_invalidate(struct key *key);
- extern void key_put(struct key *key);
-+extern void key_put_sync(struct key *key);
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 2418f4b8c1fd..0ab56f03ebc4 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,53 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- static inline struct key *__key_get(struct key *key)
- {
-diff --git a/security/keys/key.c b/security/keys/key.c
-index d97c9394b5dd..b6f3ec19ab0f 100644
---- a/security/keys/key.c
-+++ b/security/keys/key.c
-@@ -622,6 +622,19 @@ int key_reject_and_link(struct key *key,
- }
- EXPORT_SYMBOL(key_reject_and_link);
- 
-+static void __key_put(struct key *key, bool sync)
++static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
 +{
-+	if (key) {
-+		key_check(key);
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_freeze_lock cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
 +
-+		if (refcount_dec_and_test(&key->usage)) {
-+			schedule_work(&key_gc_work);
-+			if (sync)
-+				flush_work(&key_gc_work);
-+		}
++	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
 +	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
 +}
 +
- /**
-  * key_put - Discard a reference to a key.
-  * @key: The key to discard a reference from.
-@@ -632,15 +645,25 @@ EXPORT_SYMBOL(key_reject_and_link);
-  */
- void key_put(struct key *key)
+ static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
  {
--	if (key) {
--		key_check(key);
--
--		if (refcount_dec_and_test(&key->usage))
--			schedule_work(&key_gc_work);
--	}
-+	__key_put(key, false);
+@@ -241,6 +288,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+ 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+ 			*state = NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			*state = NVDIMM_SECURITY_FROZEN;
+ 		else
+ 			*state = NVDIMM_SECURITY_UNLOCKED;
+ 	} else
+@@ -257,4 +307,5 @@ struct nvdimm_security_ops intel_security_ops = {
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
++	.freeze_lock = intel_dimm_security_freeze_lock,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index e1670fece383..829e84b70ad1 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -125,6 +125,26 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
- EXPORT_SYMBOL(key_put);
  
-+/**
-+ * key_put - Discard a reference to a key and flush the key gc work item.
-+ * @key: The key to discard a reference from.
-+ *
-+ * Discard a reference to a key, and when all the references are gone, we
-+ * schedule the cleanup task to come and pull it out of the tree in process
-+ * context at some later time. This call flushes the clean up so we are sure
-+ * that the key is gone.
-+ */
-+void key_put_sync(struct key *key)
++static int nvdimm_security_freeze_lock(struct device *dev)
 +{
-+	__key_put(key, true);
-+}
-+EXPORT_SYMBOL(key_put_sync);
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	int rc;
 +
- /*
-  * Find a key by its serial number.
-  */
++	if (!nvdimm->security_ops)
++		return 0;
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return 0;
++
++	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
++	if (rc < 0)
++		return rc;
++
++	nvdimm_security_get_state(dev);
++	return 0;
++}
++
+ static int nvdimm_security_disable(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -668,6 +688,8 @@ static ssize_t security_store(struct device *dev,
+ 		rc = nvdimm_security_change_key(dev);
+ 	else if (sysfs_streq(buf, "disable"))
+ 		rc = nvdimm_security_disable(dev);
++	else if (sysfs_streq(buf, "freeze"))
++		rc = nvdimm_security_freeze_lock(dev);
+ 	else
+ 		return -EINVAL;
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 59ad04261f34..1836599ed5b8 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
+ 			struct nvdimm_key_data *new_data);
+ 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
++	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
