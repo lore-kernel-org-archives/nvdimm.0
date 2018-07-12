@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
+ [IPv6:2607:f8b0:400d:c0d::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DAF1D21CAD9BA
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 08:54:54 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id B76E4AC0211
- for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 00:54:47 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v12 4/5] ndctl, documentation: add man page for monitor
-Date: Sat, 14 Jul 2018 00:54:02 +0900
-Message-Id: <20180713155403.30020-5-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
-References: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2BDEA203B99C8
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 13:15:15 -0700 (PDT)
+Received: by mail-qt0-x244.google.com with SMTP id m13-v6so25270819qth.1
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 13:15:15 -0700 (PDT)
+Subject: Re: [ndctl PATCH 2/2] ndctl, test: convert remaining tests to use
+ test/common
+References: <20180711235644.26998-1-vishal.l.verma@intel.com>
+ <20180711235644.26998-2-vishal.l.verma@intel.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <b610cc9e-9429-f0e5-1d1d-4456e4d267b3@gmail.com>
+Date: Thu, 12 Jul 2018 16:15:12 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180711235644.26998-2-vishal.l.verma@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,152 +24,207 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tokunaga.keiich@jp.fujitsu.com
+To: vishal.l.verma@intel.com, linux-nvdimm@lists.01.org
+Cc: m.mizuma@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is used to add man page for ndctl monitor command.
+Hi Vishal,
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
----
- Documentation/ndctl/Makefile.am       |   3 +-
- Documentation/ndctl/ndctl-monitor.txt | 104 ++++++++++++++++++++++++++
- 2 files changed, 106 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-monitor.txt
+Looks good to me. Please feel free to add:
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 4fd9636..a30b139 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -46,7 +46,8 @@ man1_MANS = \
- 	ndctl-inject-error.1 \
- 	ndctl-inject-smart.1 \
- 	ndctl-update-firmware.1 \
--	ndctl-list.1
-+	ndctl-list.1 \
-+	ndctl-monitor.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-new file mode 100644
-index 0000000..4f1803e
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -0,0 +1,104 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-monitor(1)
-+================
-+
-+NAME
-+----
-+ndctl-monitor - Monitor the smart events of nvdimm objects
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl monitor' [<options>]
-+
-+DESCRIPTION
-+-----------
-+Ndctl monitor is used for monitoring the smart events of nvdimm
-+objects and dumping the json format notifications to syslog, standard
-+output or a logfile.
-+
-+The objects to monitor and smart events to notify can be selected by
-+setting options and/or the default configuration file
-+(/etc/ndctl/monitor.conf). Both of the values in configuration file
-+and in options will work. If there is a conflict, the values in
-+options will override the values in configuration file. The changed
-+values in configuration file will work after the monitor is restarted.
-+
-+The smart threshold evnet alarm of dimm will be turned on when the
-+monitor gets started, if it is set off.
-+
-+EXAMPLES
-+--------
-+
-+Run a monitor as a daemon to monitor DIMMs on bus "nfit_test.1"
-+[verse]
-+ndctl monitor --bus nfit_test.1 --daemon
-+
-+Run a monitor as a one-shot command and output the notifications to
-+/var/log/ndctl.log
-+[verse]
-+ndctl monitor -log /var/log/ndctl.log
-+
-+Run a monitor daemon as a system service
-+[verse]
-+systemctl start ndctl-monitor.service
-+
-+OPTIONS
-+-------
-+-b::
-+--bus=::
-+	Enforce that the operation only be carried on devices that are
-+	attached to the given bus. Where 'bus' can be a provider name
-+	or a bus id number.
-+
-+-d::
-+--dimm=::
-+	A 'nmemX' device name, or dimm id number. Select the devices to
-+	monitor reference the given dimm.
-+
-+-r::
-+--region=::
-+	A 'regionX' device name, or a region id number. The keyword 'all'
-+	can be specified to carry out the operation on every region in
-+	the system, optionally filtered by bus id (see --bus= option).
-+
-+-n::
-+--namespace=::
-+	A 'namespaceX.Y' device name, or namespace region plus id tuple
-+	'X.Y'.
-+
-+-l <file | syslog | standard>::
-+--log=<file | syslog | standard>::
-+	Output notifications to <file>, syslog or standard output.
-+
-+--daemon::
-+	Run a monitor as a daemon.
-+
-+-D::
-+--dimm-event=::
-+	Name of an smart health event from the following:
-+	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
-+	   below the pre-programmed threshold.
-+	- "dimm-media-temperature": NVDIMM Media temperature value has
-+	   gone above the pre-programmed threshold.
-+	- "dimm-controller-temperature": NVDIMM Controller temperature
-+	   value has gone above the pre-programmed threshold.
-+	- "dimm-health-state": NVDIMM Normal Health Status has changed
-+	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a
-+	   unclean shutdown.
-+-u::
-+--human::
-+	Output monitor notification as human friendly json format instead
-+	of the default machine friendly json format.
-+
-+COPYRIGHT
-+---------
-+Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
-+<http://gnu.org/licenses/gpl.html>. This is free software: you are
-+free to change and redistribute it. There is NO WARRANTY, to the
-+extent permitted by law.
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-list[1], linkndctl:ndctl-inject-smart[1]
--- 
-2.18.0
+Reviewed-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 
+Thanks,
+Masa
 
+On 07/11/2018 07:56 PM, Vishal Verma wrote:
+> The original test/common conversions missed the --enable-destructive
+> class of tests. The json single object vs. array changes prompted
+> changes to the json2var definitions, which these tests had a local copy
+> of. Instead of fixing up these local copies, take the change to properly
+> convert these tests to using test/common.
+> 
+> Fixes: 72c46ab194d9 ("ndctl list: always output array without --human")
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  test/dax.sh            | 18 +++++++++---------
+>  test/device-dax-fio.sh | 23 +++++------------------
+>  test/mmap.sh           | 12 +++++-------
+>  3 files changed, 19 insertions(+), 34 deletions(-)
+> 
+> diff --git a/test/dax.sh b/test/dax.sh
+> index b63d563..d38fd01 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -11,13 +11,13 @@
+>  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>  # General Public License for more details.
+>  
+> +. ./common
+> +
+>  MNT=test_dax_mnt
+>  FILE=image
+> -NDCTL="../ndctl/ndctl"
+> -json2var="s/[{}\",]//g; s/:/=/g"
+>  blockdev=""
+>  
+> -err() {
+> +cleanup() {
+>  	echo "test-dax: failed at line $1"
+>  	if [ -n "$blockdev" ]; then
+>  		umount /dev/$blockdev
+> @@ -40,11 +40,11 @@ run_test() {
+>  
+>  set -e
+>  mkdir -p $MNT
+> -trap 'err $LINENO' ERR
+> +trap 'err $LINENO cleanup' ERR
+>  
+>  dev=$(./dax-dev)
+>  json=$($NDCTL list -N -n $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  rc=1
+>  
+>  mkfs.ext4 /dev/$blockdev
+> @@ -55,7 +55,7 @@ umount $MNT
+>  
+>  # convert pmem to put the memmap on the device
+>  json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>  
+>  #note the blockdev returned from ndctl create-namespace lacks the /dev prefix
+> @@ -66,7 +66,7 @@ run_test
+>  umount $MNT
+>  
+>  json=$($NDCTL create-namespace -m raw -f -e $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>  
+>  mkfs.xfs -f /dev/$blockdev
+> @@ -77,7 +77,7 @@ umount $MNT
+>  
+>  # convert pmem to put the memmap on the device
+>  json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>  
+>  mkfs.xfs -f /dev/$blockdev
+> @@ -88,7 +88,7 @@ umount $MNT
+>  
+>  # revert namespace to raw mode
+>  json=$($NDCTL create-namespace -m raw -f -e $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>  
+>  exit $rc
+> diff --git a/test/device-dax-fio.sh b/test/device-dax-fio.sh
+> index 6214030..b6d5e0e 100755
+> --- a/test/device-dax-fio.sh
+> +++ b/test/device-dax-fio.sh
+> @@ -11,30 +11,17 @@
+>  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>  # General Public License for more details.
+>  
+> -NDCTL="../ndctl/ndctl"
+> +. ./common
+> +
+>  rc=77
+>  
+>  set -e
+>  
+> -err() {
+> -	echo "test/device-dax-fio.sh: failed at line $1"
+> -	exit $rc
+> -}
+> -
+> -check_min_kver()
+> -{
+> -	local ver="$1"
+> -	: "${KVER:=$(uname -r)}"
+> -
+> -	[ -n "$ver" ] || return 1
+> -	[[ "$ver" == "$(echo -e "$ver\n$KVER" | sort -V | head -1)" ]]
+> -}
+> +check_min_kver "4.11" || do_skip "kernel may lack device-dax fixes"
+>  
+> -check_min_kver "4.11" || { echo "kernel $KVER may lack latest device-dax fixes"; exit $rc; }
+> -
+> -set -e
+>  trap 'err $LINENO' ERR
+>  
+> +check_prereq "fio"
+>  if ! fio --enghelp | grep -q "dev-dax"; then
+>  	echo "fio lacks dev-dax engine"
+>  	exit 77
+> @@ -79,7 +66,7 @@ do
+>  
+>  	# revert namespace to raw mode
+>  	json=$($NDCTL create-namespace -m raw -f -e $dev)
+> -	mode=$(echo $json | jq -r ".mode")
+> +	eval $(json2var <<< "$json")
+>  	[ $mode != "fsdax" ] && echo "fail: $LINENO" && exit 1
+>  done
+>  
+> diff --git a/test/mmap.sh b/test/mmap.sh
+> index 423c283..afe50fd 100755
+> --- a/test/mmap.sh
+> +++ b/test/mmap.sh
+> @@ -11,15 +11,15 @@
+>  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>  # General Public License for more details.
+>  
+> +. ./common
+> +
+>  MNT=test_mmap_mnt
+>  FILE=image
+>  DEV=""
+>  TEST=./mmap
+> -NDCTL="../ndctl/ndctl"
+> -json2var="s/[{}\",]//g; s/:/=/g"
+>  rc=77
+>  
+> -err() {
+> +cleanup() {
+>  	echo "test-mmap: failed at line $1"
+>  	if [ -n "$DEV" ]; then
+>  		umount $DEV
+> @@ -31,8 +31,6 @@ err() {
+>  }
+>  
+>  test_mmap() {
+> -	trap 'err $LINENO' ERR
+> -
+>  	# SHARED
+>  	$TEST -Mrwps $MNT/$FILE     # mlock, populate, shared (mlock fail)
+>  	$TEST -Arwps $MNT/$FILE     # mlockall, populate, shared
+> @@ -58,11 +56,11 @@ test_mmap() {
+>  
+>  set -e
+>  mkdir -p $MNT
+> -trap 'err $LINENO' ERR
+> +trap 'err $LINENO cleanup' ERR
+>  
+>  dev=$(./dax-dev)
+>  json=$($NDCTL list -N -n $dev)
+> -eval $(echo $json | sed -e "$json2var")
+> +eval $(json2var <<< "$json")
+>  DEV="/dev/${blockdev}"
+>  rc=1
+>  
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
