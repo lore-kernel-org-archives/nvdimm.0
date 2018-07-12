@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3D3E2210D83DF
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:39:41 -0700 (PDT)
-Subject: [PATCH 06/11] nfit/libnvdimm: add disable passphrase support to
- Intel nvdimm.
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 02 Jul 2018 16:39:40 -0700
-Message-ID: <153057478052.38125.4677218866266067369.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 9B49E2097E277
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 08:47:33 -0700 (PDT)
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCHv3 2/2] libnvdimm: Export max available extent
+Date: Thu, 12 Jul 2018 09:47:09 -0600
+Message-Id: <20180712154709.16444-2-keith.busch@intel.com>
+In-Reply-To: <20180712154709.16444-1-keith.busch@intel.com>
+References: <20180712154709.16444-1-keith.busch@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,165 +17,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding support to disable passphrase (security) for the Intel nvdimm. The
-passphrase used for disabling is pulled from userspace via the kernel
-key management. The action is triggered by writing "disable" to the sysfs
-attribute "security". libnvdimm will support the generic disable API call.
+The 'available_size' attribute showing the combined total of all
+unallocated space isn't always useful to know how large of a namespace
+a user may be able to allocate if the region is fragmented. This patch
+will export the largest extent of unallocated space that may be allocated
+to create a new namespace.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   41 +++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 94 insertions(+)
+ drivers/nvdimm/region_devs.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 792a5c694a9e..6d73493f02cc 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -16,6 +16,56 @@
- #include <acpi/nfit.h>
- #include "nfit.h"
- 
-+static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, const char *pass)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0, pkg_size;
-+	struct nd_intel_disable_passphrase *cmd;
-+	struct nd_cmd_pkg *pkg;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+
-+	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	pkg_size = sizeof(*pkg) + sizeof(*cmd);
-+	pkg = kzalloc(pkg_size, GFP_KERNEL);
-+	if (!pkg)
-+		return -ENOMEM;
-+
-+	pkg->nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE;
-+	pkg->nd_family = NVDIMM_FAMILY_INTEL;
-+	pkg->nd_size_in = ND_INTEL_PASSPHRASE_SIZE;
-+	pkg->nd_size_out = ND_INTEL_STATUS_SIZE;
-+	pkg->nd_fw_size = pkg->nd_size_out;
-+	cmd = (struct nd_intel_disable_passphrase *)&pkg->nd_payload;
-+	memcpy(cmd->passphrase, pass, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, pkg,
-+			sizeof(pkg_size), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (cmd->status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	kfree(pkg);
-+	return rc;
-+}
-+
- static int intel_dimm_security_update_passphrase(
- 		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		const char *old_pass, const char *new_pass)
-@@ -193,4 +243,5 @@ struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
-+	.disable = intel_dimm_security_disable,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d3d738c77adb..070811cb4cdc 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -85,6 +85,45 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index c30d5af02cc2..fa37afcd43ff 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -434,6 +434,21 @@ static ssize_t available_size_show(struct device *dev,
  }
+ static DEVICE_ATTR_RO(available_size);
  
-+static int nvdimm_security_disable(struct device *dev)
++static ssize_t max_available_extent_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key;
-+	int rc;
-+	char *payload;
-+	bool cached_key = false;
++	struct nd_region *nd_region = to_nd_region(dev);
++	unsigned long long available = 0;
 +
-+	if (!nvdimm->security_ops)
-+		return 0;
++	nvdimm_bus_lock(dev);
++	wait_nvdimm_bus_probe_idle(dev);
++	available = nd_region_allocatable_dpa(nd_region);
++	nvdimm_bus_unlock(dev);
 +
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return 0;
-+
-+	key = nvdimm_search_key(dev);
-+	if (!key)
-+		key = nvdimm_request_key(dev);
-+	else
-+		cached_key = true;
-+	if (!key)
-+		return -ENXIO;
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm->security_ops->disable(nvdimm_bus, nvdimm, payload);
-+	up_read(&key->sem);
-+	if (rc < 0)
-+		goto out;
-+
-+	/* If we succeed then remove the key */
-+	key_invalidate(key);
-+
-+ out:
-+	key_put(key);
-+	nvdimm_security_get_state(dev);
-+	return rc;
++	return sprintf(buf, "%llu\n", available);
 +}
++static DEVICE_ATTR_RO(max_available_extent);
 +
- int nvdimm_security_unlock_dimm(struct device *dev)
+ static ssize_t init_namespaces_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -587,6 +626,8 @@ static ssize_t security_store(struct device *dev,
- 
- 	if (strcmp(buf, "update") == 0 || strcmp(buf, "update\n") == 0)
- 		rc = nvdimm_security_change_key(dev);
-+	else if (strcmp(buf, "disable") == 0 || strcmp(buf, "disable\n") == 0)
-+		rc = nvdimm_security_disable(dev);
- 	else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 7b609409042c..0990dfd5a0a3 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -177,6 +177,8 @@ struct nvdimm_security_ops {
- 	int (*change_key)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm, const char *old_pass,
- 			const char *new_pass);
-+	int (*disable)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm, const char *pass);
- };
- 
- void badrange_init(struct badrange *badrange);
+@@ -585,6 +600,7 @@ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_read_only.attr,
+ 	&dev_attr_set_cookie.attr,
+ 	&dev_attr_available_size.attr,
++	&dev_attr_max_available_extent.attr,
+ 	&dev_attr_namespace_seed.attr,
+ 	&dev_attr_init_namespaces.attr,
+ 	&dev_attr_badblocks.attr,
+-- 
+2.14.3
 
 _______________________________________________
 Linux-nvdimm mailing list
