@@ -1,9 +1,10 @@
-From: <mcromarty-xZcE6vR3WZs0n/F98K4Iww@public.gmane.org>
-Subject: Welcome to our company
-Date: 13 Jul 2018 13:32:48 +0400
-Message-ID: <917C5915DDB430917C5915DDB430917C@NU7TY7XNU7>
+From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [RFC v3 0/2] kvm "fake DAX" device flushing
+Date: Fri, 13 Jul 2018 13:22:29 +0530
+Message-ID: <20180713075232.9575-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0825027183719593481=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,46 +15,63 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+This is RFC V3 for 'fake DAX' flushing interface sharing
+for review. This patchset has two parts:
 
---===============0825027183719593481==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
+- Guest virtio-pmem driver
+  Guest driver reads persistent memory range from paravirt device 
+  and registers with 'nvdimm_bus'. 'nvdimm/pmem' driver uses this 
+  information to allocate persistent memory range. Also, we have 
+  implemented guest side of VIRTIO flushing interface.
 
-Good day!
+- Qemu virtio-pmem device
+  It exposes a persistent memory range to KVM guest which at host 
+  side is file backed memory and works as persistent memory device. 
+  In addition to this it provides virtio device handling of flushing 
+  interface. KVM guest performs Qemu side asynchronous sync using 
+  this interface.
 
-We considered your resume to be very attractive and we thought the =
-vacant position in our company could be interesting for you.
+Changes from RFC v2:
+- Add flush function in the nd_region in place of switching
+  on a flag - Dan & Stefan
+- Add flush completion function with proper locking and wait
+  for host side flush completion - Stefan & Dan
+- Keep userspace API in uapi header file - Stefan, MST
+- Use LE fields & New device id - MST
+- Indentation & spacing suggestions - MST & Eric
+- Remove extra header files & add licensing - Stefan
 
-Our firm specializes in online services in the matter of business =
-administration.
-We cooperate with different countries and currently we have many clients =
-in yours region.
-Due to this fact, we need to increase the number of our destination =
-representatives' regular staff.
+Changes from RFC v1:
+- Reuse existing 'pmem' code for registering persistent 
+  memory and other operations instead of creating an entirely 
+  new block driver.
+- Use VIRTIO driver to register memory information with 
+  nvdimm_bus and create region_type accordingly. 
+- Call VIRTIO flush from existing pmem driver.
 
-Part-time and full-time employment are both currently important.
-We offer a flat wage from $1500 up to $7000 per month.
+Details of project idea for 'fake DAX' flushing interface is 
+shared [2] & [3].
 
-If you are interested in our offer, please visit our web page.
+Pankaj Gupta (2):
+   Add virtio-pmem guest driver
+   pmem: device flush over VIRTIO
 
-Attention! Accept applications only on this and next week.
+[1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
+[2] https://www.spinics.net/lists/kvm/msg149761.html
+[3] https://www.spinics.net/lists/kvm/msg153095.html  
 
-Respectively submitted
-Personnel department
---===============0825027183719593481==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============0825027183719593481==--
+ drivers/nvdimm/nd.h              |    1 
+ drivers/nvdimm/pmem.c            |    4 
+ drivers/nvdimm/region_devs.c     |   24 +++-
+ drivers/virtio/Kconfig           |    9 +
+ drivers/virtio/Makefile          |    1 
+ drivers/virtio/virtio_pmem.c     |  190 +++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h        |    5 -
+ include/linux/virtio_pmem.h      |   44 +++++++++
+ include/uapi/linux/virtio_ids.h  |    1 
+ include/uapi/linux/virtio_pmem.h |   40 ++++++++
+ 10 files changed, 310 insertions(+), 9 deletions(-)
