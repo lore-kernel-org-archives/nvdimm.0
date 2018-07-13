@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 287CB210C0F60
- for <linux-nvdimm@lists.01.org>; Tue, 24 Jul 2018 01:46:08 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH 2/5] tools/testing/nvdimm: Allow a NULL-kaddr to
- ->direct_access()
-Date: Tue, 24 Jul 2018 16:45:07 +0800
-Message-Id: <20180724084510.6104-3-yehs2007@zoho.com>
-In-Reply-To: <20180724084510.6104-1-yehs2007@zoho.com>
-References: <20180724084510.6104-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1EFD02097FAB0
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:17:38 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id k12-v6so65104604oiw.8
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:17:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <153142852403.27297.4482491306340625013.stgit@djiang5-desk3.ch.intel.com>
+References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ <153142852403.27297.4482491306340625013.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 16:17:37 -0700
+Message-ID: <CAPcyv4jq_8oJTAKxrxmwR36OzOiiiWrgxzMBvctCgDhmTJrqSA@mail.gmail.com>
+Subject: Re: [PATCH v4 03/11] nfit/libnvdimm: store dimm id as a member to
+ struct nvdimm
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,54 +23,162 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, chengnt@lenovo.com, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, jack@suse.cz
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: David Howells <dhowells@redhat.com>, "Schofield, Alison  <alison.schofield@intel.com>, keyrings@vger.kernel.org, Kees Cook" <keescook@chromium.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Thu, Jul 12, 2018 at 1:48 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> The generated dimm id is needed for the sysfs attribute as well as being
+> used as the identifier/description for the security key. Since it's
+> constant and should never change, store it as a member of struct nvdimm.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c   |   35 +++++++++++++++++++++++------------
+>  drivers/acpi/nfit/nfit.h   |    1 +
+>  drivers/nvdimm/dimm_devs.c |    4 +++-
+>  drivers/nvdimm/nd-core.h   |    1 +
+>  include/linux/libnvdimm.h  |    2 +-
+>  5 files changed, 29 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index a3a944751e6a..dcb5f428bd9c 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -71,6 +71,9 @@ struct nfit_table_prev {
+>
+>  static guid_t nfit_uuid[NFIT_UUID_MAX];
+>
+> +static int acpi_nfit_get_dimm_id(struct acpi_nfit_control_region *dcr,
+> +               char *buf);
+> +
+>  const guid_t *to_nfit_uuid(enum nfit_uuids id)
+>  {
+>         return &nfit_uuid[id];
+> @@ -1572,18 +1575,10 @@ static DEVICE_ATTR_RO(flags);
+>  static ssize_t id_show(struct device *dev,
+>                 struct device_attribute *attr, char *buf)
+>  {
+> -       struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
+> +       struct nvdimm *nvdimm = to_nvdimm(dev);
+> +       struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+>
+> -       if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
+> -               return sprintf(buf, "%04x-%02x-%04x-%08x\n",
+> -                               be16_to_cpu(dcr->vendor_id),
+> -                               dcr->manufacturing_location,
+> -                               be16_to_cpu(dcr->manufacturing_date),
+> -                               be32_to_cpu(dcr->serial_number));
+> -       else
+> -               return sprintf(buf, "%04x-%08x\n",
+> -                               be16_to_cpu(dcr->vendor_id),
+> -                               be32_to_cpu(dcr->serial_number));
+> +       return sprintf(buf, "%s\n", nfit_mem->id);
+>  }
+>  static DEVICE_ATTR_RO(id);
+>
+> @@ -1830,6 +1825,21 @@ static void shutdown_dimm_notify(void *data)
+>         mutex_unlock(&acpi_desc->init_mutex);
+>  }
+>
+> +static int acpi_nfit_get_dimm_id(struct acpi_nfit_control_region *dcr,
+> +               char *buf)
+> +{
+> +       if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
+> +               return sprintf(buf, "%04x-%02x-%04x-%08x",
+> +                               be16_to_cpu(dcr->vendor_id),
+> +                               dcr->manufacturing_location,
+> +                               be16_to_cpu(dcr->manufacturing_date),
+> +                               be32_to_cpu(dcr->serial_number));
+> +       else
+> +               return sprintf(buf, "%04x-%08x",
+> +                               be16_to_cpu(dcr->vendor_id),
+> +                               be32_to_cpu(dcr->serial_number));
+> +}
+> +
+>  static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+>  {
+>         struct nfit_mem *nfit_mem;
+> @@ -1896,10 +1906,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+>
+>                 flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
+>                         : NULL;
+> +               acpi_nfit_get_dimm_id(nfit_mem->dcr, nfit_mem->id);
 
-The mock / test version of pmem_direct_access() needs to check the
-validity of second rank pointer kaddr for NULL assignment. If kaddr
-equals to NULL, it doesn't need to calculate the value.
+It feels odd to initialize this late right before the dimm is
+registered with the bus when the rest of the nfit_mem initialization
+happens in acpi_nfit_add_dimm(). I think we can just open code
+acpi_nfit_get_dimm_id() inside acpi_nfit_add_dimm() and call it done.
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- tools/testing/nvdimm/pmem-dax.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+>                 nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+>                                 acpi_nfit_dimm_attribute_groups,
+>                                 flags, cmd_mask, flush ? flush->hint_count : 0,
+> -                               nfit_mem->flush_wpq);
+> +                               nfit_mem->flush_wpq, nfit_mem->id);
+>                 if (!nvdimm)
+>                         return -ENOMEM;
+>
+> diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+> index 40b0003b1805..019549138133 100644
+> --- a/drivers/acpi/nfit/nfit.h
+> +++ b/drivers/acpi/nfit/nfit.h
+> @@ -195,6 +195,7 @@ struct nfit_mem {
+>         int family;
+>         bool has_lsr;
+>         bool has_lsw;
+> +       char id[NVDIMM_KEY_DESC_LEN];
 
-diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
-index b53596a..c3ba159 100644
---- a/tools/testing/nvdimm/pmem-dax.c
-+++ b/tools/testing/nvdimm/pmem-dax.c
-@@ -31,7 +31,8 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 	if (get_nfit_res(pmem->phys_addr + offset)) {
- 		struct page *page;
- 
--		*kaddr = pmem->virt_addr + offset;
-+		if (kaddr)
-+			*kaddr = pmem->virt_addr + offset;
- 		page = vmalloc_to_page(pmem->virt_addr + offset);
- 		*pfn = page_to_pfn_t(page);
- 		pr_debug_ratelimited("%s: pmem: %p pgoff: %#lx pfn: %#lx\n",
-@@ -40,7 +41,8 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		return 1;
- 	}
- 
--	*kaddr = pmem->virt_addr + offset;
-+	if (kaddr)
-+		*kaddr = pmem->virt_addr + offset;
- 	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
- 
- 	/*
--- 
-1.8.3.1
+I think this length should be something like NFIT_DIMM_ID_LEN since it
+is independent of the key stuff, it's just the NFIT id that *happens*
+to also be used to generate the key id.
 
+>  };
+>
+>  struct acpi_nfit_desc {
+> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> index 1dcbb653455b..1842c74413fa 100644
+> --- a/drivers/nvdimm/dimm_devs.c
+> +++ b/drivers/nvdimm/dimm_devs.c
+> @@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
+>  struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+>                 const struct attribute_group **groups, unsigned long flags,
+>                 unsigned long cmd_mask, int num_flush,
+> -               struct resource *flush_wpq)
+> +               struct resource *flush_wpq, const char *id)
+>  {
+>         struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
+>         struct device *dev;
+> @@ -453,6 +453,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+>                 kfree(nvdimm);
+>                 return NULL;
+>         }
+> +
+> +       memcpy(nvdimm->dimm_id, id, NVDIMM_KEY_DESC_LEN);
+>         nvdimm->provider_data = provider_data;
+>         nvdimm->flags = flags;
+>         nvdimm->cmd_mask = cmd_mask;
+> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+> index 2af0f89c4010..ea9227498dac 100644
+> --- a/drivers/nvdimm/nd-core.h
+> +++ b/drivers/nvdimm/nd-core.h
+> @@ -42,6 +42,7 @@ struct nvdimm {
+>         atomic_t busy;
+>         int id, num_flush;
+>         struct resource *flush_wpq;
+> +       char dimm_id[NVDIMM_KEY_DESC_LEN];
 
+Hmm, I don't think struct nvdimm needs it's own storage for dimm_id.
+Just make this a pointer and assign it the passed in value. It's
+guaranteed that the nfit_mem object will stay around as long as the
+nvdimm is registered.
+
+With those minor fixups you can add:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
