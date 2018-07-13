@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 401DF2097F55F
- for <linux-nvdimm@lists.01.org>; Wed, 18 Jul 2018 17:43:00 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH v13 0/5] ndctl, monitor: add ndctl monitor daemon
-Date: Thu, 19 Jul 2018 00:42:56 +0000
-Message-ID: <1531960975.7574.162.camel@intel.com>
-References: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
-Content-Language: en-US
-Content-ID: <8F16891460E59D4D9DF1EF6181FE55B9@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 122FD2097F55B
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:34:06 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id DDA30AC0219
+ for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 08:33:58 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v13 0/5] ndctl, monitor: add ndctl monitor daemon
+Date: Sat, 14 Jul 2018 08:33:45 +0900
+Message-Id: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,40 +19,154 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
-Cc: "tokunaga.keiich@jp.fujitsu.com" <tokunaga.keiich@jp.fujitsu.com>
+To: linux-nvdimm@lists.01.org
+Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
+This is the v13 patch for ndctl monitor, a tiny daemon to monitor
+the smart events of nvdimm DIMMs. Since NVDIMM does not have a
+feature like mirroring, if it breaks down, the data will be
+impossible to restore. Ndctl monitor daemon will catch the smart
+events notify from firmware and outputs notification to logfile,
+therefore users can replace NVDIMM before it is completely broken.
 
-On Sat, 2018-07-14 at 08:33 +0900, QI Fuli wrote:
-> This is the v13 patch for ndctl monitor, a tiny daemon to monitor
-> the smart events of nvdimm DIMMs. Since NVDIMM does not have a
-> feature like mirroring, if it breaks down, the data will be
-> impossible to restore. Ndctl monitor daemon will catch the smart
-> events notify from firmware and outputs notification to logfile,
-> therefore users can replace NVDIMM before it is completely broken.
-> 
-> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+---
+Change log since v12:
+ - Fixing log_fn() for removing output new line
+ - Fixing hard code default configuration file path
+ - Fixing RPM spec file for configuration file and systemd unit file
+ - Fixing man page
 
-Hi Qi,
+Change log since v11:
+ - Adding log_standard()
+ - Adding [-u | --human] option
+ - Fixing man page
+ - Refactoring unit test
+ - Updating configuration file and systemd unit file to RPM spec file
 
-This looks great, thank you for all the updates!
+Change log since v10:
+ - Adding unit test
+ - Adding fflush to log_file()
 
-I have applied the series to my local tree, and expect to push it out
-to the pending branch soon. I will also add reviewed-by tags for Dan
-(with his permission) since he has been integral to the review of this
-series.
+Change log since v9:
+ - Replacing ndctl_cmd_smart_get_event_flags() with
+   ndctl_dimm_get_event_flags()
+ - Adding ndctl_dimm_get_health() api
+ - Adding ndctl_dimm_get_flags() api
+ - Adding ndctl_dimm_is_flag_supported api
+ - Adding manpage
 
-I'm also separately sending out the bash completion updates for the
-monitor command.
+Change log since v8:
+ - Adding ndctl_cmd_smart_get_event_flags() api
+ - Adding monitor_filter_arg to the union in util_filter_ctx
+ - Removing is_dir()
+ - Replacing malloc + vsprintf with vasprintf() in log_file() and log_syslog()
+ - Adding parse_monitor_event()
+ - Refactoring util_dimm_event_filter()
+ - Adding event_flags to monitor
+ - Refactoring dimm_event_to_json()
+ - Adding check_dimm_supported_threshold_alarms()
+ - Fixing fail token
 
-Thank you,
+Change log since v7:
+ - Replacing logreport() with log_file() and log_syslog()
+ - Refactoring read_config_file()
+ - Replacing set_confile() with parse_config()
+ - Fixing the ndctl/ndct.conf file
 
-	-Vishal
+Change log since v6:
+ - Changing License to GPL-2.0
+ - Adding event object to output notification
+ - Adding [--dimm-event] option to filter notification by event type
+ - Rewriting read_config_file()
+ - Replacing monitor_dimm_event() with monitor_event()
+ - Renaming some variables
+
+Change log since v5:
+ - Fixing systemd unit file cannot be installed bug
+ - Adding license to ./util/abspath.c
+
+Change log since v4:
+ - Adding OPTION_FILENAME to make sure filename is correct
+ - Adding configuration file
+ - Adding [--config-file] option to override the default configuration
+ - Making some options support multiple space-seperated arguments
+ - Making systemctl enable ndctl-monitor.service command work
+ - Making systemctl restart ndctl-monitor.service command work
+ - Making the directory of systemd unit file to be configurable
+ - Changing log_file() and log_syslog() to logreport()
+ - Changing date format in notification to nanoseconds since epoch
+ - Changing select() to epoll()
+ - Adding filter_bus() and filter_region()
+
+Change log since v3:
+ - Removing create-monitor, show-monitor, list-monitor, destroy-monitor
+ - Adding [--daemon] option to run ndctl monitor as a daemon 
+ - Using systemd to manage ndctl monitor daemon
+ - Replacing filter_monitor_dimm() with filter_dimm()
+
+Change log since v2:
+ - Changing the interface of daemon to the ndctl command line
+ - Changing the name of daemon form "nvdimmd" to "monitor"
+ - Removing the config file, unit_file, nvdimmd dir
+ - Removing nvdimmd_test program
+ - Adding ndctl/monitor.c
+
+Change log since v1:
+ - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
+ - Using struct log_ctx instead of syslog()
+    - Using log_syslog() to save the notify messages to syslog
+    - Using log_file() to save the notify messages to special file
+ - Adding LOG_NOTICE level to log_priority
+ - Using automake instead of Makefile
+ - Adding a new util file(nvdimmd/util.c) including helper functions
+   needed for nvdimm daemon
+ - Adding nvdimmd_test program
+
+QI Fuli (5):
+  ndctl, monitor: add a new command - monitor
+  ndctl, monitor: add main ndctl monitor configuration file
+  ndctl, monitor: add the unit file of systemd for ndctl-monitor service
+  ndctl, documentation: add man page for monitor
+  ndctl, test: add a new unit test for monitor
+
+ .gitignore                            |   1 +
+ Documentation/ndctl/Makefile.am       |   3 +-
+ Documentation/ndctl/ndctl-monitor.txt | 108 +++++
+ autogen.sh                            |   3 +-
+ builtin.h                             |   1 +
+ configure.ac                          |  23 +
+ ndctl.spec.in                         |   3 +
+ ndctl/Makefile.am                     |  12 +-
+ ndctl/lib/libndctl.c                  |  82 ++++
+ ndctl/lib/libndctl.sym                |   4 +
+ ndctl/libndctl.h                      |  10 +
+ ndctl/monitor.c                       | 650 ++++++++++++++++++++++++++
+ ndctl/monitor.conf                    |  41 ++
+ ndctl/ndctl-monitor.service           |   7 +
+ ndctl/ndctl.c                         |   1 +
+ test/Makefile.am                      |  14 +-
+ test/list-smart-dimm.c                | 117 +++++
+ test/monitor.sh                       | 176 +++++++
+ util/filter.h                         |   9 +
+ 19 files changed, 1260 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-monitor.txt
+ create mode 100644 ndctl/monitor.c
+ create mode 100644 ndctl/monitor.conf
+ create mode 100644 ndctl/ndctl-monitor.service
+ create mode 100644 test/list-smart-dimm.c
+ create mode 100755 test/monitor.sh
+
+-- 
+2.18.0
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
