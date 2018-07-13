@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 693D52097E27F
- for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 15:34:34 -0700 (PDT)
-Subject: [PATCH v3 08/11] nfit/libnvdimm: add support for issue secure erase
- DSM to Intel nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 11 Jul 2018 15:34:33 -0700
-Message-ID: <153134847348.41955.14020326787182385134.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
-References: <153134823290.41955.817023337662647245.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2085C207E6368
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 19:47:25 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v11 4/5] ndctl, documentation: add manpage for
+ monitor
+Date: Fri, 13 Jul 2018 02:47:06 +0000
+Message-ID: <1531450025.7574.108.camel@intel.com>
+References: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
+ <20180711030012.9186-5-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180711030012.9186-5-qi.fuli@jp.fujitsu.com>
+Content-Language: en-US
+Content-ID: <E577A0B15EF954419873CF4282A7F157@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,172 +26,186 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to issue a secure erase DSM to the Intel nvdimm. The
-required passphrase is acquired from userspace through the kernel key
-management. To trigger the action, "erase" is written to the "security"
-sysfs attribute.  libnvdimm will support the erase generic API call.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/intel.c  |   55 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   47 ++++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 104 insertions(+)
+On Wed, 2018-07-11 at 12:00 +0900, QI Fuli wrote:
+> This patch is used to add manpage for ndctl monitor command.
+> 
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  Documentation/ndctl/Makefile.am       |  3 +-
+>  Documentation/ndctl/ndctl-monitor.txt | 96 +++++++++++++++++++++++++++
+>  2 files changed, 98 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/ndctl/ndctl-monitor.txt
+> 
+> diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+> index 4fd9636..a30b139 100644
+> --- a/Documentation/ndctl/Makefile.am
+> +++ b/Documentation/ndctl/Makefile.am
+> @@ -46,7 +46,8 @@ man1_MANS = \
+>  	ndctl-inject-error.1 \
+>  	ndctl-inject-smart.1 \
+>  	ndctl-update-firmware.1 \
+> -	ndctl-list.1
+> +	ndctl-list.1 \
+> +	ndctl-monitor.1
+>  
+>  CLEANFILES = $(man1_MANS)
+>  
+> diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
+> new file mode 100644
+> index 0000000..037fdc7
+> --- /dev/null
+> +++ b/Documentation/ndctl/ndctl-monitor.txt
+> @@ -0,0 +1,96 @@
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 0ab56f03ebc4..6449db6db85d 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,60 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_erase(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_secure_erase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	/* DIMM unlocked, invalidate all CPU caches before we read it */
-+	wbinvd_on_all_cpus();
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm)
- {
-@@ -308,4 +362,5 @@ struct nvdimm_security_ops intel_security_ops = {
- 	.change_key = intel_dimm_security_update_passphrase,
- 	.disable = intel_dimm_security_disable,
- 	.freeze_lock = intel_dimm_security_freeze_lock,
-+	.erase = intel_dimm_security_erase,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 829e84b70ad1..690697b5b94a 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -125,6 +125,51 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
- }
- 
-+static int nvdimm_security_erase(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key;
-+	void *payload;
-+	int rc = 0;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	/* lock the device and disallow driver bind */
-+	device_lock(dev);
-+	/* No driver data means dimm is disabled. Proceed if so. */
-+	if (dev_get_drvdata(dev)) {
-+		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		goto out;
-+
-+	key = nvdimm_search_key(dev);
-+	if (!key)
-+		key = nvdimm_request_key(dev);
-+	if (!key) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm->security_ops->erase(nvdimm_bus, nvdimm, payload);
-+	up_read(&key->sem);
-+	/* remove key since secure erase kills the passphrase */
-+	key_invalidate(key);
-+	key_put(key);
-+
-+ out:
-+	device_unlock(dev);
-+	nvdimm_security_get_state(dev);
-+	return rc;
-+}
-+
- static int nvdimm_security_freeze_lock(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -690,6 +735,8 @@ static ssize_t security_store(struct device *dev,
- 		rc = nvdimm_security_disable(dev);
- 	else if (sysfs_streq(buf, "freeze"))
- 		rc = nvdimm_security_freeze_lock(dev);
-+	else if (sysfs_streq(buf, "erase"))
-+		rc = nvdimm_security_erase(dev);
- 	else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 1836599ed5b8..1ac5acb3c457 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -187,6 +187,8 @@ struct nvdimm_security_ops {
- 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
- 	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm);
-+	int (*erase)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
- };
- 
- void badrange_init(struct badrange *badrange);
+Missing SPDX license header
 
+> +ndctl-monitor(1)
+> +================
+> +
+> +NAME
+> +----
+> +ndctl-monitor - Monitor the smart events of nvdimm objects
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'ndctl monitor' [<options>]
+> +
+> +DESCRIPTION
+> +-----------
+> +Ndctl monitor is used for monitoring the smart events of nvdimm
+> +objects and dumping the json format notifications to syslog or
+> +a logfile.
+> +
+> +The objects to monitor and smart evnets to notify can be selected
+				    ^
+s/evnets/events/
+
+> +by setting options and/or the default configuration file
+> +(/etc/ndctl/monitor.conf). Both of the values in configuration file
+> +and in options will work. If conflict, the values in options will
+			     ^
+"If there is a conflict..."
+
+> +override the values in configuration file. The changed values in
+> +configuration file will work after restart ndctl monitor.
+				^
+"..after the monitor is restarted."
+
+> +
+> +EXAMPLES
+> +--------
+> +
+> +Run a monitor as a daemon to monitor DIMMs on a provider named ndbus1
+> +[verse]
+> +ndctl monitor -b ndbus1 -f
+> +
+> +Run a monitor as a one-shot command and output the notifications to
+> +/var/log/ndctl.log
+> +[verse]
+> +ndctl monitor -l /var/log/ndctl.log
+> +
+> +Run a monitor daemon as a system service
+> +[verse]
+> +systemctl start ndctl-monitor.service
+
+For man page examples, I prefer using the long format options as it is
+easier for the user to understand what is going on. Also for examples,
+perhaps use the actual bus name (such as ACPI.NFIT) instead of the
+identifier libnvdimm assigns to it (since that is also what bash
+completion provides)
+
+> +
+> +OPTIONS
+> +-------
+> +-b::
+> +--bus=::
+> +	Enforce that the operation only be carried on devices that are
+> +	attached to the given bus. Where 'bus' can be a provider name
+> +	or a bus id number.
+> +
+> +-d::
+> +--dimm=::
+> +	A 'nmemX' device name, or dimm id number. Select the devices to
+> +	monitor refrerence the given dimm.
+		^
+s/refrerence/reference/
+
+> +
+> +-r::
+> +--region=::
+> +	A 'regionX' device name, or a region id number. The keyword 'all'
+> +	can be specified to carry out the operation on every region in
+> +	the system, optionally filtered by bus id (see --bus= option).
+> +
+> +-n::
+> +--namespace=::
+> +	A 'namespaceX.Y' device name, or namespace region plus id tuple
+> +	'X.Y'.
+> +
+> +-l <file | syslog>::
+> +--logfile=<file | syslog>::
+> +	Output notifications to <file> or syslog.
+> +
+> +-f::
+
+-f could be construed as --foreground, which would be the opposite of
+what --daemon is trying to do. I would suggest -B for 'background'
+(since 'b' is in use for bus), but -B could come in handy for a future
+bus-events option..  I think I'd prefer to set the short option to
+something like -x (since option parsing doesn't allow for an empty
+short option), and not advertise it in the man page at all (similar to
+inject-smart).
+
+> +--daemon::
+> +	Run a monitor as a daemon.
+> +
+> +-D::
+> +--dimm-event=::
+> +	A name of smart events come NVDIMM DIMMs.
+
+s/NVDIMM DIMMs/NVDIMMs/
+Also perhaps something like this makes more sense:
+"Name of an smart health event from the following:"
+
+> +	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
+> +	   below the pre-programmed threshold limit
+
+in all of these: s/threshold limit/threshold/  'threshold' already
+implies a limit.
+
+> +	- "dimm-media-temperature": NVDIMM Media temperature value has
+> +	   gone above the pre-programmed threshold limit
+> +	- "dimm-controller-temperature": NVDIMM Controller temperature
+> +	   value has gone above the pre-programmed threshold limit
+> +	- "dimm-health-state": NVDIMM Normal Health Status has changed
+> +	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a dirty
+> +	   shutdown.
+
+s/dirty/unclean/ to stay consistent with the name.
+
+These (and some other minor details like the logfile) will need updates
+to the bash completion script (contrib/ndctl). But I can do that easily
+enough if you don't want to spend the time to grok how that works :)
+
+> +
+> +COPYRIGHT
+> +---------
+> +Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
+> +<http://gnu.org/licenses/gpl.html>. This is free software: you are
+> +free to change and redistribute it. There is NO WARRANTY, to the
+> +extent permitted by law.
+> +
+> +SEE ALSO
+> +--------
+> +linkndctl:ndctl-list[1]
+
+In addition to ndctl-list, also add ndctl-inject-smart here since that
+is used for setting thresholds and alarms.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
