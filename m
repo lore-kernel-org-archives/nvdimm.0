@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0AC4E2097172F
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 21:12:04 -0700 (PDT)
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v6 3/4] resource: add walk_system_ram_res_rev()
-Date: Wed,  4 Jul 2018 12:10:37 +0800
-Message-Id: <20180704041038.8190-4-bhe@redhat.com>
-In-Reply-To: <20180704041038.8190-1-bhe@redhat.com>
-References: <20180704041038.8190-1-bhe@redhat.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id AB63021B02845
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:34:06 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 23254AC020C
+ for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 08:34:01 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v13 3/5] ndctl,
+ monitor: add the unit file of systemd for ndctl-monitor service
+Date: Sat, 14 Jul 2018 08:33:48 +0900
+Message-Id: <20180713233350.7148-4-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
+References: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,64 +22,136 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
-Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: linux-nvdimm@lists.01.org
+Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhpcyBmdW5jdGlvbiwgYmVpbmcgYSB2YXJpYW50IG9mIHdhbGtfc3lzdGVtX3JhbV9yZXMoKSBp
-bnRyb2R1Y2VkIGluCmNvbW1pdCA4Yzg2ZTcwYWNlYWQgKCJyZXNvdXJjZTogcHJvdmlkZSBuZXcg
-ZnVuY3Rpb25zIHRvIHdhbGsgdGhyb3VnaApyZXNvdXJjZXMiKSwgd2Fsa3MgdGhyb3VnaCBhIGxp
-c3Qgb2YgYWxsIHRoZSByZXNvdXJjZXMgb2YgU3lzdGVtIFJBTQppbiByZXZlcnNlZCBvcmRlciwg
-aS5lLiwgZnJvbSBoaWdoZXIgdG8gbG93ZXIuCgpJdCB3aWxsIGJlIHVzZWQgaW4ga2V4ZWNfZmls
-ZSBjb2RlLgoKU2lnbmVkLW9mZi1ieTogQmFvcXVhbiBIZSA8YmhlQHJlZGhhdC5jb20+CkNjOiBB
-bmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpDYzogVGhvbWFzIEdsZWl4
-bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+CkNjOiBCcmlqZXNoIFNpbmdoIDxicmlqZXNoLnNpbmdo
-QGFtZC5jb20+CkNjOiAiSsOpcsO0bWUgR2xpc3NlIiA8amdsaXNzZUByZWRoYXQuY29tPgpDYzog
-Qm9yaXNsYXYgUGV0a292IDxicEBzdXNlLmRlPgpDYzogVG9tIExlbmRhY2t5IDx0aG9tYXMubGVu
-ZGFja3lAYW1kLmNvbT4KQ2M6IFdlaSBZYW5nIDxyaWNoYXJkLndlaXlhbmdAZ21haWwuY29tPgot
-LS0KIGluY2x1ZGUvbGludXgvaW9wb3J0LmggfCAgMyArKysKIGtlcm5lbC9yZXNvdXJjZS5jICAg
-ICAgfCA0MCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAyIGZpbGVz
-IGNoYW5nZWQsIDQzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2lv
-cG9ydC5oIGIvaW5jbHVkZS9saW51eC9pb3BvcnQuaAppbmRleCBiNzQ1NmFlODg5ZGQuLjA2NmNj
-MjYzZTJjYyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9pb3BvcnQuaAorKysgYi9pbmNsdWRl
-L2xpbnV4L2lvcG9ydC5oCkBAIC0yNzksNiArMjc5LDkgQEAgZXh0ZXJuIGludAogd2Fsa19zeXN0
-ZW1fcmFtX3Jlcyh1NjQgc3RhcnQsIHU2NCBlbmQsIHZvaWQgKmFyZywKIAkJICAgIGludCAoKmZ1
-bmMpKHN0cnVjdCByZXNvdXJjZSAqLCB2b2lkICopKTsKIGV4dGVybiBpbnQKK3dhbGtfc3lzdGVt
-X3JhbV9yZXNfcmV2KHU2NCBzdGFydCwgdTY0IGVuZCwgdm9pZCAqYXJnLAorCQkJaW50ICgqZnVu
-Yykoc3RydWN0IHJlc291cmNlICosIHZvaWQgKikpOworZXh0ZXJuIGludAogd2Fsa19pb21lbV9y
-ZXNfZGVzYyh1bnNpZ25lZCBsb25nIGRlc2MsIHVuc2lnbmVkIGxvbmcgZmxhZ3MsIHU2NCBzdGFy
-dCwgdTY0IGVuZCwKIAkJICAgIHZvaWQgKmFyZywgaW50ICgqZnVuYykoc3RydWN0IHJlc291cmNl
-ICosIHZvaWQgKikpOwogCmRpZmYgLS1naXQgYS9rZXJuZWwvcmVzb3VyY2UuYyBiL2tlcm5lbC9y
-ZXNvdXJjZS5jCmluZGV4IDZkNjQ3YTM4MjRiMS4uNGM1ZmJlZjRlYTI0IDEwMDY0NAotLS0gYS9r
-ZXJuZWwvcmVzb3VyY2UuYworKysgYi9rZXJuZWwvcmVzb3VyY2UuYwpAQCAtMjMsNiArMjMsOCBA
-QAogI2luY2x1ZGUgPGxpbnV4L3Bmbi5oPgogI2luY2x1ZGUgPGxpbnV4L21tLmg+CiAjaW5jbHVk
-ZSA8bGludXgvcmVzb3VyY2VfZXh0Lmg+CisjaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+CisjaW5j
-bHVkZSA8bGludXgvdm1hbGxvYy5oPgogI2luY2x1ZGUgPGFzbS9pby5oPgogCiAKQEAgLTQ0Myw2
-ICs0NDUsNDQgQEAgaW50IHdhbGtfc3lzdGVtX3JhbV9yZXModTY0IHN0YXJ0LCB1NjQgZW5kLCB2
-b2lkICphcmcsCiB9CiAKIC8qCisgKiBUaGlzIGZ1bmN0aW9uLCBiZWluZyBhIHZhcmlhbnQgb2Yg
-d2Fsa19zeXN0ZW1fcmFtX3JlcygpLCBjYWxscyB0aGUgQGZ1bmMKKyAqIGNhbGxiYWNrIGFnYWlu
-c3QgYWxsIG1lbW9yeSByYW5nZXMgb2YgdHlwZSBTeXN0ZW0gUkFNIHdoaWNoIGFyZSBtYXJrZWQg
-YXMKKyAqIElPUkVTT1VSQ0VfU1lTVEVNX1JBTSBhbmQgSU9SRVNPVUNFX0JVU1kgaW4gcmV2ZXJz
-ZWQgb3JkZXIsIGkuZS4sIGZyb20KKyAqIGhpZ2hlciB0byBsb3dlci4KKyAqLworaW50IHdhbGtf
-c3lzdGVtX3JhbV9yZXNfcmV2KHU2NCBzdGFydCwgdTY0IGVuZCwgdm9pZCAqYXJnLAorCQkJCWlu
-dCAoKmZ1bmMpKHN0cnVjdCByZXNvdXJjZSAqLCB2b2lkICopKQoreworCXVuc2lnbmVkIGxvbmcg
-ZmxhZ3M7CisJc3RydWN0IHJlc291cmNlICpyZXM7CisJaW50IHJldCA9IC0xOworCisJZmxhZ3Mg
-PSBJT1JFU09VUkNFX1NZU1RFTV9SQU0gfCBJT1JFU09VUkNFX0JVU1k7CisKKwlyZWFkX2xvY2so
-JnJlc291cmNlX2xvY2spOworCWxpc3RfZm9yX2VhY2hfZW50cnlfcmV2ZXJzZShyZXMsICZpb21l
-bV9yZXNvdXJjZS5jaGlsZCwgc2libGluZykgeworCQlpZiAoc3RhcnQgPj0gZW5kKQorCQkJYnJl
-YWs7CisJCWlmICgocmVzLT5mbGFncyAmIGZsYWdzKSAhPSBmbGFncykKKwkJCWNvbnRpbnVlOwor
-CQlpZiAocmVzLT5kZXNjICE9IElPUkVTX0RFU0NfTk9ORSkKKwkJCWNvbnRpbnVlOworCQlpZiAo
-cmVzLT5lbmQgPCBzdGFydCkKKwkJCWJyZWFrOworCisJCWlmICgocmVzLT5lbmQgPj0gc3RhcnQp
-ICYmIChyZXMtPnN0YXJ0IDwgZW5kKSkgeworCQkJcmV0ID0gKCpmdW5jKShyZXMsIGFyZyk7CisJ
-CQlpZiAocmV0KQorCQkJCWJyZWFrOworCQl9CisJCWVuZCA9IHJlcy0+c3RhcnQgLSAxOworCisJ
-fQorCXJlYWRfdW5sb2NrKCZyZXNvdXJjZV9sb2NrKTsKKwlyZXR1cm4gcmV0OworfQorCisvKgog
-ICogVGhpcyBmdW5jdGlvbiBjYWxscyB0aGUgQGZ1bmMgY2FsbGJhY2sgYWdhaW5zdCBhbGwgbWVt
-b3J5IHJhbmdlcywgd2hpY2gKICAqIGFyZSByYW5nZXMgbWFya2VkIGFzIElPUkVTT1VSQ0VfTUVN
-IGFuZCBJT1JFU09VQ0VfQlVTWS4KICAqLwotLSAKMi4xMy42CgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
-aW5mby9saW51eC1udmRpbW0K
+This patch adds the systemd unit file for ndctl-monitor service.
+The systemd unit directory can be configured by setting environment
+variable "--with-systemd-unit-dir[=DIR]".
+
+A monitor daemon can be started as a system service:
+   # systemctl start ndctl-monitor.service
+
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+---
+ autogen.sh                  |  3 ++-
+ configure.ac                | 22 ++++++++++++++++++++++
+ ndctl.spec.in               |  2 ++
+ ndctl/Makefile.am           |  4 ++++
+ ndctl/ndctl-monitor.service |  7 +++++++
+ 5 files changed, 37 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl-monitor.service
+
+diff --git a/autogen.sh b/autogen.sh
+index 2a52688..21b0e25 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -17,7 +17,8 @@ libdir() {
+ 
+ args="--prefix=/usr \
+ --sysconfdir=/etc \
+---libdir=$(libdir /usr/lib)"
++--libdir=$(libdir /usr/lib) \
++--with-systemd-unit-dir"
+ 
+ echo
+ echo "----------------------------------------------------------------"
+diff --git a/configure.ac b/configure.ac
+index ff0096d..e242334 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
+ 	secure_getenv\
+ ])
+ 
++PKG_PROG_PKG_CONFIG
++AC_ARG_WITH([systemd-unit-dir],
++	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
++		[Directory for systemd service files]),
++	[],
++	[with_systemd_unit_dir=yes])
++
++if test "x$with_systemd_unit_dir" = "xyes"; then
++	def_systemd_unit_dir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
++	if test "x$def_systemd_unit_dir" = "x"; then
++		AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])
++		with_systemd_unit_dir=no
++	else
++		with_systemd_unit_dir="$def_systemd_unit_dir"
++	fi
++fi
++
++AS_IF([test "x$with_systemd_unit_dir" != "xno"],
++	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
++AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
++
+ my_CFLAGS="\
+ -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
+ -Wall \
+@@ -185,6 +206,7 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
++	systemd-unit-dir:	${systemd_unitdir}
+ 
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 41a1d59..17152c1 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -20,6 +20,7 @@ BuildRequires:	pkgconfig(libudev)
+ BuildRequires:	pkgconfig(uuid)
+ BuildRequires:	pkgconfig(json-c)
+ BuildRequires:	pkgconfig(bash-completion)
++BuildRequires:	systemd
+ 
+ %description
+ Utility library for managing the "libnvdimm" subsystem.  The "libnvdimm"
+@@ -117,6 +118,7 @@ make check
+ %{_mandir}/man1/ndctl*
+ %{bashcompdir}/
+ %{_sysconfdir}/ndctl/monitor.conf
++%{_unitdir}/ndctl-monitor.service
+ 
+ %files -n daxctl
+ %defattr(-,root,root)
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 58b747a..0f9bb43 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+ monitor_configdir = $(sysconfdir)/ndctl/
+ monitor_config_DATA = $(monitor_config_file)
+ EXTRA_DIST += $(monitor_config_file)
++
++if ENABLE_SYSTEMD_UNIT_DIR
++systemd_unit_DATA = ndctl-monitor.service
++endif
+diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-monitor.service
+new file mode 100644
+index 0000000..44f9326
+--- /dev/null
++++ b/ndctl/ndctl-monitor.service
+@@ -0,0 +1,7 @@
++[Unit]
++Description=Ndctl Monitor Daemon
++
++[Service]
++Type=forking
++ExecStart=/usr/bin/ndctl monitor --daemon
++ExecStop=/bin/kill ${MAINPID}
+-- 
+2.18.0
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
