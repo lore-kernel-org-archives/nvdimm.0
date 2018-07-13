@@ -2,15 +2,20 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37669209605CD
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 13:49:13 -0700 (PDT)
-Subject: [PATCH v4 08/11] nfit/libnvdimm: add support for issue secure erase
- DSM to Intel nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 12 Jul 2018 13:49:12 -0700
-Message-ID: <153142855264.27297.4115939988098343498.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
-References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 230C72097FAAE
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 13:36:59 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v12 3/5] ndctl, monitor: add the unit file of
+ systemd for ndctl-monitor service
+Date: Fri, 13 Jul 2018 20:36:42 +0000
+Message-ID: <1531514201.7574.147.camel@intel.com>
+References: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
+ <20180713155403.30020-4-qi.fuli@jp.fujitsu.com>
+ <e4211959-a46c-2eb7-e39e-b7280374134b@gmail.com>
+ <1531508737.7574.141.camel@intel.com>
+In-Reply-To: <1531508737.7574.141.camel@intel.com>
+Content-Language: en-US
+Content-ID: <4837254218665047932F5B5BFE7A8C2F@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,172 +28,133 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>, "msys.mizuma@gmail.com" <msys.mizuma@gmail.com>
+Cc: "tokunaga.keiich@jp.fujitsu.com" <tokunaga.keiich@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to issue a secure erase DSM to the Intel nvdimm. The
-required passphrase is acquired from userspace through the kernel key
-management. To trigger the action, "erase" is written to the "security"
-sysfs attribute.  libnvdimm will support the erase generic API call.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/intel.c  |   55 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   47 ++++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 104 insertions(+)
+On Fri, 2018-07-13 at 19:05 +0000, Verma, Vishal L wrote:
+> On Fri, 2018-07-13 at 14:24 -0400, Masayoshi Mizuma wrote:
+> > Hi Qi,
+> > 
+> > On 07/13/2018 11:54 AM, QI Fuli wrote:
+> > > This patch adds the systemd unit file for ndctl-monitor service.
+> > > The systemd unit directory can be configured by setting
+> > > environment
+> > > variable "--with-systemd-unit-dir[=DIR]".
+> > > 
+> > > A monitor daemon can be started as a system service:
+> > >    # systemctl start ndctl-monitor.service
+> > > 
+> > > Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> > > ---
+> > >  autogen.sh                  |  3 ++-
+> > >  configure.ac                | 22 ++++++++++++++++++++++
+> > >  ndctl.spec.in               |  1 +
+> > >  ndctl/Makefile.am           |  4 ++++
+> > >  ndctl/ndctl-monitor.service |  7 +++++++
+> > >  5 files changed, 36 insertions(+), 1 deletion(-)
+> > >  create mode 100644 ndctl/ndctl-monitor.service
+> > > 
+> > > diff --git a/autogen.sh b/autogen.sh
+> > > index 2a52688..21b0e25 100755
+> > > --- a/autogen.sh
+> > > +++ b/autogen.sh
+> > > @@ -17,7 +17,8 @@ libdir() {
+> > >  
+> > >  args="--prefix=/usr \
+> > >  --sysconfdir=/etc \
+> > > ---libdir=$(libdir /usr/lib)"
+> > > +--libdir=$(libdir /usr/lib) \
+> > > +--with-systemd-unit-dir"
+> > >  
+> > >  echo
+> > >  echo "----------------------------------------------------------
+> > > ------"
+> > > diff --git a/configure.ac b/configure.ac
+> > > index cf44260..a5ba9a1 100644
+> > > --- a/configure.ac
+> > > +++ b/configure.ac
+> > > @@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
+> > >  	secure_getenv\
+> > >  ])
+> > >  
+> > > +PKG_PROG_PKG_CONFIG
+> > > +AC_ARG_WITH([systemd-unit-dir],
+> > > +	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
+> > > +		[Directory for systemd service files]),
+> > > +	[],
+> > > +	[with_systemd_unit_dir=yes])
+> > > +
+> > > +if test "x$with_systemd_unit_dir" = "xyes"; then
+> > > +	def_systemd_unit_dir=$($PKG_CONFIG --
+> > > variable=systemdsystemunitdir systemd)
+> > > +	if test "x$def_systemd_unit_dir" = "x"; then
+> > > +		AC_MSG_ERROR([systemd support requested but pkg-
+> > > config unable to query systemd package])
+> > > +		with_systemd_unit_dir=no
+> > > +	else
+> > > +		with_systemd_unit_dir="$def_systemd_unit_dir"
+> > > +	fi
+> > > +fi
+> > > +
+> > > +AS_IF([test "x$with_systemd_unit_dir" != "xno"],
+> > > +	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
+> > > +AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test
+> > > "x$with_systemd_unit_dir" != "xno"])
+> > > +
+> > >  my_CFLAGS="\
+> > >  -Wall \
+> > >  -Wchar-subscripts \
+> > > @@ -184,6 +205,7 @@ AC_MSG_RESULT([
+> > >          sysconfdir:             ${sysconfdir}
+> > >          libdir:                 ${libdir}
+> > >          includedir:             ${includedir}
+> > > +	systemd-unit-dir:	${systemd_unitdir}
+> > 
+> > not tab, white space is good here.
+> > 
+> > >  
+> > >          compiler:               ${CC}
+> > >          cflags:                 ${CFLAGS}
+> > > diff --git a/ndctl.spec.in b/ndctl.spec.in
+> > > index 42760fa..6f7d299 100644
+> > > --- a/ndctl.spec.in
+> > > +++ b/ndctl.spec.in
+> > > @@ -142,6 +142,7 @@ make check
+> > >  %{_libdir}/libndctl.so
+> > >  %{_libdir}/pkgconfig/libndctl.pc
+> > >  %{_sysconfdir}/ndctl/monitor.conf
+> > > +%{_unitdir}/ndctl-monitor.service
+> > 
+> > The monitor conf and service should be included in ndctl package,
+> > so,
+> > why don't you add such as the following ?
+> > 
+> > %files
+> > %defattr(-,root,root)
+> > %license util/COPYING licenses/BSD-MIT licenses/CC0
+> > %{_bindir}/ndctl
+> > %{_mandir}/man1/ndctl*
+> > %{bashcompdir}/
+> > %{_sysconfdir}/ndctl/monitor.conf
+> > %{_unitdir}/ndctl-monitor.service
+> > 
+> 
+> Yes these files need to be in the %files section, and not in the
+> %files -n DNAME section (which is for the ndctl-devel package).
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 0ab56f03ebc4..6449db6db85d 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,60 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_erase(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_secure_erase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	/* DIMM unlocked, invalidate all CPU caches before we read it */
-+	wbinvd_on_all_cpus();
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm)
- {
-@@ -308,4 +362,5 @@ struct nvdimm_security_ops intel_security_ops = {
- 	.change_key = intel_dimm_security_update_passphrase,
- 	.disable = intel_dimm_security_disable,
- 	.freeze_lock = intel_dimm_security_freeze_lock,
-+	.erase = intel_dimm_security_erase,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index f1f2a52a108d..aa681f083d32 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -125,6 +125,51 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
- }
- 
-+static int nvdimm_security_erase(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key;
-+	void *payload;
-+	int rc = 0;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	/* lock the device and disallow driver bind */
-+	device_lock(dev);
-+	/* No driver data means dimm is disabled. Proceed if so. */
-+	if (dev_get_drvdata(dev)) {
-+		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		goto out;
-+
-+	key = nvdimm_search_key(dev);
-+	if (!key)
-+		key = nvdimm_request_key(dev);
-+	if (!key) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm->security_ops->erase(nvdimm_bus, nvdimm, payload);
-+	up_read(&key->sem);
-+	/* remove key since secure erase kills the passphrase */
-+	key_invalidate(key);
-+	key_put(key);
-+
-+ out:
-+	device_unlock(dev);
-+	nvdimm_security_get_state(dev);
-+	return rc;
-+}
-+
- static int nvdimm_security_freeze_lock(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -690,6 +735,8 @@ static ssize_t security_store(struct device *dev,
- 		rc = nvdimm_security_disable(dev);
- 	else if (sysfs_streq(buf, "freeze"))
- 		rc = nvdimm_security_freeze_lock(dev);
-+	else if (sysfs_streq(buf, "erase"))
-+		rc = nvdimm_security_erase(dev);
- 	else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 1836599ed5b8..1ac5acb3c457 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -187,6 +187,8 @@ struct nvdimm_security_ops {
- 			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
- 	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm);
-+	int (*erase)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
- };
- 
- void badrange_init(struct badrange *badrange);
+Also according to this:
+https://fedoraproject.org/wiki/Packaging:Systemd#Filesystem_locations
 
+We'll need to add:
+
+	BuildRequires: systemd
+
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
