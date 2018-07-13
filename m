@@ -1,23 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD3B820986ACF
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 05:57:08 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 2AA82AC01EE
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 21:57:03 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [ndctl PATCH v11 3/5] ndctl, monitor: add the unit file of
+ by ml01.01.org (Postfix) with ESMTPS id F1347203B99A2
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 19:48:21 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v11 3/5] ndctl, monitor: add the unit file of
  systemd for ndctl-monitor service
-Date: Fri, 13 Jul 2018 12:57:01 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA7FE29@g01jpexmbkw24>
+Date: Fri, 13 Jul 2018 02:46:58 +0000
+Message-ID: <1531450017.7574.107.camel@intel.com>
 References: <20180711030012.9186-1-qi.fuli@jp.fujitsu.com>
  <20180711030012.9186-4-qi.fuli@jp.fujitsu.com>
- <1531450017.7574.107.camel@intel.com>
-In-Reply-To: <1531450017.7574.107.camel@intel.com>
+In-Reply-To: <20180711030012.9186-4-qi.fuli@jp.fujitsu.com>
 Content-Language: en-US
+Content-ID: <4AA342B3C24CAB4A92044EC35214CC32@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,89 +22,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "'Verma, Vishal L'" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBWZXJtYSwgVmlzaGFsIEwgW21h
-aWx0bzp2aXNoYWwubC52ZXJtYUBpbnRlbC5jb21dDQo+IFNlbnQ6IEZyaWRheSwgSnVseSAxMywg
-MjAxOCAxMTo0NyBBTQ0KPiBUbzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZzsgUWksIEZ1bGkv
-5paJIOemj+WIqSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gU3ViamVjdDogUmU6IFtuZGN0
-bCBQQVRDSCB2MTEgMy81XSBuZGN0bCwgbW9uaXRvcjogYWRkIHRoZSB1bml0IGZpbGUgb2Ygc3lz
-dGVtZCBmb3INCj4gbmRjdGwtbW9uaXRvciBzZXJ2aWNlDQo+IA0KPiANCj4gT24gV2VkLCAyMDE4
-LTA3LTExIGF0IDEyOjAwICswOTAwLCBRSSBGdWxpIHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggYWRk
-cyB0aGUgc3lzdGVtZCB1bml0IGZpbGUgZm9yIG5kY3RsLW1vbml0b3Igc2VydmljZS4NCj4gPiBU
-aGUgc3lzdGVtZCB1bml0IGRpcmVjdG9yeSBjYW4gYmUgY29uZmlndXJlZCBieSBzZXR0aW5nIGVu
-dmlyb25tZW50DQo+ID4gdmFyaWFibGUgIi0td2l0aC1zeXN0ZW1kLXVuaXQtZGlyWz1ESVJdIi4N
-Cj4gPg0KPiA+IEEgbW9uaXRvciBkYWVtb24gY2FuIGJlIHN0YXJ0ZWQgYXMgYSBzeXN0ZW0gc2Vy
-dmljZToNCj4gPiAgICAjIHN5c3RlbWN0bCBzdGFydCBuZGN0bC1tb25pdG9yLnNlcnZpY2UNCj4g
-Pg0KPiA+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRzdS5jb20+DQo+
-ID4gLS0tDQo+ID4gIGF1dG9nZW4uc2ggICAgICAgICAgICAgICAgICB8ICAzICsrLQ0KPiA+ICBj
-b25maWd1cmUuYWMgICAgICAgICAgICAgICAgfCAyMiArKysrKysrKysrKysrKysrKysrKysrDQo+
-ID4gIG5kY3RsL01ha2VmaWxlLmFtICAgICAgICAgICB8ICA0ICsrKysNCj4gPiAgbmRjdGwvbmRj
-dGwtbW9uaXRvci5zZXJ2aWNlIHwgIDcgKysrKysrKw0KPiA+ICA0IGZpbGVzIGNoYW5nZWQsIDM1
-IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkgIGNyZWF0ZSBtb2RlIDEwMDY0NA0KPiA+IG5k
-Y3RsL25kY3RsLW1vbml0b3Iuc2VydmljZQ0KPiANCj4gV2UgaW5zdGFsbCB0aGUgc2VydmljZSB1
-bml0IGZpbGUgd2hlbiBkb2luZyBhICdtYWtlIGluc3RhbGwnLCBidXQgSSB0aGluayB0aGlzIGFs
-c28NCj4gbmVlZHMgYW4gdXBkYXRlIHRvIHRoZSBSUE0gc3BlYyBmaWxlIHNvIHRoYXQgUlBNIGtu
-b3dzIGFib3V0IHRoaXMgdG9vLg0KPiANCg0KWWVzLCBJIHRoaW5rIGJvdGggdGhlIGNvbmZpZ3Vy
-YXRpb24gZmlsZSBhbmQgdGhlIHNlcnZpY2UgdW5pdCBmaWxlIGFyZSBuZWVkIHRvIHVwZGF0ZSB0
-aGUNClJQTSBzcGVjIGZpbGUuIEkga25ldyB0aGF0IGhhcmQgY29kZSB0aGUgcGF0aCBvZiB0aGUg
-ZmlsZXMgaXMgbm90IHJpZ2h0LCBhbmQgSSB0cmllZCB0bw0KYWRkICV7X21vbml0b3JfY29uZmln
-ZGlyfS9tb25pdG9yLmNvbmYgYW5kICV7X3N5c3RlbWRfdW5pdGRpcn0vbmRjdGwtbW9uaXRvci5z
-ZXJ2aWNlIGluIG5kY3RsLnNwZWMuaW4sDQpidXQgSSBnb3QgZmFpbGVkLiBXb3VsZCB5b3UgcGxl
-YXNlIHRlbGwgbWUgaG93IHRvIHVwZGF0ZSB0aGUgUlBNIHNwZWMgZmlsZT8NCg0KVGhhbmsgeW91
-IHZlcnkgbXVjaC4NClFJDQoNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9hdXRvZ2VuLnNoIGIvYXV0
-b2dlbi5zaA0KPiA+IGluZGV4IDJhNTI2ODguLjIxYjBlMjUgMTAwNzU1DQo+ID4gLS0tIGEvYXV0
-b2dlbi5zaA0KPiA+ICsrKyBiL2F1dG9nZW4uc2gNCj4gPiBAQCAtMTcsNyArMTcsOCBAQCBsaWJk
-aXIoKSB7DQo+ID4NCj4gPiAgYXJncz0iLS1wcmVmaXg9L3VzciBcDQo+ID4gIC0tc3lzY29uZmRp
-cj0vZXRjIFwNCj4gPiAtLS1saWJkaXI9JChsaWJkaXIgL3Vzci9saWIpIg0KPiA+ICstLWxpYmRp
-cj0kKGxpYmRpciAvdXNyL2xpYikgXA0KPiA+ICstLXdpdGgtc3lzdGVtZC11bml0LWRpciINCj4g
-Pg0KPiA+ICBlY2hvDQo+ID4gIGVjaG8gIi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+IC0tLS0iDQo+ID4gZGlmZiAtLWdpdCBh
-L2NvbmZpZ3VyZS5hYyBiL2NvbmZpZ3VyZS5hYyBpbmRleCBjZjQ0MjYwLi5hNWJhOWExIDEwMDY0
-NA0KPiA+IC0tLSBhL2NvbmZpZ3VyZS5hYw0KPiA+ICsrKyBiL2NvbmZpZ3VyZS5hYw0KPiA+IEBA
-IC0xNDMsNiArMTQzLDI3IEBAIEFDX0NIRUNLX0ZVTkNTKFsgXA0KPiA+ICAJc2VjdXJlX2dldGVu
-dlwNCj4gPiAgXSkNCj4gPg0KPiA+ICtQS0dfUFJPR19QS0dfQ09ORklHDQo+ID4gK0FDX0FSR19X
-SVRIKFtzeXN0ZW1kLXVuaXQtZGlyXSwNCj4gPiArCUFTX0hFTFBfU1RSSU5HKFstLXdpdGgtc3lz
-dGVtZC11bml0LWRpcls9RElSXV0sDQo+ID4gKwkJW0RpcmVjdG9yeSBmb3Igc3lzdGVtZCBzZXJ2
-aWNlIGZpbGVzXSksDQo+ID4gKwlbXSwNCj4gPiArCVt3aXRoX3N5c3RlbWRfdW5pdF9kaXI9eWVz
-XSkNCj4gPiArDQo+ID4gK2lmIHRlc3QgIngkd2l0aF9zeXN0ZW1kX3VuaXRfZGlyIiA9ICJ4eWVz
-IjsgdGhlbg0KPiA+ICsJZGVmX3N5c3RlbWRfdW5pdF9kaXI9JCgkUEtHX0NPTkZJRyAtLQ0KPiA+
-IHZhcmlhYmxlPXN5c3RlbWRzeXN0ZW11bml0ZGlyIHN5c3RlbWQpDQo+ID4gKwlpZiB0ZXN0ICJ4
-JGRlZl9zeXN0ZW1kX3VuaXRfZGlyIiA9ICJ4IjsgdGhlbg0KPiA+ICsJCUFDX01TR19FUlJPUihb
-c3lzdGVtZCBzdXBwb3J0IHJlcXVlc3RlZCBidXQgcGtnLQ0KPiA+IGNvbmZpZyB1bmFibGUgdG8g
-cXVlcnkgc3lzdGVtZCBwYWNrYWdlXSkNCj4gPiArCQl3aXRoX3N5c3RlbWRfdW5pdF9kaXI9bm8N
-Cj4gPiArCWVsc2UNCj4gPiArCQl3aXRoX3N5c3RlbWRfdW5pdF9kaXI9IiRkZWZfc3lzdGVtZF91
-bml0X2RpciINCj4gPiArCWZpDQo+ID4gK2ZpDQo+ID4gKw0KPiA+ICtBU19JRihbdGVzdCAieCR3
-aXRoX3N5c3RlbWRfdW5pdF9kaXIiICE9ICJ4bm8iXSwNCj4gPiArCVtBQ19TVUJTVChbc3lzdGVt
-ZF91bml0ZGlyXSwgWyR3aXRoX3N5c3RlbWRfdW5pdF9kaXJdKV0pDQo+ID4gK0FNX0NPTkRJVElP
-TkFMKFtFTkFCTEVfU1lTVEVNRF9VTklUX0RJUl0sIFt0ZXN0DQo+ID4gIngkd2l0aF9zeXN0ZW1k
-X3VuaXRfZGlyIiAhPSAieG5vIl0pDQo+ID4gKw0KPiA+ICBteV9DRkxBR1M9IlwNCj4gPiAgLVdh
-bGwgXA0KPiA+ICAtV2NoYXItc3Vic2NyaXB0cyBcDQo+ID4gQEAgLTE4NCw2ICsyMDUsNyBAQCBB
-Q19NU0dfUkVTVUxUKFsNCj4gPiAgICAgICAgICBzeXNjb25mZGlyOiAgICAgICAgICAgICAke3N5
-c2NvbmZkaXJ9DQo+ID4gICAgICAgICAgbGliZGlyOiAgICAgICAgICAgICAgICAgJHtsaWJkaXJ9
-DQo+ID4gICAgICAgICAgaW5jbHVkZWRpcjogICAgICAgICAgICAgJHtpbmNsdWRlZGlyfQ0KPiA+
-ICsJc3lzdGVtZC11bml0LWRpcjoJJHtzeXN0ZW1kX3VuaXRkaXJ9DQo+ID4NCj4gPiAgICAgICAg
-ICBjb21waWxlcjogICAgICAgICAgICAgICAke0NDfQ0KPiA+ICAgICAgICAgIGNmbGFnczogICAg
-ICAgICAgICAgICAgICR7Q0ZMQUdTfQ0KPiA+IGRpZmYgLS1naXQgYS9uZGN0bC9NYWtlZmlsZS5h
-bSBiL25kY3RsL01ha2VmaWxlLmFtIGluZGV4DQo+ID4gYWUzZDg5NC4uOWQwMDhkNSAxMDA2NDQN
-Cj4gPiAtLS0gYS9uZGN0bC9NYWtlZmlsZS5hbQ0KPiA+ICsrKyBiL25kY3RsL01ha2VmaWxlLmFt
-DQo+ID4gQEAgLTQ3LDMgKzQ3LDcgQEAgbW9uaXRvcl9jb25maWdfZmlsZSA9IG1vbml0b3IuY29u
-Zg0KPiA+IG1vbml0b3JfY29uZmlnZGlyID0gL2V0Yy9uZGN0bC8gIG1vbml0b3JfY29uZmlnX0RB
-VEEgPQ0KPiA+ICQobW9uaXRvcl9jb25maWdfZmlsZSkgIEVYVFJBX0RJU1QgKz0gJChtb25pdG9y
-X2NvbmZpZ19maWxlKQ0KPiA+ICsNCj4gPiAraWYgRU5BQkxFX1NZU1RFTURfVU5JVF9ESVINCj4g
-PiArc3lzdGVtZF91bml0X0RBVEEgPSBuZGN0bC1tb25pdG9yLnNlcnZpY2UgZW5kaWYNCj4gPiBk
-aWZmIC0tZ2l0IGEvbmRjdGwvbmRjdGwtbW9uaXRvci5zZXJ2aWNlIGIvbmRjdGwvbmRjdGwtDQo+
-ID4gbW9uaXRvci5zZXJ2aWNlIG5ldyBmaWxlIG1vZGUgMTAwNjQ0IGluZGV4IDAwMDAwMDAuLjQ0
-ZjkzMjYNCj4gPiAtLS0gL2Rldi9udWxsDQo+ID4gKysrIGIvbmRjdGwvbmRjdGwtbW9uaXRvci5z
-ZXJ2aWNlDQo+ID4gQEAgLTAsMCArMSw3IEBADQo+ID4gK1tVbml0XQ0KPiA+ICtEZXNjcmlwdGlv
-bj1OZGN0bCBNb25pdG9yIERhZW1vbg0KPiA+ICsNCj4gPiArW1NlcnZpY2VdDQo+ID4gK1R5cGU9
-Zm9ya2luZw0KPiA+ICtFeGVjU3RhcnQ9L3Vzci9iaW4vbmRjdGwgbW9uaXRvciAtLWRhZW1vbiBF
-eGVjU3RvcD0vYmluL2tpbGwNCj4gPiArJHtNQUlOUElEfQ0KX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51
-eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtbnZkaW1tCg==
+
+On Wed, 2018-07-11 at 12:00 +0900, QI Fuli wrote:
+> This patch adds the systemd unit file for ndctl-monitor service.
+> The systemd unit directory can be configured by setting environment
+> variable "--with-systemd-unit-dir[=DIR]".
+> 
+> A monitor daemon can be started as a system service:
+>    # systemctl start ndctl-monitor.service
+> 
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  autogen.sh                  |  3 ++-
+>  configure.ac                | 22 ++++++++++++++++++++++
+>  ndctl/Makefile.am           |  4 ++++
+>  ndctl/ndctl-monitor.service |  7 +++++++
+>  4 files changed, 35 insertions(+), 1 deletion(-)
+>  create mode 100644 ndctl/ndctl-monitor.service
+
+We install the service unit file when doing a 'make install', but I
+think this also needs an update to the RPM spec file so that RPM knows
+about this too.
+
+> 
+> diff --git a/autogen.sh b/autogen.sh
+> index 2a52688..21b0e25 100755
+> --- a/autogen.sh
+> +++ b/autogen.sh
+> @@ -17,7 +17,8 @@ libdir() {
+>  
+>  args="--prefix=/usr \
+>  --sysconfdir=/etc \
+> ---libdir=$(libdir /usr/lib)"
+> +--libdir=$(libdir /usr/lib) \
+> +--with-systemd-unit-dir"
+>  
+>  echo
+>  echo "------------------------------------------------------------
+> ----"
+> diff --git a/configure.ac b/configure.ac
+> index cf44260..a5ba9a1 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -143,6 +143,27 @@ AC_CHECK_FUNCS([ \
+>  	secure_getenv\
+>  ])
+>  
+> +PKG_PROG_PKG_CONFIG
+> +AC_ARG_WITH([systemd-unit-dir],
+> +	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
+> +		[Directory for systemd service files]),
+> +	[],
+> +	[with_systemd_unit_dir=yes])
+> +
+> +if test "x$with_systemd_unit_dir" = "xyes"; then
+> +	def_systemd_unit_dir=$($PKG_CONFIG --
+> variable=systemdsystemunitdir systemd)
+> +	if test "x$def_systemd_unit_dir" = "x"; then
+> +		AC_MSG_ERROR([systemd support requested but pkg-
+> config unable to query systemd package])
+> +		with_systemd_unit_dir=no
+> +	else
+> +		with_systemd_unit_dir="$def_systemd_unit_dir"
+> +	fi
+> +fi
+> +
+> +AS_IF([test "x$with_systemd_unit_dir" != "xno"],
+> +	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
+> +AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test
+> "x$with_systemd_unit_dir" != "xno"])
+> +
+>  my_CFLAGS="\
+>  -Wall \
+>  -Wchar-subscripts \
+> @@ -184,6 +205,7 @@ AC_MSG_RESULT([
+>          sysconfdir:             ${sysconfdir}
+>          libdir:                 ${libdir}
+>          includedir:             ${includedir}
+> +	systemd-unit-dir:	${systemd_unitdir}
+>  
+>          compiler:               ${CC}
+>          cflags:                 ${CFLAGS}
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index ae3d894..9d008d5 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -47,3 +47,7 @@ monitor_config_file = monitor.conf
+>  monitor_configdir = /etc/ndctl/
+>  monitor_config_DATA = $(monitor_config_file)
+>  EXTRA_DIST += $(monitor_config_file)
+> +
+> +if ENABLE_SYSTEMD_UNIT_DIR
+> +systemd_unit_DATA = ndctl-monitor.service
+> +endif
+> diff --git a/ndctl/ndctl-monitor.service b/ndctl/ndctl-
+> monitor.service
+> new file mode 100644
+> index 0000000..44f9326
+> --- /dev/null
+> +++ b/ndctl/ndctl-monitor.service
+> @@ -0,0 +1,7 @@
+> +[Unit]
+> +Description=Ndctl Monitor Daemon
+> +
+> +[Service]
+> +Type=forking
+> +ExecStart=/usr/bin/ndctl monitor --daemon
+> +ExecStop=/bin/kill ${MAINPID}
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
