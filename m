@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BAE420985980
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 15:45:55 -0700 (PDT)
-Subject: [PATCH 4/6] ndctl: add support for freeze security
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 13 Jul 2018 15:45:53 -0700
-Message-ID: <153152195302.6787.9807448079950596179.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
-References: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E8F94209605C1
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:34:07 -0700 (PDT)
+Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
+ [10.134.21.209])
+ by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id C69DFAC0217
+ for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 08:34:01 +0900 (JST)
+From: QI Fuli <qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v13 4/5] ndctl, documentation: add man page for monitor
+Date: Sat, 14 Jul 2018 08:33:49 +0900
+Message-Id: <20180713233350.7148-5-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
+References: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,164 +21,155 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security to libndctl and also command line option
-of "freeze-security" for ndctl. This will lock the ability to make changes
-to the NVDIMM security.
+This patch is used to add man page for ndctl monitor command.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
- Documentation/ndctl/Makefile.am               |    1 +
- Documentation/ndctl/ndctl-freeze-security.txt |   21 +++++++++++++++++++++
- builtin.h                                     |    1 +
- ndctl/dimm.c                                  |   22 ++++++++++++++++++++++
- ndctl/lib/dimm.c                              |    5 +++++
- ndctl/lib/libndctl.sym                        |    1 +
- ndctl/libndctl.h                              |    1 +
- ndctl/ndctl.c                                 |    1 +
- 8 files changed, 53 insertions(+)
- create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ Documentation/ndctl/Makefile.am       |   3 +-
+ Documentation/ndctl/ndctl-monitor.txt | 108 ++++++++++++++++++++++++++
+ 2 files changed, 110 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-monitor.txt
 
 diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index b1cb3b5b..98348178 100644
+index 4fd9636..a30b139 100644
 --- a/Documentation/ndctl/Makefile.am
 +++ b/Documentation/ndctl/Makefile.am
-@@ -48,6 +48,7 @@ man1_MANS = \
+@@ -46,7 +46,8 @@ man1_MANS = \
+ 	ndctl-inject-error.1 \
+ 	ndctl-inject-smart.1 \
  	ndctl-update-firmware.1 \
- 	ndctl-update-security.1 \
- 	ndctl-disable-security.1 \
-+	ndctl-freeze-security.1 \
- 	ndctl-list.1
+-	ndctl-list.1
++	ndctl-list.1 \
++	ndctl-monitor.1
  
  CLEANFILES = $(man1_MANS)
-diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+ 
+diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
 new file mode 100644
-index 00000000..343bb019
+index 0000000..304b6e7
 --- /dev/null
-+++ b/Documentation/ndctl/ndctl-freeze-security.txt
-@@ -0,0 +1,21 @@
++++ b/Documentation/ndctl/ndctl-monitor.txt
+@@ -0,0 +1,108 @@
 +// SPDX-License-Identifier: GPL-2.0
 +
-+ndctl-freeze-security(1)
-+========================
++ndctl-monitor(1)
++================
 +
 +NAME
 +----
-+ndctl-freeze-security - enabling or freeze the security for an NVDIMM
++ndctl-monitor - Monitor the smart events of nvdimm objects
 +
 +SYNOPSIS
 +--------
 +[verse]
-+'ndctl freeze-security' <dimm>
++'ndctl monitor' [<options>]
 +
 +DESCRIPTION
 +-----------
-+Provide a generic interface to freeze the security for NVDIMM. The use of this
-+depends on support from the underlying libndctl, kernel, as well as the
-+platform itself.
++Ndctl monitor is used for monitoring the smart events of nvdimm
++objects and dumping the json format notifications to syslog, standard
++output or a logfile.
 +
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index e8ba9aee..6e6ae069 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -49,4 +49,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
- int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_update_security(int argc, const char **argv, void *ctx);
- int cmd_disable_security(int argc, const char **argv, void *ctx);
-+int cmd_freeze_security(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index e64f6717..49097cff 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -845,6 +845,18 @@ static int action_security_disable(struct ndctl_dimm *dimm,
- 	return rc;
- }
- 
-+static int action_security_freeze(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
++The objects to monitor and smart events to notify can be selected by
++setting options and/or the default configuration file
++(/etc/ndctl/monitor.conf). Both of the values in configuration file
++and in options will work. If there is a conflict, the values in
++options will override the values in configuration file. The changed
++values in configuration file will work after the monitor is restarted.
 +
-+	rc = ndctl_dimm_freeze_security(dimm);
-+	if (rc < 0)
-+		error("Failed to freeze security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
-+}
++The smart threshold evnet alarm of dimm will be turned on when the
++monitor gets started, if it is set off.
 +
- static struct parameters {
- 	const char *bus;
- 	const char *outfile;
-@@ -1222,3 +1234,13 @@ int cmd_disable_security(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
++EXAMPLES
++--------
 +
-+int cmd_freeze_security(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
-+			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++Run a monitor as a daemon to monitor DIMMs on bus "nfit_test.1"
++[verse]
++ndctl monitor --bus nfit_test.1 --daemon
 +
-+	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 13c2806c..2ff68daa 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -620,3 +620,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm)
- {
- 	return ndctl_dimm_write_security(dimm, "disable");
- }
++Run a monitor as a one-shot command and output the notifications to
++/var/log/ndctl.log
++[verse]
++ndctl monitor -log /var/log/ndctl.log
 +
-+NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_write_security(dimm, "freeze");
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 1a919567..613d9bb2 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -374,4 +374,5 @@ global:
- 	ndctl_dimm_get_security_state;
- 	ndctl_dimm_set_change_key;
- 	ndctl_dimm_disable_security;
-+	ndctl_dimm_freeze_security;
- } LIBNDCTL_16;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 1ca6cb18..4615ba09 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -662,6 +662,7 @@ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
- int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
- int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
-+int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index eeef41da..5a1a81e4 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
- 	{ "start-scrub", cmd_start_scrub },
- 	{ "update-security", cmd_update_security },
- 	{ "disable-security", cmd_disable_security },
-+	{ "freeze-security", cmd_freeze_security },
- 	{ "list", cmd_list },
- 	{ "help", cmd_help },
- 	#ifdef ENABLE_TEST
++Run a monitor daemon as a system service
++[verse]
++systemctl start ndctl-monitor.service
++
++OPTIONS
++-------
++-b::
++--bus=::
++	Enforce that the operation only be carried on devices that are
++	attached to the given bus. Where 'bus' can be a provider name
++	or a bus id number.
++
++-d::
++--dimm=::
++	A 'nmemX' device name, or dimm id number. Select the devices to
++	monitor reference the given dimm.
++
++-r::
++--region=::
++	A 'regionX' device name, or a region id number. The keyword 'all'
++	can be specified to carry out the operation on every region in
++	the system, optionally filtered by bus id (see --bus= option).
++
++-n::
++--namespace=::
++	A 'namespaceX.Y' device name, or namespace region plus id tuple
++	'X.Y'.
++
++-l <file | syslog | standard>::
++--log=<file | syslog | standard>::
++	Output notifications to <file>, syslog or standard output.
++
++--daemon::
++	Run a monitor as a daemon.
++
++-D::
++--dimm-event=::
++	Name of an smart health event from the following:
++	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
++	   below the pre-programmed threshold.
++	- "dimm-media-temperature": NVDIMM Media temperature value has
++	   gone above the pre-programmed threshold.
++	- "dimm-controller-temperature": NVDIMM Controller temperature
++	   value has gone above the pre-programmed threshold.
++	- "dimm-health-state": NVDIMM Normal Health Status has changed
++	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a
++	   unclean shutdown.
++
++The monitor will attempt to enable the alarm control bits for all
++specified events.
++
++-u::
++--human::
++	Output monitor notification as human friendly json format instead
++	of the default machine friendly json format.
++
++COPYRIGHT
++---------
++Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
++<http://gnu.org/licenses/gpl.html>. This is free software: you are
++free to change and redistribute it. There is NO WARRANTY, to the
++extent permitted by law.
++
++SEE ALSO
++--------
++linkndctl:ndctl-list[1], linkndctl:ndctl-inject-smart[1]
+-- 
+2.18.0
+
 
 _______________________________________________
 Linux-nvdimm mailing list
