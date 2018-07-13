@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
+Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 122FD2097F55B
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:34:06 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A1D00209884A8
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 08:54:49 -0700 (PDT)
 Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
  [10.134.21.209])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id DDA30AC0219
- for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 08:33:58 +0900 (JST)
+ by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 1871EAC0435
+ for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 00:54:41 +0900 (JST)
 From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v13 0/5] ndctl, monitor: add ndctl monitor daemon
-Date: Sat, 14 Jul 2018 08:33:45 +0900
-Message-Id: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
+Subject: [ndctl PATCH v12 0/5] ndctl, monitor: add ndctl monitor daemon
+Date: Sat, 14 Jul 2018 00:53:58 +0900
+Message-Id: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,7 +28,7 @@ To: linux-nvdimm@lists.01.org
 Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is the v13 patch for ndctl monitor, a tiny daemon to monitor
+This is the v12 patch for ndctl monitor, a tiny daemon to monitor
 the smart events of nvdimm DIMMs. Since NVDIMM does not have a
 feature like mirroring, if it breaks down, the data will be
 impossible to restore. Ndctl monitor daemon will catch the smart
@@ -37,12 +37,6 @@ therefore users can replace NVDIMM before it is completely broken.
 
 Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 ---
-Change log since v12:
- - Fixing log_fn() for removing output new line
- - Fixing hard code default configuration file path
- - Fixing RPM spec file for configuration file and systemd unit file
- - Fixing man page
-
 Change log since v11:
  - Adding log_standard()
  - Adding [-u | --human] option
@@ -138,16 +132,16 @@ QI Fuli (5):
 
  .gitignore                            |   1 +
  Documentation/ndctl/Makefile.am       |   3 +-
- Documentation/ndctl/ndctl-monitor.txt | 108 +++++
+ Documentation/ndctl/ndctl-monitor.txt | 104 +++++
  autogen.sh                            |   3 +-
  builtin.h                             |   1 +
- configure.ac                          |  23 +
- ndctl.spec.in                         |   3 +
+ configure.ac                          |  22 +
+ ndctl.spec.in                         |   2 +
  ndctl/Makefile.am                     |  12 +-
  ndctl/lib/libndctl.c                  |  82 ++++
  ndctl/lib/libndctl.sym                |   4 +
  ndctl/libndctl.h                      |  10 +
- ndctl/monitor.c                       | 650 ++++++++++++++++++++++++++
+ ndctl/monitor.c                       | 649 ++++++++++++++++++++++++++
  ndctl/monitor.conf                    |  41 ++
  ndctl/ndctl-monitor.service           |   7 +
  ndctl/ndctl.c                         |   1 +
@@ -155,7 +149,7 @@ QI Fuli (5):
  test/list-smart-dimm.c                | 117 +++++
  test/monitor.sh                       | 176 +++++++
  util/filter.h                         |   9 +
- 19 files changed, 1260 insertions(+), 5 deletions(-)
+ 19 files changed, 1253 insertions(+), 5 deletions(-)
  create mode 100644 Documentation/ndctl/ndctl-monitor.txt
  create mode 100644 ndctl/monitor.c
  create mode 100644 ndctl/monitor.conf
