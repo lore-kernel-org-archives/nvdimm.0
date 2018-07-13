@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EDACB20986ABB
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:10:33 -0700 (PDT)
-Subject: [PATCH v2 01/14] mm: Plumb dev_pagemap instead of vmem_altmap to
- memmap_init_zone()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:00:25 -0700
-Message-ID: <153176042549.12695.1934863308712014061.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2930C20985980
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:05:50 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id d189-v6so65070884oib.6
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:05:50 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153142851854.27297.8356860633862959932.stgit@djiang5-desk3.ch.intel.com>
+References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ <153142851854.27297.8356860633862959932.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 16:05:49 -0700
+Message-ID: <CAPcyv4i=N+4Rx3zKOYxrwjPXeKfp5NCT+E+sY8NxGoUVJ83Dgw@mail.gmail.com>
+Subject: Re: [PATCH v4 02/11] libnvdimm: create keyring to store security keys
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,122 +26,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, Pavel Tatashin <pasha.tatashin@oracle.com>, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm@kvack.org, hch@lst.de, linux-kernel@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: David Howells <dhowells@redhat.com>, "Schofield, Alison  <alison.schofield@intel.com>, keyrings@vger.kernel.org, Kees Cook" <keescook@chromium.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for teaching memmap_init_zone() how to initialize
-ZONE_DEVICE pages, pass in dev_pagemap.
+On Thu, Jul 12, 2018 at 1:48 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Prepping the libnvdimm to support security management by adding a keyring
+> in order to provide passphrase management through the kernel key management
+> APIs.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/nvdimm/core.c      |    7 +++
+>  drivers/nvdimm/dimm_devs.c |   96 ++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/nvdimm/nd-core.h   |    1
+>  include/linux/libnvdimm.h  |    5 ++
+>  4 files changed, 107 insertions(+), 2 deletions(-)
+>
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/memory_hotplug.h |    3 ++-
- include/linux/mm.h             |    2 +-
- kernel/memremap.c              |    2 +-
- mm/memory_hotplug.c            |    4 ++--
- mm/page_alloc.c                |    5 ++++-
- 5 files changed, 10 insertions(+), 6 deletions(-)
+Looks good to me,
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 4e9828cda7a2..e60085b2824d 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -14,6 +14,7 @@ struct mem_section;
- struct memory_block;
- struct resource;
- struct vmem_altmap;
-+struct dev_pagemap;
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- /*
-@@ -326,7 +327,7 @@ extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int arch_add_memory(int nid, u64 start, u64 size,
- 		struct vmem_altmap *altmap, bool want_memblock);
- extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
--		unsigned long nr_pages, struct vmem_altmap *altmap);
-+		unsigned long nr_pages, struct dev_pagemap *pgmap);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a0fbb9ffe380..319d01372efa 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2140,7 +2140,7 @@ static inline void zero_resv_unavail(void) {}
- 
- extern void set_dma_reserve(unsigned long new_dma_reserve);
- extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
--		enum memmap_context, struct vmem_altmap *);
-+		enum memmap_context, struct dev_pagemap *);
- extern void setup_per_zone_wmarks(void);
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index ecee37b44aa1..58327259420d 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -244,7 +244,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap,
- 		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
- 		if (!error)
- 			move_pfn_range_to_zone(zone, align_start >> PAGE_SHIFT,
--					align_size >> PAGE_SHIFT, altmap);
-+					align_size >> PAGE_SHIFT, pgmap);
- 	}
- 
- 	mem_hotplug_done();
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 7deb49f69e27..aae4e6cc65e9 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -779,7 +779,7 @@ static void __meminit resize_pgdat_range(struct pglist_data *pgdat, unsigned lon
- }
- 
- void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
--		unsigned long nr_pages, struct vmem_altmap *altmap)
-+		unsigned long nr_pages, struct dev_pagemap *pgmap)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int nid = pgdat->node_id;
-@@ -805,7 +805,7 @@ void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
- 	 * are reserved so nobody should be touching them so we should be safe
- 	 */
- 	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn,
--			MEMMAP_HOTPLUG, altmap);
-+			MEMMAP_HOTPLUG, pgmap);
- 
- 	set_zone_contiguous(zone);
- }
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 1521100f1e63..545a5860cce7 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5459,10 +5459,11 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
-  */
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, enum memmap_context context,
--		struct vmem_altmap *altmap)
-+		struct dev_pagemap *pgmap)
- {
- 	unsigned long end_pfn = start_pfn + size;
- 	pg_data_t *pgdat = NODE_DATA(nid);
-+	struct vmem_altmap *altmap = NULL;
- 	unsigned long pfn;
- 	unsigned long nr_initialised = 0;
- 	struct page *page;
-@@ -5477,6 +5478,8 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 	 * Honor reservation requested by the driver for this ZONE_DEVICE
- 	 * memory
- 	 */
-+	if (pgmap && pgmap->altmap_valid)
-+		altmap = &pgmap->altmap;
- 	if (altmap && start_pfn == altmap->base_pfn)
- 		start_pfn += altmap->reserve;
- 
+You can add:
 
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
