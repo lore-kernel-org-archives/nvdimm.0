@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F22E921B02845
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 15:45:37 -0700 (PDT)
-Subject: [PATCH 1/6] ndctl: add support for display security state
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 13 Jul 2018 15:45:36 -0700
-Message-ID: <153152193673.6787.10947598842327253460.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
-References: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3F05209605C1
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:29:30 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id r16-v6so65191165oie.3
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:29:30 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153142854151.27297.13334610782251992543.stgit@djiang5-desk3.ch.intel.com>
+References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ <153142854151.27297.13334610782251992543.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 16:29:29 -0700
+Message-ID: <CAPcyv4htT0VLdNYARu4ikCrGgi-7wpBkUCEK=YkiZo-bp2RB4A@mail.gmail.com>
+Subject: Re: [PATCH v4 06/11] nfit/libnvdimm: add disable passphrase support
+ to Intel nvdimm.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,114 +27,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: David Howells <dhowells@redhat.com>, "Schofield, Alison  <alison.schofield@intel.com>, keyrings@vger.kernel.org, Kees Cook" <keescook@chromium.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding libndctl API call for retrieving security state for a DIMM and also
-adding support to ndctl list for displaying security state.
+On Thu, Jul 12, 2018 at 1:49 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Add support to disable passphrase (security) for the Intel nvdimm. The
+> passphrase used for disabling is pulled from userspace via the kernel
+> key management. The action is triggered by writing "disable" to the sysfs
+> attribute "security". libnvdimm will support the generic disable API call.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/nfit/intel.c  |   52 ++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/nvdimm/dimm_devs.c |   41 +++++++++++++++++++++++++++++++++++
+>  include/linux/libnvdimm.h  |    2 ++
+>  3 files changed, 95 insertions(+)
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/ndctl-list.txt |    8 ++++++++
- ndctl/lib/dimm.c                   |   16 ++++++++++++++++
- ndctl/lib/libndctl.sym             |    1 +
- ndctl/libndctl.h                   |    1 +
- util/json.c                        |    8 ++++++++
- 5 files changed, 34 insertions(+)
+Looks good,
 
-diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
-index 13ebdcdd..57eac1fe 100644
---- a/Documentation/ndctl/ndctl-list.txt
-+++ b/Documentation/ndctl/ndctl-list.txt
-@@ -97,6 +97,14 @@ include::xable-region-options.txt[]
- -D::
- --dimms::
- 	Include dimm info in the listing
-+[verse]
-+{
-+  "dev":"nmem0",
-+  "id":"cdab-0a-07e0-ffffffff",
-+  "handle":0,
-+  "phys_id":0,
-+  "security_state:":"disabled"
-+}
- 
- -H::
- --health::
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index b3e032e0..8ed58559 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -579,3 +579,19 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
- 
- 	return strtoul(buf, NULL, 0);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm,
-+		char *state)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	char *path = dimm->dimm_buf;
-+	int len = dimm->buf_len;
-+
-+	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -ERANGE;
-+	}
-+
-+	return sysfs_read_attr(ctx, path, state);
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 8932ef66..8040d7de 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -371,4 +371,5 @@ global:
- LIBNDCTL_17 {
- global:
- 	ndctl_dimm_smart_inject_supported;
-+	ndctl_dimm_get_security_state;
- } LIBNDCTL_16;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 8a96c846..d48513ce 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -659,6 +659,7 @@ unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
- enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
- int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
-+int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/util/json.c b/util/json.c
-index 13324588..90f05528 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -164,6 +164,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 	unsigned int handle = ndctl_dimm_get_handle(dimm);
- 	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
- 	struct json_object *jobj;
-+	char security_state[32];
- 
- 	if (!jdimm)
- 		return NULL;
-@@ -243,6 +244,13 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 		json_object_object_add(jdimm, "flag_smart_event", jobj);
- 	}
- 
-+	if (ndctl_dimm_get_security_state(dimm, security_state) == 0) {
-+		jobj = json_object_new_string(security_state);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "security_state:", jobj);
-+	}
-+
- 	return jdimm;
-  err:
- 	json_object_put(jdimm);
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
