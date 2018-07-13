@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3214C209605D9
- for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 13:54:47 -0700 (PDT)
-Subject: [PATCH v5 07/12] nfit/libnvdimm: add disable passphrase support to
- Intel nvdimm.
+ by ml01.01.org (Postfix) with ESMTPS id 0BAE420985980
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 15:45:55 -0700 (PDT)
+Subject: [PATCH 4/6] ndctl: add support for freeze security
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 17 Jul 2018 13:54:43 -0700
-Message-ID: <153186088383.27463.4501131093419423637.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
-References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 13 Jul 2018 15:45:53 -0700
+Message-ID: <153152195302.6787.9807448079950596179.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
+References: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,163 +22,160 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to disable passphrase (security) for the Intel nvdimm. The
-passphrase used for disabling is pulled from userspace via the kernel
-key management. The action is triggered by writing "disable" to the sysfs
-attribute "security". libnvdimm will support the generic disable API call.
+Add support for freeze security to libndctl and also command line option
+of "freeze-security" for ndctl. This will lock the ability to make changes
+to the NVDIMM security.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   52 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   41 +++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 95 insertions(+)
+ Documentation/ndctl/Makefile.am               |    1 +
+ Documentation/ndctl/ndctl-freeze-security.txt |   21 +++++++++++++++++++++
+ builtin.h                                     |    1 +
+ ndctl/dimm.c                                  |   22 ++++++++++++++++++++++
+ ndctl/lib/dimm.c                              |    5 +++++
+ ndctl/lib/libndctl.sym                        |    1 +
+ ndctl/libndctl.h                              |    1 +
+ ndctl/ndctl.c                                 |    1 +
+ 8 files changed, 53 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index b0a62248467d..2418f4b8c1fd 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,57 @@
- #include "intel.h"
- #include "nfit.h"
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index b1cb3b5b..98348178 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -48,6 +48,7 @@ man1_MANS = \
+ 	ndctl-update-firmware.1 \
+ 	ndctl-update-security.1 \
+ 	ndctl-disable-security.1 \
++	ndctl-freeze-security.1 \
+ 	ndctl-list.1
  
-+static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_disable_passphrase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
+ CLEANFILES = $(man1_MANS)
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+new file mode 100644
+index 00000000..343bb019
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
++ndctl-freeze-security(1)
++========================
 +
-+	memcpy(nd_cmd.cmd.passphrase, nkey->data, ND_INTEL_PASSPHRASE_SIZE);
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
++NAME
++----
++ndctl-freeze-security - enabling or freeze the security for an NVDIMM
 +
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
++SYNOPSIS
++--------
++[verse]
++'ndctl freeze-security' <dimm>
 +
-+ out:
-+	return rc;
-+}
++DESCRIPTION
++-----------
++Provide a generic interface to freeze the security for NVDIMM. The use of this
++depends on support from the underlying libndctl, kernel, as well as the
++platform itself.
 +
- static int intel_dimm_security_update_passphrase(
- 		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		struct nvdimm_key_data *old_data,
-@@ -205,4 +256,5 @@ struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
-+	.disable = intel_dimm_security_disable,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 432bdd8d19e3..def10000c230 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -125,6 +125,45 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index e8ba9aee..6e6ae069 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -49,4 +49,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_update_security(int argc, const char **argv, void *ctx);
+ int cmd_disable_security(int argc, const char **argv, void *ctx);
++int cmd_freeze_security(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index e64f6717..49097cff 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -845,6 +845,18 @@ static int action_security_disable(struct ndctl_dimm *dimm,
+ 	return rc;
  }
  
-+static int nvdimm_security_disable(struct device *dev)
++static int action_security_freeze(struct ndctl_dimm *dimm,
++		struct action_context *actx)
 +{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key;
 +	int rc;
-+	void *payload;
-+	bool cached_key = false;
 +
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return 0;
-+
-+	key = nvdimm_search_key(dev);
-+	if (!key)
-+		key = nvdimm_request_key(dev);
-+	else
-+		cached_key = true;
-+	if (!key)
-+		return -ENXIO;
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm->security_ops->disable(nvdimm_bus, nvdimm, payload);
-+	up_read(&key->sem);
++	rc = ndctl_dimm_freeze_security(dimm);
 +	if (rc < 0)
-+		goto out;
-+
-+	/* If we succeed then remove the key */
-+	key_invalidate(key);
-+
-+ out:
-+	key_put(key);
-+	nvdimm_security_get_state(dev);
++		error("Failed to freeze security for %s\n",
++				ndctl_dimm_get_devname(dimm));
 +	return rc;
 +}
 +
- int nvdimm_security_unlock_dimm(struct device *dev)
+ static struct parameters {
+ 	const char *bus;
+ 	const char *outfile;
+@@ -1222,3 +1234,13 @@ int cmd_disable_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_freeze_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
++			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 13c2806c..2ff68daa 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -620,3 +620,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm)
  {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -631,6 +670,8 @@ static ssize_t security_store(struct device *dev,
+ 	return ndctl_dimm_write_security(dimm, "disable");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "freeze");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 1a919567..613d9bb2 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -374,4 +374,5 @@ global:
+ 	ndctl_dimm_get_security_state;
+ 	ndctl_dimm_set_change_key;
+ 	ndctl_dimm_disable_security;
++	ndctl_dimm_freeze_security;
+ } LIBNDCTL_16;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 1ca6cb18..4615ba09 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -662,6 +662,7 @@ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
+ int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
++int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
  
- 	if (sysfs_streq(buf, "update"))
- 		rc = nvdimm_security_change_key(dev);
-+	else if (sysfs_streq(buf, "disable"))
-+		rc = nvdimm_security_disable(dev);
- 	else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 7889fea75281..59ad04261f34 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -183,6 +183,8 @@ struct nvdimm_security_ops {
- 			struct nvdimm *nvdimm,
- 			struct nvdimm_key_data *old_data,
- 			struct nvdimm_key_data *new_data);
-+	int (*disable)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm, struct nvdimm_key_data *nkey);
- };
- 
- void badrange_init(struct badrange *badrange);
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index eeef41da..5a1a81e4 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
+ 	{ "start-scrub", cmd_start_scrub },
+ 	{ "update-security", cmd_update_security },
+ 	{ "disable-security", cmd_disable_security },
++	{ "freeze-security", cmd_freeze_security },
+ 	{ "list", cmd_list },
+ 	{ "help", cmd_help },
+ 	#ifdef ENABLE_TEST
 
 _______________________________________________
 Linux-nvdimm mailing list
