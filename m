@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A4AB621BADAB2
- for <linux-nvdimm@lists.01.org>; Tue, 24 Jul 2018 14:07:57 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv4 1/2] libnvdimm: Use max contiguous area for namespace size
-Date: Tue, 24 Jul 2018 15:07:57 -0600
-Message-Id: <20180724210758.14098-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1F42520985980
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 15:45:59 -0700 (PDT)
+Subject: [PATCH 5/6] ndctl: add support for secure erase
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 13 Jul 2018 15:45:58 -0700
+Message-ID: <153152195849.6787.147607747293528279.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
+References: <153152170933.6787.1111990895827764695.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,173 +18,164 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
-Cc: "Gustavo A . R . Silva" <gustavo@embeddedor.com>, stable@vger.kernel.org, Ross Zwisler <zwisler@kernel.org>, Williams@ml01.01.org
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch will find the max contiguous area to determine the largest
-pmem namespace size that can be created. If the requested size exceeds
-the largest available, ENOSPC error will be returned.
+Add support for secure erase to libndctl and also command line option
+of "secure-erase" for ndctl. This will initiate the request to securely
+erase a DIMM. ndctl does not actually handle the verification of the
+security. That is handled by the kernel and the key upcall mechanism.
 
-This fixes the allocation underrun error and wrong error return code
-that have otherwise been observed as the following kernel warning:
-
-  WARNING: CPU: <CPU> PID: <PID> at drivers/nvdimm/namespace_devs.c:913 size_store
-
-Fixes: a1f3e4d6a0c3 ("libnvdimm, region: update nd_region_available_dpa() for multi-pmem support")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Keith Busch <keith.busch@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-v3 -> v4:
+ Documentation/ndctl/Makefile.am            |    1 +
+ Documentation/ndctl/ndctl-secure-erase.txt |   21 +++++++++++++++++++++
+ builtin.h                                  |    1 +
+ ndctl/dimm.c                               |   21 +++++++++++++++++++++
+ ndctl/lib/dimm.c                           |    5 +++++
+ ndctl/lib/libndctl.sym                     |    1 +
+ ndctl/libndctl.h                           |    1 +
+ ndctl/ndctl.c                              |    1 +
+ 8 files changed, 52 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-secure-erase.txt
 
-  Actually constrain the reserved pmem to the region under consideration
-  rather than the mapping's dimm. This is done by directly calling
-  __reserve_free_pmem with the region's device instead of walking the
-  parent devices children. Thanks to Vishal Verma for reporting how
-  to trigger the incorrect reportings.
-
-  Fixed a possible NULL deref, from Gustavo A. R. Silva.
-
- drivers/nvdimm/dimm_devs.c      | 31 +++++++++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |  6 +++---
- drivers/nvdimm/nd-core.h        |  8 ++++++++
- drivers/nvdimm/region_devs.c    | 24 ++++++++++++++++++++++++
- 4 files changed, 66 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8d348b22ba45..863cabc35215 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -536,6 +536,37 @@ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region)
- 	return info.available;
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 98348178..8a84c11c 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -49,6 +49,7 @@ man1_MANS = \
+ 	ndctl-update-security.1 \
+ 	ndctl-disable-security.1 \
+ 	ndctl-freeze-security.1 \
++	ndctl-secure-erase.1 \
+ 	ndctl-list.1
+ 
+ CLEANFILES = $(man1_MANS)
+diff --git a/Documentation/ndctl/ndctl-secure-erase.txt b/Documentation/ndctl/ndctl-secure-erase.txt
+new file mode 100644
+index 00000000..8f82248a
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-secure-erase.txt
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-secure-erase(1)
++=====================
++
++NAME
++----
++ndctl-secure-erase - securely erasing the user data on the NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl secure-erase' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface to securely erase NVDIMM. This does not change
++the label storage area. The use of this depends on support from the underlying
++libndctl, kernel, as well as the platform itself.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 6e6ae069..a9b6443e 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -50,4 +50,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_update_security(int argc, const char **argv, void *ctx);
+ int cmd_disable_security(int argc, const char **argv, void *ctx);
+ int cmd_freeze_security(int argc, const char **argv, void *ctx);
++int cmd_secure_erase(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 49097cff..45c9efce 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -857,6 +857,17 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
+ 	return rc;
  }
  
-+/**
-+ * nd_pmem_max_contiguous_dpa - For the given dimm+region, return the max
-+ *			   contiguous unallocated dpa range.
-+ * @nd_region: constrain available space check to this reference region
-+ * @nd_mapping: container of dpa-resource-root + labels
-+ */
-+resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
-+					   struct nd_mapping *nd_mapping)
++static int action_secure_erase(struct ndctl_dimm *dimm,
++		struct action_context *actx)
 +{
-+	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+	struct nvdimm_bus *nvdimm_bus;
-+	resource_size_t max = 0;
-+	struct resource *res;
++	int rc;
 +
-+	/* if a dimm is disabled the available capacity is zero */
-+	if (!ndd)
-+		return 0;
-+
-+	nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
-+	if (__reserve_free_pmem(&nd_region->dev, nd_mapping->nvdimm))
-+		return 0;
-+	for_each_dpa_resource(ndd, res) {
-+		if (strcmp(res->name, "pmem-reserve") != 0)
-+			continue;
-+		if (resource_size(res) > max)
-+			max = resource_size(res);
-+	}
-+	release_free_pmem(nvdimm_bus, nd_mapping);
-+	return max;
++	rc = ndctl_dimm_secure_erase(dimm);
++	if (rc < 0)
++		error("Failed to secure erase for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
 +}
-+
- /**
-  * nd_pmem_available_dpa - for the given dimm+region account unallocated dpa
-  * @nd_mapping: container of dpa-resource-root + labels
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index cb322f2bc605..4a4266250c28 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -799,7 +799,7 @@ static int merge_dpa(struct nd_region *nd_region,
- 	return 0;
+ static struct parameters {
+ 	const char *bus;
+ 	const char *outfile;
+@@ -1244,3 +1255,13 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
  }
- 
--static int __reserve_free_pmem(struct device *dev, void *data)
-+int __reserve_free_pmem(struct device *dev, void *data)
- {
- 	struct nvdimm *nvdimm = data;
- 	struct nd_region *nd_region;
-@@ -836,7 +836,7 @@ static int __reserve_free_pmem(struct device *dev, void *data)
- 	return 0;
- }
- 
--static void release_free_pmem(struct nvdimm_bus *nvdimm_bus,
-+void release_free_pmem(struct nvdimm_bus *nvdimm_bus,
- 		struct nd_mapping *nd_mapping)
- {
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-@@ -1032,7 +1032,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
- 
- 		allocated += nvdimm_allocated_dpa(ndd, &label_id);
- 	}
--	available = nd_region_available_dpa(nd_region);
-+	available = nd_region_allocatable_dpa(nd_region);
- 
- 	if (val > available + allocated)
- 		return -ENOSPC;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 79274ead54fb..ac68072fb8cd 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -100,6 +100,14 @@ struct nd_region;
- struct nvdimm_drvdata;
- struct nd_mapping;
- void nd_mapping_free_labels(struct nd_mapping *nd_mapping);
 +
-+int __reserve_free_pmem(struct device *dev, void *data);
-+void release_free_pmem(struct nvdimm_bus *nvdimm_bus,
-+		       struct nd_mapping *nd_mapping);
-+
-+resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
-+					   struct nd_mapping *nd_mapping);
-+resource_size_t nd_region_allocatable_dpa(struct nd_region *nd_region);
- resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
- 		struct nd_mapping *nd_mapping, resource_size_t *overlap);
- resource_size_t nd_blk_available_dpa(struct nd_region *nd_region);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index ec3543b83330..c30d5af02cc2 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -389,6 +389,30 @@ resource_size_t nd_region_available_dpa(struct nd_region *nd_region)
- 	return available;
- }
- 
-+resource_size_t nd_region_allocatable_dpa(struct nd_region *nd_region)
++int cmd_secure_erase(int argc, const char **argv, void *ctx)
 +{
-+	resource_size_t available = 0;
-+	int i;
++	int count = dimm_action(argc, argv, ctx, action_secure_erase, base_options,
++			"ndctl secure-erase <nmem0> [<nmem1>..<nmemN>] [<options>]");
 +
-+	if (is_memory(&nd_region->dev))
-+		available = PHYS_ADDR_MAX;
-+
-+	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+
-+		if (is_memory(&nd_region->dev))
-+			available = min(available,
-+					nd_pmem_max_contiguous_dpa(nd_region,
-+								   nd_mapping));
-+		else if (is_nd_blk(&nd_region->dev))
-+			available += nd_blk_available_dpa(nd_region);
-+	}
-+	if (is_memory(&nd_region->dev))
-+		return available * nd_region->ndr_mappings;
-+	return available;
++	fprintf(stderr, "secure erased %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
 +}
-+
- static ssize_t available_size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 2ff68daa..bb896d21 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -625,3 +625,8 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
  {
--- 
-2.14.4
+ 	return ndctl_dimm_write_security(dimm, "freeze");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "erase");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 613d9bb2..08727f94 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -375,4 +375,5 @@ global:
+ 	ndctl_dimm_set_change_key;
+ 	ndctl_dimm_disable_security;
+ 	ndctl_dimm_freeze_security;
++	ndctl_dimm_secure_erase;
+ } LIBNDCTL_16;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 4615ba09..88ba8a29 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -663,6 +663,7 @@ int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
+ int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 5a1a81e4..b1a91033 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
+ 	{ "update-security", cmd_update_security },
+ 	{ "disable-security", cmd_disable_security },
+ 	{ "freeze-security", cmd_freeze_security },
++	{ "secure-erase", cmd_secure_erase },
+ 	{ "list", cmd_list },
+ 	{ "help", cmd_help },
+ 	#ifdef ENABLE_TEST
 
 _______________________________________________
 Linux-nvdimm mailing list
