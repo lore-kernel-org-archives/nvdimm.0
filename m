@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x241.google.com (mail-qk0-x241.google.com
+ [IPv6:2607:f8b0:400d:c09::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6E46D209831F7
- for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 16:00:15 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/4] ndctl,
- monitor: Add a config-file section to the man page
-Date: Thu, 19 Jul 2018 16:59:55 -0600
-Message-Id: <20180719225958.6814-2-vishal.l.verma@intel.com>
-In-Reply-To: <20180719225958.6814-1-vishal.l.verma@intel.com>
-References: <20180719225958.6814-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 107B9209831D4
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 11:31:33 -0700 (PDT)
+Received: by mail-qk0-x241.google.com with SMTP id b5-v6so15661640qkg.6
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 11:31:33 -0700 (PDT)
+Subject: Re: [ndctl PATCH v12 5/5] ndctl, test: add a new unit test for monitor
+References: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
+ <20180713155403.30020-6-qi.fuli@jp.fujitsu.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <66e213f9-3e82-2e62-3570-c8a4ea82c5f0@gmail.com>
+Date: Fri, 13 Jul 2018 14:31:32 -0400
+MIME-Version: 1.0
+In-Reply-To: <20180713155403.30020-6-qi.fuli@jp.fujitsu.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,44 +23,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
+Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ndctl monitor man page was missing documentation for the
---config-file option. Add it, explaining that the option overrides the
-system default config file.
+Hi Qi,
 
-Fixes: 02ce9c6bab41 ("ndctl, documentation: add man page for monitor")
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Documentation/ndctl/ndctl-monitor.txt | 5 +++++
- 1 file changed, 5 insertions(+)
+On 07/13/2018 11:54 AM, QI Fuli wrote:
+> Add a new unit test to test all options of the monitor command.
+> 
+> Based-on-patch-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+> Acked-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+[...]
+> +test_filter_dimmevent()
+> +{
+> +	monitor_dimms="$(get_monitor_dimm | awk '{print $1}')"
+> +
+> +	start_monitor "-d $monitor_dimms -D dimm-unclean-shutdown"
+> +	inject_smart "-U"
+> +	check_result "$monitor_dimms"
+> +	stop_monitor
+> +
 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index 872cd6e..762073e 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -69,6 +69,11 @@ OPTIONS
- --log=<file | syslog | standard>::
- 	Output notifications to <file>, syslog or standard output.
- 
-+-c::
-+--config-file=::
-+	Provide the config file to use. This overrides the default config
-+	typically found in /etc/ndctl/
-+
- --daemon::
- 	Run a monitor as a daemon.
- 
--- 
-2.14.4
+> +	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."spares_threshold")
 
+        inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r "(.[]) | .health.spares_threshold")
+
+> +	inject_value=$((inject_value - 1))
+> +	start_monitor "-d $monitor_dimms -D dimm-spares-remaining"
+> +	inject_smart "-s $inject_value"
+> +	check_result "$monitor_dimms"
+> +	stop_monitor
+> +
+
+> +	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."temperature_threshold")
+
+        inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r "(.[]) | .health.temperature_threshold")
+
+The rest looks good. Please feel free to add:... 
+Oh, it has already added, nice :-)
+
+> Acked-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+
+Thanks,
+Masa
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
