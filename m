@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A016207E6349
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 21:11:21 -0700 (PDT)
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH v6 1/4] resource: Move reparent_resources() to
- kernel/resource.c and make it public
-Date: Wed,  4 Jul 2018 12:10:35 +0800
-Message-Id: <20180704041038.8190-2-bhe@redhat.com>
-In-Reply-To: <20180704041038.8190-1-bhe@redhat.com>
-References: <20180704041038.8190-1-bhe@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7F6A3209831CF
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 22:00:43 -0700 (PDT)
+Subject: [PATCH v6 09/13] filesystem-dax: Introduce dax_lock_mapping_entry()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 21:50:16 -0700
+Message-ID: <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,185 +18,221 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
-Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, kexec@lists.infradead.org, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: linux-nvdimm@lists.01.org
+Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-reparent_resources() is duplicated in arch/microblaze/pci/pci-common.c
-and arch/powerpc/kernel/pci-common.c, so move it to kernel/resource.c
-so that it's shared.
+In preparation for implementing support for memory poison (media error)
+handling via dax mappings, implement a lock_page() equivalent. Poison
+error handling requires rmap and needs guarantees that the page->mapping
+association is maintained / valid (inode not freed) for the duration of
+the lookup.
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
+In the device-dax case it is sufficient to simply hold a dev_pagemap
+reference. In the filesystem-dax case we need to use the entry lock.
+
+Export the entry lock via dax_lock_mapping_entry() that uses
+rcu_read_lock() to protect against the inode being freed, and
+revalidates the page->mapping association under xa_lock().
+
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/microblaze/pci/pci-common.c | 37 -------------------------------------
- arch/powerpc/kernel/pci-common.c | 35 -----------------------------------
- include/linux/ioport.h           |  1 +
- kernel/resource.c                | 39 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 40 insertions(+), 72 deletions(-)
+ fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/dax.h |   13 ++++++
+ 2 files changed, 116 insertions(+), 6 deletions(-)
 
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index f34346d56095..7899bafab064 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -619,43 +619,6 @@ int pcibios_add_device(struct pci_dev *dev)
- EXPORT_SYMBOL(pcibios_add_device);
- 
- /*
-- * Reparent resource children of pr that conflict with res
-- * under res, and make res replace those children.
-- */
--static int __init reparent_resources(struct resource *parent,
--				     struct resource *res)
--{
--	struct resource *p, **pp;
--	struct resource **firstpp = NULL;
--
--	for (pp = &parent->child; (p = *pp) != NULL; pp = &p->sibling) {
--		if (p->end < res->start)
--			continue;
--		if (res->end < p->start)
--			break;
--		if (p->start < res->start || p->end > res->end)
--			return -1;	/* not completely contained */
--		if (firstpp == NULL)
--			firstpp = pp;
--	}
--	if (firstpp == NULL)
--		return -1;	/* didn't find any conflicting entries? */
--	res->parent = parent;
--	res->child = *firstpp;
--	res->sibling = *pp;
--	*firstpp = res;
--	*pp = NULL;
--	for (p = res->child; p != NULL; p = p->sibling) {
--		p->parent = res;
--		pr_debug("PCI: Reparented %s [%llx..%llx] under %s\n",
--			 p->name,
--			 (unsigned long long)p->start,
--			 (unsigned long long)p->end, res->name);
--	}
--	return 0;
--}
--
--/*
-  *  Handle resources of PCI devices.  If the world were perfect, we could
-  *  just allocate all the resource regions and do nothing more.  It isn't.
-  *  On the other hand, we cannot just re-allocate all devices, as it would
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index fe9733ffffaa..926035bb378d 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -1088,41 +1088,6 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
- EXPORT_SYMBOL(pcibios_align_resource);
- 
- /*
-- * Reparent resource children of pr that conflict with res
-- * under res, and make res replace those children.
-- */
--static int reparent_resources(struct resource *parent,
--				     struct resource *res)
--{
--	struct resource *p, **pp;
--	struct resource **firstpp = NULL;
--
--	for (pp = &parent->child; (p = *pp) != NULL; pp = &p->sibling) {
--		if (p->end < res->start)
--			continue;
--		if (res->end < p->start)
--			break;
--		if (p->start < res->start || p->end > res->end)
--			return -1;	/* not completely contained */
--		if (firstpp == NULL)
--			firstpp = pp;
--	}
--	if (firstpp == NULL)
--		return -1;	/* didn't find any conflicting entries? */
--	res->parent = parent;
--	res->child = *firstpp;
--	res->sibling = *pp;
--	*firstpp = res;
--	*pp = NULL;
--	for (p = res->child; p != NULL; p = p->sibling) {
--		p->parent = res;
--		pr_debug("PCI: Reparented %s %pR under %s\n",
--			 p->name, p, res->name);
--	}
--	return 0;
--}
--
--/*
-  *  Handle resources of PCI devices.  If the world were perfect, we could
-  *  just allocate all the resource regions and do nothing more.  It isn't.
-  *  On the other hand, we cannot just re-allocate all devices, as it would
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index da0ebaec25f0..dfdcd0bfe54e 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -192,6 +192,7 @@ extern int allocate_resource(struct resource *root, struct resource *new,
- struct resource *lookup_resource(struct resource *root, resource_size_t start);
- int adjust_resource(struct resource *res, resource_size_t start,
- 		    resource_size_t size);
-+int reparent_resources(struct resource *parent, struct resource *res);
- resource_size_t resource_alignment(struct resource *res);
- static inline resource_size_t resource_size(const struct resource *res)
+diff --git a/fs/dax.c b/fs/dax.c
+index 4de11ed463ce..57ec272038da 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
+  *
+  * Must be called with the i_pages lock held.
+  */
+-static void *get_unlocked_mapping_entry(struct address_space *mapping,
+-					pgoff_t index, void ***slotp)
++static void *__get_unlocked_mapping_entry(struct address_space *mapping,
++		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
  {
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 30e1bc68503b..d1cbf4b50e17 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -983,6 +983,45 @@ int adjust_resource(struct resource *res, resource_size_t start,
- }
- EXPORT_SYMBOL(adjust_resource);
+ 	void *entry, **slot;
+ 	struct wait_exceptional_entry_queue ewait;
+@@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 	ewait.wait.func = wake_exceptional_entry_func;
  
-+/*
-+ * reparent_resources - reparent resource children of parent that res covers
-+ * @parent: parent resource descriptor
-+ * @res: resource descriptor desired by caller
-+ *
-+ * Reparent resource children of 'parent' that conflict with 'res'
-+ * under 'res', and make 'res' replace those children.
-+ */
-+int reparent_resources(struct resource *parent, struct resource *res)
+ 	for (;;) {
++		bool revalidate;
++
+ 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
+ 					  &slot);
+ 		if (!entry ||
+@@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+ 		prepare_to_wait_exclusive(wq, &ewait.wait,
+ 					  TASK_UNINTERRUPTIBLE);
+ 		xa_unlock_irq(&mapping->i_pages);
+-		schedule();
++		revalidate = wait_fn();
+ 		finish_wait(wq, &ewait.wait);
+ 		xa_lock_irq(&mapping->i_pages);
++		if (revalidate)
++			return ERR_PTR(-EAGAIN);
+ 	}
+ }
+ 
+-static void dax_unlock_mapping_entry(struct address_space *mapping,
+-				     pgoff_t index)
++static bool entry_wait(void)
 +{
-+	struct resource *p, **pp;
-+	struct resource **firstpp = NULL;
-+
-+	for (pp = &parent->child; (p = *pp) != NULL; pp = &p->sibling) {
-+		if (p->end < res->start)
-+			continue;
-+		if (res->end < p->start)
-+			break;
-+		if (p->start < res->start || p->end > res->end)
-+			return -ENOTSUPP;	/* not completely contained */
-+		if (firstpp == NULL)
-+			firstpp = pp;
-+	}
-+	if (firstpp == NULL)
-+		return -ECANCELED; /* didn't find any conflicting entries? */
-+	res->parent = parent;
-+	res->child = *firstpp;
-+	res->sibling = *pp;
-+	*firstpp = res;
-+	*pp = NULL;
-+	for (p = res->child; p != NULL; p = p->sibling) {
-+		p->parent = res;
-+		pr_debug("PCI: Reparented %s %pR under %s\n",
-+			 p->name, p, res->name);
-+	}
-+	return 0;
++	schedule();
++	/*
++	 * Never return an ERR_PTR() from
++	 * __get_unlocked_mapping_entry(), just keep looping.
++	 */
++	return false;
 +}
-+EXPORT_SYMBOL(reparent_resources);
 +
- static void __init __reserve_region_with_split(struct resource *root,
- 		resource_size_t start, resource_size_t end,
- 		const char *name)
--- 
-2.13.6
++static void *get_unlocked_mapping_entry(struct address_space *mapping,
++		pgoff_t index, void ***slotp)
++{
++	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
++}
++
++static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+ {
+ 	void *entry, **slot;
+ 
+@@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
+ static void put_locked_mapping_entry(struct address_space *mapping,
+ 		pgoff_t index)
+ {
+-	dax_unlock_mapping_entry(mapping, index);
++	unlock_mapping_entry(mapping, index);
+ }
+ 
+ /*
+@@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
+ 	return NULL;
+ }
+ 
++static bool entry_wait_revalidate(void)
++{
++	rcu_read_unlock();
++	schedule();
++	rcu_read_lock();
++
++	/*
++	 * Tell __get_unlocked_mapping_entry() to take a break, we need
++	 * to revalidate page->mapping after dropping locks
++	 */
++	return true;
++}
++
++bool dax_lock_mapping_entry(struct page *page)
++{
++	pgoff_t index;
++	struct inode *inode;
++	bool did_lock = false;
++	void *entry = NULL, **slot;
++	struct address_space *mapping;
++
++	rcu_read_lock();
++	for (;;) {
++		mapping = READ_ONCE(page->mapping);
++
++		if (!dax_mapping(mapping))
++			break;
++
++		/*
++		 * In the device-dax case there's no need to lock, a
++		 * struct dev_pagemap pin is sufficient to keep the
++		 * inode alive, and we assume we have dev_pagemap pin
++		 * otherwise we would not have a valid pfn_to_page()
++		 * translation.
++		 */
++		inode = mapping->host;
++		if (S_ISCHR(inode->i_mode)) {
++			did_lock = true;
++			break;
++		}
++
++		xa_lock_irq(&mapping->i_pages);
++		if (mapping != page->mapping) {
++			xa_unlock_irq(&mapping->i_pages);
++			continue;
++		}
++		index = page->index;
++
++		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
++				entry_wait_revalidate);
++		if (!entry) {
++			xa_unlock_irq(&mapping->i_pages);
++			break;
++		} else if (IS_ERR(entry)) {
++			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
++			continue;
++		}
++		lock_slot(mapping, slot);
++		did_lock = true;
++		xa_unlock_irq(&mapping->i_pages);
++		break;
++	}
++	rcu_read_unlock();
++
++	return did_lock;
++}
++
++void dax_unlock_mapping_entry(struct page *page)
++{
++	struct address_space *mapping = page->mapping;
++	struct inode *inode = mapping->host;
++
++	if (S_ISCHR(inode->i_mode))
++		return;
++
++	unlock_mapping_entry(mapping, page->index);
++}
++
+ /*
+  * Find radix tree entry at given index. If it points to an exceptional entry,
+  * return it with the radix tree entry locked. If the radix tree doesn't
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 3855e3800f48..cf8ac51cf0d7 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
+ 
+ struct page *dax_layout_busy_page(struct address_space *mapping);
++bool dax_lock_mapping_entry(struct page *page);
++void dax_unlock_mapping_entry(struct page *page);
+ #else
+ static inline bool bdev_dax_supported(struct block_device *bdev,
+ 		int blocksize)
+@@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline bool dax_lock_mapping_entry(struct page *page)
++{
++	if (IS_DAX(page->mapping->host))
++		return true;
++	return false;
++}
++
++static inline void dax_unlock_mapping_entry(struct page *page)
++{
++}
+ #endif
+ 
+ int dax_read_lock(void);
 
 _______________________________________________
 Linux-nvdimm mailing list
