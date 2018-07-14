@@ -1,163 +1,242 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ECE28209831CF
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 22:00:24 -0700 (PDT)
-Subject: [PATCH v6 10/13] mm,
- memory_failure: Teach memory_failure() about dev_pagemap pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 13 Jul 2018 21:50:21 -0700
-Message-ID: <153154382187.34503.3838107575957710423.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Christoph Hellwig <hch@lst.de>
+In-Reply-To: <20180713085241.GA26980@hori1.linux.bs1.fc.nec.co.jp>
+References: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <153074046610.27838.329669845580014251.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180713085241.GA26980@hori1.linux.bs1.fc.nec.co.jp>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 17:28:05 -0700
+Message-ID: <CAPcyv4jpn_NyBWjvj3s67Y8pvPDu0BODtqNJZQL81ryPeewvwA@mail.gmail.com>
+Subject: Re: [PATCH v5 08/11] mm, memory_failure: Teach memory_failure() about
+ dev_pagemap pages
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Sender: owner-linux-mm@kvack.org
+To: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jan Kara <jack@suse.cz>, Christoph Hellwig <hch@lst.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-ICAgIG1jZTogVW5jb3JyZWN0ZWQgaGFyZHdhcmUgbWVtb3J5IGVycm9yIGluIHVzZXItYWNjZXNz
-IGF0IGFmMzQyMTQyMDAKICAgIHsxfVtIYXJkd2FyZSBFcnJvcl06IEl0IGhhcyBiZWVuIGNvcnJl
-Y3RlZCBieSBoL3cgYW5kIHJlcXVpcmVzIG5vIGZ1cnRoZXIgYWN0aW9uCiAgICBtY2U6IFtIYXJk
-d2FyZSBFcnJvcl06IE1hY2hpbmUgY2hlY2sgZXZlbnRzIGxvZ2dlZAogICAgezF9W0hhcmR3YXJl
-IEVycm9yXTogZXZlbnQgc2V2ZXJpdHk6IGNvcnJlY3RlZAogICAgTWVtb3J5IGZhaWx1cmU6IDB4
-YWYzNDIxNDogcmVzZXJ2ZWQga2VybmVsIHBhZ2Ugc3RpbGwgcmVmZXJlbmNlZCBieSAxIHVzZXJz
-CiAgICBbLi5dCiAgICBNZW1vcnkgZmFpbHVyZTogMHhhZjM0MjE0OiByZWNvdmVyeSBhY3Rpb24g
-Zm9yIHJlc2VydmVkIGtlcm5lbCBwYWdlOiBGYWlsZWQKICAgIG1jZTogTWVtb3J5IGVycm9yIG5v
-dCByZWNvdmVyZWQKCkluIGNvbnRyYXN0IHRvIHR5cGljYWwgbWVtb3J5LCBkZXZfcGFnZW1hcCBw
-YWdlcyBtYXkgYmUgZGF4IG1hcHBlZC4gV2l0aApkYXggdGhlcmUgaXMgbm8gcG9zc2liaWxpdHkg
-dG8gbWFwIGluIGFub3RoZXIgcGFnZSBkeW5hbWljYWxseSBzaW5jZSBkYXgKZXN0YWJsaXNoZXMg
-MToxIHBoeXNpY2FsIGFkZHJlc3MgdG8gZmlsZSBvZmZzZXQgYXNzb2NpYXRpb25zLiBBbHNvCmRl
-dl9wYWdlbWFwIHBhZ2VzIGFzc29jaWF0ZWQgd2l0aCBOVkRJTU0gLyBwZXJzaXN0ZW50IG1lbW9y
-eSBkZXZpY2VzIGNhbgppbnRlcm5hbCByZW1hcC9yZXBhaXIgYWRkcmVzc2VzIHdpdGggcG9pc29u
-LiBXaGlsZSBtZW1vcnlfZmFpbHVyZSgpCmFzc3VtZXMgdGhhdCBpdCBjYW4gZGlzY2FyZCB0eXBp
-Y2FsIHBvaXNvbmVkIHBhZ2VzIGFuZCBrZWVwIHRoZW0KdW5tYXBwZWQgaW5kZWZpbml0ZWx5LCBk
-ZXZfcGFnZW1hcCBwYWdlcyBtYXkgYmUgcmV0dXJuZWQgdG8gc2VydmljZQphZnRlciB0aGUgZXJy
-b3IgaXMgY2xlYXJlZC4KClRlYWNoIG1lbW9yeV9mYWlsdXJlKCkgdG8gZGV0ZWN0IGFuZCBoYW5k
-bGUgTUVNT1JZX0RFVklDRV9IT1NUCmRldl9wYWdlbWFwIHBhZ2VzIHRoYXQgaGF2ZSBwb2lzb24g
-Y29uc3VtZWQgYnkgdXNlcnNwYWNlLiBNYXJrIHRoZQptZW1vcnkgYXMgVUMgaW5zdGVhZCBvZiB1
-bm1hcHBpbmcgaXQgY29tcGxldGVseSB0byBhbGxvdyBvbmdvaW5nIGFjY2Vzcwp2aWEgdGhlIGRl
-dmljZSBkcml2ZXIgKG5kX3BtZW0pLiBMYXRlciwgbmRfcG1lbSB3aWxsIGdyb3cgc3VwcG9ydCBm
-b3IKbWFya2luZyB0aGUgcGFnZSBiYWNrIHRvIFdCIHdoZW4gdGhlIGVycm9yIGlzIGNsZWFyZWQu
-CgpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KQ2M6IENocmlzdG9waCBIZWxsd2lnIDxoY2hA
-bHN0LmRlPgpDYzogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CkNjOiBNYXR0
-aGV3IFdpbGNveCA8d2lsbHlAaW5mcmFkZWFkLm9yZz4KQ2M6IE5hb3lhIEhvcmlndWNoaSA8bi1o
-b3JpZ3VjaGlAYWguanAubmVjLmNvbT4KQ2M6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxp
-bnV4LmludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+Ci0tLQogaW5jbHVkZS9saW51eC9tbS5oICB8ICAgIDEgCiBtbS9tZW1vcnkt
-ZmFpbHVyZS5jIHwgIDEyNSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKy0KIDIgZmlsZXMgY2hhbmdlZCwgMTI0IGluc2VydGlvbnMoKyksIDIgZGVsZXRp
-b25zKC0pCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tbS5oIGIvaW5jbHVkZS9saW51eC9t
-bS5oCmluZGV4IGEwZmJiOWZmZTM4MC4uMzc0ZTVlOTI4NGY3IDEwMDY0NAotLS0gYS9pbmNsdWRl
-L2xpbnV4L21tLmgKKysrIGIvaW5jbHVkZS9saW51eC9tbS5oCkBAIC0yNzI1LDYgKzI3MjUsNyBA
-QCBlbnVtIG1mX2FjdGlvbl9wYWdlX3R5cGUgewogCU1GX01TR19UUlVOQ0FURURfTFJVLAogCU1G
-X01TR19CVUREWSwKIAlNRl9NU0dfQlVERFlfMk5ELAorCU1GX01TR19EQVgsCiAJTUZfTVNHX1VO
-S05PV04sCiB9OwogCmRpZmYgLS1naXQgYS9tbS9tZW1vcnktZmFpbHVyZS5jIGIvbW0vbWVtb3J5
-LWZhaWx1cmUuYwppbmRleCA4YTgxNjgwZDAwZGQuLmVmZmFhN2M3YTFhNCAxMDA2NDQKLS0tIGEv
-bW0vbWVtb3J5LWZhaWx1cmUuYworKysgYi9tbS9tZW1vcnktZmFpbHVyZS5jCkBAIC01NSw2ICs1
-NSw3IEBACiAjaW5jbHVkZSA8bGludXgvaHVnZXRsYi5oPgogI2luY2x1ZGUgPGxpbnV4L21lbW9y
-eV9ob3RwbHVnLmg+CiAjaW5jbHVkZSA8bGludXgvbW1faW5saW5lLmg+CisjaW5jbHVkZSA8bGlu
-dXgvbWVtcmVtYXAuaD4KICNpbmNsdWRlIDxsaW51eC9rZmlmby5oPgogI2luY2x1ZGUgPGxpbnV4
-L3JhdGVsaW1pdC5oPgogI2luY2x1ZGUgImludGVybmFsLmgiCkBAIC0yNjMsNiArMjY0LDQwIEBA
-IHZvaWQgc2hha2VfcGFnZShzdHJ1Y3QgcGFnZSAqcCwgaW50IGFjY2VzcykKIH0KIEVYUE9SVF9T
-WU1CT0xfR1BMKHNoYWtlX3BhZ2UpOwogCitzdGF0aWMgdW5zaWduZWQgbG9uZyBkZXZfcGFnZW1h
-cF9tYXBwaW5nX3NpemUoc3RydWN0IHBhZ2UgKnBhZ2UsCisJCXN0cnVjdCB2bV9hcmVhX3N0cnVj
-dCAqdm1hKQoreworCXVuc2lnbmVkIGxvbmcgYWRkcmVzcyA9IHZtYV9hZGRyZXNzKHBhZ2UsIHZt
-YSk7CisJcGdkX3QgKnBnZDsKKwlwNGRfdCAqcDRkOworCXB1ZF90ICpwdWQ7CisJcG1kX3QgKnBt
-ZDsKKwlwdGVfdCAqcHRlOworCisJcGdkID0gcGdkX29mZnNldCh2bWEtPnZtX21tLCBhZGRyZXNz
-KTsKKwlpZiAoIXBnZF9wcmVzZW50KCpwZ2QpKQorCQlyZXR1cm4gMDsKKwlwNGQgPSBwNGRfb2Zm
-c2V0KHBnZCwgYWRkcmVzcyk7CisJaWYgKCFwNGRfcHJlc2VudCgqcDRkKSkKKwkJcmV0dXJuIDA7
-CisJcHVkID0gcHVkX29mZnNldChwNGQsIGFkZHJlc3MpOworCWlmICghcHVkX3ByZXNlbnQoKnB1
-ZCkpCisJCXJldHVybiAwOworCWlmIChwdWRfZGV2bWFwKCpwdWQpKQorCQlyZXR1cm4gUFVEX1NJ
-WkU7CisJcG1kID0gcG1kX29mZnNldChwdWQsIGFkZHJlc3MpOworCWlmICghcG1kX3ByZXNlbnQo
-KnBtZCkpCisJCXJldHVybiAwOworCWlmIChwbWRfZGV2bWFwKCpwbWQpKQorCQlyZXR1cm4gUE1E
-X1NJWkU7CisJcHRlID0gcHRlX29mZnNldF9tYXAocG1kLCBhZGRyZXNzKTsKKwlpZiAoIXB0ZV9w
-cmVzZW50KCpwdGUpKQorCQlyZXR1cm4gMDsKKwlpZiAocHRlX2Rldm1hcCgqcHRlKSkKKwkJcmV0
-dXJuIFBBR0VfU0laRTsKKwlyZXR1cm4gMDsKK30KKwogLyoKICAqIEZhaWx1cmUgaGFuZGxpbmc6
-IGlmIHdlIGNhbid0IGZpbmQgb3IgY2FuJ3Qga2lsbCBhIHByb2Nlc3MgdGhlcmUncwogICogbm90
-IG11Y2ggd2UgY2FuIGRvLglXZSBqdXN0IHByaW50IGEgbWVzc2FnZSBhbmQgaWdub3JlIG90aGVy
-d2lzZS4KQEAgLTI5Miw3ICszMjcsMTAgQEAgc3RhdGljIHZvaWQgYWRkX3RvX2tpbGwoc3RydWN0
-IHRhc2tfc3RydWN0ICp0c2ssIHN0cnVjdCBwYWdlICpwLAogCX0KIAl0ay0+YWRkciA9IHBhZ2Vf
-YWRkcmVzc19pbl92bWEocCwgdm1hKTsKIAl0ay0+YWRkcl92YWxpZCA9IDE7Ci0JdGstPnNpemVf
-c2hpZnQgPSBjb21wb3VuZF9vcmRlcihjb21wb3VuZF9oZWFkKHApKSArIFBBR0VfU0hJRlQ7CisJ
-aWYgKGlzX3pvbmVfZGV2aWNlX3BhZ2UocCkpCisJCXRrLT5zaXplX3NoaWZ0ID0gaWxvZzIoZGV2
-X3BhZ2VtYXBfbWFwcGluZ19zaXplKHAsIHZtYSkpOworCWVsc2UKKwkJdGstPnNpemVfc2hpZnQg
-PSBjb21wb3VuZF9vcmRlcihjb21wb3VuZF9oZWFkKHApKSArIFBBR0VfU0hJRlQ7CiAKIAkvKgog
-CSAqIEluIHRoZW9yeSB3ZSBkb24ndCBoYXZlIHRvIGtpbGwgd2hlbiB0aGUgcGFnZSB3YXMKQEAg
-LTMwMCw3ICszMzgsNyBAQCBzdGF0aWMgdm9pZCBhZGRfdG9fa2lsbChzdHJ1Y3QgdGFza19zdHJ1
-Y3QgKnRzaywgc3RydWN0IHBhZ2UgKnAsCiAJICogbGlrZWx5IHZlcnkgcmFyZSBraWxsIGFueXdh
-eXMganVzdCBvdXQgb2YgcGFyYW5vaWEsIGJ1dCB1c2UKIAkgKiBhIFNJR0tJTEwgYmVjYXVzZSB0
-aGUgZXJyb3IgaXMgbm90IGNvbnRhaW5lZCBhbnltb3JlLgogCSAqLwotCWlmICh0ay0+YWRkciA9
-PSAtRUZBVUxUKSB7CisJaWYgKHRrLT5hZGRyID09IC1FRkFVTFQgfHwgdGstPnNpemVfc2hpZnQg
-PT0gMCkgewogCQlwcl9pbmZvKCJNZW1vcnkgZmFpbHVyZTogVW5hYmxlIHRvIGZpbmQgdXNlciBz
-cGFjZSBhZGRyZXNzICVseCBpbiAlc1xuIiwKIAkJCXBhZ2VfdG9fcGZuKHApLCB0c2stPmNvbW0p
-OwogCQl0ay0+YWRkcl92YWxpZCA9IDA7CkBAIC01MTQsNiArNTUyLDcgQEAgc3RhdGljIGNvbnN0
-IGNoYXIgKiBjb25zdCBhY3Rpb25fcGFnZV90eXBlc1tdID0gewogCVtNRl9NU0dfVFJVTkNBVEVE
-X0xSVV0JCT0gImFscmVhZHkgdHJ1bmNhdGVkIExSVSBwYWdlIiwKIAlbTUZfTVNHX0JVRERZXQkJ
-CT0gImZyZWUgYnVkZHkgcGFnZSIsCiAJW01GX01TR19CVUREWV8yTkRdCQk9ICJmcmVlIGJ1ZGR5
-IHBhZ2UgKDJuZCB0cnkpIiwKKwlbTUZfTVNHX0RBWF0JCQk9ICJkYXggcGFnZSIsCiAJW01GX01T
-R19VTktOT1dOXQkJPSAidW5rbm93biBwYWdlIiwKIH07CiAKQEAgLTExMTEsNiArMTE1MCw4MyBA
-QCBzdGF0aWMgaW50IG1lbW9yeV9mYWlsdXJlX2h1Z2V0bGIodW5zaWduZWQgbG9uZyBwZm4sIGlu
-dCBmbGFncykKIAlyZXR1cm4gcmVzOwogfQogCitzdGF0aWMgaW50IG1lbW9yeV9mYWlsdXJlX2Rl
-dl9wYWdlbWFwKHVuc2lnbmVkIGxvbmcgcGZuLCBpbnQgZmxhZ3MsCisJCXN0cnVjdCBkZXZfcGFn
-ZW1hcCAqcGdtYXApCit7CisJc3RydWN0IHBhZ2UgKnBhZ2UgPSBwZm5fdG9fcGFnZShwZm4pOwor
-CWNvbnN0IGJvb2wgdW5tYXBfc3VjY2VzcyA9IHRydWU7CisJdW5zaWduZWQgbG9uZyBzaXplID0g
-MDsKKwlzdHJ1Y3QgdG9fa2lsbCAqdGs7CisJTElTVF9IRUFEKHRva2lsbCk7CisJaW50IHJjID0g
-LUVCVVNZOworCWxvZmZfdCBzdGFydDsKKworCS8qCisJICogUHJldmVudCB0aGUgaW5vZGUgZnJv
-bSBiZWluZyBmcmVlZCB3aGlsZSB3ZSBhcmUgaW50ZXJyb2dhdGluZworCSAqIHRoZSBhZGRyZXNz
-X3NwYWNlLCB0eXBpY2FsbHkgdGhpcyB3b3VsZCBiZSBoYW5kbGVkIGJ5CisJICogbG9ja19wYWdl
-KCksIGJ1dCBkYXggcGFnZXMgZG8gbm90IHVzZSB0aGUgcGFnZSBsb2NrLiBUaGlzCisJICogYWxz
-byBwcmV2ZW50cyBjaGFuZ2VzIHRvIHRoZSBtYXBwaW5nIG9mIHRoaXMgcGZuIHVudGlsCisJICog
-cG9pc29uIHNpZ25hbGluZyBpcyBjb21wbGV0ZS4KKwkgKi8KKwlpZiAoIWRheF9sb2NrX21hcHBp
-bmdfZW50cnkocGFnZSkpCisJCWdvdG8gb3V0OworCisJaWYgKGh3cG9pc29uX2ZpbHRlcihwYWdl
-KSkgeworCQlyYyA9IDA7CisJCWdvdG8gdW5sb2NrOworCX0KKworCXN3aXRjaCAocGdtYXAtPnR5
-cGUpIHsKKwljYXNlIE1FTU9SWV9ERVZJQ0VfUFJJVkFURToKKwljYXNlIE1FTU9SWV9ERVZJQ0Vf
-UFVCTElDOgorCQkvKgorCQkgKiBUT0RPOiBIYW5kbGUgSE1NIHBhZ2VzIHdoaWNoIG1heSBuZWVk
-IGNvb3JkaW5hdGlvbgorCQkgKiB3aXRoIGRldmljZS1zaWRlIG1lbW9yeS4KKwkJICovCisJCWdv
-dG8gdW5sb2NrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0KKworCS8qCisJICogVXNlIHRoaXMg
-ZmxhZyBhcyBhbiBpbmRpY2F0aW9uIHRoYXQgdGhlIGRheCBwYWdlIGhhcyBiZWVuCisJICogcmVt
-YXBwZWQgVUMgdG8gcHJldmVudCBzcGVjdWxhdGl2ZSBjb25zdW1wdGlvbiBvZiBwb2lzb24uCisJ
-ICovCisJU2V0UGFnZUhXUG9pc29uKHBhZ2UpOworCisJLyoKKwkgKiBVbmxpa2UgU3lzdGVtLVJB
-TSB0aGVyZSBpcyBubyBwb3NzaWJpbGl0eSB0byBzd2FwIGluIGEKKwkgKiBkaWZmZXJlbnQgcGh5
-c2ljYWwgcGFnZSBhdCBhIGdpdmVuIHZpcnR1YWwgYWRkcmVzcywgc28gYWxsCisJICogdXNlcnNw
-YWNlIGNvbnN1bXB0aW9uIG9mIFpPTkVfREVWSUNFIG1lbW9yeSBuZWNlc3NpdGF0ZXMKKwkgKiBT
-SUdCVVMgKGkuZS4gTUZfTVVTVF9LSUxMKQorCSAqLworCWZsYWdzIHw9IE1GX0FDVElPTl9SRVFV
-SVJFRCB8IE1GX01VU1RfS0lMTDsKKwljb2xsZWN0X3Byb2NzKHBhZ2UsICZ0b2tpbGwsIGZsYWdz
-ICYgTUZfQUNUSU9OX1JFUVVJUkVEKTsKKworCWxpc3RfZm9yX2VhY2hfZW50cnkodGssICZ0b2tp
-bGwsIG5kKQorCQlpZiAodGstPnNpemVfc2hpZnQpCisJCQlzaXplID0gbWF4KHNpemUsIDFVTCA8
-PCB0ay0+c2l6ZV9zaGlmdCk7CisJaWYgKHNpemUpIHsKKwkJLyoKKwkJICogVW5tYXAgdGhlIGxh
-cmdlc3QgbWFwcGluZyB0byBhdm9pZCBicmVha2luZyB1cAorCQkgKiBkZXZpY2UtZGF4IG1hcHBp
-bmdzIHdoaWNoIGFyZSBjb25zdGFudCBzaXplLiBUaGUKKwkJICogYWN0dWFsIHNpemUgb2YgdGhl
-IG1hcHBpbmcgYmVpbmcgdG9ybiBkb3duIGlzCisJCSAqIGNvbW11bmljYXRlZCBpbiBzaWdpbmZv
-LCBzZWUga2lsbF9wcm9jKCkKKwkJICovCisJCXN0YXJ0ID0gKHBhZ2UtPmluZGV4IDw8IFBBR0Vf
-U0hJRlQpICYgfihzaXplIC0gMSk7CisJCXVubWFwX21hcHBpbmdfcmFuZ2UocGFnZS0+bWFwcGlu
-Zywgc3RhcnQsIHN0YXJ0ICsgc2l6ZSwgMCk7CisJfQorCWtpbGxfcHJvY3MoJnRva2lsbCwgZmxh
-Z3MgJiBNRl9NVVNUX0tJTEwsICF1bm1hcF9zdWNjZXNzLCBwZm4sIGZsYWdzKTsKKwlyYyA9IDA7
-Cit1bmxvY2s6CisJZGF4X3VubG9ja19tYXBwaW5nX2VudHJ5KHBhZ2UpOworb3V0OgorCS8qIGRy
-b3AgcGdtYXAgcmVmIGFjcXVpcmVkIGluIGNhbGxlciAqLworCXB1dF9kZXZfcGFnZW1hcChwZ21h
-cCk7CisJYWN0aW9uX3Jlc3VsdChwZm4sIE1GX01TR19EQVgsIHJjID8gTUZfRkFJTEVEIDogTUZf
-UkVDT1ZFUkVEKTsKKwlyZXR1cm4gcmM7Cit9CisKIC8qKgogICogbWVtb3J5X2ZhaWx1cmUgLSBI
-YW5kbGUgbWVtb3J5IGZhaWx1cmUgb2YgYSBwYWdlLgogICogQHBmbjogUGFnZSBOdW1iZXIgb2Yg
-dGhlIGNvcnJ1cHRlZCBwYWdlCkBAIC0xMTMzLDYgKzEyNDksNyBAQCBpbnQgbWVtb3J5X2ZhaWx1
-cmUodW5zaWduZWQgbG9uZyBwZm4sIGludCBmbGFncykKIAlzdHJ1Y3QgcGFnZSAqcDsKIAlzdHJ1
-Y3QgcGFnZSAqaHBhZ2U7CiAJc3RydWN0IHBhZ2UgKm9yaWdfaGVhZDsKKwlzdHJ1Y3QgZGV2X3Bh
-Z2VtYXAgKnBnbWFwOwogCWludCByZXM7CiAJdW5zaWduZWQgbG9uZyBwYWdlX2ZsYWdzOwogCkBA
-IC0xMTQ1LDYgKzEyNjIsMTAgQEAgaW50IG1lbW9yeV9mYWlsdXJlKHVuc2lnbmVkIGxvbmcgcGZu
-LCBpbnQgZmxhZ3MpCiAJCXJldHVybiAtRU5YSU87CiAJfQogCisJcGdtYXAgPSBnZXRfZGV2X3Bh
-Z2VtYXAocGZuLCBOVUxMKTsKKwlpZiAocGdtYXApCisJCXJldHVybiBtZW1vcnlfZmFpbHVyZV9k
-ZXZfcGFnZW1hcChwZm4sIGZsYWdzLCBwZ21hcCk7CisKIAlwID0gcGZuX3RvX3BhZ2UocGZuKTsK
-IAlpZiAoUGFnZUh1Z2UocCkpCiAJCXJldHVybiBtZW1vcnlfZmFpbHVyZV9odWdldGxiKHBmbiwg
-ZmxhZ3MpOwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Fri, Jul 13, 2018 at 1:52 AM, Naoya Horiguchi
+<n-horiguchi@ah.jp.nec.com> wrote:
+> On Wed, Jul 04, 2018 at 02:41:06PM -0700, Dan Williams wrote:
+>>     mce: Uncorrected hardware memory error in user-access at af34214200
+>>     {1}[Hardware Error]: It has been corrected by h/w and requires no fu=
+rther action
+>>     mce: [Hardware Error]: Machine check events logged
+>>     {1}[Hardware Error]: event severity: corrected
+>>     Memory failure: 0xaf34214: reserved kernel page still referenced by =
+1 users
+>>     [..]
+>>     Memory failure: 0xaf34214: recovery action for reserved kernel page:=
+ Failed
+>>     mce: Memory error not recovered
+>>
+>> In contrast to typical memory, dev_pagemap pages may be dax mapped. With
+>> dax there is no possibility to map in another page dynamically since dax
+>> establishes 1:1 physical address to file offset associations. Also
+>> dev_pagemap pages associated with NVDIMM / persistent memory devices can
+>> internal remap/repair addresses with poison. While memory_failure()
+>> assumes that it can discard typical poisoned pages and keep them
+>> unmapped indefinitely, dev_pagemap pages may be returned to service
+>> after the error is cleared.
+>>
+>> Teach memory_failure() to detect and handle MEMORY_DEVICE_HOST
+>> dev_pagemap pages that have poison consumed by userspace. Mark the
+>> memory as UC instead of unmapping it completely to allow ongoing access
+>> via the device driver (nd_pmem). Later, nd_pmem will grow support for
+>> marking the page back to WB when the error is cleared.
+>
+> By the way, what happens if madvise(MADV_SOFT_OFFLINE) is called on
+> a dev_pagemap page?  I'm not sure that cmci can be triggered on the
+> nvdimm device, but this injection interface is open for such a case.
+> Maybe simply ignoring the event is an expected behavior?
+
+Yeah, I should explicitly block attempts to MADV_SOFT_OFFLINE a
+dev_pagemap page because they are never onlined. They'll never appear
+on an lru and never be available via the page allocator.
+
+>
+> A few comments/quetions below ...
+>
+>>
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: Christoph Hellwig <hch@lst.de>
+>> Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+>> Cc: Matthew Wilcox <mawilcox@microsoft.com>
+>> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+>> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> ---
+>>  include/linux/mm.h  |    1
+>>  mm/memory-failure.c |  124 ++++++++++++++++++++++++++++++++++++++++++++=
+++++++-
+>>  2 files changed, 123 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index a0fbb9ffe380..374e5e9284f7 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -2725,6 +2725,7 @@ enum mf_action_page_type {
+>>       MF_MSG_TRUNCATED_LRU,
+>>       MF_MSG_BUDDY,
+>>       MF_MSG_BUDDY_2ND,
+>> +     MF_MSG_DAX,
+>>       MF_MSG_UNKNOWN,
+>>  };
+>>
+>> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+>> index 4d70753af59c..161aa1b70212 100644
+>> --- a/mm/memory-failure.c
+>> +++ b/mm/memory-failure.c
+>> @@ -55,6 +55,7 @@
+>>  #include <linux/hugetlb.h>
+>>  #include <linux/memory_hotplug.h>
+>>  #include <linux/mm_inline.h>
+>> +#include <linux/memremap.h>
+>>  #include <linux/kfifo.h>
+>>  #include <linux/ratelimit.h>
+>>  #include "internal.h"
+>> @@ -263,6 +264,39 @@ void shake_page(struct page *p, int access)
+>>  }
+>>  EXPORT_SYMBOL_GPL(shake_page);
+>>
+>> +static unsigned long mapping_size(struct page *page, struct vm_area_str=
+uct *vma)
+>> +{
+>> +     unsigned long address =3D vma_address(page, vma);
+>> +     pgd_t *pgd;
+>> +     p4d_t *p4d;
+>> +     pud_t *pud;
+>> +     pmd_t *pmd;
+>> +     pte_t *pte;
+>> +
+>> +     pgd =3D pgd_offset(vma->vm_mm, address);
+>> +     if (!pgd_present(*pgd))
+>> +             return 0;
+>> +     p4d =3D p4d_offset(pgd, address);
+>> +     if (!p4d_present(*p4d))
+>> +             return 0;
+>> +     pud =3D pud_offset(p4d, address);
+>> +     if (!pud_present(*pud))
+>> +             return 0;
+>> +     if (pud_devmap(*pud))
+>> +             return PUD_SIZE;
+>> +     pmd =3D pmd_offset(pud, address);
+>> +     if (!pmd_present(*pmd))
+>> +             return 0;
+>> +     if (pmd_devmap(*pmd))
+>> +             return PMD_SIZE;
+>> +     pte =3D pte_offset_map(pmd, address);
+>> +     if (!pte_present(*pte))
+>> +             return 0;
+>> +     if (pte_devmap(*pte))
+>> +             return PAGE_SIZE;
+>> +     return 0;
+>> +}
+>> +
+>
+> The function name looks generic, but this function seems to focus on
+> devmap thing, so could you include the word 'devmap' in the name?
+
+Ok.
+
+>
+>>  /*
+>>   * Failure handling: if we can't find or can't kill a process there's
+>>   * not much we can do.       We just print a message and ignore otherwi=
+se.
+>> @@ -292,7 +326,10 @@ static void add_to_kill(struct task_struct *tsk, st=
+ruct page *p,
+>>       }
+>>       tk->addr =3D page_address_in_vma(p, vma);
+>>       tk->addr_valid =3D 1;
+>> -     tk->size_shift =3D compound_order(compound_head(p)) + PAGE_SHIFT;
+>> +     if (is_zone_device_page(p))
+>> +             tk->size_shift =3D ilog2(mapping_size(p, vma));
+>> +     else
+>> +             tk->size_shift =3D compound_order(compound_head(p)) + PAGE=
+_SHIFT;
+>>
+>>       /*
+>>        * In theory we don't have to kill when the page was
+>> @@ -300,7 +337,7 @@ static void add_to_kill(struct task_struct *tsk, str=
+uct page *p,
+>>        * likely very rare kill anyways just out of paranoia, but use
+>>        * a SIGKILL because the error is not contained anymore.
+>>        */
+>> -     if (tk->addr =3D=3D -EFAULT) {
+>> +     if (tk->addr =3D=3D -EFAULT || tk->size_shift =3D=3D 0) {
+>>               pr_info("Memory failure: Unable to find user space address=
+ %lx in %s\n",
+>>                       page_to_pfn(p), tsk->comm);
+>>               tk->addr_valid =3D 0;
+>> @@ -514,6 +551,7 @@ static const char * const action_page_types[] =3D {
+>>       [MF_MSG_TRUNCATED_LRU]          =3D "already truncated LRU page",
+>>       [MF_MSG_BUDDY]                  =3D "free buddy page",
+>>       [MF_MSG_BUDDY_2ND]              =3D "free buddy page (2nd try)",
+>> +     [MF_MSG_DAX]                    =3D "dax page",
+>>       [MF_MSG_UNKNOWN]                =3D "unknown page",
+>>  };
+>>
+>> @@ -1111,6 +1149,83 @@ static int memory_failure_hugetlb(unsigned long p=
+fn, int flags)
+>>       return res;
+>>  }
+>>
+>> +static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+>> +             struct dev_pagemap *pgmap)
+>> +{
+>> +     struct page *page =3D pfn_to_page(pfn);
+>> +     const bool unmap_success =3D true;
+>> +     unsigned long size =3D 0;
+>> +     struct to_kill *tk;
+>> +     LIST_HEAD(tokill);
+>> +     int rc =3D -EBUSY;
+>> +     loff_t start;
+>> +
+>> +     /*
+>> +      * Prevent the inode from being freed while we are interrogating
+>> +      * the address_space, typically this would be handled by
+>> +      * lock_page(), but dax pages do not use the page lock. This
+>> +      * also prevents changes to the mapping of this pfn until
+>> +      * poison signaling is complete.
+>> +      */
+>> +     if (!dax_lock_mapping_entry(page))
+>> +             goto out;
+>> +
+>> +     if (hwpoison_filter(page)) {
+>> +             rc =3D 0;
+>> +             goto unlock;
+>> +     }
+>> +
+>> +     switch (pgmap->type) {
+>> +     case MEMORY_DEVICE_PRIVATE:
+>> +     case MEMORY_DEVICE_PUBLIC:
+>> +             /*
+>> +              * TODO: Handle HMM pages which may need coordination
+>> +              * with device-side memory.
+>> +              */
+>> +             goto unlock;
+>> +     default:
+>> +             break;
+>> +     }
+>> +
+>> +     /*
+>> +      * Use this flag as an indication that the dax page has been
+>> +      * remapped UC to prevent speculative consumption of poison.
+>> +      */
+>> +     SetPageHWPoison(page);
+>
+> The number of hwpoison pages is maintained by num_poisoned_pages,
+> so you can call num_poisoned_pages_inc()?
+
+I don't think we want these pages accounted in num_poisoned_pages().
+We have the badblocks infrastructure in libnvdimm to track how many
+errors and where they are located, and since they can be repaired via
+driver actions I think we should track them separately.
+
+> Related to this, I'm interested in whether/how unpoison_page() works
+> on a hwpoisoned dev_pagemap page.
+
+unpoison_page() is only triggered via freeing pages to the page
+allocator, and that never happens for dev_pagemap / ZONE_DEVICE pages.
