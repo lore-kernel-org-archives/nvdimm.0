@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x244.google.com (mail-oi0-x244.google.com
+ [IPv6:2607:f8b0:4003:c06::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBBB2209831CF
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 21:59:48 -0700 (PDT)
-Subject: [PATCH v6 04/13] filesystem-dax: Set page->index
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 13 Jul 2018 21:49:50 -0700
-Message-ID: <153154379074.34503.9610948190338126460.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3191420986AA8
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 17:01:33 -0700 (PDT)
+Received: by mail-oi0-x244.google.com with SMTP id n84-v6so65258513oib.9
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 17:01:33 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <153142856924.27297.6158046942521802971.stgit@djiang5-desk3.ch.intel.com>
+References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ <153142856924.27297.6158046942521802971.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 17:01:31 -0700
+Message-ID: <CAPcyv4hnTJXj3bVXqU4P6crChgU6CiJZXqqVAW=9JPG1aKiMKA@mail.gmail.com>
+Subject: Re: [PATCH v4 11/11] libnvdimm: add documentation for nvdimm security
+ support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,77 +27,102 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "Schofield, Alison" <alison.schofield@intel.com>, Kees Cook <keescook@chromium.org>, Jonathan Corbet <corbet@lwn.net>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Howells <dhowells@redhat.com>, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of enabling memory_failure() handling for filesystem-dax
-mappings, set ->index to the pgoff of the page. The rmap implementation
-requires ->index to bound the search through the vma interval tree. The
-index is set and cleared at dax_associate_entry() and
-dax_disassociate_entry() time respectively.
+On Thu, Jul 12, 2018 at 1:49 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+> Add theory of operation for the security support that's going into
+> libnvdimm.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/nvdimm/security |   70 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 70 insertions(+)
+>  create mode 100644 Documentation/nvdimm/security
+>
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+Looks ok to me, but I don't know if there's a policy about new
+Documentation needing to be in rst format, or any other concerns?
+Adding Jon...
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 641192808bb6..4de11ed463ce 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -319,18 +319,27 @@ static unsigned long dax_radix_end_pfn(void *entry)
- 	for (pfn = dax_radix_pfn(entry); \
- 			pfn < dax_radix_end_pfn(entry); pfn++)
- 
--static void dax_associate_entry(void *entry, struct address_space *mapping)
-+/*
-+ * TODO: for reflink+dax we need a way to associate a single page with
-+ * multiple address_space instances at different linear_page_index()
-+ * offsets.
-+ */
-+static void dax_associate_entry(void *entry, struct address_space *mapping,
-+		struct vm_area_struct *vma, unsigned long address)
- {
--	unsigned long pfn;
-+	unsigned long size = dax_entry_size(entry), pfn, index;
-+	int i = 0;
- 
- 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
- 		return;
- 
-+	index = linear_page_index(vma, address & ~(size - 1));
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
- 
- 		WARN_ON_ONCE(page->mapping);
- 		page->mapping = mapping;
-+		page->index = index + i++;
- 	}
- }
- 
-@@ -348,6 +357,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
- 		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
- 		page->mapping = NULL;
-+		page->index = 0;
- 	}
- }
- 
-@@ -701,7 +711,7 @@ static void *dax_insert_mapping_entry(struct address_space *mapping,
- 	new_entry = dax_radix_locked_entry(pfn, flags);
- 	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
- 		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping);
-+		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
- 	}
- 
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-
+> diff --git a/Documentation/nvdimm/security b/Documentation/nvdimm/security
+> new file mode 100644
+> index 000000000000..b776ef1f5e41
+> --- /dev/null
+> +++ b/Documentation/nvdimm/security
+> @@ -0,0 +1,70 @@
+> +NVDIMM SECURITY
+> +===============
+> +
+> +1. Introduction
+> +---------------
+> +
+> +With the introduction of Intel DSM v1.7 specification [1], security DSMs are
+> +introduced. The spec added the following security DSMs: "get security state",
+> +"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
+> +"secure erase", and "overwrite". A security_ops data structure has been
+> +added to struct dimm in order to support the security operations and generic
+> +APIs are exposed to allow vendor neutral operations.
+> +
+> +2. Sysfs Interface
+> +------------------
+> +The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
+> +example:
+> +/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
+> +
+> +The "show" function of that attribute will display the security state for
+> +that DIMM. The following states are available: disabled, unlocked, locked,
+> +frozen, and unsupported.
+> +
+> +The "store" function takes several commands when the attribute is written to
+> +in order to support some of the security functionalities:
+> +update - enable security. Add or update current key.
+> +disable - disable enabled security and remove key.
+> +freeze - freeze changing of security states.
+> +erase - generate new ecryption key for DIMM and crypto-scrambles all existing
+> +       user data.
+> +
+> +3. Key Management
+> +-----------------
+> +
+> +The key is associted to the payload by the DIMM id. For example:
+> +# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
+> +8089-a2-1740-00000133
+> +The DIMM id would be provided along with the key payload (passphrase) to
+> +the kernel.
+> +
+> +The security keys are managed on the basis of a single key per DIMM. The
+> +key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
+> +similar to the ATA security specification [2]. A key is initially acquired
+> +via the request_key() kernel API call and retrieved from userspace. It is up to
+> +the user to provide an upcall application to retrieve the key in whatever
+> +fashion meets their security requirements.
+> +
+> +The payload provided to the key can be a 32bytes payload or 64bytes payload
+> +when doing an "update". The payload is viewed as 64 bytes in the following
+> +format:
+> +[32 bytes new key data zero padded][32 bytes current key data zero padded]
+> +However, a 32bytes payload can be provided and will be assumed as the old
+> +key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
+> +It is up to the user upcall function how that's presented as the key payload
+> +to the kernel.
+> +
+> +All the other security functions that require a provided key can accept a
+> +32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
+> +will be ignored and the first 32bytes contains the expected "passphrase".
+> +
+> +4. Unlocking
+> +------------
+> +When the DIMMs are being enumerated by the kernel, the kernel will attempt to
+> +retrieve the key from its keyring. If that fails, it will attempt to
+> +acquire the key from the userspace upcall function. This is the only time
+> +a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
+> +until reboot.
+> +
+> +[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
+> +[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
