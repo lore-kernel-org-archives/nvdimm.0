@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 270EE20968910
- for <linux-nvdimm@lists.01.org>; Wed, 11 Jul 2018 09:01:10 -0700 (PDT)
-Subject: [PATCH v2] acpi/nfit: fix cmd_rc for acpi_nfit_ctl to always return
- a value
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 11 Jul 2018 09:01:09 -0700
-Message-ID: <153132483983.35487.460701028810915794.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 42F2A209831FB
+ for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 21:59:38 -0700 (PDT)
+Subject: [PATCH v6 02/13] device-dax: Enable page_mapping()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Jul 2018 21:49:40 -0700
+Message-ID: <153154377993.34503.14114016873062907260.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,49 +22,167 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, Jan Kara <jack@suse.cz>, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-cmd_rc is passed in by reference to the acpi_nfit_ctl() function and the
-caller expects a value returned. However, when the package is pass through
-via the ND_CMD_CALL command, cmd_rc is not touched. Make sure cmd_rc is
-always set.
+In support of enabling memory_failure() handling for device-dax
+mappings, set the ->mapping association of pages backing device-dax
+mappings. The rmap implementation requires page_mapping() to return the
+address_space hosting the vmas that map the page.
 
-Fixes: aef253382266 ("libnvdimm, nfit: centralize command status translation")
+The ->mapping pointer is never cleared. There is no possibility for the
+page to become associated with another address_space while the device is
+enabled. When the device is disabled the 'struct page' array for the
+device is destroyed / later reinitialized to zero.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/dax/device.c |   55 +++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 38 insertions(+), 17 deletions(-)
 
-v2:
-- Fix unchecked dereference (Dan Carpenter)
-
-
- drivers/acpi/nfit/core.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7327b6a11ca9..0f47917b8ef1 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -408,6 +408,8 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	const guid_t *guid;
- 	int rc, i;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index ad5e7b4a15dc..95cfcfd612df 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -245,12 +245,11 @@ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ }
  
-+	if (cmd_rc)
-+		*cmd_rc = -EINVAL;
- 	func = cmd;
- 	if (cmd == ND_CMD_CALL) {
- 		call_pkg = buf;
-@@ -518,6 +520,8 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		 * If we return an error (like elsewhere) then caller wouldn't
- 		 * be able to rely upon data returned to make calculation.
- 		 */
-+		if (cmd_rc)
-+			*cmd_rc = 0;
- 		return 0;
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
+ 
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+@@ -272,20 +271,19 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
  	}
  
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
++	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
+ }
+ 
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
+ 
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+@@ -321,22 +319,21 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, pfn,
++	return vmf_insert_pfn_pmd(vmf->vma, vmf->address, vmf->pmd, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+ 	struct dax_region *dax_region;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+@@ -373,14 +370,14 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
+ 
+-	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, pfn,
++	return vmf_insert_pfn_pud(vmf->vma, vmf->address, vmf->pud, *pfn,
+ 			vmf->flags & FAULT_FLAG_WRITE);
+ }
+ #else
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf)
++				struct vm_fault *vmf, pfn_t *pfn)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+@@ -389,8 +386,10 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
+ {
+-	int rc, id;
+ 	struct file *filp = vmf->vma->vm_file;
++	unsigned long fault_size;
++	int rc, id;
++	pfn_t pfn;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+@@ -400,17 +399,39 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 	id = dax_read_lock();
+ 	switch (pe_size) {
+ 	case PE_SIZE_PTE:
+-		rc = __dev_dax_pte_fault(dev_dax, vmf);
++		fault_size = PAGE_SIZE;
++		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PMD:
+-		rc = __dev_dax_pmd_fault(dev_dax, vmf);
++		fault_size = PMD_SIZE;
++		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	case PE_SIZE_PUD:
+-		rc = __dev_dax_pud_fault(dev_dax, vmf);
++		fault_size = PUD_SIZE;
++		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+ 		break;
+ 	default:
+ 		rc = VM_FAULT_SIGBUS;
+ 	}
++
++	if (rc == VM_FAULT_NOPAGE) {
++		unsigned long i;
++
++		/*
++		 * In the device-dax case the only possibility for a
++		 * VM_FAULT_NOPAGE result is when device-dax capacity is
++		 * mapped. No need to consider the zero page, or racing
++		 * conflicting mappings.
++		 */
++		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
++			struct page *page;
++
++			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
++			if (page->mapping)
++				continue;
++			page->mapping = filp->f_mapping;
++		}
++	}
+ 	dax_read_unlock(id);
+ 
+ 	return rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
