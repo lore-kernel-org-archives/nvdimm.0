@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8F94209605C1
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 16:34:07 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id C69DFAC0217
- for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 08:34:01 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v13 4/5] ndctl, documentation: add man page for monitor
-Date: Sat, 14 Jul 2018 08:33:49 +0900
-Message-Id: <20180713233350.7148-5-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
-References: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id A59F32097DD18
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:33 -0700 (PDT)
+Subject: [PATCH v2 14/14] libnvdimm,
+ namespace: Publish page structure init state / control
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:01:35 -0700
+Message-ID: <153176049568.12695.7468849534191505277.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,155 +19,117 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tokunaga.keiich@jp.fujitsu.com
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is used to add man page for ndctl monitor command.
+Applications may want to know that page structure initialization is
+complete rather than be subject to delays at first DAX fault. Also,
+page structure initialization consumes CPU resources impacting
+application performance, so a environment may want to wait before
+considering the system fully initialized.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Provide a sysfs attribute to display the current state, and when
+written with 'sync' complete memmap initialization.
+
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ndctl/Makefile.am       |   3 +-
- Documentation/ndctl/ndctl-monitor.txt | 108 ++++++++++++++++++++++++++
- 2 files changed, 110 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-monitor.txt
+ drivers/nvdimm/pfn_devs.c |   49 ++++++++++++++++++++++++++++++++++-----------
+ mm/page_alloc.c           |    1 +
+ 2 files changed, 38 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 4fd9636..a30b139 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -46,7 +46,8 @@ man1_MANS = \
- 	ndctl-inject-error.1 \
- 	ndctl-inject-smart.1 \
- 	ndctl-update-firmware.1 \
--	ndctl-list.1
-+	ndctl-list.1 \
-+	ndctl-monitor.1
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 147c62e2ef2b..15ab96e2a9b5 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -1,15 +1,6 @@
+-/*
+- * Copyright(c) 2013-2016 Intel Corporation. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of version 2 of the GNU General Public License as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- */
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2013-2018 Intel Corporation. All rights reserved. */
++#include <linux/memory_hotplug.h>
+ #include <linux/memremap.h>
+ #include <linux/blkdev.h>
+ #include <linux/device.h>
+@@ -103,6 +94,39 @@ static ssize_t mode_store(struct device *dev,
+ }
+ static DEVICE_ATTR_RW(mode);
  
- CLEANFILES = $(man1_MANS)
++static ssize_t memmap_state_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
++	struct memmap_async_state *async = &nd_pfn->async;
++
++	return sprintf(buf, "%s\n", bitmap_weight(async->active,
++				NR_MEMMAP_THREADS) ? "active" : "idle");
++}
++
++static ssize_t memmap_state_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	int i;
++	struct nd_pfn *nd_pfn = to_nd_pfn_safe(dev);
++	struct memmap_async_state *async = &nd_pfn->async;
++
++	if (!sysfs_streq(buf, "sync"))
++		return -EINVAL;
++
++	for (i = 0; i < NR_MEMMAP_THREADS; i++) {
++		struct memmap_init_pages *thread = &async->page_init[i];
++
++		if (!test_bit(i, async->active))
++			continue;
++		async_synchronize_cookie_domain(thread->cookie,
++				&memmap_pages_domain);
++	}
++
++	return len;
++}
++static DEVICE_ATTR_RW(memmap_state);
++
+ static ssize_t align_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -279,6 +303,7 @@ static struct attribute *nd_pfn_attributes[] = {
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_size.attr,
+ 	&dev_attr_supported_alignments.attr,
++	&dev_attr_memmap_state.attr,
+ 	NULL,
+ };
  
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-new file mode 100644
-index 0000000..304b6e7
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -0,0 +1,108 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-monitor(1)
-+================
-+
-+NAME
-+----
-+ndctl-monitor - Monitor the smart events of nvdimm objects
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl monitor' [<options>]
-+
-+DESCRIPTION
-+-----------
-+Ndctl monitor is used for monitoring the smart events of nvdimm
-+objects and dumping the json format notifications to syslog, standard
-+output or a logfile.
-+
-+The objects to monitor and smart events to notify can be selected by
-+setting options and/or the default configuration file
-+(/etc/ndctl/monitor.conf). Both of the values in configuration file
-+and in options will work. If there is a conflict, the values in
-+options will override the values in configuration file. The changed
-+values in configuration file will work after the monitor is restarted.
-+
-+The smart threshold evnet alarm of dimm will be turned on when the
-+monitor gets started, if it is set off.
-+
-+EXAMPLES
-+--------
-+
-+Run a monitor as a daemon to monitor DIMMs on bus "nfit_test.1"
-+[verse]
-+ndctl monitor --bus nfit_test.1 --daemon
-+
-+Run a monitor as a one-shot command and output the notifications to
-+/var/log/ndctl.log
-+[verse]
-+ndctl monitor -log /var/log/ndctl.log
-+
-+Run a monitor daemon as a system service
-+[verse]
-+systemctl start ndctl-monitor.service
-+
-+OPTIONS
-+-------
-+-b::
-+--bus=::
-+	Enforce that the operation only be carried on devices that are
-+	attached to the given bus. Where 'bus' can be a provider name
-+	or a bus id number.
-+
-+-d::
-+--dimm=::
-+	A 'nmemX' device name, or dimm id number. Select the devices to
-+	monitor reference the given dimm.
-+
-+-r::
-+--region=::
-+	A 'regionX' device name, or a region id number. The keyword 'all'
-+	can be specified to carry out the operation on every region in
-+	the system, optionally filtered by bus id (see --bus= option).
-+
-+-n::
-+--namespace=::
-+	A 'namespaceX.Y' device name, or namespace region plus id tuple
-+	'X.Y'.
-+
-+-l <file | syslog | standard>::
-+--log=<file | syslog | standard>::
-+	Output notifications to <file>, syslog or standard output.
-+
-+--daemon::
-+	Run a monitor as a daemon.
-+
-+-D::
-+--dimm-event=::
-+	Name of an smart health event from the following:
-+	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
-+	   below the pre-programmed threshold.
-+	- "dimm-media-temperature": NVDIMM Media temperature value has
-+	   gone above the pre-programmed threshold.
-+	- "dimm-controller-temperature": NVDIMM Controller temperature
-+	   value has gone above the pre-programmed threshold.
-+	- "dimm-health-state": NVDIMM Normal Health Status has changed
-+	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a
-+	   unclean shutdown.
-+
-+The monitor will attempt to enable the alarm control bits for all
-+specified events.
-+
-+-u::
-+--human::
-+	Output monitor notification as human friendly json format instead
-+	of the default machine friendly json format.
-+
-+COPYRIGHT
-+---------
-+Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
-+<http://gnu.org/licenses/gpl.html>. This is free software: you are
-+free to change and redistribute it. There is NO WARRANTY, to the
-+extent permitted by law.
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-list[1], linkndctl:ndctl-inject-smart[1]
--- 
-2.18.0
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index b9615a59d29d..2c87165594db 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5457,6 +5457,7 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
+ 
+ ASYNC_DOMAIN_EXCLUSIVE(memmap_init_domain);
+ ASYNC_DOMAIN_EXCLUSIVE(memmap_pages_domain);
++EXPORT_SYMBOL_GPL(memmap_pages_domain);
+ 
+ static void __meminit memmap_init_one(unsigned long pfn, unsigned long zone,
+ 		int nid, enum memmap_context context, struct dev_pagemap *pgmap)
 
 _______________________________________________
 Linux-nvdimm mailing list
