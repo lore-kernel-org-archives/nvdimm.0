@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from relay.sgi.com (relay1.sgi.com [192.48.180.66])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A03FB21BADAB2
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 15:54:22 -0700 (PDT)
-Message-Id: <20180730195548.580717146@stormcage.americas.sgi.com>
-References: <20180730195545.795802877@stormcage.americas.sgi.com>
-Date: Mon, 30 Jul 2018 14:55:46 -0500
-From: Mike Travis <mike.travis@hpe.com>
-Subject: [PATCH 1/1] x86, pmem,
- acpi: Remove excessive ACPI Large Reference Count warnings
-Content-Disposition: inline; filename=incr-acpi-ref-cnt-warning
+ by ml01.01.org (Postfix) with ESMTPS id 75DF62097DD18
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:23 -0700 (PDT)
+Subject: [PATCH v2 12/14] libnvdimm,
+ pmem: Initialize the memmap in the background
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:01:25 -0700
+Message-ID: <153176048517.12695.1997102156305453692.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,51 +19,150 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>, Russ Anderson <russ.anderson@hpe.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the Intel BIOS support for 8 processor sockets with a full complement
-of NVDIMMS potentially installable, and there are empty sockets without
-NVDIMMS, there is an extremely large amount of the following warnings:
+Arrange for the pmem driver to call memmap_sync() when it is asked to
+produce a valid pfn. The infrastructure is housed in the 'nd_pfn'
+device which implies that the async init support only exists for
+platform defined persistent memory, not the legacy / debug memmap=ss!nn
+facility.
 
-ACPI Warning: Large Reference Count (0x1001) in object ffff99453fc71750,
-	Type=0x0A
+Another reason to restrict the capability to the 'nd_pfn' device case is
+that nd_pfn devices have sysfs infrastructure to communicate the
+memmap initialization state to userspace.
 
-On a 4 socket system with 4 NVDIMMs there were over 6000 of these warning
-messages and it has been seem on systems from 4 to 32 sockets.
+The sysfs publication of memmap init state is saved for a later patch.
 
-Through some guidance from the BIOS developers and testing, it appears
-that simply bumping up the threshold for warnings from 0x1000 to 0x2000
-eliminates these messages.  Changing them to be ACPI DEBUG messages, or
-even removing them are other options, but it would then defeat the purpose
-of the warnings as the problem would effectively be hidden.
-
-Reviewed-by: Dimitri Sivanich <dimitri.sivanich@hpe.com>
-Tested-by: Russ Anderson <russ.anderson@hpe.com>
-Signed-off-by: Mike Travis <mike.travis@hpe.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/acpi/acconfig.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvdimm/nd.h             |    2 ++
+ drivers/nvdimm/pmem.c           |   16 ++++++++++++----
+ drivers/nvdimm/pmem.h           |    1 +
+ tools/testing/nvdimm/pmem-dax.c |    7 ++++++-
+ 4 files changed, 21 insertions(+), 5 deletions(-)
 
---- linux-4.12.orig/include/acpi/acconfig.h
-+++ linux-4.12/include/acpi/acconfig.h
-@@ -123,7 +123,7 @@
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 32e0364b48b9..ee4f76fb0cb5 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -12,6 +12,7 @@
+  */
+ #ifndef __ND_H__
+ #define __ND_H__
++#include <linux/memmap_async.h>
+ #include <linux/libnvdimm.h>
+ #include <linux/badblocks.h>
+ #include <linux/blkdev.h>
+@@ -208,6 +209,7 @@ struct nd_pfn {
+ 	unsigned long npfns;
+ 	enum nd_pfn_mode mode;
+ 	struct nd_pfn_sb *pfn_sb;
++	struct memmap_async_state async;
+ 	struct nd_namespace_common *ndns;
+ };
  
- /* Maximum object reference count (detects object deletion issues) */
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index c430536320a5..a1158181adc2 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -22,6 +22,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
++#include <linux/memmap_async.h>
+ #include <linux/badblocks.h>
+ #include <linux/memremap.h>
+ #include <linux/vmalloc.h>
+@@ -228,8 +229,13 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 					PFN_PHYS(nr_pages))))
+ 		return -EIO;
+ 	*kaddr = pmem->virt_addr + offset;
+-	if (pfn)
++	if (pfn) {
++		struct dev_pagemap *pgmap = &pmem->pgmap;
++		struct memmap_async_state *async = pgmap->async;
++
+ 		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++		memmap_sync(*pfn, nr_pages, async);
++	}
  
--#define ACPI_MAX_REFERENCE_COUNT        0x1000
-+#define ACPI_MAX_REFERENCE_COUNT        0x2000
+ 	/*
+ 	 * If badblocks are present, limit known good range to the
+@@ -310,13 +316,15 @@ static void fsdax_pagefree(struct page *page, void *data)
+ 	wake_up_var(&page->_refcount);
+ }
  
- /* Default page size for use in mapping memory for operation regions */
+-static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap)
++static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap,
++		struct memmap_async_state *async)
+ {
+ 	dev_pagemap_get_ops();
+ 	if (devm_add_action_or_reset(dev, pmem_release_pgmap_ops, pgmap))
+ 		return -ENOMEM;
+ 	pgmap->type = MEMORY_DEVICE_FS_DAX;
+ 	pgmap->page_free = fsdax_pagefree;
++	pgmap->async = async;
  
-
--- 
+ 	return 0;
+ }
+@@ -379,7 +387,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	pmem->pfn_flags = PFN_DEV;
+ 	pmem->pgmap.ref = &q->q_usage_counter;
+ 	if (is_nd_pfn(dev)) {
+-		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
++		if (setup_pagemap_fsdax(dev, &pmem->pgmap, &nd_pfn->async))
+ 			return -ENOMEM;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap,
+ 				pmem_freeze_queue);
+@@ -393,7 +401,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	} else if (pmem_should_map_pages(dev)) {
+ 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
+ 		pmem->pgmap.altmap_valid = false;
+-		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
++		if (setup_pagemap_fsdax(dev, &pmem->pgmap, NULL))
+ 			return -ENOMEM;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap,
+ 				pmem_freeze_queue);
+diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+index a64ebc78b5df..93d226ea1006 100644
+--- a/drivers/nvdimm/pmem.h
++++ b/drivers/nvdimm/pmem.h
+@@ -1,6 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef __NVDIMM_PMEM_H__
+ #define __NVDIMM_PMEM_H__
++#include <linux/memmap_async.h>
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
+ #include <linux/pfn_t.h>
+diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
+index d4cb5281b30e..63151b75615c 100644
+--- a/tools/testing/nvdimm/pmem-dax.c
++++ b/tools/testing/nvdimm/pmem-dax.c
+@@ -42,8 +42,13 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 	}
+ 
+ 	*kaddr = pmem->virt_addr + offset;
+-	if (pfn)
++	if (pfn) {
++		struct dev_pagemap *pgmap = &pmem->pgmap;
++		struct memmap_async_state *async = pgmap->async;
++
+ 		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++		memmap_sync(*pfn, nr_pages, async);
++	}
+ 
+ 	/*
+ 	 * If badblocks are present, limit known good range to the
 
 _______________________________________________
 Linux-nvdimm mailing list
