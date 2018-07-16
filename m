@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5D572097E27C
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 11:13:26 -0700 (PDT)
-From: "Jiang, Dave" <dave.jiang@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.18-rc5
-Date: Thu, 12 Jul 2018 18:13:12 +0000
-Message-ID: <1531419190.22963.6.camel@intel.com>
-Content-Language: en-US
-Content-ID: <13D7101256C4E14B9EBC5DA22B9A4B0B@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 08AC22097DD14
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 14:00:22 -0700 (PDT)
+Date: Mon, 16 Jul 2018 14:00:14 -0700
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH v2 05/14] mm, memremap: Up-level foreach_order_pgoff()
+Message-ID: <20180716210014.GA1607@bombadil.infradead.org>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <153176044796.12695.10692625606054072713.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <153176044796.12695.10692625606054072713.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,68 +25,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, akpm@linux-foundation.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from
+On Mon, Jul 16, 2018 at 10:00:48AM -0700, Dan Williams wrote:
+> The foreach_order_pgoff() helper takes advantage of the ability to
+> insert multi-order entries into a radix. It is currently used by
+> devm_memremap_pages() to minimize the number of entries in the pgmap
+> radix. Instead of dividing a range by a constant power-of-2 sized unit
+> and inserting an entry for each unit, it determines the maximum
+> power-of-2 sized entry (subject to alignment offset) that can be
+> inserted at each iteration.
+> 
+> Up-level this helper so it can be used for populating other radix
+> instances. For example asynchronous-memmap-initialization-thread lookups
+> arriving in a follow on change.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-4.18-rc5
+Hopefully by the time you're back, I'll have this code replaced with
+the XArray.  Here's my proposed API:
 
-...to receive, three fixes, a test unit fix, and a ratelimit change on output.
+	old = xa_store_range(xa, first, last, ptr, GFP_KERNEL);
 
-The following changes since commit 7daf201d7fe8334e2d2364d4e8ed3394ec9af819:
+and then you'd simply use xa_for_each() as an iterator.  You'd do one
+iteration for each range in the XArray, not for each entry occupied.
+So there's a difference between:
 
-  Linux 4.18-rc2 (2018-06-24 20:54:29 +0800)
+	xa_store(xa, 1, ptr, GFP_KERNEL);
+	xa_store(xa, 2, ptr, GFP_KERNEL);
+	xa_store(xa, 3, ptr, GFP_KERNEL);
 
-are available in the Git repository at:
+and
 
-  git@gitolite.kernel.org:pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-fixes-4.18-rc5
+	xa_store_range(xa, 1, 3, ptr, GFP_KERNEL);
 
-for you to fetch changes up to ee6581ceba7f8314b81b2f2a81f1cf3f67c679e2:
+	index = 0; i = 0;
+	xa_for_each(xa, p, index, ULONG_MAX, XA_PRESENT)
+		i++;
 
-  nfit: fix unchecked dereference in acpi_nfit_ctl (2018-07-11 10:25:24 -0700)
-
-----------------------------------------------------------------
-* fix one ensures that a variable passed in by reference to
-acpi_nfit_ctl is always set to a value. An incremental patch is provided
-due to notice from testing in -next. The rest of the commits did not
-exhibit issues.
-
-* fix two fixes a return path in nsio_rw_bytes() that was not
-returning "bytes remain" as expected for the function.
-
-* fix three addresses an issue where applications polling on
-scrub-completion for the NVDIMM may falsely wakeup and read the wrong
-state value and cause hang.
-
-* the test unit changed the persistent capability to reflect the correct
-attribute it's testing.
-
-* An output ratelimit to dev_info is introduced to the dax device
-check_vma() function since this is easily triggered from userspace.
-
-----------------------------------------------------------------
-Dan Williams (2):
-      libnvdimm, pmem: Fix memcpy_mcsafe() return code handling in nsio_rw_bytes()
-      acpi, nfit: Fix scrub idle detection
-
-Dave Jiang (2):
-      acpi/nfit: fix cmd_rc for acpi_nfit_ctl to always return a value
-      nfit: fix unchecked dereference in acpi_nfit_ctl
-
-Jeff Moyer (1):
-      dev-dax: check_vma: ratelimit dev_info-s
-
-Vishal Verma (1):
-      tools/testing/nvdimm: advertise a write cache for nfit_test
-
- drivers/acpi/nfit/core.c         | 48 +++++++++++++++++++++++++++++++---------
- drivers/acpi/nfit/nfit.h         |  1 +
- drivers/dax/device.c             | 12 ++++++----
- drivers/nvdimm/claim.c           |  1 +
- tools/testing/nvdimm/test/nfit.c |  3 +--
- 5 files changed, 48 insertions(+), 17 deletions(-)
+will return i = 3 for the first case and i = 1 for the second.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
