@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 02733203369C2
- for <linux-nvdimm@lists.01.org>; Thu,  5 Jul 2018 13:22:11 -0700 (PDT)
-Subject: [PATCH v2 00/11] Adding security support for nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 05 Jul 2018 13:22:10 -0700
-Message-ID: <153082172527.61422.13689320279597181069.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C36F320988442
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:33 -0700 (PDT)
+Subject: [PATCH v2 09/14] s390, dcssblk: Allow a NULL-pfn to ->direct_access()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:01:08 -0700
+Message-ID: <153176046886.12695.7487453664953251895.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,66 +22,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements security support for nvdimm. Mostly adding
-new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
-adding generic support libnvdimm for other vendors. The most important
-security features are unlocking locked nvdimms, and updating/setting security
-passphrase to nvdimms.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-Security folks, thanks in advance for taking a look at my key management
-implementation and making sure that I'm doing something sane. Mainly you'll
-want to review patches 2, 4, and 5 as most relevant ones that need scrutiny.
+dcssblk_direct_access() needs to check the validity of pointer pfn for
+NULL assignment. If pfn equals to NULL, it doesn't need to calculate the
+value. This is in support of asynchronous memmap init and avoid page
+lookups when possible.
 
-v2:
-- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
-- Moved security ring relevant code to dimm_devs.c. (Dan)
-- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
-- Added routine to return security_ops based on family supplied. (Dan)
-- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
-- Allocate firmware package on stack. (Dan)
-- Added missing frozen state detection when retrieving security state.
-
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/s390/block/dcssblk.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Dave Jiang (11):
-      nfit: adding support for Intel DSM 1.7 commands
-      libnvdimm: create keyring to store security keys
-      nfit/libnvdimm: store dimm id as a member to struct nvdimm
-      nfit/libnvdimm: adding unlock of nvdimm support for Intel DIMMs
-      nfit/libnvdimm: adding set passphrase support for Intel nvdimms
-      nfit/libnvdimm: adding disable passphrase support to Intel nvdimm.
-      nfit/libnvdimm: adding freeze security support to Intel nvdimm
-      nfit/libnvdimm: adding support for issue secure erase DSM to Intel nvdimm
-      nfit_test: adding context to dimm_dev for nfit_test
-      nfit_test: adding test support for Intel nvdimm security DSMs
-      libnvdimm: adding documentation for nvdimm security support
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index ed607288e696..a645b2c93c34 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -923,8 +923,9 @@ __dcssblk_direct_access(struct dcssblk_dev_info *dev_info, pgoff_t pgoff,
+ 
+ 	dev_sz = dev_info->end - dev_info->start + 1;
+ 	*kaddr = (void *) dev_info->start + offset;
+-	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+-			PFN_DEV|PFN_SPECIAL);
++	if (pfn)
++		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
++				PFN_DEV|PFN_SPECIAL);
+ 
+ 	return (dev_sz - offset) / PAGE_SIZE;
+ }
 
-
- Documentation/nvdimm/security    |   70 ++++++
- drivers/acpi/nfit/Makefile       |    2 
- drivers/acpi/nfit/core.c         |   72 +++++-
- drivers/acpi/nfit/intel.c        |  361 ++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/intel.h        |  104 +++++++++
- drivers/acpi/nfit/nfit.h         |   24 --
- drivers/nvdimm/bus.c             |    2 
- drivers/nvdimm/core.c            |    7 +
- drivers/nvdimm/dimm.c            |    7 +
- drivers/nvdimm/dimm_devs.c       |  426 ++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h         |    4 
- drivers/nvdimm/nd.h              |    2 
- include/linux/libnvdimm.h        |   41 +++-
- tools/testing/nvdimm/Kbuild      |    1 
- tools/testing/nvdimm/test/nfit.c |  227 +++++++++++++++++++-
- 15 files changed, 1293 insertions(+), 57 deletions(-)
- create mode 100644 Documentation/nvdimm/security
- create mode 100644 drivers/acpi/nfit/intel.c
- create mode 100644 drivers/acpi/nfit/intel.h
-
---
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
