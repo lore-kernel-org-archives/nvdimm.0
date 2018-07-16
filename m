@@ -1,71 +1,179 @@
-From: =?utf-8?B?5pa95b+16IyX?= <jllczlkvo-X0n3x739vJheoWH0uzbU5w@public.gmane.org>
-Subject: =?utf-8?B?5pSv5LuY5a6d57qi5YyF5Y+j5Luk5pe26Ze06KGo77yMIOaVmeS9oOWmguS9lemihuWPluaUr+S7mA==?=
- =?utf-8?B?5a6d5aSn6aKd57qi5YyF77yB77yB77yB?=
-Date: Mon, 16 Jul 2018 10:04:01 +0800
-Message-ID: <20180716100415330852@mfido.net>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [RFC v3 1/2] libnvdimm: Add flush callback for virtio pmem
+Date: Mon, 16 Jul 2018 04:13:47 -0400 (EDT)
+Message-ID: <9008103.50980761.1531728827436.JavaMail.zimbra@redhat.com>
+References: <20180713075232.9575-1-pagupta@redhat.com> <20180713075232.9575-2-pagupta@redhat.com> <20180713163559.692aca30@doriath>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180713163559.692aca30@doriath>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, jack@suse.cz, stefanha@redhat.com, dan j williams <dan.j.williams@intel.com>, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross zwisler <ross.zwisler@intel.com>, david@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, hch@infradead.org, mst@redhat.com, niteshnarayanlal@hotmail.com, imammedo@redhat.com, eblake@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
-5pSv5LuY5a6d57qi5YyF5Y+j5Luk5pe26Ze06KGo77yMIOaVmeS9oOWmguS9lemihuWPluaUr+S7
-mOWuneWkp+minee6ouWMhe+8ge+8ge+8gQ0K5pyA5aW955qE5aSp5rCU5LiN5piv5rC46L+c6YO9
-5piv6Imz6Ziz5aSp77yM6ICM5piv5bC9566h546w5Zyo5ruC5rKx5aSn6Zuo77yM5aSq6Ziz5piO
-5aSp5L6d5pen5Lya6Lez5Ye65Zyw5bmz57q/44CC5LiK5qyh5pSv5LuY5a6d57qi5YyF5Yqg56CB
-MTDkur/otY/ph5Hov4fljrvmnInlh6DkuKrmnIjml7bpl7TkuobvvIzkvZnmuKnmnKrov4fvvIzm
-lK/ku5jlrp3nuqLljIXlho3mrKHmnaXooq3vvIzkvYbmmK/kuI7kuIrmrKHkuI3lkIznmoTmmK/m
-nKzmrKHlop7liqDkuobkvZnpop3lrp3nuqLljIXvvIzogIzkuJTnuqLljIXph5Hpop3nu6fnu63k
-uIrljYfvvIzmnIDpq5jlj6/ojrflvpc5OeWFg+OAgg0K5L2g55+l6YGT5oiR5a+55L2g5LiN5LuF
-5LuF5piv5Zac5qyi77yM5pSv5LuY5a6d57qi5YyF6L+Z5qC355qE5rS75Yqo55yf55qE5piv5aSq
-5oyv5aWL5Lq65b+D5LqG77yM55u45L+h57uP6L+H5Y675bm055qE5pSv5LuY5a6d5rS75Yqo5Lul
-5ZCO77yM5aSn5a625a+55pSv5LuY5a6d57qi5YyF5rS75Yqo5Lmf5bm25LiN6ZmM55Sf77yM5LiN
-5bCx5piv6YKj5Liq5q+P5qyh5omN6aKG5Yeg5YiG5Yeg5YiG55qE5rS75Yqo5ZCX77yf5oiR5ZGK
-6K+J5L2g77yM5L2g6L+Z5qC35YOP5bCx6ZSZ5LqG77yM5pSv5LuY5a6d57qi5YyF5rS75Yqo5Y+I
-5Ye65paw546p5rOV5LqG77yM5L2Z6aKd5a6d57qi5YyF77yM5aSn6aKd57qi5YyF5b6I5aSaDQrv
-vIjku4rlpKnpoobnmoTvvIzku4rlpKnnlKjmjonlk6bvvIzkuI3nhLbnrKwy5aSp6aKG5LiN5LqG
-77yJDQrlj4LkuI7mlrnlvI/vvJoNCg0K5omT5byA5pSv5LuY5a6d6aaW6aG15pCc57Si4oCcNTEz
-MjU2NjM0IOKAne+8jOWNs+WPr+mihue6ouWMhX4g5pyA6auY5Y+v5Lul6aKG5Y+WOTnlhYPjgIIN
-Cg0K6L+Z5Liq5L2Z6aKd5a6d5aSn57qi5YyF77yM5LiN5LuF6ZmQ5LqO57q/5LiL5ZWG6LaF55So
-77yM6L+Y5Y+v5Lul6L+Y5L+h55So5Y2h77yM5Lqk5omL5py66LS577yM5YWF5rC055S16LS577yM
-5reY5a6d6LSt54mp6YO95Y+v5Lul55So5o6J77yMM+WkqeacieaViOacn+OAgg0KDQrpgJrnlKjn
-uqLljIXln7rmnKzpg73mmK8y5YiG55qE77yM5L2G5piv5LiA5a6a6KaB54K55LiL6Z2i6L+Z5Liq
-56uL5Y2z6aKG5Y+W77yM6YeM6Z2i6YO95piv5aSn5YyF5ZOmfg0KDQrkv53lrZjlpb3mkJzntKLn
-oIHvvJo1MTMyNTY2MzQgICAg6YeN54K55piv77ya5q+P5aSp6YO96IO96aKG77yB5q+P5aSp6YO9
-6IO96aKG77yB5q+P5aSp6YO96IO96aKG77yB5raI6LS55oq155So77yM6aKG5Y+W5aSa5bCR5oq1
-55So5aSa5bCR77yM5Y+q6KaB5raI6LS56YeR6aKd5aSn5LqO57qi5YyF6YeR6aKd5Y2z5Y+v5oq1
-5omj44CCDQrlrozmlbTnmoTmtYHnqIvvvJoNCjHjgIHmkJzntKLnuqLljIXnvJblj7figJw1MTMy
-NTY2MzQg4oCd77yM6L+b5YWl6aKG5Y+W57qi5YyF55WM6Z2iDQoy44CB54K55Ye76aKG5Y+W5L2Z
-6aKd5a6d57qi5YyFKOacgOmHjeimgeS4gOatpe+8gSEhISkNCjPjgIHpooblj5blroznuqLljIXl
-kI7vvIzmiavnoIHkv53lrZjnmoTmlLbmrL7noIHjgIINCjTjgIHku5jmrL7nrKzkuIDmraXlhYjk
-u5jnrKzkuIDkuKrkvZnpop3nuqLljIUNCjXjgIHku5jlrozkvZnpop3nuqLljIXku6XlkI7vvIzn
-u6fnu63miavmj4/mlLbmrL7noIHvvIzpgInmi6nnlKjkvZnpop3lrp3mlK/ku5go5LiA5a6a6KaB
-56Gu5L+d5L2Z6aKd5a6d6YeM5pyJ6ZKx77yM6ICM5LiU5aSn5LqO5L2Z6aKd57qi5YyF55qE6ZKx
-77yM5LuY5qy+6YeR6aKd5b+F6aG75aSn5LqO5L2Z6aKd57qi5YyF6YeR6aKd77yM5oiR6L+Z6L65
-5LiA6Iis6YO95piv5aSa5LuYMeWIhumSsSkNCjbjgIHlrozmiJANCuiAgemTgeS7rO+8jOeOqeaz
-leWSjOaWueWQkeW3sue7j+S6pOe7meS9oOS7rOS6hu+8jOWJqeS4i+eahOeci+S9oOS7rOS6huOA
-gg0K5pSv5LuY5a6d6YeM6Z2i55qE5bel6IO95pyJ5b6I5aSaLOWMheaLrOeQhui0oiDlgJ/mrL4g
-5pSv5LuYIOetieWKn+iDvSzmiJHku6znu4/luLjnlKjnmoTlj6/og73lsLHmmK/mlK/ku5jlrp3n
-moTkvZnpop3lrp0s6ICM5L2Z6aKd5a6d5Lmf5pu05piv5LiA5Liq5q+U6ZO26KGM5Yip5oGv5pu0
-6auY55qE5LiA5Liq55CG6LSi5pa55byPLOWwseWcqOaIkeS7rOW5s+aXtuS9v+eUqOaUr+S7mOWu
-neS7mOasvueahOaXtuWAmSzkvZnpop3lrp3kuZ/kvJrnu5nmiJHku6zlvojlpJrnpo/liKks6ams
-5LqR6L+Z5qyh5Y+I5piv5LiA5Liq5aSn5oubLOWwseaYr+S9memineWuneS5n+imgeWPguWKoOWP
-kee6ouWMheeahOemj+WIqSzogIzov5nmrKHlj5HmlL7nmoTnuqLljIXkuZ/kuI3lsJEs5YW25a6e
-5oiR5Lus55yL5Yiw5aaC5q2kLOaIkeiHquW3seW/g+mHjOS5n+aYr+acieeCueaMuua/gOWKqOea
-hCzmr5Xnq5/mlK/ku5jlrp3liqjkuI3liqjlsLHmkJ7npo/liKks5Y+R57qi5YyFLOaIkeS7rOaa
-guS4lOWFiOS4jeeuoeS7lueahOe6ouWMheacieWkmuWkpyzkuZ/mmK/kuIDku73lv4PmhI/kuoYs
-5omA5Lul5oiR5Lus5Lmf5piv6KaB5Y675oqK5o+h5pSv5LuY5a6d6L+Z5qyh55qE56aP5Yip77yM
-5q+P5aSp5Y+v55yB5LiA6aG/6aWt44CCCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+
+Hi Luiz,
+
+> 
+> > This patch adds functionality to perform flush from guest to host
+> > over VIRTIO. We are registering a callback based on 'nd_region' type.
+> > As virtio_pmem driver requires this special flush interface, for rest
+> > of the region types we are registering existing flush function.
+> > Also report the error returned by virtio flush interface.
+> 
+> This patch doesn't apply against latest upstream. A few more comments
+> below.
+
+My bad, I tested it with 4.17-rc1. Will rebase it.
+
+> 
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/nvdimm/nd.h          |  1 +
+> >  drivers/nvdimm/pmem.c        |  4 ++--
+> >  drivers/nvdimm/region_devs.c | 24 ++++++++++++++++++------
+> >  include/linux/libnvdimm.h    |  5 ++++-
+> >  4 files changed, 25 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> > index 32e0364..1b62f79 100644
+> > --- a/drivers/nvdimm/nd.h
+> > +++ b/drivers/nvdimm/nd.h
+> > @@ -159,6 +159,7 @@ struct nd_region {
+> >  	struct badblocks bb;
+> >  	struct nd_interleave_set *nd_set;
+> >  	struct nd_percpu_lane __percpu *lane;
+> > +	int (*flush)(struct device *dev);
+> >  	struct nd_mapping mapping[0];
+> >  };
+> >  
+> > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> > index 9d71492..29fd2cd 100644
+> > --- a/drivers/nvdimm/pmem.c
+> > +++ b/drivers/nvdimm/pmem.c
+> > @@ -180,7 +180,7 @@ static blk_qc_t pmem_make_request(struct request_queue
+> > *q, struct bio *bio)
+> >  	struct nd_region *nd_region = to_region(pmem);
+> >  
+> >  	if (bio->bi_opf & REQ_FLUSH)
+> > -		nvdimm_flush(nd_region);
+> > +		bio->bi_status = nvdimm_flush(nd_region);
+> >  
+> >  	do_acct = nd_iostat_start(bio, &start);
+> >  	bio_for_each_segment(bvec, bio, iter) {
+> > @@ -196,7 +196,7 @@ static blk_qc_t pmem_make_request(struct request_queue
+> > *q, struct bio *bio)
+> >  		nd_iostat_end(bio, start);
+> >  
+> >  	if (bio->bi_opf & REQ_FUA)
+> > -		nvdimm_flush(nd_region);
+> > +		bio->bi_status = nvdimm_flush(nd_region);
+> >  
+> >  	bio_endio(bio);
+> >  	return BLK_QC_T_NONE;
+> > diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> > index a612be6..124aae7 100644
+> > --- a/drivers/nvdimm/region_devs.c
+> > +++ b/drivers/nvdimm/region_devs.c
+> > @@ -1025,6 +1025,7 @@ static struct nd_region *nd_region_create(struct
+> > nvdimm_bus *nvdimm_bus,
+> >  	dev->of_node = ndr_desc->of_node;
+> >  	nd_region->ndr_size = resource_size(ndr_desc->res);
+> >  	nd_region->ndr_start = ndr_desc->res->start;
+> > +	nd_region->flush = ndr_desc->flush;
+> >  	nd_device_register(dev);
+> >  
+> >  	return nd_region;
+> > @@ -1065,13 +1066,10 @@ struct nd_region
+> > *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
+> >  }
+> >  EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
+> >  
+> > -/**
+> > - * nvdimm_flush - flush any posted write queues between the cpu and pmem
+> > media
+> > - * @nd_region: blk or interleaved pmem region
+> > - */
+> > -void nvdimm_flush(struct nd_region *nd_region)
+> > +void pmem_flush(struct device *dev)
+> >  {
+> > -	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
+> > +	struct nd_region_data *ndrd = dev_get_drvdata(dev);
+> > +	struct nd_region *nd_region = to_nd_region(dev);
+> >  	int i, idx;
+> >  
+> >  	/*
+> > @@ -1094,6 +1092,20 @@ void nvdimm_flush(struct nd_region *nd_region)
+> >  			writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
+> >  	wmb();
+> >  }
+> > +
+> > +/**
+> > + * nvdimm_flush - flush any posted write queues between the cpu and pmem
+> > media
+> > + * @nd_region: blk or interleaved pmem region
+> > + */
+> > +int nvdimm_flush(struct nd_region *nd_region)
+> > +{
+> > +	if (nd_region->flush)
+> > +		return(nd_region->flush(&nd_region->dev));
+> > +
+> > +	pmem_flush(&nd_region->dev);
+> 
+> IMHO, a better way of doing this would be to allow nvdimm_flush() to
+> be overridden. That is, in nd_region_create() you set nd_region->flush
+> to the original nvdimm_flush() if ndr_desc->flush is NULL. And then
+> always call nd_region->flush() where nvdimm_flush() is called today.
+
+I wanted to do minimal changes for actual 'nvdimm_flush' function because it
+does not return an error or return status for fsync. So, I needed to differentiate
+between 'fake DAX' & 'NVDIMM' at the time of calling 'flush', otherwise I need to 
+change 'nvdimm_flush' to return zero for all the calls.
+
+Looks like I am already doing this, will change as suggested.  
+ 
+> 
+> > +
+> > +	return 0;
+> > +}
+> >  EXPORT_SYMBOL_GPL(nvdimm_flush);
+> >  
+> >  /**
+> > diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> > index 097072c..33b617f 100644
+> > --- a/include/linux/libnvdimm.h
+> > +++ b/include/linux/libnvdimm.h
+> > @@ -126,6 +126,7 @@ struct nd_region_desc {
+> >  	int numa_node;
+> >  	unsigned long flags;
+> >  	struct device_node *of_node;
+> > +	int (*flush)(struct device *dev);
+> >  };
+> >  
+> >  struct device;
+> > @@ -201,7 +202,9 @@ unsigned long nd_blk_memremap_flags(struct
+> > nd_blk_region *ndbr);
+> >  unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
+> >  void nd_region_release_lane(struct nd_region *nd_region, unsigned int
+> >  lane);
+> >  u64 nd_fletcher64(void *addr, size_t len, bool le);
+> > -void nvdimm_flush(struct nd_region *nd_region);
+> > +int nvdimm_flush(struct nd_region *nd_region);
+> > +void pmem_set_flush(struct nd_region *nd_region, void (*flush)
+> > +					(struct device *));
+> 
+> It seems pmem_set_flush() doesn't exist.
+
+Sorry! will remove it.
+> 
+> >  int nvdimm_has_flush(struct nd_region *nd_region);
+> >  int nvdimm_has_cache(struct nd_region *nd_region);
+> >  
+> 
+> 
+
+Thanks,
+Pankaj
