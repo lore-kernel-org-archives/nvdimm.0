@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3833209884A8
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 08:54:52 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 887C7AC01E6
- for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 00:54:48 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v12 5/5] ndctl, test: add a new unit test for monitor
-Date: Sat, 14 Jul 2018 00:54:03 +0900
-Message-Id: <20180713155403.30020-6-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
-References: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id EDACB20986ABB
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:10:33 -0700 (PDT)
+Subject: [PATCH v2 01/14] mm: Plumb dev_pagemap instead of vmem_altmap to
+ memmap_init_zone()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:00:25 -0700
+Message-ID: <153176042549.12695.1934863308712014061.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,382 +19,125 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: tokunaga.keiich@jp.fujitsu.com
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-nvdimm@lists.01.org, Pavel Tatashin <pasha.tatashin@oracle.com>, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm@kvack.org, hch@lst.de, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test to test all options of the monitor command.
+In preparation for teaching memmap_init_zone() how to initialize
+ZONE_DEVICE pages, pass in dev_pagemap.
 
-Based-on-patch-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Acked-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- .gitignore             |   1 +
- test/Makefile.am       |  14 +++-
- test/list-smart-dimm.c | 117 +++++++++++++++++++++++++++
- test/monitor.sh        | 176 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 306 insertions(+), 2 deletions(-)
- create mode 100644 test/list-smart-dimm.c
- create mode 100755 test/monitor.sh
+ include/linux/memory_hotplug.h |    3 ++-
+ include/linux/mm.h             |    2 +-
+ kernel/memremap.c              |    2 +-
+ mm/memory_hotplug.c            |    4 ++--
+ mm/page_alloc.c                |    5 ++++-
+ 5 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-index 1016b3b..0baace4 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -56,3 +56,4 @@ test/smart-notify
- test/fio.job
- test/local-write-0-verify.state
- test/ack-shutdown-count-set
-+test/list-smart-dimm
-diff --git a/test/Makefile.am b/test/Makefile.am
-index cd451e9..8c55056 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -21,7 +21,8 @@ TESTS =\
- 	btt-pad-compat.sh \
- 	firmware-update.sh \
- 	ack-shutdown-count-set \
--	rescan-partitions.sh
-+	rescan-partitions.sh \
-+	monitor.sh
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 4e9828cda7a2..e60085b2824d 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -14,6 +14,7 @@ struct mem_section;
+ struct memory_block;
+ struct resource;
+ struct vmem_altmap;
++struct dev_pagemap;
  
- check_PROGRAMS =\
- 	libndctl \
-@@ -34,7 +35,8 @@ check_PROGRAMS =\
- 	smart-listen \
- 	hugetlb \
- 	daxdev-errors \
--	ack-shutdown-count-set
-+	ack-shutdown-count-set \
-+	list-smart-dimm
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+@@ -326,7 +327,7 @@ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int arch_add_memory(int nid, u64 start, u64 size,
+ 		struct vmem_altmap *altmap, bool want_memblock);
+ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+-		unsigned long nr_pages, struct vmem_altmap *altmap);
++		unsigned long nr_pages, struct dev_pagemap *pgmap);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+ extern void remove_memory(int nid, u64 start, u64 size);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a0fbb9ffe380..319d01372efa 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2140,7 +2140,7 @@ static inline void zero_resv_unavail(void) {}
  
- if ENABLE_DESTRUCTIVE
- TESTS +=\
-@@ -151,3 +153,11 @@ multi_pmem_LDADD = \
- 		$(UUID_LIBS) \
- 		$(KMOD_LIBS) \
- 		../libutil.a
-+
-+list_smart_dimm_SOURCES = \
-+		list-smart-dimm.c \
-+		../util/json.c
-+list_smart_dimm_LDADD = \
-+		$(LIBNDCTL_LIB) \
-+		$(JSON_LIBS) \
-+		../libutil.a
-diff --git a/test/list-smart-dimm.c b/test/list-smart-dimm.c
-new file mode 100644
-index 0000000..c9982d5
---- /dev/null
-+++ b/test/list-smart-dimm.c
-@@ -0,0 +1,117 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018, FUJITSU LIMITED. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <json-c/json.h>
-+#include <ndctl/libndctl.h>
-+#include <util/parse-options.h>
-+#include <ndctl.h>
-+
-+struct util_filter_params param;
-+static int did_fail;
-+static int jflag = JSON_C_TO_STRING_PRETTY;
-+
-+#define fail(fmt, ...) \
-+do { \
-+	did_fail = 1; \
-+	fprintf(stderr, "ndctl-%s:%s:%d: " fmt, \
-+			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
-+} while (0)
-+
-+static bool filter_region(struct ndctl_region *region,
-+		struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-+
-+static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *ctx)
-+{
-+	struct list_filter_arg *lfa = ctx->list;
-+	struct json_object *jdimm;
-+
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART))
-+		return;
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART_THRESHOLD))
-+		return;
-+	if (!ndctl_dimm_is_flag_supported(dimm, ND_SMART_ALARM_VALID))
-+		return;
-+
-+	if (!lfa->jdimms) {
-+		lfa->jdimms = json_object_new_array();
-+		if (!lfa->jdimms) {
-+			fail("\n");
-+			return;
-+		}
-+	}
-+
-+	jdimm = util_dimm_to_json(dimm, lfa->flags);
-+	if (!jdimm) {
-+		fail("\n");
-+		return;
-+	}
-+
-+	json_object_array_add(lfa->jdimms, jdimm);
-+}
-+
-+static bool filter_bus(struct ndctl_bus *bus, struct util_filter_ctx *ctx)
-+{
-+	return true;
-+}
-+
-+static int list_display(struct list_filter_arg *lfa)
-+{
-+	struct json_object *jdimms = lfa->jdimms;
-+
-+	if (jdimms)
-+		util_display_json_array(stdout, jdimms, jflag);
-+	return 0;
-+}
-+
-+int main(int argc, const char *argv[])
-+{
-+	struct ndctl_ctx *ctx;
-+	int i, rc;
-+	const struct option options[] = {
-+		OPT_STRING('b', "bus", &param.bus, "bus-id", "filter by bus"),
-+		OPT_STRING('r', "region", &param.region, "region-id",
-+				"filter by region"),
-+		OPT_STRING('d', "dimm", &param.dimm, "dimm-id",
-+				"filter by dimm"),
-+		OPT_STRING('n', "namespace", &param.namespace, "namespace-id",
-+				"filter by namespace id"),
-+		OPT_END(),
-+	};
-+	const char * const u[] = {
-+		"list-smart-dimm [<options>]",
-+		NULL
-+	};
-+	struct util_filter_ctx fctx = { 0 };
-+	struct list_filter_arg lfa = { 0 };
-+
-+	rc = ndctl_new(&ctx);
-+	if (rc < 0)
-+		return EXIT_FAILURE;
-+        argc = parse_options(argc, argv, options, u, 0);
-+	for (i = 0; i < argc; i++)
-+		error("unknown parameter \"%s\"\n", argv[i]);
-+	if (argc)
-+		usage_with_options(u, options);
-+
-+	fctx.filter_bus = filter_bus;
-+	fctx.filter_dimm = filter_dimm;
-+	fctx.filter_region = filter_region;
-+	fctx.filter_namespace = NULL;
-+	fctx.list = &lfa;
-+	lfa.flags = 0;
-+
-+	rc = util_filter_walk(ctx, &fctx, &param);
-+	if (rc)
-+		return rc;
-+
-+	if (list_display(&lfa) || did_fail)
-+		return -ENOMEM;
-+	return 0;
-+}
-diff --git a/test/monitor.sh b/test/monitor.sh
-new file mode 100755
-index 0000000..1bbfd14
---- /dev/null
-+++ b/test/monitor.sh
-@@ -0,0 +1,176 @@
-+#!/bin/bash -Ex
-+
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018, FUJITSU LIMITED. All rights reserved.
-+
-+rc=77
-+monitor_pid=65536
-+logfile=""
-+conf_file=""
-+monitor_dimms=""
-+monitor_regions=""
-+monitor_namespace=""
-+smart_supported_bus=""
-+
-+. ./common
-+
-+trap 'err $LINENO' ERR
-+
-+check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
-+
-+init()
-+{
-+	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-+	$NDCTL zero-labels -b $NFIT_TEST_BUS0 all
-+	$NDCTL enable-region -b $NFIT_TEST_BUS0 all
-+}
-+
-+start_monitor()
-+{
-+	logfile=$(mktemp)
-+	$NDCTL monitor -l $logfile $1 &
-+	monitor_pid=$!
-+	sync; sleep 3
-+	truncate --size 0 $logfile #remove startup log
-+}
-+
-+set_smart_supported_bus()
-+{
-+	smart_supported_bus=$NFIT_TEST_BUS0
-+	monitor_dimms=$(./list-smart-dimm -b $smart_supported_bus | jq -r .[0].dev)
-+	if [ -z $monitor_dimms ]; then
-+		smart_supported_bus=$NFIT_TEST_BUS1
-+	fi
-+}
-+
-+get_monitor_dimm()
-+{
-+	jlist=$(./list-smart-dimm -b $smart_supported_bus $1)
-+	monitor_dimms=$(jq '.[]."dev"?, ."dev"?' <<<$jlist | sort | uniq | xargs)
-+	echo $monitor_dimms
-+}
-+
-+call_notify()
-+{
-+	./smart-notify $smart_supported_bus
-+	sync; sleep 3
-+}
-+
-+inject_smart()
-+{
-+	$NDCTL inject-smart $monitor_dimms $1
-+	sync; sleep 3
-+}
-+
-+check_result()
-+{
-+	jlog=$(cat $logfile)
-+	notify_dimms=$(jq ."dimm"."dev" <<<$jlog | sort | uniq | xargs)
-+	[[ $1 == $notify_dimms ]]
-+}
-+
-+stop_monitor()
-+{
-+	kill $monitor_pid
-+	rm $logfile
-+}
-+
-+test_filter_dimm()
-+{
-+	monitor_dimms=$(get_monitor_dimm | awk '{print $1}')
-+	start_monitor "-d $monitor_dimms"
-+	call_notify
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+}
-+
-+test_filter_bus()
-+{
-+	monitor_dimms=$(get_monitor_dimm)
-+	start_monitor "-b $smart_supported_bus"
-+	call_notify
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+}
-+
-+test_filter_region()
-+{
-+	count=$($NDCTL list -R -b $smart_supported_bus | jq -r .[].dev | wc -l)
-+	i=0
-+	while [ $i -lt $count ]; do
-+		monitor_region=$($NDCTL list -R -b $smart_supported_bus | jq -r .[$i].dev)
-+		monitor_dimms=$(get_monitor_dimm "-r $monitor_region")
-+		[ ! -z $monitor_dimms ] && break
-+		i=$((i + 1))
-+	done
-+	start_monitor "-r $monitor_region"
-+	call_notify
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+}
-+
-+test_filter_namespace()
-+{
-+	init
-+	monitor_namespace=$($NDCTL create-namespace -b $smart_supported_bus | jq -r .dev)
-+	monitor_dimms=$(get_monitor_dimm "-n $monitor_namespace")
-+	start_monitor "-n $monitor_namespace"
-+	call_notify
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+	$NDCTL destroy-namespace $monitor_namespace -f
-+}
-+
-+test_conf_file()
-+{
-+	monitor_dimms=$(get_monitor_dimm)
-+	conf_file=$(mktemp)
-+	echo "dimm = $monitor_dimms" > $conf_file
-+	start_monitor "-c $conf_file"
-+	call_notify
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+	rm $conf_file
-+}
-+
-+test_filter_dimmevent()
-+{
-+	monitor_dimms="$(get_monitor_dimm | awk '{print $1}')"
-+
-+	start_monitor "-d $monitor_dimms -D dimm-unclean-shutdown"
-+	inject_smart "-U"
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+
-+	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."spares_threshold")
-+	inject_value=$((inject_value - 1))
-+	start_monitor "-d $monitor_dimms -D dimm-spares-remaining"
-+	inject_smart "-s $inject_value"
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+
-+	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."temperature_threshold")
-+	inject_value=$((inject_value + 1))
-+	start_monitor "-d $monitor_dimms -D dimm-media-temperature"
-+	inject_smart "-s $inject_value"
-+	check_result "$monitor_dimms"
-+	stop_monitor
-+}
-+
-+do_tests()
-+{
-+	test_filter_dimm
-+	test_filter_bus
-+	test_filter_region
-+	test_filter_namespace
-+	test_conf_file
-+	test_filter_dimmevent
-+}
-+
-+modprobe nfit_test
-+rc=1
-+init
-+set_smart_supported_bus
-+do_tests
-+_cleanup
-+exit 0
--- 
-2.18.0
-
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+ extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
+-		enum memmap_context, struct vmem_altmap *);
++		enum memmap_context, struct dev_pagemap *);
+ extern void setup_per_zone_wmarks(void);
+ extern int __meminit init_per_zone_wmark_min(void);
+ extern void mem_init(void);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index ecee37b44aa1..58327259420d 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -244,7 +244,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap,
+ 		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
+ 		if (!error)
+ 			move_pfn_range_to_zone(zone, align_start >> PAGE_SHIFT,
+-					align_size >> PAGE_SHIFT, altmap);
++					align_size >> PAGE_SHIFT, pgmap);
+ 	}
+ 
+ 	mem_hotplug_done();
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 7deb49f69e27..aae4e6cc65e9 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -779,7 +779,7 @@ static void __meminit resize_pgdat_range(struct pglist_data *pgdat, unsigned lon
+ }
+ 
+ void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+-		unsigned long nr_pages, struct vmem_altmap *altmap)
++		unsigned long nr_pages, struct dev_pagemap *pgmap)
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int nid = pgdat->node_id;
+@@ -805,7 +805,7 @@ void __ref move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 	 * are reserved so nobody should be touching them so we should be safe
+ 	 */
+ 	memmap_init_zone(nr_pages, nid, zone_idx(zone), start_pfn,
+-			MEMMAP_HOTPLUG, altmap);
++			MEMMAP_HOTPLUG, pgmap);
+ 
+ 	set_zone_contiguous(zone);
+ }
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 1521100f1e63..545a5860cce7 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5459,10 +5459,11 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
+  */
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, enum memmap_context context,
+-		struct vmem_altmap *altmap)
++		struct dev_pagemap *pgmap)
+ {
+ 	unsigned long end_pfn = start_pfn + size;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
++	struct vmem_altmap *altmap = NULL;
+ 	unsigned long pfn;
+ 	unsigned long nr_initialised = 0;
+ 	struct page *page;
+@@ -5477,6 +5478,8 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	 * Honor reservation requested by the driver for this ZONE_DEVICE
+ 	 * memory
+ 	 */
++	if (pgmap && pgmap->altmap_valid)
++		altmap = &pgmap->altmap;
+ 	if (altmap && start_pfn == altmap->base_pfn)
+ 		start_pfn += altmap->reserve;
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
