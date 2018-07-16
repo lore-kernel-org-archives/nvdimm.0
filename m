@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FB6D209605D9
- for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 13:54:16 -0700 (PDT)
-Subject: [PATCH v5 02/12] libnvdimm: create keyring to store security keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 17 Jul 2018 13:54:15 -0700
-Message-ID: <153186085546.27463.5501870662513432986.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
-References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 733BB2097DD18
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:18 -0700 (PDT)
+Subject: [PATCH v2 11/14] filesystem-dax: Make mount time pfn validation a
+ debug check
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:01:19 -0700
+Message-ID: <153176047958.12695.16209413909835344164.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,198 +23,154 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepping the libnvdimm to support security management by adding a keyring
-in order to provide passphrase management through the kernel key management
-APIs.
+Do not ask for dax_direct_access() to retrieve a pfn in the
+DAX_DRIVER_DEBUG=n case. This avoids an early call to memmap_sync() in
+the driver.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Now that QUEUE_FLAG_DAX usage has been fixed the validation of the pfn
+is only useful for dax driver developers. It is safe to assume that
+pmem, dcssblk, and device-mapper-dax are correct with respect to dax
+operation, so only retrieve the pfn for debug builds when qualifying a
+new dax driver, if one ever arrives.
+
+The moves the first consumption of a pfn from ->direct_access() to the
+first dax mapping fault, rather than initial filesystem mount. I.e. more
+time for memmap init to run in the background.
+
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/core.c      |    7 +++
- drivers/nvdimm/dimm_devs.c |   96 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h   |    1 
- include/linux/libnvdimm.h  |    5 ++
- 4 files changed, 107 insertions(+), 2 deletions(-)
+ drivers/dax/Kconfig |   10 ++++++++
+ drivers/dax/super.c |   64 ++++++++++++++++++++++++++++++++-------------------
+ 2 files changed, 50 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index acce050856a8..3cd33d5c7cf0 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -437,9 +437,12 @@ static __init int libnvdimm_init(void)
- {
- 	int rc;
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index e0700bf4893a..b32f8827b983 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -9,6 +9,16 @@ menuconfig DAX
  
--	rc = nvdimm_bus_init();
-+	rc = nvdimm_devs_init();
- 	if (rc)
- 		return rc;
-+	rc = nvdimm_bus_init();
-+	if (rc)
-+		goto err_bus;
- 	rc = nvdimm_init();
- 	if (rc)
- 		goto err_dimm;
-@@ -454,6 +457,8 @@ static __init int libnvdimm_init(void)
- 	nvdimm_exit();
-  err_dimm:
- 	nvdimm_bus_exit();
-+ err_bus:
-+	nvdimm_devs_exit();
- 	return rc;
- }
+ if DAX
  
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8d348b22ba45..1dcbb653455b 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -18,12 +18,54 @@
- #include <linux/io.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/cred.h>
-+#include <keys/user-type.h>
-+#include <linux/key-type.h>
-+#include <linux/keyctl.h>
- #include "nd-core.h"
- #include "label.h"
- #include "pmem.h"
- #include "nd.h"
- 
- static DEFINE_IDA(dimm_ida);
-+static const struct cred *nvdimm_cred;
++config DAX_DRIVER_DEBUG
++	bool "DAX: driver debug"
++	help
++	  Enable validation of the page frame objects returned from a
++	  driver's 'direct_access' operation. This validation is
++	  performed relative to the requirements of the FS_DAX and
++	  FS_DAX_LIMITED configuration options. If you are validating
++	  the implementation of a dax device driver say Y otherwise
++	  say N.
 +
-+static int nvdimm_key_instantiate(struct key *key,
-+		struct key_preparsed_payload *prep);
-+static void nvdimm_key_destroy(struct key *key);
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 903d9c473749..65851919e59a 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -72,6 +72,41 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+ #endif
+ 
++static bool validate_dax_pfn(pfn_t *pfn)
++{
++	bool dax_enabled = false;
 +
-+struct key_type nvdimm_key_type = {
-+	.name = "nvdimm",
-+	.instantiate = nvdimm_key_instantiate,
-+	.destroy = nvdimm_key_destroy,
-+	.describe = user_describe,
 +	/*
-+	 * The reason to have default data length to be len*2 is to
-+	 * accomodate the payload when we are doing a key change where
-+	 * the we stuff the old key and new key in the same payload.
++	 * Unless debugging a new dax driver, or new dax architecture
++	 * support there is no need to check the pfn. Delay the kernel's
++	 * first need for a dax pfn until first userspace dax fault.
 +	 */
-+	.def_datalen = NVDIMM_PASSPHRASE_LEN * 2,
-+};
++	if (!pfn)
++		return true;
 +
-+static int nvdimm_key_instantiate(struct key *key,
-+		struct key_preparsed_payload *prep)
-+{
-+	char *payload;
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(*pfn)) {
++		/*
++		 * An arch that has enabled the pmem api should also
++		 * have its drivers support pfn_t_devmap()
++		 *
++		 * This is a developer warning and should not trigger in
++		 * production. dax_flush() will crash since it depends
++		 * on being able to do (page_address(pfn_to_page())).
++		 */
++		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
++		dax_enabled = true;
++	} else if (pfn_t_devmap(*pfn)) {
++		struct dev_pagemap *pgmap;
 +
-+	payload = kzalloc(nvdimm_key_type.def_datalen, GFP_KERNEL);
-+	if (!payload)
-+		return -ENOMEM;
-+
-+	key->datalen = min(nvdimm_key_type.def_datalen, prep->datalen);
-+	memcpy(payload, prep->data, key->datalen);
-+	key->payload.data[0] = payload;
-+	return 0;
-+}
-+
-+static void nvdimm_key_destroy(struct key *key)
-+{
-+	kfree(key->payload.data[0]);
-+}
- 
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-@@ -668,7 +710,59 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_check_dimm_count);
- 
--void __exit nvdimm_devs_exit(void)
-+static int nvdimm_register_keyring(void)
-+{
-+	struct cred *cred;
-+	struct key *keyring;
-+	int rc;
-+
-+	rc = register_key_type(&nvdimm_key_type);
-+	if (rc < 0)
-+		return rc;
-+
-+	cred = prepare_kernel_cred(NULL);
-+	if (!cred) {
-+		rc = -ENOMEM;
-+		goto failed_cred;
++		pgmap = get_dev_pagemap(pfn_t_to_pfn(*pfn), NULL);
++		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
++			dax_enabled = true;
++		put_dev_pagemap(pgmap);
 +	}
 +
-+	keyring = keyring_alloc(".nvdimm",
-+			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, cred,
-+			(KEY_POS_ALL & ~KEY_POS_SETATTR) |
-+			(KEY_USR_ALL & ~KEY_USR_SETATTR),
-+			KEY_ALLOC_NOT_IN_QUOTA, NULL, NULL);
-+	if (IS_ERR(keyring)) {
-+		rc = PTR_ERR(keyring);
-+		goto failed_keyring;
-+	}
-+
-+	set_bit(KEY_FLAG_ROOT_CAN_CLEAR, &keyring->flags);
-+	cred->thread_keyring = keyring;
-+	cred->jit_keyring = KEY_REQKEY_DEFL_THREAD_KEYRING;
-+	nvdimm_cred = cred;
-+	return 0;
-+
-+ failed_cred:
-+	unregister_key_type(&nvdimm_key_type);
-+ failed_keyring:
-+	put_cred(cred);
-+	return rc;
++	return dax_enabled;
 +}
 +
-+static void nvdimm_unregister_keyring(void)
-+{
-+	key_revoke(nvdimm_cred->thread_keyring);
-+	unregister_key_type(&nvdimm_key_type);
-+	put_cred(nvdimm_cred);
-+}
-+
-+int __init nvdimm_devs_init(void)
-+{
-+	return nvdimm_register_keyring();
-+}
-+
-+void  nvdimm_devs_exit(void)
+ /**
+  * __bdev_dax_supported() - Check if the device supports dax for filesystem
+  * @bdev: block device to check
+@@ -85,11 +120,10 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
  {
-+	nvdimm_unregister_keyring();
- 	ida_destroy(&dimm_ida);
- }
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 79274ead54fb..2af0f89c4010 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -76,6 +76,7 @@ static inline bool is_memory(struct device *dev)
- struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
-+int nvdimm_devs_init(void);
- void nvdimm_devs_exit(void);
- void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 472171af7f60..09dd06f96f95 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -155,6 +155,11 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
+ 	struct dax_device *dax_dev;
+-	bool dax_enabled = false;
++	pfn_t _pfn, *pfn;
+ 	pgoff_t pgoff;
+ 	int err, id;
+ 	void *kaddr;
+-	pfn_t pfn;
+ 	long len;
+ 	char buf[BDEVNAME_SIZE];
  
- }
+@@ -113,8 +147,10 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
  
-+extern struct key_type nvdimm_key_type;
++	pfn = IS_ENABLED(CONFIG_DAX_DRIVER_DEBUG) ? &_pfn : NULL;
 +
-+#define NVDIMM_PASSPHRASE_LEN		32
-+#define NVDIMM_KEY_DESC_LEN		25
-+
- void badrange_init(struct badrange *badrange);
- int badrange_add(struct badrange *badrange, u64 addr, u64 length);
- void badrange_forget(struct badrange *badrange, phys_addr_t start,
+ 	id = dax_read_lock();
+-	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
++	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, pfn);
+ 	dax_read_unlock(id);
+ 
+ 	put_dax(dax_dev);
+@@ -125,27 +161,7 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
+-		/*
+-		 * An arch that has enabled the pmem api should also
+-		 * have its drivers support pfn_t_devmap()
+-		 *
+-		 * This is a developer warning and should not trigger in
+-		 * production. dax_flush() will crash since it depends
+-		 * on being able to do (page_address(pfn_to_page())).
+-		 */
+-		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
+-		dax_enabled = true;
+-	} else if (pfn_t_devmap(pfn)) {
+-		struct dev_pagemap *pgmap;
+-
+-		pgmap = get_dev_pagemap(pfn_t_to_pfn(pfn), NULL);
+-		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
+-			dax_enabled = true;
+-		put_dev_pagemap(pgmap);
+-	}
+-
+-	if (!dax_enabled) {
++	if (!validate_dax_pfn(pfn)) {
+ 		pr_debug("%s: error: dax support not enabled\n",
+ 				bdevname(bdev, buf));
+ 		return false;
 
 _______________________________________________
 Linux-nvdimm mailing list
