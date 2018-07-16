@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Date: Mon, 16 Jul 2018 19:41:32 -0700
-From: Matthew Wilcox <willy@infradead.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 974ED20986ABB
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 14:08:22 -0700 (PDT)
+Date: Mon, 16 Jul 2018 15:08:20 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: Re: [PATCH 1/5] radix tree test suite: fix mapshift build target
-Message-ID: <20180717024132.GC7934@bombadil.infradead.org>
+Message-ID: <20180716210820.GA17164@linux.intel.com>
 References: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
  <20180503192430.7582-2-ross.zwisler@linux.intel.com>
  <20180715230052.GA6486@bombadil.infradead.org>
  <20180716160710.GA2287@linux.intel.com>
  <20180716195249.GA14380@bombadil.infradead.org>
- <20180716210820.GA17164@linux.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180716210820.GA17164@linux.intel.com>
+In-Reply-To: <20180716195249.GA14380@bombadil.infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,39 +27,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, kbuild-all@01.org, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, kbuild-all@01.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 16, 2018 at 03:08:20PM -0600, Ross Zwisler wrote:
-> On Mon, Jul 16, 2018 at 12:52:49PM -0700, Matthew Wilcox wrote:
-> > On Mon, Jul 16, 2018 at 10:07:10AM -0600, Ross Zwisler wrote:
-> <>
-> > OK ... what version of make are you using?  Because this works fine for me:
-> > 
-> > $ git clone linux clean
-> > $ cd clean
-> > $ git checkout v4.17
-> > $ cd tools/testing/radix-tree/ 
-> > $ git revert 8d9fa88edd5e360b71765feeadb915d4066c9684
-> > $ make
-> > 
-> > $ make --version
-> > GNU Make 4.1
-> > Built for x86_64-pc-linux-gnu
-> > 
-> > It's Debian's Version: 4.1-9.1
+On Mon, Jul 16, 2018 at 12:52:49PM -0700, Matthew Wilcox wrote:
+> On Mon, Jul 16, 2018 at 10:07:10AM -0600, Ross Zwisler wrote:
+<>
+> OK ... what version of make are you using?  Because this works fine for me:
+> 
+> $ git clone linux clean
+> $ cd clean
+> $ git checkout v4.17
+> $ cd tools/testing/radix-tree/ 
+> $ git revert 8d9fa88edd5e360b71765feeadb915d4066c9684
+> $ make
 > 
 > $ make --version
-> GNU Make 4.2.1
-> Built for x86_64-redhat-linux-gnu
+> GNU Make 4.1
+> Built for x86_64-pc-linux-gnu
 > 
-> The one from Fedora 27.
+> It's Debian's Version: 4.1-9.1
 
-Huh.  I just tried 4.2.1-1.1 from Debian unstable and that doesn't
-produce the problem either.  I'm not sure how to proceed at this point.
-I'm really not a makefile expert.
+$ make --version
+GNU Make 4.2.1
+Built for x86_64-redhat-linux-gnu
 
+The one from Fedora 27.
+
+> > If you want generated/map-shift.h to be rebuilt each time you run 'make' so
+> > that it can take a new SHIFT argument, that's fine, but let's not make users
+> > run 'make mapshift' before an actual 'make' will work, which is where we're at
+> > with v4.17 with my commit reverted.
+> 
+> I don't want it to be rebuilt, I want it to be checked before each
+> build, regenerated if SHIFT has changed, and everything to rebuild if
+> it has changed.
+
+Sure, sounds good.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
