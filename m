@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 08AC22097DD14
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 14:00:22 -0700 (PDT)
-Date: Mon, 16 Jul 2018 14:00:14 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v2 05/14] mm, memremap: Up-level foreach_order_pgoff()
-Message-ID: <20180716210014.GA1607@bombadil.infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 728222097DD18
+ for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:10:46 -0700 (PDT)
+Subject: [PATCH v2 05/14] mm, memremap: Up-level foreach_order_pgoff()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 16 Jul 2018 10:00:48 -0700
+Message-ID: <153176044796.12695.10692625606054072713.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
- <153176044796.12695.10692625606054072713.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <153176044796.12695.10692625606054072713.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,45 +22,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, akpm@linux-foundation.org, hch@lst.de
+To: akpm@linux-foundation.org
+Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 16, 2018 at 10:00:48AM -0700, Dan Williams wrote:
-> The foreach_order_pgoff() helper takes advantage of the ability to
-> insert multi-order entries into a radix. It is currently used by
-> devm_memremap_pages() to minimize the number of entries in the pgmap
-> radix. Instead of dividing a range by a constant power-of-2 sized unit
-> and inserting an entry for each unit, it determines the maximum
-> power-of-2 sized entry (subject to alignment offset) that can be
-> inserted at each iteration.
-> 
-> Up-level this helper so it can be used for populating other radix
-> instances. For example asynchronous-memmap-initialization-thread lookups
-> arriving in a follow on change.
+The foreach_order_pgoff() helper takes advantage of the ability to
+insert multi-order entries into a radix. It is currently used by
+devm_memremap_pages() to minimize the number of entries in the pgmap
+radix. Instead of dividing a range by a constant power-of-2 sized unit
+and inserting an entry for each unit, it determines the maximum
+power-of-2 sized entry (subject to alignment offset) that can be
+inserted at each iteration.
 
-Hopefully by the time you're back, I'll have this code replaced with
-the XArray.  Here's my proposed API:
+Up-level this helper so it can be used for populating other radix
+instances. For example asynchronous-memmap-initialization-thread lookups
+arriving in a follow on change.
 
-	old = xa_store_range(xa, first, last, ptr, GFP_KERNEL);
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/memremap.h |   25 +++++++++++++++++++++++++
+ kernel/memremap.c        |   25 -------------------------
+ 2 files changed, 25 insertions(+), 25 deletions(-)
 
-and then you'd simply use xa_for_each() as an iterator.  You'd do one
-iteration for each range in the XArray, not for each entry occupied.
-So there's a difference between:
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index bfdc7363b13b..bff314de3f55 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -126,6 +126,31 @@ struct dev_pagemap {
+ 	enum memory_type type;
+ };
+ 
++static inline unsigned long order_at(struct resource *res, unsigned long pgoff)
++{
++	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
++	unsigned long nr_pages, mask;
++
++	nr_pages = PHYS_PFN(resource_size(res));
++	if (nr_pages == pgoff)
++		return ULONG_MAX;
++
++	/*
++	 * What is the largest aligned power-of-2 range available from
++	 * this resource pgoff to the end of the resource range,
++	 * considering the alignment of the current pgoff?
++	 */
++	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
++	if (!mask)
++		return ULONG_MAX;
++
++	return find_first_bit(&mask, BITS_PER_LONG);
++}
++
++#define foreach_order_pgoff(res, order, pgoff) \
++	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
++			pgoff += 1UL << order, order = order_at((res), pgoff))
++
+ #ifdef CONFIG_ZONE_DEVICE
+ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap,
+ 		void (*kill)(struct percpu_ref *));
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 85e4a7c576b2..fc2f28033460 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -16,31 +16,6 @@ static RADIX_TREE(pgmap_radix, GFP_KERNEL);
+ #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
+ #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
+ 
+-static unsigned long order_at(struct resource *res, unsigned long pgoff)
+-{
+-	unsigned long phys_pgoff = PHYS_PFN(res->start) + pgoff;
+-	unsigned long nr_pages, mask;
+-
+-	nr_pages = PHYS_PFN(resource_size(res));
+-	if (nr_pages == pgoff)
+-		return ULONG_MAX;
+-
+-	/*
+-	 * What is the largest aligned power-of-2 range available from
+-	 * this resource pgoff to the end of the resource range,
+-	 * considering the alignment of the current pgoff?
+-	 */
+-	mask = phys_pgoff | rounddown_pow_of_two(nr_pages - pgoff);
+-	if (!mask)
+-		return ULONG_MAX;
+-
+-	return find_first_bit(&mask, BITS_PER_LONG);
+-}
+-
+-#define foreach_order_pgoff(res, order, pgoff) \
+-	for (pgoff = 0, order = order_at((res), pgoff); order < ULONG_MAX; \
+-			pgoff += 1UL << order, order = order_at((res), pgoff))
+-
+ #if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
+ int device_private_entry_fault(struct vm_area_struct *vma,
+ 		       unsigned long addr,
 
-	xa_store(xa, 1, ptr, GFP_KERNEL);
-	xa_store(xa, 2, ptr, GFP_KERNEL);
-	xa_store(xa, 3, ptr, GFP_KERNEL);
-
-and
-
-	xa_store_range(xa, 1, 3, ptr, GFP_KERNEL);
-
-	index = 0; i = 0;
-	xa_for_each(xa, p, index, ULONG_MAX, XA_PRESENT)
-		i++;
-
-will return i = 3 for the first case and i = 1 for the second.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
