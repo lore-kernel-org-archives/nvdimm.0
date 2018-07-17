@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 59531209605D3
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:40:13 -0700 (PDT)
-Subject: [PATCH 10/11] nfit_test: adding test support for Intel nvdimm
+ by ml01.01.org (Postfix) with ESMTPS id 32230209884B7
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 13:55:07 -0700 (PDT)
+Subject: [PATCH v5 11/12] nfit_test: add test support for Intel nvdimm
  security DSMs
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 02 Jul 2018 16:40:02 -0700
-Message-ID: <153057480269.38125.2758457272899455771.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 17 Jul 2018 13:55:06 -0700
+Message-ID: <153186090633.27463.13738519417295391851.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,7 +27,7 @@ To: dan.j.williams@intel.com
 Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding nfit_test support for DSM functions "Get Security State",
+Add nfit_test support for DSM functions "Get Security State",
 "Set Passphrase", "Disable Passphrase", "Unlock Unit", "Freeze Lock",
 and "Secure Erase" for the fake DIMMs.
 
@@ -41,28 +41,37 @@ order of testing DIMM unlocking would be.
 4. Check DIMM X state via sysfs "security" attribute for nmemX.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
  tools/testing/nvdimm/Kbuild      |    1 
- tools/testing/nvdimm/test/nfit.c |  185 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 186 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |  186 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 187 insertions(+)
 
 diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 0392153a0009..29e43d64077f 100644
+index 0392153a0009..a13670d3b389 100644
 --- a/tools/testing/nvdimm/Kbuild
 +++ b/tools/testing/nvdimm/Kbuild
 @@ -36,6 +36,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
  obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
  
  nfit-y := $(ACPI_SRC)/core.o
-+nfit-y += $(ACPI_SRC)/intel.o
++nfit-$(CONFIG_X86) += $(ACPI_SRC)/intel.o
  nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
  nfit-y += acpi_nfit_test.o
  nfit-y += config_check.o
 diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 7b3ce2194889..85a64d0e73de 100644
+index 7b3ce2194889..e5b62396c41f 100644
 --- a/tools/testing/nvdimm/test/nfit.c
 +++ b/tools/testing/nvdimm/test/nfit.c
-@@ -155,6 +155,11 @@ struct nfit_dimm_dev {
+@@ -24,6 +24,7 @@
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <nd-core.h>
++#include <intel.h>
+ #include <nfit.h>
+ #include <nd.h>
+ #include "nfit_test.h"
+@@ -155,6 +156,11 @@ struct nfit_dimm_dev {
  	struct nfit_mem *nfit_mem;
  };
  
@@ -74,7 +83,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  struct nfit_test {
  	struct acpi_nfit_desc acpi_desc;
  	struct platform_device pdev;
-@@ -192,6 +197,7 @@ struct nfit_test {
+@@ -192,6 +198,7 @@ struct nfit_test {
  	struct badrange badrange;
  	struct work_struct work;
  	struct nfit_test_fw *fw;
@@ -82,7 +91,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  };
  
  static struct workqueue_struct *nfit_wq;
-@@ -899,6 +905,138 @@ static int override_return_code(int dimm, unsigned int func, int rc)
+@@ -899,6 +906,138 @@ static int override_return_code(int dimm, unsigned int func, int rc)
  	return rc;
  }
  
@@ -221,7 +230,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
  {
  	int i;
-@@ -946,6 +1084,30 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+@@ -946,6 +1085,30 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
  				return i;
  
  			switch (func) {
@@ -252,7 +261,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  			case ND_INTEL_ENABLE_LSS_STATUS:
  				rc = nd_intel_test_cmd_set_lss_status(t,
  						buf, buf_len);
-@@ -1280,10 +1442,23 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
+@@ -1280,10 +1443,23 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
  }
  static DEVICE_ATTR_RW(fail_cmd_code);
  
@@ -276,7 +285,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  	NULL,
  };
  
-@@ -2192,6 +2367,14 @@ static void nfit_test0_setup(struct nfit_test *t)
+@@ -2192,6 +2368,14 @@ static void nfit_test0_setup(struct nfit_test *t)
  	set_bit(ND_INTEL_FW_FINISH_UPDATE, &acpi_desc->dimm_cmd_force_en);
  	set_bit(ND_INTEL_FW_FINISH_QUERY, &acpi_desc->dimm_cmd_force_en);
  	set_bit(ND_INTEL_ENABLE_LSS_STATUS, &acpi_desc->dimm_cmd_force_en);
@@ -291,7 +300,7 @@ index 7b3ce2194889..85a64d0e73de 100644
  }
  
  static void nfit_test1_setup(struct nfit_test *t)
-@@ -2611,6 +2794,8 @@ static int nfit_test_probe(struct platform_device *pdev)
+@@ -2611,6 +2795,8 @@ static int nfit_test_probe(struct platform_device *pdev)
  				GFP_KERNEL);
  		nfit_test->fw = devm_kcalloc(dev, num,
  				sizeof(struct nfit_test_fw), GFP_KERNEL);
