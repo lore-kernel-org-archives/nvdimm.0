@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79554209831CF
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 22:00:30 -0700 (PDT)
-Subject: [PATCH v6 12/13] x86/memory_failure: Introduce {set,
- clear}_mce_nospec()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 13 Jul 2018 21:50:32 -0700
-Message-ID: <153154383238.34503.1865640894676134484.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B5E57209884B7
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 13:55:01 -0700 (PDT)
+Subject: [PATCH v5 10/12] nfit_test: add context to dimm_dev for nfit_test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 17 Jul 2018 13:55:00 -0700
+Message-ID: <153186090067.27463.11040989205930773501.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,223 +22,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, hch@lst.de, linux-edac@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently memory_failure() returns zero if the error was handled. On
-that result mce_unmap_kpfn() is called to zap the page out of the kernel
-linear mapping to prevent speculative fetches of potentially poisoned
-memory. However, in the case of dax mapped devmap pages the page may be
-in active permanent use by the device driver, so it cannot be unmapped
-from the kernel.
+In order to access the nfit_test context via sideband sysfs knobs, the
+dimm_dev needs to be more than struct device in order to point back to
+struct nfit_test. Wrapping the original struct device with a struct
+nfit_dimm_dev and saving the nfit_test as private driver data. Also
+changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
+saving as private driver data of that device. This is in preparation for
+adding security DSM support and allowing the locking of DIMMs for testing
+via sideband.
 
-Instead of marking the page not present, marking the page UC should
-be sufficient for preventing poison from being pre-fetched into the
-cache. Convert mce_unmap_pfn() to set_mce_nospec() remapping the page as
-UC, to hide it from speculative accesses.
-
-Given that that persistent memory errors can be cleared by the driver,
-include a facility to restore the page to cacheable operation,
-clear_mce_nospec().
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: <linux-edac@vger.kernel.org>
-Cc: <x86@kernel.org>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/set_memory.h         |   42 +++++++++++++++++++++++++++++
- arch/x86/kernel/cpu/mcheck/mce-internal.h |   15 ----------
- arch/x86/kernel/cpu/mcheck/mce.c          |   38 ++------------------------
- include/linux/set_memory.h                |   14 ++++++++++
- 4 files changed, 59 insertions(+), 50 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
-index bd090367236c..cf5e9124b45e 100644
---- a/arch/x86/include/asm/set_memory.h
-+++ b/arch/x86/include/asm/set_memory.h
-@@ -88,4 +88,46 @@ extern int kernel_set_to_readonly;
- void set_kernel_text_rw(void);
- void set_kernel_text_ro(void);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 18157b0c0d0d..7b3ce2194889 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -150,6 +150,11 @@ struct nfit_test_fw {
+ 	u64 end_time;
+ };
  
-+#ifdef CONFIG_X86_64
-+static inline int set_mce_nospec(unsigned long pfn)
-+{
-+	unsigned long decoy_addr;
-+	int rc;
++struct nfit_dimm_dev {
++	struct device dev;
++	struct nfit_mem *nfit_mem;
++};
 +
-+	/*
-+	 * Mark the linear address as UC to make sure we don't log more
-+	 * errors because of speculative access to the page.
-+	 * We would like to just call:
-+	 *      set_memory_uc((unsigned long)pfn_to_kaddr(pfn), 1);
-+	 * but doing that would radically increase the odds of a
-+	 * speculative access to the poison page because we'd have
-+	 * the virtual address of the kernel 1:1 mapping sitting
-+	 * around in registers.
-+	 * Instead we get tricky.  We create a non-canonical address
-+	 * that looks just like the one we want, but has bit 63 flipped.
-+	 * This relies on set_memory_uc() properly sanitizing any __pa()
-+	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
-+	 */
-+	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-+
-+	rc = set_memory_uc(decoy_addr, 1);
-+	if (rc)
-+		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-+	return rc;
-+}
-+#define set_mce_nospec set_mce_nospec
-+
-+/* Restore full speculative operation to the pfn. */
-+static inline int clear_mce_nospec(unsigned long pfn)
-+{
-+	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
-+}
-+#define clear_mce_nospec clear_mce_nospec
-+#else
-+/*
-+ * Few people would run a 32-bit kernel on a machine that supports
-+ * recoverable errors because they have too much memory to boot 32-bit.
-+ */
-+#endif
-+
- #endif /* _ASM_X86_SET_MEMORY_H */
-diff --git a/arch/x86/kernel/cpu/mcheck/mce-internal.h b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-index 374d1aa66952..ceb67cd5918f 100644
---- a/arch/x86/kernel/cpu/mcheck/mce-internal.h
-+++ b/arch/x86/kernel/cpu/mcheck/mce-internal.h
-@@ -113,21 +113,6 @@ static inline void mce_register_injector_chain(struct notifier_block *nb)	{ }
- static inline void mce_unregister_injector_chain(struct notifier_block *nb)	{ }
- #endif
+ struct nfit_test {
+ 	struct acpi_nfit_desc acpi_desc;
+ 	struct platform_device pdev;
+@@ -181,7 +186,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
+-	struct device *dimm_dev[NUM_DCR];
++	struct nfit_dimm_dev dimm_dev[NUM_DCR];
+ 	struct nd_intel_smart *smart;
+ 	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+@@ -981,7 +986,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			case ND_INTEL_SMART_INJECT:
+ 				rc = nfit_test_cmd_smart_inject(buf,
+@@ -989,7 +995,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			default:
+ 				return -ENOTTY;
+@@ -1187,8 +1194,7 @@ static void put_dimms(void *data)
+ 	int i;
  
--#ifndef CONFIG_X86_64
--/*
-- * On 32-bit systems it would be difficult to safely unmap a poison page
-- * from the kernel 1:1 map because there are no non-canonical addresses that
-- * we can use to refer to the address without risking a speculative access.
-- * However, this isn't much of an issue because:
-- * 1) Few unmappable pages are in the 1:1 map. Most are in HIGHMEM which
-- *    are only mapped into the kernel as needed
-- * 2) Few people would run a 32-bit kernel on a machine that supports
-- *    recoverable errors because they have too much memory to boot 32-bit.
-- */
--static inline void mce_unmap_kpfn(unsigned long pfn) {}
--#define mce_unmap_kpfn mce_unmap_kpfn
--#endif
--
- struct mca_config {
- 	bool dont_log_ce;
- 	bool cmci_disabled;
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index c102ad51025e..42a061ce1f5d 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -42,6 +42,7 @@
- #include <linux/irq_work.h>
- #include <linux/export.h>
- #include <linux/jump_label.h>
-+#include <linux/set_memory.h>
- 
- #include <asm/intel-family.h>
- #include <asm/processor.h>
-@@ -50,7 +51,6 @@
- #include <asm/mce.h>
- #include <asm/msr.h>
- #include <asm/reboot.h>
--#include <asm/set_memory.h>
- 
- #include "mce-internal.h"
- 
-@@ -108,10 +108,6 @@ static struct irq_work mce_irq_work;
- 
- static void (*quirk_no_way_out)(int bank, struct mce *m, struct pt_regs *regs);
- 
--#ifndef mce_unmap_kpfn
--static void mce_unmap_kpfn(unsigned long pfn);
--#endif
--
- /*
-  * CPU/chipset specific EDAC code can register a notifier call here to print
-  * MCE errors in a human-readable form.
-@@ -602,7 +598,7 @@ static int srao_decode_notifier(struct notifier_block *nb, unsigned long val,
- 	if (mce_usable_address(mce) && (mce->severity == MCE_AO_SEVERITY)) {
- 		pfn = mce->addr >> PAGE_SHIFT;
- 		if (!memory_failure(pfn, 0))
--			mce_unmap_kpfn(pfn);
-+			set_mce_nospec(pfn);
- 	}
- 
- 	return NOTIFY_OK;
-@@ -1072,38 +1068,10 @@ static int do_memory_failure(struct mce *m)
- 	if (ret)
- 		pr_err("Memory error not recovered");
- 	else
--		mce_unmap_kpfn(m->addr >> PAGE_SHIFT);
-+		set_mce_nospec(m->addr >> PAGE_SHIFT);
- 	return ret;
+ 	for (i = 0; i < t->num_dcr; i++)
+-		if (t->dimm_dev[i])
+-			device_unregister(t->dimm_dev[i]);
++		device_unregister(&t->dimm_dev[i].dev);
  }
  
--#ifndef mce_unmap_kpfn
--static void mce_unmap_kpfn(unsigned long pfn)
--{
--	unsigned long decoy_addr;
--
--	/*
--	 * Unmap this page from the kernel 1:1 mappings to make sure
--	 * we don't log more errors because of speculative access to
--	 * the page.
--	 * We would like to just call:
--	 *	set_memory_np((unsigned long)pfn_to_kaddr(pfn), 1);
--	 * but doing that would radically increase the odds of a
--	 * speculative access to the poison page because we'd have
--	 * the virtual address of the kernel 1:1 mapping sitting
--	 * around in registers.
--	 * Instead we get tricky.  We create a non-canonical address
--	 * that looks just like the one we want, but has bit 63 flipped.
--	 * This relies on set_memory_np() not checking whether we passed
--	 * a legal address.
--	 */
--
--	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
--
--	if (set_memory_np(decoy_addr, 1))
--		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
--}
--#endif
--
- /*
-  * The actual machine check handler. This only handles real
-  * exceptions when something got corrupted coming in through int 18.
-diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
-index da5178216da5..2a986d282a97 100644
---- a/include/linux/set_memory.h
-+++ b/include/linux/set_memory.h
-@@ -17,6 +17,20 @@ static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
- static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
- #endif
+ static struct class *nfit_test_dimm;
+@@ -1290,19 +1296,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
  
-+#ifndef set_mce_nospec
-+static inline int set_mce_nospec(unsigned long pfn)
++static void dimm_dev_release(struct device *dev)
 +{
-+	return 0;
 +}
-+#endif
 +
-+#ifndef clear_mce_nospec
-+static inline int clear_mce_nospec(unsigned long pfn)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifndef CONFIG_ARCH_HAS_MEM_ENCRYPT
- static inline int set_memory_encrypted(unsigned long addr, int numpages)
+ static int nfit_test_dimm_init(struct nfit_test *t)
  {
+-	int i;
++	int i, rc;
+ 
+ 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
+ 		return -ENOMEM;
+ 	for (i = 0; i < t->num_dcr; i++) {
+-		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
+-				&t->pdev.dev, 0, NULL,
+-				nfit_test_dimm_attribute_groups,
+-				"test_dimm%d", i + t->dcr_idx);
+-		if (!t->dimm_dev[i])
+-			return -ENOMEM;
++		t->dimm_dev[i].dev.parent = &t->pdev.dev;
++		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
++				i + t->dcr_idx);
++		t->dimm_dev[i].dev.class = nfit_test_dimm;
++		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
++		t->dimm_dev[i].dev.release = dimm_dev_release;
++		rc = device_register(&t->dimm_dev[i].dev);
++		if (rc < 0)
++			return rc;
++		dev_set_drvdata(&t->dimm_dev[i].dev, t);
+ 	}
+ 	return 0;
+ }
+@@ -2665,8 +2679,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 
+ 		for (i = 0; i < NUM_DCR; i++)
+ 			if (nfit_handle == handle[i])
+-				dev_set_drvdata(nfit_test->dimm_dev[i],
+-						nfit_mem);
++				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
