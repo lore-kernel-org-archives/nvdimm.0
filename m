@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C818E20957B06
- for <linux-nvdimm@lists.01.org>; Thu, 12 Jul 2018 13:49:29 -0700 (PDT)
-Subject: [PATCH v4 11/11] libnvdimm: add documentation for nvdimm security
- support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 12 Jul 2018 13:49:29 -0700
-Message-ID: <153142856924.27297.6158046942521802971.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
-References: <153142840572.27297.8070233763007198738.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D48622097F544
+ for <linux-nvdimm@lists.01.org>; Tue, 17 Jul 2018 19:52:57 -0700 (PDT)
+From: Baoquan He <bhe@redhat.com>
+Subject: [PATCH v7 3/4] resource: add walk_system_ram_res_rev()
+Date: Wed, 18 Jul 2018 10:49:43 +0800
+Message-Id: <20180718024944.577-4-bhe@redhat.com>
+In-Reply-To: <20180718024944.577-1-bhe@redhat.com>
+References: <20180718024944.577-1-bhe@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,101 +18,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, robh+dt@kernel.org, dan.j.williams@intel.com, nicolas.pitre@linaro.org, josh@joshtriplett.org, fengguang.wu@intel.com, bp@suse.de, andy.shevchenko@gmail.com
+Cc: brijesh.singh@amd.com, devicetree@vger.kernel.org, airlied@linux.ie, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, jcmvbkbc@gmail.com, baiyaowei@cmss.chinamobile.com, kys@microsoft.com, frowand.list@gmail.com, lorenzo.pieralisi@arm.com, sthemmin@microsoft.com, Baoquan He <bhe@redhat.com>, linux-nvdimm@lists.01.org, patrik.r.jakobsson@gmail.com, linux-input@vger.kernel.org, gustavo@padovan.org, dyoung@redhat.com, thomas.lendacky@amd.com, haiyangz@microsoft.com, maarten.lankhorst@linux.intel.com, jglisse@redhat.com, seanpaul@chromium.org, bhelgaas@google.com, tglx@linutronix.de, yinghai@kernel.org, jonathan.derrick@intel.com, chris@zankel.net, monstr@monstr.eu, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, dmitry.torokhov@gmail.com, ebiederm@xmission.com, devel@linuxdriverproject.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add theory of operation for the security support that's going into
-libnvdimm.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/nvdimm/security |   70 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
- create mode 100644 Documentation/nvdimm/security
-
-diff --git a/Documentation/nvdimm/security b/Documentation/nvdimm/security
-new file mode 100644
-index 000000000000..b776ef1f5e41
---- /dev/null
-+++ b/Documentation/nvdimm/security
-@@ -0,0 +1,70 @@
-+NVDIMM SECURITY
-+===============
-+
-+1. Introduction
-+---------------
-+
-+With the introduction of Intel DSM v1.7 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
-+
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
-+
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and unsupported.
-+
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update - enable security. Add or update current key.
-+disable - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase - generate new ecryption key for DIMM and crypto-scrambles all existing
-+	user data.
-+
-+3. Key Management
-+-----------------
-+
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
-+
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
-+similar to the ATA security specification [2]. A key is initially acquired
-+via the request_key() kernel API call and retrieved from userspace. It is up to
-+the user to provide an upcall application to retrieve the key in whatever
-+fashion meets their security requirements.
-+
-+The payload provided to the key can be a 32bytes payload or 64bytes payload
-+when doing an "update". The payload is viewed as 64 bytes in the following
-+format:
-+[32 bytes new key data zero padded][32 bytes current key data zero padded]
-+However, a 32bytes payload can be provided and will be assumed as the old
-+key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
-+It is up to the user upcall function how that's presented as the key payload
-+to the kernel.
-+
-+All the other security functions that require a provided key can accept a
-+32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
-+will be ignored and the first 32bytes contains the expected "passphrase".
-+
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from its keyring. If that fails, it will attempt to
-+acquire the key from the userspace upcall function. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot.
-+
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhpcyBmdW5jdGlvbiwgYmVpbmcgYSB2YXJpYW50IG9mIHdhbGtfc3lzdGVtX3JhbV9yZXMoKSBp
+bnRyb2R1Y2VkIGluCmNvbW1pdCA4Yzg2ZTcwYWNlYWQgKCJyZXNvdXJjZTogcHJvdmlkZSBuZXcg
+ZnVuY3Rpb25zIHRvIHdhbGsgdGhyb3VnaApyZXNvdXJjZXMiKSwgd2Fsa3MgdGhyb3VnaCBhIGxp
+c3Qgb2YgYWxsIHRoZSByZXNvdXJjZXMgb2YgU3lzdGVtIFJBTQppbiByZXZlcnNlZCBvcmRlciwg
+aS5lLiwgZnJvbSBoaWdoZXIgdG8gbG93ZXIuCgpJdCB3aWxsIGJlIHVzZWQgaW4ga2V4ZWNfZmls
+ZSBjb2RlLgoKU2lnbmVkLW9mZi1ieTogQmFvcXVhbiBIZSA8YmhlQHJlZGhhdC5jb20+CkNjOiBB
+bmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpDYzogVGhvbWFzIEdsZWl4
+bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+CkNjOiBCcmlqZXNoIFNpbmdoIDxicmlqZXNoLnNpbmdo
+QGFtZC5jb20+CkNjOiAiSsOpcsO0bWUgR2xpc3NlIiA8amdsaXNzZUByZWRoYXQuY29tPgpDYzog
+Qm9yaXNsYXYgUGV0a292IDxicEBzdXNlLmRlPgpDYzogVG9tIExlbmRhY2t5IDx0aG9tYXMubGVu
+ZGFja3lAYW1kLmNvbT4KQ2M6IFdlaSBZYW5nIDxyaWNoYXJkLndlaXlhbmdAZ21haWwuY29tPgot
+LS0KIGluY2x1ZGUvbGludXgvaW9wb3J0LmggfCAgMyArKysKIGtlcm5lbC9yZXNvdXJjZS5jICAg
+ICAgfCA0MCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAyIGZpbGVz
+IGNoYW5nZWQsIDQzIGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2lv
+cG9ydC5oIGIvaW5jbHVkZS9saW51eC9pb3BvcnQuaAppbmRleCBiNzQ1NmFlODg5ZGQuLjA2NmNj
+MjYzZTJjYyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9pb3BvcnQuaAorKysgYi9pbmNsdWRl
+L2xpbnV4L2lvcG9ydC5oCkBAIC0yNzksNiArMjc5LDkgQEAgZXh0ZXJuIGludAogd2Fsa19zeXN0
+ZW1fcmFtX3Jlcyh1NjQgc3RhcnQsIHU2NCBlbmQsIHZvaWQgKmFyZywKIAkJICAgIGludCAoKmZ1
+bmMpKHN0cnVjdCByZXNvdXJjZSAqLCB2b2lkICopKTsKIGV4dGVybiBpbnQKK3dhbGtfc3lzdGVt
+X3JhbV9yZXNfcmV2KHU2NCBzdGFydCwgdTY0IGVuZCwgdm9pZCAqYXJnLAorCQkJaW50ICgqZnVu
+Yykoc3RydWN0IHJlc291cmNlICosIHZvaWQgKikpOworZXh0ZXJuIGludAogd2Fsa19pb21lbV9y
+ZXNfZGVzYyh1bnNpZ25lZCBsb25nIGRlc2MsIHVuc2lnbmVkIGxvbmcgZmxhZ3MsIHU2NCBzdGFy
+dCwgdTY0IGVuZCwKIAkJICAgIHZvaWQgKmFyZywgaW50ICgqZnVuYykoc3RydWN0IHJlc291cmNl
+ICosIHZvaWQgKikpOwogCmRpZmYgLS1naXQgYS9rZXJuZWwvcmVzb3VyY2UuYyBiL2tlcm5lbC9y
+ZXNvdXJjZS5jCmluZGV4IGM5NmU1OGQzZDJmOC4uM2UxOGYyNGI5MGM0IDEwMDY0NAotLS0gYS9r
+ZXJuZWwvcmVzb3VyY2UuYworKysgYi9rZXJuZWwvcmVzb3VyY2UuYwpAQCAtMjMsNiArMjMsOCBA
+QAogI2luY2x1ZGUgPGxpbnV4L3Bmbi5oPgogI2luY2x1ZGUgPGxpbnV4L21tLmg+CiAjaW5jbHVk
+ZSA8bGludXgvcmVzb3VyY2VfZXh0Lmg+CisjaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+CisjaW5j
+bHVkZSA8bGludXgvdm1hbGxvYy5oPgogI2luY2x1ZGUgPGFzbS9pby5oPgogCiAKQEAgLTQ0Myw2
+ICs0NDUsNDQgQEAgaW50IHdhbGtfc3lzdGVtX3JhbV9yZXModTY0IHN0YXJ0LCB1NjQgZW5kLCB2
+b2lkICphcmcsCiB9CiAKIC8qCisgKiBUaGlzIGZ1bmN0aW9uLCBiZWluZyBhIHZhcmlhbnQgb2Yg
+d2Fsa19zeXN0ZW1fcmFtX3JlcygpLCBjYWxscyB0aGUgQGZ1bmMKKyAqIGNhbGxiYWNrIGFnYWlu
+c3QgYWxsIG1lbW9yeSByYW5nZXMgb2YgdHlwZSBTeXN0ZW0gUkFNIHdoaWNoIGFyZSBtYXJrZWQg
+YXMKKyAqIElPUkVTT1VSQ0VfU1lTVEVNX1JBTSBhbmQgSU9SRVNPVUNFX0JVU1kgaW4gcmV2ZXJz
+ZWQgb3JkZXIsIGkuZS4sIGZyb20KKyAqIGhpZ2hlciB0byBsb3dlci4KKyAqLworaW50IHdhbGtf
+c3lzdGVtX3JhbV9yZXNfcmV2KHU2NCBzdGFydCwgdTY0IGVuZCwgdm9pZCAqYXJnLAorCQkJCWlu
+dCAoKmZ1bmMpKHN0cnVjdCByZXNvdXJjZSAqLCB2b2lkICopKQoreworCXVuc2lnbmVkIGxvbmcg
+ZmxhZ3M7CisJc3RydWN0IHJlc291cmNlICpyZXM7CisJaW50IHJldCA9IC0xOworCisJZmxhZ3Mg
+PSBJT1JFU09VUkNFX1NZU1RFTV9SQU0gfCBJT1JFU09VUkNFX0JVU1k7CisKKwlyZWFkX2xvY2so
+JnJlc291cmNlX2xvY2spOworCWxpc3RfZm9yX2VhY2hfZW50cnlfcmV2ZXJzZShyZXMsICZpb21l
+bV9yZXNvdXJjZS5jaGlsZCwgc2libGluZykgeworCQlpZiAoc3RhcnQgPj0gZW5kKQorCQkJYnJl
+YWs7CisJCWlmICgocmVzLT5mbGFncyAmIGZsYWdzKSAhPSBmbGFncykKKwkJCWNvbnRpbnVlOwor
+CQlpZiAocmVzLT5kZXNjICE9IElPUkVTX0RFU0NfTk9ORSkKKwkJCWNvbnRpbnVlOworCQlpZiAo
+cmVzLT5lbmQgPCBzdGFydCkKKwkJCWJyZWFrOworCisJCWlmICgocmVzLT5lbmQgPj0gc3RhcnQp
+ICYmIChyZXMtPnN0YXJ0IDwgZW5kKSkgeworCQkJcmV0ID0gKCpmdW5jKShyZXMsIGFyZyk7CisJ
+CQlpZiAocmV0KQorCQkJCWJyZWFrOworCQl9CisJCWVuZCA9IHJlcy0+c3RhcnQgLSAxOworCisJ
+fQorCXJlYWRfdW5sb2NrKCZyZXNvdXJjZV9sb2NrKTsKKwlyZXR1cm4gcmV0OworfQorCisvKgog
+ICogVGhpcyBmdW5jdGlvbiBjYWxscyB0aGUgQGZ1bmMgY2FsbGJhY2sgYWdhaW5zdCBhbGwgbWVt
+b3J5IHJhbmdlcywgd2hpY2gKICAqIGFyZSByYW5nZXMgbWFya2VkIGFzIElPUkVTT1VSQ0VfTUVN
+IGFuZCBJT1JFU09VQ0VfQlVTWS4KICAqLwotLSAKMi4xMy42CgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1udmRpbW0K
