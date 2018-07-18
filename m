@@ -1,11 +1,11 @@
-From: <inrancornjar1988-7DHrFgVBAElWk0Htik3J/w@public.gmane.org>
-Subject: Staff Wanted
-Date: 18 Jul 2018 20:37:04 +0300
-Message-ID: <003e01d41ec2$025e6c71$1ae89da0$@binkmail.com>
+From: =?utf-8?B?5LiB5Li75Lu7?= <ohib-B8P1VCQpDdI@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V6L275p2+5bqU5a+55rW35YWz55qE546w5Zy66aqM6K+B?=
+Date: Thu, 19 Jul 2018 00:48:11 +0800
+Message-ID: <38939CCFC774922898AA6EDCCC4846AA@hv.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6393050392846676515=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,44 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============6393050392846676515==
-Content-Language: en
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-Good day!
-
-We considered your resume to be very attractive and we thought the =
-vacant position in our company could be interesting for you.
-
-Our firm specializes in online services in the matter of business =
-administration.
-We cooperate with different countries and currently we have many clients =
-in yours region.
-Due to this fact, we need to increase the number of our destination =
-representatives' regular staff.
-
-Part-time and full-time employment are both currently important.
-We offer a flat wage from $1500 up to $7000 per month.
-
-If you are interested in our offer, please visit our web page.
-
-Attention! Accept applications only on this and next week.
-
-Respectively submitted
-Personnel department
---===============6393050392846676515==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6393050392846676515==--
+5LiB5Li75Lu744CLwrfor6bCt+aDhcK36K+3wrfmn6XCt+mYhcK36ZmEwrfku7bCtwpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
