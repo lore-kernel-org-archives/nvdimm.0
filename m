@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B86DB2098874E
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 14:50:58 -0700 (PDT)
-Subject: [PATCH v5 07/11] filesystem-dax: Introduce dax_lock_mapping_entry()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jul 2018 14:41:00 -0700
-Message-ID: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 43AAA21BADAB2
+ for <linux-nvdimm@lists.01.org>; Wed, 18 Jul 2018 17:39:14 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl, bash-completion: add completion for ndctl-monitor
+Date: Wed, 18 Jul 2018 18:38:46 -0600
+Message-Id: <20180719003846.12068-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,228 +15,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: jack@suse.cz, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for implementing support for memory poison (media error)
-handling via dax mappings, implement a lock_page() equivalent. Poison
-error handling requires rmap and needs guarantees that the page->mapping
-association is maintained / valid (inode not freed) for the duration of
-the lookup.
+Add bash completions for the 'ndctl monitor' command. This introduces
+some new semantics where the completion for --log= can be either a file
+path, or one of the canonical options (currently 'standard' or 'syslog'.
+We handle this by (ab)using compgen to test whether the entered
+string is a substring of one of the canonical strings. If it is, then we
+include the array of the canonical strngs as well as regular _filedir
+output in our reply. If not, then we rely on _filedir doing its thing.
 
-In the device-dax case it is sufficient to simply hold a dev_pagemap
-reference. In the filesystem-dax case we need to use the entry lock.
-
-Export the entry lock via dax_lock_mapping_entry() that uses
-rcu_read_lock() to protect against the inode being freed, and
-revalidates the page->mapping association under xa_lock().
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/dax.h |   24 +++++++++++
- 2 files changed, 127 insertions(+), 6 deletions(-)
+ contrib/ndctl | 44 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 4de11ed463ce..57ec272038da 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
-  *
-  * Must be called with the i_pages lock held.
-  */
--static void *get_unlocked_mapping_entry(struct address_space *mapping,
--					pgoff_t index, void ***slotp)
-+static void *__get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
- {
- 	void *entry, **slot;
- 	struct wait_exceptional_entry_queue ewait;
-@@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 	ewait.wait.func = wake_exceptional_entry_func;
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 7a99baf..515494d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -91,7 +91,7 @@ __ndctlcomp()
  
- 	for (;;) {
-+		bool revalidate;
-+
- 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
- 					  &slot);
- 		if (!entry ||
-@@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
- 		prepare_to_wait_exclusive(wq, &ewait.wait,
- 					  TASK_UNINTERRUPTIBLE);
- 		xa_unlock_irq(&mapping->i_pages);
--		schedule();
-+		revalidate = wait_fn();
- 		finish_wait(wq, &ewait.wait);
- 		xa_lock_irq(&mapping->i_pages);
-+		if (revalidate)
-+			return ERR_PTR(-EAGAIN);
- 	}
+ 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
+ 	for cword in "${COMPREPLY[@]}"; do
+-		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware|--media-temperature|--ctrl-temperature|--spares|--media-temperature-threshold|--ctrl-temperature-threshold|--spares-threshold|--media-temperature-alarm|--ctrl-temperature-alarm|--spares-alarm|--numa-node) ]]; then
++		if [[ "$cword" == @(--bus|--region|--type|--mode|--size|--dimm|--reconfig|--uuid|--name|--sector-size|--map|--namespace|--input|--output|--label-version|--align|--block|--count|--firmware|--media-temperature|--ctrl-temperature|--spares|--media-temperature-threshold|--ctrl-temperature-threshold|--spares-threshold|--media-temperature-alarm|--ctrl-temperature-alarm|--spares-alarm|--numa-node|--log|--dimm-event|--config-file) ]]; then
+ 			COMPREPLY[$i]="${cword}="
+ 		else
+ 			COMPREPLY[$i]="${cword} "
+@@ -167,10 +167,13 @@ __ndctl_get_nodes()
+ 	echo "$nlist"
  }
  
--static void dax_unlock_mapping_entry(struct address_space *mapping,
--				     pgoff_t index)
-+static bool entry_wait(void)
-+{
-+	schedule();
-+	/*
-+	 * Never return an ERR_PTR() from
-+	 * __get_unlocked_mapping_entry(), just keep looping.
-+	 */
-+	return false;
-+}
-+
-+static void *get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp)
-+{
-+	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
-+}
-+
-+static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
++saveopts=""
+ __ndctl_file_comp()
  {
- 	void *entry, **slot;
+ 	local cur="$1"
++
+ 	_filedir
++	saveopts="${COMPREPLY[*]}"
+ }
+ __ndctl_comp_options()
+ {
+@@ -179,6 +182,7 @@ __ndctl_comp_options()
  
-@@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
- static void put_locked_mapping_entry(struct address_space *mapping,
- 		pgoff_t index)
- {
--	dax_unlock_mapping_entry(mapping, index);
-+	unlock_mapping_entry(mapping, index);
+ 	if [[ "$cur" == *=* ]]; then
+ 		local cur_subopt=${cur%%=*}
++		local cur_arg=${cur##*=}
+ 		case $cur_subopt in
+ 		--bus)
+ 			opts=$(__ndctl_get_buses)
+@@ -219,7 +223,7 @@ __ndctl_comp_options()
+ 		--input)
+ 			;&
+ 		--firmware)
+-			__ndctl_file_comp "${cur##*=}"
++			__ndctl_file_comp "$cur_arg"
+ 			return
+ 			;;
+ 		--label-version)
+@@ -235,11 +239,45 @@ __ndctl_comp_options()
+ 		--numa-node)
+ 			opts=$(__ndctl_get_nodes)
+ 			;;
++		--log)
++			local my_args=( "standard" "syslog" )
++
++			__ndctl_file_comp "$cur_arg"
++			if [ -n "$cur_arg" ]; then
++				# if $cur_arg is a substring of $my_args (as
++				# determined by compgen), then we continue to
++				# manually construct opts using $my_args, but
++				# if it is not a substring (compgen returns
++				# empty), then we defer to _ndctl_file_comp
++				# and return immediately. (NOTE: subscripting
++				# of the my_args array here is fragile).
++				# If this pattern repeats, where we need to
++				# complete with filenames and some custom
++				# options, find a better way to generalize this
++				if [ -z "$(compgen -W "${my_args[*]}" -- "$cur_arg")" ]; then
++					return
++				fi
++			fi
++			opts="${my_args[*]} $saveopts"
++			;;
++		--dimm-event)
++			opts="all \
++				dimm-spares-remaining \
++				dimm-media-temperature \
++				dimm-controller-temperature \
++				dimm-health-state \
++				dimm-unclean-shutdown \
++				"
++			;;
++		--config-file)
++			__ndctl_file_comp "$cur_arg"
++			return
++			;;
+ 		*)
+ 			return
+ 			;;
+ 		esac
+-		__ndctlcomp "$opts" "${cur##*=}"
++		__ndctlcomp "$opts" "$cur_arg"
+ 	fi
  }
  
- /*
-@@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
- 	return NULL;
- }
- 
-+static bool entry_wait_revalidate(void)
-+{
-+	rcu_read_unlock();
-+	schedule();
-+	rcu_read_lock();
-+
-+	/*
-+	 * Tell __get_unlocked_mapping_entry() to take a break, we need
-+	 * to revalidate page->mapping after dropping locks
-+	 */
-+	return true;
-+}
-+
-+bool dax_lock_mapping_entry(struct page *page)
-+{
-+	pgoff_t index;
-+	struct inode *inode;
-+	bool did_lock = false;
-+	void *entry = NULL, **slot;
-+	struct address_space *mapping;
-+
-+	rcu_read_lock();
-+	for (;;) {
-+		mapping = READ_ONCE(page->mapping);
-+
-+		if (!dax_mapping(mapping))
-+			break;
-+
-+		/*
-+		 * In the device-dax case there's no need to lock, a
-+		 * struct dev_pagemap pin is sufficient to keep the
-+		 * inode alive, and we assume we have dev_pagemap pin
-+		 * otherwise we would not have a valid pfn_to_page()
-+		 * translation.
-+		 */
-+		inode = mapping->host;
-+		if (S_ISCHR(inode->i_mode)) {
-+			did_lock = true;
-+			break;
-+		}
-+
-+		xa_lock_irq(&mapping->i_pages);
-+		if (mapping != page->mapping) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			continue;
-+		}
-+		index = page->index;
-+
-+		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-+				entry_wait_revalidate);
-+		if (!entry) {
-+			xa_unlock_irq(&mapping->i_pages);
-+			break;
-+		} else if (IS_ERR(entry)) {
-+			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-+			continue;
-+		}
-+		lock_slot(mapping, slot);
-+		did_lock = true;
-+		xa_unlock_irq(&mapping->i_pages);
-+		break;
-+	}
-+	rcu_read_unlock();
-+
-+	return did_lock;
-+}
-+
-+void dax_unlock_mapping_entry(struct page *page)
-+{
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+
-+	if (S_ISCHR(inode->i_mode))
-+		return;
-+
-+	unlock_mapping_entry(mapping, page->index);
-+}
-+
- /*
-  * Find radix tree entry at given index. If it points to an exceptional entry,
-  * return it with the radix tree entry locked. If the radix tree doesn't
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index deb0f663252f..82b9856faf7f 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct block_device *bdev, struct writeback_control *wbc);
- 
- struct page *dax_layout_busy_page(struct address_space *mapping);
-+bool dax_lock_mapping_entry(struct page *page);
-+void dax_unlock_mapping_entry(struct page *page);
- #else
- static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
-@@ -119,6 +121,28 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+
-+static inline bool dax_lock_mapping_entry(struct page *page)
-+{
-+	struct page *page = pfn_to_page(pfn);
-+
-+	if (IS_DAX(page->mapping->host))
-+		return true;
-+	return false;
-+}
-+
-+void dax_unlock_mapping_entry(struct page *page)
-+{
-+}
-+
-+static inline struct page *dax_lock_page(unsigned long pfn)
-+{
-+}
-+
-+static inline void dax_unlock_page(struct page *page)
-+{
-+}
- #endif
- 
- int dax_read_lock(void);
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
