@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CEB09210C515B
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 00:17:05 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v3 5/6] md/dm-writecache: Don't request pointer dummy_addr
- when not required
-Date: Mon, 30 Jul 2018 15:15:47 +0800
-Message-Id: <20180730071548.9172-6-yehs2007@zoho.com>
-In-Reply-To: <20180730071548.9172-1-yehs2007@zoho.com>
-References: <20180730071548.9172-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5D03B21B02845
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 11:47:49 -0700 (PDT)
+From: Ross Zwisler <zwisler@kernel.org>
+Subject: [PATCH 0/2] Update mail addresses, add FS DAX maintainer
+Date: Thu, 19 Jul 2018 12:47:20 -0600
+Message-Id: <20180719184722.19164-1-zwisler@kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,42 +20,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: jack@suse.cz, snitzer@redhat.com, heiko.carstens@de.ibm.com, dm-devel@redhat.com, agk@redhat.com, linux-s390@vger.kernel.org, willy@infradead.org, bart.vanassche@wdc.com, keescook@chromium.org, chengnt@lenovo.com, colyli@suse.de, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, axboe@kernel.dk, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
+Cc: Ross Zwisler <zwisler@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+This series updates my preferred email for kernel work to my
+zwisler@kernel.org mail address, and adds Jan as a maintainer for
+filesystem DAX.  Thank you, Jan, for helping to keep filesystem DAX in a
+happy state.
 
-Function persistent_memory_claim doesn't need to get local pointer
-dummy_addr from direct_access. Using NULL instead of having to pass
-in a useless local pointer that caller then just throw away.
+We are planning on pushing this up through the libnvdimm tree for the
+v4.19 merge window.
 
-Suggested-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Mike Snitzer <snitzer@redhat.com>
----
- drivers/md/dm-writecache.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Ross Zwisler (2):
+  MAINTAINERS: update Ross Zwisler's email address
+  MAINTAINERS: Add Jan Kara for filesystem DAX
 
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 87107c9..9d79084 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -268,9 +268,8 @@ static int persistent_memory_claim(struct dm_writecache *wc)
- 		i = 0;
- 		do {
- 			long daa;
--			void *dummy_addr;
- 			daa = dax_direct_access(wc->ssd_dev->dax_dev, i, p - i,
--						&dummy_addr, &pfn);
-+						NULL, &pfn);
- 			if (daa <= 0) {
- 				r = daa ? daa : -EINVAL;
- 				goto err3;
+ .mailmap    |  1 +
+ MAINTAINERS | 13 +++++++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
 -- 
-1.8.3.1
-
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
