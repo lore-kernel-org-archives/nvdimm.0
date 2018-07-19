@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ECB81210C0F74
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 14:50:47 -0700 (PDT)
-Subject: [PATCH v5 05/11] mm,
- madvise_inject_error: Let memory_failure() optionally take a page
- reference
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jul 2018 14:40:49 -0700
-Message-ID: <153074044986.27838.16910122305490506387.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 89595209831EC
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 16:00:15 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 3/4] ndctl, monitor: Fix memory leak in monitor_event
+Date: Thu, 19 Jul 2018 16:59:57 -0600
+Message-Id: <20180719225958.6814-4-vishal.l.verma@intel.com>
+In-Reply-To: <20180719225958.6814-1-vishal.l.verma@intel.com>
+References: <20180719225958.6814-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,85 +17,105 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Michal Hocko <mhocko@suse.com>, jack@suse.cz, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-The madvise_inject_error() routine uses get_user_pages() to lookup the
-pfn and other information for injected error, but it does not release
-that pin. The assumption is that failed pages should be taken out of
-circulation.
+Static analysis reports we were leaking the 'events' buffer in the above
+function. We were also returning a simple '1' for every error case. Take
+this chance to return a more meaningful 'errno' in each case, while also
+fixing up the resource leak.
 
-However, for dax mappings it is not possible to take pages out of
-circulation since they are 1:1 physically mapped as filesystem blocks,
-or device-dax capacity. They also typically represent persistent memory
-which has an error clearing capability.
-
-In preparation for adding a special handler for dax mappings, shift the
-responsibility of taking the page reference to memory_failure(). I.e.
-drop the page reference and do not specify MF_COUNT_INCREASED to
-memory_failure().
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Fixes: fdf6b6844ccf ("ndctl, monitor: add a new command - monitor")
+Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- mm/madvise.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ ndctl/monitor.c | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 4d3c922ea1a1..b731933dddae 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -631,11 +631,13 @@ static int madvise_inject_error(int behavior,
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index 4d25c2b..7fc2aaa 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -360,32 +360,35 @@ static int monitor_event(struct ndctl_ctx *ctx,
+ 		struct monitor_filter_arg *mfa)
+ {
+ 	struct epoll_event ev, *events;
+-	int nfds, epollfd, i, rc;
++	int nfds, epollfd, i, rc = 0;
+ 	struct monitor_dimm *mdimm;
+ 	char buf;
  
- 
- 	for (; start < end; start += PAGE_SIZE << order) {
-+		unsigned long pfn;
- 		int ret;
- 
- 		ret = get_user_pages_fast(start, 1, 0, &page);
- 		if (ret != 1)
- 			return ret;
-+		pfn = page_to_pfn(page);
- 
- 		/*
- 		 * When soft offlining hugepages, after migrating the page
-@@ -651,17 +653,27 @@ static int madvise_inject_error(int behavior,
- 
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+					pfn, start);
- 
- 			ret = soft_offline_page(page, MF_COUNT_INCREASED);
- 			if (ret)
- 				return ret;
- 			continue;
- 		}
-+
- 		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--						page_to_pfn(page), start);
-+				pfn, start);
-+
-+		ret = memory_failure(pfn, 0);
-+
-+		/*
-+		 * Drop the page reference taken by get_user_pages_fast(). In
-+		 * the absence of MF_COUNT_INCREASED the memory_failure()
-+		 * routine is responsible for pinning the page to prevent it
-+		 * from being released back to the page allocator.
-+		 */
-+		put_page(page);
- 
--		ret = memory_failure(page_to_pfn(page), MF_COUNT_INCREASED);
- 		if (ret)
- 			return ret;
+ 	events = calloc(mfa->num_dimm, sizeof(struct epoll_event));
+ 	if (!events) {
+ 		err(ctx, "malloc for events error\n");
+-		return 1;
++		return -ENOMEM;
  	}
+ 	epollfd = epoll_create1(0);
+ 	if (epollfd == -1) {
+ 		err(ctx, "epoll_create1 error\n");
+-		return 1;
++		rc = -errno;
++		goto out;
+ 	}
+ 	list_for_each(&mfa->dimms, mdimm, list) {
+ 		memset(&ev, 0, sizeof(ev));
+ 		rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
+ 		if (rc < 0) {
+ 			err(ctx, "pread error\n");
+-			return 1;
++			rc = -errno;
++			goto out;
+ 		}
+ 		ev.data.ptr = mdimm;
+ 		if (epoll_ctl(epollfd, EPOLL_CTL_ADD,
+ 				mdimm->health_eventfd, &ev) != 0) {
+ 			err(ctx, "epoll_ctl error\n");
+-			return 1;
++			rc = -errno;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -394,7 +397,8 @@ static int monitor_event(struct ndctl_ctx *ctx,
+ 		nfds = epoll_wait(epollfd, events, mfa->num_dimm, -1);
+ 		if (nfds <= 0) {
+ 			err(ctx, "epoll_wait error\n");
+-			return 1;
++			rc = -errno;
++			goto out;
+ 		}
+ 		for (i = 0; i < nfds; i++) {
+ 			mdimm = events[i].data.ptr;
+@@ -404,13 +408,18 @@ static int monitor_event(struct ndctl_ctx *ctx,
+ 						ndctl_dimm_get_devname(mdimm->dimm));
+ 			}
+ 			rc = pread(mdimm->health_eventfd, &buf, sizeof(buf), 0);
+-			if (rc < 0)
+-				fail("pread error\n");
++			if (rc < 0) {
++				err(ctx, "pread error\n");
++				rc = -errno;
++				goto out;
++			}
+ 		}
+ 		if (did_fail)
+ 			return 1;
+ 	}
+-	return 0;
++ out:
++	free(events);
++	return rc;
+ }
+ 
+ static int parse_monitor_event(struct monitor *_monitor, struct ndctl_ctx *ctx)
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
