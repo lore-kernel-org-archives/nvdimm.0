@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1D19E210DA173
- for <linux-nvdimm@lists.01.org>; Mon,  2 Jul 2018 16:39:58 -0700 (PDT)
-Subject: [PATCH 09/11] nfit_test: adding context to dimm_dev for nfit_test
+ by ml01.01.org (Postfix) with ESMTPS id BCA6821B02845
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 13:06:40 -0700 (PDT)
+Subject: Re: [PATCH v5 09/12] nfit/libnvdimm: add support for issue secure
+ erase DSM to Intel nvdimm
+References: <153186061802.27463.14539931103401173743.stgit@djiang5-desk3.ch.intel.com>
+ <153186089522.27463.4537738384176593789.stgit@djiang5-desk3.ch.intel.com>
+ <AT5PR8401MB11692A3B06A2BDB669DBEA9BAB530@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ <f9873585-2f9a-6f15-0783-7f784b777ce4@intel.com>
+ <AT5PR8401MB1169AAD6B37FAA0004A2D334AB520@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 02 Jul 2018 16:39:57 -0700
-Message-ID: <153057479705.38125.18423435681655620944.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
-References: <153057423804.38125.15912575101400055843.stgit@djiang5-desk3.ch.intel.com>
+Message-ID: <503e1027-eae3-d38e-20a1-fada97528687@intel.com>
+Date: Thu, 19 Jul 2018 13:06:39 -0700
 MIME-Version: 1.0
+In-Reply-To: <AT5PR8401MB1169AAD6B37FAA0004A2D334AB520@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,125 +28,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, keyrings@vger.kernel.org, keescook@chromium.org, linux-nvdimm@lists.01.org
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "dhowells@redhat.com" <dhowells@redhat.com>, "Schofield, Alison  <alison.schofield@intel.com>, keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "keescook@chromium.org" <keescook@chromium.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to access the nfit_test context via sideband sysfs knobs, the
-dimm_dev needs to be more than struct device in order to point back to
-struct nfit_test. Wrapping the original struct device with a struct
-nfit_dimm_dev and saving the nfit_test as private driver data. Also
-changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
-saving as private driver data of that device. This is in preparation for
-adding security DSM support and allowing the locking of DIMMs for testing
-via sideband.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 18157b0c0d0d..7b3ce2194889 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -150,6 +150,11 @@ struct nfit_test_fw {
- 	u64 end_time;
- };
- 
-+struct nfit_dimm_dev {
-+	struct device dev;
-+	struct nfit_mem *nfit_mem;
-+};
-+
- struct nfit_test {
- 	struct acpi_nfit_desc acpi_desc;
- 	struct platform_device pdev;
-@@ -181,7 +186,7 @@ struct nfit_test {
- 		unsigned long deadline;
- 		spinlock_t lock;
- 	} ars_state;
--	struct device *dimm_dev[NUM_DCR];
-+	struct nfit_dimm_dev dimm_dev[NUM_DCR];
- 	struct nd_intel_smart *smart;
- 	struct nd_intel_smart_threshold *smart_threshold;
- 	struct badrange badrange;
-@@ -981,7 +986,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
--						&t->pdev.dev, t->dimm_dev[i]);
-+						&t->pdev.dev,
-+						&t->dimm_dev[i].dev);
- 				break;
- 			case ND_INTEL_SMART_INJECT:
- 				rc = nfit_test_cmd_smart_inject(buf,
-@@ -989,7 +995,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
--						&t->pdev.dev, t->dimm_dev[i]);
-+						&t->pdev.dev,
-+						&t->dimm_dev[i].dev);
- 				break;
- 			default:
- 				return -ENOTTY;
-@@ -1187,8 +1194,7 @@ static void put_dimms(void *data)
- 	int i;
- 
- 	for (i = 0; i < t->num_dcr; i++)
--		if (t->dimm_dev[i])
--			device_unregister(t->dimm_dev[i]);
-+		device_unregister(&t->dimm_dev[i].dev);
- }
- 
- static struct class *nfit_test_dimm;
-@@ -1290,19 +1296,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
- 
-+static void dimm_dev_release(struct device *dev)
-+{
-+}
-+
- static int nfit_test_dimm_init(struct nfit_test *t)
- {
--	int i;
-+	int i, rc;
- 
- 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
- 		return -ENOMEM;
- 	for (i = 0; i < t->num_dcr; i++) {
--		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
--				&t->pdev.dev, 0, NULL,
--				nfit_test_dimm_attribute_groups,
--				"test_dimm%d", i + t->dcr_idx);
--		if (!t->dimm_dev[i])
--			return -ENOMEM;
-+		t->dimm_dev[i].dev.parent = &t->pdev.dev;
-+		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
-+				i + t->dcr_idx);
-+		t->dimm_dev[i].dev.class = nfit_test_dimm;
-+		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
-+		t->dimm_dev[i].dev.release = dimm_dev_release;
-+		rc = device_register(&t->dimm_dev[i].dev);
-+		if (rc < 0)
-+			return rc;
-+		dev_set_drvdata(&t->dimm_dev[i].dev, t);
- 	}
- 	return 0;
- }
-@@ -2665,8 +2679,7 @@ static int nfit_test_probe(struct platform_device *pdev)
- 
- 		for (i = 0; i < NUM_DCR; i++)
- 			if (nfit_handle == handle[i])
--				dev_set_drvdata(nfit_test->dimm_dev[i],
--						nfit_mem);
-+				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
- 	}
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
+On 07/18/2018 06:43 PM, Elliott, Robert (Persistent Memory) wrote:
+> 
+> 
+>> -----Original Message-----
+>> From: Dave Jiang <dave.jiang@intel.com>
+>> Sent: Wednesday, July 18, 2018 12:41 PM
+>> To: Elliott, Robert (Persistent Memory) <elliott@hpe.com>; Williams,
+>> Dan J <dan.j.williams@intel.com>
+>> Cc: dhowells@redhat.com; Schofield, Alison
+>> <alison.schofield@intel.com>; keyrings@vger.kernel.org;
+>> keescook@chromium.org; linux-nvdimm@lists.01.org
+>> Subject: Re: [PATCH v5 09/12] nfit/libnvdimm: add support for issue
+>> secure erase DSM to Intel nvdimm
+>>
+>>
+>>
+>> On 07/18/2018 10:27 AM, Elliott, Robert (Persistent Memory) wrote:
+>>>
+>>>
+>>>> -----Original Message-----
+>>>> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On
+>> Behalf Of Dave Jiang
+>>>> Sent: Tuesday, July 17, 2018 3:55 PM
+>>>> Subject: [PATCH v5 09/12] nfit/libnvdimm: add support for issue
+>> secure erase DSM to Intel nvdimm
+>>> ...
+>>>  +static int intel_dimm_security_erase(struct nvdimm_bus
+>> *nvdimm_bus,
+>>>> +struct nvdimm *nvdimm, struct nvdimm_key_data *nkey)
+>>> ...
+>>>> +/* DIMM unlocked, invalidate all CPU caches before we read it */
+>>>> +wbinvd_on_all_cpus();
+>>>
+>>> For this function, that comment should use "erased" rather than
+>>> "unlocked".
+>>>
+>>> For both this function and intel_dimm_security_unlock() in patch
+>> 04/12,
+>>> could the driver do a loop of clflushopts on one CPU via
+>>> clflush_cache_range() rather than run wbinvd on all CPUs?
+>>
+>> The loop should work, but wbinvd is going to be less overall impact
+>> to the performance for really huge ranges. Also, unlock should happen
+>> only once and during NVDIMM initialization. So wbinvd should be ok.
+> 
+> Unlike unlock, secure erase could be requested at any time.
+> 
+> wbinvd must run on every physical core on every physical CPU, while
+> clflushopt flushes everything from just one CPU core.
+> 
+> wbinvd adds huge interrupt latencies, generating complaints like these:
+> https://patchwork.kernel.org/patch/37090/
+> https://lists.xenproject.org/archives/html/xen-devel/2011-09/msg00675.html
+> 
+> Also, there's no need to disrupt cache content for other addresses;
+> only the data at the addresses just erased or unlocked is a concern.
+> clflushopt avoids disrupting other threads.
 
+Yes secure erase could be requested at any time, but the likelihood of
+that happening frequently is unlikely. Also, in order to do secure
+erase, one must disable regions impacted by the dimm and also the dimm
+itself. More likely than not, the admin is doing maintenance and not
+expecting running workloads (at least not on the pmem). The concern is
+more that the admin wants to finish the task quickly rather than if
+there's performance impact while the maintenance task is going on.
+
+Also, looping over potentially TB-sized ranges with CLFLUSHOPT may take
+a while (many minutes?)? Yes it just flushes cache from one CPU, but
+also it causes cross-CPU traffic to maintain coherency, and KTI traffic
+and/or reads from the media to check directory bits. WBINVD is pretty
+heavy handed but it's the only option we have that doesn't have to plow
+through each cache line in the huge range.
+
+> 
+> Related topic: a flush is also necessary before sending the secure erase or
+> unlock command.  Otherwise, there could be dirty write data that gets
+> written by the concluding flush (overwriting the now-unlocked or just-erased
+> data).  For unlock during boot, you might assume that no writes having
+> occurred yet, but that isn't true for secure erase on demand.  Flushing
+> before both commands is safest.
+
+Yes I missed that. Thanks for catching. I'll add the flush before
+executing secure erase. It's probably not necessary for unlock since
+there's no data that would be in the CPU cache until the DIMMs are
+accessible.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
