@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 64F92210C2791
- for <linux-nvdimm@lists.01.org>; Wed, 25 Jul 2018 13:59:11 -0700 (PDT)
-Subject: [PATCH v6 07/11] nfit/libnvdimm: add freeze security support to
- Intel nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 25 Jul 2018 13:59:10 -0700
-Message-ID: <153255235052.51274.12568778007618434485.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-References: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5322121B02845
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 16:00:15 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/4] ndctl, monitor: fix memory leak in read_config_file
+Date: Thu, 19 Jul 2018 16:59:56 -0600
+Message-Id: <20180719225958.6814-3-vishal.l.verma@intel.com>
+In-Reply-To: <20180719225958.6814-1-vishal.l.verma@intel.com>
+References: <20180719225958.6814-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,154 +17,135 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security on Intel nvdimm. This locks out any
-changes to security for the DIMM unless a reboot is done. This is triggered
-by writing "freeze" to the "security" sysfs attribute. libnvdimm will
-support the generic freeze_lock API call.
+Static analysis reports that we leak 'buf' in the above function. Free
+that, and refactor some of the error reporting to clean up the flow.
+Since the parser loop was modifying 'buf', it wasn't possible to
+directly free it. Introduce a 'seek' variable to seek within the buf so
+that buf itself remains untouched, and can later be freed.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Fixes: 80dd56d82dd3 ("ndctl, monitor: add main ndctl monitor configuration file")
+Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   22 +++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 75 insertions(+)
+ ndctl/monitor.c | 44 +++++++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 21d30222371f..ba886f1f5399 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,53 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_freeze_lock cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = 0,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index abab45f..4d25c2b 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -478,9 +478,9 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
+ 		struct util_filter_params *_param)
  {
-@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
- 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
- 			*state = NVDIMM_SECURITY_LOCKED;
-+		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
-+				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
-+			*state = NVDIMM_SECURITY_FROZEN;
- 		else
- 			*state = NVDIMM_SECURITY_UNLOCKED;
- 	} else
-@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
- 	.disable = intel_dimm_security_disable,
-+	.freeze_lock = intel_dimm_security_freeze_lock,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 1d85a4cb9402..8f4ea4e2c2ab 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -97,6 +97,26 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
+ 	FILE *f;
+-	int line = 0;
+ 	size_t len = 0;
+-	char *buf, *value, *config_file;
++	int line = 0, rc = 0;
++	char *buf = NULL, *seek, *value, *config_file;
+ 
+ 	if (_monitor->config_file)
+ 		config_file = strdup(_monitor->config_file);
+@@ -488,32 +488,36 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
+ 		config_file = strdup(DEF_CONF_FILE);
+ 	if (!config_file) {
+ 		fail("strdup default config file failed\n");
++		rc = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+ 	buf = malloc(BUF_SIZE);
+ 	if (!buf) {
+ 		fail("malloc read config-file buf error\n");
++		rc = -ENOMEM;
+ 		goto out;
+ 	}
++	seek = buf;
+ 
+ 	f = fopen(config_file, "r");
+ 	if (!f) {
+ 		fail("config-file: %s cannot be opened\n", config_file);
++		rc = -errno;
+ 		goto out;
+ 	}
+ 
+-	while (fgets(buf, BUF_SIZE, f)) {
++	while (fgets(seek, BUF_SIZE, f)) {
+ 		value = NULL;
+ 		line++;
+ 
+-		while (isspace(*buf))
+-			buf++;
++		while (isspace(*seek))
++			seek++;
+ 
+-		if (*buf == '#' || *buf == '\0')
++		if (*seek == '#' || *seek == '\0')
+ 			continue;
+ 
+-		value = strchr(buf, '=');
++		value = strchr(seek, '=');
+ 		if (!value) {
+ 			fail("config-file syntax error, skip line[%i]\n", line);
+ 			continue;
+@@ -525,12 +529,12 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
+ 		while (isspace(value[0]))
+ 			value++;
+ 
+-		len = strlen(buf);
++		len = strlen(seek);
+ 		if (len == 0)
+ 			continue;
+-		while (isspace(buf[len-1]))
++		while (isspace(seek[len-1]))
+ 			len--;
+-		buf[len] = '\0';
++		seek[len] = '\0';
+ 
+ 		len = strlen(value);
+ 		if (len == 0)
+@@ -542,22 +546,20 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
+ 		if (len == 0)
+ 			continue;
+ 
+-		parse_config(&_param->bus, "bus", value, buf);
+-		parse_config(&_param->dimm, "dimm", value, buf);
+-		parse_config(&_param->region, "region", value, buf);
+-		parse_config(&_param->namespace, "namespace", value, buf);
+-		parse_config(&_monitor->dimm_event, "dimm-event", value, buf);
++		parse_config(&_param->bus, "bus", value, seek);
++		parse_config(&_param->dimm, "dimm", value, seek);
++		parse_config(&_param->region, "region", value, seek);
++		parse_config(&_param->namespace, "namespace", value, seek);
++		parse_config(&_monitor->dimm_event, "dimm-event", value, seek);
+ 
+ 		if (!_monitor->log)
+-			parse_config(&_monitor->log, "log", value, buf);
++			parse_config(&_monitor->log, "log", value, seek);
+ 	}
+ 	fclose(f);
+-	free(config_file);
+-	return 0;
+ out:
+-	if (config_file)
+-		free(config_file);
+-	return 1;
++	free(buf);
++	free(config_file);
++	return rc;
  }
  
-+static int nvdimm_security_freeze_lock(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	int rc;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return 0;
-+
-+	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
-+	if (rc < 0)
-+		return rc;
-+
-+	nvdimm_security_get_state(dev);
-+	return 0;
-+}
-+
- static int nvdimm_security_disable(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -665,6 +685,8 @@ static ssize_t security_store(struct device *dev,
- 		rc = nvdimm_security_change_key(dev);
- 	else if (sysfs_streq(buf, "disable"))
- 		rc = nvdimm_security_disable(dev);
-+	else if (sysfs_streq(buf, "freeze"))
-+		rc = nvdimm_security_freeze_lock(dev);
- 	else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c60ab4b238f3..bcab42caa948 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
- 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
-+	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm);
- };
- 
- void badrange_init(struct badrange *badrange);
+ int cmd_monitor(int argc, const char **argv, void *ctx)
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
