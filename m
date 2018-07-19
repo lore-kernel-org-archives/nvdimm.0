@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym01.jp.fujitsu.com (mgwym01.jp.fujitsu.com [211.128.242.40])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A1D00209884A8
- for <linux-nvdimm@lists.01.org>; Fri, 13 Jul 2018 08:54:49 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by yt-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id 1871EAC0435
- for <linux-nvdimm@lists.01.org>; Sat, 14 Jul 2018 00:54:41 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v12 0/5] ndctl, monitor: add ndctl monitor daemon
-Date: Sat, 14 Jul 2018 00:53:58 +0900
-Message-Id: <20180713155403.30020-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E46D209831F7
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 16:00:15 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/4] ndctl,
+ monitor: Add a config-file section to the man page
+Date: Thu, 19 Jul 2018 16:59:55 -0600
+Message-Id: <20180719225958.6814-2-vishal.l.verma@intel.com>
+In-Reply-To: <20180719225958.6814-1-vishal.l.verma@intel.com>
+References: <20180719225958.6814-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,141 +24,37 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: tokunaga.keiich@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is the v12 patch for ndctl monitor, a tiny daemon to monitor
-the smart events of nvdimm DIMMs. Since NVDIMM does not have a
-feature like mirroring, if it breaks down, the data will be
-impossible to restore. Ndctl monitor daemon will catch the smart
-events notify from firmware and outputs notification to logfile,
-therefore users can replace NVDIMM before it is completely broken.
+The ndctl monitor man page was missing documentation for the
+--config-file option. Add it, explaining that the option overrides the
+system default config file.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Fixes: 02ce9c6bab41 ("ndctl, documentation: add man page for monitor")
+Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-Change log since v11:
- - Adding log_standard()
- - Adding [-u | --human] option
- - Fixing man page
- - Refactoring unit test
- - Updating configuration file and systemd unit file to RPM spec file
+ Documentation/ndctl/ndctl-monitor.txt | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Change log since v10:
- - Adding unit test
- - Adding fflush to log_file()
-
-Change log since v9:
- - Replacing ndctl_cmd_smart_get_event_flags() with
-   ndctl_dimm_get_event_flags()
- - Adding ndctl_dimm_get_health() api
- - Adding ndctl_dimm_get_flags() api
- - Adding ndctl_dimm_is_flag_supported api
- - Adding manpage
-
-Change log since v8:
- - Adding ndctl_cmd_smart_get_event_flags() api
- - Adding monitor_filter_arg to the union in util_filter_ctx
- - Removing is_dir()
- - Replacing malloc + vsprintf with vasprintf() in log_file() and log_syslog()
- - Adding parse_monitor_event()
- - Refactoring util_dimm_event_filter()
- - Adding event_flags to monitor
- - Refactoring dimm_event_to_json()
- - Adding check_dimm_supported_threshold_alarms()
- - Fixing fail token
-
-Change log since v7:
- - Replacing logreport() with log_file() and log_syslog()
- - Refactoring read_config_file()
- - Replacing set_confile() with parse_config()
- - Fixing the ndctl/ndct.conf file
-
-Change log since v6:
- - Changing License to GPL-2.0
- - Adding event object to output notification
- - Adding [--dimm-event] option to filter notification by event type
- - Rewriting read_config_file()
- - Replacing monitor_dimm_event() with monitor_event()
- - Renaming some variables
-
-Change log since v5:
- - Fixing systemd unit file cannot be installed bug
- - Adding license to ./util/abspath.c
-
-Change log since v4:
- - Adding OPTION_FILENAME to make sure filename is correct
- - Adding configuration file
- - Adding [--config-file] option to override the default configuration
- - Making some options support multiple space-seperated arguments
- - Making systemctl enable ndctl-monitor.service command work
- - Making systemctl restart ndctl-monitor.service command work
- - Making the directory of systemd unit file to be configurable
- - Changing log_file() and log_syslog() to logreport()
- - Changing date format in notification to nanoseconds since epoch
- - Changing select() to epoll()
- - Adding filter_bus() and filter_region()
-
-Change log since v3:
- - Removing create-monitor, show-monitor, list-monitor, destroy-monitor
- - Adding [--daemon] option to run ndctl monitor as a daemon 
- - Using systemd to manage ndctl monitor daemon
- - Replacing filter_monitor_dimm() with filter_dimm()
-
-Change log since v2:
- - Changing the interface of daemon to the ndctl command line
- - Changing the name of daemon form "nvdimmd" to "monitor"
- - Removing the config file, unit_file, nvdimmd dir
- - Removing nvdimmd_test program
- - Adding ndctl/monitor.c
-
-Change log since v1:
- - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
- - Using struct log_ctx instead of syslog()
-    - Using log_syslog() to save the notify messages to syslog
-    - Using log_file() to save the notify messages to special file
- - Adding LOG_NOTICE level to log_priority
- - Using automake instead of Makefile
- - Adding a new util file(nvdimmd/util.c) including helper functions
-   needed for nvdimm daemon
- - Adding nvdimmd_test program
-
-QI Fuli (5):
-  ndctl, monitor: add a new command - monitor
-  ndctl, monitor: add main ndctl monitor configuration file
-  ndctl, monitor: add the unit file of systemd for ndctl-monitor service
-  ndctl, documentation: add man page for monitor
-  ndctl, test: add a new unit test for monitor
-
- .gitignore                            |   1 +
- Documentation/ndctl/Makefile.am       |   3 +-
- Documentation/ndctl/ndctl-monitor.txt | 104 +++++
- autogen.sh                            |   3 +-
- builtin.h                             |   1 +
- configure.ac                          |  22 +
- ndctl.spec.in                         |   2 +
- ndctl/Makefile.am                     |  12 +-
- ndctl/lib/libndctl.c                  |  82 ++++
- ndctl/lib/libndctl.sym                |   4 +
- ndctl/libndctl.h                      |  10 +
- ndctl/monitor.c                       | 649 ++++++++++++++++++++++++++
- ndctl/monitor.conf                    |  41 ++
- ndctl/ndctl-monitor.service           |   7 +
- ndctl/ndctl.c                         |   1 +
- test/Makefile.am                      |  14 +-
- test/list-smart-dimm.c                | 117 +++++
- test/monitor.sh                       | 176 +++++++
- util/filter.h                         |   9 +
- 19 files changed, 1253 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-monitor.txt
- create mode 100644 ndctl/monitor.c
- create mode 100644 ndctl/monitor.conf
- create mode 100644 ndctl/ndctl-monitor.service
- create mode 100644 test/list-smart-dimm.c
- create mode 100755 test/monitor.sh
-
+diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
+index 872cd6e..762073e 100644
+--- a/Documentation/ndctl/ndctl-monitor.txt
++++ b/Documentation/ndctl/ndctl-monitor.txt
+@@ -69,6 +69,11 @@ OPTIONS
+ --log=<file | syslog | standard>::
+ 	Output notifications to <file>, syslog or standard output.
+ 
++-c::
++--config-file=::
++	Provide the config file to use. This overrides the default config
++	typically found in /etc/ndctl/
++
+ --daemon::
+ 	Run a monitor as a daemon.
+ 
 -- 
-2.18.0
-
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
