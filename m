@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 15AB7210C0CDE
- for <linux-nvdimm@lists.01.org>; Tue,  3 Jul 2018 23:52:03 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH 2/3] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
-Date: Wed,  4 Jul 2018 23:30:19 +0800
-Message-Id: <5c7996b8e6d31541f3185f8e4064ff97582c86f8.1530716899.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1530716899.git.yi.z.zhang@linux.intel.com>
-References: <cover.1530716899.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A67D02098C8C9
+ for <linux-nvdimm@lists.01.org>; Thu, 19 Jul 2018 08:18:52 -0700 (PDT)
+Date: Thu, 19 Jul 2018 23:18:46 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH v7 1/4] resource: Move reparent_resources() to
+ kernel/resource.c and make it public
+Message-ID: <20180719151846.GC7147@localhost.localdomain>
+References: <20180718024944.577-1-bhe@redhat.com>
+ <20180718024944.577-2-bhe@redhat.com>
+ <CAHp75VdO88ydJQ9GHdaDUmAmzL6QHR=US6JiXZ1R_EEA-xWR1Q@mail.gmail.com>
+ <CAHp75Vf2yEwHhEhhQH2XN+pOQ=-skiAHZ=FgLnfVV8vcm59qeQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAHp75Vf2yEwHhEhhQH2XN+pOQ=-skiAHZ=FgLnfVV8vcm59qeQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,55 +23,29 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, brijesh.singh@amd.com, devicetree <devicetree@vger.kernel.org>, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, richard.weiyang@gmail.com, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, baiyaowei@cmss.chinamobile.com, KY Srinivasan <kys@microsoft.com>, Frank Rowand <frowand.list@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Stephen Hemminger <sthemmin@microsoft.com>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, linux-input <linux-input@vger.kernel.org>, Gustavo Padovan <gustavo@padovan.org>, Borislav Petkov <bp@suse.de>, Dave Young <dyoung@redhat.com>, Tom Lendacky <thomas.lendacky@amd.com>, Haiyang Zhang <haiyangz@microsoft.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Josh Triplett <josh@joshtriplett.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rob Herring <robh+dt@kernel.org>, Sean Paul <seanpaul@chromium.org>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jon Derrick <jonathan.derrick@intel.com>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Eric Biederman <ebiederm@xmission.com>, devel@linuxdriverproject.org, Andrew Morton <akpm@linux-foundation.org>, kbuild test robot <fengguang.wu@intel.com>, "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT" <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
-other reserved PFNs, pages on NVDIMM shall still behave like normal ones
-in many cases, i.e. when used as backend memory of KVM guest. This patch
-introduces a new memory type, MEMORY_DEVICE_DEV_DAX. Together with the
-existing type MEMORY_DEVICE_FS_DAX, we can differentiate the pages on
-NVDIMM with the normal reserved pages.
+On 07/18/18 at 07:37pm, Andy Shevchenko wrote:
+> On Wed, Jul 18, 2018 at 7:36 PM, Andy Shevchenko
+> <andy.shevchenko@gmail.com> wrote:
+> > On Wed, Jul 18, 2018 at 5:49 AM, Baoquan He <bhe@redhat.com> wrote:
+> >> reparent_resources() is duplicated in arch/microblaze/pci/pci-common.c
+> >> and arch/powerpc/kernel/pci-common.c, so move it to kernel/resource.c
+> >> so that it's shared.
+> 
+> >> + * Returns 0 on success, -ENOTSUPP if child resource is not completely
+> >> + * contained by 'res', -ECANCELED if no any conflicting entry found.
+> 
+> You also can refer to constants by prefixing them with %, e.g. %-ENOTSUPP.
+> But this is up to you completely.
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
----
- drivers/dax/pmem.c       | 1 +
- include/linux/memremap.h | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index fd49b24..fb3f363 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
- 		return rc;
- 
- 	dax_pmem->pgmap.ref = &dax_pmem->ref;
-+	dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
- 	addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 5ebfff6..4127bf7 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -58,6 +58,7 @@ enum memory_type {
- 	MEMORY_DEVICE_PRIVATE = 1,
- 	MEMORY_DEVICE_PUBLIC,
- 	MEMORY_DEVICE_FS_DAX,
-+	MEMORY_DEVICE_DEV_DAX,
- };
- 
- /*
--- 
-2.7.4
+Thanks, will fix when repost. 
 
 _______________________________________________
 Linux-nvdimm mailing list
