@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 56A1C2097FABE
- for <linux-nvdimm@lists.01.org>; Wed, 25 Jul 2018 09:29:50 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v2 2/6] s390,
- dcssblk: kaddr and pfn can be NULL to ->direct_access()
-Date: Thu, 26 Jul 2018 00:28:45 +0800
-Message-Id: <20180725162849.8320-3-yehs2007@zoho.com>
-In-Reply-To: <20180725162849.8320-1-yehs2007@zoho.com>
-References: <20180725162849.8320-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 02BC2210BFF7B
+ for <linux-nvdimm@lists.01.org>; Sat, 21 Jul 2018 20:11:46 -0700 (PDT)
+Date: Sat, 21 Jul 2018 21:11:44 -0600
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH 1/5] radix tree test suite: fix mapshift build target
+Message-ID: <20180722031144.GA12948@linux.intel.com>
+References: <20180503192430.7582-1-ross.zwisler@linux.intel.com>
+ <20180503192430.7582-2-ross.zwisler@linux.intel.com>
+ <20180715230052.GA6486@bombadil.infradead.org>
+ <20180716160710.GA2287@linux.intel.com>
+ <20180716195249.GA14380@bombadil.infradead.org>
+ <20180716210820.GA17164@linux.intel.com>
+ <20180717024132.GC7934@bombadil.infradead.org>
+ <20180721234550.GB1691@dastard>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180721234550.GB1691@dastard>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,54 +26,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, snitzer@redhat.com, chengnt@lenovo.com, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, colyli@suse.de, bart.vanassche@wdc.com, dm-devel@redhat.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, jack@suse.cz, agk@redhat.com
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, kbuild-all@01.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Sun, Jul 22, 2018 at 09:45:50AM +1000, Dave Chinner wrote:
+> On Mon, Jul 16, 2018 at 07:41:32PM -0700, Matthew Wilcox wrote:
+> > On Mon, Jul 16, 2018 at 03:08:20PM -0600, Ross Zwisler wrote:
+> > > On Mon, Jul 16, 2018 at 12:52:49PM -0700, Matthew Wilcox wrote:
+> > > > On Mon, Jul 16, 2018 at 10:07:10AM -0600, Ross Zwisler wrote:
+> > > <>
+> > > > OK ... what version of make are you using?  Because this works fine for me:
+> > > > 
+> > > > $ git clone linux clean
+> > > > $ cd clean
+> > > > $ git checkout v4.17
+> > > > $ cd tools/testing/radix-tree/ 
+> > > > $ git revert 8d9fa88edd5e360b71765feeadb915d4066c9684
+> > > > $ make
+> > > > 
+> > > > $ make --version
+> > > > GNU Make 4.1
+> > > > Built for x86_64-pc-linux-gnu
+> > > > 
+> > > > It's Debian's Version: 4.1-9.1
+> > > 
+> > > $ make --version
+> > > GNU Make 4.2.1
+> > > Built for x86_64-redhat-linux-gnu
+> > > 
+> > > The one from Fedora 27.
+> > 
+> > Huh.  I just tried 4.2.1-1.1 from Debian unstable and that doesn't
+> > produce the problem either.  I'm not sure how to proceed at this point.
+> > I'm really not a makefile expert.
+> 
+> This smells like a problem we just hit with make 4.2.1 in fedora 28
+> in fstests - the regex expanstion has been screwed up such that
+> things like [a-z] will match [A-Z] and other things as well. Debian
+> is unaffected, apparently fedora has a backport of stuff from the
+> as-yet-unreleased next version of make/glibc. See this thread:
+> 
+> https://www.spinics.net/lists/fstests/msg10200.html
+> 
+> Try setting LANG=C and seeing if the problem goes away....
 
-dcssblk_direct_access() needs to check the validity of pointers kaddr
-and pfn for NULL assignment. If anyone equals to NULL, it doesn't need
-to calculate the value.
+Hey Dave, we root caused this difference to to be the fact that I had 'make'
+aliased to 'make -j32' in my .bashrc.  Matthew was running a singled threaded
+build, while I was running a multi-threaded one.  When Matthew ran a
+multi-threaded build, he was able to reproduce the issue.
 
-If either of them is equal to NULL, that is to say callers may
-have no need for kaddr or pfn, so this patch is prepared for allowing
-them to pass in NULL instead of having to pass in a pointer or local
-variable that they then just throw away.
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- drivers/s390/block/dcssblk.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index ed60728..23e526c 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -922,9 +922,11 @@ static DEVICE_ATTR(save, S_IWUSR | S_IRUSR, dcssblk_save_show,
- 	unsigned long dev_sz;
- 
- 	dev_sz = dev_info->end - dev_info->start + 1;
--	*kaddr = (void *) dev_info->start + offset;
--	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
--			PFN_DEV|PFN_SPECIAL);
-+	if (kaddr)
-+		*kaddr = (void *) dev_info->start + offset;
-+	if (pfn)
-+		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
-+				PFN_DEV|PFN_SPECIAL);
- 
- 	return (dev_sz - offset) / PAGE_SIZE;
- }
--- 
-1.8.3.1
-
-
+So, essentially I think that the makefile just needs to be enhanced so that
+all the dependencies are explicit to allow multi-threaded builds to work
+properly.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
