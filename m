@@ -1,102 +1,42 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB2CF210E2DC2
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 23:59:48 -0700 (PDT)
-Subject: [PATCH 09/13] fs/dax: Assign NULL to pfn of dax_direct_access if
- useless
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 04 Jul 2018 23:49:50 -0700
-Message-ID: <153077339083.40830.7002878534903996422.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153077334130.40830.2714147692560185329.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 24 Jul 2018 09:29:37 +0200
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH v2 00/14] mm: Asynchronous + multithreaded memmap init
+ for ZONE_DEVICE
+Message-ID: <20180724072937.GD28386@dhcp22.suse.cz>
+References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAGM2rea9AwQGaf1JiV_SDDKTKyP_n+dG9Z20gtTZEkuZPFnXFQ@mail.gmail.com>
+ <CAPcyv4jo91jKjwn-M7cOhG=6vJ3c-QCyp0W+T+CtmiKGyZP1ng@mail.gmail.com>
+ <CAGM2reacO1HF91yH8OR5w5AdZwPgwfSFfjDNBsHbP66v1rEg=g@mail.gmail.com>
+ <20180717155006.GL7193@dhcp22.suse.cz>
+ <CAA9_cmez_vrjBYvcpXT_5ziQ2CqRFzPbEWMO2kdmjW0rWhkaCA@mail.gmail.com>
+ <20180718120529.GY7193@dhcp22.suse.cz>
+ <3f43729d-fd4e-a488-e04d-026ef5a28dd9@intel.com>
+ <20180723110928.GC31229@dhcp22.suse.cz>
+ <510a1213-e391-bad6-4239-60fa477aaac0@intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, hch@lst.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <510a1213-e391-bad6-4239-60fa477aaac0@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, pasha.tatashin@oracle.com, dalias@libc.org, Jan Kara <jack@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Matthew Wilcox <willy@infradead.org>, daniel.m.jordan@oracle.com, Ingo Molnar <mingo@redhat.com>, fenghua.yu@intel.com, Jerome Glisse <jglisse@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "Luck, Tony" <tony.luck@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Mon 23-07-18 09:15:32, Dave Hansen wrote:
+> On 07/23/2018 04:09 AM, Michal Hocko wrote:
+> > On Thu 19-07-18 11:41:10, Dave Hansen wrote:
+> >> Are you looking for the actual end-user reports?  This was more of a
+> >> case of the customer plugging in some persistent memory DIMMs, noticing
+> >> the boot delta and calling the folks who sold them the DIMMs (Intel).
+> > But this doesn't sound like something to rush a solution for in the
+> > upcoming merge windown, does it?
+> 
+> No, we should not rush it.  We'll try to rework it properly.
 
-Some functions within fs/dax don't need to get pfn from direct_access.
-Assigning NULL to pfn of dax_direct_access is more intuitive and simple
-than offering a useless local variable.
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 641192808bb6..28264ff4e343 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -647,7 +647,6 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- {
- 	void *vto, *kaddr;
- 	pgoff_t pgoff;
--	pfn_t pfn;
- 	long rc;
- 	int id;
- 
-@@ -656,7 +655,7 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- 		return rc;
- 
- 	id = dax_read_lock();
--	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
-+	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, NULL);
- 	if (rc < 0) {
- 		dax_read_unlock(id);
- 		return rc;
-@@ -1052,15 +1051,13 @@ int __dax_zero_page_range(struct block_device *bdev,
- 		pgoff_t pgoff;
- 		long rc, id;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
- 		if (rc)
- 			return rc;
- 
- 		id = dax_read_lock();
--		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr,
--				&pfn);
-+		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
- 		if (rc < 0) {
- 			dax_read_unlock(id);
- 			return rc;
-@@ -1116,7 +1113,6 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		ssize_t map_len;
- 		pgoff_t pgoff;
- 		void *kaddr;
--		pfn_t pfn;
- 
- 		if (fatal_signal_pending(current)) {
- 			ret = -EINTR;
-@@ -1128,7 +1124,7 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			break;
- 
- 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
--				&kaddr, &pfn);
-+				&kaddr, NULL);
- 		if (map_len < 0) {
- 			ret = map_len;
- 			break;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Thanks a lot Dave! I definitely do not mean to block this at all. I just
+really do not like to have the code even more cluttered than we have
+now.
+-- 
+Michal Hocko
+SUSE Labs
