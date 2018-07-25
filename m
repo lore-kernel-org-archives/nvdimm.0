@@ -1,55 +1,120 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: oceanhe@zoho.com.cn
-Subject: [PATCH] libnvdimm, bus: check if type of nd_device_driver within valid scope
-Date: Tue, 31 Jul 2018 08:02:32 -0400
-Message-Id: <1533038552-6195-1-git-send-email-oceanhe@zoho.com.cn>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Ocean He <hehy1@lenovo.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 40135210C1EEC
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Jul 2018 09:30:30 -0700 (PDT)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [PATCH v2 6/6] filesystem-dax: Do not request kaddr and pfn when not
+ required
+Date: Thu, 26 Jul 2018 00:28:49 +0800
+Message-Id: <20180725162849.8320-7-yehs2007@zoho.com>
+In-Reply-To: <20180725162849.8320-1-yehs2007@zoho.com>
+References: <20180725162849.8320-1-yehs2007@zoho.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, snitzer@redhat.com, chengnt@lenovo.com, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, colyli@suse.de, bart.vanassche@wdc.com, dm-devel@redhat.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, jack@suse.cz, agk@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-According to enum nd_driver_flags, the valid type of nd_device_driver
-start from 0x02 and end up with 0x80. Both 0x00 and 0x01 are invalid, and
-the value larger than 0x80 is invalid.
+Some functions within fs/dax don't need to get local pointer kaddr
+or variable pfn from direct_access. Using NULL instead of having to
+pass in useless pointer or variable that caller then just throw away.
 
-To filter valid type, ND_DRIVER_FLAGS_MASK is defined as
-(((ND_DRIVER_FLAGS_MAX) << 1) - 2). For example, when ND_DRIVER_FLAGS_MAX
-equals to ND_DRIVER_DAX_PMEM(0x80), then ND_DRIVER_FLAGS_MASK equals
-to 0xFE.
-
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
- drivers/nvdimm/bus.c       | 2 +-
- include/uapi/linux/ndctl.h | 2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/dax.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 27902a8..ec8cf4b 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -546,7 +546,7 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
+diff --git a/fs/dax.c b/fs/dax.c
+index 6411928..959a533 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -647,7 +647,6 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
  {
- 	struct device_driver *drv = &nd_drv->drv;
+ 	void *vto, *kaddr;
+ 	pgoff_t pgoff;
+-	pfn_t pfn;
+ 	long rc;
+ 	int id;
  
--	if (!nd_drv->type) {
-+	if (!(nd_drv->type & ND_DRIVER_FLAGS_MASK)) {
- 		pr_debug("driver type bitmask not set (%pf)\n",
- 				__builtin_return_address(0));
- 		return -EINVAL;
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7e27070..2a1ce06 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -207,6 +207,8 @@ enum nd_driver_flags {
- 	ND_DRIVER_NAMESPACE_BLK   = 1 << ND_DEVICE_NAMESPACE_BLK,
- 	ND_DRIVER_DAX_PMEM	  = 1 << ND_DEVICE_DAX_PMEM,
- };
-+#define ND_DRIVER_FLAGS_MAX	ND_DRIVER_DAX_PMEM
-+#define ND_DRIVER_FLAGS_MASK	(((ND_DRIVER_FLAGS_MAX) << 1) - 2)
+@@ -656,7 +655,7 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+ 		return rc;
  
- enum {
- 	ND_MIN_NAMESPACE_SIZE = PAGE_SIZE,
+ 	id = dax_read_lock();
+-	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, &pfn);
++	rc = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size), &kaddr, NULL);
+ 	if (rc < 0) {
+ 		dax_read_unlock(id);
+ 		return rc;
+@@ -967,7 +966,6 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ {
+ 	const sector_t sector = dax_iomap_sector(iomap, pos);
+ 	pgoff_t pgoff;
+-	void *kaddr;
+ 	int id, rc;
+ 	long length;
+ 
+@@ -976,7 +974,7 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 		return rc;
+ 	id = dax_read_lock();
+ 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   &kaddr, pfnp);
++				   NULL, pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+@@ -1052,15 +1050,13 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 		pgoff_t pgoff;
+ 		long rc, id;
+ 		void *kaddr;
+-		pfn_t pfn;
+ 
+ 		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
+ 		if (rc)
+ 			return rc;
+ 
+ 		id = dax_read_lock();
+-		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr,
+-				&pfn);
++		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
+ 		if (rc < 0) {
+ 			dax_read_unlock(id);
+ 			return rc;
+@@ -1116,7 +1112,6 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 		ssize_t map_len;
+ 		pgoff_t pgoff;
+ 		void *kaddr;
+-		pfn_t pfn;
+ 
+ 		if (fatal_signal_pending(current)) {
+ 			ret = -EINTR;
+@@ -1128,7 +1123,7 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 			break;
+ 
+ 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
+-				&kaddr, &pfn);
++				&kaddr, NULL);
+ 		if (map_len < 0) {
+ 			ret = map_len;
+ 			break;
 -- 
 1.8.3.1
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
