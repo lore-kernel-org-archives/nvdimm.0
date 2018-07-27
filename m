@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 624EB210C0F60
- for <linux-nvdimm@lists.01.org>; Tue, 24 Jul 2018 01:45:57 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH 0/5] Do not request a pointer kaddr when not required
-Date: Tue, 24 Jul 2018 16:45:05 +0800
-Message-Id: <20180724084510.6104-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6AF91210C0CE5
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 15:01:59 -0700 (PDT)
+Subject: [PATCH v2 0/6] ndctl: add security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 27 Jul 2018 15:01:58 -0700
+Message-ID: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,48 +16,67 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, chengnt@lenovo.com, linux-fsdevel@vger.kernel.org, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, jack@suse.cz
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+The following series implements mechanisms that utilize the sysfs knobs
+provided by the kernel in order to support the Intel DSM v1.7 spec
+that provides security to NVDIMM. The following abilities are added:
+1. display security state
+2. update security
+3. disable security
+4. freeze security
+5. secure erase
 
-Some functions within fs/dax and dax/super don't need to get kaddr from
-direct_access. Assigning NULL to kaddr to ->direct_access() is more
-straightforward and simple than offering a useless local pointer.
+Also a reference helper app is provided to retrieve security information
+through the keyutils and kernel key management API.
 
-So all direct_access() need to check the validity of second rank pointer
-kaddr for NULL assignment. If kaddr equals to NULL, it doesn't need to
-calculate its value.
+v2:
+- Fixup the upcall util to match recent kernel updates for nvdimm security.
 
-* This series are supplement to [PATCH v2 00/14]mm: Asynchronous +
-  multithreaded memmap init for ZONE_DEVICE. [1]
+---
 
-[1]: https://lkml.org/lkml/2018/7/16/828
-
-Huaisheng Ye (5):
-  libnvdimm, pmem: Allow a NULL-kaddr to ->direct_access()
-  tools/testing/nvdimm: Allow a NULL-kaddr to ->direct_access()
-  s390, dcssblk: Allow a NULL-kaddr to ->direct_access()
-  filesystem-dax: Do not request a pointer kaddr when not required
-  dax/super: Do not request a pointer kaddr when not required
-
- drivers/dax/super.c             | 3 +--
- drivers/nvdimm/pmem.c           | 4 +++-
- drivers/s390/block/dcssblk.c    | 3 ++-
- fs/dax.c                        | 3 +--
- tools/testing/nvdimm/pmem-dax.c | 6 ++++--
- 5 files changed, 11 insertions(+), 8 deletions(-)
-
--- 
-1.8.3.1
+Dave Jiang (6):
+      ndctl: add support for display security state
+      ndctl: add update to security support
+      ndctl: add disable security support
+      ndctl: add support for freeze security
+      ndctl: add support for secure erase
+      ndctl: add request-key upcall reference app
 
 
+ Documentation/ndctl/Makefile.am                |    7 +
+ Documentation/ndctl/ndctl-disable-security.txt |   21 ++++
+ Documentation/ndctl/ndctl-freeze-security.txt  |   21 ++++
+ Documentation/ndctl/ndctl-list.txt             |    8 +
+ Documentation/ndctl/ndctl-secure-erase.txt     |   21 ++++
+ Documentation/ndctl/ndctl-update-security.txt  |   21 ++++
+ Documentation/ndctl/nvdimm-upcall.txt          |   33 ++++++
+ builtin.h                                      |    4 +
+ configure.ac                                   |    1 
+ ndctl.spec.in                                  |    2 
+ ndctl/Makefile.am                              |    5 +
+ ndctl/dimm.c                                   |   87 +++++++++++++++
+ ndctl/lib/dimm.c                               |   51 +++++++++
+ ndctl/lib/libndctl.sym                         |    5 +
+ ndctl/libndctl.h                               |    5 +
+ ndctl/ndctl.c                                  |    4 +
+ ndctl/nvdimm-upcall.c                          |  138 ++++++++++++++++++++++++
+ util/json.c                                    |    8 +
+ 18 files changed, 441 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-disable-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-secure-erase.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-security.txt
+ create mode 100644 Documentation/ndctl/nvdimm-upcall.txt
+ create mode 100644 ndctl/nvdimm-upcall.c
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
