@@ -1,9 +1,9 @@
-From: <afrit-Oji5H5/U+gz0CLH3JO92LQ@public.gmane.org>
-Subject: Searching for a beloved prince is my main goal!
-Date: 27 Jul 2018 16:21:44 +0400
-Message-ID: <7B2E58E8520D9EE2B7C171CB94077B2E@4CPBC51DD4C>
+From: <frank.white-eMO2Cn9AR8YwoP7VrEiyWw@public.gmane.org>
+Subject: I am sure that I will be lucky and find a beloved man!
+Date: 27 Jul 2018 14:03:33 -0600
+Message-ID: <79BEADA8A16ABBA46370757CB76679BE@RMW56VG>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3820482522955377978=="
+Content-Type: multipart/mixed; boundary="===============4093550895374463187=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,7 +17,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3820482522955377978==
+--===============4093550895374463187==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
@@ -30,13 +30,13 @@ I do want to be next to a loving man. I wish to find a man that can give me a re
 
 Hope you're interested in becoming a part of my adventure and will reply back soon! 
 
-If you are interested in getting to know me closer, please write to my personal e-mail - mssevgi88-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+If you are interested in getting to know me closer, please write to my personal e-mail - sweetysevgi198827-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 
 Your true soul, 
 Sevgi.
 
 
---===============3820482522955377978==
+--===============4093550895374463187==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -47,4 +47,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3820482522955377978==--
+--===============4093550895374463187==--
