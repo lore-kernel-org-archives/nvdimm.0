@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 733BB2097DD18
- for <linux-nvdimm@lists.01.org>; Mon, 16 Jul 2018 10:11:18 -0700 (PDT)
-Subject: [PATCH v2 11/14] filesystem-dax: Make mount time pfn validation a
- debug check
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 Jul 2018 10:01:19 -0700
-Message-ID: <153176047958.12695.16209413909835344164.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153176041838.12695.3365448145295112857.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1BC55210C0CE6
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 15:02:16 -0700 (PDT)
+Subject: [PATCH v2 3/6] ndctl: add disable security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 27 Jul 2018 15:02:14 -0700
+Message-ID: <153272893474.12034.381764899107567778.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
+References: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,154 +22,161 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Do not ask for dax_direct_access() to retrieve a pfn in the
-DAX_DRIVER_DEBUG=n case. This avoids an early call to memmap_sync() in
-the driver.
+Add support for disable security to libndctl and also command line option
+of "disable-security" for ndctl. This provides a way to disable security
+on the nvdimm. ndctl does not handle the actual processing of the
+passphrase. It only starts the request.
 
-Now that QUEUE_FLAG_DAX usage has been fixed the validation of the pfn
-is only useful for dax driver developers. It is safe to assume that
-pmem, dcssblk, and device-mapper-dax are correct with respect to dax
-operation, so only retrieve the pfn for debug builds when qualifying a
-new dax driver, if one ever arrives.
-
-The moves the first consumption of a pfn from ->direct_access() to the
-first dax mapping fault, rather than initial filesystem mount. I.e. more
-time for memmap init to run in the background.
-
-Cc: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/dax/Kconfig |   10 ++++++++
- drivers/dax/super.c |   64 ++++++++++++++++++++++++++++++++-------------------
- 2 files changed, 50 insertions(+), 24 deletions(-)
+ Documentation/ndctl/Makefile.am                |    1 +
+ Documentation/ndctl/ndctl-disable-security.txt |   21 +++++++++++++++++++++
+ builtin.h                                      |    1 +
+ ndctl/dimm.c                                   |   22 ++++++++++++++++++++++
+ ndctl/lib/dimm.c                               |    5 +++++
+ ndctl/lib/libndctl.sym                         |    1 +
+ ndctl/libndctl.h                               |    1 +
+ ndctl/ndctl.c                                  |    1 +
+ 8 files changed, 53 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-disable-security.txt
 
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index e0700bf4893a..b32f8827b983 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -9,6 +9,16 @@ menuconfig DAX
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 02405c44..b1cb3b5b 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -47,6 +47,7 @@ man1_MANS = \
+ 	ndctl-inject-smart.1 \
+ 	ndctl-update-firmware.1 \
+ 	ndctl-update-security.1 \
++	ndctl-disable-security.1 \
+ 	ndctl-list.1
  
- if DAX
- 
-+config DAX_DRIVER_DEBUG
-+	bool "DAX: driver debug"
-+	help
-+	  Enable validation of the page frame objects returned from a
-+	  driver's 'direct_access' operation. This validation is
-+	  performed relative to the requirements of the FS_DAX and
-+	  FS_DAX_LIMITED configuration options. If you are validating
-+	  the implementation of a dax device driver say Y otherwise
-+	  say N.
+ CLEANFILES = $(man1_MANS)
+diff --git a/Documentation/ndctl/ndctl-disable-security.txt b/Documentation/ndctl/ndctl-disable-security.txt
+new file mode 100644
+index 00000000..651f8d03
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-disable-security.txt
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- config DEV_DAX
- 	tristate "Device DAX: direct access mapping device"
- 	depends on TRANSPARENT_HUGEPAGE
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 903d9c473749..65851919e59a 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -72,6 +72,41 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
- #endif
++ndctl-disable-security(1)
++========================
++
++NAME
++----
++ndctl-disable-security - enabling or disable security for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl disable-security' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface for disabling security for NVDIMM. The use of this
++depends on support from the underlying libndctl, kernel, as well as the
++platform itself.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index e6dc5340..e8ba9aee 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -48,4 +48,5 @@ int cmd_bat(int argc, const char **argv, void *ctx);
+ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_update_security(int argc, const char **argv, void *ctx);
++int cmd_disable_security(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 274714d6..e64f6717 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -833,6 +833,18 @@ static int action_security_update(struct ndctl_dimm *dimm,
+ 	return rc;
+ }
  
-+static bool validate_dax_pfn(pfn_t *pfn)
++static int action_security_disable(struct ndctl_dimm *dimm,
++		struct action_context *actx)
 +{
-+	bool dax_enabled = false;
++	int rc;
 +
-+	/*
-+	 * Unless debugging a new dax driver, or new dax architecture
-+	 * support there is no need to check the pfn. Delay the kernel's
-+	 * first need for a dax pfn until first userspace dax fault.
-+	 */
-+	if (!pfn)
-+		return true;
-+
-+	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(*pfn)) {
-+		/*
-+		 * An arch that has enabled the pmem api should also
-+		 * have its drivers support pfn_t_devmap()
-+		 *
-+		 * This is a developer warning and should not trigger in
-+		 * production. dax_flush() will crash since it depends
-+		 * on being able to do (page_address(pfn_to_page())).
-+		 */
-+		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
-+		dax_enabled = true;
-+	} else if (pfn_t_devmap(*pfn)) {
-+		struct dev_pagemap *pgmap;
-+
-+		pgmap = get_dev_pagemap(pfn_t_to_pfn(*pfn), NULL);
-+		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
-+			dax_enabled = true;
-+		put_dev_pagemap(pgmap);
-+	}
-+
-+	return dax_enabled;
++	rc = ndctl_dimm_disable_security(dimm);
++	if (rc < 0)
++		error("Failed to disable security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
 +}
 +
- /**
-  * __bdev_dax_supported() - Check if the device supports dax for filesystem
-  * @bdev: block device to check
-@@ -85,11 +120,10 @@ EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
- bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
- {
- 	struct dax_device *dax_dev;
--	bool dax_enabled = false;
-+	pfn_t _pfn, *pfn;
- 	pgoff_t pgoff;
- 	int err, id;
- 	void *kaddr;
--	pfn_t pfn;
- 	long len;
- 	char buf[BDEVNAME_SIZE];
- 
-@@ -113,8 +147,10 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
- 		return false;
- 	}
- 
-+	pfn = IS_ENABLED(CONFIG_DAX_DRIVER_DEBUG) ? &_pfn : NULL;
+ static struct parameters {
+ 	const char *bus;
+ 	const char *outfile;
+@@ -1200,3 +1212,13 @@ int cmd_update_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
 +
- 	id = dax_read_lock();
--	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
-+	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, pfn);
- 	dax_read_unlock(id);
++int cmd_disable_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_disable, base_options,
++			"ndctl disable-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security disabled %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index ca4d439b..13c2806c 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -615,3 +615,8 @@ NDCTL_EXPORT int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm)
+ {
+ 	return ndctl_dimm_write_security(dimm, "update");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "disable");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index e2a359b8..1a919567 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -373,4 +373,5 @@ global:
+ 	ndctl_dimm_smart_inject_supported;
+ 	ndctl_dimm_get_security_state;
+ 	ndctl_dimm_set_change_key;
++	ndctl_dimm_disable_security;
+ } LIBNDCTL_16;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 663847b6..1ca6cb18 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -661,6 +661,7 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm)
+ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
+ int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
++int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
  
- 	put_dax(dax_dev);
-@@ -125,27 +161,7 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
- 		return false;
- 	}
- 
--	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED) && pfn_t_special(pfn)) {
--		/*
--		 * An arch that has enabled the pmem api should also
--		 * have its drivers support pfn_t_devmap()
--		 *
--		 * This is a developer warning and should not trigger in
--		 * production. dax_flush() will crash since it depends
--		 * on being able to do (page_address(pfn_to_page())).
--		 */
--		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
--		dax_enabled = true;
--	} else if (pfn_t_devmap(pfn)) {
--		struct dev_pagemap *pgmap;
--
--		pgmap = get_dev_pagemap(pfn_t_to_pfn(pfn), NULL);
--		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
--			dax_enabled = true;
--		put_dev_pagemap(pgmap);
--	}
--
--	if (!dax_enabled) {
-+	if (!validate_dax_pfn(pfn)) {
- 		pr_debug("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
- 		return false;
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 81987e81..eeef41da 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -89,6 +89,7 @@ static struct cmd_struct commands[] = {
+ 	{ "wait-scrub", cmd_wait_scrub },
+ 	{ "start-scrub", cmd_start_scrub },
+ 	{ "update-security", cmd_update_security },
++	{ "disable-security", cmd_disable_security },
+ 	{ "list", cmd_list },
+ 	{ "help", cmd_help },
+ 	#ifdef ENABLE_TEST
 
 _______________________________________________
 Linux-nvdimm mailing list
