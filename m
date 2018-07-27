@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29E23209884B7
- for <linux-nvdimm@lists.01.org>; Wed, 25 Jul 2018 13:58:49 -0700 (PDT)
-Subject: [PATCH v6 03/11] nfit/libnvdimm: store dimm id as a member to
- struct nvdimm
+ by ml01.01.org (Postfix) with ESMTPS id C1252210C0CE6
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 15:02:04 -0700 (PDT)
+Subject: [PATCH v2 1/6] ndctl: add support for display security state
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 25 Jul 2018 13:58:47 -0700
-Message-ID: <153255232776.51274.12416872628534532057.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-References: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 27 Jul 2018 15:02:04 -0700
+Message-ID: <153272892404.12034.8204619027211673490.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
+References: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,151 +22,113 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The generated dimm id is needed for the sysfs attribute as well as being
-used as the identifier/description for the security key. Since it's
-constant and should never change, store it as a member of struct nvdimm.
+Adding libndctl API call for retrieving security state for a DIMM and also
+adding support to ndctl list for displaying security state.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c   |   29 +++++++++++++++++------------
- drivers/acpi/nfit/nfit.h   |    3 +++
- drivers/nvdimm/dimm_devs.c |    4 +++-
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    2 +-
- 5 files changed, 25 insertions(+), 14 deletions(-)
+ Documentation/ndctl/ndctl-list.txt |    8 ++++++++
+ ndctl/lib/dimm.c                   |   16 ++++++++++++++++
+ ndctl/lib/libndctl.sym             |    1 +
+ ndctl/libndctl.h                   |    1 +
+ util/json.c                        |    8 ++++++++
+ 5 files changed, 34 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a3a944751e6a..21235d555b5f 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1572,18 +1572,10 @@ static DEVICE_ATTR_RO(flags);
- static ssize_t id_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
+index 13ebdcdd..57eac1fe 100644
+--- a/Documentation/ndctl/ndctl-list.txt
++++ b/Documentation/ndctl/ndctl-list.txt
+@@ -97,6 +97,14 @@ include::xable-region-options.txt[]
+ -D::
+ --dimms::
+ 	Include dimm info in the listing
++[verse]
++{
++  "dev":"nmem0",
++  "id":"cdab-0a-07e0-ffffffff",
++  "handle":0,
++  "phys_id":0,
++  "security_state:":"disabled"
++}
  
--	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
--		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				dcr->manufacturing_location,
--				be16_to_cpu(dcr->manufacturing_date),
--				be32_to_cpu(dcr->serial_number));
--	else
--		return sprintf(buf, "%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				be32_to_cpu(dcr->serial_number));
-+	return sprintf(buf, "%s\n", nfit_mem->id);
+ -H::
+ --health::
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index b3e032e0..8ed58559 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -579,3 +579,19 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+ 
+ 	return strtoul(buf, NULL, 0);
  }
- static DEVICE_ATTR_RO(id);
- 
-@@ -1712,10 +1704,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	const guid_t *guid;
- 	int i;
- 	int family = -1;
-+	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
- 
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
- 	nfit_mem->family = NVDIMM_FAMILY_INTEL;
 +
-+	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
-+		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				dcr->manufacturing_location,
-+				be16_to_cpu(dcr->manufacturing_date),
-+				be32_to_cpu(dcr->serial_number));
-+	else
-+		sprintf(nfit_mem->id, "%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				be32_to_cpu(dcr->serial_number));
++NDCTL_EXPORT int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm,
++		char *state)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char *path = dimm->dimm_buf;
++	int len = dimm->buf_len;
 +
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev)
- 		return 0;
-@@ -1899,7 +1904,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
- 				flags, cmd_mask, flush ? flush->hint_count : 0,
--				nfit_mem->flush_wpq);
-+				nfit_mem->flush_wpq, &nfit_mem->id[0]);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 40b0003b1805..4048036d6ec2 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -173,6 +173,8 @@ struct nfit_memdev {
- 	struct acpi_nfit_memory_map memdev[0];
- };
- 
-+#define NFIT_DIMM_ID_LEN	22
++	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_dimm_get_devname(dimm));
++		return -ERANGE;
++	}
 +
- /* assembled tables for a given dimm/memory-device */
- struct nfit_mem {
- 	struct nvdimm *nvdimm;
-@@ -195,6 +197,7 @@ struct nfit_mem {
- 	int family;
- 	bool has_lsr;
- 	bool has_lsw;
-+	char id[NFIT_DIMM_ID_LEN+1];
- };
++	return sysfs_read_attr(ctx, path, state);
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 8932ef66..8040d7de 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -371,4 +371,5 @@ global:
+ LIBNDCTL_17 {
+ global:
+ 	ndctl_dimm_smart_inject_supported;
++	ndctl_dimm_get_security_state;
+ } LIBNDCTL_16;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 8a96c846..d48513ce 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -659,6 +659,7 @@ unsigned long long ndctl_cmd_fw_fquery_get_fw_rev(struct ndctl_cmd *cmd);
+ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
++int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
  
- struct acpi_nfit_desc {
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 586432450c82..e753b2095402 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -401,7 +401,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq)
-+		struct resource *flush_wpq, const char *dimm_id)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -414,6 +414,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		kfree(nvdimm);
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/util/json.c b/util/json.c
+index 13324588..90f05528 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -164,6 +164,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+ 	unsigned int handle = ndctl_dimm_get_handle(dimm);
+ 	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
+ 	struct json_object *jobj;
++	char security_state[32];
+ 
+ 	if (!jdimm)
  		return NULL;
+@@ -243,6 +244,13 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+ 		json_object_object_add(jdimm, "flag_smart_event", jobj);
  	}
-+
-+	nvdimm->dimm_id = dimm_id;
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 2af0f89c4010..ed650f1607d8 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -42,6 +42,7 @@ struct nvdimm {
- 	atomic_t busy;
- 	int id, num_flush;
- 	struct resource *flush_wpq;
-+	const char *dimm_id;
- };
  
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 51084043915c..3c1f18fdf76f 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -181,7 +181,7 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq);
-+		struct resource *flush_wpq, const char *dimm_id);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
++	if (ndctl_dimm_get_security_state(dimm, security_state) == 0) {
++		jobj = json_object_new_string(security_state);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jdimm, "security_state:", jobj);
++	}
++
+ 	return jdimm;
+  err:
+ 	json_object_put(jdimm);
 
 _______________________________________________
 Linux-nvdimm mailing list
