@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C6138202E5486
- for <linux-nvdimm@lists.01.org>; Wed,  4 Jul 2018 09:40:40 -0700 (PDT)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v2 3/4] s390/block/dcssblk: check the validity of the pointer
- pfn
-Date: Thu,  5 Jul 2018 00:38:22 +0800
-Message-Id: <20180704163823.9980-4-yehs2007@zoho.com>
-In-Reply-To: <20180704163823.9980-1-yehs2007@zoho.com>
-References: <20180704163823.9980-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 23131210C0CF8
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 11:06:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl,
+ documentation: document the label-version option for init-labels
+Date: Fri, 27 Jul 2018 12:06:33 -0600
+Message-Id: <20180727180633.9460-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,38 +21,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: axboe@kernel.dk, linux-s390@vger.kernel.org, chengnt@lenovo.com, jack@suse.com, heiko.carstens@de.ibm.com, linux-kernel@vger.kernel.org, willy@infradead.org, colyli@suse.de, bart.vanassche@wdc.com, viro@zeniv.linux.org.uk, gregkh@linuxfoundation.org, schwidefsky@de.ibm.com, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+Add the missing --label-verison option to the ndctl init-labels man
+page.
 
-direct_access needs to check the validity of pointer pfn for NULL
-assignment. If pfn equals to NULL, it doesn't need to calculate the value.
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/s390/block/dcssblk.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/ndctl/ndctl-init-labels.txt | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 0a312e4..5cdfa02 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -916,7 +916,8 @@ static DEVICE_ATTR(save, S_IWUSR | S_IRUSR, dcssblk_save_show,
+diff --git a/Documentation/ndctl/ndctl-init-labels.txt b/Documentation/ndctl/ndctl-init-labels.txt
+index 736d52d..733ef0e 100644
+--- a/Documentation/ndctl/ndctl-init-labels.txt
++++ b/Documentation/ndctl/ndctl-init-labels.txt
+@@ -83,6 +83,11 @@ include::labels-options.txt[]
+ 	be an existing / valid namespace index.  Warning, this will
+ 	destroy all defined namespaces on the dimm.
  
- 	dev_sz = dev_info->end - dev_info->start + 1;
- 	*kaddr = (void *) dev_info->start + offset;
--	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
-+	if (pfn)
-+		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
- 			PFN_DEV|PFN_SPECIAL);
++-V::
++--label-version::
++	Initialize with a specific version of labels from the namespace
++	label specification. Defaults to 1.1
++
+ include::../copyright.txt[]
  
- 	return (dev_sz - offset) / PAGE_SIZE;
+ SEE ALSO
 -- 
-1.8.3.1
-
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
