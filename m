@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
- [IPv6:2607:f8b0:400d:c0d::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 68602202E53F1
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 08:45:44 -0700 (PDT)
-Received: by mail-qt0-x244.google.com with SMTP id z6-v6so10308568qti.2
- for <linux-nvdimm@lists.01.org>; Fri, 06 Jul 2018 08:45:44 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id CE78F210C2D6E
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 11:36:27 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
 Subject: [ndctl PATCH] ndctl,
- test: remove the firmware image file before the test end
-Date: Fri,  6 Jul 2018 11:44:55 -0400
-Message-Id: <20180706154455.5600-1-msys.mizuma@gmail.com>
+ inject-smart: Fix man page to match the current behavior
+Date: Fri, 27 Jul 2018 12:36:23 -0600
+Message-Id: <20180727183623.14176-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,31 +22,43 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+The inject-smart man page had a -H option for health status, which was
+from a previous development iteration, and not how it actually works.
+Fix it to advertise a -f flag for setting fatal status, and remove an
+unnecessart '=' from the unsafe-shutdown option as it doesn't accept any
+additional arguments.
 
-Remove test/update-fw.img before test/firmware-update.sh end.
-
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/firmware-update.sh | 1 +
- 1 file changed, 1 insertion(+)
+ Documentation/ndctl/ndctl-inject-smart.txt | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/test/firmware-update.sh b/test/firmware-update.sh
-index 50674a6..7852e58 100755
---- a/test/firmware-update.sh
-+++ b/test/firmware-update.sh
-@@ -40,5 +40,6 @@ reset
- rc=2
- detect
- do_tests
-+rm -f $image
- _cleanup
- exit 0
+diff --git a/Documentation/ndctl/ndctl-inject-smart.txt b/Documentation/ndctl/ndctl-inject-smart.txt
+index 0dc6481..20a1621 100644
+--- a/Documentation/ndctl/ndctl-inject-smart.txt
++++ b/Documentation/ndctl/ndctl-inject-smart.txt
+@@ -77,13 +77,12 @@ OPTIONS
+ --spares-alarm=::
+ 	Enable or disable the smart spares alarm. Options are 'on' or 'off'.
+ 
+--H::
+---health=::
+-	Smart attribute for health status. Provide either 'fatal' or 'nominal'
+-	to set the state of the attribute.
++-f::
++--fatal::
++	Set the flag to spoof fatal health status.
+ 
+ -U::
+---unsafe-shutdown=::
++--unsafe-shutdown::
+ 	Set the flag to spoof an unsafe shutdown on the next power down.
+ 
+ -v::
 -- 
-2.18.0
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
