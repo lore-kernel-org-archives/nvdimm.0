@@ -1,26 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0C9B20336AD6
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 11:23:40 -0700 (PDT)
-Received: from mail-vk0-f51.google.com (mail-vk0-f51.google.com
- [209.85.213.51])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by mail.kernel.org (Postfix) with ESMTPSA id 67716208A3
- for <linux-nvdimm@lists.01.org>; Fri,  6 Jul 2018 18:23:40 +0000 (UTC)
-Received: by mail-vk0-f51.google.com with SMTP id l64-v6so7310595vkl.12
- for <linux-nvdimm@lists.01.org>; Fri, 06 Jul 2018 11:23:40 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5775F210C0CE5
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 15:02:10 -0700 (PDT)
+Subject: [PATCH v2 2/6] ndctl: add update to security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 27 Jul 2018 15:02:09 -0700
+Message-ID: <153272892940.12034.13224628964126308664.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
+References: <153272888859.12034.12514972515977309760.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-References: <20180702154325.12196-1-osalvador@techadventures.net>
- <CAGM2reZz3=OM7W_VbCGgnAMumo+AiPaG7sGUaichG_QNngYKsg@mail.gmail.com>
-In-Reply-To: <CAGM2reZz3=OM7W_VbCGgnAMumo+AiPaG7sGUaichG_QNngYKsg@mail.gmail.com>
-From: Ross Zwisler <zwisler@kernel.org>
-Date: Fri, 6 Jul 2018 12:23:28 -0600
-Message-ID: <CAOxpaSVkLh23jN_=0GpZ77EhKdAYaiWKkppnxWwf_MRa5FvopA@mail.gmail.com>
-Subject: Re: [PATCH] mm/sparse: Make sparse_init_one_section void and remove
- check
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -32,96 +22,177 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@oracle.com, linux-nvdimm@lists.01.org
-Cc: osalvador@techadventures.net, bhe@redhat.com, Dave Hansen <dave.hansen@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, osalvador@suse.de
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jul 2, 2018 at 12:48 PM Pavel Tatashin
-<pasha.tatashin@oracle.com> wrote:
->
-> On Mon, Jul 2, 2018 at 11:43 AM <osalvador@techadventures.net> wrote:
-> >
-> > From: Oscar Salvador <osalvador@suse.de>
-> >
-> > sparse_init_one_section() is being called from two sites:
-> > sparse_init() and sparse_add_one_section().
-> > The former calls it from a for_each_present_section_nr() loop,
-> > and the latter marks the section as present before calling it.
-> > This means that when sparse_init_one_section() gets called, we already know
-> > that the section is present.
-> > So there is no point to double check that in the function.
-> >
-> > This removes the check and makes the function void.
-> >
-> > Signed-off-by: Oscar Salvador <osalvador@suse.de>
->
-> Thank you Oscar.
->
-> Reviewed-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Add API call for triggering sysfs knob to update the security for a DIMM
+in libndctl. Also add the ndctl "update-security" to trigger that as well.
+ndctl does not actually handle the passphrase file. It only initiates the
+update and expects all the necessary mechanisms are already in place.
 
-It looks like this change breaks "fsdax" mode namespaces in
-next-20180705.  The offending commit is:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/ndctl/Makefile.am               |    1 +
+ Documentation/ndctl/ndctl-update-security.txt |   21 +++++++++++++++++++++
+ builtin.h                                     |    1 +
+ ndctl/dimm.c                                  |   22 ++++++++++++++++++++++
+ ndctl/lib/dimm.c                              |   20 ++++++++++++++++++++
+ ndctl/lib/libndctl.sym                        |    1 +
+ ndctl/libndctl.h                              |    1 +
+ ndctl/ndctl.c                                 |    1 +
+ 8 files changed, 68 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-update-security.txt
 
-commit 054620849110 ("mm/sparse.c: make sparse_init_one_section void
-and remove check")
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 4fd9636f..02405c44 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -46,6 +46,7 @@ man1_MANS = \
+ 	ndctl-inject-error.1 \
+ 	ndctl-inject-smart.1 \
+ 	ndctl-update-firmware.1 \
++	ndctl-update-security.1 \
+ 	ndctl-list.1
+ 
+ CLEANFILES = $(man1_MANS)
+diff --git a/Documentation/ndctl/ndctl-update-security.txt b/Documentation/ndctl/ndctl-update-security.txt
+new file mode 100644
+index 00000000..38ca02fa
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-update-security.txt
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-update-security(1)
++========================
++
++NAME
++----
++ndctl-update-security - enabling or update the security passphrase for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl update-security' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface for enabling or updating security passphrase for
++NVDIMM. The use of this depends on support from the underlying libndctl, kernel,
++as well as the platform itself.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index d3cc7239..e6dc5340 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -47,4 +47,5 @@ int cmd_bat(int argc, const char **argv, void *ctx);
+ #endif
+ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
++int cmd_update_security(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 97643a3c..274714d6 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -821,6 +821,18 @@ static int action_update(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	return rc;
+ }
+ 
++static int action_security_update(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
++
++	rc = ndctl_dimm_set_change_key(dimm);
++	if (rc < 0)
++		error("Failed to update security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
++}
++
+ static struct parameters {
+ 	const char *bus;
+ 	const char *outfile;
+@@ -1178,3 +1190,13 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_update_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_update, base_options,
++			"ndctl update-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security updated %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 8ed58559..ca4d439b 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -595,3 +595,23 @@ NDCTL_EXPORT int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm,
+ 
+ 	return sysfs_read_attr(ctx, path, state);
+ }
++
++static int ndctl_dimm_write_security(struct ndctl_dimm *dimm, const char *cmd)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char *path = dimm->dimm_buf;
++	int len = dimm->buf_len;
++
++	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_dimm_get_devname(dimm));
++		return -ERANGE;
++	}
++
++	return sysfs_write_attr(ctx, path, cmd);
++}
++
++NDCTL_EXPORT int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "update");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 8040d7de..e2a359b8 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -372,4 +372,5 @@ LIBNDCTL_17 {
+ global:
+ 	ndctl_dimm_smart_inject_supported;
+ 	ndctl_dimm_get_security_state;
++	ndctl_dimm_set_change_key;
+ } LIBNDCTL_16;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index d48513ce..663847b6 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -660,6 +660,7 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm, char *state);
++int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 7daadebd..81987e81 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -88,6 +88,7 @@ static struct cmd_struct commands[] = {
+ 	{ "inject-smart", cmd_inject_smart },
+ 	{ "wait-scrub", cmd_wait_scrub },
+ 	{ "start-scrub", cmd_start_scrub },
++	{ "update-security", cmd_update_security },
+ 	{ "list", cmd_list },
+ 	{ "help", cmd_help },
+ 	#ifdef ENABLE_TEST
 
-Here is the stack trace I get when converting a raw mode namespace to
-fsdax mode, and from then on during each reboot as the namespace is
-being initialized:
-
-[    6.067166] BUG: unable to handle kernel paging request at ffffea0005000080
-[    6.068084] PGD 13ffdd067 P4D 13ffdd067 PUD 13ffdc067 PMD 0
-[    6.068771] Oops: 0002 [#1] PREEMPT SMP PTI
-[    6.069262] CPU: 11 PID: 180 Comm: kworker/u24:2 Not tainted
-4.18.0-rc3-00193-g054620849110 #1
-[    6.070440] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
-BIOS rel-1.11.1-0-g0551a4be2c-prebuilt.qemu-project.org 04/01/2014
-[    6.071689] Workqueue: events_unbound async_run_entry_fn
-[    6.072261] RIP: 0010:memmap_init_zone+0x154/0x1cf
-[    6.072882] Code: 48 89 c3 48 c1 eb 0c e9 82 00 00 00 48 89 da 48
-b8 00 00 00 00 00 ea ff ff b9 10 00 00 00 48 c1 e2 06 48 01 c2 31 c0
-48 89 d7 <f3> ab 48 b8 ff ff ff ff ff ff 7f 00 48 23 45 c0 c7 42 34 01
-00 00
-[    6.075396] RSP: 0018:ffffc900024bfa70 EFLAGS: 00010246
-[    6.076052] RAX: 0000000000000000 RBX: 0000000000140002 RCX: 0000000000000010
-[    6.076845] RDX: ffffea0005000080 RSI: 0000000000000000 RDI: ffffea0005000080
-[    6.077604] RBP: ffffc900024bfab0 R08: 0000000000000001 R09: ffff88010eb50d38
-[    6.078394] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-[    6.079331] R13: 0000000000000004 R14: 0000000000000001 R15: 0000000000000000
-[    6.080274] FS:  0000000000000000(0000) GS:ffff880115a00000(0000)
-knlGS:0000000000000000
-[    6.081337] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    6.082092] CR2: ffffea0005000080 CR3: 0000000002824000 CR4: 00000000000006e0
-[    6.083032] Call Trace:
-[    6.083371]  move_pfn_range_to_zone+0x168/0x180
-[    6.083965]  devm_memremap_pages+0x29b/0x480
-[    6.084550]  pmem_attach_disk+0x1ae/0x6c0 [nd_pmem]
-[    6.085204]  ? devm_memremap+0x79/0xb0
-[    6.085714]  nd_pmem_probe+0x7e/0xa0 [nd_pmem]
-[    6.086320]  nvdimm_bus_probe+0x6e/0x160 [libnvdimm]
-[    6.086977]  driver_probe_device+0x310/0x480
-[    6.087543]  __device_attach_driver+0x86/0x100
-[    6.088136]  ? __driver_attach+0x110/0x110
-[    6.088681]  bus_for_each_drv+0x6e/0xb0
-[    6.089190]  __device_attach+0xe2/0x160
-[    6.089705]  device_initial_probe+0x13/0x20
-[    6.090266]  bus_probe_device+0xa6/0xc0
-[    6.090772]  device_add+0x41b/0x660
-[    6.091249]  ? lock_acquire+0xa3/0x210
-[    6.091743]  nd_async_device_register+0x12/0x40 [libnvdimm]
-[    6.092398]  async_run_entry_fn+0x3e/0x170
-[    6.092921]  process_one_work+0x230/0x680
-[    6.093455]  worker_thread+0x3f/0x3b0
-[    6.093930]  kthread+0x12f/0x150
-[    6.094362]  ? process_one_work+0x680/0x680
-[    6.094903]  ? kthread_create_worker_on_cpu+0x70/0x70
-[    6.095574]  ret_from_fork+0x3a/0x50
-[    6.096069] Modules linked in: nd_pmem nd_btt dax_pmem device_dax
-nfit libnvdimm
-[    6.097179] CR2: ffffea0005000080
-[    6.097764] ---[ end trace a5b8bd6a5500b68c ]---
-
-- Ross
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
