@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm04.jp.fujitsu.com (mgwkm04.jp.fujitsu.com [202.219.69.171])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2B91203B99A8
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:08 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 3A7CBAC0104
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:04 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v10 0/4] ndctl, monitor: add ndctl monitor daemon
-Date: Mon,  9 Jul 2018 23:17:14 +0900
-Message-Id: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 29B23210C2D6E
+ for <linux-nvdimm@lists.01.org>; Fri, 27 Jul 2018 11:42:21 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] acpi/nfit: queue issuing of ars when an uc error
+ notification comes in
+Date: Fri, 27 Jul 2018 18:41:56 +0000
+Message-ID: <1532716914.8557.39.camel@intel.com>
+References: <153270745762.70694.3487924980141893382.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153270745762.70694.3487924980141893382.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <AF4F10BE095FF84B8517F9D5CDF7C040@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,128 +21,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is the v10 patch for ndctl monitor, a tiny daemon to monitor
-the smart events of nvdimm DIMMs. Since NVDIMM does not have a
-feature like mirroring, if it breaks down, the data will be
-impossible to restore. Ndctl monitor daemon will catch the smart
-events notify from firmware and outputs notification to logfile,
-therefore users can replace NVDIMM before it is completely broken.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
----
-Change log since v9:
- - Replacing ndctl_cmd_smart_get_event_flags() with
-   ndctl_dimm_get_event_flags()
- - Adding ndctl_dimm_get_health() api
- - Adding ndctl_dimm_get_flags() api
- - Adding ndctl_dimm_is_flag_supported api
- - Adding manpage
+On Fri, 2018-07-27 at 09:04 -0700, Dave Jiang wrote:
+> When the ACPI UC error notifier gets called and ARS_REQ bit is set
+> with the passed in flag, we can receive -EBUSY if ARS_REQ bit is already
+> set for the nfit_spa->ars_state. When that happens, the ARS request is
+> dropped. That can potentially cause us to miss the unreported errors that
+> the on going ARS request does not receive. Add an ARS_REQ_REDO state that
+> will request short ARS upon ARS completion to grab any errors we missed.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c |   12 +++++++++---
+>  drivers/acpi/nfit/nfit.h |    1 +
+>  2 files changed, 10 insertions(+), 3 deletions(-)
 
-Change log since v8:
- - Adding ndctl_cmd_smart_get_event_flags() api
- - Adding monitor_filter_arg to the union in util_filter_ctx
- - Removing is_dir()
- - Replacing malloc + vsprintf with vasprintf() in log_file() and log_syslog()
- - Adding parse_monitor_event()
- - Refactoring util_dimm_event_filter()
- - Adding event_flags to monitor
- - Refactoring dimm_event_to_json()
- - Adding check_dimm_supported_threshold_alarms()
- - Fixing fail token
+Looks good to me, you can add:
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Change log since v7:
- - Replacing logreport() with log_file() and log_syslog()
- - Refactoring read_config_file()
- - Replacing set_confile() with parse_config()
- - Fixing the ndctl/ndct.conf file
-
-Change log since v6:
- - Changing License to GPL-2.0
- - Adding event object to output notification
- - Adding [--dimm-event] option to filter notification by event type
- - Rewriting read_config_file()
- - Replacing monitor_dimm_event() with monitor_event()
- - Renaming some variables
-
-Change log since v5:
- - Fixing systemd unit file cannot be installed bug
- - Adding license to ./util/abspath.c
-
-Change log since v4:
- - Adding OPTION_FILENAME to make sure filename is correct
- - Adding configuration file
- - Adding [--config-file] option to override the default configuration
- - Making some options support multiple space-seperated arguments
- - Making systemctl enable ndctl-monitor.service command work
- - Making systemctl restart ndctl-monitor.service command work
- - Making the directory of systemd unit file to be configurable
- - Changing log_file() and log_syslog() to logreport()
- - Changing date format in notification to nanoseconds since epoch
- - Changing select() to epoll()
- - Adding filter_bus() and filter_region()
-
-Change log since v3:
- - Removing create-monitor, show-monitor, list-monitor, destroy-monitor
- - Adding [--daemon] option to run ndctl monitor as a daemon 
- - Using systemd to manage ndctl monitor daemon
- - Replacing filter_monitor_dimm() with filter_dimm()
-
-Change log since v2:
- - Changing the interface of daemon to the ndctl command line
- - Changing the name of daemon form "nvdimmd" to "monitor"
- - Removing the config file, unit_file, nvdimmd dir
- - Removing nvdimmd_test program
- - Adding ndctl/monitor.c
-
-Change log since v1:
- - Adding a config file(/etc/nvdimmd/nvdimmd.conf)
- - Using struct log_ctx instead of syslog()
-    - Using log_syslog() to save the notify messages to syslog
-    - Using log_file() to save the notify messages to special file
- - Adding LOG_NOTICE level to log_priority
- - Using automake instead of Makefile
- - Adding a new util file(nvdimmd/util.c) including helper functions
-   needed for nvdimm daemon
- - Adding nvdimmd_test program
-
-QI Fuli (4):
-  ndctl, monitor: add a new command - monitor
-  ndctl, monitor: add main ndctl monitor configuration file
-  ndctl, monitor: add the unit file of systemd for ndctl-monitor service
-  ndctl, documentation: add manpage for monitor
-
- Documentation/ndctl/Makefile.am       |   3 +-
- Documentation/ndctl/ndctl-monitor.txt |  96 ++++
- autogen.sh                            |   3 +-
- builtin.h                             |   1 +
- configure.ac                          |  22 +
- ndctl/Makefile.am                     |  12 +-
- ndctl/lib/libndctl.c                  |  82 ++++
- ndctl/lib/libndctl.sym                |   4 +
- ndctl/libndctl.h                      |  10 +
- ndctl/monitor.c                       | 623 ++++++++++++++++++++++++++
- ndctl/monitor.conf                    |  41 ++
- ndctl/ndctl-monitor.service           |   7 +
- ndctl/ndctl.c                         |   1 +
- util/filter.h                         |   9 +
- 14 files changed, 911 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-monitor.txt
- create mode 100644 ndctl/monitor.c
- create mode 100644 ndctl/monitor.conf
- create mode 100644 ndctl/ndctl-monitor.service
-
--- 
-2.18.0
-
-
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 274f636cd3d2..def64259f9a7 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -2567,7 +2567,12 @@ static void ars_complete(struct acpi_nfit_desc *acpi_desc,
+>  			test_bit(ARS_SHORT, &nfit_spa->ars_state)
+>  			? "short" : "long");
+>  	clear_bit(ARS_SHORT, &nfit_spa->ars_state);
+> -	set_bit(ARS_DONE, &nfit_spa->ars_state);
+> +	if (test_and_clear_bit(ARS_REQ_REDO, &nfit_spa->ars_state)) {
+> +		set_bit(ARS_SHORT, &nfit_spa->ars_state);
+> +		set_bit(ARS_REQ, &nfit_spa->ars_state);
+> +		dev_dbg(dev, "ARS: processing scrub request received while in progress\n");
+> +	} else
+> +		set_bit(ARS_DONE, &nfit_spa->ars_state);
+>  }
+>  
+>  static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc)
+> @@ -3264,9 +3269,10 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
+>  		if (test_bit(ARS_FAILED, &nfit_spa->ars_state))
+>  			continue;
+>  
+> -		if (test_and_set_bit(ARS_REQ, &nfit_spa->ars_state))
+> +		if (test_and_set_bit(ARS_REQ, &nfit_spa->ars_state)) {
+>  			busy++;
+> -		else {
+> +			set_bit(ARS_REQ_REDO, &nfit_spa->ars_state);
+> +		} else {
+>  			if (test_bit(ARS_SHORT, &flags))
+>  				set_bit(ARS_SHORT, &nfit_spa->ars_state);
+>  			scheduled++;
+> diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+> index a97ff42fe311..d1274ea2d251 100644
+> --- a/drivers/acpi/nfit/nfit.h
+> +++ b/drivers/acpi/nfit/nfit.h
+> @@ -119,6 +119,7 @@ enum nfit_dimm_notifiers {
+>  
+>  enum nfit_ars_state {
+>  	ARS_REQ,
+> +	ARS_REQ_REDO,
+>  	ARS_DONE,
+>  	ARS_SHORT,
+>  	ARS_FAILED,
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
