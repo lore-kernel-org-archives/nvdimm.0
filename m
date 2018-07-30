@@ -1,7 +1,7 @@
-From: <clifford-hammer-AKdSFpMJEorQT0dZR+AlfA@public.gmane.org>
-Subject: Will you give me love? I hope that yes!
-Date: 31 Jul 2018 15:25:39 +0600
-Message-ID: <003901d428b5$05ebdcc3$6f4455be$@deming.com>
+From: <cufeban-MOWONO0qtgpBDgjK7y7TUQ@public.gmane.org>
+Subject: I'm a princess who's waiting for her prince!
+Date: 30 Jul 2018 16:04:50 -0600
+Message-ID: <002e01d42856$07b9e9c4$e2528393$@flurred.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
