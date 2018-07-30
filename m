@@ -1,16 +1,33 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8EE9B20359E80
- for <linux-nvdimm@lists.01.org>; Tue, 10 Jul 2018 01:25:35 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V2 3/4] mm: add a function to differentiate the pages is from
- DAX device memory
-Date: Wed, 11 Jul 2018 01:03:51 +0800
-Message-Id: <a0d220839ce0414f13e9394dffcd9abe8689dafe.1531241281.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
-References: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EB4B3210C1B9A
+ for <linux-nvdimm@lists.01.org>; Sun, 29 Jul 2018 22:15:12 -0700 (PDT)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
+ w6U5Dmn6064670
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 01:15:11 -0400
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2khv5f0eaq-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 01:15:11 -0400
+Received: from localhost
+ by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <schwidefsky@de.ibm.com>;
+ Mon, 30 Jul 2018 06:15:09 +0100
+Date: Mon, 30 Jul 2018 07:14:58 +0200
+From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: Re: [External]  [PATCH v2 2/6] s390, dcssblk: kaddr and pfn can be
+ NULL to ->direct_access()
+In-Reply-To: <TY2PR03MB334328133134A67C87E5CC5C92290@TY2PR03MB3343.apcprd03.prod.outlook.com>
+References: <20180725162849.8320-1-yehs2007@zoho.com>
+ <20180725162849.8320-3-yehs2007@zoho.com>
+ <TY2PR03MB334328133134A67C87E5CC5C92290@TY2PR03MB3343.apcprd03.prod.outlook.com>
+MIME-Version: 1.0
+Message-Id: <20180730071458.42e3c5a1@mschwideX1>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,60 +35,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "snitzer@redhat.com" <snitzer@redhat.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "agk@redhat.com" <agk@redhat.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "willy@infradead.org" <willy@infradead.org>, "bart.vanassche@wdc.com" <bart.vanassche@wdc.com>, "keescook@chromium.org" <keescook@chromium.org>, NingTing Cheng <chengnt@lenovo.com>, "colyli@suse.de" <colyli@suse.de>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "axboe@kernel.dk" <axboe@kernel.dk>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX driver hotplug the device memory and move it to memory zone, these
-pages will be marked reserved flag, however, some other kernel componet
-will misconceive these pages are reserved mmio (ex: we map these dev_dax
-or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
-MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
-is DAX device memory or not.
+On Sat, 28 Jul 2018 04:07:25 +0000
+Huaisheng HS1 Ye <yehs1@lenovo.com> wrote:
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
----
- include/linux/mm.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+> May I have your ack's for this patch? The whole series would be applied
+> to libnvdimm if it could get your approval.
+> And any suggestion is welcome.
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 6e19265..9f0f690 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -856,6 +856,13 @@ static inline bool is_device_public_page(const struct page *page)
- 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
- }
- 
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
-+		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
-+}
-+
- #else /* CONFIG_DEV_PAGEMAP_OPS */
- static inline void dev_pagemap_get_ops(void)
- {
-@@ -879,6 +886,11 @@ static inline bool is_device_public_page(const struct page *page)
- {
- 	return false;
- }
-+
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
- 
- static inline void get_page(struct page *page)
+Sure, it is just two additional ifs. I did not think that this needed an
+ack, but here you go:
+
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+
+> 
+> Cheers,
+> Huaisheng Ye
+> 
+> > From: Huaisheng Ye <yehs2007@zoho.com>
+> > Sent: Thursday, July 26, 2018 12:29 AM
+> > 
+> > From: Huaisheng Ye <yehs1@lenovo.com>
+> > 
+> > dcssblk_direct_access() needs to check the validity of pointers kaddr
+> > and pfn for NULL assignment. If anyone equals to NULL, it doesn't need
+> > to calculate the value.
+> > 
+> > If either of them is equal to NULL, that is to say callers may
+> > have no need for kaddr or pfn, so this patch is prepared for allowing
+> > them to pass in NULL instead of having to pass in a pointer or local
+> > variable that they then just throw away.
+> > 
+> > Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+> > ---
+> >  drivers/s390/block/dcssblk.c | 8 +++++---
+> >  1 file changed, 5 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+> > index ed60728..23e526c 100644
+> > --- a/drivers/s390/block/dcssblk.c
+> > +++ b/drivers/s390/block/dcssblk.c
+> > @@ -922,9 +922,11 @@ static DEVICE_ATTR(save, S_IWUSR | S_IRUSR, dcssblk_save_show,
+> >  	unsigned long dev_sz;
+> > 
+> >  	dev_sz = dev_info->end - dev_info->start + 1;
+> > -	*kaddr = (void *) dev_info->start + offset;
+> > -	*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+> > -			PFN_DEV|PFN_SPECIAL);
+> > +	if (kaddr)
+> > +		*kaddr = (void *) dev_info->start + offset;
+> > +	if (pfn)
+> > +		*pfn = __pfn_to_pfn_t(PFN_DOWN(dev_info->start + offset),
+> > +				PFN_DEV|PFN_SPECIAL);
+> > 
+> >  	return (dev_sz - offset) / PAGE_SIZE;
+> >  }
+> > --
+> > 1.8.3.1  
+> 
+
+
 -- 
-2.7.4
+blue skies,
+   Martin.
+
+"Reality continues to ruin my life." - Calvin.
 
 _______________________________________________
 Linux-nvdimm mailing list
