@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C9597209884B7
- for <linux-nvdimm@lists.01.org>; Wed, 25 Jul 2018 13:59:07 -0700 (PDT)
-Subject: [PATCH v6 06/11] nfit/libnvdimm: add disable passphrase support to
- Intel nvdimm.
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 25 Jul 2018 13:59:04 -0700
-Message-ID: <153255234480.51274.17829701006557876369.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-References: <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id EBF61210C0F4C
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 00:16:55 -0700 (PDT)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [PATCH v3 3/6] tools/testing/nvdimm: kaddr and pfn can be NULL to
+ ->direct_access()
+Date: Mon, 30 Jul 2018 15:15:45 +0800
+Message-Id: <20180730071548.9172-4-yehs2007@zoho.com>
+In-Reply-To: <20180730071548.9172-1-yehs2007@zoho.com>
+References: <20180730071548.9172-1-yehs2007@zoho.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,171 +18,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Cc: jack@suse.cz, snitzer@redhat.com, heiko.carstens@de.ibm.com, dm-devel@redhat.com, agk@redhat.com, linux-s390@vger.kernel.org, willy@infradead.org, bart.vanassche@wdc.com, keescook@chromium.org, chengnt@lenovo.com, colyli@suse.de, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, axboe@kernel.dk, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to disable passphrase (security) for the Intel nvdimm. The
-passphrase used for disabling is pulled from userspace via the kernel
-key management. The action is triggered by writing "disable" to the sysfs
-attribute "security". libnvdimm will support the generic disable API call.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+The mock / test version of pmem_direct_access() needs to check the
+validity of pointers kaddr and pfn for NULL assignment. If anyone
+equals to NULL, it doesn't need to calculate the value.
+
+If pointer equals to NULL, that is to say callers may have no need for
+kaddr or pfn, so this patch is prepared for allowing them to pass in
+NULL instead of having to pass in a local pointer or variable that
+they then just throw away.
+
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   53 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   43 ++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    3 ++
- 3 files changed, 99 insertions(+)
+ tools/testing/nvdimm/pmem-dax.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 314eae7e02d7..21d30222371f 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,58 @@
- #include "intel.h"
- #include "nfit.h"
+diff --git a/tools/testing/nvdimm/pmem-dax.c b/tools/testing/nvdimm/pmem-dax.c
+index b53596a..2e7fd82 100644
+--- a/tools/testing/nvdimm/pmem-dax.c
++++ b/tools/testing/nvdimm/pmem-dax.c
+@@ -31,17 +31,21 @@ long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 	if (get_nfit_res(pmem->phys_addr + offset)) {
+ 		struct page *page;
  
-+static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_disable_passphrase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	memcpy(nd_cmd.cmd.passphrase, nkey->data,
-+			sizeof(nd_cmd.cmd.passphrase));
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- /*
-  * The update passphrase takes the old passphrase and the new passphrase
-  * and send those to the nvdimm. The nvdimm will verify the old
-@@ -217,4 +269,5 @@ const struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
-+	.disable = intel_dimm_security_disable,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index c6029e3f329e..1d85a4cb9402 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -97,6 +97,47 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
- }
+-		*kaddr = pmem->virt_addr + offset;
++		if (kaddr)
++			*kaddr = pmem->virt_addr + offset;
+ 		page = vmalloc_to_page(pmem->virt_addr + offset);
+-		*pfn = page_to_pfn_t(page);
++		if (pfn)
++			*pfn = page_to_pfn_t(page);
+ 		pr_debug_ratelimited("%s: pmem: %p pgoff: %#lx pfn: %#lx\n",
+ 				__func__, pmem, pgoff, page_to_pfn(page));
  
-+static int nvdimm_security_disable(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key;
-+	int rc;
-+	struct user_key_payload *payload;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return 0;
-+
-+	key = nvdimm_search_key(dev);
-+	if (!key) {
-+		dev_warn(dev, "no key found\n");
-+		return -ENOKEY;
-+	}
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm->security_ops->disable(nvdimm_bus, nvdimm,
-+			(void *)payload->data);
-+	up_read(&key->sem);
-+	if (rc < 0) {
-+		dev_warn(dev, "unlock failed\n");
-+		goto out;
-+	}
-+
-+	/* If we succeed then remove the key */
-+	key_unlink(nvdimm_keyring, key);
-+	key_invalidate(key);
-+	nvdimm->key_id = 0;
-+
-+ out:
-+	key_put(key);
-+	nvdimm_security_get_state(dev);
-+	return rc;
-+}
-+
- int nvdimm_security_unlock_dimm(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -622,6 +663,8 @@ static ssize_t security_store(struct device *dev,
+ 		return 1;
+ 	}
  
- 	if (sysfs_streq(buf, "update"))
- 		rc = nvdimm_security_change_key(dev);
-+	else if (sysfs_streq(buf, "disable"))
-+		rc = nvdimm_security_disable(dev);
- 	else
- 		return -EINVAL;
+-	*kaddr = pmem->virt_addr + offset;
+-	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
++	if (kaddr)
++		*kaddr = pmem->virt_addr + offset;
++	if (pfn)
++		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
  
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index bd6a413164ee..c60ab4b238f3 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -182,6 +182,9 @@ struct nvdimm_security_ops {
- 			struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *old_data,
- 			const struct nvdimm_key_data *new_data);
-+	int (*disable)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm,
-+			const struct nvdimm_key_data *nkey);
- };
- 
- void badrange_init(struct badrange *badrange);
+ 	/*
+ 	 * If badblocks are present, limit known good range to the
+-- 
+1.8.3.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
