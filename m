@@ -1,9 +1,9 @@
-From: <arvy-J+FqVFRId3ConA0d6jMUrA@public.gmane.org>
-Subject: I want to find a prince who is given to me by fate.
-Date: 30 Jul 2018 18:30:07 +0300
-Message-ID: <3D97175B06BDDB4AE0602C71CAAC3D97@TPMVGS8Q5FN>
+From: <eulaleebp-Fgdt4AT2qkxOSnsfY10OVw@public.gmane.org>
+Subject: Love is a Beautiful Thing. I'm looking for this happiness.
+Date: 31 Jul 2018 01:46:25 -0800
+Message-ID: <001a01d428b8$060dbc2b$f693b99d$@mail2betty.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8108216247131257027=="
+Content-Type: multipart/mixed; boundary="===============5150531573568350308=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,7 +17,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============8108216247131257027==
+--===============5150531573568350308==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
@@ -30,13 +30,13 @@ I do want to be next to a loving man. I wish to find a man that can give me a re
 
 Hope you're interested in becoming a part of my adventure and will reply back soon! 
 
-If you are interested in getting to know me closer, please write to my personal e-mail - beautysevgi291988-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+If you are interested in getting to know me closer, please write to my personal e-mail - beautysevgi-97jfqw80gc5Wk0Htik3J/w@public.gmane.org
 
 Your true soul, 
 Sevgi.
 
 
---===============8108216247131257027==
+--===============5150531573568350308==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -47,4 +47,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8108216247131257027==--
+--===============5150531573568350308==--
