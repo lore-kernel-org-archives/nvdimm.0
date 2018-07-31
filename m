@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm02.jp.fujitsu.com (mgwkm02.jp.fujitsu.com [202.219.69.169])
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F2CC120956071
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 07:18:24 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id 70C72AC007E
- for <linux-nvdimm@lists.01.org>; Mon,  9 Jul 2018 23:18:20 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v10 4/4] ndctl, documentation: add manpage for monitor
-Date: Mon,  9 Jul 2018 23:17:18 +0900
-Message-Id: <20180709141718.6205-5-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
-References: <20180709141718.6205-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id BAB66210C643E
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 21:48:45 -0700 (PDT)
+From: Jane Chu <jane.chu@oracle.com>
+Subject: [PATCH v2] ipc/shm.c add ->pagesize function to shm_vm_ops
+Date: Mon, 30 Jul 2018 22:48:31 -0600
+Message-Id: <20180731044831.26036-1-jane.chu@oracle.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,144 +16,86 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: dave@stgolabs.net, jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is used to add manpage for ndctl monitor command.
-
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
----
- Documentation/ndctl/Makefile.am       |  3 +-
- Documentation/ndctl/ndctl-monitor.txt | 96 +++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-monitor.txt
-
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 4fd9636..a30b139 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -46,7 +46,8 @@ man1_MANS = \
- 	ndctl-inject-error.1 \
- 	ndctl-inject-smart.1 \
- 	ndctl-update-firmware.1 \
--	ndctl-list.1
-+	ndctl-list.1 \
-+	ndctl-monitor.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-new file mode 100644
-index 0000000..037fdc7
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -0,0 +1,96 @@
-+ndctl-monitor(1)
-+================
-+
-+NAME
-+----
-+ndctl-monitor - Monitor the smart events of nvdimm objects
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl monitor' [<options>]
-+
-+DESCRIPTION
-+-----------
-+Ndctl monitor is used for monitoring the smart events of nvdimm
-+objects and dumping the json format notifications to syslog or
-+a logfile.
-+
-+The objects to monitor and smart evnets to notify can be selected
-+by setting options and/or the default configuration file
-+(/etc/ndctl/monitor.conf). Both of the values in configuration file
-+and in options will work. If conflict, the values in options will
-+override the values in configuration file. The changed values in
-+configuration file will work after restart ndctl monitor.
-+
-+EXAMPLES
-+--------
-+
-+Run a monitor as a daemon to monitor DIMMs on a provider named ndbus1
-+[verse]
-+ndctl monitor -b ndbus1 -f
-+
-+Run a monitor as a one-shot command and output the notifications to
-+/var/log/ndctl.log
-+[verse]
-+ndctl monitor -l /var/log/ndctl.log
-+
-+Run a monitor daemon as a system service
-+[verse]
-+systemctl start ndctl-monitor.service
-+
-+OPTIONS
-+-------
-+-b::
-+--bus=::
-+	Enforce that the operation only be carried on devices that are
-+	attached to the given bus. Where 'bus' can be a provider name
-+	or a bus id number.
-+
-+-d::
-+--dimm=::
-+	A 'nmemX' device name, or dimm id number. Select the devices to
-+	monitor refrerence the given dimm.
-+
-+-r::
-+--region=::
-+	A 'regionX' device name, or a region id number. The keyword 'all'
-+	can be specified to carry out the operation on every region in
-+	the system, optionally filtered by bus id (see --bus= option).
-+
-+-n::
-+--namespace=::
-+	A 'namespaceX.Y' device name, or namespace region plus id tuple
-+	'X.Y'.
-+
-+-l <file | syslog>::
-+--logfile=<file | syslog>::
-+	Output notifications to <file> or syslog.
-+
-+-f::
-+--daemon::
-+	Run a monitor as a daemon.
-+
-+-D::
-+--dimm-event=::
-+	A name of smart events come NVDIMM DIMMs.
-+	- "dimm-spares-remaining": Spare Blocks Remaining value has gone
-+	   below the pre-programmed threshold limit
-+	- "dimm-media-temperature": NVDIMM Media temperature value has
-+	   gone above the pre-programmed threshold limit
-+	- "dimm-controller-temperature": NVDIMM Controller temperature
-+	   value has gone above the pre-programmed threshold limit
-+	- "dimm-health-state": NVDIMM Normal Health Status has changed
-+	- "dimm-unclean-shutdown": NVDIMM Last Shutdown Status was a dirty
-+	   shutdown.
-+
-+COPYRIGHT
-+---------
-+Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
-+<http://gnu.org/licenses/gpl.html>. This is free software: you are
-+free to change and redistribute it. There is NO WARRANTY, to the
-+extent permitted by law.
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-list[1]
--- 
-2.18.0
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+MDVlYTg4NjA4ZDRlMTMgKCJtbSwgaHVnZXRsYmZzOiBpbnRyb2R1Y2UgLT5wYWdlc2l6ZSgpIHRv
+CnZtX29wZXJhdGlvbnNfc3RydWN0IikgYWRkcyBhIG5ldyAtPnBhZ2VzaXplKCkgZnVuY3Rpb24g
+dG8gaHVnZXRsYl92bV9vcHMsCmludGVuZGVkIHRvIGNvdmVyIGFsbCBodWdldGxiZnMgYmFja2Vk
+IGZpbGVzLgoKV2l0aCBTeXN0ZW0gViBzaGFyZWQgbWVtb3J5IG1vZGVsLCBpZiAiaHVnZSBwYWdl
+IiBpcyBzcGVjaWZpZWQsCnRoZSAic2hhcmVkIG1lbW9yeSIgaXMgYmFja2VkIGJ5IGh1Z2V0bGJm
+cyBmaWxlcywgYnV0IHRoZSBtYXBwaW5ncwppbml0aWF0ZWQgdmlhIHNobWdldC9zaG1hdCBoYXZl
+IHRoZWlyIG9yaWdpbmFsIHZtX29wcyBvdmVyd3JpdHRlbgp3aXRoIHNobV92bV9vcHMsIHNvIHdl
+IG5lZWQgdG8gYWRkIGEgLT5wYWdlc2l6ZSBmdW5jdGlvbiB0byBzaG1fdm1fb3BzLgpPdGhlcndp
+c2UsIHZtYV9rZXJuZWxfcGFnZXNpemUoKSByZXR1cm5zIFBBR0VfU0laRSBnaXZlbiBhIGh1Z2V0
+bGJmcwpiYWNrZWQgdm1hLCByZXN1bHQgaW4gYmVsb3cgQlVHOgoKZnMvaHVnZXRsYmZzL2lub2Rl
+LmMKICAgICAgICA0NDMgICAgICAgICAgICAgaWYgKHVubGlrZWx5KHBhZ2VfbWFwcGVkKHBhZ2Up
+KSkgewogICAgICAgIDQ0NCAgICAgICAgICAgICAgICAgICAgIEJVR19PTih0cnVuY2F0ZV9vcCk7
+CgpbICAyNDIuMjY4MzQyXSBodWdldGxiZnM6IG9yYWNsZSAoNDU5Mik6IFVzaW5nIG1sb2NrIHVs
+aW1pdHMgZm9yIFNITV9IVUdFVExCIGlzIGRlcHJlY2F0ZWQKWyAgMjgyLjY1MzIwOF0gLS0tLS0t
+LS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tClsgIDI4Mi43MDg0NDddIGtlcm5lbCBCVUcg
+YXQgZnMvaHVnZXRsYmZzL2lub2RlLmM6NDQ0IQpbICAyODIuODE4OTU3XSBNb2R1bGVzIGxpbmtl
+ZCBpbjogbmZzdjMgcnBjc2VjX2dzc19rcmI1IG5mc3Y0IC4uLgpbICAyODQuMDI1ODczXSBDUFU6
+IDM1IFBJRDogNTU4MyBDb21tOiBvcmFjbGVfNTU4M19zYnQgTm90IHRhaW50ZWQgNC4xNC4zNS0x
+ODI5LmVsN3Vlay54ODZfNjQgIzIKWyAgMjg0LjI0NjYwOV0gdGFzazogZmZmZjliZjA1MDdhYWY4
+MCB0YXNrLnN0YWNrOiBmZmZmYTllNjI1NjI4MDAwClsgIDI4NC4zMTc0NTVdIFJJUDogMDAxMDpy
+ZW1vdmVfaW5vZGVfaHVnZXBhZ2VzKzB4M2RiLzB4M2UyCi4uLi4KWyAgMjg1LjI5MjM4OV0gQ2Fs
+bCBUcmFjZToKWyAgMjg1LjMyMTYzMF0gIGh1Z2V0bGJmc19ldmljdF9pbm9kZSsweDFlLzB4M2UK
+WyAgMjg1LjM3MjcwN10gIGV2aWN0KzB4ZGIvMHgxYWYKWyAgMjg1LjQwODE4NV0gIGlwdXQrMHgx
+YTIvMHgxZjcKWyAgMjg1LjQ0MzY2MV0gIGRlbnRyeV91bmxpbmtfaW5vZGUrMHhjNi8weGYwClsg
+IDI4NS40OTI2NjFdICBfX2RlbnRyeV9raWxsKzB4ZDgvMHgxOGQKWyAgMjg1LjUzNjQ1OV0gIGRw
+dXQrMHgxYjUvMHgxZWQKWyAgMjg1LjU3MTkzOV0gIF9fZnB1dCsweDE4Yi8weDIxNgpbICAyODUu
+NjA5NDk1XSAgX19fX2ZwdXQrMHhlLzB4MTAKWyAgMjg1LjY0NjAzMF0gIHRhc2tfd29ya19ydW4r
+MHg5MC8weGE3ClsgIDI4NS42ODg3ODhdICBleGl0X3RvX3VzZXJtb2RlX2xvb3ArMHhkZC8weDEx
+NgpbICAyODUuNzQwOTA1XSAgZG9fc3lzY2FsbF82NCsweDE4Ny8weDFhZQpbICAyODUuNzg1NzQw
+XSAgZW50cnlfU1lTQ0FMTF82NF9hZnRlcl9od2ZyYW1lKzB4MTUwLzB4MAoKTGluazogaHR0cDov
+L2xrbWwua2VybmVsLm9yZy9yLzIwMTgwNzI3MjExNzI3LjUwMjAtMS1qYW5lLmNodUBvcmFjbGUu
+Y29tCkZpeGVzOiAwNWVhODg2MDhkNGUxMyAoIm1tLCBodWdldGxiZnM6IGludHJvZHVjZSAtPnBh
+Z2VzaXplKCkgdG8gdm1fb3BlcmF0aW9uc19zdHJ1Y3QiKQpTaWduZWQtb2ZmLWJ5OiBKYW5lIENo
+dSA8amFuZS5jaHVAb3JhY2xlLmNvbT4KU3VnZ2VzdGVkLWJ5OiBNaWtlIEtyYXZldHogPG1pa2Uu
+a3JhdmV0ekBvcmFjbGUuY29tPgpSZXZpZXdlZC1ieTogTWlrZSBLcmF2ZXR6IDxtaWtlLmtyYXZl
+dHpAb3JhY2xlLmNvbT4KQWNrZWQtYnk6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2UuY29tPgpB
+Y2tlZC1ieTogRGF2aWRsb2hyIEJ1ZXNvIDxkYnVlc29Ac3VzZS5kZT4KQ2M6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3Vz
+ZS5jb20+CkNjOiBKYW4gS2FyYSA8amFja0BzdXNlLmN6PgpDYzogSsODwqlyw4PCtG1lIEdsaXNz
+ZSA8amdsaXNzZUByZWRoYXQuY29tPgpDYzogRGF2aWRsb2hyIEJ1ZXNvIDxkYXZlQHN0Z29sYWJz
+Lm5ldD4KQ2M6IE1hbmZyZWQgU3ByYXVsIDxtYW5mcmVkQGNvbG9yZnVsbGlmZS5jb20+CkNjOiA8
+c3RhYmxlQHZnZXIua2VybmVsLm9yZz4KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtw
+bUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KLS0tCi0tLQogaXBjL3NobS5jICAgIHwgMTIgKysrKysr
+KysrKysrCiBtbS9odWdldGxiLmMgfCAgNyArKysrKysrCiAyIGZpbGVzIGNoYW5nZWQsIDE5IGlu
+c2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9pcGMvc2htLmMgYi9pcGMvc2htLmMKaW5kZXggMDUx
+YTNlMWZiOGRmLi5mZWZhMDBkMzEwZmIgMTAwNjQ0Ci0tLSBhL2lwYy9zaG0uYworKysgYi9pcGMv
+c2htLmMKQEAgLTQyNyw2ICs0MjcsMTcgQEAgc3RhdGljIGludCBzaG1fc3BsaXQoc3RydWN0IHZt
+X2FyZWFfc3RydWN0ICp2bWEsIHVuc2lnbmVkIGxvbmcgYWRkcikKIAlyZXR1cm4gMDsKIH0KIAor
+c3RhdGljIHVuc2lnbmVkIGxvbmcgc2htX3BhZ2VzaXplKHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAq
+dm1hKQoreworCXN0cnVjdCBmaWxlICpmaWxlID0gdm1hLT52bV9maWxlOworCXN0cnVjdCBzaG1f
+ZmlsZV9kYXRhICpzZmQgPSBzaG1fZmlsZV9kYXRhKGZpbGUpOworCisJaWYgKHNmZC0+dm1fb3Bz
+LT5wYWdlc2l6ZSkKKwkJcmV0dXJuIHNmZC0+dm1fb3BzLT5wYWdlc2l6ZSh2bWEpOworCisJcmV0
+dXJuIFBBR0VfU0laRTsKK30KKwogI2lmZGVmIENPTkZJR19OVU1BCiBzdGF0aWMgaW50IHNobV9z
+ZXRfcG9saWN5KHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLCBzdHJ1Y3QgbWVtcG9saWN5ICpu
+ZXcpCiB7CkBAIC01NTQsNiArNTY1LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCB2bV9vcGVyYXRp
+b25zX3N0cnVjdCBzaG1fdm1fb3BzID0gewogCS5jbG9zZQk9IHNobV9jbG9zZSwJLyogY2FsbGJh
+Y2sgZm9yIHdoZW4gdGhlIHZtLWFyZWEgaXMgcmVsZWFzZWQgKi8KIAkuZmF1bHQJPSBzaG1fZmF1
+bHQsCiAJLnNwbGl0CT0gc2htX3NwbGl0LAorCS5wYWdlc2l6ZSA9IHNobV9wYWdlc2l6ZSwKICNp
+ZiBkZWZpbmVkKENPTkZJR19OVU1BKQogCS5zZXRfcG9saWN5ID0gc2htX3NldF9wb2xpY3ksCiAJ
+LmdldF9wb2xpY3kgPSBzaG1fZ2V0X3BvbGljeSwKZGlmZiAtLWdpdCBhL21tL2h1Z2V0bGIuYyBi
+L21tL2h1Z2V0bGIuYwppbmRleCAwMzlkZGJjNTc0ZTkuLjMxMDMwOTlmNjRmZCAxMDA2NDQKLS0t
+IGEvbW0vaHVnZXRsYi5jCisrKyBiL21tL2h1Z2V0bGIuYwpAQCAtMzE2Nyw2ICszMTY3LDEzIEBA
+IHN0YXRpYyB2bV9mYXVsdF90IGh1Z2V0bGJfdm1fb3BfZmF1bHQoc3RydWN0IHZtX2ZhdWx0ICp2
+bWYpCiAJcmV0dXJuIDA7CiB9CiAKKy8qCisgKiBXaGVuIGEgbmV3IGZ1bmN0aW9uIGlzIGludHJv
+ZHVjZWQgdG8gdm1fb3BlcmF0aW9uc19zdHJ1Y3QgYW5kIGFkZGVkCisgKiB0byBodWdldGxiX3Zt
+X29wcywgcGxlYXNlIGNvbnNpZGVyIGFkZGluZyB0aGUgZnVuY3Rpb24gdG8gc2htX3ZtX29wcy4K
+KyAqIFRoaXMgaXMgYmVjYXVzZSB1bmRlciBTeXN0ZW0gViBtZW1vcnkgbW9kZWwsIG1hcHBpbmdz
+IGNyZWF0ZWQgdmlhCisgKiBzaG1nZXQvc2htYXQgd2l0aCAiaHVnZSBwYWdlIiBzcGVjaWZpZWQg
+YXJlIGJhY2tlZCBieSBodWdldGxiZnMgZmlsZXMsCisgKiB0aGVpciBvcmlnaW5hbCB2bV9vcHMg
+YXJlIG92ZXJ3cml0dGVuIHdpdGggc2htX3ZtX29wcy4KKyAqLwogY29uc3Qgc3RydWN0IHZtX29w
+ZXJhdGlvbnNfc3RydWN0IGh1Z2V0bGJfdm1fb3BzID0gewogCS5mYXVsdCA9IGh1Z2V0bGJfdm1f
+b3BfZmF1bHQsCiAJLm9wZW4gPSBodWdldGxiX3ZtX29wX29wZW4sCi0tIAoyLjE1LkdJVAoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
+IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
