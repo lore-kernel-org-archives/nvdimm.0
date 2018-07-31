@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 77753210C1247
- for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 20:08:54 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id BA102210C1247
+ for <linux-nvdimm@lists.01.org>; Mon, 30 Jul 2018 20:08:07 -0700 (PDT)
 Subject: Re: [PATCH] ipc/shm.c add ->pagesize function to shm_vm_ops
 References: <20180727211727.5020-1-jane.chu@oracle.com>
- <20180730164459.zduhnk7itoldqnom@linux-r8p5>
+ <20180730085851.GB24267@dhcp22.suse.cz>
 From: Jane Chu <jane.chu@oracle.com>
-Message-ID: <a4c4bdab-b0f8-fb10-9b3d-f5740f30748c@oracle.com>
-Date: Mon, 30 Jul 2018 20:08:48 -0700
+Message-ID: <025ae23a-8821-9a55-9e62-54be4c422c5a@oracle.com>
+Date: Mon, 30 Jul 2018 20:07:57 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180730164459.zduhnk7itoldqnom@linux-r8p5>
+In-Reply-To: <20180730085851.GB24267@dhcp22.suse.cz>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,51 +20,131 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, mhocko@suse.com, jack@suse.cz, jglisse@redhat.com, mike.kravetz@oracle.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: dave@stgolabs.net, jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, akpm@linux-foundation.org, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGksIERhdmlkbG9ociwKCk9uIDcvMzAvMjAxOCA5OjQ0IEFNLCBEYXZpZGxvaHIgQnVlc28gd3Jv
-dGU6Cgo+IE9uIEZyaSwgMjcgSnVsIDIwMTgsIEphbmUgQ2h1IHdyb3RlOgo+Cj4+IENvbW1pdCAw
-NWVhODg2MDhkNGUxMyAobW0sIGh1Z2V0bGJmczogaW50cm9kdWNlIC0+cGFnZXNpemUoKSB0bwo+
-PiB2bV9vcGVyYXRpb25zX3N0cnVjdCkgYWRkcyBhIG5ldyAtPnBhZ2VzaXplKCkgZnVuY3Rpb24g
-dG8KPj4gaHVnZXRsYl92bV9vcHMsIGludGVuZGVkIHRvIGNvdmVyIGFsbCBodWdldGxiZnMgYmFj
-a2VkIGZpbGVzLgo+Pgo+PiBXaXRoIFN5c3RlbSBWIHNoYXJlZCBtZW1vcnkgbW9kZWwsIGlmICJo
-dWdlIHBhZ2UiIGlzIHNwZWNpZmllZCwKPj4gdGhlICJzaGFyZWQgbWVtb3J5IiBpcyBiYWNrZWQg
-YnkgaHVnZXRsYmZzIGZpbGVzLCBidXQgdGhlIG1hcHBpbmdzCj4+IGluaXRpYXRlZCB2aWEgc2ht
-Z2V0L3NobWF0IGhhdmUgdGhlaXIgb3JpZ2luYWwgdm1fb3BzIG92ZXJ3cml0dGVuCj4+IHdpdGgg
-c2htX3ZtX29wcywgc28gd2UgbmVlZCB0byBhZGQgYSAtPnBhZ2VzaXplIGZ1bmN0aW9uIHRvIHNo
-bV92bV9vcHMuCj4+IE90aGVyd2lzZSwgdm1hX2tlcm5lbF9wYWdlc2l6ZSgpIHJldHVybnMgUEFH
-RV9TSVpFIGdpdmVuIGEgaHVnZXRsYmZzCj4+IGJhY2tlZCB2bWEsIHJlc3VsdCBpbiBiZWxvdyBC
-VUc6Cj4+Cj4+IGZzL2h1Z2V0bGJmcy9pbm9kZS5jCj4+IMKgwqDCoMKgwqDCoCA0NDPCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqAgaWYgKHVubGlrZWx5KHBhZ2VfbWFwcGVkKHBhZ2UpKSkgewo+PiDC
-oMKgwqDCoMKgwqAgNDQ0wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBC
-VUdfT04odHJ1bmNhdGVfb3ApOwo+Pgo+PiBbwqAgMjQyLjI2ODM0Ml0gaHVnZXRsYmZzOiBvcmFj
-bGUgKDQ1OTIpOiBVc2luZyBtbG9jayB1bGltaXRzIGZvciAKPj4gU0hNX0hVR0VUTEIgaXMgZGVw
-cmVjYXRlZAo+PiBbwqAgMjgyLjY1MzIwOF0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0t
-LS0tLS0tCj4+IFvCoCAyODIuNzA4NDQ3XSBrZXJuZWwgQlVHIGF0IGZzL2h1Z2V0bGJmcy9pbm9k
-ZS5jOjQ0NCEKPj4gW8KgIDI4Mi44MTg5NTddIE1vZHVsZXMgbGlua2VkIGluOiBuZnN2MyBycGNz
-ZWNfZ3NzX2tyYjUgbmZzdjQgLi4uCj4+IFvCoCAyODQuMDI1ODczXSBDUFU6IDM1IFBJRDogNTU4
-MyBDb21tOiBvcmFjbGVfNTU4M19zYnQgTm90IHRhaW50ZWQgCj4+IDQuMTQuMzUtMTgyOS5lbDd1
-ZWsueDg2XzY0ICMyCj4+IFvCoCAyODQuMjQ2NjA5XSB0YXNrOiBmZmZmOWJmMDUwN2FhZjgwIHRh
-c2suc3RhY2s6IGZmZmZhOWU2MjU2MjgwMDAKPj4gW8KgIDI4NC4zMTc0NTVdIFJJUDogMDAxMDpy
-ZW1vdmVfaW5vZGVfaHVnZXBhZ2VzKzB4M2RiLzB4M2UyCj4+IC4uLi4KPj4gW8KgIDI4NS4yOTIz
-ODldIENhbGwgVHJhY2U6Cj4+IFvCoCAyODUuMzIxNjMwXcKgIGh1Z2V0bGJmc19ldmljdF9pbm9k
-ZSsweDFlLzB4M2UKPj4gW8KgIDI4NS4zNzI3MDddwqAgZXZpY3QrMHhkYi8weDFhZgo+PiBbwqAg
-Mjg1LjQwODE4NV3CoCBpcHV0KzB4MWEyLzB4MWY3Cj4+IFvCoCAyODUuNDQzNjYxXcKgIGRlbnRy
-eV91bmxpbmtfaW5vZGUrMHhjNi8weGYwCj4+IFvCoCAyODUuNDkyNjYxXcKgIF9fZGVudHJ5X2tp
-bGwrMHhkOC8weDE4ZAo+PiBbwqAgMjg1LjUzNjQ1OV3CoCBkcHV0KzB4MWI1LzB4MWVkCj4+IFvC
-oCAyODUuNTcxOTM5XcKgIF9fZnB1dCsweDE4Yi8weDIxNgo+PiBbwqAgMjg1LjYwOTQ5NV3CoCBf
-X19fZnB1dCsweGUvMHgxMAo+PiBbwqAgMjg1LjY0NjAzMF3CoCB0YXNrX3dvcmtfcnVuKzB4OTAv
-MHhhNwo+PiBbwqAgMjg1LjY4ODc4OF3CoCBleGl0X3RvX3VzZXJtb2RlX2xvb3ArMHhkZC8weDEx
-Ngo+PiBbwqAgMjg1Ljc0MDkwNV3CoCBkb19zeXNjYWxsXzY0KzB4MTg3LzB4MWFlCj4+IFvCoCAy
-ODUuNzg1NzQwXcKgIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSsweDE1MC8weDAKPj4K
-Pj4gU3VnZ2VzdGVkLWJ5OiBNaWtlIEtyYXZldHogPG1pa2Uua3JhdmV0ekBvcmFjbGUuY29tPgo+
-PiBTaWduZWQtb2ZmLWJ5OiBKYW5lIENodSA8amFuZS5jaHVAb3JhY2xlLmNvbT4KPgo+IEFja2Vk
-LWJ5OiBEYXZpZGxvaHIgQnVlc28gPGRidWVzb0BzdXNlLmRlPgoKVGhhbmsgeW91IQoKLWphbmUK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
-ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
-LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hi, Michal,
+
+
+On 7/30/2018 1:58 AM, Michal Hocko wrote:
+> On Fri 27-07-18 15:17:27, Jane Chu wrote:
+>> Commit 05ea88608d4e13 (mm, hugetlbfs: introduce ->pagesize() to
+>> vm_operations_struct) adds a new ->pagesize() function to
+>> hugetlb_vm_ops, intended to cover all hugetlbfs backed files.
+>>
+>> With System V shared memory model, if "huge page" is specified,
+>> the "shared memory" is backed by hugetlbfs files, but the mappings
+>> initiated via shmget/shmat have their original vm_ops overwritten
+>> with shm_vm_ops, so we need to add a ->pagesize function to shm_vm_ops.
+>> Otherwise, vma_kernel_pagesize() returns PAGE_SIZE given a hugetlbfs
+>> backed vma, result in below BUG:
+>>
+>> fs/hugetlbfs/inode.c
+>>          443             if (unlikely(page_mapped(page))) {
+>>          444                     BUG_ON(truncate_op);
+>>
+>> [  242.268342] hugetlbfs: oracle (4592): Using mlock ulimits for SHM_HUGETLB is deprecated
+>> [  282.653208] ------------[ cut here ]------------
+>> [  282.708447] kernel BUG at fs/hugetlbfs/inode.c:444!
+>> [  282.818957] Modules linked in: nfsv3 rpcsec_gss_krb5 nfsv4 ...
+>> [  284.025873] CPU: 35 PID: 5583 Comm: oracle_5583_sbt Not tainted 4.14.35-1829.el7uek.x86_64 #2
+>> [  284.246609] task: ffff9bf0507aaf80 task.stack: ffffa9e625628000
+>> [  284.317455] RIP: 0010:remove_inode_hugepages+0x3db/0x3e2
+>> ....
+>> [  285.292389] Call Trace:
+>> [  285.321630]  hugetlbfs_evict_inode+0x1e/0x3e
+>> [  285.372707]  evict+0xdb/0x1af
+>> [  285.408185]  iput+0x1a2/0x1f7
+>> [  285.443661]  dentry_unlink_inode+0xc6/0xf0
+>> [  285.492661]  __dentry_kill+0xd8/0x18d
+>> [  285.536459]  dput+0x1b5/0x1ed
+>> [  285.571939]  __fput+0x18b/0x216
+>> [  285.609495]  ____fput+0xe/0x10
+>> [  285.646030]  task_work_run+0x90/0xa7
+>> [  285.688788]  exit_to_usermode_loop+0xdd/0x116
+>> [  285.740905]  do_syscall_64+0x187/0x1ae
+>> [  285.785740]  entry_SYSCALL_64_after_hwframe+0x150/0x0
+>>
+>> Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
+>> Signed-off-by: Jane Chu <jane.chu@oracle.com>
+> Acked-by: Michal Hocko <mhocko@suse.com>
+>
+> with Cc: stable and Fixes: tag as suggested by Mike.
+>
+> I also agree with Matthew that the comment should be associated with
+> hugetlb_vm_ops/shm_vm_ops.
+
+Indeed, will make the above changes.
+Thanks for reviewing!
+
+-jane
+
+>
+> Thanks!
+>
+>> ---
+>>   include/linux/mm.h |  7 +++++++
+>>   ipc/shm.c          | 12 ++++++++++++
+>>   2 files changed, 19 insertions(+)
+>>
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index a0fbb9ffe380..0c759379f2d9 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -387,6 +387,13 @@ enum page_entry_size {
+>>    * These are the virtual MM functions - opening of an area, closing and
+>>    * unmapping it (needed to keep files on disk up-to-date etc), pointer
+>>    * to the functions called when a no-page or a wp-page exception occurs.
+>> + *
+>> + * Note, when a new function is introduced to vm_operations_struct and
+>> + * added to hugetlb_vm_ops, please consider adding the function to
+>> + * shm_vm_ops. This is because under System V memory model, though
+>> + * mappings created via shmget/shmat with "huge page" specified are
+>> + * backed by hugetlbfs files, their original vm_ops are overwritten with
+>> + * shm_vm_ops.
+>>    */
+>>   struct vm_operations_struct {
+>>   	void (*open)(struct vm_area_struct * area);
+>> diff --git a/ipc/shm.c b/ipc/shm.c
+>> index 051a3e1fb8df..fefa00d310fb 100644
+>> --- a/ipc/shm.c
+>> +++ b/ipc/shm.c
+>> @@ -427,6 +427,17 @@ static int shm_split(struct vm_area_struct *vma, unsigned long addr)
+>>   	return 0;
+>>   }
+>>   
+>> +static unsigned long shm_pagesize(struct vm_area_struct *vma)
+>> +{
+>> +	struct file *file = vma->vm_file;
+>> +	struct shm_file_data *sfd = shm_file_data(file);
+>> +
+>> +	if (sfd->vm_ops->pagesize)
+>> +		return sfd->vm_ops->pagesize(vma);
+>> +
+>> +	return PAGE_SIZE;
+>> +}
+>> +
+>>   #ifdef CONFIG_NUMA
+>>   static int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
+>>   {
+>> @@ -554,6 +565,7 @@ static const struct vm_operations_struct shm_vm_ops = {
+>>   	.close	= shm_close,	/* callback for when the vm-area is released */
+>>   	.fault	= shm_fault,
+>>   	.split	= shm_split,
+>> +	.pagesize = shm_pagesize,
+>>   #if defined(CONFIG_NUMA)
+>>   	.set_policy = shm_set_policy,
+>>   	.get_policy = shm_get_policy,
+>> -- 
+>> 2.15.GIT
+>>
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
