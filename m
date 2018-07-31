@@ -1,7 +1,7 @@
-From: <reply-yp8iipigaeqoxabusfng-UxHbZC3WWWVhVxkRldAhlQ@public.gmane.org>
-Subject: I can not imagine my life alone. I need a beloved one.
-Date: 31 Jul 2018 15:11:54 +0800
-Message-ID: <001501d4289e$01e70642$286f5499$@in2.getdrip.com>
+From: <clifford-hammer-AKdSFpMJEorQT0dZR+AlfA@public.gmane.org>
+Subject: Will you give me love? I hope that yes!
+Date: 31 Jul 2018 15:25:39 +0600
+Message-ID: <003901d428b5$05ebdcc3$6f4455be$@deming.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,7 +21,6 @@ List-Id: linux-nvdimm@lists.01.org
 
 Good day, dear sir. 
 
-My name is Sevgi.
 I am a woman, who believe in a destiny with a cheerful future for myself and that you could become a part of it.
 I do want to be next to a loving man. I wish to find a man that can give me a real hope and love!
 
@@ -30,4 +29,4 @@ Hope you're interested in becoming a part of my adventure and will reply back so
 If you are interested in getting to know me closer, please write to my personal e-mail - beautysevgi-97jfqw80gc5Wk0Htik3J/w@public.gmane.org
 
 Your true soul, 
-Sevgi.
+S.V.
