@@ -1,22 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
+ [IPv6:2607:f8b0:400d:c0d::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A8E5C210D226B
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 02:42:18 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 7D5A3AC0179
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 18:42:12 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [ndclt PATCH] ndctl, monitor: Fix duplicate prefix in monitor.log
-Date: Thu, 2 Aug 2018 09:42:09 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA9C5CB@g01jpexmbkw24>
+ by ml01.01.org (Postfix) with ESMTPS id 181062098EABD
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 11:14:36 -0700 (PDT)
+Received: by mail-qt0-x244.google.com with SMTP id b15-v6so20930712qtp.11
+ for <linux-nvdimm@lists.01.org>; Wed, 01 Aug 2018 11:14:36 -0700 (PDT)
+Subject: Re: [ndclt PATCH] ndctl, monitor: Fix duplicate prefix in monitor.log
 References: <20180731051503.30719-1-qi.fuli@jp.fujitsu.com>
- <533dc62c-bac1-15aa-0e8d-bc444e8ef06b@gmail.com>
-In-Reply-To: <533dc62c-bac1-15aa-0e8d-bc444e8ef06b@gmail.com>
-Content-Language: en-US
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <533dc62c-bac1-15aa-0e8d-bc444e8ef06b@gmail.com>
+Date: Wed, 1 Aug 2018 14:14:36 -0400
 MIME-Version: 1.0
+In-Reply-To: <20180731051503.30719-1-qi.fuli@jp.fujitsu.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,61 +22,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Masayoshi Mizuma' <msys.mizuma@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXNheW9zaGkgTWl6dW1hIFtt
-YWlsdG86bXN5cy5taXp1bWFAZ21haWwuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgQXVndXN0IDIs
-IDIwMTggMzoxNSBBTQ0KPiBUbzogUWksIEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBqcC5mdWpp
-dHN1LmNvbT47IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gU3ViamVjdDogUmU6IFtuZGNs
-dCBQQVRDSF0gbmRjdGwsIG1vbml0b3I6IEZpeCBkdXBsaWNhdGUgcHJlZml4IGluIG1vbml0b3Iu
-bG9nDQo+IA0KPiBIaSBRSSwNCj4gDQo+IE9uIDA3LzMxLzIwMTggMDE6MTUgQU0sIFFJIEZ1bGkg
-d3JvdGU6DQo+ID4gV2hlbiBhIG1vbml0b3IgcnVucyB3aXRoIFstLWxvZ10gb3B0aW9uLCB0aGUg
-cHJlZml4IHdpbGwgYmUgZHVhbGx5DQo+ID4gYWRkZWQgdG8gbW9uaXRvci5sb2cuIFRoZXJlZm9y
-ZSwgdGhlIG1vbml0b3IgY2Fubm90IGxvZyB0aGUgc21hcnQNCj4gPiBub3RpZmljYXRpb24gdG8g
-c3lzbG9nLiBUaGlzIHBhdGNoIGlzIHVzZWQgdG8gcHJldmVudCBwcmVmaXggZnJvbQ0KPiA+IGJl
-aW5nIGR1YWxseSBhZGRlZCB0byBtb25pdG9yLmxvZy4NCj4gPg0KPiA+IEZpeGVzOiBmZGY2YjY4
-NDRjY2YgKCJuZGN0bCwgbW9uaXRvcjogYWRkIGEgbmV3IGNvbW1hbmQgLSBtb25pdG9yIikNCj4g
-PiBTaWduZWQtb2ZmLWJ5OiBRSSBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPg0KPiA+IC0t
-LQ0KPiA+ICBuZGN0bC9tb25pdG9yLmMgfCAzICsrLQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMiBp
-bnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvbmRjdGwv
-bW9uaXRvci5jIGIvbmRjdGwvbW9uaXRvci5jIGluZGV4IGM2NDE5YWQuLjRlNWRhZjUNCj4gPiAx
-MDA2NDQNCj4gPiAtLS0gYS9uZGN0bC9tb25pdG9yLmMNCj4gPiArKysgYi9uZGN0bC9tb25pdG9y
-LmMNCj4gPiBAQCAtNjE0LDcgKzYxNCw4IEBAIGludCBjbWRfbW9uaXRvcihpbnQgYXJnYywgY29u
-c3QgY2hhciAqKmFyZ3YsIHZvaWQgKmN0eCkNCj4gPiAgCQlnb3RvIG91dDsNCj4gPg0KPiA+ICAJ
-aWYgKG1vbml0b3IubG9nKSB7DQo+ID4gLQkJZml4X2ZpbGVuYW1lKHByZWZpeCwgKGNvbnN0IGNo
-YXIgKiopJm1vbml0b3IubG9nKTsNCj4gPiArCQlpZiAoc3RybmNtcChtb25pdG9yLmxvZywgIi4v
-IiwgMikgIT0gMCkNCj4gPiArCQkJZml4X2ZpbGVuYW1lKHByZWZpeCwgKGNvbnN0IGNoYXIgKiop
-Jm1vbml0b3IubG9nKTsNCj4gDQo+IHByZWZpeCBpcyBub3QgbmVlZGVkIHRvICdzeXNsb2cnIGFu
-ZCAnc3RhbmRhcmQnLCBzbyB3aHkgZG9uJ3QgeW91IG1vdmUgdGhlIHN0cm5jbXAoKQ0KPiBiZWZv
-cmUgZml4X2ZpbGVuYW1lKCksIGxpa2UgYXM6DQo+IA0KPiBAQCAtNjE0LDEzICs2MTksMTQgQEAg
-aW50IGNtZF9tb25pdG9yKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgdm9pZCAqY3R4KQ0K
-PiAgICAgICAgICAgICAgICAgZ290byBvdXQ7DQo+IA0KPiAgICAgICAgIGlmIChtb25pdG9yLmxv
-Zykgew0KPiAtICAgICAgICAgICAgICAgZml4X2ZpbGVuYW1lKHByZWZpeCwgKGNvbnN0IGNoYXIg
-KiopJm1vbml0b3IubG9nKTsNCj4gICAgICAgICAgICAgICAgIGlmIChzdHJuY21wKG1vbml0b3Iu
-bG9nLCAiLi9zeXNsb2ciLCA4KSA9PSAwKQ0KPiAgICAgICAgICAgICAgICAgICAgICAgICBuZGN0
-bF9zZXRfbG9nX2ZuKChzdHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCBsb2dfc3lzbG9nKTsNCj4gICAg
-ICAgICAgICAgICAgIGVsc2UgaWYgKHN0cm5jbXAobW9uaXRvci5sb2csICIuL3N0YW5kYXJkIiwg
-MTApID09IDApDQo+ICAgICAgICAgICAgICAgICAgICAgICAgIDsgLypkZWZhdWx0LCBhbHJlYWR5
-IHNldCAqLw0KPiAtICAgICAgICAgICAgICAgZWxzZQ0KPiArICAgICAgICAgICAgICAgZWxzZSB7
-DQo+ICsgICAgICAgICAgICAgICAgICAgICAgIGZpeF9maWxlbmFtZShwcmVmaXgsIChjb25zdCBj
-aGFyDQo+ICsgKiopJm1vbml0b3IubG9nKTsNCj4gICAgICAgICAgICAgICAgICAgICAgICAgbmRj
-dGxfc2V0X2xvZ19mbigoc3RydWN0IG5kY3RsX2N0eCAqKWN0eCwgbG9nX2ZpbGUpOw0KPiArICAg
-ICAgICAgICAgICAgfQ0KPiAgICAgICAgIH0NCj4gDQo+ICAgICAgICAgaWYgKG1vbml0b3IuZGFl
-bW9uKSB7DQo+IA0KPiBUaGFua3MsDQo+IE1hc2ENCg0KSGkgTWFzYSwNCg0KVGhhbmsgeW91IHZl
-cnkgbXVjaCBmb3IgeW91ciBjb21tZW50cy4NCg0KVGhlcmUgYXJlIHR3byB3YXlzIHRvIHNldCBt
-b25pdG9yLmxvZy4NCmEpIHNldHRpbmcgdGhlIGFyZ3VtZW50IG9mIFstLWxvZ10gb3B0aW9uDQpi
-KSBzZXR0aW5nIHRoZSB2YWx1ZSBvZiBbbG9nXSBrZXkgaW4gY29uZmlndXJhdGlvbiBmaWxlDQoN
-CldoZW4gdXNlcnMgc2V0IG1vbml0b3IubG9nIGJ5IGIsIHRoZSBwcmVmaXggd2lsbCBub3QgYmUg
-YWRkZWQgdG8gbW9uaXRvci5sb2cuDQpUaGVyZWZvcmUsIHdlIHNob3VsZCBkbyBmaXhfZmlsZW5h
-bWUoKSBiZWZvcmUgc3RybmNtcCgpLg0KDQpUaGFua3MsDQpRSQ0KDQo+IA0KPiA+ICAJCWlmIChz
-dHJuY21wKG1vbml0b3IubG9nLCAiLi9zeXNsb2ciLCA4KSA9PSAwKQ0KPiA+ICAJCQluZGN0bF9z
-ZXRfbG9nX2ZuKChzdHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCBsb2dfc3lzbG9nKTsNCj4gPiAgCQll
-bHNlIGlmIChzdHJuY21wKG1vbml0b3IubG9nLCAiLi9zdGFuZGFyZCIsIDEwKSA9PSAwKQ0KPiA+
-DQo+IA0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi QI,
+
+On 07/31/2018 01:15 AM, QI Fuli wrote:
+> When a monitor runs with [--log] option, the prefix will be dually
+> added to monitor.log. Therefore, the monitor cannot log the smart
+> notification to syslog. This patch is used to prevent prefix from
+> being dually added to monitor.log.
+> 
+> Fixes: fdf6b6844ccf ("ndctl, monitor: add a new command - monitor")
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  ndctl/monitor.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+> index c6419ad..4e5daf5 100644
+> --- a/ndctl/monitor.c
+> +++ b/ndctl/monitor.c
+> @@ -614,7 +614,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  		goto out;
+>  
+>  	if (monitor.log) {
+> -		fix_filename(prefix, (const char **)&monitor.log);
+> +		if (strncmp(monitor.log, "./", 2) != 0)
+> +			fix_filename(prefix, (const char **)&monitor.log);
+
+prefix is not needed to 'syslog' and 'standard', so why don't you move the strncmp()
+before fix_filename(), like as:
+
+@@ -614,13 +619,14 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+                goto out;
+ 
+        if (monitor.log) {
+-               fix_filename(prefix, (const char **)&monitor.log);
+                if (strncmp(monitor.log, "./syslog", 8) == 0)
+                        ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+                else if (strncmp(monitor.log, "./standard", 10) == 0)
+                        ; /*default, already set */
+-               else
++               else {
++                       fix_filename(prefix, (const char **)&monitor.log);
+                        ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
++               }
+        }
+ 
+        if (monitor.daemon) {
+
+Thanks,
+Masa
+
+>  		if (strncmp(monitor.log, "./syslog", 8) == 0)
+>  			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+>  		else if (strncmp(monitor.log, "./standard", 10) == 0)
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
