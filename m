@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw1-xc44.google.com (mail-yw1-xc44.google.com
- [IPv6:2607:f8b0:4864:20::c44])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1FD48210DF5EE
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 18:36:02 -0700 (PDT)
-Received: by mail-yw1-xc44.google.com with SMTP id y203-v6so410793ywd.9
- for <linux-nvdimm@lists.01.org>; Tue, 07 Aug 2018 18:36:02 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH v3] ndctl,
- test: add a new unit test for max_available_extent namespace
-Date: Tue,  7 Aug 2018 21:35:45 -0400
-Message-Id: <20180808013545.4541-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C0871210D43AB
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 14:24:24 -0700 (PDT)
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/1] x86, pmem, acpi: Remove excessive ACPI Large
+ Reference Count warnings
+Date: Wed, 1 Aug 2018 21:24:19 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B94DEDFF@ORSMSX108.amr.corp.intel.com>
+References: <20180730195545.795802877@stormcage.americas.sgi.com>
+ <20180730195548.580717146@stormcage.americas.sgi.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E3B94DED8F@ORSMSX108.amr.corp.intel.com>
+ <20180801203827.ozkvldizkpsatmg5@hpe.com>
+In-Reply-To: <20180801203827.ozkvldizkpsatmg5@hpe.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,103 +23,111 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+To: Russ Anderson <rja@hpe.com>
+Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>, Russ Anderson <russ.anderson@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mike Travis <mike.travis@hpe.com>, "Wysocki, Rafael J  <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Schmauss,
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> -----Original Message-----
+> From: Russ Anderson [mailto:rja@hpe.com]
+> Sent: Wednesday, August 1, 2018 1:38 PM
+> To: Moore, Robert <robert.moore@intel.com>
+> Cc: Mike Travis <mike.travis@hpe.com>; Schmauss, Erik
+> <erik.schmauss@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>; Russ Anderson
+> <russ.anderson@hpe.com>; Dimitri Sivanich <dimitri.sivanich@hpe.com>;
+> Ross Zwisler <ross.zwisler@linux.intel.com>; Williams, Dan J
+> <dan.j.williams@intel.com>; Verma, Vishal L <vishal.l.verma@intel.com>;
+> Jiang, Dave <dave.jiang@intel.com>; linux-acpi@vger.kernel.org;
+> devel@acpica.org; linux-nvdimm@lists.01.org; linux-
+> kernel@vger.kernel.org
+> Subject: Re: [PATCH 1/1] x86, pmem, acpi: Remove excessive ACPI Large
+> Reference Count warnings
+> 
+> On Wed, Aug 01, 2018 at 07:49:14PM +0000, Moore, Robert wrote:
+> > Are there any actual memory leaks, or this a consequence of the number
+> of sockets?
+> 
+> It is a consequence of the number of sockets.
+> It is not an actual memory leak.
+> 
+> Thanks.
+> 
+[Moore, Robert] 
 
-Add a new unit test to test max_available_extent namespace.
-This feature is implemented by the following patches.
+It does bother me a bit that there are over 4096 references to a single object, however. Could you send us the ACPI dump for the machine?
 
-  kernel side:
-    https://lists.01.org/pipermail/linux-nvdimm/2018-July/016731.html
-    https://lists.01.org/pipermail/linux-nvdimm/2018-July/016732.html
+This issue sounds vaguely familiar though. Perhaps Dan remembers, it was something about large reference counts and the NFIT/NVDIMM stuff. If so, this has been fixed for some time now.
 
-  ndctl side:
-    https://lists.01.org/pipermail/linux-nvdimm/2018-July/017176.html
+Bob
 
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
----
- test/Makefile.am                |  3 ++-
- test/max_available_extent_ns.sh | 46 +++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 1 deletion(-)
- create mode 100755 test/max_available_extent_ns.sh
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 8c55056..9af2464 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -22,7 +22,8 @@ TESTS =\
- 	firmware-update.sh \
- 	ack-shutdown-count-set \
- 	rescan-partitions.sh \
--	monitor.sh
-+	monitor.sh \
-+	max_available_extent_ns.sh
- 
- check_PROGRAMS =\
- 	libndctl \
-diff --git a/test/max_available_extent_ns.sh b/test/max_available_extent_ns.sh
-new file mode 100755
-index 0000000..1c7e7bf
---- /dev/null
-+++ b/test/max_available_extent_ns.sh
-@@ -0,0 +1,46 @@
-+#!/bin/bash -Ex
-+
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018, FUJITSU LIMITED. All rights reserved.
-+
-+rc=77
-+
-+. ./common
-+
-+trap 'err $LINENO' ERR
-+
-+check_min_kver "4.19" || do_skip "kernel $KVER may not support max_available_size"
-+
-+init()
-+{
-+	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-+	$NDCTL zero-labels -b $NFIT_TEST_BUS0 all
-+	$NDCTL enable-region -b $NFIT_TEST_BUS0 all
-+}
-+
-+do_test()
-+{
-+	region=$($NDCTL list -b $NFIT_TEST_BUS0 -R -t pmem | jq -r 'sort_by(-.size) | .[].dev' | head -1)
-+
-+	available_sz=$($NDCTL list -r $region | jq -r .[].available_size)
-+	size=$(( available_sz/4 ))
-+
-+	NS=()
-+	for ((i=0; i<3; i++))
-+	do
-+		NS[$i]=$($NDCTL create-namespace -r $region -t pmem -s $size | jq -r .dev)
-+		[[ -n ${NS[$i]} ]]
-+	done
-+
-+	$NDCTL disable-namespace ${NS[1]}
-+	$NDCTL destroy-namespace ${NS[1]}
-+
-+	$NDCTL create-namespace -r $region -t pmem
-+}
-+
-+modprobe nfit_test
-+rc=1
-+init
-+do_test
-+_cleanup
-+exit 0
--- 
-2.18.0
-
+> > > -----Original Message-----
+> > > From: Mike Travis [mailto:mike.travis@hpe.com]
+> > > Sent: Monday, July 30, 2018 12:56 PM
+> > > To: Moore, Robert <robert.moore@intel.com>; Schmauss, Erik
+> > > <erik.schmauss@intel.com>; Wysocki, Rafael J
+> > > <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>
+> > > Cc: Russ Anderson <russ.anderson@hpe.com>; Dimitri Sivanich
+> > > <dimitri.sivanich@hpe.com>; Ross Zwisler
+> > > <ross.zwisler@linux.intel.com>; Williams, Dan J
+> > > <dan.j.williams@intel.com>; Verma, Vishal L
+> > > <vishal.l.verma@intel.com>; Jiang, Dave <dave.jiang@intel.com>;
+> > > linux- acpi@vger.kernel.org; devel@acpica.org;
+> > > linux-nvdimm@lists.01.org; linux-kernel@vger.kernel.org
+> > > Subject: [PATCH 1/1] x86, pmem, acpi: Remove excessive ACPI Large
+> > > Reference Count warnings
+> > >
+> > > With the Intel BIOS support for 8 processor sockets with a full
+> > > complement of NVDIMMS potentially installable, and there are empty
+> > > sockets without NVDIMMS, there is an extremely large amount of the
+> > > following warnings:
+> > >
+> > > ACPI Warning: Large Reference Count (0x1001) in object
+> ffff99453fc71750,
+> > > 	Type=0x0A
+> > >
+> > > On a 4 socket system with 4 NVDIMMs there were over 6000 of these
+> > > warning messages and it has been seem on systems from 4 to 32
+> sockets.
+> > >
+> > > Through some guidance from the BIOS developers and testing, it
+> > > appears that simply bumping up the threshold for warnings from
+> > > 0x1000 to 0x2000 eliminates these messages.  Changing them to be
+> > > ACPI DEBUG messages, or even removing them are other options, but it
+> > > would then defeat the purpose of the warnings as the problem would
+> effectively be hidden.
+> > >
+> > > Reviewed-by: Dimitri Sivanich <dimitri.sivanich@hpe.com>
+> > > Tested-by: Russ Anderson <russ.anderson@hpe.com>
+> > > Signed-off-by: Mike Travis <mike.travis@hpe.com>
+> > > ---
+> > >  include/acpi/acconfig.h |    2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > --- linux-4.12.orig/include/acpi/acconfig.h
+> > > +++ linux-4.12/include/acpi/acconfig.h
+> > > @@ -123,7 +123,7 @@
+> > >
+> > >  /* Maximum object reference count (detects object deletion issues)
+> > > */
+> > >
+> > > -#define ACPI_MAX_REFERENCE_COUNT        0x1000
+> > > +#define ACPI_MAX_REFERENCE_COUNT        0x2000
+> > >
+> > >  /* Default page size for use in mapping memory for operation
+> > > regions */
+> > >
+> > >
+> > > --
+> >
+> 
+> --
+> Russ Anderson,  SuperDome Flex Linux Kernel Group Manager HPE - Hewlett
+> Packard Enterprise (formerly SGI)  rja@hpe.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
