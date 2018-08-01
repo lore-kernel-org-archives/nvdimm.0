@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 94EE4210D514F
- for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 18:47:16 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 93A43210D226B
+ for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 12:40:39 -0700 (PDT)
 Subject: Re: [RFC PATCH 1/1] device-dax: check for vma range while dax_mmap.
 References: <e260d513ab831bfe1298374c87c6cca5f7dd3a6f.1533036772.git.yi.z.zhang@linux.intel.com>
- <12a2ebd8-0f15-7d0a-697c-172ed7f77f92@intel.com>
-From: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
-Message-ID: <5aaca496-af2b-71b1-26af-b2400e0bcb43@linux.intel.com>
-Date: Thu, 2 Aug 2018 17:32:57 +0800
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <12a2ebd8-0f15-7d0a-697c-172ed7f77f92@intel.com>
+Date: Wed, 1 Aug 2018 12:40:36 -0700
 MIME-Version: 1.0
-In-Reply-To: <12a2ebd8-0f15-7d0a-697c-172ed7f77f92@intel.com>
+In-Reply-To: <e260d513ab831bfe1298374c87c6cca5f7dd3a6f.1533036772.git.yi.z.zhang@linux.intel.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,65 +19,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dan.j.williams@intel.com, jack@suse.cz, zwisler@kernel.org, yu.c.zhang@intel.com
+To: Zhang Yi <yi.z.zhang@linux.intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dan.j.williams@intel.com, jack@suse.cz, zwisler@kernel.org, yu.c.zhang@intel.com
 Cc: yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAyMDE45bm0MDjmnIgwMuaXpSAwMzo0MCwgRGF2ZSBKaWFuZyB3cm90ZToKPgo+IE9uIDA3
-LzMxLzIwMTggMDQ6NDYgQU0sIFpoYW5nIFlpIHdyb3RlOgo+PiBJdCBzaG91bGQgYmUgcHJldmVu
-dCB1c2VyIG1hcCBhbiBpbGxlZ2FsIHZtYSByYW5nZSB3aGljaCBsYXJnZXIgdGhhbgo+PiBkYXgg
-ZGV2aWNlIHBoaXNjYWwgcmVzb3Vyc2UsIGFzIHdlIGRvbid0IGhhdmUgc3dhcCBsb2dpYyB3aGls
-ZSBwYWdlCj4+IGZhdWx0aW5nIGluIGRheCBkZXZpY2UuCj4gVGhpcyBwYXRjaCBwcmV2ZW50cyBh
-IHVzZXIgbWFwcGluZyBhbiBpbGxlZ2FsIHZtYSByYW5nZSB0aGF0IGlzIGxhcmdlcgo+IHRoYW4g
-YSBkYXggZGV2aWNlIHBoeXNpY2FsIHJlc291cmNlLgo+Cj4+IEFwcGxpY2F0aW9ucywgZXNwZWNh
-aWxseSBxZW11LCBtYXAgdGhlIC9kZXYvZGF4IGZvciB2aXJ0dWFsIG52ZGltbSdzCj4+IGJhY2tl
-bmQgZGV2aWNlLCB3ZSBkZWZpbmVkIHRoZSB2LW52ZGltbSBsYWJlbCBhcmVhIGF0IHRoZSBlbmQg
-b2YgbWFwcGVkCj4+IHJhbmcuIEJ5IHVzaW5nIGFuIGlsbGVnYWwgc2l6ZSB0aGF0IGV4Y2VlZHMg
-dGhlIHBoeXNpY2FsIHJlc291cmNlIG9mCj4+IC9kZXYvZGF4LCB0aGVuIGl0IHdpbGwgdHJpZ2Vy
-IHFlbXUgYSBzaWduYWwgZmF1bHQgd2hpbGUgYWNjZXNzaW5nIHRoZXNlCj4+IGxhYmVsIGFyZWEu
-Cj4gV2hlbiBxZW11IG1hcHMgdGhlIGRheCBkZXZpY2UgZm9yIHZpcnR1YWwgbnZkaW1tJ3MgYmFj
-a2VuZCBkZXZpY2UsIHRoZQo+IHYtbnZkaW1tIGxhYmVsIGFyZWEgaXMgZGVmaW5lZCBhdCB0aGUg
-ZW5kIG9mIG1hcHBlZCByYW5nZS4gQnkgdXNpbmcgYW4KPiBpbGxlZ2FsIHNpemUgdGhhdCBleGNl
-ZWRzIHRoZSByYW5nZSBvZiB0aGUgZGV2aWNlIGRheCwgaXQgd2lsbCB0cmlnZ2VyIGEKPiBmYXVs
-dCB3aXRoIHFlbXUuClRoYW5rcyBEYXZhLCB0aGF0J3MgY291bGQgYmUgbXVjaCBiZXR0ZXIuCj4K
-Pj4gU2lnbmVkLW9mZi1ieTogWmhhbmcgWWkgPHlpLnouemhhbmdAbGludXguaW50ZWwuY29tPgo+
-PiAtLS0KPj4gIGRyaXZlcnMvZGF4L2RldmljZS5jIHwgMjggKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKwo+PiAgMSBmaWxlIGNoYW5nZWQsIDI4IGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvZGF4L2RldmljZS5jIGIvZHJpdmVycy9kYXgvZGV2aWNlLmMKPj4gaW5k
-ZXggYWZmMmMxNS4uYzlhNTBjZCAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9kYXgvZGV2aWNlLmMK
-Pj4gKysrIGIvZHJpdmVycy9kYXgvZGV2aWNlLmMKPj4gQEAgLTE3Nyw2ICsxNzcsMzIgQEAgc3Rh
-dGljIGNvbnN0IHN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgKmRheF9hdHRyaWJ1dGVfZ3JvdXBzW10g
-PSB7Cj4+ICAJTlVMTCwKPj4gIH07Cj4+ICAKPj4gK3N0YXRpYyBpbnQgY2hlY2tfdm1hX3Jhbmdl
-KHN0cnVjdCBkZXZfZGF4ICpkZXZfZGF4LCBzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYSwKPj4g
-KwkJY29uc3QgY2hhciAqZnVuYykKPj4gK3sKPj4gKwlzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGV2
-X2RheC0+ZGV2Owo+PiArCXN0cnVjdCByZXNvdXJjZSAqcmVzOwo+PiArCXVuc2lnbmVkIGxvbmcg
-c2l6ZTsKPj4gKwlpbnQgcmV0LCBpOwo+PiArCj4+ICsJaWYgKCFkYXhfYWxpdmUoZGV2X2RheC0+
-ZGF4X2RldikpCj4+ICsJCXJldHVybiAtRU5YSU87Cj4+ICsKPj4gKwlzaXplID0gdm1hLT52bV9l
-bmQgLSB2bWEtPnZtX3N0YXJ0ICsgKHZtYS0+dm1fcGdvZmYgPDwgUEFHRV9TSElGVCk7Cj4+ICsJ
-cmV0ID0gLUVJTlZBTDsKPj4gKwlmb3IgKGkgPSAwOyBpIDwgZGV2X2RheC0+bnVtX3Jlc291cmNl
-czsgaSsrKSB7Cj4+ICsJCXJlcyA9ICZkZXZfZGF4LT5yZXNbaV07Cj4+ICsJCWlmIChzaXplID4g
-cmVzb3VyY2Vfc2l6ZShyZXMpKSB7Cj4+ICsJCQlkZXZfaW5mbyhkZXYsICIlczogJXM6IGZhaWws
-IHZtYSByYW5nZSBpcyBvdmVyZmxvd1xuIiwKPj4gKwkJCQljdXJyZW50LT5jb21tLCBmdW5jKTsK
-Pj4gKwkJCXJldCA9IC1FSU5WQUw7Cj4+ICsJCQljb250aW51ZTsKPj4gKwkJfSBlbHNlCj4+ICsJ
-CQlyZXR1cm4gMDsKPj4gKwl9Cj4+ICsJcmV0dXJuIHJldDsKPj4gK30KPj4gKwo+PiAgc3RhdGlj
-IGludCBjaGVja192bWEoc3RydWN0IGRldl9kYXggKmRldl9kYXgsIHN0cnVjdCB2bV9hcmVhX3N0
-cnVjdCAqdm1hLAo+PiAgCQljb25zdCBjaGFyICpmdW5jKQo+PiAgewo+PiBAQCAtNDY1LDYgKzQ5
-MSw4IEBAIHN0YXRpYyBpbnQgZGF4X21tYXAoc3RydWN0IGZpbGUgKmZpbHAsIHN0cnVjdCB2bV9h
-cmVhX3N0cnVjdCAqdm1hKQo+PiAgCSAqLwo+PiAgCWlkID0gZGF4X3JlYWRfbG9jaygpOwo+PiAg
-CXJjID0gY2hlY2tfdm1hKGRldl9kYXgsIHZtYSwgX19mdW5jX18pOwo+PiArCWlmICghcmMpCj4+
-ICsJCXJjIHw9IGNoZWNrX3ZtYV9yYW5nZShkZXZfZGF4LCB2bWEsIF9fZnVuY19fKTsKPiBJIHRo
-aW5rIHlvdSB3YW50IHRvIGF1Z21lbnQgY2hlY2tfdm1hKCkgcmF0aGVyIHRoYW4gYWRkaW5nIGFu
-b3RoZXIKPiBmdW5jdGlvbj8gSWYgdGhpcyBpcyBhZGRlZCBpbnNpZGUgY2hlY2tfdm1hKCkgdGhl
-biB5b3UgY2FuIGFsc28gc2tpcCB0aGUKPiAhZGF4X2FsaXZlKCkgY2hlY2suIERvIHlvdSBleHBl
-Y3QgdGhpcyBmdW5jdGlvbiB0byBiZSBjYWxsZWQgYW55d2hlcmUgZWxzZT8Kc2luY2UgY2hlY2tf
-dm1hIHJhbmdlIGFsc28gd2lsbCBiZSBjYWxsZWQgd2hpbGUgZGF4IHBhZ2UgZmF1bHRpbmcuICBJ
-CmRvbid0IHdhbm5hIHRoaXMgY2hlY2tfdm1hX3JhbmdlIGludHJvZHVjZSBzb21lIGFkZGl0aW9u
-YWwgd29ya2xvYWQKd2hpbGUgcGFnZSBmYXVsdC4ganVzdCBsZXQgaXQgY2hlY2tlZCBpbiB0aGUg
-bW1hcCBzY2VuYXJpbwo+Cj4+ICAJZGF4X3JlYWRfdW5sb2NrKGlkKTsKPj4gIAlpZiAocmMpCj4+
-ICAJCXJldHVybiByYzsKPj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+
+
+On 07/31/2018 04:46 AM, Zhang Yi wrote:
+> It should be prevent user map an illegal vma range which larger than
+> dax device phiscal resourse, as we don't have swap logic while page
+> faulting in dax device.
+
+This patch prevents a user mapping an illegal vma range that is larger
+than a dax device physical resource.
+
+> 
+> Applications, especailly qemu, map the /dev/dax for virtual nvdimm's
+> backend device, we defined the v-nvdimm label area at the end of mapped
+> rang. By using an illegal size that exceeds the physical resource of
+> /dev/dax, then it will triger qemu a signal fault while accessing these
+> label area.
+
+When qemu maps the dax device for virtual nvdimm's backend device, the
+v-nvdimm label area is defined at the end of mapped range. By using an
+illegal size that exceeds the range of the device dax, it will trigger a
+fault with qemu.
+
+> 
+> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+> ---
+>  drivers/dax/device.c | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+> 
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index aff2c15..c9a50cd 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -177,6 +177,32 @@ static const struct attribute_group *dax_attribute_groups[] = {
+>  	NULL,
+>  };
+>  
+> +static int check_vma_range(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+> +		const char *func)
+> +{
+> +	struct device *dev = &dev_dax->dev;
+> +	struct resource *res;
+> +	unsigned long size;
+> +	int ret, i;
+> +
+> +	if (!dax_alive(dev_dax->dax_dev))
+> +		return -ENXIO;
+> +
+> +	size = vma->vm_end - vma->vm_start + (vma->vm_pgoff << PAGE_SHIFT);
+> +	ret = -EINVAL;
+> +	for (i = 0; i < dev_dax->num_resources; i++) {
+> +		res = &dev_dax->res[i];
+> +		if (size > resource_size(res)) {
+> +			dev_info(dev, "%s: %s: fail, vma range is overflow\n",
+> +				current->comm, func);
+> +			ret = -EINVAL;
+> +			continue;
+> +		} else
+> +			return 0;
+> +	}
+> +	return ret;
+> +}
+> +
+>  static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+>  		const char *func)
+>  {
+> @@ -465,6 +491,8 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+>  	 */
+>  	id = dax_read_lock();
+>  	rc = check_vma(dev_dax, vma, __func__);
+> +	if (!rc)
+> +		rc |= check_vma_range(dev_dax, vma, __func__);
+
+I think you want to augment check_vma() rather than adding another
+function? If this is added inside check_vma() then you can also skip the
+!dax_alive() check. Do you expect this function to be called anywhere else?
+
+>  	dax_read_unlock(id);
+>  	if (rc)
+>  		return rc;
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
