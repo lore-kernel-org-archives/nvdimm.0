@@ -1,13 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
+ [IPv6:2607:f8b0:400d:c0d::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C9E3210DF510
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 19:14:06 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V3 0/4] Fix kvm misconceives NVDIMM pages as reserved mmio
-Date: Thu,  9 Aug 2018 18:52:48 +0800
-Message-Id: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3CB6210C42B8
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 06:10:19 -0700 (PDT)
+Received: by mail-qt0-x244.google.com with SMTP id m13-v6so2194393qth.1
+ for <linux-nvdimm@lists.01.org>; Thu, 02 Aug 2018 06:10:19 -0700 (PDT)
+Subject: Re: [PATCH] ndctl, monitor: Change the fail log priority to err.
+References: <20180801185538.27084-1-msys.mizuma@gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3223DA9C824@g01jpexmbkw24>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <9382e12e-05fc-19e4-ebd3-7cdef4d62a36@gmail.com>
+Date: Thu, 2 Aug 2018 09:10:17 -0400
+MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3223DA9C824@g01jpexmbkw24>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,60 +23,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
+Cc: m.mizuma@jp.fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-For device specific memory space, when we move these area of pfn to
-memory zone, we will set the page reserved flag at that time, some of
-these reserved for device mmio, and some of these are not, such as
-NVDIMM pmem.
+Hi QI,
 
-Now, we map these dev_dax or fs_dax pages to kvm for DIMM/NVDIMM
-backend, since these pages are reserved. the check of
-kvm_is_reserved_pfn() misconceives those pages as MMIO. Therefor, we
-introduce 2 page map types, MEMORY_DEVICE_FS_DAX/MEMORY_DEVICE_DEV_DAX,
-to indentify these pages are from NVDIMM pmem. and let kvm treat these
-as normal pages.
+On 08/02/2018 07:42 AM, Qi, Fuli wrote:
+>> -----Original Message-----
+>> From: Masayoshi Mizuma [mailto:msys.mizuma@gmail.com]
+>> Sent: Thursday, August 2, 2018 3:56 AM
+>> To: linux-nvdimm@lists.01.org
+>> Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>; Qi, Fuli/斉 福利
+>> <qi.fuli@jp.fujitsu.com>; Mizuma, Masayoshi/水間 理仁 <m.mizuma@jp.fujitsu.com>
+>> Subject: [PATCH] ndctl, monitor: Change the fail log priority to err.
+>>
+>> From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+>>
+>> fail() is called if an error happens, but the log priority is debug, so user may
+>> not notice the error.
+>> Let's change the priority to err.
+>>
+>> Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+>> Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+>> ---
+>>  ndctl/monitor.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/ndctl/monitor.c b/ndctl/monitor.c index 84d51c4..68bbf65 100644
+>> --- a/ndctl/monitor.c
+>> +++ b/ndctl/monitor.c
+>> @@ -40,7 +40,7 @@ static int did_fail;
+>>  #define fail(fmt, ...) \
+>>  do { \
+>>  	did_fail = 1; \
+>> -	dbg(ctx, "ndctl-%s:%s:%d: " fmt, \
+>> +	err(ctx, "ndctl-%s:%s:%d: " fmt, \
+>>  			VERSION, __func__, __LINE__, ##__VA_ARGS__); \  } while (0)
+>>
+> 
+> Hi Masa,
+> 
+> The debug messages which are from fail() include source code line numbers and function name,
+> these are useful for developers not typical users. Therefore, we made it a debug level print.
+> Currently the debug level cannot be outputted is a bug.
+> I will make a patch for adding [--verbose] option to emit debug messages and changing the log level of some messages.
 
-Without this patch, Many operations will be missed due to this
-mistreatment to pmem pages. For example, a page may not have chance to
-be unpinned for KVM guest(in kvm_release_pfn_clean); not able to be
-marked as dirty/accessed(in kvm_set_pfn_dirty/accessed) etc.
+OK, make sense to me.
 
-V1:
-https://lkml.org/lkml/2018/7/4/91
+Thanks,
+Masa
 
-V2:
-https://lkml.org/lkml/2018/7/10/135
-
-V3:
-[PATCH V3 1/4] Needs Comments.
-[PATCH V3 2/4] Update the description of MEMORY_DEVICE_DEV_DAX: Jan
-[PATCH V3 3/4] Acked-by: Jan in V2
-[PATCH V3 4/4] Needs Comments.
-
-Zhang Yi (4):
-  kvm: remove redundant reserved page check
-  mm: introduce memory type MEMORY_DEVICE_DEV_DAX
-  mm: add a function to differentiate the pages is from DAX device
-    memory
-  kvm: add a check if pfn is from NVDIMM pmem.
-
- drivers/dax/pmem.c       |  1 +
- include/linux/memremap.h |  8 ++++++++
- include/linux/mm.h       | 12 ++++++++++++
- virt/kvm/kvm_main.c      | 16 ++++++++--------
- 4 files changed, 29 insertions(+), 8 deletions(-)
-
--- 
-2.7.4
-
+> 
+> Thanks,
+> QI
+> 
+>> --
+>> 2.18.0
+>>
+>>
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
