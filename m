@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E0D9210D93A8
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:34 -0700 (PDT)
-Subject: [PATCH v7 04/12] keys: export lookup_user_key to external users
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:01:31 -0700
-Message-ID: <153334089185.60955.2901772498234324286.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BAAD0210C2D7C
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 13:32:02 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl, monitor: add [--verbose] option to emit
+ extra debug messages
+Date: Thu, 2 Aug 2018 20:32:00 +0000
+Message-ID: <1533241918.8557.66.camel@intel.com>
+References: <20180802142135.12464-1-qi.fuli@jp.fujitsu.com>
+In-Reply-To: <20180802142135.12464-1-qi.fuli@jp.fujitsu.com>
+Content-Language: en-US
+Content-ID: <FF608BEA2D4F814A87951331B6D9CBFA@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,61 +25,115 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
+Cc: "m.mizuma@jp.fujitsu.com" <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Export lookup_user_key() symbol in order to allow nvdimm passphrase
-update to retrieve user injected keys.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Cc: David Howells <dhowells@redhat.com>
----
- include/linux/key.h          |    3 +++
- security/keys/internal.h     |    2 --
- security/keys/process_keys.c |    1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+On Thu, 2018-08-02 at 23:21 +0900, QI Fuli wrote:
+> In the ndctl monitor, currently the debug messages cannot be outputted to log.
+> This patch is used for adding [--verbose] option to ndctl monitor to emit
+> debug messages. Also, the log level of some messages are changed by this patch.
+> 
+> Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  Documentation/ndctl/ndctl-monitor.txt |  4 ++++
+>  ndctl/monitor.c                       | 20 +++++++++++++++-----
+>  2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/key.h b/include/linux/key.h
-index e58ee10f6e58..7099985e35a9 100644
---- a/include/linux/key.h
-+++ b/include/linux/key.h
-@@ -346,6 +346,9 @@ static inline key_serial_t key_serial(const struct key *key)
- 
- extern void key_set_timeout(struct key *, unsigned);
- 
-+extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
-+				 key_perm_t perm);
-+
- /*
-  * The permissions required on a key that we're looking up.
-  */
-diff --git a/security/keys/internal.h b/security/keys/internal.h
-index 9f8208dc0e55..9968b21a76dd 100644
---- a/security/keys/internal.h
-+++ b/security/keys/internal.h
-@@ -158,8 +158,6 @@ extern struct key *request_key_and_link(struct key_type *type,
- 
- extern bool lookup_user_key_possessed(const struct key *key,
- 				      const struct key_match_data *match_data);
--extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
--				 key_perm_t perm);
- #define KEY_LOOKUP_CREATE	0x01
- #define KEY_LOOKUP_PARTIAL	0x02
- #define KEY_LOOKUP_FOR_UNLINK	0x04
-diff --git a/security/keys/process_keys.c b/security/keys/process_keys.c
-index d5b25e535d3a..ec4fd4531224 100644
---- a/security/keys/process_keys.c
-+++ b/security/keys/process_keys.c
-@@ -755,6 +755,7 @@ key_ref_t lookup_user_key(key_serial_t id, unsigned long lflags,
- 	put_cred(ctx.cred);
- 	goto try_again;
- }
-+EXPORT_SYMBOL(lookup_user_key);
- 
- /*
-  * Join the named keyring as the session keyring if possible else attempt to
+Looks good, applied.
 
+> 
+> diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
+> index 762073e..1cba9ea 100644
+> --- a/Documentation/ndctl/ndctl-monitor.txt
+> +++ b/Documentation/ndctl/ndctl-monitor.txt
+> @@ -98,6 +98,10 @@ specified events.
+>  	Output monitor notification as human friendly json format instead
+>  	of the default machine friendly json format.
+>  
+> +-v::
+> +--verbose::
+> +	Emit extra debug messages to log.
+> +
+>  COPYRIGHT
+>  ---------
+>  Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
+> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+> index 4e5daf5..f10384b 100644
+> --- a/ndctl/monitor.c
+> +++ b/ndctl/monitor.c
+> @@ -22,6 +22,7 @@ static struct monitor {
+>  	const char *dimm_event;
+>  	bool daemon;
+>  	bool human;
+> +	bool verbose;
+>  	unsigned int event_flags;
+>  } monitor;
+>  
+> @@ -92,7 +93,9 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
+>  	f = fopen(monitor.log, "a+");
+>  	if (!f) {
+>  		ndctl_set_log_fn(ctx, log_syslog);
+> -		fail("open logfile %s failed\n%s", monitor.log, buf);
+> +		err(ctx, "open logfile %s failed\n", monitor.log);
+> +		did_fail = 1;
+> +		notice(ctx, "%s\n", buf);
+>  		goto end;
+>  	}
+>  	fprintf(f, "%s", buf);
+> @@ -390,8 +393,9 @@ static int monitor_event(struct ndctl_ctx *ctx,
+>  			if (util_dimm_event_filter(mdimm, monitor.event_flags)) {
+>  				rc = notify_dimm_event(mdimm);
+>  				if (rc) {
+> -					fail("%s: notify dimm event failed\n",
+> +					err(ctx, "%s: notify dimm event failed\n",
+>  						ndctl_dimm_get_devname(mdimm->dimm));
+> +					did_fail = 1;
+>  					goto out;
+>  				}
+>  			}
+> @@ -506,7 +510,7 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
+>  
+>  	f = fopen(config_file, "r");
+>  	if (!f) {
+> -		fail("config-file: %s cannot be opened\n", config_file);
+> +		err(ctx, "config-file: %s cannot be opened\n", config_file);
+>  		rc = -errno;
+>  		goto out;
+>  	}
+> @@ -587,6 +591,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  				"run ndctl monitor as a daemon"),
+>  		OPT_BOOLEAN('u', "human", &monitor.human,
+>  				"use human friendly output formats"),
+> +		OPT_BOOLEAN('v', "verbose", &monitor.verbose,
+> +				"emit extra debug messages to log"),
+>  		OPT_END(),
+>  	};
+>  	const char * const u[] = {
+> @@ -607,7 +613,11 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  
+>  	/* default to log_standard */
+>  	ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_standard);
+> -	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
+> +
+> +	if (monitor.verbose)
+> +		ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_DEBUG);
+> +	else
+> +		ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
+>  
+>  	rc = read_config_file((struct ndctl_ctx *)ctx, &monitor, &param);
+>  	if (rc)
+> @@ -629,7 +639,7 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
+>  			goto out;
+>  		}
+> -		notice((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
+> +		err((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
+>  	}
+>  
+>  	if (parse_monitor_event(&monitor, (struct ndctl_ctx *)ctx))
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
