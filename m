@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com
+ [IPv6:2a00:1450:4864:20::52d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5107A210C4DD4
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:27 -0700 (PDT)
-Subject: [PATCH v7 03/12] nfit/libnvdimm: store dimm id as a member to
- struct nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:01:26 -0700
-Message-ID: <153334088615.60955.5011589563958001975.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 15C56210D83CE
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 11:11:05 -0700 (PDT)
+Received: by mail-ed1-x52d.google.com with SMTP id t2-v6so1251142edr.5
+ for <linux-nvdimm@lists.01.org>; Thu, 02 Aug 2018 11:11:05 -0700 (PDT)
 MIME-Version: 1.0
+References: <CAKccVaykLyVKGuMpD8d1xABnsTzv+o=qt2ovnp1BXQHe0dnfHA@mail.gmail.com>
+ <AT5PR8401MB1169EBD36A1A522F587A3A1CAB2C0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+In-Reply-To: <AT5PR8401MB1169EBD36A1A522F587A3A1CAB2C0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+From: Brian Stark <brian.stark@sanmina.com>
+Date: Thu, 2 Aug 2018 11:10:53 -0700
+Message-ID: <CAKccVax8x6Jgj_zAzVHGtTBExkr91gejUsO+tLUEZgrFSPeOFg@mail.gmail.com>
+Subject: Re: caching options
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,152 +26,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The generated dimm id is needed for the sysfs attribute as well as being
-used as the identifier/description for the security key. Since it's
-constant and should never change, store it as a member of struct nvdimm.
+Thanks,
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c   |   29 +++++++++++++++++------------
- drivers/acpi/nfit/nfit.h   |    3 +++
- drivers/nvdimm/dimm_devs.c |    4 +++-
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    2 +-
- 5 files changed, 25 insertions(+), 14 deletions(-)
+Brian
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a3a944751e6a..21235d555b5f 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1572,18 +1572,10 @@ static DEVICE_ATTR_RO(flags);
- static ssize_t id_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
--	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
--		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				dcr->manufacturing_location,
--				be16_to_cpu(dcr->manufacturing_date),
--				be32_to_cpu(dcr->serial_number));
--	else
--		return sprintf(buf, "%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				be32_to_cpu(dcr->serial_number));
-+	return sprintf(buf, "%s\n", nfit_mem->id);
- }
- static DEVICE_ATTR_RO(id);
- 
-@@ -1712,10 +1704,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	const guid_t *guid;
- 	int i;
- 	int family = -1;
-+	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
- 
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
- 	nfit_mem->family = NVDIMM_FAMILY_INTEL;
-+
-+	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
-+		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				dcr->manufacturing_location,
-+				be16_to_cpu(dcr->manufacturing_date),
-+				be32_to_cpu(dcr->serial_number));
-+	else
-+		sprintf(nfit_mem->id, "%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				be32_to_cpu(dcr->serial_number));
-+
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev)
- 		return 0;
-@@ -1899,7 +1904,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
- 				flags, cmd_mask, flush ? flush->hint_count : 0,
--				nfit_mem->flush_wpq);
-+				nfit_mem->flush_wpq, &nfit_mem->id[0]);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 40b0003b1805..4048036d6ec2 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -173,6 +173,8 @@ struct nfit_memdev {
- 	struct acpi_nfit_memory_map memdev[0];
- };
- 
-+#define NFIT_DIMM_ID_LEN	22
-+
- /* assembled tables for a given dimm/memory-device */
- struct nfit_mem {
- 	struct nvdimm *nvdimm;
-@@ -195,6 +197,7 @@ struct nfit_mem {
- 	int family;
- 	bool has_lsr;
- 	bool has_lsw;
-+	char id[NFIT_DIMM_ID_LEN+1];
- };
- 
- struct acpi_nfit_desc {
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 586432450c82..e753b2095402 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -401,7 +401,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq)
-+		struct resource *flush_wpq, const char *dimm_id)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -414,6 +414,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		kfree(nvdimm);
- 		return NULL;
- 	}
-+
-+	nvdimm->dimm_id = dimm_id;
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 2af0f89c4010..ed650f1607d8 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -42,6 +42,7 @@ struct nvdimm {
- 	atomic_t busy;
- 	int id, num_flush;
- 	struct resource *flush_wpq;
-+	const char *dimm_id;
- };
- 
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 51084043915c..3c1f18fdf76f 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -181,7 +181,7 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		const struct attribute_group **groups, unsigned long flags,
- 		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq);
-+		struct resource *flush_wpq, const char *dimm_id);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+On Thu, Aug 2, 2018 at 11:00 AM Elliott, Robert (Persistent Memory) <
+elliott@hpe.com> wrote:
 
+>
+>
+> > -----Original Message-----
+> > From: Linux-nvdimm <linux-nvdimm-bounces@lists.01.org> On Behalf Of
+> > Brian Stark
+> > Sent: Tuesday, July 31, 2018 11:43 AM
+> > To: linux-nvdimm@lists.01.org
+> > Subject: caching options
+> >
+> > I have a customer that requires persistent memory be set to Write
+> > Combining cache attribute with the Skylake processor.  Is Write
+> > Combining for persistent memory supported in Linux?
+> >
+> > Brian Stark
+>
+> There's no API for applications to specify that right now.
+>
+> You can recompile the kernel with this patch:
+>
+> $ git diff
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 097072c5a852..d3f165d9ed77 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -206,7 +206,7 @@ int nvdimm_has_flush(struct nd_region *nd_region);
+> int nvdimm_has_cache(struct nd_region *nd_region);
+>
+> #ifdef CONFIG_ARCH_HAS_PMEM_API
+> -#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
+> +#define ARCH_MEMREMAP_PMEM MEMREMAP_WC
+> void arch_wb_cache_pmem(void *addr, size_t size);
+> void arch_invalidate_pmem(void *addr, size_t size);
+> #else
+>
+> to cause persistent memory ranges used in "raw mode" to be marked as
+> write-combining rather than writeback cacheable.
+>
+> The other modes (sector, fsdax, and devdax) require different patches,
+> as the kernel maps memory differently for them.
+>
+> You can confirm the write-combining settings if:
+> * the kernel is compiled with CONFIG_DEBUG_FS
+> * the debug filesystem is mounted with mount -t debugfs debugfs
+> /sys/kernel/debug
+>
+> $ sudo cat /sys/kernel/debug/x86/pat_memtype_list
+> PAT memtype list:
+> ...
+> write-combining @ 0x880000000-0xa80000000
+> write-combining @ 0xa80000000-0xc80000000
+> ...
+>
+> The persistent memory addresses are reported in /proc/iomem
+> (e.g., starting at 0x880000000 on my test system).
+>
+> ---
+> Robert Elliott, HPE Persistent Memory
+>
+>
+>
+
+-- 
+CONFIDENTIALITY
+This e-mail message and any attachments thereto, is 
+intended only for use by the addressee(s) named herein and may contain 
+legally privileged and/or confidential information. If you are not the 
+intended recipient of this e-mail message, you are hereby notified that any 
+dissemination, distribution or copying of this e-mail message, and any 
+attachments thereto, is strictly prohibited.  If you have received this 
+e-mail message in error, please immediately notify the sender and 
+permanently delete the original and any copies of this email and any prints 
+thereof.
+ABSENT AN EXPRESS STATEMENT TO THE CONTRARY HEREINABOVE, THIS 
+E-MAIL IS NOT INTENDED AS A SUBSTITUTE FOR A WRITING.  Notwithstanding the 
+Uniform Electronic Transactions Act or the applicability of any other law 
+of similar substance and effect, absent an express statement to the 
+contrary hereinabove, this e-mail message its contents, and any attachments 
+hereto are not intended to represent an offer or acceptance to enter into a 
+contract and are not otherwise intended to bind the sender, Sanmina 
+Corporation (or any of its subsidiaries), or any other person or entity.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
