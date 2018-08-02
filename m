@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AA654210F3769
- for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 19:19:19 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V4 4/4] kvm: add a check if pfn is from NVDIMM pmem.
-Date: Wed, 22 Aug 2018 18:58:10 +0800
-Message-Id: <a4183c0f0adfb6d123599dd306062fd193e83f5a.1534934405.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
-References: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3C57D210D6935
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 04:58:14 -0700 (PDT)
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <153255233354.51274.8552293701029405599.stgit@djiang5-desk3.ch.intel.com>
+References: <153255233354.51274.8552293701029405599.stgit@djiang5-desk3.ch.intel.com>
+ <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
+Subject: Re: [PATCH v6 04/11] nfit/libnvdimm: add unlock of nvdimm support for
+ Intel DIMMs
+MIME-Version: 1.0
+Content-ID: <19806.1533211091.1@warthog.procyon.org.uk>
+Date: Thu, 02 Aug 2018 12:58:11 +0100
+Message-ID: <19807.1533211091@warthog.procyon.org.uk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,59 +21,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
-Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For device specific memory space, when we move these area of pfn to
-memory zone, we will set the page reserved flag at that time, some of
-these reserved for device mmio, and some of these are not, such as
-NVDIMM pmem.
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-Now, we map these dev_dax or fs_dax pages to kvm for DIMM/NVDIMM
-backend, since these pages are reserved, the check of
-kvm_is_reserved_pfn() misconceives those pages as MMIO. Therefor, we
-introduce 2 page map types, MEMORY_DEVICE_FS_DAX/MEMORY_DEVICE_DEV_DAX,
-to identify these pages are from NVDIMM pmem and let kvm treat these
-as normal pages.
+> +	key = key_lookup(nvdimm->key_id);
 
-Without this patch, many operations will be missed due to this
-mistreatment to pmem pages, for example, a page may not have chance to
-be unpinned for KVM guest(in kvm_release_pfn_clean), not able to be
-marked as dirty/accessed(in kvm_set_pfn_dirty/accessed) etc.
+You should not be using key_lookup() as the key ID doesn't pin a reference to
+the key you're using.  If you're going to cache a key, either cache the key
+pointer directly and check it with key_validate() before you use it or keep
+the cache in a private kernel keyring and use key_search() each time you want
+to use it.  The latter method allows for the key to be garbage collected
+automatically if it expires or gets invalidated.
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
----
- virt/kvm/kvm_main.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+You can still follow a negative call for a cached key with a call to
+nvdimm_request_key().  In the private keyring-using case, you can link the key
+to the private keyring after you got it.
 
-diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-index c44c406..969b6ca 100644
---- a/virt/kvm/kvm_main.c
-+++ b/virt/kvm/kvm_main.c
-@@ -147,8 +147,12 @@ __weak void kvm_arch_mmu_notifier_invalidate_range(struct kvm *kvm,
- 
- bool kvm_is_reserved_pfn(kvm_pfn_t pfn)
- {
--	if (pfn_valid(pfn))
--		return PageReserved(pfn_to_page(pfn));
-+	struct page *page;
-+
-+	if (pfn_valid(pfn)) {
-+		page = pfn_to_page(pfn);
-+		return PageReserved(page) && !is_dax_page(page);
-+	}
- 
- 	return true;
- }
--- 
-2.7.4
+> +	payload = key->payload.data[0];
+> +	rc = nvdimm->security_ops->unlock(nvdimm_bus, nvdimm,
+> +			(void *)payload->data);
 
+I would recommend casting to const void * if you can as you're not allowed to
+change the payload data.
+
+David
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
