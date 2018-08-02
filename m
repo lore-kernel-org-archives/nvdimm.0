@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt0-x242.google.com (mail-qt0-x242.google.com
+ [IPv6:2607:f8b0:400d:c0d::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 338D1210DF4EB
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 06:18:09 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxauth.gw.nic.fujitsu.com (Postfix) with ESMTP id B87C2AC008D
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 22:18:04 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH 2/4] ndctl,
- monitor: set default log destination to syslog if "--daemon" is
- specified
-Date: Tue,  7 Aug 2018 22:17:54 +0900
-Message-Id: <20180807131756.23673-3-qi.fuli@jp.fujitsu.com>
-In-Reply-To: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
-References: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id C1B6C210C2D81
+ for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 01:19:45 -0700 (PDT)
+Received: by mail-qt0-x242.google.com with SMTP id m13-v6so1403382qth.1
+ for <linux-nvdimm@lists.01.org>; Thu, 02 Aug 2018 01:19:45 -0700 (PDT)
+From: oceanhehy@gmail.com
+Subject: [PATCH v2] libnvdimm,
+ bus: check if type of nd_device_driver within valid scope
+Date: Thu,  2 Aug 2018 04:19:36 -0400
+Message-Id: <1533197976-27391-1-git-send-email-oceanhehy@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,88 +24,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com
+Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When running monitor as a daemon, if the log destination is "standard" or
-a relative path for log file, the messages will not be able to be logged.
-Sometimes, users may not notice that the default log destination is "standard"
-when they start monitor daemon by systemctl, so they will lose messages.
-This patch is used to fix the unfriendly interface. When running monitor as a
-daemon, the default log destination will be changed to syslog. Also, the messages
-will be forwarded to syslog if the log destination is a relative path for log file.
+From: Ocean He <hehy1@lenovo.com>
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+According to enum nd_driver_flags, the valid type of nd_device_driver
+start from 0x02 and end up with 0x80. Both 0x00 and 0x01 are invalid, and
+the value larger than 0x80 is invalid.
+
+To filter valid type, ND_DRIVER_FLAGS_MASK is defined as
+(((ND_DRIVER_FLAGS_MAX) << 1) - 2). For example, when ND_DRIVER_FLAGS_MAX
+equals to ND_DRIVER_DAX_PMEM(0x80), then ND_DRIVER_FLAGS_MASK equals
+to 0xFE.
+
+Signed-off-by: Ocean He <hehy1@lenovo.com>
 ---
- Documentation/ndctl/ndctl-monitor.txt | 16 +++++++++++++++-
- ndctl/monitor.c                       |  5 ++++-
- ndctl/monitor.conf                    |  2 ++
- 3 files changed, 21 insertions(+), 2 deletions(-)
+v1: https://www.spinics.net/lists/kernel/msg2869760.html
+v2: Sorry for noise. I got an email problem, so I have to resend to loop 
+linux-nvdimm@lists.01.org.
 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index 1cba9ea..9a8d76b 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -67,7 +67,21 @@ OPTIONS
+ drivers/nvdimm/bus.c       | 2 +-
+ include/uapi/linux/ndctl.h | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 27902a8..ec8cf4b 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -546,7 +546,7 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
+ {
+ 	struct device_driver *drv = &nd_drv->drv;
  
- -l <file | syslog | standard>::
- --log=<file | syslog | standard>::
--	Output notifications to <file>, syslog or standard output.
-+	Send log messages to the specified destination.
-++
-+--
-+<file>::
-+	Send log messages to specified <file>. When fopen() is not able
-+	to open <file>, log messages will be forwarded to syslog.
-+syslog::
-+	Send messages to syslog.
-+standard::
-+	Send messages to standard output.
-+--
-++
-+The default log destination is 'syslog' if "--daemon" is specified,
-+otherwise 'standard'. Note that standard and relative path for <file>
-+will not work if "--daemon" is specified.
+-	if (!nd_drv->type) {
++	if (!(nd_drv->type & ND_DRIVER_FLAGS_MASK)) {
+ 		pr_debug("driver type bitmask not set (%pf)\n",
+ 				__builtin_return_address(0));
+ 		return -EINVAL;
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 7e27070..2a1ce06 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -207,6 +207,8 @@ enum nd_driver_flags {
+ 	ND_DRIVER_NAMESPACE_BLK   = 1 << ND_DEVICE_NAMESPACE_BLK,
+ 	ND_DRIVER_DAX_PMEM	  = 1 << ND_DEVICE_DAX_PMEM,
+ };
++#define ND_DRIVER_FLAGS_MAX	ND_DRIVER_DAX_PMEM
++#define ND_DRIVER_FLAGS_MASK	(((ND_DRIVER_FLAGS_MAX) << 1) - 2)
  
- -c::
- --config-file=::
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index bf1f1d3..2f3d751 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -93,7 +93,8 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
- 	f = fopen(monitor.log, "a+");
- 	if (!f) {
- 		ndctl_set_log_fn(ctx, log_syslog);
--		err(ctx, "open logfile %s failed\n", monitor.log);
-+		err(ctx, "open logfile %s failed, forward messages to syslog\n",
-+				monitor.log);
- 		did_fail = 1;
- 		notice(ctx, "%s\n", buf);
- 		goto end;
-@@ -644,6 +645,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 	}
- 
- 	if (monitor.daemon) {
-+		if (!monitor.log || strncmp(monitor.log, "./", 2) == 0)
-+			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
- 		if (daemon(0, 0) != 0) {
- 			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
- 			goto out;
-diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf
-index 857aadf..934e2c0 100644
---- a/ndctl/monitor.conf
-+++ b/ndctl/monitor.conf
-@@ -38,4 +38,6 @@
- # to standard output (log=standard) or to write into a special file (log=<file>)
- # by setting key "log". If this value is in conflict with the value of
- # [--log=<value>] option, this value will be ignored.
-+# Note: Setting value to "standard" or relative path for <file> will not work
-+# when running moniotr as a daemon.
- # log = /var/log/ndctl/monitor.log
+ enum {
+ 	ND_MIN_NAMESPACE_SIZE = PAGE_SIZE,
 -- 
-2.18.0
-
+1.8.3.1
 
 _______________________________________________
 Linux-nvdimm mailing list
