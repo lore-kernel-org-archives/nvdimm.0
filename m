@@ -1,63 +1,48 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 65BBB210E2A71
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 19:14:13 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V3 1/4] kvm: remove redundant reserved page check
-Date: Thu,  9 Aug 2018 18:52:55 +0800
-Message-Id: <d2345e628a697ee17fdd6e360f7a6790caab10d5.1533811181.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
-References: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
+From: Evelyn Watson <Evelyn.emdata-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+Subject: Machine Learning Software-Users List
+Date: Fri, 3 Aug 2018 19:53:30 +0000
+Message-ID: <KL1PR03MB141344AE4D6410CE3AE2D577E7230@KL1PR03MB1413.apcprd03.prod.outlook.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
-List-ID: <linux-nvdimm@lists.01.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-PageReserved() is already checked inside kvm_is_reserved_pfn(),
-remove it from kvm_set_pfn_dirty().
+Hi,
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
----
- virt/kvm/kvm_main.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+Hope you are doing great. I am Evelyn Watson.
 
-diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-index 8b47507f..c44c406 100644
---- a/virt/kvm/kvm_main.c
-+++ b/virt/kvm/kvm_main.c
-@@ -1690,12 +1690,8 @@ EXPORT_SYMBOL_GPL(kvm_release_pfn_dirty);
- 
- void kvm_set_pfn_dirty(kvm_pfn_t pfn)
- {
--	if (!kvm_is_reserved_pfn(pfn)) {
--		struct page *page = pfn_to_page(pfn);
--
--		if (!PageReserved(page))
--			SetPageDirty(page);
--	}
-+	if (!kvm_is_reserved_pfn(pfn))
-+		SetPageDirty(pfn_to_page(pfn));
- }
- EXPORT_SYMBOL_GPL(kvm_set_pfn_dirty);
- 
--- 
-2.7.4
+I will keep my mail short and to the point. I am writing this mail to you because we can provide you the users list of all Machine Learning Software and Vendors as well as your competitor's users in this field too.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Our data field consists of: Contacts Name, Job Title, Email Address, Phone Number, Fax Number, Company Details and Technology Type.
+
+We have also the users list of below top software in Machine Learning Software:
+
+
+  *   scikit-learn
+  *   Pybrain
+  *   BigML
+  *   Floyd Hub
+  *   Microsoft Bing Image Search API and Many More like this across the world as per your need
+
+We are mainly specialized in technology Industry database currently holding 3200+ application users type.
+
+Please do let me know if you are looking for any other Technology/Software/Application users list.
+
+I will be looking forward for your response on this. Thank you.
+
+Regards,
+Evelyn Watson| Senior Demand Generation
+
+If you do not wish to receive future emails from us, please reply as 'leave out'
