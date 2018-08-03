@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 73D02210E2A5C
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:25:56 -0700 (PDT)
-Subject: [PATCH v2 1/2] ext4: Close race between direct IO and
- ext4_break_layouts()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 08 Aug 2018 10:25:52 -0700
-Message-ID: <153374910694.40645.17166196534680658204.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 31E4121A00AE6
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 15:22:46 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl, tests: add a new unit test for inject-smart
+Date: Fri,  3 Aug 2018 16:22:42 -0600
+Message-Id: <20180803222242.10357-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,77 +15,223 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tytso@mit.edu, darrick.wong@oracle.com, jack@suse.cz, zwisler@kernel.org
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, lczerner@redhat.com, linux-ext4@vger.kernel.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <zwisler@kernel.org>
+Add a new unit test that exercises all the functionality provided by the
+ndctl inject-smart command. This performs injections, un-injections, and
+sets thresholds, and verifies all this happened successfully.
 
-If the refcount of a page is lowered between the time that it is returned
-by dax_busy_page() and when the refcount is again checked in
-ext4_break_layouts() => ___wait_var_event(), the waiting function
-ext4_wait_dax_page() will never be called.  This means that
-ext4_break_layouts() will still have 'retry' set to false, so we'll stop
-looping and never check the refcount of other pages in this inode.
-
-Instead, always continue looping as long as dax_layout_busy_page() gives us
-a page which it found with an elevated refcount.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
+ test/Makefile.am     |   1 +
+ test/inject-smart.sh | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 179 insertions(+)
+ create mode 100755 test/inject-smart.sh
 
-v2:
-- remove verbiage in comment header (Jan)
-
- fs/ext4/inode.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 8f6ad7667974..d2663a1e3ec2 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4191,9 +4191,8 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
- 	return 0;
- }
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 8c55056..6156a7a 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -22,6 +22,7 @@ TESTS =\
+ 	firmware-update.sh \
+ 	ack-shutdown-count-set \
+ 	rescan-partitions.sh \
++	inject-smart.sh \
+ 	monitor.sh
  
--static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
-+static void ext4_wait_dax_page(struct ext4_inode_info *ei)
- {
--	*did_unlock = true;
- 	up_write(&ei->i_mmap_sem);
- 	schedule();
- 	down_write(&ei->i_mmap_sem);
-@@ -4203,14 +4202,12 @@ int ext4_break_layouts(struct inode *inode)
- {
- 	struct ext4_inode_info *ei = EXT4_I(inode);
- 	struct page *page;
--	bool retry;
- 	int error;
- 
- 	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
- 		return -EINVAL;
- 
- 	do {
--		retry = false;
- 		page = dax_layout_busy_page(inode->i_mapping);
- 		if (!page)
- 			return 0;
-@@ -4218,8 +4215,8 @@ int ext4_break_layouts(struct inode *inode)
- 		error = ___wait_var_event(&page->_refcount,
- 				atomic_read(&page->_refcount) == 1,
- 				TASK_INTERRUPTIBLE, 0, 0,
--				ext4_wait_dax_page(ei, &retry));
--	} while (error == 0 && retry);
-+				ext4_wait_dax_page(ei));
-+	} while (error == 0);
- 
- 	return error;
- }
+ check_PROGRAMS =\
+diff --git a/test/inject-smart.sh b/test/inject-smart.sh
+new file mode 100755
+index 0000000..18655ba
+--- /dev/null
++++ b/test/inject-smart.sh
+@@ -0,0 +1,178 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2018 Intel Corporation. All rights reserved.
++
++rc=77
++. ./common
++bus="$NFIT_TEST_BUS0"
++inj_val="42"
++
++trap 'err $LINENO' ERR
++
++# sample json:
++# {
++#  "dev":"nmem0",
++#  "id":"cdab-0a-07e0-ffffffff",
++#  "handle":0,
++#  "phys_id":0,
++#  "health":{
++#    "health_state":"non-critical",
++#    "temperature_celsius":23,
++#    "spares_percentage":75,
++#    "alarm_temperature":true,
++#    "alarm_spares":true,
++#    "temperature_threshold":40,
++#    "spares_threshold":5,
++#    "life_used_percentage":5,
++#    "shutdown_state":"clean"
++#  }
++#}
++
++translate_field()
++{
++	local in="$1"
++
++	case $in in
++	media-temperature)
++		echo "temperature_celsius"
++		;;
++	ctrl-temperature)
++		echo "controller_temperature_celsius"
++		;;
++	spares)
++		echo "spares_percentage"
++		;;
++	media-temperature-alarm)
++		echo "alarm_temperature"
++		;;
++	ctrl-temperature-alarm)
++		echo "alarm_controller_temperature"
++		;;
++	spares-alarm)
++		echo "alarm_spares"
++		;;
++	media-temperature-threshold)
++		echo "temperature_threshold"
++		;;
++	spares-threshold)
++		echo "spares_threshold"
++		;;
++	unsafe-shutdown)
++		echo "shutdown_state"
++		;;
++	fatal)
++		echo "health_state"
++		;;
++	*)
++		# passthrough
++		echo "$in"
++		return
++		;;
++	esac
++}
++
++translate_val()
++{
++	local in="$1"
++
++	case $in in
++	dirty)
++		;&
++	fatal)
++		;&
++	true)
++		echo "1"
++		;;
++	non-critical)
++		;&
++	clean)
++		;&
++	false)
++		echo "0"
++		;;
++	*)
++		# passthrough
++		echo "$in"
++		;;
++	esac
++}
++
++get_field()
++{
++	local field="$1"
++	local smart_listing="$(translate_field $field)"
++
++	json="$($NDCTL list -b $bus -d $dimm -H)"
++	val="$(jq -r ".[].dimms[].health.$smart_listing" <<< $json)"
++	val="$(translate_val $val)"
++	echo $val
++}
++
++verify()
++{
++	local field="$1"
++	local val="$2"
++
++	[[ "$val" == "$(get_field $field)" ]]
++}
++
++test_field()
++{
++	local field="$1"
++	local val="$2"
++	local op="$3"
++	local old_val=""
++
++	if [ -n "$val" ]; then
++		inj_opt="--${field}=${val}"
++	else
++		inj_opt="--${field}"
++	fi
++
++	old_val=$(get_field $field)
++	if [[ "$old_val" == "0" || "$old_val" == "1" ]]; then
++		val=$(((old_val + 1) % 2))
++	fi
++	$NDCTL inject-smart -b $bus $dimm $inj_opt
++	verify $field $val
++
++	if [[ "$op" != "thresh" ]]; then
++		$NDCTL inject-smart -b $bus --${field}-uninject $dimm
++		verify $field $old_val
++	fi
++}
++
++do_tests()
++{
++	local fields_val=(media-temperature spares)
++	local fields_bool=(unsafe-shutdown fatal)
++	local fields_thresh=(media-temperature-threshold spares-threshold)
++	local field=""
++
++	$NDCTL inject-smart -b $bus --uninject-all $dimm
++
++	# start tests
++	for field in "${fields_val[@]}"; do
++		test_field $field $inj_val
++	done
++
++	for field in "${fields_bool[@]}"; do
++		test_field $field
++	done
++
++	for field in "${fields_thresh[@]}"; do
++		test_field $field $inj_val "thresh"
++	done
++}
++
++check_min_kver "4.19" || do_skip "kernel $KVER may not support smart (un)injection"
++modprobe nfit_test
++rc=1
++
++jlist=$(./list-smart-dimm -b $bus)
++dimm="$(jq '.[]."dev"?, ."dev"?' <<< $jlist | sort | head -1 | xargs)"
++test -n "$dimm"
++
++do_tests
++_cleanup
++exit 0
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
