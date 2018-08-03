@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9BFA221107187
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 09:20:34 -0700 (PDT)
-Received: from willy by bombadil.infradead.org with local (Exim 4.90_1 #2 (Red
- Hat Linux)) id 1fvPgP-0007gi-98
- for linux-nvdimm@lists.01.org; Thu, 30 Aug 2018 16:20:33 +0000
-Date: Thu, 30 Aug 2018 09:20:32 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH] dax: Fix use of zero page
-Message-ID: <20180830162032.GA25345@bombadil.infradead.org>
-MIME-Version: 1.0
-Content-Disposition: inline
+ by ml01.01.org (Postfix) with ESMTPS id 79810210D8528
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 10:27:21 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl,
+ inject-smart: continue in spite of errors for uninject-all
+Date: Fri,  3 Aug 2018 11:27:11 -0600
+Message-Id: <20180803172712.3219-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,6 +16,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -28,51 +24,109 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+When the missing command submissions for ctrl-temperature were added to
+inject-smart, as a side effect, uninject-all also started trying to
+uninject ctrl-temperature. Since DSMs for smart injection for certain
+platforms don't support ctrl-temperature injection, this failed the
+command.
 
-This patch got caught in the crossfire and didn't make it into 4.18
-as planned.  Can it make 4.19 please?
+For the uninject-all command, add a sctx flag that allows command
+submissions to continue in spite of errors. The error messages are still
+printed out, so they are not lost. This way, uninject-all does a
+best-effort uninjection of all fields, even if some fields are
+unsupported by the given platform.
 
----- >8 ----
-
-Use my_zero_pfn instead of ZERO_PAGE, and pass the vaddr to it so it
-works on MIPS and s390.
-
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/dax.c | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ ndctl/inject-smart.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 467601a134bc..c7917b46a75b 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1093,21 +1093,12 @@ static vm_fault_t dax_load_hole(struct address_space *mapping, void *entry,
- {
- 	struct inode *inode = mapping->host;
- 	unsigned long vaddr = vmf->address;
--	vm_fault_t ret = VM_FAULT_NOPAGE;
--	struct page *zero_page;
--	pfn_t pfn;
--
--	zero_page = ZERO_PAGE(0);
--	if (unlikely(!zero_page)) {
--		ret = VM_FAULT_OOM;
--		goto out;
--	}
-+	pfn_t pfn = pfn_to_pfn_t(my_zero_pfn(vaddr));
-+	vm_fault_t ret;
+diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
+index 56c39ab..d60bbf1 100644
+--- a/ndctl/inject-smart.c
++++ b/ndctl/inject-smart.c
+@@ -54,6 +54,7 @@ static struct parameters {
  
--	pfn = page_to_pfn_t(zero_page);
- 	dax_insert_mapping_entry(mapping, vmf, entry, pfn, RADIX_DAX_ZERO_PAGE,
- 			false);
- 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
--out:
- 	trace_dax_load_hole(inode, vmf, ret);
- 	return ret;
- }
+ static struct smart_ctx {
+ 	bool alarms_present;
++	bool err_continue;
+ 	unsigned long op_mask;
+ 	unsigned long flags;
+ 	unsigned int media_temperature;
+@@ -220,6 +221,7 @@ static int smart_init(void)
+ {
+ 	if (param.human)
+ 		sctx.flags |= UTIL_JSON_HUMAN;
++	sctx.err_continue = false;
+ 
+ 	/* setup attributes and thresholds except alarm_control */
+ 	smart_param_setup_temps(media_temperature)
+@@ -244,6 +246,7 @@ static int smart_init(void)
+ 		param.spares_uninject = true;
+ 		param.fatal_uninject = true;
+ 		param.unsafe_shutdown_uninject = true;
++		sctx.err_continue = true;
+ 	}
+ 	smart_param_setup_uninj(media_temperature)
+ 	smart_param_setup_uninj(ctrl_temperature)
+@@ -337,7 +340,8 @@ out:
+ 		si_cmd = ndctl_dimm_cmd_new_smart_inject(dimm); \
+ 		if (!si_cmd) { \
+ 			error("%s: no smart inject command support\n", name); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		if (param.arg##_uninject) \
+ 			enable = false; \
+@@ -345,13 +349,15 @@ out:
+ 		if (rc) { \
+ 			error("%s: smart inject %s cmd invalid: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		rc = ndctl_cmd_submit(si_cmd); \
+ 		if (rc) { \
+ 			error("%s: smart inject %s command failed: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		ndctl_cmd_unref(si_cmd); \
+ 	} \
+@@ -365,7 +371,8 @@ out:
+ 		si_cmd = ndctl_dimm_cmd_new_smart_inject(dimm); \
+ 		if (!si_cmd) { \
+ 			error("%s: no smart inject command support\n", name); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		if (param.arg##_uninject) \
+ 			enable = false; \
+@@ -373,13 +380,15 @@ out:
+ 		if (rc) { \
+ 			error("%s: smart inject %s cmd invalid: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		rc = ndctl_cmd_submit(si_cmd); \
+ 		if (rc) { \
+ 			error("%s: smart inject %s command failed: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+-			goto out; \
++			if (sctx.err_continue == false) \
++				goto out; \
+ 		} \
+ 		ndctl_cmd_unref(si_cmd); \
+ 	} \
 -- 
-2.17.1
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
