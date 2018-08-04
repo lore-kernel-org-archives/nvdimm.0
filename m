@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E789210D93BC
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:18 -0700 (PDT)
-Subject: [PATCH v7 12/12] libnvdimm: add documentation for nvdimm security
- support
+ by ml01.01.org (Postfix) with ESMTPS id 1A9EB210D93B5
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:12 -0700 (PDT)
+Subject: [PATCH v7 08/12] nfit/libnvdimm: add freeze security support to
+ Intel nvdimm
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:02:17 -0700
-Message-ID: <153334093694.60955.18199474198600257580.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 03 Aug 2018 17:01:54 -0700
+Message-ID: <153334091448.60955.17393000104848914817.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
 References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -27,99 +27,146 @@ To: linux-nvdimm@lists.01.org
 Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add theory of operation for the security support that's going into
-libnvdimm.
+Add support for freeze security on Intel nvdimm. This locks out any
+changes to security for the DIMM unless a reboot is done. This is triggered
+by writing "freeze" to the "security" sysfs attribute. libnvdimm will
+support the generic freeze_lock API call.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/nvdimm/security.txt |   78 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
- create mode 100644 Documentation/nvdimm/security.txt
+ drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   22 +++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 75 insertions(+)
 
-diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
-new file mode 100644
-index 000000000000..ede844ff6fd2
---- /dev/null
-+++ b/Documentation/nvdimm/security.txt
-@@ -0,0 +1,78 @@
-+NVDIMM SECURITY
-+===============
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 21d30222371f..ba886f1f5399 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,53 @@
+ #include "intel.h"
+ #include "nfit.h"
+ 
++static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_freeze_lock cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
 +
-+1. Introduction
-+---------------
++	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
-+With the introduction of Intel DSM v1.7 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
 +
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
 +
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and unsupported.
++ out:
++	return rc;
++}
 +
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update - enable security. Add or update current key.
-+disable - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase - generate new ecryption key for DIMM and crypto-scrambles all existing
-+	user data.
+ static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
+ {
+@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+ 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+ 			*state = NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			*state = NVDIMM_SECURITY_FROZEN;
+ 		else
+ 			*state = NVDIMM_SECURITY_UNLOCKED;
+ 	} else
+@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
++	.freeze_lock = intel_dimm_security_freeze_lock,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 4169aabe814e..ccb5fd13cd57 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -143,6 +143,26 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
+ }
+ 
++static int nvdimm_security_freeze_lock(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	int rc;
 +
-+3. Key Management
-+-----------------
++	if (!nvdimm->security_ops)
++		return 0;
 +
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return 0;
 +
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
-+similar to the ATA security specification [2]. A key is initially acquired
-+via the request_key() kernel API call and retrieved from userspace. It is up to
-+the user to provide an upcall application to retrieve the key in whatever
-+fashion meets their security requirements.
++	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
++	if (rc < 0)
++		return rc;
 +
-+The payload provided to the key can be a 32bytes payload or 64bytes payload
-+when doing an "update". The payload is viewed as 64 bytes in the following
-+format:
-+[32 bytes new key data zero padded][32 bytes current key data zero padded]
-+However, a 32bytes payload can be provided and will be assumed as the old
-+key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
-+It is up to the user upcall function how that's presented as the key payload
-+to the kernel.
++	nvdimm_security_get_state(dev);
++	return 0;
++}
 +
-+All the other security functions that require a provided key can accept a
-+32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
-+will be ignored and the first 32bytes contains the expected "passphrase".
-+
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from its keyring. If that fails, it will attempt to
-+acquire the key from the userspace upcall function. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot.
-+
-+5. Update
-+---------
-+When doing an update, it is expected that the new key with the 64bit payload of
-+format described above is added via the keyutils API or utility. The update
-+command written to the sysfs attribute will be with the format:
-+update:<old id>:<new id>
-+If there is no old ID due to a security enabling, then a 0 should be passed in.
-+
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
+ static int nvdimm_security_disable(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -795,6 +815,8 @@ static ssize_t security_store(struct device *dev,
+ 		rc = nvdimm_security_change_key(dev, old_id, new_id);
+ 	} else if (sysfs_streq(buf, "disable"))
+ 		rc = nvdimm_security_disable(dev);
++	else if (sysfs_streq(buf, "freeze"))
++		rc = nvdimm_security_freeze_lock(dev);
+ 	else
+ 		return -EINVAL;
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index c60ab4b238f3..bcab42caa948 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
+ 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *nkey);
++	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
