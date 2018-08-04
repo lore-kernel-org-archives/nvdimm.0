@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm03.jp.fujitsu.com (mgwkm03.jp.fujitsu.com [202.219.69.170])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E5B6D210D97AF
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 19:43:54 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by kw-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id 84A19AC00ED
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 11:43:49 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH v2] ndctl, list: add alarm_enable_<field> to list
-Date: Wed,  8 Aug 2018 11:43:35 +0900
-Message-Id: <20180808024335.12793-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0E0D9210D93A8
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:34 -0700 (PDT)
+Subject: [PATCH v7 04/12] keys: export lookup_user_key to external users
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 03 Aug 2018 17:01:31 -0700
+Message-ID: <153334089185.60955.2901772498234324286.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,94 +18,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds alarm_enable_<field> to list, so that users could check
-if the "ndctl inject-smart --<field>-alarm=on/off" works well or not.
+Export lookup_user_key() symbol in order to allow nvdimm passphrase
+update to retrieve user injected keys.
 
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: David Howells <dhowells@redhat.com>
 ---
-v1 -> v2:
- remove the renaming for list items.
+ include/linux/key.h          |    3 +++
+ security/keys/internal.h     |    2 --
+ security/keys/process_keys.c |    1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
- ndctl/util/json-smart.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
-
-diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
-index 6a1f294..e25483d 100644
---- a/ndctl/util/json-smart.c
-+++ b/ndctl/util/json-smart.c
-@@ -39,34 +39,61 @@ static void smart_threshold_to_json(struct ndctl_dimm *dimm,
- 		unsigned int temp;
- 		double t;
+diff --git a/include/linux/key.h b/include/linux/key.h
+index e58ee10f6e58..7099985e35a9 100644
+--- a/include/linux/key.h
++++ b/include/linux/key.h
+@@ -346,6 +346,9 @@ static inline key_serial_t key_serial(const struct key *key)
  
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_media_temperature", jobj);
- 		temp = ndctl_cmd_smart_threshold_get_temperature(cmd);
- 		t = ndctl_decode_smart_temperature(temp);
- 		jobj = json_object_new_double(t);
- 		if (jobj)
- 			json_object_object_add(jhealth,
- 					"temperature_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_media_temperature", jobj);
- 	}
+ extern void key_set_timeout(struct key *, unsigned);
  
- 	if (alarm_control & ND_SMART_CTEMP_TRIP) {
- 		unsigned int temp;
- 		double t;
++extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
++				 key_perm_t perm);
++
+ /*
+  * The permissions required on a key that we're looking up.
+  */
+diff --git a/security/keys/internal.h b/security/keys/internal.h
+index 9f8208dc0e55..9968b21a76dd 100644
+--- a/security/keys/internal.h
++++ b/security/keys/internal.h
+@@ -158,8 +158,6 @@ extern struct key *request_key_and_link(struct key_type *type,
  
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_ctrl_temperature", jobj);
- 		temp = ndctl_cmd_smart_threshold_get_ctrl_temperature(cmd);
- 		t = ndctl_decode_smart_temperature(temp);
- 		jobj = json_object_new_double(t);
- 		if (jobj)
- 			json_object_object_add(jhealth,
- 				"controller_temperature_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_ctrl_temperature", jobj);
- 	}
+ extern bool lookup_user_key_possessed(const struct key *key,
+ 				      const struct key_match_data *match_data);
+-extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
+-				 key_perm_t perm);
+ #define KEY_LOOKUP_CREATE	0x01
+ #define KEY_LOOKUP_PARTIAL	0x02
+ #define KEY_LOOKUP_FOR_UNLINK	0x04
+diff --git a/security/keys/process_keys.c b/security/keys/process_keys.c
+index d5b25e535d3a..ec4fd4531224 100644
+--- a/security/keys/process_keys.c
++++ b/security/keys/process_keys.c
+@@ -755,6 +755,7 @@ key_ref_t lookup_user_key(key_serial_t id, unsigned long lflags,
+ 	put_cred(ctx.cred);
+ 	goto try_again;
+ }
++EXPORT_SYMBOL(lookup_user_key);
  
- 	if (alarm_control & ND_SMART_SPARE_TRIP) {
- 		unsigned int spares;
- 
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_spares", jobj);
- 		spares = ndctl_cmd_smart_threshold_get_spares(cmd);
- 		jobj = json_object_new_int(spares);
- 		if (jobj)
- 			json_object_object_add(jhealth,
- 					"spares_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_spares", jobj);
- 	}
- 
-  out:
--- 
-2.18.0
-
+ /*
+  * Join the named keyring as the session keyring if possible else attempt to
 
 _______________________________________________
 Linux-nvdimm mailing list
