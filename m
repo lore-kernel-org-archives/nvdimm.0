@@ -1,18 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwkm01.jp.fujitsu.com (mgwkm01.jp.fujitsu.com [202.219.69.168])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E727F210C4DA5
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 07:22:07 -0700 (PDT)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com
- [10.134.21.209])
- by kw-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id AA003AC00FC
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 23:22:00 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH] ndctl,
- monitor: add [--verbose] option to emit extra debug messages
-Date: Thu,  2 Aug 2018 23:21:35 +0900
-Message-Id: <20180802142135.12464-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id C56E321B02822
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:10 -0700 (PDT)
+Subject: [PATCH v7 00/12] Adding security support for nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 03 Aug 2018 17:01:09 -0700
+Message-ID: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,119 +16,118 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the ndctl monitor, currently the debug messages cannot be outputted to log.
-This patch is used for adding [--verbose] option to ndctl monitor to emit
-debug messages. Also, the log level of some messages are changed by this patch.
+The following series implements security support for nvdimm. Mostly adding
+new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
+adding generic support libnvdimm for other vendors. The most important
+security features are unlocking locked nvdimms, and updating/setting security
+passphrase to nvdimms.
 
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Security folks, thanks in advance for taking a look at my key management
+implementation and making sure that I'm doing something sane. Mainly you'll
+want to review patches 2, 4, and 5 as most relevant ones that need scrutiny.
+
+v7:
+- Add CONFIG_KEYS depenency for libnvdimm. (Alison)
+- Export lookup_user_key(). (David)
+- Modified "update" to take two key ids and and use lookup_user_key() in
+  order to improve security.  (David)
+- Use key ptrs and key_validate() for cached keys. (David)
+
+v6:
+- Fix intel DSM data structures to use defined size for passphrase (Robert)
+- Fix memcpy size to use sizeof data structure member (Robert)
+- Fix defined dimm id length (Robert)
+- Making intel_security_ops const (Eric)
+- Remove unused var in nvdimm_key_search() (Eric)
+- Added wbinvd before secure erase is issued (Robert)
+- Removed key_put_sync() usage (David)
+- Use init_cred instead of creating own cred (David)
+    - Exported init_cred symbol
+- Move keyring to dedicated (David)
+- Use logon_key_type and friends instead of creating custom (David)
+- Use key_lookup() with stored key serial (David)
+    - Exported key_lookup() symbol
+- Mark passed in key data as const (David)
+- Added comment for change_pass_phrase to explain how it works (David)
+- Unlink key when it's being removed from keyring. (David)
+- Removed request_key() from all security ops except update and unlock.
+- Update will now update the existing key's payload with the new key's
+  retrieved from userspace when the new payload is accepted by nvdimm.
+
+v5:
+- Moved dimm_id initialization (Dan)
+- Added a key_put_sync() in order to run key_gc_work and cleanup old key. (Dan)
+- Added check to block security state changes while DIMM is active. (Dan)
+
+v4:
+- flip payload layout for update passphrase to make it easier on userland.
+
+v3:
+- Set x86 wrappers for x86 only bits. (Dan)
+- Fixed up some verbiage in commit headers.
+- Put in usage of sysfs_streq() for sysfs inputs.
+- 0-day build fixes for non-x86 archs.
+
+v2:
+- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
+- Moved security ring relevant code to dimm_devs.c. (Dan)
+- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
+- Added routine to return security_ops based on family supplied. (Dan)
+- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
+- Allocate firmware package on stack. (Dan)
+- Added missing frozen state detection when retrieving security state.
+
 ---
- Documentation/ndctl/ndctl-monitor.txt |  4 ++++
- ndctl/monitor.c                       | 20 +++++++++++++++-----
- 2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index 762073e..1cba9ea 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -98,6 +98,10 @@ specified events.
- 	Output monitor notification as human friendly json format instead
- 	of the default machine friendly json format.
- 
-+-v::
-+--verbose::
-+	Emit extra debug messages to log.
-+
- COPYRIGHT
- ---------
- Copyright (c) 2018, FUJITSU LIMITED. License GPLv2: GNU GPL version 2
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 4e5daf5..f10384b 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -22,6 +22,7 @@ static struct monitor {
- 	const char *dimm_event;
- 	bool daemon;
- 	bool human;
-+	bool verbose;
- 	unsigned int event_flags;
- } monitor;
- 
-@@ -92,7 +93,9 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
- 	f = fopen(monitor.log, "a+");
- 	if (!f) {
- 		ndctl_set_log_fn(ctx, log_syslog);
--		fail("open logfile %s failed\n%s", monitor.log, buf);
-+		err(ctx, "open logfile %s failed\n", monitor.log);
-+		did_fail = 1;
-+		notice(ctx, "%s\n", buf);
- 		goto end;
- 	}
- 	fprintf(f, "%s", buf);
-@@ -390,8 +393,9 @@ static int monitor_event(struct ndctl_ctx *ctx,
- 			if (util_dimm_event_filter(mdimm, monitor.event_flags)) {
- 				rc = notify_dimm_event(mdimm);
- 				if (rc) {
--					fail("%s: notify dimm event failed\n",
-+					err(ctx, "%s: notify dimm event failed\n",
- 						ndctl_dimm_get_devname(mdimm->dimm));
-+					did_fail = 1;
- 					goto out;
- 				}
- 			}
-@@ -506,7 +510,7 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 
- 	f = fopen(config_file, "r");
- 	if (!f) {
--		fail("config-file: %s cannot be opened\n", config_file);
-+		err(ctx, "config-file: %s cannot be opened\n", config_file);
- 		rc = -errno;
- 		goto out;
- 	}
-@@ -587,6 +591,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 				"run ndctl monitor as a daemon"),
- 		OPT_BOOLEAN('u', "human", &monitor.human,
- 				"use human friendly output formats"),
-+		OPT_BOOLEAN('v', "verbose", &monitor.verbose,
-+				"emit extra debug messages to log"),
- 		OPT_END(),
- 	};
- 	const char * const u[] = {
-@@ -607,7 +613,11 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 
- 	/* default to log_standard */
- 	ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_standard);
--	ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
-+
-+	if (monitor.verbose)
-+		ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_DEBUG);
-+	else
-+		ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_NOTICE);
- 
- 	rc = read_config_file((struct ndctl_ctx *)ctx, &monitor, &param);
- 	if (rc)
-@@ -629,7 +639,7 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
- 			goto out;
- 		}
--		notice((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
-+		err((struct ndctl_ctx *)ctx, "ndctl monitor daemon started\n");
- 	}
- 
- 	if (parse_monitor_event(&monitor, (struct ndctl_ctx *)ctx))
--- 
-2.18.0
+Dave Jiang (12):
+      nfit: add support for Intel DSM 1.7 commands
+      libnvdimm: create keyring to store security keys
+      nfit/libnvdimm: store dimm id as a member to struct nvdimm
+      keys: export lookup_user_key to external users
+      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
+      nfit/libnvdimm: add set passphrase support for Intel nvdimms
+      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
+      nfit/libnvdimm: add freeze security support to Intel nvdimm
+      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
+      nfit_test: add context to dimm_dev for nfit_test
+      nfit_test: add test support for Intel nvdimm security DSMs
+      libnvdimm: add documentation for nvdimm security support
 
 
+ Documentation/nvdimm/security.txt |   78 +++++
+ drivers/acpi/nfit/Makefile        |    1 
+ drivers/acpi/nfit/core.c          |   58 +++-
+ drivers/acpi/nfit/intel.c         |  382 +++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h         |   82 ++++++
+ drivers/acpi/nfit/nfit.h          |   20 +
+ drivers/nvdimm/Kconfig            |    1 
+ drivers/nvdimm/bus.c              |    2 
+ drivers/nvdimm/core.c             |    7 
+ drivers/nvdimm/dimm.c             |    7 
+ drivers/nvdimm/dimm_devs.c        |  527 +++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h          |    6 
+ drivers/nvdimm/nd.h               |    2 
+ include/linux/key.h               |    3 
+ include/linux/libnvdimm.h         |   42 +++
+ kernel/cred.c                     |    1 
+ security/keys/internal.h          |    2 
+ security/keys/process_keys.c      |    1 
+ tools/testing/nvdimm/Kbuild       |    1 
+ tools/testing/nvdimm/test/nfit.c  |  227 +++++++++++++++-
+ 20 files changed, 1414 insertions(+), 36 deletions(-)
+ create mode 100644 Documentation/nvdimm/security.txt
+ create mode 100644 drivers/acpi/nfit/intel.c
+ create mode 100644 drivers/acpi/nfit/intel.h
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
