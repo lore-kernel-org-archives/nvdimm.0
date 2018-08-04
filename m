@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CEA2D210E2DC3
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 19:14:38 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V3 3/4] mm: add a function to differentiate the pages is from
- DAX device memory
-Date: Thu,  9 Aug 2018 18:53:21 +0800
-Message-Id: <2b7856596e519130946c834d5d61b00b7f592770.1533811181.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
-References: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0E789210D93BC
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:18 -0700 (PDT)
+Subject: [PATCH v7 12/12] libnvdimm: add documentation for nvdimm security
+ support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 03 Aug 2018 17:02:17 -0700
+Message-ID: <153334093694.60955.18199474198600257580.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,60 +19,107 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX driver hotplug the device memory and move it to memory zone, these
-pages will be marked reserved flag, however, some other kernel componet
-will misconceive these pages are reserved mmio (ex: we map these dev_dax
-or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
-MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
-is DAX device memory or not.
+Add theory of operation for the security support that's going into
+libnvdimm.
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- include/linux/mm.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/nvdimm/security.txt |   78 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 78 insertions(+)
+ create mode 100644 Documentation/nvdimm/security.txt
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 68a5121..de5cbc3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct page *page)
- 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
- }
- 
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
-+		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
-+}
+diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
+new file mode 100644
+index 000000000000..ede844ff6fd2
+--- /dev/null
++++ b/Documentation/nvdimm/security.txt
+@@ -0,0 +1,78 @@
++NVDIMM SECURITY
++===============
 +
- #else /* CONFIG_DEV_PAGEMAP_OPS */
- static inline void dev_pagemap_get_ops(void)
- {
-@@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct page *page)
- {
- 	return false;
- }
++1. Introduction
++---------------
 +
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
- 
- static inline void get_page(struct page *page)
--- 
-2.7.4
++With the introduction of Intel DSM v1.7 specification [1], security DSMs are
++introduced. The spec added the following security DSMs: "get security state",
++"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
++"secure erase", and "overwrite". A security_ops data structure has been
++added to struct dimm in order to support the security operations and generic
++APIs are exposed to allow vendor neutral operations.
++
++2. Sysfs Interface
++------------------
++The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
++example:
++/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++
++The "show" function of that attribute will display the security state for
++that DIMM. The following states are available: disabled, unlocked, locked,
++frozen, and unsupported.
++
++The "store" function takes several commands when the attribute is written to
++in order to support some of the security functionalities:
++update - enable security. Add or update current key.
++disable - disable enabled security and remove key.
++freeze - freeze changing of security states.
++erase - generate new ecryption key for DIMM and crypto-scrambles all existing
++	user data.
++
++3. Key Management
++-----------------
++
++The key is associted to the payload by the DIMM id. For example:
++# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
++8089-a2-1740-00000133
++The DIMM id would be provided along with the key payload (passphrase) to
++the kernel.
++
++The security keys are managed on the basis of a single key per DIMM. The
++key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
++similar to the ATA security specification [2]. A key is initially acquired
++via the request_key() kernel API call and retrieved from userspace. It is up to
++the user to provide an upcall application to retrieve the key in whatever
++fashion meets their security requirements.
++
++The payload provided to the key can be a 32bytes payload or 64bytes payload
++when doing an "update". The payload is viewed as 64 bytes in the following
++format:
++[32 bytes new key data zero padded][32 bytes current key data zero padded]
++However, a 32bytes payload can be provided and will be assumed as the old
++key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
++It is up to the user upcall function how that's presented as the key payload
++to the kernel.
++
++All the other security functions that require a provided key can accept a
++32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
++will be ignored and the first 32bytes contains the expected "passphrase".
++
++4. Unlocking
++------------
++When the DIMMs are being enumerated by the kernel, the kernel will attempt to
++retrieve the key from its keyring. If that fails, it will attempt to
++acquire the key from the userspace upcall function. This is the only time
++a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
++until reboot.
++
++5. Update
++---------
++When doing an update, it is expected that the new key with the 64bit payload of
++format described above is added via the keyutils API or utility. The update
++command written to the sysfs attribute will be with the format:
++update:<old id>:<new id>
++If there is no old ID due to a security enabling, then a 0 should be passed in.
++
++[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
++[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
 
 _______________________________________________
 Linux-nvdimm mailing list
