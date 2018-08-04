@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EDC9721107824
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:07 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Aug 2018 12:53:52 -0600
-Message-Id: <20180830185352.3369-14-logang@deltatee.com>
-In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 42B98210D93C3
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:44 -0700 (PDT)
+Subject: [PATCH v7 06/12] nfit/libnvdimm: add set passphrase support for
+ Intel nvdimms
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 03 Aug 2018 17:01:43 -0700
+Message-ID: <153334090312.60955.650899527822657616.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v5 13/13] nvmet: Optionally use PCI P2P memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,204 +19,428 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Steve Wise <swise@opengridcomputing.com>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-V2UgY3JlYXRlIGEgY29uZmlnZnMgYXR0cmlidXRlIGluIGVhY2ggbnZtZS1mYWJyaWNzIHRhcmdl
-dCBwb3J0IHRvCmVuYWJsZSBwMnAgbWVtb3J5IHVzZS4gV2hlbiBlbmFibGVkLCB0aGUgcG9ydCB3
-aWxsIG9ubHkgdGhlbiB1c2UgdGhlCnAycCBtZW1vcnkgaWYgYSBwMnAgbWVtb3J5IGRldmljZSBj
-YW4gYmUgZm91bmQgd2hpY2ggaXMgYmVoaW5kIHRoZQpzYW1lIHN3aXRjaCBoaWVyYXJjaHkgYXMg
-dGhlIFJETUEgcG9ydCBhbmQgYWxsIHRoZSBibG9jayBkZXZpY2VzIGluCnVzZS4gSWYgdGhlIHVz
-ZXIgZW5hYmxlZCBpdCBhbmQgbm8gZGV2aWNlcyBhcmUgZm91bmQsIHRoZW4gdGhlIHN5c3RlbQp3
-aWxsIHNpbGVudGx5IGZhbGwgYmFjayBvbiB1c2luZyByZWd1bGFyIG1lbW9yeS4KCklmIGFwcHJv
-cHJpYXRlLCB0aGF0IHBvcnQgd2lsbCBhbGxvY2F0ZSBtZW1vcnkgZm9yIHRoZSBSRE1BIGJ1ZmZl
-cnMKZm9yIHF1ZXVlcyBmcm9tIHRoZSBwMnBtZW0gZGV2aWNlIGZhbGxpbmcgYmFjayB0byBzeXN0
-ZW0gbWVtb3J5IHNob3VsZAphbnl0aGluZyBmYWlsLgoKSWRlYWxseSwgd2UnZCB3YW50IHRvIHVz
-ZSBhbiBOVk1FIENNQiBidWZmZXIgYXMgcDJwIG1lbW9yeS4gVGhpcyB3b3VsZApzYXZlIGFuIGV4
-dHJhIFBDSSB0cmFuc2ZlciBhcyB0aGUgTlZNRSBjYXJkIGNvdWxkIGp1c3QgdGFrZSB0aGUgZGF0
-YQpvdXQgb2YgaXQncyBvd24gbWVtb3J5LiBIb3dldmVyLCBhdCB0aGlzIHRpbWUsIG9ubHkgYSBs
-aW1pdGVkIG51bWJlcgpvZiBjYXJkcyB3aXRoIENNQiBidWZmZXJzIHNlZW0gdG8gYmUgYXZhaWxh
-YmxlLgoKU2lnbmVkLW9mZi1ieTogU3RlcGhlbiBCYXRlcyA8c2JhdGVzQHJhaXRobGluLmNvbT4K
-U2lnbmVkLW9mZi1ieTogU3RldmUgV2lzZSA8c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcuY29tPgpb
-aGNoOiBwYXJ0aWFsIHJld3JpdGUgb2YgdGhlIGluaXRpYWwgY29kZV0KU2lnbmVkLW9mZi1ieTog
-Q2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+ClNpZ25lZC1vZmYtYnk6IExvZ2FuIEd1bnRo
-b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCiBkcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZp
-Z2ZzLmMgfCAgMzYgKysrKysrKysrKysKIGRyaXZlcnMvbnZtZS90YXJnZXQvY29yZS5jICAgICB8
-IDEzMyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQogZHJpdmVycy9u
-dm1lL3RhcmdldC9udm1ldC5oICAgIHwgIDEzICsrKysKIGRyaXZlcnMvbnZtZS90YXJnZXQvcmRt
-YS5jICAgICB8ICAgMiArCiA0IGZpbGVzIGNoYW5nZWQsIDE4MyBpbnNlcnRpb25zKCspLCAxIGRl
-bGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udm1lL3RhcmdldC9jb25maWdmcy5jIGIv
-ZHJpdmVycy9udm1lL3RhcmdldC9jb25maWdmcy5jCmluZGV4IGIzN2E4ZTNlM2Y4MC4uMGRmYjBl
-MGMzZDIxIDEwMDY0NAotLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMKKysrIGIv
-ZHJpdmVycy9udm1lL3RhcmdldC9jb25maWdmcy5jCkBAIC0xNyw2ICsxNyw4IEBACiAjaW5jbHVk
-ZSA8bGludXgvc2xhYi5oPgogI2luY2x1ZGUgPGxpbnV4L3N0YXQuaD4KICNpbmNsdWRlIDxsaW51
-eC9jdHlwZS5oPgorI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgorI2luY2x1ZGUgPGxpbnV4L3BjaS1w
-MnBkbWEuaD4KIAogI2luY2x1ZGUgIm52bWV0LmgiCiAKQEAgLTEwOTQsNiArMTA5NiwzNyBAQCBz
-dGF0aWMgdm9pZCBudm1ldF9wb3J0X3JlbGVhc2Uoc3RydWN0IGNvbmZpZ19pdGVtICppdGVtKQog
-CWtmcmVlKHBvcnQpOwogfQogCisjaWZkZWYgQ09ORklHX1BDSV9QMlBETUEKK3N0YXRpYyBzc2l6
-ZV90IG52bWV0X3AycG1lbV9zaG93KHN0cnVjdCBjb25maWdfaXRlbSAqaXRlbSwgY2hhciAqcGFn
-ZSkKK3sKKwlzdHJ1Y3QgbnZtZXRfcG9ydCAqcG9ydCA9IHRvX252bWV0X3BvcnQoaXRlbSk7CisK
-KwlyZXR1cm4gcGNpX3AycGRtYV9lbmFibGVfc2hvdyhwYWdlLCBwb3J0LT5wMnBfZGV2LCBwb3J0
-LT51c2VfcDJwbWVtKTsKK30KKworc3RhdGljIHNzaXplX3QgbnZtZXRfcDJwbWVtX3N0b3JlKHN0
-cnVjdCBjb25maWdfaXRlbSAqaXRlbSwKKwkJY29uc3QgY2hhciAqcGFnZSwgc2l6ZV90IGNvdW50
-KQoreworCXN0cnVjdCBudm1ldF9wb3J0ICpwb3J0ID0gdG9fbnZtZXRfcG9ydChpdGVtKTsKKwlz
-dHJ1Y3QgcGNpX2RldiAqcDJwX2RldiA9IE5VTEw7CisJYm9vbCB1c2VfcDJwbWVtOworCWludCBl
-cnJvcjsKKworCWVycm9yID0gcGNpX3AycGRtYV9lbmFibGVfc3RvcmUocGFnZSwgJnAycF9kZXYs
-ICZ1c2VfcDJwbWVtKTsKKwlpZiAoZXJyb3IpCisJCXJldHVybiBlcnJvcjsKKworCWRvd25fd3Jp
-dGUoJm52bWV0X2NvbmZpZ19zZW0pOworCXBvcnQtPnVzZV9wMnBtZW0gPSB1c2VfcDJwbWVtOwor
-CXBjaV9kZXZfcHV0KHBvcnQtPnAycF9kZXYpOworCXBvcnQtPnAycF9kZXYgPSBwMnBfZGV2Owor
-CXVwX3dyaXRlKCZudm1ldF9jb25maWdfc2VtKTsKKworCXJldHVybiBjb3VudDsKK30KK0NPTkZJ
-R0ZTX0FUVFIobnZtZXRfLCBwMnBtZW0pOworI2VuZGlmIC8qIENPTkZJR19QQ0lfUDJQRE1BICov
-CisKIHN0YXRpYyBzdHJ1Y3QgY29uZmlnZnNfYXR0cmlidXRlICpudm1ldF9wb3J0X2F0dHJzW10g
-PSB7CiAJJm52bWV0X2F0dHJfYWRkcl9hZHJmYW0sCiAJJm52bWV0X2F0dHJfYWRkcl90cmVxLApA
-QCAtMTEwMSw2ICsxMTM0LDkgQEAgc3RhdGljIHN0cnVjdCBjb25maWdmc19hdHRyaWJ1dGUgKm52
-bWV0X3BvcnRfYXR0cnNbXSA9IHsKIAkmbnZtZXRfYXR0cl9hZGRyX3Ryc3ZjaWQsCiAJJm52bWV0
-X2F0dHJfYWRkcl90cnR5cGUsCiAJJm52bWV0X2F0dHJfcGFyYW1faW5saW5lX2RhdGFfc2l6ZSwK
-KyNpZmRlZiBDT05GSUdfUENJX1AyUERNQQorCSZudm1ldF9hdHRyX3AycG1lbSwKKyNlbmRpZgog
-CU5VTEwsCiB9OwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvcmUuYyBiL2Ry
-aXZlcnMvbnZtZS90YXJnZXQvY29yZS5jCmluZGV4IDZhMWM4ZDVmNTUyYi4uOGYyMGIxZTI2YzY5
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvcmUuYworKysgYi9kcml2ZXJzL252
-bWUvdGFyZ2V0L2NvcmUuYwpAQCAtMTUsNiArMTUsNyBAQAogI2luY2x1ZGUgPGxpbnV4L21vZHVs
-ZS5oPgogI2luY2x1ZGUgPGxpbnV4L3JhbmRvbS5oPgogI2luY2x1ZGUgPGxpbnV4L3JjdWxpc3Qu
-aD4KKyNpbmNsdWRlIDxsaW51eC9wY2ktcDJwZG1hLmg+CiAKICNpbmNsdWRlICJudm1ldC5oIgog
-CkBAIC0zNjUsOSArMzY2LDI5IEBAIHN0YXRpYyB2b2lkIG52bWV0X25zX2Rldl9kaXNhYmxlKHN0
-cnVjdCBudm1ldF9ucyAqbnMpCiAJbnZtZXRfZmlsZV9uc19kaXNhYmxlKG5zKTsKIH0KIAorc3Rh
-dGljIGludCBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybCwK
-KwkJc3RydWN0IG52bWV0X25zICpucykKK3sKKwlpbnQgcmV0OworCisJaWYgKCFibGtfcXVldWVf
-cGNpX3AycGRtYShucy0+YmRldi0+YmRfcXVldWUpKSB7CisJCXByX2VycigicGVlci10by1wZWVy
-IERNQSBpcyBub3Qgc3VwcG9ydGVkIGJ5ICVzXG4iLAorCQkgICAgICAgbnMtPmRldmljZV9wYXRo
-KTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCisJcmV0ID0gcGNpX3AycGRtYV9hZGRfY2xpZW50
-KCZjdHJsLT5wMnBfY2xpZW50cywgbnZtZXRfbnNfZGV2KG5zKSk7CisJaWYgKHJldCkKKwkJcHJf
-ZXJyKCJmYWlsZWQgdG8gYWRkIHBlZXItdG8tcGVlciBETUEgY2xpZW50ICVzOiAlZFxuIiwKKwkJ
-ICAgICAgIG5zLT5kZXZpY2VfcGF0aCwgcmV0KTsKKworCXJldHVybiByZXQ7Cit9CisKIGludCBu
-dm1ldF9uc19lbmFibGUoc3RydWN0IG52bWV0X25zICpucykKIHsKIAlzdHJ1Y3QgbnZtZXRfc3Vi
-c3lzICpzdWJzeXMgPSBucy0+c3Vic3lzOworCXN0cnVjdCBudm1ldF9jdHJsICpjdHJsOwogCWlu
-dCByZXQ7CiAKIAltdXRleF9sb2NrKCZzdWJzeXMtPmxvY2spOwpAQCAtMzg5LDYgKzQxMCwxNCBA
-QCBpbnQgbnZtZXRfbnNfZW5hYmxlKHN0cnVjdCBudm1ldF9ucyAqbnMpCiAJaWYgKHJldCkKIAkJ
-Z290byBvdXRfZGV2X3B1dDsKIAorCWxpc3RfZm9yX2VhY2hfZW50cnkoY3RybCwgJnN1YnN5cy0+
-Y3RybHMsIHN1YnN5c19lbnRyeSkgeworCQlpZiAoY3RybC0+cDJwX2RldikgeworCQkJcmV0ID0g
-bnZtZXRfcDJwZG1hX2FkZF9jbGllbnQoY3RybCwgbnMpOworCQkJaWYgKHJldCkKKwkJCQlnb3Rv
-IG91dF9yZW1vdmVfY2xpZW50czsKKwkJfQorCX0KKwogCWlmIChucy0+bnNpZCA+IHN1YnN5cy0+
-bWF4X25zaWQpCiAJCXN1YnN5cy0+bWF4X25zaWQgPSBucy0+bnNpZDsKIApAQCAtNDE3LDYgKzQ0
-Niw5IEBAIGludCBudm1ldF9uc19lbmFibGUoc3RydWN0IG52bWV0X25zICpucykKIG91dF91bmxv
-Y2s6CiAJbXV0ZXhfdW5sb2NrKCZzdWJzeXMtPmxvY2spOwogCXJldHVybiByZXQ7CitvdXRfcmVt
-b3ZlX2NsaWVudHM6CisJbGlzdF9mb3JfZWFjaF9lbnRyeShjdHJsLCAmc3Vic3lzLT5jdHJscywg
-c3Vic3lzX2VudHJ5KQorCQlwY2lfcDJwZG1hX3JlbW92ZV9jbGllbnQoJmN0cmwtPnAycF9jbGll
-bnRzLCBudm1ldF9uc19kZXYobnMpKTsKIG91dF9kZXZfcHV0OgogCW52bWV0X25zX2Rldl9kaXNh
-YmxlKG5zKTsKIAlnb3RvIG91dF91bmxvY2s7CkBAIC00MjUsNiArNDU3LDcgQEAgaW50IG52bWV0
-X25zX2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQogdm9pZCBudm1ldF9uc19kaXNhYmxlKHN0
-cnVjdCBudm1ldF9ucyAqbnMpCiB7CiAJc3RydWN0IG52bWV0X3N1YnN5cyAqc3Vic3lzID0gbnMt
-PnN1YnN5czsKKwlzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybDsKIAogCW11dGV4X2xvY2soJnN1YnN5
-cy0+bG9jayk7CiAJaWYgKCFucy0+ZW5hYmxlZCkKQEAgLTQ1MCw2ICs0ODMsMTIgQEAgdm9pZCBu
-dm1ldF9uc19kaXNhYmxlKHN0cnVjdCBudm1ldF9ucyAqbnMpCiAJcGVyY3B1X3JlZl9leGl0KCZu
-cy0+cmVmKTsKIAogCW11dGV4X2xvY2soJnN1YnN5cy0+bG9jayk7CisKKwlsaXN0X2Zvcl9lYWNo
-X2VudHJ5KGN0cmwsICZzdWJzeXMtPmN0cmxzLCBzdWJzeXNfZW50cnkpIHsKKwkJcGNpX3AycGRt
-YV9yZW1vdmVfY2xpZW50KCZjdHJsLT5wMnBfY2xpZW50cywgbnZtZXRfbnNfZGV2KG5zKSk7CisJ
-CW52bWV0X2FkZF9hc3luY19ldmVudChjdHJsLCBOVk1FX0FFUl9UWVBFX05PVElDRSwgMCwgMCk7
-CisJfQorCiAJc3Vic3lzLT5ucl9uYW1lc3BhY2VzLS07CiAJbnZtZXRfbnNfY2hhbmdlZChzdWJz
-eXMsIG5zLT5uc2lkKTsKIAludm1ldF9uc19kZXZfZGlzYWJsZShucyk7CkBAIC03MjcsNiArNzY2
-LDIzIEBAIEVYUE9SVF9TWU1CT0xfR1BMKG52bWV0X3JlcV9leGVjdXRlKTsKIAogaW50IG52bWV0
-X3JlcV9hbGxvY19zZ2woc3RydWN0IG52bWV0X3JlcSAqcmVxLCBzdHJ1Y3QgbnZtZXRfc3EgKnNx
-KQogeworCXN0cnVjdCBwY2lfZGV2ICpwMnBfZGV2ID0gTlVMTDsKKworCWlmIChJU19FTkFCTEVE
-KENPTkZJR19QQ0lfUDJQRE1BKSkgeworCQlpZiAoc3EtPmN0cmwpCisJCQlwMnBfZGV2ID0gc3Et
-PmN0cmwtPnAycF9kZXY7CisKKwkJcmVxLT5wMnBfZGV2ID0gTlVMTDsKKwkJaWYgKHNxLT5xaWQg
-JiYgcDJwX2RldikgeworCQkJcmVxLT5zZyA9IHBjaV9wMnBtZW1fYWxsb2Nfc2dsKHAycF9kZXYs
-ICZyZXEtPnNnX2NudCwKKwkJCQkJCSAgICAgICByZXEtPnRyYW5zZmVyX2xlbik7CisJCQlpZiAo
-cmVxLT5zZykgeworCQkJCXJlcS0+cDJwX2RldiA9IHAycF9kZXY7CisJCQkJcmV0dXJuIDA7CisJ
-CQl9CisJCX0KKwl9CisKIAlyZXEtPnNnID0gc2dsX2FsbG9jKHJlcS0+dHJhbnNmZXJfbGVuLCBH
-RlBfS0VSTkVMLCAmcmVxLT5zZ19jbnQpOwogCWlmICghcmVxLT5zZykKIAkJcmV0dXJuIC1FTk9N
-RU07CkBAIC03MzcsNyArNzkzLDExIEBAIEVYUE9SVF9TWU1CT0xfR1BMKG52bWV0X3JlcV9hbGxv
-Y19zZ2wpOwogCiB2b2lkIG52bWV0X3JlcV9mcmVlX3NnbChzdHJ1Y3QgbnZtZXRfcmVxICpyZXEp
-CiB7Ci0Jc2dsX2ZyZWUocmVxLT5zZyk7CisJaWYgKHJlcS0+cDJwX2RldikKKwkJcGNpX3AycG1l
-bV9mcmVlX3NnbChyZXEtPnAycF9kZXYsIHJlcS0+c2cpOworCWVsc2UKKwkJc2dsX2ZyZWUocmVx
-LT5zZyk7CisKIAlyZXEtPnNnID0gTlVMTDsKIAlyZXEtPnNnX2NudCA9IDA7CiB9CkBAIC05Mzks
-NiArOTk5LDc0IEBAIGJvb2wgbnZtZXRfaG9zdF9hbGxvd2VkKHN0cnVjdCBudm1ldF9yZXEgKnJl
-cSwgc3RydWN0IG52bWV0X3N1YnN5cyAqc3Vic3lzLAogCQlyZXR1cm4gX19udm1ldF9ob3N0X2Fs
-bG93ZWQoc3Vic3lzLCBob3N0bnFuKTsKIH0KIAorLyoKKyAqIElmIGFsbG93X3AycG1lbSBpcyBz
-ZXQsIHdlIHdpbGwgdHJ5IHRvIHVzZSBQMlAgbWVtb3J5IGZvciB0aGUgU0dMIGxpc3RzIGZvcgor
-ICogzpkvTyBjb21tYW5kcy4gVGhpcyByZXF1aXJlcyB0aGUgUENJIHAycCBkZXZpY2UgdG8gYmUg
-Y29tcGF0aWJsZSB3aXRoIHRoZQorICogYmFja2luZyBkZXZpY2UgZm9yIGV2ZXJ5IG5hbWVzcGFj
-ZSBvbiB0aGlzIGNvbnRyb2xsZXIuCisgKi8KK3N0YXRpYyB2b2lkIG52bWV0X3NldHVwX3AycG1l
-bShzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybCwgc3RydWN0IG52bWV0X3JlcSAqcmVxKQoreworCXN0
-cnVjdCBudm1ldF9ucyAqbnM7CisJaW50IHJldDsKKworCWlmICghcmVxLT5wb3J0LT51c2VfcDJw
-bWVtIHx8ICFyZXEtPnAycF9jbGllbnQpCisJCXJldHVybjsKKworCW11dGV4X2xvY2soJmN0cmwt
-PnN1YnN5cy0+bG9jayk7CisKKwlyZXQgPSBwY2lfcDJwZG1hX2FkZF9jbGllbnQoJmN0cmwtPnAy
-cF9jbGllbnRzLCByZXEtPnAycF9jbGllbnQpOworCWlmIChyZXQpIHsKKwkJcHJfZXJyKCJmYWls
-ZWQgYWRkaW5nIHBlZXItdG8tcGVlciBETUEgY2xpZW50ICVzOiAlZFxuIiwKKwkJICAgICAgIGRl
-dl9uYW1lKHJlcS0+cDJwX2NsaWVudCksIHJldCk7CisJCWdvdG8gZnJlZV9kZXZpY2VzOworCX0K
-KworCWxpc3RfZm9yX2VhY2hfZW50cnlfcmN1KG5zLCAmY3RybC0+c3Vic3lzLT5uYW1lc3BhY2Vz
-LCBkZXZfbGluaykgeworCQlyZXQgPSBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChjdHJsLCBucyk7
-CisJCWlmIChyZXQpCisJCQlnb3RvIGZyZWVfZGV2aWNlczsKKwl9CisKKwlpZiAocmVxLT5wb3J0
-LT5wMnBfZGV2KSB7CisJCWlmICghcGNpX3AycGRtYV9hc3NpZ25fcHJvdmlkZXIocmVxLT5wb3J0
-LT5wMnBfZGV2LAorCQkJCQkJJmN0cmwtPnAycF9jbGllbnRzKSkgeworCQkJcHJfaW5mbygicGVl
-ci10by1wZWVyIG1lbW9yeSBvbiAlcyBpcyBub3Qgc3VwcG9ydGVkXG4iLAorCQkJCXBjaV9uYW1l
-KHJlcS0+cG9ydC0+cDJwX2RldikpOworCQkJZ290byBmcmVlX2RldmljZXM7CisJCX0KKwkJY3Ry
-bC0+cDJwX2RldiA9IHBjaV9kZXZfZ2V0KHJlcS0+cG9ydC0+cDJwX2Rldik7CisJfSBlbHNlIHsK
-KwkJY3RybC0+cDJwX2RldiA9IHBjaV9wMnBtZW1fZmluZCgmY3RybC0+cDJwX2NsaWVudHMpOwor
-CQlpZiAoIWN0cmwtPnAycF9kZXYpIHsKKwkJCXByX2luZm8oIm5vIHN1cHBvcnRlZCBwZWVyLXRv
-LXBlZXIgbWVtb3J5IGRldmljZXMgZm91bmRcbiIpOworCQkJZ290byBmcmVlX2RldmljZXM7CisJ
-CX0KKwl9CisKKwltdXRleF91bmxvY2soJmN0cmwtPnN1YnN5cy0+bG9jayk7CisKKwlwcl9pbmZv
-KCJ1c2luZyBwZWVyLXRvLXBlZXIgbWVtb3J5IG9uICVzXG4iLCBwY2lfbmFtZShjdHJsLT5wMnBf
-ZGV2KSk7CisJcmV0dXJuOworCitmcmVlX2RldmljZXM6CisJcGNpX3AycGRtYV9jbGllbnRfbGlz
-dF9mcmVlKCZjdHJsLT5wMnBfY2xpZW50cyk7CisJbXV0ZXhfdW5sb2NrKCZjdHJsLT5zdWJzeXMt
-PmxvY2spOworfQorCitzdGF0aWMgdm9pZCBudm1ldF9yZWxlYXNlX3AycG1lbShzdHJ1Y3QgbnZt
-ZXRfY3RybCAqY3RybCkKK3sKKwlpZiAoIWN0cmwtPnAycF9kZXYpCisJCXJldHVybjsKKworCW11
-dGV4X2xvY2soJmN0cmwtPnN1YnN5cy0+bG9jayk7CisKKwlwY2lfcDJwZG1hX2NsaWVudF9saXN0
-X2ZyZWUoJmN0cmwtPnAycF9jbGllbnRzKTsKKwlwY2lfZGV2X3B1dChjdHJsLT5wMnBfZGV2KTsK
-KwljdHJsLT5wMnBfZGV2ID0gTlVMTDsKKworCW11dGV4X3VubG9jaygmY3RybC0+c3Vic3lzLT5s
-b2NrKTsKK30KKwogdTE2IG52bWV0X2FsbG9jX2N0cmwoY29uc3QgY2hhciAqc3Vic3lzbnFuLCBj
-b25zdCBjaGFyICpob3N0bnFuLAogCQlzdHJ1Y3QgbnZtZXRfcmVxICpyZXEsIHUzMiBrYXRvLCBz
-dHJ1Y3QgbnZtZXRfY3RybCAqKmN0cmxwKQogewpAQCAtOTgwLDYgKzExMDgsNyBAQCB1MTYgbnZt
-ZXRfYWxsb2NfY3RybChjb25zdCBjaGFyICpzdWJzeXNucW4sIGNvbnN0IGNoYXIgKmhvc3RucW4s
-CiAKIAlJTklUX1dPUksoJmN0cmwtPmFzeW5jX2V2ZW50X3dvcmssIG52bWV0X2FzeW5jX2V2ZW50
-X3dvcmspOwogCUlOSVRfTElTVF9IRUFEKCZjdHJsLT5hc3luY19ldmVudHMpOworCUlOSVRfTElT
-VF9IRUFEKCZjdHJsLT5wMnBfY2xpZW50cyk7CiAKIAltZW1jcHkoY3RybC0+c3Vic3lzbnFuLCBz
-dWJzeXNucW4sIE5WTUZfTlFOX1NJWkUpOwogCW1lbWNweShjdHJsLT5ob3N0bnFuLCBob3N0bnFu
-LCBOVk1GX05RTl9TSVpFKTsKQEAgLTEwNDEsNiArMTE3MCw3IEBAIHUxNiBudm1ldF9hbGxvY19j
-dHJsKGNvbnN0IGNoYXIgKnN1YnN5c25xbiwgY29uc3QgY2hhciAqaG9zdG5xbiwKIAkJY3RybC0+
-a2F0byA9IERJVl9ST1VORF9VUChrYXRvLCAxMDAwKTsKIAl9CiAJbnZtZXRfc3RhcnRfa2VlcF9h
-bGl2ZV90aW1lcihjdHJsKTsKKwludm1ldF9zZXR1cF9wMnBtZW0oY3RybCwgcmVxKTsKIAogCW11
-dGV4X2xvY2soJnN1YnN5cy0+bG9jayk7CiAJbGlzdF9hZGRfdGFpbCgmY3RybC0+c3Vic3lzX2Vu
-dHJ5LCAmc3Vic3lzLT5jdHJscyk7CkBAIC0xMDc5LDYgKzEyMDksNyBAQCBzdGF0aWMgdm9pZCBu
-dm1ldF9jdHJsX2ZyZWUoc3RydWN0IGtyZWYgKnJlZikKIAlmbHVzaF93b3JrKCZjdHJsLT5hc3lu
-Y19ldmVudF93b3JrKTsKIAljYW5jZWxfd29ya19zeW5jKCZjdHJsLT5mYXRhbF9lcnJfd29yayk7
-CiAKKwludm1ldF9yZWxlYXNlX3AycG1lbShjdHJsKTsKIAlpZGFfc2ltcGxlX3JlbW92ZSgmY250
-bGlkX2lkYSwgY3RybC0+Y250bGlkKTsKIAogCWtmcmVlKGN0cmwtPnNxcyk7CmRpZmYgLS1naXQg
-YS9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmggYi9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0
-LmgKaW5kZXggN2Q2Y2I2MTAyMWU0Li4yOTc4NjEwNjRkZDggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-bnZtZS90YXJnZXQvbnZtZXQuaAorKysgYi9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmgKQEAg
-LTg0LDYgKzg0LDExIEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IG52bWV0X25zICp0b19udm1ldF9u
-cyhzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0ZW0pCiAJcmV0dXJuIGNvbnRhaW5lcl9vZih0b19jb25m
-aWdfZ3JvdXAoaXRlbSksIHN0cnVjdCBudm1ldF9ucywgZ3JvdXApOwogfQogCitzdGF0aWMgaW5s
-aW5lIHN0cnVjdCBkZXZpY2UgKm52bWV0X25zX2RldihzdHJ1Y3QgbnZtZXRfbnMgKm5zKQorewor
-CXJldHVybiBkaXNrX3RvX2Rldihucy0+YmRldi0+YmRfZGlzayk7Cit9CisKIHN0cnVjdCBudm1l
-dF9jcSB7CiAJdTE2CQkJcWlkOwogCXUxNgkJCXNpemU7CkBAIC0xMzQsNiArMTM5LDggQEAgc3Ry
-dWN0IG52bWV0X3BvcnQgewogCXZvaWQJCQkJKnByaXY7CiAJYm9vbAkJCQllbmFibGVkOwogCWlu
-dAkJCQlpbmxpbmVfZGF0YV9zaXplOworCWJvb2wJCQkJdXNlX3AycG1lbTsKKwlzdHJ1Y3QgcGNp
-X2RldgkJCSpwMnBfZGV2OwogfTsKIAogc3RhdGljIGlubGluZSBzdHJ1Y3QgbnZtZXRfcG9ydCAq
-dG9fbnZtZXRfcG9ydChzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0ZW0pCkBAIC0xODIsNiArMTg5LDkg
-QEAgc3RydWN0IG52bWV0X2N0cmwgewogCV9fbGUzMgkJCSpjaGFuZ2VkX25zX2xpc3Q7CiAJdTMy
-CQkJbnJfY2hhbmdlZF9uczsKIAorCXN0cnVjdCBwY2lfZGV2CQkqcDJwX2RldjsKKwlzdHJ1Y3Qg
-bGlzdF9oZWFkCXAycF9jbGllbnRzOworCiAJY2hhcgkJCXN1YnN5c25xbltOVk1GX05RTl9GSUVM
-RF9MRU5dOwogCWNoYXIJCQlob3N0bnFuW05WTUZfTlFOX0ZJRUxEX0xFTl07CiB9OwpAQCAtMjk0
-LDYgKzMwNCw5IEBAIHN0cnVjdCBudm1ldF9yZXEgewogCiAJdm9pZCAoKmV4ZWN1dGUpKHN0cnVj
-dCBudm1ldF9yZXEgKnJlcSk7CiAJY29uc3Qgc3RydWN0IG52bWV0X2ZhYnJpY3Nfb3BzICpvcHM7
-CisKKwlzdHJ1Y3QgcGNpX2RldiAqcDJwX2RldjsKKwlzdHJ1Y3QgZGV2aWNlICpwMnBfY2xpZW50
-OwogfTsKIAogZXh0ZXJuIHN0cnVjdCB3b3JrcXVldWVfc3RydWN0ICpidWZmZXJlZF9pb193cTsK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZtZS90YXJnZXQvcmRtYS5jIGIvZHJpdmVycy9udm1lL3Rh
-cmdldC9yZG1hLmMKaW5kZXggZTE0OGRlZTcyYmE1Li41YzljYjc1MmUyZWQgMTAwNjQ0Ci0tLSBh
-L2RyaXZlcnMvbnZtZS90YXJnZXQvcmRtYS5jCisrKyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvcmRt
-YS5jCkBAIC03MzUsNiArNzM1LDggQEAgc3RhdGljIHZvaWQgbnZtZXRfcmRtYV9oYW5kbGVfY29t
-bWFuZChzdHJ1Y3QgbnZtZXRfcmRtYV9xdWV1ZSAqcXVldWUsCiAJCWNtZC0+c2VuZF9zZ2UuYWRk
-ciwgY21kLT5zZW5kX3NnZS5sZW5ndGgsCiAJCURNQV9UT19ERVZJQ0UpOwogCisJY21kLT5yZXEu
-cDJwX2NsaWVudCA9ICZxdWV1ZS0+ZGV2LT5kZXZpY2UtPmRldjsKKwogCWlmICghbnZtZXRfcmVx
-X2luaXQoJmNtZC0+cmVxLCAmcXVldWUtPm52bWVfY3EsCiAJCQkmcXVldWUtPm52bWVfc3EsICZu
-dm1ldF9yZG1hX29wcykpCiAJCXJldHVybjsKLS0gCjIuMTEuMAoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+Add support for setting and/or updating passphrase on the Intel nvdimms.
+The passphrase is pulled from userspace through the kernel key management.
+We trigger the update via writing "update" to the sysfs attribute
+"security". The state of the security can also be read via the "security"
+attribute. libnvdimm will generically support the key_change API call.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/acpi/nfit/intel.c  |   68 ++++++++++++
+ drivers/nvdimm/dimm_devs.c |  255 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    5 +
+ 3 files changed, 328 insertions(+)
+
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 4bfc1c1da339..314eae7e02d7 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,73 @@
+ #include "intel.h"
+ #include "nfit.h"
+ 
++/*
++ * The update passphrase takes the old passphrase and the new passphrase
++ * and send those to the nvdimm. The nvdimm will verify the old
++ * passphrase and then update it with the new passphrase if pending
++ * verification. The function will pass in a zeroed passphrase field
++ * if the old passphrase is NULL. This typically happens when we are
++ * enabling security from the disabled state.
++ */
++static int intel_dimm_security_update_passphrase(
++		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *old_data,
++		const struct nvdimm_key_data *new_data)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_set_passphrase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_SET_PASSPHRASE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	if (old_data)
++		memcpy(nd_cmd.cmd.old_pass, old_data->data,
++				sizeof(nd_cmd.cmd.old_pass));
++	else
++		memset(nd_cmd.cmd.old_pass, 0, sizeof(nd_cmd.cmd.old_pass));
++	memcpy(nd_cmd.cmd.new_pass, new_data->data,
++			sizeof(nd_cmd.cmd.new_pass));
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		rc = -EINVAL;
++		goto out;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_unlock(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
+ {
+@@ -149,4 +216,5 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ const struct nvdimm_security_ops intel_security_ops = {
+ 	.state = intel_dimm_security_state,
+ 	.unlock = intel_dimm_security_unlock,
++	.change_key = intel_dimm_security_update_passphrase,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 8204b2ac0457..af0f4ad9d513 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -20,6 +20,7 @@
+ #include <linux/mm.h>
+ #include <linux/key.h>
+ #include <linux/init_task.h>
++#include <linux/key-type.h>
+ #include <keys/user-type.h>
+ #include "nd-core.h"
+ #include "label.h"
+@@ -51,6 +52,57 @@ static struct key *nvdimm_get_key(struct device *dev)
+ 	return nvdimm->key;
+ }
+ 
++/*
++ * Replacing the user key with a kernel key
++ */
++static struct key *nvdimm_replace_key(struct key *key)
++{
++	struct key *new_key;
++	struct user_key_payload *payload;
++	int rc;
++
++	new_key = key_alloc(&key_type_logon, key->description,
++			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, &init_cred, 0,
++			KEY_ALLOC_NOT_IN_QUOTA, NULL);
++	if (IS_ERR(new_key))
++		return NULL;
++
++	down_read(&key->sem);
++	payload = key->payload.data[0];
++	rc = key_instantiate_and_link(new_key, payload->data, key->datalen,
++			nvdimm_keyring, NULL);
++	up_read(&key->sem);
++	if (rc < 0) {
++		key_revoke(new_key);
++		key_put(new_key);
++		return NULL;
++	}
++
++	key_invalidate(key);
++	key_put(key);
++
++	return new_key;
++}
++
++/*
++ * Retrieve user injected key
++ */
++static struct key *nvdimm_lookup_user_key(struct device *dev,
++		key_serial_t id)
++{
++	key_ref_t keyref;
++	struct key *key;
++
++	keyref = lookup_user_key(id, 0, 0);
++	if (IS_ERR(keyref))
++		return NULL;
++
++	key = key_ref_to_ptr(keyref);
++	dev_dbg(dev, "%s: key found: %d\n", __func__, key_serial(key));
++
++	return key;
++}
++
+ /*
+  * Retrieve kernel key for DIMM and request from user space if necessary.
+  */
+@@ -151,6 +203,95 @@ int nvdimm_security_unlock_dimm(struct device *dev)
+ 	return rc;
+ }
+ 
++static int nvdimm_security_change_key(struct device *dev,
++		unsigned int old_keyid, unsigned int new_keyid)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key = NULL, *old_key = NULL;
++	int rc;
++	void *old_data, *new_data;
++	bool update = false;
++	struct user_key_payload *payload;
++
++	if (!nvdimm->security_ops)
++		return 0;
++
++	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
++		return -EBUSY;
++
++	/* look for a key from keyring if exists and remove */
++	if (old_keyid != 0) {
++		old_key = nvdimm_get_key(dev);
++		if (old_key) {
++			if (key_serial(old_key) != old_keyid) {
++				dev_warn(dev, "incorrect key id: %u\n",
++						old_keyid);
++				return -EINVAL;
++			}
++			dev_dbg(dev, "%s: old key: %#x\n",
++					__func__, key_serial(old_key));
++			update = true;
++		}
++	}
++
++	/* request new key from userspace */
++	key = nvdimm_lookup_user_key(dev, new_keyid);
++	if (!key) {
++		dev_dbg(dev, "%s: failed to acquire new key\n", __func__);
++		rc = -ENXIO;
++		goto out;
++	}
++
++	dev_dbg(dev, "%s: new key: %#x\n", __func__, key_serial(key));
++
++	rc = nvdimm_check_key_len(key->datalen, update);
++	if (rc < 0)
++		goto out;
++
++	if (!update)
++		key = nvdimm_replace_key(key);
++
++	if (!key)
++		goto out;
++
++	payload = key->payload.data[0];
++	if (!update) {
++		old_data = NULL;
++		new_data = payload->data;
++	} else {
++		new_data = payload->data;
++		old_data = new_data + NVDIMM_PASSPHRASE_LEN;
++	}
++
++	down_read(&key->sem);
++	rc = nvdimm->security_ops->change_key(nvdimm_bus, nvdimm, old_data,
++			new_data);
++	/* copy new payload to old payload */
++	if (rc == 0) {
++		if (update)
++			key_update(make_key_ref(old_key, 1), new_data,
++					old_key->datalen);
++	} else
++		dev_warn(dev, "key update failed\n");
++	up_read(&key->sem);
++
++	if (update)
++		key_invalidate(key);
++	else {
++		key_link(nvdimm_keyring, key);
++		nvdimm->key = key;
++	}
++	nvdimm_security_get_state(dev);
++
++ out:
++	if (old_key)
++		key_put(old_key);
++	if (key)
++		key_put(key);
++	return rc;
++}
++
+ /*
+  * Retrieve bus and dimm handle and return if this bus supports
+  * get_config_data commands
+@@ -508,11 +649,125 @@ static ssize_t available_slots_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(available_slots);
+ 
++static ssize_t security_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++
++	switch (nvdimm->state) {
++	case NVDIMM_SECURITY_DISABLED:
++		return sprintf(buf, "disabled\n");
++	case NVDIMM_SECURITY_UNLOCKED:
++		return sprintf(buf, "unlocked\n");
++	case NVDIMM_SECURITY_LOCKED:
++		return sprintf(buf, "locked\n");
++	case NVDIMM_SECURITY_FROZEN:
++		return sprintf(buf, "frozen\n");
++	case NVDIMM_SECURITY_UNSUPPORTED:
++	default:
++		return sprintf(buf, "unsupported\n");
++	}
++
++	return -ENOTTY;
++}
++
++/*
++ * The update command:
++ *	update:<old_id>:<new_id>
++ */
++#define STR_UPDATE_LEN		6
++/* ":0:0" */
++#define NVDIMM_UPDATE_MIN_LEN	STR_UPDATE_LEN + 4
++
++static int __parse_update(const char *buf, size_t len, unsigned int *old_id,
++		unsigned int *new_id)
++{
++	int i, rc = 0;
++	const char *tmp, *old_idstr;
++	char *desc;
++	size_t buf_len;
++
++	if (len < NVDIMM_UPDATE_MIN_LEN)
++		return -EINVAL;
++
++	desc = kmemdup_nul(buf, STR_UPDATE_LEN, GFP_KERNEL);
++	if (!desc)
++		return -EINVAL;
++
++	if (strcmp(desc, "update") != 0) {
++		rc = -ENOMEM;
++		goto free_desc;
++	}
++
++	tmp = &buf[STR_UPDATE_LEN];
++	if (*tmp != ':') {
++		rc = -EINVAL;
++		goto free_desc;
++	}
++
++	tmp++;
++
++	buf_len = len - STR_UPDATE_LEN - 1;
++	for (i = 0; i < buf_len; i++) {
++		if (tmp[i] == ':')
++			break;
++	}
++
++	old_idstr = kmemdup_nul(tmp, i, GFP_KERNEL);
++	if (!old_idstr) {
++		rc = -ENOMEM;
++		goto free_desc;
++	}
++
++	rc = kstrtouint(old_idstr, 0, old_id);
++	if (rc < 0)
++		goto free_old;
++
++	tmp += i + 1;
++
++	rc = kstrtouint(tmp, 0, new_id);
++	if (rc < 0)
++		goto free_old;
++
++free_old:
++	kfree(old_idstr);
++free_desc:
++	kfree(desc);
++	return rc;
++}
++
++static ssize_t security_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	ssize_t rc = -EINVAL;
++	unsigned int new_id, old_id;
++
++        wait_nvdimm_bus_probe_idle(&nvdimm_bus->dev);
++        if (atomic_read(&nvdimm->busy))
++                return -EBUSY;
++
++	if (__parse_update(buf, len, &old_id, &new_id) == 0) {
++		dev_dbg(dev, "update: old: %u new: %u\n", old_id, new_id);
++		rc = nvdimm_security_change_key(dev, old_id, new_id);
++	} else
++		return -EINVAL;
++
++	if (rc == 0)
++		rc = len;
++
++	return rc;
++}
++static DEVICE_ATTR_RW(security);
++
+ static struct attribute *nvdimm_attributes[] = {
+ 	&dev_attr_state.attr,
+ 	&dev_attr_flags.attr,
+ 	&dev_attr_commands.attr,
+ 	&dev_attr_available_slots.attr,
++	&dev_attr_security.attr,
+ 	NULL,
+ };
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 257ff2637ce1..bd6a413164ee 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -160,6 +160,7 @@ enum nvdimm_security_state {
+ 	NVDIMM_SECURITY_DISABLED,
+ 	NVDIMM_SECURITY_UNLOCKED,
+ 	NVDIMM_SECURITY_LOCKED,
++	NVDIMM_SECURITY_FROZEN,
+ 	NVDIMM_SECURITY_UNSUPPORTED,
+ };
+ 
+@@ -177,6 +178,10 @@ struct nvdimm_security_ops {
+ 	int (*unlock)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *nkey);
++	int (*change_key)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *old_data,
++			const struct nvdimm_key_data *new_data);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
