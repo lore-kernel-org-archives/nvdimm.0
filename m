@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79810210D8528
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 10:27:21 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl,
- inject-smart: continue in spite of errors for uninject-all
-Date: Fri,  3 Aug 2018 11:27:11 -0600
-Message-Id: <20180803172712.3219-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EB42F210D93B1
+ for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:17 -0700 (PDT)
+Subject: [PATCH v7 10/12] nfit_test: add context to dimm_dev for nfit_test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 03 Aug 2018 17:02:05 -0700
+Message-ID: <153334092552.60955.15962378697541868001.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,117 +18,129 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When the missing command submissions for ctrl-temperature were added to
-inject-smart, as a side effect, uninject-all also started trying to
-uninject ctrl-temperature. Since DSMs for smart injection for certain
-platforms don't support ctrl-temperature injection, this failed the
-command.
+In order to access the nfit_test context via sideband sysfs knobs, the
+dimm_dev needs to be more than struct device in order to point back to
+struct nfit_test. Wrapping the original struct device with a struct
+nfit_dimm_dev and saving the nfit_test as private driver data. Also
+changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
+saving as private driver data of that device. This is in preparation for
+adding security DSM support and allowing the locking of DIMMs for testing
+via sideband.
 
-For the uninject-all command, add a sctx flag that allows command
-submissions to continue in spite of errors. The error messages are still
-printed out, so they are not lost. This way, uninject-all does a
-best-effort uninjection of all fields, even if some fields are
-unsupported by the given platform.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/inject-smart.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index 56c39ab..d60bbf1 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -54,6 +54,7 @@ static struct parameters {
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 18157b0c0d0d..7b3ce2194889 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -150,6 +150,11 @@ struct nfit_test_fw {
+ 	u64 end_time;
+ };
  
- static struct smart_ctx {
- 	bool alarms_present;
-+	bool err_continue;
- 	unsigned long op_mask;
- 	unsigned long flags;
- 	unsigned int media_temperature;
-@@ -220,6 +221,7 @@ static int smart_init(void)
++struct nfit_dimm_dev {
++	struct device dev;
++	struct nfit_mem *nfit_mem;
++};
++
+ struct nfit_test {
+ 	struct acpi_nfit_desc acpi_desc;
+ 	struct platform_device pdev;
+@@ -181,7 +186,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
+-	struct device *dimm_dev[NUM_DCR];
++	struct nfit_dimm_dev dimm_dev[NUM_DCR];
+ 	struct nd_intel_smart *smart;
+ 	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+@@ -981,7 +986,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			case ND_INTEL_SMART_INJECT:
+ 				rc = nfit_test_cmd_smart_inject(buf,
+@@ -989,7 +995,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			default:
+ 				return -ENOTTY;
+@@ -1187,8 +1194,7 @@ static void put_dimms(void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < t->num_dcr; i++)
+-		if (t->dimm_dev[i])
+-			device_unregister(t->dimm_dev[i]);
++		device_unregister(&t->dimm_dev[i].dev);
+ }
+ 
+ static struct class *nfit_test_dimm;
+@@ -1290,19 +1296,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++static void dimm_dev_release(struct device *dev)
++{
++}
++
+ static int nfit_test_dimm_init(struct nfit_test *t)
  {
- 	if (param.human)
- 		sctx.flags |= UTIL_JSON_HUMAN;
-+	sctx.err_continue = false;
+-	int i;
++	int i, rc;
  
- 	/* setup attributes and thresholds except alarm_control */
- 	smart_param_setup_temps(media_temperature)
-@@ -244,6 +246,7 @@ static int smart_init(void)
- 		param.spares_uninject = true;
- 		param.fatal_uninject = true;
- 		param.unsafe_shutdown_uninject = true;
-+		sctx.err_continue = true;
+ 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
+ 		return -ENOMEM;
+ 	for (i = 0; i < t->num_dcr; i++) {
+-		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
+-				&t->pdev.dev, 0, NULL,
+-				nfit_test_dimm_attribute_groups,
+-				"test_dimm%d", i + t->dcr_idx);
+-		if (!t->dimm_dev[i])
+-			return -ENOMEM;
++		t->dimm_dev[i].dev.parent = &t->pdev.dev;
++		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
++				i + t->dcr_idx);
++		t->dimm_dev[i].dev.class = nfit_test_dimm;
++		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
++		t->dimm_dev[i].dev.release = dimm_dev_release;
++		rc = device_register(&t->dimm_dev[i].dev);
++		if (rc < 0)
++			return rc;
++		dev_set_drvdata(&t->dimm_dev[i].dev, t);
  	}
- 	smart_param_setup_uninj(media_temperature)
- 	smart_param_setup_uninj(ctrl_temperature)
-@@ -337,7 +340,8 @@ out:
- 		si_cmd = ndctl_dimm_cmd_new_smart_inject(dimm); \
- 		if (!si_cmd) { \
- 			error("%s: no smart inject command support\n", name); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		if (param.arg##_uninject) \
- 			enable = false; \
-@@ -345,13 +349,15 @@ out:
- 		if (rc) { \
- 			error("%s: smart inject %s cmd invalid: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		rc = ndctl_cmd_submit(si_cmd); \
- 		if (rc) { \
- 			error("%s: smart inject %s command failed: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		ndctl_cmd_unref(si_cmd); \
- 	} \
-@@ -365,7 +371,8 @@ out:
- 		si_cmd = ndctl_dimm_cmd_new_smart_inject(dimm); \
- 		if (!si_cmd) { \
- 			error("%s: no smart inject command support\n", name); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		if (param.arg##_uninject) \
- 			enable = false; \
-@@ -373,13 +380,15 @@ out:
- 		if (rc) { \
- 			error("%s: smart inject %s cmd invalid: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		rc = ndctl_cmd_submit(si_cmd); \
- 		if (rc) { \
- 			error("%s: smart inject %s command failed: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
--			goto out; \
-+			if (sctx.err_continue == false) \
-+				goto out; \
- 		} \
- 		ndctl_cmd_unref(si_cmd); \
- 	} \
--- 
-2.14.4
+ 	return 0;
+ }
+@@ -2665,8 +2679,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 
+ 		for (i = 0; i < NUM_DCR; i++)
+ 			if (nfit_handle == handle[i])
+-				dev_set_drvdata(nfit_test->dimm_dev[i],
+-						nfit_mem);
++				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
