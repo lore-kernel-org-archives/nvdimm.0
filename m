@@ -1,12 +1,10 @@
-From: Evelyn Watson <Evelyn.emdata-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
-Subject: Machine Learning Software-Users List
-Date: Fri, 3 Aug 2018 19:53:30 +0000
-Message-ID: <KL1PR03MB141344AE4D6410CE3AE2D577E7230@KL1PR03MB1413.apcprd03.prod.outlook.com>
+From: <gmd-wzCN7aUSXSrQXOPxS62xeg@public.gmane.org>
+Subject: New vacancies in our company
+Date: 6 Aug 2018 21:41:32 -0100
+Message-ID: <9847F40B012BB8FE21926D674DDE9847@PJHAQLTFNHS>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5897700065461130337=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,33 +14,58 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
+--===============5897700065461130337==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
 
-Hope you are doing great. I am Evelyn Watson.
+Dear Job Seeker,
 
-I will keep my mail short and to the point. I am writing this mail to you because we can provide you the users list of all Machine Learning Software and Vendors as well as your competitor's users in this field too.
+Position Name: Project Manager (Supply Chain); 
 
-Our data field consists of: Contacts Name, Job Title, Email Address, Phone Number, Fax Number, Company Details and Technology Type.
+Company: DSC Logistics
+Functional area: Logistics Services;
 
-We have also the users list of below top software in Machine Learning Software:
+Area of Interest: Logistics Services; 
+Salary: $98,000/year; 
+Job Offer Available: 15th August 2018;
+
+Job Type: Permanent Position;
+Location: USA/15 States (can be telecommute)
+Travel Requirement: All in state
+The Position: This position is in the area of Project Management. 
+You will manage all aspects of production planning and scheduling.
+ 
+The position requires a manager who can manage projects in 
+different areas across the business such as procurement and become a liaison between company and our clients. 
+ 
+Experience/Skills Required: 
+- US citizen only! 
+- Bachelor Degree
+- Highly proficient in MS software
+- Ability to multi-task
+- Excellent written and verbal skills
+- Desired management experience in performance management. 
+
+If you are interested in the position, please respond with your CV and resume attached.
+
+Our contact: usa_newoffer-AGGo3dMu3oE@public.gmane.org
+
+Thank you!
 
 
-  *   scikit-learn
-  *   Pybrain
-  *   BigML
-  *   Floyd Hub
-  *   Microsoft Bing Image Search API and Many More like this across the world as per your need
+--===============5897700065461130337==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-We are mainly specialized in technology Industry database currently holding 3200+ application users type.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-Please do let me know if you are looking for any other Technology/Software/Application users list.
-
-I will be looking forward for your response on this. Thank you.
-
-Regards,
-Evelyn Watson| Senior Demand Generation
-
-If you do not wish to receive future emails from us, please reply as 'leave out'
+--===============5897700065461130337==--
