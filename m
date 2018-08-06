@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk0-x241.google.com (mail-qk0-x241.google.com
- [IPv6:2607:f8b0:400d:c09::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 94EC9210D6CE2
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 01:44:15 -0700 (PDT)
-Received: by mail-qk0-x241.google.com with SMTP id c126-v6so1000272qkd.7
- for <linux-nvdimm@lists.01.org>; Thu, 02 Aug 2018 01:44:15 -0700 (PDT)
-From: oceanhehy@gmail.com
-Subject: [PATCH v2] ACPI: nfit: remove redundant assignment if nfit_mem found
-Date: Thu,  2 Aug 2018 04:44:04 -0400
-Message-Id: <1533199444-29607-1-git-send-email-oceanhehy@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7F92C210C125A
+ for <linux-nvdimm@lists.01.org>; Mon,  6 Aug 2018 02:21:10 -0700 (PDT)
+Date: Mon, 6 Aug 2018 11:21:07 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v6 09/13] filesystem-dax: Introduce
+ dax_lock_mapping_entry()
+Message-ID: <20180806092107.ipenq22xxna6ts5i@quack2.suse.cz>
+References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,48 +21,234 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+On Fri 13-07-18 21:50:16, Dan Williams wrote:
+> In preparation for implementing support for memory poison (media error)
+> handling via dax mappings, implement a lock_page() equivalent. Poison
+> error handling requires rmap and needs guarantees that the page->mapping
+> association is maintained / valid (inode not freed) for the duration of
+> the lookup.
+> 
+> In the device-dax case it is sufficient to simply hold a dev_pagemap
+> reference. In the filesystem-dax case we need to use the entry lock.
+> 
+> Export the entry lock via dax_lock_mapping_entry() that uses
+> rcu_read_lock() to protect against the inode being freed, and
+> revalidates the page->mapping association under xa_lock().
+> 
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-When nfit_mem is found via list_for_each_entry, it has already been
-assigned valid value. There is no need to assign it again in the following
-codes.
+Just got back from vacation... This patch looks good to me. You can add:
 
-Signed-off-by: Ocean He <hehy1@lenovo.com>
----
-v1: https://patchwork.kernel.org/patch/10553277/
-v2: Sorry for noise. I got an email problem, so I have to resend to loop 
-linux-nvdimm@lists.01.org.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
- drivers/acpi/nfit/core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+								Honza
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7c47900..85dde54 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1048,9 +1048,7 @@ static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
- 				break;
- 			}
- 
--		if (found)
--			nfit_mem = found;
--		else {
-+		if (!found) {
- 			nfit_mem = devm_kzalloc(acpi_desc->dev,
- 					sizeof(*nfit_mem), GFP_KERNEL);
- 			if (!nfit_mem)
+
+> ---
+>  fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
+>  include/linux/dax.h |   13 ++++++
+>  2 files changed, 116 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 4de11ed463ce..57ec272038da 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
+>   *
+>   * Must be called with the i_pages lock held.
+>   */
+> -static void *get_unlocked_mapping_entry(struct address_space *mapping,
+> -					pgoff_t index, void ***slotp)
+> +static void *__get_unlocked_mapping_entry(struct address_space *mapping,
+> +		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
+>  {
+>  	void *entry, **slot;
+>  	struct wait_exceptional_entry_queue ewait;
+> @@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+>  	ewait.wait.func = wake_exceptional_entry_func;
+>  
+>  	for (;;) {
+> +		bool revalidate;
+> +
+>  		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
+>  					  &slot);
+>  		if (!entry ||
+> @@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
+>  		prepare_to_wait_exclusive(wq, &ewait.wait,
+>  					  TASK_UNINTERRUPTIBLE);
+>  		xa_unlock_irq(&mapping->i_pages);
+> -		schedule();
+> +		revalidate = wait_fn();
+>  		finish_wait(wq, &ewait.wait);
+>  		xa_lock_irq(&mapping->i_pages);
+> +		if (revalidate)
+> +			return ERR_PTR(-EAGAIN);
+>  	}
+>  }
+>  
+> -static void dax_unlock_mapping_entry(struct address_space *mapping,
+> -				     pgoff_t index)
+> +static bool entry_wait(void)
+> +{
+> +	schedule();
+> +	/*
+> +	 * Never return an ERR_PTR() from
+> +	 * __get_unlocked_mapping_entry(), just keep looping.
+> +	 */
+> +	return false;
+> +}
+> +
+> +static void *get_unlocked_mapping_entry(struct address_space *mapping,
+> +		pgoff_t index, void ***slotp)
+> +{
+> +	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
+> +}
+> +
+> +static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
+>  {
+>  	void *entry, **slot;
+>  
+> @@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
+>  static void put_locked_mapping_entry(struct address_space *mapping,
+>  		pgoff_t index)
+>  {
+> -	dax_unlock_mapping_entry(mapping, index);
+> +	unlock_mapping_entry(mapping, index);
+>  }
+>  
+>  /*
+> @@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
+>  	return NULL;
+>  }
+>  
+> +static bool entry_wait_revalidate(void)
+> +{
+> +	rcu_read_unlock();
+> +	schedule();
+> +	rcu_read_lock();
+> +
+> +	/*
+> +	 * Tell __get_unlocked_mapping_entry() to take a break, we need
+> +	 * to revalidate page->mapping after dropping locks
+> +	 */
+> +	return true;
+> +}
+> +
+> +bool dax_lock_mapping_entry(struct page *page)
+> +{
+> +	pgoff_t index;
+> +	struct inode *inode;
+> +	bool did_lock = false;
+> +	void *entry = NULL, **slot;
+> +	struct address_space *mapping;
+> +
+> +	rcu_read_lock();
+> +	for (;;) {
+> +		mapping = READ_ONCE(page->mapping);
+> +
+> +		if (!dax_mapping(mapping))
+> +			break;
+> +
+> +		/*
+> +		 * In the device-dax case there's no need to lock, a
+> +		 * struct dev_pagemap pin is sufficient to keep the
+> +		 * inode alive, and we assume we have dev_pagemap pin
+> +		 * otherwise we would not have a valid pfn_to_page()
+> +		 * translation.
+> +		 */
+> +		inode = mapping->host;
+> +		if (S_ISCHR(inode->i_mode)) {
+> +			did_lock = true;
+> +			break;
+> +		}
+> +
+> +		xa_lock_irq(&mapping->i_pages);
+> +		if (mapping != page->mapping) {
+> +			xa_unlock_irq(&mapping->i_pages);
+> +			continue;
+> +		}
+> +		index = page->index;
+> +
+> +		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
+> +				entry_wait_revalidate);
+> +		if (!entry) {
+> +			xa_unlock_irq(&mapping->i_pages);
+> +			break;
+> +		} else if (IS_ERR(entry)) {
+> +			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
+> +			continue;
+> +		}
+> +		lock_slot(mapping, slot);
+> +		did_lock = true;
+> +		xa_unlock_irq(&mapping->i_pages);
+> +		break;
+> +	}
+> +	rcu_read_unlock();
+> +
+> +	return did_lock;
+> +}
+> +
+> +void dax_unlock_mapping_entry(struct page *page)
+> +{
+> +	struct address_space *mapping = page->mapping;
+> +	struct inode *inode = mapping->host;
+> +
+> +	if (S_ISCHR(inode->i_mode))
+> +		return;
+> +
+> +	unlock_mapping_entry(mapping, page->index);
+> +}
+> +
+>  /*
+>   * Find radix tree entry at given index. If it points to an exceptional entry,
+>   * return it with the radix tree entry locked. If the radix tree doesn't
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 3855e3800f48..cf8ac51cf0d7 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+>  		struct block_device *bdev, struct writeback_control *wbc);
+>  
+>  struct page *dax_layout_busy_page(struct address_space *mapping);
+> +bool dax_lock_mapping_entry(struct page *page);
+> +void dax_unlock_mapping_entry(struct page *page);
+>  #else
+>  static inline bool bdev_dax_supported(struct block_device *bdev,
+>  		int blocksize)
+> @@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> +
+> +static inline bool dax_lock_mapping_entry(struct page *page)
+> +{
+> +	if (IS_DAX(page->mapping->host))
+> +		return true;
+> +	return false;
+> +}
+> +
+> +static inline void dax_unlock_mapping_entry(struct page *page)
+> +{
+> +}
+>  #endif
+>  
+>  int dax_read_lock(void);
+> 
 -- 
-1.8.3.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
