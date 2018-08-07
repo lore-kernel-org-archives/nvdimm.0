@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE31E21103987
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:52:30 -0700 (PDT)
-Subject: [PATCH v3 5/6] ndctl: add support for sanitize dimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:52:13 -0700
-Message-ID: <153549673298.5723.9236311781816609734.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
-References: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2BAD9210DF5D4
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 16:35:48 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 2/2] ndctl, intel: Fallback to smart cached shutdown_count
+Date: Tue, 7 Aug 2018 23:35:47 +0000
+Message-ID: <1533684945.18175.56.camel@intel.com>
+References: <20180807222656.14346-1-keith.busch@intel.com>
+ <20180807222656.14346-2-keith.busch@intel.com>
+In-Reply-To: <20180807222656.14346-2-keith.busch@intel.com>
+Content-Language: en-US
+Content-ID: <289B4668BF759C4A9659FFEFBEBC2DFA@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,218 +25,105 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, linux-nvdimm@lists.01.org
+To: "Busch, Keith" <keith.busch@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to secure erase to libndctl and also command line option
-of "sanitize" for ndctl. This will initiate the request to crypto
-erase a DIMM. ndctl does not actually handle the verification of the
-security. That is handled by the kernel and the key upcall mechanism.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/Makefile.am        |    3 +-
- Documentation/ndctl/ndctl-sanitize.txt |   32 +++++++++++++++++++++++
- builtin.h                              |    1 +
- ndctl/dimm.c                           |   44 ++++++++++++++++++++++++++++++++
- ndctl/lib/dimm.c                       |    5 ++++
- ndctl/lib/libndctl.sym                 |    1 +
- ndctl/libndctl.h                       |    1 +
- ndctl/ndctl.c                          |    1 +
- 8 files changed, 87 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-sanitize.txt
+On Tue, 2018-08-07 at 16:26 -0600, Keith Busch wrote:
+> A user space rule saves the unsafe shutdown count to a fixed location
+> for Intel dimms so that non-root users can read it. If the smart command
+> submission fails, this patch uses that saved value in a newly added
+> ndctl_cmd "handle_error" callback.  If the cached value is available,
+> the error handler will override the command status to success, and set
+> the valid flags for the shutdown count.
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  ndctl/lib/intel.c    | 34 +++++++++++++++++++++++++++++++++-
+>  ndctl/lib/libndctl.c |  2 ++
+>  ndctl/lib/private.h  |  1 +
+>  3 files changed, 36 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 3a761ba0..8c171ecb 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -50,7 +50,8 @@ man1_MANS = \
- 	ndctl-monitor.1 \
- 	ndctl-update-security.1 \
- 	ndctl-disable-security.1 \
--	ndctl-freeze-security.1
-+	ndctl-freeze-security.1 \
-+	ndctl-sanitize.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-sanitize.txt b/Documentation/ndctl/ndctl-sanitize.txt
-new file mode 100644
-index 00000000..376487fa
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-sanitize.txt
-@@ -0,0 +1,32 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-sanitize(1)
-+=================
-+
-+NAME
-+----
-+ndctl-sanitize - sanitize the data on the NVDIMM
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl sanitize' <dimm> [<options>]
-+
-+OPTIONS
-+-------
-+<dimm>::
-+include::xable-dimm-options.txt[]
-+
-+-m::
-+--method::
-+	The method for sanitizing the dimm content.
-+
-+	crypto-erase: replaces encryption keys. This does not change label data.
-+
-+DESCRIPTION
-+-----------
-+Provide a generic interface to crypto erase a NVDIMM.
-+The use of this depends on support from the underlying
-+libndctl, kernel, as well as the platform itself.
-+
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 7b970e10..f43988af 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -51,4 +51,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_key_update(int argc, const char **argv, void *ctx);
- int cmd_disable_security(int argc, const char **argv, void *ctx);
- int cmd_freeze_security(int argc, const char **argv, void *ctx);
-+int cmd_sanitize(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 432ead74..c1321d39 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -46,6 +46,7 @@ static struct parameters {
- 	const char *infile;
- 	const char *labelversion;
- 	const char *key_exec;
-+	const char *sanitize_method;
- 	bool force;
- 	bool json;
- 	bool verbose;
-@@ -903,6 +904,29 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
- 	return rc;
- }
- 
-+static int action_sanitize(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (!param.sanitize_method) {
-+		error("No sanitize_method passed in\n");
-+		return -EINVAL;
-+	}
-+
-+	if (strcmp(param.sanitize_method, "crypto-erase") == 0) {
-+		rc = ndctl_dimm_secure_erase(dimm);
-+		if (rc < 0)
-+			error("Failed to secure erase for %s\n",
-+					ndctl_dimm_get_devname(dimm));
-+	} else {
-+		error("Incorrect sanitize method passed in.\n");
-+		return -EINVAL;
-+	}
-+
-+	return rc;
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -998,6 +1022,10 @@ OPT_BOOLEAN('i', "insecure", &param.key_insecure, \
- OPT_STRING('e', "exec", &param.key_exec, "external-exec", \
- 		"external exec module for passphrase update")
- 
-+#define SANITIZE_OPTIONS() \
-+OPT_STRING('m', "method", &param.sanitize_method, "sanitize-method", \
-+		"method for sanitize a dimm")
-+
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
- 	READ_OPTIONS(),
-@@ -1033,6 +1061,12 @@ static const struct option key_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option sanitize_options[] = {
-+	BASE_OPTIONS(),
-+	SANITIZE_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static int dimm_action(int argc, const char **argv, void *ctx,
- 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
- 		const struct option *options, const char *usage)
-@@ -1295,3 +1329,13 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_sanitize(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_sanitize, sanitize_options,
-+			"ndctl sanitize <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index b383127c..2a28e227 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -629,3 +629,8 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
- {
- 	return ndctl_dimm_write_security(dimm, "freeze");
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_write_security(dimm, "erase");
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index d543088f..2db49cad 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -387,4 +387,5 @@ global:
- 	ndctl_dimm_set_change_key;
- 	ndctl_dimm_disable_security;
- 	ndctl_dimm_freeze_security;
-+	ndctl_dimm_secure_erase;
- } LIBNDCTL_17;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 75364212..ef71cdd8 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -683,6 +683,7 @@ int ndctl_dimm_add_key(struct ndctl_dimm *dimm, const char *passphrase,
- int ndctl_dimm_get_current_key(struct ndctl_dimm *dimm, key_serial_t *key);
- int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
-+int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 7a242aab..07af7305 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
- 	{ "update-security", cmd_key_update },
- 	{ "disable-security", cmd_disable_security },
- 	{ "freeze-security", cmd_freeze_security },
-+	{ "sanitize", cmd_sanitize },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
+Looks good to me!
 
+> 
+> diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+> index 0abea1e..83f8203 100644
+> --- a/ndctl/lib/intel.c
+> +++ b/ndctl/lib/intel.c
+> @@ -56,6 +56,38 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
+>  	return cmd;
+>  }
+>  
+> +/*
+> + * If provided, read the cached shutdown count in case the user does not have
+> + * access rights to run the smart command, and pretend the command was
+> + * successful with only the shutdown_count valid.
+> + */
+> +static int intel_smart_handle_error(struct ndctl_cmd *cmd)
+> +{
+> +	struct ndctl_dimm *dimm = cmd->dimm;
+> +	char *path = NULL, shutdown_count[16] = {};
+> +	int fd, rc = cmd->status;
+> +
+> +	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
+> +		     ndctl_dimm_get_unique_id(dimm)) < 0)
+> +		return rc;
+> +
+> +	fd = open(path, O_RDONLY);
+> +	if (fd < 0)
+> +		goto free_path;
+> +
+> +	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
+> +		goto close;
+> +
+> +	cmd->intel->smart.flags = ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
+> +	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
+> +	rc = cmd->status = 0;
+> + close:
+> +	close (fd);
+> + free_path:
+> +	free(path);
+> +	return rc;
+> +}
+> +
+>  static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+>  {
+>  	struct ndctl_cmd *cmd;
+> @@ -67,7 +99,7 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+>  	if (!cmd)
+>  		return NULL;
+>  	cmd->firmware_status = &cmd->intel->smart.status;
+> -
+> +	cmd->handle_error = intel_smart_handle_error;
+>  	return cmd;
+>  }
+>  
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 47e005e..d94321e 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -2651,6 +2651,8 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+>  	close(fd);
+>   out:
+>  	cmd->status = rc;
+> +	if (rc && cmd->handle_error)
+> +		rc = cmd->handle_error(cmd);
+>  	return rc;
+>  }
+>  
+> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> index a94f894..5812c85 100644
+> --- a/ndctl/lib/private.h
+> +++ b/ndctl/lib/private.h
+> @@ -255,6 +255,7 @@ struct ndctl_cmd {
+>  		int dir;
+>  	} iter;
+>  	struct ndctl_cmd *source;
+> +	int (*handle_error)(struct ndctl_cmd *cmd);
+>  	union {
+>  		struct nd_cmd_ars_cap ars_cap[0];
+>  		struct nd_cmd_ars_start ars_start[0];
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
