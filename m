@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD014210E0F84
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 01:53:41 -0700 (PDT)
-Date: Wed, 8 Aug 2018 10:53:39 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 2/2] [PATCH] xfs: Close race between direct IO and
+ by ml01.01.org (Postfix) with ESMTPS id 45EAD210DF51F
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 15:11:45 -0700 (PDT)
+Subject: [PATCH 2/2] [PATCH] xfs: Close race between direct IO and
  xfs_break_layouts()
-Message-ID: <20180808085339.GD15413@quack2.suse.cz>
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 07 Aug 2018 15:11:43 -0700
+Message-ID: <153367990333.37314.16218849614019392916.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153367989755.37314.6889218648604435494.stgit@djiang5-desk3.ch.intel.com>
 References: <153367989755.37314.6889218648604435494.stgit@djiang5-desk3.ch.intel.com>
- <153367990333.37314.16218849614019392916.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <153367990333.37314.16218849614019392916.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,45 +23,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: lczerner@redhat.com, jack@suse.cz, linux-nvdimm@lists.01.org, darrick.wong@oracle.com, david@fromorbit.com, linux-xfs@vger.kernel.org, zwisler@kernel.org, linux-fsdevel@vger.kernel.org, tytso@mit.edu, linux-ext4@vger.kernel.org, hch@lst.de
+To: tytso@mit.edu, darrick.wong@oracle.com, jack@suse.cz, zwisler@kernel.org
+Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, lczerner@redhat.com, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 07-08-18 15:11:43, Dave Jiang wrote:
-> This patch is the duplicate of ross's fix for ext4 for xfs.
-> 
-> If the refcount of a page is lowered between the time that it is returned
-> by dax_busy_page() and when the refcount is again checked in
-> xfs_break_layouts() => ___wait_var_event(), the waiting function
-> xfs_wait_dax_page() will never be called.  This means that
-> xfs_break_layouts() will still have 'retry' set to false, so we'll stop
-> looping and never check the refcount of other pages in this inode.
-> 
-> Instead, always continue looping as long as dax_layout_busy_page() gives us
-> a page which it found with an elevated refcount.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This patch is the duplicate of ross's fix for ext4 for xfs.
 
-The patch looks good to me. You can add:
+If the refcount of a page is lowered between the time that it is returned
+by dax_busy_page() and when the refcount is again checked in
+xfs_break_layouts() => ___wait_var_event(), the waiting function
+xfs_wait_dax_page() will never be called.  This means that
+xfs_break_layouts() will still have 'retry' set to false, so we'll stop
+looping and never check the refcount of other pages in this inode.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Instead, always continue looping as long as dax_layout_busy_page() gives us
+a page which it found with an elevated refcount.
 
-Just one minor nit below:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ fs/xfs/xfs_file.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-> @@ -746,9 +744,10 @@ xfs_break_dax_layouts(
->  	if (!page)
->  		return 0;
->  
-> +	*did_unlock = true;
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index a3e7767a5715..666c93fe5284 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -721,12 +721,10 @@ xfs_file_write_iter(
+ 
+ static void
+ xfs_wait_dax_page(
+-	struct inode		*inode,
+-	bool			*did_unlock)
++	struct inode		*inode)
+ {
+ 	struct xfs_inode        *ip = XFS_I(inode);
+ 
+-	*did_unlock = true;
+ 	xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+ 	schedule();
+ 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+@@ -746,9 +744,10 @@ xfs_break_dax_layouts(
+ 	if (!page)
+ 		return 0;
+ 
++	*did_unlock = true;
+ 	return ___wait_var_event(&page->_refcount,
+ 			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+-			0, 0, xfs_wait_dax_page(inode, did_unlock));
++			0, 0, xfs_wait_dax_page(inode));
+ }
+ 
+ int
 
-I think it would be more understandable to name the argument of
-xfs_break_dax_layouts() as 'retry' instead of 'did_unlock' as it's not
-about unlocking anymore.
-
-							Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
