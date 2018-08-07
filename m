@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 07CE6210DF5EE
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 18:38:38 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id DC8BB210D97B2
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 02:11:22 -0700 (PDT)
+Date: Tue, 7 Aug 2018 11:11:20 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH V2 2/4] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
+Message-ID: <20180807091120.ybne44o2fy2mxcch@quack2.suse.cz>
 References: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
  <7e20d862f96662e1a7736dbb747a71949933dcd4.1531241281.git.yi.z.zhang@linux.intel.com>
- <20180807091120.ybne44o2fy2mxcch@quack2.suse.cz>
-From: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
-Message-ID: <60a42f73-1772-24eb-26f0-efd892b0487c@linux.intel.com>
-Date: Wed, 8 Aug 2018 17:22:42 +0800
 MIME-Version: 1.0
-In-Reply-To: <20180807091120.ybne44o2fy2mxcch@quack2.suse.cz>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <7e20d862f96662e1a7736dbb747a71949933dcd4.1531241281.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,57 +20,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: yu.c.zhang@intel.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, pbonzini@redhat.com, hch@lst.de, yi.z.zhang@intel.com
+To: Zhang Yi <yi.z.zhang@linux.intel.com>
+Cc: jack@suse.cz, yu.c.zhang@intel.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, pbonzini@redhat.com, hch@lst.de, yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAyMDE45bm0MDjmnIgwN+aXpSAxNzoxMSwgSmFuIEthcmEgd3JvdGU6Cj4gT24gV2VkIDEx
-LTA3LTE4IDAxOjAxOjU5LCBaaGFuZyBZaSB3cm90ZToKPj4gQ3VycmVudGx5LCBOVkRJTU0gcGFn
-ZXMgd2lsbCBiZSBtYXJrZWQgJ1BhZ2VSZXNlcnZlZCcuIEhvd2V2ZXIsIHVubGlrZQo+PiBvdGhl
-ciByZXNlcnZlZCBQRk5zLCBwYWdlcyBvbiBOVkRJTU0gc2hhbGwgc3RpbGwgYmVoYXZlIGxpa2Ug
-bm9ybWFsIG9uZXMKPj4gaW4gbWFueSBjYXNlcywgaS5lLiB3aGVuIHVzZWQgYXMgYmFja2VuZCBt
-ZW1vcnkgb2YgS1ZNIGd1ZXN0LiBUaGlzIHBhdGNoCj4+IGludHJvZHVjZXMgYSBuZXcgbWVtb3J5
-IHR5cGUsIE1FTU9SWV9ERVZJQ0VfREVWX0RBWC4gQW5kIHNldCB0aGlzIGZsYWcKPj4gd2hpbGUg
-ZGF4IGRyaXZlciBob3RwbHVnIHRoZSBkZXZpY2UgbWVtb3J5Lgo+Pgo+PiBTaWduZWQtb2ZmLWJ5
-OiBaaGFuZyBZaSA8eWkuei56aGFuZ0BsaW51eC5pbnRlbC5jb20+Cj4+IFNpZ25lZC1vZmYtYnk6
-IFpoYW5nIFl1IDx5dS5jLnpoYW5nQGxpbnV4LmludGVsLmNvbT4KPj4gLS0tCj4+ICBkcml2ZXJz
-L2RheC9wbWVtLmMgICAgICAgfCAxICsKPj4gIGluY2x1ZGUvbGludXgvbWVtcmVtYXAuaCB8IDkg
-KysrKysrKysrCj4+ICAyIGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKykKPj4KPj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvZGF4L3BtZW0uYyBiL2RyaXZlcnMvZGF4L3BtZW0uYwo+PiBpbmRl
-eCBmZDQ5YjI0Li5mYjNmMzYzIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL2RheC9wbWVtLmMKPj4g
-KysrIGIvZHJpdmVycy9kYXgvcG1lbS5jCj4+IEBAIC0xMTEsNiArMTExLDcgQEAgc3RhdGljIGlu
-dCBkYXhfcG1lbV9wcm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYpCj4+ICAJCXJldHVybiByYzsKPj4g
-IAo+PiAgCWRheF9wbWVtLT5wZ21hcC5yZWYgPSAmZGF4X3BtZW0tPnJlZjsKPj4gKwlkYXhfcG1l
-bS0+cGdtYXAudHlwZSA9IE1FTU9SWV9ERVZJQ0VfREVWX0RBWDsKPj4gIAlhZGRyID0gZGV2bV9t
-ZW1yZW1hcF9wYWdlcyhkZXYsICZkYXhfcG1lbS0+cGdtYXApOwo+PiAgCWlmIChJU19FUlIoYWRk
-cikpCj4+ICAJCXJldHVybiBQVFJfRVJSKGFkZHIpOwo+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9tZW1yZW1hcC5oIGIvaW5jbHVkZS9saW51eC9tZW1yZW1hcC5oCj4+IGluZGV4IDVlYmZm
-ZjYuLmEzNmJjZTggMTAwNjQ0Cj4+IC0tLSBhL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaAo+PiAr
-KysgYi9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmgKPj4gQEAgLTUzLDExICs1MywyMCBAQCBzdHJ1
-Y3Qgdm1lbV9hbHRtYXAgewo+PiAgICogd2FrZXVwIGV2ZW50IHdoZW5ldmVyIGEgcGFnZSBpcyB1
-bnBpbm5lZCBhbmQgYmVjb21lcyBpZGxlLiBUaGlzCj4+ICAgKiB3YWtldXAgaXMgdXNlZCB0byBj
-b29yZGluYXRlIHBoeXNpY2FsIGFkZHJlc3Mgc3BhY2UgbWFuYWdlbWVudCAoZXg6Cj4+ICAgKiBm
-cyB0cnVuY2F0ZS9ob2xlIHB1bmNoKSB2cyBwaW5uZWQgcGFnZXMgKGV4OiBkZXZpY2UgZG1hKS4K
-Pj4gKyAqCj4+ICsgKiBNRU1PUllfREVWSUNFX0RFVl9EQVg6Cj4+ICsgKiBEQVggZHJpdmVyIGhv
-dHBsdWcgdGhlIGRldmljZSBtZW1vcnkgYW5kIG1vdmUgaXQgdG8gbWVtb3J5IHpvbmUsIHRoZXNl
-Cj4+ICsgKiBwYWdlcyB3aWxsIGJlIG1hcmtlZCByZXNlcnZlZCBmbGFnLiBIb3dldmVyLCBzb21l
-IG90aGVyIGtlcm5lbCBjb21wb25ldAo+PiArICogd2lsbCBtaXNjb25jZWl2ZSB0aGVzZSBwYWdl
-cyBhcmUgcmVzZXJ2ZWQgbW1pbyAoZXg6IHdlIG1hcCB0aGVzZSBkZXZfZGF4Cj4+ICsgKiBvciBm
-c19kYXggcGFnZXMgdG8ga3ZtIGZvciBESU1NL05WRElNTSBiYWNrZW5kKS4gVG9nZXRoZXIgd2l0
-aCB0aGUgdHlwZQo+PiArICogTUVNT1JZX0RFVklDRV9GU19EQVgsIHdlIGNhbiBkaWZmZXJlbnRp
-YXRlIHRoZSBwYWdlcyBvbiBOVkRJTU0gd2l0aCB0aGUKPj4gKyAqIG5vcm1hbCByZXNlcnZlZCBw
-YWdlcy4KPiBTbyBJIGJlbGlldmUgdGhlIGRlc2NyaXB0aW9uIHNob3VsZCBiZSBpbiB0ZXJtcyBv
-ZiB3aGF0IGtpbmQgb2YgbWVtb3J5IGlzCj4gdGhlIE1FTU9SWV9ERVZJQ0VfREVWX0RBWCB0eXBl
-LCBub3QgaG93IHVzZXJzIHVzZSB0aGlzIHR5cGUuIFNlZSBjb21tZW50cwo+IGZvciBvdGhlciBt
-ZW1vcnkgdHlwZXMuLi4KPgo+IAkJCQkJCQkJSG9uemEKWWVzLCBhZ3JlZSwgdGhhbmtzIGZvciB5
-b3VyIGtpbmRseSByZXZpZXcuIEphbi4KPgo+PiAgICovCj4+ICBlbnVtIG1lbW9yeV90eXBlIHsK
-Pj4gIAlNRU1PUllfREVWSUNFX1BSSVZBVEUgPSAxLAo+PiAgCU1FTU9SWV9ERVZJQ0VfUFVCTElD
-LAo+PiAgCU1FTU9SWV9ERVZJQ0VfRlNfREFYLAo+PiArCU1FTU9SWV9ERVZJQ0VfREVWX0RBWCwK
-Pj4gIH07Cj4+ICAKPj4gIC8qCj4+IC0tIAo+PiAyLjcuNAo+PgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+On Wed 11-07-18 01:01:59, Zhang Yi wrote:
+> Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
+> other reserved PFNs, pages on NVDIMM shall still behave like normal ones
+> in many cases, i.e. when used as backend memory of KVM guest. This patch
+> introduces a new memory type, MEMORY_DEVICE_DEV_DAX. And set this flag
+> while dax driver hotplug the device memory.
+> 
+> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+> Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+> ---
+>  drivers/dax/pmem.c       | 1 +
+>  include/linux/memremap.h | 9 +++++++++
+>  2 files changed, 10 insertions(+)
+> 
+> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+> index fd49b24..fb3f363 100644
+> --- a/drivers/dax/pmem.c
+> +++ b/drivers/dax/pmem.c
+> @@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
+>  		return rc;
+>  
+>  	dax_pmem->pgmap.ref = &dax_pmem->ref;
+> +	dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
+>  	addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
+>  	if (IS_ERR(addr))
+>  		return PTR_ERR(addr);
+> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+> index 5ebfff6..a36bce8 100644
+> --- a/include/linux/memremap.h
+> +++ b/include/linux/memremap.h
+> @@ -53,11 +53,20 @@ struct vmem_altmap {
+>   * wakeup event whenever a page is unpinned and becomes idle. This
+>   * wakeup is used to coordinate physical address space management (ex:
+>   * fs truncate/hole punch) vs pinned pages (ex: device dma).
+> + *
+> + * MEMORY_DEVICE_DEV_DAX:
+> + * DAX driver hotplug the device memory and move it to memory zone, these
+> + * pages will be marked reserved flag. However, some other kernel componet
+> + * will misconceive these pages are reserved mmio (ex: we map these dev_dax
+> + * or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
+> + * MEMORY_DEVICE_FS_DAX, we can differentiate the pages on NVDIMM with the
+> + * normal reserved pages.
+
+So I believe the description should be in terms of what kind of memory is
+the MEMORY_DEVICE_DEV_DAX type, not how users use this type. See comments
+for other memory types...
+
+								Honza
+
+>   */
+>  enum memory_type {
+>  	MEMORY_DEVICE_PRIVATE = 1,
+>  	MEMORY_DEVICE_PUBLIC,
+>  	MEMORY_DEVICE_FS_DAX,
+> +	MEMORY_DEVICE_DEV_DAX,
+>  };
+>  
+>  /*
+> -- 
+> 2.7.4
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
