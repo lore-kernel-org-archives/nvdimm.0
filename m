@@ -1,24 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x243.google.com (mail-qk0-x243.google.com
+ [IPv6:2607:f8b0:400d:c09::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4E2FE210DF4E4
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 18:01:56 -0700 (PDT)
-Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
- (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
- by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id E8F54AC013F
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:01:43 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [ndctl PATCH 1/4] ndctl, monitor: fix the lack of detection of
+ by ml01.01.org (Postfix) with ESMTPS id 99B3F208F7CB5
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 12:05:35 -0700 (PDT)
+Received: by mail-qk0-x243.google.com with SMTP id b5-v6so12233934qkg.6
+ for <linux-nvdimm@lists.01.org>; Tue, 07 Aug 2018 12:05:35 -0700 (PDT)
+Subject: Re: [ndctl PATCH 1/4] ndctl, monitor: fix the lack of detection of
  invalid path of log file
-Date: Wed, 8 Aug 2018 01:01:41 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA9DD13@g01jpexmbkw24>
 References: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
  <20180807131756.23673-2-qi.fuli@jp.fujitsu.com>
- <49365d81-6695-1c67-8026-d4ccb81285b0@gmail.com>
-In-Reply-To: <49365d81-6695-1c67-8026-d4ccb81285b0@gmail.com>
-Content-Language: en-US
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <49365d81-6695-1c67-8026-d4ccb81285b0@gmail.com>
+Date: Tue, 7 Aug 2018 15:05:31 -0400
 MIME-Version: 1.0
+In-Reply-To: <20180807131756.23673-2-qi.fuli@jp.fujitsu.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,56 +24,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Masayoshi Mizuma' <msys.mizuma@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXNheW9zaGkgTWl6dW1hIFtt
-YWlsdG86bXN5cy5taXp1bWFAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEF1Z3VzdCA4
-LCAyMDE4IDQ6MDYgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVq
-aXRzdS5jb20+OyBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnDQo+IFN1YmplY3Q6IFJlOiBbbmRj
-dGwgUEFUQ0ggMS80XSBuZGN0bCwgbW9uaXRvcjogZml4IHRoZSBsYWNrIG9mIGRldGVjdGlvbiBv
-ZiBpbnZhbGlkDQo+IHBhdGggb2YgbG9nIGZpbGUNCj4gDQo+IEhpIFFpLA0KPiANCj4gT24gMDgv
-MDcvMjAxOCAwOToxNyBBTSwgUUkgRnVsaSB3cm90ZToNCj4gPiBDdXJyZW50bHkgdGhlIG1vbml0
-b3IgY2FuIGJlIHN0YXJ0ZWQgZXZlbiB3aXRoIGFuIGludmFsaWQgcGF0aCBvZiBsb2cgZmlsZS4N
-Cj4gPiBUaGlzIHBhdGNoIGFkZHMgYSBkZXRlY3Rpb24gb2YgaW52YWxpZCBwYXRoIG9mIGxvZyBm
-aWxlIHdoZW4gc3RhcnRpbmcgbW9uaXRvci4NCj4gPiBJZiB0aGUgcGF0aCBvZiBsb2cgZmlsZSBp
-cyBpbnZhbGlkLCB0aGUgbW9uaXRvciB3aWxsIHJlZnVzZSB0byBiZSBzdGFydGVkLg0KPiA+DQo+
-ID4gU2lnbmVkLW9mZi1ieTogUUkgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPiAt
-LS0NCj4gPiAgbmRjdGwvbW9uaXRvci5jIHwgMTEgKysrKysrKysrKy0NCj4gPiAgMSBmaWxlIGNo
-YW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPg0KPiA+IGRpZmYgLS1n
-aXQgYS9uZGN0bC9tb25pdG9yLmMgYi9uZGN0bC9tb25pdG9yLmMgaW5kZXggZjEwMzg0Yi4uYmYx
-ZjFkMw0KPiA+IDEwMDY0NA0KPiA+IC0tLSBhL25kY3RsL21vbml0b3IuYw0KPiA+ICsrKyBiL25k
-Y3RsL21vbml0b3IuYw0KPiA+IEBAIC02MDMsNiArNjAzLDcgQEAgaW50IGNtZF9tb25pdG9yKGlu
-dCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgdm9pZCAqY3R4KQ0KPiA+ICAJc3RydWN0IHV0aWxf
-ZmlsdGVyX2N0eCBmY3R4ID0geyAwIH07DQo+ID4gIAlzdHJ1Y3QgbW9uaXRvcl9maWx0ZXJfYXJn
-IG1mYSA9IHsgMCB9Ow0KPiA+ICAJaW50IGksIHJjOw0KPiA+ICsJRklMRSAqZjsNCj4gPg0KPiA+
-ICAJYXJnYyA9IHBhcnNlX29wdGlvbnNfcHJlZml4KGFyZ2MsIGFyZ3YsIHByZWZpeCwgb3B0aW9u
-cywgdSwgMCk7DQo+ID4gIAlmb3IgKGkgPSAwOyBpIDwgYXJnYzsgaSsrKSB7DQo+ID4gQEAgLTYz
-MCw4ICs2MzEsMTYgQEAgaW50IGNtZF9tb25pdG9yKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJn
-diwgdm9pZCAqY3R4KQ0KPiA+ICAJCQluZGN0bF9zZXRfbG9nX2ZuKChzdHJ1Y3QgbmRjdGxfY3R4
-ICopY3R4LCBsb2dfc3lzbG9nKTsNCj4gPiAgCQllbHNlIGlmIChzdHJuY21wKG1vbml0b3IubG9n
-LCAiLi9zdGFuZGFyZCIsIDEwKSA9PSAwKQ0KPiA+ICAJCQk7IC8qZGVmYXVsdCwgYWxyZWFkeSBz
-ZXQgKi8NCj4gPiAtCQllbHNlDQo+ID4gKwkJZWxzZSB7DQo+ID4gKwkJCWYgPSBmb3Blbihtb25p
-dG9yLmxvZywgImErIik7DQo+ID4gKwkJCWlmICghZikgew0KPiA+ICsJCQkJZXJyb3IoIm9wZW4g
-JXMgZmFpbGVkXG4iLCBtb25pdG9yLmxvZyk7DQo+ID4gKwkJCQlyYyA9IC1lcnJubzsNCj4gPiAr
-CQkJCWdvdG8gb3V0Ow0KPiA+ICsJCQl9DQo+ID4gKwkJCWZjbG9zZShmKTsNCj4gPiAgCQkJbmRj
-dGxfc2V0X2xvZ19mbigoc3RydWN0IG5kY3RsX2N0eCAqKWN0eCwgbG9nX2ZpbGUpOw0KPiA+ICsJ
-CX0NCj4gDQoNCk1hc2EsDQoNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4NCg0KPiBJbiBsb2df
-ZmlsZSgpLCB0aGUgbG9nIGZpbGUgZG9lcyBmYWxsYmFjayB0byBzeXNsb2cgaWYgdGhlIGZvcGVu
-KCkgZmFpbHMuDQo+IEluIG15IHVuZGVyc3RhbmRpbmcgaGVyZSBpcyB0aGF0IHRoZSBmYWxsYmFj
-ayBpcyBuZWVkZWQgdG8gc2F2ZSBpbiBjYXNlIG9mIHRoZQ0KPiBtb25pdG9yLmxvZyBpbiB0cm91
-YmxlIGZvciBleGFtcGxlLCB0aGUgcGFyZW50IGRpcmVjdG9yeSBpcyByZW1vdmVkLg0KPiBBbmQs
-IHRoZSBuZXcgZm9wZW4oKSBjaGVjaywgeW91IGhhdmUgYWRkZWQgYnkgdGhpcyBwYXRjaCwgdG8g
-aW5mb3JtIHRoZSBpbnZhbGlkIGxvZw0KPiBwYXRoIGZvciB1c2Vycy4NCj4gDQpZZXMsIHRoaXMg
-aXMgd2hhdCBJIHdhbnRlZCB0byBpbXBsZW1lbnQuDQoNCj4gSXMgbXkgdW5kZXJzdGFuZGluZyBj
-b3JyZWN0PyBJZiBzbywgbWFrZSBzZW5zZSB0byBtZS4NCj4gUGxlYXNlIGZlZWwgZnJlZSB0byBh
-ZGQ6DQo+IA0KPiAgICAgUmV2aWV3ZWQtYnk6IE1hc2F5b3NoaSBNaXp1bWEgPG0ubWl6dW1hQGpw
-LmZ1aml0c3UuY29tPg0KPiANCg0KVGhhbmtzLA0KUUkNCg0KPiBUaGFua3MsDQo+IE1hc2ENCj4g
-DQo+ID4gIAl9DQo+ID4NCj4gPiAgCWlmIChtb25pdG9yLmRhZW1vbikgew0KPiA+DQo+IA0KDQpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
-bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
-MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi Qi,
+
+On 08/07/2018 09:17 AM, QI Fuli wrote:
+> Currently the monitor can be started even with an invalid path of log file.
+> This patch adds a detection of invalid path of log file when starting monitor.
+> If the path of log file is invalid, the monitor will refuse to be started.
+> 
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  ndctl/monitor.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+> index f10384b..bf1f1d3 100644
+> --- a/ndctl/monitor.c
+> +++ b/ndctl/monitor.c
+> @@ -603,6 +603,7 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  	struct util_filter_ctx fctx = { 0 };
+>  	struct monitor_filter_arg mfa = { 0 };
+>  	int i, rc;
+> +	FILE *f;
+>  
+>  	argc = parse_options_prefix(argc, argv, prefix, options, u, 0);
+>  	for (i = 0; i < argc; i++) {
+> @@ -630,8 +631,16 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>  			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+>  		else if (strncmp(monitor.log, "./standard", 10) == 0)
+>  			; /*default, already set */
+> -		else
+> +		else {
+> +			f = fopen(monitor.log, "a+");
+> +			if (!f) {
+> +				error("open %s failed\n", monitor.log);
+> +				rc = -errno;
+> +				goto out;
+> +			}
+> +			fclose(f);
+>  			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
+> +		}
+
+In log_file(), the log file does fallback to syslog if the fopen() fails.
+In my understanding here is that the fallback is needed to save in case of
+the monitor.log in trouble for example, the parent directory is removed.
+And, the new fopen() check, you have added by this patch, to inform the
+invalid log path for users.
+
+Is my understanding correct? If so, make sense to me. 
+Please feel free to add:
+
+    Reviewed-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+
+Thanks,
+Masa
+
+>  	}
+>  
+>  	if (monitor.daemon) {
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
