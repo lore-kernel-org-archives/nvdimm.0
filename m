@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D1289210DF5C4
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 17:03:18 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id CA589210DF5D4
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 16:35:44 -0700 (PDT)
 From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [PATCH 1/2] Create Intel pmem shutdown latch rule
-Date: Wed, 8 Aug 2018 00:02:59 +0000
-Message-ID: <1533686577.18175.67.camel@intel.com>
+Date: Tue, 7 Aug 2018 23:35:43 +0000
+Message-ID: <1533684941.18175.55.camel@intel.com>
 References: <20180807222656.14346-1-keith.busch@intel.com>
 In-Reply-To: <20180807222656.14346-1-keith.busch@intel.com>
 Content-Language: en-US
-Content-ID: <763C7A34DE436A42ADFA455C9DC03D84@intel.com>
+Content-ID: <23C3A9D374CD704192EFD945FD629CD3@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,6 +30,11 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 On Tue, 2018-08-07 at 16:26 -0600, Keith Busch wrote:
 > This patch provides a udev rule and the program it runs for Intel
+
+Like we talked about, I think this should work for all NVDIMMs (at
+least any that use the generic DIMM ops APIs that libndctl provides),
+so we can remove any Intel specificity here.
+
 > nvdimms. The program the rule executes runs two commands to allow
 > applications to manage unsafe shutdowns.
 > 
@@ -46,6 +51,10 @@ On Tue, 2018-08-07 at 16:26 -0600, Keith Busch wrote:
 >   /run/ndctl/<dimm-id>/usc
 > 
 > A distro may change this location using the '--with-tmpfsdir=[DIR]'.
+
+For consistency with the rpm macro, I'd suggest changing this to
+--with-tmpfilesdir=
+
 > 
 > Reading the file will report the count observed when the dimm was
 > added.
@@ -59,6 +68,11 @@ On Tue, 2018-08-07 at 16:26 -0600, Keith Busch wrote:
 >  ndctl.spec.in               |   5 +-
 >  ndctl/Makefile.am           |   5 ++
 >  ndctl/latch-shutdown.c      | 140 ++++++++++++++++++++++++++++++++++++++++++++
+
+I think we can also rename this file to something more generic like
+"ndctl-udev.c" so that any future udev actions can go here. We are
+already doing two things in it, latching and saving the USCs.
+
 >  7 files changed, 164 insertions(+), 1 deletion(-)
 >  create mode 100644 contrib/80-intel-pmem.rules
 >  create mode 100644 ndctl/latch-shutdown.c
@@ -135,25 +149,6 @@ On Tue, 2018-08-07 at 16:26 -0600, Keith Busch wrote:
 >  ./autogen.sh
 > -%configure --disable-static --disable-silent-rules
 > +%configure --disable-static --disable-silent-rules --with-tmpfsdir=%{_tmpfilesdir}
-
-One more thing - looks like tmpfilesdir expands to:
-
-$ rpm --eval "%{_tmpfilesdir}"
-/usr/lib/tmpfiles.d
-
-And using it requires a specific config file as described in the
-following places:
-https://fedoraproject.org/wiki/Packaging:Tmpfiles.d
-http://0pointer.de/public/systemd-man/tmpfiles.d.html
-
-So for this, I think we can simply drop the
-
-	--with-tmpfsdir=%{_tmpfilesdir}
-
-to configure above, and let autoconf use its default. If a distro
-wanted to change that location, they still have the option of doing it
-be passing something else to configure.
-
 >  make %{?_smp_mflags}
 >  
 >  %install
@@ -290,10 +285,23 @@ be passing something else to configure.
 > +	if (rc)
 > +		return rc;
 > +	ndctl_cmd_unref(cmd);
+
+I think we'd need to break any dependency between the two functions
+here, latching and reading the USCs. We should read the USCs
+irrespective of whether the latching succeeded and the other way round.
+
+Let's refactor this a bit, splitting off each 'operation' into a
+function, and then main just calls all the functions independently.
+This should make any future additions cleaner.
+
 > +
 > +	id = ndctl_dimm_get_unique_id(dimm);
 > +	if (!id)
 > +		return ENXIO;
+
+Let's just use the nmemX style name here. ndctl and sysfs both always
+refer to dimms like that, so this can be the same.
+
 > +
 > +	cmd = ndctl_dimm_cmd_new_smart(dimm);
 > +	if (!cmd)
