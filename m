@@ -2,14 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9C31B210DF5C7
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 15:24:12 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 2/2] ndctl, intel: Pre-initialize smart shutdown_count
-Date: Tue,  7 Aug 2018 16:24:41 -0600
-Message-Id: <20180807222441.14246-2-keith.busch@intel.com>
-In-Reply-To: <20180807222441.14246-1-keith.busch@intel.com>
-References: <20180807222441.14246-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 98EC9210DA7A9
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 12:26:26 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] ndctl, documentation: Clarify the dimm id for ndctl
+ list d option
+Date: Tue, 7 Aug 2018 19:26:25 +0000
+Message-ID: <1533669983.18175.29.camel@intel.com>
+References: <20180806212130.1605-1-msys.mizuma@gmail.com>
+In-Reply-To: <20180806212130.1605-1-msys.mizuma@gmail.com>
+Content-Language: en-US
+Content-ID: <78CD59E2D18686498D772E60EDE1F219@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,130 +21,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "msys.mizuma@gmail.com" <msys.mizuma@gmail.com>
+Cc: "m.mizuma@jp.fujitsu.com" <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A user space rule saves the unsafe shutdown count to a fixed location
-for Intel dimms so that non-root users can read it. This patch uses that
-saved value if it is available in case the command can't be executed due
-to user permissions, allowing an application to detect if an unsafe
-shutdown occured during a write.
 
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- ndctl/lib/intel.c       | 42 +++++++++++++++++++++++++++++++++++++-----
- ndctl/util/json-smart.c |  4 ----
- 2 files changed, 37 insertions(+), 9 deletions(-)
+On Mon, 2018-08-06 at 17:21 -0400, Masayoshi Mizuma wrote:
+> From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> 
+> User may be confused the dimm id description of ndctl list -d
+> option because ndctl list says id, but the id is not useful to
+> d option.
+> 
+> ]# ndctl list -d nmem7 | jq -r .id
+> cdab-0a-07e0-fefffeff
+> ]# ndctl list -d cdab-0a-07e0-fefffeff
+> ]#
+> 
+> The appropriate id here is X in 'nmemX' (Above example, X is 7).
+> Let's clarify the description.
+> 
+> Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+> ---
+>  Documentation/ndctl/ndctl-list.txt | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 0abea1e..6df5aff 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -56,6 +56,35 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 	return cmd;
- }
- 
-+/*
-+ * If provided, prime the shutdown count with the saved value in case the user
-+ * does not have access rights to run the smart command.
-+ */
-+static void intel_prime_shutdown_count(struct ndctl_dimm *dimm,
-+				       struct ndctl_cmd *cmd)
-+{
-+	char *path = NULL, shutdown_count[16] = {};
-+	int fd;
-+
-+	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
-+		     ndctl_dimm_get_unique_id(dimm)) < 0)
-+		return;
-+
-+	fd = open(path, O_RDONLY);
-+	if (fd < 0)
-+		goto free_path;
-+
-+	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
-+		goto close;
-+
-+	cmd->intel->smart.flags |= ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
-+	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
-+ close:
-+	close (fd);
-+ free_path:
-+	free(path);
-+}
-+
- static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
- 	struct ndctl_cmd *cmd;
-@@ -67,7 +96,7 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	if (!cmd)
- 		return NULL;
- 	cmd->firmware_status = &cmd->intel->smart.status;
--
-+	intel_prime_shutdown_count(dimm, cmd);
- 	return cmd;
- }
- 
-@@ -95,9 +124,6 @@ static unsigned int intel_cmd_smart_get_flags(struct ndctl_cmd *cmd)
- 	unsigned int flags = 0;
- 	unsigned int intel_flags;
- 
--	if (intel_smart_valid(cmd) < 0)
--		return 0;
--
- 	/* translate intel specific flags to libndctl api smart flags */
- 	intel_flags = cmd->intel->smart.flags;
- 	if (intel_flags & ND_INTEL_SMART_HEALTH_VALID)
-@@ -142,13 +168,19 @@ static unsigned int intel_cmd_smart_get_health(struct ndctl_cmd *cmd)
- 	return health;
- }
- 
-+static unsigned int intel_cmd_smart_get_shutdown_count(struct ndctl_cmd *cmd)
-+{
-+	if (cmd->intel->smart.flags & ND_INTEL_SMART_SHUTDOWN_COUNT_VALID)
-+		return cmd->intel->smart.shutdown_count;
-+	return UINT_MAX;
-+}
-+
- intel_smart_get_field(cmd, media_temperature)
- intel_smart_get_field(cmd, ctrl_temperature)
- intel_smart_get_field(cmd, spares)
- intel_smart_get_field(cmd, alarm_flags)
- intel_smart_get_field(cmd, life_used)
- intel_smart_get_field(cmd, shutdown_state)
--intel_smart_get_field(cmd, shutdown_count)
- intel_smart_get_field(cmd, vendor_size)
- 
- static unsigned char *intel_cmd_smart_get_vendor_data(struct ndctl_cmd *cmd)
-diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
-index 6a1f294..5f43982 100644
---- a/ndctl/util/json-smart.c
-+++ b/ndctl/util/json-smart.c
-@@ -93,7 +93,6 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
- 		jobj = json_object_new_string("unknown");
- 		if (jobj)
- 			json_object_object_add(jhealth, "health_state", jobj);
--		goto out;
- 	}
- 
- 	flags = ndctl_cmd_smart_get_flags(cmd);
-@@ -189,8 +188,5 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
-  err:
- 	json_object_put(jhealth);
- 	jhealth = NULL;
-- out:
--	if (cmd)
--		ndctl_cmd_unref(cmd);
- 	return jhealth;
- }
--- 
-2.14.4
+Looks good, Applied.
 
+> 
+> diff --git a/Documentation/ndctl/ndctl-list.txt
+> b/Documentation/ndctl/ndctl-list.txt
+> index 13ebdcd..1b5882a 100644
+> --- a/Documentation/ndctl/ndctl-list.txt
+> +++ b/Documentation/ndctl/ndctl-list.txt
+> @@ -64,9 +64,10 @@ include::xable-region-options.txt[]
+>  
+>  -d::
+>  --dimm=::
+> -	An 'nmemX' device name, or dimm id number. Filter listing by
+> -	devices that reference the given dimm. For example to see
+> all
+> -	namespaces comprised of storage capacity on nmem0:
+> +	An 'nmemX' device name, or dimm id number. The dimm id
+> number
+> +	here is X in 'nmemX'. Filter listing by devices that
+> reference
+> +	the given dimm. For example to see all namespaces comprised
+> +	of storage capacity on nmem0:
+>  ----
+>  # ndctl list --dimm=nmem0 --namespaces
+>  ----
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
