@@ -1,12 +1,11 @@
-From: =?utf-8?B?5b6Q5Li75Lu7?= <nkkytv-2RA1Y/bSWEg@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+R77yaPOWQiOS8meS6uuWItuW6pj4gIDjmnIgxMeaXpcK36IuP5bee?=
- =?utf-8?B?56uZ?=
-Date: Wed, 8 Aug 2018 00:35:12 +0800
-Message-ID: <08D8D464BC1D4CEF44161EA3E205F488@gxw.net>
+From: <androulla-OVj7mE98uyFPEYK90J7+39BPR1lH4CV8@public.gmane.org>
+Subject: Hello!
+Date: 7 Aug 2018 10:31:53 -0500
+Message-ID: <004e01d42e68$0514f482$c8843aa9$@airfreshenerco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============6329536869911918913=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,50 +18,56 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJpua2t5dHZA
-Z3h3Lm5ldA0K5Y+R6YCB5pel5pyf77yaMjAxOC04LTggIDA6MzU6MTMNCuaUtuS7tuS6uu+8mmxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCuWFqOWbveeVhemUgOS5pjzlkIjkvJnkurrliLbluqY+
-ICANCuS8geS4muWutu+8jOWIm+S4muiAhe+8jOaIkOWKn+iAheWIm+S4mui3r+S4iuW/heeci++8
-gSANCuS9nOiAhe+8mumDkeaMh+aigeiAgeW4iOadpeaYhuWxseeOsOWcuuaMh+WvvOS6hu+8ge+8
-gQ0K6YKA6K+35a+56LGh77ya5LyB5Lia6JGj5LqL6ZW/44CB5oC757uP55CG44CB6ZuG5Zui5oC7
-6KOB44CB6LWE5rqQ5aSn5ZKW44CB5oqV6LWE5aSn5ZKW44CB5Yib5Lia6ICF44CB5pyJ6aG555uu
-6ZyA6KaB5ZCI5LyZ6ICF562J44CCIA0K5LyB5Lia5piv5ZCm6Z2i5Li05Lul5LiL6Zq+6aKYOiAN
-CjHjgIHlnKjkvIHkuJrlj5HlsZXov4fnqIvkuK3kvJjnp4DlkZjlt6XkuI7pq5jnrqHkuI3mlq3m
-tYHlpLHvvIzlpJbpg6jkurrmiY3pmr7ov5vlhaXvvIzlpoLkvZXpgJrov4flkIjkvJnkurrliLbl
-uqbop6PlhrM/DQoy44CB5Zyo5LyB5Lia5Yid5Yib5pyf5aaC5L2V5a6e546w5paw5ZGY5bel5qKm
-5oOz44CB6LCD5Yqo6ICB5ZGY5bel5Yqo5Yqb44CB6Kej5Yaz5LyB5Lia5YWD6ICB5Y+R5oyl5L2Z
-54Ot77yfDQoz44CB5LyB5Lia6ICB5p2/55+l6YGT77yI5pyf6IKh44CB5bKX5L2N6IKh44CB5oqA
-5pyv6IKh44CB5Lia57up6IKh44CB5YiG57qi6IKh44CB5pyf5p2D562J77yJ6IKh5p2D5r+A5Yqx
-77yM5L2G5piv5YW35L2T5LiN55+l6YGT5oCO5LmI5YGa77yf5aaC5L2V5bmz6KGh5ZKM6K6+56uL
-5YiH5a6e5Y+v6KGM55qE5pa55qGIPw0KNOOAgeS8geS4muWutumdouS4tOaKlei1hOS6uuaKlei1
-hO+8jOWFrOWPuOS8sOWAvOWmguS9lea1i+eul++8n+S/neeVmeiHquW3seeVmeS4i+eahOKAmOax
-n+WxseKAmeS4jeiiq+aKlei1hOiAheeLrOWNoD8NCjXjgIHlnKjkvIHkuJrlj5HlsZXov4fnqIvk
-uK3vvIzkvIHkuJrkuIrkuIvmuLjml6Dms5XlvaLmiJDkuqfkuJrpk77nmoTlhbHotaLmoLzlsYDv
-vJ/ml6Dms5XlvaLmiJDliKnnm4rlhbHlkIzkvZPvvJ/lpoLkvZXpgJrov4flkIjkvJnkurrliLbl
-uqborr7lrprkuIDpobnlpb3nmoTmlrnlvI/igJjmiqXlm6LigJnlgZrlpKflgZrlvLohIA0K5oKo
-5piv5ZCm5oCl5YiH6ZyA6KaB6Kej5Yaz5Lul5LiL6Zeu6aKY77yfDQox44CB5aaC5L2V6K6+6K6h
-6Ieq5bex5YWs5Y+46IKh5Lic5ZCI5LyZ5Lq65pa55qGI77yfDQoy44CB57uZ5LqG6IKh5p2D77yM
-5oCO5LmI6K6+6K6h77yI5Ye66LWE44CB5Lyw5YC844CB5YiG6ZKx44CB6YCA5Ye677yJPw0KM+OA
-geWmguS9leW8lei/m+aKlei1hOS6uuiAjOS4jeS4p+WkseaOp+iCoeadg++8jOWFrOWPuOS8sOWA
-vOWmguS9lea1i+eul++8nw0KNOOAgeWmguS9leiuqeWRmOW3peW9k+iAgeadv++8jOino+WGs+WR
-mOW3peiHqumpseWKm+mXrumimO+8nw0KNeOAgeWmguS9leino+WGs+S4gOe6v+mDqOmXqOKAnOWQ
-g+iCieKAne+8jOiBjOiDvemDqOmXqOKAnOWWneaxpOKAneeahOmavumimO+8nw0KNuOAgeWRmOW3
-peaciemSseOAgeaciei1hOa6kO+8jOWmguS9leiuvuiuoeijguWPmOW8j+WIm+S4muaWueahiO+8
-nw0KN+OAgei/numUgemXqOW6l+WmguS9lemAmui/h+S6i+S4muWQiOS8meeVmeS9j+WSjOWkjeWI
-tuS6uuaJje+8nw0KOeOAgeWmguS9leiuvuiuoeWRmOW3peeahOaMgeiCoeW5s+WPsO+8nw0KMTDj
-gIHlpoLkvZXorqnlrqLmiLfjgIHnu4/plIDllYblj5jmiJDlkIjkvJnkurrvvIzlgZrlpKflhazl
-j7jkuJrnu6nogIzml6DliKnnm4rovpPpgIHnmoTmi4Xlv6fvvJ8NCuKYheKYheKYheWFqOaZr+ah
-iOS+i+iDjOWQjuaYr+S7gOS5iO+8jOeOsOWcuuS4uuaCqOino+Wvhu+8gQ0KLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0K4piF5rS7
-5Yqo5pe26Ze077yaOOaciDEx5pelwrfoi4/lt57nq5nvvIjmmJ/mnJ/lha3vvIk5OjAw4oCUMTc6
-MDANCuWcsOeCue+8muiLj+W3nueLrOWihea5luS5pummmeS4luWutumFkuW6l++8iOiLj+W3nuWQ
-tOS4reWMuumAmui+vui3rzI2OTnlj7fvvIzov5HmmJ/muK/ooZfvvIkNCuKYhea0u+WKqOaXtumX
-tO+8mjnmnIgxNeaXpeWNl+S6rO+8iOaYn+acn+WFre+8iTk6MDDigJQxNzowMA0K4piF5rS75Yqo
-5pe26Ze077yaOeaciDE25pel5LiK5rW377yI5pif5pyf5pel77yJOTowMOKAlDE3OjAwDQotLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-ICAgICAgDQrmiqXlkI3otLnvvJo2ODDlhYMv5L2NIO+8iOWQq+WNiOmkkO+8jOWPkeelqO+8iQ0K
-5Y+v5b6u5L+hL+aUr+S7mOWunei9rOi0pu+8jOiLpemcgOimgeWPkeelqOivt+Wkh+azqOW8gOel
-qOS/oeaBr+OAgg0K5oql5ZCN55S16K+d77yaMTg4OTA3MDA2MDDjgJTlvq7kv6HlkIzlj7fjgJUK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+--===============6329536869911918913==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
+Content-Language: en
+
+Dear Job Seeker,
+
+Position Name: Project Manager (Supply Chain); 
+
+Company: DSC Logistics
+Functional area: Logistics Services;
+
+Area of Interest: Logistics Services; 
+Salary: $98,000/year; 
+Job Offer Available: 15th August 2018;
+
+Job Type: Permanent Position;
+Location: USA/15 States (can be telecommute)
+Travel Requirement: All in state
+The Position: This position is in the area of Project Management. 
+You will manage all aspects of production planning and scheduling.
+ 
+The position requires a manager who can manage projects in 
+different areas across the business such as procurement and become a liaison between company and our clients. 
+ 
+Experience/Skills Required: 
+- US citizen only! 
+- Bachelor Degree
+- Highly proficient in MS software
+- Ability to multi-task
+- Excellent written and verbal skills
+- Desired management experience in performance management. 
+
+If you are interested in the position, please respond with your CV and resume attached.
+
+Our contact: offer-veO5yslQ4yH9sDxGqiYcNJm7MGRryh++@public.gmane.org
+
+Thank you!
+
+
+--===============6329536869911918913==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============6329536869911918913==--
