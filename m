@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 31E4121A00AE6
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 15:22:46 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl, tests: add a new unit test for inject-smart
-Date: Fri,  3 Aug 2018 16:22:42 -0600
-Message-Id: <20180803222242.10357-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7AC6A210E129F
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 08:59:14 -0700 (PDT)
+From: Keith Busch <keith.busch@intel.com>
+Subject: [ndctl PATCHv2 2/2] ndctl,
+ intel: Fallback to smart cached shutdown_count
+Date: Wed,  8 Aug 2018 09:59:34 -0600
+Message-Id: <20180808155934.15976-2-keith.busch@intel.com>
+In-Reply-To: <20180808155934.15976-1-keith.busch@intel.com>
+References: <20180808155934.15976-1-keith.busch@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,216 +23,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test that exercises all the functionality provided by the
-ndctl inject-smart command. This performs injections, un-injections, and
-sets thresholds, and verifies all this happened successfully.
+A user space rule saves the unsafe shutdown count to a fixed location
+for Intel dimms so that non-root users can read it. If the smart command
+submission fails, this patch uses that saved value in a newly added
+ndctl_cmd "handle_error" callback.  If the cached value is available,
+the error handler will override the command status to success, and set
+the valid flags for the shutdown count.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- test/Makefile.am     |   1 +
- test/inject-smart.sh | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 179 insertions(+)
- create mode 100755 test/inject-smart.sh
+v1 -> v2:
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 8c55056..6156a7a 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -22,6 +22,7 @@ TESTS =\
- 	firmware-update.sh \
- 	ack-shutdown-count-set \
- 	rescan-partitions.sh \
-+	inject-smart.sh \
- 	monitor.sh
+  Use nmem<X> instead of dimm-id
+
+ ndctl/lib/intel.c    | 33 +++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.c |  2 ++
+ ndctl/lib/private.h  |  1 +
+ 3 files changed, 36 insertions(+)
+
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 0abea1e..00c65a5 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -56,6 +56,38 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
+ 	return cmd;
+ }
  
- check_PROGRAMS =\
-diff --git a/test/inject-smart.sh b/test/inject-smart.sh
-new file mode 100755
-index 0000000..18655ba
---- /dev/null
-+++ b/test/inject-smart.sh
-@@ -0,0 +1,178 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+rc=77
-+. ./common
-+bus="$NFIT_TEST_BUS0"
-+inj_val="42"
-+
-+trap 'err $LINENO' ERR
-+
-+# sample json:
-+# {
-+#  "dev":"nmem0",
-+#  "id":"cdab-0a-07e0-ffffffff",
-+#  "handle":0,
-+#  "phys_id":0,
-+#  "health":{
-+#    "health_state":"non-critical",
-+#    "temperature_celsius":23,
-+#    "spares_percentage":75,
-+#    "alarm_temperature":true,
-+#    "alarm_spares":true,
-+#    "temperature_threshold":40,
-+#    "spares_threshold":5,
-+#    "life_used_percentage":5,
-+#    "shutdown_state":"clean"
-+#  }
-+#}
-+
-+translate_field()
++/*
++ * If provided, read the cached shutdown count in case the user does not have
++ * access rights to run the smart command, and pretend the command was
++ * successful with only the shutdown_count valid.
++ */
++static int intel_smart_handle_error(struct ndctl_cmd *cmd)
 +{
-+	local in="$1"
++	struct ndctl_dimm *dimm = cmd->dimm;
++	char *path = NULL, shutdown_count[16] = {};
++	int fd, rc = cmd->status;
 +
-+	case $in in
-+	media-temperature)
-+		echo "temperature_celsius"
-+		;;
-+	ctrl-temperature)
-+		echo "controller_temperature_celsius"
-+		;;
-+	spares)
-+		echo "spares_percentage"
-+		;;
-+	media-temperature-alarm)
-+		echo "alarm_temperature"
-+		;;
-+	ctrl-temperature-alarm)
-+		echo "alarm_controller_temperature"
-+		;;
-+	spares-alarm)
-+		echo "alarm_spares"
-+		;;
-+	media-temperature-threshold)
-+		echo "temperature_threshold"
-+		;;
-+	spares-threshold)
-+		echo "spares_threshold"
-+		;;
-+	unsafe-shutdown)
-+		echo "shutdown_state"
-+		;;
-+	fatal)
-+		echo "health_state"
-+		;;
-+	*)
-+		# passthrough
-+		echo "$in"
-+		return
-+		;;
-+	esac
++	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
++		     ndctl_dimm_get_devname(dimm)) < 0)
++		return rc;
++
++	fd = open(path, O_RDONLY);
++	if (fd < 0)
++		goto free_path;
++
++	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
++		goto close;
++
++	cmd->intel->smart.flags = ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
++	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
++	rc = cmd->status = 0;
++ close:
++	close (fd);
++ free_path:
++	free(path);
++	return rc;
 +}
 +
-+translate_val()
-+{
-+	local in="$1"
-+
-+	case $in in
-+	dirty)
-+		;&
-+	fatal)
-+		;&
-+	true)
-+		echo "1"
-+		;;
-+	non-critical)
-+		;&
-+	clean)
-+		;&
-+	false)
-+		echo "0"
-+		;;
-+	*)
-+		# passthrough
-+		echo "$in"
-+		;;
-+	esac
-+}
-+
-+get_field()
-+{
-+	local field="$1"
-+	local smart_listing="$(translate_field $field)"
-+
-+	json="$($NDCTL list -b $bus -d $dimm -H)"
-+	val="$(jq -r ".[].dimms[].health.$smart_listing" <<< $json)"
-+	val="$(translate_val $val)"
-+	echo $val
-+}
-+
-+verify()
-+{
-+	local field="$1"
-+	local val="$2"
-+
-+	[[ "$val" == "$(get_field $field)" ]]
-+}
-+
-+test_field()
-+{
-+	local field="$1"
-+	local val="$2"
-+	local op="$3"
-+	local old_val=""
-+
-+	if [ -n "$val" ]; then
-+		inj_opt="--${field}=${val}"
-+	else
-+		inj_opt="--${field}"
-+	fi
-+
-+	old_val=$(get_field $field)
-+	if [[ "$old_val" == "0" || "$old_val" == "1" ]]; then
-+		val=$(((old_val + 1) % 2))
-+	fi
-+	$NDCTL inject-smart -b $bus $dimm $inj_opt
-+	verify $field $val
-+
-+	if [[ "$op" != "thresh" ]]; then
-+		$NDCTL inject-smart -b $bus --${field}-uninject $dimm
-+		verify $field $old_val
-+	fi
-+}
-+
-+do_tests()
-+{
-+	local fields_val=(media-temperature spares)
-+	local fields_bool=(unsafe-shutdown fatal)
-+	local fields_thresh=(media-temperature-threshold spares-threshold)
-+	local field=""
-+
-+	$NDCTL inject-smart -b $bus --uninject-all $dimm
-+
-+	# start tests
-+	for field in "${fields_val[@]}"; do
-+		test_field $field $inj_val
-+	done
-+
-+	for field in "${fields_bool[@]}"; do
-+		test_field $field
-+	done
-+
-+	for field in "${fields_thresh[@]}"; do
-+		test_field $field $inj_val "thresh"
-+	done
-+}
-+
-+check_min_kver "4.19" || do_skip "kernel $KVER may not support smart (un)injection"
-+modprobe nfit_test
-+rc=1
-+
-+jlist=$(./list-smart-dimm -b $bus)
-+dimm="$(jq '.[]."dev"?, ."dev"?' <<< $jlist | sort | head -1 | xargs)"
-+test -n "$dimm"
-+
-+do_tests
-+_cleanup
-+exit 0
+ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ {
+ 	struct ndctl_cmd *cmd;
+@@ -67,6 +99,7 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ 	if (!cmd)
+ 		return NULL;
+ 	cmd->firmware_status = &cmd->intel->smart.status;
++	cmd->handle_error = intel_smart_handle_error;
+ 
+ 	return cmd;
+ }
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index e911ea2..ab47b27 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2766,6 +2766,8 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+ 	close(fd);
+  out:
+ 	cmd->status = rc;
++	if (rc && cmd->handle_error)
++		rc = cmd->handle_error(cmd);
+ 	return rc;
+ }
+ 
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 5ddc682..c6eb39e 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -255,6 +255,7 @@ struct ndctl_cmd {
+ 		int dir;
+ 	} iter;
+ 	struct ndctl_cmd *source;
++	int (*handle_error)(struct ndctl_cmd *cmd);
+ 	union {
+ 		struct nd_cmd_ars_cap ars_cap[0];
+ 		struct nd_cmd_ars_start ars_start[0];
 -- 
 2.14.4
 
