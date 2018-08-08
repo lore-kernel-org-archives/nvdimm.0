@@ -1,9 +1,9 @@
-From: <downunderdd-aPmoKo1seE8AvxtiuMwx3w@public.gmane.org>
-Subject: New vacancies in our company
-Date: 8 Aug 2018 20:38:24 +0600
-Message-ID: <901385183E068EA320B62B0D35BD9013@amega.com>
+From: <jhqr-Nc/+ql/1TNBeoWH0uzbU5w@public.gmane.org>
+Subject: Hello!
+Date: Wed, 08 Aug 2018 23:57:52 +0700
+Message-ID: <5B6B2110.8000104@cpdns.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3462732182108280921=="
+Content-Type: multipart/mixed; boundary="===============2778705620659866930=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,8 +17,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3462732182108280921==
-Content-Type: text/plain; charset="cp-850"
+--===============2778705620659866930==
+Content-Type: text/plain; charset=CP-850; format=flowed
 Content-Transfer-Encoding: 8bit
 
 Dear Job Seeker,
@@ -56,7 +56,7 @@ Our contact: resume-veO5yslQ4yH9sDxGqiYcNJm7MGRryh++@public.gmane.org
 Thank you!
 
 
---===============3462732182108280921==
+--===============2778705620659866930==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -67,4 +67,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3462732182108280921==--
+--===============2778705620659866930==--
