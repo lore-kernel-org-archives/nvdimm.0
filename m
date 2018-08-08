@@ -1,10 +1,9 @@
-From: =?utf-8?B?6LW15aWz5aOr?= <asjxccv-KswjF0Kj1bI@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V6KeE6YG/5L6b5bqU6ZO+566h55CG5Lit55qE6LSi5Yqh6aOO6Zmp?=
-Date: Thu, 9 Aug 2018 01:19:26 +0800
-Message-ID: <AD4C80B5B4BC18D64C846E44FFA35B7F@pgus.net>
+From: <midge49-LqzcsPBIjlhBDgjK7y7TUQ@public.gmane.org>
+Subject: New offer
+Date: 8 Aug 2018 06:01:16 -0600
+Message-ID: <87FF41A145391FA5DD6383671B3D87FF@freedom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0705353657867227080=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,97 +17,54 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJphc2p4Y2N2
-QHBndXMubmV0DQrlj5HpgIHml6XmnJ/vvJoyMDE4LTgtOSAgMToxOTozNA0K5pS25Lu25Lq677ya
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K6YeH6LSt5b+F5aSH55qE6LSi56iO55+l6K+G5LiO
-5oqA6IO96K6t57uDDQo45pyIMTctMTjml6XkuIrmtbcgIOeAmua1t+aYjueOieWkp+mFkuW6lw0K
-44CQ5Z+56K6t5a+56LGh44CR5L6b5bqU6ZO+566h55CG57uP55CG44CB6YeH6LSt57uP55CG44CB
-44CB54mp5rWB57uP55CG44CB6K6h5YiS57uP55CG44CB5L6b5bqU5ZWG566h55CG44CB5bqT5a2Y
-566h55CG5Lq65ZGY562J55u45YWz5Lq65aOr44CCDQrjgJDor77nqIvotLnnlKjjgJFSTUI0MjAw
-5YWDL+S6uu+8iOWMheWQq++8muWfueiurei0ueOAgeaVmeadkOOAgeWNiOmkkOOAgeiMtueCueOA
-geWPkeelqO+8iQ0K5oql5ZCN5ZKo6K+i55S16K+d77yaMDIxLTMxMjYxNTgwICAgIOaJi+acuu+8
-mjE4ODkwNzAwNjAwIO+8iOW+ruS/oeWQjOWPt++8iei1teWFiOeUnw0K5Zyo57q/5ZKo6K+iUVEv
-6YKu566x77yaNjk4MzQzNiAgICAgKOaKpeWQjeivt+WbnuWkjee0ouWPluaKpeWQjeihqO+8iQ0K
-6K++56iL6IOM5pmvDQrkvIHkuJrotKLliqHnu6nmlYjpgJrluLjmmK9DRU/lkoxDRk/mnIDlhbPm
-s6jnmoTogIPmoLjmjIfmoIfvvIzkvZzkuLrkuIDlkI3kuJPkuJrnmoTkvpvlupTpk77nrqHnkIbk
-urrlkZjlv4XpobvopoHkuobop6PmiJHku6znmoTlt6XkvZzlpoLkvZXlvbHlk43kvIHkuJrnmoTo
-tKLliqHmjIfmoIfvvIzkvpvlupTpk77nrqHnkIbnmoTku7flgLzlkoznu6nmlYjlpoLkvZXnlKhD
-RU/vvIxDRk/lrrnmmJPnkIbop6PnmoTotKLliqHor63oqIDooajovr7vvIzlpoLkvZXlgJ/liqno
-tKLliqHliIbmnpDlt6Xlhbflkoznn6Xor4bluK7liqnmiJHku6zlgZrlh7rmraPnoa7nmoTph4fo
-tK3lhrPnrZbvvIzmlLnlloTkvpvlupTpk77nrqHnkIbnu6nmlYjvvIzop4Tpgb/kvpvlupTpk77n
-rqHnkIbkuK3nmoTotKLliqHpo47pmanigKbigKbigKYNCuacrOivvueoi+WcqDLlpKkxNOS4quWw
-j+aXtueahOivvueoi++8jOi+heS7pTHkuKrmoYzpnaLkupLliqjmuLjmiI/vvIw25Liq5qGI5L6L
-5YiG5p6Q77yM6Z2e5bi45pyJ6ZKI5a+55oCn55qE6L+b6KGM5ryU57uD5LiO6K+05piO77yM5ZCM
-5pe26K6y5biI57uT5ZCI6Ieq6LqrMTDkvZnlubTph4fotK3nrqHnkIbnu4/pqozvvIzkvb/or77n
-qIvlhbfmnInlvojpq5jnmoTlrp7nlKjmgKfvvIENCuWfueiureaUtuebig0Kw5ggIOaOjOaPoeWf
-uuacrOeahOi0ouWKoeefpeivhu+8jOivu+aHguW4uOeUqOi0ouWKoeaKpeihqA0Kw5ggIOaOjOaP
-oeS4ieWkp+S4u+imgeeahOi0ouWKoeWIhuaekOaMh+agh+WSjOaUueWWhOaWueazlQ0Kw5ggIOW7
-uueri+a4heaZsOeahOmjjumZqeaOp+WItuaEj+ivhu+8jOW8uuWMlueOsOmHkea1geaEj+ivhu+8
-jOaPkOmrmOi1hOmHkei/kOS9nOaViOeOhw0Kw5ggIOeQhuino+aIkOacrOeahOWIhuexu+WSjOaI
-kOacrOWIhuaekOaWueazlQ0Kw5ggIOaOjOaPoeWmguS9lei/kOeUqOi0ouWKoeefpeivhuWIhuae
-kOS+m+W6lOmTvuaIkOacrA0Kw5ggIOS6huino+S8geS4muebuOWFs+eahOeojuWSjOS8mOWMluaW
-ueazlQ0Kw5ggIOi/kOeUqFRDT+aooeWei+WIhuaekOS6p+WTgeeUn+WRveWRqOacn+eahOaAu+aI
-kOacrA0K6K++56iL5aSn57qyDQrkuIDjgIHotKLliqHmiqXooajpmIXor7vlkozliIbmnpANCmwg
-IOi0ouWKoeWIhuaekOebrueahOWSjOWvueixoQ0KbCAg5LiJ5Liq5Li76KaB55qE6LSi5Yqh5oql
-6KGoDQpsICDotYTkuqfotJ/lgLrooajop6Por7sNCmwgIOaUtuWFpeihqOino+ivuw0KbCAg546w
-6YeR5rWB6Kej6K+7DQpsICDlhbPplK7otKLliqHnu6nmlYjmjIfmoIfliIbmnpANCmwgIOWBv+S7
-mOiDveWKm+aMh+aghw0KbCAg6L+Q6JCl5pWI546H5oyH5qCHDQpsICDnm4jliKnog73lipvmjIfm
-oIcNCmwgIOadnOmCpuWIhuaekA0KbCAg546w6YeR5rWB5ZGo6L2s546HLS3kvpvlupTpk77nrqHn
-kIbnu6nmlYjmjIfmoIfliIbmnpANCmwgIOi0ouWKoeaooeaLn+a4uOaIjw0K5LqM44CB5oiQ5pys
-5YiG5p6Q5ZKM566h55CGDQpsICDmiJDmnKzliIbnsbvlkozmiJDmnKznu5PmnoTliIbmnpANCmwg
-IOebtOaOpeaIkOacrOWIhuaekA0KbCAg6Ze05o6l5oiQ5pys5YiG5p6QDQpsICDkvKDnu5/miJDm
-nKzms5UNCmwgIOS9nOS4muaIkOacrOazlQ0KbCAg5oiQ5pys5YiG5p6Q5qGI5L6LDQrkuInjgIHo
-tKLliqHnn6Xor4blnKjkvpvlupTpk77kuK3nmoTov5DnlKgNCmwgIOS+m+W6lOmTvuaIkOacrOWI
-huaekA0KbCAg54mp5rWB5oiQ5pys5YiG5p6QDQpsICDotYTph5HmiJDmnKzliIbmnpANCmwgIOaI
-kOacrOeahOeJm+mereaViOW6lA0KbCAg6YeP5pys5Yip5YiG5p6QDQpsICDph4fotK3lkoznp5/o
-tYHliIbmnpANCmwgIOaAu+aLpeacieaIkOacrOWIhuaekA0KbCAg5qGI5L6L4oCU6K6+5aSH6YeH
-6LSt5oC75oiQ5pys5YiG5p6QDQpsICDnqI7lkoznqI7liqHkvJjljJYNCmwgIOeojueahOenjeex
-u+WSjOiuoeeul+aWueazlQ0KbCAg56iO6LSf5LyY5YyW5qGI5L6L5YiG5p6QDQrlm5vjgIHmj5Dl
-jYfph4fotK3nu6nmlYjvvIzmlLnlloTlhazlj7jotKLliqENCmwgIOmHh+i0ree7qeaViOWvuei0
-ouWKoeaMh+agh+eahOW9seWTjQ0KbCAg6YeH6LSt57up5pWI5Yi25a6a5ZKM6ICD5qC4DQpsICDp
-h4fotK3nm7jlhbPmjIfmlbDop6Por7vlkozov5DnlKgNCuahiOS+i+WIhuaekA0K6K6y5biI5LuL
-57uN77ya6aG+6Ze755+lDQrmn5Dot6jlm73pm4blm6LotYTmt7Hph4fotK3nu4/nkIYNCuihjOS4
-mui1hOi0qO+8mg0K6Iux5Zu95LiT5Lia566h55CG5Y2P5Lya6K6k6K+B55qE5LiT5Lia5Z+56K6t
-5biIQy5JLlAuVA0K576O5Zu95L6b5bqU566h55CG5Y2P5Lya6K6k6K+B6YeH6LSt57uP55CGQy5Q
-Lk0uDQrmkanmiZjnvZfmi4nlpKflrabmjojmnYPorrLluIgNCuWKoOaLv+Wkp+mHh+i0reeuoeeQ
-huWNj+S8muS4reWbveaOiOadg+iusuW4iA0K5LiK5rW35biV6L+q5LyB5Lia566h55CG5ZKo6K+i
-5pyJ6ZmQ5YWs5Y+454m56YKA6K6y5biIDQrlt6XkvZznu4/ljobvvJogICAgDQrpob7lhYjnlJ/l
-hbfmnInkuozljYHlpJrlubTnmoQ1MDDlvLrot6jlm73kvIHkuJrlt6XkvZznu4/pqozvvIzmnI3l
-iqHnmoTlhazlj7jljIXmi6zmkanmiZjnvZfmi4nvvIzmn6/ovr7lhazlj7jvvIzljobku7vkuqfl
-k4HlvIDlj5HvvIzkvpvlupTllYbotKjph4/nrqHnkIbvvIzotYTmupDlvIDlj5HvvIzlpJbljIXn
-rqHnkIbvvIzmiJjnlaXmiJDmnKznu4/nkIbvvIzmiJjnlaXph4fotK3nu4/nkIbnrYnogYzliqHj
-gILpob7lhYjnlJ/mmK/mkanmiZjnvZfmi4nlnKjkuprmtLLlpJbljIXvvIhPdXRzb3VyY2luZ++8
-ieS4muWKoeeahOesrOS4gOaJueeuoeeQhuS6uuWRmO+8jOi0n+i0o+euoeeQhjXkur/nvo7lhYPn
-moTlpJbljIXkuJrliqHvvIzku5bluK7liqnlu7rnq4vkuoblr7nlpJbljIXkvpvlupTllYbnmoTm
-iJDmnKznrqHnkIbkvZPns7vvvIzkvpvlupTpk77mlLnov5vmtYHnqIvvvIzov57nu63kuKTlubTo
-oqvor4TkuLrlhazlj7jkvJjnp4DlkZjlt6XjgIINCumhvuWFiOeUn+S5n+aYr+afr+i+vuS6muWk
-quWMuueahOesrOS4gOS9jeaImOeVpeaIkOacrOe7j+eQhu+8jOS4u+WvvOW7uueri+S6humHh+i0
-reaIkOacrOWIhuaekOaVsOaNruW6kyzmiJDmnKzliIbmnpDmqKHlnovvvIzmnInmlYjlnLDluK7l
-iqnlhazlj7jlj5blvpfkuoYy5L2N5pWw55qE5oiQ5pys6ZmN5Lu3LOmihuWvvOi3qOmDqOmXqOWb
-oumYn+i/m+ihjOaLhuino+WIhuaekO+8jOW8leWFpeW5tuaOqOWKqOaImOeVpeaIkOacrOeuoeeQ
-hueQhuW/teWcqOmHh+i0reW3peS9nOeahOW6lOeUqOOAguWcqOaLheS7u+S6muWkquWMuuaImOeV
-pemHh+i0ree7j+eQhuacn+mXtO+8jOi0n+i0o+WFrOWPuE9ETeS4muWKoeeahOmHh+i0reeuoeeQ
-hu+8jOW8gOWPkU9ETeS7t+agvOeuoeeQhuS9k+ezu+WSjOW4guWcuuWSqOiur+ezu+e7n+OAgg0K
-6aOO5qC85LiO54m554K577yaDQrpob7lhYjnlJ/lr7nph4fotK3miJDmnKzliIbmnpDjgIHph4fo
-tK3miJjnlaXjgIHph4fotK3lpJbljIXnrqHnkIbmlrnpnaLmnInlpJrlubTnmoTlrp7ot7Xnu4/p
-qozlkozlvojmt7HnmoTop4Hop6PvvIzlsKTlhbblr7nph4fotK3miJDmnKzliIbmnpDlhbfmnInk
-uLDlr4znmoTlrp7miJjnu4/pqozvvIzor77nqIvkuK3lvJXlhaXlpKfph4/nmoTlrp7pmYXpobnn
-m67moYjkvovvvIzorqnlrablkZjog73lpJ/lvIDpmJTop4bph47vvIzmt7Hlj5flkK/lj5HvvJvn
-i6zliLDnmoTop4Hop6PjgIHpo47otqPnmoTorrLmjojvvIzlvoDlvoDotaLlvpfkuoblrablkZjk
-u6znmoTkuIDoh7Tlpb3or4TvvJsNCuWfueiurS/lkqjor6LmnI3liqHnmoTlrqLmiLfvvJoNCiAg
-ICDogZTmg7PmiYvmnLrvvIzmsojpmLPljY7mmajlrp3pqazvvIzlm73moLjlt6XnqIvvvIzohb7o
-rq/np5HmioDvvIzmlrDlrofoiKrnqbrvvIzmg6DogIzmtabvvIznvZfojrHlrrbnurrvvIzmtbfk
-v6Hlrrnlo7DvvIzkvIrlgI3ovr7nlLXlrZDvvIzlsbHnibnnu7TlhYvmnZDmlpnvvIzmo67mnb7l
-jJblt6XvvIzlpaXnmoTmlq/nlLXmoq/vvIzpo57liKnmtabkuprmmI7vvIzokKjluJXpk53ng63v
-vIzmsYnkvbDvvIjljZfkuqzvvInnurrnu4flk4HvvIzmsZ/pmLTotJ3ljaHlsJTnibnvvIzpmL/m
-s5Xmi4nkvJDvvIzkuIrmtbfpgILovr7vvIzpgJrnlKjno6jlnYrvvIznvo7ljZPpgKDnurjmnLrm
-orDvvIzoib7mrKflj7Llr4bmlq/vvIzmhafmmbrnp5HmioDvvIzogZTlkIjmsb3ovabvvIzkuIrm
-tbfoi7HmoLzntKLlhbDvvIzln4PmlrDmlq/mlrDog73mupDvvIzmg6DmsI/okKXlhbvlk4HvvIzp
-vI7kuL7vvIjkuIrmtbfvvInova/ku7bvvIzprY/lvrfnsbPli5LvvIzoib7pu5jnlJ/otLjmmJPv
-vIzkuK3ovr7nlLXpgJrvvIzliKnkuZDljIXoo4XvvIzniLHlhYvlj5HvvIzlpI3nm5vmmJPliKno
-vr4NCuWuouaIt+ivhOS7t++8muWGheWuueW+iOS4sOWvjO+8jOWvueaWsOeahOS7t+agvOWIhuae
-kOeahOaWueW8j+S6huino+W+iOWkmuOAgg0K6IO95aSf57O757uf55qE5LqG6Kej6YeH6LSt5rS7
-5Yqo5Lit55qE6LSi5Yqh55+l6K+G77yM5LiO5a6e6ZmF5bel5L2c55u457uT5ZCI77yM5q+U6L6D
-5a6e55SoDQogCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRw
-czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+--===============0705353657867227080==
+Content-Type: text/plain; charset="cp-850"
+Content-Transfer-Encoding: 8bit
+
+Dear Job Seeker,
+
+Position Name: Project Manager (Supply Chain); 
+
+Company: DSC Logistics
+Functional area: Logistics Services;
+
+Area of Interest: Logistics Services; 
+Salary: $98,000/year; 
+Job Offer Available: 15th August 2018;
+
+Job Type: Permanent Position;
+Location: USA/15 States (can be telecommute)
+Travel Requirement: All in state
+The Position: This position is in the area of Project Management. 
+You will manage all aspects of production planning and scheduling.
+ 
+The position requires a manager who can manage projects in 
+different areas across the business such as procurement and become a liaison between company and our clients. 
+ 
+Experience/Skills Required: 
+- US citizen only! 
+- Bachelor Degree
+- Highly proficient in MS software
+- Ability to multi-task
+- Excellent written and verbal skills
+- Desired management experience in performance management. 
+
+If you are interested in the position, please respond with your CV and resume attached.
+
+Our contact: resume-veO5yslQ4yH9sDxGqiYcNJm7MGRryh++@public.gmane.org
+
+Thank you!
+
+
+--===============0705353657867227080==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============0705353657867227080==--
