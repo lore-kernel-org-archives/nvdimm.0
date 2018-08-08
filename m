@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mgwym03.jp.fujitsu.com (mgwym03.jp.fujitsu.com [211.128.242.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 45EAD210DF51F
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 15:11:45 -0700 (PDT)
-Subject: [PATCH 2/2] [PATCH] xfs: Close race between direct IO and
- xfs_break_layouts()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 07 Aug 2018 15:11:43 -0700
-Message-ID: <153367990333.37314.16218849614019392916.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153367989755.37314.6889218648604435494.stgit@djiang5-desk3.ch.intel.com>
-References: <153367989755.37314.6889218648604435494.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4E2FE210DF4E4
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 18:01:56 -0700 (PDT)
+Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
+ (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
+ by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id E8F54AC013F
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:01:43 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [ndctl PATCH 1/4] ndctl, monitor: fix the lack of detection of
+ invalid path of log file
+Date: Wed, 8 Aug 2018 01:01:41 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA9DD13@g01jpexmbkw24>
+References: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
+ <20180807131756.23673-2-qi.fuli@jp.fujitsu.com>
+ <49365d81-6695-1c67-8026-d4ccb81285b0@gmail.com>
+In-Reply-To: <49365d81-6695-1c67-8026-d4ccb81285b0@gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,63 +26,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tytso@mit.edu, darrick.wong@oracle.com, jack@suse.cz, zwisler@kernel.org
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, lczerner@redhat.com, linux-ext4@vger.kernel.org, hch@lst.de
+To: 'Masayoshi Mizuma' <msys.mizuma@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is the duplicate of ross's fix for ext4 for xfs.
-
-If the refcount of a page is lowered between the time that it is returned
-by dax_busy_page() and when the refcount is again checked in
-xfs_break_layouts() => ___wait_var_event(), the waiting function
-xfs_wait_dax_page() will never be called.  This means that
-xfs_break_layouts() will still have 'retry' set to false, so we'll stop
-looping and never check the refcount of other pages in this inode.
-
-Instead, always continue looping as long as dax_layout_busy_page() gives us
-a page which it found with an elevated refcount.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- fs/xfs/xfs_file.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index a3e7767a5715..666c93fe5284 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -721,12 +721,10 @@ xfs_file_write_iter(
- 
- static void
- xfs_wait_dax_page(
--	struct inode		*inode,
--	bool			*did_unlock)
-+	struct inode		*inode)
- {
- 	struct xfs_inode        *ip = XFS_I(inode);
- 
--	*did_unlock = true;
- 	xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
- 	schedule();
- 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-@@ -746,9 +744,10 @@ xfs_break_dax_layouts(
- 	if (!page)
- 		return 0;
- 
-+	*did_unlock = true;
- 	return ___wait_var_event(&page->_refcount,
- 			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
--			0, 0, xfs_wait_dax_page(inode, did_unlock));
-+			0, 0, xfs_wait_dax_page(inode));
- }
- 
- int
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXNheW9zaGkgTWl6dW1hIFtt
+YWlsdG86bXN5cy5taXp1bWFAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEF1Z3VzdCA4
+LCAyMDE4IDQ6MDYgQU0NCj4gVG86IFFpLCBGdWxpL+aWiSDnpo/liKkgPHFpLmZ1bGlAanAuZnVq
+aXRzdS5jb20+OyBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnDQo+IFN1YmplY3Q6IFJlOiBbbmRj
+dGwgUEFUQ0ggMS80XSBuZGN0bCwgbW9uaXRvcjogZml4IHRoZSBsYWNrIG9mIGRldGVjdGlvbiBv
+ZiBpbnZhbGlkDQo+IHBhdGggb2YgbG9nIGZpbGUNCj4gDQo+IEhpIFFpLA0KPiANCj4gT24gMDgv
+MDcvMjAxOCAwOToxNyBBTSwgUUkgRnVsaSB3cm90ZToNCj4gPiBDdXJyZW50bHkgdGhlIG1vbml0
+b3IgY2FuIGJlIHN0YXJ0ZWQgZXZlbiB3aXRoIGFuIGludmFsaWQgcGF0aCBvZiBsb2cgZmlsZS4N
+Cj4gPiBUaGlzIHBhdGNoIGFkZHMgYSBkZXRlY3Rpb24gb2YgaW52YWxpZCBwYXRoIG9mIGxvZyBm
+aWxlIHdoZW4gc3RhcnRpbmcgbW9uaXRvci4NCj4gPiBJZiB0aGUgcGF0aCBvZiBsb2cgZmlsZSBp
+cyBpbnZhbGlkLCB0aGUgbW9uaXRvciB3aWxsIHJlZnVzZSB0byBiZSBzdGFydGVkLg0KPiA+DQo+
+ID4gU2lnbmVkLW9mZi1ieTogUUkgRnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPiAt
+LS0NCj4gPiAgbmRjdGwvbW9uaXRvci5jIHwgMTEgKysrKysrKysrKy0NCj4gPiAgMSBmaWxlIGNo
+YW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPg0KPiA+IGRpZmYgLS1n
+aXQgYS9uZGN0bC9tb25pdG9yLmMgYi9uZGN0bC9tb25pdG9yLmMgaW5kZXggZjEwMzg0Yi4uYmYx
+ZjFkMw0KPiA+IDEwMDY0NA0KPiA+IC0tLSBhL25kY3RsL21vbml0b3IuYw0KPiA+ICsrKyBiL25k
+Y3RsL21vbml0b3IuYw0KPiA+IEBAIC02MDMsNiArNjAzLDcgQEAgaW50IGNtZF9tb25pdG9yKGlu
+dCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgdm9pZCAqY3R4KQ0KPiA+ICAJc3RydWN0IHV0aWxf
+ZmlsdGVyX2N0eCBmY3R4ID0geyAwIH07DQo+ID4gIAlzdHJ1Y3QgbW9uaXRvcl9maWx0ZXJfYXJn
+IG1mYSA9IHsgMCB9Ow0KPiA+ICAJaW50IGksIHJjOw0KPiA+ICsJRklMRSAqZjsNCj4gPg0KPiA+
+ICAJYXJnYyA9IHBhcnNlX29wdGlvbnNfcHJlZml4KGFyZ2MsIGFyZ3YsIHByZWZpeCwgb3B0aW9u
+cywgdSwgMCk7DQo+ID4gIAlmb3IgKGkgPSAwOyBpIDwgYXJnYzsgaSsrKSB7DQo+ID4gQEAgLTYz
+MCw4ICs2MzEsMTYgQEAgaW50IGNtZF9tb25pdG9yKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJn
+diwgdm9pZCAqY3R4KQ0KPiA+ICAJCQluZGN0bF9zZXRfbG9nX2ZuKChzdHJ1Y3QgbmRjdGxfY3R4
+ICopY3R4LCBsb2dfc3lzbG9nKTsNCj4gPiAgCQllbHNlIGlmIChzdHJuY21wKG1vbml0b3IubG9n
+LCAiLi9zdGFuZGFyZCIsIDEwKSA9PSAwKQ0KPiA+ICAJCQk7IC8qZGVmYXVsdCwgYWxyZWFkeSBz
+ZXQgKi8NCj4gPiAtCQllbHNlDQo+ID4gKwkJZWxzZSB7DQo+ID4gKwkJCWYgPSBmb3Blbihtb25p
+dG9yLmxvZywgImErIik7DQo+ID4gKwkJCWlmICghZikgew0KPiA+ICsJCQkJZXJyb3IoIm9wZW4g
+JXMgZmFpbGVkXG4iLCBtb25pdG9yLmxvZyk7DQo+ID4gKwkJCQlyYyA9IC1lcnJubzsNCj4gPiAr
+CQkJCWdvdG8gb3V0Ow0KPiA+ICsJCQl9DQo+ID4gKwkJCWZjbG9zZShmKTsNCj4gPiAgCQkJbmRj
+dGxfc2V0X2xvZ19mbigoc3RydWN0IG5kY3RsX2N0eCAqKWN0eCwgbG9nX2ZpbGUpOw0KPiA+ICsJ
+CX0NCj4gDQoNCk1hc2EsDQoNClRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4NCg0KPiBJbiBsb2df
+ZmlsZSgpLCB0aGUgbG9nIGZpbGUgZG9lcyBmYWxsYmFjayB0byBzeXNsb2cgaWYgdGhlIGZvcGVu
+KCkgZmFpbHMuDQo+IEluIG15IHVuZGVyc3RhbmRpbmcgaGVyZSBpcyB0aGF0IHRoZSBmYWxsYmFj
+ayBpcyBuZWVkZWQgdG8gc2F2ZSBpbiBjYXNlIG9mIHRoZQ0KPiBtb25pdG9yLmxvZyBpbiB0cm91
+YmxlIGZvciBleGFtcGxlLCB0aGUgcGFyZW50IGRpcmVjdG9yeSBpcyByZW1vdmVkLg0KPiBBbmQs
+IHRoZSBuZXcgZm9wZW4oKSBjaGVjaywgeW91IGhhdmUgYWRkZWQgYnkgdGhpcyBwYXRjaCwgdG8g
+aW5mb3JtIHRoZSBpbnZhbGlkIGxvZw0KPiBwYXRoIGZvciB1c2Vycy4NCj4gDQpZZXMsIHRoaXMg
+aXMgd2hhdCBJIHdhbnRlZCB0byBpbXBsZW1lbnQuDQoNCj4gSXMgbXkgdW5kZXJzdGFuZGluZyBj
+b3JyZWN0PyBJZiBzbywgbWFrZSBzZW5zZSB0byBtZS4NCj4gUGxlYXNlIGZlZWwgZnJlZSB0byBh
+ZGQ6DQo+IA0KPiAgICAgUmV2aWV3ZWQtYnk6IE1hc2F5b3NoaSBNaXp1bWEgPG0ubWl6dW1hQGpw
+LmZ1aml0c3UuY29tPg0KPiANCg0KVGhhbmtzLA0KUUkNCg0KPiBUaGFua3MsDQo+IE1hc2ENCj4g
+DQo+ID4gIAl9DQo+ID4NCj4gPiAgCWlmIChtb25pdG9yLmRhZW1vbikgew0KPiA+DQo+IA0KDQpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
