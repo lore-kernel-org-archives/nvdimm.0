@@ -1,26 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk0-x244.google.com (mail-qk0-x244.google.com
+ [IPv6:2607:f8b0:400d:c09::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C778E210D93BC
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 09:00:05 -0700 (PDT)
-Received: from g01jpfmpwkw03.exch.g01.fujitsu.local
- (g01jpfmpwkw03.exch.g01.fujitsu.local [10.0.193.57])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id D2AA0AC0196
- for <linux-nvdimm@lists.01.org>; Thu,  9 Aug 2018 00:59:56 +0900 (JST)
-From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
-Subject: RE: [ndctl PATCH 2/4] ndctl, monitor: set default log destination
- to syslog if "--daemon" is specified
-Date: Wed, 8 Aug 2018 15:59:55 +0000
-Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DA9F262@g01jpexmbkw24>
+ by ml01.01.org (Postfix) with ESMTPS id 14826210DF77E
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 06:35:29 -0700 (PDT)
+Received: by mail-qk0-x244.google.com with SMTP id 126-v6so1483746qke.5
+ for <linux-nvdimm@lists.01.org>; Wed, 08 Aug 2018 06:35:29 -0700 (PDT)
+Subject: Re: [ndctl PATCH 2/4] ndctl, monitor: set default log destination to
+ syslog if "--daemon" is specified
 References: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
  <20180807131756.23673-3-qi.fuli@jp.fujitsu.com>
  <7aa147ac-9fa8-ace7-a782-6ba3cab88b20@gmail.com>
  <0DEDF3B159719A448A49EF0E7B11E3223DA9DD3A@g01jpexmbkw24>
- <01b090d0-64ee-8484-3183-313f1071421b@gmail.com>
-In-Reply-To: <01b090d0-64ee-8484-3183-313f1071421b@gmail.com>
-Content-Language: ja-JP
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <01b090d0-64ee-8484-3183-313f1071421b@gmail.com>
+Date: Wed, 8 Aug 2018 09:35:26 -0400
 MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3223DA9DD3A@g01jpexmbkw24>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,139 +26,167 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Masayoshi Mizuma' <msys.mizuma@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXNheW9zaGkgTWl6dW1hIFtt
-YWlsdG86bXN5cy5taXp1bWFAZ21haWwuY29tXQ0KPiBTZW50OiBXZWRuZXNkYXksIEF1Z3VzdCA4
-LCAyMDE4IDEwOjM1IFBNDQo+IFRvOiBRaSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpwLmZ1
-aml0c3UuY29tPjsgbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0KPiBTdWJqZWN0OiBSZTogW25k
-Y3RsIFBBVENIIDIvNF0gbmRjdGwsIG1vbml0b3I6IHNldCBkZWZhdWx0IGxvZyBkZXN0aW5hdGlv
-biB0byBzeXNsb2cgaWYNCj4gIi0tZGFlbW9uIiBpcyBzcGVjaWZpZWQNCj4gDQo+IEhpUWksDQo+
-IA0KPiBPbiAwOC8wNy8yMDE4IDA5OjMxIFBNLCBRaSwgRnVsaSB3cm90ZToNCj4gLi4uDQo+ID4+
-IE9uIDA4LzA3LzIwMTggMDk6MTcgQU0sIFFJIEZ1bGkgd3JvdGU6DQo+ID4+PiBXaGVuIHJ1bm5p
-bmcgbW9uaXRvciBhcyBhIGRhZW1vbiwgaWYgdGhlIGxvZyBkZXN0aW5hdGlvbiBpcyAic3RhbmRh
-cmQiDQo+ID4+PiBvciBhIHJlbGF0aXZlIHBhdGggZm9yIGxvZyBmaWxlLCB0aGUgbWVzc2FnZXMg
-d2lsbCBub3QgYmUgYWJsZSB0byBiZSBsb2dnZWQuDQo+ID4+PiBTb21ldGltZXMsIHVzZXJzIG1h
-eSBub3Qgbm90aWNlIHRoYXQgdGhlIGRlZmF1bHQgbG9nIGRlc3RpbmF0aW9uIGlzICJzdGFuZGFy
-ZCINCj4gPj4+IHdoZW4gdGhleSBzdGFydCBtb25pdG9yIGRhZW1vbiBieSBzeXN0ZW1jdGwsIHNv
-IHRoZXkgd2lsbCBsb3NlIG1lc3NhZ2VzLg0KPiA+Pj4gVGhpcyBwYXRjaCBpcyB1c2VkIHRvIGZp
-eCB0aGUgdW5mcmllbmRseSBpbnRlcmZhY2UuIFdoZW4gcnVubmluZw0KPiA+Pj4gbW9uaXRvciBh
-cyBhIGRhZW1vbiwgdGhlIGRlZmF1bHQgbG9nIGRlc3RpbmF0aW9uIHdpbGwgYmUgY2hhbmdlZCB0
-bw0KPiA+Pj4gc3lzbG9nLiBBbHNvLCB0aGUgbWVzc2FnZXMgd2lsbCBiZSBmb3J3YXJkZWQgdG8g
-c3lzbG9nIGlmIHRoZSBsb2cNCj4gPj4+IGRlc3RpbmF0aW9uIGlzDQo+ID4+IGEgcmVsYXRpdmUg
-cGF0aCBmb3IgbG9nIGZpbGUuDQo+ID4+Pg0KPiA+Pj4gU2lnbmVkLW9mZi1ieTogUUkgRnVsaSA8
-cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPj4+IC0tLQ0KPiA+Pj4gIERvY3VtZW50YXRpb24v
-bmRjdGwvbmRjdGwtbW9uaXRvci50eHQgfCAxNiArKysrKysrKysrKysrKystDQo+ID4+PiAgbmRj
-dGwvbW9uaXRvci5jICAgICAgICAgICAgICAgICAgICAgICB8ICA1ICsrKystDQo+ID4+PiAgbmRj
-dGwvbW9uaXRvci5jb25mICAgICAgICAgICAgICAgICAgICB8ICAyICsrDQo+ID4+PiAgMyBmaWxl
-cyBjaGFuZ2VkLCAyMSBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+Pj4NCj4gPj4+
-IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL25kY3RsL25kY3RsLW1vbml0b3IudHh0DQo+ID4+
-PiBiL0RvY3VtZW50YXRpb24vbmRjdGwvbmRjdGwtbW9uaXRvci50eHQNCj4gPj4+IGluZGV4IDFj
-YmE5ZWEuLjlhOGQ3NmIgMTAwNjQ0DQo+ID4+PiAtLS0gYS9Eb2N1bWVudGF0aW9uL25kY3RsL25k
-Y3RsLW1vbml0b3IudHh0DQo+ID4+PiArKysgYi9Eb2N1bWVudGF0aW9uL25kY3RsL25kY3RsLW1v
-bml0b3IudHh0DQo+ID4+PiBAQCAtNjcsNyArNjcsMjEgQEAgT1BUSU9OUw0KPiA+Pj4NCj4gPj4+
-ICAtbCA8ZmlsZSB8IHN5c2xvZyB8IHN0YW5kYXJkPjo6DQo+ID4+PiAgLS1sb2c9PGZpbGUgfCBz
-eXNsb2cgfCBzdGFuZGFyZD46Og0KPiA+Pj4gLQlPdXRwdXQgbm90aWZpY2F0aW9ucyB0byA8Zmls
-ZT4sIHN5c2xvZyBvciBzdGFuZGFyZCBvdXRwdXQuDQo+ID4+PiArCVNlbmQgbG9nIG1lc3NhZ2Vz
-IHRvIHRoZSBzcGVjaWZpZWQgZGVzdGluYXRpb24uDQo+ID4+PiArKw0KPiA+Pj4gKy0tDQo+ID4+
-PiArPGZpbGU+OjoNCj4gPj4+ICsJU2VuZCBsb2cgbWVzc2FnZXMgdG8gc3BlY2lmaWVkIDxmaWxl
-Pi4gV2hlbiBmb3BlbigpIGlzIG5vdCBhYmxlDQo+ID4+PiArCXRvIG9wZW4gPGZpbGU+LCBsb2cg
-bWVzc2FnZXMgd2lsbCBiZSBmb3J3YXJkZWQgdG8gc3lzbG9nLg0KPiA+Pj4gK3N5c2xvZzo6DQo+
-ID4+PiArCVNlbmQgbWVzc2FnZXMgdG8gc3lzbG9nLg0KPiA+Pj4gK3N0YW5kYXJkOjoNCj4gPj4+
-ICsJU2VuZCBtZXNzYWdlcyB0byBzdGFuZGFyZCBvdXRwdXQuDQo+ID4+PiArLS0NCj4gPj4+ICsr
-DQo+ID4+PiArVGhlIGRlZmF1bHQgbG9nIGRlc3RpbmF0aW9uIGlzICdzeXNsb2cnIGlmICItLWRh
-ZW1vbiIgaXMgc3BlY2lmaWVkLA0KPiA+Pj4gK290aGVyd2lzZSAnc3RhbmRhcmQnLiBOb3RlIHRo
-YXQgc3RhbmRhcmQgYW5kIHJlbGF0aXZlIHBhdGggZm9yDQo+ID4+PiArPGZpbGU+IHdpbGwgbm90
-IHdvcmsgaWYgIi0tZGFlbW9uIiBpcyBzcGVjaWZpZWQuDQo+ID4+Pg0KPiA+Pj4gIC1jOjoNCj4g
-Pj4+ICAtLWNvbmZpZy1maWxlPTo6DQo+ID4+PiBkaWZmIC0tZ2l0IGEvbmRjdGwvbW9uaXRvci5j
-IGIvbmRjdGwvbW9uaXRvci5jIGluZGV4DQo+ID4+PiBiZjFmMWQzLi4yZjNkNzUxDQo+ID4+PiAx
-MDA2NDQNCj4gPj4+IC0tLSBhL25kY3RsL21vbml0b3IuYw0KPiA+Pj4gKysrIGIvbmRjdGwvbW9u
-aXRvci5jDQo+ID4+PiBAQCAtOTMsNyArOTMsOCBAQCBzdGF0aWMgdm9pZCBsb2dfZmlsZShzdHJ1
-Y3QgbmRjdGxfY3R4ICpjdHgsIGludA0KPiA+Pj4gcHJpb3JpdHksIGNvbnN0DQo+ID4+IGNoYXIg
-KmZpbGUsDQo+ID4+PiAgCWYgPSBmb3Blbihtb25pdG9yLmxvZywgImErIik7DQo+ID4+PiAgCWlm
-ICghZikgew0KPiA+Pj4gIAkJbmRjdGxfc2V0X2xvZ19mbihjdHgsIGxvZ19zeXNsb2cpOw0KPiA+
-Pj4gLQkJZXJyKGN0eCwgIm9wZW4gbG9nZmlsZSAlcyBmYWlsZWRcbiIsIG1vbml0b3IubG9nKTsN
-Cj4gPj4+ICsJCWVycihjdHgsICJvcGVuIGxvZ2ZpbGUgJXMgZmFpbGVkLCBmb3J3YXJkIG1lc3Nh
-Z2VzIHRvIHN5c2xvZ1xuIiwNCj4gPj4+ICsJCQkJbW9uaXRvci5sb2cpOw0KPiA+Pj4gIAkJZGlk
-X2ZhaWwgPSAxOw0KPiA+Pj4gIAkJbm90aWNlKGN0eCwgIiVzXG4iLCBidWYpOw0KPiA+Pj4gIAkJ
-Z290byBlbmQ7DQo+ID4+PiBAQCAtNjQ0LDYgKzY0NSw4IEBAIGludCBjbWRfbW9uaXRvcihpbnQg
-YXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHZvaWQgKmN0eCkNCj4gPj4+ICAJfQ0KPiA+Pj4NCj4g
-Pj4+ICAJaWYgKG1vbml0b3IuZGFlbW9uKSB7DQo+ID4+DQo+ID4+IFdoeSBkb24ndCB5b3UgYWRk
-ICcuL3N0YW5kYXJkJyBjaGVjaz8gTGlrZSBhczoNCj4gPj4NCj4gPj4gICAgICAgICAgICAgICAg
-IGlmIChzdHJuY21wKG1vbml0b3IubG9nLCAiLi9zdGFuZGFyZCIsIDEwKSA9PSAwKQ0KPiA+PiAg
-ICAgICAgICAgICAgICAgICAgICAgICBlcnJvcigiZGFlbW9uIGRvZXNuJ3Qgd29yayBmb3IgJ3N0
-YW5kYXJkJyBsb2cgb3B0aW9uIik7DQo+ID4+ICAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8g
-b3V0Ow0KPiA+Pg0KPiA+IEhpIE1hc2EsDQo+ID4NCj4gPiBUaGFuayB5b3UgZm9yIHlvdXIgY29t
-bWVudC4NCj4gPg0KPiA+IFdoZW4gcnVubmluZyBtb25pdG9yIGFzIGEgZGFlbW9uLCB0aGUgbWVz
-c2FnZXMgd2lsbCBub3QgYmUgYWJsZSB0byBiZSBsb2dnZWQgaW4NCj4gZm9sbG93aW5nIGNhc2Vz
-Lg0KPiA+IGEpIFVzZXJzIHNldCB0aGUgbG9nIGRlc3RpbmF0aW9uIHRvIHN0YW5kYXJkIGJ5IHVz
-aW5nIFstLWxvZ10gb3B0aW9uIG9yIHNldHRpbmcgdmFsdWUNCj4gb2YgImxvZyIgaW4gY29uZmln
-IGZpbGUuDQo+IA0KPiA+IGIpIFRoZSBsb2cgZGVzdGluYXRpb24gaXMgc3RhbmRhcmQgYnkgZGVm
-YXVsdC4NCj4gDQo+IFVtbW0uLi4gaXMgdGhpcyByaWdodCBiZWhhdmlvci4uLj8gSWYgdGhlIG1v
-bml0b3IgcnVubmluZyBhcyBhIGRhZW1vbiwgc2hvdWxkbid0IHRoZQ0KPiBkZWZhdWx0IGxvZyBk
-ZXN0aW5hdGlvbiBiZSBzdGFuZGFyZC4uLj8NCg0KTm8sIElmIHRoZSBtb25pdG9yIHJ1bnMgYXMg
-YSBkYWVtb24sIHRoZSBkZWZhdWx0IGxvZyBkZXN0aW5hdGlvbiBzaG91bGQgbm90IGJlIHN0YW5k
-YXJkLg0KVGhlIGRlZmF1bHQgbG9nIGRlc3RpbmF0aW9uIHNob3VsZCBiZSBzeXNsb2csIG90aGVy
-d2lzZSB0aGUgbWVzc2FnZXMgd2lsbCBub3QgYmUgYWJsZSB0byBiZSBsb2dnZWQgbGlrZSBub3cu
-DQoNCj4gSG93IGFib3V0IHRoZSBmb2xsb3dpbmcgY2hhbmdlPw0KPiANCj4gZGlmZiAtLWdpdCBh
-L25kY3RsL21vbml0b3IuYyBiL25kY3RsL21vbml0b3IuYyBpbmRleCBmMTAzODRiLi4zNzc4MzM0
-IDEwMDY0NA0KPiAtLS0gYS9uZGN0bC9tb25pdG9yLmMNCj4gKysrIGIvbmRjdGwvbW9uaXRvci5j
-DQo+IEBAIC02MTEsOCArNjExLDExIEBAIGludCBjbWRfbW9uaXRvcihpbnQgYXJnYywgY29uc3Qg
-Y2hhciAqKmFyZ3YsIHZvaWQgKmN0eCkNCj4gICAgICAgICBpZiAoYXJnYykNCj4gICAgICAgICAg
-ICAgICAgIHVzYWdlX3dpdGhfb3B0aW9ucyh1LCBvcHRpb25zKTsNCj4gDQo+IC0gICAgICAgLyog
-ZGVmYXVsdCB0byBsb2dfc3RhbmRhcmQgKi8NCj4gLSAgICAgICBuZGN0bF9zZXRfbG9nX2ZuKChz
-dHJ1Y3QgbmRjdGxfY3R4ICopY3R4LCBsb2dfc3RhbmRhcmQpOw0KPiArICAgICAgIC8qIFNldCBk
-ZWZhdWx0IGxvZyBkZXN0aW5hdGlvbiAqLw0KPiArICAgICAgIGlmIChtb25pdG9yLmRhZW1vbikN
-Cj4gKyAgICAgICAgICAgICAgIG5kY3RsX3NldF9sb2dfZm4oKHN0cnVjdCBuZGN0bF9jdHggKilj
-dHgsIGxvZ19zeXNsb2cpOw0KPiArICAgICAgIGVsc2UNCj4gKyAgICAgICAgICAgICAgIG5kY3Rs
-X3NldF9sb2dfZm4oKHN0cnVjdCBuZGN0bF9jdHggKiljdHgsIGxvZ19zdGFuZGFyZCk7DQo+IA0K
-SSB0aGluayB0aGVyZSBpcyBubyBuZWVkIHRvIGFkZGl0aW9uYWxseSBjaGVjayB0aGUgbW9uaXRv
-ci5kYWVtb24sIGFuZCB3ZSBjYW4ganVzdCBzZXQgdGhlIGRlZmF1bHQgbG9nIGRlc3RpbmF0aW9u
-IHRvIHN0YW5kYXJkIGhlcmUuDQpUaGUgbG9nIGRlc3RpbmF0aW9uIGNhbiBiZSBjaGFuZ2VkIHRv
-IHN5c2xvZyBieSB0aGUgZm9sbG93aW5nIGNvZGUgaWYgbW9uaXRvci5sb2cgaXMgTlVMTCwgd2hp
-Y2ggbWVhbnMgY2FzZSBiKS4NCg0KCWlmIChtb25pdG9yLmRhZW1vbikgew0KKwkJaWYgKCFtb25p
-dG9yLmxvZyB8fCBzdHJuY21wKG1vbml0b3IubG9nLCAiLi8iLCAyKSA9PSAwKQ0KKwkJCW5kY3Rs
-X3NldF9sb2dfZm4oKHN0cnVjdCBuZGN0bF9jdHggKiljdHgsIGxvZ19zeXNsb2cpOw0KDQo+ICAg
-ICAgICAgaWYgKG1vbml0b3IudmVyYm9zZSkNCj4gICAgICAgICAgICAgICAgIG5kY3RsX3NldF9s
-b2dfcHJpb3JpdHkoKHN0cnVjdCBuZGN0bF9jdHggKiljdHgsIExPR19ERUJVRyk7DQo+IA0KPiA+
-IGMpIFVzZXJzIHNldCB0aGUgbG9nIGRlc3RpbmF0aW9uIHRvIGEgcmVsYXRpdmUgcGF0aCBvZiBs
-b2cgZmlsZSBieSB1c2luZyBbLS1sb2ddIG9wdGlvbg0KPiBvciBzZXR0aW5nIHZhbHVlIG9mICJs
-b2ciIGluIGNvbmZpZyBmaWxlLg0KPiA+DQo+ID4gVGhlICcuL3N0YW5kYXJkJyBjaGVjayB3aWxs
-IG9ubHkgd29ya3MgZm9yIGNhc2UgYSkuDQo+IA0KPiBJJ20gc29ycnksIGJ1dCBJJ20gbm90IGNs
-ZWFyIGFib3V0IGMpLi4uIFRoZSAnLi9zdGFuZGFyZCcgY2hlY2sgc2hvdWxkIG5vdCBoYXZlIHRo
-ZQ0KPiBlZmZlY3QgaW4gY2FzZSBvZiBjKSwgcmlnaHQ/DQoNClllcywgTGV0IG1lIHVzZSBhIHNh
-bXBsZSB0byBjbGFyaWZ5IHRoZSBjYXNlIGMpLg0KICMgbmRjdGwgbW9uaXRvciAtLWRhZW1vbiAt
-LWxvZyAuL21vbml0b3IubG9nDQpJbiB0aGlzIGNhc2UsIHRoZSBtZXNzYWdlcyBhcmUgbm90IGFi
-bGUgdG8gYmUgbG9nZ2VkLg0KDQo+IFdlIHNob3VsZCBjaGVjayB0aGUgZm9sbG93aW5nIHRocmVl
-IGNhc2VzIGZvciBtb25pdG9yIGRhZW1vbiwgcmlnaHQ/DQo+IA0KPiAxLiAnLS1sb2cgc3RhbmRh
-cmQnIG9wdGlvbiwgb3INCj4gMi4gSW4gY29uZmlnIGZpbGUgJ2xvZyA9IHN0YW5kYXJkJw0KPiAz
-LiBCb3RoIDEuIGFuZCAyLiBpcyBub3Qgc2V0IChkZWZhdWx0IGJlaGF2aW9yKS4NCj4gDQpZZXMs
-IGFuZCBhcGFydCBmcm9tIHRoZSBjYXNlcyBhYm92ZSwgd2Ugc2hvdWxkIGFsc28gY2hlY2sgdGhl
-IGNhc2UgYykuIA0KDQpUaGFua3MsDQpRSQ0KDQo+IElmIEkgbWlzcyBzb21ldGhpbmcsIHNvcnJ5
-IGFib3V0IHRoYXQuLi4NCj4gDQo+IFRoYW5rcywNCj4gTWFzYQ0KPiANCj4gPg0KPiA+IEFsc28s
-IGl0IHdvdWxkIGJlIG1vcmUgZnJpZW5kbHkgdG8gc2V0IGEgZGVmYXVsdCBsb2cgZGVzdGluYXRp
-b24gdG8gbW9uaXRvciBkYWVtb24uDQo+ID4NCj4gPiBUaGFua3MsDQo+ID4gUUkNCj4gPg0KPiAg
-Pj4gVGhhbmtzLA0KPiA+PiBNYXNhDQo+ID4+DQo+ID4+PiArCQlpZiAoIW1vbml0b3IubG9nIHx8
-IHN0cm5jbXAobW9uaXRvci5sb2csICIuLyIsIDIpID09IDApDQo+ID4+PiArCQkJbmRjdGxfc2V0
-X2xvZ19mbigoc3RydWN0IG5kY3RsX2N0eCAqKWN0eCwgbG9nX3N5c2xvZyk7DQo+ID4+DQo+ID4+
-PiAgCQlpZiAoZGFlbW9uKDAsIDApICE9IDApIHsNCj4gPj4+ICAJCQllcnIoKHN0cnVjdCBuZGN0
-bF9jdHggKiljdHgsICJkYWVtb24gc3RhcnQgZmFpbGVkXG4iKTsNCj4gPj4+ICAJCQlnb3RvIG91
-dDsNCj4gPj4+IGRpZmYgLS1naXQgYS9uZGN0bC9tb25pdG9yLmNvbmYgYi9uZGN0bC9tb25pdG9y
-LmNvbmYgaW5kZXgNCj4gPj4+IDg1N2FhZGYuLjkzNGUyYzAgMTAwNjQ0DQo+ID4+PiAtLS0gYS9u
-ZGN0bC9tb25pdG9yLmNvbmYNCj4gPj4+ICsrKyBiL25kY3RsL21vbml0b3IuY29uZg0KPiA+Pj4g
-QEAgLTM4LDQgKzM4LDYgQEANCj4gPj4+ICAjIHRvIHN0YW5kYXJkIG91dHB1dCAobG9nPXN0YW5k
-YXJkKSBvciB0byB3cml0ZSBpbnRvIGEgc3BlY2lhbCBmaWxlDQo+ID4+PiAobG9nPTxmaWxlPikg
-ICMgYnkgc2V0dGluZyBrZXkgImxvZyIuIElmIHRoaXMgdmFsdWUgaXMgaW4gY29uZmxpY3QNCj4g
-Pj4+IHdpdGggdGhlIHZhbHVlIG9mICAjIFstLWxvZz08dmFsdWU+XSBvcHRpb24sIHRoaXMgdmFs
-dWUgd2lsbCBiZSBpZ25vcmVkLg0KPiA+Pj4gKyMgTm90ZTogU2V0dGluZyB2YWx1ZSB0byAic3Rh
-bmRhcmQiIG9yIHJlbGF0aXZlIHBhdGggZm9yIDxmaWxlPg0KPiA+Pj4gK3dpbGwgbm90IHdvcmsg
-IyB3aGVuIHJ1bm5pbmcgbW9uaW90ciBhcyBhIGRhZW1vbi4NCj4gPj4+ICAjIGxvZyA9IC92YXIv
-bG9nL25kY3RsL21vbml0b3IubG9nDQo+ID4+Pg0KPiA+Pg0KPiA+DQo+IA0KDQpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGlu
-ZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+HiQi,
+
+On 08/07/2018 09:31 PM, Qi, Fuli wrote:
+...
+>> On 08/07/2018 09:17 AM, QI Fuli wrote:
+>>> When running monitor as a daemon, if the log destination is "standard"
+>>> or a relative path for log file, the messages will not be able to be logged.
+>>> Sometimes, users may not notice that the default log destination is "standard"
+>>> when they start monitor daemon by systemctl, so they will lose messages.
+>>> This patch is used to fix the unfriendly interface. When running
+>>> monitor as a daemon, the default log destination will be changed to
+>>> syslog. Also, the messages will be forwarded to syslog if the log destination is
+>> a relative path for log file.
+>>>
+>>> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+>>> ---
+>>>  Documentation/ndctl/ndctl-monitor.txt | 16 +++++++++++++++-
+>>>  ndctl/monitor.c                       |  5 ++++-
+>>>  ndctl/monitor.conf                    |  2 ++
+>>>  3 files changed, 21 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/Documentation/ndctl/ndctl-monitor.txt
+>>> b/Documentation/ndctl/ndctl-monitor.txt
+>>> index 1cba9ea..9a8d76b 100644
+>>> --- a/Documentation/ndctl/ndctl-monitor.txt
+>>> +++ b/Documentation/ndctl/ndctl-monitor.txt
+>>> @@ -67,7 +67,21 @@ OPTIONS
+>>>
+>>>  -l <file | syslog | standard>::
+>>>  --log=<file | syslog | standard>::
+>>> -	Output notifications to <file>, syslog or standard output.
+>>> +	Send log messages to the specified destination.
+>>> ++
+>>> +--
+>>> +<file>::
+>>> +	Send log messages to specified <file>. When fopen() is not able
+>>> +	to open <file>, log messages will be forwarded to syslog.
+>>> +syslog::
+>>> +	Send messages to syslog.
+>>> +standard::
+>>> +	Send messages to standard output.
+>>> +--
+>>> ++
+>>> +The default log destination is 'syslog' if "--daemon" is specified,
+>>> +otherwise 'standard'. Note that standard and relative path for <file>
+>>> +will not work if "--daemon" is specified.
+>>>
+>>>  -c::
+>>>  --config-file=::
+>>> diff --git a/ndctl/monitor.c b/ndctl/monitor.c index bf1f1d3..2f3d751
+>>> 100644
+>>> --- a/ndctl/monitor.c
+>>> +++ b/ndctl/monitor.c
+>>> @@ -93,7 +93,8 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const
+>> char *file,
+>>>  	f = fopen(monitor.log, "a+");
+>>>  	if (!f) {
+>>>  		ndctl_set_log_fn(ctx, log_syslog);
+>>> -		err(ctx, "open logfile %s failed\n", monitor.log);
+>>> +		err(ctx, "open logfile %s failed, forward messages to syslog\n",
+>>> +				monitor.log);
+>>>  		did_fail = 1;
+>>>  		notice(ctx, "%s\n", buf);
+>>>  		goto end;
+>>> @@ -644,6 +645,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+>>>  	}
+>>>
+>>>  	if (monitor.daemon) {
+>>
+>> Why don't you add './standard' check? Like as:
+>>
+>>                 if (strncmp(monitor.log, "./standard", 10) == 0)
+>>                         error("daemon doesn't work for 'standard' log option");
+>>                         goto out;
+>>
+> Hi Masa,
+> 
+> Thank you for your comment.
+> 
+> When running monitor as a daemon, the messages will not be able to be logged in following cases.
+> a) Users set the log destination to standard by using [--log] option or setting value of "log" in config file.
+
+> b) The log destination is standard by default.
+
+Ummm... is this right behavior...? If the monitor running as a daemon,
+shouldn't the default log destination be standard...? 
+How about the following change?
+
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index f10384b..3778334 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -611,8 +611,11 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
+        if (argc)
+                usage_with_options(u, options);
+ 
+-       /* default to log_standard */
+-       ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_standard);
++       /* Set default log destination */
++       if (monitor.daemon)
++               ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
++       else
++               ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_standard);
+ 
+        if (monitor.verbose)
+                ndctl_set_log_priority((struct ndctl_ctx *)ctx, LOG_DEBUG);
+
+> c) Users set the log destination to a relative path of log file by using [--log] option or setting value of "log" in config file.
+> 
+> The './standard' check will only works for case a).
+
+I'm sorry, but I'm not clear about c)... The './standard' check should not have
+the effect in case of c), right?
+We should check the following three cases for monitor daemon, right?
+
+1. '--log standard' option, or
+2. In config file 'log = standard'
+3. Both 1. and 2. is not set (default behavior).
+
+If I miss something, sorry about that...
+
+Thanks,
+Masa
+
+> 
+> Also, it would be more friendly to set a default log destination to monitor daemon.
+> 
+> Thanks,
+> QI
+> 
+ >> Thanks,
+>> Masa
+>>
+>>> +		if (!monitor.log || strncmp(monitor.log, "./", 2) == 0)
+>>> +			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
+>>
+>>>  		if (daemon(0, 0) != 0) {
+>>>  			err((struct ndctl_ctx *)ctx, "daemon start failed\n");
+>>>  			goto out;
+>>> diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf index
+>>> 857aadf..934e2c0 100644
+>>> --- a/ndctl/monitor.conf
+>>> +++ b/ndctl/monitor.conf
+>>> @@ -38,4 +38,6 @@
+>>>  # to standard output (log=standard) or to write into a special file
+>>> (log=<file>)  # by setting key "log". If this value is in conflict
+>>> with the value of  # [--log=<value>] option, this value will be ignored.
+>>> +# Note: Setting value to "standard" or relative path for <file> will
+>>> +not work # when running moniotr as a daemon.
+>>>  # log = /var/log/ndctl/monitor.log
+>>>
+>>
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
