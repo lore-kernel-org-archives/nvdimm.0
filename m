@@ -1,13 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-xc41.google.com (mail-yw1-xc41.google.com
+ [IPv6:2607:f8b0:4864:20::c41])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 059E6210ED0FC
- for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 17:06:48 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl, prepare-release.sh: fix revision update checks
-Date: Fri, 10 Aug 2018 18:06:15 -0600
-Message-Id: <20180811000615.11788-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CC56C210DF5EB
+ for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 18:24:55 -0700 (PDT)
+Received: by mail-yw1-xc41.google.com with SMTP id w76-v6so405537ywg.4
+ for <linux-nvdimm@lists.01.org>; Tue, 07 Aug 2018 18:24:55 -0700 (PDT)
+Subject: Re: [ndctl PATCH 3/4] ndctl, monitor: add timestamp and pid to log
+ messages in log_file()
+References: <20180807131756.23673-1-qi.fuli@jp.fujitsu.com>
+ <20180807131756.23673-4-qi.fuli@jp.fujitsu.com>
+ <bed6c181-1316-4506-c2b6-113eea1f13ce@gmail.com>
+ <0DEDF3B159719A448A49EF0E7B11E3223DA9DCE5@g01jpexmbkw24>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Message-ID: <ebdcd0bd-691b-8ba7-6c75-51d0a05b4ff3@gmail.com>
+Date: Tue, 7 Aug 2018 21:24:53 -0400
+MIME-Version: 1.0
+In-Reply-To: <0DEDF3B159719A448A49EF0E7B11E3223DA9DCE5@g01jpexmbkw24>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,43 +26,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The libtool versioning checks only need to prompt for a 'REVISION'
-update if the library source changed. We were triggering that check even
-if the utility source had changed. Fix by changing $libdir to the
-corresponding */lib/ directory.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- contrib/prepare-release.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/contrib/prepare-release.sh b/contrib/prepare-release.sh
-index 45be4d8..5009eec 100755
---- a/contrib/prepare-release.sh
-+++ b/contrib/prepare-release.sh
-@@ -105,8 +105,8 @@ check_libtool_vers()
- {
- 	local lib="$1"
- 	local lib_u="${lib^^}"
--	local libdir="${lib##lib}"
--	local symfile="${libdir}/lib/${lib}.sym"
-+	local libdir="${lib##lib}/lib/"
-+	local symfile="${libdir}/${lib}.sym"
- 	local last_cur=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_CURRENT" | cut -d'=' -f2)
- 	local last_rev=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_REVISION" | cut -d'=' -f2)
- 	local last_age=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_AGE" | cut -d'=' -f2)
--- 
-2.14.4
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiAwOC8wNy8yMDE4IDA4OjU0IFBNLCBRaSwgRnVsaSB3cm90ZToKPj4gLS0tLS1PcmlnaW5h
+bCBNZXNzYWdlLS0tLS0KPj4gRnJvbTogTWFzYXlvc2hpIE1penVtYSBbbWFpbHRvOm1zeXMubWl6
+dW1hQGdtYWlsLmNvbV0KPj4gU2VudDogV2VkbmVzZGF5LCBBdWd1c3QgOCwgMjAxOCAzOjQwIEFN
+Cj4+IFRvOiBRaSwgRnVsaS/mlokg56aP5YipIDxxaS5mdWxpQGpwLmZ1aml0c3UuY29tPjsgbGlu
+dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwo+PiBTdWJqZWN0OiBSZTogW25kY3RsIFBBVENIIDMvNF0g
+bmRjdGwsIG1vbml0b3I6IGFkZCB0aW1lc3RhbXAgYW5kIHBpZCB0byBsb2cgbWVzc2FnZXMKPj4g
+aW4gbG9nX2ZpbGUoKQo+Pgo+PiBIaSBRaSwKPj4KPj4gT24gMDgvMDcvMjAxOCAwOToxNyBBTSwg
+UUkgRnVsaSB3cm90ZToKPj4+IFRoaXMgcGF0Y2ggaXMgdXNlZCB0byBhZGQgdGltZXN0YW1wIGFu
+ZCBwcm9jZXNzIGlkIHRvIGxvZyBtZXNzYWdlcwo+Pj4gd2hlbiBsb2dnaW5nIG1lc3NhZ2VzIHRv
+IGEgZmlsZS4KPj4+Cj4+PiBTaWduZWQtb2ZmLWJ5OiBRSSBGdWxpIDxxaS5mdWxpQGpwLmZ1aml0
+c3UuY29tPgo+Pj4gLS0tCj4+PiAgbmRjdGwvbW9uaXRvci5jIHwgMTEgKysrKysrKysrKy0KPj4+
+ICAxIGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+Pj4KPj4+
+IGRpZmYgLS1naXQgYS9uZGN0bC9tb25pdG9yLmMgYi9uZGN0bC9tb25pdG9yLmMgaW5kZXggMmYz
+ZDc1MS4uZDI5ZTM3OAo+Pj4gMTAwNjQ0Cj4+PiAtLS0gYS9uZGN0bC9tb25pdG9yLmMKPj4+ICsr
+KyBiL25kY3RsL21vbml0b3IuYwo+Pj4gQEAgLTg0LDYgKzg0LDggQEAgc3RhdGljIHZvaWQgbG9n
+X2ZpbGUoc3RydWN0IG5kY3RsX2N0eCAqY3R4LCBpbnQKPj4+IHByaW9yaXR5LCBjb25zdCBjaGFy
+ICpmaWxlLCAgewo+Pj4gIAlGSUxFICpmOwo+Pj4gIAljaGFyICpidWY7Cj4+PiArCXN0cnVjdCB0
+aW1lc3BlYyB0czsKPj4+ICsJY2hhciB0aW1lc3RhbXBbMzJdOwo+Pj4KPj4+ICAJaWYgKHZhc3By
+aW50ZigmYnVmLCBmb3JtYXQsIGFyZ3MpIDwgMCkgewo+Pj4gIAkJZmFpbCgidmFzcHJpbnRmIGVy
+cm9yXG4iKTsKPj4+IEBAIC05OSw3ICsxMDEsMTQgQEAgc3RhdGljIHZvaWQgbG9nX2ZpbGUoc3Ry
+dWN0IG5kY3RsX2N0eCAqY3R4LCBpbnQgcHJpb3JpdHksIGNvbnN0Cj4+IGNoYXIgKmZpbGUsCj4+
+PiAgCQlub3RpY2UoY3R4LCAiJXNcbiIsIGJ1Zik7Cj4+PiAgCQlnb3RvIGVuZDsKPj4+ICAJfQo+
+Pj4gLQlmcHJpbnRmKGYsICIlcyIsIGJ1Zik7Cj4+PiArCj4+PiArCWlmIChwcmlvcml0eSAhPSBM
+T0dfTk9USUNFKSB7Cj4+Cj4gSGkgTWFzYSwKPiAKPiBUaGFua3MgZm9yIHlvdXIgY29tbWVudHMu
+Cj4gCj4+IFdoeSBpcyB0aGUgdGltZXN0YW1wIG5vdCBuZWVkZWQgaW4gY2FzZSBvZiBMT0dfTk9U
+SUNFLi4uPwo+IAo+IEJlY2F1c2UgTE9HX05PVElDRSBsZXZlbCBpcyBvbmx5IHVzZWQgZm9yIHNt
+YXJ0IGV2ZW50IG5vdGlmaWNhdGlvbiBpbiBtb25pdG9yLgo+IFNpbmNlIHRoZSB0aW1lc3RhbXAg
+YW5kIHBpZCBhcmUgYWxyZWFkeSBhZGRlZCB0byBqc29uIGZvcm1hdCBtZXNzYWdlcyBieSBub3Rp
+ZnlfZGltbV9ldmVudCgpLAo+IHNvIHRoZXJlIGlzIG5vIG5lZWQgdG8gYWRkIHRoZW0gYWdhaW4u
+CgpJIHNlZSwgdGhhbmtzLgoKPiAKPj4KPj4+ICsJCWNsb2NrX2dldHRpbWUoQ0xPQ0tfUkVBTFRJ
+TUUsICZ0cyk7Cj4+PiArCQlzcHJpbnRmKHRpbWVzdGFtcCwgIiUxMGxkLiUwOWxkIiwgdHMudHZf
+c2VjLCB0cy50dl9uc2VjKTsKPj4+ICsJCWZwcmludGYoZiwgIlslc10gWyVkXSAlcyIsIHRpbWVz
+dGFtcCwgZ2V0cGlkKCksIGJ1Zik7Cj4+Cj4+IFdoYXQgaXMgdGhlIHBpZCBmb3IuLi4/Cj4+Cj4g
+TXVsdGlwbGUgbW9uaXRvciBjYW4gYmUgcnVuIGF0IHRoZSBzYW1lIHRpbWUgYW5kIHRoZXkgbWF5
+IHNlbmQgbWVzc2FnZXMgdG8gYSBjb21tb24gbG9nIGZpbGUuCj4gSW4gdGhpcyBjYXNlLCB0aGUg
+cGlkIGNvdWxkIGhlbHAgdXNlcnMgdG8ga25vdyB0aGUgbW9uaXRvciB3aGVyZSBlYWNoIG1lc3Nh
+Z2UgY2FtZSBmcm9tLgoKT0ssIGdvdCBpdC4KCllvdXIgcGF0Y2ggaXMgZ29vZCB0byBtZS4gUGxl
+YXNlIGZlZWwgZnJlZSB0byBhZGQ6CgogICAgIFJldmlld2VkLWJ5OiBNYXNheW9zaGkgTWl6dW1h
+IDxtLm1penVtYUBqcC5mdWppdHN1LmNvbT4KClRoYW5rcywKTWFzYQoKPiAKPiBUaGFua3MsCj4g
+UUkKPiAKPj4gVGhhbmtzLAo+PiBNYXNhCj4+Cj4+PiArCX0gZWxzZQo+Pj4gKwkJZnByaW50Zihm
+LCAiJXMiLCBidWYpOwo+Pj4gKz4gIAlmZmx1c2goZik7Cj4+PiAgCWZjbG9zZShmKTsKPj4+ICBl
+bmQ6Cj4+Pgo+Pgo+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
