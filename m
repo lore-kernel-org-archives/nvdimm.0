@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DBF26210D97AB
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:31:41 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 25131210E2A5C
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:26:53 -0700 (PDT)
 Subject: [PATCH v2 2/2] [PATCH] xfs: Close race between direct IO and
  xfs_break_layouts()
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 08 Aug 2018 10:31:40 -0700
-Message-ID: <153374942137.42241.10539674028265137668.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 08 Aug 2018 10:26:36 -0700
+Message-ID: <153374915981.40645.3350205963852459041.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153374910694.40645.17166196534680658204.stgit@djiang5-desk3.ch.intel.com>
+References: <153374910694.40645.17166196534680658204.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -38,13 +40,10 @@ Instead, always continue looping as long as dax_layout_busy_page() gives us
 a page which it found with an elevated refcount.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 ---
 
-Sorry resend, forgot to add Jan's reviewed-by.
-
 v2:
-- Rename parameter from did_unlock to retry (Jan)
+- Rename parameter from did_unlock to retry (Jan) 
 
  fs/xfs/xfs_file.c |    9 ++++-----
  1 file changed, 4 insertions(+), 5 deletions(-)
