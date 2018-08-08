@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from CAN01-TO1-obe.outbound.protection.outlook.com
- (mail-eopbgr670117.outbound.protection.outlook.com [40.107.67.117])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A77A721A07A92
- for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 10:37:19 -0700 (PDT)
-From: "Stephen  Bates" <sbates@raithlin.com>
-Subject: dmaengine support for PMEM
-Date: Tue, 21 Aug 2018 17:37:16 +0000
-Message-ID: <A88D23C5-46BD-462D-92D7-22BF284A905C@raithlin.com>
-Content-Language: en-US
-Content-ID: <B0E80E7C70EBB044976382A2753A35C2@CANPRD01.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 73D02210E2A5C
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 10:25:56 -0700 (PDT)
+Subject: [PATCH v2 1/2] ext4: Close race between direct IO and
+ ext4_break_layouts()
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 08 Aug 2018 10:25:52 -0700
+Message-ID: <153374910694.40645.17166196534680658204.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,21 +17,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>, Logan Gunthorpe <logang@deltatee.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: tytso@mit.edu, darrick.wong@oracle.com, jack@suse.cz, zwisler@kernel.org
+Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, lczerner@redhat.com, linux-ext4@vger.kernel.org, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkgRGF2ZQ0KDQpJIGhvcGUgeW91IGFyZSB3ZWxsLiBMb2dhbiBhbmQgSSB3ZXJlIGxvb2tpbmcg
-YXQgYWRkaW5nIERNQSBzdXBwb3J0IHRvIFBNRU0gYW5kIHRoZW4gd2VyZSBpbmZvcm1lZCB5b3Ug
-aGF2ZSBwcm9wb3NlZCBzb21lIHBhdGNoZXMgdG8gZG8ganVzdCB0aGF0IGZvciB0aGUgaW9hdCBE
-TUEgZW5naW5lLiBUaGUgbGF0ZXN0IHZlcnNpb24gb2YgdGhvc2UgSSBjYW4gc2VlIHdlcmUgdGhl
-IHY3IGZyb20gQXVndXN0IDIwMTcuIElzIHRoZXJlIGEgbW9yZSByZWNlbnQgdmVyc2lvbj8gV2hh
-dCBoYXBwZW5lZCB0byB0aGF0IHNlcmllcz8NCg0KaHR0cHM6Ly9saXN0cy4wMS5vcmcvcGlwZXJt
-YWlsL2xpbnV4LW52ZGltbS8yMDE3LUF1Z3VzdC8wMTIyMDguaHRtbO+7vw0KDQpDaGVlcnMNCiAN
-ClN0ZXBoZW4NCiANCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+From: Ross Zwisler <zwisler@kernel.org>
+
+If the refcount of a page is lowered between the time that it is returned
+by dax_busy_page() and when the refcount is again checked in
+ext4_break_layouts() => ___wait_var_event(), the waiting function
+ext4_wait_dax_page() will never be called.  This means that
+ext4_break_layouts() will still have 'retry' set to false, so we'll stop
+looping and never check the refcount of other pages in this inode.
+
+Instead, always continue looping as long as dax_layout_busy_page() gives us
+a page which it found with an elevated refcount.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+
+v2:
+- remove verbiage in comment header (Jan)
+
+ fs/ext4/inode.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 8f6ad7667974..d2663a1e3ec2 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4191,9 +4191,8 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
+ 	return 0;
+ }
+ 
+-static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
++static void ext4_wait_dax_page(struct ext4_inode_info *ei)
+ {
+-	*did_unlock = true;
+ 	up_write(&ei->i_mmap_sem);
+ 	schedule();
+ 	down_write(&ei->i_mmap_sem);
+@@ -4203,14 +4202,12 @@ int ext4_break_layouts(struct inode *inode)
+ {
+ 	struct ext4_inode_info *ei = EXT4_I(inode);
+ 	struct page *page;
+-	bool retry;
+ 	int error;
+ 
+ 	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
+ 		return -EINVAL;
+ 
+ 	do {
+-		retry = false;
+ 		page = dax_layout_busy_page(inode->i_mapping);
+ 		if (!page)
+ 			return 0;
+@@ -4218,8 +4215,8 @@ int ext4_break_layouts(struct inode *inode)
+ 		error = ___wait_var_event(&page->_refcount,
+ 				atomic_read(&page->_refcount) == 1,
+ 				TASK_INTERRUPTIBLE, 0, 0,
+-				ext4_wait_dax_page(ei, &retry));
+-	} while (error == 0 && retry);
++				ext4_wait_dax_page(ei));
++	} while (error == 0);
+ 
+ 	return error;
+ }
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
