@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F281210E38CA
- for <linux-nvdimm@lists.01.org>; Thu,  9 Aug 2018 02:23:29 -0700 (PDT)
-Date: Thu, 9 Aug 2018 05:23:28 -0400 (EDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <872818364.892078.1533806608252.JavaMail.zimbra@redhat.com>
-In-Reply-To: <2b7856596e519130946c834d5d61b00b7f592770.1533811181.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CEA2D210E2DC3
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 19:14:38 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V3 3/4] mm: add a function to differentiate the pages is from
+ DAX device memory
+Date: Thu,  9 Aug 2018 18:53:21 +0800
+Message-Id: <2b7856596e519130946c834d5d61b00b7f592770.1533811181.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
 References: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
- <2b7856596e519130946c834d5d61b00b7f592770.1533811181.git.yi.z.zhang@linux.intel.com>
-Subject: Re: [PATCH V3 3/4] mm: add a function to differentiate the pages is
- from DAX device memory
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,72 +18,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Zhang Yi <yi.z.zhang@linux.intel.com>
-Cc: jack@suse.cz, yu c zhang <yu.c.zhang@intel.com>, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, pbonzini@redhat.com, hch@lst.de, yi z zhang <yi.z.zhang@intel.com>
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
+Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
+DAX driver hotplug the device memory and move it to memory zone, these
+pages will be marked reserved flag, however, some other kernel componet
+will misconceive these pages are reserved mmio (ex: we map these dev_dax
+or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
+MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
+is DAX device memory or not.
 
-> 
-> DAX driver hotplug the device memory and move it to memory zone, these
-> pages will be marked reserved flag, however, some other kernel componet
-> will misconceive these pages are reserved mmio (ex: we map these dev_dax
-> or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
-> MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
-> is DAX device memory or not.
-> 
-> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-> Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
-> ---
->  include/linux/mm.h | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 68a5121..de5cbc3 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct
-> page *page)
->  		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
->  }
->  
-> +static inline bool is_dax_page(const struct page *page)
-> +{
-> +	return is_zone_device_page(page) &&
-> +		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
-> +		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
-> +}
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+---
+ include/linux/mm.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I think question from Dan for KVM VM with 'MEMORY_DEVICE_PUBLIC' still holds?
-I am also interested to know if there is any use-case.
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 68a5121..de5cbc3 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct page *page)
+ 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+ }
+ 
++static inline bool is_dax_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
++		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
++}
++
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline void dev_pagemap_get_ops(void)
+ {
+@@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct page *page)
+ {
+ 	return false;
+ }
++
++static inline bool is_dax_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline void get_page(struct page *page)
+-- 
+2.7.4
 
-Thanks,
-Pankaj
-
-> +
->  #else /* CONFIG_DEV_PAGEMAP_OPS */
->  static inline void dev_pagemap_get_ops(void)
->  {
-> @@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct
-> page *page)
->  {
->  	return false;
->  }
-> +
-> +static inline bool is_dax_page(const struct page *page)
-> +{
-> +	return false;
-> +}
->  #endif /* CONFIG_DEV_PAGEMAP_OPS */
->  
->  static inline void get_page(struct page *page)
-> --
-> 2.7.4
-> 
-> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
