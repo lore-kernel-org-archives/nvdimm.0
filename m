@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C57D210D6935
- for <linux-nvdimm@lists.01.org>; Thu,  2 Aug 2018 04:58:14 -0700 (PDT)
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <153255233354.51274.8552293701029405599.stgit@djiang5-desk3.ch.intel.com>
-References: <153255233354.51274.8552293701029405599.stgit@djiang5-desk3.ch.intel.com>
- <153255001863.51274.11308713958786222873.stgit@djiang5-desk3.ch.intel.com>
-Subject: Re: [PATCH v6 04/11] nfit/libnvdimm: add unlock of nvdimm support for
- Intel DIMMs
+ by ml01.01.org (Postfix) with ESMTPS id C2FF3210E2DDA
+ for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 20:16:56 -0700 (PDT)
+Subject: Re: [RFC PATCH 1/1] device-dax: check for vma range while dax_mmap.
+References: <e260d513ab831bfe1298374c87c6cca5f7dd3a6f.1533036772.git.yi.z.zhang@linux.intel.com>
+ <12a2ebd8-0f15-7d0a-697c-172ed7f77f92@intel.com>
+ <5aaca496-af2b-71b1-26af-b2400e0bcb43@linux.intel.com>
+ <2d9a11be-732d-23b5-80fe-fc463cef556c@intel.com>
+From: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
+Message-ID: <f05cea2e-77c3-d9ee-c659-af504499d6e3@linux.intel.com>
+Date: Thu, 9 Aug 2018 19:01:00 +0800
 MIME-Version: 1.0
-Content-ID: <19806.1533211091.1@warthog.procyon.org.uk>
-Date: Thu, 02 Aug 2018 12:58:11 +0100
-Message-ID: <19807.1533211091@warthog.procyon.org.uk>
+In-Reply-To: <2d9a11be-732d-23b5-80fe-fc463cef556c@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,38 +22,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dan.j.williams@intel.com, jack@suse.cz, zwisler@kernel.org, yu.c.zhang@intel.com
+Cc: yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dave Jiang <dave.jiang@intel.com> wrote:
-
-> +	key = key_lookup(nvdimm->key_id);
-
-You should not be using key_lookup() as the key ID doesn't pin a reference to
-the key you're using.  If you're going to cache a key, either cache the key
-pointer directly and check it with key_validate() before you use it or keep
-the cache in a private kernel keyring and use key_search() each time you want
-to use it.  The latter method allows for the key to be garbage collected
-automatically if it expires or gets invalidated.
-
-You can still follow a negative call for a cached key with a call to
-nvdimm_request_key().  In the private keyring-using case, you can link the key
-to the private keyring after you got it.
-
-> +	payload = key->payload.data[0];
-> +	rc = nvdimm->security_ops->unlock(nvdimm_bus, nvdimm,
-> +			(void *)payload->data);
-
-I would recommend casting to const void * if you can as you're not allowed to
-change the payload data.
-
-David
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiAyMDE45bm0MDjmnIgwOOaXpSAwODowNSwgRGF2ZSBKaWFuZyB3cm90ZToKPgo+IE9uIDA4
+LzAyLzIwMTggMDI6MzIgQU0sIFpoYW5nLFlpIHdyb3RlOgo+Pgo+PiBPbiAyMDE45bm0MDjmnIgw
+MuaXpSAwMzo0MCwgRGF2ZSBKaWFuZyB3cm90ZToKPj4+IE9uIDA3LzMxLzIwMTggMDQ6NDYgQU0s
+IFpoYW5nIFlpIHdyb3RlOgo+Pj4+IEl0IHNob3VsZCBiZSBwcmV2ZW50IHVzZXIgbWFwIGFuIGls
+bGVnYWwgdm1hIHJhbmdlIHdoaWNoIGxhcmdlciB0aGFuCj4+Pj4gZGF4IGRldmljZSBwaGlzY2Fs
+IHJlc291cnNlLCBhcyB3ZSBkb24ndCBoYXZlIHN3YXAgbG9naWMgd2hpbGUgcGFnZQo+Pj4+IGZh
+dWx0aW5nIGluIGRheCBkZXZpY2UuCj4+PiBUaGlzIHBhdGNoIHByZXZlbnRzIGEgdXNlciBtYXBw
+aW5nIGFuIGlsbGVnYWwgdm1hIHJhbmdlIHRoYXQgaXMgbGFyZ2VyCj4+PiB0aGFuIGEgZGF4IGRl
+dmljZSBwaHlzaWNhbCByZXNvdXJjZS4KPj4+Cj4+Pj4gQXBwbGljYXRpb25zLCBlc3BlY2FpbGx5
+IHFlbXUsIG1hcCB0aGUgL2Rldi9kYXggZm9yIHZpcnR1YWwgbnZkaW1tJ3MKPj4+PiBiYWNrZW5k
+IGRldmljZSwgd2UgZGVmaW5lZCB0aGUgdi1udmRpbW0gbGFiZWwgYXJlYSBhdCB0aGUgZW5kIG9m
+IG1hcHBlZAo+Pj4+IHJhbmcuIEJ5IHVzaW5nIGFuIGlsbGVnYWwgc2l6ZSB0aGF0IGV4Y2VlZHMg
+dGhlIHBoeXNpY2FsIHJlc291cmNlIG9mCj4+Pj4gL2Rldi9kYXgsIHRoZW4gaXQgd2lsbCB0cmln
+ZXIgcWVtdSBhIHNpZ25hbCBmYXVsdCB3aGlsZSBhY2Nlc3NpbmcgdGhlc2UKPj4+PiBsYWJlbCBh
+cmVhLgo+Pj4gV2hlbiBxZW11IG1hcHMgdGhlIGRheCBkZXZpY2UgZm9yIHZpcnR1YWwgbnZkaW1t
+J3MgYmFja2VuZCBkZXZpY2UsIHRoZQo+Pj4gdi1udmRpbW0gbGFiZWwgYXJlYSBpcyBkZWZpbmVk
+IGF0IHRoZSBlbmQgb2YgbWFwcGVkIHJhbmdlLiBCeSB1c2luZyBhbgo+Pj4gaWxsZWdhbCBzaXpl
+IHRoYXQgZXhjZWVkcyB0aGUgcmFuZ2Ugb2YgdGhlIGRldmljZSBkYXgsIGl0IHdpbGwgdHJpZ2dl
+ciBhCj4+PiBmYXVsdCB3aXRoIHFlbXUuCj4+IFRoYW5rcyBEYXZhLCB0aGF0J3MgY291bGQgYmUg
+bXVjaCBiZXR0ZXIuCj4+Pj4gU2lnbmVkLW9mZi1ieTogWmhhbmcgWWkgPHlpLnouemhhbmdAbGlu
+dXguaW50ZWwuY29tPgo+Pj4+IC0tLQo+Pj4+ICBkcml2ZXJzL2RheC9kZXZpY2UuYyB8IDI4ICsr
+KysrKysrKysrKysrKysrKysrKysrKysrKysKPj4+PiAgMSBmaWxlIGNoYW5nZWQsIDI4IGluc2Vy
+dGlvbnMoKykKPj4+Pgo+Pj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9kZXZpY2UuYyBiL2Ry
+aXZlcnMvZGF4L2RldmljZS5jCj4+Pj4gaW5kZXggYWZmMmMxNS4uYzlhNTBjZCAxMDA2NDQKPj4+
+PiAtLS0gYS9kcml2ZXJzL2RheC9kZXZpY2UuYwo+Pj4+ICsrKyBiL2RyaXZlcnMvZGF4L2Rldmlj
+ZS5jCj4+Pj4gQEAgLTE3Nyw2ICsxNzcsMzIgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBhdHRyaWJ1
+dGVfZ3JvdXAgKmRheF9hdHRyaWJ1dGVfZ3JvdXBzW10gPSB7Cj4+Pj4gIAlOVUxMLAo+Pj4+ICB9
+Owo+Pj4+ICAKPj4+PiArc3RhdGljIGludCBjaGVja192bWFfcmFuZ2Uoc3RydWN0IGRldl9kYXgg
+KmRldl9kYXgsIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLAo+Pj4+ICsJCWNvbnN0IGNoYXIg
+KmZ1bmMpCj4+Pj4gK3sKPj4+PiArCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZkZXZfZGF4LT5kZXY7
+Cj4+Pj4gKwlzdHJ1Y3QgcmVzb3VyY2UgKnJlczsKPj4+PiArCXVuc2lnbmVkIGxvbmcgc2l6ZTsK
+Pj4+PiArCWludCByZXQsIGk7Cj4+Pj4gKwo+Pj4+ICsJaWYgKCFkYXhfYWxpdmUoZGV2X2RheC0+
+ZGF4X2RldikpCj4+Pj4gKwkJcmV0dXJuIC1FTlhJTzsKPj4+PiArCj4+Pj4gKwlzaXplID0gdm1h
+LT52bV9lbmQgLSB2bWEtPnZtX3N0YXJ0ICsgKHZtYS0+dm1fcGdvZmYgPDwgUEFHRV9TSElGVCk7
+Cj4+Pj4gKwlyZXQgPSAtRUlOVkFMOwo+Pj4+ICsJZm9yIChpID0gMDsgaSA8IGRldl9kYXgtPm51
+bV9yZXNvdXJjZXM7IGkrKykgewo+Pj4+ICsJCXJlcyA9ICZkZXZfZGF4LT5yZXNbaV07Cj4+Pj4g
+KwkJaWYgKHNpemUgPiByZXNvdXJjZV9zaXplKHJlcykpIHsKPj4+PiArCQkJZGV2X2luZm8oZGV2
+LCAiJXM6ICVzOiBmYWlsLCB2bWEgcmFuZ2UgaXMgb3ZlcmZsb3dcbiIsCj4+Pj4gKwkJCQljdXJy
+ZW50LT5jb21tLCBmdW5jKTsKPj4+PiArCQkJcmV0ID0gLUVJTlZBTDsKPj4+PiArCQkJY29udGlu
+dWU7Cj4+Pj4gKwkJfSBlbHNlCj4+Pj4gKwkJCXJldHVybiAwOwo+Pj4+ICsJfQo+Pj4+ICsJcmV0
+dXJuIHJldDsKPj4+PiArfQo+Pj4+ICsKPj4+PiAgc3RhdGljIGludCBjaGVja192bWEoc3RydWN0
+IGRldl9kYXggKmRldl9kYXgsIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hLAo+Pj4+ICAJCWNv
+bnN0IGNoYXIgKmZ1bmMpCj4+Pj4gIHsKPj4+PiBAQCAtNDY1LDYgKzQ5MSw4IEBAIHN0YXRpYyBp
+bnQgZGF4X21tYXAoc3RydWN0IGZpbGUgKmZpbHAsIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1h
+KQo+Pj4+ICAJICovCj4+Pj4gIAlpZCA9IGRheF9yZWFkX2xvY2soKTsKPj4+PiAgCXJjID0gY2hl
+Y2tfdm1hKGRldl9kYXgsIHZtYSwgX19mdW5jX18pOwo+Pj4+ICsJaWYgKCFyYykKPj4+PiArCQly
+YyB8PSBjaGVja192bWFfcmFuZ2UoZGV2X2RheCwgdm1hLCBfX2Z1bmNfXyk7Cj4gSSBkb24ndCBz
+ZWUgYW55IHJlYXNvbiB0byBsb2dpY2FsIG9yIHRoZSByZXR1cm4gY29kZS4gSXQgc2hvdWxkIGJl
+IDAsIHNvCj4geW91IGNhbiBqdXN0IGFzc2lnbiBpdCB0byBjaGVja192bWFfcmFuZ2UoKS4KQWgu
+LiBZZXMsIFRoYW5rcyBmb3IgeW91ciBraW5kbHkgcmV2aWV3LCBEYWNlLCBJIHdpbGwgc2VuZCB0
+aGUgbmV4dCB2ZXJzaW9uLgo+Cj4+PiBJIHRoaW5rIHlvdSB3YW50IHRvIGF1Z21lbnQgY2hlY2tf
+dm1hKCkgcmF0aGVyIHRoYW4gYWRkaW5nIGFub3RoZXIKPj4+IGZ1bmN0aW9uPyBJZiB0aGlzIGlz
+IGFkZGVkIGluc2lkZSBjaGVja192bWEoKSB0aGVuIHlvdSBjYW4gYWxzbyBza2lwIHRoZQo+Pj4g
+IWRheF9hbGl2ZSgpIGNoZWNrLiBEbyB5b3UgZXhwZWN0IHRoaXMgZnVuY3Rpb24gdG8gYmUgY2Fs
+bGVkIGFueXdoZXJlIGVsc2U/Cj4+IHNpbmNlIGNoZWNrX3ZtYSByYW5nZSBhbHNvIHdpbGwgYmUg
+Y2FsbGVkIHdoaWxlIGRheCBwYWdlIGZhdWx0aW5nLiAgSQo+PiBkb24ndCB3YW5uYSB0aGlzIGNo
+ZWNrX3ZtYV9yYW5nZSBpbnRyb2R1Y2Ugc29tZSBhZGRpdGlvbmFsIHdvcmtsb2FkCj4+IHdoaWxl
+IHBhZ2UgZmF1bHQuIGp1c3QgbGV0IGl0IGNoZWNrZWQgaW4gdGhlIG1tYXAgc2NlbmFyaW8KPiBH
+b29kIHBvaW50LiBPay4KPgo+Pj4+ICAJZGF4X3JlYWRfdW5sb2NrKGlkKTsKPj4+PiAgCWlmIChy
+YykKPj4+PiAgCQlyZXR1cm4gcmM7Cj4+Pj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LW52ZGltbQo=
