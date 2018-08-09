@@ -1,10 +1,11 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Staff Wanted
-Date: 9 Aug 2018 16:33:31 +0200
-Message-ID: <005101d42ff1$07fc40f0$ba067ab3@voujg>
+Subject: Hello!
+Date: 9 Aug 2018 23:48:06 +0200
+Message-ID: <001c01d43030$0791f7ea$f50f4e87$@lists.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0562871229695154404=="
+Content-Type: multipart/mixed; boundary="===============1826230157817832020=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,10 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============0562871229695154404==
+--===============1826230157817832020==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
+Content-Language: en
 
 Dear Job Seeker,
 
@@ -57,7 +59,7 @@ Our contact: cv-veO5yslQ4yH9sDxGqiYcNJm7MGRryh++@public.gmane.org
 Thank you!
 
 
---===============0562871229695154404==
+--===============1826230157817832020==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -68,4 +70,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============0562871229695154404==--
+--===============1826230157817832020==--
