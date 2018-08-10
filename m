@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D51B021107839
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:08 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Aug 2018 12:53:42 -0600
-Message-Id: <20180830185352.3369-4-logang@deltatee.com>
-In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
-Subject: [PATCH v5 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to adjust
- the bus offset
+ by ml01.01.org (Postfix) with ESMTPS id DD67C210D97B7
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 12:54:48 -0700 (PDT)
+Subject: Re: [PATCH] libnvdimm: fix ars_status output length calculation
+References: <20180810192315.3471-1-vishal.l.verma@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <996c7e5e-8472-aa44-0a27-abfdd6b3c86e@intel.com>
+Date: Fri, 10 Aug 2018 12:54:47 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180810192315.3471-1-vishal.l.verma@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,127 +19,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Cc: stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The DMA address used when mapping PCI P2P memory must be the PCI bus
-address. Thus, introduce pci_p2pmem_map_sg() to map the correct
-addresses when using P2P memory. Memory mapped in this way does not
-need to be unmapped.
 
-For this, we assume that an SGL passed to these functions contain all
-P2P memory or no P2P memory.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- drivers/pci/p2pdma.c       | 43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/memremap.h   |  1 +
- include/linux/pci-p2pdma.h |  7 +++++++
- 3 files changed, 51 insertions(+)
+On 08/10/2018 12:23 PM, Vishal Verma wrote:
+> Commit efda1b5d87cb ("acpi, nfit, libnvdimm: fix / harden ars_status output length handling")
+> Introduced additional hardening for ambiguity in the ACPI spec for
+> ars_status output sizing. However, it had a couple of cases mixed up.
+> Where it should have been checking for (and returning) "out_field[1] -
+> 4" it was using "out_field[1] - 8" and vice versa.
+> 
+> This caused a four byte discrepancy in the buffer size passed on to
+> the command handler, and in some cases, this caused memory corruption
+> like:
+> 
+>   ./daxdev-errors.sh: line 76: 24104 Aborted   (core dumped) ./daxdev-errors $busdev $region
+>   malloc(): memory corruption
+>   Program received signal SIGABRT, Aborted.
+>   [...]
+>   #5  0x00007ffff7865a2e in calloc () from /lib64/libc.so.6
+>   #6  0x00007ffff7bc2970 in ndctl_bus_cmd_new_ars_status (ars_cap=ars_cap@entry=0x6153b0) at ars.c:136
+>   #7  0x0000000000401644 in check_ars_status (check=0x7fffffffdeb0, bus=0x604c20) at daxdev-errors.c:144
+>   #8  test_daxdev_clear_error (region_name=<optimized out>, bus_name=<optimized out>)
+>       at daxdev-errors.c:332
+> 
+> Cc: <stable@vger.kernel.org>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: Lukasz Dorau <lukasz.dorau@intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Fixes: efda1b5d87cb ("acpi, nfit, libnvdimm: fix / harden ars_status output length handling")
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 67c1daf1189e..29bd40a87768 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -191,6 +191,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.flags = pci_resource_flags(pdev, bar);
- 	pgmap->ref = &pdev->p2pdma->devmap_ref;
- 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-+	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
-+		pci_resource_start(pdev, bar);
- 
- 	addr = devm_memremap_pages(&pdev->dev, pgmap);
- 	if (IS_ERR(addr)) {
-@@ -813,3 +815,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- 	pdev->p2pdma->p2pmem_published = publish;
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-+
-+/**
-+ * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: elements in the scatterlist
-+ * @dir: DMA direction
-+ *
-+ * Scatterlists mapped with this function should not be unmapped in any way.
-+ *
-+ * Returns the number of SG entries mapped or 0 on error.
-+ */
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir)
-+{
-+	struct dev_pagemap *pgmap;
-+	struct scatterlist *s;
-+	phys_addr_t paddr;
-+	int i;
-+
-+	/*
-+	 * p2pdma mappings are not compatible with devices that use
-+	 * dma_virt_ops. If the upper layers do the right thing
-+	 * this should never happen because it will be prevented
-+	 * by the check in pci_p2pdma_add_client()
-+	 */
-+	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
-+			 dev->dma_ops == &dma_virt_ops))
-+		return 0;
-+
-+	for_each_sg(sg, s, nents, i) {
-+		pgmap = sg_page(s)->pgmap;
-+		paddr = sg_phys(s);
-+
-+		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
-+		sg_dma_len(s) = s->length;
-+	}
-+
-+	return nents;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 9553370ebdad..0ac69ddf5fc4 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -125,6 +125,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	void *data;
- 	enum memory_type type;
-+	u64 pci_p2pdma_bus_offset;
- };
- 
- #ifdef CONFIG_ZONE_DEVICE
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 7b2b0f547528..2f03dbbf5af6 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -36,6 +36,8 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
- 					 unsigned int *nents, u32 length);
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -98,5 +100,10 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
- }
-+static inline int pci_p2pdma_map_sg(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
--- 
-2.11.0
+Applied.
 
+> ---
+>  drivers/nvdimm/bus.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 27902a8799b1..8aae6dcc839f 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -812,9 +812,9 @@ u32 nd_cmd_out_size(struct nvdimm *nvdimm, int cmd,
+>  		 * overshoots the remainder by 4 bytes, assume it was
+>  		 * including 'status'.
+>  		 */
+> -		if (out_field[1] - 8 == remainder)
+> +		if (out_field[1] - 4 == remainder)
+>  			return remainder;
+> -		return out_field[1] - 4;
+> +		return out_field[1] - 8;
+>  	} else if (cmd == ND_CMD_CALL) {
+>  		struct nd_cmd_pkg *pkg = (struct nd_cmd_pkg *) in_field;
+>  
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
