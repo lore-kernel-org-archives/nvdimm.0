@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x242.google.com (mail-qt0-x242.google.com
- [IPv6:2607:f8b0:400d:c0d::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 28791210DBE70
- for <linux-nvdimm@lists.01.org>; Mon,  6 Aug 2018 14:21:47 -0700 (PDT)
-Received: by mail-qt0-x242.google.com with SMTP id h4-v6so15589651qtj.7
- for <linux-nvdimm@lists.01.org>; Mon, 06 Aug 2018 14:21:47 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH] ndctl,
- documentation: Clarify the dimm id for ndctl list d option
-Date: Mon,  6 Aug 2018 17:21:30 -0400
-Message-Id: <20180806212130.1605-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 27D46210EB4E1
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 15:56:31 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/5] ndctl: fix a resource leak in
+ submit_get_firmware_info
+Date: Fri, 10 Aug 2018 16:56:21 -0600
+Message-Id: <20180810225624.32383-3-vishal.l.verma@intel.com>
+In-Reply-To: <20180810225624.32383-1-vishal.l.verma@intel.com>
+References: <20180810225624.32383-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,48 +24,71 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Static analysis reports that we leak ndctl_cmd in the above function.
+Fix by adding a proper cleanup path.
 
-User may be confused the dimm id description of ndctl list -d
-option because ndctl list says id, but the id is not useful to
-d option.
-
-]# ndctl list -d nmem7 | jq -r .id
-cdab-0a-07e0-fefffeff
-]# ndctl list -d cdab-0a-07e0-fefffeff
-]#
-
-The appropriate id here is X in 'nmemX' (Above example, X is 7).
-Let's clarify the description.
-
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Fixes: f86369ea29e2 ("ndctl: merge firmware-update into dimm.c as another dimm operation")
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/ndctl/ndctl-list.txt | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ ndctl/dimm.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
-index 13ebdcd..1b5882a 100644
---- a/Documentation/ndctl/ndctl-list.txt
-+++ b/Documentation/ndctl/ndctl-list.txt
-@@ -64,9 +64,10 @@ include::xable-region-options.txt[]
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 97643a3..a4203f3 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -428,36 +428,39 @@ static int submit_get_firmware_info(struct ndctl_dimm *dimm,
  
- -d::
- --dimm=::
--	An 'nmemX' device name, or dimm id number. Filter listing by
--	devices that reference the given dimm. For example to see all
--	namespaces comprised of storage capacity on nmem0:
-+	An 'nmemX' device name, or dimm id number. The dimm id number
-+	here is X in 'nmemX'. Filter listing by devices that reference
-+	the given dimm. For example to see all namespaces comprised
-+	of storage capacity on nmem0:
- ----
- # ndctl list --dimm=nmem0 --namespaces
- ----
+ 	rc = ndctl_cmd_submit(cmd);
+ 	if (rc < 0)
+-		return rc;
++		goto out;
+ 
++	rc = -ENXIO;
+ 	status = ndctl_cmd_fw_xlat_firmware_status(cmd);
+ 	if (status != FW_SUCCESS) {
+ 		fprintf(stderr, "GET FIRMWARE INFO on DIMM %s failed: %#x\n",
+ 				ndctl_dimm_get_devname(dimm), status);
+-		return -ENXIO;
++		goto out;
+ 	}
+ 
+ 	fw->store_size = ndctl_cmd_fw_info_get_storage_size(cmd);
+ 	if (fw->store_size == UINT_MAX)
+-		return -ENXIO;
++		goto out;
+ 
+ 	fw->update_size = ndctl_cmd_fw_info_get_max_send_len(cmd);
+ 	if (fw->update_size == UINT_MAX)
+-		return -ENXIO;
++		goto out;
+ 
+ 	fw->query_interval = ndctl_cmd_fw_info_get_query_interval(cmd);
+ 	if (fw->query_interval == UINT_MAX)
+-		return -ENXIO;
++		goto out;
+ 
+ 	fw->max_query = ndctl_cmd_fw_info_get_max_query_time(cmd);
+ 	if (fw->max_query == UINT_MAX)
+-		return -ENXIO;
++		goto out;
+ 
+ 	fw->run_version = ndctl_cmd_fw_info_get_run_version(cmd);
+ 	if (fw->run_version == ULLONG_MAX)
+-		return -ENXIO;
++		goto out;
+ 
+ 	rc = verify_fw_size(uctx);
++
++out:
+ 	ndctl_cmd_unref(cmd);
+ 	return rc;
+ }
 -- 
-2.18.0
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
