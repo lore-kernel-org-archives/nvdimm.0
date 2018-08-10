@@ -1,9 +1,9 @@
-From: <alicemsalmeron-XhJD+lWJozkN+BqQ9rBEUg@public.gmane.org>
-Subject: Good day!
-Date: 11 Aug 2018 00:49:10 +0600
-Message-ID: <003b01d430dd$04766d19$03210bb6@alteiir>
+From: <oppnpsoxyy-+dA+Ub2s4W8@public.gmane.org>
+Subject: Interesting work
+Date: 10 Aug 2018 05:40:07 -0600
+Message-ID: <004901d430a1$07e0c130$2d497692@vwkox>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3225974310496552196=="
+Content-Type: multipart/mixed; boundary="===============3964672331313015360=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,7 +17,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3225974310496552196==
+--===============3964672331313015360==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
@@ -63,7 +63,7 @@ Thank you!
 
 
 
---===============3225974310496552196==
+--===============3964672331313015360==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -74,4 +74,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3225974310496552196==--
+--===============3964672331313015360==--
