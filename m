@@ -1,11 +1,10 @@
-From: <boongrit-cH/JoRc9iaLbS1JSvr3tEQ@public.gmane.org>
-Subject: Interesting offer
-Date: 9 Aug 2018 12:40:21 -0600
-Message-ID: <5B6C90AD.5211.2AE2E3@boongrit.jomtakol.co.th>
+From: <alicemsalmeron-XhJD+lWJozkN+BqQ9rBEUg@public.gmane.org>
+Subject: Good day!
+Date: 11 Aug 2018 00:49:10 +0600
+Message-ID: <003b01d430dd$04766d19$03210bb6@alteiir>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5221334793284592233=="
+Content-Type: multipart/mixed; boundary="===============3225974310496552196=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,10 +17,10 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============5221334793284592233==
-Content-type: text/plain; charset="cp-850"
-Content-transfer-encoding: 8BIT
-Content-description: Mail message body
+--===============3225974310496552196==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
 
 Are you Able, willing and Capable of been a Personal Assistant,
 This position is an excellent opportunity for a hard-working individual who is a quick learner
@@ -64,7 +63,7 @@ Thank you!
 
 
 
---===============5221334793284592233==
+--===============3225974310496552196==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -75,4 +74,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5221334793284592233==--
+--===============3225974310496552196==--
