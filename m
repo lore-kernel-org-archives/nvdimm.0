@@ -1,10 +1,14 @@
-From: <oppnpsoxyy-+dA+Ub2s4W8@public.gmane.org>
-Subject: Interesting work
-Date: 10 Aug 2018 05:40:07 -0600
-Message-ID: <004901d430a1$07e0c130$2d497692@vwkox>
+From: Evelyn Watson <Evelyn.emdata-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: Machine Learning Software-Users List
+Date: Fri, 10 Aug 2018 17:46:44 +0000
+Message-ID: <KL1PR03MB141354A55D932B9EF2E13E9DE7240@KL1PR03MB1413.apcprd03.prod.outlook.com>
+References: <KL1PR03MB141344AE4D6410CE3AE2D577E7230@KL1PR03MB1413.apcprd03.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3964672331313015360=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <KL1PR03MB141344AE4D6410CE3AE2D577E7230-rBhKmJ5B85/8iwElQopBA682SN/2zMuYvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,64 +18,51 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
---===============3964672331313015360==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: 8bit
+Hi,
 
-Are you Able, willing and Capable of been a Personal Assistant,
-This position is an excellent opportunity for a hard-working individual who is a quick learner
-and detail-oriented who is looking to provide top-level support to a busy executive.
+Good Day, Hope you are doing great.
 
-Strong organizational skills, written and verbal communication skills, ability to anticipate needs,
-work independently and prioritize workload are required.
+Just checking once again if you've had a chance to review my email below?
 
-High level of professionalism and confidentiality is crucial to this role.
-The salary range for this role is $3000-$3400 per month and this doesnt disturb your present employment.
+In case if you are looking different target requirement please let me know and I would be glad to assist you further.
 
-Responsibilities of the Personal Assistant:
+Look forward to hear from you soon.
 
-Coordinate and schedule all appointments.
-Review and analyze requests and inquiries and disseminate, as appropriate.
-Processing of payments from my clients who owe{certified check mostly due to my company's policy}.
+Best regards,
+Evelyn
 
-Instruction for disbursement would be sent to you, and you will make reports to me daily through email or text message.
-Handle confidential and non-routine information, applying extreme confidentiality and sensitivity in the dissemination of this information.
+From: Evelyn Watson
+Sent: Friday, August 3, 2018 12:54 PM
+To: 'linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org' <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>
+Subject: Machine Learning Software-Users List
 
-Requirements of the Personal Assistant:
+Hi,
 
-Proficient in Microsoft Office
-Must be 43 years of age or older
-Must be eligible to work in the USA
-Have consistent access to a smartphone (iPhone 4s/Android 4.0 or newer)
-Ability to anticipate future needs and prepare accordingly.
-Solid business acumen; experience interpreting and applying compliance and related policies to executive&#8217;s personal interests.
-Demonstrated initiative and ability to work in a fast paced, changing environment.
-High degree of integrity and the ability to recognize the requirements of confidentiality.
-Ability to build and maintain outstanding relationships.
+Hope you are doing great. I am Evelyn Watson.
 
-Does this sound like something you would be interested in?
+I will keep my mail short and to the point. I am writing this mail to you because we can provide you the users list of all Machine Learning Software and Vendors as well as your competitor's users in this field too.
 
-If so, reply with your up-to-date Resume by e-mail highlighting your qualifications and your mailing address.
+Our data field consists of: Contacts Name, Job Title, Email Address, Phone Number, Fax Number, Company Details and Technology Type.
 
-Our contact: resume-WRxLXvIa233IMux3Tkt88w@public.gmane.org
-
-Thank you!
+We have also the users list of below top software in Machine Learning Software:
 
 
+  *   scikit-learn
+  *   Pybrain
+  *   BigML
+  *   Floyd Hub
+  *   Microsoft Bing Image Search API and Many More like this across the world as per your need
 
---===============3964672331313015360==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+We are mainly specialized in technology Industry database currently holding 3200+ application users type.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Please do let me know if you are looking for any other Technology/Software/Application users list.
 
---===============3964672331313015360==--
+I will be looking forward for your response on this. Thank you.
+
+Regards,
+Evelyn Watson| Senior Demand Generation
+
+If you do not wish to receive future emails from us, please reply as 'leave out'
