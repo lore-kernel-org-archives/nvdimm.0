@@ -1,87 +1,90 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CF3B3210DC1A1
- for <linux-nvdimm@lists.01.org>; Mon, 13 Aug 2018 02:41:36 -0700 (PDT)
+Return-Path: <owner-linux-mm@kvack.org>
 Subject: Re: [PATCH V3 0/4] Fix kvm misconceives NVDIMM pages as reserved mmio
 References: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
- <76cbaf38-1c72-0b45-4075-add904226725@redhat.com>
-From: "Zhang,Yi" <yi.z.zhang@linux.intel.com>
-Message-ID: <0f4f0d15-7949-c576-1981-145e7758ae4a@linux.intel.com>
-Date: Tue, 14 Aug 2018 01:25:38 +0800
+From: David Hildenbrand <david@redhat.com>
+Message-ID: <76cbaf38-1c72-0b45-4075-add904226725@redhat.com>
+Date: Fri, 10 Aug 2018 15:27:59 +0200
 MIME-Version: 1.0
-In-Reply-To: <76cbaf38-1c72-0b45-4075-add904226725@redhat.com>
+In-Reply-To: <cover.1533811181.git.yi.z.zhang@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: David Hildenbrand <david@redhat.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
-Cc: linux-mm@kvack.org, yi.z.zhang@intel.com, rkrcmar@redhat.com
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: Zhang Yi <yi.z.zhang@linux.intel.com>, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, jack@suse.cz, hch@lst.de, yu.c.zhang@intel.com
+Cc: linux-mm@kvack.org, rkrcmar@redhat.com, yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAyMDE45bm0MDjmnIgxMOaXpSAyMToyNywgRGF2aWQgSGlsZGVuYnJhbmQgd3JvdGU6Cj4g
-T24gMDkuMDguMjAxOCAxMjo1MiwgWmhhbmcgWWkgd3JvdGU6Cj4+IEZvciBkZXZpY2Ugc3BlY2lm
-aWMgbWVtb3J5IHNwYWNlLCB3aGVuIHdlIG1vdmUgdGhlc2UgYXJlYSBvZiBwZm4gdG8KPj4gbWVt
-b3J5IHpvbmUsIHdlIHdpbGwgc2V0IHRoZSBwYWdlIHJlc2VydmVkIGZsYWcgYXQgdGhhdCB0aW1l
-LCBzb21lIG9mCj4+IHRoZXNlIHJlc2VydmVkIGZvciBkZXZpY2UgbW1pbywgYW5kIHNvbWUgb2Yg
-dGhlc2UgYXJlIG5vdCwgc3VjaCBhcwo+PiBOVkRJTU0gcG1lbS4KPj4KPj4gTm93LCB3ZSBtYXAg
-dGhlc2UgZGV2X2RheCBvciBmc19kYXggcGFnZXMgdG8ga3ZtIGZvciBESU1NL05WRElNTQo+PiBi
-YWNrZW5kLCBzaW5jZSB0aGVzZSBwYWdlcyBhcmUgcmVzZXJ2ZWQuIHRoZSBjaGVjayBvZgo+PiBr
-dm1faXNfcmVzZXJ2ZWRfcGZuKCkgbWlzY29uY2VpdmVzIHRob3NlIHBhZ2VzIGFzIE1NSU8uIFRo
-ZXJlZm9yLCB3ZQo+PiBpbnRyb2R1Y2UgMiBwYWdlIG1hcCB0eXBlcywgTUVNT1JZX0RFVklDRV9G
-U19EQVgvTUVNT1JZX0RFVklDRV9ERVZfREFYLAo+PiB0byBpbmRlbnRpZnkgdGhlc2UgcGFnZXMg
-YXJlIGZyb20gTlZESU1NIHBtZW0uIGFuZCBsZXQga3ZtIHRyZWF0IHRoZXNlCj4+IGFzIG5vcm1h
-bCBwYWdlcy4KPj4KPj4gV2l0aG91dCB0aGlzIHBhdGNoLCBNYW55IG9wZXJhdGlvbnMgd2lsbCBi
-ZSBtaXNzZWQgZHVlIHRvIHRoaXMKPj4gbWlzdHJlYXRtZW50IHRvIHBtZW0gcGFnZXMuIEZvciBl
-eGFtcGxlLCBhIHBhZ2UgbWF5IG5vdCBoYXZlIGNoYW5jZSB0bwo+PiBiZSB1bnBpbm5lZCBmb3Ig
-S1ZNIGd1ZXN0KGluIGt2bV9yZWxlYXNlX3Bmbl9jbGVhbik7IG5vdCBhYmxlIHRvIGJlCj4+IG1h
-cmtlZCBhcyBkaXJ0eS9hY2Nlc3NlZChpbiBrdm1fc2V0X3Bmbl9kaXJ0eS9hY2Nlc3NlZCkgZXRj
-Lgo+Pgo+IEkgYW0gcmlnaHQgbm93IGxvb2tpbmcgaW50byAoYW5kIHRyeWluZyB0byBiZXR0ZXIg
-ZG9jdW1lbnQpIFBHX3Jlc2VydmVkCj4gLSBhbmQgaGF2aW5nIGEgaGFyZCB0aW1lIDopIC4KPgo+
-IE9uZSBvZiB0aGUgbWFpbiBwb2ludHMgYWJvdXQgcmVzZXJ2ZWQgcGFnZXMgaXMgdGhhdCB0aGUg
-c3RydWN0IHBhZ2VzIGFyZQo+IG5vdCB0byBiZSB0b3VjaGVkLiBTZWUgWzFdIChJIGtub3cgdGhh
-dCBzdGF0ZW1lbnQgaXMgZmFpcmx5IG9sZCwgYnV0IGl0Cj4gcmVzZW1ibGVzIHdoYXQgUEdfcmVz
-ZXJ2ZWQgaXMgYWN0dWFsbHkgdXNlZCBmb3Igbm93YWRheXMgLSB3aXRoIHNvbWUKPiBleGNlcHRp
-b25zIHVuZm9ydHVuYXRlbHkuKS4KPgo+IFN0cnVjdCBwYWdlcyBwYXJ0IG9mIHVzZXIgc3BhY2Ug
-dGFibGVzIHRoYXQgYXJlIFBHX3Jlc2VydmVkIGNhbiBpbmRpY2F0ZQo+IChhcyBvZiBub3cgYWNj
-b3JkaW5nIHRvIG15IHJlc2VhcmNoKQo+IC0gTU1JTyBwYWdlcwo+IC0gU2VsZWN0ZWQgTU1BUGVk
-IHBhZ2VzIC0gZS5nLiB2RFNPCj4gLSBaZXJvIHBhZ2UKPiAtIFBNRU0gcGFnZXMgYXMgeW91IGNv
-cnJlY3RseSBzdGF0ZQo+Cj4gU28gSSB3b25kZXIsIGlmIGl0IGlzIHJlYWxseSB0aGUgcmlnaHQg
-YXBwcm9hY2ggdG8gc2lsZW50bHkgZ28gYWhlYWQgYW5kCj4gdHJlYXQgcmVzZXJ2ZWQgcGFnZXMg
-anVzdCBsaWtlIHRoZXkgd291bGQgbm90IGJlIHJlc2VydmVkLiBNYXliZSB0aGUKPiByaWdodCBh
-cHByb2FjaCB3b3VsZCByYXRoZXIgYmUgdG8gZG8gc29tZXRoaW5nIGFib3V0IHBtZW0gcGFnZXMg
-YmVpbmcKPiByZXNlcnZlZC4gWWVzLCB0aGV5IGFyZSBuZXZlciB0byBiZSBnaXZlbiB0byB0aGUg
-cGFnZSBhbGxvY2F0b3IsIGJ1dCBJCj4gd29uZGVyIGlmIFBHX3Jlc2VydmVkIGlzIHN0cmljdGx5
-IG5lZWRlZCBmb3IgdGhhdC4KPgo+IFsxXSBodHRwczovL2xpc3RzLmxpbnV4Y29kaW5nLmNvbS9r
-ZXJuZWwvMjAwNS1xMy9tc2cxMDM1MC5odG1sCgpUaGFua3MgRGF2aWQgbGlzdCB0aGUgbG9uZyBo
-aXN0b3J5IG9mIFBhZ2UgcmVzZXJ2ZWQsIEJ5IG5vdywgSSB0aGluayB3ZSB0cmVhdCBudmRpbW0g
-YXMgYSBkZXZpY2Ugbm90IGEgRFJBTSwgYWxzbyBoYXMgaXQncyBkZXZpY2UgZHJpdmVyIHdoaWNo
-IG1hbmFnZXIgaXRzIG93biBkZXZpY2UgbWVtb3J5LiBGcm9tIHRoaXMgcGVyc3BlY3RpdmUsIGl0
-IGlzIHJlYXNvbmFibGUgdG8gc2V0IHRoZXNlIHBhZ2VzIGFzIHpvbmUgZGV2aWNlIG1lbW9yeSBh
-bmQgbWFyayByZXNlcnZlZCBmbGFnLgpARGFuIEBEYXZlLCBob3cgZG8geW91IHRoaW5rIGFib3V0
-IHRoaXM/Cgo+Cj4+IFYxOgo+PiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOC83LzQvOTEKPj4K
-Pj4gVjI6Cj4+IGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE4LzcvMTAvMTM1Cj4+Cj4+IFYzOgo+
-PiBbUEFUQ0ggVjMgMS80XSBOZWVkcyBDb21tZW50cy4KPj4gW1BBVENIIFYzIDIvNF0gVXBkYXRl
-IHRoZSBkZXNjcmlwdGlvbiBvZiBNRU1PUllfREVWSUNFX0RFVl9EQVg6IEphbgo+PiBbUEFUQ0gg
-VjMgMy80XSBBY2tlZC1ieTogSmFuIGluIFYyCj4+IFtQQVRDSCBWMyA0LzRdIE5lZWRzIENvbW1l
-bnRzLgo+Pgo+PiBaaGFuZyBZaSAoNCk6Cj4+ICAga3ZtOiByZW1vdmUgcmVkdW5kYW50IHJlc2Vy
-dmVkIHBhZ2UgY2hlY2sKPj4gICBtbTogaW50cm9kdWNlIG1lbW9yeSB0eXBlIE1FTU9SWV9ERVZJ
-Q0VfREVWX0RBWAo+PiAgIG1tOiBhZGQgYSBmdW5jdGlvbiB0byBkaWZmZXJlbnRpYXRlIHRoZSBw
-YWdlcyBpcyBmcm9tIERBWCBkZXZpY2UKPj4gICAgIG1lbW9yeQo+PiAgIGt2bTogYWRkIGEgY2hl
-Y2sgaWYgcGZuIGlzIGZyb20gTlZESU1NIHBtZW0uCj4+Cj4+ICBkcml2ZXJzL2RheC9wbWVtLmMg
-ICAgICAgfCAgMSArCj4+ICBpbmNsdWRlL2xpbnV4L21lbXJlbWFwLmggfCAgOCArKysrKysrKwo+
-PiAgaW5jbHVkZS9saW51eC9tbS5oICAgICAgIHwgMTIgKysrKysrKysrKysrCj4+ICB2aXJ0L2t2
-bS9rdm1fbWFpbi5jICAgICAgfCAxNiArKysrKysrKy0tLS0tLS0tCj4+ICA0IGZpbGVzIGNoYW5n
-ZWQsIDI5IGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pCj4+Cj4KCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
-c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On 09.08.2018 12:52, Zhang Yi wrote:
+> For device specific memory space, when we move these area of pfn to
+> memory zone, we will set the page reserved flag at that time, some of
+> these reserved for device mmio, and some of these are not, such as
+> NVDIMM pmem.
+> 
+> Now, we map these dev_dax or fs_dax pages to kvm for DIMM/NVDIMM
+> backend, since these pages are reserved. the check of
+> kvm_is_reserved_pfn() misconceives those pages as MMIO. Therefor, we
+> introduce 2 page map types, MEMORY_DEVICE_FS_DAX/MEMORY_DEVICE_DEV_DAX,
+> to indentify these pages are from NVDIMM pmem. and let kvm treat these
+> as normal pages.
+> 
+> Without this patch, Many operations will be missed due to this
+> mistreatment to pmem pages. For example, a page may not have chance to
+> be unpinned for KVM guest(in kvm_release_pfn_clean); not able to be
+> marked as dirty/accessed(in kvm_set_pfn_dirty/accessed) etc.
+> 
+
+I am right now looking into (and trying to better document) PG_reserved
+- and having a hard time :) .
+
+One of the main points about reserved pages is that the struct pages are
+not to be touched. See [1] (I know that statement is fairly old, but it
+resembles what PG_reserved is actually used for nowadays - with some
+exceptions unfortunately.).
+
+Struct pages part of user space tables that are PG_reserved can indicate
+(as of now according to my research)
+- MMIO pages
+- Selected MMAPed pages - e.g. vDSO
+- Zero page
+- PMEM pages as you correctly state
+
+So I wonder, if it is really the right approach to silently go ahead and
+treat reserved pages just like they would not be reserved. Maybe the
+right approach would rather be to do something about pmem pages being
+reserved. Yes, they are never to be given to the page allocator, but I
+wonder if PG_reserved is strictly needed for that.
+
+[1] https://lists.linuxcoding.com/kernel/2005-q3/msg10350.html
+
+> V1:
+> https://lkml.org/lkml/2018/7/4/91
+> 
+> V2:
+> https://lkml.org/lkml/2018/7/10/135
+> 
+> V3:
+> [PATCH V3 1/4] Needs Comments.
+> [PATCH V3 2/4] Update the description of MEMORY_DEVICE_DEV_DAX: Jan
+> [PATCH V3 3/4] Acked-by: Jan in V2
+> [PATCH V3 4/4] Needs Comments.
+> 
+> Zhang Yi (4):
+>   kvm: remove redundant reserved page check
+>   mm: introduce memory type MEMORY_DEVICE_DEV_DAX
+>   mm: add a function to differentiate the pages is from DAX device
+>     memory
+>   kvm: add a check if pfn is from NVDIMM pmem.
+> 
+>  drivers/dax/pmem.c       |  1 +
+>  include/linux/memremap.h |  8 ++++++++
+>  include/linux/mm.h       | 12 ++++++++++++
+>  virt/kvm/kvm_main.c      | 16 ++++++++--------
+>  4 files changed, 29 insertions(+), 8 deletions(-)
+> 
+
+
+-- 
+
+Thanks,
+
+David / dhildenb
