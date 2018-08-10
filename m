@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it0-x229.google.com (mail-it0-x229.google.com
+ [IPv6:2607:f8b0:4001:c0b::229])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB37421102D90
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:47:29 -0700 (PDT)
-Subject: [PATCH v8 02/12] libnvdimm: create keyring to store security keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:47:29 -0700
-Message-ID: <153549644916.4089.12258485183075906901.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
-References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1477E210EB4CF
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 10:28:37 -0700 (PDT)
+Received: by mail-it0-x229.google.com with SMTP id e14-v6so3637986itf.1
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 10:28:37 -0700 (PDT)
 MIME-Version: 1.0
+References: <20180730235312.GA5089@thunk.org>
+ <20180731193642.GA3473@linux.intel.com>
+ <30247efc-88f8-3e0b-fcd8-83801be5f041@intel.com>
+ <20180810025339.GB21087@thunk.org>
+ <4222843a-13ea-e88f-ca74-4e3fe53b4105@intel.com>
+In-Reply-To: <4222843a-13ea-e88f-ca74-4e3fe53b4105@intel.com>
+From: Dan Williams <dan.j.williams@gmail.com>
+Date: Fri, 10 Aug 2018 10:28:24 -0700
+Message-ID: <CAA9_cmdSxy4vw3wQwj_nkWX+s3Z5-z6rkf9H6j-q-SFZyc5URA@mail.gmail.com>
+Subject: Re: Help trying to use /dev/pmem for dax debugging?
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,143 +29,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: "dave.jiang" <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, ext4 hackers <linux-ext4@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <mawilcox@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepping the libnvdimm to support security management by adding a keyring
-in order to provide passphrase management through the kernel key management
-APIs.
+Fixed here:
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/core.c      |    7 ++++++-
- drivers/nvdimm/dimm_devs.c |   29 ++++++++++++++++++++++++++++-
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    3 +++
- kernel/cred.c              |    1 +
- 5 files changed, 39 insertions(+), 2 deletions(-)
+https://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git/commit/?h=akpm/mm&id=6a1830efaf3318696479475620414ccb703757a5
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index acce050856a8..3cd33d5c7cf0 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -437,9 +437,12 @@ static __init int libnvdimm_init(void)
- {
- 	int rc;
- 
--	rc = nvdimm_bus_init();
-+	rc = nvdimm_devs_init();
- 	if (rc)
- 		return rc;
-+	rc = nvdimm_bus_init();
-+	if (rc)
-+		goto err_bus;
- 	rc = nvdimm_init();
- 	if (rc)
- 		goto err_dimm;
-@@ -454,6 +457,8 @@ static __init int libnvdimm_init(void)
- 	nvdimm_exit();
-  err_dimm:
- 	nvdimm_bus_exit();
-+ err_bus:
-+	nvdimm_devs_exit();
- 	return rc;
- }
- 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8d348b22ba45..586432450c82 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -18,12 +18,15 @@
- #include <linux/io.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/key.h>
-+#include <linux/init_task.h>
- #include "nd-core.h"
- #include "label.h"
- #include "pmem.h"
- #include "nd.h"
- 
- static DEFINE_IDA(dimm_ida);
-+static struct key *nvdimm_keyring;
- 
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-@@ -668,7 +671,31 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_check_dimm_count);
- 
--void __exit nvdimm_devs_exit(void)
-+static int nvdimm_register_keyring(void)
- {
-+	nvdimm_keyring = keyring_alloc(".nvdimm",
-+			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, &init_cred,
-+			(KEY_POS_ALL & ~KEY_POS_SETATTR) |
-+			(KEY_USR_ALL & ~KEY_USR_SETATTR),
-+			KEY_ALLOC_NOT_IN_QUOTA, NULL, NULL);
-+	if (IS_ERR(nvdimm_keyring))
-+		return PTR_ERR(nvdimm_keyring);
-+
-+	return 0;
-+}
-+
-+static void nvdimm_unregister_keyring(void)
-+{
-+	key_revoke(nvdimm_keyring);
-+}
-+
-+int __init nvdimm_devs_init(void)
-+{
-+	return nvdimm_register_keyring();
-+}
-+
-+void  nvdimm_devs_exit(void)
-+{
-+	nvdimm_unregister_keyring();
- 	ida_destroy(&dimm_ida);
- }
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 79274ead54fb..2af0f89c4010 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -76,6 +76,7 @@ static inline bool is_memory(struct device *dev)
- struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
-+int nvdimm_devs_init(void);
- void nvdimm_devs_exit(void);
- void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 472171af7f60..51084043915c 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -155,6 +155,9 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- 
- }
- 
-+#define NVDIMM_PASSPHRASE_LEN		32
-+#define NVDIMM_KEY_DESC_LEN		22
-+
- void badrange_init(struct badrange *badrange);
- int badrange_add(struct badrange *badrange, u64 addr, u64 length);
- void badrange_forget(struct badrange *badrange, phys_addr_t start,
-diff --git a/kernel/cred.c b/kernel/cred.c
-index ecf03657e71c..3a161b78a0a4 100644
---- a/kernel/cred.c
-+++ b/kernel/cred.c
-@@ -64,6 +64,7 @@ struct cred init_cred = {
- 	.user_ns		= &init_user_ns,
- 	.group_info		= &init_groups,
- };
-+EXPORT_SYMBOL(init_cred);
- 
- static inline void set_cred_subscribers(struct cred *cred, int n)
- {
+Sent from my phone, forgive formatting.
 
+On Fri, Aug 10, 2018, 9:18 AM Dave Jiang <dave.jiang@intel.com> wrote:
+
+>
+>
+> On 08/09/2018 07:53 PM, Theodore Y. Ts'o wrote:
+> > On Tue, Jul 31, 2018 at 01:27:15PM -0700, Dave Jiang wrote:
+> >>
+> >> On 7/31/2018 12:36 PM, Ross Zwisler wrote:
+> >>> On Mon, Jul 30, 2018 at 07:53:12PM -0400, Theodore Y. Ts'o wrote:
+> >>>> In newer kernels, it looks like you can't use /dev/pmem0 for DAX
+> >>>> unless it's marked as being DAX capable.  This appears to require
+> >>>> CONFIG_NVDIMM_PFN.  But when I tried to build a kernel with that
+> >>>> configured, I get the following BUG:
+> >>>
+> >>> You're using the memmap kernel command line parameter to reserve normal
+> >>> memory to be treated as normal memory, but you've also got kernel
+> address
+> >>> randomization turned on in your kernel config:
+> >>>
+> >>> CONFIG_RANDOMIZE_BASE=y
+> >>> CONFIG_RANDOMIZE_MEMORY=y
+> >>>
+> >>> You need to turn these off for the memmap kernel command line
+> parameter, else
+> >>> the memory we're using could overlap with addresses used for other
+> things.
+> >>
+> >> I believe this issue was fixed a while back. Although we probably can
+> see if
+> >> that is the issue or something else.
+> >
+> > I turned off RANDOMIZE_BASE and RANDOMIZE_MEMORY, but that didn't fix
+> > my problem.
+> >
+> > It turns out the problem was KASAN.  It looks like using memmap to
+> > create test /dev/pmemX devices is not compatible with CONFIG_KASAN
+> > being enabled.
+> >
+> > So I have a workaround for now, but it seems this to be a bug in
+> > KASAN, or at least an unfortunate interaction between KASAN and
+> > NVDIMM_PFN.
+>
+> Thanks Ted. I have updated the wiki Ross mentioned to reflect that.
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
