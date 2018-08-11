@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 495AD21962301
- for <linux-nvdimm@lists.01.org>; Tue, 14 Aug 2018 16:06:04 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 059E6210ED0FC
+ for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 17:06:48 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/3] ndctl,
- monitor: Fix formatting for --log in the man page
-Date: Tue, 14 Aug 2018 17:05:53 -0600
-Message-Id: <20180814230555.3498-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl, prepare-release.sh: fix revision update checks
+Date: Fri, 10 Aug 2018 18:06:15 -0600
+Message-Id: <20180811000615.11788-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,51 +23,31 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Change the --log option to be similar to other options-with-arguments,
-such as --map.
+The libtool versioning checks only need to prompt for a 'REVISION'
+update if the library source changed. We were triggering that check even
+if the utility source had changed. Fix by changing $libdir to the
+corresponding */lib/ directory.
 
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Fixes: 8d2d75f76f1e ("ndctl, monitor: set default log destination to syslog if...")
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/ndctl/ndctl-monitor.txt | 23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ contrib/prepare-release.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index 9a8d76b..363c398 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -65,20 +65,17 @@ OPTIONS
- 	A 'namespaceX.Y' device name, or namespace region plus id tuple
- 	'X.Y'.
- 
---l <file | syslog | standard>::
----log=<file | syslog | standard>::
-+-l::
-+--log=::
- 	Send log messages to the specified destination.
--+
----
--<file>::
--	Send log messages to specified <file>. When fopen() is not able
--	to open <file>, log messages will be forwarded to syslog.
--syslog::
--	Send messages to syslog.
--standard::
--	Send messages to standard output.
----
--+
-+	- "<file>":
-+	  Send log messages to specified <file>. When fopen() is not able
-+	  to open <file>, log messages will be forwarded to syslog.
-+	- "syslog":
-+	  Send messages to syslog.
-+	- "standard":
-+	  Send messages to standard output.
-+
- The default log destination is 'syslog' if "--daemon" is specified,
- otherwise 'standard'. Note that standard and relative path for <file>
- will not work if "--daemon" is specified.
+diff --git a/contrib/prepare-release.sh b/contrib/prepare-release.sh
+index 45be4d8..5009eec 100755
+--- a/contrib/prepare-release.sh
++++ b/contrib/prepare-release.sh
+@@ -105,8 +105,8 @@ check_libtool_vers()
+ {
+ 	local lib="$1"
+ 	local lib_u="${lib^^}"
+-	local libdir="${lib##lib}"
+-	local symfile="${libdir}/lib/${lib}.sym"
++	local libdir="${lib##lib}/lib/"
++	local symfile="${libdir}/${lib}.sym"
+ 	local last_cur=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_CURRENT" | cut -d'=' -f2)
+ 	local last_rev=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_REVISION" | cut -d'=' -f2)
+ 	local last_age=$(git show $last_ref:Makefile.am.in | grep -E "^${lib_u}_AGE" | cut -d'=' -f2)
 -- 
 2.14.4
 
