@@ -1,11 +1,10 @@
-From: <ehiaqgsuq-L4BEvBS9HCU@public.gmane.org>
-Subject: With love
-Date: 12 Aug 2018 10:57:00 +0100
-Message-ID: <003801d43225$0123b012$c5aa0cad$@0342.com>
+From: <audriafb-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
+Subject: hi!
+Date: 12 Aug 2018 19:13:59 +0100
+Message-ID: <8D355F70C4E71AEB533916A2817C8D35@URFAKIHAH>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8203954925260307275=="
+Content-Type: multipart/mixed; boundary="===============3941021237081045036=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,11 +17,10 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============8203954925260307275==
+--===============3941021237081045036==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
-Content-Language: en
 
 Hi dear! 
 Today is a magnificent day and i'am in a hurry to get in touch with you! 
@@ -40,7 +38,7 @@ Please write to my personal e-mail - melikepretty-EmBcYbcvmNpp/1nCM8iHCw@public.
 Melike.
 
 
---===============8203954925260307275==
+--===============3941021237081045036==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -51,4 +49,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8203954925260307275==--
+--===============3941021237081045036==--
