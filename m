@@ -1,9 +1,9 @@
-From: <audriafb-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
-Subject: hi!
-Date: 12 Aug 2018 19:13:59 +0100
-Message-ID: <8D355F70C4E71AEB533916A2817C8D35@URFAKIHAH>
+From: <aixiskra-8AmkM6o6hyGsTnJN9+BGXg@public.gmane.org>
+Subject: With love
+Date: Mon, 13 Aug 2018 08:14:01 +0100
+Message-ID: <5B712FB9.3000800@j-wave.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3941021237081045036=="
+Content-Type: multipart/mixed; boundary="===============7731541156282390191=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,9 +17,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3941021237081045036==
-Content-Type: text/plain;
-	charset="cp-850"
+--===============7731541156282390191==
+Content-Type: text/plain; charset=CP-850; format=flowed
 Content-Transfer-Encoding: 8bit
 
 Hi dear! 
@@ -33,12 +32,12 @@ I 'm searching for my second half,who can give me hope and true love!
 In the following letters I will send you my beautiful photos and I will tell you more about me!
 If you're interested in becoming a part of my adventure and will reply back shortly!
 
-Please write to my personal e-mail - melikepretty-EmBcYbcvmNpp/1nCM8iHCw@public.gmane.org
+Please write to my personal e-mail - melike29-EmBcYbcvmNpp/1nCM8iHCw@public.gmane.org
 
 Melike.
 
 
---===============3941021237081045036==
+--===============7731541156282390191==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -49,4 +48,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3941021237081045036==--
+--===============7731541156282390191==--
