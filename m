@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from imap.thunk.org (imap.thunk.org
+ [IPv6:2600:3c02::f03c:91ff:fe96:be03])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AC73C210F4BB5
- for <linux-nvdimm@lists.01.org>; Fri, 24 Aug 2018 08:44:46 -0700 (PDT)
-Date: Fri, 24 Aug 2018 17:44:43 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 549DD210ED790
+ for <linux-nvdimm@lists.01.org>; Mon, 13 Aug 2018 05:46:10 -0700 (PDT)
+Date: Mon, 13 Aug 2018 08:46:02 -0400
+From: "Theodore Y. Ts'o" <tytso@mit.edu>
 Subject: Re: [PATCH v4 1/2] dax: dax_layout_busy_page() warn on !exceptional
-Message-ID: <20180824154443.GA26549@quack2.suse.cz>
+Message-ID: <20180813124602.GA26513@thunk.org>
 References: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
  <20180710191031.17919-2-ross.zwisler@linux.intel.com>
  <6ca60cf6-f1dc-27d5-fb79-7547aea39dfa@redhat.com>
@@ -27,12 +28,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Theodore Y. Ts'o" <tytso@mit.edu>
-Cc: sandeen@redhat.com, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Lukas Czerner <lczerner@redhat.com>, linux-ext4@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: sandeen@redhat.com, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Lukas Czerner <lczerner@redhat.com>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon 13-08-18 12:12:52, Jan Kara wrote:
-> On Fri 10-08-18 22:10:53, Theodore Y. Ts'o wrote:
+On Mon, Aug 13, 2018 at 12:12:52PM +0200, Jan Kara wrote:
+> > The generic/081 regression appears to be a device-mapper issue...
+> 
+> I'll see if this reproduces for me. Doesn't seem to be related to the DAX
+> patches you caary though.
+
+It does seem to be a DAX-specific failure though.
+
 > > The generic/344 failure seems to be caused by a WARNING triggered in
 > > the nvdimm code:
 > 
@@ -41,14 +48,14 @@ On Mon 13-08-18 12:12:52, Jan Kara wrote:
 > this in my test setup during more test runs (I don't remember seeing it
 > during occasional runs I do) and debug it further.
 
-I could reproduce this relatively easily but it took me quite a while to
-figure out how to best fix this. I'll send the fix shortly (mm: Fix warning
-in insert_pfn()).
+Thanks!
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+In case it wasn't clear, I wasn't planning on letting these failures
+prevent the patches from going upstream.  As you say, the generic/081
+failure looks unrelated to ext4, and the generic/344 isn't a
+regression.
+
+						- Ted
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
