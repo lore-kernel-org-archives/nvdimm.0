@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CB53E210EB11F
- for <linux-nvdimm@lists.01.org>; Wed, 15 Aug 2018 10:32:23 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8EAAA203525EC
+ for <linux-nvdimm@lists.01.org>; Tue, 14 Aug 2018 16:06:04 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] ndctl, docs: Use asciidoctor by default
-Date: Wed, 15 Aug 2018 11:32:18 -0600
-Message-Id: <20180815173218.11423-1-vishal.l.verma@intel.com>
-In-Reply-To: <20180814230555.3498-3-vishal.l.verma@intel.com>
-References: <20180814230555.3498-3-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 3/3] ndctl, docs: Use asciidoctor by default
+Date: Tue, 14 Aug 2018 17:05:55 -0600
+Message-Id: <20180814230555.3498-3-vishal.l.verma@intel.com>
+In-Reply-To: <20180814230555.3498-1-vishal.l.verma@intel.com>
+References: <20180814230555.3498-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -32,11 +32,8 @@ default. This can still be disabled during configure using
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- configure.ac  | 2 +-
- ndctl.spec.in | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-v2: update the build dependency in the spec file
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
 index 00178bb..7bfe5a7 100644
@@ -51,19 +48,6 @@ index 00178bb..7bfe5a7 100644
  AM_CONDITIONAL([USE_ASCIIDOCTOR], [test "x$enable_asciidoctor" = "xyes"])
  if test "x$enable_asciidoctor" = "xyes"; then
  	asciidoc="asciidoctor"
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 062aafb..b782aea 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -10,7 +10,7 @@ Source0:	https://github.com/pmem/%{name}/archive/v%{version}.tar.gz#/%{name}-%{v
- Requires:	LNAME%{?_isa} = %{version}-%{release}
- Requires:	DAX_LNAME%{?_isa} = %{version}-%{release}
- BuildRequires:	autoconf
--BuildRequires:	asciidoc
-+BuildRequires:	rubygem-asciidoctor
- BuildRequires:	xmlto
- BuildRequires:	automake
- BuildRequires:	libtool
 -- 
 2.14.4
 
