@@ -1,9 +1,12 @@
-From: <aixiskra-8AmkM6o6hyGsTnJN9+BGXg@public.gmane.org>
-Subject: With love
-Date: Mon, 13 Aug 2018 08:14:01 +0100
-Message-ID: <5B712FB9.3000800@j-wave.net>
+From: "Mail Service" <no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org>
+Subject: Prompt! linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, you can confirm your email
+ account with a single click
+Date: Thu, 16 Aug 2018 02:13:27 +0000
+Message-ID: <20180816011332.AE998210F2D03@ml01.01.org>
+Reply-To: no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7731541156282390191=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,35 +20,15 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============7731541156282390191==
-Content-Type: text/plain; charset=CP-850; format=flowed
-Content-Transfer-Encoding: 8bit
-
-Hi dear! 
-Today is a magnificent day and i'am in a hurry to get in touch with you! 
-My name is Melike. I am single woman.
-
-I believe in a destiny with a cheerful future for myself and that you could become a part of it.
-I want to be next to a caring man.I love traveling, animals, pop music, going on adventures, and doing spontaneous things, but i feel lonely.
-
-I 'm searching for my second half,who can give me hope and true love! 
-In the following letters I will send you my beautiful photos and I will tell you more about me!
-If you're interested in becoming a part of my adventure and will reply back shortly!
-
-Please write to my personal e-mail - melike29-EmBcYbcvmNpp/1nCM8iHCw@public.gmane.org
-
-Melike.
+ - This mail is in HTML. Some elements may be ommited in plain text. -
 
 
---===============7731541156282390191==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Email protection!
+linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+, you can confirm your email account with a single click.
 
---===============7731541156282390191==--
+
+
+check
+If we do not receive a verification reply within the next 24 hours, we will assume that you are a fraudulent user and close your email account until the correct verification is restored so that you can access your email as before.
