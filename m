@@ -1,11 +1,10 @@
-From: "Miss Kira"<kige32767-A2yPL0Y3EfpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Mail From Miss Kira
-Date: 16 Aug 2018 19:03:06 -0700
-Message-ID: <20180816190305.16C692B6C20C5277@outl00k.com>
-Reply-To: =?UTF-8?B?Ik1pc3MgS2lyYdinIg==?= <kige32767-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org>
+From: =?utf-8?B?6JKL57uP55CG?= <krgy-VjbHTKzXR9Y@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5aaC5L2V5Z+55YW75YWs5Y+455qE6LSo6YeP5oSP6K+G?=
+Date: Fri, 17 Aug 2018 15:50:53 +0800
+Message-ID: <3FB9FC278BCDF121D663491642DF3A92@pf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,34 +18,19 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello, 
-
-My Name is Miss Kira Genzo, I am a 17 years old girl, I am writing you from Houston, Texas in United States of America, I am an Orphan,  I am the only child of my parents. 
-
-I search  your email address from the online e-mail Database Directory through the Internet search, I would like to communicate with you about my interest plan in relocating to your country for my safety. 
-
-I am a Muslim American, my father is from Azerbaijan while my mother is from Philippine. I was born and raised in the United States. I can speak only English because I have spent all my life here in the USA but I can read and write Arabic, I have never been to my father land. 
-
-My father has died of a heart attack for the past few months and I sincerely need your help now because my life is in Danger. 
-
-I want to discuss and handle a very important business with you. 
-
-I will write you more details of the business  when I receive your reply. 
-
-
-Please reply immediately to my personal email address  kige32767-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org 
-
-
-I wait for your next reply. 
-
-
-Reply only to my private email address:   kige32767-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org 
-
-
-Thank you. 
-
-Love,
-Kira.
-Skype ID: live:bekee32767
-_________________________________________________________________________________
-DISCLAIMER: This email (including attachments) is addressed to the intended recipient only and may contain information that is privileged and confidential. If you are not the intended recipient, you must not use, retain, disclose, copy, print, disseminate or distribute any part of this email. If you have received this email in error, please delete this email (including attachments) from your system and notify the sender immediately by replying to this email. Email transmission cannot be guaranteed to be timely, secure, error or virus-free. The sender accepts no liability for any loss, error, omissions or damage arising as a result of email transmission.
+5Lik5aSp5a2m5Lmg5bCG6Kej5Yaz5Lul5LiL6Zeu6aKY77yaDQoxLiAgICAgIOS6huino+S4mueV
+jOS6p+WTgeeglOWPkei0qOmHj+euoeeQhueahOacgOS9s+aooeW8j+S4juWunui3tQ0KMi4gICAg
+ICDkuobop6PkuJrliqHlr7zlkJHnmoTnoJTlj5HnrqHnkIbkvZPns7vlnKjlhazlj7jnrqHnkIbk
+vZPns7vkuK3nmoTkvY3nva4NCjMuICAgICAg5o6M5o+h56CU5Y+R6LSo6YeP566h55CG57uE57uH
+55qE5p625p6E44CB6IGM6LSj5a6a5L2NDQo0LiAgICAgIOaOjOaPoee7k+aehOWMlueahOS6p+WT
+geW8gOWPkea1geeoi+S9k+ezu+OAgeWxguasoemXtOeahOaOpeWPo+WFs+ezuw0KNS4gICAgICDm
+jozmj6Hkuqflk4HotKjph4/nrZbliJLlkozotKjph4/orqHliJLnmoTliLblrprmlrnms5UNCjYu
+ICAgICAg5o6M5o+h5Lqn5ZOB5byA5Y+R6L+H56iL5Lit5oqA5pyv6K+E5a6h55qE5YiG5bGC5YiG
+57qn5LiO5pON5L2c5pa55rOVDQo3LiAgICAgIOaOjOaPoeWmguS9leW7uueri+i0qOmHj+S/neiv
+geS9k+ezu+OAgeW8gOWxlei0qOmHj+S/neivgeW3peS9nA0KOC4gICAgICDmjozmj6Hluqbph4/n
+rqHnkIbnmoTmlrnms5Xlj4rluqbph4/nu5PmnpzlnKjov4fnqIvmlLnov5vlkoznu6nmlYjogIPm
+oLjkuK3nmoTlupTnlKgNCjkuICAgICAg5o6M5o+h5aaC5L2V5oiQ5Yqf5Zyo5YWs5Y+45YaF6YOo
+5a6e5pa956CU5Y+R6LSo6YeP566h55CG5L2T57O75LyY5YyWDQrpmYQg5Lu2DQogICAgICDkurIg
+5ZCvCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
