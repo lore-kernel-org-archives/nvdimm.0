@@ -1,9 +1,9 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Play with me!
-Date: 18 Aug 2018 03:41:51 +0200
-Message-ID: <86EF0C873E6564B5DC3FB40D565786EF@NRATOINLM9>
+Subject: Hello!
+Date: 18 Aug 2018 01:13:19 -0400
+Message-ID: <9D86B73759AC06D9C2F3731DE8429D86@9HB8HB3T76>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8238640177018050983=="
+Content-Type: multipart/mixed; boundary="===============3149651991930791186=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,17 +17,17 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============8238640177018050983==
+--===============3149651991930791186==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
 
 s3x with me
 
-http://agenblackjacksbobet.net/wp-includes/IaZ2bm.html
+http://stark.co.th/wp-includes/KRd60L.html
 
 
---===============8238640177018050983==
+--===============3149651991930791186==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -38,4 +38,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8238640177018050983==--
+--===============3149651991930791186==--
