@@ -1,9 +1,9 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Hi dear!
-Date: 19 Aug 2018 00:36:14 +0600
-Message-ID: <9D471D43F0C719AE742E70C3F42A9D47@LJVA6PBCKI>
+From: <charlieskinner-b49QdhcYQJ5GWvitb5QawA@public.gmane.org>
+Subject: Don't you want to have a cute girlfriend?
+Date: 18 Aug 2018 01:16:03 -0800
+Message-ID: <897087CBC57E3C897087CBC57E3C8970@LKS1RK0>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3169726404874039752=="
+Content-Type: multipart/mixed; boundary="===============4233791796969322178=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,17 +17,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============3169726404874039752==
+This is a multi-part message in MIME format.
+
+--===============4233791796969322178==
 Content-Type: text/plain;
 	charset="cp-850"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 
-I'm fucking bitch
+are you ready to please me? i will make you my s3xslave!
+i'm 28/f... come over and taste my juice!
 
-http://georgia-trv.com/libraries/joomla/form/fields/jh2wW6.html
+my username is Dy03
+view my profile=20
+here!
 
-
---===============3169726404874039752==
+Talk Soon!
+--===============4233791796969322178==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -38,4 +43,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============3169726404874039752==--
+--===============4233791796969322178==--
