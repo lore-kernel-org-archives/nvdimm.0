@@ -1,11 +1,10 @@
-From: <meter-t49PmAbQY9kZNNs/dQk+LtBPR1lH4CV8@public.gmane.org>
-Subject: Let's communicate online
-Date: 19 Aug 2018 06:50:28 -0600
-Message-ID: <5B796ADC.5490.4AD8B5@meter.willieswinners.com>
+From: =?GB2312?B?yfKbv7H+?= <qqpnbo-rqRGTK+wPlM@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6yOe6zrj8usO1xLO1vOS53MDt?=
+Date: Mon, 20 Aug 2018 23:42:27 +0800
+Message-ID: <20180820154228.78DD6210F6701@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6124913583376599798=="
+Content-Type: multipart/mixed; boundary="===============6386713466655754814=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,23 +14,22 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
---===============6124913583376599798==
-Content-Type: text/plain; charset="cp-850"
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-Description: Mail message body
+This is a multi-part message in MIME format
 
-are you ready to please me? i will make you my s3xslave!
-i'm 28/f... come over and taste my juice!
+--===============6386713466655754814==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-my username is Lyuda91
-view my profile=20
-here!
+..Message-ID: <66094660946609466094660946609466094660946609466094>
+..From: linux-nvdimm = <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+..To: <qqpnbo-rqRGTK+wPlM@public.gmane.org>  详情阅读附件
 
-Talk Soon!
---===============6124913583376599798==
+发..送.时.间:2018-08-20  23:42:26
+
+--===============6386713466655754814==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -42,4 +40,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============6124913583376599798==--
+--===============6386713466655754814==--
