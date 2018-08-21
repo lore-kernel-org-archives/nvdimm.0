@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mgwym02.jp.fujitsu.com (mgwym02.jp.fujitsu.com [211.128.242.41])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F25772110783E
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:09 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Aug 2018 12:53:44 -0600
-Message-Id: <20180830185352.3369-6-logang@deltatee.com>
-In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
-Subject: [PATCH v5 05/13] docs-rst: Add a new directory for PCI documentation
+ by ml01.01.org (Postfix) with ESMTPS id F20AD210F6735
+ for <linux-nvdimm@lists.01.org>; Mon, 20 Aug 2018 19:17:39 -0700 (PDT)
+Received: from g01jpfmpwkw02.exch.g01.fujitsu.local
+ (g01jpfmpwkw02.exch.g01.fujitsu.local [10.0.193.56])
+ by yt-mxoi2.gw.nic.fujitsu.com (Postfix) with ESMTP id D2C4DAC011A
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 11:17:32 +0900 (JST)
+From: "Qi, Fuli" <qi.fuli@jp.fujitsu.com>
+Subject: RE: [ndctl PATCH] ndctl, test: add UUID_LIBS for list_smart_dimm
+Date: Tue, 21 Aug 2018 02:17:30 +0000
+Message-ID: <0DEDF3B159719A448A49EF0E7B11E3223DAB4F1E@g01jpexmbkw24>
+References: <20180820202108.16912-1-vishal.l.verma@intel.com>
+In-Reply-To: <20180820202108.16912-1-vishal.l.verma@intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,84 +23,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Sanyog Kale <sanyog.r.kale@intel.com>, Thierry Reding <treding@nvidia.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Vinod Koul <vinod.koul@intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Sagar Dharia <sdharia@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Christoph Hellwig <hch@lst.de>
+To: 'Vishal Verma' <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new directory in the driver API guide for PCI specific
-documentation.
+> -----Original Message-----
+> From: Vishal Verma [mailto:vishal.l.verma@intel.com]
+> Sent: Tuesday, August 21, 2018 5:21 AM
+> To: linux-nvdimm@lists.01.org
+> Cc: Vishal Verma <vishal.l.verma@intel.com>; Qi, Fuli/斉 福利
+> <qi.fuli@jp.fujitsu.com>
+> Subject: [ndctl PATCH] ndctl, test: add UUID_LIBS for list_smart_dimm
+> 
+> Some environments automatically include the missing library dependency, and others
+> need it to be explicitly included.
+> 
+> Link: https://github.com/pmem/ndctl/issues/66
+> Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
+> Fixes: d1941474111a ("ndctl, test: add a new unit test for monitor")
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  test/Makefile.am | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/test/Makefile.am b/test/Makefile.am index c224eb7..50bb2e4 100644
+> --- a/test/Makefile.am
+> +++ b/test/Makefile.am
+> @@ -162,4 +162,5 @@ list_smart_dimm_SOURCES = \  list_smart_dimm_LDADD = \
+>  		$(LIBNDCTL_LIB) \
+>  		$(JSON_LIBS) \
+> +		$(UUID_LIBS) \
+>  		../libutil.a
 
-This is in preparation for adding a new PCI P2P DMA driver writers
-guide which will go in this directory.
+Looks good to me.
+Reviewed-by: QI Fuli <qi.fuli@jp.fujitsu.com>
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Sanyog Kale <sanyog.r.kale@intel.com>
-Cc: Sagar Dharia <sdharia@codeaurora.org>
----
- Documentation/driver-api/index.rst         |  2 +-
- Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
- Documentation/driver-api/{ => pci}/pci.rst |  0
- 3 files changed, 21 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+Thank you very much.
+ Qi
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 6d9f2f9fe20e..e9e7d24169cf 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -29,7 +29,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
--   pci
-+   pci/index
-    spi
-    i2c
-    hsi
-diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-new file mode 100644
-index 000000000000..eaf20b24bf7d
---- /dev/null
-+++ b/Documentation/driver-api/pci/index.rst
-@@ -0,0 +1,20 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+============================================
-+The Linux PCI driver implementer's API guide
-+============================================
-+
-+.. class:: toc-title
-+
-+	   Table of contents
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-+   pci
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
-similarity index 100%
-rename from Documentation/driver-api/pci.rst
-rename to Documentation/driver-api/pci/pci.rst
--- 
-2.11.0
+> --
+> 2.14.4
+> 
+
 
 _______________________________________________
 Linux-nvdimm mailing list
