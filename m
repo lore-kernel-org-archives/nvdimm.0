@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AFB55210DF5D3
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 15:26:26 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 2/2] ndctl, intel: Fallback to smart cached shutdown_count
-Date: Tue,  7 Aug 2018 16:26:56 -0600
-Message-Id: <20180807222656.14346-2-keith.busch@intel.com>
-In-Reply-To: <20180807222656.14346-1-keith.busch@intel.com>
-References: <20180807222656.14346-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EB946210EFAED
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 00:38:19 -0700 (PDT)
+Date: Wed, 22 Aug 2018 00:16:57 +0800
+From: Yi Zhang <yi.z.zhang@linux.intel.com>
+Subject: Re: [PATCH V2 1/1] device-dax: check for vma range while dax_mmap.
+Message-ID: <20180821161657.GA22028@tiger-server>
+References: <46441800c43f029757c70d8386e3112701081503.1534160958.git.yi.z.zhang@linux.intel.com>
+ <1534787638.13739.52.camel@intel.com>
+ <89e7bd54-4afa-614d-ec54-49af7928d6c7@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <89e7bd54-4afa-614d-ec54-49af7928d6c7@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,108 +21,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "jack@suse.cz" <jack@suse.cz>, "Zhang, Yu C" <yu.c.zhang@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "zwisler@kernel.org" <zwisler@kernel.org>Zhang,
 List-ID: <linux-nvdimm@lists.01.org>
 
-A user space rule saves the unsafe shutdown count to a fixed location
-for Intel dimms so that non-root users can read it. If the smart command
-submission fails, this patch uses that saved value in a newly added
-ndctl_cmd "handle_error" callback.  If the cached value is available,
-the error handler will override the command status to success, and set
-the valid flags for the shutdown count.
-
-Signed-off-by: Keith Busch <keith.busch@intel.com>
----
- ndctl/lib/intel.c    | 34 +++++++++++++++++++++++++++++++++-
- ndctl/lib/libndctl.c |  2 ++
- ndctl/lib/private.h  |  1 +
- 3 files changed, 36 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 0abea1e..83f8203 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -56,6 +56,38 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 	return cmd;
- }
- 
-+/*
-+ * If provided, read the cached shutdown count in case the user does not have
-+ * access rights to run the smart command, and pretend the command was
-+ * successful with only the shutdown_count valid.
-+ */
-+static int intel_smart_handle_error(struct ndctl_cmd *cmd)
-+{
-+	struct ndctl_dimm *dimm = cmd->dimm;
-+	char *path = NULL, shutdown_count[16] = {};
-+	int fd, rc = cmd->status;
-+
-+	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
-+		     ndctl_dimm_get_unique_id(dimm)) < 0)
-+		return rc;
-+
-+	fd = open(path, O_RDONLY);
-+	if (fd < 0)
-+		goto free_path;
-+
-+	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
-+		goto close;
-+
-+	cmd->intel->smart.flags = ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
-+	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
-+	rc = cmd->status = 0;
-+ close:
-+	close (fd);
-+ free_path:
-+	free(path);
-+	return rc;
-+}
-+
- static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
- 	struct ndctl_cmd *cmd;
-@@ -67,7 +99,7 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	if (!cmd)
- 		return NULL;
- 	cmd->firmware_status = &cmd->intel->smart.status;
--
-+	cmd->handle_error = intel_smart_handle_error;
- 	return cmd;
- }
- 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 47e005e..d94321e 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2651,6 +2651,8 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
- 	close(fd);
-  out:
- 	cmd->status = rc;
-+	if (rc && cmd->handle_error)
-+		rc = cmd->handle_error(cmd);
- 	return rc;
- }
- 
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index a94f894..5812c85 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -255,6 +255,7 @@ struct ndctl_cmd {
- 		int dir;
- 	} iter;
- 	struct ndctl_cmd *source;
-+	int (*handle_error)(struct ndctl_cmd *cmd);
- 	union {
- 		struct nd_cmd_ars_cap ars_cap[0];
- 		struct nd_cmd_ars_start ars_start[0];
--- 
-2.14.4
-
+On 2018-08-20 at 12:50:31 -0700, Dave Jiang wrote:
+> 
+> 
+> On 08/20/2018 10:53 AM, Verma, Vishal L wrote:
+> > 
+> > On Mon, 2018-08-13 at 20:02 +0800, Zhang Yi wrote:
+> >> This patch prevents a user mapping an illegal vma range that is larger
+> >> than a dax device physical resource.
+> >>
+> >> When qemu maps the dax device for virtual nvdimm's backend device, the
+> >> v-nvdimm label area is defined at the end of mapped range. By using an
+> >> illegal size that exceeds the range of the device dax, it will trigger a
+> >> fault with qemu.
+> >>
+> >> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+> >> ---
+> >>  drivers/dax/device.c | 29 +++++++++++++++++++++++++++++
+> >>  1 file changed, 29 insertions(+)
+> >>
+> > 
+> > Looks good to me:
+> > Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> 
+> Applied.
+Thanks Dava and Vishal's kindly review. Thank you.
+> 
+> > 
+> >> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> >> index 108c37f..6fe8c30 100644
+> >> --- a/drivers/dax/device.c
+> >> +++ b/drivers/dax/device.c
+> >> @@ -177,6 +177,33 @@ static const struct attribute_group *dax_attribute_groups[] = {
+> >>  	NULL,
+> >>  };
+> >>  
+> >> +static int check_vma_range(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+> >> +		const char *func)
+> >> +{
+> >> +	struct device *dev = &dev_dax->dev;
+> >> +	struct resource *res;
+> >> +	unsigned long size;
+> >> +	int ret, i;
+> >> +
+> >> +	if (!dax_alive(dev_dax->dax_dev))
+> >> +		return -ENXIO;
+> >> +
+> >> +	size = vma->vm_end - vma->vm_start + (vma->vm_pgoff << PAGE_SHIFT);
+> >> +	ret = -EINVAL;
+> >> +	for (i = 0; i < dev_dax->num_resources; i++) {
+> >> +		res = &dev_dax->res[i];
+> >> +		if (size > resource_size(res)) {
+> >> +			dev_info_ratelimited(dev,
+> >> +				"%s: %s: fail, vma range overflow\n",
+> >> +				current->comm, func);
+> >> +			ret = -EINVAL;
+> >> +			continue;
+> >> +		} else
+> >> +			return 0;
+> >> +	}
+> >> +	return ret;
+> >> +}
+> >> +
+> >>  static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+> >>  		const char *func)
+> >>  {
+> >> @@ -469,6 +496,8 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
+> >>  	 */
+> >>  	id = dax_read_lock();
+> >>  	rc = check_vma(dev_dax, vma, __func__);
+> >> +	if (!rc)
+> >> +		rc = check_vma_range(dev_dax, vma, __func__);
+> >>  	dax_read_unlock(id);
+> >>  	if (rc)
+> >>  		return rc;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
