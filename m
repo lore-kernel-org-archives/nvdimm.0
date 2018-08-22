@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x243.google.com (mail-qt0-x243.google.com
- [IPv6:2607:f8b0:400d:c0d::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 310D121BADAB2
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 05:08:51 -0700 (PDT)
-Received: by mail-qt0-x243.google.com with SMTP id z8-v6so5777537qto.9
- for <linux-nvdimm@lists.01.org>; Fri, 03 Aug 2018 05:08:51 -0700 (PDT)
-From: Ocean He <oceanhehy@gmail.com>
-Subject: [PATCH] libnvdimm, bus: check id immediately following ida_simple_get
-Date: Fri,  3 Aug 2018 08:08:33 -0400
-Message-Id: <1533298113-17495-1-git-send-email-oceanhehy@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id D42EB210F3769
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 19:16:46 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V4 1/4] kvm: remove redundant reserved page check
+Date: Wed, 22 Aug 2018 18:55:37 +0800
+Message-Id: <26f79872e78cc643937059003763b5cfc1333167.1534934405.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
+References: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,41 +22,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+PageReserved() is already checked inside kvm_is_reserved_pfn(),
+remove it from kvm_set_pfn_dirty().
 
-The id check was not executed immediately following ida_simple_get. Just
-change the codes position, without function change.
-
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pankaj Gupta <pagupta@redhat.com>
 ---
- drivers/nvdimm/bus.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ virt/kvm/kvm_main.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 27902a8..ab28e7c 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -350,12 +350,12 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
- 	init_waitqueue_head(&nvdimm_bus->probe_wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
--	mutex_init(&nvdimm_bus->reconfig_mutex);
--	badrange_init(&nvdimm_bus->badrange);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
- 	}
-+	mutex_init(&nvdimm_bus->reconfig_mutex);
-+	badrange_init(&nvdimm_bus->badrange);
- 	nvdimm_bus->nd_desc = nd_desc;
- 	nvdimm_bus->dev.parent = parent;
- 	nvdimm_bus->dev.release = nvdimm_bus_release;
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 8b47507f..c44c406 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -1690,12 +1690,8 @@ EXPORT_SYMBOL_GPL(kvm_release_pfn_dirty);
+ 
+ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
+ {
+-	if (!kvm_is_reserved_pfn(pfn)) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		if (!PageReserved(page))
+-			SetPageDirty(page);
+-	}
++	if (!kvm_is_reserved_pfn(pfn))
++		SetPageDirty(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL_GPL(kvm_set_pfn_dirty);
+ 
 -- 
-1.8.3.1
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
