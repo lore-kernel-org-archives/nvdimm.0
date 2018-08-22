@@ -1,9 +1,9 @@
-From: =?GB2312?B?wfWNlMen?= <ukplin-XwLg1sf0fo83AZtZ2NlBNQ@public.gmane.org>
-Subject: =?GB2312?B?tPC4tKO6vLzK9cjL1LHI57rO16rQzc6qs8nOqrncwO3V3w==?=
-Date: Wed, 22 Aug 2018 05:58:49 +0800
-Message-ID: <20180821215904.17590210F93F3@ml01.01.org>
+From: =?GB2312?B?0NyVht7I?= <khpanmao-ichpD40/dzPDbdmcBmU2fUEOCMrvLtNR@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6yOe6ztSkt8C6z7vvyMu1xMex1Nq358/V?=
+Date: Wed, 22 Aug 2018 19:37:40 +0800
+Message-ID: <20180822113757.C946B210FBF13@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8863057975278189497=="
+Content-Type: multipart/mixed; boundary="===============3750726649504796174=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,23 +19,19 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============8863057975278189497==
+--===============3750726649504796174==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Message-ID: <212933212933212933212933212933212933212933212933212933>
-From: =linux-nvdimm= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <ukplin-XwLg1sf0fo83AZtZ2NlBNQ@public.gmane.org>
+..Message-ID: <6609266092660926609266092660926609266092660926609266092>
+..From: linux-nvdimm ---- <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+..To: <khpanmao-ichpD40/dzPDbdmcBmU2fUEOCMrvLtNR@public.gmane.org>  
 
+详*情*阅*读*附*件
 
+发..送.时.间:2018-08-22  19:37:39
 
-亲！需了解 详细内 容请您 查阅 附件
-
-
-
-发送时间:2018-08-22  05:58:48
-
---===============8863057975278189497==
+--===============3750726649504796174==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -46,4 +42,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8863057975278189497==--
+--===============3750726649504796174==--
