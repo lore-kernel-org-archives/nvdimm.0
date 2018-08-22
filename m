@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 53F96210ED104
- for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 17:40:59 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9DCA1210F48D8
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Aug 2018 15:23:00 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/2] ndctl,
- udev: fix a resource leak in save_unsafe_shutdown_count
-Date: Fri, 10 Aug 2018 18:40:53 -0600
-Message-Id: <20180811004053.15392-2-vishal.l.verma@intel.com>
-In-Reply-To: <20180811004053.15392-1-vishal.l.verma@intel.com>
-References: <20180811004053.15392-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 0/2] xaction-namespace counting reworks
+Date: Wed, 22 Aug 2018 16:22:47 -0600
+Message-Id: <20180822222249.30838-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,38 +21,35 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Steve Scargal <steve.scargall@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis reports that we leak the 'fd' in the above function. Fix
-by adding a proper cleanup path that closes it.
+There have been several reports of the counts printed for namespace
+actions such as enable, disable, and especially destroy being incorrect
+and confusing. These patches are an attempt to clean up and bring
+greater consistency to these operations.
 
-Cc: Keith Busch <keith.busch@intel.com>
-Fixes: dd8e6ff9ab00 ("ndctl: Create ndctl udev rules for dirty shutdown")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/ndctl-udev.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Patch 1 lays some groundwork for testing whether a namespace (under
+destroy-namespace) that is supposed to have metadata due to its
+personality (btt, pfn, dev-dax) has already had its info-blocks zeroed.
+If that is the case, then allow for skipping the zeroing, and
+communicate the fact. This is really only applicable for legacy
+namespaces as in the labeled case, the label would have been
+inconsistent if the metadata had been previously wiped.
 
-diff --git a/ndctl/ndctl-udev.c b/ndctl/ndctl-udev.c
-index 2b4d067..7b174b6 100644
---- a/ndctl/ndctl-udev.c
-+++ b/ndctl/ndctl-udev.c
-@@ -110,10 +110,13 @@ static void save_unsafe_shutdown_count(struct ndctl_dimm *dimm,
- 		goto free_usc;
- 
- 	if (snprintf(count, sizeof(count), "%u\n", shutdown) < 0)
--		goto free_usc;
-+		goto close_fd;
- 
- 	if (write(fd, count, strlen(count)) < 0)
--		goto free_usc;
-+		goto close_fd;
-+
-+ close_fd:
-+	close(fd);
-  free_usc:
- 	free(usc);
-  free_path:
+Patch 2 builds on the above by creating a harder separation between the
+result of an action vs. the number of objects (namespaces) the action
+actually processed. Making the result independent of the number
+processed allows us to make a cleaner decision on what exactly was done,
+and print errors and/or counts accordingly.
+
+Vishal Verma (2):
+  ndctl, destroy-namespace: check for an already-zeroed info block
+  ndctl, namespace: rework namespace action accounting
+
+ ndctl/namespace.c | 197 ++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 116 insertions(+), 81 deletions(-)
+
 -- 
 2.14.4
 
