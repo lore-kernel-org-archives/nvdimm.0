@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2D12921103970
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:48:26 -0700 (PDT)
-Subject: [PATCH v8 12/12] libnvdimm: add documentation for nvdimm security
- support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:48:25 -0700
-Message-ID: <153549650543.4089.4276034419476883694.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
-References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 602E5210F3769
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 19:16:35 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V4 0/4] Fix kvm misconceives NVDIMM pages as reserved mmio
+Date: Wed, 22 Aug 2018 18:55:17 +0800
+Message-Id: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,111 +15,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add theory of operation for the security support that's going into
-libnvdimm.
+For device specific memory space, when we move these area of pfn to
+memory zone, we will set the page reserved flag at that time, some of
+these reserved for device mmio, and some of these are not, such as
+NVDIMM pmem.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/nvdimm/security.txt |   82 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
- create mode 100644 Documentation/nvdimm/security.txt
+Now, we map these dev_dax or fs_dax pages to kvm for DIMM/NVDIMM
+backend, since these pages are reserved. the check of
+kvm_is_reserved_pfn() misconceives those pages as MMIO. Therefor, we
+introduce 2 page map types, MEMORY_DEVICE_FS_DAX/MEMORY_DEVICE_DEV_DAX,
+to indentify these pages are from NVDIMM pmem. and let kvm treat these
+as normal pages.
 
-diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
-new file mode 100644
-index 000000000000..b230447bf237
---- /dev/null
-+++ b/Documentation/nvdimm/security.txt
-@@ -0,0 +1,82 @@
-+NVDIMM SECURITY
-+===============
-+
-+1. Introduction
-+---------------
-+
-+With the introduction of Intel DSM v1.7 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
-+
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
-+
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and unsupported.
-+
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update - enable security. Add or update current key.
-+disable - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase - generate new ecryption key for DIMM and crypto-scrambles all existing
-+	user data.
-+
-+3. Key Management
-+-----------------
-+
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
-+
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
-+similar to the ATA security specification [2]. A key is initially acquired
-+via the request_key() kernel API call and retrieved from userspace. It is up to
-+the user to provide an upcall application to retrieve the key in whatever
-+fashion meets their security requirements.
-+
-+The payload provided to the key can be a 32bytes payload or 64bytes payload
-+when doing an "update". The payload is viewed as 64 bytes in the following
-+format:
-+[32 bytes new key data zero padded][32 bytes current key data zero padded]
-+However, a 32bytes payload can be provided and will be assumed as the old
-+key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
-+It is up to the user upcall function how that's presented as the key payload
-+to the kernel.
-+
-+All the other security functions that require a provided key can accept a
-+32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
-+will be ignored and the first 32bytes contains the expected "passphrase".
-+
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from its keyring. If that fails, it will attempt to
-+acquire the key from the userspace upcall function. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot.
-+
-+5. Update
-+---------
-+When doing an update, it is expected that the new key with the 64bit payload of
-+format described above is added via the keyutils API or utility. The update
-+command written to the sysfs attribute will be with the format:
-+update:<old id>:<new id>
-+If there is no old ID due to a security enabling, then a 0 should be passed in.
-+It is expected that a user logon key has been injected via keyutils to provide
-+the payload for the update operation. The kernel will take the new user key,
-+attempt the update operation with the nvdimm, and replace the existing key's
-+payload with the new passphrase.
-+
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
+Without this patch, Many operations will be missed due to this
+mistreatment to pmem pages. For example, a page may not have chance to
+be unpinned for KVM guest(in kvm_release_pfn_clean); not able to be
+marked as dirty/accessed(in kvm_set_pfn_dirty/accessed) etc.
+
+V1:
+https://lkml.org/lkml/2018/7/4/91
+
+V2:
+https://lkml.org/lkml/2018/7/10/135
+
+V3:
+https://lkml.org/lkml/2018/8/9/17
+
+V4:
+[PATCH V3 1/4] Added "Reviewed-by: David / Acked-by: Pankaj"
+[PATCH V3 2/4] Added "Reviewed-by: Jan"
+[PATCH V3 3/4] Added "Acked-by: Jan"
+[PATCH V3 4/4] Fix several typos
+
+Zhang Yi (4):
+  kvm: remove redundant reserved page check
+  mm: introduce memory type MEMORY_DEVICE_DEV_DAX
+  mm: add a function to differentiate the pages is from DAX device
+    memory
+  kvm: add a check if pfn is from NVDIMM pmem.
+
+ drivers/dax/pmem.c       |  1 +
+ include/linux/memremap.h |  8 ++++++++
+ include/linux/mm.h       | 12 ++++++++++++
+ virt/kvm/kvm_main.c      | 16 ++++++++--------
+ 4 files changed, 29 insertions(+), 8 deletions(-)
+
+-- 
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
