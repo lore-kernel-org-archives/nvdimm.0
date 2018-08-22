@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74A392110747D
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:03 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Aug 2018 12:53:47 -0600
-Message-Id: <20180830185352.3369-9-logang@deltatee.com>
-In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
-Subject: [PATCH v5 08/13] IB/core: Ensure we map P2P memory correctly in
- rdma_rw_ctx_[init|destroy]()
+ by ml01.01.org (Postfix) with ESMTPS id 5FD9F210FB9E5
+ for <linux-nvdimm@lists.01.org>; Tue, 21 Aug 2018 19:17:58 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V4 3/4] mm: add a function to differentiate the pages is from
+ DAX device memory
+Date: Wed, 22 Aug 2018 18:56:48 +0800
+Message-Id: <044309496afbb4121447dff6a453bd6b96d6068d.1534934405.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
+References: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,61 +23,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to use PCI P2P memory the pci_p2pmem_map_sg() function must be
-called to map the correct PCI bus address.
+DAX driver hotplug the device memory and move it to memory zone, these
+pages will be marked reserved flag, however, some other kernel componet
+will misconceive these pages are reserved mmio (ex: we map these dev_dax
+or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
+MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
+is DAX device memory or not.
 
-To do this, check the first page in the scatter list to see if it is P2P
-memory or not. At the moment, scatter lists that contain P2P memory must
-be homogeneous so if the first page is P2P the entire SGL should be P2P.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Acked-by: Jan Kara <jack@suse.cz>
 ---
- drivers/infiniband/core/rw.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/mm.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 683e6d11a564..d22c4a2ebac6 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pci-p2pdma.h>
- #include <rdma/mr_pool.h>
- #include <rdma/rw.h>
- 
-@@ -280,7 +281,11 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 	struct ib_device *dev = qp->pd->device;
- 	int ret;
- 
--	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-+	else
-+		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+
- 	if (!ret)
- 		return -ENOMEM;
- 	sg_cnt = ret;
-@@ -602,7 +607,9 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
- 	}
- 
--	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
-+	/* P2PDMA contexts do not need to be unmapped */
-+	if (!is_pci_p2pdma_page(sg_page(sg)))
-+		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 68a5121..de5cbc3 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct page *page)
+ 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
  }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
  
++static inline bool is_dax_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
++		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
++}
++
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline void dev_pagemap_get_ops(void)
+ {
+@@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct page *page)
+ {
+ 	return false;
+ }
++
++static inline bool is_dax_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline void get_page(struct page *page)
 -- 
-2.11.0
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
