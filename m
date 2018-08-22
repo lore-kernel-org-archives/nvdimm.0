@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8093D210D83E2
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:01:21 -0700 (PDT)
-Subject: [PATCH v7 02/12] libnvdimm: create keyring to store security keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:01:20 -0700
-Message-ID: <153334088037.60955.16564112888295280964.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EA066210F4BB0
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Aug 2018 13:22:38 -0700 (PDT)
+From: "Jiang, Dave" <dave.jiang@intel.com>
+Subject: [GIT PULL]: libnvdimm updates for 4.19-rc1 v2 [1/2]
+Date: Wed, 22 Aug 2018 20:22:36 +0000
+Message-ID: <05a8a38a69c0f2650d25b9f1fca4a8cff7a62142.camel@intel.com>
+Content-Language: en-US
+Content-ID: <DD7BE12451AA81469349F3AF124930C9@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,143 +22,108 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepping the libnvdimm to support security management by adding a keyring
-in order to provide passphrase management through the kernel key management
-APIs.
+Hi Linus,
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/core.c      |    7 ++++++-
- drivers/nvdimm/dimm_devs.c |   29 ++++++++++++++++++++++++++++-
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    3 +++
- kernel/cred.c              |    1 +
- 5 files changed, 39 insertions(+), 2 deletions(-)
+Please pull to receive libnvdimm contributions for v4.19-rc1. I have separated out the topic branches and
+will be sending pull requests for them individually.
+This branch contains all the original patches from the first pull request without the dax-memory-failure series.
 
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index acce050856a8..3cd33d5c7cf0 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -437,9 +437,12 @@ static __init int libnvdimm_init(void)
- {
- 	int rc;
- 
--	rc = nvdimm_bus_init();
-+	rc = nvdimm_devs_init();
- 	if (rc)
- 		return rc;
-+	rc = nvdimm_bus_init();
-+	if (rc)
-+		goto err_bus;
- 	rc = nvdimm_init();
- 	if (rc)
- 		goto err_dimm;
-@@ -454,6 +457,8 @@ static __init int libnvdimm_init(void)
- 	nvdimm_exit();
-  err_dimm:
- 	nvdimm_bus_exit();
-+ err_bus:
-+	nvdimm_devs_exit();
- 	return rc;
- }
- 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8d348b22ba45..586432450c82 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -18,12 +18,15 @@
- #include <linux/io.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <linux/key.h>
-+#include <linux/init_task.h>
- #include "nd-core.h"
- #include "label.h"
- #include "pmem.h"
- #include "nd.h"
- 
- static DEFINE_IDA(dimm_ida);
-+static struct key *nvdimm_keyring;
- 
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-@@ -668,7 +671,31 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
- }
- EXPORT_SYMBOL_GPL(nvdimm_bus_check_dimm_count);
- 
--void __exit nvdimm_devs_exit(void)
-+static int nvdimm_register_keyring(void)
- {
-+	nvdimm_keyring = keyring_alloc(".nvdimm",
-+			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, &init_cred,
-+			(KEY_POS_ALL & ~KEY_POS_SETATTR) |
-+			(KEY_USR_ALL & ~KEY_USR_SETATTR),
-+			KEY_ALLOC_NOT_IN_QUOTA, NULL, NULL);
-+	if (IS_ERR(nvdimm_keyring))
-+		return PTR_ERR(nvdimm_keyring);
-+
-+	return 0;
-+}
-+
-+static void nvdimm_unregister_keyring(void)
-+{
-+	key_revoke(nvdimm_keyring);
-+}
-+
-+int __init nvdimm_devs_init(void)
-+{
-+	return nvdimm_register_keyring();
-+}
-+
-+void  nvdimm_devs_exit(void)
-+{
-+	nvdimm_unregister_keyring();
- 	ida_destroy(&dimm_ida);
- }
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 79274ead54fb..2af0f89c4010 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -76,6 +76,7 @@ static inline bool is_memory(struct device *dev)
- struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
-+int nvdimm_devs_init(void);
- void nvdimm_devs_exit(void);
- void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 472171af7f60..51084043915c 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -155,6 +155,9 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- 
- }
- 
-+#define NVDIMM_PASSPHRASE_LEN		32
-+#define NVDIMM_KEY_DESC_LEN		22
-+
- void badrange_init(struct badrange *badrange);
- int badrange_add(struct badrange *badrange, u64 addr, u64 length);
- void badrange_forget(struct badrange *badrange, phys_addr_t start,
-diff --git a/kernel/cred.c b/kernel/cred.c
-index ecf03657e71c..3a161b78a0a4 100644
---- a/kernel/cred.c
-+++ b/kernel/cred.c
-@@ -64,6 +64,7 @@ struct cred init_cred = {
- 	.user_ns		= &init_user_ns,
- 	.group_info		= &init_groups,
- };
-+EXPORT_SYMBOL(init_cred);
- 
- static inline void set_cred_subscribers(struct cred *cred, int n)
- {
+The following changes since commit 1273c253c32b9a073a4d8921ed079177ccc7c8af:
 
+  tools/testing/nvdimm: advertise a write cache for nfit_test (2018-06-30 10:45:48 -0700)
+
+are available in the Git repository at:
+
+  git@gitolite.kernel.org:pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-4.19_misc
+
+for you to fetch changes up to 286e87718103acdf85f4ed323a37e4839a8a7c05:
+
+  libnvdimm: fix ars_status output length calculation (2018-08-20 08:56:38 -0700)
+
+----------------------------------------------------------------
+libnvdimm-for-4.19_misc
+
+Collection of misc libnvdimm patches for 4.19 submission
+* Adding support to read locked nvdimm capacity.
+
+* Change test code to make DSM failure code injection an override.
+
+* Add support for calculate maximum contiguous area for namespace.
+
+* Add support for queueing a short ARS when there is on going ARS for
+  nvdimm.
+
+* Allow NULL to be passed in to ->direct_access() for kaddr and
+  pfn params.
+
+* Improve smart injection support for nvdimm emulation testing.
+
+* Fix test code that supports for emulating controller temperature.
+
+* Fix hang on error before devm_memremap_pages()
+
+* Fix a bug that causes user memory corruption when data returned
+  to user for ars_status.
+
+* Maintainer updates for Ross Zwisler emails and adding Jan Kara to fsdax.
+
+----------------------------------------------------------------
+Dan Williams (4):
+      libnvdimm: Introduce locked DIMM capacity support
+      acpi, nfit: Prefer _DSM over _LSR for namespace label reads
+      tools/testing/nvdimm: Make DSM failure code injection an override
+      tools/testing/nvdimm: Fix support for emulating controller temperature
+
+Dave Jiang (1):
+      acpi/nfit: queue issuing of ars when an uc error notification comes in
+
+Huaisheng Ye (6):
+      libnvdimm, pmem: kaddr and pfn can be NULL to ->direct_access()
+      s390, dcssblk: kaddr and pfn can be NULL to ->direct_access()
+      tools/testing/nvdimm: kaddr and pfn can be NULL to ->direct_access()
+      dax/super: Do not request a pointer kaddr when not required
+      md/dm-writecache: Don't request pointer dummy_addr when not required
+      filesystem-dax: Do not request kaddr and pfn when not required
+
+Keith Busch (2):
+      libnvdimm: Use max contiguous area for namespace size
+      libnvdimm: Export max available extent
+
+Ross Zwisler (2):
+      MAINTAINERS: update Ross Zwisler's email address
+      MAINTAINERS: Add Jan Kara for filesystem DAX
+
+Stefan Hajnoczi (1):
+      device-dax: avoid hang on error before devm_memremap_pages()
+
+Vishal Verma (2):
+      tools/testing/nvdimm: improve emulation of smart injection
+      libnvdimm: fix ars_status output length calculation
+
+ .mailmap                         |   1 +
+ MAINTAINERS                      |  13 ++--
+ drivers/acpi/nfit/core.c         |  24 ++++++--
+ drivers/acpi/nfit/nfit.h         |   1 +
+ drivers/dax/pmem.c               |  12 ++--
+ drivers/dax/super.c              |   3 +-
+ drivers/md/dm-writecache.c       |   3 +-
+ drivers/nvdimm/bus.c             |   4 +-
+ drivers/nvdimm/dimm.c            |  24 +++++++-
+ drivers/nvdimm/dimm_devs.c       |  31 ++++++++++
+ drivers/nvdimm/namespace_devs.c  |  29 ++++++++-
+ drivers/nvdimm/nd-core.h         |   8 +++
+ drivers/nvdimm/nd.h              |   1 +
+ drivers/nvdimm/pmem.c            |   7 ++-
+ drivers/nvdimm/region_devs.c     |  40 +++++++++++++
+ drivers/s390/block/dcssblk.c     |   8 ++-
+ fs/dax.c                         |  13 ++--
+ tools/testing/nvdimm/pmem-dax.c  |  12 ++--
+ tools/testing/nvdimm/test/nfit.c | 126 ++++++++++++++++++++++++---------------
+ 19 files changed, 270 insertions(+), 90 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
