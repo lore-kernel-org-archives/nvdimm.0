@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 86CC8210DC1B7
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 08:35:26 -0700 (PDT)
-Received: from m3050.s.css.fujitsu.com (msm.b.css.fujitsu.com [10.134.21.208])
- by yt-mxoi1.gw.nic.fujitsu.com (Postfix) with ESMTP id AB087AC01D8
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 00:35:17 +0900 (JST)
-From: QI Fuli <qi.fuli@jp.fujitsu.com>
-Subject: [ndctl PATCH] ndctl,
- list: emit alarm_enable_<field> and clarify misc list items
-Date: Wed,  8 Aug 2018 00:35:14 +0900
-Message-Id: <20180807153514.31748-1-qi.fuli@jp.fujitsu.com>
+ by ml01.01.org (Postfix) with ESMTPS id C2A00210FC369
+ for <linux-nvdimm@lists.01.org>; Wed, 22 Aug 2018 15:23:00 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/2] ndctl,
+ destroy-namespace: check for an already-zeroed info block
+Date: Wed, 22 Aug 2018 16:22:48 -0600
+Message-Id: <20180822222249.30838-2-vishal.l.verma@intel.com>
+In-Reply-To: <20180822222249.30838-1-vishal.l.verma@intel.com>
+References: <20180822222249.30838-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,131 +24,119 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Steve Scargal <steve.scargall@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds alarm_enable_<field> to list. Therefore, users can know
-if the "ndclt inject-smart --<field>-alarm=on/off" works or not.
+in zero_info_block, check if the info block is already all-zeroes, and
+if so, don't write zeroes. This is in preparation for the fixes to
+destroy-namespace accounting where the number of namespaces 'destroyed'
+is often incorrect.
 
-Users may confuse "alarm_enable" with "alarm_flag" and "media_temperature"
-with "ctrl_temperature", this patch also used to clarify these items.
-
-Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: Steve Scargall <steve.scargall@intel.com>
+Link: https://github.com/pmem/ndctl/issues/41
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/util/json-smart.c | 45 ++++++++++++++++++++++++++++++++++-------
- 1 file changed, 38 insertions(+), 7 deletions(-)
+ ndctl/namespace.c | 43 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 9 deletions(-)
 
-diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
-index 6a1f294..a0677a6 100644
---- a/ndctl/util/json-smart.c
-+++ b/ndctl/util/json-smart.c
-@@ -39,34 +39,61 @@ static void smart_threshold_to_json(struct ndctl_dimm *dimm,
- 		unsigned int temp;
- 		double t;
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 510553c..65e8f7c 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -14,6 +14,7 @@
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <stdlib.h>
++#include <string.h>
+ #include <unistd.h>
+ #include <limits.h>
+ #include <syslog.h>
+@@ -786,23 +787,35 @@ static int namespace_create(struct ndctl_region *region)
+ 	return setup_namespace(region, ndns, &p);
+ }
  
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_media_temperature", jobj);
- 		temp = ndctl_cmd_smart_threshold_get_temperature(cmd);
- 		t = ndctl_decode_smart_temperature(temp);
- 		jobj = json_object_new_double(t);
- 		if (jobj)
- 			json_object_object_add(jhealth,
--					"temperature_threshold", jobj);
-+					"media_temperature_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_media_temperature", jobj);
++/*
++ * Return convention:
++ * rc < 0 : Error while zeroing, propagate forward
++ * rc == 0 : Successfully cleared the info block, report as destroyed
++ * rc > 0 : skipped, do not count
++ */
+ static int zero_info_block(struct ndctl_namespace *ndns)
+ {
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	int fd, rc = -ENXIO;
+-	void *buf = NULL;
++	int fd, rc = -ENXIO, info_size = 8192;
++	void *buf = NULL, *read_buf = NULL;
+ 	char path[50];
+ 
+ 	ndctl_namespace_set_raw_mode(ndns, 1);
+ 	rc = ndctl_namespace_enable(ndns);
+ 	if (rc < 0) {
+ 		debug("%s failed to enable for zeroing, continuing\n", devname);
+-		rc = 0;
++		rc = 1;
+ 		goto out;
  	}
  
- 	if (alarm_control & ND_SMART_CTEMP_TRIP) {
- 		unsigned int temp;
- 		double t;
+-	if (posix_memalign(&buf, 4096, 4096) != 0)
+-		return -ENXIO;
++	if (posix_memalign(&buf, 4096, info_size) != 0) {
++		rc = -ENOMEM;
++		goto out;
++	}
++	if (posix_memalign(&read_buf, 4096, info_size) != 0) {
++		rc = -ENOMEM;
++		goto out;
++	}
  
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_ctrl_temperature", jobj);
- 		temp = ndctl_cmd_smart_threshold_get_ctrl_temperature(cmd);
- 		t = ndctl_decode_smart_temperature(temp);
- 		jobj = json_object_new_double(t);
- 		if (jobj)
- 			json_object_object_add(jhealth,
--				"controller_temperature_threshold", jobj);
-+				"ctrl_temperature_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_ctrl_temperature", jobj);
+ 	sprintf(path, "/dev/%s", ndctl_namespace_get_block_device(ndns));
+ 	fd = open(path, O_RDWR|O_DIRECT|O_EXCL);
+@@ -812,18 +825,30 @@ static int zero_info_block(struct ndctl_namespace *ndns)
+ 		goto out;
  	}
  
- 	if (alarm_control & ND_SMART_SPARE_TRIP) {
- 		unsigned int spares;
- 
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_spares", jobj);
- 		spares = ndctl_cmd_smart_threshold_get_spares(cmd);
- 		jobj = json_object_new_int(spares);
- 		if (jobj)
- 			json_object_object_add(jhealth,
- 					"spares_threshold", jobj);
-+	} else {
-+		jobj = json_object_new_boolean(false);
-+		if (jobj)
-+			json_object_object_add(jhealth,
-+					"alarm_enable_spares", jobj);
- 	}
- 
+-	memset(buf, 0, 4096);
+-	rc = pwrite(fd, buf, 4096, 4096);
+-	if (rc < 4096) {
++	memset(buf, 0, info_size);
++	rc = pread(fd, read_buf, info_size, 0);
++	if (rc < info_size) {
++		debug("%s: failed to read info block, continuing\n",
++			devname);
++	}
++	if (memcmp(buf, read_buf, info_size) == 0) {
++		rc = 1;
++		goto out_close;
++	}
++
++	rc = pwrite(fd, buf, info_size, 0);
++	if (rc < info_size) {
+ 		debug("%s: failed to zero info block %s\n",
+ 				devname, path);
+ 		rc = -ENXIO;
+ 	} else
+ 		rc = 0;
++ out_close:
+ 	close(fd);
   out:
-@@ -118,7 +145,8 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
+ 	ndctl_namespace_set_raw_mode(ndns, 0);
+ 	ndctl_namespace_disable_invalidate(ndns);
++	free(read_buf);
+ 	free(buf);
+ 	return rc;
+ }
+@@ -857,7 +882,7 @@ static int namespace_destroy(struct ndctl_region *region,
  
- 		jobj = json_object_new_double(t);
- 		if (jobj)
--			json_object_object_add(jhealth, "temperature_celsius", jobj);
-+			json_object_object_add(jhealth,
-+					"media_temperature_celsius", jobj);
+ 	if (pfn || btt || dax) {
+ 		rc = zero_info_block(ndns);
+-		if (rc)
++		if (rc < 0)
+ 			return rc;
  	}
  
- 	if (flags & ND_SMART_CTEMP_VALID) {
-@@ -128,7 +156,7 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
- 		jobj = json_object_new_double(t);
- 		if (jobj)
- 			json_object_object_add(jhealth,
--					"controller_temperature_celsius", jobj);
-+					"ctrl_temperature_celsius", jobj);
- 	}
- 
- 	if (flags & ND_SMART_SPARES_VALID) {
-@@ -147,15 +175,18 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
- 
- 		jobj = json_object_new_boolean(temp_flag);
- 		if (jobj)
--			json_object_object_add(jhealth, "alarm_temperature", jobj);
-+			json_object_object_add(jhealth,
-+					"alarm_flag_media_temperature", jobj);
- 
- 		jobj = json_object_new_boolean(ctrl_temp_flag);
- 		if (jobj)
--			json_object_object_add(jhealth, "alarm_controller_temperature", jobj);
-+			json_object_object_add(jhealth,
-+					"alarm_flag_ctrl_temperature", jobj);
- 
- 		jobj = json_object_new_boolean(spares_flag);
- 		if (jobj)
--			json_object_object_add(jhealth, "alarm_spares", jobj);
-+			json_object_object_add(jhealth,
-+					"alarm_flag_spares", jobj);
- 	}
- 
- 	smart_threshold_to_json(dimm, jhealth);
 -- 
-2.18.0
-
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
