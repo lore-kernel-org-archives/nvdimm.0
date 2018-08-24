@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x243.google.com (mail-it0-x243.google.com
- [IPv6:2607:f8b0:4001:c0b::243])
+Received: from mail-io0-x241.google.com (mail-io0-x241.google.com
+ [IPv6:2607:f8b0:4001:c06::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0542E2194D387
- for <linux-nvdimm@lists.01.org>; Sat, 25 Aug 2018 18:32:17 -0700 (PDT)
-Received: by mail-it0-x243.google.com with SMTP id d10-v6so6808875itj.5
- for <linux-nvdimm@lists.01.org>; Sat, 25 Aug 2018 18:32:17 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5BA8721A07A92
+ for <linux-nvdimm@lists.01.org>; Fri, 24 Aug 2018 15:08:06 -0700 (PDT)
+Received: by mail-io0-x241.google.com with SMTP id c22-v6so8345810iob.1
+ for <linux-nvdimm@lists.01.org>; Fri, 24 Aug 2018 15:08:06 -0700 (PDT)
 MIME-Version: 1.0
-References: <e8622920d68c008edf72bcd93a8716fc59c2f55d.camel@intel.com>
 In-Reply-To: <e8622920d68c008edf72bcd93a8716fc59c2f55d.camel@intel.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 25 Aug 2018 18:32:05 -0700
-Message-ID: <CA+55aFyQAZxhJsbh8G3U=EPdKyfmeLRGwkqaRUbfOV0e5T=vXw@mail.gmail.com>
+References: <e8622920d68c008edf72bcd93a8716fc59c2f55d.camel@intel.com>
+From: Dan Williams <dan.j.williams@gmail.com>
+Date: Fri, 24 Aug 2018 15:08:04 -0700
+Message-ID: <CAA9_cmcwcjeVGkVNZnrAb2V61t1VibyxX5zsuZLYfB93g-2ynA@mail.gmail.com>
 Subject: Re: [GIT PULL]: libnvdimm updates for 4.19-rc1 v2 [2/2]
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,32 +25,160 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: torvalds@linux-foundation.org
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 22, 2018 at 1:22 PM Jiang, Dave <dave.jiang@intel.com> wrote:
+On 8/22/18, Jiang, Dave <dave.jiang@intel.com> wrote:
+> Hi Linus,
 >
-> Please pull to receive the libnvdimm dax-memory-failure series for v4.19-rc1. I have removed the
+> Please pull to receive the libnvdimm dax-memory-failure series for
+> v4.19-rc1. I have removed the
 > offending ilog2() call and fixed up the patch accordingly.
 
-Ok, not only does the code look fine now, I actually find this split
-to have been much easier to look through, with the drivers split from
-the memory-failure code. Please do this in the future too when you
-have this kind of "driver changes and very core infrastructure
-changes".
+Hi Linus,
 
-It may _look_ like more work to me when I do two pulls, but if they
-are separated out sanely, it makes review so much easier that it's
-actually less work overall. Thanks.
+Last business day of the merge window, one last ditch effort to
+advocate for the inclusion of this and the other v2 libnvdimm pull
+request for 4.19.
 
-So pulled.
+I agree with you that something is broken when a readily visible
+mistake in core code makes it all the way to you. I take no issue with
+your frustration, and I would not have pulled that branch either.
 
-Well, this second one is not actually pulled quite yet - I'm still
-doing the build tests for 1/2, but 2/2 has already passed my
-sniff-test, so it's just waiting for the build tests to finish.
+Dave fixed it up, albeit with a rebase, but I'm not aware of any
+lingering issues.
 
-                Linus
+Please save me from having to do another apology tour with
+stakeholders that were expecting this to land since 4.18, or otherwise
+let me know what process changes you would like to see going forward
+for these cross sub-system pmem / dax feature series.
+
+>
+> As Dan mentioned, the justification for pushing this sooner rather than
+> later is to
+> start the pipeline to the distros since enterprise in-memory-database
+> developers reported this gap in the kernel memory error handling
+> compared to the DRAM / page cache case.
+>
+> I'm including Dan's original cover for the series for context:
+> "
+> As it stands, memory_failure() gets thoroughly confused by dev_pagemap
+> backed mappings. The recovery code has specific enabling for several
+> possible page states and needs new enabling to handle poison in dax
+> mappings.
+>
+> In order to support reliable reverse mapping of user space addresses:
+>
+> 1/ Add new locking in the memory_failure() rmap path to prevent races
+> that would typically be handled by the page lock.
+>
+> 2/ Since dev_pagemap pages are hidden from the page allocator and the
+> "compound page" accounting machinery, add a mechanism to determine the
+> size of the mapping that encompasses a given poisoned pfn.
+>
+> 3/ Given pmem errors can be repaired, change the speculatively accessed
+> poison protection, mce_unmap_kpfn(), to be reversible and otherwise
+> allow ongoing access from the kernel.
+>
+> A side effect of this enabling is that MADV_HWPOISON becomes usable for
+> dax mappings, however the primary motivation is to allow the system to
+> survive userspace consumption of hardware-poison via dax. Specifically
+> the current behavior is:
+>
+>     mce: Uncorrected hardware memory error in user-access at af34214200
+>     {1}[Hardware Error]: It has been corrected by h/w and requires no
+> further action
+>     mce: [Hardware Error]: Machine check events logged
+>     {1}[Hardware Error]: event severity: corrected
+>     Memory failure: 0xaf34214: reserved kernel page still referenced by 1
+> users
+>     [..]
+>     Memory failure: 0xaf34214: recovery action for reserved kernel page:
+> Failed
+>     mce: Memory error not recovered
+>     <reboot>
+>
+> ...and with these changes:
+>
+>     Injecting memory failure for pfn 0x20cb00 at process virtual address
+> 0x7f763dd00000
+>     Memory failure: 0x20cb00: Killing dax-pmd:5421 due to hardware memory
+> corruption
+>     Memory failure: 0x20cb00: recovery action for dax page: Recovered
+>
+> Given all the cross dependencies I propose taking this through
+> nvdimm.git with acks from Naoya, x86/core, x86/RAS, and of course dax
+> folks.
+> "
+>
+> I hope you will consider pulling the patch series. Thank you!
+>
+> The following changes since commit
+> 021c91791a5e7e85c567452f1be3e4c2c6cb6063:
+>
+>   Linux 4.18-rc3 (2018-07-01 16:04:53 -0700)
+>
+> are available in the Git repository at:
+>
+>   git@gitolite.kernel.org:pub/scm/linux/kernel/git/nvdimm/nvdimm.git
+> tags/libnvdimm-for-4.19_dax-memory-failure
+>
+> for you to fetch changes up to c953cc987ab87d180e1d5de2f1c217abe33aac77:
+>
+>   libnvdimm, pmem: Restore page attributes when clearing errors (2018-08-20
+> 09:22:45 -0700)
+>
+> ----------------------------------------------------------------
+> libnvdimm-for-4.19_dax-memory-failure
+>
+> * memory_failure() gets confused by dev_pagemap backed mappings. The
+>   recovery code has specific enabling for several possible page states
+>   that needs new enabling to handle poison in dax mappings. Teach
+>   memory_failure() about ZONE_DEVICE pages.
+>
+> ----------------------------------------------------------------
+> Dan Williams (13):
+>       device-dax: Convert to vmf_insert_mixed and vm_fault_t
+>       device-dax: Enable page_mapping()
+>       device-dax: Set page->index
+>       filesystem-dax: Set page->index
+>       mm, madvise_inject_error: Disable MADV_SOFT_OFFLINE for ZONE_DEVICE
+> pages
+>       mm, dev_pagemap: Do not clear ->mapping on final put
+>       mm, madvise_inject_error: Let memory_failure() optionally take a page
+> reference
+>       mm, memory_failure: Collect mapping size in collect_procs()
+>       filesystem-dax: Introduce dax_lock_mapping_entry()
+>       mm, memory_failure: Teach memory_failure() about dev_pagemap pages
+>       x86/mm/pat: Prepare {reserve, free}_memtype() for "decoy" addresses
+>       x86/memory_failure: Introduce {set, clear}_mce_nospec()
+>       libnvdimm, pmem: Restore page attributes when clearing errors
+>
+>  arch/x86/include/asm/set_memory.h         |  42 ++++++
+>  arch/x86/kernel/cpu/mcheck/mce-internal.h |  15 ---
+>  arch/x86/kernel/cpu/mcheck/mce.c          |  38 +-----
+>  arch/x86/mm/pat.c                         |  16 +++
+>  drivers/dax/device.c                      |  75 +++++++----
+>  drivers/nvdimm/pmem.c                     |  26 ++++
+>  drivers/nvdimm/pmem.h                     |  13 ++
+>  fs/dax.c                                  | 125 ++++++++++++++++--
+>  include/linux/dax.h                       |  13 ++
+>  include/linux/huge_mm.h                   |   5 +-
+>  include/linux/mm.h                        |   1 +
+>  include/linux/set_memory.h                |  14 ++
+>  kernel/memremap.c                         |   1 -
+>  mm/hmm.c                                  |   2 +
+>  mm/huge_memory.c                          |   4 +-
+>  mm/madvise.c                              |  16 ++-
+>  mm/memory-failure.c                       | 210
+> ++++++++++++++++++++++++------
+>  17 files changed, 481 insertions(+), 135 deletions(-)
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
