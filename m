@@ -1,10 +1,9 @@
-From: samy.bn-INUnGthYPftBDgjK7y7TUQ@public.gmane.org
-Subject: Candida
-Date: Mon, 25 Jun 2018 14:25:28 +0200
-Message-ID: <2127C83A.FF9EEAFC8968A0D7@tekiano.com>
+From: <sales-FqRPVAKtwsw@public.gmane.org>
+Subject: Get ready for unforgettable romance
+Date: 24 Aug 2018 13:12:39 -0600
+Message-ID: <466752684997151330899516@plum.co>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1962198752427684523=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,11 +14,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: lavinas-1bsj00HTURQqBK0yyeNSIwh0onu2mTI+@public.gmane.org, bvhw-thF4r3d8Mt0Gy6NMK7a+iQ@public.gmane.org, mylene.keller-WOQS26cwAR58UrSeD/g0lQ@public.gmane.org, rena-xAXlW7tP12wE8Gx1Vj3tGg@public.gmane.org, support-RjF9EZKuJUso2H3pi/jiKEEOCMrvLtNR@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, officeadmin1c-I22EZOz5ncJS43UKArkRJw@public.gmane.org, blankenship.19804-WKt2KCOFRljk6sNE1ETtvQ@public.gmane.org, a.najjar-Sxm2W54npx3R7s880joybQ@public.gmane.org, merja.valtanen-B6SKYC7qzBuEazanehQPrg@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-If you want to get acquainted with a smoking-hot miss, this is your chance!
-I love to meet new people, have fun, and get dirty.
-I can send you my pictures right now!
+This is a multi-part message in MIME format.
 
-http://www.setoken.info/ni06r/ov4jzkam.php?bGF2aW5hc0Bjb3N0YW1hcmZvcmkuY29tLmJy
+--===============1962198752427684523==
+Content-Type: text/plain;
+ charset="cp-850"
+Content-Transfer-Encoding: quoted-printable
+
+are you ready to please me? i will make you my s3xslave!
+i'm 23/f... come over and taste my juice!
+
+my username is Hela17
+view my profile=20
+here!
+
+Talk Soon!
+--===============1962198752427684523==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1962198752427684523==--
