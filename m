@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D112202E5442
- for <linux-nvdimm@lists.01.org>; Mon, 27 Aug 2018 09:09:06 -0700 (PDT)
-Date: Mon, 27 Aug 2018 18:09:03 +0200
+ by ml01.01.org (Postfix) with ESMTPS id AC73C210F4BB5
+ for <linux-nvdimm@lists.01.org>; Fri, 24 Aug 2018 08:44:46 -0700 (PDT)
+Date: Fri, 24 Aug 2018 17:44:43 +0200
 From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v4 1/2] dax: dax_layout_busy_page() warn on !exceptional
-Message-ID: <20180827160903.GF4002@quack2.suse.cz>
+Message-ID: <20180824154443.GA26549@quack2.suse.cz>
 References: <20180710191031.17919-1-ross.zwisler@linux.intel.com>
  <20180710191031.17919-2-ross.zwisler@linux.intel.com>
  <6ca60cf6-f1dc-27d5-fb79-7547aea39dfa@redhat.com>
@@ -33,44 +33,17 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 On Mon 13-08-18 12:12:52, Jan Kara wrote:
 > On Fri 10-08-18 22:10:53, Theodore Y. Ts'o wrote:
-> > On Fri, Aug 10, 2018 at 04:33:49PM -0400, Theodore Y. Ts'o wrote:
-> > > I just kicked off a DAX test ("gce-xfstests -c dax -g auto") with
-> > > CONFIG_KASAN disabled, and I expect it shouldn't show up anything
-> > > concerning.  So assuming nothing surprising pops up, yes it should be
-> > > merged at the next merge window.
-> > 
-> > ... and here are the results.  The first is 4.17, and the second is
-> > the ext4 git tree:
-> > 
-> > ext4/dax: 488 tests, 4 failures, 97 skipped, 2647 seconds
-> >   Failures: ext4/033 generic/344 generic/491 generic/503
-> > 
-> > ext4/dax: 488 tests, 3 failures, 97 skipped, 2637 seconds
-> >   Failures: generic/081 generic/344 generic/388
-> > 
-> > The generic/388 failure is a known flake (shutdown stress test).
-> > 
-> > The generic/081 regression appears to be a device-mapper issue:
-> > 
-> > generic/081		[22:06:33][   15.079661] run fstests generic/081 at 2018-08-10 22:06:33
-> > [   15.795745] device-mapper: ioctl: can't change device type (old=4 vs new=1) after initial table load.
-> > [failed, exit status 1] [22:06:36]- output mismatch (see /results/ext4/results-dax/generic/081.out.bad)
-> >     --- tests/generic/081.out	2018-08-09 18:00:42.000000000 -0400
-> >     +++ /results/ext4/results-dax/generic/081.out.bad	2018-08-10 22:06:36.440005460 -0400
-> >     @@ -1,2 +1,4 @@
-> >      QA output created by 081
-> >      Silence is golden
-> >     +Failed to create snapshot
-> >     +(see /results/ext4/results-dax/generic/081.full for details)
-> >     ...
-> >     (Run 'diff -u tests/generic/081.out /results/ext4/results-dax/generic/081.out.bad'  to see the entire diff)
+> > The generic/344 failure seems to be caused by a WARNING triggered in
+> > the nvdimm code:
 > 
-> I'll see if this reproduces for me. Doesn't seem to be related to the DAX
-> patches you caary though.
+> OK, apparently this is nothing new for you as generic/344 fails for you
+> even with 3.17. But it should not :). I'll try to see if I can reproduce
+> this in my test setup during more test runs (I don't remember seeing it
+> during occasional runs I do) and debug it further.
 
-This is caused by commit dbc626597c39b "dm: prevent DAX mounts if not
-supported". I've started discussion with relevant developers how to fix
-this.
+I could reproduce this relatively easily but it took me quite a while to
+figure out how to best fix this. I'll send the fix shortly (mm: Fix warning
+in insert_pfn()).
 
 								Honza
 -- 
