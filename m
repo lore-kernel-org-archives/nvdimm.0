@@ -1,9 +1,10 @@
-From: <zhaopin-moQs5Dj9GAZBDgjK7y7TUQ@public.gmane.org>
-Subject: Seeking for romantic relationships
-Date: 25 Aug 2018 12:36:50 +0100
-Message-ID: <DADF4F1DEE4A8DBCB9297B882CEBDADF@8VUNQ5R2G7>
+From: colan-Nop330/xf4h2oFmwLY6qdVaTQe2KTcn/@public.gmane.org
+Subject: please f#ck me tonite
+Date: Sat, 25 Aug 2018 13:47:25 -0700 (AST)
+Message-ID: <rx51d4408ii201ju3662s8t610271983@medtechambulance.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6337047355146445700=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,33 +15,12 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: To-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============6337047355146445700==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-are you ready to please me? i will make you my s3xslave!
-i'm 22/f... come over and taste my juice!
-
-my username is Kat05
-view my profile=20
-here!
-
-Talk Soon!
---===============6337047355146445700==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6337047355146445700==--
+V2hhemFwIHByZXR0eS4gSeKAmXZlIGp1c3QsIG9ubHkgd2F0Y2hlZCB5b3VyIHByb2ZpbGUuIFlv
+deKAmXJlIGFtYXppbmcuIEnigJltIHNvLCB2ZXJ5IGJvcmVkIDJuaWdodCBhbmQgSSB3b3VsZCBs
+aWtlIDIgb2ZmZXIgeW91IHRhbGtpbmcuIE15IHByb2ZpbGUgaXMgaGVyZQ0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
