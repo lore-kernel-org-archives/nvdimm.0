@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD33A21102DAE
+ by ml01.01.org (Postfix) with ESMTPS id 6CB0421102DAE
  for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:52:24 -0700 (PDT)
-Subject: [PATCH v3 4/6] ndctl: add support for freeze security
+Subject: [PATCH v3 6/6] ndctl: add request-key upcall reference app
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:52:07 -0700
-Message-ID: <153549672736.5723.6409645443443463937.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 28 Aug 2018 15:52:18 -0700
+Message-ID: <153549673831.5723.3252005522935384062.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
 References: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -26,158 +26,251 @@ To: vishal.l.verma@intel.com
 Cc: dhowells@redhat.com, alison.schofield@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security to libndctl and also command line option
-of "freeze-security" for ndctl. This will lock the ability to make changes
-to the NVDIMM security.
+Adding a reference upcall helper for request-key in order to retrieve the
+security passphrase from userspace to provide to the kernel. The reference
+app uses keyutils API to respond to the upcall from the kernel and is
+invoked by /sbin/request-key of the keyutils.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/ndctl/Makefile.am               |    3 ++-
- Documentation/ndctl/ndctl-freeze-security.txt |   21 +++++++++++++++++++++
- builtin.h                                     |    1 +
- ndctl/dimm.c                                  |   22 ++++++++++++++++++++++
- ndctl/lib/dimm.c                              |    5 +++++
- ndctl/lib/libndctl.sym                        |    1 +
- ndctl/libndctl.h                              |    1 +
- ndctl/ndctl.c                                 |    1 +
- 8 files changed, 54 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ Documentation/ndctl/Makefile.am       |    3 -
+ Documentation/ndctl/nvdimm-upcall.txt |   33 ++++++++
+ ndctl.spec.in                         |    1 
+ ndctl/Makefile.am                     |    5 +
+ ndctl/nvdimm-upcall.c                 |  138 +++++++++++++++++++++++++++++++++
+ 5 files changed, 179 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/nvdimm-upcall.txt
+ create mode 100644 ndctl/nvdimm-upcall.c
 
 diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index faeb0d9b..3a761ba0 100644
+index 8c171ecb..f4e8b24c 100644
 --- a/Documentation/ndctl/Makefile.am
 +++ b/Documentation/ndctl/Makefile.am
-@@ -49,7 +49,8 @@ man1_MANS = \
- 	ndctl-list.1 \
- 	ndctl-monitor.1 \
+@@ -51,7 +51,8 @@ man1_MANS = \
  	ndctl-update-security.1 \
--	ndctl-disable-security.1
-+	ndctl-disable-security.1 \
-+	ndctl-freeze-security.1
+ 	ndctl-disable-security.1 \
+ 	ndctl-freeze-security.1 \
+-	ndctl-sanitize.1
++	ndctl-sanitize.1 \
++	nvdimm-upcall.1
  
  CLEANFILES = $(man1_MANS)
  
-diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+diff --git a/Documentation/ndctl/nvdimm-upcall.txt b/Documentation/ndctl/nvdimm-upcall.txt
 new file mode 100644
-index 00000000..343bb019
+index 00000000..bbf52fd1
 --- /dev/null
-+++ b/Documentation/ndctl/ndctl-freeze-security.txt
-@@ -0,0 +1,21 @@
++++ b/Documentation/ndctl/nvdimm-upcall.txt
+@@ -0,0 +1,33 @@
 +// SPDX-License-Identifier: GPL-2.0
 +
-+ndctl-freeze-security(1)
-+========================
++nvdimm-upcall(1)
++================
 +
 +NAME
 +----
-+ndctl-freeze-security - enabling or freeze the security for an NVDIMM
++nvdimm-upcall - upcall helper for keyutils
 +
 +SYNOPSIS
 +--------
 +[verse]
-+'ndctl freeze-security' <dimm>
++'nvdimm-upcall' [key_id]
 +
 +DESCRIPTION
 +-----------
-+Provide a generic interface to freeze the security for NVDIMM. The use of this
-+depends on support from the underlying libndctl, kernel, as well as the
-+platform itself.
++nvdimm-upcall is called by request-key from keyutils and not meant to be used
++directly by the user. It expects to read from /etc/nvdimm.passwd to retrieve
++the description and passphrase for the NVDIMM key.
++
++The nvdimm.passwd is formatted as:
++<description id>:<passphrase with padded 0 to 32bytes>
++cdab-0a-07e0-feffffff:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
++
++In order for this util to be called, /etc/request-key.conf must be appended
++with the following line:
++create   logon   nvdimm*          *               /usr/sbin/nvdimm-upcall %k
 +
 +include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 39e4e38d..7b970e10 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -50,4 +50,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
- int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_key_update(int argc, const char **argv, void *ctx);
- int cmd_disable_security(int argc, const char **argv, void *ctx);
-+int cmd_freeze_security(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 96733ff6..432ead74 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -891,6 +891,18 @@ static int action_security_disable(struct ndctl_dimm *dimm,
- 	return rc;
- }
- 
-+static int action_security_freeze(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
 +
-+	rc = ndctl_dimm_freeze_security(dimm);
-+	if (rc < 0)
-+		error("Failed to freeze security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
++SEE ALSO
++--------
++http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index c71bd581..6416c0b6 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -123,6 +123,7 @@ make check
+ %{_unitdir}/ndctl-monitor.service
+ %{_udevrulesdir}/80-ndctl.rules
+ %{udevdir}/ndctl-udev
++%{_sbindir}/nvdimm-upcall
+ 
+ %files -n daxctl
+ %defattr(-,root,root)
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 4b44294e..ec4c9229 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -1,6 +1,7 @@
+ include $(top_srcdir)/Makefile.am.in
+ 
+ bin_PROGRAMS = ndctl
++sbin_PROGRAMS = nvdimm-upcall
+ 
+ ndctl_SOURCES = ndctl.c \
+ 		bus.c \
+@@ -56,3 +57,7 @@ ndctl_udevdir = $(UDEVDIR)
+ ndctl_udev_PROGRAMS = ndctl-udev
+ ndctl_udev_SOURCES = ndctl-udev.c
+ ndctl_udev_LDADD = lib/libndctl.la
++
++nvdimm_upcall_SOURCES = nvdimm-upcall.c
++
++nvdimm_upcall_LDADD = $(KEYUTILS_LIBS)
+diff --git a/ndctl/nvdimm-upcall.c b/ndctl/nvdimm-upcall.c
+new file mode 100644
+index 00000000..904a1141
+--- /dev/null
++++ b/ndctl/nvdimm-upcall.c
+@@ -0,0 +1,138 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
++
++/*
++ * Used by /sbin/request-key for handling nvdimm upcall of key requests
++ * for security DSMs.
++ */
++
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <sys/param.h>
++#include <keyutils.h>
++#include <syslog.h>
++
++#define PASSPHRASE_SIZE		32
++#define PASS_PATH		"/etc/nvdimm.passwd"
++
++static FILE *fp;
++
++static int get_passphrase_from_id(const char *id, char *pass, int *psize)
++{
++	ssize_t rc = 0;
++	size_t size;
++	char *line = NULL;
++	char *tmp, *id_tok, *secret;
++	int found = 0;
++
++	fp = fopen(PASS_PATH, "r+");
++	if (!fp) {
++		syslog(LOG_ERR, "fopen: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	while ((rc = getline(&line, &size, fp)) != -1) {
++		id_tok = strtok_r(line, ":", &tmp);
++		if (!id_tok)
++			break;
++		if (strcmp(id_tok, id) == 0) {
++			secret = tmp;
++			found = 1;
++			rc = 0;
++			break;
++		}
++	}
++
++	if (rc == 0 && found && secret) {
++		memset(pass, 0, PASSPHRASE_SIZE*2+1);
++		size = MIN(strlen(secret), (PASSPHRASE_SIZE*2+1));
++		memcpy(pass, secret, size);
++		*psize = size-1;
++	} else
++		rc = -ENXIO;
++
++	free(line);
++	fclose(fp);
 +	return rc;
 +}
 +
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -1273,3 +1285,13 @@ int cmd_disable_security(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_freeze_security(int argc, const char **argv, void *ctx)
++static char *get_key_desc(char *buf)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
-+			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++	char *tmp = &buf[0];
++	int count = 0;
 +
-+	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
++	while (*tmp != '\0') {
++		if (*tmp == ';')
++			count++;
++		if (count == 4) {
++			tmp++;
++			return tmp;
++		}
++		tmp++;
++	}
++
++	return NULL;
 +}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 53e99906..b383127c 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -624,3 +624,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm)
- {
- 	return ndctl_dimm_write_security(dimm, "disable");
- }
 +
-+NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++int main(int argc, const char **argv)
 +{
-+	return ndctl_dimm_write_security(dimm, "freeze");
++	key_serial_t key;
++	int rc;
++	char *buf, *desc, *dimm_id;
++	char pass[PASSPHRASE_SIZE * 2 + 1];
++	int size = 0;
++
++	if (argc < 2) {
++		syslog(LOG_ERR, "Incorrect number of arguments\n");
++		return -EINVAL;
++	}
++
++	syslog(LOG_DEBUG, "key passed in: %s\n", argv[1]);
++	key = strtol(argv[1], NULL, 10);
++	if (key < 0) {
++		syslog(LOG_ERR, "Invalid key format: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	rc = keyctl_describe_alloc(key, &buf);
++	if (rc < 0) {
++		syslog(LOG_ERR, "keyctl_describe_alloc failed: %s\n",
++				strerror(errno));
++		rc = -errno;
++		goto out;
++	}
++
++	desc = get_key_desc(buf);
++	if (!desc) {
++		syslog(LOG_ERR, "Can't find key description\n");
++		rc = -EINVAL;
++		goto out;
++	}
++
++	strtok_r(desc, ":", &dimm_id);
++	rc = get_passphrase_from_id(dimm_id, pass, &size);
++	if (rc < 0) {
++		syslog(LOG_ERR, "failed to retrieve passphrase\n");
++		goto out;
++	}
++
++	rc = keyctl_instantiate(key, pass, size, 0);
++	if (rc < 0) {
++		syslog(LOG_ERR, "keyctl_instantiate failed: %s\n",
++				strerror(errno));
++		rc = -errno;
++		goto out;
++	}
++
++ out:
++	if (rc < 0)
++		keyctl_negate(key, 1, KEY_REQKEY_DEFL_DEFAULT);
++
++	return rc;
 +}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 136f4e04..d543088f 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -386,4 +386,5 @@ global:
- 	ndctl_dimm_get_current_key;
- 	ndctl_dimm_set_change_key;
- 	ndctl_dimm_disable_security;
-+	ndctl_dimm_freeze_security;
- } LIBNDCTL_17;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index a914cfc3..75364212 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -682,6 +682,7 @@ int ndctl_dimm_add_key(struct ndctl_dimm *dimm, const char *passphrase,
- 		int pass_size, key_serial_t *key);
- int ndctl_dimm_get_current_key(struct ndctl_dimm *dimm, key_serial_t *key);
- int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
-+int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 2dab02d2..7a242aab 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
- 	{ "start-scrub", cmd_start_scrub },
- 	{ "update-security", cmd_key_update },
- 	{ "disable-security", cmd_disable_security },
-+	{ "freeze-security", cmd_freeze_security },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
