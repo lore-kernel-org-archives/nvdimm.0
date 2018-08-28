@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F208821102D93
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:48:16 -0700 (PDT)
-Subject: [PATCH v8 10/12] nfit_test: add context to dimm_dev for nfit_test
+ by ml01.01.org (Postfix) with ESMTPS id BB37421102D90
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:47:29 -0700 (PDT)
+Subject: [PATCH v8 02/12] libnvdimm: create keyring to store security keys
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:48:14 -0700
-Message-ID: <153549649455.4089.3882125963944609132.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 28 Aug 2018 15:47:29 -0700
+Message-ID: <153549644916.4089.12258485183075906901.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
 References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -26,121 +26,138 @@ To: linux-nvdimm@lists.01.org
 Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to access the nfit_test context via sideband sysfs knobs, the
-dimm_dev needs to be more than struct device in order to point back to
-struct nfit_test. Wrapping the original struct device with a struct
-nfit_dimm_dev and saving the nfit_test as private driver data. Also
-changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
-saving as private driver data of that device. This is in preparation for
-adding security DSM support and allowing the locking of DIMMs for testing
-via sideband.
+Prepping the libnvdimm to support security management by adding a keyring
+in order to provide passphrase management through the kernel key management
+APIs.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+ drivers/nvdimm/core.c      |    7 ++++++-
+ drivers/nvdimm/dimm_devs.c |   29 ++++++++++++++++++++++++++++-
+ drivers/nvdimm/nd-core.h   |    1 +
+ include/linux/libnvdimm.h  |    3 +++
+ kernel/cred.c              |    1 +
+ 5 files changed, 39 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 18157b0c0d0d..7b3ce2194889 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -150,6 +150,11 @@ struct nfit_test_fw {
- 	u64 end_time;
- };
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index acce050856a8..3cd33d5c7cf0 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -437,9 +437,12 @@ static __init int libnvdimm_init(void)
+ {
+ 	int rc;
  
-+struct nfit_dimm_dev {
-+	struct device dev;
-+	struct nfit_mem *nfit_mem;
-+};
-+
- struct nfit_test {
- 	struct acpi_nfit_desc acpi_desc;
- 	struct platform_device pdev;
-@@ -181,7 +186,7 @@ struct nfit_test {
- 		unsigned long deadline;
- 		spinlock_t lock;
- 	} ars_state;
--	struct device *dimm_dev[NUM_DCR];
-+	struct nfit_dimm_dev dimm_dev[NUM_DCR];
- 	struct nd_intel_smart *smart;
- 	struct nd_intel_smart_threshold *smart_threshold;
- 	struct badrange badrange;
-@@ -981,7 +986,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
--						&t->pdev.dev, t->dimm_dev[i]);
-+						&t->pdev.dev,
-+						&t->dimm_dev[i].dev);
- 				break;
- 			case ND_INTEL_SMART_INJECT:
- 				rc = nfit_test_cmd_smart_inject(buf,
-@@ -989,7 +995,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
--						&t->pdev.dev, t->dimm_dev[i]);
-+						&t->pdev.dev,
-+						&t->dimm_dev[i].dev);
- 				break;
- 			default:
- 				return -ENOTTY;
-@@ -1187,8 +1194,7 @@ static void put_dimms(void *data)
- 	int i;
- 
- 	for (i = 0; i < t->num_dcr; i++)
--		if (t->dimm_dev[i])
--			device_unregister(t->dimm_dev[i]);
-+		device_unregister(&t->dimm_dev[i].dev);
+-	rc = nvdimm_bus_init();
++	rc = nvdimm_devs_init();
+ 	if (rc)
+ 		return rc;
++	rc = nvdimm_bus_init();
++	if (rc)
++		goto err_bus;
+ 	rc = nvdimm_init();
+ 	if (rc)
+ 		goto err_dimm;
+@@ -454,6 +457,8 @@ static __init int libnvdimm_init(void)
+ 	nvdimm_exit();
+  err_dimm:
+ 	nvdimm_bus_exit();
++ err_bus:
++	nvdimm_devs_exit();
+ 	return rc;
  }
  
- static struct class *nfit_test_dimm;
-@@ -1290,19 +1296,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 8d348b22ba45..586432450c82 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -18,12 +18,15 @@
+ #include <linux/io.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/key.h>
++#include <linux/init_task.h>
+ #include "nd-core.h"
+ #include "label.h"
+ #include "pmem.h"
+ #include "nd.h"
  
-+static void dimm_dev_release(struct device *dev)
-+{
+ static DEFINE_IDA(dimm_ida);
++static struct key *nvdimm_keyring;
+ 
+ /*
+  * Retrieve bus and dimm handle and return if this bus supports
+@@ -668,7 +671,31 @@ int nvdimm_bus_check_dimm_count(struct nvdimm_bus *nvdimm_bus, int dimm_count)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_bus_check_dimm_count);
+ 
+-void __exit nvdimm_devs_exit(void)
++static int nvdimm_register_keyring(void)
+ {
++	nvdimm_keyring = keyring_alloc(".nvdimm",
++			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, &init_cred,
++			(KEY_POS_ALL & ~KEY_POS_SETATTR) |
++			(KEY_USR_ALL & ~KEY_USR_SETATTR),
++			KEY_ALLOC_NOT_IN_QUOTA, NULL, NULL);
++	if (IS_ERR(nvdimm_keyring))
++		return PTR_ERR(nvdimm_keyring);
++
++	return 0;
 +}
 +
- static int nfit_test_dimm_init(struct nfit_test *t)
- {
--	int i;
-+	int i, rc;
- 
- 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
- 		return -ENOMEM;
- 	for (i = 0; i < t->num_dcr; i++) {
--		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
--				&t->pdev.dev, 0, NULL,
--				nfit_test_dimm_attribute_groups,
--				"test_dimm%d", i + t->dcr_idx);
--		if (!t->dimm_dev[i])
--			return -ENOMEM;
-+		t->dimm_dev[i].dev.parent = &t->pdev.dev;
-+		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
-+				i + t->dcr_idx);
-+		t->dimm_dev[i].dev.class = nfit_test_dimm;
-+		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
-+		t->dimm_dev[i].dev.release = dimm_dev_release;
-+		rc = device_register(&t->dimm_dev[i].dev);
-+		if (rc < 0)
-+			return rc;
-+		dev_set_drvdata(&t->dimm_dev[i].dev, t);
- 	}
- 	return 0;
++static void nvdimm_unregister_keyring(void)
++{
++	key_revoke(nvdimm_keyring);
++}
++
++int __init nvdimm_devs_init(void)
++{
++	return nvdimm_register_keyring();
++}
++
++void  nvdimm_devs_exit(void)
++{
++	nvdimm_unregister_keyring();
+ 	ida_destroy(&dimm_ida);
  }
-@@ -2665,8 +2679,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 79274ead54fb..2af0f89c4010 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -76,6 +76,7 @@ static inline bool is_memory(struct device *dev)
+ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
+ int __init nvdimm_bus_init(void);
+ void nvdimm_bus_exit(void);
++int nvdimm_devs_init(void);
+ void nvdimm_devs_exit(void);
+ void nd_region_devs_exit(void);
+ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 472171af7f60..51084043915c 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -155,6 +155,9 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
  
- 		for (i = 0; i < NUM_DCR; i++)
- 			if (nfit_handle == handle[i])
--				dev_set_drvdata(nfit_test->dimm_dev[i],
--						nfit_mem);
-+				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
- 	}
- 	mutex_unlock(&acpi_desc->init_mutex);
+ }
  
++#define NVDIMM_PASSPHRASE_LEN		32
++#define NVDIMM_KEY_DESC_LEN		22
++
+ void badrange_init(struct badrange *badrange);
+ int badrange_add(struct badrange *badrange, u64 addr, u64 length);
+ void badrange_forget(struct badrange *badrange, phys_addr_t start,
+diff --git a/kernel/cred.c b/kernel/cred.c
+index ecf03657e71c..3a161b78a0a4 100644
+--- a/kernel/cred.c
++++ b/kernel/cred.c
+@@ -64,6 +64,7 @@ struct cred init_cred = {
+ 	.user_ns		= &init_user_ns,
+ 	.group_info		= &init_groups,
+ };
++EXPORT_SYMBOL(init_cred);
+ 
+ static inline void set_cred_subscribers(struct cred *cred, int n)
+ {
 
 _______________________________________________
 Linux-nvdimm mailing list
