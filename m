@@ -1,10 +1,14 @@
-From: =?GB2312?B?t+uVRt27?= <ylfngjuan-541zjowzYzhWk0Htik3J/w@public.gmane.org>
-Subject: =?GB2312?B?16q3oqO6yOe6ztSkt8C6z7vvyMu1xMex1Nq358/V?=
-Date: Mon, 27 Aug 2018 19:32:33 +0800
-Message-ID: <20180827113245.26986210FBEEE@ml01.01.org>
+From: David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC v3 0/2] kvm "fake DAX" device flushing
+Date: Tue, 28 Aug 2018 14:13:24 +0200
+Message-ID: <1328e543-0276-8f33-1744-8baa053023c4@redhat.com>
+References: <20180713075232.9575-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1455065393128211585=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180713075232.9575-1-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,32 +18,76 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
+On 13.07.2018 09:52, Pankaj Gupta wrote:
+> This is RFC V3 for 'fake DAX' flushing interface sharing
+> for review. This patchset has two parts:
+> 
+> - Guest virtio-pmem driver
+>   Guest driver reads persistent memory range from paravirt device 
+>   and registers with 'nvdimm_bus'. 'nvdimm/pmem' driver uses this 
+>   information to allocate persistent memory range. Also, we have 
+>   implemented guest side of VIRTIO flushing interface.
+> 
+> - Qemu virtio-pmem device
+>   It exposes a persistent memory range to KVM guest which at host 
+>   side is file backed memory and works as persistent memory device. 
+>   In addition to this it provides virtio device handling of flushing 
+>   interface. KVM guest performs Qemu side asynchronous sync using 
+>   this interface.
+> 
+> Changes from RFC v2:
+> - Add flush function in the nd_region in place of switching
+>   on a flag - Dan & Stefan
+> - Add flush completion function with proper locking and wait
+>   for host side flush completion - Stefan & Dan
+> - Keep userspace API in uapi header file - Stefan, MST
+> - Use LE fields & New device id - MST
+> - Indentation & spacing suggestions - MST & Eric
+> - Remove extra header files & add licensing - Stefan
+> 
+> Changes from RFC v1:
+> - Reuse existing 'pmem' code for registering persistent 
+>   memory and other operations instead of creating an entirely 
+>   new block driver.
+> - Use VIRTIO driver to register memory information with 
+>   nvdimm_bus and create region_type accordingly. 
+> - Call VIRTIO flush from existing pmem driver.
+> 
+> Details of project idea for 'fake DAX' flushing interface is 
+> shared [2] & [3].
+> 
+> Pankaj Gupta (2):
+>    Add virtio-pmem guest driver
+>    pmem: device flush over VIRTIO
+> 
+> [1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
+> [2] https://www.spinics.net/lists/kvm/msg149761.html
+> [3] https://www.spinics.net/lists/kvm/msg153095.html  
+> 
+>  drivers/nvdimm/nd.h              |    1 
+>  drivers/nvdimm/pmem.c            |    4 
+>  drivers/nvdimm/region_devs.c     |   24 +++-
+>  drivers/virtio/Kconfig           |    9 +
+>  drivers/virtio/Makefile          |    1 
+>  drivers/virtio/virtio_pmem.c     |  190 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/libnvdimm.h        |    5 -
+>  include/linux/virtio_pmem.h      |   44 +++++++++
+>  include/uapi/linux/virtio_ids.h  |    1 
+>  include/uapi/linux/virtio_pmem.h |   40 ++++++++
+>  10 files changed, 310 insertions(+), 9 deletions(-)
+> 
 
---===============1455065393128211585==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Hi Pankaj,
 
-..Message-ID: <6609566095660956609566095660956609566095660956609566095>
-..From: linux-nvdimm ---- <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-..To: <ylfngjuan-541zjowzYzhWk0Htik3J/w@public.gmane.org>  
+do you have a branch for the QEMU part somewhere available? I want to
+see how this works with MemoryDevice changes.
 
-详*情*阅*读*附*件
+-- 
 
-发..送.时.间:2018-08-27  19:32:31
+Thanks,
 
---===============1455065393128211585==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============1455065393128211585==--
+David / dhildenb
