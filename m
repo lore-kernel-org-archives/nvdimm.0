@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
- [IPv6:2607:f8b0:4864:20::442])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 07AB9210E1292
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 07:50:35 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id j8-v6so1259639pff.6
- for <linux-nvdimm@lists.01.org>; Wed, 08 Aug 2018 07:50:35 -0700 (PDT)
-From: Ocean He <oceanhehy@gmail.com>
-Subject: [PATCH] ACPI: nfit: check dcr immediately following its assignment
- codes
-Date: Wed,  8 Aug 2018 10:50:21 -0400
-Message-Id: <1533739821-9864-1-git-send-email-oceanhehy@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id E4E2921102D9C
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:47:35 -0700 (PDT)
+Subject: [PATCH v8 01/12] nfit: add support for Intel DSM 1.7 commands
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 28 Aug 2018 15:47:23 -0700
+Message-ID: <153549644372.4089.9013821927164695875.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,62 +18,229 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+Add command definition for security commands defined in Intel DSM
+specification v1.7. This includes "get security state", "set passphrase",
+"unlock unit", "freeze lock", "secure erase", "ovewrite", and
+"overwrite query". Since we are adding a lot of Intel definitions, moving
+the relevant bits to its own header. Also, we don't want those commands
+to be issued from user space through ioctls. Reason being some of the
+security commands require kernel involvement to flush all CPU caches that
+can't be done in userspace and the result can cause system crash. So
+blocking security commands in the ioctl path.
 
-In commit 6697b2cf69d43632 ("nfit: fix multi-interface dimm handling,
-acpi6.1 compatibility"), the check codes of dcr were just following its
-assignment codes. But they were separated by commit ad9ac5e1957531a8
-("nfit: always associate flush hints").
-
-Just change the check codes back to original position, without function
-change.
-
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit/core.c  |   28 ++++++++++++++++++-
+ drivers/acpi/nfit/intel.h |   67 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/nfit.h  |   17 +++++++++++
+ drivers/nvdimm/bus.c      |    2 +
+ include/linux/libnvdimm.h |    2 +
+ 5 files changed, 112 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/acpi/nfit/intel.h
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7c47900..c9e4c9a 100644
+index 0f47917b8ef1..a3a944751e6a 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -1078,6 +1078,12 @@ static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
- 			break;
- 		}
+@@ -24,6 +24,7 @@
+ #include <linux/nd.h>
+ #include <asm/cacheflush.h>
+ #include <acpi/nfit.h>
++#include "intel.h"
+ #include "nfit.h"
  
-+		if (dcr && !nfit_mem->dcr) {
-+			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
-+					spa->range_index, dcr);
-+			return -ENODEV;
-+		}
+ /*
+@@ -377,6 +378,14 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
+ 			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
+ 			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
+ 			[NVDIMM_INTEL_INJECT_ERROR] = 2,
++			[NVDIMM_INTEL_GET_SECURITY_STATE] = 2,
++			[NVDIMM_INTEL_SET_PASSPHRASE] = 2,
++			[NVDIMM_INTEL_DISABLE_PASSPHRASE] = 2,
++			[NVDIMM_INTEL_UNLOCK_UNIT] = 2,
++			[NVDIMM_INTEL_FREEZE_LOCK] = 2,
++			[NVDIMM_INTEL_SECURE_ERASE] = 2,
++			[NVDIMM_INTEL_OVERWRITE] = 2,
++			[NVDIMM_INTEL_QUERY_OVERWRITE] = 2,
+ 		},
+ 	};
+ 	u8 id;
+@@ -3202,7 +3211,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
+ 	return 0;
+ }
+ 
+-static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
++static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
+@@ -3224,6 +3233,23 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 	return 0;
+ }
+ 
++/* prevent security commands from being issued via ioctl */
++static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
++		struct nvdimm *nvdimm, unsigned int cmd, void *buf)
++{
++	struct nd_cmd_pkg *call_pkg = buf;
++	unsigned int func;
 +
- 		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
- 			struct acpi_nfit_flush_address *flush;
- 			u16 i;
-@@ -1101,12 +1107,6 @@ static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
- 			break;
- 		}
++	if (nvdimm && cmd == ND_CMD_CALL &&
++			call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
++		func = call_pkg->nd_command;
++		if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
++			return -EOPNOTSUPP;
++	}
++
++	return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
++}
++
+ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
+ {
+ 	struct device *dev = acpi_desc->dev;
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+new file mode 100644
+index 000000000000..a6f8f4bc8ebb
+--- /dev/null
++++ b/drivers/acpi/nfit/intel.h
+@@ -0,0 +1,67 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
++/*
++ * Intel specific definitions for NVDIMM Firmware Interface Table - NFIT
++ */
++#ifndef _NFIT_INTEL_H_
++#define _NFIT_INTEL_H_
++
++#ifdef CONFIG_X86
++
++#define ND_INTEL_STATUS_SIZE		4
++#define ND_INTEL_PASSPHRASE_SIZE	32
++
++#define ND_INTEL_STATUS_RETRY		5
++#define ND_INTEL_STATUS_NOT_READY	9
++#define ND_INTEL_STATUS_INVALID_STATE	10
++#define ND_INTEL_STATUS_INVALID_PASS	11
++
++#define ND_INTEL_SEC_STATE_ENABLED	0x02
++#define ND_INTEL_SEC_STATE_LOCKED	0x04
++#define ND_INTEL_SEC_STATE_FROZEN	0x08
++#define ND_INTEL_SEC_STATE_PLIMIT	0x10
++#define ND_INTEL_SEC_STATE_UNSUPPORTED	0x20
++
++struct nd_intel_get_security_state {
++	u32 status;
++	u32 reserved;
++	u8 state;
++	u8 reserved1[3];
++} __packed;
++
++struct nd_intel_set_passphrase {
++	u8 old_pass[ND_INTEL_PASSPHRASE_SIZE];
++	u8 new_pass[ND_INTEL_PASSPHRASE_SIZE];
++	u32 status;
++} __packed;
++
++struct nd_intel_unlock_unit {
++	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
++	u32 status;
++} __packed;
++
++struct nd_intel_disable_passphrase {
++	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
++	u32 status;
++} __packed;
++
++struct nd_intel_freeze_lock {
++	u32 status;
++} __packed;
++
++struct nd_intel_secure_erase {
++	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
++	u32 status;
++} __packed;
++
++struct nd_intel_overwrite {
++	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
++	u32 status;
++} __packed;
++
++struct nd_intel_query_overwrite {
++	u32 status;
++} __packed;
++#endif /* CONFIG_X86 */
++
++#endif
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 7d15856a739f..40b0003b1805 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -60,14 +60,29 @@ enum nvdimm_family_cmds {
+ 	NVDIMM_INTEL_QUERY_FWUPDATE = 16,
+ 	NVDIMM_INTEL_SET_THRESHOLD = 17,
+ 	NVDIMM_INTEL_INJECT_ERROR = 18,
++	NVDIMM_INTEL_GET_SECURITY_STATE = 19,
++	NVDIMM_INTEL_SET_PASSPHRASE = 20,
++	NVDIMM_INTEL_DISABLE_PASSPHRASE = 21,
++	NVDIMM_INTEL_UNLOCK_UNIT = 22,
++	NVDIMM_INTEL_FREEZE_LOCK = 23,
++	NVDIMM_INTEL_SECURE_ERASE = 24,
++	NVDIMM_INTEL_OVERWRITE = 25,
++	NVDIMM_INTEL_QUERY_OVERWRITE = 26,
+ };
  
--		if (dcr && !nfit_mem->dcr) {
--			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
--					spa->range_index, dcr);
--			return -ENODEV;
--		}
--
- 		if (type == NFIT_SPA_DCR) {
- 			struct nfit_idt *nfit_idt;
- 			u16 idt_idx;
--- 
-1.8.3.1
++#define NVDIMM_INTEL_SECURITY_CMDMASK \
++(1 << NVDIMM_INTEL_GET_SECURITY_STATE | 1 << NVDIMM_INTEL_SET_PASSPHRASE \
++| 1 << NVDIMM_INTEL_DISABLE_PASSPHRASE | 1 << NVDIMM_INTEL_UNLOCK_UNIT \
++| 1 << NVDIMM_INTEL_FREEZE_LOCK | 1 << NVDIMM_INTEL_SECURE_ERASE \
++| 1 << NVDIMM_INTEL_OVERWRITE | 1 << NVDIMM_INTEL_QUERY_OVERWRITE)
++
+ #define NVDIMM_INTEL_CMDMASK \
+ (NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
+  | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
+  | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
+  | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
+- | 1 << NVDIMM_INTEL_INJECT_ERROR | 1 << NVDIMM_INTEL_LATCH_SHUTDOWN)
++ | 1 << NVDIMM_INTEL_INJECT_ERROR | 1 << NVDIMM_INTEL_LATCH_SHUTDOWN \
++ | NVDIMM_INTEL_SECURITY_CMDMASK)
+ 
+ enum nfit_uuids {
+ 	/* for simplicity alias the uuid index with the family id */
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 27902a8799b1..de2af49bbf08 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -894,7 +894,7 @@ static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
+ 
+ 	/* ask the bus provider if it would like to block this request */
+ 	if (nd_desc->clear_to_send) {
+-		int rc = nd_desc->clear_to_send(nd_desc, nvdimm, cmd);
++		int rc = nd_desc->clear_to_send(nd_desc, nvdimm, cmd, data);
+ 
+ 		if (rc)
+ 			return rc;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 097072c5a852..472171af7f60 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -87,7 +87,7 @@ struct nvdimm_bus_descriptor {
+ 	ndctl_fn ndctl;
+ 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
+ 	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
+-			struct nvdimm *nvdimm, unsigned int cmd);
++			struct nvdimm *nvdimm, unsigned int cmd, void *data);
+ };
+ 
+ struct nd_cmd_desc {
 
 _______________________________________________
 Linux-nvdimm mailing list
