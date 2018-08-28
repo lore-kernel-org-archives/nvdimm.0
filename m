@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 553DA210D93BC
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:12 -0700 (PDT)
-Subject: [PATCH v7 11/12] nfit_test: add test support for Intel nvdimm
- security DSMs
+ by ml01.01.org (Postfix) with ESMTPS id 2D12921103970
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:48:26 -0700 (PDT)
+Subject: [PATCH v8 12/12] libnvdimm: add documentation for nvdimm security
+ support
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:02:11 -0700
-Message-ID: <153334093122.60955.996829743821336701.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 28 Aug 2018 15:48:25 -0700
+Message-ID: <153549650543.4089.4276034419476883694.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,288 +27,103 @@ To: linux-nvdimm@lists.01.org
 Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add nfit_test support for DSM functions "Get Security State",
-"Set Passphrase", "Disable Passphrase", "Unlock Unit", "Freeze Lock",
-and "Secure Erase" for the fake DIMMs.
-
-Also adding a sysfs knob in order to put the DIMMs in "locked" state. The
-order of testing DIMM unlocking would be.
-1a. Disable DIMM X.
-1b. Set Passphrase to DIMM X.
-2. Write to
-/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimmX/lock_dimm
-3. Renable DIMM X
-4. Check DIMM X state via sysfs "security" attribute for nmemX.
+Add theory of operation for the security support that's going into
+libnvdimm.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild      |    1 
- tools/testing/nvdimm/test/nfit.c |  186 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 187 insertions(+)
+ Documentation/nvdimm/security.txt |   82 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
+ create mode 100644 Documentation/nvdimm/security.txt
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 0392153a0009..a13670d3b389 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -36,6 +36,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
- obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
- 
- nfit-y := $(ACPI_SRC)/core.o
-+nfit-$(CONFIG_X86) += $(ACPI_SRC)/intel.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
- nfit-y += acpi_nfit_test.o
- nfit-y += config_check.o
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 7b3ce2194889..e5b62396c41f 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -24,6 +24,7 @@
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <nd-core.h>
-+#include <intel.h>
- #include <nfit.h>
- #include <nd.h>
- #include "nfit_test.h"
-@@ -155,6 +156,11 @@ struct nfit_dimm_dev {
- 	struct nfit_mem *nfit_mem;
- };
- 
-+struct nfit_test_sec {
-+	u8 state;
-+	u8 passphrase[32];
-+};
+diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
+new file mode 100644
+index 000000000000..b230447bf237
+--- /dev/null
++++ b/Documentation/nvdimm/security.txt
+@@ -0,0 +1,82 @@
++NVDIMM SECURITY
++===============
 +
- struct nfit_test {
- 	struct acpi_nfit_desc acpi_desc;
- 	struct platform_device pdev;
-@@ -192,6 +198,7 @@ struct nfit_test {
- 	struct badrange badrange;
- 	struct work_struct work;
- 	struct nfit_test_fw *fw;
-+	struct nfit_test_sec *sec;
- };
- 
- static struct workqueue_struct *nfit_wq;
-@@ -899,6 +906,138 @@ static int override_return_code(int dimm, unsigned int func, int rc)
- 	return rc;
- }
- 
-+static int nd_intel_test_cmd_security_status(struct nfit_test *t,
-+		struct nd_intel_get_security_state *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
++1. Introduction
++---------------
 +
-+	nd_cmd->status = 0;
-+	nd_cmd->state = sec->state;
-+	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
++With the introduction of Intel DSM v1.7 specification [1], security DSMs are
++introduced. The spec added the following security DSMs: "get security state",
++"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
++"secure erase", and "overwrite". A security_ops data structure has been
++added to struct dimm in order to support the security operations and generic
++APIs are exposed to allow vendor neutral operations.
 +
-+	return 0;
-+}
++2. Sysfs Interface
++------------------
++The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
++example:
++/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
 +
-+static int nd_intel_test_cmd_unlock_unit(struct nfit_test *t,
-+		struct nd_intel_unlock_unit *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
++The "show" function of that attribute will display the security state for
++that DIMM. The following states are available: disabled, unlocked, locked,
++frozen, and unsupported.
 +
-+	if (!(sec->state & ND_INTEL_SEC_STATE_LOCKED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "unlock unit: invalid state: %#x\n",
-+				sec->state);
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "unlock unit: invalid passphrase\n");
-+	} else {
-+		nd_cmd->status = 0;
-+		sec->state = ND_INTEL_SEC_STATE_ENABLED;
-+		dev_dbg(dev, "Unit unlocked\n");
-+	}
++The "store" function takes several commands when the attribute is written to
++in order to support some of the security functionalities:
++update - enable security. Add or update current key.
++disable - disable enabled security and remove key.
++freeze - freeze changing of security states.
++erase - generate new ecryption key for DIMM and crypto-scrambles all existing
++	user data.
 +
-+	dev_dbg(dev, "unlocking status returned: %#x\n", nd_cmd->status);
-+	return 0;
-+}
++3. Key Management
++-----------------
 +
-+static int nd_intel_test_cmd_set_pass(struct nfit_test *t,
-+		struct nd_intel_set_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
++The key is associted to the payload by the DIMM id. For example:
++# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
++8089-a2-1740-00000133
++The DIMM id would be provided along with the key payload (passphrase) to
++the kernel.
 +
-+	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "set passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->old_pass, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "set passphrase: wrong passphrase\n");
-+	} else {
-+		memcpy(sec->passphrase, nd_cmd->new_pass,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state |= ND_INTEL_SEC_STATE_ENABLED;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "passphrase updated\n");
-+	}
++The security keys are managed on the basis of a single key per DIMM. The
++key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
++similar to the ATA security specification [2]. A key is initially acquired
++via the request_key() kernel API call and retrieved from userspace. It is up to
++the user to provide an upcall application to retrieve the key in whatever
++fashion meets their security requirements.
 +
-+	return 0;
-+}
++The payload provided to the key can be a 32bytes payload or 64bytes payload
++when doing an "update". The payload is viewed as 64 bytes in the following
++format:
++[32 bytes new key data zero padded][32 bytes current key data zero padded]
++However, a 32bytes payload can be provided and will be assumed as the old
++key to be 32 bytes of 0s and the provided 32bytes payload is the new key.
++It is up to the user upcall function how that's presented as the key payload
++to the kernel.
 +
-+static int nd_intel_test_cmd_freeze_lock(struct nfit_test *t,
-+		struct nd_intel_freeze_lock *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
++All the other security functions that require a provided key can accept a
++32bytes payload or 64bytes. If the payload is 64bytes, then second 32bytes
++will be ignored and the first 32bytes contains the expected "passphrase".
 +
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "freeze lock: wrong security state\n");
-+	} else {
-+		sec->state |= ND_INTEL_SEC_STATE_FROZEN;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "security frozen\n");
-+	}
++4. Unlocking
++------------
++When the DIMMs are being enumerated by the kernel, the kernel will attempt to
++retrieve the key from its keyring. If that fails, it will attempt to
++acquire the key from the userspace upcall function. This is the only time
++a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
++until reboot.
 +
-+	return 0;
-+}
++5. Update
++---------
++When doing an update, it is expected that the new key with the 64bit payload of
++format described above is added via the keyutils API or utility. The update
++command written to the sysfs attribute will be with the format:
++update:<old id>:<new id>
++If there is no old ID due to a security enabling, then a 0 should be passed in.
++It is expected that a user logon key has been injected via keyutils to provide
++the payload for the update operation. The kernel will take the new user key,
++attempt the update operation with the nvdimm, and replace the existing key's
++payload with the new passphrase.
 +
-+static int nd_intel_test_cmd_disable_pass(struct nfit_test *t,
-+		struct nd_intel_disable_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "disable passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "disable passphrase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "disable passphrase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
-+		struct nd_intel_secure_erase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "secure erase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "secure erase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "secure erase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -946,6 +1085,30 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				return i;
- 
- 			switch (func) {
-+			case NVDIMM_INTEL_GET_SECURITY_STATE:
-+				rc = nd_intel_test_cmd_security_status(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_UNLOCK_UNIT:
-+				rc = nd_intel_test_cmd_unlock_unit(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SET_PASSPHRASE:
-+				rc = nd_intel_test_cmd_set_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_DISABLE_PASSPHRASE:
-+				rc = nd_intel_test_cmd_disable_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_FREEZE_LOCK:
-+				rc = nd_intel_test_cmd_freeze_lock(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SECURE_ERASE:
-+				rc = nd_intel_test_cmd_secure_erase(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1280,10 +1443,23 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
- }
- static DEVICE_ATTR_RW(fail_cmd_code);
- 
-+static ssize_t lock_dimm_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int dimm = dimm_name_to_id(dev);
-+	struct nfit_test *t = dev_get_drvdata(dev);
-+	struct nfit_test_sec *sec = &t->sec[dimm];
-+
-+	sec->state = ND_INTEL_SEC_STATE_ENABLED | ND_INTEL_SEC_STATE_LOCKED;
-+	return size;
-+}
-+static DEVICE_ATTR_WO(lock_dimm);
-+
- static struct attribute *nfit_test_dimm_attributes[] = {
- 	&dev_attr_fail_cmd.attr,
- 	&dev_attr_fail_cmd_code.attr,
- 	&dev_attr_handle.attr,
-+	&dev_attr_lock_dimm.attr,
- 	NULL,
- };
- 
-@@ -2192,6 +2368,14 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_INTEL_FW_FINISH_UPDATE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_FW_FINISH_QUERY, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_ENABLE_LSS_STATUS, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_GET_SECURITY_STATE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SET_PASSPHRASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -2611,6 +2795,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				GFP_KERNEL);
- 		nfit_test->fw = devm_kcalloc(dev, num,
- 				sizeof(struct nfit_test_fw), GFP_KERNEL);
-+		nfit_test->sec = devm_kcalloc(dev, num,
-+				sizeof(struct nfit_test_sec), GFP_KERNEL);
- 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
- 				&& nfit_test->label_dma && nfit_test->dcr
- 				&& nfit_test->dcr_dma && nfit_test->flush
++[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
++[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
 
 _______________________________________________
 Linux-nvdimm mailing list
