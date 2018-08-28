@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DC8BB210D97B2
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 02:11:22 -0700 (PDT)
-Date: Tue, 7 Aug 2018 11:11:20 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH V2 2/4] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
-Message-ID: <20180807091120.ybne44o2fy2mxcch@quack2.suse.cz>
-References: <cover.1531241281.git.yi.z.zhang@linux.intel.com>
- <7e20d862f96662e1a7736dbb747a71949933dcd4.1531241281.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8443D21102D93
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:47:44 -0700 (PDT)
+Subject: [PATCH v8 03/12] nfit/libnvdimm: store dimm id as a member to
+ struct nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 28 Aug 2018 15:47:34 -0700
+Message-ID: <153549645463.4089.2372316415988248229.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+References: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <7e20d862f96662e1a7736dbb747a71949933dcd4.1531241281.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,74 +23,152 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Zhang Yi <yi.z.zhang@linux.intel.com>
-Cc: jack@suse.cz, yu.c.zhang@intel.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, pbonzini@redhat.com, hch@lst.de, yi.z.zhang@intel.com
+To: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 11-07-18 01:01:59, Zhang Yi wrote:
-> Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
-> other reserved PFNs, pages on NVDIMM shall still behave like normal ones
-> in many cases, i.e. when used as backend memory of KVM guest. This patch
-> introduces a new memory type, MEMORY_DEVICE_DEV_DAX. And set this flag
-> while dax driver hotplug the device memory.
-> 
-> Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-> Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
-> ---
->  drivers/dax/pmem.c       | 1 +
->  include/linux/memremap.h | 9 +++++++++
->  2 files changed, 10 insertions(+)
-> 
-> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-> index fd49b24..fb3f363 100644
-> --- a/drivers/dax/pmem.c
-> +++ b/drivers/dax/pmem.c
-> @@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
->  		return rc;
->  
->  	dax_pmem->pgmap.ref = &dax_pmem->ref;
-> +	dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
->  	addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
->  	if (IS_ERR(addr))
->  		return PTR_ERR(addr);
-> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> index 5ebfff6..a36bce8 100644
-> --- a/include/linux/memremap.h
-> +++ b/include/linux/memremap.h
-> @@ -53,11 +53,20 @@ struct vmem_altmap {
->   * wakeup event whenever a page is unpinned and becomes idle. This
->   * wakeup is used to coordinate physical address space management (ex:
->   * fs truncate/hole punch) vs pinned pages (ex: device dma).
-> + *
-> + * MEMORY_DEVICE_DEV_DAX:
-> + * DAX driver hotplug the device memory and move it to memory zone, these
-> + * pages will be marked reserved flag. However, some other kernel componet
-> + * will misconceive these pages are reserved mmio (ex: we map these dev_dax
-> + * or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
-> + * MEMORY_DEVICE_FS_DAX, we can differentiate the pages on NVDIMM with the
-> + * normal reserved pages.
+The generated dimm id is needed for the sysfs attribute as well as being
+used as the identifier/description for the security key. Since it's
+constant and should never change, store it as a member of struct nvdimm.
 
-So I believe the description should be in terms of what kind of memory is
-the MEMORY_DEVICE_DEV_DAX type, not how users use this type. See comments
-for other memory types...
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c   |   29 +++++++++++++++++------------
+ drivers/acpi/nfit/nfit.h   |    3 +++
+ drivers/nvdimm/dimm_devs.c |    4 +++-
+ drivers/nvdimm/nd-core.h   |    1 +
+ include/linux/libnvdimm.h  |    2 +-
+ 5 files changed, 25 insertions(+), 14 deletions(-)
 
-								Honza
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index a3a944751e6a..21235d555b5f 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1572,18 +1572,10 @@ static DEVICE_ATTR_RO(flags);
+ static ssize_t id_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 
+-	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
+-		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
+-				be16_to_cpu(dcr->vendor_id),
+-				dcr->manufacturing_location,
+-				be16_to_cpu(dcr->manufacturing_date),
+-				be32_to_cpu(dcr->serial_number));
+-	else
+-		return sprintf(buf, "%04x-%08x\n",
+-				be16_to_cpu(dcr->vendor_id),
+-				be32_to_cpu(dcr->serial_number));
++	return sprintf(buf, "%s\n", nfit_mem->id);
+ }
+ static DEVICE_ATTR_RO(id);
+ 
+@@ -1712,10 +1704,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	const guid_t *guid;
+ 	int i;
+ 	int family = -1;
++	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
+ 
+ 	/* nfit test assumes 1:1 relationship between commands and dsms */
+ 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
+ 	nfit_mem->family = NVDIMM_FAMILY_INTEL;
++
++	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
++		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
++				be16_to_cpu(dcr->vendor_id),
++				dcr->manufacturing_location,
++				be16_to_cpu(dcr->manufacturing_date),
++				be32_to_cpu(dcr->serial_number));
++	else
++		sprintf(nfit_mem->id, "%04x-%08x",
++				be16_to_cpu(dcr->vendor_id),
++				be32_to_cpu(dcr->serial_number));
++
+ 	adev = to_acpi_dev(acpi_desc);
+ 	if (!adev)
+ 		return 0;
+@@ -1899,7 +1904,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+ 				acpi_nfit_dimm_attribute_groups,
+ 				flags, cmd_mask, flush ? flush->hint_count : 0,
+-				nfit_mem->flush_wpq);
++				nfit_mem->flush_wpq, &nfit_mem->id[0]);
+ 		if (!nvdimm)
+ 			return -ENOMEM;
+ 
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 40b0003b1805..4048036d6ec2 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -173,6 +173,8 @@ struct nfit_memdev {
+ 	struct acpi_nfit_memory_map memdev[0];
+ };
+ 
++#define NFIT_DIMM_ID_LEN	22
++
+ /* assembled tables for a given dimm/memory-device */
+ struct nfit_mem {
+ 	struct nvdimm *nvdimm;
+@@ -195,6 +197,7 @@ struct nfit_mem {
+ 	int family;
+ 	bool has_lsr;
+ 	bool has_lsw;
++	char id[NFIT_DIMM_ID_LEN+1];
+ };
+ 
+ struct acpi_nfit_desc {
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 586432450c82..e753b2095402 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -401,7 +401,7 @@ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
+ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		const struct attribute_group **groups, unsigned long flags,
+ 		unsigned long cmd_mask, int num_flush,
+-		struct resource *flush_wpq)
++		struct resource *flush_wpq, const char *dimm_id)
+ {
+ 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
+ 	struct device *dev;
+@@ -414,6 +414,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		kfree(nvdimm);
+ 		return NULL;
+ 	}
++
++	nvdimm->dimm_id = dimm_id;
+ 	nvdimm->provider_data = provider_data;
+ 	nvdimm->flags = flags;
+ 	nvdimm->cmd_mask = cmd_mask;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 2af0f89c4010..ed650f1607d8 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -42,6 +42,7 @@ struct nvdimm {
+ 	atomic_t busy;
+ 	int id, num_flush;
+ 	struct resource *flush_wpq;
++	const char *dimm_id;
+ };
+ 
+ /**
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 51084043915c..3c1f18fdf76f 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -181,7 +181,7 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
+ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		const struct attribute_group **groups, unsigned long flags,
+ 		unsigned long cmd_mask, int num_flush,
+-		struct resource *flush_wpq);
++		struct resource *flush_wpq, const char *dimm_id);
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
+ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
 
->   */
->  enum memory_type {
->  	MEMORY_DEVICE_PRIVATE = 1,
->  	MEMORY_DEVICE_PUBLIC,
->  	MEMORY_DEVICE_FS_DAX,
-> +	MEMORY_DEVICE_DEV_DAX,
->  };
->  
->  /*
-> -- 
-> 2.7.4
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
