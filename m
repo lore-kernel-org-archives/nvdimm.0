@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7F92C210C125A
- for <linux-nvdimm@lists.01.org>; Mon,  6 Aug 2018 02:21:10 -0700 (PDT)
-Date: Mon, 6 Aug 2018 11:21:07 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v6 09/13] filesystem-dax: Introduce
- dax_lock_mapping_entry()
-Message-ID: <20180806092107.ipenq22xxna6ts5i@quack2.suse.cz>
-References: <153154376846.34503.15480221419473501643.stgit@dwillia2-desk3.amr.corp.intel.com>
- <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EE31E21103987
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:52:30 -0700 (PDT)
+Subject: [PATCH v3 5/6] ndctl: add support for sanitize dimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 28 Aug 2018 15:52:13 -0700
+Message-ID: <153549673298.5723.9236311781816609734.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
+References: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <153154381675.34503.4471648812866312162.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,230 +22,218 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+To: vishal.l.verma@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 13-07-18 21:50:16, Dan Williams wrote:
-> In preparation for implementing support for memory poison (media error)
-> handling via dax mappings, implement a lock_page() equivalent. Poison
-> error handling requires rmap and needs guarantees that the page->mapping
-> association is maintained / valid (inode not freed) for the duration of
-> the lookup.
-> 
-> In the device-dax case it is sufficient to simply hold a dev_pagemap
-> reference. In the filesystem-dax case we need to use the entry lock.
-> 
-> Export the entry lock via dax_lock_mapping_entry() that uses
-> rcu_read_lock() to protect against the inode being freed, and
-> revalidates the page->mapping association under xa_lock().
-> 
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Matthew Wilcox <willy@infradead.org>
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add support to secure erase to libndctl and also command line option
+of "sanitize" for ndctl. This will initiate the request to crypto
+erase a DIMM. ndctl does not actually handle the verification of the
+security. That is handled by the kernel and the key upcall mechanism.
 
-Just got back from vacation... This patch looks good to me. You can add:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/ndctl/Makefile.am        |    3 +-
+ Documentation/ndctl/ndctl-sanitize.txt |   32 +++++++++++++++++++++++
+ builtin.h                              |    1 +
+ ndctl/dimm.c                           |   44 ++++++++++++++++++++++++++++++++
+ ndctl/lib/dimm.c                       |    5 ++++
+ ndctl/lib/libndctl.sym                 |    1 +
+ ndctl/libndctl.h                       |    1 +
+ ndctl/ndctl.c                          |    1 +
+ 8 files changed, 87 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-sanitize.txt
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 3a761ba0..8c171ecb 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -50,7 +50,8 @@ man1_MANS = \
+ 	ndctl-monitor.1 \
+ 	ndctl-update-security.1 \
+ 	ndctl-disable-security.1 \
+-	ndctl-freeze-security.1
++	ndctl-freeze-security.1 \
++	ndctl-sanitize.1
+ 
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-sanitize.txt b/Documentation/ndctl/ndctl-sanitize.txt
+new file mode 100644
+index 00000000..376487fa
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-sanitize.txt
+@@ -0,0 +1,32 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-sanitize(1)
++=================
++
++NAME
++----
++ndctl-sanitize - sanitize the data on the NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl sanitize' <dimm> [<options>]
++
++OPTIONS
++-------
++<dimm>::
++include::xable-dimm-options.txt[]
++
++-m::
++--method::
++	The method for sanitizing the dimm content.
++
++	crypto-erase: replaces encryption keys. This does not change label data.
++
++DESCRIPTION
++-----------
++Provide a generic interface to crypto erase a NVDIMM.
++The use of this depends on support from the underlying
++libndctl, kernel, as well as the platform itself.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 7b970e10..f43988af 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -51,4 +51,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_key_update(int argc, const char **argv, void *ctx);
+ int cmd_disable_security(int argc, const char **argv, void *ctx);
+ int cmd_freeze_security(int argc, const char **argv, void *ctx);
++int cmd_sanitize(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 432ead74..c1321d39 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -46,6 +46,7 @@ static struct parameters {
+ 	const char *infile;
+ 	const char *labelversion;
+ 	const char *key_exec;
++	const char *sanitize_method;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -903,6 +904,29 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
+ 	return rc;
+ }
+ 
++static int action_sanitize(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
++
++	if (!param.sanitize_method) {
++		error("No sanitize_method passed in\n");
++		return -EINVAL;
++	}
++
++	if (strcmp(param.sanitize_method, "crypto-erase") == 0) {
++		rc = ndctl_dimm_secure_erase(dimm);
++		if (rc < 0)
++			error("Failed to secure erase for %s\n",
++					ndctl_dimm_get_devname(dimm));
++	} else {
++		error("Incorrect sanitize method passed in.\n");
++		return -EINVAL;
++	}
++
++	return rc;
++}
++
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -998,6 +1022,10 @@ OPT_BOOLEAN('i', "insecure", &param.key_insecure, \
+ OPT_STRING('e', "exec", &param.key_exec, "external-exec", \
+ 		"external exec module for passphrase update")
+ 
++#define SANITIZE_OPTIONS() \
++OPT_STRING('m', "method", &param.sanitize_method, "sanitize-method", \
++		"method for sanitize a dimm")
++
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+ 	READ_OPTIONS(),
+@@ -1033,6 +1061,12 @@ static const struct option key_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option sanitize_options[] = {
++	BASE_OPTIONS(),
++	SANITIZE_OPTIONS(),
++	OPT_END(),
++};
++
+ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+@@ -1295,3 +1329,13 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_sanitize(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_sanitize, sanitize_options,
++			"ndctl sanitize <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index b383127c..2a28e227 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -629,3 +629,8 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
+ {
+ 	return ndctl_dimm_write_security(dimm, "freeze");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "erase");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index d543088f..2db49cad 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -387,4 +387,5 @@ global:
+ 	ndctl_dimm_set_change_key;
+ 	ndctl_dimm_disable_security;
+ 	ndctl_dimm_freeze_security;
++	ndctl_dimm_secure_erase;
+ } LIBNDCTL_17;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 75364212..ef71cdd8 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -683,6 +683,7 @@ int ndctl_dimm_add_key(struct ndctl_dimm *dimm, const char *passphrase,
+ int ndctl_dimm_get_current_key(struct ndctl_dimm *dimm, key_serial_t *key);
+ int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 7a242aab..07af7305 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
+ 	{ "update-security", cmd_key_update },
+ 	{ "disable-security", cmd_disable_security },
+ 	{ "freeze-security", cmd_freeze_security },
++	{ "sanitize", cmd_sanitize },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
-								Honza
-
-
-> ---
->  fs/dax.c            |  109 ++++++++++++++++++++++++++++++++++++++++++++++++---
->  include/linux/dax.h |   13 ++++++
->  2 files changed, 116 insertions(+), 6 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 4de11ed463ce..57ec272038da 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -226,8 +226,8 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
->   *
->   * Must be called with the i_pages lock held.
->   */
-> -static void *get_unlocked_mapping_entry(struct address_space *mapping,
-> -					pgoff_t index, void ***slotp)
-> +static void *__get_unlocked_mapping_entry(struct address_space *mapping,
-> +		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
->  {
->  	void *entry, **slot;
->  	struct wait_exceptional_entry_queue ewait;
-> @@ -237,6 +237,8 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
->  	ewait.wait.func = wake_exceptional_entry_func;
->  
->  	for (;;) {
-> +		bool revalidate;
-> +
->  		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
->  					  &slot);
->  		if (!entry ||
-> @@ -251,14 +253,31 @@ static void *get_unlocked_mapping_entry(struct address_space *mapping,
->  		prepare_to_wait_exclusive(wq, &ewait.wait,
->  					  TASK_UNINTERRUPTIBLE);
->  		xa_unlock_irq(&mapping->i_pages);
-> -		schedule();
-> +		revalidate = wait_fn();
->  		finish_wait(wq, &ewait.wait);
->  		xa_lock_irq(&mapping->i_pages);
-> +		if (revalidate)
-> +			return ERR_PTR(-EAGAIN);
->  	}
->  }
->  
-> -static void dax_unlock_mapping_entry(struct address_space *mapping,
-> -				     pgoff_t index)
-> +static bool entry_wait(void)
-> +{
-> +	schedule();
-> +	/*
-> +	 * Never return an ERR_PTR() from
-> +	 * __get_unlocked_mapping_entry(), just keep looping.
-> +	 */
-> +	return false;
-> +}
-> +
-> +static void *get_unlocked_mapping_entry(struct address_space *mapping,
-> +		pgoff_t index, void ***slotp)
-> +{
-> +	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
-> +}
-> +
-> +static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
->  {
->  	void *entry, **slot;
->  
-> @@ -277,7 +296,7 @@ static void dax_unlock_mapping_entry(struct address_space *mapping,
->  static void put_locked_mapping_entry(struct address_space *mapping,
->  		pgoff_t index)
->  {
-> -	dax_unlock_mapping_entry(mapping, index);
-> +	unlock_mapping_entry(mapping, index);
->  }
->  
->  /*
-> @@ -374,6 +393,84 @@ static struct page *dax_busy_page(void *entry)
->  	return NULL;
->  }
->  
-> +static bool entry_wait_revalidate(void)
-> +{
-> +	rcu_read_unlock();
-> +	schedule();
-> +	rcu_read_lock();
-> +
-> +	/*
-> +	 * Tell __get_unlocked_mapping_entry() to take a break, we need
-> +	 * to revalidate page->mapping after dropping locks
-> +	 */
-> +	return true;
-> +}
-> +
-> +bool dax_lock_mapping_entry(struct page *page)
-> +{
-> +	pgoff_t index;
-> +	struct inode *inode;
-> +	bool did_lock = false;
-> +	void *entry = NULL, **slot;
-> +	struct address_space *mapping;
-> +
-> +	rcu_read_lock();
-> +	for (;;) {
-> +		mapping = READ_ONCE(page->mapping);
-> +
-> +		if (!dax_mapping(mapping))
-> +			break;
-> +
-> +		/*
-> +		 * In the device-dax case there's no need to lock, a
-> +		 * struct dev_pagemap pin is sufficient to keep the
-> +		 * inode alive, and we assume we have dev_pagemap pin
-> +		 * otherwise we would not have a valid pfn_to_page()
-> +		 * translation.
-> +		 */
-> +		inode = mapping->host;
-> +		if (S_ISCHR(inode->i_mode)) {
-> +			did_lock = true;
-> +			break;
-> +		}
-> +
-> +		xa_lock_irq(&mapping->i_pages);
-> +		if (mapping != page->mapping) {
-> +			xa_unlock_irq(&mapping->i_pages);
-> +			continue;
-> +		}
-> +		index = page->index;
-> +
-> +		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-> +				entry_wait_revalidate);
-> +		if (!entry) {
-> +			xa_unlock_irq(&mapping->i_pages);
-> +			break;
-> +		} else if (IS_ERR(entry)) {
-> +			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-> +			continue;
-> +		}
-> +		lock_slot(mapping, slot);
-> +		did_lock = true;
-> +		xa_unlock_irq(&mapping->i_pages);
-> +		break;
-> +	}
-> +	rcu_read_unlock();
-> +
-> +	return did_lock;
-> +}
-> +
-> +void dax_unlock_mapping_entry(struct page *page)
-> +{
-> +	struct address_space *mapping = page->mapping;
-> +	struct inode *inode = mapping->host;
-> +
-> +	if (S_ISCHR(inode->i_mode))
-> +		return;
-> +
-> +	unlock_mapping_entry(mapping, page->index);
-> +}
-> +
->  /*
->   * Find radix tree entry at given index. If it points to an exceptional entry,
->   * return it with the radix tree entry locked. If the radix tree doesn't
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 3855e3800f48..cf8ac51cf0d7 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -88,6 +88,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
->  		struct block_device *bdev, struct writeback_control *wbc);
->  
->  struct page *dax_layout_busy_page(struct address_space *mapping);
-> +bool dax_lock_mapping_entry(struct page *page);
-> +void dax_unlock_mapping_entry(struct page *page);
->  #else
->  static inline bool bdev_dax_supported(struct block_device *bdev,
->  		int blocksize)
-> @@ -119,6 +121,17 @@ static inline int dax_writeback_mapping_range(struct address_space *mapping,
->  {
->  	return -EOPNOTSUPP;
->  }
-> +
-> +static inline bool dax_lock_mapping_entry(struct page *page)
-> +{
-> +	if (IS_DAX(page->mapping->host))
-> +		return true;
-> +	return false;
-> +}
-> +
-> +static inline void dax_unlock_mapping_entry(struct page *page)
-> +{
-> +}
->  #endif
->  
->  int dax_read_lock(void);
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
