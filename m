@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 56467210DF5D7
- for <linux-nvdimm@lists.01.org>; Wed,  8 Aug 2018 08:59:14 -0700 (PDT)
-From: Keith Busch <keith.busch@intel.com>
-Subject: [ndctl PATCHv2 1/2] ndctl: Create ndctl udev rules for dirty shutdown
-Date: Wed,  8 Aug 2018 09:59:33 -0600
-Message-Id: <20180808155934.15976-1-keith.busch@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F174821103987
+ for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:52:26 -0700 (PDT)
+Subject: [PATCH v3 0/6] ndctl: add security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 28 Aug 2018 15:51:45 -0700
+Message-ID: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,317 +16,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com
+Cc: dhowells@redhat.com, alison.schofield@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch provides an ndctl udev rule and the program it runs. The rule
-sends two ndctl commands to allow applications to manage unsafe shutdowns.
+The following series implements mechanisms that utilize the sysfs knobs
+provided by the kernel in order to support the Intel DSM v1.7 spec
+that provides security to NVDIMM. The following abilities are added:
+1. display security state
+2. update security
+3. disable security
+4. freeze security
+5. secure erase
 
-The first command acknowledges the shutdown. For nvdimms that support
-this, the last shutdown status will remain set to its current status
-until it is acknowledged.
+Also a reference helper app is provided to retrieve security information
+through the keyutils and kernel key management API.
 
-The second command retrieves the unclean shutdown count (USC) and saves it
-in a known location. Only root can directly access the health's shutdown
-count, so we have to stash it somewhere accessible to non-privileged
-users. A successful execution of the rule will write USC to the run time
-tmpfs location. By default, the location will be set to:
+v3:
+- Added support to inject keys in order to update nvdimm security.
 
-  /run/ndctl/nmem<X>/usc
+v2:
+- Fixup the upcall util to match recent kernel updates for nvdimm security.
 
-A distro may change this location using the '--with-tmpfilesdir=[DIR]'.
-
-Reading the file will report the count observed when the dimm was
-added.
-
-Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
-v1 -> v2:
 
-  Merged to ndctl/pending
+Dave Jiang (6):
+      ndctl: add support for display security state
+      ndctl: add update to security support
+      ndctl: add disable security support
+      ndctl: add support for freeze security
+      ndctl: add support for sanitize dimm
+      ndctl: add request-key upcall reference app
 
-  Used more generic names
 
-  Split the udev program actions, and save USC regardless of the outcome
-  of the first action
+ Documentation/ndctl/Makefile.am                |    7 +
+ Documentation/ndctl/ndctl-disable-security.txt |   21 +++
+ Documentation/ndctl/ndctl-freeze-security.txt  |   21 +++
+ Documentation/ndctl/ndctl-list.txt             |    8 +
+ Documentation/ndctl/ndctl-sanitize.txt         |   32 ++++
+ Documentation/ndctl/ndctl-update-security.txt  |   56 +++++++
+ Documentation/ndctl/nvdimm-upcall.txt          |   33 ++++
+ builtin.h                                      |    4 +
+ configure.ac                                   |    1 
+ ndctl.spec.in                                  |    2 
+ ndctl/Makefile.am                              |    5 +
+ ndctl/dimm.c                                   |  180 +++++++++++++++++++++++-
+ ndctl/lib/Makefile.am                          |    4 -
+ ndctl/lib/dimm.c                               |   55 +++++++
+ ndctl/lib/keys.c                               |  130 +++++++++++++++++
+ ndctl/lib/libndctl.sym                         |   11 +
+ ndctl/libndctl.h                               |   11 +
+ ndctl/ndctl.c                                  |    4 +
+ ndctl/nvdimm-upcall.c                          |  138 ++++++++++++++++++
+ util/json.c                                    |    8 +
+ 20 files changed, 718 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-disable-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-sanitize.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-security.txt
+ create mode 100644 Documentation/ndctl/nvdimm-upcall.txt
+ create mode 100644 ndctl/lib/keys.c
+ create mode 100644 ndctl/nvdimm-upcall.c
 
-  Removed rpm spec setting configure's tmpfilesdir
-
-  Use nmem<X> instead of dimm-id for runtime directory name
-
-  Update changelog
-
- .gitignore             |   1 +
- Makefile.am            |   3 +
- configure.ac           |  10 ++++
- contrib/80-ndctl.rules |   3 +
- ndctl.spec.in          |   3 +
- ndctl/Makefile.am      |   5 ++
- ndctl/ndctl-udev.c     | 147 +++++++++++++++++++++++++++++++++++++++++++++++++
- 7 files changed, 172 insertions(+)
- create mode 100644 contrib/80-ndctl.rules
- create mode 100644 ndctl/ndctl-udev.c
-
-diff --git a/.gitignore b/.gitignore
-index 0baace4..f13a7ef 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -25,6 +25,7 @@ daxctl/lib/libdaxctl.pc
- *.a
- ndctl/lib/libndctl.pc
- ndctl/ndctl
-+ndctl/ndctl-udev
- rhel/
- sles/ndctl.spec
- util/log.lo
-diff --git a/Makefile.am b/Makefile.am
-index e0c463a..7880eef 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -42,6 +42,9 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
- dist_bashcompletion_DATA = contrib/ndctl
- endif
- 
-+udevrulesdir = $(UDEVDIR)/rules.d
-+dist_udevrules_DATA = contrib/80-ndctl.rules
-+
- noinst_LIBRARIES = libccan.a
- libccan_a_SOURCES = \
- 	ccan/str/str.h \
-diff --git a/configure.ac b/configure.ac
-index e242334..4441a44 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -164,8 +164,17 @@ AS_IF([test "x$with_systemd_unit_dir" != "xno"],
- 	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
- AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test "x$with_systemd_unit_dir" != "xno"])
- 
-+AC_ARG_WITH([tmpfilesdir],
-+	[AS_HELP_STRING([--with-tmpfilesdir=DIR], [Directory for temporary runtime files])],
-+	[tmpfilesdir=$withval],
-+	[tmpfilesdir="/run"])
-+
-+UDEVDIR="$(pkg-config udev --variable=udevdir)"
-+AC_SUBST([UDEVDIR])
-+
- my_CFLAGS="\
- -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
-+-D DEF_TMPFS_DIR='\"${tmpfilesdir}/ndctl\"' \
- -Wall \
- -Wchar-subscripts \
- -Wformat-security \
-@@ -207,6 +216,7 @@ AC_MSG_RESULT([
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
- 	systemd-unit-dir:	${systemd_unitdir}
-+        tmpfilesdir:            ${tmpfilesdir}
- 
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/contrib/80-ndctl.rules b/contrib/80-ndctl.rules
-new file mode 100644
-index 0000000..54788c4
---- /dev/null
-+++ b/contrib/80-ndctl.rules
-@@ -0,0 +1,3 @@
-+# do not edit this file, it will be overwritten on update
-+
-+ACTION=="add", KERNEL=="nmem*", RUN+="ndctl-udev $kernel"
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 17152c1..062aafb 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -110,6 +110,7 @@ make check
- %postun -n DAX_LNAME -p /sbin/ldconfig
- 
- %define bashcompdir %(pkg-config --variable=completionsdir bash-completion)
-+%define udevdir  %(pkg-config --variable=udevdir udev)
- 
- %files
- %defattr(-,root,root)
-@@ -119,6 +120,8 @@ make check
- %{bashcompdir}/
- %{_sysconfdir}/ndctl/monitor.conf
- %{_unitdir}/ndctl-monitor.service
-+%{_udevrulesdir}/80-ndctl.rules
-+%{udevdir}/ndctl-udev
- 
- %files -n daxctl
- %defattr(-,root,root)
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index 0f9bb43..4b44294 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -51,3 +51,8 @@ EXTRA_DIST += $(monitor_config_file)
- if ENABLE_SYSTEMD_UNIT_DIR
- systemd_unit_DATA = ndctl-monitor.service
- endif
-+
-+ndctl_udevdir = $(UDEVDIR)
-+ndctl_udev_PROGRAMS = ndctl-udev
-+ndctl_udev_SOURCES = ndctl-udev.c
-+ndctl_udev_LDADD = lib/libndctl.la
-diff --git a/ndctl/ndctl-udev.c b/ndctl/ndctl-udev.c
-new file mode 100644
-index 0000000..2b4d067
---- /dev/null
-+++ b/ndctl/ndctl-udev.c
-@@ -0,0 +1,147 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
-+
-+#include <ctype.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <stddef.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <ndctl/libndctl.h>
-+
-+/**
-+ * mkdir_p
-+ *
-+ * Copied from util-linux lib/fileutils.c
-+ */
-+static int mkdir_p(const char *path, mode_t mode)
-+{
-+	char *p, *dir;
-+	int rc = 0;
-+
-+	if (!path || !*path)
-+		return -EINVAL;
-+
-+	dir = p = strdup(path);
-+	if (!dir)
-+		return -ENOMEM;
-+
-+	if (*p == '/')
-+		p++;
-+
-+	while (p && *p) {
-+		char *e = strchr(p, '/');
-+		if (e)
-+			*e = '\0';
-+		if (*p) {
-+			rc = mkdir(dir, mode);
-+			if (rc && errno != EEXIST)
-+				break;
-+			rc = 0;
-+		}
-+		if (!e)
-+			break;
-+		*e = '/';
-+		p = e + 1;
-+	}
-+
-+	free(dir);
-+	return rc;
-+}
-+
-+static struct ndctl_dimm *find_dimm(struct ndctl_ctx *ctx, const char *devname)
-+{
-+	struct ndctl_bus *bus;
-+	struct ndctl_dimm *dimm;
-+
-+	ndctl_bus_foreach(ctx, bus) {
-+		ndctl_dimm_foreach(bus, dimm) {
-+			if (strcmp(ndctl_dimm_get_devname(dimm), devname) == 0)
-+				return dimm;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+static void ack_shutdown(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd;
-+
-+	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
-+	if (!cmd)
-+		return;
-+	ndctl_cmd_submit(cmd);
-+	ndctl_cmd_unref(cmd);
-+}
-+
-+static void save_unsafe_shutdown_count(struct ndctl_dimm *dimm,
-+				       const char *devname)
-+{
-+	char *path, *usc, count[16];
-+	unsigned int shutdown;
-+	struct ndctl_cmd *cmd;
-+	int fd;
-+
-+	cmd = ndctl_dimm_cmd_new_smart(dimm);
-+	if (!cmd)
-+		return;
-+
-+	if (ndctl_cmd_submit(cmd))
-+		goto unref_cmd;
-+
-+	shutdown = ndctl_cmd_smart_get_shutdown_count(cmd);
-+	if (shutdown == UINT_MAX)
-+		goto unref_cmd;
-+
-+	if (asprintf(&path, DEF_TMPFS_DIR "/%s", devname) < 0)
-+		goto unref_cmd;
-+
-+	if (mkdir_p(path, 0755))
-+		goto free_path;
-+
-+	if (asprintf(&usc, "%s/usc", path) < 0)
-+		goto free_path;
-+
-+	fd = open(usc, O_WRONLY | O_CREAT, 0644);
-+	if (fd < 0)
-+		goto free_usc;
-+
-+	if (snprintf(count, sizeof(count), "%u\n", shutdown) < 0)
-+		goto free_usc;
-+
-+	if (write(fd, count, strlen(count)) < 0)
-+		goto free_usc;
-+ free_usc:
-+	free(usc);
-+ free_path:
-+	free(path);
-+ unref_cmd:
-+	ndctl_cmd_unref(cmd);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct ndctl_ctx *ctx;
-+	struct ndctl_dimm *dimm = NULL;
-+	const char *devname;
-+
-+	if (argc < 2)
-+		return EINVAL;
-+
-+	devname = argv[1];
-+	if (ndctl_new(&ctx))
-+		return ENOMEM;
-+
-+	dimm = find_dimm(ctx, devname);
-+	if (!dimm)
-+		return ENODEV;
-+
-+	ack_shutdown(dimm);
-+	save_unsafe_shutdown_count(dimm, devname);
-+
-+	ndctl_unref(ctx);
-+	return 0;
-+}
--- 
-2.14.4
-
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
