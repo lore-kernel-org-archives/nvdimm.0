@@ -1,14 +1,14 @@
-From: David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC v3 0/2] kvm "fake DAX" device flushing
-Date: Tue, 28 Aug 2018 14:13:24 +0200
-Message-ID: <1328e543-0276-8f33-1744-8baa053023c4@redhat.com>
+From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [RFC v3 0/2] kvm "fake DAX" device flushing
+Date: Tue, 28 Aug 2018 08:39:53 -0400 (EDT)
+Message-ID: <16583366.7193885.1535459993521.JavaMail.zimbra@redhat.com>
 References: <20180713075232.9575-1-pagupta@redhat.com>
+ <1328e543-0276-8f33-1744-8baa053023c4@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180713075232.9575-1-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1328e543-0276-8f33-1744-8baa053023c4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,76 +18,89 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
-Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, ross zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 13.07.2018 09:52, Pankaj Gupta wrote:
-> This is RFC V3 for 'fake DAX' flushing interface sharing
-> for review. This patchset has two parts:
-> 
-> - Guest virtio-pmem driver
->   Guest driver reads persistent memory range from paravirt device 
->   and registers with 'nvdimm_bus'. 'nvdimm/pmem' driver uses this 
->   information to allocate persistent memory range. Also, we have 
->   implemented guest side of VIRTIO flushing interface.
-> 
-> - Qemu virtio-pmem device
->   It exposes a persistent memory range to KVM guest which at host 
->   side is file backed memory and works as persistent memory device. 
->   In addition to this it provides virtio device handling of flushing 
->   interface. KVM guest performs Qemu side asynchronous sync using 
->   this interface.
-> 
-> Changes from RFC v2:
-> - Add flush function in the nd_region in place of switching
->   on a flag - Dan & Stefan
-> - Add flush completion function with proper locking and wait
->   for host side flush completion - Stefan & Dan
-> - Keep userspace API in uapi header file - Stefan, MST
-> - Use LE fields & New device id - MST
-> - Indentation & spacing suggestions - MST & Eric
-> - Remove extra header files & add licensing - Stefan
-> 
-> Changes from RFC v1:
-> - Reuse existing 'pmem' code for registering persistent 
->   memory and other operations instead of creating an entirely 
->   new block driver.
-> - Use VIRTIO driver to register memory information with 
->   nvdimm_bus and create region_type accordingly. 
-> - Call VIRTIO flush from existing pmem driver.
-> 
-> Details of project idea for 'fake DAX' flushing interface is 
-> shared [2] & [3].
-> 
-> Pankaj Gupta (2):
->    Add virtio-pmem guest driver
->    pmem: device flush over VIRTIO
-> 
-> [1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
-> [2] https://www.spinics.net/lists/kvm/msg149761.html
-> [3] https://www.spinics.net/lists/kvm/msg153095.html  
-> 
->  drivers/nvdimm/nd.h              |    1 
->  drivers/nvdimm/pmem.c            |    4 
->  drivers/nvdimm/region_devs.c     |   24 +++-
->  drivers/virtio/Kconfig           |    9 +
->  drivers/virtio/Makefile          |    1 
->  drivers/virtio/virtio_pmem.c     |  190 +++++++++++++++++++++++++++++++++++++++
->  include/linux/libnvdimm.h        |    5 -
->  include/linux/virtio_pmem.h      |   44 +++++++++
->  include/uapi/linux/virtio_ids.h  |    1 
->  include/uapi/linux/virtio_pmem.h |   40 ++++++++
->  10 files changed, 310 insertions(+), 9 deletions(-)
-> 
 
-Hi Pankaj,
+Hi David,
 
-do you have a branch for the QEMU part somewhere available? I want to
-see how this works with MemoryDevice changes.
+> > for review. This patchset has two parts:
+> > 
+> > - Guest virtio-pmem driver
+> >   Guest driver reads persistent memory range from paravirt device
+> >   and registers with 'nvdimm_bus'. 'nvdimm/pmem' driver uses this
+> >   information to allocate persistent memory range. Also, we have
+> >   implemented guest side of VIRTIO flushing interface.
+> > 
+> > - Qemu virtio-pmem device
+> >   It exposes a persistent memory range to KVM guest which at host
+> >   side is file backed memory and works as persistent memory device.
+> >   In addition to this it provides virtio device handling of flushing
+> >   interface. KVM guest performs Qemu side asynchronous sync using
+> >   this interface.
+> > 
+> > Changes from RFC v2:
+> > - Add flush function in the nd_region in place of switching
+> >   on a flag - Dan & Stefan
+> > - Add flush completion function with proper locking and wait
+> >   for host side flush completion - Stefan & Dan
+> > - Keep userspace API in uapi header file - Stefan, MST
+> > - Use LE fields & New device id - MST
+> > - Indentation & spacing suggestions - MST & Eric
+> > - Remove extra header files & add licensing - Stefan
+> > 
+> > Changes from RFC v1:
+> > - Reuse existing 'pmem' code for registering persistent
+> >   memory and other operations instead of creating an entirely
+> >   new block driver.
+> > - Use VIRTIO driver to register memory information with
+> >   nvdimm_bus and create region_type accordingly.
+> > - Call VIRTIO flush from existing pmem driver.
+> > 
+> > Details of project idea for 'fake DAX' flushing interface is
+> > shared [2] & [3].
+> > 
+> > Pankaj Gupta (2):
+> >    Add virtio-pmem guest driver
+> >    pmem: device flush over VIRTIO
+> > 
+> > [1] https://marc.info/?l=linux-mm&m=150782346802290&w=2
+> > [2] https://www.spinics.net/lists/kvm/msg149761.html
+> > [3] https://www.spinics.net/lists/kvm/msg153095.html
+> > 
+> >  drivers/nvdimm/nd.h              |    1
+> >  drivers/nvdimm/pmem.c            |    4
+> >  drivers/nvdimm/region_devs.c     |   24 +++-
+> >  drivers/virtio/Kconfig           |    9 +
+> >  drivers/virtio/Makefile          |    1
+> >  drivers/virtio/virtio_pmem.c     |  190
+> >  +++++++++++++++++++++++++++++++++++++++
+> >  include/linux/libnvdimm.h        |    5 -
+> >  include/linux/virtio_pmem.h      |   44 +++++++++
+> >  include/uapi/linux/virtio_ids.h  |    1
+> >  include/uapi/linux/virtio_pmem.h |   40 ++++++++
+> >  10 files changed, 310 insertions(+), 9 deletions(-)
+> > 
+> 
+> Hi Pankaj,
+> 
+> do you have a branch for the QEMU part somewhere available? I want to
+> see how this works with MemoryDevice changes.
 
--- 
+o.k I will update the guest virtio-pmem and Qemu current changes
+and share with you. BTW previous version is here:
+
+https://marc.info/?l=kvm&m=153146839627143&w=2
 
 Thanks,
-
-David / dhildenb
+Pankaj
+ 
+> 
+> --
+> 
+> Thanks,
+> 
+> David / dhildenb
+> 
+> 
