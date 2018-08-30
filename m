@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AB924210FC0D5
- for <linux-nvdimm@lists.01.org>; Wed, 22 Aug 2018 15:23:00 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/2] ndctl, namespace: rework namespace action accounting
-Date: Wed, 22 Aug 2018 16:22:49 -0600
-Message-Id: <20180822222249.30838-3-vishal.l.verma@intel.com>
-In-Reply-To: <20180822222249.30838-1-vishal.l.verma@intel.com>
-References: <20180822222249.30838-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6BA3821107835
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:06 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 30 Aug 2018 12:53:49 -0600
+Message-Id: <20180830185352.3369-11-logang@deltatee.com>
+In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
+References: <20180830185352.3369-1-logang@deltatee.com>
+Subject: [PATCH v5 10/13] nvme-pci: Add support for P2P memory in requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,317 +22,98 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Steve Scargal <steve.scargall@intel.com>
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Make the count calculations consistent for all namespace actions by
-introducing a new parameter to do_xaction_namespace() which explicitly
-keeps a count of successful operations.
+For P2P requests, we must use the pci_p2pmem_map_sg() function
+instead of the dma_map_sg functions.
 
-For destroy-namespace, correctly propagate errors so that the above
-accounting works as expected. For legacy (labelless or emulated)
-namespaces, if we perform a destructive action such as writing zeroes to
-the info block area, acccount for them in the destroy count, but
-otherwise consider them as 'skipped' since they cannot be truly
-'destroyed'.
+With that, we can then indicate PCI_P2P support in the request queue.
+For this, we create an NVME_F_PCI_P2P flag which tells the core to
+set QUEUE_FLAG_PCI_P2P in the request queue.
 
-Cc: Steve Scargall <steve.scargall@intel.com>
-Link: https://github.com/pmem/ndctl/issues/41
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- ndctl/namespace.c | 154 +++++++++++++++++++++++++++++-------------------------
- 1 file changed, 82 insertions(+), 72 deletions(-)
+ drivers/nvme/host/core.c |  4 ++++
+ drivers/nvme/host/nvme.h |  1 +
+ drivers/nvme/host/pci.c  | 17 +++++++++++++----
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 65e8f7c..b6f1230 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -860,6 +860,7 @@ static int namespace_destroy(struct ndctl_region *region,
- 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
- 	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
- 	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-+	bool did_zero = false;
- 	int rc;
- 
- 	if (ndctl_region_get_ro(region)) {
-@@ -884,13 +885,33 @@ static int namespace_destroy(struct ndctl_region *region,
- 		rc = zero_info_block(ndns);
- 		if (rc < 0)
- 			return rc;
-+		if (rc == 0)
-+			did_zero = true;
-+	}
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index dd8ec1dd9219..6033ce2fd3e9 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+ 	ns->queue = blk_mq_init_queue(ctrl->tagset);
+ 	if (IS_ERR(ns->queue))
+ 		goto out_free_ns;
 +
-+	switch (ndctl_namespace_get_type(ndns)) {
-+        case ND_DEVICE_NAMESPACE_PMEM:
-+        case ND_DEVICE_NAMESPACE_BLK:
-+		break;
-+	default:
-+		/*
-+		 * for legacy namespaces, we we did any info block
-+		 * zeroing, we need "processed" to be incremented
-+		 * but otherwise we are skipping in the count
-+		 */
-+		if (did_zero)
-+			rc = 0;
-+		else
-+			rc = 1;
-+		goto out;
- 	}
- 
- 	rc = ndctl_namespace_delete(ndns);
- 	if (rc)
- 		debug("%s: failed to reclaim\n", devname);
- 
--	return 0;
-+out:
-+	return rc;
- }
- 
- static int enable_labels(struct ndctl_region *region)
-@@ -987,7 +1008,7 @@ static int namespace_reconfig(struct ndctl_region *region,
- 		return rc;
- 
- 	rc = namespace_destroy(region, ndns);
--	if (rc)
-+	if (rc < 0)
- 		return rc;
- 
- 	/* check if we can enable labels on this region */
-@@ -1012,13 +1033,16 @@ int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
- 		bool repair, bool logfix);
- 
- static int do_xaction_namespace(const char *namespace,
--		enum device_action action, struct ndctl_ctx *ctx)
-+		enum device_action action, struct ndctl_ctx *ctx,
-+		int *processed)
- {
- 	struct ndctl_namespace *ndns, *_n;
--	int rc = -ENXIO, success = 0;
- 	struct ndctl_region *region;
- 	const char *ndns_name;
- 	struct ndctl_bus *bus;
-+	int rc = -ENXIO;
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
++	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
++		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
 +
-+	*processed = 0;
+ 	ns->queue->queuedata = ns;
+ 	ns->ctrl = ctrl;
  
- 	if (!namespace && action != ACTION_CREATE)
- 		return rc;
-@@ -1052,7 +1076,7 @@ static int do_xaction_namespace(const char *namespace,
- 				if (rc == -EAGAIN)
- 					continue;
- 				if (rc == 0)
--					rc = 1;
-+					*processed = 1;
- 				return rc;
- 			}
- 			ndctl_namespace_foreach_safe(region, ndns, _n) {
-@@ -1064,36 +1088,43 @@ static int do_xaction_namespace(const char *namespace,
- 				switch (action) {
- 				case ACTION_DISABLE:
- 					rc = ndctl_namespace_disable_safe(ndns);
-+					if (rc == 0)
-+						(*processed)++;
- 					break;
- 				case ACTION_ENABLE:
- 					rc = ndctl_namespace_enable(ndns);
-+					if (rc >= 0) {
-+						(*processed)++;
-+						rc = 0;
-+					}
- 					break;
- 				case ACTION_DESTROY:
- 					rc = namespace_destroy(region, ndns);
-+					if (rc == 0)
-+						(*processed)++;
-+					/* return success if skipped */
-+					if (rc > 0)
-+						rc = 0;
- 					break;
- 				case ACTION_CHECK:
- 					rc = namespace_check(ndns, verbose,
- 							force, repair, logfix);
--					if (rc < 0)
--						return rc;
-+					if (rc == 0)
-+						(*processed)++;
- 					break;
- 				case ACTION_CREATE:
- 					rc = namespace_reconfig(region, ndns);
--					if (rc < 0)
--						return rc;
--					return 1;
-+					if (rc == 0)
-+						*processed = 1;
-+					return rc;
- 				default:
- 					rc = -EINVAL;
- 					break;
- 				}
--				if (rc >= 0)
--					success++;
- 			}
- 		}
- 	}
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index bb4a2003c097..4030743c90aa 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
+ 	unsigned int flags;
+ #define NVME_F_FABRICS			(1 << 0)
+ #define NVME_F_METADATA_SUPPORTED	(1 << 1)
++#define NVME_F_PCI_P2PDMA		(1 << 2)
+ 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+ 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+ 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 2902585c6ddf..bb2120d30e39 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -737,8 +737,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 		goto out;
  
--	if (success)
--		return success;
- 	return rc;
- }
- 
-@@ -1102,20 +1133,16 @@ int cmd_disable_namespace(int argc, const char **argv, void *ctx)
- 	char *xable_usage = "ndctl disable-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
- 			ACTION_DISABLE, base_options, xable_usage);
--	int disabled = do_xaction_namespace(namespace, ACTION_DISABLE, ctx);
-+	int disabled, rc;
- 
--	if (disabled < 0) {
-+	rc = do_xaction_namespace(namespace, ACTION_DISABLE, ctx, &disabled);
-+	if (rc < 0)
- 		fprintf(stderr, "error disabling namespaces: %s\n",
--				strerror(-disabled));
--		return disabled;
--	} else if (disabled == 0) {
--		fprintf(stderr, "disabled 0 namespaces\n");
--		return -ENXIO;
--	} else {
--		fprintf(stderr, "disabled %d namespace%s\n", disabled,
--				disabled > 1 ? "s" : "");
--		return 0;
--	}
-+				strerror(-rc));
+ 	ret = BLK_STS_RESOURCE;
+-	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+-			DMA_ATTR_NO_WARN);
 +
-+	fprintf(stderr, "disabled %d namespace%s\n", disabled,
-+			disabled == 1 ? "" : "s");
-+	return rc;
- }
++	if (is_pci_p2pdma_page(sg_page(iod->sg)))
++		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
++					  dma_dir);
++	else
++		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
++					     dma_dir,  DMA_ATTR_NO_WARN);
+ 	if (!nr_mapped)
+ 		goto out;
  
- int cmd_enable_namespace(int argc, const char **argv, void *ctx)
-@@ -1123,20 +1150,15 @@ int cmd_enable_namespace(int argc, const char **argv, void *ctx)
- 	char *xable_usage = "ndctl enable-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
- 			ACTION_ENABLE, base_options, xable_usage);
--	int enabled = do_xaction_namespace(namespace, ACTION_ENABLE, ctx);
-+	int enabled, rc;
+@@ -780,7 +785,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
  
--	if (enabled < 0) {
-+	rc = do_xaction_namespace(namespace, ACTION_ENABLE, ctx, &enabled);
-+	if (rc < 0)
- 		fprintf(stderr, "error enabling namespaces: %s\n",
--				strerror(-enabled));
--		return enabled;
--	} else if (enabled == 0) {
--		fprintf(stderr, "enabled 0 namespaces\n");
--		return 0;
--	} else {
--		fprintf(stderr, "enabled %d namespace%s\n", enabled,
--				enabled > 1 ? "s" : "");
--		return 0;
--	}
-+				strerror(-rc));
-+	fprintf(stderr, "enabled %d namespace%s\n", enabled,
-+			enabled == 1 ? "" : "s");
-+	return rc;
- }
- 
- int cmd_create_namespace(int argc, const char **argv, void *ctx)
-@@ -1144,9 +1166,10 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
- 	char *xable_usage = "ndctl create-namespace [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
- 			ACTION_CREATE, create_options, xable_usage);
--	int created = do_xaction_namespace(namespace, ACTION_CREATE, ctx);
-+	int created, rc;
- 
--	if (created < 1 && param.do_scan) {
-+	rc = do_xaction_namespace(namespace, ACTION_CREATE, ctx, &created);
-+	if (rc < 0 && created < 1 && param.do_scan) {
- 		/*
- 		 * In the default scan case we try pmem first and then
- 		 * fallback to blk before giving up.
-@@ -1154,19 +1177,17 @@ int cmd_create_namespace(int argc, const char **argv, void *ctx)
- 		memset(&param, 0, sizeof(param));
- 		param.type = "blk";
- 		set_defaults(ACTION_CREATE);
--		created = do_xaction_namespace(NULL, ACTION_CREATE, ctx);
-+		rc = do_xaction_namespace(NULL, ACTION_CREATE, ctx, &created);
+ 	if (iod->nents) {
+-		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++		/* P2PDMA requests do not need to be unmapped */
++		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
++			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++
+ 		if (blk_integrity_rq(req))
+ 			dma_unmap_sg(dev->dev, &iod->meta_sg, 1, dma_dir);
  	}
- 
--	if (created < 0 || (!namespace && created < 1)) {
-+	if (rc < 0 || (!namespace && created < 1)) {
- 		fprintf(stderr, "failed to %s namespace: %s\n", namespace
--				? "reconfigure" : "create", strerror(-created));
-+				? "reconfigure" : "create", strerror(-rc));
- 		if (!namespace)
--			created = -ENODEV;
-+			rc = -ENODEV;
- 	}
- 
--	if (created < 0)
--		return created;
--	return 0;
-+	return rc;
- }
- 
- int cmd_destroy_namespace(int argc , const char **argv, void *ctx)
-@@ -1174,20 +1195,15 @@ int cmd_destroy_namespace(int argc , const char **argv, void *ctx)
- 	char *xable_usage = "ndctl destroy-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
- 			ACTION_DESTROY, destroy_options, xable_usage);
--	int destroyed = do_xaction_namespace(namespace, ACTION_DESTROY, ctx);
-+	int destroyed, rc;
- 
--	if (destroyed < 0) {
-+	rc = do_xaction_namespace(namespace, ACTION_DESTROY, ctx, &destroyed);
-+	if (rc < 0)
- 		fprintf(stderr, "error destroying namespaces: %s\n",
--				strerror(-destroyed));
--		return destroyed;
--	} else if (destroyed == 0) {
--		fprintf(stderr, "destroyed 0 namespaces\n");
--		return 0;
--	} else {
--		fprintf(stderr, "destroyed %d namespace%s\n", destroyed,
--				destroyed > 1 ? "s" : "");
--		return 0;
--	}
-+				strerror(-rc));
-+	fprintf(stderr, "destroyed %d namespace%s\n", destroyed,
-+			destroyed == 1 ? "" : "s");
-+	return rc;
- }
- 
- int cmd_check_namespace(int argc , const char **argv, void *ctx)
-@@ -1195,19 +1211,13 @@ int cmd_check_namespace(int argc , const char **argv, void *ctx)
- 	char *xable_usage = "ndctl check-namespace <namespace> [<options>]";
- 	const char *namespace = parse_namespace_options(argc, argv,
- 			ACTION_CHECK, check_options, xable_usage);
--	int checked;
-+	int checked, rc;
- 
--	checked = do_xaction_namespace(namespace, ACTION_CHECK, ctx);
--	if (checked < 0) {
-+	rc = do_xaction_namespace(namespace, ACTION_CHECK, ctx, &checked);
-+	if (rc < 0)
- 		fprintf(stderr, "error checking namespaces: %s\n",
--				strerror(-checked));
--		return checked;
--	} else if (checked == 0) {
--		fprintf(stderr, "checked 0 namespaces\n");
--		return 0;
--	} else {
--		fprintf(stderr, "checked %d namespace%s\n", checked,
--				checked > 1 ? "s" : "");
--		return 0;
--	}
-+				strerror(-rc));
-+	fprintf(stderr, "checked %d namespace%s\n", checked,
-+			checked == 1 ? "" : "s");
-+	return rc;
- }
+@@ -2392,7 +2400,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
+ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
+ 	.name			= "pcie",
+ 	.module			= THIS_MODULE,
+-	.flags			= NVME_F_METADATA_SUPPORTED,
++	.flags			= NVME_F_METADATA_SUPPORTED |
++				  NVME_F_PCI_P2PDMA,
+ 	.reg_read32		= nvme_pci_reg_read32,
+ 	.reg_write32		= nvme_pci_reg_write32,
+ 	.reg_read64		= nvme_pci_reg_read64,
 -- 
-2.14.4
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
