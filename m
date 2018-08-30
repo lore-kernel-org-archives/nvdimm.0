@@ -1,23 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ipmail03.adl2.internode.on.net (ipmail03.adl2.internode.on.net
- [150.101.137.141])
- by ml01.01.org (Postfix) with ESMTP id 2701821109388
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 16:38:34 -0700 (PDT)
-Date: Fri, 31 Aug 2018 09:38:09 +1000
+Received: from ipmailnode02.adl6.internode.on.net
+ (ipmailnode02.adl6.internode.on.net [150.101.137.148])
+ by ml01.01.org (Postfix) with ESMTP id 4524821109385
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 15:55:58 -0700 (PDT)
+Date: Fri, 31 Aug 2018 08:55:55 +1000
 From: Dave Chinner <david@fromorbit.com>
 Subject: Re: Snapshot target and DAX-capable devices
-Message-ID: <20180830233809.GH1572@dastard>
+Message-ID: <20180830225555.GG1572@dastard>
 References: <20180827160744.GE4002@quack2.suse.cz>
  <e38303902267d2d8bae8b0c88da84a4ed668e9fb.camel@hpe.com>
  <20180828075025.GA17756@quack2.suse.cz>
  <20180828175630.GA1197@redhat.com>
  <20180830093028.GC1767@quack2.suse.cz>
  <20180830184907.GA14867@redhat.com>
- <x494lfbabwi.fsf@segfault.boston.devel.redhat.com>
- <alpine.LRH.2.02.1808301545200.30950@file01.intranet.prod.int.rdu2.redhat.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.1808301545200.30950@file01.intranet.prod.int.rdu2.redhat.com>
+In-Reply-To: <20180830184907.GA14867@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,70 +27,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Aug 30, 2018 at 03:47:32PM -0400, Mikulas Patocka wrote:
-> 
-> 
-> On Thu, 30 Aug 2018, Jeff Moyer wrote:
-> 
-> > Mike Snitzer <snitzer@redhat.com> writes:
-> > 
-> > > Until we properly add DAX support to dm-snapshot I'm afraid we really do
-> > > need to tolerate this "regression".  Since reality is the original
-> > > support for snapshot of a DAX DM device never worked in a robust way.
-> > 
-> > Agreed.
-> > 
-> > -Jeff
-> 
-> You can't support dax on snapshot - if someone maps a block and the block 
-> needs to be moved, then what?
+On Thu, Aug 30, 2018 at 02:49:07PM -0400, Mike Snitzer wrote:
+> On Thu, Aug 30 2018 at  5:30am -0400,  Jan Kara <jack@suse.cz> wrote:
+> > Well, changing device from DAX-capable to DAX-incapable is problematic for
+> > filesystem on top of it as well. Filesystems simply don't expect this
+> > feature of a device can change so they would fail in unexpected ways. Also
+> > PFNs from the pmem (DAX-capable) device that are already mapped to user page
+> > tables won't magically become unmapped so those processes will still have
+> > DAX access to those areas of the device.
+....
+> As you point out, how are the upper layers (e.g. filesystems) supposed
+> to reliably cope with this runtime switch to from DAX to non-DAX access?
 
-This is only a problem for access via mmap and page faults.
+They can't right now. There's unsolved races between page faults,
+invalidations and changing the file operations to/from DAX
+dynamically. This is the entire problem facing the dynamic per-inode
+DAX on/off flag - if it happens globally to the filesystem without
+warning, then the filesystem is screwed. 
 
-At the filesystem level, it's no different to the existing direct IO
-algorithm for read/write IO - we simply allocate new space, copy the
-data we need to copy into the new space (may be no copy needed), and
-then write the new data into the new space. I'm pretty sure that for
-bio-based IO to dm-snapshot devices the algorithm will be exactly
-the same.
+To support the block device changing between DAX and non-DAX
+dynamically, then the filesystem needs to first invalidate the entire
+filesystem cache, eject all cached inodes from memory, any cached
+metadata that is using DAX, etc to clear out all the DAX mappings
+it have. And it has to do it without racing with new page faults or
+IO that might map new DAX pages. And I'm ignoring the fact that we
+can't eject referenced inodes (i.e. open files) from the inode cache
+and so we currently cannot safely change the DAX on such files.
+That's a blocker right now.
 
-However, for direct access via mmap, we have to modify how the
-userspace virtual address is mapped to the physical location. IOWs,
-during the COW operation, we have to invalidate all existing user
-mappings we have for that physical address. This means we have to do
-an invalidation after the allocate/copy part of the COW operation.
+Once we can safely change the DAX state of open files, we've got to
+co=ordinate the block device state change with the filesystem - the
+filesystem wide invalidation has to be done before the block device can
+start the change of state, and the filesystem must remain completely
+stopped until the block device has completed it's change of state.
 
-If we are doing this during a page fault, it means we'll probably
-have to restart the page fault so it can look up the new physical
-address associated with the faulting user address. After we've done
-the invalidation, any new (or restarted) page fault finds the
-location of new copy we just made, maps it into the user address
-space, updates the ptes and we're all good.
+So AFAICT this ends up being "stop the world instantly, eject the
+world from memory, rebuild the world from scratch, start the world
+again".  Freezing the filesystem doesn't stop the world - we can
+still do read IO and page faults, so that doesn't prevent pagefault
+races with the invalidation leaving DAX references in the page
+cache. Hence we currently have no valid "stop the world" mechanism
+in the kernel other than unmount, which we can't do while there are
+open files.
 
-Well, that's the theory. We haven't implemented this for XFS yet, so
-it might end up a little different, and we might yet hit unexpected
-problems (it's DAX, that's what happens :/).
+What about MAP_SYNC applications? If we turn off DAX with those
+applications still running, we silently break them and users won't
+know until the system loses power and they see data corruption after
+the system comes back. However, applications SEGVing unpredictably
+becuse of "transparent" storage state changes is almost as
+unfriendly.
 
-It's a whole different ballgame for a dm-snapshot device - block
-devices are completely unaware of page faults to DAX file mappings.
-We'll need the filesystem to be aware it's on a remappable block
-device, and when we take a DAX write fault we'll need to ask the
-underlying device to remap the block and treat it like the
-filesystem COW case above. We'll need to do this remap/invalidate
-dance in the write IO path, too, because a COW by the block device
-is no different to filesystem COW in that path.
-
-Basically, it's the same algorithm as the filesystem COW case, we
-just get the physical location of the data and the notification of
-block changing physical location from a different interface.
-
-Hmmmm. ISTR that someone has been making a few noises recently about
-virtual block address space mapping interfaces that could help solve
-this problem....
+Dynamically changing block device DAX support seems like a
+non-starter to me. At least, it's a non starter until we add a lot
+more infrastructure, solve a bunch of really hard problems and
+define how active userspace controlled DAX-only features behave when
+DAX is no longer available...
 
 Cheers,
 
