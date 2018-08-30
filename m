@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9F8221102DAE
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:52:02 -0700 (PDT)
-Subject: [PATCH v3 3/6] ndctl: add disable security support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:52:02 -0700
-Message-ID: <153549672202.5723.1082050945219792209.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
-References: <153549661384.5723.4757814248604794802.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 763F22110783B
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:09 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 30 Aug 2018 12:53:43 -0600
+Message-Id: <20180830185352.3369-5-logang@deltatee.com>
+In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
+References: <20180830185352.3369-1-logang@deltatee.com>
+Subject: [PATCH v5 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
+ attribute helpers
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,167 +18,163 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: dhowells@redhat.com, alison.schofield@intel.com, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for disable security to libndctl and also command line option
-of "disable-security" for ndctl. This provides a way to disable security
-on the nvdimm. ndctl does not handle the actual processing of the
-passphrase. It only starts the request.
+Users of the P2PDMA infrastructure will typically need a way for
+the user to tell the kernel to use P2P resources. Typically
+this will be a simple on/off boolean operation but sometimes
+it may be desirable for the user to specify the exact device to
+use for the P2P operation.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Add new helpers for attributes which take a boolean or a PCI device.
+Any boolean, or the word 'auto' turn P2P on or off. Specifying a full
+PCI device name/BDF will select the specific device.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 ---
- Documentation/ndctl/Makefile.am                |    3 ++-
- Documentation/ndctl/ndctl-disable-security.txt |   21 +++++++++++++++++++++
- builtin.h                                      |    1 +
- ndctl/dimm.c                                   |   22 ++++++++++++++++++++++
- ndctl/lib/dimm.c                               |    5 +++++
- ndctl/lib/libndctl.sym                         |    1 +
- ndctl/libndctl.h                               |    1 +
- ndctl/ndctl.c                                  |    1 +
- 8 files changed, 54 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-disable-security.txt
+ drivers/pci/p2pdma.c       | 83 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h | 15 +++++++++
+ 2 files changed, 98 insertions(+)
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 2c064c3a..faeb0d9b 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -48,7 +48,8 @@ man1_MANS = \
- 	ndctl-update-firmware.1 \
- 	ndctl-list.1 \
- 	ndctl-monitor.1 \
--	ndctl-update-security.1
-+	ndctl-update-security.1 \
-+	ndctl-disable-security.1
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 29bd40a87768..3da848f3fe72 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -9,6 +9,7 @@
+  */
  
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-disable-security.txt b/Documentation/ndctl/ndctl-disable-security.txt
-new file mode 100644
-index 00000000..651f8d03
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-disable-security.txt
-@@ -0,0 +1,21 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-disable-security(1)
-+========================
-+
-+NAME
-+----
-+ndctl-disable-security - enabling or disable security for an NVDIMM
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl disable-security' <dimm>
-+
-+DESCRIPTION
-+-----------
-+Provide a generic interface for disabling security for NVDIMM. The use of this
-+depends on support from the underlying libndctl, kernel, as well as the
-+platform itself.
-+
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 37404c79..39e4e38d 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -49,4 +49,5 @@ int cmd_bat(int argc, const char **argv, void *ctx);
- int cmd_update_firmware(int argc, const char **argv, void *ctx);
- int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_key_update(int argc, const char **argv, void *ctx);
-+int cmd_disable_security(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 48d366c6..96733ff6 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -879,6 +879,18 @@ static int action_key(struct ndctl_dimm *dimm,
- 	return rc;
+ #define pr_fmt(fmt) "pci-p2pdma: " fmt
++#include <linux/ctype.h>
+ #include <linux/pci-p2pdma.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -856,3 +857,85 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 	return nents;
  }
- 
-+static int action_security_disable(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
+ EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
++
++/**
++ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
++ *		to enable p2pdma
++ * @page: contents of the value to be stored
++ * @p2p_dev: returns the PCI device that was selected to be used
++ *		(if 'auto', 'none or a boolean isn't the store value)
++ * @use_p2pdma: returns whether to enable p2pdma or not
++ *
++ * Parses an attribute value to decide whether to enable p2pdma.
++ * The value can select a PCI device (using it's full BDF device
++ * name), a boolean, or 'auto'. 'auto' and a true boolean value
++ * have the same meaning. A false value disables p2pdma and
++ * a PCI device enables it to use a specific device as the
++ * backing provider.
++ *
++ * pci_p2pdma_enable_show() should be used as the show operation for
++ * the attribute.
++ *
++ * Returns 0 on success
++ */
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma)
 +{
-+	int rc;
++	struct device *dev;
 +
-+	rc = ndctl_dimm_disable_security(dimm);
-+	if (rc < 0)
-+		error("Failed to disable security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
++	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
++	if (dev) {
++		*use_p2pdma = true;
++		*p2p_dev = to_pci_dev(dev);
++
++		if (!pci_has_p2pmem(*p2p_dev)) {
++			pr_err("PCI device has no peer-to-peer memory: %s\n",
++			       page);
++			pci_dev_put(*p2p_dev);
++			return -ENODEV;
++		}
++
++		return 0;
++	} else if (sysfs_streq(page, "auto")) {
++		*use_p2pdma = true;
++		return 0;
++	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
++		/*
++		 * If the user enters a PCI device that  doesn't exist
++		 * like "0000:01:00.1", we don't want strtobool to think
++		 * it's a '0' when it's clearly not what the user wanted.
++		 * So we require 0's and 1's to be exactly one character.
++		 */
++	} else if (!strtobool(page, use_p2pdma)) {
++		return 0;
++	}
++
++	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
++	return -ENODEV;
 +}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
 +
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
++/**
++ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
++ *		whether p2pdma is enabled
++ * @page: contents of the stored value
++ * @p2p_dev: the selected p2p device (NULL if no device is selected)
++ * @use_p2pdma: whether p2pdme has been enabled
++ *
++ * Attributes that use pci_p2pdma_enable_store() should use this function
++ * to show the value of the attribute.
++ *
++ * Returns 0 on success
++ */
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma)
++{
++	if (!use_p2pdma)
++		return sprintf(page, "none\n");
++
++	if (!p2p_dev)
++		return sprintf(page, "auto\n");
++
++	return sprintf(page, "%s\n", pci_name(p2p_dev));
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 2f03dbbf5af6..377de4d73767 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -38,6 +38,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
+ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 		      enum dma_data_direction dir);
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma);
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -105,5 +109,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
  {
-@@ -1251,3 +1263,13 @@ int cmd_key_update(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
+ 	return 0;
  }
-+
-+int cmd_disable_security(int argc, const char **argv, void *ctx)
++static inline int pci_p2pdma_enable_store(const char *page,
++		struct pci_dev **p2p_dev, bool *use_p2pdma)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_security_disable, base_options,
-+			"ndctl disable-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "security disabled %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
++	*use_p2pdma = false;
++	return 0;
 +}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 57bbf01a..53e99906 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -619,3 +619,8 @@ NDCTL_EXPORT int ndctl_dimm_set_change_key(struct ndctl_dimm *dimm,
- 	sprintf(buf, "update:%d:%d\n", ckey, nkey);
- 	return ndctl_dimm_write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm)
++static inline ssize_t pci_p2pdma_enable_show(char *page,
++		struct pci_dev *p2p_dev, bool use_p2pdma)
 +{
-+	return ndctl_dimm_write_security(dimm, "disable");
++	return sprintf(page, "none\n");
 +}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index d4764450..136f4e04 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -385,4 +385,5 @@ global:
- 	ndctl_dimm_add_key;
- 	ndctl_dimm_get_current_key;
- 	ndctl_dimm_set_change_key;
-+	ndctl_dimm_disable_security;
- } LIBNDCTL_17;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index f845b11b..a914cfc3 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -681,6 +681,7 @@ int ndctl_dimm_get_key_payload(struct ndctl_dimm *dimm, char *pass, int *psize);
- int ndctl_dimm_add_key(struct ndctl_dimm *dimm, const char *passphrase,
- 		int pass_size, key_serial_t *key);
- int ndctl_dimm_get_current_key(struct ndctl_dimm *dimm, key_serial_t *key);
-+int ndctl_dimm_disable_security(struct ndctl_dimm *dimm);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index c7096dfd..2dab02d2 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -89,6 +89,7 @@ static struct cmd_struct commands[] = {
- 	{ "wait-scrub", cmd_wait_scrub },
- 	{ "start-scrub", cmd_start_scrub },
- 	{ "update-security", cmd_key_update },
-+	{ "disable-security", cmd_disable_security },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
