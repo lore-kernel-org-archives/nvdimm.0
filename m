@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB1C3210D4383
- for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 12:49:16 -0700 (PDT)
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 1/1] x86, pmem, acpi: Remove excessive ACPI Large
- Reference Count warnings
-Date: Wed, 1 Aug 2018 19:49:14 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B94DED8F@ORSMSX108.amr.corp.intel.com>
-References: <20180730195545.795802877@stormcage.americas.sgi.com>
- <20180730195548.580717146@stormcage.americas.sgi.com>
-In-Reply-To: <20180730195548.580717146@stormcage.americas.sgi.com>
-Content-Language: en-US
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F25772110783E
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:09 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 30 Aug 2018 12:53:44 -0600
+Message-Id: <20180830185352.3369-6-logang@deltatee.com>
+In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
+References: <20180830185352.3369-1-logang@deltatee.com>
+Subject: [PATCH v5 05/13] docs-rst: Add a new directory for PCI documentation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,69 +17,84 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mike Travis <mike.travis@hpe.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
-Cc: Dimitri Sivanich <dimitri.sivanich@hpe.com>, Russ Anderson <russ.anderson@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Sanyog Kale <sanyog.r.kale@intel.com>, Thierry Reding <treding@nvidia.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Vinod Koul <vinod.koul@intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Sagar Dharia <sdharia@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Are there any actual memory leaks, or this a consequence of the number of sockets?
+Add a new directory in the driver API guide for PCI specific
+documentation.
 
+This is in preparation for adding a new PCI P2P DMA driver writers
+guide which will go in this directory.
 
-> -----Original Message-----
-> From: Mike Travis [mailto:mike.travis@hpe.com]
-> Sent: Monday, July 30, 2018 12:56 PM
-> To: Moore, Robert <robert.moore@intel.com>; Schmauss, Erik
-> <erik.schmauss@intel.com>; Wysocki, Rafael J
-> <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>
-> Cc: Russ Anderson <russ.anderson@hpe.com>; Dimitri Sivanich
-> <dimitri.sivanich@hpe.com>; Ross Zwisler <ross.zwisler@linux.intel.com>;
-> Williams, Dan J <dan.j.williams@intel.com>; Verma, Vishal L
-> <vishal.l.verma@intel.com>; Jiang, Dave <dave.jiang@intel.com>; linux-
-> acpi@vger.kernel.org; devel@acpica.org; linux-nvdimm@lists.01.org;
-> linux-kernel@vger.kernel.org
-> Subject: [PATCH 1/1] x86, pmem, acpi: Remove excessive ACPI Large
-> Reference Count warnings
-> 
-> With the Intel BIOS support for 8 processor sockets with a full
-> complement of NVDIMMS potentially installable, and there are empty
-> sockets without NVDIMMS, there is an extremely large amount of the
-> following warnings:
-> 
-> ACPI Warning: Large Reference Count (0x1001) in object ffff99453fc71750,
-> 	Type=0x0A
-> 
-> On a 4 socket system with 4 NVDIMMs there were over 6000 of these
-> warning messages and it has been seem on systems from 4 to 32 sockets.
-> 
-> Through some guidance from the BIOS developers and testing, it appears
-> that simply bumping up the threshold for warnings from 0x1000 to 0x2000
-> eliminates these messages.  Changing them to be ACPI DEBUG messages, or
-> even removing them are other options, but it would then defeat the
-> purpose of the warnings as the problem would effectively be hidden.
-> 
-> Reviewed-by: Dimitri Sivanich <dimitri.sivanich@hpe.com>
-> Tested-by: Russ Anderson <russ.anderson@hpe.com>
-> Signed-off-by: Mike Travis <mike.travis@hpe.com>
-> ---
->  include/acpi/acconfig.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- linux-4.12.orig/include/acpi/acconfig.h
-> +++ linux-4.12/include/acpi/acconfig.h
-> @@ -123,7 +123,7 @@
-> 
->  /* Maximum object reference count (detects object deletion issues) */
-> 
-> -#define ACPI_MAX_REFERENCE_COUNT        0x1000
-> +#define ACPI_MAX_REFERENCE_COUNT        0x2000
-> 
->  /* Default page size for use in mapping memory for operation regions */
-> 
-> 
-> --
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Sanyog Kale <sanyog.r.kale@intel.com>
+Cc: Sagar Dharia <sdharia@codeaurora.org>
+---
+ Documentation/driver-api/index.rst         |  2 +-
+ Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
+ Documentation/driver-api/{ => pci}/pci.rst |  0
+ 3 files changed, 21 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/driver-api/pci/index.rst
+ rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+
+diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
+index 6d9f2f9fe20e..e9e7d24169cf 100644
+--- a/Documentation/driver-api/index.rst
++++ b/Documentation/driver-api/index.rst
+@@ -29,7 +29,7 @@ available subsections can be seen below.
+    iio/index
+    input
+    usb/index
+-   pci
++   pci/index
+    spi
+    i2c
+    hsi
+diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
+new file mode 100644
+index 000000000000..eaf20b24bf7d
+--- /dev/null
++++ b/Documentation/driver-api/pci/index.rst
+@@ -0,0 +1,20 @@
++.. SPDX-License-Identifier: GPL-2.0
++============================================
++The Linux PCI driver implementer's API guide
++============================================
++
++.. class:: toc-title
++
++	   Table of contents
++
++.. toctree::
++   :maxdepth: 2
++
++   pci
++
++.. only::  subproject and html
++
++   Indices
++   =======
++
++   * :ref:`genindex`
+diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
+similarity index 100%
+rename from Documentation/driver-api/pci.rst
+rename to Documentation/driver-api/pci/pci.rst
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
