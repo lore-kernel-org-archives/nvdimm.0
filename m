@@ -1,12 +1,10 @@
-From: "Mail Service" <no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org>
-Subject: Prompt! linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, you can confirm your email
- account with a single click
-Date: Thu, 30 Aug 2018 11:17:55 +0000
-Message-ID: <20180830113445.3B0FA2110718F@ml01.01.org>
-Reply-To: no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: "Jack Scott" <JackScott-pLsQOdNfxngsiWVehKdxnfAX2ruv4X0knKs2IOyhHvI@public.gmane.org>
+Subject: Jack
+Date: Thu, 30 Aug 2018 16:18:30 +0200
+Message-ID: <VEJA-12399412-jcvh@thriverecruits.us>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -20,15 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
- - This mail is in HTML. Some elements may be ommited in plain text. -
-
-
-Email protection!
-linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-
-, you can confirm your email account with a single click.
-
-
-
-check
-If we do not receive a verification reply within the next 24 hours, we will assume that you are a fraudulent user and close your email account until the correct verification is restored so that you can access your email as before.
+U3VwISBBcmUgeW91IGxvb2tpbmcgZm9yIGEgY3V0ZSBob25leSB0byBoYXZlIHNleD8NClRoaXMg
+bW9tZW50IGlzIHlvdXIgbHVja3kgY2hhbmNlLiBKdXN0IHRleHQgbWUgYmFjayBmb2xsb3dpbmcg
+dGhlIGxpbmsgYW5kIHlvdeKAmWxsIGV4cGVyaWVuY2UgZXZlcnl0aGluZyB5b3UgZHJlYW0gYWJv
+dXQuDQoNCmh0dHA6Ly93d3cua3Vyc3lzdWRvdm9kaXRlbGVpLnJ1LzNybGxpL2ZwMWt4dXExancu
+cGhwP2JHbHVkWGd0Ym5aa2FXMXRRR3hwYzNSekxqQXhMbTl5Wnc9PQpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
+CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1udmRpbW0K
