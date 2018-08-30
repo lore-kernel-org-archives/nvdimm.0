@@ -1,7 +1,7 @@
-From: "Jacqulyn Cooper" <JacqulynCooper-uZhlTWKng+wfxDrQVrMN+tzYSYJoAkse@public.gmane.org>
-Subject: Jacqulyn
-Date: Thu, 30 Aug 2018 05:25:11 +0200
-Message-ID: <ZKLWVMZ-797846423-ocsk@anitapandey0.us>
+From: "Dulcie Barnes" <Dulcie-zxnMr81S17MsiWVehKdxnfAX2ruv4X0knKs2IOyhHvI@public.gmane.org>
+Subject: Dulcie
+Date: Thu, 30 Aug 2018 05:25:10 +0200
+Message-ID: <GEXZL-88250-sec@thriverecruits.us>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,11 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2hhdCBhcmUgeW91IGJ1c3kgZm9yIHJpZ2h0IG5vdz8NCkRvIHlvdSB3YW50IHRvIGhhdmUgYW4g
-aW5jcmVkaWJsZSBuaWdodCB3aXRoIGEgbWFydmVsb3VzIGxhc3M/DQpJ4oCZbSByZWFkeSB0byBz
-YXRpc2Z5IGFsbCB5b3VyIHNleCBkcmVhbXMuDQpDbGljayBvbiB0aGUgbGluayB0byByZXBseSBt
-ZS4NCg0KaHR0cDovL3d3dy5qc2hlc2pzLmNvbS9ramVmMHF3L25pOGtjbG8ucGhwP2JHbHVkWGd0
-Ym5aa2FXMXRRR3hwYzNSekxqQXhMbTl5Wnc9PQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
-bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
-eC1udmRpbW0K
+V2hvIGNhbiBtYWtlIHN1Y2ggYmFzaGZ1bCBiZWF1dHkgbGlrZSBtZSBoYXBweT8NCkkgY2Fu4oCZ
+dCBsaXZlIHdpdGhvdXQgbG92ZSENCkxhY2sgb2Ygc2V4dWFsIGxpZmUgaXMgbXkgbWFpbiBwcm9i
+bGVtLg0KR3V5cyBhcmUgdmVyeSBzaHkgdG8gZ2V0IGFjcXVhaW50ZWQgd2l0aCBtZS4gDQoNCmh0
+dHA6Ly93d3cudm5mb29kY28uY29tL2Zpenh2dW9wZjMvMGFyYnFwcC5waHA/YkdsdWRYZ3Riblpr
+YVcxdFFHeHBjM1J6TGpBeExtOXladz09Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
