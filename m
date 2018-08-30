@@ -1,10 +1,12 @@
-From: "Jacquelynn Perez" <Jacquelynn-rMjmOeZEhljYR9Abf1NTcQShSUWmkkNl@public.gmane.org>
-Subject: Jacquelynn
-Date: Thu, 30 Aug 2018 12:08:18 +0200
-Message-ID: <THAK-3340-vir@adamforney.us>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "Mail Service" <no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org>
+Subject: Prompt! linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, you can confirm your email
+ account with a single click
+Date: Thu, 30 Aug 2018 11:17:55 +0000
+Message-ID: <20180830113445.3B0FA2110718F@ml01.01.org>
+Reply-To: no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,11 +20,15 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2hvIGNhbiBtYWtlIHN1Y2ggYmVhdXRpZnVsIGJvbWJzaGVsbCBsaWtlIG1lIGhhcHB5Pw0KSSBj
-YW7igJl0IGV4aXN0IHdpdGhvdXQgbG92ZSENCkxhY2sgb2Ygc2V4dWFsIGxpZmUgaXMgbXkgYmln
-IHByb2JsZW0uDQpHdXlzIGFyZSB2ZXJ5IG1vZGVzdCB0byBnZXQgYWNxdWFpbnRlZCB3aXRoIG1l
-LiANCg0KaHR0cDovL3d3dy5zdXp1a2l4YWxhcGEubXgvcm01MWY3azd3My9xanJuNXV6Yml0LnBo
-cD9iR2x1ZFhndGJuWmthVzF0UUd4cGMzUnpMakF4TG05eVp3PT0KX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+ - This mail is in HTML. Some elements may be ommited in plain text. -
+
+
+Email protection!
+linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+
+, you can confirm your email account with a single click.
+
+
+
+check
+If we do not receive a verification reply within the next 24 hours, we will assume that you are a fraudulent user and close your email account until the correct verification is restored so that you can access your email as before.
