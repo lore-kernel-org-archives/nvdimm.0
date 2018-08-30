@@ -1,9 +1,9 @@
-From: <acbiimaiech-4tbkXiZHuBlZroRs9YW3xA@public.gmane.org>
-Subject: Your sexual stamina depends on your penis size
-Date: 30 Aug 2018 22:56:25 +0100
-Message-ID: <001701d440b1$058195e2$90715c9c@eesvok>
+From: =?GB2312?B?uquV072o?= <pvihengli-+GtPlm9baosxWmn6pTwKotBPR1lH4CV8@public.gmane.org>
+Subject: =?GB2312?B?16q3oqO6yOe6zr2owaK8qNCn1sa2yKGiS1BJzOXPtQ==?=
+Date: Fri, 31 Aug 2018 05:55:38 +0800
+Message-ID: <20180830215543.796B921109386@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5407480149429610661=="
+Content-Type: multipart/mixed; boundary="===============6511670181106523570=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,25 +14,24 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+This is a multi-part message in MIME format
 
---===============5407480149429610661==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
+--===============6511670181106523570==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-In public girls may say, that man's s'e_xual skill matters much more, =
-than his phallos size.=20
- But we all know, that privately, they affirm the opposite!
-The truth is that large dick is more powerful and stimulating!
+Message-ID: <550554550554550554550554550554550554550554550554550554550554550554>
+From: linux-nvdimm ----<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <pvihengli-+GtPlm9baosxWmn6pTwKotBPR1lH4CV8@public.gmane.org>  
 
+   Ïê/Çé/ÔÄ/¶Á/¸½/¼þ
 
- TitanGel will help you to bring your s'e_xual skills to absolute =
-perfection!
---===============5407480149429610661==
+2018-08-31  05:55:37
+
+--===============6511670181106523570==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -43,4 +42,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============5407480149429610661==--
+--===============6511670181106523570==--
