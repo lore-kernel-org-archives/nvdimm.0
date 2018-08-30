@@ -1,8 +1,7 @@
-From: "Jackqueline Peterson"
- <JackquelinePeterson-u3VBLyUamRI5Do/vL2I4LjK6b12kZ1wKrbeGT+O/kUk@public.gmane.org>
-Subject: Jackqueline
-Date: Thu, 30 Aug 2018 12:07:55 +0200
-Message-ID: <DIDS-0952399-igv@hersheyfieldhockey.us>
+From: "Angelyn Powell" <Powell-VXuSyt5AHirYR9Abf1NTcQShSUWmkkNl@public.gmane.org>
+Subject: Angelyn
+Date: Thu, 30 Aug 2018 12:07:59 +0200
+Message-ID: <FTVO-032923139-drt@adamforney.us>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,9 +18,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Who can make such soft-spoken stunner like me happy?
-I really need love!
-Lack of sexual life is my big problem.
-Boys are very shy to call me on a date. 
+All males are bastards!
+Are you different? I am a thoughtful ladylove who desires to get gentle kisses and hugs every day.
+You can take a look at my selfies and videos following the link.
 
-http://www.ag-web.ru/r7f3zsu/0bta4t1px.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
+http://www.wm-marketing.ru/kmogivqu/121s7r1bn.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
