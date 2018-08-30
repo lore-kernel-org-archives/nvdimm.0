@@ -1,32 +1,73 @@
-From: <cufeban-MOWONO0qtgpBDgjK7y7TUQ@public.gmane.org>
-Subject: I'm a princess who's waiting for her prince!
-Date: 30 Jul 2018 16:04:50 -0600
-Message-ID: <002e01d42856$07b9e9c4$e2528393$@flurred.com>
-Mime-Version: 1.0
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2374821107833
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 15:05:49 -0700 (PDT)
+Subject: Re: [PATCH v1] libnvdimm, namespace: Replace kmemdup() with kstrndup()
+References: <20180611134721.5862-1-andriy.shevchenko@linux.intel.com>
+ <20180830115610.GN11447@smile.fi.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <37b9f2e8-9612-c0e6-6466-63301372c025@intel.com>
+Date: Thu, 30 Aug 2018 15:05:49 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180830115610.GN11447@smile.fi.intel.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+List-ID: <linux-nvdimm@lists.01.org>
 
-Good day, dear sir. 
 
-I am a woman, who believe in a destiny with a cheerful future for myself and that you could become a part of it.
-I do want to be next to a loving man. I wish to find a man that can give me a real hope and love!
 
-Hope you're interested in becoming a part of my adventure and will reply back soon! 
+On 08/30/2018 04:56 AM, Andy Shevchenko wrote:
+> On Mon, Jun 11, 2018 at 04:47:21PM +0300, Andy Shevchenko wrote:
+>> kstrndup() takes care of '\0' terminator for the strings.
+>>
+>> Use it here instead of kmemdup() + explicit terminating the input string.
+>>
+> 
+> Any comments on this?
 
-If you are interested in getting to know me closer, please write to my personal e-mail - beautysevgi-97jfqw80gc5Wk0Htik3J/w@public.gmane.org
+Applied. Sorry looks like this one got missed.
 
-Your true soul, 
-S.V.
+> 
+>> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>> ---
+>>  drivers/nvdimm/namespace_devs.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+>> index 28afdd668905..19525f025539 100644
+>> --- a/drivers/nvdimm/namespace_devs.c
+>> +++ b/drivers/nvdimm/namespace_devs.c
+>> @@ -270,11 +270,10 @@ static ssize_t __alt_name_store(struct device *dev, const char *buf,
+>>  	if (dev->driver || to_ndns(dev)->claim)
+>>  		return -EBUSY;
+>>  
+>> -	input = kmemdup(buf, len + 1, GFP_KERNEL);
+>> +	input = kstrndup(buf, len, GFP_KERNEL);
+>>  	if (!input)
+>>  		return -ENOMEM;
+>>  
+>> -	input[len] = '\0';
+>>  	pos = strim(input);
+>>  	if (strlen(pos) + 1 > NSLABEL_NAME_LEN) {
+>>  		rc = -EINVAL;
+>> -- 
+>> 2.17.1
+>>
+> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
