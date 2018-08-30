@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1A9EB210D93B5
- for <linux-nvdimm@lists.01.org>; Fri,  3 Aug 2018 17:02:12 -0700 (PDT)
-Subject: [PATCH v7 08/12] nfit/libnvdimm: add freeze security support to
- Intel nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 03 Aug 2018 17:01:54 -0700
-Message-ID: <153334091448.60955.17393000104848914817.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-References: <153334018216.60955.13349338519981704524.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1251321107827
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:11 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 30 Aug 2018 12:53:50 -0600
+Message-Id: <20180830185352.3369-12-logang@deltatee.com>
+In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
+References: <20180830185352.3369-1-logang@deltatee.com>
+Subject: [PATCH v5 11/13] nvme-pci: Add a quirk for a pseudo CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,154 +17,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security on Intel nvdimm. This locks out any
-changes to security for the DIMM unless a reboot is done. This is triggered
-by writing "freeze" to the "security" sysfs attribute. libnvdimm will
-support the generic freeze_lock API call.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+We'd like to use some of these older cards to test P2P memory.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   22 +++++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 75 insertions(+)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 21d30222371f..ba886f1f5399 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,53 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_freeze_lock cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = 0,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 4030743c90aa..8e6f3bcfe956 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -90,6 +90,13 @@ enum nvme_quirks {
+ 	 * Set MEDIUM priority on SQ creation
+ 	 */
+ 	NVME_QUIRK_MEDIUM_PRIO_SQ		= (1 << 7),
 +
-+	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
- {
-@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
- 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
- 			*state = NVDIMM_SECURITY_LOCKED;
-+		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
-+				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
-+			*state = NVDIMM_SECURITY_FROZEN;
- 		else
- 			*state = NVDIMM_SECURITY_UNLOCKED;
- 	} else
-@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
- 	.disable = intel_dimm_security_disable,
-+	.freeze_lock = intel_dimm_security_freeze_lock,
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 8),
  };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 4169aabe814e..ccb5fd13cd57 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -143,6 +143,26 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
+ 
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index bb2120d30e39..f898f2ab1420 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1636,6 +1636,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
  
-+static int nvdimm_security_freeze_lock(struct device *dev)
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
 +{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	int rc;
-+
-+	if (!nvdimm->security_ops)
-+		return 0;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return 0;
-+
-+	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
-+	if (rc < 0)
-+		return rc;
-+
-+	nvdimm_security_get_state(dev);
-+	return 0;
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
 +}
 +
- static int nvdimm_security_disable(struct device *dev)
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
  {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -795,6 +815,8 @@ static ssize_t security_store(struct device *dev,
- 		rc = nvdimm_security_change_key(dev, old_id, new_id);
- 	} else if (sysfs_streq(buf, "disable"))
- 		rc = nvdimm_security_disable(dev);
-+	else if (sysfs_streq(buf, "freeze"))
-+		rc = nvdimm_security_freeze_lock(dev);
- 	else
- 		return -EINVAL;
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1655,10 +1662,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c60ab4b238f3..bcab42caa948 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
- 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
-+	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm);
- };
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
  
- void badrange_init(struct badrange *badrange);
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2707,6 +2719,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2601),	/* CNEX Granby */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
+-- 
+2.11.0
 
 _______________________________________________
 Linux-nvdimm mailing list
