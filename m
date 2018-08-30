@@ -1,10 +1,9 @@
-From: "Caryn Garcia" <CarynGarcia-o8MJf9HpqgJ6PsmYaCgnBje0vay+Epll@public.gmane.org>
-Subject: Caryn
-Date: Thu, 30 Aug 2018 22:25:02 +0200
-Message-ID: <GYIEKL-712119801-kzcx@akanblue.us>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: <acbiimaiech-4tbkXiZHuBlZroRs9YW3xA@public.gmane.org>
+Subject: Your sexual stamina depends on your penis size
+Date: 30 Aug 2018 22:56:25 +0100
+Message-ID: <001701d440b1$058195e2$90715c9c@eesvok>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============5407480149429610661=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,10 +17,30 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2hvIGNhbiBtYWtlIHN1Y2ggbmFpdmUgYm9tYnNoZWxsIGxpa2UgbWUgaGFwcHk/DQpJIGNhbuKA
-mXQgbGl2ZSB3aXRob3V0IGxvdmUhDQpMYWNrIG9mIHNleCBpcyBteSBtYWluIHByb2JsZW0uDQpC
-b3lzIGFyZSB2ZXJ5IHNoeSB0byBtZWV0IG1lLiANCg0KaHR0cDovL3d3dy5icmlnaXR0ZW55Yy5j
-b20vcjJhanpidy90ZHF4dnc3LnBocD9iR2x1ZFhndGJuWmthVzF0UUd4cGMzUnpMakF4TG05eVp3
-PT0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This is a multi-part message in MIME format.
+
+--===============5407480149429610661==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: quoted-printable
+
+In public girls may say, that man's s'e_xual skill matters much more, =
+than his phallos size.=20
+ But we all know, that privately, they affirm the opposite!
+The truth is that large dick is more powerful and stimulating!
+
+
+ TitanGel will help you to bring your s'e_xual skills to absolute =
+perfection!
+--===============5407480149429610661==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============5407480149429610661==--
