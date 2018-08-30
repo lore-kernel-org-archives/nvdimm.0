@@ -1,10 +1,10 @@
-From: "Mercedez Barnes" <Mercedez-LQPkC9AdwcQoJzsM8sXKIbWW8rzylt46nKs2IOyhHvI@public.gmane.org>
-Subject: Mercedez
-Date: Wed, 29 Aug 2018 23:06:11 +0200
-Message-ID: <MZUVVBIDX-36929191-dht@thrivewebgroup.us>
+From: "Jacqulyn Cooper" <JacqulynCooper-uZhlTWKng+wfxDrQVrMN+tzYSYJoAkse@public.gmane.org>
+Subject: Jacqulyn
+Date: Thu, 30 Aug 2018 05:25:11 +0200
+Message-ID: <ZKLWVMZ-797846423-ocsk@anitapandey0.us>
 Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,8 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-How are you doing! I am looking for a nice swain who can be tender with me! 
-Are you lonely? Do you like to get a new GF?
-I am sure you do. Just follow the link below to admire my sexy pics.
-
-http://www.centraldesign.com.br/isuos/9r30qrin.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
+V2hhdCBhcmUgeW91IGJ1c3kgZm9yIHJpZ2h0IG5vdz8NCkRvIHlvdSB3YW50IHRvIGhhdmUgYW4g
+aW5jcmVkaWJsZSBuaWdodCB3aXRoIGEgbWFydmVsb3VzIGxhc3M/DQpJ4oCZbSByZWFkeSB0byBz
+YXRpc2Z5IGFsbCB5b3VyIHNleCBkcmVhbXMuDQpDbGljayBvbiB0aGUgbGluayB0byByZXBseSBt
+ZS4NCg0KaHR0cDovL3d3dy5qc2hlc2pzLmNvbS9ramVmMHF3L25pOGtjbG8ucGhwP2JHbHVkWGd0
+Ym5aa2FXMXRRR3hwYzNSekxqQXhMbTl5Wnc9PQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1udmRpbW0K
