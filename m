@@ -1,7 +1,8 @@
-From: "Paris Patterson" <ParisPatterson-iMeV5NyTvMkoJzsM8sXKIbWW8rzylt46nKs2IOyhHvI@public.gmane.org>
-Subject: Paris
-Date: Thu, 30 Aug 2018 08:07:17 +0200
-Message-ID: <DQLXP-53155530-nac@thrivewebgroup.us>
+From: "Jackqueline Peterson"
+ <JackquelinePeterson-u3VBLyUamRI5Do/vL2I4LjK6b12kZ1wKrbeGT+O/kUk@public.gmane.org>
+Subject: Jackqueline
+Date: Thu, 30 Aug 2018 12:07:55 +0200
+Message-ID: <DIDS-0952399-igv@hersheyfieldhockey.us>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,8 +19,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-All studs are bastards!
-Are you different? I am a elegant sweetie who desires to get tender kisses and hugs permanently.
-You can see my selfies and scenes following the link.
+Who can make such soft-spoken stunner like me happy?
+I really need love!
+Lack of sexual life is my big problem.
+Boys are very shy to call me on a date. 
 
-http://www.goldproperties.ie/qdph8dilur/bf09ji.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
+http://www.ag-web.ru/r7f3zsu/0bta4t1px.php?bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw==
