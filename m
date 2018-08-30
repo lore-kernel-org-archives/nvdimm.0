@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 73CB62110747B
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 11:54:03 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 30 Aug 2018 12:53:46 -0600
-Message-Id: <20180830185352.3369-8-logang@deltatee.com>
-In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
-Subject: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and check
- support for requests
+ by ml01.01.org (Postfix) with ESMTPS id D758B21107857
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 14:55:25 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] libnvdimm, region_devs: stop NDD_ALIASING bit test if
+ one test pass
+Date: Thu, 30 Aug 2018 21:51:01 +0000
+Message-ID: <1535665860.5995.78.camel@intel.com>
+References: <1534651288-30306-1-git-send-email-oceanhehy@gmail.com>
+In-Reply-To: <1534651288-30306-1-git-send-email-oceanhehy@gmail.com>
+Content-Language: en-US
+Content-ID: <A477C5E3CE53F441B670DD46FE4182C9@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,77 +21,93 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "oceanhehy@gmail.com" <oceanhehy@gmail.com>, "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "hehy1@lenovo.com" <hehy1@lenovo.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-supports targeting P2P memory.
 
-When a request is submitted we check if PCI P2PDMA memory is assigned
-to the first page in the bio. If it is, we ensure the queue it's
-submitted to supports it, and enforce REQ_NOMERGE.
+On Sun, 2018-08-19 at 00:01 -0400, Ocean He wrote:
+> From: Ocean He <hehy1@lenovo.com>
+> 
+> There is no need to finish entire loop to execute NDD_ALIASING bit
+> test
+> against every nvdimm->flags. In practice, all the nd_mapping->nvdimm
+> have the same flags.
+> 
+> Because the check of alias is "if (alias)" but not 
+> "if (alias == nd_region->ndr_mappings)", there is no function change
+> while
+> just save a few cycles.  
+> 
+> Signed-off-by: Ocean He <hehy1@lenovo.com>
+> ---
+> A test to check if all the nd_mapping->nvdimm have the same flags,
+> using 
+> Lenovo ThinkSystem SR630 and 4.18-rc6.
+> 
+> # ipmctl show -dimm
+> 
+> DimmID  Capacity        HealthState     ActionRequired  LockState    
+>    FWVersion
+> 0x0021  125.7
+> GiB       Healthy         0               Disabled        01.00.00.48
+> 88
+> 0x0121  125.7
+> GiB       Healthy         0               Disabled        01.00.00.48
+> 88
+> 0x1021  125.7
+> GiB       Healthy         0               Disabled        01.00.00.48
+> 88
+> 0x1121  125.7
+> GiB       Healthy         0               Disabled        01.00.00.48
+> 88
+> 
+> # ipmctl create -f -goal -socket 0x0 PersistentMemoryType=AppDirect
+> 
+> # ipmctl create -f -goal -socket 0x1 PersistentMemoryType=AppDirect
+> 
+> # reboot, to make goal configuration take effect.
+> 
+> # ndctl create-namespace -r region0 -s 100m -t pmem -m fsdax
+> 
+> # ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
+> 
+> # reboot and find all the nd_mapping->nvdimm have the same flags.
+> 
+>  drivers/nvdimm/region_devs.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/nvdimm/region_devs.c
+> b/drivers/nvdimm/region_devs.c
+> index ec3543b..fc3bc1c 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -234,8 +234,10 @@ int nd_region_to_nstype(struct nd_region
+> *nd_region)
+>  			struct nd_mapping *nd_mapping = &nd_region-
+> >mapping[i];
+>  			struct nvdimm *nvdimm = nd_mapping->nvdimm;
+>  
+> -			if (test_bit(NDD_ALIASING, &nvdimm->flags))
+> +			if (test_bit(NDD_ALIASING, &nvdimm->flags))
+> {
+>  				alias++;
+> +				break;
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
----
- block/blk-core.c       | 14 ++++++++++++++
- include/linux/blkdev.h |  3 +++
- 2 files changed, 17 insertions(+)
+I think we can go a step further, and instead of the 'break' followed
+by a check for the 'alias' variable, in the loop, just return
+ND_DEVICE_NAMESPACE_PMEM if the NDD_ALIASING bit is found for any
+mapping. Outside the loop, simply return ND_DEVICE_NAMESPACE_IO. That
+makes it much cleaner and now we can get rid of 'alias' entirely.
 
-diff --git a/block/blk-core.c b/block/blk-core.c
-index dee56c282efb..cc0289c7b983 100644
---- a/block/blk-core.c
-+++ b/block/blk-core.c
-@@ -2264,6 +2264,20 @@ generic_make_request_checks(struct bio *bio)
- 	if ((bio->bi_opf & REQ_NOWAIT) && !queue_is_rq_based(q))
- 		goto not_supported;
- 
-+	/*
-+	 * Ensure PCI P2PDMA memory is not used in requests to queues that
-+	 * have no support. This should never happen if the higher layers using
-+	 * P2PDMA do the right thing and use the proper P2PDMA client
-+	 * infrastructure. Also, ensure such requests use REQ_NOMERGE
-+	 * seeing requests can not mix P2PDMA and non-P2PDMA memory at
-+	 * this time.
-+	 */
-+	if (bio->bi_vcnt && is_pci_p2pdma_page(bio->bi_io_vec->bv_page)) {
-+		if (WARN_ON_ONCE(!blk_queue_pci_p2pdma(q)))
-+			goto not_supported;
-+		bio->bi_opf |= REQ_NOMERGE;
-+	}
-+
- 	if (should_fail_bio(bio))
- 		goto end_io;
- 
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index d6869e0e2b64..7bf80ca802e1 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -699,6 +699,7 @@ struct request_queue {
- #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
- #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
- #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
-+#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
- 
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
-@@ -731,6 +732,8 @@ bool blk_queue_flag_test_and_clear(unsigned int flag, struct request_queue *q);
- #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
- #define blk_queue_scsi_passthrough(q)	\
- 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
-+#define blk_queue_pci_p2pdma(q)	\
-+	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
- 
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
--- 
-2.11.0
-
+> +			}
+>  		}
+>  		if (alias)
+>  			return ND_DEVICE_NAMESPACE_PMEM;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
