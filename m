@@ -1,7 +1,7 @@
-From: "Jack Scott" <JackScott-pLsQOdNfxngsiWVehKdxnfAX2ruv4X0knKs2IOyhHvI@public.gmane.org>
-Subject: Jack
-Date: Thu, 30 Aug 2018 16:18:30 +0200
-Message-ID: <VEJA-12399412-jcvh@thriverecruits.us>
+From: "Julene Mitchell" <JuleneMitchell-Gs14QGTfZrFwgcvvejugUnNtEUiqdi9I@public.gmane.org>
+Subject: Julene
+Date: Thu, 30 Aug 2018 16:18:41 +0200
+Message-ID: <XBWWD-62810805-obf@socalmk.us>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,11 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-U3VwISBBcmUgeW91IGxvb2tpbmcgZm9yIGEgY3V0ZSBob25leSB0byBoYXZlIHNleD8NClRoaXMg
-bW9tZW50IGlzIHlvdXIgbHVja3kgY2hhbmNlLiBKdXN0IHRleHQgbWUgYmFjayBmb2xsb3dpbmcg
-dGhlIGxpbmsgYW5kIHlvdeKAmWxsIGV4cGVyaWVuY2UgZXZlcnl0aGluZyB5b3UgZHJlYW0gYWJv
-dXQuDQoNCmh0dHA6Ly93d3cua3Vyc3lzdWRvdm9kaXRlbGVpLnJ1LzNybGxpL2ZwMWt4dXExancu
-cGhwP2JHbHVkWGd0Ym5aa2FXMXRRR3hwYzNSekxqQXhMbTl5Wnc9PQpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+SeKAmW0gaGF2aW5nIGEgY29ja3RhaWwgbmVhciB5b3VyIGhvdXNlLg0KRG8geW91IHdhbnQgdG8g
+c2VlIG1lPw0KSSBoYXZlIGEgbG90IG9mIGZyZWUgdGltZSBhbmQgSeKAmW0gZXhjaXRlZCBhYm91
+dCBuZXcgYWNxdWFpbnRhbmNlcy4NClNlbmQgeW91IG15IGxvY2F0aW9uLCBnZW50bGVtYW4uDQpD
+bGljayB0aGUgbGluay4NCg0KaHR0cDovL3d3dy50cGNvcGlhcy5jb20uYnIvajFiMjQwc2IvYjI4
+azJ2Zi5waHA/YkdsdWRYZ3RiblprYVcxdFFHeHBjM1J6TGpBeExtOXladz09Cl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
