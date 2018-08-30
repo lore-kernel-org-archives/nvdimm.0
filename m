@@ -1,15 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x241.google.com (mail-io0-x241.google.com
+ [IPv6:2607:f8b0:4001:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8DF3A210DF5CC
- for <linux-nvdimm@lists.01.org>; Tue,  7 Aug 2018 15:11:46 -0700 (PDT)
-Subject: [PATCH 1/2] ext4: Close race between direct IO and
- ext4_break_layouts()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 07 Aug 2018 15:11:37 -0700
-Message-ID: <153367989755.37314.6889218648604435494.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CFC2921107827
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 12:19:29 -0700 (PDT)
+Received: by mail-io0-x241.google.com with SMTP id y10-v6so8485091ioa.10
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 12:19:29 -0700 (PDT)
+Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
+ check support for requests
+References: <20180830185352.3369-1-logang@deltatee.com>
+ <20180830185352.3369-8-logang@deltatee.com>
+ <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
+ <7c5b9d2c-d94e-582c-f1d7-0827dbb7df7c@deltatee.com>
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <56e1a633-bad3-cac7-13b4-747f0001f5c8@kernel.dk>
+Date: Thu, 30 Aug 2018 13:19:25 -0600
 MIME-Version: 1.0
+In-Reply-To: <7c5b9d2c-d94e-582c-f1d7-0827dbb7df7c@deltatee.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,74 +30,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: tytso@mit.edu, darrick.wong@oracle.com, jack@suse.cz, zwisler@kernel.org
-Cc: linux-nvdimm@lists.01.org, david@fromorbit.com, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, lczerner@redhat.com, linux-ext4@vger.kernel.org, hch@lst.de
+To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ross Zwisler <zwisler@kernel.org>
+On 8/30/18 1:17 PM, Logan Gunthorpe wrote:
+> 
+> 
+> On 30/08/18 01:11 PM, Jens Axboe wrote:
+>> On 8/30/18 12:53 PM, Logan Gunthorpe wrote:
+>>> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+>>> supports targeting P2P memory.
+>>>
+>>> When a request is submitted we check if PCI P2PDMA memory is assigned
+>>> to the first page in the bio. If it is, we ensure the queue it's
+>>> submitted to supports it, and enforce REQ_NOMERGE.
+>>
+>> I think this belongs in the caller - both the validity check, and
+>> passing in NOMERGE for this type of request. I don't want to impose
+>> this overhead on everything, for a pretty niche case.
+> 
+> Well, the point was to prevent driver writers from doing the wrong
+> thing. The WARN_ON would be a bit pointless in the driver if we rely on
+> the driver to either do the right thing or add the WARN_ON themselves.
+> 
+> If I'm going to change anything I'd drop the warning entirely and move
+> the NO_MERGE back into the caller...
 
-If the refcount of a page is lowered between the time that it is returned
-by dax_busy_page() and when the refcount is again checked in
-ext4_break_layouts() => ___wait_var_event(), the waiting function
-ext4_wait_dax_page() will never be called.  This means that
-ext4_break_layouts() will still have 'retry' set to false, so we'll stop
-looping and never check the refcount of other pages in this inode.
+Of course, if you move it into the caller, the warning makes no sense.
 
-Instead, always continue looping as long as dax_layout_busy_page() gives us
-a page which it found with an elevated refcount.
+> Note: the check will be compiled out if the kernel does not support PCI P2P.
 
-Note that this works around the race exposed by my unit test, but I think
-that there is another race that needs to be addressed, probably with
-additional synchronization added between direct I/O and
-{ext4,xfs}_break_layouts().
+Sure, but then distros tend to enable everything...
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/inode.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 8f6ad7667974..d2663a1e3ec2 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4191,9 +4191,8 @@ int ext4_update_disksize_before_punch(struct inode *inode, loff_t offset,
- 	return 0;
- }
- 
--static void ext4_wait_dax_page(struct ext4_inode_info *ei, bool *did_unlock)
-+static void ext4_wait_dax_page(struct ext4_inode_info *ei)
- {
--	*did_unlock = true;
- 	up_write(&ei->i_mmap_sem);
- 	schedule();
- 	down_write(&ei->i_mmap_sem);
-@@ -4203,14 +4202,12 @@ int ext4_break_layouts(struct inode *inode)
- {
- 	struct ext4_inode_info *ei = EXT4_I(inode);
- 	struct page *page;
--	bool retry;
- 	int error;
- 
- 	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
- 		return -EINVAL;
- 
- 	do {
--		retry = false;
- 		page = dax_layout_busy_page(inode->i_mapping);
- 		if (!page)
- 			return 0;
-@@ -4218,8 +4215,8 @@ int ext4_break_layouts(struct inode *inode)
- 		error = ___wait_var_event(&page->_refcount,
- 				atomic_read(&page->_refcount) == 1,
- 				TASK_INTERRUPTIBLE, 0, 0,
--				ext4_wait_dax_page(ei, &retry));
--	} while (error == 0 && retry);
-+				ext4_wait_dax_page(ei));
-+	} while (error == 0);
- 
- 	return error;
- }
+-- 
+Jens Axboe
 
 _______________________________________________
 Linux-nvdimm mailing list
