@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2374821107833
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 15:05:49 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 1462921106FA6
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 04:56:17 -0700 (PDT)
+Date: Thu, 30 Aug 2018 14:56:10 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Subject: Re: [PATCH v1] libnvdimm, namespace: Replace kmemdup() with kstrndup()
+Message-ID: <20180830115610.GN11447@smile.fi.intel.com>
 References: <20180611134721.5862-1-andriy.shevchenko@linux.intel.com>
- <20180830115610.GN11447@smile.fi.intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Message-ID: <37b9f2e8-9612-c0e6-6466-63301372c025@intel.com>
-Date: Thu, 30 Aug 2018 15:05:49 -0700
 MIME-Version: 1.0
-In-Reply-To: <20180830115610.GN11447@smile.fi.intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180611134721.5862-1-andriy.shevchenko@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,49 +23,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 08/30/2018 04:56 AM, Andy Shevchenko wrote:
-> On Mon, Jun 11, 2018 at 04:47:21PM +0300, Andy Shevchenko wrote:
->> kstrndup() takes care of '\0' terminator for the strings.
->>
->> Use it here instead of kmemdup() + explicit terminating the input string.
->>
+On Mon, Jun 11, 2018 at 04:47:21PM +0300, Andy Shevchenko wrote:
+> kstrndup() takes care of '\0' terminator for the strings.
 > 
-> Any comments on this?
-
-Applied. Sorry looks like this one got missed.
-
+> Use it here instead of kmemdup() + explicit terminating the input string.
 > 
->> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> ---
->>  drivers/nvdimm/namespace_devs.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
->> index 28afdd668905..19525f025539 100644
->> --- a/drivers/nvdimm/namespace_devs.c
->> +++ b/drivers/nvdimm/namespace_devs.c
->> @@ -270,11 +270,10 @@ static ssize_t __alt_name_store(struct device *dev, const char *buf,
->>  	if (dev->driver || to_ndns(dev)->claim)
->>  		return -EBUSY;
->>  
->> -	input = kmemdup(buf, len + 1, GFP_KERNEL);
->> +	input = kstrndup(buf, len, GFP_KERNEL);
->>  	if (!input)
->>  		return -ENOMEM;
->>  
->> -	input[len] = '\0';
->>  	pos = strim(input);
->>  	if (strlen(pos) + 1 > NSLABEL_NAME_LEN) {
->>  		rc = -EINVAL;
->> -- 
->> 2.17.1
->>
+
+Any comments on this?
+
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/nvdimm/namespace_devs.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 > 
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index 28afdd668905..19525f025539 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -270,11 +270,10 @@ static ssize_t __alt_name_store(struct device *dev, const char *buf,
+>  	if (dev->driver || to_ndns(dev)->claim)
+>  		return -EBUSY;
+>  
+> -	input = kmemdup(buf, len + 1, GFP_KERNEL);
+> +	input = kstrndup(buf, len, GFP_KERNEL);
+>  	if (!input)
+>  		return -ENOMEM;
+>  
+> -	input[len] = '\0';
+>  	pos = strim(input);
+>  	if (strlen(pos) + 1 > NSLABEL_NAME_LEN) {
+>  		rc = -EINVAL;
+> -- 
+> 2.17.1
+> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
