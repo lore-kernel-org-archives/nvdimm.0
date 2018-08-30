@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8EABE21107832
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 13:06:14 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9985F21107832
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 13:05:47 -0700 (PDT)
 Subject: [PATCH] mm: fix BUG_ON() in vmf_insert_pfn_pud() from VM_MIXEDMAP
  removal
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 30 Aug 2018 13:06:13 -0700
-Message-ID: <153565957352.35524.1005746906902065126.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 30 Aug 2018 13:05:46 -0700
+Message-ID: <153565954666.35458.15832314745699968487.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,7 +22,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, jack@suse.com, linux-nvdimm@lists.01.org
+Cc: jack@suse.com, linux-mm@kvack.org, dan.j.williams@intel.com.vishal.l.verma, ""@intel.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 It looks like I missed the PUD path when doing VM_MIXEDMAP removal.
