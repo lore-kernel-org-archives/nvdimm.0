@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x244.google.com (mail-qt0-x244.google.com
- [IPv6:2607:f8b0:400d:c0d::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 181062098EABD
- for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 11:14:36 -0700 (PDT)
-Received: by mail-qt0-x244.google.com with SMTP id b15-v6so20930712qtp.11
- for <linux-nvdimm@lists.01.org>; Wed, 01 Aug 2018 11:14:36 -0700 (PDT)
-Subject: Re: [ndclt PATCH] ndctl, monitor: Fix duplicate prefix in monitor.log
-References: <20180731051503.30719-1-qi.fuli@jp.fujitsu.com>
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Message-ID: <533dc62c-bac1-15aa-0e8d-bc444e8ef06b@gmail.com>
-Date: Wed, 1 Aug 2018 14:14:36 -0400
+ by ml01.01.org (Postfix) with ESMTPS id EBE6F2110A3D7
+ for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 03:22:55 -0700 (PDT)
+Date: Fri, 31 Aug 2018 12:22:48 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH] mm: fix BUG_ON() in vmf_insert_pfn_pud() from
+ VM_MIXEDMAP removal
+Message-ID: <20180831102248.GE11622@quack2.suse.cz>
+References: <153565957352.35524.1005746906902065126.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20180731051503.30719-1-qi.fuli@jp.fujitsu.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <153565957352.35524.1005746906902065126.stgit@djiang5-desk3.ch.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,63 +24,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: qi.fuli@jp.fujitsu.com, linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, jack@suse.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi QI,
-
-On 07/31/2018 01:15 AM, QI Fuli wrote:
-> When a monitor runs with [--log] option, the prefix will be dually
-> added to monitor.log. Therefore, the monitor cannot log the smart
-> notification to syslog. This patch is used to prevent prefix from
-> being dually added to monitor.log.
+On Thu 30-08-18 13:06:13, Dave Jiang wrote:
+> It looks like I missed the PUD path when doing VM_MIXEDMAP removal.
+> This can be triggered by:
+> 1. Boot with memmap=4G!8G
+> 2. build ndctl with destructive flag on
+> 3. make TESTS=device-dax check
 > 
-> Fixes: fdf6b6844ccf ("ndctl, monitor: add a new command - monitor")
-> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> [  +0.000675] kernel BUG at mm/huge_memory.c:824!
+> 
+> Applying the same change that was applied to vmf_insert_pfn_pmd() in the
+> original patch.
+> 
+> Fixes: e1fb4a08649 ("dax: remove VM_MIXEDMAP for fsdax and device dax")
+> 
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+
+Looks good. You can add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
 > ---
->  ndctl/monitor.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  mm/huge_memory.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-> index c6419ad..4e5daf5 100644
-> --- a/ndctl/monitor.c
-> +++ b/ndctl/monitor.c
-> @@ -614,7 +614,8 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
->  		goto out;
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index c3bc7e9c9a2a..533f9b00147d 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -821,11 +821,11 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+>  	 * but we need to be consistent with PTEs and architectures that
+>  	 * can't support a 'special' bit.
+>  	 */
+> -	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
+> +	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
+> +			!pfn_t_devmap(pfn));
+>  	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+>  						(VM_PFNMAP|VM_MIXEDMAP));
+>  	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+> -	BUG_ON(!pfn_t_devmap(pfn));
 >  
->  	if (monitor.log) {
-> -		fix_filename(prefix, (const char **)&monitor.log);
-> +		if (strncmp(monitor.log, "./", 2) != 0)
-> +			fix_filename(prefix, (const char **)&monitor.log);
-
-prefix is not needed to 'syslog' and 'standard', so why don't you move the strncmp()
-before fix_filename(), like as:
-
-@@ -614,13 +619,14 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
-                goto out;
- 
-        if (monitor.log) {
--               fix_filename(prefix, (const char **)&monitor.log);
-                if (strncmp(monitor.log, "./syslog", 8) == 0)
-                        ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
-                else if (strncmp(monitor.log, "./standard", 10) == 0)
-                        ; /*default, already set */
--               else
-+               else {
-+                       fix_filename(prefix, (const char **)&monitor.log);
-                        ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_file);
-+               }
-        }
- 
-        if (monitor.daemon) {
-
-Thanks,
-Masa
-
->  		if (strncmp(monitor.log, "./syslog", 8) == 0)
->  			ndctl_set_log_fn((struct ndctl_ctx *)ctx, log_syslog);
->  		else if (strncmp(monitor.log, "./standard", 10) == 0)
+>  	if (addr < vma->vm_start || addr >= vma->vm_end)
+>  		return VM_FAULT_SIGBUS;
 > 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
