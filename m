@@ -2,24 +2,21 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 44B2B2110A3CE
- for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 02:42:58 -0700 (PDT)
-Date: Fri, 31 Aug 2018 11:42:55 +0200
+ by ml01.01.org (Postfix) with ESMTPS id 83E022110A3CC
+ for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 02:15:01 -0700 (PDT)
+Date: Fri, 31 Aug 2018 11:14:59 +0200
 From: Jan Kara <jack@suse.cz>
-Subject: Re: Snapshot target and DAX-capable devices
-Message-ID: <20180831094255.GB11622@quack2.suse.cz>
+Subject: Re: [dm-devel] Snapshot target and DAX-capable devices
+Message-ID: <20180831091459.GA11622@quack2.suse.cz>
 References: <20180827160744.GE4002@quack2.suse.cz>
  <e38303902267d2d8bae8b0c88da84a4ed668e9fb.camel@hpe.com>
  <20180828075025.GA17756@quack2.suse.cz>
  <20180828175630.GA1197@redhat.com>
  <20180830093028.GC1767@quack2.suse.cz>
- <20180830184907.GA14867@redhat.com>
- <x494lfbabwi.fsf@segfault.boston.devel.redhat.com>
- <alpine.LRH.2.02.1808301545200.30950@file01.intranet.prod.int.rdu2.redhat.com>
- <20180830233809.GH1572@dastard>
+ <x498t4naclf.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20180830233809.GH1572@dastard>
+In-Reply-To: <x498t4naclf.fsf@segfault.boston.devel.redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,88 +28,100 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 31-08-18 09:38:09, Dave Chinner wrote:
-> On Thu, Aug 30, 2018 at 03:47:32PM -0400, Mikulas Patocka wrote:
-> > 
-> > 
-> > On Thu, 30 Aug 2018, Jeff Moyer wrote:
-> > 
-> > > Mike Snitzer <snitzer@redhat.com> writes:
-> > > 
-> > > > Until we properly add DAX support to dm-snapshot I'm afraid we really do
-> > > > need to tolerate this "regression".  Since reality is the original
-> > > > support for snapshot of a DAX DM device never worked in a robust way.
-> > > 
-> > > Agreed.
-> > > 
-> > > -Jeff
-> > 
-> > You can't support dax on snapshot - if someone maps a block and the block 
-> > needs to be moved, then what?
+On Thu 30-08-18 15:17:16, Jeff Moyer wrote:
+> Jan Kara <jack@suse.cz> writes:
 > 
-> This is only a problem for access via mmap and page faults.
+> > On Tue 28-08-18 13:56:30, Mike Snitzer wrote:
+> >> On Tue, Aug 28 2018 at  3:50am -0400,
+> >> Jan Kara <jack@suse.cz> wrote:
+> >> 
+> >> > On Mon 27-08-18 16:43:28, Kani, Toshi wrote:
+> >> > > On Mon, 2018-08-27 at 18:07 +0200, Jan Kara wrote:
+> >> > > > Hi,
+> >> > > > 
+> >> > > > I've been analyzing why fstest generic/081 fails when the backing device is
+> >> > > > capable of DAX. The problem boils down to the failure of:
+> >> > > > 
+> >> > > > lvm vgcreate -f vg0 /dev/pmem0
+> >> > > > lvm lvcreate -L 128M -n lv0 vg0
+> >> > > > lvm lvcreate -s -L 4M -n snap0 vg0/lv0
+> >> > > > 
+> >> > > > The last command fails like:
+> >> > > > 
+> >> > > >   device-mapper: reload ioctl on (253:0) failed: Invalid argument
+> >> > > >   Failed to lock logical volume vg0/lv0.
+> >> > > >   Aborting. Manual intervention required.
+> >> > > > 
+> >> > > > And the core of the problem is that volume vg0/lv0 is originally of
+> >> > > > DM_TYPE_DAX_BIO_BASED type but when the snapshot gets created, we try to
+> >> > > > switch it to DM_TYPE_BIO_BASED because now the device stops supporting DAX.
+> >> > > > The problem seems to be introduced by Ross' commit dbc626597 "dm: prevent
+> >> > > > DAX mounts if not supported".
+> >> > > > 
+> >> > > > The question is whether / how this should be fixed. The current inability
+> >> > > > to create snapshots of DAX-capable devices looks weird and the cryptic
+> >> > > > failure makes it even worse (it took me quite a while to understand what is
+> >> > > > failing and why). OTOH I see the rationale behind Ross' change as well.
+> >> > > 
+> >> > > Here are the dm-snap changes that went along with the original DAX
+> >> > > support.
+> >> > > 
+> >> > > commit b5ab4a9ba55
+> >> > > commit f6e629bd237
+> >> > > 
+> >> > > Basically, snapshots can be added/removed to DAX-capable devices, but
+> >> > > snapshots need to be mounted without dax option.
+> >> > 
+> >> > Yes, and after these two commits things were working. But then commit
+> >> > dbc626597 broke things again so currently snapshotting DAX-capable devices
+> >> > does not work. Just try with 4.18...
+> >> 
+> >> Commit f6e629bd237 was a nasty hack, and commit dbc626597 exposed it as
+> >> such.  But commit dbc626597 has caused us to regress.. so we need to fix
+> >> it.
+> >> 
+> >> We could remove DM_TYPE_DAX_BIO_BASED completely.  But in the past I was
+> >> reluctant to do so because it really is unclear how/if we can even
+> >> support a device switching from DAX to non-DAX while IO is in-flight. DM
+> >> supports suspending without flushing (via dmsetup suspend --noflush) and
+> >> that could really be problematic if we leave DAX IO inflight and then
+> >> switch the DM table such that the DM device no longer supports DAX.
+> >
+> > Well, changing device from DAX-capable to DAX-incapable is problematic for
+> > filesystem on top of it as well. Filesystems simply don't expect this
+> > feature of a device can change so they would fail in unexpected ways. Also
+> > PFNs from the pmem (DAX-capable) device that are already mapped to user page
+> > tables won't magically become unmapped so those processes will still have
+> > DAX access to those areas of the device.
+> >
+> > But, if both original bdev and COW device are DAX-capable, we *should* be
+> > able to support snapshotting (and refusing mixing of DAX-capable and
+> > DAX-incapable devices in a snapshot is IMHO not very surprising to users).
+> > When creating a snapshot of a device, we need to freeze the filesystem
+> > using it. That will writeprotect all page tables so we are sure we'll get
+> > page faults (and thus ->direct_access requests from DM POV) for each write
+> > attempt to any mapping. Then ->direct_access method of snapshot-origin can
+> > make sure to copy original contents to the COW-device before returning PFN
+> > from ->direct_access. Similarly ->direct_access of COW-device can provide
+> > remapped PFN so everything should work seamlessly from user POV.
 > 
-> At the filesystem level, it's no different to the existing direct IO
-> algorithm for read/write IO - we simply allocate new space, copy the
-> data we need to copy into the new space (may be no copy needed), and
-> then write the new data into the new space. I'm pretty sure that for
-> bio-based IO to dm-snapshot devices the algorithm will be exactly
-> the same.
+> In your example above, if two processes have a file mapped with
+> MAP_SHARED, and P1 does a store, the new contents will not be reflected
+> in P2, right?.  This is different from what is expected, and different
+> from what happens when the page cache is involved.
 > 
-> However, for direct access via mmap, we have to modify how the
-> userspace virtual address is mapped to the physical location. IOWs,
-> during the COW operation, we have to invalidate all existing user
-> mappings we have for that physical address. This means we have to do
-> an invalidation after the allocate/copy part of the COW operation.
->
-> If we are doing this during a page fault, it means we'll probably
-> have to restart the page fault so it can look up the new physical
-> address associated with the faulting user address. After we've done
-> the invalidation, any new (or restarted) page fault finds the
-> location of new copy we just made, maps it into the user address
-> space, updates the ptes and we're all good.
-> 
-> Well, that's the theory. We haven't implemented this for XFS yet, so
-> it might end up a little different, and we might yet hit unexpected
-> problems (it's DAX, that's what happens :/).
+> I think you'd need to unmap all mappings on a CoW, whether triggered by
+> a store to an existing mapping or a write(2).
 
-Yes, that's outline of a plan :)
-
-> It's a whole different ballgame for a dm-snapshot device - block
-> devices are completely unaware of page faults to DAX file mappings.
-
-Actually, block devices are not completely unaware of DAX page faults -
-they will get ->direct_access callback for the fault range. It does not
-currently convey enough information - we also need to inform the block
-device whether it is read or write. But that's about all that's needed to
-add AFAICT. And by comparing returned PFN with the one we have stored in
-the radix tree (which we have if that file offset is mapped by anybody),
-the filesystem / DAX code can tell whether remapping happened and do the
-unmapping.
-
-> We'll need the filesystem to be aware it's on a remappable block
-> device, and when we take a DAX write fault we'll need to ask the
-> underlying device to remap the block and treat it like the
-> filesystem COW case above. We'll need to do this remap/invalidate
-> dance in the write IO path, too, because a COW by the block device
-> is no different to filesystem COW in that path.
-
-Right.
-
-> Basically, it's the same algorithm as the filesystem COW case, we
-> just get the physical location of the data and the notification of
-> block changing physical location from a different interface.
-> 
-> Hmmmm. ISTR that someone has been making a few noises recently about
-> virtual block address space mapping interfaces that could help solve
-> this problem....
-
-:-) Yes, virtual block address space mapping would be a nice solution for
-this. But that's a bit larger overhaul, isn't it?
+Yes, you are right. For COW-device we need to unmap all DAX mappings before
+doing CoW. But for snapshot-origin device, we don't need that, right? As
+for that case no block actually changes location. So there notification to
+DM on first write access should be enough. Am I understanding the problem
+right?
 
 								Honza
 -- 
