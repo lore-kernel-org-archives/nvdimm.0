@@ -1,13 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-f50.google.com (mail-oi0-f50.google.com
+ [209.85.218.50])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1985121107183
- for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 03:32:10 -0700 (PDT)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] libnvdimm, label: Switch to bitmap_zalloc()
-Date: Thu, 30 Aug 2018 13:32:07 +0300
-Message-Id: <20180830103207.60669-1-andriy.shevchenko@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8570A211093A4
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 17:18:55 -0700 (PDT)
+Received: by mail-oi0-f50.google.com with SMTP id b15-v6so18704240oib.10
+ for <linux-nvdimm@lists.01.org>; Thu, 30 Aug 2018 17:18:55 -0700 (PDT)
+Subject: Re: [PATCH v5 08/13] IB/core: Ensure we map P2P memory correctly in
+ rdma_rw_ctx_[init|destroy]()
+References: <20180830185352.3369-1-logang@deltatee.com>
+ <20180830185352.3369-9-logang@deltatee.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Message-ID: <f694b476-4db5-85d9-9810-7e82cd160d00@grimberg.me>
+Date: Thu, 30 Aug 2018 17:18:51 -0700
+MIME-Version: 1.0
+In-Reply-To: <20180830185352.3369-9-logang@deltatee.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,58 +24,15 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, linux-nvdimm@lists.01.org, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Switch to bitmap_zalloc() to show clearly what we are allocating.
-Besides that it returns pointer of bitmap type instead of opaque void *.
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/nvdimm/label.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 1d28cd656536..53159262c85d 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -814,8 +814,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 	victims = 0;
- 	if (old_num_resources) {
- 		/* convert old local-label-map to dimm-slot victim-map */
--		victim_map = kcalloc(BITS_TO_LONGS(nslot), sizeof(long),
--				GFP_KERNEL);
-+		victim_map = bitmap_zalloc(nslot, GFP_KERNEL);
- 		if (!victim_map)
- 			return -ENOMEM;
- 
-@@ -838,7 +837,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 	/* don't allow updates that consume the last label */
- 	if (nfree - alloc < 0 || nfree - alloc + victims < 1) {
- 		dev_info(&nsblk->common.dev, "insufficient label space\n");
--		kfree(victim_map);
-+		bitmap_free(victim_map);
- 		return -ENOSPC;
- 	}
- 	/* from here on we need to abort on error */
-@@ -1010,7 +1009,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 
-  out:
- 	kfree(old_res_list);
--	kfree(victim_map);
-+	bitmap_free(victim_map);
- 	return rc;
- 
-  abort:
--- 
-2.18.0
-
+Reviewed-by: Sagi Grimberg <sai@grimberg.me>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
