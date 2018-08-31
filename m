@@ -2,15 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74C9B21CAD998
- for <linux-nvdimm@lists.01.org>; Fri, 10 Aug 2018 15:56:31 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/5] libndctl: fix a resource leak in
- ndctl_dimm_get_{{event_}flags, health}
-Date: Fri, 10 Aug 2018 16:56:22 -0600
-Message-Id: <20180810225624.32383-4-vishal.l.verma@intel.com>
-In-Reply-To: <20180810225624.32383-1-vishal.l.verma@intel.com>
-References: <20180810225624.32383-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A8DF521106F31
+ for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 01:00:51 -0700 (PDT)
+Date: Sat, 1 Sep 2018 00:39:42 +0800
+From: Yi Zhang <yi.z.zhang@linux.intel.com>
+Subject: Re: [PATCH V4 4/4] kvm: add a check if pfn is from NVDIMM pmem.
+Message-ID: <20180831163941.GA1220@tiger-server>
+References: <cover.1534934405.git.yi.z.zhang@linux.intel.com>
+ <a4183c0f0adfb6d123599dd306062fd193e83f5a.1534934405.git.yi.z.zhang@linux.intel.com>
+ <4192066a-79f3-2b3e-386f-c4ec9b6dd8fd@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <4192066a-79f3-2b3e-386f-c4ec9b6dd8fd@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,55 +21,31 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: jglisse@redhat.com, yu.c.zhang@intel.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org, jack@suse.cz, david@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, rkrcmar@redhat.com, pbonzini@redhat.com, hch@lst.de, yi.z.zhang@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis reports that we leak ndctl_cmd in the above functions.
-Fix by adding proper cleanup paths.
-
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Fixes: fdf6b6844ccf ("ndctl, monitor: add a new command - monitor")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/lib/libndctl.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index ab47b27..226a577 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1649,6 +1649,7 @@ NDCTL_EXPORT unsigned int ndctl_dimm_get_health(struct ndctl_dimm *dimm)
- 	}
- 	if (ndctl_cmd_submit(cmd)) {
- 		err(ctx, "%s: smart command failed\n", devname);
-+		ndctl_cmd_unref(cmd);
- 		return UINT_MAX;
- 	}
- 
-@@ -1671,6 +1672,7 @@ NDCTL_EXPORT unsigned int ndctl_dimm_get_flags(struct ndctl_dimm *dimm)
- 	}
- 	if (ndctl_cmd_submit(cmd)) {
- 		dbg(ctx, "%s: smart command failed\n", devname);
-+		ndctl_cmd_unref(cmd);
- 		return UINT_MAX;
- 	}
- 
-@@ -1700,6 +1702,7 @@ NDCTL_EXPORT unsigned int ndctl_dimm_get_event_flags(struct ndctl_dimm *dimm)
- 	}
- 	if (ndctl_cmd_submit(cmd)) {
- 		err(ctx, "%s: smart command failed\n", devname);
-+		ndctl_cmd_unref(cmd);
- 		return UINT_MAX;
- 	}
- 
--- 
-2.14.4
-
+On 2018-08-30 at 12:07:11 -0700, Dave Hansen wrote:
+> On 08/22/2018 03:58 AM, Zhang Yi wrote:
+> >  bool kvm_is_reserved_pfn(kvm_pfn_t pfn)
+> >  {
+> > -	if (pfn_valid(pfn))
+> > -		return PageReserved(pfn_to_page(pfn));
+> > +	struct page *page;
+> > +
+> > +	if (pfn_valid(pfn)) {
+> > +		page = pfn_to_page(pfn);
+> > +		return PageReserved(page) && !is_dax_page(page);
+> > +	}
+> 
+> This is in desperate need of commenting about what it is doing and why.
+> 
+> The changelog alone doesn't cut it.
+Thanks, Dave, Will add some comments
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
