@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt0-x242.google.com (mail-qt0-x242.google.com
- [IPv6:2607:f8b0:400d:c0d::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 52A44210C1EFB
- for <linux-nvdimm@lists.01.org>; Wed,  1 Aug 2018 11:56:15 -0700 (PDT)
-Received: by mail-qt0-x242.google.com with SMTP id n6-v6so21110706qtl.4
- for <linux-nvdimm@lists.01.org>; Wed, 01 Aug 2018 11:56:15 -0700 (PDT)
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: [PATCH] ndctl, monitor: Change the fail log priority to err.
-Date: Wed,  1 Aug 2018 14:55:38 -0400
-Message-Id: <20180801185538.27084-1-msys.mizuma@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3ADC82110BD6C
+ for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 09:26:24 -0700 (PDT)
+References: <20180830185352.3369-1-logang@deltatee.com>
+ <20180830185352.3369-2-logang@deltatee.com>
+ <20180831171906.00002751@huawei.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <a1f6e2d9-8b7d-10ae-5963-50b447cacb44@deltatee.com>
+Date: Fri, 31 Aug 2018 10:26:08 -0600
+MIME-Version: 1.0
+In-Reply-To: <20180831171906.00002751@huawei.com>
+Content-Language: en-US
+Subject: Re: [PATCH v5 01/13] PCI/P2PDMA: Support peer-to-peer memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,43 +21,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
 
-fail() is called if an error happens, but the log priority
-is debug, so user may not notice the error.
-Let's change the priority to err.
 
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
----
- ndctl/monitor.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 31/08/18 10:19 AM, Jonathan Cameron wrote:
+> This feels like a somewhat simplistic starting point rather than a
+> generally correct estimate to use.  Should we be taking the bandwidth of
+> those links into account for example, or any discoverable latencies?
+> Not all PCIe switches are alike - particularly when it comes to P2P.
 
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 84d51c4..68bbf65 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -40,7 +40,7 @@ static int did_fail;
- #define fail(fmt, ...) \
- do { \
- 	did_fail = 1; \
--	dbg(ctx, "ndctl-%s:%s:%d: " fmt, \
-+	err(ctx, "ndctl-%s:%s:%d: " fmt, \
- 			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
- } while (0)
- 
--- 
-2.18.0
+I don't think this is necessary. There won't typically be a ton of
+choice in terms of devices to use and if there is, the hardware will
+probably be fairly homogenous. For example, it would be unusual to have
+an NVMe drive on a x4 and another one on an x8. Or mixing say Gen3
+switches with Gen4 would also be very strange. In weird unusual cases
+like this where the user specifically wants to use a faster device they
+can specify the specific device in the configfs interface.
 
+I think the latency would probably be proportional to the distance which
+is what we are already using.
+
+> I guess that can be a topic for future development if it turns out people
+> have horrible mixed systems.
+
+Yup!
+
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
