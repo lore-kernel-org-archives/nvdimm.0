@@ -1,7 +1,7 @@
-From: "Returned mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Report
-Date: Fri, 31 Aug 2018 18:33:35 +0800
-Message-ID: <20180831103339.7495E2110A3E3@ml01.01.org>
+From: "Mail Delivery Subsystem" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Fri, 31 Aug 2018 18:34:51 +0800
+Message-ID: <20180831103453.9C4FE2110A3E4@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
