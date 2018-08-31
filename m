@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 493D021A07A80
- for <linux-nvdimm@lists.01.org>; Tue, 28 Aug 2018 15:47:25 -0700 (PDT)
-Subject: [PATCH v8 00/12] Adding security support for nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 28 Aug 2018 15:47:18 -0700
-Message-ID: <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5516321106C9D
+ for <linux-nvdimm@lists.01.org>; Fri, 31 Aug 2018 12:12:10 -0700 (PDT)
+References: <20180830185352.3369-1-logang@deltatee.com>
+ <20180830185352.3369-7-logang@deltatee.com>
+ <98bff500-4e4c-3a34-6762-16ef4b076d90@amd.com>
+ <6820d451-9591-1979-00bf-60c65fc4f136@deltatee.com>
+ <30411655-9b90-749e-857f-318dac7cccbf@amd.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <9452ee6c-e989-d178-cd51-f29782ad9b31@deltatee.com>
+Date: Fri, 31 Aug 2018 13:11:48 -0600
 MIME-Version: 1.0
+In-Reply-To: <30411655-9b90-749e-857f-318dac7cccbf@amd.com>
+Content-Language: en-US
+Subject: Re: [PATCH v5 06/13] PCI/P2PDMA: Add P2P DMA driver writer's
+ documentation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,123 +24,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: alison.schofield@intel.com, keescook@chromium.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements security support for nvdimm. Mostly adding
-new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
-adding generic support libnvdimm for other vendors. The most important
-security features are unlocking locked nvdimms, and updating/setting security
-passphrase to nvdimms.
-
-Security folks, thanks in advance for taking a look at my key management
-implementation and making sure that I'm doing something sane. Mainly you'll
-want to review patches 2, 4, and 5 as most relevant ones that need scrutiny.
-
-v8:
-- Make the keys retained by the kernel user searchable in order to find the
-  key that needs to be updated for key update.
-
-v7:
-- Add CONFIG_KEYS depenency for libnvdimm. (Alison)
-- Export lookup_user_key(). (David)
-- Modified "update" to take two key ids and and use lookup_user_key() in
-  order to improve security.  (David)
-- Use key ptrs and key_validate() for cached keys. (David)
-
-v6:
-- Fix intel DSM data structures to use defined size for passphrase (Robert)
-- Fix memcpy size to use sizeof data structure member (Robert)
-- Fix defined dimm id length (Robert)
-- Making intel_security_ops const (Eric)
-- Remove unused var in nvdimm_key_search() (Eric)
-- Added wbinvd before secure erase is issued (Robert)
-- Removed key_put_sync() usage (David)
-- Use init_cred instead of creating own cred (David)
-    - Exported init_cred symbol
-- Move keyring to dedicated (David)
-- Use logon_key_type and friends instead of creating custom (David)
-- Use key_lookup() with stored key serial (David)
-    - Exported key_lookup() symbol
-- Mark passed in key data as const (David)
-- Added comment for change_pass_phrase to explain how it works (David)
-- Unlink key when it's being removed from keyring. (David)
-- Removed request_key() from all security ops except update and unlock.
-- Update will now update the existing key's payload with the new key's
-  retrieved from userspace when the new payload is accepted by nvdimm.
-
-v5:
-- Moved dimm_id initialization (Dan)
-- Added a key_put_sync() in order to run key_gc_work and cleanup old key. (Dan)
-- Added check to block security state changes while DIMM is active. (Dan)
-
-v4:
-- flip payload layout for update passphrase to make it easier on userland.
-
-v3:
-- Set x86 wrappers for x86 only bits. (Dan)
-- Fixed up some verbiage in commit headers.
-- Put in usage of sysfs_streq() for sysfs inputs.
-- 0-day build fixes for non-x86 archs.
-
-v2:
-- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
-- Moved security ring relevant code to dimm_devs.c. (Dan)
-- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
-- Added routine to return security_ops based on family supplied. (Dan)
-- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
-- Allocate firmware package on stack. (Dan)
-- Added missing frozen state detection when retrieving security state.
-
----
-
-Dave Jiang (12):
-      nfit: add support for Intel DSM 1.7 commands
-      libnvdimm: create keyring to store security keys
-      nfit/libnvdimm: store dimm id as a member to struct nvdimm
-      keys: export lookup_user_key to external users
-      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
-      nfit/libnvdimm: add set passphrase support for Intel nvdimms
-      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
-      nfit/libnvdimm: add freeze security support to Intel nvdimm
-      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
-      nfit_test: add context to dimm_dev for nfit_test
-      nfit_test: add test support for Intel nvdimm security DSMs
-      libnvdimm: add documentation for nvdimm security support
-
-
- Documentation/nvdimm/security.txt |   82 ++++++
- drivers/acpi/nfit/Makefile        |    1 
- drivers/acpi/nfit/core.c          |   58 +++-
- drivers/acpi/nfit/intel.c         |  382 +++++++++++++++++++++++++++
- drivers/acpi/nfit/intel.h         |   82 ++++++
- drivers/acpi/nfit/nfit.h          |   20 +
- drivers/nvdimm/Kconfig            |    1 
- drivers/nvdimm/bus.c              |    2 
- drivers/nvdimm/core.c             |    7 
- drivers/nvdimm/dimm.c             |    7 
- drivers/nvdimm/dimm_devs.c        |  529 +++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h          |    6 
- drivers/nvdimm/nd.h               |    2 
- include/linux/key.h               |    3 
- include/linux/libnvdimm.h         |   42 +++
- kernel/cred.c                     |    1 
- security/keys/internal.h          |    2 
- security/keys/process_keys.c      |    1 
- tools/testing/nvdimm/Kbuild       |    1 
- tools/testing/nvdimm/test/nfit.c  |  227 +++++++++++++++-
- 20 files changed, 1420 insertions(+), 36 deletions(-)
- create mode 100644 Documentation/nvdimm/security.txt
- create mode 100644 drivers/acpi/nfit/intel.c
- create mode 100644 drivers/acpi/nfit/intel.h
-
---
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiAzMS8wOC8xOCAxMTozOCBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBJZiB5b3Ug
+Y2FuIHNlcGFyYXRlIG91dCBhZGRpbmcgdGhlIGRldGVjdGlvbiBJIGNhbiB0YWtlIGEgbG9vayBh
+ZGRpbmcgCj4gdGhpcyB3aXRoIG15IERNQS1idWYgUDJQIGVmZm9ydHMuCgpPaCwgbWF5YmUgbXkg
+cHJldmlvdXMgZW1haWwgd2Fzbid0IGNsZWFyLCBidXQgSSdkIHNheSB0aGF0IGRldGVjdGlvbiBp
+cwphbHJlYWR5IHNlcGFyYXRlIGZyb20gWk9ORV9ERVZJQ0UuIE5vdGhpbmcgcmVhbGx5IG5lZWRz
+IHRvIGJlIGNoYW5nZWQuCkkganVzdCB0aGluayB5b3UnbGwgcHJvYmFibHkgd2FudCB0byB3cml0
+ZSB5b3UncmUgb3duIGZ1bmN0aW9uIHNpbWlsYXIKdG8gcGNpX3AycGRtYV9kaXN0YW5jZSB0aGF0
+IHBlcmhhcHMganVzdCB0YWtlcyB0d28gcGNpX2RldnMgaW5zdGVhZCBvZgp0aGUgbGlzdCBvZiBj
+bGllbnRzIGFzIGlzIG5lZWRlZCBieSBudm1lLW9mLWxpa2UgdXNlcnMuCgpUbyBlbmFibGUgYSB3
+aGl0ZWxpc3Qgd2UganVzdCBoYXZlIHRvIGhhbmRsZSB0aGUgY2FzZSB3aGVyZQp1cHN0cmVhbV9i
+cmlkZ2VfZGlzdGFuY2UoKSByZXR1cm5zIC0xIGFuZCBjaGVjayBpZiB0aGUgZGV2aWNlcyBhcmUg
+aW4KdGhlIHNhbWUgcm9vdCBjb21wbGV4IHdpdGggc3VwcG9ydGVkIHJvb3QgcG9ydHMgYmVmb3Jl
+IGRlY2lkaW5nIHRoZQp0cmFuc2FjdGlvbiBpcyBub3Qgc3VwcG9ydGVkLgoKTG9nYW4KX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
+aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
