@@ -1,91 +1,46 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F6D52194D3AE
- for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 11:16:23 -0700 (PDT)
-Subject: [PATCH] libnvdimm, region: Fail badblocks listing for inactive regions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 28 Sep 2018 11:04:17 -0700
-Message-ID: <153815785702.2023323.12153027860843602654.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Hello
+Date: Sun, 2 Sep 2018 22:14:22 +0800
+Message-ID: <20180902141426.75B112110D531@ml01.01.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0638324525859105537=="
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
+
+This is a multi-part message in MIME format.
+
+--===============0638324525859105537==
+Content-Type: text/plain;
+	charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-List-ID: <linux-nvdimm@lists.01.org>
 
-While experimenting with region driver loading the following backtrace
-was triggered:
+˜²Ý¶¡M›/GYÒÃ|à¸nÅ«½ø²™–»£úú&‹G4Þ-n£;£R:ÉÛHZ¼£upf›Ÿ7DbúÇr<Ï¥­b7ƒí«6w
+UÕ0%kH„—¨Ød°hô\ãÝwu)ú(¶ŸÄ6½Û•Â¿ª˜c6ató ­
+Ä‚>ox´'JåuËùUÕ†Uþr¹‰S4fi65Ùf¨ÒËdß¯ä)ÍñW_4Disõä„Œ°¢2a–÷~¯%Hè›Î„Z^V9N6xJ¢Ùi‡¬KóåÑy\lvt©‚‰ôýSÛéˆ†0Hå“Ãz’™I)þ
+a¬ä]Ë«>BryRË2Ð“þeûŒÛïÛË
+RNäaùÅmaŠÚ3eaÙÔî
+)¤S÷Ð˜ƒ4ôF’¡jKÙKºØw¼¦³pBv>sgR
 
- INFO: trying to register non-static key.
- the code is fine but needs lockdep annotation.
- turning off the locking correctness validator.
- [..]
- Call Trace:
-  dump_stack+0x85/0xcb
-  register_lock_class+0x571/0x580
-  ? __lock_acquire+0x2ba/0x1310
-  ? kernfs_seq_start+0x2a/0x80
-  __lock_acquire+0xd4/0x1310
-  ? dev_attr_show+0x1c/0x50
-  ? __lock_acquire+0x2ba/0x1310
-  ? kernfs_seq_start+0x2a/0x80
-  ? lock_acquire+0x9e/0x1a0
-  lock_acquire+0x9e/0x1a0
-  ? dev_attr_show+0x1c/0x50
-  badblocks_show+0x70/0x190
-  ? dev_attr_show+0x1c/0x50
-  dev_attr_show+0x1c/0x50
 
-This results from a missing successful call to devm_init_badblocks()
-from nd_region_probe(). Block attempts to show badblocks while the
-region is not enabled.
-
-Fixes: 6a6bef90425e ("libnvdimm: add mechanism to publish badblocks...")
-Cc: <stable@vger.kernel.org>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/region_devs.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index fa37afcd43ff..174a418cb171 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -560,10 +560,17 @@ static ssize_t region_badblocks_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct nd_region *nd_region = to_nd_region(dev);
-+	ssize_t rc;
- 
--	return badblocks_show(&nd_region->bb, buf, 0);
--}
-+	device_lock(dev);
-+	if (dev->driver)
-+		rc = badblocks_show(&nd_region->bb, buf, 0);
-+	else
-+		rc = -ENXIO;
-+	device_unlock(dev);
- 
-+	return rc;
-+}
- static DEVICE_ATTR(badblocks, 0444, region_badblocks_show, NULL);
- 
- static ssize_t resource_show(struct device *dev,
+--===============0638324525859105537==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============0638324525859105537==--
