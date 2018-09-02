@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail1.bemta23.messagelabs.com (mail1.bemta23.messagelabs.com
+ [67.219.246.208])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 96C4D2194D387
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:51 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:22 -0600
-Message-Id: <20180925162231.4354-5-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id C1B34211069EE
+ for <linux-nvdimm@lists.01.org>; Sun,  2 Sep 2018 05:40:52 -0700 (PDT)
+From: Ocean HY1 He <hehy1@lenovo.com>
+Subject: RE: [External]  Re: [PATCH] libnvdimm, region_devs: stop NDD_ALIASING
+ bit test if one test pass
+Date: Sun, 2 Sep 2018 12:40:19 +0000
+Message-ID: <HK0PR03MB3170B411EB9DF9740AABFAD4890D0@HK0PR03MB3170.apcprd03.prod.outlook.com>
+References: <1534651288-30306-1-git-send-email-oceanhehy@gmail.com>
+ <1535665860.5995.78.camel@intel.com>
+In-Reply-To: <1535665860.5995.78.camel@intel.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Subject: [PATCH v7 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
- attribute helpers
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,160 +26,106 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "oceanhehy@gmail.com" <oceanhehy@gmail.com>, "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Users of the P2PDMA infrastructure will typically need a way for
-the user to tell the kernel to use P2P resources. Typically
-this will be a simple on/off boolean operation but sometimes
-it may be desirable for the user to specify the exact device to
-use for the P2P operation.
 
-Add new helpers for attributes which take a boolean or a PCI device.
-Any boolean as accepted by strtobool() turn P2P on or off (such as 'y', 'n',
-'1', '0', etc). Specifying a full PCI device name/BDF will select the
-specific device.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/p2pdma.c       | 82 ++++++++++++++++++++++++++++++++++++++
- include/linux/pci-p2pdma.h | 15 +++++++
- 2 files changed, 97 insertions(+)
+> -----Original Message-----
+> From: Verma, Vishal L <vishal.l.verma@intel.com>
+> Sent: Friday, August 31, 2018 5:51 AM
+> To: Williams, Dan J <dan.j.williams@intel.com>; ross.zwisler@linux.intel.com;
+> oceanhehy@gmail.com; Jiang, Dave <dave.jiang@intel.com>
+> Cc: linux-kernel@vger.kernel.org; linux-nvdimm@lists.01.org; Ocean HY1 He
+> <hehy1@lenovo.com>
+> Subject: [External] Re: [PATCH] libnvdimm, region_devs: stop NDD_ALIASING
+> bit test if one test pass
+> 
+> 
+> On Sun, 2018-08-19 at 00:01 -0400, Ocean He wrote:
+> > From: Ocean He <hehy1@lenovo.com>
+> >
+> > There is no need to finish entire loop to execute NDD_ALIASING bit
+> > test
+> > against every nvdimm->flags. In practice, all the nd_mapping->nvdimm
+> > have the same flags.
+> >
+> > Because the check of alias is "if (alias)" but not
+> > "if (alias == nd_region->ndr_mappings)", there is no function change
+> > while
+> > just save a few cycles.
+> >
+> > Signed-off-by: Ocean He <hehy1@lenovo.com>
+> > ---
+> > A test to check if all the nd_mapping->nvdimm have the same flags,
+> > using
+> > Lenovo ThinkSystem SR630 and 4.18-rc6.
+> >
+> > # ipmctl show -dimm
+> >
+> > DimmID  Capacity        HealthState     ActionRequired  LockState
+> >    FWVersion
+> > 0x0021  125.7
+> > GiB       Healthy         0               Disabled        01.00.00.48
+> > 88
+> > 0x0121  125.7
+> > GiB       Healthy         0               Disabled        01.00.00.48
+> > 88
+> > 0x1021  125.7
+> > GiB       Healthy         0               Disabled        01.00.00.48
+> > 88
+> > 0x1121  125.7
+> > GiB       Healthy         0               Disabled        01.00.00.48
+> > 88
+> >
+> > # ipmctl create -f -goal -socket 0x0 PersistentMemoryType=AppDirect
+> >
+> > # ipmctl create -f -goal -socket 0x1 PersistentMemoryType=AppDirect
+> >
+> > # reboot, to make goal configuration take effect.
+> >
+> > # ndctl create-namespace -r region0 -s 100m -t pmem -m fsdax
+> >
+> > # ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
+> >
+> > # reboot and find all the nd_mapping->nvdimm have the same flags.
+> >
+> >  drivers/nvdimm/region_devs.c | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/nvdimm/region_devs.c
+> > b/drivers/nvdimm/region_devs.c
+> > index ec3543b..fc3bc1c 100644
+> > --- a/drivers/nvdimm/region_devs.c
+> > +++ b/drivers/nvdimm/region_devs.c
+> > @@ -234,8 +234,10 @@ int nd_region_to_nstype(struct nd_region
+> > *nd_region)
+> >  			struct nd_mapping *nd_mapping = &nd_region-
+> > >mapping[i];
+> >  			struct nvdimm *nvdimm = nd_mapping->nvdimm;
+> >
+> > -			if (test_bit(NDD_ALIASING, &nvdimm->flags))
+> > +			if (test_bit(NDD_ALIASING, &nvdimm->flags))
+> > {
+> >  				alias++;
+> > +				break;
+> 
+> I think we can go a step further, and instead of the 'break' followed
+> by a check for the 'alias' variable, in the loop, just return
+> ND_DEVICE_NAMESPACE_PMEM if the NDD_ALIASING bit is found for any
+> mapping. Outside the loop, simply return ND_DEVICE_NAMESPACE_IO. That
+> makes it much cleaner and now we can get rid of 'alias' entirely.
+> 
+Hi Vishal,
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index bbbf86165428..094d2b337c50 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -8,6 +8,8 @@
-  * Copyright (c) 2018, Eideticom Inc.
-  */
- 
-+#define pr_fmt(fmt) "pci-p2pdma: " fmt
-+#include <linux/ctype.h>
- #include <linux/pci-p2pdma.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -859,3 +861,83 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
- 	return nents;
- }
- EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-+
-+/**
-+ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-+ *		to enable p2pdma
-+ * @page: contents of the value to be stored
-+ * @p2p_dev: returns the PCI device that was selected to be used
-+ *		(if one was specified in the stored value)
-+ * @use_p2pdma: returns whether to enable p2pdma or not
-+ *
-+ * Parses an attribute value to decide whether to enable p2pdma.
-+ * The value can select a PCI device (using it's full BDF device
-+ * name) or a boolean (in any format strtobool() accepts). A false
-+ * value disables p2pdma, a true value expects the caller
-+ * to automatically find a compatible device and specifying a PCI device
-+ * expects the caller to use the specific provider.
-+ *
-+ * pci_p2pdma_enable_show() should be used as the show operation for
-+ * the attribute.
-+ *
-+ * Returns 0 on success
-+ */
-+int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
-+			    bool *use_p2pdma)
-+{
-+	struct device *dev;
-+
-+	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
-+	if (dev) {
-+		*use_p2pdma = true;
-+		*p2p_dev = to_pci_dev(dev);
-+
-+		if (!pci_has_p2pmem(*p2p_dev)) {
-+			pci_err(*p2p_dev,
-+				"PCI device has no peer-to-peer memory: %s\n",
-+				page);
-+			pci_dev_put(*p2p_dev);
-+			return -ENODEV;
-+		}
-+
-+		return 0;
-+	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
-+		/*
-+		 * If the user enters a PCI device that  doesn't exist
-+		 * like "0000:01:00.1", we don't want strtobool to think
-+		 * it's a '0' when it's clearly not what the user wanted.
-+		 * So we require 0's and 1's to be exactly one character.
-+		 */
-+	} else if (!strtobool(page, use_p2pdma)) {
-+		return 0;
-+	}
-+
-+	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
-+
-+/**
-+ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
-+ *		whether p2pdma is enabled
-+ * @page: contents of the stored value
-+ * @p2p_dev: the selected p2p device (NULL if no device is selected)
-+ * @use_p2pdma: whether p2pdme has been enabled
-+ *
-+ * Attributes that use pci_p2pdma_enable_store() should use this function
-+ * to show the value of the attribute.
-+ *
-+ * Returns 0 on success
-+ */
-+ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-+			       bool use_p2pdma)
-+{
-+	if (!use_p2pdma)
-+		return sprintf(page, "0\n");
-+
-+	if (!p2p_dev)
-+		return sprintf(page, "1\n");
-+
-+	return sprintf(page, "%s\n", pci_name(p2p_dev));
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index f039c48990a5..5248540eead2 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -37,6 +37,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
- int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
- 		      enum dma_data_direction dir);
-+int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
-+			    bool *use_p2pdma);
-+ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-+			       bool use_p2pdma);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -104,5 +108,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
- {
- 	return 0;
- }
-+static inline int pci_p2pdma_enable_store(const char *page,
-+		struct pci_dev **p2p_dev, bool *use_p2pdma)
-+{
-+	*use_p2pdma = false;
-+	return 0;
-+}
-+static inline ssize_t pci_p2pdma_enable_show(char *page,
-+		struct pci_dev *p2p_dev, bool use_p2pdma)
-+{
-+	return sprintf(page, "none\n");
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
--- 
-2.19.0
+Thanks for comments and I would send version 2 patch later.
 
+Ocean.
+> > +			}
+> >  		}
+> >  		if (alias)
+> >  			return ND_DEVICE_NAMESPACE_PMEM;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
