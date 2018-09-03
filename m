@@ -1,9 +1,11 @@
-From: <angelmoniadydt-V6Iaai8pOv+q5NAgmLXIYg@public.gmane.org>
-Subject: I'm a princess who's waiting for her prince!
-Date: Tue, 04 Sep 2018 06:08:40 +0600
-Message-ID: <5B8DCD08.9060408@uolmail.com.mx>
+From: =?utf-8?B?5oKo5aW977ya?= <ahpb-XbEzLRKdNw4@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5LyB5Lia6LSi56iO5Lq65ZGY5b+F6aG75o6M5o+h55qEMTAw5Liq5raJ56iO?=
+ =?utf-8?B?6Zeu6aKY?=
+Date: Tue, 4 Sep 2018 05:31:01 +0800
+Message-ID: <C5E8298E2F5A629B87430A3896EDC4EC@ll.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6151461581222580355=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,40 +19,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============6151461581222580355==
-Content-Type: text/plain; charset=CP-850; format=flowed
-Content-Transfer-Encoding: 8bit
-
-Dear,
-
-It's a beautiful day and i'am in a hurry to get in touch with you asap!
-
-My name is Nataliya, and I'm from Turkey. 
-I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
-I do want to be next to a loving man. 
-
-I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
-I wish to find for my second half, who a man that will give me a real hope and true love! 
-
-Hope you're interested in becoming a part of my adventure and will reply back soon.
-In the next letter, I'll send you my photo.
-
-Please write me back using my personal email: natali-DPm24jaRYWTcS4vzOZRjJw@public.gmane.org
-
---------------------------
-Your true soul, 
-Nataliya.
-
-
---===============6151461581222580355==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6151461581222580355==--
+bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K6ZmEfuS7tn7lhoV+5a65DQogICAgICAgICAgICAg
+6K+3fuaCqH7mn6V+6ZiFIA0KNTozMTowNwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBs
+aXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1u
+dmRpbW0K
