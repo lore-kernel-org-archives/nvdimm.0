@@ -1,138 +1,174 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3]  virtio-pmem: Add virtio pmem driver
-Date: Tue, 4 Sep 2018 23:17:00 +0800
-Message-ID: <20180904151700.GH17047@intel.com>
-References: <20180831133019.27579-4-pagupta@redhat.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 2/3] libnvdimm: nd_region flush callback support
+Date: Tue, 4 Sep 2018 23:29:18 +0800
+Message-ID: <20180904152917.GE17047@intel.com>
+References: <20180831133019.27579-3-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180831133019.27579-4-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+In-Reply-To: <20180831133019.27579-3-pagupta@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, ross.zwisler@intel.com, david@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, mst@redhat.com, niteshnarayanlal@hotmail.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, pagupta@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
 Hi Pankaj,
 
-Thank you for the patch! Yet something to improve:
+Thank you for the patch! Perhaps something to improve:
 
-[auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
-[also build test ERROR on v4.19-rc2 next-20180903]
+[auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
+[also build test WARNING on v4.19-rc2 next-20180831]
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Pankaj-Gupta/kvm-fake-DAX-device/20180903-160032
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: i386-randconfig-a3-201835 (attached as .config)
-compiler: gcc-4.9 (Debian 4.9.4-2) 4.9.4
 reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
-:::::: branch date: 21 hours ago
-:::::: commit date: 21 hours ago
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
+:::::: branch date: 7 hours ago
+:::::: commit date: 7 hours ago
 
-All errors (new ones prefixed by >>):
+   drivers/nvdimm/pmem.c:116:25: sparse: expression using sizeof(void)
+   drivers/nvdimm/pmem.c:135:25: sparse: expression using sizeof(void)
+>> drivers/nvdimm/pmem.c:204:32: sparse: incorrect type in assignment (different base types) @@    expected restricted blk_status_t [usertype] bi_status @@    got e] bi_status @@
+   drivers/nvdimm/pmem.c:204:32:    expected restricted blk_status_t [usertype] bi_status
+   drivers/nvdimm/pmem.c:204:32:    got int
+   drivers/nvdimm/pmem.c:208:9: sparse: expression using sizeof(void)
+   drivers/nvdimm/pmem.c:208:9: sparse: expression using sizeof(void)
+   include/linux/bvec.h:82:37: sparse: expression using sizeof(void)
+   include/linux/bvec.h:82:37: sparse: expression using sizeof(void)
+   include/linux/bvec.h:83:32: sparse: expression using sizeof(void)
+   include/linux/bvec.h:83:32: sparse: expression using sizeof(void)
+   drivers/nvdimm/pmem.c:220:32: sparse: incorrect type in assignment (different base types) @@    expected restricted blk_status_t [usertype] bi_status @@    got e] bi_status @@
+   drivers/nvdimm/pmem.c:220:32:    expected restricted blk_status_t [usertype] bi_status
+   drivers/nvdimm/pmem.c:220:32:    got int
 
-   drivers/virtio/virtio_pmem.o: In function `virtio_pmem_remove':
->> drivers/virtio/virtio_pmem.c:220: undefined reference to `nvdimm_bus_unregister'
-   drivers/virtio/virtio_pmem.o: In function `virtio_pmem_probe':
->> drivers/virtio/virtio_pmem.c:186: undefined reference to `nvdimm_bus_register'
->> drivers/virtio/virtio_pmem.c:198: undefined reference to `nvdimm_pmem_region_create'
-   drivers/virtio/virtio_pmem.c:207: undefined reference to `nvdimm_bus_unregister'
-
-# https://github.com/0day-ci/linux/commit/acce2633da18b0ad58d0cc9243a85b03020ca099
+# https://github.com/0day-ci/linux/commit/69b95edd2a1f4676361988fa36866b59427e2cfa
 git remote add linux-review https://github.com/0day-ci/linux
 git remote update linux-review
-git checkout acce2633da18b0ad58d0cc9243a85b03020ca099
-vim +220 drivers/virtio/virtio_pmem.c
+git checkout 69b95edd2a1f4676361988fa36866b59427e2cfa
+vim +204 drivers/nvdimm/pmem.c
 
-acce2633 Pankaj Gupta 2018-08-31  147  
-acce2633 Pankaj Gupta 2018-08-31  148  static int virtio_pmem_probe(struct virtio_device *vdev)
-acce2633 Pankaj Gupta 2018-08-31  149  {
-acce2633 Pankaj Gupta 2018-08-31  150  	int err = 0;
-acce2633 Pankaj Gupta 2018-08-31  151  	struct resource res;
-acce2633 Pankaj Gupta 2018-08-31  152  	struct virtio_pmem *vpmem;
-acce2633 Pankaj Gupta 2018-08-31  153  	struct nvdimm_bus *nvdimm_bus;
-acce2633 Pankaj Gupta 2018-08-31  154  	struct nd_region_desc ndr_desc;
-acce2633 Pankaj Gupta 2018-08-31  155  	int nid = dev_to_node(&vdev->dev);
-acce2633 Pankaj Gupta 2018-08-31  156  	struct nd_region *nd_region;
-acce2633 Pankaj Gupta 2018-08-31  157  
-acce2633 Pankaj Gupta 2018-08-31  158  	if (!vdev->config->get) {
-acce2633 Pankaj Gupta 2018-08-31  159  		dev_err(&vdev->dev, "%s failure: config disabled\n",
-acce2633 Pankaj Gupta 2018-08-31  160  			__func__);
-acce2633 Pankaj Gupta 2018-08-31  161  		return -EINVAL;
-acce2633 Pankaj Gupta 2018-08-31  162  	}
-acce2633 Pankaj Gupta 2018-08-31  163  
-acce2633 Pankaj Gupta 2018-08-31  164  	vdev->priv = vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem),
-acce2633 Pankaj Gupta 2018-08-31  165  			GFP_KERNEL);
-acce2633 Pankaj Gupta 2018-08-31  166  	if (!vpmem) {
-acce2633 Pankaj Gupta 2018-08-31  167  		err = -ENOMEM;
-acce2633 Pankaj Gupta 2018-08-31  168  		goto out_err;
-acce2633 Pankaj Gupta 2018-08-31  169  	}
-acce2633 Pankaj Gupta 2018-08-31  170  
-acce2633 Pankaj Gupta 2018-08-31  171  	vpmem->vdev = vdev;
-acce2633 Pankaj Gupta 2018-08-31  172  	err = init_vq(vpmem);
-acce2633 Pankaj Gupta 2018-08-31  173  	if (err)
-acce2633 Pankaj Gupta 2018-08-31  174  		goto out_err;
-acce2633 Pankaj Gupta 2018-08-31  175  
-acce2633 Pankaj Gupta 2018-08-31  176  	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-acce2633 Pankaj Gupta 2018-08-31  177  			start, &vpmem->start);
-acce2633 Pankaj Gupta 2018-08-31  178  	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-acce2633 Pankaj Gupta 2018-08-31  179  			size, &vpmem->size);
-acce2633 Pankaj Gupta 2018-08-31  180  
-acce2633 Pankaj Gupta 2018-08-31  181  	res.start = vpmem->start;
-acce2633 Pankaj Gupta 2018-08-31  182  	res.end   = vpmem->start + vpmem->size-1;
-acce2633 Pankaj Gupta 2018-08-31  183  	vpmem->nd_desc.provider_name = "virtio-pmem";
-acce2633 Pankaj Gupta 2018-08-31  184  	vpmem->nd_desc.module = THIS_MODULE;
-acce2633 Pankaj Gupta 2018-08-31  185  
-acce2633 Pankaj Gupta 2018-08-31 @186  	vpmem->nvdimm_bus = nvdimm_bus = nvdimm_bus_register(&vdev->dev,
-acce2633 Pankaj Gupta 2018-08-31  187  						&vpmem->nd_desc);
-acce2633 Pankaj Gupta 2018-08-31  188  	if (!nvdimm_bus)
-acce2633 Pankaj Gupta 2018-08-31  189  		goto out_vq;
-acce2633 Pankaj Gupta 2018-08-31  190  
-acce2633 Pankaj Gupta 2018-08-31  191  	dev_set_drvdata(&vdev->dev, nvdimm_bus);
-acce2633 Pankaj Gupta 2018-08-31  192  	memset(&ndr_desc, 0, sizeof(ndr_desc));
-acce2633 Pankaj Gupta 2018-08-31  193  
-acce2633 Pankaj Gupta 2018-08-31  194  	ndr_desc.res = &res;
-acce2633 Pankaj Gupta 2018-08-31  195  	ndr_desc.numa_node = nid;
-acce2633 Pankaj Gupta 2018-08-31  196  	ndr_desc.flush = virtio_pmem_flush;
-acce2633 Pankaj Gupta 2018-08-31  197  	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-acce2633 Pankaj Gupta 2018-08-31 @198  	nd_region = nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc);
-acce2633 Pankaj Gupta 2018-08-31  199  
-acce2633 Pankaj Gupta 2018-08-31  200  	if (!nd_region)
-acce2633 Pankaj Gupta 2018-08-31  201  		goto out_nd;
-acce2633 Pankaj Gupta 2018-08-31  202  
-acce2633 Pankaj Gupta 2018-08-31  203  	//virtio_device_ready(vdev);
-acce2633 Pankaj Gupta 2018-08-31  204  	return 0;
-acce2633 Pankaj Gupta 2018-08-31  205  out_nd:
-acce2633 Pankaj Gupta 2018-08-31  206  	err = -ENXIO;
-acce2633 Pankaj Gupta 2018-08-31  207  	nvdimm_bus_unregister(nvdimm_bus);
-acce2633 Pankaj Gupta 2018-08-31  208  out_vq:
-acce2633 Pankaj Gupta 2018-08-31  209  	vdev->config->del_vqs(vdev);
-acce2633 Pankaj Gupta 2018-08-31  210  out_err:
-acce2633 Pankaj Gupta 2018-08-31  211  	dev_err(&vdev->dev, "failed to register virtio pmem memory\n");
-acce2633 Pankaj Gupta 2018-08-31  212  	return err;
-acce2633 Pankaj Gupta 2018-08-31  213  }
-acce2633 Pankaj Gupta 2018-08-31  214  
-acce2633 Pankaj Gupta 2018-08-31  215  static void virtio_pmem_remove(struct virtio_device *vdev)
-acce2633 Pankaj Gupta 2018-08-31  216  {
-acce2633 Pankaj Gupta 2018-08-31  217  	struct virtio_pmem *vpmem = vdev->priv;
-acce2633 Pankaj Gupta 2018-08-31  218  	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
-acce2633 Pankaj Gupta 2018-08-31  219  
-acce2633 Pankaj Gupta 2018-08-31 @220  	nvdimm_bus_unregister(nvdimm_bus);
-acce2633 Pankaj Gupta 2018-08-31  221  	vdev->config->del_vqs(vdev);
-acce2633 Pankaj Gupta 2018-08-31  222  	kfree(vpmem);
-acce2633 Pankaj Gupta 2018-08-31  223  }
-acce2633 Pankaj Gupta 2018-08-31  224  
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  107  
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  108  static void write_pmem(void *pmem_addr, struct page *page,
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  109  		unsigned int off, unsigned int len)
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  110  {
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  111  	unsigned int chunk;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  112  	void *mem;
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  113  
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  114  	while (len) {
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  115  		mem = kmap_atomic(page);
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06 @116  		chunk = min_t(unsigned int, len, PAGE_SIZE);
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  117  		memcpy_flushcache(pmem_addr, mem + off, chunk);
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  118  		kunmap_atomic(mem);
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  119  		len -= chunk;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  120  		off = 0;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  121  		page++;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  122  		pmem_addr += PAGE_SIZE;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  123  	}
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  124  }
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  125  
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  126  static blk_status_t read_pmem(struct page *page, unsigned int off,
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  127  		void *pmem_addr, unsigned int len)
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  128  {
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  129  	unsigned int chunk;
+60622d682 drivers/nvdimm/pmem.c Dan Williams      2018-05-03  130  	unsigned long rem;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  131  	void *mem;
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  132  
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  133  	while (len) {
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  134  		mem = kmap_atomic(page);
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  135  		chunk = min_t(unsigned int, len, PAGE_SIZE);
+60622d682 drivers/nvdimm/pmem.c Dan Williams      2018-05-03  136  		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  137  		kunmap_atomic(mem);
+60622d682 drivers/nvdimm/pmem.c Dan Williams      2018-05-03  138  		if (rem)
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  139  			return BLK_STS_IOERR;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  140  		len -= chunk;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  141  		off = 0;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  142  		page++;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  143  		pmem_addr += PAGE_SIZE;
+98cc093cb drivers/nvdimm/pmem.c Huang Ying        2017-09-06  144  	}
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  145  	return BLK_STS_OK;
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  146  }
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  147  
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  148  static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+3f289dcb4 drivers/nvdimm/pmem.c Tejun Heo         2018-07-18  149  			unsigned int len, unsigned int off, unsigned int op,
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  150  			sector_t sector)
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  151  {
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  152  	blk_status_t rc = BLK_STS_OK;
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  153  	bool bad_pmem = false;
+32ab0a3f5 drivers/nvdimm/pmem.c Dan Williams      2015-08-01  154  	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+7a9eb2066 drivers/nvdimm/pmem.c Dan Williams      2016-06-03  155  	void *pmem_addr = pmem->virt_addr + pmem_off;
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  156  
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  157  	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  158  		bad_pmem = true;
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  159  
+3f289dcb4 drivers/nvdimm/pmem.c Tejun Heo         2018-07-18  160  	if (!op_is_write(op)) {
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  161  		if (unlikely(bad_pmem))
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  162  			rc = BLK_STS_IOERR;
+b5ebc8ec6 drivers/nvdimm/pmem.c Dan Williams      2016-03-06  163  		else {
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  164  			rc = read_pmem(page, off, pmem_addr, len);
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  165  			flush_dcache_page(page);
+b5ebc8ec6 drivers/nvdimm/pmem.c Dan Williams      2016-03-06  166  		}
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  167  	} else {
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  168  		/*
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  169  		 * Note that we write the data both before and after
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  170  		 * clearing poison.  The write before clear poison
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  171  		 * handles situations where the latest written data is
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  172  		 * preserved and the clear poison operation simply marks
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  173  		 * the address range as valid without changing the data.
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  174  		 * In this case application software can assume that an
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  175  		 * interrupted write will either return the new good
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  176  		 * data or an error.
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  177  		 *
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  178  		 * However, if pmem_clear_poison() leaves the data in an
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  179  		 * indeterminate state we need to perform the write
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  180  		 * after clear poison.
+0a370d261 drivers/nvdimm/pmem.c Dan Williams      2016-04-14  181  		 */
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  182  		flush_dcache_page(page);
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  183  		write_pmem(pmem_addr, page, off, len);
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  184  		if (unlikely(bad_pmem)) {
+3115bb02b drivers/nvdimm/pmem.c Toshi Kani        2016-10-13  185  			rc = pmem_clear_poison(pmem, pmem_off, len);
+bd697a80c drivers/nvdimm/pmem.c Vishal Verma      2016-09-30  186  			write_pmem(pmem_addr, page, off, len);
+59e647398 drivers/nvdimm/pmem.c Dan Williams      2016-03-08  187  		}
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  188  	}
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  189  
+b5ebc8ec6 drivers/nvdimm/pmem.c Dan Williams      2016-03-06  190  	return rc;
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  191  }
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  192  
+dece16353 drivers/nvdimm/pmem.c Jens Axboe        2015-11-05  193  static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  194  {
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  195  	blk_status_t rc = 0;
+f0dc089ce drivers/nvdimm/pmem.c Dan Williams      2015-05-16  196  	bool do_acct;
+f0dc089ce drivers/nvdimm/pmem.c Dan Williams      2015-05-16  197  	unsigned long start;
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  198  	struct bio_vec bvec;
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  199  	struct bvec_iter iter;
+bd842b8ca drivers/nvdimm/pmem.c Dan Williams      2016-03-18  200  	struct pmem_device *pmem = q->queuedata;
+7e267a8c7 drivers/nvdimm/pmem.c Dan Williams      2016-06-01  201  	struct nd_region *nd_region = to_region(pmem);
+7e267a8c7 drivers/nvdimm/pmem.c Dan Williams      2016-06-01  202  
+d2d6364dc drivers/nvdimm/pmem.c Ross Zwisler      2018-06-06  203  	if (bio->bi_opf & REQ_PREFLUSH)
+69b95edd2 drivers/nvdimm/pmem.c Pankaj Gupta      2018-08-31 @204  		bio->bi_status = nd_region->flush(nd_region);
+69b95edd2 drivers/nvdimm/pmem.c Pankaj Gupta      2018-08-31  205  
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  206  
+f0dc089ce drivers/nvdimm/pmem.c Dan Williams      2015-05-16  207  	do_acct = nd_iostat_start(bio, &start);
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  208  	bio_for_each_segment(bvec, bio, iter) {
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  209  		rc = pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len,
+3f289dcb4 drivers/nvdimm/pmem.c Tejun Heo         2018-07-18  210  				bvec.bv_offset, bio_op(bio), iter.bi_sector);
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  211  		if (rc) {
+4e4cbee93 drivers/nvdimm/pmem.c Christoph Hellwig 2017-06-03  212  			bio->bi_status = rc;
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  213  			break;
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  214  		}
+e10624f8c drivers/nvdimm/pmem.c Dan Williams      2016-01-06  215  	}
+f0dc089ce drivers/nvdimm/pmem.c Dan Williams      2015-05-16  216  	if (do_acct)
+f0dc089ce drivers/nvdimm/pmem.c Dan Williams      2015-05-16  217  		nd_iostat_end(bio, start);
+61031952f drivers/nvdimm/pmem.c Ross Zwisler      2015-06-25  218  
+1eff9d322 drivers/nvdimm/pmem.c Jens Axboe        2016-08-05  219  	if (bio->bi_opf & REQ_FUA)
+69b95edd2 drivers/nvdimm/pmem.c Pankaj Gupta      2018-08-31  220  		bio->bi_status = nd_region->flush(nd_region);
+61031952f drivers/nvdimm/pmem.c Ross Zwisler      2015-06-25  221  
+4246a0b63 drivers/nvdimm/pmem.c Christoph Hellwig 2015-07-20  222  	bio_endio(bio);
+dece16353 drivers/nvdimm/pmem.c Jens Axboe        2015-11-05  223  	return BLK_QC_T_NONE;
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  224  }
+9e853f231 drivers/block/pmem.c  Ross Zwisler      2015-04-01  225  
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
