@@ -1,10 +1,11 @@
-From: <info-wX+kTIYAmWPQT0dZR+AlfA@public.gmane.org>
-Subject: In my life there is no happiness, I want to find it!
-Date: Tue, 04 Sep 2018 10:53:27 -0400
-Message-ID: <5B8E9C67.8090100@slater.com>
+From: =?utf-8?B?6YK55oC7?= <kjkbrrfz-x4KRviqpGbY@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+RLuWmguS9leW8gOWPkeabtOWkmueahOaWsOWuouaIt++8jOS7peiOt+W+l+abtOWkmueahA==?=
+ =?utf-8?B?5Zu96ZmF6K6i5Y2VPw==?=
+Date: Wed, 5 Sep 2018 04:09:58 +0800
+Message-ID: <BDD5DC04E932A2AFFB545C648F491A6D@sdj.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,22 +19,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Dear,
-
-It's a beautiful day and i'am in a hurry to get in touch with you asap!
-
-My name is Nataliya. 
-I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
-I do want to be next to a loving man. 
-
-I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
-I wish to find for my second half, who a man that will give me a real hope and true love! 
-
-Hope you're interested in becoming a part of my adventure and will reply back soon.
-In the next letter, I'll send you my photo.
-
-Please write me back using my personal email: natali-DPm24jaRYWTcS4vzOZRjJw@public.gmane.org
-
---------------------------
-Your true soul, 
-Nataliya.
+5Lqy77yaDQrpmYQt5Lu2LeWGhS3lrrkt6K+3LeaCqC3kurIt5ZCvDQo0OjEwOjA3DQrlnKPkurrm
+i6nlj6/oqIDogIzlkI7oqIDvvIzmi6nlj6/ooYzogIzlkI7ooYzjgIIKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
+dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtbnZkaW1tCg==
