@@ -1,11 +1,10 @@
-From: =?utf-8?B?6YK55oC7?= <kjkbrrfz-x4KRviqpGbY@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+RLuWmguS9leW8gOWPkeabtOWkmueahOaWsOWuouaIt++8jOS7peiOt+W+l+abtOWkmueahA==?=
- =?utf-8?B?5Zu96ZmF6K6i5Y2VPw==?=
-Date: Wed, 5 Sep 2018 04:09:58 +0800
-Message-ID: <BDD5DC04E932A2AFFB545C648F491A6D@sdj.org>
+From: <otre-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
+Subject: hi!
+Date: 4 Sep 2018 14:53:47 -0600
+Message-ID: <005201d44493$07387474$fd97348b@lquufjrv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,8 +18,4 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-5Lqy77yaDQrpmYQt5Lu2LeWGhS3lrrkt6K+3LeaCqC3kurIt5ZCvDQo0OjEwOjA3DQrlnKPkurrm
-i6nlj6/oqIDogIzlkI7oqIDvvIzmi6nlj6/ooYzogIzlkI7ooYzjgIIKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
-dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hi dear! Today is a magnificent day and i'am in a hurry to get in touch with you! My name is Nataliya. I am single woman.I believe in a destiny with a cheerful future for myself and that you could become a part of it.I want to be next to a caring man.I love traveling, animals, pop music, going on adventures, and doing spontaneous things, but i feel lonely.I 'm searching for my second half,who can give me hope and true love! In the following letters I will send you my beautiful photos and I will tell you more about me!If you're interested in becoming a part of my adventure and will reply back shortly!Please write to my personal e-mail - natali-DPm24jaRYWTcS4vzOZRjJ4b93E/J9Gjn4b8TPpkIZ3Q@public.gmane.org
