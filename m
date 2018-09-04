@@ -1,10 +1,10 @@
-From: "Suzanne Turner" <Turner-yeajMNyjAAIfxDrQVrMN+tzYSYJoAkse@public.gmane.org>
-Subject: Suzanne
-Date: Tue, 04 Sep 2018 19:31:20 +0200
-Message-ID: <TDKXMIBEX-475330-zkhg@anitapandey0.us>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: <info-wX+kTIYAmWPQT0dZR+AlfA@public.gmane.org>
+Subject: In my life there is no happiness, I want to find it!
+Date: Tue, 04 Sep 2018 10:53:27 -0400
+Message-ID: <5B8E9C67.8090100@slater.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,11 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-V2hhdOKAmXMgdXAhIEFyZSB5b3Ugc2VhcmNoaW5nIGZvciBhIHdpbnNvbWUgbGFzcyB0byBoYXZl
-IGZ1bj8NCk5vdyBpcyB5b3VyIGx1Y2t5IGNoYW5jZS4gSnVzdCBtZXNzYWdlIG1lIGJhY2sgZm9s
-bG93aW5nIHRoZSBsaW5rIGFuZCB5b3XigJlsbCBlbmpveSBhbGwgdGhhdCB5b3UgbmVlZC4NCmh0
-dHA6Ly93d3cuYmlnLWF2dG8zNC5ydS9pNHRjYmw3NXIveXp6dXllYjBhMC5waHA/YkdsdWRYZ3Ri
-blprYVcxdFFHeHBjM1J6TGpBeExtOXladz09Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
-QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LW52ZGltbQo=
+Dear,
+
+It's a beautiful day and i'am in a hurry to get in touch with you asap!
+
+My name is Nataliya. 
+I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
+I do want to be next to a loving man. 
+
+I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
+I wish to find for my second half, who a man that will give me a real hope and true love! 
+
+Hope you're interested in becoming a part of my adventure and will reply back soon.
+In the next letter, I'll send you my photo.
+
+Please write me back using my personal email: natali-DPm24jaRYWTcS4vzOZRjJw@public.gmane.org
+
+--------------------------
+Your true soul, 
+Nataliya.
