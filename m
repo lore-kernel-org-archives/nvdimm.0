@@ -1,7 +1,7 @@
-From: Peter Yeung <sales.hk-3AWzaYR1jaBWk0Htik3J/w@public.gmane.org>
-Subject: From Hong Kong We Bring China Closer to You
-Date: Tue, 04 Sep 2018 00:34:36 -0500
-Message-ID: <20180904054236.13395.1295024956.swift@list13.ebuzzzz.com>
+From: <xtc91177-Oo7Nlly265UAvxtiuMwx3w@public.gmane.org>
+Subject: Friendship, love, passion and trust - this is what I'm looking for!
+Date: 4 Sep 2018 17:17:53 +0300
+Message-ID: <004901d4445d$027ea598$64ca5182$@iaoss.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,4 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Click here to unsubscribe from future mailings: http://list13.ebuzzzz.com/proc.php?nl=934&c=2657&m=4571&s=52eee45985ef49ad5eb7df96c6ae5fab&act=unsub
+Dear,
+
+It's a beautiful day and i'am in a hurry to get in touch with you asap!
+
+My name is Nataliya. 
+I really do believe in a destiny with a bright future for myself and that you could become a part of it become my true soulmate. 
+I do want to be next to a loving man. 
+
+I love traveling, movies, pop music, seafood, and doing crazy things, but i feel like loneliness is swallowing me intensely lonely sometimes. 
+I wish to find for my second half, who a man that will give me a real hope and true love! 
+
+Hope you're interested in becoming a part of my adventure and will reply back soon.
+In the next letter, I'll send you my photo.
+
+Please write me back using my personal email: natali-DPm24jaRYWTcS4vzOZRjJw@public.gmane.org
+
+--------------------------
+Your true soul, 
+Nataliya.
