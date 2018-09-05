@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com
- [IPv6:2607:f8b0:4864:20::541])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 10DAF2112120D
- for <linux-nvdimm@lists.01.org>; Sun,  9 Sep 2018 23:24:02 -0700 (PDT)
-Received: by mail-pg1-x541.google.com with SMTP id b129-v6so9891980pga.13
- for <linux-nvdimm@lists.01.org>; Sun, 09 Sep 2018 23:24:02 -0700 (PDT)
-From: Ocean He <oceanhehy@gmail.com>
-Subject: [PATCH 0/3] libnvdimm: reset seeds for next namespace creation 
-Date: Mon, 10 Sep 2018 02:21:45 -0400
-Message-Id: <1536560508-24564-1-git-send-email-oceanhehy@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id BE5A621A07A80
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Sep 2018 08:55:39 -0700 (PDT)
+Subject: [PATCH 09/11] UAPI: ndctl: Fix g++-unsupported initialisation in
+ headers
+From: David Howells <dhowells@redhat.com>
+Date: Wed, 05 Sep 2018 16:55:37 +0100
+Message-ID: <153616293757.23468.13765050528392604035.stgit@warthog.procyon.org.uk>
+In-Reply-To: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
+References: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,117 +19,108 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+The following code in the linux/ndctl header file:
 
-When pmem namespaces created are smaller than section size twice, the
-second creation would fail and meanwhile there is a kernel call trace
-which comes from commit 15d36fecd0bdc7510b70 ("mm: disallow mappings that
-conflict for devm_memremap_pages()").
-	------------[ cut here ]------------
-	nd_pmem pfn1.1: Conflicting mapping in same section
-	WARNING: CPU: 84 PID: 51974 at kernel/memremap.c:194 devm_memremap_pages+0x4a0/0x4e0
-	CPU: 84 PID: 51974 Comm: ndctl Kdump: loaded Tainted: G W E 4.19.0-rc2-23-default+ #27
-	RIP: 0010:devm_memremap_pages+0x4a0/0x4e0
-	Call Trace:
-	 pmem_attach_disk+0x3ab/0x581 [nd_pmem]
-	 nvdimm_bus_probe+0x69/0x150 [libnvdimm]
-	 really_probe+0x262/0x3d0
-	 driver_probe_device+0x60/0x120
-	 bind_store+0x102/0x190
-	 kernfs_fop_write+0x105/0x180
-	 __vfs_write+0x36/0x1a0
-	 ? common_file_perm+0x47/0x130
-	 ? security_file_permission+0x2c/0xb0
-	 vfs_write+0xad/0x1a0
-	 ksys_write+0x52/0xc0
-	 do_syscall_64+0x5b/0x180
-	 entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Here is an example (section size is 128MB) based on kernel 4.19-rc2.
-	# ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
+	static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
 	{
-	  "dev":"namespace1.0",
-	  "mode":"fsdax",
-	  "map":"dev",
-	  "size":"96.00 MiB (100.66 MB)",
-	  "uuid":"ef9a0556-a610-40b5-8c71-43991765a2cc",
-	  "raw_uuid":"177b22e2-b7e8-482f-a063-2b8de876d979",
-	  "sector_size":512,
-	  "blockdev":"pmem1",
-	  "numa_node":1
-	}
-	# ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
-	libndctl: ndctl_pfn_enable: pfn1.1: failed to enable
-	  Error: namespace1.1: failed to enable
-	failed to create namespace: No such device or address
+		static const char * const names[] = {
+			[ND_CMD_ARS_CAP] = "ars_cap",
+			[ND_CMD_ARS_START] = "ars_start",
+			[ND_CMD_ARS_STATUS] = "ars_status",
+			[ND_CMD_CLEAR_ERROR] = "clear_error",
+			[ND_CMD_CALL] = "cmd_call",
+		};
 
-When above second creation failure occurs, the expectation is to destroy
-namespace1.0 to create a new namespace which size is aligned with section
-size. However, both namespace seed and pfn seed have been consumed, the
-new namespace creation still fails.
-	# ndctl destroy-namespace namespace1.0 -f
-	destroyed 1 namespace
-	# ndctl create-namespace -r region1 -s 128m -t pmem -m fsdax
-	failed to create namespace: Device or resource busy
-
-To ensure pfn_seed/dax_seed and namespace_seed are always ready for next
-namespace creation, this patch set enables seed detach and reset. Back to
-the example, the new namespace creation never fails if this patch set
-applied.
-	# ndctl destroy-namespace namespace1.0 -f
-	destroyed 1 namespace
-	# ndctl create-namespace -r region1 -s 128m -t pmem -m fsdax
-	{
-	  "dev":"namespace1.0",
-	  "mode":"fsdax",
-	  "map":"dev",
-	  "size":"124.00 MiB (130.02 MB)",
-	  "uuid":"0d0e7506-d108-4a88-824a-edef26fd0399",
-	  "raw_uuid":"efeb9647-12f5-44cd-8a52-2f3a0d14589a",
-	  "sector_size":512,
-	  "blockdev":"pmem1",
-	  "numa_node":1
-	}
-	# ndctl create-namespace -r region1 -s 128m -t pmem -m fsdax
-	{
- 	  "dev":"namespace1.1",
- 	  "mode":"fsdax",
- 	  "map":"dev",
- 	  "size":130023424,
- 	  "uuid":"689828dc-8779-434d-8e93-0406d4e1e536",
- 	  "raw_uuid":"d86e1025-c224-48b6-b2a7-6ccef152d5fd",
- 	  "sector_size":512,
- 	  "blockdev":"pmem1.1",
- 	  "numa_node":1
+		if (cmd < ARRAY_SIZE(names) && names[cmd])
+			return names[cmd];
+		return "unknown";
 	}
 
-The mode devdax (-m devdax) has the same issue, this patch set could
-cover it.
+is broken in a number of ways:
 
-Ocean He (3):
-  libnvdimm, claim: remove static attribute of nd_detach_and_reset
-  libnvdimm, namespace_devs: add function nd_region_reset_ns_seed for
-    namespace seed reset
-  libnvdimm, region_devs: reset related seeds when fail to create
-    namespace
+ (1) ARRAY_SIZE() is not generally defined.  Fix this by defining a label
+     in the enum that indicates the number of commands.
 
- drivers/nvdimm/claim.c          |  2 +-
- drivers/nvdimm/namespace_devs.c | 32 ++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h        |  2 ++
- drivers/nvdimm/region_devs.c    | 34 ++++++++++++++++++++++++++++++++++
- 4 files changed, 69 insertions(+), 1 deletion(-)
+ (2) g++ does not support "non-trivial" array initialisers fully yet.  Fix
+     this by defining the missing intermediate values.
 
--- 
-1.8.3.1
+ (3) Every file that calls this function will acquire a copy of names[].
+
+The same goes for nvdimm_cmd_name().
+
+A better way would be to remove these functions and their arrays from the
+header entirely.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Dan Williams <dan.j.williams@intel.com>
+cc: linux-nvdimm@lists.01.org
+---
+
+ include/uapi/linux/ndctl.h |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 7e27070b9440..9c89159f6a0f 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -117,6 +117,7 @@ enum {
+ 	ND_CMD_VENDOR_EFFECT_LOG = 8,
+ 	ND_CMD_VENDOR = 9,
+ 	ND_CMD_CALL = 10,
++	nr__ND_CMD = 11
+ };
+ 
+ enum {
+@@ -128,22 +129,29 @@ enum {
+ 
+ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
+ {
+-	static const char * const names[] = {
++	static const char * const names[nr__ND_CMD] = {
++		[0] = NULL,
+ 		[ND_CMD_ARS_CAP] = "ars_cap",
+ 		[ND_CMD_ARS_START] = "ars_start",
+ 		[ND_CMD_ARS_STATUS] = "ars_status",
+ 		[ND_CMD_CLEAR_ERROR] = "clear_error",
++		[5] = NULL,
++		[6] = NULL,
++		[7] = NULL,
++		[8] = NULL,
++		[9] = NULL,
+ 		[ND_CMD_CALL] = "cmd_call",
+ 	};
+ 
+-	if (cmd < ARRAY_SIZE(names) && names[cmd])
++	if (cmd < nr__ND_CMD && names[cmd])
+ 		return names[cmd];
+ 	return "unknown";
+ }
+ 
+ static inline const char *nvdimm_cmd_name(unsigned cmd)
+ {
+-	static const char * const names[] = {
++	static const char * const names[nr__ND_CMD] = {
++		[0] = NULL,
+ 		[ND_CMD_SMART] = "smart",
+ 		[ND_CMD_SMART_THRESHOLD] = "smart_thresh",
+ 		[ND_CMD_DIMM_FLAGS] = "flags",
+@@ -156,7 +164,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
+ 		[ND_CMD_CALL] = "cmd_call",
+ 	};
+ 
+-	if (cmd < ARRAY_SIZE(names) && names[cmd])
++	if (cmd < nr__ND_CMD && names[cmd])
+ 		return names[cmd];
+ 	return "unknown";
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
