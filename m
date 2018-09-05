@@ -1,9 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io0-x241.google.com (mail-io0-x241.google.com
+ [IPv6:2607:f8b0:4001:c06::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 37F092111FE4E
- for <linux-nvdimm@lists.01.org>; Wed,  5 Sep 2018 14:03:31 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 23C712111FE4D
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Sep 2018 13:37:00 -0700 (PDT)
+Received: by mail-io0-x241.google.com with SMTP id 75-v6so7070083iou.11
+ for <linux-nvdimm@lists.01.org>; Wed, 05 Sep 2018 13:37:00 -0700 (PDT)
+Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
+ check support for requests
 References: <20180830185352.3369-1-logang@deltatee.com>
  <20180830185352.3369-8-logang@deltatee.com>
  <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
@@ -20,15 +25,12 @@ References: <20180830185352.3369-1-logang@deltatee.com>
  <e3ef26e6-6c8d-25b8-fa64-14594a51263c@deltatee.com>
  <3af4d1d4-da07-c0a6-8464-9ddc1378f2f4@kernel.dk>
  <f9e660cd-b597-bb6e-56a2-82fe71cb3649@deltatee.com>
- <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c@kernel.dk>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <c41c802c-9235-5383-2dfa-af9c1553f11b@deltatee.com>
-Date: Wed, 5 Sep 2018 15:03:18 -0600
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c@kernel.dk>
+Date: Wed, 5 Sep 2018 14:36:56 -0600
 MIME-Version: 1.0
-In-Reply-To: <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c@kernel.dk>
+In-Reply-To: <f9e660cd-b597-bb6e-56a2-82fe71cb3649@deltatee.com>
 Content-Language: en-US
-Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -40,50 +42,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>
+To: Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>
 Cc: Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 05/09/18 02:36 PM, Jens Axboe wrote:
-> On 9/5/18 2:32 PM, Logan Gunthorpe wrote:
->>
->>
->> On 05/09/18 02:19 PM, Jens Axboe wrote:
->>> On 9/5/18 2:18 PM, Logan Gunthorpe wrote:
->>>>
->>>>
->>>> On 05/09/18 02:14 PM, Jens Axboe wrote:
->>>>> But if the caller must absolutely know where the bio will end up, then
->>>>> it seems super redundant. So I'd vote for killing this check, it buys
->>>>> us absolutely nothing and isn't even exhaustive in its current form.
->>>>
->>>>
->>>> Ok, I'll remove it for v6.
->>>
->>> Since the drivers needs to know it's doing it right, it might not
->>> hurt to add a sanity check helper for that. Just have the driver
->>> call it, and don't add it in the normal IO submission path.
->>
->> I'm not sure I really see the value in that. It's the same principle in
->> asking the driver to do the WARN: if the developer knew enough to use
->> the special helper, they probably knew well enough to do the rest correctly.
+On 9/5/18 2:32 PM, Logan Gunthorpe wrote:
 > 
-> I don't agree with that at all. It's a "is my request valid" helper,
-> it's not some obscure and rarely used functionality. You're making up
-> this API right now, if you really want it done for every IO, make it
-> part of the p2p submission process. You could even hide it behind a
-> debug thing, if you like.
+> 
+> On 05/09/18 02:19 PM, Jens Axboe wrote:
+>> On 9/5/18 2:18 PM, Logan Gunthorpe wrote:
+>>>
+>>>
+>>> On 05/09/18 02:14 PM, Jens Axboe wrote:
+>>>> But if the caller must absolutely know where the bio will end up, then
+>>>> it seems super redundant. So I'd vote for killing this check, it buys
+>>>> us absolutely nothing and isn't even exhaustive in its current form.
+>>>
+>>>
+>>> Ok, I'll remove it for v6.
+>>
+>> Since the drivers needs to know it's doing it right, it might not
+>> hurt to add a sanity check helper for that. Just have the driver
+>> call it, and don't add it in the normal IO submission path.
+> 
+> I'm not sure I really see the value in that. It's the same principle in
+> asking the driver to do the WARN: if the developer knew enough to use
+> the special helper, they probably knew well enough to do the rest correctly.
 
-There is no special p2p submission process. In the nvme-of case we are
-using the existing process and with the code in blk-core it didn't
-change it's process at all. Creating a helper will create one and I can
-look at making a pci_p2pdma_submit_bio() for v6; but if the developer
-screws up and still calls the regular submit_bio() things will only be
-very subtly broken and that won't be obvious.
+I don't agree with that at all. It's a "is my request valid" helper,
+it's not some obscure and rarely used functionality. You're making up
+this API right now, if you really want it done for every IO, make it
+part of the p2p submission process. You could even hide it behind a
+debug thing, if you like.
 
-Logan
+> I guess one other thing to point out is that, on x86, if a driver
+> submits P2P pages to a PCI device that doesn't have kernel support,
+> everything will likely just work. Even though the driver isn't doing any
+> of the work correctly and the requests are not being mapped with
+> pci_p2pdma_map() functions. Such code on other arches would likely
+> break. So developers may be lulled into thinking they're doing the
+> correct thing when in fact they are not and the WARN in the common code
+> would prevent that.
+
+If you're adamant about having it in common code, put it in your
+common submission code. Most folks aren't going to care about P2P, let the
+ones that do have the checks.
+
+-- 
+Jens Axboe
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
