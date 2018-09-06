@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from ou.quest-ce.net (unknown [IPv6:2001:bc8:3541:100::1])
+ (using TLSv1.2 with cipher AES128-SHA (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 11BF0211518D1
- for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 15:45:07 -0700 (PDT)
-Subject: [PATCH v2 4/5] libnvdimm: add overwrite status notification
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 28 Sep 2018 15:45:06 -0700
-Message-ID: <153817470623.19407.2154312383983084713.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
-References: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 70A7B2111B79A
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Sep 2018 00:13:21 -0700 (PDT)
+Message-ID: <48b8af08170fb896c12cc4e3eae7501b4fa4181d.camel@opteya.com>
+From: Yann Droneaud <ydroneaud@opteya.com>
+Date: Thu, 06 Sep 2018 09:12:58 +0200
+In-Reply-To: <a1efae8d26cc5b73b180e9521d6b62590c55aa86.camel@opteya.com>
+References: <153616286704.23468.584491117180383924.stgit@warthog.procyon.org.uk>
+ <20180905165552.GB25206@kroah.com>
+ <a1efae8d26cc5b73b180e9521d6b62590c55aa86.camel@opteya.com>
+Mime-Version: 1.0
+Subject: Re: [RFC] UAPI: Check headers by compiling all together as C++
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,97 +20,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Greg KH <greg@kroah.com>, David Howells <dhowells@redhat.com>
+Cc: moderated for non-subscribers <alsa-devel@alsa-project.org>, "Michael S. Tsirkin" <mst@redhat.com>, David Airlie <airlied@linux.ie>, Jason Wang <jasowang@redhat.com>, Mat Martineau <mathew.j.martineau@linux.intel.com>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Masahiro Yamada <yamada.masahiro@socionext.com>, keyrings@vger.kernel.org, Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>, linux-nilfs@vger.kernel.org, linux-nvdimm@lists.01.org, codalist@coda.cs.cmu.edu, coda@cs.cmu.edu, coreteam@netfilter.org, Kent Overstreet <kent.overstreet@gmail.com>, linux-kbuild@vger.kernel.org, linux-arm-msm@vger.kernel.org, Coly Li <colyli@suse.de>, linux-bcache@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>, Jan Harkes <jaharkes@cs.cmu.edu>, Michal Marek <michal.lkml@markovi.net>, linux-api@vger.kernel.org, Takashi Iwai <tiwai@suse.com>, linux-kernel@vger.kernel.org, Rob Clark <robdclark@gmail.com>, netfilter-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding sysfs notification for when overwrite has completed to allow
-user monitoring app to be aware of overwrite completion status.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/core.c   |    5 +++++
- drivers/nvdimm/dimm_devs.c |   12 ++++++++++++
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    1 +
- 4 files changed, 19 insertions(+)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index b7773c70ee81..93c044527994 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1950,6 +1950,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (!nvdimm)
- 			continue;
- 
-+		rc = nvdimm_setup_security_events(nvdimm);
-+		if (rc < 0)
-+			dev_warn(acpi_desc->dev,
-+					"no security event setup failed\n");
-+
- 		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
- 		if (nfit_kernfs)
- 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 73f7e879d6e0..12bafa3ba8f9 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -211,6 +211,8 @@ static void nvdimm_overwrite_query(struct work_struct *work)
- 	else
- 		dev_info(&nvdimm->dev, "Overwrite completed\n");
- 
-+	if (nvdimm->overwrite_state)
-+		sysfs_notify_dirent(nvdimm->overwrite_state);
- 	nvdimm->overwrite_tmo = 0;
- 	nvdimm_clear_security_busy(&nvdimm->dev);
- 	nvdimm_security_get_state(&nvdimm->dev);
-@@ -1134,6 +1136,16 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- }
- EXPORT_SYMBOL_GPL(nvdimm_create);
- 
-+int nvdimm_setup_security_events(struct nvdimm *nvdimm)
-+{
-+	nvdimm->overwrite_state = sysfs_get_dirent(nvdimm->dev.kobj.sd,
-+			"security");
-+	if (!nvdimm->overwrite_state)
-+		return -ENODEV;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_setup_security_events);
-+
- int alias_dpa_busy(struct device *dev, void *data)
- {
- 	resource_size_t map_end, blk_start, new;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index efc7eb9e624c..043016f41156 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -48,6 +48,7 @@ struct nvdimm {
- 	struct key *key;
- 	struct delayed_work dwork;
- 	unsigned int overwrite_tmo;
-+	struct kernfs_node *overwrite_state;
- };
- 
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index b59ff6b798b2..baf33b74cddf 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -218,6 +218,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		unsigned long cmd_mask, int num_flush,
- 		struct resource *flush_wpq, const char *dimm_id,
- 		const struct nvdimm_security_ops *sec_ops);
-+int nvdimm_setup_security_events(struct nvdimm *nvdimm);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+TGUgbWVyY3JlZGkgMDUgc2VwdGVtYnJlIDIwMTggw6AgMTk6MzMgKzAyMDAsIFlhbm4gRHJvbmVh
+dWQgYSDDqWNyaXQgOgo+IExlIG1lcmNyZWRpIDA1IHNlcHRlbWJyZSAyMDE4IMOgIDE4OjU1ICsw
+MjAwLCBHcmVnIEtIIGEgw6ljcml0IDoKPiA+IE9uIFdlZCwgU2VwIDA1LCAyMDE4IGF0IDA0OjU0
+OjI3UE0gKzAxMDAsIERhdmlkIEhvd2VsbHMgd3JvdGU6Cj4gPiA+IAo+ID4gPiBIZXJlJ3MgYSBz
+ZXQgb2YgcGF0Y2hlcyB0aGF0IGluc2VydHMgYSBzdGVwIGludG8gdGhlIGJ1aWxkCj4gPiA+IHBy
+b2Nlc3MgdG8gbWFrZQo+ID4gPiBzdXJlIHRoYXQgdGhlIFVBUEkgaGVhZGVycyBjYW4gYWxsIGJl
+IGJ1aWx0IHRvZ2V0aGVyIHdpdGggQysrIChpZgo+ID4gPiB0aGUKPiA+ID4gY29tcGlsZXIgYmVp
+bmcgdXNlZCBzdXBwb3J0cyBDKyspLiAgQWxsIGJ1dCB0aGUgZmluYWwgcGF0Y2gKPiA+ID4gcGVy
+Zm9ybSBmaXh1cHMsCj4gPiA+IGluY2x1ZGluZzoKPiA+IAo+ID4gV2FpdCwgd2h5IGRvIHdlIGNh
+cmU/ICBXaGF0IGhhcyByZWNlbnRseSBjaGFuZ2VkIHRvIHN0YXJ0IHRvCj4gPiBkaXJlY3RseQo+
+ID4gaW1wb3J0IGtlcm5lbCB1YXBpIGZpbGVzIGludG8gQysrIGNvZGU/Cj4gPiAKPiA+IEFuZCBp
+ZiB1c2Vyc3BhY2Ugd2FudHMgdG8gZG8gdGhpcywgY2FuJ3QgdGhleSBkbyB0aGUgQyBuYW1lc3Bh
+Y2UKPiA+IHRyaWNrCj4gPiB0aGVtc2VsdmVzIHdoZW4gdGhleSBkbyB0aGUgaW1wb3J0PyAgVGhh
+dCBtdXN0IGJlIGhvdyB0aGV5IGFyZQo+ID4gZG9pbmcgaXQKPiA+IHRvZGF5LCByaWdodD8KPiA+
+IAo+IAo+IFRoZXkgY2FuJ3QuCj4gCj4gCj4gQWRkaW5nIGV4dGVybiAiQyIgeyB9IGRvZXNuJ3Qg
+bWFnaWNhbGx5IG1ha2UgImNsYXNzIiBhIG5vbiBrZXl3b3JkLgo+IEV2ZW4gaWYgaXQgd2FzIHRo
+ZSBjYXNlLCB3cml0aW5nIEMrKyBjb2RlIHVzaW5nIHdoYXRldmVyLT5jbGFzcyB3b3VsZAo+IHBy
+b2JhYmx5IGJyb2tlIGJlY2F1c2UgY2xhc3MgaXMgYSBrZXl3b3JkIGluIEMrKy4KPiAKCkZvciB0
+aGUgcmVjb3JkLCBsaWJYMTEgaGFzIHRvIGhhbmRsZSB0aGUga2luayBwZiBpc3N1ZSB3aXRoIEMr
+KwprZXl3b3JkOgoKCmh0dHBzOi8vZ2l0bGFiLmZyZWVkZXNrdG9wLm9yZy94b3JnL2xpYi9saWJ4
+MTEvYmxvYi83MzNmNjRiZmViMzExYzFkMDQwYjJmNzUxYmZkZWY5YzlkMGY4OWVmL2luY2x1ZGUv
+WDExL1hsaWIuaCNMMjI3Cgp0eXBlZGVmIHN0cnVjdCB7CglYRXh0RGF0YSAqZXh0X2RhdGE7CS8q
+IGhvb2sgZm9yIGV4dGVuc2lvbiB0byBoYW5nIGRhdGEgKi8KCVZpc3VhbElEIHZpc3VhbGlkOwkv
+KiB2aXN1YWwgaWQgb2YgdGhpcyB2aXN1YWwgKi8KI2lmIGRlZmluZWQoX19jcGx1c3BsdXMpIHx8
+IGRlZmluZWQoY19wbHVzcGx1cykKCWludCBjX2NsYXNzOwkJLyogQysrIGNsYXNzIG9mIHNjcmVl
+biAobW9ub2Nocm9tZSwgZXRjLikgKi8KI2Vsc2UKCWludCBjbGFzczsJCS8qIGNsYXNzIG9mIHNj
+cmVlbiAobW9ub2Nocm9tZSwgZXRjLikgKi8KI2VuZGlmCgl1bnNpZ25lZCBsb25nIHJlZF9tYXNr
+LCBncmVlbl9tYXNrLCBibHVlX21hc2s7CS8qIG1hc2sgdmFsdWVzICovCglpbnQgYml0c19wZXJf
+cmdiOwkvKiBsb2cgYmFzZSAyIG9mIGRpc3RpbmN0IGNvbG9yIHZhbHVlcyAqLwoJaW50IG1hcF9l
+bnRyaWVzOwkvKiBjb2xvciBtYXAgZW50cmllcyAqLwp9IFZpc3VhbDsKCgpSZWdhcmRzLgoKLS0g
+Cllhbm4gRHJvbmVhdWQKT1BURVlBCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
