@@ -1,10 +1,10 @@
-From: <zleachae-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
-Subject: hi!
-Date: 6 Sep 2018 13:40:44 +0400
-Message-ID: <269051638.201809061411@excite.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: "Joellen Bryant" <Joellen-6hYaQcmicGtB8X2jSyYchpyrNiDsoR7y@public.gmane.org>
+Subject: Joellen
+Date: Thu, 06 Sep 2018 12:35:15 +0200
+Message-ID: <BHNOH-4784-ofc@etafly.us>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,4 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi dear! Today is a magnificent day and i'am in a hurry to get in touch with you! My name is Nataliya. I am single woman.I believe in a destiny with a cheerful future for myself and that you could become a part of it.I want to be next to a caring man.I love traveling, animals, pop music, going on adventures, and doing spontaneous things, but i feel lonely.I 'm searching for my second half,who can give me hope and true love! In the following letters I will send you my beautiful photos and I will tell you more about me!If you're interested in becoming a part of my adventure and will reply back shortly!Please write to my personal e-mail - natali-DPm24jaRYWTcS4vzOZRjJ4b93E/J9Gjn4b8TPpkIZ3Q@public.gmane.org
+SGVsbG8hIEFyZSB5b3UgbG9va2luZyBmb3IgYSBlbmpveWFibGUgbWlzcyB0byBzaGFyZSB5b3Vy
+IGxvdmUgd2l0aD8NCk5vdyBpcyB5b3VyIGx1Y2t5IGNoYW5jZS4gSnVzdCBtZXNzYWdlIG1lIGJh
+Y2sgZm9sbG93aW5nIHRoZSBsaW5rIGFuZCB5b3XigJlsbCBnZXQgYWxsIHRoYXQgeW91IGRlc2ly
+ZS4NCmh0dHA6Ly93d3cueG4tLWIxYWFyaW9nYnAwYTdlLnhuLS1wMWFpLzdkcGttYS80YTZlYS5w
+aHA/YkdsdWRYZ3RiblprYVcxdFFHeHBjM1J6TGpBeExtOXladz09Cl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
