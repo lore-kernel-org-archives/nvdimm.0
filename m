@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D011211575CA
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:37:46 -0700 (PDT)
-Subject: [PATCH v9 00/12] Adding security support for nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 25 Sep 2018 16:37:45 -0700
-Message-ID: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E611A2194D387
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Sep 2018 02:18:25 -0700 (PDT)
+Subject: [RFC] UAPI: Check headers by compiling all together as C++
+From: David Howells <dhowells@redhat.com>
+Date: Thu, 06 Sep 2018 10:18:17 +0100
+Message-ID: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,125 +20,107 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
+Cc: "Michael S. Tsirkin" <mst@redhat.com>, David Airlie <airlied@linux.ie>, Jason Wang <jasowang@redhat.com>, Mat Martineau <mathew.j.martineau@linux.intel.com>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, dhowells@redhat.com, Masahiro Yamada <yamada.masahiro@socionext.com>, keyrings@vger.kernel.org, Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>, Yann Droneaud <ydroneaud@opteya.com>, linux-nilfs@vger.kernel.org, linux-nvdimm@lists.01.org, codalist@coda.cs.cmu.edu, coda@cs.cmu.edu, coreteam@netfilter.org, Kent Overstreet <kent.overstreet@gmail.com>, linux-arm-msm@vger.kernel.org, Coly Li <colyli@suse.de>, linux-bcache@vger.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>, Michal Marek <michal.lkml@markovi.net>, linux-kernel@vger.kernel.org, Rob Clark <robdclark@gmail.com>, netfilter-devel@vger.kernel.org, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements security support for nvdimm. Mostly adding
-new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
-adding generic support libnvdimm for other vendors. The most important
-security features are unlocking locked nvdimms, and updating/setting security
-passphrase to nvdimms.
 
-v9:
-- Addressed various misc comments. (David, Dan)
-- Removed init_cred and replaced with current_cred(). (David)
-- Changed NVDIMM_PREFIX to char[] constant (David)
-- Moved NVDIMM_PREFIX to include/uapi/linux/ndctl.h (Dan)
-- Reworked security_update to use old user key to verify against kernel
-  key and then update with new user key. (David)
-- Added requirement of disable and erase to require old user key for
-  verify. (Dan)
-- Updated documentation. (Dave)
+Here's a set of patches that inserts a step into the build process to make
+sure that the UAPI headers can all be built together with C++ (if the
+compiler being used supports C++).
 
-v8:
-- Make the keys retained by the kernel user searchable in order to find the
-  key that needs to be updated for key update.
+Note that it's based on a commit from the sound tree to fix usage of u32
+and co..
 
-v7:
-- Add CONFIG_KEYS depenency for libnvdimm. (Alison)
-- Export lookup_user_key(). (David)
-- Modified "update" to take two key ids and and use lookup_user_key() in
-  order to improve security.  (David)
-- Use key ptrs and key_validate() for cached keys. (David)
+Most of the patches perform fixups, including:
 
-v6:
-- Fix intel DSM data structures to use defined size for passphrase (Robert)
-- Fix memcpy size to use sizeof data structure member (Robert)
-- Fix defined dimm id length (Robert)
-- Making intel_security_ops const (Eric)
-- Remove unused var in nvdimm_key_search() (Eric)
-- Added wbinvd before secure erase is issued (Robert)
-- Removed key_put_sync() usage (David)
-- Use init_cred instead of creating own cred (David)
-    - Exported init_cred symbol
-- Move keyring to dedicated (David)
-- Use logon_key_type and friends instead of creating custom (David)
-- Use key_lookup() with stored key serial (David)
-    - Exported key_lookup() symbol
-- Mark passed in key data as const (David)
-- Added comment for change_pass_phrase to explain how it works (David)
-- Unlink key when it's being removed from keyring. (David)
-- Removed request_key() from all security ops except update and unlock.
-- Update will now update the existing key's payload with the new key's
-  retrieved from userspace when the new payload is accepted by nvdimm.
+ (1) Fix member names that conflict with C++ reserved words by providing
+     alternates that can be used anywhere.  An anonymous union is used so
+     that that the conflicting name is still available outside of C++.
 
-v5:
-- Moved dimm_id initialization (Dan)
-- Added a key_put_sync() in order to run key_gc_work and cleanup old key. (Dan)
-- Added check to block security state changes while DIMM is active. (Dan)
+ (2) Fix the use of flexible arrays in structs that get embedded (which is
+     illegal in C++).
 
-v4:
-- flip payload layout for update passphrase to make it easier on userland.
+ (3) Remove the use of internal kernel structs in UAPI structures.
 
-v3:
-- Set x86 wrappers for x86 only bits. (Dan)
-- Fixed up some verbiage in commit headers.
-- Put in usage of sysfs_streq() for sysfs inputs.
-- 0-day build fixes for non-x86 archs.
+ (4) Fix symbol collisions.
 
-v2:
-- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
-- Moved security ring relevant code to dimm_devs.c. (Dan)
-- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
-- Added routine to return security_ops based on family supplied. (Dan)
-- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
-- Allocate firmware package on stack. (Dan)
-- Added missing frozen state detection when retrieving security state.
+ (5) Fix use of sparsely initialised arrays (which g++ doesn't implement).
 
+ (6) Remove some use of PAGE_SIZE since this isn't valid outside of the
+     kernel.
+
+There's also:
+
+ (7) Move the coda_psdev.h header file to fs/coda/.
+
+And lastly:
+
+ (8) Compile all of the UAPI headers (with a few exceptions) together as
+     C++ to catch new errors occurring as part of the regular build
+     process.
+
+Changes for v2:
+
+ - Merge commit from sound tree to fix u32 usage issues
+ - Use a switch to fix sparse array initialisation
+ - Simplify nilfs2 by performing bitwise ops in LE space not CPU space
+ - Handle conflicting fix to use of 'private' in keyctl.h
+ - Move kernel internal coda bits to coda internal headers
+ - Move coda_psdev.h header to fs/coda/.
+
+The patches can also be found here:
+
+	http://git.kernel.org/cgit/linux/kernel/git/dhowells/linux-fs.git/log/?h=uapi-check
+
+Thanks,
+David
 ---
-
-Dave Jiang (12):
-      nfit: add support for Intel DSM 1.7 commands
-      libnvdimm: create keyring to store security keys
-      nfit/libnvdimm: store dimm id as a member to struct nvdimm
-      keys: export lookup_user_key to external users
-      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
-      nfit/libnvdimm: add set passphrase support for Intel nvdimms
-      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
-      nfit/libnvdimm: add freeze security support to Intel nvdimm
-      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
-      nfit_test: add context to dimm_dev for nfit_test
-      nfit_test: add test support for Intel nvdimm security DSMs
-      libnvdimm: add documentation for nvdimm security support
+David Howells (11):
+      UAPI: drm: Fix use of C++ keywords as structural members
+      UAPI: keys: Fix use of C++ keywords as structural members
+      UAPI: virtio_net: Fix use of C++ keywords as structural members
+      UAPI: bcache: Fix use of embedded flexible array
+      UAPI: coda: Move kernel internals out of public view
+      coda: Move internal defs out of include/linux/
+      UAPI: netfilter: Fix symbol collision issues
+      UAPI: nilfs2: Fix use of undefined byteswapping functions
+      UAPI: ndctl: Fix g++-unsupported initialisation in headers
+      UAPI: ndctl: Remove use of PAGE_SIZE
+      UAPI: Check headers build for C++
 
 
- Documentation/nvdimm/security.txt |   99 +++++++
- drivers/acpi/nfit/Makefile        |    1 
- drivers/acpi/nfit/core.c          |   58 +++-
- drivers/acpi/nfit/intel.c         |  382 ++++++++++++++++++++++++++
- drivers/acpi/nfit/intel.h         |   82 ++++++
- drivers/acpi/nfit/nfit.h          |   20 +
- drivers/nvdimm/Kconfig            |    1 
- drivers/nvdimm/bus.c              |    2 
- drivers/nvdimm/core.c             |    7 
- drivers/nvdimm/dimm.c             |    7 
- drivers/nvdimm/dimm_devs.c        |  549 +++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h          |    6 
- drivers/nvdimm/nd.h               |    2 
- include/linux/key.h               |    3 
- include/linux/libnvdimm.h         |   42 +++
- include/uapi/linux/ndctl.h        |    6 
- security/keys/internal.h          |    2 
- security/keys/process_keys.c      |    1 
- tools/testing/nvdimm/Kbuild       |    1 
- tools/testing/nvdimm/test/nfit.c  |  227 ++++++++++++++-
- 20 files changed, 1462 insertions(+), 36 deletions(-)
- create mode 100644 Documentation/nvdimm/security.txt
- create mode 100644 drivers/acpi/nfit/intel.c
- create mode 100644 drivers/acpi/nfit/intel.h
+ Makefile                                          |    1 
+ fs/coda/cache.c                                   |    2 
+ fs/coda/cnode.c                                   |    2 
+ fs/coda/coda_linux.c                              |    2 
+ fs/coda/coda_psdev.h                              |   88 +++++++++++++++
+ fs/coda/dir.c                                     |    2 
+ fs/coda/file.c                                    |    3 -
+ fs/coda/inode.c                                   |    2 
+ fs/coda/pioctl.c                                  |    3 -
+ fs/coda/psdev.c                                   |    3 -
+ fs/coda/symlink.c                                 |    3 -
+ fs/coda/upcall.c                                  |    2 
+ include/linux/coda_psdev.h                        |   72 ------------
+ include/linux/ndctl.h                             |   22 ++++
+ include/uapi/drm/i810_drm.h                       |    7 +
+ include/uapi/drm/msm_drm.h                        |    7 +
+ include/uapi/linux/bcache.h                       |    2 
+ include/uapi/linux/coda_psdev.h                   |   18 ---
+ include/uapi/linux/keyctl.h                       |    7 +
+ include/uapi/linux/ndctl.h                        |   52 ++++-----
+ include/uapi/linux/netfilter/nfnetlink_cthelper.h |    2 
+ include/uapi/linux/netfilter_ipv4/ipt_ECN.h       |    9 --
+ include/uapi/linux/nilfs2_ondisk.h                |   28 ++---
+ include/uapi/linux/virtio_net.h                   |    7 +
+ scripts/headers-c++.sh                            |  124 +++++++++++++++++++++
+ 25 files changed, 304 insertions(+), 166 deletions(-)
+ create mode 100644 fs/coda/coda_psdev.h
+ delete mode 100644 include/linux/coda_psdev.h
+ create mode 100644 include/linux/ndctl.h
+ create mode 100755 scripts/headers-c++.sh
 
---
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
