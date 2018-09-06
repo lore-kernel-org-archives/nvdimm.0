@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C9BB21159C8E
- for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 09:54:29 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 27 Sep 2018 10:54:17 -0600
-Message-Id: <20180927165420.5290-11-logang@deltatee.com>
-In-Reply-To: <20180927165420.5290-1-logang@deltatee.com>
-References: <20180927165420.5290-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id CDC9121122939
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Sep 2018 15:02:54 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl: Suppress command errors if fallback exists
+Date: Thu, 6 Sep 2018 21:58:06 +0000
+Message-ID: <1536271085.5995.179.camel@intel.com>
+References: <20180906185848.31198-1-keith.busch@intel.com>
+In-Reply-To: <20180906185848.31198-1-keith.busch@intel.com>
+Content-Language: en-US
+Content-ID: <640C4E412937A64A9D1C8DE2F90080BD@intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v8 10/13] nvme-pci: Add support for P2P memory in requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,99 +24,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: "Busch, Keith" <keith.busch@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-For P2P requests, we must use the pci_p2pmem_map_sg() function
-instead of the dma_map_sg functions.
 
-With that, we can then indicate PCI_P2P support in the request queue.
-For this, we create an NVME_F_PCI_P2P flag which tells the core to
-set QUEUE_FLAG_PCI_P2P in the request queue.
+On Thu, 2018-09-06 at 12:58 -0600, Keith Busch wrote:
+> If a command has a fallback to handle an error, this patch will not
+> emit
+> an error message and instead let the handler report any errors.
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  ndctl/lib/intel.c    | 9 +++++++--
+>  ndctl/lib/libndctl.c | 4 +++-
+>  2 files changed, 10 insertions(+), 3 deletions(-)
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
- drivers/nvme/host/core.c |  4 ++++
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  | 17 +++++++++++++----
- 3 files changed, 18 insertions(+), 4 deletions(-)
+Looks good, applied.
 
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index dd8ec1dd9219..6033ce2fd3e9 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
- 	ns->queue = blk_mq_init_queue(ctrl->tagset);
- 	if (IS_ERR(ns->queue))
- 		goto out_free_ns;
-+
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
-+	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
-+		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
-+
- 	ns->queue->queuedata = ns;
- 	ns->ctrl = ctrl;
- 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index bb4a2003c097..4030743c90aa 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
- 	unsigned int flags;
- #define NVME_F_FABRICS			(1 << 0)
- #define NVME_F_METADATA_SUPPORTED	(1 << 1)
-+#define NVME_F_PCI_P2PDMA		(1 << 2)
- 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
- 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
- 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index f434706a04e8..0d6c41bc2b35 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -745,8 +745,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 		goto out;
- 
- 	ret = BLK_STS_RESOURCE;
--	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
--			DMA_ATTR_NO_WARN);
-+
-+	if (is_pci_p2pdma_page(sg_page(iod->sg)))
-+		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
-+					  dma_dir);
-+	else
-+		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
-+					     dma_dir,  DMA_ATTR_NO_WARN);
- 	if (!nr_mapped)
- 		goto out;
- 
-@@ -788,7 +793,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 
- 	if (iod->nents) {
--		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+		/* P2PDMA requests do not need to be unmapped */
-+		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
-+			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+
- 		if (blk_integrity_rq(req))
- 			dma_unmap_sg(dev->dev, &iod->meta_sg, 1, dma_dir);
- 	}
-@@ -2400,7 +2408,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
- static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
- 	.name			= "pcie",
- 	.module			= THIS_MODULE,
--	.flags			= NVME_F_METADATA_SUPPORTED,
-+	.flags			= NVME_F_METADATA_SUPPORTED |
-+				  NVME_F_PCI_P2PDMA,
- 	.reg_read32		= nvme_pci_reg_read32,
- 	.reg_write32		= nvme_pci_reg_write32,
- 	.reg_read64		= nvme_pci_reg_read64,
--- 
-2.19.0
-
+> 
+> diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+> index b1254bb..15c5d1a 100644
+> --- a/ndctl/lib/intel.c
+> +++ b/ndctl/lib/intel.c
+> @@ -64,15 +64,17 @@ static struct ndctl_cmd *alloc_intel_cmd(struct
+> ndctl_dimm *dimm,
+>  static int intel_smart_handle_error(struct ndctl_cmd *cmd)
+>  {
+>  	struct ndctl_dimm *dimm = cmd->dimm;
+> +	struct ndctl_bus *bus = cmd_to_bus(cmd);
+> +	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+>  	char *path = NULL, shutdown_count[16] = {};
+>  	int fd, rc = cmd->status;
+>  
+>  	if (!dimm)
+> -		return 0;
+> +		goto out;
+>  
+>  	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
+>  		     ndctl_dimm_get_devname(dimm)) < 0)
+> -		return rc;
+> +		goto out;
+>  
+>  	fd = open(path, O_RDONLY);
+>  	if (fd < 0)
+> @@ -88,6 +90,9 @@ static int intel_smart_handle_error(struct
+> ndctl_cmd *cmd)
+>  	close (fd);
+>   free_path:
+>  	free(path);
+> + out:
+> +	if (rc)
+> +		err(ctx, "failed: %s\n", strerror(errno));
+>  	return rc;
+>  }
+>  
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 226a577..481b110 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -2753,7 +2753,9 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct
+> ndctl_cmd *cmd)
+>  
+>  	fd = open(path, O_RDWR);
+>  	if (fd < 0) {
+> -		err(ctx, "failed to open %s: %s\n", path,
+> strerror(errno));
+> +		if (!cmd->handle_error)
+> +			err(ctx, "failed to open %s: %s\n", path,
+> +				strerror(errno));
+>  		rc = -errno;
+>  		goto out;
+>  	}
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
