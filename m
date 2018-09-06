@@ -1,7 +1,7 @@
-From: <paulettejq-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
-Subject: Hello
-Date: 6 Sep 2018 13:30:59 +0600
-Message-ID: <004b01d445b6$01c5eeab$5432a491$@excite.it>
+From: <zleachae-8Cmw1+NI3eNeoWH0uzbU5w@public.gmane.org>
+Subject: hi!
+Date: 6 Sep 2018 13:40:44 +0400
+Message-ID: <269051638.201809061411@excite.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
