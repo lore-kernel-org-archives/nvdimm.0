@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com
- [IPv6:2607:f8b0:4864:20::541])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F176521A09130
- for <linux-nvdimm@lists.01.org>; Tue,  4 Sep 2018 03:47:55 -0700 (PDT)
-Received: by mail-pg1-x541.google.com with SMTP id f4-v6so1483441pgq.5
- for <linux-nvdimm@lists.01.org>; Tue, 04 Sep 2018 03:47:55 -0700 (PDT)
-From: Ocean He <oceanhehy@gmail.com>
-Subject: [PATCH v2] libnvdimm,
- region_devs: stop NDD_ALIASING bit test if one test pass
-Date: Tue,  4 Sep 2018 06:47:42 -0400
-Message-Id: <1536058062-18894-1-git-send-email-oceanhehy@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 64F2921122933
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Sep 2018 02:24:52 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V5 3/4] mm: add a function to differentiate the pages is from
+ DAX device memory
+Date: Sat,  8 Sep 2018 02:03:55 +0800
+Message-Id: <044309496afbb4121447dff6a453bd6b96d6068d.1536342881.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
+References: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,105 +23,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
+DAX driver hotplug the device memory and move it to memory zone, these
+pages will be marked reserved flag, however, some other kernel componet
+will misconceive these pages are reserved mmio (ex: we map these dev_dax
+or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
+MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
+is DAX device memory or not.
 
-There is no need to finish entire loop to execute NDD_ALIASING bit test
-against every nvdimm->flags. In practice, all the nd_mapping->nvdimm
-have the same flags. So it's safe to return ND_DEVICE_NAMESPACE_PMEM
-if the NDD_ALIASING bit is found inside the loop, while saving a few
-cpu cycles.
-
-Signed-off-by: Ocean He <hehy1@lenovo.com>
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Acked-by: Jan Kara <jack@suse.cz>
 ---
-v1: https://lkml.org/lkml/2018/8/19/4
-v2: Per Vishal's comments in patch v1, remove 'alias' variable. 
-In the loop, just return ND_DEVICE_NAMESPACE_PMEM if the NDD_ALIASING bit is
-found for any mapping. 
-Outside the loop, simply return ND_DEVICE_NAMESPACE_IO. 
+ include/linux/mm.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-The following test pass on Lenovo ThinkSystem SR630 based on 4.19-rc1.
-# ndctl create-namespace -r region0 -s 1g -t pmem -m fsdax
-# ndctl create-namespace -r region0 -s 1g -t pmem -m sector
-# ndctl create-namespace -r region0 -s 1g -t pmem -m devdax
-# ndctl list
-[
-  {
-    "dev":"namespace0.2",
-    "mode":"devdax",
-    "map":"dev",
-    "size":1054867456,
-    "uuid":"fc3a2126-9b8e-4ab4-baa4-a3ec7f62a326",
-    "raw_uuid":"eadc6965-daee-48c5-a0ae-1865ee0c8573",
-    "chardev":"dax0.2",
-    "numa_node":0
-  },
-  {
-    "dev":"namespace0.1",
-    "mode":"sector",
-    "size":1071616000,
-    "uuid":"0d81d040-93a1-45c6-9791-3dbb7b5f89d2",
-    "raw_uuid":"2b1b29e6-0510-4dcf-9902-43b77ccb9df5",
-    "sector_size":4096,
-    "blockdev":"pmem0.1s",
-    "numa_node":0
-  },
-  {
-    "dev":"namespace0.0",
-    "mode":"fsdax",
-    "map":"dev",
-    "size":1054867456,
-    "uuid":"cbff92ed-cd45-4d24-9353-7a56d42122b1",
-    "raw_uuid":"f6ea1001-5ef0-4942-889a-99005079ab5d",
-    "sector_size":512,
-    "blockdev":"pmem0",
-    "numa_node":0
-  }
-]
-
-# reboot and OS could boot up normally
-# ndctl destroy-namespace namespace0.2 -f
-# ndctl destroy-namespace namespace0.1 -f
-# ndctl destroy-namespace namespace0.0 -f
-
- drivers/nvdimm/region_devs.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index fa37afc..16ee153 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -228,19 +228,18 @@ void nd_blk_region_set_provider_data(struct nd_blk_region *ndbr, void *data)
- int nd_region_to_nstype(struct nd_region *nd_region)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 68a5121..de5cbc3 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct page *page)
+ 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
+ }
+ 
++static inline bool is_dax_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
++		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
++}
++
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline void dev_pagemap_get_ops(void)
  {
- 	if (is_memory(&nd_region->dev)) {
--		u16 i, alias;
-+		u16 i;
- 
--		for (i = 0, alias = 0; i < nd_region->ndr_mappings; i++) {
-+		for (i = 0; i < nd_region->ndr_mappings; i++) {
- 			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 			struct nvdimm *nvdimm = nd_mapping->nvdimm;
- 
- 			if (test_bit(NDD_ALIASING, &nvdimm->flags))
--				alias++;
-+				return ND_DEVICE_NAMESPACE_PMEM;
- 		}
--		if (alias)
--			return ND_DEVICE_NAMESPACE_PMEM;
--		else
--			return ND_DEVICE_NAMESPACE_IO;
+@@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct page *page)
+ {
+ 	return false;
+ }
 +
-+		return ND_DEVICE_NAMESPACE_IO;
-+
- 	} else if (is_nd_blk(&nd_region->dev)) {
- 		return ND_DEVICE_NAMESPACE_BLK;
- 	}
++static inline bool is_dax_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline void get_page(struct page *page)
 -- 
-1.8.3.1
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
