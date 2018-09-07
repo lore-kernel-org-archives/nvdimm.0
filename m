@@ -1,20 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 02BB921107474
- for <linux-nvdimm@lists.01.org>; Sat,  1 Sep 2018 01:25:09 -0700 (PDT)
-Date: Sat, 1 Sep 2018 10:28:12 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
-Message-ID: <20180901082812.GB670@lst.de>
-References: <20180830185352.3369-1-logang@deltatee.com>
- <20180830185352.3369-8-logang@deltatee.com>
- <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
+ by ml01.01.org (Postfix) with ESMTPS id 21E7C21122933
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Sep 2018 02:24:36 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V5 2/4] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
+Date: Sat,  8 Sep 2018 02:03:39 +0800
+Message-Id: <c0b53c74379e6d654bbe42471fcef8aa5fd22efd.1536342881.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
+References: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,22 +17,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Aug 30, 2018 at 01:11:18PM -0600, Jens Axboe wrote:
-> I think this belongs in the caller - both the validity check, and
-> passing in NOMERGE for this type of request. I don't want to impose
-> this overhead on everything, for a pretty niche case.
+Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
+other reserved PFNs, pages on NVDIMM shall still behave like normal ones
+in many cases, i.e. when used as backend memory of KVM guest. This patch
+introduces a new memory type, MEMORY_DEVICE_DEV_DAX. And set this flag
+while dax driver hotplug the device memory.
 
-It is just a single branch, which will be predicted as not taken
-for non-P2P users.  The benefit is that we get proper error checking
-by doing it in the block code.
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ drivers/dax/pmem.c       | 1 +
+ include/linux/memremap.h | 8 ++++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index fd49b24..fb3f363 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
+ 		return rc;
+ 
+ 	dax_pmem->pgmap.ref = &dax_pmem->ref;
++	dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
+ 	addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index f91f9e7..cd07ca8 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -53,11 +53,19 @@ struct vmem_altmap {
+  * wakeup event whenever a page is unpinned and becomes idle. This
+  * wakeup is used to coordinate physical address space management (ex:
+  * fs truncate/hole punch) vs pinned pages (ex: device dma).
++ *
++ * MEMORY_DEVICE_DEV_DAX:
++ * Device memory that support raw access to persistent memory. Without need
++ * of an intervening filesystem, it could be directed mapped via an mmap
++ * capable character device. Together with the type MEMORY_DEVICE_FS_DAX,
++ * we could distinguish the persistent memory pages from normal ZONE_DEVICE
++ * pages.
+  */
+ enum memory_type {
+ 	MEMORY_DEVICE_PRIVATE = 1,
+ 	MEMORY_DEVICE_PUBLIC,
+ 	MEMORY_DEVICE_FS_DAX,
++	MEMORY_DEVICE_DEV_DAX,
+ };
+ 
+ /*
+-- 
+2.7.4
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
