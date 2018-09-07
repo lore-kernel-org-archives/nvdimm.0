@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 194402112DF6F
- for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 17:12:08 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 12 Sep 2018 18:11:46 -0600
-Message-Id: <20180913001156.4115-4-logang@deltatee.com>
-In-Reply-To: <20180913001156.4115-1-logang@deltatee.com>
-References: <20180913001156.4115-1-logang@deltatee.com>
-MIME-Version: 1.0
-Subject: [PATCH v6 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to adjust
- the bus offset
+ by ml01.01.org (Postfix) with ESMTPS id E97AC21122933
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Sep 2018 02:24:25 -0700 (PDT)
+From: Zhang Yi <yi.z.zhang@linux.intel.com>
+Subject: [PATCH V5 1/4] kvm: remove redundant reserved page check
+Date: Sat,  8 Sep 2018 02:03:28 +0800
+Message-Id: <26f79872e78cc643937059003763b5cfc1333167.1536342881.git.yi.z.zhang@linux.intel.com>
+In-Reply-To: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
+References: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,125 +17,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
+Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The DMA address used when mapping PCI P2P memory must be the PCI bus
-address. Thus, introduce pci_p2pmem_map_sg() to map the correct
-addresses when using P2P memory. Memory mapped in this way does not
-need to be unmapped.
+PageReserved() is already checked inside kvm_is_reserved_pfn(),
+remove it from kvm_set_pfn_dirty().
 
-For this, we assume that an SGL passed to these functions contain all
-P2P memory or no P2P memory.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
+Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pankaj Gupta <pagupta@redhat.com>
 ---
- drivers/pci/p2pdma.c       | 43 ++++++++++++++++++++++++++++++++++++++
- include/linux/memremap.h   |  1 +
- include/linux/pci-p2pdma.h |  7 +++++++
- 3 files changed, 51 insertions(+)
+ virt/kvm/kvm_main.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 67c1daf1189e..29bd40a87768 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -191,6 +191,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.flags = pci_resource_flags(pdev, bar);
- 	pgmap->ref = &pdev->p2pdma->devmap_ref;
- 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-+	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
-+		pci_resource_start(pdev, bar);
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 8b47507f..c44c406 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -1690,12 +1690,8 @@ EXPORT_SYMBOL_GPL(kvm_release_pfn_dirty);
  
- 	addr = devm_memremap_pages(&pdev->dev, pgmap);
- 	if (IS_ERR(addr)) {
-@@ -813,3 +815,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- 	pdev->p2pdma->p2pmem_published = publish;
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-+
-+/**
-+ * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: elements in the scatterlist
-+ * @dir: DMA direction
-+ *
-+ * Scatterlists mapped with this function should not be unmapped in any way.
-+ *
-+ * Returns the number of SG entries mapped or 0 on error.
-+ */
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir)
-+{
-+	struct dev_pagemap *pgmap;
-+	struct scatterlist *s;
-+	phys_addr_t paddr;
-+	int i;
-+
-+	/*
-+	 * p2pdma mappings are not compatible with devices that use
-+	 * dma_virt_ops. If the upper layers do the right thing
-+	 * this should never happen because it will be prevented
-+	 * by the check in pci_p2pdma_add_client()
-+	 */
-+	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
-+			 dev->dma_ops == &dma_virt_ops))
-+		return 0;
-+
-+	for_each_sg(sg, s, nents, i) {
-+		pgmap = sg_page(s)->pgmap;
-+		paddr = sg_phys(s);
-+
-+		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
-+		sg_dma_len(s) = s->length;
-+	}
-+
-+	return nents;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 9553370ebdad..0ac69ddf5fc4 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -125,6 +125,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	void *data;
- 	enum memory_type type;
-+	u64 pci_p2pdma_bus_offset;
- };
- 
- #ifdef CONFIG_ZONE_DEVICE
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 7b2b0f547528..2f03dbbf5af6 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -36,6 +36,8 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
- 					 unsigned int *nents, u32 length);
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -98,5 +100,10 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
  {
+-	if (!kvm_is_reserved_pfn(pfn)) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		if (!PageReserved(page))
+-			SetPageDirty(page);
+-	}
++	if (!kvm_is_reserved_pfn(pfn))
++		SetPageDirty(pfn_to_page(pfn));
  }
-+static inline int pci_p2pdma_map_sg(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
+ EXPORT_SYMBOL_GPL(kvm_set_pfn_dirty);
+ 
 -- 
-2.19.0
+2.7.4
 
 _______________________________________________
 Linux-nvdimm mailing list
