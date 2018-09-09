@@ -1,7 +1,7 @@
-From: "Adelaida King" <King-Lcrm7DbOzOVge1r6/OKux8MrV7gpjxj5nKs2IOyhHvI@public.gmane.org>
-Subject: Adelaida
-Date: Sat, 08 Sep 2018 23:23:08 +0200
-Message-ID: <VJZKQ-866265418-ooc@flyingsaucerdg.us>
+From: "Erin Adams" <ErinAdams-0RZ54gVy9BU5Do/vL2I4LqAEhKg+S6Wbc20RSKp2L0g@public.gmane.org>
+Subject: Erin
+Date: Sun, 09 Sep 2018 03:00:08 +0200
+Message-ID: <SXPNAFEO-53750787-grr@hersheytourneys.us>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,11 +18,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SXQgaXMgc28gd3JvbmcuIEkganVzdCBicm9rZSB1cCB3aXRoIG15IEJGLg0KSGUgaXMgYSBiYWQg
-cGVyc29uIGFuZCBoZSBkaWRu4oCZdCBhcHByZWNpYXRlIG1lIGF0IGFsbC4gSSBob3BlLCB5b3Ug
-YXJlIGRpZmZlcmVudC4NCkxldOKAmXMgc2VlIGVhY2ggb3RoZXIgdG9kYXkuIEhlcmUgaXMgbXkg
-cHJvZmlsZS4NCmh0dHA6Ly93d3cucmVzdWxpbnNhYXQuY29tL3NtbTQxZmJ2NWQvNG0xa2R2bDJ4
-LnBocD9iR2x1ZFhndGJuWmthVzF0UUd4cGMzUnpMakF4TG05eVp3PT0KX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlz
-dApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
-bGlzdGluZm8vbGludXgtbnZkaW1tCg==
+SSBhbSBzaXR0aW5nIGluIGEgY2FmZSBhbG9uZSgoKCANCkkgZG9u4oCZdCBiZWluZyBhbG9uZSEg
+SSBrbm93IHlvdSBhcmUgaW4gdGhpcyBuZWlnaGJvcmhvb2QuDQpJZiB5b3UgZGVzaXJlIHRvIGtl
+ZXAgbWUgY29tcGFueSwganVzdCBjb21lIG92ZXIuIA0KVGhlcmUgaXMgdGhlIGxpbmsgdG8gc2Vl
+IG15IGxvY2F0aW9uLg0KaHR0cDovL3d3dy50ZXJ6aW11cmF0LmNvbS9rNDV4bzAwdGovZ3Y5amhk
+bC5waHA/YkdsdWRYZ3RiblprYVcxdFFHeHBjM1J6TGpBeExtOXladz09Cl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxp
+c3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
