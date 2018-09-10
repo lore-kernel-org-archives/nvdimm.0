@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x241.google.com (mail-it0-x241.google.com
- [IPv6:2607:f8b0:4001:c0b::241])
+Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com
+ [IPv6:2607:f8b0:4864:20::643])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1533321127CB5
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 17:38:03 -0700 (PDT)
-Received: by mail-it0-x241.google.com with SMTP id h1-v6so31214404itj.4
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 17:38:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180910232615.4068.29155.stgit@localhost.localdomain>
- <20180910234400.4068.15541.stgit@localhost.localdomain>
-In-Reply-To: <20180910234400.4068.15541.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 477302112500D
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:44:02 -0700 (PDT)
+Received: by mail-pl1-x643.google.com with SMTP id b30-v6so8163125pla.0
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:44:02 -0700 (PDT)
+Subject: [PATCH 4/4] nvdimm: Trigger the device probe on a cpu local to the
+ device
 From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 10 Sep 2018 17:37:50 -0700
-Message-ID: <CAKgT0UceRHjfoKPxAJEchX4O91j_mtCQxqjTSQ=GJSoSOGbWmg@mail.gmail.com>
-Subject: Re: [PATCH 4/4] nvdimm: Trigger the device probe on a cpu local to
- the device
+Date: Mon, 10 Sep 2018 16:44:00 -0700
+Message-ID: <20180910234400.4068.15541.stgit@localhost.localdomain>
+In-Reply-To: <20180910232615.4068.29155.stgit@localhost.localdomain>
+References: <20180910232615.4068.29155.stgit@localhost.localdomain>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,29 +26,102 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@intel.com>, jglisse@redhat.com, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Sep 10, 2018 at 4:44 PM Alexander Duyck
-<alexander.duyck@gmail.com> wrote:
->
-> From: Alexander Duyck <alexander.h.duyck@intel.com>
->
-> This patch is based off of the pci_call_probe function used to initialize
-> PCI devices. The general idea here is to move the probe call to a location
-> that is local to the memory being initialized. By doing this we can shave
-> significant time off of the total time needed for initialization.
->
-> With this patch applied I see a significant reduction in overall init time
-> as without it the init varied between 23 and 37 seconds to initialize a 3GB
-> node. With this patch applied the variance is only between 23 and 26
-> seconds to initialize each node.
+From: Alexander Duyck <alexander.h.duyck@intel.com>
 
-Same mistake here as in patch 1. It is 3TB, not 3GB. I will fix for
-the next version.
+This patch is based off of the pci_call_probe function used to initialize
+PCI devices. The general idea here is to move the probe call to a location
+that is local to the memory being initialized. By doing this we can shave
+significant time off of the total time needed for initialization.
 
-- Alex
+With this patch applied I see a significant reduction in overall init time
+as without it the init varied between 23 and 37 seconds to initialize a 3GB
+node. With this patch applied the variance is only between 23 and 26
+seconds to initialize each node.
+
+I hope to refine this further in the future by combining this logic into
+the async_schedule_domain code that is already in use. By doing that it
+would likely make this functionality redundant.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+---
+ drivers/nvdimm/bus.c |   45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 44 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 8aae6dcc839f..5b73953176b1 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -27,6 +27,7 @@
+ #include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/nd.h>
++#include <linux/cpu.h>
+ #include "nd-core.h"
+ #include "nd.h"
+ #include "pfn.h"
+@@ -90,6 +91,48 @@ static void nvdimm_bus_probe_end(struct nvdimm_bus *nvdimm_bus)
+ 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+ }
+ 
++struct nvdimm_drv_dev {
++	struct nd_device_driver *nd_drv;
++	struct device *dev;
++};
++
++static long __nvdimm_call_probe(void *_nddd)
++{
++	struct nvdimm_drv_dev *nddd = _nddd;
++	struct nd_device_driver *nd_drv = nddd->nd_drv;
++
++	return nd_drv->probe(nddd->dev);
++}
++
++static int nvdimm_call_probe(struct nd_device_driver *nd_drv,
++			     struct device *dev)
++{
++	struct nvdimm_drv_dev nddd = { nd_drv, dev };
++	int rc, node, cpu;
++
++	/*
++	 * Execute driver initialization on node where the device is
++	 * attached.  This way the driver will be able to access local
++	 * memory instead of having to initialize memory across nodes.
++	 */
++	node = dev_to_node(dev);
++
++	cpu_hotplug_disable();
++
++	if (node < 0 || node >= MAX_NUMNODES || !node_online(node))
++		cpu = nr_cpu_ids;
++	else
++		cpu = cpumask_any_and(cpumask_of_node(node), cpu_online_mask);
++
++	if (cpu < nr_cpu_ids)
++		rc = work_on_cpu(cpu, __nvdimm_call_probe, &nddd);
++	else
++		rc = __nvdimm_call_probe(&nddd);
++
++	cpu_hotplug_enable();
++	return rc;
++}
++
+ static int nvdimm_bus_probe(struct device *dev)
+ {
+ 	struct nd_device_driver *nd_drv = to_nd_device_driver(dev->driver);
+@@ -104,7 +147,7 @@ static int nvdimm_bus_probe(struct device *dev)
+ 			dev->driver->name, dev_name(dev));
+ 
+ 	nvdimm_bus_probe_start(nvdimm_bus);
+-	rc = nd_drv->probe(dev);
++	rc = nvdimm_call_probe(nd_drv, dev);
+ 	if (rc == 0)
+ 		nd_region_probe_success(nvdimm_bus, dev);
+ 	else
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
