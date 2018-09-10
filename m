@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x22b.google.com (mail-oi0-x22b.google.com
+ [IPv6:2607:f8b0:4003:c06::22b])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3BE3121123E08
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 07:29:04 -0700 (PDT)
-Date: Mon, 10 Sep 2018 16:29:02 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: open sets ext4_da_aops for DAX existing files
-Message-ID: <20180910142902.GA30197@quack2.suse.cz>
-References: <76e07643e9c36e4273588bd3e7f29d1393de4c3d.camel@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9355B21AE30DB
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 07:26:57 -0700 (PDT)
+Received: by mail-oi0-x22b.google.com with SMTP id t68-v6so40407011oie.12
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 07:26:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <76e07643e9c36e4273588bd3e7f29d1393de4c3d.camel@hpe.com>
+In-Reply-To: <bd07c88ae9626ea1a66fb100113296d9d4033988.camel@hpe.com>
+References: <76e07643e9c36e4273588bd3e7f29d1393de4c3d.camel@hpe.com>
+ <x49zhwpfr6n.fsf@segfault.boston.devel.redhat.com>
+ <bd07c88ae9626ea1a66fb100113296d9d4033988.camel@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 10 Sep 2018 07:26:55 -0700
+Message-ID: <CAPcyv4jr9353bgUjzKaVsu4ZqFkwkwEKMpETLSqeyJQgYcg_tQ@mail.gmail.com>
+Subject: Re: open sets ext4_da_aops for DAX existing files
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,38 +31,21 @@ To: "Kani, Toshi" <toshi.kani@hpe.com>
 Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 07-09-18 21:23:19, Kani, Toshi wrote:
-> I noticed that both ext4_da_aops and ext4_dax_aops are used on DAX
-> mounted ext4 files.  Looking at open() path:
-> 
-> New file
-> --------
->   lookup_open
->     ext4_create
->       __ext4_new_inode
->         ext4_set_inode_flags   // Set S_DAX flag
->       ext4_set_aops            // Set aops to ext4_dax_aops
-> 
-> Existing file
-> -------------
->   lookup_open
->     ext4_lookup
->       ext4_iget
->         ext4_set_aops          // Set aops to ext4_da_aops
->         ext4_set_inode_flags   // Set S_DAX flag
-> 
-> So, we set ext4_da_aops for existing files since S_DAX flag is set after
-> ext4_set_aops().
+On Mon, Sep 10, 2018 at 7:21 AM, Kani, Toshi <toshi.kani@hpe.com> wrote:
+> On Mon, 2018-09-10 at 08:54 -0400, Jeff Moyer wrote:
+>> "Kani, Toshi" <toshi.kani@hpe.com> writes:
+>>
+>> > I noticed that both ext4_da_aops and ext4_dax_aops are used on DAX
+>> > mounted ext4 files.  Looking at open() path:
+>>
+>> Eek.  How did you notice this?
+>
+> I tested sync path on DAX files to see if it flushes processor cache
+> properly. Then I noticed that it sometimes does, but sometimes doesn't.
+> Looking into function traces, I realized that ext4_dax_writepages() and
+> ext4_writepages() are called depending on their file status.
 
-Good catch. Will you send a fix? I.e., call ext4_set_inode_flags() earlier
-in the ext4_iget()? Did this bug have any user visible manifestations?
-Please also add:
-
-Fixes: 5f0663bb4a64f588f0a2dd6d1be68d40f9af0086
-
-so that stable automation picks this up. Thanks!
-
-								Honza
+Yikes, and nice find!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
