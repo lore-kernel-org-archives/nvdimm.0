@@ -1,42 +1,112 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH 2/4] mm: Create non-atomic version of SetPageReserved for
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
+ [IPv6:2607:f8b0:4864:20::642])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B22702112500D
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:49 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id w14-v6so10440202plp.6
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:49 -0700 (PDT)
+Subject: [PATCH 2/4] mm: Create non-atomic version of SetPageReserved for
  init use
-Date: Wed, 12 Sep 2018 13:28:25 +0000
-Message-ID: <f4f6a343-7be1-4290-802e-7ff96e93bc2a@microsoft.com>
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Date: Mon, 10 Sep 2018 16:43:48 -0700
+Message-ID: <20180910234348.4068.92164.stgit@localhost.localdomain>
+In-Reply-To: <20180910232615.4068.29155.stgit@localhost.localdomain>
 References: <20180910232615.4068.29155.stgit@localhost.localdomain>
- <20180910234348.4068.92164.stgit@localhost.localdomain>
-In-Reply-To: <20180910234348.4068.92164.stgit@localhost.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <569B95AED34CEF49BC65C5B37016D013@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.duyck@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQpPbiA5LzEwLzE4IDc6NDMgUE0sIEFsZXhhbmRlciBEdXljayB3cm90ZToNCj4gRnJvbTogQWxl
-eGFuZGVyIER1eWNrIDxhbGV4YW5kZXIuaC5kdXlja0BpbnRlbC5jb20+DQo+IA0KPiBJdCBkb2Vz
-bid0IG1ha2UgbXVjaCBzZW5zZSB0byB1c2UgdGhlIGF0b21pYyBTZXRQYWdlUmVzZXJ2ZWQgYXQg
-aW5pdCB0aW1lDQo+IHdoZW4gd2UgYXJlIHVzaW5nIG1lbXNldCB0byBjbGVhciB0aGUgbWVtb3J5
-IGFuZCBtYW5pcHVsYXRpbmcgdGhlIHBhZ2UNCj4gZmxhZ3MgdmlhIHNpbXBsZSAiJj0iIGFuZCAi
-fD0iIG9wZXJhdGlvbnMgaW4gX19pbml0X3NpbmdsZV9wYWdlLg0KPiANCj4gVGhpcyBwYXRjaCBh
-ZGRzIGEgbm9uLWF0b21pYyB2ZXJzaW9uIF9fU2V0UGFnZVJlc2VydmVkIHRoYXQgY2FuIGJlIHVz
-ZWQNCj4gZHVyaW5nIHBhZ2UgaW5pdCBhbmQgc2hvd3MgYWJvdXQgYSAxMCUgaW1wcm92ZW1lbnQg
-aW4gaW5pdGlhbGl6YXRpb24gdGltZXMNCj4gb24gdGhlIHN5c3RlbXMgSSBoYXZlIGF2YWlsYWJs
-ZSBmb3IgdGVzdGluZy4gT24gdGhvc2Ugc3lzdGVtcyBJIHNhdw0KPiBpbml0aWFsaXphdGlvbiB0
-aW1lcyBkcm9wIGZyb20gYXJvdW5kIDM1IHNlY29uZHMgdG8gYXJvdW5kIDMyIHNlY29uZHMgdG8N
-Cj4gaW5pdGlhbGl6ZSBhIDNUQiBibG9jayBvZiBwZXJzaXN0ZW50IG1lbW9yeS4NCj4gDQo+IEkg
-dHJpZWQgYWRkaW5nIGEgYml0IG9mIGRvY3VtZW50YXRpb24gYmFzZWQgb24gY29tbWl0IDxmMWRk
-MmNkMTNjND4gKCJtbSwNCj4gbWVtb3J5X2hvdHBsdWc6IGRvIG5vdCBhc3NvY2lhdGUgaG90YWRk
-ZWQgbWVtb3J5IHRvIHpvbmVzIHVudGlsIG9ubGluZSIpLg0KPiANCj4gSWRlYWxseSB0aGUgcmVz
-ZXJ2ZWQgZmxhZyBzaG91bGQgYmUgc2V0IGVhcmxpZXIgc2luY2UgdGhlcmUgaXMgYSBicmllZg0K
-PiB3aW5kb3cgd2hlcmUgdGhlIHBhZ2UgaXMgaW5pdGlhbGl6YXRpb24gdmlhIF9faW5pdF9zaW5n
-bGVfcGFnZSBhbmQgd2UgaGF2ZQ0KPiBub3Qgc2V0IHRoZSBQR19SZXNlcnZlZCBmbGFnLiBJJ20g
-bGVhdmluZyB0aGF0IGZvciBhIGZ1dHVyZSBwYXRjaCBzZXQgYXMNCj4gdGhhdCB3aWxsIHJlcXVp
-cmUgYSBtb3JlIHNpZ25pZmljYW50IHJlZmFjdG9yLg0KPiANCj4gQWNrZWQtYnk6IE1pY2hhbCBI
-b2NrbyA8bWhvY2tvQHN1c2UuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBBbGV4YW5kZXIgRHV5Y2sg
-PGFsZXhhbmRlci5oLmR1eWNrQGludGVsLmNvbT4NCg0KUmV2aWV3ZWQtYnk6IFBhdmVsIFRhdGFz
-aGluIDxwYXZlbC50YXRhc2hpbkBtaWNyb3NvZnQuY29tPg0KDQpUaGFuayB5b3UsDQpQYXZlbA==
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+
+It doesn't make much sense to use the atomic SetPageReserved at init time
+when we are using memset to clear the memory and manipulating the page
+flags via simple "&=" and "|=" operations in __init_single_page.
+
+This patch adds a non-atomic version __SetPageReserved that can be used
+during page init and shows about a 10% improvement in initialization times
+on the systems I have available for testing. On those systems I saw
+initialization times drop from around 35 seconds to around 32 seconds to
+initialize a 3TB block of persistent memory.
+
+I tried adding a bit of documentation based on commit <f1dd2cd13c4> ("mm,
+memory_hotplug: do not associate hotadded memory to zones until online").
+
+Ideally the reserved flag should be set earlier since there is a brief
+window where the page is initialization via __init_single_page and we have
+not set the PG_Reserved flag. I'm leaving that for a future patch set as
+that will require a more significant refactor.
+
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+---
+ include/linux/page-flags.h |    1 +
+ mm/page_alloc.c            |   17 +++++++++++++++--
+ 2 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index d00216cf00f8..1b1f8e0378ae 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -300,6 +300,7 @@ static inline void page_init_poison(struct page *page, size_t size)
+ 
+ PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+ 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
++	__SETPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+ PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
+ 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
+ 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 89d2a2ab3fe6..a9b095a72fd9 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1231,7 +1231,12 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
+ 			/* Avoid false-positive PageTail() */
+ 			INIT_LIST_HEAD(&page->lru);
+ 
+-			SetPageReserved(page);
++			/*
++			 * no need for atomic set_bit because the struct
++			 * page is not visible yet so nobody should
++			 * access it yet.
++			 */
++			__SetPageReserved(page);
+ 		}
+ 	}
+ }
+@@ -5517,8 +5522,16 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ not_early:
+ 		page = pfn_to_page(pfn);
+ 		__init_single_page(page, pfn, zone, nid);
++
++		/*
++		 * Mark page reserved as it will need to wait for onlining
++		 * phase for it to be fully associated with a zone.
++		 *
++		 * We can use the non-atomic __set_bit operation for setting
++		 * the flag as we are still initializing the pages.
++		 */
+ 		if (context == MEMMAP_HOTPLUG)
+-			SetPageReserved(page);
++			__SetPageReserved(page);
+ 
+ 		/*
+ 		 * Mark the block movable so that blocks are reserved for
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
