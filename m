@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com
- [IPv6:2607:f8b0:4864:20::643])
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com
+ [IPv6:2607:f8b0:4864:20::542])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 477302112500D
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:44:02 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id b30-v6so8163125pla.0
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:44:02 -0700 (PDT)
-Subject: [PATCH 4/4] nvdimm: Trigger the device probe on a cpu local to the
- device
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 10 Sep 2018 16:44:00 -0700
-Message-ID: <20180910234400.4068.15541.stgit@localhost.localdomain>
-In-Reply-To: <20180910232615.4068.29155.stgit@localhost.localdomain>
-References: <20180910232615.4068.29155.stgit@localhost.localdomain>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 22D922112121C
+ for <linux-nvdimm@lists.01.org>; Sun,  9 Sep 2018 23:24:08 -0700 (PDT)
+Received: by mail-pg1-x542.google.com with SMTP id s7-v6so9930423pgc.0
+ for <linux-nvdimm@lists.01.org>; Sun, 09 Sep 2018 23:24:08 -0700 (PDT)
+From: Ocean He <oceanhehy@gmail.com>
+Subject: [PATCH 2/3] libnvdimm,
+ namespace_devs: add function nd_region_reset_ns_seed for namespace
+ seed reset
+Date: Mon, 10 Sep 2018 02:21:47 -0400
+Message-Id: <1536560508-24564-3-git-send-email-oceanhehy@gmail.com>
+In-Reply-To: <1536560508-24564-1-git-send-email-oceanhehy@gmail.com>
+References: <1536560508-24564-1-git-send-email-oceanhehy@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,105 +22,86 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com
+Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
+From: Ocean He <hehy1@lenovo.com>
 
-This patch is based off of the pci_call_probe function used to initialize
-PCI devices. The general idea here is to move the probe call to a location
-that is local to the memory being initialized. By doing this we can shave
-significant time off of the total time needed for initialization.
+During runtime, if a namespace seed is used for new namespace creation
+but fail, then it needs to be reset for next namespace creation.
 
-With this patch applied I see a significant reduction in overall init time
-as without it the init varied between 23 and 37 seconds to initialize a 3GB
-node. With this patch applied the variance is only between 23 and 26
-seconds to initialize each node.
+Add function nd_region_reset_ns_seed for namespace seed reset and
+declare it in nd-core.h.
 
-I hope to refine this further in the future by combining this logic into
-the async_schedule_domain code that is already in use. By doing that it
-would likely make this functionality redundant.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Signed-off-by: Ocean He <hehy1@lenovo.com>
 ---
- drivers/nvdimm/bus.c |   45 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ drivers/nvdimm/namespace_devs.c | 32 ++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h        |  1 +
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 8aae6dcc839f..5b73953176b1 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -27,6 +27,7 @@
- #include <linux/io.h>
- #include <linux/mm.h>
- #include <linux/nd.h>
-+#include <linux/cpu.h>
- #include "nd-core.h"
- #include "nd.h"
- #include "pfn.h"
-@@ -90,6 +91,48 @@ static void nvdimm_bus_probe_end(struct nvdimm_bus *nvdimm_bus)
- 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 4a42662..6678bbe 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2129,6 +2129,38 @@ void nd_region_create_ns_seed(struct nd_region *nd_region)
+ 		nd_device_register(nd_region->ns_seed);
  }
  
-+struct nvdimm_drv_dev {
-+	struct nd_device_driver *nd_drv;
-+	struct device *dev;
-+};
-+
-+static long __nvdimm_call_probe(void *_nddd)
++void nd_region_reset_ns_seed(struct nd_region *nd_region)
 +{
-+	struct nvdimm_drv_dev *nddd = _nddd;
-+	struct nd_device_driver *nd_drv = nddd->nd_drv;
++	struct device *dev = nd_region->ns_seed;
++	unsigned long long val = 0;
++	ssize_t rc;
++	u8 **uuid = NULL;
 +
-+	return nd_drv->probe(nddd->dev);
++	rc = __holder_class_store(dev, "");
++	dev_dbg(dev, "%s(%zd)\n", rc < 0 ? "fail to reset claim_class " : "", rc);
++
++	rc = __size_store(dev, val);
++	if (rc >= 0)
++		rc = nd_namespace_label_update(nd_region, dev);
++	dev_dbg(dev, "%s(%zd)\n", rc < 0 ? "fail to reset size " : "", rc);
++
++	if (is_namespace_pmem(dev)) {
++		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
++
++		uuid = &nspm->uuid;
++	} else if (is_namespace_blk(dev)) {
++		struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
++
++		uuid = &nsblk->uuid;
++	}
++
++	if (rc == 0 && val == 0 && uuid) {
++		/* setting size zero == 'delete namespace' */
++		kfree(*uuid);
++		*uuid = NULL;
++	}
 +}
 +
-+static int nvdimm_call_probe(struct nd_device_driver *nd_drv,
-+			     struct device *dev)
-+{
-+	struct nvdimm_drv_dev nddd = { nd_drv, dev };
-+	int rc, node, cpu;
-+
-+	/*
-+	 * Execute driver initialization on node where the device is
-+	 * attached.  This way the driver will be able to access local
-+	 * memory instead of having to initialize memory across nodes.
-+	 */
-+	node = dev_to_node(dev);
-+
-+	cpu_hotplug_disable();
-+
-+	if (node < 0 || node >= MAX_NUMNODES || !node_online(node))
-+		cpu = nr_cpu_ids;
-+	else
-+		cpu = cpumask_any_and(cpumask_of_node(node), cpu_online_mask);
-+
-+	if (cpu < nr_cpu_ids)
-+		rc = work_on_cpu(cpu, __nvdimm_call_probe, &nddd);
-+	else
-+		rc = __nvdimm_call_probe(&nddd);
-+
-+	cpu_hotplug_enable();
-+	return rc;
-+}
-+
- static int nvdimm_bus_probe(struct device *dev)
+ void nd_region_create_dax_seed(struct nd_region *nd_region)
  {
- 	struct nd_device_driver *nd_drv = to_nd_device_driver(dev->driver);
-@@ -104,7 +147,7 @@ static int nvdimm_bus_probe(struct device *dev)
- 			dev->driver->name, dev_name(dev));
- 
- 	nvdimm_bus_probe_start(nvdimm_bus);
--	rc = nd_drv->probe(dev);
-+	rc = nvdimm_call_probe(nd_drv, dev);
- 	if (rc == 0)
- 		nd_region_probe_success(nvdimm_bus, dev);
- 	else
+ 	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 7fd74d0..3ec6909 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -81,6 +81,7 @@ static inline bool is_memory(struct device *dev)
+ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ struct nd_region;
+ void nd_region_create_ns_seed(struct nd_region *nd_region);
++void nd_region_reset_ns_seed(struct nd_region *nd_region);
+ void nd_region_create_btt_seed(struct nd_region *nd_region);
+ void nd_region_create_pfn_seed(struct nd_region *nd_region);
+ void nd_region_create_dax_seed(struct nd_region *nd_region);
+-- 
+1.8.3.1
 
 _______________________________________________
 Linux-nvdimm mailing list
