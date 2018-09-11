@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x244.google.com (mail-it0-x244.google.com
- [IPv6:2607:f8b0:4001:c0b::244])
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 307E12194D387
- for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 13:01:50 -0700 (PDT)
-Received: by mail-it0-x244.google.com with SMTP id 139-v6so3247221itf.0
- for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 13:01:50 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7CF1221A07A92
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 09:50:59 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id l82-v6so48483843oih.11
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 09:50:59 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20180910234341.4068.26882.stgit@localhost.localdomain>
 References: <20180910232615.4068.29155.stgit@localhost.localdomain>
  <20180910234341.4068.26882.stgit@localhost.localdomain>
- <CAPcyv4j301Ma8D65oMzFo9-jVdwKGHzOVHb=7u9XaxACR5RAhg@mail.gmail.com>
-In-Reply-To: <CAPcyv4j301Ma8D65oMzFo9-jVdwKGHzOVHb=7u9XaxACR5RAhg@mail.gmail.com>
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Tue, 11 Sep 2018 13:01:37 -0700
-Message-ID: <CAKgT0UddVdf=+SnfeZ2hL=a47YkjOa+r96xnghP8r1fQZ_1Ycw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 11 Sep 2018 09:50:57 -0700
+Message-ID: <CAPcyv4j301Ma8D65oMzFo9-jVdwKGHzOVHb=7u9XaxACR5RAhg@mail.gmail.com>
 Subject: Re: [PATCH 1/4] mm: Provide kernel parameter to allow disabling page
  init poisoning
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -28,50 +27,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, jglisse@redhat.com, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Sep 11, 2018 at 9:50 AM Dan Williams <dan.j.williams@intel.com> wrote:
+On Mon, Sep 10, 2018 at 4:43 PM, Alexander Duyck
+<alexander.duyck@gmail.com> wrote:
+> From: Alexander Duyck <alexander.h.duyck@intel.com>
 >
-> On Mon, Sep 10, 2018 at 4:43 PM, Alexander Duyck
-> <alexander.duyck@gmail.com> wrote:
-> > From: Alexander Duyck <alexander.h.duyck@intel.com>
-> >
-> > On systems with a large amount of memory it can take a significant amount
-> > of time to initialize all of the page structs with the PAGE_POISON_PATTERN
-> > value. I have seen it take over 2 minutes to initialize a system with
-> > over 12GB of RAM.
-> >
-> > In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
-> > the boot time returned to something much more reasonable as the
-> > arch_add_memory call completed in milliseconds versus seconds. However in
-> > doing that I had to disable all of the other VM debugging on the system.
-> >
-> > In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
-> > a system that has a large amount of memory I have added a new kernel
-> > parameter named "page_init_poison" that can be set to "off" in order to
-> > disable it.
+> On systems with a large amount of memory it can take a significant amount
+> of time to initialize all of the page structs with the PAGE_POISON_PATTERN
+> value. I have seen it take over 2 minutes to initialize a system with
+> over 12GB of RAM.
 >
-> In anticipation of potentially more DEBUG_VM options wanting runtime
-> control I'd propose creating a new "vm_debug=" option for this modeled
-> after "slub_debug=" along with a CONFIG_DEBUG_VM_ON to turn on all
-> options.
+> In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
+> the boot time returned to something much more reasonable as the
+> arch_add_memory call completed in milliseconds versus seconds. However in
+> doing that I had to disable all of the other VM debugging on the system.
 >
-> That way there is more differentiation for debug cases like this that
-> have significant performance impact when enabled.
->
-> CONFIG_DEBUG_VM leaves optional debug capabilities disabled by default
-> unless CONFIG_DEBUG_VM_ON is also set.
+> In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
+> a system that has a large amount of memory I have added a new kernel
+> parameter named "page_init_poison" that can be set to "off" in order to
+> disable it.
 
-Based on earlier discussions I would assume that CONFIG_DEBUG_VM would
-imply CONFIG_DEBUG_VM_ON anyway since we don't want most of these
-disabled by default.
+In anticipation of potentially more DEBUG_VM options wanting runtime
+control I'd propose creating a new "vm_debug=" option for this modeled
+after "slub_debug=" along with a CONFIG_DEBUG_VM_ON to turn on all
+options.
 
-In my mind we should be looking at a selective "vm_debug_disable="
-instead of something that would be turning on features.
+That way there is more differentiation for debug cases like this that
+have significant performance impact when enabled.
 
-- Alex
+CONFIG_DEBUG_VM leaves optional debug capabilities disabled by default
+unless CONFIG_DEBUG_VM_ON is also set.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
