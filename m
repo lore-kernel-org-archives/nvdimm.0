@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E725F2110C83B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:55 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:30 -0600
-Message-Id: <20180925162231.4354-13-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 888AB21B02822
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 17:41:08 -0700 (PDT)
+Date: Tue, 11 Sep 2018 08:40:15 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH 3/3] libnvdimm, region_devs: reset related seeds when
+ fail to create namespace
+Message-ID: <201809110838.E3lo4lfn%fengguang.wu@intel.com>
+References: <1536560508-24564-4-git-send-email-oceanhehy@gmail.com>
 MIME-Version: 1.0
-Subject: [PATCH v7 12/13] nvmet: Introduce helper functions to allocate and
- free request SGLs
+Content-Disposition: inline
+In-Reply-To: <1536560508-24564-4-git-send-email-oceanhehy@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,136 +24,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Ocean He <oceanhehy@gmail.com>
+Cc: linux-nvdimm@lists.01.org, Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, kbuild-all@01.org, zwisler@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add helpers to allocate and free the SGL in a struct nvmet_req:
+Hi Ocean,
 
-int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-void nvmet_req_free_sgl(struct nvmet_req *req)
+Thank you for the patch! Perhaps something to improve:
 
-This will be expanded in a future patch to implement peer-to-peer
-memory DMAs and should be common with all target drivers. The presently
-unused 'sq' argument in the alloc function will be necessary to
-decide whether to use peer-to-peer memory and obtain the correct
-provider to allocate the memory.
+[auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
+[also build test WARNING on v4.19-rc3 next-20180910]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-The new helpers are used in nvmet-rdma. Seeing we use req.transfer_len
-as the length of the SGL it is set earlier and cleared on any error.
-It also seems to be unnecessary to accumulate the length as the map_sgl
-functions should only ever be called once per request.
+url:    https://github.com/0day-ci/linux/commits/Ocean-He/libnvdimm-reset-seeds-for-next-namespace-creation/20180911-005505
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Sagi Grimberg <sagi@grimberg.me>
-Cc: Christoph Hellwig <hch@lst.de>
+
+sparse warnings: (new ones prefixed by >>)
+
+   drivers/nvdimm/region_devs.c:84:29: sparse: expression using sizeof(void)
+   drivers/nvdimm/region_devs.c:84:29: sparse: expression using sizeof(void)
+   drivers/nvdimm/region_devs.c:405:37: sparse: expression using sizeof(void)
+   drivers/nvdimm/region_devs.c:405:37: sparse: expression using sizeof(void)
+>> drivers/nvdimm/region_devs.c:710:6: sparse: symbol 'nd_region_detach_and_reset' was not declared. Should it be static?
+   drivers/nvdimm/region_devs.c:1127:31: sparse: expression using sizeof(void)
+   drivers/nvdimm/region_devs.c:985:9: sparse: context imbalance in 'nd_region_acquire_lane' - wrong count at exit
+   drivers/nvdimm/region_devs.c:998:36: sparse: context imbalance in 'nd_region_release_lane' - unexpected unlock
+
+Please review and possibly fold the followup patch.
+
 ---
- drivers/nvme/target/core.c  | 18 ++++++++++++++++++
- drivers/nvme/target/nvmet.h |  2 ++
- drivers/nvme/target/rdma.c  | 20 ++++++++++++--------
- 3 files changed, 32 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/nvme/target/core.c b/drivers/nvme/target/core.c
-index b5ec96abd048..bddd1599b826 100644
---- a/drivers/nvme/target/core.c
-+++ b/drivers/nvme/target/core.c
-@@ -725,6 +725,24 @@ void nvmet_req_execute(struct nvmet_req *req)
- }
- EXPORT_SYMBOL_GPL(nvmet_req_execute);
- 
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-+{
-+	req->sg = sgl_alloc(req->transfer_len, GFP_KERNEL, &req->sg_cnt);
-+	if (!req->sg)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nvmet_req_alloc_sgl);
-+
-+void nvmet_req_free_sgl(struct nvmet_req *req)
-+{
-+	sgl_free(req->sg);
-+	req->sg = NULL;
-+	req->sg_cnt = 0;
-+}
-+EXPORT_SYMBOL_GPL(nvmet_req_free_sgl);
-+
- static inline bool nvmet_cc_en(u32 cc)
- {
- 	return (cc >> NVME_CC_EN_SHIFT) & 0x1;
-diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index ec9af4ee03b6..7d6cb61021e4 100644
---- a/drivers/nvme/target/nvmet.h
-+++ b/drivers/nvme/target/nvmet.h
-@@ -336,6 +336,8 @@ bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
- void nvmet_req_uninit(struct nvmet_req *req);
- void nvmet_req_execute(struct nvmet_req *req);
- void nvmet_req_complete(struct nvmet_req *req, u16 status);
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq);
-+void nvmet_req_free_sgl(struct nvmet_req *req);
- 
- void nvmet_cq_setup(struct nvmet_ctrl *ctrl, struct nvmet_cq *cq, u16 qid,
- 		u16 size);
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index bfc4da660bb4..b0d0cedc74bb 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -503,7 +503,7 @@ static void nvmet_rdma_release_rsp(struct nvmet_rdma_rsp *rsp)
- 	}
- 
- 	if (rsp->req.sg != rsp->cmd->inline_sg)
--		sgl_free(rsp->req.sg);
-+		nvmet_req_free_sgl(&rsp->req);
- 
- 	if (unlikely(!list_empty_careful(&queue->rsp_wr_wait_list)))
- 		nvmet_rdma_process_wr_wait_list(queue);
-@@ -652,24 +652,24 @@ static u16 nvmet_rdma_map_sgl_keyed(struct nvmet_rdma_rsp *rsp,
- {
- 	struct rdma_cm_id *cm_id = rsp->queue->cm_id;
- 	u64 addr = le64_to_cpu(sgl->addr);
--	u32 len = get_unaligned_le24(sgl->length);
- 	u32 key = get_unaligned_le32(sgl->key);
- 	int ret;
- 
-+	rsp->req.transfer_len = get_unaligned_le24(sgl->length);
-+
- 	/* no data command? */
--	if (!len)
-+	if (!rsp->req.transfer_len)
- 		return 0;
- 
--	rsp->req.sg = sgl_alloc(len, GFP_KERNEL, &rsp->req.sg_cnt);
--	if (!rsp->req.sg)
--		return NVME_SC_INTERNAL;
-+	ret = nvmet_req_alloc_sgl(&rsp->req, &rsp->queue->nvme_sq);
-+	if (ret < 0)
-+		goto error_out;
- 
- 	ret = rdma_rw_ctx_init(&rsp->rw, cm_id->qp, cm_id->port_num,
- 			rsp->req.sg, rsp->req.sg_cnt, 0, addr, key,
- 			nvmet_data_dir(&rsp->req));
- 	if (ret < 0)
--		return NVME_SC_INTERNAL;
--	rsp->req.transfer_len += len;
-+		goto error_out;
- 	rsp->n_rdma += ret;
- 
- 	if (invalidate) {
-@@ -678,6 +678,10 @@ static u16 nvmet_rdma_map_sgl_keyed(struct nvmet_rdma_rsp *rsp,
- 	}
- 
- 	return 0;
-+
-+error_out:
-+	rsp->req.transfer_len = 0;
-+	return NVME_SC_INTERNAL;
- }
- 
- static u16 nvmet_rdma_map_sgl(struct nvmet_rdma_rsp *rsp)
--- 
-2.19.0
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
