@@ -1,102 +1,88 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH 1/4] mm: Provide kernel parameter to allow disabling page
- init poisoning
-Date: Wed, 12 Sep 2018 13:24:46 +0000
-Message-ID: <f7ec05ea-d16a-ded1-ceb7-5405eb32b40b@microsoft.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C88C021128727
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 13:24:30 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id l82-v6so49787245oih.11
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 13:24:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAKgT0UddVdf=+SnfeZ2hL=a47YkjOa+r96xnghP8r1fQZ_1Ycw@mail.gmail.com>
 References: <20180910232615.4068.29155.stgit@localhost.localdomain>
  <20180910234341.4068.26882.stgit@localhost.localdomain>
-In-Reply-To: <20180910234341.4068.26882.stgit@localhost.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <01D396A1328C7D45A6C1B457324FB838@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.duyck@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+ <CAPcyv4j301Ma8D65oMzFo9-jVdwKGHzOVHb=7u9XaxACR5RAhg@mail.gmail.com>
+ <CAKgT0UddVdf=+SnfeZ2hL=a47YkjOa+r96xnghP8r1fQZ_1Ycw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 11 Sep 2018 13:24:29 -0700
+Message-ID: <CAPcyv4gV1q1RE5ck=+GcdydrN-_x3AqKPxF2sbCUhsafUov1Gw@mail.gmail.com>
+Subject: Re: [PATCH 1/4] mm: Provide kernel parameter to allow disabling page
+ init poisoning
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCk9uIDkvMTAvMTggNzo0MyBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOg0KPiBGcm9tOiBB
-bGV4YW5kZXIgRHV5Y2sgPGFsZXhhbmRlci5oLmR1eWNrQGludGVsLmNvbT4NCj4gDQo+IE9uIHN5
-c3RlbXMgd2l0aCBhIGxhcmdlIGFtb3VudCBvZiBtZW1vcnkgaXQgY2FuIHRha2UgYSBzaWduaWZp
-Y2FudCBhbW91bnQNCj4gb2YgdGltZSB0byBpbml0aWFsaXplIGFsbCBvZiB0aGUgcGFnZSBzdHJ1
-Y3RzIHdpdGggdGhlIFBBR0VfUE9JU09OX1BBVFRFUk4NCj4gdmFsdWUuIEkgaGF2ZSBzZWVuIGl0
-IHRha2Ugb3ZlciAyIG1pbnV0ZXMgdG8gaW5pdGlhbGl6ZSBhIHN5c3RlbSB3aXRoDQo+IG92ZXIg
-MTJHQiBvZiBSQU0uDQo+IA0KPiBJbiBvcmRlciB0byB3b3JrIGFyb3VuZCB0aGUgaXNzdWUgSSBo
-YWQgdG8gZGlzYWJsZSBDT05GSUdfREVCVUdfVk0gYW5kIHRoZW4NCj4gdGhlIGJvb3QgdGltZSBy
-ZXR1cm5lZCB0byBzb21ldGhpbmcgbXVjaCBtb3JlIHJlYXNvbmFibGUgYXMgdGhlDQo+IGFyY2hf
-YWRkX21lbW9yeSBjYWxsIGNvbXBsZXRlZCBpbiBtaWxsaXNlY29uZHMgdmVyc3VzIHNlY29uZHMu
-IEhvd2V2ZXIgaW4NCj4gZG9pbmcgdGhhdCBJIGhhZCB0byBkaXNhYmxlIGFsbCBvZiB0aGUgb3Ro
-ZXIgVk0gZGVidWdnaW5nIG9uIHRoZSBzeXN0ZW0uDQo+IA0KPiBJbiBvcmRlciB0byB3b3JrIGFy
-b3VuZCBhIGtlcm5lbCB0aGF0IG1pZ2h0IGhhdmUgQ09ORklHX0RFQlVHX1ZNIGVuYWJsZWQgb24N
-Cj4gYSBzeXN0ZW0gdGhhdCBoYXMgYSBsYXJnZSBhbW91bnQgb2YgbWVtb3J5IEkgaGF2ZSBhZGRl
-ZCBhIG5ldyBrZXJuZWwNCj4gcGFyYW1ldGVyIG5hbWVkICJwYWdlX2luaXRfcG9pc29uIiB0aGF0
-IGNhbiBiZSBzZXQgdG8gIm9mZiIgaW4gb3JkZXIgdG8NCj4gZGlzYWJsZSBpdC4NCj4gDQo+IFNp
-Z25lZC1vZmYtYnk6IEFsZXhhbmRlciBEdXljayA8YWxleGFuZGVyLmguZHV5Y2tAaW50ZWwuY29t
-Pg0KDQpSZXZpZXdlZC1ieTogUGF2ZWwgVGF0YXNoaW4gPHBhdmVsLnRhdGFzaGluQG1pY3Jvc29m
-dC5jb20+DQoNClRoYW5rIHlvdSwNClBhdmVsDQoNCj4gLS0tDQo+ICBEb2N1bWVudGF0aW9uL2Fk
-bWluLWd1aWRlL2tlcm5lbC1wYXJhbWV0ZXJzLnR4dCB8ICAgIDggKysrKysrKysNCj4gIGluY2x1
-ZGUvbGludXgvcGFnZS1mbGFncy5oICAgICAgICAgICAgICAgICAgICAgIHwgICAgOCArKysrKysr
-Kw0KPiAgbW0vZGVidWcuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-IDE2ICsrKysrKysrKysrKysrKysNCj4gIG1tL21lbWJsb2NrLmMgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIHwgICAgNSArKy0tLQ0KPiAgbW0vc3BhcnNlLmMgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0ICstLS0NCj4gIDUgZmlsZXMgY2hhbmdlZCwg
-MzUgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9Eb2N1
-bWVudGF0aW9uL2FkbWluLWd1aWRlL2tlcm5lbC1wYXJhbWV0ZXJzLnR4dCBiL0RvY3VtZW50YXRp
-b24vYWRtaW4tZ3VpZGUva2VybmVsLXBhcmFtZXRlcnMudHh0DQo+IGluZGV4IDY0YTNiZjU0Yjk3
-NC4uN2IyMWUwYjljMzk0IDEwMDY0NA0KPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2FkbWluLWd1aWRl
-L2tlcm5lbC1wYXJhbWV0ZXJzLnR4dA0KPiArKysgYi9Eb2N1bWVudGF0aW9uL2FkbWluLWd1aWRl
-L2tlcm5lbC1wYXJhbWV0ZXJzLnR4dA0KPiBAQCAtMzA0Nyw2ICszMDQ3LDE0IEBADQo+ICAJCQlv
-ZmY6IHR1cm4gb2ZmIHBvaXNvbmluZyAoZGVmYXVsdCkNCj4gIAkJCW9uOiB0dXJuIG9uIHBvaXNv
-bmluZw0KPiAgDQo+ICsJcGFnZV9pbml0X3BvaXNvbj0JW0tOTF0gQm9vdC10aW1lIHBhcmFtZXRl
-ciBjaGFuZ2luZyB0aGUNCj4gKwkJCXN0YXRlIG9mIHBvaXNvbmluZyBvZiBwYWdlIHN0cnVjdHVy
-ZXMgZHVyaW5nIGVhcmx5DQo+ICsJCQlib290LiBVc2VkIHRvIHZlcmlmeSBwYWdlIG1ldGFkYXRh
-IGlzIG5vdCBhY2Nlc3NlZA0KPiArCQkJcHJpb3IgdG8gaW5pdGlhbGl6YXRpb24uIEF2YWlsYWJs
-ZSB3aXRoDQo+ICsJCQlDT05GSUdfREVCVUdfVk09eS4NCj4gKwkJCW9mZjogdHVybiBvZmYgcG9p
-c29uaW5nDQo+ICsJCQlvbjogdHVybiBvbiBwb2lzb25pbmcgKGRlZmF1bHQpDQo+ICsNCj4gIAlw
-YW5pYz0JCVtLTkxdIEtlcm5lbCBiZWhhdmlvdXIgb24gcGFuaWM6IGRlbGF5IDx0aW1lb3V0Pg0K
-PiAgCQkJdGltZW91dCA+IDA6IHNlY29uZHMgYmVmb3JlIHJlYm9vdGluZw0KPiAgCQkJdGltZW91
-dCA9IDA6IHdhaXQgZm9yZXZlcg0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9wYWdlLWZs
-YWdzLmggYi9pbmNsdWRlL2xpbnV4L3BhZ2UtZmxhZ3MuaA0KPiBpbmRleCA3NGJlZThjZWNmNGMu
-LmQwMDIxNmNmMDBmOCAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmgN
-Cj4gKysrIGIvaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmgNCj4gQEAgLTE2Miw2ICsxNjIsMTQg
-QEAgc3RhdGljIGlubGluZSBpbnQgUGFnZVBvaXNvbmVkKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdl
-KQ0KPiAgCXJldHVybiBwYWdlLT5mbGFncyA9PSBQQUdFX1BPSVNPTl9QQVRURVJOOw0KPiAgfQ0K
-PiAgDQo+ICsjaWZkZWYgQ09ORklHX0RFQlVHX1ZNDQo+ICt2b2lkIHBhZ2VfaW5pdF9wb2lzb24o
-c3RydWN0IHBhZ2UgKnBhZ2UsIHNpemVfdCBzaXplKTsNCj4gKyNlbHNlDQo+ICtzdGF0aWMgaW5s
-aW5lIHZvaWQgcGFnZV9pbml0X3BvaXNvbihzdHJ1Y3QgcGFnZSAqcGFnZSwgc2l6ZV90IHNpemUp
-DQo+ICt7DQo+ICt9DQo+ICsjZW5kaWYNCj4gKw0KPiAgLyoNCj4gICAqIFBhZ2UgZmxhZ3MgcG9s
-aWNpZXMgd3J0IGNvbXBvdW5kIHBhZ2VzDQo+ICAgKg0KPiBkaWZmIC0tZ2l0IGEvbW0vZGVidWcu
-YyBiL21tL2RlYnVnLmMNCj4gaW5kZXggMzhjOTI2NTIwYzk3Li5jNTQyMDQyMmMwYjUgMTAwNjQ0
-DQo+IC0tLSBhL21tL2RlYnVnLmMNCj4gKysrIGIvbW0vZGVidWcuYw0KPiBAQCAtMTc1LDQgKzE3
-NSwyMCBAQCB2b2lkIGR1bXBfbW0oY29uc3Qgc3RydWN0IG1tX3N0cnVjdCAqbW0pDQo+ICAJKTsN
-Cj4gIH0NCj4gIA0KPiArc3RhdGljIGJvb2wgcGFnZV9pbml0X3BvaXNvbmluZyBfX3JlYWRfbW9z
-dGx5ID0gdHJ1ZTsNCj4gKw0KPiArc3RhdGljIGludCBfX2luaXQgcGFnZV9pbml0X3BvaXNvbl9w
-YXJhbShjaGFyICpidWYpDQo+ICt7DQo+ICsJaWYgKCFidWYpDQo+ICsJCXJldHVybiAtRUlOVkFM
-Ow0KPiArCXJldHVybiBzdHJ0b2Jvb2woYnVmLCAmcGFnZV9pbml0X3BvaXNvbmluZyk7DQo+ICt9
-DQo+ICtlYXJseV9wYXJhbSgicGFnZV9pbml0X3BvaXNvbiIsIHBhZ2VfaW5pdF9wb2lzb25fcGFy
-YW0pOw0KPiArDQo+ICt2b2lkIHBhZ2VfaW5pdF9wb2lzb24oc3RydWN0IHBhZ2UgKnBhZ2UsIHNp
-emVfdCBzaXplKQ0KPiArew0KPiArCWlmIChwYWdlX2luaXRfcG9pc29uaW5nKQ0KPiArCQltZW1z
-ZXQocGFnZSwgUEFHRV9QT0lTT05fUEFUVEVSTiwgc2l6ZSk7DQo+ICt9DQo+ICtFWFBPUlRfU1lN
-Qk9MX0dQTChwYWdlX2luaXRfcG9pc29uKTsNCj4gICNlbmRpZgkJLyogQ09ORklHX0RFQlVHX1ZN
-ICovDQo+IGRpZmYgLS1naXQgYS9tbS9tZW1ibG9jay5jIGIvbW0vbWVtYmxvY2suYw0KPiBpbmRl
-eCAyMzc5NDQ0NzlkMjUuLmE4NTMxNTA4M2I1YSAxMDA2NDQNCj4gLS0tIGEvbW0vbWVtYmxvY2su
-Yw0KPiArKysgYi9tbS9tZW1ibG9jay5jDQo+IEBAIC0xNDQ0LDEwICsxNDQ0LDkgQEAgdm9pZCAq
-IF9faW5pdCBtZW1ibG9ja192aXJ0X2FsbG9jX3RyeV9uaWRfcmF3KA0KPiAgDQo+ICAJcHRyID0g
-bWVtYmxvY2tfdmlydF9hbGxvY19pbnRlcm5hbChzaXplLCBhbGlnbiwNCj4gIAkJCQkJICAgbWlu
-X2FkZHIsIG1heF9hZGRyLCBuaWQpOw0KPiAtI2lmZGVmIENPTkZJR19ERUJVR19WTQ0KPiAgCWlm
-IChwdHIgJiYgc2l6ZSA+IDApDQo+IC0JCW1lbXNldChwdHIsIFBBR0VfUE9JU09OX1BBVFRFUk4s
-IHNpemUpOw0KPiAtI2VuZGlmDQo+ICsJCXBhZ2VfaW5pdF9wb2lzb24ocHRyLCBzaXplKTsNCj4g
-Kw0KPiAgCXJldHVybiBwdHI7DQo+ICB9DQo+ICANCj4gZGlmZiAtLWdpdCBhL21tL3NwYXJzZS5j
-IGIvbW0vc3BhcnNlLmMNCj4gaW5kZXggMTBiMDdlZWE5YTZlLi42N2FkMDYxZjdmYjggMTAwNjQ0
-DQo+IC0tLSBhL21tL3NwYXJzZS5jDQo+ICsrKyBiL21tL3NwYXJzZS5jDQo+IEBAIC02OTYsMTMg
-KzY5NiwxMSBAQCBpbnQgX19tZW1pbml0IHNwYXJzZV9hZGRfb25lX3NlY3Rpb24oc3RydWN0IHBn
-bGlzdF9kYXRhICpwZ2RhdCwNCj4gIAkJZ290byBvdXQ7DQo+ICAJfQ0KPiAgDQo+IC0jaWZkZWYg
-Q09ORklHX0RFQlVHX1ZNDQo+ICAJLyoNCj4gIAkgKiBQb2lzb24gdW5pbml0aWFsaXplZCBzdHJ1
-Y3QgcGFnZXMgaW4gb3JkZXIgdG8gY2F0Y2ggaW52YWxpZCBmbGFncw0KPiAgCSAqIGNvbWJpbmF0
-aW9ucy4NCj4gIAkgKi8NCj4gLQltZW1zZXQobWVtbWFwLCBQQUdFX1BPSVNPTl9QQVRURVJOLCBz
-aXplb2Yoc3RydWN0IHBhZ2UpICogUEFHRVNfUEVSX1NFQ1RJT04pOw0KPiAtI2VuZGlmDQo+ICsJ
-cGFnZV9pbml0X3BvaXNvbihtZW1tYXAsIHNpemVvZihzdHJ1Y3QgcGFnZSkgKiBQQUdFU19QRVJf
-U0VDVElPTik7DQo+ICANCj4gIAlzZWN0aW9uX21hcmtfcHJlc2VudChtcyk7DQo+ICAJc3BhcnNl
-X2luaXRfb25lX3NlY3Rpb24obXMsIHNlY3Rpb25fbnIsIG1lbW1hcCwgdXNlbWFwKTsNCj4g
+On Tue, Sep 11, 2018 at 1:01 PM, Alexander Duyck
+<alexander.duyck@gmail.com> wrote:
+> On Tue, Sep 11, 2018 at 9:50 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>>
+>> On Mon, Sep 10, 2018 at 4:43 PM, Alexander Duyck
+>> <alexander.duyck@gmail.com> wrote:
+>> > From: Alexander Duyck <alexander.h.duyck@intel.com>
+>> >
+>> > On systems with a large amount of memory it can take a significant amount
+>> > of time to initialize all of the page structs with the PAGE_POISON_PATTERN
+>> > value. I have seen it take over 2 minutes to initialize a system with
+>> > over 12GB of RAM.
+>> >
+>> > In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
+>> > the boot time returned to something much more reasonable as the
+>> > arch_add_memory call completed in milliseconds versus seconds. However in
+>> > doing that I had to disable all of the other VM debugging on the system.
+>> >
+>> > In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
+>> > a system that has a large amount of memory I have added a new kernel
+>> > parameter named "page_init_poison" that can be set to "off" in order to
+>> > disable it.
+>>
+>> In anticipation of potentially more DEBUG_VM options wanting runtime
+>> control I'd propose creating a new "vm_debug=" option for this modeled
+>> after "slub_debug=" along with a CONFIG_DEBUG_VM_ON to turn on all
+>> options.
+>>
+>> That way there is more differentiation for debug cases like this that
+>> have significant performance impact when enabled.
+>>
+>> CONFIG_DEBUG_VM leaves optional debug capabilities disabled by default
+>> unless CONFIG_DEBUG_VM_ON is also set.
+>
+> Based on earlier discussions I would assume that CONFIG_DEBUG_VM would
+> imply CONFIG_DEBUG_VM_ON anyway since we don't want most of these
+> disabled by default.
+>
+> In my mind we should be looking at a selective "vm_debug_disable="
+> instead of something that would be turning on features.
+
+Sorry, I missed those earlier discussions, so I won't push too hard if
+this has been hashed before. My proposal for opt-in is the fact that
+at least one known distribution kernel, Fedora, is shipping with
+CONFIG_DEBUG_VM=y. They also ship with CONFIG_SLUB, but not
+SLUB_DEBUG_ON. If we are going to picemeal enable some debug options
+to be runtime controlled I think we should go further to start
+clarifying the cheap vs the expensive checks and making the expensive
+checks opt-in in the same spirit of SLUB_DEBUG.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
