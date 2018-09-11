@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9BD4D21125476
- for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 00:55:59 -0700 (PDT)
-Date: Tue, 11 Sep 2018 15:54:29 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 80D2021A07A80
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 00:50:56 -0700 (PDT)
+Date: Tue, 11 Sep 2018 15:49:47 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH 3/4] mm: Defer ZONE_DEVICE page initialization to the
  point where we init pgmap
-Message-ID: <201809111526.rtKfFYhJ%fengguang.wu@intel.com>
+Message-ID: <201809111543.e1cQ6zCY%fengguang.wu@intel.com>
 References: <20180910234354.4068.65260.stgit@localhost.localdomain>
 MIME-Version: 1.0
 In-Reply-To: <20180910234354.4068.65260.stgit@localhost.localdomain>
@@ -30,31 +30,49 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Hi Alexander,
 
-Thank you for the patch! Yet something to improve:
+Thank you for the patch! Perhaps something to improve:
 
-[auto build test ERROR on linus/master]
-[also build test ERROR on v4.19-rc3]
+[auto build test WARNING on linus/master]
+[also build test WARNING on v4.19-rc3]
 [cannot apply to next-20180910]
 [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
 url:    https://github.com/0day-ci/linux/commits/Alexander-Duyck/Address-issues-slowing-persistent-memory-initialization/20180911-144536
-config: openrisc-or1ksim_defconfig (attached as .config)
-compiler: or1k-linux-gcc (GCC) 6.0.0 20160327 (experimental)
+config: x86_64-randconfig-x009-201836 (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
 reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
         # save the attached .config to linux build tree
-        make.cross ARCH=openrisc 
+        make ARCH=x86_64 
 
-All errors (new ones prefixed by >>):
+All warnings (new ones prefixed by >>):
 
+   In file included from include/asm-generic/bug.h:5:0,
+                    from arch/x86/include/asm/bug.h:83,
+                    from include/linux/bug.h:5,
+                    from include/linux/mmdebug.h:5,
+                    from include/linux/mm.h:9,
+                    from mm/page_alloc.c:18:
    mm/page_alloc.c: In function 'memmap_init_zone':
->> mm/page_alloc.c:5566:21: error: 'ZONE_DEVICE' undeclared (first use in this function)
+   mm/page_alloc.c:5566:21: error: 'ZONE_DEVICE' undeclared (first use in this function); did you mean 'ZONE_MOVABLE'?
      } else if (zone == ZONE_DEVICE) {
-                        ^~~~~~~~~~~
+                        ^
+   include/linux/compiler.h:58:30: note: in definition of macro '__trace_if'
+     if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
+                                 ^~~~
+>> mm/page_alloc.c:5566:9: note: in expansion of macro 'if'
+     } else if (zone == ZONE_DEVICE) {
+            ^~
    mm/page_alloc.c:5566:21: note: each undeclared identifier is reported only once for each function it appears in
+     } else if (zone == ZONE_DEVICE) {
+                        ^
+   include/linux/compiler.h:58:30: note: in definition of macro '__trace_if'
+     if (__builtin_constant_p(!!(cond)) ? !!(cond) :   \
+                                 ^~~~
+>> mm/page_alloc.c:5566:9: note: in expansion of macro 'if'
+     } else if (zone == ZONE_DEVICE) {
+            ^~
 
-vim +/ZONE_DEVICE +5566 mm/page_alloc.c
+vim +/if +5566 mm/page_alloc.c
 
   5551	
   5552		if (highest_memmap_pfn < end_pfn - 1)
