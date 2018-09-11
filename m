@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi0-x242.google.com (mail-oi0-x242.google.com
+ [IPv6:2607:f8b0:4003:c06::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 11138211597F3
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:47:41 -0700 (PDT)
-Subject: [PATCH v10 08/12] nfit/libnvdimm: add freeze security support to
- Intel nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 13:47:29 -0700
-Message-ID: <153799484954.71621.11164359745920758602.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
-References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6DEEA2112389B
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 23:02:13 -0700 (PDT)
+Received: by mail-oi0-x242.google.com with SMTP id c190-v6so44915732oig.6
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 23:02:13 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <499a3093-3781-7a8a-abd0-8b240db11dce@intel.com>
+References: <20180731143246.16915-1-stefanha@redhat.com>
+ <499a3093-3781-7a8a-abd0-8b240db11dce@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 10 Sep 2018 23:02:11 -0700
+Message-ID: <CAPcyv4iPCwRCun_w+dE7P86KUC73f6G++sSUS4BFzBzDcsBOpw@mail.gmail.com>
+Subject: Re: [PATCH] device-dax: avoid hang on error before
+ devm_memremap_pages()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,165 +27,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security on Intel nvdimm. This locks out any
-changes to security for the DIMM unless a reboot is done. This is triggered
-by writing "freeze" to the "security" sysfs attribute. libnvdimm will
-support the generic freeze_lock API call.
+On Tue, Jul 31, 2018 at 5:26 PM, Dave Jiang <dave.jiang@intel.com> wrote:
+>
+>
+> On 7/31/2018 7:32 AM, Stefan Hajnoczi wrote:
+>>
+>> dax_pmem_percpu_exit() waits for dax_pmem_percpu_release() to invoke the
+>> dax_pmem->cmp completion.  Unfortunately this approach to cleaning up
+>> the percpu_ref only works after devm_memremap_pages() was successful.
+>>
+>> If devm_add_action_or_reset() or devm_memremap_pages() fails,
+>> dax_pmem_percpu_release() is not invoked.  Therefore
+>> dax_pmem_percpu_exit() hangs waiting for the completion:
+>>
+>>    rc = devm_add_action_or_reset(dev, dax_pmem_percpu_exit,
+>>                                 &dax_pmem->ref);
+>>    if (rc)
+>>         return rc;
+>>
+>>    dax_pmem->pgmap.ref = &dax_pmem->ref;
+>>    addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
+>>
+>> Avoid the hang by calling percpu_ref_exit() in the error paths instead
+>> of going through dax_pmem_percpu_exit().
+>>
+>> Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+>
+>
+> Applied
+>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   29 ++++++++++++++++++++++---
- include/linux/libnvdimm.h  |    2 ++
- 3 files changed, 79 insertions(+), 3 deletions(-)
+A similar problem exists in other devm_memremap_pages() users. I had a
+more comprehensive fix in-flight that I will rebase on top of this
+change.
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 21d30222371f..ba886f1f5399 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,53 @@
- #include "intel.h"
- #include "nfit.h"
- 
-+static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_freeze_lock cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = 0,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
- {
-@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
- 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
- 			*state = NVDIMM_SECURITY_LOCKED;
-+		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
-+				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
-+			*state = NVDIMM_SECURITY_FROZEN;
- 		else
- 			*state = NVDIMM_SECURITY_UNLOCKED;
- 	} else
-@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
- 	.disable = intel_dimm_security_disable,
-+	.freeze_lock = intel_dimm_security_freeze_lock,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index f2d627201f5e..75a3f841a7ce 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -183,6 +183,26 @@ int nvdimm_security_get_state(struct device *dev)
- 			&nvdimm->state);
- }
- 
-+static int nvdimm_security_freeze_lock(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	int rc;
-+
-+	if (!nvdimm->security_ops)
-+		return -EOPNOTSUPP;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
-+		return -EOPNOTSUPP;
-+
-+	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
-+	if (rc < 0)
-+		return rc;
-+
-+	nvdimm_security_get_state(dev);
-+	return 0;
-+}
-+
- static int nvdimm_security_disable(struct device *dev, unsigned int keyid)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
-@@ -199,9 +219,9 @@ static int nvdimm_security_disable(struct device *dev, unsigned int keyid)
- 		return -EOPNOTSUPP;
- 
- 	/* look for a key from keyring if exists and remove */
--	key = nvdimm_get_and_verify_key(dev, old_keyid);
--	if (IS_ERR(old_key))
--		return PTR_ERR(old_key);
-+	key = nvdimm_get_and_verify_key(dev, keyid);
-+	if (IS_ERR(key))
-+		return PTR_ERR(key);
- 	if (!key) {
- 		/* get old user key */
- 		key = nvdimm_lookup_user_key(dev, keyid);
-@@ -794,6 +814,9 @@ static ssize_t security_store(struct device *dev,
- 	} else if (sysfs_streq(cmd, "disable")) {
- 		dev_dbg(dev, "disable %u\n", old_key);
- 		rc = nvdimm_security_disable(dev, old_key);
-+	} else if (sysfs_streq(buf, "freeze")) {
-+		dev_dbg(dev, "freeze\n");
-+		rc = nvdimm_security_freeze_lock(dev);
- 	} else
- 		return -EINVAL;
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c60ab4b238f3..bcab42caa948 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
- 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
-+	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm);
- };
- 
- void badrange_init(struct badrange *badrange);
-
+    https://lore.kernel.org/patchwork/patch/961576/
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
