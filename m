@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1778E21B02822
- for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 02:31:43 -0700 (PDT)
-Date: Wed, 12 Sep 2018 11:31:40 +0200
-From: Jan Kara <jack@suse.cz>
+Received: from g2t2354.austin.hpe.com (g2t2354.austin.hpe.com [15.233.44.27])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8935021A00AE6
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 11:42:01 -0700 (PDT)
+From: "Kani, Toshi" <toshi.kani@hpe.com>
 Subject: Re: [PATCH 2/2] ext4, dax: set ext4_dax_aops for dax files
-Message-ID: <20180912093140.GB7782@quack2.suse.cz>
+Date: Tue, 11 Sep 2018 18:41:26 +0000
+Message-ID: <b26a520cba402f129314eabef78d2c2a2da4a1b0.camel@hpe.com>
 References: <20180911154246.6844-1-toshi.kani@hpe.com>
  <20180911154246.6844-3-toshi.kani@hpe.com>
  <CAPcyv4iEZ7q0MV7n-_eovrJw_U9S3=pkY_nYwtw1jSBS7vPqCQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <CAPcyv4iEZ7q0MV7n-_eovrJw_U9S3=pkY_nYwtw1jSBS7vPqCQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <EFF6AD399147714C9686656AC13320F4@NAMPRD84.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,17 +26,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Dilger <adilger.kernel@dilger.ca>, Jan Kara <jack@suse.cz>, linux-ext4 <linux-ext4@vger.kernel.org>
+To: "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "tytso@mit.edu" <tytso@mit.edu>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>, "jack@suse.cz" <jack@suse.cz>, "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 11-09-18 11:15:18, Dan Williams wrote:
+On Tue, 2018-09-11 at 11:15 -0700, Dan Williams wrote:
 > On Tue, Sep 11, 2018 at 8:42 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
 > > Sync syscall to an existing DAX file needs to flush processor cache,
 > > but it does not currently.  This is because 'ext4_da_aops' is set to
 > > address_space_operations of existing DAX files, instead of 'ext4_dax_aops',
 > > since S_DAX flag is set after ext4_set_aops() in the open path.
-> >
+> > 
 > >   New file
 > >   --------
 > >   lookup_open
@@ -43,7 +44,7 @@ On Tue 11-09-18 11:15:18, Dan Williams wrote:
 > >       __ext4_new_inode
 > >         ext4_set_inode_flags   // Set S_DAX flag
 > >       ext4_set_aops            // Set aops to ext4_dax_aops
-> >
+> > 
 > >   Existing file
 > >   -------------
 > >   lookup_open
@@ -51,17 +52,18 @@ On Tue 11-09-18 11:15:18, Dan Williams wrote:
 > >       ext4_iget
 > >         ext4_set_aops          // Set aops to ext4_da_aops
 > >         ext4_set_inode_flags   // Set S_DAX flag
-> >
+> > 
 > > Change ext4_iget() to call ext4_set_inode_flags() before ext4_set_aops().
-> >
+> > 
 > > Fixes: 5f0663bb4a64f588f0a2dd6d1be68d40f9af0086
 > 
 > Same format nit:
 > 
 > Fixes: 5f0663bb4a64 ("ext4, dax: introduce ext4_dax_aops")
 > Cc: <stable@vger.kernel.org>
-> 
-> 
+
+Will do.
+
 > > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 > > Cc: Jan Kara <jack@suse.cz>
 > > Cc: Dan Williams <dan.j.williams@intel.com>
@@ -70,7 +72,7 @@ On Tue 11-09-18 11:15:18, Dan Williams wrote:
 > > ---
 > >  fs/ext4/inode.c |    3 ++-
 > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
+> > 
 > > diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
 > > index 775cd9b4af55..93cbbb859c40 100644
 > > --- a/fs/ext4/inode.c
@@ -78,7 +80,7 @@ On Tue 11-09-18 11:15:18, Dan Williams wrote:
 > > @@ -4998,6 +4998,8 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
 > >         if (ret)
 > >                 goto bad_inode;
-> >
+> > 
 > > +       ext4_set_inode_flags(inode);
 > > +
 > 
@@ -91,49 +93,11 @@ On Tue 11-09-18 11:15:18, Dan Williams wrote:
 > 
 > Thoughts?
 
-Well, safer but it would leave the landmine around for others to hit.
-Toshi, please move the ext4_set_inode_flags() call to be just after the
-assignment:
+Good catch!  Agreed.
 
-	ei->i_flags = le32_to_cpu(raw_inode->i_flags);
+Thanks!
+-Toshi
 
-in ext4_iget(). That way people won't introduce checks for i_flags that can
-never hit... And yes, it fixes also other bugs (mostly in sanity checks
-AFAICS) than the DAX issue.
-
-								Honza
-
-> 
-> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-> index d0dd585add6a..1e9ab445c777 100644
-> --- a/fs/ext4/inode.c
-> +++ b/fs/ext4/inode.c
-> @@ -4999,7 +4999,6 @@ struct inode *ext4_iget(struct super_block *sb,
-> unsigned long ino)
->         if (S_ISREG(inode->i_mode)) {
->                 inode->i_op = &ext4_file_inode_operations;
->                 inode->i_fop = &ext4_file_operations;
-> -               ext4_set_aops(inode);
->         } else if (S_ISDIR(inode->i_mode)) {
->                 inode->i_op = &ext4_dir_inode_operations;
->                 inode->i_fop = &ext4_dir_operations;
-> @@ -5042,6 +5041,12 @@ struct inode *ext4_iget(struct super_block *sb,
-> unsigned long ino)
->         }
->         brelse(iloc.bh);
->         ext4_set_inode_flags(inode);
-> +       /*
-> +        * Now that we have determined whether DAX is enabled, set the
-> +        * proper address spaces operations
-> +        */
-> +       if (S_ISREG(inode->i_mode))
-> +               ext4_set_aops(inode);
-> 
->         unlock_new_inode(inode);
->         return inode;
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
