@@ -1,15 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C5DF2194D387
- for <linux-nvdimm@lists.01.org>; Wed,  5 Sep 2018 13:31:41 -0700 (PDT)
-Subject: [PATCH] uio: fix is_source param for check_copy_size() in
- copy_to_iter_mcsafe()
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 05 Sep 2018 13:31:40 -0700
-Message-ID: <153617950046.33664.13445188581267552601.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CBBAD2112B1E8
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 09:43:28 -0700 (PDT)
+Subject: Re: [PATCH 1/4] mm: Provide kernel parameter to allow disabling page
+ init poisoning
+References: <20180910232615.4068.29155.stgit@localhost.localdomain>
+ <20180910234341.4068.26882.stgit@localhost.localdomain>
+ <20180912141053.GL10951@dhcp22.suse.cz>
+ <CAKgT0UdvhV7U5Zniq=KskXz2QsRP8C7ctr5=ZtJwYAVpBT-RHw@mail.gmail.com>
+ <841e8101-40db-9ff2-f688-5f175d91fc31@intel.com>
+ <CAKgT0UeKnaY4XebOmtGozbjEJN4k3cwyhdBLPPJLc677-QU+Sw@mail.gmail.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Message-ID: <68ccf46e-8c1e-c796-df35-afb5b295d6ea@intel.com>
+Date: Wed, 12 Sep 2018 09:43:27 -0700
 MIME-Version: 1.0
+In-Reply-To: <CAKgT0UeKnaY4XebOmtGozbjEJN4k3cwyhdBLPPJLc677-QU+Sw@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,38 +29,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Alexander Duyck <alexander.duyck@gmail.com>, mhocko@kernel.org, pavel.tatashin@microsoft.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, jglisse@redhat.com, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-copy_to_iter_mcsafe() is passing in the is_source parameter as "false"
-to check_copy_size(). This is different than what copy_to_iter() does.
-Also, the addr parameter passed to check_copy_size() is the source so
-therefore we should be passing in "true" instead.
+On 09/12/2018 09:36 AM, Alexander Duyck wrote:
+>>         vm_debug =      [KNL] Available with CONFIG_DEBUG_VM=y.
+>>                         May slow down boot speed, especially on larger-
+>>                         memory systems when enabled.
+>>                         off: turn off all runtime VM debug features
+>>                         all: turn on all debug features (default)
+> This would introduce a significant amount of code change if we do it
+> as a parameter that has control over everything.
 
-Fixes: 8780356ef630 ("x86/asm/memcpy_mcsafe: Define copy_to_iter_mcsafe()")
-
-Reported-by: Fan Du <fan.du@intel.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
----
- include/linux/uio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/linux/uio.h b/include/linux/uio.h
-index 409c845d4cd3..422b1c01ee0d 100644
---- a/include/linux/uio.h
-+++ b/include/linux/uio.h
-@@ -172,7 +172,7 @@ size_t copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
- static __always_inline __must_check
- size_t copy_to_iter_mcsafe(void *addr, size_t bytes, struct iov_iter *i)
- {
--	if (unlikely(!check_copy_size(addr, bytes, false)))
-+	if (unlikely(!check_copy_size(addr, bytes, true)))
- 		return 0;
- 	else
- 		return _copy_to_iter_mcsafe(addr, bytes, i);
-
+Sure, but don't do that now.  Just put page poisoning under it now.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
