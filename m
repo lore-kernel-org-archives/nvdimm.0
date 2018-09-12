@@ -1,41 +1,65 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH 4/4] nvdimm: Trigger the device probe on a cpu local to
- the device
-Date: Wed, 12 Sep 2018 13:44:08 +0000
-Message-ID: <3b308b65-ab45-9922-abae-b4c25117e388@microsoft.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi0-x243.google.com (mail-oi0-x243.google.com
+ [IPv6:2607:f8b0:4003:c06::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5605921129479
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 22:48:42 -0700 (PDT)
+Received: by mail-oi0-x243.google.com with SMTP id b15-v6so1330325oib.10
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 22:48:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20180910234400.4068.15541.stgit@localhost.localdomain>
 References: <20180910232615.4068.29155.stgit@localhost.localdomain>
  <20180910234400.4068.15541.stgit@localhost.localdomain>
-In-Reply-To: <20180910234400.4068.15541.stgit@localhost.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <159C8E5CA49F674ABDCD724B6EFCE6FF@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.duyck@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 11 Sep 2018 22:48:40 -0700
+Message-ID: <CAPcyv4gm30sT_us0j27jLmNTV_Fug4d8EW4xTmiTMFdwGSjN-A@mail.gmail.com>
+Subject: Re: [PATCH 4/4] nvdimm: Trigger the device probe on a cpu local to
+ the device
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Dave Hansen <dave.hansen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCk9uIDkvMTAvMTggNzo0NCBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOg0KPiBGcm9tOiBB
-bGV4YW5kZXIgRHV5Y2sgPGFsZXhhbmRlci5oLmR1eWNrQGludGVsLmNvbT4NCj4gDQo+IFRoaXMg
-cGF0Y2ggaXMgYmFzZWQgb2ZmIG9mIHRoZSBwY2lfY2FsbF9wcm9iZSBmdW5jdGlvbiB1c2VkIHRv
-IGluaXRpYWxpemUNCj4gUENJIGRldmljZXMuIFRoZSBnZW5lcmFsIGlkZWEgaGVyZSBpcyB0byBt
-b3ZlIHRoZSBwcm9iZSBjYWxsIHRvIGEgbG9jYXRpb24NCj4gdGhhdCBpcyBsb2NhbCB0byB0aGUg
-bWVtb3J5IGJlaW5nIGluaXRpYWxpemVkLiBCeSBkb2luZyB0aGlzIHdlIGNhbiBzaGF2ZQ0KPiBz
-aWduaWZpY2FudCB0aW1lIG9mZiBvZiB0aGUgdG90YWwgdGltZSBuZWVkZWQgZm9yIGluaXRpYWxp
-emF0aW9uLg0KPiANCj4gV2l0aCB0aGlzIHBhdGNoIGFwcGxpZWQgSSBzZWUgYSBzaWduaWZpY2Fu
-dCByZWR1Y3Rpb24gaW4gb3ZlcmFsbCBpbml0IHRpbWUNCj4gYXMgd2l0aG91dCBpdCB0aGUgaW5p
-dCB2YXJpZWQgYmV0d2VlbiAyMyBhbmQgMzcgc2Vjb25kcyB0byBpbml0aWFsaXplIGEgM0dCDQo+
-IG5vZGUuIFdpdGggdGhpcyBwYXRjaCBhcHBsaWVkIHRoZSB2YXJpYW5jZSBpcyBvbmx5IGJldHdl
-ZW4gMjMgYW5kIDI2DQo+IHNlY29uZHMgdG8gaW5pdGlhbGl6ZSBlYWNoIG5vZGUuDQo+IA0KPiBJ
-IGhvcGUgdG8gcmVmaW5lIHRoaXMgZnVydGhlciBpbiB0aGUgZnV0dXJlIGJ5IGNvbWJpbmluZyB0
-aGlzIGxvZ2ljIGludG8NCj4gdGhlIGFzeW5jX3NjaGVkdWxlX2RvbWFpbiBjb2RlIHRoYXQgaXMg
-YWxyZWFkeSBpbiB1c2UuIEJ5IGRvaW5nIHRoYXQgaXQNCj4gd291bGQgbGlrZWx5IG1ha2UgdGhp
-cyBmdW5jdGlvbmFsaXR5IHJlZHVuZGFudC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEFsZXhhbmRl
-ciBEdXljayA8YWxleGFuZGVyLmguZHV5Y2tAaW50ZWwuY29tPg0KDQpMb29rcyBnb29kIHRvIG1l
-LiBUaGUgcHJldmlvdXMgZmFzdCBydW5zIHdlcmUgYmVjYXVzZSB0aGVyZSB3ZSB3ZXJlDQpnZXR0
-aW5nIGx1Y2t5IGFuZCBleGVjdXRlZCBpbiB0aGUgcmlnaHQgbGF0ZW5jeSBncm91cHMsIHJpZ2h0
-PyBOb3csIHdlDQpib3VuZCB0aGUgZXhlY3V0aW9uIHRpbWUgdG8gYmUgYWx3YXlzIGZhc3QuDQoN
-ClJldmlld2VkLWJ5OiBQYXZlbCBUYXRhc2hpbiA8cGF2ZWwudGF0YXNoaW5AbWljcm9zb2Z0LmNv
-bT4NCg0KVGhhbmsgeW91LA0KUGF2ZWw=
+On Mon, Sep 10, 2018 at 4:44 PM, Alexander Duyck
+<alexander.duyck@gmail.com> wrote:
+> From: Alexander Duyck <alexander.h.duyck@intel.com>
+>
+> This patch is based off of the pci_call_probe function used to initialize
+> PCI devices. The general idea here is to move the probe call to a location
+> that is local to the memory being initialized. By doing this we can shave
+> significant time off of the total time needed for initialization.
+>
+> With this patch applied I see a significant reduction in overall init time
+> as without it the init varied between 23 and 37 seconds to initialize a 3GB
+> node. With this patch applied the variance is only between 23 and 26
+> seconds to initialize each node.
+>
+> I hope to refine this further in the future by combining this logic into
+> the async_schedule_domain code that is already in use. By doing that it
+> would likely make this functionality redundant.
+
+Yeah, it is a bit sad that we schedule an async thread only to move it
+back somewhere else.
+
+Could we trivially achieve the same with an
+async_schedule_domain_on_cpu() variant? It seems we can and the
+workqueue core will "Do the right thing".
+
+I now notice that async uses the system_unbound_wq and work_on_cpu()
+uses the system_wq.  I don't think we want long running nvdimm work on
+system_wq.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
