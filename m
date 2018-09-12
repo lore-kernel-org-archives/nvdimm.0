@@ -1,302 +1,178 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it0-x241.google.com (mail-it0-x241.google.com
- [IPv6:2607:f8b0:4001:c0b::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C0E42112B1D8
- for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 08:48:24 -0700 (PDT)
-Received: by mail-it0-x241.google.com with SMTP id u13-v6so3694334iti.1
- for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 08:48:24 -0700 (PDT)
-MIME-Version: 1.0
-References: <20180910232615.4068.29155.stgit@localhost.localdomain>
- <20180910234354.4068.65260.stgit@localhost.localdomain>
- <7b96298e-9590-befd-0670-ed0c9fcf53d5@microsoft.com>
-In-Reply-To: <7b96298e-9590-befd-0670-ed0c9fcf53d5@microsoft.com>
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Wed, 12 Sep 2018 08:48:12 -0700
-Message-ID: <CAKgT0UdKZVUPBk=rg5kfUuFBpuZQEKPuGw31x5O2nMyuULgi0g@mail.gmail.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
 Subject: Re: [PATCH 3/4] mm: Defer ZONE_DEVICE page initialization to the
  point where we init pgmap
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Pavel.Tatashin@microsoft.com
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, jglisse@redhat.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
+Date: Wed, 12 Sep 2018 13:59:17 +0000
+Message-ID: <7b96298e-9590-befd-0670-ed0c9fcf53d5@microsoft.com>
+References: <20180910232615.4068.29155.stgit@localhost.localdomain>
+ <20180910234354.4068.65260.stgit@localhost.localdomain>
+In-Reply-To: <20180910234354.4068.65260.stgit@localhost.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <EDEB8B5FAE0E8E479BE88D3F5B124190@namprd21.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: owner-linux-mm@kvack.org
+To: Alexander Duyck <alexander.duyck@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Sep 12, 2018 at 6:59 AM Pasha Tatashin
-<Pavel.Tatashin@microsoft.com> wrote:
->
-> Hi Alex,
-
-Hi Pavel,
-
-> Please re-base on linux-next,  memmap_init_zone() has been updated there
-> compared to mainline. You might even find a way to unify some parts of
-> memmap_init_zone and memmap_init_zone_device as memmap_init_zone() is a
-> lot simpler now.
-
-This patch applied to the linux-next tree with only a little bit of
-fuzz. It looks like it is mostly due to some code you had added above
-the function as well. I have updated this patch so that it will apply
-to both linux and linux-next by just moving the new function to
-underneath memmap_init_zone instead of above it.
-
-> I think __init_single_page() should stay local to page_alloc.c to keep
-> the inlining optimization.
-
-I agree. In addition it will make pulling common init together into
-one space easier. I would rather not have us create an opportunity for
-things to further diverge by making it available for anybody to use.
-
-> I will review you this patch once you send an updated version.
-
-Other than moving the new function from being added above versus below
-there isn't much else that needs to change, at least for this patch. I
-have some follow-up patches I am planning that will be targeted for
-linux-next. Those I think will focus more on what you have in mind in
-terms of combining this new function
-
-> Thank you,
-> Pavel
-
-Thanks,
-- Alex
-
-> On 9/10/18 7:43 PM, Alexander Duyck wrote:
-> > From: Alexander Duyck <alexander.h.duyck@intel.com>
-> >
-> > The ZONE_DEVICE pages were being initialized in two locations. One was with
-> > the memory_hotplug lock held and another was outside of that lock. The
-> > problem with this is that it was nearly doubling the memory initialization
-> > time. Instead of doing this twice, once while holding a global lock and
-> > once without, I am opting to defer the initialization to the one outside of
-> > the lock. This allows us to avoid serializing the overhead for memory init
-> > and we can instead focus on per-node init times.
-> >
-> > One issue I encountered is that devm_memremap_pages and
-> > hmm_devmmem_pages_create were initializing only the pgmap field the same
-> > way. One wasn't initializing hmm_data, and the other was initializing it to
-> > a poison value. Since this is something that is exposed to the driver in
-> > the case of hmm I am opting for a third option and just initializing
-> > hmm_data to 0 since this is going to be exposed to unknown third party
-> > drivers.
-> >
-> > Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-> > ---
-> >  include/linux/mm.h |    2 +
-> >  kernel/memremap.c  |   24 +++++---------
-> >  mm/hmm.c           |   12 ++++---
-> >  mm/page_alloc.c    |   89 +++++++++++++++++++++++++++++++++++++++++++++++++++-
-> >  4 files changed, 105 insertions(+), 22 deletions(-)
-> >
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index a61ebe8ad4ca..47b440bb3050 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -848,6 +848,8 @@ static inline bool is_zone_device_page(const struct page *page)
-> >  {
-> >       return page_zonenum(page) == ZONE_DEVICE;
-> >  }
-> > +extern void memmap_init_zone_device(struct zone *, unsigned long,
-> > +                                 unsigned long, struct dev_pagemap *);
-> >  #else
-> >  static inline bool is_zone_device_page(const struct page *page)
-> >  {
-> > diff --git a/kernel/memremap.c b/kernel/memremap.c
-> > index 5b8600d39931..d0c32e473f82 100644
-> > --- a/kernel/memremap.c
-> > +++ b/kernel/memremap.c
-> > @@ -175,10 +175,10 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-> >       struct vmem_altmap *altmap = pgmap->altmap_valid ?
-> >                       &pgmap->altmap : NULL;
-> >       struct resource *res = &pgmap->res;
-> > -     unsigned long pfn, pgoff, order;
-> > +     struct dev_pagemap *conflict_pgmap;
-> >       pgprot_t pgprot = PAGE_KERNEL;
-> > +     unsigned long pgoff, order;
-> >       int error, nid, is_ram;
-> > -     struct dev_pagemap *conflict_pgmap;
-> >
-> >       align_start = res->start & ~(SECTION_SIZE - 1);
-> >       align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-> > @@ -256,19 +256,13 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-> >       if (error)
-> >               goto err_add_memory;
-> >
-> > -     for_each_device_pfn(pfn, pgmap) {
-> > -             struct page *page = pfn_to_page(pfn);
-> > -
-> > -             /*
-> > -              * ZONE_DEVICE pages union ->lru with a ->pgmap back
-> > -              * pointer.  It is a bug if a ZONE_DEVICE page is ever
-> > -              * freed or placed on a driver-private list.  Seed the
-> > -              * storage with LIST_POISON* values.
-> > -              */
-> > -             list_del(&page->lru);
-> > -             page->pgmap = pgmap;
-> > -             percpu_ref_get(pgmap->ref);
-> > -     }
-> > +     /*
-> > +      * Initialization of the pages has been deferred until now in order
-> > +      * to allow us to do the work while not holding the hotplug lock.
-> > +      */
-> > +     memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
-> > +                             align_start >> PAGE_SHIFT,
-> > +                             align_size >> PAGE_SHIFT, pgmap);
-> >
-> >       devm_add_action(dev, devm_memremap_pages_release, pgmap);
-> >
-> > diff --git a/mm/hmm.c b/mm/hmm.c
-> > index c968e49f7a0c..774d684fa2b4 100644
-> > --- a/mm/hmm.c
-> > +++ b/mm/hmm.c
-> > @@ -1024,7 +1024,6 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
-> >       resource_size_t key, align_start, align_size, align_end;
-> >       struct device *device = devmem->device;
-> >       int ret, nid, is_ram;
-> > -     unsigned long pfn;
-> >
-> >       align_start = devmem->resource->start & ~(PA_SECTION_SIZE - 1);
-> >       align_size = ALIGN(devmem->resource->start +
-> > @@ -1109,11 +1108,14 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
-> >                               align_size >> PAGE_SHIFT, NULL);
-> >       mem_hotplug_done();
-> >
-> > -     for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
-> > -             struct page *page = pfn_to_page(pfn);
-> > +     /*
-> > +      * Initialization of the pages has been deferred until now in order
-> > +      * to allow us to do the work while not holding the hotplug lock.
-> > +      */
-> > +     memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
-> > +                             align_start >> PAGE_SHIFT,
-> > +                             align_size >> PAGE_SHIFT, &devmem->pagemap);
-> >
-> > -             page->pgmap = &devmem->pagemap;
-> > -     }
-> >       return 0;
-> >
-> >  error_add_memory:
-> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> > index a9b095a72fd9..81a3fd942c45 100644
-> > --- a/mm/page_alloc.c
-> > +++ b/mm/page_alloc.c
-> > @@ -5454,6 +5454,83 @@ void __ref build_all_zonelists(pg_data_t *pgdat)
-> >  #endif
-> >  }
-> >
-> > +#ifdef CONFIG_ZONE_DEVICE
-> > +void __ref memmap_init_zone_device(struct zone *zone, unsigned long pfn,
-> > +                                unsigned long size,
-> > +                                struct dev_pagemap *pgmap)
-> > +{
-> > +     struct pglist_data *pgdat = zone->zone_pgdat;
-> > +     unsigned long zone_idx = zone_idx(zone);
-> > +     unsigned long end_pfn = pfn + size;
-> > +     unsigned long start = jiffies;
-> > +     int nid = pgdat->node_id;
-> > +     unsigned long nr_pages;
-> > +
-> > +     if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
-> > +             return;
-> > +
-> > +     /*
-> > +      * The call to memmap_init_zone should have already taken care
-> > +      * of the pages reserved for the memmap, so we can just jump to
-> > +      * the end of that region and start processing the device pages.
-> > +      */
-> > +     if (pgmap->altmap_valid) {
-> > +             struct vmem_altmap *altmap = &pgmap->altmap;
-> > +
-> > +             pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
-> > +     }
-> > +
-> > +     /* Record the number of pages we are about to initialize */
-> > +     nr_pages = end_pfn - pfn;
-> > +
-> > +     for (; pfn < end_pfn; pfn++) {
-> > +             struct page *page = pfn_to_page(pfn);
-> > +
-> > +             __init_single_page(page, pfn, zone_idx, nid);
-> > +
-> > +             /*
-> > +              * Mark page reserved as it will need to wait for onlining
-> > +              * phase for it to be fully associated with a zone.
-> > +              *
-> > +              * We can use the non-atomic __set_bit operation for setting
-> > +              * the flag as we are still initializing the pages.
-> > +              */
-> > +             __SetPageReserved(page);
-> > +
-> > +             /*
-> > +              * ZONE_DEVICE pages union ->lru with a ->pgmap back
-> > +              * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
-> > +              * page is ever freed or placed on a driver-private list.
-> > +              */
-> > +             page->pgmap = pgmap;
-> > +             page->hmm_data = 0;
-> > +
-> > +             /*
-> > +              * Mark the block movable so that blocks are reserved for
-> > +              * movable at startup. This will force kernel allocations
-> > +              * to reserve their blocks rather than leaking throughout
-> > +              * the address space during boot when many long-lived
-> > +              * kernel allocations are made.
-> > +              *
-> > +              * bitmap is created for zone's valid pfn range. but memmap
-> > +              * can be created for invalid pages (for alignment)
-> > +              * check here not to call set_pageblock_migratetype() against
-> > +              * pfn out of zone.
-> > +              *
-> > +              * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
-> > +              * because this is done early in sparse_add_one_section
-> > +              */
-> > +             if (!(pfn & (pageblock_nr_pages - 1))) {
-> > +                     set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-> > +                     cond_resched();
-> > +             }
-> > +     }
-> > +
-> > +     pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
-> > +             nr_pages, jiffies_to_msecs(jiffies - start));
-> > +}
-> > +
-> > +#endif
-> >  /*
-> >   * Initially all pages are reserved - free ones are freed
-> >   * up by free_all_bootmem() once the early boot process is
-> > @@ -5477,10 +5554,18 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
-> >
-> >       /*
-> >        * Honor reservation requested by the driver for this ZONE_DEVICE
-> > -      * memory
-> > +      * memory. We limit the total number of pages to initialize to just
-> > +      * those that might contain the memory mapping. We will defer the
-> > +      * ZONE_DEVICE page initialization until after we have released
-> > +      * the hotplug lock.
-> >        */
-> > -     if (altmap && start_pfn == altmap->base_pfn)
-> > +     if (altmap && start_pfn == altmap->base_pfn) {
-> >               start_pfn += altmap->reserve;
-> > +             end_pfn = altmap->base_pfn +
-> > +                       vmem_altmap_offset(altmap);
-> > +     } else if (zone == ZONE_DEVICE) {
-> > +             end_pfn = start_pfn;
-> > +     }
-> >
-> >       for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-> >               /*
-> >
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkgQWxleCwNCg0KUGxlYXNlIHJlLWJhc2Ugb24gbGludXgtbmV4dCwgIG1lbW1hcF9pbml0X3pv
+bmUoKSBoYXMgYmVlbiB1cGRhdGVkIHRoZXJlDQpjb21wYXJlZCB0byBtYWlubGluZS4gWW91IG1p
+Z2h0IGV2ZW4gZmluZCBhIHdheSB0byB1bmlmeSBzb21lIHBhcnRzIG9mDQptZW1tYXBfaW5pdF96
+b25lIGFuZCBtZW1tYXBfaW5pdF96b25lX2RldmljZSBhcyBtZW1tYXBfaW5pdF96b25lKCkgaXMg
+YQ0KbG90IHNpbXBsZXIgbm93Lg0KDQpJIHRoaW5rIF9faW5pdF9zaW5nbGVfcGFnZSgpIHNob3Vs
+ZCBzdGF5IGxvY2FsIHRvIHBhZ2VfYWxsb2MuYyB0byBrZWVwDQp0aGUgaW5saW5pbmcgb3B0aW1p
+emF0aW9uLg0KDQpJIHdpbGwgcmV2aWV3IHlvdSB0aGlzIHBhdGNoIG9uY2UgeW91IHNlbmQgYW4g
+dXBkYXRlZCB2ZXJzaW9uLg0KDQpUaGFuayB5b3UsDQpQYXZlbA0KDQpPbiA5LzEwLzE4IDc6NDMg
+UE0sIEFsZXhhbmRlciBEdXljayB3cm90ZToNCj4gRnJvbTogQWxleGFuZGVyIER1eWNrIDxhbGV4
+YW5kZXIuaC5kdXlja0BpbnRlbC5jb20+DQo+IA0KPiBUaGUgWk9ORV9ERVZJQ0UgcGFnZXMgd2Vy
+ZSBiZWluZyBpbml0aWFsaXplZCBpbiB0d28gbG9jYXRpb25zLiBPbmUgd2FzIHdpdGgNCj4gdGhl
+IG1lbW9yeV9ob3RwbHVnIGxvY2sgaGVsZCBhbmQgYW5vdGhlciB3YXMgb3V0c2lkZSBvZiB0aGF0
+IGxvY2suIFRoZQ0KPiBwcm9ibGVtIHdpdGggdGhpcyBpcyB0aGF0IGl0IHdhcyBuZWFybHkgZG91
+YmxpbmcgdGhlIG1lbW9yeSBpbml0aWFsaXphdGlvbg0KPiB0aW1lLiBJbnN0ZWFkIG9mIGRvaW5n
+IHRoaXMgdHdpY2UsIG9uY2Ugd2hpbGUgaG9sZGluZyBhIGdsb2JhbCBsb2NrIGFuZA0KPiBvbmNl
+IHdpdGhvdXQsIEkgYW0gb3B0aW5nIHRvIGRlZmVyIHRoZSBpbml0aWFsaXphdGlvbiB0byB0aGUg
+b25lIG91dHNpZGUgb2YNCj4gdGhlIGxvY2suIFRoaXMgYWxsb3dzIHVzIHRvIGF2b2lkIHNlcmlh
+bGl6aW5nIHRoZSBvdmVyaGVhZCBmb3IgbWVtb3J5IGluaXQNCj4gYW5kIHdlIGNhbiBpbnN0ZWFk
+IGZvY3VzIG9uIHBlci1ub2RlIGluaXQgdGltZXMuDQo+IA0KPiBPbmUgaXNzdWUgSSBlbmNvdW50
+ZXJlZCBpcyB0aGF0IGRldm1fbWVtcmVtYXBfcGFnZXMgYW5kDQo+IGhtbV9kZXZtbWVtX3BhZ2Vz
+X2NyZWF0ZSB3ZXJlIGluaXRpYWxpemluZyBvbmx5IHRoZSBwZ21hcCBmaWVsZCB0aGUgc2FtZQ0K
+PiB3YXkuIE9uZSB3YXNuJ3QgaW5pdGlhbGl6aW5nIGhtbV9kYXRhLCBhbmQgdGhlIG90aGVyIHdh
+cyBpbml0aWFsaXppbmcgaXQgdG8NCj4gYSBwb2lzb24gdmFsdWUuIFNpbmNlIHRoaXMgaXMgc29t
+ZXRoaW5nIHRoYXQgaXMgZXhwb3NlZCB0byB0aGUgZHJpdmVyIGluDQo+IHRoZSBjYXNlIG9mIGht
+bSBJIGFtIG9wdGluZyBmb3IgYSB0aGlyZCBvcHRpb24gYW5kIGp1c3QgaW5pdGlhbGl6aW5nDQo+
+IGhtbV9kYXRhIHRvIDAgc2luY2UgdGhpcyBpcyBnb2luZyB0byBiZSBleHBvc2VkIHRvIHVua25v
+d24gdGhpcmQgcGFydHkNCj4gZHJpdmVycy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEFsZXhhbmRl
+ciBEdXljayA8YWxleGFuZGVyLmguZHV5Y2tAaW50ZWwuY29tPg0KPiAtLS0NCj4gIGluY2x1ZGUv
+bGludXgvbW0uaCB8ICAgIDIgKw0KPiAga2VybmVsL21lbXJlbWFwLmMgIHwgICAyNCArKysrKy0t
+LS0tLS0tLQ0KPiAgbW0vaG1tLmMgICAgICAgICAgIHwgICAxMiArKysrLS0tDQo+ICBtbS9wYWdl
+X2FsbG9jLmMgICAgfCAgIDg5ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKy0NCj4gIDQgZmlsZXMgY2hhbmdlZCwgMTA1IGluc2VydGlvbnMoKyksIDIy
+IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbW0uaCBiL2lu
+Y2x1ZGUvbGludXgvbW0uaA0KPiBpbmRleCBhNjFlYmU4YWQ0Y2EuLjQ3YjQ0MGJiMzA1MCAxMDA2
+NDQNCj4gLS0tIGEvaW5jbHVkZS9saW51eC9tbS5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgvbW0u
+aA0KPiBAQCAtODQ4LDYgKzg0OCw4IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBpc196b25lX2Rldmlj
+ZV9wYWdlKGNvbnN0IHN0cnVjdCBwYWdlICpwYWdlKQ0KPiAgew0KPiAgCXJldHVybiBwYWdlX3pv
+bmVudW0ocGFnZSkgPT0gWk9ORV9ERVZJQ0U7DQo+ICB9DQo+ICtleHRlcm4gdm9pZCBtZW1tYXBf
+aW5pdF96b25lX2RldmljZShzdHJ1Y3Qgem9uZSAqLCB1bnNpZ25lZCBsb25nLA0KPiArCQkJCSAg
+ICB1bnNpZ25lZCBsb25nLCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKik7DQo+ICAjZWxzZQ0KPiAgc3Rh
+dGljIGlubGluZSBib29sIGlzX3pvbmVfZGV2aWNlX3BhZ2UoY29uc3Qgc3RydWN0IHBhZ2UgKnBh
+Z2UpDQo+ICB7DQo+IGRpZmYgLS1naXQgYS9rZXJuZWwvbWVtcmVtYXAuYyBiL2tlcm5lbC9tZW1y
+ZW1hcC5jDQo+IGluZGV4IDViODYwMGQzOTkzMS4uZDBjMzJlNDczZjgyIDEwMDY0NA0KPiAtLS0g
+YS9rZXJuZWwvbWVtcmVtYXAuYw0KPiArKysgYi9rZXJuZWwvbWVtcmVtYXAuYw0KPiBAQCAtMTc1
+LDEwICsxNzUsMTAgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpk
+ZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApDQo+ICAJc3RydWN0IHZtZW1fYWx0bWFwICph
+bHRtYXAgPSBwZ21hcC0+YWx0bWFwX3ZhbGlkID8NCj4gIAkJCSZwZ21hcC0+YWx0bWFwIDogTlVM
+TDsNCj4gIAlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9ICZwZ21hcC0+cmVzOw0KPiAtCXVuc2lnbmVk
+IGxvbmcgcGZuLCBwZ29mZiwgb3JkZXI7DQo+ICsJc3RydWN0IGRldl9wYWdlbWFwICpjb25mbGlj
+dF9wZ21hcDsNCj4gIAlwZ3Byb3RfdCBwZ3Byb3QgPSBQQUdFX0tFUk5FTDsNCj4gKwl1bnNpZ25l
+ZCBsb25nIHBnb2ZmLCBvcmRlcjsNCj4gIAlpbnQgZXJyb3IsIG5pZCwgaXNfcmFtOw0KPiAtCXN0
+cnVjdCBkZXZfcGFnZW1hcCAqY29uZmxpY3RfcGdtYXA7DQo+ICANCj4gIAlhbGlnbl9zdGFydCA9
+IHJlcy0+c3RhcnQgJiB+KFNFQ1RJT05fU0laRSAtIDEpOw0KPiAgCWFsaWduX3NpemUgPSBBTElH
+TihyZXMtPnN0YXJ0ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBTRUNUSU9OX1NJWkUpDQo+IEBAIC0y
+NTYsMTkgKzI1NiwxMyBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2Ug
+KmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkNCj4gIAlpZiAoZXJyb3IpDQo+ICAJCWdv
+dG8gZXJyX2FkZF9tZW1vcnk7DQo+ICANCj4gLQlmb3JfZWFjaF9kZXZpY2VfcGZuKHBmbiwgcGdt
+YXApIHsNCj4gLQkJc3RydWN0IHBhZ2UgKnBhZ2UgPSBwZm5fdG9fcGFnZShwZm4pOw0KPiAtDQo+
+IC0JCS8qDQo+IC0JCSAqIFpPTkVfREVWSUNFIHBhZ2VzIHVuaW9uIC0+bHJ1IHdpdGggYSAtPnBn
+bWFwIGJhY2sNCj4gLQkJICogcG9pbnRlci4gIEl0IGlzIGEgYnVnIGlmIGEgWk9ORV9ERVZJQ0Ug
+cGFnZSBpcyBldmVyDQo+IC0JCSAqIGZyZWVkIG9yIHBsYWNlZCBvbiBhIGRyaXZlci1wcml2YXRl
+IGxpc3QuICBTZWVkIHRoZQ0KPiAtCQkgKiBzdG9yYWdlIHdpdGggTElTVF9QT0lTT04qIHZhbHVl
+cy4NCj4gLQkJICovDQo+IC0JCWxpc3RfZGVsKCZwYWdlLT5scnUpOw0KPiAtCQlwYWdlLT5wZ21h
+cCA9IHBnbWFwOw0KPiAtCQlwZXJjcHVfcmVmX2dldChwZ21hcC0+cmVmKTsNCj4gLQl9DQo+ICsJ
+LyoNCj4gKwkgKiBJbml0aWFsaXphdGlvbiBvZiB0aGUgcGFnZXMgaGFzIGJlZW4gZGVmZXJyZWQg
+dW50aWwgbm93IGluIG9yZGVyDQo+ICsJICogdG8gYWxsb3cgdXMgdG8gZG8gdGhlIHdvcmsgd2hp
+bGUgbm90IGhvbGRpbmcgdGhlIGhvdHBsdWcgbG9jay4NCj4gKwkgKi8NCj4gKwltZW1tYXBfaW5p
+dF96b25lX2RldmljZSgmTk9ERV9EQVRBKG5pZCktPm5vZGVfem9uZXNbWk9ORV9ERVZJQ0VdLA0K
+PiArCQkJCWFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQsDQo+ICsJCQkJYWxpZ25fc2l6ZSA+PiBQ
+QUdFX1NISUZULCBwZ21hcCk7DQo+ICANCj4gIAlkZXZtX2FkZF9hY3Rpb24oZGV2LCBkZXZtX21l
+bXJlbWFwX3BhZ2VzX3JlbGVhc2UsIHBnbWFwKTsNCj4gIA0KPiBkaWZmIC0tZ2l0IGEvbW0vaG1t
+LmMgYi9tbS9obW0uYw0KPiBpbmRleCBjOTY4ZTQ5ZjdhMGMuLjc3NGQ2ODRmYTJiNCAxMDA2NDQN
+Cj4gLS0tIGEvbW0vaG1tLmMNCj4gKysrIGIvbW0vaG1tLmMNCj4gQEAgLTEwMjQsNyArMTAyNCw2
+IEBAIHN0YXRpYyBpbnQgaG1tX2Rldm1lbV9wYWdlc19jcmVhdGUoc3RydWN0IGhtbV9kZXZtZW0g
+KmRldm1lbSkNCj4gIAlyZXNvdXJjZV9zaXplX3Qga2V5LCBhbGlnbl9zdGFydCwgYWxpZ25fc2l6
+ZSwgYWxpZ25fZW5kOw0KPiAgCXN0cnVjdCBkZXZpY2UgKmRldmljZSA9IGRldm1lbS0+ZGV2aWNl
+Ow0KPiAgCWludCByZXQsIG5pZCwgaXNfcmFtOw0KPiAtCXVuc2lnbmVkIGxvbmcgcGZuOw0KPiAg
+DQo+ICAJYWxpZ25fc3RhcnQgPSBkZXZtZW0tPnJlc291cmNlLT5zdGFydCAmIH4oUEFfU0VDVElP
+Tl9TSVpFIC0gMSk7DQo+ICAJYWxpZ25fc2l6ZSA9IEFMSUdOKGRldm1lbS0+cmVzb3VyY2UtPnN0
+YXJ0ICsNCj4gQEAgLTExMDksMTEgKzExMDgsMTQgQEAgc3RhdGljIGludCBobW1fZGV2bWVtX3Bh
+Z2VzX2NyZWF0ZShzdHJ1Y3QgaG1tX2Rldm1lbSAqZGV2bWVtKQ0KPiAgCQkJCWFsaWduX3NpemUg
+Pj4gUEFHRV9TSElGVCwgTlVMTCk7DQo+ICAJbWVtX2hvdHBsdWdfZG9uZSgpOw0KPiAgDQo+IC0J
+Zm9yIChwZm4gPSBkZXZtZW0tPnBmbl9maXJzdDsgcGZuIDwgZGV2bWVtLT5wZm5fbGFzdDsgcGZu
+KyspIHsNCj4gLQkJc3RydWN0IHBhZ2UgKnBhZ2UgPSBwZm5fdG9fcGFnZShwZm4pOw0KPiArCS8q
+DQo+ICsJICogSW5pdGlhbGl6YXRpb24gb2YgdGhlIHBhZ2VzIGhhcyBiZWVuIGRlZmVycmVkIHVu
+dGlsIG5vdyBpbiBvcmRlcg0KPiArCSAqIHRvIGFsbG93IHVzIHRvIGRvIHRoZSB3b3JrIHdoaWxl
+IG5vdCBob2xkaW5nIHRoZSBob3RwbHVnIGxvY2suDQo+ICsJICovDQo+ICsJbWVtbWFwX2luaXRf
+em9uZV9kZXZpY2UoJk5PREVfREFUQShuaWQpLT5ub2RlX3pvbmVzW1pPTkVfREVWSUNFXSwNCj4g
+KwkJCQlhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULA0KPiArCQkJCWFsaWduX3NpemUgPj4gUEFH
+RV9TSElGVCwgJmRldm1lbS0+cGFnZW1hcCk7DQo+ICANCj4gLQkJcGFnZS0+cGdtYXAgPSAmZGV2
+bWVtLT5wYWdlbWFwOw0KPiAtCX0NCj4gIAlyZXR1cm4gMDsNCj4gIA0KPiAgZXJyb3JfYWRkX21l
+bW9yeToNCj4gZGlmZiAtLWdpdCBhL21tL3BhZ2VfYWxsb2MuYyBiL21tL3BhZ2VfYWxsb2MuYw0K
+PiBpbmRleCBhOWIwOTVhNzJmZDkuLjgxYTNmZDk0MmM0NSAxMDA2NDQNCj4gLS0tIGEvbW0vcGFn
+ZV9hbGxvYy5jDQo+ICsrKyBiL21tL3BhZ2VfYWxsb2MuYw0KPiBAQCAtNTQ1NCw2ICs1NDU0LDgz
+IEBAIHZvaWQgX19yZWYgYnVpbGRfYWxsX3pvbmVsaXN0cyhwZ19kYXRhX3QgKnBnZGF0KQ0KPiAg
+I2VuZGlmDQo+ICB9DQo+ICANCj4gKyNpZmRlZiBDT05GSUdfWk9ORV9ERVZJQ0UNCj4gK3ZvaWQg
+X19yZWYgbWVtbWFwX2luaXRfem9uZV9kZXZpY2Uoc3RydWN0IHpvbmUgKnpvbmUsIHVuc2lnbmVk
+IGxvbmcgcGZuLA0KPiArCQkJCSAgIHVuc2lnbmVkIGxvbmcgc2l6ZSwNCj4gKwkJCQkgICBzdHJ1
+Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQ0KPiArew0KPiArCXN0cnVjdCBwZ2xpc3RfZGF0YSAqcGdk
+YXQgPSB6b25lLT56b25lX3BnZGF0Ow0KPiArCXVuc2lnbmVkIGxvbmcgem9uZV9pZHggPSB6b25l
+X2lkeCh6b25lKTsNCj4gKwl1bnNpZ25lZCBsb25nIGVuZF9wZm4gPSBwZm4gKyBzaXplOw0KPiAr
+CXVuc2lnbmVkIGxvbmcgc3RhcnQgPSBqaWZmaWVzOw0KPiArCWludCBuaWQgPSBwZ2RhdC0+bm9k
+ZV9pZDsNCj4gKwl1bnNpZ25lZCBsb25nIG5yX3BhZ2VzOw0KPiArDQo+ICsJaWYgKFdBUk5fT05f
+T05DRSghcGdtYXAgfHwgIWlzX2Rldl96b25lKHpvbmUpKSkNCj4gKwkJcmV0dXJuOw0KPiArDQo+
+ICsJLyoNCj4gKwkgKiBUaGUgY2FsbCB0byBtZW1tYXBfaW5pdF96b25lIHNob3VsZCBoYXZlIGFs
+cmVhZHkgdGFrZW4gY2FyZQ0KPiArCSAqIG9mIHRoZSBwYWdlcyByZXNlcnZlZCBmb3IgdGhlIG1l
+bW1hcCwgc28gd2UgY2FuIGp1c3QganVtcCB0bw0KPiArCSAqIHRoZSBlbmQgb2YgdGhhdCByZWdp
+b24gYW5kIHN0YXJ0IHByb2Nlc3NpbmcgdGhlIGRldmljZSBwYWdlcy4NCj4gKwkgKi8NCj4gKwlp
+ZiAocGdtYXAtPmFsdG1hcF92YWxpZCkgew0KPiArCQlzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1h
+cCA9ICZwZ21hcC0+YWx0bWFwOw0KPiArDQo+ICsJCXBmbiA9IGFsdG1hcC0+YmFzZV9wZm4gKyB2
+bWVtX2FsdG1hcF9vZmZzZXQoYWx0bWFwKTsNCj4gKwl9DQo+ICsNCj4gKwkvKiBSZWNvcmQgdGhl
+IG51bWJlciBvZiBwYWdlcyB3ZSBhcmUgYWJvdXQgdG8gaW5pdGlhbGl6ZSAqLw0KPiArCW5yX3Bh
+Z2VzID0gZW5kX3BmbiAtIHBmbjsNCj4gKw0KPiArCWZvciAoOyBwZm4gPCBlbmRfcGZuOyBwZm4r
+Kykgew0KPiArCQlzdHJ1Y3QgcGFnZSAqcGFnZSA9IHBmbl90b19wYWdlKHBmbik7DQo+ICsNCj4g
+KwkJX19pbml0X3NpbmdsZV9wYWdlKHBhZ2UsIHBmbiwgem9uZV9pZHgsIG5pZCk7DQo+ICsNCj4g
+KwkJLyoNCj4gKwkJICogTWFyayBwYWdlIHJlc2VydmVkIGFzIGl0IHdpbGwgbmVlZCB0byB3YWl0
+IGZvciBvbmxpbmluZw0KPiArCQkgKiBwaGFzZSBmb3IgaXQgdG8gYmUgZnVsbHkgYXNzb2NpYXRl
+ZCB3aXRoIGEgem9uZS4NCj4gKwkJICoNCj4gKwkJICogV2UgY2FuIHVzZSB0aGUgbm9uLWF0b21p
+YyBfX3NldF9iaXQgb3BlcmF0aW9uIGZvciBzZXR0aW5nDQo+ICsJCSAqIHRoZSBmbGFnIGFzIHdl
+IGFyZSBzdGlsbCBpbml0aWFsaXppbmcgdGhlIHBhZ2VzLg0KPiArCQkgKi8NCj4gKwkJX19TZXRQ
+YWdlUmVzZXJ2ZWQocGFnZSk7DQo+ICsNCj4gKwkJLyoNCj4gKwkJICogWk9ORV9ERVZJQ0UgcGFn
+ZXMgdW5pb24gLT5scnUgd2l0aCBhIC0+cGdtYXAgYmFjaw0KPiArCQkgKiBwb2ludGVyIGFuZCBo
+bW1fZGF0YS4gIEl0IGlzIGEgYnVnIGlmIGEgWk9ORV9ERVZJQ0UNCj4gKwkJICogcGFnZSBpcyBl
+dmVyIGZyZWVkIG9yIHBsYWNlZCBvbiBhIGRyaXZlci1wcml2YXRlIGxpc3QuDQo+ICsJCSAqLw0K
+PiArCQlwYWdlLT5wZ21hcCA9IHBnbWFwOw0KPiArCQlwYWdlLT5obW1fZGF0YSA9IDA7DQo+ICsN
+Cj4gKwkJLyoNCj4gKwkJICogTWFyayB0aGUgYmxvY2sgbW92YWJsZSBzbyB0aGF0IGJsb2NrcyBh
+cmUgcmVzZXJ2ZWQgZm9yDQo+ICsJCSAqIG1vdmFibGUgYXQgc3RhcnR1cC4gVGhpcyB3aWxsIGZv
+cmNlIGtlcm5lbCBhbGxvY2F0aW9ucw0KPiArCQkgKiB0byByZXNlcnZlIHRoZWlyIGJsb2NrcyBy
+YXRoZXIgdGhhbiBsZWFraW5nIHRocm91Z2hvdXQNCj4gKwkJICogdGhlIGFkZHJlc3Mgc3BhY2Ug
+ZHVyaW5nIGJvb3Qgd2hlbiBtYW55IGxvbmctbGl2ZWQNCj4gKwkJICoga2VybmVsIGFsbG9jYXRp
+b25zIGFyZSBtYWRlLg0KPiArCQkgKg0KPiArCQkgKiBiaXRtYXAgaXMgY3JlYXRlZCBmb3Igem9u
+ZSdzIHZhbGlkIHBmbiByYW5nZS4gYnV0IG1lbW1hcA0KPiArCQkgKiBjYW4gYmUgY3JlYXRlZCBm
+b3IgaW52YWxpZCBwYWdlcyAoZm9yIGFsaWdubWVudCkNCj4gKwkJICogY2hlY2sgaGVyZSBub3Qg
+dG8gY2FsbCBzZXRfcGFnZWJsb2NrX21pZ3JhdGV0eXBlKCkgYWdhaW5zdA0KPiArCQkgKiBwZm4g
+b3V0IG9mIHpvbmUuDQo+ICsJCSAqDQo+ICsJCSAqIFBsZWFzZSBub3RlIHRoYXQgTUVNTUFQX0hP
+VFBMVUcgcGF0aCBkb2Vzbid0IGNsZWFyIG1lbW1hcA0KPiArCQkgKiBiZWNhdXNlIHRoaXMgaXMg
+ZG9uZSBlYXJseSBpbiBzcGFyc2VfYWRkX29uZV9zZWN0aW9uDQo+ICsJCSAqLw0KPiArCQlpZiAo
+IShwZm4gJiAocGFnZWJsb2NrX25yX3BhZ2VzIC0gMSkpKSB7DQo+ICsJCQlzZXRfcGFnZWJsb2Nr
+X21pZ3JhdGV0eXBlKHBhZ2UsIE1JR1JBVEVfTU9WQUJMRSk7DQo+ICsJCQljb25kX3Jlc2NoZWQo
+KTsNCj4gKwkJfQ0KPiArCX0NCj4gKw0KPiArCXByX2luZm8oIiVzIGluaXRpYWxpc2VkLCAlbHUg
+cGFnZXMgaW4gJXVtc1xuIiwgZGV2X25hbWUocGdtYXAtPmRldiksDQo+ICsJCW5yX3BhZ2VzLCBq
+aWZmaWVzX3RvX21zZWNzKGppZmZpZXMgLSBzdGFydCkpOw0KPiArfQ0KPiArDQo+ICsjZW5kaWYN
+Cj4gIC8qDQo+ICAgKiBJbml0aWFsbHkgYWxsIHBhZ2VzIGFyZSByZXNlcnZlZCAtIGZyZWUgb25l
+cyBhcmUgZnJlZWQNCj4gICAqIHVwIGJ5IGZyZWVfYWxsX2Jvb3RtZW0oKSBvbmNlIHRoZSBlYXJs
+eSBib290IHByb2Nlc3MgaXMNCj4gQEAgLTU0NzcsMTAgKzU1NTQsMTggQEAgdm9pZCBfX21lbWlu
+aXQgbWVtbWFwX2luaXRfem9uZSh1bnNpZ25lZCBsb25nIHNpemUsIGludCBuaWQsIHVuc2lnbmVk
+IGxvbmcgem9uZSwNCj4gIA0KPiAgCS8qDQo+ICAJICogSG9ub3IgcmVzZXJ2YXRpb24gcmVxdWVz
+dGVkIGJ5IHRoZSBkcml2ZXIgZm9yIHRoaXMgWk9ORV9ERVZJQ0UNCj4gLQkgKiBtZW1vcnkNCj4g
+KwkgKiBtZW1vcnkuIFdlIGxpbWl0IHRoZSB0b3RhbCBudW1iZXIgb2YgcGFnZXMgdG8gaW5pdGlh
+bGl6ZSB0byBqdXN0DQo+ICsJICogdGhvc2UgdGhhdCBtaWdodCBjb250YWluIHRoZSBtZW1vcnkg
+bWFwcGluZy4gV2Ugd2lsbCBkZWZlciB0aGUNCj4gKwkgKiBaT05FX0RFVklDRSBwYWdlIGluaXRp
+YWxpemF0aW9uIHVudGlsIGFmdGVyIHdlIGhhdmUgcmVsZWFzZWQNCj4gKwkgKiB0aGUgaG90cGx1
+ZyBsb2NrLg0KPiAgCSAqLw0KPiAtCWlmIChhbHRtYXAgJiYgc3RhcnRfcGZuID09IGFsdG1hcC0+
+YmFzZV9wZm4pDQo+ICsJaWYgKGFsdG1hcCAmJiBzdGFydF9wZm4gPT0gYWx0bWFwLT5iYXNlX3Bm
+bikgew0KPiAgCQlzdGFydF9wZm4gKz0gYWx0bWFwLT5yZXNlcnZlOw0KPiArCQllbmRfcGZuID0g
+YWx0bWFwLT5iYXNlX3BmbiArDQo+ICsJCQkgIHZtZW1fYWx0bWFwX29mZnNldChhbHRtYXApOw0K
+PiArCX0gZWxzZSBpZiAoem9uZSA9PSBaT05FX0RFVklDRSkgew0KPiArCQllbmRfcGZuID0gc3Rh
+cnRfcGZuOw0KPiArCX0NCj4gIA0KPiAgCWZvciAocGZuID0gc3RhcnRfcGZuOyBwZm4gPCBlbmRf
+cGZuOyBwZm4rKykgew0KPiAgCQkvKg0KPiA=
