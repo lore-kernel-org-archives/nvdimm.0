@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 66C90211575C8
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:18:10 -0700 (PDT)
-Subject: [PATCH v5 0/4] Address issues slowing persistent memory initialization
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 25 Sep 2018 13:18:08 -0700
-Message-ID: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id A460C21B02822
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Sep 2018 11:25:54 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH] dax: add missing address_space_operations for device dax
+References: <153662150977.27329.9768329787276305204.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Sep 2018 14:25:52 -0400
+In-Reply-To: <153662150977.27329.9768329787276305204.stgit@djiang5-desk3.ch.intel.com>
+ (Dave Jiang's message of "Mon, 10 Sep 2018 16:18:29 -0700")
+Message-ID: <x49va79p83z.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,50 +23,66 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set is meant to be a v5 of my earlier submission with the same
-title[1].
+Dave Jiang <dave.jiang@intel.com> writes:
 
-The main changes from the previous version are that I have added a new
-patch to address an issue that had disabled deferred memory init on my
-system due to recent config changes related to CONFIG_NO_BOOTMEM. In
-addition I dropped the original patches 4 and 5 from the previous set as
-that is going to need to be a separate set of patches.
+> With address_space_operations missing for device dax, namely the
+> .set_page_dirty, we hit a kernel warning when running destructive
+> ndctl unit test: make TESTS=device-dax check
+>
+> WARNING: CPU: 3 PID: 7380 at fs/buffer.c:581 __set_page_dirty+0xb1/0xc0
+>
+> Setting address_space_operations to noop_set_page_dirty and
+> noop_invalidatepage for device dax to prevent fallback to
+> __set_page_dirty_buffers() and block_invalidatepage() respectively.
+>
+> Fixes: 2232c6382a ("device-dax: Enable page_mapping()")
+>
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
-The main thing this patch set achieves is that it allows us to initialize
-each node worth of persistent memory independently. As a result we reduce
-page init time by about 2 minutes because instead of taking 30 to 40 seconds
-per node and going through each node one at a time, we process all 4 nodes
-in parallel in the case of a 12TB persistent memory setup spread evenly over
-4 nodes.
+I looked over the other aops, and I think this covers the fallback
+paths.
 
-[1]: https://lkml.org/lkml/2018/9/21/4
----
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 
-Alexander Duyck (4):
-      mm: Remove now defunct NO_BOOTMEM from depends list for deferred init
-      mm: Provide kernel parameter to allow disabling page init poisoning
-      mm: Create non-atomic version of SetPageReserved for init use
-      mm: Defer ZONE_DEVICE page initialization to the point where we init pgmap
-
-
- Documentation/admin-guide/kernel-parameters.txt |   12 +++
- arch/csky/Kconfig                               |    1 
- include/linux/mm.h                              |    2 
- include/linux/page-flags.h                      |    9 ++
- kernel/memremap.c                               |   24 ++---
- mm/Kconfig                                      |    1 
- mm/debug.c                                      |   46 ++++++++++
- mm/hmm.c                                        |   12 ++-
- mm/memblock.c                                   |    5 -
- mm/page_alloc.c                                 |  101 ++++++++++++++++++++++-
- mm/sparse.c                                     |    4 -
- 11 files changed, 184 insertions(+), 33 deletions(-)
-
---
+> ---
+>  drivers/dax/device.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 6fd46083e629..079f6811eca6 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -534,6 +534,11 @@ static unsigned long dax_get_unmapped_area(struct file *filp,
+>  	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
+>  }
+>  
+> +static const struct address_space_operations dev_dax_aops = {
+> +	.set_page_dirty		= noop_set_page_dirty,
+> +	.invalidatepage		= noop_invalidatepage,
+> +};
+> +
+>  static int dax_open(struct inode *inode, struct file *filp)
+>  {
+>  	struct dax_device *dax_dev = inode_dax(inode);
+> @@ -543,6 +548,7 @@ static int dax_open(struct inode *inode, struct file *filp)
+>  	dev_dbg(&dev_dax->dev, "trace\n");
+>  	inode->i_mapping = __dax_inode->i_mapping;
+>  	inode->i_mapping->host = __dax_inode;
+> +	inode->i_mapping->a_ops = &dev_dax_aops;
+>  	filp->f_mapping = inode->i_mapping;
+>  	filp->f_wb_err = filemap_sample_wb_err(filp->f_mapping);
+>  	filp->private_data = dev_dax;
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
