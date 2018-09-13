@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D64B72114B12D
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 17:58:44 -0700 (PDT)
-Subject: [PATCH 1/5] libnvdimm: introduce NDD_SECURITY_BUSY flag
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 17:58:29 -0700
-Message-ID: <153800990977.57703.6465577740986474686.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
-References: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2DCB62112DF5E
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 17:12:05 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 12 Sep 2018 18:11:54 -0600
+Message-Id: <20180913001156.4115-12-logang@deltatee.com>
+In-Reply-To: <20180913001156.4115-1-logang@deltatee.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
 MIME-Version: 1.0
+Subject: [PATCH v6 11/13] nvme-pci: Add a quirk for a pseudo CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,202 +22,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a flag for nvdimm->flags to support erase functions. While it's ok
-to hold the nvdimm_bus lock for secure erase due to minimal time to execute
-the command, overwrite requires a significantly longer time and makes this
-impossible. The flag will block any drivers from being loaded and DIMMs
-being probed.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+We'd like to use some of these older cards to test P2P memory.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/nvdimm/dimm.c        |    4 +++
- drivers/nvdimm/dimm_devs.c   |   52 +++++++++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/nd.h          |    3 ++
- drivers/nvdimm/region_devs.c |    7 ++++++
- include/linux/libnvdimm.h    |    2 ++
- 5 files changed, 67 insertions(+), 1 deletion(-)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index b6381ddbd6c1..5ff9367b8671 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -26,6 +26,10 @@ static int nvdimm_probe(struct device *dev)
- 	struct nvdimm_drvdata *ndd;
- 	int rc;
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 4030743c90aa..8e6f3bcfe956 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -90,6 +90,13 @@ enum nvme_quirks {
+ 	 * Set MEDIUM priority on SQ creation
+ 	 */
+ 	NVME_QUIRK_MEDIUM_PRIO_SQ		= (1 << 7),
++
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 8),
+ };
  
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	rc = nvdimm_check_config_data(dev);
- 	if (rc) {
- 		/* not required for non-aliased nvdimm, ex. NVDIMM-N */
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 752149c9450c..af1fd4434037 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -189,12 +189,16 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
- 	struct key *key;
- 	struct user_key_payload *payload;
--	int rc = 0;
-+	int rc;
- 	bool is_userkey = false;
- 
- 	if (!nvdimm->security_ops)
- 		return -EOPNOTSUPP;
- 
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	if (atomic_read(&nvdimm->busy)) {
- 		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
-@@ -214,6 +218,8 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
- 		goto out;
- 	}
- 
-+	nvdimm_set_security_busy(dev);
-+
- 	/* look for a key from keyring if exists and remove */
- 	key = nvdimm_get_and_verify_key(dev, keyid);
- 	if (IS_ERR(key)) {
-@@ -249,6 +255,7 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
- 	key_put(key);
- 
-  out:
-+	nvdimm_clear_security_busy(dev);
- 	nvdimm_bus_unlock(&nvdimm_bus->dev);
- 	nvdimm_security_get_state(dev);
- 	return rc;
-@@ -266,6 +273,10 @@ static int nvdimm_security_freeze_lock(struct device *dev)
- 	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
- 		return -EOPNOTSUPP;
- 
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
- 	if (rc < 0)
- 		return rc;
-@@ -289,6 +300,10 @@ static int nvdimm_security_disable(struct device *dev, unsigned int keyid)
- 	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
- 		return -EOPNOTSUPP;
- 
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	/* look for a key from keyring if exists and remove */
- 	key = nvdimm_get_and_verify_key(dev, keyid);
- 	if (IS_ERR(key))
-@@ -342,6 +357,10 @@ int nvdimm_security_unlock_dimm(struct device *dev)
- 			nvdimm->state == NVDIMM_SECURITY_DISABLED)
- 		return 0;
- 
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	key = nvdimm_get_key(dev);
- 	if (!key)
- 		key = nvdimm_request_key(dev);
-@@ -401,6 +420,10 @@ static int nvdimm_security_change_key(struct device *dev,
- 	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
- 		return -EBUSY;
- 
-+	rc = nvdimm_check_security_busy(dev);
-+	if (rc)
-+		return rc;
-+
- 	/* look for a key from keyring if exists and remove */
- 	old_key = nvdimm_get_and_verify_key(dev, old_keyid);
- 	if (IS_ERR(old_key))
-@@ -481,6 +504,33 @@ static int nvdimm_security_change_key(struct device *dev,
- 	return rc;
- }
- 
-+/*
-+ * Check if we are doing security wipes
-+ */
-+int nvdimm_check_security_busy(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+void nvdimm_set_security_busy(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	set_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
-+}
-+
-+void nvdimm_clear_security_busy(struct device *dev)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	clear_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
-+}
-+
  /*
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index e6490b191076..bbcbd72db742 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -239,6 +239,9 @@ void nd_region_exit(void);
- struct nvdimm;
- struct nvdimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
- int nvdimm_check_config_data(struct device *dev);
-+int nvdimm_check_security_busy(struct device *dev);
-+void nvdimm_set_security_busy(struct device *dev);
-+void nvdimm_clear_security_busy(struct device *dev);
- int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
- int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index fa37afcd43ff..3e089c533397 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -78,6 +78,13 @@ int nd_region_activate(struct nd_region *nd_region)
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-+		int rc;
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 0d6c41bc2b35..db862ee6e53e 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1644,6 +1644,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
+ }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
+ 
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
++{
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
++}
 +
-+		rc = nvdimm_check_security_busy(&nvdimm->dev);
-+		if (rc) {
-+			nvdimm_bus_unlock(&nd_region->dev);
-+			return rc;
-+		}
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
+ {
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1663,10 +1670,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
- 		/* at least one null hint slot per-dimm for the "no-hint" case */
- 		flush_data_size += sizeof(void *);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 0d85e092a6dd..1feca4d1c1fb 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -38,6 +38,8 @@ enum {
- 	NDD_UNARMED = 1,
- 	/* locked memory devices should not be accessed */
- 	NDD_LOCKED = 2,
-+	/* memory under security wipes should not be accessed */
-+	NDD_SECURITY_BUSY = 3,
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
  
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2715,6 +2727,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2601),	/* CNEX Granby */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
+-- 
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
