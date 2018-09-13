@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1139F21135FEE
- for <linux-nvdimm@lists.01.org>; Thu, 20 Sep 2018 15:26:51 -0700 (PDT)
-Subject: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling page
- init poisoning
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 20 Sep 2018 15:26:36 -0700
-Message-ID: <20180920222415.19464.38400.stgit@localhost.localdomain>
-In-Reply-To: <20180920215824.19464.8884.stgit@localhost.localdomain>
-References: <20180920215824.19464.8884.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 6DA762113002F
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Sep 2018 11:18:42 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] ndctl, build: Introduce --with-{bash,systemd}
+Date: Thu, 13 Sep 2018 18:18:35 +0000
+Message-ID: <1536862713.5995.209.camel@intel.com>
+References: <153678309933.293708.8157261262222091779.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153678309933.293708.8157261262222091779.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <14164595F84F9E4495182EBDB6C2E8DE@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,181 +24,162 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "rworkman@slackware.com" <rworkman@slackware.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On systems with a large amount of memory it can take a significant amount
-of time to initialize all of the page structs with the PAGE_POISON_PATTERN
-value. I have seen it take over 2 minutes to initialize a system with
-over 12TB of RAM.
 
-In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
-the boot time returned to something much more reasonable as the
-arch_add_memory call completed in milliseconds versus seconds. However in
-doing that I had to disable all of the other VM debugging on the system.
+On Wed, 2018-09-12 at 13:11 -0700, Dan Williams wrote:
+> The --with-bash-completion-dir and --with-systemd-unit-dir are not
+> arguments that set directory values, they are questions about whether
+> ndctl should build extra functionality and pull extra pkgconfig
+> variable information.
+> 
+> Clean them up to be --with-bash and --with-systemd and consistent.
+> 
+> This makes it clear that to disable systemd, for example, specify:
+> 
+>     --without-systemd
+> 
+> ...to the configure script.
+> 
+> Link: https://github.com/pmem/ndctl/issues/68
+> Reported-by: Robby Workman <rworkman@slackware.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  autogen.sh        |    3 +--
+>  configure.ac      |   46 +++++++++++++++++------------------------
+> -----
+>  ndctl/Makefile.am |    2 +-
+>  3 files changed, 19 insertions(+), 32 deletions(-)
 
-In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
-a system that has a large amount of memory I have added a new kernel
-parameter named "vm_debug" that can be set to "-" in order to disable it.
+Looks good, applied both this and the other related one:
+ndctl, spec: Use pkgconfig for systemd
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
-
-v3: Switched from kernel config option to parameter
-v4: Added comment to parameter handler to record when option is disabled
-    Updated parameter description based on feedback from Michal Hocko
-    Fixed GB vs TB typo in patch description.
-    Switch to vm_debug option similar to slub_debug
-
- Documentation/admin-guide/kernel-parameters.txt |   12 ++++++
- include/linux/page-flags.h                      |    8 ++++
- mm/debug.c                                      |   46 +++++++++++++++++++++++
- mm/memblock.c                                   |    5 +--
- mm/sparse.c                                     |    4 +-
- 5 files changed, 69 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index dfe3d7b99abf..ee257b5b584f 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -4811,6 +4811,18 @@
- 			This is actually a boot loader parameter; the value is
- 			passed to the kernel using a special protocol.
- 
-+	vm_debug[=options]	[KNL] Available with CONFIG_DEBUG_VM=y.
-+			May slow down system boot speed, especially when
-+			enabled on systems with a large amount of memory.
-+			All options are enabled by default, and this
-+			interface is meant to allow for selectively
-+			enabling or disabling specific virtual memory
-+			debugging features.
-+
-+			Available options are:
-+			  P	Enable page structure init time poisoning
-+			  -	Disable all of the above options
-+
- 	vmalloc=nn[KMG]	[KNL,BOOT] Forces the vmalloc area to have an exact
- 			size of <nn>. This can be used to increase the
- 			minimum size (128MB on x86). It can also be used to
-diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-index 4d99504f6496..934f91ef3f54 100644
---- a/include/linux/page-flags.h
-+++ b/include/linux/page-flags.h
-@@ -163,6 +163,14 @@ static inline int PagePoisoned(const struct page *page)
- 	return page->flags == PAGE_POISON_PATTERN;
- }
- 
-+#ifdef CONFIG_DEBUG_VM
-+void page_init_poison(struct page *page, size_t size);
-+#else
-+static inline void page_init_poison(struct page *page, size_t size)
-+{
-+}
-+#endif
-+
- /*
-  * Page flags policies wrt compound pages
-  *
-diff --git a/mm/debug.c b/mm/debug.c
-index bd10aad8539a..cdacba12e09a 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -13,6 +13,7 @@
- #include <trace/events/mmflags.h>
- #include <linux/migrate.h>
- #include <linux/page_owner.h>
-+#include <linux/ctype.h>
- 
- #include "internal.h"
- 
-@@ -175,4 +176,49 @@ void dump_mm(const struct mm_struct *mm)
- 	);
- }
- 
-+static bool page_init_poisoning __read_mostly = true;
-+
-+static int __init setup_vm_debug(char *str)
-+{
-+	bool __page_init_poisoning = true;
-+
-+	/*
-+	 * Calling vm_debug with no arguments is equivalent to requesting
-+	 * to enable all debugging options we can control.
-+	 */
-+	if (*str++ != '=' || !*str)
-+		goto out;
-+
-+	__page_init_poisoning = false;
-+	if (*str == '-')
-+		goto out;
-+
-+	while (*str) {
-+		switch (tolower(*str)) {
-+		case'p':
-+			__page_init_poisoning = true;
-+			break;
-+		default:
-+			pr_err("vm_debug option '%c' unknown. skipped\n",
-+			       *str);
-+		}
-+
-+		str++;
-+	}
-+out:
-+	if (page_init_poisoning && !__page_init_poisoning)
-+		pr_warn("Page struct poisoning disabled by kernel command line option 'vm_debug'\n");
-+
-+	page_init_poisoning = __page_init_poisoning;
-+
-+	return 1;
-+}
-+__setup("vm_debug", setup_vm_debug);
-+
-+void page_init_poison(struct page *page, size_t size)
-+{
-+	if (page_init_poisoning)
-+		memset(page, PAGE_POISON_PATTERN, size);
-+}
-+EXPORT_SYMBOL_GPL(page_init_poison);
- #endif		/* CONFIG_DEBUG_VM */
-diff --git a/mm/memblock.c b/mm/memblock.c
-index f7981098537b..b1017ec1b167 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1495,10 +1495,9 @@ void * __init memblock_virt_alloc_try_nid_raw(
- 
- 	ptr = memblock_virt_alloc_internal(size, align,
- 					   min_addr, max_addr, nid);
--#ifdef CONFIG_DEBUG_VM
- 	if (ptr && size > 0)
--		memset(ptr, PAGE_POISON_PATTERN, size);
--#endif
-+		page_init_poison(ptr, size);
-+
- 	return ptr;
- }
- 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 10b07eea9a6e..67ad061f7fb8 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -696,13 +696,11 @@ int __meminit sparse_add_one_section(struct pglist_data *pgdat,
- 		goto out;
- 	}
- 
--#ifdef CONFIG_DEBUG_VM
- 	/*
- 	 * Poison uninitialized struct pages in order to catch invalid flags
- 	 * combinations.
- 	 */
--	memset(memmap, PAGE_POISON_PATTERN, sizeof(struct page) * PAGES_PER_SECTION);
--#endif
-+	page_init_poison(memmap, sizeof(struct page) * PAGES_PER_SECTION);
- 
- 	section_mark_present(ms);
- 	sparse_init_one_section(ms, section_nr, memmap, usemap);
-
+> 
+> diff --git a/autogen.sh b/autogen.sh
+> index 21b0e250e672..2a52688bb403 100755
+> --- a/autogen.sh
+> +++ b/autogen.sh
+> @@ -17,8 +17,7 @@ libdir() {
+>  
+>  args="--prefix=/usr \
+>  --sysconfdir=/etc \
+> ---libdir=$(libdir /usr/lib) \
+> ---with-systemd-unit-dir"
+> +--libdir=$(libdir /usr/lib)"
+>  
+>  echo
+>  echo "------------------------------------------------------------
+> ----"
+> diff --git a/configure.ac b/configure.ac
+> index 7bfe5a7451b0..9dc11da194d1 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -115,22 +115,19 @@ PKG_CHECK_MODULES([UDEV], [libudev])
+>  PKG_CHECK_MODULES([UUID], [uuid])
+>  PKG_CHECK_MODULES([JSON], [json-c])
+>  
+> -AC_ARG_WITH([bash-completion-dir],
+> -	AS_HELP_STRING([--with-bash-completion-dir[=PATH]],
+> -		[Install the bash auto-completion script in this
+> directory. @<:@default=yes@:>@]),
+> +AC_ARG_WITH([bash],
+> +	AS_HELP_STRING([--with-bash],
+> +		[Enable bash auto-completion. @<:@default=yes@:>@]),
+>  	[],
+> -	[with_bash_completion_dir=yes])
+> +	[with_bash=yes])
+>  
+> -if test "x$with_bash_completion_dir" = "xyes"; then
+> +if test "x$with_bash" = "xyes"; then
+>  	PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >=
+> 2.0],
+> -		[BASH_COMPLETION_DIR="`pkg-config --
+> variable=completionsdir bash-completion`"],
+> -		[BASH_COMPLETION_DIR="$datadir/bash-
+> completion/completions"])
+> -else
+> -	BASH_COMPLETION_DIR="$with_bash_completion_dir"
+> +		[BASH_COMPLETION_DIR=$($PKG_CONFIG --
+> variable=completionsdir bash-completion)], [])
+>  fi
+>  
+>  AC_SUBST([BASH_COMPLETION_DIR])
+> -AM_CONDITIONAL([ENABLE_BASH_COMPLETION],[test
+> "x$with_bash_completion_dir" != "xno"])
+> +AM_CONDITIONAL([ENABLE_BASH_COMPLETION], [test "x$with_bash" =
+> "xyes"])
+>  
+>  AC_ARG_ENABLE([local],
+>          AS_HELP_STRING([--disable-local], [build against kernel
+> ndctl.h @<:@default=system@:>@]),
+> @@ -143,26 +140,18 @@ AC_CHECK_FUNCS([ \
+>  	secure_getenv\
+>  ])
+>  
+> -PKG_PROG_PKG_CONFIG
+> -AC_ARG_WITH([systemd-unit-dir],
+> -	AS_HELP_STRING([--with-systemd-unit-dir[=DIR]],
+> -		[Directory for systemd service files]),
+> -	[],
+> -	[with_systemd_unit_dir=yes])
+> -
+> -if test "x$with_systemd_unit_dir" = "xyes"; then
+> -	def_systemd_unit_dir=$($PKG_CONFIG --
+> variable=systemdsystemunitdir systemd)
+> -	if test "x$def_systemd_unit_dir" = "x"; then
+> -		AC_MSG_ERROR([systemd support requested but pkg-
+> config unable to query systemd package])
+> -		with_systemd_unit_dir=no
+> -	else
+> -		with_systemd_unit_dir="$def_systemd_unit_dir"
+> -	fi
+> +AC_ARG_WITH([systemd],
+> +	AS_HELP_STRING([--with-systemd],
+> +		[Enable systemd functionality (monitor).
+> @<:@default=yes@:>@]),
+> +	[], [with_systemd=yes])
+> +
+> +if test "x$with_systemd" = "xyes"; then
+> +	PKG_CHECK_MODULES([SYSTEMD], [systemd],
+> +	[systemd_unitdir=$($PKG_CONFIG --
+> variable=systemdsystemunitdir systemd)], [])
+>  fi
+>  
+> -AS_IF([test "x$with_systemd_unit_dir" != "xno"],
+> -	[AC_SUBST([systemd_unitdir], [$with_systemd_unit_dir])])
+> -AM_CONDITIONAL([ENABLE_SYSTEMD_UNIT_DIR], [test
+> "x$with_systemd_unit_dir" != "xno"])
+> +AC_SUBST([systemd_unitdir])
+> +AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" =
+> "xyes"])
+>  
+>  AC_ARG_WITH([tmpfilesdir],
+>  	[AS_HELP_STRING([--with-tmpfilesdir=DIR], [Directory for
+> temporary runtime files])],
+> @@ -215,7 +204,6 @@ AC_MSG_RESULT([
+>          sysconfdir:             ${sysconfdir}
+>          libdir:                 ${libdir}
+>          includedir:             ${includedir}
+> -	systemd-unit-dir:	${systemd_unitdir}
+>          tmpfilesdir:            ${tmpfilesdir}
+>  
+>          compiler:               ${CC}
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index 4b44294ef9aa..d6839e4a9fb6 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -48,7 +48,7 @@ monitor_configdir = $(sysconfdir)/ndctl/
+>  monitor_config_DATA = $(monitor_config_file)
+>  EXTRA_DIST += $(monitor_config_file)
+>  
+> -if ENABLE_SYSTEMD_UNIT_DIR
+> +if ENABLE_SYSTEMD_UNITS
+>  systemd_unit_DATA = ndctl-monitor.service
+>  endif
+>  
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
