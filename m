@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A30792194D3B8
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:52 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9338121CAD9BA
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 17:12:07 -0700 (PDT)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:27 -0600
-Message-Id: <20180925162231.4354-10-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+Date: Wed, 12 Sep 2018 18:11:52 -0600
+Message-Id: <20180913001156.4115-10-logang@deltatee.com>
+In-Reply-To: <20180913001156.4115-1-logang@deltatee.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
 MIME-Version: 1.0
-Subject: [PATCH v7 09/13] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
+Subject: [PATCH v6 09/13] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
