@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8759421157426
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:49:09 -0700 (PDT)
-Subject: [PATCH v10 06/12] nfit/libnvdimm: add set passphrase support for
- Intel nvdimms
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 13:47:18 -0700
-Message-ID: <153799483810.71621.11639561453544624699.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
-References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0CBC52112DF58
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 17:12:02 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Wed, 12 Sep 2018 18:11:53 -0600
+Message-Id: <20180913001156.4115-11-logang@deltatee.com>
+In-Reply-To: <20180913001156.4115-1-logang@deltatee.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
 MIME-Version: 1.0
+Subject: [PATCH v6 10/13] nvme-pci: Add support for P2P memory in requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,424 +22,98 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for setting and/or updating passphrase on the Intel nvdimms.
-The passphrase is pulled from userspace through the kernel key management.
-We trigger the update via writing "update <old_keyid> <new_keyid>" to the
-sysfs attribute "security". If no <old_keyid> exists (for enabling security)
-then a 0 should be used. The state of the security can also be read via the
-"security" attribute. libnvdimm will generically support the key_change
-API call.
+For P2P requests, we must use the pci_p2pmem_map_sg() function
+instead of the dma_map_sg functions.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+With that, we can then indicate PCI_P2P support in the request queue.
+For this, we create an NVME_F_PCI_P2P flag which tells the core to
+set QUEUE_FLAG_PCI_P2P in the request queue.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/acpi/nfit/intel.c  |   68 ++++++++++++
- drivers/nvdimm/dimm_devs.c |  248 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/libnvdimm.h  |    5 +
- 3 files changed, 321 insertions(+)
+ drivers/nvme/host/core.c |  4 ++++
+ drivers/nvme/host/nvme.h |  1 +
+ drivers/nvme/host/pci.c  | 17 +++++++++++++----
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 4bfc1c1da339..314eae7e02d7 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -18,6 +18,73 @@
- #include "intel.h"
- #include "nfit.h"
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index dd8ec1dd9219..6033ce2fd3e9 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+ 	ns->queue = blk_mq_init_queue(ctrl->tagset);
+ 	if (IS_ERR(ns->queue))
+ 		goto out_free_ns;
++
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
++	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
++		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
++
+ 	ns->queue->queuedata = ns;
+ 	ns->ctrl = ctrl;
  
-+/*
-+ * The update passphrase takes the old passphrase and the new passphrase
-+ * and send those to the nvdimm. The nvdimm will verify the old
-+ * passphrase and then update it with the new passphrase if pending
-+ * verification. The function will pass in a zeroed passphrase field
-+ * if the old passphrase is NULL. This typically happens when we are
-+ * enabling security from the disabled state.
-+ */
-+static int intel_dimm_security_update_passphrase(
-+		struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
-+		const struct nvdimm_key_data *old_data,
-+		const struct nvdimm_key_data *new_data)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_set_passphrase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_SET_PASSPHRASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index bb4a2003c097..4030743c90aa 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
+ 	unsigned int flags;
+ #define NVME_F_FABRICS			(1 << 0)
+ #define NVME_F_METADATA_SUPPORTED	(1 << 1)
++#define NVME_F_PCI_P2PDMA		(1 << 2)
+ 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+ 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+ 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index f434706a04e8..0d6c41bc2b35 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -745,8 +745,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 		goto out;
+ 
+ 	ret = BLK_STS_RESOURCE;
+-	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+-			DMA_ATTR_NO_WARN);
 +
-+	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	if (old_data)
-+		memcpy(nd_cmd.cmd.old_pass, old_data->data,
-+				sizeof(nd_cmd.cmd.old_pass));
++	if (is_pci_p2pdma_page(sg_page(iod->sg)))
++		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
++					  dma_dir);
 +	else
-+		memset(nd_cmd.cmd.old_pass, 0, sizeof(nd_cmd.cmd.old_pass));
-+	memcpy(nd_cmd.cmd.new_pass, new_data->data,
-+			sizeof(nd_cmd.cmd.new_pass));
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
-+			sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
-+
- static int intel_dimm_security_unlock(struct nvdimm_bus *nvdimm_bus,
- 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
- {
-@@ -149,4 +216,5 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
- const struct nvdimm_security_ops intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
-+	.change_key = intel_dimm_security_update_passphrase,
- };
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index e7f4c8a2b242..becbe670b572 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -20,6 +20,7 @@
- #include <linux/mm.h>
- #include <linux/cred.h>
- #include <linux/key.h>
-+#include <linux/key-type.h>
- #include <keys/user-type.h>
- #include "nd-core.h"
- #include "label.h"
-@@ -49,6 +50,58 @@ static struct key *nvdimm_get_key(struct device *dev)
- 	return nvdimm->key;
- }
++		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
++					     dma_dir,  DMA_ATTR_NO_WARN);
+ 	if (!nr_mapped)
+ 		goto out;
  
-+/*
-+ * Replacing the user key with a kernel key. The function expects that
-+ * we hold the sem for the key passed in. The function will release that
-+ * sem when done process. We will also hold the sem for the valid new key
-+ * returned.
-+ */
-+static struct key *nvdimm_replace_key(struct key *key)
-+{
-+	struct key *new_key;
-+	struct user_key_payload *payload;
-+	int rc;
-+
-+	new_key = key_alloc(&key_type_logon, key->description,
-+			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, current_cred(),
-+			KEY_POS_SEARCH, KEY_ALLOC_NOT_IN_QUOTA, NULL);
-+	if (IS_ERR(new_key))
-+		return NULL;
-+
-+	payload = key->payload.data[0];
-+	rc = key_instantiate_and_link(new_key, payload->data,
-+			payload->datalen, NULL, NULL);
-+	up_read(&key->sem);
-+	if (rc < 0) {
-+		key_put(new_key);
-+		return NULL;
-+	}
-+
-+	key_put(key);
-+
-+	down_read(&new_key->sem);
-+	return new_key;
-+}
-+
-+/*
-+ * Retrieve user injected key
-+ */
-+static struct key *nvdimm_lookup_user_key(struct device *dev,
-+		key_serial_t id)
-+{
-+	key_ref_t keyref;
-+	struct key *key;
-+
-+	keyref = lookup_user_key(id, 0, 0);
-+	if (IS_ERR(keyref))
-+		return NULL;
-+
-+	key = key_ref_to_ptr(keyref);
-+	dev_dbg(dev, "%s: key found: %d\n", __func__, key_serial(key));
-+
-+	return key;
-+}
-+
- /*
-  * Retrieve kernel key for DIMM and request from user space if necessary.
-  */
-@@ -66,6 +119,49 @@ static struct key *nvdimm_request_key(struct device *dev)
- 	return key;
- }
+@@ -788,7 +793,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
  
-+struct key *nvdimm_get_and_verify_key(struct device *dev,
-+		unsigned int user_key_id)
-+{
-+	struct key *user_key, *key;
-+	struct user_key_payload *upayload, *payload;
-+	int rc = 0;
+ 	if (iod->nents) {
+-		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++		/* P2PDMA requests do not need to be unmapped */
++		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
++			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
 +
-+	key = nvdimm_get_key(dev);
-+	/* we don't have a cached key */
-+	if (!key) {
-+		dev_dbg(dev, "No cached kernel key\n");
-+		return NULL;
-+	}
-+
-+	user_key = nvdimm_lookup_user_key(dev, user_key_id);
-+	if (!user_key) {
-+		dev_dbg(dev, "Old user key lookup failed\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	down_read(&user_key->sem);
-+	upayload = user_key->payload.data[0];
-+
-+	if (memcmp(payload->data, upayload->data,
-+				NVDIMM_PASSPHRASE_LEN) != 0) {
-+		rc = -EINVAL;
-+		dev_warn(dev, "Supplied old user key fails check.\n");
-+	}
-+
-+	up_read(&user_key->sem);
-+	key_put(user_key);
-+	up_read(&key->sem);
-+
-+out:
-+	key_put(key);
-+	if (rc < 0)
-+		key = ERR_PTR(rc);
-+	return key;
-+}
-+
- static int nvdimm_check_key_len(unsigned short len)
- {
- 	if (len == NVDIMM_PASSPHRASE_LEN)
-@@ -145,6 +241,103 @@ int nvdimm_security_unlock_dimm(struct device *dev)
- 	return rc;
- }
- 
-+static int nvdimm_security_change_key(struct device *dev,
-+		unsigned int old_keyid, unsigned int new_keyid)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key, *old_key;
-+	int rc;
-+	void *old_data = NULL, *new_data;
-+	bool update = false;
-+	struct user_key_payload *payload, *old_payload;
-+
-+	if (!nvdimm->security_ops)
-+		return -EOPNOTSUPP;
-+
-+	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
-+		return -EBUSY;
-+
-+	/* look for a key from keyring if exists and remove */
-+	old_key = nvdimm_get_and_verify_key(dev, old_keyid);
-+	if (IS_ERR(old_key))
-+		return PTR_ERR(old_key);
-+	if (old_key) {
-+		dev_dbg(dev, "%s: old key: %#x\n",
-+				__func__, key_serial(old_key));
-+		update = true;
-+	}
-+
-+	/* request new key from userspace */
-+	key = nvdimm_lookup_user_key(dev, new_keyid);
-+	if (!key) {
-+		dev_dbg(dev, "%s: failed to acquire new key\n", __func__);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	dev_dbg(dev, "%s: new key: %#x\n", __func__, key_serial(key));
-+
-+	down_read(&key->sem);
-+	payload = key->payload.data[0];
-+	rc = nvdimm_check_key_len(payload->datalen);
-+	if (rc < 0) {
-+		up_read(&key->sem);
-+		goto out;
-+	}
-+
-+	/* we need to check description as well */
-+
-+	if (!update)
-+		key = nvdimm_replace_key(key);
-+
-+	/*
-+	 * We don't need to release key->sem here because nvdimm_repalce_key
-+	 * will.
-+	 */
-+	if (!key)
-+		goto out;
-+
-+	payload = key->payload.data[0];
-+
-+	if (old_key) {
-+		down_read(&old_key->sem);
-+		old_payload = old_key->payload.data[0];
-+		old_data = old_payload->data;
-+	}
-+
-+	new_data = payload->data;
-+
-+	rc = nvdimm->security_ops->change_key(nvdimm_bus, nvdimm, old_data,
-+			new_data);
-+	/* copy new payload to old payload */
-+	if (rc == 0) {
-+		if (update)
-+			key_update(make_key_ref(old_key, 1), new_data,
-+					old_key->datalen);
-+	} else
-+		dev_warn(dev, "key update failed\n");
-+	if (old_key)
-+		up_read(&old_key->sem);
-+	up_read(&key->sem);
-+
-+	if (!update) {
-+		if (rc == 0) {
-+			key_link(nvdimm_keyring, key);
-+			nvdimm->key = key;
-+		} else
-+			key_invalidate(key);
-+	}
-+	nvdimm_security_get_state(dev);
-+
-+ out:
-+	if (old_key)
-+		key_put(old_key);
-+	if (key)
-+		key_put(key);
-+	return rc;
-+}
-+
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-@@ -502,11 +695,66 @@ static ssize_t available_slots_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(available_slots);
- 
-+static ssize_t security_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	switch (nvdimm->state) {
-+	case NVDIMM_SECURITY_DISABLED:
-+		return sprintf(buf, "disabled\n");
-+	case NVDIMM_SECURITY_UNLOCKED:
-+		return sprintf(buf, "unlocked\n");
-+	case NVDIMM_SECURITY_LOCKED:
-+		return sprintf(buf, "locked\n");
-+	case NVDIMM_SECURITY_FROZEN:
-+		return sprintf(buf, "frozen\n");
-+	case NVDIMM_SECURITY_UNSUPPORTED:
-+	default:
-+		return sprintf(buf, "unsupported\n");
-+	}
-+
-+	return -ENOTTY;
-+}
-+
-+#define SEC_CMD_SIZE 128
-+static ssize_t security_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	ssize_t rc = -EINVAL;
-+	unsigned int new_key = 0, old_key = 0;
-+	char cmd[SEC_CMD_SIZE];
-+
-+	if (len > SEC_CMD_SIZE)
-+		return -EINVAL;
-+
-+        wait_nvdimm_bus_probe_idle(&nvdimm_bus->dev);
-+        if (atomic_read(&nvdimm->busy))
-+                return -EBUSY;
-+
-+	sscanf(buf, "%s %u %u", cmd, &old_key, &new_key);
-+	if (sysfs_streq(cmd, "update"))	{
-+		dev_dbg(dev, "update %u %u\n", old_key, new_key);
-+		rc = nvdimm_security_change_key(dev, old_key, new_key);
-+	} else
-+		return -EINVAL;
-+
-+	if (rc == 0)
-+		rc = len;
-+
-+	return rc;
-+}
-+static DEVICE_ATTR_RW(security);
-+
- static struct attribute *nvdimm_attributes[] = {
- 	&dev_attr_state.attr,
- 	&dev_attr_flags.attr,
- 	&dev_attr_commands.attr,
- 	&dev_attr_available_slots.attr,
-+	&dev_attr_security.attr,
- 	NULL,
- };
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 257ff2637ce1..bd6a413164ee 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -160,6 +160,7 @@ enum nvdimm_security_state {
- 	NVDIMM_SECURITY_DISABLED,
- 	NVDIMM_SECURITY_UNLOCKED,
- 	NVDIMM_SECURITY_LOCKED,
-+	NVDIMM_SECURITY_FROZEN,
- 	NVDIMM_SECURITY_UNSUPPORTED,
- };
- 
-@@ -177,6 +178,10 @@ struct nvdimm_security_ops {
- 	int (*unlock)(struct nvdimm_bus *nvdimm_bus,
- 			struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
-+	int (*change_key)(struct nvdimm_bus *nvdimm_bus,
-+			struct nvdimm *nvdimm,
-+			const struct nvdimm_key_data *old_data,
-+			const struct nvdimm_key_data *new_data);
- };
- 
- void badrange_init(struct badrange *badrange);
+ 		if (blk_integrity_rq(req))
+ 			dma_unmap_sg(dev->dev, &iod->meta_sg, 1, dma_dir);
+ 	}
+@@ -2400,7 +2408,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
+ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
+ 	.name			= "pcie",
+ 	.module			= THIS_MODULE,
+-	.flags			= NVME_F_METADATA_SUPPORTED,
++	.flags			= NVME_F_METADATA_SUPPORTED |
++				  NVME_F_PCI_P2PDMA,
+ 	.reg_read32		= nvme_pci_reg_read32,
+ 	.reg_write32		= nvme_pci_reg_write32,
+ 	.reg_read64		= nvme_pci_reg_read64,
+-- 
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
