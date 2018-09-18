@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EEB602115743F
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:57 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:25 -0600
-Message-Id: <20180925162231.4354-8-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 52B0F21A07A80
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:22:40 -0700 (PDT)
+Subject: [ndctl PATCH v3] ndctl: Introduce dirty-dimm command
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Sep 2018 13:10:48 -0700
+Message-ID: <153730141632.80980.3059811922733101240.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v7 07/13] block: Add PCI P2P flag for request queue and check
- support for requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,43 +20,154 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-supports targeting P2P memory. This will be used by P2P providers and
-orchestrators (in subsequent patches) to ensure block devices can
-support P2P memory before submitting P2P backed pages to submit_bio().
+Some DIMMs provide a facility to track dirty-shutdown events. The
+counter only rolls forward after the OS sets a latch. This allows the
+agent tracking dirty shutdowns to ignore events that occur while the
+capacity has not been written. For these DIMMs dirty-dimm will trigger
+the counter to roll to the next state. The shutdown state can be
+retrieved with 'ndctl list -DH'
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/blkdev.h | 3 +++
- 1 file changed, 3 insertions(+)
+Changes since v2:
+* report whether ndctl_cmd_submit() suceeded (vishal)
 
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 6980014357d4..87fb1963b721 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -699,6 +699,7 @@ struct request_queue {
- #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
- #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
- #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
-+#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
+ Documentation/ndctl/Makefile.am          |    1 +
+ Documentation/ndctl/ndctl-dirty-dimm.txt |   29 +++++++++++++++++++++++++++
+ builtin.h                                |    1 +
+ ndctl/dimm.c                             |   32 ++++++++++++++++++++++++++++++
+ ndctl/ndctl.c                            |    1 +
+ 5 files changed, 64 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-dirty-dimm.txt
+
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index a30b139ba3a3..1a826bb001be 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -38,6 +38,7 @@ man1_MANS = \
+ 	ndctl-disable-region.1 \
+ 	ndctl-enable-dimm.1 \
+ 	ndctl-disable-dimm.1 \
++	ndctl-dirty-dimm.1 \
+ 	ndctl-enable-namespace.1 \
+ 	ndctl-disable-namespace.1 \
+ 	ndctl-create-namespace.1 \
+diff --git a/Documentation/ndctl/ndctl-dirty-dimm.txt b/Documentation/ndctl/ndctl-dirty-dimm.txt
+new file mode 100644
+index 000000000000..02a30fe85f53
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-dirty-dimm.txt
+@@ -0,0 +1,29 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-dirty-dimm(1)
++===================
++
++NAME
++----
++ndctl-dirty-dimm - set dimm to record the next dirty shutdown event
++
++SYNOPSIS
++--------
++[verse]
++'ndctl dirty-dimm <nmem0> [<nmem1>..<nmemN>]'
++
++Some NVDIMMs have the capability to detect 'flush failed' events whereby
++data that is pending in buffers at the time of system power loss fail to
++be flushed out to media. Some DIMMs go further to count how many times
++such fatal events occur, but only roll the count in response to a latch
++being set. The 'dirty-dimm' command sets this latch on those devices and
++is meant to be called in advance to any writes to media.
++
++OPTIONS
++-------
++<nmem>::
++include::xable-dimm-options.txt[]
++
++SEE ALSO
++--------
++http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf[NVDIMM DSM Inteface]
+diff --git a/builtin.h b/builtin.h
+index 675a6ce79b9c..1157243cdf60 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -48,4 +48,5 @@ int cmd_bat(int argc, const char **argv, void *ctx);
+ #endif
+ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
++int cmd_dirty_dimm(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index a4203f354000..2d658dab34a5 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -61,6 +61,23 @@ static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	return ndctl_dimm_zero_labels(dimm);
+ }
  
- #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
- 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
-@@ -731,6 +732,8 @@ bool blk_queue_flag_test_and_clear(unsigned int flag, struct request_queue *q);
- #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
- #define blk_queue_scsi_passthrough(q)	\
- 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
-+#define blk_queue_pci_p2pdma(q)	\
-+	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
++static int action_dirty(struct ndctl_dimm *dimm, struct action_context *actx)
++{
++	struct ndctl_cmd *cmd;
++	int rc;
++
++	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
++	if (!cmd) {
++		fprintf(stderr, "%s: 'dirty-dimm' not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	rc = ndctl_cmd_submit(cmd);
++	ndctl_cmd_unref(cmd);
++	return rc;
++}
++
+ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
+ 		struct ndctl_cmd *cmd_read, ssize_t size)
+ {
+@@ -943,6 +960,11 @@ static const struct option update_options[] = {
+ 	OPT_END(),
+ };
  
- #define blk_noretry_request(rq) \
- 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
--- 
-2.19.0
++static const struct option dirty_options[] = {
++	BASE_OPTIONS(),
++	OPT_END(),
++};
++
+ static const struct option base_options[] = {
+ 	BASE_OPTIONS(),
+ 	OPT_END(),
+@@ -1181,3 +1203,13 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_dirty_dimm(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_dirty, dirty_options,
++			"ndctl dirty-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "dirtied %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 73dabfac3908..93d0d88a274c 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -83,6 +83,7 @@ static struct cmd_struct commands[] = {
+ 	{ "write-labels", cmd_write_labels },
+ 	{ "init-labels", cmd_init_labels },
+ 	{ "check-labels", cmd_check_labels },
++	{ "dirty-dimm", cmd_dirty_dimm },
+ 	{ "inject-error", cmd_inject_error },
+ 	{ "update-firmware", cmd_update_firmware },
+ 	{ "inject-smart", cmd_inject_smart },
 
 _______________________________________________
 Linux-nvdimm mailing list
