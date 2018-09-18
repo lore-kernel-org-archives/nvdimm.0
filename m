@@ -1,9 +1,10 @@
-From: =?GB2312?B?wO6Yd8PO?= <owbimei-E0KPl3H2kywAvxtiuMwx3w@public.gmane.org>
-Subject: =?GB2312?B?u9i4tKO6yOe6ztf2usPSu8/fyfqy+rncwO0=?=
-Date: Mon, 17 Sep 2018 10:02:32 +0800
-Message-ID: <20180917020238.C896421138A97@ml01.01.org>
+From: =?GB2312?B?0KGzwjEzNTM3NTM4NDQy?= <"shengyixl@"@gmail.com>
+Subject: =?GB2312?B?tPq/qreixrExMzUzNzUzODQ0MrPC?=
+Date: Tue, 18 Sep 2018 10:34:32 +0800
+Message-ID: <20180918023442.9800121962301@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6757089834752500430=="
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,32 +15,11 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format
-
---===============6757089834752500430==
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Message-ID: <550578550578550578550578550578550578550578550578550578550578550578>
-From: linux-nvdimm ----<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <owbimei-E0KPl3H2kywAvxtiuMwx3w@public.gmane.org>  
-
-   Ïê/Çé/ÔÄ/¶Á/¸½/¼þ
-
-2018-09-17  10:02:30
-
---===============6757089834752500430==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============6757089834752500430==--
+CsT6usOjoc7SuavLvtPQPDzU9ta1y7A+PreixrG0+r+qo7vLsLXj08W73aGiv8nR6dakuvO4tr/u
+oaPI59PQ0OjSqqGiu7bTrcC0tefT687SwarPtaO7CgrBqs+1yMujurPC1sLUtiAxMzUzNzUzODQ0
+MqOozqLQxc2susWjqSAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
+Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
