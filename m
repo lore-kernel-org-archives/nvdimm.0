@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D64752114842B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:21:12 -0700 (PDT)
-Subject: [PATCH v5 3/4] mm: Create non-atomic version of SetPageReserved for
- init use
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 25 Sep 2018 13:20:47 -0700
-Message-ID: <20180925202018.3576.11607.stgit@localhost.localdomain>
-In-Reply-To: <20180925200551.3576.18755.stgit@localhost.localdomain>
-References: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 9658E21139F7E
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:13:10 -0700 (PDT)
+Subject: [ndctl PATCH v2 2/3] ndctl: Revert "ndctl,
+ intel: Fallback to smart cached shutdown_count"
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Sep 2018 13:00:27 -0700
+Message-ID: <153730082736.72626.974764190827570242.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,81 +23,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-It doesn't make much sense to use the atomic SetPageReserved at init time
-when we are using memset to clear the memory and manipulating the page
-flags via simple "&=" and "|=" operations in __init_single_page.
+Static device attribute data, if it needs to be cached and exported to
+unprivileged userspace, should live in sysfs.
 
-This patch adds a non-atomic version __SetPageReserved that can be used
-during page init and shows about a 10% improvement in initialization times
-on the systems I have available for testing. On those systems I saw
-initialization times drop from around 35 seconds to around 32 seconds to
-initialize a 3TB block of persistent memory. I believe the main advantage
-of this is that it allows for more compiler optimization as the __set_bit
-operation can be reordered whereas the atomic version cannot.
-
-I tried adding a bit of documentation based on commit <f1dd2cd13c4> ("mm,
-memory_hotplug: do not associate hotadded memory to zones until online").
-
-Ideally the reserved flag should be set earlier since there is a brief
-window where the page is initialization via __init_single_page and we have
-not set the PG_Reserved flag. I'm leaving that for a future patch set as
-that will require a more significant refactor.
-
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ ndctl/lib/intel.c    |   41 -----------------------------------------
+ ndctl/lib/libndctl.c |    6 +-----
+ ndctl/lib/private.h  |    3 ---
+ 3 files changed, 1 insertion(+), 49 deletions(-)
 
-v4: Added comment about __set_bit vs set_bit to the patch description
-v5: No change
-
- include/linux/page-flags.h |    1 +
- mm/page_alloc.c            |    9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-index 934f91ef3f54..50ce1bddaf56 100644
---- a/include/linux/page-flags.h
-+++ b/include/linux/page-flags.h
-@@ -303,6 +303,7 @@ static inline void page_init_poison(struct page *page, size_t size)
- 
- PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
-+	__SETPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 511447ac02cf..926ad3083b28 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1238,7 +1238,12 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
- 			/* Avoid false-positive PageTail() */
- 			INIT_LIST_HEAD(&page->lru);
- 
--			SetPageReserved(page);
-+			/*
-+			 * no need for atomic set_bit because the struct
-+			 * page is not visible yet so nobody should
-+			 * access it yet.
-+			 */
-+			__SetPageReserved(page);
- 		}
- 	}
+diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
+index 15c5d1a60e34..0abea1e1f5ff 100644
+--- a/ndctl/lib/intel.c
++++ b/ndctl/lib/intel.c
+@@ -56,46 +56,6 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
+ 	return cmd;
  }
-@@ -5512,7 +5517,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
- 		if (context == MEMMAP_HOTPLUG)
--			SetPageReserved(page);
-+			__SetPageReserved(page);
  
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
+-/*
+- * If provided, read the cached shutdown count in case the user does not have
+- * access rights to run the smart command, and pretend the command was
+- * successful with only the shutdown_count valid.
+- */
+-static int intel_smart_handle_error(struct ndctl_cmd *cmd)
+-{
+-	struct ndctl_dimm *dimm = cmd->dimm;
+-	struct ndctl_bus *bus = cmd_to_bus(cmd);
+-	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+-	char *path = NULL, shutdown_count[16] = {};
+-	int fd, rc = cmd->status;
+-
+-	if (!dimm)
+-		goto out;
+-
+-	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
+-		     ndctl_dimm_get_devname(dimm)) < 0)
+-		goto out;
+-
+-	fd = open(path, O_RDONLY);
+-	if (fd < 0)
+-		goto free_path;
+-
+-	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
+-		goto close;
+-
+-	cmd->intel->smart.flags = ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
+-	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
+-	rc = cmd->status = 0;
+- close:
+-	close (fd);
+- free_path:
+-	free(path);
+- out:
+-	if (rc)
+-		err(ctx, "failed: %s\n", strerror(errno));
+-	return rc;
+-}
+-
+ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ {
+ 	struct ndctl_cmd *cmd;
+@@ -107,7 +67,6 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ 	if (!cmd)
+ 		return NULL;
+ 	cmd->firmware_status = &cmd->intel->smart.status;
+-	cmd->handle_error = intel_smart_handle_error;
+ 
+ 	return cmd;
+ }
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 481b110d2a18..5bc97f25607c 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -2753,9 +2753,7 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+ 
+ 	fd = open(path, O_RDWR);
+ 	if (fd < 0) {
+-		if (!cmd->handle_error)
+-			err(ctx, "failed to open %s: %s\n", path,
+-				strerror(errno));
++		err(ctx, "failed to open %s: %s\n", path, strerror(errno));
+ 		rc = -errno;
+ 		goto out;
+ 	}
+@@ -2771,8 +2769,6 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+ 	close(fd);
+  out:
+ 	cmd->status = rc;
+-	if (rc && cmd->handle_error)
+-		rc = cmd->handle_error(cmd);
+ 	return rc;
+ }
+ 
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index b6e438aff8c7..5ddc682b7514 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -227,8 +227,6 @@ struct ndctl_namespace {
+  * @firmware_status: NFIT command output status code
+  * @iter: iterator for multi-xfer commands
+  * @source: source cmd of an inherited iter.total_buf
+- * @handle_error: function pointer to handle a cmd error and override it to
+- * 		  return alternative data (from a cache for example).
+  *
+  * For dynamically sized commands like 'get_config', 'set_config', or
+  * 'vendor', @size encompasses the entire buffer for the command input
+@@ -257,7 +255,6 @@ struct ndctl_cmd {
+ 		int dir;
+ 	} iter;
+ 	struct ndctl_cmd *source;
+-	int (*handle_error)(struct ndctl_cmd *cmd);
+ 	union {
+ 		struct nd_cmd_ars_cap ars_cap[0];
+ 		struct nd_cmd_ars_start ars_start[0];
 
 _______________________________________________
 Linux-nvdimm mailing list
