@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ED82F2113DA19
- for <linux-nvdimm@lists.01.org>; Mon, 17 Sep 2018 23:01:13 -0700 (PDT)
-Subject: [ndctl PATCH 3/3] ndctl: Revert "ndctl: Create ndctl udev rules for
- dirty shutdown"
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Sep 2018 22:49:26 -0700
-Message-ID: <153724976637.55312.13961048174124075461.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153724975102.55312.9664009456306267501.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153724975102.55312.9664009456306267501.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C273C21A07A80
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:16:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl,
+ test: add a new unit test pfn metadata error clearing
+Date: Tue, 18 Sep 2018 14:15:57 -0600
+Message-Id: <20180918201557.6043-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,6 +16,7 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
@@ -26,290 +24,120 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the introduction of the 'ndctl dirty-dimm' command,
-environments that choose to implement dirty-shutdown mitigation can use
-'dirty-dimm nmemX' and 'list --dimm --health nmemX' to acknowledge
-and retrieve these details. However, it should be noted that this is not
-the default. If the platform advertises support for "Memory Controller
-Flush to NVDIMM Durability on Power Loss Capable" then the default Linux
-policy is to trust that designation.
+The pfn driver lacked a way to clear badblocks in the volatile struct
+page area, but this is expected to be fixed for v4.20.
+Add a unit test that creates an fsdax namespace, forces it to raw mode,
+injects errors to the metadata area, and converts it back to fsdax.
 
-A platform owner can override the default Linux policy by delaying
-namespace activation until after 'dirty-dimm' has been completed on all
-DIMMs that contribute to a given interleave-set. Without coordinating
-the latch with writes the dirty-shutdown counter could fail to reflect
-the dirty-state relative to failed write-buffer flush.
+For a kernel with the error clearing improvements, this will clear the
+injected errors, but if the kernel changes are missing, the errors will
+stay intact. At this point, convert the namespace back to raw mode and
+check for the presence of badblocks.
 
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- .gitignore             |    1 
- Makefile.am            |    3 -
- configure.ac           |   10 ---
- contrib/80-ndctl.rules |    3 -
- ndctl.spec.in          |    3 -
- ndctl/Makefile.am      |    5 --
- ndctl/ndctl-udev.c     |  150 ------------------------------------------------
- 7 files changed, 175 deletions(-)
- delete mode 100644 contrib/80-ndctl.rules
- delete mode 100644 ndctl/ndctl-udev.c
+ test/Makefile.am        |  3 +-
+ test/pfn-meta-errors.sh | 74 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 76 insertions(+), 1 deletion(-)
+ create mode 100755 test/pfn-meta-errors.sh
 
-diff --git a/.gitignore b/.gitignore
-index f13a7ef5a608..0baace4b457e 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -25,7 +25,6 @@ daxctl/lib/libdaxctl.pc
- *.a
- ndctl/lib/libndctl.pc
- ndctl/ndctl
--ndctl/ndctl-udev
- rhel/
- sles/ndctl.spec
- util/log.lo
-diff --git a/Makefile.am b/Makefile.am
-index 7880eef1c890..e0c463a3493a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -42,9 +42,6 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
- dist_bashcompletion_DATA = contrib/ndctl
- endif
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 50bb2e4..ebdd23f 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -24,7 +24,8 @@ TESTS =\
+ 	rescan-partitions.sh \
+ 	inject-smart.sh \
+ 	monitor.sh \
+-	max_available_extent_ns.sh
++	max_available_extent_ns.sh \
++	pfn-meta-errors.sh
  
--udevrulesdir = $(UDEVDIR)/rules.d
--dist_udevrules_DATA = contrib/80-ndctl.rules
--
- noinst_LIBRARIES = libccan.a
- libccan_a_SOURCES = \
- 	ccan/str/str.h \
-diff --git a/configure.ac b/configure.ac
-index 9dc11da194d1..bb6b03324ea8 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -153,17 +153,8 @@ fi
- AC_SUBST([systemd_unitdir])
- AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
- 
--AC_ARG_WITH([tmpfilesdir],
--	[AS_HELP_STRING([--with-tmpfilesdir=DIR], [Directory for temporary runtime files])],
--	[tmpfilesdir=$withval],
--	[tmpfilesdir="/run"])
--
--UDEVDIR="$(pkg-config udev --variable=udevdir)"
--AC_SUBST([UDEVDIR])
--
- my_CFLAGS="\
- -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
---D DEF_TMPFS_DIR='\"${tmpfilesdir}/ndctl\"' \
- -Wall \
- -Wchar-subscripts \
- -Wformat-security \
-@@ -204,7 +195,6 @@ AC_MSG_RESULT([
-         sysconfdir:             ${sysconfdir}
-         libdir:                 ${libdir}
-         includedir:             ${includedir}
--        tmpfilesdir:            ${tmpfilesdir}
- 
-         compiler:               ${CC}
-         cflags:                 ${CFLAGS}
-diff --git a/contrib/80-ndctl.rules b/contrib/80-ndctl.rules
-deleted file mode 100644
-index 54788c40ea9d..000000000000
---- a/contrib/80-ndctl.rules
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# do not edit this file, it will be overwritten on update
--
--ACTION=="add", KERNEL=="nmem*", RUN+="ndctl-udev $kernel"
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 98394a924030..26396d4abad7 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -110,7 +110,6 @@ make check
- %postun -n DAX_LNAME -p /sbin/ldconfig
- 
- %define bashcompdir %(pkg-config --variable=completionsdir bash-completion)
--%define udevdir  %(pkg-config --variable=udevdir udev)
- 
- %files
- %defattr(-,root,root)
-@@ -120,8 +119,6 @@ make check
- %{bashcompdir}/
- %{_sysconfdir}/ndctl/monitor.conf
- %{_unitdir}/ndctl-monitor.service
--%{_udevrulesdir}/80-ndctl.rules
--%{udevdir}/ndctl-udev
- 
- %files -n daxctl
- %defattr(-,root,root)
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index d6839e4a9fb6..8a5e5f87e6c5 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -51,8 +51,3 @@ EXTRA_DIST += $(monitor_config_file)
- if ENABLE_SYSTEMD_UNITS
- systemd_unit_DATA = ndctl-monitor.service
- endif
--
--ndctl_udevdir = $(UDEVDIR)
--ndctl_udev_PROGRAMS = ndctl-udev
--ndctl_udev_SOURCES = ndctl-udev.c
--ndctl_udev_LDADD = lib/libndctl.la
-diff --git a/ndctl/ndctl-udev.c b/ndctl/ndctl-udev.c
-deleted file mode 100644
-index 7b174b61d8cd..000000000000
---- a/ndctl/ndctl-udev.c
-+++ /dev/null
-@@ -1,150 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
--
--#include <ctype.h>
--#include <errno.h>
--#include <fcntl.h>
--#include <stddef.h>
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <sys/stat.h>
--#include <sys/types.h>
--#include <ndctl/libndctl.h>
--
--/**
-- * mkdir_p
-- *
-- * Copied from util-linux lib/fileutils.c
-- */
--static int mkdir_p(const char *path, mode_t mode)
--{
--	char *p, *dir;
--	int rc = 0;
--
--	if (!path || !*path)
--		return -EINVAL;
--
--	dir = p = strdup(path);
--	if (!dir)
--		return -ENOMEM;
--
--	if (*p == '/')
--		p++;
--
--	while (p && *p) {
--		char *e = strchr(p, '/');
--		if (e)
--			*e = '\0';
--		if (*p) {
--			rc = mkdir(dir, mode);
--			if (rc && errno != EEXIST)
--				break;
--			rc = 0;
--		}
--		if (!e)
--			break;
--		*e = '/';
--		p = e + 1;
--	}
--
--	free(dir);
--	return rc;
--}
--
--static struct ndctl_dimm *find_dimm(struct ndctl_ctx *ctx, const char *devname)
--{
--	struct ndctl_bus *bus;
--	struct ndctl_dimm *dimm;
--
--	ndctl_bus_foreach(ctx, bus) {
--		ndctl_dimm_foreach(bus, dimm) {
--			if (strcmp(ndctl_dimm_get_devname(dimm), devname) == 0)
--				return dimm;
--		}
--	}
--	return NULL;
--}
--
--static void ack_shutdown(struct ndctl_dimm *dimm)
--{
--	struct ndctl_cmd *cmd;
--
--	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
--	if (!cmd)
--		return;
--	ndctl_cmd_submit(cmd);
--	ndctl_cmd_unref(cmd);
--}
--
--static void save_unsafe_shutdown_count(struct ndctl_dimm *dimm,
--				       const char *devname)
--{
--	char *path, *usc, count[16];
--	unsigned int shutdown;
--	struct ndctl_cmd *cmd;
--	int fd;
--
--	cmd = ndctl_dimm_cmd_new_smart(dimm);
--	if (!cmd)
--		return;
--
--	if (ndctl_cmd_submit(cmd))
--		goto unref_cmd;
--
--	shutdown = ndctl_cmd_smart_get_shutdown_count(cmd);
--	if (shutdown == UINT_MAX)
--		goto unref_cmd;
--
--	if (asprintf(&path, DEF_TMPFS_DIR "/%s", devname) < 0)
--		goto unref_cmd;
--
--	if (mkdir_p(path, 0755))
--		goto free_path;
--
--	if (asprintf(&usc, "%s/usc", path) < 0)
--		goto free_path;
--
--	fd = open(usc, O_WRONLY | O_CREAT, 0644);
--	if (fd < 0)
--		goto free_usc;
--
--	if (snprintf(count, sizeof(count), "%u\n", shutdown) < 0)
--		goto close_fd;
--
--	if (write(fd, count, strlen(count)) < 0)
--		goto close_fd;
--
-- close_fd:
--	close(fd);
-- free_usc:
--	free(usc);
-- free_path:
--	free(path);
-- unref_cmd:
--	ndctl_cmd_unref(cmd);
--}
--
--int main(int argc, char *argv[])
--{
--	struct ndctl_ctx *ctx;
--	struct ndctl_dimm *dimm = NULL;
--	const char *devname;
--
--	if (argc < 2)
--		return EINVAL;
--
--	devname = argv[1];
--	if (ndctl_new(&ctx))
--		return ENOMEM;
--
--	dimm = find_dimm(ctx, devname);
--	if (!dimm)
--		return ENODEV;
--
--	ack_shutdown(dimm);
--	save_unsafe_shutdown_count(dimm, devname);
--
--	ndctl_unref(ctx);
--	return 0;
--}
+ check_PROGRAMS =\
+ 	libndctl \
+diff --git a/test/pfn-meta-errors.sh b/test/pfn-meta-errors.sh
+new file mode 100755
+index 0000000..2b57f19
+--- /dev/null
++++ b/test/pfn-meta-errors.sh
+@@ -0,0 +1,74 @@
++#!/bin/bash -Ex
++
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2018 Intel Corporation. All rights reserved.
++
++blockdev=""
++rc=77
++
++. ./common
++
++force_raw()
++{
++	raw="$1"
++	$NDCTL disable-namespace "$dev"
++	echo "$raw" > "/sys/bus/nd/devices/$dev/force_raw"
++	$NDCTL enable-namespace "$dev"
++	echo "Set $dev to raw mode: $raw"
++	if [[ "$raw" == "1" ]]; then
++		raw_bdev=${blockdev}
++		test -b "/dev/$raw_bdev"
++	else
++		raw_bdev=""
++	fi
++}
++
++check_min_kver "4.20" || do_skip "may lack PFN metadata error handling"
++
++set -e
++trap 'err $LINENO' ERR
++
++# setup (reset nfit_test dimms)
++modprobe nfit_test
++$NDCTL disable-region -b $NFIT_TEST_BUS0 all
++$NDCTL zero-labels -b $NFIT_TEST_BUS0 all
++$NDCTL enable-region -b $NFIT_TEST_BUS0 all
++
++rc=1
++
++# create a fsdax namespace and clear errors (if any)
++dev="x"
++json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -t pmem -m fsdax)
++eval "$(echo "$json" | json2var)"
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++
++force_raw 1
++if read -r sector len < "/sys/block/$raw_bdev/badblocks"; then
++	dd of=/dev/$raw_bdev if=/dev/zero oflag=direct bs=512 seek="$sector" count="$len"
++fi
++force_raw 0
++
++# find dataoff from sb
++force_raw 1
++doff=$(hexdump -s $((4096 + 56)) -n 4 "/dev/$raw_bdev" | head -1 | cut -d' ' -f2-)
++doff=$(tr -d ' ' <<< "0x${doff#* }${doff%% *}")
++printf "pfn dataoff: %x\n" "$doff"
++dblk="$((doff/512))"
++
++metaoff="0x2000"
++mblk="$((metaoff/512))"
++
++# inject in the middle of the struct page area
++bb_inj=$(((dblk - mblk)/2))
++$NDCTL inject-error --block="$bb_inj" --count=32 $dev
++$NDCTL start-scrub && $NDCTL wait-scrub
++
++# after probe from the enable-namespace, the error should've been cleared
++force_raw 0
++force_raw 1
++if read -r sector len < "/sys/block/$raw_bdev/badblocks"; then
++	false
++fi
++
++_cleanup
++exit 0
+-- 
+2.14.4
 
 _______________________________________________
 Linux-nvdimm mailing list
