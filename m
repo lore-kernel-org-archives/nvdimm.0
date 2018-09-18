@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x641.google.com (mail-pl1-x641.google.com
- [IPv6:2607:f8b0:4864:20::641])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0900521A07A80
- for <linux-nvdimm@lists.01.org>; Mon, 24 Sep 2018 08:57:25 -0700 (PDT)
-Received: by mail-pl1-x641.google.com with SMTP id f18-v6so436710plr.1
- for <linux-nvdimm@lists.01.org>; Mon, 24 Sep 2018 08:57:25 -0700 (PDT)
-Date: Mon, 24 Sep 2018 11:57:21 -0400
-From: Barret Rhoden <brho@google.com>
-Subject: Re: [PATCH v5 07/11] filesystem-dax: Introduce
- dax_lock_mapping_entry()
-Message-ID: <20180924115721.75893931@gnomeregan.cam.corp.google.com>
-In-Reply-To: <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153074042316.27838.17319837331947007626.stgit@dwillia2-desk3.amr.corp.intel.com>
- <153074046078.27838.5465590228767136915.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3764121139F7E
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:12:20 -0700 (PDT)
+Subject: [ndctl PATCH v2 3/3] ndctl: Revert "ndctl: Create ndctl udev rules
+ for dirty shutdown"
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Sep 2018 13:00:32 -0700
+Message-ID: <153730083243.72626.11678125759926708172.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,76 +23,293 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: jack@suse.cz, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan -
+With the introduction of the 'ndctl dirty-dimm' command,
+environments that choose to implement dirty-shutdown mitigation can use
+'dirty-dimm nmemX' and 'list --dimm --health nmemX' to acknowledge
+and retrieve these details. However, it should be noted that this is not
+the default. If the platform advertises support for "Memory Controller
+Flush to NVDIMM Durability on Power Loss Capable" then the default Linux
+policy is to trust that designation.
 
-On 2018-07-04 at 14:41 Dan Williams <dan.j.williams@intel.com> wrote:
-[snip]
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 4de11ed463ce..57ec272038da 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-[snip]
-> +bool dax_lock_mapping_entry(struct page *page)
-> +{
-> +	pgoff_t index;
-> +	struct inode *inode;
-> +	bool did_lock = false;
-> +	void *entry = NULL, **slot;
-> +	struct address_space *mapping;
-> +
-> +	rcu_read_lock();
-> +	for (;;) {
-> +		mapping = READ_ONCE(page->mapping);
-> +
-> +		if (!dax_mapping(mapping))
-> +			break;
-> +
-> +		/*
-> +		 * In the device-dax case there's no need to lock, a
-> +		 * struct dev_pagemap pin is sufficient to keep the
-> +		 * inode alive, and we assume we have dev_pagemap pin
-> +		 * otherwise we would not have a valid pfn_to_page()
-> +		 * translation.
-> +		 */
-> +		inode = mapping->host;
-> +		if (S_ISCHR(inode->i_mode)) {
-> +			did_lock = true;
-> +			break;
-> +		}
-> +
-> +		xa_lock_irq(&mapping->i_pages);
-> +		if (mapping != page->mapping) {
-> +			xa_unlock_irq(&mapping->i_pages);
-> +			continue;
-> +		}
-> +		index = page->index;
-> +
-> +		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
-> +				entry_wait_revalidate);
-> +		if (!entry) {
-> +			xa_unlock_irq(&mapping->i_pages);
-> +			break;
-> +		} else if (IS_ERR(entry)) {
-> +			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-> +			continue;
+A platform owner can override the default Linux policy by delaying
+namespace activation until after 'dirty-dimm' has been completed on all
+DIMMs that contribute to a given interleave-set. Without coordinating
+the latch with writes the dirty-shutdown counter could fail to reflect
+the dirty-state relative to failed write-buffer flush.
 
-In the IS_ERR case, do you need to xa_unlock the mapping?  It looks
-like you'll deadlock the next time around the loop.
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ .gitignore             |    1 
+ Makefile.am            |    3 -
+ configure.ac           |   10 ---
+ contrib/80-ndctl.rules |    3 -
+ ndctl.spec.in          |    3 -
+ ndctl/Makefile.am      |    5 --
+ ndctl/ndctl-udev.c     |  150 ------------------------------------------------
+ 7 files changed, 175 deletions(-)
+ delete mode 100644 contrib/80-ndctl.rules
+ delete mode 100644 ndctl/ndctl-udev.c
 
-> +		}
-> +		lock_slot(mapping, slot);
-> +		did_lock = true;
-> +		xa_unlock_irq(&mapping->i_pages);
-> +		break;
-> +	}
-> +	rcu_read_unlock();
-> +
-> +	return did_lock;
-> +}
+diff --git a/.gitignore b/.gitignore
+index f13a7ef5a608..0baace4b457e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -25,7 +25,6 @@ daxctl/lib/libdaxctl.pc
+ *.a
+ ndctl/lib/libndctl.pc
+ ndctl/ndctl
+-ndctl/ndctl-udev
+ rhel/
+ sles/ndctl.spec
+ util/log.lo
+diff --git a/Makefile.am b/Makefile.am
+index 7880eef1c890..e0c463a3493a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -42,9 +42,6 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
+ dist_bashcompletion_DATA = contrib/ndctl
+ endif
+ 
+-udevrulesdir = $(UDEVDIR)/rules.d
+-dist_udevrules_DATA = contrib/80-ndctl.rules
+-
+ noinst_LIBRARIES = libccan.a
+ libccan_a_SOURCES = \
+ 	ccan/str/str.h \
+diff --git a/configure.ac b/configure.ac
+index 9dc11da194d1..bb6b03324ea8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -153,17 +153,8 @@ fi
+ AC_SUBST([systemd_unitdir])
+ AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
+ 
+-AC_ARG_WITH([tmpfilesdir],
+-	[AS_HELP_STRING([--with-tmpfilesdir=DIR], [Directory for temporary runtime files])],
+-	[tmpfilesdir=$withval],
+-	[tmpfilesdir="/run"])
+-
+-UDEVDIR="$(pkg-config udev --variable=udevdir)"
+-AC_SUBST([UDEVDIR])
+-
+ my_CFLAGS="\
+ -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
+--D DEF_TMPFS_DIR='\"${tmpfilesdir}/ndctl\"' \
+ -Wall \
+ -Wchar-subscripts \
+ -Wformat-security \
+@@ -204,7 +195,6 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
+-        tmpfilesdir:            ${tmpfilesdir}
+ 
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/contrib/80-ndctl.rules b/contrib/80-ndctl.rules
+deleted file mode 100644
+index 54788c40ea9d..000000000000
+--- a/contrib/80-ndctl.rules
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# do not edit this file, it will be overwritten on update
+-
+-ACTION=="add", KERNEL=="nmem*", RUN+="ndctl-udev $kernel"
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 98394a924030..26396d4abad7 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -110,7 +110,6 @@ make check
+ %postun -n DAX_LNAME -p /sbin/ldconfig
+ 
+ %define bashcompdir %(pkg-config --variable=completionsdir bash-completion)
+-%define udevdir  %(pkg-config --variable=udevdir udev)
+ 
+ %files
+ %defattr(-,root,root)
+@@ -120,8 +119,6 @@ make check
+ %{bashcompdir}/
+ %{_sysconfdir}/ndctl/monitor.conf
+ %{_unitdir}/ndctl-monitor.service
+-%{_udevrulesdir}/80-ndctl.rules
+-%{udevdir}/ndctl-udev
+ 
+ %files -n daxctl
+ %defattr(-,root,root)
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index d6839e4a9fb6..8a5e5f87e6c5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -51,8 +51,3 @@ EXTRA_DIST += $(monitor_config_file)
+ if ENABLE_SYSTEMD_UNITS
+ systemd_unit_DATA = ndctl-monitor.service
+ endif
+-
+-ndctl_udevdir = $(UDEVDIR)
+-ndctl_udev_PROGRAMS = ndctl-udev
+-ndctl_udev_SOURCES = ndctl-udev.c
+-ndctl_udev_LDADD = lib/libndctl.la
+diff --git a/ndctl/ndctl-udev.c b/ndctl/ndctl-udev.c
+deleted file mode 100644
+index 7b174b61d8cd..000000000000
+--- a/ndctl/ndctl-udev.c
++++ /dev/null
+@@ -1,150 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
+-
+-#include <ctype.h>
+-#include <errno.h>
+-#include <fcntl.h>
+-#include <stddef.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <sys/stat.h>
+-#include <sys/types.h>
+-#include <ndctl/libndctl.h>
+-
+-/**
+- * mkdir_p
+- *
+- * Copied from util-linux lib/fileutils.c
+- */
+-static int mkdir_p(const char *path, mode_t mode)
+-{
+-	char *p, *dir;
+-	int rc = 0;
+-
+-	if (!path || !*path)
+-		return -EINVAL;
+-
+-	dir = p = strdup(path);
+-	if (!dir)
+-		return -ENOMEM;
+-
+-	if (*p == '/')
+-		p++;
+-
+-	while (p && *p) {
+-		char *e = strchr(p, '/');
+-		if (e)
+-			*e = '\0';
+-		if (*p) {
+-			rc = mkdir(dir, mode);
+-			if (rc && errno != EEXIST)
+-				break;
+-			rc = 0;
+-		}
+-		if (!e)
+-			break;
+-		*e = '/';
+-		p = e + 1;
+-	}
+-
+-	free(dir);
+-	return rc;
+-}
+-
+-static struct ndctl_dimm *find_dimm(struct ndctl_ctx *ctx, const char *devname)
+-{
+-	struct ndctl_bus *bus;
+-	struct ndctl_dimm *dimm;
+-
+-	ndctl_bus_foreach(ctx, bus) {
+-		ndctl_dimm_foreach(bus, dimm) {
+-			if (strcmp(ndctl_dimm_get_devname(dimm), devname) == 0)
+-				return dimm;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-static void ack_shutdown(struct ndctl_dimm *dimm)
+-{
+-	struct ndctl_cmd *cmd;
+-
+-	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
+-	if (!cmd)
+-		return;
+-	ndctl_cmd_submit(cmd);
+-	ndctl_cmd_unref(cmd);
+-}
+-
+-static void save_unsafe_shutdown_count(struct ndctl_dimm *dimm,
+-				       const char *devname)
+-{
+-	char *path, *usc, count[16];
+-	unsigned int shutdown;
+-	struct ndctl_cmd *cmd;
+-	int fd;
+-
+-	cmd = ndctl_dimm_cmd_new_smart(dimm);
+-	if (!cmd)
+-		return;
+-
+-	if (ndctl_cmd_submit(cmd))
+-		goto unref_cmd;
+-
+-	shutdown = ndctl_cmd_smart_get_shutdown_count(cmd);
+-	if (shutdown == UINT_MAX)
+-		goto unref_cmd;
+-
+-	if (asprintf(&path, DEF_TMPFS_DIR "/%s", devname) < 0)
+-		goto unref_cmd;
+-
+-	if (mkdir_p(path, 0755))
+-		goto free_path;
+-
+-	if (asprintf(&usc, "%s/usc", path) < 0)
+-		goto free_path;
+-
+-	fd = open(usc, O_WRONLY | O_CREAT, 0644);
+-	if (fd < 0)
+-		goto free_usc;
+-
+-	if (snprintf(count, sizeof(count), "%u\n", shutdown) < 0)
+-		goto close_fd;
+-
+-	if (write(fd, count, strlen(count)) < 0)
+-		goto close_fd;
+-
+- close_fd:
+-	close(fd);
+- free_usc:
+-	free(usc);
+- free_path:
+-	free(path);
+- unref_cmd:
+-	ndctl_cmd_unref(cmd);
+-}
+-
+-int main(int argc, char *argv[])
+-{
+-	struct ndctl_ctx *ctx;
+-	struct ndctl_dimm *dimm = NULL;
+-	const char *devname;
+-
+-	if (argc < 2)
+-		return EINVAL;
+-
+-	devname = argv[1];
+-	if (ndctl_new(&ctx))
+-		return ENOMEM;
+-
+-	dimm = find_dimm(ctx, devname);
+-	if (!dimm)
+-		return ENODEV;
+-
+-	ack_shutdown(dimm);
+-	save_unsafe_shutdown_count(dimm, devname);
+-
+-	ndctl_unref(ctx);
+-	return 0;
+-}
 
 _______________________________________________
 Linux-nvdimm mailing list
