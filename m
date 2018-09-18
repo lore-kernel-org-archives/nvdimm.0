@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 52B0F21A07A80
- for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:22:40 -0700 (PDT)
-Subject: [ndctl PATCH v3] ndctl: Introduce dirty-dimm command
+ by ml01.01.org (Postfix) with ESMTPS id 3900421139F7E
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:12:16 -0700 (PDT)
+Subject: [ndctl PATCH v2 1/3] ndctl: Introduce dirty-dimm command
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Sep 2018 13:10:48 -0700
-Message-ID: <153730141632.80980.3059811922733101240.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 18 Sep 2018 13:00:22 -0700
+Message-ID: <153730082229.72626.2045831989029219282.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -34,15 +36,12 @@ Cc: Keith Busch <keith.busch@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Changes since v2:
-* report whether ndctl_cmd_submit() suceeded (vishal)
-
  Documentation/ndctl/Makefile.am          |    1 +
- Documentation/ndctl/ndctl-dirty-dimm.txt |   29 +++++++++++++++++++++++++++
+ Documentation/ndctl/ndctl-dirty-dimm.txt |   29 ++++++++++++++++++++++++++++
  builtin.h                                |    1 +
- ndctl/dimm.c                             |   32 ++++++++++++++++++++++++++++++
+ ndctl/dimm.c                             |   31 ++++++++++++++++++++++++++++++
  ndctl/ndctl.c                            |    1 +
- 5 files changed, 64 insertions(+)
+ 5 files changed, 63 insertions(+)
  create mode 100644 Documentation/ndctl/ndctl-dirty-dimm.txt
 
 diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
@@ -103,17 +102,16 @@ index 675a6ce79b9c..1157243cdf60 100644
 +int cmd_dirty_dimm(int argc, const char **argv, void *ctx);
  #endif /* _NDCTL_BUILTIN_H_ */
 diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index a4203f354000..2d658dab34a5 100644
+index a4203f354000..32f8cb656d1d 100644
 --- a/ndctl/dimm.c
 +++ b/ndctl/dimm.c
-@@ -61,6 +61,23 @@ static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
+@@ -61,6 +61,22 @@ static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
  	return ndctl_dimm_zero_labels(dimm);
  }
  
 +static int action_dirty(struct ndctl_dimm *dimm, struct action_context *actx)
 +{
 +	struct ndctl_cmd *cmd;
-+	int rc;
 +
 +	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
 +	if (!cmd) {
@@ -121,16 +119,16 @@ index a4203f354000..2d658dab34a5 100644
 +				ndctl_dimm_get_devname(dimm));
 +		return -EOPNOTSUPP;
 +	}
-+
-+	rc = ndctl_cmd_submit(cmd);
++	ndctl_cmd_submit(cmd);
 +	ndctl_cmd_unref(cmd);
-+	return rc;
++
++	return 0;
 +}
 +
  static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
  		struct ndctl_cmd *cmd_read, ssize_t size)
  {
-@@ -943,6 +960,11 @@ static const struct option update_options[] = {
+@@ -943,6 +959,11 @@ static const struct option update_options[] = {
  	OPT_END(),
  };
  
@@ -142,7 +140,7 @@ index a4203f354000..2d658dab34a5 100644
  static const struct option base_options[] = {
  	BASE_OPTIONS(),
  	OPT_END(),
-@@ -1181,3 +1203,13 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+@@ -1181,3 +1202,13 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
  			count > 1 ? "s" : "");
  	return count >= 0 ? 0 : EXIT_FAILURE;
  }
