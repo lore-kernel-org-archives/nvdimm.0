@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com
- [IPv6:2607:f8b0:4864:20::542])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A968321B02822
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:37 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id 2-v6so11259657pgo.4
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:37 -0700 (PDT)
-Subject: [PATCH 0/4] Address issues slowing persistent memory initialization
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 10 Sep 2018 16:43:35 -0700
-Message-ID: <20180910232615.4068.29155.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 4ACED21A02937
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:12:06 -0700 (PDT)
+Subject: [ndctl PATCH v2 0/3] ndctl: Remove udev rule for latch and
+ dirty-shutdown-count
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Sep 2018 13:00:17 -0700
+Message-ID: <153730081688.72626.14830966608644541641.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,57 +21,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set is meant to be a v3 to my earlier patch set "Address issues
-slowing memory init"[1]. However I have added 2 additional patches to
-address issues seen in which NVDIMM memory was slow to initialize
-especially on systems with multiple NUMA nodes.
-
-Since v2 of the patch set I have replaced the config option to work around
-the page init poisoning with a kernel parameter. I also updated one comment
-based on input from Michal.
-
-The third patch in this set is new and is meant to address the need to
-defer some page initialization to outside of the hot-plug lock. It is
-loosely based on the original patch set by Dan Williams to perform
-asynchronous page init for ZONE_DEVICE pages[2]. However, it is  based
-more around the deferred page init model where memory init is deferred to a
-fixed point, which in this case is to just outside of the hot-plug lock.
-
-The fourth patch allows nvdimm init to be more node specific where
-possible. I basically just copy/pasted the approach used in
-pci_call_probe to allow for us to get the initialization code on the node
-as close to the memory as possible. Doing so allows us to save considerably
-on init time.
-
-[1]: https://lkml.org/lkml/2018/9/5/924
-[2]: https://lkml.org/lkml/2018/7/16/828
+Changes since v1:
+* Add an error message for the not supported case (Vishal)
+* Asciidoctor format fixup
 
 ---
 
-Alexander Duyck (4):
-      mm: Provide kernel parameter to allow disabling page init poisoning
-      mm: Create non-atomic version of SetPageReserved for init use
-      mm: Defer ZONE_DEVICE page initialization to the point where we init pgmap
-      nvdimm: Trigger the device probe on a cpu local to the device
+The latch needs to be coordinated with writes to the namespace and that
+makes it not suitable as a dimm-add-event udev rule.
+
+Additionally, the dirty-shutdown-count is something that can live in
+sysfs alongside the other health state flags in /sys/.../nmemX/nfit.
+Otherwise, calling any of the libndctl apis from a udev script means the
+entire udev queue can get blocked behind a ndctl_bus_wait_probe() call.
+That's too much overhead for a non-default policy.
+
+In other words, while the latch event remains in userspace as close as
+possible to the application that wants to manage dimm-flush-failed
+policy as anything other than fatal, dirty-shutdown-count caching should
+move to sysfs where it is cheap to implement and compliments the
+flush-failed health state flag.
+
+---
+
+Dan Williams (3):
+      ndctl: Introduce dirty-dimm command
+      ndctl: Revert "ndctl, intel: Fallback to smart cached shutdown_count"
+      ndctl: Revert "ndctl: Create ndctl udev rules for dirty shutdown"
 
 
- Documentation/admin-guide/kernel-parameters.txt |    8 ++
- drivers/nvdimm/bus.c                            |   45 ++++++++++
- include/linux/mm.h                              |    2 
- include/linux/page-flags.h                      |    9 ++
- kernel/memremap.c                               |   24 ++---
- mm/debug.c                                      |   16 +++
- mm/hmm.c                                        |   12 ++-
- mm/memblock.c                                   |    5 -
- mm/page_alloc.c                                 |  106 ++++++++++++++++++++++-
- mm/sparse.c                                     |    4 -
- 10 files changed, 200 insertions(+), 31 deletions(-)
-
---
+ .gitignore                               |    1 
+ Documentation/ndctl/Makefile.am          |    1 
+ Documentation/ndctl/ndctl-dirty-dimm.txt |   29 ++++++
+ Makefile.am                              |    3 -
+ builtin.h                                |    1 
+ configure.ac                             |   10 --
+ contrib/80-ndctl.rules                   |    3 -
+ ndctl.spec.in                            |    3 -
+ ndctl/Makefile.am                        |    5 -
+ ndctl/dimm.c                             |   31 ++++++
+ ndctl/lib/intel.c                        |   41 --------
+ ndctl/lib/libndctl.c                     |    6 -
+ ndctl/lib/private.h                      |    3 -
+ ndctl/ndctl-udev.c                       |  150 ------------------------------
+ ndctl/ndctl.c                            |    1 
+ 15 files changed, 64 insertions(+), 224 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-dirty-dimm.txt
+ delete mode 100644 contrib/80-ndctl.rules
+ delete mode 100644 ndctl/ndctl-udev.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
