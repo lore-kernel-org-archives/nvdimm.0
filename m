@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A55B21157436
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:40:24 -0700 (PDT)
-Subject: [PATCH v9 12/12] libnvdimm: add documentation for nvdimm security
- support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 25 Sep 2018 16:38:52 -0700
-Message-ID: <153791873272.70158.7285850892671703250.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
-References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8E21621142FE2
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 17:57:58 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id u20-v6so3982624otk.10
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 17:57:58 -0700 (PDT)
 MIME-Version: 1.0
+References: <20180918234831.29197-1-vishal.l.verma@intel.com>
+In-Reply-To: <20180918234831.29197-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Sep 2018 17:57:42 -0700
+Message-ID: <CAPcyv4i4HJUf0p7jNoXyhm1k3BPtqPvQWrpOeHLuAo2X1Gcb2g@mail.gmail.com>
+Subject: Re: [PATCH v2] libnvdimm, pfn: during init, clear errors in the
+ metadata area
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,125 +26,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add theory of operation for the security support that's going into
-libnvdimm.
+On Tue, Sep 18, 2018 at 4:49 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> If there are badblocks present in the 'struct page' area for pfn
+> namespaces, until now, the only way to clear them has been to force the
+> namespace into raw mode, clear the errors, and re-enable the fsdax mode.
+> This is clunky, given that it should be easy enough for the pfn driver
+> to do the same.
+>
+> Add a new helper that uses the most recently available badblocks list to
+> check whether there are any badblocks that lie in the volatile struct
+> page area. If so, before initializing the struct pages, send down
+> targeted writes via nvdimm_write_bytes to write zeroes to the affected
+> blocks, and thus clear errors.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/nvdimm/security.txt |   99 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
- create mode 100644 Documentation/nvdimm/security.txt
-
-diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
-new file mode 100644
-index 000000000000..50cbb6cb96a1
---- /dev/null
-+++ b/Documentation/nvdimm/security.txt
-@@ -0,0 +1,99 @@
-+NVDIMM SECURITY
-+===============
-+
-+1. Introduction
-+---------------
-+
-+With the introduction of Intel DSM v1.7 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
-+
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
-+
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and unsupported.
-+
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update <old_keyid> <new_keyid> - enable security. Add or update current key.
-+disable <old_keyid> - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase <old_keyid> - generate new ecryption key for DIMM and crypto-scrambles
-+	all existing user data.
-+
-+3. Key Management
-+-----------------
-+
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
-+
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
-+similar to the ATA security specification [2]. A key is initially acquired
-+via the request_key() kernel API call and retrieved from userspace. It is up to
-+the user to provide an upcall application to retrieve the key in whatever
-+fashion meets their security requirements.
-+
-+A nvdimm user logon key has the description format of:
-+nvdimm:<bus-provider-specific-unique-id>
-+
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from its keyring. If that fails, it will attempt to
-+acquire the key from the userspace upcall function. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot.
-+
-+5. Update
-+---------
-+When doing an update, it is expected that the new key with the 64bit payload of
-+format described above is added via the keyutils API or utility. The update
-+command written to the sysfs attribute will be with the format:
-+update <old keyid> <new keyid>
-+
-+It is expected that a user logon key has been injected via keyutils to provide
-+the payload for the update operation. The kernel will take the new user key,
-+attempt the update operation with the nvdimm, and replace the existing key's
-+payload with the new passphrase.
-+
-+If there is no old key id due to a security enabling, then a 0 should be
-+passed in.  If a nvdimm has an existing passphrase, then an "old" key should
-+be injected with a key description that does not have the "nvdimm:" prefix.
-+
-+6. Freeze
-+---------
-+The freeze operation does not require any keys. The security config can be
-+frozen by a user with root privelege.
-+
-+7. Disable
-+----------
-+The security disable command format is:
-+disable <old keyid>
-+
-+An "old" key with the passphrase payload that is tied to the nvdimm should be
-+injected with a key description that does not have the "nvdimm:" prefix and
-+its keyid should be passed in via sysfs.
-+
-+8. Secure Erase
-+---------------
-+The command format for doing a secure erase is:
-+erase <old keyid>
-+
-+An "old" key with the passphrase payload that is tied to the nvdimm should be
-+injected with a key description that does not have the "nvdimm:" prefix and
-+its keyid should be passed in via sysfs.
-+
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
-
+Looks good to me, will apply for 4.20.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
