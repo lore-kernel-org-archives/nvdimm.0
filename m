@@ -1,10 +1,12 @@
-From: =?utf-8?B?6Ie05LyB5Lia55qE5LiA5bCB5L+h?= <ij-sne4kxdDNS4@public.gmane.org>
-Subject: =?utf-8?B?6L2s5Y+R77ya5oOz5o+Q5Y2H55qE5LyB5Lia5Lit5bGC5bmy6YOo?=
-Date: Thu, 20 Sep 2018 16:14:38 +0800
-Message-ID: <8E3E4A48C5395BB2078681DD87FB1C8A@wzrb.com>
+From: "Mail Service" <no-reply-nVgGmETfwnLiBhKkSJXxiAC/G2K4zDHf@public.gmane.org>
+Subject: Prompt! linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, you can confirm your email
+ account with a single click
+Date: Thu, 20 Sep 2018 02:51:02 -0700
+Message-ID: <20180920101637.BE0F221148DC1@ml01.01.org>
+Reply-To: nwokefrank271-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,7 +20,14 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-6K+mICDpmIUgIOmZhCAg5Lu2IC4uLi4uLiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
-bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
-bnZkaW1tCg==
+ - This mail is in HTML. Some elements may be ommited in plain text. -
+
+Email protection!
+linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+
+, you can confirm your email account with a single click.
+
+
+
+check
+If we do not receive a verification reply within the next 24 hours, we will assume that you are a fraudulent user and close your email account until the correct verification is restored so that you can access your email as before.
