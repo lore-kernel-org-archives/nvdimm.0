@@ -1,27 +1,204 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling
- page init poisoning
-Date: Fri, 21 Sep 2018 19:04:30 +0000
-Message-ID: <a40a78c0-207b-03b7-344c-847b12a4f896@microsoft.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1139F21135FEE
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Sep 2018 15:26:51 -0700 (PDT)
+Subject: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling page
+ init poisoning
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Thu, 20 Sep 2018 15:26:36 -0700
+Message-ID: <20180920222415.19464.38400.stgit@localhost.localdomain>
+In-Reply-To: <20180920215824.19464.8884.stgit@localhost.localdomain>
 References: <20180920215824.19464.8884.stgit@localhost.localdomain>
- <20180920222415.19464.38400.stgit@localhost.localdomain>
-In-Reply-To: <20180920222415.19464.38400.stgit@localhost.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <FC10A7A3A3CEBF40AA05D8612D8B3C0C@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQo+ICsJCQlwcl9lcnIoInZtX2RlYnVnIG9wdGlvbiAnJWMnIHVua25vd24uIHNraXBwZWRcbiIs
-DQo+ICsJCQkgICAgICAgKnN0cik7DQo+ICsJCX0NCj4gKw0KPiArCQlzdHIrKzsNCj4gKwl9DQo+
-ICtvdXQ6DQo+ICsJaWYgKHBhZ2VfaW5pdF9wb2lzb25pbmcgJiYgIV9fcGFnZV9pbml0X3BvaXNv
-bmluZykNCj4gKwkJcHJfd2FybigiUGFnZSBzdHJ1Y3QgcG9pc29uaW5nIGRpc2FibGVkIGJ5IGtl
-cm5lbCBjb21tYW5kIGxpbmUgb3B0aW9uICd2bV9kZWJ1ZydcbiIpOw0KDQpOZXcgbGluZXMgJ1xu
-JyBjYW4gYmUgcmVtb3ZlZCwgdGhleSBhcmUgbm90IG5lZWRlZCBmb3Iga3ByaW50ZnMuDQoNCg0K
-UmV2aWV3ZWQtYnk6IFBhdmVsIFRhdGFzaGluIDxwYXZlbC50YXRhc2hpbkBtaWNyb3NvZnQuY29t
-Pg==
+On systems with a large amount of memory it can take a significant amount
+of time to initialize all of the page structs with the PAGE_POISON_PATTERN
+value. I have seen it take over 2 minutes to initialize a system with
+over 12TB of RAM.
+
+In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
+the boot time returned to something much more reasonable as the
+arch_add_memory call completed in milliseconds versus seconds. However in
+doing that I had to disable all of the other VM debugging on the system.
+
+In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
+a system that has a large amount of memory I have added a new kernel
+parameter named "vm_debug" that can be set to "-" in order to disable it.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+
+v3: Switched from kernel config option to parameter
+v4: Added comment to parameter handler to record when option is disabled
+    Updated parameter description based on feedback from Michal Hocko
+    Fixed GB vs TB typo in patch description.
+    Switch to vm_debug option similar to slub_debug
+
+ Documentation/admin-guide/kernel-parameters.txt |   12 ++++++
+ include/linux/page-flags.h                      |    8 ++++
+ mm/debug.c                                      |   46 +++++++++++++++++++++++
+ mm/memblock.c                                   |    5 +--
+ mm/sparse.c                                     |    4 +-
+ 5 files changed, 69 insertions(+), 6 deletions(-)
+
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index dfe3d7b99abf..ee257b5b584f 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -4811,6 +4811,18 @@
+ 			This is actually a boot loader parameter; the value is
+ 			passed to the kernel using a special protocol.
+ 
++	vm_debug[=options]	[KNL] Available with CONFIG_DEBUG_VM=y.
++			May slow down system boot speed, especially when
++			enabled on systems with a large amount of memory.
++			All options are enabled by default, and this
++			interface is meant to allow for selectively
++			enabling or disabling specific virtual memory
++			debugging features.
++
++			Available options are:
++			  P	Enable page structure init time poisoning
++			  -	Disable all of the above options
++
+ 	vmalloc=nn[KMG]	[KNL,BOOT] Forces the vmalloc area to have an exact
+ 			size of <nn>. This can be used to increase the
+ 			minimum size (128MB on x86). It can also be used to
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index 4d99504f6496..934f91ef3f54 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -163,6 +163,14 @@ static inline int PagePoisoned(const struct page *page)
+ 	return page->flags == PAGE_POISON_PATTERN;
+ }
+ 
++#ifdef CONFIG_DEBUG_VM
++void page_init_poison(struct page *page, size_t size);
++#else
++static inline void page_init_poison(struct page *page, size_t size)
++{
++}
++#endif
++
+ /*
+  * Page flags policies wrt compound pages
+  *
+diff --git a/mm/debug.c b/mm/debug.c
+index bd10aad8539a..cdacba12e09a 100644
+--- a/mm/debug.c
++++ b/mm/debug.c
+@@ -13,6 +13,7 @@
+ #include <trace/events/mmflags.h>
+ #include <linux/migrate.h>
+ #include <linux/page_owner.h>
++#include <linux/ctype.h>
+ 
+ #include "internal.h"
+ 
+@@ -175,4 +176,49 @@ void dump_mm(const struct mm_struct *mm)
+ 	);
+ }
+ 
++static bool page_init_poisoning __read_mostly = true;
++
++static int __init setup_vm_debug(char *str)
++{
++	bool __page_init_poisoning = true;
++
++	/*
++	 * Calling vm_debug with no arguments is equivalent to requesting
++	 * to enable all debugging options we can control.
++	 */
++	if (*str++ != '=' || !*str)
++		goto out;
++
++	__page_init_poisoning = false;
++	if (*str == '-')
++		goto out;
++
++	while (*str) {
++		switch (tolower(*str)) {
++		case'p':
++			__page_init_poisoning = true;
++			break;
++		default:
++			pr_err("vm_debug option '%c' unknown. skipped\n",
++			       *str);
++		}
++
++		str++;
++	}
++out:
++	if (page_init_poisoning && !__page_init_poisoning)
++		pr_warn("Page struct poisoning disabled by kernel command line option 'vm_debug'\n");
++
++	page_init_poisoning = __page_init_poisoning;
++
++	return 1;
++}
++__setup("vm_debug", setup_vm_debug);
++
++void page_init_poison(struct page *page, size_t size)
++{
++	if (page_init_poisoning)
++		memset(page, PAGE_POISON_PATTERN, size);
++}
++EXPORT_SYMBOL_GPL(page_init_poison);
+ #endif		/* CONFIG_DEBUG_VM */
+diff --git a/mm/memblock.c b/mm/memblock.c
+index f7981098537b..b1017ec1b167 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1495,10 +1495,9 @@ void * __init memblock_virt_alloc_try_nid_raw(
+ 
+ 	ptr = memblock_virt_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid);
+-#ifdef CONFIG_DEBUG_VM
+ 	if (ptr && size > 0)
+-		memset(ptr, PAGE_POISON_PATTERN, size);
+-#endif
++		page_init_poison(ptr, size);
++
+ 	return ptr;
+ }
+ 
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 10b07eea9a6e..67ad061f7fb8 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -696,13 +696,11 @@ int __meminit sparse_add_one_section(struct pglist_data *pgdat,
+ 		goto out;
+ 	}
+ 
+-#ifdef CONFIG_DEBUG_VM
+ 	/*
+ 	 * Poison uninitialized struct pages in order to catch invalid flags
+ 	 * combinations.
+ 	 */
+-	memset(memmap, PAGE_POISON_PATTERN, sizeof(struct page) * PAGES_PER_SECTION);
+-#endif
++	page_init_poison(memmap, sizeof(struct page) * PAGES_PER_SECTION);
+ 
+ 	section_mark_present(ms);
+ 	sparse_init_one_section(ms, section_nr, memmap, usemap);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
