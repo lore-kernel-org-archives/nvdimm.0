@@ -1,70 +1,263 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH v4 3/5] mm: Defer ZONE_DEVICE page initialization to the
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 314B421148ECD
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Sep 2018 15:29:46 -0700 (PDT)
+Subject: [PATCH v4 3/5] mm: Defer ZONE_DEVICE page initialization to the
  point where we init pgmap
-Date: Fri, 21 Sep 2018 19:50:18 +0000
-Message-ID: <2254cfe1-5cd3-eedc-1f24-8e011dcf3575@microsoft.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Thu, 20 Sep 2018 15:29:33 -0700
+Message-ID: <20180920222758.19464.83992.stgit@localhost.localdomain>
+In-Reply-To: <20180920215824.19464.8884.stgit@localhost.localdomain>
 References: <20180920215824.19464.8884.stgit@localhost.localdomain>
- <20180920222758.19464.83992.stgit@localhost.localdomain>
-In-Reply-To: <20180920222758.19464.83992.stgit@localhost.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <4F32675E3C009940AEFBAB1DADA60897@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCk9uIDkvMjAvMTggNjoyOSBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOg0KPiBUaGUgWk9O
-RV9ERVZJQ0UgcGFnZXMgd2VyZSBiZWluZyBpbml0aWFsaXplZCBpbiB0d28gbG9jYXRpb25zLiBP
-bmUgd2FzIHdpdGgNCj4gdGhlIG1lbW9yeV9ob3RwbHVnIGxvY2sgaGVsZCBhbmQgYW5vdGhlciB3
-YXMgb3V0c2lkZSBvZiB0aGF0IGxvY2suIFRoZQ0KPiBwcm9ibGVtIHdpdGggdGhpcyBpcyB0aGF0
-IGl0IHdhcyBuZWFybHkgZG91YmxpbmcgdGhlIG1lbW9yeSBpbml0aWFsaXphdGlvbg0KPiB0aW1l
-LiBJbnN0ZWFkIG9mIGRvaW5nIHRoaXMgdHdpY2UsIG9uY2Ugd2hpbGUgaG9sZGluZyBhIGdsb2Jh
-bCBsb2NrIGFuZA0KPiBvbmNlIHdpdGhvdXQsIEkgYW0gb3B0aW5nIHRvIGRlZmVyIHRoZSBpbml0
-aWFsaXphdGlvbiB0byB0aGUgb25lIG91dHNpZGUgb2YNCj4gdGhlIGxvY2suIFRoaXMgYWxsb3dz
-IHVzIHRvIGF2b2lkIHNlcmlhbGl6aW5nIHRoZSBvdmVyaGVhZCBmb3IgbWVtb3J5IGluaXQNCj4g
-YW5kIHdlIGNhbiBpbnN0ZWFkIGZvY3VzIG9uIHBlci1ub2RlIGluaXQgdGltZXMuDQo+IA0KPiBP
-bmUgaXNzdWUgSSBlbmNvdW50ZXJlZCBpcyB0aGF0IGRldm1fbWVtcmVtYXBfcGFnZXMgYW5kDQo+
-IGhtbV9kZXZtbWVtX3BhZ2VzX2NyZWF0ZSB3ZXJlIGluaXRpYWxpemluZyBvbmx5IHRoZSBwZ21h
-cCBmaWVsZCB0aGUgc2FtZQ0KPiB3YXkuIE9uZSB3YXNuJ3QgaW5pdGlhbGl6aW5nIGhtbV9kYXRh
-LCBhbmQgdGhlIG90aGVyIHdhcyBpbml0aWFsaXppbmcgaXQgdG8NCj4gYSBwb2lzb24gdmFsdWUu
-IFNpbmNlIHRoaXMgaXMgc29tZXRoaW5nIHRoYXQgaXMgZXhwb3NlZCB0byB0aGUgZHJpdmVyIGlu
-DQo+IHRoZSBjYXNlIG9mIGhtbSBJIGFtIG9wdGluZyBmb3IgYSB0aGlyZCBvcHRpb24gYW5kIGp1
-c3QgaW5pdGlhbGl6aW5nDQo+IGhtbV9kYXRhIHRvIDAgc2luY2UgdGhpcyBpcyBnb2luZyB0byBi
-ZSBleHBvc2VkIHRvIHVua25vd24gdGhpcmQgcGFydHkNCj4gZHJpdmVycy4NCj4gDQo+IFNpZ25l
-ZC1vZmYtYnk6IEFsZXhhbmRlciBEdXljayA8YWxleGFuZGVyLmguZHV5Y2tAbGludXguaW50ZWwu
-Y29tPg0KDQo+ICt2b2lkIF9fcmVmIG1lbW1hcF9pbml0X3pvbmVfZGV2aWNlKHN0cnVjdCB6b25l
-ICp6b25lLA0KPiArCQkJCSAgIHVuc2lnbmVkIGxvbmcgc3RhcnRfcGZuLA0KPiArCQkJCSAgIHVu
-c2lnbmVkIGxvbmcgc2l6ZSwNCj4gKwkJCQkgICBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQ0K
-PiArew0KPiArCXVuc2lnbmVkIGxvbmcgcGZuLCBlbmRfcGZuID0gc3RhcnRfcGZuICsgc2l6ZTsN
-Cj4gKwlzdHJ1Y3QgcGdsaXN0X2RhdGEgKnBnZGF0ID0gem9uZS0+em9uZV9wZ2RhdDsNCj4gKwl1
-bnNpZ25lZCBsb25nIHpvbmVfaWR4ID0gem9uZV9pZHgoem9uZSk7DQo+ICsJdW5zaWduZWQgbG9u
-ZyBzdGFydCA9IGppZmZpZXM7DQo+ICsJaW50IG5pZCA9IHBnZGF0LT5ub2RlX2lkOw0KPiArDQo+
-ICsJaWYgKFdBUk5fT05fT05DRSghcGdtYXAgfHwgIWlzX2Rldl96b25lKHpvbmUpKSkNCj4gKwkJ
-cmV0dXJuOw0KPiArDQo+ICsJLyoNCj4gKwkgKiBUaGUgY2FsbCB0byBtZW1tYXBfaW5pdF96b25l
-IHNob3VsZCBoYXZlIGFscmVhZHkgdGFrZW4gY2FyZQ0KPiArCSAqIG9mIHRoZSBwYWdlcyByZXNl
-cnZlZCBmb3IgdGhlIG1lbW1hcCwgc28gd2UgY2FuIGp1c3QganVtcCB0bw0KPiArCSAqIHRoZSBl
-bmQgb2YgdGhhdCByZWdpb24gYW5kIHN0YXJ0IHByb2Nlc3NpbmcgdGhlIGRldmljZSBwYWdlcy4N
-Cj4gKwkgKi8NCj4gKwlpZiAocGdtYXAtPmFsdG1hcF92YWxpZCkgew0KPiArCQlzdHJ1Y3Qgdm1l
-bV9hbHRtYXAgKmFsdG1hcCA9ICZwZ21hcC0+YWx0bWFwOw0KPiArDQo+ICsJCXN0YXJ0X3BmbiA9
-IGFsdG1hcC0+YmFzZV9wZm4gKyB2bWVtX2FsdG1hcF9vZmZzZXQoYWx0bWFwKTsNCj4gKwkJc2l6
-ZSA9IGVuZF9wZm4gLSBzdGFydF9wZm47DQo+ICsJfQ0KPiArDQo+ICsJZm9yIChwZm4gPSBzdGFy
-dF9wZm47IHBmbiA8IGVuZF9wZm47IHBmbisrKSB7DQo+ICsJCXN0cnVjdCBwYWdlICpwYWdlID0g
-cGZuX3RvX3BhZ2UocGZuKTsNCj4gKw0KPiArCQlfX2luaXRfc2luZ2xlX3BhZ2UocGFnZSwgcGZu
-LCB6b25lX2lkeCwgbmlkKTsNCj4gKw0KPiArCQkvKg0KPiArCQkgKiBNYXJrIHBhZ2UgcmVzZXJ2
-ZWQgYXMgaXQgd2lsbCBuZWVkIHRvIHdhaXQgZm9yIG9ubGluaW5nDQo+ICsJCSAqIHBoYXNlIGZv
-ciBpdCB0byBiZSBmdWxseSBhc3NvY2lhdGVkIHdpdGggYSB6b25lLg0KPiArCQkgKg0KPiArCQkg
-KiBXZSBjYW4gdXNlIHRoZSBub24tYXRvbWljIF9fc2V0X2JpdCBvcGVyYXRpb24gZm9yIHNldHRp
-bmcNCj4gKwkJICogdGhlIGZsYWcgYXMgd2UgYXJlIHN0aWxsIGluaXRpYWxpemluZyB0aGUgcGFn
-ZXMuDQo+ICsJCSAqLw0KPiArCQlfX1NldFBhZ2VSZXNlcnZlZChwYWdlKTsNCj4gKw0KPiArCQkv
-Kg0KPiArCQkgKiBaT05FX0RFVklDRSBwYWdlcyB1bmlvbiAtPmxydSB3aXRoIGEgLT5wZ21hcCBi
-YWNrDQo+ICsJCSAqIHBvaW50ZXIgYW5kIGhtbV9kYXRhLiAgSXQgaXMgYSBidWcgaWYgYSBaT05F
-X0RFVklDRQ0KPiArCQkgKiBwYWdlIGlzIGV2ZXIgZnJlZWQgb3IgcGxhY2VkIG9uIGEgZHJpdmVy
-LXByaXZhdGUgbGlzdC4NCj4gKwkJICovDQo+ICsJCXBhZ2UtPnBnbWFwID0gcGdtYXA7DQo+ICsJ
-CXBhZ2UtPmhtbV9kYXRhID0gMDsNCg0KX19pbml0X3NpbmdsZV9wYWdlKCkNCiAgbW1femVyb19z
-dHJ1Y3RfcGFnZSgpDQoNClRha2VzIGNhcmUgb2YgemVyb2luZywgbm8gbmVlZCB0byBkbyBhbm90
-aGVyIHN0b3JlIGhlcmUuDQoNCg0KTG9va3MgZ29vZCBvdGhlcndpc2UuDQoNClJldmlld2VkLWJ5
-OiBQYXZlbCBUYXRhc2hpbiA8cGF2ZWwudGF0YXNoaW5AbWljcm9zb2Z0LmNvbT4NCg==
+The ZONE_DEVICE pages were being initialized in two locations. One was with
+the memory_hotplug lock held and another was outside of that lock. The
+problem with this is that it was nearly doubling the memory initialization
+time. Instead of doing this twice, once while holding a global lock and
+once without, I am opting to defer the initialization to the one outside of
+the lock. This allows us to avoid serializing the overhead for memory init
+and we can instead focus on per-node init times.
+
+One issue I encountered is that devm_memremap_pages and
+hmm_devmmem_pages_create were initializing only the pgmap field the same
+way. One wasn't initializing hmm_data, and the other was initializing it to
+a poison value. Since this is something that is exposed to the driver in
+the case of hmm I am opting for a third option and just initializing
+hmm_data to 0 since this is going to be exposed to unknown third party
+drivers.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+
+v4: Moved moved memmap_init_zone_device to below memmmap_init_zone to avoid
+    merge conflicts with other changes in the kernel.
+
+ include/linux/mm.h |    2 +
+ kernel/memremap.c  |   24 +++++---------
+ mm/hmm.c           |   12 ++++---
+ mm/page_alloc.c    |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 107 insertions(+), 23 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index d63d163f341d..25c89615d303 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -848,6 +848,8 @@ static inline bool is_zone_device_page(const struct page *page)
+ {
+ 	return page_zonenum(page) == ZONE_DEVICE;
+ }
++extern void memmap_init_zone_device(struct zone *, unsigned long,
++				    unsigned long, struct dev_pagemap *);
+ #else
+ static inline bool is_zone_device_page(const struct page *page)
+ {
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 5b8600d39931..d0c32e473f82 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -175,10 +175,10 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 	struct vmem_altmap *altmap = pgmap->altmap_valid ?
+ 			&pgmap->altmap : NULL;
+ 	struct resource *res = &pgmap->res;
+-	unsigned long pfn, pgoff, order;
++	struct dev_pagemap *conflict_pgmap;
+ 	pgprot_t pgprot = PAGE_KERNEL;
++	unsigned long pgoff, order;
+ 	int error, nid, is_ram;
+-	struct dev_pagemap *conflict_pgmap;
+ 
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+ 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
+@@ -256,19 +256,13 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 	if (error)
+ 		goto err_add_memory;
+ 
+-	for_each_device_pfn(pfn, pgmap) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		/*
+-		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
+-		 * pointer.  It is a bug if a ZONE_DEVICE page is ever
+-		 * freed or placed on a driver-private list.  Seed the
+-		 * storage with LIST_POISON* values.
+-		 */
+-		list_del(&page->lru);
+-		page->pgmap = pgmap;
+-		percpu_ref_get(pgmap->ref);
+-	}
++	/*
++	 * Initialization of the pages has been deferred until now in order
++	 * to allow us to do the work while not holding the hotplug lock.
++	 */
++	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
++				align_start >> PAGE_SHIFT,
++				align_size >> PAGE_SHIFT, pgmap);
+ 
+ 	devm_add_action(dev, devm_memremap_pages_release, pgmap);
+ 
+diff --git a/mm/hmm.c b/mm/hmm.c
+index c968e49f7a0c..774d684fa2b4 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1024,7 +1024,6 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
+ 	resource_size_t key, align_start, align_size, align_end;
+ 	struct device *device = devmem->device;
+ 	int ret, nid, is_ram;
+-	unsigned long pfn;
+ 
+ 	align_start = devmem->resource->start & ~(PA_SECTION_SIZE - 1);
+ 	align_size = ALIGN(devmem->resource->start +
+@@ -1109,11 +1108,14 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
+ 				align_size >> PAGE_SHIFT, NULL);
+ 	mem_hotplug_done();
+ 
+-	for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
+-		struct page *page = pfn_to_page(pfn);
++	/*
++	 * Initialization of the pages has been deferred until now in order
++	 * to allow us to do the work while not holding the hotplug lock.
++	 */
++	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
++				align_start >> PAGE_SHIFT,
++				align_size >> PAGE_SHIFT, &devmem->pagemap);
+ 
+-		page->pgmap = &devmem->pagemap;
+-	}
+ 	return 0;
+ 
+ error_add_memory:
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 29bd662fffd7..ac1fa0efdea0 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5490,12 +5490,23 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	if (highest_memmap_pfn < end_pfn - 1)
+ 		highest_memmap_pfn = end_pfn - 1;
+ 
++#ifdef CONFIG_ZONE_DEVICE
+ 	/*
+ 	 * Honor reservation requested by the driver for this ZONE_DEVICE
+-	 * memory
++	 * memory. We limit the total number of pages to initialize to just
++	 * those that might contain the memory mapping. We will defer the
++	 * ZONE_DEVICE page initialization until after we have released
++	 * the hotplug lock.
+ 	 */
+-	if (altmap && start_pfn == altmap->base_pfn)
+-		start_pfn += altmap->reserve;
++	if (zone == ZONE_DEVICE) {
++		if (!altmap)
++			return;
++
++		if (start_pfn == altmap->base_pfn)
++			start_pfn += altmap->reserve;
++		end_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
++	}
++#endif
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		/*
+@@ -5539,6 +5550,81 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 	}
+ }
+ 
++#ifdef CONFIG_ZONE_DEVICE
++void __ref memmap_init_zone_device(struct zone *zone,
++				   unsigned long start_pfn,
++				   unsigned long size,
++				   struct dev_pagemap *pgmap)
++{
++	unsigned long pfn, end_pfn = start_pfn + size;
++	struct pglist_data *pgdat = zone->zone_pgdat;
++	unsigned long zone_idx = zone_idx(zone);
++	unsigned long start = jiffies;
++	int nid = pgdat->node_id;
++
++	if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
++		return;
++
++	/*
++	 * The call to memmap_init_zone should have already taken care
++	 * of the pages reserved for the memmap, so we can just jump to
++	 * the end of that region and start processing the device pages.
++	 */
++	if (pgmap->altmap_valid) {
++		struct vmem_altmap *altmap = &pgmap->altmap;
++
++		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
++		size = end_pfn - start_pfn;
++	}
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++		struct page *page = pfn_to_page(pfn);
++
++		__init_single_page(page, pfn, zone_idx, nid);
++
++		/*
++		 * Mark page reserved as it will need to wait for onlining
++		 * phase for it to be fully associated with a zone.
++		 *
++		 * We can use the non-atomic __set_bit operation for setting
++		 * the flag as we are still initializing the pages.
++		 */
++		__SetPageReserved(page);
++
++		/*
++		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
++		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
++		 * page is ever freed or placed on a driver-private list.
++		 */
++		page->pgmap = pgmap;
++		page->hmm_data = 0;
++
++		/*
++		 * Mark the block movable so that blocks are reserved for
++		 * movable at startup. This will force kernel allocations
++		 * to reserve their blocks rather than leaking throughout
++		 * the address space during boot when many long-lived
++		 * kernel allocations are made.
++		 *
++		 * bitmap is created for zone's valid pfn range. but memmap
++		 * can be created for invalid pages (for alignment)
++		 * check here not to call set_pageblock_migratetype() against
++		 * pfn out of zone.
++		 *
++		 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
++		 * because this is done early in sparse_add_one_section
++		 */
++		if (!(pfn & (pageblock_nr_pages - 1))) {
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++			cond_resched();
++		}
++	}
++
++	pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
++		size, jiffies_to_msecs(jiffies - start));
++}
++
++#endif
+ static void __meminit zone_init_free_lists(struct zone *zone)
+ {
+ 	unsigned int order, t;
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
