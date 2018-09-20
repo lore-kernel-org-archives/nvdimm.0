@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A67ED21159C90
- for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 09:54:31 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu, 27 Sep 2018 10:54:15 -0600
-Message-Id: <20180927165420.5290-9-logang@deltatee.com>
-In-Reply-To: <20180927165420.5290-1-logang@deltatee.com>
-References: <20180927165420.5290-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2F7EC21148ECD
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Sep 2018 15:24:21 -0700 (PDT)
+Subject: [PATCH v4 0/5] Address issues slowing persistent memory initialization
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Thu, 20 Sep 2018 15:24:09 -0700
+Message-ID: <20180920215824.19464.8884.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Subject: [PATCH v8 08/13] IB/core: Ensure we map P2P memory correctly in
- rdma_rw_ctx_[init|destroy]()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,63 +20,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to use PCI P2P memory the pci_p2pmem_map_sg() function must be
-called to map the correct PCI bus address.
+This patch set is meant to be a v4 to my earlier patch set "Address issues
+slowing memory init"[1], and a follow-up to my earlier patch set "Address
+issues slowing persistent memory initialization"[2].
 
-To do this, check the first page in the scatter list to see if it is P2P
-memory or not. At the moment, scatter lists that contain P2P memory must
-be homogeneous so if the first page is P2P the entire SGL should be P2P.
+Excluding any gains seen from using the vm_debug option to disable page
+init poisoning I see a total reduction in file-system init time of about
+two and a half minutes, or 65%, for a system initializing btrfs on a 12TB
+block of persistent memory split evenly over 4 NUMA nodes.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Since the last patch set I have reworked the first patch to provide a more
+generic disable implementation that can be extended in the future.
+
+I tweaked the commit message for the second patch slightly to reflect why
+we might want to use a non-atomic __set_bit versus the atomic set_bit.
+
+I have modified the third patch to make it so that it can merge onto either
+the linux git tree or the linux-next git tree. The patch set that Dan
+Williams has outstanding may end up conflicting with this patch depending
+on the merge order. If his are merged first I believe the code I changed
+in mm/hmm.c could be dropped entirely.
+
+The fourth patch has been split into two and focused more on the async
+scheduling portion of the nvdimm code. The result is much cleaner than the
+original approach in that instead of having two threads running we are now
+getting the thread running where we wanted it to be.
+
+The last change for all patches is that I have updated my email address to
+alexander.h.duyck@linux.intel.com to reflect the fact that I have changed
+teams within Intel. I will be trying to use that for correspondence going
+forward instead of my gmail account.
+
+[1]: https://lkml.org/lkml/2018/9/5/924
+[2]: https://lkml.org/lkml/2018/9/11/10
+[3]: https://lkml.org/lkml/2018/9/13/104
+
 ---
- drivers/infiniband/core/rw.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 683e6d11a564..d22c4a2ebac6 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pci-p2pdma.h>
- #include <rdma/mr_pool.h>
- #include <rdma/rw.h>
- 
-@@ -280,7 +281,11 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 	struct ib_device *dev = qp->pd->device;
- 	int ret;
- 
--	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-+	else
-+		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+
- 	if (!ret)
- 		return -ENOMEM;
- 	sg_cnt = ret;
-@@ -602,7 +607,9 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
- 	}
- 
--	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
-+	/* P2PDMA contexts do not need to be unmapped */
-+	if (!is_pci_p2pdma_page(sg_page(sg)))
-+		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
- 
--- 
-2.19.0
+Alexander Duyck (5):
+      mm: Provide kernel parameter to allow disabling page init poisoning
+      mm: Create non-atomic version of SetPageReserved for init use
+      mm: Defer ZONE_DEVICE page initialization to the point where we init pgmap
+      async: Add support for queueing on specific node
+      nvdimm: Schedule device registration on node local to the device
 
+
+ Documentation/admin-guide/kernel-parameters.txt |   12 +++
+ drivers/nvdimm/bus.c                            |   19 ++++
+ include/linux/async.h                           |   20 ++++-
+ include/linux/mm.h                              |    2 
+ include/linux/page-flags.h                      |    9 ++
+ kernel/async.c                                  |   36 ++++++--
+ kernel/memremap.c                               |   24 ++---
+ mm/debug.c                                      |   46 ++++++++++
+ mm/hmm.c                                        |   12 ++-
+ mm/memblock.c                                   |    5 -
+ mm/page_alloc.c                                 |  101 ++++++++++++++++++++++-
+ mm/sparse.c                                     |    4 -
+ 12 files changed, 243 insertions(+), 47 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
