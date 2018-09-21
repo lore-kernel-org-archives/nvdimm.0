@@ -1,75 +1,75 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com
- [IPv6:2607:f8b0:4864:20::644])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8146221962301
- for <linux-nvdimm@lists.01.org>; Sun,  9 Sep 2018 23:24:05 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id ba4-v6so9235890plb.11
- for <linux-nvdimm@lists.01.org>; Sun, 09 Sep 2018 23:24:05 -0700 (PDT)
-From: Ocean He <oceanhehy@gmail.com>
-Subject: [PATCH 1/3] libnvdimm,
- claim: remove static attribute of nd_detach_and_reset
-Date: Mon, 10 Sep 2018 02:21:46 -0400
-Message-Id: <1536560508-24564-2-git-send-email-oceanhehy@gmail.com>
-In-Reply-To: <1536560508-24564-1-git-send-email-oceanhehy@gmail.com>
-References: <1536560508-24564-1-git-send-email-oceanhehy@gmail.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
+Subject: Re: [PATCH v4 2/5] mm: Create non-atomic version of SetPageReserved
+ for init use
+Date: Fri, 21 Sep 2018 19:06:30 +0000
+Message-ID: <b3a1bf0a-3cce-21a7-0543-716627c753db@microsoft.com>
+References: <20180920215824.19464.8884.stgit@localhost.localdomain>
+ <20180920222641.19464.75787.stgit@localhost.localdomain>
+In-Reply-To: <20180920222641.19464.75787.stgit@localhost.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <D98AE5FDAC9A084687AB3C1C63482F26@namprd21.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: Ocean He <hehy1@lenovo.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "logang@deltatee.com" <logang@deltatee.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ocean He <hehy1@lenovo.com>
-
-The function nd_detach_and_reset needs to be called externally, so
-remove the static attribute and declare it in nd-core.h.
-
-Signed-off-by: Ocean He <hehy1@lenovo.com>
----
- drivers/nvdimm/claim.c   | 2 +-
- drivers/nvdimm/nd-core.h | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index fb667bf..46e56ecf 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -117,7 +117,7 @@ struct nd_pfn *to_nd_pfn_safe(struct device *dev)
- 	return NULL;
- }
- 
--static void nd_detach_and_reset(struct device *dev,
-+void nd_detach_and_reset(struct device *dev,
- 		struct nd_namespace_common **_ndns)
- {
- 	/* detach the namespace and destroy / reset the device */
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index ac68072..7fd74d0 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -123,6 +123,7 @@ struct resource *nsblk_add_resource(struct nd_region *nd_region,
- resource_size_t __nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
- void nd_detach_ndns(struct device *dev, struct nd_namespace_common **_ndns);
- void __nd_detach_ndns(struct device *dev, struct nd_namespace_common **_ndns);
-+void nd_detach_and_reset(struct device *dev, struct nd_namespace_common **_ndns);
- bool nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
- 		struct nd_namespace_common **_ndns);
- bool __nd_attach_ndns(struct device *dev, struct nd_namespace_common *attach,
--- 
-1.8.3.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+DQoNCk9uIDkvMjAvMTggNjoyNyBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOg0KPiBJdCBkb2Vz
+bid0IG1ha2UgbXVjaCBzZW5zZSB0byB1c2UgdGhlIGF0b21pYyBTZXRQYWdlUmVzZXJ2ZWQgYXQg
+aW5pdCB0aW1lDQo+IHdoZW4gd2UgYXJlIHVzaW5nIG1lbXNldCB0byBjbGVhciB0aGUgbWVtb3J5
+IGFuZCBtYW5pcHVsYXRpbmcgdGhlIHBhZ2UNCj4gZmxhZ3MgdmlhIHNpbXBsZSAiJj0iIGFuZCAi
+fD0iIG9wZXJhdGlvbnMgaW4gX19pbml0X3NpbmdsZV9wYWdlLg0KPiANCj4gVGhpcyBwYXRjaCBh
+ZGRzIGEgbm9uLWF0b21pYyB2ZXJzaW9uIF9fU2V0UGFnZVJlc2VydmVkIHRoYXQgY2FuIGJlIHVz
+ZWQNCj4gZHVyaW5nIHBhZ2UgaW5pdCBhbmQgc2hvd3MgYWJvdXQgYSAxMCUgaW1wcm92ZW1lbnQg
+aW4gaW5pdGlhbGl6YXRpb24gdGltZXMNCj4gb24gdGhlIHN5c3RlbXMgSSBoYXZlIGF2YWlsYWJs
+ZSBmb3IgdGVzdGluZy4gT24gdGhvc2Ugc3lzdGVtcyBJIHNhdw0KPiBpbml0aWFsaXphdGlvbiB0
+aW1lcyBkcm9wIGZyb20gYXJvdW5kIDM1IHNlY29uZHMgdG8gYXJvdW5kIDMyIHNlY29uZHMgdG8N
+Cj4gaW5pdGlhbGl6ZSBhIDNUQiBibG9jayBvZiBwZXJzaXN0ZW50IG1lbW9yeS4gSSBiZWxpZXZl
+IHRoZSBtYWluIGFkdmFudGFnZQ0KPiBvZiB0aGlzIGlzIHRoYXQgaXQgYWxsb3dzIGZvciBtb3Jl
+IGNvbXBpbGVyIG9wdGltaXphdGlvbiBhcyB0aGUgX19zZXRfYml0DQo+IG9wZXJhdGlvbiBjYW4g
+YmUgcmVvcmRlcmVkIHdoZXJlYXMgdGhlIGF0b21pYyB2ZXJzaW9uIGNhbm5vdC4NCj4gDQo+IEkg
+dHJpZWQgYWRkaW5nIGEgYml0IG9mIGRvY3VtZW50YXRpb24gYmFzZWQgb24gY29tbWl0IDxmMWRk
+MmNkMTNjND4gKCJtbSwNCj4gbWVtb3J5X2hvdHBsdWc6IGRvIG5vdCBhc3NvY2lhdGUgaG90YWRk
+ZWQgbWVtb3J5IHRvIHpvbmVzIHVudGlsIG9ubGluZSIpLg0KPiANCj4gSWRlYWxseSB0aGUgcmVz
+ZXJ2ZWQgZmxhZyBzaG91bGQgYmUgc2V0IGVhcmxpZXIgc2luY2UgdGhlcmUgaXMgYSBicmllZg0K
+PiB3aW5kb3cgd2hlcmUgdGhlIHBhZ2UgaXMgaW5pdGlhbGl6YXRpb24gdmlhIF9faW5pdF9zaW5n
+bGVfcGFnZSBhbmQgd2UgaGF2ZQ0KPiBub3Qgc2V0IHRoZSBQR19SZXNlcnZlZCBmbGFnLiBJJ20g
+bGVhdmluZyB0aGF0IGZvciBhIGZ1dHVyZSBwYXRjaCBzZXQgYXMNCj4gdGhhdCB3aWxsIHJlcXVp
+cmUgYSBtb3JlIHNpZ25pZmljYW50IHJlZmFjdG9yLg0KPiANCj4gQWNrZWQtYnk6IE1pY2hhbCBI
+b2NrbyA8bWhvY2tvQHN1c2UuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBBbGV4YW5kZXIgRHV5Y2sg
+PGFsZXhhbmRlci5oLmR1eWNrQGxpbnV4LmludGVsLmNvbT4NCg0KUmV2aWV3ZWQtYnk6IFBhdmVs
+IFRhdGFzaGluIDxwYXZlbC50YXRhc2hpbkBtaWNyb3NvZnQuY29tPg0KDQo+IC0tLQ0KPiANCj4g
+djQ6IEFkZGVkIGNvbW1lbnQgYWJvdXQgX19zZXRfYml0IHZzIHNldF9iaXQgdG8gdGhlIHBhdGNo
+IGRlc2NyaXB0aW9uDQo+IA0KPiAgaW5jbHVkZS9saW51eC9wYWdlLWZsYWdzLmggfCAgICAxICsN
+Cj4gIG1tL3BhZ2VfYWxsb2MuYyAgICAgICAgICAgIHwgICAgOSArKysrKysrLS0NCj4gIDIgZmls
+ZXMgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
+LWdpdCBhL2luY2x1ZGUvbGludXgvcGFnZS1mbGFncy5oIGIvaW5jbHVkZS9saW51eC9wYWdlLWZs
+YWdzLmgNCj4gaW5kZXggOTM0ZjkxZWYzZjU0Li41MGNlMWJkZGFmNTYgMTAwNjQ0DQo+IC0tLSBh
+L2luY2x1ZGUvbGludXgvcGFnZS1mbGFncy5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgvcGFnZS1m
+bGFncy5oDQo+IEBAIC0zMDMsNiArMzAzLDcgQEAgc3RhdGljIGlubGluZSB2b2lkIHBhZ2VfaW5p
+dF9wb2lzb24oc3RydWN0IHBhZ2UgKnBhZ2UsIHNpemVfdCBzaXplKQ0KPiAgDQo+ICBQQUdFRkxB
+RyhSZXNlcnZlZCwgcmVzZXJ2ZWQsIFBGX05PX0NPTVBPVU5EKQ0KPiAgCV9fQ0xFQVJQQUdFRkxB
+RyhSZXNlcnZlZCwgcmVzZXJ2ZWQsIFBGX05PX0NPTVBPVU5EKQ0KPiArCV9fU0VUUEFHRUZMQUco
+UmVzZXJ2ZWQsIHJlc2VydmVkLCBQRl9OT19DT01QT1VORCkNCj4gIFBBR0VGTEFHKFN3YXBCYWNr
+ZWQsIHN3YXBiYWNrZWQsIFBGX05PX1RBSUwpDQo+ICAJX19DTEVBUlBBR0VGTEFHKFN3YXBCYWNr
+ZWQsIHN3YXBiYWNrZWQsIFBGX05PX1RBSUwpDQo+ICAJX19TRVRQQUdFRkxBRyhTd2FwQmFja2Vk
+LCBzd2FwYmFja2VkLCBQRl9OT19UQUlMKQ0KPiBkaWZmIC0tZ2l0IGEvbW0vcGFnZV9hbGxvYy5j
+IGIvbW0vcGFnZV9hbGxvYy5jDQo+IGluZGV4IDcxMmNhYjE3Zjg2Zi4uMjliZDY2MmZmZmQ3IDEw
+MDY0NA0KPiAtLS0gYS9tbS9wYWdlX2FsbG9jLmMNCj4gKysrIGIvbW0vcGFnZV9hbGxvYy5jDQo+
+IEBAIC0xMjM5LDcgKzEyMzksMTIgQEAgdm9pZCBfX21lbWluaXQgcmVzZXJ2ZV9ib290bWVtX3Jl
+Z2lvbihwaHlzX2FkZHJfdCBzdGFydCwgcGh5c19hZGRyX3QgZW5kKQ0KPiAgCQkJLyogQXZvaWQg
+ZmFsc2UtcG9zaXRpdmUgUGFnZVRhaWwoKSAqLw0KPiAgCQkJSU5JVF9MSVNUX0hFQUQoJnBhZ2Ut
+PmxydSk7DQo+ICANCj4gLQkJCVNldFBhZ2VSZXNlcnZlZChwYWdlKTsNCj4gKwkJCS8qDQo+ICsJ
+CQkgKiBubyBuZWVkIGZvciBhdG9taWMgc2V0X2JpdCBiZWNhdXNlIHRoZSBzdHJ1Y3QNCj4gKwkJ
+CSAqIHBhZ2UgaXMgbm90IHZpc2libGUgeWV0IHNvIG5vYm9keSBzaG91bGQNCj4gKwkJCSAqIGFj
+Y2VzcyBpdCB5ZXQuDQo+ICsJCQkgKi8NCj4gKwkJCV9fU2V0UGFnZVJlc2VydmVkKHBhZ2UpOw0K
+PiAgCQl9DQo+ICAJfQ0KPiAgfQ0KPiBAQCAtNTUxMyw3ICs1NTE4LDcgQEAgdm9pZCBfX21lbWlu
+aXQgbWVtbWFwX2luaXRfem9uZSh1bnNpZ25lZCBsb25nIHNpemUsIGludCBuaWQsIHVuc2lnbmVk
+IGxvbmcgem9uZSwNCj4gIAkJcGFnZSA9IHBmbl90b19wYWdlKHBmbik7DQo+ICAJCV9faW5pdF9z
+aW5nbGVfcGFnZShwYWdlLCBwZm4sIHpvbmUsIG5pZCk7DQo+ICAJCWlmIChjb250ZXh0ID09IE1F
+TU1BUF9IT1RQTFVHKQ0KPiAtCQkJU2V0UGFnZVJlc2VydmVkKHBhZ2UpOw0KPiArCQkJX19TZXRQ
+YWdlUmVzZXJ2ZWQocGFnZSk7DQo+ICANCj4gIAkJLyoNCj4gIAkJICogTWFyayB0aGUgYmxvY2sg
+bW92YWJsZSBzbyB0aGF0IGJsb2NrcyBhcmUgcmVzZXJ2ZWQgZm9yDQo+IA==
