@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 64F2921122933
- for <linux-nvdimm@lists.01.org>; Fri,  7 Sep 2018 02:24:52 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V5 3/4] mm: add a function to differentiate the pages is from
- DAX device memory
-Date: Sat,  8 Sep 2018 02:03:55 +0800
-Message-Id: <044309496afbb4121447dff6a453bd6b96d6068d.1536342881.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
-References: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 44A1621154703
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Sep 2018 12:47:03 -0700 (PDT)
+Date: Fri, 21 Sep 2018 14:47:00 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v6 06/13] PCI/P2PDMA: Add P2P DMA driver writer's
+ documentation
+Message-ID: <20180921194700.GM224714@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
+ <20180913001156.4115-7-logang@deltatee.com>
+ <20180921164126.GI224714@bhelgaas-glaptop.roam.corp.google.com>
+ <e9739430-b238-2078-a51f-d76bae5342d1@deltatee.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <e9739430-b238-2078-a51f-d76bae5342d1@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,62 +23,31 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
-Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DAX driver hotplug the device memory and move it to memory zone, these
-pages will be marked reserved flag, however, some other kernel componet
-will misconceive these pages are reserved mmio (ex: we map these dev_dax
-or fs_dax pages to kvm for DIMM/NVDIMM backend). Together with the type
-MEMORY_DEVICE_FS_DAX, we can use is_dax_page() to differentiate the pages
-is DAX device memory or not.
+On Fri, Sep 21, 2018 at 12:03:12PM -0600, Logan Gunthorpe wrote:
+> On 2018-09-21 10:41 AM, Bjorn Helgaas wrote:
+> >> +away, the one returned will be chosen at random. This function returns the PCI
+> > 
+> > s/the one returned will be chosen at random/one will be chosen
+> > arbitrarily/ ?  (I doubt it's really random)
+> 
+> You're the second person to ask this, but yes, we really do it randomly.
+> Such that if there are multiple drivers getting resources they should be
+> evenly distributed. It's not the ideal solution but if it were to do it
+> arbitrarily then the code would likely return the same device all the
+> time and any additional devices would not get used.
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
-Acked-by: Jan Kara <jack@suse.cz>
----
- include/linux/mm.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Ah, I see, I should have searched for "random" in that patch and answered
+my own question :)  Sorry for the noise.
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 68a5121..de5cbc3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -889,6 +889,13 @@ static inline bool is_device_public_page(const struct page *page)
- 		page->pgmap->type == MEMORY_DEVICE_PUBLIC;
- }
- 
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return is_zone_device_page(page) &&
-+		(page->pgmap->type == MEMORY_DEVICE_FS_DAX ||
-+		page->pgmap->type == MEMORY_DEVICE_DEV_DAX);
-+}
-+
- #else /* CONFIG_DEV_PAGEMAP_OPS */
- static inline void dev_pagemap_get_ops(void)
- {
-@@ -912,6 +919,11 @@ static inline bool is_device_public_page(const struct page *page)
- {
- 	return false;
- }
-+
-+static inline bool is_dax_page(const struct page *page)
-+{
-+	return false;
-+}
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
- 
- static inline void get_page(struct page *page)
--- 
-2.7.4
-
+Bjorn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
