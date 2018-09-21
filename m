@@ -1,39 +1,61 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
-Subject: Re: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling
- page init poisoning
-Date: Fri, 21 Sep 2018 19:52:42 +0000
-Message-ID: <3c045f79-c18b-47dd-4017-a024edc9aa46@microsoft.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1D57721131DA0
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Sep 2018 12:41:20 -0700 (PDT)
 References: <20180920215824.19464.8884.stgit@localhost.localdomain>
  <20180920222415.19464.38400.stgit@localhost.localdomain>
  <a40a78c0-207b-03b7-344c-847b12a4f896@microsoft.com>
- <4d984974-ff16-35e4-76ff-f5e43e5e90da@deltatee.com>
-In-Reply-To: <4d984974-ff16-35e4-76ff-f5e43e5e90da@deltatee.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <AEF40F3EFDE49F42BBBFD042E5E9A767@namprd21.prod.outlook.com>
-Content-Transfer-Encoding: base64
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <4d984974-ff16-35e4-76ff-f5e43e5e90da@deltatee.com>
+Date: Fri, 21 Sep 2018 13:41:12 -0600
 MIME-Version: 1.0
-Sender: owner-linux-mm@kvack.org
-To: Logan Gunthorpe <logang@deltatee.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
+In-Reply-To: <a40a78c0-207b-03b7-344c-847b12a4f896@microsoft.com>
+Content-Language: en-US
+Subject: Re: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling
+ page init poisoning
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Pasha Tatashin <Pavel.Tatashin@microsoft.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "mingo@kernel.org" <mingo@kernel.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCk9uIDkvMjEvMTggMzo0MSBQTSwgTG9nYW4gR3VudGhvcnBlIHdyb3RlOg0KPiBPbiAyMDE4
-LTA5LTIxIDE6MDQgUE0sIFBhc2hhIFRhdGFzaGluIHdyb3RlOg0KPj4NCj4+PiArCQkJcHJfZXJy
-KCJ2bV9kZWJ1ZyBvcHRpb24gJyVjJyB1bmtub3duLiBza2lwcGVkXG4iLA0KPj4+ICsJCQkgICAg
-ICAgKnN0cik7DQo+Pj4gKwkJfQ0KPj4+ICsNCj4+PiArCQlzdHIrKzsNCj4+PiArCX0NCj4+PiAr
-b3V0Og0KPj4+ICsJaWYgKHBhZ2VfaW5pdF9wb2lzb25pbmcgJiYgIV9fcGFnZV9pbml0X3BvaXNv
-bmluZykNCj4+PiArCQlwcl93YXJuKCJQYWdlIHN0cnVjdCBwb2lzb25pbmcgZGlzYWJsZWQgYnkg
-a2VybmVsIGNvbW1hbmQgbGluZSBvcHRpb24gJ3ZtX2RlYnVnJ1xuIik7DQo+Pg0KPj4gTmV3IGxp
-bmVzICdcbicgY2FuIGJlIHJlbW92ZWQsIHRoZXkgYXJlIG5vdCBuZWVkZWQgZm9yIGtwcmludGZz
-Lg0KPiANCj4gTm8sIHRoYXQncyBub3QgY29ycmVjdC4NCj4gDQo+IEEgcHJpbnRrIHdpdGhvdXQg
-YSBuZXdsaW5lIHRlcm1pbmF0aW9uIGlzIG5vdCBlbWl0dGVkDQo+IGFzIG91dHB1dCB1bnRpbCB0
-aGUgbmV4dCBwcmludGsgY2FsbC4gKFRvIHN1cHBvcnQgS0VSTl9DT05UKS4NCj4gVGhlcmVmb3Jl
-IHJlbW92aW5nIHRoZSAnXG4nIGNhdXNlcyBhIHByaW50ayB0byBub3QgYmUgcHJpbnRlZCB3aGVu
-IGl0IGlzDQo+IGNhbGxlZCB3aGljaCBjYW4gY2F1c2UgbG9uZyBkZWxheWVkIG1lc3NhZ2VzIGFu
-ZCBzdWJ0bGUgcHJvYmxlbXMgd2hlbg0KPiBkZWJ1Z2dpbmcuIEFsd2F5cyBrZWVwIHRoZSBuZXds
-aW5lIGluIHBsYWNlIGV2ZW4gdGhvdWdoIHRoZSBrZXJuZWwgd2lsbA0KPiBhZGQgb25lIGZvciB5
-b3UgaWYgaXQncyBtaXNzaW5nLg0KDQpPSy4gVGhhbmsgeW91IGZvciBjbGFyaWZ5aW5nIExvZ2Fu
-LiBJJ3ZlIHNlZW4gbmV3IGxpbmVzIGFyZSBiZWluZw0KcmVtb3ZlZCBpbiBvdGhlciBwYXRjaGVz
-LA0KDQpQYXZlbA==
+On 2018-09-21 1:04 PM, Pasha Tatashin wrote:
+> 
+>> +			pr_err("vm_debug option '%c' unknown. skipped\n",
+>> +			       *str);
+>> +		}
+>> +
+>> +		str++;
+>> +	}
+>> +out:
+>> +	if (page_init_poisoning && !__page_init_poisoning)
+>> +		pr_warn("Page struct poisoning disabled by kernel command line option 'vm_debug'\n");
+> 
+> New lines '\n' can be removed, they are not needed for kprintfs.
+
+No, that's not correct.
+
+A printk without a newline termination is not emitted
+as output until the next printk call. (To support KERN_CONT).
+Therefore removing the '\n' causes a printk to not be printed when it is
+called which can cause long delayed messages and subtle problems when
+debugging. Always keep the newline in place even though the kernel will
+add one for you if it's missing.
+
+Logan
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
