@@ -1,86 +1,39 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 595372194D387
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:52 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:26 -0600
-Message-Id: <20180925162231.4354-9-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Pasha Tatashin <Pavel.Tatashin@microsoft.com>
+Subject: Re: [PATCH v4 1/5] mm: Provide kernel parameter to allow disabling
+ page init poisoning
+Date: Fri, 21 Sep 2018 19:52:42 +0000
+Message-ID: <3c045f79-c18b-47dd-4017-a024edc9aa46@microsoft.com>
+References: <20180920215824.19464.8884.stgit@localhost.localdomain>
+ <20180920222415.19464.38400.stgit@localhost.localdomain>
+ <a40a78c0-207b-03b7-344c-847b12a4f896@microsoft.com>
+ <4d984974-ff16-35e4-76ff-f5e43e5e90da@deltatee.com>
+In-Reply-To: <4d984974-ff16-35e4-76ff-f5e43e5e90da@deltatee.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <AEF40F3EFDE49F42BBBFD042E5E9A767@namprd21.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Subject: [PATCH v7 08/13] IB/core: Ensure we map P2P memory correctly in
- rdma_rw_ctx_[init|destroy]()
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+Sender: owner-linux-mm@kvack.org
+To: Logan Gunthorpe <logang@deltatee.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "mhocko@suse.com" <mhocko@suse.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "mingo@kernel.org" <mingo@kernel.org>, "dave.hansen@intel.com" <dave.hansen@intel.com>, "jglisse@redhat.com" <jglisse@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In order to use PCI P2P memory the pci_p2pmem_map_sg() function must be
-called to map the correct PCI bus address.
-
-To do this, check the first page in the scatter list to see if it is P2P
-memory or not. At the moment, scatter lists that contain P2P memory must
-be homogeneous so if the first page is P2P the entire SGL should be P2P.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
----
- drivers/infiniband/core/rw.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 683e6d11a564..d22c4a2ebac6 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pci-p2pdma.h>
- #include <rdma/mr_pool.h>
- #include <rdma/rw.h>
- 
-@@ -280,7 +281,11 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 	struct ib_device *dev = qp->pd->device;
- 	int ret;
- 
--	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-+	else
-+		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+
- 	if (!ret)
- 		return -ENOMEM;
- 	sg_cnt = ret;
-@@ -602,7 +607,9 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
- 	}
- 
--	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
-+	/* P2PDMA contexts do not need to be unmapped */
-+	if (!is_pci_p2pdma_page(sg_page(sg)))
-+		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
- 
--- 
-2.19.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+DQoNCk9uIDkvMjEvMTggMzo0MSBQTSwgTG9nYW4gR3VudGhvcnBlIHdyb3RlOg0KPiBPbiAyMDE4
+LTA5LTIxIDE6MDQgUE0sIFBhc2hhIFRhdGFzaGluIHdyb3RlOg0KPj4NCj4+PiArCQkJcHJfZXJy
+KCJ2bV9kZWJ1ZyBvcHRpb24gJyVjJyB1bmtub3duLiBza2lwcGVkXG4iLA0KPj4+ICsJCQkgICAg
+ICAgKnN0cik7DQo+Pj4gKwkJfQ0KPj4+ICsNCj4+PiArCQlzdHIrKzsNCj4+PiArCX0NCj4+PiAr
+b3V0Og0KPj4+ICsJaWYgKHBhZ2VfaW5pdF9wb2lzb25pbmcgJiYgIV9fcGFnZV9pbml0X3BvaXNv
+bmluZykNCj4+PiArCQlwcl93YXJuKCJQYWdlIHN0cnVjdCBwb2lzb25pbmcgZGlzYWJsZWQgYnkg
+a2VybmVsIGNvbW1hbmQgbGluZSBvcHRpb24gJ3ZtX2RlYnVnJ1xuIik7DQo+Pg0KPj4gTmV3IGxp
+bmVzICdcbicgY2FuIGJlIHJlbW92ZWQsIHRoZXkgYXJlIG5vdCBuZWVkZWQgZm9yIGtwcmludGZz
+Lg0KPiANCj4gTm8sIHRoYXQncyBub3QgY29ycmVjdC4NCj4gDQo+IEEgcHJpbnRrIHdpdGhvdXQg
+YSBuZXdsaW5lIHRlcm1pbmF0aW9uIGlzIG5vdCBlbWl0dGVkDQo+IGFzIG91dHB1dCB1bnRpbCB0
+aGUgbmV4dCBwcmludGsgY2FsbC4gKFRvIHN1cHBvcnQgS0VSTl9DT05UKS4NCj4gVGhlcmVmb3Jl
+IHJlbW92aW5nIHRoZSAnXG4nIGNhdXNlcyBhIHByaW50ayB0byBub3QgYmUgcHJpbnRlZCB3aGVu
+IGl0IGlzDQo+IGNhbGxlZCB3aGljaCBjYW4gY2F1c2UgbG9uZyBkZWxheWVkIG1lc3NhZ2VzIGFu
+ZCBzdWJ0bGUgcHJvYmxlbXMgd2hlbg0KPiBkZWJ1Z2dpbmcuIEFsd2F5cyBrZWVwIHRoZSBuZXds
+aW5lIGluIHBsYWNlIGV2ZW4gdGhvdWdoIHRoZSBrZXJuZWwgd2lsbA0KPiBhZGQgb25lIGZvciB5
+b3UgaWYgaXQncyBtaXNzaW5nLg0KDQpPSy4gVGhhbmsgeW91IGZvciBjbGFyaWZ5aW5nIExvZ2Fu
+LiBJJ3ZlIHNlZW4gbmV3IGxpbmVzIGFyZSBiZWluZw0KcmVtb3ZlZCBpbiBvdGhlciBwYXRjaGVz
+LA0KDQpQYXZlbA==
