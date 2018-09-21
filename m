@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 36C9321159902
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 21:36:08 -0700 (PDT)
-Subject: [PATCH 0/3] acpi, nfit: Add dirty shutdown count to sysfs
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Sep 2018 21:24:20 -0700
-Message-ID: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B4BB521154135
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Sep 2018 09:05:31 -0700 (PDT)
+Date: Fri, 21 Sep 2018 18:05:33 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
+Message-ID: <20180921160533.GA26601@lst.de>
+References: <20180913001156.4115-1-logang@deltatee.com>
+ <20180913001156.4115-2-logang@deltatee.com>
+ <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
+ <ab733346-9518-ed68-492d-e52929586293@deltatee.com>
+ <20180921130010.GE224714@bhelgaas-glaptop.roam.corp.google.com>
+ <a7e2b2cb-ea35-0a97-498b-1f5753e406aa@deltatee.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <a7e2b2cb-ea35-0a97-498b-1f5753e406aa@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,36 +28,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <helgaas@kernel.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The Intel NVDIMM command specification publishes a dirty-shutdown-count
-in addition to the dirty-shutdown / flush-failed indication that comes
-from the ACPI NFIT. This is expected to be a common property of NVDIMMs
-and is a static hardware health detail to be cached / exported via
-sysfs.
+On Fri, Sep 21, 2018 at 09:37:33AM -0600, Logan Gunthorpe wrote:
+> On 2018-09-21 7:00 AM, Bjorn Helgaas wrote:
+> > On Thu, Sep 20, 2018 at 04:47:49PM -0600, Logan Gunthorpe wrote:
+> >> On 2018-09-20 4:38 PM, Bjorn Helgaas wrote:
+> >>>> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
+> >>>
+> >>> Is pr_fmt() actually used anywhere?
+> >>
+> >> It's used in a Patch 4 to print errors in the configfs helpers.
+> > 
+> > Ideally pr_fmt() would be added in the same patch that uses it, but
+> > obviously pretty trivial.
+> 
+> Hmm, well Christoph asked me to do it this way. ;)
 
-Add plumbing for retrieving this data at driver load time, publish the
-count, and use the dynamically retrieved dirty-shutdown indicator to
-augment the existing 'flush_failed' flag.
-
----
-
-Dan Williams (3):
-      acpi, nfit: Introduce nfit_mem flags
-      acpi, nfit: Collect shutdown status
-      tools/testing/nvdimm: Populate dirty shutdown data
-
-
- drivers/acpi/nfit/core.c              |  115 ++++++++++++++++++++++++++++-----
- drivers/acpi/nfit/intel.h             |   34 ++++++++++
- drivers/acpi/nfit/nfit.h              |   11 +++
- tools/testing/nvdimm/Kbuild           |    1 
- tools/testing/nvdimm/acpi_nfit_test.c |    8 ++
- tools/testing/nvdimm/test/nfit.c      |    3 +
- tools/testing/nvdimm/test/nfit_test.h |   24 -------
- 7 files changed, 152 insertions(+), 44 deletions(-)
+Sorry.  I somehow was under the impression we already had a printk
+in the earlier patch, but it looks like I was confused.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
