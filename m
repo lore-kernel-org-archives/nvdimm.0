@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E279521159CAA
- for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 17:56:41 -0700 (PDT)
-Subject: [ndctl PATCH v3 0/3] Replace udev rule for latch and
- dirty-shutdown-count
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Sep 2018 17:41:37 -0700
-Message-ID: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 93FF2211435AC
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Sep 2018 14:15:57 -0700 (PDT)
+Subject: Re: [PATCH v8 02/12] libnvdimm: create keyring to store security keys
+References: <153549644916.4089.12258485183075906901.stgit@djiang5-desk3.ch.intel.com>
+ <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
+ <29481.1537822932@warthog.procyon.org.uk>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <3239afcc-eb4a-22f5-f45c-74842124cf7a@intel.com>
+Date: Mon, 24 Sep 2018 14:15:33 -0700
 MIME-Version: 1.0
+In-Reply-To: <29481.1537822932@warthog.procyon.org.uk>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,51 +25,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: David Howells <dhowells@redhat.com>
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v2 [1]:
-* Drop the 'dirty-dimm' command
-* Add ndctl_dimm_get_dirty_shutdown() api
+On 09/24/2018 02:02 PM, David Howells wrote:
+> Dave Jiang <dave.jiang@intel.com> wrote:
+> 
+>> +			GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, &init_cred,
+> 
+> Hmmm...  I wonder if current_cred() would suffice since you must be called
+> from something that has the ability to load modules.  Further, I wonder if
+> module loading should be wrapped in an override with init_cred in the core.
+> 
+>> +			(KEY_USR_ALL & ~KEY_USR_SETATTR),
+> 
+> Did you really want to give the user write access, btw?
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2018-September/017890.html
+Hmmm....maybe I don't want user access at all since this is a kernel key
+ring?
 
----
-
-The latch mechanism is awkward especially when all that it needed is a
-rolling count of dirty-shutdown events. The expectation going forward is
-that the platform firmware will handle the latch, if it is present, and
-the OS need only consume the dirty-shutdown count. The ndctl
-implementation called libndctl apis from the udev queue which we
-discovered injects unnecessary udev queue drains / stalls into the boot
-path. Lastly, the userspace caching scheme for non-root users to consume
-the dirty-shutdown-count just isn't as efficient as teaching the kernel
-to cache this value and export it as a standard sysfs attribute.
-
----
-
-Dan Williams (3):
-      ndctl, lib: Add dirty-shutdown-count retrieval helper
-      ndctl: Revert "ndctl, intel: Fallback to smart cached shutdown_count"
-      ndctl: Revert "ndctl: Create ndctl udev rules for dirty shutdown"
-
-
- .gitignore             |    1 
- Makefile.am            |    3 -
- configure.ac           |   10 ---
- contrib/80-ndctl.rules |    3 -
- ndctl.spec.in          |    3 -
- ndctl/Makefile.am      |    5 --
- ndctl/lib/intel.c      |   41 -------------
- ndctl/lib/libndctl.c   |   16 ++++-
- ndctl/lib/libndctl.sym |    5 ++
- ndctl/lib/private.h    |    4 -
- ndctl/libndctl.h       |    1 
- ndctl/ndctl-udev.c     |  150 ------------------------------------------------
- test/libndctl.c        |   29 +++++++--
- 13 files changed, 40 insertions(+), 231 deletions(-)
- delete mode 100644 contrib/80-ndctl.rules
- delete mode 100644 ndctl/ndctl-udev.c
+> 
+> David
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
