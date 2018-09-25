@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 53582211597F3
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:46:50 -0700 (PDT)
-Subject: [PATCH v10 01/12] nfit: add support for Intel DSM 1.7 commands
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 13:46:49 -0700
-Message-ID: <153799480953.71621.8040473699184943509.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
-References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6FC7121157437
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:54 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Sep 2018 10:22:23 -0600
+Message-Id: <20180925162231.4354-6-logang@deltatee.com>
+In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
+References: <20180925162231.4354-1-logang@deltatee.com>
 MIME-Version: 1.0
+Subject: [PATCH v7 05/13] docs-rst: Add a new directory for PCI documentation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,225 +22,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Thierry Reding <treding@nvidia.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Sagar Dharia <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Sanyog Kale <sanyog.r.kale@intel.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add command definition for security commands defined in Intel DSM
-specification v1.7. This includes "get security state", "set passphrase",
-"unlock unit", "freeze lock", "secure erase", "ovewrite", and
-"overwrite query". Since we are adding a lot of Intel definitions, moving
-the relevant bits to its own header. Also, we don't want those commands
-to be issued from user space through ioctls. Reason being some of the
-security commands require kernel involvement to flush all CPU caches that
-can't be done in userspace and the result can cause system crash. So
-blocking security commands in the ioctl path.
+Add a new directory in the driver API guide for PCI specific
+documentation.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+This is in preparation for adding a new PCI P2P DMA driver writers
+guide which will go in this directory.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Sanyog Kale <sanyog.r.kale@intel.com>
+Cc: Sagar Dharia <sdharia@codeaurora.org>
 ---
- drivers/acpi/nfit/core.c  |   28 ++++++++++++++++++-
- drivers/acpi/nfit/intel.h |   67 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/nfit.h  |   17 +++++++++++
- drivers/nvdimm/bus.c      |    2 +
- include/linux/libnvdimm.h |    2 +
- 5 files changed, 112 insertions(+), 4 deletions(-)
- create mode 100644 drivers/acpi/nfit/intel.h
+ Documentation/driver-api/index.rst         |  2 +-
+ Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
+ Documentation/driver-api/{ => pci}/pci.rst |  0
+ 3 files changed, 21 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/driver-api/pci/index.rst
+ rename Documentation/driver-api/{ => pci}/pci.rst (100%)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index b072cfc5f20e..4f3b89dc9238 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -24,6 +24,7 @@
- #include <linux/nd.h>
- #include <asm/cacheflush.h>
- #include <acpi/nfit.h>
-+#include "intel.h"
- #include "nfit.h"
- 
- /*
-@@ -377,6 +378,14 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
- 			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
- 			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
- 			[NVDIMM_INTEL_INJECT_ERROR] = 2,
-+			[NVDIMM_INTEL_GET_SECURITY_STATE] = 2,
-+			[NVDIMM_INTEL_SET_PASSPHRASE] = 2,
-+			[NVDIMM_INTEL_DISABLE_PASSPHRASE] = 2,
-+			[NVDIMM_INTEL_UNLOCK_UNIT] = 2,
-+			[NVDIMM_INTEL_FREEZE_LOCK] = 2,
-+			[NVDIMM_INTEL_SECURE_ERASE] = 2,
-+			[NVDIMM_INTEL_OVERWRITE] = 2,
-+			[NVDIMM_INTEL_QUERY_OVERWRITE] = 2,
- 		},
- 	};
- 	u8 id;
-@@ -3229,7 +3238,7 @@ static int acpi_nfit_flush_probe(struct nvdimm_bus_descriptor *nd_desc)
- 	return 0;
- }
- 
--static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
-+static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-@@ -3251,6 +3260,23 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
-+/* prevent security commands from being issued via ioctl */
-+static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
-+		struct nvdimm *nvdimm, unsigned int cmd, void *buf)
-+{
-+	struct nd_cmd_pkg *call_pkg = buf;
-+	unsigned int func;
-+
-+	if (nvdimm && cmd == ND_CMD_CALL &&
-+			call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
-+		func = call_pkg->nd_command;
-+		if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
-+			return -EOPNOTSUPP;
-+	}
-+
-+	return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
-+}
-+
- int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
- {
- 	struct device *dev = acpi_desc->dev;
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
+index 6d9f2f9fe20e..e9e7d24169cf 100644
+--- a/Documentation/driver-api/index.rst
++++ b/Documentation/driver-api/index.rst
+@@ -29,7 +29,7 @@ available subsections can be seen below.
+    iio/index
+    input
+    usb/index
+-   pci
++   pci/index
+    spi
+    i2c
+    hsi
+diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
 new file mode 100644
-index 000000000000..a6f8f4bc8ebb
+index 000000000000..eaf20b24bf7d
 --- /dev/null
-+++ b/drivers/acpi/nfit/intel.h
-@@ -0,0 +1,67 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
-+/*
-+ * Intel specific definitions for NVDIMM Firmware Interface Table - NFIT
-+ */
-+#ifndef _NFIT_INTEL_H_
-+#define _NFIT_INTEL_H_
++++ b/Documentation/driver-api/pci/index.rst
+@@ -0,0 +1,20 @@
++.. SPDX-License-Identifier: GPL-2.0
++============================================
++The Linux PCI driver implementer's API guide
++============================================
 +
-+#ifdef CONFIG_X86
++.. class:: toc-title
 +
-+#define ND_INTEL_STATUS_SIZE		4
-+#define ND_INTEL_PASSPHRASE_SIZE	32
++	   Table of contents
 +
-+#define ND_INTEL_STATUS_RETRY		5
-+#define ND_INTEL_STATUS_NOT_READY	9
-+#define ND_INTEL_STATUS_INVALID_STATE	10
-+#define ND_INTEL_STATUS_INVALID_PASS	11
++.. toctree::
++   :maxdepth: 2
 +
-+#define ND_INTEL_SEC_STATE_ENABLED	0x02
-+#define ND_INTEL_SEC_STATE_LOCKED	0x04
-+#define ND_INTEL_SEC_STATE_FROZEN	0x08
-+#define ND_INTEL_SEC_STATE_PLIMIT	0x10
-+#define ND_INTEL_SEC_STATE_UNSUPPORTED	0x20
++   pci
 +
-+struct nd_intel_get_security_state {
-+	u32 status;
-+	u32 reserved;
-+	u8 state;
-+	u8 reserved1[3];
-+} __packed;
++.. only::  subproject and html
 +
-+struct nd_intel_set_passphrase {
-+	u8 old_pass[ND_INTEL_PASSPHRASE_SIZE];
-+	u8 new_pass[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
++   Indices
++   =======
 +
-+struct nd_intel_unlock_unit {
-+	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_disable_passphrase {
-+	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_freeze_lock {
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_secure_erase {
-+	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_overwrite {
-+	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_query_overwrite {
-+	u32 status;
-+} __packed;
-+#endif /* CONFIG_X86 */
-+
-+#endif
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index d1274ea2d251..1c4e26dd6425 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -60,14 +60,29 @@ enum nvdimm_family_cmds {
- 	NVDIMM_INTEL_QUERY_FWUPDATE = 16,
- 	NVDIMM_INTEL_SET_THRESHOLD = 17,
- 	NVDIMM_INTEL_INJECT_ERROR = 18,
-+	NVDIMM_INTEL_GET_SECURITY_STATE = 19,
-+	NVDIMM_INTEL_SET_PASSPHRASE = 20,
-+	NVDIMM_INTEL_DISABLE_PASSPHRASE = 21,
-+	NVDIMM_INTEL_UNLOCK_UNIT = 22,
-+	NVDIMM_INTEL_FREEZE_LOCK = 23,
-+	NVDIMM_INTEL_SECURE_ERASE = 24,
-+	NVDIMM_INTEL_OVERWRITE = 25,
-+	NVDIMM_INTEL_QUERY_OVERWRITE = 26,
- };
- 
-+#define NVDIMM_INTEL_SECURITY_CMDMASK \
-+(1 << NVDIMM_INTEL_GET_SECURITY_STATE | 1 << NVDIMM_INTEL_SET_PASSPHRASE \
-+| 1 << NVDIMM_INTEL_DISABLE_PASSPHRASE | 1 << NVDIMM_INTEL_UNLOCK_UNIT \
-+| 1 << NVDIMM_INTEL_FREEZE_LOCK | 1 << NVDIMM_INTEL_SECURE_ERASE \
-+| 1 << NVDIMM_INTEL_OVERWRITE | 1 << NVDIMM_INTEL_QUERY_OVERWRITE)
-+
- #define NVDIMM_INTEL_CMDMASK \
- (NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
-  | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
-  | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
-  | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
-- | 1 << NVDIMM_INTEL_INJECT_ERROR | 1 << NVDIMM_INTEL_LATCH_SHUTDOWN)
-+ | 1 << NVDIMM_INTEL_INJECT_ERROR | 1 << NVDIMM_INTEL_LATCH_SHUTDOWN \
-+ | NVDIMM_INTEL_SECURITY_CMDMASK)
- 
- enum nfit_uuids {
- 	/* for simplicity alias the uuid index with the family id */
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 8aae6dcc839f..51113eeb6076 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -894,7 +894,7 @@ static int nd_cmd_clear_to_send(struct nvdimm_bus *nvdimm_bus,
- 
- 	/* ask the bus provider if it would like to block this request */
- 	if (nd_desc->clear_to_send) {
--		int rc = nd_desc->clear_to_send(nd_desc, nvdimm, cmd);
-+		int rc = nd_desc->clear_to_send(nd_desc, nvdimm, cmd, data);
- 
- 		if (rc)
- 			return rc;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 097072c5a852..472171af7f60 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -87,7 +87,7 @@ struct nvdimm_bus_descriptor {
- 	ndctl_fn ndctl;
- 	int (*flush_probe)(struct nvdimm_bus_descriptor *nd_desc);
- 	int (*clear_to_send)(struct nvdimm_bus_descriptor *nd_desc,
--			struct nvdimm *nvdimm, unsigned int cmd);
-+			struct nvdimm *nvdimm, unsigned int cmd, void *data);
- };
- 
- struct nd_cmd_desc {
++   * :ref:`genindex`
+diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
+similarity index 100%
+rename from Documentation/driver-api/pci.rst
+rename to Documentation/driver-api/pci/pci.rst
+-- 
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
