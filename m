@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5338B21135FEE
- for <linux-nvdimm@lists.01.org>; Thu, 20 Sep 2018 15:27:56 -0700 (PDT)
-Subject: [PATCH v4 2/5] mm: Create non-atomic version of SetPageReserved for
- init use
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 20 Sep 2018 15:27:53 -0700
-Message-ID: <20180920222641.19464.75787.stgit@localhost.localdomain>
-In-Reply-To: <20180920215824.19464.8884.stgit@localhost.localdomain>
-References: <20180920215824.19464.8884.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 4D011211575CA
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:37:46 -0700 (PDT)
+Subject: [PATCH v9 00/12] Adding security support for nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 25 Sep 2018 16:37:45 -0700
+Message-ID: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,80 +20,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-It doesn't make much sense to use the atomic SetPageReserved at init time
-when we are using memset to clear the memory and manipulating the page
-flags via simple "&=" and "|=" operations in __init_single_page.
+The following series implements security support for nvdimm. Mostly adding
+new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
+adding generic support libnvdimm for other vendors. The most important
+security features are unlocking locked nvdimms, and updating/setting security
+passphrase to nvdimms.
 
-This patch adds a non-atomic version __SetPageReserved that can be used
-during page init and shows about a 10% improvement in initialization times
-on the systems I have available for testing. On those systems I saw
-initialization times drop from around 35 seconds to around 32 seconds to
-initialize a 3TB block of persistent memory. I believe the main advantage
-of this is that it allows for more compiler optimization as the __set_bit
-operation can be reordered whereas the atomic version cannot.
+v9:
+- Addressed various misc comments. (David, Dan)
+- Removed init_cred and replaced with current_cred(). (David)
+- Changed NVDIMM_PREFIX to char[] constant (David)
+- Moved NVDIMM_PREFIX to include/uapi/linux/ndctl.h (Dan)
+- Reworked security_update to use old user key to verify against kernel
+  key and then update with new user key. (David)
+- Added requirement of disable and erase to require old user key for
+  verify. (Dan)
+- Updated documentation. (Dave)
 
-I tried adding a bit of documentation based on commit <f1dd2cd13c4> ("mm,
-memory_hotplug: do not associate hotadded memory to zones until online").
+v8:
+- Make the keys retained by the kernel user searchable in order to find the
+  key that needs to be updated for key update.
 
-Ideally the reserved flag should be set earlier since there is a brief
-window where the page is initialization via __init_single_page and we have
-not set the PG_Reserved flag. I'm leaving that for a future patch set as
-that will require a more significant refactor.
+v7:
+- Add CONFIG_KEYS depenency for libnvdimm. (Alison)
+- Export lookup_user_key(). (David)
+- Modified "update" to take two key ids and and use lookup_user_key() in
+  order to improve security.  (David)
+- Use key ptrs and key_validate() for cached keys. (David)
 
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+v6:
+- Fix intel DSM data structures to use defined size for passphrase (Robert)
+- Fix memcpy size to use sizeof data structure member (Robert)
+- Fix defined dimm id length (Robert)
+- Making intel_security_ops const (Eric)
+- Remove unused var in nvdimm_key_search() (Eric)
+- Added wbinvd before secure erase is issued (Robert)
+- Removed key_put_sync() usage (David)
+- Use init_cred instead of creating own cred (David)
+    - Exported init_cred symbol
+- Move keyring to dedicated (David)
+- Use logon_key_type and friends instead of creating custom (David)
+- Use key_lookup() with stored key serial (David)
+    - Exported key_lookup() symbol
+- Mark passed in key data as const (David)
+- Added comment for change_pass_phrase to explain how it works (David)
+- Unlink key when it's being removed from keyring. (David)
+- Removed request_key() from all security ops except update and unlock.
+- Update will now update the existing key's payload with the new key's
+  retrieved from userspace when the new payload is accepted by nvdimm.
+
+v5:
+- Moved dimm_id initialization (Dan)
+- Added a key_put_sync() in order to run key_gc_work and cleanup old key. (Dan)
+- Added check to block security state changes while DIMM is active. (Dan)
+
+v4:
+- flip payload layout for update passphrase to make it easier on userland.
+
+v3:
+- Set x86 wrappers for x86 only bits. (Dan)
+- Fixed up some verbiage in commit headers.
+- Put in usage of sysfs_streq() for sysfs inputs.
+- 0-day build fixes for non-x86 archs.
+
+v2:
+- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
+- Moved security ring relevant code to dimm_devs.c. (Dan)
+- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
+- Added routine to return security_ops based on family supplied. (Dan)
+- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
+- Allocate firmware package on stack. (Dan)
+- Added missing frozen state detection when retrieving security state.
+
 ---
 
-v4: Added comment about __set_bit vs set_bit to the patch description
+Dave Jiang (12):
+      nfit: add support for Intel DSM 1.7 commands
+      libnvdimm: create keyring to store security keys
+      nfit/libnvdimm: store dimm id as a member to struct nvdimm
+      keys: export lookup_user_key to external users
+      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
+      nfit/libnvdimm: add set passphrase support for Intel nvdimms
+      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
+      nfit/libnvdimm: add freeze security support to Intel nvdimm
+      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
+      nfit_test: add context to dimm_dev for nfit_test
+      nfit_test: add test support for Intel nvdimm security DSMs
+      libnvdimm: add documentation for nvdimm security support
 
- include/linux/page-flags.h |    1 +
- mm/page_alloc.c            |    9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-index 934f91ef3f54..50ce1bddaf56 100644
---- a/include/linux/page-flags.h
-+++ b/include/linux/page-flags.h
-@@ -303,6 +303,7 @@ static inline void page_init_poison(struct page *page, size_t size)
- 
- PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
-+	__SETPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 712cab17f86f..29bd662fffd7 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1239,7 +1239,12 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
- 			/* Avoid false-positive PageTail() */
- 			INIT_LIST_HEAD(&page->lru);
- 
--			SetPageReserved(page);
-+			/*
-+			 * no need for atomic set_bit because the struct
-+			 * page is not visible yet so nobody should
-+			 * access it yet.
-+			 */
-+			__SetPageReserved(page);
- 		}
- 	}
- }
-@@ -5513,7 +5518,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
- 		if (context == MEMMAP_HOTPLUG)
--			SetPageReserved(page);
-+			__SetPageReserved(page);
- 
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
+ Documentation/nvdimm/security.txt |   99 +++++++
+ drivers/acpi/nfit/Makefile        |    1 
+ drivers/acpi/nfit/core.c          |   58 +++-
+ drivers/acpi/nfit/intel.c         |  382 ++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h         |   82 ++++++
+ drivers/acpi/nfit/nfit.h          |   20 +
+ drivers/nvdimm/Kconfig            |    1 
+ drivers/nvdimm/bus.c              |    2 
+ drivers/nvdimm/core.c             |    7 
+ drivers/nvdimm/dimm.c             |    7 
+ drivers/nvdimm/dimm_devs.c        |  549 +++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h          |    6 
+ drivers/nvdimm/nd.h               |    2 
+ include/linux/key.h               |    3 
+ include/linux/libnvdimm.h         |   42 +++
+ include/uapi/linux/ndctl.h        |    6 
+ security/keys/internal.h          |    2 
+ security/keys/process_keys.c      |    1 
+ tools/testing/nvdimm/Kbuild       |    1 
+ tools/testing/nvdimm/test/nfit.c  |  227 ++++++++++++++-
+ 20 files changed, 1462 insertions(+), 36 deletions(-)
+ create mode 100644 Documentation/nvdimm/security.txt
+ create mode 100644 drivers/acpi/nfit/intel.c
+ create mode 100644 drivers/acpi/nfit/intel.h
 
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
