@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8F478211575C7
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:58 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:21 -0600
-Message-Id: <20180925162231.4354-4-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 66C90211575C8
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:18:10 -0700 (PDT)
+Subject: [PATCH v5 0/4] Address issues slowing persistent memory initialization
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 25 Sep 2018 13:18:08 -0700
+Message-ID: <20180925200551.3576.18755.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Subject: [PATCH v7 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to adjust
- the bus offset
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,128 +20,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The DMA address used when mapping PCI P2P memory must be the PCI bus
-address. Thus, introduce pci_p2pmem_map_sg() to map the correct
-addresses when using P2P memory.
+This patch set is meant to be a v5 of my earlier submission with the same
+title[1].
 
-Memory mapped in this way does not need to be unmapped and thus if we
-provided pci_p2pmem_unmap_sg() it would be empty. This breaks the
-expected balance between map/unmap but was left out as an empty
-function doesn't really provide any benefit. In the future, if
-this call becomes necessary it can be added without much difficulty.
+The main changes from the previous version are that I have added a new
+patch to address an issue that had disabled deferred memory init on my
+system due to recent config changes related to CONFIG_NO_BOOTMEM. In
+addition I dropped the original patches 4 and 5 from the previous set as
+that is going to need to be a separate set of patches.
 
-For this, we assume that an SGL passed to these functions contain all
-P2P memory or no P2P memory.
+The main thing this patch set achieves is that it allows us to initialize
+each node worth of persistent memory independently. As a result we reduce
+page init time by about 2 minutes because instead of taking 30 to 40 seconds
+per node and going through each node one at a time, we process all 4 nodes
+in parallel in the case of a 12TB persistent memory setup spread evenly over
+4 nodes.
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+[1]: https://lkml.org/lkml/2018/9/21/4
 ---
- drivers/pci/p2pdma.c       | 43 ++++++++++++++++++++++++++++++++++++++
- include/linux/memremap.h   |  1 +
- include/linux/pci-p2pdma.h |  7 +++++++
- 3 files changed, 51 insertions(+)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index d61389945da2..bbbf86165428 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -190,6 +190,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 	pgmap->res.flags = pci_resource_flags(pdev, bar);
- 	pgmap->ref = &pdev->p2pdma->devmap_ref;
- 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-+	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
-+		pci_resource_start(pdev, bar);
- 
- 	addr = devm_memremap_pages(&pdev->dev, pgmap);
- 	if (IS_ERR(addr)) {
-@@ -816,3 +818,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- 	pdev->p2pdma->p2pmem_published = publish;
- }
- EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-+
-+/**
-+ * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
-+ * @dev: device doing the DMA request
-+ * @sg: scatter list to map
-+ * @nents: elements in the scatterlist
-+ * @dir: DMA direction
-+ *
-+ * Scatterlists mapped with this function should not be unmapped in any way.
-+ *
-+ * Returns the number of SG entries mapped or 0 on error.
-+ */
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir)
-+{
-+	struct dev_pagemap *pgmap;
-+	struct scatterlist *s;
-+	phys_addr_t paddr;
-+	int i;
-+
-+	/*
-+	 * p2pdma mappings are not compatible with devices that use
-+	 * dma_virt_ops. If the upper layers do the right thing
-+	 * this should never happen because it will be prevented
-+	 * by the check in pci_p2pdma_add_client()
-+	 */
-+	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
-+			 dev->dma_ops == &dma_virt_ops))
-+		return 0;
-+
-+	for_each_sg(sg, s, nents, i) {
-+		pgmap = sg_page(s)->pgmap;
-+		paddr = sg_phys(s);
-+
-+		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
-+		sg_dma_len(s) = s->length;
-+	}
-+
-+	return nents;
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 9553370ebdad..0ac69ddf5fc4 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -125,6 +125,7 @@ struct dev_pagemap {
- 	struct device *dev;
- 	void *data;
- 	enum memory_type type;
-+	u64 pci_p2pdma_bus_offset;
- };
- 
- #ifdef CONFIG_ZONE_DEVICE
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 127e95f50491..f039c48990a5 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -35,6 +35,8 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
- 					 unsigned int *nents, u32 length);
- void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-+int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+		      enum dma_data_direction dir);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -97,5 +99,10 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
- static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
- {
- }
-+static inline int pci_p2pdma_map_sg(struct device *dev,
-+		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
--- 
-2.19.0
+Alexander Duyck (4):
+      mm: Remove now defunct NO_BOOTMEM from depends list for deferred init
+      mm: Provide kernel parameter to allow disabling page init poisoning
+      mm: Create non-atomic version of SetPageReserved for init use
+      mm: Defer ZONE_DEVICE page initialization to the point where we init pgmap
 
+
+ Documentation/admin-guide/kernel-parameters.txt |   12 +++
+ arch/csky/Kconfig                               |    1 
+ include/linux/mm.h                              |    2 
+ include/linux/page-flags.h                      |    9 ++
+ kernel/memremap.c                               |   24 ++---
+ mm/Kconfig                                      |    1 
+ mm/debug.c                                      |   46 ++++++++++
+ mm/hmm.c                                        |   12 ++-
+ mm/memblock.c                                   |    5 -
+ mm/page_alloc.c                                 |  101 ++++++++++++++++++++++-
+ mm/sparse.c                                     |    4 -
+ 11 files changed, 184 insertions(+), 33 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
