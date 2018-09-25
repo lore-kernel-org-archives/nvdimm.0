@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
+ [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1D70921130E51
- for <linux-nvdimm@lists.01.org>; Fri, 14 Sep 2018 07:51:21 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 2/3] ext4, dax: set ext4_dax_aops for dax files
-Date: Fri, 14 Sep 2018 08:51:13 -0600
-Message-Id: <20180914145114.11122-3-toshi.kani@hpe.com>
-In-Reply-To: <20180914145114.11122-1-toshi.kani@hpe.com>
-References: <20180914145114.11122-1-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id D9B2721962301
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:05:10 -0700 (PDT)
+Date: Tue, 25 Sep 2018 22:05:07 +0200
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [GIT PULL v2] libnvdimm/dax fixes for 4.19-rc6
+Message-ID: <20180925200507.GA2677@kroah.com>
+References: <1537904158.7585.65.camel@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1537904158.7585.65.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,71 +20,22 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: jack@suse.cz, dan.j.williams@intel.com
-Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, adilger.kernel@dilger.ca, linux-ext4@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Sync syscall to DAX file needs to flush processor cache, but it
-currently does not flush to existing DAX files.  This is because
-'ext4_da_aops' is set to address_space_operations of existing DAX
-files, instead of 'ext4_dax_aops', since S_DAX flag is set after
-ext4_set_aops() in the open path.
+On Tue, Sep 25, 2018 at 07:36:03PM +0000, Williams, Dan J wrote:
+> Hi Greg, please pull from...
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-4.19-rc6
 
-  New file
-  --------
-  lookup_open
-    ext4_create
-      __ext4_new_inode
-        ext4_set_inode_flags   // Set S_DAX flag
-      ext4_set_aops            // Set aops to ext4_dax_aops
+Now pulled, thanks.
 
-  Existing file
-  -------------
-  lookup_open
-    ext4_lookup
-      ext4_iget
-        ext4_set_aops          // Set aops to ext4_da_aops
-        ext4_set_inode_flags   // Set S_DAX flag
-
-Change ext4_iget() to initialize i_flags before ext4_set_aops().
-
-Fixes: 5f0663bb4a64 ("ext4, dax: introduce ext4_dax_aops")
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Suggested-by: Jan Kara <jack@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: <stable@vger.kernel.org>
----
- fs/ext4/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index e4acaa980467..b19387b75f2b 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4896,6 +4896,7 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
- 		 * not initialized on a new filesystem. */
- 	}
- 	ei->i_flags = le32_to_cpu(raw_inode->i_flags);
-+	ext4_set_inode_flags(inode);
- 	inode->i_blocks = ext4_inode_blocks(raw_inode, ei);
- 	ei->i_file_acl = le32_to_cpu(raw_inode->i_file_acl_lo);
- 	if (ext4_has_feature_64bit(sb))
-@@ -5042,7 +5043,6 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
- 		goto bad_inode;
- 	}
- 	brelse(iloc.bh);
--	ext4_set_inode_flags(inode);
- 
- 	unlock_new_inode(inode);
- 	return inode;
+greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
