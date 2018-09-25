@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 21E7C21122933
- for <linux-nvdimm@lists.01.org>; Fri,  7 Sep 2018 02:24:36 -0700 (PDT)
-From: Zhang Yi <yi.z.zhang@linux.intel.com>
-Subject: [PATCH V5 2/4] mm: introduce memory type MEMORY_DEVICE_DEV_DAX
-Date: Sat,  8 Sep 2018 02:03:39 +0800
-Message-Id: <c0b53c74379e6d654bbe42471fcef8aa5fd22efd.1536342881.git.yi.z.zhang@linux.intel.com>
-In-Reply-To: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
-References: <cover.1536342881.git.yi.z.zhang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 96C4D2194D387
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:51 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Sep 2018 10:22:22 -0600
+Message-Id: <20180925162231.4354-5-logang@deltatee.com>
+In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
+References: <20180925162231.4354-1-logang@deltatee.com>
+MIME-Version: 1.0
+Subject: [PATCH v7 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
+ attribute helpers
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,67 +19,163 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, pbonzini@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de
-Cc: linux-mm@kvack.org, jglisse@redhat.com, yi.z.zhang@intel.com, rkrcmar@redhat.com
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently, NVDIMM pages will be marked 'PageReserved'. However, unlike
-other reserved PFNs, pages on NVDIMM shall still behave like normal ones
-in many cases, i.e. when used as backend memory of KVM guest. This patch
-introduces a new memory type, MEMORY_DEVICE_DEV_DAX. And set this flag
-while dax driver hotplug the device memory.
+Users of the P2PDMA infrastructure will typically need a way for
+the user to tell the kernel to use P2P resources. Typically
+this will be a simple on/off boolean operation but sometimes
+it may be desirable for the user to specify the exact device to
+use for the P2P operation.
 
-Signed-off-by: Zhang Yi <yi.z.zhang@linux.intel.com>
-Signed-off-by: Zhang Yu <yu.c.zhang@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Add new helpers for attributes which take a boolean or a PCI device.
+Any boolean as accepted by strtobool() turn P2P on or off (such as 'y', 'n',
+'1', '0', etc). Specifying a full PCI device name/BDF will select the
+specific device.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/dax/pmem.c       | 1 +
- include/linux/memremap.h | 8 ++++++++
- 2 files changed, 9 insertions(+)
+ drivers/pci/p2pdma.c       | 82 ++++++++++++++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h | 15 +++++++
+ 2 files changed, 97 insertions(+)
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index fd49b24..fb3f363 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -111,6 +111,7 @@ static int dax_pmem_probe(struct device *dev)
- 		return rc;
- 
- 	dax_pmem->pgmap.ref = &dax_pmem->ref;
-+	dax_pmem->pgmap.type = MEMORY_DEVICE_DEV_DAX;
- 	addr = devm_memremap_pages(dev, &dax_pmem->pgmap);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index f91f9e7..cd07ca8 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -53,11 +53,19 @@ struct vmem_altmap {
-  * wakeup event whenever a page is unpinned and becomes idle. This
-  * wakeup is used to coordinate physical address space management (ex:
-  * fs truncate/hole punch) vs pinned pages (ex: device dma).
-+ *
-+ * MEMORY_DEVICE_DEV_DAX:
-+ * Device memory that support raw access to persistent memory. Without need
-+ * of an intervening filesystem, it could be directed mapped via an mmap
-+ * capable character device. Together with the type MEMORY_DEVICE_FS_DAX,
-+ * we could distinguish the persistent memory pages from normal ZONE_DEVICE
-+ * pages.
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index bbbf86165428..094d2b337c50 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -8,6 +8,8 @@
+  * Copyright (c) 2018, Eideticom Inc.
   */
- enum memory_type {
- 	MEMORY_DEVICE_PRIVATE = 1,
- 	MEMORY_DEVICE_PUBLIC,
- 	MEMORY_DEVICE_FS_DAX,
-+	MEMORY_DEVICE_DEV_DAX,
- };
  
- /*
++#define pr_fmt(fmt) "pci-p2pdma: " fmt
++#include <linux/ctype.h>
+ #include <linux/pci-p2pdma.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -859,3 +861,83 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 	return nents;
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
++
++/**
++ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
++ *		to enable p2pdma
++ * @page: contents of the value to be stored
++ * @p2p_dev: returns the PCI device that was selected to be used
++ *		(if one was specified in the stored value)
++ * @use_p2pdma: returns whether to enable p2pdma or not
++ *
++ * Parses an attribute value to decide whether to enable p2pdma.
++ * The value can select a PCI device (using it's full BDF device
++ * name) or a boolean (in any format strtobool() accepts). A false
++ * value disables p2pdma, a true value expects the caller
++ * to automatically find a compatible device and specifying a PCI device
++ * expects the caller to use the specific provider.
++ *
++ * pci_p2pdma_enable_show() should be used as the show operation for
++ * the attribute.
++ *
++ * Returns 0 on success
++ */
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma)
++{
++	struct device *dev;
++
++	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
++	if (dev) {
++		*use_p2pdma = true;
++		*p2p_dev = to_pci_dev(dev);
++
++		if (!pci_has_p2pmem(*p2p_dev)) {
++			pci_err(*p2p_dev,
++				"PCI device has no peer-to-peer memory: %s\n",
++				page);
++			pci_dev_put(*p2p_dev);
++			return -ENODEV;
++		}
++
++		return 0;
++	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
++		/*
++		 * If the user enters a PCI device that  doesn't exist
++		 * like "0000:01:00.1", we don't want strtobool to think
++		 * it's a '0' when it's clearly not what the user wanted.
++		 * So we require 0's and 1's to be exactly one character.
++		 */
++	} else if (!strtobool(page, use_p2pdma)) {
++		return 0;
++	}
++
++	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
++
++/**
++ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
++ *		whether p2pdma is enabled
++ * @page: contents of the stored value
++ * @p2p_dev: the selected p2p device (NULL if no device is selected)
++ * @use_p2pdma: whether p2pdme has been enabled
++ *
++ * Attributes that use pci_p2pdma_enable_store() should use this function
++ * to show the value of the attribute.
++ *
++ * Returns 0 on success
++ */
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma)
++{
++	if (!use_p2pdma)
++		return sprintf(page, "0\n");
++
++	if (!p2p_dev)
++		return sprintf(page, "1\n");
++
++	return sprintf(page, "%s\n", pci_name(p2p_dev));
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index f039c48990a5..5248540eead2 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -37,6 +37,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
+ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 		      enum dma_data_direction dir);
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma);
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -104,5 +108,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
+ {
+ 	return 0;
+ }
++static inline int pci_p2pdma_enable_store(const char *page,
++		struct pci_dev **p2p_dev, bool *use_p2pdma)
++{
++	*use_p2pdma = false;
++	return 0;
++}
++static inline ssize_t pci_p2pdma_enable_show(char *page,
++		struct pci_dev *p2p_dev, bool use_p2pdma)
++{
++	return sprintf(page, "none\n");
++}
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
 -- 
-2.7.4
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
