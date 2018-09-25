@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D8FC521159CAA
- for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 17:53:36 -0700 (PDT)
-Subject: [ndctl PATCH v3 2/3] ndctl: Revert "ndctl,
- intel: Fallback to smart cached shutdown_count"
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Sep 2018 17:41:48 -0700
-Message-ID: <153809530844.1963951.6398043145929468764.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9D7EA21AE30DB
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:52:57 -0700 (PDT)
+Subject: [PATCH 0/2] Minor fixups for nd_device_register
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 25 Sep 2018 13:52:56 -0700
+Message-ID: <20180925204801.6182.73167.stgit@localhost.localdomain>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,126 +20,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: zwisler@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static device attribute data, if it needs to be cached and exported to
-unprivileged userspace, should live in sysfs.
+This patch series addresses a couple minor issues in nd_device_register.
 
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The first patch resolves an issue in which we weren't holding the parent
+lock so it is possible the parent could have been released prior to us
+taking care of initializing the device via the asynchronous init.
+
+The second patch moves the initialization of the device node to the
+earliest point where we can do it. By doing this we can avoid repeatedly
+updating the node on each uevent. 
+
 ---
- ndctl/lib/intel.c    |   41 -----------------------------------------
- ndctl/lib/libndctl.c |    6 +-----
- ndctl/lib/private.h  |    3 ---
- 3 files changed, 1 insertion(+), 49 deletions(-)
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 15c5d1a60e34..0abea1e1f5ff 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -56,46 +56,6 @@ static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 	return cmd;
- }
- 
--/*
-- * If provided, read the cached shutdown count in case the user does not have
-- * access rights to run the smart command, and pretend the command was
-- * successful with only the shutdown_count valid.
-- */
--static int intel_smart_handle_error(struct ndctl_cmd *cmd)
--{
--	struct ndctl_dimm *dimm = cmd->dimm;
--	struct ndctl_bus *bus = cmd_to_bus(cmd);
--	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
--	char *path = NULL, shutdown_count[16] = {};
--	int fd, rc = cmd->status;
--
--	if (!dimm)
--		goto out;
--
--	if (asprintf(&path, DEF_TMPFS_DIR "/%s/usc",
--		     ndctl_dimm_get_devname(dimm)) < 0)
--		goto out;
--
--	fd = open(path, O_RDONLY);
--	if (fd < 0)
--		goto free_path;
--
--	if (read(fd, shutdown_count, sizeof(shutdown_count)) < 0)
--		goto close;
--
--	cmd->intel->smart.flags = ND_INTEL_SMART_SHUTDOWN_COUNT_VALID;
--	cmd->intel->smart.shutdown_count = strtoull(shutdown_count, NULL, 0);
--	rc = cmd->status = 0;
-- close:
--	close (fd);
-- free_path:
--	free(path);
-- out:
--	if (rc)
--		err(ctx, "failed: %s\n", strerror(errno));
--	return rc;
--}
--
- static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- {
- 	struct ndctl_cmd *cmd;
-@@ -107,7 +67,6 @@ static struct ndctl_cmd *intel_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	if (!cmd)
- 		return NULL;
- 	cmd->firmware_status = &cmd->intel->smart.status;
--	cmd->handle_error = intel_smart_handle_error;
- 
- 	return cmd;
- }
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 737b1de2c930..a7b6cc520085 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2763,9 +2763,7 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
- 
- 	fd = open(path, O_RDWR);
- 	if (fd < 0) {
--		if (!cmd->handle_error)
--			err(ctx, "failed to open %s: %s\n", path,
--				strerror(errno));
-+		err(ctx, "failed to open %s: %s\n", path, strerror(errno));
- 		rc = -errno;
- 		goto out;
- 	}
-@@ -2781,8 +2779,6 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
- 	close(fd);
-  out:
- 	cmd->status = rc;
--	if (rc && cmd->handle_error)
--		rc = cmd->handle_error(cmd);
- 	return rc;
- }
- 
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 55fcd4e0ad05..d3c3e48535e1 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -228,8 +228,6 @@ struct ndctl_namespace {
-  * @firmware_status: NFIT command output status code
-  * @iter: iterator for multi-xfer commands
-  * @source: source cmd of an inherited iter.total_buf
-- * @handle_error: function pointer to handle a cmd error and override it to
-- * 		  return alternative data (from a cache for example).
-  *
-  * For dynamically sized commands like 'get_config', 'set_config', or
-  * 'vendor', @size encompasses the entire buffer for the command input
-@@ -258,7 +256,6 @@ struct ndctl_cmd {
- 		int dir;
- 	} iter;
- 	struct ndctl_cmd *source;
--	int (*handle_error)(struct ndctl_cmd *cmd);
- 	union {
- 		struct nd_cmd_ars_cap ars_cap[0];
- 		struct nd_cmd_ars_start ars_start[0];
+Alexander Duyck (2):
+      nvdimm: Hold reference on parent while scheduling async init
+      nvdimm: Set device node in nd_device_register
 
+
+ drivers/nvdimm/bus.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
