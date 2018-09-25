@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
- [IPv6:2607:f8b0:4864:20::642])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B22702112500D
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:49 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id w14-v6so10440202plp.6
- for <linux-nvdimm@lists.01.org>; Mon, 10 Sep 2018 16:43:49 -0700 (PDT)
-Subject: [PATCH 2/4] mm: Create non-atomic version of SetPageReserved for
- init use
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 10 Sep 2018 16:43:48 -0700
-Message-ID: <20180910234348.4068.92164.stgit@localhost.localdomain>
-In-Reply-To: <20180910232615.4068.29155.stgit@localhost.localdomain>
-References: <20180910232615.4068.29155.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 9E94321157436
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:38:08 -0700 (PDT)
+Subject: [PATCH v9 04/12] keys: export lookup_user_key to external users
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 25 Sep 2018 16:38:07 -0700
+Message-ID: <153791868767.70158.10181541227949997641.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,85 +22,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
+Export lookup_user_key() symbol in order to allow nvdimm passphrase
+update to retrieve user injected keys.
 
-It doesn't make much sense to use the atomic SetPageReserved at init time
-when we are using memset to clear the memory and manipulating the page
-flags via simple "&=" and "|=" operations in __init_single_page.
-
-This patch adds a non-atomic version __SetPageReserved that can be used
-during page init and shows about a 10% improvement in initialization times
-on the systems I have available for testing. On those systems I saw
-initialization times drop from around 35 seconds to around 32 seconds to
-initialize a 3TB block of persistent memory.
-
-I tried adding a bit of documentation based on commit <f1dd2cd13c4> ("mm,
-memory_hotplug: do not associate hotadded memory to zones until online").
-
-Ideally the reserved flag should be set earlier since there is a brief
-window where the page is initialization via __init_single_page and we have
-not set the PG_Reserved flag. I'm leaving that for a future patch set as
-that will require a more significant refactor.
-
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Acked-by: David Howells <dhowells at redhat.com>
 ---
- include/linux/page-flags.h |    1 +
- mm/page_alloc.c            |   17 +++++++++++++++--
- 2 files changed, 16 insertions(+), 2 deletions(-)
+ include/linux/key.h          |    3 +++
+ security/keys/internal.h     |    2 --
+ security/keys/process_keys.c |    1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-index d00216cf00f8..1b1f8e0378ae 100644
---- a/include/linux/page-flags.h
-+++ b/include/linux/page-flags.h
-@@ -300,6 +300,7 @@ static inline void page_init_poison(struct page *page, size_t size)
+diff --git a/include/linux/key.h b/include/linux/key.h
+index e58ee10f6e58..7099985e35a9 100644
+--- a/include/linux/key.h
++++ b/include/linux/key.h
+@@ -346,6 +346,9 @@ static inline key_serial_t key_serial(const struct key *key)
  
- PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
-+	__SETPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 89d2a2ab3fe6..a9b095a72fd9 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1231,7 +1231,12 @@ void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
- 			/* Avoid false-positive PageTail() */
- 			INIT_LIST_HEAD(&page->lru);
+ extern void key_set_timeout(struct key *, unsigned);
  
--			SetPageReserved(page);
-+			/*
-+			 * no need for atomic set_bit because the struct
-+			 * page is not visible yet so nobody should
-+			 * access it yet.
-+			 */
-+			__SetPageReserved(page);
- 		}
- 	}
- }
-@@ -5517,8 +5522,16 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- not_early:
- 		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
++extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
++				 key_perm_t perm);
 +
-+		/*
-+		 * Mark page reserved as it will need to wait for onlining
-+		 * phase for it to be fully associated with a zone.
-+		 *
-+		 * We can use the non-atomic __set_bit operation for setting
-+		 * the flag as we are still initializing the pages.
-+		 */
- 		if (context == MEMMAP_HOTPLUG)
--			SetPageReserved(page);
-+			__SetPageReserved(page);
+ /*
+  * The permissions required on a key that we're looking up.
+  */
+diff --git a/security/keys/internal.h b/security/keys/internal.h
+index 9f8208dc0e55..9968b21a76dd 100644
+--- a/security/keys/internal.h
++++ b/security/keys/internal.h
+@@ -158,8 +158,6 @@ extern struct key *request_key_and_link(struct key_type *type,
  
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
+ extern bool lookup_user_key_possessed(const struct key *key,
+ 				      const struct key_match_data *match_data);
+-extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
+-				 key_perm_t perm);
+ #define KEY_LOOKUP_CREATE	0x01
+ #define KEY_LOOKUP_PARTIAL	0x02
+ #define KEY_LOOKUP_FOR_UNLINK	0x04
+diff --git a/security/keys/process_keys.c b/security/keys/process_keys.c
+index d5b25e535d3a..ec4fd4531224 100644
+--- a/security/keys/process_keys.c
++++ b/security/keys/process_keys.c
+@@ -755,6 +755,7 @@ key_ref_t lookup_user_key(key_serial_t id, unsigned long lflags,
+ 	put_cred(ctx.cred);
+ 	goto try_again;
+ }
++EXPORT_SYMBOL(lookup_user_key);
+ 
+ /*
+  * Join the named keyring as the session keyring if possible else attempt to
 
 _______________________________________________
 Linux-nvdimm mailing list
