@@ -2,15 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6FC7121157437
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:54 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 595372194D387
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:52 -0700 (PDT)
 From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:23 -0600
-Message-Id: <20180925162231.4354-6-logang@deltatee.com>
+Date: Tue, 25 Sep 2018 10:22:26 -0600
+Message-Id: <20180925162231.4354-9-logang@deltatee.com>
 In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
 References: <20180925162231.4354-1-logang@deltatee.com>
 MIME-Version: 1.0
-Subject: [PATCH v7 05/13] docs-rst: Add a new directory for PCI documentation
+Subject: [PATCH v7 08/13] IB/core: Ensure we map P2P memory correctly in
+ rdma_rw_ctx_[init|destroy]()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,76 +24,59 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Thierry Reding <treding@nvidia.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Sagar Dharia <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Sanyog Kale <sanyog.r.kale@intel.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new directory in the driver API guide for PCI specific
-documentation.
+In order to use PCI P2P memory the pci_p2pmem_map_sg() function must be
+called to map the correct PCI bus address.
 
-This is in preparation for adding a new PCI P2P DMA driver writers
-guide which will go in this directory.
+To do this, check the first page in the scatter list to see if it is P2P
+memory or not. At the moment, scatter lists that contain P2P memory must
+be homogeneous so if the first page is P2P the entire SGL should be P2P.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Sanyog Kale <sanyog.r.kale@intel.com>
-Cc: Sagar Dharia <sdharia@codeaurora.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- Documentation/driver-api/index.rst         |  2 +-
- Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
- Documentation/driver-api/{ => pci}/pci.rst |  0
- 3 files changed, 21 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+ drivers/infiniband/core/rw.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 6d9f2f9fe20e..e9e7d24169cf 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -29,7 +29,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
--   pci
-+   pci/index
-    spi
-    i2c
-    hsi
-diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-new file mode 100644
-index 000000000000..eaf20b24bf7d
---- /dev/null
-+++ b/Documentation/driver-api/pci/index.rst
-@@ -0,0 +1,20 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+============================================
-+The Linux PCI driver implementer's API guide
-+============================================
+diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+index 683e6d11a564..d22c4a2ebac6 100644
+--- a/drivers/infiniband/core/rw.c
++++ b/drivers/infiniband/core/rw.c
+@@ -12,6 +12,7 @@
+  */
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
++#include <linux/pci-p2pdma.h>
+ #include <rdma/mr_pool.h>
+ #include <rdma/rw.h>
+ 
+@@ -280,7 +281,11 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
+ 	struct ib_device *dev = qp->pd->device;
+ 	int ret;
+ 
+-	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
++	if (is_pci_p2pdma_page(sg_page(sg)))
++		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
++	else
++		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
 +
-+.. class:: toc-title
-+
-+	   Table of contents
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-+   pci
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
-similarity index 100%
-rename from Documentation/driver-api/pci.rst
-rename to Documentation/driver-api/pci/pci.rst
+ 	if (!ret)
+ 		return -ENOMEM;
+ 	sg_cnt = ret;
+@@ -602,7 +607,9 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
+ 		break;
+ 	}
+ 
+-	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
++	/* P2PDMA contexts do not need to be unmapped */
++	if (!is_pci_p2pdma_page(sg_page(sg)))
++		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
+ }
+ EXPORT_SYMBOL(rdma_rw_ctx_destroy);
+ 
 -- 
 2.19.0
 
