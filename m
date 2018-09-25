@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D3332114842B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:20:29 -0700 (PDT)
-Subject: [PATCH v5 2/4] mm: Provide kernel parameter to allow disabling page
- init poisoning
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 25 Sep 2018 13:20:12 -0700
-Message-ID: <20180925201921.3576.84239.stgit@localhost.localdomain>
-In-Reply-To: <20180925200551.3576.18755.stgit@localhost.localdomain>
-References: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 94D4421962301
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:49 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Tue, 25 Sep 2018 10:22:29 -0600
+Message-Id: <20180925162231.4354-12-logang@deltatee.com>
+In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
+References: <20180925162231.4354-1-logang@deltatee.com>
 MIME-Version: 1.0
+Subject: [PATCH v7 11/13] nvme-pci: Add a quirk for a pseudo CMB
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,182 +22,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On systems with a large amount of memory it can take a significant amount
-of time to initialize all of the page structs with the PAGE_POISON_PATTERN
-value. I have seen it take over 2 minutes to initialize a system with
-over 12TB of RAM.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-In order to work around the issue I had to disable CONFIG_DEBUG_VM and then
-the boot time returned to something much more reasonable as the
-arch_add_memory call completed in milliseconds versus seconds. However in
-doing that I had to disable all of the other VM debugging on the system.
+We'd like to use some of these older cards to test P2P memory.
 
-In order to work around a kernel that might have CONFIG_DEBUG_VM enabled on
-a system that has a large amount of memory I have added a new kernel
-parameter named "vm_debug" that can be set to "-" in order to disable it.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-v3: Switched from kernel config option to parameter
-v4: Added comment to parameter handler to record when option is disabled
-    Updated parameter description based on feedback from Michal Hocko
-    Fixed GB vs TB typo in patch description.
-    Switch to vm_debug option similar to slub_debug
-v5: Rebased on latest linux-next
-
- Documentation/admin-guide/kernel-parameters.txt |   12 ++++++
- include/linux/page-flags.h                      |    8 ++++
- mm/debug.c                                      |   46 +++++++++++++++++++++++
- mm/memblock.c                                   |    5 +--
- mm/sparse.c                                     |    4 +-
- 5 files changed, 69 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 42d9150047f2..d9ad70ccbdc2 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -4811,6 +4811,18 @@
- 			This is actually a boot loader parameter; the value is
- 			passed to the kernel using a special protocol.
- 
-+	vm_debug[=options]	[KNL] Available with CONFIG_DEBUG_VM=y.
-+			May slow down system boot speed, especially when
-+			enabled on systems with a large amount of memory.
-+			All options are enabled by default, and this
-+			interface is meant to allow for selectively
-+			enabling or disabling specific virtual memory
-+			debugging features.
-+
-+			Available options are:
-+			  P	Enable page structure init time poisoning
-+			  -	Disable all of the above options
-+
- 	vmalloc=nn[KMG]	[KNL,BOOT] Forces the vmalloc area to have an exact
- 			size of <nn>. This can be used to increase the
- 			minimum size (128MB on x86). It can also be used to
-diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-index 4d99504f6496..934f91ef3f54 100644
---- a/include/linux/page-flags.h
-+++ b/include/linux/page-flags.h
-@@ -163,6 +163,14 @@ static inline int PagePoisoned(const struct page *page)
- 	return page->flags == PAGE_POISON_PATTERN;
- }
- 
-+#ifdef CONFIG_DEBUG_VM
-+void page_init_poison(struct page *page, size_t size);
-+#else
-+static inline void page_init_poison(struct page *page, size_t size)
-+{
-+}
-+#endif
-+
- /*
-  * Page flags policies wrt compound pages
-  *
-diff --git a/mm/debug.c b/mm/debug.c
-index bd10aad8539a..cdacba12e09a 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -13,6 +13,7 @@
- #include <trace/events/mmflags.h>
- #include <linux/migrate.h>
- #include <linux/page_owner.h>
-+#include <linux/ctype.h>
- 
- #include "internal.h"
- 
-@@ -175,4 +176,49 @@ void dump_mm(const struct mm_struct *mm)
- 	);
- }
- 
-+static bool page_init_poisoning __read_mostly = true;
-+
-+static int __init setup_vm_debug(char *str)
-+{
-+	bool __page_init_poisoning = true;
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 4030743c90aa..8e6f3bcfe956 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -90,6 +90,13 @@ enum nvme_quirks {
+ 	 * Set MEDIUM priority on SQ creation
+ 	 */
+ 	NVME_QUIRK_MEDIUM_PRIO_SQ		= (1 << 7),
 +
 +	/*
-+	 * Calling vm_debug with no arguments is equivalent to requesting
-+	 * to enable all debugging options we can control.
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
 +	 */
-+	if (*str++ != '=' || !*str)
-+		goto out;
-+
-+	__page_init_poisoning = false;
-+	if (*str == '-')
-+		goto out;
-+
-+	while (*str) {
-+		switch (tolower(*str)) {
-+		case'p':
-+			__page_init_poisoning = true;
-+			break;
-+		default:
-+			pr_err("vm_debug option '%c' unknown. skipped\n",
-+			       *str);
-+		}
-+
-+		str++;
-+	}
-+out:
-+	if (page_init_poisoning && !__page_init_poisoning)
-+		pr_warn("Page struct poisoning disabled by kernel command line option 'vm_debug'\n");
-+
-+	page_init_poisoning = __page_init_poisoning;
-+
-+	return 1;
-+}
-+__setup("vm_debug", setup_vm_debug);
-+
-+void page_init_poison(struct page *page, size_t size)
-+{
-+	if (page_init_poisoning)
-+		memset(page, PAGE_POISON_PATTERN, size);
-+}
-+EXPORT_SYMBOL_GPL(page_init_poison);
- #endif		/* CONFIG_DEBUG_VM */
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 32e5c62ee142..b0ebca546ba1 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1503,10 +1503,9 @@ void * __init memblock_alloc_try_nid_raw(
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 8),
+ };
  
- 	ptr = memblock_alloc_internal(size, align,
- 					   min_addr, max_addr, nid);
--#ifdef CONFIG_DEBUG_VM
- 	if (ptr && size > 0)
--		memset(ptr, PAGE_POISON_PATTERN, size);
--#endif
-+		page_init_poison(ptr, size);
-+
- 	return ptr;
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index 0d6c41bc2b35..db862ee6e53e 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1644,6 +1644,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
  
-diff --git a/mm/sparse.c b/mm/sparse.c
-index c0788e3d8513..ab2ac45e0440 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -696,13 +696,11 @@ int __meminit sparse_add_one_section(struct pglist_data *pgdat,
- 		goto out;
- 	}
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
++{
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
++}
++
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
+ {
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1663,10 +1670,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
--#ifdef CONFIG_DEBUG_VM
- 	/*
- 	 * Poison uninitialized struct pages in order to catch invalid flags
- 	 * combinations.
- 	 */
--	memset(memmap, PAGE_POISON_PATTERN, sizeof(struct page) * PAGES_PER_SECTION);
--#endif
-+	page_init_poison(memmap, sizeof(struct page) * PAGES_PER_SECTION);
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
  
- 	section_mark_present(ms);
- 	sparse_init_one_section(ms, section_nr, memmap, usemap);
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2715,6 +2727,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2601),	/* CNEX Granby */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
+-- 
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
