@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 25F0F2113DA1D
- for <linux-nvdimm@lists.01.org>; Mon, 17 Sep 2018 23:01:20 -0700 (PDT)
-Subject: [ndctl PATCH 0/3] ndctl: Remove udev rule for latch and
- dirty-shutdown-count
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 17 Sep 2018 22:49:11 -0700
-Message-ID: <153724975102.55312.9664009456306267501.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7693F21130057
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 10:47:22 -0700 (PDT)
+Date: Tue, 25 Sep 2018 11:48:35 -0600
+From: Keith Busch <keith.busch@intel.com>
+Subject: Re: [PATCH v7 10/13] nvme-pci: Add support for P2P memory in requests
+Message-ID: <20180925174835.GA12185@localhost.localdomain>
+References: <20180925162231.4354-1-logang@deltatee.com>
+ <20180925162231.4354-11-logang@deltatee.com>
+ <20180925171147.GB11822@localhost.localdomain>
+ <3549a9bb-3604-1739-c008-4e1a95441333@deltatee.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <3549a9bb-3604-1739-c008-4e1a95441333@deltatee.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,51 +26,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The latch needs to be coordinated with writes to the namespace and that
-makes it not suitable as a dimm-add-event udev rule.
+On Tue, Sep 25, 2018 at 11:41:44AM -0600, Logan Gunthorpe wrote:
+> Hey,
+> 
+> On 2018-09-25 11:11 a.m., Keith Busch wrote:
+> > Sorry if this was already discussed. Is there a reason the following
+> > pattern is not pushed to the generic dma_map_sg_attrs?
+> > 
+> > 	if (is_pci_p2pdma_page(sg_page(sg)))
+> > 		pci_p2pdma_map_sg(dev, sg, nents, dma_dir);
+> > 
+> > Beyond that, series looks good.
+> 
+> Yes, this has been discussed. It comes down to a few reasons:
+> 
+> 1) Intrusiveness on other systems: ie. not needing to pay the cost for
+> every single dma_map_sg call
+> 
+> 2) Consistency: we can add the check to dma_map_sg, but adding similar
+> functionality to dma_map_page, etc is difficult seeing it's hard for the
+> unmap operation to detect if a dma_addr_t was P2P memory to begin with.
+> 
+> 3) Safety for developers trying to use P2P memory: Right now developers
+> must be careful with P2P pages and ensure they aren't mapped using other
+> means (ie dma_map_page). Having them check the drivers that are handling
+> the pages to ensure the appropriate map function is always used is and
+> that P2P pages aren't being mixed with regular pages is better than
+> developers relying on magic in dma_map_sg() and getting things wrong.
+> 
+> That being said, I think in the future everyone would like to move in
+> that direction but it means we will have to solve some difficult
+> problems with the existing infrastructure.
 
-Additionally, the dirty-shutdown-count is something that can live in
-sysfs alongside the other health state flags in /sys/.../nmemX/nfit.
-Otherwise, calling any of the libndctl apis from a udev script means the
-entire udev queue can get blocked behind a ndctl_bus_wait_probe() call.
-That's too much overhead for a non-default policy.
-
-In other words, while the latch event remains in userspace as close as
-possible to the application that wants to manage dimm-flush-failed
-policy as anything other than fatal, dirty-shutdown-count caching should
-move to sysfs where it is cheap to implement and compliments the
-flush-failed health state flag.
-
----
-
-Dan Williams (3):
-      ndctl: Introduce dirty-dimm command
-      ndctl: Revert "ndctl, intel: Fallback to smart cached shutdown_count"
-      ndctl: Revert "ndctl: Create ndctl udev rules for dirty shutdown"
-
-
- .gitignore                               |    1 
- Documentation/ndctl/Makefile.am          |    1 
- Documentation/ndctl/ndctl-dirty-dimm.txt |   29 ++++++
- Makefile.am                              |    3 -
- builtin.h                                |    1 
- configure.ac                             |   10 --
- contrib/80-ndctl.rules                   |    3 -
- ndctl.spec.in                            |    3 -
- ndctl/Makefile.am                        |    5 -
- ndctl/dimm.c                             |   28 ++++++
- ndctl/lib/intel.c                        |   41 --------
- ndctl/lib/libndctl.c                     |    6 -
- ndctl/lib/private.h                      |    3 -
- ndctl/ndctl-udev.c                       |  150 ------------------------------
- ndctl/ndctl.c                            |    1 
- 15 files changed, 61 insertions(+), 224 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-dirty-dimm.txt
- delete mode 100644 contrib/80-ndctl.rules
- delete mode 100644 ndctl/ndctl-udev.c
+Gotchya, thanks for jogging my memory.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
