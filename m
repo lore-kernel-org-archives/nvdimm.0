@@ -1,15 +1,33 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g2t2353.austin.hpe.com (g2t2353.austin.hpe.com [15.233.44.26])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B42EA21106C68
- for <linux-nvdimm@lists.01.org>; Tue, 11 Sep 2018 09:03:27 -0700 (PDT)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 2/2] ext4, dax: set ext4_dax_aops for dax files
-Date: Tue, 11 Sep 2018 09:42:46 -0600
-Message-Id: <20180911154246.6844-3-toshi.kani@hpe.com>
-In-Reply-To: <20180911154246.6844-1-toshi.kani@hpe.com>
-References: <20180911154246.6844-1-toshi.kani@hpe.com>
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0C37221962301
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 14:05:20 -0700 (PDT)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
+ w8PKxKwF031536
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 17:05:19 -0400
+Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2mqt8b60bu-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 17:05:19 -0400
+Received: from localhost
+ by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <rppt@linux.vnet.ibm.com>;
+ Tue, 25 Sep 2018 22:05:17 +0100
+Date: Wed, 26 Sep 2018 00:05:09 +0300
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Subject: Re: [PATCH v5 1/4] mm: Remove now defunct NO_BOOTMEM from depends
+ list for deferred init
+References: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ <20180925201814.3576.15105.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180925201814.3576.15105.stgit@localhost.localdomain>
+Message-Id: <20180925210509.GA13839@rapoport-lnx>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,69 +35,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: jack@suse.cz, dan.j.williams@intel.com
-Cc: tytso@mit.edu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, adilger.kernel@dilger.ca, linux-ext4@vger.kernel.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, dave.hansen@intel.com, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-mm@kvack.org, jglisse@redhat.com, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Sync syscall to an existing DAX file needs to flush processor cache,
-but it does not currently.  This is because 'ext4_da_aops' is set to
-address_space_operations of existing DAX files, instead of 'ext4_dax_aops',
-since S_DAX flag is set after ext4_set_aops() in the open path.
+On Tue, Sep 25, 2018 at 01:19:15PM -0700, Alexander Duyck wrote:
+> The CONFIG_NO_BOOTMEM config option was recently removed by the patch "mm:
+> remove CONFIG_NO_BOOTMEM" (https://patchwork.kernel.org/patch/10600647/).
+> However it looks like it missed a few spots. The biggest one being the
+> dependency for deferred init. This patch goes through and removes the
+> remaining spots that appear to have been missed in the patch so that I am
+> able to build again with deferred memory initialization.
 
-  New file
-  --------
-  lookup_open
-    ext4_create
-      __ext4_new_inode
-        ext4_set_inode_flags   // Set S_DAX flag
-      ext4_set_aops            // Set aops to ext4_dax_aops
-
-  Existing file
-  -------------
-  lookup_open
-    ext4_lookup
-      ext4_iget
-        ext4_set_aops          // Set aops to ext4_da_aops
-        ext4_set_inode_flags   // Set S_DAX flag
-
-Change ext4_iget() to call ext4_set_inode_flags() before ext4_set_aops().
-
-Fixes: 5f0663bb4a64f588f0a2dd6d1be68d40f9af0086
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
----
- fs/ext4/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index 775cd9b4af55..93cbbb859c40 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -4998,6 +4998,8 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
- 	if (ret)
- 		goto bad_inode;
+Thanks for fixing it!
  
-+	ext4_set_inode_flags(inode);
-+
- 	if (S_ISREG(inode->i_mode)) {
- 		inode->i_op = &ext4_file_inode_operations;
- 		inode->i_fop = &ext4_file_operations;
-@@ -5043,7 +5045,6 @@ struct inode *ext4_iget(struct super_block *sb, unsigned long ino)
- 		goto bad_inode;
- 	}
- 	brelse(iloc.bh);
--	ext4_set_inode_flags(inode);
- 
- 	unlock_new_inode(inode);
- 	return inode;
+> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+
+Acked-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+
+> ---
+> 
+> v5: New patch, added to fix regression found in latest linux-next
+> 
+>  arch/csky/Kconfig |    1 -
+>  mm/Kconfig        |    1 -
+>  2 files changed, 2 deletions(-)
+> 
+> diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
+> index fe2c94b94fe3..fb2a0ae84dd5 100644
+> --- a/arch/csky/Kconfig
+> +++ b/arch/csky/Kconfig
+> @@ -38,7 +38,6 @@ config CSKY
+>  	select HAVE_MEMBLOCK
+>  	select MAY_HAVE_SPARSE_IRQ
+>  	select MODULES_USE_ELF_RELA if MODULES
+> -	select NO_BOOTMEM
+
+
+
+>  	select OF
+>  	select OF_EARLY_FLATTREE
+>  	select OF_RESERVED_MEM
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index c6a0d82af45f..b4421aa608c4 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -631,7 +631,6 @@ config MAX_STACK_SIZE_MB
+>  config DEFERRED_STRUCT_PAGE_INIT
+>  	bool "Defer initialisation of struct pages to kthreads"
+>  	default n
+> -	depends on NO_BOOTMEM
+>  	depends on SPARSEMEM
+>  	depends on !NEED_PER_CPU_KM
+>  	depends on 64BIT
+> 
+
+-- 
+Sincerely yours,
+Mike.
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
