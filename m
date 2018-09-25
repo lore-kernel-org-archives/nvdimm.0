@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0B0C621B02822
- for <linux-nvdimm@lists.01.org>; Wed, 12 Sep 2018 17:12:00 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Wed, 12 Sep 2018 18:11:43 -0600
-Message-Id: <20180913001156.4115-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9A55B21157436
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:40:24 -0700 (PDT)
+Subject: [PATCH v9 12/12] libnvdimm: add documentation for nvdimm security
+ support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 25 Sep 2018 16:38:52 -0700
+Message-ID: <153791873272.70158.7285850892671703250.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v6 00/13] Copy Offload in NVMe Fabrics with P2P PCI Memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,246 +23,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Everyone,
+Add theory of operation for the security support that's going into
+libnvdimm.
 
-Here is version 6 of the PCI P2PDMA patch set. This version makes
-a few minor changes from v5 and is based on v4.19-rc3. A git repo is here:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/nvdimm/security.txt |   99 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 99 insertions(+)
+ create mode 100644 Documentation/nvdimm/security.txt
 
-https://github.com/sbates130272/linux-p2pmem pci-p2p-v6
+diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
+new file mode 100644
+index 000000000000..50cbb6cb96a1
+--- /dev/null
++++ b/Documentation/nvdimm/security.txt
+@@ -0,0 +1,99 @@
++NVDIMM SECURITY
++===============
++
++1. Introduction
++---------------
++
++With the introduction of Intel DSM v1.7 specification [1], security DSMs are
++introduced. The spec added the following security DSMs: "get security state",
++"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
++"secure erase", and "overwrite". A security_ops data structure has been
++added to struct dimm in order to support the security operations and generic
++APIs are exposed to allow vendor neutral operations.
++
++2. Sysfs Interface
++------------------
++The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
++example:
++/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++
++The "show" function of that attribute will display the security state for
++that DIMM. The following states are available: disabled, unlocked, locked,
++frozen, and unsupported.
++
++The "store" function takes several commands when the attribute is written to
++in order to support some of the security functionalities:
++update <old_keyid> <new_keyid> - enable security. Add or update current key.
++disable <old_keyid> - disable enabled security and remove key.
++freeze - freeze changing of security states.
++erase <old_keyid> - generate new ecryption key for DIMM and crypto-scrambles
++	all existing user data.
++
++3. Key Management
++-----------------
++
++The key is associted to the payload by the DIMM id. For example:
++# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
++8089-a2-1740-00000133
++The DIMM id would be provided along with the key payload (passphrase) to
++the kernel.
++
++The security keys are managed on the basis of a single key per DIMM. The
++key "passphrase" is expected to be 32bytes long or padded to 32bytes. This is
++similar to the ATA security specification [2]. A key is initially acquired
++via the request_key() kernel API call and retrieved from userspace. It is up to
++the user to provide an upcall application to retrieve the key in whatever
++fashion meets their security requirements.
++
++A nvdimm user logon key has the description format of:
++nvdimm:<bus-provider-specific-unique-id>
++
++4. Unlocking
++------------
++When the DIMMs are being enumerated by the kernel, the kernel will attempt to
++retrieve the key from its keyring. If that fails, it will attempt to
++acquire the key from the userspace upcall function. This is the only time
++a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
++until reboot.
++
++5. Update
++---------
++When doing an update, it is expected that the new key with the 64bit payload of
++format described above is added via the keyutils API or utility. The update
++command written to the sysfs attribute will be with the format:
++update <old keyid> <new keyid>
++
++It is expected that a user logon key has been injected via keyutils to provide
++the payload for the update operation. The kernel will take the new user key,
++attempt the update operation with the nvdimm, and replace the existing key's
++payload with the new passphrase.
++
++If there is no old key id due to a security enabling, then a 0 should be
++passed in.  If a nvdimm has an existing passphrase, then an "old" key should
++be injected with a key description that does not have the "nvdimm:" prefix.
++
++6. Freeze
++---------
++The freeze operation does not require any keys. The security config can be
++frozen by a user with root privelege.
++
++7. Disable
++----------
++The security disable command format is:
++disable <old keyid>
++
++An "old" key with the passphrase payload that is tied to the nvdimm should be
++injected with a key description that does not have the "nvdimm:" prefix and
++its keyid should be passed in via sysfs.
++
++8. Secure Erase
++---------------
++The command format for doing a secure erase is:
++erase <old keyid>
++
++An "old" key with the passphrase payload that is tied to the nvdimm should be
++injected with a key description that does not have the "nvdimm:" prefix and
++its keyid should be passed in via sysfs.
++
++[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
++[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
 
-Thanks,
-
-Logan
-
---
-
-Changes in v6:
-
-* Rebased on v4.19-rc3
-
-* Remove the changes to the common submit_bio() path and instead
-  set REQ_NOMERGE in the NVME target driver, when appropriate.
-  Per discussions with Jens and Christoph.
-
-* Some minor grammar changes in the documentation as spotted by Randy.
-
-Changes in v5:
-
-* Rebased on v4.19-rc1
-
-* Drop changing ACS settings in this patchset. Now, the code
-  will only allow P2P transactions between devices whos
-  downstream ports do not restrict P2P TLPs.
-
-* Drop the REQ_PCI_P2PDMA block flag and instead use
-  is_pci_p2pdma_page() to tell if a request is P2P or not. In that
-  case we check for queue support and enforce using REQ_NOMERGE.
-  Per feedback from Christoph.
-
-* Drop the pci_p2pdma_unmap_sg() function as it was empty and only
-  there for symmetry and compatibility with dma_unmap_sg. Per feedback
-  from Christoph.
-
-* Split off the logic to handle enabling P2P in NVMe fabrics' configfs
-  into specific helpers in the p2pdma code. Per feedback from Christoph.
-
-* A number of other minor cleanups and fixes as pointed out by
-  Christoph and others.
-
-Changes in v4:
-
-* Change the original upstream_bridges_match() function to
-  upstream_bridge_distance() which calculates the distance between two
-  devices as long as they are behind the same root port. This should
-  address Bjorn's concerns that the code was to focused on
-  being behind a single switch.
-
-* The disable ACS function now disables ACS for all bridge ports instead
-  of switch ports (ie. those that had two upstream_bridge ports).
-
-* Change the pci_p2pmem_alloc_sgl() and pci_p2pmem_free_sgl()
-  API to be more like sgl_alloc() in that the alloc function returns
-  the allocated scatterlist and nents is not required bythe free
-  function.
-
-* Moved the new documentation into the driver-api tree as requested
-  by Jonathan
-
-* Add SGL alloc and free helpers in the nvmet code so that the
-  individual drivers can share the code that allocates P2P memory.
-  As requested by Christoph.
-
-* Cleanup the nvmet_p2pmem_store() function as Christoph
-  thought my first attempt was ugly.
-
-* Numerous commit message and comment fix-ups
-
-Changes in v3:
-
-* Many more fixes and minor cleanups that were spotted by Bjorn
-
-* Additional explanation of the ACS change in both the commit message
-  and Kconfig doc. Also, the code that disables the ACS bits is surrounded
-  explicitly by an #ifdef
-
-* Removed the flag we added to rdma_rw_ctx() in favour of using
-  is_pci_p2pdma_page(), as suggested by Sagi.
-
-* Adjust pci_p2pmem_find() so that it prefers P2P providers that
-  are closest to (or the same as) the clients using them. In cases
-  of ties, the provider is randomly chosen.
-
-* Modify the NVMe Target code so that the PCI device name of the provider
-  may be explicitly specified, bypassing the logic in pci_p2pmem_find().
-  (Note: it's still enforced that the provider must be behind the
-   same switch as the clients).
-
-* As requested by Bjorn, added documentation for driver writers.
-
-
-Changes in v2:
-
-* Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
-  as a bunch of cleanup and spelling fixes he pointed out in the last
-  series.
-
-* To address Alex's ACS concerns, we change to a simpler method of
-  just disabling ACS behind switches for any kernel that has
-  CONFIG_PCI_P2PDMA.
-
-* We also reject using devices that employ 'dma_virt_ops' which should
-  fairly simply handle Jason's concerns that this work might break with
-  the HFI, QIB and rxe drivers that use the virtual ops to implement
-  their own special DMA operations.
-
---
-
-This is a continuation of our work to enable using Peer-to-Peer PCI
-memory in the kernel with initial support for the NVMe fabrics target
-subsystem. Many thanks go to Christoph Hellwig who provided valuable
-feedback to get these patches to where they are today.
-
-The concept here is to use memory that's exposed on a PCI BAR as
-data buffers in the NVMe target code such that data can be transferred
-from an RDMA NIC to the special memory and then directly to an NVMe
-device avoiding system memory entirely. The upside of this is better
-QoS for applications running on the CPU utilizing memory and lower
-PCI bandwidth required to the CPU (such that systems could be designed
-with fewer lanes connected to the CPU).
-
-Due to these trade-offs we've designed the system to only enable using
-the PCI memory in cases where the NIC, NVMe devices and memory are all
-behind the same PCI switch hierarchy. This will mean many setups that
-could likely work well will not be supported so that we can be more
-confident it will work and not place any responsibility on the user to
-understand their topology. (We chose to go this route based on feedback
-we received at the last LSF). Future work may enable these transfers
-using a white list of known good root complexes. However, at this time,
-there is no reliable way to ensure that Peer-to-Peer transactions are
-permitted between PCI Root Ports.
-
-For PCI P2P DMA transfers to work in this situation the ACS bits
-must be disabled on the downstream ports (DSPs) for all devices
-involved in the transfer. This can be done using the "disable_acs_redir"
-PCI kernel command line option which was introduced in v4.19.
-
-In order to enable PCI P2P functionality, we introduce a few new PCI
-functions such that a driver can register P2P memory with the system.
-Struct pages are created for this memory using devm_memremap_pages()
-and the PCI bus offset is stored in the corresponding pagemap structure.
-
-Another set of functions allow a client driver to create a list of
-client devices that will be used in a given P2P transactions and then
-use that list to find any P2P memory that is supported by all the
-client devices.
-
-In the block layer, we also introduce a flag for a request queue
-to indicate a given queue supports targeting P2P memory. The driver
-submitting bios must ensure that the queue supports P2P before
-attempting to submit BIOs backed by P2P memory. Also, P2P requests
-are marked to not be merged seeing a non-homogenous request would
-complicate the DMA mapping requirements.
-
-In the PCI NVMe driver, we modify the existing CMB support to utilize
-the new PCI P2P memory infrastructure and also add support for P2P
-memory in its request queue. When a P2P request is received it uses the
-pci_p2pmem_map_sg() function which applies the necessary transformation
-to get the corrent pci_bus_addr_t for the DMA transactions.
-
-In the RDMA core, we also adjust rdma_rw_ctx_init() and
-rdma_rw_ctx_destroy() to take a flags argument which indicates whether
-to use the PCI P2P mapping functions or not. To avoid odd RDMA devices
-that don't use the proper DMA infrastructure this code rejects using
-any device that employs the virt_dma_ops implementation.
-
-Finally, in the NVMe fabrics target port we introduce a new
-configuration attribute: 'p2pmem'. When set to a true boolean, the port
-will attempt to find P2P memory supported by the RDMA NIC and all namespaces.
-It may also be set to a PCI device name to select a specific P2P
-memory to use. If supported memory is found, it will be used in all IO
-transfers. And if a port is using P2P memory, adding new namespaces that
-are not supported by that memory will fail.
-
-These patches have been tested on a number of Intel based systems and
-for a variety of RDMA NICs (Mellanox, Broadcomm, Chelsio) and NVMe
-SSDs (Intel, Seagate, Samsung) and p2pdma devices (Eideticom,
-Microsemi, Chelsio and Everspin) using switches from both Microsemi
-and Broadcomm.
-
---
-
-Logan Gunthorpe (13):
-  PCI/P2PDMA: Support peer-to-peer memory
-  PCI/P2PDMA: Add sysfs group to display p2pmem stats
-  PCI/P2PDMA: Add PCI p2pmem DMA mappings to adjust the bus offset
-  PCI/P2PDMA: Introduce configfs/sysfs enable attribute helpers
-  docs-rst: Add a new directory for PCI documentation
-  PCI/P2PDMA: Add P2P DMA driver writer's documentation
-  block: Add PCI P2P flag for request queue and check support for
-    requests
-  IB/core: Ensure we map P2P memory correctly in
-    rdma_rw_ctx_[init|destroy]()
-  nvme-pci: Use PCI p2pmem subsystem to manage the CMB
-  nvme-pci: Add support for P2P memory in requests
-  nvme-pci: Add a quirk for a pseudo CMB
-  nvmet: Introduce helper functions to allocate and free request SGLs
-  nvmet: Optionally use PCI P2P memory
-
- Documentation/ABI/testing/sysfs-bus-pci    |  25 +
- Documentation/driver-api/index.rst         |   2 +-
- Documentation/driver-api/pci/index.rst     |  21 +
- Documentation/driver-api/pci/p2pdma.rst    | 170 ++++
- Documentation/driver-api/{ => pci}/pci.rst |   0
- drivers/infiniband/core/rw.c               |  11 +-
- drivers/nvme/host/core.c                   |   4 +
- drivers/nvme/host/nvme.h                   |   8 +
- drivers/nvme/host/pci.c                    | 121 ++-
- drivers/nvme/target/configfs.c             |  36 +
- drivers/nvme/target/core.c                 | 154 ++++
- drivers/nvme/target/io-cmd-bdev.c          |   3 +
- drivers/nvme/target/nvmet.h                |  15 +
- drivers/nvme/target/rdma.c                 |  22 +-
- drivers/pci/Kconfig                        |  17 +
- drivers/pci/Makefile                       |   1 +
- drivers/pci/p2pdma.c                       | 941 +++++++++++++++++++++
- include/linux/blkdev.h                     |   3 +
- include/linux/memremap.h                   |   6 +
- include/linux/mm.h                         |  18 +
- include/linux/pci-p2pdma.h                 | 124 +++
- include/linux/pci.h                        |   4 +
- 22 files changed, 1652 insertions(+), 54 deletions(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- create mode 100644 Documentation/driver-api/pci/p2pdma.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
- create mode 100644 drivers/pci/p2pdma.c
- create mode 100644 include/linux/pci-p2pdma.h
-
---
-2.19.0
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
