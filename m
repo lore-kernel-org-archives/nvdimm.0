@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 648542114A6A2
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 15:14:22 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 60A3221962301
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:49:07 -0700 (PDT)
 Subject: Re: [PATCH v5 2/4] mm: Provide kernel parameter to allow disabling
  page init poisoning
 References: <20180925200551.3576.18755.stgit@localhost.localdomain>
  <20180925201921.3576.84239.stgit@localhost.localdomain>
  <13285e05-fb90-b948-6f96-777f94079657@intel.com>
- <8faf3acc-e47e-8ef9-a1a0-c0d6ebfafa1e@linux.intel.com>
-From: Dave Hansen <dave.hansen@intel.com>
-Message-ID: <75dde720-c997-51a4-d2e2-8b08eb201550@intel.com>
-Date: Tue, 25 Sep 2018 15:14:21 -0700
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Message-ID: <8faf3acc-e47e-8ef9-a1a0-c0d6ebfafa1e@linux.intel.com>
+Date: Tue, 25 Sep 2018 13:38:43 -0700
 MIME-Version: 1.0
-In-Reply-To: <8faf3acc-e47e-8ef9-a1a0-c0d6ebfafa1e@linux.intel.com>
+In-Reply-To: <13285e05-fb90-b948-6f96-777f94079657@intel.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,59 +22,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMDkvMjUvMjAxOCAwMTozOCBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOgo+IE9uIDkvMjUv
-MjAxOCAxOjI2IFBNLCBEYXZlIEhhbnNlbiB3cm90ZToKPj4gT24gMDkvMjUvMjAxOCAwMToyMCBQ
-TSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOgo+Pj4gK8KgwqDCoCB2bV9kZWJ1Z1s9b3B0aW9uc13C
-oMKgwqAgW0tOTF0gQXZhaWxhYmxlIHdpdGggQ09ORklHX0RFQlVHX1ZNPXkuCj4+PiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCBNYXkgc2xvdyBkb3duIHN5c3RlbSBib290IHNwZWVkLCBlc3BlY2lh
-bGx5IHdoZW4KPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGVuYWJsZWQgb24gc3lzdGVtcyB3
-aXRoIGEgbGFyZ2UgYW1vdW50IG9mIG1lbW9yeS4KPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IEFsbCBvcHRpb25zIGFyZSBlbmFibGVkIGJ5IGRlZmF1bHQsIGFuZCB0aGlzCj4+PiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCBpbnRlcmZhY2UgaXMgbWVhbnQgdG8gYWxsb3cgZm9yIHNlbGVjdGl2
-ZWx5Cj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBlbmFibGluZyBvciBkaXNhYmxpbmcgc3Bl
-Y2lmaWMgdmlydHVhbCBtZW1vcnkKPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGRlYnVnZ2lu
-ZyBmZWF0dXJlcy4KPj4+ICsKPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIEF2YWlsYWJsZSBv
-cHRpb25zIGFyZToKPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBQwqDCoMKgIEVuYWJs
-ZSBwYWdlIHN0cnVjdHVyZSBpbml0IHRpbWUgcG9pc29uaW5nCj4+PiArwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqAgLcKgwqDCoCBEaXNhYmxlIGFsbCBvZiB0aGUgYWJvdmUgb3B0aW9ucwo+Pgo+
-PiBDYW4gd2UgaGF2ZSB2bV9kZWJ1Zz1vZmYgZm9yIHR1cm5pbmcgdGhpbmdzIG9mZiwgcGxlYXNl
-P8KgIFRoYXQgc2VlbXMgdG8KPj4gYmUgcHJldHR5IHN0YW5kYXJkLgo+IAo+IE5vLiBUaGUgc2lt
-cGxlIHJlYXNvbiBmb3IgdGhhdCBpcyB0aGF0IHlvdSBoYWQgcmVxdWVzdGVkIHRoaXMgd29yayBs
-aWtlCj4gdGhlIHNsdWJfZGVidWcuIElmIHdlIGFyZSBnb2luZyB0byBkbyB0aGF0IHRoZW4gZWFj
-aCBpbmRpdmlkdWFsIGxldHRlcgo+IHJlcHJlc2VudHMgYSBmZWF0dXJlLiBUaGF0IGlzIHdoeSB0
-aGUgIi0iIHJlcHJlc2VudHMgb2ZmLiBXZSBjYW5ub3QgaGF2ZQo+IGxldHRlcnMgcmVwcmVzZW50
-IGZsYWdzLCBhbmQgbGV0dGVycyBwdXQgdG9nZXRoZXIgaW50byB3b3Jkcy4gRm9yCj4gZXhhbXBs
-ZSBzbHViX2RlYnVnPU9GRiB3b3VsZCB0dXJuIG9uIHNhbml0eSBjaGVja3MgYW5kIHR1cm4gb2Zm
-Cj4gZGVidWdnaW5nIGZvciBjYWNoZXMgdGhhdCB3b3VsZCBoYXZlIGNhdXNlcyBoaWdoZXIgbWlu
-aW11bSBzbGFiIG9yZGVycy4KCldlIGRvbid0IGhhdmUgdG8gaGF2ZSB0aGUgc2FtZSBsZXR0ZXJz
-IG1lYW4gdGhlIHNhbWUgdGhpbmdzIGZvciBib3RoCm9wdGlvbnMuICBXZSBhbHNvIGNhbiBsaXZl
-IHdpdGhvdXQgJ28nIGFuZCAnZicgYmVpbmcgdmFsaWQuICBXZSBjYW4KKmFsc28qIGp1c3Qgc2F5
-ICJkb24ndCBkbyAnb2ZmJyIgaWYgeW91IHdhbnQgdG8gZW5hYmxlIHRoaW5ncy4KCkknZCBtdWNo
-IHJhdGhlciBoYXZlIHZtX2RlYnVnPW9mZiBkbyB0aGUgcmlnaHQgdGhpbmcgdGhhbiBoYXZlCnBl
-ci1mZWF0dXJlIGVuYWJsZS9kaXNhYmxlLiAgSSBrbm93IEknbGwgKm5ldmVyKiByZW1lbWJlciB2
-bV9kZWJ1Zz0tIGFuZApkb2luZyBpdCB0aGlzIHdheSB3aWxsIHN1YmplY3QgbWUgdG8gaW5udW1l
-cmFibGUgdHJpcHMgdG8gRG9jdW1lbnRhdGlvbi8KZHVyaW5nIG15IGZldyByZW1haW5pbmcgeWVh
-cnMuCgpTdXJlbHkgeW91IGNhbiBtYWtlIHZtX2RlYnVnPW9mZiBoYXBwZW4uIDopCgo+PiB3ZSBu
-ZWVkIHRvIGRvY3VtZW50IHRoZSBkZWZhdWx0cy7CoCBJIHRoaW5rIHRoZSBkZWZhdWx0IGlzICJh
-bGwKPj4gZGVidWcgb3B0aW9ucyBhcmUgZW5hYmxlZCIsIGJ1dCBpdCB3b3VsZCBiZSBuaWNlIHRv
-IGRvY3VtZW50IHRoYXQuCj4gCj4gSW4gdGhlIGRlc2NyaXB0aW9uIEkgY2FsbCBvdXQgIkFsbCBv
-cHRpb25zIGFyZSBlbmFibGVkIGJ5IGRlZmF1bHQsIGFuPiB0aGlzIGludGVyZmFjZSBpcyBtZWFu
-dCB0byBhbGxvdyBmb3Igc2VsZWN0aXZlbHkgZW5hYmxpbmcgb3IgZGlzYWJsaW5nIi4KCkkgZm91
-bmQgImFsbCBvcHRpb25zIGFyZSBlbmFibGVkIGJ5IGRlZmF1bHQiIHJlYWxseSBjb25mdXNpbmcu
-ICBNYXliZToKCiJDb250cm9sIGRlYnVnIGZlYXR1cmVzIHdoaWNoIGJlY29tZSBhdmFpbGFibGUg
-d2hlbiBDT05GSUdfREVCVUdfVk09eS4KV2hlbiB0aGlzIG9wdGlvbiBpcyBub3Qgc3BlY2lmaWVk
-LCBhbGwgZGVidWcgZmVhdHVyZXMgYXJlIGVuYWJsZWQuICBVc2UKdGhpcyBvcHRpb24gZW5hYmxl
-IGEgc3BlY2lmaWMgc3Vic2V0LiIKClRoZW4sIGxldCdzIGFjdHVhbGx5IHNheSB3aGF0IHRoZSBv
-cHRpb25zIGRvLCBhbmQgd2hhdCB0aGVpciBpbXBhY3QgaXM6CgoJUAlFbmFibGUgJ3N0cnVjdCBw
-YWdlJyBwb2lzb25pbmcgYXQgaW5pdGlhbGl6YXRpb24uCgkJKFNsb3dzIGRvd24gYm9vdCB0aW1l
-KS4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+
+
+On 9/25/2018 1:26 PM, Dave Hansen wrote:
+> On 09/25/2018 01:20 PM, Alexander Duyck wrote:
+>> +	vm_debug[=options]	[KNL] Available with CONFIG_DEBUG_VM=y.
+>> +			May slow down system boot speed, especially when
+>> +			enabled on systems with a large amount of memory.
+>> +			All options are enabled by default, and this
+>> +			interface is meant to allow for selectively
+>> +			enabling or disabling specific virtual memory
+>> +			debugging features.
+>> +
+>> +			Available options are:
+>> +			  P	Enable page structure init time poisoning
+>> +			  -	Disable all of the above options
+> 
+> Can we have vm_debug=off for turning things off, please?  That seems to
+> be pretty standard.
+
+No. The simple reason for that is that you had requested this work like 
+the slub_debug. If we are going to do that then each individual letter 
+represents a feature. That is why the "-" represents off. We cannot have 
+letters represent flags, and letters put together into words. For 
+example slub_debug=OFF would turn on sanity checks and turn off 
+debugging for caches that would have causes higher minimum slab orders.
+
+Either I can do this as a single parameter that supports on/off 
+semantics, or I can support it as a slub_debug type parameter that does 
+flags based on the input options. I would rather not muddy things by 
+trying to do both.
+
+> Also, we need to document the defaults.  I think the default is "all
+> debug options are enabled", but it would be nice to document that.
+
+In the description I call out "All options are enabled by default, and 
+this interface is meant to allow for selectively enabling or disabling".
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
