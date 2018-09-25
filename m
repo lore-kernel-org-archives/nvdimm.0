@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A36C22115990D
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 21:37:28 -0700 (PDT)
-Subject: [PATCH 3/3] tools/testing/nvdimm: Populate dirty shutdown data
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Sep 2018 21:24:36 -0700
-Message-ID: <153802227683.833068.14067072355792705345.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 965C9211575D1
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:38:42 -0700 (PDT)
+Subject: [PATCH v9 10/12] nfit_test: add context to dimm_dev for nfit_test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 25 Sep 2018 16:38:41 -0700
+Message-ID: <153791872185.70158.9827822607597381234.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,115 +22,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow the unit tests to verify the retrieval of the dirty shutdown
-count via smart commands, and allow the driver-load-time retrieval of
-the smart health payload to be simulated by nfit_test.
+In order to access the nfit_test context via sideband sysfs knobs, the
+dimm_dev needs to be more than struct device in order to point back to
+struct nfit_test. Wrapping the original struct device with a struct
+nfit_dimm_dev and saving the nfit_test as private driver data. Also
+changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
+saving as private driver data of that device. This is in preparation for
+adding security DSM support and allowing the locking of DIMMs for testing
+via sideband.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c              |   14 ++++++++------
- tools/testing/nvdimm/Kbuild           |    1 +
- tools/testing/nvdimm/acpi_nfit_test.c |    8 ++++++++
- tools/testing/nvdimm/test/nfit.c      |    3 ++-
- 4 files changed, 19 insertions(+), 7 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index c28b4d0dbe51..3880b5ac40e4 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1721,7 +1721,7 @@ static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
- 	return false;
- }
- 
--static void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
-+__weak void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
- {
- 	struct nd_intel_smart smart = { 0 };
- 	union acpi_object in_buf = {
-@@ -1782,10 +1782,6 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	int family = -1;
- 	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
- 
--	/* nfit test assumes 1:1 relationship between commands and dsms */
--	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
--	nfit_mem->family = NVDIMM_FAMILY_INTEL;
--
- 	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
- 		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
- 				be16_to_cpu(dcr->vendor_id),
-@@ -1797,9 +1793,15 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 				be16_to_cpu(dcr->vendor_id),
- 				be32_to_cpu(dcr->serial_number));
- 
-+	/* nfit test assumes 1:1 relationship between commands and dsms */
-+	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
-+	nfit_mem->family = NVDIMM_FAMILY_INTEL;
- 	adev = to_acpi_dev(acpi_desc);
--	if (!adev)
-+	if (!adev) {
-+		/* unit test case */
-+		populate_shutdown_status(nfit_mem);
- 		return 0;
-+	}
- 
- 	adev_dimm = acpi_find_child_device(adev, device_handle, false);
- 	nfit_mem->adev = adev_dimm;
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index a13670d3b389..03f00a6e0841 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -22,6 +22,7 @@ NVDIMM_SRC := $(DRIVERS)/nvdimm
- ACPI_SRC := $(DRIVERS)/acpi/nfit
- DAX_SRC := $(DRIVERS)/dax
- ccflags-y := -I$(src)/$(NVDIMM_SRC)/
-+ccflags-y += -I$(src)/$(ACPI_SRC)/
- 
- obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
- obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
-diff --git a/tools/testing/nvdimm/acpi_nfit_test.c b/tools/testing/nvdimm/acpi_nfit_test.c
-index 43521512e577..fec8fb1b7715 100644
---- a/tools/testing/nvdimm/acpi_nfit_test.c
-+++ b/tools/testing/nvdimm/acpi_nfit_test.c
-@@ -4,5 +4,13 @@
- #include <linux/module.h>
- #include <linux/printk.h>
- #include "watermark.h"
-+#include <nfit.h>
- 
- nfit_test_watermark(acpi_nfit);
-+
-+/* strong / override definition of nfit_intel_shutdown_status */
-+void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
-+{
-+	set_bit(NFIT_MEM_DIRTY_COUNT, &nfit_mem->flags);
-+	nfit_mem->dirty_shutdown = 42;
-+}
 diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 61ad16beef6d..c6e72f795f4f 100644
+index cffc2c5a778d..1d62222a10da 100644
 --- a/tools/testing/nvdimm/test/nfit.c
 +++ b/tools/testing/nvdimm/test/nfit.c
-@@ -149,6 +149,7 @@ static const struct nd_intel_smart smart_def = {
- 		| ND_INTEL_SMART_ALARM_VALID
- 		| ND_INTEL_SMART_USED_VALID
- 		| ND_INTEL_SMART_SHUTDOWN_VALID
-+		| ND_INTEL_SMART_SHUTDOWN_COUNT_VALID
- 		| ND_INTEL_SMART_MTEMP_VALID
- 		| ND_INTEL_SMART_CTEMP_VALID,
- 	.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
-@@ -161,8 +162,8 @@ static const struct nd_intel_smart smart_def = {
- 	.ait_status = 1,
- 	.life_used = 5,
- 	.shutdown_state = 0,
-+	.shutdown_count = 42,
- 	.vendor_size = 0,
--	.shutdown_count = 100,
+@@ -172,6 +172,11 @@ struct nfit_test_fw {
+ 	u64 end_time;
  };
  
- struct nfit_test_fw {
++struct nfit_dimm_dev {
++	struct device dev;
++	struct nfit_mem *nfit_mem;
++};
++
+ struct nfit_test {
+ 	struct acpi_nfit_desc acpi_desc;
+ 	struct platform_device pdev;
+@@ -203,7 +208,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
+-	struct device *dimm_dev[NUM_DCR];
++	struct nfit_dimm_dev dimm_dev[NUM_DCR];
+ 	struct nd_intel_smart *smart;
+ 	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+@@ -1018,7 +1023,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			case ND_INTEL_SMART_INJECT:
+ 				rc = nfit_test_cmd_smart_inject(buf,
+@@ -1026,7 +1032,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			default:
+ 				return -ENOTTY;
+@@ -1224,8 +1231,7 @@ static void put_dimms(void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < t->num_dcr; i++)
+-		if (t->dimm_dev[i])
+-			device_unregister(t->dimm_dev[i]);
++		device_unregister(&t->dimm_dev[i].dev);
+ }
+ 
+ static struct class *nfit_test_dimm;
+@@ -1327,19 +1333,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++static void dimm_dev_release(struct device *dev)
++{
++}
++
+ static int nfit_test_dimm_init(struct nfit_test *t)
+ {
+-	int i;
++	int i, rc;
+ 
+ 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
+ 		return -ENOMEM;
+ 	for (i = 0; i < t->num_dcr; i++) {
+-		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
+-				&t->pdev.dev, 0, NULL,
+-				nfit_test_dimm_attribute_groups,
+-				"test_dimm%d", i + t->dcr_idx);
+-		if (!t->dimm_dev[i])
+-			return -ENOMEM;
++		t->dimm_dev[i].dev.parent = &t->pdev.dev;
++		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
++				i + t->dcr_idx);
++		t->dimm_dev[i].dev.class = nfit_test_dimm;
++		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
++		t->dimm_dev[i].dev.release = dimm_dev_release;
++		rc = device_register(&t->dimm_dev[i].dev);
++		if (rc < 0)
++			return rc;
++		dev_set_drvdata(&t->dimm_dev[i].dev, t);
+ 	}
+ 	return 0;
+ }
+@@ -2680,8 +2694,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 
+ 		for (i = 0; i < NUM_DCR; i++)
+ 			if (nfit_handle == handle[i])
+-				dev_set_drvdata(nfit_test->dimm_dev[i],
+-						nfit_mem);
++				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
