@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1591221A07A80
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 00:38:35 -0700 (PDT)
-Date: Wed, 26 Sep 2018 09:38:31 +0200
-From: Michal Hocko <mhocko@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id A29892114A6A2
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 15:28:06 -0700 (PDT)
 Subject: Re: [PATCH v5 2/4] mm: Provide kernel parameter to allow disabling
  page init poisoning
-Message-ID: <20180926073831.GC6278@dhcp22.suse.cz>
 References: <20180925200551.3576.18755.stgit@localhost.localdomain>
  <20180925201921.3576.84239.stgit@localhost.localdomain>
+ <13285e05-fb90-b948-6f96-777f94079657@intel.com>
+ <8faf3acc-e47e-8ef9-a1a0-c0d6ebfafa1e@linux.intel.com>
+ <75dde720-c997-51a4-d2e2-8b08eb201550@intel.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Message-ID: <61358149-b233-6194-adcf-2c16b9112fd7@linux.intel.com>
+Date: Tue, 25 Sep 2018 15:27:59 -0700
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180925201921.3576.84239.stgit@localhost.localdomain>
+In-Reply-To: <75dde720-c997-51a4-d2e2-8b08eb201550@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,39 +24,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: pavel.tatashin@microsoft.com, linux-nvdimm@lists.01.org, dave.hansen@intel.com, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-mm@kvack.org, jglisse@redhat.com, rppt@linux.vnet.ibm.com, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
+To: Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 25-09-18 13:20:12, Alexander Duyck wrote:
-[...]
-> +	vm_debug[=options]	[KNL] Available with CONFIG_DEBUG_VM=y.
-> +			May slow down system boot speed, especially when
-> +			enabled on systems with a large amount of memory.
-> +			All options are enabled by default, and this
-> +			interface is meant to allow for selectively
-> +			enabling or disabling specific virtual memory
-> +			debugging features.
-> +
-> +			Available options are:
-> +			  P	Enable page structure init time poisoning
-> +			  -	Disable all of the above options
-
-I agree with Dave that this is confusing as hell. So what does vm_debug
-(without any options means). I assume it's NOP and all debugging is
-enabled and that is the default. What if I want to disable _only_ the
-page struct poisoning. The weird lookcing `-' will disable all other
-options that we might gather in the future.
-
-Why cannot you simply go with [no]vm_page_poison[=on/off]?
--- 
-Michal Hocko
-SUSE Labs
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiA5LzI1LzIwMTggMzoxNCBQTSwgRGF2ZSBIYW5zZW4gd3JvdGU6Cj4gT24gMDkvMjUvMjAx
+OCAwMTozOCBQTSwgQWxleGFuZGVyIER1eWNrIHdyb3RlOgo+PiBPbiA5LzI1LzIwMTggMToyNiBQ
+TSwgRGF2ZSBIYW5zZW4gd3JvdGU6Cj4+PiBPbiAwOS8yNS8yMDE4IDAxOjIwIFBNLCBBbGV4YW5k
+ZXIgRHV5Y2sgd3JvdGU6Cj4+Pj4gK8KgwqDCoCB2bV9kZWJ1Z1s9b3B0aW9uc13CoMKgwqAgW0tO
+TF0gQXZhaWxhYmxlIHdpdGggQ09ORklHX0RFQlVHX1ZNPXkuCj4+Pj4gK8KgwqDCoMKgwqDCoMKg
+wqDCoMKgwqAgTWF5IHNsb3cgZG93biBzeXN0ZW0gYm9vdCBzcGVlZCwgZXNwZWNpYWxseSB3aGVu
+Cj4+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZW5hYmxlZCBvbiBzeXN0ZW1zIHdpdGggYSBs
+YXJnZSBhbW91bnQgb2YgbWVtb3J5Lgo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIEFsbCBv
+cHRpb25zIGFyZSBlbmFibGVkIGJ5IGRlZmF1bHQsIGFuZCB0aGlzCj4+Pj4gK8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgaW50ZXJmYWNlIGlzIG1lYW50IHRvIGFsbG93IGZvciBzZWxlY3RpdmVseQo+
+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGVuYWJsaW5nIG9yIGRpc2FibGluZyBzcGVjaWZp
+YyB2aXJ0dWFsIG1lbW9yeQo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGRlYnVnZ2luZyBm
+ZWF0dXJlcy4KPj4+PiArCj4+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqAgQXZhaWxhYmxlIG9w
+dGlvbnMgYXJlOgo+Pj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBQwqDCoMKgIEVuYWJs
+ZSBwYWdlIHN0cnVjdHVyZSBpbml0IHRpbWUgcG9pc29uaW5nCj4+Pj4gK8KgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgIC3CoMKgwqAgRGlzYWJsZSBhbGwgb2YgdGhlIGFib3ZlIG9wdGlvbnMKPj4+
+Cj4+PiBDYW4gd2UgaGF2ZSB2bV9kZWJ1Zz1vZmYgZm9yIHR1cm5pbmcgdGhpbmdzIG9mZiwgcGxl
+YXNlP8KgIFRoYXQgc2VlbXMgdG8KPj4+IGJlIHByZXR0eSBzdGFuZGFyZC4KPj4KPj4gTm8uIFRo
+ZSBzaW1wbGUgcmVhc29uIGZvciB0aGF0IGlzIHRoYXQgeW91IGhhZCByZXF1ZXN0ZWQgdGhpcyB3
+b3JrIGxpa2UKPj4gdGhlIHNsdWJfZGVidWcuIElmIHdlIGFyZSBnb2luZyB0byBkbyB0aGF0IHRo
+ZW4gZWFjaCBpbmRpdmlkdWFsIGxldHRlcgo+PiByZXByZXNlbnRzIGEgZmVhdHVyZS4gVGhhdCBp
+cyB3aHkgdGhlICItIiByZXByZXNlbnRzIG9mZi4gV2UgY2Fubm90IGhhdmUKPj4gbGV0dGVycyBy
+ZXByZXNlbnQgZmxhZ3MsIGFuZCBsZXR0ZXJzIHB1dCB0b2dldGhlciBpbnRvIHdvcmRzLiBGb3IK
+Pj4gZXhhbXBsZSBzbHViX2RlYnVnPU9GRiB3b3VsZCB0dXJuIG9uIHNhbml0eSBjaGVja3MgYW5k
+IHR1cm4gb2ZmCj4+IGRlYnVnZ2luZyBmb3IgY2FjaGVzIHRoYXQgd291bGQgaGF2ZSBjYXVzZXMg
+aGlnaGVyIG1pbmltdW0gc2xhYiBvcmRlcnMuCj4gCj4gV2UgZG9uJ3QgaGF2ZSB0byBoYXZlIHRo
+ZSBzYW1lIGxldHRlcnMgbWVhbiB0aGUgc2FtZSB0aGluZ3MgZm9yIGJvdGgKPiBvcHRpb25zLiAg
+V2UgYWxzbyBjYW4gbGl2ZSB3aXRob3V0ICdvJyBhbmQgJ2YnIGJlaW5nIHZhbGlkLiAgV2UgY2Fu
+Cj4gKmFsc28qIGp1c3Qgc2F5ICJkb24ndCBkbyAnb2ZmJyIgaWYgeW91IHdhbnQgdG8gZW5hYmxl
+IHRoaW5ncy4KCkknbSBub3Qgc2F5aW5nIHdlIGRvIGVpdGhlci4gSSB3b3VsZCBwcmVmZXIgaXQg
+aWYgd2Ugc3R1Y2sgdG8gc2ltaWxhciAKYmVoYXZpb3IgdGhvdWdoLiBJZiB3ZSBhcmUgZ29pbmcg
+dG8gZG8gYSBzbHViX2RlYnVnIHN0eWxlIHBhcmFtZXRlciB0aGVuIAp3ZSBzaG91bGQgc3RpY2sg
+d2l0aCBzaW1pbGFyIGJlaGF2aW9yIHdoZXJlICItIiBpcyB1c2VkIHRvIGluZGljYXRlIGFsbCAK
+ZmVhdHVyZXMgb2ZmLgoKPiBJJ2QgbXVjaCByYXRoZXIgaGF2ZSB2bV9kZWJ1Zz1vZmYgZG8gdGhl
+IHJpZ2h0IHRoaW5nIHRoYW4gaGF2ZQo+IHBlci1mZWF0dXJlIGVuYWJsZS9kaXNhYmxlLiAgSSBr
+bm93IEknbGwgKm5ldmVyKiByZW1lbWJlciB2bV9kZWJ1Zz0tIGFuZAo+IGRvaW5nIGl0IHRoaXMg
+d2F5IHdpbGwgc3ViamVjdCBtZSB0byBpbm51bWVyYWJsZSB0cmlwcyB0byBEb2N1bWVudGF0aW9u
+Lwo+IGR1cmluZyBteSBmZXcgcmVtYWluaW5nIHllYXJzLgo+IAo+IFN1cmVseSB5b3UgY2FuIG1h
+a2Ugdm1fZGVidWc9b2ZmIGhhcHBlbi4gOikKCkkgY291bGQsIGJ1dCB0aGVuIGl0IGlzIGdvaW5n
+IHRvIGNvbmZ1c2UgcGVvcGxlIGV2ZW4gbW9yZS4gSSByZWFsbHkgZmVlbCAKdGhhdCBpZiB3ZSB3
+YW50IHRvIGRvIGEgc2x1Yl9kZWJ1ZyBzdHlsZSBpbnRlcmZhY2Ugd2Ugc2hvdWxkIHVzZSB0aGUg
+CnNhbWUgc3dpdGNoIGZvciB0dXJuaW5nIG9mZiBhbGwgdGhlIGZlYXR1cmVzIHRoYXQgdGhleSBk
+byBmb3Igc2x1Yl9kZWJ1Zy4KCj4+PiB3ZSBuZWVkIHRvIGRvY3VtZW50IHRoZSBkZWZhdWx0cy7C
+oCBJIHRoaW5rIHRoZSBkZWZhdWx0IGlzICJhbGwKPj4+IGRlYnVnIG9wdGlvbnMgYXJlIGVuYWJs
+ZWQiLCBidXQgaXQgd291bGQgYmUgbmljZSB0byBkb2N1bWVudCB0aGF0Lgo+Pgo+PiBJbiB0aGUg
+ZGVzY3JpcHRpb24gSSBjYWxsIG91dCAiQWxsIG9wdGlvbnMgYXJlIGVuYWJsZWQgYnkgZGVmYXVs
+dCwgYW5kIHRoaXMgaW50ZXJmYWNlIGlzIG1lYW50IHRvIGFsbG93IGZvciBzZWxlY3RpdmVseSBl
+bmFibGluZyBvciBkaXNhYmxpbmciLgo+IAo+IEkgZm91bmQgImFsbCBvcHRpb25zIGFyZSBlbmFi
+bGVkIGJ5IGRlZmF1bHQiIHJlYWxseSBjb25mdXNpbmcuICBNYXliZToKPiAKPiAiQ29udHJvbCBk
+ZWJ1ZyBmZWF0dXJlcyB3aGljaCBiZWNvbWUgYXZhaWxhYmxlIHdoZW4gQ09ORklHX0RFQlVHX1ZN
+PXkuCj4gV2hlbiB0aGlzIG9wdGlvbiBpcyBub3Qgc3BlY2lmaWVkLCBhbGwgZGVidWcgZmVhdHVy
+ZXMgYXJlIGVuYWJsZWQuICBVc2UKPiB0aGlzIG9wdGlvbiBlbmFibGUgYSBzcGVjaWZpYyBzdWJz
+ZXQuIgo+IAo+IFRoZW4sIGxldCdzIGFjdHVhbGx5IHNheSB3aGF0IHRoZSBvcHRpb25zIGRvLCBh
+bmQgd2hhdCB0aGVpciBpbXBhY3QgaXM6Cj4gCj4gCVAJRW5hYmxlICdzdHJ1Y3QgcGFnZScgcG9p
+c29uaW5nIGF0IGluaXRpYWxpemF0aW9uLgo+IAkJKFNsb3dzIGRvd24gYm9vdCB0aW1lKS4KPgoK
+IEZyb20gbXkgcGVyc3BlY3RpdmUgSSBqdXN0IGRvbid0IHNlZSBob3cgdGhpcyBjaGFuZ2VzIG11
+Y2ggc2luY2UgaXQgCmNvbnZleXMgdGhlIHNhbWUgbWVzc2FnZSBJIGhhZCBjb252ZXllZCBpbiBt
+eSBkZXNjcmlwdGlvbi4gU2luY2UgaXQgCmxvb2tzIGxpa2UgQW5kcmV3IGFwcGxpZWQgdGhlIHBh
+dGNoIGZlZWwgZnJlZSB0byBzdWJtaXQgeW91ciBzdWdnZXN0aW9uIApoZXJlIGFzIGEgZm9sbG93
+LXVwIHBhdGNoIGFuZCBJIHdvdWxkIGJlIHdpbGxpbmcgdG8gcmV2aWV3L2FjayBpdC4KX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
+aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
