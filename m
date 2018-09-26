@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx3-rdu2.redhat.com [66.187.233.73])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8E692112120F
- for <linux-nvdimm@lists.01.org>; Thu,  6 Sep 2018 02:19:26 -0700 (PDT)
-Subject: [PATCH 09/11] UAPI: ndctl: Fix g++-unsupported initialisation in
- headers [ver #2]
-From: David Howells <dhowells@redhat.com>
-Date: Thu, 06 Sep 2018 10:19:24 +0100
-Message-ID: <153622556444.14298.5971956747198405225.stgit@warthog.procyon.org.uk>
-In-Reply-To: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
-References: <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
+ by ml01.01.org (Postfix) with ESMTPS id 1866D21157426
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:47:36 -0700 (PDT)
+Subject: [PATCH v10 09/12] nfit/libnvdimm: add support for issue secure
+ erase DSM to Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 26 Sep 2018 13:47:35 -0700
+Message-ID: <153799485526.71621.18168202531797718675.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,116 +23,206 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-api@vger.kernel.org, linux-kbuild@vger.kernel.org
-Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following code in the linux/ndctl header file:
+Add support to issue a secure erase DSM to the Intel nvdimm. The
+required passphrase is acquired from userspace through the kernel key
+management. To trigger the action, "erase <old_keyid>" is written to the
+"security" sysfs attribute. libnvdimm will support the erase generic API
+call. The user key provided will be verified against the cached kernel
+key. If no kernel key exists, then the user key will be attempted for the
+operation.
 
-	static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
-	{
-		static const char * const names[] = {
-			[ND_CMD_ARS_CAP] = "ars_cap",
-			[ND_CMD_ARS_START] = "ars_start",
-			[ND_CMD_ARS_STATUS] = "ars_status",
-			[ND_CMD_CLEAR_ERROR] = "clear_error",
-			[ND_CMD_CALL] = "cmd_call",
-		};
-
-		if (cmd < ARRAY_SIZE(names) && names[cmd])
-			return names[cmd];
-		return "unknown";
-	}
-
-is broken in a number of ways:
-
- (1) ARRAY_SIZE() is not generally defined.
-
- (2) g++ does not support "non-trivial" array initialisers fully yet.
-
- (3) Every file that calls this function will acquire a copy of names[].
-
-The same goes for nvdimm_cmd_name().
-
-Fix all three by converting to a switch statement where each case returns a
-string.  That way if cmd is a constant, the compiler can trivially reduce it
-and, if not, the compiler can use a shared lookup table if it thinks that is
-more efficient.
-
-A better way would be to remove these functions and their arrays from the
-header entirely.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Dan Williams <dan.j.williams@intel.com>
-cc: linux-nvdimm@lists.01.org
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/acpi/nfit/intel.c  |   58 ++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   74 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    3 ++
+ 3 files changed, 135 insertions(+)
 
- include/uapi/linux/ndctl.h |   48 +++++++++++++++++++-------------------------
- 1 file changed, 21 insertions(+), 27 deletions(-)
-
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 7e27070b9440..2f2c43d633c5 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -128,37 +128,31 @@ enum {
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index ba886f1f5399..419a7d54d4e8 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,63 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- {
--	static const char * const names[] = {
--		[ND_CMD_ARS_CAP] = "ars_cap",
--		[ND_CMD_ARS_START] = "ars_start",
--		[ND_CMD_ARS_STATUS] = "ars_status",
--		[ND_CMD_CLEAR_ERROR] = "clear_error",
--		[ND_CMD_CALL] = "cmd_call",
--	};
--
--	if (cmd < ARRAY_SIZE(names) && names[cmd])
--		return names[cmd];
--	return "unknown";
-+	switch (cmd) {
-+	case ND_CMD_ARS_CAP:		return "ars_cap";
-+	case ND_CMD_ARS_START:		return "ars_start";
-+	case ND_CMD_ARS_STATUS:		return "ars_status";
-+	case ND_CMD_CLEAR_ERROR:	return "clear_error";
-+	case ND_CMD_CALL:		return "cmd_call";
-+	default:			return "unknown";
++static int intel_dimm_security_erase(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_secure_erase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	/* flush all cache before we erase DIMM */
++	wbinvd_on_all_cpus();
++	memcpy(nd_cmd.cmd.passphrase, nkey->data,
++			sizeof(nd_cmd.cmd.passphrase));
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
 +	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		rc = -EINVAL;
++		goto out;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++	/* DIMM erased, invalidate all CPU caches before we read it */
++	wbinvd_on_all_cpus();
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm)
+ {
+@@ -321,4 +378,5 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
+ 	.freeze_lock = intel_dimm_security_freeze_lock,
++	.erase = intel_dimm_security_erase,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 75a3f841a7ce..752149c9450c 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -183,6 +183,77 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
  
- static inline const char *nvdimm_cmd_name(unsigned cmd)
- {
--	static const char * const names[] = {
--		[ND_CMD_SMART] = "smart",
--		[ND_CMD_SMART_THRESHOLD] = "smart_thresh",
--		[ND_CMD_DIMM_FLAGS] = "flags",
--		[ND_CMD_GET_CONFIG_SIZE] = "get_size",
--		[ND_CMD_GET_CONFIG_DATA] = "get_data",
--		[ND_CMD_SET_CONFIG_DATA] = "set_data",
--		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
--		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
--		[ND_CMD_VENDOR] = "vendor",
--		[ND_CMD_CALL] = "cmd_call",
--	};
--
--	if (cmd < ARRAY_SIZE(names) && names[cmd])
--		return names[cmd];
--	return "unknown";
-+	switch (cmd) {
-+	case ND_CMD_SMART:			return "smart";
-+	case ND_CMD_SMART_THRESHOLD:		return "smart_thresh";
-+	case ND_CMD_DIMM_FLAGS:			return "flags";
-+	case ND_CMD_GET_CONFIG_SIZE:		return "get_size";
-+	case ND_CMD_GET_CONFIG_DATA:		return "get_data";
-+	case ND_CMD_SET_CONFIG_DATA:		return "set_data";
-+	case ND_CMD_VENDOR_EFFECT_LOG_SIZE:	return "effect_size";
-+	case ND_CMD_VENDOR_EFFECT_LOG:		return "effect_log";
-+	case ND_CMD_VENDOR:			return "vendor";
-+	case ND_CMD_CALL:			return "cmd_call";
-+	default:				return "unknown";
++static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	struct user_key_payload *payload;
++	int rc = 0;
++	bool is_userkey = false;
++
++	if (!nvdimm->security_ops)
++		return -EOPNOTSUPP;
++
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	if (atomic_read(&nvdimm->busy)) {
++		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
++		rc = -EBUSY;
++		goto out;
 +	}
- }
++
++	if (dev_get_drvdata(dev)) {
++		dev_warn(dev, "Unable to secure erase while DIMM enabled.\n");
++		rc = -EBUSY;
++		goto out;
++	}
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED) {
++		dev_warn(dev, "Attempt to secure erase in wrong state.\n");
++		rc = -EOPNOTSUPP;
++		goto out;
++	}
++
++	/* look for a key from keyring if exists and remove */
++	key = nvdimm_get_and_verify_key(dev, keyid);
++	if (IS_ERR(key)) {
++		dev_dbg(dev, "Unable to get and verify key\n");
++		rc = PTR_ERR(key);
++		goto out;
++	}
++	if (!key) {
++		dev_dbg(dev, "No cached key found\n");
++		/* get old user key */
++		key = nvdimm_lookup_user_key(dev, keyid);
++		if (!key) {
++			dev_dbg(dev, "Unable to retrieve user key: %d\n",
++					keyid);
++			rc = -ENOKEY;
++			goto out;
++		}
++		is_userkey = true;
++	}
++
++	down_read(&key->sem);
++	payload = key->payload.data[0];
++	rc = nvdimm->security_ops->erase(nvdimm_bus, nvdimm,
++			(void *)payload->data);
++	up_read(&key->sem);
++	/* remove key since secure erase kills the passphrase */
++
++	if (!is_userkey) {
++		key_unlink(nvdimm_keyring, key);
++		key_invalidate(key);
++		nvdimm->key = NULL;
++	}
++	key_put(key);
++
++ out:
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
++	nvdimm_security_get_state(dev);
++	return rc;
++}
++
+ static int nvdimm_security_freeze_lock(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -817,6 +888,9 @@ static ssize_t security_store(struct device *dev,
+ 	} else if (sysfs_streq(buf, "freeze")) {
+ 		dev_dbg(dev, "freeze\n");
+ 		rc = nvdimm_security_freeze_lock(dev);
++	} else if (sysfs_streq(cmd, "erase")) {
++		dev_dbg(dev, "erase %u\n", old_key);
++		rc = nvdimm_security_erase(dev, old_key);
+ 	} else
+ 		return -EINVAL;
  
- #define ND_IOCTL 'N'
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index bcab42caa948..0d85e092a6dd 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -187,6 +187,9 @@ struct nvdimm_security_ops {
+ 			const struct nvdimm_key_data *nkey);
+ 	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm);
++	int (*erase)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *nkey);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
