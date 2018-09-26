@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
+ [140.211.169.12])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D8C092114842B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:19:16 -0700 (PDT)
-Subject: [PATCH v5 1/4] mm: Remove now defunct NO_BOOTMEM from depends list
- for deferred init
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 25 Sep 2018 13:19:15 -0700
-Message-ID: <20180925201814.3576.15105.stgit@localhost.localdomain>
-In-Reply-To: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 361E82194D3AE
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 15:36:17 -0700 (PDT)
+Date: Wed, 26 Sep 2018 15:36:15 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v5 2/4] mm: Provide kernel parameter to allow disabling
+ page init poisoning
+Message-Id: <20180926153615.90661e27d0713a02651b2282@linux-foundation.org>
+In-Reply-To: <f5648747-642f-763e-80b9-24fb203c85e9@intel.com>
 References: <20180925200551.3576.18755.stgit@localhost.localdomain>
-MIME-Version: 1.0
+ <20180925201921.3576.84239.stgit@localhost.localdomain>
+ <20180926073831.GC6278@dhcp22.suse.cz>
+ <f5648747-642f-763e-80b9-24fb203c85e9@intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,50 +27,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: mingo@kernel.org, pavel.tatashin@microsoft.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, jglisse@redhat.com, rppt@linux.vnet.ibm.com, Alexander Duyck <alexander.h.duyck@linux.intel.com>, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The CONFIG_NO_BOOTMEM config option was recently removed by the patch "mm:
-remove CONFIG_NO_BOOTMEM" (https://patchwork.kernel.org/patch/10600647/).
-However it looks like it missed a few spots. The biggest one being the
-dependency for deferred init. This patch goes through and removes the
-remaining spots that appear to have been missed in the patch so that I am
-able to build again with deferred memory initialization.
+On Wed, 26 Sep 2018 08:36:47 -0700 Dave Hansen <dave.hansen@intel.com> wrote:
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
+> On 09/26/2018 12:38 AM, Michal Hocko wrote:
+> > Why cannot you simply go with [no]vm_page_poison[=on/off]?
+> 
+> I was trying to look to the future a bit, if we end up with five or six
+> more other options we want to allow folks to enable/disable.  I don't
+> want to end up in a situation where we have a bunch of different knobs
+> to turn all this stuff off at runtime.
+> 
+> I'd really like to have one stop shopping so that folks who have a
+> system that's behaving well and don't need any debugging can get some of
+> their performance back.
+> 
+> But, the *primary* thing we want here is a nice, quick way to turn as
+> much debugging off as we can.  A nice-to-have is a future-proof,
+> slub-style option that will centralize things.
 
-v5: New patch, added to fix regression found in latest linux-next
+Yup.  DEBUG_VM just covers too much stuff nowadays.  A general way to
+make these thing more fine-grained and without requiring a rebuild
+would be great.
 
- arch/csky/Kconfig |    1 -
- mm/Kconfig        |    1 -
- 2 files changed, 2 deletions(-)
-
-diff --git a/arch/csky/Kconfig b/arch/csky/Kconfig
-index fe2c94b94fe3..fb2a0ae84dd5 100644
---- a/arch/csky/Kconfig
-+++ b/arch/csky/Kconfig
-@@ -38,7 +38,6 @@ config CSKY
- 	select HAVE_MEMBLOCK
- 	select MAY_HAVE_SPARSE_IRQ
- 	select MODULES_USE_ELF_RELA if MODULES
--	select NO_BOOTMEM
- 	select OF
- 	select OF_EARLY_FLATTREE
- 	select OF_RESERVED_MEM
-diff --git a/mm/Kconfig b/mm/Kconfig
-index c6a0d82af45f..b4421aa608c4 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -631,7 +631,6 @@ config MAX_STACK_SIZE_MB
- config DEFERRED_STRUCT_PAGE_INIT
- 	bool "Defer initialisation of struct pages to kthreads"
- 	default n
--	depends on NO_BOOTMEM
- 	depends on SPARSEMEM
- 	depends on !NEED_PER_CPU_KM
- 	depends on 64BIT
+And I expect that quite a few of the debug features could be
+enabled/disabled after bootup as well, so a /proc knob is probably in
+our future.  Any infrastructure which is added to support a new
+kernel-command-line option should be designed with that in mind.
 
 _______________________________________________
 Linux-nvdimm mailing list
