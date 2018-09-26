@@ -1,15 +1,11 @@
-From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] nd: move nd_region to common header
-Date: Mon, 24 Sep 2018 07:40:11 -0400 (EDT)
-Message-ID: <247764824.15598220.1537789211903.JavaMail.zimbra@redhat.com>
-References: <20180831133019.27579-1-pagupta@redhat.com>
- <20180831133019.27579-2-pagupta@redhat.com>
- <CAPcyv4jFimkVnVuzza5TCG=KvY88KZnXzH4GNEgUBbTouprzJA@mail.gmail.com>
+From: "Bounced mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Mail System Error - Returned Mail
+Date: Wed, 26 Sep 2018 16:30:18 +0800
+Message-ID: <20180926083022.DDD9E211575FB@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4jFimkVnVuzza5TCG=KvY88KZnXzH4GNEgUBbTouprzJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,33 +15,25 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Xiao Guangrong <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ross Zwisler <ross.zwisler-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, niteshnarayanlal-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Eric Blake <eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+This Message was undeliverable due to the following reason:
 
-> Subject: Re: [PATCH 1/3] nd: move nd_region to common header
-> 
-> On Fri, Aug 31, 2018 at 6:31 AM Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > This patch moves nd_region definition to common header
-> > include/linux/nd.h file. This is required for flush callback
-> > support for both virtio-pmem & pmem driver.
-> >
-> > Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/nvdimm/nd.h | 39 ---------------------------------------
-> >  include/linux/nd.h  | 40 ++++++++++++++++++++++++++++++++++++++++
-> >  2 files changed, 40 insertions(+), 39 deletions(-)
-> 
-> No, we need to find a way to do this without dumping all of these
-> internal details to a public / global header.
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
-This is required when virtio_pmem driver accesses fields of nd_region struct. 
-Instead if we pass device pointer in place of nd_region, we don't need to put
-this in global header. Thoughts?
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-e.g virtio_pmem_flush(struct device *dev)
+Your message was not delivered within 6 days:
+Host 75.160.198.41 is not responding.
 
-Thanks,
-Pankaj 
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
