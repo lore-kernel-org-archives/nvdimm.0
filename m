@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B194E21157436
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:38:25 -0700 (PDT)
-Subject: [PATCH v9 07/12] nfit/libnvdimm: add disable passphrase support to
+ by ml01.01.org (Postfix) with ESMTPS id BF89021157426
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:47:24 -0700 (PDT)
+Subject: [PATCH v10 07/12] nfit/libnvdimm: add disable passphrase support to
  Intel nvdimm.
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 25 Sep 2018 16:38:24 -0700
-Message-ID: <153791870482.70158.5593077631830193184.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
-References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 26 Sep 2018 13:47:23 -0700
+Message-ID: <153799484384.71621.15520725169719507042.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -113,7 +113,7 @@ index 314eae7e02d7..21d30222371f 100644
 +	.disable = intel_dimm_security_disable,
  };
 diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index e915e6de6c12..ed4a8bece2ef 100644
+index becbe670b572..f2d627201f5e 100644
 --- a/drivers/nvdimm/dimm_devs.c
 +++ b/drivers/nvdimm/dimm_devs.c
 @@ -160,6 +160,7 @@ struct key *nvdimm_get_and_verify_key(struct device *dev,
@@ -183,10 +183,10 @@ index e915e6de6c12..ed4a8bece2ef 100644
  {
  	struct nvdimm *nvdimm = to_nvdimm(dev);
 @@ -739,6 +791,9 @@ static ssize_t security_store(struct device *dev,
- 	if (strcmp(cmd, "update") == 0)	{
+ 	if (sysfs_streq(cmd, "update"))	{
  		dev_dbg(dev, "update %u %u\n", old_key, new_key);
  		rc = nvdimm_security_change_key(dev, old_key, new_key);
-+	} else if (strcmp(cmd, "disable") == 0) {
++	} else if (sysfs_streq(cmd, "disable")) {
 +		dev_dbg(dev, "disable %u\n", old_key);
 +		rc = nvdimm_security_disable(dev, old_key);
  	} else
