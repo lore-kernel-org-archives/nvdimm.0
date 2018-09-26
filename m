@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 51EC921159814
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 17:59:03 -0700 (PDT)
-Subject: [PATCH 3/5] nfit_test: Add overwrite support for nfit_test
+ by ml01.01.org (Postfix) with ESMTPS id D121C211597F3
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 13:47:41 -0700 (PDT)
+Subject: [PATCH v10 10/12] nfit_test: add context to dimm_dev for nfit_test
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 17:58:40 -0700
-Message-ID: <153800992059.57703.12456335915953537901.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
-References: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 26 Sep 2018 13:47:40 -0700
+Message-ID: <153799486070.71621.11412880339298606423.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
+References: <153799466529.71621.10728628542331983376.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,117 +23,124 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the implementation of Intel NVDIMM DSM overwrite, we are adding unit
-test to nfit_test for testing of overwrite operation.
+In order to access the nfit_test context via sideband sysfs knobs, the
+dimm_dev needs to be more than struct device in order to point back to
+struct nfit_test. Wrapping the original struct device with a struct
+nfit_dimm_dev and saving the nfit_test as private driver data. Also
+changing the nfit_mem to be a member of struct nfit_dimm_dev instead of
+saving as private driver data of that device. This is in preparation for
+adding security DSM support and allowing the locking of DIMMs for testing
+via sideband.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/intel.h        |    1 +
- tools/testing/nvdimm/test/nfit.c |   55 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |   41 +++++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index 943ee993e31e..3402be12f21e 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -19,6 +19,7 @@ extern const struct nvdimm_security_ops intel_security_ops;
- #define ND_INTEL_STATUS_INVALID_PASS	11
- #define ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED	0x10007
- #define ND_INTEL_STATUS_OQUERY_INPROGRESS	0x10007
-+#define ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR	0x20007
- 
- #define ND_INTEL_SEC_STATE_ENABLED	0x02
- #define ND_INTEL_SEC_STATE_LOCKED	0x04
 diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 61ad16beef6d..71f53e38d3ce 100644
+index cffc2c5a778d..1d62222a10da 100644
 --- a/tools/testing/nvdimm/test/nfit.c
 +++ b/tools/testing/nvdimm/test/nfit.c
-@@ -181,6 +181,7 @@ struct nfit_dimm_dev {
- struct nfit_test_sec {
- 	u8 state;
- 	u8 passphrase[32];
-+	u64 overwrite_end_time;
+@@ -172,6 +172,11 @@ struct nfit_test_fw {
+ 	u64 end_time;
  };
  
++struct nfit_dimm_dev {
++	struct device dev;
++	struct nfit_mem *nfit_mem;
++};
++
  struct nfit_test {
-@@ -1075,6 +1076,50 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 	struct acpi_nfit_desc acpi_desc;
+ 	struct platform_device pdev;
+@@ -203,7 +208,7 @@ struct nfit_test {
+ 		unsigned long deadline;
+ 		spinlock_t lock;
+ 	} ars_state;
+-	struct device *dimm_dev[NUM_DCR];
++	struct nfit_dimm_dev dimm_dev[NUM_DCR];
+ 	struct nd_intel_smart *smart;
+ 	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+@@ -1018,7 +1023,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			case ND_INTEL_SMART_INJECT:
+ 				rc = nfit_test_cmd_smart_inject(buf,
+@@ -1026,7 +1032,8 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						&t->smart_threshold[i -
+ 							t->dcr_idx],
+ 						&t->smart[i - t->dcr_idx],
+-						&t->pdev.dev, t->dimm_dev[i]);
++						&t->pdev.dev,
++						&t->dimm_dev[i].dev);
+ 				break;
+ 			default:
+ 				return -ENOTTY;
+@@ -1224,8 +1231,7 @@ static void put_dimms(void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < t->num_dcr; i++)
+-		if (t->dimm_dev[i])
+-			device_unregister(t->dimm_dev[i]);
++		device_unregister(&t->dimm_dev[i].dev);
+ }
+ 
+ static struct class *nfit_test_dimm;
+@@ -1327,19 +1333,27 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++static void dimm_dev_release(struct device *dev)
++{
++}
++
+ static int nfit_test_dimm_init(struct nfit_test *t)
+ {
+-	int i;
++	int i, rc;
+ 
+ 	if (devm_add_action_or_reset(&t->pdev.dev, put_dimms, t))
+ 		return -ENOMEM;
+ 	for (i = 0; i < t->num_dcr; i++) {
+-		t->dimm_dev[i] = device_create_with_groups(nfit_test_dimm,
+-				&t->pdev.dev, 0, NULL,
+-				nfit_test_dimm_attribute_groups,
+-				"test_dimm%d", i + t->dcr_idx);
+-		if (!t->dimm_dev[i])
+-			return -ENOMEM;
++		t->dimm_dev[i].dev.parent = &t->pdev.dev;
++		dev_set_name(&t->dimm_dev[i].dev, "test_dimm%d",
++				i + t->dcr_idx);
++		t->dimm_dev[i].dev.class = nfit_test_dimm;
++		t->dimm_dev[i].dev.groups = nfit_test_dimm_attribute_groups;
++		t->dimm_dev[i].dev.release = dimm_dev_release;
++		rc = device_register(&t->dimm_dev[i].dev);
++		if (rc < 0)
++			return rc;
++		dev_set_drvdata(&t->dimm_dev[i].dev, t);
+ 	}
  	return 0;
  }
+@@ -2680,8 +2694,7 @@ static int nfit_test_probe(struct platform_device *pdev)
  
-+static int nd_intel_test_cmd_overwrite(struct nfit_test *t,
-+		struct nd_intel_overwrite *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if ((sec->state & ND_INTEL_SEC_STATE_ENABLED) &&
-+			memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "overwrite: wrong passphrase\n");
-+		return 0;
-+	}
-+
-+	memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+	sec->state = ND_INTEL_SEC_STATE_OVERWRITE;
-+	dev_dbg(dev, "overwrite progressing.\n");
-+	sec->overwrite_end_time = get_jiffies_64() + 5 * HZ;
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
-+		struct nd_intel_query_overwrite *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_OVERWRITE)) {
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR;
-+		return 0;
-+	}
-+
-+	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
-+		sec->overwrite_end_time = 0;
-+		sec->state = 0;
-+		dev_dbg(dev, "overwrite is complete\n");
-+	} else
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -1146,6 +1191,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_secure_erase(t,
- 						buf, buf_len, i - t->dcr_idx);
- 				break;
-+			case NVDIMM_INTEL_OVERWRITE:
-+				rc = nd_intel_test_cmd_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_QUERY_OVERWRITE:
-+				rc = nd_intel_test_cmd_query_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -2391,6 +2444,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
- }
+ 		for (i = 0; i < NUM_DCR; i++)
+ 			if (nfit_handle == handle[i])
+-				dev_set_drvdata(nfit_test->dimm_dev[i],
+-						nfit_mem);
++				nfit_test->dimm_dev[i].nfit_mem = nfit_mem;
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
  
- static void nfit_test1_setup(struct nfit_test *t)
 
 _______________________________________________
 Linux-nvdimm mailing list
