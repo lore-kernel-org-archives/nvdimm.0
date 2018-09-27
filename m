@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9EE882114B12D
- for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 17:59:02 -0700 (PDT)
-Subject: [PATCH 4/5] libnvdimm: add overwrite status notification
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 26 Sep 2018 17:58:46 -0700
-Message-ID: <153800992607.57703.10683680202572112427.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
-References: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1A04021CAD998
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 09:54:34 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu, 27 Sep 2018 10:54:11 -0600
+Message-Id: <20180927165420.5290-5-logang@deltatee.com>
+In-Reply-To: <20180927165420.5290-1-logang@deltatee.com>
+References: <20180927165420.5290-1-logang@deltatee.com>
 MIME-Version: 1.0
+Subject: [PATCH v8 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
+ attribute helpers
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,91 +23,159 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding sysfs notification for when overwrite has completed to allow
-user monitoring app to be aware of overwrite completion status.
+Users of the P2PDMA infrastructure will typically need a way for
+the user to tell the kernel to use P2P resources. Typically
+this will be a simple on/off boolean operation but sometimes
+it may be desirable for the user to specify the exact device to
+use for the P2P operation.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Add new helpers for attributes which take a boolean or a PCI device.
+Any boolean as accepted by strtobool() turn P2P on or off (such as 'y', 'n',
+'1', '0', etc). Specifying a full PCI device name/BDF will select the
+specific device.
+
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/acpi/nfit/core.c   |    5 +++++
- drivers/nvdimm/dimm_devs.c |   12 ++++++++++++
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |    1 +
- 4 files changed, 19 insertions(+)
+ drivers/pci/p2pdma.c       | 82 ++++++++++++++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h | 15 +++++++
+ 2 files changed, 97 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e5f7c664a7c8..87a48790a949 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1940,6 +1940,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		if (!nvdimm)
- 			continue;
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index ec56febf08fc..1438f79e95a2 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -8,6 +8,8 @@
+  * Copyright (c) 2018, Eideticom Inc.
+  */
  
-+		rc = nvdimm_setup_security_events(nvdimm);
-+		if (rc < 0)
-+			dev_warn(acpi_desc->dev,
-+					"no security event setup failed\n");
-+
- 		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
- 		if (nfit_kernfs)
- 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index c636ce1d8f5f..7ef70aeabab2 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -213,6 +213,8 @@ static void nvdimm_overwrite_query(struct work_struct *work)
- 	else
- 		dev_info(&nvdimm->dev, "Overwrite completed\n");
- 
-+	if (nvdimm->overwrite_state)
-+		sysfs_notify_dirent(nvdimm->overwrite_state);
- 	nvdimm->overwrite_tmo = 0;
- 	nvdimm_clear_security_busy(&nvdimm->dev);
- 	nvdimm_security_get_state(&nvdimm->dev);
-@@ -1133,6 +1135,16 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
++#define pr_fmt(fmt) "pci-p2pdma: " fmt
++#include <linux/ctype.h>
+ #include <linux/pci-p2pdma.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -868,3 +870,83 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 	return nents;
  }
- EXPORT_SYMBOL_GPL(nvdimm_create);
- 
-+int nvdimm_setup_security_events(struct nvdimm *nvdimm)
+ EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
++
++/**
++ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
++ *		to enable p2pdma
++ * @page: contents of the value to be stored
++ * @p2p_dev: returns the PCI device that was selected to be used
++ *		(if one was specified in the stored value)
++ * @use_p2pdma: returns whether to enable p2pdma or not
++ *
++ * Parses an attribute value to decide whether to enable p2pdma.
++ * The value can select a PCI device (using it's full BDF device
++ * name) or a boolean (in any format strtobool() accepts). A false
++ * value disables p2pdma, a true value expects the caller
++ * to automatically find a compatible device and specifying a PCI device
++ * expects the caller to use the specific provider.
++ *
++ * pci_p2pdma_enable_show() should be used as the show operation for
++ * the attribute.
++ *
++ * Returns 0 on success
++ */
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma)
 +{
-+	nvdimm->overwrite_state = sysfs_get_dirent(nvdimm->dev.kobj.sd,
-+			"security");
-+	if (!nvdimm->overwrite_state)
-+		return -ENODEV;
++	struct device *dev;
++
++	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
++	if (dev) {
++		*use_p2pdma = true;
++		*p2p_dev = to_pci_dev(dev);
++
++		if (!pci_has_p2pmem(*p2p_dev)) {
++			pci_err(*p2p_dev,
++				"PCI device has no peer-to-peer memory: %s\n",
++				page);
++			pci_dev_put(*p2p_dev);
++			return -ENODEV;
++		}
++
++		return 0;
++	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
++		/*
++		 * If the user enters a PCI device that  doesn't exist
++		 * like "0000:01:00.1", we don't want strtobool to think
++		 * it's a '0' when it's clearly not what the user wanted.
++		 * So we require 0's and 1's to be exactly one character.
++		 */
++	} else if (!strtobool(page, use_p2pdma)) {
++		return 0;
++	}
++
++	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
++
++/**
++ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
++ *		whether p2pdma is enabled
++ * @page: contents of the stored value
++ * @p2p_dev: the selected p2p device (NULL if no device is selected)
++ * @use_p2pdma: whether p2pdme has been enabled
++ *
++ * Attributes that use pci_p2pdma_enable_store() should use this function
++ * to show the value of the attribute.
++ *
++ * Returns 0 on success
++ */
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma)
++{
++	if (!use_p2pdma)
++		return sprintf(page, "0\n");
++
++	if (!p2p_dev)
++		return sprintf(page, "1\n");
++
++	return sprintf(page, "%s\n", pci_name(p2p_dev));
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index f039c48990a5..5248540eead2 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -37,6 +37,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
+ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 		      enum dma_data_direction dir);
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma);
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -104,5 +108,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
+ {
+ 	return 0;
+ }
++static inline int pci_p2pdma_enable_store(const char *page,
++		struct pci_dev **p2p_dev, bool *use_p2pdma)
++{
++	*use_p2pdma = false;
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nvdimm_setup_security_events);
-+
- int alias_dpa_busy(struct device *dev, void *data)
- {
- 	resource_size_t map_end, blk_start, new;
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index f44ad99763ba..9c6228bb29b6 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -49,6 +49,7 @@ struct nvdimm {
- 	struct key *key;
- 	struct delayed_work dwork;
- 	unsigned int overwrite_tmo;
-+	struct kernfs_node *overwrite_state;
- };
- 
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c334fd70afb4..a80469466dc6 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -225,6 +225,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		unsigned long cmd_mask, int num_flush,
- 		struct resource *flush_wpq, const char *dimm_id,
- 		const struct nvdimm_security_ops *sec_ops);
-+int nvdimm_setup_security_events(struct nvdimm *nvdimm);
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
++static inline ssize_t pci_p2pdma_enable_show(char *page,
++		struct pci_dev *p2p_dev, bool use_p2pdma)
++{
++	return sprintf(page, "none\n");
++}
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
+-- 
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
