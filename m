@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CC7A121139F7E
- for <linux-nvdimm@lists.01.org>; Tue, 18 Sep 2018 13:07:56 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH] libnvdimm, pfn: during init, clear errors in the metadata area
-Date: Tue, 18 Sep 2018 14:07:50 -0600
-Message-Id: <20180918200750.4413-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BDEE821159C83
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 08:49:03 -0700 (PDT)
+Subject: Re: [PATCH] acpi, nfit: Move acpi_nfit_get_security_ops() to generic
+ location
+References: <153801495364.825550.11754266200142595221.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <71837038-b703-ed22-2e4e-e328491d6a8c@intel.com>
+Date: Thu, 27 Sep 2018 08:48:50 -0700
+MIME-Version: 1.0
+In-Reply-To: <153801495364.825550.11754266200142595221.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,112 +20,106 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-If there are badblocks present in the 'struct page' area for pfn
-namespaces, until now, the only way to clear them has been to force the
-namespace into raw mode, clear the errors, and re-enable the fsdax mode.
-This is clunky, given that it should be easy enough for the pfn driver
-to do the same.
 
-Add a new helper that uses the most recently available badblocks list to
-check whether there are any badblocks that lie in the volatile struct
-page area. If so, before initializing the struct pages, send down
-targeted writes via nvdimm_write_bytes to write zeroes to the affected
-blocks, and thus clear errors.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/nvdimm/pfn_devs.c | 57 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+On 09/26/2018 07:22 PM, Dan Williams wrote:
+> In anticipation of other DIMMs adding security operations support, don't
+> require them to edit intel.h. Instead have intel.h optionally arrange
+> for intel_security_ops to be NULL or not based on build parameters.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 3f7ad5bc443e..04b341758cd6 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -361,8 +361,59 @@ struct device *nd_pfn_create(struct nd_region *nd_region)
- 	return dev;
- }
- 
-+static int nd_pfn_clear_meta_errors(struct nd_pfn *nd_pfn)
-+{
-+	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
-+	struct nd_namespace_common *ndns = nd_pfn->ndns;
-+	void *zero_page = page_address(ZERO_PAGE(0));
-+	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
-+	sector_t first_bad, meta_start;
-+	struct nd_namespace_io *nsio;
-+	int num_bad, meta_num, rc;
-+	bool bb_present;
-+
-+	nsio = to_nd_namespace_io(&ndns->dev);
-+	meta_start = (SZ_4K + sizeof(*pfn_sb)) >> 9;
-+	meta_num = (le64_to_cpu(pfn_sb->dataoff) >> 9) - meta_start;
-+
-+	do {
-+		unsigned long zero_len;
-+		u64 nsoff;
-+
-+		bb_present = !!badblocks_check(&nd_region->bb, meta_start,
-+				meta_num, &first_bad, &num_bad);
-+		if (bb_present) {
-+			dev_dbg(&nd_pfn->dev, "meta: %x badblocks at %lx\n",
-+					num_bad, first_bad);
-+			nsoff = (nd_region->ndr_start + (first_bad << 9)) -
-+					nsio->res.start;
-+			zero_len = num_bad << 9;
-+			while (zero_len) {
-+				unsigned long chunk = min(zero_len, PAGE_SIZE);
-+
-+				rc = nvdimm_write_bytes(ndns, nsoff, zero_page,
-+							chunk, 0);
-+				if (rc)
-+					break;
-+
-+				zero_len -= chunk;
-+				nsoff += chunk;
-+			}
-+			if (rc) {
-+				dev_err(&nd_pfn->dev,
-+					"error clearing %x badblocks at %lx\n",
-+					num_bad, first_bad);
-+				return rc;
-+			}
-+		}
-+	} while (bb_present);
-+
-+	return 0;
-+}
-+
- int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- {
-+	int rc;
- 	u64 checksum, offset;
- 	enum nd_pfn_mode mode;
- 	struct nd_namespace_io *nsio;
-@@ -477,6 +528,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		return -ENXIO;
- 	}
- 
-+	if (mode == PFN_MODE_PMEM) {
-+		rc = nd_pfn_clear_meta_errors(nd_pfn);
-+		if (rc)
-+			return rc;
-+	}
-+
- 	return 0;
- }
- EXPORT_SYMBOL(nd_pfn_validate);
--- 
-2.14.4
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
+> ---
+>  drivers/acpi/nfit/core.c  |   10 ++++++++++
+>  drivers/acpi/nfit/intel.c |    3 ++-
+>  drivers/acpi/nfit/intel.h |   18 +++---------------
+>  3 files changed, 15 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index e5f7c664a7c8..b7773c70ee81 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1835,6 +1835,16 @@ static void shutdown_dimm_notify(void *data)
+>  	mutex_unlock(&acpi_desc->init_mutex);
+>  }
+>  
+> +static const struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
+> +{
+> +        switch (family) {
+> +        case NVDIMM_FAMILY_INTEL:
+> +                return intel_security_ops;
+> +        default:
+> +                return NULL;
+> +        }
+> +}
+> +
+>  static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+>  {
+>  	struct nfit_mem *nfit_mem;
+> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+> index 70bccb0c57e2..8d2413810a5f 100644
+> --- a/drivers/acpi/nfit/intel.c
+> +++ b/drivers/acpi/nfit/intel.c
+> @@ -358,7 +358,7 @@ static int intel_dimm_security_state(struct nvdimm *nvdimm,
+>  	return rc;
+>  }
+>  
+> -const struct nvdimm_security_ops intel_security_ops = {
+> +static const struct nvdimm_security_ops __intel_security_ops = {
+>  	.state = intel_dimm_security_state,
+>  	.unlock = intel_dimm_security_unlock,
+>  	.change_key = intel_dimm_security_update_passphrase,
+> @@ -366,3 +366,4 @@ const struct nvdimm_security_ops intel_security_ops = {
+>  	.freeze_lock = intel_dimm_security_freeze_lock,
+>  	.erase = intel_dimm_security_erase,
+>  };
+> +const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+> diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+> index f9ac718776ca..f831084f95fa 100644
+> --- a/drivers/acpi/nfit/intel.h
+> +++ b/drivers/acpi/nfit/intel.h
+> @@ -8,7 +8,7 @@
+>  
+>  #ifdef CONFIG_X86
+>  
+> -extern const struct nvdimm_security_ops intel_security_ops;
+> +extern const struct nvdimm_security_ops *intel_security_ops;
+>  
+>  #define ND_INTEL_STATUS_SIZE		4
+>  #define ND_INTEL_PASSPHRASE_SIZE	32
+> @@ -64,19 +64,7 @@ struct nd_intel_overwrite {
+>  struct nd_intel_query_overwrite {
+>  	u32 status;
+>  } __packed;
+> +#else /* CONFIG_X86 */
+> +#define intel_security_ops (NULL)
+>  #endif /* CONFIG_X86 */
+> -
+> -static inline const struct nvdimm_security_ops *
+> -acpi_nfit_get_security_ops(int family)
+> -{
+> -	switch (family) {
+> -#ifdef CONFIG_X86
+> -	case NVDIMM_FAMILY_INTEL:
+> -		return &intel_security_ops;
+> -#endif
+> -	default:
+> -		return NULL;
+> -	}
+> -}
+> -
+>  #endif
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
