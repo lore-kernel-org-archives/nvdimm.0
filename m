@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A4F1D2194D3AE
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:51 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:20 -0600
-Message-Id: <20180925162231.4354-3-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id AC49621159810
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Sep 2018 17:59:02 -0700 (PDT)
+Subject: [PATCH 2/5] libnvdimm: Add security DSM overwrite support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 26 Sep 2018 17:58:35 -0700
+Message-ID: <153800991508.57703.702651572767206720.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
+References: <153800975246.57703.6532101433026481472.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v7 02/13] PCI/P2PDMA: Add sysfs group to display p2pmem stats
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,139 +22,432 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a sysfs group to display statistics about P2P memory that is
-registered in each PCI device.
+We are adding support for the security calls of ovewrite and query
+overwrite from Intel DSM spec v1.7. This will allow triggering of
+overwrite on Intel NVDIMMs. The overwrite operation can take tens
+of minutes. When the overwrite DSM is issued successfully, the NVDIMMs
+will be unaccessible. The kernel will do backoff polling to detect when
+the overwrite process is completed. According to the DSM spec v1.7,
+the 128G NVDIMMs can take up to 15mins to perform overwrite and larger
+DIMMs will take longer.
 
-Attributes in the group display the total amount of P2P memory, the
-amount available and whether it is published or not.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/ABI/testing/sysfs-bus-pci | 24 +++++++++++
- drivers/pci/p2pdma.c                    | 54 +++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ drivers/acpi/nfit/intel.c  |  118 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h  |    3 +
+ drivers/acpi/nfit/nfit.h   |    1 
+ drivers/nvdimm/dimm_devs.c |  143 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h   |    2 +
+ include/linux/libnvdimm.h  |    6 ++
+ 6 files changed, 272 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-index 44d4b2be92fd..8bfee557e50e 100644
---- a/Documentation/ABI/testing/sysfs-bus-pci
-+++ b/Documentation/ABI/testing/sysfs-bus-pci
-@@ -323,3 +323,27 @@ Description:
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 419a7d54d4e8..a11ba0041fa9 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,117 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- 		This is similar to /sys/bus/pci/drivers_autoprobe, but
- 		affects only the VFs associated with a specific PF.
++static int intel_dimm_security_query_overwrite(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_query_overwrite cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
 +
-+What:		/sys/bus/pci/devices/.../p2pmem/size
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the total amount of memory that the device
-+		provides (in decimal).
++	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
-+What:		/sys/bus/pci/devices/.../p2pmem/available
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the amount of memory that has not been
-+		allocated (in decimal).
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
 +
-+What:		/sys/bus/pci/devices/.../p2pmem/published
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains a '1' if the memory has been published for
-+		use outside the driver that owns the device.
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index d9616522c1fc..d61389945da2 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -24,6 +24,54 @@ struct pci_p2pdma {
- 	bool p2pmem_published;
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_OQUERY_INPROGRESS:
++		rc = -EBUSY;
++		goto out;
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++	/* flush all cache before we make the nvdimms available */
++	wbinvd_on_all_cpus();
++	nfit_mem->overwrite = false;
++
++out:
++	return rc;
++}
++
++static int intel_dimm_security_overwrite(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_overwrite cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_OVERWRITE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	/* flush all cache before we erase DIMM */
++	wbinvd_on_all_cpus();
++	memcpy(nd_cmd.cmd.passphrase, nkey->data,
++			sizeof(nd_cmd.cmd.passphrase));
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		nfit_mem->overwrite = true;
++		break;
++	case ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED:
++		rc = -ENOTSUPP;
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		rc = -EINVAL;
++		goto out;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_erase(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
+ {
+@@ -330,6 +441,11 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 		return 0;
+ 	}
+ 
++	if (nfit_mem->overwrite == true) {
++		*state = NVDIMM_SECURITY_OVERWRITE;
++		return 0;
++	}
++
+ 	*state = NVDIMM_SECURITY_DISABLED;
+ 	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
+ 			sizeof(nd_cmd), &cmd_rc);
+@@ -379,4 +495,6 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.disable = intel_dimm_security_disable,
+ 	.freeze_lock = intel_dimm_security_freeze_lock,
+ 	.erase = intel_dimm_security_erase,
++	.overwrite = intel_dimm_security_overwrite,
++	.query_overwrite = intel_dimm_security_query_overwrite,
+ };
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+index f9ac718776ca..943ee993e31e 100644
+--- a/drivers/acpi/nfit/intel.h
++++ b/drivers/acpi/nfit/intel.h
+@@ -17,12 +17,15 @@ extern const struct nvdimm_security_ops intel_security_ops;
+ #define ND_INTEL_STATUS_NOT_READY	9
+ #define ND_INTEL_STATUS_INVALID_STATE	10
+ #define ND_INTEL_STATUS_INVALID_PASS	11
++#define ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED	0x10007
++#define ND_INTEL_STATUS_OQUERY_INPROGRESS	0x10007
+ 
+ #define ND_INTEL_SEC_STATE_ENABLED	0x02
+ #define ND_INTEL_SEC_STATE_LOCKED	0x04
+ #define ND_INTEL_SEC_STATE_FROZEN	0x08
+ #define ND_INTEL_SEC_STATE_PLIMIT	0x10
+ #define ND_INTEL_SEC_STATE_UNSUPPORTED	0x20
++#define ND_INTEL_SEC_STATE_OVERWRITE	0x40
+ 
+ struct nd_intel_get_security_state {
+ 	u32 status;
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 36c8695a3d27..e36a111d393a 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -198,6 +198,7 @@ struct nfit_mem {
+ 	int family;
+ 	bool has_lsr;
+ 	bool has_lsw;
++	bool overwrite;
+ 	char id[NFIT_DIMM_ID_LEN+1];
  };
  
-+static ssize_t size_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t size = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		size = gen_pool_size(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
-+}
-+static DEVICE_ATTR_RO(size);
-+
-+static ssize_t available_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t avail = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		avail = gen_pool_avail(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
-+}
-+static DEVICE_ATTR_RO(available);
-+
-+static ssize_t published_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			pdev->p2pdma->p2pmem_published);
-+}
-+static DEVICE_ATTR_RO(published);
-+
-+static struct attribute *p2pmem_attrs[] = {
-+	&dev_attr_size.attr,
-+	&dev_attr_available.attr,
-+	&dev_attr_published.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group p2pmem_group = {
-+	.attrs = p2pmem_attrs,
-+	.name = "p2pmem",
-+};
-+
- static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
- {
- 	struct pci_p2pdma *p2p =
-@@ -53,6 +101,7 @@ static void pci_p2pdma_release(void *data)
- 	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index af1fd4434037..c636ce1d8f5f 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -29,6 +29,7 @@
  
- 	gen_pool_destroy(pdev->p2pdma->pool);
-+	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
- 	pdev->p2pdma = NULL;
+ static DEFINE_IDA(dimm_ida);
+ static struct key *nvdimm_keyring;
++static struct workqueue_struct *nvdimm_wq;
+ 
+ /*
+  * Find key in kernel keyring
+@@ -183,6 +184,128 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
  }
  
-@@ -83,9 +132,14 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 
- 	pdev->p2pdma = p2p;
- 
-+	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
-+	if (error)
-+		goto out_pool_destroy;
++static void nvdimm_overwrite_query(struct work_struct *work)
++{
++	struct nvdimm *nvdimm;
++	struct nvdimm_bus *nvdimm_bus;
++	int rc;
++	unsigned int tmo;
 +
- 	return 0;
++	nvdimm = container_of(work, typeof(*nvdimm), dwork.work);
++	nvdimm_bus = walk_to_nvdimm_bus(&nvdimm->dev);
++	tmo = nvdimm->overwrite_tmo;
++
++	if (!nvdimm->security_ops)
++		return;
++
++	rc = nvdimm->security_ops->query_overwrite(nvdimm_bus, nvdimm);
++	if (rc == -EBUSY) {
++
++		/* setup delayed work again */
++		tmo += 10;
++		queue_delayed_work(nvdimm_wq, &nvdimm->dwork, tmo * HZ);
++		nvdimm->overwrite_tmo = min(15U * 60U, tmo);
++		return;
++	}
++
++	if (rc < 0)
++		dev_warn(&nvdimm->dev, "Overwrite failed\n");
++	else
++		dev_info(&nvdimm->dev, "Overwrite completed\n");
++
++	nvdimm->overwrite_tmo = 0;
++	nvdimm_clear_security_busy(&nvdimm->dev);
++	nvdimm_security_get_state(&nvdimm->dev);
++}
++
++static int nvdimm_security_overwrite(struct device *dev, unsigned int keyid)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	struct user_key_payload *payload;
++	int rc;
++	char pass[NVDIMM_PASSPHRASE_LEN];
++	bool is_userkey = false;
++
++	if (!nvdimm->security_ops)
++		return 0;
++
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	if (atomic_read(&nvdimm->busy)) {
++		dev_warn(dev, "Unable to overwrite while DIMM active.\n");
++		rc = -EBUSY;
++		goto out;
++	}
++
++	if (dev_get_drvdata(dev)) {
++		dev_warn(dev, "Unable to overwrite while DIMM active.\n");
++		rc = -EINVAL;
++		goto out;
++	}
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED) {
++		dev_warn(dev, "Attempt to overwrite in wrong state.\n");
++		rc = -EOPNOTSUPP;
++		goto out;
++	}
++
++	/* look for a key from keyring if exists and remove */
++	key = nvdimm_get_and_verify_key(dev, keyid);
++	if (IS_ERR(key)) {
++		dev_dbg(dev, "Unable to get and verify key\n");
++		rc = PTR_ERR(key);
++		goto out;
++	}
++	if (!key) {
++		dev_dbg(dev, "No cached key found\n");
++		/* get old user key */
++		key = nvdimm_lookup_user_key(dev, keyid);
++		if (key)
++			is_userkey = true;
++	}
++
++	if (key) {
++		down_read(&key->sem);
++		payload = key->payload.data[0];
++		memcpy(pass, payload->data, NVDIMM_PASSPHRASE_LEN);
++		up_read(&key->sem);
++	} else
++		memset(pass, 0, NVDIMM_PASSPHRASE_LEN);
++
++	nvdimm_set_security_busy(dev);
++	/*
++	 * Overwrite can execute w/o passphrase. we will let the hardware
++	 * determine whether we need a passphrase or not.
++	 */
++	rc = nvdimm->security_ops->overwrite(nvdimm_bus, nvdimm,
++			(void *)pass);
++	if (rc == 0) {
++		if (key) {
++			if (!is_userkey) {
++				key_unlink(nvdimm_keyring, key);
++				key_invalidate(key);
++				nvdimm->key = NULL;
++			}
++			key_put(key);
++			memset(pass, 0, NVDIMM_PASSPHRASE_LEN);
++		}
++		nvdimm->state = NVDIMM_SECURITY_OVERWRITE;
++		queue_delayed_work(nvdimm_wq, &nvdimm->dwork, 0);
++	} else
++		nvdimm_clear_security_busy(dev);
++
++ out:
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
++	nvdimm_security_get_state(dev);
++	return rc;
++
++}
++
+ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -902,6 +1025,8 @@ static ssize_t security_show(struct device *dev,
+ 		return sprintf(buf, "locked\n");
+ 	case NVDIMM_SECURITY_FROZEN:
+ 		return sprintf(buf, "frozen\n");
++	case NVDIMM_SECURITY_OVERWRITE:
++		return sprintf(buf, "overwrite\n");
+ 	case NVDIMM_SECURITY_UNSUPPORTED:
+ 	default:
+ 		return sprintf(buf, "unsupported\n");
+@@ -941,6 +1066,9 @@ static ssize_t security_store(struct device *dev,
+ 	} else if (sysfs_streq(cmd, "erase")) {
+ 		dev_dbg(dev, "erase %u\n", old_key);
+ 		rc = nvdimm_security_erase(dev, old_key);
++	} else if (sysfs_streq(cmd, "overwrite")) {
++		dev_dbg(dev, "overwrite %u\n", old_key);
++		rc = nvdimm_security_overwrite(dev, old_key);
+ 	} else
+ 		return -EINVAL;
  
- out_pool_destroy:
-+	pdev->p2pdma = NULL;
- 	gen_pool_destroy(p2p->pool);
- out:
- 	devm_kfree(&pdev->dev, p2p);
--- 
-2.19.0
+@@ -997,6 +1125,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 	dev->type = &nvdimm_device_type;
+ 	dev->devt = MKDEV(nvdimm_major, nvdimm->id);
+ 	dev->groups = groups;
++	nvdimm->overwrite_tmo = 0;
++	INIT_DELAYED_WORK(&nvdimm->dwork, nvdimm_overwrite_query);
+ 	nd_device_register(dev);
+ 
+ 	return nvdimm;
+@@ -1293,11 +1423,22 @@ static void nvdimm_unregister_keyring(void)
+ 
+ int __init nvdimm_devs_init(void)
+ {
+-	return nvdimm_register_keyring();
++	int rc;
++
++	nvdimm_wq = create_singlethread_workqueue("nvdimm");
++	if (!nvdimm_wq)
++		return -ENOMEM;
++
++	rc = nvdimm_register_keyring();
++	if (rc < 0)
++		destroy_workqueue(nvdimm_wq);
++
++	return rc;
+ }
+ 
+ void  nvdimm_devs_exit(void)
+ {
+ 	nvdimm_unregister_keyring();
++	destroy_workqueue(nvdimm_wq);
+ 	ida_destroy(&dimm_ida);
+ }
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 3833b725b4f9..f44ad99763ba 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -47,6 +47,8 @@ struct nvdimm {
+ 	const struct nvdimm_security_ops *security_ops;
+ 	enum nvdimm_security_state state;
+ 	struct key *key;
++	struct delayed_work dwork;
++	unsigned int overwrite_tmo;
+ };
+ 
+ /**
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 1feca4d1c1fb..c334fd70afb4 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -163,6 +163,7 @@ enum nvdimm_security_state {
+ 	NVDIMM_SECURITY_UNLOCKED,
+ 	NVDIMM_SECURITY_LOCKED,
+ 	NVDIMM_SECURITY_FROZEN,
++	NVDIMM_SECURITY_OVERWRITE,
+ 	NVDIMM_SECURITY_UNSUPPORTED,
+ };
+ 
+@@ -192,6 +193,11 @@ struct nvdimm_security_ops {
+ 	int (*erase)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *nkey);
++	int (*overwrite)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *nkey);
++	int (*query_overwrite)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
