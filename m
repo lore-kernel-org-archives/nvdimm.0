@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 628472194D3AE
- for <linux-nvdimm@lists.01.org>; Fri, 21 Sep 2018 16:20:53 -0700 (PDT)
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <153549646600.4089.2626014553500613547.stgit@djiang5-desk3.ch.intel.com>
-References: <153549646600.4089.2626014553500613547.stgit@djiang5-desk3.ch.intel.com>
- <153549632073.4089.3609134467249378610.stgit@djiang5-desk3.ch.intel.com>
-Subject: Re: [PATCH v8 05/12] nfit/libnvdimm: add unlock of nvdimm support for
- Intel DIMMs
+ by ml01.01.org (Postfix) with ESMTPS id 53E6721106FA6
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 15:45:12 -0700 (PDT)
+Subject: [PATCH v2 5/5] libnvdimm: add documentation for ovewrite
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 28 Sep 2018 15:45:11 -0700
+Message-ID: <153817471166.19407.8554249441903250990.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
+References: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-ID: <17432.1537572050.1@warthog.procyon.org.uk>
-Date: Sat, 22 Sep 2018 00:20:50 +0100
-Message-ID: <17433.1537572050@warthog.procyon.org.uk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,50 +22,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dave Jiang <dave.jiang@intel.com> wrote:
+Add overwrite command usages to security documentation.
 
-> +	depends on KEYS
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/nvdimm/security.txt |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-That needs to be in patch 2 where you create a keyring.
+diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
+index 50cbb6cb96a1..ded5f0e3f7c3 100644
+--- a/Documentation/nvdimm/security.txt
++++ b/Documentation/nvdimm/security.txt
+@@ -91,6 +91,17 @@ its keyid should be passed in via sysfs.
+ The command format for doing a secure erase is:
+ erase <old keyid>
+ 
++9. Overwrite
++------------
++The command format for doing an overwrite is:
++overwrite <old keyid>
++
++Overwrite can be done without a key if security is not enabled. A key serial
++of 0 can be passed in to indicate no key.
++
++The sysfs attribute "security" can be polled to wait on overwrite completion.
++Overwrite can last tens of minutes or more depending on nvdimm size.
++
+ An "old" key with the passphrase payload that is tied to the nvdimm should be
+ injected with a key description that does not have the "nvdimm:" prefix and
+ its keyid should be passed in via sysfs.
 
-> +	char desc[NVDIMM_KEY_DESC_LEN + strlen(NVDIMM_PREFIX)];
-
-You should be using sizeof() not strlen() and do you need + 1 for the NUL
-char?
-
-> +	sprintf(desc, "%s%s", NVDIMM_PREFIX, nvdimm->dimm_id);
-
-NVDIMM_PREFIX is a constant string.  I would recommend either declaring it as
-a const char[] or just sticking it in the format string in place of the %s:
-
-	sprintf(desc, NVDIMM_PREFIX "%s", nvdimm->dimm_id);
-
-> +		if (!cached_key) {
-> +			key_link(nvdimm_keyring, key);
-> +			nvdimm->key = key;
-> +			key->perm |= KEY_USR_SEARCH;
-> +		}
-
-Ummm...  You're altering the key permission?  That's not really yours to
-change.
-
-> +static int nvdimm_check_key_len(unsigned short len, bool update)
-> +{
-> +	if (len == (NVDIMM_PASSPHRASE_LEN * 2) && update)
-> +		return 0;
-
-In the cover you said:
-
-	- Modified "update" to take two key ids and and use lookup_user_key()
-	  in order to improve security.  (David)
-
-is this a holdover?
-
-David
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
