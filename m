@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C11D2115C072
- for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 14:55:35 -0700 (PDT)
-Subject: [PATCH v11 00/12] Adding security support for nvdimm
+ by ml01.01.org (Postfix) with ESMTPS id 818A021148DB4
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 14:54:46 -0700 (PDT)
+Subject: [PATCH v11 12/12] acpi,
+ nfit: Move acpi_nfit_get_security_ops() to generic location
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 28 Sep 2018 14:53:25 -0700
-Message-ID: <153817140052.17152.8594371908103118425.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 28 Sep 2018 14:54:34 -0700
+Message-ID: <153817167456.17152.874519072328282288.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153817140052.17152.8594371908103118425.stgit@djiang5-desk3.ch.intel.com>
+References: <153817140052.17152.8594371908103118425.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,136 +27,95 @@ To: dan.j.williams@intel.com
 Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements security support for nvdimm. Mostly adding
-new security DSM support from the Intel NVDIMM DSM spec v1.7, but also
-adding generic support libnvdimm for other vendors. The most important
-security features are unlocking locked nvdimms, and updating/setting security
-passphrase to nvdimms.
+From: Dan Williams <dan.j.williams@intel.com>
 
-v11:
-- Dropped keyring usage. (David)
-- Fixed up scanf handling. (David)
-- Removed callout info for request_key(). (David)
-- Included Dan's patches and folded in some changes from Dan. (Dan)
-- Made security_show a weak function to allow test override. (Dan)
+In anticipation of other DIMMs adding security operations support, don't
+require them to edit intel.h. Instead have intel.h optionally arrange
+for intel_security_ops to be NULL or not based on build parameters.
 
-v10:
-- Change usage of strcmp to sysfs_streq. (Dan)
-- Lock nvdimm bus when doing secure erase. (Dan)
-- Change dev_info to dev_dbg for dimm unlocked success output. (Dan)
-
-v9:
-- Addressed various misc comments. (David, Dan)
-- Removed init_cred and replaced with current_cred(). (David)
-- Changed NVDIMM_PREFIX to char[] constant (David)
-- Moved NVDIMM_PREFIX to include/uapi/linux/ndctl.h (Dan)
-- Reworked security_update to use old user key to verify against kernel
-  key and then update with new user key. (David)
-- Added requirement of disable and erase to require old user key for
-  verify. (Dan)
-- Updated documentation. (Dave)
-
-v8:
-- Make the keys retained by the kernel user searchable in order to find the
-  key that needs to be updated for key update.
-
-v7:
-- Add CONFIG_KEYS depenency for libnvdimm. (Alison)
-- Export lookup_user_key(). (David)
-- Modified "update" to take two key ids and and use lookup_user_key() in
-  order to improve security.  (David)
-- Use key ptrs and key_validate() for cached keys. (David)
-
-v6:
-- Fix intel DSM data structures to use defined size for passphrase (Robert)
-- Fix memcpy size to use sizeof data structure member (Robert)
-- Fix defined dimm id length (Robert)
-- Making intel_security_ops const (Eric)
-- Remove unused var in nvdimm_key_search() (Eric)
-- Added wbinvd before secure erase is issued (Robert)
-- Removed key_put_sync() usage (David)
-- Use init_cred instead of creating own cred (David)
-    - Exported init_cred symbol
-- Move keyring to dedicated (David)
-- Use logon_key_type and friends instead of creating custom (David)
-- Use key_lookup() with stored key serial (David)
-    - Exported key_lookup() symbol
-- Mark passed in key data as const (David)
-- Added comment for change_pass_phrase to explain how it works (David)
-- Unlink key when it's being removed from keyring. (David)
-- Removed request_key() from all security ops except update and unlock.
-- Update will now update the existing key's payload with the new key's
-  retrieved from userspace when the new payload is accepted by nvdimm.
-
-v5:
-- Moved dimm_id initialization (Dan)
-- Added a key_put_sync() in order to run key_gc_work and cleanup old key. (Dan)
-- Added check to block security state changes while DIMM is active. (Dan)
-
-v4:
-- flip payload layout for update passphrase to make it easier on userland.
-
-v3:
-- Set x86 wrappers for x86 only bits. (Dan)
-- Fixed up some verbiage in commit headers.
-- Put in usage of sysfs_streq() for sysfs inputs.
-- 0-day build fixes for non-x86 archs.
-
-v2:
-- Move inclusion of intel.h to relevant source files and not in nfit.h. (Dan)
-- Moved security ring relevant code to dimm_devs.c. (Dan)
-- Added dimm_id to nfit_mem to avoid recreate per sysfs show call. (Dan)
-- Added routine to return security_ops based on family supplied. (Dan)
-- Added nvdimm_key_data struct to wrap raw passphrase string. (Dan)
-- Allocate firmware package on stack. (Dan)
-- Added missing frozen state detection when retrieving security state.
-
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/acpi/nfit/core.c  |   10 ++++++++++
+ drivers/acpi/nfit/intel.c |    3 ++-
+ drivers/acpi/nfit/intel.h |   18 +++---------------
+ 3 files changed, 15 insertions(+), 16 deletions(-)
 
-Dan Williams (2):
-      libnvdimm: Drop nvdimm_bus from security_ops interface
-      acpi, nfit: Move acpi_nfit_get_security_ops() to generic location
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e5f7c664a7c8..b7773c70ee81 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1835,6 +1835,16 @@ static void shutdown_dimm_notify(void *data)
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+ 
++static const struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
++{
++        switch (family) {
++        case NVDIMM_FAMILY_INTEL:
++                return intel_security_ops;
++        default:
++                return NULL;
++        }
++}
++
+ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_mem *nfit_mem;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 70bccb0c57e2..8d2413810a5f 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -358,7 +358,7 @@ static int intel_dimm_security_state(struct nvdimm *nvdimm,
+ 	return rc;
+ }
+ 
+-const struct nvdimm_security_ops intel_security_ops = {
++static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.state = intel_dimm_security_state,
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+@@ -366,3 +366,4 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.freeze_lock = intel_dimm_security_freeze_lock,
+ 	.erase = intel_dimm_security_erase,
+ };
++const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+index f9ac718776ca..f831084f95fa 100644
+--- a/drivers/acpi/nfit/intel.h
++++ b/drivers/acpi/nfit/intel.h
+@@ -8,7 +8,7 @@
+ 
+ #ifdef CONFIG_X86
+ 
+-extern const struct nvdimm_security_ops intel_security_ops;
++extern const struct nvdimm_security_ops *intel_security_ops;
+ 
+ #define ND_INTEL_STATUS_SIZE		4
+ #define ND_INTEL_PASSPHRASE_SIZE	32
+@@ -64,19 +64,7 @@ struct nd_intel_overwrite {
+ struct nd_intel_query_overwrite {
+ 	u32 status;
+ } __packed;
++#else /* CONFIG_X86 */
++#define intel_security_ops (NULL)
+ #endif /* CONFIG_X86 */
+-
+-static inline const struct nvdimm_security_ops *
+-acpi_nfit_get_security_ops(int family)
+-{
+-	switch (family) {
+-#ifdef CONFIG_X86
+-	case NVDIMM_FAMILY_INTEL:
+-		return &intel_security_ops;
+-#endif
+-	default:
+-		return NULL;
+-	}
+-}
+-
+ #endif
 
-Dave Jiang (10):
-      nfit: add support for Intel DSM 1.7 commands
-      nfit/libnvdimm: store dimm id as a member to struct nvdimm
-      keys: export lookup_user_key to external users
-      nfit/libnvdimm: add unlock of nvdimm support for Intel DIMMs
-      nfit/libnvdimm: add set passphrase support for Intel nvdimms
-      nfit/libnvdimm: add disable passphrase support to Intel nvdimm.
-      nfit/libnvdimm: add freeze security support to Intel nvdimm
-      nfit/libnvdimm: add support for issue secure erase DSM to Intel nvdimm
-      nfit_test: add test support for Intel nvdimm security DSMs
-      libnvdimm: add documentation for nvdimm security support
-
-
- Documentation/nvdimm/security.txt |   99 +++++++
- drivers/acpi/nfit/Makefile        |    1 
- drivers/acpi/nfit/core.c          |   68 ++++-
- drivers/acpi/nfit/intel.c         |  369 ++++++++++++++++++++++++++
- drivers/acpi/nfit/intel.h         |   70 +++++
- drivers/acpi/nfit/nfit.h          |   20 +
- drivers/nvdimm/Kconfig            |    1 
- drivers/nvdimm/bus.c              |    8 -
- drivers/nvdimm/dimm.c             |    7 
- drivers/nvdimm/dimm_devs.c        |  531 +++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/nd-core.h          |    5 
- drivers/nvdimm/nd.h               |    4 
- include/linux/key.h               |    3 
- include/linux/libnvdimm.h         |   46 +++
- include/uapi/linux/ndctl.h        |    6 
- security/keys/internal.h          |    2 
- security/keys/process_keys.c      |    1 
- tools/testing/nvdimm/Kbuild       |    2 
- tools/testing/nvdimm/dimm_devs.c  |   39 +++
- tools/testing/nvdimm/test/nfit.c  |  185 +++++++++++++
- 20 files changed, 1446 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/nvdimm/security.txt
- create mode 100644 drivers/acpi/nfit/intel.c
- create mode 100644 drivers/acpi/nfit/intel.h
- create mode 100644 tools/testing/nvdimm/dimm_devs.c
-
---
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
