@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A0022114842B
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 13:21:37 -0700 (PDT)
-Subject: [PATCH v5 4/4] mm: Defer ZONE_DEVICE page initialization to the
- point where we init pgmap
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 25 Sep 2018 13:21:24 -0700
-Message-ID: <20180925202053.3576.66039.stgit@localhost.localdomain>
-In-Reply-To: <20180925200551.3576.18755.stgit@localhost.localdomain>
-References: <20180925200551.3576.18755.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id CFA382113A0E0
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 14:54:07 -0700 (PDT)
+Subject: [PATCH v11 07/12] nfit/libnvdimm: add freeze security support to
+ Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 28 Sep 2018 14:54:06 -0700
+Message-ID: <153817164661.17152.10637849434201035023.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153817140052.17152.8594371908103118425.stgit@djiang5-desk3.ch.intel.com>
+References: <153817140052.17152.8594371908103118425.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,241 +23,152 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.hansen@intel.com, jglisse@redhat.com, rppt@linux.vnet.ibm.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ZONE_DEVICE pages were being initialized in two locations. One was with
-the memory_hotplug lock held and another was outside of that lock. The
-problem with this is that it was nearly doubling the memory initialization
-time. Instead of doing this twice, once while holding a global lock and
-once without, I am opting to defer the initialization to the one outside of
-the lock. This allows us to avoid serializing the overhead for memory init
-and we can instead focus on per-node init times.
+Add support for freeze security on Intel nvdimm. This locks out any
+changes to security for the DIMM unless a reboot is done. This is triggered
+by writing "freeze" to the "security" sysfs attribute. libnvdimm will
+support the generic freeze_lock API call.
 
-One issue I encountered is that devm_memremap_pages and
-hmm_devmmem_pages_create were initializing only the pgmap field the same
-way. One wasn't initializing hmm_data, and the other was initializing it to
-a poison value. Since this is something that is exposed to the driver in
-the case of hmm I am opting for a third option and just initializing
-hmm_data to 0 since this is going to be exposed to unknown third party
-drivers.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/acpi/nfit/intel.c  |   51 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   23 ++++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 3 files changed, 76 insertions(+)
 
-v4: Moved moved memmap_init_zone_device to below memmmap_init_zone to avoid
-    merge conflicts with other changes in the kernel.
-v5: No change
-
- include/linux/mm.h |    2 +
- kernel/memremap.c  |   24 +++++---------
- mm/hmm.c           |   12 ++++---
- mm/page_alloc.c    |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 4 files changed, 107 insertions(+), 23 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 06d7d7576f8d..7312fb78ef31 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -848,6 +848,8 @@ static inline bool is_zone_device_page(const struct page *page)
- {
- 	return page_zonenum(page) == ZONE_DEVICE;
- }
-+extern void memmap_init_zone_device(struct zone *, unsigned long,
-+				    unsigned long, struct dev_pagemap *);
- #else
- static inline bool is_zone_device_page(const struct page *page)
- {
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 5b8600d39931..d0c32e473f82 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -175,10 +175,10 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	struct vmem_altmap *altmap = pgmap->altmap_valid ?
- 			&pgmap->altmap : NULL;
- 	struct resource *res = &pgmap->res;
--	unsigned long pfn, pgoff, order;
-+	struct dev_pagemap *conflict_pgmap;
- 	pgprot_t pgprot = PAGE_KERNEL;
-+	unsigned long pgoff, order;
- 	int error, nid, is_ram;
--	struct dev_pagemap *conflict_pgmap;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 21d30222371f..ba886f1f5399 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,53 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-@@ -256,19 +256,13 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	if (error)
- 		goto err_add_memory;
- 
--	for_each_device_pfn(pfn, pgmap) {
--		struct page *page = pfn_to_page(pfn);
--
--		/*
--		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
--		 * pointer.  It is a bug if a ZONE_DEVICE page is ever
--		 * freed or placed on a driver-private list.  Seed the
--		 * storage with LIST_POISON* values.
--		 */
--		list_del(&page->lru);
--		page->pgmap = pgmap;
--		percpu_ref_get(pgmap->ref);
--	}
-+	/*
-+	 * Initialization of the pages has been deferred until now in order
-+	 * to allow us to do the work while not holding the hotplug lock.
-+	 */
-+	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
-+				align_start >> PAGE_SHIFT,
-+				align_size >> PAGE_SHIFT, pgmap);
- 
- 	devm_add_action(dev, devm_memremap_pages_release, pgmap);
- 
-diff --git a/mm/hmm.c b/mm/hmm.c
-index c968e49f7a0c..774d684fa2b4 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1024,7 +1024,6 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
- 	resource_size_t key, align_start, align_size, align_end;
- 	struct device *device = devmem->device;
- 	int ret, nid, is_ram;
--	unsigned long pfn;
- 
- 	align_start = devmem->resource->start & ~(PA_SECTION_SIZE - 1);
- 	align_size = ALIGN(devmem->resource->start +
-@@ -1109,11 +1108,14 @@ static int hmm_devmem_pages_create(struct hmm_devmem *devmem)
- 				align_size >> PAGE_SHIFT, NULL);
- 	mem_hotplug_done();
- 
--	for (pfn = devmem->pfn_first; pfn < devmem->pfn_last; pfn++) {
--		struct page *page = pfn_to_page(pfn);
-+	/*
-+	 * Initialization of the pages has been deferred until now in order
-+	 * to allow us to do the work while not holding the hotplug lock.
-+	 */
-+	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
-+				align_start >> PAGE_SHIFT,
-+				align_size >> PAGE_SHIFT, &devmem->pagemap);
- 
--		page->pgmap = &devmem->pagemap;
--	}
- 	return 0;
- 
- error_add_memory:
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 926ad3083b28..7ec0997ded39 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5489,12 +5489,23 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
- 
-+#ifdef CONFIG_ZONE_DEVICE
- 	/*
- 	 * Honor reservation requested by the driver for this ZONE_DEVICE
--	 * memory
-+	 * memory. We limit the total number of pages to initialize to just
-+	 * those that might contain the memory mapping. We will defer the
-+	 * ZONE_DEVICE page initialization until after we have released
-+	 * the hotplug lock.
- 	 */
--	if (altmap && start_pfn == altmap->base_pfn)
--		start_pfn += altmap->reserve;
-+	if (zone == ZONE_DEVICE) {
-+		if (!altmap)
-+			return;
-+
-+		if (start_pfn == altmap->base_pfn)
-+			start_pfn += altmap->reserve;
-+		end_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
-+	}
-+#endif
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
-@@ -5538,6 +5549,81 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 	}
- }
- 
-+#ifdef CONFIG_ZONE_DEVICE
-+void __ref memmap_init_zone_device(struct zone *zone,
-+				   unsigned long start_pfn,
-+				   unsigned long size,
-+				   struct dev_pagemap *pgmap)
++static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
 +{
-+	unsigned long pfn, end_pfn = start_pfn + size;
-+	struct pglist_data *pgdat = zone->zone_pgdat;
-+	unsigned long zone_idx = zone_idx(zone);
-+	unsigned long start = jiffies;
-+	int nid = pgdat->node_id;
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_freeze_lock cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
 +
-+	if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
-+		return;
++	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
-+	/*
-+	 * The call to memmap_init_zone should have already taken care
-+	 * of the pages reserved for the memmap, so we can just jump to
-+	 * the end of that region and start processing the device pages.
-+	 */
-+	if (pgmap->altmap_valid) {
-+		struct vmem_altmap *altmap = &pgmap->altmap;
-+
-+		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
-+		size = end_pfn - start_pfn;
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
 +	}
 +
-+	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		__init_single_page(page, pfn, zone_idx, nid);
-+
-+		/*
-+		 * Mark page reserved as it will need to wait for onlining
-+		 * phase for it to be fully associated with a zone.
-+		 *
-+		 * We can use the non-atomic __set_bit operation for setting
-+		 * the flag as we are still initializing the pages.
-+		 */
-+		__SetPageReserved(page);
-+
-+		/*
-+		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
-+		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
-+		 * page is ever freed or placed on a driver-private list.
-+		 */
-+		page->pgmap = pgmap;
-+		page->hmm_data = 0;
-+
-+		/*
-+		 * Mark the block movable so that blocks are reserved for
-+		 * movable at startup. This will force kernel allocations
-+		 * to reserve their blocks rather than leaking throughout
-+		 * the address space during boot when many long-lived
-+		 * kernel allocations are made.
-+		 *
-+		 * bitmap is created for zone's valid pfn range. but memmap
-+		 * can be created for invalid pages (for alignment)
-+		 * check here not to call set_pageblock_migratetype() against
-+		 * pfn out of zone.
-+		 *
-+		 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
-+		 * because this is done early in sparse_add_one_section
-+		 */
-+		if (!(pfn & (pageblock_nr_pages - 1))) {
-+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+			cond_resched();
-+		}
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
 +	}
 +
-+	pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
-+		size, jiffies_to_msecs(jiffies - start));
++ out:
++	return rc;
 +}
 +
-+#endif
- static void __meminit zone_init_free_lists(struct zone *zone)
+ static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
  {
- 	unsigned int order, t;
+@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+ 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+ 			*state = NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			*state = NVDIMM_SECURITY_FROZEN;
+ 		else
+ 			*state = NVDIMM_SECURITY_UNLOCKED;
+ 	} else
+@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
++	.freeze_lock = intel_dimm_security_freeze_lock,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 85f1816a4f0c..e0a09bcc8b11 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -183,6 +183,26 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
+ }
+ 
++static int nvdimm_security_freeze_lock(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	int rc;
++
++	if (!nvdimm->security_ops)
++		return -EOPNOTSUPP;
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return -EOPNOTSUPP;
++
++	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
++	if (rc < 0)
++		return rc;
++
++	nvdimm_security_get_state(dev);
++	return 0;
++}
++
+ static int nvdimm_security_disable(struct device *dev, unsigned int keyid)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+@@ -803,6 +823,9 @@ static ssize_t security_store(struct device *dev,
+ 			return -EINVAL;
+ 		dev_dbg(dev, "disable %#x\n", old_key);
+ 		rc = nvdimm_security_disable(dev, old_key);
++	} else if (sysfs_streq(buf, "freeze")) {
++		dev_dbg(dev, "freeze\n");
++		rc = nvdimm_security_freeze_lock(dev);
+ 	} else
+ 		return -EINVAL;
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index c60ab4b238f3..bcab42caa948 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
+ 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *nkey);
++	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
