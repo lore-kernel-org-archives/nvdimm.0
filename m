@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74C7821157438
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 09:22:53 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Tue, 25 Sep 2018 10:22:28 -0600
-Message-Id: <20180925162231.4354-11-logang@deltatee.com>
-In-Reply-To: <20180925162231.4354-1-logang@deltatee.com>
-References: <20180925162231.4354-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 26AF82112944B
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 16:03:45 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id m23-v6so7630254otf.0
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 16:03:45 -0700 (PDT)
 MIME-Version: 1.0
-Subject: [PATCH v7 10/13] nvme-pci: Add support for P2P memory in requests
+References: <153816098159.2233877.8382846671636531035.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <3cf89dd3-a024-dbab-36ed-923f9466669c@linux.intel.com>
+In-Reply-To: <3cf89dd3-a024-dbab-36ed-923f9466669c@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 28 Sep 2018 16:03:33 -0700
+Message-ID: <CAPcyv4hi7XLAswcoWEKOcQq_0FCTybxTUd_4H+mJj0S7BkTCjg@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm, dimm: Maximize label transfer size
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,99 +26,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: alexander.h.duyck@linux.intel.com
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-For P2P requests, we must use the pci_p2pmem_map_sg() function
-instead of the dma_map_sg functions.
+On Fri, Sep 28, 2018 at 3:44 PM Alexander Duyck
+<alexander.h.duyck@linux.intel.com> wrote:
+>
+> On 9/28/2018 11:56 AM, Dan Williams wrote:
+> > Use kvzalloc() to bypass the arbitrary PAGE_SIZE limit of label transfer
+> > operations. Given the expense of calling into firmware, maximize the
+> > amount of label data we transfer per call to be up to the total label
+> > space if allowed by the firmware.
+> >
+> > Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> This looks mostly fine to me.
+>
+> The only thing I am not certain about is if we want to use the raw
+> max_cmd_size value or not since there is no guarantee it is aligned to
+> any sort of boundary. It might be beneficial to either cache line align
+> it or align it to 256B if it is larger than that since that way we at
+> least would be getting full labels instead of partial ones.
 
-With that, we can then indicate PCI_P2P support in the request queue.
-For this, we create an NVME_F_PCI_P2P flag which tells the core to
-set QUEUE_FLAG_PCI_P2P in the request queue.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
----
- drivers/nvme/host/core.c |  4 ++++
- drivers/nvme/host/nvme.h |  1 +
- drivers/nvme/host/pci.c  | 17 +++++++++++++----
- 3 files changed, 18 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index dd8ec1dd9219..6033ce2fd3e9 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
- 	ns->queue = blk_mq_init_queue(ctrl->tagset);
- 	if (IS_ERR(ns->queue))
- 		goto out_free_ns;
-+
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
-+	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
-+		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
-+
- 	ns->queue->queuedata = ns;
- 	ns->ctrl = ctrl;
- 
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index bb4a2003c097..4030743c90aa 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
- 	unsigned int flags;
- #define NVME_F_FABRICS			(1 << 0)
- #define NVME_F_METADATA_SUPPORTED	(1 << 1)
-+#define NVME_F_PCI_P2PDMA		(1 << 2)
- 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
- 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
- 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index f434706a04e8..0d6c41bc2b35 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -745,8 +745,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
- 		goto out;
- 
- 	ret = BLK_STS_RESOURCE;
--	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
--			DMA_ATTR_NO_WARN);
-+
-+	if (is_pci_p2pdma_page(sg_page(iod->sg)))
-+		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
-+					  dma_dir);
-+	else
-+		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
-+					     dma_dir,  DMA_ATTR_NO_WARN);
- 	if (!nr_mapped)
- 		goto out;
- 
-@@ -788,7 +793,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 
- 	if (iod->nents) {
--		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+		/* P2PDMA requests do not need to be unmapped */
-+		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
-+			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
-+
- 		if (blk_integrity_rq(req))
- 			dma_unmap_sg(dev->dev, &iod->meta_sg, 1, dma_dir);
- 	}
-@@ -2400,7 +2408,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
- static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
- 	.name			= "pcie",
- 	.module			= THIS_MODULE,
--	.flags			= NVME_F_METADATA_SUPPORTED,
-+	.flags			= NVME_F_METADATA_SUPPORTED |
-+				  NVME_F_PCI_P2PDMA,
- 	.reg_read32		= nvme_pci_reg_read32,
- 	.reg_write32		= nvme_pci_reg_write32,
- 	.reg_read64		= nvme_pci_reg_read64,
--- 
-2.19.0
-
+If we leave any portion of the max transfer size unused it just means
+we're that much more likely to need an additional call into the ASL
+interpreter. That said It might be worthwhile capping the max transfer
+size in case the BIOS specifies something extreme (> 1MB) in the
+future.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
