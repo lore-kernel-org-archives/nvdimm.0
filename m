@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D323D21159CAA
- for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 17:53:46 -0700 (PDT)
-Subject: [ndctl PATCH v3 1/3] ndctl,
- lib: Add dirty-shutdown-count retrieval helper
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Sep 2018 17:41:42 -0700
-Message-ID: <153809530287.1963951.9693220998113414361.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 11BF0211518D1
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 15:45:07 -0700 (PDT)
+Subject: [PATCH v2 4/5] libnvdimm: add overwrite status notification
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 28 Sep 2018 15:45:06 -0700
+Message-ID: <153817470623.19407.2154312383983084713.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
+References: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,186 +22,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel now exports nmemX/nfit/dirty_shutdown for DIMMs/platforms
-that provide a free running dirty-shutdown-counter.
+Adding sysfs notification for when overwrite has completed to allow
+user monitoring app to be aware of overwrite completion status.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/lib/libndctl.c   |   10 ++++++++++
- ndctl/lib/libndctl.sym |    5 +++++
- ndctl/lib/private.h    |    1 +
- ndctl/libndctl.h       |    1 +
- test/libndctl.c        |   29 ++++++++++++++++++++++-------
- 5 files changed, 39 insertions(+), 7 deletions(-)
+ drivers/acpi/nfit/core.c   |    5 +++++
+ drivers/nvdimm/dimm_devs.c |   12 ++++++++++++
+ drivers/nvdimm/nd-core.h   |    1 +
+ include/linux/libnvdimm.h  |    1 +
+ 4 files changed, 19 insertions(+)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 481b110d2a18..737b1de2c930 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1322,6 +1322,7 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
- 	dimm->device_id = -1;
- 	dimm->revision_id = -1;
- 	dimm->health_eventfd = -1;
-+	dimm->dirty_shutdown = -ENOENT;
- 	dimm->subsystem_vendor_id = -1;
- 	dimm->subsystem_device_id = -1;
- 	dimm->subsystem_revision_id = -1;
-@@ -1387,6 +1388,10 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
- 	if (sysfs_read_attr(ctx, path, buf) == 0)
- 		dimm->revision_id = strtoul(buf, NULL, 0);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index b7773c70ee81..93c044527994 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1950,6 +1950,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (!nvdimm)
+ 			continue;
  
-+	sprintf(path, "%s/nfit/dirty_shutdown", dimm_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dimm->dirty_shutdown = strtoll(buf, NULL, 0);
++		rc = nvdimm_setup_security_events(nvdimm);
++		if (rc < 0)
++			dev_warn(acpi_desc->dev,
++					"no security event setup failed\n");
 +
- 	sprintf(path, "%s/nfit/subsystem_vendor", dimm_base);
- 	if (sysfs_read_attr(ctx, path, buf) == 0)
- 		dimm->subsystem_vendor_id = strtoul(buf, NULL, 0);
-@@ -1489,6 +1494,11 @@ NDCTL_EXPORT unsigned short ndctl_dimm_get_revision(struct ndctl_dimm *dimm)
- 	return dimm->revision_id;
+ 		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
+ 		if (nfit_kernfs)
+ 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 73f7e879d6e0..12bafa3ba8f9 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -211,6 +211,8 @@ static void nvdimm_overwrite_query(struct work_struct *work)
+ 	else
+ 		dev_info(&nvdimm->dev, "Overwrite completed\n");
+ 
++	if (nvdimm->overwrite_state)
++		sysfs_notify_dirent(nvdimm->overwrite_state);
+ 	nvdimm->overwrite_tmo = 0;
+ 	nvdimm_clear_security_busy(&nvdimm->dev);
+ 	nvdimm_security_get_state(&nvdimm->dev);
+@@ -1134,6 +1136,16 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
  }
+ EXPORT_SYMBOL_GPL(nvdimm_create);
  
-+NDCTL_EXPORT long long ndctl_dimm_get_dirty_shutdown(struct ndctl_dimm *dimm)
++int nvdimm_setup_security_events(struct nvdimm *nvdimm)
 +{
-+	return dimm->dirty_shutdown;
++	nvdimm->overwrite_state = sysfs_get_dirent(nvdimm->dev.kobj.sd,
++			"security");
++	if (!nvdimm->overwrite_state)
++		return -ENODEV;
++	return 0;
 +}
++EXPORT_SYMBOL_GPL(nvdimm_setup_security_events);
 +
- NDCTL_EXPORT unsigned short ndctl_dimm_get_subsystem_vendor(
- 		struct ndctl_dimm *dimm)
+ int alias_dpa_busy(struct device *dev, void *data)
  {
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index a6849ee1fa4a..f1421a92bb09 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -378,3 +378,8 @@ global:
- 	ndctl_region_get_max_available_extent;
- 	ndctl_cmd_smart_inject_ctrl_temperature;
- } LIBNDCTL_16;
-+
-+LIBNDCTL_18 {
-+global:
-+	ndctl_dimm_get_dirty_shutdown;
-+} LIBNDCTL_17;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index b6e438aff8c7..55fcd4e0ad05 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -76,6 +76,7 @@ struct ndctl_dimm {
- 	unsigned long cmd_family;
- 	unsigned long cmd_mask;
- 	unsigned long nfit_dsm_mask;
-+	long long dirty_shutdown;
- 	char *unique_id;
- 	char *dimm_path;
- 	char *dimm_buf;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 83d6c6cae18d..7d164f688681 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -150,6 +150,7 @@ unsigned short ndctl_dimm_get_phys_id(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_vendor(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_device(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_revision(struct ndctl_dimm *dimm);
-+long long ndctl_dimm_get_dirty_shutdown(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_subsystem_vendor(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_subsystem_device(struct ndctl_dimm *dimm);
- unsigned short ndctl_dimm_get_manufacturing_date(struct ndctl_dimm *dimm);
-diff --git a/test/libndctl.c b/test/libndctl.c
-index e36c1fb5e2e5..50365f00e5fe 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -118,6 +118,7 @@ struct dimm {
- 	unsigned int subsystem_vendor;
- 	unsigned short manufacturing_date;
- 	unsigned char manufacturing_location;
-+	long long dirty_shutdown;
- 	union {
- 		unsigned long flags;
- 		struct {
-@@ -136,15 +137,15 @@ struct dimm {
- 	(((n & 0xfff) << 16) | ((s & 0xf) << 12) | ((i & 0xf) << 8) \
- 	 | ((c & 0xf) << 4) | (d & 0xf))
- static struct dimm dimms0[] = {
--	{ DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, 2016, 10, { 0 }, 2, { 0x201, 0x301, }, },
--	{ DIMM_HANDLE(0, 0, 0, 0, 1), 1, 0, 2016, 10, { 0 }, 2, { 0x201, 0x301, }, },
--	{ DIMM_HANDLE(0, 0, 1, 0, 0), 2, 0, 2016, 10, { 0 }, 2, { 0x201, 0x301, }, },
--	{ DIMM_HANDLE(0, 0, 1, 0, 1), 3, 0, 2016, 10, { 0 }, 2, { 0x201, 0x301, }, },
-+	{ DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, 2016, 10, 42, { 0 }, 2, { 0x201, 0x301, }, },
-+	{ DIMM_HANDLE(0, 0, 0, 0, 1), 1, 0, 2016, 10, 42, { 0 }, 2, { 0x201, 0x301, }, },
-+	{ DIMM_HANDLE(0, 0, 1, 0, 0), 2, 0, 2016, 10, 42, { 0 }, 2, { 0x201, 0x301, }, },
-+	{ DIMM_HANDLE(0, 0, 1, 0, 1), 3, 0, 2016, 10, 42, { 0 }, 2, { 0x201, 0x301, }, },
+ 	resource_size_t map_end, blk_start, new;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index efc7eb9e624c..043016f41156 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -48,6 +48,7 @@ struct nvdimm {
+ 	struct key *key;
+ 	struct delayed_work dwork;
+ 	unsigned int overwrite_tmo;
++	struct kernfs_node *overwrite_state;
  };
  
- static struct dimm dimms1[] = {
- 	{
--		DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, 2016, 10, {
-+		DIMM_HANDLE(0, 0, 0, 0, 0), 0, 0, 2016, 10, 42, {
- 			.f_arm = 1,
- 			.f_save = 1,
- 			.f_flush = 1,
-@@ -2195,7 +2196,7 @@ static int check_set_config_data(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
-  */
- struct smart {
- 	unsigned int flags, health, temperature, spares, alarm_flags,
--		     life_used, shutdown_state, vendor_size;
-+		     life_used, shutdown_state, shutdown_count, vendor_size;
- };
- 
- static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
-@@ -2211,6 +2212,7 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		.alarm_flags = ND_SMART_SPARE_TRIP | ND_SMART_TEMP_TRIP,
- 		.life_used = 5,
- 		.shutdown_state = 0,
-+		.shutdown_count = 42,
- 		.vendor_size = 0,
- 	};
- 	struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart(dimm);
-@@ -2230,7 +2232,8 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 		return rc;
- 	}
- 
--	__check_smart(dimm, cmd, flags, ~ND_SMART_CTEMP_VALID);
-+	__check_smart(dimm, cmd, flags, ~(ND_SMART_CTEMP_VALID
-+			| ND_SMART_SHUTDOWN_COUNT_VALID));
- 	__check_smart(dimm, cmd, health, -1);
- 	__check_smart(dimm, cmd, temperature, -1);
- 	__check_smart(dimm, cmd, spares, -1);
-@@ -2238,6 +2241,8 @@ static int check_smart(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
- 	__check_smart(dimm, cmd, life_used, -1);
- 	__check_smart(dimm, cmd, shutdown_state, -1);
- 	__check_smart(dimm, cmd, vendor_size, -1);
-+	if (ndctl_cmd_smart_get_flags(cmd) & ND_SMART_SHUTDOWN_COUNT_VALID)
-+		__check_smart(dimm, cmd, shutdown_count, -1);
- 
- 	check->cmd = cmd;
- 	return 0;
-@@ -2468,6 +2473,7 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
- 		unsigned long bus_commands, unsigned long dimm_commands,
- 		struct ndctl_test *test)
- {
-+	long long dsc;
- 	int i, j, rc;
- 
- 	for (i = 0; i < n; i++) {
-@@ -2552,6 +2558,15 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
- 			}
- 		}
- 
-+		dsc = ndctl_dimm_get_dirty_shutdown(dimm);
-+		if (dsc != -ENOENT && dsc != dimms[i].dirty_shutdown) {
-+			fprintf(stderr,
-+				"dimm%d expected dirty shutdown: %lld got: %lld\n",
-+				i, dimms[i].dirty_shutdown,
-+				ndctl_dimm_get_dirty_shutdown(dimm));
-+			return -ENXIO;
-+		}
-+
- 		rc = check_commands(bus, dimm, bus_commands, dimm_commands, test);
- 		if (rc)
- 			return rc;
+ /**
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index b59ff6b798b2..baf33b74cddf 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -218,6 +218,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
+ 		unsigned long cmd_mask, int num_flush,
+ 		struct resource *flush_wpq, const char *dimm_id,
+ 		const struct nvdimm_security_ops *sec_ops);
++int nvdimm_setup_security_events(struct nvdimm *nvdimm);
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
+ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
 
 _______________________________________________
 Linux-nvdimm mailing list
