@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C34AD21106FA6
- for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 15:45:01 -0700 (PDT)
-Subject: [PATCH v2 3/5] nfit_test: Add overwrite support for nfit_test
+ by ml01.01.org (Postfix) with ESMTPS id A775121106FA6
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Sep 2018 15:44:50 -0700 (PDT)
+Subject: [PATCH v2 1/5] libnvdimm: introduce NDD_SECURITY_BUSY flag
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 28 Sep 2018 15:45:00 -0700
-Message-ID: <153817470075.19407.12696397727175523377.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 28 Sep 2018 15:44:49 -0700
+Message-ID: <153817468975.19407.13097333227524016079.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
 References: <153817460190.19407.1009470794996360570.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -26,114 +26,198 @@ To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the implementation of Intel NVDIMM DSM overwrite, we are adding unit
-test to nfit_test for testing of overwrite operation.
+Adding a flag for nvdimm->flags to support erase functions. While it's ok
+to hold the nvdimm_bus lock for secure erase due to minimal time to execute
+the command, overwrite requires a significantly longer time and makes this
+impossible. The flag will block any drivers from being loaded and DIMMs
+being probed.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/acpi/nfit/intel.h        |    1 +
- tools/testing/nvdimm/test/nfit.c |   55 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
+ drivers/nvdimm/dimm.c        |    4 +++
+ drivers/nvdimm/dimm_devs.c   |   52 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/nvdimm/nd.h          |    3 ++
+ drivers/nvdimm/region_devs.c |    7 ++++++
+ include/linux/libnvdimm.h    |    2 ++
+ 5 files changed, 67 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index 65d57a6abbc2..c7426ebf3d08 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -19,6 +19,7 @@ extern const struct nvdimm_security_ops *intel_security_ops;
- #define ND_INTEL_STATUS_INVALID_PASS	11
- #define ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED	0x10007
- #define ND_INTEL_STATUS_OQUERY_INPROGRESS	0x10007
-+#define ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR	0x20007
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index b6381ddbd6c1..5ff9367b8671 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -26,6 +26,10 @@ static int nvdimm_probe(struct device *dev)
+ 	struct nvdimm_drvdata *ndd;
+ 	int rc;
  
- #define ND_INTEL_SEC_STATE_ENABLED	0x02
- #define ND_INTEL_SEC_STATE_LOCKED	0x04
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 1d7ae7aecb46..ee09ea84823a 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -149,6 +149,7 @@ static int dimm_fail_cmd_code[NUM_DCR];
- struct nfit_test_sec {
- 	u8 state;
- 	u8 passphrase[32];
-+	u64 overwrite_end_time;
- } dimm_sec_info[NUM_DCR];
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	rc = nvdimm_check_config_data(dev);
+ 	if (rc) {
+ 		/* not required for non-aliased nvdimm, ex. NVDIMM-N */
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 656a8fafca8e..7a71ea666676 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -187,12 +187,16 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 	struct key *key;
+ 	struct user_key_payload *payload;
+-	int rc = 0;
++	int rc;
+ 	bool is_userkey = false;
  
- static const struct nd_intel_smart smart_def = {
-@@ -1072,6 +1073,50 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 	return 0;
+ 	if (!nvdimm->security_ops)
+ 		return -EOPNOTSUPP;
+ 
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	nvdimm_bus_lock(&nvdimm_bus->dev);
+ 	if (atomic_read(&nvdimm->busy)) {
+ 		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
+@@ -212,6 +216,8 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
+ 		goto out;
+ 	}
+ 
++	nvdimm_set_security_busy(dev);
++
+ 	/* look for a key from cached key if exists */
+ 	key = nvdimm_get_and_verify_key(dev, keyid);
+ 	if (IS_ERR(key)) {
+@@ -246,6 +252,7 @@ static int nvdimm_security_erase(struct device *dev, unsigned int keyid)
+ 	key_put(key);
+ 
+  out:
++	nvdimm_clear_security_busy(dev);
+ 	nvdimm_bus_unlock(&nvdimm_bus->dev);
+ 	nvdimm_security_get_state(dev);
+ 	return rc;
+@@ -262,6 +269,10 @@ static int nvdimm_security_freeze_lock(struct device *dev)
+ 	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
+ 		return -EOPNOTSUPP;
+ 
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	rc = nvdimm->security_ops->freeze_lock(nvdimm);
+ 	if (rc < 0)
+ 		return rc;
+@@ -284,6 +295,10 @@ static int nvdimm_security_disable(struct device *dev, unsigned int keyid)
+ 	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
+ 		return -EOPNOTSUPP;
+ 
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	/* look for a key from cached key */
+ 	key = nvdimm_get_and_verify_key(dev, keyid);
+ 	if (IS_ERR(key))
+@@ -335,6 +350,10 @@ int nvdimm_security_unlock_dimm(struct device *dev)
+ 			nvdimm->state == NVDIMM_SECURITY_DISABLED)
+ 		return 0;
+ 
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	key = nvdimm_get_key(dev);
+ 	if (!key)
+ 		key = nvdimm_request_key(dev);
+@@ -390,6 +409,10 @@ static int nvdimm_security_change_key(struct device *dev,
+ 	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
+ 		return -EBUSY;
+ 
++	rc = nvdimm_check_security_busy(dev);
++	if (rc)
++		return rc;
++
+ 	/* look for a key from cached key if exists */
+ 	old_key = nvdimm_get_and_verify_key(dev, old_keyid);
+ 	if (IS_ERR(old_key))
+@@ -467,6 +490,33 @@ static int nvdimm_security_change_key(struct device *dev,
+ 	return rc;
  }
  
-+static int nd_intel_test_cmd_overwrite(struct nfit_test *t,
-+		struct nd_intel_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
++/*
++ * Check if we are doing security wipes
++ */
++int nvdimm_check_security_busy(struct device *dev)
 +{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++	struct nvdimm *nvdimm = to_nvdimm(dev);
 +
-+	if ((sec->state & ND_INTEL_SEC_STATE_ENABLED) &&
-+			memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "overwrite: wrong passphrase\n");
-+		return 0;
-+	}
-+
-+	memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+	sec->state = ND_INTEL_SEC_STATE_OVERWRITE;
-+	dev_dbg(dev, "overwrite progressing.\n");
-+	sec->overwrite_end_time = get_jiffies_64() + 5 * HZ;
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags))
++		return -EBUSY;
 +
 +	return 0;
 +}
 +
-+static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
-+		struct nd_intel_query_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
++void nvdimm_set_security_busy(struct device *dev)
 +{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++	struct nvdimm *nvdimm = to_nvdimm(dev);
 +
-+	if (!(sec->state & ND_INTEL_SEC_STATE_OVERWRITE)) {
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR;
-+		return 0;
-+	}
-+
-+	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
-+		sec->overwrite_end_time = 0;
-+		sec->state = 0;
-+		dev_dbg(dev, "overwrite is complete\n");
-+	} else
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
-+	return 0;
++	set_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
 +}
 +
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -1143,6 +1188,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_secure_erase(t,
- 						buf, buf_len, i);
- 				break;
-+			case NVDIMM_INTEL_OVERWRITE:
-+				rc = nd_intel_test_cmd_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_QUERY_OVERWRITE:
-+				rc = nd_intel_test_cmd_query_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -2378,6 +2431,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
- }
++void nvdimm_clear_security_busy(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++
++	clear_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
++}
++
+ /*
+  * Retrieve bus and dimm handle and return if this bus supports
+  * get_config_data commands
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index fa3b89127078..252fbe6d4ecd 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -239,6 +239,9 @@ void nd_region_exit(void);
+ struct nvdimm;
+ struct nvdimm_drvdata *to_ndd(struct nd_mapping *nd_mapping);
+ int nvdimm_check_config_data(struct device *dev);
++int nvdimm_check_security_busy(struct device *dev);
++void nvdimm_set_security_busy(struct device *dev);
++void nvdimm_clear_security_busy(struct device *dev);
+ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
+ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index fa37afcd43ff..3e089c533397 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -78,6 +78,13 @@ int nd_region_activate(struct nd_region *nd_region)
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++		int rc;
++
++		rc = nvdimm_check_security_busy(&nvdimm->dev);
++		if (rc) {
++			nvdimm_bus_unlock(&nd_region->dev);
++			return rc;
++		}
  
- static void nfit_test1_setup(struct nfit_test *t)
+ 		/* at least one null hint slot per-dimm for the "no-hint" case */
+ 		flush_data_size += sizeof(void *);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index c352b8195675..32c1da8c49e2 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -38,6 +38,8 @@ enum {
+ 	NDD_UNARMED = 1,
+ 	/* locked memory devices should not be accessed */
+ 	NDD_LOCKED = 2,
++	/* memory under security wipes should not be accessed */
++	NDD_SECURITY_BUSY = 3,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
 
 _______________________________________________
 Linux-nvdimm mailing list
