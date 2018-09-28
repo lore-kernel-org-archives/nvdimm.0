@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF75A21A07A82
- for <linux-nvdimm@lists.01.org>; Tue, 25 Sep 2018 16:40:24 -0700 (PDT)
-Subject: [PATCH v9 11/12] nfit_test: add test support for Intel nvdimm
- security DSMs
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 25 Sep 2018 16:38:47 -0700
-Message-ID: <153791872729.70158.3438276014868697691.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
-References: <153791805740.70158.12896535066689316343.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3511F21159CAA
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Sep 2018 17:53:56 -0700 (PDT)
+Subject: [ndctl PATCH v3 3/3] ndctl: Revert "ndctl: Create ndctl udev rules
+ for dirty shutdown"
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 27 Sep 2018 17:41:53 -0700
+Message-ID: <153809531364.1963951.13699408395606545074.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <153809529764.1963951.7530312689559729607.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,292 +23,306 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add nfit_test support for DSM functions "Get Security State",
-"Set Passphrase", "Disable Passphrase", "Unlock Unit", "Freeze Lock",
-and "Secure Erase" for the fake DIMMs.
+Environments that choose to implement dirty-shutdown mitigation can use
+'list --dimm --health nmemX' to retrieve the dirty-shutdown count, or
+the new 'nmemX/nfit/dirty_shutdown' attribute in sysfs. The kernel
+otherwise takes no default action on that counter rolling. If the
+platform advertises support for "Memory Controller Flush to NVDIMM
+Durability on Power Loss Capable" then the default Linux policy is to
+trust that designation.
 
-Also adding a sysfs knob in order to put the DIMMs in "locked" state. The
-order of testing DIMM unlocking would be.
-1a. Disable DIMM X.
-1b. Set Passphrase to DIMM X.
-2. Write to
-/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimmX/lock_dimm
-3. Renable DIMM X
-4. Check DIMM X state via sysfs "security" attribute for nmemX.
+Otherwise this usage of libndctl enumeration apis in the udev path
+causes the entire udev queue to backup behind libnvdimm sub-system
+initialization:
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+    INFO: task systemd-udevd:1554 blocked for more than 120 seconds.
+    "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+    systemd-udevd   D    0  1554   1544 0x80000004
+    Call Trace:
+     ? __schedule+0x25d/0x870
+     schedule+0x28/0x80
+     async_synchronize_cookie_domain+0x96/0x140
+     ? finish_wait+0x80/0x80
+     nvdimm_bus_check_dimm_count+0x31/0xa0 [libnvdimm]
+     acpi_nfit_register_dimms+0x4b5/0x800 [nfit]
+     acpi_nfit_init+0xca6/0x1300 [nfit]
+     ? acpi_nfit_add+0x197/0x210 [nfit]
+     acpi_nfit_add+0x197/0x210 [nfit]
+     acpi_device_probe+0x48/0x110
+
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild      |    1 
- tools/testing/nvdimm/test/nfit.c |  186 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 187 insertions(+)
+ .gitignore             |    1 
+ Makefile.am            |    3 -
+ configure.ac           |   10 ---
+ contrib/80-ndctl.rules |    3 -
+ ndctl.spec.in          |    3 -
+ ndctl/Makefile.am      |    5 --
+ ndctl/ndctl-udev.c     |  150 ------------------------------------------------
+ 7 files changed, 175 deletions(-)
+ delete mode 100644 contrib/80-ndctl.rules
+ delete mode 100644 ndctl/ndctl-udev.c
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 0392153a0009..a13670d3b389 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -36,6 +36,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
- obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+diff --git a/.gitignore b/.gitignore
+index f13a7ef5a608..0baace4b457e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -25,7 +25,6 @@ daxctl/lib/libdaxctl.pc
+ *.a
+ ndctl/lib/libndctl.pc
+ ndctl/ndctl
+-ndctl/ndctl-udev
+ rhel/
+ sles/ndctl.spec
+ util/log.lo
+diff --git a/Makefile.am b/Makefile.am
+index 7880eef1c890..e0c463a3493a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -42,9 +42,6 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
+ dist_bashcompletion_DATA = contrib/ndctl
+ endif
  
- nfit-y := $(ACPI_SRC)/core.o
-+nfit-$(CONFIG_X86) += $(ACPI_SRC)/intel.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
- nfit-y += acpi_nfit_test.o
- nfit-y += config_check.o
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 1d62222a10da..61ad16beef6d 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -24,6 +24,7 @@
- #include <linux/list.h>
- #include <linux/slab.h>
- #include <nd-core.h>
-+#include <intel.h>
- #include <nfit.h>
- #include <nd.h>
- #include "nfit_test.h"
-@@ -177,6 +178,11 @@ struct nfit_dimm_dev {
- 	struct nfit_mem *nfit_mem;
- };
+-udevrulesdir = $(UDEVDIR)/rules.d
+-dist_udevrules_DATA = contrib/80-ndctl.rules
+-
+ noinst_LIBRARIES = libccan.a
+ libccan_a_SOURCES = \
+ 	ccan/str/str.h \
+diff --git a/configure.ac b/configure.ac
+index 9dc11da194d1..bb6b03324ea8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -153,17 +153,8 @@ fi
+ AC_SUBST([systemd_unitdir])
+ AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
  
-+struct nfit_test_sec {
-+	u8 state;
-+	u8 passphrase[32];
-+};
-+
- struct nfit_test {
- 	struct acpi_nfit_desc acpi_desc;
- 	struct platform_device pdev;
-@@ -214,6 +220,7 @@ struct nfit_test {
- 	struct badrange badrange;
- 	struct work_struct work;
- 	struct nfit_test_fw *fw;
-+	struct nfit_test_sec *sec;
- };
+-AC_ARG_WITH([tmpfilesdir],
+-	[AS_HELP_STRING([--with-tmpfilesdir=DIR], [Directory for temporary runtime files])],
+-	[tmpfilesdir=$withval],
+-	[tmpfilesdir="/run"])
+-
+-UDEVDIR="$(pkg-config udev --variable=udevdir)"
+-AC_SUBST([UDEVDIR])
+-
+ my_CFLAGS="\
+ -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
+--D DEF_TMPFS_DIR='\"${tmpfilesdir}/ndctl\"' \
+ -Wall \
+ -Wchar-subscripts \
+ -Wformat-security \
+@@ -204,7 +195,6 @@ AC_MSG_RESULT([
+         sysconfdir:             ${sysconfdir}
+         libdir:                 ${libdir}
+         includedir:             ${includedir}
+-        tmpfilesdir:            ${tmpfilesdir}
  
- static struct workqueue_struct *nfit_wq;
-@@ -936,6 +943,138 @@ static int override_return_code(int dimm, unsigned int func, int rc)
- 	return rc;
- }
+         compiler:               ${CC}
+         cflags:                 ${CFLAGS}
+diff --git a/contrib/80-ndctl.rules b/contrib/80-ndctl.rules
+deleted file mode 100644
+index 54788c40ea9d..000000000000
+--- a/contrib/80-ndctl.rules
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# do not edit this file, it will be overwritten on update
+-
+-ACTION=="add", KERNEL=="nmem*", RUN+="ndctl-udev $kernel"
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 98394a924030..26396d4abad7 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -110,7 +110,6 @@ make check
+ %postun -n DAX_LNAME -p /sbin/ldconfig
  
-+static int nd_intel_test_cmd_security_status(struct nfit_test *t,
-+		struct nd_intel_get_security_state *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	nd_cmd->status = 0;
-+	nd_cmd->state = sec->state;
-+	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_unlock_unit(struct nfit_test *t,
-+		struct nd_intel_unlock_unit *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_LOCKED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "unlock unit: invalid state: %#x\n",
-+				sec->state);
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "unlock unit: invalid passphrase\n");
-+	} else {
-+		nd_cmd->status = 0;
-+		sec->state = ND_INTEL_SEC_STATE_ENABLED;
-+		dev_dbg(dev, "Unit unlocked\n");
-+	}
-+
-+	dev_dbg(dev, "unlocking status returned: %#x\n", nd_cmd->status);
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_set_pass(struct nfit_test *t,
-+		struct nd_intel_set_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "set passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->old_pass, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "set passphrase: wrong passphrase\n");
-+	} else {
-+		memcpy(sec->passphrase, nd_cmd->new_pass,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state |= ND_INTEL_SEC_STATE_ENABLED;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "passphrase updated\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_freeze_lock(struct nfit_test *t,
-+		struct nd_intel_freeze_lock *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "freeze lock: wrong security state\n");
-+	} else {
-+		sec->state |= ND_INTEL_SEC_STATE_FROZEN;
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "security frozen\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_disable_pass(struct nfit_test *t,
-+		struct nd_intel_disable_passphrase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "disable passphrase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "disable passphrase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "disable passphrase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
-+		struct nd_intel_secure_erase *nd_cmd,
-+		unsigned int buf_len, int idx)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &t->sec[idx];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
-+			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "secure erase: wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "secure erase: wrong passphrase\n");
-+	} else {
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "secure erase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -983,6 +1122,30 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				return i;
+ %define bashcompdir %(pkg-config --variable=completionsdir bash-completion)
+-%define udevdir  %(pkg-config --variable=udevdir udev)
  
- 			switch (func) {
-+			case NVDIMM_INTEL_GET_SECURITY_STATE:
-+				rc = nd_intel_test_cmd_security_status(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_UNLOCK_UNIT:
-+				rc = nd_intel_test_cmd_unlock_unit(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SET_PASSPHRASE:
-+				rc = nd_intel_test_cmd_set_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_DISABLE_PASSPHRASE:
-+				rc = nd_intel_test_cmd_disable_pass(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_FREEZE_LOCK:
-+				rc = nd_intel_test_cmd_freeze_lock(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_SECURE_ERASE:
-+				rc = nd_intel_test_cmd_secure_erase(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1317,10 +1480,23 @@ static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *
- }
- static DEVICE_ATTR_RW(fail_cmd_code);
+ %files
+ %defattr(-,root,root)
+@@ -120,8 +119,6 @@ make check
+ %{bashcompdir}/
+ %{_sysconfdir}/ndctl/monitor.conf
+ %{_unitdir}/ndctl-monitor.service
+-%{_udevrulesdir}/80-ndctl.rules
+-%{udevdir}/ndctl-udev
  
-+static ssize_t lock_dimm_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	int dimm = dimm_name_to_id(dev);
-+	struct nfit_test *t = dev_get_drvdata(dev);
-+	struct nfit_test_sec *sec = &t->sec[dimm];
-+
-+	sec->state = ND_INTEL_SEC_STATE_ENABLED | ND_INTEL_SEC_STATE_LOCKED;
-+	return size;
-+}
-+static DEVICE_ATTR_WO(lock_dimm);
-+
- static struct attribute *nfit_test_dimm_attributes[] = {
- 	&dev_attr_fail_cmd.attr,
- 	&dev_attr_fail_cmd_code.attr,
- 	&dev_attr_handle.attr,
-+	&dev_attr_lock_dimm.attr,
- 	NULL,
- };
- 
-@@ -2207,6 +2383,14 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_INTEL_FW_FINISH_UPDATE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_FW_FINISH_QUERY, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_INTEL_ENABLE_LSS_STATUS, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_GET_SECURITY_STATE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SET_PASSPHRASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
-@@ -2626,6 +2810,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				GFP_KERNEL);
- 		nfit_test->fw = devm_kcalloc(dev, num,
- 				sizeof(struct nfit_test_fw), GFP_KERNEL);
-+		nfit_test->sec = devm_kcalloc(dev, num,
-+				sizeof(struct nfit_test_sec), GFP_KERNEL);
- 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
- 				&& nfit_test->label_dma && nfit_test->dcr
- 				&& nfit_test->dcr_dma && nfit_test->flush
+ %files -n daxctl
+ %defattr(-,root,root)
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index d6839e4a9fb6..8a5e5f87e6c5 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -51,8 +51,3 @@ EXTRA_DIST += $(monitor_config_file)
+ if ENABLE_SYSTEMD_UNITS
+ systemd_unit_DATA = ndctl-monitor.service
+ endif
+-
+-ndctl_udevdir = $(UDEVDIR)
+-ndctl_udev_PROGRAMS = ndctl-udev
+-ndctl_udev_SOURCES = ndctl-udev.c
+-ndctl_udev_LDADD = lib/libndctl.la
+diff --git a/ndctl/ndctl-udev.c b/ndctl/ndctl-udev.c
+deleted file mode 100644
+index 7b174b61d8cd..000000000000
+--- a/ndctl/ndctl-udev.c
++++ /dev/null
+@@ -1,150 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
+-
+-#include <ctype.h>
+-#include <errno.h>
+-#include <fcntl.h>
+-#include <stddef.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <sys/stat.h>
+-#include <sys/types.h>
+-#include <ndctl/libndctl.h>
+-
+-/**
+- * mkdir_p
+- *
+- * Copied from util-linux lib/fileutils.c
+- */
+-static int mkdir_p(const char *path, mode_t mode)
+-{
+-	char *p, *dir;
+-	int rc = 0;
+-
+-	if (!path || !*path)
+-		return -EINVAL;
+-
+-	dir = p = strdup(path);
+-	if (!dir)
+-		return -ENOMEM;
+-
+-	if (*p == '/')
+-		p++;
+-
+-	while (p && *p) {
+-		char *e = strchr(p, '/');
+-		if (e)
+-			*e = '\0';
+-		if (*p) {
+-			rc = mkdir(dir, mode);
+-			if (rc && errno != EEXIST)
+-				break;
+-			rc = 0;
+-		}
+-		if (!e)
+-			break;
+-		*e = '/';
+-		p = e + 1;
+-	}
+-
+-	free(dir);
+-	return rc;
+-}
+-
+-static struct ndctl_dimm *find_dimm(struct ndctl_ctx *ctx, const char *devname)
+-{
+-	struct ndctl_bus *bus;
+-	struct ndctl_dimm *dimm;
+-
+-	ndctl_bus_foreach(ctx, bus) {
+-		ndctl_dimm_foreach(bus, dimm) {
+-			if (strcmp(ndctl_dimm_get_devname(dimm), devname) == 0)
+-				return dimm;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-static void ack_shutdown(struct ndctl_dimm *dimm)
+-{
+-	struct ndctl_cmd *cmd;
+-
+-	cmd = ndctl_dimm_cmd_new_ack_shutdown_count(dimm);
+-	if (!cmd)
+-		return;
+-	ndctl_cmd_submit(cmd);
+-	ndctl_cmd_unref(cmd);
+-}
+-
+-static void save_unsafe_shutdown_count(struct ndctl_dimm *dimm,
+-				       const char *devname)
+-{
+-	char *path, *usc, count[16];
+-	unsigned int shutdown;
+-	struct ndctl_cmd *cmd;
+-	int fd;
+-
+-	cmd = ndctl_dimm_cmd_new_smart(dimm);
+-	if (!cmd)
+-		return;
+-
+-	if (ndctl_cmd_submit(cmd))
+-		goto unref_cmd;
+-
+-	shutdown = ndctl_cmd_smart_get_shutdown_count(cmd);
+-	if (shutdown == UINT_MAX)
+-		goto unref_cmd;
+-
+-	if (asprintf(&path, DEF_TMPFS_DIR "/%s", devname) < 0)
+-		goto unref_cmd;
+-
+-	if (mkdir_p(path, 0755))
+-		goto free_path;
+-
+-	if (asprintf(&usc, "%s/usc", path) < 0)
+-		goto free_path;
+-
+-	fd = open(usc, O_WRONLY | O_CREAT, 0644);
+-	if (fd < 0)
+-		goto free_usc;
+-
+-	if (snprintf(count, sizeof(count), "%u\n", shutdown) < 0)
+-		goto close_fd;
+-
+-	if (write(fd, count, strlen(count)) < 0)
+-		goto close_fd;
+-
+- close_fd:
+-	close(fd);
+- free_usc:
+-	free(usc);
+- free_path:
+-	free(path);
+- unref_cmd:
+-	ndctl_cmd_unref(cmd);
+-}
+-
+-int main(int argc, char *argv[])
+-{
+-	struct ndctl_ctx *ctx;
+-	struct ndctl_dimm *dimm = NULL;
+-	const char *devname;
+-
+-	if (argc < 2)
+-		return EINVAL;
+-
+-	devname = argv[1];
+-	if (ndctl_new(&ctx))
+-		return ENOMEM;
+-
+-	dimm = find_dimm(ctx, devname);
+-	if (!dimm)
+-		return ENODEV;
+-
+-	ack_shutdown(dimm);
+-	save_unsafe_shutdown_count(dimm, devname);
+-
+-	ndctl_unref(ctx);
+-	return 0;
+-}
 
 _______________________________________________
 Linux-nvdimm mailing list
