@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 842D52116524A
- for <linux-nvdimm@lists.01.org>; Wed, 10 Oct 2018 16:39:36 -0700 (PDT)
-Subject: [nvdimm PATCH 6/6] nvdimm: Use namespace index data to reduce
- number of label reads needed
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 10 Oct 2018 16:39:35 -0700
-Message-ID: <20181010233926.12228.65663.stgit@localhost.localdomain>
-In-Reply-To: <20181010233428.12228.26106.stgit@localhost.localdomain>
-References: <20181010233428.12228.26106.stgit@localhost.localdomain>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 219CB21161680
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Oct 2018 20:31:48 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/5] ndctl, lib: refactor badblocks retrieval routines
+Date: Mon,  1 Oct 2018 21:31:36 -0600
+Message-Id: <20181002033140.21295-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,183 +15,242 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
-Cc: alexander.h.duyck@linux.intel.com, zwisler@kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds logic that is meant to make use of the namespace index data
-to reduce the number of reads that are needed to initialize a given
-namespace. The general idea is that once we have enough data to validate
-the namespace index we do so and then proceed to fetch only those labels
-that are not listed as being "free". By doing this I am seeing a total time
-reduction from about 4-5 seconds to 2-3 seconds for 24 NVDIMM modules each
-with 128K of label config area.
+From: Dan Williams <dan.j.williams@intel.com>
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+
+The kernel provides two locations in sysfs that contain badblocks
+information. The only one ndctl currently uses is region based
+badblocks. The problem with this is that this requires root privileges
+to calculate namespace-offset badblocks. Since the kernel already
+provides a world readable location for namespace badblocks, we can fall
+back to that.
+
+Refactor the badblocks retrieval routines to use a bb_iter structure
+that contains information for what badblocks file in sysfs to use, to
+prepare for a direct namespace-badblocks fallback.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[vishal] remove an error print triggered by opening an invalid file
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/dimm.c  |    4 --
- drivers/nvdimm/label.c |   93 +++++++++++++++++++++++++++++++++++++++++++++---
- drivers/nvdimm/label.h |    3 --
- 3 files changed, 88 insertions(+), 12 deletions(-)
+ ndctl/lib/libndctl.c | 141 +++++++++++++++++++++++--------------------
+ ndctl/lib/private.h  |   6 ++
+ 2 files changed, 82 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 07bf96948553..9899c97138a3 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -84,10 +84,6 @@ static int nvdimm_probe(struct device *dev)
- 	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
- 
- 	nvdimm_bus_lock(dev);
--	ndd->ns_current = nd_label_validate(ndd);
--	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
--	nd_label_copy(ndd, to_next_namespace_index(ndd),
--			to_current_namespace_index(ndd));
- 	if (ndd->ns_current >= 0) {
- 		rc = nd_label_reserve_dpa(ndd);
- 		if (rc == 0)
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 563f24af01b5..7f03d117824f 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -235,7 +235,7 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
- 	return -1;
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 481b110..d58be47 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -178,8 +178,7 @@ struct ndctl_region {
+ 		int state;
+ 		unsigned long long cookie;
+ 	} iset;
+-	FILE *badblocks;
+-	struct badblock bb;
++	struct badblocks_iter bb_iter;
+ 	enum ndctl_persistence_domain persistence_domain;
+ 	/* file descriptor for deep flush sysfs entry */
+ 	int flush_fd;
+@@ -376,6 +375,77 @@ NDCTL_EXPORT struct ndctl_ctx *ndctl_ref(struct ndctl_ctx *ctx)
+ 	return ctx;
  }
  
--int nd_label_validate(struct nvdimm_drvdata *ndd)
-+static int nd_label_validate(struct nvdimm_drvdata *ndd)
- {
- 	/*
- 	 * In order to probe for and validate namespace index blocks we
-@@ -258,8 +258,9 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- 	return -1;
- }
- 
--void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
--		struct nd_namespace_index *src)
-+static void nd_label_copy(struct nvdimm_drvdata *ndd,
-+			  struct nd_namespace_index *dst,
-+			  struct nd_namespace_index *src)
- {
- 	/* just exit if either destination or source is NULL */
- 	if (!dst || !src)
-@@ -419,7 +420,9 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
- 
- int nd_label_data_init(struct nvdimm_drvdata *ndd)
- {
--	size_t config_size, read_size;
-+	size_t config_size, read_size, max_xfer, offset;
-+	struct nd_namespace_index *nsindex;
-+	unsigned int i;
- 	int rc = 0;
- 
- 	if (ndd->data)
-@@ -452,7 +455,87 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
- 	if (!ndd->data)
- 		return -ENOMEM;
- 
--	return nvdimm_get_config_data(ndd, ndd->data, 0, config_size);
-+	/*
-+	 * We want to guarantee as few reads as possible while conserving
-+	 * memory. To do that we figure out how much unused space will be left
-+	 * in the last read, divide that by the total number of reads it is
-+	 * going to take given our maximum transfer size, and then reduce our
-+	 * maximum transfer size based on that result.
-+	 */
-+	max_xfer = min_t(size_t, ndd->nsarea.max_xfer, config_size);
-+	if (read_size < max_xfer) {
-+		/* trim waste */
-+		max_xfer -= ((max_xfer - 1) - (config_size - 1) % max_xfer) /
-+			    DIV_ROUND_UP(config_size, max_xfer);
-+		/* make certain we read indexes in exactly 1 read */
-+		if (max_xfer < read_size)
-+			max_xfer = read_size;
++static void badblocks_iter_free(struct badblocks_iter *bb_iter)
++{
++	if (bb_iter->file)
++		fclose(bb_iter->file);
++}
++
++static int badblocks_iter_init(struct badblocks_iter *bb_iter, const char *path)
++{
++	char *bb_path;
++	int rc = 0;
++
++	/* if the file is already open */
++	if (bb_iter->file) {
++		fclose(bb_iter->file);
++		bb_iter->file = NULL;
 +	}
 +
-+	/* Make our initial read size a multiple of max_xfer size */
-+	read_size = min(DIV_ROUND_UP(read_size, max_xfer) * max_xfer,
-+			config_size);
++	if (asprintf(&bb_path, "%s/badblocks", path) < 0)
++		return -errno;
 +
-+	/* Read the index data */
-+	rc = nvdimm_get_config_data(ndd, ndd->data, 0, read_size);
-+	if (rc)
-+		goto out_err;
-+
-+	/* Validate index data, if not valid assume all labels are invalid */
-+	ndd->ns_current = nd_label_validate(ndd);
-+	if (ndd->ns_current < 0)
-+		return 0;
-+
-+	/* Record our index values */
-+	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
-+
-+	/* Copy "current" index on top of the "next" index */
-+	nsindex = to_current_namespace_index(ndd);
-+	nd_label_copy(ndd, to_next_namespace_index(ndd), nsindex);
-+
-+	/* Determine starting offset for label data */
-+	offset = __le64_to_cpu(nsindex->labeloff);
-+
-+	/* Loop through the free list pulling in any active labels */
-+	for (i = 0; i < nsindex->nslot; i++, offset += ndd->nslabel_size) {
-+		size_t label_read_size;
-+
-+		/* zero out the unused labels */
-+		if (test_bit_le(i, nsindex->free)) {
-+			memset(ndd->data + offset, 0, ndd->nslabel_size);
-+			continue;
-+		}
-+
-+		/* if we already read past here then just continue */
-+		if (offset + ndd->nslabel_size <= read_size)
-+			continue;
-+
-+		/* if we haven't read in a while reset our read_size offset */
-+		if (read_size < offset)
-+			read_size = offset;
-+
-+		/* determine how much more will be read after this next call. */
-+		label_read_size = offset + ndd->nslabel_size - read_size;
-+		label_read_size = DIV_ROUND_UP(label_read_size, max_xfer) *
-+				  max_xfer;
-+
-+		/* truncate last read if needed */
-+		if (read_size + label_read_size > config_size)
-+			label_read_size = config_size - read_size;
-+
-+		/* Read the label data */
-+		rc = nvdimm_get_config_data(ndd, ndd->data + read_size,
-+					    read_size, label_read_size);
-+		if (rc)
-+			goto out_err;
-+
-+		/* push read_size to next read offset */
-+		read_size += label_read_size;
++	bb_iter->file = fopen(bb_path, "re");
++	if (!bb_iter->file) {
++		rc = -errno;
++		free(bb_path);
++		return rc;
 +	}
 +
-+	dev_dbg(ndd->dev, "len: %zu rc: %d\n", offset, rc);
-+out_err:
++	free(bb_path);
 +	return rc;
++}
++
++static struct badblock *badblocks_iter_next(struct badblocks_iter *bb_iter)
++{
++	int rc;
++	char *buf = NULL;
++	size_t rlen = 0;
++
++	if (!bb_iter->file)
++		return NULL;
++
++	rc = getline(&buf, &rlen, bb_iter->file);
++	if (rc == -1) {
++		free(buf);
++		return NULL;
++	}
++
++	rc = sscanf(buf, "%llu %u", &bb_iter->bb.offset, &bb_iter->bb.len);
++	free(buf);
++	if (rc != 2) {
++		fclose(bb_iter->file);
++		bb_iter->file = NULL;
++		bb_iter->bb.offset = 0;
++		bb_iter->bb.len = 0;
++		return NULL;
++	}
++
++	return &bb_iter->bb;
++}
++
++static struct badblock *badblocks_iter_first(struct badblocks_iter *bb_iter,
++		struct ndctl_ctx *ctx, const char *path)
++{
++	int rc;
++
++	rc = badblocks_iter_init(bb_iter, path);
++	if (rc < 0)
++		return NULL;
++
++	return badblocks_iter_next(bb_iter);
++}
++
+ static void free_namespace(struct ndctl_namespace *ndns, struct list_head *head)
+ {
+ 	struct ndctl_bb *bb, *next;
+@@ -511,8 +581,7 @@ static void free_region(struct ndctl_region *region)
+ 	kmod_module_unref(region->module);
+ 	free(region->region_buf);
+ 	free(region->region_path);
+-	if (region->badblocks)
+-		fclose(region->badblocks);
++	badblocks_iter_free(&region->bb_iter);
+ 	if (region->flush_fd > 0)
+ 		close(region->flush_fd);
+ 	free(region);
+@@ -2253,73 +2322,15 @@ NDCTL_EXPORT int ndctl_region_get_numa_node(struct ndctl_region *region)
+ 	return region->numa_node;
  }
  
- int nd_label_active_count(struct nvdimm_drvdata *ndd)
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index 685afb3de0fe..e9a2ad3c2150 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -138,9 +138,6 @@ static inline int nd_label_next_nsindex(int index)
+-static int regions_badblocks_init(struct ndctl_region *region)
+-{
+-	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+-	char *bb_path;
+-	int rc = 0;
+-
+-	/* if the file is already open */
+-	if (region->badblocks) {
+-		fclose(region->badblocks);
+-		region->badblocks = NULL;
+-	}
+-
+-	if (asprintf(&bb_path, "%s/badblocks",
+-				region->region_path) < 0) {
+-		rc = -errno;
+-		err(ctx, "region badblocks path allocation failure\n");
+-		return rc;
+-	}
+-
+-	region->badblocks = fopen(bb_path, "re");
+-	if (!region->badblocks) {
+-		rc = -errno;
+-		free(bb_path);
+-		return rc;
+-	}
+-
+-	free(bb_path);
+-	return rc;
+-}
+-
+ NDCTL_EXPORT struct badblock *ndctl_region_get_next_badblock(struct ndctl_region *region)
+ {
+-	int rc;
+-	char *buf = NULL;
+-	size_t rlen = 0;
+-
+-	if (!region->badblocks)
+-		return NULL;
+-
+-	rc = getline(&buf, &rlen, region->badblocks);
+-	if (rc == -1) {
+-		free(buf);
+-		return NULL;
+-	}
+-
+-	rc = sscanf(buf, "%llu %u", &region->bb.offset, &region->bb.len);
+-	free(buf);
+-	if (rc != 2) {
+-		fclose(region->badblocks);
+-		region->badblocks = NULL;
+-		region->bb.offset = 0;
+-		region->bb.len = 0;
+-		return NULL;
+-	}
+-
+-	return &region->bb;
++	return badblocks_iter_next(&region->bb_iter);
  }
  
- struct nvdimm_drvdata;
--int nd_label_validate(struct nvdimm_drvdata *ndd);
--void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
--		struct nd_namespace_index *src);
- int nd_label_data_init(struct nvdimm_drvdata *ndd);
- size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
- int nd_label_active_count(struct nvdimm_drvdata *ndd);
+ NDCTL_EXPORT struct badblock *ndctl_region_get_first_badblock(struct ndctl_region *region)
+ {
+-	int rc;
+-
+-	rc = regions_badblocks_init(region);
+-	if (rc < 0)
+-		return NULL;
+-
+-	return ndctl_region_get_next_badblock(region);
++	return badblocks_iter_first(&region->bb_iter,
++			ndctl_region_get_ctx(region), region->region_path);
+ }
+ 
+ NDCTL_EXPORT enum ndctl_persistence_domain
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index b6e438a..d8ed614 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -185,6 +185,11 @@ struct ndctl_lbasize {
+ 	int num;
+ };
+ 
++struct badblocks_iter {
++	struct badblock bb;
++	FILE *file;
++};
++
+ /**
+  * struct ndctl_namespace - device claimed by the nd_blk or nd_pmem driver
+  * @module: kernel module
+@@ -209,6 +214,7 @@ struct ndctl_namespace {
+ 	int generation;
+ 	unsigned long long resource, size;
+ 	enum ndctl_namespace_mode enforce_mode;
++	struct badblocks_iter bb_iter;
+ 	char *alt_name;
+ 	uuid_t uuid;
+ 	struct ndctl_lbasize lbasize;
+-- 
+2.17.1
 
 _______________________________________________
 Linux-nvdimm mailing list
