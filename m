@@ -2,17 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F4E7211439B1
- for <linux-nvdimm@lists.01.org>; Tue,  2 Oct 2018 06:32:06 -0700 (PDT)
-Date: Tue, 2 Oct 2018 15:32:04 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 031B521159C98
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Oct 2018 05:10:42 -0700 (PDT)
+Date: Tue, 2 Oct 2018 14:10:39 +0200
+From: Johannes Thumshirn <jthumshirn@suse.de>
 Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
-Message-ID: <20181002133204.GC9127@quack2.suse.cz>
+Message-ID: <20181002121039.GA3274@linux-x5ow.site>
 References: <20181002100531.GC4135@quack2.suse.cz>
- <20181002105058.GE18342@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20181002105058.GE18342@dhcp22.suse.cz>
+In-Reply-To: <20181002100531.GC4135@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,60 +19,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 02-10-18 12:50:58, Michal Hocko wrote:
-> On Tue 02-10-18 12:05:31, Jan Kara wrote:
-> > Hello,
-> > 
-> > commit e1fb4a086495 "dax: remove VM_MIXEDMAP for fsdax and device dax" has
-> > removed VM_MIXEDMAP flag from DAX VMAs. Now our testing shows that in the
-> > mean time certain customer of ours started poking into /proc/<pid>/smaps
-> > and looks at VMA flags there and if VM_MIXEDMAP is missing among the VMA
-> > flags, the application just fails to start complaining that DAX support is
-> > missing in the kernel. The question now is how do we go about this?
-> 
-> Do they need to check for a general DAX support or do they need a per
-> mapping granularity?
+On Tue, Oct 02, 2018 at 12:05:31PM +0200, Jan Kara wrote:
+> Hello,
+> =
 
-General DAX support per filesystem is OK for them, at least for now. So
-they might be OK with just checking for 'dax' mount option in /proc/mounts.
-But I agree this is cumbersome.
+> commit e1fb4a086495 "dax: remove VM_MIXEDMAP for fsdax and device dax" has
+> removed VM_MIXEDMAP flag from DAX VMAs. Now our testing shows that in the
+> mean time certain customer of ours started poking into /proc/<pid>/smaps
+> and looks at VMA flags there and if VM_MIXEDMAP is missing among the VMA
+> flags, the application just fails to start complaining that DAX support is
+> missing in the kernel. The question now is how do we go about this?
 
-> > Strictly speaking, this is a userspace visible regression (as much as I
-> > think that application poking into VMA flags at this level is just too
-> > bold). Is there any precedens in handling similar issues with smaps which
-> > really exposes a lot of information that is dependent on kernel
-> > implementation details?
-> 
-> Yeah, exposing all the vma flags was just a terrible idea. We have had a
-> similar issue recently [1] for other flag that is no longer set while
-> the implementation of the feature is still in place. I guess we really
-> want to document that those flags are for debugging only and no stable
-> and long term API should rely on it.
+OK naive question from me, how do we want an application to be able to
+check if it is running on a DAX mapping?
 
-Yeah, I have some doubts about usefulness of such documentation but I guess
-it's better than nothing.
+AFAIU DAX is always associated with a file descriptor of some kind (be
+it a real file with filesystem dax or the /dev/dax device file for
+device dax). So could a new fcntl() be of any help here? IS_DAX() only
+checks for the S_DAX flag in inode::i_flags, so this should be doable
+for both fsdax and devdax.
 
-> Considering how new the thing really is (does anybody do anything
-> production like out there?) I would tend to try a better interface
-> rather than chasing after random vma flags. E.g. what prevents a
-> completely unrelated usage of VM_MIXEDMAP?
+I haven't tried it yet but it should be fairly easy to come up with
+something like this.
 
-Nothing checking that flag is in production AFAIK but DAX as such is in
-active use for some limited usecases already. I'll reply regarding a better
-interface for checking DAX, in an email to Johannes.
+Byte,
+	Johannes
+-- =
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
+GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
+HRB 21284 (AG N=FCrnberg)
+Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
