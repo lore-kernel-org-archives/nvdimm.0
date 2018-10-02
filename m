@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-yw1-f67.google.com (mail-yw1-f67.google.com
- [209.85.161.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A4AA621161211
- for <linux-nvdimm@lists.01.org>; Mon,  1 Oct 2018 14:34:25 -0700 (PDT)
-Received: by mail-yw1-f67.google.com with SMTP id y76-v6so6180656ywd.2
- for <linux-nvdimm@lists.01.org>; Mon, 01 Oct 2018 14:34:25 -0700 (PDT)
-Subject: Re: [PATCH v8 13/13] nvmet: Optionally use PCI P2P memory
-References: <20180927165420.5290-1-logang@deltatee.com>
- <20180927165420.5290-14-logang@deltatee.com>
-From: Sagi Grimberg <sagi@grimberg.me>
-Message-ID: <5ddeed51-0580-9581-cf12-c75e18b4f7cc@grimberg.me>
-Date: Mon, 1 Oct 2018 14:34:20 -0700
-MIME-Version: 1.0
-In-Reply-To: <20180927165420.5290-14-logang@deltatee.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 8A6D721161680
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Oct 2018 20:31:49 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/5] ndctl,
+ lib: add APIs for retrieving namespace badblocks
+Date: Mon,  1 Oct 2018 21:31:37 -0600
+Message-Id: <20181002033140.21295-2-vishal.l.verma@intel.com>
+In-Reply-To: <20181002033140.21295-1-vishal.l.verma@intel.com>
+References: <20181002033140.21295-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,161 +18,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Steve Wise <swise@opengridcomputing.com>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAwOS8yNy8yMDE4IDA5OjU0IEFNLCBMb2dhbiBHdW50aG9ycGUgd3JvdGU6Cj4gV2UgY3Jl
-YXRlIGEgY29uZmlnZnMgYXR0cmlidXRlIGluIGVhY2ggbnZtZS1mYWJyaWNzIHRhcmdldCBwb3J0
-IHRvCj4gZW5hYmxlIHAycCBtZW1vcnkgdXNlLiBXaGVuIGVuYWJsZWQsIHRoZSBwb3J0IHdpbGwg
-b25seSB0aGVuIHVzZSB0aGUKPiBwMnAgbWVtb3J5IGlmIGEgcDJwIG1lbW9yeSBkZXZpY2UgY2Fu
-IGJlIGZvdW5kIHdoaWNoIGlzIGJlaGluZCB0aGUKPiBzYW1lIHN3aXRjaCBoaWVyYXJjaHkgYXMg
-dGhlIFJETUEgcG9ydCBhbmQgYWxsIHRoZSBibG9jayBkZXZpY2VzIGluCj4gdXNlLiBJZiB0aGUg
-dXNlciBlbmFibGVkIGl0IGFuZCBubyBkZXZpY2VzIGFyZSBmb3VuZCwgdGhlbiB0aGUgc3lzdGVt
-Cj4gd2lsbCBzaWxlbnRseSBmYWxsIGJhY2sgb24gdXNpbmcgcmVndWxhciBtZW1vcnkuCj4gCj4g
-SWYgYXBwcm9wcmlhdGUsIHRoYXQgcG9ydCB3aWxsIGFsbG9jYXRlIG1lbW9yeSBmb3IgdGhlIFJE
-TUEgYnVmZmVycwo+IGZvciBxdWV1ZXMgZnJvbSB0aGUgcDJwbWVtIGRldmljZSBmYWxsaW5nIGJh
-Y2sgdG8gc3lzdGVtIG1lbW9yeSBzaG91bGQKPiBhbnl0aGluZyBmYWlsLgo+IAo+IElkZWFsbHks
-IHdlJ2Qgd2FudCB0byB1c2UgYW4gTlZNRSBDTUIgYnVmZmVyIGFzIHAycCBtZW1vcnkuIFRoaXMg
-d291bGQKPiBzYXZlIGFuIGV4dHJhIFBDSSB0cmFuc2ZlciBhcyB0aGUgTlZNRSBjYXJkIGNvdWxk
-IGp1c3QgdGFrZSB0aGUgZGF0YQo+IG91dCBvZiBpdCdzIG93biBtZW1vcnkuIEhvd2V2ZXIsIGF0
-IHRoaXMgdGltZSwgb25seSBhIGxpbWl0ZWQgbnVtYmVyCj4gb2YgY2FyZHMgd2l0aCBDTUIgYnVm
-ZmVycyBzZWVtIHRvIGJlIGF2YWlsYWJsZS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBTdGVwaGVuIEJh
-dGVzIDxzYmF0ZXNAcmFpdGhsaW4uY29tPgo+IFNpZ25lZC1vZmYtYnk6IFN0ZXZlIFdpc2UgPHN3
-aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT4KPiBbaGNoOiBwYXJ0aWFsIHJld3JpdGUgb2YgdGhl
-IGluaXRpYWwgY29kZV0KPiBTaWduZWQtb2ZmLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxz
-dC5kZT4KPiBTaWduZWQtb2ZmLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5j
-b20+Cj4gLS0tCj4gICBkcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMgICAgfCAgMzYgKysr
-KysrKysKPiAgIGRyaXZlcnMvbnZtZS90YXJnZXQvY29yZS5jICAgICAgICB8IDEzOCArKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKy0KPiAgIGRyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLWJk
-ZXYuYyB8ICAgMyArCj4gICBkcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmggICAgICAgfCAgMTMg
-KysrCj4gICBkcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuYyAgICAgICAgfCAgIDIgKwo+ICAgNSBm
-aWxlcyBjaGFuZ2VkLCAxOTEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQo+IAo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMgYi9kcml2ZXJzL252bWUvdGFy
-Z2V0L2NvbmZpZ2ZzLmMKPiBpbmRleCBiMzdhOGUzZTNmODAuLjBkZmIwZTBjM2QyMSAxMDA2NDQK
-PiAtLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMKPiArKysgYi9kcml2ZXJzL252
-bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMKPiBAQCAtMTcsNiArMTcsOCBAQAo+ICAgI2luY2x1ZGUgPGxp
-bnV4L3NsYWIuaD4KPiAgICNpbmNsdWRlIDxsaW51eC9zdGF0Lmg+Cj4gICAjaW5jbHVkZSA8bGlu
-dXgvY3R5cGUuaD4KPiArI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgo+ICsjaW5jbHVkZSA8bGludXgv
-cGNpLXAycGRtYS5oPgo+ICAgCj4gICAjaW5jbHVkZSAibnZtZXQuaCIKPiAgIAo+IEBAIC0xMDk0
-LDYgKzEwOTYsMzcgQEAgc3RhdGljIHZvaWQgbnZtZXRfcG9ydF9yZWxlYXNlKHN0cnVjdCBjb25m
-aWdfaXRlbSAqaXRlbSkKPiAgIAlrZnJlZShwb3J0KTsKPiAgIH0KPiAgIAo+ICsjaWZkZWYgQ09O
-RklHX1BDSV9QMlBETUEKPiArc3RhdGljIHNzaXplX3QgbnZtZXRfcDJwbWVtX3Nob3coc3RydWN0
-IGNvbmZpZ19pdGVtICppdGVtLCBjaGFyICpwYWdlKQo+ICt7Cj4gKwlzdHJ1Y3QgbnZtZXRfcG9y
-dCAqcG9ydCA9IHRvX252bWV0X3BvcnQoaXRlbSk7Cj4gKwo+ICsJcmV0dXJuIHBjaV9wMnBkbWFf
-ZW5hYmxlX3Nob3cocGFnZSwgcG9ydC0+cDJwX2RldiwgcG9ydC0+dXNlX3AycG1lbSk7Cj4gK30K
-PiArCj4gK3N0YXRpYyBzc2l6ZV90IG52bWV0X3AycG1lbV9zdG9yZShzdHJ1Y3QgY29uZmlnX2l0
-ZW0gKml0ZW0sCj4gKwkJY29uc3QgY2hhciAqcGFnZSwgc2l6ZV90IGNvdW50KQo+ICt7Cj4gKwlz
-dHJ1Y3QgbnZtZXRfcG9ydCAqcG9ydCA9IHRvX252bWV0X3BvcnQoaXRlbSk7Cj4gKwlzdHJ1Y3Qg
-cGNpX2RldiAqcDJwX2RldiA9IE5VTEw7Cj4gKwlib29sIHVzZV9wMnBtZW07Cj4gKwlpbnQgZXJy
-b3I7Cj4gKwo+ICsJZXJyb3IgPSBwY2lfcDJwZG1hX2VuYWJsZV9zdG9yZShwYWdlLCAmcDJwX2Rl
-diwgJnVzZV9wMnBtZW0pOwo+ICsJaWYgKGVycm9yKQo+ICsJCXJldHVybiBlcnJvcjsKPiArCj4g
-Kwlkb3duX3dyaXRlKCZudm1ldF9jb25maWdfc2VtKTsKPiArCXBvcnQtPnVzZV9wMnBtZW0gPSB1
-c2VfcDJwbWVtOwo+ICsJcGNpX2Rldl9wdXQocG9ydC0+cDJwX2Rldik7Cj4gKwlwb3J0LT5wMnBf
-ZGV2ID0gcDJwX2RldjsKPiArCXVwX3dyaXRlKCZudm1ldF9jb25maWdfc2VtKTsKPiArCj4gKwly
-ZXR1cm4gY291bnQ7Cj4gK30KPiArQ09ORklHRlNfQVRUUihudm1ldF8sIHAycG1lbSk7Cj4gKyNl
-bmRpZiAvKiBDT05GSUdfUENJX1AyUERNQSAqLwo+ICsKPiAgIHN0YXRpYyBzdHJ1Y3QgY29uZmln
-ZnNfYXR0cmlidXRlICpudm1ldF9wb3J0X2F0dHJzW10gPSB7Cj4gICAJJm52bWV0X2F0dHJfYWRk
-cl9hZHJmYW0sCj4gICAJJm52bWV0X2F0dHJfYWRkcl90cmVxLAo+IEBAIC0xMTAxLDYgKzExMzQs
-OSBAQCBzdGF0aWMgc3RydWN0IGNvbmZpZ2ZzX2F0dHJpYnV0ZSAqbnZtZXRfcG9ydF9hdHRyc1td
-ID0gewo+ICAgCSZudm1ldF9hdHRyX2FkZHJfdHJzdmNpZCwKPiAgIAkmbnZtZXRfYXR0cl9hZGRy
-X3RydHlwZSwKPiAgIAkmbnZtZXRfYXR0cl9wYXJhbV9pbmxpbmVfZGF0YV9zaXplLAo+ICsjaWZk
-ZWYgQ09ORklHX1BDSV9QMlBETUEKPiArCSZudm1ldF9hdHRyX3AycG1lbSwKPiArI2VuZGlmCj4g
-ICAJTlVMTCwKPiAgIH07Cj4gICAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udm1lL3RhcmdldC9j
-b3JlLmMgYi9kcml2ZXJzL252bWUvdGFyZ2V0L2NvcmUuYwo+IGluZGV4IGJkZGQxNTk5YjgyNi4u
-N2FkZTE2Y2I0ZWQzIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvbnZtZS90YXJnZXQvY29yZS5jCj4g
-KysrIGIvZHJpdmVycy9udm1lL3RhcmdldC9jb3JlLmMKPiBAQCAtMTUsNiArMTUsNyBAQAo+ICAg
-I2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgo+ICAgI2luY2x1ZGUgPGxpbnV4L3JhbmRvbS5oPgo+
-ICAgI2luY2x1ZGUgPGxpbnV4L3JjdWxpc3QuaD4KPiArI2luY2x1ZGUgPGxpbnV4L3BjaS1wMnBk
-bWEuaD4KPiAgIAo+ICAgI2luY2x1ZGUgIm52bWV0LmgiCj4gICAKPiBAQCAtMzY1LDkgKzM2Niwy
-OSBAQCBzdGF0aWMgdm9pZCBudm1ldF9uc19kZXZfZGlzYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5z
-KQo+ICAgCW52bWV0X2ZpbGVfbnNfZGlzYWJsZShucyk7Cj4gICB9Cj4gICAKPiArc3RhdGljIGlu
-dCBudm1ldF9wMnBkbWFfYWRkX2NsaWVudChzdHJ1Y3QgbnZtZXRfY3RybCAqY3RybCwKPiArCQlz
-dHJ1Y3QgbnZtZXRfbnMgKm5zKQo+ICt7Cj4gKwlpbnQgcmV0Owo+ICsKPiArCWlmICghYmxrX3F1
-ZXVlX3BjaV9wMnBkbWEobnMtPmJkZXYtPmJkX3F1ZXVlKSkgewo+ICsJCXByX2VycigicGVlci10
-by1wZWVyIERNQSBpcyBub3Qgc3VwcG9ydGVkIGJ5ICVzXG4iLAo+ICsJCSAgICAgICBucy0+ZGV2
-aWNlX3BhdGgpOwo+ICsJCXJldHVybiAtRUlOVkFMOwo+ICsJfQo+ICsKPiArCXJldCA9IHBjaV9w
-MnBkbWFfYWRkX2NsaWVudCgmY3RybC0+cDJwX2NsaWVudHMsIG52bWV0X25zX2RldihucykpOwo+
-ICsJaWYgKHJldCkKPiArCQlwcl9lcnIoImZhaWxlZCB0byBhZGQgcGVlci10by1wZWVyIERNQSBj
-bGllbnQgJXM6ICVkXG4iLAo+ICsJCSAgICAgICBucy0+ZGV2aWNlX3BhdGgsIHJldCk7Cj4gKwo+
-ICsJcmV0dXJuIHJldDsKPiArfQo+ICsKPiAgIGludCBudm1ldF9uc19lbmFibGUoc3RydWN0IG52
-bWV0X25zICpucykKPiAgIHsKPiAgIAlzdHJ1Y3QgbnZtZXRfc3Vic3lzICpzdWJzeXMgPSBucy0+
-c3Vic3lzOwo+ICsJc3RydWN0IG52bWV0X2N0cmwgKmN0cmw7Cj4gICAJaW50IHJldDsKPiAgIAo+
-ICAgCW11dGV4X2xvY2soJnN1YnN5cy0+bG9jayk7Cj4gQEAgLTM4OSw2ICs0MTAsMTQgQEAgaW50
-IG52bWV0X25zX2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQo+ICAgCWlmIChyZXQpCj4gICAJ
-CWdvdG8gb3V0X2Rldl9wdXQ7Cj4gICAKPiArCWxpc3RfZm9yX2VhY2hfZW50cnkoY3RybCwgJnN1
-YnN5cy0+Y3RybHMsIHN1YnN5c19lbnRyeSkgewo+ICsJCWlmIChjdHJsLT5wMnBfZGV2KSB7Cj4g
-KwkJCXJldCA9IG52bWV0X3AycGRtYV9hZGRfY2xpZW50KGN0cmwsIG5zKTsKPiArCQkJaWYgKHJl
-dCkKPiArCQkJCWdvdG8gb3V0X3JlbW92ZV9jbGllbnRzOwo+ICsJCX0KPiArCX0KPiArCj4gICAJ
-aWYgKG5zLT5uc2lkID4gc3Vic3lzLT5tYXhfbnNpZCkKPiAgIAkJc3Vic3lzLT5tYXhfbnNpZCA9
-IG5zLT5uc2lkOwo+ICAgCj4gQEAgLTQxNyw2ICs0NDYsOSBAQCBpbnQgbnZtZXRfbnNfZW5hYmxl
-KHN0cnVjdCBudm1ldF9ucyAqbnMpCj4gICBvdXRfdW5sb2NrOgo+ICAgCW11dGV4X3VubG9jaygm
-c3Vic3lzLT5sb2NrKTsKPiAgIAlyZXR1cm4gcmV0Owo+ICtvdXRfcmVtb3ZlX2NsaWVudHM6Cj4g
-KwlsaXN0X2Zvcl9lYWNoX2VudHJ5KGN0cmwsICZzdWJzeXMtPmN0cmxzLCBzdWJzeXNfZW50cnkp
-Cj4gKwkJcGNpX3AycGRtYV9yZW1vdmVfY2xpZW50KCZjdHJsLT5wMnBfY2xpZW50cywgbnZtZXRf
-bnNfZGV2KG5zKSk7Cj4gICBvdXRfZGV2X3B1dDoKPiAgIAludm1ldF9uc19kZXZfZGlzYWJsZShu
-cyk7Cj4gICAJZ290byBvdXRfdW5sb2NrOwo+IEBAIC00MjUsNiArNDU3LDcgQEAgaW50IG52bWV0
-X25zX2VuYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5zKQo+ICAgdm9pZCBudm1ldF9uc19kaXNhYmxl
-KHN0cnVjdCBudm1ldF9ucyAqbnMpCj4gICB7Cj4gICAJc3RydWN0IG52bWV0X3N1YnN5cyAqc3Vi
-c3lzID0gbnMtPnN1YnN5czsKPiArCXN0cnVjdCBudm1ldF9jdHJsICpjdHJsOwo+ICAgCj4gICAJ
-bXV0ZXhfbG9jaygmc3Vic3lzLT5sb2NrKTsKPiAgIAlpZiAoIW5zLT5lbmFibGVkKQo+IEBAIC00
-NTAsNiArNDgzLDEyIEBAIHZvaWQgbnZtZXRfbnNfZGlzYWJsZShzdHJ1Y3QgbnZtZXRfbnMgKm5z
-KQo+ICAgCXBlcmNwdV9yZWZfZXhpdCgmbnMtPnJlZik7Cj4gICAKPiAgIAltdXRleF9sb2NrKCZz
-dWJzeXMtPmxvY2spOwo+ICsKPiArCWxpc3RfZm9yX2VhY2hfZW50cnkoY3RybCwgJnN1YnN5cy0+
-Y3RybHMsIHN1YnN5c19lbnRyeSkgewo+ICsJCXBjaV9wMnBkbWFfcmVtb3ZlX2NsaWVudCgmY3Ry
-bC0+cDJwX2NsaWVudHMsIG52bWV0X25zX2RldihucykpOwo+ICsJCW52bWV0X2FkZF9hc3luY19l
-dmVudChjdHJsLCBOVk1FX0FFUl9UWVBFX05PVElDRSwgMCwgMCk7CgpIaSBMb2dhbiwgd2hhdCBp
-cyB0aGlzIGV2ZW50IGhlcmU/Cgo+ICsJfQo+ICsKPiAgIAlzdWJzeXMtPm5yX25hbWVzcGFjZXMt
-LTsKPiAgIAludm1ldF9uc19jaGFuZ2VkKHN1YnN5cywgbnMtPm5zaWQpOwo+ICAgCW52bWV0X25z
-X2Rldl9kaXNhYmxlKG5zKTsKPiBAQCAtNzI3LDYgKzc2NiwyMyBAQCBFWFBPUlRfU1lNQk9MX0dQ
-TChudm1ldF9yZXFfZXhlY3V0ZSk7Cj4gICAKPiAgIGludCBudm1ldF9yZXFfYWxsb2Nfc2dsKHN0
-cnVjdCBudm1ldF9yZXEgKnJlcSwgc3RydWN0IG52bWV0X3NxICpzcSkKPiAgIHsKPiArCXN0cnVj
-dCBwY2lfZGV2ICpwMnBfZGV2ID0gTlVMTDsKPiArCj4gKwlpZiAoSVNfRU5BQkxFRChDT05GSUdf
-UENJX1AyUERNQSkpIHsKPiArCQlpZiAoc3EtPmN0cmwpCj4gKwkJCXAycF9kZXYgPSBzcS0+Y3Ry
-bC0+cDJwX2RldjsKPiArCj4gKwkJcmVxLT5wMnBfZGV2ID0gTlVMTDsKPiArCQlpZiAoc3EtPnFp
-ZCAmJiBwMnBfZGV2KSB7Cj4gKwkJCXJlcS0+c2cgPSBwY2lfcDJwbWVtX2FsbG9jX3NnbChwMnBf
-ZGV2LCAmcmVxLT5zZ19jbnQsCj4gKwkJCQkJCSAgICAgICByZXEtPnRyYW5zZmVyX2xlbik7Cj4g
-KwkJCWlmIChyZXEtPnNnKSB7Cj4gKwkJCQlyZXEtPnAycF9kZXYgPSBwMnBfZGV2Owo+ICsJCQkJ
-cmV0dXJuIDA7Cj4gKwkJCX0KCldvdWxkIGJlIHVzZWZ1bCB0byBjb21tZW50IHRoYXQgd2UgZmFs
-bCB0byBub3JtYWwgc2dsIGFsbG9jYXRpb24uCgo+ICsJCX0KPiArCX0KPiArCj4gICAJcmVxLT5z
-ZyA9IHNnbF9hbGxvYyhyZXEtPnRyYW5zZmVyX2xlbiwgR0ZQX0tFUk5FTCwgJnJlcS0+c2dfY250
-KTsKPiAgIAlpZiAoIXJlcS0+c2cpCj4gICAJCXJldHVybiAtRU5PTUVNOwo+IEBAIC03MzcsNyAr
-NzkzLDExIEBAIEVYUE9SVF9TWU1CT0xfR1BMKG52bWV0X3JlcV9hbGxvY19zZ2wpOwo+ICAgCj4g
-ICB2b2lkIG52bWV0X3JlcV9mcmVlX3NnbChzdHJ1Y3QgbnZtZXRfcmVxICpyZXEpCj4gICB7Cj4g
-LQlzZ2xfZnJlZShyZXEtPnNnKTsKPiArCWlmIChyZXEtPnAycF9kZXYpCj4gKwkJcGNpX3AycG1l
-bV9mcmVlX3NnbChyZXEtPnAycF9kZXYsIHJlcS0+c2cpOwo+ICsJZWxzZQo+ICsJCXNnbF9mcmVl
-KHJlcS0+c2cpOwo+ICsKPiAgIAlyZXEtPnNnID0gTlVMTDsKPiAgIAlyZXEtPnNnX2NudCA9IDA7
-Cj4gICB9Cj4gQEAgLTkzOSw2ICs5OTksNzkgQEAgYm9vbCBudm1ldF9ob3N0X2FsbG93ZWQoc3Ry
-dWN0IG52bWV0X3JlcSAqcmVxLCBzdHJ1Y3QgbnZtZXRfc3Vic3lzICpzdWJzeXMsCj4gICAJCXJl
-dHVybiBfX252bWV0X2hvc3RfYWxsb3dlZChzdWJzeXMsIGhvc3RucW4pOwo+ICAgfQo+ICAgCj4g
-Ky8qCj4gKyAqIElmIGFsbG93X3AycG1lbSBpcyBzZXQsIHdlIHdpbGwgdHJ5IHRvIHVzZSBQMlAg
-bWVtb3J5IGZvciB0aGUgU0dMIGxpc3RzIGZvcgo+ICsgKiDOmS9PIGNvbW1hbmRzLiBUaGlzIHJl
-cXVpcmVzIHRoZSBQQ0kgcDJwIGRldmljZSB0byBiZSBjb21wYXRpYmxlIHdpdGggdGhlCj4gKyAq
-IGJhY2tpbmcgZGV2aWNlIGZvciBldmVyeSBuYW1lc3BhY2Ugb24gdGhpcyBjb250cm9sbGVyLgo+
-ICsgKi8KPiArc3RhdGljIHZvaWQgbnZtZXRfc2V0dXBfcDJwbWVtKHN0cnVjdCBudm1ldF9jdHJs
-ICpjdHJsLCBzdHJ1Y3QgbnZtZXRfcmVxICpyZXEpCj4gK3sKPiArCXN0cnVjdCBudm1ldF9ucyAq
-bnM7Cj4gKwlpbnQgcmV0Owo+ICsKPiArCWlmICghcmVxLT5wb3J0LT51c2VfcDJwbWVtIHx8ICFy
-ZXEtPnAycF9jbGllbnQpCj4gKwkJcmV0dXJuOwoKTml0LCBJTU8gd291bGQgYmUgYmV0dGVyIHRv
-IGNoZWNrIGF0IHRoZSBjYWxsLXNpdGUsIGJ1dCBub3QgYSBoYXJkCm11c3QuLi4KCkkgc3RpbGwg
-ZG8gbm90IGZ1bGx5IHVuZGVyc3RhbmQgd2h5IHAycF9kZXYgaGFzIHRvIGJlIGN0cmwtd2lkZSBh
-bmQgbm90CnBlciBuYW1lc3BhY2UuIFNvcnJ5IHRvIGtlZXAgYnJpbmdpbmcgdGhpcyB1cCAoYWdh
-aW4pLiBCdXQgaWYgcGVvcGxlIGFyZQpPSyB3aXRoIGl0IHRoZW4gSSBndWVzcyBJIGNhbiBzdG9w
-IGFza2luZyBhYm91dCB0aGlzLi4uCgoKPiArCj4gKwltdXRleF9sb2NrKCZjdHJsLT5zdWJzeXMt
-PmxvY2spOwo+ICsKPiArCXJldCA9IHBjaV9wMnBkbWFfYWRkX2NsaWVudCgmY3RybC0+cDJwX2Ns
-aWVudHMsIHJlcS0+cDJwX2NsaWVudCk7Cj4gKwlpZiAocmV0KSB7Cj4gKwkJcHJfZXJyKCJmYWls
-ZWQgYWRkaW5nIHBlZXItdG8tcGVlciBETUEgY2xpZW50ICVzOiAlZFxuIiwKPiArCQkgICAgICAg
-ZGV2X25hbWUocmVxLT5wMnBfY2xpZW50KSwgcmV0KTsKPiArCQlnb3RvIGZyZWVfZGV2aWNlczsK
-PiArCX0KPiArCj4gKwlsaXN0X2Zvcl9lYWNoX2VudHJ5X3JjdShucywgJmN0cmwtPnN1YnN5cy0+
-bmFtZXNwYWNlcywgZGV2X2xpbmspIHsKPiArCQlyZXQgPSBudm1ldF9wMnBkbWFfYWRkX2NsaWVu
-dChjdHJsLCBucyk7Cj4gKwkJaWYgKHJldCkKPiArCQkJZ290byBmcmVlX2RldmljZXM7CgpJIHRo
-aW5rIHRoYXQgYXQgc29tZSBwb2ludCB3ZSBzYWlkIHRoYXQgdGhpcyBsb29rcyBsaWtlIGl0IHNo
-b3VsZCBmYWxsCmJhY2sgdG8gaG9zdCBtZW1vcnkgZm9yIHRob3NlIG5hbWVzcGFjZXMuLiB3aGVu
-IHdlIGFsbG9jYXRlIHRoZSBzZ2wgd2UKYWxyZWFkeSBhc3NpZ25lZCBhIG5hbWVzcGFjZSB0byB0
-aGUgcmVxdWVzdCAobnZtZXRfcmVxX2luaXQpLgoKQXNpZGUgZnJvbSBteSBxdWVzdGlvbnMgdGhl
-IHBhdGNoIGxvb2tzIGdvb2QuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+From: Dan Williams <dan.j.williams@intel.com>
+
+From: Dan Williams <dan.j.williams@intel.com>
+
+Use the new bb_iter mechanism to provide APIs that retrieve the
+namespace badblocks from the kernel's block device representation in
+sysfs. This paves the way for a namespace based fallback if
+region-badblocks are unavailable.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[vishal] add the new global symbols to libndctl.sym
+[vishal] fix the badblocks path to remove the trailing 'badblocks'
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ ndctl/lib/libndctl.c   | 42 ++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym |  6 ++++++
+ ndctl/libndctl.h       |  6 ++++++
+ 3 files changed, 54 insertions(+)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index d58be47..d341100 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -3610,6 +3610,48 @@ NDCTL_EXPORT int ndctl_namespace_is_enabled(struct ndctl_namespace *ndns)
+ 	return is_enabled(ndctl_namespace_get_bus(ndns), path);
+ }
+ 
++NDCTL_EXPORT struct badblock *ndctl_namespace_get_next_badblock(
++		struct ndctl_namespace *ndns)
++{
++	return badblocks_iter_next(&ndns->bb_iter);
++}
++
++NDCTL_EXPORT struct badblock *ndctl_namespace_get_first_badblock(
++		struct ndctl_namespace *ndns)
++{
++	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
++	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
++	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
++	const char *dev = ndctl_namespace_get_devname(ndns);
++	char path[SYSFS_ATTR_SIZE];
++	ssize_t len = sizeof(path);
++	const char *bdev;
++
++	if (btt || dax) {
++		dbg(ctx, "%s: badblocks not supported for %s\n", dev,
++				btt ? "btt" : "device-dax");
++		return NULL;
++	}
++
++	if (pfn)
++		bdev = ndctl_pfn_get_block_device(pfn);
++	else
++		bdev = ndctl_namespace_get_block_device(ndns);
++
++	if (!bdev) {
++		dbg(ctx, "%s: failed to determine block device\n", dev);
++		return NULL;
++	}
++
++	if (snprintf(path, len, "/sys/block/%s", bdev) >= len) {
++		err(ctx, "%s: buffer too small!\n", dev);
++		return NULL;
++	}
++
++	return badblocks_iter_first(&ndns->bb_iter, ctx, path);
++}
++
+ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+ 		const char *devname)
+ {
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index a6849ee..185ee4a 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -378,3 +378,9 @@ global:
+ 	ndctl_region_get_max_available_extent;
+ 	ndctl_cmd_smart_inject_ctrl_temperature;
+ } LIBNDCTL_16;
++
++LIBNDCTL_18 {
++global:
++	ndctl_namespace_get_first_badblock;
++	ndctl_namespace_get_next_badblock;
++} LIBNDCTL_17;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 83d6c6c..500c7de 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -439,6 +439,12 @@ struct ndctl_namespace *ndctl_namespace_get_next(struct ndctl_namespace *ndns);
+ 	     ndns != NULL; \
+ 	     ndns = _ndns, \
+ 	     _ndns = _ndns ? ndctl_namespace_get_next(_ndns) : NULL)
++struct badblock *ndctl_namespace_get_first_badblock(struct ndctl_namespace *ndns);
++struct badblock *ndctl_namespace_get_next_badblock(struct ndctl_namespace *ndns);
++#define ndctl_namespace_badblock_foreach(ndns, badblock) \
++        for (badblock = ndctl_namespace_get_first_badblock(ndns); \
++             badblock != NULL; \
++             badblock = ndctl_namespace_get_next_badblock(ndns))
+ struct ndctl_ctx *ndctl_namespace_get_ctx(struct ndctl_namespace *ndns);
+ struct ndctl_bus *ndctl_namespace_get_bus(struct ndctl_namespace *ndns);
+ struct ndctl_region *ndctl_namespace_get_region(struct ndctl_namespace *ndns);
+-- 
+2.17.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
