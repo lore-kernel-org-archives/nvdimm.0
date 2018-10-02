@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
- [IPv6:2607:f8b0:4864:20::341])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E9F321161B05
- for <linux-nvdimm@lists.01.org>; Tue,  2 Oct 2018 18:58:44 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id m23-v6so4012550otf.0
- for <linux-nvdimm@lists.01.org>; Tue, 02 Oct 2018 18:58:44 -0700 (PDT)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E299B21161692
+ for <linux-nvdimm@lists.01.org>; Mon,  1 Oct 2018 20:31:51 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 5/5] util/json: add a util_namespace_badblocks_to_json()
+ helper
+Date: Mon,  1 Oct 2018 21:31:40 -0600
+Message-Id: <20181002033140.21295-5-vishal.l.verma@intel.com>
+In-Reply-To: <20181002033140.21295-1-vishal.l.verma@intel.com>
 References: <20181002033140.21295-1-vishal.l.verma@intel.com>
- <20181002033140.21295-5-vishal.l.verma@intel.com>
-In-Reply-To: <20181002033140.21295-5-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 2 Oct 2018 18:58:32 -0700
-Message-ID: <CAPcyv4hkoWbKXT7HcM6AhOkE-u6QEKoS6ppdrqJUcB2b8yjoTQ@mail.gmail.com>
-Subject: Re: [ndctl PATCH 5/5] util/json: add a
- util_namespace_badblocks_to_json() helper
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,34 +18,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal L Verma <vishal.l.verma@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Oct 1, 2018 at 8:38 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> When ndctl list --media-errors is invoked, we rely upon the 'region'
-> badblocks provided by the kernel, and reference them against the
-> namespace start to report namespace badblocks. This can fail for
-> non-root users, as the region and namespace resource information is
-> root-only. However the kernel also provides block-device badblocks
-> information in sysfs, and that is world readable. Provide a new helper
-> to retrieve this information, and use it as a fallback when the region
-> based badblocks are unavailable.
->
-> Note that when falling back to the namespace based badblocks, we are
-> unable to retrieve the DIMM on which the badblocks are present, since we
-> still need root privileges for both getting the resource information,
-> and for the address translation command.
->
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+When ndctl list --media-errors is invoked, we rely upon the 'region'
+badblocks provided by the kernel, and reference them against the
+namespace start to report namespace badblocks. This can fail for
+non-root users, as the region and namespace resource information is
+root-only. However the kernel also provides block-device badblocks
+information in sysfs, and that is world readable. Provide a new helper
+to retrieve this information, and use it as a fallback when the region
+based badblocks are unavailable.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Note that when falling back to the namespace based badblocks, we are
+unable to retrieve the DIMM on which the badblocks are present, since we
+still need root privileges for both getting the resource information,
+and for the address translation command.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ util/json.c | 59 ++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 56 insertions(+), 3 deletions(-)
+
+diff --git a/util/json.c b/util/json.c
+index 4dd5fc3..fbc4b83 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -506,6 +506,52 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
+ 	return NULL;
+ }
+ 
++static struct json_object *util_namespace_badblocks_to_json(
++			struct ndctl_namespace *ndns,
++			unsigned int *bb_count, unsigned long flags)
++{
++	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
++	struct badblock *bb;
++	int bbs = 0;
++
++	if (flags & UTIL_JSON_MEDIA_ERRORS) {
++		jbbs = json_object_new_array();
++		if (!jbbs)
++			return NULL;
++	} else
++		return NULL;
++
++	ndctl_namespace_badblock_foreach(ndns, bb) {
++		bbs += bb->len;
++
++		jbb = json_object_new_object();
++		if (!jbb)
++			goto err_array;
++
++		jobj = json_object_new_int64(bb->offset);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jbb, "offset", jobj);
++
++		jobj = json_object_new_int(bb->len);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jbb, "length", jobj);
++		json_object_array_add(jbbs, jbb);
++	}
++
++	*bb_count = bbs;
++
++	if (bbs)
++		return jbbs;
++
++ err:
++	json_object_put(jbb);
++ err_array:
++	json_object_put(jbbs);
++	return NULL;
++}
++
+ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
+ 		unsigned long long dev_begin, unsigned long long dev_size,
+ 		unsigned int *bb_count, unsigned long flags)
+@@ -593,8 +639,11 @@ static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
+ 	unsigned long long pfn_begin, pfn_size;
+ 
+ 	pfn_begin = ndctl_pfn_get_resource(pfn);
+-	if (pfn_begin == ULLONG_MAX)
+-		return NULL;
++	if (pfn_begin == ULLONG_MAX) {
++		struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
++
++		return util_namespace_badblocks_to_json(ndns, bb_count, flags);
++	}
+ 
+ 	pfn_size = ndctl_pfn_get_size(pfn);
+ 	if (pfn_size == ULLONG_MAX)
+@@ -873,10 +922,14 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		jbbs = util_dax_badblocks_to_json(dax, &bb_count, flags);
+ 	else if (btt)
+ 		util_btt_badblocks_to_json(btt, &bb_count);
+-	else
++	else {
+ 		jbbs = util_region_badblocks_to_json(
+ 				ndctl_namespace_get_region(ndns), &bb_count,
+ 				flags);
++		if (!jbbs)
++			jbbs = util_namespace_badblocks_to_json(ndns, &bb_count,
++					flags);
++	}
+ 
+ 	if (bb_count) {
+ 		jobj = json_object_new_int(bb_count);
+-- 
+2.17.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
