@@ -2,17 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1375E21160A3A
- for <linux-nvdimm@lists.01.org>; Tue,  2 Oct 2018 07:20:12 -0700 (PDT)
-Date: Tue, 2 Oct 2018 16:20:10 +0200
-From: Johannes Thumshirn <jthumshirn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 3F4E7211439B1
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Oct 2018 06:32:06 -0700 (PDT)
+Date: Tue, 2 Oct 2018 15:32:04 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
-Message-ID: <20181002142010.GB4963@linux-x5ow.site>
+Message-ID: <20181002133204.GC9127@quack2.suse.cz>
 References: <20181002100531.GC4135@quack2.suse.cz>
- <20181002121039.GA3274@linux-x5ow.site>
+ <20181002105058.GE18342@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20181002121039.GA3274@linux-x5ow.site>
+In-Reply-To: <20181002105058.GE18342@dhcp22.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,195 +20,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, mhocko@suse.cz, linux-nvdimm@lists.01.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Oct 02, 2018 at 02:10:39PM +0200, Johannes Thumshirn wrote:
-> On Tue, Oct 02, 2018 at 12:05:31PM +0200, Jan Kara wrote:
+On Tue 02-10-18 12:50:58, Michal Hocko wrote:
+> On Tue 02-10-18 12:05:31, Jan Kara wrote:
 > > Hello,
-> > =
-
-> > commit e1fb4a086495 "dax: remove VM_MIXEDMAP for fsdax and device dax" =
-has
-> > removed VM_MIXEDMAP flag from DAX VMAs. Now our testing shows that in t=
-he
+> > 
+> > commit e1fb4a086495 "dax: remove VM_MIXEDMAP for fsdax and device dax" has
+> > removed VM_MIXEDMAP flag from DAX VMAs. Now our testing shows that in the
 > > mean time certain customer of ours started poking into /proc/<pid>/smaps
 > > and looks at VMA flags there and if VM_MIXEDMAP is missing among the VMA
-> > flags, the application just fails to start complaining that DAX support=
- is
+> > flags, the application just fails to start complaining that DAX support is
 > > missing in the kernel. The question now is how do we go about this?
-> =
+> 
+> Do they need to check for a general DAX support or do they need a per
+> mapping granularity?
 
-> OK naive question from me, how do we want an application to be able to
-> check if it is running on a DAX mapping?
-> =
+General DAX support per filesystem is OK for them, at least for now. So
+they might be OK with just checking for 'dax' mount option in /proc/mounts.
+But I agree this is cumbersome.
 
-> AFAIU DAX is always associated with a file descriptor of some kind (be
-> it a real file with filesystem dax or the /dev/dax device file for
-> device dax). So could a new fcntl() be of any help here? IS_DAX() only
-> checks for the S_DAX flag in inode::i_flags, so this should be doable
-> for both fsdax and devdax.
-> =
+> > Strictly speaking, this is a userspace visible regression (as much as I
+> > think that application poking into VMA flags at this level is just too
+> > bold). Is there any precedens in handling similar issues with smaps which
+> > really exposes a lot of information that is dependent on kernel
+> > implementation details?
+> 
+> Yeah, exposing all the vma flags was just a terrible idea. We have had a
+> similar issue recently [1] for other flag that is no longer set while
+> the implementation of the feature is still in place. I guess we really
+> want to document that those flags are for debugging only and no stable
+> and long term API should rely on it.
 
-> I haven't tried it yet but it should be fairly easy to come up with
-> something like this.
+Yeah, I have some doubts about usefulness of such documentation but I guess
+it's better than nothing.
 
-OK now I did on a normal file on BTFS (without DAX obviously) and on a
-file on XFS with the -o dax mount option.
+> Considering how new the thing really is (does anybody do anything
+> production like out there?) I would tend to try a better interface
+> rather than chasing after random vma flags. E.g. what prevents a
+> completely unrelated usage of VM_MIXEDMAP?
 
-Here's the RFC:
+Nothing checking that flag is in production AFAIK but DAX as such is in
+active use for some limited usecases already. I'll reply regarding a better
+interface for checking DAX, in an email to Johannes.
 
-commit 3a8f0d23c421e8c91bc9d8bd3a956e1ffe3f754b
-Author: Johannes Thumshirn <jthumshirn@suse.de>
-Date:   Tue Oct 2 14:51:33 2018 +0200
-
-    fcntl: provide F_GETDAX for applications to query DAX capabilities
-    =
-
-    Provide a F_GETDAX fcntl(2) command so an application can query
-    whether it can make use of DAX or not.
-    =
-
-    Both file-system DAX as well as device DAX mark the DAX capability in
-    struct inode::i_flags using the S_DAX flag, so we can query it using
-    the IS_DAX() macro on a struct file's inode.
-    =
-
-    If the file descriptor is either device DAX or on a DAX capable
-    file-system '1' is returned back to user-space, if DAX isn't usable
-    for some reason '0' is returned back.
-    =
-
-    This patch can be tested with the following small C program:
-    =
-
-     #include <stdio.h>
-     #include <stdlib.h>
-     #include <unistd.h>
-     #include <fcntl.h>
-     #include <libgen.h>
-    =
-
-     #ifndef F_LINUX_SPECIFIC_BASE
-     #define F_LINUX_SPECIFIC_BASE 1024
-     #endif
-    =
-
-     #define F_GETDAX               (F_LINUX_SPECIFIC_BASE + 15)
-    =
-
-     int main(int argc, char **argv)
-     {
-            int dax;
-            int fd;
-            int rc;
-    =
-
-            if (argc !=3D 2) {
-                    printf("Usage: %s file\n", basename(argv[0]));
-                    exit(EXIT_FAILURE);
-            }
-    =
-
-            fd =3D open(argv[1], O_RDONLY);
-            if (fd < 0) {
-                    perror("open");
-                    exit(EXIT_FAILURE);
-            }
-    =
-
-            rc =3D fcntl(fd, F_GETDAX, &dax);
-            if (rc < 0) {
-                    perror("fcntl");
-                    close(fd);
-                    exit(EXIT_FAILURE);
-            }
-    =
-
-            if (dax) {
-                    printf("fd %d is dax capable\n", fd);
-                    exit(EXIT_FAILURE);
-            } else {
-                    printf("fd %d is not dax capable\n", fd);
-                    exit(EXIT_SUCCESS);
-            }
-     }
-    =
-
-    Signed-off-by: Johannes Thumshirn <jthumshirn@suse.de>
-    Cc: Jan Kara <jack@suse.cz>
-    Cc: Michal Hocko <mhocko@suse.cz>
-    Cc: Dan Williams <dan.j.williams@intel.com>
-
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 4137d96534a6..0b53f968f569 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -32,6 +32,22 @@
- =
-
- #define SETFL_MASK (O_APPEND | O_NONBLOCK | O_NDELAY | O_DIRECT | O_NOATIM=
-E)
- =
-
-+static int fcntl_get_dax(struct file *filp, unsigned long arg)
-+{
-+	struct inode *inode =3D file_inode(filp);
-+	u64 *argp =3D (u64 __user *)arg;
-+	u64 dax;
-+
-+	if (IS_DAX(inode))
-+		dax =3D 1;
-+	else
-+		dax =3D 0;
-+
-+	if (copy_to_user(argp, &dax, sizeof(*argp)))
-+		return -EFAULT;
-+	return 0;
-+}
-+
- static int setfl(int fd, struct file * filp, unsigned long arg)
- {
- 	struct inode * inode =3D file_inode(filp);
-@@ -426,6 +442,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned=
- long arg,
- 	case F_SET_FILE_RW_HINT:
- 		err =3D fcntl_rw_hint(filp, cmd, arg);
- 		break;
-+	case F_GETDAX:
-+		err =3D fcntl_get_dax(filp, arg);
-+		break;
- 	default:
- 		break;
- 	}
-diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
-index 6448cdd9a350..65a59c3cc46d 100644
---- a/include/uapi/linux/fcntl.h
-+++ b/include/uapi/linux/fcntl.h
-@@ -52,6 +52,7 @@
- #define F_SET_RW_HINT		(F_LINUX_SPECIFIC_BASE + 12)
- #define F_GET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 13)
- #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
-+#define F_GETDAX		(F_LINUX_SPECIFIC_BASE + 15)
- =
-
- /*
-  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
-
-
--- =
-
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
