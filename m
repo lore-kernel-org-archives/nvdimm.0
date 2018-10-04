@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 45DBB21DF8098
- for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 16:34:35 -0700 (PDT)
-Subject: [mm PATCH] memremap: Fix reference count for pgmap in
- devm_memremap_pages
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 08 Oct 2018 16:34:33 -0700
-Message-ID: <20181008233404.1909.37302.stgit@localhost.localdomain>
-In-Reply-To: <CAPcyv4jX5WYmMYzGCBrnaqT7tqHGSVPwm7Dpi-XpuM9ns84+0w@mail.gmail.com>
-References: <CAPcyv4jX5WYmMYzGCBrnaqT7tqHGSVPwm7Dpi-XpuM9ns84+0w@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C572C21A07A82
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Oct 2018 17:16:11 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id e21-v6so7427406otk.10
+ for <linux-nvdimm@lists.01.org>; Wed, 03 Oct 2018 17:16:11 -0700 (PDT)
 MIME-Version: 1.0
+References: <20181003222901.44438-1-elliott@hpe.com>
+In-Reply-To: <20181003222901.44438-1-elliott@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 3 Oct 2018 17:15:59 -0700
+Message-ID: <CAPcyv4gKt4Qfta9gSB2eidQsPT2DBp5-J2yKJr5ZhAQXh79KQQ@mail.gmail.com>
+Subject: Re: [PATCH] ndctl, check-labels: correct check-labels message wording
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,41 +25,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org, dan.j.williams@intel.com
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dave.hansen@intel.com, jglisse@redhat.com, alexander.h.duyck@linux.intel.com, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In the earlier patch "mm: defer ZONE_DEVICE page initialization to the
-point where we init pgmap" I had overlooked the reference count that was
-being held per page on the pgmap. As a result on running the ndctl test
-"create.sh" we would call into devm_memremap_pages_release and encounter
-the following percpu reference count error and hang:
-  WARNING: CPU: 30 PID: 0 at lib/percpu-refcount.c:155
-  percpu_ref_switch_to_atomic_rcu+0xf3/0x120
+On Wed, Oct 3, 2018 at 3:26 PM Robert Elliott <elliott@hpe.com> wrote:
+>
+> ndctl check-labels prints the number of labels, not the number of
+> nmems. Changed the print for:
+>
+> $ ndctl check-labels nmem0 nmem1
+> from:
+>     successfully verified 510 nmems
+> to:
+>     successfully verified 510 nmem labels
 
-This patch addresses that by performing an update for all of the device
-PFNs in a single call. In my testing this seems to resolve the issue while
-still allowing us to retain the improvements seen in memory initialization.
+Looks good to me.
 
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- kernel/memremap.c |    1 +
- 1 file changed, 1 insertion(+)
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 6ec81e0d7a33..9eced2cc9f94 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -218,6 +218,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				align_start >> PAGE_SHIFT,
- 				align_size >> PAGE_SHIFT, pgmap);
-+	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
- 
- 	devm_add_action(dev, devm_memremap_pages_release, pgmap);
- 
-
+>
+> Signed-off-by: Robert Elliott <elliott@hpe.com>
+> ---
+>  ndctl/dimm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+> index a4203f3..699ab57 100644
+> --- a/ndctl/dimm.c
+> +++ b/ndctl/dimm.c
+> @@ -1147,7 +1147,7 @@ int cmd_check_labels(int argc, const char **argv, void *ctx)
+>         int count = dimm_action(argc, argv, ctx, action_check, base_options,
+>                         "ndctl check-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
+>
+> -       fprintf(stderr, "successfully verified %d nmem%s\n",
+> +       fprintf(stderr, "successfully verified %d nmem label%s\n",
+>                         count >= 0 ? count : 0, count > 1 ? "s" : "");
+>         return count >= 0 ? 0 : EXIT_FAILURE;
+>  }
+> --
+> 2.14.4
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
