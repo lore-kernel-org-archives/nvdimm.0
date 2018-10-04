@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
- [IPv6:2607:f8b0:4864:20::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1133A2116DF98
- for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 16:19:19 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id y81-v6so13714963oia.6
- for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 16:19:19 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v3 1/2] powerpc/pseries: PAPR persistent memory support
-Date: Mon, 15 Oct 2018 10:18:27 +1100
-Message-Id: <20181014231828.17139-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7D41A211616B4
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Oct 2018 14:27:59 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu,  4 Oct 2018 15:27:40 -0600
+Message-Id: <20181004212747.6301-7-logang@deltatee.com>
+In-Reply-To: <20181004212747.6301-1-logang@deltatee.com>
+References: <20181004212747.6301-1-logang@deltatee.com>
+MIME-Version: 1.0
+Subject: [PATCH v9 06/13] PCI/P2PDMA: Add P2P DMA driver writer's documentation
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,359 +18,197 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: nfont@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jonathan Corbet <corbet@lwn.net>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch implements support for discovering storage class memory
-devices at boot and for handling hotplug of new regions via RTAS
-hotplug events.
+Add a restructured text file describing how to write drivers
+with support for P2P DMA transactions. The document describes
+how to use the APIs that were added in the previous few
+commits.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
-v2: Added missing pmem.c
-v3: no changes
----
- arch/powerpc/include/asm/firmware.h       |   3 +-
- arch/powerpc/include/asm/hvcall.h         |  10 +-
- arch/powerpc/include/asm/rtas.h           |   2 +
- arch/powerpc/kernel/rtasd.c               |   2 +
- arch/powerpc/platforms/pseries/Makefile   |   2 +-
- arch/powerpc/platforms/pseries/dlpar.c    |   4 +
- arch/powerpc/platforms/pseries/firmware.c |   1 +
- arch/powerpc/platforms/pseries/pmem.c     | 164 ++++++++++++++++++++++++++++++
- arch/powerpc/platforms/pseries/pseries.h  |   5 +
- arch/powerpc/platforms/pseries/ras.c      |   3 +-
- 10 files changed, 192 insertions(+), 4 deletions(-)
- create mode 100644 arch/powerpc/platforms/pseries/pmem.c
+Also adds an index for the PCI documentation tree even though this
+is the only PCI document that has been converted to restructured text
+at this time.
 
-diff --git a/arch/powerpc/include/asm/firmware.h b/arch/powerpc/include/asm/firmware.h
-index 7a051bd21f87..113c64d5d394 100644
---- a/arch/powerpc/include/asm/firmware.h
-+++ b/arch/powerpc/include/asm/firmware.h
-@@ -52,6 +52,7 @@
- #define FW_FEATURE_PRRN		ASM_CONST(0x0000000200000000)
- #define FW_FEATURE_DRMEM_V2	ASM_CONST(0x0000000400000000)
- #define FW_FEATURE_DRC_INFO	ASM_CONST(0x0000000800000000)
-+#define FW_FEATURE_PAPR_SCM 	ASM_CONST(0x0000001000000000)
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+---
+ Documentation/driver-api/pci/index.rst  |   1 +
+ Documentation/driver-api/pci/p2pdma.rst | 145 ++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+)
+ create mode 100644 Documentation/driver-api/pci/p2pdma.rst
+
+diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
+index eaf20b24bf7d..ecc7416c523b 100644
+--- a/Documentation/driver-api/pci/index.rst
++++ b/Documentation/driver-api/pci/index.rst
+@@ -11,6 +11,7 @@ The Linux PCI driver implementer's API guide
+    :maxdepth: 2
  
- #ifndef __ASSEMBLY__
+    pci
++   p2pdma
  
-@@ -69,7 +70,7 @@ enum {
- 		FW_FEATURE_SET_MODE | FW_FEATURE_BEST_ENERGY |
- 		FW_FEATURE_TYPE1_AFFINITY | FW_FEATURE_PRRN |
- 		FW_FEATURE_HPT_RESIZE | FW_FEATURE_DRMEM_V2 |
--		FW_FEATURE_DRC_INFO,
-+		FW_FEATURE_DRC_INFO | FW_FEATURE_PAPR_SCM,
- 	FW_FEATURE_PSERIES_ALWAYS = 0,
- 	FW_FEATURE_POWERNV_POSSIBLE = FW_FEATURE_OPAL,
- 	FW_FEATURE_POWERNV_ALWAYS = 0,
-diff --git a/arch/powerpc/include/asm/hvcall.h b/arch/powerpc/include/asm/hvcall.h
-index a0b17f9f1ea4..0e81ef83b35a 100644
---- a/arch/powerpc/include/asm/hvcall.h
-+++ b/arch/powerpc/include/asm/hvcall.h
-@@ -295,7 +295,15 @@
- #define H_INT_ESB               0x3C8
- #define H_INT_SYNC              0x3CC
- #define H_INT_RESET             0x3D0
--#define MAX_HCALL_OPCODE	H_INT_RESET
-+#define H_SCM_READ_METADATA     0x3E4
-+#define H_SCM_WRITE_METADATA    0x3E8
-+#define H_SCM_BIND_MEM          0x3EC
-+#define H_SCM_UNBIND_MEM        0x3F0
-+#define H_SCM_QUERY_BLOCK_MEM_BINDING 0x3F4
-+#define H_SCM_QUERY_LOGICAL_MEM_BINDING 0x3F8
-+#define H_SCM_MEM_QUERY	        0x3FC
-+#define H_SCM_BLOCK_CLEAR       0x400
-+#define MAX_HCALL_OPCODE	H_SCM_BLOCK_CLEAR
+ .. only::  subproject and html
  
- /* H_VIOCTL functions */
- #define H_GET_VIOA_DUMP_SIZE	0x01
-diff --git a/arch/powerpc/include/asm/rtas.h b/arch/powerpc/include/asm/rtas.h
-index 71e393c46a49..1e81f3d55457 100644
---- a/arch/powerpc/include/asm/rtas.h
-+++ b/arch/powerpc/include/asm/rtas.h
-@@ -125,6 +125,7 @@ struct rtas_suspend_me_data {
- #define RTAS_TYPE_INFO			0xE2
- #define RTAS_TYPE_DEALLOC		0xE3
- #define RTAS_TYPE_DUMP			0xE4
-+#define RTAS_TYPE_HOTPLUG		0xE5
- /* I don't add PowerMGM events right now, this is a different topic */ 
- #define RTAS_TYPE_PMGM_POWER_SW_ON	0x60
- #define RTAS_TYPE_PMGM_POWER_SW_OFF	0x61
-@@ -316,6 +317,7 @@ struct pseries_hp_errorlog {
- #define PSERIES_HP_ELOG_RESOURCE_MEM	2
- #define PSERIES_HP_ELOG_RESOURCE_SLOT	3
- #define PSERIES_HP_ELOG_RESOURCE_PHB	4
-+#define PSERIES_HP_ELOG_RESOURCE_PMEM   6
- 
- #define PSERIES_HP_ELOG_ACTION_ADD	1
- #define PSERIES_HP_ELOG_ACTION_REMOVE	2
-diff --git a/arch/powerpc/kernel/rtasd.c b/arch/powerpc/kernel/rtasd.c
-index 44d66c33d59d..088fe9edd13e 100644
---- a/arch/powerpc/kernel/rtasd.c
-+++ b/arch/powerpc/kernel/rtasd.c
-@@ -91,6 +91,8 @@ static char *rtas_event_type(int type)
- 			return "Dump Notification Event";
- 		case RTAS_TYPE_PRRN:
- 			return "Platform Resource Reassignment Event";
-+		case RTAS_TYPE_HOTPLUG:
-+			return "Hotplug Event";
- 	}
- 
- 	return rtas_type[0];
-diff --git a/arch/powerpc/platforms/pseries/Makefile b/arch/powerpc/platforms/pseries/Makefile
-index 7e89d5c47068..892b27ced973 100644
---- a/arch/powerpc/platforms/pseries/Makefile
-+++ b/arch/powerpc/platforms/pseries/Makefile
-@@ -13,7 +13,7 @@ obj-$(CONFIG_KEXEC_CORE)	+= kexec.o
- obj-$(CONFIG_PSERIES_ENERGY)	+= pseries_energy.o
- 
- obj-$(CONFIG_HOTPLUG_CPU)	+= hotplug-cpu.o
--obj-$(CONFIG_MEMORY_HOTPLUG)	+= hotplug-memory.o
-+obj-$(CONFIG_MEMORY_HOTPLUG)	+= hotplug-memory.o pmem.o
- 
- obj-$(CONFIG_HVC_CONSOLE)	+= hvconsole.o
- obj-$(CONFIG_HVCS)		+= hvcserver.o
-diff --git a/arch/powerpc/platforms/pseries/dlpar.c b/arch/powerpc/platforms/pseries/dlpar.c
-index a0b20c03f078..795996fefdb9 100644
---- a/arch/powerpc/platforms/pseries/dlpar.c
-+++ b/arch/powerpc/platforms/pseries/dlpar.c
-@@ -357,6 +357,10 @@ static int handle_dlpar_errorlog(struct pseries_hp_errorlog *hp_elog)
- 	case PSERIES_HP_ELOG_RESOURCE_CPU:
- 		rc = dlpar_cpu(hp_elog);
- 		break;
-+	case PSERIES_HP_ELOG_RESOURCE_PMEM:
-+		rc = dlpar_hp_pmem(hp_elog);
-+		break;
-+
- 	default:
- 		pr_warn_ratelimited("Invalid resource (%d) specified\n",
- 				    hp_elog->resource);
-diff --git a/arch/powerpc/platforms/pseries/firmware.c b/arch/powerpc/platforms/pseries/firmware.c
-index a3bbeb43689e..4927de57d8ee 100644
---- a/arch/powerpc/platforms/pseries/firmware.c
-+++ b/arch/powerpc/platforms/pseries/firmware.c
-@@ -65,6 +65,7 @@ hypertas_fw_features_table[] = {
- 	{FW_FEATURE_SET_MODE,		"hcall-set-mode"},
- 	{FW_FEATURE_BEST_ENERGY,	"hcall-best-energy-1*"},
- 	{FW_FEATURE_HPT_RESIZE,		"hcall-hpt-resize"},
-+	{FW_FEATURE_PAPR_SCM,		"hcall-scm"},
- };
- 
- /* Build up the firmware features bitmask using the contents of
-diff --git a/arch/powerpc/platforms/pseries/pmem.c b/arch/powerpc/platforms/pseries/pmem.c
+diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
 new file mode 100644
-index 000000000000..a27f40eb57b1
+index 000000000000..0c83a0619007
 --- /dev/null
-+++ b/arch/powerpc/platforms/pseries/pmem.c
-@@ -0,0 +1,164 @@
-+// SPDX-License-Identifier: GPL-2.0
++++ b/Documentation/driver-api/pci/p2pdma.rst
+@@ -0,0 +1,145 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+/*
-+ * Handles hot and cold plug of persistent memory regions on pseries.
-+ */
++============================
++PCI Peer-to-Peer DMA Support
++============================
 +
-+#define pr_fmt(fmt)     "pseries-pmem: " fmt
++The PCI bus has pretty decent support for performing DMA transfers
++between two devices on the bus. This type of transaction is henceforth
++called Peer-to-Peer (or P2P). However, there are a number of issues that
++make P2P transactions tricky to do in a perfectly safe way.
 +
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/sched.h>	/* for idle_task_exit */
-+#include <linux/sched/hotplug.h>
-+#include <linux/cpu.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/slab.h>
-+#include <asm/prom.h>
-+#include <asm/rtas.h>
-+#include <asm/firmware.h>
-+#include <asm/machdep.h>
-+#include <asm/vdso_datapage.h>
-+#include <asm/plpar_wrappers.h>
-+#include <asm/topology.h>
++One of the biggest issues is that PCI doesn't require forwarding
++transactions between hierarchy domains, and in PCIe, each Root Port
++defines a separate hierarchy domain. To make things worse, there is no
++simple way to determine if a given Root Complex supports this or not.
++(See PCIe r4.0, sec 1.3.1). Therefore, as of this writing, the kernel
++only supports doing P2P when the endpoints involved are all behind the
++same PCI bridge, as such devices are all in the same PCI hierarchy
++domain, and the spec guarantees that all transactions within the
++hierarchy will be routable, but it does not require routing
++between hierarchies.
 +
-+#include "pseries.h"
-+#include "offline_states.h"
++The second issue is that to make use of existing interfaces in Linux,
++memory that is used for P2P transactions needs to be backed by struct
++pages. However, PCI BARs are not typically cache coherent so there are
++a few corner case gotchas with these pages so developers need to
++be careful about what they do with them.
 +
-+static struct device_node *pmem_node;
 +
-+static ssize_t pmem_drc_add_node(u32 drc_index)
-+{
-+	struct device_node *dn;
-+	int rc;
++Driver Writer's Guide
++=====================
 +
-+	pr_debug("Attempting to add pmem node, drc index: %x\n", drc_index);
++In a given P2P implementation there may be three or more different
++types of kernel drivers in play:
 +
-+	rc = dlpar_acquire_drc(drc_index);
-+	if (rc) {
-+		pr_err("Failed to acquire DRC, rc: %d, drc index: %x\n",
-+			rc, drc_index);
-+		return -EINVAL;
-+	}
++* Provider - A driver which provides or publishes P2P resources like
++  memory or doorbell registers to other drivers.
++* Client - A driver which makes use of a resource by setting up a
++  DMA transaction to or from it.
++* Orchestrator - A driver which orchestrates the flow of data between
++  clients and providers.
 +
-+	dn = dlpar_configure_connector(cpu_to_be32(drc_index), pmem_node);
-+	if (!dn) {
-+		pr_err("configure-connector failed for drc %x\n", drc_index);
-+		dlpar_release_drc(drc_index);
-+		return -EINVAL;
-+	}
++In many cases there could be overlap between these three types (i.e.,
++it may be typical for a driver to be both a provider and a client).
 +
-+	/* NB: The of reconfig notifier creates platform device from the node */
-+	rc = dlpar_attach_node(dn, pmem_node);
-+	if (rc) {
-+		pr_err("Failed to attach node %s, rc: %d, drc index: %x\n",
-+			dn->name, rc, drc_index);
++For example, in the NVMe Target Copy Offload implementation:
 +
-+		if (dlpar_release_drc(drc_index))
-+			dlpar_free_cc_nodes(dn);
++* The NVMe PCI driver is both a client, provider and orchestrator
++  in that it exposes any CMB (Controller Memory Buffer) as a P2P memory
++  resource (provider), it accepts P2P memory pages as buffers in requests
++  to be used directly (client) and it can also make use of the CMB as
++  submission queue entries (orchastrator).
++* The RDMA driver is a client in this arrangement so that an RNIC
++  can DMA directly to the memory exposed by the NVMe device.
++* The NVMe Target driver (nvmet) can orchestrate the data from the RNIC
++  to the P2P memory (CMB) and then to the NVMe device (and vice versa).
 +
-+		return rc;
-+	}
++This is currently the only arrangement supported by the kernel but
++one could imagine slight tweaks to this that would allow for the same
++functionality. For example, if a specific RNIC added a BAR with some
++memory behind it, its driver could add support as a P2P provider and
++then the NVMe Target could use the RNIC's memory instead of the CMB
++in cases where the NVMe cards in use do not have CMB support.
 +
-+	pr_info("Successfully added %pOF, drc index: %x\n", dn, drc_index);
 +
-+	return 0;
-+}
++Provider Drivers
++----------------
 +
-+static ssize_t pmem_drc_remove_node(u32 drc_index)
-+{
-+	struct device_node *dn;
-+	uint32_t index;
-+	int rc;
++A provider simply needs to register a BAR (or a portion of a BAR)
++as a P2P DMA resource using :c:func:`pci_p2pdma_add_resource()`.
++This will register struct pages for all the specified memory.
 +
-+	for_each_child_of_node(pmem_node, dn) {
-+		if (of_property_read_u32(dn, "ibm,my-drc-index", &index))
-+			continue;
-+		if (index == drc_index)
-+			break;
-+	}
++After that it may optionally publish all of its resources as
++P2P memory using :c:func:`pci_p2pmem_publish()`. This will allow
++any orchestrator drivers to find and use the memory. When marked in
++this way, the resource must be regular memory with no side effects.
 +
-+	if (!dn) {
-+		pr_err("Attempting to remove unused DRC index %x\n", drc_index);
-+		return -ENODEV;
-+	}
++For the time being this is fairly rudimentary in that all resources
++are typically going to be P2P memory. Future work will likely expand
++this to include other types of resources like doorbells.
 +
-+	pr_debug("Attempting to remove %pOF, drc index: %x\n", dn, drc_index);
 +
-+	/* * NB: tears down the ibm,pmemory device as a side-effect */
-+	rc = dlpar_detach_node(dn);
-+	if (rc)
-+		return rc;
++Client Drivers
++--------------
 +
-+	rc = dlpar_release_drc(drc_index);
-+	if (rc) {
-+		pr_err("Failed to release drc (%x) for CPU %s, rc: %d\n",
-+			drc_index, dn->name, rc);
-+		dlpar_attach_node(dn, pmem_node);
-+		return rc;
-+	}
++A client driver typically only has to conditionally change its DMA map
++routine to use the mapping function :c:func:`pci_p2pdma_map_sg()` instead
++of the usual :c:func:`dma_map_sg()` function. Memory mapped in this
++way does not need to be unmapped.
 +
-+	pr_info("Successfully removed PMEM with drc index: %x\n", drc_index);
++The client may also, optionally, make use of
++:c:func:`is_pci_p2pdma_page()` to determine when to use the P2P mapping
++functions and when to use the regular mapping functions. In some
++situations, it may be more appropriate to use a flag to indicate a
++given request is P2P memory and map appropriately. It is important to
++ensure that struct pages that back P2P memory stay out of code that
++does not have support for them as other code may treat the pages as
++regular memory which may not be appropriate.
 +
-+	return 0;
-+}
 +
-+int dlpar_hp_pmem(struct pseries_hp_errorlog *hp_elog)
-+{
-+	u32 count, drc_index;
-+	int rc;
++Orchestrator Drivers
++--------------------
 +
-+	/* slim chance, but we might get a hotplug event while booting */
-+	if (!pmem_node)
-+		pmem_node = of_find_node_by_type(NULL, "ibm,persistent-memory");
-+	if (!pmem_node) {
-+		pr_err("Hotplug event for a pmem device, but none exists\n");
-+		return -ENODEV;
-+	}
++The first task an orchestrator driver must do is compile a list of
++all client devices that will be involved in a given transaction. For
++example, the NVMe Target driver creates a list including the namespace
++block device and the RNIC in use. If the orchestrator has access to
++a specific P2P provider to use it may check compatibility using
++:c:func:`pci_p2pdma_distance()` otherwise it may find a memory provider
++that's compatible with all clients using  :c:func:`pci_p2pmem_find()`.
++If more than one provider is supported, the one nearest to all the clients will
++be chosen first. If more than one provider is an equal distance away, the
++one returned will be chosen at random (it is not an arbitrary but
++truely random). This function returns the PCI device to use for the provider
++with a reference taken and therefore when it's no longer needed it should be
++returned with pci_dev_put().
 +
-+	if (hp_elog->id_type != PSERIES_HP_ELOG_ID_DRC_INDEX) {
-+		pr_err("Unsupported hotplug event type %d\n",
-+				hp_elog->id_type);
-+		return -EINVAL;
-+	}
++Once a provider is selected, the orchestrator can then use
++:c:func:`pci_alloc_p2pmem()` and :c:func:`pci_free_p2pmem()` to
++allocate P2P memory from the provider. :c:func:`pci_p2pmem_alloc_sgl()`
++and :c:func:`pci_p2pmem_free_sgl()` are convenience functions for
++allocating scatter-gather lists with P2P memory.
 +
-+	count = hp_elog->_drc_u.drc_count;
-+	drc_index = hp_elog->_drc_u.drc_index;
++Struct Page Caveats
++-------------------
 +
-+	lock_device_hotplug();
++Driver writers should be very careful about not passing these special
++struct pages to code that isn't prepared for it. At this time, the kernel
++interfaces do not have any checks for ensuring this. This obviously
++precludes passing these pages to userspace.
 +
-+	if (hp_elog->action == PSERIES_HP_ELOG_ACTION_ADD) {
-+		rc = pmem_drc_add_node(drc_index);
-+	} else if (hp_elog->action == PSERIES_HP_ELOG_ACTION_REMOVE) {
-+		rc = pmem_drc_remove_node(drc_index);
-+	} else {
-+		pr_err("Unsupported hotplug action (%d)\n", hp_elog->action);
-+		rc = -EINVAL;
-+	}
++P2P memory is also technically IO memory but should never have any side
++effects behind it. Thus, the order of loads and stores should not be important
++and ioreadX(), iowriteX() and friends should not be necessary.
++However, as the memory is not cache coherent, if access ever needs to
++be protected by a spinlock then :c:func:`mmiowb()` must be used before
++unlocking the lock. (See ACQUIRES VS I/O ACCESSES in
++Documentation/memory-barriers.txt)
 +
-+	unlock_device_hotplug();
-+	return rc;
-+}
 +
-+const struct of_device_id drc_pmem_match[] = {
-+	{ .type = "ibm,persistent-memory", },
-+	{}
-+};
++P2P DMA Support Library
++=====================
 +
-+static int pseries_pmem_init(void)
-+{
-+	pmem_node = of_find_node_by_type(NULL, "ibm,persistent-memory");
-+	if (!pmem_node)
-+		return 0;
-+
-+	/*
-+	 * The generic OF bus probe/populate handles creating platform devices
-+	 * from the child (ibm,pmemory) nodes. The generic code registers an of
-+	 * reconfig notifier to handle the hot-add/remove cases too.
-+	 */
-+	of_platform_bus_probe(pmem_node, drc_pmem_match, NULL);
-+
-+	return 0;
-+}
-+machine_arch_initcall(pseries, pseries_pmem_init);
-diff --git a/arch/powerpc/platforms/pseries/pseries.h b/arch/powerpc/platforms/pseries/pseries.h
-index 60db2ee511fb..d0829677c896 100644
---- a/arch/powerpc/platforms/pseries/pseries.h
-+++ b/arch/powerpc/platforms/pseries/pseries.h
-@@ -63,11 +63,16 @@ void queue_hotplug_event(struct pseries_hp_errorlog *hp_errlog,
- 			 struct completion *hotplug_done, int *rc);
- #ifdef CONFIG_MEMORY_HOTPLUG
- int dlpar_memory(struct pseries_hp_errorlog *hp_elog);
-+int dlpar_hp_pmem(struct pseries_hp_errorlog *hp_elog);
- #else
- static inline int dlpar_memory(struct pseries_hp_errorlog *hp_elog)
- {
- 	return -EOPNOTSUPP;
- }
-+int dlpar_hp_pmem(struct pseries_hp_errorlog *hp_elog)
-+{
-+	return -EOPNOTSUPP;
-+};
- #endif
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff --git a/arch/powerpc/platforms/pseries/ras.c b/arch/powerpc/platforms/pseries/ras.c
-index 851ce326874a..ae22fc007276 100644
---- a/arch/powerpc/platforms/pseries/ras.c
-+++ b/arch/powerpc/platforms/pseries/ras.c
-@@ -237,7 +237,8 @@ static irqreturn_t ras_hotplug_interrupt(int irq, void *dev_id)
- 	 * hotplug events on the ras_log_buf to be handled by rtas_errd.
- 	 */
- 	if (hp_elog->resource == PSERIES_HP_ELOG_RESOURCE_MEM ||
--	    hp_elog->resource == PSERIES_HP_ELOG_RESOURCE_CPU)
-+	    hp_elog->resource == PSERIES_HP_ELOG_RESOURCE_CPU ||
-+	    hp_elog->resource == PSERIES_HP_ELOG_RESOURCE_PMEM)
- 		queue_hotplug_event(hp_elog, NULL, NULL);
- 	else
- 		log_error(ras_log_buf, ERR_TYPE_RTAS_LOG, 0);
++.. kernel-doc:: drivers/pci/p2pdma.c
++   :export:
 -- 
-2.9.5
+2.19.0
 
 _______________________________________________
 Linux-nvdimm mailing list
