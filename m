@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B238021130058
- for <linux-nvdimm@lists.01.org>; Fri,  5 Oct 2018 00:09:14 -0700 (PDT)
-Date: Fri, 5 Oct 2018 09:09:13 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v9 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
-Message-ID: <20181005070913.GD23761@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 85234211616BF
+ for <linux-nvdimm@lists.01.org>; Thu,  4 Oct 2018 14:28:02 -0700 (PDT)
+From: Logan Gunthorpe <logang@deltatee.com>
+Date: Thu,  4 Oct 2018 15:27:41 -0600
+Message-Id: <20181004212747.6301-8-logang@deltatee.com>
+In-Reply-To: <20181004212747.6301-1-logang@deltatee.com>
 References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-8-logang@deltatee.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20181004212747.6301-8-logang@deltatee.com>
+Subject: [PATCH v9 07/13] block: Add PCI P2P flag for request queue and check
+ support for requests
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,19 +23,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex.williamson@redhat.com>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Oct 04, 2018 at 03:27:41PM -0600, Logan Gunthorpe wrote:
-> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-> supports targeting P2P memory. This will be used by P2P providers and
-> orchestrators (in subsequent patches) to ensure block devices can
-> support P2P memory before submitting P2P backed pages to submit_bio().
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+supports targeting P2P memory. This will be used by P2P providers and
+orchestrators (in subsequent patches) to ensure block devices can
+support P2P memory before submitting P2P backed pages to submit_bio().
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ include/linux/blkdev.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 6980014357d4..87fb1963b721 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -699,6 +699,7 @@ struct request_queue {
+ #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
+ #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
+ #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
++#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
+ 
+ #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+@@ -731,6 +732,8 @@ bool blk_queue_flag_test_and_clear(unsigned int flag, struct request_queue *q);
+ #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
+ #define blk_queue_scsi_passthrough(q)	\
+ 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
++#define blk_queue_pci_p2pdma(q)	\
++	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
+ 
+ #define blk_noretry_request(rq) \
+ 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
+-- 
+2.19.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
