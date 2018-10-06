@@ -1,18 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com
- [IPv6:2607:f8b0:4864:20::544])
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
+ [IPv6:2607:f8b0:4864:20::442])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E228E21164C74
- for <linux-nvdimm@lists.01.org>; Tue,  9 Oct 2018 23:08:38 -0700 (PDT)
-Received: by mail-pg1-x544.google.com with SMTP id v133-v6so1989105pgb.2
- for <linux-nvdimm@lists.01.org>; Tue, 09 Oct 2018 23:08:38 -0700 (PDT)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 2/2] powerpc/pseries: Add driver for PAPR SCM regions
-Date: Wed, 10 Oct 2018 17:08:12 +1100
-Message-Id: <20181010060812.20068-3-oohall@gmail.com>
-In-Reply-To: <20181010060812.20068-1-oohall@gmail.com>
-References: <20181010060812.20068-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id DF0D321130058
+ for <linux-nvdimm@lists.01.org>; Sat,  6 Oct 2018 00:02:37 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id s5-v6so6065684pfj.7
+ for <linux-nvdimm@lists.01.org>; Sat, 06 Oct 2018 00:02:37 -0700 (PDT)
+Date: Sat, 6 Oct 2018 00:05:21 -0700
+From: Bjorn Andersson <bjorn.andersson@linaro.org>
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
+ generic_compat_ioctl_ptrarg
+Message-ID: <20181006070521.GM12063@builder>
+References: <20180912150142.157913-1-arnd@arndb.de>
+ <20180912151134.436719-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,416 +24,45 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linuxppc-dev@lists.ozlabs.org
-Cc: nfont@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-fbdev@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-nvme@lists.infradead.org, platform-driver-x86@vger.kernel.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, qat-linux@intel.com, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org, ceph-devel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, viro@zeniv.linux.org.uk
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adds a driver that implements support for enabling and accessing PAPR
-SCM regions. Unfortunately due to how the PAPR interface works we can't
-use the existing of_pmem driver (yet) because:
+On Wed 12 Sep 08:08 PDT 2018, Arnd Bergmann wrote:
 
- a) The guest is required to use the H_SCM_BIND_MEM h-call to add
-    add the SCM region to it's physical address space, and
- b) There is currently no mechanism for relating a bare of_pmem region
-    to the backing DIMM (or not-a-DIMM for our case).
+[..]
+> diff --git a/drivers/rpmsg/rpmsg_char.c b/drivers/rpmsg/rpmsg_char.c
+> index a76b963a7e50..02aefb2b2d47 100644
+> --- a/drivers/rpmsg/rpmsg_char.c
+> +++ b/drivers/rpmsg/rpmsg_char.c
+> @@ -285,7 +285,7 @@ static const struct file_operations rpmsg_eptdev_fops = {
+>  	.write = rpmsg_eptdev_write,
+>  	.poll = rpmsg_eptdev_poll,
+>  	.unlocked_ioctl = rpmsg_eptdev_ioctl,
+> -	.compat_ioctl = rpmsg_eptdev_ioctl,
+> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
+>  };
+>  
+>  static ssize_t name_show(struct device *dev, struct device_attribute *attr,
+> @@ -446,7 +446,7 @@ static const struct file_operations rpmsg_ctrldev_fops = {
+>  	.open = rpmsg_ctrldev_open,
+>  	.release = rpmsg_ctrldev_release,
+>  	.unlocked_ioctl = rpmsg_ctrldev_ioctl,
+> -	.compat_ioctl = rpmsg_ctrldev_ioctl,
+> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
+>  };
+>  
 
-Both of these are easily handled by rolling the functionality into a
-seperate driver so here we are...
+For rpmsg part
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
-The alternative implementation here is that we have the pseries code
-do the h-calls and craft a pmem-region@<addr> node based on that.
-However, that doesn't solve b) and mpe has expressed his dislike of
-adding new stuff to the DT at runtime so i'd say that's a non-starter.
----
- arch/powerpc/platforms/pseries/Kconfig    |   7 +
- arch/powerpc/platforms/pseries/Makefile   |   1 +
- arch/powerpc/platforms/pseries/papr_scm.c | 340 ++++++++++++++++++++++++++++++
- 3 files changed, 348 insertions(+)
- create mode 100644 arch/powerpc/platforms/pseries/papr_scm.c
+Acked-by: Bjorn Andersson <bjorn.andersson@linaro.org>
 
-diff --git a/arch/powerpc/platforms/pseries/Kconfig b/arch/powerpc/platforms/pseries/Kconfig
-index 0c698fd6d491..4b0fcb80efe5 100644
---- a/arch/powerpc/platforms/pseries/Kconfig
-+++ b/arch/powerpc/platforms/pseries/Kconfig
-@@ -140,3 +140,10 @@ config IBMEBUS
- 	bool "Support for GX bus based adapters"
- 	help
- 	  Bus device driver for GX bus based adapters.
-+
-+config PAPR_SCM
-+	depends on PPC_PSERIES && MEMORY_HOTPLUG
-+	select LIBNVDIMM
-+	tristate "Support for the PAPR Storage Class Memory interface"
-+	help
-+	  Enable access to hypervisor provided storage class memory.
-diff --git a/arch/powerpc/platforms/pseries/Makefile b/arch/powerpc/platforms/pseries/Makefile
-index 892b27ced973..a43ec843c8e2 100644
---- a/arch/powerpc/platforms/pseries/Makefile
-+++ b/arch/powerpc/platforms/pseries/Makefile
-@@ -24,6 +24,7 @@ obj-$(CONFIG_IO_EVENT_IRQ)	+= io_event_irq.o
- obj-$(CONFIG_LPARCFG)		+= lparcfg.o
- obj-$(CONFIG_IBMVIO)		+= vio.o
- obj-$(CONFIG_IBMEBUS)		+= ibmebus.o
-+obj-$(CONFIG_PAPR_SCM)		+= papr_scm.o
- 
- ifdef CONFIG_PPC_PSERIES
- obj-$(CONFIG_SUSPEND)		+= suspend.o
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-new file mode 100644
-index 000000000000..87d4dbc18845
---- /dev/null
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -0,0 +1,340 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#define pr_fmt(fmt)	"papr-scm: " fmt
-+
-+#include <linux/of.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/ioport.h>
-+#include <linux/slab.h>
-+#include <linux/ndctl.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/platform_device.h>
-+
-+#include <asm/plpar_wrappers.h>
-+
-+#define BIND_ANY_ADDR (~0ul)
-+
-+#define PAPR_SCM_DIMM_CMD_MASK \
-+	((1ul << ND_CMD_GET_CONFIG_SIZE) | \
-+	 (1ul << ND_CMD_GET_CONFIG_DATA) | \
-+	 (1ul << ND_CMD_SET_CONFIG_DATA))
-+
-+struct papr_scm_priv {
-+	struct platform_device *pdev;
-+	struct device_node *dn;
-+	uint32_t drc_index;
-+	uint64_t blocks;
-+	uint64_t block_size;
-+	int metadata_size;
-+
-+	uint64_t bound_addr;
-+
-+	struct nvdimm_bus_descriptor bus_desc;
-+	struct nvdimm_bus *bus;
-+	struct nvdimm *nvdimm;
-+	struct resource res;
-+	struct nd_region *region;
-+	struct nd_interleave_set nd_set;
-+};
-+
-+static int drc_pmem_bind(struct papr_scm_priv *p)
-+{
-+	unsigned long ret[PLPAR_HCALL_BUFSIZE];
-+	uint64_t rc, token;
-+
-+	/*
-+	 * When the hypervisor cannot map all the requested memory in a single
-+	 * hcall it returns H_BUSY and we call again with the token until
-+	 * we get H_SUCCESS. Aborting the retry loop before getting H_SUCCESS
-+	 * leave the system in an undefined state, so we wait.
-+	 */
-+	token = 0;
-+
-+	do {
-+		rc = plpar_hcall(H_SCM_BIND_MEM, ret, p->drc_index, 0,
-+				p->blocks, BIND_ANY_ADDR, token);
-+		token = be64_to_cpu(ret[0]);
-+	} while (rc == H_BUSY);
-+
-+	if (rc) {
-+		dev_err(&p->pdev->dev, "bind err: %lld\n", rc);
-+		return -ENXIO;
-+	}
-+
-+	p->bound_addr = be64_to_cpu(ret[1]);
-+
-+	dev_dbg(&p->pdev->dev, "bound drc %x to %pR\n", p->drc_index, &p->res);
-+
-+	return 0;
-+}
-+
-+static int drc_pmem_unbind(struct papr_scm_priv *p)
-+{
-+	unsigned long ret[PLPAR_HCALL_BUFSIZE];
-+	uint64_t rc, token;
-+
-+	token = 0;
-+
-+	/* NB: unbind has the same retry requirements mentioned above */
-+	do {
-+		rc = plpar_hcall(H_SCM_UNBIND_MEM, ret, p->drc_index,
-+				p->bound_addr, p->blocks, token);
-+		token = be64_to_cpu(ret);
-+	} while (rc == H_BUSY);
-+
-+	if (rc)
-+		dev_err(&p->pdev->dev, "unbind error: %lld\n", rc);
-+
-+	return !!rc;
-+}
-+
-+static int papr_scm_meta_get(struct papr_scm_priv *p,
-+			struct nd_cmd_get_config_data_hdr *hdr)
-+{
-+	unsigned long data[PLPAR_HCALL_BUFSIZE];
-+	int64_t ret;
-+
-+	if (hdr->in_offset >= p->metadata_size || hdr->in_length != 1)
-+		return -EINVAL;
-+
-+	ret = plpar_hcall(H_SCM_READ_METADATA, data, p->drc_index,
-+			hdr->in_offset, 1);
-+
-+	if (ret == H_PARAMETER) /* bad DRC index */
-+		return -ENODEV;
-+	if (ret)
-+		return -EINVAL; /* other invalid parameter */
-+
-+	hdr->out_buf[0] = data[0] & 0xff;
-+
-+	return 0;
-+}
-+
-+static int papr_scm_meta_set(struct papr_scm_priv *p,
-+			struct nd_cmd_set_config_hdr *hdr)
-+{
-+	int64_t ret;
-+
-+	if (hdr->in_offset >= p->metadata_size || hdr->in_length != 1)
-+		return -EINVAL;
-+
-+	ret = plpar_hcall_norets(H_SCM_WRITE_METADATA,
-+			p->drc_index, hdr->in_offset, hdr->in_buf[0], 1);
-+
-+	if (ret == H_PARAMETER) /* bad DRC index */
-+		return -ENODEV;
-+	if (ret)
-+		return -EINVAL; /* other invalid parameter */
-+
-+	return 0;
-+}
-+
-+int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-+		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
-+{
-+	struct nd_cmd_get_config_size *get_size_hdr;
-+	struct papr_scm_priv *p;
-+
-+	/* Only dimm-specific calls are supported atm */
-+	if (!nvdimm)
-+		return -EINVAL;
-+
-+	p = nvdimm_provider_data(nvdimm);
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		get_size_hdr = buf;
-+
-+		get_size_hdr->status = 0;
-+		get_size_hdr->max_xfer = 1;
-+		get_size_hdr->config_size = p->metadata_size;
-+		*cmd_rc = 0;
-+		break;
-+
-+	case ND_CMD_GET_CONFIG_DATA:
-+		*cmd_rc = papr_scm_meta_get(p, buf);
-+		break;
-+
-+	case ND_CMD_SET_CONFIG_DATA:
-+		*cmd_rc = papr_scm_meta_set(p, buf);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(&p->pdev->dev, "returned with cmd_rc = %d\n", *cmd_rc);
-+
-+	return 0;
-+}
-+
-+static const struct attribute_group *region_attr_groups[] = {
-+	&nd_region_attribute_group,
-+	&nd_device_attribute_group,
-+	&nd_mapping_attribute_group,
-+	&nd_numa_attribute_group,
-+	NULL,
-+};
-+
-+static const struct attribute_group *bus_attr_groups[] = {
-+	&nvdimm_bus_attribute_group,
-+	NULL,
-+};
-+
-+static const struct attribute_group *papr_scm_dimm_groups[] = {
-+	&nvdimm_attribute_group,
-+	&nd_device_attribute_group,
-+	NULL,
-+};
-+
-+static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
-+{
-+	struct device *dev = &p->pdev->dev;
-+	struct nd_mapping_desc mapping;
-+	struct nd_region_desc ndr_desc;
-+	unsigned long dimm_flags;
-+
-+	p->bus_desc.ndctl = papr_scm_ndctl;
-+	p->bus_desc.module = THIS_MODULE;
-+	p->bus_desc.of_node = p->pdev->dev.of_node;
-+	p->bus_desc.attr_groups = bus_attr_groups;
-+	p->bus_desc.provider_name = kstrdup(p->pdev->name, GFP_KERNEL);
-+
-+	if (!p->bus_desc.provider_name)
-+		return -ENOMEM;
-+
-+	p->bus = nvdimm_bus_register(NULL, &p->bus_desc);
-+	if (!p->bus) {
-+		dev_err(dev, "Error creating nvdimm bus %pOF\n", p->dn);
-+		return -ENXIO;
-+	}
-+
-+	dimm_flags = 0;
-+	set_bit(NDD_ALIASING, &dimm_flags);
-+
-+	p->nvdimm = nvdimm_create(p->bus, p, papr_scm_dimm_groups,
-+				dimm_flags, PAPR_SCM_DIMM_CMD_MASK, 0, NULL);
-+	if (!p->nvdimm) {
-+		dev_err(dev, "Error creating DIMM object for %pOF\n", p->dn);
-+		goto err;
-+	}
-+
-+	/* now add the region */
-+
-+	memset(&mapping, 0, sizeof(mapping));
-+	mapping.nvdimm = p->nvdimm;
-+	mapping.start = p->res.start;
-+	mapping.size = p->blocks * p->block_size; // XXX: potential overflow?
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+	ndr_desc.attr_groups = region_attr_groups;
-+	ndr_desc.numa_node = dev_to_node(&p->pdev->dev);
-+	ndr_desc.res = &p->res;
-+	ndr_desc.of_node = p->dn;
-+	ndr_desc.provider_data = p;
-+	ndr_desc.mapping = &mapping;
-+	ndr_desc.num_mappings = 1;
-+	ndr_desc.nd_set = &p->nd_set;
-+	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-+
-+	p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
-+	if (!p->region) {
-+		dev_err(dev, "Error registering region %pR from %pOF\n",
-+				ndr_desc.res, p->dn);
-+		goto err;
-+	}
-+
-+	return 0;
-+
-+err:	nvdimm_bus_unregister(p->bus);
-+	kfree(p->bus_desc.provider_name);
-+	return -ENXIO;
-+}
-+
-+static int papr_scm_probe(struct platform_device *pdev)
-+{
-+	uint32_t drc_index, metadata_size, unit_cap[2];
-+	struct device_node *dn = pdev->dev.of_node;
-+	struct papr_scm_priv *p;
-+	int rc;
-+
-+	/* check we have all the required DT properties */
-+	if (of_property_read_u32(dn, "ibm,my-drc-index", &drc_index)) {
-+		dev_err(&pdev->dev, "%pOF: missing drc-index!\n", dn);
-+		return -ENODEV;
-+	}
-+
-+	if (of_property_read_u32_array(dn, "ibm,unit-capacity", unit_cap, 2)) {
-+		dev_err(&pdev->dev, "%pOF: missing unit-capacity!\n", dn);
-+		return -ENODEV;
-+	}
-+
-+	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	if (!p)
-+		return -ENOMEM;
-+
-+	/* optional DT properties */
-+	of_property_read_u32(dn, "ibm,metadata-size", &metadata_size);
-+
-+	p->dn = dn;
-+	p->drc_index = drc_index;
-+	p->block_size = unit_cap[0];
-+	p->blocks     = unit_cap[1];
-+
-+	/* might be zero */
-+	p->metadata_size = metadata_size;
-+	p->pdev = pdev;
-+
-+	/* request the hypervisor to bind this region to somewhere in memory */
-+	rc = drc_pmem_bind(p);
-+	if (rc)
-+		goto err;
-+
-+	/* setup the resource for the newly bound range */
-+	p->res.start = p->bound_addr;
-+	p->res.end   = p->bound_addr + p->blocks * p->block_size;
-+	p->res.name  = pdev->name;
-+	p->res.flags = IORESOURCE_MEM;
-+
-+	rc = papr_scm_nvdimm_init(p);
-+	if (rc)
-+		goto err2;
-+
-+	return 0;
-+
-+err2:	drc_pmem_unbind(p);
-+err:	kfree(p);
-+	return rc;
-+}
-+
-+static int papr_scm_remove(struct platform_device *pdev)
-+{
-+	struct papr_scm_priv *p = platform_get_drvdata(pdev);
-+
-+	nvdimm_bus_unregister(p->bus);
-+	drc_pmem_unbind(p);
-+	kfree(p);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id papr_scm_match[] = {
-+	{ .compatible = "ibm,pmemory" },
-+	{ },
-+};
-+
-+static struct platform_driver papr_scm_driver = {
-+	.probe = papr_scm_probe,
-+	.remove = papr_scm_remove,
-+	.driver = {
-+		.name = "papr_scm",
-+		.owner = THIS_MODULE,
-+		.of_match_table = papr_scm_match,
-+	},
-+};
-+
-+module_platform_driver(papr_scm_driver);
-+MODULE_DEVICE_TABLE(of, papr_scm_match);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("IBM Corporation");
--- 
-2.9.5
-
+Regards,
+Bjorn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
