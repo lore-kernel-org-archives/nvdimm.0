@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BE6821BADAB9
- for <linux-nvdimm@lists.01.org>; Thu,  4 Oct 2018 14:28:00 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu,  4 Oct 2018 15:27:39 -0600
-Message-Id: <20181004212747.6301-6-logang@deltatee.com>
-In-Reply-To: <20181004212747.6301-1-logang@deltatee.com>
-References: <20181004212747.6301-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 015CE21163702
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 06:42:32 -0700 (PDT)
+Date: Mon, 8 Oct 2018 15:42:30 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2] filesystem-dax: Fix dax_layout_busy_page() livelock
+Message-ID: <20181008134230.GC21682@quack2.suse.cz>
+References: <153889193718.3143179.3432479794012686784.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Subject: [PATCH v9 05/13] docs-rst: Add a new directory for PCI documentation
+Content-Disposition: inline
+In-Reply-To: <153889193718.3143179.3432479794012686784.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,80 +23,98 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Walleij <linus.walleij@linaro.org>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Jonathan Corbet <corbet@lwn.net>, Vinod Koul <vinod.koul@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Thierry Reding <treding@nvidia.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Sagar Dharia <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Sanyog Kale <sanyog.r.kale@intel.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, stable@vger.kernel.org, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new directory in the driver API guide for PCI specific
-documentation.
+On Sat 06-10-18 22:59:56, Dan Williams wrote:
+> In the presence of multi-order entries the typical
+> pagevec_lookup_entries() pattern may loop forever:
+> 
+> 	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
+> 				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+> 				indices)) {
+> 		...
+> 		for (i = 0; i < pagevec_count(&pvec); i++) {
+> 			index = indices[i];
+> 			...
+> 		}
+> 		index++; /* BUG */
+> 	}
+> 
+> The loop updates 'index' for each index found and then increments to the
+> next possible page to continue the lookup. However, if the last entry in
+> the pagevec is multi-order then the next possible page index is more
+> than 1 page away. Fix this locally for the filesystem-dax case by
+> checking for dax-multi-order entries. Going forward new users of
+> multi-order entries need to be similarly careful, or we need a generic
+> way to report the page increment in the radix iterator.
+> 
+> Fixes: 5fac7408d828 ("mm, fs, dax: handle layout changes to pinned dax...")
+> Cc: <stable@vger.kernel.org>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Ross Zwisler <zwisler@kernel.org>
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Changes in v2:
+> * Only update nr_pages if the last entry in the pagevec is multi-order.
+> 
+>  fs/dax.c |   13 +++++++++++--
+>  1 file changed, 11 insertions(+), 2 deletions(-)
 
-This is in preparation for adding a new PCI P2P DMA driver writers
-guide which will go in this directory.
+Thanks for fixing this up! It is somewhat ugly but nicer fixes would be
+more intrusive so I agree with this approach for the ease of backporting
+and let's clean up the iteration code later. Feel free to add:
 
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Sanyog Kale <sanyog.r.kale@intel.com>
-Cc: Sagar Dharia <sdharia@codeaurora.org>
----
- Documentation/driver-api/index.rst         |  2 +-
- Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
- Documentation/driver-api/{ => pci}/pci.rst |  0
- 3 files changed, 21 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 6d9f2f9fe20e..e9e7d24169cf 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -29,7 +29,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
--   pci
-+   pci/index
-    spi
-    i2c
-    hsi
-diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-new file mode 100644
-index 000000000000..eaf20b24bf7d
---- /dev/null
-+++ b/Documentation/driver-api/pci/index.rst
-@@ -0,0 +1,20 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+============================================
-+The Linux PCI driver implementer's API guide
-+============================================
-+
-+.. class:: toc-title
-+
-+	   Table of contents
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-+   pci
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
-similarity index 100%
-rename from Documentation/driver-api/pci.rst
-rename to Documentation/driver-api/pci/pci.rst
+								Honza
+
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 4becbf168b7f..0fb270f0a0ef 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -666,6 +666,8 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
+>  				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+>  				indices)) {
+> +		pgoff_t nr_pages = 1;
+> +
+>  		for (i = 0; i < pagevec_count(&pvec); i++) {
+>  			struct page *pvec_ent = pvec.pages[i];
+>  			void *entry;
+> @@ -680,8 +682,15 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  
+>  			xa_lock_irq(&mapping->i_pages);
+>  			entry = get_unlocked_mapping_entry(mapping, index, NULL);
+> -			if (entry)
+> +			if (entry) {
+>  				page = dax_busy_page(entry);
+> +				/*
+> +				 * Account for multi-order entries at
+> +				 * the end of the pagevec.
+> +				 */
+> +				if (i + 1 >= pagevec_count(&pvec))
+> +					nr_pages = 1UL << dax_radix_order(entry);
+> +			}
+>  			put_unlocked_mapping_entry(mapping, index, entry);
+>  			xa_unlock_irq(&mapping->i_pages);
+>  			if (page)
+> @@ -696,7 +705,7 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  		 */
+>  		pagevec_remove_exceptionals(&pvec);
+>  		pagevec_release(&pvec);
+> -		index++;
+> +		index += nr_pages;
+>  
+>  		if (page)
+>  			break;
+> 
 -- 
-2.19.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
