@@ -1,9 +1,9 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3BD602116373E
- for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 15:37:05 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 3317921131DB1
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 15:07:43 -0700 (PDT)
 Subject: Re: [PATCH v5 4/4] mm: Defer ZONE_DEVICE page initialization to the
  point where we init pgmap
 References: <20180925200551.3576.18755.stgit@localhost.localdomain>
@@ -12,8 +12,8 @@ References: <20180925200551.3576.18755.stgit@localhost.localdomain>
  <379e1d22-4194-6744-9e80-897b6ba126e9@linux.intel.com>
  <CAPcyv4i_x4NO2_qsfgwsgii9zmjZ43gJW6OCLpf=CweztRtZZw@mail.gmail.com>
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Message-ID: <95de811f-ad44-c96d-3914-5625933d5e88@linux.intel.com>
-Date: Mon, 8 Oct 2018 15:36:58 -0700
+Message-ID: <cdb5524c-371f-17b0-4804-52f237074f58@linux.intel.com>
+Date: Mon, 8 Oct 2018 15:07:42 -0700
 MIME-Version: 1.0
 In-Reply-To: <CAPcyv4i_x4NO2_qsfgwsgii9zmjZ43gJW6OCLpf=CweztRtZZw@mail.gmail.com>
 Content-Language: en-US
@@ -142,12 +142,11 @@ On 10/8/2018 3:00 PM, Dan Williams wrote:
 > performing a series of namespace setup and teardown events.
 > 
 > Wait, where did the call to "percpu_ref_get()" go? I think that's the bug.
-> 
 
-I have a reproduction on my system now as well. I should have a patch 
-ready to go for it in the next hour or so.
-
-Thanks.
+Actually I think you are probably right. Do you want to get that or 
+should I. Should be a quick patch since you could probably just add a 
+call to percpu_ref_get_many to hold a reference for each page in the 
+range of device pages before calling memmap_init_zone_device.
 
 - Alex
 _______________________________________________
