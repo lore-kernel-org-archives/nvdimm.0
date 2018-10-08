@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0E8D62117CEB3
- for <linux-nvdimm@lists.01.org>; Mon, 22 Oct 2018 13:18:46 -0700 (PDT)
-Subject: [PATCH 6/9] mm/memory-hotplug: allow memory resources to be children
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 22 Oct 2018 13:13:27 -0700
-References: <20181022201317.8558C1D8@viggo.jf.intel.com>
-In-Reply-To: <20181022201317.8558C1D8@viggo.jf.intel.com>
-Message-Id: <20181022201327.F1642450@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9E3662114083E
+ for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 16:56:09 -0700 (PDT)
+Subject: [PATCH v12 07/12] nfit/libnvdimm: add freeze security support to
+ Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 08 Oct 2018 16:56:08 -0700
+Message-ID: <153904296848.60070.14021093483871071063.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
+References: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,127 +19,186 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, zwisler@kernel.org, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: dan.j.williams@intel.com
+Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add support for freeze security on Intel nvdimm. This locks out any
+changes to security for the DIMM unless a reboot is done. This is triggered
+by writing "freeze" to the "security" sysfs attribute. libnvdimm will
+support the generic freeze_lock API call.
 
-The mm/resource.c code is used to manage the physical address
-space.  We can view the current resource configuration in
-/proc/iomem.  An example of this is at the bottom of this
-description.
-
-The nvdimm subsystem "owns" the physical address resources which
-map to persistent memory and has resources inserted for them as
-"Persistent Memory".  We want to use this persistent memory, but
-as volatile memory, just like RAM.  The best way to do this is
-to leave the existing resource in place, but add a "System RAM"
-resource underneath it. This clearly communicates the ownership
-relationship of this memory.
-
-The request_resource_conflict() API only deals with the
-top-level resources.  Replace it with __request_region() which
-will search for !IORESOURCE_BUSY areas lower in the resource
-tree than the top level.
-
-We also rework the old error message a bit since we do not get
-the conflicting entry back: only an indication that we *had* a
-conflict.
-
-We *could* also simply truncate the existing top-level
-"Persistent Memory" resource and take over the released address
-space.  But, this means that if we ever decide to hot-unplug the
-"RAM" and give it back, we need to recreate the original setup,
-which may mean going back to the BIOS tables.
-
-This should have no real effect on the existing collision
-detection because the areas that truly conflict should be marked
-IORESOURCE_BUSY.
-
-00000000-00000fff : Reserved
-00001000-0009fbff : System RAM
-0009fc00-0009ffff : Reserved
-000a0000-000bffff : PCI Bus 0000:00
-000c0000-000c97ff : Video ROM
-000c9800-000ca5ff : Adapter ROM
-000f0000-000fffff : Reserved
-  000f0000-000fffff : System ROM
-00100000-9fffffff : System RAM
-  01000000-01e071d0 : Kernel code
-  01e071d1-027dfdff : Kernel data
-  02dc6000-0305dfff : Kernel bss
-a0000000-afffffff : Persistent Memory (legacy)
-  a0000000-a7ffffff : System RAM
-b0000000-bffdffff : System RAM
-bffe0000-bfffffff : Reserved
-c0000000-febfffff : PCI Bus 0000:00
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/acpi/nfit/intel.c           |   51 +++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c          |    3 ++
+ drivers/nvdimm/dimm_devs_security.c |   20 ++++++++++++++
+ drivers/nvdimm/nd.h                 |    6 ++++
+ include/linux/libnvdimm.h           |    2 +
+ 5 files changed, 82 insertions(+)
 
- b/mm/memory_hotplug.c |   31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
-
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child	2018-10-22 13:12:23.570930388 -0700
-+++ b/mm/memory_hotplug.c	2018-10-22 13:12:23.573930388 -0700
-@@ -99,24 +99,21 @@ void mem_hotplug_done(void)
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
- {
--	struct resource *res, *conflict;
--	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
--	if (!res)
--		return ERR_PTR(-ENOMEM);
-+	struct resource *res;
-+	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-+	char resource_name[] = "System RAM";
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 21d30222371f..ba886f1f5399 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -18,6 +18,53 @@
+ #include "intel.h"
+ #include "nfit.h"
  
--	res->name = "System RAM";
--	res->start = start;
--	res->end = start + size - 1;
--	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
--	conflict =  request_resource_conflict(&iomem_resource, res);
--	if (conflict) {
--		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
--			pr_debug("Device unaddressable memory block "
--				 "memory hotplug at %#010llx !\n",
--				 (unsigned long long)start);
--		}
--		pr_debug("System RAM resource %pR cannot be added\n", res);
--		kfree(res);
-+	/*
-+	 * Request ownership of the new memory range.  This might be
-+	 * a child of an existing resource that was present but
-+	 * not marked as busy.
-+	 */
-+	res = __request_region(&iomem_resource, start, size,
-+			       resource_name, flags);
++static int intel_dimm_security_freeze_lock(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm)
++{
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	int cmd_rc, rc = 0;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_freeze_lock cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_FREEZE_LOCK,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = 0,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
++		},
++	};
 +
-+	if (!res) {
-+		pr_debug("Unable to reserve System RAM region: %016llx->%016llx\n",
-+				start, start + size);
- 		return ERR_PTR(-EEXIST);
- 	}
- 	return res;
-_
++	if (!test_bit(NVDIMM_INTEL_FREEZE_LOCK, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_CALL, &nd_cmd,
++			sizeof(nd_cmd), &cmd_rc);
++	if (rc < 0)
++		goto out;
++	if (cmd_rc < 0) {
++		rc = cmd_rc;
++		goto out;
++	}
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		rc = -ENXIO;
++		goto out;
++	}
++
++ out:
++	return rc;
++}
++
+ static int intel_dimm_security_disable(struct nvdimm_bus *nvdimm_bus,
+ 		struct nvdimm *nvdimm, const struct nvdimm_key_data *nkey)
+ {
+@@ -254,6 +301,9 @@ static int intel_dimm_security_state(struct nvdimm_bus *nvdimm_bus,
+ 	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+ 		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+ 			*state = NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			*state = NVDIMM_SECURITY_FROZEN;
+ 		else
+ 			*state = NVDIMM_SECURITY_UNLOCKED;
+ 	} else
+@@ -270,4 +320,5 @@ const struct nvdimm_security_ops intel_security_ops = {
+ 	.unlock = intel_dimm_security_unlock,
+ 	.change_key = intel_dimm_security_update_passphrase,
+ 	.disable = intel_dimm_security_disable,
++	.freeze_lock = intel_dimm_security_freeze_lock,
+ };
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index ae0c3e02e4f5..a1c4c28d951f 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -442,6 +442,9 @@ static ssize_t security_store(struct device *dev,
+ 			return -EINVAL;
+ 		dev_dbg(dev, "disable %#x\n", old_key);
+ 		rc = nvdimm_security_disable(dev, old_key);
++	} else if (sysfs_streq(buf, "freeze")) {
++		dev_dbg(dev, "freeze\n");
++		rc = nvdimm_security_freeze_lock(dev);
+ 	} else
+ 		return -EINVAL;
+ 
+diff --git a/drivers/nvdimm/dimm_devs_security.c b/drivers/nvdimm/dimm_devs_security.c
+index 6f8b9021292c..767c5ae06cb5 100644
+--- a/drivers/nvdimm/dimm_devs_security.c
++++ b/drivers/nvdimm/dimm_devs_security.c
+@@ -164,6 +164,26 @@ int nvdimm_security_get_state(struct device *dev)
+ 			&nvdimm->state);
+ }
+ 
++int nvdimm_security_freeze_lock(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	int rc;
++
++	if (!nvdimm->security_ops)
++		return -EOPNOTSUPP;
++
++	if (nvdimm->state == NVDIMM_SECURITY_UNSUPPORTED)
++		return -EOPNOTSUPP;
++
++	rc = nvdimm->security_ops->freeze_lock(nvdimm_bus, nvdimm);
++	if (rc < 0)
++		return rc;
++
++	nvdimm_security_get_state(dev);
++	return 0;
++}
++
+ int nvdimm_security_disable(struct device *dev, unsigned int keyid)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index b80cab3a12df..d89fe1423f9a 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -431,6 +431,7 @@ int nvdimm_security_get_state(struct device *dev);
+ int nvdimm_security_change_key(struct device *dev, unsigned int old_keyid,
+ 		unsigned int new_keyid);
+ int nvdimm_security_disable(struct device *dev, unsigned int keyid);
++int nvdimm_security_freeze_lock(struct device *dev);
+ #else
+ static inline struct key *nvdimm_get_key(struct device *dev)
+ {
+@@ -458,5 +459,10 @@ static inline int nvdimm_security_disable(struct device *dev,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int nvdimm_security_freeze_lock(struct device *dev)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ #endif /* __ND_H__ */
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index c60ab4b238f3..bcab42caa948 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -185,6 +185,8 @@ struct nvdimm_security_ops {
+ 	int (*disable)(struct nvdimm_bus *nvdimm_bus,
+ 			struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *nkey);
++	int (*freeze_lock)(struct nvdimm_bus *nvdimm_bus,
++			struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
