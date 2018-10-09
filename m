@@ -1,9 +1,9 @@
-From: annie-CX6XNvn9U89ON7qpzim7xVaTQe2KTcn/@public.gmane.org
-Subject: I want to be in your bed
-Date: Mon, 8 Oct 2018 05:56:28 -0700 (MSK)
-Message-ID: <66113=366613m2-3929-7041-95at-8456w6s11slh=8=466671@clicks.chesapeakefamily.com>
+From: =?utf-8?B?6LCt5aWz5aOr?= <mzgrb-YjFH01uzmXQ@public.gmane.org>
+Subject: =?utf-8?B?6L2s5Y+R77ya5LyB5Lia5Y+R5bGV5by65aSn77yM566h55CG5bmy6YOo6Iez5YWz6YeN6KaB?=
+Date: Tue, 9 Oct 2018 08:55:08 +0800
+Message-ID: <DA37B67D654915565A95D8BCAE0DE7EE@fls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -15,11 +15,10 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: To-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SGV5IGN1dGUuIEmSdmUgc2VlbiwgbWV0IHlvdSBpbiBjYWZmZSBsYXN0IHdlZWtlbmQgYnV0IEkg
-Y291bGRuknQgY29tZSAuIFlvdZJyZSBhbWF6aW5nLiBNeSBwaWN0dXJlcywgcGhvdG9zIGFyZSBv
-biB0aGF0IHdlYnNpdGUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+6K+mICDpmIUgIOmZhCAg5Lu2IC4uLi4uLiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgt
+bnZkaW1tCg==
