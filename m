@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 699D021A07A92
- for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 16:56:20 -0700 (PDT)
-Subject: [PATCH v12 03/12] keys: export lookup_user_key to external users
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 08 Oct 2018 16:55:46 -0700
-Message-ID: <153904294617.60070.13683335233767075152.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
-References: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1FBCD2115C31D
+ for <linux-nvdimm@lists.01.org>; Tue,  9 Oct 2018 08:36:17 -0700 (PDT)
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <CAPcyv4gmMwRAG=VxWNyeacxdsPCsaT+BtR+27+bHT=6heAZ3sQ@mail.gmail.com>
+References: <CAPcyv4gmMwRAG=VxWNyeacxdsPCsaT+BtR+27+bHT=6heAZ3sQ@mail.gmail.com>
+ <153622549721.14298.8116794954073122489.stgit@warthog.procyon.org.uk>
+ <153622557095.14298.10281337300003012767.stgit@warthog.procyon.org.uk>
+Subject: Re: [PATCH 10/11] UAPI: ndctl: Remove use of PAGE_SIZE [ver #2]
 MIME-Version: 1.0
+Content-ID: <17646.1539099374.1@warthog.procyon.org.uk>
+Date: Tue, 09 Oct 2018 16:36:14 +0100
+Message-ID: <17647.1539099374@warthog.procyon.org.uk>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,62 +25,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: dhowells@redhat.com, Linux API <linux-api@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-kbuild@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Export lookup_user_key() symbol in order to allow nvdimm passphrase
-update to retrieve user injected keys.
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Acked-by: David Howells <dhowells at redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/key.h          |    3 +++
- security/keys/internal.h     |    2 --
- security/keys/process_keys.c |    1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+> Let me know if you want me to pick this up for 4.20.
 
-diff --git a/include/linux/key.h b/include/linux/key.h
-index e58ee10f6e58..7099985e35a9 100644
---- a/include/linux/key.h
-+++ b/include/linux/key.h
-@@ -346,6 +346,9 @@ static inline key_serial_t key_serial(const struct key *key)
- 
- extern void key_set_timeout(struct key *, unsigned);
- 
-+extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
-+				 key_perm_t perm);
-+
- /*
-  * The permissions required on a key that we're looking up.
-  */
-diff --git a/security/keys/internal.h b/security/keys/internal.h
-index 9f8208dc0e55..9968b21a76dd 100644
---- a/security/keys/internal.h
-+++ b/security/keys/internal.h
-@@ -158,8 +158,6 @@ extern struct key *request_key_and_link(struct key_type *type,
- 
- extern bool lookup_user_key_possessed(const struct key *key,
- 				      const struct key_match_data *match_data);
--extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
--				 key_perm_t perm);
- #define KEY_LOOKUP_CREATE	0x01
- #define KEY_LOOKUP_PARTIAL	0x02
- #define KEY_LOOKUP_FOR_UNLINK	0x04
-diff --git a/security/keys/process_keys.c b/security/keys/process_keys.c
-index d5b25e535d3a..ec4fd4531224 100644
---- a/security/keys/process_keys.c
-+++ b/security/keys/process_keys.c
-@@ -755,6 +755,7 @@ key_ref_t lookup_user_key(key_serial_t id, unsigned long lflags,
- 	put_cred(ctx.cred);
- 	goto try_again;
- }
-+EXPORT_SYMBOL(lookup_user_key);
- 
- /*
-  * Join the named keyring as the session keyring if possible else attempt to
+If you could pick this and also 09?
 
+Thanks,
+David
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
