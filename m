@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
- [IPv6:2607:f8b0:4864:20::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E6ABA21A09130
- for <linux-nvdimm@lists.01.org>; Thu, 11 Oct 2018 18:35:39 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id s69-v6so8651288oie.10
- for <linux-nvdimm@lists.01.org>; Thu, 11 Oct 2018 18:35:39 -0700 (PDT)
-MIME-Version: 1.0
-References: <20181010233428.12228.26106.stgit@localhost.localdomain>
- <20181010233926.12228.65663.stgit@localhost.localdomain>
-In-Reply-To: <20181010233926.12228.65663.stgit@localhost.localdomain>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 Oct 2018 18:35:25 -0700
-Message-ID: <CAPcyv4hw6xQ5nvGpf3Kd_86STXqEEd3pj3u0LEZ1fP+d2e8+Cg@mail.gmail.com>
-Subject: Re: [nvdimm PATCH 6/6] nvdimm: Use namespace index data to reduce
+ by ml01.01.org (Postfix) with ESMTPS id 842D52116524A
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Oct 2018 16:39:36 -0700 (PDT)
+Subject: [nvdimm PATCH 6/6] nvdimm: Use namespace index data to reduce
  number of label reads needed
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 10 Oct 2018 16:39:35 -0700
+Message-ID: <20181010233926.12228.65663.stgit@localhost.localdomain>
+In-Reply-To: <20181010233428.12228.26106.stgit@localhost.localdomain>
+References: <20181010233428.12228.26106.stgit@localhost.localdomain>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,39 +23,180 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: alexander.h.duyck@linux.intel.com
-Cc: zwisler@kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
+Cc: alexander.h.duyck@linux.intel.com, zwisler@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Oct 10, 2018 at 4:51 PM Alexander Duyck
-<alexander.h.duyck@linux.intel.com> wrote:
->
-> This patch adds logic that is meant to make use of the namespace index data
-> to reduce the number of reads that are needed to initialize a given
-> namespace. The general idea is that once we have enough data to validate
-> the namespace index we do so and then proceed to fetch only those labels
-> that are not listed as being "free". By doing this I am seeing a total time
-> reduction from about 4-5 seconds to 2-3 seconds for 24 NVDIMM modules each
-> with 128K of label config area.
->
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> ---
->  drivers/nvdimm/dimm.c  |    4 --
->  drivers/nvdimm/label.c |   93 +++++++++++++++++++++++++++++++++++++++++++++---
->  drivers/nvdimm/label.h |    3 --
->  3 files changed, 88 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-> index 07bf96948553..9899c97138a3 100644
-> --- a/drivers/nvdimm/dimm.c
-> +++ b/drivers/nvdimm/dimm.c
-> @@ -452,7 +455,87 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
-[..]
-> +       /* Loop through the free list pulling in any active labels */
-> +       for (i = 0; i < nsindex->nslot; i++, offset += ndd->nslabel_size) {
+This patch adds logic that is meant to make use of the namespace index data
+to reduce the number of reads that are needed to initialize a given
+namespace. The general idea is that once we have enough data to validate
+the namespace index we do so and then proceed to fetch only those labels
+that are not listed as being "free". By doing this I am seeing a total time
+reduction from about 4-5 seconds to 2-3 seconds for 24 NVDIMM modules each
+with 128K of label config area.
 
-0day points out a sparse warning on that usage of nslot which is an
-__le32. I'll append a fixup.
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ drivers/nvdimm/dimm.c  |    4 --
+ drivers/nvdimm/label.c |   93 +++++++++++++++++++++++++++++++++++++++++++++---
+ drivers/nvdimm/label.h |    3 --
+ 3 files changed, 88 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index 07bf96948553..9899c97138a3 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -84,10 +84,6 @@ static int nvdimm_probe(struct device *dev)
+ 	dev_dbg(dev, "config data size: %d\n", ndd->nsarea.config_size);
+ 
+ 	nvdimm_bus_lock(dev);
+-	ndd->ns_current = nd_label_validate(ndd);
+-	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
+-	nd_label_copy(ndd, to_next_namespace_index(ndd),
+-			to_current_namespace_index(ndd));
+ 	if (ndd->ns_current >= 0) {
+ 		rc = nd_label_reserve_dpa(ndd);
+ 		if (rc == 0)
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 563f24af01b5..7f03d117824f 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -235,7 +235,7 @@ static int __nd_label_validate(struct nvdimm_drvdata *ndd)
+ 	return -1;
+ }
+ 
+-int nd_label_validate(struct nvdimm_drvdata *ndd)
++static int nd_label_validate(struct nvdimm_drvdata *ndd)
+ {
+ 	/*
+ 	 * In order to probe for and validate namespace index blocks we
+@@ -258,8 +258,9 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
+ 	return -1;
+ }
+ 
+-void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
+-		struct nd_namespace_index *src)
++static void nd_label_copy(struct nvdimm_drvdata *ndd,
++			  struct nd_namespace_index *dst,
++			  struct nd_namespace_index *src)
+ {
+ 	/* just exit if either destination or source is NULL */
+ 	if (!dst || !src)
+@@ -419,7 +420,9 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+ 
+ int nd_label_data_init(struct nvdimm_drvdata *ndd)
+ {
+-	size_t config_size, read_size;
++	size_t config_size, read_size, max_xfer, offset;
++	struct nd_namespace_index *nsindex;
++	unsigned int i;
+ 	int rc = 0;
+ 
+ 	if (ndd->data)
+@@ -452,7 +455,87 @@ int nd_label_data_init(struct nvdimm_drvdata *ndd)
+ 	if (!ndd->data)
+ 		return -ENOMEM;
+ 
+-	return nvdimm_get_config_data(ndd, ndd->data, 0, config_size);
++	/*
++	 * We want to guarantee as few reads as possible while conserving
++	 * memory. To do that we figure out how much unused space will be left
++	 * in the last read, divide that by the total number of reads it is
++	 * going to take given our maximum transfer size, and then reduce our
++	 * maximum transfer size based on that result.
++	 */
++	max_xfer = min_t(size_t, ndd->nsarea.max_xfer, config_size);
++	if (read_size < max_xfer) {
++		/* trim waste */
++		max_xfer -= ((max_xfer - 1) - (config_size - 1) % max_xfer) /
++			    DIV_ROUND_UP(config_size, max_xfer);
++		/* make certain we read indexes in exactly 1 read */
++		if (max_xfer < read_size)
++			max_xfer = read_size;
++	}
++
++	/* Make our initial read size a multiple of max_xfer size */
++	read_size = min(DIV_ROUND_UP(read_size, max_xfer) * max_xfer,
++			config_size);
++
++	/* Read the index data */
++	rc = nvdimm_get_config_data(ndd, ndd->data, 0, read_size);
++	if (rc)
++		goto out_err;
++
++	/* Validate index data, if not valid assume all labels are invalid */
++	ndd->ns_current = nd_label_validate(ndd);
++	if (ndd->ns_current < 0)
++		return 0;
++
++	/* Record our index values */
++	ndd->ns_next = nd_label_next_nsindex(ndd->ns_current);
++
++	/* Copy "current" index on top of the "next" index */
++	nsindex = to_current_namespace_index(ndd);
++	nd_label_copy(ndd, to_next_namespace_index(ndd), nsindex);
++
++	/* Determine starting offset for label data */
++	offset = __le64_to_cpu(nsindex->labeloff);
++
++	/* Loop through the free list pulling in any active labels */
++	for (i = 0; i < nsindex->nslot; i++, offset += ndd->nslabel_size) {
++		size_t label_read_size;
++
++		/* zero out the unused labels */
++		if (test_bit_le(i, nsindex->free)) {
++			memset(ndd->data + offset, 0, ndd->nslabel_size);
++			continue;
++		}
++
++		/* if we already read past here then just continue */
++		if (offset + ndd->nslabel_size <= read_size)
++			continue;
++
++		/* if we haven't read in a while reset our read_size offset */
++		if (read_size < offset)
++			read_size = offset;
++
++		/* determine how much more will be read after this next call. */
++		label_read_size = offset + ndd->nslabel_size - read_size;
++		label_read_size = DIV_ROUND_UP(label_read_size, max_xfer) *
++				  max_xfer;
++
++		/* truncate last read if needed */
++		if (read_size + label_read_size > config_size)
++			label_read_size = config_size - read_size;
++
++		/* Read the label data */
++		rc = nvdimm_get_config_data(ndd, ndd->data + read_size,
++					    read_size, label_read_size);
++		if (rc)
++			goto out_err;
++
++		/* push read_size to next read offset */
++		read_size += label_read_size;
++	}
++
++	dev_dbg(ndd->dev, "len: %zu rc: %d\n", offset, rc);
++out_err:
++	return rc;
+ }
+ 
+ int nd_label_active_count(struct nvdimm_drvdata *ndd)
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index 685afb3de0fe..e9a2ad3c2150 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -138,9 +138,6 @@ static inline int nd_label_next_nsindex(int index)
+ }
+ 
+ struct nvdimm_drvdata;
+-int nd_label_validate(struct nvdimm_drvdata *ndd);
+-void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
+-		struct nd_namespace_index *src);
+ int nd_label_data_init(struct nvdimm_drvdata *ndd);
+ size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd);
+ int nd_label_active_count(struct nvdimm_drvdata *ndd);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
