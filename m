@@ -1,11 +1,11 @@
-From: =?utf-8?B?5a2Z57uP55CG?= <bikeqva-XQ2MJvZ4hhU@public.gmane.org>
-Subject: =?utf-8?B?562U5aSN77ya5L2c5Li65Lia5Yqh5ZGY5Li65LuA5LmI5Yqq5Yqb5LqG5oC75b6X5LiN5Yiw6aKE5pyf?=
- =?utf-8?B?5pWI5p6c?=
-Date: Thu, 11 Oct 2018 08:40:41 +0800
-Message-ID: <2A43DCF1DEBAE38759D95D6F8056CCA6@ddsp.net>
+From: "Sean Kim." <info-Xfp+jVM8dIi1Z/+hSey0Gg@public.gmane.org>
+Subject: URGENT RESPONSE NEEDED
+Date: Fri, 12 Oct 2018 12:07:41 +0000
+Message-ID: <20181012120756.41248475A717@mail.techlico.co.jp>
+Reply-To: kimsean1-r/1qiUFKoGWaMJb+Lgu22Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,7 +19,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-OTE0NjkwODI0ODENCuivpiDnu4Yg6K++IOe6siDor7cg6ZiFIOivuyDpmYQg5Lu2DQo4OjQwOjQ4
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
-ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
-LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Hello my dear.
+
+Did you receive my email message to you? Please, get back to me ASAP as the matter is becoming late.  Expecting your urgent response.
+
+Sean.
