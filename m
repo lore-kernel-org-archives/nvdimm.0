@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1AF9F21161209
- for <linux-nvdimm@lists.01.org>; Wed,  3 Oct 2018 11:16:07 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 2/5] ndctl,
- lib: add APIs for retrieving namespace badblocks
-Date: Wed,  3 Oct 2018 12:15:03 -0600
-Message-Id: <20181003181506.17682-2-vishal.l.verma@intel.com>
-In-Reply-To: <20181003181506.17682-1-vishal.l.verma@intel.com>
-References: <20181003181506.17682-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 594572116DFA9
+ for <linux-nvdimm@lists.01.org>; Fri, 12 Oct 2018 15:28:58 -0700 (PDT)
+Subject: [PATCH v4 4/7] ndctl: add support for freeze security
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 12 Oct 2018 15:28:57 -0700
+Message-ID: <153938333745.20740.11417384271751538086.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153938316555.20740.14314691018876178251.stgit@djiang5-desk3.ch.intel.com>
+References: <153938316555.20740.14314691018876178251.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,119 +18,166 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+Add support for freeze security to libndctl and also command line option
+of "freeze-security" for ndctl. This will lock the ability to make changes
+to the NVDIMM security.
 
-Use the new bb_iter mechanism to provide APIs that retrieve the
-namespace badblocks from the kernel's block device representation in
-sysfs. This paves the way for a namespace based fallback if
-region-badblocks are unavailable.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-[vishal] add the new global symbols to libndctl.sym
-[vishal] fix the badblocks path to remove the trailing 'badblocks'
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/lib/libndctl.c   | 42 ++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  6 ++++++
- ndctl/libndctl.h       |  6 ++++++
- 3 files changed, 54 insertions(+)
+ Documentation/ndctl/Makefile.am               |    3 ++-
+ Documentation/ndctl/ndctl-freeze-security.txt |   21 +++++++++++++++++++++
+ builtin.h                                     |    1 +
+ ndctl/dimm.c                                  |   22 ++++++++++++++++++++++
+ ndctl/lib/dimm.c                              |    5 +++++
+ ndctl/lib/libndctl.sym                        |    1 +
+ ndctl/libndctl.h                              |    1 +
+ ndctl/ndctl.c                                 |    1 +
+ 8 files changed, 54 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
 
-No changes since v1
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index d58be47..d341100 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -3610,6 +3610,48 @@ NDCTL_EXPORT int ndctl_namespace_is_enabled(struct ndctl_namespace *ndns)
- 	return is_enabled(ndctl_namespace_get_bus(ndns), path);
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index faeb0d9b..3a761ba0 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -49,7 +49,8 @@ man1_MANS = \
+ 	ndctl-list.1 \
+ 	ndctl-monitor.1 \
+ 	ndctl-update-security.1 \
+-	ndctl-disable-security.1
++	ndctl-disable-security.1 \
++	ndctl-freeze-security.1
+ 
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+new file mode 100644
+index 00000000..343bb019
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -0,0 +1,21 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-freeze-security(1)
++========================
++
++NAME
++----
++ndctl-freeze-security - enabling or freeze the security for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl freeze-security' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface to freeze the security for NVDIMM. The use of this
++depends on support from the underlying libndctl, kernel, as well as the
++platform itself.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 39e4e38d..7b970e10 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -50,4 +50,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_key_update(int argc, const char **argv, void *ctx);
+ int cmd_disable_security(int argc, const char **argv, void *ctx);
++int cmd_freeze_security(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 1de145b1..3ab15094 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -913,6 +913,18 @@ static int action_security_disable(struct ndctl_dimm *dimm,
+ 	return rc;
  }
  
-+NDCTL_EXPORT struct badblock *ndctl_namespace_get_next_badblock(
-+		struct ndctl_namespace *ndns)
++static int action_security_freeze(struct ndctl_dimm *dimm,
++		struct action_context *actx)
 +{
-+	return badblocks_iter_next(&ndns->bb_iter);
++	int rc;
++
++	rc = ndctl_dimm_freeze_security(dimm);
++	if (rc < 0)
++		error("Failed to freeze security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
 +}
 +
-+NDCTL_EXPORT struct badblock *ndctl_namespace_get_first_badblock(
-+		struct ndctl_namespace *ndns)
-+{
-+	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
-+	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
-+	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
-+	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
-+	const char *dev = ndctl_namespace_get_devname(ndns);
-+	char path[SYSFS_ATTR_SIZE];
-+	ssize_t len = sizeof(path);
-+	const char *bdev;
-+
-+	if (btt || dax) {
-+		dbg(ctx, "%s: badblocks not supported for %s\n", dev,
-+				btt ? "btt" : "device-dax");
-+		return NULL;
-+	}
-+
-+	if (pfn)
-+		bdev = ndctl_pfn_get_block_device(pfn);
-+	else
-+		bdev = ndctl_namespace_get_block_device(ndns);
-+
-+	if (!bdev) {
-+		dbg(ctx, "%s: failed to determine block device\n", dev);
-+		return NULL;
-+	}
-+
-+	if (snprintf(path, len, "/sys/block/%s", bdev) >= len) {
-+		err(ctx, "%s: buffer too small!\n", dev);
-+		return NULL;
-+	}
-+
-+	return badblocks_iter_first(&ndns->bb_iter, ctx, path);
-+}
-+
- static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
- 		const char *devname)
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
  {
+@@ -1295,3 +1307,13 @@ int cmd_disable_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_freeze_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
++			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 16cf2a79..fc0c2e57 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -632,3 +632,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_security(struct ndctl_dimm *dimm,
+ 	sprintf(buf, "disable %d\n", key);
+ 	return ndctl_dimm_write_security(dimm, buf);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_write_security(dimm, "freeze");
++}
 diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index a6849ee..185ee4a 100644
+index b84f0063..6fd1d3a9 100644
 --- a/ndctl/lib/libndctl.sym
 +++ b/ndctl/lib/libndctl.sym
-@@ -378,3 +378,9 @@ global:
- 	ndctl_region_get_max_available_extent;
- 	ndctl_cmd_smart_inject_ctrl_temperature;
- } LIBNDCTL_16;
-+
-+LIBNDCTL_18 {
-+global:
-+	ndctl_namespace_get_first_badblock;
-+	ndctl_namespace_get_next_badblock;
-+} LIBNDCTL_17;
+@@ -393,4 +393,5 @@ global:
+ 	ndctl_dimm_add_keys;
+ 	ndctl_dimm_set_change_key;
+ 	ndctl_dimm_disable_security;
++	ndctl_dimm_freeze_security;
+ } LIBNDCTL_18;
 diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 83d6c6c..500c7de 100644
+index 72ec1763..19c4974d 100644
 --- a/ndctl/libndctl.h
 +++ b/ndctl/libndctl.h
-@@ -439,6 +439,12 @@ struct ndctl_namespace *ndctl_namespace_get_next(struct ndctl_namespace *ndns);
- 	     ndns != NULL; \
- 	     ndns = _ndns, \
- 	     _ndns = _ndns ? ndctl_namespace_get_next(_ndns) : NULL)
-+struct badblock *ndctl_namespace_get_first_badblock(struct ndctl_namespace *ndns);
-+struct badblock *ndctl_namespace_get_next_badblock(struct ndctl_namespace *ndns);
-+#define ndctl_namespace_badblock_foreach(ndns, badblock) \
-+        for (badblock = ndctl_namespace_get_first_badblock(ndns); \
-+             badblock != NULL; \
-+             badblock = ndctl_namespace_get_next_badblock(ndns))
- struct ndctl_ctx *ndctl_namespace_get_ctx(struct ndctl_namespace *ndns);
- struct ndctl_bus *ndctl_namespace_get_bus(struct ndctl_namespace *ndns);
- struct ndctl_region *ndctl_namespace_get_region(struct ndctl_namespace *ndns);
--- 
-2.17.1
+@@ -696,6 +696,7 @@ int ndctl_dimm_add_keys(struct ndctl_dimm *dimm, key_serial_t *new_key,
+ 		const char *new_payload, key_serial_t *old_key,
+ 		const char *old_payload);
+ int ndctl_dimm_disable_security(struct ndctl_dimm *dimm, key_serial_t key);
++int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 2dab02d2..7a242aab 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
+ 	{ "start-scrub", cmd_start_scrub },
+ 	{ "update-security", cmd_key_update },
+ 	{ "disable-security", cmd_disable_security },
++	{ "freeze-security", cmd_freeze_security },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
