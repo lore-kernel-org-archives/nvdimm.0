@@ -1,11 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from [105.22.33.134] (unknown [105.22.33.134])
- by ml01.01.org (Postfix) with ESMTP id 811A72117B578
- for <linux-nvdimm@lists.01.org>; Thu, 25 Oct 2018 11:19:36 -0700 (PDT)
-Date: 25 Oct 2018 21:08:29 +0100
-From: <linux-nvdimm@lists.01.org>
-Message-ID: <301978363.201810252119@lists.01.org>
-Subject: account linux-nvdimm@lists.01.org is compromised
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 08D9F21D0DE59
+ for <linux-nvdimm@lists.01.org>; Fri, 12 Oct 2018 15:28:36 -0700 (PDT)
+Subject: [PATCH v4 0/7] ndctl: add security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 12 Oct 2018 15:28:35 -0700
+Message-ID: <153938316555.20740.14314691018876178251.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,58 +20,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello!
+The following series implements mechanisms that utilize the sysfs knobs
+provided by the kernel in order to support the Intel DSM v1.7 spec
+that provides security to NVDIMM. The following abilities are added:
+1. display security state
+2. update security
+3. disable security
+4. freeze security
+5. secure erase
+6. kernel unlock upcall support
 
-I'm a hacker who cracked your email and device a few months ago.
-You entered a password on one of the sites you visited, and I intercepted it.
+v4:
+- Updated to match latest kernel interface.
+- Added unit test for all security calls
 
-Of course you can will change it, or already changed it.
-But it doesn't matter, my malware updated it every time.
+v3:
+- Added support to inject keys in order to update nvdimm security.
 
-Do not try to contact me or find me, it is impossible, since I sent you an email from your account.
+v2:
+- Fixup the upcall util to match recent kernel updates for nvdimm security.
 
-Through your email, I uploaded malicious code to your Operation System.
-I saved all of your contacts with friends, colleagues, relatives and a complete history of visits to the Internet resources.
-Also I installed a Trojan on your device and long tome spying for you.
+---
 
-You are not my only victim, I usually lock computers and ask for a ransom.
-But I was struck by the sites of intimate content that you often visit.
+Dave Jiang (7):
+      ndctl: add support for display security state
+      ndctl: add update to security support
+      ndctl: add disable security support
+      ndctl: add support for freeze security
+      ndctl: add support for sanitize dimm
+      ndctl: add request-key upcall reference app
+      ndctl: add unit test for security ops (minus overwrite)
 
-I am in shock of your fantasies! I've never seen anything like this!
 
-So, when you had fun on piquant sites (you know what I mean!)
-I made screenshot with using my program from your camera of yours device.
-After that, I combined them to the content of the currently viewed site.
+ Documentation/ndctl/Makefile.am                |    7 +
+ Documentation/ndctl/ndctl-disable-security.txt |   48 +++++
+ Documentation/ndctl/ndctl-freeze-security.txt  |   21 ++
+ Documentation/ndctl/ndctl-list.txt             |    8 +
+ Documentation/ndctl/ndctl-sanitize.txt         |   52 +++++
+ Documentation/ndctl/ndctl-update-security.txt  |   56 ++++++
+ Documentation/ndctl/nvdimm-upcall.txt          |   33 +++
+ Makefile.am                                    |    5 +
+ builtin.h                                      |    4 
+ configure.ac                                   |    5 +
+ contrib/nvdimm.conf                            |    1 
+ ndctl.spec.in                                  |    3 
+ ndctl/Makefile.am                              |    7 +
+ ndctl/dimm.c                                   |  228 +++++++++++++++++++++++-
+ ndctl/lib/Makefile.am                          |    4 
+ ndctl/lib/dimm.c                               |   63 +++++++
+ ndctl/lib/keys.c                               |  139 +++++++++++++++
+ ndctl/lib/libndctl.sym                         |   11 +
+ ndctl/libndctl.h                               |   18 ++
+ ndctl/ndctl.c                                  |    4 
+ ndctl/nvdimm-upcall.c                          |  154 ++++++++++++++++
+ test/Makefile.am                               |    3 
+ test/security.sh                               |  187 ++++++++++++++++++++
+ util/json.c                                    |    8 +
+ 24 files changed, 1054 insertions(+), 15 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-disable-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-sanitize.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-security.txt
+ create mode 100644 Documentation/ndctl/nvdimm-upcall.txt
+ create mode 100644 contrib/nvdimm.conf
+ create mode 100644 ndctl/lib/keys.c
+ create mode 100644 ndctl/nvdimm-upcall.c
+ create mode 100755 test/security.sh
 
-There will be laughter when I send these photos to your contacts!
-BUT I'm sure you don't want it.
-
-Therefore, I expect payment from you for my silence.
-I think $867 is an acceptable price for it!
-
-Pay with Bitcoin.
-My BTC wallet: 1DVU5Q2HQ4srFNSSaWBrVNMtL4pvBkfP5w
-
-If you do not know how to do this - enter into Google "how to transfer money to a bitcoin wallet". It is not difficult.
-After receiving the specified amount, all your data will be immediately destroyed automatically. My virus will also remove itself from your operating system.
-
-My Trojan have auto alert, after this email is read, I will be know it!
-
-I give you 2 days (48 hours) to make a payment.
-If this does not happen - all your contacts will get crazy shots from your dark secret life!
-And so that you do not obstruct, your device will be blocked (also after 48 hours)
-
-Do not be silly!
-Police or friends won't help you for sure ...
-
-p.s. I can give you advice for the future. Do not enter your passwords on unsafe sites.
-
-I hope for your prudence.
-Farewell.
-
+--
+Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
