@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 160ED2115C33D
- for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 15:59:53 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH] test, dsm-fail: Cleanup leftover debug
-Date: Mon, 15 Oct 2018 22:59:51 +0000
-Message-ID: <116504592e5cbba92d1cb70f8d79a3704335a188.camel@intel.com>
-References: <153940497765.1425803.8798243923079683083.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <153940497765.1425803.8798243923079683083.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <9695D34C12E3A9428A1B2249DEEBE275@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 962C721173C62
+ for <linux-nvdimm@lists.01.org>; Fri, 12 Oct 2018 21:41:25 -0700 (PDT)
+Subject: [ndctl PATCH] test, dsm-fail: Cleanup leftover debug
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 12 Oct 2018 21:29:37 -0700
+Message-ID: <153940497765.1425803.8798243923079683083.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,23 +20,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Prints from a debug session got committed, delete them.
 
-On Fri, 2018-10-12 at 21:29 -0700, Dan Williams wrote:
-> Prints from a debug session got committed, delete them.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  test/dsm-fail.c |   11 +----------
->  1 file changed, 1 insertion(+), 10 deletions(-)
-> 
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/dsm-fail.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Looks good, applied.
-
-> 
-> 
+diff --git a/test/dsm-fail.c b/test/dsm-fail.c
+index 6845f818c8da..6e812aec008f 100644
+--- a/test/dsm-fail.c
++++ b/test/dsm-fail.c
+@@ -291,48 +291,39 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 			&log_ctx);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = test_dimms_enable(bus, victim, true);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = test_regions_enable(bus, victim, victim_region, true, 2);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_SIZE, 0, &log_ctx);
+ 	if (rc)
+ 		goto out;
+ 
+ 	ndctl_region_foreach(bus, region)
+ 		ndctl_region_disable_invalidate(region);
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = dimms_disable(bus);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 
+ 	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_DATA, -EACCES,
+ 			&log_ctx);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
++
+ 	rc = test_dimms_enable(bus, victim, false);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = test_regions_enable(bus, victim, victim_region, false, 0);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_DATA, 0, &log_ctx);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 	rc = dimms_disable(bus);
+ 	if (rc)
+ 		goto out;
+-	fprintf(stderr, "%s:%d\n", __func__, __LINE__);
+ 
+  out:
+ 	err = rc;
 
 _______________________________________________
 Linux-nvdimm mailing list
