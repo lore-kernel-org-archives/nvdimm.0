@@ -3,17 +3,17 @@ Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
  [IPv6:2607:f8b0:4864:20::343])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DEDA021165257
- for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 15:13:01 -0700 (PDT)
-Received: by mail-ot1-x343.google.com with SMTP id 14so16507559oth.2
- for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 15:13:01 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E8C732115F505
+ for <linux-nvdimm@lists.01.org>; Sat, 13 Oct 2018 10:57:25 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id l58so15296817otd.6
+ for <linux-nvdimm@lists.01.org>; Sat, 13 Oct 2018 10:57:25 -0700 (PDT)
 MIME-Version: 1.0
 References: <153938316555.20740.14314691018876178251.stgit@djiang5-desk3.ch.intel.com>
  <153938332111.20740.843473636761171235.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <153938332111.20740.843473636761171235.stgit@djiang5-desk3.ch.intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 15 Oct 2018 15:12:49 -0700
-Message-ID: <CAPcyv4hxPcymMjJOheA+ipTTc1MNw4a=upsYoDF5rtdKkwxqbA@mail.gmail.com>
+Date: Sat, 13 Oct 2018 10:57:13 -0700
+Message-ID: <CAPcyv4iZ79-Ht6Vi+kSvgUeiCcuL1m2=d9XOVAoS3HnPHb5Z8w@mail.gmail.com>
 Subject: Re: [PATCH v4 1/7] ndctl: add support for display security state
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -59,9 +59,6 @@ On Fri, Oct 12, 2018 at 3:28 PM Dave Jiang <dave.jiang@intel.com> wrote:
 > +  "handle":0,
 > +  "phys_id":0,
 > +  "security_state:":"disabled"
-
-Lets drop the _state suffix.
-
 > +}
 >
 >  -H::
@@ -78,10 +75,19 @@ Lets drop the _state suffix.
 > +NDCTL_EXPORT int ndctl_dimm_get_security_state(struct ndctl_dimm *dimm,
 > +               char *state)
 > +{
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+> +       char *path = dimm->dimm_buf;
+> +       int len = dimm->buf_len;
+> +
+> +       if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
+> +               err(ctx, "%s: buffer too small!\n",
+> +                               ndctl_dimm_get_devname(dimm));
+> +               return -ERANGE;
+> +       }
+> +
+> +       return sysfs_read_attr(ctx, path, state);
 
-Same here, lets drop the _state suffix, and combined with the last
-comment about returning an enum makes it clearer what this function is
-returning.
+This should return a security state enum value instead of a string.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
