@@ -1,9 +1,10 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org was hacked
-Date: 13 Oct 2018 18:10:46 +0700
-Message-ID: <543755583378725835575435@lists.01.org>
+From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 0/2] kvm "fake DAX" device
+Date: Sat, 13 Oct 2018 10:30:19 +0530
+Message-ID: <20181013050021.11962-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1916766745057591194=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -14,58 +15,99 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Cc: kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============1916766745057591194==
-Content-type: text/plain;
- charset="cp-850"
-Content-transfer-encoding: 8bit
-
-Hello linux-nvdimm@
-
-My nickname in darknet is yaakov74.
-I'll begin by saying that I hacked this mailbox (please look on 'from' in your header) more than six months ago,
-through it I infected your operating system with a virus (trojan) created by me and have been monitoring you for a long time.
-
-Even if you changed the password after that - it does not matter, my virus intercepted all the caching data on your computer
-and automatically saved access for me.
-
-I have access to all your accounts, social networks, email, browsing history.
-Accordingly, I have the data of all your contacts, files from your computer, photos and videos.
-
-I was most struck by the intimate content sites that you occasionally visit.
-You have a very wild imagination, I tell you!
-
-During your pastime and entertainment there, I took screenshot through the camera of your device, synchronizing with what you are watching.
-Oh my god! You are so funny and excited!
-
-I think that you do not want all your contacts to get these files, right?
-If you are of the same opinion, then I think that $500 is quite a fair price to destroy the dirt I created.
-
-Send the above amount on my bitcoin wallet: 1MN7A7QqQaAVoxV4zdjdrnEHXmjhzcQ4Bq
-As soon as the above amount is received, I guarantee that the data will be deleted, I do not need it.
-
-Otherwise, these files and history of visiting sites will get all your contacts from your device.
-Also, I'll send to everyone your contact access to your email and access logs, I have carefully saved it!
-
-Since reading this letter you have 48 hours!
-After your reading this message, I'll receive an automatic notification that you have seen the letter.
-
-I hope I taught you a good lesson.
-Do not be so nonchalant, please visit only to proven resources, and don't enter your passwords anywhere!
-Good luck!
-
-
---===============1916766745057591194==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============1916766745057591194==--
+IFRoaXMgcGF0Y2ggc2VyaWVzIGhhcyBpbXBsZW1lbnRhdGlvbiBmb3IgImZha2UgREFYIi4gCiAi
+ZmFrZSBEQVgiIGlzIGZha2UgcGVyc2lzdGVudCBtZW1vcnkobnZkaW1tKSBpbiBndWVzdCAKIHdo
+aWNoIGFsbG93cyB0byBieXBhc3MgdGhlIGd1ZXN0IHBhZ2UgY2FjaGUuIFRoaXMgYWxzbwogaW1w
+bGVtZW50cyBhIFZJUlRJTyBiYXNlZCBhc3luY2hyb25vdXMgZmx1c2ggbWVjaGFuaXNtLiAgCiAK
+IFNoYXJpbmcgZ3Vlc3Qga2VybmVsIGRyaXZlciBpbiB0aGlzIHBhdGNoc2V0IHdpdGggdGhlIAog
+Y2hhbmdlcyBzdWdnZXN0ZWQgaW4gdjEuIFRlc3RlZCB3aXRoIFFlbXUgc2lkZSBkZXZpY2UgCiBl
+bXVsYXRpb24gZm9yIHZpcnRpby1wbWVtIFs0XS4gCiAKIERldGFpbHMgb2YgcHJvamVjdCBpZGVh
+IGZvciAnZmFrZSBEQVgnIGZsdXNoaW5nIGludGVyZmFjZSAKIGlzIHNoYXJlZCBbMl0gJiBbM10u
+CgogSW1wbGVtZW50YXRpb24gaXMgZGl2aWRlZCBpbnRvIHR3byBwYXJ0czoKIE5ldyB2aXJ0aW8g
+cG1lbSBndWVzdCBkcml2ZXIgYW5kIHFlbXUgY29kZSBjaGFuZ2VzIGZvciBuZXcgCiB2aXJ0aW8g
+cG1lbSBwYXJhdmlydHVhbGl6ZWQgZGV2aWNlLgoKMS4gR3Vlc3QgdmlydGlvLXBtZW0ga2VybmVs
+IGRyaXZlcgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgLSBSZWFkcyBwZXJz
+aXN0ZW50IG1lbW9yeSByYW5nZSBmcm9tIHBhcmF2aXJ0IGRldmljZSBhbmQgCiAgICAgcmVnaXN0
+ZXJzIHdpdGggJ252ZGltbV9idXMnLiAgCiAgIC0gJ252ZGltbS9wbWVtJyBkcml2ZXIgdXNlcyB0
+aGlzIGluZm9ybWF0aW9uIHRvIGFsbG9jYXRlIAogICAgIHBlcnNpc3RlbnQgbWVtb3J5IHJlZ2lv
+biBhbmQgc2V0dXAgZmlsZXN5c3RlbSBvcGVyYXRpb25zIAogICAgIHRvIHRoZSBhbGxvY2F0ZWQg
+bWVtb3J5LiAKICAgLSB2aXJ0aW8gcG1lbSBkcml2ZXIgaW1wbGVtZW50cyBhc3luY2hyb25vdXMg
+Zmx1c2hpbmcgCiAgICAgaW50ZXJmYWNlIHRvIGZsdXNoIGZyb20gZ3Vlc3QgdG8gaG9zdC4KCjIu
+IFFlbXUgdmlydGlvLXBtZW0gZGV2aWNlCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQogICAtIENyZWF0ZXMgdmlydGlvIHBtZW0gZGV2aWNlIGFuZCBleHBvc2VzIGEgbWVtb3J5IHJh
+bmdlIHRvIAogICAgIEtWTSBndWVzdC4gCiAgIC0gQXQgaG9zdCBzaWRlIHRoaXMgaXMgZmlsZSBi
+YWNrZWQgbWVtb3J5IHdoaWNoIGFjdHMgYXMgCiAgICAgcGVyc2lzdGVudCBtZW1vcnkuIAogICAt
+IFFlbXUgc2lkZSBmbHVzaCB1c2VzIGFpbyB0aHJlYWQgcG9vbCBBUEkncyBhbmQgdmlydGlvIAog
+ICAgIGZvciBhc3luY2hyb25vdXMgZ3Vlc3QgbXVsdGkgcmVxdWVzdCBoYW5kbGluZy4gCgogICBE
+YXZpZCBIaWxkZW5icmFuZCBDQ2VkIGFsc28gcG9zdGVkIGEgbW9kaWZpZWQgdmVyc2lvbls1XSBv
+ZiAKICAgcWVtdSB2aXJ0aW8tcG1lbSBjb2RlIGJhc2VkIG9uIHVwZGF0ZWQgUWVtdSBtZW1vcnkg
+ZGV2aWNlIEFQSS4gCgogVmlydGlvLXBtZW0gZXJyb3JzIGhhbmRsaW5nOgogLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogIENoZWNrZWQgYmVoYXZpb3VyIG9mIHZpcnRp
+by1wbWVtIGZvciBiZWxvdyB0eXBlcyBvZiBlcnJvcnMKICBOZWVkIHN1Z2dlc3Rpb25zIG9uIGV4
+cGVjdGVkIGJlaGF2aW91ciBmb3IgaGFuZGxpbmcgdGhlc2UgZXJyb3JzPwoKICAtIEhhcmR3YXJl
+IEVycm9yczogVW5jb3JyZWN0YWJsZSByZWNvdmVyYWJsZSBFcnJvcnM6IAogIGFdIHZpcnRpby1w
+bWVtOiAKICAgIC0gQXMgcGVyIGN1cnJlbnQgbG9naWMgaWYgZXJyb3IgcGFnZSBiZWxvbmdzIHRv
+IFFlbXUgcHJvY2VzcywgCiAgICAgIGhvc3QgTUNFIGhhbmRsZXIgaXNvbGF0ZXMoaHdwb2lzb24p
+IHRoYXQgcGFnZSBhbmQgc2VuZCBTSUdCVVMuIAogICAgICBRZW11IFNJR0JVUyBoYW5kbGVyIGlu
+amVjdHMgZXhjZXB0aW9uIHRvIEtWTSBndWVzdC4gCiAgICAtIEtWTSBndWVzdCB0aGVuIGlzb2xh
+dGVzIHRoZSBwYWdlIGFuZCBzZW5kIFNJR0JVUyB0byBndWVzdCAKICAgICAgdXNlcnNwYWNlIHBy
+b2Nlc3Mgd2hpY2ggaGFzIG1hcHBlZCB0aGUgcGFnZS4gCiAgCiAgYl0gRXhpc3RpbmcgaW1wbGVt
+ZW50YXRpb24gZm9yIEFDUEkgcG1lbSBkcml2ZXI6IAogICAgLSBIYW5kbGVzIHN1Y2ggZXJyb3Jz
+IHdpdGggTUNFIG5vdGlmaWVyIGFuZCBjcmVhdGVzIGEgbGlzdCAKICAgICAgb2YgYmFkIGJsb2Nr
+cy4gUmVhZC9kaXJlY3QgYWNjZXNzIERBWCBvcGVyYXRpb24gcmV0dXJuIEVJTyAKICAgICAgaWYg
+YWNjZXNzZWQgbWVtb3J5IHBhZ2UgZmFsbCBpbiBiYWQgYmxvY2sgbGlzdC4KICAgIC0gSXQgYWxz
+byBzdGFydHMgYmFja2dvdW5kIHNjcnViYmluZy4gIAogICAgLSBTaW1pbGFyIGZ1bmN0aW9uYWxp
+dHkgY2FuIGJlIHJldXNlZCBpbiB2aXJ0aW8tcG1lbSB3aXRoIE1DRSAKICAgICAgbm90aWZpZXIg
+YnV0IHdpdGhvdXQgc2NydWJiaW5nKG5vIEFDUEkvQVJTKT8gTmVlZCBpbnB1dHMgdG8gCiAgICAg
+IGNvbmZpcm0gaWYgdGhpcyBiZWhhdmlvdXIgaXMgb2sgb3IgbmVlZHMgYW55IGNoYW5nZT8KCkNo
+YW5nZXMgZnJvbSBQQVRDSCB2MTogWzFdCi0gMC1kYXkgYnVpbGQgdGVzdCBmb3IgYnVpbGQgZGVw
+ZW5kZW5jeSBvbiBsaWJudmRpbW0gCgogQ2hhbmdlcyBzdWdnZXN0ZWQgYnkgLSBbRGFuIFdpbGxp
+YW1zXQotIFNwbGl0IHRoZSBkcml2ZXIgaW50byB0d28gcGFydHMgdmlydGlvICYgcG1lbSAgCi0g
+TW92ZSBxdWV1aW5nIG9mIGFzeW5jIGJsb2NrIHJlcXVlc3QgdG8gYmxvY2sgbGF5ZXIKLSBBZGQg
+InN5bmMiIHBhcmFtZXRlciBpbiBudmRpbW1fZmx1c2ggZnVuY3Rpb24KLSBVc2UgaW5kaXJlY3Qg
+Y2FsbCBmb3IgbnZkaW1tX2ZsdXNoCi0gRG9u4oCZdCBtb3ZlIGRlY2xhcmF0aW9ucyB0byBjb21t
+b24gZ2xvYmFsIGhlYWRlciBlLmcgbmQuaAotIG52ZGltbV9mbHVzaCgpIHJldHVybiAwIG9yIC1F
+SU8gaWYgaXQgZmFpbHMKLSBUZWFjaCBuc2lvX3J3X2J5dGVzKCkgdGhhdCB0aGUgZmx1c2ggY2Fu
+IGZhaWwKLSBSZW5hbWUgbnZkaW1tX2ZsdXNoKCkgdG8gZ2VuZXJpY19udmRpbW1fZmx1c2goKQot
+IFVzZSAnbmRfcmVnaW9uLT5wcm92aWRlcl9kYXRhJyBmb3IgbG9uZyBkZXJlZmVyZW5jaW5nCi0g
+UmVtb3ZlIHZpcnRpb19wbWVtX2ZyZWV6ZS9yZXN0b3JlIGZ1bmN0aW9ucwotIFJlbW92ZSBCU0Qg
+bGljZW5zZSB0ZXh0IHdpdGggU1BEWCBsaWNlbnNlIHRleHQKCi0gQWRkIG1pZ2h0X3NsZWVwKCkg
+aW4gdmlydGlvX3BtZW1fZmx1c2ggLSBbTHVpel0KLSBNYWtlIHNwaW5fbG9ja19pcnFzYXZlKCkg
+bmFycm93CgpDaGFuZ2VzIGZyb20gUkZDIHYzCi0gUmViYXNlIHRvIGxhdGVzdCB1cHN0cmVhbSAt
+IEx1aXoKLSBDYWxsIG5kcmVnaW9uLT5mbHVzaCBpbiBwbGFjZSBvZiBudmRpbW1fZmx1c2gtIEx1
+aXoKLSBrbWFsbG9jIHJldHVybiBjaGVjayAtIEx1aXoKLSB2aXJ0cXVldWUgZnVsbCBoYW5kbGlu
+ZyAtIFN0ZWZhbgotIERvbid0IG1hcCBlbnRpcmUgdmlydGlvX3BtZW1fcmVxIHRvIGRldmljZSAt
+IFN0ZWZhbgotIHJlcXVlc3QgbGVhaywgY29ycmVjdCBzaXplb2YgcmVxLSBTdGVmYW4KLSBNb3Zl
+IGRlY2xhcmF0aW9uIHRvIHZpcnRpb19wbWVtLmMKCkNoYW5nZXMgZnJvbSBSRkMgdjI6Ci0gQWRk
+IGZsdXNoIGZ1bmN0aW9uIGluIHRoZSBuZF9yZWdpb24gaW4gcGxhY2Ugb2Ygc3dpdGNoaW5nCiAg
+b24gYSBmbGFnIC0gRGFuICYgU3RlZmFuCi0gQWRkIGZsdXNoIGNvbXBsZXRpb24gZnVuY3Rpb24g
+d2l0aCBwcm9wZXIgbG9ja2luZyBhbmQgd2FpdAogIGZvciBob3N0IHNpZGUgZmx1c2ggY29tcGxl
+dGlvbiAtIFN0ZWZhbiAmIERhbgotIEtlZXAgdXNlcnNwYWNlIEFQSSBpbiB1YXBpIGhlYWRlciBm
+aWxlIC0gU3RlZmFuLCBNU1QKLSBVc2UgTEUgZmllbGRzICYgTmV3IGRldmljZSBpZCAtIE1TVAot
+IEluZGVudGF0aW9uICYgc3BhY2luZyBzdWdnZXN0aW9ucyAtIE1TVCAmIEVyaWMKLSBSZW1vdmUg
+ZXh0cmEgaGVhZGVyIGZpbGVzICYgYWRkIGxpY2Vuc2luZyAtIFN0ZWZhbgoKQ2hhbmdlcyBmcm9t
+IFJGQyB2MToKLSBSZXVzZSBleGlzdGluZyAncG1lbScgY29kZSBmb3IgcmVnaXN0ZXJpbmcgcGVy
+c2lzdGVudCAKICBtZW1vcnkgYW5kIG90aGVyIG9wZXJhdGlvbnMgaW5zdGVhZCBvZiBjcmVhdGlu
+ZyBhbiBlbnRpcmVseSAKICBuZXcgYmxvY2sgZHJpdmVyLgotIFVzZSBWSVJUSU8gZHJpdmVyIHRv
+IHJlZ2lzdGVyIG1lbW9yeSBpbmZvcm1hdGlvbiB3aXRoIAogIG52ZGltbV9idXMgYW5kIGNyZWF0
+ZSByZWdpb25fdHlwZSBhY2NvcmRpbmdseS4gCi0gQ2FsbCBWSVJUSU8gZmx1c2ggZnJvbSBleGlz
+dGluZyBwbWVtIGRyaXZlci4KClBhbmthaiBHdXB0YSAoMik6CiAgIGxpYm52ZGltbTogbmRfcmVn
+aW9uIGZsdXNoIGNhbGxiYWNrIHN1cHBvcnQKICAgdmlydGlvLXBtZW06IEFkZCB2aXJ0aW8tcG1l
+bSBndWVzdCBkcml2ZXIKClsxXSBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOC84LzMxLzQwNwpb
+Ml0gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva3ZtL21zZzE0OTc2MS5odG1sClszXSBo
+dHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9rdm0vbXNnMTUzMDk1Lmh0bWwgIApbNF0gaHR0
+cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvOC8zMS80MTMKWzVdIGh0dHBzOi8vbWFyYy5pbmZvLz9s
+PXFlbXUtZGV2ZWwmbT0xNTM1NTU3MjE5MDE4MjQmdz0yCgogZHJpdmVycy9hY3BpL25maXQvY29y
+ZS5jICAgICB8ICAgIDggKystLQogZHJpdmVycy9udmRpbW0vY2xhaW0uYyAgICAgICB8ICAgMTIg
+KysrKy0tCiBkcml2ZXJzL252ZGltbS9uZC5oICAgICAgICAgIHwgICAgMiArCiBkcml2ZXJzL252
+ZGltbS9wbWVtLmMgICAgICAgIHwgICAyNCArKysrKysrKystLS0tCiBkcml2ZXJzL252ZGltbS9y
+ZWdpb25fZGV2cy5jIHwgICA3NiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrLS0tCiBpbmNsdWRlL2xpbnV4L2xpYm52ZGltbS5oICAgIHwgICAxMCArKysrLQogNiBmaWxl
+cyBjaGFuZ2VkLCAxMTAgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
