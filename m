@@ -1,18 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DA3FB211799CF
- for <linux-nvdimm@lists.01.org>; Tue, 16 Oct 2018 01:25:42 -0700 (PDT)
-Date: Tue, 16 Oct 2018 10:25:40 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
-Message-ID: <20181016082540.GA18918@quack2.suse.cz>
-References: <20181002100531.GC4135@quack2.suse.cz>
- <x49woqqykgi.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id E31572116489D
+ for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 08:47:22 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id k9so16616516otl.10
+ for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 08:47:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <x49woqqykgi.fsf@segfault.boston.devel.redhat.com>
+References: <20181002100531.GC4135@quack2.suse.cz>
+ <20181002121039.GA3274@linux-x5ow.site>
+ <20181002142010.GB4963@linux-x5ow.site> <20181002144547.GA26735@infradead.org>
+ <20181002150123.GD4963@linux-x5ow.site> <20181002150634.GA22209@infradead.org>
+ <20181004100949.GF6682@linux-x5ow.site> <20181005062524.GA30582@infradead.org>
+ <20181005063519.GA5491@linux-x5ow.site>
+ <CAPcyv4jD4VgRaKDQF9eMmjhMEHjUJqRU8i6OC+-=0domCc9u3A@mail.gmail.com>
+In-Reply-To: <CAPcyv4jD4VgRaKDQF9eMmjhMEHjUJqRU8i6OC+-=0domCc9u3A@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 14 Oct 2018 08:47:09 -0700
+Message-ID: <CAPcyv4i7WJsq3BMASozjjbpMmEiS4AqmRS0kt3=rHdGfb5YvLA@mail.gmail.com>
+Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,50 +31,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Jeff,
-
-On Tue 09-10-18 15:43:41, Jeff Moyer wrote:
-> Jan Kara <jack@suse.cz> writes:
-> > commit e1fb4a086495 "dax: remove VM_MIXEDMAP for fsdax and device dax" has
-> > removed VM_MIXEDMAP flag from DAX VMAs. Now our testing shows that in the
-> > mean time certain customer of ours started poking into /proc/<pid>/smaps
-> > and looks at VMA flags there and if VM_MIXEDMAP is missing among the VMA
-> > flags, the application just fails to start complaining that DAX support is
-> > missing in the kernel. The question now is how do we go about this?
+On Fri, Oct 5, 2018 at 6:17 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> On Thu, Oct 4, 2018 at 11:35 PM Johannes Thumshirn <jthumshirn@suse.de> wrote:
 > >
-> > Strictly speaking, this is a userspace visible regression (as much as I
-> > think that application poking into VMA flags at this level is just too
-> > bold). Is there any precedens in handling similar issues with smaps which
-> > really exposes a lot of information that is dependent on kernel
-> > implementation details?
+> > On Thu, Oct 04, 2018 at 11:25:24PM -0700, Christoph Hellwig wrote:
+> > > Since when is an article on some website a promise (of what exactly)
+> > > by linux kernel developers?
 > >
-> > I have attached a patch that is an obvious "fix" for the issue - just fake
-> > VM_MIXEDMAP flag in smaps. But I'm open to other suggestions...
-> 
-> I'm intrigued by the use case.  Do I understand you correctly that the
-> database in question does not intend to make data persistent from
-> userspace?  In other words, fsync/msync system calls are being issued by
-> the database?
+> > Let's stop it here, this doesn't make any sort of forward progress.
+> >
+>
+> I do think there is some progress we can make if we separate DAX as an
+> access mechanism vs DAX as a resource utilization contract. My attempt
+> at representing Christoph's position is that the kernel should not be
+> advertising / making access mechanism guarantees. That makes sense.
+> Even with MAP_SYNC+DAX the kernel reserves the right to write-protect
+> mappings at will and trap access into a kernel handler. Additionally,
+> whether read(2) / write(2) does anything different behind the scenes
+> in DAX mode, or not should be irrelevant to the application.
+>
+> That said what is certainly not irrelevant is a kernel giving
+> userspace visibility and control into resource utilization. Jan's
+> MADV_DIRECT_ACCESS let's the application make assumptions about page
+> cache utilization, we just need to another mechanism to read if a
+> mapping is effectively already in that state.
 
-Yes, at least at the initial stage, they use fsync / msync to persist data.
+I thought more about this today while reviewing the virtio-pmem driver
+that will behave mostly like a DAX-capable pmem device except it will
+be implemented by passing host page cache through to the guest as a
+pmem device with a paravirtualized / asynchronous flush interface.
+MAP_SYNC obviously needs to be disabled for this case, but still need
+allow to some semblance of DAX operation to save allocating page cache
+in the guest. The need to explicitly clarify the state of DAX is
+growing with the different nuances of DAX operation.
 
-> I guess what I'm really after is a statement of requirements or
-> expectations.  It would be great if you could convince the database
-> developer to engage in this discussion directly.
-
-So I talked to them and what they really look after is the control over the
-amount of memory needed by the kernel. And they are right that if your
-storage needs page cache, the amount of memory you need to set aside for the
-kernel is larger.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Lets use a new MAP_DIRECT flag to positively assert that a given
+mmap() call is setting up a memory mapping without page-cache or
+buffered indirection. To be clear not my original MAP_DIRECT proposal
+from a while back, instead just a flag to mmap() that causes the
+mapping attempt to fail if there is any software buffering fronting
+the memory mapping, or any requirement for software to manage flushing
+outside of pushing writes through the cpu cache. This way, if we ever
+extend MAP_SYNC for a buffered use case we can still definitely assert
+that the mapping is "direct". So, MAP_DIRECT would fail for
+traditional non-DAX block devices, and for this new virtio-pmem case.
+It would also fail for any pmem device where we cannot assert that the
+platform will take care of flushing write-pending-queues on power-loss
+events.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
