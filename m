@@ -1,20 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it1-x144.google.com (mail-it1-x144.google.com
+ [IPv6:2607:f8b0:4864:20::144])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0495121173C8B
- for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 17:55:09 -0700 (PDT)
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: Re: [PATCH 2/2] powerpc/pseries: Add driver for PAPR SCM regions
-In-Reply-To: <CAPcyv4h0b9jmrizygCEOU8GGMj-5yxz+vgEyVmVq+KNAozs+rA@mail.gmail.com>
-References: <20181010060812.20068-1-oohall@gmail.com>
- <20181010060812.20068-3-oohall@gmail.com>
- <CAPcyv4jhs9f2DdOk30KU9___mWMtowQi0LP-OD1E+_5xFbxWgA@mail.gmail.com>
- <87h8hq122t.fsf@concordia.ellerman.id.au>
- <CAPcyv4h0b9jmrizygCEOU8GGMj-5yxz+vgEyVmVq+KNAozs+rA@mail.gmail.com>
-Date: Mon, 15 Oct 2018 11:55:05 +1100
-Message-ID: <874ldo111y.fsf@concordia.ellerman.id.au>
+ by ml01.01.org (Postfix) with ESMTPS id 9AE8C21173C83
+ for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 17:05:42 -0700 (PDT)
+Received: by mail-it1-x144.google.com with SMTP id c85-v6so2995934itd.1
+ for <linux-nvdimm@lists.01.org>; Sun, 14 Oct 2018 17:05:42 -0700 (PDT)
 MIME-Version: 1.0
+References: <20181014231828.17139-1-oohall@gmail.com>
+ <20181014231828.17139-2-oohall@gmail.com>
+ <CAPcyv4jr4Y66wt7KtE7ke9OGX6kqNDQkO6yqAP8iaa2BzgdW2w@mail.gmail.com>
+In-Reply-To: <CAPcyv4jr4Y66wt7KtE7ke9OGX6kqNDQkO6yqAP8iaa2BzgdW2w@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Mon, 15 Oct 2018 11:05:30 +1100
+Message-ID: <CAOSf1CERAKnD=biAhAyBUqR4ZtULaVV=A1ZuA2iHaLU6mhVg6Q@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] powerpc/pseries: Add driver for PAPR SCM regions
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,83 +28,43 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
-> On Sat, Oct 13, 2018 at 5:08 AM Michael Ellerman <mpe@ellerman.id.au> wrote:
->>
->> Dan Williams <dan.j.williams@intel.com> writes:
->> > On Tue, Oct 9, 2018 at 11:21 PM Oliver O'Halloran <oohall@gmail.com> wrote:
->> >>
->> >> Adds a driver that implements support for enabling and accessing PAPR
->> >> SCM regions. Unfortunately due to how the PAPR interface works we can't
->> >> use the existing of_pmem driver (yet) because:
->> >>
->> ...
->> >> +
->> >> +static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
->> >> +{
->> >> +       struct device *dev = &p->pdev->dev;
->> >> +       struct nd_mapping_desc mapping;
->> >> +       struct nd_region_desc ndr_desc;
->> >> +       unsigned long dimm_flags;
->> >> +
->> >> +       p->bus_desc.ndctl = papr_scm_ndctl;
->> >> +       p->bus_desc.module = THIS_MODULE;
->> >> +       p->bus_desc.of_node = p->pdev->dev.of_node;
->> >> +       p->bus_desc.attr_groups = bus_attr_groups;
->> >> +       p->bus_desc.provider_name = kstrdup(p->pdev->name, GFP_KERNEL);
->> >> +
->> >> +       if (!p->bus_desc.provider_name)
->> >> +               return -ENOMEM;
->> >> +
->> >> +       p->bus = nvdimm_bus_register(NULL, &p->bus_desc);
->> >> +       if (!p->bus) {
->> >> +               dev_err(dev, "Error creating nvdimm bus %pOF\n", p->dn);
->> >> +               return -ENXIO;
->> >> +       }
->> >> +
->> >> +       dimm_flags = 0;
->> >> +       set_bit(NDD_ALIASING, &dimm_flags);
->> >> +
->> >> +       p->nvdimm = nvdimm_create(p->bus, p, papr_scm_dimm_groups,
->> >> +                               dimm_flags, PAPR_SCM_DIMM_CMD_MASK, 0, NULL);
->> >
->> > Looks good, although I'm just about to push out commits that change
->> > this function signature to take a 'security_ops' pointer. If you need
->> > a stable branch to base this on, let me know.
->> ...
->> >
->> > Other than that looks ok to me:
->> >
->> > Acked-by: Dan Williams <dan.j.williams@intel.com>
->> >
->> > ...just the matter of what to do about function signature change.
->>
->> Yeah that's a bit of a bother.
->>
->> The ideal for me would be that you put the commit that changes the
->> signature by itself in a branch based on 4.19-rc3 (or earlier), and then
->> we could both just merge that.
->>
->> But not sure if that will work with whatever else you're trying to sync
->> up with.
+On Mon, Oct 15, 2018 at 10:44 AM Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> How about this, I'll move the new signature to an 'advanced':
+> On Sun, Oct 14, 2018 at 4:19 PM Oliver O'Halloran <oohall@gmail.com> wrote:
+> >
+> > Adds a driver that implements support for enabling and accessing PAPR
+> > SCM regions. Unfortunately due to how the PAPR interface works we can't
+> > use the existing of_pmem driver (yet) because:
+> >
+> >  a) The guest is required to use the H_SCM_BIND_MEM h-call to add
+> >     add the SCM region to it's physical address space, and
+> >  b) There is currently no mechanism for relating a bare of_pmem region
+> >     to the backing DIMM (or not-a-DIMM for our case).
+> >
+> > Both of these are easily handled by rolling the functionality into a
+> > seperate driver so here we are...
+> >
+> > Acked-by: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+> > ---
+> > The alternative implementation here is that we have the pseries code
+> > do the h-calls and craft a pmem-region@<addr> node based on that.
+> > However, that doesn't solve b) and mpe has expressed his dislike of
+> > adding new stuff to the DT at runtime so i'd say that's a non-starter.
+> > ---
+> > v2: no change
+> > v3: Corrected the mapping to use a DPA start address of zero
+> >     Added cond_resched() calls in the bind/unbind loops
 >
->     __nvdimm_create()
+> Looks good, could I trouble you for an ack on the build / merge fix?
 >
-> ...and make the existing:
->
->    nvdimm_create()
->
-> ...a simple wrapper around the new functionality. That way no matter
-> what merge order we should be ok.
+> https://patchwork.kernel.org/patch/10640385/
 
-Yep that's much easier, thanks.
-
-cheers
+Sure thing. I checked that it built when rebased on top of your
+pending branch before posting.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
