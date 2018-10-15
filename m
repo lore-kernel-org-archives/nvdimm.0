@@ -1,7 +1,7 @@
-From: =?utf-8?B?5p6X5YWI55Sf?= <rqeythooc-XgITbjJrdjk@public.gmane.org>
-Subject: =?utf-8?B?5pyA5paw5Yqz5Yqo5ZCI5ZCM5rOV5Y+K5paw5Liq56iO6Kej5p6Q?=
-Date: Mon, 15 Oct 2018 07:41:42 +0800
-Message-ID: <479FD4A1095177A4CA5CF169CC3421B5@eoon.net>
+From: =?utf-8?B?5rGf57uP55CG?= <cugjjy-4tflTaIZZOA@public.gmane.org>
+Subject: =?utf-8?B?IOihjCDmlL8g566hIOeQhg==?=
+Date: Mon, 15 Oct 2018 08:13:43 +0800
+Message-ID: <296862E51102489F5FB820F62D524D3A@myw.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,8 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-5Lqy77yaDQrpmYQt5Lu2LeWGhS3lrrkt6K+3LeaCqC3kurIt5ZCvDQo3OjQxOjU1DQrorrjlpJrk
-urrotLnlirLniKzliLDkuobmoq/lrZDnmoTpobbnq6/vvIzmiY3lj5HnjrDmoq/lrZDmnrbplJnk
-uoblopnjgIIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+6ZmELi4u5Lu2Li4uDQogICAgICAgIC4uLuS6si4uLuWQrwpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
