@@ -1,10 +1,10 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org is hacked
-Date: Mon, 15 Oct 2018 13:56:58 -0600
-Message-ID: <5BC4F10A.7080807@lists.01.org>
+From: =?utf-8?B?5oCl5Lu2?= <dxpb-At4yoac/K7M@public.gmane.org>
+Subject: =?utf-8?B?5paw5Liq56iO56S+5L+daeivpeWmguS9leW6lOWvuQ==?=
+Date: Tue, 16 Oct 2018 15:49:35 +0800
+Message-ID: <6234602FF00445AD5F4421DB83BBCF81@ob.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,38 +18,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello!
-
-My nickname in darknet is jule19.
-I hacked this mailbox more than six months ago, 
-through it I infected your operating system with a virus (trojan) created by me and have been monitoring you for a long time.
-
-If you don't belive me please check 'from address' in your header, you will see that I sent you an email from your mailbox.
-
-Even if you changed the password after that - it does not matter, my virus intercepted all the caching data on your computer
-and automatically saved access for me.
-
-I have access to all your accounts, social networks, email, browsing history.
-Accordingly, I have the data of all your contacts, files from your computer, photos and videos.
-
-I was most struck by the intimate content sites that you occasionally visit.
-You have a very wild imagination, I tell you!
-
-During your pastime and entertainment there, I took screenshot through the camera of your device, synchronizing with what you are watching.
-Oh my god! You are so funny and excited!
-
-I think that you do not want all your contacts to get these files, right?
-If you are of the same opinion, then I think that $511 is quite a fair price to destroy the dirt I created.
-
-Send the above amount on my BTC wallet (bitcoin): 19D67Tgb3neJiTHd8pZDEBYmUn2qSjxEeB
-As soon as the above amount is received, I guarantee that the data will be deleted, I do not need it.
-
-Otherwise, these files and history of visiting sites will get all your contacts from your device.
-Also, I'll send to everyone your contact access to your email and access logs, I have carefully saved it!
-
-Since reading this letter you have 50 hours!
-After your reading this message, I'll receive an automatic notification that you have seen the letter.
-
-I hope I taught you a good lesson.
-Do not be so nonchalant, please visit only to proven resources, and don't enter your passwords anywhere!
-Good luck!
+6K+3LuafpS7pmIUu6ZmELuS7ti7lpKcu57qyLi4uCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
+aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LW52ZGltbQo=
