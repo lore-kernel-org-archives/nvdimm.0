@@ -1,22 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
- [IPv6:2607:f8b0:4864:20::442])
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF0D321130058
- for <linux-nvdimm@lists.01.org>; Sat,  6 Oct 2018 00:02:37 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id s5-v6so6065684pfj.7
- for <linux-nvdimm@lists.01.org>; Sat, 06 Oct 2018 00:02:37 -0700 (PDT)
-Date: Sat, 6 Oct 2018 00:05:21 -0700
-From: Bjorn Andersson <bjorn.andersson@linaro.org>
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
- generic_compat_ioctl_ptrarg
-Message-ID: <20181006070521.GM12063@builder>
-References: <20180912150142.157913-1-arnd@arndb.de>
- <20180912151134.436719-1-arnd@arndb.de>
+ by ml01.01.org (Postfix) with ESMTPS id 2863D2116325D
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 20:06:47 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id w67so21040864ota.7
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 20:06:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20180912151134.436719-1-arnd@arndb.de>
+References: <153938316555.20740.14314691018876178251.stgit@djiang5-desk3.ch.intel.com>
+ <153938334807.20740.14762115053745941956.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <153938334807.20740.14762115053745941956.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 15 Oct 2018 20:06:34 -0700
+Message-ID: <CAPcyv4iWBbg29VzV_n5WfGknB-+_FD+ab54biC2VixFYSZHBTg@mail.gmail.com>
+Subject: Re: [PATCH v4 6/7] ndctl: add request-key upcall reference app
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,41 +26,309 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-fbdev@vger.kernel.org, linux-iio@vger.kernel.org, linux-pci@vger.kernel.org, linux-remoteproc@vger.kernel.org, linux-nvme@lists.infradead.org, platform-driver-x86@vger.kernel.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, qat-linux@intel.com, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org, ceph-devel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, netdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, viro@zeniv.linux.org.uk
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 12 Sep 08:08 PDT 2018, Arnd Bergmann wrote:
+On Fri, Oct 12, 2018 at 3:29 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+> Adding a reference upcall helper for request-key in order to retrieve the
+> security passphrase from userspace to provide to the kernel. The reference
+> app uses keyutils API to respond to the upcall from the kernel and is
+> invoked by /sbin/request-key of the keyutils.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/Makefile.am       |    3 -
+>  Documentation/ndctl/nvdimm-upcall.txt |   33 +++++++
+>  Makefile.am                           |    5 +
+>  contrib/nvdimm.conf                   |    1
+>  ndctl.spec.in                         |    2
+>  ndctl/Makefile.am                     |    4 +
+>  ndctl/nvdimm-upcall.c                 |  154 +++++++++++++++++++++++++++++++++
+>  7 files changed, 201 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/ndctl/nvdimm-upcall.txt
+>  create mode 100644 contrib/nvdimm.conf
+>  create mode 100644 ndctl/nvdimm-upcall.c
+>
+> diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+> index 8c171ecb..f4e8b24c 100644
+> --- a/Documentation/ndctl/Makefile.am
+> +++ b/Documentation/ndctl/Makefile.am
+> @@ -51,7 +51,8 @@ man1_MANS = \
+>         ndctl-update-security.1 \
+>         ndctl-disable-security.1 \
+>         ndctl-freeze-security.1 \
+> -       ndctl-sanitize.1
+> +       ndctl-sanitize.1 \
+> +       nvdimm-upcall.1
 
-[..]
-> diff --git a/drivers/rpmsg/rpmsg_char.c b/drivers/rpmsg/rpmsg_char.c
-> index a76b963a7e50..02aefb2b2d47 100644
-> --- a/drivers/rpmsg/rpmsg_char.c
-> +++ b/drivers/rpmsg/rpmsg_char.c
-> @@ -285,7 +285,7 @@ static const struct file_operations rpmsg_eptdev_fops = {
->  	.write = rpmsg_eptdev_write,
->  	.poll = rpmsg_eptdev_poll,
->  	.unlocked_ioctl = rpmsg_eptdev_ioctl,
-> -	.compat_ioctl = rpmsg_eptdev_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
->  
->  static ssize_t name_show(struct device *dev, struct device_attribute *attr,
-> @@ -446,7 +446,7 @@ static const struct file_operations rpmsg_ctrldev_fops = {
->  	.open = rpmsg_ctrldev_open,
->  	.release = rpmsg_ctrldev_release,
->  	.unlocked_ioctl = rpmsg_ctrldev_ioctl,
-> -	.compat_ioctl = rpmsg_ctrldev_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
->  
+Any particular reason to not make this an ndctl command? It makes it
+discoverable with --list-cmds and the man page can be had via --help.
+I'd call it 'ndctl request-key'.
 
-For rpmsg part
+>
+>  CLEANFILES = $(man1_MANS)
+>
+> diff --git a/Documentation/ndctl/nvdimm-upcall.txt b/Documentation/ndctl/nvdimm-upcall.txt
+> new file mode 100644
+> index 00000000..bbf52fd1
+> --- /dev/null
+> +++ b/Documentation/ndctl/nvdimm-upcall.txt
+> @@ -0,0 +1,33 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +nvdimm-upcall(1)
+> +================
+> +
+> +NAME
+> +----
+> +nvdimm-upcall - upcall helper for keyutils
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'nvdimm-upcall' [key_id]
+> +
+> +DESCRIPTION
+> +-----------
+> +nvdimm-upcall is called by request-key from keyutils and not meant to be used
+> +directly by the user. It expects to read from /etc/nvdimm.passwd to retrieve
+> +the description and passphrase for the NVDIMM key.
+> +
+> +The nvdimm.passwd is formatted as:
+> +<description id>:<passphrase with padded 0 to 32bytes>
+> +cdab-0a-07e0-feffffff:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+> +
+> +In order for this util to be called, /etc/request-key.conf must be appended
+> +with the following line:
+> +create   logon   nvdimm*          *               /usr/sbin/nvdimm-upcall %k
+> +
+> +include::../copyright.txt[]
+> +
+> +SEE ALSO
+> +--------
+> +http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
+> diff --git a/Makefile.am b/Makefile.am
+> index e0c463a3..73aa2645 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -42,6 +42,11 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
+>  dist_bashcompletion_DATA = contrib/ndctl
+>  endif
+>
+> +key_config_file = contrib/nvdimm.conf
+> +key_configdir = $(sysconfdir)/request-key.d/
+> +key_config_DATA = $(key_config_file)
+> +EXTRA_DIST += $(key_config_file)
+> +
+>  noinst_LIBRARIES = libccan.a
+>  libccan_a_SOURCES = \
+>         ccan/str/str.h \
+> diff --git a/contrib/nvdimm.conf b/contrib/nvdimm.conf
+> new file mode 100644
+> index 00000000..e1f9a28b
+> --- /dev/null
+> +++ b/contrib/nvdimm.conf
+> @@ -0,0 +1 @@
+> +create  logon   nvdimm:*         *               /usr/sbin/nvdimm-upcall %k
+> diff --git a/ndctl.spec.in b/ndctl.spec.in
+> index f57b4fd5..ef591615 100644
+> --- a/ndctl.spec.in
+> +++ b/ndctl.spec.in
+> @@ -120,6 +120,8 @@ make check
+>  %{bashcompdir}/
+>  %{_sysconfdir}/ndctl/monitor.conf
+>  %{_unitdir}/ndctl-monitor.service
+> +%{_sbindir}/nvdimm-upcall
+> +%{_sysconfdir}/request-key.d/nvdimm.conf
+>
+>  %files -n daxctl
+>  %defattr(-,root,root)
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index 5b62251b..24ca98c7 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -1,6 +1,7 @@
+>  include $(top_srcdir)/Makefile.am.in
+>
+>  bin_PROGRAMS = ndctl
+> +sbin_PROGRAMS = nvdimm-upcall
+>
+>  ndctl_SOURCES = ndctl.c \
+>                 bus.c \
+> @@ -52,3 +53,6 @@ EXTRA_DIST += $(monitor_config_file)
+>  if ENABLE_SYSTEMD_UNITS
+>  systemd_unit_DATA = ndctl-monitor.service
+>  endif
+> +
+> +nvdimm_upcall_SOURCES = nvdimm-upcall.c
+> +nvdimm_upcall_LDADD = -lkeyutils
+> diff --git a/ndctl/nvdimm-upcall.c b/ndctl/nvdimm-upcall.c
+> new file mode 100644
+> index 00000000..c8248359
+> --- /dev/null
+> +++ b/ndctl/nvdimm-upcall.c
+> @@ -0,0 +1,154 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
+> +
+> +/*
+> + * Used by /sbin/request-key for handling nvdimm upcall of key requests
+> + * for security DSMs.
+> + */
+> +
+> +
+> +#include <stdio.h>
+> +#include <errno.h>
+> +#include <string.h>
+> +#include <stdlib.h>
+> +#include <unistd.h>
+> +#include <sys/stat.h>
+> +#include <sys/types.h>
+> +#include <sys/param.h>
+> +#include <keyutils.h>
+> +#include <syslog.h>
+> +#include <ctype.h>
+> +
+> +#define PASSPHRASE_SIZE                32
+> +#define PASS_PATH              "/etc/nvdimm.passwd"
+> +
+> +static FILE *fp;
+> +
+> +static int get_passphrase_from_id(const char *id, char *pass)
+> +{
+> +       ssize_t rc = 0;
+> +       size_t size = 0, i;
+> +       char *line = NULL;
+> +       char *desc, *pass1;
+> +       int found = 0, comment = 0;
+> +
+> +       fp = fopen(PASS_PATH, "r+");
+> +       if (!fp) {
+> +               syslog(LOG_ERR, "fopen: %s\n", strerror(errno));
+> +               return -errno;
+> +       }
+> +
+> +       while ((rc = getline(&line, &size, fp)) != -1) {
+> +               /* skip comments */
+> +               for (i = 0; i < size; i++) {
+> +                       if (isspace(line[i]))
+> +                               continue;
+> +                       if (line[i] == '#')
+> +                               comment = 1;
+> +               }
+> +
+> +               if (comment) {
+> +                       comment = 0;
+> +                       continue;
+> +               }
+> +
+> +               desc = strtok(line, ":");
+> +               if (!desc)
+> +                       break;
+> +               if (strcmp(desc, id) == 0) {
+> +                       found = 1;
+> +                       rc = 0;
+> +                       break;
+> +               }
+> +       }
+> +
+> +       if (rc == 0 && found) {
+> +               pass1 = strtok(NULL, ":");
+> +               if (!pass1) {
+> +                       rc = -EINVAL;
+> +                       goto out;
+> +               }
+> +               memset(pass, 0, PASSPHRASE_SIZE);
+> +               memcpy(pass, pass1, MIN(strlen(pass1), PASSPHRASE_SIZE));
+> +       } else
+> +               rc = -ENXIO;
+> +
+> +out:
+> +       free(line);
+> +       fclose(fp);
+> +       return rc;
+> +}
+> +
+> +static char *get_key_desc(char *buf)
+> +{
+> +       char *tmp = &buf[0];
+> +       int count = 0;
+> +
+> +       while (*tmp != '\0') {
+> +               if (*tmp == ';')
+> +                       count++;
+> +               if (count == 4) {
+> +                       tmp++;
+> +                       return tmp;
+> +               }
+> +               tmp++;
+> +       }
+> +
+> +       return NULL;
+> +}
+> +
+> +int main(int argc, const char **argv)
 
-Acked-by: Bjorn Andersson <bjorn.andersson@linaro.org>
+Could you maybe add a comment or link to documentation about what the
+keyutils helper binary is supposed to do with its inputs?
 
-Regards,
-Bjorn
+> +{
+> +       key_serial_t key;
+> +       int rc;
+> +       char *buf, *desc, *dimm_id;
+> +       char pass[PASSPHRASE_SIZE];
+> +
+> +       if (argc < 2) {
+> +               syslog(LOG_ERR, "Incorrect number of arguments\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       syslog(LOG_DEBUG, "key passed in: %s\n", argv[1]);
+> +       key = strtol(argv[1], NULL, 10);
+> +       if (key < 0) {
+> +               syslog(LOG_ERR, "Invalid key format: %s\n", strerror(errno));
+> +               return -errno;
+> +       }
+> +
+> +       rc = keyctl_describe_alloc(key, &buf);
+> +       if (rc < 0) {
+> +               syslog(LOG_ERR, "keyctl_describe_alloc failed: %s\n",
+> +                               strerror(errno));
+> +               rc = -errno;
+> +               goto out;
+> +       }
+> +
+> +       desc = get_key_desc(buf);
+> +       if (!desc) {
+> +               syslog(LOG_ERR, "Can't find key description\n");
+> +               rc = -EINVAL;
+> +               goto out;
+> +       }
+> +
+> +       strtok_r(desc, ":", &dimm_id);
+> +       rc = get_passphrase_from_id(dimm_id, pass);
+> +       if (rc < 0) {
+> +               syslog(LOG_ERR, "failed to retrieve passphrase\n");
+> +               goto out;
+> +       }
+> +
+> +       rc = keyctl_instantiate(key, pass, PASSPHRASE_SIZE, 0);
+> +       if (rc < 0) {
+> +               syslog(LOG_ERR, "keyctl_instantiate failed: %s\n",
+> +                               strerror(errno));
+> +               rc = -errno;
+> +               goto out;
+> +       }
+> +
+> + out:
+> +       if (rc < 0)
+> +               keyctl_negate(key, 1, KEY_REQKEY_DEFL_DEFAULT);
+> +
+> +       return rc;
+> +}
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
