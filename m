@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from esa17.fujitsucc.c3s2.iphmx.com (esa17.fujitsucc.c3s2.iphmx.com
+ [216.71.158.34])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 02A8121B02822
- for <linux-nvdimm@lists.01.org>; Wed, 10 Oct 2018 16:39:06 -0700 (PDT)
-Subject: [nvdimm PATCH 4/6] nvdimm: Remove empty if statement
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 10 Oct 2018 16:39:06 -0700
-Message-ID: <20181010233901.12228.21705.stgit@localhost.localdomain>
-In-Reply-To: <20181010233428.12228.26106.stgit@localhost.localdomain>
-References: <20181010233428.12228.26106.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 2567221142FFE
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Oct 2018 21:09:52 -0700 (PDT)
+From: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+Subject: RE: [ndctl PATCH v13 2/5] ndctl, monitor: add main ndctl monitor
+ configuration file
+Date: Tue, 16 Oct 2018 04:09:44 +0000
+Message-ID: <OS2PR01MB0836B4F845FDD0AFC3997966F7FE0@OS2PR01MB0836.jpnprd01.prod.outlook.com>
+References: <20180713233350.7148-1-qi.fuli@jp.fujitsu.com>
+ <20180713233350.7148-3-qi.fuli@jp.fujitsu.com>
+ <CAPcyv4h4VaLXV2Mj8VcZmvREyn=YtgC0AtBV1SEdDJ3YDKY5=Q@mail.gmail.com>
+In-Reply-To: <CAPcyv4h4VaLXV2Mj8VcZmvREyn=YtgC0AtBV1SEdDJ3YDKY5=Q@mail.gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,38 +27,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
-Cc: alexander.h.duyck@linux.intel.com, zwisler@kernel.org
+To: 'Dan Williams' <dan.j.williams@intel.com>
+Cc: "tokunaga.keiich@fujitsu.com" <tokunaga.keiich@fujitsu.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch removes an empty statement from an if expression and promotes
-the else statement to the if expression with the expression logic reversed.
+> 
+> Hi,
+> 
+> I have a future cleanup request. I've just come across, ciniparser [1]. It would
+> be great if we could drop the open coded implementation and just use that library.
+> We use ccan modules for other portions of ndctl.
+> 
+> [1]: https://ccodearchive.net/info/ciniparser.html
 
-I feel this is more readable as the empty statement can lead to issues if
-any additional logic was ever added.
+Hi Dan,
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/nvdimm/label.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+It sounds good.
+I will study on it a bit and then make a cleanup patch.
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index bb813b8e8ace..43bad0d5bdb6 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -261,9 +261,8 @@ int nd_label_validate(struct nvdimm_drvdata *ndd)
- void nd_label_copy(struct nvdimm_drvdata *ndd, struct nd_namespace_index *dst,
- 		struct nd_namespace_index *src)
- {
--	if (dst && src)
--		/* pass */;
--	else
-+	/* just exit if either destination or source is NULL */
-+	if (!dst || !src)
- 		return;
- 
- 	memcpy(dst, src, sizeof_namespace_index(ndd));
-
+Thank you very much.
+ Qi
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
