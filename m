@@ -1,59 +1,62 @@
-From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [Qemu-devel] [PATCH v2 2/2] virtio-pmem: Add virtio pmem driver
-Date: Wed, 17 Oct 2018 15:11:49 -0400 (EDT)
-Message-ID: <431127218.21694133.1539803509205.JavaMail.zimbra@redhat.com>
-References: <20181013050021.11962-1-pagupta@redhat.com>
- <20181013050021.11962-3-pagupta@redhat.com>
- <CAPcyv4hroaVWA-HgjWCnr7QTd_y7U8sCvS+Up733ttnD6_cKzQ@mail.gmail.com>
+Date: Wed, 17 Oct 2018 12:36:51 -0700
+Message-ID: <CAPcyv4joz_dPruJY4CYAxXSuMTD-NUoqm6kvGFrF19jt5dN=rg@mail.gmail.com>
+References: <20181013050021.11962-1-pagupta@redhat.com> <20181013050021.11962-3-pagupta@redhat.com>
+ <CAPcyv4hroaVWA-HgjWCnr7QTd_y7U8sCvS+Up733ttnD6_cKzQ@mail.gmail.com> <431127218.21694133.1539803509205.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4hroaVWA-HgjWCnr7QTd_y7U8sCvS+Up733ttnD6_cKzQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Xiao Guangrong <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Igor Mammedov <imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <431127218.21694133.1539803509205.JavaMail.zimbra@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: Kevin Wolf <kwolf@redhat.com>, Jan Kara <jack@suse.cz>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, KVM list <kvm@vger.kernel.org>, Rik van Riel <riel@surriel.com>, linux-nvdimm <linux-nvdimm@ml01.01.org>, David Hildenbrand <david@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dave Jiang <dave.jiang@intel.com>, Qemu Developers <qemu-devel@nongnu.org>, Christoph Hellwig <hch@infradead.org>, Vishal L Verma <vishal.l.verma@intel.com>, Igor Mammedov <imammedo@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, zwisler@kernel.org, lcapitulino@redhat.com, Paolo Bonzini <pbonzini@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-
-
-> On Fri, Oct 12, 2018 at 10:01 PM Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+On Wed, Oct 17, 2018 at 12:11 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+>
+>
+>
+> > On Fri, Oct 12, 2018 at 10:01 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> > >
+> > > This patch adds virtio-pmem driver for KVM guest.
+> > >
+> > > Guest reads the persistent memory range information from
+> > > Qemu over VIRTIO and registers it on nvdimm_bus. It also
+> > > creates a nd_region object with the persistent memory
+> > > range information so that existing 'nvdimm/pmem' driver
+> > > can reserve this into system memory map. This way
+> > > 'virtio-pmem' driver uses existing functionality of pmem
+> > > driver to register persistent memory compatible for DAX
+> > > capable filesystems.
+> > >
+> > > This also provides function to perform guest flush over
+> > > VIRTIO from 'pmem' driver when userspace performs flush
+> > > on DAX memory range.
 > >
-> > This patch adds virtio-pmem driver for KVM guest.
-> >
-> > Guest reads the persistent memory range information from
-> > Qemu over VIRTIO and registers it on nvdimm_bus. It also
-> > creates a nd_region object with the persistent memory
-> > range information so that existing 'nvdimm/pmem' driver
-> > can reserve this into system memory map. This way
-> > 'virtio-pmem' driver uses existing functionality of pmem
-> > driver to register persistent memory compatible for DAX
-> > capable filesystems.
-> >
-> > This also provides function to perform guest flush over
-> > VIRTIO from 'pmem' driver when userspace performs flush
-> > on DAX memory range.
-> 
-> Before we can move forward with this driver we need additional
-> filesystem enabling to detect when the backing device is fronting DAX
-> pmem or a paravirtualized page cache through virtio-pmem. Any
-> interface that requires fsync() and a round trip to the hypervisor to
-> flush host page cache is not DAX.
+> > Before we can move forward with this driver we need additional
+> > filesystem enabling to detect when the backing device is fronting DAX
+> > pmem or a paravirtualized page cache through virtio-pmem. Any
+> > interface that requires fsync() and a round trip to the hypervisor to
+> > flush host page cache is not DAX.
+>
+> I saw your proposal[1] for new mmap flag MAP_DIRECT. IIUIC mapping should fail for
+> MAP_DIRECT if it requires explicit flush or buffer indirection. So, if we disable
+> MAP_SYNC flag for virtio-pmem this should fail MAP_DIRECT as well? Otherwise
+> without MAP_DIRECT, virtio-pmem should be defaulted to VIRTIO flush mechanism.
 
-I saw your proposal[1] for new mmap flag MAP_DIRECT. IIUIC mapping should fail for 
-MAP_DIRECT if it requires explicit flush or buffer indirection. So, if we disable 
-MAP_SYNC flag for virtio-pmem this should fail MAP_DIRECT as well? Otherwise 
-without MAP_DIRECT, virtio-pmem should be defaulted to VIRTIO flush mechanism.     
+Right, although I wouldn't worry about MAP_DIRECT in the short term
+since we're still discussing what the upstream interface. Regardless
+of whether MAP_DIRECT is specified or not the virtio-flush mechanism
+would always be used for virtio-pmem. I.e. there is no possibility to
+get full DAX operation with virtio-pmem, only the page-cache bypass
+sub-set.
 
-[1] https://marc.info/?l=linux-fsdevel&m=153953206330814&w=2
-
-Thanks,
-Pankaj
+Taking a look at where we could inject this check for filesystems it's
+a bit awkward to do it in xfs_file_mmap() for example because we do
+not have the backing device for the extents of the inode. So at a
+minimum you would need to investigate calling xfs_inode_supports_dax()
+from that path and teaching it about a new dax_device flag. I'm
+thinking the dax_device flag should be called DAXDEV_BUFFERED to
+indicate the presence of software buffering on a device that otherwise
+supports bypassing the local page cache.
