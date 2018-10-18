@@ -1,118 +1,123 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74D012194D387
- for <linux-nvdimm@lists.01.org>; Thu, 18 Oct 2018 10:43:03 -0700 (PDT)
-Date: Thu, 18 Oct 2018 19:43:00 +0200
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 18 Oct 2018 16:55:55 +0200
 From: Jan Kara <jack@suse.cz>
 Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
-Message-ID: <20181018174300.GT23493@quack2.suse.cz>
-References: <20181002142010.GB4963@linux-x5ow.site>
- <20181002144547.GA26735@infradead.org>
- <20181002150123.GD4963@linux-x5ow.site>
- <20181002150634.GA22209@infradead.org>
- <20181004100949.GF6682@linux-x5ow.site>
- <20181005062524.GA30582@infradead.org>
- <20181005063519.GA5491@linux-x5ow.site>
- <CAPcyv4jD4VgRaKDQF9eMmjhMEHjUJqRU8i6OC+-=0domCc9u3A@mail.gmail.com>
- <CAPcyv4i7WJsq3BMASozjjbpMmEiS4AqmRS0kt3=rHdGfb5YvLA@mail.gmail.com>
- <CAPcyv4jt_w-89+m4w=FcN0oF3axiGqPBTHfEcWwdhnr12_=17Q@mail.gmail.com>
+Message-ID: <20181018145555.GS23493@quack2.suse.cz>
+References: <20181002100531.GC4135@quack2.suse.cz>
+ <20181002121039.GA3274@linux-x5ow.site>
+ <20181002142959.GD9127@quack2.suse.cz>
+ <x49h8hkfhk9.fsf@segfault.boston.devel.redhat.com>
+ <20181018002510.GC6311@dastard>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4jt_w-89+m4w=FcN0oF3axiGqPBTHfEcWwdhnr12_=17Q@mail.gmail.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+In-Reply-To: <20181018002510.GC6311@dastard>
+Sender: owner-linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>, Jan Kara <jack@suse.cz>, Johannes Thumshirn <jthumshirn@suse.de>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, linux-api@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 17-10-18 13:01:15, Dan Williams wrote:
-> On Sun, Oct 14, 2018 at 8:47 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> >
-> > On Fri, Oct 5, 2018 at 6:17 PM Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > On Thu, Oct 4, 2018 at 11:35 PM Johannes Thumshirn <jthumshirn@suse.de> wrote:
-> > > >
-> > > > On Thu, Oct 04, 2018 at 11:25:24PM -0700, Christoph Hellwig wrote:
-> > > > > Since when is an article on some website a promise (of what exactly)
-> > > > > by linux kernel developers?
-> > > >
-> > > > Let's stop it here, this doesn't make any sort of forward progress.
-> > > >
-> > >
-> > > I do think there is some progress we can make if we separate DAX as an
-> > > access mechanism vs DAX as a resource utilization contract. My attempt
-> > > at representing Christoph's position is that the kernel should not be
-> > > advertising / making access mechanism guarantees. That makes sense.
-> > > Even with MAP_SYNC+DAX the kernel reserves the right to write-protect
-> > > mappings at will and trap access into a kernel handler. Additionally,
-> > > whether read(2) / write(2) does anything different behind the scenes
-> > > in DAX mode, or not should be irrelevant to the application.
-> > >
-> > > That said what is certainly not irrelevant is a kernel giving
-> > > userspace visibility and control into resource utilization. Jan's
-> > > MADV_DIRECT_ACCESS let's the application make assumptions about page
-> > > cache utilization, we just need to another mechanism to read if a
-> > > mapping is effectively already in that state.
-> >
-> > I thought more about this today while reviewing the virtio-pmem driver
-> > that will behave mostly like a DAX-capable pmem device except it will
-> > be implemented by passing host page cache through to the guest as a
-> > pmem device with a paravirtualized / asynchronous flush interface.
-> > MAP_SYNC obviously needs to be disabled for this case, but still need
-> > allow to some semblance of DAX operation to save allocating page cache
-> > in the guest. The need to explicitly clarify the state of DAX is
-> > growing with the different nuances of DAX operation.
-> >
-> > Lets use a new MAP_DIRECT flag to positively assert that a given
-> > mmap() call is setting up a memory mapping without page-cache or
-> > buffered indirection. To be clear not my original MAP_DIRECT proposal
-> > from a while back, instead just a flag to mmap() that causes the
-> > mapping attempt to fail if there is any software buffering fronting
-> > the memory mapping, or any requirement for software to manage flushing
-> > outside of pushing writes through the cpu cache. This way, if we ever
-> > extend MAP_SYNC for a buffered use case we can still definitely assert
-> > that the mapping is "direct". So, MAP_DIRECT would fail for
-> > traditional non-DAX block devices, and for this new virtio-pmem case.
-> > It would also fail for any pmem device where we cannot assert that the
-> > platform will take care of flushing write-pending-queues on power-loss
-> > events.
+On Thu 18-10-18 11:25:10, Dave Chinner wrote:
+> On Wed, Oct 17, 2018 at 04:23:50PM -0400, Jeff Moyer wrote:
+> > MAP_SYNC
+> > - file system guarantees that metadata required to reach faulted-in file
+> >   data is consistent on media before a write fault is completed.  A
+> >   side-effect is that the page cache will not be used for
+> >   writably-mapped pages.
 > 
-> After letting this set for a few days I think I'm back to liking
-> MADV_DIRECT_ACCESS more since madvise() is more closely related to the
-> page-cache management than mmap. It does not solve the query vs enable
-> problem, but it's still a step towards giving applications what they
-> want with respect to resource expectations.
-
-Yeah, I don't have a strong opinion wrt mmap flag vs madvise flag.
-
-> Perhaps a new syscall to retrieve the effective advice for a range?
+> I think you are conflating current implementation with API
+> requirements - MAP_SYNC doesn't guarantee anything about page cache
+> use. The man page definition simply says "supported only for files
+> supporting DAX" and that it provides certain data integrity
+> guarantees. It does not define the implementation.
 > 
->      int madvice(void *addr, size_t length, int *advice);
+> We've /implemented MAP_SYNC/ as O_DSYNC page fault behaviour,
+> because that's the only way we can currently provide the required
+> behaviour to userspace. However, if a filesystem can use the page
+> cache to provide the required functionality, then it's free to do
+> so.
+> 
+> i.e. if someone implements a pmem-based page cache, MAP_SYNC data
+> integrity could be provided /without DAX/ by any filesystem using
+> that persistent page cache. i.e. MAP_SYNC really only requires
+> mmap() of CPU addressable persistent memory - it does not require
+> DAX. Right now, however, the only way to get this functionality is
+> through a DAX capable filesystem on dax capable storage.
+> 
+> And, FWIW, this is pretty much how NOVA maintains DAX w/ COW - it
+> COWs new pages in pmem and attaches them a special per-inode cache
+> on clean->dirty transition. Then on data sync, background writeback
+> or crash recovery, it migrates them from the cache into the file map
+> proper via atomic metadata pointer swaps.
+> 
+> IOWs, NOVA provides the correct MAP_SYNC semantics by using a
+> separate persistent per-inode write cache to provide the correct
+> crash recovery semantics for MAP_SYNC.
 
-After some thought, I'm not 100% sure this is really needed. I know about
-apps that want to make sure DRAM is not consumed - for those mmap / madvise
-flag is fine if it returns error in case the feature cannot be provided.
-Most other apps don't care whether DAX is on or off. So this call would be
-needed only if someone wanted to behave differently depending on whether
-DAX is used or not. And although I can imagine some application like that,
-I'm not sure how real that is...
+Corect. NOVA would be able to provide MAP_SYNC semantics without DAX. But
+effectively it will be also able to provide MAP_DIRECT semantics, right?
+Because there won't be DRAM between app and persistent storage and I don't
+think COW tricks or other data integrity methods are that interesting for
+the application. Most users of O_DIRECT are concerned about getting close
+to media speed performance and low DRAM usage...
+
+> > and what I think Dan had proposed:
+> > 
+> > mmap flag, MAP_DIRECT
+> > - file system guarantees that page cache will not be used to front storage.
+> >   storage MUST be directly addressable.  This *almost* implies MAP_SYNC.
+> >   The subtle difference is that a write fault /may/ not result in metadata
+> >   being written back to media.
+> 
+> SIimilar to O_DIRECT, these semantics do not allow userspace apps to
+> replace msync/fsync with CPU cache flush operations. So any
+> application that uses this mode still needs to use either MAP_SYNC
+> or issue msync/fsync for data integrity.
+> 
+> If the app is using MAP_DIRECT, the what do we do if the filesystem
+> can't provide the required semantics for that specific operation? In
+> the case of O_DIRECT, we fall back to buffered IO because it has the
+> same data integrity semantics as O_DIRECT and will always work. It's
+> just slower and consumes more memory, but the app continues to work
+> just fine.
+> 
+> Sending SIGBUS to apps when we can't perform MAP_DIRECT operations
+> without using the pagecache seems extremely problematic to me.  e.g.
+> an app already has an open MAP_DIRECT file, and a third party
+> reflinks it or dedupes it and the fs has to fall back to buffered IO
+> to do COW operations. This isn't the app's fault - the kernel should
+> just fall back transparently to using the page cache for the
+> MAP_DIRECT app and just keep working, just like it would if it was
+> using O_DIRECT read/write.
+
+There's another option of failing reflink / dedupe with EBUSY if the file
+is mapped with MAP_DIRECT and the filesystem cannot support relink &
+MAP_DIRECT together. But there are downsides to that as well.
+
+> The point I'm trying to make here is that O_DIRECT is a /hint/, not
+> a guarantee, and it's done that way to prevent applications from
+> being presented with transient, potentially fatal error cases
+> because a filesystem implementation can't do a specific operation
+> through the direct IO path.
+> 
+> IMO, MAP_DIRECT needs to be a hint like O_DIRECT and not a
+> guarantee. Over time we'll end up with filesystems that can
+> guarantee that MAP_DIRECT is always going to use DAX, in the same
+> way we have filesystems that guarantee O_DIRECT will always be
+> O_DIRECT (e.g. XFS). But if we decide that MAP_DIRECT must guarantee
+> no page cache will ever be used, then we are basically saying
+> "filesystems won't provide MAP_DIRECT even in common, useful cases
+> because they can't provide MAP_DIRECT in all cases." And that
+> doesn't seem like a very good solution to me.
+
+These are good points. I'm just somewhat wary of the situation where users
+will map files with MAP_DIRECT and then the machine starts thrashing
+because the file got reflinked and thus pagecache gets used suddently.
+With O_DIRECT the fallback to buffered IO is quite rare (at least for major
+filesystems) so usually people just won't notice. If fallback for
+MAP_DIRECT will be easy to hit, I'm not sure it would be very useful.
 
 								Honza
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
