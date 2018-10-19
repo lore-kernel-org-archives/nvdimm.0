@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B625F2114083E
- for <linux-nvdimm@lists.01.org>; Mon,  8 Oct 2018 16:56:37 -0700 (PDT)
-Subject: [PATCH v12 12/12] acpi,
- nfit: Move acpi_nfit_get_security_ops() to generic location
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 08 Oct 2018 16:56:36 -0700
-Message-ID: <153904299685.60070.3336606945357072947.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
-References: <153904272246.60070.6230977215877367778.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4DFD721173C92
+ for <linux-nvdimm@lists.01.org>; Thu, 18 Oct 2018 23:27:47 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id q50so32226231otd.0
+ for <linux-nvdimm@lists.01.org>; Thu, 18 Oct 2018 23:27:47 -0700 (PDT)
 MIME-Version: 1.0
+References: <20181016235120.138227-1-brendanhiggins@google.com>
+ <CAA9_cmeRE3mPvxb3NciGFYjNu9aMFx4iTMeUq2fC3UtsyXky2A@mail.gmail.com>
+In-Reply-To: <CAA9_cmeRE3mPvxb3NciGFYjNu9aMFx4iTMeUq2fC3UtsyXky2A@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Date: Thu, 18 Oct 2018 23:27:34 -0700
+Message-ID: <CAFd5g46P8PuGH8B5B3mT=M1a4Lg7JTOdWJ8LECo8-i2a=fUZDA@mail.gmail.com>
+Subject: Re: [RFC v1 00/31] kunit: Introducing KUnit, the Linux kernel unit
+ testing framework
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,98 +28,37 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: alison.schofield@intel.com, keescook@chromium.org, linux-nvdimm@lists.01.org, ebiggers3@gmail.com, dhowells@redhat.com, keyrings@vger.kernel.org
+Cc: brakmo@fb.com, richard@nod.at, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Tim.Bird@sony.com, Kees Cook <keescook@google.com>, jdike@addtoit.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, rostedt@goodmis.org, linux-um@lists.infradead.org, Julia Lawall <julia.lawall@lip6.fr>, mcgrof@kernel.org, Joel Stanley <joel@jms.id.au>, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, joe@perches.com, shuah@kernel.org, khilman@baylibre.com, kunit-dev@googlegroups.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
+On Wed, Oct 17, 2018 at 8:55 PM Dan Williams <dan.j.williams@intel.com> wrote:
+<snip>
+> > ## More information on KUnit
+> >
+> > There is a bunch of documentation near the end of this patch set that
+> > describes how to use KUnit and best practices for writing unit tests.
+> > For convenience I am hosting the compiled docs here:
+> > https://google.github.io/kunit-docs/third_party/kernel/docs/
+>
+> Nice! I've been using mocking techniques in kernel code for the
+> libnvdimm test infrastructure in tools/testing/nvdimm/. It's part unit
+> test infrastructure, part emulation, and I've always had the feeling
+> it's all a bit too adhoc. I'm going to take a look and see what can be
+> converted to kunit. Please include linux-nvdimm@lists.01.org on future
+> postings.
 
-In anticipation of other DIMMs adding security operations support, don't
-require them to edit intel.h. Instead have intel.h optionally arrange
-for intel_security_ops to be NULL or not based on build parameters.
+Great to hear!
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c  |   10 ++++++++++
- drivers/acpi/nfit/intel.c |    3 ++-
- drivers/acpi/nfit/intel.h |   18 +++---------------
- 3 files changed, 15 insertions(+), 16 deletions(-)
+Interesting, is this kind of like the nfsim stuff?
+>
+> I'll shamelessly plug my lwn article about unit testing
+> https://lwn.net/Articles/654071/ because it's always good to find
+> fellow co-travelers to compare notes and advocate for more test
+> oriented kernel development.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e5f7c664a7c8..b7773c70ee81 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1835,6 +1835,16 @@ static void shutdown_dimm_notify(void *data)
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-+static const struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
-+{
-+        switch (family) {
-+        case NVDIMM_FAMILY_INTEL:
-+                return intel_security_ops;
-+        default:
-+                return NULL;
-+        }
-+}
-+
- static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 70bccb0c57e2..8d2413810a5f 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -358,7 +358,7 @@ static int intel_dimm_security_state(struct nvdimm *nvdimm,
- 	return rc;
- }
- 
--const struct nvdimm_security_ops intel_security_ops = {
-+static const struct nvdimm_security_ops __intel_security_ops = {
- 	.state = intel_dimm_security_state,
- 	.unlock = intel_dimm_security_unlock,
- 	.change_key = intel_dimm_security_update_passphrase,
-@@ -366,3 +366,4 @@ const struct nvdimm_security_ops intel_security_ops = {
- 	.freeze_lock = intel_dimm_security_freeze_lock,
- 	.erase = intel_dimm_security_erase,
- };
-+const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index f9ac718776ca..f831084f95fa 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -8,7 +8,7 @@
- 
- #ifdef CONFIG_X86
- 
--extern const struct nvdimm_security_ops intel_security_ops;
-+extern const struct nvdimm_security_ops *intel_security_ops;
- 
- #define ND_INTEL_STATUS_SIZE		4
- #define ND_INTEL_PASSPHRASE_SIZE	32
-@@ -64,19 +64,7 @@ struct nd_intel_overwrite {
- struct nd_intel_query_overwrite {
- 	u32 status;
- } __packed;
-+#else /* CONFIG_X86 */
-+#define intel_security_ops (NULL)
- #endif /* CONFIG_X86 */
--
--static inline const struct nvdimm_security_ops *
--acpi_nfit_get_security_ops(int family)
--{
--	switch (family) {
--#ifdef CONFIG_X86
--	case NVDIMM_FAMILY_INTEL:
--		return &intel_security_ops;
--#endif
--	default:
--		return NULL;
--	}
--}
--
- #endif
+Most definitely! I will take a look, and be in touch.
 
+Cheers!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
