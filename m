@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A22A221161B0A
- for <linux-nvdimm@lists.01.org>; Thu,  4 Oct 2018 17:01:07 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/2] ndctl, monitor: in daemon mode,
- exit successfully if no DIMMs are found
-Date: Thu,  4 Oct 2018 18:00:57 -0600
-Message-Id: <20181005000057.30186-2-vishal.l.verma@intel.com>
-In-Reply-To: <20181005000057.30186-1-vishal.l.verma@intel.com>
-References: <20181005000057.30186-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BAEE12117CEBF
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Oct 2018 13:18:47 -0700 (PDT)
+Subject: [PATCH 7/9] dax/kmem: actually perform memory hotplug
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Mon, 22 Oct 2018 13:13:29 -0700
+References: <20181022201317.8558C1D8@viggo.jf.intel.com>
+In-Reply-To: <20181022201317.8558C1D8@viggo.jf.intel.com>
+Message-Id: <20181022201329.518577A4@viggo.jf.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,47 +22,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Andreas Hasenack <andreas@canonical.com>
+To: linux-kernel@vger.kernel.org
+Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, zwisler@kernel.org, fengguang.wu@intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When we are running as a daemon, it is preferred to exit successfully
-when no DIMMs are found. When running in the foreground, retain an error
-return so that the user can be notified that nothing was found to
-monitor.
 
-In the longer term, replace this with a libudev uevent monitor that will
-look for DIMM addition/removal events, and update the running monitor(s)
-if the DIMMs match the active filter spec.
+This is the meat of this whole series.  When the "kmem" device's
+probe function is called and we know we have a good persistent
+memory device, hotplug the memory back into the main kernel.
 
-Link: https://bugs.launchpad.net/ubuntu/+source/ndctl/+bug/1781268
-Reported-by: Andreas Hasenack <andreas@canonical.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/monitor.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index b44f946..7bf2ba7 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -681,8 +681,9 @@ int cmd_monitor(int argc, const char **argv, void *ctx)
- 		goto out;
+---
+
+ b/drivers/dax/kmem.c |   28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
+diff -puN drivers/dax/kmem.c~dax-kmem-hotplug drivers/dax/kmem.c
+--- a/drivers/dax/kmem.c~dax-kmem-hotplug	2018-10-22 13:12:24.069930387 -0700
++++ b/drivers/dax/kmem.c	2018-10-22 13:12:24.072930387 -0700
+@@ -55,10 +55,12 @@ static void dax_kmem_percpu_kill(void *d
+ static int dax_kmem_probe(struct device *dev)
+ {
+ 	void *addr;
++	int numa_node;
+ 	struct resource res;
+ 	int rc, id, region_id;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct dev_dax *dev_dax;
++	struct resource *new_res;
+ 	struct dax_kmem *dax_kmem;
+ 	struct nd_namespace_io *nsio;
+ 	struct dax_region *dax_region;
+@@ -86,13 +88,30 @@ static int dax_kmem_probe(struct device
  
- 	if (!mfa.num_dimm) {
--		err((struct ndctl_ctx *)ctx, "no dimms to monitor\n");
--		rc = -ENXIO;
-+		dbg((struct ndctl_ctx *)ctx, "no dimms to monitor\n");
-+		if (!monitor.daemon)
-+			rc = -ENXIO;
- 		goto out;
+ 	pfn_sb = nd_pfn->pfn_sb;
+ 
+-	if (!devm_request_mem_region(dev, nsio->res.start,
+-				resource_size(&nsio->res),
+-				dev_name(&ndns->dev))) {
++	new_res = devm_request_mem_region(dev, nsio->res.start,
++					  resource_size(&nsio->res),
++					  "System RAM (pmem)");
++	if (!new_res) {
+ 		dev_warn(dev, "could not reserve region %pR\n", &nsio->res);
+ 		return -EBUSY;
  	}
  
--- 
-2.17.1
-
++	/*
++	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
++	 * so that add_memory() can add a child resource.
++	 */
++	new_res->flags = IORESOURCE_SYSTEM_RAM;
++
++	numa_node = dev_to_node(dev);
++	if (numa_node < 0) {
++		pr_warn_once("bad numa_node: %d, forcing to 0\n", numa_node);
++		numa_node = 0;
++	}
++
++	rc = add_memory(numa_node, nsio->res.start, resource_size(&nsio->res));
++	if (rc)
++		return rc;
++
+ 	dax_kmem->dev = dev;
+ 	init_completion(&dax_kmem->cmp);
+ 	rc = percpu_ref_init(&dax_kmem->ref, dax_kmem_percpu_release, 0,
+@@ -106,6 +125,9 @@ static int dax_kmem_probe(struct device
+ 		return rc;
+ 
+ 	dax_kmem->pgmap.ref = &dax_kmem->ref;
++
++	dax_kmem->pgmap.res.name = "name_kmem_override2";
++
+ 	addr = devm_memremap_pages(dev, &dax_kmem->pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+_
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
