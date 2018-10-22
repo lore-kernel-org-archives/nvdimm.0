@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 434422117B555
- for <linux-nvdimm@lists.01.org>; Mon, 22 Oct 2018 13:18:39 -0700 (PDT)
-Subject: [PATCH 2/9] dax: kernel memory driver for mm ownership of DAX
+ by ml01.01.org (Postfix) with ESMTPS id 0E8D62117CEB3
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Oct 2018 13:18:46 -0700 (PDT)
+Subject: [PATCH 6/9] mm/memory-hotplug: allow memory resources to be children
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 22 Oct 2018 13:13:20 -0700
+Date: Mon, 22 Oct 2018 13:13:27 -0700
 References: <20181022201317.8558C1D8@viggo.jf.intel.com>
 In-Reply-To: <20181022201317.8558C1D8@viggo.jf.intel.com>
-Message-Id: <20181022201320.45C9785C@viggo.jf.intel.com>
+Message-Id: <20181022201327.F1642450@viggo.jf.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,17 +27,55 @@ Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, Dave Ha
 List-ID: <linux-nvdimm@lists.01.org>
 
 
-Add the actual driver to which will own the DAX range.  This
-allows very nice party with the other possible "owners" of
-a DAX region: device DAX and filesystem DAX.  It also greatly
-simplifies the process of handing off control of the memory
-between the different owners since it's just a matter of
-unbinding and rebinding the device to different drivers.
+The mm/resource.c code is used to manage the physical address
+space.  We can view the current resource configuration in
+/proc/iomem.  An example of this is at the bottom of this
+description.
 
-I tried to do this all internally to the kernel and the
-locking and "self-destruction" of the old device context was
-a nightmare.  Having userspace drive it is a wonderful
-simplification.
+The nvdimm subsystem "owns" the physical address resources which
+map to persistent memory and has resources inserted for them as
+"Persistent Memory".  We want to use this persistent memory, but
+as volatile memory, just like RAM.  The best way to do this is
+to leave the existing resource in place, but add a "System RAM"
+resource underneath it. This clearly communicates the ownership
+relationship of this memory.
+
+The request_resource_conflict() API only deals with the
+top-level resources.  Replace it with __request_region() which
+will search for !IORESOURCE_BUSY areas lower in the resource
+tree than the top level.
+
+We also rework the old error message a bit since we do not get
+the conflicting entry back: only an indication that we *had* a
+conflict.
+
+We *could* also simply truncate the existing top-level
+"Persistent Memory" resource and take over the released address
+space.  But, this means that if we ever decide to hot-unplug the
+"RAM" and give it back, we need to recreate the original setup,
+which may mean going back to the BIOS tables.
+
+This should have no real effect on the existing collision
+detection because the areas that truly conflict should be marked
+IORESOURCE_BUSY.
+
+00000000-00000fff : Reserved
+00001000-0009fbff : System RAM
+0009fc00-0009ffff : Reserved
+000a0000-000bffff : PCI Bus 0000:00
+000c0000-000c97ff : Video ROM
+000c9800-000ca5ff : Adapter ROM
+000f0000-000fffff : Reserved
+  000f0000-000fffff : System ROM
+00100000-9fffffff : System RAM
+  01000000-01e071d0 : Kernel code
+  01e071d1-027dfdff : Kernel data
+  02dc6000-0305dfff : Kernel bss
+a0000000-afffffff : Persistent Memory (legacy)
+  a0000000-a7ffffff : System RAM
+b0000000-bffdffff : System RAM
+bffe0000-bfffffff : Reserved
+c0000000-febfffff : PCI Bus 0000:00
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
@@ -54,165 +92,51 @@ Cc: Fengguang Wu <fengguang.wu@intel.com>
 
 ---
 
- b/drivers/dax/kmem.c |  152 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 152 insertions(+)
+ b/mm/memory_hotplug.c |   31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN /dev/null drivers/dax/kmem.c
---- /dev/null	2018-09-18 12:39:53.059362935 -0700
-+++ b/drivers/dax/kmem.c	2018-10-22 13:12:21.502930393 -0700
-@@ -0,0 +1,152 @@
-+// this just just a copy of drivers/dax/pmem.c with
-+// s/dax_pmem/dax_kmem' for now.
-+//
-+// need real license
-+/*
-+ * Copyright(c) 2016-2018 Intel Corporation. All rights reserved.
-+ */
-+#include <linux/percpu-refcount.h>
-+#include <linux/memremap.h>
-+#include <linux/module.h>
-+#include <linux/pfn_t.h>
-+#include "../nvdimm/pfn.h"
-+#include "../nvdimm/nd.h"
-+#include "device-dax.h"
+diff -puN mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child	2018-10-22 13:12:23.570930388 -0700
++++ b/mm/memory_hotplug.c	2018-10-22 13:12:23.573930388 -0700
+@@ -99,24 +99,21 @@ void mem_hotplug_done(void)
+ /* add this memory to iomem resource */
+ static struct resource *register_memory_resource(u64 start, u64 size)
+ {
+-	struct resource *res, *conflict;
+-	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+-	if (!res)
+-		return ERR_PTR(-ENOMEM);
++	struct resource *res;
++	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
++	char resource_name[] = "System RAM";
+ 
+-	res->name = "System RAM";
+-	res->start = start;
+-	res->end = start + size - 1;
+-	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+-	conflict =  request_resource_conflict(&iomem_resource, res);
+-	if (conflict) {
+-		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
+-			pr_debug("Device unaddressable memory block "
+-				 "memory hotplug at %#010llx !\n",
+-				 (unsigned long long)start);
+-		}
+-		pr_debug("System RAM resource %pR cannot be added\n", res);
+-		kfree(res);
++	/*
++	 * Request ownership of the new memory range.  This might be
++	 * a child of an existing resource that was present but
++	 * not marked as busy.
++	 */
++	res = __request_region(&iomem_resource, start, size,
++			       resource_name, flags);
 +
-+struct dax_kmem {
-+	struct device *dev;
-+	struct percpu_ref ref;
-+	struct dev_pagemap pgmap;
-+	struct completion cmp;
-+};
-+
-+static struct dax_kmem *to_dax_kmem(struct percpu_ref *ref)
-+{
-+	return container_of(ref, struct dax_kmem, ref);
-+}
-+
-+static void dax_kmem_percpu_release(struct percpu_ref *ref)
-+{
-+	struct dax_kmem *dax_kmem = to_dax_pmem(ref);
-+
-+	dev_dbg(dax_kmem->dev, "trace\n");
-+	complete(&dax_kmem->cmp);
-+}
-+
-+static void dax_kmem_percpu_exit(void *data)
-+{
-+	struct percpu_ref *ref = data;
-+	struct dax_kmem *dax_kmem = to_dax_pmem(ref);
-+
-+	dev_dbg(dax_kmem->dev, "trace\n");
-+	wait_for_completion(&dax_kmem->cmp);
-+	percpu_ref_exit(ref);
-+}
-+
-+static void dax_kmem_percpu_kill(void *data)
-+{
-+	struct percpu_ref *ref = data;
-+	struct dax_kmem *dax_kmem = to_dax_pmem(ref);
-+
-+	dev_dbg(dax_kmem->dev, "trace\n");
-+	percpu_ref_kill(ref);
-+}
-+
-+static int dax_kmem_probe(struct device *dev)
-+{
-+	void *addr;
-+	struct resource res;
-+	int rc, id, region_id;
-+	struct nd_pfn_sb *pfn_sb;
-+	struct dev_dax *dev_dax;
-+	struct dax_kmem *dax_kmem;
-+	struct nd_namespace_io *nsio;
-+	struct dax_region *dax_region;
-+	struct nd_namespace_common *ndns;
-+	struct nd_dax *nd_dax = to_nd_dax(dev);
-+	struct nd_pfn *nd_pfn = &nd_dax->nd_pfn;
-+
-+	ndns = nvdimm_namespace_common_probe(dev);
-+	if (IS_ERR(ndns))
-+		return PTR_ERR(ndns);
-+	nsio = to_nd_namespace_io(&ndns->dev);
-+
-+	dax_kmem = devm_kzalloc(dev, sizeof(*dax_kmem), GFP_KERNEL);
-+	if (!dax_kmem)
-+		return -ENOMEM;
-+
-+	/* parse the 'pfn' info block via ->rw_bytes */
-+	rc = devm_nsio_enable(dev, nsio);
-+	if (rc)
-+		return rc;
-+	rc = nvdimm_setup_pfn(nd_pfn, &dax_kmem->pgmap);
-+	if (rc)
-+		return rc;
-+	devm_nsio_disable(dev, nsio);
-+
-+	pfn_sb = nd_pfn->pfn_sb;
-+
-+	if (!devm_request_mem_region(dev, nsio->res.start,
-+				resource_size(&nsio->res),
-+				dev_name(&ndns->dev))) {
-+		dev_warn(dev, "could not reserve region %pR\n", &nsio->res);
-+		return -EBUSY;
-+	}
-+
-+	dax_kmem->dev = dev;
-+	init_completion(&dax_kmem->cmp);
-+	rc = percpu_ref_init(&dax_kmem->ref, dax_kmem_percpu_release, 0,
-+			GFP_KERNEL);
-+	if (rc)
-+		return rc;
-+
-+	rc = devm_add_action_or_reset(dev, dax_kmem_percpu_exit,
-+							&dax_kmem->ref);
-+	if (rc)
-+		return rc;
-+
-+	dax_kmem->pgmap.ref = &dax_kmem->ref;
-+	addr = devm_memremap_pages(dev, &dax_kmem->pgmap);
-+	if (IS_ERR(addr))
-+		return PTR_ERR(addr);
-+
-+	rc = devm_add_action_or_reset(dev, dax_kmem_percpu_kill,
-+							&dax_kmem->ref);
-+	if (rc)
-+		return rc;
-+
-+	/* adjust the dax_region resource to the start of data */
-+	memcpy(&res, &dax_kmem->pgmap.res, sizeof(res));
-+	res.start += le64_to_cpu(pfn_sb->dataoff);
-+
-+	rc = sscanf(dev_name(&ndns->dev), "namespace%d.%d", &region_id, &id);
-+	if (rc != 2)
-+		return -EINVAL;
-+
-+	dax_region = alloc_dax_region(dev, region_id, &res,
-+			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
-+	if (!dax_region)
-+		return -ENOMEM;
-+
-+	/* TODO: support for subdividing a dax region... */
-+	dev_dax = devm_create_dev_dax(dax_region, id, &res, 1);
-+
-+	/* child dev_dax instances now own the lifetime of the dax_region */
-+	dax_region_put(dax_region);
-+
-+	return PTR_ERR_OR_ZERO(dev_dax);
-+}
-+
-+static struct nd_device_driver dax_kmem_driver = {
-+	.probe = dax_kmem_probe,
-+	.drv = {
-+		.name = "dax_kmem",
-+	},
-+	.type = ND_DRIVER_DAX_PMEM,
-+};
-+
-+module_nd_driver(dax_kmem_driver);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Intel Corporation");
-+MODULE_ALIAS_ND_DEVICE(ND_DEVICE_DAX_PMEM);
++	if (!res) {
++		pr_debug("Unable to reserve System RAM region: %016llx->%016llx\n",
++				start, start + size);
+ 		return ERR_PTR(-EEXIST);
+ 	}
+ 	return res;
 _
 _______________________________________________
 Linux-nvdimm mailing list
