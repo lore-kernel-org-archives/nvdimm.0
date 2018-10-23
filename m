@@ -1,76 +1,77 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] [PATCH v2 2/2] virtio-pmem: Add virtio pmem driver
-Date: Wed, 17 Oct 2018 21:44:49 -0400 (EDT)
-Message-ID: <130749719.21742520.1539827089099.JavaMail.zimbra@redhat.com>
-References: <20181013050021.11962-1-pagupta@redhat.com> <20181013050021.11962-3-pagupta@redhat.com> <CAPcyv4hroaVWA-HgjWCnr7QTd_y7U8sCvS+Up733ttnD6_cKzQ@mail.gmail.com> <431127218.21694133.1539803509205.JavaMail.zimbra@redhat.com> <CAPcyv4joz_dPruJY4CYAxXSuMTD-NUoqm6kvGFrF19jt5dN=rg@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [RFC v2 00/14] kunit: introduce KUnit,
+ the Linux kernel unit testing framework
+Date: Tue, 23 Oct 2018 16:57:36 -0700
+Message-ID: <20181023235750.103146-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4joz_dPruJY4CYAxXSuMTD-NUoqm6kvGFrF19jt5dN=rg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Jan Kara <jack@suse.cz>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, KVM list <kvm@vger.kernel.org>, Rik van Riel <riel@surriel.com>, linux-nvdimm <linux-nvdimm@ml01.01.org>, David Hildenbrand <david@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, Christoph Hellwig <hch@infradead.org>, Igor Mammedov <imammedo@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, Vishal L Verma <vishal.l.verma@intel.com>, zwisler@kernel.org, Dave Jiang <dave.jiang@intel.com>, lcapitulino@redhat.com
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+This patch set proposes KUnit, a lightweight unit testing and mocking
+framework for the Linux kernel.
 
-> >
-> >
-> > > On Fri, Oct 12, 2018 at 10:01 PM Pankaj Gupta <pagupta@redhat.com> wrote:
-> > > >
-> > > > This patch adds virtio-pmem driver for KVM guest.
-> > > >
-> > > > Guest reads the persistent memory range information from
-> > > > Qemu over VIRTIO and registers it on nvdimm_bus. It also
-> > > > creates a nd_region object with the persistent memory
-> > > > range information so that existing 'nvdimm/pmem' driver
-> > > > can reserve this into system memory map. This way
-> > > > 'virtio-pmem' driver uses existing functionality of pmem
-> > > > driver to register persistent memory compatible for DAX
-> > > > capable filesystems.
-> > > >
-> > > > This also provides function to perform guest flush over
-> > > > VIRTIO from 'pmem' driver when userspace performs flush
-> > > > on DAX memory range.
-> > >
-> > > Before we can move forward with this driver we need additional
-> > > filesystem enabling to detect when the backing device is fronting DAX
-> > > pmem or a paravirtualized page cache through virtio-pmem. Any
-> > > interface that requires fsync() and a round trip to the hypervisor to
-> > > flush host page cache is not DAX.
-> >
-> > I saw your proposal[1] for new mmap flag MAP_DIRECT. IIUIC mapping should
-> > fail for
-> > MAP_DIRECT if it requires explicit flush or buffer indirection. So, if we
-> > disable
-> > MAP_SYNC flag for virtio-pmem this should fail MAP_DIRECT as well?
-> > Otherwise
-> > without MAP_DIRECT, virtio-pmem should be defaulted to VIRTIO flush
-> > mechanism.
-> 
-> Right, although I wouldn't worry about MAP_DIRECT in the short term
-> since we're still discussing what the upstream interface. Regardless
-> of whether MAP_DIRECT is specified or not the virtio-flush mechanism
-> would always be used for virtio-pmem. I.e. there is no possibility to
-> get full DAX operation with virtio-pmem, only the page-cache bypass
-> sub-set.
+Unlike Autotest and kselftest, KUnit is a true unit testing framework;
+it does not require installing the kernel on a test machine or in a VM
+and does not require tests to be written in userspace running on a host
+kernel. Additionally, KUnit is fast: From invocation to completion KUnit
+can run several dozen tests in under a second. Currently, the entire
+KUnit test suite for KUnit runs in under a second from the initial
+invocation (build time excluded).
 
-Agree. I will also follow the thread.
+KUnit is heavily inspired by JUnit, Python's unittest.mock, and
+Googletest/Googlemock for C++. KUnit provides facilities for defining
+unit test cases, grouping related test cases into test suites, providing
+common infrastructure for running tests, mocking, spying, and much more.
 
-> 
-> Taking a look at where we could inject this check for filesystems it's
-> a bit awkward to do it in xfs_file_mmap() for example because we do
-> not have the backing device for the extents of the inode. So at a
-> minimum you would need to investigate calling xfs_inode_supports_dax()
-> from that path and teaching it about a new dax_device flag. I'm
-> thinking the dax_device flag should be called DAXDEV_BUFFERED to
-> indicate the presence of software buffering on a device that otherwise
-> supports bypassing the local page cache.
+## What's so special about unit testing?
 
-Sure. Will investigate XFS code as suggested. 
-Thanks for the detail directions towards the solution. Will try to come up 
-with a solution.
+A unit test is supposed to test a single unit of code in isolation,
+hence the name. There should be no dependencies outside the control of
+the test; this means no external dependencies, which makes tests orders
+of magnitudes faster. Likewise, since there are no external dependencies,
+there are no hoops to jump through to run the tests. Additionally, this
+makes unit tests deterministic: a failing unit test always indicates a
+problem. Finally, because unit tests necessarily have finer granularity,
+they are able to test all code paths easily solving the classic problem
+of difficulty in exercising error handling code.
 
-Best regards,
-Pankaj
-  
+## Is KUnit trying to replace other testing frameworks for the kernel?
+
+No. Most existing tests for the Linux kernel are end-to-end tests, which
+have their place. A well tested system has lots of unit tests, a
+reasonable number of integration tests, and some end-to-end tests. KUnit
+is just trying to address the unit test space which is currently not
+being addressed.
+
+## More information on KUnit
+
+There is a bunch of documentation near the end of this patch set that
+describes how to use KUnit and best practices for writing unit tests.
+For convenience I am hosting the compiled docs here:
+https://google.github.io/kunit-docs/third_party/kernel/docs/
+
+## Changes Since Last Version
+
+ - Updated patchset to apply cleanly on 4.19.
+ - Stripped down patchset to focus on just the core features (I dropped
+   mocking, spying, and the MMIO stuff for now; you can find these
+   patches here: https://kunit-review.googlesource.com/c/linux/+/1132),
+   as suggested by Rob.
+ - Cleaned up some of the commit messages and tweaked commit order a
+   bit based on suggestions.
+
+-- 
+2.19.1.568.g152ad8e336-goog
