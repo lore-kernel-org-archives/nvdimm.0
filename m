@@ -1,7 +1,8 @@
 From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: [RFC v2 02/14] kunit: test: add test resource management API
-Date: Tue, 23 Oct 2018 16:57:38 -0700
-Message-ID: <20181023235750.103146-3-brendanhiggins@google.com>
+Subject: [RFC v2 03/14] kunit: test: add string_stream a std::stream like
+ string builder
+Date: Tue, 23 Oct 2018 16:57:39 -0700
+Message-ID: <20181023235750.103146-4-brendanhiggins@google.com>
 References: <20181023235750.103146-1-brendanhiggins@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,279 +22,233 @@ To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AK
 Cc: brakmo-b10kYP2dOMg@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Create a common API for test managed resources like memory and test
-objects. A lot of times a test will want to set up infrastructure to be
-used in test cases; this could be anything from just wanting to allocate
-some memory to setting up a driver stack; this defines facilities for
-creating "test resources" which are managed by the test infrastructure
-and are automatically cleaned up at the conclusion of the test.
+A number of test features need to do pretty complicated string printing
+where it may not be possible to rely on a single preallocated string
+with parameters.
+
+So provide a library for constructing the string as you go similar to
+C++'s std::string.
 
 Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 ---
- include/kunit/test.h | 109 +++++++++++++++++++++++++++++++++++++++++++
- kunit/test.c         |  95 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 204 insertions(+)
+ include/kunit/string-stream.h |  44 ++++++++++
+ kunit/Makefile                |   2 +-
+ kunit/string-stream.c         | 149 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 194 insertions(+), 1 deletion(-)
+ create mode 100644 include/kunit/string-stream.h
+ create mode 100644 kunit/string-stream.c
 
-diff --git a/include/kunit/test.h b/include/kunit/test.h
-index e0b14b227ac44..1c116a20063da 100644
---- a/include/kunit/test.h
-+++ b/include/kunit/test.h
-@@ -12,6 +12,69 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- 
-+struct test_resource;
-+
-+typedef int (*test_resource_init_t)(struct test_resource *, void *);
-+typedef void (*test_resource_free_t)(struct test_resource *);
-+
-+/**
-+ * struct test_resource - represents a *test managed resource*
-+ * @allocation: for the user to store arbitrary data.
-+ * @free: a user supplied function to free the resource. Populated by
-+ * test_alloc_resource().
+diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
+new file mode 100644
+index 0000000000000..933ed5740cf07
+--- /dev/null
++++ b/include/kunit/string-stream.h
+@@ -0,0 +1,44 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * C++ stream style string builder used in KUnit for building messages.
 + *
-+ * Represents a *test managed resource*, a resource which will automatically be
-+ * cleaned up at the end of a test case.
-+ *
-+ * Example:
-+ *
-+ * .. code-block:: c
-+ *
-+ *	struct test_kmalloc_params {
-+ *		size_t size;
-+ *		gfp_t gfp;
-+ *	};
-+ *
-+ *	static int test_kmalloc_init(struct test_resource *res, void *context)
-+ *	{
-+ *		struct test_kmalloc_params *params = context;
-+ *		res->allocation = kmalloc(params->size, params->gfp);
-+ *
-+ *		if (!res->allocation)
-+ *			return -ENOMEM;
-+ *
-+ *		return 0;
-+ *	}
-+ *
-+ *	static void test_kmalloc_free(struct test_resource *res)
-+ *	{
-+ *		kfree(res->allocation);
-+ *	}
-+ *
-+ *	void *test_kmalloc(struct test *test, size_t size, gfp_t gfp)
-+ *	{
-+ *		struct test_kmalloc_params params;
-+ *		struct test_resource *res;
-+ *
-+ *		params.size = size;
-+ *		params.gfp = gfp;
-+ *
-+ *		res = test_alloc_resource(test, test_kmalloc_init,
-+ *			test_kmalloc_free, &params);
-+ *		if (res)
-+ *			return res->allocation;
-+ *		else
-+ *			return NULL;
-+ *	}
++ * Copyright (C) 2018, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 + */
-+struct test_resource {
-+	void *allocation;
-+	test_resource_free_t free;
 +
-+	/* private: internal use only. */
++#ifndef _KUNIT_STRING_STREAM_H
++#define _KUNIT_STRING_STREAM_H
++
++#include <linux/types.h>
++#include <linux/spinlock.h>
++#include <linux/kref.h>
++#include <stdarg.h>
++
++struct string_stream_fragment {
 +	struct list_head node;
++	char *fragment;
 +};
 +
- struct test;
- 
- /**
-@@ -104,6 +167,7 @@ struct test {
- 	const char *name; /* Read only after initialization! */
- 	spinlock_t lock; /* Gaurds all mutable test state. */
- 	bool success; /* Protected by lock. */
-+	struct list_head resources; /* Protected by lock. */
- 	void (*vprintk)(const struct test *test,
- 			const char *level,
- 			struct va_format *vaf);
-@@ -127,6 +191,51 @@ int test_run_tests(struct test_module *module);
- 		} \
- 		late_initcall(module_test_init##module)
- 
-+/**
-+ * test_alloc_resource() - Allocates a *test managed resource*.
-+ * @test: The test context object.
-+ * @init: a user supplied function to initialize the resource.
-+ * @free: a user supplied function to free the resource.
-+ * @context: for the user to pass in arbitrary data.
++struct string_stream {
++	size_t length;
++	struct list_head fragments;
++
++	/* length and fragments are protected by this lock */
++	spinlock_t lock;
++	struct kref refcount;
++	int (*add)(struct string_stream *this, const char *fmt, ...);
++	int (*vadd)(struct string_stream *this, const char *fmt, va_list args);
++	char *(*get_string)(struct string_stream *this);
++	void (*clear)(struct string_stream *this);
++	bool (*is_empty)(struct string_stream *this);
++};
++
++struct string_stream *new_string_stream(void);
++
++void destroy_string_stream(struct string_stream *stream);
++
++void string_stream_get(struct string_stream *stream);
++
++int string_stream_put(struct string_stream *stream);
++
++#endif /* _KUNIT_STRING_STREAM_H */
+diff --git a/kunit/Makefile b/kunit/Makefile
+index dd7a0299514b7..7fc613a9b383b 100644
+--- a/kunit/Makefile
++++ b/kunit/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_KUNIT)		+= test.o
++obj-$(CONFIG_KUNIT)		+= test.o string-stream.o
+diff --git a/kunit/string-stream.c b/kunit/string-stream.c
+new file mode 100644
+index 0000000000000..1e7efa630cc35
+--- /dev/null
++++ b/kunit/string-stream.c
+@@ -0,0 +1,149 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * C++ stream style string builder used in KUnit for building messages.
 + *
-+ * Allocates a *test managed resource*, a resource which will automatically be
-+ * cleaned up at the end of a test case. See &struct test_resource for an
-+ * example.
++ * Copyright (C) 2018, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 + */
-+struct test_resource *test_alloc_resource(struct test *test,
-+					  test_resource_init_t init,
-+					  test_resource_free_t free,
-+					  void *context);
 +
-+void test_free_resource(struct test *test, struct test_resource *res);
++#include <linux/list.h>
++#include <linux/slab.h>
++#include <kunit/string-stream.h>
 +
-+/**
-+ * test_kmalloc() - Just like kmalloc() except the allocation is *test managed*.
-+ * @test: The test context object.
-+ * @size: The size in bytes of the desired memory.
-+ * @gfp: flags passed to underlying kmalloc().
-+ *
-+ * Just like `kmalloc(...)`, except the allocation is managed by the test case
-+ * and is automatically cleaned up after the test case concludes. See &struct
-+ * test_resource for more information.
-+ */
-+void *test_kmalloc(struct test *test, size_t size, gfp_t gfp);
-+
-+/**
-+ * test_kzalloc() - Just like test_kmalloc(), but zeroes the allocation.
-+ * @test: The test context object.
-+ * @size: The size in bytes of the desired memory.
-+ * @gfp: flags passed to underlying kmalloc().
-+ *
-+ * See kzalloc() and test_kmalloc() for more information.
-+ */
-+static inline void *test_kzalloc(struct test *test, size_t size, gfp_t gfp)
++static int string_stream_vadd(struct string_stream *this,
++			       const char *fmt,
++			       va_list args)
 +{
-+	return test_kmalloc(test, size, gfp | __GFP_ZERO);
-+}
-+
-+void test_cleanup(struct test *test);
-+
- void __printf(3, 4) test_printk(const char *level,
- 				const struct test *test,
- 				const char *fmt, ...);
-diff --git a/kunit/test.c b/kunit/test.c
-index 4732e5f0d7575..fd0a51245215e 100644
---- a/kunit/test.c
-+++ b/kunit/test.c
-@@ -66,6 +66,7 @@ static void test_vprintk(const struct test *test,
- int test_init_test(struct test *test, const char *name)
- {
- 	spin_lock_init(&test->lock);
-+	INIT_LIST_HEAD(&test->resources);
- 	test->name = name;
- 	test->vprintk = test_vprintk;
- 
-@@ -93,6 +94,11 @@ static void test_run_case_internal(struct test *test,
- 	test_case->run_case(test);
- }
- 
-+static void test_case_internal_cleanup(struct test *test)
-+{
-+	test_cleanup(test);
-+}
-+
- /*
-  * Performs post validations and cleanup after a test case was run.
-  * XXX: Should ONLY BE CALLED AFTER test_run_case_internal!
-@@ -103,6 +109,8 @@ static void test_run_case_cleanup(struct test *test,
- {
- 	if (module->exit)
- 		module->exit(test);
-+
-+	test_case_internal_cleanup(test);
- }
- 
- /*
-@@ -150,6 +158,93 @@ int test_run_tests(struct test_module *module)
- 	return 0;
- }
- 
-+struct test_resource *test_alloc_resource(struct test *test,
-+					  test_resource_init_t init,
-+					  test_resource_free_t free,
-+					  void *context)
-+{
-+	struct test_resource *res;
++	struct string_stream_fragment *fragment;
++	int len;
++	va_list args_for_counting;
 +	unsigned long flags;
-+	int ret;
 +
-+	res = kzalloc(sizeof(*res), GFP_KERNEL);
-+	if (!res)
-+		return NULL;
++	/* Make a copy because `vsnprintf` could change it */
++	va_copy(args_for_counting, args);
 +
-+	ret = init(res, context);
-+	if (ret)
-+		return NULL;
++	/* Need space for null byte. */
++	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
 +
-+	res->free = free;
-+	spin_lock_irqsave(&test->lock, flags);
-+	list_add_tail(&res->node, &test->resources);
-+	spin_unlock_irqrestore(&test->lock, flags);
++	va_end(args_for_counting);
 +
-+	return res;
-+}
-+
-+void test_free_resource(struct test *test, struct test_resource *res)
-+{
-+	res->free(res);
-+	list_del(&res->node);
-+	kfree(res);
-+}
-+
-+struct test_kmalloc_params {
-+	size_t size;
-+	gfp_t gfp;
-+};
-+
-+static int test_kmalloc_init(struct test_resource *res, void *context)
-+{
-+	struct test_kmalloc_params *params = context;
-+
-+	res->allocation = kmalloc(params->size, params->gfp);
-+	if (!res->allocation)
++	fragment = kmalloc(sizeof(*fragment), GFP_KERNEL);
++	if (!fragment)
 +		return -ENOMEM;
 +
++	fragment->fragment = kmalloc(len, GFP_KERNEL);
++	if (!fragment->fragment) {
++		kfree(fragment);
++		return -ENOMEM;
++	}
++
++	len = vsnprintf(fragment->fragment, len, fmt, args);
++	spin_lock_irqsave(&this->lock, flags);
++	this->length += len;
++	list_add_tail(&fragment->node, &this->fragments);
++	spin_unlock_irqrestore(&this->lock, flags);
 +	return 0;
 +}
 +
-+static void test_kmalloc_free(struct test_resource *res)
++static int string_stream_add(struct string_stream *this, const char *fmt, ...)
 +{
-+	kfree(res->allocation);
++	va_list args;
++	int result;
++
++	va_start(args, fmt);
++	result = string_stream_vadd(this, fmt, args);
++	va_end(args);
++	return result;
 +}
 +
-+void *test_kmalloc(struct test *test, size_t size, gfp_t gfp)
++static void string_stream_clear(struct string_stream *this)
 +{
-+	struct test_kmalloc_params params;
-+	struct test_resource *res;
-+
-+	params.size = size;
-+	params.gfp = gfp;
-+
-+	res = test_alloc_resource(test,
-+				  test_kmalloc_init,
-+				  test_kmalloc_free,
-+				  &params);
-+
-+	if (res)
-+		return res->allocation;
-+	else
-+		return NULL;
-+}
-+
-+void test_cleanup(struct test *test)
-+{
-+	struct test_resource *resource, *resource_safe;
++	struct string_stream_fragment *fragment, *fragment_safe;
 +	unsigned long flags;
 +
-+	spin_lock_irqsave(&test->lock, flags);
-+	list_for_each_entry_safe(resource,
-+				 resource_safe,
-+				 &test->resources,
++	spin_lock_irqsave(&this->lock, flags);
++	list_for_each_entry_safe(fragment,
++				 fragment_safe,
++				 &this->fragments,
 +				 node) {
-+		test_free_resource(test, resource);
++		list_del(&fragment->node);
++		kfree(fragment->fragment);
++		kfree(fragment);
 +	}
-+	spin_unlock_irqrestore(&test->lock, flags);
++	this->length = 0;
++	spin_unlock_irqrestore(&this->lock, flags);
 +}
 +
- void test_printk(const char *level,
- 		 const struct test *test,
- 		 const char *fmt, ...)
++static char *string_stream_get_string(struct string_stream *this)
++{
++	struct string_stream_fragment *fragment;
++	size_t buf_len = this->length + 1; /* +1 for null byte. */
++	char *buf;
++	unsigned long flags;
++
++	buf = kzalloc(buf_len, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	spin_lock_irqsave(&this->lock, flags);
++	list_for_each_entry(fragment, &this->fragments, node)
++		strlcat(buf, fragment->fragment, buf_len);
++	spin_unlock_irqrestore(&this->lock, flags);
++
++	return buf;
++}
++
++static bool string_stream_is_empty(struct string_stream *this)
++{
++	bool is_empty;
++	unsigned long flags;
++
++	spin_lock_irqsave(&this->lock, flags);
++	is_empty = list_empty(&this->fragments);
++	spin_unlock_irqrestore(&this->lock, flags);
++
++	return is_empty;
++}
++
++void destroy_string_stream(struct string_stream *stream)
++{
++	stream->clear(stream);
++	kfree(stream);
++}
++
++static void string_stream_destroy(struct kref *kref)
++{
++	struct string_stream *stream = container_of(kref,
++						    struct string_stream,
++						    refcount);
++	destroy_string_stream(stream);
++}
++
++struct string_stream *new_string_stream(void)
++{
++	struct string_stream *stream = kzalloc(sizeof(*stream), GFP_KERNEL);
++
++	if (!stream)
++		return NULL;
++
++	INIT_LIST_HEAD(&stream->fragments);
++	spin_lock_init(&stream->lock);
++	kref_init(&stream->refcount);
++	stream->add = string_stream_add;
++	stream->vadd = string_stream_vadd;
++	stream->get_string = string_stream_get_string;
++	stream->clear = string_stream_clear;
++	stream->is_empty = string_stream_is_empty;
++	return stream;
++}
++
++void string_stream_get(struct string_stream *stream)
++{
++	kref_get(&stream->refcount);
++}
++
++int string_stream_put(struct string_stream *stream)
++{
++	return kref_put(&stream->refcount, &string_stream_destroy);
++}
++
 -- 
 2.19.1.568.g152ad8e336-goog
