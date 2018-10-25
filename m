@@ -1,16 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46A5021A07A92
- for <linux-nvdimm@lists.01.org>; Wed,  3 Oct 2018 11:16:07 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 4/5] util/json: Add comments around re-checking the
- UTIL_JSON_MEDIA_ERRORS flag
-Date: Wed,  3 Oct 2018 12:15:05 -0600
-Message-Id: <20181003181506.17682-4-vishal.l.verma@intel.com>
-In-Reply-To: <20181003181506.17682-1-vishal.l.verma@intel.com>
-References: <20181003181506.17682-1-vishal.l.verma@intel.com>
+Received: from [203.210.240.98] (unknown [203.210.240.98])
+ by ml01.01.org (Postfix) with ESMTP id 9CF4121163272
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Oct 2018 17:30:13 -0700 (PDT)
+Message-ID: <5BD1710B.5030604@lists.01.org>
+Date: Thu, 25 Oct 2018 13:30:19 +0600
+From: <linux-nvdimm@lists.01.org>
+MIME-Version: 1.0
+Subject: account linux-nvdimm@lists.01.org is compromised
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,49 +14,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add comments to clarify that in the various ndctl_*_babdlock_foreach
-loops where we compose the json output, the additional check for
-UTIL_JSON_MEDIA_ERRORS is valid because even if we're not printing
-media errors, we still want the badblock_count to be updated, which
-requires a full badblocks traversal.
+Hello!
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- util/json.c | 2 ++
- 1 file changed, 2 insertions(+)
+I'm a hacker who cracked your email and device a few months ago.
+You entered a password on one of the sites you visited, and I intercepted it.
 
-diff --git a/util/json.c b/util/json.c
-index 30b56c3..702ccf4 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -465,6 +465,7 @@ struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
- 
- 		bbs += bb->len;
- 
-+		/* recheck so we can still get the badblocks_count from above */
- 		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
- 			continue;
- 
-@@ -554,6 +555,7 @@ static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
- 
- 		bbs += len;
- 
-+		/* recheck so we can still get the badblocks_count from above */
- 		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
- 			continue;
- 
--- 
-2.17.1
+Of course you can will change it, or already changed it.
+But it doesn't matter, my malware updated it every time.
+
+Do not try to contact me or find me, it is impossible, since I sent you an email from your account.
+
+Through your email, I uploaded malicious code to your Operation System.
+I saved all of your contacts with friends, colleagues, relatives and a complete history of visits to the Internet resources.
+Also I installed a Trojan on your device and long tome spying for you.
+
+You are not my only victim, I usually lock computers and ask for a ransom.
+But I was struck by the sites of intimate content that you often visit.
+
+I am in shock of your fantasies! I've never seen anything like this!
+
+So, when you had fun on piquant sites (you know what I mean!)
+I made screenshot with using my program from your camera of yours device.
+After that, I combined them to the content of the currently viewed site.
+
+There will be laughter when I send these photos to your contacts!
+BUT I'm sure you don't want it.
+
+Therefore, I expect payment from you for my silence.
+I think $874 is an acceptable price for it!
+
+Pay with Bitcoin.
+My BTC wallet: 1DVU5Q2HQ4srFNSSaWBrVNMtL4pvBkfP5w
+
+If you do not know how to do this - enter into Google "how to transfer money to a bitcoin wallet". It is not difficult.
+After receiving the specified amount, all your data will be immediately destroyed automatically. My virus will also remove itself from your operating system.
+
+My Trojan have auto alert, after this email is read, I will be know it!
+
+I give you 2 days (48 hours) to make a payment.
+If this does not happen - all your contacts will get crazy shots from your dark secret life!
+And so that you do not obstruct, your device will be blocked (also after 48 hours)
+
+Do not be silly!
+Police or friends won't help you for sure ...
+
+p.s. I can give you advice for the future. Do not enter your passwords on unsafe sites.
+
+I hope for your prudence.
+Farewell.
 
 _______________________________________________
 Linux-nvdimm mailing list
