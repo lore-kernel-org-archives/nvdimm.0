@@ -1,12 +1,12 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Subject: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org is compromised. Password must be changed
-Date: 28 Oct 2018 16:18:28 +0600
-Message-ID: <002f01d46eaa$03bdcfdd$a712a386$@lists.01.org>
+Date: 28 Oct 2018 20:15:39 +0200
+Message-ID: <003901d46eee$013dead9$5a78a184$@lists.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-us
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -47,7 +47,7 @@ Will be funny when I send these photos to your contacts! And if your relatives s
 BUT I'm sure you don't want it. I definitely would not want to ...
 
 I will not do this if you pay me a little amount.
-I think $881 is a nice price for it!
+I think $827 is a nice price for it!
 
 I accept only Bitcoins.
 My BTC wallet: 17XHRucfd4kx3W5ty7ySLGiKHqmPUUdpus
