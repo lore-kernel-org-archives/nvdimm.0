@@ -1,57 +1,43 @@
 Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-References: <20181011085509.GS5873@dhcp22.suse.cz> <6f32f23c-c21c-9d42-7dda-a1d18613cd3c@linux.intel.com>
- <20181017075257.GF18839@dhcp22.suse.cz> <971729e6-bcfe-a386-361b-d662951e69a7@linux.intel.com>
+References: <20181017075257.GF18839@dhcp22.suse.cz> <971729e6-bcfe-a386-361b-d662951e69a7@linux.intel.com>
  <20181029141210.GJ32673@dhcp22.suse.cz> <84f09883c16608ddd2ba88103f43ec6a1c649e97.camel@linux.intel.com>
  <20181029163528.GL32673@dhcp22.suse.cz> <18dfc5a0db11650ff31433311da32c95e19944d9.camel@linux.intel.com>
  <20181029172415.GM32673@dhcp22.suse.cz> <8e7a4311a240b241822945c0bb4095c9ffe5a14d.camel@linux.intel.com>
  <20181029181827.GO32673@dhcp22.suse.cz> <3281f3044fa231bbc1b02d5c5efca3502a0d05a8.camel@linux.intel.com>
-In-Reply-To: <3281f3044fa231bbc1b02d5c5efca3502a0d05a8.camel@linux.intel.com>
-From: Oscar Salvador <osalvador.vilardaga@gmail.com>
-Date: Tue, 30 Oct 2018 09:05:27 +0100
-Message-ID: <CAOXBz7h-yiFCPoK5tNm6qSAGm8n83fSwHYU42x5DjtSbL84zQg@mail.gmail.com>
+ <20181030062915.GT32673@dhcp22.suse.cz>
+In-Reply-To: <20181030062915.GT32673@dhcp22.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 29 Oct 2018 23:55:12 -0700
+Message-ID: <CAPcyv4itSde5oiW2j5uK8PCqdpXkHKz=kS8NBk2Ge+Ldb=yLUg@mail.gmail.com>
 Subject: Re: [PATCH v5 4/4] mm: Defer ZONE_DEVICE page initialization to the
  point where we init pgmap
 Content-Type: text/plain; charset="UTF-8"
 Sender: owner-linux-mm@kvack.org
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Linux Memory Management List <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org, Pavel Tatashin <pavel.tatashin@microsoft.com>, dave.hansen@intel.com, Jerome Glisse <jglisse@redhat.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, mingo@kernel.org, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, yi.z.zhang@linux.intel.com
+To: Michal Hocko <mhocko@kernel.org>
+Cc: alexander.h.duyck@linux.intel.com, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Pasha Tatashin <pavel.tatashin@microsoft.com>, Dave Hansen <dave.hansen@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, rppt@linux.vnet.ibm.com, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Zhang Yi <yi.z.zhang@linux.intel.com>, osalvador@techadventures.net
 List-ID: <linux-nvdimm@lists.01.org>
 
-> Yes, the hotplug lock was part of the original issue. However that
-> starts to drift into the area I believe Oscar was working on as a part
-> of his patch set in encapsulating the move_pfn_range_to_zone and other
-> calls that were contained in the hotplug lock into their own functions.
-
-
-While reworking it for my patchset, I thought that we can move
-move_pfn_range_to_zone
-out of hotplug lock.
-But then I __think__ we would have to move init_currently_empty_zone() within
-the span lock as zone->zone_start_pfn is being touched there.
-At least that is what the zone locking rules say about it.
-
-Since I saw that Dan was still reworking his patchset about unify HMM/devm code,
-I just took one step back and I went simpler [1].
-The main reason for backing off was I felt a bit demotivated due to
-the lack of feedback,
-and I did not want to interfer either with your work or Dan's work.
-Plus I also was unsure about some other things like whether it is ok calling
-kasan_add_zero_shadow/kasan_remove_zero_shadow out of the lock.
-So I decided to make less changes in regard of HMM/devm.
-
-Unfortunately, I did not get a lot of feedback there yet.
-Just some reviews from David and a confirmation that fixes one of the
-issues Jonathan reported [2].
-
+On Mon, Oct 29, 2018 at 11:29 PM Michal Hocko <mhocko@kernel.org> wrote:
 >
-> I was hoping to wait until after Dan's HMM patches and Oscar's changes
-> had been sorted before I get into any further refactor of this specific
-> code.
+> On Mon 29-10-18 12:59:11, Alexander Duyck wrote:
+> > On Mon, 2018-10-29 at 19:18 +0100, Michal Hocko wrote:
+[..]
+> > The patches Andrew pushed addressed the immediate issue so that now
+> > systems with nvdimm/DAX memory can at least initialize quick enough
+> > that systemd doesn't refuse to mount the root file system due to a
+> > timeout.
+>
+> This is about the first time you actually mention that. I have re-read
+> the cover letter and all changelogs of patches in this serious. Unless I
+> have missed something there is nothing about real users hitting issues
+> out there. nvdimm is still considered a toy because there is no real HW
+> users can play with.
 
+Yes, you have missed something, because that's incorrect. There's been
+public articles about these parts sampling since May.
 
-I plan to ping the series, but I wanted to give more time to people
-since we are in the merge window now.
+    https://www.anandtech.com/show/12828/intel-launches-optane-dimms-up-to-512gb-apache-pass-is-here
 
-[1] https://patchwork.kernel.org/cover/10642049/
-[2] https://patchwork.kernel.org/patch/10642057/#22275173
+That testing identified this initialization performance problem and
+thankfully got it addressed in time for the current merge window.
