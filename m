@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from esa10.fujitsucc.c3s2.iphmx.com (esa10.fujitsucc.c3s2.iphmx.com
- [68.232.159.247])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com
+ [IPv6:2607:f8b0:4864:20::32f])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA45A21188469
- for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 22:59:25 -0700 (PDT)
-From: "y-goto@fujitsu.com" <y-goto@fujitsu.com>
-Subject: RE: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
-Date: Wed, 31 Oct 2018 05:59:17 +0000
-Message-ID: <TYAPR01MB32619CCA488DD0DA86EDB17E90CD0@TYAPR01MB3261.jpnprd01.prod.outlook.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9F65721184E69
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 15:59:21 -0700 (PDT)
+Received: by mail-ot1-x32f.google.com with SMTP id j3so7004846otl.9
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 15:59:21 -0700 (PDT)
+MIME-Version: 1.0
 References: <20181002100531.GC4135@quack2.suse.cz>
  <20181002121039.GA3274@linux-x5ow.site>
  <20181002142959.GD9127@quack2.suse.cz>
@@ -18,8 +17,10 @@ References: <20181002100531.GC4135@quack2.suse.cz>
  <CAPcyv4ixoAh7HEMfm+B4sRDx1Qwm6SHGjtQ+5r3EKsxreRydrA@mail.gmail.com>
  <20181030224904.GT19305@dastard>
 In-Reply-To: <20181030224904.GT19305@dastard>
-Content-Language: ja-JP
-MIME-Version: 1.0
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 30 Oct 2018 15:59:09 -0700
+Message-ID: <CAPcyv4gwBJ65170Gy+EaDLpomA93kxuWTM10mZeaPYV6Rq=SRw@mail.gmail.com>
+Subject: Re: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,12 +32,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Dave Chinner' <david@fromorbit.com>, Dan Williams <dan.j.williams@intel.com>
+To: david <david@fromorbit.com>
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
-
+On Tue, Oct 30, 2018 at 3:49 PM Dave Chinner <david@fromorbit.com> wrote:
+>
 > On Mon, Oct 29, 2018 at 11:30:41PM -0700, Dan Williams wrote:
 > > On Thu, Oct 18, 2018 at 5:58 PM Dave Chinner <david@fromorbit.com> wrote:
 > > > On Thu, Oct 18, 2018 at 04:55:55PM +0200, Jan Kara wrote:
@@ -74,44 +75,44 @@ Hello,
 > > The hard guarantee requirement still remains though because an
 > > application that expects combined MAP_SYNC|MAP_DIRECT semantics will
 > > be surprised if the MAP_DIRECT property silently disappears.
-> 
+>
 > Why would they be surprised? They won't even notice it if the
 > filesystem can provide MAP_SYNC without MAP_DIRECT.
-> 
+>
 > And that's the whole point.
-> 
+>
 > MAP_DIRECT is a private mapping state. So is MAP_SYNC. They are not
 > visible to the filesystem and the filesystem does nothing to enforce
 > them. If someone does something that requires the page cache (e.g.
 > calls do_splice_direct()) then that MAP_DIRECT mapping has a whole
 > heap of new work to do. And, in some cases, the filesystem may not
 > be able to provide MAP_DIRECT as a result..
-> 
+>
 > IOWs, the filesystem cannot guarantee MAP_DIRECT and the
 > circumstances under which MAP_DIRECT will and will not work are
 > dynamic. If MAP_DIRECT is supposed to be a guarantee then we'll have
 > applications randomly segfaulting in production as things like
 > backups, indexers, etc run over the filesystem and do their work.
-> 
+>
 > This is why MAP_DIRECT needs to be an optimisation, not a
 > requirement - things will still work if MAP_DIRECT is not used. What
 > matters to these applications is MAP_SYNC - if we break MAP_SYNC,
 > then the application data integrity model is violated. That's not an
 > acceptible outcome.
-> 
+>
 > The problem, it seems to me, is that people are unable to separate
 > MAP_DIRECT and MAP_SYNC. I suspect that is because, at present,
 > MAP_SYNC on XFS and ext4 requires MAP_DIRECT. i.e. we can only
 > provide MAP_SYNC functionality on DAX mappings. However, that's a
 > /filesystem implementation issue/, not an API guarantee we need to
 > provide to userspace.
-> 
+>
 > If we implement a persistent page cache (e.g. allocate page cache
 > pages out of ZONE_DEVICE pmem), then filesystems like XFS and ext4
 > could provide applications with the MAP_SYNC data integrity model
 > without MAP_DIRECT. Indeed, those filesystems would not even be able
 > to provide MAP_DIRECT semantics because they aren't backed by pmem.
-> 
+>
 > Hence if applications that want MAP_SYNC are hard coded
 > MAP_SYNC|MAP_DIRECT and we make MAP_DIRECT a hard guarantee, then
 > those applications are going to fail on a filesystem that provides
@@ -120,7 +121,7 @@ Hello,
 > i.e. the failure is because applications have assumed MAP_SYNC can
 > only be provided by a DAX implementation, not because MAP_SYNC is
 > not supported.
-> 
+>
 > MAP_SYNC really isn't about DAX at all. It's about enabling a data
 > integrity model that requires the filesystem to provide userspace
 > access to CPU addressable persistent memory.  DAX+MAP_DIRECT is just
@@ -128,70 +129,43 @@ Hello,
 > method. Our API needs to be future proof rather than an encoding of
 > the existing implementation limitations, otherwise apps will have to
 > be re-written as every new MAP_SYNC capable technology comes along.
-> 
+>
 > In summary:
-> 
-> 	MAP_DIRECT is an access hint.
-> 
-> 	MAP_SYNC provides a data integrity model guarantee.
-> 
-> 	MAP_SYNC may imply MAP_DIRECT for specific implementations,
-> 	but it does not require or guarantee MAP_DIRECT.
-> 
+>
+>         MAP_DIRECT is an access hint.
+>
+>         MAP_SYNC provides a data integrity model guarantee.
+>
+>         MAP_SYNC may imply MAP_DIRECT for specific implementations,
+>         but it does not require or guarantee MAP_DIRECT.
+>
 > Let's compare that with O_DIRECT:
-> 
-> 	O_DIRECT in an access hint.
-> 
-> 	O_DSYNC provides a data integrity model guarantee.
-> 
-> 	O_DSYNC may imply O_DIRECT for specific implementations, but
-> 	it does not require or guarantee O_DIRECT.
-> 
+>
+>         O_DIRECT in an access hint.
+>
+>         O_DSYNC provides a data integrity model guarantee.
+>
+>         O_DSYNC may imply O_DIRECT for specific implementations, but
+>         it does not require or guarantee O_DIRECT.
+>
 > Consistency in access and data integrity models is a good thing. DAX
 > and pmem is not an exception. We need to use a model we know works
 > and has proven itself over a long period of time.
-
-Hmmm, then, I would like to know all of the reasons of breakage of MAP_DIRECT.
-(I'm not opposed to your opinion, but I need to know it.)
-
-In O_DIRECT case, in my understanding, the reason of breakage of O_DIRECT is 
-"wrong alignment is specified by application", right?
-
-When filesystem can not use O_DIRECT and it uses page cache instead,
-then system uses more memory resource than user's expectation.
-So, there is a side effect, and it may cause other trouble.
-(memory pressure, expected performance can not be gained, and so on ..)
- 
-In such case its administrator (or technical support engineer) needs to struggle to
-investigate what is the reason.
-If the reason of the breakage is clear, then it is helpful to find the root cause,
-and they can require the developer of wrong application to fix the problem.
-"Please fix the alignment!".
-
-So, I would like to know in MAP_DIRECT case, what is the reasons? 
-I think it will be helpful for users.
-Only splice?
-
-(Maybe such document will be necessary....)
-
-Thanks,
-
-> 
+>
 > > I think
 > > it still makes some sense as a hint for apps that want to minimize
 > > page cache, but for the applications with a flush from userspace model
 > > I think that wants to be an F_SETLEASE / F_DIRECTLCK operation. This
 > > still gives the filesystem the option to inject page-cache at will,
 > > but with an application coordination point.
-> 
+>
 > Why make it more complex for applications than it needs to be?
-> 
-> Cheers,
-> 
-> Dave.
-> --
-> Dave Chinner
-> david@fromorbit.com
+
+With the clarification that MAP_SYNC implies "cpu cache flush to
+persistent memory page-cache *or* dax to persistent memory" I think
+all of the concerns are addressed. I was conflating MAP_DIRECT as "no
+page cache indirection", but the indirection does not matter if the
+page cache itself is persisted.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
