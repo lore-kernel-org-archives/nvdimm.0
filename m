@@ -1,14 +1,16 @@
 From: Barret Rhoden <brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [RFC PATCH] kvm: Use huge pages for DAX-backed files
-Date: Mon, 29 Oct 2018 20:28:54 -0400
-Message-ID: <20181029202854.7c924fd3@gnomeregan.cam.corp.google.com>
+Date: Tue, 30 Oct 2018 15:45:24 -0400
+Message-ID: <20181030154524.181b8236@gnomeregan.cam.corp.google.com>
 References: <20181029210716.212159-1-brho@google.com>
  <CAPcyv4gJUjuSKwy7i2wuKR=Vz-AkDrxnGya5qkg7XTFxuXbtzw@mail.gmail.com>
+ <20181029202854.7c924fd3@gnomeregan.cam.corp.google.com>
+ <CAPcyv4gQztHrJ3--rhU4ZpaZyyqdqE0=gx50CRArHKiXwfYC+A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gJUjuSKwy7i2wuKR=Vz-AkDrxnGya5qkg7XTFxuXbtzw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAPcyv4gQztHrJ3--rhU4ZpaZyyqdqE0=gx50CRArHKiXwfYC+A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,75 +25,85 @@ Cc: X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Zhang, Yu C" <yu.c.zh
  Yi Z" <yi.z.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On 2018-10-29 at 15:25 Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > +       /*
-> > +        * Our caller grabbed the KVM mmu_lock with a successful
-> > +        * mmu_notifier_retry, so we're safe to walk the page table.
-> > +        */
-> > +       map_sz = pgd_mapping_size(current->mm, hva);
-> > +       switch (map_sz) {
-> > +       case PMD_SIZE:
-> > +               return true;
-> > +       case P4D_SIZE:
-> > +       case PUD_SIZE:
-> > +               printk_once(KERN_INFO "KVM THP promo found a very large page");  
+On 2018-10-29 at 20:10 Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > > >  static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
+> > > >                                         gfn_t *gfnp, kvm_pfn_t *pfnp,
+> > > >                                         int *levelp)
+> > > > @@ -3168,7 +3237,7 @@ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
+> > > >          */
+> > > >         if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
+> > > >             level == PT_PAGE_TABLE_LEVEL &&
+> > > > -           PageTransCompoundMap(pfn_to_page(pfn)) &&
+> > > > +           pfn_is_pmd_mapped(vcpu->kvm, gfn, pfn) &&  
+> > >
+> > > I'm wondering if we're adding an explicit is_zone_device_page() check
+> > > in this path to determine the page mapping size if that can be a
+> > > replacement for the kvm_is_reserved_pfn() check. In other words, the
+> > > goal of fixing up PageReserved() was to preclude the need for DAX-page
+> > > special casing in KVM, but if we already need add some special casing
+> > > for page size determination, might as well bypass the
+> > > kvm_is_reserved_pfn() dependency as well.  
+> >
+> > kvm_is_reserved_pfn() is used in some other places, like
+> > kvm_set_pfn_dirty()and kvm_set_pfn_accessed().  Maybe the way those
+> > treat DAX pages matters on a case-by-case basis?
+> >
+> > There are other callers of kvm_is_reserved_pfn() such as
+> > kvm_pfn_to_page() and gfn_to_page().  I'm not familiar (yet) with how
+> > struct pages and DAX work together, and whether or not the callers of
+> > those pfn_to_page() functions have expectations about the 'type' of
+> > struct page they get back.
+> >  
 > 
-> Why not allow PUD_SIZE? The device-dax interface supports PUD mappings.
-
-The place where I use that helper seemed to care about PMDs (compared
-to huge pages larger than PUDs), I think due to THP.  Though it also
-checks "level == PT_PAGE_TABLE_LEVEL", so it's probably a moot point.
-
-I can change it from pfn_is_pmd_mapped -> pfn_is_huge_mapped and allow
-any huge mapping that is appropriate: so PUD or PMD for DAX, PMD for
-non-DAX, IIUC.
-
+> The property of DAX pages that requires special coordination is the
+> fact that the device hosting the pages can be disabled at will. The
+> get_dev_pagemap() api is the interface to pin a device-pfn so that you
+> can safely perform a pfn_to_page() operation.
 > 
-> > +               return false;
-> > +       }
-> > +       return false;
-> > +}  
-> 
-> The above 2 functions are  similar to what we need to do for
-> determining the blast radius of a memory error, see
-> dev_pagemap_mapping_shift() and its usage in add_to_kill().
+> Have the pages that kvm uses in this path already been pinned by vfio?
 
-Great.  I don't know if I have access in the KVM code to the VMA to use
-those functions directly, but I can extract the guts of
-dev_pagemap_mapping_shift() or something and put it in mm/util.c.
+I'm not aware of any explicit pinning, but it might be happening under
+the hood.  These pages are just generic guest RAM, but they are present
+in a host-side mapping.  I ran into this when looking at EPT fault
+handling.  In the code I changed, a physical page was faulted in to the
+task's page table, then while the kvm->mmu_lock is held, KVM makes an
+EPT mapping to the same physical page.  That mmu_lock seems to prevent
+any concurrent host-side unmappings; though I'm not familiar with the mm
+notifier stuff.
 
-> >  static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
-> >                                         gfn_t *gfnp, kvm_pfn_t *pfnp,
-> >                                         int *levelp)
-> > @@ -3168,7 +3237,7 @@ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
-> >          */
-> >         if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
-> >             level == PT_PAGE_TABLE_LEVEL &&
-> > -           PageTransCompoundMap(pfn_to_page(pfn)) &&
-> > +           pfn_is_pmd_mapped(vcpu->kvm, gfn, pfn) &&  
-> 
-> I'm wondering if we're adding an explicit is_zone_device_page() check
-> in this path to determine the page mapping size if that can be a
-> replacement for the kvm_is_reserved_pfn() check. In other words, the
-> goal of fixing up PageReserved() was to preclude the need for DAX-page
-> special casing in KVM, but if we already need add some special casing
-> for page size determination, might as well bypass the
-> kvm_is_reserved_pfn() dependency as well.
+One usage of kvm_is_reserved_pfn() in KVM code is like this:
 
-kvm_is_reserved_pfn() is used in some other places, like
-kvm_set_pfn_dirty()and kvm_set_pfn_accessed().  Maybe the way those
-treat DAX pages matters on a case-by-case basis?  
+static struct page *kvm_pfn_to_page(kvm_pfn_t pfn)
+{  
+        if (is_error_noslot_pfn(pfn))
+                return KVM_ERR_PTR_BAD_PAGE; 
+    
+        if (kvm_is_reserved_pfn(pfn)) {                      
+                WARN_ON(1);
+                return KVM_ERR_PTR_BAD_PAGE;                         
+        }
 
-There are other callers of kvm_is_reserved_pfn() such as
-kvm_pfn_to_page() and gfn_to_page().  I'm not familiar (yet) with how
-struct pages and DAX work together, and whether or not the callers of
-those pfn_to_page() functions have expectations about the 'type' of
-struct page they get back.
+        return pfn_to_page(pfn);                                                  
+}
 
-It looks like another time that this popped up was kvm_is_mmio_pfn(),
-though that wasn't exactly checking kvm_is_reserved_pfn(), and it
-special cased based on the memory type / PAT business.
+I think there's no guarantee the kvm->mmu_lock is held in the generic
+case.  Here's one case where it wasn't (from walking through the code):
+
+handle_exception
+-handle_ud
+--kvm_emulate_instruction
+---x86_emulate_instruction
+----x86_emulate_insn
+-----writeback
+------segmented_cmpxchg
+-------emulator_cmpxchg_emulated
+--------kvm_vcpu_gfn_to_page
+---------kvm_pfn_to_page
+
+There are probably other rules related to gfn_to_page that keep the
+page alive, maybe just during interrupt/vmexit context?  Whatever keeps
+those pages alive for normal memory might grab that devmap reference
+under the hood for DAX mappings.
 
 Thanks,
-
 Barret
