@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 280E82117B555
- for <linux-nvdimm@lists.01.org>; Mon, 22 Oct 2018 13:18:37 -0700 (PDT)
-Subject: [PATCH 1/9] mm/resource: return real error codes from walk failures
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 22 Oct 2018 13:13:19 -0700
-References: <20181022201317.8558C1D8@viggo.jf.intel.com>
-In-Reply-To: <20181022201317.8558C1D8@viggo.jf.intel.com>
-Message-Id: <20181022201319.471D7B85@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 898782116DF85
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 20:24:53 -0700 (PDT)
+Subject: [PATCH 3/8] device-dax: Remove multi-resource infrastructure
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 30 Oct 2018 20:13:05 -0700
+Message-ID: <154095558513.3271337.6460925877189898414.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154095556915.3271337.12581429676272726902.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154095556915.3271337.12581429676272726902.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,75 +18,201 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, zwisler@kernel.org, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-mm@kvack.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+The multi-resource implementation anticipated discontiguous sub-division
+support. That has not yet materialized, delete the infrastructure and
+related code.
 
-walk_system_ram_range() can return an error code either becuase *it*
-failed, or because the 'func' that it calls returned an error.  The
-memory hotplug does the following:
-
-        ret = walk_system_ram_range(..., func);
-        if (ret)
-		return ret;
-
-and 'ret' makes it out to userspace, eventually.  The problem is,
-walk_system_ram_range() failues that result from *it* failing (as
-opposed to 'func') return -1.  That leads to a very odd -EPERM (-1)
-return code out to userspace.
-
-Make walk_system_ram_range() return -EINVAL for internal failures to
-keep userspace less confused.
-
-This return code is compatible with all the callers that I audited.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-
-
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/dax/dax-private.h      |    4 ---
+ drivers/dax/device-dax.h       |    3 +-
+ drivers/dax/device.c           |   49 +++++++---------------------------------
+ drivers/dax/pmem.c             |    3 +-
+ tools/testing/nvdimm/dax-dev.c |   16 ++-----------
+ 5 files changed, 13 insertions(+), 62 deletions(-)
 
- b/kernel/resource.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1 kernel/resource.c
---- a/kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1	2018-10-22 13:12:21.000930395 -0700
-+++ b/kernel/resource.c	2018-10-22 13:12:21.003930395 -0700
-@@ -375,7 +375,7 @@ static int __walk_iomem_res_desc(resourc
- 				 int (*func)(struct resource *, void *))
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index 9b393c218fe4..dbd077653b5c 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -39,14 +39,10 @@ struct dax_region {
+  * @region - parent region
+  * @dax_dev - core dax functionality
+  * @dev - device core
+- * @num_resources - number of physical address extents in this device
+- * @res - array of physical address ranges
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+ 	struct dax_device *dax_dev;
+ 	struct device dev;
+-	int num_resources;
+-	struct resource res[0];
+ };
+ #endif
+diff --git a/drivers/dax/device-dax.h b/drivers/dax/device-dax.h
+index 4f1c69e1b3a2..e9be99584b92 100644
+--- a/drivers/dax/device-dax.h
++++ b/drivers/dax/device-dax.h
+@@ -19,6 +19,5 @@ struct dax_region;
+ void dax_region_put(struct dax_region *dax_region);
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		struct resource *res, unsigned int align, unsigned long flags);
+-struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+-		int id, struct resource *res, int count);
++struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region, int id);
+ #endif /* __DEVICE_DAX_H__ */
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 811c1015194c..db12e24b8005 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -151,11 +151,7 @@ static ssize_t size_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	struct resource res;
--	int ret = -1;
-+	int ret = -EINVAL;
+ 	struct dev_dax *dev_dax = to_dev_dax(dev);
+-	unsigned long long size = 0;
+-	int i;
+-
+-	for (i = 0; i < dev_dax->num_resources; i++)
+-		size += resource_size(&dev_dax->res[i]);
++	unsigned long long size = resource_size(&dev_dax->region->res);
  
- 	while (start < end &&
- 	       !find_next_iomem_res(start, end, flags, desc, first_lvl, &res)) {
-@@ -453,7 +453,7 @@ int walk_system_ram_range(unsigned long
- 	unsigned long flags;
- 	struct resource res;
- 	unsigned long pfn, end_pfn;
--	int ret = -1;
-+	int ret = -EINVAL;
+ 	return sprintf(buf, "%llu\n", size);
+ }
+@@ -224,21 +220,11 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ __weak phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 		unsigned long size)
+ {
+-	struct resource *res;
+-	/* gcc-4.6.3-nolibc for i386 complains that this is uninitialized */
+-	phys_addr_t uninitialized_var(phys);
+-	int i;
+-
+-	for (i = 0; i < dev_dax->num_resources; i++) {
+-		res = &dev_dax->res[i];
+-		phys = pgoff * PAGE_SIZE + res->start;
+-		if (phys >= res->start && phys <= res->end)
+-			break;
+-		pgoff -= PHYS_PFN(resource_size(res));
+-	}
++	struct resource *res = &dev_dax->region->res;
++	phys_addr_t phys;
  
- 	start = (u64) start_pfn << PAGE_SHIFT;
- 	end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
-_
+-	if (i < dev_dax->num_resources) {
+-		res = &dev_dax->res[i];
++	phys = pgoff * PAGE_SIZE + res->start;
++	if (phys >= res->start && phys <= res->end) {
+ 		if (phys + size - 1 <= res->end)
+ 			return phys;
+ 	}
+@@ -608,8 +594,7 @@ static void unregister_dev_dax(void *dev)
+ 	put_device(dev);
+ }
+ 
+-struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+-		int id, struct resource *res, int count)
++struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region, int id)
+ {
+ 	struct device *parent = dax_region->dev;
+ 	struct dax_device *dax_dev;
+@@ -617,29 +602,12 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+ 	struct inode *inode;
+ 	struct device *dev;
+ 	struct cdev *cdev;
+-	int rc, i;
++	int rc;
+ 
+-	if (!count)
+-		return ERR_PTR(-EINVAL);
+-
+-	dev_dax = kzalloc(struct_size(dev_dax, res, count), GFP_KERNEL);
++	dev_dax = kzalloc(sizeof(*dev_dax), GFP_KERNEL);
+ 	if (!dev_dax)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	for (i = 0; i < count; i++) {
+-		if (!IS_ALIGNED(res[i].start, dax_region->align)
+-				|| !IS_ALIGNED(resource_size(&res[i]),
+-					dax_region->align)) {
+-			rc = -EINVAL;
+-			break;
+-		}
+-		dev_dax->res[i].start = res[i].start;
+-		dev_dax->res[i].end = res[i].end;
+-	}
+-
+-	if (i < count)
+-		goto err;
+-
+ 	/*
+ 	 * No 'host' or dax_operations since there is no access to this
+ 	 * device outside of mmap of the resulting character device.
+@@ -659,7 +627,6 @@ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+ 	cdev_init(cdev, &dax_fops);
+ 	cdev->owner = parent->driver->owner;
+ 
+-	dev_dax->num_resources = count;
+ 	dev_dax->dax_dev = dax_dev;
+ 	dev_dax->region = dax_region;
+ 	kref_get(&dax_region->kref);
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index 3afae503fc42..23bc8ed40e84 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -137,8 +137,7 @@ static int dax_pmem_probe(struct device *dev)
+ 	if (!dax_region)
+ 		return -ENOMEM;
+ 
+-	/* TODO: support for subdividing a dax region... */
+-	dev_dax = devm_create_dev_dax(dax_region, id, &res, 1);
++	dev_dax = devm_create_dev_dax(dax_region, id);
+ 
+ 	/* child dev_dax instances now own the lifetime of the dax_region */
+ 	dax_region_put(dax_region);
+diff --git a/tools/testing/nvdimm/dax-dev.c b/tools/testing/nvdimm/dax-dev.c
+index 36ee3d8797c3..f36e708265b8 100644
+--- a/tools/testing/nvdimm/dax-dev.c
++++ b/tools/testing/nvdimm/dax-dev.c
+@@ -17,20 +17,11 @@
+ phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 		unsigned long size)
+ {
+-	struct resource *res;
++	struct resource *res = &dev_dax->region->res;
+ 	phys_addr_t addr;
+-	int i;
+ 
+-	for (i = 0; i < dev_dax->num_resources; i++) {
+-		res = &dev_dax->res[i];
+-		addr = pgoff * PAGE_SIZE + res->start;
+-		if (addr >= res->start && addr <= res->end)
+-			break;
+-		pgoff -= PHYS_PFN(resource_size(res));
+-	}
+-
+-	if (i < dev_dax->num_resources) {
+-		res = &dev_dax->res[i];
++	addr = pgoff * PAGE_SIZE + res->start;
++	if (addr >= res->start && addr <= res->end) {
+ 		if (addr + size - 1 <= res->end) {
+ 			if (get_nfit_res(addr)) {
+ 				struct page *page;
+@@ -44,6 +35,5 @@ phys_addr_t dax_pgoff_to_phys(struct dev_dax *dev_dax, pgoff_t pgoff,
+ 				return addr;
+ 		}
+ 	}
+-
+ 	return -1;
+ }
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
