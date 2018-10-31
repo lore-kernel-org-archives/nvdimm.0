@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 145F3211799E5
- for <linux-nvdimm@lists.01.org>; Thu, 25 Oct 2018 17:37:39 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 1/2] nfit, mce: only handle uncorrectable machine checks
-Date: Thu, 25 Oct 2018 18:37:28 -0600
-Message-Id: <20181026003729.8420-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DD06821184E95
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 20:24:48 -0700 (PDT)
+Subject: [PATCH 2/8] device-dax: Kill dax_region base
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 30 Oct 2018 20:13:00 -0700
+Message-ID: <154095558001.3271337.4593586036083228319.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154095556915.3271337.12581429676272726902.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154095556915.3271337.12581429676272726902.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,96 +18,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Tony Luck <tony.luck@intel.com>, stable@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-edac@vger.kernel.org
+Cc: linux-mm@kvack.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The mce handler for 'nfit' devices is called for memory errors on a
-Non-Volatile DIMM, and adds the error location to a 'badblocks' list.
-This list is used by the various NVDIMM drivers to avoid consuming known
-poison locations during IO.
+Nothing consumes this attribute of a region and devres otherwise
+remembers the value for de-allocation purposes.
 
-The mce handler gets called for both corrected and uncorrectable errors.
-Until now, both kinds of errors have been added to the badblocks list.
-However, corrected memory errors indicate that the problem has already
-been fixed by hardware, and the resulting interrupt is merely a
-notification to Linux. As far as future accesses to that location are
-concerned, it is perfectly fine to use, and thus doesn't need to be
-included in the above badblocks list.
-
-Add a check in the nfit mce handler to filter out corrected mce events,
-and only process uncorrectable errors.
-
-Reported-by: Omar Avelar <omar.avelar@intel.com>
-Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-Cc: stable@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/x86/include/asm/mce.h       | 1 +
- arch/x86/kernel/cpu/mcheck/mce.c | 3 ++-
- drivers/acpi/nfit/mce.c          | 4 ++--
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/dax/dax-private.h |    2 --
+ drivers/dax/device-dax.h  |    5 ++---
+ drivers/dax/device.c      |    3 +--
+ drivers/dax/pmem.c        |    2 +-
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
-v3: Unchanged from v2
-
-diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-index 3a17107594c8..3111b3cee2ee 100644
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysaddr(u64 norm_addr, u16 nid, u8 umc, u64 *s
- 
- int mce_available(struct cpuinfo_x86 *c);
- bool mce_is_memory_error(struct mce *m);
-+bool mce_is_correctable(struct mce *m);
- 
- DECLARE_PER_CPU(unsigned, mce_exception_count);
- DECLARE_PER_CPU(unsigned, mce_poll_count);
-diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-index 953b3ce92dcc..27015948bc41 100644
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -534,7 +534,7 @@ bool mce_is_memory_error(struct mce *m)
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index d1b36a42132f..9b393c218fe4 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -19,7 +19,6 @@
+ /**
+  * struct dax_region - mapping infrastructure for dax devices
+  * @id: kernel-wide unique region for a memory range
+- * @base: linear address corresponding to @res
+  * @kref: to pin while other agents have a need to do lookups
+  * @dev: parent device backing this region
+  * @align: allocation and mapping alignment for child dax devices
+@@ -28,7 +27,6 @@
+  */
+ struct dax_region {
+ 	int id;
+-	void *base;
+ 	struct kref kref;
+ 	struct device *dev;
+ 	unsigned int align;
+diff --git a/drivers/dax/device-dax.h b/drivers/dax/device-dax.h
+index 688b051750bd..4f1c69e1b3a2 100644
+--- a/drivers/dax/device-dax.h
++++ b/drivers/dax/device-dax.h
+@@ -17,9 +17,8 @@ struct dev_dax;
+ struct resource;
+ struct dax_region;
+ void dax_region_put(struct dax_region *dax_region);
+-struct dax_region *alloc_dax_region(struct device *parent,
+-		int region_id, struct resource *res, unsigned int align,
+-		void *addr, unsigned long flags);
++struct dax_region *alloc_dax_region(struct device *parent, int region_id,
++		struct resource *res, unsigned int align, unsigned long flags);
+ struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+ 		int id, struct resource *res, int count);
+ #endif /* __DEVICE_DAX_H__ */
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index a5a670c1cd58..811c1015194c 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -100,7 +100,7 @@ static void dax_region_unregister(void *region)
  }
- EXPORT_SYMBOL_GPL(mce_is_memory_error);
  
--static bool mce_is_correctable(struct mce *m)
-+bool mce_is_correctable(struct mce *m)
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+-		struct resource *res, unsigned int align, void *addr,
++		struct resource *res, unsigned int align,
+ 		unsigned long pfn_flags)
  {
- 	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
- 		return false;
-@@ -544,6 +544,7 @@ static bool mce_is_correctable(struct mce *m)
+ 	struct dax_region *dax_region;
+@@ -130,7 +130,6 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 	dax_region->id = region_id;
+ 	dax_region->align = align;
+ 	dax_region->dev = parent;
+-	dax_region->base = addr;
+ 	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+ 		kfree(dax_region);
+ 		return NULL;
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index 99e2aace8078..3afae503fc42 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -133,7 +133,7 @@ static int dax_pmem_probe(struct device *dev)
+ 		return -EINVAL;
  
- 	return true;
- }
-+EXPORT_SYMBOL_GPL(mce_is_correctable);
+ 	dax_region = alloc_dax_region(dev, region_id, &res,
+-			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
++			le32_to_cpu(pfn_sb->align), PFN_DEV|PFN_MAP);
+ 	if (!dax_region)
+ 		return -ENOMEM;
  
- static bool cec_add_mce(struct mce *m)
- {
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index e9626bf6ca29..7a51707f87e9 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct nfit_spa *nfit_spa;
- 
--	/* We only care about memory errors */
--	if (!mce_is_memory_error(mce))
-+	/* We only care about uncorrectable memory errors */
-+	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
- 		return NOTIFY_DONE;
- 
- 	/*
--- 
-2.17.1
 
 _______________________________________________
 Linux-nvdimm mailing list
