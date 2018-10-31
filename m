@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E6E7221161691
- for <linux-nvdimm@lists.01.org>; Thu,  4 Oct 2018 14:28:01 -0700 (PDT)
-From: Logan Gunthorpe <logang@deltatee.com>
-Date: Thu,  4 Oct 2018 15:27:36 -0600
-Message-Id: <20181004212747.6301-3-logang@deltatee.com>
-In-Reply-To: <20181004212747.6301-1-logang@deltatee.com>
-References: <20181004212747.6301-1-logang@deltatee.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9F95821184ADE
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 20:02:16 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id 14so13254998oth.2
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Oct 2018 20:02:16 -0700 (PDT)
 MIME-Version: 1.0
-Subject: [PATCH v9 02/13] PCI/P2PDMA: Add sysfs group to display p2pmem stats
+References: <20181031015025.6406-1-msys.mizuma@gmail.com>
+In-Reply-To: <20181031015025.6406-1-msys.mizuma@gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 30 Oct 2018 20:02:03 -0700
+Message-ID: <CAPcyv4hTMTvNdQ_KTQg_1-VXOaXTOSDnHmFaObW33wuu_QiivA@mail.gmail.com>
+Subject: Re: [PATCH v2] tools/testing/nvdimm: Fix the array size for dimm
+ devices.
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,140 +26,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+To: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a sysfs group to display statistics about P2P memory that is
-registered in each PCI device.
+On Tue, Oct 30, 2018 at 6:51 PM Masayoshi Mizuma <msys.mizuma@gmail.com> wrote:
+>
+> From: Masayoshi Mizuma <m.mizuma@jp.fujitsu.com>
+>
+> KASAN reports following global out of bounds access while
+> nfit_test is being loaded. The out of bound access happens
+> the following reference to dimm_fail_cmd_flags[dimm]. 'dimm' is
+> over than the index value, NUM_DCR (==5).
+>
+>   static int override_return_code(int dimm, unsigned int func, int rc)
+>   {
+>           if ((1 << func) & dimm_fail_cmd_flags[dimm]) {
+>
+> dimm_fail_cmd_flags[] definition:
+>   static unsigned long dimm_fail_cmd_flags[NUM_DCR];
+>
+> 'dimm' is the return value of get_dimm(), and get_dimm() returns
+> the index of handle[] array. The handle[] has 7 index. Let's use
+> ARRAY_SIZE(handle) as the array size.
+>
+> KASAN report:
+> ==================================================================
+> BUG: KASAN: global-out-of-bounds in nfit_test_ctl+0x47bb/0x55b0 [nfit_test]
+> Read of size 8 at addr ffffffffc10cbbe8 by task kworker/u41:0/8
+> ...
+> Call Trace:
+>  dump_stack+0xea/0x1b0
+>  ? dump_stack_print_info.cold.0+0x1b/0x1b
+>  ? kmsg_dump_rewind_nolock+0xd9/0xd9
+>  print_address_description+0x65/0x22e
+>  ? nfit_test_ctl+0x47bb/0x55b0 [nfit_test]
+>  kasan_report.cold.6+0x92/0x1a6
+>  nfit_test_ctl+0x47bb/0x55b0 [nfit_test]
+> ...
+> The buggy address belongs to the variable:
+>  dimm_fail_cmd_flags+0x28/0xffffffffffffa440 [nfit_test]
+> ==================================================================
+>
 
-Attributes in the group display the total amount of P2P memory, the
-amount available and whether it is published or not.
-
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
----
- Documentation/ABI/testing/sysfs-bus-pci | 24 +++++++++++
- drivers/pci/p2pdma.c                    | 54 +++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
-
-diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-index 44d4b2be92fd..8bfee557e50e 100644
---- a/Documentation/ABI/testing/sysfs-bus-pci
-+++ b/Documentation/ABI/testing/sysfs-bus-pci
-@@ -323,3 +323,27 @@ Description:
- 
- 		This is similar to /sys/bus/pci/drivers_autoprobe, but
- 		affects only the VFs associated with a specific PF.
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/size
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the total amount of memory that the device
-+		provides (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/available
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the amount of memory that has not been
-+		allocated (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/published
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang@deltatee.com>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains a '1' if the memory has been published for
-+		use outside the driver that owns the device.
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index c32cab20dd73..526c638579d1 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -24,6 +24,54 @@ struct pci_p2pdma {
- 	bool p2pmem_published;
- };
- 
-+static ssize_t size_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t size = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		size = gen_pool_size(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
-+}
-+static DEVICE_ATTR_RO(size);
-+
-+static ssize_t available_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t avail = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		avail = gen_pool_avail(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
-+}
-+static DEVICE_ATTR_RO(available);
-+
-+static ssize_t published_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			pdev->p2pdma->p2pmem_published);
-+}
-+static DEVICE_ATTR_RO(published);
-+
-+static struct attribute *p2pmem_attrs[] = {
-+	&dev_attr_size.attr,
-+	&dev_attr_available.attr,
-+	&dev_attr_published.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group p2pmem_group = {
-+	.attrs = p2pmem_attrs,
-+	.name = "p2pmem",
-+};
-+
- static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
- {
- 	struct pci_p2pdma *p2p =
-@@ -59,6 +107,7 @@ static void pci_p2pdma_release(void *data)
- 	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
- 
- 	gen_pool_destroy(pdev->p2pdma->pool);
-+	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
- 	pdev->p2pdma = NULL;
- }
- 
-@@ -87,9 +136,14 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 
- 	pdev->p2pdma = p2p;
- 
-+	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
-+	if (error)
-+		goto out_pool_destroy;
-+
- 	return 0;
- 
- out_pool_destroy:
-+	pdev->p2pdma = NULL;
- 	gen_pool_destroy(p2p->pool);
- out:
- 	devm_kfree(&pdev->dev, p2p);
--- 
-2.19.0
-
+Looks good, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
