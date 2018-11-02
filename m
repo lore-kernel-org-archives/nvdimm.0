@@ -1,73 +1,73 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Change your password immediately. Your account has been hacked.
-Date: 2 Nov 2018 20:22:55 +0400
-Message-ID: <336502138.201811022039@lists.01.org>
+From: Barret Rhoden <brho@google.com>
+Subject: Re: [RFC PATCH] kvm: Use huge pages for DAX-backed files
+Date: Fri, 2 Nov 2018 16:32:54 -0400
+Message-ID: <20181102163254.04be68b5@gnomeregan.cam.corp.google.com>
+References: <20181029210716.212159-1-brho@google.com>
+        <CAPcyv4gJUjuSKwy7i2wuKR=Vz-AkDrxnGya5qkg7XTFxuXbtzw@mail.gmail.com>
+        <20181029202854.7c924fd3@gnomeregan.cam.corp.google.com>
+        <CAPcyv4gQztHrJ3--rhU4ZpaZyyqdqE0=gx50CRArHKiXwfYC+A@mail.gmail.com>
+        <20181030154524.181b8236@gnomeregan.cam.corp.google.com>
+        <71d52e0f-ec40-d423-4dd4-e3aeb3730166@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <71d52e0f-ec40-d423-4dd4-e3aeb3730166@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paolo Bonzini <pbonzini@redhat.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>, zwisler@kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, rkrcmar@redhat.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, KVM list <kvm@vger.kernel.org>, "Zhang, Yu C" <yu.c.zhang@intel.com>, "Zhang, Yi Z" <yi.z.zhang@intel.com>
 List-Id: linux-nvdimm@lists.01.org
 
-I greet you!
+On 2018-10-31 at 09:49 Paolo Bonzini <pbonzini@redhat.com> wrote:
+> > On 2018-10-29 at 20:10 Dan Williams <dan.j.williams@intel.com> wrote:  
+> >> The property of DAX pages that requires special coordination is the
+> >> fact that the device hosting the pages can be disabled at will. The
+> >> get_dev_pagemap() api is the interface to pin a device-pfn so that you
+> >> can safely perform a pfn_to_page() operation.
+> >>
+> >> Have the pages that kvm uses in this path already been pinned by vfio?  
+> 
+> No, VFIO is not involved here.
+> 
+> The pages that KVM uses are never pinned.  Soon after we grab them and
+> we build KVM's page table, we do put_page in mmu_set_spte (via
+> kvm_release_pfn_clean).  From that point on the MMU notifier will take
+> care of invalidating SPT before the page disappears from the mm's page
+> table.
 
-I have bad news for you.
-11/08/2018 - on this day I hacked your operating system and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+I looked into this a little, and I think it's safe in terms of DAX's
+get_dev_pagemap() refcounts to have kvm_is_reserved_pfn() treat
+DAX pages as not reserved.  kvm_is_reserved_pfn() is used before a
+pfn_to_page() call, so the concern was that the pages didn't have a DAX
+refcount.
 
-It is useless to change the password, my malware intercepts it every time.
+Many of the times that KVM looks at the PFN, it's holding the KVM
+mmu_lock, which keeps the pages in the host-side VMA. (IIUC).
+Functions like kvm_set_pfn_dirty() fall into this category.
 
-How it was:
-In the software of the router to which you were connected that day, there was a vulnerability.
-I first hacked this router and placed my malicious code on it.
-When you entered in the Internet, my trojan was installed on the operating system of your device.
+The other times, such as the vmexit path I mentioned before, go through
+a gfn_to_pfn call.  Under the hood, those call one of the
+get_user_pages() functions during hva_to_pfn, and those do the
+right thing w.r.t. get_dev_pagemap().
 
-After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
+One of the other things I noticed was some places in KVM make a
+distinction between kvm_is_reserved_pfn and PageReserved:
 
-A month ago, I wanted to lock your device and ask for a small amount of money to unlock.
-But I looked at the sites that you regularly visit, and came to the big delight of your favorite resources.
-I'm talking about sites for adults.
+void kvm_set_pfn_dirty(kvm_pfn_t pfn)
+{
+        if (!kvm_is_reserved_pfn(pfn)) {
+                struct page *page = pfn_to_page(pfn);
 
-I want to say - you are a big pervert. You have unbridled fantasy!
+                if (!PageReserved(page))
+                        SetPageDirty(page);
+        }
+}
 
-After that, an idea came to my mind.
-I made a screenshot of the intimate website where you have fun (you know what it is about, right?).
-After that, I took off your joys (using the camera of your device). It turned out beautifully, do not hesitate.
+I think we want to SetPageDirty for DAX, so making PageReserved be true
+for DAX seems like the way to go, or we'll need more KVM-specific
+changes.  Apologies is this was discussed in the previous thread on this
+topic and is redundant.
 
-I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
-I think $874 is a very small amount for my silence.
-Besides, I spent a lot of time on you!
+Thanks,
 
-I accept money only in Bitcoins.
-My BTC wallet: 17vzpL7n29egdeJF1hvUE4tKV81MqsW4wF
-
-You do not know how to replenish a Bitcoin wallet?
-In any search engine write "how to send money to btc wallet".
-It's easier than send money to a credit card!
-
-For payment you have a little more than two days (exactly 50 hours).
-Do not worry, the timer will start at the moment when you open this letter. Yes, yes .. it has already started!
-
-After payment, my virus and dirty photos with you self-destruct automatically.
-Narrative, if I do not receive the specified amount from you, then your device will be blocked, and all your contacts will receive a photos with your "joys".
-
-I want you to be prudent.
-- Do not try to find and destroy my virus! (All your data is already uploaded to a remote server)
-- Do not try to contact me (this is not feasible, I sent you an email from your account)
-- Various security services will not help you; formatting a disk or destroying a device will not help either, since your data is already on a remote server.
-
-P.S. I guarantee you that I will not disturb you again after payment, as you are not my single victim.
- This is a hacker code of honor.
-
->From now on, I advise you to use good antiviruses and update them regularly (several times a day)!
-
-Don't be mad at me, everyone has their own work.
-Farewell.
+Barret
