@@ -1,17 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from esa7.fujitsucc.c3s2.iphmx.com (esa7.fujitsucc.c3s2.iphmx.com
+ [68.232.159.87])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE12221184AAC
- for <linux-nvdimm@lists.01.org>; Sat, 10 Nov 2018 02:47:13 -0800 (PST)
-Date: Sat, 10 Nov 2018 18:46:25 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: [linux-nvdimm:for-5.0/nvdimm-security 2/17]
- arch/powerpc//platforms/pseries/papr_scm.c:219:14: error: too few arguments
- to function 'nvdimm_create'
-Message-ID: <201811101821.6gdlPSK3%fengguang.wu@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DF6592117D298
+ for <linux-nvdimm@lists.01.org>; Thu,  1 Nov 2018 18:43:37 -0700 (PDT)
+From: "y-goto@fujitsu.com" <y-goto@fujitsu.com>
+Subject: RE: Problems with VM_MIXEDMAP removal from /proc/<pid>/smaps
+Date: Fri, 2 Nov 2018 01:43:27 +0000
+Message-ID: <TYAPR01MB32612BE7B72B099FBFB00DF190CF0@TYAPR01MB3261.jpnprd01.prod.outlook.com>
+References: <20181002100531.GC4135@quack2.suse.cz>
+ <20181002121039.GA3274@linux-x5ow.site>
+ <20181002142959.GD9127@quack2.suse.cz>
+ <x49h8hkfhk9.fsf@segfault.boston.devel.redhat.com>
+ <20181018002510.GC6311@dastard> <20181018145555.GS23493@quack2.suse.cz>
+ <20181019004303.GI6311@dastard>
+ <CAPcyv4ixoAh7HEMfm+B4sRDx1Qwm6SHGjtQ+5r3EKsxreRydrA@mail.gmail.com>
+ <20181030224904.GT19305@dastard>
+ <TYAPR01MB32619CCA488DD0DA86EDB17E90CD0@TYAPR01MB3261.jpnprd01.prod.outlook.com>
+ <20181101230012.GC19305@dastard>
+In-Reply-To: <20181101230012.GC19305@dastard>
+Content-Language: ja-JP
 MIME-Version: 1.0
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,108 +33,144 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: kbuild-all@01.org, linux-nvdimm@lists.01.org
+To: 'Dave Chinner' <david@fromorbit.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux API <linux-api@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, linux-ext4 <linux-ext4@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git for-5.0/nvdimm-security
-head:   bddbf9de5dcd455addac2862e8bc3f41881d29f7
-commit: 625fea4fc86b6dca5a43b5882f23f537088571a6 [2/17] acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm
-config: powerpc64-allyesconfig (attached as .config)
-compiler: powerpc64-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout 625fea4fc86b6dca5a43b5882f23f537088571a6
-        # save the attached .config to linux build tree
-        GCC_VERSION=7.2.0 make.cross ARCH=powerpc64 
 
-Note: the linux-nvdimm/for-5.0/nvdimm-security HEAD bddbf9de5dcd455addac2862e8bc3f41881d29f7 builds fine.
-      It only hurts bisectibility.
+> > > 	MAP_DIRECT is an access hint.
+> > >
+> > > 	MAP_SYNC provides a data integrity model guarantee.
+> > >
+> > > 	MAP_SYNC may imply MAP_DIRECT for specific implementations,
+> > > 	but it does not require or guarantee MAP_DIRECT.
+> > >
+> > > Let's compare that with O_DIRECT:
+> > >
+> > > 	O_DIRECT in an access hint.
+> > >
+> > > 	O_DSYNC provides a data integrity model guarantee.
+> > >
+> > > 	O_DSYNC may imply O_DIRECT for specific implementations, but
+> > > 	it does not require or guarantee O_DIRECT.
+> > >
+> > > Consistency in access and data integrity models is a good thing. DAX
+> > > and pmem is not an exception. We need to use a model we know works
+> > > and has proven itself over a long period of time.
+> >
+> > Hmmm, then, I would like to know all of the reasons of breakage of MAP_DIRECT.
+> > (I'm not opposed to your opinion, but I need to know it.)
+> >
+> > In O_DIRECT case, in my understanding, the reason of breakage of O_DIRECT is
+> > "wrong alignment is specified by application", right?
+> 
+> O_DIRECT has defined memory and offset alignment restrictions, and
+> will return an error to userspace when they are violated. It does
+> not fall back to buffered IO in this case. MAP_DIRECT has no
+> equivalent restriction, so IO alignment of O_DIRECT is largely
+> irrelevant here.
+> 
+> What we are talking about here is that some filesystems can only do
+> certain operations through buffered IO, such as block allocation or
+> file extension, and so silently fall back to doing them via buffered
+> IO even when O_DIRECT is specified. The old direct IO code used to
+> be full of conditionals to allow this - I think DIO_SKIP_HOLES is
+> only one remaining:
+> 
+>                 /*
+>                  * For writes that could fill holes inside i_size on a
+>                  * DIO_SKIP_HOLES filesystem we forbid block creations: only
+>                  * overwrites are permitted. We will return early to the caller
+>                  * once we see an unmapped buffer head returned, and the caller
+>                  * will fall back to buffered I/O.
+>                  *
+>                  * Otherwise the decision is left to the get_blocks method,
+>                  * which may decide to handle it or also return an unmapped
+>                  * buffer head.
+>                  */
+>                 create = dio->op == REQ_OP_WRITE;
+>                 if (dio->flags & DIO_SKIP_HOLES) {
+>                         if (fs_startblk <= ((i_size_read(dio->inode) - 1) >>
+>                                                         i_blkbits))
+>                                 create = 0;
+>                 }
+> 
+> Other cases like file extension cases are caught by the filesystems
+> before calling into the DIO code itself, so there's multiple avenues
+> for O_DIRECT transparently falling back to buffered IO.
+> 
+> This means the applications don't fail just because the filesystem
+> can't do a specific operation via O_DIRECT. The data writes still
+> succeed because they fall back to buffered IO, and the application
+> is blissfully unaware that the filesystem behaved that way.
+> 
+> > When filesystem can not use O_DIRECT and it uses page cache instead,
+> > then system uses more memory resource than user's expectation.
+> 
+> That's far better than failing unexpectedly because the app
+> unexpectedly came across a hole in the file (e.g. someone ran
+> sparsify across the filesystem).
+> 
+> > So, there is a side effect, and it may cause other trouble.
+> > (memory pressure, expected performance can not be gained, and so on ..)
+> 
+> Which is why people are supposed to test their systems before they
+> put them into production.
+> 
+> I've lost count of the number of times I've heard "but O_DIRECT is
+> supposed to make things faster!" because people don't understand
+> exactly what it does or means. Bypassing the page cache does not
+> magically make applications go faster - it puts the responsibility
+> for doing optimal IO on the application, not the kernel.
+> 
+> MAP_DIRECT will be no different. It's no guarantee that it will make
+> things faster, or that everything will just work as users expect
+> them to. It specifically places the responsibility for performing IO
+> in an optimal fashion on the application and the user for making
+> sure that it is fit for their purposes. Like O_DIRECT, using
+> MAP_DIRECT means "I, the application, know exactly what I'm doing,
+> so get out of the way as much as possible because I'm taking
+> responsibility for issuing IO in the most optimal manner now".
+> 
+> > In such case its administrator (or technical support engineer) needs to struggle to
+> > investigate what is the reason.
+> 
+> That's no different to performance problems that arise from
+> inappropriate use of O_DIRECT. It requires a certain level of
+> expertise to be able to understand and diagnose such issues.
+> 
+> > So, I would like to know in MAP_DIRECT case, what is the reasons?
+> > I think it will be helpful for users.
+> > Only splice?
+> 
+> The filesystem can ignore MAP_DIRECT for any reason it needs to. I'm
+> certain that filesystem developers will try to maintain MAP_DIRECT
+> semantics as much as possible, but it's not going to be possible in
+> /all situations/ on XFS and ext4 because they simply haven't been
+> designed with DAX in mind. Filesystems designed specifically for
+> pmem and DAX might be able to provide MAP_DIRECT in all situations,
+> but those filesystems don't really exist yet.
+> 
+> This is no different to the early days of O_DIRECT. e.g.  ext3
+> couldn't do O_DIRECT for all operations when it was first
+> introduced, but over time the functionality improved as the
+> underlying issues were solved. If O_DIRECT was a guarantee, then
+> ext3 would have never supported O_DIRECT at all...
 
-All errors (new ones prefixed by >>):
+Hmm, Ok. I see.
+Thank you very much for your detail explanation.
 
-   arch/powerpc//platforms/pseries/papr_scm.c: In function 'papr_scm_nvdimm_init':
->> arch/powerpc//platforms/pseries/papr_scm.c:219:14: error: too few arguments to function 'nvdimm_create'
-     p->nvdimm = nvdimm_create(p->bus, p, papr_scm_dimm_groups,
-                 ^~~~~~~~~~~~~
-   In file included from arch/powerpc//platforms/pseries/papr_scm.c:12:0:
-   include/linux/libnvdimm.h:178:16: note: declared here
-    struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
-                   ^~~~~~~~~~~~~
+> 
+> > (Maybe such document will be necessary....)
+> 
+> The semantics will need to be documented in the relevant man pages.
 
-vim +/nvdimm_create +219 arch/powerpc//platforms/pseries/papr_scm.c
+I agree.
 
-b5beae5e Oliver O'Halloran 2018-10-15  193  
-b5beae5e Oliver O'Halloran 2018-10-15  194  static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
-b5beae5e Oliver O'Halloran 2018-10-15  195  {
-b5beae5e Oliver O'Halloran 2018-10-15  196  	struct device *dev = &p->pdev->dev;
-b5beae5e Oliver O'Halloran 2018-10-15  197  	struct nd_mapping_desc mapping;
-b5beae5e Oliver O'Halloran 2018-10-15  198  	struct nd_region_desc ndr_desc;
-b5beae5e Oliver O'Halloran 2018-10-15  199  	unsigned long dimm_flags;
-b5beae5e Oliver O'Halloran 2018-10-15  200  
-b5beae5e Oliver O'Halloran 2018-10-15  201  	p->bus_desc.ndctl = papr_scm_ndctl;
-b5beae5e Oliver O'Halloran 2018-10-15  202  	p->bus_desc.module = THIS_MODULE;
-b5beae5e Oliver O'Halloran 2018-10-15  203  	p->bus_desc.of_node = p->pdev->dev.of_node;
-b5beae5e Oliver O'Halloran 2018-10-15  204  	p->bus_desc.attr_groups = bus_attr_groups;
-b5beae5e Oliver O'Halloran 2018-10-15  205  	p->bus_desc.provider_name = kstrdup(p->pdev->name, GFP_KERNEL);
-b5beae5e Oliver O'Halloran 2018-10-15  206  
-b5beae5e Oliver O'Halloran 2018-10-15  207  	if (!p->bus_desc.provider_name)
-b5beae5e Oliver O'Halloran 2018-10-15  208  		return -ENOMEM;
-b5beae5e Oliver O'Halloran 2018-10-15  209  
-b5beae5e Oliver O'Halloran 2018-10-15  210  	p->bus = nvdimm_bus_register(NULL, &p->bus_desc);
-b5beae5e Oliver O'Halloran 2018-10-15  211  	if (!p->bus) {
-b5beae5e Oliver O'Halloran 2018-10-15  212  		dev_err(dev, "Error creating nvdimm bus %pOF\n", p->dn);
-b5beae5e Oliver O'Halloran 2018-10-15  213  		return -ENXIO;
-b5beae5e Oliver O'Halloran 2018-10-15  214  	}
-b5beae5e Oliver O'Halloran 2018-10-15  215  
-b5beae5e Oliver O'Halloran 2018-10-15  216  	dimm_flags = 0;
-b5beae5e Oliver O'Halloran 2018-10-15  217  	set_bit(NDD_ALIASING, &dimm_flags);
-b5beae5e Oliver O'Halloran 2018-10-15  218  
-b5beae5e Oliver O'Halloran 2018-10-15 @219  	p->nvdimm = nvdimm_create(p->bus, p, papr_scm_dimm_groups,
-b5beae5e Oliver O'Halloran 2018-10-15  220  				dimm_flags, PAPR_SCM_DIMM_CMD_MASK, 0, NULL);
-b5beae5e Oliver O'Halloran 2018-10-15  221  	if (!p->nvdimm) {
-b5beae5e Oliver O'Halloran 2018-10-15  222  		dev_err(dev, "Error creating DIMM object for %pOF\n", p->dn);
-b5beae5e Oliver O'Halloran 2018-10-15  223  		goto err;
-b5beae5e Oliver O'Halloran 2018-10-15  224  	}
-b5beae5e Oliver O'Halloran 2018-10-15  225  
-b5beae5e Oliver O'Halloran 2018-10-15  226  	/* now add the region */
-b5beae5e Oliver O'Halloran 2018-10-15  227  
-b5beae5e Oliver O'Halloran 2018-10-15  228  	memset(&mapping, 0, sizeof(mapping));
-b5beae5e Oliver O'Halloran 2018-10-15  229  	mapping.nvdimm = p->nvdimm;
-b5beae5e Oliver O'Halloran 2018-10-15  230  	mapping.start = 0;
-b5beae5e Oliver O'Halloran 2018-10-15  231  	mapping.size = p->blocks * p->block_size; // XXX: potential overflow?
-b5beae5e Oliver O'Halloran 2018-10-15  232  
-b5beae5e Oliver O'Halloran 2018-10-15  233  	memset(&ndr_desc, 0, sizeof(ndr_desc));
-b5beae5e Oliver O'Halloran 2018-10-15  234  	ndr_desc.attr_groups = region_attr_groups;
-b5beae5e Oliver O'Halloran 2018-10-15  235  	ndr_desc.numa_node = dev_to_node(&p->pdev->dev);
-b5beae5e Oliver O'Halloran 2018-10-15  236  	ndr_desc.res = &p->res;
-b5beae5e Oliver O'Halloran 2018-10-15  237  	ndr_desc.of_node = p->dn;
-b5beae5e Oliver O'Halloran 2018-10-15  238  	ndr_desc.provider_data = p;
-b5beae5e Oliver O'Halloran 2018-10-15  239  	ndr_desc.mapping = &mapping;
-b5beae5e Oliver O'Halloran 2018-10-15  240  	ndr_desc.num_mappings = 1;
-b5beae5e Oliver O'Halloran 2018-10-15  241  	ndr_desc.nd_set = &p->nd_set;
-b5beae5e Oliver O'Halloran 2018-10-15  242  	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-b5beae5e Oliver O'Halloran 2018-10-15  243  
-b5beae5e Oliver O'Halloran 2018-10-15  244  	p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
-b5beae5e Oliver O'Halloran 2018-10-15  245  	if (!p->region) {
-b5beae5e Oliver O'Halloran 2018-10-15  246  		dev_err(dev, "Error registering region %pR from %pOF\n",
-b5beae5e Oliver O'Halloran 2018-10-15  247  				ndr_desc.res, p->dn);
-b5beae5e Oliver O'Halloran 2018-10-15  248  		goto err;
-b5beae5e Oliver O'Halloran 2018-10-15  249  	}
-b5beae5e Oliver O'Halloran 2018-10-15  250  
-b5beae5e Oliver O'Halloran 2018-10-15  251  	return 0;
-b5beae5e Oliver O'Halloran 2018-10-15  252  
+Thanks, again.
+----
+Yasunori Goto
 
-:::::: The code at line 219 was first introduced by commit
-:::::: b5beae5e224f1c72c4482b0ab36fc3d89481a6b2 powerpc/pseries: Add driver for PAPR SCM regions
-
-:::::: TO: Oliver O'Halloran <oohall@gmail.com>
-:::::: CC: Michael Ellerman <mpe@ellerman.id.au>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
