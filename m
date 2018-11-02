@@ -1,7 +1,7 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Subject: Change your password immediately. Your account has been hacked.
-Date: 3 Nov 2018 01:27:54 +0800
-Message-ID: <33ABD05E354825BB2358D6BDC0AD33AB@5UP23ND11V6>
+Date: 2 Nov 2018 20:22:55 +0400
+Message-ID: <336502138.201811022039@lists.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -43,7 +43,7 @@ I made a screenshot of the intimate website where you have fun (you know what it
 After that, I took off your joys (using the camera of your device). It turned out beautifully, do not hesitate.
 
 I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
-I think $867 is a very small amount for my silence.
+I think $874 is a very small amount for my silence.
 Besides, I spent a lot of time on you!
 
 I accept money only in Bitcoins.
