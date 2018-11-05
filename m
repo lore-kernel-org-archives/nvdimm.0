@@ -1,9 +1,9 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: =?utf-8?B?QVYg6rK967O0?=
-Date: 3 Nov 2018 15:12:12 -0700
-Message-ID: <002301d473c7$0429b67b$d65a289f@pultkl>
+Subject: Change your password immediately. Your account has been hacked.
+Date: Mon, 05 Nov 2018 10:47:54 +0400
+Message-ID: <5BDFE79A.8030506@lists.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -18,32 +18,56 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-&#50668;&#48372;&#49464;&#50836;!
+I greet you!
 
-&#45817;&#49888;&#51008; &#45208;&#47484; &#50508;&#51648; &#47803;&#54624; &#49688;&#46020; &#51080;&#49845;&#45768;&#45796;. &#50780;&#51060; &#51204;&#51088; &#47700;&#51068;&#51012; &#48155;&#45716;&#51648; &#44417;&#44552;&#54633;&#45768;&#45796;. &#47582;&#49845;&#45768;&#44620;?
-&#51060; &#49692;&#44036; &#45208;&#45716; &#45817;&#49888; &#44228;&#51221; (linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org) &#51012; &#54644;&#53433;&#54664;&#45796;. &#45236; &#45320;&#51032; &#51109;&#52824;&#50640; &#50756;&#51204;&#55176; &#50529;&#49464;&#49828; &#54624; &#49688; &#51080;&#49845;&#45768;&#45796;!
-&#49324;&#49892; &#49457;&#51064; &#48708;&#46356;&#50724; (&#54252;&#47476;&#45432; &#49548;&#51116;) &#50937; &#49324;&#51060;&#53944;&#50640; &#50501;&#49457; &#53076;&#46300;&#47484; &#49444;&#52824;&#54664;&#45716;&#45936; &#47924;&#50631;&#51012; &#50508;&#44256; &#51080;&#50632;&#45716;&#51648;,&#51060; &#50937; &#49324;&#51060;&#53944;&#47484; &#48169;&#47928;&#54616;&#50668; &#51116;&#48120;&#51080;&#44172; &#51648;&#45236;&#45716; &#44163;&#51060; &#50632;&#49845;&#45768;&#45796;.
-&#48708;&#46356;&#50724; &#53364;&#47549;&#51012; &#49884;&#52397;&#54616;&#45716; &#46041;&#50504; &#51064;&#53552;&#45367; &#48652;&#46972;&#50864;&#51200;&#44032; RDP (&#50896;&#44201; &#45936;&#49828;&#53356;&#53681;)&#47196; &#51089;&#46041;&#54616;&#44592; &#49884;&#51089;&#54664;&#49845;&#45768;&#45796;.
-&#44536;&#44172; &#45208;&#50640;&#44172; &#45817;&#49888;&#51032; &#49828;&#53356;&#47536;&#44284; &#50937;&#52896;&#50640; &#45824;&#54620; &#50529;&#49464;&#49828;&#47484; &#51228;&#44277;&#54616;&#45716; keylogger&#47484; &#44032;&#51648;&#44256;&#51080;&#45796;.
-&#44536; &#51649;&#54980;, &#45236; &#49548;&#54532;&#53944;&#50920;&#50612; &#54532;&#47196;&#44536;&#47016;&#51008; &#51204;&#51088; &#47700;&#51068;&#49104;&#47564; &#50500;&#45768;&#46972; &#47700;&#49888;&#51200;, &#49548;&#49500; &#45348;&#53944;&#50892;&#53356;&#50640;&#49436; &#51204;&#52404; &#45824;&#54868; &#49345;&#45824;&#47484; &#47784;&#50520;&#49845;&#45768;&#45796;.
+I have bad news for you.
+11/08/2018 - on this day I hacked your operating system and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 
-&#45236;&#44032; &#47960; &#54620;&#44144;&#51648;?
-&#45208;&#45716; &#51060;&#51473; &#49828;&#53356;&#47536; &#48708;&#46356;&#50724;&#47484; &#47564;&#46308;&#50632;&#45796;. &#52395; &#48264;&#51704; &#48512;&#48516;&#51008; &#49884;&#52397; &#54620; &#48708;&#46356;&#50724; (&#51339;&#44256; &#51060;&#49345;&#54620; &#47579;)&#47484; &#48372;&#50668; &#51452;&#47728; &#46160; &#48264;&#51704; &#48512;&#48516;&#51008; &#50937;&#52896; &#45433;&#54868;&#47484; &#48372;&#50668;&#51469;&#45768;&#45796;.
-&#51221;&#54869;&#55176; &#47924;&#50631;&#51012;&#54644;&#50556;&#54633;&#45768;&#44620;?
+It is useless to change the password, my malware intercepts it every time.
 
-&#51020;, 848 &#45804;&#47084;&#45716; &#50864;&#47532;&#51032; &#51089;&#51008; &#48708;&#48128;&#50640; &#45824;&#54620; &#44277;&#51221;&#54620; &#44032;&#44201;&#51060;&#46972;&#44256; &#49373;&#44033;&#54633;&#45768;&#45796;. Bitcoin&#51060; &#51648;&#48520;&#54633;&#45768;&#45796; (&#47784;&#47476;&#45716; &#44221;&#50864; Google&#50640;&#49436; "&#48708;&#53944; &#53076;&#51064; &#44396;&#47588; &#48169;&#48277;"&#44160;&#49353;).
-&#45236; BTC &#51452;&#49548; : 1B1Vov1LTLGLcVG3ycPQhQLe81V67FZpMZ
-(&#48124;&#44048;&#54620; cAsE&#51060;&#48064;&#47196; &#48373;&#49324;&#54616;&#50668; &#48537;&#50668; &#45347;&#44592;&#54616;&#49901;&#49884;&#50724;)
+How it was:
+In the software of the router to which you were connected that day, there was a vulnerability.
+I first hacked this router and placed my malicious code on it.
+When you entered in the Internet, my trojan was installed on the operating system of your device.
 
-&#45432;&#53944; :
-&#44208;&#51228;&#54616;&#47140;&#47732; 2 &#51068;&#51060; &#49548;&#50836;&#46121;&#45768;&#45796;.
-(&#45208;&#45716;&#51060; &#51060;&#47700;&#51068; &#47700;&#49884;&#51648;&#50640; &#53945;&#51221; &#54589;&#49472;&#51012; &#44032;&#51648;&#44256; &#51080;&#51004;&#47728;,&#51060; &#49692;&#44036; &#45817;&#49888;&#51008;&#51060; &#51060;&#47700;&#51068; &#47700;&#49884;&#51648;&#47484; &#51069;&#50632; &#51020;&#51012; &#50504;&#45796;.)
+After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
 
-BitCoins&#47484;&#48155;&#51648; &#47803;&#54616;&#47732; &#44032;&#51313;, &#46041;&#47308; &#46321; &#47784;&#46304; &#50672;&#46973;&#52376;&#50640; &#48708;&#46356;&#50724; &#45433;&#51020;&#51012; &#48372;&#45236;&#46300;&#47549;&#45768;&#45796;.
+A month ago, I wanted to lock your device and ask for a small amount of money to unlock.
+But I looked at the sites that you regularly visit, and came to the big delight of your favorite resources.
+I'm talking about sites for adults.
 
-&#44536;&#47084;&#45208; &#45236;&#44032; &#46024;&#51012; &#48155;&#51004;&#47732; &#51593;&#49884; &#48708;&#46356;&#50724;&#47484; &#54028;&#44340; &#54624; &#44163;&#51077;&#45768;&#45796;.
+I want to say - you are a big pervert. You have unbridled fantasy!
 
-&#51060;&#44163;&#51008; &#54801;&#51032;&#44032; &#48520;&#44032;&#45733;&#54620; &#51228;&#50504;&#51060;&#48064;&#47196;&#51060; &#51204;&#51088; &#47700;&#51068; &#47700;&#49884;&#51648;&#50640; &#51025;&#45813;&#54616;&#50668; &#44060;&#51064;&#51201;&#51064; &#49884;&#44036;&#51012; &#45229;&#48708;&#54616;&#51648; &#47560;&#49901;&#49884;&#50724;.
+After that, an idea came to my mind.
+I made a screenshot of the intimate website where you have fun (you know what it is about, right?).
+After that, I took off your joys (using the camera of your device). It turned out beautifully, do not hesitate.
 
-&#45796;&#51020; &#48264;&#50640;&#45716; &#51312;&#49900;&#54616;&#49464;&#50836;!
-&#50504;&#45397;!
+I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
+I think $836 is a very small amount for my silence.
+Besides, I spent a lot of time on you!
+
+I accept money only in Bitcoins.
+My BTC wallet: 1B1Vov1LTLGLcVG3ycPQhQLe81V67FZpMZ
+
+You do not know how to replenish a Bitcoin wallet?
+In any search engine write "how to send money to btc wallet".
+It's easier than send money to a credit card!
+
+For payment you have a little more than two days (exactly 50 hours).
+Do not worry, the timer will start at the moment when you open this letter. Yes, yes .. it has already started!
+
+After payment, my virus and dirty photos with you self-destruct automatically.
+Narrative, if I do not receive the specified amount from you, then your device will be blocked, and all your contacts will receive a photos with your "joys".
+
+I want you to be prudent.
+- Do not try to find and destroy my virus! (All your data is already uploaded to a remote server)
+- Do not try to contact me (this is not feasible, I sent you an email from your account)
+- Various security services will not help you; formatting a disk or destroying a device will not help either, since your data is already on a remote server.
+
+P.S. I guarantee you that I will not disturb you again after payment, as you are not my single victim.
+ This is a hacker code of honor.
+
+>From now on, I advise you to use good antiviruses and update them regularly (several times a day)!
+
+Don't be mad at me, everyone has their own work.
+Farewell.
