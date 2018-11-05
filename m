@@ -1,11 +1,12 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Subject: Change your password immediately. Your account has been hacked.
-Date: Mon, 05 Nov 2018 10:47:54 +0400
-Message-ID: <5BDFE79A.8030506@lists.01.org>
+Date: 5 Nov 2018 13:26:25 +0000
+Message-ID: <002401d4750e$07010156$ebea8195$@lists.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -43,7 +44,7 @@ I made a screenshot of the intimate website where you have fun (you know what it
 After that, I took off your joys (using the camera of your device). It turned out beautifully, do not hesitate.
 
 I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
-I think $836 is a very small amount for my silence.
+I think $897 is a very small amount for my silence.
 Besides, I spent a lot of time on you!
 
 I accept money only in Bitcoins.
