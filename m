@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from g4t3426.houston.hpe.com (g4t3426.houston.hpe.com
- [15.241.140.75])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6ECE22118DC32
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 13:27:04 -0800 (PST)
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] ndctl: fix zero-labels to handle firmware error properly
-Date: Thu,  8 Nov 2018 14:26:59 -0700
-Message-Id: <20181108212659.15570-1-toshi.kani@hpe.com>
+ by ml01.01.org (Postfix) with ESMTPS id A2CDA2117FD58
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:19:31 -0800 (PST)
+Subject: [mm PATCH v5 1/7] mm: Use mm_zero_struct_page from SPARC on all 64b
+ architectures
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Mon, 05 Nov 2018 13:19:30 -0800
+Message-ID: <154145277052.30046.9861512989491054994.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,53 +19,144 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-ndctl zero-labels completes with a large number of zeroed nmems when
-it fails to do zeroing on a protected NVDIMM.
+This change makes it so that we use the same approach that was already in
+use on Sparc on all the archtectures that support a 64b long.
 
-  # ndctl zero-labels nmem1
-  zeroed 65504 nmems
+This is mostly motivated by the fact that 7 to 10 store/move instructions
+are likely always going to be faster than having to call into a function
+that is not specialized for handling page init.
 
-do_cmd() called from ndctl_dimm_zero_labels() sets a transfer size to
-rc when FW status is non-zero.  This transfer size gets mistreated as
-zeroed nmems count in the end.
+An added advantage to doing it this way is that the compiler can get away
+with combining writes in the __init_single_page call. As a result the
+memset call will be reduced to only about 4 write operations, or at least
+that is what I am seeing with GCC 6.2 as the flags, LRU poitners, and
+count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
+my system.
 
-Fix ndctl_dimm_zero_labels() to handle this FW error case properly.
+One change I had to make to the function was to reduce the minimum page
+size to 56 to support some powerpc64 configurations.
 
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+This change should introduce no change on SPARC since it already had this
+code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
+initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
+Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
+takes 19.30ns / 64-byte struct page before this patch and with this patch
+it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
+a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
+results per 64-byte struct page were 4.68ns before, and 4.59ns after this
+patch.
+
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- ndctl/lib/dimm.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
+ include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 38 insertions(+), 33 deletions(-)
 
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 5e41734..79e2ca0 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -537,8 +537,12 @@ NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
- 		goto out_write;
- 	}
- 	rc = ndctl_cmd_submit(cmd_write);
--	if (rc || ndctl_cmd_get_firmware_status(cmd_write))
-+	if (rc < 0)
- 		goto out_write;
-+	if (ndctl_cmd_get_firmware_status(cmd_write)) {
-+		rc = -ENXIO;
-+		goto out_write;
-+	}
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..22500c3be7a9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -231,36 +231,6 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
  
- 	/*
- 	 * If the dimm is already disabled the kernel is not holding a cached
+-/* This macro must be updated when the size of struct page grows above 80
+- * or reduces below 64.
+- * The idea that compiler optimizes out switch() statement, and only
+- * leaves clrx instructions
+- */
+-#define	mm_zero_struct_page(pp) do {					\
+-	unsigned long *_pp = (void *)(pp);				\
+-									\
+-	 /* Check that struct page is either 64, 72, or 80 bytes */	\
+-	BUILD_BUG_ON(sizeof(struct page) & 7);				\
+-	BUILD_BUG_ON(sizeof(struct page) < 64);				\
+-	BUILD_BUG_ON(sizeof(struct page) > 80);				\
+-									\
+-	switch (sizeof(struct page)) {					\
+-	case 80:							\
+-		_pp[9] = 0;	/* fallthrough */			\
+-	case 72:							\
+-		_pp[8] = 0;	/* fallthrough */			\
+-	default:							\
+-		_pp[7] = 0;						\
+-		_pp[6] = 0;						\
+-		_pp[5] = 0;						\
+-		_pp[4] = 0;						\
+-		_pp[3] = 0;						\
+-		_pp[2] = 0;						\
+-		_pp[1] = 0;						\
+-		_pp[0] = 0;						\
+-	}								\
+-} while (0)
+-
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5411de93a363..288c407c08fc 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -98,10 +98,45 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ 
+ /*
+  * On some architectures it is expensive to call memset() for small sizes.
+- * Those architectures should provide their own implementation of "struct page"
+- * zeroing by defining this macro in <asm/pgtable.h>.
++ * If an architecture decides to implement their own version of
++ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
++ * define their own version of this macro in <asm/pgtable.h>
+  */
+-#ifndef mm_zero_struct_page
++#if BITS_PER_LONG == 64
++/* This function must be updated when the size of struct page grows above 80
++ * or reduces below 56. The idea that compiler optimizes out switch()
++ * statement, and only leaves move/store instructions. Also the compiler can
++ * combine write statments if they are both assignments and can be reordered,
++ * this can result in several of the writes here being dropped.
++ */
++#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
++static inline void __mm_zero_struct_page(struct page *page)
++{
++	unsigned long *_pp = (void *)page;
++
++	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
++	BUILD_BUG_ON(sizeof(struct page) & 7);
++	BUILD_BUG_ON(sizeof(struct page) < 56);
++	BUILD_BUG_ON(sizeof(struct page) > 80);
++
++	switch (sizeof(struct page)) {
++	case 80:
++		_pp[9] = 0;	/* fallthrough */
++	case 72:
++		_pp[8] = 0;	/* fallthrough */
++	case 64:
++		_pp[7] = 0;	/* fallthrough */
++	case 56:
++		_pp[6] = 0;
++		_pp[5] = 0;
++		_pp[4] = 0;
++		_pp[3] = 0;
++		_pp[2] = 0;
++		_pp[1] = 0;
++		_pp[0] = 0;
++	}
++}
++#else
+ #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
+ #endif
+ 
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
