@@ -1,12 +1,12 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Change your password immediately. Your account has been hacked.
-Date: 5 Nov 2018 13:26:25 +0000
-Message-ID: <002401d4750e$07010156$ebea8195$@lists.01.org>
+From: =?utf-8?B?5om25Y+s?= <hmagsw-vj+qki/m65M@public.gmane.org>
+Subject: =?utf-8?B?5om25Y+sfOaDs+aIkOS4uumihuWvvOeahOW+l+WKm+WKqeaJi++8jOWNtOS4jeefpemBk+WmguS9lQ==?=
+ =?utf-8?B?5omN6IO95YGa5b6X5LyY56eA77yf?=
+Date: Tue, 6 Nov 2018 06:55:17 +0800
+Message-ID: <48FCAEA42B96F5625B760E6680C44FB8@tlq.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,56 +19,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-I greet you!
-
-I have bad news for you.
-11/08/2018 - on this day I hacked your operating system and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-
-It is useless to change the password, my malware intercepts it every time.
-
-How it was:
-In the software of the router to which you were connected that day, there was a vulnerability.
-I first hacked this router and placed my malicious code on it.
-When you entered in the Internet, my trojan was installed on the operating system of your device.
-
-After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
-
-A month ago, I wanted to lock your device and ask for a small amount of money to unlock.
-But I looked at the sites that you regularly visit, and came to the big delight of your favorite resources.
-I'm talking about sites for adults.
-
-I want to say - you are a big pervert. You have unbridled fantasy!
-
-After that, an idea came to my mind.
-I made a screenshot of the intimate website where you have fun (you know what it is about, right?).
-After that, I took off your joys (using the camera of your device). It turned out beautifully, do not hesitate.
-
-I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
-I think $897 is a very small amount for my silence.
-Besides, I spent a lot of time on you!
-
-I accept money only in Bitcoins.
-My BTC wallet: 1B1Vov1LTLGLcVG3ycPQhQLe81V67FZpMZ
-
-You do not know how to replenish a Bitcoin wallet?
-In any search engine write "how to send money to btc wallet".
-It's easier than send money to a credit card!
-
-For payment you have a little more than two days (exactly 50 hours).
-Do not worry, the timer will start at the moment when you open this letter. Yes, yes .. it has already started!
-
-After payment, my virus and dirty photos with you self-destruct automatically.
-Narrative, if I do not receive the specified amount from you, then your device will be blocked, and all your contacts will receive a photos with your "joys".
-
-I want you to be prudent.
-- Do not try to find and destroy my virus! (All your data is already uploaded to a remote server)
-- Do not try to contact me (this is not feasible, I sent you an email from your account)
-- Various security services will not help you; formatting a disk or destroying a device will not help either, since your data is already on a remote server.
-
-P.S. I guarantee you that I will not disturb you again after payment, as you are not my single victim.
- This is a hacker code of honor.
-
->From now on, I advise you to use good antiviruses and update them regularly (several times a day)!
-
-Don't be mad at me, everyone has their own work.
-Farewell.
+bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0K6ZmEwrfku7bCt+WGhcK35a65wrfor7fCt+afpcK3
+5pS2Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
+LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
+c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
