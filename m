@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f195.google.com (mail-pl1-f195.google.com
+ [209.85.214.195])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6516721A00AE6
- for <linux-nvdimm@lists.01.org>; Wed,  7 Nov 2018 11:25:41 -0800 (PST)
-Subject: [daxctl PATCH] daxctl: Opt-in to /sys/bus/dax ABI
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 07 Nov 2018 11:13:51 -0800
-Message-ID: <154161803120.1679566.5287706874058480752.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E0B6321164EF2
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 09:22:26 -0800 (PST)
+Received: by mail-pl1-f195.google.com with SMTP id s5-v6so6500162plq.11
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 09:22:26 -0800 (PST)
+Message-ID: <1541524943.196084.178.camel@acm.org>
+Subject: Re: [driver-core PATCH v5 4/9] driver core: Move
+ async_synchronize_full call
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Tue, 06 Nov 2018 09:22:23 -0800
+In-Reply-To: <e2fec0e159757f31abbd258e284a844d0d8a2859.camel@linux.intel.com>
+References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ <154145231976.29224.39638353241256116.stgit@ahduyck-desk1.jf.intel.com>
+ <1541466289.196084.176.camel@acm.org>
+ <e2fec0e159757f31abbd258e284a844d0d8a2859.camel@linux.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,237 +29,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: dave.hansen@linux.intel.com
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In support of the kernel's conversion of the dax-subsystem from a
-'class' to a 'bus', teach the libdaxctl subsystem-layout-specific code
-to parse the new layout. The kernel changes do not effect the primary
-ndctl use case of putting namespaces into 'dax' mode since that uses
-libnvdimm namespace device relative paths, but it does break 'ndctl list
--X' and 'daxctl list'. For that reason the kernel provides a
-dax_pmem_compat driver to support the old layout and give time for
-userspace components to switch.
+On Tue, 2018-11-06 at 08:18 -0800, Alexander Duyck wrote:
+> On Mon, 2018-11-05 at 17:04 -0800, Bart Van Assche wrote:
+> > On Mon, 2018-11-05 at 13:11 -0800, Alexander Duyck wrote:
+> > > This patch moves the async_synchronize_full call out of
+> > > __device_release_driver and into driver_detach.
+> > > 
+> > > The idea behind this is that the async_synchronize_full call will only
+> > > guarantee that any existing async operations are flushed. This doesn't do
+> > > anything to guarantee that a hotplug event that may occur while we are
+> > > doing the release of the driver will not be asynchronously scheduled.
+> > > 
+> > > By moving this into the driver_detach path we can avoid potential deadlocks
+> > > as we aren't holding the device lock at this point and we should not have
+> > > the driver we want to flush loaded so the flush will take care of any
+> > > asynchronous events the driver we are detaching might have scheduled.
+> > > 
+> > > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> > > ---
+> > >  drivers/base/dd.c |    6 +++---
+> > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> > > index 76c40fe69463..e74cefeb5b69 100644
+> > > --- a/drivers/base/dd.c
+> > > +++ b/drivers/base/dd.c
+> > > @@ -975,9 +975,6 @@ static void __device_release_driver(struct device *dev, struct device *parent)
+> > >  
+> > >  	drv = dev->driver;
+> > >  	if (drv) {
+> > > -		if (driver_allows_async_probing(drv))
+> > > -			async_synchronize_full();
+> > > -
+> > >  		while (device_links_busy(dev)) {
+> > >  			__device_driver_unlock(dev, parent);
+> > >  
+> > > @@ -1087,6 +1084,9 @@ void driver_detach(struct device_driver *drv)
+> > >  	struct device_private *dev_prv;
+> > >  	struct device *dev;
+> > >  
+> > > +	if (driver_allows_async_probing(drv))
+> > > +		async_synchronize_full();
+> > > +
+> > >  	for (;;) {
+> > >  		spin_lock(&drv->p->klist_devices.k_lock);
+> > >  		if (list_empty(&drv->p->klist_devices.k_list)) {
+> > 
+> > Have you considered to move that async_synchronize_full() call into
+> > bus_remove_driver()? Verifying the correctness of this patch requires to
+> > check whether the async_synchronize_full() comes after the
+> > klist_remove(&drv->p->knode_bus) call. That verification is easier when
+> > the async_synchronize_full() call occurs in bus_remove_driver() instead
+> > of in driver_detach().
+> 
+> I considered it, however it ends up with things being more symmetric to
+> have use take care of synchronizing things in driver_detach since after
+> this patch set we are scheduling thing asynchronously in driver_attach.
+> 
+> Also I don't think it would be any great risk simply because calling
+> driver_detach with the driver still associated with the bus would be a
+> blatent error as it could easily lead to issues where you unbind a
+> driver but have it get hotplugged to a device while that is going on.
 
-Installation of the latest libdaxctl package arranges for a daxctl
-configuration file to be dropped in /etc/modprobe.d. The modprobe
-configuration blacklists dax_pmem_compat modules and sets the proper
-alias for the dax_pmem module. The modprobe configuration upgrades the
-default kernel handling to the /sys/bus/dax scheme.
+Thanks for the additional clarification. Since I'm fine with this patch:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- daxctl/lib/Makefile.am         |    3 ++
- daxctl/lib/daxctl.conf         |    2 +
- daxctl/lib/libdaxctl-private.h |   11 ++++++
- daxctl/lib/libdaxctl.c         |   70 +++++++++++++++++++++++++++++-----------
- ndctl.spec.in                  |    1 +
- util/sysfs.c                   |    2 +
- 6 files changed, 68 insertions(+), 21 deletions(-)
- create mode 100644 daxctl/lib/daxctl.conf
-
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 0167e3995b00..749d54a2e397 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -18,6 +18,9 @@ libdaxctl_la_SOURCES =\
- libdaxctl_la_LIBADD =\
- 	$(UUID_LIBS)
- 
-+daxctlconfdir=$(sysconfdir)/modprobe.d
-+daxctlconf_DATA = daxctl.conf
-+
- EXTRA_DIST += libdaxctl.sym
- 
- libdaxctl_la_LDFLAGS = $(AM_LDFLAGS) \
-diff --git a/daxctl/lib/daxctl.conf b/daxctl/lib/daxctl.conf
-new file mode 100644
-index 000000000000..c64a088cbc0b
---- /dev/null
-+++ b/daxctl/lib/daxctl.conf
-@@ -0,0 +1,2 @@
-+blacklist dax_pmem_compat
-+alias nd:t7* dax_pmem
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index f7667324026f..4a462e7245d2 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -15,6 +15,17 @@
- 
- #define DAXCTL_EXPORT __attribute__ ((visibility("default")))
- 
-+enum dax_subsystem {
-+	DAX_UNKNOWN,
-+	DAX_CLASS,
-+	DAX_BUS,
-+};
-+
-+static const char *dax_subsystems[] = {
-+	[DAX_CLASS] = "/sys/class/dax",
-+	[DAX_BUS] = "/sys/bus/dax/devices",
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 22f4210a7ea0..c2e3a52d6c7c 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -444,26 +444,38 @@ static void dax_devices_init(struct daxctl_region *region)
- {
- 	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
- 	char daxdev_fmt[50];
--	char *region_path;
-+	size_t i;
- 
- 	if (region->devices_init)
- 		return;
- 
- 	region->devices_init = 1;
- 	sprintf(daxdev_fmt, "dax%d.", region->id);
--	if (asprintf(&region_path, "%s/dax", region->region_path) < 0) {
--		dbg(ctx, "region path alloc fail\n");
--		return;
-+	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
-+		char *region_path;
-+
-+		if (i == DAX_BUS)
-+			region_path = region->region_path;
-+		else if (i == DAX_CLASS) {
-+			if (asprintf(&region_path, "%s/dax",
-+						region->region_path) < 0) {
-+				dbg(ctx, "region path alloc fail\n");
-+				continue;
-+			}
-+		} else
-+			continue;
-+		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
-+				add_dax_dev);
-+		if (i == DAX_CLASS)
-+			free(region_path);
- 	}
--	sysfs_device_parse(ctx, region_path, daxdev_fmt, region, add_dax_dev);
--	free(region_path);
- }
- 
--static char *dax_region_path(const char *base, const char *device)
-+static char *dax_region_path(const char *device, enum dax_subsystem subsys)
- {
- 	char *path, *region_path, *c;
- 
--	if (asprintf(&path, "%s/%s", base, device) < 0)
-+	if (asprintf(&path, "%s/%s", dax_subsystems[subsys], device) < 0)
- 		return NULL;
- 
- 	/* dax_region must be the instance's direct parent */
-@@ -472,7 +484,11 @@ static char *dax_region_path(const char *base, const char *device)
- 	if (!region_path)
- 		return NULL;
- 
--	/* 'region_path' is now regionX/dax/daxX.Y', trim back to regionX */
-+	/*
-+	 * 'region_path' is now regionX/dax/daxX.Y' (DAX_CLASS), or
-+	 * regionX/daxX.Y (DAX_BUS), trim it back to the regionX
-+	 * component
-+	 */
- 	c = strrchr(region_path, '/');
- 	if (!c) {
- 		free(region_path);
-@@ -480,6 +496,9 @@ static char *dax_region_path(const char *base, const char *device)
- 	}
- 	*c = '\0';
- 
-+	if (subsys == DAX_BUS)
-+		return region_path;
-+
- 	c = strrchr(region_path, '/');
- 	if (!c) {
- 		free(region_path);
-@@ -490,20 +509,15 @@ static char *dax_region_path(const char *base, const char *device)
- 	return region_path;
- }
- 
--static void dax_regions_init(struct daxctl_ctx *ctx)
-+static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys)
- {
--	const char *base = "/sys/class/dax";
- 	struct dirent *de;
--	DIR *dir;
-+	DIR *dir = NULL;
- 
--	if (ctx->regions_init)
--		return;
--
--	ctx->regions_init = 1;
--
--	dir = opendir(base);
-+	dir = opendir(dax_subsystems[subsys]);
- 	if (!dir) {
--		dbg(ctx, "no dax regions found\n");
-+		dbg(ctx, "no dax regions found via: %s\n",
-+				dax_subsystems[subsys]);
- 		return;
- 	}
- 
-@@ -516,7 +530,7 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 			continue;
- 		if (sscanf(de->d_name, "dax%d.%d", &region_id, &id) != 2)
- 			continue;
--		dev_path = dax_region_path(base, de->d_name);
-+		dev_path = dax_region_path(de->d_name, subsys);
- 		if (!dev_path) {
- 			err(ctx, "dax region path allocation failure\n");
- 			continue;
-@@ -529,6 +543,22 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	closedir(dir);
- }
- 
-+static void dax_regions_init(struct daxctl_ctx *ctx)
-+{
-+	size_t i;
-+
-+	if (ctx->regions_init)
-+		return;
-+
-+	ctx->regions_init = 1;
-+
-+	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
-+		if (i == DAX_UNKNOWN)
-+			continue;
-+		__dax_regions_init(ctx, i);
-+	}
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 26396d4abad7..60d9e6fedf71 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -136,6 +136,7 @@ make check
- %defattr(-,root,root)
- %doc README.md
- %license COPYING licenses/BSD-MIT licenses/CC0
-+%config(noreplace) %{_sysconfdir}/modprobe.d/daxctl.conf
- %{_libdir}/libdaxctl.so.*
- 
- %files -n DNAME
-diff --git a/util/sysfs.c b/util/sysfs.c
-index 0440fd0f49a3..9f7bc1f4930f 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -91,7 +91,7 @@ int __sysfs_device_parse(struct log_ctx *ctx, const char *base_path,
- 	struct dirent *de;
- 	DIR *dir;
- 
--	log_dbg(ctx, "base: %s dev: %s\n", base_path, dev_name);
-+	log_dbg(ctx, "base: '%s' dev: '%s'\n", base_path, dev_name);
- 	dir = opendir(base_path);
- 	if (!dir) {
- 		log_dbg(ctx, "no \"%s\" devices found\n", dev_name);
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 
 _______________________________________________
 Linux-nvdimm mailing list
