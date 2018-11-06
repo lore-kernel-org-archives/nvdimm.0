@@ -1,95 +1,38 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D0D321A00AE6
- for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 13:16:38 -0800 (PST)
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 Subject: Re: [RFC PATCH] kvm: Use huge pages for DAX-backed files
 References: <20181029210716.212159-1-brho@google.com>
- <20181106160553.5a8025ed@gnomeregan.cam.corp.google.com>
+ <CAPcyv4gJUjuSKwy7i2wuKR=Vz-AkDrxnGya5qkg7XTFxuXbtzw@mail.gmail.com>
+ <e00c5f69-f4d7-859c-cbde-0392b0a5195c@redhat.com>
+ <CAPcyv4hqOhCBvYjxY31kc+BD+MraCBtou=MogApp_5wpz3W6Cw@mail.gmail.com>
 From: Paolo Bonzini <pbonzini@redhat.com>
-Message-ID: <13b9a5a5-6773-131e-8014-f1b1bc975794@redhat.com>
-Date: Tue, 6 Nov 2018 22:16:30 +0100
+Message-ID: <30bdd995-ef1c-f869-388c-76434dd2499f@redhat.com>
+Date: Tue, 6 Nov 2018 11:22:20 +0100
 MIME-Version: 1.0
-In-Reply-To: <20181106160553.5a8025ed@gnomeregan.cam.corp.google.com>
+In-Reply-To: <CAPcyv4hqOhCBvYjxY31kc+BD+MraCBtou=MogApp_5wpz3W6Cw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Barret Rhoden <brho@google.com>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>
-Cc: kvm@vger.kernel.org, yu.c.zhang@intel.com, linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, yi.z.zhang@intel.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Barret Rhoden <brho@google.com>, Dave Jiang <dave.jiang@intel.com>, zwisler@kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, rkrcmar@redhat.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, KVM list <kvm@vger.kernel.org>, "Zhang, Yu C" <yu.c.zhang@intel.com>, "Zhang, Yi Z" <yi.z.zhang@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 06/11/2018 22:05, Barret Rhoden wrote:
-> On 2018-10-29 at 17:07 Barret Rhoden <brho@google.com> wrote:
->> Another issue is that kvm_mmu_zap_collapsible_spte() also uses
->> PageTransCompoundMap() to detect huge pages, but we don't have a way to
->> get the HVA easily.  Can we just aggressively zap DAX pages there?
-> 
-> Any thoughts about this?  Is there a way to determine the HVA or GFN in
-> this function:
+On 31/10/2018 22:16, Dan Williams wrote:
+>> No, please don't.  The kvm_is_reserved_pfn() check is for correctness,
+>> the page-size check is for optimization.  In theory you could have a
+>> ZONE_DEVICE area that is smaller than 2MB and thus does not use huge pages.
+> To be clear, I was not suggesting that a ZONE_DEVICE check would be
+> sufficient to determine a 2MB page. I was suggesting that given there
+> is a debate about removing the "reserved" designation for dax pages
+> that debate is moot if kvm is going to add interrogation code to
+> figure out the size of dax mappings.
 
-Yes, iter.gfn is the gfn inside the loop and iter.level is the level
-(1=PTE, 2=PDE, ...).  iter.level of course is unusable here, similar to
-*levelp in transparent_hugepage_adjust, but you can use iter.gfn and
-gfn_to_hva.
+Oh indeed.  And in general it's okay for me to add more ZONE_DEVICE
+checks to complement the existing PageReserved checks, if DAX pages are
+not going to be reserved anymore.
+
+In some cases, such as the "if (!PageReserved(page)) SetPageDirty(page)"
+that Barret noted, it may even be more correct for KVM if DAX pages stop
+being reserved.  All this given my very limited knowledge of MM though...
 
 Paolo
-
-> static bool kvm_mmu_zap_collapsible_spte(struct kvm *kvm,                        
->                                          struct kvm_rmap_head *rmap_head)        
-> {       
->         u64 *sptep;                                                              
->         struct rmap_iterator iter;                                               
->         int need_tlb_flush = 0;
->         kvm_pfn_t pfn;
->         struct kvm_mmu_page *sp;
->                                                                                  
-> restart:        
->         for_each_rmap_spte(rmap_head, &iter, sptep) {
->                 sp = page_header(__pa(sptep));
->                 pfn = spte_to_pfn(*sptep);
-> 
->                 /*
->                  * We cannot do huge page mapping for indirect shadow pages,     
->                  * which are found on the last rmap (level = 1) when not using   
->                  * tdp; such shadow pages are synced with the page table in      
->                  * the guest, and the guest page table is using 4K page size     
->                  * mapping if the indirect sp has level = 1.                     
->                  */     
->                 if (sp->role.direct &&                                           
->                         !kvm_is_reserved_pfn(pfn) &&                             
->                         PageTransCompoundMap(pfn_to_page(pfn))) {                
->                         pte_list_remove(rmap_head, sptep);                       
->                         need_tlb_flush = 1;                                      
->                         goto restart;                                            
->                 }                                                                
->         }
->                                    
->         return need_tlb_flush;                                                   
-> }    
-> 
-> If not, I was thinking of changing that loop to always remove PTEs for
-> DAX mappings, with the understanding that they'll get faulted back in
-> later.  Ideally, we'd like to check if the page is huge, but DAX can't
-> use the PageTransCompoundMap check.
-> 
-> Thanks,
-> 
-> Barret
-> 
-> 
-> 
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
