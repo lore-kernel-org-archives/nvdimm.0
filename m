@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-f196.google.com (mail-pl1-f196.google.com
- [209.85.214.196])
+Received: from mail-pg1-f196.google.com (mail-pg1-f196.google.com
+ [209.85.215.196])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3BE122112FACC
- for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 15:51:17 -0800 (PST)
-Received: by mail-pl1-f196.google.com with SMTP id w22-v6so3648865plk.0
- for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 15:51:17 -0800 (PST)
-Message-ID: <1541548274.196084.197.camel@acm.org>
+ by ml01.01.org (Postfix) with ESMTPS id 66E8B2112FACC
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 15:48:37 -0800 (PST)
+Received: by mail-pg1-f196.google.com with SMTP id n10-v6so6511214pgv.10
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 15:48:37 -0800 (PST)
+Message-ID: <1541548114.196084.195.camel@acm.org>
 Subject: Re: [driver-core PATCH v5 5/9] driver core: Establish clear order
  of operations for deferred probe and remove
 From: Bart Van Assche <bvanassche@acm.org>
-Date: Tue, 06 Nov 2018 15:51:14 -0800
-In-Reply-To: <201811061228.iteFLO2p%fengguang.wu@intel.com>
-References: <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
- <201811061228.iteFLO2p%fengguang.wu@intel.com>
+Date: Tue, 06 Nov 2018 15:48:34 -0800
+In-Reply-To: <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
+References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
 Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,28 +27,166 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: kbuild test robot <lkp@intel.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: len.brown@intel.com, linux-nvdimm@lists.01.org, gregkh@linuxfoundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, linux-kernel@vger.kernel.org, kbuild-all@01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2018-11-06 at 12:10 +0800, kbuild test robot wrote:
-> Hi Alexander,
-> 
-> Thank you for the patch! Perhaps something to improve:
-> 
-> [auto build test WARNING on driver-core/master]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Alexander-Duyck/Add-NUMA-aware-async_schedule-calls/20181106-093800
-> reproduce: make htmldocs
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    include/net/mac80211.h:1001: warning: Function parameter or member 'status.is_valid_ack_signal' not described in 'ieee80211_tx_info'
-> [ ... ]
+On Mon, 2018-11-05 at 13:12 -0800, Alexander Duyck wrote:
+> One change I made in addition is I replaced the use of "bool X:1" to define
+> the bitfield to a "u8 X:1" setup in order to resolve some checkpatch
+> warnings.
 
-There are plenty of references in this report to header files not touched
-by patch 5/9 in this series. I assume that this report indicates a bug in
-the 0-day testing infrastructure?
+Please use "bool X:1" instead of "u8 X:1". I think it was a bad idea to make
+checkpatch complain about "bool X:1" since "bool X:1" should only be avoided
+in structures for which alignment must be architecture-independent. For struct
+device it is fine if member alignment differs per architecture. Additionally,
+changing "bool X:1" into "u8 X:1" will reduce performance on architectures that
+cannot do byte addressing.
+
+>  static void __device_release_driver(struct device *dev, struct device *parent)
+>  {
+> -	struct device_driver *drv;
+> +	struct device_driver *drv = dev->driver;
+>  
+> -	drv = dev->driver;
+> -	if (drv) {
+> -		while (device_links_busy(dev)) {
+> -			__device_driver_unlock(dev, parent);
+> +	/*
+> +	 * In the event that we are asked to release the driver on an
+> +	 * interface that is still waiting on a probe we can just terminate
+> +	 * the probe by setting async_probe to false. When the async call
+> +	 * is finally completed it will see this state and just exit.
+> +	 */
+> +	dev->async_probe = false;
+> +	if (!drv)
+> +		return;
+>  
+> -			device_links_unbind_consumers(dev);
+> +	while (device_links_busy(dev)) {
+> +		__device_driver_unlock(dev, parent);
+>  
+> -			__device_driver_lock(dev, parent);
+> -			/*
+> -			 * A concurrent invocation of the same function might
+> -			 * have released the driver successfully while this one
+> -			 * was waiting, so check for that.
+> -			 */
+> -			if (dev->driver != drv)
+> -				return;
+> -		}
+> +		device_links_unbind_consumers(dev);
+>  
+> -		pm_runtime_get_sync(dev);
+> -		pm_runtime_clean_up_links(dev);
+> +		__device_driver_lock(dev, parent);
+> +		/*
+> +		 * A concurrent invocation of the same function might
+> +		 * have released the driver successfully while this one
+> +		 * was waiting, so check for that.
+> +		 */
+> +		if (dev->driver != drv)
+> +			return;
+> +	}
+>  
+> -		driver_sysfs_remove(dev);
+> +	pm_runtime_get_sync(dev);
+> +	pm_runtime_clean_up_links(dev);
+>  
+> -		if (dev->bus)
+> -			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+> -						     BUS_NOTIFY_UNBIND_DRIVER,
+> -						     dev);
+> +	driver_sysfs_remove(dev);
+>  
+> -		pm_runtime_put_sync(dev);
+> +	if (dev->bus)
+> +		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+> +					     BUS_NOTIFY_UNBIND_DRIVER,
+> +					     dev);
+>  
+> -		if (dev->bus && dev->bus->remove)
+> -			dev->bus->remove(dev);
+> -		else if (drv->remove)
+> -			drv->remove(dev);
+> +	pm_runtime_put_sync(dev);
+>  
+> -		device_links_driver_cleanup(dev);
+> -		arch_teardown_dma_ops(dev);
+> +	if (dev->bus && dev->bus->remove)
+> +		dev->bus->remove(dev);
+> +	else if (drv->remove)
+> +		drv->remove(dev);
+>  
+> -		devres_release_all(dev);
+> -		dev->driver = NULL;
+> -		dev_set_drvdata(dev, NULL);
+> -		if (dev->pm_domain && dev->pm_domain->dismiss)
+> -			dev->pm_domain->dismiss(dev);
+> -		pm_runtime_reinit(dev);
+> -		dev_pm_set_driver_flags(dev, 0);
+> +	device_links_driver_cleanup(dev);
+> +	arch_teardown_dma_ops(dev);
+> +
+> +	devres_release_all(dev);
+> +	dev->driver = NULL;
+> +	dev_set_drvdata(dev, NULL);
+> +	if (dev->pm_domain && dev->pm_domain->dismiss)
+> +		dev->pm_domain->dismiss(dev);
+> +	pm_runtime_reinit(dev);
+> +	dev_pm_set_driver_flags(dev, 0);
+>  
+> -		klist_remove(&dev->p->knode_driver);
+> -		device_pm_check_callbacks(dev);
+> -		if (dev->bus)
+> -			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+> -						     BUS_NOTIFY_UNBOUND_DRIVER,
+> -						     dev);
+> +	klist_remove(&dev->p->knode_driver);
+> +	device_pm_check_callbacks(dev);
+> +	if (dev->bus)
+> +		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+> +					     BUS_NOTIFY_UNBOUND_DRIVER,
+> +					     dev);
+>  
+> -		kobject_uevent(&dev->kobj, KOBJ_UNBIND);
+> -	}
+> +	kobject_uevent(&dev->kobj, KOBJ_UNBIND);
+>  }
+
+This patch mixes functional changes with whitespace changes. Please move the
+whitespace changes into a separate patch such that this patch becomes easier
+to read.
+ 
+>  void device_release_driver_internal(struct device *dev,
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 1b25c7a43f4c..fc7091d436c2 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -1043,14 +1043,15 @@ struct device {
+>  	struct iommu_group	*iommu_group;
+>  	struct iommu_fwspec	*iommu_fwspec;
+>  
+> -	bool			offline_disabled:1;
+> -	bool			offline:1;
+> -	bool			of_node_reused:1;
+> +	u8			offline_disabled:1;
+> +	u8			offline:1;
+> +	u8			of_node_reused:1;
+>  #if defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_DEVICE) || \
+>      defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU) || \
+>      defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
+> -	bool			dma_coherent:1;
+> +	u8			dma_coherent:1;
+>  #endif
+> +	u8			async_probe:1;
+
+The new async_probe field can be changed from multiple threads. Concurrent
+changes of a bitfield are only safe if these are serialized in some way.
+Please document the locking requirements for the async_probe bitfield in
+device.h.
+
+Thanks,
 
 Bart.
 _______________________________________________
