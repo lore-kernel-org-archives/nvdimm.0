@@ -1,128 +1,60 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [mm PATCH v5 6/7] mm: Add reserved flag setting to set_page_links
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A658A2117D76C
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 08:27:19 -0800 (PST)
+Message-ID: <c7f9e6b6b3d7e2217f93bb23b16589dd5dc0b092.camel@linux.intel.com>
+Subject: Re: [driver-core PATCH v5 1/9] workqueue: Provide queue_work_node
+ to queue work near a given NUMA node
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:19:56 -0800
-Message-ID: <154145279604.30046.5646399488589213615.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Date: Tue, 06 Nov 2018 08:27:19 -0800
+In-Reply-To: <1541464948.196084.168.camel@acm.org>
+References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ <154145230445.29224.14651284855380723028.stgit@ahduyck-desk1.jf.intel.com>
+ <1541464948.196084.168.camel@acm.org>
+Mime-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.comalexander.h.duyck@linux.intel.com
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Bart Van Assche <bvanassche@acm.org>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch modifies the set_page_links function to include the setting of
-the reserved flag via a simple AND and OR operation. The motivation for
-this is the fact that the existing __set_bit call still seems to have
-effects on performance as replacing the call with the AND and OR can reduce
-initialization time.
+On Mon, 2018-11-05 at 16:42 -0800, Bart Van Assche wrote:
+> On Mon, 2018-11-05 at 13:11 -0800, Alexander Duyck wrote:
+> > +/**
+> > + * workqueue_select_cpu_near - Select a CPU based on NUMA node
+> > + * @node: NUMA node ID that we want to bind a CPU from
+> 
+>                                           ^^^^
+>                                           select?
+> > +	/* If CPU is valid return that, otherwise just defer */
+> > +	return (cpu < nr_cpu_ids) ? cpu : WORK_CPU_UNBOUND;
+> 
+> Please leave out the superfluous parentheses if this patch series would have to
+> be reposted.
+> 
+> Anyway:
+> 
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 
-Looking over the assembly code before and after the change the main
-difference between the two is that the reserved bit is stored in a value
-that is generated outside of the main initialization loop and is then
-written with the other flags field values in one write to the page->flags
-value. Previously the generated value was written and then then a btsq
-instruction was issued.
+I will incorporate you suggestions and add your Reviewed-by for the
+next submission.
 
-On my x86_64 test system with 3TB of persistent memory per node I saw the
-persistent memory initialization time on average drop from 23.49s to
-19.12s per node.
+Thanks.
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- include/linux/mm.h |    9 ++++++++-
- mm/page_alloc.c    |   29 +++++++++++++++++++----------
- 2 files changed, 27 insertions(+), 11 deletions(-)
+- Alex
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 288c407c08fc..de6535a98e45 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1171,11 +1171,18 @@ static inline void set_page_node(struct page *page, unsigned long node)
- 	page->flags |= (node & NODES_MASK) << NODES_PGSHIFT;
- }
- 
-+static inline void set_page_reserved(struct page *page, bool reserved)
-+{
-+	page->flags &= ~(1ul << PG_reserved);
-+	page->flags |= (unsigned long)(!!reserved) << PG_reserved;
-+}
-+
- static inline void set_page_links(struct page *page, enum zone_type zone,
--	unsigned long node, unsigned long pfn)
-+	unsigned long node, unsigned long pfn, bool reserved)
- {
- 	set_page_zone(page, zone);
- 	set_page_node(page, node);
-+	set_page_reserved(page, reserved);
- #ifdef SECTION_IN_PAGE_FLAGS
- 	set_page_section(page, pfn_to_section_nr(pfn));
- #endif
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index dbe00c1a0e23..9eb993a9be99 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1179,7 +1179,7 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
- 	mm_zero_struct_page(page);
--	set_page_links(page, zone, nid, pfn);
-+	set_page_links(page, zone, nid, pfn, false);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
-@@ -1195,7 +1195,8 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- static void __meminit __init_pageblock(unsigned long start_pfn,
- 				       unsigned long nr_pages,
- 				       unsigned long zone, int nid,
--				       struct dev_pagemap *pgmap)
-+				       struct dev_pagemap *pgmap,
-+				       bool is_reserved)
- {
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	struct page *start_page = pfn_to_page(start_pfn);
-@@ -1231,18 +1232,15 @@ static void __meminit __init_pageblock(unsigned long start_pfn,
- 		 * call because of the fact that the pfn number is used to
- 		 * get the section_nr and this function should not be
- 		 * spanning more than a single section.
-+		 *
-+		 * We can use a non-atomic operation for setting the
-+		 * PG_reserved flag as we are still initializing the pages.
- 		 */
--		set_page_links(page, zone, nid, start_pfn);
-+		set_page_links(page, zone, nid, start_pfn, is_reserved);
- 		init_page_count(page);
- 		page_mapcount_reset(page);
- 		page_cpupid_reset_last(page);
- 
--		/*
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
--
- 		/*
- 		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
- 		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
-@@ -5612,7 +5610,18 @@ static void __meminit __memmap_init_hotplug(unsigned long size, int nid,
- 		pfn = max(ALIGN_DOWN(pfn - 1, pageblock_nr_pages), start_pfn);
- 		stride -= pfn;
- 
--		__init_pageblock(pfn, stride, zone, nid, pgmap);
-+		/*
-+		 * The last argument of __init_pageblock is a boolean
-+		 * value indicating if the page will be marked as reserved.
-+		 *
-+		 * Mark page reserved as it will need to wait for onlining
-+		 * phase for it to be fully associated with a zone.
-+		 *
-+		 * Under certain circumstances ZONE_DEVICE pages may not
-+		 * need to be marked as reserved, however there is still
-+		 * code that is depending on this being set for now.
-+		 */
-+		__init_pageblock(pfn, stride, zone, nid, pgmap, true);
- 
- 		cond_resched();
- 	}
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
