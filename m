@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D36732118D948
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:07:17 -0800 (PST)
-Subject: [driver-core PATCH v6 7/9] driver core: Attach devices on CPU local
- to device node
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 08 Nov 2018 10:07:16 -0800
-Message-ID: <154170043632.12967.5339750954964165831.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
-References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2A6852194D3B9
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 10:07:38 -0800 (PST)
+Date: Tue, 6 Nov 2018 19:07:35 +0100
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 2/2] nfit, mce: validate the mce->addr before using it
+Message-ID: <20181106180735.GM13712@zn.tnic>
+References: <20181026003729.8420-1-vishal.l.verma@intel.com>
+ <20181026003729.8420-2-vishal.l.verma@intel.com>
+ <20181106145137.GJ13712@zn.tnic>
+ <CAPcyv4j2Y8BEGjixiiCi0_+bbnYJFtezR+FL1_t1J=2X0g7sgg@mail.gmail.com>
+ <20181106175341.GK13712@zn.tnic>
+ <CAPcyv4g=7HZjxQCdA+fYAacEeRPwcuONGiDUZPunL=_V4jf3qQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4g=7HZjxQCdA+fYAacEeRPwcuONGiDUZPunL=_V4jf3qQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,49 +28,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, stable <stable@vger.kernel.org>, linux-edac@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Call the asynchronous probe routines on a CPU local to the device node. By
-doing this we should be able to improve our initialization time
-significantly as we can avoid having to access the device from a remote
-node which may introduce higher latency.
+On Tue, Nov 06, 2018 at 10:02:46AM -0800, Dan Williams wrote:
+> Just general cautiousness, I'm not opposed to squashing them.
 
-For example, in the case of initializing memory for NVDIMM this can have a
-significant impact as initialing 3TB on remote node can take up to 39
-seconds while initialing it on a local node only takes 23 seconds. It is
-situations like this where we will see the biggest improvement.
+Nah, I can keep them separate - I was just wondering why.
 
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/dd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> mce_usable_address() should not have any sensitivity to NVDIMM vs DRAM
+> MCEs.
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index f4e84d639c69..1660eeb1fc9d 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -834,7 +834,7 @@ static int __device_attach(struct device *dev, bool allow_async)
- 			dev_dbg(dev, "scheduling asynchronous probe\n");
- 			get_device(dev);
- 			dev->async_probe = true;
--			async_schedule(__device_attach_async_helper, dev);
-+			async_schedule_dev(__device_attach_async_helper, dev);
- 		} else {
- 			pm_request_idle(dev);
- 		}
-@@ -1008,7 +1008,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		if (!dev->driver) {
- 			get_device(dev);
- 			dev_set_drv_async(dev, drv);
--			async_schedule(__driver_attach_async_helper, dev);
-+			async_schedule_dev(__driver_attach_async_helper, dev);
- 		}
- 		device_unlock(dev);
- 		return 0;
+Ok.
 
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
