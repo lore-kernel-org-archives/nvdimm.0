@@ -1,20 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from smtprelay.hostedemail.com (smtprelay0003.hostedemail.com
- [216.40.44.3])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it1-x141.google.com (mail-it1-x141.google.com
+ [IPv6:2607:f8b0:4864:20::141])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 325DE2118A593
- for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 17:34:36 -0800 (PST)
-Message-ID: <499e4358e72fca510fa6fcfb76ea3ac3792db08f.camel@perches.com>
-Subject: Re: [driver-core PATCH v5 5/9] driver core: Establish clear order
- of operations for deferred probe and remove
-From: Joe Perches <joe@perches.com>
-Date: Tue, 06 Nov 2018 17:34:31 -0800
-In-Reply-To: <1541548114.196084.195.camel@acm.org>
-References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
- <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
- <1541548114.196084.195.camel@acm.org>
-Mime-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5A7AC203B99BB
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 16:52:57 -0800 (PST)
+Received: by mail-it1-x141.google.com with SMTP id h13so20696065itl.1
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 16:52:57 -0800 (PST)
+MIME-Version: 1.0
+References: <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
+ <201811061228.iteFLO2p%fengguang.wu@intel.com>
+ <1541548274.196084.197.camel@acm.org>
+In-Reply-To: <1541548274.196084.197.camel@acm.org>
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Date: Tue, 6 Nov 2018 16:52:45 -0800
+Message-ID: <CAKgT0Ue61y6qMH3sKH6-M_eHy4Lc5p6k27LFXwmVooAL48KyYQ@mail.gmail.com>
+Subject: Re: [driver-core PATCH v5 5/9] driver core: Establish clear order of
+ operations for deferred probe and remove
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,30 +28,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Bart Van Assche <bvanassche@acm.org>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: bvanassche@acm.org
+Cc: len.brown@intel.com, kbuild test robot <lkp@intel.com>, linux-pm@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, LKML <linux-kernel@vger.kernel.org>, kbuild-all@01.org, pavel@ucw.cz, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, alexander.h.duyck@linux.intel.com, Andrew Morton <akpm@linux-foundation.org>, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2018-11-06 at 15:48 -0800, Bart Van Assche wrote:
-> On Mon, 2018-11-05 at 13:12 -0800, Alexander Duyck wrote:
-> > One change I made in addition is I replaced the use of "bool X:1" to define
-> > the bitfield to a "u8 X:1" setup in order to resolve some checkpatch
-> > warnings.
-> 
-> Please use "bool X:1" instead of "u8 X:1". I think it was a bad idea to make
-> checkpatch complain about "bool X:1" since "bool X:1" should only be avoided
-> in structures for which alignment must be architecture-independent. For struct
-> device it is fine if member alignment differs per architecture. Additionally,
-> changing "bool X:1" into "u8 X:1" will reduce performance on architectures that
-> cannot do byte addressing.
+On Tue, Nov 6, 2018 at 3:51 PM Bart Van Assche <bvanassche@acm.org> wrote:
+>
+> On Tue, 2018-11-06 at 12:10 +0800, kbuild test robot wrote:
+> > Hi Alexander,
+> >
+> > Thank you for the patch! Perhaps something to improve:
+> >
+> > [auto build test WARNING on driver-core/master]
+> >
+> > url:    https://github.com/0day-ci/linux/commits/Alexander-Duyck/Add-NUMA-aware-async_schedule-calls/20181106-093800
+> > reproduce: make htmldocs
+> >
+> > All warnings (new ones prefixed by >>):
+> >
+> >    include/net/mac80211.h:1001: warning: Function parameter or member 'status.is_valid_ack_signal' not described in 'ieee80211_tx_info'
+> > [ ... ]
+>
+> There are plenty of references in this report to header files not touched
+> by patch 5/9 in this series. I assume that this report indicates a bug in
+> the 0-day testing infrastructure?
+>
+> Bart.
 
-I generally agree.  But the checkpatch warning _could_
-be useful in those cases where alignment should be
-architecture-independent.
+It isn't a bug. It is pointing out the same thing you did. I didn't
+document the async_probe value so it added a warning to the list.
 
-Any suggestion on how to improve the message?
-s
+>> include/linux/device.h:1056: warning: Function parameter or member 'async_probe' not described in 'device'
 
+I'll fix it for the next version.
+
+- Alex
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
