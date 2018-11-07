@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com
+ [IPv6:2607:f8b0:4864:20::732])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C39E12119307C
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:26 -0800 (PST)
-Subject: [PATCH v5 00/12] ndctl: add security support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Nov 2018 14:33:25 -0700
-Message-ID: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8CD61211575F2
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 18:12:49 -0800 (PST)
+Received: by mail-qk1-x732.google.com with SMTP id o89so19821114qko.0
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 18:12:49 -0800 (PST)
+Received: from gabell ([2601:18f:600:d880:c1f1:36c5:d40:1949])
+ by smtp.gmail.com with ESMTPSA id b8sm27174008qka.79.2018.11.06.18.12.47
+ for <linux-nvdimm@lists.01.org>
+ (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+ Tue, 06 Nov 2018 18:12:47 -0800 (PST)
+Date: Tue, 6 Nov 2018 21:12:46 -0500
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: Question about unit test for acpi_nfit_notify().
+Message-ID: <20181107021245.amegu3dwawlwyxob@gabell>
 MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,99 +29,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements mechanisms that utilize the sysfs knobs
-provided by the kernel in order to support the Intel DSM v1.8 spec
-that provides security to NVDIMM. The following abilities are added:
-1. display security state
-2. enable/update passphrase
-3. disable passphrase
-4. freeze security
-5. secure erase
-6. overwrite
-7. master passphrase enable/update
+Let me ask a question about unit test for acpi_nfit_notify().
 
-v5:
-- Updated to match latest kernel interface (encrypted keys)
-- Added overwrite support
-- Added support for DSM v1.8 master passphrase operations
-- Removed upcall related code
-- Moved security state to enum (Dan)
-- Change security output "security_state" to just "security". (Dan)
-- Break out enable and update passphrase operation. (Dan)
-- Security build can be compiled out when keyutils does not exist. (Dan)
-- Move all keyutils related operations to libndctl. (Dan)
+The unit test was introduced by commit c14a868a5a14 ("tools/testing/nvdimm:
+unit test for acpi_nfit_notify()"), however, it seems that it doesn't
+work currently. When I road the nfit_test.ko, I got the following
+message.
 
-v4:
-- Updated to match latest kernel interface.
-- Added unit test for all security calls
+  nfit_test nfit_test.0: failed to evaluate _FIT
 
-v3:
-- Added support to inject keys in order to update nvdimm security.
+That is because the 2nd argument of __acpi_nfit_notify(), nfit_test,
+isn't allocated as nfit_test_resource structure, so
+__wrap_acpi_evaluate_object() doesn't do anything, just call
+acpi_evaluate_object(). The nfit_test is passed to acpi_evaluate_object()
+as the 1st argument, handle. The nfit_test isn't useful for the
+handle, so I got the error message.
 
-v2:
-- Fixup the upcall util to match recent kernel updates for nvdimm security.
+nfit_test->_fit is allocated as nfit_test_resource structure,
+so I thought it is fixed by the change look like as following.
 
----
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index cffc2c5a778d..3bae4a879f5f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -2670,7 +2670,7 @@ static int nfit_test_probe(struct platform_device *pdev)
+        obj->buffer.length = nfit_test->nfit_size;
+        obj->buffer.pointer = nfit_test->nfit_buf;
+        *(nfit_test->_fit) = obj;
+-       __acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
++       __acpi_nfit_notify(&pdev->dev, nfit_test->_fit, 0x80);
 
-Dave Jiang (12):
-      ndctl: add support for display security state
-      ndctl: add passphrase update to ndctl
-      ndctl: add disable security support
-      ndctl: add support for freeze security
-      ndctl: add support for sanitize dimm
-      ndctl: add unit test for security ops (minus overwrite)
-      ndctl: setup modprobe rules
-      ndctl: add overwrite operation support
-      ndctl: add overwrite-wait support
-      ndctl: master phassphrase management support
-      ndctl: add master secure erase support
-      ndctl: documentation for security and key management
+        /* associate dimm devices with nfit_mem data for notification testing */
+        mutex_lock(&acpi_desc->init_mutex);
 
+However, if so, obj, which is allocated before calling __acpi_nfit_notify(),
+gets meaningless...
 
- Documentation/ndctl/Makefile.am                  |    8 
- Documentation/ndctl/intel-nvdimm-security.txt    |  129 ++++++
- Documentation/ndctl/ndctl-disable-passphrase.txt |   29 +
- Documentation/ndctl/ndctl-enable-passphrase.txt  |   42 ++
- Documentation/ndctl/ndctl-freeze-security.txt    |   22 +
- Documentation/ndctl/ndctl-list.txt               |    8 
- Documentation/ndctl/ndctl-sanitize-dimm.txt      |   44 ++
- Documentation/ndctl/ndctl-update-passphrase.txt  |   40 ++
- Documentation/ndctl/ndctl-wait-overwrite.txt     |   31 +
- Makefile.am                                      |   10 
- builtin.h                                        |    6 
- configure.ac                                     |   14 +
- contrib/ndctl-loadkeys.sh                        |   24 +
- contrib/nvdimm_modprobe.conf                     |    1 
- ndctl.spec.in                                    |    2 
- ndctl/Makefile.am                                |    3 
- ndctl/dimm.c                                     |  236 ++++++++++-
- ndctl/lib/Makefile.am                            |    8 
- ndctl/lib/dimm.c                                 |  203 +++++++++
- ndctl/lib/keys.c                                 |  472 ++++++++++++++++++++++
- ndctl/lib/libndctl.sym                           |   19 +
- ndctl/libndctl.h                                 |   67 +++
- ndctl/ndctl.c                                    |    6 
- test/Makefile.am                                 |    4 
- test/security.sh                                 |  191 +++++++++
- util/json.c                                      |   31 +
- 26 files changed, 1637 insertions(+), 13 deletions(-)
- create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
- create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-enable-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
- create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
- create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
- create mode 100755 contrib/ndctl-loadkeys.sh
- create mode 100644 contrib/nvdimm_modprobe.conf
- create mode 100644 ndctl/lib/keys.c
- create mode 100755 test/security.sh
+I would like to fix this issue but I'm confusing now... Am I missing
+something? I would applicate if someone could help.
 
---
+Thanks!
+Masa
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
