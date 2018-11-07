@@ -1,43 +1,51 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [RFC PATCH 3/3] dm: expand valid types for dm-ioctl
-Date: Tue, 20 Nov 2018 18:20:37 +0800
-Message-Id: <20181120102037.4536-4-yehs2007@zoho.com>
-In-Reply-To: <20181120102037.4536-1-yehs2007@zoho.com>
-References: <20181120102037.4536-1-yehs2007@zoho.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, dan.j.williams@intel.com, willy@infradead.org, zwisler@kernel.org, jack@suse.cz, dave.jiang@intel.com, vishal.l.verma@intel.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, chengnt@lenovo.com, Huaisheng Ye <yehs1@lenovo.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pl1-f196.google.com (mail-pl1-f196.google.com
+ [209.85.214.196])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1CAEF2118A593
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 16:26:36 -0800 (PST)
+Received: by mail-pl1-f196.google.com with SMTP id w22-v6so3687154plk.0
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 16:26:36 -0800 (PST)
+Message-ID: <1541550393.196084.202.camel@acm.org>
+Subject: Re: [driver-core PATCH v5 9/9] libnvdimm: Schedule device
+ registration on node local to the device
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Tue, 06 Nov 2018 16:26:33 -0800
+In-Reply-To: <154145234526.29224.2575533246153120029.stgit@ahduyck-desk1.jf.intel.com>
+References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ <154145234526.29224.2575533246153120029.stgit@ahduyck-desk1.jf.intel.com>
+Mime-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Mon, 2018-11-05 at 13:12 -0800, Alexander Duyck wrote:
+> This patch is meant to force the device registration for nvdimm devices to
+> be closer to the actual device. This is achieved by using either the NUMA
+> node ID of the region, or of the parent. By doing this we can have
+> everything above the region based on the region, and everything below the
+> region based on the nvdimm bus.
+> 
+> By guaranteeing NUMA locality I see an improvement of as high as 25% for
+> per-node init of a system with 12TB of persistent memory.
 
-If use DAX way to mount the origin device of dm_snapshot, when
-merging back snapshot to origin, system call table_load during the
-construction of snapshot-merge will try to detect new dm_table's type
-equals to the existed md's type or not.
-The existed type equals to DM_TYPE_DAX_BIO_BASED, but the new created
-type belongs to DM_TYPE_BIO_BASED. So, we need to expand valid_type in
-function is_valid_type.
+Thank you for having included the performance numbers.
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- drivers/md/dm-ioctl.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 
-diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
-index a27016e..158d657 100644
---- a/drivers/md/dm-ioctl.c
-+++ b/drivers/md/dm-ioctl.c
-@@ -1295,7 +1295,8 @@ static int populate_table(struct dm_table *table,
- static bool is_valid_type(enum dm_queue_mode cur, enum dm_queue_mode new)
- {
- 	if (cur == new ||
--	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED))
-+	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED) ||
-+	    (cur == DM_TYPE_DAX_BIO_BASED && new == DM_TYPE_BIO_BASED))
- 		return true;
- 
- 	return false;
--- 
-1.8.3.1
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
