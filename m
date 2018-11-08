@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
- [IPv6:2607:f8b0:4864:20::242])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E3472118C51C
- for <linux-nvdimm@lists.01.org>; Mon, 26 Nov 2018 20:52:49 -0800 (PST)
-Received: by mail-oi1-x242.google.com with SMTP id h25so18203805oig.1
- for <linux-nvdimm@lists.01.org>; Mon, 26 Nov 2018 20:52:49 -0800 (PST)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 8AFDC203B99BB
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:07:23 -0800 (PST)
+Subject: [driver-core PATCH v6 8/9] PM core: Use new async_schedule_dev command
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Thu, 08 Nov 2018 10:07:21 -0800
+Message-ID: <154170044143.12967.7385910787360171117.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
 References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
- <154170044143.12967.7385910787360171117.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154170044143.12967.7385910787360171117.stgit@ahduyck-desk1.jf.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Nov 2018 20:52:37 -0800
-Message-ID: <CAPcyv4jWAp8UHY3Q3LaJtZ1Kw=XKK_oC9sBAwUWDrTGxyrx1Lw@mail.gmail.com>
-Subject: Re: [driver-core PATCH v6 8/9] PM core: Use new async_schedule_dev
- command
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,26 +22,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: alexander.h.duyck@linux.intel.com
-Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 8, 2018 at 10:07 AM Alexander Duyck
-<alexander.h.duyck@linux.intel.com> wrote:
->
-> Use the device specific version of the async_schedule commands to defer
-> various tasks related to power management. By doing this we should see a
-> slight improvement in performance as any device that is sensitive to
-> latency/locality in the setup will now be initializing on the node closest
-> to the device.
->
-> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-> Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Use the device specific version of the async_schedule commands to defer
+various tasks related to power management. By doing this we should see a
+slight improvement in performance as any device that is sensitive to
+latency/locality in the setup will now be initializing on the node closest
+to the device.
 
-Looks good,
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ drivers/base/power/main.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index a690fd400260..ebb8b61b52e9 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -726,7 +726,7 @@ void dpm_noirq_resume_devices(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume_noirq, dev);
++			async_schedule_dev(async_resume_noirq, dev);
+ 		}
+ 	}
+ 
+@@ -883,7 +883,7 @@ void dpm_resume_early(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume_early, dev);
++			async_schedule_dev(async_resume_early, dev);
+ 		}
+ 	}
+ 
+@@ -1047,7 +1047,7 @@ void dpm_resume(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume, dev);
++			async_schedule_dev(async_resume, dev);
+ 		}
+ 	}
+ 
+@@ -1366,7 +1366,7 @@ static int device_suspend_noirq(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend_noirq, dev);
++		async_schedule_dev(async_suspend_noirq, dev);
+ 		return 0;
+ 	}
+ 	return __device_suspend_noirq(dev, pm_transition, false);
+@@ -1569,7 +1569,7 @@ static int device_suspend_late(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend_late, dev);
++		async_schedule_dev(async_suspend_late, dev);
+ 		return 0;
+ 	}
+ 
+@@ -1833,7 +1833,7 @@ static int device_suspend(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend, dev);
++		async_schedule_dev(async_suspend, dev);
+ 		return 0;
+ 	}
+ 
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
