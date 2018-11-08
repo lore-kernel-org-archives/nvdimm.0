@@ -1,19 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f196.google.com (mail-pl1-f196.google.com
+ [209.85.214.196])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6727C2117CE9E
- for <linux-nvdimm@lists.01.org>; Sun, 11 Nov 2018 11:32:09 -0800 (PST)
-Date: Sun, 11 Nov 2018 11:32:08 -0800
-From: Greg KH <gregkh@linuxfoundation.org>
+ by ml01.01.org (Postfix) with ESMTPS id 1375121A07A80
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 15:36:39 -0800 (PST)
+Received: by mail-pl1-f196.google.com with SMTP id p6-v6so20370pll.4
+ for <linux-nvdimm@lists.01.org>; Thu, 08 Nov 2018 15:36:39 -0800 (PST)
+Message-ID: <1541720197.196084.231.camel@acm.org>
 Subject: Re: [driver-core PATCH v6 2/9] async: Add support for queueing on
  specific NUMA node
-Message-ID: <20181111193208.GB8332@kroah.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Date: Thu, 08 Nov 2018 15:36:37 -0800
+In-Reply-To: <154170041079.12967.13132220574997822111.stgit@ahduyck-desk1.jf.intel.com>
 References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
  <154170041079.12967.13132220574997822111.stgit@ahduyck-desk1.jf.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <154170041079.12967.13132220574997822111.stgit@ahduyck-desk1.jf.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,11 +27,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, linux-kernel@vger.kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, linux-pm@vger.kernel.org, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 08, 2018 at 10:06:50AM -0800, Alexander Duyck wrote:
+On Thu, 2018-11-08 at 10:06 -0800, Alexander Duyck wrote:
 > Introduce four new variants of the async_schedule_ functions that allow
 > scheduling on a specific NUMA node.
 > 
@@ -47,20 +49,9 @@ On Thu, Nov 08, 2018 at 10:06:50AM -0800, Alexander Duyck wrote:
 > The main motivation behind this is to address the need to be able to
 > schedule device specific init work on specific NUMA nodes in order to
 > improve performance of memory initialization.
-> 
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> ---
 
-No one else from Intel has reviewed/verified this code at all?
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 
-Please take advantages of the resources you have that most people do
-not, get reviewes from your coworkers please before you send this out
-again, as they can give you valuable help before the community has to
-review the code...
-
-thanks,
-
-greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
