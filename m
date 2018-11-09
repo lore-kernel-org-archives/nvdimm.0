@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2D9D2118DC4D
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:07:06 -0800 (PST)
-Subject: [driver-core PATCH v6 5/9] driver core: Establish clear order of
- operations for deferred probe and remove
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 08 Nov 2018 10:07:06 -0800
-Message-ID: <154170042611.12967.14256799141542560553.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
-References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5093021184E66
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:14:08 -0800 (PST)
+Subject: [PATCH 04/11] libnvdimm/security: introduce NDD_SECURITY_BUSY flag
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 09 Nov 2018 15:14:07 -0700
+Message-ID: <154180164758.70506.11595335862050814723.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,207 +22,192 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an additional bit flag to the device struct named async_probe. This
-additional flag allows us to guarantee ordering between probe and remove
-operations.
+Adding a flag for nvdimm->flags to support erase functions. While it's ok
+to hold the nvdimm_bus lock for secure erase due to minimal time to execute
+the command, overwrite requires a significantly longer time and makes this
+impossible. The flag will block any drivers from being loaded and DIMMs
+being probed.
 
-This allows us to guarantee that if we execute a remove operation or a
-driver load attempt on a given interface it will not attempt to update the
-driver member asynchronously following the earlier operation. Previously
-this guarantee was not present and could result in us attempting to remove
-a driver from an interface only to have it show up later when it is
-asynchronously loaded.
-
-One change I made in addition is I replaced the use of "bool X:1" to define
-the bitfield to a "u8 X:1" setup in order to resolve some checkpatch
-warnings.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/base/dd.c      |  104 +++++++++++++++++++++++++++---------------------
- include/linux/device.h |    3 +
- 2 files changed, 62 insertions(+), 45 deletions(-)
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region_devs.c |    7 +++++
+ drivers/nvdimm/security.c    |   61 ++++++++++++++++++++++++++++++++++++++----
+ include/linux/libnvdimm.h    |    2 +
+ 4 files changed, 65 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index e74cefeb5b69..ed19cf0d6f9a 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -472,6 +472,8 @@ static int really_probe(struct device *dev, struct device_driver *drv)
- 		 drv->bus->name, __func__, drv->name, dev_name(dev));
- 	WARN_ON(!list_empty(&dev->devres_head));
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index f8d8f0a2a40d..6cb1cd4a39d0 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -250,6 +250,7 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ void nvdimm_set_aliasing(struct device *dev);
+ void nvdimm_set_locked(struct device *dev);
+ void nvdimm_clear_locked(struct device *dev);
++int nvdimm_check_security_busy(struct nvdimm *nvdimm);
+ struct nd_btt *to_nd_btt(struct device *dev);
  
-+	/* clear async_probe flag as we are no longer deferring driver load */
-+	dev->async_probe = false;
- re_probe:
- 	dev->driver = drv;
- 
-@@ -771,6 +773,10 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
- 
- 	device_lock(dev);
- 
-+	/* nothing to do if async_probe has been cleared */
-+	if (!dev->async_probe)
-+		goto out_unlock;
+ struct nd_gen_sb {
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..a097282b2c01 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -78,6 +78,13 @@ int nd_region_activate(struct nd_region *nd_region)
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++		int rc;
 +
- 	if (dev->parent)
- 		pm_runtime_get_sync(dev->parent);
++		rc = nvdimm_check_security_busy(nvdimm);
++		if (rc) {
++			nvdimm_bus_unlock(&nd_region->dev);
++			return rc;
++		}
  
-@@ -781,7 +787,7 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+ 		/* at least one null hint slot per-dimm for the "no-hint" case */
+ 		flush_data_size += sizeof(void *);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index d2831e61f3d8..2a83be47798e 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -19,6 +19,27 @@ static bool no_key_self_verify;
+ module_param(no_key_self_verify, bool, 0644);
+ MODULE_PARM_DESC(no_key_self_verify, "Bypass security key self verify");
  
- 	if (dev->parent)
- 		pm_runtime_put(dev->parent);
--
-+out_unlock:
- 	device_unlock(dev);
- 
- 	put_device(dev);
-@@ -826,6 +832,7 @@ static int __device_attach(struct device *dev, bool allow_async)
- 			 */
- 			dev_dbg(dev, "scheduling asynchronous probe\n");
- 			get_device(dev);
-+			dev->async_probe = true;
- 			async_schedule(__device_attach_async_helper, dev);
- 		} else {
- 			pm_request_idle(dev);
-@@ -971,62 +978,69 @@ EXPORT_SYMBOL_GPL(driver_attach);
++/*
++ * Check if we are doing security wipes
++ */
++int nvdimm_check_security_busy(struct nvdimm *nvdimm)
++{
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags))
++		return -EBUSY;
++
++	return 0;
++}
++
++static inline void nvdimm_set_security_busy(struct nvdimm *nvdimm)
++{
++	set_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
++}
++
++static inline void nvdimm_clear_security_busy(struct nvdimm *nvdimm)
++{
++	clear_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
++}
++
+ /*
+  * Retrieve user injected key
   */
- static void __device_release_driver(struct device *dev, struct device *parent)
- {
--	struct device_driver *drv;
-+	struct device_driver *drv = dev->driver;
+@@ -85,6 +106,13 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
  
--	drv = dev->driver;
--	if (drv) {
--		while (device_links_busy(dev)) {
--			__device_driver_unlock(dev, parent);
-+	/*
-+	 * In the event that we are asked to release the driver on an
-+	 * interface that is still waiting on a probe we can just terminate
-+	 * the probe by setting async_probe to false. When the async call
-+	 * is finally completed it will see this state and just exit.
-+	 */
-+	dev->async_probe = false;
-+	if (!drv)
-+		return;
- 
--			device_links_unbind_consumers(dev);
-+	while (device_links_busy(dev)) {
-+		__device_driver_unlock(dev, parent);
- 
--			__device_driver_lock(dev, parent);
--			/*
--			 * A concurrent invocation of the same function might
--			 * have released the driver successfully while this one
--			 * was waiting, so check for that.
--			 */
--			if (dev->driver != drv)
--				return;
--		}
-+		device_links_unbind_consumers(dev);
- 
--		pm_runtime_get_sync(dev);
--		pm_runtime_clean_up_links(dev);
-+		__device_driver_lock(dev, parent);
-+		/*
-+		 * A concurrent invocation of the same function might
-+		 * have released the driver successfully while this one
-+		 * was waiting, so check for that.
-+		 */
-+		if (dev->driver != drv)
-+			return;
+ 	nvdimm_bus_lock(dev);
+ 	mutex_lock(&nvdimm->sec_mutex);
++	rc = nvdimm_check_security_busy(nvdimm);
++	if (rc < 0) {
++		dev_warn(dev, "Security operation in progress.\n");
++		goto out;
 +	}
- 
--		driver_sysfs_remove(dev);
-+	pm_runtime_get_sync(dev);
-+	pm_runtime_clean_up_links(dev);
- 
--		if (dev->bus)
--			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
--						     BUS_NOTIFY_UNBIND_DRIVER,
--						     dev);
-+	driver_sysfs_remove(dev);
- 
--		pm_runtime_put_sync(dev);
-+	if (dev->bus)
-+		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
-+					     BUS_NOTIFY_UNBIND_DRIVER,
-+					     dev);
- 
--		if (dev->bus && dev->bus->remove)
--			dev->bus->remove(dev);
--		else if (drv->remove)
--			drv->remove(dev);
-+	pm_runtime_put_sync(dev);
- 
--		device_links_driver_cleanup(dev);
--		arch_teardown_dma_ops(dev);
-+	if (dev->bus && dev->bus->remove)
-+		dev->bus->remove(dev);
-+	else if (drv->remove)
-+		drv->remove(dev);
- 
--		devres_release_all(dev);
--		dev->driver = NULL;
--		dev_set_drvdata(dev, NULL);
--		if (dev->pm_domain && dev->pm_domain->dismiss)
--			dev->pm_domain->dismiss(dev);
--		pm_runtime_reinit(dev);
--		dev_pm_set_driver_flags(dev, 0);
-+	device_links_driver_cleanup(dev);
-+	arch_teardown_dma_ops(dev);
 +
-+	devres_release_all(dev);
-+	dev->driver = NULL;
-+	dev_set_drvdata(dev, NULL);
-+	if (dev->pm_domain && dev->pm_domain->dismiss)
-+		dev->pm_domain->dismiss(dev);
-+	pm_runtime_reinit(dev);
-+	dev_pm_set_driver_flags(dev, 0);
++	nvdimm_set_security_busy(nvdimm);
+ 	if (atomic_read(&nvdimm->busy)) {
+ 		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
+ 		rc = -EBUSY;
+@@ -113,6 +141,7 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 	key_put(key);
  
--		klist_remove(&dev->p->knode_driver);
--		device_pm_check_callbacks(dev);
--		if (dev->bus)
--			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
--						     BUS_NOTIFY_UNBOUND_DRIVER,
--						     dev);
-+	klist_remove(&dev->p->knode_driver);
-+	device_pm_check_callbacks(dev);
-+	if (dev->bus)
-+		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
-+					     BUS_NOTIFY_UNBOUND_DRIVER,
-+					     dev);
+  out:
++	nvdimm_clear_security_busy(nvdimm);
+ 	mutex_unlock(&nvdimm->sec_mutex);
+ 	nvdimm_bus_unlock(dev);
+ 	nvdimm_security_get_state(nvdimm);
+@@ -130,15 +159,19 @@ int nvdimm_security_freeze_lock(struct nvdimm *nvdimm)
+ 		return -EOPNOTSUPP;
  
--		kobject_uevent(&dev->kobj, KOBJ_UNBIND);
+ 	mutex_lock(&nvdimm->sec_mutex);
++	rc = nvdimm_check_security_busy(nvdimm);
++	if (rc < 0)
++		goto out;
++
+ 	rc = nvdimm->security_ops->freeze_lock(nvdimm);
+-	if (rc < 0) {
+-		mutex_unlock(&nvdimm->sec_mutex);
+-		return rc;
 -	}
-+	kobject_uevent(&dev->kobj, KOBJ_UNBIND);
++	if (rc < 0)
++		goto out;
+ 
+ 	nvdimm_security_get_state(nvdimm);
++
++out:
+ 	mutex_unlock(&nvdimm->sec_mutex);
+-	return 0;
++	return rc;
  }
  
- void device_release_driver_internal(struct device *dev,
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 1b25c7a43f4c..4d2eb2c74149 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -957,6 +957,8 @@ struct dev_links_info {
-  *              device.
-  * @dma_coherent: this particular device is dma coherent, even if the
-  *		architecture supports non-coherent devices.
-+ * @async_probe: This device has an asynchronous probe event pending. Should
-+ *		 only be updated while holding device lock.
-  *
-  * At the lowest level, every device in a Linux system is represented by an
-  * instance of struct device. The device structure contains the information
-@@ -1051,6 +1053,7 @@ struct device {
-     defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
- 	bool			dma_coherent:1;
- #endif
-+	bool			async_probe:1;
- };
+ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+@@ -156,6 +189,12 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EOPNOTSUPP;
  
- static inline struct device *kobj_to_dev(struct kobject *kobj)
+ 	mutex_lock(&nvdimm->sec_mutex);
++	rc = nvdimm_check_security_busy(nvdimm);
++	if (rc < 0) {
++		mutex_unlock(&nvdimm->sec_mutex);
++		return rc;
++	}
++
+ 	/* look for a key from cached key */
+ 	key = nvdimm_lookup_user_key(dev, keyid);
+ 	if (!key) {
+@@ -232,6 +271,12 @@ int nvdimm_security_unlock_dimm(struct nvdimm *nvdimm)
+ 		return 0;
+ 
+ 	mutex_lock(&nvdimm->sec_mutex);
++	rc = nvdimm_check_security_busy(nvdimm);
++	if (rc < 0) {
++		mutex_unlock(&nvdimm->sec_mutex);
++		return rc;
++	}
++
+ 	/*
+ 	 * If the pre-OS has unlocked the DIMM, we will attempt to send
+ 	 * the key from request_key() to the hardware for verification.
+@@ -294,7 +339,7 @@ int nvdimm_security_change_key(struct nvdimm *nvdimm,
+ 		unsigned int old_keyid, unsigned int new_keyid)
+ {
+ 	int rc;
+-	struct key *key, *old_key;
++	struct key *key = NULL, *old_key = NULL;
+ 	void *old_data = NULL, *new_data;
+ 	struct device *dev = &nvdimm->dev;
+ 	struct encrypted_key_payload *epayload, *old_epayload;
+@@ -306,6 +351,10 @@ int nvdimm_security_change_key(struct nvdimm *nvdimm,
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&nvdimm->sec_mutex);
++	rc = nvdimm_check_security_busy(nvdimm);
++	if (rc < 0)
++		goto out;
++
+ 	/* look for a key from cached key if exists */
+ 	old_key = nvdimm_lookup_user_key(dev, old_keyid);
+ 	if (old_key)
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 1071fe12081b..f3941836b93d 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -38,6 +38,8 @@ enum {
+ 	NDD_UNARMED = 1,
+ 	/* locked memory devices should not be accessed */
+ 	NDD_LOCKED = 2,
++	/* memory under security wipes should not be accessed */
++	NDD_SECURITY_BUSY = 3,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
 
 _______________________________________________
 Linux-nvdimm mailing list
