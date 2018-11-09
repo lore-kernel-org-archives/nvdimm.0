@@ -1,170 +1,139 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71EC521959CB2
- for <linux-nvdimm@lists.01.org>; Tue, 13 Nov 2018 01:29:02 -0800 (PST)
-Subject: Re: [PATCH 1/2] mm: make dev_pagemap_mapping_shift() externally
- visible
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri,  9 Nov 2018 15:39:20 -0500
+In-Reply-To: <20181109203921.178363-1-brho@google.com>
+Message-Id: <20181109203921.178363-2-brho@google.com>
+Mime-Version: 1.0
 References: <20181109203921.178363-1-brho@google.com>
- <20181109203921.178363-2-brho@google.com>
-From: David Hildenbrand <david@redhat.com>
-Message-ID: <55978932-90ee-c327-b445-990849250eb1@redhat.com>
-Date: Tue, 13 Nov 2018 10:28:56 +0100
-MIME-Version: 1.0
-In-Reply-To: <20181109203921.178363-2-brho@google.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Barret Rhoden <brho@google.com>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: kvm@vger.kernel.org, yu.c.zhang@intel.com, linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "H. Peter Anvin" <hpa@zytor.com>, yi.z.zhang@intel.com
+Subject: [PATCH 1/2] mm: make dev_pagemap_mapping_shift() externally visible
+From: Barret Rhoden <brho@google.com>
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, kvm@vger.kernel.org, yu.c.zhang@intel.com, yi.z.zhang@intel.com, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 09.11.18 21:39, Barret Rhoden wrote:
-> KVM has a use case for determining the size of a dax mapping.  The KVM
-> code has easy access to the address and the mm; hence the change in
-> parameters.
-> 
-> Signed-off-by: Barret Rhoden <brho@google.com>
-> ---
->  include/linux/mm.h  |  3 +++
->  mm/memory-failure.c | 38 +++-----------------------------------
->  mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
->  3 files changed, 40 insertions(+), 35 deletions(-)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 5411de93a363..51215d695753 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -935,6 +935,9 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
->  }
->  #endif /* CONFIG_DEV_PAGEMAP_OPS */
->  
-> +unsigned long dev_pagemap_mapping_shift(unsigned long address,
-> +					struct mm_struct *mm);
-> +
->  static inline void get_page(struct page *page)
->  {
->  	page = compound_head(page);
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index 0cd3de3550f0..c3f2c6a8607e 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -265,40 +265,6 @@ void shake_page(struct page *p, int access)
->  }
->  EXPORT_SYMBOL_GPL(shake_page);
->  
-> -static unsigned long dev_pagemap_mapping_shift(struct page *page,
-> -		struct vm_area_struct *vma)
-> -{
-> -	unsigned long address = vma_address(page, vma);
-> -	pgd_t *pgd;
-> -	p4d_t *p4d;
-> -	pud_t *pud;
-> -	pmd_t *pmd;
-> -	pte_t *pte;
-> -
-> -	pgd = pgd_offset(vma->vm_mm, address);
-> -	if (!pgd_present(*pgd))
-> -		return 0;
-> -	p4d = p4d_offset(pgd, address);
-> -	if (!p4d_present(*p4d))
-> -		return 0;
-> -	pud = pud_offset(p4d, address);
-> -	if (!pud_present(*pud))
-> -		return 0;
-> -	if (pud_devmap(*pud))
-> -		return PUD_SHIFT;
-> -	pmd = pmd_offset(pud, address);
-> -	if (!pmd_present(*pmd))
-> -		return 0;
-> -	if (pmd_devmap(*pmd))
-> -		return PMD_SHIFT;
-> -	pte = pte_offset_map(pmd, address);
-> -	if (!pte_present(*pte))
-> -		return 0;
-> -	if (pte_devmap(*pte))
-> -		return PAGE_SHIFT;
-> -	return 0;
-> -}
-> -
->  /*
->   * Failure handling: if we can't find or can't kill a process there's
->   * not much we can do.	We just print a message and ignore otherwise.
-> @@ -329,7 +295,9 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
->  	tk->addr = page_address_in_vma(p, vma);
->  	tk->addr_valid = 1;
->  	if (is_zone_device_page(p))
-> -		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
-> +		tk->size_shift =
-> +			dev_pagemap_mapping_shift(vma_address(page, vma),
-> +						  vma->vm_mm);
->  	else
->  		tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
->  
-> diff --git a/mm/util.c b/mm/util.c
-> index 8bf08b5b5760..61bc9bab931d 100644
-> --- a/mm/util.c
-> +++ b/mm/util.c
-> @@ -780,3 +780,37 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
->  out:
->  	return res;
->  }
-> +
-> +unsigned long dev_pagemap_mapping_shift(unsigned long address,
-> +					struct mm_struct *mm)
-> +{
-> +	pgd_t *pgd;
-> +	p4d_t *p4d;
-> +	pud_t *pud;
-> +	pmd_t *pmd;
-> +	pte_t *pte;
-> +
-> +	pgd = pgd_offset(mm, address);
-> +	if (!pgd_present(*pgd))
-> +		return 0;
-> +	p4d = p4d_offset(pgd, address);
-> +	if (!p4d_present(*p4d))
-> +		return 0;
-> +	pud = pud_offset(p4d, address);
-> +	if (!pud_present(*pud))
-> +		return 0;
-> +	if (pud_devmap(*pud))
-> +		return PUD_SHIFT;
-> +	pmd = pmd_offset(pud, address);
-> +	if (!pmd_present(*pmd))
-> +		return 0;
-> +	if (pmd_devmap(*pmd))
-> +		return PMD_SHIFT;
-> +	pte = pte_offset_map(pmd, address);
-> +	if (!pte_present(*pte))
-> +		return 0;
-> +	if (pte_devmap(*pte))
-> +		return PAGE_SHIFT;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(dev_pagemap_mapping_shift);
-> 
+KVM has a use case for determining the size of a dax mapping.  The KVM
+code has easy access to the address and the mm; hence the change in
+parameters.
 
-Looks good to me
+Signed-off-by: Barret Rhoden <brho@google.com>
+---
+ include/linux/mm.h  |  3 +++
+ mm/memory-failure.c | 38 +++-----------------------------------
+ mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 35 deletions(-)
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 5411de93a363..51215d695753 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -935,6 +935,9 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
+ }
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
++unsigned long dev_pagemap_mapping_shift(unsigned long address,
++					struct mm_struct *mm);
++
+ static inline void get_page(struct page *page)
+ {
+ 	page = compound_head(page);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 0cd3de3550f0..c3f2c6a8607e 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -265,40 +265,6 @@ void shake_page(struct page *p, int access)
+ }
+ EXPORT_SYMBOL_GPL(shake_page);
+ 
+-static unsigned long dev_pagemap_mapping_shift(struct page *page,
+-		struct vm_area_struct *vma)
+-{
+-	unsigned long address = vma_address(page, vma);
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *pte;
+-
+-	pgd = pgd_offset(vma->vm_mm, address);
+-	if (!pgd_present(*pgd))
+-		return 0;
+-	p4d = p4d_offset(pgd, address);
+-	if (!p4d_present(*p4d))
+-		return 0;
+-	pud = pud_offset(p4d, address);
+-	if (!pud_present(*pud))
+-		return 0;
+-	if (pud_devmap(*pud))
+-		return PUD_SHIFT;
+-	pmd = pmd_offset(pud, address);
+-	if (!pmd_present(*pmd))
+-		return 0;
+-	if (pmd_devmap(*pmd))
+-		return PMD_SHIFT;
+-	pte = pte_offset_map(pmd, address);
+-	if (!pte_present(*pte))
+-		return 0;
+-	if (pte_devmap(*pte))
+-		return PAGE_SHIFT;
+-	return 0;
+-}
+-
+ /*
+  * Failure handling: if we can't find or can't kill a process there's
+  * not much we can do.	We just print a message and ignore otherwise.
+@@ -329,7 +295,9 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+ 	tk->addr = page_address_in_vma(p, vma);
+ 	tk->addr_valid = 1;
+ 	if (is_zone_device_page(p))
+-		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
++		tk->size_shift =
++			dev_pagemap_mapping_shift(vma_address(page, vma),
++						  vma->vm_mm);
+ 	else
+ 		tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+ 
+diff --git a/mm/util.c b/mm/util.c
+index 8bf08b5b5760..61bc9bab931d 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -780,3 +780,37 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
+ out:
+ 	return res;
+ }
++
++unsigned long dev_pagemap_mapping_shift(unsigned long address,
++					struct mm_struct *mm)
++{
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	pgd = pgd_offset(mm, address);
++	if (!pgd_present(*pgd))
++		return 0;
++	p4d = p4d_offset(pgd, address);
++	if (!p4d_present(*p4d))
++		return 0;
++	pud = pud_offset(p4d, address);
++	if (!pud_present(*pud))
++		return 0;
++	if (pud_devmap(*pud))
++		return PUD_SHIFT;
++	pmd = pmd_offset(pud, address);
++	if (!pmd_present(*pmd))
++		return 0;
++	if (pmd_devmap(*pmd))
++		return PMD_SHIFT;
++	pte = pte_offset_map(pmd, address);
++	if (!pte_present(*pte))
++		return 0;
++	if (pte_devmap(*pte))
++		return PAGE_SHIFT;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(dev_pagemap_mapping_shift);
 -- 
-
-Thanks,
-
-David / dhildenb
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+2.19.1.930.g4563a0d9d0-goog
