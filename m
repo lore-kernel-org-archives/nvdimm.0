@@ -1,251 +1,275 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com
- [IPv6:2607:f8b0:4864:20::744])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C05E2118F340
- for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 10:44:29 -0800 (PST)
-Received: by mail-qk1-x744.google.com with SMTP id w204so15127783qka.2
- for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 10:44:29 -0800 (PST)
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH] acpi/nfit,
+ device-dax: Identify differentiated memory with a unique numa-node
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 09 Nov 2018 15:12:57 -0800
+Message-ID: <154180517736.2047781.13819458479548681732.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-References: <154180517736.2047781.13819458479548681732.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154180517736.2047781.13819458479548681732.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Yang Shi <shy828301@gmail.com>
-Date: Mon, 12 Nov 2018 10:44:09 -0800
-Message-ID: <CAHbLzkpXvvU=EDb+MCEgDcg=X25s1+mny+92QTTeMpUPX2K7Jw@mail.gmail.com>
-Subject: Re: [PATCH] acpi/nfit, device-dax: Identify differentiated memory
- with a unique numa-node
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dave.hansen@linux.intel.com, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-acpi@vger.kernel.org, jglisse@redhat.com
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
+Cc: Fan Du <fan.du@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Oliver O'Halloran <oohall@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-acpi@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gRnJpLCBOb3YgOSwgMjAxOCBhdCAzOjI0IFBNIERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlh
-bXNAaW50ZWwuY29tPiB3cm90ZToKPgo+IFBlcnNpc3RlbnQgbWVtb3J5LCBhcyBkZXNjcmliZWQg
-YnkgdGhlIEFDUEkgTkZJVCAoTlZESU1NIEZpcm13YXJlCj4gSW50ZXJmYWNlIFRhYmxlKSwgaXMg
-dGhlIGZpcnN0IGtub3duIGluc3RhbmNlIG9mIGEgbWVtb3J5IHJhbmdlCj4gZGVzY3JpYmVkIGJ5
-IGEgdW5pcXVlICJ0YXJnZXQiIHByb3hpbWl0eSBkb21haW4uIFdoZXJlICJpbml0aWF0b3IiIGFu
-ZAo+ICJ0YXJnZXQiIHByb3hpbWl0eSBkb21haW5zIGlzIGFuIGFwcHJvYWNoIHRoYXQgdGhlIEFD
-UEkgSE1BVAo+IChIZXRlcm9nZW5lb3VzIE1lbW9yeSBBdHRyaWJ1dGVzIFRhYmxlKSB1c2VzIHRv
-IGRlc2NyaWJlZCB0aGUgdW5pcXVlCj4gcGVyZm9ybWFuY2UgcHJvcGVydGllcyBvZiBhIG1lbW9y
-eSByYW5nZSByZWxhdGl2ZSB0byBhIGdpdmVuIGluaXRpYXRvcgo+IChlLmcuIENQVSBvciBETUEg
-ZGV2aWNlKS4KPgo+IEN1cnJlbnRseSB0aGUgbnVtYS1ub2RlIGZvciBhIC9kZXYvcG1lbVggYmxv
-Y2stZGV2aWNlIG9yIC9kZXYvZGF4WC5ZCj4gY2hhci1kZXZpY2UgZm9sbG93cyB0aGUgdHJhZGl0
-aW9uYWwgbm90aW9uIG9mICdudW1hLW5vZGUnIHdoZXJlIHRoZQo+IGF0dHJpYnV0ZSBjb252ZXlz
-IHRoZSBjbG9zZXN0IG9ubGluZSBudW1hLW5vZGUuIFRoYXQgbnVtYS1ub2RlIGF0dHJpYnV0ZQo+
-IGlzIHVzZWZ1bCBmb3IgY3B1LWJpbmRpbmcgYW5kIG1lbW9yeS1iaW5kaW5nIHByb2Nlc3NlcyAq
-bmVhciogdGhlCj4gZGV2aWNlLiBIb3dldmVyLCB3aGVuIHRoZSBtZW1vcnkgcmFuZ2UgYmFja2lu
-ZyBhICdwbWVtJywgb3IgJ2RheCcgZGV2aWNlCj4gaXMgb25saW5lZCAobWVtb3J5IGhvdC1hZGQp
-IHRoZSBtZW1vcnktb25seS1udW1hLW5vZGUgcmVwcmVzZW50aW5nIHRoYXQKPiBhZGRyZXNzIG5l
-ZWRzIHRvIGJlIGRpZmZlcmVudGlhdGVkIGZyb20gdGhlIHNldCBvZiBvbmxpbmUgbm9kZXMuIElu
-Cj4gb3RoZXIgd29yZHMsIHRoZSBudW1hLW5vZGUgYXNzb2NpYXRpb24gb2YgdGhlIGRldmljZSBk
-ZXBlbmRzIG9uIHdoZXRoZXIKPiB5b3UgY2FuIGJpbmQgcHJvY2Vzc2VzICpuZWFyKiB0aGUgY3B1
-LW51bWEtbm9kZSBpbiB0aGUgb2ZmbGluZQo+IGRldmljZS1jYXNlLCBvciBiaW5kIHByb2Nlc3Mg
-Km9uKiB0aGUgbWVtb3J5LXJhbmdlIGRpcmVjdGx5IGFmdGVyIHRoZQo+IGJhY2tpbmcgYWRkcmVz
-cyByYW5nZSBpcyBvbmxpbmVkLgo+Cj4gQWxsb3cgZm9yIHRoZSBjYXNlIHRoYXQgcGxhdGZvcm0g
-ZmlybXdhcmUgZGVzY3JpYmVzIHBlcnNpc3RlbnQgbWVtb3J5Cj4gd2l0aCBhIHVuaXF1ZSBwcm94
-aW1pdHkgZG9tYWluLCBpLmUuIHdoZW4gaXQgaXMgZGlzdGluY3QgZnJvbSB0aGUKPiBwcm94aW1p
-dHkgb2YgRFJBTSBhbmQgQ1BVcyB0aGF0IGFyZSBvbiB0aGUgc2FtZSBzb2NrZXQuIFBsdW1iIHRo
-ZSBMaW51eAo+IG51bWEtbm9kZSB0cmFuc2xhdGlvbiBvZiB0aGF0IHByb3hpbWl0eSB0aHJvdWdo
-IHRoZSBsaWJudmRpbW0gcmVnaW9uCj4gZGV2aWNlIHRvIG5hbWVzcGFjZXMgdGhhdCBhcmUgaW4g
-ZGV2aWNlLWRheCBtb2RlLiBXaXRoIHRoaXMgaW4gcGxhY2UgdGhlCj4gcHJvcG9zZWQga21lbSBk
-cml2ZXIgWzFdIGNhbiBvcHRpb25hbGx5IGRpc2NvdmVyIGEgdW5pcXVlIG51bWEtbm9kZQo+IG51
-bWJlciBmb3IgdGhlIGFkZHJlc3MgcmFuZ2UgYXMgaXQgdHJhbnNpdGlvbnMgdGhlIG1lbW9yeSBm
-cm9tIGFuCj4gb2ZmbGluZSBzdGF0ZSBtYW5hZ2VkIGJ5IGEgZGV2aWNlLWRyaXZlciB0byBhbiBv
-bmxpbmUgbWVtb3J5IHJhbmdlCj4gbWFuYWdlZCBieSB0aGUgY29yZS1tbS4KPgo+IFsxXTogaHR0
-cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvMTAvMjMvOQo+Cj4gUmVwb3J0ZWQtYnk6IEZhbiBEdSA8
-ZmFuLmR1QGludGVsLmNvbT4KClRoYW5rcyBmb3IgY29taW5nIHVwIHdpdGggdGhlIHBhdGNoIHF1
-aWNrbHkuIFdlIHJlcG9ydGVkIHRoZSBwcm9ibGVtCnRvIEZhbiBEdSwgYW5kIGRpZCBhIHZlcnkg
-c2ltaWxhciwgYnV0IHByZWxpbWluYXJ5LCAgaW4taG91c2UKaW1wbGVtZW50YXRpb24uCgpUaGlz
-IGltcGxlbWVudGF0aW9uIGxvb2tzIGdvb2QgdG8gbWUuIFJldmlld2VkLWJ5OiBZYW5nIFNoaQo8
-eWFuZy5zaGlAbGludXguYWxpYmFiYS5jb20+Cgo+IENjOiBNaWNoYWVsIEVsbGVybWFuIDxtcGVA
-ZWxsZXJtYW4uaWQuYXU+Cj4gQ2M6ICJPbGl2ZXIgTydIYWxsb3JhbiIgPG9vaGFsbEBnbWFpbC5j
-b20+Cj4gQ2M6IERhdmUgSGFuc2VuIDxkYXZlLmhhbnNlbkBsaW51eC5pbnRlbC5jb20+Cj4gQ2M6
-IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgo+IFNpZ25lZC1vZmYtYnk6IERh
-biBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+IC0tLQo+ICBhcmNoL3Bvd2Vy
-cGMvcGxhdGZvcm1zL3BzZXJpZXMvcGFwcl9zY20uYyB8ICAgIDEgKwo+ICBkcml2ZXJzL2FjcGkv
-bmZpdC9jb3JlLmMgICAgICAgICAgICAgICAgICB8ICAgIDggKysrKysrLS0KPiAgZHJpdmVycy9h
-Y3BpL251bWEuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxICsKPiAgZHJpdmVycy9kYXgv
-YnVzLmMgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0ICsrKy0KPiAgZHJpdmVycy9kYXgv
-YnVzLmggICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAzICsrLQo+ICBkcml2ZXJzL2RheC9k
-YXgtcHJpdmF0ZS5oICAgICAgICAgICAgICAgICB8ICAgIDQgKysrKwo+ICBkcml2ZXJzL2RheC9w
-bWVtL2NvcmUuYyAgICAgICAgICAgICAgICAgICB8ICAgIDQgKysrLQo+ICBkcml2ZXJzL252ZGlt
-bS9lODIwLmMgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwo+ICBkcml2ZXJzL252ZGltbS9u
-ZC5oICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDIgKy0KPiAgZHJpdmVycy9udmRpbW0vb2Zf
-cG1lbS5jICAgICAgICAgICAgICAgICAgfCAgICAxICsKPiAgZHJpdmVycy9udmRpbW0vcmVnaW9u
-X2RldnMuYyAgICAgICAgICAgICAgfCAgICAxICsKPiAgaW5jbHVkZS9saW51eC9saWJudmRpbW0u
-aCAgICAgICAgICAgICAgICAgfCAgICAxICsKPiAgMTIgZmlsZXMgY2hhbmdlZCwgMjUgaW5zZXJ0
-aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKPgo+IGRpZmYgLS1naXQgYS9hcmNoL3Bvd2VycGMvcGxh
-dGZvcm1zL3BzZXJpZXMvcGFwcl9zY20uYyBiL2FyY2gvcG93ZXJwYy9wbGF0Zm9ybXMvcHNlcmll
-cy9wYXByX3NjbS5jCj4gaW5kZXggZWU5MzcyYjY1Y2E1Li42YTBhMzViODcyZDEgMTAwNjQ0Cj4g
-LS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wc2VyaWVzL3BhcHJfc2NtLmMKPiArKysgYi9h
-cmNoL3Bvd2VycGMvcGxhdGZvcm1zL3BzZXJpZXMvcGFwcl9zY20uYwo+IEBAIC0yMzMsNiArMjMz
-LDcgQEAgc3RhdGljIGludCBwYXByX3NjbV9udmRpbW1faW5pdChzdHJ1Y3QgcGFwcl9zY21fcHJp
-diAqcCkKPiAgICAgICAgIG1lbXNldCgmbmRyX2Rlc2MsIDAsIHNpemVvZihuZHJfZGVzYykpOwo+
-ICAgICAgICAgbmRyX2Rlc2MuYXR0cl9ncm91cHMgPSByZWdpb25fYXR0cl9ncm91cHM7Cj4gICAg
-ICAgICBuZHJfZGVzYy5udW1hX25vZGUgPSBkZXZfdG9fbm9kZSgmcC0+cGRldi0+ZGV2KTsKPiAr
-ICAgICAgIG5kcl9kZXNjLnRhcmdldF9ub2RlID0gbmRyX2Rlc2MubnVtYV9ub2RlOwo+ICAgICAg
-ICAgbmRyX2Rlc2MucmVzID0gJnAtPnJlczsKPiAgICAgICAgIG5kcl9kZXNjLm9mX25vZGUgPSBw
-LT5kbjsKPiAgICAgICAgIG5kcl9kZXNjLnByb3ZpZGVyX2RhdGEgPSBwOwo+IGRpZmYgLS1naXQg
-YS9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMKPiBp
-bmRleCBmOGM2MzhmM2M5NDYuLjIyMjVlM2RlMzNhYyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2Fj
-cGkvbmZpdC9jb3JlLmMKPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMKPiBAQCAtMjgy
-NSwxMSArMjgyNSwxNSBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9yZWdpb24oc3Ry
-dWN0IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MsCj4gICAgICAgICBuZHJfZGVzYy0+cmVzID0g
-JnJlczsKPiAgICAgICAgIG5kcl9kZXNjLT5wcm92aWRlcl9kYXRhID0gbmZpdF9zcGE7Cj4gICAg
-ICAgICBuZHJfZGVzYy0+YXR0cl9ncm91cHMgPSBhY3BpX25maXRfcmVnaW9uX2F0dHJpYnV0ZV9n
-cm91cHM7Cj4gLSAgICAgICBpZiAoc3BhLT5mbGFncyAmIEFDUElfTkZJVF9QUk9YSU1JVFlfVkFM
-SUQpCj4gKyAgICAgICBpZiAoc3BhLT5mbGFncyAmIEFDUElfTkZJVF9QUk9YSU1JVFlfVkFMSUQp
-IHsKPiAgICAgICAgICAgICAgICAgbmRyX2Rlc2MtPm51bWFfbm9kZSA9IGFjcGlfbWFwX3B4bV90
-b19vbmxpbmVfbm9kZSgKPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBzcGEtPnByb3hpbWl0eV9kb21haW4pOwo+IC0gICAgICAgZWxzZQo+ICsgICAgICAg
-ICAgICAgICBuZHJfZGVzYy0+dGFyZ2V0X25vZGUgPSBhY3BpX21hcF9weG1fdG9fbm9kZSgKPiAr
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNwYS0+cHJveGltaXR5X2RvbWFpbik7Cj4g
-KyAgICAgICB9IGVsc2Ugewo+ICAgICAgICAgICAgICAgICBuZHJfZGVzYy0+bnVtYV9ub2RlID0g
-TlVNQV9OT19OT0RFOwo+ICsgICAgICAgICAgICAgICBuZHJfZGVzYy0+dGFyZ2V0X25vZGUgPSBO
-VU1BX05PX05PREU7Cj4gKyAgICAgICB9Cj4KPiAgICAgICAgIC8qCj4gICAgICAgICAgKiBQZXJz
-aXN0ZW5jZSBkb21haW4gYml0cyBhcmUgaGllcmFyY2hpY2FsLCBpZgo+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL2FjcGkvbnVtYS5jIGIvZHJpdmVycy9hY3BpL251bWEuYwo+IGluZGV4IDI3NDY5OTQ2
-M2I0Zi4uYjlkODZiYWJiMTNhIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvYWNwaS9udW1hLmMKPiAr
-KysgYi9kcml2ZXJzL2FjcGkvbnVtYS5jCj4gQEAgLTg0LDYgKzg0LDcgQEAgaW50IGFjcGlfbWFw
-X3B4bV90b19ub2RlKGludCBweG0pCj4KPiAgICAgICAgIHJldHVybiBub2RlOwo+ICB9Cj4gK0VY
-UE9SVF9TWU1CT0woYWNwaV9tYXBfcHhtX3RvX25vZGUpOwo+Cj4gIC8qKgo+ICAgKiBhY3BpX21h
-cF9weG1fdG9fb25saW5lX25vZGUgLSBNYXAgcHJveGltaXR5IElEIHRvIG9ubGluZSBub2RlCj4g
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvZGF4L2J1cy5jIGIvZHJpdmVycy9kYXgvYnVzLmMKPiBpbmRl
-eCA1NjgxNjg1MDAyMTcuLmM2MjBhZDUyZDdlNSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2RheC9i
-dXMuYwo+ICsrKyBiL2RyaXZlcnMvZGF4L2J1cy5jCj4gQEAgLTIxNCw3ICsyMTQsNyBAQCBzdGF0
-aWMgdm9pZCBkYXhfcmVnaW9uX3VucmVnaXN0ZXIodm9pZCAqcmVnaW9uKQo+ICB9Cj4KPiAgc3Ry
-dWN0IGRheF9yZWdpb24gKmFsbG9jX2RheF9yZWdpb24oc3RydWN0IGRldmljZSAqcGFyZW50LCBp
-bnQgcmVnaW9uX2lkLAo+IC0gICAgICAgICAgICAgICBzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdW5z
-aWduZWQgaW50IGFsaWduLAo+ICsgICAgICAgICAgICAgICBzdHJ1Y3QgcmVzb3VyY2UgKnJlcywg
-aW50IHRhcmdldF9ub2RlLCB1bnNpZ25lZCBpbnQgYWxpZ24sCj4gICAgICAgICAgICAgICAgIHVu
-c2lnbmVkIGxvbmcgcGZuX2ZsYWdzKQo+ICB7Cj4gICAgICAgICBzdHJ1Y3QgZGF4X3JlZ2lvbiAq
-ZGF4X3JlZ2lvbjsKPiBAQCAtMjQ0LDYgKzI0NCw3IEBAIHN0cnVjdCBkYXhfcmVnaW9uICphbGxv
-Y19kYXhfcmVnaW9uKHN0cnVjdCBkZXZpY2UgKnBhcmVudCwgaW50IHJlZ2lvbl9pZCwKPiAgICAg
-ICAgIGRheF9yZWdpb24tPmlkID0gcmVnaW9uX2lkOwo+ICAgICAgICAgZGF4X3JlZ2lvbi0+YWxp
-Z24gPSBhbGlnbjsKPiAgICAgICAgIGRheF9yZWdpb24tPmRldiA9IHBhcmVudDsKPiArICAgICAg
-IGRheF9yZWdpb24tPnRhcmdldF9ub2RlID0gdGFyZ2V0X25vZGU7Cj4gICAgICAgICBpZiAoc3lz
-ZnNfY3JlYXRlX2dyb3VwcygmcGFyZW50LT5rb2JqLCBkYXhfcmVnaW9uX2F0dHJpYnV0ZV9ncm91
-cHMpKSB7Cj4gICAgICAgICAgICAgICAgIGtmcmVlKGRheF9yZWdpb24pOwo+ICAgICAgICAgICAg
-ICAgICByZXR1cm4gTlVMTDsKPiBAQCAtMzQ4LDYgKzM0OSw3IEBAIHN0cnVjdCBkZXZfZGF4ICpf
-X2Rldm1fY3JlYXRlX2Rldl9kYXgoc3RydWN0IGRheF9yZWdpb24gKmRheF9yZWdpb24sIGludCBp
-ZCwKPgo+ICAgICAgICAgZGV2X2RheC0+ZGF4X2RldiA9IGRheF9kZXY7Cj4gICAgICAgICBkZXZf
-ZGF4LT5yZWdpb24gPSBkYXhfcmVnaW9uOwo+ICsgICAgICAgZGV2X2RheC0+dGFyZ2V0X25vZGUg
-PSBkYXhfcmVnaW9uLT50YXJnZXRfbm9kZTsKPiAgICAgICAgIGtyZWZfZ2V0KCZkYXhfcmVnaW9u
-LT5rcmVmKTsKPgo+ICAgICAgICAgaW5vZGUgPSBkYXhfaW5vZGUoZGF4X2Rldik7Cj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvZGF4L2J1cy5oIGIvZHJpdmVycy9kYXgvYnVzLmgKPiBpbmRleCBjZTk3
-NzU1MmZmYjUuLjg2MTllMzI5OTk0MyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2RheC9idXMuaAo+
-ICsrKyBiL2RyaXZlcnMvZGF4L2J1cy5oCj4gQEAgLTEwLDcgKzEwLDggQEAgc3RydWN0IGRheF9k
-ZXZpY2U7Cj4gIHN0cnVjdCBkYXhfcmVnaW9uOwo+ICB2b2lkIGRheF9yZWdpb25fcHV0KHN0cnVj
-dCBkYXhfcmVnaW9uICpkYXhfcmVnaW9uKTsKPiAgc3RydWN0IGRheF9yZWdpb24gKmFsbG9jX2Rh
-eF9yZWdpb24oc3RydWN0IGRldmljZSAqcGFyZW50LCBpbnQgcmVnaW9uX2lkLAo+IC0gICAgICAg
-ICAgICAgICBzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdW5zaWduZWQgaW50IGFsaWduLCB1bnNpZ25l
-ZCBsb25nIGZsYWdzKTsKPiArICAgICAgICAgICAgICAgc3RydWN0IHJlc291cmNlICpyZXMsIGlu
-dCB0YXJnZXRfbm9kZSwgdW5zaWduZWQgaW50IGFsaWduLAo+ICsgICAgICAgICAgICAgICB1bnNp
-Z25lZCBsb25nIGZsYWdzKTsKPgo+ICBlbnVtIGRldl9kYXhfc3Vic3lzIHsKPiAgICAgICAgIERF
-Vl9EQVhfQlVTLAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9kYXgtcHJpdmF0ZS5oIGIvZHJp
-dmVycy9kYXgvZGF4LXByaXZhdGUuaAo+IGluZGV4IGE4MmNlNDhmNTg4NC4uYTQ1NjEyMTQ4Y2Ew
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvZGF4L2RheC1wcml2YXRlLmgKPiArKysgYi9kcml2ZXJz
-L2RheC9kYXgtcHJpdmF0ZS5oCj4gQEAgLTI2LDYgKzI2LDcgQEAgdm9pZCBkYXhfYnVzX2V4aXQo
-dm9pZCk7Cj4gIC8qKgo+ICAgKiBzdHJ1Y3QgZGF4X3JlZ2lvbiAtIG1hcHBpbmcgaW5mcmFzdHJ1
-Y3R1cmUgZm9yIGRheCBkZXZpY2VzCj4gICAqIEBpZDoga2VybmVsLXdpZGUgdW5pcXVlIHJlZ2lv
-biBmb3IgYSBtZW1vcnkgcmFuZ2UKPiArICogQHRhcmdldF9ub2RlOiBlZmZlY3RpdmUgbnVtYSBu
-b2RlIGlmIHRoaXMgbWVtb3J5IHJhbmdlIGlzIG9ubGluZWQKPiAgICogQGtyZWY6IHRvIHBpbiB3
-aGlsZSBvdGhlciBhZ2VudHMgaGF2ZSBhIG5lZWQgdG8gZG8gbG9va3Vwcwo+ICAgKiBAZGV2OiBw
-YXJlbnQgZGV2aWNlIGJhY2tpbmcgdGhpcyByZWdpb24KPiAgICogQGFsaWduOiBhbGxvY2F0aW9u
-IGFuZCBtYXBwaW5nIGFsaWdubWVudCBmb3IgY2hpbGQgZGF4IGRldmljZXMKPiBAQCAtMzQsNiAr
-MzUsNyBAQCB2b2lkIGRheF9idXNfZXhpdCh2b2lkKTsKPiAgICovCj4gIHN0cnVjdCBkYXhfcmVn
-aW9uIHsKPiAgICAgICAgIGludCBpZDsKPiArICAgICAgIGludCB0YXJnZXRfbm9kZTsKPiAgICAg
-ICAgIHN0cnVjdCBrcmVmIGtyZWY7Cj4gICAgICAgICBzdHJ1Y3QgZGV2aWNlICpkZXY7Cj4gICAg
-ICAgICB1bnNpZ25lZCBpbnQgYWxpZ247Cj4gQEAgLTQ2LDYgKzQ4LDcgQEAgc3RydWN0IGRheF9y
-ZWdpb24gewo+ICAgKiBkYXRhIHdoaWxlIHRoZSBkZXZpY2UgaXMgYWN0aXZhdGVkIGluIHRoZSBk
-cml2ZXIuCj4gICAqIEByZWdpb24gLSBwYXJlbnQgcmVnaW9uCj4gICAqIEBkYXhfZGV2IC0gY29y
-ZSBkYXggZnVuY3Rpb25hbGl0eQo+ICsgKiBAdGFyZ2V0X25vZGU6IGVmZmVjdGl2ZSBudW1hIG5v
-ZGUgaWYgZGV2X2RheCBtZW1vcnkgcmFuZ2UgaXMgb25saW5lZAo+ICAgKiBAZGV2IC0gZGV2aWNl
-IGNvcmUKPiAgICogQHBnbWFwIC0gcGdtYXAgZm9yIG1lbW1hcCBzZXR1cCAvIGxpZmV0aW1lIChk
-cml2ZXIgb3duZWQpCj4gICAqIEByZWY6IHBnbWFwIHJlZmVyZW5jZSBjb3VudCAoZHJpdmVyIG93
-bmVkKQo+IEBAIC01NCw2ICs1Nyw3IEBAIHN0cnVjdCBkYXhfcmVnaW9uIHsKPiAgc3RydWN0IGRl
-dl9kYXggewo+ICAgICAgICAgc3RydWN0IGRheF9yZWdpb24gKnJlZ2lvbjsKPiAgICAgICAgIHN0
-cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2Owo+ICsgICAgICAgaW50IHRhcmdldF9ub2RlOwo+ICAg
-ICAgICAgc3RydWN0IGRldmljZSBkZXY7Cj4gICAgICAgICBzdHJ1Y3QgZGV2X3BhZ2VtYXAgcGdt
-YXA7Cj4gICAgICAgICBzdHJ1Y3QgcGVyY3B1X3JlZiByZWY7Cj4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvZGF4L3BtZW0vY29yZS5jIGIvZHJpdmVycy9kYXgvcG1lbS9jb3JlLmMKPiBpbmRleCBiZGNm
-ZjFiMTRlOTUuLmY3MTAxOWNlMDY0NyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2RheC9wbWVtL2Nv
-cmUuYwo+ICsrKyBiL2RyaXZlcnMvZGF4L3BtZW0vY29yZS5jCj4gQEAgLTIwLDYgKzIwLDcgQEAg
-c3RydWN0IGRldl9kYXggKl9fZGF4X3BtZW1fcHJvYmUoc3RydWN0IGRldmljZSAqZGV2LCBlbnVt
-IGRldl9kYXhfc3Vic3lzIHN1YnN5cykKPiAgICAgICAgIHN0cnVjdCBuZF9uYW1lc3BhY2VfY29t
-bW9uICpuZG5zOwo+ICAgICAgICAgc3RydWN0IG5kX2RheCAqbmRfZGF4ID0gdG9fbmRfZGF4KGRl
-dik7Cj4gICAgICAgICBzdHJ1Y3QgbmRfcGZuICpuZF9wZm4gPSAmbmRfZGF4LT5uZF9wZm47Cj4g
-KyAgICAgICBzdHJ1Y3QgbmRfcmVnaW9uICpuZF9yZWdpb24gPSB0b19uZF9yZWdpb24oZGV2LT5w
-YXJlbnQpOwo+Cj4gICAgICAgICBuZG5zID0gbnZkaW1tX25hbWVzcGFjZV9jb21tb25fcHJvYmUo
-ZGV2KTsKPiAgICAgICAgIGlmIChJU19FUlIobmRucykpCj4gQEAgLTUyLDcgKzUzLDggQEAgc3Ry
-dWN0IGRldl9kYXggKl9fZGF4X3BtZW1fcHJvYmUoc3RydWN0IGRldmljZSAqZGV2LCBlbnVtIGRl
-dl9kYXhfc3Vic3lzIHN1YnN5cykKPiAgICAgICAgIG1lbWNweSgmcmVzLCAmcGdtYXAucmVzLCBz
-aXplb2YocmVzKSk7Cj4gICAgICAgICByZXMuc3RhcnQgKz0gb2Zmc2V0Owo+ICAgICAgICAgZGF4
-X3JlZ2lvbiA9IGFsbG9jX2RheF9yZWdpb24oZGV2LCByZWdpb25faWQsICZyZXMsCj4gLSAgICAg
-ICAgICAgICAgICAgICAgICAgbGUzMl90b19jcHUocGZuX3NiLT5hbGlnbiksIFBGTl9ERVZ8UEZO
-X01BUCk7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgbmRfcmVnaW9uLT50YXJnZXRfbm9kZSwg
-bGUzMl90b19jcHUocGZuX3NiLT5hbGlnbiksCj4gKyAgICAgICAgICAgICAgICAgICAgICAgUEZO
-X0RFVnxQRk5fTUFQKTsKPiAgICAgICAgIGlmICghZGF4X3JlZ2lvbikKPiAgICAgICAgICAgICAg
-ICAgcmV0dXJuIEVSUl9QVFIoLUVOT01FTSk7Cj4KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRp
-bW0vZTgyMC5jIGIvZHJpdmVycy9udmRpbW0vZTgyMC5jCj4gaW5kZXggNTIxZWFmNTNhNTJhLi4z
-NmJlOWI2MTkxODcgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9udmRpbW0vZTgyMC5jCj4gKysrIGIv
-ZHJpdmVycy9udmRpbW0vZTgyMC5jCj4gQEAgLTQ3LDYgKzQ3LDcgQEAgc3RhdGljIGludCBlODIw
-X3JlZ2lzdGVyX29uZShzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdm9pZCAqZGF0YSkKPiAgICAgICAg
-IG5kcl9kZXNjLnJlcyA9IHJlczsKPiAgICAgICAgIG5kcl9kZXNjLmF0dHJfZ3JvdXBzID0gZTgy
-MF9wbWVtX3JlZ2lvbl9hdHRyaWJ1dGVfZ3JvdXBzOwo+ICAgICAgICAgbmRyX2Rlc2MubnVtYV9u
-b2RlID0gZTgyMF9yYW5nZV90b19uaWQocmVzLT5zdGFydCk7Cj4gKyAgICAgICBuZHJfZGVzYy50
-YXJnZXRfbm9kZSA9IG5kcl9kZXNjLm51bWFfbm9kZTsKPiAgICAgICAgIHNldF9iaXQoTkRfUkVH
-SU9OX1BBR0VNQVAsICZuZHJfZGVzYy5mbGFncyk7Cj4gICAgICAgICBpZiAoIW52ZGltbV9wbWVt
-X3JlZ2lvbl9jcmVhdGUobnZkaW1tX2J1cywgJm5kcl9kZXNjKSkKPiAgICAgICAgICAgICAgICAg
-cmV0dXJuIC1FTlhJTzsKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmQuaCBiL2RyaXZl
-cnMvbnZkaW1tL25kLmgKPiBpbmRleCBlNzljYzhlNWMxMTQuLjYyMzIxNjU0NWNjOCAxMDA2NDQK
-PiAtLS0gYS9kcml2ZXJzL252ZGltbS9uZC5oCj4gKysrIGIvZHJpdmVycy9udmRpbW0vbmQuaAo+
-IEBAIC0xNTMsNyArMTUzLDcgQEAgc3RydWN0IG5kX3JlZ2lvbiB7Cj4gICAgICAgICB1MTYgbmRy
-X21hcHBpbmdzOwo+ICAgICAgICAgdTY0IG5kcl9zaXplOwo+ICAgICAgICAgdTY0IG5kcl9zdGFy
-dDsKPiAtICAgICAgIGludCBpZCwgbnVtX2xhbmVzLCBybywgbnVtYV9ub2RlOwo+ICsgICAgICAg
-aW50IGlkLCBudW1fbGFuZXMsIHJvLCBudW1hX25vZGUsIHRhcmdldF9ub2RlOwo+ICAgICAgICAg
-dm9pZCAqcHJvdmlkZXJfZGF0YTsKPiAgICAgICAgIHN0cnVjdCBrZXJuZnNfbm9kZSAqYmJfc3Rh
-dGU7Cj4gICAgICAgICBzdHJ1Y3QgYmFkYmxvY2tzIGJiOwo+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L252ZGltbS9vZl9wbWVtLmMgYi9kcml2ZXJzL252ZGltbS9vZl9wbWVtLmMKPiBpbmRleCAwYTcw
-MTgzN2RmYzAuLmVjYWFhMjc0MzhlMiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL252ZGltbS9vZl9w
-bWVtLmMKPiArKysgYi9kcml2ZXJzL252ZGltbS9vZl9wbWVtLmMKPiBAQCAtNjgsNiArNjgsNyBA
-QCBzdGF0aWMgaW50IG9mX3BtZW1fcmVnaW9uX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ug
-KnBkZXYpCj4gICAgICAgICAgICAgICAgIG1lbXNldCgmbmRyX2Rlc2MsIDAsIHNpemVvZihuZHJf
-ZGVzYykpOwo+ICAgICAgICAgICAgICAgICBuZHJfZGVzYy5hdHRyX2dyb3VwcyA9IHJlZ2lvbl9h
-dHRyX2dyb3VwczsKPiAgICAgICAgICAgICAgICAgbmRyX2Rlc2MubnVtYV9ub2RlID0gZGV2X3Rv
-X25vZGUoJnBkZXYtPmRldik7Cj4gKyAgICAgICAgICAgICAgIG5kcl9kZXNjLnRhcmdldF9ub2Rl
-ID0gbmRyX2Rlc2MubnVtYV9ub2RlOwo+ICAgICAgICAgICAgICAgICBuZHJfZGVzYy5yZXMgPSAm
-cGRldi0+cmVzb3VyY2VbaV07Cj4gICAgICAgICAgICAgICAgIG5kcl9kZXNjLm9mX25vZGUgPSBu
-cDsKPiAgICAgICAgICAgICAgICAgc2V0X2JpdChORF9SRUdJT05fUEFHRU1BUCwgJm5kcl9kZXNj
-LmZsYWdzKTsKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyBiL2Ry
-aXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMKPiBpbmRleCAxNzRhNDE4Y2IxNzEuLjg2Y2Q0MjVi
-Nzg2ZCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jCj4gKysrIGIv
-ZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYwo+IEBAIC0xMDYwLDYgKzEwNjAsNyBAQCBzdGF0
-aWMgc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uX2NyZWF0ZShzdHJ1Y3QgbnZkaW1tX2J1cyAq
-bnZkaW1tX2J1cywKPiAgICAgICAgIG5kX3JlZ2lvbi0+ZmxhZ3MgPSBuZHJfZGVzYy0+ZmxhZ3M7
-Cj4gICAgICAgICBuZF9yZWdpb24tPnJvID0gcm87Cj4gICAgICAgICBuZF9yZWdpb24tPm51bWFf
-bm9kZSA9IG5kcl9kZXNjLT5udW1hX25vZGU7Cj4gKyAgICAgICBuZF9yZWdpb24tPnRhcmdldF9u
-b2RlID0gbmRyX2Rlc2MtPnRhcmdldF9ub2RlOwo+ICAgICAgICAgaWRhX2luaXQoJm5kX3JlZ2lv
-bi0+bnNfaWRhKTsKPiAgICAgICAgIGlkYV9pbml0KCZuZF9yZWdpb24tPmJ0dF9pZGEpOwo+ICAg
-ICAgICAgaWRhX2luaXQoJm5kX3JlZ2lvbi0+cGZuX2lkYSk7Cj4gZGlmZiAtLWdpdCBhL2luY2x1
-ZGUvbGludXgvbGlibnZkaW1tLmggYi9pbmNsdWRlL2xpbnV4L2xpYm52ZGltbS5oCj4gaW5kZXgg
-MDk3MDcyYzVhODUyLi45NDExMDJjMGM4MWYgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9s
-aWJudmRpbW0uaAo+ICsrKyBiL2luY2x1ZGUvbGludXgvbGlibnZkaW1tLmgKPiBAQCAtMTI0LDYg
-KzEyNCw3IEBAIHN0cnVjdCBuZF9yZWdpb25fZGVzYyB7Cj4gICAgICAgICB2b2lkICpwcm92aWRl
-cl9kYXRhOwo+ICAgICAgICAgaW50IG51bV9sYW5lczsKPiAgICAgICAgIGludCBudW1hX25vZGU7
-Cj4gKyAgICAgICBpbnQgdGFyZ2V0X25vZGU7Cj4gICAgICAgICB1bnNpZ25lZCBsb25nIGZsYWdz
-Owo+ICAgICAgICAgc3RydWN0IGRldmljZV9ub2RlICpvZl9ub2RlOwo+ICB9Owo+Cl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Persistent memory, as described by the ACPI NFIT (NVDIMM Firmware
+Interface Table), is the first known instance of a memory range
+described by a unique "target" proximity domain. Where "initiator" and
+"target" proximity domains is an approach that the ACPI HMAT
+(Heterogeneous Memory Attributes Table) uses to described the unique
+performance properties of a memory range relative to a given initiator
+(e.g. CPU or DMA device).
+
+Currently the numa-node for a /dev/pmemX block-device or /dev/daxX.Y
+char-device follows the traditional notion of 'numa-node' where the
+attribute conveys the closest online numa-node. That numa-node attribute
+is useful for cpu-binding and memory-binding processes *near* the
+device. However, when the memory range backing a 'pmem', or 'dax' device
+is onlined (memory hot-add) the memory-only-numa-node representing that
+address needs to be differentiated from the set of online nodes. In
+other words, the numa-node association of the device depends on whether
+you can bind processes *near* the cpu-numa-node in the offline
+device-case, or bind process *on* the memory-range directly after the
+backing address range is onlined.
+
+Allow for the case that platform firmware describes persistent memory
+with a unique proximity domain, i.e. when it is distinct from the
+proximity of DRAM and CPUs that are on the same socket. Plumb the Linux
+numa-node translation of that proximity through the libnvdimm region
+device to namespaces that are in device-dax mode. With this in place the
+proposed kmem driver [1] can optionally discover a unique numa-node
+number for the address range as it transitions the memory from an
+offline state managed by a device-driver to an online memory range
+managed by the core-mm.
+
+[1]: https://lkml.org/lkml/2018/10/23/9
+
+Reported-by: Fan Du <fan.du@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Oliver O'Halloran" <oohall@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/powerpc/platforms/pseries/papr_scm.c |    1 +
+ drivers/acpi/nfit/core.c                  |    8 ++++++--
+ drivers/acpi/numa.c                       |    1 +
+ drivers/dax/bus.c                         |    4 +++-
+ drivers/dax/bus.h                         |    3 ++-
+ drivers/dax/dax-private.h                 |    4 ++++
+ drivers/dax/pmem/core.c                   |    4 +++-
+ drivers/nvdimm/e820.c                     |    1 +
+ drivers/nvdimm/nd.h                       |    2 +-
+ drivers/nvdimm/of_pmem.c                  |    1 +
+ drivers/nvdimm/region_devs.c              |    1 +
+ include/linux/libnvdimm.h                 |    1 +
+ 12 files changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index ee9372b65ca5..6a0a35b872d1 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -233,6 +233,7 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
+ 	memset(&ndr_desc, 0, sizeof(ndr_desc));
+ 	ndr_desc.attr_groups = region_attr_groups;
+ 	ndr_desc.numa_node = dev_to_node(&p->pdev->dev);
++	ndr_desc.target_node = ndr_desc.numa_node;
+ 	ndr_desc.res = &p->res;
+ 	ndr_desc.of_node = p->dn;
+ 	ndr_desc.provider_data = p;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index f8c638f3c946..2225e3de33ac 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2825,11 +2825,15 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	ndr_desc->res = &res;
+ 	ndr_desc->provider_data = nfit_spa;
+ 	ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
+-	if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
++	if (spa->flags & ACPI_NFIT_PROXIMITY_VALID) {
+ 		ndr_desc->numa_node = acpi_map_pxm_to_online_node(
+ 						spa->proximity_domain);
+-	else
++		ndr_desc->target_node = acpi_map_pxm_to_node(
++				spa->proximity_domain);
++	} else {
+ 		ndr_desc->numa_node = NUMA_NO_NODE;
++		ndr_desc->target_node = NUMA_NO_NODE;
++	}
+ 
+ 	/*
+ 	 * Persistence domain bits are hierarchical, if
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 274699463b4f..b9d86babb13a 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -84,6 +84,7 @@ int acpi_map_pxm_to_node(int pxm)
+ 
+ 	return node;
+ }
++EXPORT_SYMBOL(acpi_map_pxm_to_node);
+ 
+ /**
+  * acpi_map_pxm_to_online_node - Map proximity ID to online node
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 568168500217..c620ad52d7e5 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -214,7 +214,7 @@ static void dax_region_unregister(void *region)
+ }
+ 
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+-		struct resource *res, unsigned int align,
++		struct resource *res, int target_node, unsigned int align,
+ 		unsigned long pfn_flags)
+ {
+ 	struct dax_region *dax_region;
+@@ -244,6 +244,7 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 	dax_region->id = region_id;
+ 	dax_region->align = align;
+ 	dax_region->dev = parent;
++	dax_region->target_node = target_node;
+ 	if (sysfs_create_groups(&parent->kobj, dax_region_attribute_groups)) {
+ 		kfree(dax_region);
+ 		return NULL;
+@@ -348,6 +349,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 
+ 	dev_dax->dax_dev = dax_dev;
+ 	dev_dax->region = dax_region;
++	dev_dax->target_node = dax_region->target_node;
+ 	kref_get(&dax_region->kref);
+ 
+ 	inode = dax_inode(dax_dev);
+diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+index ce977552ffb5..8619e3299943 100644
+--- a/drivers/dax/bus.h
++++ b/drivers/dax/bus.h
+@@ -10,7 +10,8 @@ struct dax_device;
+ struct dax_region;
+ void dax_region_put(struct dax_region *dax_region);
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+-		struct resource *res, unsigned int align, unsigned long flags);
++		struct resource *res, int target_node, unsigned int align,
++		unsigned long flags);
+ 
+ enum dev_dax_subsys {
+ 	DEV_DAX_BUS,
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index a82ce48f5884..a45612148ca0 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -26,6 +26,7 @@ void dax_bus_exit(void);
+ /**
+  * struct dax_region - mapping infrastructure for dax devices
+  * @id: kernel-wide unique region for a memory range
++ * @target_node: effective numa node if this memory range is onlined
+  * @kref: to pin while other agents have a need to do lookups
+  * @dev: parent device backing this region
+  * @align: allocation and mapping alignment for child dax devices
+@@ -34,6 +35,7 @@ void dax_bus_exit(void);
+  */
+ struct dax_region {
+ 	int id;
++	int target_node;
+ 	struct kref kref;
+ 	struct device *dev;
+ 	unsigned int align;
+@@ -46,6 +48,7 @@ struct dax_region {
+  * data while the device is activated in the driver.
+  * @region - parent region
+  * @dax_dev - core dax functionality
++ * @target_node: effective numa node if dev_dax memory range is onlined
+  * @dev - device core
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+  * @ref: pgmap reference count (driver owned)
+@@ -54,6 +57,7 @@ struct dax_region {
+ struct dev_dax {
+ 	struct dax_region *region;
+ 	struct dax_device *dax_dev;
++	int target_node;
+ 	struct device dev;
+ 	struct dev_pagemap pgmap;
+ 	struct percpu_ref ref;
+diff --git a/drivers/dax/pmem/core.c b/drivers/dax/pmem/core.c
+index bdcff1b14e95..f71019ce0647 100644
+--- a/drivers/dax/pmem/core.c
++++ b/drivers/dax/pmem/core.c
+@@ -20,6 +20,7 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+ 	struct nd_namespace_common *ndns;
+ 	struct nd_dax *nd_dax = to_nd_dax(dev);
+ 	struct nd_pfn *nd_pfn = &nd_dax->nd_pfn;
++	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 
+ 	ndns = nvdimm_namespace_common_probe(dev);
+ 	if (IS_ERR(ndns))
+@@ -52,7 +53,8 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+ 	memcpy(&res, &pgmap.res, sizeof(res));
+ 	res.start += offset;
+ 	dax_region = alloc_dax_region(dev, region_id, &res,
+-			le32_to_cpu(pfn_sb->align), PFN_DEV|PFN_MAP);
++			nd_region->target_node, le32_to_cpu(pfn_sb->align),
++			PFN_DEV|PFN_MAP);
+ 	if (!dax_region)
+ 		return ERR_PTR(-ENOMEM);
+ 
+diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
+index 521eaf53a52a..36be9b619187 100644
+--- a/drivers/nvdimm/e820.c
++++ b/drivers/nvdimm/e820.c
+@@ -47,6 +47,7 @@ static int e820_register_one(struct resource *res, void *data)
+ 	ndr_desc.res = res;
+ 	ndr_desc.attr_groups = e820_pmem_region_attribute_groups;
+ 	ndr_desc.numa_node = e820_range_to_nid(res->start);
++	ndr_desc.target_node = ndr_desc.numa_node;
+ 	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+ 	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
+ 		return -ENXIO;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index e79cc8e5c114..623216545cc8 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -153,7 +153,7 @@ struct nd_region {
+ 	u16 ndr_mappings;
+ 	u64 ndr_size;
+ 	u64 ndr_start;
+-	int id, num_lanes, ro, numa_node;
++	int id, num_lanes, ro, numa_node, target_node;
+ 	void *provider_data;
+ 	struct kernfs_node *bb_state;
+ 	struct badblocks bb;
+diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+index 0a701837dfc0..ecaaa27438e2 100644
+--- a/drivers/nvdimm/of_pmem.c
++++ b/drivers/nvdimm/of_pmem.c
+@@ -68,6 +68,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+ 		memset(&ndr_desc, 0, sizeof(ndr_desc));
+ 		ndr_desc.attr_groups = region_attr_groups;
+ 		ndr_desc.numa_node = dev_to_node(&pdev->dev);
++		ndr_desc.target_node = ndr_desc.numa_node;
+ 		ndr_desc.res = &pdev->resource[i];
+ 		ndr_desc.of_node = np;
+ 		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..86cd425b786d 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1060,6 +1060,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	nd_region->flags = ndr_desc->flags;
+ 	nd_region->ro = ro;
+ 	nd_region->numa_node = ndr_desc->numa_node;
++	nd_region->target_node = ndr_desc->target_node;
+ 	ida_init(&nd_region->ns_ida);
+ 	ida_init(&nd_region->btt_ida);
+ 	ida_init(&nd_region->pfn_ida);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 097072c5a852..941102c0c81f 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -124,6 +124,7 @@ struct nd_region_desc {
+ 	void *provider_data;
+ 	int num_lanes;
+ 	int numa_node;
++	int target_node;
+ 	unsigned long flags;
+ 	struct device_node *of_node;
+ };
