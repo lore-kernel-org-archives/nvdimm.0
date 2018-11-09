@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 58D3821B02822
- for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 11:06:12 -0800 (PST)
-Subject: [4.19-stable PATCH] dax: Avoid losing wakeup in dax_lock_mapping_entry
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Nov 2018 10:53:44 -0800
-Message-ID: <154343119877.981933.9776503138356369421.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20181126142743.GA25618@bombadil.infradead.org>
-References: <20181126142743.GA25618@bombadil.infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id CDA8A21184E66
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:13:46 -0800 (PST)
+Subject: [PATCH 00/11] Additional patches for nvdimm security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 09 Nov 2018 15:13:45 -0700
+Message-ID: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,54 +20,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Matthew Wilcox <willy@infradead.org>
+The following series adds additional support for nvdimm security.
+1. Converted logon keys to encrypted-keys.
+2. Add overwrite DSM support
+3. Add DSM 1.8 master passphrase support
 
-commit 25bbe21bf427a81b8e3ccd480ea0e1d940256156 upstream.
+The patch series is based off the branch from here:
+https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/log/?h=for-5.0/nvdimm-security
 
-After calling get_unlocked_entry(), you have to call
-put_unlocked_entry() to avoid subsequent waiters losing wakeups.
+Instead of squashing the previous changes, they are kept for history purposes
+to document how we arrived to the current iteration.
 
-Fixes: c2a7d2a11552 ("filesystem-dax: Introduce dax_lock_mapping_entry()")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Mimi,
+Patch 1 requires your ack as it makes changes to encrypted-keys by adding
+the nvdimm key format type. Dan wanted to restrict the key to 32bytes
+during creation. I also wouldn't mind if you take a look at patch 2 and
+make sure I'm providing correct usage of encrypted keys. Thank you!
+
 ---
-Passes the nvdimm unit test suite which exercises the lock path.
 
- fs/dax.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Dave Jiang (11):
+      keys-encrypted: add nvdimm key format type to encrypted keys
+      libnvdimm/security: change clear text nvdimm keys to encrypted keys
+      libnvdimm/security: add override module param for key self verification
+      libnvdimm/security: introduce NDD_SECURITY_BUSY flag
+      acpi/nfit, libnvdimm/security: Add security DSM overwrite support
+      tools/testing/nvdimm: Add overwrite support for nfit_test
+      libnvdimm/security: add overwrite status notification
+      libnvdimm/security: add documentation for ovewrite
+      acpi/nfit, libnvdimm/security: add Intel DSM 1.8 master passphrase support
+      tools/testing/nvdimm: add Intel DSM 1.8 support for nfit_test
+      acpi/nfit: prevent indiscriminate DSM payload dumping for security DSMs
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 0fb270f0a0ef..b0cd1364c68f 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -217,6 +217,9 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
- 	return (void *)entry;
- }
- 
-+static void put_unlocked_mapping_entry(struct address_space *mapping,
-+				       pgoff_t index, void *entry);
-+
- /*
-  * Lookup entry in radix tree, wait for it to become unlocked if it is
-  * exceptional entry and return it. The caller must call
-@@ -256,8 +259,10 @@ static void *__get_unlocked_mapping_entry(struct address_space *mapping,
- 		revalidate = wait_fn();
- 		finish_wait(wq, &ewait.wait);
- 		xa_lock_irq(&mapping->i_pages);
--		if (revalidate)
-+		if (revalidate) {
-+			put_unlocked_mapping_entry(mapping, index, entry);
- 			return ERR_PTR(-EAGAIN);
-+		}
- 	}
- }
- 
 
+ Documentation/nvdimm/security.txt        |   68 +++-
+ drivers/acpi/nfit/Kconfig                |    7 
+ drivers/acpi/nfit/core.c                 |   31 ++
+ drivers/acpi/nfit/intel.c                |  245 +++++++++++++++
+ drivers/acpi/nfit/intel.h                |   22 +
+ drivers/acpi/nfit/nfit.h                 |    7 
+ drivers/nvdimm/core.c                    |    3 
+ drivers/nvdimm/dimm.c                    |    3 
+ drivers/nvdimm/dimm_devs.c               |   50 +++
+ drivers/nvdimm/nd-core.h                 |    9 -
+ drivers/nvdimm/nd.h                      |   19 +
+ drivers/nvdimm/region_devs.c             |    7 
+ drivers/nvdimm/security.c                |  496 +++++++++++++++++-------------
+ include/linux/libnvdimm.h                |   22 +
+ security/keys/encrypted-keys/encrypted.c |   29 +-
+ tools/testing/nvdimm/dimm_devs.c         |    2 
+ tools/testing/nvdimm/test/nfit.c         |  141 +++++++++
+ 17 files changed, 895 insertions(+), 266 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
