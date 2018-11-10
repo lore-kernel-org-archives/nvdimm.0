@@ -1,71 +1,91 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4F59921959CB2
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:12:15 -0800 (PST)
-Subject: [driver-core PATCH v5 7/9] driver core: Attach devices on CPU local
- to device node
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:12:15 -0800
-Message-ID: <154145233508.29224.9891071445860629874.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Fri, 9 Nov 2018 19:11:16 -0500
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: Re: [mm PATCH v5 3/7] mm: Implement new zone specific memblock
+ iterator
+Message-ID: <20181110001116.gtg7vxz2erbrnxc2@xakep.localdomain>
+References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+ <154145278071.30046.9022571960145979137.stgit@ahduyck-desk1.jf.intel.com>
+ <20181109232654.bi37bdkrqbogbdcx@xakep.localdomain>
+ <d511ee6a18da13b9543557db783e6ff3327ca87b.camel@linux.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d511ee6a18da13b9543557db783e6ff3327ca87b.camel@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This change makes it so that we call the asynchronous probe routines on a
-CPU local to the device node. By doing this we should be able to improve
-our initialization time significantly as we can avoid having to access the
-device from a remote node which may introduce higher latency.
+> > > +		unsigned long epfn = PFN_DOWN(epa);
+> > > +		unsigned long spfn = PFN_UP(spa);
+> > > +
+> > > +		/*
+> > > +		 * Verify the end is at least past the start of the zone and
+> > > +		 * that we have at least one PFN to initialize.
+> > > +		 */
+> > > +		if (zone->zone_start_pfn < epfn && spfn < epfn) {
+> > > +			/* if we went too far just stop searching */
+> > > +			if (zone_end_pfn(zone) <= spfn)
+> > > +				break;
+> > 
+> > Set *idx = U64_MAX here, then break. This way after we are outside this
+> > while loop idx is always equals to U64_MAX.
+> 
+> Actually I think what you are asking for is the logic that is outside
+> of the while loop we are breaking out of. So if you check at the end of
+> the function there is the bit of code with the comment "signal end of
+> iteration" where I end up setting *idx to ULLONG_MAX, *out_spfn to
+> ULONG_MAX, and *out_epfn to 0.
+> 
+> The general idea I had with the function is that you could use either
+> the index or spfn < epfn checks to determine if you keep going or not.
 
-For example, in the case of initializing memory for NVDIMM this can have a
-significant impact as initialing 3TB on remote node can take up to 39
-seconds while initialing it on a local node only takes 23 seconds. It is
-situations like this where we will see the biggest improvement.
+Yes, I meant to remove that *idx = U64_MAX after the loop, it is
+confusing to have a loop:
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/dd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+while (*idx != U64_MAX) {
+	...
+}
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 2fdfe45bb6ea..cf7681309ee3 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -834,7 +834,7 @@ static int __device_attach(struct device *dev, bool allow_async)
- 			dev_dbg(dev, "scheduling asynchronous probe\n");
- 			get_device(dev);
- 			dev->async_probe = true;
--			async_schedule(__device_attach_async_helper, dev);
-+			async_schedule_dev(__device_attach_async_helper, dev);
- 		} else {
- 			pm_request_idle(dev);
- 		}
-@@ -992,7 +992,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		if (!dev->driver) {
- 			get_device(dev);
- 			dev_set_drv_async(dev, drv);
--			async_schedule(__driver_attach_async_helper, dev);
-+			async_schedule_dev(__driver_attach_async_helper, dev);
- 		}
- 		device_unlock(dev);
- 		return 0;
+*idx = U64_MAX;
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+So, it is better to set idx to U643_MAX inside the loop before the
+break.
+
+> 
+> > 
+> > > +
+> > > +			if (out_spfn)
+> > > +				*out_spfn = max(zone->zone_start_pfn, spfn);
+> > > +			if (out_epfn)
+> > > +				*out_epfn = min(zone_end_pfn(zone), epfn);
+> > 
+> > Don't we need to verify after adjustment that out_spfn != out_epfn, so
+> > there is at least one PFN to initialize?
+> 
+> We have a few checks that I believe prevent that. Before we get to this
+> point we have verified the following:
+> 	zone->zone_start < epfn
+> 	spfn < epfn
+> 
+> The other check that should be helping to prevent that is the break
+> statement above that is forcing us to exit if spfn is somehow already
+> past the end of the zone, that essentially maps out:
+> 	spfn < zone_end_pfn(zone)
+> 
+> So the only check we don't have is:
+> 	zone->zone_start < zone_end_pfn(zone)
+> 
+> If I am not mistaken that is supposed to be a given is it not? I would
+> assume we don't have any zones that are completely empty or inverted
+> that would be called here do we?
+
+
+if (zone_end_pfn(zone) <= spfn) won't break
+
+Equal sign in <= here takes care of the case I was thinking. Yes, logic looks good.
+
+Thank you
+Pasha
