@@ -1,10 +1,9 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Security Alert. You account has been hacked. Password must be need
- changed.
-Date: 10 Nov 2018 10:02:48 -0300
-Message-ID: <82EA2EA1C146654E26E26D0D8AA982EA@4NB82JMNL>
+Subject: Hacking Alert! You account was hacked
+Date: 10 Nov 2018 12:04:04 -0400
+Message-ID: <0E77F1ED12886B0E77F1ED12886B0E77@DF6I8H1B83>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8252715254217748850=="
+Content-Type: multipart/mixed; boundary="===============7431461991879800755=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,7 +17,7 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============8252715254217748850==
+--===============7431461991879800755==
 Content-Type: text/plain;
 	charset="cp-850"
 Content-Transfer-Encoding: 8bit
@@ -55,7 +54,7 @@ Believe it turned out very high quality!
 So, to the business!
 I'm sure you don't want to show these files and visiting history to all your contacts.
 
-Transfer $822 to my Bitcoin cryptocurrency wallet: 19qL8vdRtk5xJcGNVk3WruuSyitVfSAy7f
+Transfer $830 to my Bitcoin cryptocurrency wallet: 19qL8vdRtk5xJcGNVk3WruuSyitVfSAy7f
 Just copy and paste the wallet number when transferring.
 If you do not know how to do this - ask Google.
 
@@ -73,7 +72,7 @@ I advise you to remain prudent and not engage in nonsense (all files on my serve
 Good luck!
 
 
---===============8252715254217748850==
+--===============7431461991879800755==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -84,4 +83,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============8252715254217748850==--
+--===============7431461991879800755==--
