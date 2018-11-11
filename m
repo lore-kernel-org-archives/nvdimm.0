@@ -1,88 +1,114 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Tue, 13 Nov 2018 23:10:14 +0100
-From: Pavel Machek <pavel@ucw.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1A4172117CE94
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Nov 2018 15:27:35 -0800 (PST)
 Subject: Re: [driver-core PATCH v6 2/9] async: Add support for queueing on
  specific NUMA node
-Message-ID: <20181113221014.GB2235@amd>
 References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
  <154170041079.12967.13132220574997822111.stgit@ahduyck-desk1.jf.intel.com>
  <20181111193208.GB8332@kroah.com>
- <20181111195903.GA9726@amd>
- <20181111203304.GA16871@kroah.com>
+ <CAPcyv4hofCTYMNN=Ow=o4RRuUPM=GLWajNAT9q6WWkuV47te_w@mail.gmail.com>
+ <20181111203541.GB16871@kroah.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Message-ID: <77b6544a-2a32-b8a4-3f3f-575193f04302@linux.intel.com>
+Date: Sun, 11 Nov 2018 15:27:32 -0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="aVD9QWMuhilNxW9f"
-Content-Disposition: inline
-In-Reply-To: <20181111203304.GA16871@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org
+In-Reply-To: <20181111203541.GB16871@kroah.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Greg KH <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On 11/11/2018 12:35 PM, Greg KH wrote:
+> On Sun, Nov 11, 2018 at 11:53:20AM -0800, Dan Williams wrote:
+>> On Sun, Nov 11, 2018 at 11:32 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+>>>
+>>> On Thu, Nov 08, 2018 at 10:06:50AM -0800, Alexander Duyck wrote:
+>>>> Introduce four new variants of the async_schedule_ functions that allow
+>>>> scheduling on a specific NUMA node.
+>>>>
+>>>> The first two functions are async_schedule_near and
+>>>> async_schedule_near_domain end up mapping to async_schedule and
+>>>> async_schedule_domain, but provide NUMA node specific functionality. They
+>>>> replace the original functions which were moved to inline function
+>>>> definitions that call the new functions while passing NUMA_NO_NODE.
+>>>>
+>>>> The second two functions are async_schedule_dev and
+>>>> async_schedule_dev_domain which provide NUMA specific functionality when
+>>>> passing a device as the data member and that device has a NUMA node other
+>>>> than NUMA_NO_NODE.
+>>>>
+>>>> The main motivation behind this is to address the need to be able to
+>>>> schedule device specific init work on specific NUMA nodes in order to
+>>>> improve performance of memory initialization.
+>>>>
+>>>> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+>>>> ---
+>>>
+>>> No one else from Intel has reviewed/verified this code at all?
+>>>
+>>> Please take advantages of the resources you have that most people do
+>>> not, get reviewes from your coworkers please before you send this out
+>>> again, as they can give you valuable help before the community has to
+>>> review the code...
+>>
+>> I tend to be suspicious of code that arrives on the mailing list
+>> day-one with a series of company-internal reviewed-by tags. Sometimes
+>> there is preliminary work that can be done internally, but I think we
+>> should prefer to do review in the open as much as possible where it
+>> does not waste community time. Alex and I did reach a general internal
+>> consensus to send this out and get community feedback, but I assumed
+>> to do the bulk of the review in parallel with everyone else. That said
+>> I think it's fine to ask for some other acks before you take a look,
+>> but let's do that in the open.
+> 
+> Doing it in the open is great, see my response to Pavel for the history
+> of why I am normally suspicious of this, and why I wrote the above.
+> 
+> Also this patchset has had a long history of me asking for things, and
+> not seeing the changes happen (hint, where are the benchmark numbers I
+> asked for a long time ago?)  Touching the driver core like this is
+> tricky, and without others helping in review and test, it makes me
+> suspicious that it is not happening.
+> 
+> This would be a great time for some other people to do that review :)
+> 
+> thanks,
+> 
+> greg k-h
 
---aVD9QWMuhilNxW9f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is there any specific benchmark test you were wanting me to run? As far 
+as crude numbers this patch set started out specifically focused on 
+patch 9/9, but I thought it best to apply it more generically as I found 
+we could still run into the issue if we enabled async_probe.
 
-Hi!
+What I have seen on several systems is a pretty significant improvement 
+in initialization time for persistent memory. In the case of 3TB of 
+memory being initialized on a single node the improvement in the worst 
+case was from about 36s down to 26s for total initialization time.
 
-> > > > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> > > > ---
-> > >=20
-> > > No one else from Intel has reviewed/verified this code at all?
-> > >=20
-> > > Please take advantages of the resources you have that most people do
-> > > not, get reviewes from your coworkers please before you send this out
-> > > again, as they can give you valuable help before the community has to
-> > > review the code...
-> >=20
-> > We always said to companies we want to see code as soon as
-> > possible. You don't have to review their code, but discouraging the
-> > posting seems wrong.
->=20
-> I have a long history of Intel using me for their basic "find the
-> obvious bugs" review process for new driver subsystems and core changes.
-> When I see new major patches show up from an Intel developer without
-> _any_ other review from anyone else, directed at me, I get suspicious it
-> is happening again.
->=20
-> If you note, Intel is the _only_ company I say this to their developers
-> because of this problem combined with the fact that they have a whole
-> load of developers that they should be running things by first.
->=20
-> And yes, to answer Dan's point, we do want to do review in public.  But
-> this is v6 of a core patchset and there has been NO review from anyone
-> else at Intel on this.  So if that review was going to happen, one would
-> have thought it would have by now, instead of relying on me to do it.
->=20
-> And yes, I am grumpy, but I am grumpy because of the history here.  I am
-> not trying to discourage anything, only to take ADVANTAGE of resources
-> that almost no other company provides.
->=20
-> Hope this helps explain my statement here.
+I plan to resubmit this set after plumber's since there were a few typos 
+and bits of comment left over in a patch description that needed to be 
+sorted out. I will try to make certain to have any benchmark data I have 
+included with the set the next time I put it out.
 
-Thanks for explanation. I did not have same bad experience with Intel,
-so I did not understand what was going on.
+Thanks.
 
-Best regards,
-
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---aVD9QWMuhilNxW9f
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvrS8YACgkQMOfwapXb+vKXDACfRF940tdVtPFWr2eNlsV9g5xo
-fPQAnAiV3u4EVf2YtSl7wU1bP7fIeP/X
-=PK1K
------END PGP SIGNATURE-----
-
---aVD9QWMuhilNxW9f--
+- Alex
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
