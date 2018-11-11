@@ -1,24 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com
- [209.85.210.193])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D8D62117CE9E
- for <linux-nvdimm@lists.01.org>; Sun, 11 Nov 2018 13:24:24 -0800 (PST)
-Received: by mail-pf1-f193.google.com with SMTP id v68-v6so3300260pfk.0
- for <linux-nvdimm@lists.01.org>; Sun, 11 Nov 2018 13:24:24 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id A73292117AE75
+ for <linux-nvdimm@lists.01.org>; Sun, 11 Nov 2018 12:35:41 -0800 (PST)
+Date: Sun, 11 Nov 2018 12:35:41 -0800
+From: Greg KH <gregkh@linuxfoundation.org>
 Subject: Re: [driver-core PATCH v6 2/9] async: Add support for queueing on
  specific NUMA node
+Message-ID: <20181111203541.GB16871@kroah.com>
 References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
  <154170041079.12967.13132220574997822111.stgit@ahduyck-desk1.jf.intel.com>
- <20181111193208.GB8332@kroah.com> <20181111195903.GA9726@amd>
- <20181111203304.GA16871@kroah.com>
-From: Bart Van Assche <bvanassche@acm.org>
-Message-ID: <7373f722-f498-f0fa-2eaf-8ac9200fb9e1@acm.org>
-Date: Sun, 11 Nov 2018 13:24:21 -0800
+ <20181111193208.GB8332@kroah.com>
+ <CAPcyv4hofCTYMNN=Ow=o4RRuUPM=GLWajNAT9q6WWkuV47te_w@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20181111203304.GA16871@kroah.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hofCTYMNN=Ow=o4RRuUPM=GLWajNAT9q6WWkuV47te_w@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,27 +23,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg KH <gregkh@linuxfoundation.org>, Pavel Machek <pavel@ucw.cz>
-Cc: len.brown@intel.com, linux-pm@vger.kernel.org, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, linux-kernel@vger.kernel.org, zwisler@kernel.org, tj@kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, akpm@linux-foundation.org, rafael@kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, alexander.h.duyck@linux.intel.com, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/11/18 12:33 PM, Greg KH wrote:
-> When I see new major patches show up from an Intel developer without
-> _any_ other review from anyone else, directed at me, I get suspicious it
-> is happening again.
+On Sun, Nov 11, 2018 at 11:53:20AM -0800, Dan Williams wrote:
+> On Sun, Nov 11, 2018 at 11:32 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+> >
+> > On Thu, Nov 08, 2018 at 10:06:50AM -0800, Alexander Duyck wrote:
+> > > Introduce four new variants of the async_schedule_ functions that allow
+> > > scheduling on a specific NUMA node.
+> > >
+> > > The first two functions are async_schedule_near and
+> > > async_schedule_near_domain end up mapping to async_schedule and
+> > > async_schedule_domain, but provide NUMA node specific functionality. They
+> > > replace the original functions which were moved to inline function
+> > > definitions that call the new functions while passing NUMA_NO_NODE.
+> > >
+> > > The second two functions are async_schedule_dev and
+> > > async_schedule_dev_domain which provide NUMA specific functionality when
+> > > passing a device as the data member and that device has a NUMA node other
+> > > than NUMA_NO_NODE.
+> > >
+> > > The main motivation behind this is to address the need to be able to
+> > > schedule device specific init work on specific NUMA nodes in order to
+> > > improve performance of memory initialization.
+> > >
+> > > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> > > ---
+> >
+> > No one else from Intel has reviewed/verified this code at all?
+> >
+> > Please take advantages of the resources you have that most people do
+> > not, get reviewes from your coworkers please before you send this out
+> > again, as they can give you valuable help before the community has to
+> > review the code...
+> 
+> I tend to be suspicious of code that arrives on the mailing list
+> day-one with a series of company-internal reviewed-by tags. Sometimes
+> there is preliminary work that can be done internally, but I think we
+> should prefer to do review in the open as much as possible where it
+> does not waste community time. Alex and I did reach a general internal
+> consensus to send this out and get community feedback, but I assumed
+> to do the bulk of the review in parallel with everyone else. That said
+> I think it's fine to ask for some other acks before you take a look,
+> but let's do that in the open.
 
-Hi Greg,
+Doing it in the open is great, see my response to Pavel for the history
+of why I am normally suspicious of this, and why I wrote the above.
 
-Please note that I reviewed this patch four days ago. See also
-https://lore.kernel.org/lkml/1541720197.196084.231.camel@acm.org/.
+Also this patchset has had a long history of me asking for things, and
+not seeing the changes happen (hint, where are the benchmark numbers I
+asked for a long time ago?)  Touching the driver core like this is
+tricky, and without others helping in review and test, it makes me
+suspicious that it is not happening.
 
-Thanks,
+This would be a great time for some other people to do that review :)
 
-Bart.
+thanks,
+
+greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
