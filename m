@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2EB0F2118EF60
- for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:14:46 -0800 (PST)
-Subject: [PATCH 11/11] acpi/nfit: prevent indiscriminate DSM payload dumping
- for security DSMs
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Nov 2018 15:14:45 -0700
-Message-ID: <154180168546.70506.10546818094914224030.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
-References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 937272118C50E
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 07:12:17 -0800 (PST)
+Subject: Re: [mm PATCH v5 7/7] mm: Use common iterator for deferred_init_pages
+ and deferred_free_pages
+References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+ <154145280115.30046.13334106887516645119.stgit@ahduyck-desk1.jf.intel.com>
+ <20181110041338.7ttram7po7a2ssz7@xakep.localdomain>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Message-ID: <ce8504f0-5963-7415-8e8d-7454b0e68fe5@linux.intel.com>
+Date: Mon, 12 Nov 2018 07:12:13 -0800
 MIME-Version: 1.0
+In-Reply-To: <20181110041338.7ttram7po7a2ssz7@xakep.localdomain>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,84 +22,83 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
-Cc: linux-nvdimm@lists.01.org
+To: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, linux-mm@kvack.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Right now when debug is enabled, we dump the command buffer
-indescriminately. This exposes the clear text payload for security DSMs.
-Introducing a kernel config to only dump the payload if the config option
-is turned on so the production kernels can leave this option off and not
-expose the passphrases.
+On 11/9/2018 8:13 PM, Pavel Tatashin wrote:
+> On 18-11-05 13:20:01, Alexander Duyck wrote:
+>> +static unsigned long __next_pfn_valid_range(unsigned long *i,
+>> +					    unsigned long end_pfn)
+>>   {
+>> -	if (!pfn_valid_within(pfn))
+>> -		return false;
+>> -	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
+>> -		return false;
+>> -	return true;
+>> +	unsigned long pfn = *i;
+>> +	unsigned long count;
+>> +
+>> +	while (pfn < end_pfn) {
+>> +		unsigned long t = ALIGN(pfn + 1, pageblock_nr_pages);
+>> +		unsigned long pageblock_pfn = min(t, end_pfn);
+>> +
+>> +#ifndef CONFIG_HOLES_IN_ZONE
+>> +		count = pageblock_pfn - pfn;
+>> +		pfn = pageblock_pfn;
+>> +		if (!pfn_valid(pfn))
+>> +			continue;
+>> +#else
+>> +		for (count = 0; pfn < pageblock_pfn; pfn++) {
+>> +			if (pfn_valid_within(pfn)) {
+>> +				count++;
+>> +				continue;
+>> +			}
+>> +
+>> +			if (count)
+>> +				break;
+>> +		}
+>> +
+>> +		if (!count)
+>> +			continue;
+>> +#endif
+>> +		*i = pfn;
+>> +		return count;
+>> +	}
+>> +
+>> +	return 0;
+>>   }
+>>   
+>> +#define for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) \
+>> +	for (i = (start_pfn),						     \
+>> +	     count = __next_pfn_valid_range(&i, (end_pfn));		     \
+>> +	     count && ({ pfn = i - count; 1; });			     \
+>> +	     count = __next_pfn_valid_range(&i, (end_pfn)))
+> 
+> Can this be improved somehow? It took me a while to understand this
+> piece of code. i is actually end of block, and not an index by PFN, ({pfn = i - count; 1;}) is
+> simply hard to parse. Why can't we make __next_pfn_valid_range() to
+> return both end and a start of a block?
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/Kconfig |    7 +++++++
- drivers/acpi/nfit/core.c  |   24 +++++++++++++++++++++---
- 2 files changed, 28 insertions(+), 3 deletions(-)
+One thing I could do is flip the direction and work from the end to the 
+start. If I did that then 'i' and 'pfn' would be the same value and I 
+wouldn't have to do the subtraction. If that works for you I could 
+probably do that and it may actually be more efficient.
 
-diff --git a/drivers/acpi/nfit/Kconfig b/drivers/acpi/nfit/Kconfig
-index f7c57e33499e..a0a8eabda2e8 100644
---- a/drivers/acpi/nfit/Kconfig
-+++ b/drivers/acpi/nfit/Kconfig
-@@ -13,3 +13,10 @@ config ACPI_NFIT
- 
- 	  To compile this driver as a module, choose M here:
- 	  the module will be called nfit.
-+
-+config NFIT_SECURITY_DEBUG
-+	bool "Turn on debugging for NVDIMM security features"
-+	depends on ACPI_NFIT
-+	help
-+	  Turning on debug output for NVDIMM security DSM commands. This
-+	  should not be turned on on a production kernel.
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 867e6fea3737..baaf5308de35 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -405,6 +405,21 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
- 	return id;
- }
- 
-+static bool is_security_cmd(unsigned int cmd, unsigned int func,
-+		unsigned int family)
-+{
-+	if (cmd != ND_CMD_CALL)
-+		return false;
-+
-+	if (family == NVDIMM_FAMILY_INTEL) {
-+		if (func >= NVDIMM_INTEL_GET_SECURITY_STATE &&
-+				func <= NVDIMM_INTEL_MASTER_SECURE_ERASE)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
- {
-@@ -489,9 +504,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 
- 	dev_dbg(dev, "%s cmd: %d: func: %d input length: %d\n",
- 		dimm_name, cmd, func, in_buf.buffer.length);
--	print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
--			in_buf.buffer.pointer,
--			min_t(u32, 256, in_buf.buffer.length), true);
-+	if ((call_pkg && !is_security_cmd(cmd, func, call_pkg->nd_family)) ||
-+			IS_ENABLED(CONFIG_NFIT_SECURITY_DEBUG)) {
-+		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
-+				in_buf.buffer.pointer,
-+				min_t(u32, 256, in_buf.buffer.length), true);
-+	}
- 
- 	/* call the BIOS, prefer the named methods over _DSM if available */
- 	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE
+Otherwise I could probably pass pfn as a reference, and compute it in 
+the case where count is non-zero.
 
+> The rest is good:
+> 
+> Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+> 
+> Thank you,
+> Pasha
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
