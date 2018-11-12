@@ -1,89 +1,109 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com
- [IPv6:2607:f8b0:4864:20::741])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8452221959CB2
- for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 12:37:43 -0800 (PST)
-Received: by mail-qk1-x741.google.com with SMTP id r71so15722589qkr.10
- for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 12:37:43 -0800 (PST)
-Date: Mon, 12 Nov 2018 20:37:37 +0000
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: Re: [mm PATCH v5 0/7] Deferred page init improvements
-Message-ID: <20181112203737.e4jnsp4rxpie4trr@soleen.tm1wkky2jk1uhgkn0ivaxijq1c.bx.internal.cloudapp.net>
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
 References: <20181109211521.5ospn33pp552k2xv@xakep.localdomain>
  <18b6634b912af7b4ec01396a2b0f3b31737c9ea2.camel@linux.intel.com>
- <20181110000006.tmcfnzynelaznn7u@xakep.localdomain>
- <0d8782742d016565870c578848138aaedf873a7c.camel@linux.intel.com>
+ <20181110000006.tmcfnzynelaznn7u@xakep.localdomain> <0d8782742d016565870c578848138aaedf873a7c.camel@linux.intel.com>
  <20181110011652.2wozbvfimcnhogfj@xakep.localdomain>
- <CAKgT0UdDYC5RvZ1XgLTamFpBe3foPMs+SV_kSUVNDWLvxSC_1Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAKgT0UdDYC5RvZ1XgLTamFpBe3foPMs+SV_kSUVNDWLvxSC_1Q@mail.gmail.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Alexander Duyck <alexander.duyck@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>, pavel.tatashin@microsoft.com, rppt@linux.vnet.ibm.com, Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, LKML <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm <linux-mm@kvack.org>, khalid.aziz@oracle.com, David Miller <davem@davemloft.net>, Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, ldufour@linux.vnet.ibm.com, Mel Gorman <mgorman@techsingularity.net>, alexander.h.duyck@linux.intel.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+In-Reply-To: <20181110011652.2wozbvfimcnhogfj@xakep.localdomain>
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Date: Mon, 12 Nov 2018 11:10:35 -0800
+Message-ID: <CAKgT0UdDYC5RvZ1XgLTamFpBe3foPMs+SV_kSUVNDWLvxSC_1Q@mail.gmail.com>
+Subject: Re: [mm PATCH v5 0/7] Deferred page init improvements
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: pasha.tatashin@soleen.com, Andrew Morton <akpm@linux-foundation.org>
+Cc: alexander.h.duyck@linux.intel.com, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm <linux-mm@kvack.org>, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org, David Miller <davem@davemloft.net>, pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, Matthew Wilcox <willy@infradead.org>, Vlastimil Babka <vbabka@suse.cz>, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, Mel Gorman <mgorman@techsingularity.net>, yi.z.zhang@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 18-11-12 11:10:35, Alexander Duyck wrote:
-> 
-> The point I was trying to make is that it doesn't. You say it is an
-> order of magnitude better but it is essentially 3.5x vs 3.8x and to
-> achieve the 3.8x you are using a ton of system resources. My approach
-> is meant to do more with less, while this approach will throw a
-> quarter of the system at  page initialization.
+On Fri, Nov 9, 2018 at 5:17 PM Pavel Tatashin <pasha.tatashin@soleen.com> wrote:
+>
+> On 18-11-09 16:46:02, Alexander Duyck wrote:
+> > On Fri, 2018-11-09 at 19:00 -0500, Pavel Tatashin wrote:
+> > > On 18-11-09 15:14:35, Alexander Duyck wrote:
+> > > > On Fri, 2018-11-09 at 16:15 -0500, Pavel Tatashin wrote:
+> > > > > On 18-11-05 13:19:25, Alexander Duyck wrote:
+> > > > > > This patchset is essentially a refactor of the page initialization logic
+> > > > > > that is meant to provide for better code reuse while providing a
+> > > > > > significant improvement in deferred page initialization performance.
+> > > > > >
+> > > > > > In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
+> > > > > > memory per node I have seen the following. In the case of regular memory
+> > > > > > initialization the deferred init time was decreased from 3.75s to 1.06s on
+> > > > > > average. For the persistent memory the initialization time dropped from
+> > > > > > 24.17s to 19.12s on average. This amounts to a 253% improvement for the
+> > > > > > deferred memory initialization performance, and a 26% improvement in the
+> > > > > > persistent memory initialization performance.
+> > > > >
+> > > > > Hi Alex,
+> > > > >
+> > > > > Please try to run your persistent memory init experiment with Daniel's
+> > > > > patches:
+> > > > >
+> > > > > https://lore.kernel.org/lkml/20181105165558.11698-1-daniel.m.jordan@oracle.com/
+> > > >
+> > > > I've taken a quick look at it. It seems like a bit of a brute force way
+> > > > to try and speed things up. I would be worried about it potentially
+> > >
+> > > There is a limit to max number of threads that ktasks start. The memory
+> > > throughput is *much* higher than what one CPU can maxout in a node, so
+> > > there is no reason to leave the other CPUs sit idle during boot when
+> > > they can help to initialize.
+> >
+> > Right, but right now that limit can still be pretty big when it is
+> > something like 25% of all the CPUs on a 288 CPU system.
+>
+> It is still OK. About 9 threads per node.
+>
+> That machine has 1T of memory, which means 8 nodes need to initialize 2G
+> of memory each. With 46G/s throughout it should take 0.043s Which is 10
+> times higher than what Daniel sees with 0.325s, so there is still room
+> to saturate the memory throughput.
+>
+> Now, if the multi-threadding efficiency is good, it should take
+> 1.261s / 9 threads =  0.14s
 
-3.8x is a bug, that is going to be fixed before ktasks are accepted. The
-final results will be close to time/nthreads.
-Using more resources to initialize pages is fine, because other CPUs are
-idling during this time in boot.
+The two patch sets combined would hopefully do better then that,
+although I don't know what the clock speed is on the CPUs in use.
 
-Lets wait for what Daniel finds out after Linux Plumber. And we can
-continue this discussion in ktask thread.
+The system I have been testing with has 1.5TB spread over 4 nodes. So
+we have effectively 3 times as much to initialize and with the
+"numa=fake=8U" I was seeing it only take .275s to initialize the
+nodes.
 
-> 
-> An added advantage to my approach is that it speeds up things
-> regardless of the number of cores used, whereas the scaling approach
+> >
+> > One issue is the way the code was ends up essentially blowing out the
+> > cache over and over again. Doing things in two passes made it really
+> > expensive as you took one cache miss to initialize it, and another to
+> > free it. I think getting rid of that is one of the biggest gains with
+> > my patch set.
+>
+> I am not arguing that your patches make sense, all I am saying that
+> ktasks improve time order of magnitude better on machines with large
+> amount of memory.
 
-Yes, I agree, I like your approach. It is clean, simplifies, and
-improves the performance. I have tested it on both ARM and x86, and
-verified the performance improvements. So:
+The point I was trying to make is that it doesn't. You say it is an
+order of magnitude better but it is essentially 3.5x vs 3.8x and to
+achieve the 3.8x you are using a ton of system resources. My approach
+is meant to do more with less, while this approach will throw a
+quarter of the system at  page initialization.
 
-Tested-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+An added advantage to my approach is that it speeds up things
+regardless of the number of cores used, whereas the scaling approach
+requires that there be more cores available to use. So for example on
+some of the new AMD Zen stuff I am not sure the benefit would be all
+that great since if I am not mistaken each tile is only 8 processors
+so at most you are only doubling the processing power applied to the
+initialization. In such a case it is likely that my approach would
+fare much better then this approach since I don't require additional
+cores to achieve the same results.
 
+Anyway there are tradeoffs we have to take into account.
 
-> requires that there be more cores available to use. So for example on
-> some of the new AMD Zen stuff I am not sure the benefit would be all
-> that great since if I am not mistaken each tile is only 8 processors
-> so at most you are only doubling the processing power applied to the
-> initialization. In such a case it is likely that my approach would
-> fare much better then this approach since I don't require additional
-> cores to achieve the same results.
-> 
-> Anyway there are tradeoffs we have to take into account.
-> 
-> I will go over the changes you suggested after Plumbers. I just need
-> to figure out if I am doing incremental changes, or if Andrew wants me
-> to just resubmit the whole set. I can probably deal with these changes
-> either way since most of them are pretty small.
+I will go over the changes you suggested after Plumbers. I just need
+to figure out if I am doing incremental changes, or if Andrew wants me
+to just resubmit the whole set. I can probably deal with these changes
+either way since most of them are pretty small.
 
-Send the full series again, Andrew is very good at taking only
-incremental  changes once a new version is posted of something
-that is already in mm-tree.
+Thanks.
 
-Thank you,
-Pasha
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+- Alex
