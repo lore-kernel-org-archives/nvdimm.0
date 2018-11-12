@@ -1,14 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E4C321BADAB2
- for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 16:26:14 -0800 (PST)
-Subject: [PATCH] dax: Fix Xarray conversion of dax_unlock_mapping_entry()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 29 Nov 2018 16:13:46 -0800
-Message-ID: <154353682674.1676897.15440708268545845062.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0658B2116DA2F
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 12:13:40 -0800 (PST)
+Subject: Re: [PATCH 02/11] libnvdimm/security: change clear text nvdimm keys
+ to encrypted keys
+References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+ <154180163666.70506.8805433934495072699.stgit@djiang5-desk3.ch.intel.com>
+ <1541957268.3734.53.camel@linux.ibm.com>
+ <CAPcyv4jMPDap8L6jTo9NGnrJGCjUY_BvSBuPge8NL4QS2Ku0CQ@mail.gmail.com>
+ <1541966975.3734.78.camel@linux.ibm.com>
+ <bf917ee9-1795-9c10-ecec-28c7d5d68345@intel.com>
+ <1542048586.3769.120.camel@linux.ibm.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <fcc0b162-df9d-6abc-a2e7-f76a75a383b3@intel.com>
+Date: Mon, 12 Nov 2018 13:13:37 -0700
 MIME-Version: 1.0
+In-Reply-To: <1542048586.3769.120.camel@linux.ibm.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,80 +30,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>
+To: Mimi Zohar <zohar@linux.ibm.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: keyrings@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Internal to dax_unlock_mapping_entry(), dax_unlock_entry() is used to
-store a replacement entry in the Xarray at the given xas-index with the
-DAX_LOCKED bit clear. When called, dax_unlock_entry() expects the unlocked
-value of the entry relative to the current Xarray state to be specified.
 
-In most contexts dax_unlock_entry() is operating in the same scope as
-the matched dax_lock_entry(). However, in the dax_unlock_mapping_entry()
-case the implementation needs to recall the original entry. In the case
-where the original entry is a 'pmd' entry it is possible that the pfn
-performed to do the lookup is misaligned to the value retrieved in the
-Xarray.
 
-When creating the 'unlocked' entry be sure to align it to the expected
-size as reflected by the DAX_PMD flag. Otherwise, future lookups become
-confused by finding a 'pte' aligned value at an index that should return
-a 'pmd' aligned value. This mismatch results in failure signatures like
-the following:
+On 11/12/18 11:49 AM, Mimi Zohar wrote:
+> On Mon, 2018-11-12 at 08:42 -0700, Dave Jiang wrote:
+> 
+>> How does one generate new encrypted keys with the system masterkey 
+>> removed from the keyring?
+> 
+> I don't think you can.
 
- WARNING: CPU: 38 PID: 1396 at fs/dax.c:340 dax_insert_entry+0x2b2/0x2d0
- RIP: 0010:dax_insert_entry+0x2b2/0x2d0
- [..]
- Call Trace:
-  dax_iomap_pte_fault.isra.41+0x791/0xde0
-  ext4_dax_huge_fault+0x16f/0x1f0
-  ? up_read+0x1c/0xa0
-  __do_fault+0x1f/0x160
-  __handle_mm_fault+0x1033/0x1490
-  handle_mm_fault+0x18b/0x3d0
-
-...and potential corruption of nearby page state as housekeeping
-routines, like dax_disassociate_entry(), may overshoot their expected
-bounds starting at the wrong page.
-
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Fixes: 9f32d221301c ("dax: Convert dax_lock_mapping_entry to XArray")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- fs/dax.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 3f592dc18d67..6c5f8f345b1a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -59,6 +59,7 @@ static inline unsigned int pe_order(enum page_entry_size pe_size)
- 
- /* The order of a PMD entry */
- #define PMD_ORDER	(PMD_SHIFT - PAGE_SHIFT)
-+#define PMD_ORDER_MASK	~((1UL << PMD_ORDER) - 1)
- 
- static wait_queue_head_t wait_table[DAX_WAIT_TABLE_ENTRIES];
- 
-@@ -93,9 +94,13 @@ static unsigned long dax_to_pfn(void *entry)
- 	return xa_to_value(entry) >> DAX_SHIFT;
- }
- 
--static void *dax_make_entry(pfn_t pfn, unsigned long flags)
-+static void *dax_make_entry(pfn_t pfn_t, unsigned long flags)
- {
--	return xa_mk_value(flags | (pfn_t_to_pfn(pfn) << DAX_SHIFT));
-+	unsigned long pfn = pfn_t_to_pfn(pfn_t);
-+
-+	if (flags & DAX_PMD)
-+		pfn &= PMD_ORDER_MASK;
-+	return xa_mk_value(flags | (pfn << DAX_SHIFT));
- }
- 
- static bool dax_is_locked(void *entry)
-
+Are there any documentations available showing system master-key usages?
+So far the docs (i.e. EVM setup) I've seen generates a trusted master
+key and then create the encrypted keys from that. I'm missing the
+understanding of how to generate encrypted keys from the system master
+key initially during setup. Thanks!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
