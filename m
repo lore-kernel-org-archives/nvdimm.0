@@ -1,109 +1,92 @@
-Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3A8CB21959CB2
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 08:26:20 -0800 (PST)
+Date: Mon, 12 Nov 2018 08:25:52 -0800
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: Re: [mm PATCH v5 0/7] Deferred page init improvements
+Message-ID: <20181112162551.ot6q7r56unovlaon@ca-dmjordan1.us.oracle.com>
 References: <20181109211521.5ospn33pp552k2xv@xakep.localdomain>
  <18b6634b912af7b4ec01396a2b0f3b31737c9ea2.camel@linux.intel.com>
- <20181110000006.tmcfnzynelaznn7u@xakep.localdomain> <0d8782742d016565870c578848138aaedf873a7c.camel@linux.intel.com>
- <20181110011652.2wozbvfimcnhogfj@xakep.localdomain>
-In-Reply-To: <20181110011652.2wozbvfimcnhogfj@xakep.localdomain>
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 12 Nov 2018 11:10:35 -0800
-Message-ID: <CAKgT0UdDYC5RvZ1XgLTamFpBe3foPMs+SV_kSUVNDWLvxSC_1Q@mail.gmail.com>
-Subject: Re: [mm PATCH v5 0/7] Deferred page init improvements
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
-To: pasha.tatashin@soleen.com, Andrew Morton <akpm@linux-foundation.org>
-Cc: alexander.h.duyck@linux.intel.com, Daniel Jordan <daniel.m.jordan@oracle.com>, linux-mm <linux-mm@kvack.org>, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org, David Miller <davem@davemloft.net>, pavel.tatashin@microsoft.com, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, Matthew Wilcox <willy@infradead.org>, Vlastimil Babka <vbabka@suse.cz>, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, Mel Gorman <mgorman@techsingularity.net>, yi.z.zhang@linux.intel.com
+ <20181110000006.tmcfnzynelaznn7u@xakep.localdomain>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20181110000006.tmcfnzynelaznn7u@xakep.localdomain>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: mingo@kernel.org, pavel.tatashin@microsoft.com, rppt@linux.vnet.ibm.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, daniel.m.jordan@oracle.com, linux-mm@kvack.org, khalid.aziz@oracle.com, davem@davemloft.net, vbabka@suse.cz, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Nov 9, 2018 at 5:17 PM Pavel Tatashin <pasha.tatashin@soleen.com> wrote:
->
-> On 18-11-09 16:46:02, Alexander Duyck wrote:
-> > On Fri, 2018-11-09 at 19:00 -0500, Pavel Tatashin wrote:
-> > > On 18-11-09 15:14:35, Alexander Duyck wrote:
-> > > > On Fri, 2018-11-09 at 16:15 -0500, Pavel Tatashin wrote:
-> > > > > On 18-11-05 13:19:25, Alexander Duyck wrote:
-> > > > > > This patchset is essentially a refactor of the page initialization logic
-> > > > > > that is meant to provide for better code reuse while providing a
-> > > > > > significant improvement in deferred page initialization performance.
-> > > > > >
-> > > > > > In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
-> > > > > > memory per node I have seen the following. In the case of regular memory
-> > > > > > initialization the deferred init time was decreased from 3.75s to 1.06s on
-> > > > > > average. For the persistent memory the initialization time dropped from
-> > > > > > 24.17s to 19.12s on average. This amounts to a 253% improvement for the
-> > > > > > deferred memory initialization performance, and a 26% improvement in the
-> > > > > > persistent memory initialization performance.
-> > > > >
-> > > > > Hi Alex,
-> > > > >
-> > > > > Please try to run your persistent memory init experiment with Daniel's
-> > > > > patches:
-> > > > >
-> > > > > https://lore.kernel.org/lkml/20181105165558.11698-1-daniel.m.jordan@oracle.com/
-> > > >
-> > > > I've taken a quick look at it. It seems like a bit of a brute force way
-> > > > to try and speed things up. I would be worried about it potentially
-> > >
-> > > There is a limit to max number of threads that ktasks start. The memory
-> > > throughput is *much* higher than what one CPU can maxout in a node, so
-> > > there is no reason to leave the other CPUs sit idle during boot when
-> > > they can help to initialize.
-> >
-> > Right, but right now that limit can still be pretty big when it is
-> > something like 25% of all the CPUs on a 288 CPU system.
->
-> It is still OK. About 9 threads per node.
->
-> That machine has 1T of memory, which means 8 nodes need to initialize 2G
-> of memory each. With 46G/s throughout it should take 0.043s Which is 10
-> times higher than what Daniel sees with 0.325s, so there is still room
-> to saturate the memory throughput.
->
-> Now, if the multi-threadding efficiency is good, it should take
-> 1.261s / 9 threads =  0.14s
+On Fri, Nov 09, 2018 at 07:00:06PM -0500, Pavel Tatashin wrote:
+> On 18-11-09 15:14:35, Alexander Duyck wrote:
+> > On Fri, 2018-11-09 at 16:15 -0500, Pavel Tatashin wrote:
+> > > On 18-11-05 13:19:25, Alexander Duyck wrote:
+> > > > This patchset is essentially a refactor of the page initialization logic
+> > > > that is meant to provide for better code reuse while providing a
+> > > > significant improvement in deferred page initialization performance.
+> > > > 
+> > > > In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
+> > > > memory per node I have seen the following. In the case of regular memory
+> > > > initialization the deferred init time was decreased from 3.75s to 1.06s on
+> > > > average. For the persistent memory the initialization time dropped from
+> > > > 24.17s to 19.12s on average. This amounts to a 253% improvement for the
+> > > > deferred memory initialization performance, and a 26% improvement in the
+> > > > persistent memory initialization performance.
+> > > 
+> > > Hi Alex,
+> > > 
+> > > Please try to run your persistent memory init experiment with Daniel's
+> > > patches:
+> > > 
+> > > https://lore.kernel.org/lkml/20181105165558.11698-1-daniel.m.jordan@oracle.com/
+> > 
+> > I've taken a quick look at it. It seems like a bit of a brute force way
+> > to try and speed things up. I would be worried about it potentially
+> 
+> There is a limit to max number of threads that ktasks start. The memory
+> throughput is *much* higher than what one CPU can maxout in a node, so
+> there is no reason to leave the other CPUs sit idle during boot when
+> they can help to initialize.
+> 
+> > introducing performance issues if the number of CPUs thrown at it end
+> > up exceeding the maximum throughput of the memory.
+> > 
+> > The data provided with patch 11 seems to point to issues such as that.
+> > In the case of the E7-8895 example cited it is increasing the numbers
+> > of CPUs used from memory initialization from 8 to 72, a 9x increase in
+> > the number of CPUs but it is yeilding only a 3.88x speedup.
+> 
+> Yes, but in both cases we are far from maxing out the memory throughput.
+> The 3.88x is indeed low, and I do not know what slows it down.
+> 
+> Daniel,
+> 
+> Could you please check why multi-threading efficiency is so low here?
 
-The two patch sets combined would hopefully do better then that,
-although I don't know what the clock speed is on the CPUs in use.
+I'll hop on the machine after Plumbers.
 
-The system I have been testing with has 1.5TB spread over 4 nodes. So
-we have effectively 3 times as much to initialize and with the
-"numa=fake=8U" I was seeing it only take .275s to initialize the
-nodes.
+> I bet, there is some atomic operation introduces a contention within a
+> node. It should be possible to resolve.
 
-> >
-> > One issue is the way the code was ends up essentially blowing out the
-> > cache over and over again. Doing things in two passes made it really
-> > expensive as you took one cache miss to initialize it, and another to
-> > free it. I think getting rid of that is one of the biggest gains with
-> > my patch set.
->
-> I am not arguing that your patches make sense, all I am saying that
-> ktasks improve time order of magnitude better on machines with large
-> amount of memory.
+We'll see, in any case I'm curious to see what the multithreading does with
+Alex's patches, especially since we won't do two passes through the memory
+anymore.
 
-The point I was trying to make is that it doesn't. You say it is an
-order of magnitude better but it is essentially 3.5x vs 3.8x and to
-achieve the 3.8x you are using a ton of system resources. My approach
-is meant to do more with less, while this approach will throw a
-quarter of the system at  page initialization.
-
-An added advantage to my approach is that it speeds up things
-regardless of the number of cores used, whereas the scaling approach
-requires that there be more cores available to use. So for example on
-some of the new AMD Zen stuff I am not sure the benefit would be all
-that great since if I am not mistaken each tile is only 8 processors
-so at most you are only doubling the processing power applied to the
-initialization. In such a case it is likely that my approach would
-fare much better then this approach since I don't require additional
-cores to achieve the same results.
-
-Anyway there are tradeoffs we have to take into account.
-
-I will go over the changes you suggested after Plumbers. I just need
-to figure out if I am doing incremental changes, or if Andrew wants me
-to just resubmit the whole set. I can probably deal with these changes
-either way since most of them are pretty small.
-
-Thanks.
-
-- Alex
+Not seeing anything in Alex's work right off that would preclude
+multithreading.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
