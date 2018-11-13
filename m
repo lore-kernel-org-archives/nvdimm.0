@@ -1,10 +1,17 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Hacking Alert! You account was hacked
-Date: 10 Nov 2018 12:04:04 -0400
-Message-ID: <0E77F1ED12886B0E77F1ED12886B0E77@DF6I8H1B83>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC v2 00/14] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Tue, 13 Nov 2018 02:10:34 -0800
+Message-ID: <CAFd5g46bzF-+1VzAFYb5cF=e45O2rjagX+NY4UFKgU7cyujc7w@mail.gmail.com>
+References: <20181023235750.103146-1-brendanhiggins@google.com>
+ <f3682d48-6f27-5eef-8274-02f90dd65188@kernel.org>
+ <CAFd5g45Tgcx4RisrCF8QHneR7ELezPfpEPKh_mH8KEUi3skE7g@mail.gmail.com>
+ <04f677b1-bc44-f004-cf2a-51b47baf0965@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7431461991879800755=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <04f677b1-bc44-f004-cf2a-51b47baf0965-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,73 +21,38 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============7431461991879800755==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: 8bit
+On Wed, Nov 7, 2018 at 9:46 AM Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> On 11/6/18 5:17 PM, Brendan Higgins wrote:
+> > On Fri, Nov 2, 2018 at 11:23 AM Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >>
+> >> Hi Brendan,
+> > <snip>
+> >> Framework looks good. I think it would be helpful to include a real test
+> >
+> > Great to hear!
+> >
+> >> in the patch series to get a feel for how effective it is.
+> >
+> > Alright, will do. Rob suggested converting
+> > https://elixir.bootlin.com/linux/v4.19/source/drivers/of/unittest.c to
+> > KUnit, so that might offer a good comparison.
+>
+> drivers/of/unittest.c might be a bit bigger and more complex test than
+> you want to start with.
 
-Dear user of lists.01.org!
+I already got it working under KUnit. Admittedly, structurally it is
+not so different, so it will require some work to make it pretty.
 
-I am a spyware software developer.
-Your account has been hacked by me in the summer of 2018.
+I think now it is a question of whether you want me to start here or not.
 
-I understand that it is hard to believe, but here is my evidence (I sent you this email from your account).
+Probably best just to share what I have now along with Shuah's
+requested changes and we can go from there.
 
-The hacking was carried out using a hardware vulnerability through which you went online (Cisco router, vulnerability CVE-2018-0296).
+Let me know what you think.
 
-I went around the security system in the router, installed an exploit there.
-When you went online, my exploit downloaded my malicious code (rootkit) to your device.
-This is driver software, I constantly updated it, so your antivirus is silent all time.
-
-Since then I have been following you (I can connect to your device via the VNC protocol).
-That is, I can see absolutely everything that you do, view and download your files and any data to yourself.
-I also have access to the camera on your device, and I periodically take photos and videos with you.
-
-At the moment, I have harvested a solid dirt... on you...
-I saved all your email and chats from your messangers. I also saved the entire history of the sites you visit.
-
-I note that it is useless to change the passwords. My malware update passwords from your accounts every times.
-
-I know what you like hard funs (adult sites).
-Oh, yes .. I'm know your secret life, which you are hiding from everyone.
-Oh my God, what are your like... I saw THIS ... Oh, you dirty naughty person ... :)
-
-I took photos and videos of your most passionate funs with adult content, and synchronized them in real time with the image of your camera.
-Believe it turned out very high quality!
-
-So, to the business!
-I'm sure you don't want to show these files and visiting history to all your contacts.
-
-Transfer $830 to my Bitcoin cryptocurrency wallet: 19qL8vdRtk5xJcGNVk3WruuSyitVfSAy7f
-Just copy and paste the wallet number when transferring.
-If you do not know how to do this - ask Google.
-
-My system automatically recognizes the translation.
-As soon as the specified amount is received, all your data will be destroyed from my server, and the rootkit will be automatically removed from your system.
-Do not worry, I really will delete everything, since I am 'working' with many people who have fallen into your position.
-You will only have to inform your provider about the vulnerabilities in the router so that other hackers will not use it.
-
-Since opening this letter you have 48 hours.
-If funds not will be received, after the specified time has elapsed, the disk of your device will be formatted,
-and from my server will automatically send email and sms to all your contacts with compromising material.
-
-I advise you to remain prudent and not engage in nonsense (all files on my server).
-
-Good luck!
-
-
---===============7431461991879800755==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============7431461991879800755==--
+Cheers
