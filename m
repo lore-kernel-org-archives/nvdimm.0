@@ -1,13 +1,14 @@
 From: Barret Rhoden <brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 0/3] kvm: Use huge pages for DAX-backed files
-Date: Wed, 14 Nov 2018 16:51:52 -0500
-Message-ID: <20181114215155.259978-1-brho@google.com>
+Subject: [PATCH v2 2/3] kvm: Use huge pages for DAX-backed files
+Date: Wed, 14 Nov 2018 16:51:54 -0500
+Message-ID: <20181114215155.259978-3-brho@google.com>
 References: <20181109203921.178363-1-brho@google.com>
+ <20181114215155.259978-1-brho@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181109203921.178363-1-brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20181114215155.259978-1-brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,35 +22,82 @@ To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave 
 Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yu.c.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, yi.z.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This patch series depends on dax pages not being PageReserved.  Once
-that is in place, these changes will let KVM use huge pages with
-dax-backed files.  Without the PageReserved change, KVM and DAX still
-work with these patches, simply without huge pages - which is the
-current situation.
+This change allows KVM to map DAX-backed files made of huge pages with
+huge mappings in the EPT/TDP.
 
-RFC/discussion thread:
-https://lore.kernel.org/lkml/20181029210716.212159-1-brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org/
+DAX pages are not PageTransCompound.  The existing check is trying to
+determine if the mapping for the pfn is a huge mapping or not.  For
+non-DAX maps, e.g. hugetlbfs, that means checking PageTransCompound.
+For DAX, we can check the page table itself.
 
-v1 -> v2:
-https://lore.kernel.org/lkml/20181109203921.178363-1-brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org/
+Note that KVM already faulted in the page (or huge page) in the host's
+page table, and we hold the KVM mmu spinlock.  We grabbed that lock in
+kvm_mmu_notifier_invalidate_range_end, before checking the mmu seq.
 
-- Updated Acks/Reviewed-by
-- Minor touchups
-- Added patch to remove redundant PageReserved() check
-- Rebased onto linux-next
+Signed-off-by: Barret Rhoden <brho-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+---
+- removed map_shift local variable
 
+ arch/x86/kvm/mmu.c | 33 +++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-Barret Rhoden (3):
-  mm: make dev_pagemap_mapping_shift() externally visible
-  kvm: Use huge pages for DAX-backed files
-  kvm: remove redundant PageReserved() check
-
- arch/x86/kvm/mmu.c  | 33 +++++++++++++++++++++++++++++++--
- include/linux/mm.h  |  3 +++
- mm/memory-failure.c | 38 +++-----------------------------------
- mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
- virt/kvm/kvm_main.c |  8 ++------
- 5 files changed, 73 insertions(+), 43 deletions(-)
-
+diff --git a/arch/x86/kvm/mmu.c b/arch/x86/kvm/mmu.c
+index cf5f572f2305..6914989d1e3d 100644
+--- a/arch/x86/kvm/mmu.c
++++ b/arch/x86/kvm/mmu.c
+@@ -3152,6 +3152,35 @@ static int kvm_handle_bad_page(struct kvm_vcpu *vcpu, gfn_t gfn, kvm_pfn_t pfn)
+ 	return -EFAULT;
+ }
+ 
++static bool pfn_is_huge_mapped(struct kvm *kvm, gfn_t gfn, kvm_pfn_t pfn)
++{
++	struct page *page = pfn_to_page(pfn);
++	unsigned long hva;
++
++	if (!is_zone_device_page(page))
++		return PageTransCompoundMap(page);
++
++	/*
++	 * DAX pages do not use compound pages.  The page should have already
++	 * been mapped into the host-side page table during try_async_pf(), so
++	 * we can check the page tables directly.
++	 */
++	hva = gfn_to_hva(kvm, gfn);
++	if (kvm_is_error_hva(hva))
++		return false;
++
++	/*
++	 * Our caller grabbed the KVM mmu_lock with a successful
++	 * mmu_notifier_retry, so we're safe to walk the page table.
++	 */
++	switch (dev_pagemap_mapping_shift(hva, current->mm)) {
++	case PMD_SHIFT:
++	case PUD_SIZE:
++		return true;
++	}
++	return false;
++}
++
+ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
+ 					gfn_t *gfnp, kvm_pfn_t *pfnp,
+ 					int *levelp)
+@@ -3168,7 +3197,7 @@ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
+ 	 */
+ 	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
+ 	    level == PT_PAGE_TABLE_LEVEL &&
+-	    PageTransCompoundMap(pfn_to_page(pfn)) &&
++	    pfn_is_huge_mapped(vcpu->kvm, gfn, pfn) &&
+ 	    !mmu_gfn_lpage_is_disallowed(vcpu, gfn, PT_DIRECTORY_LEVEL)) {
+ 		unsigned long mask;
+ 		/*
+@@ -5678,7 +5707,7 @@ static bool kvm_mmu_zap_collapsible_spte(struct kvm *kvm,
+ 		 */
+ 		if (sp->role.direct &&
+ 			!kvm_is_reserved_pfn(pfn) &&
+-			PageTransCompoundMap(pfn_to_page(pfn))) {
++			pfn_is_huge_mapped(kvm, sp->gfn, pfn)) {
+ 			pte_list_remove(rmap_head, sptep);
+ 			need_tlb_flush = 1;
+ 			goto restart;
 -- 
 2.19.1.1215.g8438c0b245-goog
