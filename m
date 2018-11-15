@@ -1,21 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com
- [66.111.4.29])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from NAM02-CY1-obe.outbound.protection.outlook.com
+ (mail-eopbgr760093.outbound.protection.outlook.com [40.107.76.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A28C82118F37A
- for <linux-nvdimm@lists.01.org>; Thu, 15 Nov 2018 15:57:00 -0800 (PST)
-Date: Fri, 16 Nov 2018 10:56:51 +1100
-From: "Tobin C. Harding" <me@tobin.cc>
-Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
+ by ml01.01.org (Postfix) with ESMTPS id 570D12118DC29
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Nov 2018 10:03:57 -0800 (PST)
+From: <Tim.Bird@sony.com>
+Subject: RE: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS,	Handbook:
  Subsystem Profile
-Message-ID: <20181115235651.GD5782@caerus>
+Date: Thu, 15 Nov 2018 18:03:50 +0000
+Message-ID: <ECADFF3FD767C149AD96A924E7EA6EAF88A40EA1@USCULXMSG01.am.sony.com>
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
  <87pnv6ivl7.fsf@intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <87pnv6ivl7.fsf@intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,11 +27,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Steve French <stfrench@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>
+To: jani.nikula@intel.com, dan.j.williams@intel.com, linux-kernel@vger.kernel.org
+Cc: ksummit-discuss@lists.linuxfoundation.org, linux-doc@vger.kernel.org, linux-nvdimm@lists.01.org, dvyukov@google.com, gregkh@linuxfoundation.org, mchehab@kernel.org, stfrench@microsoft.com, me@tobin.cc
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Nov 15, 2018 at 10:38:44AM +0200, Jani Nikula wrote:
+
+
+> -----Original Message-----
+> From: Jani Nikula on Thursday, November 15, 2018 12:39 AM 
 > 
 > Cc: linux-doc
 > 
@@ -81,14 +84,24 @@ On Thu, Nov 15, 2018 at 10:38:44AM +0200, Jani Nikula wrote:
 > I appreciate you taking this on, but I think this should be split by
 > audience.
 
-I got confused by this at first also Jani.  This document is a template
-for use by maintainers.  The files created from the template (by a
-subsystem maintainer) are for contributors.  So I believe this document
-is in the correct place.
+I think there is a spectrum of audiences for this document, including contributors,
+reviewers, and maintainers.  Some of this information documents  the "social API" between
+these groups.  So, I think it's handy to have it in one place, viewable by all parties.
+However, designating items that are of special interest to maintainers, or reviewers
+or contributors is worthwhile.  Maybe having sections in a single document would
+serve that purpose?
 
-Hope this helps to clarify.
+Put another way, there are pieces of information that are an agreement between
+maintainers and contributors, that both should probably be reminded of.  Maintaining
+such information in 2 places would be a pain, and prone to getting out-of-sync.
 
-     Tobin
+Also,
+I think over time we want to contributors to feel comfortable becoming reviewers
+and maintainers, so it's good for them to learn about the processes that the
+maintainers are using.  I fear if we kept the information
+in role-specific documents, it wouldn't promote this progression.
+ -- Tim
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
