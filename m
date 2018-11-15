@@ -3,16 +3,17 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8228E2119172A
- for <linux-nvdimm@lists.01.org>; Thu, 15 Nov 2018 06:30:55 -0800 (PST)
-Date: Thu, 15 Nov 2018 06:30:40 -0800
+ by ml01.01.org (Postfix) with ESMTPS id AD0BD2119172C
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Nov 2018 06:10:53 -0800 (PST)
+Date: Thu, 15 Nov 2018 06:10:36 -0800
 From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 Subject: Re: [Ksummit-discuss] [RFC PATCH 3/3] libnvdimm, MAINTAINERS:
  Subsystem Profile
-Message-ID: <20181115063040.11eaef93@silica.lan>
-In-Reply-To: <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
+Message-ID: <20181115061036.1575223d@silica.lan>
+In-Reply-To: <CAMuHMdVOJsM=66RrnbOzVthsT9=dFRQtL2rv99tCPC02M=hiXw@mail.gmail.com>
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAMuHMdVOJsM=66RrnbOzVthsT9=dFRQtL2rv99tCPC02M=hiXw@mail.gmail.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,127 +22,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Ross Zwisler <zwisler@kernel.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: ksummit-discuss@lists.linuxfoundation.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, zwisler@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-RW0gV2VkLCAxNCBOb3YgMjAxOCAyMDo1MzozMCAtMDgwMApEYW4gV2lsbGlhbXMgPGRhbi5qLndp
-bGxpYW1zQGludGVsLmNvbT4gZXNjcmV2ZXU6Cgo+IERvY3VtZW50IHRoZSBiYXNpYyBwb2xpY2ll
-cyBvZiB0aGUgbGlibnZkaW1tIHN1YnN5c3RlbSBhbmQgcHJvdmlkZSBhCj4gZmlyc3QgZXhhbXBs
-ZSBvZiBhIFN1YnN5c3RlbSBQcm9maWxlIGZvciBvdGhlcnMgdG8gZHVwbGljYXRlIGFuZCBlZGl0
-Lgo+IAo+IENjOiBSb3NzIFp3aXNsZXIgPHp3aXNsZXJAa2VybmVsLm9yZz4KPiBDYzogVmlzaGFs
-IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+Cj4gQ2M6IERhdmUgSmlhbmcgPGRhdmUu
-amlhbmdAaW50ZWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuY29tPgo+IC0tLQo+ICBEb2N1bWVudGF0aW9uL252ZGltbS9zdWJzeXN0ZW0t
-cHJvZmlsZS5yc3QgfCAgIDg2ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgTUFJTlRB
-SU5FUlMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgNCArCj4gIDIgZmlsZXMg
-Y2hhbmdlZCwgOTAgaW5zZXJ0aW9ucygrKQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRh
-dGlvbi9udmRpbW0vc3Vic3lzdGVtLXByb2ZpbGUucnN0Cj4gCj4gZGlmZiAtLWdpdCBhL0RvY3Vt
-ZW50YXRpb24vbnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdCBiL0RvY3VtZW50YXRpb24vbnZk
-aW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdAo+IG5ldyBmaWxlIG1vZGUgMTAwNjQ0Cj4gaW5kZXgg
-MDAwMDAwMDAwMDAwLi5kMzQyOGJlNzUyOGUKPiAtLS0gL2Rldi9udWxsCj4gKysrIGIvRG9jdW1l
-bnRhdGlvbi9udmRpbW0vc3Vic3lzdGVtLXByb2ZpbGUucnN0CgpIbW0uLi4gd291bGQgaXQgbWFr
-ZSBzZW5zZSB0byBhZGQgYSBwb2ludGVyIGF0IG1haW50YWluZXIvaW5kZXgucnN0IChvciB0byBz
-b21lCm90aGVyIC5yc3QgZmlsZSkgZm9yIHRob3NlIHByb2ZpbGVzIHRvbz8KCj4gQEAgLTAsMCAr
-MSw4NiBAQAo+ICtMSUJOVkRJTU0gU3Vic3lzdGVtIFByb2ZpbGUKPiArPT09PT09PT09PT09PT09
-PT09PT09PT09PT09Cj4gKwo+ICtPdmVydmlldwo+ICstLS0tLS0tLQoKQSBtaW5vciBuaXRwaWNr
-IGhlcmU6IEkgd291bGQgYWRkIGEgYmxhbmsgbGluZSBhZnRlciBlYWNoIHRvcGljL3N1YnRvcGlj
-LgoKT24gc29tZSBjYXNlcywgU3BoaW54IHdpbGwgZG8gd3Jvbmcgd2l0aG91dCB0aGF0IGJsYW5r
-IGxpbmUsIGFuZCBoYXZpbmcKc29tZSBwbGFjZXMgd2l0aCB0aGF0IGV4dHJhIGxpbmUgYW5kIG90
-aGVycyB3aXRob3V0IGl0IHNvdW5kcyB1bmJhbGFuY2VkCm9uIG15IGV5ZXMgOy0pCgo+ICtTbywg
-eW91IGhhdmUgcmVjZW50bHkgYmVjb21lIGEgbWFpbnRhaW5lciBvZiB0aGUgTElCTlZESU1NIHN1
-YnN5c3RlbSwKPiArY29uZG9sZW5jZXMsIGl0IGlzIGEgdGhhbmtsZXNzIGpvYiwgaGVyZSBpcyB0
-aGUgbGF5IG9mIHRoZSBsYW5kLiBUaGUgZ2l0CgpNeSB1bmRlcnN0YW5kaW5nIHRoYXQgdGhlIG1h
-aW4gZm9jdXMgb2YgdGhpcyBkb2N1bWVudCBpcyB0byBoZWxwIHBlb3BsZSB0bwpzdWJtaXQgcGF0
-Y2hlcyB0byB0aGUgc3Vic3lzdGVtLgoKV2l0aCB0aGF0IGluIG1pbmQsIEkgd291bGQgbmV2ZXIg
-c3RhcnQgdGhlIGRvYyB0YWxraW5nIG9ubHkgdG8gbWFpbnRhaW5lcnMsCmFzIGRldmVsb3BlcnMg
-d2lsbCBsaWtlbHkganVzdCBzdG9wIHJlYWRpbmcgaXQgYXQgdGhlIGFib3ZlIHBhcmFncmFwaC4K
-Cj4gK3RyZWUsIGdpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0v
-bnZkaW1tLmdpdC8sIGlzCj4gK3dyaXRhYmxlIGJ5IGFsbCB0aGUgaW5kaXZpZHVhbHMgbGlzdGVk
-IGluIExJQk5WRElNTSBzZWN0aW9uIG9mCj4gK01BSU5UQUlORVJTLiBBY2Nlc3MgaXMgZ3JhbnRl
-ZCBwZXIgdGhlIHR5cGljYWwga2VybmVsLm9yZyBhY2NvdW50Cj4gK21hbmFnZW1lbnQgcG9saWNp
-ZXMuIFR3byBicmFuY2hlcyBpbiB0aGF0IHRyZWUgYXJlIHJlZ3VsYXJseSBwdWxsZWQgaW50bwo+
-ICstbmV4dCwgbGlibnZkaW1tLWZvci1uZXh0LCBhbmQgbGlibnZkaW1tLWZpeGVzLiBUaGUgc3Vi
-bWl0IHJhdGUgb2YKPiArcGF0Y2hlcyBpcyBsb3csIHVzdWFsbHkgZW5vdWdoIGZvciBvbmUgcGVy
-c29uIHRvIGhhbmRsZS4gVGhlcmUgaXMgYQo+ICtwYXRjaHdvcmsgaW5zdGFuY2UgYXQKPiAraHR0
-cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wcm9qZWN0L2xpbnV4LW52ZGltbS9saXN0LywgYW5k
-IGl0Cj4gK2hpc3RvcmljYWxseSBpcyBvbmx5IHVzZWQgZm9yIGluZ2VzdGluZyBwYXRjaGVzIGFu
-ZCBjb2xsZWN0aW5nCj4gK2Fjay9yZXZpZXcgdGFncywgaS5lLiBubyBleHBlY3RhdGlvbiB0byB1
-cGRhdGUgdGhlIHBhdGNoIHN0YXRlIGFmdGVyIGl0Cj4gK2hhcyBiZWVuIGRpc3Bvc2l0aW9uZWQs
-IG9yIG1lcmdlZC4KPiArCj4gK1RoZSBtb3N0IHNlbnNpdGl2ZSBjb2RlIGFyZWEgaXMgdGhlIEFD
-UEkgRFNNIChEZXZpY2UgU3BlY2lmaWMgTWV0aG9kKQo+ICtwYXRoLiBJbiBhZGRpdGlvbiB0byB0
-aGUgZ2VuZXJhbCBmcmFnaWxpdHkgb2YgYW4gaW9jdGwoKSBBQkkgdGhlIEFDUEkKPiArRFNNIHNj
-aGVtZSBhbGxvd3MgYW55IHZlbmRvciB0byBpbXBsZW1lbnQgYW55IGNvbW1hbmQgd2l0aG91dCBh
-bnkgcHJpb3IKPiArcmV2aWV3IGJ5IHRoZSBBQ1BJIGNvbW1pdHRlZS4gRm9yIHRoaXMgcmVhc29u
-IHRoZSBMSUJOVkRJTU0gc3lzdGVtIHNlZWtzCj4gK3RvIGNvbnN0cmFpbiB0aGUgcHJvbGlmZXJh
-dGlvbiBvZiB2ZW5kb3IgY29tbWFuZHMgYW5kIGF0IGEgbWluaW11bQo+ICtyZXF1aXJlcyBhbnkg
-Y29tbWFuZCBzdXBwb3J0IHRvIGJlIHB1YmxpY2x5IGRvY3VtZW50ZWQuIE92ZXIgdGltZSB0aGUK
-PiArc3VibWlzc2lvbiByYXRlIG9mIG5ldyB2ZW5kb3Itc3BlY2lmaWMgY29tbWFuZHMgaXMgZmFs
-bGluZyBhcyBtb3JlCj4gK2NvbW1hbmRzIGFyZSBkZWZpbmVkIHdpdGggbmFtZWQgbWV0aG9kcyBp
-biB0aGUgb2ZmaWNpYWwgQUNQSQo+ICtzcGVjaWZpY2F0aW9uLgoKQXMgSmFuaSBwb2ludGVkLCBh
-bGwgdGhlIGFib3ZlIHN0dWZmIGlzIGZvciBtYWludGFpbmVycywgYnV0IHNldmVyYWwgb3RoZXIK
-c3R1ZmYgb24gdGhpcyBkb2N1bWVudCBhcmUgZm9yIGRldmVsb3BlcnMuIFRoZSBiZXN0IHdvdWxk
-IGxpa2VseSB0byBoYXZlCnR3byBzZXBhcmF0ZSBmaWxlcy4KCkhvd2V2ZXIsIG1haW50YWluaW5n
-IGl0IG9uIHR3byBzZXBhcmF0ZSBmaWxlcyBjb3VsZCBiZSBwYWluZnVsLiBNYXliZQp3ZSBjb3Vs
-ZCBoYXZlIGFuIHNwZWNpZmljIHNlY3Rpb24sIGF0IHRoZSBlbmQgb2YgdGhlIGRvY3VtZW50LCB3
-aXRoCm1haW50YWluZXJzLXNwZWNpZmljIGluc3RydWN0aW9ucy4KCj4gKwo+ICtMSUJOVkRJTU0g
-c2l0cyBhdCB0aGUgaW50ZXJzZWN0aW9uIG9mIGRldmljZS1kcml2ZXJzLCB0aGUgYmxvY2stbGF5
-ZXIsCj4gK2NvcmUgbWVtb3J5LW1hbmFnZW1lbnQsIGFuZCBmaWxlc3lzdGVtcy4gQmUgc3VyZSB0
-byByZS1yb3V0ZSBtZW1vcnkKPiArbWFuYWdlbWVudCBwYXRjaGVzIHRvIHRoZSAtbW0gdHJlZSwg
-YW5kIG90aGVyd2lzZSBwdWxsLWluIGZzLWRldmVsIGZvcgo+ICtwYXRjaGVzIHRoYXQgdG91Y2gg
-YW55dGhpbmcgcmVsYXRlZCB0byBEQVguCgpUaGlzIGlzIGZvciBkZXZlbG9wZXJzLCBzbyBpdCBz
-b3VuZHMgT0shCgo+ICsKPiArQ29yZQo+ICstLS0tCj4gK0Y6IGRyaXZlcnMvbnZkaW1tL1wqX2Rl
-dnMuYwo+ICtGOiBkcml2ZXJzL2FjcGkvbmZpdC9cKi5bY2hdCj4gKwo+ICsKPiArUGF0Y2hlcyBv
-ciBQdWxsIHJlcXVlc3RzCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICtQYXRjaGVzIG9u
-bHkKPiArCj4gKwo+ICtMYXN0IGRheSBmb3IgbmV3IGZlYXR1cmUgc3VibWlzc2lvbnMKPiArLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gK0JlZm9yZSAtcmM1Cj4gKwo+ICsK
-PiArTGFzdCBkYXkgdG8gbWVyZ2UgZmVhdHVyZXMKPiArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0KPiArRW5kIG9mIGxhc3QgLXJjCj4gKwo+ICsKPiArTm9uLWF1dGhvciBBY2sgLyBSZXZpZXcg
-VGFncyBSZXF1aXJlZAo+ICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4g
-K1JlcXVpcmVkCj4gKwo+ICsKPiArVGVzdCBTdWl0ZQo+ICstLS0tLS0tLS0tCj4gK1J1biDigJht
-YWtlIGNoZWNr4oCZIGZyb20gaHR0cHM6Ly9naXRodWIuY29tL3BtZW0vbmRjdGwKPiArCj4gKwo+
-ICtUcnVzdGVkIFJldmlld2Vycwo+ICstLS0tLS0tLS0tLS0tLS0tLQo+ICtKb2hhbm5lcyBUaHVt
-c2hpcm4KPiArVG9zaGkgS2FuaQo+ICtKZWZmIE1veWVyCj4gK1JvYmVydCBFbGxpb3R0CgpTZWUg
-bXkgb3RoZXIgZW1haWwgY29tbWVudGluZyBhYm91dCB0aGF0LgoKPiArCj4gKwo+ICtSZXN1Ym1p
-dCBDYWRlbmNlCj4gKy0tLS0tLS0tLS0tLS0tLS0KPiArOCBidXNpbmVzcyBkYXlzCj4gKwo+ICsK
-PiArVGltZSBab25lIC8gT2ZmaWNlIEhvdXJzCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+
-ICs4OjAwYW0gdG8gNTowMHBtIFBhY2lmaWMgVGltZSBab25lCj4gKwo+ICsKPiArQ2hlY2twYXRj
-aCAvIFN0eWxlIGNsZWFudXBzCj4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICtTdGFu
-ZGFsb25lIHN0eWxlLWNsZWFudXBzIGFyZSB3ZWxjb21lLgo+IGRpZmYgLS1naXQgYS9NQUlOVEFJ
-TkVSUyBiL01BSU5UQUlORVJTCj4gaW5kZXggYmI0YTgzYTc2ODRkLi5iYTJiZWVkZDQ2MDUgMTAw
-NjQ0Cj4gLS0tIGEvTUFJTlRBSU5FUlMKPiArKysgYi9NQUlOVEFJTkVSUwo+IEBAIC04NDM5LDYg
-Kzg0MzksNyBAQCBNOglEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiAg
-TToJVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+Cj4gIE06CURhdmUgSmlh
-bmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgo+ICBMOglsaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cj4gK1A6CURvY3VtZW50YXRpb24vbnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdAo+ICBROglo
-dHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3Byb2plY3QvbGludXgtbnZkaW1tL2xpc3QvCj4g
-IFM6CVN1cHBvcnRlZAo+ICBGOglkcml2ZXJzL252ZGltbS9ibGsuYwo+IEBAIC04NDUwLDYgKzg0
-NTEsNyBAQCBNOglEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiAgTToJ
-Um9zcyBad2lzbGVyIDx6d2lzbGVyQGtlcm5lbC5vcmc+Cj4gIE06CURhdmUgSmlhbmcgPGRhdmUu
-amlhbmdAaW50ZWwuY29tPgo+ICBMOglsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCj4gK1A6CURv
-Y3VtZW50YXRpb24vbnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdAo+ICBROglodHRwczovL3Bh
-dGNod29yay5rZXJuZWwub3JnL3Byb2plY3QvbGludXgtbnZkaW1tL2xpc3QvCj4gIFM6CVN1cHBv
-cnRlZAo+ICBGOglkcml2ZXJzL252ZGltbS9idHQqCj4gQEAgLTg0NjAsNiArODQ2Miw3IEBAIE06
-CURhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+ICBNOglWaXNoYWwgVmVy
-bWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KPiAgTToJRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFu
-Z0BpbnRlbC5jb20+Cj4gIEw6CWxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKPiArUDoJRG9jdW1l
-bnRhdGlvbi9udmRpbW0vc3Vic3lzdGVtLXByb2ZpbGUucnN0Cj4gIFE6CWh0dHBzOi8vcGF0Y2h3
-b3JrLmtlcm5lbC5vcmcvcHJvamVjdC9saW51eC1udmRpbW0vbGlzdC8KPiAgUzoJU3VwcG9ydGVk
-Cj4gIEY6CWRyaXZlcnMvbnZkaW1tL3BtZW0qCj4gQEAgLTg0NzgsNiArODQ4MSw3IEBAIE06CVJv
-c3MgWndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPgo+ICBNOglWaXNoYWwgVmVybWEgPHZpc2hh
-bC5sLnZlcm1hQGludGVsLmNvbT4KPiAgTToJRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5j
-b20+Cj4gIEw6CWxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKPiArUDoJRG9jdW1lbnRhdGlvbi9u
-dmRpbW0vc3Vic3lzdGVtLXByb2ZpbGUucnN0Cj4gIFE6CWh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5l
-bC5vcmcvcHJvamVjdC9saW51eC1udmRpbW0vbGlzdC8KPiAgVDoJZ2l0IGdpdDovL2dpdC5rZXJu
-ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tLmdpdAo+ICBTOglT
-dXBwb3J0ZWQKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwo+IEtzdW1taXQtZGlzY3VzcyBtYWlsaW5nIGxpc3QKPiBLc3VtbWl0LWRpc2N1c3NAbGlz
-dHMubGludXhmb3VuZGF0aW9uLm9yZwo+IGh0dHBzOi8vbGlzdHMubGludXhmb3VuZGF0aW9uLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2tzdW1taXQtZGlzY3VzcwoKCgoKQ2hlZXJzLApNYXVybwpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Em Thu, 15 Nov 2018 09:03:11 +0100
+Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+
+> Hi Dan,
+> 
+> On Thu, Nov 15, 2018 at 6:06 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> > Document the basic policies of the libnvdimm subsystem and provide a
+> > first example of a Subsystem Profile for others to duplicate and edit.
+> >
+> > Cc: Ross Zwisler <zwisler@kernel.org>
+> > Cc: Vishal Verma <vishal.l.verma@intel.com>
+> > Cc: Dave Jiang <dave.jiang@intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>  
+> 
+> Thanks for your patch!
+> 
+> > --- /dev/null
+> > +++ b/Documentation/nvdimm/subsystem-profile.rst  
+> 
+> > +Trusted Reviewers
+> > +-----------------
+> > +Johannes Thumshirn
+> > +Toshi Kani
+> > +Jeff Moyer
+> > +Robert Elliott  
+> 
+> Don't you want to add email addresses?
+> Only the first one is listed in MAINTAINERS.
+
+IMO, it makes sense to have their e-mails here, in a way that it could
+easily be parsed by get_maintainers.pl.
+
+That's said, IMO a given subsystem should either use the R: tag at
+MAINTAINERS or have a list of reviewers or sub-maintainers here, as
+maintaining duplicated information will be painful.
+
+If we go to this path, we should probably document it at MAINTAINERS
+file.
+
+> 
+> > +Time Zone / Office Hours
+> > +------------------------
+> > +8:00am to 5:00pm Pacific Time Zone  
+> 
+> UTC-???
+> 
+> People are not familiar with all time zones.
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+
+
+
+
+Cheers,
+Mauro
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
