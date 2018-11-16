@@ -1,21 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from merlin.infradead.org (merlin.infradead.org
- [IPv6:2001:8b0:10b:1231::1])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x32e.google.com (mail-ot1-x32e.google.com
+ [IPv6:2607:f8b0:4864:20::32e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0442221191730
- for <linux-nvdimm@lists.01.org>; Fri, 16 Nov 2018 15:29:11 -0800 (PST)
-Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
- Subsystem Profile
+ by ml01.01.org (Postfix) with ESMTPS id 822432117FD78
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Nov 2018 10:57:27 -0800 (PST)
+Received: by mail-ot1-x32e.google.com with SMTP id g27so22259477oth.6
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Nov 2018 10:57:27 -0800 (PST)
+MIME-Version: 1.0
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20181115074403.45d9a16a@silica.lan>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <487ebe2d-1feb-298e-ef88-bf4443311cab@infradead.org>
-Date: Fri, 16 Nov 2018 15:28:56 -0800
-MIME-Version: 1.0
-In-Reply-To: <20181115074403.45d9a16a@silica.lan>
-Content-Language: en-US
+ <9f6aece0-da64-78b5-0eda-fe039fc1ad09@gmail.com>
+ <20181116040442.3a5ee3b9@silica.lan>
+In-Reply-To: <20181116040442.3a5ee3b9@silica.lan>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 16 Nov 2018 10:57:14 -0800
+Message-ID: <CAPcyv4iw78jzLQmX6foUMpVUB4ZSE2ExYhjTd87X2xraaZrkPA@mail.gmail.com>
+Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
+ Subsystem Profile
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,262 +25,195 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>, Dan Williams <dan.j.williams@intel.com>
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Steve French <stfrench@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-media@vger.kernel.org, Dmitry Vyukov <dvyukov@google.com>, "Tobin C. Harding" <me@tobin.cc>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: ksummit <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg KH <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, stfrench@microsoft.com, "Tobin C. Harding" <me@tobin.cc>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/15/18 7:44 AM, Mauro Carvalho Chehab wrote:
-> 
-> Anyway, RFC patch follows.
-> 
-> -
-> 
-> [PATCH] [RFC] Add a system profile description for media subsystem
-> 
-> This RFC aligns with current Dan's proposal for having subsystem
-> specific ruleset stored at the Kernel tree.
-> 
-> On this initial RFC, I opted to not add the reviewers e-mail
-> (adding just a "<>") as a boilerplate. If we decide keeping emails
-> there, I'll add them.
-
-Hi-
-Here are my comments.
-
-Hopefully the email addresses will be added.  Just having names is a
-half-answer for contact info.
-
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-> 
-> diff --git a/Documentation/media/subsystem-profile.rst b/Documentation/media/subsystem-profile.rst
-> new file mode 100644
-> index 000000000000..7a5d6f691d05
-> --- /dev/null
-> +++ b/Documentation/media/subsystem-profile.rst
-> @@ -0,0 +1,186 @@
-> +Media Subsystem Profile
-> +=======================
-> +
-> +Overview
-> +--------
-> +
-> +The media subsystem cover support for a variety of devices: stream
-
-                       covers
-
-> +capture, analog and digital TV, cameras, remote controllers, HDMI CEC
-> +and media pipeline control.
-> +
-> +Both our userspace and Kernel APIs are documented and should be kept in
-> +sync with the API changes. It means that all patches that add new
-> +features to the subsystem should also bring changes to the corresponding
-> +API files.
-> +
-> +Also, patches for device drivers that changes the Open Firmware/Device
-> +Tree bindings should be reviewed by the Device Tree maintainers.
-> +
-> +Due to the size and wide scope of the media subsystem, our
-> +maintainership model is to have sub-maintainers that have a broad
-> +knowledge of an specific aspect of the subsystem. It is a
-
-             of a specific
-
-> +sub-maintainers task to review the patches, providing feedback to users
-> +if the patches are following the subsystem rules and are properly using
-> +the media internal and external APIs.
-> +
-> +We have a set of compliance tools at https://git.linuxtv.org/v4l-utils.git/
-> +that should be used in order to check if the drivers are properly
-> +implementing the media APIs.
-> +
-> +Patches for the media subsystem should be sent to the media mailing list
-> +at linux-media@vger.kernel.org as plain text only e-mail. emails with
-
-                               e-mail or email?  Be consistent. (more below)
-
-> +HTML will be automacially rejected by the mail server.
-
-                automatically
-
-> +
-> +Our workflow is heavily based on Patchwork, meaning that, once a patch
-> +is submitted, it should appear at:
-> +
-> +   - https://patchwork.linuxtv.org/project/linux-media/list/
-> +
-> +If it doesn't automatically appear there after a few minutes, then
-> +probably something got wrong on your submission. Please check if the
-> +email is in plain text only and if your emailer is not mangling with
-
-email
-
-> +whitespaces before complaining or submit it again.
-> +
-> +Core
-> +----
-> +
-> +Documentation
-> ++++++++++++++
-> +
-> +F: Documentation/media
-> +
-> +Kernelspace API headers
-> ++++++++++++++++++++++++
-> +
-> +F: include/media/*.h
-> +
-> +Digital TV Core
-> ++++++++++++++++
-> +
-> +F: drivers/media/dvb-core
-> +
-> +HDMI CEC Core
-> ++++++++++++++
-> +
-> +F: drivers/media/cec
-> +
-> +Media Controller Core
-> ++++++++++++++++++++++
-> +
-> +F: drivers/media/media-\*.[ch]
-> +
-> +Remote Controller Core
-> +++++++++++++++++++++++
-> +
-> +F: drivers/media/rc/rc-core-priv.h
-> +F: drivers/media/rc/rc-ir-raw.c
-> +F: drivers/media/rc/rc-main.c
-> +F: drivers/media/rc/ir\*-decoder.c
-> +F: drivers/media/rc/lirc_dev.c
-> +
-> +Video4linux Core
-> +++++++++++++++++
-> +
-> +F: drivers/media/v4l2-core
-> +
-> +Patches or Pull requests
-> +------------------------
-> +
-> +All patches should be submitted via e-mail for review. We use
-
-and e-mail
-
-> +pull requests on our workflow between sub-maintainers and the
-> +maintainer.
-> +
-> +
-> +Last day for new feature submissions
-> +------------------------------------
-> +
-> +Before -rc5
-> +
-> +
-> +Last day to merge features
-> +--------------------------
-> +
-> +Before -rc7
-> +
-> +
-> +Non-author Ack / Review Tags Required
-> +-------------------------------------
-> +
-> +Not required, but desirable
-> +
-> +
-> +Test Suite
-> +----------
-> +
-> +Use the several *-compliance tools that are part of the v4l-utils
-> +package.
-> +
-> +
-> +Trusted Reviewers
-> +-----------------
-> +
-> +Sub-maintainers
-> ++++++++++++++++
-> +
-> +At the media subsystem, we have a group of senior developers that are
-> +responsible for doing the code reviews at the drivers (called
-> +sub-maintainers), and another senior developer responsible for the
-> +subsystem as a hole. For core changes, whenever possible, multiple
-
-             as a whole.
-
-> +media (sub-)maintainers do the review.
-> +
-> +The sub-maintainers work on specific areas of the subsystem, as
-> +described below:
-> +
-> +- Sensor drivers
-> +
-> +  R: Sakari Ailus <>
-> +
-> +- V4L2 drivers
-> +
-> +  R: Hans Verkuil <>
-> +
-> +- Media controller drivers
-> +
-> +  R: Laurent Pinchart <>
-> +
-> +- HDMI CEC
-> +
-> +- Remote Controllers
-> +
-> +  R: Sean Young <>
-> +
-> +- Digital TV
-> +
-> +  R: Michael Krufky <>
-> +  R: Sean Young <>
-> +
-> +
-> +Resubmit Cadence
-> +----------------
-> +
-> +Provided that your patch is at https://patchwork.linuxtv.org, it should
-> +be sooner or later handled, so you don't need to re-submit a patch.
-
-Resubmit or re-submit?  Be consistent.
-
-> +
-> +Please notice that the media subsystem is a high traffic one, so it
-> +could take a while for us to be able to review your patches. Feel free
-> +to ping if you don't get a feedback on a couple of weeks.
-
-                                       in a
-
-> +
-> +Time Zone / Office Hours
-> +------------------------
-> +
-> +Media developers are distributed all around the globe. So, don't assume
-> +that we're on your time zone. We usually don't work on local holidays or
-> +at weekends. Please also notice that, during the Kernel merge window,
-> +we're usually busy ensuring that everything goes smoothly, meaning that
-> +we usually have a lot of patches waiting for review just after that. So
-> +you should expect a higher delay during the merge window and one week
-> +before/after it.
-> +
-> +
-> +Checkpatch / Style cleanups
-> +---------------------------
-> +
-> +Standalone style-cleanups are welcome, but they should be grouped per
-> +directory. So, for example, if you're doing a cleanup at drivers
-> +under drivers/media, please send a single patch for all drivers under
-> +drivers/media/pci, another one for drivers/media/usb and so on.
-
-
-> Cheers.- 
-~Randy
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gRnJpLCBOb3YgMTYsIDIwMTggYXQgNDowNCBBTSBNYXVybyBDYXJ2YWxobyBDaGVoYWIKPG1j
+aGVoYWJAa2VybmVsLm9yZz4gd3JvdGU6Cj4KPiBFbSBUaHUsIDE1IE5vdiAyMDE4IDE2OjExOjU5
+IC0wODAwCj4gRnJhbmsgUm93YW5kIDxmcm93YW5kLmxpc3RAZ21haWwuY29tPiBlc2NyZXZldToK
+Wy4uXQo+ID4gPiArUGF0Y2hlcyBvciBQdWxsIHJlcXVlc3RzCj4gPiA+ICstLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0KPiA+ID4gK1NvbWUgc3Vic3lzdGVtcyBhbGxvdyBjb250cmlidXRvcnMgdG8g
+c2VuZCBwdWxsIHJlcXVlc3RzLCBtb3N0IHJlcXVpcmUKPiA+ID4gK21haWxlZCBwYXRjaGVzLiBT
+dGF0ZSDigJxQYXRjaGVzIG9ubHnigJ0sIG9yIOKAnFB1bGwgcmVxdWVzdHMgYWNjZXB0ZWTigJ0u
+Cj4gPgo+ID4gVGhpcyBtYXkgY3JlYXRlIHNvbWUgY29uZnVzaW9uIGlmIG9ubHkgIlB1bGwgcmVx
+dWVzdHMgYWNjZXB0ZWQiIGlzIHRoZQo+ID4gY29udGVudHMgb2YgdGhpcyBzZWN0aW9uLiAgTXkg
+dW5kZXJzdGFuZGluZyBoYXMgYmVlbiB0aGF0IGFsbCBjaGFuZ2VzCj4gPiBzaG91bGQgYmUgYXZh
+aWxhYmxlIG9uIGEgbWFpbCBsaXN0IGZvciByZXZpZXcgYmVmb3JlIGJlaW5nIGFjY2VwdGVkCj4g
+PiBieSB0aGUgbWFpbnRhaW5lciwgZXZlbiBpZiBldmVudHVhbGx5IHRoZSBmaW5hbCB2ZXJzaW9u
+IG9mIHRoZSBzZXJpZXMKPiA+IHRoYXQgaXMgYWNjZXB0ZWQgaXMgYXBwbGllZCBieSB0aGUgbWFp
+bnRhaW5lciBhcyBhIHB1bGwgaW5zdGVhZCBvZgo+ID4gdmlhIGFwcGx5aW5nIHBhdGNoZXMuCj4g
+Pgo+ID4gSXMgbXkgIm11c3QgYXBwZWFyIG9uIGEgbWFpbCBsaXN0IiB1bmRlcnN0YW5kaW5nIGNv
+cnJlY3Q/Cj4KPiBJIGd1ZXNzIHRoaXMgaXMgdHJ1ZSBvbiBhbG1vc3QgYWxsIHN1YnN5c3RlbXMg
+dGhhdCBhY2NlcHQgcHVsbCByZXF1ZXN0cy4KPgo+IEl0IGNvdWxkIG5vdCBiZSB0cnVlIGlmIHNv
+bWUgc3Vic3lzdGVtIG1vdmVzIHRvIEdpdGh1Yi9HaXRsYWIuCgpZZXMuIE1heWJlIGEgIlJldmll
+dyBGb3J1bSIgc2VjdGlvbiBmb3Igc3Vic3lzdGVtcyB0aGF0IGhhdmUKdHJhbnNpdGlvbmVkIGZy
+b20gZW1haWwgdG8gYSB3ZWItYmFzZWQgdG9vbD8gVGhlcmUncyBhbHNvIHRoZQpleGNlcHRpb24g
+b2Ygc2VjdXJpdHkgZGlzY2xvc3VyZXMsIGJ1dCB0aGUgZXhwZWN0YXRpb25zIGZvciB0aG9zZQpw
+YXRjaGVzIGFyZSBhbHJlYWR5IGRvY3VtZW50ZWQuCgo+ID4gPiArTGFzdCAtcmMgZm9yIG5ldyBm
+ZWF0dXJlIHN1Ym1pc3Npb25zCj4gPiA+ICstLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KPiA+ID4gK05ldyBmZWF0dXJlIHN1Ym1pc3Npb25zIHRhcmdldGluZyB0aGUgbmV4dCBt
+ZXJnZSB3aW5kb3cgc2hvdWxkIGhhdmUKPiA+ID4gK3RoZWlyIGZpcnN0IHBvc3RpbmcgZm9yIGNv
+bnNpZGVyYXRpb24gYmVmb3JlIHRoaXMgcG9pbnQuIFBhdGNoZXMgdGhhdAo+ID4gPiArYXJlIHN1
+Ym1pdHRlZCBhZnRlciB0aGlzIHBvaW50IHNob3VsZCBiZSBjbGVhciB0aGF0IHRoZXkgYXJlIHRh
+cmdldGluZwo+ID4gPiArdGhlIE5FWFQrMSBtZXJnZSB3aW5kb3csIG9yIHNob3VsZCBjb21lIHdp
+dGggc3VmZmljaWVudCBqdXN0aWZpY2F0aW9uCj4gPiA+ICt3aHkgdGhleSBzaG91bGQgYmUgY29u
+c2lkZXJlZCBvbiBhbiBleHBlZGl0ZWQgc2NoZWR1bGUuIEEgZ2VuZXJhbAo+ID4gPiArZ3VpZGVs
+aW5lIGlzIHRvIHNldCBleHBlY3RhdGlvbiB3aXRoIGNvbnRyaWJ1dG9ycyB0aGF0IG5ldyBmZWF0
+dXJlCj4gPiA+ICtzdWJtaXNzaW9ucyBzaG91bGQgYXBwZWFyIGJlZm9yZSAtcmM1LiBUaGUgYW5z
+d2VyIG1heSBiZSBkaWZmZXJlbnQgZm9yCj4gPiA+ICsnQ29yZTonIGZpbGVzLCBpbmNsdWRlIGEg
+c2Vjb25kIGVudHJ5IHByZWZpeGVkIHdpdGggJ0NvcmU6JyBpZiBzby4KPiA+Cj4gPiBJIHdvdWxk
+IGV4cGVjdCB0aGUgLXJjIHRvIHZhcnkgYmFzZWQgb24gdGhlIHBhdGNoIHNlcmllcyBzaXplLCBj
+b21wbGV4aXR5LAo+ID4gcmlzaywgbnVtYmVyIG9mIHJldmlzaW9ucyB0aGF0IHdpbGwgb2NjdXIs
+IGhvdyBjb250cm92ZXJzaWFsLCBudW1iZXIgb2YKPiA+IC1yYyByZWxlYXNlcyBiZWZvcmUgTGlu
+dXMgY2hvb3NlcyB0byByZWxlYXNlLCBldGMuICBZb3Ugd291bGQgbmVlZCBhCj4gPiBjcnlzdGFs
+IGJhbGwgdG8gcHJlZGljdCBtdWNoIG9mIHRoaXMuICBJIGNvdWxkIHNlZSBiZWluZyBhYmxlIHRv
+IHByb3ZpZGUKPiA+IGEgZ29vZCBlc3RpbWF0ZSBvZiB0aGlzIHZhbHVlIGZvciBhIHJlbGF0aXZl
+bHkgc2ltcGxlIHBhdGNoLgo+Cj4gVGhhdCdzIG9ubHkgcGFydGlhbGx5IHRydWUuIEkgbWVhbiwg
+dGhlIHVzdWFsIGZsdXggaXMgdG8gZ28gdXAgdG8gLXJjNy4KPiBBZnRlciB0aGF0LCB0aGUgZmlu
+YWwgdmVyc2lvbiBpcyB1c3VhbGx5IG1lcmdlZCAoZXhjZXB0IHdoZW4gc29tZXRoaW5nCj4gZ29l
+cyB3cm9uZykuCj4KPiBBbnl3YXksIEkgZ3Vlc3Mgbm9ib2R5IHdvdWxkIGNvbXBsYWluIGlmIHRo
+ZSBtYWludGFpbmVycyBkbyBhbiBleGNlcHRpb24KPiBoZXJlIGFuZCBhY2NlcHQgbW9yZSBwYXRj
+aGVzIHdoZW4gdGhleSBrbm93IHRoYXQgdGhlIGxhc3QgcmMgdmVyc2lvbgo+IHdvbid0IGJlIC1y
+YzcsIGJ1dCwgaW5zdGVhZCwgLXJjOCBvciAtcmM5Lgo+Cj4gVGhpcyBpcyBhIGdlbmVyYWwgcnVs
+ZXNldCB0aGF0IGRlc2NyaWJlcyB0aGUgdXN1YWwgYmVoYXZpb3IsIHRlbGxpbmcgdGhlCj4gZGV2
+ZWxvcGVycyB0aGUgZXhwZWN0ZWQgYmVoYXZpb3IuIElmIHRoZSBtYWludGFpbmVycyBjYW4gZG8g
+bW9yZSBvbiBzb21lCj4gcGFydGljdWxhciBkZXZlbG9wbWVudCBjeWNsZSwgaXQgc2hvdWxkIGJl
+IGZpbmUuCgpZZXMsIGFuZCBwZXJoYXBzIEkgc2hvdWxkIGNsYXJpZnkgdGhhdCB0aGlzIGlzIHRo
+ZSBwb2ludCBhdCB3aGljaCBhCm1haW50YWluZXIgd2lsbCBzdGFydCB0byBwdXNoIGJhY2sgaW4g
+dGhlIHR5cGljYWwgY2FzZSwgYW5kIGluZGljYXRlCnRvIGEgY29udHJpYnV0b3IgdGhhdCB0aGV5
+IGFyZSBzdGFuZGluZyBpbiBleGNlcHRpb25hbCB0ZXJyaXRvcnkuClNpbWlsYXIgdG8gaG93IGxh
+dGVyIGluIHRoZSAtcmMgc2VyaWVzIHBhdGNoZXMgZ2V0IGluY3JlYXNpbmcKc2NydXRpbnkuCgo+
+ID4gPiArTGFzdCAtcmMgdG8gbWVyZ2UgZmVhdHVyZXMKPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tCj4gPiA+ICtJbmRpY2F0ZSB0byBjb250cmlidXRvcnMgdGhlIHBvaW50IGF0IHdo
+aWNoIGFuIGFzIHlldCB1bi1hcHBsaWVkIHBhdGNoCj4gPiA+ICtzZXQgd2lsbCBuZWVkIHRvIHdh
+aXQgZm9yIHRoZSBORVhUKzEgbWVyZ2Ugd2luZG93LiBPZiBjb3Vyc2UgdGhlcmUgaXMgbm8KPiA+
+ID4gK29ibGlnYXRpb24gdG8gZXZlciBleGNlcHQgYW55IGdpdmVuIHBhdGNoc2V0LCBidXQgaWYg
+dGhlIHJldmlldyBoYXMgbm90Cj4gPiA+ICtjb25jbHVkZWQgYnkgdGhpcyBwb2ludCB0aGUgZXhw
+ZWN0YXRpb24gdGhlIGNvbnRyaWJ1dG9yIHNob3VsZCB3YWl0IGFuZAo+ID4gPiArcmVzdWJtaXQg
+Zm9yIHRoZSBmb2xsb3dpbmcgbWVyZ2Ugd2luZG93LiBUaGUgYW5zd2VyIG1heSBiZSBkaWZmZXJl
+bnQgZm9yCj4gPiA+ICsnQ29yZTonIGZpbGVzLCBpbmNsdWRlIGEgc2Vjb25kIGVudHJ5IHByZWZp
+eGVkIHdpdGggJ0NvcmU6JyBpZiBzby4KPiA+Cj4gPiBTYW1lIGNvbW1lbnQgYXMgZm9yIHRoZSBw
+cmV2aW91cyBzZWN0aW9uLCB3aXRoIHRoZSBhZGRpdGlvbmFsIGNvbXBsZXhpdHkKPiA+IHRoYXQg
+ZWFjaCB1bmlxdWUgcGF0Y2ggc2VyaWVzIHNob3VsZCBiYWtlIGluIC1uZXh0LgoKVGhlIGludGVu
+dCBpcyB0byB0cnkgdG8gbGVhdmUgYWxsICJzaG91bGQiIG9yIHByZXNjcmlwdGl2ZSBzdGF0ZW1l
+bnRzCm91dCBvZiB0aGUgcHJvZmlsZS4gSSdtIGxvb2tpbmcgdG8gdGFyZ2V0IG90aGVyIHBhcnRz
+IG9mIHRoZSBoYW5kYm9vawp0byBjYXJyeSBhZHZpY2UgZm9yIGludGVncmF0aW5nIHdpdGggLW5l
+eHQgYW5kIHN1Z2dlc3RlZCBzb2FrIHRpbWVzLgoKPiA+ID4gK05vbi1hdXRob3IgQWNrIC8gUmV2
+aWV3IFRhZ3MgUmVxdWlyZWQKPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KPiA+Cj4gPiBUaGUgdGl0bGUgb2YgdGhpcyBzZWN0aW9uIHNlZW1zIGEgYml0IGRpZmZl
+cmVudCB0aGFuIHRoZSBkZXNjcmlwdGlvbgo+ID4gYmVsb3cuICBBIG1vcmUgYWxpZ25lZCB0aXRs
+ZSB3b3VsZCBiZSBzb21ldGhpbmcgbGlrZSAiTWFpbnRhaW5lcgo+ID4gc2VsZi1jb21taXQgcmV2
+aWV3IHJlcXVpcmVtZW50cyIuCgpUaGlzIGlzIGludGVuZGVkIHRvIGdvIGJleW9uZCBtYWludGFp
+bmVyIHNlbGYtY29tbWl0cy4gQ29uc2lkZXIgYSBwdWxsCnJlcXVlc3QgdGhhdCBjb250YWlucyBj
+b21taXRzIHdpdGhvdXQgbm9uLWF1dGhvciB0YWdzLgoKPiA+ID4gK0xldCBjb250cmlidXRvcnMg
+YW5kIG90aGVyIG1haW50YWluZXJzIGtub3cgd2hldGhlciB0aGV5IGNhbiBleHBlY3QgdG8KPiA+
+ID4gK3NlZSB0aGUgbWFpbnRhaW5lciBzZWxmLWNvbW1pdCBwYXRjaGVzIHdpdGhvdXQgM3JkLXBh
+cnR5IHJldmlldy4gU29tZQo+ID4gPiArc3Vic3lzdGVtIGRldmVsb3BlciBjb21tdW5pdGllcyBh
+cmUgc28gc21hbGwgYXMgdG8gbWFrZSB0aGlzIHJlcXVpcmVtZW50Cj4gPiA+ICtpbXByYWN0aWNh
+bC4gT3RoZXJzIG1heSBoYXZlIGJlZW4gYm9vdHN0cmFwcGVkIGJ5IGEgc3VibWlzc2lvbiBvZgo+
+ID4gPiArc2VsZi1yZXZpZXdlZCBjb2RlIGF0IHRoZSBvdXRzZXQsIGJ1dCBoYXZlIHNpbmNlIG1v
+dmVkIHRvIGEKPiA+ID4gK25vbi1hdXRob3IgcmV2aWV3LXJlcXVpcmVkIHN0YW5jZS4gVGhpcyBz
+ZWN0aW9uIHNldHMgZXhwZWN0YXRpb25zIG9uIHRoZQo+ID4gPiArY29kZS1yZXZpZXcgZWNvbm9t
+aWNzIGluIHRoZSBzdWJzeXN0ZW0uIEZvciBleGFtcGxlLCBjYW4gYSBjb250cmlidXRvcgo+ID4g
+PiArdHJhZGUgcmV2aWV3IG9mIGEgbWFpbnRhaW5lcidzLCBvciBvdGhlciBjb250cmlidXRvcidz
+IHBhdGNoZXMgaW4KPiA+ID4gK2V4Y2hhbmdlIGZvciBjb25zaWRlcmF0aW9uIG9mIHRoZWlyIG93
+bi4KPiA+Cj4gPiBUaGVuIGFub3RoZXIgc2VjdGlvbiAod2hpY2ggaXMgdGhlIG9uZSBJIGV4cGVj
+dGVkIHdoZW4gSSBzbGlnaHRseQo+ID4gbWlzLXJlYWQgdGhlIHNlY3Rpb24gdGl0bGUpIHdvdWxk
+IGJlOiBSZXZpZXcgVGFncyBSZXF1aXJlbWVudHMiLAo+ID4gd2hpY2ggd291bGQgZGlzY3VzcyB3
+aGF0IHR5cGUgb2YgcmV2aWV3IGlzIGV4cGVjdGVkLCBlbmNvdXJhZ2VkLAo+ID4gb3IgcmVxdWly
+ZWQuCgpQZXIgdGhlIGNsYXJpZmljYXRpb24gYWJvdmUsIEkgdGhpbmsgdGhlIHdob2xlIHRoaW5n
+IHNob3VsZCBiZSBjYWxsZWQKIlJldmlldyBUYWdzIFJlcXVpcmVtZW50Ii4KCj4gPiA+ICtUZXN0
+IFN1aXRlCj4gPiA+ICstLS0tLS0tLS0tCj4gPiA+ICtJbmRpY2F0ZSB0aGUgdGVzdCBzdWl0ZSBh
+bGwgcGF0Y2hlcyBhcmUgZXhwZWN0ZWQgdG8gcGFzcyBiZWZvcmUgYmVpbmcKPiA+ID4gK3N1Ym1p
+dHRlZCBmb3IgaW5jbHVzaW9uIGNvbnNpZGVyYXRpb24uCj4gPiA+ICsKPiA+ID4gKwo+ID4gPiAr
+UmVzdWJtaXQgQ2FkZW5jZQo+ID4gPiArLS0tLS0tLS0tLS0tLS0tLQo+ID4gPiArRGVmaW5lIGEg
+cmF0ZSBhdCB3aGljaCBhIGNvbnRyaWJ1dG9yIHNob3VsZCB3YWl0IHRvIHJlc3VibWl0IGEgcGF0
+Y2hzZXQKPiA+ID4gK3RoYXQgaGFzIG5vdCB5ZXQgcmVjZWl2ZWQgY29tbWVudHMuIEEgZ2VuZXJh
+bCBndWlkZWxpbmUgaXMgdG8gdHJ5IHRvCj4gPiA+ICttZWV0IGEgZGVhZGxpbmUgb2YgMSAtIDIg
+d2Vla3MgdG8gYWNrbm93bGVkZ2Ugc3RhcnRpbmcgY29uc2lkZXJhdGlvbiBmb3IKPiA+ID4gK2Eg
+cGF0Y2ggc2V0Lgo+ID4KPiA+IE9yIHBpbmcgaW5zdGVhZCBvZiByZXN1Ym1pdHRpbmc/ICBJZiB5
+b3UgcmVzdWJtaXQgdGhlIHNhbWUgc2VyaWVzIHdpdGgKPiA+IGFuIHVuY2hhbmdlZCB2ZXJzaW9u
+IHRoZW4gY29tbWVudHMgY291bGQgYmUgc3BsaXQgYWNyb3NzIG11bHRpcGxlCj4gPiBlbWFpbCB0
+aHJlYWRzLiAgSWYgeW91IHJlc3VibWl0IHRoZSBzYW1lIHNlcmllcyB3aXRoIGEgbmV3IHZlcnNp
+b24KPiA+IG51bWJlciwgdGhlIHNhbWUgY29tbWVudCBzcGxpdCBjYW4gb2NjdXIgcGx1cyBpdCBj
+YW4gYmUgY29uZnVzaW5nCj4gPiB0aGF0IHR3byB2ZXJzaW9ucyBoYXZlIHRoZSBzYW1lIGNvbnRl
+bnRzLiAgSSBzdXNwZWN0IHRoYXQgdGhlcmUgbWF5IGJlCj4gPiBzb21lIG1haW50YWluZXJzIHdo
+byBkbyBwcmVmZXIgYSByZXN1Ym1pdCwgYnV0IHRoYXQgaXMganVzdCB3aWxkCj4gPiBjb25qZWN0
+dXJlIG9uIG15IHBhcnQuCj4KPiBUaGF0IGRlcGVuZHMgb24gaG93IG1haW50YWluZXJzIGhhbmRs
+ZSBwYXRjaGVzLiBUaG9zZSBzdWJzeXN0ZW1zIHRoYXQKPiB1c2UgcGF0Y2h3b3JrIChsaWtlIG1l
+ZGlhKSBkb24ndCByZWFsbHkgcmVxdWlyZSBhbnlvbmUgdG8gcmVzdWJtaXQKPiBwYXRjaGVzLiBU
+aGV5J3JlIGFsbCBzdG9yZWQgdGhlcmUgYXQgcGF0Y2h3b3JrIGRhdGFiYXNlLgo+Cj4gTXkgd29y
+a2Zsb3cgaXMgdGhhdCwgaWYgSSByZWNlaXZlIHR3byBwYXRjaGVzIGZyb20gdGhlIHNhbWUgcGVy
+c29uIHdpdGgKPiB0aGUgc2FtZSBzdWJqZWN0LCBJIHNpbXBseSBtYXJrIHRoZSBmaXJzdCBvbmUg
+YXMgb2Jzb2xldGVkLCBhcyB1c3VhbGx5Cj4gdGhlIHNlY29uZCBvbmUgaXMgYSBuZXcgdmVyc2lv
+biwgYW5kIHJldmlld2VycyBzaG91bGQgbmVlZCBzb21lCj4gdGltZSB0byBoYW5kbGUgaXQuCj4K
+PiBJbiBvdGhlciB3b3JkcywgcmUtc2VuZGluZyBhIHBhdGNoIG1heSBhY3R1YWxseSBkZWxheSBp
+dHMgaGFuZGxpbmcsIGFzCj4gdGhlIHNlY29uZCB2ZXJzaW9uIHdpbGwgYmUgbGF0ZXIgb24gbXkg
+aW5wdXQgcXVldWUsIGFuZCBJJ2xsIGdyYW50Cj4gYWRkaXRpb25hbCB0aW1lIGZvciBwZW9wbGUg
+dG8gcmV2aWV3IHRoZSBzZWNvbmQgdmVyc2lvbiBhdCB0aGUgY29tbXVuaXR5LgoKT2ssIHRoaXMg
+c291bmRzIGxpa2UgYSBzZXBhcmF0ZSBwb2xpY3kuIEhvdyBvZnRlbiB0byBmb2xsb3ctdXAKc2Vw
+YXJhdGVkIGZyb20gcmVzZW5kIHRoZSBmdWxsIHNlcmllcyB2cyBzZW5kIGEgcGluZyBtYWlsLgoK
+PiA+ID4gK1RydXN0ZWQgUmV2aWV3ZXJzCj4gPiA+ICstLS0tLS0tLS0tLS0tLS0tLQo+ID4gPiAr
+V2hpbGUgYSBtYWludGFpbmVyIC8gbWFpbnRhaW5lci10ZWFtIGlzIGV4cGVjdGVkIHRvIGJlIHJl
+dmlld2VyIG9mIGxhc3QKPiA+ID4gK3Jlc29ydCB0aGUgcmV2aWV3IGxvYWQgaXMgbGVzcyBvbmVy
+b3VzIHdoZW4gZGlzdHJpYnV0ZWQgYW1vbmdzdAo+ID4gPiArY29udHJpYnV0b3JzIGFuZCBvciBh
+IHRydXN0ZWQgc2V0IG9mIGluZGl2aWR1YWxzLiAgVGhpcyBzZWN0aW9uIGlzCj4gPiA+ICtkaXN0
+aW5jdCBmcm9tIHRoZSBSOiB0YWcgKERlc2lnbmF0ZWQgUmV2aWV3ZXIpLiBXaGVyZWFzIFI6IGlk
+ZW50aWZpZXMKPiA+ID4gK3Jldmlld2VycyB0aGF0IHNob3VsZCBhbHdheXMgYmUgY29waWVkIG9u
+IGEgcGF0Y2ggc3VibWlzc2lvbiwgdGhlCj4gPiA+ICt0cnVzdGVkIHJldmlld2VycyBoZXJlIGFy
+ZSBpbmRpdmlkdWFscyBjb250cmlidXRvcnMgY2FuIHJlYWNoIG91dCB0byBpZgo+ID4gPiArYSBm
+ZXcgJ1Jlc3VibWl0IENhZGVuY2UnIGludGVydmFscyBoYXZlIGdvbmUgYnkgd2l0aG91dCBtYWlu
+dGFpbmVyCj4gPiA+ICthY3Rpb24sIG9yIHRvIG90aGVyd2lzZSBjb25zdWx0IGZvciBhZHZpY2Uu
+Cj4gPgo+ID4gVGhpcyBzZWVtcyByZWR1bmRhbnQgd2l0aCB0aGUgTUFJTlRBSU5FUlMgcmV2aWV3
+ZXJzIGxpc3QuICBJdCBzZWVtcyBsaWtlCj4gPiB0aGUgcm9sZSBzcGVjaWZpZWQgaW4gdGhpcyBz
+ZWN0aW9uIGlzIG1vcmUgb2YgYW4gb21idWRzbWFuIG9yIGRldmVsb3Blcgo+ID4gYWR2b2NhdGUg
+d2hvIGNhbiBhc3Npc3Qgd2l0aCB0aGUgcmV2aWV3IGFuZC9vciBhY2NlcHQgZmxvdyBpZiB0aGUK
+PiA+IG1haW50YWluZXIgaXMgYmVpbmcgc2xvdyB0byByZXNwb25kLgo+Cj4gV2VsbCwgb24gc3Vi
+c3lzdGVtcyB0aGF0IGhhdmUgc3ViLW1haW50YWluZXJzLCB0aGVyZSdzIG5vIHdheSB0byBwb2lu
+dCB0bwo+IGl0IGF0IE1BSU5UQUlORVJTIGZpbGUuCj4KPiBBbHNvLCBub3Qgc3VyZSBhYm91dCBv
+dGhlcnMsIGJ1dCBJIHVzdWFsbHkgYXZvaWQgdG91Y2hpbmcgYXQgZXhpc3RpbmcKPiBNQUlOVEFJ
+TkVSUyBmaWxlIGVudHJpZXMuIFRoaXMgaXMgYSBmaWxlIHRoYXQgZXZlcnlvbmUgdG91Y2hlcywg
+c28gaXQKPiBoYXMgaGlnaGVyIGNoYW5jZXMgb2YgY29uZmxpY3RzLgo+Cj4gQWxzbywgYXQgbGVh
+c3Qgb24gbWVkaWEsIHdlIGhhdmUgNSBkaWZmZXJlbnQgQVBJIHNldHMgKGRpZ2l0YWwgVFYsIFY0
+TDIsIENFQywKPiBtZWRpYSBjb250cm9sbGVyLCByZW1vdGUgY29udHJvbGxlcikuIFlldCwgYWxs
+IGRyaXZlcnMgYXJlIHN0b3JlZCBhdCB0aGUKPiBzYW1lIHBsYWNlIChhcyBhIHNpbmdsZSBkcml2
+ZXIgbWF5IHVzZSBtdWx0aXBsZSBBUElzKS4KPgo+IFRoZSByZXZpZXdlcnMgZm9yIGVhY2ggQVBJ
+IHNldCBhcmUgZGlmZmVyZW50LiBUaGVyZSBpc24ndCBhIGdvb2Qgd2F5Cj4gdG8gZXhwbGFpbiB0
+aGF0IGluc2lkZSBhIE1BSU5UQU5FUlMgZmlsZS4KCldvdWxkIGl0IGJlIHdvcnRod2hpbGUgdG8g
+aGF2ZSBzZXBhcmF0ZSBTdWJzeXN0ZW0gUHJvZmlsZXMgZm9yIHRob3NlCkFQSSByZXZpZXdlcnM/
+IElmIHRoZXkgZW5kIHVwIG1lcmdpbmcgcGF0Y2hlcyBhbmQgc2VuZGluZyB0aGVtCnVwc3RyZWFt
+IG1pZ2h0IHdlIG5lZWQgYSBoaWVyYXJjaHkgb2YgcHJvZmlsZXMgZm9yIGVhY2ggaG9wIGFsb25n
+IHRoZQp1cHN0cmVhbSBtZXJnZSBwYXRoPwoKPiA+ID4gK1RpbWUgWm9uZSAvIE9mZmljZSBIb3Vy
+cwo+ID4gPiArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+ICtMZXQgY29udHJpYnV0b3Jz
+IGtub3cgdGhlIHRpbWUgb2YgZGF5IHdoZW4gb25lIG9yIG1vcmUgbWFpbnRhaW5lcnMgYXJlCj4g
+PiA+ICt1c3VhbGx5IGFjdGl2ZWx5IG1vbml0b3JpbmcgdGhlIG1haWxpbmcgbGlzdC4KPiA+Cj4g
+PiBJIHdvdWxkIHN0cmlrZSAiYWN0aXZlbHkgbW9uaXRvcmluZyB0aGUgbWFpbGluZyBsaXN0Ii4g
+IFRvIG1lLCBpdCBzaG91bGQKPiA+IGJlIHdoYXQgYXJlIHRoZSBob3VycyBvZiB0aGUgZGF5IHRo
+YXQgdGhlIG1haW50YWluZXIgbWlnaHQgaGFwcGVuIHRvIHBvbGwKPiA+IChvciBtaWdodCByZWNl
+aXZlIGFuIGludGVycnVwdCkgZnJvbSB0aGUgYXBwcm9wcmlhdGUgY29tbXVuaWNhdGlvbnMKPiA+
+IGNoYW5uZWxzIChjb3VsZCBiZSBJUkMsIGNvdWxkIGJlIGVtYWlsLCBldGMpLgoKWWVzLCBtYWtl
+cyBzZW5zZS4KCj4gPiBGb3IgbXkgYXJlYSwgSSB3b3VsZCB3YW50IHRvIHNheSBzb21ldGhpbmcg
+bGlrZTogSSB0ZW5kIHRvIGJlIGFjdGl2ZQo+ID4gYmV0d2VlbiAxNzowMCBVVEMgKDE4OjAwIFVU
+QyB3aGVuIGRheWxpZ2h0IHNhdmluZ3MpIGFuZCAyNTowMCAoMjY6MDApLAo+ID4gYnV0IG9mdGVu
+IHdpbGwgY2hlY2sgZm9yIHVyZ2VudCBvciBicmllZiBpdGVtcyB1cCB1bnRpbCAwNzowMCAoMDg6
+MDApLgo+ID4gSSBpbnRlcmFjdCB3aXRoIGVtYWlsIHZpYSBhIHBvbGwgbW9kZWwuICBJIGludGVy
+YWN0IHdpdGggSVJDIHZpYSBhCj4gPiBwdWxsIG1vZGVsIGFuZCBvZnRlbiBvdmVybG9vayBJUkMg
+YWN0aXZpdHkgZm9yIG11bHRpcGxlIGRheXMpLgo+Cj4gRnJhbmtseSwgZm9yIG1lZGlhLCBJIGRv
+bid0IHRoaW5rIHRoYXQgd29ya2luZyBob3VycyBtYWtlcyBzZW5zZS4gTWVkaWEKPiAoc3ViLSlt
+YWludGFpbmVycyBhcmUgc3ByZWFkIGFyb3VuZCB0aGUgZ2xvYmUsIG9uIGRpZmZlcmVudCB0aW1l
+IHpvbmVzCj4gKGluIFVTLCBCcmF6aWwgYW5kIEV1cm9wZSkuIFdlIGFsc28gaGF2ZSBzZXZlcmFs
+IGFjdGl2ZSBkZXZlbG9wZXJzIGluCj4gSmFwYW4sIHNvIHdlIG1heSBlbmQgYnkgaGF2aW5nIHNv
+bWUgZGF5IHJldmlld2Vycy9zdWItbWFpbnRhaW5lcnMgZnJvbQo+IHRoZXJlLgoKRm9yIHRoYXQg
+Y2FzZSBqdXN0IHNheToKCiJ0aGUgc3VuIG5ldmVyIHNldHMgb24gdGhlIG1lZGlhIHN1YnN5c3Rl
+bSIgOy0pCgo+IEF0IG1heCwgd2UgY2FuIHNheSB0aGF0IHdlIHdvbid0IHdhcnJhbnQgdG8gcGF0
+Y2hlcyBvbiB3ZWVrZW5kcyBvciBob2xpZGF5cy4KClllYWgsIG1heWJlOgoKIm91dHNpZGUgb2Yg
+d2Vla2VuZHMgb3IgaG9saWRheXMgdGhlcmUncyB1c3VhbGx5IGEgbWFpbnRhaW5lciBvcgpyZXZp
+ZXdlciBtb25pdG9yaW5nIHRoZSBtYWlsaW5nIGxpc3QiCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LW52ZGltbQo=
