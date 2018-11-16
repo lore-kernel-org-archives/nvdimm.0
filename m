@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lb3-smtp-cloud8.xs4all.net (lb3-smtp-cloud8.xs4all.net
- [194.109.24.29])
+Received: from merlin.infradead.org (merlin.infradead.org
+ [IPv6:2001:8b0:10b:1231::1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 929CB2117B54F
- for <linux-nvdimm@lists.01.org>; Sat, 17 Nov 2018 03:57:42 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 0442221191730
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Nov 2018 15:29:11 -0800 (PST)
 Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
  Subsystem Profile
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20181115074403.45d9a16a@silica.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <82b16038-b671-cf63-d85f-ffb65926585c@xs4all.nl>
-Date: Sat, 17 Nov 2018 12:57:37 +0100
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <487ebe2d-1feb-298e-ef88-bf4443311cab@infradead.org>
+Date: Fri, 16 Nov 2018 15:28:56 -0800
 MIME-Version: 1.0
 In-Reply-To: <20181115074403.45d9a16a@silica.lan>
 Content-Language: en-US
@@ -31,93 +31,7 @@ To: Mauro Carvalho Chehab <mchehab@kernel.org>, Dan Williams <dan.j.williams@int
 Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Steve French <stfrench@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-media@vger.kernel.org, Dmitry Vyukov <dvyukov@google.com>, "Tobin C. Harding" <me@tobin.cc>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/15/2018 04:44 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 14 Nov 2018 20:53:25 -0800
-> Dan Williams <dan.j.williams@intel.com> escreveu:
-> 
->> As presented at the 2018 Linux Plumbers conference [1], the Subsystem
->> Profile is proposed as a way to reduce friction between committers and
->> maintainers and perhaps encourage conversations amongst maintainers
->> about best practice policies.
->>
->> The profile contains short answers to some of the common policy
->> questions a contributor might have, or that a maintainer might consider
->> formalizing. The current list of maintenance policies is:
->>
->> Overview: General introduction to maintaining the subsystem
->> Core: List of source files considered core
->> Leaf: List of source files that consume core functionality
->> Patches or Pull requests: Simple statement of expected submission format
->> Last -rc for new feature submissions: Expected lead time for submissions
->> Last -rc to merge features: Deadline for merge decisions
->> Non-author Ack / Review Tags Required: Patch review economics
->> Test Suite: Pass this suite before requesting inclusion
->> Resubmit Cadence: When to ping the maintainer
->> Trusted Reviewers: Help for triaging patches
->> Time Zone / Office Hours: When might a maintainer be available
->> Checkpatch / Style Cleanups: Policy on pure cleanup patches
->> Off-list review: Request for review gates
->> TODO: Potential development tasks up for grabs, or active focus areas
->>
->> The goal of the Subsystem Profile is to set expectations for
->> contributors and interim or replacement maintainers for a subsystem.
->>
->> See Documentation/maintainer/subsystem-profile.rst for more details, and
->> a follow-on example profile for the libnvdimm subsystem.
->>
->> [1]: https://linuxplumbersconf.org/event/2/contributions/59/
->>
->> Cc: Jonathan Corbet <corbet@lwn.net>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Cc: Steve French <stfrench@microsoft.com>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: Linus Torvalds <torvalds@linux-foundation.org>
->> Cc: Tobin C. Harding <me@tobin.cc>
->> Cc: Olof Johansson <olof@lixom.net>
->> Cc: Martin K. Petersen <martin.petersen@oracle.com>
->> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
->> Cc: Joe Perches <joe@perches.com>
->> Cc: Dmitry Vyukov <dvyukov@google.com>
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> 
-> Ok, I sort of followed the proposed model, adding a documentation for
-> the media subsystem using the template.
-> 
-> I'm pretty sure this is incomplete and more work would be needed.
-> So, for now, this is just an example.
-> 
-> Also, I didn't test building it on Sphinx (nor added any reference for it
-> at MAINTAINERS), as my main goal here was to see how the model would fit
-> for us.
-> 
-> I noticed a few issues there:
-> 
-> 1) Describing the "core" files. The media subsystem is complex: depending on
-> the device type, we have different APIs and different cores. So, our core
-> is actually a set of different cores. I ended by adding sub-sections.
-> 
-> Also, several things were not described there. For example, we store
-> DVB frontend drivers on an specific directory. We have drivers there organized
-> by bus type. So, one directory for I2C, one for USB, one for PCI, ...
-> 
-> It should probably make sense to be able to tell about that.
-> 
-> So, I would actually prefer to have, at the profile, a "files" section,
-> instead of "core".
-> 
-> 2) As I said before, on media, we have sub-maintainers. Not sure how to
-> describe them on this template.
-> 
-> 3) I noticed one big missing thing there: in the case of media, we are
-> responsible also to maintaining media staging drivers, that goes at
-> drivers/staging/media. IMO, it would be important to be able to describe
-> who maintains staging stuff - e. g. if the subsystem maintainers prefer
-> to let staging up to staging maintainers or if they'll maintain themselves.
-> 
-> In the latter, it probably makes sense to describe any specific thing
-> related to it (where staging will be at the tree, are there any special
-> rules for them?)
+On 11/15/18 7:44 AM, Mauro Carvalho Chehab wrote:
 > 
 > Anyway, RFC patch follows.
 > 
@@ -131,6 +45,13 @@ On 11/15/2018 04:44 PM, Mauro Carvalho Chehab wrote:
 > On this initial RFC, I opted to not add the reviewers e-mail
 > (adding just a "<>") as a boilerplate. If we decide keeping emails
 > there, I'll add them.
+
+Hi-
+Here are my comments.
+
+Hopefully the email addresses will be added.  Just having names is a
+half-answer for contact info.
+
 > 
 > Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 > 
@@ -147,17 +68,11 @@ On 11/15/2018 04:44 PM, Mauro Carvalho Chehab wrote:
 > +--------
 > +
 > +The media subsystem cover support for a variety of devices: stream
+
+                       covers
+
 > +capture, analog and digital TV, cameras, remote controllers, HDMI CEC
 > +and media pipeline control.
-
-And radio tuners and modulators, including support for RDS (Radio Data System),
-and also software defined radio tuners and modulators.
-
-We also support video codecs (very important to mention this!) and video
-memory-to-memory processing (deinterlacers, scalers, etc.).
-
-There is also support for touch devices and VBI (Vertical Blanking Interface).
-
 > +
 > +Both our userspace and Kernel APIs are documented and should be kept in
 > +sync with the API changes. It means that all patches that add new
@@ -170,6 +85,9 @@ There is also support for touch devices and VBI (Vertical Blanking Interface).
 > +Due to the size and wide scope of the media subsystem, our
 > +maintainership model is to have sub-maintainers that have a broad
 > +knowledge of an specific aspect of the subsystem. It is a
+
+             of a specific
+
 > +sub-maintainers task to review the patches, providing feedback to users
 > +if the patches are following the subsystem rules and are properly using
 > +the media internal and external APIs.
@@ -177,17 +95,16 @@ There is also support for touch devices and VBI (Vertical Blanking Interface).
 > +We have a set of compliance tools at https://git.linuxtv.org/v4l-utils.git/
 > +that should be used in order to check if the drivers are properly
 > +implementing the media APIs.
-
-New V4L2 and HDMI CEC drivers must pass their corresponding compliance tests
-before they are accepted into the kernel.
-
-Adding new public V4L2 or HDMI CEC APIs will also require adding new compliance
-tests to ensure that the new APIs are tested.
-
 > +
 > +Patches for the media subsystem should be sent to the media mailing list
 > +at linux-media@vger.kernel.org as plain text only e-mail. emails with
+
+                               e-mail or email?  Be consistent. (more below)
+
 > +HTML will be automacially rejected by the mail server.
+
+                automatically
+
 > +
 > +Our workflow is heavily based on Patchwork, meaning that, once a patch
 > +is submitted, it should appear at:
@@ -197,6 +114,9 @@ tests to ensure that the new APIs are tested.
 > +If it doesn't automatically appear there after a few minutes, then
 > +probably something got wrong on your submission. Please check if the
 > +email is in plain text only and if your emailer is not mangling with
+
+email
+
 > +whitespaces before complaining or submit it again.
 > +
 > +Core
@@ -240,18 +160,14 @@ tests to ensure that the new APIs are tested.
 > +++++++++++++++++
 > +
 > +F: drivers/media/v4l2-core
-
-We should mention vb2 here as well:
-
-F: drivers/media/common/videobuf2
-
-It's a critical part of the V4L2/DVB core infrastructure.
-
 > +
 > +Patches or Pull requests
 > +------------------------
 > +
 > +All patches should be submitted via e-mail for review. We use
+
+and e-mail
+
 > +pull requests on our workflow between sub-maintainers and the
 > +maintainer.
 > +
@@ -291,6 +207,9 @@ It's a critical part of the V4L2/DVB core infrastructure.
 > +responsible for doing the code reviews at the drivers (called
 > +sub-maintainers), and another senior developer responsible for the
 > +subsystem as a hole. For core changes, whenever possible, multiple
+
+             as a whole.
+
 > +media (sub-)maintainers do the review.
 > +
 > +The sub-maintainers work on specific areas of the subsystem, as
@@ -309,9 +228,6 @@ It's a critical part of the V4L2/DVB core infrastructure.
 > +  R: Laurent Pinchart <>
 > +
 > +- HDMI CEC
-
-That's me as well :-)
-
 > +
 > +- Remote Controllers
 > +
@@ -328,13 +244,15 @@ That's me as well :-)
 > +
 > +Provided that your patch is at https://patchwork.linuxtv.org, it should
 > +be sooner or later handled, so you don't need to re-submit a patch.
+
+Resubmit or re-submit?  Be consistent.
+
 > +
 > +Please notice that the media subsystem is a high traffic one, so it
 > +could take a while for us to be able to review your patches. Feel free
 > +to ping if you don't get a feedback on a couple of weeks.
 
-Hmm, I would prefer a ping in a week for high-prio patches. Otherwise wait
-2-3 weeks.
+                                       in a
 
 > +
 > +Time Zone / Office Hours
@@ -357,19 +275,9 @@ Hmm, I would prefer a ping in a week for high-prio patches. Otherwise wait
 > +under drivers/media, please send a single patch for all drivers under
 > +drivers/media/pci, another one for drivers/media/usb and so on.
 
-Regards,
 
-	Hans
-
-> 
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
-> 
-
+> Cheers.- 
+~Randy
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
