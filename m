@@ -1,23 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from esa20.fujitsucc.c3s2.iphmx.com (esa20.fujitsucc.c3s2.iphmx.com
+ [216.71.158.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 89E312117CE9F
- for <linux-nvdimm@lists.01.org>; Fri, 16 Nov 2018 03:33:24 -0800 (PST)
-Date: Fri, 16 Nov 2018 03:33:17 -0800
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [Ksummit-discuss] [RFC PATCH 3/3] libnvdimm, MAINTAINERS:
- Subsystem Profile
-Message-ID: <20181116033258.23992cde@silica.lan>
-In-Reply-To: <20181115193520.GA24359@mtr-leonro.mtl.com>
+ by ml01.01.org (Postfix) with ESMTPS id D28102119173F
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Nov 2018 18:58:25 -0800 (PST)
+From: "y-goto@fujitsu.com" <y-goto@fujitsu.com>
+Subject: RE: [RFC PATCH 3/3] libnvdimm, MAINTAINERS: Subsystem Profile
+Date: Fri, 16 Nov 2018 02:58:16 +0000
+Message-ID: <TY2PR01MB32595232F5179F94D5ED203590DD0@TY2PR01MB3259.jpnprd01.prod.outlook.com>
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAMuHMdVOJsM=66RrnbOzVthsT9=dFRQtL2rv99tCPC02M=hiXw@mail.gmail.com>
- <20181115061036.1575223d@silica.lan>
- <20181115162008.GO3759@mtr-leonro.mtl.com>
- <20181115110919.46978343@silica.lan>
- <20181115193520.GA24359@mtr-leonro.mtl.com>
+In-Reply-To: <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: ja-JP
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -30,76 +25,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: ksummit-discuss@lists.linuxfoundation.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, zwisler@kernel.org
+To: 'Dan Williams' <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "corbet@lwn.net" <corbet@lwn.net>, Ross Zwisler <zwisler@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Em Thu, 15 Nov 2018 21:35:20 +0200
-Leon Romanovsky <leon@kernel.org> escreveu:
+Hi, Dan-san,
 
-> On Thu, Nov 15, 2018 at 11:09:34AM -0800, Mauro Carvalho Chehab wrote:
-> > Em Thu, 15 Nov 2018 18:20:08 +0200
-> > Leon Romanovsky <leon@kernel.org> escreveu:
-> >  
-> > > On Thu, Nov 15, 2018 at 06:10:36AM -0800, Mauro Carvalho Chehab wrote:  
-> > > > Em Thu, 15 Nov 2018 09:03:11 +0100
-> > > > Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
-> > > >  
-> > > > > Hi Dan,
-> > > > >
-> > > > > On Thu, Nov 15, 2018 at 6:06 AM Dan Williams <dan.j.williams@intel.com> wrote:  
-> > > > > > Document the basic policies of the libnvdimm subsystem and provide a
-> > > > > > first example of a Subsystem Profile for others to duplicate and edit.
-> > > > > >
-> > > > > > Cc: Ross Zwisler <zwisler@kernel.org>
-> > > > > > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > > > > > Cc: Dave Jiang <dave.jiang@intel.com>
-> > > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>  
-> > > > >
-> > > > > Thanks for your patch!
-> > > > >  
-> > > > > > --- /dev/null
-> > > > > > +++ b/Documentation/nvdimm/subsystem-profile.rst  
-> > > > >  
-> > > > > > +Trusted Reviewers
-> > > > > > +-----------------
-> > > > > > +Johannes Thumshirn
-> > > > > > +Toshi Kani
-> > > > > > +Jeff Moyer
-> > > > > > +Robert Elliott  
-> > > > >
-> > > > > Don't you want to add email addresses?
-> > > > > Only the first one is listed in MAINTAINERS.  
-> > > >
-> > > > IMO, it makes sense to have their e-mails here, in a way that it could
-> > > > easily be parsed by get_maintainers.pl.  
-> > >
-> > > I personally think that list of "trusted reviewers" makes more harm than
-> > > good. It creates unneeded negative feelings to those who wanted to be in
-> > > this list, but for any reason they don't. Those reviewers will feel
-> > > "untrusted".  
-> >
-> > Yeah, perhaps something like "most active reviewers" would sound
-> > better.  
+Thank you for your patch. I have one comment.
+
+> ---
+>  Documentation/nvdimm/subsystem-profile.rst |   86 ++++++++++++++++++++++++++++
+>  MAINTAINERS                                |    4 +
+>  2 files changed, 90 insertions(+)
+>  create mode 100644 Documentation/nvdimm/subsystem-profile.rst
 > 
-> I would recommend to remove this section at all.
-> New maintainers won't come out of blue, but will be come
-> from existing community and such individuals for sure will see
-> and judge by themselves to whom they trust and to whom not.
+> diff --git a/Documentation/nvdimm/subsystem-profile.rst b/Documentation/nvdimm/subsystem-profile.rst
+> new file mode 100644
+> index 000000000000..d3428be7528e
+> --- /dev/null
+> +++ b/Documentation/nvdimm/subsystem-profile.rst
+> @@ -0,0 +1,86 @@
+> +LIBNVDIMM Subsystem Profile
+> +===========================
+> +
+> +Overview
+> +--------
+> +So, you have recently become a maintainer of the LIBNVDIMM subsystem,
+> +condolences, it is a thankless job, here is the lay of the land. The git
 
-I see your point, but, on the other hand, having a list with the ones
-that are actively doing reviews helps newcomers.
+Here, I think that more positive sentence is desirable to encourage new comer.
 
-I would keep, but perhaps it makes sense to add some notice about a
-criteria about how to be included at the "active reviewers" list,
-(the criteria probably belongs to the subsystem profile), e. g. 
-something like:
+Certainly, I can imagine that maintainer is hard and tough work,
+but I believe it is great work.
+Even if this is irony or joke, then it may be cause of miss-understanding
+(especially, non-native English speaker like me.)
 
-	"Active reviewers are developers that contribute with more than 25
-	 patches per year and do more than 50 reviews per year on 
-	 on patches written for drivers that they're not usual contributors" 
-Cheers,
-Mauro
+In addition, new coming developer is sometimes nervous 
+to post new mail/patch. If this text will be changed for new comer, 
+then I think this text will be good to encourage them.
+So, I think more positive expression is desirable.
+
+Thanks,
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
