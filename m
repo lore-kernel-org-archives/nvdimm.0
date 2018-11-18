@@ -1,124 +1,94 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from casper.infradead.org (casper.infradead.org
- [IPv6:2001:8b0:10b:1236::1])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CDFF921A07A82
- for <linux-nvdimm@lists.01.org>; Sun, 18 Nov 2018 05:03:51 -0800 (PST)
-Date: Sun, 18 Nov 2018 11:03:24 -0200
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Sun, 18 Nov 2018 09:12:54 +0200
+From: Leon Romanovsky <leon@kernel.org>
 Subject: Re: [Ksummit-discuss] [RFC PATCH 3/3] libnvdimm, MAINTAINERS:
  Subsystem Profile
-Message-ID: <20181118110324.543edbd8@coco.lan>
-In-Reply-To: <CAPcyv4hWK+to6vOSfSdeVMDzUutYwg9=XqshSDzaCf0c-u8jLA@mail.gmail.com>
+Message-ID: <20181118071254.GG24359@mtr-leonro.mtl.com>
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
  <CAMuHMdVOJsM=66RrnbOzVthsT9=dFRQtL2rv99tCPC02M=hiXw@mail.gmail.com>
  <20181115061036.1575223d@silica.lan>
  <20181115162008.GO3759@mtr-leonro.mtl.com>
- <CABVU7+twSz3OZx7PTO+bS-wfLfTTjZVhRAnhgtcs6KWwntattw@mail.gmail.com>
- <CAPcyv4hWK+to6vOSfSdeVMDzUutYwg9=XqshSDzaCf0c-u8jLA@mail.gmail.com>
+ <20181115110919.46978343@silica.lan>
+ <20181115193520.GA24359@mtr-leonro.mtl.com>
+ <3908561D78D1C84285E8C5FCA982C28F7D459E55@ORSMSX110.amr.corp.intel.com>
+ <e4efcfd8c99ef197714230cb1eb246b39dc83151.camel@perches.com>
+ <20181116033947.5689b51c@silica.lan>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: rodrigo.vivi@gmail.com, zwisler@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ksummit <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="m0vRWufqUC70IDnR"
+Content-Disposition: inline
+In-Reply-To: <20181116033947.5689b51c@silica.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Cc: Joe Perches <joe@perches.com>, "Luck, Tony" <tony.luck@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "ksummit-discuss@lists.linuxfoundation.org" <ksummit-discuss@lists.linuxfoundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Verma, Vishal L" <vishal.l.verma@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "zwisler@kernel.org" <zwisler@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Em Fri, 16 Nov 2018 15:44:45 -0800
-Dan Williams <dan.j.williams@intel.com> escreveu:
 
-> On Fri, Nov 16, 2018 at 12:37 PM Rodrigo Vivi <rodrigo.vivi@gmail.com> wrote:
-> >
-> > On Thu, Nov 15, 2018 at 8:38 AM Leon Romanovsky <leon@kernel.org> wrote:  
+--m0vRWufqUC70IDnR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Nov 16, 2018 at 03:39:47AM -0800, Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Nov 2018 11:43:51 -0800
+> Joe Perches <joe@perches.com> escreveu:
+>
+> > On Thu, 2018-11-15 at 19:40 +0000, Luck, Tony wrote:
+> > > > I would recommend to remove this section at all.
+> > > > New maintainers won't come out of blue, but will be come
+> > > > from existing community and such individuals for sure will see
+> > > > and judge by themselves to whom they trust and to whom not.
 > > >
-> > > On Thu, Nov 15, 2018 at 06:10:36AM -0800, Mauro Carvalho Chehab wrote:  
-> > > > Em Thu, 15 Nov 2018 09:03:11 +0100
-> > > > Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
-> > > >  
-> > > > > Hi Dan,
-> > > > >
-> > > > > On Thu, Nov 15, 2018 at 6:06 AM Dan Williams <dan.j.williams@intel.com> wrote:  
-> > > > > > Document the basic policies of the libnvdimm subsystem and provide a
-> > > > > > first example of a Subsystem Profile for others to duplicate and edit.
-> > > > > >
-> > > > > > Cc: Ross Zwisler <zwisler@kernel.org>
-> > > > > > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > > > > > Cc: Dave Jiang <dave.jiang@intel.com>
-> > > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>  
-> > > > >
-> > > > > Thanks for your patch!
-> > > > >  
-> > > > > > --- /dev/null
-> > > > > > +++ b/Documentation/nvdimm/subsystem-profile.rst  
-> > > > >  
-> > > > > > +Trusted Reviewers
-> > > > > > +-----------------
-> > > > > > +Johannes Thumshirn
-> > > > > > +Toshi Kani
-> > > > > > +Jeff Moyer
-> > > > > > +Robert Elliott  
-> > > > >
-> > > > > Don't you want to add email addresses?
-> > > > > Only the first one is listed in MAINTAINERS.  
-> > > >
-> > > > IMO, it makes sense to have their e-mails here, in a way that it could
-> > > > easily be parsed by get_maintainers.pl.  
+> > > Perhaps this is more of a hint to contributors than to maintainers
+> > > (see earlier discussion on who is the target audience for these documents).
 > > >
-> > > I personally think that list of "trusted reviewers" makes more harm than
-> > > good. It creates unneeded negative feelings to those who wanted to be in
-> > > this list, but for any reason they don't. Those reviewers will feel
-> > > "untrusted".  
+> > > It would help contributors know some names of useful reviewers (and
+> > > thus this list should be picked up by scripts/get_maintainer.pl to help
+> > > the user compose Cc: lists for e-mail patches).
 > >
-> > I'd like to +1 on this concern here. Besides leaving all the other
-> > people demotivated.  
-> 
-> Yes, that's a valid concern, I overlooked that unfortunate interpretation.
-> 
+> > Trusted reviewers should be specifically listed
+> > in the MAINTAINERS file with an "R:" entry.
 > >
-> > A small group of trusted reviewers doesn't scale. People will get overloaded.
-> > Or you won't be able to enforce that all patches need to get Reviews.
-> >
-> > Reviews should be coming from everywhere and commiters and maintainers
-> > deciding on what to trust or re-review.
-> >
-> > Also the list is hard to maintain and keep the lists updated.  
-> 
-> I understand the concern, and as I saw feedback come in I realized
-> there were more people that I would add to that reviewer list for
-> libnvdimm.
-> 
-> Stepping back the end goal is to have an initial list of recommended
-> people to follow up with directly to seek a second opinion, or help in
-> cases where a contributor otherwise needs some direction / engagement
-> that they are not readily receiving from the maintainer. Typically
-> someone just lurks on the mailing list for a few weeks to get a feel
-> for who the usual suspects are in the subsystem, but for a new
-> contributor identifying those individuals may be difficult.
-> 
-> One of the contributing factors of lack of response to a patchset is
-> that they are sent with the implicit expectation that the maintainer
-> will get to eventually, and typically other people feel content to sit
-> back and watch. If instead a contributor sent a direct mail to a
-> "trusted reviewer" saying, "Hey, Alice, Bob seems busy can you help me
-> out?" that seems more likely to rope in additional review help.
+> > get_maintainers should not look anywhere else.
+>
+> I know that making get_maintainers to look elsewhere can make it more
+> complex and slower, but IMHO, by having a per-subsystem profile, this is
+> unavoidable.
+>
+> The thing is that touching at a single MAINTAINERS file every time a new
+> reviewer comes is painful. Also, MAINTAINERS file format doesn't allow
+> adding free text explaining the criteria for someone to become a
+> reviewer.
 
-Hmm.. Perhaps the subsystem profile should point to IRC channels if any?
-Several subsystems use them in order to provide newbies some directions
-and to discuss other development issues.
+You are pointing to the actual problem -> someone needs to maintain such
+lists, Removal of persons from that list won't be easy task too.
 
-Thanks,
-Mauro
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
+> IMO, having reviewers on a per-subsystem file, where one could explain
+> the criteria for being added there will make easier to attract more
+> reviewers.
+>
+> Cheers,
+> Mauro
+
+--m0vRWufqUC70IDnR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJb8RD2AAoJEORje4g2clindZYQAJO+F1DrCC7+Lb+tjzA1DhIh
+kntP2f98RI9aWZ2b84xhGImW1O9Q47zQaExcVHIiaJf4VD+wCrmU4BejsHj7HI2A
+vKGsGjRXl03zplhGyQpDAemxPy5dNiyCh59fzMGulEWHD/DCZYuJlQwluvPpckgh
+XrEkF8/1WpeIsLsI4PcPIb5R5XAwmIpFAq/+WAY94mynOTlaa5lXTxKtQrYso3As
+jqpaR1PqnTKwt3b94ZS5ZmBLkeCjq4WeuY9eATs6Vzpn0ZSF/tNYilGatE0l0JEq
+qw1AnVOFXRd+0WUIgHZi9SdWp/UQYl0wIRH/0/653pU5D6d6ggnBxJXUgsLdeFhE
+NB1eje3XrDBtfZeCWjComMsYeKsyp6a1Orls7rY2/SxkHv07JfVkPxUBRwuF1v7v
+7TQPyPeEAkYfcqz3ScTLojotrKYFK+rG5ga6vspD+rIQgl3SCbit8cANfOuSq72R
+lc1iz/w0OXnMiBlAWT8KKKFP3RP964eMeOglm4i5zEexVHijW4ChaZYM9W2iidpK
+VwGwouyrjak/c3wQGoB1JLb9Dr/Wmc8aaW8QJkoifzojTp0mBNDpk4tEiwhTUBNj
+NG+fyYf0pD/kYM7TjqjB2W3VAzmoruPMHoGfXQCcxszsXqyl21nwbqwo/SZ2mfme
+IA9RVHifSFSXyCjGjINW
+=giYP
+-----END PGP SIGNATURE-----
+
+--m0vRWufqUC70IDnR--
