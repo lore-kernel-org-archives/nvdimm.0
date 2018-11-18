@@ -1,25 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
- [IPv6:2607:f8b0:4864:20::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org
+ [IPv6:2001:8b0:10b:1236::1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0CC4921A07A80
- for <linux-nvdimm@lists.01.org>; Sun, 18 Nov 2018 09:31:31 -0800 (PST)
-Received: by mail-oi1-x243.google.com with SMTP id w13so10878597oiw.9
- for <linux-nvdimm@lists.01.org>; Sun, 18 Nov 2018 09:31:31 -0800 (PST)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7B4422118C519
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Nov 2018 04:58:43 -0800 (PST)
+Date: Sun, 18 Nov 2018 10:58:29 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
+ Subsystem Profile
+Message-ID: <20181118105829.7388cc7d@coco.lan>
+In-Reply-To: <CAPcyv4iw78jzLQmX6foUMpVUB4ZSE2ExYhjTd87X2xraaZrkPA@mail.gmail.com>
 References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
  <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com>
  <9f6aece0-da64-78b5-0eda-fe039fc1ad09@gmail.com>
  <20181116040442.3a5ee3b9@silica.lan>
  <CAPcyv4iw78jzLQmX6foUMpVUB4ZSE2ExYhjTd87X2xraaZrkPA@mail.gmail.com>
- <20181118105829.7388cc7d@coco.lan>
-In-Reply-To: <20181118105829.7388cc7d@coco.lan>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 18 Nov 2018 09:31:18 -0800
-Message-ID: <CAPcyv4hX_B5HZ8Cj8VmjeeteZVkn-Ax8avAcUwUQqzH6J67ryA@mail.gmail.com>
-Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook:
- Subsystem Profile
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,189 +24,255 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: ksummit <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stfrench@microsoft.com, Greg KH <gregkh@linuxfoundation.org>, Dmitry Vyukov <dvyukov@google.com>, "Tobin C. Harding" <me@tobin.cc>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Nov 18, 2018 at 4:58 AM Mauro Carvalho Chehab
-<mchehab@kernel.org> wrote:
->
-> Em Fri, 16 Nov 2018 10:57:14 -0800
-> Dan Williams <dan.j.williams@intel.com> escreveu:
-> > On Fri, Nov 16, 2018 at 4:04 AM Mauro Carvalho Chehab
-> > <mchehab@kernel.org> wrote:
-[..]
-> > Yes. Maybe a "Review Forum" section for subsystems that have
-> > transitioned from email to a web-based tool? There's also the
-> > exception of security disclosures, but the expectations for those
-> > patches are already documented.
->
-> Maybe. I would postpone adding a section like that until some
-> subsystem maintainer that actually changed to Github/Gitlab
-> would submit his subsystem profile.
-
-Sure.
-
-> > > > > +Last -rc for new feature submissions
-[..]
-> > > This is a general ruleset that describes the usual behavior, telling the
-> > > developers the expected behavior. If the maintainers can do more on some
-> > > particular development cycle, it should be fine.
-> >
-> > Yes, and perhaps I should clarify that this is the point at which a
-> > maintainer will start to push back in the typical case, and indicate
-> > to a contributor that they are standing in exceptional territory.
-> > Similar to how later in the -rc series patches get increasing
-> > scrutiny.
->
-> Makes sense. There's one issue, though.
->
-> I don't expect developers to read the profile template, as this is a
-> material for the maintainer themselves. Developers should likely read
-> just the specific subsystem profile for the patches that will be submitted.
->
-> So, either each subsystem profile should have a reference to the
-> profile template, or need to copy some "invariant" texts (with would be
-> really painful to maintain).
-
-Agree, a general link back to the handbook template for clarification
-on any of the sections seems sufficient.
-
-[..]
-> > > > > +Trusted Reviewers
-> > > > > +-----------------
-> > > > > +While a maintainer / maintainer-team is expected to be reviewer of last
-> > > > > +resort the review load is less onerous when distributed amongst
-> > > > > +contributors and or a trusted set of individuals.  This section is
-> > > > > +distinct from the R: tag (Designated Reviewer). Whereas R: identifies
-> > > > > +reviewers that should always be copied on a patch submission, the
-> > > > > +trusted reviewers here are individuals contributors can reach out to if
-> > > > > +a few 'Resubmit Cadence' intervals have gone by without maintainer
-> > > > > +action, or to otherwise consult for advice.
-> > > >
-> > > > This seems redundant with the MAINTAINERS reviewers list.  It seems like
-> > > > the role specified in this section is more of an ombudsman or developer
-> > > > advocate who can assist with the review and/or accept flow if the
-> > > > maintainer is being slow to respond.
-> > >
-> > > Well, on subsystems that have sub-maintainers, there's no way to point to
-> > > it at MAINTAINERS file.
-> > >
-> > > Also, not sure about others, but I usually avoid touching at existing
-> > > MAINTAINERS file entries. This is a file that everyone touches, so it
-> > > has higher chances of conflicts.
-> > >
-> > > Also, at least on media, we have 5 different API sets (digital TV, V4L2, CEC,
-> > > media controller, remote controller). Yet, all drivers are stored at the
-> > > same place (as a single driver may use multiple APIs).
-> > >
-> > > The reviewers for each API set are different. There isn't a good way
-> > > to explain that inside a MAINTANERS file.
-> >
-> > Would it be worthwhile to have separate Subsystem Profiles for those
-> > API reviewers? If they end up merging patches and sending them
-> > upstream might we need a hierarchy of profiles for each hop along the
-> > upstream merge path?
->
-> I guess having hierarchical profiles will make it very confusing.
-> The point is: inside a subsystem, the same ruleset usually applies to
-> everything.
-
-Ok.
-
-> In the case of media, it is not uncommon to have patches that require
-> multiple APIs. Consider, for example, a SoC used on a TV box. The driver
-> itself should be placed at drivers/media/platform/, but it will end by
-> being a bunch of sub-drivers that together will add support for V4L,
-> Digital TV, remote controller, CEC and codecs, and need to be controlled
-> via the media controller API. It may even have camera sensors.
->
-> On other words, all media APIs will be used (after having it fully
-> sent upstream).
->
-> In practice, drivers for complex hardware like that is submitted in
-> parts. For example, one SoC vendor started sending us the remote
-> controller driver (as it would be the simplest one).
->
-> The only part of the policy that changes, depending of what API
-> is involved, is the one that will do the review.
->
-> As the driver itself will be at the same place, no matter what APIs
-> are used, get_maintainers.pl is not capable of identifying who are
-> the reviewers based "F:" tags[1].
->
-> [1] It could be possible to teach get_maintainers to better hint it,
-> by making it look who are the reviewers for the headers that are
-> included.
->
-> >
-> > > > > +Time Zone / Office Hours
-> > > > > +------------------------
-> > > > > +Let contributors know the time of day when one or more maintainers are
-> > > > > +usually actively monitoring the mailing list.
-> > > >
-> > > > I would strike "actively monitoring the mailing list".  To me, it should
-> > > > be what are the hours of the day that the maintainer might happen to poll
-> > > > (or might receive an interrupt) from the appropriate communications
-> > > > channels (could be IRC, could be email, etc).
-> >
-> > Yes, makes sense.
-> >
-> > > > For my area, I would want to say something like: I tend to be active
-> > > > between 17:00 UTC (18:00 UTC when daylight savings) and 25:00 (26:00),
-> > > > but often will check for urgent or brief items up until 07:00 (08:00).
-> > > > I interact with email via a poll model.  I interact with IRC via a
-> > > > pull model and often overlook IRC activity for multiple days).
-> > >
-> > > Frankly, for media, I don't think that working hours makes sense. Media
-> > > (sub-)maintainers are spread around the globe, on different time zones
-> > > (in US, Brazil and Europe). We also have several active developers in
-> > > Japan, so we may end by having some day reviewers/sub-maintainers from
-> > > there.
-> >
-> > For that case just say:
-> >
-> > "the sun never sets on the media subsystem" ;-)
->
-> :-)
->
-> >
-> > > At max, we can say that we won't warrant to patches on weekends or holidays.
-> >
-> > Yeah, maybe:
-> >
-> > "outside of weekends or holidays there's usually a maintainer or
-> > reviewer monitoring the mailing list"
->
-> Well, 24/7, there is always patchwork monitoring the ML and picking
-> the patches. When the patch will be handled by someone is a different
-> question. As it is a high-traffic subsystem with an even higher ML
-> traffic, each sub-maintainer have its own policy about when they
-> review patches (usually one or twice per week - as most maintainers
-> are also active developers, and don't want to mix their development
-> time with reviewing time).
->
-> I'm not quite sure about what you expect with this specific part of
-> the profile.
->
-> I mean: why a submitter should care about office hours?
->
-> Also, people may be OOT during some period of time, or working
-> remotely from some other office.
->
-> Except if the idea would be to point to some site that would
-> dynamically track each maintainer's weekly maintainership
-> window (with would be a real pain to keep updated), I guess this
-> is useless.
-
-True, will remove. What's the point of stating daily active hours when
-we already have "Resubmit Cadence" (I think I'll rename it "Follow
-Cadence") measured in multiple days / weeks.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RW0gRnJpLCAxNiBOb3YgMjAxOCAxMDo1NzoxNCAtMDgwMApEYW4gV2lsbGlhbXMgPGRhbi5qLndp
+bGxpYW1zQGludGVsLmNvbT4gZXNjcmV2ZXU6Cgo+IE9uIEZyaSwgTm92IDE2LCAyMDE4IGF0IDQ6
+MDQgQU0gTWF1cm8gQ2FydmFsaG8gQ2hlaGFiCj4gPG1jaGVoYWJAa2VybmVsLm9yZz4gd3JvdGU6
+Cj4gPgo+ID4gRW0gVGh1LCAxNSBOb3YgMjAxOCAxNjoxMTo1OSAtMDgwMAo+ID4gRnJhbmsgUm93
+YW5kIDxmcm93YW5kLmxpc3RAZ21haWwuY29tPiBlc2NyZXZldTogIAo+IFsuLl0KPiA+ID4gPiAr
+UGF0Y2hlcyBvciBQdWxsIHJlcXVlc3RzCj4gPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQo+ID4gPiA+ICtTb21lIHN1YnN5c3RlbXMgYWxsb3cgY29udHJpYnV0b3JzIHRvIHNlbmQgcHVs
+bCByZXF1ZXN0cywgbW9zdCByZXF1aXJlCj4gPiA+ID4gK21haWxlZCBwYXRjaGVzLiBTdGF0ZSDi
+gJxQYXRjaGVzIG9ubHnigJ0sIG9yIOKAnFB1bGwgcmVxdWVzdHMgYWNjZXB0ZWTigJ0uICAKPiA+
+ID4KPiA+ID4gVGhpcyBtYXkgY3JlYXRlIHNvbWUgY29uZnVzaW9uIGlmIG9ubHkgIlB1bGwgcmVx
+dWVzdHMgYWNjZXB0ZWQiIGlzIHRoZQo+ID4gPiBjb250ZW50cyBvZiB0aGlzIHNlY3Rpb24uICBN
+eSB1bmRlcnN0YW5kaW5nIGhhcyBiZWVuIHRoYXQgYWxsIGNoYW5nZXMKPiA+ID4gc2hvdWxkIGJl
+IGF2YWlsYWJsZSBvbiBhIG1haWwgbGlzdCBmb3IgcmV2aWV3IGJlZm9yZSBiZWluZyBhY2NlcHRl
+ZAo+ID4gPiBieSB0aGUgbWFpbnRhaW5lciwgZXZlbiBpZiBldmVudHVhbGx5IHRoZSBmaW5hbCB2
+ZXJzaW9uIG9mIHRoZSBzZXJpZXMKPiA+ID4gdGhhdCBpcyBhY2NlcHRlZCBpcyBhcHBsaWVkIGJ5
+IHRoZSBtYWludGFpbmVyIGFzIGEgcHVsbCBpbnN0ZWFkIG9mCj4gPiA+IHZpYSBhcHBseWluZyBw
+YXRjaGVzLgo+ID4gPgo+ID4gPiBJcyBteSAibXVzdCBhcHBlYXIgb24gYSBtYWlsIGxpc3QiIHVu
+ZGVyc3RhbmRpbmcgY29ycmVjdD8gIAo+ID4KPiA+IEkgZ3Vlc3MgdGhpcyBpcyB0cnVlIG9uIGFs
+bW9zdCBhbGwgc3Vic3lzdGVtcyB0aGF0IGFjY2VwdCBwdWxsIHJlcXVlc3RzLgo+ID4KPiA+IEl0
+IGNvdWxkIG5vdCBiZSB0cnVlIGlmIHNvbWUgc3Vic3lzdGVtIG1vdmVzIHRvIEdpdGh1Yi9HaXRs
+YWIuICAKPiAKPiBZZXMuIE1heWJlIGEgIlJldmlldyBGb3J1bSIgc2VjdGlvbiBmb3Igc3Vic3lz
+dGVtcyB0aGF0IGhhdmUKPiB0cmFuc2l0aW9uZWQgZnJvbSBlbWFpbCB0byBhIHdlYi1iYXNlZCB0
+b29sPyBUaGVyZSdzIGFsc28gdGhlCj4gZXhjZXB0aW9uIG9mIHNlY3VyaXR5IGRpc2Nsb3N1cmVz
+LCBidXQgdGhlIGV4cGVjdGF0aW9ucyBmb3IgdGhvc2UKPiBwYXRjaGVzIGFyZSBhbHJlYWR5IGRv
+Y3VtZW50ZWQuCgpNYXliZS4gSSB3b3VsZCBwb3N0cG9uZSBhZGRpbmcgYSBzZWN0aW9uIGxpa2Ug
+dGhhdCB1bnRpbCBzb21lCnN1YnN5c3RlbSBtYWludGFpbmVyIHRoYXQgYWN0dWFsbHkgY2hhbmdl
+ZCB0byBHaXRodWIvR2l0bGFiCndvdWxkIHN1Ym1pdCBoaXMgc3Vic3lzdGVtIHByb2ZpbGUuCgo+
+IAo+ID4gPiA+ICtMYXN0IC1yYyBmb3IgbmV3IGZlYXR1cmUgc3VibWlzc2lvbnMKPiA+ID4gPiAr
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+ID4gK05ldyBmZWF0dXJl
+IHN1Ym1pc3Npb25zIHRhcmdldGluZyB0aGUgbmV4dCBtZXJnZSB3aW5kb3cgc2hvdWxkIGhhdmUK
+PiA+ID4gPiArdGhlaXIgZmlyc3QgcG9zdGluZyBmb3IgY29uc2lkZXJhdGlvbiBiZWZvcmUgdGhp
+cyBwb2ludC4gUGF0Y2hlcyB0aGF0Cj4gPiA+ID4gK2FyZSBzdWJtaXR0ZWQgYWZ0ZXIgdGhpcyBw
+b2ludCBzaG91bGQgYmUgY2xlYXIgdGhhdCB0aGV5IGFyZSB0YXJnZXRpbmcKPiA+ID4gPiArdGhl
+IE5FWFQrMSBtZXJnZSB3aW5kb3csIG9yIHNob3VsZCBjb21lIHdpdGggc3VmZmljaWVudCBqdXN0
+aWZpY2F0aW9uCj4gPiA+ID4gK3doeSB0aGV5IHNob3VsZCBiZSBjb25zaWRlcmVkIG9uIGFuIGV4
+cGVkaXRlZCBzY2hlZHVsZS4gQSBnZW5lcmFsCj4gPiA+ID4gK2d1aWRlbGluZSBpcyB0byBzZXQg
+ZXhwZWN0YXRpb24gd2l0aCBjb250cmlidXRvcnMgdGhhdCBuZXcgZmVhdHVyZQo+ID4gPiA+ICtz
+dWJtaXNzaW9ucyBzaG91bGQgYXBwZWFyIGJlZm9yZSAtcmM1LiBUaGUgYW5zd2VyIG1heSBiZSBk
+aWZmZXJlbnQgZm9yCj4gPiA+ID4gKydDb3JlOicgZmlsZXMsIGluY2x1ZGUgYSBzZWNvbmQgZW50
+cnkgcHJlZml4ZWQgd2l0aCAnQ29yZTonIGlmIHNvLiAgCj4gPiA+Cj4gPiA+IEkgd291bGQgZXhw
+ZWN0IHRoZSAtcmMgdG8gdmFyeSBiYXNlZCBvbiB0aGUgcGF0Y2ggc2VyaWVzIHNpemUsIGNvbXBs
+ZXhpdHksCj4gPiA+IHJpc2ssIG51bWJlciBvZiByZXZpc2lvbnMgdGhhdCB3aWxsIG9jY3VyLCBo
+b3cgY29udHJvdmVyc2lhbCwgbnVtYmVyIG9mCj4gPiA+IC1yYyByZWxlYXNlcyBiZWZvcmUgTGlu
+dXMgY2hvb3NlcyB0byByZWxlYXNlLCBldGMuICBZb3Ugd291bGQgbmVlZCBhCj4gPiA+IGNyeXN0
+YWwgYmFsbCB0byBwcmVkaWN0IG11Y2ggb2YgdGhpcy4gIEkgY291bGQgc2VlIGJlaW5nIGFibGUg
+dG8gcHJvdmlkZQo+ID4gPiBhIGdvb2QgZXN0aW1hdGUgb2YgdGhpcyB2YWx1ZSBmb3IgYSByZWxh
+dGl2ZWx5IHNpbXBsZSBwYXRjaC4gIAo+ID4KPiA+IFRoYXQncyBvbmx5IHBhcnRpYWxseSB0cnVl
+LiBJIG1lYW4sIHRoZSB1c3VhbCBmbHV4IGlzIHRvIGdvIHVwIHRvIC1yYzcuCj4gPiBBZnRlciB0
+aGF0LCB0aGUgZmluYWwgdmVyc2lvbiBpcyB1c3VhbGx5IG1lcmdlZCAoZXhjZXB0IHdoZW4gc29t
+ZXRoaW5nCj4gPiBnb2VzIHdyb25nKS4KPiA+Cj4gPiBBbnl3YXksIEkgZ3Vlc3Mgbm9ib2R5IHdv
+dWxkIGNvbXBsYWluIGlmIHRoZSBtYWludGFpbmVycyBkbyBhbiBleGNlcHRpb24KPiA+IGhlcmUg
+YW5kIGFjY2VwdCBtb3JlIHBhdGNoZXMgd2hlbiB0aGV5IGtub3cgdGhhdCB0aGUgbGFzdCByYyB2
+ZXJzaW9uCj4gPiB3b24ndCBiZSAtcmM3LCBidXQsIGluc3RlYWQsIC1yYzggb3IgLXJjOS4KPiA+
+Cj4gPiBUaGlzIGlzIGEgZ2VuZXJhbCBydWxlc2V0IHRoYXQgZGVzY3JpYmVzIHRoZSB1c3VhbCBi
+ZWhhdmlvciwgdGVsbGluZyB0aGUKPiA+IGRldmVsb3BlcnMgdGhlIGV4cGVjdGVkIGJlaGF2aW9y
+LiBJZiB0aGUgbWFpbnRhaW5lcnMgY2FuIGRvIG1vcmUgb24gc29tZQo+ID4gcGFydGljdWxhciBk
+ZXZlbG9wbWVudCBjeWNsZSwgaXQgc2hvdWxkIGJlIGZpbmUuICAKPiAKPiBZZXMsIGFuZCBwZXJo
+YXBzIEkgc2hvdWxkIGNsYXJpZnkgdGhhdCB0aGlzIGlzIHRoZSBwb2ludCBhdCB3aGljaCBhCj4g
+bWFpbnRhaW5lciB3aWxsIHN0YXJ0IHRvIHB1c2ggYmFjayBpbiB0aGUgdHlwaWNhbCBjYXNlLCBh
+bmQgaW5kaWNhdGUKPiB0byBhIGNvbnRyaWJ1dG9yIHRoYXQgdGhleSBhcmUgc3RhbmRpbmcgaW4g
+ZXhjZXB0aW9uYWwgdGVycml0b3J5Lgo+IFNpbWlsYXIgdG8gaG93IGxhdGVyIGluIHRoZSAtcmMg
+c2VyaWVzIHBhdGNoZXMgZ2V0IGluY3JlYXNpbmcKPiBzY3J1dGlueS4KCk1ha2VzIHNlbnNlLiBU
+aGVyZSdzIG9uZSBpc3N1ZSwgdGhvdWdoLgoKSSBkb24ndCBleHBlY3QgZGV2ZWxvcGVycyB0byBy
+ZWFkIHRoZSBwcm9maWxlIHRlbXBsYXRlLCBhcyB0aGlzIGlzIGEKbWF0ZXJpYWwgZm9yIHRoZSBt
+YWludGFpbmVyIHRoZW1zZWx2ZXMuIERldmVsb3BlcnMgc2hvdWxkIGxpa2VseSByZWFkIApqdXN0
+IHRoZSBzcGVjaWZpYyBzdWJzeXN0ZW0gcHJvZmlsZSBmb3IgdGhlIHBhdGNoZXMgdGhhdCB3aWxs
+IGJlIHN1Ym1pdHRlZC4KClNvLCBlaXRoZXIgZWFjaCBzdWJzeXN0ZW0gcHJvZmlsZSBzaG91bGQg
+aGF2ZSBhIHJlZmVyZW5jZSB0byB0aGUKcHJvZmlsZSB0ZW1wbGF0ZSwgb3IgbmVlZCB0byBjb3B5
+IHNvbWUgImludmFyaWFudCIgdGV4dHMgKHdpdGggd291bGQgYmUKcmVhbGx5IHBhaW5mdWwgdG8g
+bWFpbnRhaW4pLgoKPiAKPiA+ID4gPiArTGFzdCAtcmMgdG8gbWVyZ2UgZmVhdHVyZXMKPiA+ID4g
+PiArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiA+ID4gPiArSW5kaWNhdGUgdG8gY29udHJp
+YnV0b3JzIHRoZSBwb2ludCBhdCB3aGljaCBhbiBhcyB5ZXQgdW4tYXBwbGllZCBwYXRjaAo+ID4g
+PiA+ICtzZXQgd2lsbCBuZWVkIHRvIHdhaXQgZm9yIHRoZSBORVhUKzEgbWVyZ2Ugd2luZG93LiBP
+ZiBjb3Vyc2UgdGhlcmUgaXMgbm8KPiA+ID4gPiArb2JsaWdhdGlvbiB0byBldmVyIGV4Y2VwdCBh
+bnkgZ2l2ZW4gcGF0Y2hzZXQsIGJ1dCBpZiB0aGUgcmV2aWV3IGhhcyBub3QKPiA+ID4gPiArY29u
+Y2x1ZGVkIGJ5IHRoaXMgcG9pbnQgdGhlIGV4cGVjdGF0aW9uIHRoZSBjb250cmlidXRvciBzaG91
+bGQgd2FpdCBhbmQKPiA+ID4gPiArcmVzdWJtaXQgZm9yIHRoZSBmb2xsb3dpbmcgbWVyZ2Ugd2lu
+ZG93LiBUaGUgYW5zd2VyIG1heSBiZSBkaWZmZXJlbnQgZm9yCj4gPiA+ID4gKydDb3JlOicgZmls
+ZXMsIGluY2x1ZGUgYSBzZWNvbmQgZW50cnkgcHJlZml4ZWQgd2l0aCAnQ29yZTonIGlmIHNvLiAg
+Cj4gPiA+Cj4gPiA+IFNhbWUgY29tbWVudCBhcyBmb3IgdGhlIHByZXZpb3VzIHNlY3Rpb24sIHdp
+dGggdGhlIGFkZGl0aW9uYWwgY29tcGxleGl0eQo+ID4gPiB0aGF0IGVhY2ggdW5pcXVlIHBhdGNo
+IHNlcmllcyBzaG91bGQgYmFrZSBpbiAtbmV4dC4gIAo+IAo+IFRoZSBpbnRlbnQgaXMgdG8gdHJ5
+IHRvIGxlYXZlIGFsbCAic2hvdWxkIiBvciBwcmVzY3JpcHRpdmUgc3RhdGVtZW50cwo+IG91dCBv
+ZiB0aGUgcHJvZmlsZS4gSSdtIGxvb2tpbmcgdG8gdGFyZ2V0IG90aGVyIHBhcnRzIG9mIHRoZSBo
+YW5kYm9vawo+IHRvIGNhcnJ5IGFkdmljZSBmb3IgaW50ZWdyYXRpbmcgd2l0aCAtbmV4dCBhbmQg
+c3VnZ2VzdGVkIHNvYWsgdGltZXMuCgpNYWtlcyBzZW5zZS4gQWdhaW4sIGl0IHByb2JhYmx5IG1h
+a2VzIHNlbnNlIHRvIGhhdmUgdGhvc2UgcGFydHMKcmVmZXJlbmNlZCBvbiBlYWNoIHByb2ZpbGUu
+Cgo+ID4gPiA+ICtOb24tYXV0aG9yIEFjayAvIFJldmlldyBUYWdzIFJlcXVpcmVkCj4gPiA+ID4g
+Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gIAo+ID4gPgo+ID4gPiBUaGUg
+dGl0bGUgb2YgdGhpcyBzZWN0aW9uIHNlZW1zIGEgYml0IGRpZmZlcmVudCB0aGFuIHRoZSBkZXNj
+cmlwdGlvbgo+ID4gPiBiZWxvdy4gIEEgbW9yZSBhbGlnbmVkIHRpdGxlIHdvdWxkIGJlIHNvbWV0
+aGluZyBsaWtlICJNYWludGFpbmVyCj4gPiA+IHNlbGYtY29tbWl0IHJldmlldyByZXF1aXJlbWVu
+dHMiLiAgCj4gCj4gVGhpcyBpcyBpbnRlbmRlZCB0byBnbyBiZXlvbmQgbWFpbnRhaW5lciBzZWxm
+LWNvbW1pdHMuIENvbnNpZGVyIGEgcHVsbAo+IHJlcXVlc3QgdGhhdCBjb250YWlucyBjb21taXRz
+IHdpdGhvdXQgbm9uLWF1dGhvciB0YWdzLgo+IAo+ID4gPiA+ICtMZXQgY29udHJpYnV0b3JzIGFu
+ZCBvdGhlciBtYWludGFpbmVycyBrbm93IHdoZXRoZXIgdGhleSBjYW4gZXhwZWN0IHRvCj4gPiA+
+ID4gK3NlZSB0aGUgbWFpbnRhaW5lciBzZWxmLWNvbW1pdCBwYXRjaGVzIHdpdGhvdXQgM3JkLXBh
+cnR5IHJldmlldy4gU29tZQo+ID4gPiA+ICtzdWJzeXN0ZW0gZGV2ZWxvcGVyIGNvbW11bml0aWVz
+IGFyZSBzbyBzbWFsbCBhcyB0byBtYWtlIHRoaXMgcmVxdWlyZW1lbnQKPiA+ID4gPiAraW1wcmFj
+dGljYWwuIE90aGVycyBtYXkgaGF2ZSBiZWVuIGJvb3RzdHJhcHBlZCBieSBhIHN1Ym1pc3Npb24g
+b2YKPiA+ID4gPiArc2VsZi1yZXZpZXdlZCBjb2RlIGF0IHRoZSBvdXRzZXQsIGJ1dCBoYXZlIHNp
+bmNlIG1vdmVkIHRvIGEKPiA+ID4gPiArbm9uLWF1dGhvciByZXZpZXctcmVxdWlyZWQgc3RhbmNl
+LiBUaGlzIHNlY3Rpb24gc2V0cyBleHBlY3RhdGlvbnMgb24gdGhlCj4gPiA+ID4gK2NvZGUtcmV2
+aWV3IGVjb25vbWljcyBpbiB0aGUgc3Vic3lzdGVtLiBGb3IgZXhhbXBsZSwgY2FuIGEgY29udHJp
+YnV0b3IKPiA+ID4gPiArdHJhZGUgcmV2aWV3IG9mIGEgbWFpbnRhaW5lcidzLCBvciBvdGhlciBj
+b250cmlidXRvcidzIHBhdGNoZXMgaW4KPiA+ID4gPiArZXhjaGFuZ2UgZm9yIGNvbnNpZGVyYXRp
+b24gb2YgdGhlaXIgb3duLiAgCj4gPiA+Cj4gPiA+IFRoZW4gYW5vdGhlciBzZWN0aW9uICh3aGlj
+aCBpcyB0aGUgb25lIEkgZXhwZWN0ZWQgd2hlbiBJIHNsaWdodGx5Cj4gPiA+IG1pcy1yZWFkIHRo
+ZSBzZWN0aW9uIHRpdGxlKSB3b3VsZCBiZTogUmV2aWV3IFRhZ3MgUmVxdWlyZW1lbnRzIiwKPiA+
+ID4gd2hpY2ggd291bGQgZGlzY3VzcyB3aGF0IHR5cGUgb2YgcmV2aWV3IGlzIGV4cGVjdGVkLCBl
+bmNvdXJhZ2VkLAo+ID4gPiBvciByZXF1aXJlZC4gIAo+IAo+IFBlciB0aGUgY2xhcmlmaWNhdGlv
+biBhYm92ZSwgSSB0aGluayB0aGUgd2hvbGUgdGhpbmcgc2hvdWxkIGJlIGNhbGxlZAo+ICJSZXZp
+ZXcgVGFncyBSZXF1aXJlbWVudCIuCgpBZ3JlZWQuCgo+ID4gPiA+ICtUZXN0IFN1aXRlCj4gPiA+
+ID4gKy0tLS0tLS0tLS0KPiA+ID4gPiArSW5kaWNhdGUgdGhlIHRlc3Qgc3VpdGUgYWxsIHBhdGNo
+ZXMgYXJlIGV4cGVjdGVkIHRvIHBhc3MgYmVmb3JlIGJlaW5nCj4gPiA+ID4gK3N1Ym1pdHRlZCBm
+b3IgaW5jbHVzaW9uIGNvbnNpZGVyYXRpb24uCj4gPiA+ID4gKwo+ID4gPiA+ICsKPiA+ID4gPiAr
+UmVzdWJtaXQgQ2FkZW5jZQo+ID4gPiA+ICstLS0tLS0tLS0tLS0tLS0tCj4gPiA+ID4gK0RlZmlu
+ZSBhIHJhdGUgYXQgd2hpY2ggYSBjb250cmlidXRvciBzaG91bGQgd2FpdCB0byByZXN1Ym1pdCBh
+IHBhdGNoc2V0Cj4gPiA+ID4gK3RoYXQgaGFzIG5vdCB5ZXQgcmVjZWl2ZWQgY29tbWVudHMuIEEg
+Z2VuZXJhbCBndWlkZWxpbmUgaXMgdG8gdHJ5IHRvCj4gPiA+ID4gK21lZXQgYSBkZWFkbGluZSBv
+ZiAxIC0gMiB3ZWVrcyB0byBhY2tub3dsZWRnZSBzdGFydGluZyBjb25zaWRlcmF0aW9uIGZvcgo+
+ID4gPiA+ICthIHBhdGNoIHNldC4gIAo+ID4gPgo+ID4gPiBPciBwaW5nIGluc3RlYWQgb2YgcmVz
+dWJtaXR0aW5nPyAgSWYgeW91IHJlc3VibWl0IHRoZSBzYW1lIHNlcmllcyB3aXRoCj4gPiA+IGFu
+IHVuY2hhbmdlZCB2ZXJzaW9uIHRoZW4gY29tbWVudHMgY291bGQgYmUgc3BsaXQgYWNyb3NzIG11
+bHRpcGxlCj4gPiA+IGVtYWlsIHRocmVhZHMuICBJZiB5b3UgcmVzdWJtaXQgdGhlIHNhbWUgc2Vy
+aWVzIHdpdGggYSBuZXcgdmVyc2lvbgo+ID4gPiBudW1iZXIsIHRoZSBzYW1lIGNvbW1lbnQgc3Bs
+aXQgY2FuIG9jY3VyIHBsdXMgaXQgY2FuIGJlIGNvbmZ1c2luZwo+ID4gPiB0aGF0IHR3byB2ZXJz
+aW9ucyBoYXZlIHRoZSBzYW1lIGNvbnRlbnRzLiAgSSBzdXNwZWN0IHRoYXQgdGhlcmUgbWF5IGJl
+Cj4gPiA+IHNvbWUgbWFpbnRhaW5lcnMgd2hvIGRvIHByZWZlciBhIHJlc3VibWl0LCBidXQgdGhh
+dCBpcyBqdXN0IHdpbGQKPiA+ID4gY29uamVjdHVyZSBvbiBteSBwYXJ0LiAgCj4gPgo+ID4gVGhh
+dCBkZXBlbmRzIG9uIGhvdyBtYWludGFpbmVycyBoYW5kbGUgcGF0Y2hlcy4gVGhvc2Ugc3Vic3lz
+dGVtcyB0aGF0Cj4gPiB1c2UgcGF0Y2h3b3JrIChsaWtlIG1lZGlhKSBkb24ndCByZWFsbHkgcmVx
+dWlyZSBhbnlvbmUgdG8gcmVzdWJtaXQKPiA+IHBhdGNoZXMuIFRoZXkncmUgYWxsIHN0b3JlZCB0
+aGVyZSBhdCBwYXRjaHdvcmsgZGF0YWJhc2UuCj4gPgo+ID4gTXkgd29ya2Zsb3cgaXMgdGhhdCwg
+aWYgSSByZWNlaXZlIHR3byBwYXRjaGVzIGZyb20gdGhlIHNhbWUgcGVyc29uIHdpdGgKPiA+IHRo
+ZSBzYW1lIHN1YmplY3QsIEkgc2ltcGx5IG1hcmsgdGhlIGZpcnN0IG9uZSBhcyBvYnNvbGV0ZWQs
+IGFzIHVzdWFsbHkKPiA+IHRoZSBzZWNvbmQgb25lIGlzIGEgbmV3IHZlcnNpb24sIGFuZCByZXZp
+ZXdlcnMgc2hvdWxkIG5lZWQgc29tZQo+ID4gdGltZSB0byBoYW5kbGUgaXQuCj4gPgo+ID4gSW4g
+b3RoZXIgd29yZHMsIHJlLXNlbmRpbmcgYSBwYXRjaCBtYXkgYWN0dWFsbHkgZGVsYXkgaXRzIGhh
+bmRsaW5nLCBhcwo+ID4gdGhlIHNlY29uZCB2ZXJzaW9uIHdpbGwgYmUgbGF0ZXIgb24gbXkgaW5w
+dXQgcXVldWUsIGFuZCBJJ2xsIGdyYW50Cj4gPiBhZGRpdGlvbmFsIHRpbWUgZm9yIHBlb3BsZSB0
+byByZXZpZXcgdGhlIHNlY29uZCB2ZXJzaW9uIGF0IHRoZSBjb21tdW5pdHkuICAKPiAKPiBPaywg
+dGhpcyBzb3VuZHMgbGlrZSBhIHNlcGFyYXRlIHBvbGljeS4gSG93IG9mdGVuIHRvIGZvbGxvdy11
+cAo+IHNlcGFyYXRlZCBmcm9tIHJlc2VuZCB0aGUgZnVsbCBzZXJpZXMgdnMgc2VuZCBhIHBpbmcg
+bWFpbC4KPiAKPiA+ID4gPiArVHJ1c3RlZCBSZXZpZXdlcnMKPiA+ID4gPiArLS0tLS0tLS0tLS0t
+LS0tLS0KPiA+ID4gPiArV2hpbGUgYSBtYWludGFpbmVyIC8gbWFpbnRhaW5lci10ZWFtIGlzIGV4
+cGVjdGVkIHRvIGJlIHJldmlld2VyIG9mIGxhc3QKPiA+ID4gPiArcmVzb3J0IHRoZSByZXZpZXcg
+bG9hZCBpcyBsZXNzIG9uZXJvdXMgd2hlbiBkaXN0cmlidXRlZCBhbW9uZ3N0Cj4gPiA+ID4gK2Nv
+bnRyaWJ1dG9ycyBhbmQgb3IgYSB0cnVzdGVkIHNldCBvZiBpbmRpdmlkdWFscy4gIFRoaXMgc2Vj
+dGlvbiBpcwo+ID4gPiA+ICtkaXN0aW5jdCBmcm9tIHRoZSBSOiB0YWcgKERlc2lnbmF0ZWQgUmV2
+aWV3ZXIpLiBXaGVyZWFzIFI6IGlkZW50aWZpZXMKPiA+ID4gPiArcmV2aWV3ZXJzIHRoYXQgc2hv
+dWxkIGFsd2F5cyBiZSBjb3BpZWQgb24gYSBwYXRjaCBzdWJtaXNzaW9uLCB0aGUKPiA+ID4gPiAr
+dHJ1c3RlZCByZXZpZXdlcnMgaGVyZSBhcmUgaW5kaXZpZHVhbHMgY29udHJpYnV0b3JzIGNhbiBy
+ZWFjaCBvdXQgdG8gaWYKPiA+ID4gPiArYSBmZXcgJ1Jlc3VibWl0IENhZGVuY2UnIGludGVydmFs
+cyBoYXZlIGdvbmUgYnkgd2l0aG91dCBtYWludGFpbmVyCj4gPiA+ID4gK2FjdGlvbiwgb3IgdG8g
+b3RoZXJ3aXNlIGNvbnN1bHQgZm9yIGFkdmljZS4gIAo+ID4gPgo+ID4gPiBUaGlzIHNlZW1zIHJl
+ZHVuZGFudCB3aXRoIHRoZSBNQUlOVEFJTkVSUyByZXZpZXdlcnMgbGlzdC4gIEl0IHNlZW1zIGxp
+a2UKPiA+ID4gdGhlIHJvbGUgc3BlY2lmaWVkIGluIHRoaXMgc2VjdGlvbiBpcyBtb3JlIG9mIGFu
+IG9tYnVkc21hbiBvciBkZXZlbG9wZXIKPiA+ID4gYWR2b2NhdGUgd2hvIGNhbiBhc3Npc3Qgd2l0
+aCB0aGUgcmV2aWV3IGFuZC9vciBhY2NlcHQgZmxvdyBpZiB0aGUKPiA+ID4gbWFpbnRhaW5lciBp
+cyBiZWluZyBzbG93IHRvIHJlc3BvbmQuICAKPiA+Cj4gPiBXZWxsLCBvbiBzdWJzeXN0ZW1zIHRo
+YXQgaGF2ZSBzdWItbWFpbnRhaW5lcnMsIHRoZXJlJ3Mgbm8gd2F5IHRvIHBvaW50IHRvCj4gPiBp
+dCBhdCBNQUlOVEFJTkVSUyBmaWxlLgo+ID4KPiA+IEFsc28sIG5vdCBzdXJlIGFib3V0IG90aGVy
+cywgYnV0IEkgdXN1YWxseSBhdm9pZCB0b3VjaGluZyBhdCBleGlzdGluZwo+ID4gTUFJTlRBSU5F
+UlMgZmlsZSBlbnRyaWVzLiBUaGlzIGlzIGEgZmlsZSB0aGF0IGV2ZXJ5b25lIHRvdWNoZXMsIHNv
+IGl0Cj4gPiBoYXMgaGlnaGVyIGNoYW5jZXMgb2YgY29uZmxpY3RzLgo+ID4KPiA+IEFsc28sIGF0
+IGxlYXN0IG9uIG1lZGlhLCB3ZSBoYXZlIDUgZGlmZmVyZW50IEFQSSBzZXRzIChkaWdpdGFsIFRW
+LCBWNEwyLCBDRUMsCj4gPiBtZWRpYSBjb250cm9sbGVyLCByZW1vdGUgY29udHJvbGxlcikuIFll
+dCwgYWxsIGRyaXZlcnMgYXJlIHN0b3JlZCBhdCB0aGUKPiA+IHNhbWUgcGxhY2UgKGFzIGEgc2lu
+Z2xlIGRyaXZlciBtYXkgdXNlIG11bHRpcGxlIEFQSXMpLgo+ID4KPiA+IFRoZSByZXZpZXdlcnMg
+Zm9yIGVhY2ggQVBJIHNldCBhcmUgZGlmZmVyZW50LiBUaGVyZSBpc24ndCBhIGdvb2Qgd2F5Cj4g
+PiB0byBleHBsYWluIHRoYXQgaW5zaWRlIGEgTUFJTlRBTkVSUyBmaWxlLiAgCj4gCj4gV291bGQg
+aXQgYmUgd29ydGh3aGlsZSB0byBoYXZlIHNlcGFyYXRlIFN1YnN5c3RlbSBQcm9maWxlcyBmb3Ig
+dGhvc2UKPiBBUEkgcmV2aWV3ZXJzPyBJZiB0aGV5IGVuZCB1cCBtZXJnaW5nIHBhdGNoZXMgYW5k
+IHNlbmRpbmcgdGhlbQo+IHVwc3RyZWFtIG1pZ2h0IHdlIG5lZWQgYSBoaWVyYXJjaHkgb2YgcHJv
+ZmlsZXMgZm9yIGVhY2ggaG9wIGFsb25nIHRoZQo+IHVwc3RyZWFtIG1lcmdlIHBhdGg/CgpJIGd1
+ZXNzIGhhdmluZyBoaWVyYXJjaGljYWwgcHJvZmlsZXMgd2lsbCBtYWtlIGl0IHZlcnkgY29uZnVz
+aW5nLgpUaGUgcG9pbnQgaXM6IGluc2lkZSBhIHN1YnN5c3RlbSwgdGhlIHNhbWUgcnVsZXNldCB1
+c3VhbGx5IGFwcGxpZXMgdG8KZXZlcnl0aGluZy4KCkluIHRoZSBjYXNlIG9mIG1lZGlhLCBpdCBp
+cyBub3QgdW5jb21tb24gdG8gaGF2ZSBwYXRjaGVzIHRoYXQgcmVxdWlyZQptdWx0aXBsZSBBUElz
+LiBDb25zaWRlciwgZm9yIGV4YW1wbGUsIGEgU29DIHVzZWQgb24gYSBUViBib3guIFRoZSBkcml2
+ZXIKaXRzZWxmIHNob3VsZCBiZSBwbGFjZWQgYXQgZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS8sIGJ1
+dCBpdCB3aWxsIGVuZCBieQpiZWluZyBhIGJ1bmNoIG9mIHN1Yi1kcml2ZXJzIHRoYXQgdG9nZXRo
+ZXIgd2lsbCBhZGQgc3VwcG9ydCBmb3IgVjRMLCAKRGlnaXRhbCBUViwgcmVtb3RlIGNvbnRyb2xs
+ZXIsIENFQyBhbmQgY29kZWNzLCBhbmQgbmVlZCB0byBiZSBjb250cm9sbGVkCnZpYSB0aGUgbWVk
+aWEgY29udHJvbGxlciBBUEkuIEl0IG1heSBldmVuIGhhdmUgY2FtZXJhIHNlbnNvcnMuCgpPbiBv
+dGhlciB3b3JkcywgYWxsIG1lZGlhIEFQSXMgd2lsbCBiZSB1c2VkIChhZnRlciBoYXZpbmcgaXQg
+ZnVsbHkKc2VudCB1cHN0cmVhbSkuCgpJbiBwcmFjdGljZSwgZHJpdmVycyBmb3IgY29tcGxleCBo
+YXJkd2FyZSBsaWtlIHRoYXQgaXMgc3VibWl0dGVkIGluCnBhcnRzLiBGb3IgZXhhbXBsZSwgb25l
+IFNvQyB2ZW5kb3Igc3RhcnRlZCBzZW5kaW5nIHVzIHRoZSByZW1vdGUKY29udHJvbGxlciBkcml2
+ZXIgKGFzIGl0IHdvdWxkIGJlIHRoZSBzaW1wbGVzdCBvbmUpLgoKVGhlIG9ubHkgcGFydCBvZiB0
+aGUgcG9saWN5IHRoYXQgY2hhbmdlcywgZGVwZW5kaW5nIG9mIHdoYXQgQVBJCmlzIGludm9sdmVk
+LCBpcyB0aGUgb25lIHRoYXQgd2lsbCBkbyB0aGUgcmV2aWV3LiAKCkFzIHRoZSBkcml2ZXIgaXRz
+ZWxmIHdpbGwgYmUgYXQgdGhlIHNhbWUgcGxhY2UsIG5vIG1hdHRlciB3aGF0IEFQSXMKYXJlIHVz
+ZWQsIGdldF9tYWludGFpbmVycy5wbCBpcyBub3QgY2FwYWJsZSBvZiBpZGVudGlmeWluZyB3aG8g
+YXJlIAp0aGUgcmV2aWV3ZXJzIGJhc2VkICJGOiIgdGFnc1sxXS4KClsxXSBJdCBjb3VsZCBiZSBw
+b3NzaWJsZSB0byB0ZWFjaCBnZXRfbWFpbnRhaW5lcnMgdG8gYmV0dGVyIGhpbnQgaXQsCmJ5IG1h
+a2luZyBpdCBsb29rIHdobyBhcmUgdGhlIHJldmlld2VycyBmb3IgdGhlIGhlYWRlcnMgdGhhdCBh
+cmUgCmluY2x1ZGVkLgoKPiAKPiA+ID4gPiArVGltZSBab25lIC8gT2ZmaWNlIEhvdXJzCj4gPiA+
+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gPiA+ICtMZXQgY29udHJpYnV0b3JzIGtu
+b3cgdGhlIHRpbWUgb2YgZGF5IHdoZW4gb25lIG9yIG1vcmUgbWFpbnRhaW5lcnMgYXJlCj4gPiA+
+ID4gK3VzdWFsbHkgYWN0aXZlbHkgbW9uaXRvcmluZyB0aGUgbWFpbGluZyBsaXN0LiAgCj4gPiA+
+Cj4gPiA+IEkgd291bGQgc3RyaWtlICJhY3RpdmVseSBtb25pdG9yaW5nIHRoZSBtYWlsaW5nIGxp
+c3QiLiAgVG8gbWUsIGl0IHNob3VsZAo+ID4gPiBiZSB3aGF0IGFyZSB0aGUgaG91cnMgb2YgdGhl
+IGRheSB0aGF0IHRoZSBtYWludGFpbmVyIG1pZ2h0IGhhcHBlbiB0byBwb2xsCj4gPiA+IChvciBt
+aWdodCByZWNlaXZlIGFuIGludGVycnVwdCkgZnJvbSB0aGUgYXBwcm9wcmlhdGUgY29tbXVuaWNh
+dGlvbnMKPiA+ID4gY2hhbm5lbHMgKGNvdWxkIGJlIElSQywgY291bGQgYmUgZW1haWwsIGV0Yyku
+ICAKPiAKPiBZZXMsIG1ha2VzIHNlbnNlLgo+IAo+ID4gPiBGb3IgbXkgYXJlYSwgSSB3b3VsZCB3
+YW50IHRvIHNheSBzb21ldGhpbmcgbGlrZTogSSB0ZW5kIHRvIGJlIGFjdGl2ZQo+ID4gPiBiZXR3
+ZWVuIDE3OjAwIFVUQyAoMTg6MDAgVVRDIHdoZW4gZGF5bGlnaHQgc2F2aW5ncykgYW5kIDI1OjAw
+ICgyNjowMCksCj4gPiA+IGJ1dCBvZnRlbiB3aWxsIGNoZWNrIGZvciB1cmdlbnQgb3IgYnJpZWYg
+aXRlbXMgdXAgdW50aWwgMDc6MDAgKDA4OjAwKS4KPiA+ID4gSSBpbnRlcmFjdCB3aXRoIGVtYWls
+IHZpYSBhIHBvbGwgbW9kZWwuICBJIGludGVyYWN0IHdpdGggSVJDIHZpYSBhCj4gPiA+IHB1bGwg
+bW9kZWwgYW5kIG9mdGVuIG92ZXJsb29rIElSQyBhY3Rpdml0eSBmb3IgbXVsdGlwbGUgZGF5cyku
+ICAKPiA+Cj4gPiBGcmFua2x5LCBmb3IgbWVkaWEsIEkgZG9uJ3QgdGhpbmsgdGhhdCB3b3JraW5n
+IGhvdXJzIG1ha2VzIHNlbnNlLiBNZWRpYQo+ID4gKHN1Yi0pbWFpbnRhaW5lcnMgYXJlIHNwcmVh
+ZCBhcm91bmQgdGhlIGdsb2JlLCBvbiBkaWZmZXJlbnQgdGltZSB6b25lcwo+ID4gKGluIFVTLCBC
+cmF6aWwgYW5kIEV1cm9wZSkuIFdlIGFsc28gaGF2ZSBzZXZlcmFsIGFjdGl2ZSBkZXZlbG9wZXJz
+IGluCj4gPiBKYXBhbiwgc28gd2UgbWF5IGVuZCBieSBoYXZpbmcgc29tZSBkYXkgcmV2aWV3ZXJz
+L3N1Yi1tYWludGFpbmVycyBmcm9tCj4gPiB0aGVyZS4gIAo+IAo+IEZvciB0aGF0IGNhc2UganVz
+dCBzYXk6Cj4gCj4gInRoZSBzdW4gbmV2ZXIgc2V0cyBvbiB0aGUgbWVkaWEgc3Vic3lzdGVtIiA7
+LSkKCjotKQoKPiAKPiA+IEF0IG1heCwgd2UgY2FuIHNheSB0aGF0IHdlIHdvbid0IHdhcnJhbnQg
+dG8gcGF0Y2hlcyBvbiB3ZWVrZW5kcyBvciBob2xpZGF5cy4gIAo+IAo+IFllYWgsIG1heWJlOgo+
+IAo+ICJvdXRzaWRlIG9mIHdlZWtlbmRzIG9yIGhvbGlkYXlzIHRoZXJlJ3MgdXN1YWxseSBhIG1h
+aW50YWluZXIgb3IKPiByZXZpZXdlciBtb25pdG9yaW5nIHRoZSBtYWlsaW5nIGxpc3QiCgpXZWxs
+LCAyNC83LCB0aGVyZSBpcyBhbHdheXMgcGF0Y2h3b3JrIG1vbml0b3JpbmcgdGhlIE1MIGFuZCBw
+aWNraW5nCnRoZSBwYXRjaGVzLiBXaGVuIHRoZSBwYXRjaCB3aWxsIGJlIGhhbmRsZWQgYnkgc29t
+ZW9uZSBpcyBhIGRpZmZlcmVudApxdWVzdGlvbi4gQXMgaXQgaXMgYSBoaWdoLXRyYWZmaWMgc3Vi
+c3lzdGVtIHdpdGggYW4gZXZlbiBoaWdoZXIgTUwKdHJhZmZpYywgZWFjaCBzdWItbWFpbnRhaW5l
+ciBoYXZlIGl0cyBvd24gcG9saWN5IGFib3V0IHdoZW4gdGhleQpyZXZpZXcgcGF0Y2hlcyAodXN1
+YWxseSBvbmUgb3IgdHdpY2UgcGVyIHdlZWsgLSBhcyBtb3N0IG1haW50YWluZXJzCmFyZSBhbHNv
+IGFjdGl2ZSBkZXZlbG9wZXJzLCBhbmQgZG9uJ3Qgd2FudCB0byBtaXggdGhlaXIgZGV2ZWxvcG1l
+bnQKdGltZSB3aXRoIHJldmlld2luZyB0aW1lKS4KCkknbSBub3QgcXVpdGUgc3VyZSBhYm91dCB3
+aGF0IHlvdSBleHBlY3Qgd2l0aCB0aGlzIHNwZWNpZmljIHBhcnQgb2YKdGhlIHByb2ZpbGUuCgpJ
+IG1lYW46IHdoeSBhIHN1Ym1pdHRlciBzaG91bGQgY2FyZSBhYm91dCBvZmZpY2UgaG91cnM/CgpB
+bHNvLCBwZW9wbGUgbWF5IGJlIE9PVCBkdXJpbmcgc29tZSBwZXJpb2Qgb2YgdGltZSwgb3Igd29y
+a2luZwpyZW1vdGVseSBmcm9tIHNvbWUgb3RoZXIgb2ZmaWNlLgoKRXhjZXB0IGlmIHRoZSBpZGVh
+IHdvdWxkIGJlIHRvIHBvaW50IHRvIHNvbWUgc2l0ZSB0aGF0IHdvdWxkCmR5bmFtaWNhbGx5IHRy
+YWNrIGVhY2ggbWFpbnRhaW5lcidzIHdlZWtseSBtYWludGFpbmVyc2hpcAp3aW5kb3cgKHdpdGgg
+d291bGQgYmUgYSByZWFsIHBhaW4gdG8ga2VlcCB1cGRhdGVkKSwgSSBndWVzcyB0aGlzCmlzIHVz
+ZWxlc3MuCgpUaGFua3MsCk1hdXJvCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
+LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
+bQo=
