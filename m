@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 557612115C33C
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 03:07:47 -0800 (PST)
-Subject: Patch "acpi/nfit,
- x86/mce: Handle only uncorrectable machine checks" has been added to
- the 4.19-stable tree
-From: <gregkh@linuxfoundation.org>
-Date: Mon, 19 Nov 2018 12:05:33 +0100
-Message-ID: <1542625533140157@kroah.com>
+Received: from bl18-79-134.dsl.telepac.pt (bl18-79-134.dsl.telepac.pt
+ [188.83.79.134]) by ml01.01.org (Postfix) with ESMTP id 0F9202116DA08
+ for <linux-nvdimm@lists.01.org>; Sun, 18 Nov 2018 13:33:20 -0800 (PST)
+From: <linux-nvdimm@lists.01.org>
+Subject: linux-nvdimm@lists.01.org - this account has been hacked! Change all
+ your passwords!
+Date: 18 Nov 2018 19:23:48 -0100
+Message-ID: <002f01d47f7d$01dc95a5$82c83688$@lists.01.org>
 MIME-Version: 1.0
+Content-Language: en-us
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,132 +20,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 20181026003729.8420-1-vishal.l.verma@intel.com, arnd@arndb.de, bp@suse.de, dan.j.williams@intel.com, dave.jiang@intel.com, elliott@hpe.com, gregkh@linuxfoundation.org, hpa@zytor.com, lenb@kernel.org, linux-nvdimm@lists.01.org, mingo@redhat.com, omar.avelar@intel.com, qiuxu.zhuo@intel.com, rjw@rjwysocki.net, tglx@linutronix.de, tony.luck@intel.comvishal.l.verma@intel.com, x86@kernel.org, yazen.ghannam@amd.com, zwisler@kernel.org
-Cc: stable-commits@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Hello!
 
-This is a note to let you know that I've just added the patch titled
+I have bad news for you.
+19/07/2018 - on this day I hacked your operating system and got full access to your account linux-nvdimm@lists.01.org
 
-    acpi/nfit, x86/mce: Handle only uncorrectable machine checks
+It is useless to change the password, my malware intercepts it every time.
 
-to the 4.19-stable tree which can be found at:
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+How it was:
+In the software of the router to which you were connected that day, there was a vulnerability.
+I first hacked this router and placed my malicious code on it.
+When you entered in the Internet, my trojan was installed on the operating system of your device.
 
-The filename of the patch is:
-     acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
-and it can be found in the queue-4.19 subdirectory.
+After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
 
-If you, or anyone else, feels it should not be added to the stable tree,
-please let <stable@vger.kernel.org> know about it.
+A month ago, I wanted to lock your device and ask for a small amount of money to unlock.
+But I looked at the sites that you regularly visit, and came to the big delight of your favorite resources.
+I'm talking about sites for adults.
 
+I want to say - you are a big, big pervert. You have unbridled fantasy!!!
 
->From 5d96c9342c23ee1d084802dcf064caa67ecaa45b Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Thu, 25 Oct 2018 18:37:28 -0600
-Subject: acpi/nfit, x86/mce: Handle only uncorrectable machine checks
+After that, an idea came to my mind.
+I made a screenshot of the intimate website where you have fun (you know what it is about, right?).
+After that, I made a screenshot of your joys (using the camera of your device) and joined all together.
+It turned out beautifully, do not doubt.
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+I am strongly belive that you would not like to show these pictures to your relatives, friends or colleagues.
+I think $714 is a very small amount for my silence.
+Besides, I spent a lot of time on you!
 
-commit 5d96c9342c23ee1d084802dcf064caa67ecaa45b upstream.
+I accept money only in Bitcoins.
+My BTC wallet: 1H9bS7Zb6LEANLkM8yiF8EsoGEtMEeLFvC
 
-The MCE handler for nfit devices is called for memory errors on a
-Non-Volatile DIMM and adds the error location to a 'badblocks' list.
-This list is used by the various NVDIMM drivers to avoid consuming known
-poison locations during IO.
+You do not know how to replenish a Bitcoin wallet?
+In any search engine write "how to send money to btc wallet".
+It's easier than send money to a credit card!
 
-The MCE handler gets called for both corrected and uncorrectable errors.
-Until now, both kinds of errors have been added to the badblocks list.
-However, corrected memory errors indicate that the problem has already
-been fixed by hardware, and the resulting interrupt is merely a
-notification to Linux.
+For payment you have a little more than two days (exactly 50 hours).
+Do not worry, the timer will start at the moment when you open this letter. Yes, yes .. it has already started!
 
-As far as future accesses to that location are concerned, it is
-perfectly fine to use, and thus doesn't need to be included in the above
-badblocks list.
+After payment, my virus and dirty photos with you self-destruct automatically.
+Narrative, if I do not receive the specified amount from you, then your device will be blocked, and all your contacts will receive a photos with your "joys".
 
-Add a check in the nfit MCE handler to filter out corrected mce events,
-and only process uncorrectable errors.
+I want you to be prudent.
+- Do not try to find and destroy my virus! (All your data is already uploaded to a remote server)
+- Do not try to contact me (this is not feasible, I sent you an email from your account)
+- Various security services will not help you; formatting a disk or destroying a device will not help either, since your data is already on a remote server.
 
-Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-Reported-by: Omar Avelar <omar.avelar@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>
-CC: elliott@hpe.com
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-acpi@vger.kernel.org
-CC: linux-edac <linux-edac@vger.kernel.org>
-CC: linux-nvdimm@lists.01.org
-CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: Ross Zwisler <zwisler@kernel.org>
-CC: stable <stable@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Tony Luck <tony.luck@intel.com>
-CC: x86-ml <x86@kernel.org>
-CC: Yazen Ghannam <yazen.ghannam@amd.com>
-Link: http://lkml.kernel.org/r/20181026003729.8420-1-vishal.l.verma@intel.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+P.S. I guarantee you that I will not disturb you again after payment, as you are not my single victim.
+ This is a hacker code of honor.
 
----
- arch/x86/include/asm/mce.h       |    1 +
- arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
- drivers/acpi/nfit/mce.c          |    4 ++--
- 3 files changed, 5 insertions(+), 3 deletions(-)
+>From now on, I advise you to use good antiviruses and update them regularly (several times a day)!
 
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysadd
- 
- int mce_available(struct cpuinfo_x86 *c);
- bool mce_is_memory_error(struct mce *m);
-+bool mce_is_correctable(struct mce *m);
- 
- DECLARE_PER_CPU(unsigned, mce_exception_count);
- DECLARE_PER_CPU(unsigned, mce_poll_count);
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -534,7 +534,7 @@ bool mce_is_memory_error(struct mce *m)
- }
- EXPORT_SYMBOL_GPL(mce_is_memory_error);
- 
--static bool mce_is_correctable(struct mce *m)
-+bool mce_is_correctable(struct mce *m)
- {
- 	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
- 		return false;
-@@ -544,6 +544,7 @@ static bool mce_is_correctable(struct mc
- 
- 	return true;
- }
-+EXPORT_SYMBOL_GPL(mce_is_correctable);
- 
- static bool cec_add_mce(struct mce *m)
- {
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifi
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct nfit_spa *nfit_spa;
- 
--	/* We only care about memory errors */
--	if (!mce_is_memory_error(mce))
-+	/* We only care about uncorrectable memory errors */
-+	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
- 		return NOTIFY_DONE;
- 
- 	/*
+Don't be mad at me, everyone has their own work.
+Farewell.
 
-
-Patches currently in stable-queue which might be from vishal.l.verma@intel.com are
-
-queue-4.19/acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
-queue-4.19/acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
