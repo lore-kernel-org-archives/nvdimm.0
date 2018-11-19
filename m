@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BB3E021A07A80
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:06:42 -0800 (PST)
-Subject: [driver-core PATCH v6 0/9] Add NUMA aware async_schedule calls
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 08 Nov 2018 10:06:40 -0800
-Message-ID: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 557612115C33C
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 03:07:47 -0800 (PST)
+Subject: Patch "acpi/nfit,
+ x86/mce: Handle only uncorrectable machine checks" has been added to
+ the 4.19-stable tree
+From: <gregkh@linuxfoundation.org>
+Date: Mon, 19 Nov 2018 12:05:33 +0100
+Message-ID: <1542625533140157@kroah.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,82 +22,132 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: 20181026003729.8420-1-vishal.l.verma@intel.com, arnd@arndb.de, bp@suse.de, dan.j.williams@intel.com, dave.jiang@intel.com, elliott@hpe.com, gregkh@linuxfoundation.org, hpa@zytor.com, lenb@kernel.org, linux-nvdimm@lists.01.org, mingo@redhat.com, omar.avelar@intel.com, qiuxu.zhuo@intel.com, rjw@rjwysocki.net, tglx@linutronix.de, tony.luck@intel.comvishal.l.verma@intel.com, x86@kernel.org, yazen.ghannam@amd.com, zwisler@kernel.org
+Cc: stable-commits@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set provides functionality that will help to improve the
-locality of the async_schedule calls used to provide deferred
-initialization.
 
-This patch set originally started out with me focused on just the one call
-to async_schedule_domain in the nvdimm tree that was being used to
-defer the device_add call however after doing some digging I realized the
-scope of this was much broader than I had originally planned. As such I
-went through and reworked the underlying infrastructure down to replacing
-the queue_work call itself with a function of my own and opted to try and
-provide a NUMA aware solution that would work for a broader audience.
+This is a note to let you know that I've just added the patch titled
 
-RFC->v1:
-    Dropped nvdimm patch to submit later.
-        It relies on code in libnvdimm development tree.
-    Simplified queue_work_near to just convert node into a CPU.
-    Split up drivers core and PM core patches.
-v1->v2:
-    Renamed queue_work_near to queue_work_node
-    Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
-v2->v3:
-    Added Acked-by for queue_work_node patch
-    Continued rename from _near to _node to be consistent with queue_work_node
-        Renamed async_schedule_near_domain to async_schedule_node_domain
-        Renamed async_schedule_near to async_schedule_node
-    Added kerneldoc for new async_schedule_XXX functions
-    Updated patch description for patch 4 to include data on potential gains
-v3->v4
-    Added patch to consolidate use of need_parent_lock
-    Make asynchronous driver probing explicit about use of drvdata
-v4->v5
-    Added patch to move async_synchronize_full to address deadlock
-    Added bit async_probe to act as mutex for probe/remove calls
-    Added back nvdimm patch as code it relies on is now in Linus's tree
-    Incorporated review comments on parent & device locking consolidation
-    Rebased on latest linux-next
-v5->v6:
-    Drop the "This patch" or "This change" from start of patch descriptions.
-    Drop unnecessary parenthesis in first patch
-    Use same wording for "selecting a CPU" in comments added in first patch
-    Added kernel documentation for async_probe member of device
-    Fixed up comments for async_schedule calls in patch 2
-    Moved code related setting async driver out of device.h and into dd.c
-    Added Reviewed-by for several patches
+    acpi/nfit, x86/mce: Handle only uncorrectable machine checks
+
+to the 4.19-stable tree which can be found at:
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+
+The filename of the patch is:
+     acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
+and it can be found in the queue-4.19 subdirectory.
+
+If you, or anyone else, feels it should not be added to the stable tree,
+please let <stable@vger.kernel.org> know about it.
+
+
+>From 5d96c9342c23ee1d084802dcf064caa67ecaa45b Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Thu, 25 Oct 2018 18:37:28 -0600
+Subject: acpi/nfit, x86/mce: Handle only uncorrectable machine checks
+
+From: Vishal Verma <vishal.l.verma@intel.com>
+
+commit 5d96c9342c23ee1d084802dcf064caa67ecaa45b upstream.
+
+The MCE handler for nfit devices is called for memory errors on a
+Non-Volatile DIMM and adds the error location to a 'badblocks' list.
+This list is used by the various NVDIMM drivers to avoid consuming known
+poison locations during IO.
+
+The MCE handler gets called for both corrected and uncorrectable errors.
+Until now, both kinds of errors have been added to the badblocks list.
+However, corrected memory errors indicate that the problem has already
+been fixed by hardware, and the resulting interrupt is merely a
+notification to Linux.
+
+As far as future accesses to that location are concerned, it is
+perfectly fine to use, and thus doesn't need to be included in the above
+badblocks list.
+
+Add a check in the nfit MCE handler to filter out corrected mce events,
+and only process uncorrectable errors.
+
+Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
+Reported-by: Omar Avelar <omar.avelar@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+CC: Arnd Bergmann <arnd@arndb.de>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
+CC: elliott@hpe.com
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: linux-edac <linux-edac@vger.kernel.org>
+CC: linux-nvdimm@lists.01.org
+CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC: Ross Zwisler <zwisler@kernel.org>
+CC: stable <stable@vger.kernel.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Tony Luck <tony.luck@intel.com>
+CC: x86-ml <x86@kernel.org>
+CC: Yazen Ghannam <yazen.ghannam@amd.com>
+Link: http://lkml.kernel.org/r/20181026003729.8420-1-vishal.l.verma@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 ---
+ arch/x86/include/asm/mce.h       |    1 +
+ arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
+ drivers/acpi/nfit/mce.c          |    4 ++--
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-Alexander Duyck (9):
-      workqueue: Provide queue_work_node to queue work near a given NUMA node
-      async: Add support for queueing on specific NUMA node
-      device core: Consolidate locking and unlocking of parent and device
-      driver core: Move async_synchronize_full call
-      driver core: Establish clear order of operations for deferred probe and remove
-      driver core: Probe devices asynchronously instead of the driver
-      driver core: Attach devices on CPU local to device node
-      PM core: Use new async_schedule_dev command
-      libnvdimm: Schedule device registration on node local to the device
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysadd
+ 
+ int mce_available(struct cpuinfo_x86 *c);
+ bool mce_is_memory_error(struct mce *m);
++bool mce_is_correctable(struct mce *m);
+ 
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -534,7 +534,7 @@ bool mce_is_memory_error(struct mce *m)
+ }
+ EXPORT_SYMBOL_GPL(mce_is_memory_error);
+ 
+-static bool mce_is_correctable(struct mce *m)
++bool mce_is_correctable(struct mce *m)
+ {
+ 	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
+ 		return false;
+@@ -544,6 +544,7 @@ static bool mce_is_correctable(struct mc
+ 
+ 	return true;
+ }
++EXPORT_SYMBOL_GPL(mce_is_correctable);
+ 
+ static bool cec_add_mce(struct mce *m)
+ {
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifi
+ 	struct acpi_nfit_desc *acpi_desc;
+ 	struct nfit_spa *nfit_spa;
+ 
+-	/* We only care about memory errors */
+-	if (!mce_is_memory_error(mce))
++	/* We only care about uncorrectable memory errors */
++	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
+ 		return NOTIFY_DONE;
+ 
+ 	/*
 
 
- drivers/base/base.h       |    2 
- drivers/base/bus.c        |   46 +-------
- drivers/base/dd.c         |  265 ++++++++++++++++++++++++++++++++++-----------
- drivers/base/power/main.c |   12 +-
- drivers/nvdimm/bus.c      |   11 +-
- include/linux/async.h     |   82 +++++++++++++-
- include/linux/device.h    |   13 ++
- include/linux/workqueue.h |    2 
- kernel/async.c            |   53 +++++----
- kernel/workqueue.c        |   84 ++++++++++++++
- 10 files changed, 428 insertions(+), 142 deletions(-)
+Patches currently in stable-queue which might be from vishal.l.verma@intel.com are
 
---
+queue-4.19/acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
+queue-4.19/acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
