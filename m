@@ -1,139 +1,134 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Fri,  9 Nov 2018 15:39:20 -0500
-In-Reply-To: <20181109203921.178363-1-brho@google.com>
-Message-Id: <20181109203921.178363-2-brho@google.com>
-Mime-Version: 1.0
-References: <20181109203921.178363-1-brho@google.com>
-Subject: [PATCH 1/2] mm: make dev_pagemap_mapping_shift() externally visible
-From: Barret Rhoden <brho@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, kvm@vger.kernel.org, yu.c.zhang@intel.com, yi.z.zhang@intel.com, linux-mm@kvack.org
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 45C3621A07A92
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:42:28 -0800 (PST)
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.18 073/171] acpi/nfit,
+ x86/mce: Handle only uncorrectable machine checks
+Date: Mon, 19 Nov 2018 17:27:49 +0100
+Message-Id: <20181119162631.442303192@linuxfoundation.org>
+In-Reply-To: <20181119162618.909354448@linuxfoundation.org>
+References: <20181119162618.909354448@linuxfoundation.org>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <zwisler@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Omar Avelar <omar.avelar@intel.com>, linux-nvdimm@lists.01.org, x86-ml <x86@kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Luck <tony.luck@intel.com>, linux-edac <linux-edac@vger.kernel.org>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, stable@vger.kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-KVM has a use case for determining the size of a dax mapping.  The KVM
-code has easy access to the address and the mm; hence the change in
-parameters.
+4.18-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Barret Rhoden <brho@google.com>
+------------------
+
+From: Vishal Verma <vishal.l.verma@intel.com>
+
+commit 5d96c9342c23ee1d084802dcf064caa67ecaa45b upstream.
+
+The MCE handler for nfit devices is called for memory errors on a
+Non-Volatile DIMM and adds the error location to a 'badblocks' list.
+This list is used by the various NVDIMM drivers to avoid consuming known
+poison locations during IO.
+
+The MCE handler gets called for both corrected and uncorrectable errors.
+Until now, both kinds of errors have been added to the badblocks list.
+However, corrected memory errors indicate that the problem has already
+been fixed by hardware, and the resulting interrupt is merely a
+notification to Linux.
+
+As far as future accesses to that location are concerned, it is
+perfectly fine to use, and thus doesn't need to be included in the above
+badblocks list.
+
+Add a check in the nfit MCE handler to filter out corrected mce events,
+and only process uncorrectable errors.
+
+Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
+Reported-by: Omar Avelar <omar.avelar@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+CC: Arnd Bergmann <arnd@arndb.de>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
+CC: elliott@hpe.com
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: linux-edac <linux-edac@vger.kernel.org>
+CC: linux-nvdimm@lists.01.org
+CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC: Ross Zwisler <zwisler@kernel.org>
+CC: stable <stable@vger.kernel.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Tony Luck <tony.luck@intel.com>
+CC: x86-ml <x86@kernel.org>
+CC: Yazen Ghannam <yazen.ghannam@amd.com>
+Link: http://lkml.kernel.org/r/20181026003729.8420-1-vishal.l.verma@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- include/linux/mm.h  |  3 +++
- mm/memory-failure.c | 38 +++-----------------------------------
- mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+), 35 deletions(-)
+ arch/x86/include/asm/mce.h       |    1 +
+ arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
+ drivers/acpi/nfit/mce.c          |    4 ++--
+ 3 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5411de93a363..51215d695753 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -935,6 +935,9 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
- }
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysadd
  
-+unsigned long dev_pagemap_mapping_shift(unsigned long address,
-+					struct mm_struct *mm);
-+
- static inline void get_page(struct page *page)
+ int mce_available(struct cpuinfo_x86 *c);
+ bool mce_is_memory_error(struct mce *m);
++bool mce_is_correctable(struct mce *m);
+ 
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -538,7 +538,7 @@ bool mce_is_memory_error(struct mce *m)
+ }
+ EXPORT_SYMBOL_GPL(mce_is_memory_error);
+ 
+-static bool mce_is_correctable(struct mce *m)
++bool mce_is_correctable(struct mce *m)
  {
- 	page = compound_head(page);
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 0cd3de3550f0..c3f2c6a8607e 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -265,40 +265,6 @@ void shake_page(struct page *p, int access)
- }
- EXPORT_SYMBOL_GPL(shake_page);
+ 	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
+ 		return false;
+@@ -548,6 +548,7 @@ static bool mce_is_correctable(struct mc
  
--static unsigned long dev_pagemap_mapping_shift(struct page *page,
--		struct vm_area_struct *vma)
--{
--	unsigned long address = vma_address(page, vma);
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--
--	pgd = pgd_offset(vma->vm_mm, address);
--	if (!pgd_present(*pgd))
--		return 0;
--	p4d = p4d_offset(pgd, address);
--	if (!p4d_present(*p4d))
--		return 0;
--	pud = pud_offset(p4d, address);
--	if (!pud_present(*pud))
--		return 0;
--	if (pud_devmap(*pud))
--		return PUD_SHIFT;
--	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
--		return 0;
--	if (pmd_devmap(*pmd))
--		return PMD_SHIFT;
--	pte = pte_offset_map(pmd, address);
--	if (!pte_present(*pte))
--		return 0;
--	if (pte_devmap(*pte))
--		return PAGE_SHIFT;
--	return 0;
--}
--
- /*
-  * Failure handling: if we can't find or can't kill a process there's
-  * not much we can do.	We just print a message and ignore otherwise.
-@@ -329,7 +295,9 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
- 	tk->addr = page_address_in_vma(p, vma);
- 	tk->addr_valid = 1;
- 	if (is_zone_device_page(p))
--		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
-+		tk->size_shift =
-+			dev_pagemap_mapping_shift(vma_address(page, vma),
-+						  vma->vm_mm);
- 	else
- 		tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
- 
-diff --git a/mm/util.c b/mm/util.c
-index 8bf08b5b5760..61bc9bab931d 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -780,3 +780,37 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
- out:
- 	return res;
+ 	return true;
  }
-+
-+unsigned long dev_pagemap_mapping_shift(unsigned long address,
-+					struct mm_struct *mm)
-+{
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		return 0;
-+	p4d = p4d_offset(pgd, address);
-+	if (!p4d_present(*p4d))
-+		return 0;
-+	pud = pud_offset(p4d, address);
-+	if (!pud_present(*pud))
-+		return 0;
-+	if (pud_devmap(*pud))
-+		return PUD_SHIFT;
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_present(*pmd))
-+		return 0;
-+	if (pmd_devmap(*pmd))
-+		return PMD_SHIFT;
-+	pte = pte_offset_map(pmd, address);
-+	if (!pte_present(*pte))
-+		return 0;
-+	if (pte_devmap(*pte))
-+		return PAGE_SHIFT;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dev_pagemap_mapping_shift);
--- 
-2.19.1.930.g4563a0d9d0-goog
++EXPORT_SYMBOL_GPL(mce_is_correctable);
+ 
+ static bool cec_add_mce(struct mce *m)
+ {
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifi
+ 	struct acpi_nfit_desc *acpi_desc;
+ 	struct nfit_spa *nfit_spa;
+ 
+-	/* We only care about memory errors */
+-	if (!mce_is_memory_error(mce))
++	/* We only care about uncorrectable memory errors */
++	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
+ 		return NOTIFY_DONE;
+ 
+ 	/*
+
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
