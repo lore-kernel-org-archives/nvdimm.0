@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com
- [IPv6:2607:f8b0:4864:20::444])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C381C21A09130
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 00:01:11 -0800 (PST)
-Received: by mail-pf1-x444.google.com with SMTP id 64so9976241pfr.9
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 00:01:11 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 3/4] ndctl/namespace: Use seed alignment as the default
-Date: Mon, 19 Nov 2018 19:00:55 +1100
-Message-Id: <20181119080056.13386-3-oohall@gmail.com>
-In-Reply-To: <20181119080056.13386-1-oohall@gmail.com>
-References: <20181119080056.13386-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id C622A21A07A92
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:42:30 -0800 (PST)
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.18 074/171] acpi/nfit,
+ x86/mce: Validate a MCEs address before using it
+Date: Mon, 19 Nov 2018 17:27:50 +0100
+Message-Id: <20181119162631.595558208@linuxfoundation.org>
+In-Reply-To: <20181119162618.909354448@linuxfoundation.org>
+References: <20181119162618.909354448@linuxfoundation.org>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,183 +19,105 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: x86-ml <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-edac <linux-edac@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, stable@vger.kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <zwisler@kernel.org>, Borislav Petkov <bp@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When creating a pfn or dax namespace ndctl uses a default alignment of 2MB
-when the user does not explicitly supply one. This works on most systems
-(x86, ARM, PPC64 with radix MMU), but it fails when the kernel does not
-support a 2MB page size (PPC64 with hash MMU).
+4.18-stable review patch.  If anyone has any objections, please let me know.
 
-This patch makes ndctl use the alignment of the relevant seed namespace as
-the default instead. The kernel will always pick a valid default alignment
-so this should be a bit more portable.
+------------------
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+From: Vishal Verma <vishal.l.verma@intel.com>
+
+commit e8a308e5f47e545e0d41d0686c00f5f5217c5f61 upstream.
+
+The NFIT machine check handler uses the physical address from the mce
+structure, and compares it against information in the ACPI NFIT table
+to determine whether that location lies on an NVDIMM. The mce->addr
+field however may not always be valid, and this is indicated by the
+MCI_STATUS_ADDRV bit in the status field.
+
+Export mce_usable_address() which already performs validation for the
+address, and use it in the NFIT handler.
+
+Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
+Reported-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+CC: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
+CC: elliott@hpe.com
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: linux-edac <linux-edac@vger.kernel.org>
+CC: linux-nvdimm@lists.01.org
+CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC: Ross Zwisler <zwisler@kernel.org>
+CC: stable <stable@vger.kernel.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Tony Luck <tony.luck@intel.com>
+CC: x86-ml <x86@kernel.org>
+CC: Yazen Ghannam <yazen.ghannam@amd.com>
+Link: http://lkml.kernel.org/r/20181026003729.8420-2-vishal.l.verma@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- ndctl/namespace.c | 96 +++++++++++++++++++++--------------------------
- 1 file changed, 43 insertions(+), 53 deletions(-)
+ arch/x86/include/asm/mce.h       |    1 +
+ arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
+ drivers/acpi/nfit/mce.c          |    4 ++++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index dc9a56609881..1e04f32c0e95 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -39,7 +39,6 @@ static bool logfix;
- static struct parameters {
- 	bool do_scan;
- 	bool mode_default;
--	bool align_default;
- 	bool autolabel;
- 	const char *bus;
- 	const char *map;
-@@ -226,9 +225,6 @@ static int set_defaults(enum device_action mode)
- 		error("failed to parse namespace alignment '%s'\n",
- 				param.align);
- 		rc = -EINVAL;
--	} else if (!param.align) {
--		param.align = "2M";
--		param.align_default = true;
- 	}
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -217,6 +217,7 @@ static inline int umc_normaddr_to_sysadd
+ int mce_available(struct cpuinfo_x86 *c);
+ bool mce_is_memory_error(struct mce *m);
+ bool mce_is_correctable(struct mce *m);
++int mce_usable_address(struct mce *m);
  
- 	if (param.uuid) {
-@@ -464,7 +460,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns, struct parsed_parameters *p)
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -489,7 +489,7 @@ static void mce_report_event(struct pt_r
+  * be somewhat complicated (e.g. segment offset would require an instruction
+  * parser). So only support physical addresses up to page granuality for now.
+  */
+-static int mce_usable_address(struct mce *m)
++int mce_usable_address(struct mce *m)
  {
- 	const char *region_name = ndctl_region_get_devname(region);
--	unsigned long long size_align = SZ_4K, units = 1, resource;
-+	unsigned long long size_align, units = 1, resource;
- 	struct ndctl_pfn *pfn = NULL;
- 	struct ndctl_dax *dax = NULL;
- 	unsigned int ways;
-@@ -541,53 +537,15 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	}
+ 	if (!(m->status & MCI_STATUS_ADDRV))
+ 		return 0;
+@@ -509,6 +509,7 @@ static int mce_usable_address(struct mce
  
- 	if (param.align) {
--		p->align = parse_size64(param.align);
--
--		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
--				&& !ndctl_pfn_has_align(pfn)) {
--			/*
--			 * Initial pfn device support in the kernel
--			 * supported a 2M default alignment when
--			 * ndctl_pfn_has_align() returns false.
--			 */
--			debug("%s not support 'align' for fsdax mode\n",
--					region_name);
--			return -EAGAIN;
--		} else if (p->mode == NDCTL_NS_MODE_DAX
--				&& !ndctl_dax_has_align(dax)) {
--			/*
--			 * Unlike the pfn case, we require the kernel to
--			 * have 'align' support for device-dax.
--			 */
--			debug("%s not support 'align' for devdax mode\n",
--					region_name);
--			return -EAGAIN;
--		} else if (!param.align_default
--				&& (p->mode == NDCTL_NS_MODE_SAFE
--					|| p->mode == NDCTL_NS_MODE_RAW)) {
--			/*
--			 * Specifying an alignment has no effect for
--			 * raw, or btt mode namespaces.
--			 */
-+		if (p->mode != NDCTL_NS_MODE_MEMORY &&
-+		    p->mode != NDCTL_NS_MODE_DAX) {
- 			error("%s mode does not support setting an alignment\n",
- 					p->mode == NDCTL_NS_MODE_SAFE
- 					? "sector" : "raw");
- 			return -ENXIO;
- 		}
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(mce_usable_address);
  
--		/*
--		 * Fallback to a 4K default alignment if the region is
--		 * not 2MB (typical default) aligned. This mainly helps
--		 * the nfit_test use case where it is backed by vmalloc
--		 * memory.
--		 */
--		resource = ndctl_region_get_resource(region);
--		if (param.align_default && resource < ULLONG_MAX
--				&& (resource & (SZ_2M - 1))) {
--			debug("%s: falling back to a 4K alignment\n",
--					region_name);
--			p->align = SZ_4K;
--		}
-+		p->align = parse_size64(param.align);
+ bool mce_is_memory_error(struct mce *m)
+ {
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -29,6 +29,10 @@ static int nfit_handle_mce(struct notifi
+ 	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
+ 		return NOTIFY_DONE;
  
- 		switch (p->align) {
- 		case SZ_4K:
-@@ -598,16 +556,48 @@ static int validate_namespace_options(struct ndctl_region *region,
- 			error("unsupported align: %s\n", param.align);
- 			return -ENXIO;
- 		}
-+	} else {
-+		/*
-+		 * Use the seed namespace alignment as the default if we need
-+		 * one. If we don't then use PAGE_SIZE so the size_align
-+		 * checking works.
-+		 */
-+		if (p->mode == NDCTL_NS_MODE_MEMORY) {
-+			/*
-+			 * The initial pfn device support in the kernel didn't
-+			 * have the 'align' sysfs attribute and assumed a 2MB
-+			 * alignment. Fall back to that if we don't have the
-+			 * attribute.
-+			 */
-+			if (ndctl_pfn_has_align(pfn))
-+				p->align = ndctl_pfn_get_align(pfn);
-+			else
-+				p->align = SZ_2M;
-+		} else if (p->mode == NDCTL_NS_MODE_DAX) {
-+			/*
-+			 * device dax mode was added after the align attribute
-+			 * so checking for it is unnecessary.
-+			 */
-+			p->align = ndctl_dax_get_align(dax);
-+		} else {
-+			p->align = sysconf(_SC_PAGE_SIZE);
-+		}
- 
- 		/*
--		 * 'raw' and 'sector' mode namespaces don't support an
--		 * alignment attribute.
-+		 * Fallback to a page alignment if the region is not aligned
-+		 * to the default. This is mainly useful for the nfit_test
-+		 * use case where it is backed by vmalloc memory.
- 		 */
--		if (p->mode == NDCTL_NS_MODE_MEMORY
--				|| p->mode == NDCTL_NS_MODE_DAX)
--			size_align = p->align;
-+		resource = ndctl_region_get_resource(region);
-+		if (resource < ULLONG_MAX && (resource & (p->align - 1))) {
-+			debug("%s: falling back to a page alignment\n",
-+					region_name);
-+			p->align = sysconf(_SC_PAGE_SIZE);
-+		}
- 	}
- 
-+	size_align = p->align;
++	/* Verify the address reported in the MCE is valid. */
++	if (!mce_usable_address(mce))
++		return NOTIFY_DONE;
 +
- 	/* (re-)validate that the size satisfies the alignment */
- 	ways = ndctl_region_get_interleave_ways(region);
- 	if (p->size % (size_align * ways)) {
-@@ -633,8 +623,8 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		p->size *= size_align;
- 		p->size /= units;
- 		error("'--size=' must align to interleave-width: %d and alignment: %ld\n"
--				"  did you intend --size=%lld%s?\n", ways, param.align
--				? p->align : SZ_4K, p->size, suffix);
-+				"  did you intend --size=%lld%s?\n", ways, p->align,
-+				p->size, suffix);
- 		return -EINVAL;
- 	}
- 
--- 
-2.17.2
+ 	/*
+ 	 * mce->addr contains the physical addr accessed that caused the
+ 	 * machine check. We need to walk through the list of NFITs, and see
+
 
 _______________________________________________
 Linux-nvdimm mailing list
