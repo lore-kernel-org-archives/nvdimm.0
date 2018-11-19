@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 02A7D2116527B
- for <linux-nvdimm@lists.01.org>; Sat, 10 Nov 2018 09:59:01 -0800 (PST)
-Subject: [4.18-stable PATCH] acpi,
- nfit: Fix Address Range Scrub completion tracking
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 10 Nov 2018 09:47:12 -0800
-Message-ID: <154187203244.2382012.266010310052301098.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <1541867498114207@kroah.com>
-References: <1541867498114207@kroah.com>
+ by ml01.01.org (Postfix) with ESMTPS id E3DBF2115C33C
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 03:07:49 -0800 (PST)
+Subject: Patch "acpi/nfit,
+ x86/mce: Validate a MCE's address before using it" has been added to
+ the 4.19-stable tree
+From: <gregkh@linuxfoundation.org>
+Date: Mon, 19 Nov 2018 12:05:33 +0100
+Message-ID: <154262553372244@kroah.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,411 +22,123 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: Jacek Zloch <jacek.zloch@intel.com>, Krzysztof Rusocki <krzysztof.rusocki@intel.com>, linux-nvdimm@lists.01.org
+To: 20181026003729.8420-2-vishal.l.verma@intel.com, arnd@arndb.de, bp@suse.de, dan.j.williams@intel.com, dave.jiang@intel.com, elliott@hpe.com, gregkh@linuxfoundation.org, hpa@zytor.com, lenb@kernel.org, linux-nvdimm@lists.01.org, mingo@redhat.com, qiuxu.zhuo@intel.com, rjw@rjwysocki.net, tglx@linutronix.de, tony.luck@intel.comvishal.l.verma@intel.com, x86@kernel.org, yazen.ghannam@amd.com, zwisler@kernel.org
+Cc: stable-commits@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit d3abaf43bab8d5b0a3c6b982100d9e2be96de4ad upstream.
 
-The Address Range Scrub implementation tried to skip running scrubs
-against ranges that were already scrubbed by the BIOS. Unfortunately
-that support also resulted in early scrub completions as evidenced by
-this debug output from nfit_test:
+This is a note to let you know that I've just added the patch titled
 
-    nd_region region9: ARS: range 1 short complete
-    nd_region region3: ARS: range 1 short complete
-    nd_region region4: ARS: range 2 ARS start (0)
-    nd_region region4: ARS: range 2 short complete
+    acpi/nfit, x86/mce: Validate a MCE's address before using it
 
-...i.e. completions without any indications that the scrub was started.
+to the 4.19-stable tree which can be found at:
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
-This state of affairs was hard to see in the code due to the
-proliferation of state bits and mistakenly trying to track done state
-per-range when the completion is a global property of the bus.
+The filename of the patch is:
+     acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
+and it can be found in the queue-4.19 subdirectory.
 
-So, kill the four ARS state bits (ARS_REQ, ARS_REQ_REDO, ARS_DONE, and
-ARS_SHORT), and replace them with just 2 request flags ARS_REQ_SHORT and
-ARS_REQ_LONG. The implementation will still complete and reap the
-results of BIOS initiated ARS, but it will not attempt to use that
-information to affect the completion status of scrubbing the ranges from
-a Linux perspective.
+If you, or anyone else, feels it should not be added to the stable tree,
+please let <stable@vger.kernel.org> know about it.
 
-Instead, try to synchronously run a short ARS per range at init time and
-schedule a long scrub in the background. If ARS is busy with an ARS
-request, schedule both a short and a long scrub for when ARS returns to
-idle. This logic also satisfies the intent of what ARS_REQ_REDO was
-trying to achieve. The new rule is that the REQ flag stays set until the
-next successful ars_start() for that range.
 
-With the new policy that the REQ flags are not cleared until the next
-start, the implementation no longer loses requests as can be seen from
-the following log:
+>From e8a308e5f47e545e0d41d0686c00f5f5217c5f61 Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Thu, 25 Oct 2018 18:37:29 -0600
+Subject: acpi/nfit, x86/mce: Validate a MCE's address before using it
 
-    nd_region region3: ARS: range 1 ARS start short (0)
-    nd_region region9: ARS: range 1 ARS start short (0)
-    nd_region region3: ARS: range 1 complete
-    nd_region region4: ARS: range 2 ARS start short (0)
-    nd_region region9: ARS: range 1 complete
-    nd_region region9: ARS: range 1 ARS start long (0)
-    nd_region region4: ARS: range 2 complete
-    nd_region region3: ARS: range 1 ARS start long (0)
-    nd_region region9: ARS: range 1 complete
-    nd_region region3: ARS: range 1 complete
-    nd_region region4: ARS: range 2 ARS start long (0)
-    nd_region region4: ARS: range 2 complete
+From: Vishal Verma <vishal.l.verma@intel.com>
 
-...note that the nfit_test emulated driver provides 2 buses, that is why
-some of the range indices are duplicated. Notice that each range
-now successfully completes a short and long scrub.
+commit e8a308e5f47e545e0d41d0686c00f5f5217c5f61 upstream.
 
-Cc: <stable@vger.kernel.org>
-Fixes: 14c73f997a5e ("nfit, address-range-scrub: introduce nfit_spa->ars_state")
-Fixes: cc3d3458d46f ("acpi/nfit: queue issuing of ars when an uc error...")
-Reported-by: Jacek Zloch <jacek.zloch@intel.com>
-Reported-by: Krzysztof Rusocki <krzysztof.rusocki@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The NFIT machine check handler uses the physical address from the mce
+structure, and compares it against information in the ACPI NFIT table
+to determine whether that location lies on an NVDIMM. The mce->addr
+field however may not always be valid, and this is indicated by the
+MCI_STATUS_ADDRV bit in the status field.
+
+Export mce_usable_address() which already performs validation for the
+address, and use it in the NFIT handler.
+
+Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
+Reported-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+CC: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
+CC: elliott@hpe.com
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: linux-edac <linux-edac@vger.kernel.org>
+CC: linux-nvdimm@lists.01.org
+CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC: Ross Zwisler <zwisler@kernel.org>
+CC: stable <stable@vger.kernel.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Tony Luck <tony.luck@intel.com>
+CC: x86-ml <x86@kernel.org>
+CC: Yazen Ghannam <yazen.ghannam@amd.com>
+Link: http://lkml.kernel.org/r/20181026003729.8420-2-vishal.l.verma@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- drivers/acpi/nfit/core.c |  163 +++++++++++++++++++++++++++-------------------
- drivers/acpi/nfit/nfit.h |    9 +--
- 2 files changed, 101 insertions(+), 71 deletions(-)
+ arch/x86/include/asm/mce.h       |    1 +
+ arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
+ drivers/acpi/nfit/mce.c          |    4 ++++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7c479002e798..c0db96e8a81a 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2456,7 +2456,8 @@ static int ars_get_cap(struct acpi_nfit_desc *acpi_desc,
- 	return cmd_rc;
- }
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -217,6 +217,7 @@ static inline int umc_normaddr_to_sysadd
+ int mce_available(struct cpuinfo_x86 *c);
+ bool mce_is_memory_error(struct mce *m);
+ bool mce_is_correctable(struct mce *m);
++int mce_usable_address(struct mce *m);
  
--static int ars_start(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa)
-+static int ars_start(struct acpi_nfit_desc *acpi_desc,
-+		struct nfit_spa *nfit_spa, enum nfit_ars_state req_type)
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -485,7 +485,7 @@ static void mce_report_event(struct pt_r
+  * be somewhat complicated (e.g. segment offset would require an instruction
+  * parser). So only support physical addresses up to page granuality for now.
+  */
+-static int mce_usable_address(struct mce *m)
++int mce_usable_address(struct mce *m)
  {
- 	int rc;
- 	int cmd_rc;
-@@ -2467,7 +2468,7 @@ static int ars_start(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa
- 	memset(&ars_start, 0, sizeof(ars_start));
- 	ars_start.address = spa->address;
- 	ars_start.length = spa->length;
--	if (test_bit(ARS_SHORT, &nfit_spa->ars_state))
-+	if (req_type == ARS_REQ_SHORT)
- 		ars_start.flags = ND_ARS_RETURN_PREV_DATA;
- 	if (nfit_spa_type(spa) == NFIT_SPA_PM)
- 		ars_start.type = ND_ARS_PERSISTENT;
-@@ -2524,6 +2525,15 @@ static void ars_complete(struct acpi_nfit_desc *acpi_desc,
- 	struct nd_region *nd_region = nfit_spa->nd_region;
- 	struct device *dev;
- 
-+	lockdep_assert_held(&acpi_desc->init_mutex);
-+	/*
-+	 * Only advance the ARS state for ARS runs initiated by the
-+	 * kernel, ignore ARS results from BIOS initiated runs for scrub
-+	 * completion tracking.
-+	 */
-+	if (acpi_desc->scrub_spa != nfit_spa)
-+		return;
-+
- 	if ((ars_status->address >= spa->address && ars_status->address
- 				< spa->address + spa->length)
- 			|| (ars_status->address < spa->address)) {
-@@ -2543,23 +2553,13 @@ static void ars_complete(struct acpi_nfit_desc *acpi_desc,
- 	} else
- 		return;
- 
--	if (test_bit(ARS_DONE, &nfit_spa->ars_state))
--		return;
--
--	if (!test_and_clear_bit(ARS_REQ, &nfit_spa->ars_state))
--		return;
--
-+	acpi_desc->scrub_spa = NULL;
- 	if (nd_region) {
- 		dev = nd_region_dev(nd_region);
- 		nvdimm_region_notify(nd_region, NVDIMM_REVALIDATE_POISON);
- 	} else
- 		dev = acpi_desc->dev;
--
--	dev_dbg(dev, "ARS: range %d %s complete\n", spa->range_index,
--			test_bit(ARS_SHORT, &nfit_spa->ars_state)
--			? "short" : "long");
--	clear_bit(ARS_SHORT, &nfit_spa->ars_state);
--	set_bit(ARS_DONE, &nfit_spa->ars_state);
-+	dev_dbg(dev, "ARS: range %d complete\n", spa->range_index);
- }
- 
- static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc)
-@@ -2840,46 +2840,55 @@ static int acpi_nfit_query_poison(struct acpi_nfit_desc *acpi_desc)
- 	return 0;
- }
- 
--static int ars_register(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa,
--		int *query_rc)
-+static int ars_register(struct acpi_nfit_desc *acpi_desc,
-+		struct nfit_spa *nfit_spa)
- {
--	int rc = *query_rc;
-+	int rc;
- 
--	if (no_init_ars)
-+	if (no_init_ars || test_bit(ARS_FAILED, &nfit_spa->ars_state))
- 		return acpi_nfit_register_region(acpi_desc, nfit_spa);
- 
--	set_bit(ARS_REQ, &nfit_spa->ars_state);
--	set_bit(ARS_SHORT, &nfit_spa->ars_state);
-+	set_bit(ARS_REQ_SHORT, &nfit_spa->ars_state);
-+	set_bit(ARS_REQ_LONG, &nfit_spa->ars_state);
- 
--	switch (rc) {
-+	switch (acpi_nfit_query_poison(acpi_desc)) {
- 	case 0:
- 	case -EAGAIN:
--		rc = ars_start(acpi_desc, nfit_spa);
--		if (rc == -EBUSY) {
--			*query_rc = rc;
-+		rc = ars_start(acpi_desc, nfit_spa, ARS_REQ_SHORT);
-+		/* shouldn't happen, try again later */
-+		if (rc == -EBUSY)
- 			break;
--		} else if (rc == 0) {
--			rc = acpi_nfit_query_poison(acpi_desc);
--		} else {
-+		if (rc) {
- 			set_bit(ARS_FAILED, &nfit_spa->ars_state);
- 			break;
- 		}
--		if (rc == -EAGAIN)
--			clear_bit(ARS_SHORT, &nfit_spa->ars_state);
--		else if (rc == 0)
--			ars_complete(acpi_desc, nfit_spa);
-+		clear_bit(ARS_REQ_SHORT, &nfit_spa->ars_state);
-+		rc = acpi_nfit_query_poison(acpi_desc);
-+		if (rc)
-+			break;
-+		acpi_desc->scrub_spa = nfit_spa;
-+		ars_complete(acpi_desc, nfit_spa);
-+		/*
-+		 * If ars_complete() says we didn't complete the
-+		 * short scrub, we'll try again with a long
-+		 * request.
-+		 */
-+		acpi_desc->scrub_spa = NULL;
- 		break;
- 	case -EBUSY:
-+	case -ENOMEM:
- 	case -ENOSPC:
-+		/*
-+		 * BIOS was using ARS, wait for it to complete (or
-+		 * resources to become available) and then perform our
-+		 * own scrubs.
-+		 */
- 		break;
- 	default:
- 		set_bit(ARS_FAILED, &nfit_spa->ars_state);
- 		break;
- 	}
- 
--	if (test_and_clear_bit(ARS_DONE, &nfit_spa->ars_state))
--		set_bit(ARS_REQ, &nfit_spa->ars_state);
--
- 	return acpi_nfit_register_region(acpi_desc, nfit_spa);
- }
- 
-@@ -2901,6 +2910,8 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_spa *nfit_spa;
- 
-+	lockdep_assert_held(&acpi_desc->init_mutex);
-+
- 	if (acpi_desc->cancel)
+ 	if (!(m->status & MCI_STATUS_ADDRV))
  		return 0;
+@@ -505,6 +505,7 @@ static int mce_usable_address(struct mce
  
-@@ -2924,21 +2935,49 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
- 
- 	ars_complete_all(acpi_desc);
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-+		enum nfit_ars_state req_type;
-+		int rc;
-+
- 		if (test_bit(ARS_FAILED, &nfit_spa->ars_state))
- 			continue;
--		if (test_bit(ARS_REQ, &nfit_spa->ars_state)) {
--			int rc = ars_start(acpi_desc, nfit_spa);
--
--			clear_bit(ARS_DONE, &nfit_spa->ars_state);
--			dev = nd_region_dev(nfit_spa->nd_region);
--			dev_dbg(dev, "ARS: range %d ARS start (%d)\n",
--					nfit_spa->spa->range_index, rc);
--			if (rc == 0 || rc == -EBUSY)
--				return 1;
--			dev_err(dev, "ARS: range %d ARS failed (%d)\n",
--					nfit_spa->spa->range_index, rc);
--			set_bit(ARS_FAILED, &nfit_spa->ars_state);
-+
-+		/* prefer short ARS requests first */
-+		if (test_bit(ARS_REQ_SHORT, &nfit_spa->ars_state))
-+			req_type = ARS_REQ_SHORT;
-+		else if (test_bit(ARS_REQ_LONG, &nfit_spa->ars_state))
-+			req_type = ARS_REQ_LONG;
-+		else
-+			continue;
-+		rc = ars_start(acpi_desc, nfit_spa, req_type);
-+
-+		dev = nd_region_dev(nfit_spa->nd_region);
-+		dev_dbg(dev, "ARS: range %d ARS start %s (%d)\n",
-+				nfit_spa->spa->range_index,
-+				req_type == ARS_REQ_SHORT ? "short" : "long",
-+				rc);
-+		/*
-+		 * Hmm, we raced someone else starting ARS? Try again in
-+		 * a bit.
-+		 */
-+		if (rc == -EBUSY)
-+			return 1;
-+		if (rc == 0) {
-+			dev_WARN_ONCE(dev, acpi_desc->scrub_spa,
-+					"scrub start while range %d active\n",
-+					acpi_desc->scrub_spa->spa->range_index);
-+			clear_bit(req_type, &nfit_spa->ars_state);
-+			acpi_desc->scrub_spa = nfit_spa;
-+			/*
-+			 * Consider this spa last for future scrub
-+			 * requests
-+			 */
-+			list_move_tail(&nfit_spa->list, &acpi_desc->spas);
-+			return 1;
- 		}
-+
-+		dev_err(dev, "ARS: range %d ARS failed (%d)\n",
-+				nfit_spa->spa->range_index, rc);
-+		set_bit(ARS_FAILED, &nfit_spa->ars_state);
- 	}
- 	return 0;
+ 	return 1;
  }
-@@ -2994,6 +3033,7 @@ static void acpi_nfit_init_ars(struct acpi_nfit_desc *acpi_desc,
- 	struct nd_cmd_ars_cap ars_cap;
- 	int rc;
++EXPORT_SYMBOL_GPL(mce_usable_address);
  
-+	set_bit(ARS_FAILED, &nfit_spa->ars_state);
- 	memset(&ars_cap, 0, sizeof(ars_cap));
- 	rc = ars_get_cap(acpi_desc, &ars_cap, nfit_spa);
- 	if (rc < 0)
-@@ -3010,16 +3050,14 @@ static void acpi_nfit_init_ars(struct acpi_nfit_desc *acpi_desc,
- 	nfit_spa->clear_err_unit = ars_cap.clear_err_unit;
- 	acpi_desc->max_ars = max(nfit_spa->max_ars, acpi_desc->max_ars);
- 	clear_bit(ARS_FAILED, &nfit_spa->ars_state);
--	set_bit(ARS_REQ, &nfit_spa->ars_state);
- }
- 
- static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ bool mce_is_memory_error(struct mce *m)
  {
- 	struct nfit_spa *nfit_spa;
--	int rc, query_rc;
-+	int rc;
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -29,6 +29,10 @@ static int nfit_handle_mce(struct notifi
+ 	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
+ 		return NOTIFY_DONE;
  
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
--		set_bit(ARS_FAILED, &nfit_spa->ars_state);
- 		switch (nfit_spa_type(nfit_spa->spa)) {
- 		case NFIT_SPA_VOLATILE:
- 		case NFIT_SPA_PM:
-@@ -3028,20 +3066,12 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 		}
- 	}
- 
--	/*
--	 * Reap any results that might be pending before starting new
--	 * short requests.
--	 */
--	query_rc = acpi_nfit_query_poison(acpi_desc);
--	if (query_rc == 0)
--		ars_complete_all(acpi_desc);
--
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
- 		switch (nfit_spa_type(nfit_spa->spa)) {
- 		case NFIT_SPA_VOLATILE:
- 		case NFIT_SPA_PM:
- 			/* register regions and kick off initial ARS run */
--			rc = ars_register(acpi_desc, nfit_spa, &query_rc);
-+			rc = ars_register(acpi_desc, nfit_spa);
- 			if (rc)
- 				return rc;
- 			break;
-@@ -3236,7 +3266,8 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	return 0;
- }
- 
--int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
-+int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
-+		enum nfit_ars_state req_type)
- {
- 	struct device *dev = acpi_desc->dev;
- 	int scheduled = 0, busy = 0;
-@@ -3256,13 +3287,10 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
- 		if (test_bit(ARS_FAILED, &nfit_spa->ars_state))
- 			continue;
- 
--		if (test_and_set_bit(ARS_REQ, &nfit_spa->ars_state))
-+		if (test_and_set_bit(req_type, &nfit_spa->ars_state))
- 			busy++;
--		else {
--			if (test_bit(ARS_SHORT, &flags))
--				set_bit(ARS_SHORT, &nfit_spa->ars_state);
-+		else
- 			scheduled++;
--		}
- 	}
- 	if (scheduled) {
- 		sched_ars(acpi_desc);
-@@ -3448,10 +3476,11 @@ static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
- static void acpi_nfit_uc_error_notify(struct device *dev, acpi_handle handle)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(dev);
--	unsigned long flags = (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON) ?
--			0 : 1 << ARS_SHORT;
- 
--	acpi_nfit_ars_rescan(acpi_desc, flags);
-+	if (acpi_desc->scrub_mode == HW_ERROR_SCRUB_ON)
-+		acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
-+	else
-+		acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_SHORT);
- }
- 
- void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index a97ff42fe311..02c10de50386 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -118,9 +118,8 @@ enum nfit_dimm_notifiers {
- };
- 
- enum nfit_ars_state {
--	ARS_REQ,
--	ARS_DONE,
--	ARS_SHORT,
-+	ARS_REQ_SHORT,
-+	ARS_REQ_LONG,
- 	ARS_FAILED,
- };
- 
-@@ -197,6 +196,7 @@ struct acpi_nfit_desc {
- 	struct device *dev;
- 	u8 ars_start_flags;
- 	struct nd_cmd_ars_status *ars_status;
-+	struct nfit_spa *scrub_spa;
- 	struct delayed_work dwork;
- 	struct list_head list;
- 	struct kernfs_node *scrub_count_state;
-@@ -251,7 +251,8 @@ struct nfit_blk {
- 
- extern struct list_head acpi_descs;
- extern struct mutex acpi_desc_lock;
--int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags);
-+int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
-+		enum nfit_ars_state req_type);
- 
- #ifdef CONFIG_X86_MCE
- void nfit_mce_register(void);
++	/* Verify the address reported in the MCE is valid. */
++	if (!mce_usable_address(mce))
++		return NOTIFY_DONE;
++
+ 	/*
+ 	 * mce->addr contains the physical addr accessed that caused the
+ 	 * machine check. We need to walk through the list of NFITs, and see
 
+
+Patches currently in stable-queue which might be from vishal.l.verma@intel.com are
+
+queue-4.19/acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
+queue-4.19/acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
