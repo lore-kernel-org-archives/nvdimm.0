@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C622A21A07A92
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:42:30 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id D569221A07A92
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:34:04 -0800 (PST)
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.18 074/171] acpi/nfit,
+Subject: [PATCH 4.19 091/205] acpi/nfit,
  x86/mce: Validate a MCEs address before using it
-Date: Mon, 19 Nov 2018 17:27:50 +0100
-Message-Id: <20181119162631.595558208@linuxfoundation.org>
-In-Reply-To: <20181119162618.909354448@linuxfoundation.org>
-References: <20181119162618.909354448@linuxfoundation.org>
+Date: Mon, 19 Nov 2018 17:26:38 +0100
+Message-Id: <20181119162632.213681486@linuxfoundation.org>
+In-Reply-To: <20181119162616.586062722@linuxfoundation.org>
+References: <20181119162616.586062722@linuxfoundation.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,7 +27,7 @@ To: linux-kernel@vger.kernel.org
 Cc: x86-ml <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-edac <linux-edac@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, stable@vger.kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <zwisler@kernel.org>, Borislav Petkov <bp@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.18-stable review patch.  If anyone has any objections, please let me know.
+4.19-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -87,7 +87,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  DECLARE_PER_CPU(unsigned, mce_poll_count);
 --- a/arch/x86/kernel/cpu/mcheck/mce.c
 +++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -489,7 +489,7 @@ static void mce_report_event(struct pt_r
+@@ -485,7 +485,7 @@ static void mce_report_event(struct pt_r
   * be somewhat complicated (e.g. segment offset would require an instruction
   * parser). So only support physical addresses up to page granuality for now.
   */
@@ -96,7 +96,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  {
  	if (!(m->status & MCI_STATUS_ADDRV))
  		return 0;
-@@ -509,6 +509,7 @@ static int mce_usable_address(struct mce
+@@ -505,6 +505,7 @@ static int mce_usable_address(struct mce
  
  	return 1;
  }
