@@ -1,219 +1,145 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [mm PATCH v5 7/7] mm: Use common iterator for deferred_init_pages
- and deferred_free_pages
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:20:01 -0800
-Message-ID: <154145280115.30046.13334106887516645119.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2A4AA2118F79F
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 03:06:50 -0800 (PST)
+Subject: Patch "acpi/nfit,
+ x86/mce: Validate a MCE's address before using it" has been added to
+ the 4.18-stable tree
+From: <gregkh@linuxfoundation.org>
+Date: Mon, 19 Nov 2018 12:05:15 +0100
+Message-ID: <154262551558181@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.comalexander.h.duyck@linux.intel.com
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: 20181026003729.8420-2-vishal.l.verma@intel.com, arnd@arndb.de, bp@suse.de, dan.j.williams@intel.com, dave.jiang@intel.com, elliott@hpe.com, gregkh@linuxfoundation.org, hpa@zytor.com, lenb@kernel.org, linux-nvdimm@lists.01.org, mingo@redhat.com, qiuxu.zhuo@intel.com, rjw@rjwysocki.net, tglx@linutronix.de, tony.luck@intel.comvishal.l.verma@intel.com, x86@kernel.org, yazen.ghannam@amd.com, zwisler@kernel.org
+Cc: stable-commits@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch creates a common iterator to be used by both deferred_init_pages
-and deferred_free_pages. By doing this we can cut down a bit on code
-overhead as they will likely both be inlined into the same function anyway.
 
-This new approach allows deferred_init_pages to make use of
-__init_pageblock. By doing this we can cut down on the code size by sharing
-code between both the hotplug and deferred memory init code paths.
+This is a note to let you know that I've just added the patch titled
 
-An additional benefit to this approach is that we improve in cache locality
-of the memory init as we can focus on the memory areas related to
-identifying if a given PFN is valid and keep that warm in the cache until
-we transition to a region of a different type. So we will stream through a
-chunk of valid blocks before we turn to initializing page structs.
+    acpi/nfit, x86/mce: Validate a MCE's address before using it
 
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 1.38s to 1.06s as a result of this patch.
+to the 4.18-stable tree which can be found at:
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+The filename of the patch is:
+     acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
+and it can be found in the queue-4.18 subdirectory.
+
+If you, or anyone else, feels it should not be added to the stable tree,
+please let <stable@vger.kernel.org> know about it.
+
+
+>From e8a308e5f47e545e0d41d0686c00f5f5217c5f61 Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Thu, 25 Oct 2018 18:37:29 -0600
+Subject: acpi/nfit, x86/mce: Validate a MCE's address before using it
+
+From: Vishal Verma <vishal.l.verma@intel.com>
+
+commit e8a308e5f47e545e0d41d0686c00f5f5217c5f61 upstream.
+
+The NFIT machine check handler uses the physical address from the mce
+structure, and compares it against information in the ACPI NFIT table
+to determine whether that location lies on an NVDIMM. The mce->addr
+field however may not always be valid, and this is indicated by the
+MCI_STATUS_ADDRV bit in the status field.
+
+Export mce_usable_address() which already performs validation for the
+address, and use it in the NFIT handler.
+
+Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
+Reported-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Borislav Petkov <bp@suse.de>
+CC: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
+CC: elliott@hpe.com
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Len Brown <lenb@kernel.org>
+CC: linux-acpi@vger.kernel.org
+CC: linux-edac <linux-edac@vger.kernel.org>
+CC: linux-nvdimm@lists.01.org
+CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+CC: Ross Zwisler <zwisler@kernel.org>
+CC: stable <stable@vger.kernel.org>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Tony Luck <tony.luck@intel.com>
+CC: x86-ml <x86@kernel.org>
+CC: Yazen Ghannam <yazen.ghannam@amd.com>
+Link: http://lkml.kernel.org/r/20181026003729.8420-2-vishal.l.verma@intel.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
 ---
- mm/page_alloc.c |  134 +++++++++++++++++++++++++++----------------------------
- 1 file changed, 65 insertions(+), 69 deletions(-)
+ arch/x86/include/asm/mce.h       |    1 +
+ arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
+ drivers/acpi/nfit/mce.c          |    4 ++++
+ 3 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 9eb993a9be99..521b94eb02a0 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1484,32 +1484,6 @@ void clear_zone_contiguous(struct zone *zone)
- }
+--- a/arch/x86/include/asm/mce.h
++++ b/arch/x86/include/asm/mce.h
+@@ -217,6 +217,7 @@ static inline int umc_normaddr_to_sysadd
+ int mce_available(struct cpuinfo_x86 *c);
+ bool mce_is_memory_error(struct mce *m);
+ bool mce_is_correctable(struct mce *m);
++int mce_usable_address(struct mce *m);
  
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
--static void __init deferred_free_range(unsigned long pfn,
--				       unsigned long nr_pages)
--{
--	struct page *page;
--	unsigned long i;
--
--	if (!nr_pages)
--		return;
--
--	page = pfn_to_page(pfn);
--
--	/* Free a large naturally-aligned chunk if possible */
--	if (nr_pages == pageblock_nr_pages &&
--	    (pfn & (pageblock_nr_pages - 1)) == 0) {
--		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_core(page, pageblock_order);
--		return;
--	}
--
--	for (i = 0; i < nr_pages; i++, page++, pfn++) {
--		if ((pfn & (pageblock_nr_pages - 1)) == 0)
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_core(page, 0);
--	}
--}
--
- /* Completion tracking for deferred_init_memmap() threads */
- static atomic_t pgdat_init_n_undone __initdata;
- static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
-@@ -1521,48 +1495,77 @@ static inline void __init pgdat_init_report_one_done(void)
- }
- 
- /*
-- * Returns true if page needs to be initialized or freed to buddy allocator.
-+ * Returns count if page range needs to be initialized or freed
-  *
-- * First we check if pfn is valid on architectures where it is possible to have
-- * holes within pageblock_nr_pages. On systems where it is not possible, this
-- * function is optimized out.
-+ * First, we check if a current large page is valid by only checking the
-+ * validity of the head pfn.
-  *
-- * Then, we check if a current large page is valid by only checking the validity
-- * of the head pfn.
-+ * Then we check if the contiguous pfns are valid on architectures where it
-+ * is possible to have holes within pageblock_nr_pages. On systems where it
-+ * is not possible, this function is optimized out.
+ DECLARE_PER_CPU(unsigned, mce_exception_count);
+ DECLARE_PER_CPU(unsigned, mce_poll_count);
+--- a/arch/x86/kernel/cpu/mcheck/mce.c
++++ b/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -489,7 +489,7 @@ static void mce_report_event(struct pt_r
+  * be somewhat complicated (e.g. segment offset would require an instruction
+  * parser). So only support physical addresses up to page granuality for now.
   */
--static inline bool __init deferred_pfn_valid(unsigned long pfn)
-+static unsigned long __next_pfn_valid_range(unsigned long *i,
-+					    unsigned long end_pfn)
+-static int mce_usable_address(struct mce *m)
++int mce_usable_address(struct mce *m)
  {
--	if (!pfn_valid_within(pfn))
--		return false;
--	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
--		return false;
--	return true;
-+	unsigned long pfn = *i;
-+	unsigned long count;
-+
-+	while (pfn < end_pfn) {
-+		unsigned long t = ALIGN(pfn + 1, pageblock_nr_pages);
-+		unsigned long pageblock_pfn = min(t, end_pfn);
-+
-+#ifndef CONFIG_HOLES_IN_ZONE
-+		count = pageblock_pfn - pfn;
-+		pfn = pageblock_pfn;
-+		if (!pfn_valid(pfn))
-+			continue;
-+#else
-+		for (count = 0; pfn < pageblock_pfn; pfn++) {
-+			if (pfn_valid_within(pfn)) {
-+				count++;
-+				continue;
-+			}
-+
-+			if (count)
-+				break;
-+		}
-+
-+		if (!count)
-+			continue;
-+#endif
-+		*i = pfn;
-+		return count;
-+	}
-+
-+	return 0;
- }
+ 	if (!(m->status & MCI_STATUS_ADDRV))
+ 		return 0;
+@@ -509,6 +509,7 @@ static int mce_usable_address(struct mce
  
-+#define for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) \
-+	for (i = (start_pfn),						     \
-+	     count = __next_pfn_valid_range(&i, (end_pfn));		     \
-+	     count && ({ pfn = i - count; 1; });			     \
-+	     count = __next_pfn_valid_range(&i, (end_pfn)))
- /*
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long start_pfn,
- 				       unsigned long end_pfn)
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(mce_usable_address);
+ 
+ bool mce_is_memory_error(struct mce *m)
  {
--	unsigned long nr_pgmask = pageblock_nr_pages - 1;
--	unsigned long nr_free = 0;
--
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 0;
--		} else if (!(pfn & nr_pgmask)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 1;
--			touch_nmi_watchdog();
-+	unsigned long i, pfn, count;
-+
-+	for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		if (count == pageblock_nr_pages) {
-+			__free_pages_core(page, pageblock_order);
- 		} else {
--			nr_free++;
-+			while (count--)
-+				__free_pages_core(page++, 0);
- 		}
-+
-+		touch_nmi_watchdog();
- 	}
--	/* Free the last block of pages to allocator */
--	deferred_free_range(pfn - nr_free, nr_free);
- }
+--- a/drivers/acpi/nfit/mce.c
++++ b/drivers/acpi/nfit/mce.c
+@@ -29,6 +29,10 @@ static int nfit_handle_mce(struct notifi
+ 	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
+ 		return NOTIFY_DONE;
  
- /*
-@@ -1571,29 +1574,22 @@ static void __init deferred_free_pages(unsigned long pfn,
-  * Return number of pages initialized.
-  */
- static unsigned long  __init deferred_init_pages(struct zone *zone,
--						 unsigned long pfn,
-+						 unsigned long start_pfn,
- 						 unsigned long end_pfn)
- {
--	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	unsigned long i, pfn, count;
- 	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
- 	int zid = zone_idx(zone);
--	struct page *page = NULL;
- 
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			page = NULL;
--			continue;
--		} else if (!page || !(pfn & nr_pgmask)) {
--			page = pfn_to_page(pfn);
--			touch_nmi_watchdog();
--		} else {
--			page++;
--		}
--		__init_single_page(page, pfn, zid, nid);
--		nr_pages++;
-+	for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) {
-+		nr_pages += count;
-+		__init_pageblock(pfn, count, zid, nid, NULL, false);
++	/* Verify the address reported in the MCE is valid. */
++	if (!mce_usable_address(mce))
++		return NOTIFY_DONE;
 +
-+		touch_nmi_watchdog();
- 	}
--	return (nr_pages);
-+
-+	return nr_pages;
- }
- 
- /*
+ 	/*
+ 	 * mce->addr contains the physical addr accessed that caused the
+ 	 * machine check. We need to walk through the list of NFITs, and see
+
+
+Patches currently in stable-queue which might be from vishal.l.verma@intel.com are
+
+queue-4.18/acpi-nfit-x86-mce-validate-a-mce-s-address-before-using-it.patch
+queue-4.18/acpi-nfit-x86-mce-handle-only-uncorrectable-machine-checks.patch
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
