@@ -1,89 +1,43 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CD51E211944C4
- for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 13:54:40 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, build: Define HAVE_UUID
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Nov 2018 13:42:12 -0800
-Message-ID: <154344133285.1069420.11463868512402749463.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [RFC PATCH 3/3] dm: expand valid types for dm-ioctl
+Date: Tue, 20 Nov 2018 18:20:37 +0800
+Message-Id: <20181120102037.4536-4-yehs2007@zoho.com>
+In-Reply-To: <20181120102037.4536-1-yehs2007@zoho.com>
+References: <20181120102037.4536-1-yehs2007@zoho.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, dan.j.williams@intel.com, willy@infradead.org, zwisler@kernel.org, jack@suse.cz, dave.jiang@intel.com, vishal.l.verma@intel.com
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, chengnt@lenovo.com, Huaisheng Ye <yehs1@lenovo.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Attempts to build ndctl in an epel-6 environment fail with the following
-messages:
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-    In file included from util/filter.c:24:
-    ./daxctl/libdaxctl.h:22: error: redefinition of typedef 'uuid_t'
-    ./ndctl/libndctl.h:26: note: previous declaration of 'uuid_t' was here
+If use DAX way to mount the origin device of dm_snapshot, when
+merging back snapshot to origin, system call table_load during the
+construction of snapshot-merge will try to detect new dm_table's type
+equals to the existed md's type or not.
+The existed type equals to DM_TYPE_DAX_BIO_BASED, but the new created
+type belongs to DM_TYPE_BIO_BASED. So, we need to expand valid_type in
+function is_valid_type.
 
-Newer compilers discard the error since it sees the types are
-compatible, but the definition should be coming from uuid.h when built
-with libuuid. Arrange for an AC_DEFINE for the HAVE_UUID symbol when
-libuuid is detected by PKG_CHECK_MODULES.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
- configure.ac       |    3 ++-
- daxctl/libdaxctl.h |    2 +-
- ndctl/libndctl.h   |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/md/dm-ioctl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/configure.ac b/configure.ac
-index bb6b03324ea8..de5b84cec670 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -112,7 +112,8 @@ AM_CONDITIONAL([ENABLE_POISON],
+diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
+index a27016e..158d657 100644
+--- a/drivers/md/dm-ioctl.c
++++ b/drivers/md/dm-ioctl.c
+@@ -1295,7 +1295,8 @@ static int populate_table(struct dm_table *table,
+ static bool is_valid_type(enum dm_queue_mode cur, enum dm_queue_mode new)
+ {
+ 	if (cur == new ||
+-	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED))
++	    (cur == DM_TYPE_BIO_BASED && new == DM_TYPE_DAX_BIO_BASED) ||
++	    (cur == DM_TYPE_DAX_BIO_BASED && new == DM_TYPE_BIO_BASED))
+ 		return true;
  
- PKG_CHECK_MODULES([KMOD], [libkmod])
- PKG_CHECK_MODULES([UDEV], [libudev])
--PKG_CHECK_MODULES([UUID], [uuid])
-+PKG_CHECK_MODULES([UUID], [uuid],
-+	[AC_DEFINE([HAVE_UUID], [1], [Define to 1 if using libuuid])])
- PKG_CHECK_MODULES([JSON], [json-c])
- 
- AC_ARG_WITH([bash],
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 21bc376ce629..1d13ea291f6f 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -16,7 +16,7 @@
- #include <stdarg.h>
- #include <unistd.h>
- 
--#ifdef HAVE_LIBUUID
-+#ifdef HAVE_UUID
- #include <uuid/uuid.h>
- #else
- typedef unsigned char uuid_t[16];
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 62cef9e82da3..c81cc032ebae 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -20,7 +20,7 @@
- #include <errno.h>
- #include <limits.h>
- 
--#ifdef HAVE_LIBUUID
-+#ifdef HAVE_UUID
- #include <uuid/uuid.h>
- #else
- typedef unsigned char uuid_t[16];
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ 	return false;
+-- 
+1.8.3.1
