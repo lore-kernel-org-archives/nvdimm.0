@@ -1,94 +1,116 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B999821B02822
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:11:40 -0800 (PST)
-Subject: [driver-core PATCH v5 0/9] Add NUMA aware async_schedule calls
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:11:39 -0800
-Message-ID: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [RFC PATCH 1/3] dm: enable dax_operations for dm-snapshot
+Date: Tue, 20 Nov 2018 18:20:35 +0800
+Message-Id: <20181120102037.4536-2-yehs2007@zoho.com>
+In-Reply-To: <20181120102037.4536-1-yehs2007@zoho.com>
+References: <20181120102037.4536-1-yehs2007@zoho.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, dan.j.williams@intel.com, willy@infradead.org, zwisler@kernel.org, jack@suse.cz, dave.jiang@intel.com, vishal.l.verma@intel.com
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, chengnt@lenovo.com, Huaisheng Ye <yehs1@lenovo.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set provides functionality that will help to improve the
-locality of the async_schedule calls used to provide deferred
-initialization.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-This patch set originally started out with me focused on just the one call
-to async_schedule_domain in the nvdimm tree that was being used to
-defer the device_add call however after doing some digging I realized the
-scope of this was much broader than I had originally planned. As such I
-went through and reworked the underlying infrastructure down to replacing
-the queue_work call itself with a function of my own and opted to try and
-provide a NUMA aware solution that would work for a broader audience.
+Reconstruct origin_dax_direct_access and expand functions
+origin_dax_copy_to/from_iter for DAX operations of dm-snapshot.
 
-RFC->v1:
-    Dropped nvdimm patch to submit later.
-        It relies on code in libnvdimm development tree.
-    Simplified queue_work_near to just convert node into a CPU.
-    Split up drivers core and PM core patches.
-v1->v2:
-    Renamed queue_work_near to queue_work_node
-    Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
-v2->v3:
-    Added Acked-by for queue_work_node patch
-    Continued rename from _near to _node to be consistent with queue_work_node
-        Renamed async_schedule_near_domain to async_schedule_node_domain
-        Renamed async_schedule_near to async_schedule_node
-    Added kerneldoc for new async_schedule_XXX functions
-    Updated patch description for patch 4 to include data on potential gains
-v3->v4
-    Added patch to consolidate use of need_parent_lock
-    Make asynchronous driver probing explicit about use of drvdata
-v4->v5
-    Added patch to move async_synchronize_full to address deadlock
-    Added bit async_probe to act as mutex for probe/remove calls
-    Added back nvdimm patch as code it relies on is now in Linus's tree
-    Incorporated review comments on parent & device locking consolidation
-    Rebased on latest linux-next
+Here is the call trace of origin_dax_copy_to_iter,
+origin_dax_copy_to_iter will callin dm-linear (-real) for further
+dax_operation.
 
+[518597.924019] Call Trace:
+[518597.927320]  dump_stack+0x65/0x7e
+[518597.931592]  origin_dax_copy_to_iter+0x51/0x78 [dm_snapshot]
+[518597.938494]  dm_dax_copy_to_iter+0x86/0xc5 [dm_mod]
+[518597.944519]  dax_copy_to_iter+0x27/0x29
+[518597.949371]  dax_iomap_actor+0x264/0x326
+[518597.954308]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.962159]  iomap_apply+0xc7/0x128
+[518597.966609]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.974447]  dax_iomap_rw+0x66/0xa8
+[518597.978893]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.986741]  ext2_file_read_iter+0x4f/0x83 [ext2]
+[518597.992552]  __vfs_read+0x130/0x168
+[518597.997001]  vfs_read+0x92/0x146
+[518598.001155]  ksys_read+0x4f/0xa5
+[518598.005308]  __x64_sys_read+0x16/0x18
+[518598.009942]  do_syscall_64+0x88/0x15f
+[518598.014575]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
+ drivers/md/dm-snap.c | 44 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
 
-Alexander Duyck (9):
-      workqueue: Provide queue_work_node to queue work near a given NUMA node
-      async: Add support for queueing on specific NUMA node
-      device core: Consolidate locking and unlocking of parent and device
-      driver core: Move async_synchronize_full call
-      driver core: Establish clear order of operations for deferred probe and remove
-      driver core: Probe devices asynchronously instead of the driver
-      driver core: Attach devices on CPU local to device node
-      PM core: Use new async_schedule_dev command
-      libnvdimm: Schedule device registration on node local to the device
-
-
- drivers/base/base.h       |    2 
- drivers/base/bus.c        |   46 +-------
- drivers/base/dd.c         |  249 +++++++++++++++++++++++++++++++++------------
- drivers/base/power/main.c |   12 +-
- drivers/nvdimm/bus.c      |   11 +-
- include/linux/async.h     |   84 +++++++++++++++
- include/linux/device.h    |   35 +++++-
- include/linux/workqueue.h |    2 
- kernel/async.c            |   53 +++++-----
- kernel/workqueue.c        |   84 +++++++++++++++
- 10 files changed, 432 insertions(+), 146 deletions(-)
-
---
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
+index ae4b33d..75738b3 100644
+--- a/drivers/md/dm-snap.c
++++ b/drivers/md/dm-snap.c
+@@ -19,6 +19,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/log2.h>
+ #include <linux/dm-kcopyd.h>
++#include <linux/dax.h>
+ 
+ #include "dm.h"
+ 
+@@ -2319,8 +2320,45 @@ static int origin_map(struct dm_target *ti, struct bio *bio)
+ static long origin_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+-	DMWARN("device does not support dax.");
+-	return -EIO;
++	long ret = 0;
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
++
++	ret = bdev_dax_pgoff(bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
++	if (ret)
++		return ret;
++
++	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
++}
++
++static size_t origin_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
++
++	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++
++	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
++}
++
++static size_t origin_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
++
++	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++
++	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
+ }
+ 
+ /*
+@@ -2383,6 +2421,8 @@ static int origin_iterate_devices(struct dm_target *ti,
+ 	.status  = origin_status,
+ 	.iterate_devices = origin_iterate_devices,
+ 	.direct_access = origin_dax_direct_access,
++	.dax_copy_to_iter = origin_dax_copy_to_iter,
++	.dax_copy_from_iter = origin_dax_copy_from_iter,
+ };
+ 
+ static struct target_type snapshot_target = {
+-- 
+1.8.3.1
