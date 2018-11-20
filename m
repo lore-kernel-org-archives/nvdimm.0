@@ -1,86 +1,54 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 333DF2117FD58
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:19:26 -0800 (PST)
-Subject: [mm PATCH v5 0/7] Deferred page init improvements
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:19:25 -0800
-Message-ID: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: Re: [Ksummit-discuss] [RFC PATCH 2/3] MAINTAINERS, Handbook: Subsystem Profile
+In-Reply-To: <f08820b05467cc95cc195a2639595c0274c95d69.camel@perches.com>
+References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com> <154225760492.2499188.14152986544451112930.stgit@dwillia2-desk3.amr.corp.intel.com> <alpine.DEB.2.21.1811142146230.9620@hadrien> <CAMuHMdVmvCOX6gF0BskQ1NBUpdMZHSBQXpxkx085B9ZKGm0wiA@mail.gmail.com> <alpine.DEB.2.21.1811150544090.2354@hadrien> <878t1tgpk8.fsf@intel.com> <f08820b05467cc95cc195a2639595c0274c95d69.camel@perches.com>
+Date: Tue, 20 Nov 2018 09:28:46 +0200
+Message-ID: <875zwsgqc1.fsf@intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+Content-Type: text/plain
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, Julia Lawall <julia.lawall@lip6.fr>, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: ksummit-discuss@lists.linuxfoundation.org, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, vishal.l.verma@intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stfrench@microsoft.com, Greg KH <gregkh@linuxfoundation.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, "Tobin C. Harding" <me@tobin.cc>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset is essentially a refactor of the page initialization logic
-that is meant to provide for better code reuse while providing a
-significant improvement in deferred page initialization performance.
+On Fri, 16 Nov 2018, Joe Perches <joe@perches.com> wrote:
+> On Fri, 2018-11-16 at 14:44 +0200, Jani Nikula wrote:
+>> I quickly cooked up this script to produce the top-5 commit prefixes for
+>> the given files over the arbitrary last 200 commits. It'll give you a
+>> pretty good idea if you're even close.
+>> 
+>> ---
+>> #!/bin/sh
+>> # usage: subject-prefix FILE [...]
+>> # show top 5 subject prefixes for FILEs
+>> 
+>> git log --format=%s -n 200 -- "$@" |\
+>> 	grep -v "^Merge " |\
+>> 	sed 's/\(.*\):.*/\1/' |\
+>> 	sort | uniq -c | sort -nr | sed 's/ *[0-9]\+ //' |\
+>> 	head -n 5
+>> ---
+>> 
+>> Someone who knows perl could turn that into a checkpatch check: See if
+>> the patch subject prefix is one of the top-5 for all files changed by
+>> the patch, and ask the user to double check if it isn't. Or some
+>> heuristics thereof.
+>
+> This won't work when a patch contains multiple files
+> from different paths, or even multiple files from a
+> single driver.
 
-In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
-memory per node I have seen the following. In the case of regular memory
-initialization the deferred init time was decreased from 3.75s to 1.06s on
-average. For the persistent memory the initialization time dropped from
-24.17s to 19.12s on average. This amounts to a 253% improvement for the
-deferred memory initialization performance, and a 26% improvement in the
-persistent memory initialization performance.
+*shrug*
 
-I have called out the improvement observed with each patch.
+You can give it multiple files as argument, and it'll give you an
+approximation of what the prefix could be, whether you're way off or
+not. Close enough at least for the single driver case. Obviously not
+perfect, but hey, it took me all of five minutes to write that. ;)
 
-v1->v2:
-    Fixed build issue on PowerPC due to page struct size being 56
-    Added new patch that removed __SetPageReserved call for hotplug
-v2->v3:
-    Rebased on latest linux-next
-    Removed patch that had removed __SetPageReserved call from init
-    Added patch that folded __SetPageReserved into set_page_links
-    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
-v3->v4:
-    Updated patch description and comments for mm_zero_struct_page patch
-        Replaced "default" with "case 64"
-        Removed #ifndef mm_zero_struct_page
-    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
-    Added Reviewed-by for patches reviewed by Pavel
-    Added Acked-by from Michal Hocko
-    Added deferred init times for patches that affect init performance
-    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
-v4->v5:
-    Updated Acks/Reviewed-by
-    Rebased on latest linux-next
-    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
-
----
-
-Alexander Duyck (7):
-      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-      mm: Drop meminit_pfn_in_nid as it is redundant
-      mm: Implement new zone specific memblock iterator
-      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
-      mm: Move hot-plug specific memory init into separate functions and optimize
-      mm: Add reserved flag setting to set_page_links
-      mm: Use common iterator for deferred_init_pages and deferred_free_pages
+BR,
+Jani.
 
 
- arch/sparc/include/asm/pgtable_64.h |   30 --
- include/linux/memblock.h            |   38 ++
- include/linux/mm.h                  |   50 +++
- mm/memblock.c                       |   63 ++++
- mm/page_alloc.c                     |  567 +++++++++++++++++++++--------------
- 5 files changed, 492 insertions(+), 256 deletions(-)
-
---
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+-- 
+Jani Nikula, Intel Open Source Graphics Center
