@@ -1,247 +1,128 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 197D5211963E6
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:04 -0800 (PST)
-Subject: [mm PATCH v6 3/7] mm: Implement new zone specific memblock iterator
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 30 Nov 2018 13:53:03 -0800
-Message-ID: <154361478343.7497.6591693538181082582.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+Return-Path: <linux-fsdevel-owner@vger.kernel.org>
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [RFC PATCH v2 1/3] dm: enable dax_operations for dm-snapshot
+Date: Wed, 21 Nov 2018 11:27:00 +0800
+Message-Id: <20181121032702.3048-2-yehs2007@zoho.com>
+In-Reply-To: <20181121032702.3048-1-yehs2007@zoho.com>
+References: <20181121032702.3048-1-yehs2007@zoho.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, dan.j.williams@intel.com, willy@infradead.org, zwisler@kernel.org, jack@suse.cz, dave.jiang@intel.com, vishal.l.verma@intel.com
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, chengnt@lenovo.com, Huaisheng Ye <yehs1@lenovo.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce a new iterator for_each_free_mem_pfn_range_in_zone.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-This iterator will take care of making sure a given memory range provided
-is in fact contained within a zone. It takes are of all the bounds checking
-we were doing in deferred_grow_zone, and deferred_init_memmap. In addition
-it should help to speed up the search a bit by iterating until the end of a
-range is greater than the start of the zone pfn range, and will exit
-completely if the start is beyond the end of the zone.
+Reconstruct origin_dax_direct_access and expand functions
+origin_dax_copy_to/from_iter for DAX operations of dm-snapshot.
 
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Here is the call trace of origin_dax_copy_to_iter,
+origin_dax_copy_to_iter will callin dm-linear (-real) for further
+dax_operation.
+
+[518597.924019] Call Trace:
+[518597.927320]  dump_stack+0x65/0x7e
+[518597.931592]  origin_dax_copy_to_iter+0x51/0x78 [dm_snapshot]
+[518597.938494]  dm_dax_copy_to_iter+0x86/0xc5 [dm_mod]
+[518597.944519]  dax_copy_to_iter+0x27/0x29
+[518597.949371]  dax_iomap_actor+0x264/0x326
+[518597.954308]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.962159]  iomap_apply+0xc7/0x128
+[518597.966609]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.974447]  dax_iomap_rw+0x66/0xa8
+[518597.978893]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
+[518597.986741]  ext2_file_read_iter+0x4f/0x83 [ext2]
+[518597.992552]  __vfs_read+0x130/0x168
+[518597.997001]  vfs_read+0x92/0x146
+[518598.001155]  ksys_read+0x4f/0xa5
+[518598.005308]  __x64_sys_read+0x16/0x18
+[518598.009942]  do_syscall_64+0x88/0x15f
+[518598.014575]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
- include/linux/memblock.h |   25 ++++++++++++++++++
- mm/memblock.c            |   64 ++++++++++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c          |   31 +++++++++-------------
- 3 files changed, 101 insertions(+), 19 deletions(-)
+ drivers/md/dm-snap.c | 51 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 49 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 64c41cf45590..95d1aaa3f412 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -247,6 +247,31 @@ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
- 	     i >= 0; __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid))
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
+index ae4b33d..714e26f 100644
+--- a/drivers/md/dm-snap.c
++++ b/drivers/md/dm-snap.c
+@@ -19,6 +19,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/log2.h>
+ #include <linux/dm-kcopyd.h>
++#include <linux/dax.h>
  
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+void __next_mem_pfn_range_in_zone(u64 *idx, struct zone *zone,
-+				  unsigned long *out_spfn,
-+				  unsigned long *out_epfn);
-+/**
-+ * for_each_free_mem_range_in_zone - iterate through zone specific free
-+ * memblock areas
-+ * @i: u64 used as loop variable
-+ * @zone: zone in which all of the memory blocks reside
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over free (memory && !reserved) areas of memblock in a specific
-+ * zone. Available once memblock and an empty zone is initialized. The main
-+ * assumption is that the zone start, end, and pgdat have been associated.
-+ * This way we can use the zone to determine NUMA node, and if a given part
-+ * of the memblock is valid for the zone.
-+ */
-+#define for_each_free_mem_pfn_range_in_zone(i, zone, p_start, p_end)	\
-+	for (i = 0,							\
-+	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end);	\
-+	     i != U64_MAX;					\
-+	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
-+#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
-+
- /**
-  * for_each_free_mem_range - iterate through free memblock areas
-  * @i: u64 used as loop variable
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 57298abc7d98..0e49382033dd 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1247,6 +1247,70 @@ int __init_memblock memblock_set_node(phys_addr_t base, phys_addr_t size,
- 	return 0;
+ #include "dm.h"
+ 
+@@ -2316,13 +2317,57 @@ static int origin_map(struct dm_target *ti, struct bio *bio)
+ 	return do_origin(o->dev, bio);
  }
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+/**
-+ * __next_mem_pfn_range_in_zone - iterator for for_each_*_range_in_zone()
-+ *
-+ * @idx: pointer to u64 loop variable
-+ * @zone: zone in which all of the memory blocks reside
-+ * @out_spfn: ptr to ulong for start pfn of the range, can be %NULL
-+ * @out_epfn: ptr to ulong for end pfn of the range, can be %NULL
-+ *
-+ * This function is meant to be a zone/pfn specific wrapper for the
-+ * for_each_mem_range type iterators. Specifically they are used in the
-+ * deferred memory init routines and as such we were duplicating much of
-+ * this logic throughout the code. So instead of having it in multiple
-+ * locations it seemed like it would make more sense to centralize this to
-+ * one new iterator that does everything they need.
-+ */
-+void __init_memblock
-+__next_mem_pfn_range_in_zone(u64 *idx, struct zone *zone,
-+			     unsigned long *out_spfn, unsigned long *out_epfn)
-+{
-+	int zone_nid = zone_to_nid(zone);
-+	phys_addr_t spa, epa;
-+	int nid;
+ 
++#if IS_ENABLED(CONFIG_DAX_DRIVER)
+ static long origin_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+ {
+-	DMWARN("device does not support dax.");
+-	return -EIO;
++	long ret = 0;
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
 +
-+	__next_mem_range(idx, zone_nid, MEMBLOCK_NONE,
-+			 &memblock.memory, &memblock.reserved,
-+			 &spa, &epa, &nid);
++	ret = bdev_dax_pgoff(bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
++	if (ret)
++		return ret;
 +
-+	while (*idx != U64_MAX) {
-+		unsigned long epfn = PFN_DOWN(epa);
-+		unsigned long spfn = PFN_UP(spa);
-+
-+		/*
-+		 * Verify the end is at least past the start of the zone and
-+		 * that we have at least one PFN to initialize.
-+		 */
-+		if (zone->zone_start_pfn < epfn && spfn < epfn) {
-+			/* if we went too far just stop searching */
-+			if (zone_end_pfn(zone) <= spfn) {
-+				*idx = U64_MAX;
-+				break;
-+			}
-+
-+			if (out_spfn)
-+				*out_spfn = max(zone->zone_start_pfn, spfn);
-+			if (out_epfn)
-+				*out_epfn = min(zone_end_pfn(zone), epfn);
-+
-+			return;
-+		}
-+
-+		__next_mem_range(idx, zone_nid, MEMBLOCK_NONE,
-+				 &memblock.memory, &memblock.reserved,
-+				 &spa, &epa, &nid);
-+	}
-+
-+	/* signal end of iteration */
-+	if (out_spfn)
-+		*out_spfn = ULONG_MAX;
-+	if (out_epfn)
-+		*out_epfn = 0;
++	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
 +}
 +
-+#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
++static size_t origin_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
++
++	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++
++	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+ }
  
- static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
- 					phys_addr_t align, phys_addr_t start,
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 09969619ab48..72f9889e3866 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1523,11 +1523,9 @@ static unsigned long  __init deferred_init_pages(struct zone *zone,
- static int __init deferred_init_memmap(void *data)
- {
- 	pg_data_t *pgdat = data;
--	int nid = pgdat->node_id;
- 	unsigned long start = jiffies;
- 	unsigned long nr_pages = 0;
- 	unsigned long spfn, epfn, first_init_pfn, flags;
--	phys_addr_t spa, epa;
- 	int zid;
- 	struct zone *zone;
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-@@ -1564,14 +1562,12 @@ static int __init deferred_init_memmap(void *data)
- 	 * freeing pages we can access pages that are ahead (computing buddy
- 	 * page in __free_one_page()).
- 	 */
--	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
--		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
--		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
-+	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
-+		spfn = max_t(unsigned long, first_init_pfn, spfn);
- 		nr_pages += deferred_init_pages(zone, spfn, epfn);
- 	}
--	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
--		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
--		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
-+	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
-+		spfn = max_t(unsigned long, first_init_pfn, spfn);
- 		deferred_free_pages(spfn, epfn);
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
-@@ -1579,8 +1575,8 @@ static int __init deferred_init_memmap(void *data)
- 	/* Sanity check that the next zone really is unpopulated */
- 	WARN_ON(++zid < MAX_NR_ZONES && populated_zone(++zone));
++static size_t origin_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dm_origin *o = ti->private;
++	struct block_device *bdev = o->dev->bdev;
++	struct dax_device *dax_dev = o->dev->dax_dev;
++	sector_t sector = pgoff * PAGE_SECTORS;
++
++	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
++		return 0;
++
++	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
++}
++
++#else
++#define origin_dax_direct_access NULL
++#define origin_dax_copy_from_iter NULL
++#define origin_dax_copy_to_iter NULL
++#endif
++
+ /*
+  * Set the target "max_io_len" field to the minimum of all the snapshots'
+  * chunk sizes.
+@@ -2383,6 +2428,8 @@ static int origin_iterate_devices(struct dm_target *ti,
+ 	.status  = origin_status,
+ 	.iterate_devices = origin_iterate_devices,
+ 	.direct_access = origin_dax_direct_access,
++	.dax_copy_to_iter = origin_dax_copy_to_iter,
++	.dax_copy_from_iter = origin_dax_copy_from_iter,
+ };
  
--	pr_info("node %d initialised, %lu pages in %ums\n", nid, nr_pages,
--					jiffies_to_msecs(jiffies - start));
-+	pr_info("node %d initialised, %lu pages in %ums\n",
-+		pgdat->node_id,	nr_pages, jiffies_to_msecs(jiffies - start));
- 
- 	pgdat_init_report_one_done();
- 	return 0;
-@@ -1611,13 +1607,11 @@ static DEFINE_STATIC_KEY_TRUE(deferred_pages);
- static noinline bool __init
- deferred_grow_zone(struct zone *zone, unsigned int order)
- {
--	int nid = zone_to_nid(zone);
--	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
-+	pg_data_t *pgdat = zone->zone_pgdat;
- 	unsigned long nr_pages = 0;
- 	unsigned long first_init_pfn, spfn, epfn, t, flags;
- 	unsigned long first_deferred_pfn = pgdat->first_deferred_pfn;
--	phys_addr_t spa, epa;
- 	u64 i;
- 
- 	/* Only the last zone may have deferred pages */
-@@ -1653,9 +1647,8 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- 		return false;
- 	}
- 
--	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
--		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
--		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
-+	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
-+		spfn = max_t(unsigned long, first_init_pfn, spfn);
- 
- 		while (spfn < epfn && nr_pages < nr_pages_needed) {
- 			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
-@@ -1669,9 +1662,9 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- 			break;
- 	}
- 
--	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
--		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
--		epfn = min_t(unsigned long, first_deferred_pfn, PFN_DOWN(epa));
-+	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
-+		spfn = max_t(unsigned long, first_init_pfn, spfn);
-+		epfn = min_t(unsigned long, first_deferred_pfn, epfn);
- 		deferred_free_pages(spfn, epfn);
- 
- 		if (first_deferred_pfn == epfn)
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ static struct target_type snapshot_target = {
+-- 
+1.8.3.1
