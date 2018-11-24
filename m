@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B51EE21193089
- for <linux-nvdimm@lists.01.org>; Sun, 25 Nov 2018 08:38:06 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id s5so14460428oth.7
- for <linux-nvdimm@lists.01.org>; Sun, 25 Nov 2018 08:38:06 -0800 (PST)
-MIME-Version: 1.0
-References: <154308522458.237140.16550557898744466932.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20181125075410.D0EF220865@mail.kernel.org>
-In-Reply-To: <20181125075410.D0EF220865@mail.kernel.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 25 Nov 2018 08:37:52 -0800
-Message-ID: <CAPcyv4gQmTSqwLUnD2pR0hgJrmRAGEToHNmPZMYQ4+oUmJapRw@mail.gmail.com>
-Subject: Re: [PATCH 2/2] libnvdimm,
+ by ml01.01.org (Postfix) with ESMTPS id 72FAB21193064
+ for <linux-nvdimm@lists.01.org>; Sat, 24 Nov 2018 10:59:32 -0800 (PST)
+Subject: [PATCH 2/2] libnvdimm,
  pfn: Pad pfn namespaces relative to other regions
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 24 Nov 2018 10:47:04 -0800
+Message-ID: <154308522458.237140.16550557898744466932.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,31 +23,197 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: sashal@kernel.org
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Nov 24, 2018 at 11:54 PM Sasha Levin <sashal@kernel.org> wrote:
->
-> Hi,
->
-> [This is an automated email]
->
-> This commit has been processed because it contains a "Fixes:" tag,
-> fixing commit: cfe30b872058 libnvdimm, pmem: adjust for section collisions with 'System RAM'.
->
-> The bot has tested the following trees: v4.19.4, v4.14.83, v4.9.140.
->
-> v4.19.4: Build OK!
-> v4.14.83: Build OK!
-> v4.9.140: Failed to apply! Possible dependencies:
->     Unable to calculate
->
->
-> How should we proceed with this patch?
+Commit cfe30b872058 "libnvdimm, pmem: adjust for section collisions with
+'System RAM'" enabled Linux to workaround occasions where platform
+firmware arranges for "System RAM" and "Persistent Memory" to collide
+within a single section boundary. Unfortunately, as reported in this
+issue [1], platform firmware can inflict the same collision between
+persistent memory regions.
 
-4.9-stable will need a manual backport since this code was refactored
-in the intervening kernel releases.
+The approach of interrogating iomem_resource does not work in this
+case because platform firmware may merge multiple regions into a single
+iomem_resource range. Instead provide a method to interrogate regions
+that share the same parent bus.
+
+This is a stop-gap until the core-MM can grow support for hotplug on
+sub-section boundaries.
+
+[1]: https://github.com/pmem/ndctl/issues/76
+
+Fixes: cfe30b872058 ("libnvdimm, pmem: adjust for section collisions with...")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/nd-core.h     |    2 +
+ drivers/nvdimm/pfn_devs.c    |   64 ++++++++++++++++++++++++------------------
+ drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++
+ 3 files changed, 80 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 182258f64417..d0c621b32f72 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -111,6 +111,8 @@ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
+ 		struct nd_mapping *nd_mapping, resource_size_t *overlap);
+ resource_size_t nd_blk_available_dpa(struct nd_region *nd_region);
+ resource_size_t nd_region_available_dpa(struct nd_region *nd_region);
++int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
++		resource_size_t size);
+ resource_size_t nvdimm_allocated_dpa(struct nvdimm_drvdata *ndd,
+ 		struct nd_label_id *label_id);
+ int alias_dpa_busy(struct device *dev, void *data);
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 24c64090169e..6f22272e8d80 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -649,14 +649,47 @@ static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
+ 			ALIGN_DOWN(phys, nd_pfn->align));
+ }
+ 
++/*
++ * Check if pmem collides with 'System RAM', or other regions when
++ * section aligned.  Trim it accordingly.
++ */
++static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
++{
++	struct nd_namespace_common *ndns = nd_pfn->ndns;
++	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
++	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
++	const resource_size_t start = nsio->res.start;
++	const resource_size_t end = start + resource_size(&nsio->res);
++	resource_size_t adjust, size;
++
++	*start_pad = 0;
++	*end_trunc = 0;
++
++	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
++	size = resource_size(&nsio->res) + adjust;
++	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
++				IORES_DESC_NONE) == REGION_MIXED
++			|| nd_region_conflict(nd_region, start - adjust, size))
++		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
++
++	/* Now check that end of the range does not collide. */
++	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
++	size = resource_size(&nsio->res) + adjust;
++	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
++				IORES_DESC_NONE) == REGION_MIXED
++			|| !IS_ALIGNED(end, nd_pfn->align)
++			|| nd_region_conflict(nd_region, start, size + adjust))
++		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
++}
++
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ {
+ 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	u32 start_pad = 0, end_trunc = 0;
++	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	resource_size_t start, size;
+-	struct nd_namespace_io *nsio;
+ 	struct nd_region *nd_region;
++	u32 start_pad, end_trunc;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	unsigned long npfns;
+ 	phys_addr_t offset;
+@@ -688,30 +721,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 
+ 	memset(pfn_sb, 0, sizeof(*pfn_sb));
+ 
+-	/*
+-	 * Check if pmem collides with 'System RAM' when section aligned and
+-	 * trim it accordingly
+-	 */
+-	nsio = to_nd_namespace_io(&ndns->dev);
+-	start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
+-	size = resource_size(&nsio->res);
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED) {
+-		start = nsio->res.start;
+-		start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+-	}
+-
+-	start = nsio->res.start;
+-	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| !IS_ALIGNED(start + resource_size(&nsio->res),
+-				nd_pfn->align)) {
+-		size = resource_size(&nsio->res);
+-		end_trunc = start + size - phys_pmem_align_down(nd_pfn,
+-				start + size);
+-	}
+-
++	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
+ 	if (start_pad + end_trunc)
+ 		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+ 				dev_name(&ndns->dev), start_pad + end_trunc);
+@@ -722,7 +732,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	 * implementation will limit the pfns advertised through
+ 	 * ->direct_access() to those that are included in the memmap.
+ 	 */
+-	start += start_pad;
++	start = nsio->res.start + start_pad;
+ 	size = resource_size(&nsio->res);
+ 	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - SZ_8K)
+ 			/ PAGE_SIZE);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..e7377f1028ef 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1184,6 +1184,47 @@ int nvdimm_has_cache(struct nd_region *nd_region)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_cache);
+ 
++struct conflict_context {
++	struct nd_region *nd_region;
++	resource_size_t start, size;
++};
++
++static int region_conflict(struct device *dev, void *data)
++{
++	struct nd_region *nd_region;
++	struct conflict_context *ctx = data;
++	resource_size_t res_end, region_end, region_start;
++
++	if (!is_memory(dev))
++		return 0;
++
++	nd_region = to_nd_region(dev);
++	if (nd_region == ctx->nd_region)
++		return 0;
++
++	res_end = ctx->start + ctx->size;
++	region_start = nd_region->ndr_start;
++	region_end = region_start + nd_region->ndr_size;
++	if (ctx->start >= region_start && ctx->start < region_end)
++		return -EBUSY;
++	if (res_end > region_start && res_end <= region_end)
++		return -EBUSY;
++	return 0;
++}
++
++int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
++		resource_size_t size)
++{
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
++	struct conflict_context ctx = {
++		.nd_region = nd_region,
++		.start = start,
++		.size = size,
++	};
++
++	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
++}
++
+ void __exit nd_region_devs_exit(void)
+ {
+ 	ida_destroy(&region_ida);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
