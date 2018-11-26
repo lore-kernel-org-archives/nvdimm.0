@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 010B621190734
- for <linux-nvdimm@lists.01.org>; Wed, 14 Nov 2018 21:05:08 -0800 (PST)
-Subject: [RFC PATCH 1/3] MAINTAINERS: Reclaim the P: tag for Subsystem Profile
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Nov 2018 20:53:19 -0800
-Message-ID: <154225759959.2499188.5163439674278041458.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E97821184AA7
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Nov 2018 06:27:44 -0800 (PST)
+Date: Mon, 26 Nov 2018 06:27:43 -0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: FAILED: patch "[PATCH] dax: Avoid losing wakeup in
+ dax_lock_mapping_entry" failed to apply to 4.19-stable tree
+Message-ID: <20181126142743.GA25618@bombadil.infradead.org>
+References: <154322882028207@kroah.com>
+ <20181126122223.GG3065@bombadil.infradead.org>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20181126122223.GG3065@bombadil.infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,90 +26,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Joe Perches <joe@perches.com>, linux-nvdimm@lists.01.org, ksummit-discuss@lists.linuxfoundation.org, corbet@lwn.net
+To: gregkh@linuxfoundation.org
+Cc: stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fixup some P: entries to be M: and rename the remaining ones to 'E:' for
-"entity". The P: tag will be used to indicate the location of a
-Subsystem Profile for a given MAINTAINERS entry.
+On Mon, Nov 26, 2018 at 04:22:23AM -0800, Matthew Wilcox wrote:
+> On Mon, Nov 26, 2018 at 11:40:20AM +0100, gregkh@linuxfoundation.org wrote:
+> > 
+> > The patch below does not apply to the 4.19-stable tree.
+> > If someone wants it applied there, or to any other stable or longterm
+> > tree, then please email the backport, including the original git commit
+> > id to <stable@vger.kernel.org>.
+> 
+> The fix for 4.19 is rather more complex because we don't have the
+> right information in the right places.  Dan, does this look right to you?
 
-Cc: Joe Perches <joe@perches.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- MAINTAINERS |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Wait, we can do it like this which should be simpler:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0abecc528dac..83b7b3943a12 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -76,7 +76,7 @@ trivial patch so apply some common sense.
+diff --git a/fs/dax.c b/fs/dax.c
+index 0fb270f0a0ef6..b0cd1364c68fa 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -217,6 +217,9 @@ static inline void *unlock_slot(struct address_space *mapping, void **slot)
+ 	return (void *)entry;
+ }
  
- Descriptions of section entries:
++static void put_unlocked_mapping_entry(struct address_space *mapping,
++				       pgoff_t index, void *entry);
++
+ /*
+  * Lookup entry in radix tree, wait for it to become unlocked if it is
+  * exceptional entry and return it. The caller must call
+@@ -256,8 +259,10 @@ static void *__get_unlocked_mapping_entry(struct address_space *mapping,
+ 		revalidate = wait_fn();
+ 		finish_wait(wq, &ewait.wait);
+ 		xa_lock_irq(&mapping->i_pages);
+-		if (revalidate)
++		if (revalidate) {
++			put_unlocked_mapping_entry(mapping, index, entry);
+ 			return ERR_PTR(-EAGAIN);
++		}
+ 	}
+ }
  
--	P: Person (obsolete)
-+	E: Entity (obsolete)
- 	M: Mail patches to: FullName <address@domain>
- 	R: Designated reviewer: FullName <address@domain>
- 	   These reviewers should be CCed on patches.
-@@ -771,7 +771,7 @@ S:	Orphan
- F:	drivers/usb/gadget/udc/amd5536udc.*
- 
- AMD GEODE PROCESSOR/CHIPSET SUPPORT
--P:	Andres Salomon <dilinger@queued.net>
-+M:	Andres Salomon <dilinger@queued.net>
- L:	linux-geode@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.amd.com/us-en/ConnectivitySolutions/TechnicalResources/0,,50_2334_2452_11363,00.html
- S:	Supported
-@@ -9271,7 +9271,7 @@ F:	drivers/staging/media/tegra-vde/
- 
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@kernel.org>
--P:	LinuxTV.org Project
-+E:	LinuxTV.org Project
- L:	linux-media@vger.kernel.org
- W:	https://linuxtv.org
- Q:	http://patchwork.kernel.org/project/linux-media/list/
-@@ -12465,7 +12465,7 @@ S:	Maintained
- F:	arch/mips/ralink
- 
- RALINK RT2X00 WIRELESS LAN DRIVER
--P:	rt2x00 project
-+E:	rt2x00 project
- M:	Stanislaw Gruszka <sgruszka@redhat.com>
- M:	Helmut Schaa <helmut.schaa@googlemail.com>
- L:	linux-wireless@vger.kernel.org
-@@ -12764,7 +12764,7 @@ S:	Supported
- F:	drivers/net/ethernet/rocker/
- 
- ROCKETPORT DRIVER
--P:	Comtrol Corp.
-+E:	Comtrol Corp.
- W:	http://www.comtrol.com
- S:	Maintained
- F:	Documentation/serial/rocket.txt
-@@ -13577,15 +13577,15 @@ F:	drivers/video/fbdev/simplefb.c
- F:	include/linux/platform_data/simplefb.h
- 
- SIMTEC EB110ATX (Chalice CATS)
--P:	Ben Dooks
--P:	Vincent Sanders <vince@simtec.co.uk>
-+E:	Ben Dooks
-+M:	Vincent Sanders <vince@simtec.co.uk>
- M:	Simtec Linux Team <linux@simtec.co.uk>
- W:	http://www.simtec.co.uk/products/EB110ATX/
- S:	Supported
- 
- SIMTEC EB2410ITX (BAST)
--P:	Ben Dooks
--P:	Vincent Sanders <vince@simtec.co.uk>
-+E:	Ben Dooks
-+M:	Vincent Sanders <vince@simtec.co.uk>
- M:	Simtec Linux Team <linux@simtec.co.uk>
- W:	http://www.simtec.co.uk/products/EB2410ITX/
- S:	Supported
 
+> > ------------------ original commit in Linus's tree ------------------
+> > 
+> > >From 25bbe21bf427a81b8e3ccd480ea0e1d940256156 Mon Sep 17 00:00:00 2001
+> > From: Matthew Wilcox <willy@infradead.org>
+> > Date: Fri, 16 Nov 2018 15:50:02 -0500
+> > Subject: [PATCH] dax: Avoid losing wakeup in dax_lock_mapping_entry
+> > 
+> > After calling get_unlocked_entry(), you have to call
+> > put_unlocked_entry() to avoid subsequent waiters losing wakeups.
+> > 
+> > Fixes: c2a7d2a11552 ("filesystem-dax: Introduce dax_lock_mapping_entry()")
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Matthew Wilcox <willy@infradead.org>
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index cf2394e2bf4b..9bcce89ea18e 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -391,6 +391,7 @@ bool dax_lock_mapping_entry(struct page *page)
+> >  			rcu_read_unlock();
+> >  			entry = get_unlocked_entry(&xas);
+> >  			xas_unlock_irq(&xas);
+> > +			put_unlocked_entry(&xas, entry);
+> >  			rcu_read_lock();
+> >  			continue;
+> >  		}
+> > 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
