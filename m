@@ -1,16 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from smtprelay.hostedemail.com (smtprelay0042.hostedemail.com
+ [216.40.44.42])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9CB792097E25C
- for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:47 -0800 (PST)
-Subject: [driver-core PATCH v7 8/9] PM core: Use new async_schedule_dev command
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 28 Nov 2018 16:32:47 -0800
-Message-ID: <154345156732.18040.4213636216002711880.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 20FA02118F77F
+ for <linux-nvdimm@lists.01.org>; Mon, 26 Nov 2018 07:55:14 -0800 (PST)
+Message-ID: <52ff06c49ec35599b3c8edf3bd3d1acbb9397c91.camel@perches.com>
+Subject: Re: [Ksummit-discuss] [RFC PATCH 3/3] libnvdimm, MAINTAINERS:
+ Subsystem Profile
+From: Joe Perches <joe@perches.com>
+Date: Mon, 26 Nov 2018 07:55:10 -0800
+In-Reply-To: <20181126091229.04b5dce0@coco.lan>
+References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAMuHMdVOJsM=66RrnbOzVthsT9=dFRQtL2rv99tCPC02M=hiXw@mail.gmail.com>
+ <20181115061036.1575223d@silica.lan>
+ <20181115162008.GO3759@mtr-leonro.mtl.com>
+ <CABVU7+twSz3OZx7PTO+bS-wfLfTTjZVhRAnhgtcs6KWwntattw@mail.gmail.com>
+ <CAPcyv4hWK+to6vOSfSdeVMDzUutYwg9=XqshSDzaCf0c-u8jLA@mail.gmail.com>
+ <20181118110324.543edbd8@coco.lan> <8736rwgoem.fsf@intel.com>
+ <20181126091229.04b5dce0@coco.lan>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,82 +32,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Jani Nikula <jani.nikula@intel.com>
+Cc: zwisler@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ksummit <ksummit-discuss@lists.linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the device specific version of the async_schedule commands to defer
-various tasks related to power management. By doing this we should see a
-slight improvement in performance as any device that is sensitive to
-latency/locality in the setup will now be initializing on the node closest
-to the device.
+On Mon, 2018-11-26 at 09:12 -0200, Mauro Carvalho Chehab wrote:
+> Hi Jani,
+> 
+> Em Tue, 20 Nov 2018 10:10:25 +0200
+> Jani Nikula <jani.nikula@intel.com> escreveu:
+> 
+> > On Sun, 18 Nov 2018, Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
+> > > Hmm.. Perhaps the subsystem profile should point to IRC channels if any?
+> > > Several subsystems use them in order to provide newbies some directions
+> > > and to discuss other development issues.  
+> > 
+> > MAINTAINERS:
+> > 
+> > 	C: URI for chat protocol, server and channel where developers
+> > 	   usually hang out, for example irc://server/channel.
+> > 
+> > Alas very few subsystems have added that.
+> > 
+> > I actually fear very few subsystems will add a subsystem profile for
+> > that matter.
+> 
+> Sorry for a late reply. In the case of the media subsystem, we
+> actually use 2 different channels, one when the matter is related
+> to digital TV (#linuxtv) and another one for the rest (#v4l), both
+> at freenode.
+> 
+> That's something that wouldn't fit well into MAINTAINERS file, as
+> we can't explain what should be used for each.
+> 
+> So, the way it is it won't work well for us.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/power/main.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+So maybe add a comment to both like:
 
-diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-index a690fd400260..ebb8b61b52e9 100644
---- a/drivers/base/power/main.c
-+++ b/drivers/base/power/main.c
-@@ -726,7 +726,7 @@ void dpm_noirq_resume_devices(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_noirq, dev);
-+			async_schedule_dev(async_resume_noirq, dev);
- 		}
- 	}
- 
-@@ -883,7 +883,7 @@ void dpm_resume_early(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_early, dev);
-+			async_schedule_dev(async_resume_early, dev);
- 		}
- 	}
- 
-@@ -1047,7 +1047,7 @@ void dpm_resume(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume, dev);
-+			async_schedule_dev(async_resume, dev);
- 		}
- 	}
- 
-@@ -1366,7 +1366,7 @@ static int device_suspend_noirq(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_noirq, dev);
-+		async_schedule_dev(async_suspend_noirq, dev);
- 		return 0;
- 	}
- 	return __device_suspend_noirq(dev, pm_transition, false);
-@@ -1569,7 +1569,7 @@ static int device_suspend_late(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_late, dev);
-+		async_schedule_dev(async_suspend_late, dev);
- 		return 0;
- 	}
- 
-@@ -1833,7 +1833,7 @@ static int device_suspend(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend, dev);
-+		async_schedule_dev(async_suspend, dev);
- 		return 0;
- 	}
- 
+C:	<URI1>		# only for digital tv #linuxtv
+C:	<URI2>		# everything else
+
 
 _______________________________________________
 Linux-nvdimm mailing list
