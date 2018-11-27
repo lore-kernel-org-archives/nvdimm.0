@@ -1,36 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
+ [IPv6:2607:f8b0:4864:20::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DD5921196207
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 11:35:10 -0800 (PST)
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
- by mx0b-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
- wARJSlD1044898
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:35:09 -0500
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
- by mx0b-001b2d01.pphosted.com with ESMTP id 2p1bant3fj-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:35:09 -0500
-Received: from localhost
- by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <zohar@linux.ibm.com>;
- Tue, 27 Nov 2018 19:35:07 -0000
-Subject: Re: [PATCH 01/11] keys-encrypted: add nvdimm key format type to
- encrypted keys
-From: Mimi Zohar <zohar@linux.ibm.com>
-Date: Tue, 27 Nov 2018 14:35:02 -0500
-In-Reply-To: <CAPcyv4i5=tAx6=W44Vva7=0GO9A=j0w5vEEYMMv3NnC9_fMz6g@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E4B62194D3AE
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 11:11:06 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id c206so20347465oib.0
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 11:11:06 -0800 (PST)
+MIME-Version: 1.0
 References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
  <154180163107.70506.6894134402057805078.stgit@djiang5-desk3.ch.intel.com>
  <CAPcyv4iKQW+zG1mS-vdbXuU1BE0bQ-zDJt1uQBo6EHkvMF5Y_Q@mail.gmail.com>
  <5c0d66c2-d628-54eb-b16e-8a6a8eb990c1@intel.com>
  <1543343054.3902.192.camel@linux.ibm.com>
- <CAPcyv4i5=tAx6=W44Vva7=0GO9A=j0w5vEEYMMv3NnC9_fMz6g@mail.gmail.com>
-Mime-Version: 1.0
-Message-Id: <1543347302.3902.202.camel@linux.ibm.com>
+In-Reply-To: <1543343054.3902.192.camel@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Nov 2018 11:10:53 -0800
+Message-ID: <CAPcyv4i5=tAx6=W44Vva7=0GO9A=j0w5vEEYMMv3NnC9_fMz6g@mail.gmail.com>
+Subject: Re: [PATCH 01/11] keys-encrypted: add nvdimm key format type to
+ encrypted keys
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -38,115 +26,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: zohar@linux.ibm.com
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>, keyrings@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE4LTExLTI3IGF0IDExOjEwIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4g
-T24gVHVlLCBOb3YgMjcsIDIwMTggYXQgMTA6MjQgQU0gTWltaSBab2hhciA8em9oYXJAbGludXgu
-aWJtLmNvbT4gd3JvdGU6Cj4gPgo+ID4gT24gVHVlLCAyMDE4LTExLTI3IGF0IDA5OjIwIC0wNzAw
-LCBEYXZlIEppYW5nIHdyb3RlOgo+ID4gPgo+ID4gPiBPbiAxMS8yNy8xOCAxMjoyMCBBTSwgRGFu
-IFdpbGxpYW1zIHdyb3RlOgo+ID4gPiA+IE9uIEZyaSwgTm92IDksIDIwMTggYXQgMjoxMyBQTSBE
-YXZlIEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4gd3JvdGU6Cj4gPiA+ID4+Cj4gPiA+ID4+
-IEFkZGluZyBudmRpbW0ga2V5IGZvcm1hdCB0eXBlIHRvIGVuY3J5cHRlZCBrZXlzIGluIG9yZGVy
-IHRvIGxpbWl0IHRoZSBzaXplCj4gPiA+ID4KPiA+ID4gPiBzL0FkZGluZy9BZGQgYW4vCj4gPiA+
-ID4KPiA+ID4gPj4gb2YgdGhlIGtleSB0byAzMi1ieXRlcy4KPiA+ID4gPj4KPiA+ID4gPj4gU2ln
-bmVkLW9mZi1ieTogRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+Cj4gPiA+ID4+IC0t
-LQo+ID4gPiA+PiAgc2VjdXJpdHkva2V5cy9lbmNyeXB0ZWQta2V5cy9lbmNyeXB0ZWQuYyB8ICAg
-MjkgKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0KPiA+ID4gPj4gIDEgZmlsZSBjaGFuZ2Vk
-LCAyMCBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQo+ID4gPiA+Pgo+ID4gPiA+PiBkaWZm
-IC0tZ2l0IGEvc2VjdXJpdHkva2V5cy9lbmNyeXB0ZWQta2V5cy9lbmNyeXB0ZWQuYyBiL3NlY3Vy
-aXR5L2tleXMvZW5jcnlwdGVkLWtleXMvZW5jcnlwdGVkLmMKPiA+ID4gPj4gaW5kZXggZDkyY2Jm
-OTY4N2MzLi4xODJiNGYxMzZiZGYgMTAwNjQ0Cj4gPiA+ID4+IC0tLSBhL3NlY3VyaXR5L2tleXMv
-ZW5jcnlwdGVkLWtleXMvZW5jcnlwdGVkLmMKPiA+ID4gPj4gKysrIGIvc2VjdXJpdHkva2V5cy9l
-bmNyeXB0ZWQta2V5cy9lbmNyeXB0ZWQuYwo+ID4gPiA+PiBAQCAtNDUsNiArNDUsNyBAQCBzdGF0
-aWMgY29uc3QgY2hhciBobWFjX2FsZ1tdID0gImhtYWMoc2hhMjU2KSI7Cj4gPiA+ID4+ICBzdGF0
-aWMgY29uc3QgY2hhciBibGtjaXBoZXJfYWxnW10gPSAiY2JjKGFlcykiOwo+ID4gPiA+PiAgc3Rh
-dGljIGNvbnN0IGNoYXIga2V5X2Zvcm1hdF9kZWZhdWx0W10gPSAiZGVmYXVsdCI7Cj4gPiA+ID4+
-ICBzdGF0aWMgY29uc3QgY2hhciBrZXlfZm9ybWF0X2VjcnlwdGZzW10gPSAiZWNyeXB0ZnMiOwo+
-ID4gPiA+PiArc3RhdGljIGNvbnN0IGNoYXIga2V5X2Zvcm1hdF9udmRpbW1bXSA9ICJudmRpbW0i
-Owo+ID4gPiA+PiAgc3RhdGljIHVuc2lnbmVkIGludCBpdnNpemU7Cj4gPiA+ID4+ICBzdGF0aWMg
-aW50IGJsa3NpemU7Cj4gPiA+ID4+Cj4gPiA+ID4+IEBAIC01NCw2ICs1NSw3IEBAIHN0YXRpYyBp
-bnQgYmxrc2l6ZTsKPiA+ID4gPj4gICNkZWZpbmUgSEFTSF9TSVpFIFNIQTI1Nl9ESUdFU1RfU0la
-RQo+ID4gPiA+PiAgI2RlZmluZSBNQVhfREFUQV9TSVpFIDQwOTYKPiA+ID4gPj4gICNkZWZpbmUg
-TUlOX0RBVEFfU0laRSAgMjAKPiA+ID4gPj4gKyNkZWZpbmUgS0VZX05WRElNTV9QQVlMT0FEX0xF
-TiAzMgo+ID4gPiA+Pgo+ID4gPiA+PiAgc3RhdGljIHN0cnVjdCBjcnlwdG9fc2hhc2ggKmhhc2hf
-dGZtOwo+ID4gPiA+Pgo+ID4gPiA+PiBAQCAtNjIsMTIgKzY0LDEzIEBAIGVudW0gewo+ID4gPiA+
-PiAgfTsKPiA+ID4gPj4KPiA+ID4gPj4gIGVudW0gewo+ID4gPiA+PiAtICAgICAgIE9wdF9lcnJv
-ciA9IC0xLCBPcHRfZGVmYXVsdCwgT3B0X2VjcnlwdGZzCj4gPiA+ID4+ICsgICAgICAgT3B0X2Vy
-cm9yID0gLTEsIE9wdF9kZWZhdWx0LCBPcHRfZWNyeXB0ZnMsIE9wdF9udmRpbW0KPiA+ID4gPj4g
-IH07Cj4gPiA+ID4+Cj4gPiA+ID4+ICBzdGF0aWMgY29uc3QgbWF0Y2hfdGFibGVfdCBrZXlfZm9y
-bWF0X3Rva2VucyA9IHsKPiA+ID4gPj4gICAgICAgICB7T3B0X2RlZmF1bHQsICJkZWZhdWx0In0s
-Cj4gPiA+ID4+ICAgICAgICAge09wdF9lY3J5cHRmcywgImVjcnlwdGZzIn0sCj4gPiA+ID4+ICsg
-ICAgICAge09wdF9udmRpbW0sICJudmRpbW0ifSwKPiA+ID4gPj4gICAgICAgICB7T3B0X2Vycm9y
-LCBOVUxMfQo+ID4gPiA+PiAgfTsKPiA+ID4gPj4KPiA+ID4gPj4gQEAgLTE5NSw2ICsxOTgsNyBA
-QCBzdGF0aWMgaW50IGRhdGFibG9iX3BhcnNlKGNoYXIgKmRhdGFibG9iLCBjb25zdCBjaGFyICoq
-Zm9ybWF0LAo+ID4gPiA+PiAgICAgICAgIGtleV9mb3JtYXQgPSBtYXRjaF90b2tlbihwLCBrZXlf
-Zm9ybWF0X3Rva2VucywgYXJncyk7Cj4gPiA+ID4+ICAgICAgICAgc3dpdGNoIChrZXlfZm9ybWF0
-KSB7Cj4gPiA+ID4+ICAgICAgICAgY2FzZSBPcHRfZWNyeXB0ZnM6Cj4gPiA+ID4+ICsgICAgICAg
-Y2FzZSBPcHRfbnZkaW1tOgo+ID4gPiA+PiAgICAgICAgIGNhc2UgT3B0X2RlZmF1bHQ6Cj4gPiA+
-ID4+ICAgICAgICAgICAgICAgICAqZm9ybWF0ID0gcDsKPiA+ID4gPj4gICAgICAgICAgICAgICAg
-ICptYXN0ZXJfZGVzYyA9IHN0cnNlcCgmZGF0YWJsb2IsICIgXHQiKTsKPiA+ID4gPj4gQEAgLTYy
-NSwxNSArNjI5LDIyIEBAIHN0YXRpYyBzdHJ1Y3QgZW5jcnlwdGVkX2tleV9wYXlsb2FkICplbmNy
-eXB0ZWRfa2V5X2FsbG9jKHN0cnVjdCBrZXkgKmtleSwKPiA+ID4gPj4gICAgICAgICBmb3JtYXRf
-bGVuID0gKCFmb3JtYXQpID8gc3RybGVuKGtleV9mb3JtYXRfZGVmYXVsdCkgOiBzdHJsZW4oZm9y
-bWF0KTsKPiA+ID4gPj4gICAgICAgICBkZWNyeXB0ZWRfZGF0YWxlbiA9IGRsZW47Cj4gPiA+ID4+
-ICAgICAgICAgcGF5bG9hZF9kYXRhbGVuID0gZGVjcnlwdGVkX2RhdGFsZW47Cj4gPiA+ID4+IC0g
-ICAgICAgaWYgKGZvcm1hdCAmJiAhc3RyY21wKGZvcm1hdCwga2V5X2Zvcm1hdF9lY3J5cHRmcykp
-IHsKPiA+ID4gPj4gLSAgICAgICAgICAgICAgIGlmIChkbGVuICE9IEVDUllQVEZTX01BWF9LRVlf
-QllURVMpIHsKPiA+ID4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgcHJfZXJyKCJlbmNyeXB0
-ZWRfa2V5OiBrZXlsZW4gZm9yIHRoZSBlY3J5cHRmcyBmb3JtYXQgIgo+ID4gPiA+PiAtICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIm11c3QgYmUgZXF1YWwgdG8gJWQgYnl0ZXNcbiIsCj4g
-PiA+ID4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBFQ1JZUFRGU19NQVhfS0VZX0JZ
-VEVTKTsKPiA+ID4gPj4gLSAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIEVSUl9QVFIoLUVJ
-TlZBTCk7Cj4gPiA+ID4+ICsgICAgICAgaWYgKGZvcm1hdCkgewo+ID4gPiA+PiArICAgICAgICAg
-ICAgICAgaWYgKCFzdHJjbXAoZm9ybWF0LCBrZXlfZm9ybWF0X2VjcnlwdGZzKSkgewo+ID4gPiA+
-PiArICAgICAgICAgICAgICAgICAgICAgICBpZiAoZGxlbiAhPSBFQ1JZUFRGU19NQVhfS0VZX0JZ
-VEVTKSB7Cj4gPiA+ID4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcHJfZXJyKCJl
-bmNyeXB0ZWRfa2V5OiBrZXlsZW4gZm9yIHRoZSBlY3J5cHRmcyBmb3JtYXQgbXVzdCBiZSBlcXVh
-bCB0byAlZCBieXRlc1xuIiwKPiA+ID4gPj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIEVDUllQVEZTX01BWF9LRVlfQllURVMpOwo+ID4gPiA+PiArICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwo+ID4gPiA+PiArICAg
-ICAgICAgICAgICAgICAgICAgICB9Cj4gPiA+ID4+ICsgICAgICAgICAgICAgICAgICAgICAgIGRl
-Y3J5cHRlZF9kYXRhbGVuID0gRUNSWVBURlNfTUFYX0tFWV9CWVRFUzsKPiA+ID4gPj4gKyAgICAg
-ICAgICAgICAgICAgICAgICAgcGF5bG9hZF9kYXRhbGVuID0gc2l6ZW9mKHN0cnVjdCBlY3J5cHRm
-c19hdXRoX3Rvayk7Cj4gPiA+ID4+ICsgICAgICAgICAgICAgICB9IGVsc2UgaWYgKCFzdHJjbXAo
-Zm9ybWF0LCBrZXlfZm9ybWF0X252ZGltbSkpIHsKPiA+ID4gPj4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgaWYgKGRlY3J5cHRlZF9kYXRhbGVuICE9IEtFWV9OVkRJTU1fUEFZTE9BRF9MRU4pIHsK
-PiA+ID4gPj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwcl9lcnIoImVuY3J5cHRl
-ZF9rZXk6IG52ZGltbSBrZXkgcGF5bG9hZCBpbmNvcnJlY3QgbGVuZ3RoOiAlZFxuIiwKPiA+ID4g
-Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZGVjcnlw
-dGVkX2RhdGFsZW4pOwo+ID4gPiA+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJl
-dHVybiBFUlJfUFRSKC1FSU5WQUwpOwo+ID4gPiA+PiArICAgICAgICAgICAgICAgICAgICAgICB9
-Cj4gPiA+ID4KPiA+ID4gPiBJIHN1c3BlY3QgdGhpcyBtYXkgbm90IGJlIHRoZSBsYXN0IGtleSB0
-eXBlIHRoYXQgZ2V0cyBhZGRlZCwgYnV0IEkKPiA+ID4gPiB3b25kZXIgaWYgd2Ugc2hvdWxkIGlu
-c3RlYWQgY3JlYXRlIGtleS10eXBlcyBiYXNlZCBvbiB0aGUgZGxlbiBzaXplLgo+ID4gPiA+IEku
-ZS4gY3JlYXRlIGEgZ2VuZXJpYyAzMi1ieXRlIGtleS10eXBlICJlbmMzMiI/IFRoYXQgd2F5IGlm
-IGFub3RoZXIKPiA+ID4gPiAzMi1ieXRlIHJlcXVpcmVtZW50IGtleSBjb21lcyBhbG9uZyB3ZSBk
-b24ndCBuZWVkIHRvIGNvbWUgdG91Y2ggdGhpcwo+ID4gPiA+IHJvdXRpbmUgYWdhaW4uCj4gPiA+
-ID4KPiA+ID4KPiA+ID4gSSdtIG9rIHdpdGggdGhhdCBpZiBNaW1pIGlzLgo+ID4KPiA+IElmIHRo
-ZSB1c2FnZSAoZWcuIGZvcm1hdDogZWNyeXB0ZnMsIG52ZGltbSkgbGltaXRzIHRoZSBkbGVuIHNp
-emUocyksCj4gPiBob3cgd2lsbCBkZWZpbmluZyBnZW5lcmljIGtleS10eXBlcyBoZWxwPyAgSWYg
-dGhlcmUgYXJlIG5vIHVzYWdlIHNpemUKPiA+IGxpbWl0YXRpb25zLCB0aGVuIHRoZXJlIHdvdWxk
-IGJlIG5vIHVzYWdlIHNwZWNpZmljIGRlZmluaXRpb24uCj4gPgo+ID4gSSBtdXN0IGJlIG1pc3Np
-bmcgc29tZXRoaW5nLgo+IAo+IC4uLm9yIEkgZGlkIGEgcG9vciBqb2Igb2YgZGVzY3JpYmluZyB0
-aGUgcHJvYmxlbS4gSSdtIGp1c3QgbG9va2luZwo+IGFoZWFkIHRvIGFub3RoZXIgcG90ZW50aWFs
-IGVuY3J5cHRlZC1rZXkgdXNlIGNhc2UsIGJ1dCBpbnN0ZWFkIG9mCj4gbnZkaW1tcyB0aGlzIHdv
-dWxkIGJlIHRvIGxvY2sgLyB1bmxvY2sgcGVyc2lzdGVudCBtZW1vcnkgIm5hbWVzcGFjZSIKPiBv
-YmplY3RzLiBJZiBpdCB0dXJucyBvdXQgdGhlIG5hbWVzcGFjZSBrZXkgaXMganVzdCBhbm90aGVy
-IDMyLWJ5dGUKPiBlbmNyeXB0ZWQga2V5IHNob3VsZCB0aGUgZW5jcnlwdGVkLWtleXMgY29yZSBn
-cm93IHN1cHBvcnQgZm9yIGEgbmV3Cj4gIm5hbWVzcGFjZSIga2V5IHR5cGUsIHNob3VsZCBpdCBy
-ZXVzZSB0aGUgIm52ZGltbSIga2V5IHR5cGUsIG9yIHNob3VsZAo+IHdlIGRlZmluZSBhIGdlbmVy
-aWMgMzItYnl0ZSBwYXlsb2FkLXNpemUtcmVxdWlyZW1lbnQga2V5IHR5cGU/CgpFdmVuIHdpdGgg
-YSBnZW5lcmljIGxlbmd0aCwgdGhlcmUgd2lsbCBiZSBmb3JtYXQgKGVnLiBlY3J5cHRmcywKbnZk
-aW1tLCBuYW1lc3BhY2UpIHNwZWNpZmljIGNvZGUuIMKgT3RoZXJ3aXNlIHlvdSB3b3VsZG4ndCBi
-ZSBkZWZpbmluZwphIG5ldyBmb3JtYXQgdHlwZS4KCnN3aXRjaChkbGVuKSB7CgljYXNlIGVuYzMy
-OgoJCWlmIChlY3J5cHRmcykgZ290byBmYWlsOwoJCS4uLgoJCWJyZWFrOwoJY2FzZSBlbmM2NDoK
-CQlpZiAobnZkaW1tIHx8IG5zKSBnb3RvIGZhaWw7CgkJLi4uCgkJYnJlYWs7CglkZWZhdWx0Ogp9
-CgpNaW1pCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Tue, Nov 27, 2018 at 10:24 AM Mimi Zohar <zohar@linux.ibm.com> wrote:
+>
+> On Tue, 2018-11-27 at 09:20 -0700, Dave Jiang wrote:
+> >
+> > On 11/27/18 12:20 AM, Dan Williams wrote:
+> > > On Fri, Nov 9, 2018 at 2:13 PM Dave Jiang <dave.jiang@intel.com> wrote:
+> > >>
+> > >> Adding nvdimm key format type to encrypted keys in order to limit the size
+> > >
+> > > s/Adding/Add an/
+> > >
+> > >> of the key to 32-bytes.
+> > >>
+> > >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> > >> ---
+> > >>  security/keys/encrypted-keys/encrypted.c |   29 ++++++++++++++++++++---------
+> > >>  1 file changed, 20 insertions(+), 9 deletions(-)
+> > >>
+> > >> diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
+> > >> index d92cbf9687c3..182b4f136bdf 100644
+> > >> --- a/security/keys/encrypted-keys/encrypted.c
+> > >> +++ b/security/keys/encrypted-keys/encrypted.c
+> > >> @@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
+> > >>  static const char blkcipher_alg[] = "cbc(aes)";
+> > >>  static const char key_format_default[] = "default";
+> > >>  static const char key_format_ecryptfs[] = "ecryptfs";
+> > >> +static const char key_format_nvdimm[] = "nvdimm";
+> > >>  static unsigned int ivsize;
+> > >>  static int blksize;
+> > >>
+> > >> @@ -54,6 +55,7 @@ static int blksize;
+> > >>  #define HASH_SIZE SHA256_DIGEST_SIZE
+> > >>  #define MAX_DATA_SIZE 4096
+> > >>  #define MIN_DATA_SIZE  20
+> > >> +#define KEY_NVDIMM_PAYLOAD_LEN 32
+> > >>
+> > >>  static struct crypto_shash *hash_tfm;
+> > >>
+> > >> @@ -62,12 +64,13 @@ enum {
+> > >>  };
+> > >>
+> > >>  enum {
+> > >> -       Opt_error = -1, Opt_default, Opt_ecryptfs
+> > >> +       Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_nvdimm
+> > >>  };
+> > >>
+> > >>  static const match_table_t key_format_tokens = {
+> > >>         {Opt_default, "default"},
+> > >>         {Opt_ecryptfs, "ecryptfs"},
+> > >> +       {Opt_nvdimm, "nvdimm"},
+> > >>         {Opt_error, NULL}
+> > >>  };
+> > >>
+> > >> @@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
+> > >>         key_format = match_token(p, key_format_tokens, args);
+> > >>         switch (key_format) {
+> > >>         case Opt_ecryptfs:
+> > >> +       case Opt_nvdimm:
+> > >>         case Opt_default:
+> > >>                 *format = p;
+> > >>                 *master_desc = strsep(&datablob, " \t");
+> > >> @@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
+> > >>         format_len = (!format) ? strlen(key_format_default) : strlen(format);
+> > >>         decrypted_datalen = dlen;
+> > >>         payload_datalen = decrypted_datalen;
+> > >> -       if (format && !strcmp(format, key_format_ecryptfs)) {
+> > >> -               if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> > >> -                       pr_err("encrypted_key: keylen for the ecryptfs format "
+> > >> -                              "must be equal to %d bytes\n",
+> > >> -                              ECRYPTFS_MAX_KEY_BYTES);
+> > >> -                       return ERR_PTR(-EINVAL);
+> > >> +       if (format) {
+> > >> +               if (!strcmp(format, key_format_ecryptfs)) {
+> > >> +                       if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> > >> +                               pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
+> > >> +                                       ECRYPTFS_MAX_KEY_BYTES);
+> > >> +                               return ERR_PTR(-EINVAL);
+> > >> +                       }
+> > >> +                       decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
+> > >> +                       payload_datalen = sizeof(struct ecryptfs_auth_tok);
+> > >> +               } else if (!strcmp(format, key_format_nvdimm)) {
+> > >> +                       if (decrypted_datalen != KEY_NVDIMM_PAYLOAD_LEN) {
+> > >> +                               pr_err("encrypted_key: nvdimm key payload incorrect length: %d\n",
+> > >> +                                               decrypted_datalen);
+> > >> +                               return ERR_PTR(-EINVAL);
+> > >> +                       }
+> > >
+> > > I suspect this may not be the last key type that gets added, but I
+> > > wonder if we should instead create key-types based on the dlen size.
+> > > I.e. create a generic 32-byte key-type "enc32"? That way if another
+> > > 32-byte requirement key comes along we don't need to come touch this
+> > > routine again.
+> > >
+> >
+> > I'm ok with that if Mimi is.
+>
+> If the usage (eg. format: ecryptfs, nvdimm) limits the dlen size(s),
+> how will defining generic key-types help?  If there are no usage size
+> limitations, then there would be no usage specific definition.
+>
+> I must be missing something.
+
+...or I did a poor job of describing the problem. I'm just looking
+ahead to another potential encrypted-key use case, but instead of
+nvdimms this would be to lock / unlock persistent memory "namespace"
+objects. If it turns out the namespace key is just another 32-byte
+encrypted key should the encrypted-keys core grow support for a new
+"namespace" key type, should it reuse the "nvdimm" key type, or should
+we define a generic 32-byte payload-size-requirement key type?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
