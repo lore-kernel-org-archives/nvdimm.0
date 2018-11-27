@@ -1,14 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it1-x144.google.com (mail-it1-x144.google.com
+ [IPv6:2607:f8b0:4864:20::144])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C3AA32119623D
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:52:48 -0800 (PST)
-Subject: [mm PATCH v6 0/7] Deferred page init improvements
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 30 Nov 2018 13:52:48 -0800
-Message-ID: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BC48221A07A82
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 05:27:23 -0800 (PST)
+Received: by mail-it1-x144.google.com with SMTP id g85so34122469ita.3
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 05:27:23 -0800 (PST)
 MIME-Version: 1.0
+References: <20181119080056.13386-1-oohall@gmail.com>
+ <20181119080056.13386-2-oohall@gmail.com>
+ <CAPcyv4idzcVa8XnA1G8DjEux=RRvCi_wF8hBk=4jmg1JFuRdDA@mail.gmail.com>
+In-Reply-To: <CAPcyv4idzcVa8XnA1G8DjEux=RRvCi_wF8hBk=4jmg1JFuRdDA@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Wed, 28 Nov 2018 00:27:11 +1100
+Message-ID: <CAOSf1CH1yGws3c0aOJZCLvsUxf5mvqtkQpe3CY7KS7UdKjMjuQ@mail.gmail.com>
+Subject: Re: [PATCH 2/4] ndctl/namespace: Check for seed namespaces earlier
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,92 +27,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patchset is essentially a refactor of the page initialization logic
-that is meant to provide for better code reuse while providing a
-significant improvement in deferred page initialization performance.
+On Mon, Nov 26, 2018 at 7:12 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> On Mon, Nov 19, 2018 at 12:11 AM Oliver O'Halloran <oohall@gmail.com> wrote:
+> >
+> > When creating an fsdax or devdax namespace we need to verify that the
+> > seed namespaces exist. This patch reworks the validation so that it's
+> > done earlier to simplify the subsequent patches in the series.
+> >
+> > No functional changes.
+>
+> It does appear to have a functional change. do_setup_pfn() supports
+> the case of statically allocated namespaces in NDCTL_NS_MODE_MEMORY
+> mode.
 
-In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
-memory per node I have seen the following. In the case of regular memory
-initialization the deferred init time was decreased from 3.75s to 1.06s on
-average. For the persistent memory the initialization time dropped from
-24.17s to 19.12s on average. This amounts to a 253% improvement for the
-deferred memory initialization performance, and a 26% improvement in the
-persistent memory initialization performance.
+Hmm, ok. Up until now I had assumed that as far as ndctl was concerned
+NS_MODE_MEMORY was synonymous with a pfn namespace.
 
-I have called out the improvement observed with each patch.
+> This is what one gets by default with "legacy" pmem defined as
+> E820-type-12 memory. In that case the kernel assumes that the
+> resulting memmap is always small enough to be allocated from DRAM and
+> there is no need to use a dynamic  pfn device. So, if I'm not
+> mistaken, the deletion of do_setup_pfn() loses that special case
+> handling.
 
-Note: This patch set is meant as a replacment for the v5 set that is already
-      in the MM tree.
-      
-      I had considered just doing incremental changes but Pavel at the time
-      had suggested I submit it as a whole set, however that was almost 3
-      weeks ago so if incremental changes are preferred let me know and
-      I can submit the changes as incremental updates.
-
-      I appologize for the delay in submitting this follow-on set. I had been
-      trying to address the DAX PageReserved bit issue at the same time but
-      that is taking more time than I anticipated so I decided to push this
-      before the code sits too much longer.
-
-      Commit bf416078f1d83 ("mm/page_alloc.c: memory hotplug: free pages as 
-      higher order") causes issues with the revert of patch 7. It was
-      necessary to replace all instances of __free_pages_boot_core with
-      __free_pages_core.
-
-v1->v2:
-    Fixed build issue on PowerPC due to page struct size being 56
-    Added new patch that removed __SetPageReserved call for hotplug
-v2->v3:
-    Rebased on latest linux-next
-    Removed patch that had removed __SetPageReserved call from init
-    Added patch that folded __SetPageReserved into set_page_links
-    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
-v3->v4:
-    Updated patch description and comments for mm_zero_struct_page patch
-        Replaced "default" with "case 64"
-        Removed #ifndef mm_zero_struct_page
-    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
-    Added Reviewed-by for patches reviewed by Pavel
-    Added Acked-by from Michal Hocko
-    Added deferred init times for patches that affect init performance
-    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
-v4->v5:
-    Updated Acks/Reviewed-by
-    Rebased on latest linux-next
-    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
-v5->v6:
-    Rebased on linux-next with previous v5 reverted
-    Drop the "This patch" or "This change" from patch desriptions.
-    Cleaned up patch descriptions for patches 3 & 4
-    Fixed kerneldoc for __next_mem_pfn_range_in_zone
-    Updated several Reviewed-by, and incorporated suggestions from Pavel
-    Added __init_single_page_nolru to patch 5 to consolidate code
-    Refactored iterator in patch 7 and fixed several issues
-
----
-
-Alexander Duyck (7):
-      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-      mm: Drop meminit_pfn_in_nid as it is redundant
-      mm: Implement new zone specific memblock iterator
-      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
-      mm: Move hot-plug specific memory init into separate functions and optimize
-      mm: Add reserved flag setting to set_page_links
-      mm: Use common iterator for deferred_init_pages and deferred_free_pages
-
-
- arch/sparc/include/asm/pgtable_64.h |   30 --
- include/linux/memblock.h            |   41 +++
- include/linux/mm.h                  |   50 +++
- mm/memblock.c                       |   64 ++++
- mm/page_alloc.c                     |  571 +++++++++++++++++++++--------------
- 5 files changed, 498 insertions(+), 258 deletions(-)
-
---
+>From what I see, the main difference is that ndctl would fail
+validation when fsdax mode is specified and there's no pfn namespace
+support in the kernel. I agree that's not great, but I'm not sure what
+we should be doing here. The current behaviour will silently ignore -a
+if "-m fsdax -M mem" is specified in the reconfigure case, which
+doesn't seem great either.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
