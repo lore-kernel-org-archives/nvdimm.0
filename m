@@ -1,16 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
+ [IPv6:2607:f8b0:4864:20::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CF7592118EF65
- for <linux-nvdimm@lists.01.org>; Sat, 17 Nov 2018 18:59:34 -0800 (PST)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fixes for 4.20-rc3
-Date: Sun, 18 Nov 2018 02:59:31 +0000
-Message-ID: <629da405d226a802394ba4e1cba4ff24b8589c85.camel@intel.com>
-Content-Language: en-US
-Content-ID: <D8CE84CF7D9CAC4F8D16492785FE0EF9@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id ACFE121A00AE6
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:26:26 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id u18so20816439oie.10
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:26:26 -0800 (PST)
 MIME-Version: 1.0
+References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ <154170042103.12967.5841784115552956171.stgit@ahduyck-desk1.jf.intel.com>
+ <CAPcyv4ibARHP1Gji2cZQ704BeiKL26Bh13G58eyB+PjQJSD58w@mail.gmail.com>
+ <ec672fcf5924ef267f35b11c13ddc50c815b1a9f.camel@linux.intel.com>
+ <CAPcyv4gKT1CDA-xVh5LCYEVUeXLB5ktCFqpFhPWzNK7+QbQdvw@mail.gmail.com>
+ <e700da0293e8637e56682a4c4c4c37a2929b5efe.camel@linux.intel.com>
+In-Reply-To: <e700da0293e8637e56682a4c4c4c37a2929b5efe.camel@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Nov 2018 14:26:13 -0800
+Message-ID: <CAPcyv4ige6rMf24UCsFG+41FZ4rPb1PHPGKAX_Ttj2MoNYgqgQ@mail.gmail.com>
+Subject: Re: [driver-core PATCH v6 4/9] driver core: Move
+ async_synchronize_full call
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,62 +31,120 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: alexander.h.duyck@linux.intel.com
+Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+On Tue, Nov 27, 2018 at 1:36 PM Alexander Duyck
+<alexander.h.duyck@linux.intel.com> wrote:
+>
+> On Tue, 2018-11-27 at 12:35 -0800, Dan Williams wrote:
+> > On Tue, Nov 27, 2018 at 9:38 AM Alexander Duyck
+> > <alexander.h.duyck@linux.intel.com> wrote:
+> > >
+> > > On Mon, 2018-11-26 at 18:11 -0800, Dan Williams wrote:
+> > > > On Thu, Nov 8, 2018 at 10:07 AM Alexander Duyck
+> > > > <alexander.h.duyck@linux.intel.com> wrote:
+> > > > >
+> > > > > Move the async_synchronize_full call out of __device_release_driver and
+> > > > > into driver_detach.
+> > > > >
+> > > > > The idea behind this is that the async_synchronize_full call will only
+> > > > > guarantee that any existing async operations are flushed. This doesn't do
+> > > > > anything to guarantee that a hotplug event that may occur while we are
+> > > > > doing the release of the driver will not be asynchronously scheduled.
+> > > > >
+> > > > > By moving this into the driver_detach path we can avoid potential deadlocks
+> > > > > as we aren't holding the device lock at this point and we should not have
+> > > > > the driver we want to flush loaded so the flush will take care of any
+> > > > > asynchronous events the driver we are detaching might have scheduled.
+> > > > >
+> > > >
+> > > > What problem is this patch solving in practice, because if there were
+> > > > drivers issuing async work from probe they would need to be
+> > > > responsible for flushing it themselves. That said it seems broken that
+> > > > the async probing infrastructure takes the device_lock inside
+> > > > async_schedule and then holds the lock when calling
+> > > > async_syncrhonize_full. Is it just luck that this hasn't caused
+> > > > deadlocks in practice?
+> > >
+> > > My understanding is that it has caused some deadlocks. There was
+> > > another patch set that Bart Van Assche had submitted that was
+> > > addressing this. I just tweaked my patch set to address both the issues
+> > > he had seen as well as the performance improvements included in my
+> > > original patch set.
+> >
+> > I tried to go find that discussion, but failed. It would help to
+> > report an actual failure rather than a theoretical one.
+>
+> His patch set can be found at:
+> https://patchwork.kernel.org/project/linux-scsi/list/?series=32209&state=*
+>
+> Your comments can be found in patch 3 on how his set and mine were
+> similar, and patch 4 in his set is what I am replacing with patch 4 in
+> this set.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-4.20-rc3
+Thanks, yeah this little backstory should be summarized / linked in
+the patch description for the async scanning ordering change so it's a
+chorus of reports about the deficiencies of the current driver-core
+implementation.
 
-...to receive a small batch of fixes for v4.20-rc3.
+> Actually just looking at it I should probably pull in his "fixes" tag.
 
-These have soaked in -next for a few releases. The overflow
-continuation fix addresses something that has been broken for several
-releases. Arguably it could wait even longer, but it's a one line fix
-and this finishes the last of the known address range scrub bug
-reports. The revert addresses a lockdep regression. The unit tests are
-not critical to fix, but no reason to hold this fix back.
+Perhaps also ask Dmitry to re-ack this new one that includes the early sync.
 
----
+>
+> > > > Given that the device_lock is hidden from lockdep I think it would be
+> > > > helpful to have a custom lock_map_acquire() setup, similar to the
+> > > > workqueue core, to try to keep the locking rules enforced /
+> > > > documented.
+> > > >
+> > > > The only documentation I can find for async-probe deadlock avoidance
+> > > > is the comment block in do_init_module() for async_probe_requested.
+> > >
+> > > Would it make sense to just add any lockdep or deadlock documentation
+> > > as a seperate patch? I can work on it but I am not sure it makes sense
+> > > to add to this patch since there is a chance this one will need to be
+> > > backported to stable at some point.
+> >
+> > Yes, separate follow-on sounds ok.
+> >
+> > > > Stepping back a bit, does this patch have anything to do with the
+> > > > performance improvement, or is it a separate "by the way I also found
+> > > > this" kind of patch?
+> > >
+> > > This is more of a seperate "by the way" type of patch based on the
+> > > discussion Bart and I had about how to best address the issue. There
+> > > may be some improvement since we only call async_synchronize_full once
+> > > and only when we are removing the driver, but I don't think it would be
+> > > very noticable.
+> >
+> > Ok, might be worthwhile to submit this at the front of the series as a
+> > fix that has implications for what comes later. The only concern is
+> > whether this fix stands alone. It would seem to make the possibility
+> > of ->remove() racing ->probe() worse, no? Can we make this change
+> > without the new/proposed ->async_probe tracking infrastructure?
+>
+> Yeah, I might move this up to patch 1 of the set since this is a fix.
+>
+> There end up being a ton of bugs in the way this was originally
+> handled. So for example if I am not mistaken you only hit the flush if
+> we find the dev->driver is already set to the driver we are removing.
+> By moving it to where I did and changing the check so that it is based
+> on the driver we are removing we can guarantee that we force the flush
+> at before we start walking the driver->p->klist_devices list which
+> isn't populated until after a device is probed.
+>
+> As far as ->remove racing with ->probe I don't see this change making
+> it any worse than it was. The same race is still there that was there
+> before. The only difference is that we don't have the false sense of
+> security from having a flush there that doesn't do anything.
+>
 
-The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
-
-  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-4.20-rc3
-
-for you to fetch changes up to 2121db09630113e67b51ae78c18115f1858f648a:
-
-  Revert "acpi, nfit: Further restrict userspace ARS start requests" (2018-11-10 09:54:28 -0800)
-
-----------------------------------------------------------------
-libnvdimm 4.20-rc3
-
-- Address Range Scrub overflow continuation handling has been broken
-  since it was initially merged. It was only recently that error injection
-  and platform-BIOS support enabled this corner case to be exercised.
-
-- The recent attempt to provide more isolation for the kernel Address
-  Range Scrub state machine from userapace initiated sessions triggers a
-  lockdep report. Revert and try again at the next merge window.
-
-- Fix a kasan reported buffer overflow in libnvdimm unit test
-  infrastrucutre (nfit_test)
-
-----------------------------------------------------------------
-Dan Williams (2):
-      acpi, nfit: Fix ARS overflow continuation
-      Revert "acpi, nfit: Further restrict userspace ARS start requests"
-
-Masayoshi Mizuma (1):
-      tools/testing/nvdimm: Fix the array size for dimm devices.
-
- drivers/acpi/nfit/core.c         | 19 +++++--------------
- tools/testing/nvdimm/test/nfit.c |  8 ++++----
- 2 files changed, 9 insertions(+), 18 deletions(-)
+Ok, makes sense, you can add my Reviewed-by to that resend, because
+the fact that the probe takes the device_lock() in the async run queue
+and the remove path takes the device_lock() and then flushes the async
+run queue is an obvious deadlock.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
