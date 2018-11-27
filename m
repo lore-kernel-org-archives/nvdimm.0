@@ -1,28 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
+ [IPv6:2607:f8b0:4864:20::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7189421191F29
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 12:10:44 -0800 (PST)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
- by mx0b-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
- wARK9sdN094004
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 15:10:43 -0500
-Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
- by mx0b-001b2d01.pphosted.com with ESMTP id 2p1ch98m9v-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 15:10:43 -0500
-Received: from localhost
- by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <zohar@linux.ibm.com>;
- Tue, 27 Nov 2018 20:10:41 -0000
-Subject: Re: [PATCH 01/11] keys-encrypted: add nvdimm key format type to
- encrypted keys
-From: Mimi Zohar <zohar@linux.ibm.com>
-Date: Tue, 27 Nov 2018 15:10:35 -0500
-In-Reply-To: <CAPcyv4gXYDye7VhyL4yRpPATaZciJrZxLXZqSVx47on8Ag2KpA@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1FEF121193782
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 11:49:02 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id v6so20430657oif.2
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 11:49:02 -0800 (PST)
+MIME-Version: 1.0
 References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
  <154180163107.70506.6894134402057805078.stgit@djiang5-desk3.ch.intel.com>
  <CAPcyv4iKQW+zG1mS-vdbXuU1BE0bQ-zDJt1uQBo6EHkvMF5Y_Q@mail.gmail.com>
@@ -30,9 +15,12 @@ References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel
  <1543343054.3902.192.camel@linux.ibm.com>
  <CAPcyv4i5=tAx6=W44Vva7=0GO9A=j0w5vEEYMMv3NnC9_fMz6g@mail.gmail.com>
  <1543347302.3902.202.camel@linux.ibm.com>
- <CAPcyv4gXYDye7VhyL4yRpPATaZciJrZxLXZqSVx47on8Ag2KpA@mail.gmail.com>
-Mime-Version: 1.0
-Message-Id: <1543349435.3902.208.camel@linux.ibm.com>
+In-Reply-To: <1543347302.3902.202.camel@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Nov 2018 11:48:49 -0800
+Message-ID: <CAPcyv4gXYDye7VhyL4yRpPATaZciJrZxLXZqSVx47on8Ag2KpA@mail.gmail.com>
+Subject: Re: [PATCH 01/11] keys-encrypted: add nvdimm key format type to
+ encrypted keys
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -40,27 +28,154 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: zohar@linux.ibm.com
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>, keyrings@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVHVlLCAyMDE4LTExLTI3IGF0IDExOjQ4IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cgo+
-IEkgd2FzIHRoaW5raW5nIHRoYXQgdGhlIGdlbmVyaWMtbGVuZ3RoICppcyogdGhlIGZvcm1hdC4g
-VGhpcyBkb2VzIG5vdAo+IHdvcmsgZm9yIGVjeXB0ZnMgYmVjYXVzZSBpdCBoYXMgdGhhdDoKPiAK
-PiAgICAgcGF5bG9hZF9kYXRhbGVuID0gc2l6ZW9mKHN0cnVjdCBlY3J5cHRmc19hdXRoX3Rvayk7
-Cj4gCj4gLi4uZGV0YWlsIHRoYXQgaXMgZWNyeXB0ZnMgc3BlY2lmaWMuIEZvciBudmRpbW0gdGhl
-IG9ubHkgZGV0YWlsIG9mIHRoZQo+IGZvcm1hdCBpcyB0aGUgZGVjcnlwdGVkLWRhdGEtbGVuZ3Ro
-LiAgSG93ZXZlciwgSSBnZXQgdGhlIGZlZWxpbmcgSSdtCj4gcHJvcG9zaW5nIGEgc29sdXRpb24g
-dG8gYSBwcm9ibGVtIHRoYXQgZG9lcyBub3QgZXhpc3QgeWV0LiBMZXQncyBqdXN0Cj4gZ28gd2l0
-aCB0aGUgIm52ZGltbSIgZm9ybWF0IGZvciBub3cuCgpBaCwgdGhhdCBtYWtlcyBtb3JlIHNlbnNl
-IG5vdy4gwqBEZWZpbmluZyAiT3B0X252ZGltbSIgb3IgdGhlIGdlbmVyaWMKIk9wdF9lbmMzMiIg
-aXMgZmluZS4gwqBNaXNzaW5nIGZyb20gdGhpcyBwYXRjaCBpcyB0aGUgdXBkYXRlIHRvCkRvY3Vt
-ZW50YXRpb24vc2VjdXJpdHkva2V5cy90cnVzdGVkLWVuY3J5cHRlZC5yc3QuIMKgT3RoZXJ3aXNl
-IHRoaXMKcGF0Y2ggbG9va3MgZmluZS4KCk1pbWkKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+On Tue, Nov 27, 2018 at 11:35 AM Mimi Zohar <zohar@linux.ibm.com> wrote:
+>
+> On Tue, 2018-11-27 at 11:10 -0800, Dan Williams wrote:
+> > On Tue, Nov 27, 2018 at 10:24 AM Mimi Zohar <zohar@linux.ibm.com> wrote:
+> > >
+> > > On Tue, 2018-11-27 at 09:20 -0700, Dave Jiang wrote:
+> > > >
+> > > > On 11/27/18 12:20 AM, Dan Williams wrote:
+> > > > > On Fri, Nov 9, 2018 at 2:13 PM Dave Jiang <dave.jiang@intel.com> wrote:
+> > > > >>
+> > > > >> Adding nvdimm key format type to encrypted keys in order to limit the size
+> > > > >
+> > > > > s/Adding/Add an/
+> > > > >
+> > > > >> of the key to 32-bytes.
+> > > > >>
+> > > > >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> > > > >> ---
+> > > > >>  security/keys/encrypted-keys/encrypted.c |   29 ++++++++++++++++++++---------
+> > > > >>  1 file changed, 20 insertions(+), 9 deletions(-)
+> > > > >>
+> > > > >> diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
+> > > > >> index d92cbf9687c3..182b4f136bdf 100644
+> > > > >> --- a/security/keys/encrypted-keys/encrypted.c
+> > > > >> +++ b/security/keys/encrypted-keys/encrypted.c
+> > > > >> @@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
+> > > > >>  static const char blkcipher_alg[] = "cbc(aes)";
+> > > > >>  static const char key_format_default[] = "default";
+> > > > >>  static const char key_format_ecryptfs[] = "ecryptfs";
+> > > > >> +static const char key_format_nvdimm[] = "nvdimm";
+> > > > >>  static unsigned int ivsize;
+> > > > >>  static int blksize;
+> > > > >>
+> > > > >> @@ -54,6 +55,7 @@ static int blksize;
+> > > > >>  #define HASH_SIZE SHA256_DIGEST_SIZE
+> > > > >>  #define MAX_DATA_SIZE 4096
+> > > > >>  #define MIN_DATA_SIZE  20
+> > > > >> +#define KEY_NVDIMM_PAYLOAD_LEN 32
+> > > > >>
+> > > > >>  static struct crypto_shash *hash_tfm;
+> > > > >>
+> > > > >> @@ -62,12 +64,13 @@ enum {
+> > > > >>  };
+> > > > >>
+> > > > >>  enum {
+> > > > >> -       Opt_error = -1, Opt_default, Opt_ecryptfs
+> > > > >> +       Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_nvdimm
+> > > > >>  };
+> > > > >>
+> > > > >>  static const match_table_t key_format_tokens = {
+> > > > >>         {Opt_default, "default"},
+> > > > >>         {Opt_ecryptfs, "ecryptfs"},
+> > > > >> +       {Opt_nvdimm, "nvdimm"},
+> > > > >>         {Opt_error, NULL}
+> > > > >>  };
+> > > > >>
+> > > > >> @@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
+> > > > >>         key_format = match_token(p, key_format_tokens, args);
+> > > > >>         switch (key_format) {
+> > > > >>         case Opt_ecryptfs:
+> > > > >> +       case Opt_nvdimm:
+> > > > >>         case Opt_default:
+> > > > >>                 *format = p;
+> > > > >>                 *master_desc = strsep(&datablob, " \t");
+> > > > >> @@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
+> > > > >>         format_len = (!format) ? strlen(key_format_default) : strlen(format);
+> > > > >>         decrypted_datalen = dlen;
+> > > > >>         payload_datalen = decrypted_datalen;
+> > > > >> -       if (format && !strcmp(format, key_format_ecryptfs)) {
+> > > > >> -               if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> > > > >> -                       pr_err("encrypted_key: keylen for the ecryptfs format "
+> > > > >> -                              "must be equal to %d bytes\n",
+> > > > >> -                              ECRYPTFS_MAX_KEY_BYTES);
+> > > > >> -                       return ERR_PTR(-EINVAL);
+> > > > >> +       if (format) {
+> > > > >> +               if (!strcmp(format, key_format_ecryptfs)) {
+> > > > >> +                       if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> > > > >> +                               pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
+> > > > >> +                                       ECRYPTFS_MAX_KEY_BYTES);
+> > > > >> +                               return ERR_PTR(-EINVAL);
+> > > > >> +                       }
+> > > > >> +                       decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
+> > > > >> +                       payload_datalen = sizeof(struct ecryptfs_auth_tok);
+> > > > >> +               } else if (!strcmp(format, key_format_nvdimm)) {
+> > > > >> +                       if (decrypted_datalen != KEY_NVDIMM_PAYLOAD_LEN) {
+> > > > >> +                               pr_err("encrypted_key: nvdimm key payload incorrect length: %d\n",
+> > > > >> +                                               decrypted_datalen);
+> > > > >> +                               return ERR_PTR(-EINVAL);
+> > > > >> +                       }
+> > > > >
+> > > > > I suspect this may not be the last key type that gets added, but I
+> > > > > wonder if we should instead create key-types based on the dlen size.
+> > > > > I.e. create a generic 32-byte key-type "enc32"? That way if another
+> > > > > 32-byte requirement key comes along we don't need to come touch this
+> > > > > routine again.
+> > > > >
+> > > >
+> > > > I'm ok with that if Mimi is.
+> > >
+> > > If the usage (eg. format: ecryptfs, nvdimm) limits the dlen size(s),
+> > > how will defining generic key-types help?  If there are no usage size
+> > > limitations, then there would be no usage specific definition.
+> > >
+> > > I must be missing something.
+> >
+> > ...or I did a poor job of describing the problem. I'm just looking
+> > ahead to another potential encrypted-key use case, but instead of
+> > nvdimms this would be to lock / unlock persistent memory "namespace"
+> > objects. If it turns out the namespace key is just another 32-byte
+> > encrypted key should the encrypted-keys core grow support for a new
+> > "namespace" key type, should it reuse the "nvdimm" key type, or should
+> > we define a generic 32-byte payload-size-requirement key type?
+>
+> Even with a generic length, there will be format (eg. ecryptfs,
+> nvdimm, namespace) specific code.  Otherwise you wouldn't be defining
+> a new format type.
+>
+> switch(dlen) {
+>         case enc32:
+>                 if (ecryptfs) goto fail;
+>                 ...
+>                 break;
+>         case enc64:
+>                 if (nvdimm || ns) goto fail;
+>                 ...
+>                 break;
+>         default:
+> }
+>
+
+I was thinking that the generic-length *is* the format. This does not
+work for ecyptfs because it has that:
+
+    payload_datalen = sizeof(struct ecryptfs_auth_tok);
+
+...detail that is ecryptfs specific. For nvdimm the only detail of the
+format is the decrypted-data-length.  However, I get the feeling I'm
+proposing a solution to a problem that does not exist yet. Let's just
+go with the "nvdimm" format for now.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
