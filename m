@@ -1,17 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D569221A07A92
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:34:04 -0800 (PST)
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.19 091/205] acpi/nfit,
- x86/mce: Validate a MCEs address before using it
-Date: Mon, 19 Nov 2018 17:26:38 +0100
-Message-Id: <20181119162632.213681486@linuxfoundation.org>
-In-Reply-To: <20181119162616.586062722@linuxfoundation.org>
-References: <20181119162616.586062722@linuxfoundation.org>
+ by ml01.01.org (Postfix) with ESMTPS id 6802E2118F78A
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 10:32:34 -0800 (PST)
+Received: by mail-ot1-x341.google.com with SMTP id 81so21076359otj.2
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 10:32:34 -0800 (PST)
 MIME-Version: 1.0
+References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ <154170043123.12967.3591757325647337726.stgit@ahduyck-desk1.jf.intel.com>
+ <CAPcyv4g0LNJZ38NKMXsBY+GgmGbHR4VrTM1gkm3m4bg6fOrfsw@mail.gmail.com>
+ <785e7a944b60cd237680075064477efad1e9c39a.camel@linux.intel.com>
+In-Reply-To: <785e7a944b60cd237680075064477efad1e9c39a.camel@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Nov 2018 10:32:21 -0800
+Message-ID: <CAPcyv4gNR+x=FB=V92M89-WMQe7YburYRwPhEy0jX71U52nFeQ@mail.gmail.com>
+Subject: Re: [driver-core PATCH v6 6/9] driver core: Probe devices
+ asynchronously instead of the driver
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,102 +29,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: x86-ml <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Arnd Bergmann <arnd@arndb.de>, linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-edac <linux-edac@vger.kernel.org>, Tony Luck <tony.luck@intel.com>, stable@vger.kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <zwisler@kernel.org>, Borislav Petkov <bp@suse.de>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
+To: alexander.h.duyck@linux.intel.com
+Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.19-stable review patch.  If anyone has any objections, please let me know.
+On Tue, Nov 27, 2018 at 9:58 AM Alexander Duyck
+<alexander.h.duyck@linux.intel.com> wrote:
+>
+> On Mon, 2018-11-26 at 18:48 -0800, Dan Williams wrote:
+> > On Thu, Nov 8, 2018 at 10:07 AM Alexander Duyck
+> > <alexander.h.duyck@linux.intel.com> wrote:
+> > >
+> > > Probe devices asynchronously instead of the driver. This results in us
+> > > seeing the same behavior if the device is registered before the driver or
+> > > after. This way we can avoid serializing the initialization should the
+> > > driver not be loaded until after the devices have already been added.
+> > >
+> > > The motivation behind this is that if we have a set of devices that
+> > > take a significant amount of time to load we can greatly reduce the time to
+> > > load by processing them in parallel instead of one at a time. In addition,
+> > > each device can exist on a different node so placing a single thread on one
+> > > CPU to initialize all of the devices for a given driver can result in poor
+> > > performance on a system with multiple nodes.
+> >
+> > Do you have numbers on effects of this change individually? Is this
+> > change necessary for the libnvdimm init speedup, or is it independent?
+>
+> It depends on the case. I was using X86_PMEM_LEGACY_DEVICE to spawn a
+> couple of 32GB persistent memory devices. I had to use this patch and
+> the async_probe option to get them loading in parallel versus serial as
+> the driver load order is a bit different.
+>
+> Basically as long as all the necessary drivers are loaded for libnvdimm
+> you are good, however if the device can get probed before the driver is
+> loaded you run into issues as the loading will be serialized without
+> this patch.
 
-------------------
+I think we could achieve the same with something like the following:
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 77f188cd8023..66c9827efdb4 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3718,5 +3718,6 @@ static __exit void nfit_exit(void)
 
-commit e8a308e5f47e545e0d41d0686c00f5f5217c5f61 upstream.
+ module_init(nfit_init);
+ module_exit(nfit_exit);
++MODULE_SOFTDEP("pre: nd_pmem");
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Intel Corporation");
 
-The NFIT machine check handler uses the physical address from the mce
-structure, and compares it against information in the ACPI NFIT table
-to determine whether that location lies on an NVDIMM. The mce->addr
-field however may not always be valid, and this is indicated by the
-MCI_STATUS_ADDRV bit in the status field.
+...to ensure that the pmem driver is loaded and ready to service
+devices before they start being discovered.
 
-Export mce_usable_address() which already performs validation for the
-address, and use it in the NFIT handler.
+>
+> > > I am using the driver_data member of the device struct to store the driver
+> > > pointer while we wait on the deferred probe call. This should be safe to do
+> > > as the value will either be set to NULL on a failed probe or driver load
+> > > followed by unload, or the driver value itself will be set on a successful
+> > > driver load. In addition I have used the async_probe flag to add additional
+> > > protection as it will be cleared if someone overwrites the driver_data
+> > > member as a part of loading the driver.
+> >
+> > I would not put it past a device-driver to call dev_get_drvdata()
+> > before dev_set_drvdata(), to check "has this device already been
+> > initialized". So I don't think it is safe to assume that the core can
+> > stash this information in ->driver_data. Why not put this
+> > infrastructure in struct device_private?
+>
+> The data should be cleared before we even get to the probe call so I am
+> not sure that is something we would need to worry about.
 
-Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-CC: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>
-CC: elliott@hpe.com
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-acpi@vger.kernel.org
-CC: linux-edac <linux-edac@vger.kernel.org>
-CC: linux-nvdimm@lists.01.org
-CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: Ross Zwisler <zwisler@kernel.org>
-CC: stable <stable@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Tony Luck <tony.luck@intel.com>
-CC: x86-ml <x86@kernel.org>
-CC: Yazen Ghannam <yazen.ghannam@amd.com>
-Link: http://lkml.kernel.org/r/20181026003729.8420-2-vishal.l.verma@intel.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Yes it "should", but I have the sense that I have seen code that looks
+at dev_get_drvdata() != NULL when it really should be looking at
+dev->driver. Maybe not in leaf drivers, but bus code.
 
----
- arch/x86/include/asm/mce.h       |    1 +
- arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
- drivers/acpi/nfit/mce.c          |    4 ++++
- 3 files changed, 7 insertions(+), 1 deletion(-)
+> As far as why I didn't use device_private, it was mostly just for the
+> sake of space savings. I only had to add one bit to an existing
+> bitfield to make the async_probe approach work, and the drvdata just
+> seemed like the obvious place to put the deferred driver.
 
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -217,6 +217,7 @@ static inline int umc_normaddr_to_sysadd
- int mce_available(struct cpuinfo_x86 *c);
- bool mce_is_memory_error(struct mce *m);
- bool mce_is_correctable(struct mce *m);
-+int mce_usable_address(struct mce *m);
- 
- DECLARE_PER_CPU(unsigned, mce_exception_count);
- DECLARE_PER_CPU(unsigned, mce_poll_count);
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -485,7 +485,7 @@ static void mce_report_event(struct pt_r
-  * be somewhat complicated (e.g. segment offset would require an instruction
-  * parser). So only support physical addresses up to page granuality for now.
-  */
--static int mce_usable_address(struct mce *m)
-+int mce_usable_address(struct mce *m)
- {
- 	if (!(m->status & MCI_STATUS_ADDRV))
- 		return 0;
-@@ -505,6 +505,7 @@ static int mce_usable_address(struct mce
- 
- 	return 1;
- }
-+EXPORT_SYMBOL_GPL(mce_usable_address);
- 
- bool mce_is_memory_error(struct mce *m)
- {
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -29,6 +29,10 @@ static int nfit_handle_mce(struct notifi
- 	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
- 		return NOTIFY_DONE;
- 
-+	/* Verify the address reported in the MCE is valid. */
-+	if (!mce_usable_address(mce))
-+		return NOTIFY_DONE;
-+
- 	/*
- 	 * mce->addr contains the physical addr accessed that caused the
- 	 * machine check. We need to walk through the list of NFITs, and see
-
-
+It seems device_private already has deferred_probe data, why not async_probe?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
