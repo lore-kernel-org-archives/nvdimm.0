@@ -1,16 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 864A02119623D
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:20 -0800 (PST)
-Subject: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 30 Nov 2018 13:53:18 -0800
-Message-ID: <154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4EDBD21A02937
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:34:58 -0800 (PST)
+Received: by mail-ot1-x342.google.com with SMTP id w25so21695288otm.13
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 14:34:58 -0800 (PST)
 MIME-Version: 1.0
+References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+ <154170044652.12967.17419321472770956712.stgit@ahduyck-desk1.jf.intel.com>
+ <CAPcyv4jmTbHZbs2KHhH2_S6=mxxkwdiJCDL6widexMzePhNFBg@mail.gmail.com>
+ <2031cf4705d76dd4d0f722a600a6a106cce2ba41.camel@linux.intel.com>
+ <CAPcyv4gWwsYOeXVNDoDy4v=SU6bRyBG1fgSu84y64jGApaJ91g@mail.gmail.com>
+ <1543350780.185366.81.camel@acm.org>
+ <CAPcyv4hya0ASfVue6GH3ZXKJOzytQXDqtEWxvrEdCTcb545tYg@mail.gmail.com>
+ <1543353746.185366.90.camel@acm.org>
+In-Reply-To: <1543353746.185366.90.camel@acm.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Nov 2018 14:34:46 -0800
+Message-ID: <CAPcyv4jdqm5O11A4ieiLwhBYVAOGbWE7t_Orrdau3WMvLQAqKw@mail.gmail.com>
+Subject: Re: [driver-core PATCH v6 9/9] libnvdimm: Schedule device
+ registration on node local to the device
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,137 +33,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: bvanassche@acm.org
+Cc: "Brown, Len" <len.brown@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Greg KH <gregkh@linuxfoundation.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, alexander.h.duyck@linux.intel.com, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Modify the set_page_links function to include the setting of the reserved
-flag via a simple AND and OR operation. The motivation for this is the fact
-that the existing __set_bit call still seems to have effects on performance
-as replacing the call with the AND and OR can reduce initialization time.
+On Tue, Nov 27, 2018 at 1:22 PM Bart Van Assche <bvanassche@acm.org> wrote:
+>
+> On Tue, 2018-11-27 at 12:50 -0800, Dan Williams wrote:
+> > Thanks Bart, so tying this back to Alex's patches, does the ordering
+> > problem that Alex's patches solve impact the SCSI case? I'm looking
+> > for something like "SCSI depends on asynchronous probing and without
+> > 'driver core: Establish clear order of operations for deferred probe
+> > and remove' probing is often needlessly serialized". I.e. does it
+> > suffer from the same platform problem that libnvdimm ran into where
+> > it's local async probing implementation was hindered by the driver
+> > core?
+>
+> (+Martin)
+>
+> Hi Dan,
+>
+> Patch 6/9 reduces the time needed to scan SCSI LUNs significantly. The only
+> way to realize that speedup is by enabling more concurrency. That's why I
+> think that patch 6/9 is a significant driver core improvement.
 
-Looking over the assembly code before and after the change the main
-difference between the two is that the reserved bit is stored in a value
-that is generated outside of the main initialization loop and is then
-written with the other flags field values in one write to the page->flags
-value. Previously the generated value was written and then then a btsq
-instruction was issued.
-
-On my x86_64 test system with 3TB of persistent memory per node I saw the
-persistent memory initialization time on average drop from 23.49s to
-19.12s per node.
-
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- include/linux/mm.h |    9 ++++++++-
- mm/page_alloc.c    |   39 +++++++++++++++++++++++++--------------
- 2 files changed, 33 insertions(+), 15 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index eb6e52b66bc2..5faf66dd4559 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1238,11 +1238,18 @@ static inline void set_page_node(struct page *page, unsigned long node)
- 	page->flags |= (node & NODES_MASK) << NODES_PGSHIFT;
- }
- 
-+static inline void set_page_reserved(struct page *page, bool reserved)
-+{
-+	page->flags &= ~(1ul << PG_reserved);
-+	page->flags |= (unsigned long)(!!reserved) << PG_reserved;
-+}
-+
- static inline void set_page_links(struct page *page, enum zone_type zone,
--	unsigned long node, unsigned long pfn)
-+	unsigned long node, unsigned long pfn, bool reserved)
- {
- 	set_page_zone(page, zone);
- 	set_page_node(page, node);
-+	set_page_reserved(page, reserved);
- #ifdef SECTION_IN_PAGE_FLAGS
- 	set_page_section(page, pfn_to_section_nr(pfn));
- #endif
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 416bbb6f05ab..61eb9945d805 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1183,10 +1183,16 @@ static void free_one_page(struct zone *zone,
- 
- static void __meminit __init_struct_page_nolru(struct page *page,
- 					       unsigned long pfn,
--					       unsigned long zone, int nid)
-+					       unsigned long zone, int nid,
-+					       bool is_reserved)
- {
- 	mm_zero_struct_page(page);
--	set_page_links(page, zone, nid, pfn);
-+
-+	/*
-+	 * We can use a non-atomic operation for setting the
-+	 * PG_reserved flag as we are still initializing the pages.
-+	 */
-+	set_page_links(page, zone, nid, pfn, is_reserved);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
-@@ -1202,14 +1208,15 @@ static void __meminit __init_struct_page_nolru(struct page *page,
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
--	__init_struct_page_nolru(page, pfn, zone, nid);
-+	__init_struct_page_nolru(page, pfn, zone, nid, false);
- 	INIT_LIST_HEAD(&page->lru);
- }
- 
- static void __meminit __init_pageblock(unsigned long start_pfn,
- 				       unsigned long nr_pages,
- 				       unsigned long zone, int nid,
--				       struct dev_pagemap *pgmap)
-+				       struct dev_pagemap *pgmap,
-+				       bool is_reserved)
- {
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	struct page *start_page = pfn_to_page(start_pfn);
-@@ -1235,15 +1242,8 @@ static void __meminit __init_pageblock(unsigned long start_pfn,
- 	 * is not defined.
- 	 */
- 	for (page = start_page + nr_pages; page-- != start_page; pfn--) {
--		__init_struct_page_nolru(page, pfn, zone, nid);
--		/*
--		 * Mark page reserved as it will need to wait for onlining
--		 * phase for it to be fully associated with a zone.
--		 *
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
-+		__init_struct_page_nolru(page, pfn, zone, nid, is_reserved);
-+
- 		/*
- 		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
- 		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
-@@ -5780,7 +5780,18 @@ static void __meminit __memmap_init_hotplug(unsigned long size, int nid,
- 		pfn = max(ALIGN_DOWN(pfn - 1, pageblock_nr_pages), start_pfn);
- 		stride -= pfn;
- 
--		__init_pageblock(pfn, stride, zone, nid, pgmap);
-+		/*
-+		 * The last argument of __init_pageblock is a boolean
-+		 * value indicating if the page will be marked as reserved.
-+		 *
-+		 * Mark page reserved as it will need to wait for onlining
-+		 * phase for it to be fully associated with a zone.
-+		 *
-+		 * Under certain circumstances ZONE_DEVICE pages may not
-+		 * need to be marked as reserved, however there is still
-+		 * code that is depending on this being set for now.
-+		 */
-+		__init_pageblock(pfn, stride, zone, nid, pgmap, true);
- 
- 		cond_resched();
- 	}
-
+Perfect, Alex, with that added to the 6/9 changelog and moving to
+device_private for the async state tracking you can add my
+Reviewed-by.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
