@@ -1,16 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
- [IPv6:2607:f8b0:4864:20::642])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6B62821A09130
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 00:01:08 -0800 (PST)
-Received: by mail-pl1-x642.google.com with SMTP id y6-v6so6626417plt.3
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 00:01:08 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH 1/4] libndctl: Use the supported_alignment attribute
-Date: Mon, 19 Nov 2018 19:00:53 +1100
-Message-Id: <20181119080056.13386-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1B09221191F29
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 12:15:35 -0800 (PST)
+Subject: Re: [PATCH 01/11] keys-encrypted: add nvdimm key format type to
+ encrypted keys
+References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+ <154180163107.70506.6894134402057805078.stgit@djiang5-desk3.ch.intel.com>
+ <CAPcyv4iKQW+zG1mS-vdbXuU1BE0bQ-zDJt1uQBo6EHkvMF5Y_Q@mail.gmail.com>
+ <5c0d66c2-d628-54eb-b16e-8a6a8eb990c1@intel.com>
+ <1543343054.3902.192.camel@linux.ibm.com>
+ <CAPcyv4i5=tAx6=W44Vva7=0GO9A=j0w5vEEYMMv3NnC9_fMz6g@mail.gmail.com>
+ <1543347302.3902.202.camel@linux.ibm.com>
+ <CAPcyv4gXYDye7VhyL4yRpPATaZciJrZxLXZqSVx47on8Ag2KpA@mail.gmail.com>
+ <1543349435.3902.208.camel@linux.ibm.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <cee6f86f-1ac1-9ff8-0a98-13a864300d5a@intel.com>
+Date: Tue, 27 Nov 2018 13:15:34 -0700
+MIME-Version: 1.0
+In-Reply-To: <1543349435.3902.208.camel@linux.ibm.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,143 +28,29 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Mimi Zohar <zohar@linux.ibm.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: keyrings@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Newer kernels provide the "supported_alignments" sysfs attribute that
-indicates what alignments can be used with a PFN or DAX namespace. This
-patch adds the plumbing inside of libndctl to allow users to query this
-information through using:
-	ndctl_{dax|pfn}_get_supported_alignment(), and
-	ndctl_{dax|pfn}_get_num_alignments()
-
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
- ndctl/lib/libndctl.c   | 40 ++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  7 +++++++
- ndctl/libndctl.h       |  6 ++++++
- 3 files changed, 53 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 0c3a35e5bcc9..4d0e58a22953 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -31,6 +31,7 @@
- #include <ccan/build_assert/build_assert.h>
- 
- #include <ndctl.h>
-+#include <util/size.h>
- #include <util/sysfs.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/namespace.h>
-@@ -237,6 +238,7 @@ struct ndctl_pfn {
- 	int buf_len;
- 	uuid_t uuid;
- 	int id, generation;
-+	struct ndctl_lbasize alignments;
- };
- 
- struct ndctl_dax {
-@@ -4781,6 +4783,18 @@ static void *__add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 	else
- 		pfn->size = strtoull(buf, NULL, 0);
- 
-+	/*
-+	 * If the kernel doesn't provide the supported_alignments sysfs
-+	 * attribute then it's safe to assume that we are running on x86
-+	 * which will always support 2MB and 4KB alignments.
-+	 */
-+	sprintf(path, "%s/supported_alignments", pfn_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		sprintf(buf, "%d %d", SZ_4K, SZ_2M);
-+
-+	if (parse_lbasize_supported(ctx, pfn_base, buf, &pfn->alignments) < 0)
-+		goto err_read;
-+
- 	free(path);
- 	return pfn;
- 
-@@ -5015,6 +5029,22 @@ NDCTL_EXPORT int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align)
- 	return 0;
- }
- 
-+NDCTL_EXPORT unsigned int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn)
-+{
-+	return pfn->alignments.num;
-+}
-+
-+NDCTL_EXPORT int ndctl_pfn_get_supported_alignment(struct ndctl_pfn *pfn, int i)
-+{
-+	if (pfn->alignments.num == 0)
-+		return 0;
-+
-+	if (i < 0 || i > pfn->alignments.num)
-+		return UINT_MAX;
-+	else
-+		return pfn->alignments.supported[i];
-+}
-+
- NDCTL_EXPORT int ndctl_pfn_set_namespace(struct ndctl_pfn *pfn,
- 		struct ndctl_namespace *ndns)
- {
-@@ -5237,6 +5267,16 @@ NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
- 	return ndctl_pfn_get_align(&dax->pfn);
- }
- 
-+NDCTL_EXPORT unsigned int ndctl_dax_get_num_alignments(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_num_alignments(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT int ndctl_dax_get_supported_alignment(struct ndctl_dax *dax, int i)
-+{
-+	return ndctl_pfn_get_supported_alignment(&dax->pfn, i);
-+}
-+
- NDCTL_EXPORT int ndctl_dax_has_align(struct ndctl_dax *dax)
- {
- 	return ndctl_pfn_has_align(&dax->pfn);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 6c4c8b4dfb8e..0103c1b71a1d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -385,3 +385,10 @@ global:
- 	ndctl_namespace_get_next_badblock;
- 	ndctl_dimm_get_dirty_shutdown;
- } LIBNDCTL_17;
-+
-+LIBNDCTL_19 {
-+	ndctl_pfn_get_supported_alignment;
-+	ndctl_pfn_get_num_alignments;
-+	ndctl_dax_get_supported_alignment;
-+	ndctl_dax_get_num_alignments;
-+} LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 62cef9e82da3..4ff25c0a4783 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -681,6 +681,12 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
- int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
-+unsigned int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn);
-+int ndctl_pfn_get_supported_alignment(struct ndctl_pfn *pfn, int i);
-+
-+unsigned int ndctl_dax_get_num_alignments(struct ndctl_dax *dax);
-+int ndctl_dax_get_supported_alignment(struct ndctl_dax *dax, int i);
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
--- 
-2.17.2
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+CgpPbiAxMS8yNy8xOCAxOjEwIFBNLCBNaW1pIFpvaGFyIHdyb3RlOgo+IE9uIFR1ZSwgMjAxOC0x
+MS0yNyBhdCAxMTo0OCAtMDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+IAo+PiBJIHdhcyB0aGlu
+a2luZyB0aGF0IHRoZSBnZW5lcmljLWxlbmd0aCAqaXMqIHRoZSBmb3JtYXQuIFRoaXMgZG9lcyBu
+b3QKPj4gd29yayBmb3IgZWN5cHRmcyBiZWNhdXNlIGl0IGhhcyB0aGF0Ogo+Pgo+PiAgICAgcGF5
+bG9hZF9kYXRhbGVuID0gc2l6ZW9mKHN0cnVjdCBlY3J5cHRmc19hdXRoX3Rvayk7Cj4+Cj4+IC4u
+LmRldGFpbCB0aGF0IGlzIGVjcnlwdGZzIHNwZWNpZmljLiBGb3IgbnZkaW1tIHRoZSBvbmx5IGRl
+dGFpbCBvZiB0aGUKPj4gZm9ybWF0IGlzIHRoZSBkZWNyeXB0ZWQtZGF0YS1sZW5ndGguICBIb3dl
+dmVyLCBJIGdldCB0aGUgZmVlbGluZyBJJ20KPj4gcHJvcG9zaW5nIGEgc29sdXRpb24gdG8gYSBw
+cm9ibGVtIHRoYXQgZG9lcyBub3QgZXhpc3QgeWV0LiBMZXQncyBqdXN0Cj4+IGdvIHdpdGggdGhl
+ICJudmRpbW0iIGZvcm1hdCBmb3Igbm93Lgo+IAo+IEFoLCB0aGF0IG1ha2VzIG1vcmUgc2Vuc2Ug
+bm93LiDCoERlZmluaW5nICJPcHRfbnZkaW1tIiBvciB0aGUgZ2VuZXJpYwo+ICJPcHRfZW5jMzIi
+IGlzIGZpbmUuIMKgTWlzc2luZyBmcm9tIHRoaXMgcGF0Y2ggaXMgdGhlIHVwZGF0ZSB0bwo+IERv
+Y3VtZW50YXRpb24vc2VjdXJpdHkva2V5cy90cnVzdGVkLWVuY3J5cHRlZC5yc3QuIMKgT3RoZXJ3
+aXNlIHRoaXMKPiBwYXRjaCBsb29rcyBmaW5lLgoKSSdsbCBnbyB3aXRoIGVuYzMyIGFuZCB1cGRh
+dGUgdGhlIGRvYyBhbmQgcmVzdWJtaXQgd2l0aCB0aGUgc2VyaWVzLgpUaGFua3MgTWltaS4KCj4g
+Cj4gTWltaQo+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0
+cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
