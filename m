@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4F9AE21A07A92
- for <linux-nvdimm@lists.01.org>; Mon, 19 Nov 2018 08:34:02 -0800 (PST)
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.19 090/205] acpi/nfit,
- x86/mce: Handle only uncorrectable machine checks
-Date: Mon, 19 Nov 2018 17:26:37 +0100
-Message-Id: <20181119162632.099116739@linuxfoundation.org>
-In-Reply-To: <20181119162616.586062722@linuxfoundation.org>
-References: <20181119162616.586062722@linuxfoundation.org>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C760D21B02822
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 08:49:31 -0800 (PST)
+Message-ID: <b1ee672ccc2746ce57fb6a0def3d553faa462785.camel@linux.intel.com>
+Subject: Re: [driver-core PATCH v5 5/9] driver core: Establish clear order
+ of operations for deferred probe and remove
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 27 Nov 2018 08:49:30 -0800
+In-Reply-To: <CAPcyv4ieNzbx5iN74ZCAKDesgYt_67iM_DC-A35M=Z9jfR+YAQ@mail.gmail.com>
+References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ <154145232484.29224.1635232599636954462.stgit@ahduyck-desk1.jf.intel.com>
+ <CAPcyv4ieNzbx5iN74ZCAKDesgYt_67iM_DC-A35M=Z9jfR+YAQ@mail.gmail.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,109 +25,132 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <zwisler@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Omar Avelar <omar.avelar@intel.com>, linux-nvdimm@lists.01.org, x86-ml <x86@kernel.org>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Tony Luck <tony.luck@intel.com>, linux-edac <linux-edac@vger.kernel.org>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, stable@vger.kernel.org, Yazen Ghannam <yazen.ghannam@amd.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, bvanassche@acm.org, Linux-pm mailing list <linux-pm@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jiangshanlai@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-4.19-stable review patch.  If anyone has any objections, please let me know.
+On Mon, 2018-11-26 at 18:35 -0800, Dan Williams wrote:
+> On Mon, Nov 5, 2018 at 1:12 PM Alexander Duyck
+> <alexander.h.duyck@linux.intel.com> wrote:
+> > 
+> > This patch adds an additional bit to the device struct named async_probe.
+> > This additional bit allows us to guarantee ordering between probe and
+> > remove operations.
+> > 
+> > This allows us to guarantee that if we execute a remove operation or a
+> > driver load attempt on a given interface it will not attempt to update the
+> > driver member asynchronously following the earlier operation. Previously
+> > this guarantee was not present and could result in us attempting to remove
+> > a driver from an interface only to have it show up later when it is
+> > asynchronously loaded.
+> > 
+> > One change I made in addition is I replaced the use of "bool X:1" to define
+> > the bitfield to a "u8 X:1" setup in order to resolve some checkpatch
+> > warnings.
+> 
+> The usage of "us" in the changelog through me off, please reword this
+> to explicitly state the subject like: "The additional bit allows the
+> driver core to guarantee ordering between probe and remove
+> operations."
 
-------------------
+Okay, I will work on the wording here.
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+> > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> > ---
+> >  drivers/base/dd.c      |  104 +++++++++++++++++++++++++++---------------------
+> >  include/linux/device.h |    9 ++--
+> >  2 files changed, 64 insertions(+), 49 deletions(-)
+> > 
+> > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> > index e74cefeb5b69..ed19cf0d6f9a 100644
+> > --- a/drivers/base/dd.c
+> > +++ b/drivers/base/dd.c
+> > @@ -472,6 +472,8 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+> >                  drv->bus->name, __func__, drv->name, dev_name(dev));
+> >         WARN_ON(!list_empty(&dev->devres_head));
+> > 
+> > +       /* clear async_probe flag as we are no longer deferring driver load */
+> > +       dev->async_probe = false;
+> >  re_probe:
+> >         dev->driver = drv;
+> > 
+> > @@ -771,6 +773,10 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+> > 
+> >         device_lock(dev);
+> > 
+> > +       /* nothing to do if async_probe has been cleared */
+> > +       if (!dev->async_probe)
+> > +               goto out_unlock;
+> > +
+> >         if (dev->parent)
+> >                 pm_runtime_get_sync(dev->parent);
+> > 
+> > @@ -781,7 +787,7 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+> > 
+> >         if (dev->parent)
+> >                 pm_runtime_put(dev->parent);
+> > -
+> > +out_unlock:
+> >         device_unlock(dev);
+> > 
+> >         put_device(dev);
+> > @@ -826,6 +832,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+> >                          */
+> >                         dev_dbg(dev, "scheduling asynchronous probe\n");
+> >                         get_device(dev);
+> > +                       dev->async_probe = true;
+> >                         async_schedule(__device_attach_async_helper, dev);
+> >                 } else {
+> >                         pm_request_idle(dev);
+> > @@ -971,62 +978,69 @@ EXPORT_SYMBOL_GPL(driver_attach);
+> >   */
+> >  static void __device_release_driver(struct device *dev, struct device *parent)
+> >  {
+> > -       struct device_driver *drv;
+> > +       struct device_driver *drv = dev->driver;
+> > 
+> > -       drv = dev->driver;
+> > -       if (drv) {
+> > -               while (device_links_busy(dev)) {
+> > -                       __device_driver_unlock(dev, parent);
+> > +       /*
+> > +        * In the event that we are asked to release the driver on an
+> > +        * interface that is still waiting on a probe we can just terminate
+> > +        * the probe by setting async_probe to false. When the async call
+> > +        * is finally completed it will see this state and just exit.
+> > +        */
+> > +       dev->async_probe = false;
+> > +       if (!drv)
+> > +               return;
+> 
+> Patch 4 deleted the async_synchronize_full() that would have flushed
+> in-flight ->probe() relative to the current ->remove(). If remove runs
+> before probe then would seem to be deadlock condition, but if
+> ->remove() runs before probe then dev->driver is NULL and we abort. So
+> I'm struggling to see what value dev->async_probe provides over
+> dev->driver?
 
-commit 5d96c9342c23ee1d084802dcf064caa67ecaa45b upstream.
+So the issue addressed by patch 4 is a deadlock on the device driver
+lock. Also it didn't make much sense to flush per device when we really
+only needed to flush things once and then clean up the devices.
 
-The MCE handler for nfit devices is called for memory errors on a
-Non-Volatile DIMM and adds the error location to a 'badblocks' list.
-This list is used by the various NVDIMM drivers to avoid consuming known
-poison locations during IO.
+What I am doing with the async_probe value is providing a way to
+gracefully shutdown any deferred probe calls that may be outstanding
+without having to resort to an explicit flush. The problem with the
+flush is that you have to release the device lock and as soon as you
+have done that the potential for something else to occur gets opended
+up. The general issue I have with just trying to use dev->driver is
+that it assumes the probe has already completed. That may not always be
+the case. My main concern would be with a device that is popping in and
+out of existence quickly so that something like a remove call is being
+made before the driver has been loaded. I would prefer all possible
+cases where probe and then remove is called in quick succession to
+result in no driver being loaded instead of a driver loading on a
+device that maybe shouldn't be there.
 
-The MCE handler gets called for both corrected and uncorrectable errors.
-Until now, both kinds of errors have been added to the badblocks list.
-However, corrected memory errors indicate that the problem has already
-been fixed by hardware, and the resulting interrupt is merely a
-notification to Linux.
-
-As far as future accesses to that location are concerned, it is
-perfectly fine to use, and thus doesn't need to be included in the above
-badblocks list.
-
-Add a check in the nfit MCE handler to filter out corrected mce events,
-and only process uncorrectable errors.
-
-Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-Reported-by: Omar Avelar <omar.avelar@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>
-CC: elliott@hpe.com
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-acpi@vger.kernel.org
-CC: linux-edac <linux-edac@vger.kernel.org>
-CC: linux-nvdimm@lists.01.org
-CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: Ross Zwisler <zwisler@kernel.org>
-CC: stable <stable@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Tony Luck <tony.luck@intel.com>
-CC: x86-ml <x86@kernel.org>
-CC: Yazen Ghannam <yazen.ghannam@amd.com>
-Link: http://lkml.kernel.org/r/20181026003729.8420-1-vishal.l.verma@intel.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- arch/x86/include/asm/mce.h       |    1 +
- arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
- drivers/acpi/nfit/mce.c          |    4 ++--
- 3 files changed, 5 insertions(+), 3 deletions(-)
-
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysadd
- 
- int mce_available(struct cpuinfo_x86 *c);
- bool mce_is_memory_error(struct mce *m);
-+bool mce_is_correctable(struct mce *m);
- 
- DECLARE_PER_CPU(unsigned, mce_exception_count);
- DECLARE_PER_CPU(unsigned, mce_poll_count);
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -534,7 +534,7 @@ bool mce_is_memory_error(struct mce *m)
- }
- EXPORT_SYMBOL_GPL(mce_is_memory_error);
- 
--static bool mce_is_correctable(struct mce *m)
-+bool mce_is_correctable(struct mce *m)
- {
- 	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
- 		return false;
-@@ -544,6 +544,7 @@ static bool mce_is_correctable(struct mc
- 
- 	return true;
- }
-+EXPORT_SYMBOL_GPL(mce_is_correctable);
- 
- static bool cec_add_mce(struct mce *m)
- {
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifi
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct nfit_spa *nfit_spa;
- 
--	/* We only care about memory errors */
--	if (!mce_is_memory_error(mce))
-+	/* We only care about uncorrectable memory errors */
-+	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
- 		return NOTIFY_DONE;
- 
- 	/*
+As far as the remove before probe case that should have no effect with
+this code since it would just transition async_probe from false to
+false so the extra write would have no effect.
 
 
 _______________________________________________
