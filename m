@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail1.bemta24.messagelabs.com (mail1.bemta24.messagelabs.com
- [67.219.250.3])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 57D6221A00AE6
- for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 00:06:32 -0800 (PST)
-From: Ocean HY1 He <hehy1@lenovo.com>
-Subject: RE: [External]  [ndctl PATCH] ndctl: recover from failed namespace
- creation
-Date: Wed, 28 Nov 2018 08:06:14 +0000
-Message-ID: <HK0PR03MB31706B351BB2BF094047B46B89D10@HK0PR03MB3170.apcprd03.prod.outlook.com>
-References: <1536654669-23828-1-git-send-email-oceanhehy@gmail.com>
-In-Reply-To: <1536654669-23828-1-git-send-email-oceanhehy@gmail.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 24A3C21195BF1
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Nov 2018 10:59:08 -0800 (PST)
+Date: Tue, 27 Nov 2018 10:59:06 -0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: dax_lock_mapping_entry was never safe
+Message-ID: <20181127185906.GE10377@bombadil.infradead.org>
+References: <20181126161240.GH3065@bombadil.infradead.org>
+ <20181126171137.GD25835@quack2.suse.cz>
+ <CAPcyv4j8Qo0rZniWcjrtScBWNsG6=geyZU1yfRK=4wGsJ5=e8A@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4j8Qo0rZniWcjrtScBWNsG6=geyZU1yfRK=4wGsJ5=e8A@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,110 +26,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "oceanhehy@gmail.com" <oceanhehy@gmail.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+On Mon, Nov 26, 2018 at 12:36:26PM -0800, Dan Williams wrote:
+> On Mon, Nov 26, 2018 at 9:11 AM Jan Kara <jack@suse.cz> wrote:
+> > The code looks good. Maybe can we call this wait_entry_unlocked() to stress
+> > that entry is not really usable after this function returns? And comment
+> > before the function that this is safe to call even if we don't have a
+> > reference keeping mapping alive?
+> 
+> Yes, maybe even something more ambiguous like "wait_entry_event()",
+> because there's no guarantee the entry is unlocked just that now is a
+> good time to try to interrogate the entry again.
 
-I am trying to track this patch and looking forward to get your comments.
+It _became_ unlocked ... it might be locked again, or have disappeared
+by the time we get to it, but somebody called dax_wake_entry() for this
+exact entry.  I mean, we could call it wait_entry_wake(), but I think
+that's a little generic.  I'm going with Jan's version ;-)
 
-Many thanks!
+> > The continue here actually is not safe either because if the mapping got
+> > freed, page->mapping will be NULL and we oops at the beginning of the loop.
+> > So that !dax_mapping() check should also check for mapping != NULL.
+> 
+> Yes.
 
-Ocean.
-
-> -----Original Message-----
-> From: oceanhehy@gmail.com <oceanhehy@gmail.com>
-> Sent: Tuesday, September 11, 2018 4:31 PM
-> To: dan.j.williams@intel.com; vishal.l.verma@intel.com; qi.fuli@jp.fujitsu.com;
-> linux-nvdimm@lists.01.org
-> Cc: Ocean HY1 He <hehy1@lenovo.com>
-> Subject: [External] [ndctl PATCH] ndctl: recover from failed namespace
-> creation
-> 
-> From: Ocean He <hehy1@lenovo.com>
-> 
-> When namespace creation failure occurs, the consumed namespace (seed or
-> 0th
-> idle) and pfn/dax seed would block next namespace creation. A recovery is
-> needed to handle this type failure.
-> 
-> A symptom example (section size is 128MB) based on kernel 4.19-rc2 and
-> ndctl v62:
-> 	# ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
-> 	{
-> 	  "dev":"namespace1.0",
-> 	  "mode":"fsdax",
-> 	  "map":"dev",
-> 	  "size":"96.00 MiB (100.66 MB)",
-> 	  "uuid":"ef9a0556-a610-40b5-8c71-43991765a2cc",
-> 	  "raw_uuid":"177b22e2-b7e8-482f-a063-2b8de876d979",
-> 	  "sector_size":512,
-> 	  "blockdev":"pmem1",
-> 	  "numa_node":1
-> 	}
-> 	# ndctl create-namespace -r region1 -s 100m -t pmem -m fsdax
-> 	libndctl: ndctl_pfn_enable: pfn1.1: failed to enable
-> 	  Error: namespace1.1: failed to enable
-> 	failed to create namespace: No such device or address
-> 	# ndctl destroy-namespace namespace1.0 -f
-> 	destroyed 1 namespace
-> 	# ndctl create-namespace -r region1 -s 128m -t pmem -m fsdax
-> 	failed to create namespace: Device or resource busy
-> 
-> Signed-off-by: Ocean He <hehy1@lenovo.com>
-> ---
-> Additional information:
-> A kernel patch to fix this has been reviewed by Dan Williams, and he prefers
-> to handle it in ndctl directly.
-> https://www.spinics.net/lists/kernel/msg2901465.html
-> 
->  ndctl/namespace.c | 12 +++++++++++-
->  1 file changed, 11 insertions(+), 1 deletion(-)
-> 
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 510553c..76ee2ed 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -393,6 +393,8 @@ static int setup_namespace(struct ndctl_region
-> *region,
->  			try(ndctl_pfn, set_align, pfn, p->align);
->  		try(ndctl_pfn, set_namespace, pfn, ndns);
->  		rc = ndctl_pfn_enable(pfn);
-> +		if (rc)
-> +			ndctl_pfn_set_namespace(pfn, NULL);
->  	} else if (p->mode == NDCTL_NS_MODE_DAX) {
->  		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
-> 
-> @@ -402,6 +404,8 @@ static int setup_namespace(struct ndctl_region
-> *region,
->  		try(ndctl_dax, set_align, dax, p->align);
->  		try(ndctl_dax, set_namespace, dax, ndns);
->  		rc = ndctl_dax_enable(dax);
-> +		if (rc)
-> +			ndctl_dax_set_namespace(dax, NULL);
->  	} else if (p->mode == NDCTL_NS_MODE_SAFE) {
->  		struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
-> 
-> @@ -783,7 +787,13 @@ static int namespace_create(struct ndctl_region
-> *region)
->  		return -ENODEV;
->  	}
-> 
-> -	return setup_namespace(region, ndns, &p);
-> +	rc = setup_namespace(region, ndns, &p);
-> +	if (rc) {
-> +		ndctl_namespace_set_enforce_mode(ndns,
-> NDCTL_NS_MODE_RAW);
-> +		ndctl_namespace_delete(ndns);
-> +	}
-> +
-> +	return rc;
->  }
-> 
->  static int zero_info_block(struct ndctl_namespace *ndns)
-> --
-> 1.8.3.1
-
+Sigh.  I'll make that a separate patch so it applies cleanly to 4.19.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
