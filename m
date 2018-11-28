@@ -1,55 +1,40 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Wed, 28 Nov 2018 12:46:25 +0100
-From: Jan Kara <jack@suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 69D3121A02937
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 01:19:00 -0800 (PST)
 Subject: Re: [PATCH 1/2] dax: Check page->mapping isn't NULL
-Message-ID: <20181128114625.GA15604@quack2.suse.cz>
 References: <20181127211634.4995-1-willy@infradead.org>
  <20181127211634.4995-2-willy@infradead.org>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Message-ID: <d1392a9a-bdb1-e17c-f943-ba435bc1d876@suse.de>
+Date: Wed, 28 Nov 2018 10:18:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <20181127211634.4995-2-willy@infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, stable@vger.kernel.org
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, stable@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 27-11-18 13:16:33, Matthew Wilcox wrote:
-> If we race with inode destroy, it's possible for page->mapping to be
-> NULL before we even enter this routine, as well as after having slept
-> waiting for the dax entry to become unlocked.
-> 
-> Fixes: c2a7d2a11552 ("filesystem-dax: Introduce dax_lock_mapping_entry()")
-> Cc: stable@vger.kernel.org
-> Reported-by: Jan Kara <jack@suse.cz>
-> Signed-off-by: Matthew Wilcox <willy@infradead.org>
-
-Thanks for writing this fix. The patch looks good. You can add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  fs/dax.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 9bcce89ea18e..e69fc231833b 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -365,7 +365,7 @@ bool dax_lock_mapping_entry(struct page *page)
->  		struct address_space *mapping = READ_ONCE(page->mapping);
->  
->  		locked = false;
-> -		if (!dax_mapping(mapping))
-> +		if (!mapping || !dax_mapping(mapping))
->  			break;
->  
->  		/*
-> -- 
-> 2.19.1
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+TG9va3MgZ29vZCwKUmV2aWV3ZWQtYnk6IEpvaGFubmVzIFRodW1zaGlybiA8anRodW1zaGlybkBz
+dXNlLmRlPgoKLS0gCkpvaGFubmVzIFRodW1zaGlybiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBTVVNFIExhYnMKanRodW1zaGlybkBzdXNlLmRlICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICArNDkgOTExIDc0MDUzIDY4OQpTVVNFIExJTlVYIEdtYkgsIE1heGZl
+bGRzdHIuIDUsIDkwNDA5IE7DvHJuYmVyZwpHRjogRmVsaXggSW1lbmTDtnJmZmVyLCBKYW5lIFNt
+aXRoYXJkLCBHcmFoYW0gTm9ydG9uCkhSQiAyMTI4NCAoQUcgTsO8cm5iZXJnKQpLZXkgZmluZ2Vy
+cHJpbnQgPSBFQzM4IDlDQUIgQzJDNCBGMjVEIDg2MDAgRDBEMCAwMzkzIDk2OUQgMkQ3NiAwODUw
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3Rz
+LjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
