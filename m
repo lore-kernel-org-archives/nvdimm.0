@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mail1.bemta24.messagelabs.com (mail1.bemta24.messagelabs.com
+ [67.219.250.113])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2C9221B02822
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:19:36 -0800 (PST)
-Subject: [mm PATCH v5 2/7] mm: Drop meminit_pfn_in_nid as it is redundant
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:19:35 -0800
-Message-ID: <154145277561.30046.12617658691920831062.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8AC492117FD5E
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 06:27:33 -0800 (PST)
+From: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Subject: RE: [External]  Re: [RFC PATCH v2 0/3] realize dax_operations for
+ dm-snapshot
+Date: Wed, 28 Nov 2018 14:27:12 +0000
+Message-ID: <HK2PR03MB4418C7DE4A2A55E691711CE692D10@HK2PR03MB4418.apcprd03.prod.outlook.com>
+References: <20181121032702.3048-1-yehs2007@zoho.com>
+ <CAPcyv4hmCsNOZPEAzOLxhFCQpyaG0_9TJvJnyuytQAVEU7_wbA@mail.gmail.com>
+In-Reply-To: <CAPcyv4hmCsNOZPEAzOLxhFCQpyaG0_9TJvJnyuytQAVEU7_wbA@mail.gmail.com>
+Content-Language: zh-CN
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,185 +26,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, NingTing Cheng <chengnt@lenovo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, device-mapper development <dm-devel@redhat.com>, "zwisler@kernel.org" <zwisler@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As best as I can tell the meminit_pfn_in_nid call is completely redundant.
-The deferred memory initialization is already making use of
-for_each_free_mem_range which in turn will call into __next_mem_range which
-will only return a memory range if it matches the node ID provided assuming
-it is not NUMA_NO_NODE.
+From: Dan Williams <dan.j.williams@intel.com>
+Sent: Monday, November 26, 2018 5:00 AM> 
+> On Tue, Nov 20, 2018 at 7:27 PM Huaisheng Ye <yehs2007@zoho.com> wrote:
+> >
+> > From: Huaisheng Ye <yehs1@lenovo.com>
+> >
+> > Changes
+> > v1->v2:
+> >         Add NULL funtions for origin_dax_direct_access and
+> >         origin_dax_copy_from/to_iter in order to avoid building
+> >         error when CONFIG_DAX_DRIVER has NOT been enabled.
+> >
+> > [v1]: https://lkml.org/lkml/2018/11/20/759
+> >
+> > This series patches are used to realize the dax_operations for dm-snapshot
+> > with persistent memory device.
+> 
+> How does this interact with mmap write faults if the mapping is dax
+> and the page needs to be cow'd?
 
-I am operating on the assumption that there are no zones or pgdata_t
-structures that have a NUMA node of NUMA_NO_NODE associated with them. If
-that is the case then __next_mem_range will never return a memory range
-that doesn't match the zone's node ID and as such the check is redundant.
+Hi Dan,
 
-So one piece I would like to verify on this is if this works for ia64.
-Technically it was using a different approach to get the node ID, but it
-seems to have the node ID also encoded into the memblock. So I am
-assuming this is okay, but would like to get confirmation on that.
+Based on my understanding, I think dm-snapshot is impossible to work
+with file mapping in DAX way.
 
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 2.80s to 1.85s as a result of this patch.
+When file mapping has been used with DAX, userspace could get the pointer
+To access persistent memory directly by page fault.
+Here is the call trace.
 
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- mm/page_alloc.c |   51 ++++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 37 deletions(-)
+ 74 [ 7677.897354] Call Trace:
+ 75 [ 7677.900538]  dump_stack+0x67/0x82
+ 76 [ 7677.904695]  __pmem_direct_access+0xa9/0x101 [nd_pmem]
+ 77 [ 7677.910922]  ? linear_ctr+0x12a/0x12a [dm_mod]
+ 78 [ 7677.916340]  pmem_dax_direct_access+0x30/0x37 [nd_pmem]
+ 79 [ 7677.922641]  dax_direct_access+0x30/0x58
+ 80 [ 7677.927480]  linear_dax_direct_access+0x66/0x71 [dm_mod]
+ 81 [ 7677.933848]  dm_dax_direct_access+0x9c/0xf1 [dm_mod]
+ 82 [ 7677.939856]  ? origin_dax_copy_from_iter+0x88/0x88 [dm_snapshot]
+ 83 [ 7677.947032]  dax_direct_access+0x30/0x58
+ 84 [ 7677.951876]  origin_dax_direct_access+0x6a/0x75 [dm_snapshot]
+ 85 [ 7677.958753]  dm_dax_direct_access+0x9c/0xf1 [dm_mod]
+ 86 [ 7677.964738]  dax_direct_access+0x30/0x58
+ 87 [ 7677.969542]  dax_iomap_pfn+0x84/0x10d
+ 88 [ 7677.974061]  dax_iomap_pte_fault+0x4a9/0x773
+ 89 [ 7677.979271]  dax_iomap_fault+0x21/0x36
+ 90 [ 7677.983895]  ext2_dax_fault+0x70/0x9a [ext2]
+ 91 [ 7677.989061]  __do_fault+0x1d/0x74
+ 92 [ 7677.993159]  __handle_mm_fault+0xf04/0x17a4
+ 93 [ 7677.998225]  handle_mm_fault+0x1a0/0x204
+ 94 [ 7678.003035]  __do_page_fault+0x39b/0x4d3
+ 95 [ 7678.007839]  do_page_fault+0xfc/0x11b
+ 96 [ 7678.012316]  ? page_fault+0x8/0x30
+ 97 [ 7678.016498]  page_fault+0x1e/0x30
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index ae31839874b8..be1197c120a8 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1301,36 +1301,22 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
- #endif
- 
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--static inline bool __meminit __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn, state);
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
- 	if (nid >= 0 && nid != node)
- 		return false;
- 	return true;
- }
- 
--/* Only safe to use early in boot when initialisation is single-threaded */
--static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
--}
--
- #else
--
- static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	return true;
- }
--static inline bool __meminit  __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
--{
--	return true;
--}
- #endif
- 
- 
-@@ -1459,21 +1445,13 @@ static inline void __init pgdat_init_report_one_done(void)
-  *
-  * Then, we check if a current large page is valid by only checking the validity
-  * of the head pfn.
-- *
-- * Finally, meminit_pfn_in_nid is checked on systems where pfns can interleave
-- * within a node: a pfn is between start and end of a node, but does not belong
-- * to this memory node.
-  */
--static inline bool __init
--deferred_pfn_valid(int nid, unsigned long pfn,
--		   struct mminit_pfnnid_cache *nid_init_state)
-+static inline bool __init deferred_pfn_valid(unsigned long pfn)
- {
- 	if (!pfn_valid_within(pfn))
- 		return false;
- 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
- 		return false;
--	if (!meminit_pfn_in_nid(pfn, nid, nid_init_state))
--		return false;
- 	return true;
- }
- 
-@@ -1481,15 +1459,14 @@ deferred_pfn_valid(int nid, unsigned long pfn,
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long pfn,
- 				       unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	unsigned long nr_free = 0;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			deferred_free_range(pfn - nr_free, nr_free);
- 			nr_free = 0;
- 		} else if (!(pfn & nr_pgmask)) {
-@@ -1509,17 +1486,18 @@ static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-  * by performing it only once every pageblock_nr_pages.
-  * Return number of pages initialized.
-  */
--static unsigned long  __init deferred_init_pages(int nid, int zid,
-+static unsigned long  __init deferred_init_pages(struct zone *zone,
- 						 unsigned long pfn,
- 						 unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
-+	int zid = zone_idx(zone);
- 	struct page *page = NULL;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			page = NULL;
- 			continue;
- 		} else if (!page || !(pfn & nr_pgmask)) {
-@@ -1582,12 +1560,12 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		nr_pages += deferred_init_pages(nid, zid, spfn, epfn);
-+		nr_pages += deferred_init_pages(zone, spfn, epfn);
- 	}
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
-@@ -1626,7 +1604,6 @@ static DEFINE_STATIC_KEY_TRUE(deferred_pages);
- static noinline bool __init
- deferred_grow_zone(struct zone *zone, unsigned int order)
- {
--	int zid = zone_idx(zone);
- 	int nid = zone_to_nid(zone);
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
-@@ -1676,7 +1653,7 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- 		while (spfn < epfn && nr_pages < nr_pages_needed) {
- 			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
- 			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(nid, zid, spfn,
-+			nr_pages += deferred_init_pages(zone, spfn,
- 							first_deferred_pfn);
- 			spfn = first_deferred_pfn;
- 		}
-@@ -1688,7 +1665,7 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, first_deferred_pfn, PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 
- 		if (first_deferred_pfn == epfn)
- 			break;
+The application in userspace could directly read or write the data of
+the file content by mmap in DAX way.
+dm-snapshot works at kernel space, so it doesn't have chance to be aware
+of the modification of FS.
 
+I think in this case, perhaps userspace should take the responsibility
+for snapshot when file mapping has been used in DAX way. Just like what
+NVML has done as CLFLUSH for cache lines flush.
+
+Correct me if anything is not accurate.
+
+Cheers,
+Huaisheng Ye
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
