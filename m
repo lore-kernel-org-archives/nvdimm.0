@@ -1,17 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com
+ [IPv6:2607:f8b0:4864:20::230])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E07452118EF5C
- for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:14:32 -0800 (PST)
-Subject: [PATCH 06/11] tools/testing/nvdimm: Add overwrite support for
- nfit_test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Nov 2018 15:14:18 -0700
-Message-ID: <154180165842.70506.2177330092992336547.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
-References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 97CE521B02822
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 22:09:35 -0800 (PST)
+Received: by mail-oi1-x230.google.com with SMTP id u18so659501oie.10
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 22:09:35 -0800 (PST)
 MIME-Version: 1.0
+References: <118cae852d1dbcc582261ae364e75a7bdf3d43ed.camel@intel.com>
+ <20181106144848.GE3074@bombadil.infradead.org>
+ <35429d15f7dfd2c551b9d61512abe2e04376d2a0.camel@intel.com>
+ <20181110082918.GC21824@bombadil.infradead.org>
+ <CAPcyv4hotPj0YKnyo1WpoFGKaq_9L3=h3zxDNMHoSU+qUaoh4g@mail.gmail.com>
+ <20181113142519.GX21824@bombadil.infradead.org>
+In-Reply-To: <20181113142519.GX21824@bombadil.infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 28 Nov 2018 22:09:23 -0800
+Message-ID: <CAPcyv4gDDMUK+_e_d5Kzqt6kunKrt-ktOhPWepoXepPP4juj0g@mail.gmail.com>
+Subject: Re: fsdax memory error handling regression
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,133 +30,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
-Cc: linux-nvdimm@lists.01.org
+To: Matthew Wilcox <willy@infradead.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the implementation of Intel NVDIMM DSM overwrite, we are adding unit
-test to nfit_test for testing of overwrite operation.
+On Tue, Nov 13, 2018 at 6:25 AM Matthew Wilcox <willy@infradead.org> wrote:
+>
+> On Sat, Nov 10, 2018 at 09:08:10AM -0800, Dan Williams wrote:
+> > On Sat, Nov 10, 2018 at 12:29 AM Matthew Wilcox <willy@infradead.org> wrote:
+[..]
+> > > If we get an internal entry in this case, we know we were looking up
+> > > a PMD entry and found a PTE entry.
+> >
+> > Oh, so I may have my understanding of internal entries backwards? I.e.
+> > I thought they were returned if you have an order-0 xas and passed
+> > xas_load() an unaligned index, but the entry is multi-order. You're
+> > saying they are only returned when we have a multi-order xas and
+> > xas_load() finds an order-0 entry at the unaligned index. So
+> > "internal" isn't Xarray private state it's an order-0 entry when the
+> > user wanted multi-order?
+>
+> This sounds much more like what I just re-described above.  When you say
+> an unaligned index, I suspect you mean something like having a PMD entry
+> and specifying an index which is not PMD-aligned?  That always returns
+> the PMD entry, just like the radix tree used to.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/acpi/nfit/intel.h        |    1 +
- tools/testing/nvdimm/dimm_devs.c |    2 +
- tools/testing/nvdimm/test/nfit.c |   55 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+)
+...ok, so I think I may have evidence to the contrary or something
+else is going wrong in the api. At the very least we're inching
+towards root cause. If I modify dax_to_pfn() like so:
 
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index a4e01de966dc..0140d9b6a0b7 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -52,6 +52,7 @@ extern const struct nvdimm_security_ops *intel_security_ops;
- #define ND_INTEL_STATUS_INVALID_PASS	11
- #define ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED	0x10007
- #define ND_INTEL_STATUS_OQUERY_INPROGRESS	0x10007
-+#define ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR	0x20007
- 
- #define ND_INTEL_SEC_STATE_ENABLED	0x02
- #define ND_INTEL_SEC_STATE_LOCKED	0x04
-diff --git a/tools/testing/nvdimm/dimm_devs.c b/tools/testing/nvdimm/dimm_devs.c
-index de3a22988dc5..3f8ad3d445d2 100644
---- a/tools/testing/nvdimm/dimm_devs.c
-+++ b/tools/testing/nvdimm/dimm_devs.c
-@@ -29,6 +29,8 @@ ssize_t security_show(struct device *dev,
- 		return sprintf(buf, "locked\n");
- 	case NVDIMM_SECURITY_FROZEN:
- 		return sprintf(buf, "frozen\n");
-+	case NVDIMM_SECURITY_OVERWRITE:
-+		return sprintf(buf, "overwrite\n");
- 	case NVDIMM_SECURITY_UNSUPPORTED:
- 	default:
- 		return sprintf(buf, "unsupported\n");
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index e4b560494e0a..c885fe136f42 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -149,6 +149,7 @@ static int dimm_fail_cmd_code[NUM_DCR];
- struct nfit_test_sec {
- 	u8 state;
- 	u8 passphrase[32];
-+	u64 overwrite_end_time;
- } dimm_sec_info[NUM_DCR];
- 
- static const struct nd_intel_smart smart_def = {
-@@ -1073,6 +1074,50 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 	return 0;
- }
- 
-+static int nd_intel_test_cmd_overwrite(struct nfit_test *t,
-+		struct nd_intel_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
-+
-+	if ((sec->state & ND_INTEL_SEC_STATE_ENABLED) &&
-+			memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "overwrite: wrong passphrase\n");
-+		return 0;
-+	}
-+
-+	memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+	sec->state = ND_INTEL_SEC_STATE_OVERWRITE;
-+	dev_dbg(dev, "overwrite progressing.\n");
-+	sec->overwrite_end_time = get_jiffies_64() + 5 * HZ;
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
-+		struct nd_intel_query_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_OVERWRITE)) {
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR;
-+		return 0;
-+	}
-+
-+	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
-+		sec->overwrite_end_time = 0;
-+		sec->state = 0;
-+		dev_dbg(dev, "overwrite is complete\n");
-+	} else
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+diff --git a/fs/dax.c b/fs/dax.c
+index 3f592dc18d67..7fd3529fe859 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -88,9 +88,17 @@ fs_initcall(init_dax_wait_table);
+ #define DAX_ZERO_PAGE  (1UL << 2)
+ #define DAX_EMPTY      (1UL << 3)
+
+-static unsigned long dax_to_pfn(void *entry)
++static unsigned long dax_is_pmd_entry(void *entry)
  {
- 	int i;
-@@ -1144,6 +1189,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_secure_erase(t,
- 						buf, buf_len, i);
- 				break;
-+			case NVDIMM_INTEL_OVERWRITE:
-+				rc = nd_intel_test_cmd_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_QUERY_OVERWRITE:
-+				rc = nd_intel_test_cmd_query_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -2379,6 +2432,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
+-       return xa_to_value(entry) >> DAX_SHIFT;
++       return xa_to_value(entry) & DAX_PMD;
++}
++
++static noinline unsigned long dax_to_pfn(void *entry)
++{
++       unsigned long val = xa_to_value(entry) >> DAX_SHIFT;
++
++       WARN_ON_ONCE(dax_is_pmd_entry(entry) && val & ((1UL << PMD_ORDER) - 1));
++       return val;
  }
- 
- static void nfit_test1_setup(struct nfit_test *t)
 
+...it triggers. The same change on top 4.19 does not. So somehow we
+are able to lookup a pmd entry, but the value of the entry is pte
+aligned. This is the precursor to the original failure because ext4
+tries to invalidate the page with the memory failure, but the
+resulting dax_disassociate_entry() starts its for_each_mapped_pfn() at
+an unaligned pfn, and likely spills over into unrelated pages. Later
+dax_insert_entry() sees ->mapping still set for the first few pfns
+relative to the original pmd entry when it should have been set to
+NULL.
+
+Do you see anything in __dax_invalidate_entry() path that would lead
+to this or do I need to peel the onion a bit more?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
