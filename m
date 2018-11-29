@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2748C2118B7A4
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:12:26 -0800 (PST)
-Subject: [driver-core PATCH v5 9/9] libnvdimm: Schedule device registration
- on node local to the device
+ by ml01.01.org (Postfix) with ESMTPS id 8E2E82119622B
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:42 -0800 (PST)
+Subject: [driver-core PATCH v7 7/9] driver core: Attach devices on CPU local
+ to device node
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:12:25 -0800
-Message-ID: <154145234526.29224.2575533246153120029.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+Date: Wed, 28 Nov 2018 16:32:42 -0800
+Message-ID: <154345156222.18040.5612838924447370070.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,54 +24,48 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch is meant to force the device registration for nvdimm devices to
-be closer to the actual device. This is achieved by using either the NUMA
-node ID of the region, or of the parent. By doing this we can have
-everything above the region based on the region, and everything below the
-region based on the nvdimm bus.
+Call the asynchronous probe routines on a CPU local to the device node. By
+doing this we should be able to improve our initialization time
+significantly as we can avoid having to access the device from a remote
+node which may introduce higher latency.
 
-By guaranteeing NUMA locality I see an improvement of as high as 25% for
-per-node init of a system with 12TB of persistent memory.
+For example, in the case of initializing memory for NVDIMM this can have a
+significant impact as initialing 3TB on remote node can take up to 39
+seconds while initialing it on a local node only takes 23 seconds. It is
+situations like this where we will see the biggest improvement.
 
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
 Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- drivers/nvdimm/bus.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/base/dd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index f1fb39921236..b1e193541874 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -23,6 +23,7 @@
- #include <linux/ndctl.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/cpu.h>
- #include <linux/fs.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-@@ -513,11 +514,15 @@ void __nd_device_register(struct device *dev)
- 		set_dev_node(dev, to_nd_region(dev)->numa_node);
- 
- 	dev->bus = &nvdimm_bus_type;
--	if (dev->parent)
-+	if (dev->parent) {
- 		get_device(dev->parent);
-+		if (dev_to_node(dev) == NUMA_NO_NODE)
-+			set_dev_node(dev, dev_to_node(dev->parent));
-+	}
- 	get_device(dev);
--	async_schedule_domain(nd_async_device_register, dev,
--			&nd_async_domain);
-+
-+	async_schedule_dev_domain(nd_async_device_register, dev,
-+				  &nd_async_domain);
- }
- 
- void nd_device_register(struct device *dev)
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 036c8ffa522f..b24a5473c968 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -853,7 +853,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 			dev_dbg(dev, "scheduling asynchronous probe\n");
+ 			get_device(dev);
+ 			dev_set_drv_async(dev, NULL);
+-			async_schedule(__device_attach_async_helper, dev);
++			async_schedule_dev(__device_attach_async_helper, dev);
+ 		} else {
+ 			pm_request_idle(dev);
+ 		}
+@@ -1011,7 +1011,7 @@ static int __driver_attach(struct device *dev, void *data)
+ 		if (!dev->driver) {
+ 			get_device(dev);
+ 			dev_set_drv_async(dev, drv);
+-			async_schedule(__driver_attach_async_helper, dev);
++			async_schedule_dev(__driver_attach_async_helper, dev);
+ 		}
+ 		device_unlock(dev);
+ 		return 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
