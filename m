@@ -1,23 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com
- [IPv6:2607:f8b0:4864:20::732])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8CD61211575F2
- for <linux-nvdimm@lists.01.org>; Tue,  6 Nov 2018 18:12:49 -0800 (PST)
-Received: by mail-qk1-x732.google.com with SMTP id o89so19821114qko.0
- for <linux-nvdimm@lists.01.org>; Tue, 06 Nov 2018 18:12:49 -0800 (PST)
-Received: from gabell ([2601:18f:600:d880:c1f1:36c5:d40:1949])
- by smtp.gmail.com with ESMTPSA id b8sm27174008qka.79.2018.11.06.18.12.47
- for <linux-nvdimm@lists.01.org>
- (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
- Tue, 06 Nov 2018 18:12:47 -0800 (PST)
-Date: Tue, 6 Nov 2018 21:12:46 -0500
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Question about unit test for acpi_nfit_notify().
-Message-ID: <20181107021245.amegu3dwawlwyxob@gabell>
+ by ml01.01.org (Postfix) with ESMTPS id 9CB792097E25C
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:47 -0800 (PST)
+Subject: [driver-core PATCH v7 8/9] PM core: Use new async_schedule_dev command
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 28 Nov 2018 16:32:47 -0800
+Message-ID: <154345156732.18040.4213636216002711880.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,50 +22,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Let me ask a question about unit test for acpi_nfit_notify().
+Use the device specific version of the async_schedule commands to defer
+various tasks related to power management. By doing this we should see a
+slight improvement in performance as any device that is sensitive to
+latency/locality in the setup will now be initializing on the node closest
+to the device.
 
-The unit test was introduced by commit c14a868a5a14 ("tools/testing/nvdimm:
-unit test for acpi_nfit_notify()"), however, it seems that it doesn't
-work currently. When I road the nfit_test.ko, I got the following
-message.
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ drivers/base/power/main.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-  nfit_test nfit_test.0: failed to evaluate _FIT
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index a690fd400260..ebb8b61b52e9 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -726,7 +726,7 @@ void dpm_noirq_resume_devices(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume_noirq, dev);
++			async_schedule_dev(async_resume_noirq, dev);
+ 		}
+ 	}
+ 
+@@ -883,7 +883,7 @@ void dpm_resume_early(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume_early, dev);
++			async_schedule_dev(async_resume_early, dev);
+ 		}
+ 	}
+ 
+@@ -1047,7 +1047,7 @@ void dpm_resume(pm_message_t state)
+ 		reinit_completion(&dev->power.completion);
+ 		if (is_async(dev)) {
+ 			get_device(dev);
+-			async_schedule(async_resume, dev);
++			async_schedule_dev(async_resume, dev);
+ 		}
+ 	}
+ 
+@@ -1366,7 +1366,7 @@ static int device_suspend_noirq(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend_noirq, dev);
++		async_schedule_dev(async_suspend_noirq, dev);
+ 		return 0;
+ 	}
+ 	return __device_suspend_noirq(dev, pm_transition, false);
+@@ -1569,7 +1569,7 @@ static int device_suspend_late(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend_late, dev);
++		async_schedule_dev(async_suspend_late, dev);
+ 		return 0;
+ 	}
+ 
+@@ -1833,7 +1833,7 @@ static int device_suspend(struct device *dev)
+ 
+ 	if (is_async(dev)) {
+ 		get_device(dev);
+-		async_schedule(async_suspend, dev);
++		async_schedule_dev(async_suspend, dev);
+ 		return 0;
+ 	}
+ 
 
-That is because the 2nd argument of __acpi_nfit_notify(), nfit_test,
-isn't allocated as nfit_test_resource structure, so
-__wrap_acpi_evaluate_object() doesn't do anything, just call
-acpi_evaluate_object(). The nfit_test is passed to acpi_evaluate_object()
-as the 1st argument, handle. The nfit_test isn't useful for the
-handle, so I got the error message.
-
-nfit_test->_fit is allocated as nfit_test_resource structure,
-so I thought it is fixed by the change look like as following.
-
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index cffc2c5a778d..3bae4a879f5f 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -2670,7 +2670,7 @@ static int nfit_test_probe(struct platform_device *pdev)
-        obj->buffer.length = nfit_test->nfit_size;
-        obj->buffer.pointer = nfit_test->nfit_buf;
-        *(nfit_test->_fit) = obj;
--       __acpi_nfit_notify(&pdev->dev, nfit_test, 0x80);
-+       __acpi_nfit_notify(&pdev->dev, nfit_test->_fit, 0x80);
-
-        /* associate dimm devices with nfit_mem data for notification testing */
-        mutex_lock(&acpi_desc->init_mutex);
-
-However, if so, obj, which is allocated before calling __acpi_nfit_notify(),
-gets meaningless...
-
-I would like to fix this issue but I'm confusing now... Am I missing
-something? I would applicate if someone could help.
-
-Thanks!
-Masa
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
