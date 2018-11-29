@@ -1,18 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C4AC521959CB2
- for <linux-nvdimm@lists.01.org>; Mon, 12 Nov 2018 11:31:48 -0800 (PST)
-Subject: Re: [PATCH 2/2] kvm: Use huge pages for DAX-backed files
-References: <20181109203921.178363-1-brho@google.com>
- <20181109203921.178363-3-brho@google.com>
-From: Paolo Bonzini <pbonzini@redhat.com>
-Message-ID: <861c4adb-e2f0-2caf-8f6e-9f09ecb0b624@redhat.com>
-Date: Mon, 12 Nov 2018 20:31:37 +0100
+ by ml01.01.org (Postfix) with ESMTPS id 8D12021BADAB2
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:07 -0800 (PST)
+Subject: [driver-core PATCH v7 0/9] Add NUMA aware async_schedule calls
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 28 Nov 2018 16:32:06 -0800
+Message-ID: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181109203921.178363-3-brho@google.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,95 +20,99 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Barret Rhoden <brho@google.com>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>
-Cc: kvm@vger.kernel.org, yu.c.zhang@intel.com, linux-nvdimm@lists.01.org, x86@kernel.org, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, yi.z.zhang@intel.com
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 09/11/2018 21:39, Barret Rhoden wrote:
-> This change allows KVM to map DAX-backed files made of huge pages with
-> huge mappings in the EPT/TDP.
-> 
-> DAX pages are not PageTransCompound.  The existing check is trying to
-> determine if the mapping for the pfn is a huge mapping or not.  For
-> non-DAX maps, e.g. hugetlbfs, that means checking PageTransCompound.
-> For DAX, we can check the page table itself.
-> 
-> Note that KVM already faulted in the page (or huge page) in the host's
-> page table, and we hold the KVM mmu spinlock (grabbed before checking
-> the mmu seq).
-> 
-> Signed-off-by: Barret Rhoden <brho@google.com>
-> ---
->  arch/x86/kvm/mmu.c | 34 ++++++++++++++++++++++++++++++++--
->  1 file changed, 32 insertions(+), 2 deletions(-)
+This patch set provides functionality that will help to improve the
+locality of the async_schedule calls used to provide deferred
+initialization.
 
-Looks good.  What's the plan for removing PageReserved from DAX pages?
+This patch set originally started out focused on just the one call to
+async_schedule_domain in the nvdimm tree that was being used to defer the
+device_add call however after doing some digging I realized the scope of
+this was much broader than I had originally planned. As such I went
+through and reworked the underlying infrastructure down to replacing the
+queue_work call itself with a function of my own and opted to try and
+provide a NUMA aware solution that would work for a broader audience.
 
-Thanks,
+In addition I have added several tweaks and/or clean-ups to the front of the
+patch set. Patches 1 through 4 address a number of issues that actually were
+causing the existing async_schedule calls to not show the performance that
+they could due to either not scaling on a per device basis, or due to issues
+that could result in a potential deadlock. For example, patch 4 addresses the
+fact that we were calling async_schedule once per driver instead of once
+per device, and as a result we would have still ended up with devices
+being probed on a non-local node without addressing this first.
 
-Paolo
+RFC->v1:
+    Dropped nvdimm patch to submit later.
+        It relies on code in libnvdimm development tree.
+    Simplified queue_work_near to just convert node into a CPU.
+    Split up drivers core and PM core patches.
+v1->v2:
+    Renamed queue_work_near to queue_work_node
+    Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
+v2->v3:
+    Added Acked-by for queue_work_node patch
+    Continued rename from _near to _node to be consistent with queue_work_node
+        Renamed async_schedule_near_domain to async_schedule_node_domain
+        Renamed async_schedule_near to async_schedule_node
+    Added kerneldoc for new async_schedule_XXX functions
+    Updated patch description for patch 4 to include data on potential gains
+v3->v4
+    Added patch to consolidate use of need_parent_lock
+    Make asynchronous driver probing explicit about use of drvdata
+v4->v5
+    Added patch to move async_synchronize_full to address deadlock
+    Added bit async_probe to act as mutex for probe/remove calls
+    Added back nvdimm patch as code it relies on is now in Linus's tree
+    Incorporated review comments on parent & device locking consolidation
+    Rebased on latest linux-next
+v5->v6:
+    Drop the "This patch" or "This change" from start of patch descriptions.
+    Drop unnecessary parenthesis in first patch
+    Use same wording for "selecting a CPU" in comments added in first patch
+    Added kernel documentation for async_probe member of device
+    Fixed up comments for async_schedule calls in patch 2
+    Moved code related setting async driver out of device.h and into dd.c
+    Added Reviewed-by for several patches
+v6->v7:
+    Fixed typo which had kernel doc refer to "lock" when I meant "unlock"
+    Dropped "bool X:1" to "u8 X:1" from patch description
+    Added async_driver to device_private structure to store driver
+    Dropped unecessary code shuffle from async_probe patch
+    Reordered patches to move fixes up to front
+    Added Reviewed-by for several patches
+    Updated cover page and patch descriptions throughout the set
 
-> diff --git a/arch/x86/kvm/mmu.c b/arch/x86/kvm/mmu.c
-> index cf5f572f2305..2df8c459dc6a 100644
-> --- a/arch/x86/kvm/mmu.c
-> +++ b/arch/x86/kvm/mmu.c
-> @@ -3152,6 +3152,36 @@ static int kvm_handle_bad_page(struct kvm_vcpu *vcpu, gfn_t gfn, kvm_pfn_t pfn)
->  	return -EFAULT;
->  }
->  
-> +static bool pfn_is_huge_mapped(struct kvm *kvm, gfn_t gfn, kvm_pfn_t pfn)
-> +{
-> +	struct page *page = pfn_to_page(pfn);
-> +	unsigned long hva, map_shift;
-> +
-> +	if (!is_zone_device_page(page))
-> +		return PageTransCompoundMap(page);
-> +
-> +	/*
-> +	 * DAX pages do not use compound pages.  The page should have already
-> +	 * been mapped into the host-side page table during try_async_pf(), so
-> +	 * we can check the page tables directly.
-> +	 */
-> +	hva = gfn_to_hva(kvm, gfn);
-> +	if (kvm_is_error_hva(hva))
-> +		return false;
-> +
-> +	/*
-> +	 * Our caller grabbed the KVM mmu_lock with a successful
-> +	 * mmu_notifier_retry, so we're safe to walk the page table.
-> +	 */
-> +	map_shift = dev_pagemap_mapping_shift(hva, current->mm);
-> +	switch (map_shift) {
-> +	case PMD_SHIFT:
-> +	case PUD_SIZE:
-> +		return true;
-> +	}
-> +	return false;
-> +}
-> +
->  static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
->  					gfn_t *gfnp, kvm_pfn_t *pfnp,
->  					int *levelp)
-> @@ -3168,7 +3198,7 @@ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
->  	 */
->  	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
->  	    level == PT_PAGE_TABLE_LEVEL &&
-> -	    PageTransCompoundMap(pfn_to_page(pfn)) &&
-> +	    pfn_is_huge_mapped(vcpu->kvm, gfn, pfn) &&
->  	    !mmu_gfn_lpage_is_disallowed(vcpu, gfn, PT_DIRECTORY_LEVEL)) {
->  		unsigned long mask;
->  		/*
-> @@ -5678,7 +5708,7 @@ static bool kvm_mmu_zap_collapsible_spte(struct kvm *kvm,
->  		 */
->  		if (sp->role.direct &&
->  			!kvm_is_reserved_pfn(pfn) &&
-> -			PageTransCompoundMap(pfn_to_page(pfn))) {
-> +			pfn_is_huge_mapped(kvm, sp->gfn, pfn)) {
->  			pte_list_remove(rmap_head, sptep);
->  			need_tlb_flush = 1;
->  			goto restart;
-> 
+---
 
+Alexander Duyck (9):
+      driver core: Move async_synchronize_full call
+      driver core: Establish clear order of operations for deferred probe and remove
+      device core: Consolidate locking and unlocking of parent and device
+      driver core: Probe devices asynchronously instead of the driver
+      workqueue: Provide queue_work_node to queue work near a given NUMA node
+      async: Add support for queueing on specific NUMA node
+      driver core: Attach devices on CPU local to device node
+      PM core: Use new async_schedule_dev command
+      libnvdimm: Schedule device registration on node local to the device
+
+
+ drivers/base/base.h       |    4 +
+ drivers/base/bus.c        |   46 ++---------
+ drivers/base/dd.c         |  182 +++++++++++++++++++++++++++++++++++++++------
+ drivers/base/power/main.c |   12 +--
+ drivers/nvdimm/bus.c      |   11 ++-
+ include/linux/async.h     |   82 ++++++++++++++++++++
+ include/linux/device.h    |    3 +
+ include/linux/workqueue.h |    2 
+ kernel/async.c            |   53 +++++++------
+ kernel/workqueue.c        |   84 +++++++++++++++++++++
+ 10 files changed, 380 insertions(+), 99 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
