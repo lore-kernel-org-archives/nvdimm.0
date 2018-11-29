@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5D9F721A07A80
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:07:27 -0800 (PST)
-Subject: [driver-core PATCH v6 9/9] libnvdimm: Schedule device registration
+ by ml01.01.org (Postfix) with ESMTPS id D1D962097E25C
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:52 -0800 (PST)
+Subject: [driver-core PATCH v7 9/9] libnvdimm: Schedule device registration
  on node local to the device
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 08 Nov 2018 10:07:26 -0800
-Message-ID: <154170044652.12967.17419321472770956712.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
-References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+Date: Wed, 28 Nov 2018 16:32:52 -0800
+Message-ID: <154345157242.18040.12791981821209910767.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Force the device registration for nvdimm devices to be closer to the actual
