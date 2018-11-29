@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com
- [209.85.210.176])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7AC3D21962301
- for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:40:06 -0800 (PST)
-Received: by mail-pf1-f176.google.com with SMTP id z9so2100689pfi.2
- for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:40:06 -0800 (PST)
-Date: Thu, 29 Nov 2018 19:40:01 -0800
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [RFC v3 07/19] kunit: test: add initial tests
-Message-ID: <20181130034001.GM18410@garbanzo.do-not-panic.com>
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-8-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id B4A902097E25C
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Nov 2018 16:32:37 -0800 (PST)
+Subject: [driver-core PATCH v7 6/9] async: Add support for queueing on
+ specific NUMA node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 28 Nov 2018 16:32:37 -0800
+Message-ID: <154345155712.18040.476953514711149462.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20181128193636.254378-8-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,27 +23,228 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, frowand.list@gmail.com, linux-nvdimm@lists.01.org, richard@nod.at, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, joel@jms.id.au, jdike@addtoit.com, Tim.Bird@sony.com, keescook@google.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, joe@perches.com, khilman@baylibre.com
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Nov 28, 2018 at 11:36:24AM -0800, Brendan Higgins wrote:
-> Add a test for string stream along with a simpler example.
-> 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> ---
->  kunit/Kconfig              | 12 ++++++
->  kunit/Makefile             |  4 ++
->  kunit/example-test.c       | 88 ++++++++++++++++++++++++++++++++++++++
+Introduce four new variants of the async_schedule_ functions that allow
+scheduling on a specific NUMA node.
 
-BTW if you need another more concrete but very simple example I think it
-may be possible to port tools/testing/selftests/sysctl/sysctl.sh +
-lib/test_sysctl.c into a kunit test. Correct me if I'm wrong.
+The first two functions are async_schedule_near and
+async_schedule_near_domain end up mapping to async_schedule and
+async_schedule_domain, but provide NUMA node specific functionality. They
+replace the original functions which were moved to inline function
+definitions that call the new functions while passing NUMA_NO_NODE.
 
-I think that would show the differences clearly between selftests and
-kunit as well.
+The second two functions are async_schedule_dev and
+async_schedule_dev_domain which provide NUMA specific functionality when
+passing a device as the data member and that device has a NUMA node other
+than NUMA_NO_NODE.
 
-  Luis
+The main motivation behind this is to address the need to be able to
+schedule device specific init work on specific NUMA nodes in order to
+improve performance of memory initialization.
+
+I have seen a significant improvement in initialziation time for persistent
+memory as a result of this approach. In the case of 3TB of memory on a
+single node the initialization time in the worst case went from 36s down to
+about 26s for a 10s improvement. As such the data shows a general benefit
+for affinitizing the async work to the node local to the device.
+
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ include/linux/async.h |   82 +++++++++++++++++++++++++++++++++++++++++++++++--
+ kernel/async.c        |   53 +++++++++++++++++---------------
+ 2 files changed, 108 insertions(+), 27 deletions(-)
+
+diff --git a/include/linux/async.h b/include/linux/async.h
+index 6b0226bdaadc..f81d6dbffe68 100644
+--- a/include/linux/async.h
++++ b/include/linux/async.h
+@@ -14,6 +14,8 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/numa.h>
++#include <linux/device.h>
+ 
+ typedef u64 async_cookie_t;
+ typedef void (*async_func_t) (void *data, async_cookie_t cookie);
+@@ -37,9 +39,83 @@ struct async_domain {
+ 	struct async_domain _name = { .pending = LIST_HEAD_INIT(_name.pending), \
+ 				      .registered = 0 }
+ 
+-extern async_cookie_t async_schedule(async_func_t func, void *data);
+-extern async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-					    struct async_domain *domain);
++async_cookie_t async_schedule_node(async_func_t func, void *data,
++				   int node);
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node,
++					  struct async_domain *domain);
++
++/**
++ * async_schedule - schedule a function for asynchronous execution
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t async_schedule(async_func_t func, void *data)
++{
++	return async_schedule_node(func, data, NUMA_NO_NODE);
++}
++
++/**
++ * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_domain(async_func_t func, void *data,
++		      struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, data, NUMA_NO_NODE, domain);
++}
++
++/**
++ * async_schedule_dev - A device specific version of async_schedule
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev(async_func_t func, struct device *dev)
++{
++	return async_schedule_node(func, dev, dev_to_node(dev));
++}
++
++/**
++ * async_schedule_dev_domain - A device specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev_domain(async_func_t func, struct device *dev,
++			  struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, dev, dev_to_node(dev), domain);
++}
++
+ void async_unregister_domain(struct async_domain *domain);
+ extern void async_synchronize_full(void);
+ extern void async_synchronize_full_domain(struct async_domain *domain);
+diff --git a/kernel/async.c b/kernel/async.c
+index a893d6170944..f6bd0d9885e1 100644
+--- a/kernel/async.c
++++ b/kernel/async.c
+@@ -149,7 +149,25 @@ static void async_run_entry_fn(struct work_struct *work)
+ 	wake_up(&async_done);
+ }
+ 
+-static async_cookie_t __async_schedule(async_func_t func, void *data, struct async_domain *domain)
++/**
++ * async_schedule_node_domain - NUMA specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ *
++ * Note: This function may be called from atomic or non-atomic contexts.
++ *
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
++ */
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node, struct async_domain *domain)
+ {
+ 	struct async_entry *entry;
+ 	unsigned long flags;
+@@ -195,43 +213,30 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
+ 	current->flags |= PF_USED_ASYNC;
+ 
+ 	/* schedule for execution */
+-	queue_work(system_unbound_wq, &entry->work);
++	queue_work_node(node, system_unbound_wq, &entry->work);
+ 
+ 	return newcookie;
+ }
++EXPORT_SYMBOL_GPL(async_schedule_node_domain);
+ 
+ /**
+- * async_schedule - schedule a function for asynchronous execution
++ * async_schedule_node - NUMA specific version of async_schedule
+  * @func: function to execute asynchronously
+  * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
+  *
+  * Returns an async_cookie_t that may be used for checkpointing later.
+  * Note: This function may be called from atomic or non-atomic contexts.
+- */
+-async_cookie_t async_schedule(async_func_t func, void *data)
+-{
+-	return __async_schedule(func, data, &async_dfl_domain);
+-}
+-EXPORT_SYMBOL_GPL(async_schedule);
+-
+-/**
+- * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
+- * @func: function to execute asynchronously
+- * @data: data pointer to pass to the function
+- * @domain: the domain
+  *
+- * Returns an async_cookie_t that may be used for checkpointing later.
+- * @domain may be used in the async_synchronize_*_domain() functions to
+- * wait within a certain synchronization domain rather than globally.  A
+- * synchronization domain is specified via @domain.  Note: This function
+- * may be called from atomic or non-atomic contexts.
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
+  */
+-async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-				     struct async_domain *domain)
++async_cookie_t async_schedule_node(async_func_t func, void *data, int node)
+ {
+-	return __async_schedule(func, data, domain);
++	return async_schedule_node_domain(func, data, node, &async_dfl_domain);
+ }
+-EXPORT_SYMBOL_GPL(async_schedule_domain);
++EXPORT_SYMBOL_GPL(async_schedule_node);
+ 
+ /**
+  * async_synchronize_full - synchronize all asynchronous function calls
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
