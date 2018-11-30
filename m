@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 487C22115C33C
- for <linux-nvdimm@lists.01.org>; Sat,  3 Nov 2018 18:17:47 -0700 (PDT)
-Subject: [PATCH] Revert "acpi,
- nfit: Further restrict userspace ARS start requests"
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 03 Nov 2018 18:05:58 -0700
-Message-ID: <154129355792.421728.127261092571335116.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C3AA32119623D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:52:48 -0800 (PST)
+Subject: [mm PATCH v6 0/7] Deferred page init improvements
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 13:52:48 -0800
+Message-ID: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,91 +20,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following lockdep splat results from acquiring the init_mutex in
-acpi_nfit_clear_to_send():
+This patchset is essentially a refactor of the page initialization logic
+that is meant to provide for better code reuse while providing a
+significant improvement in deferred page initialization performance.
 
- WARNING: possible circular locking dependency detected
- lt-daxdev-error/7216 is trying to acquire lock:
- 00000000f694db15 (&acpi_desc->init_mutex){+.+.}, at: acpi_nfit_clear_to_send+0x27/0x80 [nfit]
+In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
+memory per node I have seen the following. In the case of regular memory
+initialization the deferred init time was decreased from 3.75s to 1.06s on
+average. For the persistent memory the initialization time dropped from
+24.17s to 19.12s on average. This amounts to a 253% improvement for the
+deferred memory initialization performance, and a 26% improvement in the
+persistent memory initialization performance.
 
- but task is already holding lock:
- 00000000182298f2 (&nvdimm_bus->reconfig_mutex){+.+.}, at: __nd_ioctl+0x457/0x610 [libnvdimm]
+I have called out the improvement observed with each patch.
 
- which lock already depends on the new lock.
+Note: This patch set is meant as a replacment for the v5 set that is already
+      in the MM tree.
+      
+      I had considered just doing incremental changes but Pavel at the time
+      had suggested I submit it as a whole set, however that was almost 3
+      weeks ago so if incremental changes are preferred let me know and
+      I can submit the changes as incremental updates.
 
+      I appologize for the delay in submitting this follow-on set. I had been
+      trying to address the DAX PageReserved bit issue at the same time but
+      that is taking more time than I anticipated so I decided to push this
+      before the code sits too much longer.
 
- the existing dependency chain (in reverse order) is:
+      Commit bf416078f1d83 ("mm/page_alloc.c: memory hotplug: free pages as 
+      higher order") causes issues with the revert of patch 7. It was
+      necessary to replace all instances of __free_pages_boot_core with
+      __free_pages_core.
 
- -> #1 (&nvdimm_bus->reconfig_mutex){+.+.}:
-        nvdimm_badblocks_populate+0x41/0x150 [libnvdimm]
-        nd_region_notify+0x95/0xb0 [libnvdimm]
-        nd_device_notify+0x40/0x50 [libnvdimm]
-        ars_complete+0x7f/0xd0 [nfit]
-        acpi_nfit_scrub+0xbb/0x410 [nfit]
-        process_one_work+0x22b/0x5c0
-        worker_thread+0x3c/0x390
-        kthread+0x11e/0x140
-        ret_from_fork+0x3a/0x50
+v1->v2:
+    Fixed build issue on PowerPC due to page struct size being 56
+    Added new patch that removed __SetPageReserved call for hotplug
+v2->v3:
+    Rebased on latest linux-next
+    Removed patch that had removed __SetPageReserved call from init
+    Added patch that folded __SetPageReserved into set_page_links
+    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
+v3->v4:
+    Updated patch description and comments for mm_zero_struct_page patch
+        Replaced "default" with "case 64"
+        Removed #ifndef mm_zero_struct_page
+    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
+    Added Reviewed-by for patches reviewed by Pavel
+    Added Acked-by from Michal Hocko
+    Added deferred init times for patches that affect init performance
+    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
+v4->v5:
+    Updated Acks/Reviewed-by
+    Rebased on latest linux-next
+    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
+v5->v6:
+    Rebased on linux-next with previous v5 reverted
+    Drop the "This patch" or "This change" from patch desriptions.
+    Cleaned up patch descriptions for patches 3 & 4
+    Fixed kerneldoc for __next_mem_pfn_range_in_zone
+    Updated several Reviewed-by, and incorporated suggestions from Pavel
+    Added __init_single_page_nolru to patch 5 to consolidate code
+    Refactored iterator in patch 7 and fixed several issues
 
- -> #0 (&acpi_desc->init_mutex){+.+.}:
-        __mutex_lock+0x83/0x980
-        acpi_nfit_clear_to_send+0x27/0x80 [nfit]
-        __nd_ioctl+0x474/0x610 [libnvdimm]
-        nd_ioctl+0xa4/0xb0 [libnvdimm]
-        do_vfs_ioctl+0xa5/0x6e0
-        ksys_ioctl+0x70/0x80
-        __x64_sys_ioctl+0x16/0x20
-        do_syscall_64+0x60/0x210
-        entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-New infrastructure is needed to be able to perform this check without
-acquiring the lock.
-
-Fixes: 594861215c83 ("acpi, nfit: Further restrict userspace ARS start")
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5970b8f5f768..14d9f5bea015 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3341,8 +3341,6 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd)
- {
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
--	struct nfit_spa *nfit_spa;
--	int rc = 0;
- 
- 	if (nvdimm)
- 		return 0;
-@@ -3355,17 +3353,10 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
- 	 * just needs guarantees that any ARS it initiates are not
- 	 * interrupted by any intervening start requests from userspace.
- 	 */
--	mutex_lock(&acpi_desc->init_mutex);
--	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
--		if (acpi_desc->scrub_spa
--				|| test_bit(ARS_REQ_SHORT, &nfit_spa->ars_state)
--				|| test_bit(ARS_REQ_LONG, &nfit_spa->ars_state)) {
--			rc = -EBUSY;
--			break;
--		}
--	mutex_unlock(&acpi_desc->init_mutex);
-+	if (work_busy(&acpi_desc->dwork.work))
-+		return -EBUSY;
- 
--	return rc;
-+	return 0;
- }
- 
- int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
+Alexander Duyck (7):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Implement new zone specific memblock iterator
+      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
+      mm: Move hot-plug specific memory init into separate functions and optimize
+      mm: Add reserved flag setting to set_page_links
+      mm: Use common iterator for deferred_init_pages and deferred_free_pages
 
+
+ arch/sparc/include/asm/pgtable_64.h |   30 --
+ include/linux/memblock.h            |   41 +++
+ include/linux/mm.h                  |   50 +++
+ mm/memblock.c                       |   64 ++++
+ mm/page_alloc.c                     |  571 +++++++++++++++++++++--------------
+ 5 files changed, 498 insertions(+), 258 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
