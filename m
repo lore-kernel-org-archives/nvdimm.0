@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8652E2118EF65
- for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:14:35 -0800 (PST)
-Subject: [PATCH 09/11] acpi/nfit,
- libnvdimm/security: add Intel DSM 1.8 master passphrase support
+ by ml01.01.org (Postfix) with ESMTPS id 619B121195BFF
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:37 -0800 (PST)
+Subject: [PATCH v5 02/12] ndctl: add passphrase update to ndctl
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Nov 2018 15:14:34 -0700
-Message-ID: <154180167436.70506.13449520468879463615.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
-References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 30 Nov 2018 14:33:36 -0700
+Message-ID: <154361361628.6129.9479554591627883313.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,508 +22,868 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-With Intel DSM 1.8 [1] two new security DSMs are introduced. Enable/update
-master passphrase and master secure erase. The master passphrase allows
-a secure erase to be performed without the user passphrase that is set on
-the NVDIMM. The commands of master_update and master_erase are added to
-the sysfs knob in order to initiate the DSMs. They are similar in opeartion
-mechanism compare to update and erase.
-
-[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
+Add API call for triggering sysfs knob to update the security for a DIMM
+in libndctl. Also add the ndctl "update-passphrase" to trigger the
+operation.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/nvdimm/security.txt |   23 ++++++
- drivers/acpi/nfit/core.c          |    2 +
- drivers/acpi/nfit/intel.c         |  132 ++++++++++++++++++++++++++++++++++++-
- drivers/acpi/nfit/intel.h         |   18 +++++
- drivers/acpi/nfit/nfit.h          |    6 +-
- drivers/nvdimm/dimm_devs.c        |   16 ++++
- drivers/nvdimm/nd-core.h          |    1 
- drivers/nvdimm/nd.h               |    5 +
- drivers/nvdimm/security.c         |   34 ++++++++--
- include/linux/libnvdimm.h         |   15 ++++
- 10 files changed, 236 insertions(+), 16 deletions(-)
+ Documentation/ndctl/Makefile.am                 |    4 
+ Documentation/ndctl/ndctl-enable-passphrase.txt |   35 ++
+ Documentation/ndctl/ndctl-update-passphrase.txt |   33 ++
+ builtin.h                                       |    2 
+ configure.ac                                    |   14 +
+ ndctl.spec.in                                   |    2 
+ ndctl/Makefile.am                               |    3 
+ ndctl/dimm.c                                    |   86 ++++-
+ ndctl/lib/Makefile.am                           |    8 
+ ndctl/lib/dimm.c                                |   39 ++
+ ndctl/lib/keys.c                                |  384 +++++++++++++++++++++++
+ ndctl/lib/libndctl.sym                          |    4 
+ ndctl/libndctl.h                                |   26 ++
+ ndctl/ndctl.c                                   |    2 
+ 14 files changed, 629 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-enable-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
+ create mode 100644 ndctl/lib/keys.c
 
-diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
-index dfe70a8fa25b..a2d954349417 100644
---- a/Documentation/nvdimm/security.txt
-+++ b/Documentation/nvdimm/security.txt
-@@ -110,5 +110,28 @@ Overwrite can last tens of minutes or more depending on nvdimm size.
- An encrypted key with the current key passphrase that is tied to the nvdimm
- should be injected and its keyid should be passed in via sysfs.
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index a30b139b..7ad6666b 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -47,7 +47,9 @@ man1_MANS = \
+ 	ndctl-inject-smart.1 \
+ 	ndctl-update-firmware.1 \
+ 	ndctl-list.1 \
+-	ndctl-monitor.1
++	ndctl-monitor.1 \
++	ndctl-enable-passphrase.1 \
++	ndctl-update-passphrase.1
  
-+10. Master Update
-+-----------------
-+The command format for doing a master update is:
-+update <old keyid> <new keyid>
-+
-+The operating mechansim for master update is identical to update except the
-+master passphrase key is passed to the kernel. The master passphrase key
-+is just another encrypted key.
-+
-+This command is only available when security is disabled.
-+
-+11. Master Erase
-+----------------
-+The command format for doing a master erase is:
-+master_erase <current keyid>
-+
-+This command has the same operating mechanism as erase except the master
-+passphrase key is passed to the kernel. The master passphrase key is just
-+another encrypted key.
-+
-+This command is only available when the master security is enabled, indicated
-+by the extended security status.
-+
- [1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.7.pdf
- [2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 3e6c7b653872..867e6fea3737 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -389,6 +389,8 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
- 			[NVDIMM_INTEL_SECURE_ERASE] = 2,
- 			[NVDIMM_INTEL_OVERWRITE] = 2,
- 			[NVDIMM_INTEL_QUERY_OVERWRITE] = 2,
-+			[NVDIMM_INTEL_SET_MASTER_PASSPHRASE] = 2,
-+			[NVDIMM_INTEL_MASTER_SECURE_ERASE] = 2,
- 		},
- 	};
- 	u8 id;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index f6d2b217f1c8..4e47fc2b524c 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -20,6 +20,123 @@
+ CLEANFILES = $(man1_MANS)
  
- #include <asm/smp.h> /* for wbinvd_on_all_cpus() on !SMP builds */
+diff --git a/Documentation/ndctl/ndctl-enable-passphrase.txt b/Documentation/ndctl/ndctl-enable-passphrase.txt
+new file mode 100644
+index 00000000..8de5410c
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-enable-passphrase.txt
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-enable-passphrase(1)
++==========================
++
++NAME
++----
++ndctl-enable-passphrase - enabling the security passphrase for a NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl enable-passphrase' <dimm> [<options>]
++
++DESCRIPTION
++-----------
++Provide a generic interface for enabling security for NVDIMM.
++It is expected that the master key has already been loaded into the user
++key ring. The encrypted key blobs will be created in /etc/nvdimm directory
++with the file name of "nvdimm-<hostname>-<dimm unique id>.blob".
++
++The command will fail if the nvdimm key is already in the user key ring and/or
++the key blob already resides in /etc/nvdimm. Do not touch the /etc/nvdimm
++directory and let ndctl manage the keys, unless you know what you are doing.
++
++OPTIONS
++-------
++<dimm>::
++include::xable-dimm-options.txt[]
++
++-m::
++--master=::
++	Key name for the master key used to seal the NVDIMM security keys.
++
++include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
+new file mode 100644
+index 00000000..9ed39cca
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-update-passphrase.txt
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-update-passphrase(1)
++==========================
++
++NAME
++----
++ndctl-update-passphrase - update the security passphrase for a NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl update-passphrase' <dimm> [<options>]
++
++DESCRIPTION
++-----------
++Provide a generic interface for updating security key for NVDIMM.
++It is expected that the current and the new (if new master key is desired)
++master key has already been loaded into the user key ring. The new encrypted
++key blobs will be created in /etc/nvdimm directory
++with the file name of "nvdimm-<hostname>-<dimm unique id>.blob".
++
++OPTIONS
++-------
++<dimm>::
++include::xable-dimm-options.txt[]
++
++-m::
++--master::
++	New key name for the master key to seal the new nvdimm key, or the
++	existing master key name. i.e trusted:master-key.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 675a6ce7..ed018d96 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -48,4 +48,6 @@ int cmd_bat(int argc, const char **argv, void *ctx);
+ #endif
+ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
++int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
++int cmd_passphrase_update(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/configure.ac b/configure.ac
+index bb6b0332..ac4f56c3 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -153,6 +153,20 @@ fi
+ AC_SUBST([systemd_unitdir])
+ AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
  
-+static int intel_dimm_security_master_erase(struct nvdimm *nvdimm,
-+		const struct nvdimm_key_data *nkey)
-+{
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_secure_erase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_MASTER_SECURE_ERASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
++AC_ARG_WITH([keyutils],
++	    AS_HELP_STRING([--with-keyutils],
++			[Enable keyutils functionality (security).  @<:@default=yes@:>@]), [], [with_keyutils=yes])
 +
-+	if (!test_bit(NVDIMM_INTEL_MASTER_SECURE_ERASE, &nfit_mem->dsm_mask))
-+		return -ENOTTY;
++if test "x$with_keyutils" = "xyes"; then
++	AC_CHECK_HEADERS([keyutils.h],,[
++		AC_MSG_ERROR([keyutils.h not found, consider installing
++			      keyutils-libs-devel.])
++		])
++fi
++AS_IF([test "x$with_keyutils" = "xyes"],
++	[AC_DEFINE([ENABLE_KEYUTILS], [1], [Enable keyutils support])])
++AM_CONDITIONAL([ENABLE_KEYUTILS], [test "x$with_keyutils" = "xyes"])
 +
-+	/* flush all cache before we erase DIMM */
-+	wbinvd_on_all_cpus();
-+	memcpy(nd_cmd.cmd.passphrase, nkey->data,
-+			sizeof(nd_cmd.cmd.passphrase));
-+	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
+ my_CFLAGS="\
+ -D DEF_CONF_FILE='\"${sysconfdir}/ndctl/monitor.conf\"' \
+ -Wall \
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 26396d4a..66466db6 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -21,6 +21,7 @@ BuildRequires:	pkgconfig(uuid)
+ BuildRequires:	pkgconfig(json-c)
+ BuildRequires:	pkgconfig(bash-completion)
+ BuildRequires:	pkgconfig(systemd)
++BuildRequires:	keyutils-libs-devel
+ 
+ %description
+ Utility library for managing the "libnvdimm" subsystem.  The "libnvdimm"
+@@ -119,6 +120,7 @@ make check
+ %{bashcompdir}/
+ %{_sysconfdir}/ndctl/monitor.conf
+ %{_unitdir}/ndctl-monitor.service
++%{_sysconfdir}/ndctl/keys/
+ 
+ %files -n daxctl
+ %defattr(-,root,root)
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 8a5e5f87..5b62251b 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -30,7 +30,8 @@ ndctl_LDADD =\
+ 	../libutil.a \
+ 	$(UUID_LIBS) \
+ 	$(KMOD_LIBS) \
+-	$(JSON_LIBS)
++	$(JSON_LIBS) \
++	-lkeyutils
+ 
+ if ENABLE_TEST
+ ndctl_SOURCES += ../test/libndctl.c \
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 699ab57d..581be497 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -40,6 +40,19 @@ struct action_context {
+ 	struct update_context update;
+ };
+ 
++static struct parameters {
++	const char *bus;
++	const char *outfile;
++	const char *infile;
++	const char *labelversion;
++	const char *master_key;
++	bool force;
++	bool json;
++	bool verbose;
++} param = {
++	.labelversion = "1.1",
++};
 +
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_NOT_SUPPORTED:
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	/* DIMM erased, invalidate all CPU caches before we read it */
-+	wbinvd_on_all_cpus();
-+
-+ out:
-+	return rc;
-+}
-+
-+static int intel_dimm_security_master_update_passphrase(struct nvdimm *nvdimm,
-+		const struct nvdimm_key_data *old_data,
-+		const struct nvdimm_key_data *new_data)
-+{
-+	int cmd_rc, rc = 0;
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct {
-+		struct nd_cmd_pkg pkg;
-+		struct nd_intel_set_passphrase cmd;
-+	} nd_cmd = {
-+		.pkg = {
-+			.nd_command = NVDIMM_INTEL_SET_MASTER_PASSPHRASE,
-+			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
-+			.nd_size_out = ND_INTEL_STATUS_SIZE,
-+			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
-+		},
-+	};
-+
-+	if (!test_bit(NVDIMM_INTEL_SET_MASTER_PASSPHRASE,
-+				&nfit_mem->dsm_mask))
-+		return -ENOTTY;
-+
-+	if (old_data)
-+		memcpy(nd_cmd.cmd.old_pass, old_data->data,
-+				sizeof(nd_cmd.cmd.old_pass));
-+	else
-+		memset(nd_cmd.cmd.old_pass, 0, sizeof(nd_cmd.cmd.old_pass));
-+	memcpy(nd_cmd.cmd.new_pass, new_data->data,
-+			sizeof(nd_cmd.cmd.new_pass));
-+	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), &cmd_rc);
-+	if (rc < 0)
-+		goto out;
-+	if (cmd_rc < 0) {
-+		rc = cmd_rc;
-+		goto out;
-+	}
-+
-+	switch (nd_cmd.cmd.status) {
-+	case 0:
-+		break;
-+	case ND_INTEL_STATUS_NOT_SUPPORTED:
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_PASS:
-+		rc = -EINVAL;
-+		goto out;
-+	case ND_INTEL_STATUS_INVALID_STATE:
-+	default:
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+ out:
-+	return rc;
-+}
- static int intel_dimm_security_query_overwrite(struct nvdimm *nvdimm)
+ static int action_disable(struct ndctl_dimm *dimm, struct action_context *actx)
  {
- 	int cmd_rc, rc = 0;
-@@ -397,7 +514,8 @@ static int intel_dimm_security_unlock(struct nvdimm *nvdimm,
- }
- 
- static int intel_dimm_security_state(struct nvdimm *nvdimm,
--		enum nvdimm_security_state *state)
-+		enum nvdimm_security_state *state,
-+		enum nvdimm_security_extended_state *ext_state)
- {
- 	int cmd_rc, rc = 0;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-@@ -465,9 +583,17 @@ static int intel_dimm_security_state(struct nvdimm *nvdimm,
- 	} else
- 		*state = NVDIMM_SECURITY_DISABLED;
- 
-+	*ext_state = NVDIMM_SECURITY_MASTER_DISABLED;
-+	if (nd_cmd.cmd.extended_state & ND_INTEL_SEC_ESTATE_ENABLED)
-+		*ext_state = NVDIMM_SECURITY_MASTER_ENABLED;
-+	else if (nd_cmd.cmd.extended_state & ND_INTEL_SEC_ESTATE_PLIMIT)
-+		*ext_state = NVDIMM_SECURITY_MASTER_FROZEN;
-+
-  out:
--	if (rc < 0)
-+	if (rc < 0) {
- 		*state = NVDIMM_SECURITY_INVALID;
-+		*ext_state = NVDIMM_SECURITY_MASTER_INVALID;
-+	}
+ 	if (ndctl_dimm_is_active(dimm)) {
+@@ -824,17 +837,29 @@ static int action_update(struct ndctl_dimm *dimm, struct action_context *actx)
  	return rc;
  }
  
-@@ -480,5 +606,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
- 	.erase = intel_dimm_security_erase,
- 	.overwrite = intel_dimm_security_overwrite,
- 	.query_overwrite = intel_dimm_security_query_overwrite,
-+	.master_change_key = intel_dimm_security_master_update_passphrase,
-+	.master_erase = intel_dimm_security_master_erase,
- };
- const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index 0140d9b6a0b7..0c33f49d0272 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -46,6 +46,7 @@ extern const struct nvdimm_security_ops *intel_security_ops;
- #define ND_INTEL_STATUS_SIZE		4
- #define ND_INTEL_PASSPHRASE_SIZE	32
- 
-+#define ND_INTEL_STATUS_NOT_SUPPORTED	1
- #define ND_INTEL_STATUS_RETRY		5
- #define ND_INTEL_STATUS_NOT_READY	9
- #define ND_INTEL_STATUS_INVALID_STATE	10
-@@ -61,9 +62,13 @@ extern const struct nvdimm_security_ops *intel_security_ops;
- #define ND_INTEL_SEC_STATE_UNSUPPORTED	0x20
- #define ND_INTEL_SEC_STATE_OVERWRITE	0x40
- 
-+#define ND_INTEL_SEC_ESTATE_ENABLED	0x01
-+#define ND_INTEL_SEC_ESTATE_PLIMIT	0x02
-+
- struct nd_intel_get_security_state {
- 	u32 status;
--	u32 reserved;
-+	u8 extended_state;
-+	u8 reserved[3];
- 	u8 state;
- 	u8 reserved1[3];
- } __packed;
-@@ -101,6 +106,17 @@ struct nd_intel_overwrite {
- struct nd_intel_query_overwrite {
- 	u32 status;
- } __packed;
-+
-+struct nd_intel_set_master_passphrase {
-+	u8 old_pass[ND_INTEL_PASSPHRASE_SIZE];
-+	u8 new_pass[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
-+
-+struct nd_intel_master_secure_erase {
-+	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
-+	u32 status;
-+} __packed;
- #else /* CONFIG_X86 */
- #define intel_security_ops (NULL)
- #endif /* CONFIG_X86 */
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index d50dbb4cdeaf..e0ee54049c89 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -68,13 +68,17 @@ enum nvdimm_family_cmds {
- 	NVDIMM_INTEL_SECURE_ERASE = 24,
- 	NVDIMM_INTEL_OVERWRITE = 25,
- 	NVDIMM_INTEL_QUERY_OVERWRITE = 26,
-+	NVDIMM_INTEL_SET_MASTER_PASSPHRASE = 27,
-+	NVDIMM_INTEL_MASTER_SECURE_ERASE = 28,
- };
- 
- #define NVDIMM_INTEL_SECURITY_CMDMASK \
- (1 << NVDIMM_INTEL_GET_SECURITY_STATE | 1 << NVDIMM_INTEL_SET_PASSPHRASE \
- | 1 << NVDIMM_INTEL_DISABLE_PASSPHRASE | 1 << NVDIMM_INTEL_UNLOCK_UNIT \
- | 1 << NVDIMM_INTEL_FREEZE_LOCK | 1 << NVDIMM_INTEL_SECURE_ERASE \
--| 1 << NVDIMM_INTEL_OVERWRITE | 1 << NVDIMM_INTEL_QUERY_OVERWRITE)
-+| 1 << NVDIMM_INTEL_OVERWRITE | 1 << NVDIMM_INTEL_QUERY_OVERWRITE \
-+| 1 << NVDIMM_INTEL_SET_MASTER_PASSPHRASE \
-+| 1 << NVDIMM_INTEL_MASTER_SECURE_ERASE)
- 
- #define NVDIMM_INTEL_CMDMASK \
- (NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 39e40074b5df..fdb32c30d01d 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -421,7 +421,8 @@ static ssize_t security_store(struct device *dev,
- 		if (rc != 3)
- 			return -EINVAL;
- 		dev_dbg(dev, "update %#x %#x\n", old_key, new_key);
--		rc = nvdimm_security_change_key(nvdimm, old_key, new_key);
-+		rc = nvdimm_security_change_key(nvdimm, old_key, new_key,
-+				false);
- 	} else if (sysfs_streq(cmd, "disable")) {
- 		if (rc != 2)
- 			return -EINVAL;
-@@ -434,12 +435,23 @@ static ssize_t security_store(struct device *dev,
- 		if (rc != 2)
- 			return -EINVAL;
- 		dev_dbg(dev, "erase %#x\n", old_key);
--		rc = nvdimm_security_erase(nvdimm, old_key);
-+		rc = nvdimm_security_erase(nvdimm, old_key, false);
- 	} else if (sysfs_streq(cmd, "overwrite")) {
- 		if (rc != 2)
- 			return -EINVAL;
- 		dev_dbg(dev, "overwrite %u\n", old_key);
- 		rc = nvdimm_security_overwrite(nvdimm, old_key);
-+	} else if (sysfs_streq(cmd, "master_update")) {
-+		if (rc != 3)
-+			return -EINVAL;
-+		dev_dbg(dev, "master_update %#x %#x\n", old_key, new_key);
-+		rc = nvdimm_security_change_key(nvdimm,
-+				old_key, new_key, true);
-+	} else if (sysfs_streq(cmd, "master_erase")) {
-+		if (rc != 2)
-+			return -EINVAL;
-+		dev_dbg(dev, "master_erase %#x\n", old_key);
-+		rc = nvdimm_security_erase(nvdimm, old_key, true);
- 	} else
- 		return -EINVAL;
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index b96e1b10e3eb..98facc66dd88 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -46,6 +46,7 @@ struct nvdimm {
- 	const char *dimm_id;
- 	const struct nvdimm_security_ops *security_ops;
- 	enum nvdimm_security_state state;
-+	enum nvdimm_security_extended_state ext_state;
- 	struct mutex sec_mutex;
- 	struct delayed_work dwork;
- 	unsigned int overwrite_tmo;
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index ba41582c4cc2..11a268ffa63d 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -431,10 +431,11 @@ bool pmem_should_map_pages(struct device *dev);
- int nvdimm_security_unlock_dimm(struct nvdimm *nvdimm);
- int nvdimm_security_get_state(struct nvdimm *nvdimm);
- int nvdimm_security_change_key(struct nvdimm *nvdimm, unsigned int old_keyid,
--		unsigned int new_keyid);
-+		unsigned int new_keyid, bool master);
- int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
- int nvdimm_security_freeze_lock(struct nvdimm *nvdimm);
--int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid);
-+int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
-+		bool master);
- int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid);
- void nvdimm_overwrite_query(struct work_struct *work);
- 
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index f5ba633545b7..2e835e6a7b74 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -90,7 +90,8 @@ int nvdimm_security_get_state(struct nvdimm *nvdimm)
- 	if (!nvdimm->security_ops)
- 		return 0;
- 
--	return nvdimm->security_ops->state(nvdimm, &nvdimm->state);
-+	return nvdimm->security_ops->state(nvdimm, &nvdimm->state,
-+			&nvdimm->ext_state);
- }
- 
- void nvdimm_overwrite_query(struct work_struct *work)
-@@ -211,7 +212,8 @@ int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
- 
- }
- 
--int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
-+int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
-+		bool master)
- {
- 	int rc = 0;
- 	struct key *key;
-@@ -243,6 +245,12 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
- 		goto out;
- 	}
- 
-+	if (nvdimm->ext_state != NVDIMM_SECURITY_MASTER_ENABLED && master) {
-+		dev_warn(dev, "Attempt to secure erase in wrong master state.\n");
-+		rc = -EOPNOTSUPP;
-+		goto out;
+-static struct parameters {
+-	const char *bus;
+-	const char *outfile;
+-	const char *infile;
+-	const char *labelversion;
+-	bool force;
+-	bool json;
+-	bool verbose;
+-} param = {
+-	.labelversion = "1.1",
+-};
++static int action_key_enable(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
 +	}
 +
- 	key = nvdimm_lookup_user_key(dev, keyid);
- 	if (!key) {
- 		dev_dbg(dev, "Unable to get and verify key\n");
-@@ -253,8 +261,12 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
- 	down_read(&key->sem);
- 	epayload = dereference_key_locked(key);
- 	data = epayload->decrypted_data;
--	rc = nvdimm->security_ops->erase(nvdimm,
--			(const struct nvdimm_key_data *)data);
-+	if (master)
-+		rc = nvdimm->security_ops->master_erase(nvdimm,
-+				(const struct nvdimm_key_data *)data);
-+	else
-+		rc = nvdimm->security_ops->erase(nvdimm,
-+				(const struct nvdimm_key_data *)data);
- 	up_read(&key->sem);
- 	key_put(key);
- 
-@@ -454,7 +466,7 @@ int nvdimm_security_unlock_dimm(struct nvdimm *nvdimm)
- }
- 
- int nvdimm_security_change_key(struct nvdimm *nvdimm,
--		unsigned int old_keyid, unsigned int new_keyid)
-+		unsigned int old_keyid, unsigned int new_keyid, bool master)
- {
- 	int rc;
- 	struct key *key = NULL, *old_key = NULL;
-@@ -468,6 +480,10 @@ int nvdimm_security_change_key(struct nvdimm *nvdimm,
- 	if (nvdimm->state == NVDIMM_SECURITY_FROZEN)
- 		return -EBUSY;
- 
-+	/* can only change master passphrase when security is disabled */
-+	if (nvdimm->ext_state != NVDIMM_SECURITY_MASTER_ENABLED && master)
-+		return -EOPNOTSUPP;
++	return ndctl_dimm_enable_key(dimm, param.master_key);
++}
 +
- 	mutex_lock(&nvdimm->sec_mutex);
- 	rc = nvdimm_check_security_busy(nvdimm);
- 	if (rc < 0)
-@@ -499,8 +515,12 @@ int nvdimm_security_change_key(struct nvdimm *nvdimm,
- 		old_data = old_epayload->decrypted_data;
- 	}
++static int action_key_update(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	return ndctl_dimm_update_key(dimm, param.master_key);
++}
  
--	rc = nvdimm->security_ops->change_key(nvdimm, old_data,
--			new_data);
-+	if (master)
-+		rc = nvdimm->security_ops->master_change_key(nvdimm, old_data,
-+				new_data);
-+	else
-+		rc = nvdimm->security_ops->change_key(nvdimm, old_data,
-+				new_data);
- 	if (rc)
- 		dev_warn(dev, "key update failed: %d\n", rc);
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+@@ -925,6 +950,10 @@ OPT_BOOLEAN('f', "force", &param.force, \
+ OPT_STRING('V', "label-version", &param.labelversion, "version-number", \
+ 	"namespace label specification version (default: 1.1)")
  
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index c3c5a1c6b1b7..3d14f73c7bca 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -167,6 +167,13 @@ enum nvdimm_security_state {
- 	NVDIMM_SECURITY_UNSUPPORTED,
++#define KEY_OPTIONS() \
++OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
++		"master key for security")
++
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+ 	READ_OPTIONS(),
+@@ -954,6 +983,12 @@ static const struct option init_options[] = {
+ 	OPT_END(),
  };
  
-+enum nvdimm_security_extended_state {
-+	NVDIMM_SECURITY_MASTER_INVALID = 0,
-+	NVDIMM_SECURITY_MASTER_DISABLED,
-+	NVDIMM_SECURITY_MASTER_ENABLED,
-+	NVDIMM_SECURITY_MASTER_FROZEN,
++static const struct option key_options[] = {
++	BASE_OPTIONS(),
++	KEY_OPTIONS(),
++	OPT_END(),
 +};
 +
- #define NVDIMM_PASSPHRASE_LEN		32
- #define NVDIMM_KEY_DESC_LEN		22
+ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+@@ -1024,6 +1059,13 @@ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		}
+ 	}
  
-@@ -176,7 +183,8 @@ struct nvdimm_key_data {
++	if (!param.master_key &&
++			(action == action_key_enable ||
++			 action == action_key_update)) {
++		usage_with_options(u, options);
++		return -EINVAL;
++	}
++
+ 	if (param.verbose)
+ 		ndctl_set_log_priority(ctx, LOG_DEBUG);
  
- struct nvdimm_security_ops {
- 	int (*state)(struct nvdimm *nvdimm,
--			enum nvdimm_security_state *state);
-+			enum nvdimm_security_state *state,
-+			enum nvdimm_security_extended_state *ex_state);
- 	int (*unlock)(struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
- 	int (*change_key)(struct nvdimm *nvdimm,
-@@ -190,6 +198,11 @@ struct nvdimm_security_ops {
- 	int (*overwrite)(struct nvdimm *nvdimm,
- 			const struct nvdimm_key_data *nkey);
- 	int (*query_overwrite)(struct nvdimm *nvdimm);
-+	int (*master_change_key)(struct nvdimm *nvdimm,
-+			const struct nvdimm_key_data *old_key,
-+			const struct nvdimm_key_data *new_key);
-+	int (*master_erase)(struct nvdimm *nvdimm,
-+			const struct nvdimm_key_data *nkey);
- };
+@@ -1181,3 +1223,25 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_passphrase_update(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_key_update,
++			key_options,
++			"ndctl update-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "passphrase updated for %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
++
++int cmd_passphrase_setup(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_key_enable,
++			key_options,
++			"ndctl enable-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "passphrase enabled for %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+index 77970399..6b9bde43 100644
+--- a/ndctl/lib/Makefile.am
++++ b/ndctl/lib/Makefile.am
+@@ -24,12 +24,20 @@ libndctl_la_SOURCES =\
+ 	firmware.c \
+ 	libndctl.c
  
- void badrange_init(struct badrange *badrange);
++if ENABLE_KEYUTILS
++libndctl_la_SOURCES += keys.c
++endif
++
+ libndctl_la_LIBADD =\
+ 	../../daxctl/lib/libdaxctl.la \
+ 	$(UDEV_LIBS) \
+ 	$(UUID_LIBS) \
+ 	$(KMOD_LIBS)
+ 
++if ENABLE_KEYUTILS
++libndctl_la_LIBADD += -lkeyutils
++endif
++
+ EXTRA_DIST += libndctl.sym
+ 
+ libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index cd2895c9..2da0d01a 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -620,3 +620,42 @@ NDCTL_EXPORT int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
+ 
+ 	return 0;
+ }
++
++NDCTL_EXPORT bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm)
++{
++	enum nd_security_state state;
++	int rc;
++
++	rc = ndctl_dimm_get_security(dimm, &state);
++	if (rc < 0)
++		return false;
++
++	if (state == ND_SECURITY_UNSUPPORTED)
++		return false;
++
++	return true;
++}
++
++static int write_security(struct ndctl_dimm *dimm, const char *cmd)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char *path = dimm->dimm_buf;
++	int len = dimm->buf_len;
++
++	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_dimm_get_devname(dimm));
++		return -ERANGE;
++	}
++
++	return sysfs_write_attr(ctx, path, cmd);
++}
++
++NDCTL_EXPORT int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
++		long ckey, long nkey)
++{
++	char buf[SYSFS_ATTR_SIZE];
++
++	sprintf(buf, "update %ld %ld\n", ckey, nkey);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+new file mode 100644
+index 00000000..b47d66f3
+--- /dev/null
++++ b/ndctl/lib/keys.c
+@@ -0,0 +1,384 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <sys/param.h>
++#include <keyutils.h>
++#include <syslog.h>
++
++#include <ndctl.h>
++#include <ndctl/libndctl.h>
++#include "private.h"
++
++#define PATH_SIZE	512
++#define HOSTNAME_SIZE	64
++#define DESC_SIZE	128
++#define KEY_CMD_SIZE	128
++
++static int get_key_path(struct ndctl_dimm *dimm, char *path, bool old)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char hostname[HOSTNAME_SIZE];
++	int rc;
++
++	rc = gethostname(hostname, HOSTNAME_SIZE-1);
++	if (rc < 0) {
++		err(ctx, "gethostname: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	if (old) {
++		rc = sprintf(path, "%s/nvdimmold_%s_%s.blob",
++				ND_PASS_PATH,
++				ndctl_dimm_get_unique_id(dimm),
++				hostname);
++	} else {
++		rc = sprintf(path, "%s/nvdimm_%s_%s.blob",
++				ND_PASS_PATH,
++				ndctl_dimm_get_unique_id(dimm),
++				hostname);
++	}
++
++	if (rc < 0) {
++		err(ctx, "sprintf: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	return 0;
++}
++
++static int get_key_desc(struct ndctl_dimm *dimm, char *desc, bool old)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	int rc;
++
++	if (old)
++		rc = sprintf(desc, "nvdimm-old:%s",
++				ndctl_dimm_get_unique_id(dimm));
++	else
++		rc = sprintf(desc, "nvdimm:%s",
++				ndctl_dimm_get_unique_id(dimm));
++
++	if (rc < 0) {
++		err(ctx, "sprintf: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	return 0;
++}
++
++static char *load_key_blob(struct ndctl_ctx *ctx, const char *path, int *size)
++{
++	struct stat st;
++	FILE *bfile = NULL;
++	ssize_t read;
++	int rc;
++	char *blob, *pl;
++	char prefix[] = "load ";
++
++	rc = stat(path, &st);
++	if (rc < 0) {
++		err(ctx, "stat: %s\n", strerror(errno));
++		return NULL;
++	}
++	if ((st.st_mode & S_IFMT) != S_IFREG) {
++		err(ctx, "%s not a regular file\n", path);
++		return NULL;
++	}
++
++	if (st.st_size == 0 || st.st_size > 4096) {
++		err(ctx, "Invalid blob file size\n");
++		return NULL;
++	}
++
++	*size = st.st_size + sizeof(prefix);
++	blob = malloc(*size);
++	if (!blob) {
++		err(ctx, "Unable to allocate memory for blob\n");
++		return NULL;
++	}
++
++	bfile = fopen(path, "r");
++	if (!bfile) {
++		err(ctx, "Unable to open %s: %s\n", path, strerror(errno));
++		free(blob);
++		return NULL;
++	}
++
++	memcpy(blob, prefix, sizeof(prefix) - 1);
++	pl = blob + sizeof(prefix) - 1;
++	read = fread(pl, st.st_size, 1, bfile);
++	if (read < 0) {
++		err(ctx, "Fail to read from blob file: %s\n",
++				strerror(errno));
++		free(blob);
++		fclose(bfile);
++		return NULL;
++	}
++
++	fclose(bfile);
++	return blob;
++}
++
++static key_serial_t dimm_check_key(struct ndctl_dimm *dimm,
++		bool old)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char desc[DESC_SIZE];
++	int rc;
++
++	rc = get_key_desc(dimm, desc, old);
++	if (rc < 0) {
++		err(ctx, "sprintf: %d\n", rc);
++		return rc;
++	}
++
++	return keyctl_search(KEY_SPEC_USER_KEYRING, "encrypted", desc, 0);
++}
++
++static key_serial_t dimm_create_key(struct ndctl_dimm *dimm, const char *master)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	char desc[DESC_SIZE];
++	char path[PATH_SIZE];
++	char cmd[KEY_CMD_SIZE];
++	key_serial_t key;
++	void *buffer;
++	int rc;
++	ssize_t size;
++	FILE *fp;
++	ssize_t wrote;
++	struct stat st;
++
++	if (ndctl_dimm_is_active(dimm)) {
++		err(ctx, "regions active on %s, op failed\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EBUSY;
++	}
++
++	rc = get_key_desc(dimm, desc, false);
++	if (rc < 0)
++		return rc;
++
++	/* make sure it's not already in the key ring */
++	key = keyctl_search(KEY_SPEC_USER_KEYRING, "encrypted", desc, 0);
++	if (key > 0) {
++		err(ctx, "key already in user keyring, can't create new.\n");
++		return -EAGAIN;
++	}
++
++	rc = get_key_path(dimm, path, false);
++	if (rc < 0)
++		return rc;
++
++	rc = stat(path, &st);
++	if (rc == 0) {
++		err(ctx, "%s already exists!\n", path);
++		return -EAGAIN;
++	}
++
++	rc = sprintf(cmd, "new enc32 %s 32", master);
++	if (rc < 0) {
++		err(ctx, "sprintf: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	key = add_key("encrypted", desc, cmd, strlen(cmd),
++			KEY_SPEC_USER_KEYRING);
++	if (key < 0) {
++		err(ctx, "add_key failed: %d\n", key);
++		return key;
++	}
++
++	size = keyctl_read_alloc(key, &buffer);
++	if (size < 0) {
++		err(ctx, "keyctl_read_alloc failed: %ld\n", size);
++		keyctl_unlink(key, KEY_SPEC_USER_KEYRING);
++		return rc;
++	}
++
++	fp = fopen(path, "w");
++	if (!fp) {
++		rc = -errno;
++		err(ctx, "fopen: %s\n", strerror(errno));
++		free(buffer);
++		return rc;
++	}
++
++	 wrote = fwrite(buffer, size, 1, fp);
++	 if (wrote < 0) {
++		 rc = -errno;
++		 err(ctx, "fwrite failed: %s\n", strerror(errno));
++		 free(buffer);
++		 return rc;
++	 }
++
++	 fclose(fp);
++	 free(buffer);
++	 return key;
++}
++
++static key_serial_t dimm_load_key(struct ndctl_dimm *dimm, bool old)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	key_serial_t key;
++	char desc[DESC_SIZE];
++	char path[PATH_SIZE];
++	int rc;
++	char *blob;
++	int size;
++
++	if (ndctl_dimm_is_active(dimm)) {
++		err(ctx, "regions active on %s, op failed\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EBUSY;
++	}
++
++	rc = get_key_desc(dimm, desc, old);
++	if (rc < 0)
++		return rc;
++
++	rc = get_key_path(dimm, path, old);
++	if (rc < 0)
++		return rc;
++
++	blob = load_key_blob(ctx, path, &size);
++	if (!blob)
++		return -ENOMEM;
++
++	key = add_key("encrypted", desc, blob, size, KEY_SPEC_USER_KEYRING);
++	free(blob);
++	if (key < 0) {
++		err(ctx, "add_key failed: %d\n", rc);
++		return rc;
++	}
++
++	return key;
++}
++
++/*
++ * The function will check to see if the existing key is there and remove
++ * from user key ring if it is. Rename the existing key blob to old key
++ * blob, and then attempt to inject the key as old key into the user key
++ * ring.
++ */
++static key_serial_t move_key_to_old(struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	int rc;
++	key_serial_t key;
++	char old_path[PATH_SIZE];
++	char new_path[PATH_SIZE];
++
++	if (ndctl_dimm_is_active(dimm)) {
++		err(ctx, "regions active on %s, op failed\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EBUSY;
++	}
++
++	key = dimm_check_key(dimm, false);
++	if (key > 0)
++		keyctl_unlink(key, KEY_SPEC_USER_KEYRING);
++
++	rc = get_key_path(dimm, old_path, false);
++	if (rc < 0)
++		return rc;
++
++	rc = get_key_path(dimm, new_path, true);
++	if (rc < 0)
++		return rc;
++
++	rc = rename(old_path, new_path);
++	if (rc < 0)
++		return -errno;
++
++	return dimm_load_key(dimm, true);
++}
++
++static int dimm_remove_key(struct ndctl_dimm *dimm, bool old)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	key_serial_t key;
++	char path[PATH_SIZE];
++	int rc;
++
++	key = dimm_check_key(dimm, old);
++	if (key > 0)
++		keyctl_unlink(key, KEY_SPEC_USER_KEYRING);
++
++	rc = get_key_path(dimm, path, old);
++	if (rc < 0) {
++		err(ctx, "get key file path failed: %d\n", rc);
++		return rc;
++	}
++
++	rc = unlink(path);
++	if (rc < 0) {
++		err(ctx, "unlink: %s\n", strerror(errno));
++		return -errno;
++	}
++
++	return 0;
++}
++
++NDCTL_EXPORT int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
++		const char *master)
++{
++	key_serial_t key;
++	int rc;
++
++	key = dimm_create_key(dimm, master);
++	if (key < 0)
++		return (int)key;
++
++	rc = ndctl_dimm_update_passphrase(dimm, 0, key);
++	if (rc < 0) {
++		dimm_remove_key(dimm, false);
++		return rc;
++	}
++
++	return 0;
++}
++
++NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
++		const char *master)
++{
++	int rc;
++	key_serial_t old_key, new_key;
++
++	/*
++	 * 1. check if current key is loaded and remove
++	 * 2. move current key blob to old key blob
++	 * 3. load old key blob
++	 * 4. trigger change key with old and key key
++	 * 5. remove old key
++	 * 6. remove old key blob
++	 */
++	old_key = move_key_to_old(dimm);
++	if (old_key < 0)
++		return old_key;
++
++	new_key = dimm_create_key(dimm, master);
++	/* need to create new key here */
++	if (new_key < 0) {
++		new_key = dimm_load_key(dimm, false);
++		if (new_key < 0)
++			return new_key;
++	}
++
++	rc = ndctl_dimm_update_passphrase(dimm, old_key, new_key);
++	if (rc < 0)
++		return rc;
++
++	rc = dimm_remove_key(dimm, true);
++	if (rc < 0)
++		return rc;
++
++	return 0;
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 1bd63fa1..a790b1ea 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -389,4 +389,8 @@ global:
+ LIBNDCTL_19 {
+ global:
+ 	ndctl_dimm_get_security;
++	ndctl_dimm_security_supported;
++	ndctl_dimm_enable_key;
++	ndctl_dimm_update_key;
++	ndctl_dimm_update_passphrase;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index a9f9167a..f74dc875 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -19,6 +19,7 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <limits.h>
++#include <keyutils.h>
+ 
+ #ifdef HAVE_LIBUUID
+ #include <uuid/uuid.h>
+@@ -681,6 +682,11 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+ int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+ 
++#define ND_PASSPHRASE_SIZE	32
++#define ND_PASS_PATH		"/etc/ndctl/keys"
++#define ND_KEY_DESC_LEN	22
++#define ND_KEY_DESC_PREFIX  7
++
+ enum nd_security_state {
+ 	ND_SECURITY_INVALID = -1,
+ 	ND_SECURITY_UNSUPPORTED = 0,
+@@ -693,6 +699,26 @@ enum nd_security_state {
+ 
+ int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
+ 		enum nd_security_state *sstate);
++bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
++int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
++		long ckey, long nkey);
++
++#ifdef ENABLE_KEYUTILS
++int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
++int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
++#else
++static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
++		const char *master)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
++		const char *master)
++{
++	return -EOPNOTSUPP;
++}
++#endif
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 73dabfac..4336c94c 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -88,6 +88,8 @@ static struct cmd_struct commands[] = {
+ 	{ "inject-smart", cmd_inject_smart },
+ 	{ "wait-scrub", cmd_wait_scrub },
+ 	{ "start-scrub", cmd_start_scrub },
++	{ "enable-passphrase", cmd_passphrase_setup },
++	{ "update-passphrase", cmd_passphrase_update },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
