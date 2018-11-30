@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CDA8A21184E66
- for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:13:46 -0800 (PST)
-Subject: [PATCH 00/11] Additional patches for nvdimm security support
+ by ml01.01.org (Postfix) with ESMTPS id C39E12119307C
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:26 -0800 (PST)
+Subject: [PATCH v5 00/12] ndctl: add security support
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Nov 2018 15:13:45 -0700
-Message-ID: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 30 Nov 2018 14:33:25 -0700
+Message-ID: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,61 +20,97 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series adds additional support for nvdimm security.
-1. Converted logon keys to encrypted-keys.
-2. Add overwrite DSM support
-3. Add DSM 1.8 master passphrase support
+The following series implements mechanisms that utilize the sysfs knobs
+provided by the kernel in order to support the Intel DSM v1.8 spec
+that provides security to NVDIMM. The following abilities are added:
+1. display security state
+2. enable/update passphrase
+3. disable passphrase
+4. freeze security
+5. secure erase
+6. overwrite
+7. master passphrase enable/update
 
-The patch series is based off the branch from here:
-https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/log/?h=for-5.0/nvdimm-security
+v5:
+- Updated to match latest kernel interface (encrypted keys)
+- Added overwrite support
+- Added support for DSM v1.8 master passphrase operations
+- Removed upcall related code
+- Moved security state to enum (Dan)
+- Change security output "security_state" to just "security". (Dan)
+- Break out enable and update passphrase operation. (Dan)
+- Security build can be compiled out when keyutils does not exist. (Dan)
+- Move all keyutils related operations to libndctl. (Dan)
 
-Instead of squashing the previous changes, they are kept for history purposes
-to document how we arrived to the current iteration.
+v4:
+- Updated to match latest kernel interface.
+- Added unit test for all security calls
 
-Mimi,
-Patch 1 requires your ack as it makes changes to encrypted-keys by adding
-the nvdimm key format type. Dan wanted to restrict the key to 32bytes
-during creation. I also wouldn't mind if you take a look at patch 2 and
-make sure I'm providing correct usage of encrypted keys. Thank you!
+v3:
+- Added support to inject keys in order to update nvdimm security.
+
+v2:
+- Fixup the upcall util to match recent kernel updates for nvdimm security.
 
 ---
 
-Dave Jiang (11):
-      keys-encrypted: add nvdimm key format type to encrypted keys
-      libnvdimm/security: change clear text nvdimm keys to encrypted keys
-      libnvdimm/security: add override module param for key self verification
-      libnvdimm/security: introduce NDD_SECURITY_BUSY flag
-      acpi/nfit, libnvdimm/security: Add security DSM overwrite support
-      tools/testing/nvdimm: Add overwrite support for nfit_test
-      libnvdimm/security: add overwrite status notification
-      libnvdimm/security: add documentation for ovewrite
-      acpi/nfit, libnvdimm/security: add Intel DSM 1.8 master passphrase support
-      tools/testing/nvdimm: add Intel DSM 1.8 support for nfit_test
-      acpi/nfit: prevent indiscriminate DSM payload dumping for security DSMs
+Dave Jiang (12):
+      ndctl: add support for display security state
+      ndctl: add passphrase update to ndctl
+      ndctl: add disable security support
+      ndctl: add support for freeze security
+      ndctl: add support for sanitize dimm
+      ndctl: add unit test for security ops (minus overwrite)
+      ndctl: setup modprobe rules
+      ndctl: add overwrite operation support
+      ndctl: add overwrite-wait support
+      ndctl: master phassphrase management support
+      ndctl: add master secure erase support
+      ndctl: documentation for security and key management
 
 
- Documentation/nvdimm/security.txt        |   68 +++-
- drivers/acpi/nfit/Kconfig                |    7 
- drivers/acpi/nfit/core.c                 |   31 ++
- drivers/acpi/nfit/intel.c                |  245 +++++++++++++++
- drivers/acpi/nfit/intel.h                |   22 +
- drivers/acpi/nfit/nfit.h                 |    7 
- drivers/nvdimm/core.c                    |    3 
- drivers/nvdimm/dimm.c                    |    3 
- drivers/nvdimm/dimm_devs.c               |   50 +++
- drivers/nvdimm/nd-core.h                 |    9 -
- drivers/nvdimm/nd.h                      |   19 +
- drivers/nvdimm/region_devs.c             |    7 
- drivers/nvdimm/security.c                |  496 +++++++++++++++++-------------
- include/linux/libnvdimm.h                |   22 +
- security/keys/encrypted-keys/encrypted.c |   29 +-
- tools/testing/nvdimm/dimm_devs.c         |    2 
- tools/testing/nvdimm/test/nfit.c         |  141 +++++++++
- 17 files changed, 895 insertions(+), 266 deletions(-)
+ Documentation/ndctl/Makefile.am                  |    8 
+ Documentation/ndctl/intel-nvdimm-security.txt    |  129 ++++++
+ Documentation/ndctl/ndctl-disable-passphrase.txt |   29 +
+ Documentation/ndctl/ndctl-enable-passphrase.txt  |   42 ++
+ Documentation/ndctl/ndctl-freeze-security.txt    |   22 +
+ Documentation/ndctl/ndctl-list.txt               |    8 
+ Documentation/ndctl/ndctl-sanitize-dimm.txt      |   44 ++
+ Documentation/ndctl/ndctl-update-passphrase.txt  |   40 ++
+ Documentation/ndctl/ndctl-wait-overwrite.txt     |   31 +
+ Makefile.am                                      |   10 
+ builtin.h                                        |    6 
+ configure.ac                                     |   14 +
+ contrib/ndctl-loadkeys.sh                        |   24 +
+ contrib/nvdimm_modprobe.conf                     |    1 
+ ndctl.spec.in                                    |    2 
+ ndctl/Makefile.am                                |    3 
+ ndctl/dimm.c                                     |  236 ++++++++++-
+ ndctl/lib/Makefile.am                            |    8 
+ ndctl/lib/dimm.c                                 |  203 +++++++++
+ ndctl/lib/keys.c                                 |  472 ++++++++++++++++++++++
+ ndctl/lib/libndctl.sym                           |   19 +
+ ndctl/libndctl.h                                 |   67 +++
+ ndctl/ndctl.c                                    |    6 
+ test/Makefile.am                                 |    4 
+ test/security.sh                                 |  191 +++++++++
+ util/json.c                                      |   31 +
+ 26 files changed, 1637 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-enable-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
+ create mode 100755 contrib/ndctl-loadkeys.sh
+ create mode 100644 contrib/nvdimm_modprobe.conf
+ create mode 100644 ndctl/lib/keys.c
+ create mode 100755 test/security.sh
 
 --
 _______________________________________________
