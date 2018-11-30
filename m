@@ -1,17 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f194.google.com (mail-pg1-f194.google.com
+ [209.85.215.194])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA7E52118EF5C
- for <linux-nvdimm@lists.01.org>; Fri,  9 Nov 2018 14:14:40 -0800 (PST)
-Subject: [PATCH 10/11] tools/testing/nvdimm: add Intel DSM 1.8 support for
- nfit_test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 09 Nov 2018 15:14:39 -0700
-Message-ID: <154180167993.70506.16150690843165035447.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
-References: <154180093865.70506.6858789591063128903.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 713F821962301
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 10:22:09 -0800 (PST)
+Received: by mail-pg1-f194.google.com with SMTP id 17so2855661pgg.1
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 10:22:09 -0800 (PST)
+Date: Fri, 30 Nov 2018 10:22:03 -0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [RFC v3 06/19] arch: um: enable running kunit from User Mode Linux
+Message-ID: <20181130182203.GS18410@garbanzo.do-not-panic.com>
+References: <20181128193636.254378-1-brendanhiggins@google.com>
+ <20181128193636.254378-7-brendanhiggins@google.com>
+ <CAL_JsqJLNSg-38hej8LV+Oh-YXBM2hRGomie3b_psa9LvzoRYg@mail.gmail.com>
+ <20181130033704.GL18410@garbanzo.do-not-panic.com>
+ <CAL_Jsq+jxHHmT5bLnABnF7S0fSBZvH72nDPyY5LHTn9Zm9hCUw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAL_Jsq+jxHHmT5bLnABnF7S0fSBZvH72nDPyY5LHTn9Zm9hCUw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,174 +30,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, zohar@linux.vnet.ibm.com
-Cc: linux-nvdimm@lists.01.org
+To: Rob Herring <robh@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: brakmo@fb.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel <dri-devel@lists.freedesktop.org>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, knut.omang@oracle.com, Kieran Bingham <kieran.bingham@ideasonboard.com>, Joel Stanley <joel@jms.id.au>, "Bird, Timothy" <Tim.Bird@sony.com>, Jeff Dike <jdike@addtoit.com>, Kees Cook <keescook@google.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding test support for new Intel DSM from v1.8. The ability of simulating
-master passphrase update and master secure erase have been added to
-nfit_test.
+On Fri, Nov 30, 2018 at 08:05:34AM -0600, Rob Herring wrote:
+> On Thu, Nov 29, 2018 at 9:37 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+> >
+> > On Wed, Nov 28, 2018 at 03:26:03PM -0600, Rob Herring wrote:
+> > > On Wed, Nov 28, 2018 at 1:37 PM Brendan Higgins
+> > > <brendanhiggins@google.com> wrote:
+> > > >
+> > > > Make minimum number of changes outside of the KUnit directories for
+> > > > KUnit to build and run using UML.
+> > >
+> > > There's nothing in this patch limiting this to UML.
+> >
+> > Not that one, but the abort thing segv thing is, eventually.
+> > To support other architectures we'd need to make a wrapper to that
+> > hack which Brendan added, and then allow each os to implement
+> > its own call, and add an asm-generic helper.
+> 
+> I've not looked into why this is needed, but can't you make the abort
+> support optional and arches can select it when they support it.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |   86 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+Its why I have asked for it to be properly documented. The patches in no
+way illustrate *why* such thing is done. And if we are going to
+potentially have other archs do something similar best to make it
+explicit.
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index c885fe136f42..602f6703614e 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -148,7 +148,9 @@ static unsigned long dimm_fail_cmd_flags[NUM_DCR];
- static int dimm_fail_cmd_code[NUM_DCR];
- struct nfit_test_sec {
- 	u8 state;
-+	u8 ext_state;
- 	u8 passphrase[32];
-+	u8 master_passphrase[32];
- 	u64 overwrite_end_time;
- } dimm_sec_info[NUM_DCR];
- 
-@@ -951,6 +953,7 @@ static int nd_intel_test_cmd_security_status(struct nfit_test *t,
- 
- 	nd_cmd->status = 0;
- 	nd_cmd->state = sec->state;
-+	nd_cmd->extended_state = sec->ext_state;
- 	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
- 
- 	return 0;
-@@ -1067,7 +1070,9 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 		dev_dbg(dev, "secure erase: wrong passphrase\n");
- 	} else {
- 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
- 		sec->state = 0;
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
- 		dev_dbg(dev, "secure erase: done\n");
- 	}
- 
-@@ -1112,12 +1117,69 @@ static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
- 	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
- 		sec->overwrite_end_time = 0;
- 		sec->state = 0;
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
- 		dev_dbg(dev, "overwrite is complete\n");
- 	} else
- 		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
- 	return 0;
- }
- 
-+static int nd_intel_test_cmd_master_set_pass(struct nfit_test *t,
-+		struct nd_intel_set_master_passphrase *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
-+
-+	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
-+		dev_dbg(dev, "master set passphrase in wrong state\n");
-+	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "master set passphrase in wrong security state\n");
-+	} else if (memcmp(nd_cmd->old_pass, sec->master_passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "master set passphrase wrong passphrase\n");
-+	} else {
-+		memcpy(sec->master_passphrase, nd_cmd->new_pass,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+		nd_cmd->status = 0;
-+		dev_dbg(dev, "master passphrase updated\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int nd_intel_test_cmd_master_secure_erase(struct nfit_test *t,
-+		struct nd_intel_master_secure_erase *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
-+
-+	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
-+		dev_dbg(dev, "master erase in wrong state\n");
-+	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "master erase in wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->master_passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "master secure erase: wrong passphrase\n");
-+	} else {
-+		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "master secure erase: done\n");
-+	}
-+
-+	return 0;
-+}
-+
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -1197,6 +1259,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_query_overwrite(t,
- 						buf, buf_len, i - t->dcr_idx);
- 				break;
-+			case NVDIMM_INTEL_SET_MASTER_PASSPHRASE:
-+				rc = nd_intel_test_cmd_master_set_pass(t,
-+						buf, buf_len, i);
-+				break;
-+			case NVDIMM_INTEL_MASTER_SECURE_ERASE:
-+				rc = nd_intel_test_cmd_master_secure_erase(t,
-+						buf, buf_len, i);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1575,6 +1645,17 @@ static int nfit_test_dimm_init(struct nfit_test *t)
- 	return 0;
- }
- 
-+static void security_init(struct nfit_test *t)
-+{
-+	int i;
-+
-+	for (i = 0; i < t->num_dcr; i++) {
-+		struct nfit_test_sec *sec = &dimm_sec_info[i];
-+
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
-+	}
-+}
-+
- static void smart_init(struct nfit_test *t)
- {
- 	int i;
-@@ -1653,6 +1734,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (nfit_test_dimm_init(t))
- 		return -ENOMEM;
- 	smart_init(t);
-+	security_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -2434,6 +2516,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SET_MASTER_PASSPHRASE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_MASTER_SECURE_ERASE,
-+			&acpi_desc->dimm_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
+> At
+> least before, the DT unittests didn't need this to run and shouldn't
+> depend on it after converting to kunit.
 
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
