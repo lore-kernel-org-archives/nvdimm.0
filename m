@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D216121195BFF
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:42 -0800 (PST)
-Subject: [PATCH v5 03/12] ndctl: add disable security support
+ by ml01.01.org (Postfix) with ESMTPS id 4B70F2119623A
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:53 -0800 (PST)
+Subject: [PATCH v5 05/12] ndctl: add support for sanitize dimm
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Nov 2018 14:33:41 -0700
-Message-ID: <154361362183.6129.9007856561563545828.stgit@djiang5-desk3.ch.intel.com>
+Date: Fri, 30 Nov 2018 14:33:52 -0700
+Message-ID: <154361363287.6129.239430507173185840.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -26,205 +26,266 @@ To: dan.j.williams@intel.com, vishal.l.verma@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for disable security to libndctl and also command line option
-of "disable-passphrase" for ndctl. This provides a way to disable security
-on the nvdimm.
+Add support to secure erase to libndctl and also command line option
+of "sanitize-dimm" for ndctl. This will initiate the request to crypto
+erase a DIMM.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/ndctl/Makefile.am                  |    3 ++
- Documentation/ndctl/ndctl-disable-passphrase.txt |   27 +++++++++++++++++++++
- builtin.h                                        |    1 +
- ndctl/dimm.c                                     |   22 +++++++++++++++++
- ndctl/lib/dimm.c                                 |    9 +++++++
- ndctl/lib/keys.c                                 |   28 ++++++++++++++++++++++
- ndctl/lib/libndctl.sym                           |    2 ++
- ndctl/libndctl.h                                 |    7 ++++++
- ndctl/ndctl.c                                    |    1 +
- 9 files changed, 99 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
+ Documentation/ndctl/Makefile.am             |    3 +-
+ Documentation/ndctl/ndctl-sanitize-dimm.txt |   32 +++++++++++++++++
+ builtin.h                                   |    1 +
+ ndctl/dimm.c                                |   51 +++++++++++++++++++++++++++
+ ndctl/lib/dimm.c                            |    8 ++++
+ ndctl/lib/keys.c                            |   19 ++++++++--
+ ndctl/lib/libndctl.sym                      |    2 +
+ ndctl/libndctl.h                            |    7 ++++
+ ndctl/ndctl.c                               |    1 +
+ 9 files changed, 120 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
 
 diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 7ad6666b..31570a77 100644
+index a97f193d..bbea9674 100644
 --- a/Documentation/ndctl/Makefile.am
 +++ b/Documentation/ndctl/Makefile.am
-@@ -49,7 +49,8 @@ man1_MANS = \
- 	ndctl-list.1 \
- 	ndctl-monitor.1 \
+@@ -51,7 +51,8 @@ man1_MANS = \
  	ndctl-enable-passphrase.1 \
--	ndctl-update-passphrase.1
-+	ndctl-update-passphrase.1 \
-+	ndctl-disable-passphrase.1
+ 	ndctl-update-passphrase.1 \
+ 	ndctl-disable-passphrase.1 \
+-	ndctl-freeze-security.1
++	ndctl-freeze-security.1 \
++	ndctl-sanitize-dimm.1
  
  CLEANFILES = $(man1_MANS)
  
-diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
 new file mode 100644
-index 00000000..e921eb23
+index 00000000..a6802d30
 --- /dev/null
-+++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
-@@ -0,0 +1,27 @@
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -0,0 +1,32 @@
 +// SPDX-License-Identifier: GPL-2.0
 +
-+ndctl-disable-passphrase(1)
-+===========================
++ndctl-sanitize-dimm(1)
++======================
 +
 +NAME
 +----
-+ndctl-disable-passphrase - disabling passphrase for an NVDIMM
++ndctl-sanitize-dimm - sanitize the data on the NVDIMM
 +
 +SYNOPSIS
 +--------
 +[verse]
-+'ndctl disable-passphrase' <dimm> [<options>]
++'ndctl sanitize' <dimm> [<options>]
 +
 +DESCRIPTION
 +-----------
-+Provide a generic interface for disabling passphrase for NVDIMM.
++Provide a generic interface to crypto erase a NVDIMM.
 +Ndctl will search the user key ring for the associated DIMM. If no key is
 +found, it will attempt to load the key blob from the expected location. Ndctl
-+will remove the key and the key blob once passphrase is disabled.
++will remove the key and the key blob once security is disabled.
 +
 +OPTIONS
 +-------
 +<dimm>::
 +include::xable-dimm-options.txt[]
 +
++-c::
++--crypto-erase::
++	Replaces encryption keys and securely erases the data. This does not
++	change label data. This is the default sanitize method.
++
 +include::../copyright.txt[]
 diff --git a/builtin.h b/builtin.h
-index ed018d96..8d8f61e2 100644
+index 827295da..db0f2858 100644
 --- a/builtin.h
 +++ b/builtin.h
-@@ -50,4 +50,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
- int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
+@@ -52,4 +52,5 @@ int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
  int cmd_passphrase_update(int argc, const char **argv, void *ctx);
-+int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
+ int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
+ int cmd_freeze_security(int argc, const char **argv, void *ctx);
++int cmd_sanitize_dimm(int argc, const char **argv, void *ctx);
  #endif /* _NDCTL_BUILTIN_H_ */
 diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 581be497..edb4b9d7 100644
+index 6476b6e5..ae674f78 100644
 --- a/ndctl/dimm.c
 +++ b/ndctl/dimm.c
-@@ -861,6 +861,18 @@ static int action_key_update(struct ndctl_dimm *dimm,
- 	return ndctl_dimm_update_key(dimm, param.master_key);
+@@ -46,6 +46,7 @@ static struct parameters {
+ 	const char *infile;
+ 	const char *labelversion;
+ 	const char *master_key;
++	bool crypto_erase;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -891,6 +892,35 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
+ 	return rc;
  }
  
-+static int action_passphrase_disable(struct ndctl_dimm *dimm,
++static int action_sanitize_dimm(struct ndctl_dimm *dimm,
 +		struct action_context *actx)
 +{
++	int rc;
++
 +	if (!ndctl_dimm_security_supported(dimm)) {
 +		error("%s: security operation not supported\n",
 +				ndctl_dimm_get_devname(dimm));
 +		return -EOPNOTSUPP;
 +	}
 +
-+	return ndctl_dimm_disable_key(dimm);
++	/*
++	 * Setting crypto erase to be default. The other method will be
++	 * overwrite.
++	 */
++	if (!param.crypto_erase) {
++		param.crypto_erase = true;
++		printf("No santize method passed in, default to crypto-erase\n");
++	}
++
++	if (param.crypto_erase) {
++		rc = ndctl_dimm_secure_erase_key(dimm);
++		if (rc < 0)
++			return rc;
++	}
++
++	return 0;
 +}
 +
  static int __action_init(struct ndctl_dimm *dimm,
  		enum ndctl_namespace_version version, int chk_only)
  {
-@@ -1245,3 +1257,13 @@ int cmd_passphrase_setup(int argc, const char **argv, void *ctx)
+@@ -984,6 +1014,10 @@ OPT_STRING('V', "label-version", &param.labelversion, "version-number", \
+ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
+ 		"master key for security")
+ 
++#define SANITIZE_OPTIONS() \
++OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
++		"crypto erase a dimm")
++
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+ 	READ_OPTIONS(),
+@@ -1019,6 +1053,12 @@ static const struct option key_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option sanitize_options[] = {
++	BASE_OPTIONS(),
++	SANITIZE_OPTIONS(),
++	OPT_END(),
++};
++
+ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+@@ -1295,3 +1335,14 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
  			count > 1 ? "s" : "");
  	return count >= 0 ? 0 : EXIT_FAILURE;
  }
 +
-+int cmd_disable_passphrase(int argc, const char **argv, void *ctx)
++int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
 +{
-+	int count = dimm_action(argc, argv, ctx, action_passphrase_disable, base_options,
-+			"ndctl disable-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
++	int count = dimm_action(argc, argv, ctx, action_sanitize_dimm,
++			sanitize_options,
++			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
 +
-+	fprintf(stderr, "passphrase disabled %d nmem%s.\n", count >= 0 ? count : 0,
++	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
 +			count > 1 ? "s" : "");
 +	return count >= 0 ? 0 : EXIT_FAILURE;
 +}
 diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 2da0d01a..9cc22016 100644
+index 227c7124..6da29c1e 100644
 --- a/ndctl/lib/dimm.c
 +++ b/ndctl/lib/dimm.c
-@@ -659,3 +659,12 @@ NDCTL_EXPORT int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 	sprintf(buf, "update %ld %ld\n", ckey, nkey);
- 	return write_security(dimm, buf);
+@@ -673,3 +673,11 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
+ {
+ 	return write_security(dimm, "freeze");
  }
 +
-+NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
-+		long key)
++NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
 +{
 +	char buf[SYSFS_ATTR_SIZE];
 +
-+	sprintf(buf, "disable %ld\n", key);
++	sprintf(buf, "erase %ld\n", key);
 +	return write_security(dimm, buf);
 +}
 diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
-index b47d66f3..6df382f2 100644
+index 6df382f2..1ebb008b 100644
 --- a/ndctl/lib/keys.c
 +++ b/ndctl/lib/keys.c
-@@ -382,3 +382,31 @@ NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+@@ -383,7 +383,8 @@ NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+ 	return 0;
+ }
  
+-NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++static int check_key_run_and_discard(struct ndctl_dimm *dimm,
++		int (*run_op)(struct ndctl_dimm *, long), const char *name)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+ 	key_serial_t key;
+@@ -398,9 +399,9 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
+ 		}
+ 	}
+ 
+-	rc = ndctl_dimm_disable_passphrase(dimm, key);
++	rc = run_op(dimm, key);
+ 	if (rc < 0) {
+-		err(ctx, "Failed to disable security for %s\n",
++		err(ctx, "Failed %s for %s\n", name,
+ 				ndctl_dimm_get_devname(dimm));
+ 		return rc;
+ 	}
+@@ -410,3 +411,15 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
+ 		err(ctx, "Unable to cleanup key.\n");
  	return 0;
  }
 +
 +NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
 +{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	key_serial_t key;
-+	int rc;
++	return check_key_run_and_discard(dimm, ndctl_dimm_disable_passphrase,
++			"disable passphrase");
++}
 +
-+	key = dimm_check_key(dimm, false);
-+	if (key < 0) {
-+		key = dimm_load_key(dimm, false);
-+		if (key < 0) {
-+			err(ctx, "Unable to load key\n");
-+			return -ENOKEY;
-+		}
-+	}
-+
-+	rc = ndctl_dimm_disable_passphrase(dimm, key);
-+	if (rc < 0) {
-+		err(ctx, "Failed to disable security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return rc;
-+	}
-+
-+	rc = dimm_remove_key(dimm, false);
-+	if (rc < 0)
-+		err(ctx, "Unable to cleanup key.\n");
-+	return 0;
++NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
++			"crypto erase");
 +}
 diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index a790b1ea..90038e75 100644
+index a1c56060..0e3aa5d9 100644
 --- a/ndctl/lib/libndctl.sym
 +++ b/ndctl/lib/libndctl.sym
-@@ -393,4 +393,6 @@ global:
- 	ndctl_dimm_enable_key;
- 	ndctl_dimm_update_key;
- 	ndctl_dimm_update_passphrase;
-+	ndctl_dimm_disable_passphrase;
-+	ndctl_dimm_disable_key;
+@@ -396,4 +396,6 @@ global:
+ 	ndctl_dimm_disable_passphrase;
+ 	ndctl_dimm_disable_key;
+ 	ndctl_dimm_freeze_security;
++	ndctl_dimm_secure_erase;
++	ndctl_dimm_secure_erase_key;
  } LIBNDCTL_18;
 diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index f74dc875..d2737c9b 100644
+index 8888fd17..374b19f7 100644
 --- a/ndctl/libndctl.h
 +++ b/ndctl/libndctl.h
-@@ -702,10 +702,12 @@ int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
- bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
- int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+@@ -704,11 +704,13 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
  		long ckey, long nkey);
-+int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
  
  #ifdef ENABLE_KEYUTILS
  int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
  int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
-+int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm);
  #else
  static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
  		const char *master)
-@@ -718,6 +720,11 @@ static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+@@ -726,6 +728,11 @@ static inline int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
  {
  	return -EOPNOTSUPP;
  }
 +
-+static inline int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
 +{
 +	return -EOPNOTSUPP;
 +}
@@ -232,14 +293,14 @@ index f74dc875..d2737c9b 100644
  
  #ifdef __cplusplus
 diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 4336c94c..1e82ded0 100644
+index d08fee4d..40982f43 100644
 --- a/ndctl/ndctl.c
 +++ b/ndctl/ndctl.c
-@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
- 	{ "start-scrub", cmd_start_scrub },
- 	{ "enable-passphrase", cmd_passphrase_setup },
+@@ -92,6 +92,7 @@ static struct cmd_struct commands[] = {
  	{ "update-passphrase", cmd_passphrase_update },
-+	{ "disable-passphrase", cmd_disable_passphrase },
+ 	{ "disable-passphrase", cmd_disable_passphrase },
+ 	{ "freeze-security", cmd_freeze_security },
++	{ "sanitize-dimm", cmd_sanitize_dimm },
  	{ "list", cmd_list },
  	{ "monitor", cmd_monitor},
  	{ "help", cmd_help },
