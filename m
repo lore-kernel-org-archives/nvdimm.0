@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F8DB21190734
- for <linux-nvdimm@lists.01.org>; Wed, 14 Nov 2018 21:05:19 -0800 (PST)
-Subject: [RFC PATCH 3/3] libnvdimm, MAINTAINERS: Subsystem Profile
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Nov 2018 20:53:30 -0800
-Message-ID: <154225761038.2499188.1270468803677883744.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154225759358.2499188.15268218778137905050.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 864A02119623D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:20 -0800 (PST)
+Subject: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 13:53:18 -0800
+Message-ID: <154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,98 +18,142 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org, corbet@lwn.net, Ross Zwisler <zwisler@kernel.org>
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-RG9jdW1lbnQgdGhlIGJhc2ljIHBvbGljaWVzIG9mIHRoZSBsaWJudmRpbW0gc3Vic3lzdGVtIGFu
-ZCBwcm92aWRlIGEKZmlyc3QgZXhhbXBsZSBvZiBhIFN1YnN5c3RlbSBQcm9maWxlIGZvciBvdGhl
-cnMgdG8gZHVwbGljYXRlIGFuZCBlZGl0LgoKQ2M6IFJvc3MgWndpc2xlciA8endpc2xlckBrZXJu
-ZWwub3JnPgpDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CkNjOiBE
-YXZlIEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxp
-YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogRG9jdW1lbnRhdGlvbi9udmRpbW0v
-c3Vic3lzdGVtLXByb2ZpbGUucnN0IHwgICA4NiArKysrKysrKysrKysrKysrKysrKysrKysrKysr
-CiBNQUlOVEFJTkVSUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0ICsKIDIg
-ZmlsZXMgY2hhbmdlZCwgOTAgaW5zZXJ0aW9ucygrKQogY3JlYXRlIG1vZGUgMTAwNjQ0IERvY3Vt
-ZW50YXRpb24vbnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdAoKZGlmZiAtLWdpdCBhL0RvY3Vt
-ZW50YXRpb24vbnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdCBiL0RvY3VtZW50YXRpb24vbnZk
-aW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdApuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAw
-MDAwMDAwMDAuLmQzNDI4YmU3NTI4ZQotLS0gL2Rldi9udWxsCisrKyBiL0RvY3VtZW50YXRpb24v
-bnZkaW1tL3N1YnN5c3RlbS1wcm9maWxlLnJzdApAQCAtMCwwICsxLDg2IEBACitMSUJOVkRJTU0g
-U3Vic3lzdGVtIFByb2ZpbGUKKz09PT09PT09PT09PT09PT09PT09PT09PT09PQorCitPdmVydmll
-dworLS0tLS0tLS0KK1NvLCB5b3UgaGF2ZSByZWNlbnRseSBiZWNvbWUgYSBtYWludGFpbmVyIG9m
-IHRoZSBMSUJOVkRJTU0gc3Vic3lzdGVtLAorY29uZG9sZW5jZXMsIGl0IGlzIGEgdGhhbmtsZXNz
-IGpvYiwgaGVyZSBpcyB0aGUgbGF5IG9mIHRoZSBsYW5kLiBUaGUgZ2l0Cit0cmVlLCBnaXQua2Vy
-bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbS5naXQvLCBpcwor
-d3JpdGFibGUgYnkgYWxsIHRoZSBpbmRpdmlkdWFscyBsaXN0ZWQgaW4gTElCTlZESU1NIHNlY3Rp
-b24gb2YKK01BSU5UQUlORVJTLiBBY2Nlc3MgaXMgZ3JhbnRlZCBwZXIgdGhlIHR5cGljYWwga2Vy
-bmVsLm9yZyBhY2NvdW50CittYW5hZ2VtZW50IHBvbGljaWVzLiBUd28gYnJhbmNoZXMgaW4gdGhh
-dCB0cmVlIGFyZSByZWd1bGFybHkgcHVsbGVkIGludG8KKy1uZXh0LCBsaWJudmRpbW0tZm9yLW5l
-eHQsIGFuZCBsaWJudmRpbW0tZml4ZXMuIFRoZSBzdWJtaXQgcmF0ZSBvZgorcGF0Y2hlcyBpcyBs
-b3csIHVzdWFsbHkgZW5vdWdoIGZvciBvbmUgcGVyc29uIHRvIGhhbmRsZS4gVGhlcmUgaXMgYQor
-cGF0Y2h3b3JrIGluc3RhbmNlIGF0CitodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3Byb2pl
-Y3QvbGludXgtbnZkaW1tL2xpc3QvLCBhbmQgaXQKK2hpc3RvcmljYWxseSBpcyBvbmx5IHVzZWQg
-Zm9yIGluZ2VzdGluZyBwYXRjaGVzIGFuZCBjb2xsZWN0aW5nCithY2svcmV2aWV3IHRhZ3MsIGku
-ZS4gbm8gZXhwZWN0YXRpb24gdG8gdXBkYXRlIHRoZSBwYXRjaCBzdGF0ZSBhZnRlciBpdAoraGFz
-IGJlZW4gZGlzcG9zaXRpb25lZCwgb3IgbWVyZ2VkLgorCitUaGUgbW9zdCBzZW5zaXRpdmUgY29k
-ZSBhcmVhIGlzIHRoZSBBQ1BJIERTTSAoRGV2aWNlIFNwZWNpZmljIE1ldGhvZCkKK3BhdGguIElu
-IGFkZGl0aW9uIHRvIHRoZSBnZW5lcmFsIGZyYWdpbGl0eSBvZiBhbiBpb2N0bCgpIEFCSSB0aGUg
-QUNQSQorRFNNIHNjaGVtZSBhbGxvd3MgYW55IHZlbmRvciB0byBpbXBsZW1lbnQgYW55IGNvbW1h
-bmQgd2l0aG91dCBhbnkgcHJpb3IKK3JldmlldyBieSB0aGUgQUNQSSBjb21taXR0ZWUuIEZvciB0
-aGlzIHJlYXNvbiB0aGUgTElCTlZESU1NIHN5c3RlbSBzZWVrcwordG8gY29uc3RyYWluIHRoZSBw
-cm9saWZlcmF0aW9uIG9mIHZlbmRvciBjb21tYW5kcyBhbmQgYXQgYSBtaW5pbXVtCityZXF1aXJl
-cyBhbnkgY29tbWFuZCBzdXBwb3J0IHRvIGJlIHB1YmxpY2x5IGRvY3VtZW50ZWQuIE92ZXIgdGlt
-ZSB0aGUKK3N1Ym1pc3Npb24gcmF0ZSBvZiBuZXcgdmVuZG9yLXNwZWNpZmljIGNvbW1hbmRzIGlz
-IGZhbGxpbmcgYXMgbW9yZQorY29tbWFuZHMgYXJlIGRlZmluZWQgd2l0aCBuYW1lZCBtZXRob2Rz
-IGluIHRoZSBvZmZpY2lhbCBBQ1BJCitzcGVjaWZpY2F0aW9uLgorCitMSUJOVkRJTU0gc2l0cyBh
-dCB0aGUgaW50ZXJzZWN0aW9uIG9mIGRldmljZS1kcml2ZXJzLCB0aGUgYmxvY2stbGF5ZXIsCitj
-b3JlIG1lbW9yeS1tYW5hZ2VtZW50LCBhbmQgZmlsZXN5c3RlbXMuIEJlIHN1cmUgdG8gcmUtcm91
-dGUgbWVtb3J5CittYW5hZ2VtZW50IHBhdGNoZXMgdG8gdGhlIC1tbSB0cmVlLCBhbmQgb3RoZXJ3
-aXNlIHB1bGwtaW4gZnMtZGV2ZWwgZm9yCitwYXRjaGVzIHRoYXQgdG91Y2ggYW55dGhpbmcgcmVs
-YXRlZCB0byBEQVguCisKK0NvcmUKKy0tLS0KK0Y6IGRyaXZlcnMvbnZkaW1tL1wqX2RldnMuYwor
-RjogZHJpdmVycy9hY3BpL25maXQvXCouW2NoXQorCisKK1BhdGNoZXMgb3IgUHVsbCByZXF1ZXN0
-cworLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCitQYXRjaGVzIG9ubHkKKworCitMYXN0IGRheSBm
-b3IgbmV3IGZlYXR1cmUgc3VibWlzc2lvbnMKKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLQorQmVmb3JlIC1yYzUKKworCitMYXN0IGRheSB0byBtZXJnZSBmZWF0dXJlcworLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KK0VuZCBvZiBsYXN0IC1yYworCisKK05vbi1hdXRob3Ig
-QWNrIC8gUmV2aWV3IFRhZ3MgUmVxdWlyZWQKKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0KK1JlcXVpcmVkCisKKworVGVzdCBTdWl0ZQorLS0tLS0tLS0tLQorUnVuIOKAmG1h
-a2UgY2hlY2vigJkgZnJvbSBodHRwczovL2dpdGh1Yi5jb20vcG1lbS9uZGN0bAorCisKK1RydXN0
-ZWQgUmV2aWV3ZXJzCistLS0tLS0tLS0tLS0tLS0tLQorSm9oYW5uZXMgVGh1bXNoaXJuCitUb3No
-aSBLYW5pCitKZWZmIE1veWVyCitSb2JlcnQgRWxsaW90dAorCisKK1Jlc3VibWl0IENhZGVuY2UK
-Ky0tLS0tLS0tLS0tLS0tLS0KKzggYnVzaW5lc3MgZGF5cworCisKK1RpbWUgWm9uZSAvIE9mZmlj
-ZSBIb3VycworLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCis4OjAwYW0gdG8gNTowMHBtIFBhY2lm
-aWMgVGltZSBab25lCisKKworQ2hlY2twYXRjaCAvIFN0eWxlIGNsZWFudXBzCistLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KK1N0YW5kYWxvbmUgc3R5bGUtY2xlYW51cHMgYXJlIHdlbGNvbWUu
-CmRpZmYgLS1naXQgYS9NQUlOVEFJTkVSUyBiL01BSU5UQUlORVJTCmluZGV4IGJiNGE4M2E3Njg0
-ZC4uYmEyYmVlZGQ0NjA1IDEwMDY0NAotLS0gYS9NQUlOVEFJTkVSUworKysgYi9NQUlOVEFJTkVS
-UwpAQCAtODQzOSw2ICs4NDM5LDcgQEAgTToJRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
-bnRlbC5jb20+CiBNOglWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KIE06
-CURhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogTDoJbGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZworUDoJRG9jdW1lbnRhdGlvbi9udmRpbW0vc3Vic3lzdGVtLXByb2ZpbGUucnN0CiBR
-OglodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3Byb2plY3QvbGludXgtbnZkaW1tL2xpc3Qv
-CiBTOglTdXBwb3J0ZWQKIEY6CWRyaXZlcnMvbnZkaW1tL2Jsay5jCkBAIC04NDUwLDYgKzg0NTEs
-NyBAQCBNOglEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KIE06CVJvc3Mg
-Wndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPgogTToJRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0Bp
-bnRlbC5jb20+CiBMOglsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCitQOglEb2N1bWVudGF0aW9u
-L252ZGltbS9zdWJzeXN0ZW0tcHJvZmlsZS5yc3QKIFE6CWh0dHBzOi8vcGF0Y2h3b3JrLmtlcm5l
-bC5vcmcvcHJvamVjdC9saW51eC1udmRpbW0vbGlzdC8KIFM6CVN1cHBvcnRlZAogRjoJZHJpdmVy
-cy9udmRpbW0vYnR0KgpAQCAtODQ2MCw2ICs4NDYyLDcgQEAgTToJRGFuIFdpbGxpYW1zIDxkYW4u
-ai53aWxsaWFtc0BpbnRlbC5jb20+CiBNOglWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGlu
-dGVsLmNvbT4KIE06CURhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgogTDoJbGludXgt
-bnZkaW1tQGxpc3RzLjAxLm9yZworUDoJRG9jdW1lbnRhdGlvbi9udmRpbW0vc3Vic3lzdGVtLXBy
-b2ZpbGUucnN0CiBROglodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3Byb2plY3QvbGludXgt
-bnZkaW1tL2xpc3QvCiBTOglTdXBwb3J0ZWQKIEY6CWRyaXZlcnMvbnZkaW1tL3BtZW0qCkBAIC04
-NDc4LDYgKzg0ODEsNyBAQCBNOglSb3NzIFp3aXNsZXIgPHp3aXNsZXJAa2VybmVsLm9yZz4KIE06
-CVZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgogTToJRGF2ZSBKaWFuZyA8
-ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+CiBMOglsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCitQOglE
-b2N1bWVudGF0aW9uL252ZGltbS9zdWJzeXN0ZW0tcHJvZmlsZS5yc3QKIFE6CWh0dHBzOi8vcGF0
-Y2h3b3JrLmtlcm5lbC5vcmcvcHJvamVjdC9saW51eC1udmRpbW0vbGlzdC8KIFQ6CWdpdCBnaXQ6
-Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbS5n
-aXQKIFM6CVN1cHBvcnRlZAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Modify the set_page_links function to include the setting of the reserved
+flag via a simple AND and OR operation. The motivation for this is the fact
+that the existing __set_bit call still seems to have effects on performance
+as replacing the call with the AND and OR can reduce initialization time.
+
+Looking over the assembly code before and after the change the main
+difference between the two is that the reserved bit is stored in a value
+that is generated outside of the main initialization loop and is then
+written with the other flags field values in one write to the page->flags
+value. Previously the generated value was written and then then a btsq
+instruction was issued.
+
+On my x86_64 test system with 3TB of persistent memory per node I saw the
+persistent memory initialization time on average drop from 23.49s to
+19.12s per node.
+
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ include/linux/mm.h |    9 ++++++++-
+ mm/page_alloc.c    |   39 +++++++++++++++++++++++++--------------
+ 2 files changed, 33 insertions(+), 15 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index eb6e52b66bc2..5faf66dd4559 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1238,11 +1238,18 @@ static inline void set_page_node(struct page *page, unsigned long node)
+ 	page->flags |= (node & NODES_MASK) << NODES_PGSHIFT;
+ }
+ 
++static inline void set_page_reserved(struct page *page, bool reserved)
++{
++	page->flags &= ~(1ul << PG_reserved);
++	page->flags |= (unsigned long)(!!reserved) << PG_reserved;
++}
++
+ static inline void set_page_links(struct page *page, enum zone_type zone,
+-	unsigned long node, unsigned long pfn)
++	unsigned long node, unsigned long pfn, bool reserved)
+ {
+ 	set_page_zone(page, zone);
+ 	set_page_node(page, node);
++	set_page_reserved(page, reserved);
+ #ifdef SECTION_IN_PAGE_FLAGS
+ 	set_page_section(page, pfn_to_section_nr(pfn));
+ #endif
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 416bbb6f05ab..61eb9945d805 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1183,10 +1183,16 @@ static void free_one_page(struct zone *zone,
+ 
+ static void __meminit __init_struct_page_nolru(struct page *page,
+ 					       unsigned long pfn,
+-					       unsigned long zone, int nid)
++					       unsigned long zone, int nid,
++					       bool is_reserved)
+ {
+ 	mm_zero_struct_page(page);
+-	set_page_links(page, zone, nid, pfn);
++
++	/*
++	 * We can use a non-atomic operation for setting the
++	 * PG_reserved flag as we are still initializing the pages.
++	 */
++	set_page_links(page, zone, nid, pfn, is_reserved);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+ 	page_cpupid_reset_last(page);
+@@ -1202,14 +1208,15 @@ static void __meminit __init_struct_page_nolru(struct page *page,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
+-	__init_struct_page_nolru(page, pfn, zone, nid);
++	__init_struct_page_nolru(page, pfn, zone, nid, false);
+ 	INIT_LIST_HEAD(&page->lru);
+ }
+ 
+ static void __meminit __init_pageblock(unsigned long start_pfn,
+ 				       unsigned long nr_pages,
+ 				       unsigned long zone, int nid,
+-				       struct dev_pagemap *pgmap)
++				       struct dev_pagemap *pgmap,
++				       bool is_reserved)
+ {
+ 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+ 	struct page *start_page = pfn_to_page(start_pfn);
+@@ -1235,15 +1242,8 @@ static void __meminit __init_pageblock(unsigned long start_pfn,
+ 	 * is not defined.
+ 	 */
+ 	for (page = start_page + nr_pages; page-- != start_page; pfn--) {
+-		__init_struct_page_nolru(page, pfn, zone, nid);
+-		/*
+-		 * Mark page reserved as it will need to wait for onlining
+-		 * phase for it to be fully associated with a zone.
+-		 *
+-		 * We can use the non-atomic __set_bit operation for setting
+-		 * the flag as we are still initializing the pages.
+-		 */
+-		__SetPageReserved(page);
++		__init_struct_page_nolru(page, pfn, zone, nid, is_reserved);
++
+ 		/*
+ 		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
+ 		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
+@@ -5780,7 +5780,18 @@ static void __meminit __memmap_init_hotplug(unsigned long size, int nid,
+ 		pfn = max(ALIGN_DOWN(pfn - 1, pageblock_nr_pages), start_pfn);
+ 		stride -= pfn;
+ 
+-		__init_pageblock(pfn, stride, zone, nid, pgmap);
++		/*
++		 * The last argument of __init_pageblock is a boolean
++		 * value indicating if the page will be marked as reserved.
++		 *
++		 * Mark page reserved as it will need to wait for onlining
++		 * phase for it to be fully associated with a zone.
++		 *
++		 * Under certain circumstances ZONE_DEVICE pages may not
++		 * need to be marked as reserved, however there is still
++		 * code that is depending on this being set for now.
++		 */
++		__init_pageblock(pfn, stride, zone, nid, pgmap, true);
+ 
+ 		cond_resched();
+ 	}
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
