@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com
+ [209.85.210.176])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 26D52211963E1
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:34:04 -0800 (PST)
-Subject: [PATCH v5 07/12] ndctl: setup modprobe rules
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Nov 2018 14:34:03 -0700
-Message-ID: <154361364349.6129.8773626009759872130.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
-References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7AC3D21962301
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:40:06 -0800 (PST)
+Received: by mail-pf1-f176.google.com with SMTP id z9so2100689pfi.2
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:40:06 -0800 (PST)
+Date: Thu, 29 Nov 2018 19:40:01 -0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [RFC v3 07/19] kunit: test: add initial tests
+Message-ID: <20181130034001.GM18410@garbanzo.do-not-panic.com>
+References: <20181128193636.254378-1-brendanhiggins@google.com>
+ <20181128193636.254378-8-brendanhiggins@google.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20181128193636.254378-8-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,82 +27,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, frowand.list@gmail.com, linux-nvdimm@lists.01.org, richard@nod.at, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, joel@jms.id.au, jdike@addtoit.com, Tim.Bird@sony.com, keescook@google.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, joe@perches.com, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding reference config file for modprobe.d in order to trigger the
-reference script that will inject keys associated with the nvdimms into
-the kernel user ring for unlock.
+On Wed, Nov 28, 2018 at 11:36:24AM -0800, Brendan Higgins wrote:
+> Add a test for string stream along with a simpler example.
+> 
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> ---
+>  kunit/Kconfig              | 12 ++++++
+>  kunit/Makefile             |  4 ++
+>  kunit/example-test.c       | 88 ++++++++++++++++++++++++++++++++++++++
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Makefile.am                  |   10 ++++++++++
- contrib/ndctl-loadkeys.sh    |   24 ++++++++++++++++++++++++
- contrib/nvdimm_modprobe.conf |    1 +
- 3 files changed, 35 insertions(+)
- create mode 100755 contrib/ndctl-loadkeys.sh
- create mode 100644 contrib/nvdimm_modprobe.conf
+BTW if you need another more concrete but very simple example I think it
+may be possible to port tools/testing/selftests/sysctl/sysctl.sh +
+lib/test_sysctl.c into a kunit test. Correct me if I'm wrong.
 
-diff --git a/Makefile.am b/Makefile.am
-index e0c463a3..5a3f03aa 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -42,6 +42,16 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
- dist_bashcompletion_DATA = contrib/ndctl
- endif
- 
-+load_key_file = contrib/ndctl-loadkeys.sh
-+load_keydir = $(sysconfdir)/ndctl/
-+load_key_DATA = $(load_key_file)
-+EXTRA_DIST += $(load_key_file)
-+
-+modprobe_file = contrib/nvdimm_modprobe.conf
-+modprobedir = $(sysconfdir)/modprobe.d/
-+modprobe_DATA = $(modprobe_file)
-+EXTRA_DIST += $(modprobe_file)
-+
- noinst_LIBRARIES = libccan.a
- libccan_a_SOURCES = \
- 	ccan/str/str.h \
-diff --git a/contrib/ndctl-loadkeys.sh b/contrib/ndctl-loadkeys.sh
-new file mode 100755
-index 00000000..75ad3562
---- /dev/null
-+++ b/contrib/ndctl-loadkeys.sh
-@@ -0,0 +1,24 @@
-+#!/bin/bash -Ex
-+
-+# This script assumes a single master key for all DIMMs
-+
-+KEY_PATH=/etc/ndctl/keys
-+TPMH_PATH=$KEY_PATH/tpm.handle
-+KEYTPE=""
-+TPM_HANDLE=""
-+id=""
-+
-+if [ -f $TPMH_PATH ]; then
-+	KEYTYPE=trusted
-+	TPM_HANDLE="keyhandle=`cat $TPMH_PATH`"
-+else
-+	KEYTYPE=user
-+fi
-+
-+keyctl show | grep -q nvdimm_master || keyctl add $KEYTYPE nvdimm-master "load `cat $KEY_PATH/nvdimm-master.blob` $TPM_HANDLE" @u > /dev/null
-+
-+for i in `ls -1 $KEY_PATH/nvdimm_*.blob`;
-+do
-+	id=`echo $i | cut -d'_' -f2`
-+	keyctl add encrypted nvdimm:$id "load `cat $i`" @u
-+done
-diff --git a/contrib/nvdimm_modprobe.conf b/contrib/nvdimm_modprobe.conf
-new file mode 100644
-index 00000000..291c70a0
---- /dev/null
-+++ b/contrib/nvdimm_modprobe.conf
-@@ -0,0 +1 @@
-+install libnvdimm /usr/sbin/ndctl-loadkeys.sh ; /sbin/modprobe libnvdimm $CMDLINE_OPTS
+I think that would show the differences clearly between selftests and
+kunit as well.
 
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
