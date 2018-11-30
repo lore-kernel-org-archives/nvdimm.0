@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F151D21188C47
- for <linux-nvdimm@lists.01.org>; Fri,  2 Nov 2018 11:23:55 -0700 (PDT)
-Subject: Re: [RFC v2 00/14] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-References: <20181023235750.103146-1-brendanhiggins@google.com>
-From: Shuah Khan <shuah@kernel.org>
-Message-ID: <f3682d48-6f27-5eef-8274-02f90dd65188@kernel.org>
-Date: Fri, 2 Nov 2018 12:23:53 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 2492C2119623A
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:34:32 -0800 (PST)
+Subject: [PATCH v5 12/12] ndctl: documentation for security and key management
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 30 Nov 2018 14:34:30 -0700
+Message-ID: <154361367067.6129.12362020358975253499.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181023235750.103146-1-brendanhiggins@google.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,102 +22,214 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>, gregkh@linuxfoundation.org, keescook@google.com, mcgrof@kernel.org
-Cc: brakmo@fb.com, robh@kernel.org, richard@nod.at, dri-devel@lists.freedesktop.org, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Tim.Bird@sony.com, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, kieran.bingham@ideasonboard.com, julia.lawall@lip6.fr, joel@jms.id.au, linux-kselftest@vger.kernel.org, khilman@baylibre.com, joe@perches.com, daniel@ffwll.ch, Shuah Khan <shuah@kernel.org>, jdike@addtoit.com, kunit-dev@googlegroups.com
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Brendan,
+Adding the theory of operation for Intel DSM operations.
 
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/ndctl/intel-nvdimm-security.txt    |  129 ++++++++++++++++++++++
+ Documentation/ndctl/ndctl-disable-passphrase.txt |    2 
+ Documentation/ndctl/ndctl-enable-passphrase.txt  |    2 
+ Documentation/ndctl/ndctl-freeze-security.txt    |    2 
+ Documentation/ndctl/ndctl-sanitize-dimm.txt      |    2 
+ Documentation/ndctl/ndctl-update-passphrase.txt  |    2 
+ 6 files changed, 139 insertions(+)
+ create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
 
-On 10/23/2018 05:57 PM, Brendan Higgins wrote:
-> This patch set proposes KUnit, a lightweight unit testing and mocking
-> framework for the Linux kernel.
-> 
-> Unlike Autotest and kselftest, KUnit is a true unit testing framework;
-> it does not require installing the kernel on a test machine or in a VM
-> and does not require tests to be written in userspace running on a host
-> kernel. Additionally, KUnit is fast: From invocation to completion KUnit
-> can run several dozen tests in under a second. Currently, the entire
-> KUnit test suite for KUnit runs in under a second from the initial
-> invocation (build time excluded).
-> 
-> KUnit is heavily inspired by JUnit, Python's unittest.mock, and
-> Googletest/Googlemock for C++. KUnit provides facilities for defining
-> unit test cases, grouping related test cases into test suites, providing
-> common infrastructure for running tests, mocking, spying, and much more.
-> 
-> ## What's so special about unit testing?
-> 
-> A unit test is supposed to test a single unit of code in isolation,
-> hence the name. There should be no dependencies outside the control of
-> the test; this means no external dependencies, which makes tests orders
-> of magnitudes faster. Likewise, since there are no external dependencies,
-> there are no hoops to jump through to run the tests. Additionally, this
-> makes unit tests deterministic: a failing unit test always indicates a
-> problem. Finally, because unit tests necessarily have finer granularity,
-> they are able to test all code paths easily solving the classic problem
-> of difficulty in exercising error handling code.
-> 
-> ## Is KUnit trying to replace other testing frameworks for the kernel?
-> 
-> No. Most existing tests for the Linux kernel are end-to-end tests, which
-> have their place. A well tested system has lots of unit tests, a
-> reasonable number of integration tests, and some end-to-end tests. KUnit
-> is just trying to address the unit test space which is currently not
-> being addressed.
-> 
-> ## More information on KUnit
-> 
-> There is a bunch of documentation near the end of this patch set that
-> describes how to use KUnit and best practices for writing unit tests.
-> For convenience I am hosting the compiled docs here:
-> https://google.github.io/kunit-docs/third_party/kernel/docs/
-> 
-> ## Changes Since Last Version
-> 
->  - Updated patchset to apply cleanly on 4.19.
->  - Stripped down patchset to focus on just the core features (I dropped
->    mocking, spying, and the MMIO stuff for now; you can find these
->    patches here: https://kunit-review.googlesource.com/c/linux/+/1132),
->    as suggested by Rob.
->  - Cleaned up some of the commit messages and tweaked commit order a
->    bit based on suggestions.
->
+diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+new file mode 100644
+index 00000000..a9c86d9c
+--- /dev/null
++++ b/Documentation/ndctl/intel-nvdimm-security.txt
+@@ -0,0 +1,129 @@
++// SPDX-License-Identifier: GPL-2.0
++
++THEORY OF OPERATOIN
++-------------------
++With the introduction of Intel DSM specification v1.7 and v1.8 [1], security
++DSMs were introduced. Ndctl supports enable passhprase, update passphrase,
++disable security, freeze security, secure (crypto) erase, overwrite,
++master passphrase enable, master passphrase update, and master passphrase
++secure (crypto) erase. The DSM that is not supported by ndctl is the unlock
++DSM, which is left to the kernel to manage.
++
++The security management for nvdimm is composed of two parts. The front end
++utilizes the Linux key management (trusted and encrypted keys [2]) and
++involves the keyutils on the user side and Linux key management APIs in the
++kernel. The backend takes the decrypted payload of the key and passes the
++plaintext payload to the nvdimm for processing.
++
++Unlike typical DSMs, the security DSMs are managed through the 'security'
++sysfs attribute under the dimm devices rather than an ioctl call by libndctl.
++The relevant key id is written to the 'security' attribute and the kernel will
++pull that key from the kernel user key ring for processing.
++
++The entire security process starts with a master key that is used to seal the
++encrypted keys that are used to protect the passphrase for each nvdimm. We
++recommend using THE system master trusted key from the Trusted Platform
++Module (TPM). However, a trusted master key generated by the TPM can also
++be used. And for testing purposes, a user key with randomized payload can
++also be served as a master key. See [2] for details. To perform any security
++operations, it is expected that at the minimal the master key is already
++in the kernel user keyring as shown in example below:
++
++> keyctl show
++Session Keyring
++ 736023423 --alswrv      0     0  keyring: _ses
++ 675104189 --alswrv      0 65534   \_ keyring: _uid.0
++ 680187394 --alswrv      0     0       \_ trusted: nvdimm-master
++
++All operations expect the relevant regions that's associated to the nvdimm
++are disabled before proceeding except overwrite. Overwrite expects the nvdimm
++also be disabled.
++
++UNLOCK
++------
++Unlock is performed by the kernel, however a preparation step must happen
++before the unlock DSM can be issued by the kernel. The expectation is that
++during initramfs, a setup script is called before the libnvdimm module is
++loaded by modprobe. The said script will inject the master key and the
++related encrypted keys into the kernel user key ring. A reference modprobe
++config file and also setup script has been provided by ndctl. When the
++nvdimm driver probes, it will
++1. Check the security state of the device and see if the dimm is locked
++2. Request the associated encrypted key from the kernel user key ring.
++3. Create the unlock DSM and copy the decrypted payload into the DSM
++   passphrase field, and issue the DSM to unlock the DIMM.
++
++ENABLE USER PASSPHRASE
++----------------------
++To enable the user passphrase for a DIMM, it is expected that the master key
++is already in the kernel user key ring and the master key name is passed to
++ndctl so it can do key management. An encrypted key with a 32byte payload
++and encrypted key format 'enc32' is created and sealed by the master key. Be
++aware that the passphrase is never provided by or visible to the user.
++The decrypted payload for the encrypted key will be randomly generated by the
++kernel and userspace does not have access to this derypted payload. When the
++encrypted key is created, a binary blob of the encrypted key is written to the
++desginated key blob storage directory (/etc/ndctl/keys as default). The user is
++responsible for backing up the dimm key blobs to a secure location. When a key
++is successfully loaded into the kernel user key ring, the payload is decrypted
++and can be accessed by the kernel.
++
++Key ids are written to the 'security' sysfs attribute with the command "update".
++A key id of 0 is provided for the old key id. The kernel will see that the
++update call is an enable call because the 0 old key id. A passphrase update DSM
++is issued by the kernel with the old passphrase as 0s.
++
++UPDATE USER PASSPHRASE
++----------------------
++The update user passphrase operation uses the same DSM command as enable user
++passphrase. Most of the work is done on the key management. The user can will
++provide a new master key name for the new passphrase key or use the existing
++one. ndctl will use whatever master key name that is passed in. The following
++operation is performed for update:
++1. Remove the associated encrypted key from the kernel user key ring.
++2. Rename the key blob to old.
++3. Load the now old key blob into kernel user key ring with "old" name.
++4. Create new encrypted key and seal with master key.
++5. Generate new key blob.
++6. Send DSM with old and new passphrase via the decrypted key payloads.
++7. On success, remove old key from key ring and old key blob.
++
++DISABLE USER PASSPHRASE
++-----------------------
++Ndctl will look up the key id for the current associated key and write to sysfs.
++Upon success of disabling, the key will be removed from the kernel user key
++ring and the related key blob will also be deleted.
++
++CRYPTO (SECURE) ERASE
++---------------------
++This operation is similar to disable the passphrase. The kernel will issue
++wbinvd before and after the operation to ensure no data corruption from stale
++CPU cache. The "sanitize-dimm" command is used via ndctl.
++
++OVERWRITE
++---------
++The overwrite operation wipes the entire nvdimm. Therefore it takes can take
++a significant amount of time. To issue the command is very similar to disable
++passphrase and secure erase. However, when the command returns successfully
++it just means overwirte has been successfully started. The wait-overwrite
++command for ndctl can be used to wait on the nvdimms that are performing
++overwrite until the operation is completed. Upon successful completion of the
++operation, wbinvd will be issued by the kernel. The "sanitize-dimm" command
++is used via ndctl.
++
++SECURITY FREEZE
++---------------
++This operation requires no key to succeed. Ndctl will issue the DSM command
++and upon completion, the security commands besides status query will be locked
++out until the next boot.
++
++MASTER PASSPHRASE ENABLE, UPDATE, and CRYPTO ERASE
++-----------------------------------------------------------
++These operations are similar to the user passphrase enable and update. The only
++difference is that a different encrypted key is being used for the master
++passphrase operations. Note that master passphrase has no relation to the
++master key for encryption.
++
++
++[1] http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
++[2] https://www.kernel.org/doc/Documentation/security/keys/trusted-encrypted.rst
+diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
+index e921eb23..df7401cb 100644
+--- a/Documentation/ndctl/ndctl-disable-passphrase.txt
++++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
+@@ -24,4 +24,6 @@ OPTIONS
+ <dimm>::
+ include::xable-dimm-options.txt[]
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-enable-passphrase.txt b/Documentation/ndctl/ndctl-enable-passphrase.txt
+index 6639ce8d..f5b1025d 100644
+--- a/Documentation/ndctl/ndctl-enable-passphrase.txt
++++ b/Documentation/ndctl/ndctl-enable-passphrase.txt
+@@ -37,4 +37,6 @@ include::xable-dimm-options.txt[]
+ 	Parameter to indicate that we are managing the master passphrase
+ 	instead of the user passphrase.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+index 4e9d2d61..2ae21980 100644
+--- a/Documentation/ndctl/ndctl-freeze-security.txt
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -17,4 +17,6 @@ DESCRIPTION
+ Provide a generic interface to freeze the security for NVDIMM. Once security
+ is frozen, no other security operations can succeed until reboot happens.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+index 7b036318..a8cdca71 100644
+--- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -39,4 +39,6 @@ include::xable-dimm-options.txt[]
+ 	instead of the user passphrase. This only is applicable to the
+ 	crypto-erase option.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
+index e2ecacf5..046fac6c 100644
+--- a/Documentation/ndctl/ndctl-update-passphrase.txt
++++ b/Documentation/ndctl/ndctl-update-passphrase.txt
+@@ -35,4 +35,6 @@ include::xable-dimm-options.txt[]
+ 	Parameter to indicate that we are managing the master passphrase
+ 	instead of the user passphrase.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
 
-Framework looks good. I think it would be helpful to include a real test
-in the patch series to get a feel for how effective it is.
-
-On one hand, KUnit stands on its own as its own and maybe it should be placed in
-under tools/testing/KUnit, however I am wondering would it be beneficial for the
-framework to under selftests.
-
-I am a bit concerned about the number of test framework we have at the moment and
-are we running the risk of fragmenting the landscape. I am concerned if this would
-lead to developer confusion as to where to add tests.
-
-That being said, I don't have a strong opinion one way or the other.
-
-btw I started playing with kunit following the instructions and ran into problems:
-
-./tools/testing/kunit/kunit.py 
-usage: kunit.py [-h] {run,new} ...
-
-Helps writing and running KUnit tests.
-
-positional arguments:
-  {run,new}
-    run       Runs KUnit tests.
-    new       Prints out boilerplate for writing new tests.
-
-optional arguments:
-  -h, --help  show this help message and exit
-
-./tools/testing/kunit/kunit.py run
-Regenerating .config ...
-ERROR:root:Provided Kconfig is not contained in validated .config!
-
-thanks,
--- Shuah
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
