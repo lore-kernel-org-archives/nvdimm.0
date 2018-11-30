@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E1262117FD58
- for <linux-nvdimm@lists.01.org>; Mon,  5 Nov 2018 13:12:21 -0800 (PST)
-Subject: [driver-core PATCH v5 8/9] PM core: Use new async_schedule_dev command
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 13:12:20 -0800
-Message-ID: <154145234017.29224.9183571187943571535.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
-References: <154145223352.29224.8912797012647157172.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7F63921195BFF
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:48 -0800 (PST)
+Subject: [PATCH v5 04/12] ndctl: add support for freeze security
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 30 Nov 2018 14:33:47 -0700
+Message-ID: <154361362735.6129.8729741741377913565.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,80 +22,167 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This change makes it so that we use the device specific version of the
-async_schedule commands to defer various tasks related to power management.
-By doing this we should see a slight improvement in performance as any
-device that is sensitive to latency/locality in the setup will now be
-initializing on the node closest to the device.
+Add support for freeze security to libndctl and also command line option
+of "freeze-security" for ndctl. This will lock the ability to make changes
+to the NVDIMM security.
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/base/power/main.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/ndctl/Makefile.am               |    3 ++-
+ Documentation/ndctl/ndctl-freeze-security.txt |   20 ++++++++++++++++++
+ builtin.h                                     |    1 +
+ ndctl/dimm.c                                  |   28 +++++++++++++++++++++++++
+ ndctl/lib/dimm.c                              |    5 ++++
+ ndctl/lib/libndctl.sym                        |    1 +
+ ndctl/libndctl.h                              |    1 +
+ ndctl/ndctl.c                                 |    1 +
+ 8 files changed, 59 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
 
-diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-index a690fd400260..ebb8b61b52e9 100644
---- a/drivers/base/power/main.c
-+++ b/drivers/base/power/main.c
-@@ -726,7 +726,7 @@ void dpm_noirq_resume_devices(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_noirq, dev);
-+			async_schedule_dev(async_resume_noirq, dev);
- 		}
- 	}
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 31570a77..a97f193d 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -50,7 +50,8 @@ man1_MANS = \
+ 	ndctl-monitor.1 \
+ 	ndctl-enable-passphrase.1 \
+ 	ndctl-update-passphrase.1 \
+-	ndctl-disable-passphrase.1
++	ndctl-disable-passphrase.1 \
++	ndctl-freeze-security.1
  
-@@ -883,7 +883,7 @@ void dpm_resume_early(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_early, dev);
-+			async_schedule_dev(async_resume_early, dev);
- 		}
- 	}
+ CLEANFILES = $(man1_MANS)
  
-@@ -1047,7 +1047,7 @@ void dpm_resume(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume, dev);
-+			async_schedule_dev(async_resume, dev);
- 		}
- 	}
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+new file mode 100644
+index 00000000..4e9d2d61
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -0,0 +1,20 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-freeze-security(1)
++========================
++
++NAME
++----
++ndctl-freeze-security - enabling or freeze the security for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl freeze-security' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface to freeze the security for NVDIMM. Once security
++is frozen, no other security operations can succeed until reboot happens.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 8d8f61e2..827295da 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -51,4 +51,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
+ int cmd_passphrase_update(int argc, const char **argv, void *ctx);
+ int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
++int cmd_freeze_security(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index edb4b9d7..6476b6e5 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -873,6 +873,24 @@ static int action_passphrase_disable(struct ndctl_dimm *dimm,
+ 	return ndctl_dimm_disable_key(dimm);
+ }
  
-@@ -1366,7 +1366,7 @@ static int device_suspend_noirq(struct device *dev)
++static int action_security_freeze(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
++
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	rc = ndctl_dimm_freeze_security(dimm);
++	if (rc < 0)
++		error("Failed to freeze security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
++}
++
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -1267,3 +1285,13 @@ int cmd_disable_passphrase(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_freeze_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
++			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 9cc22016..227c7124 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -668,3 +668,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
+ 	sprintf(buf, "disable %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++{
++	return write_security(dimm, "freeze");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 90038e75..a1c56060 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -395,4 +395,5 @@ global:
+ 	ndctl_dimm_update_passphrase;
+ 	ndctl_dimm_disable_passphrase;
+ 	ndctl_dimm_disable_key;
++	ndctl_dimm_freeze_security;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index d2737c9b..8888fd17 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -703,6 +703,7 @@ bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ 		long ckey, long nkey);
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
  
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_noirq, dev);
-+		async_schedule_dev(async_suspend_noirq, dev);
- 		return 0;
- 	}
- 	return __device_suspend_noirq(dev, pm_transition, false);
-@@ -1569,7 +1569,7 @@ static int device_suspend_late(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_late, dev);
-+		async_schedule_dev(async_suspend_late, dev);
- 		return 0;
- 	}
- 
-@@ -1833,7 +1833,7 @@ static int device_suspend(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend, dev);
-+		async_schedule_dev(async_suspend, dev);
- 		return 0;
- 	}
- 
+ #ifdef ENABLE_KEYUTILS
+ int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 1e82ded0..d08fee4d 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
+ 	{ "enable-passphrase", cmd_passphrase_setup },
+ 	{ "update-passphrase", cmd_passphrase_update },
+ 	{ "disable-passphrase", cmd_disable_passphrase },
++	{ "freeze-security", cmd_freeze_security },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
