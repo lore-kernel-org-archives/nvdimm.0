@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f195.google.com (mail-pg1-f195.google.com
+ [209.85.215.195])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4B70F2119623A
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:53 -0800 (PST)
-Subject: [PATCH v5 05/12] ndctl: add support for sanitize dimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Nov 2018 14:33:52 -0700
-Message-ID: <154361363287.6129.239430507173185840.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
-References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7A32421196839
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:29:29 -0800 (PST)
+Received: by mail-pg1-f195.google.com with SMTP id w6so1872373pgl.6
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Nov 2018 19:29:29 -0800 (PST)
+Date: Thu, 29 Nov 2018 19:29:24 -0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [RFC v3 03/19] kunit: test: add string_stream a std::stream like
+ string builder
+Message-ID: <20181130032924.GH18410@garbanzo.do-not-panic.com>
+References: <20181128193636.254378-1-brendanhiggins@google.com>
+ <20181128193636.254378-4-brendanhiggins@google.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20181128193636.254378-4-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,289 +28,249 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>, Petr Mladek <pmladek@suse.com>
+Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, frowand.list@gmail.com, linux-nvdimm@lists.01.org, richard@nod.at, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, joel@jms.id.au, jdike@addtoit.com, Tim.Bird@sony.com, keescook@google.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, joe@perches.com, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support to secure erase to libndctl and also command line option
-of "sanitize-dimm" for ndctl. This will initiate the request to crypto
-erase a DIMM.
+On Wed, Nov 28, 2018 at 11:36:20AM -0800, Brendan Higgins wrote:
+> A number of test features need to do pretty complicated string printing
+> where it may not be possible to rely on a single preallocated string
+> with parameters.
+> 
+> So provide a library for constructing the string as you go similar to
+> C++'s std::string.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/Makefile.am             |    3 +-
- Documentation/ndctl/ndctl-sanitize-dimm.txt |   32 +++++++++++++++++
- builtin.h                                   |    1 +
- ndctl/dimm.c                                |   51 +++++++++++++++++++++++++++
- ndctl/lib/dimm.c                            |    8 ++++
- ndctl/lib/keys.c                            |   19 ++++++++--
- ndctl/lib/libndctl.sym                      |    2 +
- ndctl/libndctl.h                            |    7 ++++
- ndctl/ndctl.c                               |    1 +
- 9 files changed, 120 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
+Hrm, what's the potential for such thing actually being eventually
+generically useful for printk folks, I wonder? Petr?
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index a97f193d..bbea9674 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -51,7 +51,8 @@ man1_MANS = \
- 	ndctl-enable-passphrase.1 \
- 	ndctl-update-passphrase.1 \
- 	ndctl-disable-passphrase.1 \
--	ndctl-freeze-security.1
-+	ndctl-freeze-security.1 \
-+	ndctl-sanitize-dimm.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-new file mode 100644
-index 00000000..a6802d30
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-@@ -0,0 +1,32 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-sanitize-dimm(1)
-+======================
-+
-+NAME
-+----
-+ndctl-sanitize-dimm - sanitize the data on the NVDIMM
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl sanitize' <dimm> [<options>]
-+
-+DESCRIPTION
-+-----------
-+Provide a generic interface to crypto erase a NVDIMM.
-+Ndctl will search the user key ring for the associated DIMM. If no key is
-+found, it will attempt to load the key blob from the expected location. Ndctl
-+will remove the key and the key blob once security is disabled.
-+
-+OPTIONS
-+-------
-+<dimm>::
-+include::xable-dimm-options.txt[]
-+
-+-c::
-+--crypto-erase::
-+	Replaces encryption keys and securely erases the data. This does not
-+	change label data. This is the default sanitize method.
-+
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 827295da..db0f2858 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -52,4 +52,5 @@ int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
- int cmd_passphrase_update(int argc, const char **argv, void *ctx);
- int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
- int cmd_freeze_security(int argc, const char **argv, void *ctx);
-+int cmd_sanitize_dimm(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 6476b6e5..ae674f78 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -46,6 +46,7 @@ static struct parameters {
- 	const char *infile;
- 	const char *labelversion;
- 	const char *master_key;
-+	bool crypto_erase;
- 	bool force;
- 	bool json;
- 	bool verbose;
-@@ -891,6 +892,35 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
- 	return rc;
- }
- 
-+static int action_sanitize_dimm(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (!ndctl_dimm_security_supported(dimm)) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	/*
-+	 * Setting crypto erase to be default. The other method will be
-+	 * overwrite.
-+	 */
-+	if (!param.crypto_erase) {
-+		param.crypto_erase = true;
-+		printf("No santize method passed in, default to crypto-erase\n");
-+	}
-+
-+	if (param.crypto_erase) {
-+		rc = ndctl_dimm_secure_erase_key(dimm);
-+		if (rc < 0)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -984,6 +1014,10 @@ OPT_STRING('V', "label-version", &param.labelversion, "version-number", \
- OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
- 		"master key for security")
- 
-+#define SANITIZE_OPTIONS() \
-+OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
-+		"crypto erase a dimm")
-+
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
- 	READ_OPTIONS(),
-@@ -1019,6 +1053,12 @@ static const struct option key_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option sanitize_options[] = {
-+	BASE_OPTIONS(),
-+	SANITIZE_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static int dimm_action(int argc, const char **argv, void *ctx,
- 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
- 		const struct option *options, const char *usage)
-@@ -1295,3 +1335,14 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_sanitize_dimm,
-+			sanitize_options,
-+			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 227c7124..6da29c1e 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -673,3 +673,11 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
- {
- 	return write_security(dimm, "freeze");
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
-+{
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	sprintf(buf, "erase %ld\n", key);
-+	return write_security(dimm, buf);
-+}
-diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
-index 6df382f2..1ebb008b 100644
---- a/ndctl/lib/keys.c
-+++ b/ndctl/lib/keys.c
-@@ -383,7 +383,8 @@ NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
- 	return 0;
- }
- 
--NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
-+static int check_key_run_and_discard(struct ndctl_dimm *dimm,
-+		int (*run_op)(struct ndctl_dimm *, long), const char *name)
- {
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 	key_serial_t key;
-@@ -398,9 +399,9 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
- 		}
- 	}
- 
--	rc = ndctl_dimm_disable_passphrase(dimm, key);
-+	rc = run_op(dimm, key);
- 	if (rc < 0) {
--		err(ctx, "Failed to disable security for %s\n",
-+		err(ctx, "Failed %s for %s\n", name,
- 				ndctl_dimm_get_devname(dimm));
- 		return rc;
- 	}
-@@ -410,3 +411,15 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
- 		err(ctx, "Unable to cleanup key.\n");
- 	return 0;
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
-+{
-+	return check_key_run_and_discard(dimm, ndctl_dimm_disable_passphrase,
-+			"disable passphrase");
-+}
-+
-+NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
-+{
-+	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
-+			"crypto erase");
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index a1c56060..0e3aa5d9 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -396,4 +396,6 @@ global:
- 	ndctl_dimm_disable_passphrase;
- 	ndctl_dimm_disable_key;
- 	ndctl_dimm_freeze_security;
-+	ndctl_dimm_secure_erase;
-+	ndctl_dimm_secure_erase_key;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 8888fd17..374b19f7 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -704,11 +704,13 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 		long ckey, long nkey);
- int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
-+int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
- 
- #ifdef ENABLE_KEYUTILS
- int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
- int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
- int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
-+int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm);
- #else
- static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
- 		const char *master)
-@@ -726,6 +728,11 @@ static inline int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif
- 
- #ifdef __cplusplus
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index d08fee4d..40982f43 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -92,6 +92,7 @@ static struct cmd_struct commands[] = {
- 	{ "update-passphrase", cmd_passphrase_update },
- 	{ "disable-passphrase", cmd_disable_passphrase },
- 	{ "freeze-security", cmd_freeze_security },
-+	{ "sanitize-dimm", cmd_sanitize_dimm },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
+  Luis
 
+> 
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> ---
+>  include/kunit/string-stream.h |  44 ++++++++++
+>  kunit/Makefile                |   3 +-
+>  kunit/string-stream.c         | 149 ++++++++++++++++++++++++++++++++++
+>  3 files changed, 195 insertions(+), 1 deletion(-)
+>  create mode 100644 include/kunit/string-stream.h
+>  create mode 100644 kunit/string-stream.c
+> 
+> diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
+> new file mode 100644
+> index 0000000000000..933ed5740cf07
+> --- /dev/null
+> +++ b/include/kunit/string-stream.h
+> @@ -0,0 +1,44 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * C++ stream style string builder used in KUnit for building messages.
+> + *
+> + * Copyright (C) 2018, Google LLC.
+> + * Author: Brendan Higgins <brendanhiggins@google.com>
+> + */
+> +
+> +#ifndef _KUNIT_STRING_STREAM_H
+> +#define _KUNIT_STRING_STREAM_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/kref.h>
+> +#include <stdarg.h>
+> +
+> +struct string_stream_fragment {
+> +	struct list_head node;
+> +	char *fragment;
+> +};
+> +
+> +struct string_stream {
+> +	size_t length;
+> +	struct list_head fragments;
+> +
+> +	/* length and fragments are protected by this lock */
+> +	spinlock_t lock;
+> +	struct kref refcount;
+> +	int (*add)(struct string_stream *this, const char *fmt, ...);
+> +	int (*vadd)(struct string_stream *this, const char *fmt, va_list args);
+> +	char *(*get_string)(struct string_stream *this);
+> +	void (*clear)(struct string_stream *this);
+> +	bool (*is_empty)(struct string_stream *this);
+> +};
+> +
+> +struct string_stream *new_string_stream(void);
+> +
+> +void destroy_string_stream(struct string_stream *stream);
+> +
+> +void string_stream_get(struct string_stream *stream);
+> +
+> +int string_stream_put(struct string_stream *stream);
+> +
+> +#endif /* _KUNIT_STRING_STREAM_H */
+> diff --git a/kunit/Makefile b/kunit/Makefile
+> index 5efdc4dea2c08..275b565a0e81f 100644
+> --- a/kunit/Makefile
+> +++ b/kunit/Makefile
+> @@ -1 +1,2 @@
+> -obj-$(CONFIG_KUNIT) +=			test.o
+> +obj-$(CONFIG_KUNIT) +=			test.o \
+> +					string-stream.o
+> diff --git a/kunit/string-stream.c b/kunit/string-stream.c
+> new file mode 100644
+> index 0000000000000..1e7efa630cc35
+> --- /dev/null
+> +++ b/kunit/string-stream.c
+> @@ -0,0 +1,149 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * C++ stream style string builder used in KUnit for building messages.
+> + *
+> + * Copyright (C) 2018, Google LLC.
+> + * Author: Brendan Higgins <brendanhiggins@google.com>
+> + */
+> +
+> +#include <linux/list.h>
+> +#include <linux/slab.h>
+> +#include <kunit/string-stream.h>
+> +
+> +static int string_stream_vadd(struct string_stream *this,
+> +			       const char *fmt,
+> +			       va_list args)
+> +{
+> +	struct string_stream_fragment *fragment;
+> +	int len;
+> +	va_list args_for_counting;
+> +	unsigned long flags;
+> +
+> +	/* Make a copy because `vsnprintf` could change it */
+> +	va_copy(args_for_counting, args);
+> +
+> +	/* Need space for null byte. */
+> +	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
+> +
+> +	va_end(args_for_counting);
+> +
+> +	fragment = kmalloc(sizeof(*fragment), GFP_KERNEL);
+> +	if (!fragment)
+> +		return -ENOMEM;
+> +
+> +	fragment->fragment = kmalloc(len, GFP_KERNEL);
+> +	if (!fragment->fragment) {
+> +		kfree(fragment);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	len = vsnprintf(fragment->fragment, len, fmt, args);
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	this->length += len;
+> +	list_add_tail(&fragment->node, &this->fragments);
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +	return 0;
+> +}
+> +
+> +static int string_stream_add(struct string_stream *this, const char *fmt, ...)
+> +{
+> +	va_list args;
+> +	int result;
+> +
+> +	va_start(args, fmt);
+> +	result = string_stream_vadd(this, fmt, args);
+> +	va_end(args);
+> +	return result;
+> +}
+> +
+> +static void string_stream_clear(struct string_stream *this)
+> +{
+> +	struct string_stream_fragment *fragment, *fragment_safe;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	list_for_each_entry_safe(fragment,
+> +				 fragment_safe,
+> +				 &this->fragments,
+> +				 node) {
+> +		list_del(&fragment->node);
+> +		kfree(fragment->fragment);
+> +		kfree(fragment);
+> +	}
+> +	this->length = 0;
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +}
+> +
+> +static char *string_stream_get_string(struct string_stream *this)
+> +{
+> +	struct string_stream_fragment *fragment;
+> +	size_t buf_len = this->length + 1; /* +1 for null byte. */
+> +	char *buf;
+> +	unsigned long flags;
+> +
+> +	buf = kzalloc(buf_len, GFP_KERNEL);
+> +	if (!buf)
+> +		return NULL;
+> +
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	list_for_each_entry(fragment, &this->fragments, node)
+> +		strlcat(buf, fragment->fragment, buf_len);
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +
+> +	return buf;
+> +}
+> +
+> +static bool string_stream_is_empty(struct string_stream *this)
+> +{
+> +	bool is_empty;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	is_empty = list_empty(&this->fragments);
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +
+> +	return is_empty;
+> +}
+> +
+> +void destroy_string_stream(struct string_stream *stream)
+> +{
+> +	stream->clear(stream);
+> +	kfree(stream);
+> +}
+> +
+> +static void string_stream_destroy(struct kref *kref)
+> +{
+> +	struct string_stream *stream = container_of(kref,
+> +						    struct string_stream,
+> +						    refcount);
+> +	destroy_string_stream(stream);
+> +}
+> +
+> +struct string_stream *new_string_stream(void)
+> +{
+> +	struct string_stream *stream = kzalloc(sizeof(*stream), GFP_KERNEL);
+> +
+> +	if (!stream)
+> +		return NULL;
+> +
+> +	INIT_LIST_HEAD(&stream->fragments);
+> +	spin_lock_init(&stream->lock);
+> +	kref_init(&stream->refcount);
+> +	stream->add = string_stream_add;
+> +	stream->vadd = string_stream_vadd;
+> +	stream->get_string = string_stream_get_string;
+> +	stream->clear = string_stream_clear;
+> +	stream->is_empty = string_stream_is_empty;
+> +	return stream;
+> +}
+> +
+> +void string_stream_get(struct string_stream *stream)
+> +{
+> +	kref_get(&stream->refcount);
+> +}
+> +
+> +int string_stream_put(struct string_stream *stream)
+> +{
+> +	return kref_put(&stream->refcount, &string_stream_destroy);
+> +}
+> +
+> -- 
+> 2.20.0.rc0.387.gc7a69e6b6c-goog
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
