@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2492C2119623A
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:34:32 -0800 (PST)
-Subject: [PATCH v5 12/12] ndctl: documentation for security and key management
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 30 Nov 2018 14:34:30 -0700
-Message-ID: <154361367067.6129.12362020358975253499.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
-References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 701FB2119623D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:52:53 -0800 (PST)
+Subject: [mm PATCH v6 1/7] mm: Use mm_zero_struct_page from SPARC on all 64b
+ architectures
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 13:52:53 -0800
+Message-ID: <154361477318.7497.13432441396440493352.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,213 +23,139 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding the theory of operation for Intel DSM operations.
+Use the same approach that was already in use on Sparc on all the
+architectures that support a 64b long.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This is mostly motivated by the fact that 7 to 10 store/move instructions
+are likely always going to be faster than having to call into a function
+that is not specialized for handling page init.
+
+An added advantage to doing it this way is that the compiler can get away
+with combining writes in the __init_single_page call. As a result the
+memset call will be reduced to only about 4 write operations, or at least
+that is what I am seeing with GCC 6.2 as the flags, LRU pointers, and
+count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
+my system.
+
+One change I had to make to the function was to reduce the minimum page
+size to 56 to support some powerpc64 configurations.
+
+This change should introduce no change on SPARC since it already had this
+code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
+initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
+Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
+takes 19.30ns / 64-byte struct page before this patch and with this patch
+it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
+a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
+results per 64-byte struct page were 4.68ns before, and 4.59ns after this
+patch.
+
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- Documentation/ndctl/intel-nvdimm-security.txt    |  129 ++++++++++++++++++++++
- Documentation/ndctl/ndctl-disable-passphrase.txt |    2 
- Documentation/ndctl/ndctl-enable-passphrase.txt  |    2 
- Documentation/ndctl/ndctl-freeze-security.txt    |    2 
- Documentation/ndctl/ndctl-sanitize-dimm.txt      |    2 
- Documentation/ndctl/ndctl-update-passphrase.txt  |    2 
- 6 files changed, 139 insertions(+)
- create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+ arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
+ include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 38 insertions(+), 33 deletions(-)
 
-diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
-new file mode 100644
-index 00000000..a9c86d9c
---- /dev/null
-+++ b/Documentation/ndctl/intel-nvdimm-security.txt
-@@ -0,0 +1,129 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+THEORY OF OPERATOIN
-+-------------------
-+With the introduction of Intel DSM specification v1.7 and v1.8 [1], security
-+DSMs were introduced. Ndctl supports enable passhprase, update passphrase,
-+disable security, freeze security, secure (crypto) erase, overwrite,
-+master passphrase enable, master passphrase update, and master passphrase
-+secure (crypto) erase. The DSM that is not supported by ndctl is the unlock
-+DSM, which is left to the kernel to manage.
-+
-+The security management for nvdimm is composed of two parts. The front end
-+utilizes the Linux key management (trusted and encrypted keys [2]) and
-+involves the keyutils on the user side and Linux key management APIs in the
-+kernel. The backend takes the decrypted payload of the key and passes the
-+plaintext payload to the nvdimm for processing.
-+
-+Unlike typical DSMs, the security DSMs are managed through the 'security'
-+sysfs attribute under the dimm devices rather than an ioctl call by libndctl.
-+The relevant key id is written to the 'security' attribute and the kernel will
-+pull that key from the kernel user key ring for processing.
-+
-+The entire security process starts with a master key that is used to seal the
-+encrypted keys that are used to protect the passphrase for each nvdimm. We
-+recommend using THE system master trusted key from the Trusted Platform
-+Module (TPM). However, a trusted master key generated by the TPM can also
-+be used. And for testing purposes, a user key with randomized payload can
-+also be served as a master key. See [2] for details. To perform any security
-+operations, it is expected that at the minimal the master key is already
-+in the kernel user keyring as shown in example below:
-+
-+> keyctl show
-+Session Keyring
-+ 736023423 --alswrv      0     0  keyring: _ses
-+ 675104189 --alswrv      0 65534   \_ keyring: _uid.0
-+ 680187394 --alswrv      0     0       \_ trusted: nvdimm-master
-+
-+All operations expect the relevant regions that's associated to the nvdimm
-+are disabled before proceeding except overwrite. Overwrite expects the nvdimm
-+also be disabled.
-+
-+UNLOCK
-+------
-+Unlock is performed by the kernel, however a preparation step must happen
-+before the unlock DSM can be issued by the kernel. The expectation is that
-+during initramfs, a setup script is called before the libnvdimm module is
-+loaded by modprobe. The said script will inject the master key and the
-+related encrypted keys into the kernel user key ring. A reference modprobe
-+config file and also setup script has been provided by ndctl. When the
-+nvdimm driver probes, it will
-+1. Check the security state of the device and see if the dimm is locked
-+2. Request the associated encrypted key from the kernel user key ring.
-+3. Create the unlock DSM and copy the decrypted payload into the DSM
-+   passphrase field, and issue the DSM to unlock the DIMM.
-+
-+ENABLE USER PASSPHRASE
-+----------------------
-+To enable the user passphrase for a DIMM, it is expected that the master key
-+is already in the kernel user key ring and the master key name is passed to
-+ndctl so it can do key management. An encrypted key with a 32byte payload
-+and encrypted key format 'enc32' is created and sealed by the master key. Be
-+aware that the passphrase is never provided by or visible to the user.
-+The decrypted payload for the encrypted key will be randomly generated by the
-+kernel and userspace does not have access to this derypted payload. When the
-+encrypted key is created, a binary blob of the encrypted key is written to the
-+desginated key blob storage directory (/etc/ndctl/keys as default). The user is
-+responsible for backing up the dimm key blobs to a secure location. When a key
-+is successfully loaded into the kernel user key ring, the payload is decrypted
-+and can be accessed by the kernel.
-+
-+Key ids are written to the 'security' sysfs attribute with the command "update".
-+A key id of 0 is provided for the old key id. The kernel will see that the
-+update call is an enable call because the 0 old key id. A passphrase update DSM
-+is issued by the kernel with the old passphrase as 0s.
-+
-+UPDATE USER PASSPHRASE
-+----------------------
-+The update user passphrase operation uses the same DSM command as enable user
-+passphrase. Most of the work is done on the key management. The user can will
-+provide a new master key name for the new passphrase key or use the existing
-+one. ndctl will use whatever master key name that is passed in. The following
-+operation is performed for update:
-+1. Remove the associated encrypted key from the kernel user key ring.
-+2. Rename the key blob to old.
-+3. Load the now old key blob into kernel user key ring with "old" name.
-+4. Create new encrypted key and seal with master key.
-+5. Generate new key blob.
-+6. Send DSM with old and new passphrase via the decrypted key payloads.
-+7. On success, remove old key from key ring and old key blob.
-+
-+DISABLE USER PASSPHRASE
-+-----------------------
-+Ndctl will look up the key id for the current associated key and write to sysfs.
-+Upon success of disabling, the key will be removed from the kernel user key
-+ring and the related key blob will also be deleted.
-+
-+CRYPTO (SECURE) ERASE
-+---------------------
-+This operation is similar to disable the passphrase. The kernel will issue
-+wbinvd before and after the operation to ensure no data corruption from stale
-+CPU cache. The "sanitize-dimm" command is used via ndctl.
-+
-+OVERWRITE
-+---------
-+The overwrite operation wipes the entire nvdimm. Therefore it takes can take
-+a significant amount of time. To issue the command is very similar to disable
-+passphrase and secure erase. However, when the command returns successfully
-+it just means overwirte has been successfully started. The wait-overwrite
-+command for ndctl can be used to wait on the nvdimms that are performing
-+overwrite until the operation is completed. Upon successful completion of the
-+operation, wbinvd will be issued by the kernel. The "sanitize-dimm" command
-+is used via ndctl.
-+
-+SECURITY FREEZE
-+---------------
-+This operation requires no key to succeed. Ndctl will issue the DSM command
-+and upon completion, the security commands besides status query will be locked
-+out until the next boot.
-+
-+MASTER PASSPHRASE ENABLE, UPDATE, and CRYPTO ERASE
-+-----------------------------------------------------------
-+These operations are similar to the user passphrase enable and update. The only
-+difference is that a different encrypted key is being used for the master
-+passphrase operations. Note that master passphrase has no relation to the
-+master key for encryption.
-+
-+
-+[1] http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
-+[2] https://www.kernel.org/doc/Documentation/security/keys/trusted-encrypted.rst
-diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
-index e921eb23..df7401cb 100644
---- a/Documentation/ndctl/ndctl-disable-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
-@@ -24,4 +24,6 @@ OPTIONS
- <dimm>::
- include::xable-dimm-options.txt[]
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..22500c3be7a9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -231,36 +231,6 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
  
-+include::intel-nvdimm-security.txt[]
-+
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-enable-passphrase.txt b/Documentation/ndctl/ndctl-enable-passphrase.txt
-index 6639ce8d..f5b1025d 100644
---- a/Documentation/ndctl/ndctl-enable-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-enable-passphrase.txt
-@@ -37,4 +37,6 @@ include::xable-dimm-options.txt[]
- 	Parameter to indicate that we are managing the master passphrase
- 	instead of the user passphrase.
+-/* This macro must be updated when the size of struct page grows above 80
+- * or reduces below 64.
+- * The idea that compiler optimizes out switch() statement, and only
+- * leaves clrx instructions
+- */
+-#define	mm_zero_struct_page(pp) do {					\
+-	unsigned long *_pp = (void *)(pp);				\
+-									\
+-	 /* Check that struct page is either 64, 72, or 80 bytes */	\
+-	BUILD_BUG_ON(sizeof(struct page) & 7);				\
+-	BUILD_BUG_ON(sizeof(struct page) < 64);				\
+-	BUILD_BUG_ON(sizeof(struct page) > 80);				\
+-									\
+-	switch (sizeof(struct page)) {					\
+-	case 80:							\
+-		_pp[9] = 0;	/* fallthrough */			\
+-	case 72:							\
+-		_pp[8] = 0;	/* fallthrough */			\
+-	default:							\
+-		_pp[7] = 0;						\
+-		_pp[6] = 0;						\
+-		_pp[5] = 0;						\
+-		_pp[4] = 0;						\
+-		_pp[3] = 0;						\
+-		_pp[2] = 0;						\
+-		_pp[1] = 0;						\
+-		_pp[0] = 0;						\
+-	}								\
+-} while (0)
+-
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 692158d6c619..eb6e52b66bc2 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -123,10 +123,45 @@ extern int mmap_rnd_compat_bits __read_mostly;
  
-+include::intel-nvdimm-security.txt[]
+ /*
+  * On some architectures it is expensive to call memset() for small sizes.
+- * Those architectures should provide their own implementation of "struct page"
+- * zeroing by defining this macro in <asm/pgtable.h>.
++ * If an architecture decides to implement their own version of
++ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
++ * define their own version of this macro in <asm/pgtable.h>
+  */
+-#ifndef mm_zero_struct_page
++#if BITS_PER_LONG == 64
++/* This function must be updated when the size of struct page grows above 80
++ * or reduces below 56. The idea that compiler optimizes out switch()
++ * statement, and only leaves move/store instructions. Also the compiler can
++ * combine write statments if they are both assignments and can be reordered,
++ * this can result in several of the writes here being dropped.
++ */
++#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
++static inline void __mm_zero_struct_page(struct page *page)
++{
++	unsigned long *_pp = (void *)page;
 +
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
-index 4e9d2d61..2ae21980 100644
---- a/Documentation/ndctl/ndctl-freeze-security.txt
-+++ b/Documentation/ndctl/ndctl-freeze-security.txt
-@@ -17,4 +17,6 @@ DESCRIPTION
- Provide a generic interface to freeze the security for NVDIMM. Once security
- is frozen, no other security operations can succeed until reboot happens.
++	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
++	BUILD_BUG_ON(sizeof(struct page) & 7);
++	BUILD_BUG_ON(sizeof(struct page) < 56);
++	BUILD_BUG_ON(sizeof(struct page) > 80);
++
++	switch (sizeof(struct page)) {
++	case 80:
++		_pp[9] = 0;	/* fallthrough */
++	case 72:
++		_pp[8] = 0;	/* fallthrough */
++	case 64:
++		_pp[7] = 0;	/* fallthrough */
++	case 56:
++		_pp[6] = 0;
++		_pp[5] = 0;
++		_pp[4] = 0;
++		_pp[3] = 0;
++		_pp[2] = 0;
++		_pp[1] = 0;
++		_pp[0] = 0;
++	}
++}
++#else
+ #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
+ #endif
  
-+include::intel-nvdimm-security.txt[]
-+
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-index 7b036318..a8cdca71 100644
---- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
-+++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-@@ -39,4 +39,6 @@ include::xable-dimm-options.txt[]
- 	instead of the user passphrase. This only is applicable to the
- 	crypto-erase option.
- 
-+include::intel-nvdimm-security.txt[]
-+
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
-index e2ecacf5..046fac6c 100644
---- a/Documentation/ndctl/ndctl-update-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-update-passphrase.txt
-@@ -35,4 +35,6 @@ include::xable-dimm-options.txt[]
- 	Parameter to indicate that we are managing the master passphrase
- 	instead of the user passphrase.
- 
-+include::intel-nvdimm-security.txt[]
-+
- include::../copyright.txt[]
 
 _______________________________________________
 Linux-nvdimm mailing list
