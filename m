@@ -1,125 +1,123 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6FBBF21188C47
- for <linux-nvdimm@lists.01.org>; Fri,  2 Nov 2018 11:44:48 -0700 (PDT)
-Subject: Re: [RFC v2 01/14] kunit: test: add KUnit test runner core
-References: <20181023235750.103146-1-brendanhiggins@google.com>
- <20181023235750.103146-2-brendanhiggins@google.com>
-From: Shuah Khan <shuah@kernel.org>
-Message-ID: <017b111f-d960-c1ef-46ae-eb0eb639fe5b@kernel.org>
-Date: Fri, 2 Nov 2018 12:44:46 -0600
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Fri, 30 Nov 2018 15:40:38 -0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [driver-core PATCH v7 2/9] driver core: Establish clear order of
+ operations for deferred probe and remove
+Message-ID: <20181130234038.GF28501@garbanzo.do-not-panic.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+ <154345153672.18040.3771035148218843351.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181023235750.103146-2-brendanhiggins@google.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>, gregkh@linuxfoundation.org, keescook@google.com, mcgrof@kernel.org
-Cc: brakmo@fb.com, robh@kernel.org, richard@nod.at, dri-devel@lists.freedesktop.org, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Tim.Bird@sony.com, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, kieran.bingham@ideasonboard.com, julia.lawall@lip6.fr, joel@jms.id.au, linux-kselftest@vger.kernel.org, khilman@baylibre.com, joe@perches.com, daniel@ffwll.ch, Shuah Khan <shuah@kernel.org>, jdike@addtoit.com, kunit-dev@googlegroups.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <154345153672.18040.3771035148218843351.stgit@ahduyck-desk1.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, dmitry.torokhov@gmail.com, brendanhiggins@google.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 10/23/2018 05:57 PM, Brendan Higgins wrote:
-> Add core facilities for defining unit tests; this provides a common way
-> to define test cases, functions that execute code which is under test
-> and determine whether the code under test behaves as expected; this also
-> provides a way to group together related test cases in test suites (here
-> we call them test_modules).
+On Wed, Nov 28, 2018 at 04:32:16PM -0800, Alexander Duyck wrote:
+> Add an additional bit flag to the device struct named async_probe. This
+> additional flag allows us to guarantee ordering between probe and remove
+> operations.
 > 
-> Just define test cases and how to execute them for now; setting
-> expectations on code will be defined later.
+> This allows us to guarantee that if we execute a remove operation on a
+> given interface it will not attempt to update the driver member
+> asynchronously following the earlier operation. Previously this guarantee
+> was not present and could result in us attempting to remove a driver from
+> an interface only to have it attempt to attach the driver later when we
+> finally complete the deferred asynchronous probe call.
 > 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+
+This is the sort of corner case that is best if we had a test case for
+it, as it is hard to reproduce and -- how do we know we won't regress
+later? Not sure if it helps but we have lib/test_kmod.c and its
+respective tools/testing/selftests/kmod/kmod.sh, a new enum kmod_test_case
+might be in order for device emulation creeping up / disappearing
+during a custom mock driver using async probe.
+
+Yeah.. I know.. "yes this seems good but how about later"? While we're going
+through the motions here and have your attention on this I think it
+would be valuable for this now. This is the sort of code that won't
+change often, but if modified *can* really break things badly.
+
+  Luis
+
 > ---
->  include/kunit/test.h | 165 ++++++++++++++++++++++++++++++++++++++++++
->  kunit/Kconfig        |  17 +++++
->  kunit/Makefile       |   1 +
->  kunit/test.c         | 168 +++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 351 insertions(+)
->  create mode 100644 include/kunit/test.h
->  create mode 100644 kunit/Kconfig
->  create mode 100644 kunit/Makefile
->  create mode 100644 kunit/test.c
+>  drivers/base/dd.c      |   16 ++++++++++++++++
+>  include/linux/device.h |    3 +++
+>  2 files changed, 19 insertions(+)
 > 
-> diff --git a/include/kunit/test.h b/include/kunit/test.h
-> new file mode 100644
-> index 0000000000000..e0b14b227ac44
-> --- /dev/null
-> +++ b/include/kunit/test.h
-> @@ -0,0 +1,165 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/*
-> + * Base unit test (KUnit) API.
-> + *
-> + * Copyright (C) 2018, Google LLC.
-> + * Author: Brendan Higgins <brendanhiggins@google.com>
-> + */
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 88713f182086..ef3f70a7cb5a 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -774,6 +774,10 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+>  
+>  	device_lock(dev);
+>  
+> +	/* nothing to do if async_probe has been cleared */
+> +	if (!dev->async_probe)
+> +		goto out_unlock;
 > +
-> +#ifndef _KUNIT_TEST_H
-> +#define _KUNIT_TEST_H
+>  	if (dev->parent)
+>  		pm_runtime_get_sync(dev->parent);
+>  
+> @@ -785,6 +789,9 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+>  	if (dev->parent)
+>  		pm_runtime_put(dev->parent);
+>  
+> +	/* We made our attempt at an async_probe, clear the flag */
+> +	dev->async_probe = false;
+> +out_unlock:
+>  	device_unlock(dev);
+>  
+>  	put_device(dev);
+> @@ -829,6 +836,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+>  			 */
+>  			dev_dbg(dev, "scheduling asynchronous probe\n");
+>  			get_device(dev);
+> +			dev->async_probe = true;
+>  			async_schedule(__device_attach_async_helper, dev);
+>  		} else {
+>  			pm_request_idle(dev);
+> @@ -929,6 +937,14 @@ static void __device_release_driver(struct device *dev, struct device *parent)
+>  {
+>  	struct device_driver *drv;
+>  
+> +	/*
+> +	 * In the event that we are asked to release the driver on an
+> +	 * interface that is still waiting on a probe we can just terminate
+> +	 * the probe by setting async_probe to false. When the async call
+> +	 * is finally completed it will see this state and just exit.
+> +	 */
+> +	dev->async_probe = false;
 > +
-> +#include <linux/types.h>
-> +#include <linux/slab.h>
-> +
-> +struct test;
-> +
-> +/**
-> + * struct test_case - represents an individual test case.
-> + * @run_case: the function representing the actual test case.
-> + * @name: the name of the test case.
-> + *
-> + * A test case is a function with the signature, ``void (*)(struct test *)``
-> + * that makes expectations (see TEST_EXPECT_TRUE()) about code under test. Each
-> + * test case is associated with a &struct test_module and will be run after the
-> + * module's init function and followed by the module's exit function.
-> + *
-> + * A test case should be static and should only be created with the TEST_CASE()
-> + * macro; additionally, every array of test cases should be terminated with an
-> + * empty test case.
-> + *
-> + * Example:
-> + *
-> + * .. code-block:: c
-> + *
-> + *	void add_test_basic(struct test *test)
-> + *	{
-> + *		TEST_EXPECT_EQ(test, 1, add(1, 0));
-> + *		TEST_EXPECT_EQ(test, 2, add(1, 1));
-> + *		TEST_EXPECT_EQ(test, 0, add(-1, 1));
-> + *		TEST_EXPECT_EQ(test, INT_MAX, add(0, INT_MAX));
-> + *		TEST_EXPECT_EQ(test, -1, add(INT_MAX, INT_MIN));
-> + *	}
-> + *
-> + *	static struct test_case example_test_cases[] = {
-> + *		TEST_CASE(add_test_basic),
-> + *		{},
-> + *	};
-> + *
-> + */
-> +struct test_case {
-> +	void (*run_case)(struct test *test);
-> +	const char name[256];
-> +
-> +	/* private: internal use only. */
-> +	bool success;
-> +};
-> +
-
-Introducing a prefix kunit_* might be a good idea for the API.
-This comment applies to the rest of patches as well.
-
-thanks,
--- Shuah
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>  	drv = dev->driver;
+>  	if (drv) {
+>  		while (device_links_busy(dev)) {
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 1b25c7a43f4c..4d2eb2c74149 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -957,6 +957,8 @@ struct dev_links_info {
+>   *              device.
+>   * @dma_coherent: this particular device is dma coherent, even if the
+>   *		architecture supports non-coherent devices.
+> + * @async_probe: This device has an asynchronous probe event pending. Should
+> + *		 only be updated while holding device lock.
+>   *
+>   * At the lowest level, every device in a Linux system is represented by an
+>   * instance of struct device. The device structure contains the information
+> @@ -1051,6 +1053,7 @@ struct device {
+>      defined(CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU_ALL)
+>  	bool			dma_coherent:1;
+>  #endif
+> +	bool			async_probe:1;
+>  };
+>  
+>  static inline struct device *kobj_to_dev(struct kobject *kobj)
+> 
