@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 20D582118D948
- for <linux-nvdimm@lists.01.org>; Thu,  8 Nov 2018 10:06:56 -0800 (PST)
-Subject: [driver-core PATCH v6 3/9] device core: Consolidate locking and
- unlocking of parent and device
+ by ml01.01.org (Postfix) with ESMTPS id 469ED2119623D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:24 -0800 (PST)
+Subject: [mm PATCH v6 7/7] mm: Use common iterator for deferred_init_pages
+ and deferred_free_pages
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 08 Nov 2018 10:06:55 -0800
-Message-ID: <154170041590.12967.4367086895437513524.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
-References: <154170028986.12967.2108024712555179678.stgit@ahduyck-desk1.jf.intel.com>
+Date: Fri, 30 Nov 2018 13:53:23 -0800
+Message-ID: <154361480390.7497.9730184349746888133.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,226 +23,226 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, rafael@kernel.org, jiangshanlai@gmail.com, linux-nvdimm@lists.01.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Try to consolidate all of the locking and unlocking of both the parent and
-device when attaching or removing a driver from a given device.
+Create a common iterator to be used by both deferred_init_pages and
+deferred_free_pages. By doing this we can cut down a bit on code overhead
+as they will likely both be inlined into the same function anyway.
 
-To do that I first consolidated the lock pattern into two functions
-__device_driver_lock and __device_driver_unlock. After doing that I then
-created functions specific to attaching and detaching the driver while
-acquiring these locks. By doing this I was able to reduce the number of
-spots where we touch need_parent_lock from 12 down to 4.
+This new approach allows deferred_init_pages to make use of
+__init_pageblock. By doing this we can cut down on the code size by sharing
+code between both the hotplug and deferred memory init code paths.
 
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+An additional benefit to this approach is that we improve in cache locality
+of the memory init as we can focus on the memory areas related to
+identifying if a given PFN is valid and keep that warm in the cache until
+we transition to a region of a different type. So we will stream through a
+chunk of valid blocks before we turn to initializing page structs.
+
+On my x86_64 test system with 384GB of memory per node I saw a reduction in
+initialization time from 1.38s to 1.06s as a result of this patch.
+
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
 Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- drivers/base/base.h |    2 +
- drivers/base/bus.c  |   23 ++-----------
- drivers/base/dd.c   |   91 ++++++++++++++++++++++++++++++++++++++++-----------
- 3 files changed, 77 insertions(+), 39 deletions(-)
+ mm/page_alloc.c |  146 +++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 77 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/base/base.h b/drivers/base/base.h
-index 7a419a7a6235..3f22ebd6117a 100644
---- a/drivers/base/base.h
-+++ b/drivers/base/base.h
-@@ -124,6 +124,8 @@ extern int driver_add_groups(struct device_driver *drv,
- 			     const struct attribute_group **groups);
- extern void driver_remove_groups(struct device_driver *drv,
- 				 const struct attribute_group **groups);
-+int device_driver_attach(struct device_driver *drv, struct device *dev);
-+void device_driver_detach(struct device *dev);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 61eb9945d805..48c6fc73a70d 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1481,32 +1481,6 @@ void clear_zone_contiguous(struct zone *zone)
+ }
  
- extern char *make_class_name(const char *name, struct kobject *kobj);
- 
-diff --git a/drivers/base/bus.c b/drivers/base/bus.c
-index 8bfd27ec73d6..8a630f9bd880 100644
---- a/drivers/base/bus.c
-+++ b/drivers/base/bus.c
-@@ -184,11 +184,7 @@ static ssize_t unbind_store(struct device_driver *drv, const char *buf,
- 
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == drv) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		device_driver_detach(dev);
- 		err = count;
- 	}
- 	put_device(dev);
-@@ -211,13 +207,7 @@ static ssize_t bind_store(struct device_driver *drv, const char *buf,
- 
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == NULL && driver_match_device(drv, dev)) {
--		if (dev->parent && bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_lock(dev);
--		err = driver_probe_device(drv, dev);
--		device_unlock(dev);
--		if (dev->parent && bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		err = device_driver_attach(drv, dev);
- 
- 		if (err > 0) {
- 			/* success */
-@@ -769,13 +759,8 @@ EXPORT_SYMBOL_GPL(bus_rescan_devices);
-  */
- int device_reprobe(struct device *dev)
- {
--	if (dev->driver) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-static void __init deferred_free_range(unsigned long pfn,
+-				       unsigned long nr_pages)
+-{
+-	struct page *page;
+-	unsigned long i;
+-
+-	if (!nr_pages)
+-		return;
+-
+-	page = pfn_to_page(pfn);
+-
+-	/* Free a large naturally-aligned chunk if possible */
+-	if (nr_pages == pageblock_nr_pages &&
+-	    (pfn & (pageblock_nr_pages - 1)) == 0) {
+-		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-		__free_pages_core(page, pageblock_order);
+-		return;
 -	}
-+	if (dev->driver)
-+		device_driver_detach(dev);
- 	return bus_rescan_devices_helper(dev, NULL);
- }
- EXPORT_SYMBOL_GPL(device_reprobe);
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 169412ee4ae8..76c40fe69463 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -864,6 +864,60 @@ void device_initial_probe(struct device *dev)
- 	__device_attach(dev, true);
+-
+-	for (i = 0; i < nr_pages; i++, page++, pfn++) {
+-		if ((pfn & (pageblock_nr_pages - 1)) == 0)
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-		__free_pages_core(page, 0);
+-	}
+-}
+-
+ /* Completion tracking for deferred_init_memmap() threads */
+ static atomic_t pgdat_init_n_undone __initdata;
+ static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
+@@ -1518,48 +1492,89 @@ static inline void __init pgdat_init_report_one_done(void)
  }
  
-+/*
-+ * __device_driver_lock - acquire locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
+ /*
+- * Returns true if page needs to be initialized or freed to buddy allocator.
++ * Returns count if page range needs to be initialized or freed
+  *
+- * First we check if pfn is valid on architectures where it is possible to have
+- * holes within pageblock_nr_pages. On systems where it is not possible, this
+- * function is optimized out.
++ * First we check if the contiguous pfns are valid on architectures where it
++ * is possible to have holes within pageblock_nr_pages. On systems where it
++ * is not possible, this function is optimized out.
 + *
-+ * This function will take the required locks for manipulating dev->drv.
-+ * Normally this will just be the @dev lock, but when called for a USB
-+ * interface, @parent lock will be held as well.
-+ */
-+static void __device_driver_lock(struct device *dev, struct device *parent)
-+{
-+	if (parent && dev->bus->need_parent_lock)
-+		device_lock(parent);
-+	device_lock(dev);
-+}
-+
-+/*
-+ * __device_driver_lock - release locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
-+ *
-+ * This function will release the required locks for manipulating dev->drv.
-+ * Normally this will just be the the @dev lock, but when called for a
-+ * USB interface, @parent lock will be released as well.
-+ */
-+static void __device_driver_unlock(struct device *dev, struct device *parent)
-+{
-+	device_unlock(dev);
-+	if (parent && dev->bus->need_parent_lock)
-+		device_unlock(parent);
-+}
-+
-+/**
-+ * device_driver_attach - attach a specific driver to a specific device
-+ * @drv: Driver to attach
-+ * @dev: Device to attach it to
-+ *
-+ * Manually attach driver to a device. Will acquire both @dev lock and
-+ * @dev->parent lock if needed.
-+ */
-+int device_driver_attach(struct device_driver *drv, struct device *dev)
-+{
-+	int ret = 0;
-+
-+	__device_driver_lock(dev, dev->parent);
-+
-+	if (!dev->driver)
-+		ret = driver_probe_device(drv, dev);
-+
-+	__device_driver_unlock(dev, dev->parent);
-+
-+	return ret;
-+}
-+
- static int __driver_attach(struct device *dev, void *data)
++ * Then, we check if a current large page is valid by only checking the
++ * validity of the head pfn.
+  *
+- * Then, we check if a current large page is valid by only checking the validity
+- * of the head pfn.
+  */
+-static inline bool __init deferred_pfn_valid(unsigned long pfn)
++static unsigned long __next_pfn_valid_range(unsigned long *pfn,
++					    unsigned long *i,
++					    unsigned long end_pfn)
  {
- 	struct device_driver *drv = data;
-@@ -891,14 +945,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		return ret;
- 	} /* ret > 0 means positive match */
- 
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_lock(dev->parent);
--	device_lock(dev);
--	if (!dev->driver)
--		driver_probe_device(drv, dev);
--	device_unlock(dev);
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_unlock(dev->parent);
-+	device_driver_attach(drv, dev);
- 
- 	return 0;
- }
-@@ -932,15 +979,11 @@ static void __device_release_driver(struct device *dev, struct device *parent)
- 			async_synchronize_full();
- 
- 		while (device_links_busy(dev)) {
--			device_unlock(dev);
--			if (parent)
--				device_unlock(parent);
-+			__device_driver_unlock(dev, parent);
- 
- 			device_links_unbind_consumers(dev);
--			if (parent)
--				device_lock(parent);
- 
--			device_lock(dev);
-+			__device_driver_lock(dev, parent);
- 			/*
- 			 * A concurrent invocation of the same function might
- 			 * have released the driver successfully while this one
-@@ -993,16 +1036,12 @@ void device_release_driver_internal(struct device *dev,
- 				    struct device_driver *drv,
- 				    struct device *parent)
- {
--	if (parent && dev->bus->need_parent_lock)
--		device_lock(parent);
-+	__device_driver_lock(dev, parent);
- 
--	device_lock(dev);
- 	if (!drv || drv == dev->driver)
- 		__device_release_driver(dev, parent);
- 
--	device_unlock(dev);
--	if (parent && dev->bus->need_parent_lock)
--		device_unlock(parent);
-+	__device_driver_unlock(dev, parent);
- }
- 
- /**
-@@ -1027,6 +1066,18 @@ void device_release_driver(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(device_release_driver);
- 
-+/**
-+ * device_driver_detach - detach driver from a specific device
-+ * @dev: device to detach driver from
-+ *
-+ * Detach driver from device. Will acquire both @dev lock and @dev->parent
-+ * lock if needed.
-+ */
-+void device_driver_detach(struct device *dev)
-+{
-+	device_release_driver_internal(dev, NULL, dev->parent);
-+}
+-	if (!pfn_valid_within(pfn))
+-		return false;
+-	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
+-		return false;
+-	return true;
++	unsigned long start_pfn = *i;
 +
- /**
-  * driver_detach - detach driver from all devices it controls.
-  * @drv: driver.
++	while (start_pfn < end_pfn) {
++		unsigned long t = ALIGN(start_pfn + 1, pageblock_nr_pages);
++		unsigned long pageblock_pfn = min(t, end_pfn);
++		unsigned long count = 0;
++
++#ifndef CONFIG_HOLES_IN_ZONE
++		if (pfn_valid(start_pfn))
++			count = pageblock_pfn - start_pfn;
++		start_pfn = pageblock_pfn;
++#else
++		while (start_pfn < pageblock_pfn) {
++			if (pfn_valid(start_pfn++)) {
++				count++;
++				continue;
++			}
++
++			if (!count)
++				continue;
++
++			/*
++			 * The last PFN was invalid, report the block of
++			 * PFNs we currently have available and skip over
++			 * the invalid one.
++			 */
++			*pfn = start_pfn - (count + 1);
++			*i = start_pfn;
++			return count;
++		}
++#endif
++		if (!count)
++			continue;
++
++		*pfn = start_pfn - count;
++		*i = start_pfn;
++		return count;
++	}
++
++	return 0;
+ }
+ 
++#define for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) \
++	for (i = (start_pfn),						     \
++	     count = __next_pfn_valid_range(&pfn, &i, (end_pfn));	     \
++	     count;							     \
++	     count = __next_pfn_valid_range(&pfn, &i, (end_pfn)))
++
+ /*
+  * Free pages to buddy allocator. Try to free aligned pages in
+  * pageblock_nr_pages sizes.
+  */
+-static void __init deferred_free_pages(unsigned long pfn,
++static void __init deferred_free_pages(unsigned long start_pfn,
+ 				       unsigned long end_pfn)
+ {
+-	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+-	unsigned long nr_free = 0;
+-
+-	for (; pfn < end_pfn; pfn++) {
+-		if (!deferred_pfn_valid(pfn)) {
+-			deferred_free_range(pfn - nr_free, nr_free);
+-			nr_free = 0;
+-		} else if (!(pfn & nr_pgmask)) {
+-			deferred_free_range(pfn - nr_free, nr_free);
+-			nr_free = 1;
+-			touch_nmi_watchdog();
++	unsigned long i, pfn, count;
++
++	for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) {
++		struct page *page = pfn_to_page(pfn);
++
++		if (count == pageblock_nr_pages) {
++			__free_pages_core(page, pageblock_order);
+ 		} else {
+-			nr_free++;
++			while (count--)
++				__free_pages_core(page++, 0);
+ 		}
++
++		touch_nmi_watchdog();
+ 	}
+-	/* Free the last block of pages to allocator */
+-	deferred_free_range(pfn - nr_free, nr_free);
+ }
+ 
+ /*
+@@ -1568,29 +1583,22 @@ static void __init deferred_free_pages(unsigned long pfn,
+  * Return number of pages initialized.
+  */
+ static unsigned long  __init deferred_init_pages(struct zone *zone,
+-						 unsigned long pfn,
++						 unsigned long start_pfn,
+ 						 unsigned long end_pfn)
+ {
+-	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+ 	int nid = zone_to_nid(zone);
++	unsigned long i, pfn, count;
+ 	unsigned long nr_pages = 0;
+ 	int zid = zone_idx(zone);
+-	struct page *page = NULL;
+ 
+-	for (; pfn < end_pfn; pfn++) {
+-		if (!deferred_pfn_valid(pfn)) {
+-			page = NULL;
+-			continue;
+-		} else if (!page || !(pfn & nr_pgmask)) {
+-			page = pfn_to_page(pfn);
+-			touch_nmi_watchdog();
+-		} else {
+-			page++;
+-		}
+-		__init_single_page(page, pfn, zid, nid);
+-		nr_pages++;
++	for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) {
++		nr_pages += count;
++		__init_pageblock(pfn, count, zid, nid, NULL, false);
++
++		touch_nmi_watchdog();
+ 	}
+-	return (nr_pages);
++
++	return nr_pages;
+ }
+ 
+ /*
 
 _______________________________________________
 Linux-nvdimm mailing list
