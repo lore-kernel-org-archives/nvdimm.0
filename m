@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 72FAB21193064
- for <linux-nvdimm@lists.01.org>; Sat, 24 Nov 2018 10:59:32 -0800 (PST)
-Subject: [PATCH 2/2] libnvdimm,
- pfn: Pad pfn namespaces relative to other regions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 24 Nov 2018 10:47:04 -0800
-Message-ID: <154308522458.237140.16550557898744466932.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D216121195BFF
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:33:42 -0800 (PST)
+Subject: [PATCH v5 03/12] ndctl: add disable security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 30 Nov 2018 14:33:41 -0700
+Message-ID: <154361362183.6129.9007856561563545828.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,196 +22,227 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit cfe30b872058 "libnvdimm, pmem: adjust for section collisions with
-'System RAM'" enabled Linux to workaround occasions where platform
-firmware arranges for "System RAM" and "Persistent Memory" to collide
-within a single section boundary. Unfortunately, as reported in this
-issue [1], platform firmware can inflict the same collision between
-persistent memory regions.
+Add support for disable security to libndctl and also command line option
+of "disable-passphrase" for ndctl. This provides a way to disable security
+on the nvdimm.
 
-The approach of interrogating iomem_resource does not work in this
-case because platform firmware may merge multiple regions into a single
-iomem_resource range. Instead provide a method to interrogate regions
-that share the same parent bus.
-
-This is a stop-gap until the core-MM can grow support for hotplug on
-sub-section boundaries.
-
-[1]: https://github.com/pmem/ndctl/issues/76
-
-Fixes: cfe30b872058 ("libnvdimm, pmem: adjust for section collisions with...")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/nvdimm/nd-core.h     |    2 +
- drivers/nvdimm/pfn_devs.c    |   64 ++++++++++++++++++++++++------------------
- drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++
- 3 files changed, 80 insertions(+), 27 deletions(-)
+ Documentation/ndctl/Makefile.am                  |    3 ++
+ Documentation/ndctl/ndctl-disable-passphrase.txt |   27 +++++++++++++++++++++
+ builtin.h                                        |    1 +
+ ndctl/dimm.c                                     |   22 +++++++++++++++++
+ ndctl/lib/dimm.c                                 |    9 +++++++
+ ndctl/lib/keys.c                                 |   28 ++++++++++++++++++++++
+ ndctl/lib/libndctl.sym                           |    2 ++
+ ndctl/libndctl.h                                 |    7 ++++++
+ ndctl/ndctl.c                                    |    1 +
+ 9 files changed, 99 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 182258f64417..d0c621b32f72 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -111,6 +111,8 @@ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
- 		struct nd_mapping *nd_mapping, resource_size_t *overlap);
- resource_size_t nd_blk_available_dpa(struct nd_region *nd_region);
- resource_size_t nd_region_available_dpa(struct nd_region *nd_region);
-+int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
-+		resource_size_t size);
- resource_size_t nvdimm_allocated_dpa(struct nvdimm_drvdata *ndd,
- 		struct nd_label_id *label_id);
- int alias_dpa_busy(struct device *dev, void *data);
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 24c64090169e..6f22272e8d80 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -649,14 +649,47 @@ static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
- 			ALIGN_DOWN(phys, nd_pfn->align));
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 7ad6666b..31570a77 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -49,7 +49,8 @@ man1_MANS = \
+ 	ndctl-list.1 \
+ 	ndctl-monitor.1 \
+ 	ndctl-enable-passphrase.1 \
+-	ndctl-update-passphrase.1
++	ndctl-update-passphrase.1 \
++	ndctl-disable-passphrase.1
+ 
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
+new file mode 100644
+index 00000000..e921eb23
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
+@@ -0,0 +1,27 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-disable-passphrase(1)
++===========================
++
++NAME
++----
++ndctl-disable-passphrase - disabling passphrase for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl disable-passphrase' <dimm> [<options>]
++
++DESCRIPTION
++-----------
++Provide a generic interface for disabling passphrase for NVDIMM.
++Ndctl will search the user key ring for the associated DIMM. If no key is
++found, it will attempt to load the key blob from the expected location. Ndctl
++will remove the key and the key blob once passphrase is disabled.
++
++OPTIONS
++-------
++<dimm>::
++include::xable-dimm-options.txt[]
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index ed018d96..8d8f61e2 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -50,4 +50,5 @@ int cmd_update_firmware(int argc, const char **argv, void *ctx);
+ int cmd_inject_smart(int argc, const char **argv, void *ctx);
+ int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
+ int cmd_passphrase_update(int argc, const char **argv, void *ctx);
++int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 581be497..edb4b9d7 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -861,6 +861,18 @@ static int action_key_update(struct ndctl_dimm *dimm,
+ 	return ndctl_dimm_update_key(dimm, param.master_key);
  }
  
-+/*
-+ * Check if pmem collides with 'System RAM', or other regions when
-+ * section aligned.  Trim it accordingly.
-+ */
-+static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
++static int action_passphrase_disable(struct ndctl_dimm *dimm,
++		struct action_context *actx)
 +{
-+	struct nd_namespace_common *ndns = nd_pfn->ndns;
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
-+	const resource_size_t start = nsio->res.start;
-+	const resource_size_t end = start + resource_size(&nsio->res);
-+	resource_size_t adjust, size;
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
 +
-+	*start_pad = 0;
-+	*end_trunc = 0;
-+
-+	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
-+	size = resource_size(&nsio->res) + adjust;
-+	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
-+				IORES_DESC_NONE) == REGION_MIXED
-+			|| nd_region_conflict(nd_region, start - adjust, size))
-+		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
-+
-+	/* Now check that end of the range does not collide. */
-+	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
-+	size = resource_size(&nsio->res) + adjust;
-+	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
-+				IORES_DESC_NONE) == REGION_MIXED
-+			|| !IS_ALIGNED(end, nd_pfn->align)
-+			|| nd_region_conflict(nd_region, start, size + adjust))
-+		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
++	return ndctl_dimm_disable_key(dimm);
 +}
 +
- static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
  {
- 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
- 	struct nd_namespace_common *ndns = nd_pfn->ndns;
--	u32 start_pad = 0, end_trunc = 0;
-+	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	resource_size_t start, size;
--	struct nd_namespace_io *nsio;
- 	struct nd_region *nd_region;
-+	u32 start_pad, end_trunc;
- 	struct nd_pfn_sb *pfn_sb;
- 	unsigned long npfns;
- 	phys_addr_t offset;
-@@ -688,30 +721,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 
- 	memset(pfn_sb, 0, sizeof(*pfn_sb));
- 
--	/*
--	 * Check if pmem collides with 'System RAM' when section aligned and
--	 * trim it accordingly
--	 */
--	nsio = to_nd_namespace_io(&ndns->dev);
--	start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
--	size = resource_size(&nsio->res);
--	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
--				IORES_DESC_NONE) == REGION_MIXED) {
--		start = nsio->res.start;
--		start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
--	}
--
--	start = nsio->res.start;
--	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
--	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
--				IORES_DESC_NONE) == REGION_MIXED
--			|| !IS_ALIGNED(start + resource_size(&nsio->res),
--				nd_pfn->align)) {
--		size = resource_size(&nsio->res);
--		end_trunc = start + size - phys_pmem_align_down(nd_pfn,
--				start + size);
--	}
--
-+	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
- 	if (start_pad + end_trunc)
- 		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
- 				dev_name(&ndns->dev), start_pad + end_trunc);
-@@ -722,7 +732,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	 * implementation will limit the pfns advertised through
- 	 * ->direct_access() to those that are included in the memmap.
- 	 */
--	start += start_pad;
-+	start = nsio->res.start + start_pad;
- 	size = resource_size(&nsio->res);
- 	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - SZ_8K)
- 			/ PAGE_SIZE);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 174a418cb171..e7377f1028ef 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1184,6 +1184,47 @@ int nvdimm_has_cache(struct nd_region *nd_region)
+@@ -1245,3 +1257,13 @@ int cmd_passphrase_setup(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
  }
- EXPORT_SYMBOL_GPL(nvdimm_has_cache);
- 
-+struct conflict_context {
-+	struct nd_region *nd_region;
-+	resource_size_t start, size;
-+};
 +
-+static int region_conflict(struct device *dev, void *data)
++int cmd_disable_passphrase(int argc, const char **argv, void *ctx)
 +{
-+	struct nd_region *nd_region;
-+	struct conflict_context *ctx = data;
-+	resource_size_t res_end, region_end, region_start;
++	int count = dimm_action(argc, argv, ctx, action_passphrase_disable, base_options,
++			"ndctl disable-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
 +
-+	if (!is_memory(dev))
-+		return 0;
++	fprintf(stderr, "passphrase disabled %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 2da0d01a..9cc22016 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -659,3 +659,12 @@ NDCTL_EXPORT int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ 	sprintf(buf, "update %ld %ld\n", ckey, nkey);
+ 	return write_security(dimm, buf);
+ }
 +
-+	nd_region = to_nd_region(dev);
-+	if (nd_region == ctx->nd_region)
-+		return 0;
++NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
++		long key)
++{
++	char buf[SYSFS_ATTR_SIZE];
 +
-+	res_end = ctx->start + ctx->size;
-+	region_start = nd_region->ndr_start;
-+	region_end = region_start + nd_region->ndr_size;
-+	if (ctx->start >= region_start && ctx->start < region_end)
-+		return -EBUSY;
-+	if (res_end > region_start && res_end <= region_end)
-+		return -EBUSY;
++	sprintf(buf, "disable %ld\n", key);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+index b47d66f3..6df382f2 100644
+--- a/ndctl/lib/keys.c
++++ b/ndctl/lib/keys.c
+@@ -382,3 +382,31 @@ NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+ 
+ 	return 0;
+ }
++
++NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	key_serial_t key;
++	int rc;
++
++	key = dimm_check_key(dimm, false);
++	if (key < 0) {
++		key = dimm_load_key(dimm, false);
++		if (key < 0) {
++			err(ctx, "Unable to load key\n");
++			return -ENOKEY;
++		}
++	}
++
++	rc = ndctl_dimm_disable_passphrase(dimm, key);
++	if (rc < 0) {
++		err(ctx, "Failed to disable security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++		return rc;
++	}
++
++	rc = dimm_remove_key(dimm, false);
++	if (rc < 0)
++		err(ctx, "Unable to cleanup key.\n");
 +	return 0;
 +}
-+
-+int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
-+		resource_size_t size)
-+{
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
-+	struct conflict_context ctx = {
-+		.nd_region = nd_region,
-+		.start = start,
-+		.size = size,
-+	};
-+
-+	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
-+}
-+
- void __exit nd_region_devs_exit(void)
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index a790b1ea..90038e75 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -393,4 +393,6 @@ global:
+ 	ndctl_dimm_enable_key;
+ 	ndctl_dimm_update_key;
+ 	ndctl_dimm_update_passphrase;
++	ndctl_dimm_disable_passphrase;
++	ndctl_dimm_disable_key;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index f74dc875..d2737c9b 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -702,10 +702,12 @@ int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
+ bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ 		long ckey, long nkey);
++int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ 
+ #ifdef ENABLE_KEYUTILS
+ int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
+ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
++int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
+ #else
+ static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
+ 		const char *master)
+@@ -718,6 +720,11 @@ static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
  {
- 	ida_destroy(&region_ida);
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ 
+ #ifdef __cplusplus
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 4336c94c..1e82ded0 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
+ 	{ "start-scrub", cmd_start_scrub },
+ 	{ "enable-passphrase", cmd_passphrase_setup },
+ 	{ "update-passphrase", cmd_passphrase_update },
++	{ "disable-passphrase", cmd_disable_passphrase },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
