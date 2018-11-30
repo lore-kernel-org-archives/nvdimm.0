@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6AF0621193064
- for <linux-nvdimm@lists.01.org>; Sat, 24 Nov 2018 10:59:27 -0800 (PST)
-Subject: [PATCH 1/2] tools/testing/nvdimm: Align test resources to 128M
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 24 Nov 2018 10:46:59 -0800
-Message-ID: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 64757211963E1
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:34:09 -0800 (PST)
+Subject: [PATCH v5 08/12] ndctl: add overwrite operation support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 30 Nov 2018 14:34:08 -0700
+Message-ID: <154361364878.6129.8421047191424581454.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
+References: <154361315118.6129.3346352930852675435.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,126 +22,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libnvdimm growing new restrictions to detect section
-conflicts between persistent memory regions, enable nfit_test to
-allocate aligned resources. Use a gen_pool to allocate nfit_test's fake
-resources in a separate address space from the virtual translation of
-the same.
+Add support for overwrite to libndctl. The operation will be triggered
+by the sanitize-dimm command with -o switch. This will initiate the request
+to wipe the entire nvdimm. Success return of the command only indicate
+overwrite has started and does not indicate completion of overwrite.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
+ Documentation/ndctl/ndctl-sanitize-dimm.txt |    4 ++++
+ ndctl/dimm.c                                |   13 +++++++++++--
+ ndctl/lib/dimm.c                            |    8 ++++++++
+ ndctl/lib/keys.c                            |    6 ++++++
+ ndctl/lib/libndctl.sym                      |    2 ++
+ ndctl/libndctl.h                            |    7 +++++++
+ 6 files changed, 38 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 01ec04bf91b5..ca4e61c864d5 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -15,6 +15,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/workqueue.h>
- #include <linux/libnvdimm.h>
-+#include <linux/genalloc.h>
- #include <linux/vmalloc.h>
- #include <linux/device.h>
- #include <linux/module.h>
-@@ -215,6 +216,8 @@ struct nfit_test {
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+index a6802d30..beb4b2f9 100644
+--- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -29,4 +29,8 @@ include::xable-dimm-options.txt[]
+ 	Replaces encryption keys and securely erases the data. This does not
+ 	change label data. This is the default sanitize method.
  
- static struct workqueue_struct *nfit_wq;
- 
-+static struct gen_pool *nfit_pool;
++-o::
++--ovewrite::
++	Wipe the entire DIMM, including label data. Can take significant time.
 +
- static struct nfit_test *to_nfit_test(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -1132,6 +1135,9 @@ static void release_nfit_res(void *data)
- 	list_del(&nfit_res->list);
- 	spin_unlock(&nfit_test_lock);
- 
-+	if (resource_size(&nfit_res->res) >= DIMM_SIZE)
-+		gen_pool_free(nfit_pool, nfit_res->res.start,
-+				resource_size(&nfit_res->res));
- 	vfree(nfit_res->buf);
- 	kfree(nfit_res);
- }
-@@ -1144,7 +1150,7 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
- 			GFP_KERNEL);
- 	int rc;
- 
--	if (!buf || !nfit_res)
-+	if (!buf || !nfit_res || !*dma)
- 		goto err;
- 	rc = devm_add_action(dev, release_nfit_res, nfit_res);
- 	if (rc)
-@@ -1164,6 +1170,8 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
- 
- 	return nfit_res->buf;
-  err:
-+	if (*dma && size >= DIMM_SIZE)
-+		gen_pool_free(nfit_pool, *dma, size);
- 	if (buf)
- 		vfree(buf);
- 	kfree(nfit_res);
-@@ -1172,9 +1180,16 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
- 
- static void *test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma)
- {
-+	struct genpool_data_align data = {
-+		.align = SZ_128M,
-+	};
- 	void *buf = vmalloc(size);
- 
--	*dma = (unsigned long) buf;
-+	if (size >= DIMM_SIZE)
-+		*dma = gen_pool_alloc_algo(nfit_pool, size,
-+				gen_pool_first_fit_align, &data);
-+	else
-+		*dma = (unsigned long) buf;
- 	return __test_alloc(t, size, dma, buf);
- }
- 
-@@ -2839,6 +2854,18 @@ static __init int nfit_test_init(void)
- 		goto err_register;
+ include::../copyright.txt[]
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index ae674f78..febda71a 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -47,6 +47,7 @@ static struct parameters {
+ 	const char *labelversion;
+ 	const char *master_key;
+ 	bool crypto_erase;
++	bool overwrite;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -907,7 +908,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 	 * Setting crypto erase to be default. The other method will be
+ 	 * overwrite.
+ 	 */
+-	if (!param.crypto_erase) {
++	if (!param.crypto_erase && !param.overwrite) {
+ 		param.crypto_erase = true;
+ 		printf("No santize method passed in, default to crypto-erase\n");
+ 	}
+@@ -918,6 +919,12 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 			return rc;
  	}
  
-+	nfit_pool = gen_pool_create(ilog2(SZ_4M), NUMA_NO_NODE);
-+	if (!nfit_pool) {
-+		rc = -ENOMEM;
-+		goto err_register;
++	if (param.overwrite) {
++		rc = ndctl_dimm_overwrite_key(dimm);
++		if (rc < 0)
++			return rc;
 +	}
 +
-+	if (gen_pool_add(nfit_pool, VMALLOC_START,
-+				VMALLOC_END + 1 - VMALLOC_START, NUMA_NO_NODE)) {
-+		rc = -ENOMEM;
-+		goto err_register;
-+	}
-+
- 	for (i = 0; i < NUM_NFITS; i++) {
- 		struct nfit_test *nfit_test;
- 		struct platform_device *pdev;
-@@ -2894,6 +2921,9 @@ static __init int nfit_test_init(void)
  	return 0;
+ }
  
-  err_register:
-+	if (nfit_pool)
-+		gen_pool_destroy(nfit_pool);
-+
- 	destroy_workqueue(nfit_wq);
- 	for (i = 0; i < NUM_NFITS; i++)
- 		if (instances[i])
-@@ -2917,6 +2947,8 @@ static __exit void nfit_test_exit(void)
- 	platform_driver_unregister(&nfit_test_driver);
- 	nfit_test_teardown();
+@@ -1016,7 +1023,9 @@ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
  
-+	gen_pool_destroy(nfit_pool);
+ #define SANITIZE_OPTIONS() \
+ OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
+-		"crypto erase a dimm")
++		"crypto erase a dimm"), \
++OPT_BOOLEAN('o', "overwrite", &param.overwrite, \
++		"overwrite a dimm")
+ 
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 6da29c1e..2dff80f0 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -681,3 +681,11 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
+ 	sprintf(buf, "erase %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
 +
- 	for (i = 0; i < NUM_NFITS; i++)
- 		put_device(&instances[i]->pdev.dev);
- 	class_destroy(nfit_test_dimm);
++NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
++{
++	char buf[SYSFS_ATTR_SIZE];
++
++	sprintf(buf, "overwrite %ld\n", key);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+index 1ebb008b..903fb408 100644
+--- a/ndctl/lib/keys.c
++++ b/ndctl/lib/keys.c
+@@ -423,3 +423,9 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
+ 	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
+ 			"crypto erase");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_overwrite,
++			"overwrite");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 0e3aa5d9..0fedae1a 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -398,4 +398,6 @@ global:
+ 	ndctl_dimm_freeze_security;
+ 	ndctl_dimm_secure_erase;
+ 	ndctl_dimm_secure_erase_key;
++	ndctl_dimm_overwrite;
++	ndctl_dimm_overwrite_key;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 374b19f7..24866ef3 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -705,12 +705,14 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
+ 
+ #ifdef ENABLE_KEYUTILS
+ int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
+ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
+ int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
+ int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm);
++int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm);
+ #else
+ static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
+ 		const char *master)
+@@ -733,6 +735,11 @@ static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ 
+ #ifdef __cplusplus
 
 _______________________________________________
 Linux-nvdimm mailing list
