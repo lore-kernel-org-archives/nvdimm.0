@@ -1,116 +1,329 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [RFC PATCH 1/3] dm: enable dax_operations for dm-snapshot
-Date: Tue, 20 Nov 2018 18:20:35 +0800
-Message-Id: <20181120102037.4536-2-yehs2007@zoho.com>
-In-Reply-To: <20181120102037.4536-1-yehs2007@zoho.com>
-References: <20181120102037.4536-1-yehs2007@zoho.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org, agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, dan.j.williams@intel.com, willy@infradead.org, zwisler@kernel.org, jack@suse.cz, dave.jiang@intel.com, vishal.l.verma@intel.com
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, chengnt@lenovo.com, Huaisheng Ye <yehs1@lenovo.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 10C552119623D
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:14 -0800 (PST)
+Subject: [mm PATCH v6 5/7] mm: Move hot-plug specific memory init into
+ separate functions and optimize
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 13:53:13 -0800
+Message-ID: <154361479366.7497.13916678539146224699.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+Combine the bits in memmap_init_zone and memmap_init_zone_device that are
+related to hotplug into a single function called __memmap_init_hotplug.
 
-Reconstruct origin_dax_direct_access and expand functions
-origin_dax_copy_to/from_iter for DAX operations of dm-snapshot.
+Also take the opportunity to integrate __init_single_page's functionality
+into this function. In doing so we can get rid of some of the redundancy
+such as the LRU pointers versus the pgmap.
 
-Here is the call trace of origin_dax_copy_to_iter,
-origin_dax_copy_to_iter will callin dm-linear (-real) for further
-dax_operation.
-
-[518597.924019] Call Trace:
-[518597.927320]  dump_stack+0x65/0x7e
-[518597.931592]  origin_dax_copy_to_iter+0x51/0x78 [dm_snapshot]
-[518597.938494]  dm_dax_copy_to_iter+0x86/0xc5 [dm_mod]
-[518597.944519]  dax_copy_to_iter+0x27/0x29
-[518597.949371]  dax_iomap_actor+0x264/0x326
-[518597.954308]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
-[518597.962159]  iomap_apply+0xc7/0x128
-[518597.966609]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
-[518597.974447]  dax_iomap_rw+0x66/0xa8
-[518597.978893]  ? trace_event_raw_event_dax_pmd_load_hole_class+0xd0/0xd0
-[518597.986741]  ext2_file_read_iter+0x4f/0x83 [ext2]
-[518597.992552]  __vfs_read+0x130/0x168
-[518597.997001]  vfs_read+0x92/0x146
-[518598.001155]  ksys_read+0x4f/0xa5
-[518598.005308]  __x64_sys_read+0x16/0x18
-[518598.009942]  do_syscall_64+0x88/0x15f
-[518598.014575]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- drivers/md/dm-snap.c | 44 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 42 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |  208 ++++++++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 135 insertions(+), 73 deletions(-)
 
-diff --git a/drivers/md/dm-snap.c b/drivers/md/dm-snap.c
-index ae4b33d..75738b3 100644
---- a/drivers/md/dm-snap.c
-+++ b/drivers/md/dm-snap.c
-@@ -19,6 +19,7 @@
- #include <linux/vmalloc.h>
- #include <linux/log2.h>
- #include <linux/dm-kcopyd.h>
-+#include <linux/dax.h>
- 
- #include "dm.h"
- 
-@@ -2319,8 +2320,45 @@ static int origin_map(struct dm_target *ti, struct bio *bio)
- static long origin_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
--	DMWARN("device does not support dax.");
--	return -EIO;
-+	long ret = 0;
-+	struct dm_origin *o = ti->private;
-+	struct block_device *bdev = o->dev->bdev;
-+	struct dax_device *dax_dev = o->dev->dax_dev;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+
-+	ret = bdev_dax_pgoff(bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
-+	if (ret)
-+		return ret;
-+
-+	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
-+}
-+
-+static size_t origin_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct dm_origin *o = ti->private;
-+	struct block_device *bdev = o->dev->bdev;
-+	struct dax_device *dax_dev = o->dev->dax_dev;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+
-+	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+
-+	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
-+}
-+
-+static size_t origin_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
-+		void *addr, size_t bytes, struct iov_iter *i)
-+{
-+	struct dm_origin *o = ti->private;
-+	struct block_device *bdev = o->dev->bdev;
-+	struct dax_device *dax_dev = o->dev->dax_dev;
-+	sector_t sector = pgoff * PAGE_SECTORS;
-+
-+	if (bdev_dax_pgoff(bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
-+		return 0;
-+
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index fbd9bd2bc262..416bbb6f05ab 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1181,8 +1181,9 @@ static void free_one_page(struct zone *zone,
+ 	spin_unlock(&zone->lock);
  }
  
- /*
-@@ -2383,6 +2421,8 @@ static int origin_iterate_devices(struct dm_target *ti,
- 	.status  = origin_status,
- 	.iterate_devices = origin_iterate_devices,
- 	.direct_access = origin_dax_direct_access,
-+	.dax_copy_to_iter = origin_dax_copy_to_iter,
-+	.dax_copy_from_iter = origin_dax_copy_from_iter,
- };
+-static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+-				unsigned long zone, int nid)
++static void __meminit __init_struct_page_nolru(struct page *page,
++					       unsigned long pfn,
++					       unsigned long zone, int nid)
+ {
+ 	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+@@ -1191,7 +1192,6 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 	page_cpupid_reset_last(page);
+ 	page_kasan_tag_reset(page);
  
- static struct target_type snapshot_target = {
--- 
-1.8.3.1
+-	INIT_LIST_HEAD(&page->lru);
+ #ifdef WANT_PAGE_VIRTUAL
+ 	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
+ 	if (!is_highmem_idx(zone))
+@@ -1199,6 +1199,80 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ #endif
+ }
+ 
++static void __meminit __init_single_page(struct page *page, unsigned long pfn,
++				unsigned long zone, int nid)
++{
++	__init_struct_page_nolru(page, pfn, zone, nid);
++	INIT_LIST_HEAD(&page->lru);
++}
++
++static void __meminit __init_pageblock(unsigned long start_pfn,
++				       unsigned long nr_pages,
++				       unsigned long zone, int nid,
++				       struct dev_pagemap *pgmap)
++{
++	unsigned long nr_pgmask = pageblock_nr_pages - 1;
++	struct page *start_page = pfn_to_page(start_pfn);
++	unsigned long pfn = start_pfn + nr_pages - 1;
++	struct page *page;
++
++	/*
++	 * Enforce the following requirements:
++	 * size > 0
++	 * size < pageblock_nr_pages
++	 * start_pfn -> pfn does not cross pageblock_nr_pages boundary
++	 */
++	VM_BUG_ON(((start_pfn ^ pfn) | (nr_pages - 1)) > nr_pgmask);
++
++	/*
++	 * Work from highest page to lowest, this way we will still be
++	 * warm in the cache when we call set_pageblock_migratetype
++	 * below.
++	 *
++	 * The loop is based around the page pointer as the main index
++	 * instead of the pfn because pfn is not used inside the loop if
++	 * the section number is not in page flags and WANT_PAGE_VIRTUAL
++	 * is not defined.
++	 */
++	for (page = start_page + nr_pages; page-- != start_page; pfn--) {
++		__init_struct_page_nolru(page, pfn, zone, nid);
++		/*
++		 * Mark page reserved as it will need to wait for onlining
++		 * phase for it to be fully associated with a zone.
++		 *
++		 * We can use the non-atomic __set_bit operation for setting
++		 * the flag as we are still initializing the pages.
++		 */
++		__SetPageReserved(page);
++		/*
++		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
++		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
++		 * page is ever freed or placed on a driver-private list.
++		 */
++		page->pgmap = pgmap;
++		if (!pgmap)
++			INIT_LIST_HEAD(&page->lru);
++	}
++
++	/*
++	 * Mark the block movable so that blocks are reserved for
++	 * movable at startup. This will force kernel allocations
++	 * to reserve their blocks rather than leaking throughout
++	 * the address space during boot when many long-lived
++	 * kernel allocations are made.
++	 *
++	 * bitmap is created for zone's valid pfn range. but memmap
++	 * can be created for invalid pages (for alignment)
++	 * check here not to call set_pageblock_migratetype() against
++	 * pfn out of zone.
++	 *
++	 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
++	 * because this is done early in sparse_add_one_section
++	 */
++	if (!(start_pfn & nr_pgmask))
++		set_pageblock_migratetype(start_page, MIGRATE_MOVABLE);
++}
++
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static void __meminit init_reserved_page(unsigned long pfn)
+ {
+@@ -5693,6 +5767,25 @@ overlap_memmap_init(unsigned long zone, unsigned long *pfn)
+ 	return false;
+ }
+ 
++static void __meminit __memmap_init_hotplug(unsigned long size, int nid,
++					    unsigned long zone,
++					    unsigned long start_pfn,
++					    struct dev_pagemap *pgmap)
++{
++	unsigned long pfn = start_pfn + size;
++
++	while (pfn != start_pfn) {
++		unsigned long stride = pfn;
++
++		pfn = max(ALIGN_DOWN(pfn - 1, pageblock_nr_pages), start_pfn);
++		stride -= pfn;
++
++		__init_pageblock(pfn, stride, zone, nid, pgmap);
++
++		cond_resched();
++	}
++}
++
+ /*
+  * Initially all pages are reserved - free ones are freed
+  * up by memblock_free_all() once the early boot process is
+@@ -5703,49 +5796,59 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		struct vmem_altmap *altmap)
+ {
+ 	unsigned long pfn, end_pfn = start_pfn + size;
+-	struct page *page;
+ 
+ 	if (highest_memmap_pfn < end_pfn - 1)
+ 		highest_memmap_pfn = end_pfn - 1;
+ 
++	if (context == MEMMAP_HOTPLUG) {
+ #ifdef CONFIG_ZONE_DEVICE
+-	/*
+-	 * Honor reservation requested by the driver for this ZONE_DEVICE
+-	 * memory. We limit the total number of pages to initialize to just
+-	 * those that might contain the memory mapping. We will defer the
+-	 * ZONE_DEVICE page initialization until after we have released
+-	 * the hotplug lock.
+-	 */
+-	if (zone == ZONE_DEVICE) {
+-		if (!altmap)
+-			return;
++		/*
++		 * Honor reservation requested by the driver for this
++		 * ZONE_DEVICE memory. We limit the total number of pages to
++		 * initialize to just those that might contain the memory
++		 * mapping. We will defer the ZONE_DEVICE page initialization
++		 * until after we have released the hotplug lock.
++		 */
++		if (zone == ZONE_DEVICE) {
++			if (!altmap)
++				return;
++
++			if (start_pfn == altmap->base_pfn)
++				start_pfn += altmap->reserve;
++			end_pfn = altmap->base_pfn +
++				  vmem_altmap_offset(altmap);
++		}
++#endif
++		/*
++		 * For these ZONE_DEVICE pages we don't need to record the
++		 * pgmap as they should represent only those pages used to
++		 * store the memory map. The actual ZONE_DEVICE pages will
++		 * be initialized later.
++		 */
++		__memmap_init_hotplug(end_pfn - start_pfn, nid, zone,
++				      start_pfn, NULL);
+ 
+-		if (start_pfn == altmap->base_pfn)
+-			start_pfn += altmap->reserve;
+-		end_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
++		return;
+ 	}
+-#endif
+ 
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++		struct page *page;
++
+ 		/*
+ 		 * There can be holes in boot-time mem_map[]s handed to this
+ 		 * function.  They do not exist on hotplugged memory.
+ 		 */
+-		if (context == MEMMAP_EARLY) {
+-			if (!early_pfn_valid(pfn))
+-				continue;
+-			if (!early_pfn_in_nid(pfn, nid))
+-				continue;
+-			if (overlap_memmap_init(zone, &pfn))
+-				continue;
+-			if (defer_init(nid, pfn, end_pfn))
+-				break;
+-		}
++		if (!early_pfn_valid(pfn))
++			continue;
++		if (!early_pfn_in_nid(pfn, nid))
++			continue;
++		if (overlap_memmap_init(zone, &pfn))
++			continue;
++		if (defer_init(nid, pfn, end_pfn))
++			break;
+ 
+ 		page = pfn_to_page(pfn);
+ 		__init_single_page(page, pfn, zone, nid);
+-		if (context == MEMMAP_HOTPLUG)
+-			__SetPageReserved(page);
+ 
+ 		/*
+ 		 * Mark the block movable so that blocks are reserved for
+@@ -5772,7 +5875,6 @@ void __ref memmap_init_zone_device(struct zone *zone,
+ 				   unsigned long size,
+ 				   struct dev_pagemap *pgmap)
+ {
+-	unsigned long pfn, end_pfn = start_pfn + size;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	unsigned long zone_idx = zone_idx(zone);
+ 	unsigned long start = jiffies;
+@@ -5788,53 +5890,13 @@ void __ref memmap_init_zone_device(struct zone *zone,
+ 	 */
+ 	if (pgmap->altmap_valid) {
+ 		struct vmem_altmap *altmap = &pgmap->altmap;
++		unsigned long end_pfn = start_pfn + size;
+ 
+ 		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
+ 		size = end_pfn - start_pfn;
+ 	}
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		__init_single_page(page, pfn, zone_idx, nid);
+-
+-		/*
+-		 * Mark page reserved as it will need to wait for onlining
+-		 * phase for it to be fully associated with a zone.
+-		 *
+-		 * We can use the non-atomic __set_bit operation for setting
+-		 * the flag as we are still initializing the pages.
+-		 */
+-		__SetPageReserved(page);
+-
+-		/*
+-		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
+-		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
+-		 * page is ever freed or placed on a driver-private list.
+-		 */
+-		page->pgmap = pgmap;
+-		page->hmm_data = 0;
+-
+-		/*
+-		 * Mark the block movable so that blocks are reserved for
+-		 * movable at startup. This will force kernel allocations
+-		 * to reserve their blocks rather than leaking throughout
+-		 * the address space during boot when many long-lived
+-		 * kernel allocations are made.
+-		 *
+-		 * bitmap is created for zone's valid pfn range. but memmap
+-		 * can be created for invalid pages (for alignment)
+-		 * check here not to call set_pageblock_migratetype() against
+-		 * pfn out of zone.
+-		 *
+-		 * Please note that MEMMAP_HOTPLUG path doesn't clear memmap
+-		 * because this is done early in sparse_add_one_section
+-		 */
+-		if (!(pfn & (pageblock_nr_pages - 1))) {
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-			cond_resched();
+-		}
+-	}
++	__memmap_init_hotplug(size, nid, zone_idx, start_pfn, pgmap);
+ 
+ 	pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
+ 		size, jiffies_to_msecs(jiffies - start));
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
