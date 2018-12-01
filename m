@@ -1,14 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from HSI-KBW-095-208-058-086.hsi5.kabel-badenwuerttemberg.de
- (HSI-KBW-095-208-058-086.hsi5.kabel-badenwuerttemberg.de [95.208.58.86])
- by ml01.01.org (Postfix) with ESMTP id EF1A1211935B7
- for <linux-nvdimm@lists.01.org>; Sun,  2 Dec 2018 01:12:53 -0800 (PST)
+Received: from [77.29.93.141] (unknown [77.29.93.141])
+ by ml01.01.org (Postfix) with ESMTP id 74A9321190721
+ for <linux-nvdimm@lists.01.org>; Sat,  1 Dec 2018 14:56:54 -0800 (PST)
+Message-ID: <003e01d489d1$05e9b464$2c663f99@aunhiwh>
 From: "Account Security" <linux-nvdimm@lists.01.org>
 Subject: Third party accessed to linux-nvdimm@lists.01.org.
-Date: 2 Dec 2018 09:58:52 +0000
-Message-ID: <002001d48a27$0288cce5$6d5dc083$@lists.01.org>
+Date: 1 Dec 2018 23:50:50 +0000
 MIME-Version: 1.0
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,7 +23,7 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 Hello!
 
-I'm is very good programmer, known in darkweb as geri00.
+I'm is very good programmer, known in darkweb as alvan85.
 I hacked this mailbox more than six months ago, 
 through it I infected your operating system with a virus (trojan) created by me and have been spying for you a very long time.
 
@@ -45,7 +43,7 @@ During your pastime and entertainment there, I took screenshot through the camer
 Oh my god! You are so funny and excited!
 
 I think that you do not want all your contacts to get these files, right?
-If you are of the same opinion, then I think that $234 is quite a fair price to destroy the dirt I created.
+If you are of the same opinion, then I think that $280 is quite a fair price to destroy the dirt I created.
 
 Send the above amount on my BTC wallet (bitcoin): 1JRCbCH9E3iLhSXPTqtkgfAsJNT2xD74C5
 As soon as the above amount is received, I guarantee that the data will be deleted, I do not need it.
