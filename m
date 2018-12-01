@@ -1,132 +1,81 @@
-From: Brendan Higgins <brendanhiggins@google.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [RFC v3 01/19] kunit: test: add KUnit test runner core
-Date: Fri, 30 Nov 2018 17:51:11 -0800
-Message-ID: <CAFd5g47t94RR78_sZ7Xr7ArDh+hJGYHNwmmG2HJb7AW+i=u3ew@mail.gmail.com>
+Date: Fri, 30 Nov 2018 18:08:36 -0800
+Message-ID: <CAFd5g45F0RViYDQyXRwyxVPAU=CO_Goqy3yHz=BbcMeAT7o6-g@mail.gmail.com>
 References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-2-brendanhiggins@google.com> <20181130031438.GQ4922@garbanzo.do-not-panic.com>
+ <20181128193636.254378-2-brendanhiggins@google.com>
+ <20181130032802.GG18410@garbanzo.do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181130031438.GQ4922@garbanzo.do-not-panic.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mcgrof@kernel.org
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, kieran.bingham@ideasonboard.com, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Sasha Levin <Alexander.Levin@microsoft.com>, levinsasha
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20181130032802.GG18410-dAjH6bxAqesAS62YNPtMr3dQhYtBYE6JAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Nov 29, 2018 at 7:14 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+On Thu, Nov 29, 2018 at 7:28 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 >
-> On Wed, Nov 28, 2018 at 11:36:18AM -0800, Brendan Higgins wrote:
-> > +#define module_test(module) \
-> > +             static int module_kunit_init##module(void) \
-> > +             { \
-> > +                     return kunit_run_tests(&module); \
-> > +             } \
-> > +             late_initcall(module_kunit_init##module)
->
-> Here in lies an assumption that suffices. I'm inclined to believe we
-> need new initcall level here so to ensure we *do* run after all the
-> respective kernels iniut calls. Otherwise we're left at the whims of
-> link order for kunit. For instance if a kunit test relies on frameworks
-> which are also late_initcall() we'd have complete incompatibility with
-> anything linked *after* kunit.
-
-Yep, I have some patches that address this, but I thought this is
-sufficient for the initial patchset (I figured that's the type of
-thing that people will have opinions about so best to get it out of
-the critical path). Do you want me to add those in the next revision?
-
->
-> > diff --git a/kunit/Kconfig b/kunit/Kconfig
-> > new file mode 100644
-> > index 0000000000000..49b44c4f6630a
-> > --- /dev/null
-> > +++ b/kunit/Kconfig
-> > @@ -0,0 +1,17 @@
-> > +#
-> > +# KUnit base configuration
-> > +#
+> > +static void kunit_run_case_internal(struct kunit *test,
+> > +                                 struct kunit_module *module,
+> > +                                 struct kunit_case *test_case)
+> > +{
+> > +     int ret;
 > > +
-> > +menu "KUnit support"
+> > +     if (module->init) {
+> > +             ret = module->init(test);
+> > +             if (ret) {
+> > +                     kunit_err(test, "failed to initialize: %d", ret);
+> > +                     kunit_set_success(test, false);
+> > +                     return;
+> > +             }
+> > +     }
 > > +
-> > +config KUNIT
-> > +     bool "Enable support for unit tests (KUnit)"
-> > +     depends on UML
+> > +     test_case->run_case(test);
+> > +}
 >
-> Consider using:
+> <-- snip -->
 >
-> if UML
->    ...
-> endif
->
-> That allows the depends to be done once.
-
-If you want to eliminate depends, wouldn't it be best to have KUNIT
-depend on whatever it needs, and then do `if KUNIT` below that? That
-seems cleaner over the long term. Anyway, Kees actually asked me to
-change it to the way it is now; I really don't care either way.
-
->
-> > +     help
-> > +       Enables support for kernel unit tests (KUnit), a lightweight unit
-> > +       testing and mocking framework for the Linux kernel. These tests are
-> > +       able to be run locally on a developer's workstation without a VM or
-> > +       special hardware.
->
->
-> Some mention of UML may be good here?
-
-Good point.
->
-> > For more information, please see
-> > +       Documentation/kunit/
+> > +static bool kunit_run_case(struct kunit *test,
+> > +                        struct kunit_module *module,
+> > +                        struct kunit_case *test_case)
+> > +{
+> > +     kunit_set_success(test, true);
 > > +
-> > +endmenu
+> > +     kunit_run_case_internal(test, module, test_case);
+> > +     kunit_run_case_cleanup(test, module, test_case);
+> > +
+> > +     return kunit_get_success(test);
+> > +}
 >
-> I'm a bit conflicted here. This currently depends on UML but yet you
-> noted on RFC v2 that your intention is to liberate kunit from UML and
-> ideally allow unit tests to depend only on userspace. I've addressed
-> tests using both selftests kernels drivers and also re-written kernel
-> APIs to userspace to test there. I think we may need to live with both.
+> So we are running the module->init() for each test case... is that
+> correct? Shouldn't the init run once? Also, typically init calls are
 
-I am not entirely opposed. The greater isolation we can achieve, the
-fewer dependencies, and barriers to setting up test fixtures the
-better. I think the best way to do that in most cases is allowing
-minimal test binaries to be built that have the absolute minimum
-amount of code necessary to test the desired property. That being
-said, integration tests are a thing and drawing a line between them
-and unit tests is not always possible, so supporting other
-architectures might be necessary.
+Yep, it's correct. `module->init()` should run once before every test
+case, reason being that the kunit_module serves as a test fixture in
+which each test cases should be run completely independently of every
+other. init and exit is supposed to allow code common to all test
+cases to run since it is so common to have dependencies needed for a
+test to be common to every test case.
 
->
-> Then for the UML stuff, I think if we *really* accept that UML will
-> always be a viable option we should probably consider now throwing these
-> things under drivers/platform/uml/. This follows the pattern of arch
-> specific drivers. Whether or not we end up with a complete userspace
-> component independent of UML may implicate having a shared component
-> somewhere else.
+Maybe it is confusing that I call it kunit_module? Maybe I should call
+it kunit_fixture or something?
 
-Fair enough. What specifically are you suggesting should go in
-`drivers/platform/uml`? Just the bits that are completely tied to UML
-or a concrete architecture?
+> pegged with __init so we free them later. You seem to have skipped the
+> init annotations. Why?
 
->
-> Likewise, I realize the goal is to *avoid* using a virtual machine for
-> these tests, but would it in any way make sense to share kunit to be
-> supported for other architectures to allow easier-to-write tests as
-> well?
+Like I said above, these aren't normal init functions. A
+kunit_module->init() function should run once before each test case
+and thus should reside in the same linker section as any other KUnit
+test code.
 
-You are not the first person to ask for this.
-
-For the vast majority of tests, I think we can (and consequently
-should) make them run without any external dependencies. Doing so
-makes it such that someone can run a test without knowing anything
-about it, which allows you to do a lot of things. For one, I, as a
-developer, don't have to hunt down somebody's QEMU patches, or
-whatever. But it also means I, as someone maintaining part of the
-kernel, can make nice test runners and build things like presubmit
-servers on top of them.
-
-Nevertheless, I accept that there are things which are just easier to
-do with hardware or a VM (for integration tests it is necessary).
-Still, I think we need to make sure the vast majority of unit tests do
-not depend on real hardware or a VM.
+Cheers
