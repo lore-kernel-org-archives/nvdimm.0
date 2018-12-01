@@ -1,81 +1,38 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC v3 01/19] kunit: test: add KUnit test runner core
-Date: Fri, 30 Nov 2018 18:08:36 -0800
-Message-ID: <CAFd5g45F0RViYDQyXRwyxVPAU=CO_Goqy3yHz=BbcMeAT7o6-g@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [RFC v3 03/19] kunit: test: add string_stream a std::stream like
+ string builder
+Date: Fri, 30 Nov 2018 18:14:17 -0800
+Message-ID: <CAFd5g46AXpnoWpm+aFNfvNm2-As5RCO7QdMPhcOMXWRPwHqrGg@mail.gmail.com>
 References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-2-brendanhiggins@google.com>
- <20181130032802.GG18410@garbanzo.do-not-panic.com>
+ <20181128193636.254378-4-brendanhiggins@google.com> <20181130032924.GH18410@garbanzo.do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181130032802.GG18410-dAjH6bxAqesAS62YNPtMr3dQhYtBYE6JAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: brakmo-b10kYP2dOMg@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181130032924.GH18410@garbanzo.do-not-panic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mcgrof@kernel.org
+Cc: pmladek@suse.com, Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, kieran.bingham@ideasonboard.com, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Nov 29, 2018 at 7:28 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Thu, Nov 29, 2018 at 7:29 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
 >
-> > +static void kunit_run_case_internal(struct kunit *test,
-> > +                                 struct kunit_module *module,
-> > +                                 struct kunit_case *test_case)
-> > +{
-> > +     int ret;
-> > +
-> > +     if (module->init) {
-> > +             ret = module->init(test);
-> > +             if (ret) {
-> > +                     kunit_err(test, "failed to initialize: %d", ret);
-> > +                     kunit_set_success(test, false);
-> > +                     return;
-> > +             }
-> > +     }
-> > +
-> > +     test_case->run_case(test);
-> > +}
+> On Wed, Nov 28, 2018 at 11:36:20AM -0800, Brendan Higgins wrote:
+> > A number of test features need to do pretty complicated string printing
+> > where it may not be possible to rely on a single preallocated string
+> > with parameters.
+> >
+> > So provide a library for constructing the string as you go similar to
+> > C++'s std::string.
 >
-> <-- snip -->
->
-> > +static bool kunit_run_case(struct kunit *test,
-> > +                        struct kunit_module *module,
-> > +                        struct kunit_case *test_case)
-> > +{
-> > +     kunit_set_success(test, true);
-> > +
-> > +     kunit_run_case_internal(test, module, test_case);
-> > +     kunit_run_case_cleanup(test, module, test_case);
-> > +
-> > +     return kunit_get_success(test);
-> > +}
->
-> So we are running the module->init() for each test case... is that
-> correct? Shouldn't the init run once? Also, typically init calls are
+> Hrm, what's the potential for such thing actually being eventually
+> generically useful for printk folks, I wonder? Petr?
 
-Yep, it's correct. `module->init()` should run once before every test
-case, reason being that the kunit_module serves as a test fixture in
-which each test cases should be run completely independently of every
-other. init and exit is supposed to allow code common to all test
-cases to run since it is so common to have dependencies needed for a
-test to be common to every test case.
+Are you saying you think this is applicable for other things? Or are
+you saying that you are afraid that somebody might try to use this
+elsewhere?
 
-Maybe it is confusing that I call it kunit_module? Maybe I should call
-it kunit_fixture or something?
-
-> pegged with __init so we free them later. You seem to have skipped the
-> init annotations. Why?
-
-Like I said above, these aren't normal init functions. A
-kunit_module->init() function should run once before each test case
-and thus should reside in the same linker section as any other KUnit
-test code.
+In the former case, this doesn't belong here. In the latter case, it
+explicitly depends on KUnit, so it is only available when running
+tests.
 
 Cheers
