@@ -1,214 +1,132 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 09CB7211A1E36
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:48:33 -0800 (PST)
-Subject: [PATCH v14 02/17] acpi/nfit,
- libnvdimm: Store dimm id as a member to struct nvdimm
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 09:48:33 -0700
-Message-ID: <154471971303.55644.8479006373743864359.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
-References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [RFC v3 01/19] kunit: test: add KUnit test runner core
+Date: Fri, 30 Nov 2018 17:51:11 -0800
+Message-ID: <CAFd5g47t94RR78_sZ7Xr7ArDh+hJGYHNwmmG2HJb7AW+i=u3ew@mail.gmail.com>
+References: <20181128193636.254378-1-brendanhiggins@google.com>
+ <20181128193636.254378-2-brendanhiggins@google.com> <20181130031438.GQ4922@garbanzo.do-not-panic.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181130031438.GQ4922@garbanzo.do-not-panic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mcgrof@kernel.org
+Cc: Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, kieran.bingham@ideasonboard.com, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Sasha Levin <Alexander.Levin@microsoft.com>, levinsasha
+List-Id: linux-nvdimm@lists.01.org
 
-The generated dimm id is needed for the sysfs attribute as well as being
-used as the identifier/description for the security key. Since it's
-constant and should never change, store it as a member of struct nvdimm.
+On Thu, Nov 29, 2018 at 7:14 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+>
+> On Wed, Nov 28, 2018 at 11:36:18AM -0800, Brendan Higgins wrote:
+> > +#define module_test(module) \
+> > +             static int module_kunit_init##module(void) \
+> > +             { \
+> > +                     return kunit_run_tests(&module); \
+> > +             } \
+> > +             late_initcall(module_kunit_init##module)
+>
+> Here in lies an assumption that suffices. I'm inclined to believe we
+> need new initcall level here so to ensure we *do* run after all the
+> respective kernels iniut calls. Otherwise we're left at the whims of
+> link order for kunit. For instance if a kunit test relies on frameworks
+> which are also late_initcall() we'd have complete incompatibility with
+> anything linked *after* kunit.
 
-As nvdimm_create() continues to grow parameters relative to NFIT driver
-requirements, do not require other implementations to keep pace.
-Introduce __nvdimm_create() to carry the new parameters and keep
-nvdimm_create() with the long standing default api.
+Yep, I have some patches that address this, but I thought this is
+sufficient for the initial patchset (I figured that's the type of
+thing that people will have opinions about so best to get it out of
+the critical path). Do you want me to add those in the next revision?
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c   |   31 ++++++++++++++++++-------------
- drivers/acpi/nfit/nfit.h   |    3 +++
- drivers/nvdimm/dimm_devs.c |   12 +++++++-----
- drivers/nvdimm/nd-core.h   |    1 +
- include/linux/libnvdimm.h  |   17 +++++++++++++----
- 5 files changed, 42 insertions(+), 22 deletions(-)
+>
+> > diff --git a/kunit/Kconfig b/kunit/Kconfig
+> > new file mode 100644
+> > index 0000000000000..49b44c4f6630a
+> > --- /dev/null
+> > +++ b/kunit/Kconfig
+> > @@ -0,0 +1,17 @@
+> > +#
+> > +# KUnit base configuration
+> > +#
+> > +
+> > +menu "KUnit support"
+> > +
+> > +config KUNIT
+> > +     bool "Enable support for unit tests (KUnit)"
+> > +     depends on UML
+>
+> Consider using:
+>
+> if UML
+>    ...
+> endif
+>
+> That allows the depends to be done once.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 68d146f8f8a6..c74f087398fb 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1592,18 +1592,10 @@ static DEVICE_ATTR_RO(flags);
- static ssize_t id_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
--	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
--		return sprintf(buf, "%04x-%02x-%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				dcr->manufacturing_location,
--				be16_to_cpu(dcr->manufacturing_date),
--				be32_to_cpu(dcr->serial_number));
--	else
--		return sprintf(buf, "%04x-%08x\n",
--				be16_to_cpu(dcr->vendor_id),
--				be32_to_cpu(dcr->serial_number));
-+	return sprintf(buf, "%s\n", nfit_mem->id);
- }
- static DEVICE_ATTR_RO(id);
- 
-@@ -1799,10 +1791,23 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	const guid_t *guid;
- 	int i;
- 	int family = -1;
-+	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
- 
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
- 	nfit_mem->family = NVDIMM_FAMILY_INTEL;
-+
-+	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
-+		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				dcr->manufacturing_location,
-+				be16_to_cpu(dcr->manufacturing_date),
-+				be32_to_cpu(dcr->serial_number));
-+	else
-+		sprintf(nfit_mem->id, "%04x-%08x",
-+				be16_to_cpu(dcr->vendor_id),
-+				be32_to_cpu(dcr->serial_number));
-+
- 	adev = to_acpi_dev(acpi_desc);
- 	if (!adev) {
- 		/* unit test case */
-@@ -1989,10 +1994,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 
- 		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
- 			: NULL;
--		nvdimm = nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
-+		nvdimm = __nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
- 				flags, cmd_mask, flush ? flush->hint_count : 0,
--				nfit_mem->flush_wpq);
-+				nfit_mem->flush_wpq, &nfit_mem->id[0]);
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index ecde13a9199d..33691aecfcee 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -183,6 +183,8 @@ enum nfit_mem_flags {
- 	NFIT_MEM_DIRTY_COUNT,
- };
- 
-+#define NFIT_DIMM_ID_LEN	22
-+
- /* assembled tables for a given dimm/memory-device */
- struct nfit_mem {
- 	struct nvdimm *nvdimm;
-@@ -200,6 +202,7 @@ struct nfit_mem {
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	struct acpi_nfit_desc *acpi_desc;
-+	char id[NFIT_DIMM_ID_LEN+1];
- 	struct resource *flush_wpq;
- 	unsigned long dsm_mask;
- 	unsigned long flags;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 6c3de2317390..508dd405f84f 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -383,10 +383,10 @@ struct attribute_group nvdimm_attribute_group = {
- };
- EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- 
--struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags,
--		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq)
-+struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
-+		void *provider_data, const struct attribute_group **groups,
-+		unsigned long flags, unsigned long cmd_mask, int num_flush,
-+		struct resource *flush_wpq, const char *dimm_id)
- {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -399,6 +399,8 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 		kfree(nvdimm);
- 		return NULL;
- 	}
-+
-+	nvdimm->dimm_id = dimm_id;
- 	nvdimm->provider_data = provider_data;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
-@@ -415,7 +417,7 @@ struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
- 
- 	return nvdimm;
- }
--EXPORT_SYMBOL_GPL(nvdimm_create);
-+EXPORT_SYMBOL_GPL(__nvdimm_create);
- 
- int alias_dpa_busy(struct device *dev, void *data)
- {
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 182258f64417..ff26876e6ea3 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -41,6 +41,7 @@ struct nvdimm {
- 	atomic_t busy;
- 	int id, num_flush;
- 	struct resource *flush_wpq;
-+	const char *dimm_id;
- };
- 
- /**
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 472171af7f60..f980046b9588 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -175,10 +175,19 @@ const char *nvdimm_name(struct nvdimm *nvdimm);
- struct kobject *nvdimm_kobj(struct nvdimm *nvdimm);
- unsigned long nvdimm_cmd_mask(struct nvdimm *nvdimm);
- void *nvdimm_provider_data(struct nvdimm *nvdimm);
--struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus, void *provider_data,
--		const struct attribute_group **groups, unsigned long flags,
--		unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq);
-+struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
-+		void *provider_data, const struct attribute_group **groups,
-+		unsigned long flags, unsigned long cmd_mask, int num_flush,
-+		struct resource *flush_wpq, const char *dimm_id);
-+static inline struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus,
-+		void *provider_data, const struct attribute_group **groups,
-+		unsigned long flags, unsigned long cmd_mask, int num_flush,
-+		struct resource *flush_wpq)
-+{
-+	return __nvdimm_create(nvdimm_bus, provider_data, groups, flags,
-+			cmd_mask, num_flush, flush_wpq, NULL);
-+}
-+
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
- const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
- u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+If you want to eliminate depends, wouldn't it be best to have KUNIT
+depend on whatever it needs, and then do `if KUNIT` below that? That
+seems cleaner over the long term. Anyway, Kees actually asked me to
+change it to the way it is now; I really don't care either way.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
+> > +     help
+> > +       Enables support for kernel unit tests (KUnit), a lightweight unit
+> > +       testing and mocking framework for the Linux kernel. These tests are
+> > +       able to be run locally on a developer's workstation without a VM or
+> > +       special hardware.
+>
+>
+> Some mention of UML may be good here?
+
+Good point.
+>
+> > For more information, please see
+> > +       Documentation/kunit/
+> > +
+> > +endmenu
+>
+> I'm a bit conflicted here. This currently depends on UML but yet you
+> noted on RFC v2 that your intention is to liberate kunit from UML and
+> ideally allow unit tests to depend only on userspace. I've addressed
+> tests using both selftests kernels drivers and also re-written kernel
+> APIs to userspace to test there. I think we may need to live with both.
+
+I am not entirely opposed. The greater isolation we can achieve, the
+fewer dependencies, and barriers to setting up test fixtures the
+better. I think the best way to do that in most cases is allowing
+minimal test binaries to be built that have the absolute minimum
+amount of code necessary to test the desired property. That being
+said, integration tests are a thing and drawing a line between them
+and unit tests is not always possible, so supporting other
+architectures might be necessary.
+
+>
+> Then for the UML stuff, I think if we *really* accept that UML will
+> always be a viable option we should probably consider now throwing these
+> things under drivers/platform/uml/. This follows the pattern of arch
+> specific drivers. Whether or not we end up with a complete userspace
+> component independent of UML may implicate having a shared component
+> somewhere else.
+
+Fair enough. What specifically are you suggesting should go in
+`drivers/platform/uml`? Just the bits that are completely tied to UML
+or a concrete architecture?
+
+>
+> Likewise, I realize the goal is to *avoid* using a virtual machine for
+> these tests, but would it in any way make sense to share kunit to be
+> supported for other architectures to allow easier-to-write tests as
+> well?
+
+You are not the first person to ask for this.
+
+For the vast majority of tests, I think we can (and consequently
+should) make them run without any external dependencies. Doing so
+makes it such that someone can run a test without knowing anything
+about it, which allows you to do a lot of things. For one, I, as a
+developer, don't have to hunt down somebody's QEMU patches, or
+whatever. But it also means I, as someone maintaining part of the
+kernel, can make nice test runners and build things like presubmit
+servers on top of them.
+
+Nevertheless, I accept that there are things which are just easier to
+do with hardware or a VM (for integration tests it is necessary).
+Still, I think we need to make sure the vast majority of unit tests do
+not depend on real hardware or a VM.
