@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com
+ [209.85.210.193])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DC28A2119623D
- for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 13:53:08 -0800 (PST)
-Subject: [mm PATCH v6 4/7] mm: Initialize MAX_ORDER_NR_PAGES at a time
- instead of doing larger sections
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 30 Nov 2018 13:53:08 -0800
-Message-ID: <154361478854.7497.15456929701404283744.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 294F121196818
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 16:01:14 -0800 (PST)
+Received: by mail-pf1-f193.google.com with SMTP id i12so3550887pfo.7
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Nov 2018 16:01:14 -0800 (PST)
+Date: Fri, 30 Nov 2018 16:01:09 -0800
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [driver-core PATCH v7 3/9] device core: Consolidate locking and
+ unlocking of parent and device
+Message-ID: <20181201000109.GG28501@garbanzo.do-not-panic.com>
+References: <154345118835.18040.17186161872550839244.stgit@ahduyck-desk1.amr.corp.intel.com>
+ <154345154182.18040.12736221516488918534.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <154345154182.18040.12736221516488918534.stgit@ahduyck-desk1.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,268 +28,238 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, gregkh@linuxfoundation.org, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, linux-kernel@vger.kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add yet another iterator, for_each_free_mem_range_in_zone_from, and then
-use it to support initializing and freeing pages in groups no larger than
-MAX_ORDER_NR_PAGES. By doing this we can greatly improve the cache locality
-of the pages while we do several loops over them in the init and freeing
-process.
+On Wed, Nov 28, 2018 at 04:32:21PM -0800, Alexander Duyck wrote:
+> Try to consolidate all of the locking and unlocking of both the parent and
+> device when attaching or removing a driver from a given device.
+> 
+> To do that I first consolidated the lock pattern into two functions
+> __device_driver_lock and __device_driver_unlock. After doing that I then
+> created functions specific to attaching and detaching the driver while
+> acquiring these locks. By doing this I was able to reduce the number of
+> spots where we touch need_parent_lock from 12 down to 4.
 
-We are able to tighten the loops further as a result of the "from" iterator
-as we can perform the initial checks for first_init_pfn in our first call
-to the iterator, and continue without the need for those checks via the
-"from" iterator. I have added this functionality in the function called
-deferred_init_mem_pfn_range_in_zone that primes the iterator and causes us
-to exit if we encounter any failure.
+While this later is true, it gives the impression there are functional
+changes but I see none. It can help reviewers / future reviewers of this
+commit if its clearly stated that this patch introduces no functional
+changes.
 
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 1.85s to 1.38s as a result of this patch.
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- include/linux/memblock.h |   16 +++++
- mm/page_alloc.c          |  160 +++++++++++++++++++++++++++++++++-------------
- 2 files changed, 132 insertions(+), 44 deletions(-)
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 95d1aaa3f412..60e100fe5922 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -270,6 +270,22 @@ void __next_mem_pfn_range_in_zone(u64 *idx, struct zone *zone,
- 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end);	\
- 	     i != U64_MAX;					\
- 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
-+
-+/**
-+ * for_each_free_mem_range_in_zone_from - iterate through zone specific
-+ * free memblock areas from a given point
-+ * @i: u64 used as loop variable
-+ * @zone: zone in which all of the memory blocks reside
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over free (memory && !reserved) areas of memblock in a specific
-+ * zone, continuing from current position. Available as soon as memblock is
-+ * initialized.
-+ */
-+#define for_each_free_mem_pfn_range_in_zone_from(i, zone, p_start, p_end) \
-+	for (; i != U64_MAX;					  \
-+	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
- /**
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 72f9889e3866..fbd9bd2bc262 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1519,16 +1519,102 @@ static unsigned long  __init deferred_init_pages(struct zone *zone,
- 	return (nr_pages);
- }
- 
-+/*
-+ * This function is meant to pre-load the iterator for the zone init.
-+ * Specifically it walks through the ranges until we are caught up to the
-+ * first_init_pfn value and exits there. If we never encounter the value we
-+ * return false indicating there are no valid ranges left.
-+ */
-+static bool __init
-+deferred_init_mem_pfn_range_in_zone(u64 *i, struct zone *zone,
-+				    unsigned long *spfn, unsigned long *epfn,
-+				    unsigned long first_init_pfn)
-+{
-+	u64 j;
-+
-+	/*
-+	 * Start out by walking through the ranges in this zone that have
-+	 * already been initialized. We don't need to do anything with them
-+	 * so we just need to flush them out of the system.
-+	 */
-+	for_each_free_mem_pfn_range_in_zone(j, zone, spfn, epfn) {
-+		if (*epfn <= first_init_pfn)
-+			continue;
-+		if (*spfn < first_init_pfn)
-+			*spfn = first_init_pfn;
-+		*i = j;
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+/*
-+ * Initialize and free pages. We do it in two loops: first we initialize
-+ * struct page, than free to buddy allocator, because while we are
-+ * freeing pages we can access pages that are ahead (computing buddy
-+ * page in __free_one_page()).
-+ *
-+ * In order to try and keep some memory in the cache we have the loop
-+ * broken along max page order boundaries. This way we will not cause
-+ * any issues with the buddy page computation.
-+ */
-+static unsigned long __init
-+deferred_init_maxorder(u64 *i, struct zone *zone, unsigned long *start_pfn,
-+		       unsigned long *end_pfn)
-+{
-+	unsigned long mo_pfn = ALIGN(*start_pfn + 1, MAX_ORDER_NR_PAGES);
-+	unsigned long spfn = *start_pfn, epfn = *end_pfn;
-+	unsigned long nr_pages = 0;
-+	u64 j = *i;
-+
-+	/* First we loop through and initialize the page values */
-+	for_each_free_mem_pfn_range_in_zone_from(j, zone, &spfn, &epfn) {
-+		unsigned long t;
-+
-+		if (mo_pfn <= spfn)
-+			break;
-+
-+		t = min(mo_pfn, epfn);
-+		nr_pages += deferred_init_pages(zone, spfn, t);
-+
-+		if (mo_pfn <= epfn)
-+			break;
-+	}
-+
-+	/* Reset values and now loop through freeing pages as needed */
-+	j = *i;
-+
-+	for_each_free_mem_pfn_range_in_zone_from(j, zone, start_pfn, end_pfn) {
-+		unsigned long t;
-+
-+		if (mo_pfn <= *start_pfn)
-+			break;
-+
-+		t = min(mo_pfn, *end_pfn);
-+		deferred_free_pages(*start_pfn, t);
-+		*start_pfn = t;
-+
-+		if (mo_pfn < *end_pfn)
-+			break;
-+	}
-+
-+	/* Store our current values to be reused on the next iteration */
-+	*i = j;
-+
-+	return nr_pages;
-+}
-+
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
- {
- 	pg_data_t *pgdat = data;
-+	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-+	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
-+	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
--	unsigned long nr_pages = 0;
--	unsigned long spfn, epfn, first_init_pfn, flags;
--	int zid;
- 	struct zone *zone;
--	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-+	int zid;
- 	u64 i;
- 
- 	/* Bind memory initialisation thread to a local node if possible */
-@@ -1554,22 +1640,20 @@ static int __init deferred_init_memmap(void *data)
- 		if (first_init_pfn < zone_end_pfn(zone))
- 			break;
- 	}
--	first_init_pfn = max(zone->zone_start_pfn, first_init_pfn);
-+
-+	/* If the zone is empty somebody else may have cleared out the zone */
-+	if (!deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn,
-+						 first_init_pfn))
-+		goto zone_empty;
- 
- 	/*
--	 * Initialize and free pages. We do it in two loops: first we initialize
--	 * struct page, than free to buddy allocator, because while we are
--	 * freeing pages we can access pages that are ahead (computing buddy
--	 * page in __free_one_page()).
-+	 * Initialize and free pages in MAX_ORDER sized increments so
-+	 * that we can avoid introducing any issues with the buddy
-+	 * allocator.
- 	 */
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		nr_pages += deferred_init_pages(zone, spfn, epfn);
--	}
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		deferred_free_pages(spfn, epfn);
--	}
-+	while (spfn < epfn)
-+		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+zone_empty:
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	/* Sanity check that the next zone really is unpopulated */
-@@ -1609,9 +1693,9 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- {
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
- 	pg_data_t *pgdat = zone->zone_pgdat;
--	unsigned long nr_pages = 0;
--	unsigned long first_init_pfn, spfn, epfn, t, flags;
- 	unsigned long first_deferred_pfn = pgdat->first_deferred_pfn;
-+	unsigned long spfn, epfn, flags;
-+	unsigned long nr_pages = 0;
- 	u64 i;
- 
- 	/* Only the last zone may have deferred pages */
-@@ -1640,36 +1724,24 @@ deferred_grow_zone(struct zone *zone, unsigned int order)
- 		return true;
- 	}
- 
--	first_init_pfn = max(zone->zone_start_pfn, first_deferred_pfn);
--
--	if (first_init_pfn >= pgdat_end_pfn(pgdat)) {
-+	/* If the zone is empty somebody else may have cleared out the zone */
-+	if (!deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn,
-+						 first_deferred_pfn)) {
-+		pgdat->first_deferred_pfn = ULONG_MAX;
- 		pgdat_resize_unlock(pgdat, &flags);
--		return false;
-+		return true;
- 	}
- 
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--
--		while (spfn < epfn && nr_pages < nr_pages_needed) {
--			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
--			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(zone, spfn,
--							first_deferred_pfn);
--			spfn = first_deferred_pfn;
--		}
--
--		if (nr_pages >= nr_pages_needed)
--			break;
-+	/*
-+	 * Initialize and free pages in MAX_ORDER sized increments so
-+	 * that we can avoid introducing any issues with the buddy
-+	 * allocator.
-+	 */
-+	while (spfn < epfn && nr_pages < nr_pages_needed) {
-+		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+		first_deferred_pfn = spfn;
- 	}
- 
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		epfn = min_t(unsigned long, first_deferred_pfn, epfn);
--		deferred_free_pages(spfn, epfn);
--
--		if (first_deferred_pfn == epfn)
--			break;
--	}
- 	pgdat->first_deferred_pfn = first_deferred_pfn;
- 	pgdat_resize_unlock(pgdat, &flags);
- 
-
+  Luis
+> ---
+>  drivers/base/base.h |    2 +
+>  drivers/base/bus.c  |   23 ++-----------
+>  drivers/base/dd.c   |   91 ++++++++++++++++++++++++++++++++++++++++-----------
+>  3 files changed, 77 insertions(+), 39 deletions(-)
+> 
+> diff --git a/drivers/base/base.h b/drivers/base/base.h
+> index 7a419a7a6235..3f22ebd6117a 100644
+> --- a/drivers/base/base.h
+> +++ b/drivers/base/base.h
+> @@ -124,6 +124,8 @@ extern int driver_add_groups(struct device_driver *drv,
+>  			     const struct attribute_group **groups);
+>  extern void driver_remove_groups(struct device_driver *drv,
+>  				 const struct attribute_group **groups);
+> +int device_driver_attach(struct device_driver *drv, struct device *dev);
+> +void device_driver_detach(struct device *dev);
+>  
+>  extern char *make_class_name(const char *name, struct kobject *kobj);
+>  
+> diff --git a/drivers/base/bus.c b/drivers/base/bus.c
+> index 8bfd27ec73d6..8a630f9bd880 100644
+> --- a/drivers/base/bus.c
+> +++ b/drivers/base/bus.c
+> @@ -184,11 +184,7 @@ static ssize_t unbind_store(struct device_driver *drv, const char *buf,
+>  
+>  	dev = bus_find_device_by_name(bus, NULL, buf);
+>  	if (dev && dev->driver == drv) {
+> -		if (dev->parent && dev->bus->need_parent_lock)
+> -			device_lock(dev->parent);
+> -		device_release_driver(dev);
+> -		if (dev->parent && dev->bus->need_parent_lock)
+> -			device_unlock(dev->parent);
+> +		device_driver_detach(dev);
+>  		err = count;
+>  	}
+>  	put_device(dev);
+> @@ -211,13 +207,7 @@ static ssize_t bind_store(struct device_driver *drv, const char *buf,
+>  
+>  	dev = bus_find_device_by_name(bus, NULL, buf);
+>  	if (dev && dev->driver == NULL && driver_match_device(drv, dev)) {
+> -		if (dev->parent && bus->need_parent_lock)
+> -			device_lock(dev->parent);
+> -		device_lock(dev);
+> -		err = driver_probe_device(drv, dev);
+> -		device_unlock(dev);
+> -		if (dev->parent && bus->need_parent_lock)
+> -			device_unlock(dev->parent);
+> +		err = device_driver_attach(drv, dev);
+>  
+>  		if (err > 0) {
+>  			/* success */
+> @@ -769,13 +759,8 @@ EXPORT_SYMBOL_GPL(bus_rescan_devices);
+>   */
+>  int device_reprobe(struct device *dev)
+>  {
+> -	if (dev->driver) {
+> -		if (dev->parent && dev->bus->need_parent_lock)
+> -			device_lock(dev->parent);
+> -		device_release_driver(dev);
+> -		if (dev->parent && dev->bus->need_parent_lock)
+> -			device_unlock(dev->parent);
+> -	}
+> +	if (dev->driver)
+> +		device_driver_detach(dev);
+>  	return bus_rescan_devices_helper(dev, NULL);
+>  }
+>  EXPORT_SYMBOL_GPL(device_reprobe);
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index ef3f70a7cb5a..d2515520569e 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -875,6 +875,60 @@ void device_initial_probe(struct device *dev)
+>  	__device_attach(dev, true);
+>  }
+>  
+> +/*
+> + * __device_driver_lock - acquire locks needed to manipulate dev->drv
+> + * @dev: Device we will update driver info for
+> + * @parent: Parent device. Needed if the bus requires parent lock
+> + *
+> + * This function will take the required locks for manipulating dev->drv.
+> + * Normally this will just be the @dev lock, but when called for a USB
+> + * interface, @parent lock will be held as well.
+> + */
+> +static void __device_driver_lock(struct device *dev, struct device *parent)
+> +{
+> +	if (parent && dev->bus->need_parent_lock)
+> +		device_lock(parent);
+> +	device_lock(dev);
+> +}
+> +
+> +/*
+> + * __device_driver_unlock - release locks needed to manipulate dev->drv
+> + * @dev: Device we will update driver info for
+> + * @parent: Parent device. Needed if the bus requires parent lock
+> + *
+> + * This function will release the required locks for manipulating dev->drv.
+> + * Normally this will just be the the @dev lock, but when called for a
+> + * USB interface, @parent lock will be released as well.
+> + */
+> +static void __device_driver_unlock(struct device *dev, struct device *parent)
+> +{
+> +	device_unlock(dev);
+> +	if (parent && dev->bus->need_parent_lock)
+> +		device_unlock(parent);
+> +}
+> +
+> +/**
+> + * device_driver_attach - attach a specific driver to a specific device
+> + * @drv: Driver to attach
+> + * @dev: Device to attach it to
+> + *
+> + * Manually attach driver to a device. Will acquire both @dev lock and
+> + * @dev->parent lock if needed.
+> + */
+> +int device_driver_attach(struct device_driver *drv, struct device *dev)
+> +{
+> +	int ret = 0;
+> +
+> +	__device_driver_lock(dev, dev->parent);
+> +
+> +	if (!dev->driver)
+> +		ret = driver_probe_device(drv, dev);
+> +
+> +	__device_driver_unlock(dev, dev->parent);
+> +
+> +	return ret;
+> +}
+> +
+>  static int __driver_attach(struct device *dev, void *data)
+>  {
+>  	struct device_driver *drv = data;
+> @@ -902,14 +956,7 @@ static int __driver_attach(struct device *dev, void *data)
+>  		return ret;
+>  	} /* ret > 0 means positive match */
+>  
+> -	if (dev->parent && dev->bus->need_parent_lock)
+> -		device_lock(dev->parent);
+> -	device_lock(dev);
+> -	if (!dev->driver)
+> -		driver_probe_device(drv, dev);
+> -	device_unlock(dev);
+> -	if (dev->parent && dev->bus->need_parent_lock)
+> -		device_unlock(dev->parent);
+> +	device_driver_attach(drv, dev);
+>  
+>  	return 0;
+>  }
+> @@ -948,15 +995,11 @@ static void __device_release_driver(struct device *dev, struct device *parent)
+>  	drv = dev->driver;
+>  	if (drv) {
+>  		while (device_links_busy(dev)) {
+> -			device_unlock(dev);
+> -			if (parent)
+> -				device_unlock(parent);
+> +			__device_driver_unlock(dev, parent);
+>  
+>  			device_links_unbind_consumers(dev);
+> -			if (parent)
+> -				device_lock(parent);
+>  
+> -			device_lock(dev);
+> +			__device_driver_lock(dev, parent);
+>  			/*
+>  			 * A concurrent invocation of the same function might
+>  			 * have released the driver successfully while this one
+> @@ -1009,16 +1052,12 @@ void device_release_driver_internal(struct device *dev,
+>  				    struct device_driver *drv,
+>  				    struct device *parent)
+>  {
+> -	if (parent && dev->bus->need_parent_lock)
+> -		device_lock(parent);
+> +	__device_driver_lock(dev, parent);
+>  
+> -	device_lock(dev);
+>  	if (!drv || drv == dev->driver)
+>  		__device_release_driver(dev, parent);
+>  
+> -	device_unlock(dev);
+> -	if (parent && dev->bus->need_parent_lock)
+> -		device_unlock(parent);
+> +	__device_driver_unlock(dev, parent);
+>  }
+>  
+>  /**
+> @@ -1043,6 +1082,18 @@ void device_release_driver(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(device_release_driver);
+>  
+> +/**
+> + * device_driver_detach - detach driver from a specific device
+> + * @dev: device to detach driver from
+> + *
+> + * Detach driver from device. Will acquire both @dev lock and @dev->parent
+> + * lock if needed.
+> + */
+> +void device_driver_detach(struct device *dev)
+> +{
+> +	device_release_driver_internal(dev, NULL, dev->parent);
+> +}
+> +
+>  /**
+>   * driver_detach - detach driver from all devices it controls.
+>   * @drv: driver.
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
