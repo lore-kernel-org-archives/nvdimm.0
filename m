@@ -1,44 +1,75 @@
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [RFC v3 03/19] kunit: test: add string_stream a std::stream like
- string builder
-Date: Fri, 30 Nov 2018 19:12:28 -0800
-Message-ID: <20181201031228.GM28501@garbanzo.do-not-panic.com>
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-4-brendanhiggins@google.com>
- <20181130032924.GH18410@garbanzo.do-not-panic.com>
- <CAFd5g46AXpnoWpm+aFNfvNm2-As5RCO7QdMPhcOMXWRPwHqrGg@mail.gmail.com>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Security Alert. linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org was compromised. Password
+ must be changed.
+Date: 1 Dec 2018 14:01:09 +0100
+Message-ID: <3DCCD91957280C976673B3FD82A63DCC@CT8EUPNFGK>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAFd5g46AXpnoWpm+aFNfvNm2-As5RCO7QdMPhcOMXWRPwHqrGg@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, linux-kselftest@vger.kernel.org, shuah@kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm@lists.01.org, richard@nod.at, Knut Omang <knut.omang@oracle.com>, kieran.bingham@ideasonboard.com, Joel Stanley <joel@jms.id.au>, jdike@addtoit.com, pmladek@suse.com, Tim.Bird@sony.com, Kees Cook <keescook@google.com>, linux-um@lists.infradead.org, rostedt@goodmis.org, Julia Lawall <julia.lawall@lip6.fr>, dan.j.williams@intel.com, kunit-dev@googlegroups.com, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, mpe@ellerman.id.au, joe@perches.com, khilman@baylibre.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-T24gRnJpLCBOb3YgMzAsIDIwMTggYXQgMDY6MTQ6MTdQTSAtMDgwMCwgQnJlbmRhbiBIaWdnaW5z
-IHdyb3RlOgo+IE9uIFRodSwgTm92IDI5LCAyMDE4IGF0IDc6MjkgUE0gTHVpcyBDaGFtYmVybGFp
-biA8bWNncm9mQGtlcm5lbC5vcmc+IHdyb3RlOgo+ID4KPiA+IE9uIFdlZCwgTm92IDI4LCAyMDE4
-IGF0IDExOjM2OjIwQU0gLTA4MDAsIEJyZW5kYW4gSGlnZ2lucyB3cm90ZToKPiA+ID4gQSBudW1i
-ZXIgb2YgdGVzdCBmZWF0dXJlcyBuZWVkIHRvIGRvIHByZXR0eSBjb21wbGljYXRlZCBzdHJpbmcg
-cHJpbnRpbmcKPiA+ID4gd2hlcmUgaXQgbWF5IG5vdCBiZSBwb3NzaWJsZSB0byByZWx5IG9uIGEg
-c2luZ2xlIHByZWFsbG9jYXRlZCBzdHJpbmcKPiA+ID4gd2l0aCBwYXJhbWV0ZXJzLgo+ID4gPgo+
-ID4gPiBTbyBwcm92aWRlIGEgbGlicmFyeSBmb3IgY29uc3RydWN0aW5nIHRoZSBzdHJpbmcgYXMg
-eW91IGdvIHNpbWlsYXIgdG8KPiA+ID4gQysrJ3Mgc3RkOjpzdHJpbmcuCj4gPgo+ID4gSHJtLCB3
-aGF0J3MgdGhlIHBvdGVudGlhbCBmb3Igc3VjaCB0aGluZyBhY3R1YWxseSBiZWluZyBldmVudHVh
-bGx5Cj4gPiBnZW5lcmljYWxseSB1c2VmdWwgZm9yIHByaW50ayBmb2xrcywgSSB3b25kZXI/IFBl
-dHI/Cj4gCj4gQXJlIHlvdSBzYXlpbmcgeW91IHRoaW5rIHRoaXMgaXMgYXBwbGljYWJsZSBmb3Ig
-b3RoZXIgdGhpbmdzPyAKClllcy4KCj4gVGhpcyBkb2Vzbid0IGJlbG9uZyBoZXJlLgoKICBMdWlz
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+Hello!
+
+I have very bad news for you.
+09/08/2018 - on this day I hacked your OS and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+
+So, you can change the password, yes... But my malware intercepts it every time.
+
+How I made it:
+In the software of the router, through which you went online, was a vulnerability.
+I just hacked this router and placed my malicious code on it.
+When you went online, my trojan was installed on the OS of your device.
+
+After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
+
+A month ago, I wanted to lock your device and ask for a not big amount of btc to unlock.
+But I looked at the sites that you regularly visit, and I was shocked by what I saw!!!
+I'm talk you about sites for adults.
+
+I want to say - you are a BIG pervert. Your fantasy is shifted far away from the normal course!
+
+And I got an idea....
+I made a screenshot of the adult sites where you have fun (do you understand what it is about, huh?).
+After that, I made a screenshot of your joys (using the camera of your device) and glued them together.
+Turned out amazing! You are so spectacular!
+
+I'm know that you would not like to show these screenshots to your friends, relatives or colleagues.
+I think $716 is a very, very small amount for my silence.
+Besides, I have been spying on you for so long, having spent a lot of time!
+
+Pay ONLY in Bitcoins!
+My BTC wallet: 182PJESsEWbuJ8PEgfM58p64jbok3i1gNU
+
+You do not know how to use bitcoins?
+Enter a query in any search engine: "how to replenish btc wallet".
+It's extremely easy
+
+For this payment I give you two days (48 hours).
+As soon as this letter is opened, the timer will work.
+
+After payment, my virus and dirty screenshots with your enjoys will be self-destruct automatically.
+If I do not receive from you the specified amount, then your device will be locked, and all your contacts will receive a screenshots with your "enjoys".
+
+I hope you understand your situation.
+- Do not try to find and destroy my virus! (All your data, files and screenshots is already uploaded to a remote server)
+- Do not try to contact me (this is not feasible, I sent you an email from your account)
+- Various security services will not help you; formatting a disk or destroying a device will not help, since your data is already on a remote server.
+
+P.S. You are not my single victim. so, I guarantee you that I will not disturb you again after payment!
+ This is the word of honor hacker
+
+I also ask you to regularly update your antiviruses in the future. This way you will no longer fall into a similar situation.
+
+Do not hold evil! I just do my job.
+Good luck.
