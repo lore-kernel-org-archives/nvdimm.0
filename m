@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8B49E211A4593
- for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:09:25 -0800 (PST)
-Subject: [PATCH v6 04/12] ndctl: add support for freeze security
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 14 Dec 2018 14:09:24 -0700
-Message-ID: <154482176491.65434.5402616323417010957.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
-References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+Received: from a95-92-89-159.cpe.netcabo.pt (a95-92-89-159.cpe.netcabo.pt
+ [95.92.89.159]) by ml01.01.org (Postfix) with ESMTP id 5BC6E21197B27
+ for <linux-nvdimm@lists.01.org>; Sun,  2 Dec 2018 03:08:44 -0800 (PST)
+From: "Account Security" <linux-nvdimm@lists.01.org>
+Subject: Third party accessed to linux-nvdimm@lists.01.org.
+Date: 2 Dec 2018 09:48:25 -0100
+Message-ID: <004c01d48a2e$0607a7d0$f87c8db8$@lists.01.org>
 MIME-Version: 1.0
+Content-Language: en-us
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,167 +19,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for freeze security to libndctl and also command line option
-of "freeze-security" for ndctl. This will lock the ability to make changes
-to the NVDIMM security.
+Hello!
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/Makefile.am               |    3 ++-
- Documentation/ndctl/ndctl-freeze-security.txt |   20 ++++++++++++++++++
- builtin.h                                     |    1 +
- ndctl/dimm.c                                  |   28 +++++++++++++++++++++++++
- ndctl/lib/dimm.c                              |    5 ++++
- ndctl/lib/libndctl.sym                        |    1 +
- ndctl/libndctl.h                              |    1 +
- ndctl/ndctl.c                                 |    1 +
- 8 files changed, 59 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+I'm is very good programmer, known in darkweb as geoff01.
+I hacked this mailbox more than six months ago, 
+through it I infected your operating system with a virus (trojan) created by me and have been spying for you a very long time.
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 31570a77..a97f193d 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -50,7 +50,8 @@ man1_MANS = \
- 	ndctl-monitor.1 \
- 	ndctl-enable-passphrase.1 \
- 	ndctl-update-passphrase.1 \
--	ndctl-disable-passphrase.1
-+	ndctl-disable-passphrase.1 \
-+	ndctl-freeze-security.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
-new file mode 100644
-index 00000000..4e9d2d61
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-freeze-security.txt
-@@ -0,0 +1,20 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-freeze-security(1)
-+========================
-+
-+NAME
-+----
-+ndctl-freeze-security - enabling or freeze the security for an NVDIMM
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl freeze-security' <dimm>
-+
-+DESCRIPTION
-+-----------
-+Provide a generic interface to freeze the security for NVDIMM. Once security
-+is frozen, no other security operations can succeed until reboot happens.
-+
-+include::../copyright.txt[]
-diff --git a/builtin.h b/builtin.h
-index 8d8f61e2..827295da 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -51,4 +51,5 @@ int cmd_inject_smart(int argc, const char **argv, void *ctx);
- int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
- int cmd_passphrase_update(int argc, const char **argv, void *ctx);
- int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
-+int cmd_freeze_security(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index edb4b9d7..6476b6e5 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -873,6 +873,24 @@ static int action_passphrase_disable(struct ndctl_dimm *dimm,
- 	return ndctl_dimm_disable_key(dimm);
- }
- 
-+static int action_security_freeze(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (!ndctl_dimm_security_supported(dimm)) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	rc = ndctl_dimm_freeze_security(dimm);
-+	if (rc < 0)
-+		error("Failed to freeze security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -1267,3 +1285,13 @@ int cmd_disable_passphrase(int argc, const char **argv, void *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_freeze_security(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
-+			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 9cc22016..227c7124 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -668,3 +668,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
- 	sprintf(buf, "disable %ld\n", key);
- 	return write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
-+{
-+	return write_security(dimm, "freeze");
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 90038e75..a1c56060 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -395,4 +395,5 @@ global:
- 	ndctl_dimm_update_passphrase;
- 	ndctl_dimm_disable_passphrase;
- 	ndctl_dimm_disable_key;
-+	ndctl_dimm_freeze_security;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 18cccbb1..7bb7132c 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -703,6 +703,7 @@ bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
- int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 		long ckey, long nkey);
- int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
-+int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- 
- enum ndctl_key_type {
- 	ND_USER_KEY,
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 1e82ded0..d08fee4d 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
- 	{ "enable-passphrase", cmd_passphrase_setup },
- 	{ "update-passphrase", cmd_passphrase_update },
- 	{ "disable-passphrase", cmd_disable_passphrase },
-+	{ "freeze-security", cmd_freeze_security },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
+I understand it is hard to believe, but you can check it yourself.
+I'm sent this e-mail from your account. Try it yourself. 
+
+Even if you changed the password after that - it does not matter, my virus intercepted all the caching data on your computer
+and automatically saved access for me.
+
+I have access to all your accounts, social networks, email, browsing history.
+Accordingly, I have the data of all your contacts, files from your computer, photos and videos.
+
+I was most struck by the intimate content sites that you occasionally visit.
+You have a very wild imagination, I tell you!
+
+During your pastime and entertainment there, I took screenshot through the camera of your device, synchronizing with what you are watching.
+Oh my god! You are so funny and excited!
+
+I think that you do not want all your contacts to get these files, right?
+If you are of the same opinion, then I think that $249 is quite a fair price to destroy the dirt I created.
+
+Send the above amount on my BTC wallet (bitcoin): 1JRCbCH9E3iLhSXPTqtkgfAsJNT2xD74C5
+As soon as the above amount is received, I guarantee that the data will be deleted, I do not need it.
+
+Otherwise, these files and history of visiting sites will get all your contacts from your device.
+Also, I'll send to everyone your contact access to your email and access logs, I have carefully saved it!
+
+Since reading this letter you have 48 hours!
+After your reading this message, I'll receive an automatic notification that you have seen the letter.
+
+I hope I taught you a good lesson.
+Do not be so nonchalant, please visit only to proven resources, and don't enter your passwords anywhere!
+Good luck!
 
 _______________________________________________
 Linux-nvdimm mailing list
