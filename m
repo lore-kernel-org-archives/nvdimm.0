@@ -1,71 +1,99 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
- [IPv6:2607:f8b0:4864:20::342])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B9FC321194888
- for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 11:47:50 -0800 (PST)
-Received: by mail-ot1-x342.google.com with SMTP id 40so12818214oth.4
- for <linux-nvdimm@lists.01.org>; Mon, 03 Dec 2018 11:47:50 -0800 (PST)
-MIME-Version: 1.0
-References: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
- <154386513120.27193.7977541941078967487.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154386513120.27193.7977541941078967487.stgit@ahduyck-desk1.amr.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 3 Dec 2018 11:47:37 -0800
-Message-ID: <CAPcyv4gZkx9zRsKkVhrmPG7SyjPEycp0neFnECmSADZNLuDOpQ@mail.gmail.com>
-Subject: Re: [PATCH RFC 2/3] mm: Add support for exposing if dev_pagemap
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH RFC 2/3] mm: Add support for exposing if dev_pagemap
  supports refcount pinning
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Mon, 03 Dec 2018 11:25:31 -0800
+Message-ID: <154386513120.27193.7977541941078967487.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: alexander.h.duyck@linux.intel.com
-Cc: =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Barret Rhoden <brho@google.com>, "Zhang, Yu C" <yu.c.zhang@intel.com>, KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Jan Kara <jack@suse.cz>, David Hildenbrand <david@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, rkrcmar@redhat.com, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>
+Sender: owner-linux-mm@kvack.org
+To: dan.j.williams@intel.com, pbonzini@redhat.com, yi.z.zhang@linux.intel.com, brho@google.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, dave.jiang@intel.com, yu.c.zhang@intel.com, pagupta@redhat.com, david@redhat.com, jack@suse.cz, hch@lst.de, rkrcmar@redhat.com, jglisse@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 3, 2018 at 11:25 AM Alexander Duyck
-<alexander.h.duyck@linux.intel.com> wrote:
->
-> Add a means of exposing if a pagemap supports refcount pinning. I am doing
-> this to expose if a given pagemap has backing struct pages that will allow
-> for the reference count of the page to be incremented to lock the page
-> into place.
->
-> The KVM code already has several spots where it was trying to use a
-> pfn_valid check combined with a PageReserved check to determien if it could
-> take a reference on the page. I am adding this check so in the case of the
-> page having the reserved flag checked we can check the pagemap for the page
-> to determine if we might fall into the special DAX case.
->
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> ---
->  drivers/nvdimm/pfn_devs.c |    2 ++
->  include/linux/memremap.h  |    5 ++++-
->  include/linux/mm.h        |   11 +++++++++++
->  3 files changed, 17 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index 6f22272e8d80..7a4a85bcf7f4 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -640,6 +640,8 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
->         } else
->                 return -ENXIO;
->
-> +       pgmap->support_refcount_pinning = true;
-> +
+Add a means of exposing if a pagemap supports refcount pinning. I am doing
+this to expose if a given pagemap has backing struct pages that will allow
+for the reference count of the page to be incremented to lock the page
+into place.
 
-There should be no dev_pagemap instance instance where this isn't
-true, so I'm missing why this is needed?
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+The KVM code already has several spots where it was trying to use a
+pfn_valid check combined with a PageReserved check to determien if it could
+take a reference on the page. I am adding this check so in the case of the
+page having the reserved flag checked we can check the pagemap for the page
+to determine if we might fall into the special DAX case.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ drivers/nvdimm/pfn_devs.c |    2 ++
+ include/linux/memremap.h  |    5 ++++-
+ include/linux/mm.h        |   11 +++++++++++
+ 3 files changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 6f22272e8d80..7a4a85bcf7f4 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -640,6 +640,8 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	} else
+ 		return -ENXIO;
+ 
++	pgmap->support_refcount_pinning = true;
++
+ 	return 0;
+ }
+ 
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 55db66b3716f..6e7b85542208 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -109,6 +109,8 @@ typedef void (*dev_page_free_t)(struct page *page, void *data);
+  * @page_fault: callback when CPU fault on an unaddressable device page
+  * @page_free: free page callback when page refcount reaches 1
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
++ * @altmap_valid: bitflag indicating if altmap is valid
++ * @support_refcount_pinning: bitflag indicating if we support refcount pinning
+  * @res: physical address range covered by @ref
+  * @ref: reference count that pins the devm_memremap_pages() mapping
+  * @kill: callback to transition @ref to the dead state
+@@ -120,7 +122,8 @@ struct dev_pagemap {
+ 	dev_page_fault_t page_fault;
+ 	dev_page_free_t page_free;
+ 	struct vmem_altmap altmap;
+-	bool altmap_valid;
++	bool altmap_valid:1;
++	bool support_refcount_pinning:1;
+ 	struct resource res;
+ 	struct percpu_ref *ref;
+ 	void (*kill)(struct percpu_ref *ref);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 3eb3bf7774f1..5faf66dd4559 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -970,6 +970,12 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
+ }
+ #endif /* CONFIG_PCI_P2PDMA */
+ 
++static inline bool is_device_pinnable_page(const struct page *page)
++{
++	return is_zone_device_page(page) &&
++		page->pgmap->support_refcount_pinning;
++}
++
+ #else /* CONFIG_DEV_PAGEMAP_OPS */
+ static inline void dev_pagemap_get_ops(void)
+ {
+@@ -998,6 +1004,11 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
+ {
+ 	return false;
+ }
++
++static inline bool is_device_pinnable_page(const struct page *page)
++{
++	return false;
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
+ 
+ static inline void get_page(struct page *page)
