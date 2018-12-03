@@ -1,67 +1,115 @@
-From: Barret Rhoden <brho@google.com>
-Subject: Re: [PATCH v2 0/3] kvm: Use huge pages for DAX-backed files
-Date: Mon, 3 Dec 2018 12:40:51 -0500
-Message-ID: <20181203124051.05c1d2ce@gnomeregan.cam.corp.google.com>
-References: <20181109203921.178363-1-brho@google.com>
-        <20181114215155.259978-1-brho@google.com>
-        <CAPcyv4jga=HnsfHffWoo+JjRUBf3stD4VP3B5X5xSOZb=yh+Mw@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC v3 01/19] kunit: test: add KUnit test runner core
+Date: Mon, 3 Dec 2018 14:47:19 -0800
+Message-ID: <CAFd5g45DQ7V_pMpkNpRw3iRsCgO-MQvJV=hV7axP4gG++qm2JA@mail.gmail.com>
+References: <20181128193636.254378-1-brendanhiggins@google.com>
+ <20181128193636.254378-2-brendanhiggins@google.com>
+ <20181130032802.GG18410@garbanzo.do-not-panic.com>
+ <CAFd5g45F0RViYDQyXRwyxVPAU=CO_Goqy3yHz=BbcMeAT7o6-g@mail.gmail.com>
+ <20181201031049.GL28501@garbanzo.do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jga=HnsfHffWoo+JjRUBf3stD4VP3B5X5xSOZb=yh+Mw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, zwisler@kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, rkrcmar@redhat.com, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, KVM list <kvm@vger.kernel.org>, "Zhang, Yu C" <yu.c.zhang@intel.com>, "Zhang, Yi Z" <yi.z.zhang@intel.com>, alexander.h.duyck@linux.intel.com
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20181201031049.GL28501-dAjH6bxAqesAS62YNPtMr3dQhYtBYE6JAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 2018-11-14 at 16:55 Dan Williams <dan.j.williams@intel.com> wrote:
-> [ add Alex who is looking into removing PageReserved for DAX pages. ]
+On Fri, Nov 30, 2018 at 7:10 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>
+> On Fri, Nov 30, 2018 at 06:08:36PM -0800, Brendan Higgins wrote:
+> > On Thu, Nov 29, 2018 at 7:28 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> > >
+> > > > +static void kunit_run_case_internal(struct kunit *test,
+> > > > +                                 struct kunit_module *module,
+> > > > +                                 struct kunit_case *test_case)
+> > > > +{
+> > > > +     int ret;
+> > > > +
+> > > > +     if (module->init) {
+> > > > +             ret = module->init(test);
+> > > > +             if (ret) {
+> > > > +                     kunit_err(test, "failed to initialize: %d", ret);
+> > > > +                     kunit_set_success(test, false);
+> > > > +                     return;
+> > > > +             }
+> > > > +     }
+> > > > +
+> > > > +     test_case->run_case(test);
+> > > > +}
+> > >
+> > > <-- snip -->
+> > >
+> > > > +static bool kunit_run_case(struct kunit *test,
+> > > > +                        struct kunit_module *module,
+> > > > +                        struct kunit_case *test_case)
+> > > > +{
+> > > > +     kunit_set_success(test, true);
+> > > > +
+> > > > +     kunit_run_case_internal(test, module, test_case);
+> > > > +     kunit_run_case_cleanup(test, module, test_case);
+> > > > +
+> > > > +     return kunit_get_success(test);
+> > > > +}
+> > >
+> > > So we are running the module->init() for each test case... is that
+> > > correct? Shouldn't the init run once? Also, typically init calls are
+> >
+> > Yep, it's correct. `module->init()` should run once before every test
+> > case, reason being that the kunit_module serves as a test fixture in
+> > which each test cases should be run completely independently of every
+> > other.
+>
+> Shouldn't the init be test_case specific as well? Right now we just
+> past the struct kunit, but not the struct kunit_case. I though that
+> that the struct kunit_case was where we'd customize each specific
+> test case as we see fit for each test case. If not, how would we
+> do say, a different type of initialization for a different type of
+> test (for the same unit)?
 
-Thanks.  I can keep my eye out for his patches and repost once that's
-done.  
+Maybe there should be other init functions, but specifying an init
+function per case is not typical. In most unit testing frameworks
+there is some sort of optional per test case init function that sets
+up the fixture common to all cases; it is also fairly common to have
+an init function that runs once at the very beginning of the entire
+test suite (like what you thought I was doing); however, it is not
+used nearly as often as the former, and even then is usually used in
+conjunction with the former.
 
-Alternatively, if you all want to merge this before the PageReserved /
-DAX changes, then I can repost - just Ack/Review tags.  It's harmless
-with the existing PageReserved behavior.
+Nevertheless, I don't think I have ever seen a unit test framework
+provide a way to make init functions specific to each case. I don't
+see any good reason not to do it other than the lack of examples in
+the wild suggest it would not get much usage.
 
-Thanks,
+In general, some limited initialization specific to a test case is
+allowed in the test case itself, and if you have really complicated
+initialization that warrants a separate init function, but isn't
+shared between cases, you should probably put the test in a separate
+test suite with a separate test fixture. I am sure there will be edge
+cases that don't fit, but there is no technical reason why you cannot
+just do the initialization in the test case itself in these cases.
 
-Barret
+>
+> > init and exit is supposed to allow code common to all test
+> > cases to run since it is so common to have dependencies needed for a
+> > test to be common to every test case.
+>
+> Sure things in common make sense, however the differntiating aspects
+> seem important as well on init? Or should the author be doing all
+> custom specific initializations on run_case() instead?
+>
 
+Usually limited initialization specific to a test case will just go in
+that test case.
 
-> On Wed, Nov 14, 2018 at 1:53 PM Barret Rhoden <brho@google.com> wrote:
-> >
-> > This patch series depends on dax pages not being PageReserved.  Once
-> > that is in place, these changes will let KVM use huge pages with
-> > dax-backed files.  Without the PageReserved change, KVM and DAX still
-> > work with these patches, simply without huge pages - which is the
-> > current situation.
-> >
-> > RFC/discussion thread:
-> > https://lore.kernel.org/lkml/20181029210716.212159-1-brho@google.com/
-> >
-> > v1 -> v2:
-> > https://lore.kernel.org/lkml/20181109203921.178363-1-brho@google.com/
-> >
-> > - Updated Acks/Reviewed-by
-> > - Minor touchups
-> > - Added patch to remove redundant PageReserved() check
-> > - Rebased onto linux-next
-> >
-> >
-> > Barret Rhoden (3):
-> >   mm: make dev_pagemap_mapping_shift() externally visible
-> >   kvm: Use huge pages for DAX-backed files
-> >   kvm: remove redundant PageReserved() check
-> >
-> >  arch/x86/kvm/mmu.c  | 33 +++++++++++++++++++++++++++++++--
-> >  include/linux/mm.h  |  3 +++
-> >  mm/memory-failure.c | 38 +++-----------------------------------
-> >  mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
-> >  virt/kvm/kvm_main.c |  8 ++------
-> >  5 files changed, 73 insertions(+), 43 deletions(-)
-> >
-> > --
-> > 2.19.1.1215.g8438c0b245-goog
-> >  
+Cheers
