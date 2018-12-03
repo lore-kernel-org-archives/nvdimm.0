@@ -1,24 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f196.google.com (mail-pf1-f196.google.com
- [209.85.210.196])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79CE821194D43
- for <linux-nvdimm@lists.01.org>; Tue,  4 Dec 2018 12:47:07 -0800 (PST)
-Received: by mail-pf1-f196.google.com with SMTP id q1so8807419pfi.5
- for <linux-nvdimm@lists.01.org>; Tue, 04 Dec 2018 12:47:07 -0800 (PST)
-Date: Tue, 4 Dec 2018 12:47:01 -0800
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [RFC v3 11/19] kunit: add Python libraries for handing KUnit
- config and kernel
-Message-ID: <20181204204701.GT28501@garbanzo.do-not-panic.com>
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-12-brendanhiggins@google.com>
- <841cf4ae-501b-05ae-5863-a51010709b67@ideasonboard.com>
- <CAFd5g47x-UNja72k-CWPmWz9+LTn8pF8Wj5Poq+2FJ93E=vymA@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id B94C7211982CB
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 10:37:50 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 2/2] libnvdimm, pfn: Pad pfn namespaces relative to
+ other regions
+Date: Mon, 3 Dec 2018 18:37:48 +0000
+Message-ID: <59376b8cdfd0d0fff2a13e65ef30d0755b1457be.camel@intel.com>
+References: <154308521932.237140.13650270234597178173.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <154308522458.237140.16550557898744466932.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154308522458.237140.16550557898744466932.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <1FDB3934DBA41F498975B9EEDADC8D33@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAFd5g47x-UNja72k-CWPmWz9+LTn8pF8Wj5Poq+2FJ93E=vymA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,61 +26,204 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>, Kent Overstreet <kent.overstreet@gmail.com>, Matthew Wilcox <willy@infradead.org>, Eryu Guan <guaneryu@gmail.com>, Eric Sandeen <sandeen@sandeen.net>, jeffm@suse.com, Sasha Levin <Alexander.Levin@microsoft.com>
-Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm@lists.01.org, richard@nod.at, Knut Omang <knut.omang@oracle.com>, kieran.bingham@ideasonboard.com, Felix Guo <felixguoxiuping@gmail.com>, Joel Stanley <joel@jms.id.au>, jdike@addtoit.com, Petr Mladek <pmladek@suse.com>, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, fsdevel@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, joe@perches.com, khilman@baylibre.com
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Dec 03, 2018 at 03:48:15PM -0800, Brendan Higgins wrote:
-> On Thu, Nov 29, 2018 at 5:54 AM Kieran Bingham
-> <kieran.bingham@ideasonboard.com> wrote:
-> >
-> > Hi Brendan,
-> >
-> > Thanks again for this series!
-> >
-> > On 28/11/2018 19:36, Brendan Higgins wrote:
-> > > The ultimate goal is to create minimal isolated test binaries; in the
-> > > meantime we are using UML to provide the infrastructure to run tests, so
-> > > define an abstract way to configure and run tests that allow us to
-> > > change the context in which tests are built without affecting the user.
-> > > This also makes pretty and dynamic error reporting, and a lot of other
-> > > nice features easier.
-> >
-> >
-> > I wonder if we could somehow generate a shared library object
-> > 'libkernel' or 'libumlinux' from a UM configured set of headers and
-> > objects so that we could create binary targets directly ?
+
+On Sat, 2018-11-24 at 10:47 -0800, Dan Williams wrote:
+> Commit cfe30b872058 "libnvdimm, pmem: adjust for section collisions with
+> 'System RAM'" enabled Linux to workaround occasions where platform
+> firmware arranges for "System RAM" and "Persistent Memory" to collide
+> within a single section boundary. Unfortunately, as reported in this
+> issue [1], platform firmware can inflict the same collision between
+> persistent memory regions.
 > 
-> That's an interesting idea. I think it would be difficult to figure
-> out exactly where to draw the line of what goes in there and what
-> needs to be built specific to a test a priori. Of course, that leads
-> into the biggest problem in general, needed to know what I need to
-> build to test the thing that I want to test.
+> The approach of interrogating iomem_resource does not work in this
+> case because platform firmware may merge multiple regions into a single
+> iomem_resource range. Instead provide a method to interrogate regions
+> that share the same parent bus.
 > 
-> Nevertheless, I could definitely imagine that being useful in a lot of cases.
+> This is a stop-gap until the core-MM can grow support for hotplug on
+> sub-section boundaries.
+> 
+> [1]: https://github.com/pmem/ndctl/issues/76
+> 
+> Fixes: cfe30b872058 ("libnvdimm, pmem: adjust for section collisions with...")
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/nvdimm/nd-core.h     |    2 +
+>  drivers/nvdimm/pfn_devs.c    |   64 ++++++++++++++++++++++++------------------
+>  drivers/nvdimm/region_devs.c |   41 +++++++++++++++++++++++++++
+>  3 files changed, 80 insertions(+), 27 deletions(-)
 
-Whether or not we can abstract away the kernel into such a mechanism
-with uml libraries is a good question worth exploring.
+Looks good to me,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Developers working upstream do modify their kernels a lot, so we'd have
-to update such libraries quite a bit, but I think that's fine too. The
-*real* value I think from the above suggestion would be enterprise /
-mobile distros or stable kernel maintainers which have a static kernel
-they need to support for a relatively *long time*, consider a 10 year
-time frame. Running unit tests without qemu with uml and libraries for
-respective kernels seems real worthy.
+> 
+> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+> index 182258f64417..d0c621b32f72 100644
+> --- a/drivers/nvdimm/nd-core.h
+> +++ b/drivers/nvdimm/nd-core.h
+> @@ -111,6 +111,8 @@ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
+>  		struct nd_mapping *nd_mapping, resource_size_t *overlap);
+>  resource_size_t nd_blk_available_dpa(struct nd_region *nd_region);
+>  resource_size_t nd_region_available_dpa(struct nd_region *nd_region);
+> +int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
+> +		resource_size_t size);
+>  resource_size_t nvdimm_allocated_dpa(struct nvdimm_drvdata *ndd,
+>  		struct nd_label_id *label_id);
+>  int alias_dpa_busy(struct device *dev, void *data);
+> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+> index 24c64090169e..6f22272e8d80 100644
+> --- a/drivers/nvdimm/pfn_devs.c
+> +++ b/drivers/nvdimm/pfn_devs.c
+> @@ -649,14 +649,47 @@ static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
+>  			ALIGN_DOWN(phys, nd_pfn->align));
+>  }
+>  
+> +/*
+> + * Check if pmem collides with 'System RAM', or other regions when
+> + * section aligned.  Trim it accordingly.
+> + */
+> +static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
+> +{
+> +	struct nd_namespace_common *ndns = nd_pfn->ndns;
+> +	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+> +	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
+> +	const resource_size_t start = nsio->res.start;
+> +	const resource_size_t end = start + resource_size(&nsio->res);
+> +	resource_size_t adjust, size;
+> +
+> +	*start_pad = 0;
+> +	*end_trunc = 0;
+> +
+> +	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
+> +	size = resource_size(&nsio->res) + adjust;
+> +	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
+> +				IORES_DESC_NONE) == REGION_MIXED
+> +			|| nd_region_conflict(nd_region, start - adjust, size))
+> +		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+> +
+> +	/* Now check that end of the range does not collide. */
+> +	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
+> +	size = resource_size(&nsio->res) + adjust;
+> +	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+> +				IORES_DESC_NONE) == REGION_MIXED
+> +			|| !IS_ALIGNED(end, nd_pfn->align)
+> +			|| nd_region_conflict(nd_region, start, size + adjust))
+> +		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
+> +}
+> +
+>  static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>  {
+>  	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+>  	struct nd_namespace_common *ndns = nd_pfn->ndns;
+> -	u32 start_pad = 0, end_trunc = 0;
+> +	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+>  	resource_size_t start, size;
+> -	struct nd_namespace_io *nsio;
+>  	struct nd_region *nd_region;
+> +	u32 start_pad, end_trunc;
+>  	struct nd_pfn_sb *pfn_sb;
+>  	unsigned long npfns;
+>  	phys_addr_t offset;
+> @@ -688,30 +721,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>  
+>  	memset(pfn_sb, 0, sizeof(*pfn_sb));
+>  
+> -	/*
+> -	 * Check if pmem collides with 'System RAM' when section aligned and
+> -	 * trim it accordingly
+> -	 */
+> -	nsio = to_nd_namespace_io(&ndns->dev);
+> -	start = PHYS_SECTION_ALIGN_DOWN(nsio->res.start);
+> -	size = resource_size(&nsio->res);
+> -	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+> -				IORES_DESC_NONE) == REGION_MIXED) {
+> -		start = nsio->res.start;
+> -		start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+> -	}
+> -
+> -	start = nsio->res.start;
+> -	size = PHYS_SECTION_ALIGN_UP(start + size) - start;
+> -	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+> -				IORES_DESC_NONE) == REGION_MIXED
+> -			|| !IS_ALIGNED(start + resource_size(&nsio->res),
+> -				nd_pfn->align)) {
+> -		size = resource_size(&nsio->res);
+> -		end_trunc = start + size - phys_pmem_align_down(nd_pfn,
+> -				start + size);
+> -	}
+> -
+> +	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
+>  	if (start_pad + end_trunc)
+>  		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+>  				dev_name(&ndns->dev), start_pad + end_trunc);
+> @@ -722,7 +732,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>  	 * implementation will limit the pfns advertised through
+>  	 * ->direct_access() to those that are included in the memmap.
+>  	 */
+> -	start += start_pad;
+> +	start = nsio->res.start + start_pad;
+>  	size = resource_size(&nsio->res);
+>  	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - SZ_8K)
+>  			/ PAGE_SIZE);
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 174a418cb171..e7377f1028ef 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -1184,6 +1184,47 @@ int nvdimm_has_cache(struct nd_region *nd_region)
+>  }
+>  EXPORT_SYMBOL_GPL(nvdimm_has_cache);
+>  
+> +struct conflict_context {
+> +	struct nd_region *nd_region;
+> +	resource_size_t start, size;
+> +};
+> +
+> +static int region_conflict(struct device *dev, void *data)
+> +{
+> +	struct nd_region *nd_region;
+> +	struct conflict_context *ctx = data;
+> +	resource_size_t res_end, region_end, region_start;
+> +
+> +	if (!is_memory(dev))
+> +		return 0;
+> +
+> +	nd_region = to_nd_region(dev);
+> +	if (nd_region == ctx->nd_region)
+> +		return 0;
+> +
+> +	res_end = ctx->start + ctx->size;
+> +	region_start = nd_region->ndr_start;
+> +	region_end = region_start + nd_region->ndr_size;
+> +	if (ctx->start >= region_start && ctx->start < region_end)
+> +		return -EBUSY;
+> +	if (res_end > region_start && res_end <= region_end)
+> +		return -EBUSY;
+> +	return 0;
+> +}
+> +
+> +int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
+> +		resource_size_t size)
+> +{
+> +	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nd_region->dev);
+> +	struct conflict_context ctx = {
+> +		.nd_region = nd_region,
+> +		.start = start,
+> +		.size = size,
+> +	};
+> +
+> +	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
+> +}
+> +
+>  void __exit nd_region_devs_exit(void)
+>  {
+>  	ida_destroy(&region_ida);
+> 
 
-The overhead for testing a unit test for said targets, *ideally*, would
-just be to to reboot into the system with such libraries available, a
-unit test would just look for the respective uname -r library and mimic
-that kernel, much the same way enterprise distributions today rely on
-having debugging symbols available to run against crash / gdb. Having
-debug modules / kernel for crash requires such effort already, so this
-would just be an extra layer of other prospect tests.
-
-All ideaware for now, but the roadmap seems to be paving itself.
-
-  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
