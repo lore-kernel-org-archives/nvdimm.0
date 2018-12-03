@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A1A0F2194D387
- for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 11:25:21 -0800 (PST)
-Subject: [PATCH RFC 0/3] Fix KVM misinterpreting Reserved page as an MMIO page
+ by ml01.01.org (Postfix) with ESMTPS id 0F53F211982F2
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 11:25:36 -0800 (PST)
+Subject: [PATCH RFC 3/3] kvm: Add additional check to determine if a page is
+ refcounted
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 03 Dec 2018 11:25:20 -0800
-Message-ID: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
+Date: Mon, 03 Dec 2018 11:25:36 -0800
+Message-ID: <154386513636.27193.9038916677163713072.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,41 +27,46 @@ To: dan.j.williams@intel.com, pbonzini@redhat.com, yi.z.zhang@linux.intel.com, b
 Cc: yu.c.zhang@intel.com, david@redhat.com, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-I have loosely based this patch series off of the following patch series
-from Zhang Yi:
-https://lore.kernel.org/lkml/cover.1536342881.git.yi.z.zhang@linux.intel.com
+The function kvm_is_refcounted_page is used primarily to determine if KVM
+is allowed to take a reference on the page. It was using the PG_reserved
+flag to determine this previously, however in the case of DAX the page has
+the PG_reserved flag set, but supports pinning by taking a reference on
+the page. As such I have updated the check to add a special case for
+ZONE_DEVICE pages that have the new support_refcount_pinning flag set.
 
-The original set had attempted to address the fact that DAX pages were
-treated like MMIO pages which had resulted in reduced performance. It
-attempted to address this by ignoring the PageReserved flag if the page
-was either a DEV_DAX or FS_DAX page.
-
-I am proposing this as an alternative to that set. The main reason for this
-is because I believe there are a few issues that were overlooked with that
-original set. Specifically KVM seems to have two different uses for the
-PageReserved flag. One being whether or not we can pin the memory, the other
-being if we should be marking the pages as dirty or accessed. I believe
-only the pinning really applies so I have split the uses of
-kvm_is_reserved_pfn and updated the function uses to determine support for
-page pinning to include a check of the pgmap to see if it supports pinning.
-
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
+ virt/kvm/kvm_main.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-Alexander Duyck (3):
-      kvm: Split use cases for kvm_is_reserved_pfn to kvm_is_refcounted_pfn
-      mm: Add support for exposing if dev_pagemap supports refcount pinning
-      kvm: Add additional check to determine if a page is refcounted
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 5e666df5666d..2e7e9fbb67bf 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -148,8 +148,20 @@ __weak int kvm_arch_mmu_notifier_invalidate_range(struct kvm *kvm,
+ 
+ bool kvm_is_refcounted_pfn(kvm_pfn_t pfn)
+ {
+-	if (pfn_valid(pfn))
+-		return !PageReserved(pfn_to_page(pfn));
++	if (pfn_valid(pfn)) {
++		struct page *page = pfn_to_page(pfn);
++
++		/*
++		 * The reference count for MMIO pages are not updated.
++		 * Previously this was being tested for with just the
++		 * PageReserved check, however now ZONE_DEVICE pages may
++		 * also allow for the refcount to be updated for the sake
++		 * of pinning the pages so use the additional check provided
++		 * to determine if the reference count on the page can be
++		 * used to pin it.
++		 */
++		return !PageReserved(page) || is_device_pinnable_page(page);
++	}
+ 
+ 	return false;
+ }
 
-
- arch/x86/kvm/mmu.c        |    6 +++---
- drivers/nvdimm/pfn_devs.c |    2 ++
- include/linux/kvm_host.h  |    2 +-
- include/linux/memremap.h  |    5 ++++-
- include/linux/mm.h        |   11 +++++++++++
- virt/kvm/kvm_main.c       |   34 +++++++++++++++++++++++++---------
- 6 files changed, 46 insertions(+), 14 deletions(-)
-
---
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
