@@ -1,18 +1,12 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC v3 08/19] arch: um: add shim to trap to allow installing a
- fault catcher for tests
-Date: Mon, 3 Dec 2018 16:44:56 -0800
-Message-ID: <CAFd5g45p55GXuk-PcaknVHywJ25LsM+7N83L_g0ob6Q0FTwSrg@mail.gmail.com>
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-9-brendanhiggins@google.com>
- <20181130033429.GK18410@garbanzo.do-not-panic.com>
- <CAFd5g45+MAVaSW8HN9x57Y8Um=TV1Oa=-K8yExPBS-4KjLyciQ@mail.gmail.com>
- <20181203234628.GR28501@garbanzo.do-not-panic.com>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+ =?utf-8?B?6KKr6buR5LqG77yBIOeri+WNs+abtOaUueWvhuegge+8gQ==?=
+Date: 3 Dec 2018 07:48:21 -0900
+Message-ID: <A0EC35EC0707C3A0ECC3648F8F4B2864@8QLJSKNOQ5C>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181203234628.GR28501-dAjH6bxAqesAS62YNPtMr3dQhYtBYE6JAL8bYrjMMd8@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,86 +16,58 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: brakmo-b10kYP2dOMg@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Dec 3, 2018 at 3:46 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> On Mon, Dec 03, 2018 at 03:34:57PM -0800, Brendan Higgins wrote:
-> > On Thu, Nov 29, 2018 at 7:34 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > >
-> > > On Wed, Nov 28, 2018 at 11:36:25AM -0800, Brendan Higgins wrote:
-> > > > diff --git a/arch/um/kernel/trap.c b/arch/um/kernel/trap.c
-> > > > index cced829460427..bf90e678b3d71 100644
-> > > > --- a/arch/um/kernel/trap.c
-> > > > +++ b/arch/um/kernel/trap.c
-> > > > @@ -201,6 +201,12 @@ void segv_handler(int sig, struct siginfo *unused_si, struct uml_pt_regs *regs)
-> > > >       segv(*fi, UPT_IP(regs), UPT_IS_USER(regs), regs);
-> > > >  }
-> > > >
-> > > > +static void segv_run_catcher(jmp_buf *catcher, void *fault_addr)
-> > > > +{
-> > > > +     current->thread.fault_addr = fault_addr;
-> > > > +     UML_LONGJMP(catcher, 1);
-> > > > +}
-> > > > +
-> > > >  /*
-> > > >   * We give a *copy* of the faultinfo in the regs to segv.
-> > > >   * This must be done, since nesting SEGVs could overwrite
-> > > > @@ -219,7 +225,10 @@ unsigned long segv(struct faultinfo fi, unsigned long ip, int is_user,
-> > > >       if (!is_user && regs)
-> > > >               current->thread.segv_regs = container_of(regs, struct pt_regs, regs);
-> > > >
-> > > > -     if (!is_user && (address >= start_vm) && (address < end_vm)) {
-> > > > +     catcher = current->thread.fault_catcher;
-> > >
-> > > This and..
-> > >
-> > > > +     if (catcher && current->thread.is_running_test)
-> > > > +             segv_run_catcher(catcher, (void *) address);
-> > > > +     else if (!is_user && (address >= start_vm) && (address < end_vm)) {
-> > > >               flush_tlb_kernel_vm();
-> > > >               goto out;
-> > > >       }
-> > >
-> > > *not this*
-> >
-> > I don't understand. Are you saying the previous block of code is good
-> > and this one is bad?
->
-> No, I was saying that the above block of code is a functional change,
-> but I was also pointing out other areas which were not and could be
-> folded into a separate atomic patch where no functionality changes.
->
-> > > > @@ -246,12 +255,10 @@ unsigned long segv(struct faultinfo fi, unsigned long ip, int is_user,
-> > > >               address = 0;
-> > > >       }
-> > > >
-> > > > -     catcher = current->thread.fault_catcher;
-> > > >       if (!err)
-> > > >               goto out;
-> > > >       else if (catcher != NULL) {
-> > > > -             current->thread.fault_addr = (void *) address;
-> > > > -             UML_LONGJMP(catcher, 1);
-> > > > +             segv_run_catcher(catcher, (void *) address);
-> > > >       }
-> > > >       else if (current->thread.fault_addr != NULL)
-> > > >               panic("fault_addr set but no fault catcher");
-> > >
-> > > But with this seems one atomic change which should be submitted
-> > > separately, its just a helper. Think it would make the actual
-> > > change needed easier to review, ie, your needed changes would
-> > > be smaller and clearer for what you need.
-> >
-> > Are you suggesting that I pull out the bits needed to implement abort
-> > in the next patch and squash it into this one?
->
-> No, I'm suggesting you can probably split this patch in 2, one which
-> wraps things with no functional changes, and another which adds your
-> changes.
->
+&#25105;&#38382;&#20505;&#20320;&#65281;
 
-That makes sense.
+&#25105;&#26377;&#20010;&#22351;&#28040;&#24687;&#12290;
+22/08/2018 - &#22312;&#36825;&#19968;&#22825;&#65292;&#25105;&#25915;&#20987;&#20102;&#24744;&#30340;&#25805;&#20316;&#31995;&#32479;&#24182;&#23436;&#20840;&#35775;&#38382;&#20102;&#24744;&#30340;&#24080;&#25143; linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org&#12290;
 
-Thanks for the clarification!
+&#23601;&#26159;&#36825;&#26679;&#12290;
+&#22312;&#24744;&#24403;&#22825;&#36830;&#25509;&#30340;&#36335;&#30001;&#22120;&#30340;&#36719;&#20214;&#20013;&#65292;&#23384;&#22312;&#19968;&#20010;&#28431;&#27934;&#12290;
+&#25105;&#39318;&#20808;&#25915;&#20987;&#20102;&#36825;&#20010;&#36335;&#30001;&#22120;&#24182;&#23558;&#24694;&#24847;&#20195;&#30721;&#25918;&#22312;&#19978;&#38754;&#12290;
+&#24403;&#24744;&#36890;&#36807;Internet&#36755;&#20837;&#26102;&#65292;&#25105;&#30340;&#26408;&#39532;&#23433;&#35013;&#22312;&#24744;&#35774;&#22791;&#30340;&#25805;&#20316;&#31995;&#32479;&#19978;&#12290;
+
+&#20043;&#21518;&#65292;&#25105;&#23436;&#25104;&#20102;&#20320;&#30340;&#30913;&#30424;&#36716;&#20648;&#65288;&#25105;&#26377;&#20320;&#25152;&#26377;&#30340;&#22320;&#22336;&#31807;&#65292;&#26597;&#30475;&#32593;&#31449;&#30340;&#21382;&#21490;&#35760;&#24405;&#65292;&#25152;&#26377;&#25991;&#20214;&#65292;&#30005;&#35805;&#21495;&#30721;&#21644;&#25152;&#26377;&#32852;&#31995;&#20154;&#30340;&#22320;&#22336;&#65289;&#12290;
+
+&#19968;&#20010;&#26376;&#21069;&#65292;&#25105;&#24819;&#38145;&#23450;&#20320;&#30340;&#35774;&#22791;&#24182;&#35201;&#27714;&#23569;&#37327;&#36164;&#37329;&#35299;&#38145;&#12290;
+&#20294;&#25105;&#26597;&#30475;&#20102;&#24744;&#32463;&#24120;&#35775;&#38382;&#30340;&#32593;&#31449;&#12290; &#20320;&#26368;&#21916;&#27426;&#30340;&#36164;&#28304;&#20196;&#25105;&#38663;&#24778;&#12290;
+&#25105;&#35828;&#30340;&#26159;&#25104;&#20154;&#32593;&#31449;&#12290;
+
+&#25105;&#24819;&#35828; - &#20320;&#26159;&#20010;&#22823;&#21464;&#24577;&#32773;&#12290;&#20320;&#26377;&#19968;&#20010;&#20196;&#20154;&#30524;&#33457;&#32557;&#20081;&#30340;&#24187;&#24819;&#65281;
+
+&#22312;&#37027;&#20043;&#21518;&#65292;&#25105;&#24819;&#21040;&#20102;&#19968;&#20010;&#24819;&#27861;&#12290;
+&#25105;&#21046;&#20316;&#20102;&#20320;&#21916;&#27426;&#30340;&#25104;&#20154;&#32593;&#31449;&#30340;&#25130;&#22270;&#65288;&#20320;&#30693;&#36947;&#25105;&#30340;&#24847;&#24605;&#65292;&#26159;&#21527;&#65311;&#65289;&#12290;
+&#20043;&#21518;&#65292;&#25105;&#22312;&#27983;&#35272;&#26412;&#32593;&#31449;&#26102;&#25293;&#25668;&#20102;&#20320;&#21644;&#20320;&#30340;&#23089;&#20048;&#29031;&#29255;&#65288;&#25105;&#20351;&#29992;&#20102;&#20320;&#35774;&#22791;&#30340;&#30456;&#26426;&#65289;&#12290;
+&#32467;&#26524;&#24456;&#26834;&#65281; &#19981;&#35201;&#29369;&#35947;&#65281;
+
+&#25105;&#28145;&#20449;&#24744;&#19981;&#24819;&#21521;&#24744;&#30340;&#20146;&#25114;&#65292;&#26379;&#21451;&#25110;&#21516;&#20107;&#23637;&#31034;&#36825;&#20123;&#29031;&#29255;&#12290;
+&#25105;&#35748;&#20026;333&#32654;&#20803;&#23545;&#20110;&#25105;&#30340;&#27785;&#40664;&#26159;&#23569;&#37327;&#30340;&#12290;
+&#27492;&#22806;&#65292;&#25105;&#33457;&#20102;&#24456;&#22810;&#26102;&#38388;&#22312;&#20320;&#36523;&#19978;&#65281;
+
+&#25105;&#22312;&#27604;&#29305;&#24065;&#25509;&#21463;&#38065;&#12290;
+&#25105;&#30340;BTC&#38065;&#21253;&#65306; 1P7bLeCJywaaDRQpT7iwb4qzUHa4CpRFyP
+
+&#24744;&#19981;&#30693;&#36947;&#22914;&#20309;&#34917;&#20805;&#27604;&#29305;&#24065;&#38065;&#21253;&#65311;
+&#22312;&#20219;&#20309;&#25628;&#32034;&#24341;&#25806;&#20013;&#20889;&#8220;&#22914;&#20309;&#34917;&#20805;btc&#38065;&#21253;&#8221;&#12290;
+&#36825;&#24456;&#31616;&#21333;&#12290;
+
+&#23545;&#20110;&#20184;&#27454;&#65292;&#20320;&#26377;&#20004;&#22825;&#22810;&#19968;&#28857;&#65288;&#24688;&#22909;50&#23567;&#26102;&#65289;&#12290;
+&#21035;&#25285;&#24515;&#65292;&#35745;&#26102;&#22120;&#23558;&#22312;&#24744;&#25171;&#24320;&#27492;&#20449;&#20214;&#26102;&#24320;&#22987;&#12290;&#26159;&#30340;&#65292;&#26159;&#30340;..&#23427;&#24050;&#32463;&#24320;&#22987;&#20102;&#65281;
+
+&#20184;&#27454;&#21518;&#65292;&#25105;&#30340;&#30149;&#27602;&#21644;&#20320;&#30340;&#22949;&#21327;&#33258;&#21160;&#27585;&#28781;&#12290;
+&#22914;&#26524;&#25105;&#27809;&#26377;&#25910;&#21040;&#24744;&#25351;&#23450;&#30340;&#37329;&#39069;&#65292;&#24744;&#30340;&#35774;&#22791;&#23558;&#34987;&#23631;&#34109;&#65292;&#24744;&#30340;&#25152;&#26377;&#32852;&#31995;&#20154;&#37117;&#20250;&#25910;&#21040;&#24744;&#23089;&#20048;&#30340;&#29031;&#29255;&#12290;
+
+&#35201;&#35880;&#24910;&#65281;
+- &#19981;&#35201;&#35797;&#22270;&#25214;&#21040;&#24182;&#25703;&#27585;&#25105;&#30340;&#30149;&#27602;&#65281; &#65288;&#24744;&#30340;&#25152;&#26377;&#25968;&#25454;&#37117;&#24050;&#19978;&#20256;&#21040;&#36828;&#31243;&#26381;&#21153;&#22120;&#65289;
+- &#19981;&#35201;&#35797;&#22270;&#32852;&#31995;&#25105;&#65288;&#36825;&#26159;&#19981;&#21487;&#33021;&#30340;&#65292;&#25105;&#36890;&#36807;&#24744;&#30340;&#24080;&#25143;&#21521;&#24744;&#21457;&#36865;&#20102;&#27492;&#30005;&#23376;&#37038;&#20214;&#65289;
+- &#21508;&#31181;&#23433;&#20840;&#26381;&#21153;&#23545;&#24744;&#27809;&#26377;&#24110;&#21161;;&#26684;&#24335;&#21270;&#30913;&#30424;&#25110;&#38144;&#27585;&#35774;&#22791;&#20063;&#26080;&#27982;&#20110;&#20107;&#65292;&#22240;&#20026;&#24744;&#30340;&#25968;&#25454;&#24050;&#32463;&#22312;&#36828;&#31243;&#26381;&#21153;&#22120;&#19978;&#12290;
+
+&#38468;&#65306;&#25105;&#20445;&#35777;&#65292;&#20184;&#27454;&#21518;&#25105;&#19981;&#20250;&#25171;&#25200;&#20320;&#65292;&#22240;&#20026;&#20320;&#19981;&#26159;&#25105;&#21807;&#19968;&#30340;&#23458;&#25143;&#12290;
+&#36825;&#26159;&#19968;&#20010;&#40657;&#23458;&#30340;&#33635;&#35465;&#20934;&#21017;&#12290;
+
+&#20174;&#29616;&#22312;&#24320;&#22987;&#65292;&#25105;&#24314;&#35758;&#20320;&#20351;&#29992;&#22909;&#30340;&#38450;&#30149;&#27602;&#36719;&#20214;&#24182;&#23450;&#26399;&#26356;&#26032;&#65288;&#27599;&#22825;&#20960;&#27425;&#65289;&#65281;
+
+&#19981;&#35201;&#29983;&#25105;&#30340;&#27668;&#65292;&#27599;&#20010;&#20154;&#37117;&#26377;&#33258;&#24049;&#30340;&#24037;&#20316;&#12290;
+&#20877;&#35265;&#12290;
