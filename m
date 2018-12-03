@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C853B2118F78B
- for <linux-nvdimm@lists.01.org>; Wed,  5 Dec 2018 09:25:19 -0800 (PST)
-Subject: [driver-core PATCH v8 1/9] driver core: Move async_synchronize_full
- call
+ by ml01.01.org (Postfix) with ESMTPS id B3A8E21959CB2
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 10:32:01 -0800 (PST)
+Message-ID: <714716fde90865e195848f1a9a38e9134e75ad29.camel@linux.intel.com>
+Subject: Re: [PATCH v2 0/3] kvm: Use huge pages for DAX-backed files
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 05 Dec 2018 09:25:18 -0800
-Message-ID: <154403071891.11544.9860064260259005955.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
-References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
-MIME-Version: 1.0
+Date: Mon, 03 Dec 2018 10:32:00 -0800
+In-Reply-To: <20181203124051.05c1d2ce@gnomeregan.cam.corp.google.com>
+References: <20181109203921.178363-1-brho@google.com>
+ <20181114215155.259978-1-brho@google.com>
+ <CAPcyv4jga=HnsfHffWoo+JjRUBf3stD4VP3B5X5xSOZb=yh+Mw@mail.gmail.com>
+ <20181203124051.05c1d2ce@gnomeregan.cam.corp.google.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,56 +25,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: Barret Rhoden <brho@google.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: X86 ML <x86@kernel.org>, "Zhang, Yu C" <yu.c.zhang@intel.com>, KVM list <kvm@vger.kernel.org>, rkrcmar@redhat.com, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, zwisler@kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>Zhang,
 List-ID: <linux-nvdimm@lists.01.org>
 
-Move the async_synchronize_full call out of __device_release_driver and
-into driver_detach.
+On Mon, 2018-12-03 at 12:40 -0500, Barret Rhoden wrote:
+> On 2018-11-14 at 16:55 Dan Williams <dan.j.williams@intel.com> wrote:
+> > [ add Alex who is looking into removing PageReserved for DAX pages. ]
+> 
+> Thanks.  I can keep my eye out for his patches and repost once that's
+> done.  
+> 
+> Alternatively, if you all want to merge this before the PageReserved /
+> DAX changes, then I can repost - just Ack/Review tags.  It's harmless
+> with the existing PageReserved behavior.
+> 
+> Thanks,
+> 
+> Barret
 
-The idea behind this is that the async_synchronize_full call will only
-guarantee that any existing async operations are flushed. This doesn't do
-anything to guarantee that a hotplug event that may occur while we are
-doing the release of the driver will not be asynchronously scheduled.
+So the latest version of my generic memory init patches are up at:
 
-By moving this into the driver_detach path we can avoid potential deadlocks
-as we aren't holding the device lock at this point and we should not have
-the driver we want to flush loaded so the flush will take care of any
-asynchronous events the driver we are detaching might have scheduled.
+https://lore.kernel.org/lkml/154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com/
 
-Fixes: 765230b5f084 ("driver-core: add asynchronous probing support for drivers")
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/dd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+To be honest I am not entirely convinced that dropping PageReserved is
+the right thing to do for DAX pages. I've been trying to work out a few
+different issues but not having much luck. It seems like the main issue
+is that the PageReserved bit is being used to indicate 2 different
+things in a few spots throughout the kernel.
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 689ac9dc6d81..88713f182086 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -931,9 +931,6 @@ static void __device_release_driver(struct device *dev, struct device *parent)
- 
- 	drv = dev->driver;
- 	if (drv) {
--		if (driver_allows_async_probing(drv))
--			async_synchronize_full();
--
- 		while (device_links_busy(dev)) {
- 			device_unlock(dev);
- 			if (parent)
-@@ -1039,6 +1036,9 @@ void driver_detach(struct device_driver *drv)
- 	struct device_private *dev_prv;
- 	struct device *dev;
- 
-+	if (driver_allows_async_probing(drv))
-+		async_synchronize_full();
-+
- 	for (;;) {
- 		spin_lock(&drv->p->klist_devices.k_lock);
- 		if (list_empty(&drv->p->klist_devices.k_list)) {
+The definition of the PG_reserved flag reads like it should apply to
+DAX pages:
+  PG_reserved is set for special pages, which can never be swapped out.
+  Some of them might not even exist...
+
+PageReserved essentially means you aren't supposed to be migrating or
+swapping the page. The problem here is that I believe this logic should
+apply to DAX pages and so in many cases it makes sense to leave the
+flag set for DAX pages. Otherwise you have to go through and start
+special casing all the spots where normal memory falls through and add
+a check to see if we have a DAX page.
+
+The second use for the PG_reserved flag is to test for if you can pin
+the page or not. This I think is the reason why many are just assuming
+PageReserved == MMIO like KVM does. However this is a bad assumption to
+be making since the introduction of DAX, HMM, and P2PDMA allows MMIO
+memory to start doing different things like supporting pinning. I also
+believe it would be a bad reason to clear the flag for DAX pages.
+
+Thanks.
+
+- Alex
 
 _______________________________________________
 Linux-nvdimm mailing list
