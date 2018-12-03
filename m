@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8FF0C2119AC1B
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:47 -0800 (PST)
-Subject: [PATCH v13 15/17] tools/testing/nvdimm: Add overwrite support for
- nfit_test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 11 Dec 2018 13:26:46 -0700
-Message-ID: <154456000690.26509.5361128585960409745.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
-References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 568DD211982F2
+ for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 11:25:26 -0800 (PST)
+Subject: [PATCH RFC 1/3] kvm: Split use cases for kvm_is_reserved_pfn to
+ kvm_is_refcounted_pfn
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Mon, 03 Dec 2018 11:25:26 -0800
+Message-ID: <154386512606.27193.13867450982940890636.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154386493754.27193.1300965403157243427.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,105 +23,127 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com, pbonzini@redhat.com, yi.z.zhang@linux.intel.com, brho@google.com, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: yu.c.zhang@intel.com, david@redhat.com, rkrcmar@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, jack@suse.cz, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-With the implementation of Intel NVDIMM DSM overwrite, we are adding unit
-test to nfit_test for testing of overwrite operation.
+The function kvm_is_reserved_pfn really has two uses. One is to test for if
+we should be updating the reference count on a page when we are accessing
+it. The other is to determine if we should be updating the dirty flag or
+marking pages as accessed.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+In preparation for blurring the lines between ZONE_DEVICE and system RAM I
+am splitting out the dirty/accessed cases into their own checks. Doing this
+allows us to add ZONE_DEVICE to the list of refcounted pages without having
+to worry about us introducing possible issues with pages being marked as
+dirty or accessed and possibly causing any issues with attempted LRU
+accesses on the ZONE_DEVICE pages.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   55 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ arch/x86/kvm/mmu.c       |    6 +++---
+ include/linux/kvm_host.h |    2 +-
+ virt/kvm/kvm_main.c      |   22 +++++++++++++---------
+ 3 files changed, 17 insertions(+), 13 deletions(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 30f89fd740d9..3162fbf6e8a9 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -145,6 +145,7 @@ static int dimm_fail_cmd_code[ARRAY_SIZE(handle)];
- struct nfit_test_sec {
- 	u8 state;
- 	u8 passphrase[32];
-+	u64 overwrite_end_time;
- } dimm_sec_info[NUM_DCR];
+diff --git a/arch/x86/kvm/mmu.c b/arch/x86/kvm/mmu.c
+index 7c03c0f35444..7c61cc260c23 100644
+--- a/arch/x86/kvm/mmu.c
++++ b/arch/x86/kvm/mmu.c
+@@ -798,7 +798,7 @@ static int mmu_spte_clear_track_bits(u64 *sptep)
+ 	 * kvm mmu, before reclaiming the page, we should
+ 	 * unmap it from mmu first.
+ 	 */
+-	WARN_ON(!kvm_is_reserved_pfn(pfn) && !page_count(pfn_to_page(pfn)));
++	WARN_ON(kvm_is_refcounted_pfn(pfn) && !page_count(pfn_to_page(pfn)));
  
- static const struct nd_intel_smart smart_def = {
-@@ -1069,6 +1070,50 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 	if (is_accessed_spte(old_spte))
+ 		kvm_set_pfn_accessed(pfn);
+@@ -3166,7 +3166,7 @@ static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
+ 	 * PT_PAGE_TABLE_LEVEL and there would be no adjustment done
+ 	 * here.
+ 	 */
+-	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
++	if (!is_error_noslot_pfn(pfn) && kvm_is_refcounted_pfn(pfn) &&
+ 	    level == PT_PAGE_TABLE_LEVEL &&
+ 	    PageTransCompoundMap(pfn_to_page(pfn)) &&
+ 	    !mmu_gfn_lpage_is_disallowed(vcpu, gfn, PT_DIRECTORY_LEVEL)) {
+@@ -5668,7 +5668,7 @@ static bool kvm_mmu_zap_collapsible_spte(struct kvm *kvm,
+ 		 * mapping if the indirect sp has level = 1.
+ 		 */
+ 		if (sp->role.direct &&
+-			!kvm_is_reserved_pfn(pfn) &&
++			kvm_is_refcounted_pfn(pfn) &&
+ 			PageTransCompoundMap(pfn_to_page(pfn))) {
+ 			pte_list_remove(rmap_head, sptep);
+ 			need_tlb_flush = 1;
+diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
+index c926698040e0..132e5dbc9049 100644
+--- a/include/linux/kvm_host.h
++++ b/include/linux/kvm_host.h
+@@ -906,7 +906,7 @@ void kvm_arch_sync_events(struct kvm *kvm);
+ int kvm_cpu_has_pending_timer(struct kvm_vcpu *vcpu);
+ void kvm_vcpu_kick(struct kvm_vcpu *vcpu);
+ 
+-bool kvm_is_reserved_pfn(kvm_pfn_t pfn);
++bool kvm_is_refcounted_pfn(kvm_pfn_t pfn);
+ 
+ struct kvm_irq_ack_notifier {
+ 	struct hlist_node link;
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 2679e476b6c3..5e666df5666d 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -146,7 +146,15 @@ __weak int kvm_arch_mmu_notifier_invalidate_range(struct kvm *kvm,
  	return 0;
  }
  
-+static int nd_intel_test_cmd_overwrite(struct nfit_test *t,
-+		struct nd_intel_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
+-bool kvm_is_reserved_pfn(kvm_pfn_t pfn)
++bool kvm_is_refcounted_pfn(kvm_pfn_t pfn)
 +{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++	if (pfn_valid(pfn))
++		return !PageReserved(pfn_to_page(pfn));
 +
-+	if ((sec->state & ND_INTEL_SEC_STATE_ENABLED) &&
-+			memcmp(nd_cmd->passphrase, sec->passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "overwrite: wrong passphrase\n");
-+		return 0;
-+	}
-+
-+	memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+	sec->state = ND_INTEL_SEC_STATE_OVERWRITE;
-+	dev_dbg(dev, "overwrite progressing.\n");
-+	sec->overwrite_end_time = get_jiffies_64() + 5 * HZ;
-+
-+	return 0;
++	return false;
 +}
 +
-+static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
-+		struct nd_intel_query_overwrite *nd_cmd,
-+		unsigned int buf_len, int dimm)
-+{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
-+
-+	if (!(sec->state & ND_INTEL_SEC_STATE_OVERWRITE)) {
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_SEQUENCE_ERR;
-+		return 0;
-+	}
-+
-+	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
-+		sec->overwrite_end_time = 0;
-+		sec->state = 0;
-+		dev_dbg(dev, "overwrite is complete\n");
-+	} else
-+		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
-+	return 0;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
++static bool kvm_is_reserved_pfn(kvm_pfn_t pfn)
  {
- 	int i;
-@@ -1140,6 +1185,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_secure_erase(t,
- 						buf, buf_len, i);
- 				break;
-+			case NVDIMM_INTEL_OVERWRITE:
-+				rc = nd_intel_test_cmd_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
-+			case NVDIMM_INTEL_QUERY_OVERWRITE:
-+				rc = nd_intel_test_cmd_query_overwrite(t,
-+						buf, buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -2375,6 +2428,8 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_UNLOCK_UNIT, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_FREEZE_LOCK, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
- }
+ 	if (pfn_valid(pfn))
+ 		return PageReserved(pfn_to_page(pfn));
+@@ -1678,7 +1686,7 @@ EXPORT_SYMBOL_GPL(kvm_release_page_clean);
  
- static void nfit_test1_setup(struct nfit_test *t)
+ void kvm_release_pfn_clean(kvm_pfn_t pfn)
+ {
+-	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn))
++	if (!is_error_noslot_pfn(pfn) && kvm_is_refcounted_pfn(pfn))
+ 		put_page(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL_GPL(kvm_release_pfn_clean);
+@@ -1700,12 +1708,8 @@ EXPORT_SYMBOL_GPL(kvm_release_pfn_dirty);
+ 
+ void kvm_set_pfn_dirty(kvm_pfn_t pfn)
+ {
+-	if (!kvm_is_reserved_pfn(pfn)) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		if (!PageReserved(page))
+-			SetPageDirty(page);
+-	}
++	if (!kvm_is_reserved_pfn(pfn))
++		SetPageDirty(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL_GPL(kvm_set_pfn_dirty);
+ 
+@@ -1718,7 +1722,7 @@ EXPORT_SYMBOL_GPL(kvm_set_pfn_accessed);
+ 
+ void kvm_get_pfn(kvm_pfn_t pfn)
+ {
+-	if (!kvm_is_reserved_pfn(pfn))
++	if (kvm_is_refcounted_pfn(pfn))
+ 		get_page(pfn_to_page(pfn));
+ }
+ EXPORT_SYMBOL_GPL(kvm_get_pfn);
 
 _______________________________________________
 Linux-nvdimm mailing list
