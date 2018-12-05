@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 25CA8211A4593
- for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:09:53 -0800 (PST)
-Subject: [PATCH v6 09/12] ndctl: add overwrite-wait support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 14 Dec 2018 14:09:52 -0700
-Message-ID: <154482179201.65434.2126929016645274351.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
-References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5122421196236
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Dec 2018 12:42:50 -0800 (PST)
+Date: Wed, 5 Dec 2018 21:42:47 +0100
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
+Message-ID: <20181205204247.GY1286@dhcp22.suse.cz>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+ <154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
+ <20181205172225.GT1286@dhcp22.suse.cz>
+ <19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,258 +26,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: pavel.tatashin@microsoft.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, linux-mm@kvack.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a monitoring command to ndctl in order to wait on the progress of
-overwrite.
+On Wed 05-12-18 09:55:17, Alexander Duyck wrote:
+> On Wed, 2018-12-05 at 18:22 +0100, Michal Hocko wrote:
+> > On Fri 30-11-18 13:53:18, Alexander Duyck wrote:
+> > > Modify the set_page_links function to include the setting of the reserved
+> > > flag via a simple AND and OR operation. The motivation for this is the fact
+> > > that the existing __set_bit call still seems to have effects on performance
+> > > as replacing the call with the AND and OR can reduce initialization time.
+> > > 
+> > > Looking over the assembly code before and after the change the main
+> > > difference between the two is that the reserved bit is stored in a value
+> > > that is generated outside of the main initialization loop and is then
+> > > written with the other flags field values in one write to the page->flags
+> > > value. Previously the generated value was written and then then a btsq
+> > > instruction was issued.
+> > > 
+> > > On my x86_64 test system with 3TB of persistent memory per node I saw the
+> > > persistent memory initialization time on average drop from 23.49s to
+> > > 19.12s per node.
+> > 
+> > I have tried to explain why the whole reserved bit doesn't make much
+> > sense in this code several times already. You keep ignoring that and
+> > that is highly annoying. Especially when you add a tricky code to
+> > optimize something that is not really needed.
+> > 
+> > Based on that I am not going to waste my time on other patches in this
+> > series to review and give feedback which might be ignored again.
+> 
+> I got your explanation. However Andrew had already applied the patches
+> and I had some outstanding issues in them that needed to be addressed.
+> So I thought it best to send out this set of patches with those fixes
+> before the code in mm became too stale. I am still working on what to
+> do about the Reserved bit, and plan to submit it as a follow-up set.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/Makefile.am              |    3 +
- Documentation/ndctl/ndctl-wait-overwrite.txt |   31 ++++++++++
- builtin.h                                    |    1 
- ndctl/dimm.c                                 |   27 +++++++++
- ndctl/lib/dimm.c                             |   79 ++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym                       |    1 
- ndctl/libndctl.h                             |    1 
- ndctl/ndctl.c                                |    1 
- 8 files changed, 143 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
-
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index bbea9674..a60a67e5 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -52,7 +52,8 @@ man1_MANS = \
- 	ndctl-update-passphrase.1 \
- 	ndctl-disable-passphrase.1 \
- 	ndctl-freeze-security.1 \
--	ndctl-sanitize-dimm.1
-+	ndctl-sanitize-dimm.1 \
-+	ndctl-wait-overwrite.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-wait-overwrite.txt b/Documentation/ndctl/ndctl-wait-overwrite.txt
-new file mode 100644
-index 00000000..97583a36
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-wait-overwrite.txt
-@@ -0,0 +1,31 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-wait-overwrite(1)
-+=======================
-+
-+NAME
-+----
-+ndctl-wait-overwrite - wait for nvdimm overwrite operation to complete
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl wait-overwrite' <dimm> [<options>]
-+
-+DESCRIPTION
-+-----------
-+The ernel provides a POLL(2) capable sysfs file ('security') to indicate
-+the state of overwrite. The 'ndctl wait-overwrite' operation waits for
-+'security', across all specified dimms.
-+
-+OPTIONS
-+-------
-+-v::
-+--verbose::
-+	Emit debug messages for the overwrite wait process
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-sanitize-dimm[1]
-diff --git a/builtin.h b/builtin.h
-index db0f2858..32bee59e 100644
---- a/builtin.h
-+++ b/builtin.h
-@@ -53,4 +53,5 @@ int cmd_passphrase_update(int argc, const char **argv, void *ctx);
- int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
- int cmd_freeze_security(int argc, const char **argv, void *ctx);
- int cmd_sanitize_dimm(int argc, const char **argv, void *ctx);
-+int cmd_wait_overwrite(int argc, const char **argv, void *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 6b1ee47f..21ffea1e 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -928,6 +928,24 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 	return 0;
- }
- 
-+static int action_wait_overwrite(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (!ndctl_dimm_security_supported(dimm)) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	rc = ndctl_dimm_wait_for_overwrite_completion(dimm);
-+	if (rc == 1)
-+		printf("%s: overwrite completed.\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -1359,3 +1377,12 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
- 				count >= 0 ? count : 0, count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_wait_overwrite(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_wait_overwrite,
-+			base_options,
-+			"ndctl wait-overwrite <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 2dff80f0..d815b9fc 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -16,6 +16,7 @@
- #include <util/bitmap.h>
- #include <util/sysfs.h>
- #include <stdlib.h>
-+#include <poll.h>
- #include "private.h"
- 
- static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
-@@ -689,3 +690,81 @@ NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
- 	sprintf(buf, "overwrite %ld\n", key);
- 	return write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_wait_for_overwrite_completion(
-+		struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	struct pollfd fds;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int fd = 0, rc;
-+	char *path = dimm->dimm_buf;
-+	int len = dimm->buf_len;
-+
-+	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -ERANGE;
-+	}
-+
-+	fd = open(path, O_RDONLY|O_CLOEXEC);
-+	if (fd < 0) {
-+		rc = -errno;
-+		err(ctx, "open: %s\n", strerror(errno));
-+		return rc;
-+	}
-+	memset(&fds, 0, sizeof(fds));
-+	fds.fd = fd;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc < 0) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+	/* skipping if we aren't in overwrite state */
-+	if (strcmp(buf, "overwrite") != 0) {
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	for (;;) {
-+		rc = sysfs_read_attr(ctx, path, buf);
-+		if (rc < 0) {
-+			rc = -EOPNOTSUPP;
-+			break;
-+		}
-+
-+		if (strcmp(buf, "overwrite") == 0) {
-+			rc = poll(&fds, 1, -1);
-+			if (rc < 0) {
-+				rc = -errno;
-+				err(ctx, "poll error: %s\n", strerror(errno));
-+				break;
-+			}
-+			dbg(ctx, "poll wake: revents: %d\n", fds.revents);
-+			if (pread(fd, buf, 1, 0) == -1) {
-+				rc = -errno;
-+				break;
-+			}
-+			fds.revents = 0;
-+		} else {
-+			if (strcmp(buf, "disabled") == 0)
-+				rc = 1;
-+			break;
-+		}
-+	}
-+
-+	if (rc == 1)
-+		dbg(ctx, "%s: overwrite complete\n",
-+				ndctl_dimm_get_devname(dimm));
-+	else if (rc == 0)
-+		dbg(ctx, "%s: ovewrite skipped\n",
-+				ndctl_dimm_get_devname(dimm));
-+	else
-+		dbg(ctx, "%s: overwrite error waiting for complete\n",
-+				ndctl_dimm_get_devname(dimm));
-+
-+ out:
-+	close(fd);
-+	return rc;
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 0fedae1a..0da8b282 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -400,4 +400,5 @@ global:
- 	ndctl_dimm_secure_erase_key;
- 	ndctl_dimm_overwrite;
- 	ndctl_dimm_overwrite_key;
-+	ndctl_dimm_wait_for_overwrite_completion;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index fee35db7..5c34f2cb 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -706,6 +706,7 @@ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
-+int ndctl_dimm_wait_for_overwrite_completion(struct ndctl_dimm *dimm);
- 
- enum ndctl_key_type {
- 	ND_USER_KEY,
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 40982f43..d16e1ed0 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -93,6 +93,7 @@ static struct cmd_struct commands[] = {
- 	{ "disable-passphrase", cmd_disable_passphrase },
- 	{ "freeze-security", cmd_freeze_security },
- 	{ "sanitize-dimm", cmd_sanitize_dimm },
-+	{ "wait-overwrite", cmd_wait_overwrite },
- 	{ "list", cmd_list },
- 	{ "monitor", cmd_monitor},
- 	{ "help", cmd_help },
-
+>From my experience Andrew can drop patches between different versions of
+the patchset. Things can change a lot while they are in mmotm and under
+the discussion.
+-- 
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
