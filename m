@@ -1,140 +1,55 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1613F211A1E4A
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:48:45 -0800 (PST)
-Subject: [PATCH v14 04/17] keys-encrypted: add nvdimm key format type to
- encrypted keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 09:48:43 -0700
-Message-ID: <154471972381.55644.13221755863116777042.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
-References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v8 7/9] driver core: Attach devices on CPU local
+ to device node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 05 Dec 2018 09:25:49 -0800
+Message-ID: <154403074977.11544.13408447599624293705.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding nvdimm key format type to encrypted keys in order to limit the size
-of the key to 32bytes.
+Call the asynchronous probe routines on a CPU local to the device node. By
+doing this we should be able to improve our initialization time
+significantly as we can avoid having to access the device from a remote
+node which may introduce higher latency.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Acked-by: Mimi Zohar <zohar@linux.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+For example, in the case of initializing memory for NVDIMM this can have a
+significant impact as initialing 3TB on remote node can take up to 39
+seconds while initialing it on a local node only takes 23 seconds. It is
+situations like this where we will see the biggest improvement.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- Documentation/security/keys/trusted-encrypted.rst |    6 ++++
- security/keys/encrypted-keys/encrypted.c          |   29 ++++++++++++++-------
- 2 files changed, 25 insertions(+), 10 deletions(-)
+ drivers/base/dd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/security/keys/trusted-encrypted.rst b/Documentation/security/keys/trusted-encrypted.rst
-index 3bb24e09a332..e8a1c35cd277 100644
---- a/Documentation/security/keys/trusted-encrypted.rst
-+++ b/Documentation/security/keys/trusted-encrypted.rst
-@@ -76,7 +76,7 @@ Usage::
- 
- Where::
- 
--	format:= 'default | ecryptfs'
-+	format:= 'default | ecryptfs | enc32'
- 	key-type:= 'trusted' | 'user'
- 
- 
-@@ -173,3 +173,7 @@ are anticipated.  In particular the new format 'ecryptfs' has been defined in
- in order to use encrypted keys to mount an eCryptfs filesystem.  More details
- about the usage can be found in the file
- ``Documentation/security/keys/ecryptfs.rst``.
-+
-+Another new format 'enc32' has been defined in order to support encrypted keys
-+with payload size of 32 bytes. This will initially be used for nvdimm security
-+but may expand to other usages that require 32 bytes payload.
-diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
-index d92cbf9687c3..fe0aefd06f83 100644
---- a/security/keys/encrypted-keys/encrypted.c
-+++ b/security/keys/encrypted-keys/encrypted.c
-@@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
- static const char blkcipher_alg[] = "cbc(aes)";
- static const char key_format_default[] = "default";
- static const char key_format_ecryptfs[] = "ecryptfs";
-+static const char key_format_enc32[] = "enc32";
- static unsigned int ivsize;
- static int blksize;
- 
-@@ -54,6 +55,7 @@ static int blksize;
- #define HASH_SIZE SHA256_DIGEST_SIZE
- #define MAX_DATA_SIZE 4096
- #define MIN_DATA_SIZE  20
-+#define KEY_ENC32_PAYLOAD_LEN 32
- 
- static struct crypto_shash *hash_tfm;
- 
-@@ -62,12 +64,13 @@ enum {
- };
- 
- enum {
--	Opt_error = -1, Opt_default, Opt_ecryptfs
-+	Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_enc32
- };
- 
- static const match_table_t key_format_tokens = {
- 	{Opt_default, "default"},
- 	{Opt_ecryptfs, "ecryptfs"},
-+	{Opt_enc32, "enc32"},
- 	{Opt_error, NULL}
- };
- 
-@@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
- 	key_format = match_token(p, key_format_tokens, args);
- 	switch (key_format) {
- 	case Opt_ecryptfs:
-+	case Opt_enc32:
- 	case Opt_default:
- 		*format = p;
- 		*master_desc = strsep(&datablob, " \t");
-@@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
- 	format_len = (!format) ? strlen(key_format_default) : strlen(format);
- 	decrypted_datalen = dlen;
- 	payload_datalen = decrypted_datalen;
--	if (format && !strcmp(format, key_format_ecryptfs)) {
--		if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
--			pr_err("encrypted_key: keylen for the ecryptfs format "
--			       "must be equal to %d bytes\n",
--			       ECRYPTFS_MAX_KEY_BYTES);
--			return ERR_PTR(-EINVAL);
-+	if (format) {
-+		if (!strcmp(format, key_format_ecryptfs)) {
-+			if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
-+				pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
-+					ECRYPTFS_MAX_KEY_BYTES);
-+				return ERR_PTR(-EINVAL);
-+			}
-+			decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
-+			payload_datalen = sizeof(struct ecryptfs_auth_tok);
-+		} else if (!strcmp(format, key_format_enc32)) {
-+			if (decrypted_datalen != KEY_ENC32_PAYLOAD_LEN) {
-+				pr_err("encrypted_key: enc32 key payload incorrect length: %d\n",
-+						decrypted_datalen);
-+				return ERR_PTR(-EINVAL);
-+			}
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index b731741059cb..49096adf96a1 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -833,7 +833,7 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 			 */
+ 			dev_dbg(dev, "scheduling asynchronous probe\n");
+ 			get_device(dev);
+-			async_schedule(__device_attach_async_helper, dev);
++			async_schedule_dev(__device_attach_async_helper, dev);
+ 		} else {
+ 			pm_request_idle(dev);
  		}
--		decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
--		payload_datalen = sizeof(struct ecryptfs_auth_tok);
- 	}
- 
- 	encrypted_datalen = roundup(decrypted_datalen, blksize);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+@@ -993,7 +993,7 @@ static int __driver_attach(struct device *dev, void *data)
+ 		if (!dev->driver) {
+ 			get_device(dev);
+ 			dev->p->async_driver = drv;
+-			async_schedule(__driver_attach_async_helper, dev);
++			async_schedule_dev(__driver_attach_async_helper, dev);
+ 		}
+ 		device_unlock(dev);
+ 		return 0;
