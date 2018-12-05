@@ -1,148 +1,233 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95B59211A1E4D
- for <linux-nvdimm@lists.01.org>; Thu, 27 Dec 2018 21:04:30 -0800 (PST)
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm for 4.21
-Date: Fri, 28 Dec 2018 05:04:27 +0000
-Message-ID: <4880b31d0d32c38a675048be903814a062907125.camel@intel.com>
-Content-Language: en-US
-Content-ID: <976809911326ED40870ABAB033F3CB69@intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v8 6/9] async: Add support for queueing on
+ specific NUMA node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 05 Dec 2018 09:25:44 -0800
+Message-ID: <154403074455.11544.16174906665321008150.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+Introduce four new variants of the async_schedule_ functions that allow
+scheduling on a specific NUMA node.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.21
+The first two functions are async_schedule_near and
+async_schedule_near_domain end up mapping to async_schedule and
+async_schedule_domain, but provide NUMA node specific functionality. They
+replace the original functions which were moved to inline function
+definitions that call the new functions while passing NUMA_NO_NODE.
 
-...to receive the libnvdimm update for 4.21.
+The second two functions are async_schedule_dev and
+async_schedule_dev_domain which provide NUMA specific functionality when
+passing a device as the data member and that device has a NUMA node other
+than NUMA_NO_NODE.
 
-The vast bulk of this update is the new support for the security
-capabilities of some nvdimms. It was rebased at the end of last week to
-remove randconfig breakage detected in -next. It has since appeared in
-subsequent -next releases with no reported issues. The userspace
-tooling for this capability is still a work in progress, but the
-changes survive the existing libnvdimm unit tests. The changes also
-pass manual checkout on hardware and the new nfit_test emulation of the
-security capability.
+The main motivation behind this is to address the need to be able to
+schedule device specific init work on specific NUMA nodes in order to
+improve performance of memory initialization.
 
-The touches of the security/keys/ files have received the necessary
-acks from Mimi and David. Those changes were necessary to allow for a
-new generic encrypted-key type, and allow the nvdimm sub-system to
-lookup key material referenced by the libnvdimm-sysfs interface.
+I have seen a significant improvement in initialziation time for persistent
+memory as a result of this approach. In the case of 3TB of memory on a
+single node the initialization time in the worst case went from 36s down to
+about 26s for a 10s improvement. As such the data shows a general benefit
+for affinitizing the async work to the node local to the device.
 
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
+ include/linux/async.h |   82 +++++++++++++++++++++++++++++++++++++++++++++++--
+ kernel/async.c        |   53 +++++++++++++++++---------------
+ 2 files changed, 108 insertions(+), 27 deletions(-)
 
-The following changes since commit 40e020c129cfc991e8ab4736d2665351ffd1468d:
-
-  Linux 4.20-rc6 (2018-12-09 15:31:00 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.21
-
-for you to fetch changes up to 4b5f747e82b12b6d8ab815fc259827a615c7f2c3:
-
-  Merge miscellaneous libnvdimm updates for 4.21 (2018-12-27 19:54:10 -0800)
-
-----------------------------------------------------------------
-libnvdimm for 4.21
-
-* Add support for the security features of nvdimm devices that
-  implement a security model similar to ATA hard drive security. The
-  security model supports locking access to the media at
-  device-power-loss, to be unlocked with a passphrase, and secure-erase
-  (crypto-scramble).
-
-  Unlike the ATA security case where the kernel expects device
-  security to be managed in a pre-OS environment, the libnvdimm security
-  implementation allows key provisioning and key-operations at OS
-  runtime. Keys are managed with the kernel's encrypted-keys facility to
-  provide data-at-rest security for the libnvdimm key material. The
-  usage model mirrors fscrypt key management, but is driven via
-  libnvdimm sysfs.
-
-* Miscellaneous updates for api usage and comment fixes.
-
-----------------------------------------------------------------
-Andy Shevchenko (2):
-      libnvdimm, label: Switch to bitmap_zalloc()
-      libnvdimm, namespace: Replace kmemdup() with kstrndup()
-
-Dan Williams (2):
-      libnvdimm/security: Quiet security operations
-      Merge miscellaneous libnvdimm updates for 4.21
-
-Dave Jiang (16):
-      acpi/nfit: Add support for Intel DSM 1.8 commands
-      acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm
-      keys: Export lookup_user_key to external users
-      keys-encrypted: add nvdimm key format type to encrypted keys
-      acpi/nfit, libnvdimm: Introduce nvdimm_security_ops
-      acpi/nfit, libnvdimm: Add freeze security support to Intel nvdimm
-      acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs
-      acpi/nfit, libnvdimm: Add disable passphrase support to Intel nvdimm.
-      acpi/nfit, libnvdimm: Add enable/update passphrase support for Intel nvdimms
-      acpi/nfit, libnvdimm: Add support for issue secure erase DSM to Intel nvdimm
-      acpi/nfit, libnvdimm/security: Add security DSM overwrite support
-      acpi/nfit, libnvdimm/security: add Intel DSM 1.8 master passphrase support
-      tools/testing/nvdimm: Add test support for Intel nvdimm security DSMs
-      tools/testing/nvdimm: Add overwrite support for nfit_test
-      tools/testing/nvdimm: add Intel DSM 1.8 support for nfit_test
-      libnvdimm/security: Add documentation for nvdimm security support
-
-Ocean He (2):
-      libnvdimm, bus: Check id immediately following ida_simple_get
-      ACPI/nfit: Adjust annotation for why return 0 if fail to find NFIT at start
-
- Documentation/nvdimm/security.txt                 | 141 +++++++
- Documentation/security/keys/trusted-encrypted.rst |   6 +-
- drivers/acpi/nfit/Kconfig                         |  11 +
- drivers/acpi/nfit/Makefile                        |   1 +
- drivers/acpi/nfit/core.c                          | 103 ++++-
- drivers/acpi/nfit/intel.c                         | 388 ++++++++++++++++++
- drivers/acpi/nfit/intel.h                         |  76 ++++
- drivers/acpi/nfit/nfit.h                          |  24 +-
- drivers/nvdimm/Kconfig                            |   5 +
- drivers/nvdimm/Makefile                           |   1 +
- drivers/nvdimm/bus.c                              |  33 +-
- drivers/nvdimm/dimm.c                             |  16 +-
- drivers/nvdimm/dimm_devs.c                        | 210 +++++++++-
- drivers/nvdimm/label.c                            |   7 +-
- drivers/nvdimm/namespace_devs.c                   |   3 +-
- drivers/nvdimm/nd-core.h                          |  57 +++
- drivers/nvdimm/nd.h                               |   8 +
- drivers/nvdimm/region_devs.c                      |   5 +
- drivers/nvdimm/security.c                         | 454 ++++++++++++++++++++++
- include/linux/key.h                               |   3 +
- include/linux/libnvdimm.h                         |  76 +++-
- security/keys/encrypted-keys/encrypted.c          |  29 +-
- security/keys/internal.h                          |   2 -
- security/keys/process_keys.c                      |   1 +
- tools/testing/nvdimm/Kbuild                       |   3 +
- tools/testing/nvdimm/dimm_devs.c                  |  41 ++
- tools/testing/nvdimm/test/nfit.c                  | 321 +++++++++++++++
- 27 files changed, 1971 insertions(+), 54 deletions(-)
- create mode 100644 Documentation/nvdimm/security.txt
- create mode 100644 drivers/acpi/nfit/intel.c
- create mode 100644 drivers/nvdimm/security.c
- create mode 100644 tools/testing/nvdimm/dimm_devs.c
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/include/linux/async.h b/include/linux/async.h
+index 6b0226bdaadc..f81d6dbffe68 100644
+--- a/include/linux/async.h
++++ b/include/linux/async.h
+@@ -14,6 +14,8 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/numa.h>
++#include <linux/device.h>
+ 
+ typedef u64 async_cookie_t;
+ typedef void (*async_func_t) (void *data, async_cookie_t cookie);
+@@ -37,9 +39,83 @@ struct async_domain {
+ 	struct async_domain _name = { .pending = LIST_HEAD_INIT(_name.pending), \
+ 				      .registered = 0 }
+ 
+-extern async_cookie_t async_schedule(async_func_t func, void *data);
+-extern async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-					    struct async_domain *domain);
++async_cookie_t async_schedule_node(async_func_t func, void *data,
++				   int node);
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node,
++					  struct async_domain *domain);
++
++/**
++ * async_schedule - schedule a function for asynchronous execution
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t async_schedule(async_func_t func, void *data)
++{
++	return async_schedule_node(func, data, NUMA_NO_NODE);
++}
++
++/**
++ * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_domain(async_func_t func, void *data,
++		      struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, data, NUMA_NO_NODE, domain);
++}
++
++/**
++ * async_schedule_dev - A device specific version of async_schedule
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev(async_func_t func, struct device *dev)
++{
++	return async_schedule_node(func, dev, dev_to_node(dev));
++}
++
++/**
++ * async_schedule_dev_domain - A device specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev_domain(async_func_t func, struct device *dev,
++			  struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, dev, dev_to_node(dev), domain);
++}
++
+ void async_unregister_domain(struct async_domain *domain);
+ extern void async_synchronize_full(void);
+ extern void async_synchronize_full_domain(struct async_domain *domain);
+diff --git a/kernel/async.c b/kernel/async.c
+index 4932e9193fa3..59ce133eef11 100644
+--- a/kernel/async.c
++++ b/kernel/async.c
+@@ -148,7 +148,25 @@ static void async_run_entry_fn(struct work_struct *work)
+ 	wake_up(&async_done);
+ }
+ 
+-static async_cookie_t __async_schedule(async_func_t func, void *data, struct async_domain *domain)
++/**
++ * async_schedule_node_domain - NUMA specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ *
++ * Note: This function may be called from atomic or non-atomic contexts.
++ *
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
++ */
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node, struct async_domain *domain)
+ {
+ 	struct async_entry *entry;
+ 	unsigned long flags;
+@@ -194,43 +212,30 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
+ 	current->flags |= PF_USED_ASYNC;
+ 
+ 	/* schedule for execution */
+-	queue_work(system_unbound_wq, &entry->work);
++	queue_work_node(node, system_unbound_wq, &entry->work);
+ 
+ 	return newcookie;
+ }
++EXPORT_SYMBOL_GPL(async_schedule_node_domain);
+ 
+ /**
+- * async_schedule - schedule a function for asynchronous execution
++ * async_schedule_node - NUMA specific version of async_schedule
+  * @func: function to execute asynchronously
+  * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
+  *
+  * Returns an async_cookie_t that may be used for checkpointing later.
+  * Note: This function may be called from atomic or non-atomic contexts.
+- */
+-async_cookie_t async_schedule(async_func_t func, void *data)
+-{
+-	return __async_schedule(func, data, &async_dfl_domain);
+-}
+-EXPORT_SYMBOL_GPL(async_schedule);
+-
+-/**
+- * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
+- * @func: function to execute asynchronously
+- * @data: data pointer to pass to the function
+- * @domain: the domain
+  *
+- * Returns an async_cookie_t that may be used for checkpointing later.
+- * @domain may be used in the async_synchronize_*_domain() functions to
+- * wait within a certain synchronization domain rather than globally.  A
+- * synchronization domain is specified via @domain.  Note: This function
+- * may be called from atomic or non-atomic contexts.
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
+  */
+-async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-				     struct async_domain *domain)
++async_cookie_t async_schedule_node(async_func_t func, void *data, int node)
+ {
+-	return __async_schedule(func, data, domain);
++	return async_schedule_node_domain(func, data, node, &async_dfl_domain);
+ }
+-EXPORT_SYMBOL_GPL(async_schedule_domain);
++EXPORT_SYMBOL_GPL(async_schedule_node);
+ 
+ /**
+  * async_synchronize_full - synchronize all asynchronous function calls
