@@ -1,137 +1,167 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 01D712119EF22
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:44:54 -0800 (PST)
-Subject: [driver-core PATCH v9 0/9] Add NUMA aware async_schedule calls
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v8 4/9] driver core: Probe devices
+ asynchronously instead of the driver
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:44:53 -0800
-Message-ID: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+Date: Wed, 05 Dec 2018 09:25:34 -0800
+Message-ID: <154403073429.11544.13495666211219472007.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set provides functionality that will help to improve the
-locality of the async_schedule calls used to provide deferred
-initialization.
+Probe devices asynchronously instead of the driver. This results in us
+seeing the same behavior if the device is registered before the driver or
+after. This way we can avoid serializing the initialization should the
+driver not be loaded until after the devices have already been added.
 
-This patch set originally started out focused on just the one call to
-async_schedule_domain in the nvdimm tree that was being used to defer the
-device_add call however after doing some digging I realized the scope of
-this was much broader than I had originally planned. As such I went
-through and reworked the underlying infrastructure down to replacing the
-queue_work call itself with a function of my own and opted to try and
-provide a NUMA aware solution that would work for a broader audience.
+The motivation behind this is that if we have a set of devices that
+take a significant amount of time to load we can greatly reduce the time to
+load by processing them in parallel instead of one at a time. In addition,
+each device can exist on a different node so placing a single thread on one
+CPU to initialize all of the devices for a given driver can result in poor
+performance on a system with multiple nodes.
 
-In addition I have added several tweaks and/or clean-ups to the front of the
-patch set. Patches 1 through 3 address a number of issues that actually were
-causing the existing async_schedule calls to not show the performance that
-they could due to either not scaling on a per device basis, or due to issues
-that could result in a potential race. For example, patch 3 addresses the
-fact that we were calling async_schedule once per driver instead of once
-per device, and as a result we would have still ended up with devices
-being probed on a non-local node without addressing this first.
+This approach can reduce the time needed to scan SCSI LUNs significantly.
+The only way to realize that speedup is by enabling more concurrency which
+is what is achieved with this patch.
 
-I have also updated the kernel module used to test async driver probing so
-that it can expose the original issue I was attempting to address.
-It will fail on a system of asynchronous work either takes longer than it
-takes to load a single device and a single driver with a device already
-added. It will also fail if the NUMA node that the driver is loaded on does
-not match the NUMA node the device is associated with.
+To achieve this it was necessary to add a new member "async_driver" to the
+device_private structure to store the driver pointer while we wait on the
+deferred probe call.
 
-RFC->v1:
-    Dropped nvdimm patch to submit later.
-        It relies on code in libnvdimm development tree.
-    Simplified queue_work_near to just convert node into a CPU.
-    Split up drivers core and PM core patches.
-v1->v2:
-    Renamed queue_work_near to queue_work_node
-    Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
-v2->v3:
-    Added Acked-by for queue_work_node patch
-    Continued rename from _near to _node to be consistent with queue_work_node
-        Renamed async_schedule_near_domain to async_schedule_node_domain
-        Renamed async_schedule_near to async_schedule_node
-    Added kerneldoc for new async_schedule_XXX functions
-    Updated patch description for patch 4 to include data on potential gains
-v3->v4
-    Added patch to consolidate use of need_parent_lock
-    Make asynchronous driver probing explicit about use of drvdata
-v4->v5
-    Added patch to move async_synchronize_full to address deadlock
-    Added bit async_probe to act as mutex for probe/remove calls
-    Added back nvdimm patch as code it relies on is now in Linus's tree
-    Incorporated review comments on parent & device locking consolidation
-    Rebased on latest linux-next
-v5->v6:
-    Drop the "This patch" or "This change" from start of patch descriptions.
-    Drop unnecessary parenthesis in first patch
-    Use same wording for "selecting a CPU" in comments added in first patch
-    Added kernel documentation for async_probe member of device
-    Fixed up comments for async_schedule calls in patch 2
-    Moved code related setting async driver out of device.h and into dd.c
-    Added Reviewed-by for several patches
-v6->v7:
-    Fixed typo which had kernel doc refer to "lock" when I meant "unlock"
-    Dropped "bool X:1" to "u8 X:1" from patch description
-    Added async_driver to device_private structure to store driver
-    Dropped unecessary code shuffle from async_probe patch
-    Reordered patches to move fixes up to front
-    Added Reviewed-by for several patches
-    Updated cover page and patch descriptions throughout the set
-v7->v8:
-    Replaced async_probe value with dead, only apply dead in device_del
-    Dropped Reviewed-by from patch 2 due to significant changes
-    Added Reviewed-by for patches reviewed by Luis Chamberlain
-v8->v9:
-    Dropped patch 1 as it was applied, shifted remaining patches by 1
-    Added new patch 9 that adds test framework for NUMA and sequential init
-    Tweaked what is now patch 1, and added Reviewed-by from Dan Williams
-
-
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
+ drivers/base/base.h |    2 ++
+ drivers/base/bus.c  |   23 +++--------------------
+ drivers/base/dd.c   |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 20 deletions(-)
 
-Alexander Duyck (9):
-      driver core: Establish order of operations for device_add and device_del via bitflag
-      device core: Consolidate locking and unlocking of parent and device
-      driver core: Probe devices asynchronously instead of the driver
-      workqueue: Provide queue_work_node to queue work near a given NUMA node
-      async: Add support for queueing on specific NUMA node
-      driver core: Attach devices on CPU local to device node
-      PM core: Use new async_schedule_dev command
-      libnvdimm: Schedule device registration on node local to the device
-      driver core: Rewrite test_async_driver_probe to cover serialization and NUMA affinity
-
-
- drivers/base/base.h                         |    4 
- drivers/base/bus.c                          |   46 +----
- drivers/base/core.c                         |   11 +
- drivers/base/dd.c                           |  160 +++++++++++++----
- drivers/base/power/main.c                   |   12 +
- drivers/base/test/test_async_driver_probe.c |  261 +++++++++++++++++++++------
- drivers/nvdimm/bus.c                        |   11 +
- include/linux/async.h                       |   82 ++++++++
- include/linux/device.h                      |    5 +
- include/linux/workqueue.h                   |    2 
- kernel/async.c                              |   53 +++--
- kernel/workqueue.c                          |   84 +++++++++
- 12 files changed, 565 insertions(+), 166 deletions(-)
-
---
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/base/base.h b/drivers/base/base.h
+index 3f22ebd6117a..c95384a8e53c 100644
+--- a/drivers/base/base.h
++++ b/drivers/base/base.h
+@@ -64,6 +64,7 @@ struct driver_private {
+  *	binding of drivers which were unable to get all the resources needed by
+  *	the device; typically because it depends on another driver getting
+  *	probed first.
++ * @async_driver - pointer to device driver awaiting probe via async_probe
+  * @device - pointer back to the struct device that this structure is
+  * associated with.
+  *
+@@ -75,6 +76,7 @@ struct device_private {
+ 	struct klist_node knode_driver;
+ 	struct klist_node knode_bus;
+ 	struct list_head deferred_probe;
++	struct device_driver *async_driver;
+ 	struct device *device;
+ };
+ #define to_device_private_parent(obj)	\
+diff --git a/drivers/base/bus.c b/drivers/base/bus.c
+index 8a630f9bd880..0cd2eadd0816 100644
+--- a/drivers/base/bus.c
++++ b/drivers/base/bus.c
+@@ -606,17 +606,6 @@ static ssize_t uevent_store(struct device_driver *drv, const char *buf,
+ }
+ static DRIVER_ATTR_WO(uevent);
+ 
+-static void driver_attach_async(void *_drv, async_cookie_t cookie)
+-{
+-	struct device_driver *drv = _drv;
+-	int ret;
+-
+-	ret = driver_attach(drv);
+-
+-	pr_debug("bus: '%s': driver %s async attach completed: %d\n",
+-		 drv->bus->name, drv->name, ret);
+-}
+-
+ /**
+  * bus_add_driver - Add a driver to the bus.
+  * @drv: driver.
+@@ -649,15 +638,9 @@ int bus_add_driver(struct device_driver *drv)
+ 
+ 	klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
+ 	if (drv->bus->p->drivers_autoprobe) {
+-		if (driver_allows_async_probing(drv)) {
+-			pr_debug("bus: '%s': probing driver %s asynchronously\n",
+-				drv->bus->name, drv->name);
+-			async_schedule(driver_attach_async, drv);
+-		} else {
+-			error = driver_attach(drv);
+-			if (error)
+-				goto out_unregister;
+-		}
++		error = driver_attach(drv);
++		if (error)
++			goto out_unregister;
+ 	}
+ 	module_add_driver(drv->owner, drv);
+ 
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index e50d768cd3b5..b731741059cb 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -929,6 +929,30 @@ int device_driver_attach(struct device_driver *drv, struct device *dev)
+ 	return ret;
+ }
+ 
++static void __driver_attach_async_helper(void *_dev, async_cookie_t cookie)
++{
++	struct device *dev = _dev;
++	struct device_driver *drv;
++	int ret = 0;
++
++	__device_driver_lock(dev, dev->parent);
++
++	drv = dev->p->async_driver;
++
++	/*
++	 * If device has been removed or someone has already successfully
++	 * bound a driver before us just skip the driver probe call.
++	 */
++	if (!dev->dead && !dev->driver)
++		ret = driver_probe_device(drv, dev);
++
++	__device_driver_unlock(dev, dev->parent);
++
++	dev_dbg(dev, "driver %s async attach completed: %d\n", drv->name, ret);
++
++	put_device(dev);
++}
++
+ static int __driver_attach(struct device *dev, void *data)
+ {
+ 	struct device_driver *drv = data;
+@@ -956,6 +980,25 @@ static int __driver_attach(struct device *dev, void *data)
+ 		return ret;
+ 	} /* ret > 0 means positive match */
+ 
++	if (driver_allows_async_probing(drv)) {
++		/*
++		 * Instead of probing the device synchronously we will
++		 * probe it asynchronously to allow for more parallelism.
++		 *
++		 * We only take the device lock here in order to guarantee
++		 * that the dev->driver and async_driver fields are protected
++		 */
++		dev_dbg(dev, "probing driver %s asynchronously\n", drv->name);
++		device_lock(dev);
++		if (!dev->driver) {
++			get_device(dev);
++			dev->p->async_driver = drv;
++			async_schedule(__driver_attach_async_helper, dev);
++		}
++		device_unlock(dev);
++		return 0;
++	}
++
+ 	device_driver_attach(drv, dev);
+ 
+ 	return 0;
