@@ -1,193 +1,61 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6377A2119AC1A
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:58 -0800 (PST)
-Subject: [PATCH v13 17/17] libnvdimm/security: Add documentation for nvdimm
- security support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 11 Dec 2018 13:26:57 -0700
-Message-ID: <154456001766.26509.5196378229920284095.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
-References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v8 9/9] libnvdimm: Schedule device registration
+ on node local to the device
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 05 Dec 2018 09:26:00 -0800
+Message-ID: <154403076009.11544.524669051631501047.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add theory of operation for the security support that's going into
-libnvdimm.
+Force the device registration for nvdimm devices to be closer to the actual
+device. This is achieved by using either the NUMA node ID of the region, or
+of the parent. By doing this we can have everything above the region based
+on the region, and everything below the region based on the nvdimm bus.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+By guaranteeing NUMA locality I see an improvement of as high as 25% for
+per-node init of a system with 12TB of persistent memory.
+
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- Documentation/nvdimm/security.txt |  143 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 143 insertions(+)
- create mode 100644 Documentation/nvdimm/security.txt
+ drivers/nvdimm/bus.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
-new file mode 100644
-index 000000000000..027160f9c3b8
---- /dev/null
-+++ b/Documentation/nvdimm/security.txt
-@@ -0,0 +1,143 @@
-+NVDIMM SECURITY
-+===============
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index f1fb39921236..b1e193541874 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -23,6 +23,7 @@
+ #include <linux/ndctl.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
++#include <linux/cpu.h>
+ #include <linux/fs.h>
+ #include <linux/io.h>
+ #include <linux/mm.h>
+@@ -513,11 +514,15 @@ void __nd_device_register(struct device *dev)
+ 		set_dev_node(dev, to_nd_region(dev)->numa_node);
+ 
+ 	dev->bus = &nvdimm_bus_type;
+-	if (dev->parent)
++	if (dev->parent) {
+ 		get_device(dev->parent);
++		if (dev_to_node(dev) == NUMA_NO_NODE)
++			set_dev_node(dev, dev_to_node(dev->parent));
++	}
+ 	get_device(dev);
+-	async_schedule_domain(nd_async_device_register, dev,
+-			&nd_async_domain);
 +
-+1. Introduction
-+---------------
-+
-+With the introduction of Intel DSM v1.8 specification [1], security DSMs are
-+introduced. The spec added the following security DSMs: "get security state",
-+"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
-+"secure erase", and "overwrite". A security_ops data structure has been
-+added to struct dimm in order to support the security operations and generic
-+APIs are exposed to allow vendor neutral operations.
-+
-+2. Sysfs Interface
-+------------------
-+The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
-+example:
-+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
-+
-+The "show" function of that attribute will display the security state for
-+that DIMM. The following states are available: disabled, unlocked, locked,
-+frozen, and overwrite. If security is not supported, the sysfs attribute
-+will not be visible.
-+
-+The "store" function takes several commands when the attribute is written to
-+in order to support some of the security functionalities:
-+update <old_keyid> <new_keyid> - enable or update passphrase.
-+disable <keyid> - disable enabled security and remove key.
-+freeze - freeze changing of security states.
-+erase <keyid> - generate new ecryption key for DIMM and crypto-scrambles
-+	all existing user data using the user passphrase.
-+overwrite <keyid> - wipe the entire nvdimm.
-+master_update <keyid> <new_keyid> - enable or update master passphrase.
-+master_erase <keyid> - generate new ecryption key for DIMM and crypto-scrambles
-+	all existing user data using the master passphrase.
-+master
-+
-+3. Key Management
-+-----------------
-+
-+The key is associted to the payload by the DIMM id. For example:
-+# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
-+8089-a2-1740-00000133
-+The DIMM id would be provided along with the key payload (passphrase) to
-+the kernel.
-+
-+The security keys are managed on the basis of a single key per DIMM. The
-+key "passphrase" is expected to be 32bytes long. This is similar to the ATA
-+security specification [2]. A key is initially acquired via the request_key()
-+kernel API call during nvdimm unlock. It is up to the user to make sure that
-+all the keys are in the kernel user keyring for unlock.
-+
-+A nvdimm encrypted-key of format enc32 has the description format of:
-+nvdimm:<bus-provider-specific-unique-id>
-+
-+See file ``Documentation/security/keys/trusted-encrypted.rst`` for creating
-+encrypted-keys of enc32 format. TPM usage with a master trusted key is
-+preferred for sealing the encrypted-keys.
-+
-+4. Unlocking
-+------------
-+When the DIMMs are being enumerated by the kernel, the kernel will attempt to
-+retrieve the key from the kernel user keyring. This is the only time
-+a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
-+until reboot. Typically, an entity (i.e. shell script) will inject all the
-+relevant encrypted-keys into the kernel user keyring during initramfs phase.
-+It is also recommended that the keys are injected before libnvdimm is loaded
-+by modprobe.
-+
-+5. Update
-+---------
-+When doing an update, it is expected that the existing key is removed from
-+tkey key user keyring and injected as the old key. It's irrelevant what
-+the key description is for the old key since we are only interested in the
-+key id when doing the update operation. It is also expected that the new key
-+is injected with the description format described from earlier in this
-+document.  The update command written to the sysfs attribute will be with
-+the format:
-+update <old keyid> <new keyid>
-+
-+If there is no old keyid due to a security enabling, then a 0 should be
-+passed in.
-+
-+6. Freeze
-+---------
-+The freeze operation does not require any keys. The security config can be
-+frozen by a user with root privelege.
-+
-+7. Disable
-+----------
-+The security disable command format is:
-+disable <keyid>
-+
-+An key with the current passphrase payload that is tied to the nvdimm should be
-+in the kernel user keyring.
-+
-+8. Secure Erase
-+---------------
-+The command format for doing a secure erase is:
-+erase <keyid>
-+
-+An key with the current passphrase payload that is tied to the nvdimm should be
-+in the kernel user keyring.
-+
-+9. Overwrite
-+------------
-+The command format for doing an overwrite is:
-+overwrite <keyid>
-+
-+Overwrite can be done without a key if security is not enabled. A key serial
-+of 0 can be passed in to indicate no key.
-+
-+The sysfs attribute "security" can be polled to wait on overwrite completion.
-+Overwrite can last tens of minutes or more depending on nvdimm size.
-+
-+An encrypted-key with the current user passphrase that is tied to the nvdimm
-+should be injected and its keyid should be passed in via sysfs.
-+
-+10. Master Update
-+-----------------
-+The command format for doing a master update is:
-+update <old keyid> <new keyid>
-+
-+The operating mechansim for master update is identical to update except the
-+master passphrase key is passed to the kernel. The master passphrase key
-+is just another encrypted-key.
-+
-+This command is only available when security is disabled.
-+
-+11. Master Erase
-+----------------
-+The command format for doing a master erase is:
-+master_erase <current keyid>
-+
-+This command has the same operating mechanism as erase except the master
-+passphrase key is passed to the kernel. The master passphrase key is just
-+another encrypted-key.
-+
-+This command is only available when the master security is enabled, indicated
-+by the extended security status.
-+
-+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
-+[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
++	async_schedule_dev_domain(nd_async_device_register, dev,
++				  &nd_async_domain);
+ }
+ 
+ void nd_device_register(struct device *dev)
