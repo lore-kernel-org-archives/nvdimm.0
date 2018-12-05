@@ -1,11 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from [77.29.93.141] (unknown [77.29.93.141])
- by ml01.01.org (Postfix) with ESMTP id 74A9321190721
- for <linux-nvdimm@lists.01.org>; Sat,  1 Dec 2018 14:56:54 -0800 (PST)
-Message-ID: <003e01d489d1$05e9b464$2c663f99@aunhiwh>
-From: "Account Security" <linux-nvdimm@lists.01.org>
-Subject: Third party accessed to linux-nvdimm@lists.01.org.
-Date: 1 Dec 2018 23:50:50 +0000
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C853B2118F78B
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Dec 2018 09:25:19 -0800 (PST)
+Subject: [driver-core PATCH v8 1/9] driver core: Move async_synchronize_full
+ call
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 05 Dec 2018 09:25:18 -0800
+Message-ID: <154403071891.11544.9860064260259005955.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,45 +23,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello!
+Move the async_synchronize_full call out of __device_release_driver and
+into driver_detach.
 
-I'm is very good programmer, known in darkweb as alvan85.
-I hacked this mailbox more than six months ago, 
-through it I infected your operating system with a virus (trojan) created by me and have been spying for you a very long time.
+The idea behind this is that the async_synchronize_full call will only
+guarantee that any existing async operations are flushed. This doesn't do
+anything to guarantee that a hotplug event that may occur while we are
+doing the release of the driver will not be asynchronously scheduled.
 
-I understand it is hard to believe, but you can check it yourself.
-I'm sent this e-mail from your account. Try it yourself. 
+By moving this into the driver_detach path we can avoid potential deadlocks
+as we aren't holding the device lock at this point and we should not have
+the driver we want to flush loaded so the flush will take care of any
+asynchronous events the driver we are detaching might have scheduled.
 
-Even if you changed the password after that - it does not matter, my virus intercepted all the caching data on your computer
-and automatically saved access for me.
+Fixes: 765230b5f084 ("driver-core: add asynchronous probing support for drivers")
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ drivers/base/dd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I have access to all your accounts, social networks, email, browsing history.
-Accordingly, I have the data of all your contacts, files from your computer, photos and videos.
-
-I was most struck by the intimate content sites that you occasionally visit.
-You have a very wild imagination, I tell you!
-
-During your pastime and entertainment there, I took screenshot through the camera of your device, synchronizing with what you are watching.
-Oh my god! You are so funny and excited!
-
-I think that you do not want all your contacts to get these files, right?
-If you are of the same opinion, then I think that $280 is quite a fair price to destroy the dirt I created.
-
-Send the above amount on my BTC wallet (bitcoin): 1JRCbCH9E3iLhSXPTqtkgfAsJNT2xD74C5
-As soon as the above amount is received, I guarantee that the data will be deleted, I do not need it.
-
-Otherwise, these files and history of visiting sites will get all your contacts from your device.
-Also, I'll send to everyone your contact access to your email and access logs, I have carefully saved it!
-
-Since reading this letter you have 48 hours!
-After your reading this message, I'll receive an automatic notification that you have seen the letter.
-
-I hope I taught you a good lesson.
-Do not be so nonchalant, please visit only to proven resources, and don't enter your passwords anywhere!
-Good luck!
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 689ac9dc6d81..88713f182086 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -931,9 +931,6 @@ static void __device_release_driver(struct device *dev, struct device *parent)
+ 
+ 	drv = dev->driver;
+ 	if (drv) {
+-		if (driver_allows_async_probing(drv))
+-			async_synchronize_full();
+-
+ 		while (device_links_busy(dev)) {
+ 			device_unlock(dev);
+ 			if (parent)
+@@ -1039,6 +1036,9 @@ void driver_detach(struct device_driver *drv)
+ 	struct device_private *dev_prv;
+ 	struct device *dev;
+ 
++	if (driver_allows_async_probing(drv))
++		async_synchronize_full();
++
+ 	for (;;) {
+ 		spin_lock(&drv->p->klist_devices.k_lock);
+ 		if (list_empty(&drv->p->klist_devices.k_list)) {
 
 _______________________________________________
 Linux-nvdimm mailing list
