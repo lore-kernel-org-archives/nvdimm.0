@@ -1,88 +1,54 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E321C21199243
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 06:09:30 -0800 (PST)
-Date: Tue, 11 Dec 2018 15:09:26 +0100
-From: Petr Mladek <pmladek@suse.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Fri, 7 Dec 2018 13:35:35 -0500
+From: Kent Overstreet <kent.overstreet@gmail.com>
 Subject: Re: [RFC v3 11/19] kunit: add Python libraries for handing KUnit
  config and kernel
-Message-ID: <20181211140926.7wzd5jh6klcfsfgz@pathway.suse.cz>
+Message-ID: <20181207183535.GA31228@kmo-pixel>
 References: <20181128193636.254378-1-brendanhiggins@google.com>
  <20181128193636.254378-12-brendanhiggins@google.com>
  <841cf4ae-501b-05ae-5863-a51010709b67@ideasonboard.com>
  <CAFd5g47x-UNja72k-CWPmWz9+LTn8pF8Wj5Poq+2FJ93E=vymA@mail.gmail.com>
  <20181204204701.GT28501@garbanzo.do-not-panic.com>
  <f8722f4a-44c8-24c2-c433-5178f9f40b82@ideasonboard.com>
- <20181206153718.GD24603@bombadil.infradead.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20181206153718.GD24603@bombadil.infradead.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: brakmo@fb.com, Knut Omang <knut.omang@oracle.com>, jeffm@suse.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Sasha Levin <Alexander.Levin@microsoft.com>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Eric Sandeen <sandeen@sandeen.net>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Felix Guo <felixguoxiuping@gmail.com>, Joel Stanley <joel@jms.id.au>, Kent Overstreet <kent.overstreet@gmail.com>, jdike@addtoit.com, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, richard@nod.at, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Eryu Guan <guaneryu@gmail.com>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, joe@perches.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+In-Reply-To: <f8722f4a-44c8-24c2-c433-5178f9f40b82@ideasonboard.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, Brendan Higgins <brendanhiggins@google.com>, Matthew Wilcox <willy@infradead.org>, Eryu Guan <guaneryu@gmail.com>, Eric Sandeen <sandeen@sandeen.net>, jeffm@suse.com, Sasha Levin <Alexander.Levin@microsoft.com>, Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Felix Guo <felixguoxiuping@gmail.com>, Petr Mladek <pmladek@suse.com>, fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 2018-12-06 07:37:18, Matthew Wilcox wrote:
-> On Thu, Dec 06, 2018 at 12:32:47PM +0000, Kieran Bingham wrote:
-> > On 04/12/2018 20:47, Luis Chamberlain wrote:
-> > > On Mon, Dec 03, 2018 at 03:48:15PM -0800, Brendan Higgins wrote:
-> > >> On Thu, Nov 29, 2018 at 5:54 AM Kieran Bingham
-> > >> <kieran.bingham@ideasonboard.com> wrote:
-> > > Developers working upstream do modify their kernels a lot, so we'd have
-> > > to update such libraries quite a bit, but I think that's fine too. The
-> > > *real* value I think from the above suggestion would be enterprise /
-> > > mobile distros or stable kernel maintainers which have a static kernel
-> > > they need to support for a relatively *long time*, consider a 10 year
-> > > time frame. Running unit tests without qemu with uml and libraries for
-> > > respective kernels seems real worthy.
-> > 
-> > I think any such library might be something generated by the kernel
-> > build system, so if someone makes substantial changes to a core
-> > component provided by the library - it can be up to them to build a
-> > corresponding userspace library as well.
-> > 
-> > My main initial idea for a libumlinux is to provide infrastructure such
-> > as our linked-lists and other kernel formatting so that we can take
-> > kernel code directly to userspace for test and debug (assuming that
-> > there are no hardware dependencies or things that we can't mock out)
+On Thu, Dec 06, 2018 at 12:32:47PM +0000, Kieran Bingham wrote:
+> Oh - although, yes - there are some good concepts there - but I'm a bit
+> weary of how easy it would be to 'run' the said test against multiple
+> kernel version libraries... there would be a lot of possible ABI
+> conflicts perhaps.
 > 
-> We have liburcu already, which is good.  The main sticking points are:
-> 
->  - printk has started adding a lot of %pX enhancements which printf
->    obviously doesn't know about.
+> My main initial idea for a libumlinux is to provide infrastructure such
+> as our linked-lists and other kernel formatting so that we can take
+> kernel code directly to userspace for test and debug (assuming that
+> there are no hardware dependencies or things that we can't mock out)
 
-I wonder how big problem it is and if it is worth using another
-approach.
+I think this would be a really wonderful to make happen, and could potentially
+be much wore widely useful than for just running tests, by making it easier to
+share code between both kernel and userspace.
 
-An alternative would be to replace them with helper functions
-the would produce the same string. The meaning would be easier
-to understand. But concatenating with the surrounding text
-would be less elegant. People might start using pr_cont()
-that is problematic (mixed lines).
+For bcachefs I've got a shim layer that lets me build almost everything in
+fs/bcachefs and use it as a library in the userspace bcachefs-tools - e.g. for
+fsck and migrate. Mine was a quick and dirty hack, but even so it's been
+_extremely_ useful and a major success - I think if this became something more
+official a lot of uses would be found for it.
 
-Also the %pX formats are mostly used to print context of some
-structures. Even the helper functions would need some maintenance
-to keep them compatible.
+I'm not sure if you've actually started on this (haven't seen most of the thread
+yet), but if any of the bcachefs-tools shim code is useful feel free to steal it
+- I've got dirt-simple, minimum viable shims for the kthread api, workqueus,
+timers, the block layer, and assorted other stuff:
 
-BTW: The printk() feature has been introduced 10 years ago by
-the commit 4d8a743cdd2690c0bc8 ("vsprintf: add infrastructure
-support for extended '%p' specifiers").
+https://evilpiepirate.org/git/bcachefs-tools.git/
 
-Best Regards,
-Petr
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Going forward, one issue is going to be that a libumllinux is going to want to
+shim some interfaces, and for other things it'll just want to pull in the kernel
+implementation - e.g. rhashtables. It might be nice if we could refactor things
+a bit so that things like rhashtables could be built as a standalone library, as
+is.
