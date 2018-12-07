@@ -1,54 +1,175 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Fri, 7 Dec 2018 13:35:35 -0500
-From: Kent Overstreet <kent.overstreet@gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from perceval.ideasonboard.com (perceval.ideasonboard.com
+ [213.167.242.64])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BB0AF21197073
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Dec 2018 03:30:38 -0800 (PST)
 Subject: Re: [RFC v3 11/19] kunit: add Python libraries for handing KUnit
  config and kernel
-Message-ID: <20181207183535.GA31228@kmo-pixel>
 References: <20181128193636.254378-1-brendanhiggins@google.com>
  <20181128193636.254378-12-brendanhiggins@google.com>
  <841cf4ae-501b-05ae-5863-a51010709b67@ideasonboard.com>
  <CAFd5g47x-UNja72k-CWPmWz9+LTn8pF8Wj5Poq+2FJ93E=vymA@mail.gmail.com>
  <20181204204701.GT28501@garbanzo.do-not-panic.com>
  <f8722f4a-44c8-24c2-c433-5178f9f40b82@ideasonboard.com>
+ <20181206153718.GD24603@bombadil.infradead.org>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <f2a3d7fc-21f2-7bd0-94e2-4122f2073da5@ideasonboard.com>
+Date: Fri, 7 Dec 2018 11:30:30 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f8722f4a-44c8-24c2-c433-5178f9f40b82@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>, Brendan Higgins <brendanhiggins@google.com>, Matthew Wilcox <willy@infradead.org>, Eryu Guan <guaneryu@gmail.com>, Eric Sandeen <sandeen@sandeen.net>, jeffm@suse.com, Sasha Levin <Alexander.Levin@microsoft.com>, Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Felix Guo <felixguoxiuping@gmail.com>, Petr Mladek <pmladek@suse.com>, fsdevel@vger.kernel.org
+In-Reply-To: <20181206153718.GD24603@bombadil.infradead.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: kieran.bingham@ideasonboard.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: brakmo@fb.com, Knut Omang <knut.omang@oracle.com>, jeffm@suse.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Sasha Levin <Alexander.Levin@microsoft.com>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Eric Sandeen <sandeen@sandeen.net>, Felix Guo <felixguoxiuping@gmail.com>, Joel Stanley <joel@jms.id.au>, Tim.Bird@sony.com, Petr Mladek <pmladek@suse.com>, jdike@addtoit.com, linux-um@lists.infradead.org, rostedt@goodmis.org, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, richard@nod.at, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kent Overstreet <kent.overstreet@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, Eryu Guan <guaneryu@gmail.com>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, joe@perches.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Dec 06, 2018 at 12:32:47PM +0000, Kieran Bingham wrote:
-> Oh - although, yes - there are some good concepts there - but I'm a bit
-> weary of how easy it would be to 'run' the said test against multiple
-> kernel version libraries... there would be a lot of possible ABI
-> conflicts perhaps.
+Hi Matthew,
+
+On 06/12/2018 15:37, Matthew Wilcox wrote:
+> On Thu, Dec 06, 2018 at 12:32:47PM +0000, Kieran Bingham wrote:
+>> On 04/12/2018 20:47, Luis Chamberlain wrote:
+>>> On Mon, Dec 03, 2018 at 03:48:15PM -0800, Brendan Higgins wrote:
+>>>> On Thu, Nov 29, 2018 at 5:54 AM Kieran Bingham
+>>>> <kieran.bingham@ideasonboard.com> wrote:
+>>>>>
+>>>>> Hi Brendan,
+>>>>>
+>>>>> Thanks again for this series!
+>>>>>
+>>>>> On 28/11/2018 19:36, Brendan Higgins wrote:
+>>>>>> The ultimate goal is to create minimal isolated test binaries; in the
+>>>>>> meantime we are using UML to provide the infrastructure to run tests, so
+>>>>>> define an abstract way to configure and run tests that allow us to
+>>>>>> change the context in which tests are built without affecting the user.
+>>>>>> This also makes pretty and dynamic error reporting, and a lot of other
+>>>>>> nice features easier.
+>>>>>
+>>>>>
+>>>>> I wonder if we could somehow generate a shared library object
+>>>>> 'libkernel' or 'libumlinux' from a UM configured set of headers and
+>>>>> objects so that we could create binary targets directly ?
+>>>>
+>>>> That's an interesting idea. I think it would be difficult to figure
+>>>> out exactly where to draw the line of what goes in there and what
+>>>> needs to be built specific to a test a priori. Of course, that leads
+>>>> into the biggest problem in general, needed to know what I need to
+>>>> build to test the thing that I want to test.
+>>>>
+>>>> Nevertheless, I could definitely imagine that being useful in a lot of cases.
+>>>
+>>> Whether or not we can abstract away the kernel into such a mechanism
+>>> with uml libraries is a good question worth exploring.
+>>>
+>>> Developers working upstream do modify their kernels a lot, so we'd have
+>>> to update such libraries quite a bit, but I think that's fine too. The
+>>> *real* value I think from the above suggestion would be enterprise /
+>>> mobile distros or stable kernel maintainers which have a static kernel
+>>> they need to support for a relatively *long time*, consider a 10 year
+>>> time frame. Running unit tests without qemu with uml and libraries for
+>>> respective kernels seems real worthy.
+>>
+>> I think any such library might be something generated by the kernel
+>> build system, so if someone makes substantial changes to a core
+>> component provided by the library - it can be up to them to build a
+>> corresponding userspace library as well.
+>>
+>> We could also consider to only provide *static* libraries rather than
+>> dynamic. So any one building some userspace tool / test with this would
+>> be required to compile against (the version of) the kernel they expect
+>> perhaps... - much like we expect modules to be compiled currently.
+>>
+>> And then the userspace binary would be sufficiently able to live it's
+>> life on it's own :)
+>>
+>>> The overhead for testing a unit test for said targets, *ideally*, would
+>>> just be to to reboot into the system with such libraries available, a
+>>> unit test would just look for the respective uname -r library and mimic
+>>> that kernel, much the same way enterprise distributions today rely on
+>>> having debugging symbols available to run against crash / gdb. Having
+>>> debug modules / kernel for crash requires such effort already, so this
+>>> would just be an extra layer of other prospect tests.
+>>
+>> Oh - although, yes - there are some good concepts there - but I'm a bit
+>> weary of how easy it would be to 'run' the said test against multiple
+>> kernel version libraries... there would be a lot of possible ABI
+>> conflicts perhaps.
+>>
+>> My main initial idea for a libumlinux is to provide infrastructure such
+>> as our linked-lists and other kernel formatting so that we can take
+>> kernel code directly to userspace for test and debug (assuming that
+>> there are no hardware dependencies or things that we can't mock out)
+>>
+>> I think all of this could complement kunit of course - this isn't
+>> suggesting an alternative implementation :-)
 > 
-> My main initial idea for a libumlinux is to provide infrastructure such
-> as our linked-lists and other kernel formatting so that we can take
-> kernel code directly to userspace for test and debug (assuming that
-> there are no hardware dependencies or things that we can't mock out)
+> I suspect the reason Luis cc'd me on this is that we already have some
+> artisinally-crafted userspace kernel-mocking interfaces under tools/.
 
-I think this would be a really wonderful to make happen, and could potentially
-be much wore widely useful than for just running tests, by making it easier to
-share code between both kernel and userspace.
+Aha - excellent - I had hoped to grab you at Plumbers to talk about
+this, after hearing you mention something at your Xarray talk - but
+didn't seem to find a suitable time.
 
-For bcachefs I've got a shim layer that lets me build almost everything in
-fs/bcachefs and use it as a library in the userspace bcachefs-tools - e.g. for
-fsck and migrate. Mine was a quick and dirty hack, but even so it's been
-_extremely_ useful and a major success - I think if this became something more
-official a lot of uses would be found for it.
+> The tools/testing/radix-tree directory is the source of some of this,
+> but I've been moving pieces out into tools/ more generally where it
+> makes sense to.
 
-I'm not sure if you've actually started on this (haven't seen most of the thread
-yet), but if any of the bcachefs-tools shim code is useful feel free to steal it
-- I've got dirt-simple, minimum viable shims for the kthread api, workqueus,
-timers, the block layer, and assorted other stuff:
+Sounds like we already have a starting point then.
 
-https://evilpiepirate.org/git/bcachefs-tools.git/
 
-Going forward, one issue is going to be that a libumllinux is going to want to
-shim some interfaces, and for other things it'll just want to pull in the kernel
-implementation - e.g. rhashtables. It might be nice if we could refactor things
-a bit so that things like rhashtables could be built as a standalone library, as
-is.
+> We have liburcu already, which is good.  The main sticking points are:
+> 
+>  - No emulation of kernel thread interfaces
+
+Scheduling finesse aside, This shouldn't be too hard to emulate/wrap
+with pthreads?
+
+
+>  - The kernel does not provide the ability to aggressively fail memory
+>    allocations (which is useful when trying to exercise the memory failure
+>    paths).
+
+Fault injection throughout would certainly be a valuable addition to any
+unit-testing.
+
+Wrapping tests into a single userspace binary could facilitate further
+memory leak checking or other valgrind facilities too.
+
+
+
+>  - printk has started adding a lot of %pX enhancements which printf
+>    obviously doesn't know about.
+
+Wrapping through User-mode linux essentially provides this already
+though. In fact I guess that goes for the thread interfaces topic above too.
+
+
+>  - No global pseudo-random number generator in the kernel.  Probably
+>    we should steal the i915 one.
+> 
+> I know Dan Williams has also done a lot of working mocking kernel
+> interfaces for libnvdimm.
+
+
+Thanks for the references - more to investigate.
+
+-- 
+Regards
+--
+Kieran
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
