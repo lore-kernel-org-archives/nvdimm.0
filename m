@@ -1,35 +1,47 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [RFC v3 18/19] of: unittest: split out a couple of test cases
- from unittest
-Date: Wed, 5 Dec 2018 15:54:34 -0800
-Message-ID: <CAFd5g45tOGgf_sKGYRC=fpnTBKGaG=8frbQdgZ3ZTkQFyTfP5A@mail.gmail.com>
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-19-brendanhiggins@google.com> <990bfc7d-dc5e-d8d3-c151-9b321ff2ac10@gmail.com>
+From: "jonathan" <zotoff.jonathan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: =?utf-8?B?QSBs4oCZYXR0ZW50aW9uIGRlIHJlc3BvbnNhYmxl?=
+Date: Sat, 8 Dec 2018 15:09:53 +0100
+Message-ID: <319eef5d6ad0bf85bf3914ad24dd9104@gmail.com>
+Reply-To: zotoff.jonathan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <990bfc7d-dc5e-d8d3-c151-9b321ff2ac10@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, mcgrof@kernel.org, shuah@kernel.org, Joel Stanley <joel@jms.id.au>, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel@lists.freedesktop.org, Rob Herring <robh@kernel.org>, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, kieran.bingham@ideasonboard.com, Knut Omang <knut.omang@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Dec 4, 2018 at 2:58 AM Frank Rowand <frowand.list@gmail.com> wrote:
->
-> Hi Brendan,
->
-> On 11/28/18 11:36 AM, Brendan Higgins wrote:
-> > Split out a couple of test cases that these features in base.c from the
-> > unittest.c monolith. The intention is that we will eventually split out
-> > all test cases and group them together based on what portion of device
-> > tree they test.
->
-> Why does splitting this file apart improve the implementation?
-
-This is in preparation for patch 19/19 and other hypothetical future
-patches where test cases are split up and grouped together by what
-portion of DT they test (for example the parsing tests and the
-platform/device tests would probably go separate files as well). This
-patch by itself does not do anything useful, but I figured it made
-patch 19/19 (and, if you like what I am doing, subsequent patches)
-easier to review.
+Wk9UT0ZGClNww6ljaWFsaXN0ZSBlbiByw6lub3ZhdGlvbiBkZSBzb2wKMjcgcnVlIEzDqW9uIExv
+aXNlYXUgLSA5MzEwMCBNb250cmV1aWwKVGVsOiAwMSA0OCAzMCAxMCA3MSBsaWduZSBkaXJlY3Qg
+MDYgNDggNjkgODIgMjcgTVIgWk9UT0ZGIApNYWRhbWUsIE1vbnNpZXVyLApOb3VzIG5vdXMgcGVy
+bWV0dG9ucyBkZSB2b3VzIHNvbGxpY2l0ZXIgYWZpbiBkZSB2b3VzIHByb3Bvc2VyIG5vcyBwcmVz
+dGF0aW9ucyBkZSByw6lub3ZhdGlvbiBkZSBzb2xzLCBwYXIgYXBwbGljYXRpb24gcsOpc2luZSBF
+cG94eSBldCBQb2x5dXLDqXRoYW5lICsgYW50aWTDqXJhcGFudCwgcGVpbnR1cmUsIHRyYcOnYWdl
+cywgbWFycXVhZ2VzLCBzaWduYWxpc2F0aW9ucyBkZSB2b3Mgc29scy4gTm91cyBpbnRlcnZlbm9u
+cyBzdXIgbGEgRnJhbmNlIGVudGnDqHJlLgpOb3VzIGludGVydmVub25zIGRhbnMgdG91dCB0eXBl
+IGRlIGxvY2F1eCA6CkdhcmFnZXMsIGVudHJlcMO0dHMsIHBhcmtpbmdzLCBhdGVsaWVycywgbGFi
+b3JhdG9pcmVzIHBoYXJtYWNldXRpcXVlcyBldCBhdXRyZXMuCk5vcyB0ZWNobmljaWVucyBzZSBk
+w6lwbGFjZW50IGRhbnMgdG91dGUgbGEgRnJhbmNlLCBldCBwZXV2ZW50IHLDqXBvbmRyZSDDoCB2
+b3MgZGVtYW5kZXMgZGFucyB1biBkw6lsYWkgZGUgNzIgaGV1cmVzIG1heGltdW0uIApOb3MgcG9p
+bnRzIGZvcnRzIDoKCkTDqXMgZMOpbGFpcyByZXNwZWN0w6lzIDsKSW50ZXJ2ZW50aW9uIHNvaXIg
+d2Vla2VuZCBldCBqb3VycyBmw6lyacOpcyA7ClRlY2huaWNpZW5zIHNww6ljaWFsaXPDqSBldCDD
+qXF1aXDDqXMgZGUgbWF0w6lyaWVsIHLDqWNlbnQgZXQgYWRhcHTDqXMgc2Vsb24gbGEgc3VyZmFj
+ZSDDoCByw6lub3ZlciA7ClVuZSBtaXNlIGF1IHByb3ByZSBkZXMgbG9jYXV4IGFwcsOocyBub3Ry
+ZSBpbnRlcnZlbnRpb24gOwpVbmUgaW50ZXJ2ZW50aW9uIGRhbnMgdG91dGUgbGEgRnJhbmNlIDsK
+RGVzIGRldmlzIHLDqWFsaXPDqXMgc291cyAyNC80OGggOwpOb3MgcHJpeCA6IFRhcmlmIGFwcHJv
+eGltYXRpZiAgw6AgcGFydGlyICBkZSA1MDBtwrIgICAgICAgICAgICAgICAgICBwcml4IDE0LjAw
+4oKsIG3CsgpTaXRlIGludGVybmV0IHd3dy5wZWludHVyZS1ldC1tYXJxdWFnZS1yZXNpbmUtZXBv
+eHkuZnIKTOKAmUVxdWlwZSBaT1RPRkYgIHNlIHRpZW50IMOgIHZvdHJlIGRpc3Bvc2l0aW9uIHBv
+dXIgZGVtYW5kZXMgZGUgcmVuc2VpZ25lbWVudHMgOiBOJ0hFU0lURVogUEFTIEEgRU5WT1lFUiBW
+T1MgUEhPVE9TIFBBUiBFTUFJTCBPVSBQQVIgTU1TCkFkcmVzc2UgbWFpbCA6IHpvdG9mZi5qb25h
+dGhhbkBnbWFpbC5jb20KIAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
