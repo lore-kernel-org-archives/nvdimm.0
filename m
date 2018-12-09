@@ -1,15 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com
+ [IPv6:2a00:1450:4864:20::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4358D21198CDB
- for <linux-nvdimm@lists.01.org>; Sun,  9 Dec 2018 10:50:02 -0800 (PST)
-Subject: Re: [GIT PULL] dax fixes for 4.20-rc6
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 460F2211963D0
+ for <linux-nvdimm@lists.01.org>; Sun,  9 Dec 2018 10:35:26 -0800 (PST)
+Received: by mail-lj1-x241.google.com with SMTP id g11-v6so7644700ljk.3
+ for <linux-nvdimm@lists.01.org>; Sun, 09 Dec 2018 10:35:26 -0800 (PST)
+Received: from mail-lf1-f53.google.com (mail-lf1-f53.google.com.
+ [209.85.167.53])
+ by smtp.gmail.com with ESMTPSA id r26-v6sm1736106lji.25.2018.12.09.10.35.23
+ for <linux-nvdimm@lists.01.org>
+ (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+ Sun, 09 Dec 2018 10:35:23 -0800 (PST)
+Received: by mail-lf1-f53.google.com with SMTP id a16so6411193lfg.3
+ for <linux-nvdimm@lists.01.org>; Sun, 09 Dec 2018 10:35:23 -0800 (PST)
+MIME-Version: 1.0
 References: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
-Message-Id: <20181209185002.3376.79242.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
-Date: Sun, 09 Dec 2018 18:50:02 +0000
+ <CAHk-=wgAONwr6pMn+D2OsMZjAB5zNaMWSW5KdTM+L72gGnhV2Q@mail.gmail.com>
+ <CAPcyv4jznHRB=BCsm8Y3d-uqDy_OWHSgTsPZoPK-L80FiQftFg@mail.gmail.com>
+In-Reply-To: <CAPcyv4jznHRB=BCsm8Y3d-uqDy_OWHSgTsPZoPK-L80FiQftFg@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 9 Dec 2018 10:35:07 -0800
+Message-ID: <CAHk-=wi5We7PFBqon-Jy1A59CVoGv2kJMJPixPOxm2Bq4JZX7g@mail.gmail.com>
+Subject: Re: [GIT PULL] dax fixes for 4.20-rc6
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,27 +31,21 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: Jan Kara <jack@suse.cz>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pull request you sent on Sun, 9 Dec 2018 06:26:39 +0000:
+On Sun, Dec 9, 2018 at 10:27 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> I can send a cleanup, do you want one immediately, or is post -rc6 ok?
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-fixes-4.20-rc6
+post-rc6 is fine, I'd rather have the patch tested anyway,
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/fa82dcbf2aed65dc3ea78eaca9ea56fd926b2b10
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+                 Linus
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
