@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A65F02119707F
- for <linux-nvdimm@lists.01.org>; Mon, 10 Dec 2018 04:21:12 -0800 (PST)
-Date: Mon, 10 Dec 2018 13:21:08 +0100
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 602CD21196812
+ for <linux-nvdimm@lists.01.org>; Sun,  9 Dec 2018 11:49:52 -0800 (PST)
+Date: Sun, 9 Dec 2018 11:49:46 -0800
+From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [GIT PULL] dax fixes for 4.20-rc6
-Message-ID: <20181210122108.GF29289@quack2.suse.cz>
+Message-ID: <20181209194946.GA6830@bombadil.infradead.org>
 References: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
  <CAHk-=wgAONwr6pMn+D2OsMZjAB5zNaMWSW5KdTM+L72gGnhV2Q@mail.gmail.com>
  <CAPcyv4jznHRB=BCsm8Y3d-uqDy_OWHSgTsPZoPK-L80FiQftFg@mail.gmail.com>
@@ -26,10 +27,10 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: Jan Kara <jack@suse.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun 09-12-18 10:26:54, Dan Williams wrote:
+On Sun, Dec 09, 2018 at 10:26:54AM -0800, Dan Williams wrote:
 > [ add Willy and Jan ]
 > 
 > On Sun, Dec 9, 2018 at 10:02 AM Linus Torvalds
@@ -71,14 +72,15 @@ On Sun 09-12-18 10:26:54, Dan Williams wrote:
 > waits "exclusive" for some sense of symmetry, but this one can and
 > should be a non-exclusive wait.
 
-Agreed. I didn't realize this when reviewing Matthew's patch and
-misunderstood his comment to this end.
+I did indeed just copy it from elsewhere.  As I said at the time,
 
-								Honza
+"This is the best I've come up with.  Could we do better by not using
+the _exclusive form of prepare_to_wait()?  I'm not familiar with all the
+things that need to be considered when using this family of interfaces."
 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+but nobody suggested what the right way to use these interfaces was.
+
+https://lists.01.org/pipermail/linux-nvdimm/2018-November/018892.html
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
