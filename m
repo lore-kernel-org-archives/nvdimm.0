@@ -1,27 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-lj1-x241.google.com (mail-lj1-x241.google.com
- [IPv6:2a00:1450:4864:20::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 494E72119A47D
- for <linux-nvdimm@lists.01.org>; Sun,  9 Dec 2018 10:02:12 -0800 (PST)
-Received: by mail-lj1-x241.google.com with SMTP id g11-v6so7605133ljk.3
- for <linux-nvdimm@lists.01.org>; Sun, 09 Dec 2018 10:02:12 -0800 (PST)
-Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com.
- [209.85.167.50])
- by smtp.gmail.com with ESMTPSA id z15-v6sm1883619ljb.9.2018.12.09.10.02.08
- for <linux-nvdimm@lists.01.org>
- (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
- Sun, 09 Dec 2018 10:02:08 -0800 (PST)
-Received: by mail-lf1-f50.google.com with SMTP id l10so6356101lfh.9
- for <linux-nvdimm@lists.01.org>; Sun, 09 Dec 2018 10:02:08 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 4B4B721199264
+ for <linux-nvdimm@lists.01.org>; Sat,  8 Dec 2018 22:26:41 -0800 (PST)
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] dax fixes for 4.20-rc6
+Date: Sun, 9 Dec 2018 06:26:39 +0000
+Message-ID: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
+Content-Language: en-US
+Content-ID: <28CE27909824804BA8532653A15FCF6F@intel.com>
 MIME-Version: 1.0
-References: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
-In-Reply-To: <6be0835bf256755375f3b5822bf70d74538d1d6e.camel@intel.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 9 Dec 2018 10:01:51 -0800
-Message-ID: <CAHk-=wgAONwr6pMn+D2OsMZjAB5zNaMWSW5KdTM+L72gGnhV2Q@mail.gmail.com>
-Subject: Re: [GIT PULL] dax fixes for 4.20-rc6
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,38 +22,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, Dec 8, 2018 at 10:26 PM Williams, Dan J
-<dan.j.williams@intel.com> wrote:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-fixes-4.20-rc6
+Hi Linus, please pull from:
 
-What's going on with the odd non-exclusive exclusive wait?
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-fixes-4.20-rc6
 
-        prepare_to_wait_exclusive(wq, &ewait.wait, TASK_UNINTERRUPTIBLE);
-        ...
-        /*
-         * Entry lock waits are exclusive. Wake up the next waiter since
-         * we aren't sure we will acquire the entry lock and thus wake
-         * the next waiter up on unlock.
-         */
-        if (waitqueue_active(wq))
-                __wake_up(wq, TASK_NORMAL, 1, &ewait.key);
+...to receive the last of the known regression fixes and fallout from
+the Xarray conversion of the filesystem-dax implementation. On the path
+to debugging why the dax memory-failure injection test started failing
+after the Xarray conversion a couple more fixes for the
+dax_lock_mapping_entry(), now called dax_lock_page(), surfaced. Those
+plus the bug that started the hunt are now addressed. These patches
+have appeared in a -next release with no issues reported.
 
-that seems to make little or no sense.
+Note the touches to mm/memory-failure.c are just the conversion to the
+new function signature for dax_lock_page().
 
-Why isn't that prepare_to_wait_exclusive() just a regular
-prepare_to_wait(), and then the whole "let's wake up anybody else" can
-be removed?
+---
 
-I've pulled it, but am awaiting explanation of what looks like some
-pretty crazy code. I *suspect* it's a copy-and-paste situation where
-you took the exclusive wait from somewhere else.
+The following changes since commit 2e6e902d185027f8e3cb8b7305238f7e35d6a436:
 
-                Linus
+  Linux 4.20-rc4 (2018-11-25 14:19:31 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-fixes-4.20-rc6
+
+for you to fetch changes up to 27359fd6e5f3c5db8fe544b63238b6170e8806d8:
+
+  dax: Fix unlock mismatch with updated API (2018-12-04 21:32:00 -0800)
+
+----------------------------------------------------------------
+dax fixes 4.20-rc6
+
+* Fix the Xarray conversion of fsdax to properly handle
+dax_lock_mapping_entry() in the presense of pmd entries.
+
+* Fix inode destruction racing a new lock request.
+
+----------------------------------------------------------------
+Matthew Wilcox (3):
+      dax: Check page->mapping isn't NULL
+      dax: Don't access a freed inode
+      dax: Fix unlock mismatch with updated API
+
+ fs/dax.c            | 55 ++++++++++++++++++++++++++++++++++++-----------------
+ include/linux/dax.h | 14 ++++++++------
+ mm/memory-failure.c |  6 ++++--
+ 3 files changed, 50 insertions(+), 25 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
