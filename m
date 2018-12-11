@@ -1,32 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A76222119BBF7
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 02:51:30 -0800 (PST)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
- wBCAnt02056359
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 05:51:29 -0500
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2pax4r79y7-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 05:51:29 -0500
-Received: from localhost
- by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <zohar@linux.ibm.com>;
- Wed, 12 Dec 2018 10:51:27 -0000
-Subject: Re: [PATCH v13 04/17] keys-encrypted: add nvdimm key format type to
+ by ml01.01.org (Postfix) with ESMTPS id 70C342119A47F
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:25:39 -0800 (PST)
+Subject: [PATCH v13 04/17] keys-encrypted: add nvdimm key format type to
  encrypted keys
-From: Mimi Zohar <zohar@linux.ibm.com>
-Date: Wed, 12 Dec 2018 05:51:12 -0500
-In-Reply-To: <154455993868.26509.7086774475607953609.stgit@djiang5-desk3.ch.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 11 Dec 2018 13:25:38 -0700
+Message-ID: <154455993868.26509.7086774475607953609.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
- <154455993868.26509.7086774475607953609.stgit@djiang5-desk3.ch.intel.com>
-Mime-Version: 1.0
-Message-Id: <1544611872.4028.11.camel@linux.ibm.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -38,120 +23,115 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Jiang <dave.jiang@intel.com>, dan.j.williams@intel.com
+To: dan.j.williams@intel.com
 Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2018-12-11 at 13:25 -0700, Dave Jiang wrote:
-> Adding nvdimm key format type to encrypted keys in order to limit the size
-> of the key to 32bytes.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Adding nvdimm key format type to encrypted keys in order to limit the size
+of the key to 32bytes.
 
-Acked-by: Mimi Zohar <zohar@linux.ibm.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/security/keys/trusted-encrypted.rst |    6 ++++
+ security/keys/encrypted-keys/encrypted.c          |   29 ++++++++++++++-------
+ 2 files changed, 25 insertions(+), 10 deletions(-)
 
-> ---
->  Documentation/security/keys/trusted-encrypted.rst |    6 ++++
->  security/keys/encrypted-keys/encrypted.c          |   29 ++++++++++++++-------
->  2 files changed, 25 insertions(+), 10 deletions(-)
-> 
-> diff --git a/Documentation/security/keys/trusted-encrypted.rst b/Documentation/security/keys/trusted-encrypted.rst
-> index 3bb24e09a332..e8a1c35cd277 100644
-> --- a/Documentation/security/keys/trusted-encrypted.rst
-> +++ b/Documentation/security/keys/trusted-encrypted.rst
-> @@ -76,7 +76,7 @@ Usage::
-> 
->  Where::
-> 
-> -	format:= 'default | ecryptfs'
-> +	format:= 'default | ecryptfs | enc32'
->  	key-type:= 'trusted' | 'user'
-> 
-> 
-> @@ -173,3 +173,7 @@ are anticipated.  In particular the new format 'ecryptfs' has been defined in
->  in order to use encrypted keys to mount an eCryptfs filesystem.  More details
->  about the usage can be found in the file
->  ``Documentation/security/keys/ecryptfs.rst``.
-> +
-> +Another new format 'enc32' has been defined in order to support encrypted keys
-> +with payload size of 32 bytes. This will initially be used for nvdimm security
-> +but may expand to other usages that require 32 bytes payload.
-> diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
-> index d92cbf9687c3..fe0aefd06f83 100644
-> --- a/security/keys/encrypted-keys/encrypted.c
-> +++ b/security/keys/encrypted-keys/encrypted.c
-> @@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
->  static const char blkcipher_alg[] = "cbc(aes)";
->  static const char key_format_default[] = "default";
->  static const char key_format_ecryptfs[] = "ecryptfs";
-> +static const char key_format_enc32[] = "enc32";
->  static unsigned int ivsize;
->  static int blksize;
-> 
-> @@ -54,6 +55,7 @@ static int blksize;
->  #define HASH_SIZE SHA256_DIGEST_SIZE
->  #define MAX_DATA_SIZE 4096
->  #define MIN_DATA_SIZE  20
-> +#define KEY_ENC32_PAYLOAD_LEN 32
-> 
->  static struct crypto_shash *hash_tfm;
-> 
-> @@ -62,12 +64,13 @@ enum {
->  };
-> 
->  enum {
-> -	Opt_error = -1, Opt_default, Opt_ecryptfs
-> +	Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_enc32
->  };
-> 
->  static const match_table_t key_format_tokens = {
->  	{Opt_default, "default"},
->  	{Opt_ecryptfs, "ecryptfs"},
-> +	{Opt_enc32, "enc32"},
->  	{Opt_error, NULL}
->  };
-> 
-> @@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
->  	key_format = match_token(p, key_format_tokens, args);
->  	switch (key_format) {
->  	case Opt_ecryptfs:
-> +	case Opt_enc32:
->  	case Opt_default:
->  		*format = p;
->  		*master_desc = strsep(&datablob, " \t");
-> @@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
->  	format_len = (!format) ? strlen(key_format_default) : strlen(format);
->  	decrypted_datalen = dlen;
->  	payload_datalen = decrypted_datalen;
-> -	if (format && !strcmp(format, key_format_ecryptfs)) {
-> -		if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
-> -			pr_err("encrypted_key: keylen for the ecryptfs format "
-> -			       "must be equal to %d bytes\n",
-> -			       ECRYPTFS_MAX_KEY_BYTES);
-> -			return ERR_PTR(-EINVAL);
-> +	if (format) {
-> +		if (!strcmp(format, key_format_ecryptfs)) {
-> +			if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
-> +				pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
-> +					ECRYPTFS_MAX_KEY_BYTES);
-> +				return ERR_PTR(-EINVAL);
-> +			}
-> +			decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
-> +			payload_datalen = sizeof(struct ecryptfs_auth_tok);
-> +		} else if (!strcmp(format, key_format_enc32)) {
-> +			if (decrypted_datalen != KEY_ENC32_PAYLOAD_LEN) {
-> +				pr_err("encrypted_key: enc32 key payload incorrect length: %d\n",
-> +						decrypted_datalen);
-> +				return ERR_PTR(-EINVAL);
-> +			}
->  		}
-> -		decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
-> -		payload_datalen = sizeof(struct ecryptfs_auth_tok);
->  	}
-> 
->  	encrypted_datalen = roundup(decrypted_datalen, blksize);
-> 
+diff --git a/Documentation/security/keys/trusted-encrypted.rst b/Documentation/security/keys/trusted-encrypted.rst
+index 3bb24e09a332..e8a1c35cd277 100644
+--- a/Documentation/security/keys/trusted-encrypted.rst
++++ b/Documentation/security/keys/trusted-encrypted.rst
+@@ -76,7 +76,7 @@ Usage::
+ 
+ Where::
+ 
+-	format:= 'default | ecryptfs'
++	format:= 'default | ecryptfs | enc32'
+ 	key-type:= 'trusted' | 'user'
+ 
+ 
+@@ -173,3 +173,7 @@ are anticipated.  In particular the new format 'ecryptfs' has been defined in
+ in order to use encrypted keys to mount an eCryptfs filesystem.  More details
+ about the usage can be found in the file
+ ``Documentation/security/keys/ecryptfs.rst``.
++
++Another new format 'enc32' has been defined in order to support encrypted keys
++with payload size of 32 bytes. This will initially be used for nvdimm security
++but may expand to other usages that require 32 bytes payload.
+diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
+index d92cbf9687c3..fe0aefd06f83 100644
+--- a/security/keys/encrypted-keys/encrypted.c
++++ b/security/keys/encrypted-keys/encrypted.c
+@@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
+ static const char blkcipher_alg[] = "cbc(aes)";
+ static const char key_format_default[] = "default";
+ static const char key_format_ecryptfs[] = "ecryptfs";
++static const char key_format_enc32[] = "enc32";
+ static unsigned int ivsize;
+ static int blksize;
+ 
+@@ -54,6 +55,7 @@ static int blksize;
+ #define HASH_SIZE SHA256_DIGEST_SIZE
+ #define MAX_DATA_SIZE 4096
+ #define MIN_DATA_SIZE  20
++#define KEY_ENC32_PAYLOAD_LEN 32
+ 
+ static struct crypto_shash *hash_tfm;
+ 
+@@ -62,12 +64,13 @@ enum {
+ };
+ 
+ enum {
+-	Opt_error = -1, Opt_default, Opt_ecryptfs
++	Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_enc32
+ };
+ 
+ static const match_table_t key_format_tokens = {
+ 	{Opt_default, "default"},
+ 	{Opt_ecryptfs, "ecryptfs"},
++	{Opt_enc32, "enc32"},
+ 	{Opt_error, NULL}
+ };
+ 
+@@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
+ 	key_format = match_token(p, key_format_tokens, args);
+ 	switch (key_format) {
+ 	case Opt_ecryptfs:
++	case Opt_enc32:
+ 	case Opt_default:
+ 		*format = p;
+ 		*master_desc = strsep(&datablob, " \t");
+@@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
+ 	format_len = (!format) ? strlen(key_format_default) : strlen(format);
+ 	decrypted_datalen = dlen;
+ 	payload_datalen = decrypted_datalen;
+-	if (format && !strcmp(format, key_format_ecryptfs)) {
+-		if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+-			pr_err("encrypted_key: keylen for the ecryptfs format "
+-			       "must be equal to %d bytes\n",
+-			       ECRYPTFS_MAX_KEY_BYTES);
+-			return ERR_PTR(-EINVAL);
++	if (format) {
++		if (!strcmp(format, key_format_ecryptfs)) {
++			if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
++				pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
++					ECRYPTFS_MAX_KEY_BYTES);
++				return ERR_PTR(-EINVAL);
++			}
++			decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
++			payload_datalen = sizeof(struct ecryptfs_auth_tok);
++		} else if (!strcmp(format, key_format_enc32)) {
++			if (decrypted_datalen != KEY_ENC32_PAYLOAD_LEN) {
++				pr_err("encrypted_key: enc32 key payload incorrect length: %d\n",
++						decrypted_datalen);
++				return ERR_PTR(-EINVAL);
++			}
+ 		}
+-		decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
+-		payload_datalen = sizeof(struct ecryptfs_auth_tok);
+ 	}
+ 
+ 	encrypted_datalen = roundup(decrypted_datalen, blksize);
 
 _______________________________________________
 Linux-nvdimm mailing list
