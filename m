@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EF32C211A1E47
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:22 -0800 (PST)
-Subject: [PATCH v14 11/17] libnvdimm/security: introduce NDD_SECURITY_BUSY flag
+ by ml01.01.org (Postfix) with ESMTPS id 1F9B22119A47F
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:25:34 -0800 (PST)
+Subject: [PATCH v13 03/17] keys: Export lookup_user_key to external users
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 09:49:22 -0700
-Message-ID: <154471976220.55644.7438654212111357869.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
-References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 11 Dec 2018 13:25:33 -0700
+Message-ID: <154455993330.26509.106635801589937558.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,105 +26,57 @@ To: dan.j.williams@intel.com
 Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding a flag for nvdimm->flags to support erase functions. While it's ok
-to hold the nvdimm_bus lock for secure erase due to minimal time to execute
-the command, overwrite requires a significantly longer time and makes this
-impossible. The flag will block any drivers from being loaded and DIMMs
-being probed.
+Export lookup_user_key() symbol in order to allow nvdimm passphrase
+update to retrieve user injected keys.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/dimm_devs.c   |    5 +++++
- drivers/nvdimm/region_devs.c |    5 +++++
- drivers/nvdimm/security.c    |   15 +++++++++++++++
- include/linux/libnvdimm.h    |    2 ++
- 4 files changed, 27 insertions(+)
+ include/linux/key.h          |    3 +++
+ security/keys/internal.h     |    2 --
+ security/keys/process_keys.c |    1 +
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index bc432b7c17b8..e9f11d35ff2b 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -569,6 +569,11 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
- 	if (nvdimm->sec.state < 0)
- 		return -EIO;
+diff --git a/include/linux/key.h b/include/linux/key.h
+index e58ee10f6e58..7099985e35a9 100644
+--- a/include/linux/key.h
++++ b/include/linux/key.h
+@@ -346,6 +346,9 @@ static inline key_serial_t key_serial(const struct key *key)
  
-+	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
-+		dev_warn(&nvdimm->dev, "Security operation in progress.\n");
-+		return -EBUSY;
-+	}
+ extern void key_set_timeout(struct key *, unsigned);
+ 
++extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
++				 key_perm_t perm);
 +
- 	rc = nvdimm->sec.ops->freeze(nvdimm);
- 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ /*
+  * The permissions required on a key that we're looking up.
+  */
+diff --git a/security/keys/internal.h b/security/keys/internal.h
+index 74cb0ff42fed..479909b858c7 100644
+--- a/security/keys/internal.h
++++ b/security/keys/internal.h
+@@ -158,8 +158,6 @@ extern struct key *request_key_and_link(struct key_type *type,
  
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 174a418cb171..4e69b1d03c05 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -79,6 +79,11 @@ int nd_region_activate(struct nd_region *nd_region)
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
+ extern bool lookup_user_key_possessed(const struct key *key,
+ 				      const struct key_match_data *match_data);
+-extern key_ref_t lookup_user_key(key_serial_t id, unsigned long flags,
+-				 key_perm_t perm);
+ #define KEY_LOOKUP_CREATE	0x01
+ #define KEY_LOOKUP_PARTIAL	0x02
+ #define KEY_LOOKUP_FOR_UNLINK	0x04
+diff --git a/security/keys/process_keys.c b/security/keys/process_keys.c
+index d5b25e535d3a..ec4fd4531224 100644
+--- a/security/keys/process_keys.c
++++ b/security/keys/process_keys.c
+@@ -755,6 +755,7 @@ key_ref_t lookup_user_key(key_serial_t id, unsigned long lflags,
+ 	put_cred(ctx.cred);
+ 	goto try_again;
+ }
++EXPORT_SYMBOL(lookup_user_key);
  
-+		if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
-+			nvdimm_bus_unlock(&nd_region->dev);
-+			return -EBUSY;
-+		}
-+
- 		/* at least one null hint slot per-dimm for the "no-hint" case */
- 		flush_data_size += sizeof(void *);
- 		num_flush = min_not_zero(num_flush, nvdimm->num_flush);
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index 4836f2fda271..1edd298e6e27 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -143,6 +143,11 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
- 			|| nvdimm->sec.state < 0)
- 		return -EIO;
- 
-+	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
-+		dev_warn(dev, "Security operation in progress.\n");
-+		return -EBUSY;
-+	}
-+
- 	/*
- 	 * If the pre-OS has unlocked the DIMM, attempt to send the key
- 	 * from request_key() to the hardware for verification.  Failure
-@@ -203,6 +208,11 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
- 		return -EIO;
- 	}
- 
-+	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
-+		dev_warn(dev, "Security operation in progress.\n");
-+		return -EBUSY;
-+	}
-+
- 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
- 	if (!key)
- 		return -ENOKEY;
-@@ -288,6 +298,11 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
- 		return -EIO;
- 	}
- 
-+	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
-+		dev_warn(dev, "Security operation in progress.\n");
-+		return -EBUSY;
-+	}
-+
- 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
- 	if (!key)
- 		return -ENOKEY;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 9a6cb7067dc7..8507d2896ae0 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -38,6 +38,8 @@ enum {
- 	NDD_UNARMED = 1,
- 	/* locked memory devices should not be accessed */
- 	NDD_LOCKED = 2,
-+	/* memory under security wipes should not be accessed */
-+	NDD_SECURITY_BUSY = 3,
- 
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ /*
+  * Join the named keyring as the session keyring if possible else attempt to
 
 _______________________________________________
 Linux-nvdimm mailing list
