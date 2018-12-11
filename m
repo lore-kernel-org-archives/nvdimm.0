@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3A8E21959CB2
- for <linux-nvdimm@lists.01.org>; Mon,  3 Dec 2018 10:32:01 -0800 (PST)
-Message-ID: <714716fde90865e195848f1a9a38e9134e75ad29.camel@linux.intel.com>
-Subject: Re: [PATCH v2 0/3] kvm: Use huge pages for DAX-backed files
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 03 Dec 2018 10:32:00 -0800
-In-Reply-To: <20181203124051.05c1d2ce@gnomeregan.cam.corp.google.com>
-References: <20181109203921.178363-1-brho@google.com>
- <20181114215155.259978-1-brho@google.com>
- <CAPcyv4jga=HnsfHffWoo+JjRUBf3stD4VP3B5X5xSOZb=yh+Mw@mail.gmail.com>
- <20181203124051.05c1d2ce@gnomeregan.cam.corp.google.com>
-Mime-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 6377A2119AC1A
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:58 -0800 (PST)
+Subject: [PATCH v13 17/17] libnvdimm/security: Add documentation for nvdimm
+ security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 11 Dec 2018 13:26:57 -0700
+Message-ID: <154456001766.26509.5196378229920284095.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,57 +23,169 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Barret Rhoden <brho@google.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: X86 ML <x86@kernel.org>, "Zhang, Yu C" <yu.c.zhang@intel.com>, KVM list <kvm@vger.kernel.org>, rkrcmar@redhat.com, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, zwisler@kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>Zhang,
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, 2018-12-03 at 12:40 -0500, Barret Rhoden wrote:
-> On 2018-11-14 at 16:55 Dan Williams <dan.j.williams@intel.com> wrote:
-> > [ add Alex who is looking into removing PageReserved for DAX pages. ]
-> 
-> Thanks.  I can keep my eye out for his patches and repost once that's
-> done.  
-> 
-> Alternatively, if you all want to merge this before the PageReserved /
-> DAX changes, then I can repost - just Ack/Review tags.  It's harmless
-> with the existing PageReserved behavior.
-> 
-> Thanks,
-> 
-> Barret
+Add theory of operation for the security support that's going into
+libnvdimm.
 
-So the latest version of my generic memory init patches are up at:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/nvdimm/security.txt |  143 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 143 insertions(+)
+ create mode 100644 Documentation/nvdimm/security.txt
 
-https://lore.kernel.org/lkml/154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com/
-
-To be honest I am not entirely convinced that dropping PageReserved is
-the right thing to do for DAX pages. I've been trying to work out a few
-different issues but not having much luck. It seems like the main issue
-is that the PageReserved bit is being used to indicate 2 different
-things in a few spots throughout the kernel.
-
-The definition of the PG_reserved flag reads like it should apply to
-DAX pages:
-  PG_reserved is set for special pages, which can never be swapped out.
-  Some of them might not even exist...
-
-PageReserved essentially means you aren't supposed to be migrating or
-swapping the page. The problem here is that I believe this logic should
-apply to DAX pages and so in many cases it makes sense to leave the
-flag set for DAX pages. Otherwise you have to go through and start
-special casing all the spots where normal memory falls through and add
-a check to see if we have a DAX page.
-
-The second use for the PG_reserved flag is to test for if you can pin
-the page or not. This I think is the reason why many are just assuming
-PageReserved == MMIO like KVM does. However this is a bad assumption to
-be making since the introduction of DAX, HMM, and P2PDMA allows MMIO
-memory to start doing different things like supporting pinning. I also
-believe it would be a bad reason to clear the flag for DAX pages.
-
-Thanks.
-
-- Alex
+diff --git a/Documentation/nvdimm/security.txt b/Documentation/nvdimm/security.txt
+new file mode 100644
+index 000000000000..027160f9c3b8
+--- /dev/null
++++ b/Documentation/nvdimm/security.txt
+@@ -0,0 +1,143 @@
++NVDIMM SECURITY
++===============
++
++1. Introduction
++---------------
++
++With the introduction of Intel DSM v1.8 specification [1], security DSMs are
++introduced. The spec added the following security DSMs: "get security state",
++"set passphrase", "disable passphrase", "unlock unit", "freeze lock",
++"secure erase", and "overwrite". A security_ops data structure has been
++added to struct dimm in order to support the security operations and generic
++APIs are exposed to allow vendor neutral operations.
++
++2. Sysfs Interface
++------------------
++The "security" sysfs attribute is provided in the nvdimm sysfs directory. For
++example:
++/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/security
++
++The "show" function of that attribute will display the security state for
++that DIMM. The following states are available: disabled, unlocked, locked,
++frozen, and overwrite. If security is not supported, the sysfs attribute
++will not be visible.
++
++The "store" function takes several commands when the attribute is written to
++in order to support some of the security functionalities:
++update <old_keyid> <new_keyid> - enable or update passphrase.
++disable <keyid> - disable enabled security and remove key.
++freeze - freeze changing of security states.
++erase <keyid> - generate new ecryption key for DIMM and crypto-scrambles
++	all existing user data using the user passphrase.
++overwrite <keyid> - wipe the entire nvdimm.
++master_update <keyid> <new_keyid> - enable or update master passphrase.
++master_erase <keyid> - generate new ecryption key for DIMM and crypto-scrambles
++	all existing user data using the master passphrase.
++master
++
++3. Key Management
++-----------------
++
++The key is associted to the payload by the DIMM id. For example:
++# cat /sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/nmem0/nfit/id
++8089-a2-1740-00000133
++The DIMM id would be provided along with the key payload (passphrase) to
++the kernel.
++
++The security keys are managed on the basis of a single key per DIMM. The
++key "passphrase" is expected to be 32bytes long. This is similar to the ATA
++security specification [2]. A key is initially acquired via the request_key()
++kernel API call during nvdimm unlock. It is up to the user to make sure that
++all the keys are in the kernel user keyring for unlock.
++
++A nvdimm encrypted-key of format enc32 has the description format of:
++nvdimm:<bus-provider-specific-unique-id>
++
++See file ``Documentation/security/keys/trusted-encrypted.rst`` for creating
++encrypted-keys of enc32 format. TPM usage with a master trusted key is
++preferred for sealing the encrypted-keys.
++
++4. Unlocking
++------------
++When the DIMMs are being enumerated by the kernel, the kernel will attempt to
++retrieve the key from the kernel user keyring. This is the only time
++a locked DIMM can be unlocked. Once unlocked, the DIMM will remain unlocked
++until reboot. Typically, an entity (i.e. shell script) will inject all the
++relevant encrypted-keys into the kernel user keyring during initramfs phase.
++It is also recommended that the keys are injected before libnvdimm is loaded
++by modprobe.
++
++5. Update
++---------
++When doing an update, it is expected that the existing key is removed from
++tkey key user keyring and injected as the old key. It's irrelevant what
++the key description is for the old key since we are only interested in the
++key id when doing the update operation. It is also expected that the new key
++is injected with the description format described from earlier in this
++document.  The update command written to the sysfs attribute will be with
++the format:
++update <old keyid> <new keyid>
++
++If there is no old keyid due to a security enabling, then a 0 should be
++passed in.
++
++6. Freeze
++---------
++The freeze operation does not require any keys. The security config can be
++frozen by a user with root privelege.
++
++7. Disable
++----------
++The security disable command format is:
++disable <keyid>
++
++An key with the current passphrase payload that is tied to the nvdimm should be
++in the kernel user keyring.
++
++8. Secure Erase
++---------------
++The command format for doing a secure erase is:
++erase <keyid>
++
++An key with the current passphrase payload that is tied to the nvdimm should be
++in the kernel user keyring.
++
++9. Overwrite
++------------
++The command format for doing an overwrite is:
++overwrite <keyid>
++
++Overwrite can be done without a key if security is not enabled. A key serial
++of 0 can be passed in to indicate no key.
++
++The sysfs attribute "security" can be polled to wait on overwrite completion.
++Overwrite can last tens of minutes or more depending on nvdimm size.
++
++An encrypted-key with the current user passphrase that is tied to the nvdimm
++should be injected and its keyid should be passed in via sysfs.
++
++10. Master Update
++-----------------
++The command format for doing a master update is:
++update <old keyid> <new keyid>
++
++The operating mechansim for master update is identical to update except the
++master passphrase key is passed to the kernel. The master passphrase key
++is just another encrypted-key.
++
++This command is only available when security is disabled.
++
++11. Master Erase
++----------------
++The command format for doing a master erase is:
++master_erase <current keyid>
++
++This command has the same operating mechanism as erase except the master
++passphrase key is passed to the kernel. The master passphrase key is just
++another encrypted-key.
++
++This command is only available when the master security is enabled, indicated
++by the extended security status.
++
++[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
++[2]: http://www.t13.org/documents/UploadedDocuments/docs2006/e05179r4-ACS-SecurityClarifications.pdf
 
 _______________________________________________
 Linux-nvdimm mailing list
