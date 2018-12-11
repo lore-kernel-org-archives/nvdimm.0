@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 04E242119A878
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:25:45 -0800 (PST)
-Subject: [PATCH v13 05/17] acpi/nfit, libnvdimm: Introduce nvdimm_security_ops
+ by ml01.01.org (Postfix) with ESMTPS id B90F02119AC08
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:09 -0800 (PST)
+Subject: [PATCH v13 08/17] acpi/nfit,
+ libnvdimm: Add disable passphrase support to Intel nvdimm.
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 11 Dec 2018 13:25:44 -0700
-Message-ID: <154455994428.26509.2839527031690514135.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 11 Dec 2018 13:26:09 -0700
+Message-ID: <154455996895.26509.1794498992650579619.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
@@ -26,345 +27,232 @@ To: dan.j.williams@intel.com
 Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Some NVDIMMs, like the ones defined by the NVDIMM_FAMILY_INTEL command
-set, expose a security capability to lock the DIMMs at poweroff and
-require a passphrase to unlock them. The security model is derived from
-ATA security. In anticipation of other DIMMs implementing a similar
-scheme, and to abstract the core security implementation away from the
-device-specific details, introduce nvdimm_security_ops.
-
-Initially only a status retrieval operation, ->state(), is defined,
-along with the base infrastructure and definitions for future
-operations.
+Add support to disable passphrase (security) for the Intel nvdimm. The
+passphrase used for disabling is pulled from an encrypted-key in the kernel
+user keyring. The action is triggered by writing "disable <keyid>" to the
+sysfs attribute "security".
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Co-developed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/Makefile  |    1 +
- drivers/acpi/nfit/core.c    |   13 ++++++++++
- drivers/acpi/nfit/intel.c   |   54 +++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/intel.h   |    2 ++
- drivers/nvdimm/bus.c        |    6 +++++
- drivers/nvdimm/dimm_devs.c  |   45 +++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/nd-core.h    |   13 ++++++++++
- include/linux/libnvdimm.h   |   27 ++++++++++++++++++++--
- tools/testing/nvdimm/Kbuild |    1 +
- 9 files changed, 158 insertions(+), 4 deletions(-)
- create mode 100644 drivers/acpi/nfit/intel.c
+ drivers/acpi/nfit/intel.c  |   44 +++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   17 +++++++++++-
+ drivers/nvdimm/nd-core.h   |    1 +
+ drivers/nvdimm/security.c  |   63 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 +
+ 5 files changed, 126 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/Makefile b/drivers/acpi/nfit/Makefile
-index a407e769f103..751081c47886 100644
---- a/drivers/acpi/nfit/Makefile
-+++ b/drivers/acpi/nfit/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_ACPI_NFIT) := nfit.o
- nfit-y := core.o
-+nfit-y += intel.o
- nfit-$(CONFIG_X86_MCE) += mce.o
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index c74f087398fb..77f188cd8023 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1928,6 +1928,16 @@ static void shutdown_dimm_notify(void *data)
- 	mutex_unlock(&acpi_desc->init_mutex);
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 5b627ca35d3b..5d4557cfb0d7 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -162,6 +162,49 @@ static int intel_security_unlock(struct nvdimm *nvdimm,
+ 	return 0;
  }
  
-+static const struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
++static int intel_security_disable(struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *key_data)
 +{
-+	switch (family) {
-+	case NVDIMM_FAMILY_INTEL:
-+		return intel_security_ops;
-+	default:
-+		return NULL;
-+	}
-+}
-+
- static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- {
- 	struct nfit_mem *nfit_mem;
-@@ -1997,7 +2007,8 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		nvdimm = __nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
- 				acpi_nfit_dimm_attribute_groups,
- 				flags, cmd_mask, flush ? flush->hint_count : 0,
--				nfit_mem->flush_wpq, &nfit_mem->id[0]);
-+				nfit_mem->flush_wpq, &nfit_mem->id[0],
-+				acpi_nfit_get_security_ops(nfit_mem->family));
- 		if (!nvdimm)
- 			return -ENOMEM;
- 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-new file mode 100644
-index 000000000000..fd7a8f6d2c20
---- /dev/null
-+++ b/drivers/acpi/nfit/intel.c
-@@ -0,0 +1,54 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
-+#include <linux/libnvdimm.h>
-+#include <linux/ndctl.h>
-+#include <linux/acpi.h>
-+#include "intel.h"
-+#include "nfit.h"
-+
-+static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
-+{
++	int rc;
 +	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
 +	struct {
 +		struct nd_cmd_pkg pkg;
-+		struct nd_intel_get_security_state cmd;
++		struct nd_intel_disable_passphrase cmd;
 +	} nd_cmd = {
 +		.pkg = {
-+			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
++			.nd_command = NVDIMM_INTEL_DISABLE_PASSPHRASE,
 +			.nd_family = NVDIMM_FAMILY_INTEL,
-+			.nd_size_out =
-+				sizeof(struct nd_intel_get_security_state),
-+			.nd_fw_size =
-+				sizeof(struct nd_intel_get_security_state),
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++		.cmd = {
++			.status = 0,
 +		},
 +	};
-+	int rc;
 +
-+	if (!test_bit(NVDIMM_INTEL_GET_SECURITY_STATE, &nfit_mem->dsm_mask))
-+		return -ENXIO;
++	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
++	memcpy(nd_cmd.cmd.passphrase, key_data->data,
++			sizeof(nd_cmd.cmd.passphrase));
 +	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
 +	if (rc < 0)
 +		return rc;
-+	if (nd_cmd.cmd.status)
-+		return -EIO;
 +
-+	/* check and see if security is enabled and locked */
-+	if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_UNSUPPORTED)
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		return -EINVAL;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
 +		return -ENXIO;
-+	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
-+		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
-+			return NVDIMM_SECURITY_LOCKED;
-+		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
-+				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
-+			return NVDIMM_SECURITY_FROZEN;
-+		else
-+			return NVDIMM_SECURITY_UNLOCKED;
 +	}
-+	return NVDIMM_SECURITY_DISABLED;
++
++	return 0;
 +}
 +
-+static const struct nvdimm_security_ops __intel_security_ops = {
-+	.state = intel_security_state,
-+};
-+const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
-diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
-index 1802bd398c23..0aca682ab9d7 100644
---- a/drivers/acpi/nfit/intel.h
-+++ b/drivers/acpi/nfit/intel.h
-@@ -35,6 +35,8 @@ struct nd_intel_smart {
- 	};
- } __packed;
- 
-+extern const struct nvdimm_security_ops *intel_security_ops;
-+
- #define ND_INTEL_STATUS_SIZE		4
- #define ND_INTEL_PASSPHRASE_SIZE	32
- 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 9743d8083538..eae17d8ee539 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -331,6 +331,12 @@ struct nvdimm_bus *to_nvdimm_bus(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(to_nvdimm_bus);
- 
-+struct nvdimm_bus *nvdimm_to_bus(struct nvdimm *nvdimm)
-+{
-+	return to_nvdimm_bus(nvdimm->dev.parent);
-+}
-+EXPORT_SYMBOL_GPL(nvdimm_to_bus);
-+
- struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nd_desc)
- {
+ /*
+  * TODO: define a cross arch wbinvd equivalent when/if
+  * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+@@ -182,6 +225,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.state = intel_security_state,
+ 	.freeze = intel_security_freeze,
+ 	.change_key = intel_security_change_key,
++	.disable = intel_security_disable,
+ #ifdef CONFIG_X86
+ 	.unlock = intel_security_unlock,
+ #endif
 diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 508dd405f84f..9609b671311b 100644
+index 8e0bd2ce4dd0..3a5727102a30 100644
 --- a/drivers/nvdimm/dimm_devs.c
 +++ b/drivers/nvdimm/dimm_devs.c
-@@ -370,23 +370,60 @@ static ssize_t available_slots_show(struct device *dev,
+@@ -391,17 +391,32 @@ static ssize_t security_show(struct device *dev,
+ 	return -ENOTTY;
  }
- static DEVICE_ATTR_RO(available_slots);
  
-+static ssize_t security_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	switch (nvdimm->sec.state) {
-+	case NVDIMM_SECURITY_DISABLED:
-+		return sprintf(buf, "disabled\n");
-+	case NVDIMM_SECURITY_UNLOCKED:
-+		return sprintf(buf, "unlocked\n");
-+	case NVDIMM_SECURITY_LOCKED:
-+		return sprintf(buf, "locked\n");
-+	case NVDIMM_SECURITY_FROZEN:
-+		return sprintf(buf, "frozen\n");
-+	case NVDIMM_SECURITY_OVERWRITE:
-+		return sprintf(buf, "overwrite\n");
-+	}
-+
-+	return -ENOTTY;
-+}
-+static DEVICE_ATTR_RO(security);
-+
- static struct attribute *nvdimm_attributes[] = {
- 	&dev_attr_state.attr,
- 	&dev_attr_flags.attr,
- 	&dev_attr_commands.attr,
- 	&dev_attr_available_slots.attr,
-+	&dev_attr_security.attr,
- 	NULL,
- };
- 
-+static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, typeof(*dev), kobj);
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+
-+	if (a != &dev_attr_security.attr)
-+		return a->mode;
-+	if (nvdimm->sec.state < 0)
-+		return 0;
-+	return a->mode;
-+}
-+
- struct attribute_group nvdimm_attribute_group = {
- 	.attrs = nvdimm_attributes,
-+	.is_visible = nvdimm_visible,
- };
- EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
- 
- struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 		void *provider_data, const struct attribute_group **groups,
- 		unsigned long flags, unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq, const char *dimm_id)
-+		struct resource *flush_wpq, const char *dimm_id,
-+		const struct nvdimm_security_ops *sec_ops)
++#define SEC_CMD_SIZE 32
++#define KEY_ID_SIZE 10 /* u32 size in string */
+ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
  {
- 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
- 	struct device *dev;
-@@ -413,6 +450,12 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 	dev->type = &nvdimm_device_type;
- 	dev->devt = MKDEV(nvdimm_major, nvdimm->id);
- 	dev->groups = groups;
-+	nvdimm->sec.ops = sec_ops;
-+	/*
-+	 * Security state must be initialized before device_add() for
-+	 * attribute visibility.
-+	 */
-+	nvdimm->sec.state = nvdimm_security_state(nvdimm);
- 	nd_device_register(dev);
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 	ssize_t rc;
++	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1];
++	unsigned int key;
  
- 	return nvdimm;
+ 	if (atomic_read(&nvdimm->busy))
+ 		return -EBUSY;
+ 
++	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s %"__stringify(KEY_ID_SIZE)"s",
++			cmd, keystr);
+ 	if (sysfs_streq(buf, "freeze")) {
+ 		dev_dbg(dev, "freeze\n");
+ 		rc = nvdimm_security_freeze(nvdimm);
++	} else if (sysfs_streq(cmd, "disable")) {
++		if (rc != 2)
++			return -EINVAL;
++		rc = kstrtouint(keystr, 0, &key);
++		if (rc < 0)
++			return rc;
++		rc = nvdimm_security_disable(nvdimm, key);
++		if (rc < 0)
++			return rc;
+ 	} else
+ 		return -EINVAL;
+ 
+@@ -452,7 +467,7 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (nvdimm->sec.state < 0)
+ 		return 0;
+ 	/* Are there any state mutation ops? */
+-	if (nvdimm->sec.ops->freeze)
++	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable)
+ 		return a->mode;
+ 	return 0444;
+ }
 diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index ff26876e6ea3..1919f5c0d581 100644
+index 15eff40f55f6..93e63c12ea45 100644
 --- a/drivers/nvdimm/nd-core.h
 +++ b/drivers/nvdimm/nd-core.h
-@@ -42,8 +42,21 @@ struct nvdimm {
- 	int id, num_flush;
- 	struct resource *flush_wpq;
- 	const char *dimm_id;
-+	struct {
-+		const struct nvdimm_security_ops *ops;
-+		enum nvdimm_security_state state;
-+	} sec;
- };
+@@ -57,6 +57,7 @@ static inline enum nvdimm_security_state nvdimm_security_state(
+ 	return nvdimm->sec.ops->state(nvdimm);
+ }
+ int nvdimm_security_freeze(struct nvdimm *nvdimm);
++int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
  
-+static inline enum nvdimm_security_state nvdimm_security_state(
-+		struct nvdimm *nvdimm)
-+{
-+	if (!nvdimm->sec.ops)
-+		return -ENXIO;
-+
-+	return nvdimm->sec.ops->state(nvdimm);
-+}
-+
  /**
   * struct blk_alloc_info - tracking info for BLK dpa scanning
-  * @nd_mapping: blk region mapping boundaries
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f980046b9588..f4d63f49f7dd 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -155,6 +155,18 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
- 
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 51d77a67a9fb..55d8806a5040 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -69,6 +69,36 @@ static struct key *nvdimm_request_key(struct nvdimm *nvdimm)
+ 	return key;
  }
  
-+enum nvdimm_security_state {
-+	NVDIMM_SECURITY_DISABLED,
-+	NVDIMM_SECURITY_UNLOCKED,
-+	NVDIMM_SECURITY_LOCKED,
-+	NVDIMM_SECURITY_FROZEN,
-+	NVDIMM_SECURITY_OVERWRITE,
-+};
-+
-+struct nvdimm_security_ops {
-+	enum nvdimm_security_state (*state)(struct nvdimm *nvdimm);
-+};
-+
- void badrange_init(struct badrange *badrange);
- int badrange_add(struct badrange *badrange, u64 addr, u64 length);
- void badrange_forget(struct badrange *badrange, phys_addr_t start,
-@@ -165,6 +177,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		struct nvdimm_bus_descriptor *nfit_desc);
- void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
- struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
-+struct nvdimm_bus *nvdimm_to_bus(struct nvdimm *nvdimm);
- struct nvdimm *to_nvdimm(struct device *dev);
- struct nd_region *to_nd_region(struct device *dev);
- struct device *nd_region_dev(struct nd_region *nd_region);
-@@ -178,14 +191,15 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
- struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 		void *provider_data, const struct attribute_group **groups,
- 		unsigned long flags, unsigned long cmd_mask, int num_flush,
--		struct resource *flush_wpq, const char *dimm_id);
-+		struct resource *flush_wpq, const char *dimm_id,
-+		const struct nvdimm_security_ops *sec_ops);
- static inline struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 		void *provider_data, const struct attribute_group **groups,
- 		unsigned long flags, unsigned long cmd_mask, int num_flush,
- 		struct resource *flush_wpq)
- {
- 	return __nvdimm_create(nvdimm_bus, provider_data, groups, flags,
--			cmd_mask, num_flush, flush_wpq, NULL);
-+			cmd_mask, num_flush, flush_wpq, NULL, NULL);
- }
- 
- const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
-@@ -214,6 +228,15 @@ void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- 
-+static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+		unsigned int buf_len, int *cmd_rc)
++static struct key *nvdimm_lookup_user_key(struct nvdimm *nvdimm,
++		key_serial_t id)
 +{
-+	struct nvdimm_bus *nvdimm_bus = nvdimm_to_bus(nvdimm);
-+	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++	key_ref_t keyref;
++	struct key *key;
++	struct encrypted_key_payload *epayload;
++	struct device *dev = &nvdimm->dev;
 +
-+	return nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, cmd_rc);
++	keyref = lookup_user_key(id, 0, 0);
++	if (IS_ERR(keyref))
++		return NULL;
++
++	key = key_ref_to_ptr(keyref);
++	if (key->type != &key_type_encrypted) {
++		key_put(key);
++		return NULL;
++	}
++	dev_dbg(dev, "%s: key found: %#x\n", __func__, key_serial(key));
++
++
++	down_read(&key->sem);
++	epayload = dereference_key_locked(key);
++	if (epayload->decrypted_datalen != NVDIMM_PASSPHRASE_LEN) {
++		up_read(&key->sem);
++		key_put(key);
++		key = NULL;
++	}
++	return key;
 +}
 +
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
- void arch_wb_cache_pmem(void *addr, size_t size);
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 778ceb651000..4a2f3cff2a75 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -37,6 +37,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
- obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+ static struct key *nvdimm_key_revalidate(struct nvdimm *nvdimm)
+ {
+ 	struct key *key;
+@@ -146,3 +176,36 @@ int nvdimm_security_unlock(struct device *dev)
+ 	nvdimm_bus_unlock(dev);
+ 	return rc;
+ }
++
++int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
++{
++	struct device *dev = &nvdimm->dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	int rc;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->disable
++			|| nvdimm->sec.state < 0)
++		return -EIO;
++
++	if (nvdimm->sec.state >= NVDIMM_SECURITY_FROZEN) {
++		dev_warn(dev, "Incorrect security state: %d\n",
++				nvdimm->sec.state);
++		return -EIO;
++	}
++
++	key = nvdimm_lookup_user_key(nvdimm, keyid);
++	if (!key)
++		return -ENOKEY;
++
++	rc = nvdimm->sec.ops->disable(nvdimm, key_data(key));
++	dev_dbg(dev, "key: %d disable: %s\n", key_serial(key),
++			rc == 0 ? "success" : "fail");
++
++	nvdimm_put_key(key);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	return rc;
++}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 0f0ab276134e..d0afa115356e 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -178,6 +178,8 @@ struct nvdimm_security_ops {
+ 			const struct nvdimm_key_data *new_data);
+ 	int (*unlock)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
++	int (*disable)(struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *key_data);
+ };
  
- nfit-y := $(ACPI_SRC)/core.o
-+nfit-y += $(ACPI_SRC)/intel.o
- nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
- nfit-y += acpi_nfit_test.o
- nfit-y += config_check.o
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
