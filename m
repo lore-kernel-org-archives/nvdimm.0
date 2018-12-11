@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DFFF211A4593
- for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:10:09 -0800 (PST)
-Subject: [PATCH v6 12/12] ndctl: documentation for security and key management
+ by ml01.01.org (Postfix) with ESMTPS id 04E242119A878
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:25:45 -0800 (PST)
+Subject: [PATCH v13 05/17] acpi/nfit, libnvdimm: Introduce nvdimm_security_ops
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 14 Dec 2018 14:10:08 -0700
-Message-ID: <154482180840.65434.1342856065971626396.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
-References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 11 Dec 2018 13:25:44 -0700
+Message-ID: <154455994428.26509.2839527031690514135.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,231 +22,349 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding the theory of operation for Intel DSM operations.
+Some NVDIMMs, like the ones defined by the NVDIMM_FAMILY_INTEL command
+set, expose a security capability to lock the DIMMs at poweroff and
+require a passphrase to unlock them. The security model is derived from
+ATA security. In anticipation of other DIMMs implementing a similar
+scheme, and to abstract the core security implementation away from the
+device-specific details, introduce nvdimm_security_ops.
+
+Initially only a status retrieval operation, ->state(), is defined,
+along with the base infrastructure and definitions for future
+operations.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ndctl/intel-nvdimm-security.txt    |  139 ++++++++++++++++++++++
- Documentation/ndctl/ndctl-disable-passphrase.txt |    2 
- Documentation/ndctl/ndctl-enable-passphrase.txt  |    4 +
- Documentation/ndctl/ndctl-freeze-security.txt    |    2 
- Documentation/ndctl/ndctl-sanitize-dimm.txt      |    2 
- Documentation/ndctl/ndctl-update-passphrase.txt  |    2 
- 6 files changed, 151 insertions(+)
- create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+ drivers/acpi/nfit/Makefile  |    1 +
+ drivers/acpi/nfit/core.c    |   13 ++++++++++
+ drivers/acpi/nfit/intel.c   |   54 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.h   |    2 ++
+ drivers/nvdimm/bus.c        |    6 +++++
+ drivers/nvdimm/dimm_devs.c  |   45 +++++++++++++++++++++++++++++++++++-
+ drivers/nvdimm/nd-core.h    |   13 ++++++++++
+ include/linux/libnvdimm.h   |   27 ++++++++++++++++++++--
+ tools/testing/nvdimm/Kbuild |    1 +
+ 9 files changed, 158 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/acpi/nfit/intel.c
 
-diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+diff --git a/drivers/acpi/nfit/Makefile b/drivers/acpi/nfit/Makefile
+index a407e769f103..751081c47886 100644
+--- a/drivers/acpi/nfit/Makefile
++++ b/drivers/acpi/nfit/Makefile
+@@ -1,3 +1,4 @@
+ obj-$(CONFIG_ACPI_NFIT) := nfit.o
+ nfit-y := core.o
++nfit-y += intel.o
+ nfit-$(CONFIG_X86_MCE) += mce.o
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index c74f087398fb..77f188cd8023 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1928,6 +1928,16 @@ static void shutdown_dimm_notify(void *data)
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+ 
++static const struct nvdimm_security_ops *acpi_nfit_get_security_ops(int family)
++{
++	switch (family) {
++	case NVDIMM_FAMILY_INTEL:
++		return intel_security_ops;
++	default:
++		return NULL;
++	}
++}
++
+ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_mem *nfit_mem;
+@@ -1997,7 +2007,8 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		nvdimm = __nvdimm_create(acpi_desc->nvdimm_bus, nfit_mem,
+ 				acpi_nfit_dimm_attribute_groups,
+ 				flags, cmd_mask, flush ? flush->hint_count : 0,
+-				nfit_mem->flush_wpq, &nfit_mem->id[0]);
++				nfit_mem->flush_wpq, &nfit_mem->id[0],
++				acpi_nfit_get_security_ops(nfit_mem->family));
+ 		if (!nvdimm)
+ 			return -ENOMEM;
+ 
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
 new file mode 100644
-index 00000000..0c9a41a4
+index 000000000000..fd7a8f6d2c20
 --- /dev/null
-+++ b/Documentation/ndctl/intel-nvdimm-security.txt
-@@ -0,0 +1,139 @@
++++ b/drivers/acpi/nfit/intel.c
+@@ -0,0 +1,54 @@
 +// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
++#include <linux/libnvdimm.h>
++#include <linux/ndctl.h>
++#include <linux/acpi.h>
++#include "intel.h"
++#include "nfit.h"
 +
-+THEORY OF OPERATOIN
-+-------------------
-+With the introduction of Intel Device Specific Methods (DSM) specification
-+v1.7 and v1.8 [1], security DSMs were introduced. Ndctl supports enable
-+passhprase, update passphrase, disable security, freeze security, secure
-+(crypto) erase, overwrite, master passphrase enable, master passphrase update,
-+and master passphrase secure (crypto) erase. The DSM that is not supported by
-+ndctl is the unlock DSM, which is left to the kernel to manage.
++static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
++{
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_get_security_state cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_out =
++				sizeof(struct nd_intel_get_security_state),
++			.nd_fw_size =
++				sizeof(struct nd_intel_get_security_state),
++		},
++	};
++	int rc;
 +
-+The security management for nvdimm is composed of two parts. The front end
-+utilizes the Linux key management framework (trusted and encrypted keys [2]).
-+It uses the keyutils on the user side and Linux key management APIs in
-+the kernel. The backend takes the decrypted payload of the key and passes the
-+plaintext payload to the nvdimm for processing.
++	if (!test_bit(NVDIMM_INTEL_GET_SECURITY_STATE, &nfit_mem->dsm_mask))
++		return -ENXIO;
 +
-+Unlike typical DSMs, the security DSMs are managed through the 'security'
-+sysfs attribute under the dimm devices rather than an ioctl call by libndctl.
-+The relevant key id is written to the 'security' attribute and the kernel will
-+pull that key from the kernel user key ring for processing.
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
++	if (nd_cmd.cmd.status)
++		return -EIO;
 +
-+The entire security process starts with a master key that is used to seal the
-+encrypted keys that are used to protect the passphrase for each nvdimm. We
-+recommend using THE system master trusted key from the Trusted Platform
-+Module (TPM). However, a trusted master key generated by the TPM can also
-+be used. And for testing purposes, a user key with randomized payload can
-+also be served as a master key. See [2] for details. To perform any security
-+operations, it is expected that at the minimal the master key is already
-+in the kernel user keyring as shown in example below:
++	/* check and see if security is enabled and locked */
++	if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_UNSUPPORTED)
++		return -ENXIO;
++	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
++		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
++			return NVDIMM_SECURITY_LOCKED;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
++				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
++			return NVDIMM_SECURITY_FROZEN;
++		else
++			return NVDIMM_SECURITY_UNLOCKED;
++	}
++	return NVDIMM_SECURITY_DISABLED;
++}
 +
-+> keyctl show
-+Session Keyring
-+ 736023423 --alswrv      0     0  keyring: _ses
-+ 675104189 --alswrv      0 65534   \_ keyring: _uid.0
-+ 680187394 --alswrv      0     0       \_ trusted: nvdimm-master
-+
-+All operations expect the relevant regions associated to the nvdimm are
-+disabled before proceeding, except overwrite. Overwrite expects the
-+relevant nvdimm also be disabled.
-+
-+The follow on sections describe specifics of each security features.
-+
-+UNLOCK
-+------
-+Unlock is performed by the kernel, however a preparation step must happen
-+before the unlock DSM can be issued by the kernel. The expectation is that
-+during initramfs, a setup script is called before the libnvdimm module is
-+loaded by modprobe. The said script will inject the master key and the
-+related encrypted keys into the kernel user key ring. A reference modprobe
-+config file and a setup script have been provided by ndctl. When the
-+nvdimm driver probes, it will
-+1. First, Check the security state of the device and see if the dimm is locked
-+2. Request the associated encrypted key from the kernel user key ring.
-+3. Finally, create the unlock DSM and copy the decrypted payload into the DSM
-+   passphrase field, and issue the DSM to unlock the DIMM.
-+
-+If the DIMM is already unlocked, the kernel will attempt to revalidate the key.
-+This can be overriden with a kernel module parameter. If we fail to revalidate
-+the key, the kernel will freeze the security and disallow any further security
-+configuration changes.
-+
-+ENABLE USER PASSPHRASE
-+----------------------
-+To enable the user passphrase for a DIMM, it is expected that the master key
-+is already in the kernel user key ring and the master key name is passed to
-+ndctl so it can do key management. An encrypted key with a 32byte payload
-+and encrypted key format 'enc32' is created and sealed by the master key. Be
-+aware that the passphrase is never provided by or visible to the user.
-+The decrypted payload for the encrypted key will be randomly generated by the
-+kernel and userspace does not have access to this decrypted payload. When the
-+encrypted key is created, a binary blob of the encrypted key is written to the
-+designated key blob storage directory (/etc/ndctl/keys as default). The user is
-+responsible for backing up the dimm key blobs to a secure location. When a key
-+is successfully loaded into the kernel user key ring, the payload is decrypted
-+and can be accessed by the kernel.
-+
-+Key ids are written to the 'security' sysfs attribute with the command "update".
-+A key id of 0 is provided for the old key id. The kernel will see that the
-+update call is an enable call because the 0 old key id. A "passphrase update"
-+DSM is issued by the kernel with the old passphrase as 0s.
-+
-+UPDATE USER PASSPHRASE
-+----------------------
-+The update user passphrase operation uses the same DSM command as enable user
-+passphrase. Most of the work is done on the key management. The user will
-+provide a new master key name for the new passphrase key or use the existing
-+one. Ndctl will use whatever master key name that is passed in. The following
-+operation is performed for update:
-+1. Remove the associated encrypted key from the kernel user key ring.
-+2. Rename the key blob to old.
-+3. Load the now old key blob into kernel user key ring with "old" name.
-+4. Create new encrypted key and seal with master key.
-+5. Generate new key blob.
-+6. Send DSM with old and new passphrase via the decrypted key payloads.
-+7. On success, remove old key from key ring and old key blob.
-+
-+DISABLE USER PASSPHRASE
-+-----------------------
-+Ndctl will look up the key id for the current associated key and write to sysfs.
-+Upon success of disabling, the key will be removed from the kernel user key
-+ring and the related key blob will also be deleted.
-+
-+CRYPTO (SECURE) ERASE
-+---------------------
-+This operation is similar to disable the passphrase. The kernel will issue
-+wbinvd before and after the operation to ensure no data corruption from stale
-+CPU cache. The "sanitize-dimm" command with the --crypto-erase switch is used
-+via ndctl.
-+
-+OVERWRITE
-+---------
-+The overwrite operation wipes the entire nvdimm. Therefore it can take
-+a significant amount of time. To issue the command is very similar to disable
-+passphrase and secure erase. However, when the command returns successfully
-+it just means overwrite has been successfully started. The wait-overwrite
-+command for ndctl can be used to wait on the nvdimms that are performing
-+overwrite until the operation is completed. Upon successful completion of the
-+operation, wbinvd will be issued by the kernel. The "sanitize-dimm" command
-+with the --overwrite switch is used via ndctl. If both --crypto-erase and
-+--overwrite switches are passed in, the crypt-erase will be issued first before
-+overwrite.
-+
-+SECURITY FREEZE
-+---------------
-+This operation requires no key to succeed. Ndctl will issue the DSM command
-+and upon completion, the security commands besides status query will be locked
-+out until the next boot.
-+
-+MASTER PASSPHRASE ENABLE, UPDATE, and CRYPTO ERASE
-+-----------------------------------------------------------
-+These operations are similar to the user passphrase enable and update. The only
-+difference is that a different encrypted key is being used for the master
-+passphrase operations. Note that master passphrase has no relation to the
-+master key for encryption.
-+
-+
-+[1] http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
-+[2] https://www.kernel.org/doc/Documentation/security/keys/trusted-encrypted.rst
-diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
-index e921eb23..df7401cb 100644
---- a/Documentation/ndctl/ndctl-disable-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
-@@ -24,4 +24,6 @@ OPTIONS
- <dimm>::
- include::xable-dimm-options.txt[]
++static const struct nvdimm_security_ops __intel_security_ops = {
++	.state = intel_security_state,
++};
++const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+index 1802bd398c23..0aca682ab9d7 100644
+--- a/drivers/acpi/nfit/intel.h
++++ b/drivers/acpi/nfit/intel.h
+@@ -35,6 +35,8 @@ struct nd_intel_smart {
+ 	};
+ } __packed;
  
-+include::intel-nvdimm-security.txt[]
++extern const struct nvdimm_security_ops *intel_security_ops;
 +
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-enable-passphrase.txt b/Documentation/ndctl/ndctl-enable-passphrase.txt
-index 6639ce8d..9ff19927 100644
---- a/Documentation/ndctl/ndctl-enable-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-enable-passphrase.txt
-@@ -31,10 +31,14 @@ include::xable-dimm-options.txt[]
- -m::
- --master-key=::
- 	Key name for the master key used to seal the NVDIMM security keys.
-+	The format would be <key_type>:<master_key_name>
-+	i.e.: trusted:master-nvdimm
+ #define ND_INTEL_STATUS_SIZE		4
+ #define ND_INTEL_PASSPHRASE_SIZE	32
  
- -M::
- --master-passphrase::
- 	Parameter to indicate that we are managing the master passphrase
- 	instead of the user passphrase.
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 9743d8083538..eae17d8ee539 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -331,6 +331,12 @@ struct nvdimm_bus *to_nvdimm_bus(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(to_nvdimm_bus);
  
-+include::intel-nvdimm-security.txt[]
++struct nvdimm_bus *nvdimm_to_bus(struct nvdimm *nvdimm)
++{
++	return to_nvdimm_bus(nvdimm->dev.parent);
++}
++EXPORT_SYMBOL_GPL(nvdimm_to_bus);
 +
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
-index 4e9d2d61..2ae21980 100644
---- a/Documentation/ndctl/ndctl-freeze-security.txt
-+++ b/Documentation/ndctl/ndctl-freeze-security.txt
-@@ -17,4 +17,6 @@ DESCRIPTION
- Provide a generic interface to freeze the security for NVDIMM. Once security
- is frozen, no other security operations can succeed until reboot happens.
+ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 		struct nvdimm_bus_descriptor *nd_desc)
+ {
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 508dd405f84f..9609b671311b 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -370,23 +370,60 @@ static ssize_t available_slots_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(available_slots);
  
-+include::intel-nvdimm-security.txt[]
++static ssize_t security_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
 +
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-index 7b036318..a8cdca71 100644
---- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
-+++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-@@ -39,4 +39,6 @@ include::xable-dimm-options.txt[]
- 	instead of the user passphrase. This only is applicable to the
- 	crypto-erase option.
++	switch (nvdimm->sec.state) {
++	case NVDIMM_SECURITY_DISABLED:
++		return sprintf(buf, "disabled\n");
++	case NVDIMM_SECURITY_UNLOCKED:
++		return sprintf(buf, "unlocked\n");
++	case NVDIMM_SECURITY_LOCKED:
++		return sprintf(buf, "locked\n");
++	case NVDIMM_SECURITY_FROZEN:
++		return sprintf(buf, "frozen\n");
++	case NVDIMM_SECURITY_OVERWRITE:
++		return sprintf(buf, "overwrite\n");
++	}
++
++	return -ENOTTY;
++}
++static DEVICE_ATTR_RO(security);
++
+ static struct attribute *nvdimm_attributes[] = {
+ 	&dev_attr_state.attr,
+ 	&dev_attr_flags.attr,
+ 	&dev_attr_commands.attr,
+ 	&dev_attr_available_slots.attr,
++	&dev_attr_security.attr,
+ 	NULL,
+ };
  
-+include::intel-nvdimm-security.txt[]
++static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
++{
++	struct device *dev = container_of(kobj, typeof(*dev), kobj);
++	struct nvdimm *nvdimm = to_nvdimm(dev);
 +
- include::../copyright.txt[]
-diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
-index e2ecacf5..046fac6c 100644
---- a/Documentation/ndctl/ndctl-update-passphrase.txt
-+++ b/Documentation/ndctl/ndctl-update-passphrase.txt
-@@ -35,4 +35,6 @@ include::xable-dimm-options.txt[]
- 	Parameter to indicate that we are managing the master passphrase
- 	instead of the user passphrase.
++	if (a != &dev_attr_security.attr)
++		return a->mode;
++	if (nvdimm->sec.state < 0)
++		return 0;
++	return a->mode;
++}
++
+ struct attribute_group nvdimm_attribute_group = {
+ 	.attrs = nvdimm_attributes,
++	.is_visible = nvdimm_visible,
+ };
+ EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
  
-+include::intel-nvdimm-security.txt[]
+ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 		void *provider_data, const struct attribute_group **groups,
+ 		unsigned long flags, unsigned long cmd_mask, int num_flush,
+-		struct resource *flush_wpq, const char *dimm_id)
++		struct resource *flush_wpq, const char *dimm_id,
++		const struct nvdimm_security_ops *sec_ops)
+ {
+ 	struct nvdimm *nvdimm = kzalloc(sizeof(*nvdimm), GFP_KERNEL);
+ 	struct device *dev;
+@@ -413,6 +450,12 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 	dev->type = &nvdimm_device_type;
+ 	dev->devt = MKDEV(nvdimm_major, nvdimm->id);
+ 	dev->groups = groups;
++	nvdimm->sec.ops = sec_ops;
++	/*
++	 * Security state must be initialized before device_add() for
++	 * attribute visibility.
++	 */
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 	nd_device_register(dev);
+ 
+ 	return nvdimm;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index ff26876e6ea3..1919f5c0d581 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -42,8 +42,21 @@ struct nvdimm {
+ 	int id, num_flush;
+ 	struct resource *flush_wpq;
+ 	const char *dimm_id;
++	struct {
++		const struct nvdimm_security_ops *ops;
++		enum nvdimm_security_state state;
++	} sec;
+ };
+ 
++static inline enum nvdimm_security_state nvdimm_security_state(
++		struct nvdimm *nvdimm)
++{
++	if (!nvdimm->sec.ops)
++		return -ENXIO;
 +
- include::../copyright.txt[]
++	return nvdimm->sec.ops->state(nvdimm);
++}
++
+ /**
+  * struct blk_alloc_info - tracking info for BLK dpa scanning
+  * @nd_mapping: blk region mapping boundaries
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f980046b9588..f4d63f49f7dd 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -155,6 +155,18 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
+ 
+ }
+ 
++enum nvdimm_security_state {
++	NVDIMM_SECURITY_DISABLED,
++	NVDIMM_SECURITY_UNLOCKED,
++	NVDIMM_SECURITY_LOCKED,
++	NVDIMM_SECURITY_FROZEN,
++	NVDIMM_SECURITY_OVERWRITE,
++};
++
++struct nvdimm_security_ops {
++	enum nvdimm_security_state (*state)(struct nvdimm *nvdimm);
++};
++
+ void badrange_init(struct badrange *badrange);
+ int badrange_add(struct badrange *badrange, u64 addr, u64 length);
+ void badrange_forget(struct badrange *badrange, phys_addr_t start,
+@@ -165,6 +177,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 		struct nvdimm_bus_descriptor *nfit_desc);
+ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+ struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
++struct nvdimm_bus *nvdimm_to_bus(struct nvdimm *nvdimm);
+ struct nvdimm *to_nvdimm(struct device *dev);
+ struct nd_region *to_nd_region(struct device *dev);
+ struct device *nd_region_dev(struct nd_region *nd_region);
+@@ -178,14 +191,15 @@ void *nvdimm_provider_data(struct nvdimm *nvdimm);
+ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 		void *provider_data, const struct attribute_group **groups,
+ 		unsigned long flags, unsigned long cmd_mask, int num_flush,
+-		struct resource *flush_wpq, const char *dimm_id);
++		struct resource *flush_wpq, const char *dimm_id,
++		const struct nvdimm_security_ops *sec_ops);
+ static inline struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 		void *provider_data, const struct attribute_group **groups,
+ 		unsigned long flags, unsigned long cmd_mask, int num_flush,
+ 		struct resource *flush_wpq)
+ {
+ 	return __nvdimm_create(nvdimm_bus, provider_data, groups, flags,
+-			cmd_mask, num_flush, flush_wpq, NULL);
++			cmd_mask, num_flush, flush_wpq, NULL, NULL);
+ }
+ 
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
+@@ -214,6 +228,15 @@ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
+ 
++static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
++		unsigned int buf_len, int *cmd_rc)
++{
++	struct nvdimm_bus *nvdimm_bus = nvdimm_to_bus(nvdimm);
++	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
++
++	return nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, cmd_rc);
++}
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ #define ARCH_MEMREMAP_PMEM MEMREMAP_WB
+ void arch_wb_cache_pmem(void *addr, size_t size);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 778ceb651000..4a2f3cff2a75 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -37,6 +37,7 @@ obj-$(CONFIG_DEV_DAX) += device_dax.o
+ obj-$(CONFIG_DEV_DAX_PMEM) += dax_pmem.o
+ 
+ nfit-y := $(ACPI_SRC)/core.o
++nfit-y += $(ACPI_SRC)/intel.o
+ nfit-$(CONFIG_X86_MCE) += $(ACPI_SRC)/mce.o
+ nfit-y += acpi_nfit_test.o
+ nfit-y += config_check.o
 
 _______________________________________________
 Linux-nvdimm mailing list
