@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A2A34211A1E3A
- for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:09:09 -0800 (PST)
-Subject: [PATCH v6 01/12] ndctl: add support for display security state
+ by ml01.01.org (Postfix) with ESMTPS id D7F3B2119AC09
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:25 -0800 (PST)
+Subject: [PATCH v13 11/17] libnvdimm/security: introduce NDD_SECURITY_BUSY flag
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Fri, 14 Dec 2018 14:09:08 -0700
-Message-ID: <154482174855.65434.1872756033605506862.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
-References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+Date: Tue, 11 Dec 2018 13:26:25 -0700
+Message-ID: <154455998510.26509.12864195383108839732.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,172 +22,143 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding libndctl API call for retrieving security state for a DIMM and also
-adding support to ndctl list for displaying security state.
+Adding a flag for nvdimm->flags to support erase functions. While it's ok
+to hold the nvdimm_bus lock for secure erase due to minimal time to execute
+the command, overwrite requires a significantly longer time and makes this
+impossible. The flag will block any drivers from being loaded and DIMMs
+being probed.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/ndctl/ndctl-list.txt |    8 ++++++++
- ndctl/lib/dimm.c                   |   37 ++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym             |    5 +++++
- ndctl/libndctl.h                   |   13 +++++++++++++
- util/json.c                        |   31 ++++++++++++++++++++++++++++++
- 5 files changed, 94 insertions(+)
+ drivers/nvdimm/dimm_devs.c   |    6 ++++++
+ drivers/nvdimm/nd-core.h     |   16 ++++++++++++++++
+ drivers/nvdimm/region_devs.c |    7 +++++++
+ drivers/nvdimm/security.c    |   18 ++++++++++++++++++
+ include/linux/libnvdimm.h    |    2 ++
+ 5 files changed, 49 insertions(+)
 
-diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
-index e24c8f40..bdd69add 100644
---- a/Documentation/ndctl/ndctl-list.txt
-+++ b/Documentation/ndctl/ndctl-list.txt
-@@ -98,6 +98,14 @@ include::xable-region-options.txt[]
- -D::
- --dimms::
- 	Include dimm info in the listing
-+[verse]
-+{
-+  "dev":"nmem0",
-+  "id":"cdab-0a-07e0-ffffffff",
-+  "handle":0,
-+  "phys_id":0,
-+  "security:":"disabled"
-+}
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index e3b46849ee0a..bfdc4824ba11 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -557,6 +557,12 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+ 	if (nvdimm->sec.state < 0)
+ 		return -EIO;
  
- -H::
- --health::
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 5e41734d..cd2895c9 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -583,3 +583,40 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
- 
- 	return strtoul(buf, NULL, 0);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
-+		enum nd_security_state *state)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	char *path = dimm->dimm_buf;
-+	int len = dimm->buf_len;
-+	char buf[64];
-+	int rc;
-+
-+	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -ERANGE;
++	rc = nvdimm_security_check_busy(nvdimm);
++	if (rc < 0) {
++		dev_warn(&nvdimm->dev, "Security operation in progress.\n");
++		return rc;
 +	}
 +
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc < 0)
-+		return rc;
-+
-+	if (strcmp(buf, "unsupported") == 0)
-+		*state = ND_SECURITY_UNSUPPORTED;
-+	else if (strcmp(buf, "disabled") == 0)
-+		*state = ND_SECURITY_DISABLED;
-+	else if (strcmp(buf, "unlocked") == 0)
-+		*state = ND_SECURITY_UNLOCKED;
-+	else if (strcmp(buf, "locked") == 0)
-+		*state = ND_SECURITY_LOCKED;
-+	else if (strcmp(buf, "frozen") == 0)
-+		*state = ND_SECURITY_FROZEN;
-+	else if (strcmp(buf, "overwrite") == 0)
-+		*state = ND_SECURITY_OVERWRITE;
-+	else
-+		*state = ND_SECURITY_INVALID;
-+
+ 	rc = nvdimm->sec.ops->freeze(nvdimm);
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 3c8cdd40c456..353f945cda5b 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -61,6 +61,22 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
+ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+ 		unsigned int new_keyid);
+ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid);
++static inline int nvdimm_security_check_busy(struct nvdimm *nvdimm)
++{
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags))
++		return -EBUSY;
 +	return 0;
 +}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 6c4c8b4d..1bd63fa1 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -385,3 +385,8 @@ global:
- 	ndctl_namespace_get_next_badblock;
- 	ndctl_dimm_get_dirty_shutdown;
- } LIBNDCTL_17;
 +
-+LIBNDCTL_19 {
-+global:
-+	ndctl_dimm_get_security;
-+} LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 62cef9e8..a9f9167a 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -681,6 +681,19 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
- int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
-+enum nd_security_state {
-+	ND_SECURITY_INVALID = -1,
-+	ND_SECURITY_UNSUPPORTED = 0,
-+	ND_SECURITY_DISABLED,
-+	ND_SECURITY_UNLOCKED,
-+	ND_SECURITY_LOCKED,
-+	ND_SECURITY_FROZEN,
-+	ND_SECURITY_OVERWRITE,
-+};
++static inline void nvdimm_set_security_busy(struct nvdimm *nvdimm)
++{
++	set_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
++}
 +
-+int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
-+		enum nd_security_state *sstate);
++static inline void nvdimm_clear_security_busy(struct nvdimm *nvdimm)
++{
++	clear_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
++}
+ 
+ /**
+  * struct blk_alloc_info - tracking info for BLK dpa scanning
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..7ccca49c7a52 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -78,6 +78,13 @@ int nd_region_activate(struct nd_region *nd_region)
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
++		int rc;
 +
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-diff --git a/util/json.c b/util/json.c
-index 5c3424e2..e3b9e72e 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -164,6 +164,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 	unsigned int handle = ndctl_dimm_get_handle(dimm);
- 	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
- 	struct json_object *jobj;
-+	enum nd_security_state sstate;
- 
- 	if (!jdimm)
- 		return NULL;
-@@ -243,6 +244,36 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- 		json_object_object_add(jdimm, "flag_smart_event", jobj);
- 	}
- 
-+	if (ndctl_dimm_get_security(dimm, &sstate) == 0) {
-+		switch (sstate) {
-+		case ND_SECURITY_UNSUPPORTED:
-+			jobj = json_object_new_string("unsupported");
-+			break;
-+		case ND_SECURITY_DISABLED:
-+			jobj = json_object_new_string("disabled");
-+			break;
-+		case ND_SECURITY_UNLOCKED:
-+			jobj = json_object_new_string("unlocked");
-+			break;
-+		case ND_SECURITY_LOCKED:
-+			jobj = json_object_new_string("locked");
-+			break;
-+		case ND_SECURITY_FROZEN:
-+			jobj = json_object_new_string("frozen");
-+			break;
-+		case ND_SECURITY_OVERWRITE:
-+			jobj = json_object_new_string("overwrite");
-+			break;
-+		case ND_SECURITY_INVALID:
-+		default:
-+			jobj = json_object_new_string("invalid");
-+			break;
++		rc = nvdimm_security_check_busy(nvdimm);
++		if (rc) {
++			nvdimm_bus_unlock(&nd_region->dev);
++			return rc;
 +		}
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "security", jobj);
+ 
+ 		/* at least one null hint slot per-dimm for the "no-hint" case */
+ 		flush_data_size += sizeof(void *);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 4836f2fda271..5a03dffd0056 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -143,6 +143,12 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
+ 			|| nvdimm->sec.state < 0)
+ 		return -EIO;
+ 
++	rc = nvdimm_security_check_busy(nvdimm);
++	if (rc < 0) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return rc;
 +	}
 +
- 	return jdimm;
-  err:
- 	json_object_put(jdimm);
+ 	/*
+ 	 * If the pre-OS has unlocked the DIMM, attempt to send the key
+ 	 * from request_key() to the hardware for verification.  Failure
+@@ -203,6 +209,12 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
+ 
++	rc = nvdimm_security_check_busy(nvdimm);
++	if (rc < 0) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return rc;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+@@ -288,6 +300,12 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
+ 
++	rc = nvdimm_security_check_busy(nvdimm);
++	if (rc < 0) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return rc;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 9a6cb7067dc7..8507d2896ae0 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -38,6 +38,8 @@ enum {
+ 	NDD_UNARMED = 1,
+ 	/* locked memory devices should not be accessed */
+ 	NDD_LOCKED = 2,
++	/* memory under security wipes should not be accessed */
++	NDD_SECURITY_BUSY = 3,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
 
 _______________________________________________
 Linux-nvdimm mailing list
