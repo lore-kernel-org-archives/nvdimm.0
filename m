@@ -1,23 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 221E62119C88E
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 08:11:55 -0800 (PST)
-Date: Thu, 13 Dec 2018 00:11:46 +0800
-From: Huaisheng Ye <yehs2007@zoho.com>
-Message-ID: <167a3303a01.11a848ab768799.5161498967766415143@zoho.com>
-In-Reply-To: <20180831094255.GB11622@quack2.suse.cz>
-References: <20180827160744.GE4002@quack2.suse.cz>
- <e38303902267d2d8bae8b0c88da84a4ed668e9fb.camel@hpe.com>
- <20180828075025.GA17756@quack2.suse.cz>
- <20180828175630.GA1197@redhat.com>
- <20180830093028.GC1767@quack2.suse.cz>
- <20180830184907.GA14867@redhat.com>
- <x494lfbabwi.fsf@segfault.boston.devel.redhat.com>
- <alpine.LRH.2.02.1808301545200.30950@file01.intranet.prod.int.rdu2.redhat.com>
- <20180830233809.GH1572@dastard> <20180831094255.GB11622@quack2.suse.cz>
-Subject: Re: Snapshot target and DAX-capable devices
+ by ml01.01.org (Postfix) with ESMTPS id 1695C2119AC08
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:15 -0800 (PST)
+Subject: [PATCH v13 09/17] acpi/nfit,
+ libnvdimm: Add enable/update passphrase support for Intel nvdimms
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Tue, 11 Dec 2018 13:26:14 -0700
+Message-ID: <154455997435.26509.899289981872486244.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,95 +19,190 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: yehs2007@zoho.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: Mike Snitzer <snitzer@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, chengnt <chengnt@lenovo.com>, Dave Chinner <david@fromorbit.com>, colyli <colyli@suse.de>, "dm-devel@redhat.com" <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
- ---- On Fri, 31 Aug 2018 17:42:55 +0800 Jan Kara <jack@suse.cz> wrote ---- 
- > On Fri 31-08-18 09:38:09, Dave Chinner wrote: 
- > > On Thu, Aug 30, 2018 at 03:47:32PM -0400, Mikulas Patocka wrote: 
- > > >  
- > > >  
- > > > On Thu, 30 Aug 2018, Jeff Moyer wrote: 
- > > >  
- > > > > Mike Snitzer <snitzer@redhat.com> writes: 
- > > > >  
- > > > > > Until we properly add DAX support to dm-snapshot I'm afraid we really do 
- > > > > > need to tolerate this "regression".  Since reality is the original 
- > > > > > support for snapshot of a DAX DM device never worked in a robust way. 
- > > > >  
- > > > > Agreed. 
- > > > >  
- > > > > -Jeff 
- > > >  
- > > > You can't support dax on snapshot - if someone maps a block and the block  
- > > > needs to be moved, then what? 
- > >  
- > > This is only a problem for access via mmap and page faults. 
- > >  
- > > At the filesystem level, it's no different to the existing direct IO 
- > > algorithm for read/write IO - we simply allocate new space, copy the 
- > > data we need to copy into the new space (may be no copy needed), and 
- > > then write the new data into the new space. I'm pretty sure that for 
- > > bio-based IO to dm-snapshot devices the algorithm will be exactly 
- > > the same. 
- > >  
- > > However, for direct access via mmap, we have to modify how the 
- > > userspace virtual address is mapped to the physical location. IOWs, 
- > > during the COW operation, we have to invalidate all existing user 
- > > mappings we have for that physical address. This means we have to do 
- > > an invalidation after the allocate/copy part of the COW operation. 
- > > 
- > > If we are doing this during a page fault, it means we'll probably 
- > > have to restart the page fault so it can look up the new physical 
- > > address associated with the faulting user address. After we've done 
- > > the invalidation, any new (or restarted) page fault finds the 
- > > location of new copy we just made, maps it into the user address 
- > > space, updates the ptes and we're all good. 
- > >  
- > > Well, that's the theory. We haven't implemented this for XFS yet, so 
- > > it might end up a little different, and we might yet hit unexpected 
- > > problems (it's DAX, that's what happens :/). 
- >  
- > Yes, that's outline of a plan :) 
- >  
- > > It's a whole different ballgame for a dm-snapshot device - block 
- > > devices are completely unaware of page faults to DAX file mappings. 
- >  
- > Actually, block devices are not completely unaware of DAX page faults - 
- > they will get ->direct_access callback for the fault range. It does not 
- > currently convey enough information - we also need to inform the block 
- > device whether it is read or write. But that's about all that's needed to 
- > add AFAICT. And by comparing returned PFN with the one we have stored in 
- > the radix tree (which we have if that file offset is mapped by anybody), 
- > the filesystem / DAX code can tell whether remapping happened and do the 
- > unmapping. 
+Add support for enabling and updating passphrase on the Intel nvdimms.
+The passphrase is the an encrypted key in the kernel user keyring.
+We trigger the update via writing "update <old_keyid> <new_keyid>" to the
+sysfs attribute "security". If no <old_keyid> exists (for enabling
+security) then a 0 should be used.
 
-Hi Jan,
-
-I am trying to investigate how to make dm-snapshot to support DAX, and I
-dropped a patchset to upstream for comments. Any suggestion is welcome.
-# https://lkml.org/lkml/2018/11/21/281
-
-In the beginning, I haven't considered the situation of mmap write faults.
->From Dan's reply and this email thread, now I have a more clear understanding.
-
-The question is that, even the virtual dm block device has been informed that
-the mmap may have write operations through PROT_WRITE, if userspace directly
-operate the virtual address of origin device like memcpy, dm-snapshot doesn't
-have chance to detect this behavior.
-Although dm-snapshot can have chance to prepare a COW area to back up origin's
-blocks within ->direct_access callback for the fault range, how can it to have
-opportunity to read the data from origin device and save it to COW?
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Cheers,
-Huaisheng Ye
+ drivers/nvdimm/dimm_devs.c |   24 ++++++++++++++----
+ drivers/nvdimm/nd-core.h   |    2 ++
+ drivers/nvdimm/security.c  |   58 +++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 75 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 3a5727102a30..8669000ea6a6 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -397,14 +397,15 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 	ssize_t rc;
+-	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1];
+-	unsigned int key;
++	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1],
++		nkeystr[KEY_ID_SIZE+1];
++	unsigned int key, newkey;
+ 
+ 	if (atomic_read(&nvdimm->busy))
+ 		return -EBUSY;
+ 
+-	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s %"__stringify(KEY_ID_SIZE)"s",
+-			cmd, keystr);
++	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s %"__stringify(KEY_ID_SIZE)"s %"__stringify(KEY_ID_SIZE)"s",
++			cmd, keystr, nkeystr);
+ 	if (sysfs_streq(buf, "freeze")) {
+ 		dev_dbg(dev, "freeze\n");
+ 		rc = nvdimm_security_freeze(nvdimm);
+@@ -417,6 +418,18 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+ 		rc = nvdimm_security_disable(nvdimm, key);
+ 		if (rc < 0)
+ 			return rc;
++	} else if (sysfs_streq(cmd, "update")) {
++		if (rc != 3)
++			return -EINVAL;
++		rc = kstrtouint(keystr, 0, &key);
++		if (rc < 0)
++			return rc;
++		rc = kstrtouint(nkeystr, 0, &newkey);
++		if (rc < 0)
++			return rc;
++		rc = nvdimm_security_update(nvdimm, key, newkey);
++		if (rc < 0)
++			return rc;
+ 	} else
+ 		return -EINVAL;
+ 
+@@ -467,7 +480,8 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (nvdimm->sec.state < 0)
+ 		return 0;
+ 	/* Are there any state mutation ops? */
+-	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable)
++	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable
++			|| nvdimm->sec.ops->change_key)
+ 		return a->mode;
+ 	return 0444;
+ }
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 93e63c12ea45..ca020793a419 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -58,6 +58,8 @@ static inline enum nvdimm_security_state nvdimm_security_state(
+ }
+ int nvdimm_security_freeze(struct nvdimm *nvdimm);
+ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
++int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
++		unsigned int new_keyid);
+ 
+ /**
+  * struct blk_alloc_info - tracking info for BLK dpa scanning
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 55d8806a5040..654b64fe7e9d 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -15,6 +15,9 @@
+ #include "nd-core.h"
+ #include "nd.h"
+ 
++#define NVDIMM_BASE_KEY		0
++#define NVDIMM_NEW_KEY		1
++
+ static bool key_revalidate = true;
+ module_param(key_revalidate, bool, 0444);
+ MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
+@@ -70,7 +73,7 @@ static struct key *nvdimm_request_key(struct nvdimm *nvdimm)
+ }
+ 
+ static struct key *nvdimm_lookup_user_key(struct nvdimm *nvdimm,
+-		key_serial_t id)
++		key_serial_t id, int subclass)
+ {
+ 	key_ref_t keyref;
+ 	struct key *key;
+@@ -86,10 +89,10 @@ static struct key *nvdimm_lookup_user_key(struct nvdimm *nvdimm,
+ 		key_put(key);
+ 		return NULL;
+ 	}
+-	dev_dbg(dev, "%s: key found: %#x\n", __func__, key_serial(key));
+ 
++	dev_dbg(dev, "%s: key found: %#x\n", __func__, key_serial(key));
+ 
+-	down_read(&key->sem);
++	down_read_nested(&key->sem, subclass);
+ 	epayload = dereference_key_locked(key);
+ 	if (epayload->decrypted_datalen != NVDIMM_PASSPHRASE_LEN) {
+ 		up_read(&key->sem);
+@@ -197,7 +200,7 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
+ 
+-	key = nvdimm_lookup_user_key(nvdimm, keyid);
++	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+ 
+@@ -209,3 +212,50 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 	return rc;
+ }
++
++int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
++		unsigned int new_keyid)
++{
++	struct device *dev = &nvdimm->dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key, *newkey;
++	int rc;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->change_key
++			|| nvdimm->sec.state < 0)
++		return -EIO;
++
++	if (nvdimm->sec.state >= NVDIMM_SECURITY_FROZEN) {
++		dev_warn(dev, "Incorrect security state: %d\n",
++				nvdimm->sec.state);
++		return -EIO;
++	}
++
++	if (keyid == 0)
++		key = NULL;
++	else {
++		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
++		if (!key)
++			return -ENOKEY;
++	}
++
++	newkey = nvdimm_lookup_user_key(nvdimm, new_keyid, NVDIMM_NEW_KEY);
++	if (!newkey) {
++		nvdimm_put_key(key);
++		return -ENOKEY;
++	}
++
++	rc = nvdimm->sec.ops->change_key(nvdimm, key ? key_data(key) : NULL,
++			key_data(newkey));
++	dev_dbg(dev, "key: %d %d update: %s\n",
++			key_serial(key), key_serial(newkey),
++			rc == 0 ? "success" : "fail");
++
++	nvdimm_put_key(newkey);
++	nvdimm_put_key(key);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	return rc;
++}
 
 _______________________________________________
 Linux-nvdimm mailing list
