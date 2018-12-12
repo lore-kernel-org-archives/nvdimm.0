@@ -1,19 +1,32 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from www.kot-begemot.co.uk (ivanoab6.miniserver.com [5.153.251.140])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E9C721193786
- for <linux-nvdimm@lists.01.org>; Wed,  5 Dec 2018 05:16:20 -0800 (PST)
-Subject: Re: [RFC v3 01/19] kunit: test: add KUnit test runner core
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-2-brendanhiggins@google.com>
- <20181130031438.GQ4922@garbanzo.do-not-panic.com>
-From: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Message-ID: <e2ed9df2-c06b-f0d3-d50a-d03166f586df@cambridgegreys.com>
-Date: Wed, 5 Dec 2018 13:15:28 +0000
-MIME-Version: 1.0
-In-Reply-To: <20181130031438.GQ4922@garbanzo.do-not-panic.com>
-Content-Language: en-US
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id A76222119BBF7
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 02:51:30 -0800 (PST)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.22/8.16.0.22) with SMTP id
+ wBCAnt02056359
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 05:51:29 -0500
+Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2pax4r79y7-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 05:51:29 -0500
+Received: from localhost
+ by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <zohar@linux.ibm.com>;
+ Wed, 12 Dec 2018 10:51:27 -0000
+Subject: Re: [PATCH v13 04/17] keys-encrypted: add nvdimm key format type to
+ encrypted keys
+From: Mimi Zohar <zohar@linux.ibm.com>
+Date: Wed, 12 Dec 2018 05:51:12 -0500
+In-Reply-To: <154455993868.26509.7086774475607953609.stgit@djiang5-desk3.ch.intel.com>
+References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+ <154455993868.26509.7086774475607953609.stgit@djiang5-desk3.ch.intel.com>
+Mime-Version: 1.0
+Message-Id: <1544611872.4028.11.camel@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,101 +34,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Luis Chamberlain <mcgrof@kernel.org>, Brendan Higgins <brendanhiggins@google.com>
-Cc: brakmo@fb.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, frowand.list@gmail.com, robh@kernel.org, linux-nvdimm@lists.01.org, richard@nod.at, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, joel@jms.id.au, Tim.Bird@sony.com, shuah@kernel.org, jdike@addtoit.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, levinsasha928@gmail.com, kunit-dev@googlegroups.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, joe@perches.com, khilman@baylibre.com
+To: Dave Jiang <dave.jiang@intel.com>, dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 30/11/2018 03:14, Luis Chamberlain wrote:
-> On Wed, Nov 28, 2018 at 11:36:18AM -0800, Brendan Higgins wrote:
->> +#define module_test(module) \
->> +		static int module_kunit_init##module(void) \
->> +		{ \
->> +			return kunit_run_tests(&module); \
->> +		} \
->> +		late_initcall(module_kunit_init##module)
-> Here in lies an assumption that suffices. I'm inclined to believe we
-> need new initcall level here so to ensure we *do* run after all the
-> respective kernels iniut calls. Otherwise we're left at the whims of
-> link order for kunit. For instance if a kunit test relies on frameworks
-> which are also late_initcall() we'd have complete incompatibility with
-> anything linked *after* kunit.
->
->> diff --git a/kunit/Kconfig b/kunit/Kconfig
->> new file mode 100644
->> index 0000000000000..49b44c4f6630a
->> --- /dev/null
->> +++ b/kunit/Kconfig
->> @@ -0,0 +1,17 @@
->> +#
->> +# KUnit base configuration
->> +#
->> +
->> +menu "KUnit support"
->> +
->> +config KUNIT
->> +	bool "Enable support for unit tests (KUnit)"
->> +	depends on UML
-> Consider using:
->
-> if UML
->     ...
-> endif
->
-> That allows the depends to be done once.
->
->> +	help
->> +	  Enables support for kernel unit tests (KUnit), a lightweight unit
->> +	  testing and mocking framework for the Linux kernel. These tests are
->> +	  able to be run locally on a developer's workstation without a VM or
->> +	  special hardware.
->
-> Some mention of UML may be good here?
->
->> For more information, please see
->> +	  Documentation/kunit/
->> +
->> +endmenu
-> I'm a bit conflicted here. This currently depends on UML but yet you
-> noted on RFC v2 that your intention is to liberate kunit from UML and
-> ideally allow unit tests to depend only on userspace. I've addressed
-> tests using both selftests kernels drivers and also re-written kernel
-> APIs to userspace to test there. I think we may need to live with both.
->
-> Then for the UML stuff, I think if we *really* accept that UML will
-> always be a viable option we should probably consider now throwing these
-> things under drivers/platform/uml/. This follows the pattern of arch
-> specific drivers. Whether or not we end up with a complete userspace
+On Tue, 2018-12-11 at 13:25 -0700, Dave Jiang wrote:
+> Adding nvdimm key format type to encrypted keys in order to limit the size
+> of the key to 32bytes.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-UML platform drivers predate that and are under arch/um/drivers/
+Acked-by: Mimi Zohar <zohar@linux.ibm.com>
 
-We should either keep to current convention or consider relocating the 
-existing ones - having things spread in different places around the tree 
-is not good in the long run (UML already has a few of those under the 
-x86 tree, let's not increase the number).
-
-> component independent of UML may implicate having a shared component
-> somewhere else.
->
-> Likewise, I realize the goal is to *avoid* using a virtual machine for
-> these tests, but would it in any way make sense to share kunit to be
-> supported for other architectures to allow easier-to-write tests as
-> well?
->
->    Luis
->
-> _______________________________________________
-> linux-um mailing list
-> linux-um@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-um
->
-
--- 
-Anton R. Ivanov
-Cambridgegreys Limited. Registered in England. Company Number 10273661
+> ---
+>  Documentation/security/keys/trusted-encrypted.rst |    6 ++++
+>  security/keys/encrypted-keys/encrypted.c          |   29 ++++++++++++++-------
+>  2 files changed, 25 insertions(+), 10 deletions(-)
+> 
+> diff --git a/Documentation/security/keys/trusted-encrypted.rst b/Documentation/security/keys/trusted-encrypted.rst
+> index 3bb24e09a332..e8a1c35cd277 100644
+> --- a/Documentation/security/keys/trusted-encrypted.rst
+> +++ b/Documentation/security/keys/trusted-encrypted.rst
+> @@ -76,7 +76,7 @@ Usage::
+> 
+>  Where::
+> 
+> -	format:= 'default | ecryptfs'
+> +	format:= 'default | ecryptfs | enc32'
+>  	key-type:= 'trusted' | 'user'
+> 
+> 
+> @@ -173,3 +173,7 @@ are anticipated.  In particular the new format 'ecryptfs' has been defined in
+>  in order to use encrypted keys to mount an eCryptfs filesystem.  More details
+>  about the usage can be found in the file
+>  ``Documentation/security/keys/ecryptfs.rst``.
+> +
+> +Another new format 'enc32' has been defined in order to support encrypted keys
+> +with payload size of 32 bytes. This will initially be used for nvdimm security
+> +but may expand to other usages that require 32 bytes payload.
+> diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
+> index d92cbf9687c3..fe0aefd06f83 100644
+> --- a/security/keys/encrypted-keys/encrypted.c
+> +++ b/security/keys/encrypted-keys/encrypted.c
+> @@ -45,6 +45,7 @@ static const char hmac_alg[] = "hmac(sha256)";
+>  static const char blkcipher_alg[] = "cbc(aes)";
+>  static const char key_format_default[] = "default";
+>  static const char key_format_ecryptfs[] = "ecryptfs";
+> +static const char key_format_enc32[] = "enc32";
+>  static unsigned int ivsize;
+>  static int blksize;
+> 
+> @@ -54,6 +55,7 @@ static int blksize;
+>  #define HASH_SIZE SHA256_DIGEST_SIZE
+>  #define MAX_DATA_SIZE 4096
+>  #define MIN_DATA_SIZE  20
+> +#define KEY_ENC32_PAYLOAD_LEN 32
+> 
+>  static struct crypto_shash *hash_tfm;
+> 
+> @@ -62,12 +64,13 @@ enum {
+>  };
+> 
+>  enum {
+> -	Opt_error = -1, Opt_default, Opt_ecryptfs
+> +	Opt_error = -1, Opt_default, Opt_ecryptfs, Opt_enc32
+>  };
+> 
+>  static const match_table_t key_format_tokens = {
+>  	{Opt_default, "default"},
+>  	{Opt_ecryptfs, "ecryptfs"},
+> +	{Opt_enc32, "enc32"},
+>  	{Opt_error, NULL}
+>  };
+> 
+> @@ -195,6 +198,7 @@ static int datablob_parse(char *datablob, const char **format,
+>  	key_format = match_token(p, key_format_tokens, args);
+>  	switch (key_format) {
+>  	case Opt_ecryptfs:
+> +	case Opt_enc32:
+>  	case Opt_default:
+>  		*format = p;
+>  		*master_desc = strsep(&datablob, " \t");
+> @@ -625,15 +629,22 @@ static struct encrypted_key_payload *encrypted_key_alloc(struct key *key,
+>  	format_len = (!format) ? strlen(key_format_default) : strlen(format);
+>  	decrypted_datalen = dlen;
+>  	payload_datalen = decrypted_datalen;
+> -	if (format && !strcmp(format, key_format_ecryptfs)) {
+> -		if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> -			pr_err("encrypted_key: keylen for the ecryptfs format "
+> -			       "must be equal to %d bytes\n",
+> -			       ECRYPTFS_MAX_KEY_BYTES);
+> -			return ERR_PTR(-EINVAL);
+> +	if (format) {
+> +		if (!strcmp(format, key_format_ecryptfs)) {
+> +			if (dlen != ECRYPTFS_MAX_KEY_BYTES) {
+> +				pr_err("encrypted_key: keylen for the ecryptfs format must be equal to %d bytes\n",
+> +					ECRYPTFS_MAX_KEY_BYTES);
+> +				return ERR_PTR(-EINVAL);
+> +			}
+> +			decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
+> +			payload_datalen = sizeof(struct ecryptfs_auth_tok);
+> +		} else if (!strcmp(format, key_format_enc32)) {
+> +			if (decrypted_datalen != KEY_ENC32_PAYLOAD_LEN) {
+> +				pr_err("encrypted_key: enc32 key payload incorrect length: %d\n",
+> +						decrypted_datalen);
+> +				return ERR_PTR(-EINVAL);
+> +			}
+>  		}
+> -		decrypted_datalen = ECRYPTFS_MAX_KEY_BYTES;
+> -		payload_datalen = sizeof(struct ecryptfs_auth_tok);
+>  	}
+> 
+>  	encrypted_datalen = roundup(decrypted_datalen, blksize);
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
