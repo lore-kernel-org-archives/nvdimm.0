@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 162B021199279
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 14:15:09 -0800 (PST)
-Subject: [PATCH] acpi/nfit/intel: Remove zero initialization in security
- command payloads
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Dec 2018 14:02:34 -0800
-Message-ID: <154456575434.852018.13818918249999253002.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C37C211A2DA1
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:58 -0800 (PST)
+Subject: [PATCH v15 11/16] acpi/nfit,
+ libnvdimm/security: Add security DSM overwrite support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 16:48:57 -0700
+Message-ID: <154474493741.64529.12187544509232410529.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,66 +23,533 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dave.jiang@intel.com
+To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-C99 struct initialization already zeroes all other fields if any one
-field is initialized.
+We are adding support for the security calls of ovewrite and query
+overwrite introduced from Intel DSM spec v1.7. This will allow triggering
+of overwrite on Intel NVDIMMs. The overwrite operation can take tens
+of minutes. When the overwrite DSM is issued successfully, the NVDIMMs
+will be unaccessible. The kernel will do backoff polling to detect when
+the overwrite process is completed. According to the DSM spec v1.7,
+the 128G NVDIMMs can take up to 15mins to perform overwrite and larger
+DIMMs will take longer.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+We are also introducing NDD_SECURITY_OVERWRITE flag to prevent other
+operations from executing when overwrite is happening, and also
+NDD_WORK_PENDING flag to denote that there's a device reference on the
+nvdimm device.
+
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/acpi/nfit/intel.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/acpi/nfit/core.c     |    5 ++
+ drivers/acpi/nfit/intel.c    |   92 +++++++++++++++++++++++++++++
+ drivers/nvdimm/bus.c         |   23 ++++++-
+ drivers/nvdimm/dimm_devs.c   |   32 +++++++++-
+ drivers/nvdimm/nd-core.h     |    7 ++
+ drivers/nvdimm/region_devs.c |    5 ++
+ drivers/nvdimm/security.c    |  133 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h    |    9 +++
+ 8 files changed, 301 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 77f188cd8023..173517eb35b1 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2043,6 +2043,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (!nvdimm)
+ 			continue;
+ 
++		rc = nvdimm_security_setup_events(nvdimm);
++		if (rc < 0)
++			dev_warn(acpi_desc->dev,
++				"security event setup failed: %d\n", rc);
++
+ 		nfit_kernfs = sysfs_get_dirent(nvdimm_kobj(nvdimm)->sd, "nfit");
+ 		if (nfit_kernfs)
+ 			nfit_mem->flags_attr = sysfs_get_dirent(nfit_kernfs,
 diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 09317ea23e72..6d5eb4b239a0 100644
+index e0e04b730b4f..f33044b73591 100644
 --- a/drivers/acpi/nfit/intel.c
 +++ b/drivers/acpi/nfit/intel.c
-@@ -198,9 +198,6 @@ static int intel_security_disable(struct nvdimm *nvdimm,
- 			.nd_size_out = ND_INTEL_STATUS_SIZE,
- 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
- 		},
--		.cmd = {
--			.status = 0,
--		},
- 	};
+@@ -28,6 +28,14 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
+ 	if (!test_bit(NVDIMM_INTEL_GET_SECURITY_STATE, &nfit_mem->dsm_mask))
+ 		return -ENXIO;
  
- 	if (!test_bit(NVDIMM_INTEL_DISABLE_PASSPHRASE, &nfit_mem->dsm_mask))
-@@ -240,9 +237,6 @@ static int intel_security_erase(struct nvdimm *nvdimm,
- 			.nd_size_out = ND_INTEL_STATUS_SIZE,
- 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
- 		},
--		.cmd = {
--			.status = 0,
--		},
- 	};
++	/*
++	 * Short circuit the state retrieval while we are doing overwrite.
++	 * The DSM spec states that the security state is indeterminate
++	 * until the overwrite DSM completes.
++	 */
++	if (nvdimm_in_overwrite(nvdimm))
++		return NVDIMM_SECURITY_OVERWRITE;
++
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+ 	if (rc < 0)
+ 		return rc;
+@@ -249,6 +257,88 @@ static int intel_security_erase(struct nvdimm *nvdimm,
+ 	return 0;
+ }
  
- 	if (master)
-@@ -292,13 +286,9 @@ static int intel_security_query_overwrite(struct nvdimm *nvdimm)
- 		.pkg = {
- 			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
- 			.nd_family = NVDIMM_FAMILY_INTEL,
--			.nd_size_in = 0,
- 			.nd_size_out = ND_INTEL_STATUS_SIZE,
- 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
- 		},
--		.cmd = {
--			.status = 0,
--		},
- 	};
++static int intel_security_query_overwrite(struct nvdimm *nvdimm)
++{
++	int rc;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_query_overwrite cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_QUERY_OVERWRITE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_OQUERY_INPROGRESS:
++		return -EBUSY;
++	default:
++		return -ENXIO;
++	}
++
++	/* flush all cache before we make the nvdimms available */
++	nvdimm_invalidate_cache();
++	return 0;
++}
++
++static int intel_security_overwrite(struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *nkey)
++{
++	int rc;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_overwrite cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_OVERWRITE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	/* flush all cache before we erase DIMM */
++	nvdimm_invalidate_cache();
++	if (nkey)
++		memcpy(nd_cmd.cmd.passphrase, nkey->data,
++				sizeof(nd_cmd.cmd.passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		return 0;
++	case ND_INTEL_STATUS_OVERWRITE_UNSUPPORTED:
++		return -ENOTSUPP;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		return -EINVAL;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		return -ENXIO;
++	}
++
++	return 0;
++}
++
+ /*
+  * TODO: define a cross arch wbinvd equivalent when/if
+  * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+@@ -273,6 +363,8 @@ static const struct nvdimm_security_ops __intel_security_ops = {
+ #ifdef CONFIG_X86
+ 	.unlock = intel_security_unlock,
+ 	.erase = intel_security_erase,
++	.overwrite = intel_security_overwrite,
++	.query_overwrite = intel_security_query_overwrite,
+ #endif
+ };
  
- 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
-@@ -339,9 +329,6 @@ static int intel_security_overwrite(struct nvdimm *nvdimm,
- 			.nd_size_out = ND_INTEL_STATUS_SIZE,
- 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
- 		},
--		.cmd = {
--			.status = 0,
--		},
- 	};
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index eae17d8ee539..e0e299fb2423 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -393,9 +393,26 @@ static int child_unregister(struct device *dev, void *data)
+ 	 * i.e. remove classless children
+ 	 */
+ 	if (dev->class)
+-		/* pass */;
+-	else
+-		nd_device_unregister(dev, ND_SYNC);
++		return 0;
++
++	if (is_nvdimm(dev)) {
++		struct nvdimm *nvdimm = to_nvdimm(dev);
++		bool dev_put = false;
++
++		/* We are shutting down. Make state frozen artificially. */
++		nvdimm->sec.state = NVDIMM_SECURITY_FROZEN;
++		nvdimm_bus_lock(dev);
++		if (test_bit(NDD_WORK_PENDING, &nvdimm->flags)) {
++			clear_bit(NDD_WORK_PENDING, &nvdimm->flags);
++			dev_put = true;
++		}
++		nvdimm_bus_unlock(dev);
++		cancel_delayed_work_sync(&nvdimm->dwork);
++		if (dev_put)
++			put_device(dev);
++	}
++	nd_device_unregister(dev, ND_SYNC);
++
+ 	return 0;
+ }
  
- 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index bc432b7c17b8..6affa270abd3 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -395,7 +395,8 @@ static ssize_t security_show(struct device *dev,
+ 	C( OP_FREEZE,		"freeze",	1),	\
+ 	C( OP_DISABLE,		"disable",	2),	\
+ 	C( OP_UPDATE,		"update",	3),	\
+-	C( OP_ERASE,		"erase",	2)
++	C( OP_ERASE,		"erase",	2),	\
++	C( OP_OVERWRITE,	"overwrite",	2)
+ #undef C
+ #define C(a, b, c) a
+ enum nvdimmsec_op_ids { OPS };
+@@ -452,6 +453,9 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+ 	} else if (i == OP_ERASE) {
+ 		dev_dbg(dev, "erase %u\n", key);
+ 		rc = nvdimm_security_erase(nvdimm, key);
++	} else if (i == OP_OVERWRITE) {
++		dev_dbg(dev, "overwrite %u\n", key);
++		rc = nvdimm_security_overwrite(nvdimm, key);
+ 	} else
+ 		return -EINVAL;
+ 
+@@ -503,7 +507,8 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	/* Are there any state mutation ops? */
+ 	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable
+ 			|| nvdimm->sec.ops->change_key
+-			|| nvdimm->sec.ops->erase)
++			|| nvdimm->sec.ops->erase
++			|| nvdimm->sec.ops->overwrite)
+ 		return a->mode;
+ 	return 0444;
+ }
+@@ -546,6 +551,8 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 	dev->devt = MKDEV(nvdimm_major, nvdimm->id);
+ 	dev->groups = groups;
+ 	nvdimm->sec.ops = sec_ops;
++	nvdimm->sec.overwrite_tmo = 0;
++	INIT_DELAYED_WORK(&nvdimm->dwork, nvdimm_security_overwrite_query);
+ 	/*
+ 	 * Security state must be initialized before device_add() for
+ 	 * attribute visibility.
+@@ -557,6 +564,22 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ }
+ EXPORT_SYMBOL_GPL(__nvdimm_create);
+ 
++int nvdimm_security_setup_events(struct nvdimm *nvdimm)
++{
++	nvdimm->sec.overwrite_state = sysfs_get_dirent(nvdimm->dev.kobj.sd,
++			"security");
++	if (!nvdimm->sec.overwrite_state)
++		return -ENODEV;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(nvdimm_security_setup_events);
++
++int nvdimm_in_overwrite(struct nvdimm *nvdimm)
++{
++	return test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags);
++}
++EXPORT_SYMBOL_GPL(nvdimm_in_overwrite);
++
+ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+ {
+ 	int rc;
+@@ -569,6 +592,11 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+ 	if (nvdimm->sec.state < 0)
+ 		return -EIO;
+ 
++	if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++		dev_warn(&nvdimm->dev, "Overwrite operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	rc = nvdimm->sec.ops->freeze(nvdimm);
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 3c8cdd40c456..657231ba0607 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -21,6 +21,7 @@
+ extern struct list_head nvdimm_bus_list;
+ extern struct mutex nvdimm_bus_list_mutex;
+ extern int nvdimm_major;
++extern struct workqueue_struct *nvdimm_wq;
+ 
+ struct nvdimm_bus {
+ 	struct nvdimm_bus_descriptor *nd_desc;
+@@ -45,7 +46,10 @@ struct nvdimm {
+ 	struct {
+ 		const struct nvdimm_security_ops *ops;
+ 		enum nvdimm_security_state state;
++		unsigned int overwrite_tmo;
++		struct kernfs_node *overwrite_state;
+ 	} sec;
++	struct delayed_work dwork;
+ };
+ 
+ static inline enum nvdimm_security_state nvdimm_security_state(
+@@ -62,6 +66,9 @@ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+ 		unsigned int new_keyid);
+ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid);
+ 
++int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid);
++void nvdimm_security_overwrite_query(struct work_struct *work);
++
+ /**
+  * struct blk_alloc_info - tracking info for BLK dpa scanning
+  * @nd_mapping: blk region mapping boundaries
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..b4d8e4ed3020 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -79,6 +79,11 @@ int nd_region_activate(struct nd_region *nd_region)
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
+ 
++		if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++			nvdimm_bus_unlock(&nd_region->dev);
++			return -EBUSY;
++		}
++
+ 		/* at least one null hint slot per-dimm for the "no-hint" case */
+ 		flush_data_size += sizeof(void *);
+ 		num_flush = min_not_zero(num_flush, nvdimm->num_flush);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 4836f2fda271..ef6727a4cbdf 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -143,6 +143,11 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
+ 			|| nvdimm->sec.state < 0)
+ 		return -EIO;
+ 
++	if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	/*
+ 	 * If the pre-OS has unlocked the DIMM, attempt to send the key
+ 	 * from request_key() to the hardware for verification.  Failure
+@@ -203,6 +208,11 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
+ 
++	if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+@@ -288,6 +298,11 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
+ 
++	if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+@@ -300,3 +315,121 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 	return rc;
+ }
++
++int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
++{
++	struct device *dev = &nvdimm->dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	int rc;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->overwrite
++			|| nvdimm->sec.state < 0)
++		return -EIO;
++
++	if (atomic_read(&nvdimm->busy)) {
++		dev_warn(dev, "Unable to overwrite while DIMM active.\n");
++		return -EBUSY;
++	}
++
++	if (dev->driver == NULL) {
++		dev_warn(dev, "Unable to overwrite while DIMM active.\n");
++		return -EINVAL;
++	}
++
++	if (nvdimm->sec.state >= NVDIMM_SECURITY_FROZEN) {
++		dev_warn(dev, "Incorrect security state: %d\n",
++				nvdimm->sec.state);
++		return -EIO;
++	}
++
++	if (test_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
++	if (keyid == 0)
++		key = NULL;
++	else {
++		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
++		if (!key)
++			return -ENOKEY;
++	}
++
++	rc = nvdimm->sec.ops->overwrite(nvdimm, key ? key_data(key) : NULL);
++	dev_dbg(dev, "key: %d overwrite submission: %s\n", key_serial(key),
++			rc == 0 ? "success" : "fail");
++
++	nvdimm_put_key(key);
++	if (rc == 0) {
++		set_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags);
++		set_bit(NDD_WORK_PENDING, &nvdimm->flags);
++		nvdimm->sec.state = NVDIMM_SECURITY_OVERWRITE;
++		/*
++		 * Make sure we don't lose device while doing overwrite
++		 * query.
++		 */
++		get_device(dev);
++		queue_delayed_work(system_wq, &nvdimm->dwork, 0);
++	}
++	return rc;
++}
++
++void __nvdimm_security_overwrite_query(struct nvdimm *nvdimm)
++{
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(&nvdimm->dev);
++	int rc;
++	unsigned int tmo;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	/*
++	 * Abort and release device if we no longer have the overwrite
++	 * flag set. It means the work has been canceled.
++	 */
++	if (!test_bit(NDD_WORK_PENDING, &nvdimm->flags))
++		return;
++
++	tmo = nvdimm->sec.overwrite_tmo;
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->query_overwrite
++			|| nvdimm->sec.state < 0)
++		return;
++
++	rc = nvdimm->sec.ops->query_overwrite(nvdimm);
++	if (rc == -EBUSY) {
++
++		/* setup delayed work again */
++		tmo += 10;
++		queue_delayed_work(system_wq, &nvdimm->dwork, tmo * HZ);
++		nvdimm->sec.overwrite_tmo = min(15U * 60U, tmo);
++		return;
++	}
++
++	if (rc < 0)
++		dev_warn(&nvdimm->dev, "overwrite failed\n");
++	else
++		dev_dbg(&nvdimm->dev, "overwrite completed\n");
++
++	if (nvdimm->sec.overwrite_state)
++		sysfs_notify_dirent(nvdimm->sec.overwrite_state);
++	nvdimm->sec.overwrite_tmo = 0;
++	clear_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags);
++	clear_bit(NDD_WORK_PENDING, &nvdimm->flags);
++	put_device(&nvdimm->dev);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++}
++
++void nvdimm_security_overwrite_query(struct work_struct *work)
++{
++	struct nvdimm *nvdimm =
++		container_of(work, typeof(*nvdimm), dwork.work);
++
++	nvdimm_bus_lock(&nvdimm->dev);
++	__nvdimm_security_overwrite_query(nvdimm);
++	nvdimm_bus_unlock(&nvdimm->dev);
++}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 9a6cb7067dc7..d18885304020 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -38,6 +38,10 @@ enum {
+ 	NDD_UNARMED = 1,
+ 	/* locked memory devices should not be accessed */
+ 	NDD_LOCKED = 2,
++	/* memory under security wipes should not be accessed */
++	NDD_SECURITY_OVERWRITE = 3,
++	/*  tracking whether or not there is a pending device reference */
++	NDD_WORK_PENDING = 4,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+@@ -182,6 +186,9 @@ struct nvdimm_security_ops {
+ 			const struct nvdimm_key_data *key_data);
+ 	int (*erase)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
++	int (*overwrite)(struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *key_data);
++	int (*query_overwrite)(struct nvdimm *nvdimm);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
+@@ -219,6 +226,7 @@ static inline struct nvdimm *nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 			cmd_mask, num_flush, flush_wpq, NULL, NULL);
+ }
+ 
++int nvdimm_security_setup_events(struct nvdimm *nvdimm);
+ const struct nd_cmd_desc *nd_cmd_dimm_desc(int cmd);
+ const struct nd_cmd_desc *nd_cmd_bus_desc(int cmd);
+ u32 nd_cmd_in_size(struct nvdimm *nvdimm, int cmd,
+@@ -244,6 +252,7 @@ u64 nd_fletcher64(void *addr, size_t len, bool le);
+ void nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
++int nvdimm_in_overwrite(struct nvdimm *nvdimm);
+ 
+ static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len, int *cmd_rc)
 
 _______________________________________________
 Linux-nvdimm mailing list
