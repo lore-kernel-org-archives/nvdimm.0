@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4846E2119EF3A
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:04 -0800 (PST)
-Subject: [driver-core PATCH v9 2/9] device core: Consolidate locking and
- unlocking of parent and device
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:45:04 -0800
-Message-ID: <154466190393.9126.148371211828405339.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 82B69211A2DA1
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:49:03 -0800 (PST)
+Subject: [PATCH v15 12/16] acpi/nfit,
+ libnvdimm/security: add Intel DSM 1.8 master passphrase support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 16:49:03 -0700
+Message-ID: <154474494296.64529.5458307768576375796.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,235 +23,426 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Try to consolidate all of the locking and unlocking of both the parent and
-device when attaching or removing a driver from a given device.
+With Intel DSM 1.8 [1] two new security DSMs are introduced. Enable/update
+master passphrase and master secure erase. The master passphrase allows
+a secure erase to be performed without the user passphrase that is set on
+the NVDIMM. The commands of master_update and master_erase are added to
+the sysfs knob in order to initiate the DSMs. They are similar in opeartion
+mechanism compare to update and erase.
 
-To do that I first consolidated the lock pattern into two functions
-__device_driver_lock and __device_driver_unlock. After doing that I then
-created functions specific to attaching and detaching the driver while
-acquiring these locks. By doing this I was able to reduce the number of
-spots where we touch need_parent_lock from 12 down to 4.
+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
 
-This patch should produce no functional changes, it is meant to be a code
-clean-up/consolidation only.
-
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/base/base.h |    2 +
- drivers/base/bus.c  |   23 ++----------
- drivers/base/dd.c   |   95 ++++++++++++++++++++++++++++++++++++++++-----------
- 3 files changed, 81 insertions(+), 39 deletions(-)
+ drivers/acpi/nfit/core.c   |    2 ++
+ drivers/acpi/nfit/intel.c  |   53 ++++++++++++++++++++++++++++++--------------
+ drivers/nvdimm/dimm_devs.c |   34 ++++++++++++++++++++--------
+ drivers/nvdimm/nd-core.h   |   11 ++++++---
+ drivers/nvdimm/security.c  |   43 ++++++++++++++++++++++++++----------
+ include/linux/libnvdimm.h  |   14 +++++++++---
+ 6 files changed, 111 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/base/base.h b/drivers/base/base.h
-index 7a419a7a6235..3f22ebd6117a 100644
---- a/drivers/base/base.h
-+++ b/drivers/base/base.h
-@@ -124,6 +124,8 @@ extern int driver_add_groups(struct device_driver *drv,
- 			     const struct attribute_group **groups);
- extern void driver_remove_groups(struct device_driver *drv,
- 				 const struct attribute_group **groups);
-+int device_driver_attach(struct device_driver *drv, struct device *dev);
-+void device_driver_detach(struct device *dev);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 173517eb35b1..2e92b9d51c38 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -389,6 +389,8 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
+ 			[NVDIMM_INTEL_SECURE_ERASE] = 2,
+ 			[NVDIMM_INTEL_OVERWRITE] = 2,
+ 			[NVDIMM_INTEL_QUERY_OVERWRITE] = 2,
++			[NVDIMM_INTEL_SET_MASTER_PASSPHRASE] = 2,
++			[NVDIMM_INTEL_MASTER_SECURE_ERASE] = 2,
+ 		},
+ 	};
+ 	u8 id;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index f33044b73591..78fbc095508e 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -7,7 +7,8 @@
+ #include "intel.h"
+ #include "nfit.h"
  
- extern char *make_class_name(const char *name, struct kobject *kobj);
+-static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
++static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm,
++		enum nvdimm_passphrase_type ptype)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+ 	struct {
+@@ -33,7 +34,7 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
+ 	 * The DSM spec states that the security state is indeterminate
+ 	 * until the overwrite DSM completes.
+ 	 */
+-	if (nvdimm_in_overwrite(nvdimm))
++	if (nvdimm_in_overwrite(nvdimm) && ptype == NVDIMM_USER)
+ 		return NVDIMM_SECURITY_OVERWRITE;
  
-diff --git a/drivers/base/bus.c b/drivers/base/bus.c
-index b886b15cb53b..74054481007d 100644
---- a/drivers/base/bus.c
-+++ b/drivers/base/bus.c
-@@ -184,11 +184,7 @@ static ssize_t unbind_store(struct device_driver *drv, const char *buf,
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -43,17 +44,28 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
+ 		return -EIO;
  
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == drv) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		device_driver_detach(dev);
- 		err = count;
+ 	/* check and see if security is enabled and locked */
+-	if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_UNSUPPORTED)
+-		return -ENXIO;
+-	else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
+-		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
+-			return NVDIMM_SECURITY_LOCKED;
+-		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN ||
+-				nd_cmd.cmd.state & ND_INTEL_SEC_STATE_PLIMIT)
+-			return NVDIMM_SECURITY_FROZEN;
+-		else
++	if (ptype == NVDIMM_MASTER) {
++		if (nd_cmd.cmd.extended_state & ND_INTEL_SEC_ESTATE_ENABLED)
+ 			return NVDIMM_SECURITY_UNLOCKED;
++		else if (nd_cmd.cmd.extended_state &
++				ND_INTEL_SEC_ESTATE_PLIMIT)
++			return NVDIMM_SECURITY_FROZEN;
++	} else {
++		if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_UNSUPPORTED)
++			return -ENXIO;
++		else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_ENABLED) {
++			if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_LOCKED)
++				return NVDIMM_SECURITY_LOCKED;
++			else if (nd_cmd.cmd.state & ND_INTEL_SEC_STATE_FROZEN
++					|| nd_cmd.cmd.state &
++					ND_INTEL_SEC_STATE_PLIMIT)
++				return NVDIMM_SECURITY_FROZEN;
++			else
++				return NVDIMM_SECURITY_UNLOCKED;
++		}
  	}
- 	put_device(dev);
-@@ -211,13 +207,7 @@ static ssize_t bind_store(struct device_driver *drv, const char *buf,
++
++	/* this should cover master security disabled as well */
+ 	return NVDIMM_SECURITY_DISABLED;
+ }
  
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == NULL && driver_match_device(drv, dev)) {
--		if (dev->parent && bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_lock(dev);
--		err = driver_probe_device(drv, dev);
--		device_unlock(dev);
--		if (dev->parent && bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		err = device_driver_attach(drv, dev);
+@@ -86,24 +98,28 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
  
- 		if (err > 0) {
- 			/* success */
-@@ -771,13 +761,8 @@ EXPORT_SYMBOL_GPL(bus_rescan_devices);
-  */
- int device_reprobe(struct device *dev)
+ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *old_data,
+-		const struct nvdimm_key_data *new_data)
++		const struct nvdimm_key_data *new_data,
++		enum nvdimm_passphrase_type ptype)
  {
--	if (dev->driver) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
--	}
-+	if (dev->driver)
-+		device_driver_detach(dev);
- 	return bus_rescan_devices_helper(dev, NULL);
- }
- EXPORT_SYMBOL_GPL(device_reprobe);
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 74c194ac99df..f07c16277ed9 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -867,6 +867,64 @@ void device_initial_probe(struct device *dev)
- 	__device_attach(dev, true);
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	unsigned int cmd = ptype == NVDIMM_MASTER ?
++		NVDIMM_INTEL_SET_MASTER_PASSPHRASE :
++		NVDIMM_INTEL_SET_PASSPHRASE;
+ 	struct {
+ 		struct nd_cmd_pkg pkg;
+ 		struct nd_intel_set_passphrase cmd;
+ 	} nd_cmd = {
+ 		.pkg = {
+-			.nd_command = NVDIMM_INTEL_SET_PASSPHRASE,
+ 			.nd_family = NVDIMM_FAMILY_INTEL,
+ 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
+ 			.nd_size_out = ND_INTEL_STATUS_SIZE,
+ 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++			.nd_command = cmd,
+ 		},
+ 	};
+ 	int rc;
+ 
+-	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
++	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	if (old_data)
+@@ -212,10 +228,13 @@ static int intel_security_disable(struct nvdimm *nvdimm,
  }
  
-+/*
-+ * __device_driver_lock - acquire locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
-+ *
-+ * This function will take the required locks for manipulating dev->drv.
-+ * Normally this will just be the @dev lock, but when called for a USB
-+ * interface, @parent lock will be held as well.
-+ */
-+static void __device_driver_lock(struct device *dev, struct device *parent)
-+{
-+	if (parent && dev->bus->need_parent_lock)
-+		device_lock(parent);
-+	device_lock(dev);
-+}
-+
-+/*
-+ * __device_driver_unlock - release locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
-+ *
-+ * This function will release the required locks for manipulating dev->drv.
-+ * Normally this will just be the the @dev lock, but when called for a
-+ * USB interface, @parent lock will be released as well.
-+ */
-+static void __device_driver_unlock(struct device *dev, struct device *parent)
-+{
-+	device_unlock(dev);
-+	if (parent && dev->bus->need_parent_lock)
-+		device_unlock(parent);
-+}
-+
-+/**
-+ * device_driver_attach - attach a specific driver to a specific device
-+ * @drv: Driver to attach
-+ * @dev: Device to attach it to
-+ *
-+ * Manually attach driver to a device. Will acquire both @dev lock and
-+ * @dev->parent lock if needed.
-+ */
-+int device_driver_attach(struct device_driver *drv, struct device *dev)
-+{
-+	int ret = 0;
-+
-+	__device_driver_lock(dev, dev->parent);
-+
-+	/*
-+	 * If device has been removed or someone has already successfully
-+	 * bound a driver before us just skip the driver probe call.
-+	 */
-+	if (!dev->dead && !dev->driver)
-+		ret = driver_probe_device(drv, dev);
-+
-+	__device_driver_unlock(dev, dev->parent);
-+
-+	return ret;
-+}
-+
- static int __driver_attach(struct device *dev, void *data)
+ static int intel_security_erase(struct nvdimm *nvdimm,
+-		const struct nvdimm_key_data *key)
++		const struct nvdimm_key_data *key,
++		enum nvdimm_passphrase_type ptype)
  {
- 	struct device_driver *drv = data;
-@@ -894,14 +952,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		return ret;
- 	} /* ret > 0 means positive match */
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	unsigned int cmd = ptype == NVDIMM_MASTER ?
++		NVDIMM_INTEL_MASTER_SECURE_ERASE : NVDIMM_INTEL_SECURE_ERASE;
+ 	struct {
+ 		struct nd_cmd_pkg pkg;
+ 		struct nd_intel_secure_erase cmd;
+@@ -225,11 +244,11 @@ static int intel_security_erase(struct nvdimm *nvdimm,
+ 			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
+ 			.nd_size_out = ND_INTEL_STATUS_SIZE,
+ 			.nd_fw_size = ND_INTEL_STATUS_SIZE,
+-			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
++			.nd_command = cmd,
+ 		},
+ 	};
  
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_lock(dev->parent);
--	device_lock(dev);
--	if (!dev->dead && !dev->driver)
--		driver_probe_device(drv, dev);
--	device_unlock(dev);
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_unlock(dev->parent);
-+	device_driver_attach(drv, dev);
+-	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
++	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
  
- 	return 0;
+ 	/* flush all cache before we erase DIMM */
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 6affa270abd3..bd3f156463b1 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -386,17 +386,21 @@ static ssize_t security_show(struct device *dev,
+ 		return sprintf(buf, "frozen\n");
+ 	case NVDIMM_SECURITY_OVERWRITE:
+ 		return sprintf(buf, "overwrite\n");
++	default:
++		return -ENOTTY;
+ 	}
+ 
+ 	return -ENOTTY;
  }
-@@ -932,15 +983,11 @@ static void __device_release_driver(struct device *dev, struct device *parent)
- 	drv = dev->driver;
- 	if (drv) {
- 		while (device_links_busy(dev)) {
--			device_unlock(dev);
--			if (parent)
--				device_unlock(parent);
-+			__device_driver_unlock(dev, parent);
  
- 			device_links_unbind_consumers(dev);
--			if (parent)
--				device_lock(parent);
+-#define OPS						\
+-	C( OP_FREEZE,		"freeze",	1),	\
+-	C( OP_DISABLE,		"disable",	2),	\
+-	C( OP_UPDATE,		"update",	3),	\
+-	C( OP_ERASE,		"erase",	2),	\
+-	C( OP_OVERWRITE,	"overwrite",	2)
++#define OPS							\
++	C( OP_FREEZE,		"freeze",		1),	\
++	C( OP_DISABLE,		"disable",		2),	\
++	C( OP_UPDATE,		"update",		3),	\
++	C( OP_ERASE,		"erase",		2),	\
++	C( OP_OVERWRITE,	"overwrite",		2),	\
++	C( OP_MASTER_UPDATE,	"master_update",	3),	\
++	C( OP_MASTER_ERASE,	"master_erase",		2)
+ #undef C
+ #define C(a, b, c) a
+ enum nvdimmsec_op_ids { OPS };
+@@ -449,13 +453,21 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+ 		rc = nvdimm_security_disable(nvdimm, key);
+ 	} else if (i == OP_UPDATE) {
+ 		dev_dbg(dev, "update %u %u\n", key, newkey);
+-		rc = nvdimm_security_update(nvdimm, key, newkey);
++		rc = nvdimm_security_update(nvdimm, key, newkey, NVDIMM_USER);
+ 	} else if (i == OP_ERASE) {
+ 		dev_dbg(dev, "erase %u\n", key);
+-		rc = nvdimm_security_erase(nvdimm, key);
++		rc = nvdimm_security_erase(nvdimm, key, NVDIMM_USER);
+ 	} else if (i == OP_OVERWRITE) {
+ 		dev_dbg(dev, "overwrite %u\n", key);
+ 		rc = nvdimm_security_overwrite(nvdimm, key);
++	} else if (i == OP_MASTER_UPDATE) {
++		dev_dbg(dev, "master_update %u %u\n", key, newkey);
++		rc = nvdimm_security_update(nvdimm, key, newkey,
++				NVDIMM_MASTER);
++	} else if (i == OP_MASTER_ERASE) {
++		dev_dbg(dev, "master_erase %u\n", key);
++		rc = nvdimm_security_erase(nvdimm, key,
++				NVDIMM_MASTER);
+ 	} else
+ 		return -EINVAL;
  
--			device_lock(dev);
-+			__device_driver_lock(dev, parent);
- 			/*
- 			 * A concurrent invocation of the same function might
- 			 * have released the driver successfully while this one
-@@ -993,16 +1040,12 @@ void device_release_driver_internal(struct device *dev,
- 				    struct device_driver *drv,
- 				    struct device *parent)
+@@ -557,7 +569,9 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 	 * Security state must be initialized before device_add() for
+ 	 * attribute visibility.
+ 	 */
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	/* get security state and extended (master) state */
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
++	nvdimm->sec.ext_state = nvdimm_security_state(nvdimm, NVDIMM_MASTER);
+ 	nd_device_register(dev);
+ 
+ 	return nvdimm;
+@@ -598,7 +612,7 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+ 	}
+ 
+ 	rc = nvdimm->sec.ops->freeze(nvdimm);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
+ 
+ 	return rc;
+ }
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 657231ba0607..cf9458afcee6 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -46,6 +46,7 @@ struct nvdimm {
+ 	struct {
+ 		const struct nvdimm_security_ops *ops;
+ 		enum nvdimm_security_state state;
++		enum nvdimm_security_state ext_state;
+ 		unsigned int overwrite_tmo;
+ 		struct kernfs_node *overwrite_state;
+ 	} sec;
+@@ -53,18 +54,20 @@ struct nvdimm {
+ };
+ 
+ static inline enum nvdimm_security_state nvdimm_security_state(
+-		struct nvdimm *nvdimm)
++		struct nvdimm *nvdimm, bool master)
  {
--	if (parent && dev->bus->need_parent_lock)
--		device_lock(parent);
-+	__device_driver_lock(dev, parent);
+ 	if (!nvdimm->sec.ops)
+ 		return -ENXIO;
  
--	device_lock(dev);
- 	if (!drv || drv == dev->driver)
- 		__device_release_driver(dev, parent);
+-	return nvdimm->sec.ops->state(nvdimm);
++	return nvdimm->sec.ops->state(nvdimm, master);
+ }
+ int nvdimm_security_freeze(struct nvdimm *nvdimm);
+ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
+ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+-		unsigned int new_keyid);
+-int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid);
++		unsigned int new_keyid,
++		enum nvdimm_passphrase_type pass_type);
++int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
++		enum nvdimm_passphrase_type pass_type);
  
--	device_unlock(dev);
--	if (parent && dev->bus->need_parent_lock)
--		device_unlock(parent);
-+	__device_driver_unlock(dev, parent);
+ int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid);
+ void nvdimm_security_overwrite_query(struct work_struct *work);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index ef6727a4cbdf..f06f9234a899 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -121,7 +121,8 @@ static struct key *nvdimm_key_revalidate(struct nvdimm *nvdimm)
+ 	 * Send the same key to the hardware as new and old key to
+ 	 * verify that the key is good.
+ 	 */
+-	rc = nvdimm->sec.ops->change_key(nvdimm, key_data(key), key_data(key));
++	rc = nvdimm->sec.ops->change_key(nvdimm, key_data(key),
++			key_data(key), NVDIMM_USER);
+ 	if (rc < 0) {
+ 		nvdimm_put_key(key);
+ 		key = NULL;
+@@ -173,7 +174,7 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
+ 			rc == 0 ? "success" : "fail");
+ 
+ 	nvdimm_put_key(key);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
+ 	return rc;
  }
  
- /**
-@@ -1027,6 +1070,18 @@ void device_release_driver(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(device_release_driver);
+@@ -222,12 +223,13 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 			rc == 0 ? "success" : "fail");
  
-+/**
-+ * device_driver_detach - detach driver from a specific device
-+ * @dev: device to detach driver from
-+ *
-+ * Detach driver from device. Will acquire both @dev lock and @dev->parent
-+ * lock if needed.
-+ */
-+void device_driver_detach(struct device *dev)
-+{
-+	device_release_driver_internal(dev, NULL, dev->parent);
-+}
+ 	nvdimm_put_key(key);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
+ 	return rc;
+ }
+ 
+ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+-		unsigned int new_keyid)
++		unsigned int new_keyid,
++		enum nvdimm_passphrase_type pass_type)
+ {
+ 	struct device *dev = &nvdimm->dev;
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+@@ -262,18 +264,25 @@ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+ 	}
+ 
+ 	rc = nvdimm->sec.ops->change_key(nvdimm, key ? key_data(key) : NULL,
+-			key_data(newkey));
+-	dev_dbg(dev, "key: %d %d update: %s\n",
++			key_data(newkey), pass_type);
++	dev_dbg(dev, "key: %d %d update%s: %s\n",
+ 			key_serial(key), key_serial(newkey),
++			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+ 			rc == 0 ? "success" : "fail");
+ 
+ 	nvdimm_put_key(newkey);
+ 	nvdimm_put_key(key);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	if (pass_type == NVDIMM_MASTER)
++		nvdimm->sec.ext_state = nvdimm_security_state(nvdimm,
++				NVDIMM_MASTER);
++	else
++		nvdimm->sec.state = nvdimm_security_state(nvdimm,
++				NVDIMM_USER);
+ 	return rc;
+ }
+ 
+-int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
++int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
++		enum nvdimm_passphrase_type pass_type)
+ {
+ 	struct device *dev = &nvdimm->dev;
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+@@ -303,16 +312,24 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EBUSY;
+ 	}
+ 
++	if (nvdimm->sec.ext_state != NVDIMM_SECURITY_UNLOCKED
++			&& pass_type == NVDIMM_MASTER) {
++		dev_warn(dev,
++			"Attempt to secure erase in wrong master state.\n");
++		return -EOPNOTSUPP;
++	}
 +
- /**
-  * driver_detach - detach driver from all devices it controls.
-  * @drv: driver.
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+ 
+-	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key));
+-	dev_dbg(dev, "key: %d erase: %s\n", key_serial(key),
++	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key), pass_type);
++	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
++			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+ 			rc == 0 ? "success" : "fail");
+ 
+ 	nvdimm_put_key(key);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
+ 	return rc;
+ }
+ 
+@@ -375,6 +392,7 @@ int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
+ 		get_device(dev);
+ 		queue_delayed_work(system_wq, &nvdimm->dwork, 0);
+ 	}
++
+ 	return rc;
+ }
+ 
+@@ -421,7 +439,8 @@ void __nvdimm_security_overwrite_query(struct nvdimm *nvdimm)
+ 	clear_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags);
+ 	clear_bit(NDD_WORK_PENDING, &nvdimm->flags);
+ 	put_device(&nvdimm->dev);
+-	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
++	nvdimm->sec.ext_state = nvdimm_security_state(nvdimm, NVDIMM_MASTER);
+ }
+ 
+ void nvdimm_security_overwrite_query(struct work_struct *work)
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index d18885304020..5440f11b0907 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -174,18 +174,26 @@ struct nvdimm_key_data {
+ 	u8 data[NVDIMM_PASSPHRASE_LEN];
+ };
+ 
++enum nvdimm_passphrase_type {
++	NVDIMM_USER,
++	NVDIMM_MASTER,
++};
++
+ struct nvdimm_security_ops {
+-	enum nvdimm_security_state (*state)(struct nvdimm *nvdimm);
++	enum nvdimm_security_state (*state)(struct nvdimm *nvdimm,
++			enum nvdimm_passphrase_type pass_type);
+ 	int (*freeze)(struct nvdimm *nvdimm);
+ 	int (*change_key)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *old_data,
+-			const struct nvdimm_key_data *new_data);
++			const struct nvdimm_key_data *new_data,
++			enum nvdimm_passphrase_type pass_type);
+ 	int (*unlock)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
+ 	int (*disable)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
+ 	int (*erase)(struct nvdimm *nvdimm,
+-			const struct nvdimm_key_data *key_data);
++			const struct nvdimm_key_data *key_data,
++			enum nvdimm_passphrase_type pass_type);
+ 	int (*overwrite)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
+ 	int (*query_overwrite)(struct nvdimm *nvdimm);
 
 _______________________________________________
 Linux-nvdimm mailing list
