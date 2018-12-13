@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com
- [IPv6:2607:f8b0:4864:20::443])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 69CA321196834
- for <linux-nvdimm@lists.01.org>; Tue,  4 Dec 2018 02:56:17 -0800 (PST)
-Received: by mail-pf1-x443.google.com with SMTP id b85so8041593pfc.3
- for <linux-nvdimm@lists.01.org>; Tue, 04 Dec 2018 02:56:17 -0800 (PST)
-Subject: Re: [RFC v3 17/19] of: unittest: migrate tests to run on KUnit
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-18-brendanhiggins@google.com>
-From: Frank Rowand <frowand.list@gmail.com>
-Message-ID: <630d0c82-401e-28f8-73fc-6e684ec57bbf@gmail.com>
-Date: Tue, 4 Dec 2018 02:56:10 -0800
+ by ml01.01.org (Postfix) with ESMTPS id 59BAA211A2DA1
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:49:20 -0800 (PST)
+Subject: [PATCH v15 15/16] tools/testing/nvdimm: add Intel DSM 1.8 support
+ for nfit_test
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 16:49:19 -0700
+Message-ID: <154474495980.64529.13763125761129877678.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20181128193636.254378-18-brendanhiggins@google.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,26 +23,173 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>, gregkh@linuxfoundation.org, keescook@google.com, mcgrof@kernel.org, shuah@kernel.org
-Cc: brakmo@fb.com, robh@kernel.org, knut.omang@oracle.com, richard@nod.at, dri-devel@lists.freedesktop.org, linux-nvdimm@lists.01.org, mpe@ellerman.id.au, Tim.Bird@sony.com, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, rostedt@goodmis.org, kieran.bingham@ideasonboard.com, julia.lawall@lip6.fr, joel@jms.id.au, linux-kselftest@vger.kernel.org, khilman@baylibre.com, joe@perches.com, daniel@ffwll.ch, jdike@addtoit.com, kunit-dev@googlegroups.com
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 11/28/18 11:36 AM, Brendan Higgins wrote:
-> Migrate tests without any cleanup, or modifying test logic in anyway to
-> run under KUnit using the KUnit expectation and assertion API.
-> 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> ---
->  drivers/of/Kconfig    |    1 +
->  drivers/of/unittest.c | 1405 ++++++++++++++++++++++-------------------
->  2 files changed, 752 insertions(+), 654 deletions(-)
+Adding test support for new Intel DSM from v1.8. The ability of simulating
+master passphrase update and master secure erase have been added to
+nfit_test.
 
-< snip >
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ tools/testing/nvdimm/test/nfit.c |   86 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
 
-I am travelling and will not have an opportunity to properly review this
-patch, patch 18, or patch 19 until next week.
-
--Frank
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 3162fbf6e8a9..9a8d0e432e99 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -144,7 +144,9 @@ static unsigned long dimm_fail_cmd_flags[ARRAY_SIZE(handle)];
+ static int dimm_fail_cmd_code[ARRAY_SIZE(handle)];
+ struct nfit_test_sec {
+ 	u8 state;
++	u8 ext_state;
+ 	u8 passphrase[32];
++	u8 master_passphrase[32];
+ 	u64 overwrite_end_time;
+ } dimm_sec_info[NUM_DCR];
+ 
+@@ -947,6 +949,7 @@ static int nd_intel_test_cmd_security_status(struct nfit_test *t,
+ 
+ 	nd_cmd->status = 0;
+ 	nd_cmd->state = sec->state;
++	nd_cmd->extended_state = sec->ext_state;
+ 	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
+ 
+ 	return 0;
+@@ -1063,7 +1066,9 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 		dev_dbg(dev, "secure erase: wrong passphrase\n");
+ 	} else {
+ 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
++		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
+ 		sec->state = 0;
++		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
+ 		dev_dbg(dev, "secure erase: done\n");
+ 	}
+ 
+@@ -1108,12 +1113,69 @@ static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
+ 	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
+ 		sec->overwrite_end_time = 0;
+ 		sec->state = 0;
++		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
+ 		dev_dbg(dev, "overwrite is complete\n");
+ 	} else
+ 		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
+ 	return 0;
+ }
+ 
++static int nd_intel_test_cmd_master_set_pass(struct nfit_test *t,
++		struct nd_intel_set_master_passphrase *nd_cmd,
++		unsigned int buf_len, int dimm)
++{
++	struct device *dev = &t->pdev.dev;
++	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++
++	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
++		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
++		dev_dbg(dev, "master set passphrase: in wrong state\n");
++	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
++		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
++		dev_dbg(dev, "master set passphrase: in wrong security state\n");
++	} else if (memcmp(nd_cmd->old_pass, sec->master_passphrase,
++				ND_INTEL_PASSPHRASE_SIZE) != 0) {
++		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
++		dev_dbg(dev, "master set passphrase: wrong passphrase\n");
++	} else {
++		memcpy(sec->master_passphrase, nd_cmd->new_pass,
++				ND_INTEL_PASSPHRASE_SIZE);
++		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
++		dev_dbg(dev, "master passphrase: updated\n");
++	}
++
++	return 0;
++}
++
++static int nd_intel_test_cmd_master_secure_erase(struct nfit_test *t,
++		struct nd_intel_master_secure_erase *nd_cmd,
++		unsigned int buf_len, int dimm)
++{
++	struct device *dev = &t->pdev.dev;
++	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++
++	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
++		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
++		dev_dbg(dev, "master secure erase: in wrong state\n");
++	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
++		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
++		dev_dbg(dev, "master secure erase: in wrong security state\n");
++	} else if (memcmp(nd_cmd->passphrase, sec->master_passphrase,
++				ND_INTEL_PASSPHRASE_SIZE) != 0) {
++		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
++		dev_dbg(dev, "master secure erase: wrong passphrase\n");
++	} else {
++		/* we do not erase master state passphrase ever */
++		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
++		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
++		sec->state = 0;
++		dev_dbg(dev, "master secure erase: done\n");
++	}
++
++	return 0;
++}
++
++
+ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ {
+ 	int i;
+@@ -1193,6 +1255,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 				rc = nd_intel_test_cmd_query_overwrite(t,
+ 						buf, buf_len, i - t->dcr_idx);
+ 				break;
++			case NVDIMM_INTEL_SET_MASTER_PASSPHRASE:
++				rc = nd_intel_test_cmd_master_set_pass(t,
++						buf, buf_len, i);
++				break;
++			case NVDIMM_INTEL_MASTER_SECURE_ERASE:
++				rc = nd_intel_test_cmd_master_secure_erase(t,
++						buf, buf_len, i);
++				break;
+ 			case ND_INTEL_ENABLE_LSS_STATUS:
+ 				rc = nd_intel_test_cmd_set_lss_status(t,
+ 						buf, buf_len);
+@@ -1571,6 +1641,17 @@ static int nfit_test_dimm_init(struct nfit_test *t)
+ 	return 0;
+ }
+ 
++static void security_init(struct nfit_test *t)
++{
++	int i;
++
++	for (i = 0; i < t->num_dcr; i++) {
++		struct nfit_test_sec *sec = &dimm_sec_info[i];
++
++		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
++	}
++}
++
+ static void smart_init(struct nfit_test *t)
+ {
+ 	int i;
+@@ -1649,6 +1730,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 	if (nfit_test_dimm_init(t))
+ 		return -ENOMEM;
+ 	smart_init(t);
++	security_init(t);
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+ }
+ 
+@@ -2430,6 +2512,10 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
++	set_bit(NVDIMM_INTEL_SET_MASTER_PASSPHRASE,
++			&acpi_desc->dimm_cmd_force_en);
++	set_bit(NVDIMM_INTEL_MASTER_SECURE_ERASE,
++			&acpi_desc->dimm_cmd_force_en);
+ }
+ 
+ static void nfit_test1_setup(struct nfit_test *t)
 
 _______________________________________________
 Linux-nvdimm mailing list
