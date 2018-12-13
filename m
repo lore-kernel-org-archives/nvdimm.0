@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8224C211A2DAE
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:52 -0800 (PST)
-Subject: [PATCH v15 10/16] acpi/nfit,
+ by ml01.01.org (Postfix) with ESMTPS id B11DD211A1E5F
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:17 -0800 (PST)
+Subject: [PATCH v14 10/17] acpi/nfit,
  libnvdimm: Add support for issue secure erase DSM to Intel nvdimm
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:48:52 -0700
-Message-ID: <154474493207.64529.812605194081253369.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
-References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:49:16 -0700
+Message-ID: <154471975675.55644.6140687080292265406.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Add support to issue a secure erase DSM to the Intel nvdimm. The
@@ -43,10 +43,10 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  5 files changed, 98 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index bb033b74bff0..e0e04b730b4f 100644
+index 1c2005442122..ae1fd394caa0 100644
 --- a/drivers/acpi/nfit/intel.c
 +++ b/drivers/acpi/nfit/intel.c
-@@ -203,6 +203,52 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+@@ -202,6 +202,52 @@ static int intel_security_disable(struct nvdimm *nvdimm,
  	return 0;
  }
  
@@ -99,7 +99,7 @@ index bb033b74bff0..e0e04b730b4f 100644
  /*
   * TODO: define a cross arch wbinvd equivalent when/if
   * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-@@ -226,6 +272,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
+@@ -225,6 +271,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
  	.disable = intel_security_disable,
  #ifdef CONFIG_X86
  	.unlock = intel_security_unlock,
