@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B90F02119AC08
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:26:09 -0800 (PST)
-Subject: [PATCH v13 08/17] acpi/nfit,
+ by ml01.01.org (Postfix) with ESMTPS id 35CE7211A2DA1
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:42 -0800 (PST)
+Subject: [PATCH v15 08/16] acpi/nfit,
  libnvdimm: Add disable passphrase support to Intel nvdimm.
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 11 Dec 2018 13:26:09 -0700
-Message-ID: <154455996895.26509.1794498992650579619.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
-References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 16:48:41 -0700
+Message-ID: <154474492126.64529.10667737010308970484.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Add support to disable passphrase (security) for the Intel nvdimm. The
@@ -35,18 +35,18 @@ sysfs attribute "security".
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/intel.c  |   44 +++++++++++++++++++++++++++++++
- drivers/nvdimm/dimm_devs.c |   17 +++++++++++-
+ drivers/acpi/nfit/intel.c  |   41 +++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |   47 +++++++++++++++++++++++++++++++--
  drivers/nvdimm/nd-core.h   |    1 +
  drivers/nvdimm/security.c  |   63 ++++++++++++++++++++++++++++++++++++++++++++
  include/linux/libnvdimm.h  |    2 +
- 5 files changed, 126 insertions(+), 1 deletion(-)
+ 5 files changed, 151 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 5b627ca35d3b..5d4557cfb0d7 100644
+index 38f2cb364853..bb033b74bff0 100644
 --- a/drivers/acpi/nfit/intel.c
 +++ b/drivers/acpi/nfit/intel.c
-@@ -162,6 +162,49 @@ static int intel_security_unlock(struct nvdimm *nvdimm,
+@@ -163,6 +163,46 @@ static int intel_security_unlock(struct nvdimm *nvdimm,
  	return 0;
  }
  
@@ -65,9 +65,6 @@ index 5b627ca35d3b..5d4557cfb0d7 100644
 +			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
 +			.nd_size_out = ND_INTEL_STATUS_SIZE,
 +			.nd_fw_size = ND_INTEL_STATUS_SIZE,
-+		},
-+		.cmd = {
-+			.status = 0,
 +		},
 +	};
 +
@@ -96,7 +93,7 @@ index 5b627ca35d3b..5d4557cfb0d7 100644
  /*
   * TODO: define a cross arch wbinvd equivalent when/if
   * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-@@ -182,6 +225,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
+@@ -183,6 +223,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
  	.state = intel_security_state,
  	.freeze = intel_security_freeze,
  	.change_key = intel_security_change_key,
@@ -105,43 +102,78 @@ index 5b627ca35d3b..5d4557cfb0d7 100644
  	.unlock = intel_security_unlock,
  #endif
 diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 8e0bd2ce4dd0..3a5727102a30 100644
+index 8e0bd2ce4dd0..7f42cc4e119b 100644
 --- a/drivers/nvdimm/dimm_devs.c
 +++ b/drivers/nvdimm/dimm_devs.c
-@@ -391,17 +391,32 @@ static ssize_t security_show(struct device *dev,
+@@ -391,24 +391,65 @@ static ssize_t security_show(struct device *dev,
  	return -ENOTTY;
  }
  
++#define OPS						\
++	C( OP_FREEZE,        "freeze",        1),	\
++	C( OP_DISABLE,       "disable",       2)
++#undef C
++#define C(a, b, c) a
++enum nvdimmsec_op_ids { OPS };
++#undef C
++#define C(a, b, c) { b, c }
++static struct {
++	const char *name;
++	int args;
++} ops[] = { OPS };
++#undef C
++
 +#define SEC_CMD_SIZE 32
-+#define KEY_ID_SIZE 10 /* u32 size in string */
++#define KEY_ID_SIZE 10
++
  static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
  {
  	struct nvdimm *nvdimm = to_nvdimm(dev);
  	ssize_t rc;
-+	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1];
-+	unsigned int key;
++	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1],
++		nkeystr[KEY_ID_SIZE+1];
++	unsigned int key, newkey;
++	int i;
  
  	if (atomic_read(&nvdimm->busy))
  		return -EBUSY;
  
-+	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s %"__stringify(KEY_ID_SIZE)"s",
-+			cmd, keystr);
- 	if (sysfs_streq(buf, "freeze")) {
+-	if (sysfs_streq(buf, "freeze")) {
++	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s"
++			" %"__stringify(KEY_ID_SIZE)"s"
++			" %"__stringify(KEY_ID_SIZE)"s",
++			cmd, keystr, nkeystr);
++	if (rc < 1)
++		return -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(ops); i++)
++		if (sysfs_streq(cmd, ops[i].name))
++			break;
++	if (i >= ARRAY_SIZE(ops))
++		return -EINVAL;
++	if (ops[i].args > 1)
++		rc = kstrtouint(keystr, 0, &key);
++	if (rc >= 0 && ops[i].args > 2)
++		rc = kstrtouint(nkeystr, 0, &newkey);
++	if (rc < 0)
++		return rc;
++
++	if (i == OP_FREEZE) {
  		dev_dbg(dev, "freeze\n");
  		rc = nvdimm_security_freeze(nvdimm);
-+	} else if (sysfs_streq(cmd, "disable")) {
-+		if (rc != 2)
-+			return -EINVAL;
-+		rc = kstrtouint(keystr, 0, &key);
-+		if (rc < 0)
-+			return rc;
++	} else if (i == OP_DISABLE) {
++		dev_dbg(dev, "disable %u\n", key);
 +		rc = nvdimm_security_disable(nvdimm, key);
-+		if (rc < 0)
-+			return rc;
  	} else
  		return -EINVAL;
  
-@@ -452,7 +467,7 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (rc == 0)
+ 		rc = len;
+ 	return rc;
+-
+ }
+ 
+ static ssize_t security_store(struct device *dev,
+@@ -452,7 +493,7 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
  	if (nvdimm->sec.state < 0)
  		return 0;
  	/* Are there any state mutation ops? */
