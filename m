@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 66D4F211A2DA1
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:36 -0800 (PST)
-Subject: [PATCH v15 07/16] acpi/nfit,
+ by ml01.01.org (Postfix) with ESMTPS id 2232D211A1E47
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:01 -0800 (PST)
+Subject: [PATCH v14 07/17] acpi/nfit,
  libnvdimm: Add unlock of nvdimm support for Intel DIMMs
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:48:35 -0700
-Message-ID: <154474491540.64529.6730683963766405362.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
-References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:49:00 -0700
+Message-ID: <154471974054.55644.935838886712480756.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 From: Dan Williams <dan.j.williams@intel.com>
@@ -41,7 +41,7 @@ Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 Co-developed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/intel.c   |  109 ++++++++++++++++++++++++++++++++
+ drivers/acpi/nfit/intel.c   |  108 +++++++++++++++++++++++++++++++
  drivers/nvdimm/Kconfig      |    4 +
  drivers/nvdimm/Makefile     |    1 
  drivers/nvdimm/dimm.c       |   16 ++++-
@@ -49,22 +49,14 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  drivers/nvdimm/security.c   |  148 +++++++++++++++++++++++++++++++++++++++++++
  include/linux/libnvdimm.h   |   12 +++
  tools/testing/nvdimm/Kbuild |    1 
- 8 files changed, 298 insertions(+), 1 deletion(-)
+ 8 files changed, 297 insertions(+), 1 deletion(-)
  create mode 100644 drivers/nvdimm/security.c
 
 diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index f98d680d1a39..38f2cb364853 100644
+index f98d680d1a39..5b627ca35d3b 100644
 --- a/drivers/acpi/nfit/intel.c
 +++ b/drivers/acpi/nfit/intel.c
-@@ -3,6 +3,7 @@
- #include <linux/libnvdimm.h>
- #include <linux/ndctl.h>
- #include <linux/acpi.h>
-+#include <asm/smp.h>
- #include "intel.h"
- #include "nfit.h"
- 
-@@ -75,8 +76,116 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
+@@ -75,8 +75,116 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
  	return 0;
  }
  
