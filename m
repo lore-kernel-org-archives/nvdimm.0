@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 08893211A1E5C
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:12 -0800 (PST)
-Subject: [PATCH v14 09/17] acpi/nfit,
- libnvdimm: Add enable/update passphrase support for Intel nvdimms
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 09:49:11 -0700
-Message-ID: <154471975135.55644.9598673592062520526.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
-References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A13092119EF3A
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:09 -0800 (PST)
+Subject: [driver-core PATCH v9 3/9] driver core: Probe devices
+ asynchronously instead of the driver
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 12 Dec 2018 16:45:09 -0800
+Message-ID: <154466190918.9126.4731335311548421806.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,169 +23,161 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for enabling and updating passphrase on the Intel nvdimms.
-The passphrase is the an encrypted key in the kernel user keyring.
-We trigger the update via writing "update <old_keyid> <new_keyid>" to the
-sysfs attribute "security". If no <old_keyid> exists (for enabling
-security) then a 0 should be used.
+Probe devices asynchronously instead of the driver. This results in us
+seeing the same behavior if the device is registered before the driver or
+after. This way we can avoid serializing the initialization should the
+driver not be loaded until after the devices have already been added.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+The motivation behind this is that if we have a set of devices that
+take a significant amount of time to load we can greatly reduce the time to
+load by processing them in parallel instead of one at a time. In addition,
+each device can exist on a different node so placing a single thread on one
+CPU to initialize all of the devices for a given driver can result in poor
+performance on a system with multiple nodes.
+
+This approach can reduce the time needed to scan SCSI LUNs significantly.
+The only way to realize that speedup is by enabling more concurrency which
+is what is achieved with this patch.
+
+To achieve this it was necessary to add a new member "async_driver" to the
+device_private structure to store the driver pointer while we wait on the
+deferred probe call.
+
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- drivers/nvdimm/dimm_devs.c |   11 ++++++--
- drivers/nvdimm/nd-core.h   |    2 ++
- drivers/nvdimm/security.c  |   58 +++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 64 insertions(+), 7 deletions(-)
+ drivers/base/base.h |    2 ++
+ drivers/base/bus.c  |   23 +++--------------------
+ drivers/base/dd.c   |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 48 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 7f42cc4e119b..1cc3a6af3d0e 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -392,8 +392,9 @@ static ssize_t security_show(struct device *dev,
+diff --git a/drivers/base/base.h b/drivers/base/base.h
+index 3f22ebd6117a..c95384a8e53c 100644
+--- a/drivers/base/base.h
++++ b/drivers/base/base.h
+@@ -64,6 +64,7 @@ struct driver_private {
+  *	binding of drivers which were unable to get all the resources needed by
+  *	the device; typically because it depends on another driver getting
+  *	probed first.
++ * @async_driver - pointer to device driver awaiting probe via async_probe
+  * @device - pointer back to the struct device that this structure is
+  * associated with.
+  *
+@@ -75,6 +76,7 @@ struct device_private {
+ 	struct klist_node knode_driver;
+ 	struct klist_node knode_bus;
+ 	struct list_head deferred_probe;
++	struct device_driver *async_driver;
+ 	struct device *device;
+ };
+ #define to_device_private_parent(obj)	\
+diff --git a/drivers/base/bus.c b/drivers/base/bus.c
+index 74054481007d..be69eb2b07e6 100644
+--- a/drivers/base/bus.c
++++ b/drivers/base/bus.c
+@@ -608,17 +608,6 @@ static ssize_t uevent_store(struct device_driver *drv, const char *buf,
  }
+ static DRIVER_ATTR_WO(uevent);
  
- #define OPS						\
--	C( OP_FREEZE,        "freeze",        1),	\
--	C( OP_DISABLE,       "disable",       2)
-+	C( OP_FREEZE,		"freeze",	1),	\
-+	C( OP_DISABLE,		"disable",	2),	\
-+	C( OP_UPDATE,		"update",	3)
- #undef C
- #define C(a, b, c) a
- enum nvdimmsec_op_ids { OPS };
-@@ -444,6 +445,9 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
- 	} else if (i == OP_DISABLE) {
- 		dev_dbg(dev, "disable %u\n", key);
- 		rc = nvdimm_security_disable(nvdimm, key);
-+	} else if (i == OP_UPDATE) {
-+		dev_dbg(dev, "update %u %u\n", key, newkey);
-+		rc = nvdimm_security_update(nvdimm, key, newkey);
- 	} else
- 		return -EINVAL;
- 
-@@ -493,7 +497,8 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
- 	if (nvdimm->sec.state < 0)
- 		return 0;
- 	/* Are there any state mutation ops? */
--	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable)
-+	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable
-+			|| nvdimm->sec.ops->change_key)
- 		return a->mode;
- 	return 0444;
- }
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 93e63c12ea45..ca020793a419 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -58,6 +58,8 @@ static inline enum nvdimm_security_state nvdimm_security_state(
- }
- int nvdimm_security_freeze(struct nvdimm *nvdimm);
- int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
-+int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
-+		unsigned int new_keyid);
- 
+-static void driver_attach_async(void *_drv, async_cookie_t cookie)
+-{
+-	struct device_driver *drv = _drv;
+-	int ret;
+-
+-	ret = driver_attach(drv);
+-
+-	pr_debug("bus: '%s': driver %s async attach completed: %d\n",
+-		 drv->bus->name, drv->name, ret);
+-}
+-
  /**
-  * struct blk_alloc_info - tracking info for BLK dpa scanning
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index 55d8806a5040..654b64fe7e9d 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -15,6 +15,9 @@
- #include "nd-core.h"
- #include "nd.h"
+  * bus_add_driver - Add a driver to the bus.
+  * @drv: driver.
+@@ -651,15 +640,9 @@ int bus_add_driver(struct device_driver *drv)
  
-+#define NVDIMM_BASE_KEY		0
-+#define NVDIMM_NEW_KEY		1
-+
- static bool key_revalidate = true;
- module_param(key_revalidate, bool, 0444);
- MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
-@@ -70,7 +73,7 @@ static struct key *nvdimm_request_key(struct nvdimm *nvdimm)
+ 	klist_add_tail(&priv->knode_bus, &bus->p->klist_drivers);
+ 	if (drv->bus->p->drivers_autoprobe) {
+-		if (driver_allows_async_probing(drv)) {
+-			pr_debug("bus: '%s': probing driver %s asynchronously\n",
+-				drv->bus->name, drv->name);
+-			async_schedule(driver_attach_async, drv);
+-		} else {
+-			error = driver_attach(drv);
+-			if (error)
+-				goto out_unregister;
+-		}
++		error = driver_attach(drv);
++		if (error)
++			goto out_unregister;
+ 	}
+ 	module_add_driver(drv->owner, drv);
+ 
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index f07c16277ed9..3353f654861b 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -925,6 +925,30 @@ int device_driver_attach(struct device_driver *drv, struct device *dev)
+ 	return ret;
  }
  
- static struct key *nvdimm_lookup_user_key(struct nvdimm *nvdimm,
--		key_serial_t id)
-+		key_serial_t id, int subclass)
- {
- 	key_ref_t keyref;
- 	struct key *key;
-@@ -86,10 +89,10 @@ static struct key *nvdimm_lookup_user_key(struct nvdimm *nvdimm,
- 		key_put(key);
- 		return NULL;
- 	}
--	dev_dbg(dev, "%s: key found: %#x\n", __func__, key_serial(key));
- 
-+	dev_dbg(dev, "%s: key found: %#x\n", __func__, key_serial(key));
- 
--	down_read(&key->sem);
-+	down_read_nested(&key->sem, subclass);
- 	epayload = dereference_key_locked(key);
- 	if (epayload->decrypted_datalen != NVDIMM_PASSPHRASE_LEN) {
- 		up_read(&key->sem);
-@@ -197,7 +200,7 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
- 		return -EIO;
- 	}
- 
--	key = nvdimm_lookup_user_key(nvdimm, keyid);
-+	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
- 	if (!key)
- 		return -ENOKEY;
- 
-@@ -209,3 +212,50 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
- 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
- 	return rc;
- }
-+
-+int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
-+		unsigned int new_keyid)
++static void __driver_attach_async_helper(void *_dev, async_cookie_t cookie)
 +{
-+	struct device *dev = &nvdimm->dev;
-+	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-+	struct key *key, *newkey;
-+	int rc;
++	struct device *dev = _dev;
++	struct device_driver *drv;
++	int ret = 0;
 +
-+	/* The bus lock should be held at the top level of the call stack */
-+	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++	__device_driver_lock(dev, dev->parent);
 +
-+	if (!nvdimm->sec.ops || !nvdimm->sec.ops->change_key
-+			|| nvdimm->sec.state < 0)
-+		return -EIO;
++	drv = dev->p->async_driver;
 +
-+	if (nvdimm->sec.state >= NVDIMM_SECURITY_FROZEN) {
-+		dev_warn(dev, "Incorrect security state: %d\n",
-+				nvdimm->sec.state);
-+		return -EIO;
-+	}
++	/*
++	 * If device has been removed or someone has already successfully
++	 * bound a driver before us just skip the driver probe call.
++	 */
++	if (!dev->dead && !dev->driver)
++		ret = driver_probe_device(drv, dev);
 +
-+	if (keyid == 0)
-+		key = NULL;
-+	else {
-+		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
-+		if (!key)
-+			return -ENOKEY;
-+	}
++	__device_driver_unlock(dev, dev->parent);
 +
-+	newkey = nvdimm_lookup_user_key(nvdimm, new_keyid, NVDIMM_NEW_KEY);
-+	if (!newkey) {
-+		nvdimm_put_key(key);
-+		return -ENOKEY;
-+	}
++	dev_dbg(dev, "driver %s async attach completed: %d\n", drv->name, ret);
 +
-+	rc = nvdimm->sec.ops->change_key(nvdimm, key ? key_data(key) : NULL,
-+			key_data(newkey));
-+	dev_dbg(dev, "key: %d %d update: %s\n",
-+			key_serial(key), key_serial(newkey),
-+			rc == 0 ? "success" : "fail");
-+
-+	nvdimm_put_key(newkey);
-+	nvdimm_put_key(key);
-+	nvdimm->sec.state = nvdimm_security_state(nvdimm);
-+	return rc;
++	put_device(dev);
 +}
++
+ static int __driver_attach(struct device *dev, void *data)
+ {
+ 	struct device_driver *drv = data;
+@@ -952,6 +976,25 @@ static int __driver_attach(struct device *dev, void *data)
+ 		return ret;
+ 	} /* ret > 0 means positive match */
+ 
++	if (driver_allows_async_probing(drv)) {
++		/*
++		 * Instead of probing the device synchronously we will
++		 * probe it asynchronously to allow for more parallelism.
++		 *
++		 * We only take the device lock here in order to guarantee
++		 * that the dev->driver and async_driver fields are protected
++		 */
++		dev_dbg(dev, "probing driver %s asynchronously\n", drv->name);
++		device_lock(dev);
++		if (!dev->driver) {
++			get_device(dev);
++			dev->p->async_driver = drv;
++			async_schedule(__driver_attach_async_helper, dev);
++		}
++		device_unlock(dev);
++		return 0;
++	}
++
+ 	device_driver_attach(drv, dev);
+ 
+ 	return 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
