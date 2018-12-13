@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD79E2119EF3A
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:35 -0800 (PST)
-Subject: [driver-core PATCH v9 8/9] libnvdimm: Schedule device registration
- on node local to the device
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:45:35 -0800
-Message-ID: <154466193498.9126.8659137859893018948.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AAF7C2119F070
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 20:30:35 -0800 (PST)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 61/73] acpi/nfit: Fix user-initiated ARS to be
+ "ARS-long" rather than "ARS-short"
+Date: Wed, 12 Dec 2018 23:28:26 -0500
+Message-Id: <20181213042838.75160-61-sashal@kernel.org>
+In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+References: <20181213042838.75160-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,55 +23,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Force the device registration for nvdimm devices to be closer to the actual
-device. This is achieved by using either the NUMA node ID of the region, or
-of the parent. By doing this we can have everything above the region based
-on the region, and everything below the region based on the nvdimm bus.
+From: Dan Williams <dan.j.williams@intel.com>
 
-By guaranteeing NUMA locality I see an improvement of as high as 25% for
-per-node init of a system with 12TB of persistent memory.
+[ Upstream commit b5fd2e00a60248902315fb32210550ac3cb9f44c ]
 
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+A "short" ARS (address range scrub) instructs the platform firmware to
+return known errors. In contrast, a "long" ARS instructs platform
+firmware to arrange every data address on the DIMM to be read / checked
+for poisoned data.
+
+The conversion of the flags in commit d3abaf43bab8 "acpi, nfit: Fix
+Address Range Scrub completion tracking", changed the meaning of passing
+'0' to acpi_nfit_ars_rescan(). Previously '0' meant "not short", now '0'
+is ARS_REQ_SHORT. Pass ARS_REQ_LONG to restore the expected scrub-type
+behavior of user-initiated ARS sessions.
+
+Fixes: d3abaf43bab8 ("acpi, nfit: Fix Address Range Scrub completion tracking")
+Reported-by: Jacek Zloch <jacek.zloch@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/nvdimm/bus.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index f1fb39921236..b1e193541874 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -23,6 +23,7 @@
- #include <linux/ndctl.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/cpu.h>
- #include <linux/fs.h>
- #include <linux/io.h>
- #include <linux/mm.h>
-@@ -513,11 +514,15 @@ void __nd_device_register(struct device *dev)
- 		set_dev_node(dev, to_nd_region(dev)->numa_node);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index c5d15752dfb3..75b331f8a16a 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1303,7 +1303,7 @@ static ssize_t scrub_store(struct device *dev,
+ 	if (nd_desc) {
+ 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
  
- 	dev->bus = &nvdimm_bus_type;
--	if (dev->parent)
-+	if (dev->parent) {
- 		get_device(dev->parent);
-+		if (dev_to_node(dev) == NUMA_NO_NODE)
-+			set_dev_node(dev, dev_to_node(dev->parent));
-+	}
- 	get_device(dev);
--	async_schedule_domain(nd_async_device_register, dev,
--			&nd_async_domain);
-+
-+	async_schedule_dev_domain(nd_async_device_register, dev,
-+				  &nd_async_domain);
- }
- 
- void nd_device_register(struct device *dev)
+-		rc = acpi_nfit_ars_rescan(acpi_desc, 0);
++		rc = acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
+ 	}
+ 	device_unlock(dev);
+ 	if (rc)
+-- 
+2.19.1
 
 _______________________________________________
 Linux-nvdimm mailing list
