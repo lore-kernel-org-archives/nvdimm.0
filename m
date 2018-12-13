@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 87746211A2D8A
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:03 -0800 (PST)
-Subject: [PATCH v15 01/16] acpi/nfit: Add support for Intel DSM 1.8 commands
+ by ml01.01.org (Postfix) with ESMTPS id 834DE211A1E36
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:48:28 -0800 (PST)
+Subject: [PATCH v14 01/17] acpi/nfit: Add support for Intel DSM 1.8 commands
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:48:02 -0700
-Message-ID: <154474488280.64529.6119357447220632023.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
-References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:48:27 -0700
+Message-ID: <154471970761.55644.16254227415330141603.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Add command definition for security commands defined in Intel DSM
