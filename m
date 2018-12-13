@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 517FF21198CDC
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 07:23:52 -0800 (PST)
-Date: Tue, 11 Dec 2018 07:23:49 -0800
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: FAILED: patch "[PATCH] dax: Don't access a freed inode" failed
- to apply to 4.19-stable tree
-Message-ID: <20181211152349.GE6830@bombadil.infradead.org>
-References: <1544536809243247@kroah.com>
+ by ml01.01.org (Postfix) with ESMTPS id EF32C211A1E47
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:22 -0800 (PST)
+Subject: [PATCH v14 11/17] libnvdimm/security: introduce NDD_SECURITY_BUSY flag
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 09:49:22 -0700
+Message-ID: <154471976220.55644.7438654212111357869.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1544536809243247@kroah.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,163 +22,109 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: gregkh@linuxfoundation.org
-Cc: jack@suse.cz, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Dec 11, 2018 at 03:00:09PM +0100, gregkh@linuxfoundation.org wrote:
-> 
-> The patch below does not apply to the 4.19-stable tree.
-> If someone wants it applied there, or to any other stable or longterm
-> tree, then please email the backport, including the original git commit
-> id to <stable@vger.kernel.org>.
+Adding a flag for nvdimm->flags to support erase functions. While it's ok
+to hold the nvdimm_bus lock for secure erase due to minimal time to execute
+the command, overwrite requires a significantly longer time and makes this
+impossible. The flag will block any drivers from being loaded and DIMMs
+being probed.
 
-I have only compile-tested this backport.  Dan, do you want to run it
-through some tests before Greg applies it?
-
->From e01d37913b5577acaa2e8e35200081eae2795087 Mon Sep 17 00:00:00 2001
-From: Matthew Wilcox <willy@infradead.org>
-Date: Tue, 11 Dec 2018 10:16:45 -0500
-Subject: [PATCH 2/2] dax: Don't access a freed inode
-
-commit 55e56f06ed71d9441f3abd5b1d3c1a870812b3fe upstream.
-
-After we drop the i_pages lock, the inode can be freed at any time.
-The get_unlocked_entry() code has no choice but to reacquire the lock,
-so it can't be used here.  Create a new wait_entry_unlocked() which takes
-care not to acquire the lock or dereference the address_space in any way.
-
-Fixes: c2a7d2a11552 ("filesystem-dax: Introduce dax_lock_mapping_entry()")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- fs/dax.c | 69 ++++++++++++++++++++++++++------------------------------
- 1 file changed, 32 insertions(+), 37 deletions(-)
+ drivers/nvdimm/dimm_devs.c   |    5 +++++
+ drivers/nvdimm/region_devs.c |    5 +++++
+ drivers/nvdimm/security.c    |   15 +++++++++++++++
+ include/linux/libnvdimm.h    |    2 ++
+ 4 files changed, 27 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 3a2682a6c832..415605fafaeb 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -229,8 +229,8 @@ static void put_unlocked_mapping_entry(struct address_space *mapping,
-  *
-  * Must be called with the i_pages lock held.
-  */
--static void *__get_unlocked_mapping_entry(struct address_space *mapping,
--		pgoff_t index, void ***slotp, bool (*wait_fn)(void))
-+static void *get_unlocked_mapping_entry(struct address_space *mapping,
-+		pgoff_t index, void ***slotp)
- {
- 	void *entry, **slot;
- 	struct wait_exceptional_entry_queue ewait;
-@@ -240,8 +240,6 @@ static void *__get_unlocked_mapping_entry(struct address_space *mapping,
- 	ewait.wait.func = wake_exceptional_entry_func;
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index bc432b7c17b8..e9f11d35ff2b 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -569,6 +569,11 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+ 	if (nvdimm->sec.state < 0)
+ 		return -EIO;
  
- 	for (;;) {
--		bool revalidate;
--
- 		entry = __radix_tree_lookup(&mapping->i_pages, index, NULL,
- 					  &slot);
- 		if (!entry ||
-@@ -256,30 +254,39 @@ static void *__get_unlocked_mapping_entry(struct address_space *mapping,
- 		prepare_to_wait_exclusive(wq, &ewait.wait,
- 					  TASK_UNINTERRUPTIBLE);
- 		xa_unlock_irq(&mapping->i_pages);
--		revalidate = wait_fn();
-+		schedule();
- 		finish_wait(wq, &ewait.wait);
- 		xa_lock_irq(&mapping->i_pages);
--		if (revalidate) {
--			put_unlocked_mapping_entry(mapping, index, entry);
--			return ERR_PTR(-EAGAIN);
--		}
- 	}
- }
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
++		dev_warn(&nvdimm->dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	rc = nvdimm->sec.ops->freeze(nvdimm);
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
  
--static bool entry_wait(void)
-+/*
-+ * The only thing keeping the address space around is the i_pages lock
-+ * (it's cycled in clear_inode() after removing the entries from i_pages)
-+ * After we call xas_unlock_irq(), we cannot touch xas->xa.
-+ */
-+static void wait_entry_unlocked(struct address_space *mapping, pgoff_t index,
-+		void ***slotp, void *entry)
- {
-+	struct wait_exceptional_entry_queue ewait;
-+	wait_queue_head_t *wq;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 174a418cb171..4e69b1d03c05 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -79,6 +79,11 @@ int nd_region_activate(struct nd_region *nd_region)
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
+ 
++		if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
++			nvdimm_bus_unlock(&nd_region->dev);
++			return -EBUSY;
++		}
 +
-+	init_wait(&ewait.wait);
-+	ewait.wait.func = wake_exceptional_entry_func;
-+
-+	wq = dax_entry_waitqueue(mapping, index, entry, &ewait.key);
-+	prepare_to_wait_exclusive(wq, &ewait.wait, TASK_UNINTERRUPTIBLE);
-+	xa_unlock_irq(&mapping->i_pages);
- 	schedule();
-+	finish_wait(wq, &ewait.wait);
+ 		/* at least one null hint slot per-dimm for the "no-hint" case */
+ 		flush_data_size += sizeof(void *);
+ 		num_flush = min_not_zero(num_flush, nvdimm->num_flush);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 4836f2fda271..1edd298e6e27 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -143,6 +143,11 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
+ 			|| nvdimm->sec.state < 0)
+ 		return -EIO;
+ 
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
 +
  	/*
--	 * Never return an ERR_PTR() from
--	 * __get_unlocked_mapping_entry(), just keep looping.
-+	 * Entry lock waits are exclusive. Wake up the next waiter since
-+	 * we aren't sure we will acquire the entry lock and thus wake
-+	 * the next waiter up on unlock.
- 	 */
--	return false;
--}
--
--static void *get_unlocked_mapping_entry(struct address_space *mapping,
--		pgoff_t index, void ***slotp)
--{
--	return __get_unlocked_mapping_entry(mapping, index, slotp, entry_wait);
-+	if (waitqueue_active(wq))
-+		__wake_up(wq, TASK_NORMAL, 1, &ewait.key);
- }
+ 	 * If the pre-OS has unlocked the DIMM, attempt to send the key
+ 	 * from request_key() to the hardware for verification.  Failure
+@@ -203,6 +208,11 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
  
- static void unlock_mapping_entry(struct address_space *mapping, pgoff_t index)
-@@ -398,19 +405,6 @@ static struct page *dax_busy_page(void *entry)
- 	return NULL;
- }
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+@@ -288,6 +298,11 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
+ 		return -EIO;
+ 	}
  
--static bool entry_wait_revalidate(void)
--{
--	rcu_read_unlock();
--	schedule();
--	rcu_read_lock();
--
--	/*
--	 * Tell __get_unlocked_mapping_entry() to take a break, we need
--	 * to revalidate page->mapping after dropping locks
--	 */
--	return true;
--}
--
- bool dax_lock_mapping_entry(struct page *page)
- {
- 	pgoff_t index;
-@@ -446,14 +440,15 @@ bool dax_lock_mapping_entry(struct page *page)
- 		}
- 		index = page->index;
++	if (test_bit(NDD_SECURITY_BUSY, &nvdimm->flags)) {
++		dev_warn(dev, "Security operation in progress.\n");
++		return -EBUSY;
++	}
++
+ 	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+ 	if (!key)
+ 		return -ENOKEY;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 9a6cb7067dc7..8507d2896ae0 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -38,6 +38,8 @@ enum {
+ 	NDD_UNARMED = 1,
+ 	/* locked memory devices should not be accessed */
+ 	NDD_LOCKED = 2,
++	/* memory under security wipes should not be accessed */
++	NDD_SECURITY_BUSY = 3,
  
--		entry = __get_unlocked_mapping_entry(mapping, index, &slot,
--				entry_wait_revalidate);
-+		entry = __radix_tree_lookup(&mapping->i_pages, index,
-+						NULL, &slot);
- 		if (!entry) {
- 			xa_unlock_irq(&mapping->i_pages);
- 			break;
--		} else if (IS_ERR(entry)) {
--			xa_unlock_irq(&mapping->i_pages);
--			WARN_ON_ONCE(PTR_ERR(entry) != -EAGAIN);
-+		} else if (slot_locked(mapping, slot)) {
-+			rcu_read_unlock();
-+			wait_entry_unlocked(mapping, index, &slot, entry);
-+			rcu_read_lock();
- 			continue;
- 		}
- 		lock_slot(mapping, slot);
--- 
-2.19.1
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
 
 _______________________________________________
 Linux-nvdimm mailing list
