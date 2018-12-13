@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9F418211A2D9F
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:24 -0800 (PST)
-Subject: [PATCH v15 05/16] acpi/nfit, libnvdimm: Introduce nvdimm_security_ops
+ by ml01.01.org (Postfix) with ESMTPS id 2EC1E211A1E47
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:48:50 -0800 (PST)
+Subject: [PATCH v14 05/17] acpi/nfit, libnvdimm: Introduce nvdimm_security_ops
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:48:24 -0700
-Message-ID: <154474490403.64529.5382518405810787844.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
-References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:48:49 -0700
+Message-ID: <154471972944.55644.559159943945354985.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,7 +23,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 Some NVDIMMs, like the ones defined by the NVDIMM_FAMILY_INTEL command
