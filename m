@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6704B2119EF3A
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:24 -0800 (PST)
-Subject: [driver-core PATCH v9 5/9] async: Add support for queueing on
- specific NUMA node
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:45:19 -0800
-Message-ID: <154466191955.9126.9851308129228215884.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8224C211A2DAE
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:52 -0800 (PST)
+Subject: [PATCH v15 10/16] acpi/nfit,
+ libnvdimm: Add support for issue secure erase DSM to Intel nvdimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 16:48:52 -0700
+Message-ID: <154474493207.64529.812605194081253369.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,227 +23,205 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce four new variants of the async_schedule_ functions that allow
-scheduling on a specific NUMA node.
+Add support to issue a secure erase DSM to the Intel nvdimm. The
+required passphrase is acquired from an encrypted key in the kernel user
+keyring. To trigger the action, "erase <keyid>" is written to the
+"security" sysfs attribute.
 
-The first two functions are async_schedule_near and
-async_schedule_near_domain end up mapping to async_schedule and
-async_schedule_domain, but provide NUMA node specific functionality. They
-replace the original functions which were moved to inline function
-definitions that call the new functions while passing NUMA_NO_NODE.
-
-The second two functions are async_schedule_dev and
-async_schedule_dev_domain which provide NUMA specific functionality when
-passing a device as the data member and that device has a NUMA node other
-than NUMA_NO_NODE.
-
-The main motivation behind this is to address the need to be able to
-schedule device specific init work on specific NUMA nodes in order to
-improve performance of memory initialization.
-
-I have seen a significant improvement in initialziation time for persistent
-memory as a result of this approach. In the case of 3TB of memory on a
-single node the initialization time in the worst case went from 36s down to
-about 26s for a 10s improvement. As such the data shows a general benefit
-for affinitizing the async work to the node local to the device.
-
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/async.h |   82 +++++++++++++++++++++++++++++++++++++++++++++++--
- kernel/async.c        |   53 +++++++++++++++++---------------
- 2 files changed, 108 insertions(+), 27 deletions(-)
+ drivers/acpi/nfit/intel.c  |   47 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/dimm_devs.c |    9 +++++++-
+ drivers/nvdimm/nd-core.h   |    1 +
+ drivers/nvdimm/security.c  |   41 ++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h  |    2 ++
+ 5 files changed, 98 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/async.h b/include/linux/async.h
-index 6b0226bdaadc..f81d6dbffe68 100644
---- a/include/linux/async.h
-+++ b/include/linux/async.h
-@@ -14,6 +14,8 @@
- 
- #include <linux/types.h>
- #include <linux/list.h>
-+#include <linux/numa.h>
-+#include <linux/device.h>
- 
- typedef u64 async_cookie_t;
- typedef void (*async_func_t) (void *data, async_cookie_t cookie);
-@@ -37,9 +39,83 @@ struct async_domain {
- 	struct async_domain _name = { .pending = LIST_HEAD_INIT(_name.pending), \
- 				      .registered = 0 }
- 
--extern async_cookie_t async_schedule(async_func_t func, void *data);
--extern async_cookie_t async_schedule_domain(async_func_t func, void *data,
--					    struct async_domain *domain);
-+async_cookie_t async_schedule_node(async_func_t func, void *data,
-+				   int node);
-+async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
-+					  int node,
-+					  struct async_domain *domain);
-+
-+/**
-+ * async_schedule - schedule a function for asynchronous execution
-+ * @func: function to execute asynchronously
-+ * @data: data pointer to pass to the function
-+ *
-+ * Returns an async_cookie_t that may be used for checkpointing later.
-+ * Note: This function may be called from atomic or non-atomic contexts.
-+ */
-+static inline async_cookie_t async_schedule(async_func_t func, void *data)
-+{
-+	return async_schedule_node(func, data, NUMA_NO_NODE);
-+}
-+
-+/**
-+ * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
-+ * @func: function to execute asynchronously
-+ * @data: data pointer to pass to the function
-+ * @domain: the domain
-+ *
-+ * Returns an async_cookie_t that may be used for checkpointing later.
-+ * @domain may be used in the async_synchronize_*_domain() functions to
-+ * wait within a certain synchronization domain rather than globally.
-+ * Note: This function may be called from atomic or non-atomic contexts.
-+ */
-+static inline async_cookie_t
-+async_schedule_domain(async_func_t func, void *data,
-+		      struct async_domain *domain)
-+{
-+	return async_schedule_node_domain(func, data, NUMA_NO_NODE, domain);
-+}
-+
-+/**
-+ * async_schedule_dev - A device specific version of async_schedule
-+ * @func: function to execute asynchronously
-+ * @dev: device argument to be passed to function
-+ *
-+ * Returns an async_cookie_t that may be used for checkpointing later.
-+ * @dev is used as both the argument for the function and to provide NUMA
-+ * context for where to run the function. By doing this we can try to
-+ * provide for the best possible outcome by operating on the device on the
-+ * CPUs closest to the device.
-+ * Note: This function may be called from atomic or non-atomic contexts.
-+ */
-+static inline async_cookie_t
-+async_schedule_dev(async_func_t func, struct device *dev)
-+{
-+	return async_schedule_node(func, dev, dev_to_node(dev));
-+}
-+
-+/**
-+ * async_schedule_dev_domain - A device specific version of async_schedule_domain
-+ * @func: function to execute asynchronously
-+ * @dev: device argument to be passed to function
-+ * @domain: the domain
-+ *
-+ * Returns an async_cookie_t that may be used for checkpointing later.
-+ * @dev is used as both the argument for the function and to provide NUMA
-+ * context for where to run the function. By doing this we can try to
-+ * provide for the best possible outcome by operating on the device on the
-+ * CPUs closest to the device.
-+ * @domain may be used in the async_synchronize_*_domain() functions to
-+ * wait within a certain synchronization domain rather than globally.
-+ * Note: This function may be called from atomic or non-atomic contexts.
-+ */
-+static inline async_cookie_t
-+async_schedule_dev_domain(async_func_t func, struct device *dev,
-+			  struct async_domain *domain)
-+{
-+	return async_schedule_node_domain(func, dev, dev_to_node(dev), domain);
-+}
-+
- void async_unregister_domain(struct async_domain *domain);
- extern void async_synchronize_full(void);
- extern void async_synchronize_full_domain(struct async_domain *domain);
-diff --git a/kernel/async.c b/kernel/async.c
-index 4932e9193fa3..59ce133eef11 100644
---- a/kernel/async.c
-+++ b/kernel/async.c
-@@ -148,7 +148,25 @@ static void async_run_entry_fn(struct work_struct *work)
- 	wake_up(&async_done);
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index bb033b74bff0..e0e04b730b4f 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -203,6 +203,52 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ 	return 0;
  }
  
--static async_cookie_t __async_schedule(async_func_t func, void *data, struct async_domain *domain)
-+/**
-+ * async_schedule_node_domain - NUMA specific version of async_schedule_domain
-+ * @func: function to execute asynchronously
-+ * @data: data pointer to pass to the function
-+ * @node: NUMA node that we want to schedule this on or close to
-+ * @domain: the domain
-+ *
-+ * Returns an async_cookie_t that may be used for checkpointing later.
-+ * @domain may be used in the async_synchronize_*_domain() functions to
-+ * wait within a certain synchronization domain rather than globally.
-+ *
-+ * Note: This function may be called from atomic or non-atomic contexts.
-+ *
-+ * The node requested will be honored on a best effort basis. If the node
-+ * has no CPUs associated with it then the work is distributed among all
-+ * available CPUs.
-+ */
-+async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
-+					  int node, struct async_domain *domain)
- {
- 	struct async_entry *entry;
- 	unsigned long flags;
-@@ -194,43 +212,30 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
- 	current->flags |= PF_USED_ASYNC;
++static int intel_security_erase(struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *key)
++{
++	int rc;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_secure_erase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++			.nd_command = NVDIMM_INTEL_SECURE_ERASE,
++		},
++	};
++
++	if (!test_bit(NVDIMM_INTEL_SECURE_ERASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
++
++	/* flush all cache before we erase DIMM */
++	nvdimm_invalidate_cache();
++	memcpy(nd_cmd.cmd.passphrase, key->data,
++			sizeof(nd_cmd.cmd.passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
++
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_NOT_SUPPORTED:
++		return -EOPNOTSUPP;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		return -EINVAL;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		return -ENXIO;
++	}
++
++	/* DIMM erased, invalidate all CPU caches before we read it */
++	nvdimm_invalidate_cache();
++	return 0;
++}
++
+ /*
+  * TODO: define a cross arch wbinvd equivalent when/if
+  * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+@@ -226,6 +272,7 @@ static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.disable = intel_security_disable,
+ #ifdef CONFIG_X86
+ 	.unlock = intel_security_unlock,
++	.erase = intel_security_erase,
+ #endif
+ };
  
- 	/* schedule for execution */
--	queue_work(system_unbound_wq, &entry->work);
-+	queue_work_node(node, system_unbound_wq, &entry->work);
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 1cc3a6af3d0e..bc432b7c17b8 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -394,7 +394,8 @@ static ssize_t security_show(struct device *dev,
+ #define OPS						\
+ 	C( OP_FREEZE,		"freeze",	1),	\
+ 	C( OP_DISABLE,		"disable",	2),	\
+-	C( OP_UPDATE,		"update",	3)
++	C( OP_UPDATE,		"update",	3),	\
++	C( OP_ERASE,		"erase",	2)
+ #undef C
+ #define C(a, b, c) a
+ enum nvdimmsec_op_ids { OPS };
+@@ -448,6 +449,9 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+ 	} else if (i == OP_UPDATE) {
+ 		dev_dbg(dev, "update %u %u\n", key, newkey);
+ 		rc = nvdimm_security_update(nvdimm, key, newkey);
++	} else if (i == OP_ERASE) {
++		dev_dbg(dev, "erase %u\n", key);
++		rc = nvdimm_security_erase(nvdimm, key);
+ 	} else
+ 		return -EINVAL;
  
- 	return newcookie;
+@@ -498,7 +502,8 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
+ 		return 0;
+ 	/* Are there any state mutation ops? */
+ 	if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable
+-			|| nvdimm->sec.ops->change_key)
++			|| nvdimm->sec.ops->change_key
++			|| nvdimm->sec.ops->erase)
+ 		return a->mode;
+ 	return 0444;
  }
-+EXPORT_SYMBOL_GPL(async_schedule_node_domain);
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index ca020793a419..3c8cdd40c456 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -60,6 +60,7 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm);
+ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
+ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+ 		unsigned int new_keyid);
++int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid);
  
  /**
-- * async_schedule - schedule a function for asynchronous execution
-+ * async_schedule_node - NUMA specific version of async_schedule
-  * @func: function to execute asynchronously
-  * @data: data pointer to pass to the function
-+ * @node: NUMA node that we want to schedule this on or close to
-  *
-  * Returns an async_cookie_t that may be used for checkpointing later.
-  * Note: This function may be called from atomic or non-atomic contexts.
-- */
--async_cookie_t async_schedule(async_func_t func, void *data)
--{
--	return __async_schedule(func, data, &async_dfl_domain);
--}
--EXPORT_SYMBOL_GPL(async_schedule);
--
--/**
-- * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
-- * @func: function to execute asynchronously
-- * @data: data pointer to pass to the function
-- * @domain: the domain
-  *
-- * Returns an async_cookie_t that may be used for checkpointing later.
-- * @domain may be used in the async_synchronize_*_domain() functions to
-- * wait within a certain synchronization domain rather than globally.  A
-- * synchronization domain is specified via @domain.  Note: This function
-- * may be called from atomic or non-atomic contexts.
-+ * The node requested will be honored on a best effort basis. If the node
-+ * has no CPUs associated with it then the work is distributed among all
-+ * available CPUs.
-  */
--async_cookie_t async_schedule_domain(async_func_t func, void *data,
--				     struct async_domain *domain)
-+async_cookie_t async_schedule_node(async_func_t func, void *data, int node)
- {
--	return __async_schedule(func, data, domain);
-+	return async_schedule_node_domain(func, data, node, &async_dfl_domain);
- }
--EXPORT_SYMBOL_GPL(async_schedule_domain);
-+EXPORT_SYMBOL_GPL(async_schedule_node);
+  * struct blk_alloc_info - tracking info for BLK dpa scanning
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index 654b64fe7e9d..4836f2fda271 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -33,6 +33,9 @@ static void *key_data(struct key *key)
  
- /**
-  * async_synchronize_full - synchronize all asynchronous function calls
+ static void nvdimm_put_key(struct key *key)
+ {
++	if (!key)
++		return;
++
+ 	up_read(&key->sem);
+ 	key_put(key);
+ }
+@@ -259,3 +262,41 @@ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
+ 	nvdimm->sec.state = nvdimm_security_state(nvdimm);
+ 	return rc;
+ }
++
++int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid)
++{
++	struct device *dev = &nvdimm->dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key;
++	int rc;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->erase
++			|| nvdimm->sec.state < 0)
++		return -EIO;
++
++	if (atomic_read(&nvdimm->busy)) {
++		dev_warn(dev, "Unable to secure erase while DIMM active.\n");
++		return -EBUSY;
++	}
++
++	if (nvdimm->sec.state >= NVDIMM_SECURITY_FROZEN) {
++		dev_warn(dev, "Incorrect security state: %d\n",
++				nvdimm->sec.state);
++		return -EIO;
++	}
++
++	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
++	if (!key)
++		return -ENOKEY;
++
++	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key));
++	dev_dbg(dev, "key: %d erase: %s\n", key_serial(key),
++			rc == 0 ? "success" : "fail");
++
++	nvdimm_put_key(key);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	return rc;
++}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index d0afa115356e..9a6cb7067dc7 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -180,6 +180,8 @@ struct nvdimm_security_ops {
+ 			const struct nvdimm_key_data *key_data);
+ 	int (*disable)(struct nvdimm *nvdimm,
+ 			const struct nvdimm_key_data *key_data);
++	int (*erase)(struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *key_data);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
 
 _______________________________________________
 Linux-nvdimm mailing list
