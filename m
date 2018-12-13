@@ -1,148 +1,455 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [driver-core PATCH v8 5/9] workqueue: Provide queue_work_node to
- queue work near a given NUMA node
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 05 Dec 2018 09:25:39 -0800
-Message-ID: <154403073942.11544.13718906050363008742.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
-References: <154403054034.11544.3978949383914046587.stgit@ahduyck-desk1.jf.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 66D4F211A2DA1
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:48:36 -0800 (PST)
+Subject: [PATCH v15 07/16] acpi/nfit,
+ libnvdimm: Add unlock of nvdimm support for Intel DIMMs
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 13 Dec 2018 16:48:35 -0700
+Message-ID: <154474491540.64529.6730683963766405362.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a new function, queue_work_node, which is meant to schedule work on
-a "random" CPU of the requested NUMA node. The main motivation for this is
-to help assist asynchronous init to better improve boot times for devices
-that are local to a specific node.
+From: Dan Williams <dan.j.williams@intel.com>
 
-For now we just default to the first CPU that is in the intersection of the
-cpumask of the node and the online cpumask. The only exception is if the
-CPU is local to the node we will just use the current CPU. This should work
-for our purposes as we are currently only using this for unbound work so
-the CPU will be translated to a node anyway instead of being directly used.
+Add support to unlock the dimm via the kernel key management APIs. The
+passphrase is expected to be pulled from userspace through keyutils.
+The key management and sysfs attributes are libnvdimm generic.
 
-As we are only using the first CPU to represent the NUMA node for now I am
-limiting the scope of the function so that it can only be used with unbound
-workqueues.
+Encrypted keys are used to protect the nvdimm passphrase at rest. The
+master key can be a trusted-key sealed in a TPM, preferred, or an
+encrypted-key, more flexible, but more exposure to a potential attacker.
 
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/workqueue.h |    2 +
- kernel/workqueue.c        |   84 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 86 insertions(+)
+ drivers/acpi/nfit/intel.c   |  109 ++++++++++++++++++++++++++++++++
+ drivers/nvdimm/Kconfig      |    4 +
+ drivers/nvdimm/Makefile     |    1 
+ drivers/nvdimm/dimm.c       |   16 ++++-
+ drivers/nvdimm/nd.h         |    8 ++
+ drivers/nvdimm/security.c   |  148 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h   |   12 +++
+ tools/testing/nvdimm/Kbuild |    1 
+ 8 files changed, 298 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/nvdimm/security.c
 
-diff --git a/include/linux/workqueue.h b/include/linux/workqueue.h
-index 60d673e15632..1f50c1e586e7 100644
---- a/include/linux/workqueue.h
-+++ b/include/linux/workqueue.h
-@@ -463,6 +463,8 @@ int workqueue_set_unbound_cpumask(cpumask_var_t cpumask);
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index f98d680d1a39..38f2cb364853 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -3,6 +3,7 @@
+ #include <linux/libnvdimm.h>
+ #include <linux/ndctl.h>
+ #include <linux/acpi.h>
++#include <asm/smp.h>
+ #include "intel.h"
+ #include "nfit.h"
  
- extern bool queue_work_on(int cpu, struct workqueue_struct *wq,
- 			struct work_struct *work);
-+extern bool queue_work_node(int node, struct workqueue_struct *wq,
-+			    struct work_struct *work);
- extern bool queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
- 			struct delayed_work *work, unsigned long delay);
- extern bool mod_delayed_work_on(int cpu, struct workqueue_struct *wq,
-diff --git a/kernel/workqueue.c b/kernel/workqueue.c
-index 392be4b252f6..d5a26e456f7a 100644
---- a/kernel/workqueue.c
-+++ b/kernel/workqueue.c
-@@ -1492,6 +1492,90 @@ bool queue_work_on(int cpu, struct workqueue_struct *wq,
+@@ -75,8 +76,116 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
+ 	return 0;
  }
- EXPORT_SYMBOL(queue_work_on);
  
-+/**
-+ * workqueue_select_cpu_near - Select a CPU based on NUMA node
-+ * @node: NUMA node ID that we want to select a CPU from
-+ *
-+ * This function will attempt to find a "random" cpu available on a given
-+ * node. If there are no CPUs available on the given node it will return
-+ * WORK_CPU_UNBOUND indicating that we should just schedule to any
-+ * available CPU if we need to schedule this work.
-+ */
-+static int workqueue_select_cpu_near(int node)
++static int intel_security_change_key(struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *old_data,
++		const struct nvdimm_key_data *new_data)
 +{
-+	int cpu;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_set_passphrase cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_SET_PASSPHRASE,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE * 2,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++	};
++	int rc;
 +
-+	/* No point in doing this if NUMA isn't enabled for workqueues */
-+	if (!wq_numa_enabled)
-+		return WORK_CPU_UNBOUND;
++	if (!test_bit(NVDIMM_INTEL_SET_PASSPHRASE, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
-+	/* Delay binding to CPU if node is not valid or online */
-+	if (node < 0 || node >= MAX_NUMNODES || !node_online(node))
-+		return WORK_CPU_UNBOUND;
++	if (old_data)
++		memcpy(nd_cmd.cmd.old_pass, old_data->data,
++				sizeof(nd_cmd.cmd.old_pass));
++	memcpy(nd_cmd.cmd.new_pass, new_data->data,
++			sizeof(nd_cmd.cmd.new_pass));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
 +
-+	/* Use local node/cpu if we are already there */
-+	cpu = raw_smp_processor_id();
-+	if (node == cpu_to_node(cpu))
-+		return cpu;
-+
-+	/* Use "random" otherwise know as "first" online CPU of node */
-+	cpu = cpumask_any_and(cpumask_of_node(node), cpu_online_mask);
-+
-+	/* If CPU is valid return that, otherwise just defer */
-+	return cpu < nr_cpu_ids ? cpu : WORK_CPU_UNBOUND;
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		return 0;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		return -EINVAL;
++	case ND_INTEL_STATUS_NOT_SUPPORTED:
++		return -EOPNOTSUPP;
++	case ND_INTEL_STATUS_INVALID_STATE:
++	default:
++		return -EIO;
++	}
 +}
 +
-+/**
-+ * queue_work_node - queue work on a "random" cpu for a given NUMA node
-+ * @node: NUMA node that we are targeting the work for
-+ * @wq: workqueue to use
-+ * @work: work to queue
-+ *
-+ * We queue the work to a "random" CPU within a given NUMA node. The basic
-+ * idea here is to provide a way to somehow associate work with a given
-+ * NUMA node.
-+ *
-+ * This function will only make a best effort attempt at getting this onto
-+ * the right NUMA node. If no node is requested or the requested node is
-+ * offline then we just fall back to standard queue_work behavior.
-+ *
-+ * Currently the "random" CPU ends up being the first available CPU in the
-+ * intersection of cpu_online_mask and the cpumask of the node, unless we
-+ * are running on the node. In that case we just use the current CPU.
-+ *
-+ * Return: %false if @work was already on a queue, %true otherwise.
-+ */
-+bool queue_work_node(int node, struct workqueue_struct *wq,
-+		     struct work_struct *work)
++static void nvdimm_invalidate_cache(void);
++
++static int intel_security_unlock(struct nvdimm *nvdimm,
++		const struct nvdimm_key_data *key_data)
 +{
-+	unsigned long flags;
-+	bool ret = false;
++	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++	struct {
++		struct nd_cmd_pkg pkg;
++		struct nd_intel_unlock_unit cmd;
++	} nd_cmd = {
++		.pkg = {
++			.nd_command = NVDIMM_INTEL_UNLOCK_UNIT,
++			.nd_family = NVDIMM_FAMILY_INTEL,
++			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
++			.nd_size_out = ND_INTEL_STATUS_SIZE,
++			.nd_fw_size = ND_INTEL_STATUS_SIZE,
++		},
++	};
++	int rc;
 +
-+	/*
-+	 * This current implementation is specific to unbound workqueues.
-+	 * Specifically we only return the first available CPU for a given
-+	 * node instead of cycling through individual CPUs within the node.
-+	 *
-+	 * If this is used with a per-cpu workqueue then the logic in
-+	 * workqueue_select_cpu_near would need to be updated to allow for
-+	 * some round robin type logic.
-+	 */
-+	WARN_ON_ONCE(!(wq->flags & WQ_UNBOUND));
++	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
++		return -ENOTTY;
 +
-+	local_irq_save(flags);
-+
-+	if (!test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
-+		int cpu = workqueue_select_cpu_near(node);
-+
-+		__queue_work(cpu, wq, work);
-+		ret = true;
++	memcpy(nd_cmd.cmd.passphrase, key_data->data,
++			sizeof(nd_cmd.cmd.passphrase));
++	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
++	if (rc < 0)
++		return rc;
++	switch (nd_cmd.cmd.status) {
++	case 0:
++		break;
++	case ND_INTEL_STATUS_INVALID_PASS:
++		return -EINVAL;
++	default:
++		return -EIO;
 +	}
 +
-+	local_irq_restore(flags);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(queue_work_node);
++	/* DIMM unlocked, invalidate all CPU caches before we read it */
++	nvdimm_invalidate_cache();
 +
- void delayed_work_timer_fn(struct timer_list *t)
- {
- 	struct delayed_work *dwork = from_timer(dwork, t, timer);
++	return 0;
++}
++
++/*
++ * TODO: define a cross arch wbinvd equivalent when/if
++ * NVDIMM_FAMILY_INTEL command support arrives on another arch.
++ */
++#ifdef CONFIG_X86
++static void nvdimm_invalidate_cache(void)
++{
++	wbinvd_on_all_cpus();
++}
++#else
++static void nvdimm_invalidate_cache(void)
++{
++	WARN_ON_ONCE("cache invalidation required after unlock\n");
++}
++#endif
++
+ static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.state = intel_security_state,
+ 	.freeze = intel_security_freeze,
++	.change_key = intel_security_change_key,
++#ifdef CONFIG_X86
++	.unlock = intel_security_unlock,
++#endif
+ };
++
+ const struct nvdimm_security_ops *intel_security_ops = &__intel_security_ops;
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 9d36473dc2a2..00f6325928f6 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -112,4 +112,8 @@ config OF_PMEM
+ 
+ 	  Select Y if unsure.
+ 
++config NVDIMM_KEYS
++        def_bool y
++        depends on KEYS
++
+ endif
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index e8847045dac0..6f2a088afad6 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -27,3 +27,4 @@ libnvdimm-$(CONFIG_ND_CLAIM) += claim.o
+ libnvdimm-$(CONFIG_BTT) += btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
++libnvdimm-$(CONFIG_NVDIMM_KEYS) += security.o
+diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
+index 9899c97138a3..1b3d9e7b2ffe 100644
+--- a/drivers/nvdimm/dimm.c
++++ b/drivers/nvdimm/dimm.c
+@@ -34,7 +34,11 @@ static int nvdimm_probe(struct device *dev)
+ 		return rc;
+ 	}
+ 
+-	/* reset locked, to be validated below... */
++	/*
++	 * The locked status bit reflects explicit status codes from the
++	 * label reading commands, revalidate it each time the driver is
++	 * activated and re-reads the label area.
++	 */
+ 	nvdimm_clear_locked(dev);
+ 
+ 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
+@@ -51,6 +55,16 @@ static int nvdimm_probe(struct device *dev)
+ 	get_device(dev);
+ 	kref_init(&ndd->kref);
+ 
++	/*
++	 * Attempt to unlock, if the DIMM supports security commands,
++	 * otherwise the locked indication is determined by explicit
++	 * status codes from the label reading commands.
++	 */
++	rc = nvdimm_security_unlock(dev);
++	if (rc < 0)
++		dev_err(dev, "failed to unlock dimm: %d\n", rc);
++
++
+ 	/*
+ 	 * EACCES failures reading the namespace label-area-properties
+ 	 * are interpreted as the DIMM capacity being locked but the
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index e79cc8e5c114..cfde992684e7 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -250,6 +250,14 @@ long nvdimm_clear_poison(struct device *dev, phys_addr_t phys,
+ void nvdimm_set_aliasing(struct device *dev);
+ void nvdimm_set_locked(struct device *dev);
+ void nvdimm_clear_locked(struct device *dev);
++#if IS_ENABLED(CONFIG_NVDIMM_KEYS)
++int nvdimm_security_unlock(struct device *dev);
++#else
++static inline int nvdimm_security_unlock(struct device *dev)
++{
++	return 0;
++}
++#endif
+ struct nd_btt *to_nd_btt(struct device *dev);
+ 
+ struct nd_gen_sb {
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+new file mode 100644
+index 000000000000..51d77a67a9fb
+--- /dev/null
++++ b/drivers/nvdimm/security.c
+@@ -0,0 +1,148 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2018 Intel Corporation. All rights reserved. */
++
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/ndctl.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/mm.h>
++#include <linux/cred.h>
++#include <linux/key.h>
++#include <linux/key-type.h>
++#include <keys/user-type.h>
++#include <keys/encrypted-type.h>
++#include "nd-core.h"
++#include "nd.h"
++
++static bool key_revalidate = true;
++module_param(key_revalidate, bool, 0444);
++MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
++
++static void *key_data(struct key *key)
++{
++	struct encrypted_key_payload *epayload = dereference_key_locked(key);
++
++	lockdep_assert_held_read(&key->sem);
++
++	return epayload->decrypted_data;
++}
++
++static void nvdimm_put_key(struct key *key)
++{
++	up_read(&key->sem);
++	key_put(key);
++}
++
++/*
++ * Retrieve kernel key for DIMM and request from user space if
++ * necessary. Returns a key held for read and must be put by
++ * nvdimm_put_key() before the usage goes out of scope.
++ */
++static struct key *nvdimm_request_key(struct nvdimm *nvdimm)
++{
++	struct key *key = NULL;
++	static const char NVDIMM_PREFIX[] = "nvdimm:";
++	char desc[NVDIMM_KEY_DESC_LEN + sizeof(NVDIMM_PREFIX)];
++	struct device *dev = &nvdimm->dev;
++
++	sprintf(desc, "%s%s", NVDIMM_PREFIX, nvdimm->dimm_id);
++	key = request_key(&key_type_encrypted, desc, "");
++	if (IS_ERR(key)) {
++		if (PTR_ERR(key) == -ENOKEY)
++			dev_warn(dev, "request_key() found no key\n");
++		else
++			dev_warn(dev, "request_key() upcall failed\n");
++		key = NULL;
++	} else {
++		struct encrypted_key_payload *epayload;
++
++		down_read(&key->sem);
++		epayload = dereference_key_locked(key);
++		if (epayload->decrypted_datalen != NVDIMM_PASSPHRASE_LEN) {
++			up_read(&key->sem);
++			key_put(key);
++			key = NULL;
++		}
++	}
++
++	return key;
++}
++
++static struct key *nvdimm_key_revalidate(struct nvdimm *nvdimm)
++{
++	struct key *key;
++	int rc;
++
++	if (!nvdimm->sec.ops->change_key)
++		return NULL;
++
++	key = nvdimm_request_key(nvdimm);
++	if (!key)
++		return NULL;
++
++	/*
++	 * Send the same key to the hardware as new and old key to
++	 * verify that the key is good.
++	 */
++	rc = nvdimm->sec.ops->change_key(nvdimm, key_data(key), key_data(key));
++	if (rc < 0) {
++		nvdimm_put_key(key);
++		key = NULL;
++	}
++	return key;
++}
++
++static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
++{
++	struct device *dev = &nvdimm->dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++	struct key *key = NULL;
++	int rc;
++
++	/* The bus lock should be held at the top level of the call stack */
++	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
++
++	if (!nvdimm->sec.ops || !nvdimm->sec.ops->unlock
++			|| nvdimm->sec.state < 0)
++		return -EIO;
++
++	/*
++	 * If the pre-OS has unlocked the DIMM, attempt to send the key
++	 * from request_key() to the hardware for verification.  Failure
++	 * to revalidate the key against the hardware results in a
++	 * freeze of the security configuration. I.e. if the OS does not
++	 * have the key, security is being managed pre-OS.
++	 */
++	if (nvdimm->sec.state == NVDIMM_SECURITY_UNLOCKED) {
++		if (!key_revalidate)
++			return 0;
++
++		key = nvdimm_key_revalidate(nvdimm);
++		if (!key)
++			return nvdimm_security_freeze(nvdimm);
++	} else
++		key = nvdimm_request_key(nvdimm);
++
++	if (!key)
++		return -ENOKEY;
++
++	rc = nvdimm->sec.ops->unlock(nvdimm, key_data(key));
++	dev_dbg(dev, "key: %d unlock: %s\n", key_serial(key),
++			rc == 0 ? "success" : "fail");
++
++	nvdimm_put_key(key);
++	nvdimm->sec.state = nvdimm_security_state(nvdimm);
++	return rc;
++}
++
++int nvdimm_security_unlock(struct device *dev)
++{
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	int rc;
++
++	nvdimm_bus_lock(dev);
++	rc = __nvdimm_security_unlock(nvdimm);
++	nvdimm_bus_unlock(dev);
++	return rc;
++}
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 42c815f97c02..0f0ab276134e 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -163,9 +163,21 @@ enum nvdimm_security_state {
+ 	NVDIMM_SECURITY_OVERWRITE,
+ };
+ 
++#define NVDIMM_PASSPHRASE_LEN		32
++#define NVDIMM_KEY_DESC_LEN		22
++
++struct nvdimm_key_data {
++	u8 data[NVDIMM_PASSPHRASE_LEN];
++};
++
+ struct nvdimm_security_ops {
+ 	enum nvdimm_security_state (*state)(struct nvdimm *nvdimm);
+ 	int (*freeze)(struct nvdimm *nvdimm);
++	int (*change_key)(struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *old_data,
++			const struct nvdimm_key_data *new_data);
++	int (*unlock)(struct nvdimm *nvdimm,
++			const struct nvdimm_key_data *key_data);
+ };
+ 
+ void badrange_init(struct badrange *badrange);
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 4a2f3cff2a75..33ea40777205 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -80,6 +80,7 @@ libnvdimm-$(CONFIG_ND_CLAIM) += $(NVDIMM_SRC)/claim.o
+ libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
++libnvdimm-$(CONFIG_NVDIMM_KEYS) += $(NVDIMM_SRC)/security.o
+ libnvdimm-y += libnvdimm_test.o
+ libnvdimm-y += config_check.o
+ 
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
