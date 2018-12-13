@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A681211A2D87
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:47:58 -0800 (PST)
-Subject: [PATCH v15 00/16] Adding security support for nvdimm
+ by ml01.01.org (Postfix) with ESMTPS id E42F4211A1E36
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:48:22 -0800 (PST)
+Subject: [PATCH v14 00/17] Adding security support for nvdimm
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:47:57 -0700
-Message-ID: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:48:21 -0700
+Message-ID: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,7 +21,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 The following series implements security support for nvdimm based on Intel
@@ -32,13 +32,6 @@ disable, crypto erase, overwrite, and master passphrase enable/update and
 erase. Instead of allowing the security DSMs being issued via ioctl, the
 features are managed through a sysfs attribute that accept the relevant
 keyid for the encrypted-key(s).
-
-v15:
-- Fixed !SMP x86 build. (0-day)
-- Misc fixes to overwrite (Dan)
-- Changed NDD_SECURITY_BUSY to NDD_SECURITY_OVERWRITE and
-  NDD_SECURITY_OVERWRITE to NDD_WORK_PENDING. (Dan)
-- Fixed shutdown path to handle work item cancellation and added bus lock. (Dan)
 
 v14:
 - Cleanup security_store input parsing. (Dan)
@@ -146,7 +139,7 @@ v2:
 Dan Williams (1):
       acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs
 
-Dave Jiang (15):
+Dave Jiang (16):
       acpi/nfit: Add support for Intel DSM 1.8 commands
       acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm
       keys: Export lookup_user_key to external users
@@ -156,6 +149,7 @@ Dave Jiang (15):
       acpi/nfit, libnvdimm: Add disable passphrase support to Intel nvdimm.
       acpi/nfit, libnvdimm: Add enable/update passphrase support for Intel nvdimms
       acpi/nfit, libnvdimm: Add support for issue secure erase DSM to Intel nvdimm
+      libnvdimm/security: introduce NDD_SECURITY_BUSY flag
       acpi/nfit, libnvdimm/security: Add security DSM overwrite support
       acpi/nfit, libnvdimm/security: add Intel DSM 1.8 master passphrase support
       tools/testing/nvdimm: Add test support for Intel nvdimm security DSMs
@@ -164,32 +158,32 @@ Dave Jiang (15):
       libnvdimm/security: Add documentation for nvdimm security support
 
 
- Documentation/nvdimm/security.txt                 |  141 +++++++
+ Documentation/nvdimm/security.txt                 |  141 ++++++
  Documentation/security/keys/trusted-encrypted.rst |    6 
  drivers/acpi/nfit/Kconfig                         |   11 +
  drivers/acpi/nfit/Makefile                        |    1 
  drivers/acpi/nfit/core.c                          |   93 ++++
- drivers/acpi/nfit/intel.c                         |  390 ++++++++++++++++++
+ drivers/acpi/nfit/intel.c                         |  388 ++++++++++++++++++
  drivers/acpi/nfit/intel.h                         |   76 ++++
- drivers/acpi/nfit/nfit.h                          |   24 +
+ drivers/acpi/nfit/nfit.h                          |   25 +
  drivers/nvdimm/Kconfig                            |    4 
  drivers/nvdimm/Makefile                           |    1 
- drivers/nvdimm/bus.c                              |   31 +
+ drivers/nvdimm/bus.c                              |   22 +
  drivers/nvdimm/dimm.c                             |   16 +
- drivers/nvdimm/dimm_devs.c                        |  210 +++++++++-
+ drivers/nvdimm/dimm_devs.c                        |  205 +++++++++
  drivers/nvdimm/nd-core.h                          |   29 +
  drivers/nvdimm/nd.h                               |    8 
  drivers/nvdimm/region_devs.c                      |    5 
- drivers/nvdimm/security.c                         |  454 +++++++++++++++++++++
+ drivers/nvdimm/security.c                         |  456 +++++++++++++++++++++
  include/linux/key.h                               |    3 
- include/linux/libnvdimm.h                         |   76 +++-
+ include/linux/libnvdimm.h                         |   75 +++
  security/keys/encrypted-keys/encrypted.c          |   29 +
  security/keys/internal.h                          |    2 
  security/keys/process_keys.c                      |    1 
  tools/testing/nvdimm/Kbuild                       |    3 
  tools/testing/nvdimm/dimm_devs.c                  |   41 ++
  tools/testing/nvdimm/test/nfit.c                  |  321 +++++++++++++++
- 25 files changed, 1931 insertions(+), 45 deletions(-)
+ 25 files changed, 1919 insertions(+), 43 deletions(-)
  create mode 100644 Documentation/nvdimm/security.txt
  create mode 100644 drivers/acpi/nfit/intel.c
  create mode 100644 drivers/nvdimm/security.c
