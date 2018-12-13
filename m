@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82B69211A2DA1
- for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 15:49:03 -0800 (PST)
-Subject: [PATCH v15 12/16] acpi/nfit,
+ by ml01.01.org (Postfix) with ESMTPS id 4D030211A1E5F
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Dec 2018 08:49:34 -0800 (PST)
+Subject: [PATCH v14 13/17] acpi/nfit,
  libnvdimm/security: add Intel DSM 1.8 master passphrase support
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 13 Dec 2018 16:49:03 -0700
-Message-ID: <154474494296.64529.5458307768576375796.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
-References: <154474458351.64529.4227918957466268448.stgit@djiang5-desk3.ch.intel.com>
+Date: Thu, 13 Dec 2018 09:49:33 -0700
+Message-ID: <154471977334.55644.838262898630951505.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
+References: <154471935968.55644.4424661179787827497.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
 With Intel DSM 1.8 [1] two new security DSMs are introduced. Enable/update
@@ -60,10 +60,10 @@ index 173517eb35b1..2e92b9d51c38 100644
  	};
  	u8 id;
 diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index f33044b73591..78fbc095508e 100644
+index fdb318de2e52..64f09a1d3446 100644
 --- a/drivers/acpi/nfit/intel.c
 +++ b/drivers/acpi/nfit/intel.c
-@@ -7,7 +7,8 @@
+@@ -6,7 +6,8 @@
  #include "intel.h"
  #include "nfit.h"
  
@@ -73,16 +73,16 @@ index f33044b73591..78fbc095508e 100644
  {
  	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
  	struct {
-@@ -33,7 +34,7 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
- 	 * The DSM spec states that the security state is indeterminate
- 	 * until the overwrite DSM completes.
- 	 */
--	if (nvdimm_in_overwrite(nvdimm))
-+	if (nvdimm_in_overwrite(nvdimm) && ptype == NVDIMM_USER)
+@@ -28,7 +29,7 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
+ 		return -ENXIO;
+ 
+ 	/* Short circuit the state retrieval while we are doing overwrite */
+-	if (nfit_mem->overwrite)
++	if (nfit_mem->overwrite && ptype == NVDIMM_USER)
  		return NVDIMM_SECURITY_OVERWRITE;
  
  	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -43,17 +44,28 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
+@@ -38,17 +39,28 @@ static enum nvdimm_security_state intel_security_state(struct nvdimm *nvdimm)
  		return -EIO;
  
  	/* check and see if security is enabled and locked */
@@ -120,7 +120,7 @@ index f33044b73591..78fbc095508e 100644
  	return NVDIMM_SECURITY_DISABLED;
  }
  
-@@ -86,24 +98,28 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
+@@ -81,24 +93,28 @@ static int intel_security_freeze(struct nvdimm *nvdimm)
  
  static int intel_security_change_key(struct nvdimm *nvdimm,
  		const struct nvdimm_key_data *old_data,
@@ -152,7 +152,7 @@ index f33044b73591..78fbc095508e 100644
  		return -ENOTTY;
  
  	if (old_data)
-@@ -212,10 +228,13 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+@@ -207,10 +223,13 @@ static int intel_security_disable(struct nvdimm *nvdimm,
  }
  
  static int intel_security_erase(struct nvdimm *nvdimm,
@@ -167,7 +167,7 @@ index f33044b73591..78fbc095508e 100644
  	struct {
  		struct nd_cmd_pkg pkg;
  		struct nd_intel_secure_erase cmd;
-@@ -225,11 +244,11 @@ static int intel_security_erase(struct nvdimm *nvdimm,
+@@ -220,11 +239,11 @@ static int intel_security_erase(struct nvdimm *nvdimm,
  			.nd_size_in = ND_INTEL_PASSPHRASE_SIZE,
  			.nd_size_out = ND_INTEL_STATUS_SIZE,
  			.nd_fw_size = ND_INTEL_STATUS_SIZE,
@@ -182,10 +182,10 @@ index f33044b73591..78fbc095508e 100644
  
  	/* flush all cache before we erase DIMM */
 diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 6affa270abd3..bd3f156463b1 100644
+index 8afe6bc4f450..9f808cba3f47 100644
 --- a/drivers/nvdimm/dimm_devs.c
 +++ b/drivers/nvdimm/dimm_devs.c
-@@ -386,17 +386,21 @@ static ssize_t security_show(struct device *dev,
+@@ -387,17 +387,21 @@ static ssize_t security_show(struct device *dev,
  		return sprintf(buf, "frozen\n");
  	case NVDIMM_SECURITY_OVERWRITE:
  		return sprintf(buf, "overwrite\n");
@@ -213,7 +213,7 @@ index 6affa270abd3..bd3f156463b1 100644
  #undef C
  #define C(a, b, c) a
  enum nvdimmsec_op_ids { OPS };
-@@ -449,13 +453,21 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+@@ -450,13 +454,21 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
  		rc = nvdimm_security_disable(nvdimm, key);
  	} else if (i == OP_UPDATE) {
  		dev_dbg(dev, "update %u %u\n", key, newkey);
@@ -237,7 +237,7 @@ index 6affa270abd3..bd3f156463b1 100644
  	} else
  		return -EINVAL;
  
-@@ -557,7 +569,9 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+@@ -558,7 +570,9 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
  	 * Security state must be initialized before device_add() for
  	 * attribute visibility.
  	 */
@@ -248,7 +248,7 @@ index 6affa270abd3..bd3f156463b1 100644
  	nd_device_register(dev);
  
  	return nvdimm;
-@@ -598,7 +612,7 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
+@@ -593,7 +607,7 @@ int nvdimm_security_freeze(struct nvdimm *nvdimm)
  	}
  
  	rc = nvdimm->sec.ops->freeze(nvdimm);
@@ -295,7 +295,7 @@ index 657231ba0607..cf9458afcee6 100644
  int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid);
  void nvdimm_security_overwrite_query(struct work_struct *work);
 diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index ef6727a4cbdf..f06f9234a899 100644
+index f1ccdebba7b0..eb8e665f7c65 100644
 --- a/drivers/nvdimm/security.c
 +++ b/drivers/nvdimm/security.c
 @@ -121,7 +121,8 @@ static struct key *nvdimm_key_revalidate(struct nvdimm *nvdimm)
@@ -399,9 +399,9 @@ index ef6727a4cbdf..f06f9234a899 100644
  	return rc;
  }
  
-@@ -421,7 +439,8 @@ void __nvdimm_security_overwrite_query(struct nvdimm *nvdimm)
+@@ -423,7 +441,8 @@ void __nvdimm_security_overwrite_query(struct nvdimm *nvdimm)
+ 	clear_bit(NDD_SECURITY_BUSY, &nvdimm->flags);
  	clear_bit(NDD_SECURITY_OVERWRITE, &nvdimm->flags);
- 	clear_bit(NDD_WORK_PENDING, &nvdimm->flags);
  	put_device(&nvdimm->dev);
 -	nvdimm->sec.state = nvdimm_security_state(nvdimm);
 +	nvdimm->sec.state = nvdimm_security_state(nvdimm, NVDIMM_USER);
@@ -410,7 +410,7 @@ index ef6727a4cbdf..f06f9234a899 100644
  
  void nvdimm_security_overwrite_query(struct work_struct *work)
 diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index d18885304020..5440f11b0907 100644
+index bcd5171805a1..17220ad559ff 100644
 --- a/include/linux/libnvdimm.h
 +++ b/include/linux/libnvdimm.h
 @@ -174,18 +174,26 @@ struct nvdimm_key_data {
