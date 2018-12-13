@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 712BC21198CDA
- for <linux-nvdimm@lists.01.org>; Tue, 11 Dec 2018 12:27:04 -0800 (PST)
-Subject: [PATCH v13 16/17] tools/testing/nvdimm: add Intel DSM 1.8 support
- for nfit_test
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 11 Dec 2018 13:26:52 -0700
-Message-ID: <154456001228.26509.3772856445156192989.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
-References: <154455914081.26509.7988630204184570351.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C29552119EF3A
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:14 -0800 (PST)
+Subject: [driver-core PATCH v9 4/9] workqueue: Provide queue_work_node to
+ queue work near a given NUMA node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 12 Dec 2018 16:45:14 -0800
+Message-ID: <154466191432.9126.11618204155374317833.stgit@ahduyck-desk1.jf.intel.com>
+In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,173 +23,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: dhowells@redhat.com, zohar@linux.vnet.ibm.com, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding test support for new Intel DSM from v1.8. The ability of simulating
-master passphrase update and master secure erase have been added to
-nfit_test.
+Provide a new function, queue_work_node, which is meant to schedule work on
+a "random" CPU of the requested NUMA node. The main motivation for this is
+to help assist asynchronous init to better improve boot times for devices
+that are local to a specific node.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+For now we just default to the first CPU that is in the intersection of the
+cpumask of the node and the online cpumask. The only exception is if the
+CPU is local to the node we will just use the current CPU. This should work
+for our purposes as we are currently only using this for unbound work so
+the CPU will be translated to a node anyway instead of being directly used.
+
+As we are only using the first CPU to represent the NUMA node for now I am
+limiting the scope of the function so that it can only be used with unbound
+workqueues.
+
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- tools/testing/nvdimm/test/nfit.c |   86 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+ include/linux/workqueue.h |    2 +
+ kernel/workqueue.c        |   84 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 3162fbf6e8a9..9a8d0e432e99 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -144,7 +144,9 @@ static unsigned long dimm_fail_cmd_flags[ARRAY_SIZE(handle)];
- static int dimm_fail_cmd_code[ARRAY_SIZE(handle)];
- struct nfit_test_sec {
- 	u8 state;
-+	u8 ext_state;
- 	u8 passphrase[32];
-+	u8 master_passphrase[32];
- 	u64 overwrite_end_time;
- } dimm_sec_info[NUM_DCR];
+diff --git a/include/linux/workqueue.h b/include/linux/workqueue.h
+index 60d673e15632..1f50c1e586e7 100644
+--- a/include/linux/workqueue.h
++++ b/include/linux/workqueue.h
+@@ -463,6 +463,8 @@ int workqueue_set_unbound_cpumask(cpumask_var_t cpumask);
  
-@@ -947,6 +949,7 @@ static int nd_intel_test_cmd_security_status(struct nfit_test *t,
- 
- 	nd_cmd->status = 0;
- 	nd_cmd->state = sec->state;
-+	nd_cmd->extended_state = sec->ext_state;
- 	dev_dbg(dev, "security state (%#x) returned\n", nd_cmd->state);
- 
- 	return 0;
-@@ -1063,7 +1066,9 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 		dev_dbg(dev, "secure erase: wrong passphrase\n");
- 	} else {
- 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
- 		sec->state = 0;
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
- 		dev_dbg(dev, "secure erase: done\n");
- 	}
- 
-@@ -1108,12 +1113,69 @@ static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
- 	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
- 		sec->overwrite_end_time = 0;
- 		sec->state = 0;
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
- 		dev_dbg(dev, "overwrite is complete\n");
- 	} else
- 		nd_cmd->status = ND_INTEL_STATUS_OQUERY_INPROGRESS;
- 	return 0;
+ extern bool queue_work_on(int cpu, struct workqueue_struct *wq,
+ 			struct work_struct *work);
++extern bool queue_work_node(int node, struct workqueue_struct *wq,
++			    struct work_struct *work);
+ extern bool queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
+ 			struct delayed_work *work, unsigned long delay);
+ extern bool mod_delayed_work_on(int cpu, struct workqueue_struct *wq,
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index 392be4b252f6..d5a26e456f7a 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -1492,6 +1492,90 @@ bool queue_work_on(int cpu, struct workqueue_struct *wq,
  }
+ EXPORT_SYMBOL(queue_work_on);
  
-+static int nd_intel_test_cmd_master_set_pass(struct nfit_test *t,
-+		struct nd_intel_set_master_passphrase *nd_cmd,
-+		unsigned int buf_len, int dimm)
++/**
++ * workqueue_select_cpu_near - Select a CPU based on NUMA node
++ * @node: NUMA node ID that we want to select a CPU from
++ *
++ * This function will attempt to find a "random" cpu available on a given
++ * node. If there are no CPUs available on the given node it will return
++ * WORK_CPU_UNBOUND indicating that we should just schedule to any
++ * available CPU if we need to schedule this work.
++ */
++static int workqueue_select_cpu_near(int node)
 +{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++	int cpu;
 +
-+	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
-+		dev_dbg(dev, "master set passphrase: in wrong state\n");
-+	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "master set passphrase: in wrong security state\n");
-+	} else if (memcmp(nd_cmd->old_pass, sec->master_passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "master set passphrase: wrong passphrase\n");
-+	} else {
-+		memcpy(sec->master_passphrase, nd_cmd->new_pass,
-+				ND_INTEL_PASSPHRASE_SIZE);
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
-+		dev_dbg(dev, "master passphrase: updated\n");
-+	}
++	/* No point in doing this if NUMA isn't enabled for workqueues */
++	if (!wq_numa_enabled)
++		return WORK_CPU_UNBOUND;
 +
-+	return 0;
++	/* Delay binding to CPU if node is not valid or online */
++	if (node < 0 || node >= MAX_NUMNODES || !node_online(node))
++		return WORK_CPU_UNBOUND;
++
++	/* Use local node/cpu if we are already there */
++	cpu = raw_smp_processor_id();
++	if (node == cpu_to_node(cpu))
++		return cpu;
++
++	/* Use "random" otherwise know as "first" online CPU of node */
++	cpu = cpumask_any_and(cpumask_of_node(node), cpu_online_mask);
++
++	/* If CPU is valid return that, otherwise just defer */
++	return cpu < nr_cpu_ids ? cpu : WORK_CPU_UNBOUND;
 +}
 +
-+static int nd_intel_test_cmd_master_secure_erase(struct nfit_test *t,
-+		struct nd_intel_master_secure_erase *nd_cmd,
-+		unsigned int buf_len, int dimm)
++/**
++ * queue_work_node - queue work on a "random" cpu for a given NUMA node
++ * @node: NUMA node that we are targeting the work for
++ * @wq: workqueue to use
++ * @work: work to queue
++ *
++ * We queue the work to a "random" CPU within a given NUMA node. The basic
++ * idea here is to provide a way to somehow associate work with a given
++ * NUMA node.
++ *
++ * This function will only make a best effort attempt at getting this onto
++ * the right NUMA node. If no node is requested or the requested node is
++ * offline then we just fall back to standard queue_work behavior.
++ *
++ * Currently the "random" CPU ends up being the first available CPU in the
++ * intersection of cpu_online_mask and the cpumask of the node, unless we
++ * are running on the node. In that case we just use the current CPU.
++ *
++ * Return: %false if @work was already on a queue, %true otherwise.
++ */
++bool queue_work_node(int node, struct workqueue_struct *wq,
++		     struct work_struct *work)
 +{
-+	struct device *dev = &t->pdev.dev;
-+	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
++	unsigned long flags;
++	bool ret = false;
 +
-+	if (!(sec->ext_state & ND_INTEL_SEC_ESTATE_ENABLED)) {
-+		nd_cmd->status = ND_INTEL_STATUS_NOT_SUPPORTED;
-+		dev_dbg(dev, "master secure erase: in wrong state\n");
-+	} else if (sec->ext_state & ND_INTEL_SEC_ESTATE_PLIMIT) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
-+		dev_dbg(dev, "master secure erase: in wrong security state\n");
-+	} else if (memcmp(nd_cmd->passphrase, sec->master_passphrase,
-+				ND_INTEL_PASSPHRASE_SIZE) != 0) {
-+		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
-+		dev_dbg(dev, "master secure erase: wrong passphrase\n");
-+	} else {
-+		/* we do not erase master state passphrase ever */
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
-+		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
-+		sec->state = 0;
-+		dev_dbg(dev, "master secure erase: done\n");
++	/*
++	 * This current implementation is specific to unbound workqueues.
++	 * Specifically we only return the first available CPU for a given
++	 * node instead of cycling through individual CPUs within the node.
++	 *
++	 * If this is used with a per-cpu workqueue then the logic in
++	 * workqueue_select_cpu_near would need to be updated to allow for
++	 * some round robin type logic.
++	 */
++	WARN_ON_ONCE(!(wq->flags & WQ_UNBOUND));
++
++	local_irq_save(flags);
++
++	if (!test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
++		int cpu = workqueue_select_cpu_near(node);
++
++		__queue_work(cpu, wq, work);
++		ret = true;
 +	}
 +
-+	return 0;
++	local_irq_restore(flags);
++	return ret;
 +}
++EXPORT_SYMBOL_GPL(queue_work_node);
 +
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ void delayed_work_timer_fn(struct timer_list *t)
  {
- 	int i;
-@@ -1193,6 +1255,14 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				rc = nd_intel_test_cmd_query_overwrite(t,
- 						buf, buf_len, i - t->dcr_idx);
- 				break;
-+			case NVDIMM_INTEL_SET_MASTER_PASSPHRASE:
-+				rc = nd_intel_test_cmd_master_set_pass(t,
-+						buf, buf_len, i);
-+				break;
-+			case NVDIMM_INTEL_MASTER_SECURE_ERASE:
-+				rc = nd_intel_test_cmd_master_secure_erase(t,
-+						buf, buf_len, i);
-+				break;
- 			case ND_INTEL_ENABLE_LSS_STATUS:
- 				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-@@ -1571,6 +1641,17 @@ static int nfit_test_dimm_init(struct nfit_test *t)
- 	return 0;
- }
- 
-+static void security_init(struct nfit_test *t)
-+{
-+	int i;
-+
-+	for (i = 0; i < t->num_dcr; i++) {
-+		struct nfit_test_sec *sec = &dimm_sec_info[i];
-+
-+		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
-+	}
-+}
-+
- static void smart_init(struct nfit_test *t)
- {
- 	int i;
-@@ -1649,6 +1730,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 	if (nfit_test_dimm_init(t))
- 		return -ENOMEM;
- 	smart_init(t);
-+	security_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -2430,6 +2512,10 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(NVDIMM_INTEL_SECURE_ERASE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_SET_MASTER_PASSPHRASE,
-+			&acpi_desc->dimm_cmd_force_en);
-+	set_bit(NVDIMM_INTEL_MASTER_SECURE_ERASE,
-+			&acpi_desc->dimm_cmd_force_en);
- }
- 
- static void nfit_test1_setup(struct nfit_test *t)
+ 	struct delayed_work *dwork = from_timer(dwork, t, timer);
 
 _______________________________________________
 Linux-nvdimm mailing list
