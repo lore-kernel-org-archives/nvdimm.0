@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5F84221198CC2
- for <linux-nvdimm@lists.01.org>; Thu, 27 Dec 2018 19:42:40 -0800 (PST)
-Subject: [ndctl PATCH 1/7] ndctl, daxctl: Split builtin.h per-command
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Dec 2018 19:30:03 -0800
-Message-ID: <154596780371.164521.1371668722710070666.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154596779833.164521.12632457592535372923.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154596779833.164521.12632457592535372923.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6CE14211A4593
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:09:31 -0800 (PST)
+Subject: [PATCH v6 05/12] ndctl: add support for sanitize dimm
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 14 Dec 2018 14:09:30 -0700
+Message-ID: <154482177042.65434.5169490783888782262.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,215 +22,290 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding more daxctl specific commands, split the
-top-level builtin.h into command specific flavors. Leave the common
-definitions in the top-level file.
+Add support to secure erase to libndctl and also command line option
+of "sanitize-dimm" for ndctl. This will initiate the request to crypto
+erase a DIMM.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- builtin.h        |   51 ---------------------------------------------------
- daxctl/builtin.h |    6 ++++++
- daxctl/daxctl.c  |    4 +---
- ndctl/builtin.h  |   33 +++++++++++++++++++++++++++++++++
- ndctl/ndctl.c    |    6 +++---
- util/main.c      |    2 +-
- util/main.h      |    7 ++++++-
- 7 files changed, 50 insertions(+), 59 deletions(-)
- delete mode 100644 builtin.h
- create mode 100644 daxctl/builtin.h
- create mode 100644 ndctl/builtin.h
+ Documentation/ndctl/Makefile.am             |    3 +-
+ Documentation/ndctl/ndctl-sanitize-dimm.txt |   32 +++++++++++++++++
+ builtin.h                                   |    1 +
+ ndctl/dimm.c                                |   51 +++++++++++++++++++++++++++
+ ndctl/lib/dimm.c                            |    8 ++++
+ ndctl/lib/keys.c                            |   19 ++++++++--
+ ndctl/lib/libndctl.sym                      |    2 +
+ ndctl/libndctl.h                            |    7 ++++
+ ndctl/ndctl.c                               |    1 +
+ 9 files changed, 120 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
 
-diff --git a/builtin.h b/builtin.h
-deleted file mode 100644
-index 675a6ce79b9c..000000000000
---- a/builtin.h
-+++ /dev/null
-@@ -1,51 +0,0 @@
--/*
-- * Copyright(c) 2015-2017 Intel Corporation. All rights reserved.
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of version 2 of the GNU General Public License as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- */
--#ifndef _NDCTL_BUILTIN_H_
--#define _NDCTL_BUILTIN_H_
--extern const char ndctl_usage_string[];
--extern const char ndctl_more_info_string[];
--
--struct cmd_struct {
--	const char *cmd;
--	int (*fn)(int, const char **, void *ctx);
--};
--
--int cmd_create_nfit(int argc, const char **argv, void *ctx);
--int cmd_enable_namespace(int argc, const char **argv, void *ctx);
--int cmd_create_namespace(int argc, const char **argv, void *ctx);
--int cmd_destroy_namespace(int argc, const char **argv, void *ctx);
--int cmd_disable_namespace(int argc, const char **argv, void *ctx);
--int cmd_check_namespace(int argc, const char **argv, void *ctx);
--int cmd_enable_region(int argc, const char **argv, void *ctx);
--int cmd_disable_region(int argc, const char **argv, void *ctx);
--int cmd_enable_dimm(int argc, const char **argv, void *ctx);
--int cmd_disable_dimm(int argc, const char **argv, void *ctx);
--int cmd_zero_labels(int argc, const char **argv, void *ctx);
--int cmd_read_labels(int argc, const char **argv, void *ctx);
--int cmd_write_labels(int argc, const char **argv, void *ctx);
--int cmd_init_labels(int argc, const char **argv, void *ctx);
--int cmd_check_labels(int argc, const char **argv, void *ctx);
--int cmd_inject_error(int argc, const char **argv, void *ctx);
--int cmd_wait_scrub(int argc, const char **argv, void *ctx);
--int cmd_start_scrub(int argc, const char **argv, void *ctx);
--int cmd_list(int argc, const char **argv, void *ctx);
--int cmd_monitor(int argc, const char **argv, void *ctx);
--#ifdef ENABLE_TEST
--int cmd_test(int argc, const char **argv, void *ctx);
--#endif
--#ifdef ENABLE_DESTRUCTIVE
--int cmd_bat(int argc, const char **argv, void *ctx);
--#endif
--int cmd_update_firmware(int argc, const char **argv, void *ctx);
--int cmd_inject_smart(int argc, const char **argv, void *ctx);
--#endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/daxctl/builtin.h b/daxctl/builtin.h
-new file mode 100644
-index 000000000000..131a5d86258b
---- /dev/null
-+++ b/daxctl/builtin.h
-@@ -0,0 +1,6 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2015-2018 Intel Corporation. All rights reserved. */
-+#ifndef _DAXCTL_BUILTIN_H_
-+#define _DAXCTL_BUILTIN_H_
-+int cmd_list(int argc, const char **argv, void *ctx);
-+#endif /* _DAXCTL_BUILTIN_H_ */
-diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-index 91a4600e262f..545e117a5aad 100644
---- a/daxctl/daxctl.c
-+++ b/daxctl/daxctl.c
-@@ -28,7 +28,7 @@
- #include <util/strbuf.h>
- #include <util/util.h>
- #include <util/main.h>
--#include <builtin.h>
-+#include <daxctl/builtin.h>
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index a97f193d..bbea9674 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -51,7 +51,8 @@ man1_MANS = \
+ 	ndctl-enable-passphrase.1 \
+ 	ndctl-update-passphrase.1 \
+ 	ndctl-disable-passphrase.1 \
+-	ndctl-freeze-security.1
++	ndctl-freeze-security.1 \
++	ndctl-sanitize-dimm.1
  
- const char daxctl_usage_string[] = "daxctl [--version] [--help] COMMAND [ARGS]";
- const char daxctl_more_info_string[] =
-@@ -66,8 +66,6 @@ static int cmd_help(int argc, const char **argv, void *ctx)
- 	return help_show_man_page(argv[0], "daxctl", "DAXCTL_MAN_VIEWER");
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+new file mode 100644
+index 00000000..a6802d30
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -0,0 +1,32 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-sanitize-dimm(1)
++======================
++
++NAME
++----
++ndctl-sanitize-dimm - sanitize the data on the NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl sanitize' <dimm> [<options>]
++
++DESCRIPTION
++-----------
++Provide a generic interface to crypto erase a NVDIMM.
++Ndctl will search the user key ring for the associated DIMM. If no key is
++found, it will attempt to load the key blob from the expected location. Ndctl
++will remove the key and the key blob once security is disabled.
++
++OPTIONS
++-------
++<dimm>::
++include::xable-dimm-options.txt[]
++
++-c::
++--crypto-erase::
++	Replaces encryption keys and securely erases the data. This does not
++	change label data. This is the default sanitize method.
++
++include::../copyright.txt[]
+diff --git a/builtin.h b/builtin.h
+index 827295da..db0f2858 100644
+--- a/builtin.h
++++ b/builtin.h
+@@ -52,4 +52,5 @@ int cmd_passphrase_setup(int argc, const char **argv, void *ctx);
+ int cmd_passphrase_update(int argc, const char **argv, void *ctx);
+ int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
+ int cmd_freeze_security(int argc, const char **argv, void *ctx);
++int cmd_sanitize_dimm(int argc, const char **argv, void *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 6476b6e5..ae674f78 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -46,6 +46,7 @@ static struct parameters {
+ 	const char *infile;
+ 	const char *labelversion;
+ 	const char *master_key;
++	bool crypto_erase;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -891,6 +892,35 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
+ 	return rc;
  }
  
--int cmd_list(int argc, const char **argv, void *ctx);
--
- static struct cmd_struct commands[] = {
- 	{ "version", cmd_version },
- 	{ "list", cmd_list },
-diff --git a/ndctl/builtin.h b/ndctl/builtin.h
-new file mode 100644
-index 000000000000..4ebc50406247
---- /dev/null
-+++ b/ndctl/builtin.h
-@@ -0,0 +1,33 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2015-2018 Intel Corporation. All rights reserved. */
-+#ifndef _NDCTL_BUILTIN_H_
-+#define _NDCTL_BUILTIN_H_
-+int cmd_create_nfit(int argc, const char **argv, void *ctx);
-+int cmd_enable_namespace(int argc, const char **argv, void *ctx);
-+int cmd_create_namespace(int argc, const char **argv, void *ctx);
-+int cmd_destroy_namespace(int argc, const char **argv, void *ctx);
-+int cmd_disable_namespace(int argc, const char **argv, void *ctx);
-+int cmd_check_namespace(int argc, const char **argv, void *ctx);
-+int cmd_enable_region(int argc, const char **argv, void *ctx);
-+int cmd_disable_region(int argc, const char **argv, void *ctx);
-+int cmd_enable_dimm(int argc, const char **argv, void *ctx);
-+int cmd_disable_dimm(int argc, const char **argv, void *ctx);
-+int cmd_zero_labels(int argc, const char **argv, void *ctx);
-+int cmd_read_labels(int argc, const char **argv, void *ctx);
-+int cmd_write_labels(int argc, const char **argv, void *ctx);
-+int cmd_init_labels(int argc, const char **argv, void *ctx);
-+int cmd_check_labels(int argc, const char **argv, void *ctx);
-+int cmd_inject_error(int argc, const char **argv, void *ctx);
-+int cmd_wait_scrub(int argc, const char **argv, void *ctx);
-+int cmd_start_scrub(int argc, const char **argv, void *ctx);
-+int cmd_list(int argc, const char **argv, void *ctx);
-+int cmd_monitor(int argc, const char **argv, void *ctx);
-+#ifdef ENABLE_TEST
-+int cmd_test(int argc, const char **argv, void *ctx);
-+#endif
-+#ifdef ENABLE_DESTRUCTIVE
-+int cmd_bat(int argc, const char **argv, void *ctx);
-+#endif
-+int cmd_update_firmware(int argc, const char **argv, void *ctx);
-+int cmd_inject_smart(int argc, const char **argv, void *ctx);
-+#endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 73dabfac3908..9c930b92fe44 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -21,7 +21,7 @@
- #include <unistd.h>
- #include <sys/stat.h>
- #include <sys/types.h>
--#include <builtin.h>
-+#include <ndctl/builtin.h>
- #include <ndctl/libndctl.h>
- #include <ccan/array_size/array_size.h>
- 
-@@ -30,8 +30,8 @@
- #include <util/util.h>
- #include <util/main.h>
- 
--const char ndctl_usage_string[] = "ndctl [--version] [--help] COMMAND [ARGS]";
--const char ndctl_more_info_string[] =
-+static const char ndctl_usage_string[] = "ndctl [--version] [--help] COMMAND [ARGS]";
-+static const char ndctl_more_info_string[] =
- 	"See 'ndctl help COMMAND' for more information on a specific command.\n"
- 	" ndctl --list-cmds to see all available commands";
- 
-diff --git a/util/main.c b/util/main.c
-index 5f35dd9d1c3e..a7992589cfcc 100644
---- a/util/main.c
-+++ b/util/main.c
-@@ -21,10 +21,10 @@
- #include <unistd.h>
- #include <sys/stat.h>
- #include <sys/types.h>
--#include <builtin.h>
- 
- #include <util/strbuf.h>
- #include <util/util.h>
-+#include <util/main.h>
- 
- int main_handle_options(const char ***argv, int *argc, const char *usage_msg,
- 		struct cmd_struct *cmds, int num_cmds)
-diff --git a/util/main.h b/util/main.h
-index bcfe9f304d6b..d61d10c79630 100644
---- a/util/main.h
-+++ b/util/main.h
-@@ -16,7 +16,12 @@
- 
- #ifndef __MAIN_H__
- #define __MAIN_H__
--struct cmd_struct;
++static int action_sanitize_dimm(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
 +
-+struct cmd_struct {
-+	const char *cmd;
-+	int (*fn)(int, const char **, void *ctx);
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	/*
++	 * Setting crypto erase to be default. The other method will be
++	 * overwrite.
++	 */
++	if (!param.crypto_erase) {
++		param.crypto_erase = true;
++		printf("No santize method passed in, default to crypto-erase\n");
++	}
++
++	if (param.crypto_erase) {
++		rc = ndctl_dimm_secure_erase_key(dimm);
++		if (rc < 0)
++			return rc;
++	}
++
++	return 0;
++}
++
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -984,6 +1014,10 @@ OPT_STRING('V', "label-version", &param.labelversion, "version-number", \
+ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
+ 		"master key for security")
+ 
++#define SANITIZE_OPTIONS() \
++OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
++		"crypto erase a dimm")
++
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+ 	READ_OPTIONS(),
+@@ -1019,6 +1053,12 @@ static const struct option key_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option sanitize_options[] = {
++	BASE_OPTIONS(),
++	SANITIZE_OPTIONS(),
++	OPT_END(),
 +};
 +
- int main_handle_options(const char ***argv, int *argc, const char *usage_msg,
- 		struct cmd_struct *cmds, int num_cmds);
- void main_handle_internal_command(int argc, const char **argv, void *ctx,
+ static int dimm_action(int argc, const char **argv, void *ctx,
+ 		int (*action)(struct ndctl_dimm *dimm, struct action_context *actx),
+ 		const struct option *options, const char *usage)
+@@ -1295,3 +1335,14 @@ int cmd_freeze_security(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_sanitize_dimm,
++			sanitize_options,
++			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 227c7124..6da29c1e 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -673,3 +673,11 @@ NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
+ {
+ 	return write_security(dimm, "freeze");
+ }
++
++NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
++{
++	char buf[SYSFS_ATTR_SIZE];
++
++	sprintf(buf, "erase %ld\n", key);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+index 779e82af..130c29ed 100644
+--- a/ndctl/lib/keys.c
++++ b/ndctl/lib/keys.c
+@@ -388,7 +388,8 @@ NDCTL_EXPORT int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+ 	return 0;
+ }
+ 
+-NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++static int check_key_run_and_discard(struct ndctl_dimm *dimm,
++		int (*run_op)(struct ndctl_dimm *, long), const char *name)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+ 	key_serial_t key;
+@@ -403,9 +404,9 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
+ 		}
+ 	}
+ 
+-	rc = ndctl_dimm_disable_passphrase(dimm, key);
++	rc = run_op(dimm, key);
+ 	if (rc < 0) {
+-		err(ctx, "Failed to disable security for %s\n",
++		err(ctx, "Failed %s for %s\n", name,
+ 				ndctl_dimm_get_devname(dimm));
+ 		return rc;
+ 	}
+@@ -415,3 +416,15 @@ NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
+ 		err(ctx, "Unable to cleanup key.\n");
+ 	return 0;
+ }
++
++NDCTL_EXPORT int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_disable_passphrase,
++			"disable passphrase");
++}
++
++NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
++			"crypto erase");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index a1c56060..0e3aa5d9 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -396,4 +396,6 @@ global:
+ 	ndctl_dimm_disable_passphrase;
+ 	ndctl_dimm_disable_key;
+ 	ndctl_dimm_freeze_security;
++	ndctl_dimm_secure_erase;
++	ndctl_dimm_secure_erase_key;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 7bb7132c..19053a20 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -704,6 +704,7 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ 		long ckey, long nkey);
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
+ 
+ enum ndctl_key_type {
+ 	ND_USER_KEY,
+@@ -714,6 +715,7 @@ enum ndctl_key_type {
+ int ndctl_dimm_enable_key(struct ndctl_dimm *dimm, const char *master);
+ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master);
+ int ndctl_dimm_disable_key(struct ndctl_dimm *dimm);
++int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm);
+ #else
+ static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
+ 		const char *master)
+@@ -731,6 +733,11 @@ static inline int ndctl_dimm_disable_key(struct ndctl_dimm *dimm)
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ 
+ #ifdef __cplusplus
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index d08fee4d..40982f43 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -92,6 +92,7 @@ static struct cmd_struct commands[] = {
+ 	{ "update-passphrase", cmd_passphrase_update },
+ 	{ "disable-passphrase", cmd_disable_passphrase },
+ 	{ "freeze-security", cmd_freeze_security },
++	{ "sanitize-dimm", cmd_sanitize_dimm },
+ 	{ "list", cmd_list },
+ 	{ "monitor", cmd_monitor},
+ 	{ "help", cmd_help },
 
 _______________________________________________
 Linux-nvdimm mailing list
