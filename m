@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4DB302119EF3A
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:25 -0800 (PST)
-Subject: [driver-core PATCH v9 6/9] driver core: Attach devices on CPU local
- to device node
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:45:24 -0800
-Message-ID: <154466192468.9126.12848340000473510633.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9C26D211A45A6
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Dec 2018 13:09:36 -0800 (PST)
+Subject: [PATCH v6 06/12] ndctl: add unit test for security ops (minus
+ overwrite)
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Fri, 14 Dec 2018 14:09:35 -0700
+Message-ID: <154482177593.65434.4385425536053044648.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,49 +23,232 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: "vishal.l.verma."@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Call the asynchronous probe routines on a CPU local to the device node. By
-doing this we should be able to improve our initialization time
-significantly as we can avoid having to access the device from a remote
-node which may introduce higher latency.
+Add unit test for security enable, disable, update, erase, unlock, and
+freeze.
 
-For example, in the case of initializing memory for NVDIMM this can have a
-significant impact as initialing 3TB on remote node can take up to 39
-seconds while initialing it on a local node only takes 23 seconds. It is
-situations like this where we will see the biggest improvement.
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/base/dd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ test/Makefile.am |    4 +
+ test/security.sh |  191 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 195 insertions(+)
+ create mode 100755 test/security.sh
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 3353f654861b..be9040db8321 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -829,7 +829,7 @@ static int __device_attach(struct device *dev, bool allow_async)
- 			 */
- 			dev_dbg(dev, "scheduling asynchronous probe\n");
- 			get_device(dev);
--			async_schedule(__device_attach_async_helper, dev);
-+			async_schedule_dev(__device_attach_async_helper, dev);
- 		} else {
- 			pm_request_idle(dev);
- 		}
-@@ -989,7 +989,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		if (!dev->driver) {
- 			get_device(dev);
- 			dev->p->async_driver = drv;
--			async_schedule(__driver_attach_async_helper, dev);
-+			async_schedule_dev(__driver_attach_async_helper, dev);
- 		}
- 		device_unlock(dev);
- 		return 0;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index ebdd23f6..42009c31 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -27,6 +27,10 @@ TESTS =\
+ 	max_available_extent_ns.sh \
+ 	pfn-meta-errors.sh
+ 
++if ENABLE_KEYUTILS
++TESTS += security.sh
++endif
++
+ check_PROGRAMS =\
+ 	libndctl \
+ 	dsm-fail \
+diff --git a/test/security.sh b/test/security.sh
+new file mode 100755
+index 00000000..5238c9c4
+--- /dev/null
++++ b/test/security.sh
+@@ -0,0 +1,191 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2018 Intel Corporation. All rights reserved.
++
++rc=77
++dev=""
++id=""
++dev_no=""
++sstate=""
++KEYPATH="/etc/ndctl/keys"
++UNLOCK="/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimm"
++MASTERKEY="nvdimm-master-test"
++MASTERPATH="$KEYPATH/$MASTERKEY"
++
++. ./common
++
++trap 'err $LINENO' ERR
++
++setup()
++{
++	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
++}
++
++detect()
++{
++	dev=$($NDCTL list -b $NFIT_TEST_BUS0 -D | jq .[0].dev | tr -d '"')
++	[ -n "$dev" ] || err "$LINENO"
++	id=$($NDCTL list -b $NFIT_TEST_BUS0 -D | jq .[0].id | tr -d '"')
++	[ -n "$id" ] || err "$LINENO"
++}
++
++setup_keys()
++{
++	if [ ! -f $MASTERPATH ]; then
++		keyctl add user $MASTERKEY "`dd if=/dev/urandom bs=1 count=32 2>/dev/null`" @u
++		keyctl pipe `keyctl search @u user $MASTERKEY` > $MASTERPATH
++	else
++		echo "Unclean setup. Please cleanup $MASTERPATH file."
++		exit 1
++	fi
++}
++
++test_cleanup()
++{
++	keyctl unlink `keyctl search @u encrypted nvdimm:$id`
++	keyctl unlink `keyctl search @u user $MASTERKEY`
++	rm -f $KEYPATH/nvdimm_$id\_`hostname`.blob
++	rm -f $MASTERPATH
++}
++
++locking_dimm()
++{
++	$NDCTL disable-dimm $dev
++	dev_no=$(echo $dev | cut -b 5-)
++	echo 1 > "$UNLOCK$dev_no/lock_dimm"
++	get_security_state
++	if [ "$sstate" != "locked" ]; then
++		echo "Incorrect security state: $sstate expected: disabled"
++		exit 1
++	fi
++}
++
++get_security_state()
++{
++	sstate=$($NDCTL list -i -b $NFIT_TEST_BUS0 -d $dev | jq .[].dimms[0].security | tr -d '"')
++	[ -n "$sstate" ] || err "$LINENO"
++}
++
++enable_passphrase()
++{
++	$NDCTL enable-passphrase -m user:$MASTERKEY $dev
++	get_security_state
++	if [ "$sstate" != "unlocked" ]; then
++		echo "Incorrect security state: $sstate expected: unlocked"
++		exit 1
++	fi
++}
++
++disable_passphrase()
++{
++	$NDCTL disable-passphrase $dev
++	get_security_state
++	if [ "$sstate" != "disabled" ]; then
++		echo "Incorrect security state: $sstate expected: disabled"
++		exit 1
++	fi
++}
++
++erase_security()
++{
++	$NDCTL sanitize-dimm -c $dev
++	get_security_state
++	if [ "$sstate" != "disabled" ]; then
++		echo "Incorrect security state: $sstate expected: disabled"
++		exit 1
++	fi
++}
++
++update_security()
++{
++	$NDCTL update-passphrase -m user:$MASTERKEY $dev
++	get_security_state
++	if [ "$sstate" != "unlocked" ]; then
++		echo "Incorrect security state: $sstate expected: unlocked"
++		exit 1
++	fi
++}
++
++freeze_security()
++{
++	$NDCTL freeze-security $dev
++}
++
++test_1_security_enable_and_disable()
++{
++	enable_passphrase
++	disable_passphrase
++}
++
++test_2_security_enable_and_update()
++{
++	enable_passphrase
++	update_security
++	disable_passphrase
++}
++
++test_3_security_enable_and_erase()
++{
++	enable_passphrase
++	erase_security
++}
++
++test_4_security_unlocking()
++{
++	enable_passphrase
++	locking_dimm
++	$NDCTL enable-dimm $dev
++	get_security_state
++	if [ "$sstate" != "unlocked" ]; then
++		echo "Incorrect security state: $sstate expected: unlocked"
++		exit 1
++	fi
++	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
++	disable_passphrase
++}
++
++# this should always be the last test. with security frozen, nfit_test must
++# be removed and is no longer usable
++test_5_security_freeze()
++{
++	enable_passphrase
++	freeze_security
++	get_security_state
++	if [ "$sstate" != "frozen" ]; then
++		echo "Incorrect security state: $sstate expected: frozen"
++		exit 1
++	fi
++	$NDCTL disable-passphrase $dev && { echo "diable succeed after frozen"; exit 1; }
++	get_security_state
++	echo $sstate
++	if [ "$sstate" != "frozen" ]; then
++		echo "Incorrect security state: $sstate expected: disabled"
++		exit 1
++	fi
++}
++
++check_min_kver "4.21" || do_skip "may lack security test handling"
++
++modprobe nfit_test
++rc=1
++setup
++rc=2
++detect
++setup_keys
++echo "Test 1, security enable and disable"
++test_1_security_enable_and_disable
++echo "Test 2, security enable, update, and disable"
++test_2_security_enable_and_update
++echo "Test 3, security enable and erase"
++test_3_security_enable_and_erase
++echo "Test 4, unlocking dimm"
++test_4_security_unlocking
++
++# Freeze should always be run last because it locks security state and require
++# nfit_test module unload.
++echo "Test 5, freeze security"
++test_5_security_freeze
++
++test_cleanup
++_cleanup
++exit 0
 
 _______________________________________________
 Linux-nvdimm mailing list
