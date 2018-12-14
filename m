@@ -1,11 +1,11 @@
-From: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <admin-d/6ao5zgcWfQT0dZR+AlfA@public.gmane.org>
-Subject: =?utf-8?B?RnfvvJrliIbkuqvjgII=?=
-Date: Tue, 11 Dec 2018 07:09:50 +0800
-Message-ID: <20181211071001060017@fspnet.com>
-Reply-To: admin-MkzoA45HFXInDS1+zs4M5A@public.gmane.org
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Security Alert. linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org was hacked by criminal
+ group.
+Date: 14 Dec 2018 09:41:01 +0000
+Message-ID: <8477B9605D4AAE8477B9605D4AAE8477@DLJ4X3NDLJ>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,9 +19,57 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZyAyMDE4LzEyLzExNzowOTo1Nw0K5q+P5aSp5Y+vMTAw
-JemihuWPluacgOmrmDk5DQrmiZPlvIDmiYvmnLrniYjpppbpobXmkJzntKLigJw2MTY4MjU1Mzni
-gJ0s5Y+v5oq15omj5Lu75L2V5raI6LS5LOiusOW+l+aOqOiNkOe7meaci+WPi+WTpiEKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hello!
+
+I have very bad news for you.
+19/08/2018 - on this day I hacked your OS and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+
+So, you can change the password, yes... But my malware intercepts it every time.
+
+How I made it:
+In the software of the router, through which you went online, was a vulnerability.
+I just hacked this router and placed my malicious code on it.
+When you went online, my trojan was installed on the OS of your device.
+
+After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
+
+A month ago, I wanted to lock your device and ask for a not big amount of btc to unlock.
+But I looked at the sites that you regularly visit, and I was shocked by what I saw!!!
+I'm talk you about sites for adults.
+
+I want to say - you are a BIG pervert. Your fantasy is shifted far away from the normal course!
+
+And I got an idea....
+I made a screenshot of the adult sites where you have fun (do you understand what it is about, huh?).
+After that, I made a screenshot of your joys (using the camera of your device) and glued them together.
+Turned out amazing! You are so spectacular!
+
+I'm know that you would not like to show these screenshots to your friends, relatives or colleagues.
+I think $730 is a very, very small amount for my silence.
+Besides, I have been spying on you for so long, having spent a lot of time!
+
+Pay ONLY in Bitcoins!
+My BTC wallet: 1MbdGY1LVr6gEjyN3Rok5HQDQcjWbYmLds
+
+You do not know how to use bitcoins?
+Enter a query in any search engine: "how to replenish btc wallet".
+It's extremely easy
+
+For this payment I give you two days (48 hours).
+As soon as this letter is opened, the timer will work.
+
+After payment, my virus and dirty screenshots with your enjoys will be self-destruct automatically.
+If I do not receive from you the specified amount, then your device will be locked, and all your contacts will receive a screenshots with your "enjoys".
+
+I hope you understand your situation.
+- Do not try to find and destroy my virus! (All your data, files and screenshots is already uploaded to a remote server)
+- Do not try to contact me (this is not feasible, I sent you an email from your account)
+- Various security services will not help you; formatting a disk or destroying a device will not help, since your data is already on a remote server.
+
+P.S. You are not my single victim. so, I guarantee you that I will not disturb you again after payment!
+ This is the word of honor hacker
+
+I also ask you to regularly update your antiviruses in the future. This way you will no longer fall into a similar situation.
+
+Do not hold evil! I just do my job.
+Have a nice day!
