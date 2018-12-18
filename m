@@ -1,16 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 82D6B2119EF3A
- for <linux-nvdimm@lists.01.org>; Wed, 12 Dec 2018 16:45:30 -0800 (PST)
-Subject: [driver-core PATCH v9 7/9] PM core: Use new async_schedule_dev command
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 12 Dec 2018 16:45:29 -0800
-Message-ID: <154466192983.9126.3647201656135592637.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5AE0521198CAE
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Dec 2018 11:49:40 -0800 (PST)
+Date: Tue, 18 Dec 2018 14:49:37 -0500
+From: Mike Snitzer <snitzer@redhat.com>
+Subject: Re: Snapshot target and DAX-capable devices
+Message-ID: <20181218194936.GB24676@redhat.com>
+References: <x494lfbabwi.fsf@segfault.boston.devel.redhat.com>
+ <alpine.LRH.2.02.1808301545200.30950@file01.intranet.prod.int.rdu2.redhat.com>
+ <20180830233809.GH1572@dastard>
+ <20180831094255.GB11622@quack2.suse.cz>
+ <167a3303a01.11a848ab768799.5161498967766415143@zoho.com>
+ <20181212161254.GA20790@infradead.org>
+ <20181212175047.GA24962@redhat.com>
+ <20181212211547.GA24926@thunk.org>
+ <20181212224321.GA2902@redhat.com>
+ <HK2PR03MB441871946735DE9EE714D10B92A10@HK2PR03MB4418.apcprd03.prod.outlook.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <HK2PR03MB441871946735DE9EE714D10B92A10@HK2PR03MB4418.apcprd03.prod.outlook.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,83 +32,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: len.brown@intel.com, bvanassche@acm.org, linux-pm@vger.kernel.org, alexander.h.duyck@linux.intel.com, linux-nvdimm@lists.01.org, jiangshanlai@gmail.com, mcgrof@kernel.org, pavel@ucw.cz, zwisler@kernel.org, tj@kernel.org, akpm@linux-foundation.org, rafael@kernel.org
+To: Huaisheng HS1 Ye <yehs1@lenovo.com>
+Cc: Jan Kara <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, NingTing Cheng <chengnt@lenovo.com>, Dave Chinner <david@fromorbit.com>, colyli <colyli@suse.de>, Christoph Hellwig <hch@infradead.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>, Mikulas Patocka <mpatocka@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "Theodore Y. Ts'o" <tytso@mit.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the device specific version of the async_schedule commands to defer
-various tasks related to power management. By doing this we should see a
-slight improvement in performance as any device that is sensitive to
-latency/locality in the setup will now be initializing on the node closest
-to the device.
+On Fri, Dec 14 2018 at  3:24am -0500,
+Huaisheng HS1 Ye <yehs1@lenovo.com> wrote:
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/power/main.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+> From: Mike Snitzer <snitzer@redhat.com>
+> Sent: Thursday, December 13, 2018 6:43 AM
+> > On Wed, Dec 12 2018 at  4:15pm -0500,
+> > Theodore Y. Ts'o <tytso@mit.edu> wrote:
+> > 
+> > > On Wed, Dec 12, 2018 at 12:50:47PM -0500, Mike Snitzer wrote:
+> > > > On Wed, Dec 12 2018 at 11:12am -0500,
+> > > > Christoph Hellwig <hch@infradead.org> wrote:
+> > > >
+> > > > > Does it really make sense to enhance dm-snapshot?  I thought all serious
+> > > > > users of snapshots had moved on to dm-thinp?
+> > > >
+> > > > There are cases where dm-snapshot is still useful for people.  But those
+> > > > are very niche users.  I'm not opposed to others proposing enhancements
+> > > > for dm-snapshot in general but it is definitely not a priority (Google's
+> > > > dm-bow is an example of a case where dm-snapshot may get extended to
+> > > > fulfill google's needs).
+> > >
+> > > I would expect that dm-snapshot will be used quite a lot for
+> > > short-lived snapshots (that only live during a database backup or an
+> > > fsck run).  I would hardly call that a "niche use case".
+> > 
+> > dm-snapshot is only ~60% performant for 1 snapshot.  Try to do
+> > additional snapshots and performance crawls to a stop (though I haven't
+> > reassessed performance in a while).
+> > 
+> > dm-snapshot has been in Linux since before 2005, I don't know of all the
+> > users of it -- maybe there are a ton of users who only take a single
+> > temporary snapshot and we're all oblivious.
+> > 
+> > Definitely not seeing many bugs against it (but it has been around
+> > forever).  I do know that there are relatively few people showing
+> > interest in it.  But for 4.21 I did stage a couple useful performance
+> > fixes:
+> > https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-4.
+> > 21&id=61d594bb7e1cf86dca49cbc9524eb80169d9fca6
+> > https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-4.
+> > 21&id=d1f7898c7a1b24aa9ae670f9cc21b65e730827eb
+> 
+> Hi Mike,
+> 
+> Could these two patches be applied to current code of LVM?
+> Although there is a difficult problem as mmap for dm-snapshot with
+> DAX-capable, the two patches can be used for other complex DM targets
+> when trying to implement DAX.
+> 
+> [RFC PATCH v2 2/3] dm: expand hc_map in mapped_device for lack of map
+> https://lkml.org/lkml/2018/11/21/273
+> 
+> [RFC PATCH v2 3/3] dm: expand valid types for dm-ioctl
+> https://lkml.org/lkml/2018/11/21/276
 
-diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-index a690fd400260..ebb8b61b52e9 100644
---- a/drivers/base/power/main.c
-+++ b/drivers/base/power/main.c
-@@ -726,7 +726,7 @@ void dpm_noirq_resume_devices(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_noirq, dev);
-+			async_schedule_dev(async_resume_noirq, dev);
- 		}
- 	}
- 
-@@ -883,7 +883,7 @@ void dpm_resume_early(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume_early, dev);
-+			async_schedule_dev(async_resume_early, dev);
- 		}
- 	}
- 
-@@ -1047,7 +1047,7 @@ void dpm_resume(pm_message_t state)
- 		reinit_completion(&dev->power.completion);
- 		if (is_async(dev)) {
- 			get_device(dev);
--			async_schedule(async_resume, dev);
-+			async_schedule_dev(async_resume, dev);
- 		}
- 	}
- 
-@@ -1366,7 +1366,7 @@ static int device_suspend_noirq(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_noirq, dev);
-+		async_schedule_dev(async_suspend_noirq, dev);
- 		return 0;
- 	}
- 	return __device_suspend_noirq(dev, pm_transition, false);
-@@ -1569,7 +1569,7 @@ static int device_suspend_late(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend_late, dev);
-+		async_schedule_dev(async_suspend_late, dev);
- 		return 0;
- 	}
- 
-@@ -1833,7 +1833,7 @@ static int device_suspend(struct device *dev)
- 
- 	if (is_async(dev)) {
- 		get_device(dev);
--		async_schedule(async_suspend, dev);
-+		async_schedule_dev(async_suspend, dev);
- 		return 0;
- 	}
- 
-
+No I'm not taking these patches.  They are hacks that allow DM targets
+to do things that aren't supportable (yet).
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
