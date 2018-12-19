@@ -1,43 +1,75 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: Re: [PATCH 0/9] Allow persistent memory to be used like normal RAM
-References: <20181022201317.8558C1D8@viggo.jf.intel.com>
-From: Brice Goglin <brice.goglin@gmail.com>
-Message-ID: <ffeb6225-6d5c-099e-3158-4711c879ec23@gmail.com>
-Date: Mon, 3 Dec 2018 10:22:24 +0100
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 94B8121962301
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Dec 2018 10:54:15 -0800 (PST)
+Subject: Re: memory_failure_dev_pagemap() missing from System.map file
+References: <09b875e0-6ced-5c58-83b8-8ad24f1dd71d@oracle.com>
+ <CAPcyv4g5e8a4bXV8UhS9Hr1MwU1h=aMoK=3cpvLg+cuw+ES+vQ@mail.gmail.com>
+ <3b844c4b-6329-4336-21db-6207ca2f075c@oracle.com>
+ <CAPcyv4hMwBQFti=z=B41-SNxbbGwB3+R0nRCJ7kzBLY9__e_zQ@mail.gmail.com>
+From: Jane Chu <jane.chu@oracle.com>
+Message-ID: <840aba4a-6234-3dd0-a289-e406259d399b@oracle.com>
+Date: Wed, 19 Dec 2018 10:54:07 -0800
 MIME-Version: 1.0
-In-Reply-To: <20181022201317.8558C1D8@viggo.jf.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPcyv4hMwBQFti=z=B41-SNxbbGwB3+R0nRCJ7kzBLY9__e_zQ@mail.gmail.com>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: dan.j.williams@intel.com, dave.jiang@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, thomas.lendacky@amd.com, akpm@linux-foundation.org, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, ying.huang@intel.com, fengguang.wu@intel.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Le 22/10/2018 à 22:13, Dave Hansen a écrit :
-> Persistent memory is cool.  But, currently, you have to rewrite
-> your applications to use it.  Wouldn't it be cool if you could
-> just have it show up in your system like normal RAM and get to
-> it like a slow blob of memory?  Well... have I got the patch
-> series for you!
->
-> This series adds a new "driver" to which pmem devices can be
-> attached.  Once attached, the memory "owned" by the device is
-> hot-added to the kernel and managed like any other memory.  On
-> systems with an HMAT (a new ACPI table), each socket (roughly)
-> will have a separate NUMA node for its persistent memory so
-> this newly-added memory can be selected by its unique NUMA
-> node.
+On 12/18/2018 9:03 PM, Dan Williams wrote:
 
+> On Tue, Dec 18, 2018 at 8:52 PM Jane Chu <jane.chu@oracle.com> wrote:
+>> On 12/18/2018 6:57 PM, Dan Williams wrote:
+>>
+>> On Tue, Dec 18, 2018 at 6:50 PM Jane Chu <jane.chu@oracle.com> wrote:
+>>
+>> Hi, Dan,
+>>
+>> While looking at a kernel Oops in the PMEM poison handling code path,
+>> I noticed that memory_failure_dev_pagemap() is missing from the
+>> System.map file in the 4.19 build.
+>>
+>> Are you talking about a generic upstream 4.19 build or some other kernel?
+>>
+>> Generic upstream 4.19 build.
+>>
+>> Are you aware of this?
+>>
+>> I would expect this to be the case in general for functions that are
+>> inlined. In this case I would expect memory_failure() to show up in
+>> System.map, but not memory_failure_dev_pagemap() since it's not
+>> exported and nothing outside mm/memory_failure.c consumes it.
+>>
+>> Not appear inlined, it is statically declared, refer to
+>>    https://elixir.bootlin.com/linux/v4.19.10/ident/memory_failure_dev_pagemap
+>>
+>> hwpoison_user_mappings() is also statically declared, and it's in System.map.
+> Right, but static functions are optionally inlined by the compiler, so
+> it's hit and miss. If you need memory_failure_dev_pagemap() to show in
+> System.map the only guaranteed ways are to mark it extern so the
+> compiler assumes it needs to emit a dedicated symbol for it, or leave
+> it static and mark it nolinline, i.e. __attribute__((__noinline__))
 
-Hello Dave
+So that's what was missing in my understanding, thanks a lot for taking
+the time explaining it!
 
-What happens on systems without an HMAT? Does this new memory get merged
-into existing NUMA nodes?
+-jane
 
-Also, do you plan to have a way for applications to find out which NUMA
-nodes are "real DRAM" while others are "pmem-backed"? (something like a
-new attribute in /sys/devices/system/node/nodeX/) Or should we use HMAT
-performance attributes for this?
-
-Brice
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
