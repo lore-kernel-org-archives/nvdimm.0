@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D2CE21195904
- for <linux-nvdimm@lists.01.org>; Fri, 21 Dec 2018 11:50:41 -0800 (PST)
-Subject: [PATCH] dax: Use non-exclusive wait in wait_entry_unlocked()
+ by ml01.01.org (Postfix) with ESMTPS id 88DB321198CC2
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Dec 2018 19:43:01 -0800 (PST)
+Subject: [ndctl PATCH 5/7] ndctl/monitor: Fix / cleanup log_file()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 21 Dec 2018 11:38:04 -0800
-Message-ID: <154542108460.3682905.4453912339454331429.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 27 Dec 2018 19:30:25 -0800
+Message-ID: <154596782507.164521.14912344768619698318.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154596779833.164521.12632457592535372923.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154596779833.164521.12632457592535372923.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,53 +22,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-get_unlocked_entry() uses an exclusive wait because it is guaranteed to
-eventually obtain the lock and follow on with an unlock+wakeup cycle.
-The wait_entry_unlocked() path does not have the same guarantee. Rather
-than open-code an extra wakeup, just switch to a non-exclusive wait.
+The log_file() helper opens the log file for each message. Avoid the
+scenario where the fopen() fails and just open it at init time.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+This usage is also broken because if the vasprintf() fails it will try
+to print via log_file again via fail(), and potentially lead to infinite
+recursion.
+
+Cc: Qi Fuli <qi.fuli@jp.fujitsu.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ ndctl/monitor.c |   23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 48132eca3761..042d3b31b413 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -246,18 +246,16 @@ static void wait_entry_unlocked(struct xa_state *xas, void *entry)
- 	ewait.wait.func = wake_exceptional_entry_func;
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index cef70d06beae..8a16c9664e0a 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -20,6 +20,7 @@ static struct monitor {
+ 	const char *log;
+ 	const char *config_file;
+ 	const char *dimm_event;
++	FILE *log_file;
+ 	bool daemon;
+ 	bool human;
+ 	bool verbose;
+@@ -82,7 +83,7 @@ static void log_standard(struct ndctl_ctx *ctx, int priority, const char *file,
+ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
+ 		int line, const char *fn, const char *format, va_list args)
+ {
+-	FILE *f;
++	FILE *f = monitor.log_file;
+ 	char *buf;
+ 	struct timespec ts;
+ 	char timestamp[32];
+@@ -92,16 +93,6 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
+ 		return;
+ 	}
  
- 	wq = dax_entry_waitqueue(xas, entry, &ewait.key);
--	prepare_to_wait_exclusive(wq, &ewait.wait, TASK_UNINTERRUPTIBLE);
-+	/*
-+	 * Unlike get_unlocked_entry() there is no guarantee that this
-+	 * path ever successfully retrieves an unlocked entry before an
-+	 * inode dies. Perform a non-exclusive wait in case this path
-+	 * never successfully performs its own wake up.
-+	 */
-+	prepare_to_wait(wq, &ewait.wait, TASK_UNINTERRUPTIBLE);
- 	xas_unlock_irq(xas);
- 	schedule();
- 	finish_wait(wq, &ewait.wait);
+-	f = fopen(monitor.log, "a+");
+-	if (!f) {
+-		ndctl_set_log_fn(ctx, log_syslog);
+-		err(ctx, "open logfile %s failed, forward messages to syslog\n",
+-				monitor.log);
+-		did_fail = 1;
+-		notice(ctx, "%s\n", buf);
+-		goto end;
+-	}
 -
--	/*
--	 * Entry lock waits are exclusive. Wake up the next waiter since
--	 * we aren't sure we will acquire the entry lock and thus wake
--	 * the next waiter up on unlock.
--	 */
--	if (waitqueue_active(wq))
--		__wake_up(wq, TASK_NORMAL, 1, &ewait.key);
- }
+ 	if (priority != LOG_NOTICE) {
+ 		clock_gettime(CLOCK_REALTIME, &ts);
+ 		sprintf(timestamp, "%10ld.%09ld", ts.tv_sec, ts.tv_nsec);
+@@ -110,8 +101,6 @@ static void log_file(struct ndctl_ctx *ctx, int priority, const char *file,
+ 		fprintf(f, "%s", buf);
  
- static void put_unlocked_entry(struct xa_state *xas, void *entry)
+ 	fflush(f);
+-	fclose(f);
+-end:
+ 	free(buf);
+ 	return;
+ }
+@@ -613,7 +602,6 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	struct util_filter_ctx fctx = { 0 };
+ 	struct monitor_filter_arg mfa = { 0 };
+ 	int i, rc;
+-	FILE *f;
+ 
+ 	argc = parse_options_prefix(argc, argv, prefix, options, u, 0);
+ 	for (i = 0; i < argc; i++) {
+@@ -642,13 +630,12 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		else if (strncmp(monitor.log, "./standard", 10) == 0)
+ 			; /*default, already set */
+ 		else {
+-			f = fopen(monitor.log, "a+");
+-			if (!f) {
++			monitor.log_file = fopen(monitor.log, "a+");
++			if (!monitor.log_file) {
+ 				error("open %s failed\n", monitor.log);
+ 				rc = -errno;
+ 				goto out;
+ 			}
+-			fclose(f);
+ 			ndctl_set_log_fn(ctx, log_file);
+ 		}
+ 	}
+@@ -689,5 +676,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 
+ 	rc = monitor_event(ctx, &mfa);
+ out:
++	if (monitor.log_file)
++		fclose(monitor.log_file);
+ 	return rc;
+ }
 
 _______________________________________________
 Linux-nvdimm mailing list
