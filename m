@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 58A47211ADA5C
- for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 12:19:27 -0800 (PST)
-From: Jane Chu <jane.chu@oracle.com>
-Subject: PMEM error-handling forces SIGKILL causes kernel panic
-Message-ID: <e3c4c0e0-1434-4353-b893-2973c04e7ff7@oracle.com>
-Date: Wed, 9 Jan 2019 12:19:22 -0800
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 42BA92194D3B3
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Jan 2019 17:40:47 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v6 07/12] ndctl: setup modprobe rules
+Date: Sat, 5 Jan 2019 01:40:46 +0000
+Message-ID: <618d74799f70c15a72cdba1e35f1c6a75afbcca5.camel@intel.com>
+References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+ <154482178124.65434.1988469520850504955.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154482178124.65434.1988469520850504955.stgit@djiang5-desk3.ch.intel.com>
 Content-Language: en-US
+Content-ID: <9B0C4FC90AAADB41BA4D7D582721507C@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,129 +21,123 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Dan,
 
-Sorry for the late report.
-We recently saw panics from PMEM error handling, here are the log messages
-and stack trace.  "<--" are added by me.
+On Fri, 2018-12-14 at 14:09 -0700, Dave Jiang wrote:
+> Adding reference config file for modprobe.d in order to trigger the
+> reference script that will inject keys associated with the nvdimms into
+> the kernel user ring for unlock.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Makefile.am                  |   10 ++++++++++
+>  contrib/ndctl-loadkeys.sh    |   24 ++++++++++++++++++++++++
+>  contrib/nvdimm_modprobe.conf |    1 +
+>  3 files changed, 35 insertions(+)
+>  create mode 100755 contrib/ndctl-loadkeys.sh
+>  create mode 100644 contrib/nvdimm_modprobe.conf
+> 
+> diff --git a/Makefile.am b/Makefile.am
+> index e0c463a3..5a3f03aa 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -42,6 +42,16 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
+>  dist_bashcompletion_DATA = contrib/ndctl
+>  endif
+>  
+> +load_key_file = contrib/ndctl-loadkeys.sh
+> +load_keydir = $(sysconfdir)/ndctl/
+> +load_key_DATA = $(load_key_file)
+> +EXTRA_DIST += $(load_key_file)
+> +
+> +modprobe_file = contrib/nvdimm_modprobe.conf
+> +modprobedir = $(sysconfdir)/modprobe.d/
+> +modprobe_DATA = $(modprobe_file)
+> +EXTRA_DIST += $(modprobe_file)
+> +
+>  noinst_LIBRARIES = libccan.a
+>  libccan_a_SOURCES = \
+>  	ccan/str/str.h \
+> diff --git a/contrib/ndctl-loadkeys.sh b/contrib/ndctl-loadkeys.sh
+> new file mode 100755
+> index 00000000..dae0a88a
+> --- /dev/null
+> +++ b/contrib/ndctl-loadkeys.sh
+> @@ -0,0 +1,24 @@
+> +#!/bin/bash -Ex
+> +
+> +# This script assumes a single master key for all DIMMs
+> +
+> +KEY_PATH=/etc/ndctl/keys
+> +TPMH_PATH=$KEY_PATH/tpm.handle
+> +KEYTPE=""
+> +TPM_HANDLE=""
+> +id=""
+> +
+> +if [ -f $TPMH_PATH ]; then
+> +	KEYTYPE=trusted
+> +	TPM_HANDLE="keyhandle=`cat $TPMH_PATH`"
+> +else
+> +	KEYTYPE=user
+> +fi
 
-> [ 4488.098830] mce: Uncorrected hardware memory error in user-access at a6ec46f8      <--
-> [ 4488.131625] Memory failure: 0xa6ec46f: forcibly killing ora_pmon_tpcc1:84778
-> [ 4488.144326] Memory failure: 0xa6ec46f: forcibly killing ora_clmn_tpcc1:84780  <-- SIGKILL
-> [ 4488.156965] Memory failure: 0xa6ec46f: forcibly killing ora_psp0_tpcc1:84782
-> [ 4488.169608] Memory failure: 0xa6ec46f: forcibly killing ora_ipc0_tpcc1:84785
-> [ 4488.182210] Memory failure: 0xa6ec46f: forcibly killing ora_vktm_tpcc1:84793
-> [ 4488.194924] Memory failure: 0xa6ec46f: forcibly killing ora_gen0_tpcc1:84797
-> [ 4488.207212] Memory failure: 0xa6ec46f: forcibly killing ora_mman_tpcc1:84799
-> [ 4488.220168] Memory failure: 0xa6ec46f: forcibly killing ora_scmn_tpcc1:84803
-> [ 4488.232974] Memory failure: 0xa6ec46f: forcibly killing ora_diag_tpcc1:84806
-> [ 4488.245660] Memory failure: 0xa6ec46f: forcibly killing ora_scmn_tpcc1:84808
-..
-> [ 4488.595847] BUG: unable to handle kernel NULL pointer dereference at 00000000      <--
-> [ 4488.604834] IP: _raw_spin_lock_irqsave+0x27/0x48     <-- task->sighand->siglock is NULL
-> [ 4488.610079] PGD 51ef45067 P4D 51ef45067 PUD 51ef44067 PMD 0       
-> [ 4488.616514] Oops: 0002 [#1] SMP NOPTI                <-- 2'010: no-page/write/kernel-mode
-> [ 4488.620674] Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_n
-> [ 4488.712640]  lpc_ich shpchp wmi pcc_cpufreq dm_multipath binfmt_misc sg fuse
-> [ 4488.749400] CPU: 2 PID: 296408 Comm: oracle_296408_t Tainted: G   M 
-> [ 4488.764383] Hardware name: Oracle Corporation ORACLE SERVER X8-2/ASM,MB,X8-2,
-> [ 4488.778955] task: ffff997ccab28000 task.stack: ffffb9b832944000
-> [ 4488.789802] RIP: 0010:_raw_spin_lock_irqsave+0x27/0x48
-> [ 4488.799874] RSP: 0018:ffffb9b832947d28 EFLAGS: 00010046
-> [ 4488.810071] RAX: 0000000000000000 RBX: 0000000000000808 RCX: 0000000000000000
-> [ 4488.822959] RDX: 0000000000000001 RSI: 0000000000000001 RDI: 0000000000000808
-> [ 4488.835375] RBP: ffffb9b832947d38 R08: 0000000000000000 R09: 00000000000052bb
-> [ 4488.847854] R10: 0000000000000001 R11: 0000000000aaaaaa R12: 0000000000000246
-> [ 4488.860446] R13: 0000000000000004 R14: 0000000000000001 R15: 0000000000000009
-> [ 4488.872994] FS:  00007fa0f17533c0(0000) GS:ffff98ba00680000(0000) knlGS:00000
-> [ 4488.886705] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [ 4488.897877] CR2: 0000000000000808 CR3: 000000051146a004 CR4: 00000000007606e0
-> [ 4488.910774] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [ 4488.923665] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> [ 4488.936517] PKRU: 55555554
-> [ 4488.944467] Call Trace:
-> [ 4488.952152]  force_sig_info+0x2e/0xde
-> [ 4488.961266]  force_sig+0x16/0x18
-> [ 4488.970568]  kill_procs+0x15b/0x1a0        <-- forcing  SIGKILL to the user process
-                                                 <-- due to tk->addr_valid=0 which means rmap()
-                                                 <-- can't find a 'vma' hosting the offending
-                                                 <-- 'pfn', because the process has exited by now.
+Same comments as the previous script about uppercase variables,
+backticks, and quoting.
 
-> [ 4488.979601]  memory_failure+0x1dd/0x235
-> [ 4488.989071]  do_machine_check+0x738/0xc89
-> [ 4488.998739]  ? devm_free_irq+0x22/0x71
-> [ 4489.008129]  ? machine_check+0x115/0x124
-> [ 4489.017708]  do_mce+0x15/0x17
-> [ 4489.026260]  machine_check+0x11f/0x124
-> [ 4489.035725] RIP: 0033:0x1253b9e6
-> [ 4489.044695] RSP: 002b:00007ffc205c1600 EFLAGS: 00010246
-> [ 4489.055964] RAX: 000000000000384d RBX: 0000000000000003 RCX: 000000000000002f
-> [ 4489.069509] RDX: 0000000000000007 RSI: 0000000000003f12 RDI: 0000000000003786
-> [ 4489.083065] RBP: 00007ffc205c16a0 R08: 0000009fa526c0e4 R09: 0000009fa526c064
-> [ 4489.096672] R10: 0000000000000000 R11: 0000000000000000 R12: 0000009fa526c086
-> [ 4489.110342] R13: 00007fa0eb399c08 R14: 0000000000000015 R15: 0000009fa526f8b1
-> [ 4489.124026] Code: 00 00 00 00 0f 1f 44 00 00 55 48 89 e5 41 54 53 48 89 fb 9c
-> [ 4489.156598] RIP: _raw_spin_lock_irqsave+0x27/0x48 RSP: ffffb9b832947d28
+> +
+> +keyctl show | grep -q nvdimm-master || keyctl add $KEYTYPE nvdimm-master "load `cat $KEY_PATH/nvdimm-master.blob` $TPM_HANDLE" @u > /dev/null
 
+Prefer:
 
-After reboot, the offending 'pfn' is recorded in the 'badblock' record in namespace0.0.
+if ! grep -q "nvdimm-master" <<< "$(keyctl show)"; then
+	keyctl add ...
+fi
 
->     "dev":"namespace0.0",
->     "mode":"fsdax",
->     "map":"dev",
->     "size":799063146496,
->     "uuid":"bf8dc912-e8c2-4099-8571-b0cc32cc9f68",
->     "blockdev":"pmem0",
->     "badblock_count":1,
->     "badblocks":[
->       {
->         "offset":969675644,           <-- XXX
->         "length":1,
->         "dimms":[
->           "nmem4"
->         ]
+In fact is it not possible to directly query keyctl for 'nvdimm-master' 
+instead of show everything + grep?
 
-Per /proc/iomem -
-     03060000000 - 0ed5fffffff   pmem0
-pmem0 is region0 with size = 811748818944,
-namespace0.0 was created over the entire region0, usable size = 799063146496
-so the metadata took (811748818944 - 799063146496) = 0x2F4200000 bytes
-badblock address: (969675644 * 512) + 0x2F4200000 + 0x3060000000 = 0xa6ec46f800
-offending 'pfn': 0xa6ec46f  at starting address 0xa6ec46f000.
+> +
+> +for i in `ls -1 $KEY_PATH/nvdimm_*.blob`;
 
-Some additional information worth to be noted here:
-1. The workload consists many processes forming a group sharing the mmap'ed
-    pmem0 region, processes do 'load' and 'store' to the shared region;
-2. If any process encounters a fatal signal (such as SIGBUS),
-    it shoots down the other processes in the group.
-3. The hardware consists the latest revision CPU and Intel NVDIMM, we suspected
-    the CPU faulty because it generated MCE over PMEM UE in a unlikely high
-    rate for any reasonable NVDIMM (like a few per 24hours).
+/never/ loop through files using ls - it is fragile and broken..
+http://mywiki.wooledge.org/ParsingLs
 
-After swapping the CPU, the problem stopped reproducing.
+Use globbing instead - see below.
 
-But one could argue that perhaps the faulty CPU exposed a small race window
-from collect_procs() to unmap_mapping_range() and to kill_procs(), hence
-caught the kernel  PMEM error handler off guard.
+> +do
+> +	id=`echo $i | cut -d'_' -f2`
 
-Also note, the same workload on the same faulty CPU were run on Linux prior to
-the 4.19 PMEM error handling and did not encounter kernel crash, probably because
-the prior HWPOISON handler did not force SIGKILL?
+Useless use of echo :)
+id="$(cut -d'_' -f2 <<< $i)"
 
-Should we not to force the SIGKILL, or find a way to close the race window?
+> +	keyctl add encrypted nvdimm:$id "load `cat $i`" @u
+> +done
 
-Thanks,
--jane
+The whole thing then becomes:
+for file in "$key_path"/nvdimm_*; do
+	id="$(cut -d'_' -f2 <<< "${file##*/}")"
+	keyctl add encrypted nvdimm:"$id" "load $(cat $i)" @u
+done
 
-
+> diff --git a/contrib/nvdimm_modprobe.conf b/contrib/nvdimm_modprobe.conf
+> new file mode 100644
+> index 00000000..b113d8d7
+> --- /dev/null
+> +++ b/contrib/nvdimm_modprobe.conf
+> @@ -0,0 +1 @@
+> +install libnvdimm /usr/sbin/ndctl-loadkeys.sh ; /sbin/modprobe --ignore-install libnvdimm $CMDLINE_OPTS
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 
 _______________________________________________
 Linux-nvdimm mailing list
