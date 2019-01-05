@@ -1,141 +1,314 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [driver-core PATCH v10 1/9] driver core: Establish order of
- operations for device_add and device_del via bitflag
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 22 Jan 2019 10:39:10 -0800
-Message-ID: <154818235081.18753.1278409711806099880.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7D819211AEA79
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Jan 2019 17:54:19 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v6 09/12] ndctl: add overwrite-wait support
+Date: Sat, 5 Jan 2019 01:54:16 +0000
+Message-ID: <d8d39c7eeee24a63bd8c219266264aca24a55ac3.camel@intel.com>
+References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+ <154482179201.65434.2126929016645274351.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154482179201.65434.2126929016645274351.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <7A7DEBF909A6A148BCE2857BE20AAAD3@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an additional bit flag to the device_private struct named "dead".
 
-This additional flag provides a guarantee that when a device_del is
-executed on a given interface an async worker will not attempt to attach
-the driver following the earlier device_del call. Previously this
-guarantee was not present and could result in the device_del call
-attempting to remove a driver from an interface only to have the async
-worker attempt to probe the driver later when it finally completes the
-asynchronous probe call.
+On Fri, 2018-12-14 at 14:09 -0700, Dave Jiang wrote:
+> Subject: [PATCH v6 09/12] ndctl: add overwrite-wait support
 
-One additional change added was that I pulled the check for dev->driver
-out of the __device_attach_driver call and instead placed it in the
-__device_attach_async_helper call. This was motivated by the fact that the
-only other caller of this, __device_attach, had already taken the
-device_lock() and checked for dev->driver. Instead of testing for this
-twice in this path it makes more sense to just consolidate the dev->dead
-and dev->driver checks together into one set of checks.
+Consider s/overwite-wait/wait-overwrite/ in the commit subject since
+the command is called wait-overwrite.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/base.h |    4 ++++
- drivers/base/core.c |   11 +++++++++++
- drivers/base/dd.c   |   22 +++++++++++-----------
- 3 files changed, 26 insertions(+), 11 deletions(-)
+> Adding a monitoring command to ndctl in order to wait on the progress of
 
-diff --git a/drivers/base/base.h b/drivers/base/base.h
-index 37329a668935..7ca475af8953 100644
---- a/drivers/base/base.h
-+++ b/drivers/base/base.h
-@@ -67,6 +67,9 @@ struct driver_private {
-  *	probed first.
-  * @device - pointer back to the struct device that this structure is
-  * associated with.
-+ * @dead - This device is currently either in the process of or has been
-+ *	removed from the system. Any asynchronous events scheduled for this
-+ *	device should exit without taking any action.
-  *
-  * Nothing outside of the driver core should ever touch these fields.
-  */
-@@ -78,6 +81,7 @@ struct device_private {
- 	struct klist_node knode_class;
- 	struct list_head deferred_probe;
- 	struct device *device;
-+	u8 dead:1;
- };
- #define to_device_private_parent(obj)	\
- 	container_of(obj, struct device_private, knode_parent)
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 4a4b6f8cbc4f..c9a82e367480 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2080,6 +2080,17 @@ void device_del(struct device *dev)
- 	struct kobject *glue_dir = NULL;
- 	struct class_interface *class_intf;
- 
-+	/*
-+	 * Hold the device lock and set the "dead" flag to guarantee that
-+	 * the update behavior is consistent with the other bitfields near
-+	 * it and that we cannot have an asynchronous probe routine trying
-+	 * to run while we are tearing out the bus/class/sysfs from
-+	 * underneath the device.
-+	 */
-+	device_lock(dev);
-+	dev->p->dead = true;
-+	device_unlock(dev);
-+
- 	/* Notify clients of device removal.  This call must come
- 	 * before dpm_sysfs_remove().
- 	 */
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 8ac10af17c00..636cd16b1b62 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -731,15 +731,6 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
- 	bool async_allowed;
- 	int ret;
- 
--	/*
--	 * Check if device has already been claimed. This may
--	 * happen with driver loading, device discovery/registration,
--	 * and deferred probe processing happens all at once with
--	 * multiple threads.
--	 */
--	if (dev->driver)
--		return -EBUSY;
--
- 	ret = driver_match_device(drv, dev);
- 	if (ret == 0) {
- 		/* no match */
-@@ -774,6 +765,15 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
- 
- 	device_lock(dev);
- 
-+	/*
-+	 * Check if device has already been removed or claimed. This may
-+	 * happen with driver loading, device discovery/registration,
-+	 * and deferred probe processing happens all at once with
-+	 * multiple threads.
-+	 */
-+	if (dev->p->dead || dev->driver)
-+		goto out_unlock;
-+
- 	if (dev->parent)
- 		pm_runtime_get_sync(dev->parent);
- 
-@@ -784,7 +784,7 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
- 
- 	if (dev->parent)
- 		pm_runtime_put(dev->parent);
--
-+out_unlock:
- 	device_unlock(dev);
- 
- 	put_device(dev);
-@@ -897,7 +897,7 @@ static int __driver_attach(struct device *dev, void *data)
- 	if (dev->parent && dev->bus->need_parent_lock)
- 		device_lock(dev->parent);
- 	device_lock(dev);
--	if (!dev->driver)
-+	if (!dev->p->dead && !dev->driver)
- 		driver_probe_device(drv, dev);
- 	device_unlock(dev);
- 	if (dev->parent && dev->bus->need_parent_lock)
+s/Adding/Add/
+s/in order to/to/
+In fact..
+
+"Add a blocking 'wait-overwrite' command to ndctl to let a user wait
+for an overwrite operation on a dimm to complete."
+
+> overwrite.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/Makefile.am              |    3 +
+>  Documentation/ndctl/ndctl-wait-overwrite.txt |   31 ++++++++++
+>  builtin.h                                    |    1 
+>  ndctl/dimm.c                                 |   27 +++++++++
+>  ndctl/lib/dimm.c                             |   79 ++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym                       |    1 
+>  ndctl/libndctl.h                             |    1 
+>  ndctl/ndctl.c                                |    1 
+>  8 files changed, 143 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
+> 
+> diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+> index bbea9674..a60a67e5 100644
+> --- a/Documentation/ndctl/Makefile.am
+> +++ b/Documentation/ndctl/Makefile.am
+> @@ -52,7 +52,8 @@ man1_MANS = \
+>  	ndctl-update-passphrase.1 \
+>  	ndctl-disable-passphrase.1 \
+>  	ndctl-freeze-security.1 \
+> -	ndctl-sanitize-dimm.1
+> +	ndctl-sanitize-dimm.1 \
+> +	ndctl-wait-overwrite.1
+>  
+>  CLEANFILES = $(man1_MANS)
+>  
+> diff --git a/Documentation/ndctl/ndctl-wait-overwrite.txt b/Documentation/ndctl/ndctl-wait-overwrite.txt
+> new file mode 100644
+> index 00000000..97583a36
+> --- /dev/null
+> +++ b/Documentation/ndctl/ndctl-wait-overwrite.txt
+> @@ -0,0 +1,31 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +ndctl-wait-overwrite(1)
+> +=======================
+> +
+> +NAME
+> +----
+> +ndctl-wait-overwrite - wait for nvdimm overwrite operation to complete
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'ndctl wait-overwrite' <dimm> [<options>]
+> +
+> +DESCRIPTION
+> +-----------
+> +The ernel provides a POLL(2) capable sysfs file ('security') to indicate
+       ^kernel
+
+> +the state of overwrite. The 'ndctl wait-overwrite' operation waits for
+> +'security', across all specified dimms.
+
+"waits for a change in state of the 'security' file"..
+
+> +
+> +OPTIONS
+> +-------
+> +-v::
+> +--verbose::
+> +	Emit debug messages for the overwrite wait process
+> +
+> +include::../copyright.txt[]
+> +
+> +SEE ALSO
+> +--------
+> +linkndctl:ndctl-sanitize-dimm[1]
+> diff --git a/builtin.h b/builtin.h
+> index db0f2858..32bee59e 100644
+> --- a/builtin.h
+> +++ b/builtin.h
+> @@ -53,4 +53,5 @@ int cmd_passphrase_update(int argc, const char **argv, void *ctx);
+>  int cmd_disable_passphrase(int argc, const char **argv, void *ctx);
+>  int cmd_freeze_security(int argc, const char **argv, void *ctx);
+>  int cmd_sanitize_dimm(int argc, const char **argv, void *ctx);
+> +int cmd_wait_overwrite(int argc, const char **argv, void *ctx);
+>  #endif /* _NDCTL_BUILTIN_H_ */
+> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+> index 6b1ee47f..21ffea1e 100644
+> --- a/ndctl/dimm.c
+> +++ b/ndctl/dimm.c
+> @@ -928,6 +928,24 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+>  	return 0;
+>  }
+>  
+> +static int action_wait_overwrite(struct ndctl_dimm *dimm,
+> +		struct action_context *actx)
+> +{
+> +	int rc;
+> +
+> +	if (!ndctl_dimm_security_supported(dimm)) {
+> +		error("%s: security operation not supported\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	rc = ndctl_dimm_wait_for_overwrite_completion(dimm);
+> +	if (rc == 1)
+> +		printf("%s: overwrite completed.\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +	return rc;
+> +}
+> +
+>  static int __action_init(struct ndctl_dimm *dimm,
+>  		enum ndctl_namespace_version version, int chk_only)
+>  {
+> @@ -1359,3 +1377,12 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
+>  				count >= 0 ? count : 0, count > 1 ? "s" : "");
+>  	return count >= 0 ? 0 : EXIT_FAILURE;
+>  }
+> +
+> +int cmd_wait_overwrite(int argc, const char **argv, void *ctx)
+> +{
+> +	int count = dimm_action(argc, argv, ctx, action_wait_overwrite,
+> +			base_options,
+> +			"ndctl wait-overwrite <nmem0> [<nmem1>..<nmemN>] [<options>]");
+> +
+> +	return count >= 0 ? 0 : EXIT_FAILURE;
+> +}
+> diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+> index 2dff80f0..d815b9fc 100644
+> --- a/ndctl/lib/dimm.c
+> +++ b/ndctl/lib/dimm.c
+> @@ -16,6 +16,7 @@
+>  #include <util/bitmap.h>
+>  #include <util/sysfs.h>
+>  #include <stdlib.h>
+> +#include <poll.h>
+>  #include "private.h"
+>  
+>  static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
+> @@ -689,3 +690,81 @@ NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
+>  	sprintf(buf, "overwrite %ld\n", key);
+>  	return write_security(dimm, buf);
+>  }
+> +
+> +NDCTL_EXPORT int ndctl_dimm_wait_for_overwrite_completion(
+> +		struct ndctl_dimm *dimm)
+
+Just a minor nit, but this could as easily be
+'ndctl_dimm_wait_for_overwrite'. The completion is implied since we're
+waiting.. In fact, I think 'ndctl_dimm_wait_overwrite' will be even
+better.
+
+> +{
+> +	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+> +	struct pollfd fds;
+> +	char buf[SYSFS_ATTR_SIZE];
+> +	int fd = 0, rc;
+> +	char *path = dimm->dimm_buf;
+> +	int len = dimm->buf_len;
+> +
+> +	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
+> +		err(ctx, "%s: buffer too small!\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +		return -ERANGE;
+> +	}
+> +
+> +	fd = open(path, O_RDONLY|O_CLOEXEC);
+> +	if (fd < 0) {
+> +		rc = -errno;
+> +		err(ctx, "open: %s\n", strerror(errno));
+> +		return rc;
+> +	}
+> +	memset(&fds, 0, sizeof(fds));
+> +	fds.fd = fd;
+> +
+> +	rc = sysfs_read_attr(ctx, path, buf);
+> +	if (rc < 0) {
+> +		rc = -EOPNOTSUPP;
+> +		goto out;
+> +	}
+> +	/* skipping if we aren't in overwrite state */
+> +	if (strcmp(buf, "overwrite") != 0) {
+> +		rc = 0;
+> +		goto out;
+> +	}
+> +
+> +	for (;;) {
+> +		rc = sysfs_read_attr(ctx, path, buf);
+> +		if (rc < 0) {
+> +			rc = -EOPNOTSUPP;
+> +			break;
+> +		}
+> +
+> +		if (strcmp(buf, "overwrite") == 0) {
+> +			rc = poll(&fds, 1, -1);
+> +			if (rc < 0) {
+> +				rc = -errno;
+> +				err(ctx, "poll error: %s\n", strerror(errno));
+> +				break;
+> +			}
+> +			dbg(ctx, "poll wake: revents: %d\n", fds.revents);
+> +			if (pread(fd, buf, 1, 0) == -1) {
+> +				rc = -errno;
+> +				break;
+> +			}
+> +			fds.revents = 0;
+> +		} else {
+> +			if (strcmp(buf, "disabled") == 0)
+> +				rc = 1;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (rc == 1)
+> +		dbg(ctx, "%s: overwrite complete\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +	else if (rc == 0)
+> +		dbg(ctx, "%s: ovewrite skipped\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +	else
+> +		dbg(ctx, "%s: overwrite error waiting for complete\n",
+> +				ndctl_dimm_get_devname(dimm));
+> +
+> + out:
+> +	close(fd);
+> +	return rc;
+> +}
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index 0fedae1a..0da8b282 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -400,4 +400,5 @@ global:
+>  	ndctl_dimm_secure_erase_key;
+>  	ndctl_dimm_overwrite;
+>  	ndctl_dimm_overwrite_key;
+> +	ndctl_dimm_wait_for_overwrite_completion;
+>  } LIBNDCTL_18;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index fee35db7..5c34f2cb 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -706,6 +706,7 @@ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+>  int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+>  int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
+>  int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
+> +int ndctl_dimm_wait_for_overwrite_completion(struct ndctl_dimm *dimm);
+>  
+>  enum ndctl_key_type {
+>  	ND_USER_KEY,
+> diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+> index 40982f43..d16e1ed0 100644
+> --- a/ndctl/ndctl.c
+> +++ b/ndctl/ndctl.c
+> @@ -93,6 +93,7 @@ static struct cmd_struct commands[] = {
+>  	{ "disable-passphrase", cmd_disable_passphrase },
+>  	{ "freeze-security", cmd_freeze_security },
+>  	{ "sanitize-dimm", cmd_sanitize_dimm },
+> +	{ "wait-overwrite", cmd_wait_overwrite },
+>  	{ "list", cmd_list },
+>  	{ "monitor", cmd_monitor},
+>  	{ "help", cmd_help },
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
