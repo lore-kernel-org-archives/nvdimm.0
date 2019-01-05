@@ -1,241 +1,369 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Subject: [driver-core PATCH v10 2/9] device core: Consolidate locking and
- unlocking of parent and device
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Tue, 22 Jan 2019 10:39:16 -0800
-Message-ID: <154818235600.18753.7281510470253974387.stgit@ahduyck-desk1.amr.corp.intel.com>
-In-Reply-To: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
-References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 642C0211AEA79
+ for <linux-nvdimm@lists.01.org>; Fri,  4 Jan 2019 18:31:32 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v6 12/12] ndctl: documentation for security and key
+ management
+Date: Sat, 5 Jan 2019 02:31:30 +0000
+Message-ID: <840e2204838a8138e1846568732e660a0d1c7e8f.camel@intel.com>
+References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
+ <154482180840.65434.1342856065971626396.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154482180840.65434.1342856065971626396.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <9BA278FA1FD3E54994910E6AE91013D9@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
-Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Try to consolidate all of the locking and unlocking of both the parent and
-device when attaching or removing a driver from a given device.
 
-To do that I first consolidated the lock pattern into two functions
-__device_driver_lock and __device_driver_unlock. After doing that I then
-created functions specific to attaching and detaching the driver while
-acquiring these locks. By doing this I was able to reduce the number of
-spots where we touch need_parent_lock from 12 down to 4.
+On Fri, 2018-12-14 at 14:10 -0700, Dave Jiang wrote:
+> Adding the theory of operation for Intel DSM operations.
 
-This patch should produce no functional changes, it is meant to be a code
-clean-up/consolidation only.
+Add a "Theory of Operation" section describing the Intel DSM operations
+to the relevant man pages.
 
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- drivers/base/base.h |    2 +
- drivers/base/bus.c  |   23 ++----------
- drivers/base/dd.c   |   95 ++++++++++++++++++++++++++++++++++++++++-----------
- 3 files changed, 81 insertions(+), 39 deletions(-)
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/intel-nvdimm-security.txt    |  139 ++++++++++++++++++++++
+>  Documentation/ndctl/ndctl-disable-passphrase.txt |    2 
+>  Documentation/ndctl/ndctl-enable-passphrase.txt  |    4 +
+>  Documentation/ndctl/ndctl-freeze-security.txt    |    2 
+>  Documentation/ndctl/ndctl-sanitize-dimm.txt      |    2 
+>  Documentation/ndctl/ndctl-update-passphrase.txt  |    2 
+>  6 files changed, 151 insertions(+)
+>  create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+> 
+> diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+> new file mode 100644
+> index 00000000..0c9a41a4
+> --- /dev/null
+> +++ b/Documentation/ndctl/intel-nvdimm-security.txt
+> @@ -0,0 +1,139 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +THEORY OF OPERATOIN
+> +-------------------
+> +With the introduction of Intel Device Specific Methods (DSM) specification
+> +v1.7 and v1.8 [1], security DSMs were introduced. Ndctl supports enable
 
-diff --git a/drivers/base/base.h b/drivers/base/base.h
-index 7ca475af8953..b6966511b0ca 100644
---- a/drivers/base/base.h
-+++ b/drivers/base/base.h
-@@ -132,6 +132,8 @@ extern int driver_add_groups(struct device_driver *drv,
- 			     const struct attribute_group **groups);
- extern void driver_remove_groups(struct device_driver *drv,
- 				 const struct attribute_group **groups);
-+int device_driver_attach(struct device_driver *drv, struct device *dev);
-+void device_driver_detach(struct device *dev);
- 
- extern char *make_class_name(const char *name, struct kobject *kobj);
- 
-diff --git a/drivers/base/bus.c b/drivers/base/bus.c
-index 3ab45843da39..cfa5b63b5582 100644
---- a/drivers/base/bus.c
-+++ b/drivers/base/bus.c
-@@ -187,11 +187,7 @@ static ssize_t unbind_store(struct device_driver *drv, const char *buf,
- 
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == drv) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		device_driver_detach(dev);
- 		err = count;
- 	}
- 	put_device(dev);
-@@ -214,13 +210,7 @@ static ssize_t bind_store(struct device_driver *drv, const char *buf,
- 
- 	dev = bus_find_device_by_name(bus, NULL, buf);
- 	if (dev && dev->driver == NULL && driver_match_device(drv, dev)) {
--		if (dev->parent && bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_lock(dev);
--		err = driver_probe_device(drv, dev);
--		device_unlock(dev);
--		if (dev->parent && bus->need_parent_lock)
--			device_unlock(dev->parent);
-+		err = device_driver_attach(drv, dev);
- 
- 		if (err > 0) {
- 			/* success */
-@@ -773,13 +763,8 @@ EXPORT_SYMBOL_GPL(bus_rescan_devices);
-  */
- int device_reprobe(struct device *dev)
- {
--	if (dev->driver) {
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_lock(dev->parent);
--		device_release_driver(dev);
--		if (dev->parent && dev->bus->need_parent_lock)
--			device_unlock(dev->parent);
--	}
-+	if (dev->driver)
-+		device_driver_detach(dev);
- 	return bus_rescan_devices_helper(dev, NULL);
- }
- EXPORT_SYMBOL_GPL(device_reprobe);
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 636cd16b1b62..34556359c7da 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -867,6 +867,64 @@ void device_initial_probe(struct device *dev)
- 	__device_attach(dev, true);
- }
- 
-+/*
-+ * __device_driver_lock - acquire locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
-+ *
-+ * This function will take the required locks for manipulating dev->drv.
-+ * Normally this will just be the @dev lock, but when called for a USB
-+ * interface, @parent lock will be held as well.
-+ */
-+static void __device_driver_lock(struct device *dev, struct device *parent)
-+{
-+	if (parent && dev->bus->need_parent_lock)
-+		device_lock(parent);
-+	device_lock(dev);
-+}
-+
-+/*
-+ * __device_driver_unlock - release locks needed to manipulate dev->drv
-+ * @dev: Device we will update driver info for
-+ * @parent: Parent device. Needed if the bus requires parent lock
-+ *
-+ * This function will release the required locks for manipulating dev->drv.
-+ * Normally this will just be the the @dev lock, but when called for a
-+ * USB interface, @parent lock will be released as well.
-+ */
-+static void __device_driver_unlock(struct device *dev, struct device *parent)
-+{
-+	device_unlock(dev);
-+	if (parent && dev->bus->need_parent_lock)
-+		device_unlock(parent);
-+}
-+
-+/**
-+ * device_driver_attach - attach a specific driver to a specific device
-+ * @drv: Driver to attach
-+ * @dev: Device to attach it to
-+ *
-+ * Manually attach driver to a device. Will acquire both @dev lock and
-+ * @dev->parent lock if needed.
-+ */
-+int device_driver_attach(struct device_driver *drv, struct device *dev)
-+{
-+	int ret = 0;
-+
-+	__device_driver_lock(dev, dev->parent);
-+
-+	/*
-+	 * If device has been removed or someone has already successfully
-+	 * bound a driver before us just skip the driver probe call.
-+	 */
-+	if (!dev->p->dead && !dev->driver)
-+		ret = driver_probe_device(drv, dev);
-+
-+	__device_driver_unlock(dev, dev->parent);
-+
-+	return ret;
-+}
-+
- static int __driver_attach(struct device *dev, void *data)
- {
- 	struct device_driver *drv = data;
-@@ -894,14 +952,7 @@ static int __driver_attach(struct device *dev, void *data)
- 		return ret;
- 	} /* ret > 0 means positive match */
- 
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_lock(dev->parent);
--	device_lock(dev);
--	if (!dev->p->dead && !dev->driver)
--		driver_probe_device(drv, dev);
--	device_unlock(dev);
--	if (dev->parent && dev->bus->need_parent_lock)
--		device_unlock(dev->parent);
-+	device_driver_attach(drv, dev);
- 
- 	return 0;
- }
-@@ -932,15 +983,11 @@ static void __device_release_driver(struct device *dev, struct device *parent)
- 	drv = dev->driver;
- 	if (drv) {
- 		while (device_links_busy(dev)) {
--			device_unlock(dev);
--			if (parent && dev->bus->need_parent_lock)
--				device_unlock(parent);
-+			__device_driver_unlock(dev, parent);
- 
- 			device_links_unbind_consumers(dev);
--			if (parent && dev->bus->need_parent_lock)
--				device_lock(parent);
- 
--			device_lock(dev);
-+			__device_driver_lock(dev, parent);
- 			/*
- 			 * A concurrent invocation of the same function might
- 			 * have released the driver successfully while this one
-@@ -993,16 +1040,12 @@ void device_release_driver_internal(struct device *dev,
- 				    struct device_driver *drv,
- 				    struct device *parent)
- {
--	if (parent && dev->bus->need_parent_lock)
--		device_lock(parent);
-+	__device_driver_lock(dev, parent);
- 
--	device_lock(dev);
- 	if (!drv || drv == dev->driver)
- 		__device_release_driver(dev, parent);
- 
--	device_unlock(dev);
--	if (parent && dev->bus->need_parent_lock)
--		device_unlock(parent);
-+	__device_driver_unlock(dev, parent);
- }
- 
- /**
-@@ -1027,6 +1070,18 @@ void device_release_driver(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(device_release_driver);
- 
-+/**
-+ * device_driver_detach - detach driver from a specific device
-+ * @dev: device to detach driver from
-+ *
-+ * Detach driver from device. Will acquire both @dev lock and @dev->parent
-+ * lock if needed.
-+ */
-+void device_driver_detach(struct device *dev)
-+{
-+	device_release_driver_internal(dev, NULL, dev->parent);
-+}
-+
- /**
-  * driver_detach - detach driver from all devices it controls.
-  * @drv: driver.
+'ndctl' with an uppercase 'N' just looks very odd :)
+Perhaps reword as: The operations supported by ndctl are..
+
+> +passhprase, update passphrase, disable security, freeze security, secure
+> +(crypto) erase, overwrite, master passphrase enable, master passphrase update,
+> +and master passphrase secure (crypto) erase. The DSM that is not supported by
+> +ndctl is the unlock DSM, which is left to the kernel to manage.
+
+Repetition of 'DSM'. Perhaps:
+The 'unlock' DSM is not supported by ndctl - that is left for the
+kernel to manage.
+
+> +
+> +The security management for nvdimm is composed of two parts. The front end
+> +utilizes the Linux key management framework (trusted and encrypted keys [2]).
+> +It uses the keyutils on the user side and Linux key management APIs in
+> +the kernel. The backend takes the decrypted payload of the key and passes the
+> +plaintext payload to the nvdimm for processing.
+> +
+> +Unlike typical DSMs, the security DSMs are managed through the 'security'
+> +sysfs attribute under the dimm devices rather than an ioctl call by libndctl.
+> +The relevant key id is written to the 'security' attribute and the kernel will
+> +pull that key from the kernel user key ring for processing.
+> +
+> +The entire security process starts with a master key that is used to seal the
+> +encrypted keys that are used to protect the passphrase for each nvdimm. We
+> +recommend using THE system master trusted key from the Trusted Platform
+> +Module (TPM). However, a trusted master key generated by the TPM can also
+> +be used.
+
+Do these two bits say the same thing?
+
+>  And for testing purposes, a user key with randomized payload can
+
+Don't begin with "And..". Just say "For testing.."
+
+> +also be served as a master key. See [2] for details. To perform any security
+> +operations, it is expected that at the minimal the master key is already
+
+"it is expected that at the minimum, the master key.."
+
+> +in the kernel user keyring as shown in example below:
+
+"in the kernel's.."
+
+> +
+> +> keyctl show
+> +Session Keyring
+> + 736023423 --alswrv      0     0  keyring: _ses
+> + 675104189 --alswrv      0 65534   \_ keyring: _uid.0
+> + 680187394 --alswrv      0     0       \_ trusted: nvdimm-master
+> +
+> +All operations expect the relevant regions associated to the nvdimm are
+
+"associated with the.."
+
+> +disabled before proceeding, except overwrite. Overwrite expects the
+
+Don't tag 'except overwrite' at the end, instead have it at the start.
+
+> +relevant nvdimm also be disabled.
+
+Can be made clearer if you say something like:
+"For 'overwrite', in addition to the regions, the dimm itself is
+expected to be disabled"
+
+> +
+> +The follow on sections describe specifics of each security features.
+
+"The following sections"
+
+> +
+> +UNLOCK
+> +------
+> +Unlock is performed by the kernel, however a preparation step must happen
+> +before the unlock DSM can be issued by the kernel. The expectation is that
+> +during initramfs, a setup script is called before the libnvdimm module is
+> +loaded by modprobe. The said script will inject the master key and the
+
+"This script will inject.."
+
+> +related encrypted keys into the kernel user key ring. A reference modprobe
+
+"kernel's"
+
+> +config file and a setup script have been provided by ndctl. When the
+> +nvdimm driver probes, it will
+
+"During the 'probe' of the nvdimm driver.."
+
+> +1. First, Check the security state of the device and see if the dimm is locked
+
+s/Check/check/
+dimm vs. DIMM can be made more consistent.
+
+> +2. Request the associated encrypted key from the kernel user key ring.
+> +3. Finally, create the unlock DSM and copy the decrypted payload into the DSM
+
+s/and/,/
+
+> +   passphrase field, and issue the DSM to unlock the DIMM.
+> +
+> +If the DIMM is already unlocked, the kernel will attempt to revalidate the key.
+> +This can be overriden with a kernel module parameter. If we fail to revalidate
+> +the key, the kernel will freeze the security and disallow any further security
+> +configuration changes.
+> +
+> +ENABLE USER PASSPHRASE
+> +----------------------
+> +To enable the user passphrase for a DIMM, it is expected that the master key
+> +is already in the kernel user key ring and the master key name is passed to
+> +ndctl so it can do key management. An encrypted key with a 32byte payload
+
+s/32byte/32 byte/
+
+> +and encrypted key format 'enc32' is created and sealed by the master key. Be
+> +aware that the passphrase is never provided by or visible to the user.
+> +The decrypted payload for the encrypted key will be randomly generated by the
+> +kernel and userspace does not have access to this decrypted payload. When the
+> +encrypted key is created, a binary blob of the encrypted key is written to the
+> +designated key blob storage directory (/etc/ndctl/keys as default). The user is
+> +responsible for backing up the dimm key blobs to a secure location. When a key
+> +is successfully loaded into the kernel user key ring, the payload is decrypted
+> +and can be accessed by the kernel.
+> +
+> +Key ids are written to the 'security' sysfs attribute with the command "update".
+> +A key id of 0 is provided for the old key id. The kernel will see that the
+> +update call is an enable call because the 0 old key id. A "passphrase update"
+> +DSM is issued by the kernel with the old passphrase as 0s.
+> +
+> +UPDATE USER PASSPHRASE
+> +----------------------
+> +The update user passphrase operation uses the same DSM command as enable user
+> +passphrase. Most of the work is done on the key management. 
+
+The last sentence seems incomplete? Perhaps "on the key management
+side"?
+
+> The user will
+> +provide a new master key name for the new passphrase key or use the existing
+> +one. Ndctl will use whatever master key name that is passed in.
+
+Same nit with 'Ndctl'. Perhaps "The master key name that is passed in
+will be used as-is by ndctl"
+
+>  The following
+> +operation is performed for update:
+
+operations are
+
+> +1. Remove the associated encrypted key from the kernel user key ring.
+> +2. Rename the key blob to old.
+> +3. Load the now old key blob into kernel user key ring with "old" name.
+> +4. Create new encrypted key and seal with master key.
+> +5. Generate new key blob.
+> +6. Send DSM with old and new passphrase via the decrypted key payloads.
+> +7. On success, remove old key from key ring and old key blob.
+> +
+> +DISABLE USER PASSPHRASE
+> +-----------------------
+> +Ndctl will look up the key id for the current associated key and write to sysfs.
+> +Upon success of disabling, the key will be removed from the kernel user key
+> +ring and the related key blob will also be deleted.
+
+The current key id is written to sysfs by ndctl. Upon successfully
+disabling the passphrase, the key is removed from the kernel's user
+keyring, and the associated key blob is deleted.
+
+> +
+> +CRYPTO (SECURE) ERASE
+> +---------------------
+> +This operation is similar to disable the passphrase. The kernel will issue
+
+similar to passphrase-disable.
+
+> +wbinvd before and after the operation to ensure no data corruption from stale
+
+'WBINVD'
+"from a stale.."
+
+> +CPU cache. The "sanitize-dimm" command with the --crypto-erase switch is used
+> +via ndctl.
+
+Use ndctl's sanitize-dimm command with the --crypto-erase option to
+perform this operation.
+
+> +
+> +OVERWRITE
+> +---------
+> +The overwrite operation wipes the entire nvdimm. Therefore it can take
+
+s/. Therefore it/ and/
+
+> +a significant amount of time. To issue the command is very similar to disable
+> +passphrase and secure erase.
+
+Issuing the command is very similar to..
+
+>  However, when the command returns successfully
+> +it just means overwrite has been successfully started. The wait-overwrite
+> +command for ndctl can be used to wait on the nvdimms that are performing
+> +overwrite until the operation is completed. Upon successful completion of the
+> +operation, wbinvd will be issued by the kernel. The "sanitize-dimm" command
+> +with the --overwrite switch is used via ndctl. If both --crypto-erase and
+> +--overwrite switches are passed in, the crypt-erase will be issued first before
+> +overwrite.
+
+s/switch/option/g
+
+> +
+> +SECURITY FREEZE
+> +---------------
+> +This operation requires no key to succeed. Ndctl will issue the DSM command
+
+s/Ndctl/ndctl/ or reword
+
+> +and upon completion, the security commands besides status query will be locked
+> +out until the next boot.
+> +
+> +MASTER PASSPHRASE ENABLE, UPDATE, and CRYPTO ERASE
+> +-----------------------------------------------------------
+> +These operations are similar to the user passphrase enable and update. The only
+> +difference is that a different encrypted key is being used for the master
+> +passphrase operations. Note that master passphrase has no relation to the
+> +master key for encryption.
+> +
+> +
+> +[1] http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
+> +[2] https://www.kernel.org/doc/Documentation/security/keys/trusted-encrypted.rst
+> diff --git a/Documentation/ndctl/ndctl-disable-passphrase.txt b/Documentation/ndctl/ndctl-disable-passphrase.txt
+> index e921eb23..df7401cb 100644
+> --- a/Documentation/ndctl/ndctl-disable-passphrase.txt
+> +++ b/Documentation/ndctl/ndctl-disable-passphrase.txt
+> @@ -24,4 +24,6 @@ OPTIONS
+>  <dimm>::
+>  include::xable-dimm-options.txt[]
+>  
+> +include::intel-nvdimm-security.txt[]
+> +
+>  include::../copyright.txt[]
+> diff --git a/Documentation/ndctl/ndctl-enable-passphrase.txt b/Documentation/ndctl/ndctl-enable-passphrase.txt
+> index 6639ce8d..9ff19927 100644
+> --- a/Documentation/ndctl/ndctl-enable-passphrase.txt
+> +++ b/Documentation/ndctl/ndctl-enable-passphrase.txt
+> @@ -31,10 +31,14 @@ include::xable-dimm-options.txt[]
+>  -m::
+>  --master-key=::
+>  	Key name for the master key used to seal the NVDIMM security keys.
+> +	The format would be <key_type>:<master_key_name>
+> +	i.e.: trusted:master-nvdimm
+
+This hunk should've been in the original patch that added this?
+
+>  
+>  -M::
+>  --master-passphrase::
+>  	Parameter to indicate that we are managing the master passphrase
+>  	instead of the user passphrase.
+>  
+> +include::intel-nvdimm-security.txt[]
+> +
+>  include::../copyright.txt[]
+> diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+> index 4e9d2d61..2ae21980 100644
+> --- a/Documentation/ndctl/ndctl-freeze-security.txt
+> +++ b/Documentation/ndctl/ndctl-freeze-security.txt
+> @@ -17,4 +17,6 @@ DESCRIPTION
+>  Provide a generic interface to freeze the security for NVDIMM. Once security
+>  is frozen, no other security operations can succeed until reboot happens.
+>  
+> +include::intel-nvdimm-security.txt[]
+> +
+>  include::../copyright.txt[]
+> diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+> index 7b036318..a8cdca71 100644
+> --- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
+> +++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+> @@ -39,4 +39,6 @@ include::xable-dimm-options.txt[]
+>  	instead of the user passphrase. This only is applicable to the
+>  	crypto-erase option.
+>  
+> +include::intel-nvdimm-security.txt[]
+> +
+>  include::../copyright.txt[]
+> diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
+> index e2ecacf5..046fac6c 100644
+> --- a/Documentation/ndctl/ndctl-update-passphrase.txt
+> +++ b/Documentation/ndctl/ndctl-update-passphrase.txt
+> @@ -35,4 +35,6 @@ include::xable-dimm-options.txt[]
+>  	Parameter to indicate that we are managing the master passphrase
+>  	instead of the user passphrase.
+>  
+> +include::intel-nvdimm-security.txt[]
+> +
+>  include::../copyright.txt[]
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
