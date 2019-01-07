@@ -1,12 +1,20 @@
-From: "admin" <admin-LOy7l32N/qh8zOQiJqsdmgC/G2K4zDHf@public.gmane.org>
-Subject: =?gb2312?B?ob7Usbmkob9FLW1haWzTyrz+zajWqg==?=
-Date: Tue, 8 Jan 2019 02:39:07 +0800
-Message-ID: <20190108023915111085@zhongweihotel.com>
-Reply-To: youju-guanli-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org
+From: Kamal Kakri <kamalkakri2017-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Question on Error Injection
+Date: Mon, 7 Jan 2019 21:28:44 +0000 (UTC)
+Message-ID: <1210203101.7636183.1546896524417@mail.yahoo.com>
+References: <1351778734.5719210.1546535622423.ref@mail.yahoo.com>
+ <1351778734.5719210.1546535622423@mail.yahoo.com>
+ <873fd52419a7561f983927597dfb6fb613fc937e.camel@intel.com>
+ <69789157.5813313.1546545763506@mail.yahoo.com>
+ <199cc2d719c01c7099723e3c5f4aaa88060535e1.camel@intel.com>
+ <AT5PR8401MB1169B2838F6DB72BC62B308DAB8D0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ <985533328.5906467.1546556529562@mail.yahoo.com>
+ <AT5PR8401MB11699659E6B9E6EF513248C1AB8E0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <AT5PR8401MB11699659E6B9E6EF513248C1AB8E0-TASIVIpwxD5P8eCFU2xCp5pmD3emsgjRq6DjORPBYUW4xSMpw2roznzNABE0Ld/Y@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,16 +24,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Elliott, Robert (Persistent Memory)" <elliott-ZPxbGqLxI0U@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-DQoNCg0KDQrS8s6qsr+31sDr1rDUsbmksOy5q2UtbWFpbMO709C8sMqxyc+9yaOs0tHTsM/stb2w
-ssir1MvTqqOhDQrP1rbU0/LE2tPDu6e9+NDQ1NrWsMq508O6y8q1o6zE+rXERS1tYWlso7psaW51
-eC1udmRpbW1AbGlzdHMuMDEub3Jn0OjSqr340NC1x7zHLg0Kx+u9q8/CwdDQxc+izO7QtM3qsc/W
-sb3Tu9i4tA0KeW91anUtZ3VhbmxpQGZveG1haWwuY29tIA0K0NUgw/ujulux2MzuXQ0K1rAgzruj
-ulux2MzuXQ0KseAgusWjulux2MzuXQ0K08ogz+Sjulux2MzuXQ0Kw9wgwus6IFux2MzuXQ0K1K0g
-yrwgw9wgwuujulux2MzuXQ0Ktccgwrwgtdgg1rejulux2MzuXQ0KuaQg1/cgtdggteOjulux2Mzu
-XQ0Kyta7+qO6ICAgICAgIFux2MzuXSAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+IFdpbGwgaXQgYmUgT0sgdG8gc2F5IHRoYXQgdGhlIGJlaGF2aW9yIHNoYWxsIGJlIHNhbWUgaXJy
+ZXNwZWN0aXZlIG9mIGlmIGl0cyBsb2FkIG9yIHN0b3JlIHRvIGEgbWVtb3J5IGxvY2F0aW9uIHdp
+dGggdW5jb3JyZWN0YWJsZSBlcnJvciAoVUNFKSA/Ckkgc2VlIGVycm9ycyBiZWluZyByZXBvcnRl
+ZCBhdCB0aGUgZ3JhbnVsYXJpdHkgb2YgYmxvY2tzIChiYWRibG9jayBsaXN0KS4gSXMgU0lHQlVT
+IGdlbmVyYXRlZCB3aGVuIHRoZSBiYWQgbG9jYXRpb24gaXMgYWNjZXNzZWQgb3IgaWYgdGhlIHBh
+Z2UgKG9yIGJsb2NrKSBoYXZpbmcgYmFkIGxvY2F0aW9uIGlzIGFjY2Vzc2VkPwotIEtLCiAgICBP
+biBUaHVyc2RheSwgSmFudWFyeSAzLCAyMDE5LCA5OjA0OjA5IFBNIEVTVCwgRWxsaW90dCwgUm9i
+ZXJ0IChQZXJzaXN0ZW50IE1lbW9yeSkgPGVsbGlvdHRAaHBlLmNvbT4gd3JvdGU6ICAKIAogS2Ft
+YWwgS2Frcmkgd3JvdGU6Cj4gV2hhdCBkbyB5b3UgbWVhbiBieToKPiAKPiAiVGhlIGFwcGxpY2F0
+aW9uIGl0c2VsZiBzaG91bGRuJ3QgYmUgdGVybWluYXRlZCB3aXRoIFNJR0JVUyAtIHRoYXQncwo+
+IGZvciBhbiBhcHBsaWNhdGlvbiBkb2luZyBtZW1vcnkgYWNjZXNzZXMgdGhhdCBjYW5ub3QgYmUg
+cmVzb2x2ZWQuIgo+IAo+IENhbiB5b3UgZWxhYm9yYXRlIHdpdGggYW4gZXhhbXBsZSA/CgpEQVgg
+KGRpcmVjdCBhY2Nlc3MpLsKgIElmIHRoZSBhcHBsaWNhdGlvbiB1c2VzIG1tYXAoKSBvZiBhIGZp
+bGUgb3IKZGV2aWNlIHNvIGl0IGNhbiBkbyBsb2FkcyBkaXJlY3RseSBmcm9tIHBlcnNpc3RlbnQg
+bWVtb3J5IGFkZHJlc3NlcwphbmQgaXQgdHJpZXMgdG8gbG9hZCBmcm9tIGFuIGFkZHJlc3Mgd2l0
+aCBhbiB1bmNvcnJlY3RhYmxlIGVycm9yLAp0aGUgQ1BVIGNhbm5vdCBjb21wbGV0ZSB0aGF0IGlu
+c3RydWN0aW9uIHdpdGhvdXQgY2F1c2luZyBkYXRhIApjb3JydXB0aW9uLsKgIFRoZXJlJ3Mgbm8g
+ZGF0YSB2YWx1ZSB0aGF0IG1lYW5zICJ0aGlzIGlzIGJhZCBkYXRhLiIKU28sIHRoZSBvbmx5IHJl
+bWVkeSB0byB1bmhhbmcgdGhhdCB0aHJlYWQgaXMgZm9yIHRoZSBrZXJuZWwgdG8gc2VuZAphIHNp
+Z25hbCB0byB0aGUgYXBwbGljYXRpb247IGl0IG1pZ2h0IGRlY2lkZSBpdCBkb2Vzbid0IHJlYWxs
+eSBuZWVkCnRoYXQgZGF0YSBhZnRlciBhbGwgYW5kIGRvIHNvbWV0aGluZyBlbHNlLCBvciBtaWdo
+dCB0ZXJtaW5hdGUgaWYgaXQKZG9lc24ndCBrbm93IGhvdyB0byByZWNvdmVyLgoKLS0tClJvYmVy
+dCBFbGxpb3R0LCBIUEUgUGVyc2lzdGVudCBNZW1vcnkKCgoKICAKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
+dGluZm8vbGludXgtbnZkaW1tCg==
