@@ -1,14 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com
- [148.163.143.35])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x334.google.com (mail-ot1-x334.google.com
+ [IPv6:2607:f8b0:4864:20::334])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5AA03211B1FB0
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 16:11:31 -0800 (PST)
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: Question on Error Injection
-Date: Wed, 9 Jan 2019 00:11:27 +0000
-Message-ID: <AT5PR8401MB11698F196875F48D0002692BAB8B0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id EB353211AD36A
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Jan 2019 14:13:23 -0800 (PST)
+Received: by mail-ot1-x334.google.com with SMTP id 81so1799557otj.2
+ for <linux-nvdimm@lists.01.org>; Mon, 07 Jan 2019 14:13:23 -0800 (PST)
+MIME-Version: 1.0
 References: <1351778734.5719210.1546535622423.ref@mail.yahoo.com>
  <1351778734.5719210.1546535622423@mail.yahoo.com>
  <873fd52419a7561f983927597dfb6fb613fc937e.camel@intel.com>
@@ -18,11 +17,11 @@ References: <1351778734.5719210.1546535622423.ref@mail.yahoo.com>
  <985533328.5906467.1546556529562@mail.yahoo.com>
  <AT5PR8401MB11699659E6B9E6EF513248C1AB8E0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
  <1210203101.7636183.1546896524417@mail.yahoo.com>
- <CAPcyv4giNsLO_c2fPmnhsQAetYSinuTMFKHFMoEo8cGYqCfU5A@mail.gmail.com>
- <1204898506.8101813.1546965223934@mail.yahoo.com>
-In-Reply-To: <1204898506.8101813.1546965223934@mail.yahoo.com>
-Content-Language: en-US
-MIME-Version: 1.0
+In-Reply-To: <1210203101.7636183.1546896524417@mail.yahoo.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 7 Jan 2019 14:13:11 -0800
+Message-ID: <CAPcyv4giNsLO_c2fPmnhsQAetYSinuTMFKHFMoEo8cGYqCfU5A@mail.gmail.com>
+Subject: Re: Question on Error Injection
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,59 +29,29 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Kamal Kakri' <kamalkakri2017@yahoo.com>, Dan Williams <dan.j.williams@intel.com>
+To: Kamal Kakri <kamalkakri2017@yahoo.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Rm9yIG1haWxpbmcgbGlzdHMsIHBsZWFzZSB1c2UgcGxhaW50ZXh0IHJhdGhlciB0aGFuIEhUTUwg
-ZW1haWxzLCBhbmQgZG9u4oCZdCB0b3AtcG9zdC4NCg0KPiBBcmUgdGhlc2Ugc3RhdGVtZW50cyBj
-b3JyZWN0Pw0KPiANCj4gMSkgUmVhZGluZyBmcm9tIGEgbWVtb3J5IGxvY2F0aW9uIChtbWFwZWQp
-IHdpdGggdW5jb3JyZWN0YWJsZSBBTkQgdW5rbm93bg0KPiBlcnJvciAoYWxzbyBjYWxsZWQgYXMg
-bGF0ZW50IGVycm9yKSByZXN1bHRzIGluIGEgbWFjaGluZS1jaGVjayAod2hpY2gNCj4gdXN1YWxs
-eSByZXN1bHRzIGluIGEgU0lHQlVTICwgZGVmYXVsdCBhY3Rpb24gDQo+IGluIC9zeXMvZGV2aWNl
-cy9zeXN0ZW0vbWFjaGluZWNoZWNrL21hY2hpbmVjaGVja04pLg0KPg0KPiA0KSBXcml0aW5nLCBo
-b3dldmVyLCBpbiBhbGwgdGhlIGFib3ZlIGNhc2VzIGRvZXMgbm90IHJlc3VsdCBpbiBhbnkgZXJy
-b3IuDQoNCldoZW4gYSBDUFUgbG9hZCBpbnN0cnVjdGlvbiBnZXRzIGFuIHVuY29ycmVjdGFibGUg
-ZXJyb3IgKGkuZS4sIHRoZSBoYXJkd2FyZQ0KY2Fubm90IHByb3ZpZGUgYW55IGRhdGEgdG8gY29t
-cGxldGUgdGhhdCBpbnN0cnVjdGlvbiksIHRoZSBDUFUgY3JlYXRlcyBhDQptYWNoaW5lIGNoZWNr
-IGV4Y2VwdGlvbi4gIFRoZSBtYWNoaW5lIGNoZWNrIGhhbmRsZXIgZGVjaWRlcyB3aGF0IHRvIGRv
-IG5leHQuDQpUaGF0IHRocmVhZCBpcyBzdHVjayBhbmQgY2Fubm90IHByb2NlZWQsIHNvIHRoZSBo
-YW5kbGVyIG11c3QgZG8gc29tZXRoaW5nDQpsaWtlOg0KDQoqIGlmIHRoZSBpbnN0cnVjdGlvbiB3
-YXMgcGFydCBvZiB0aGUga2VybmVsJ3MgbWVtY3B5X21jc2FmZSgpIGZ1bmN0aW9uICh3aGljaA0K
-aXMgY2FsbGVkIGJ5IHRoZSByZWFkKCkgc3lzdGVtIGNhbGwpLCBmb3JjZSB0aGUgZnVuY3Rpb24g
-dG8gcmV0dXJuIGFuIGVycm9yDQp3aGljaCByZXN1bHRzIGluIHJlYWQoKSByZXR1cm5pbmcgYW4g
-SS9PIGVycm9yIHRvIGl0cyBjYWxsZXINCg0KKiBpZiB0aGUgaW5zdHJ1Y3Rpb24gd2FzIGlzc3Vl
-ZCBieSBhcHBsaWNhdGlvbiAoZS5nLiB0aGF0IGhhZCB1c2VkIG1tYXAoKQ0KdG8gZ2V0IGRpcmVj
-dCBhY2Nlc3MgdG8gcGVyc2lzdGVudCBtZW1vcnkpLCBzZW5kIFNJR0JVUyB0byB0aGUgYXBwbGlj
-YXRpb24uDQpNb3N0IGFwcGxpY2F0aW9ucyB3aWxsIGp1c3QgZXhpdCAoYW5kIGNyZWF0ZSBhIGNv
-cmUgZHVtcCkuICBTb21lIGFwcGxpY2F0aW9ucw0KY2FuIHByb2Nlc3MgU0lHQlVTIGFuZCBwcm9j
-ZWVkIChlLmcuLCBsaWtlIHRoZSBrZXJuZWwgZG9lcyB3aXRoIA0KbWVtY3B5X21jc2FmZSgpKS4N
-Cg0KKiBpZiB0aGUgaW5zdHJ1Y3Rpb24gd2FzIGlzc3VlZCBieSB0aGUga2VybmVsIG91dHNpZGUg
-bWVtY3B5X21jc2FmZSgpLCBkbyBhDQpwYW5pYyBjcmFzaCBvZiB0aGUga2VybmVsDQoNCkhpc3Rv
-cmljYWxseSwgIkVQIGNsYXNzIiBDUFVzIGFsd2F5cyBjcmFzaGVkIHRoZSBrZXJuZWwgd2hpbGUg
-IkVYIGNsYXNzIg0KQ1BVcyBjb3VsZCBwcm9jZWVkLiBGb3IgcGVyc2lzdGVudCBtZW1vcnksIHRv
-bGVyYW5jZSBpcyBhIGtleSBDUFUNCmZlYXR1cmUuICBUaGlzIGluZGljYXRlcyB0aGUgQ1BVIGRv
-ZXMgc3VwcG9ydCBwcm9jZWVkaW5nOg0KICAgIC9zeXMvZGV2aWNlcy9zeXN0ZW0vbWFjaGluZWNo
-ZWNrL21hY2hpbmVjaGVjayovdG9sZXJhbnQ6MQ0KDQo+IDIpIFJlYWRpbmcgZnJvbSBhIG1lbW9y
-eSBsb2NhdGlvbiAobW1hcGVkKSB3aXRoIGtub3duIGVycm9yDQo+IChiYWRibG9jayBsaXN0KSBh
-bHNvIHJlc3VsdHMgaW4gYSBTSUdCVVMuDQoNClRoZSBwbWVtIGRyaXZlciBjb25zdWx0cyB0aGUg
-YmFkYmxvY2sgbGlzdCB0byBhdm9pZCBhc2tpbmcgdGhlIENQVSB0bw0KbG9hZCBmcm9tIGEgYmFk
-IGFkZHJlc3MgYW5kIHRyaWdnZXJpbmcgYSBtYWNoaW5lIGNoZWNrOyBpdCBjYW4gZGlyZWN0bHkN
-CnN0YXJ0IHRoZSBhcHByb3ByaWF0ZSBlcnJvciBoYW5kbGluZy4NCg0KPiAzKSBSZWFkaW5nIHZp
-YSBmaWxlIGludGVyZmFjZSAocmVhZCgpKSB3aWxsIHJlc3VsdCBpbiBJTyBlcnJvcg0KPiByZXR1
-cm5lZCBpbiAiYm90aCIgdGhlIGFib3ZlIGNhc2VzLg0KDQpBIG5vbi10b2xlcmFudCBDUFUgd2ls
-bCBjcmFzaCB0aGUga2VybmVsIGJlZm9yZSByZWFkKCkgY29tcGxldGVzLg0KQSB0b2xlcmFudCBD
-UFUgd2lsbCBjb21wbGV0ZSByZWFkKCkgd2l0aCBhbiBlcnJvci4NCg0KPiA0KSBXcml0aW5nLCBo
-b3dldmVyLCBpbiBhbGwgdGhlIGFib3ZlIGNhc2VzIGRvZXMgbm90IHJlc3VsdCBpbiBhbnkgZXJy
-b3IuDQoNCkEgd3JpdGUgb2YgbGVzcyB0aGFuIHRoZSBFQ0MgZ3JhbnVsYXJpdHkgdHJpZ2dlcnMg
-YSByZWFkLW1vZGlmeS13cml0ZSwNCmFuZCB0aGUgQ1BVIG1pZ2h0IGRldGVjdCB0aGF0IHRoZSBy
-ZWFkIGZhaWxlZCBmaXJzdC4gIFRoaXMgaXNuJ3QgYW4NCmltbWVkaWF0ZSBwcm9ibGVtIGZvciB0
-aGUgc3RvcmUgaW5zdHJ1Y3Rpb24sIGJ1dCBpcyBhbiBlYXJseSBoaW50IHRoYXQNCnRoZXJlIHdp
-bGwgYmUgcHJvYmxlbXMgcmVhZGluZyB0aG9zZSBvdGhlciBieXRlcyBpbiB0aGUgZnV0dXJlLg0K
-DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
-cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Mon, Jan 7, 2019 at 1:28 PM Kamal Kakri <kamalkakri2017@yahoo.com> wrote:
+>
+>  Will it be OK to say that the behavior shall be same irrespective of if its load or store to a memory location with uncorrectable error (UCE) ?
+
+No. Machine check exceptions occur on the consumption of poison (UCE),
+stores don't consume poison.
+
+> I see errors being reported at the granularity of blocks (badblock list). Is SIGBUS generated when the bad location is accessed or if the page (or block) having bad location is accessed?
+
+SIGBUS is triggered preemptively if the kernel can determine that a
+badblock exists in a page it is about to be faulted-in to the process.
+It also triggers in the recovery path after a process has consumed
+poison and the kernel was able to contain it by killing that affected
+process.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
