@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from esa13.fujitsucc.c3s2.iphmx.com (esa13.fujitsucc.c3s2.iphmx.com
- [68.232.156.96])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3015211B63E9
- for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 23:47:37 -0800 (PST)
-From: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
-Subject: RE: [ndctl PATCH v2 2/2] ndctl, monitor: refactor read_config_file
-Date: Thu, 10 Jan 2019 07:47:27 +0000
-Message-ID: <OSAPR01MB339689FE32CB250800AD1FD2F7840@OSAPR01MB3396.jpnprd01.prod.outlook.com>
+ by ml01.01.org (Postfix) with ESMTPS id E20C9211AD36A
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Jan 2019 14:02:07 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v2 2/2] ndctl, monitor: refactor read_config_file
+Date: Mon, 7 Jan 2019 22:02:05 +0000
+Message-ID: <36bf7c7710c583cfb91d7c80f2f9aee8993d1b52.camel@intel.com>
 References: <20190107083833.25941-1-qi.fuli@jp.fujitsu.com>
  <20190107083833.25941-3-qi.fuli@jp.fujitsu.com>
- <36bf7c7710c583cfb91d7c80f2f9aee8993d1b52.camel@intel.com>
-In-Reply-To: <36bf7c7710c583cfb91d7c80f2f9aee8993d1b52.camel@intel.com>
+In-Reply-To: <20190107083833.25941-3-qi.fuli@jp.fujitsu.com>
 Content-Language: en-US
+Content-ID: <4657E3A0BEA7E748A94F756AAEB4156D@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,111 +21,140 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "'Verma, Vishal L'" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVmVybWEsIFZpc2hhbCBM
-IFttYWlsdG86dmlzaGFsLmwudmVybWFAaW50ZWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBKYW51
-YXJ5IDgsIDIwMTkgNzowMiBBTQ0KPiBUbzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZzsgUWks
-IEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBmdWppdHN1LmNvbT4NCj4gU3ViamVjdDogUmU6IFtu
-ZGN0bCBQQVRDSCB2MiAyLzJdIG5kY3RsLCBtb25pdG9yOiByZWZhY3RvciByZWFkX2NvbmZpZ19m
-aWxlDQo+IA0KPiANCj4gT24gTW9uLCAyMDE5LTAxLTA3IGF0IDE3OjM4ICswOTAwLCBRSSBGdWxp
-IHdyb3RlOg0KPiA+IFRoaXMgcGF0Y2ggaXMgdXNlZCBmb3IgcmVmYWN0b3JpbmcgcmVhZF9jb25m
-aWdfZmlsZSBieSByZXBsYWNpbmcgdGhlDQo+ID4gb3BlbiBjb2RlZCBpbXBsZW1lbnRhdGlvbiB3
-aXRoIGNjYW4vY2luaXBhcnNlciBsaWJyYXJ5Lg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogUUkg
-RnVsaSA8cWkuZnVsaUBqcC5mdWppdHN1LmNvbT4NCj4gPiAtLS0NCj4gPiAgbmRjdGwvTWFrZWZp
-bGUuYW0gIHwgICAxICsNCj4gPiAgbmRjdGwvbW9uaXRvci5jICAgIHwgMTE1ICsrKysrKysrKysr
-Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiA+ICBuZGN0bC9tb25pdG9yLmNv
-bmYgfCAgIDIgKw0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDMyIGluc2VydGlvbnMoKyksIDg2IGRl
-bGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL25kY3RsL01ha2VmaWxlLmFtIGIvbmRj
-dGwvTWFrZWZpbGUuYW0gaW5kZXgNCj4gPiBmZjAxZTA2Li4yZjAwYjY1IDEwMDY0NA0KPiA+IC0t
-LSBhL25kY3RsL01ha2VmaWxlLmFtDQo+ID4gKysrIGIvbmRjdGwvTWFrZWZpbGUuYW0NCj4gPiBA
-QCAtMjgsNiArMjgsNyBAQCBuZGN0bF9MREFERCA9XA0KPiA+ICAJbGliL2xpYm5kY3RsLmxhIFwN
-Cj4gPiAgCS4uL2RheGN0bC9saWIvbGliZGF4Y3RsLmxhIFwNCj4gPiAgCS4uL2xpYnV0aWwuYSBc
-DQo+ID4gKwkuLi9saWJjY2FuLmEgXA0KPiA+ICAJJChVVUlEX0xJQlMpIFwNCj4gPiAgCSQoS01P
-RF9MSUJTKSBcDQo+ID4gIAkkKEpTT05fTElCUykNCj4gPiBkaWZmIC0tZ2l0IGEvbmRjdGwvbW9u
-aXRvci5jIGIvbmRjdGwvbW9uaXRvci5jIGluZGV4IDIzM2YyYmIuLjg0OTlmZDQNCj4gPiAxMDA2
-NDQNCj4gPiAtLS0gYS9uZGN0bC9tb25pdG9yLmMNCj4gPiArKysgYi9uZGN0bC9tb25pdG9yLmMN
-Cj4gDQo+IFsuLl0NCj4gDQo+ID4gKwlkaWN0aW9uYXJ5ICpkaWM7DQo+ID4gKw0KPiA+ICsJZGlj
-ID0gY2luaXBhcnNlcl9sb2FkKGNvbmZpZ19maWxlKTsNCj4gPiArCWlmICghZGljKQ0KPiA+ICsJ
-CXJldHVybiAtZXJybm87DQo+ID4gKw0KPiA+ICsJcGFyc2VfY29uZmlnKCZwYXJhbS5idXMsDQo+
-ID4gKwkJCWNpbmlwYXJzZXJfZ2V0c3RyaW5nKGRpYywgIm1vbml0b3I6YnVzIiwgTlVMTCkpOw0K
-PiA+ICsJcGFyc2VfY29uZmlnKCZwYXJhbS5kaW1tLA0KPiA+ICsJCQljaW5pcGFyc2VyX2dldHN0
-cmluZyhkaWMsICJtb25pdG9yOmRpbW0iLCBOVUxMKSk7DQo+ID4gKwlwYXJzZV9jb25maWcoJnBh
-cmFtLnJlZ2lvbiwNCj4gPiArCQkJY2luaXBhcnNlcl9nZXRzdHJpbmcoZGljLCAibW9uaXRvcjpy
-ZWdpb24iLCBOVUxMKSk7DQo+ID4gKwlwYXJzZV9jb25maWcoJnBhcmFtLm5hbWVzcGFjZSwNCj4g
-PiArCQkJY2luaXBhcnNlcl9nZXRzdHJpbmcoZGljLCAibW9uaXRvcjpuYW1lc3BhY2UiLCBOVUxM
-KSk7DQo+ID4gKwlwYXJzZV9jb25maWcoJm1vbml0b3IuZGltbV9ldmVudCwNCj4gPiArCQkJY2lu
-aXBhcnNlcl9nZXRzdHJpbmcoZGljLCAibW9uaXRvcjpkaW1tLWV2ZW50IiwgTlVMTCkpOw0KPiAN
-Cj4gU2luY2UgdGhlIGRlZmF1bHQgcmV0dXJuIGlzIGFsd2F5cyBOVUxMIGluIHRoZSBhYm92ZSBj
-YWxscywgd2UgY2FuIHVzZSB0aGUgbW9yZSBjb25jaXNlDQo+IGZvcm0sIGNpbmlwYXJzZXJfZ2V0
-c3RyKCkgLQ0KPiANCj4gCSNkZWZpbmUgY2luaXBhcnNlcl9nZXRzdHIoZCwgaykgIGNpbmlwYXJz
-ZXJfZ2V0c3RyaW5nKGQsIGssIE5VTEwpDQo+IA0KPiANCj4gPiArCWlmIChtb25pdG9yLmxvZykN
-Cj4gPiAgCQlnb3RvIG91dDsNCj4gDQo+IFsuLl0NCj4gDQo+ID4gZGlmZiAtLWdpdCBhL25kY3Rs
-L21vbml0b3IuY29uZiBiL25kY3RsL21vbml0b3IuY29uZiBpbmRleA0KPiA+IDkzNGUyYzAuLmVk
-Y2Y4ZTIgMTAwNjQ0DQo+ID4gLS0tIGEvbmRjdGwvbW9uaXRvci5jb25mDQo+ID4gKysrIGIvbmRj
-dGwvbW9uaXRvci5jb25mDQo+ID4gQEAgLTksNiArOSw4IEBADQo+ID4gICMgTXVsdGlwbGUgc3Bh
-Y2Utc2VwYXJhdGVkIHZhbHVlcyBhcmUgYWxsb3dlZCwgYnV0IGV4Y2VwdCB0aGUNCj4gPiBmb2xs
-b3dpbmcgICMgY2hhcmFjdGVyczogOiA/IC8gXCAlICIgJyAkICYgISAqIHsgfSBbIF0gKCApID0g
-PCA+IEANCj4gDQo+IElzIHRoaXMgY2hhcmFjdGVyIHJlc3RyaWN0aW9uIHN0aWxsIHRydWU/DQo+
-IA0KPiA+DQo+ID4gK1ttb25pdG9yXQ0KPiA+ICsNCj4gPiAgIyBUaGUgb2JqZWN0cyB0byBtb25p
-dG9yIGFyZSBmaWx0ZXJlZCB2aWEgZGltbSdzIG5hbWUgYnkgc2V0dGluZyBrZXkgImRpbW0iLg0K
-PiA+ICAjIElmIHRoaXMgdmFsdWUgaXMgZGlmZmVyZW50IGZyb20gdGhlIHZhbHVlIG9mIFstLWRp
-bW09PHZhbHVlPl0NCj4gPiBvcHRpb24sICAjIGJvdGggb2YgdGhlIHZhbHVlcyB3aWxsIHdvcmsu
-DQo+IA0KPiBXaXRoIERhbidzIHJlY2VudCByZXdvcmtzIGNoYW5naW5nIHRoZSBidWlsZC10aW1l
-IGRlZmluZSB0byByZWZsZWN0IGFuICduZGN0bC13aWRlJw0KPiBjb25maWcsIGFuZCB3aXRoIHRo
-ZSBpbnRyb2R1Y3Rpb24gb2YgaW5pIHN0eWxlIHNlY3Rpb25zLCBJIHRoaW5rIHRoaXMgY2hhbmdl
-IG1lcml0cw0KPiBhIGxpdHRsZSBtb3JlIHRob3VnaHQuDQo+IA0KPiBUaGUgYWRkaXRpb24gb2Yg
-dGhlIFttb25pdG9yXSBzZWN0aW9uIGJyZWFrcyBhbnkgZXhpc3RpbmcgY29uZmlncyAtIHdoaWNo
-IGlzIGZpbmUsDQo+IEkgZG9uJ3QgZXhwZWN0IHdlIHdpbGwgYnJlYWsgdGhvdXNhbmRzLCBvciBl
-dmVuIHRlbnMsIG9mIGV4aXN0aW5nIGRlcGxveW1lbnRzIG91dA0KPiBpbiB0aGUgd2lsZCA6KQ0K
-PiANCj4gVGhhdCBiZWluZyBzYWlkLCBpZiB3ZSBhcmUgYnJlYWtpbmcgb2xkIGNvbmZpZyBmaWxl
-cywgd2UgY2FuIHRha2UgdGhpcyBjaGFuY2UgdG8NCj4gcmV0aGluayBhbmQgcmVzdHJ1Y3R1cmUg
-Y29uZmlndXJhdGlvbiBhIGJpdC4gSGVyZSBpcyBteSBwcm9wb3NhbC4NCj4gDQo+IC0gUmVuYW1l
-IG1vbml0b3IuY29uZiB0byBuZGN0bC5jb25mLCBpdCB3aWxsIGJlIGEgZ2xvYmFsIG5kY3RsLXdp
-ZGUgY29uZmlnIGZpbGUgdGhhdA0KPiBhbGwgY29tbWFuZHMgY2FuIHJlZmVyIHRvLg0KPiANCj4g
-LSBEZWZpbmUgc2VjdGlvbnMgb25seSBmb3IgY29tbWFuZC1zcGVjaWZpYyBvcHRpb25zLCBidXQg
-aGF2ZSBhIFtjb3JlXSBzZWN0aW9uIGZvcg0KPiBvcHRpb25zIHRoYXQgYXBwbHkgdG8gc2V2ZXJh
-bCBkaWZmZXJlbnQgY29tbWFuZHMuIEZvciBleGFtcGxlIGNvcmU6cmVnaW9uIGFuZA0KPiBjb3Jl
-OmJ1cyB3aWxsIHNwZWNpZnkgdGhlIHJlZ2lvbiBhbmQgYnVzIHRvIGFsd2F5cyBvcGVyYXRlIG9u
-IGJ5IGRlZmF1bHQuIEluIGNvbnRyYXN0LA0KPiBtb25pdG9yOmRpbW0tZXZlbnQgYW5kIG1vbml0
-b3I6bG9nIHdpbGwgYmUgaW4gdGhlIFttb25pdG9yXSBzZWN0aW9uLCBhbmQgd2lsbCBhbHdheXMN
-Cj4gYmUgbW9uaXRvciBzcGVjaWZpYy4NCj4gDQo+IC0gWW91IGNhbiBzdGlsbCBoYXZlIG11bHRp
-cGxlIG1vbml0b3IgcHJvY2Vzc2VzIHN0YXJ0ZWQgZWFjaCB1c2luZyBhIGRpc3RpbmN0IGNvbmZp
-Zy4NCj4gVGhlIHdheSB0aGlzIGNhbiB3b3JrIGlzIHRoYXQgdGhlICdnbG9iYWwnIG5kY3RsIGNv
-bmZpZyBmaWxlIHdpbGwgYmUgcmVhZCBmaXJzdCwNCj4gYW5kIHdpbGwgYWx3YXlzIGFwcGx5IChk
-ZWZhdWx0IC9ldGMvbmRjdGwvbmRjdGwuY29uZiwgY29uZmlndXJhYmxlIGF0IGNvbXBpbGUgdGlt
-ZSkuDQo+IEFueSAnbG9jYWwnDQo+IGNvbmZpZyBzdXBwbGllZCB1c2luZyB0aGUgY29uZmlnLWZp
-bGUgb3B0aW9uIHRvIG1vbml0b3Igd2lsbCBvdmVycmlkZSBhbnkgZmllbGQgdGhhdA0KPiBpdCBj
-aGFuZ2VzIG92ZXIgdGhlIGdsb2JhbCBjb25maWcuIFRoaXMgd2F5IHRoZSBsb2NhbCBjb25maWdz
-IGZvciBtb25pdG9yIGRvbid0IG5lZWQNCj4gdG8gZHVwbGljYXRlIGFueSB0cnVseSBjb21tb24g
-Y29yZSBpbmZvcm1hdGlvbiAoc2F5IGJ1cywgZm9yIGV4YW1wbGUpLCBidXQgc3RpbGwNCj4gaGF2
-ZSB0aGUgb3B0aW9uIHRvIG92ZXJyaWRlIHRoZW0gaWYgbmVlZGVkLiBUaGlzIGZvbGxvd3MgdGhl
-IHVzZXIgZXhwZXJpZW5jZSBnaXQNCj4gcHJvdmlkZXMgd2l0aCB+Ly5naXRjb25maWcgdnMuIHJl
-cG8gbG9jYWwgY29uZmlnLg0KPiANCj4gLSBFeGlzdGluZyBjb21tYW5kcyBjYW4gdGhlbiBiZSB0
-YXVnaHQgdG8gcmVzcGVjdCB0aGUgY29yZSBjb25maWcgb3B0aW9ucywgYW5kIGV2ZW4NCj4gZ3Jv
-dyB0aGVpciBvd24gc3BlY2lmaWMgc2VjdGlvbnMsIGJ1dCBhbGwgdGhhdCBjYW4gYmUgcGFydCBv
-ZiBhIGxvbmdlciB0ZXJtIGVmZm9ydC4NCj4gUHV0dGluZyBpbiB0aGUgZm91bmRhdGlvbnMgZm9y
-IHRoYXQgbm93IGNhbiBhbGxvdyB1cyB0byBjb252ZXJ0IGluZGl2aWR1YWwgY29tbWFuZHMNCj4g
-YXMgbmVlZGVkLiBGb3Igbm93IG1vbml0b3Igd2lsbCBiZSB0aGUgZmlyc3QgYW5kIG9ubHkgdXNl
-ciBvZiB0aGlzIG92ZXJyaWRlIGhpZXJhcmNoeS4NCj4gSSBzdXNwZWN0IHRoZXJlIHdpbGwgYmUg
-c29tZSByZWZhY3RvcmluZyBvZiBvcHRpb24gcGFyc2luZyBpbiBkaWZmZXJlbnQgY29tbWFuZHMs
-DQo+IGJ1dCB3ZSBwcm9iYWJseSBzaG91bGRuJ3QgYXR0ZW1wdCB0aGF0IHVudGlsIGEgc2Vjb25k
-IHVzZXIgb2YgdGhlIGNvbmZpZyBmcmFtZXdvcmsNCj4gc2hvd3MgdXAsIGFuZCB0aGVuIGl0IGlz
-IHRoZWlyIHJlc3BvbnNpYmlsaXR5IDopDQo+IA0KPiBXaXRoIHRoZSA1LjAtcmMxIGtlcm5lbCBv
-dXQsIHdlJ3JlIG92ZXJkdWUgZm9yIGFuIG5kY3RsLTY0IHJlbGVhc2UsIEkgc2hvdWxkIGJlIGFi
-bGUNCj4gdG8gZG8gdGhhdCB0aGlzIHdlZWssIGJ1dCBJJ20gdGhpbmtpbmcgd2l0aCB0aGUgd2lk
-ZXIgY29uZmlnIHJld29ya3MsIHRoaXMgaXMgcmVhbGx5DQo+IGEgbmRjdGwtNjUgaXRlbS4NCj4g
-DQo+IA0KPiBUaGFua3MsDQo+IAktVmlzaGFsDQoNCkhpIFZpc2hhbCwNCg0KVGhhbmsgeW91IGZv
-ciB5b3VyIGNvbW1lbnRzLg0KSSBhZ3JlZSB0byByZW5hbWUgbW9uaXRvci5jb25mIHRvIG5kY3Rs
-LmNvbmYgYW5kIG1ha2UgaXQgY2FuIGJlIHVzZWQgYnkgYWxsIGNvbW1hbmRzLg0KQWxzbywgdGhp
-bmtpbmcgdGhhdCB3ZSBjYW4gYWRkIGEgcGFyc2VfY29uZmlncyB0byB1dGlsIGJ5IHJlZmVycmlu
-ZyB0byBwYXJzZV9vcHRpb25zLA0KdGhlcmVmb3JlLCBldmVyeSBjb21tYW5kIGNhbiByZWFkIHRo
-ZSBnbG9iYWwgY29uZmlndXJhdGlvbiBmaWxlIGJ5IHVzaW5nIGl0Lg0KDQpUaGFua3MsDQpRSSBG
-dWxpDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
-eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
-aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+
+On Mon, 2019-01-07 at 17:38 +0900, QI Fuli wrote:
+> This patch is used for refactoring read_config_file by replacing the
+> open coded implementation with ccan/ciniparser library.
+> 
+> Signed-off-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+> ---
+>  ndctl/Makefile.am  |   1 +
+>  ndctl/monitor.c    | 115 ++++++++++++---------------------------------
+>  ndctl/monitor.conf |   2 +
+>  3 files changed, 32 insertions(+), 86 deletions(-)
+> 
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index ff01e06..2f00b65 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -28,6 +28,7 @@ ndctl_LDADD =\
+>  	lib/libndctl.la \
+>  	../daxctl/lib/libdaxctl.la \
+>  	../libutil.a \
+> +	../libccan.a \
+>  	$(UUID_LIBS) \
+>  	$(KMOD_LIBS) \
+>  	$(JSON_LIBS)
+> diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+> index 233f2bb..8499fd4 100644
+> --- a/ndctl/monitor.c
+> +++ b/ndctl/monitor.c
+
+[..]
+
+> +	dictionary *dic;
+> +
+> +	dic = ciniparser_load(config_file);
+> +	if (!dic)
+> +		return -errno;
+> +
+> +	parse_config(&param.bus,
+> +			ciniparser_getstring(dic, "monitor:bus", NULL));
+> +	parse_config(&param.dimm,
+> +			ciniparser_getstring(dic, "monitor:dimm", NULL));
+> +	parse_config(&param.region,
+> +			ciniparser_getstring(dic, "monitor:region", NULL));
+> +	parse_config(&param.namespace,
+> +			ciniparser_getstring(dic, "monitor:namespace", NULL));
+> +	parse_config(&monitor.dimm_event,
+> +			ciniparser_getstring(dic, "monitor:dimm-event", NULL));
+
+Since the default return is always NULL in the above calls, we can use
+the more concise form, ciniparser_getstr() -
+
+	#define ciniparser_getstr(d, k)  ciniparser_getstring(d, k, NULL)
+
+
+> +	if (monitor.log)
+>  		goto out;
+
+[..]
+ 
+> diff --git a/ndctl/monitor.conf b/ndctl/monitor.conf
+> index 934e2c0..edcf8e2 100644
+> --- a/ndctl/monitor.conf
+> +++ b/ndctl/monitor.conf
+> @@ -9,6 +9,8 @@
+>  # Multiple space-separated values are allowed, but except the following
+>  # characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
+
+Is this character restriction still true?
+
+>  
+> +[monitor]
+> +
+>  # The objects to monitor are filtered via dimm's name by setting key "dimm".
+>  # If this value is different from the value of [--dimm=<value>] option,
+>  # both of the values will work.
+
+With Dan's recent reworks changing the build-time define to reflect an
+'ndctl-wide' config, and with the introduction of ini style sections, I
+think this change merits a little more thought.
+
+The addition of the [monitor] section breaks any existing configs -
+which is fine, I don't expect we will break thousands, or even tens, of
+existing deployments out in the wild :)
+
+That being said, if we are breaking old config files, we can take this
+chance to rethink and restructure configuration a bit. Here is my
+proposal.
+
+- Rename monitor.conf to ndctl.conf, it will be a global ndctl-wide
+config file that all commands can refer to.
+
+- Define sections only for command-specific options, but have a [core]
+section for options that apply to several different commands. For
+example core:region and core:bus will specify the region and bus to
+always operate on by default. In contrast, monitor:dimm-event and
+monitor:log will be in the [monitor] section, and will always be
+monitor specific.
+
+- You can still have multiple monitor processes started each using a
+distinct config. The way this can work is that the 'global' ndctl
+config file will be read first, and will always apply (default
+/etc/ndctl/ndctl.conf, configurable at compile time). Any 'local'
+config supplied using the config-file option to monitor will override
+any field that it changes over the global config. This way the local
+configs for monitor don't need to duplicate any truly common core
+information (say bus, for example), but still have the option to
+override them if needed. This follows the user experience git provides
+with ~/.gitconfig vs. repo local config.
+
+- Existing commands can then be taught to respect the core config
+options, and even grow their own specific sections, but all that can be
+part of a longer term effort. Putting in the foundations for that now
+can allow us to convert individual commands as needed. For now monitor
+will be the first and only user of this override hierarchy. I suspect
+there will be some refactoring of option parsing in different commands,
+but we probably shouldn't attempt that until a second user of the
+config framework shows up, and then it is their responsibility :)
+
+With the 5.0-rc1 kernel out, we're overdue for an ndctl-64 release, I
+should be able to do that this week, but I'm thinking with the wider
+config reworks, this is really a ndctl-65 item.
+
+
+Thanks,
+	-Vishal
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
