@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-it1-x143.google.com (mail-it1-x143.google.com
+ [IPv6:2607:f8b0:4864:20::143])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 139EC21959CB2
- for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 12:07:23 -0800 (PST)
-Subject: [PATCH v8 08/12] ndctl: add overwrite operation support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 14 Jan 2019 13:07:20 -0700
-Message-ID: <154749644027.63704.10436851571300063502.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
-References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 62B31211B15B6
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 03:00:33 -0800 (PST)
+Received: by mail-it1-x143.google.com with SMTP id m62so5614523ith.5
+ for <linux-nvdimm@lists.01.org>; Tue, 08 Jan 2019 03:00:33 -0800 (PST)
 MIME-Version: 1.0
+References: <20181119080056.13386-1-oohall@gmail.com>
+ <20181119080056.13386-2-oohall@gmail.com>
+ <CAPcyv4idzcVa8XnA1G8DjEux=RRvCi_wF8hBk=4jmg1JFuRdDA@mail.gmail.com>
+ <CAOSf1CH1yGws3c0aOJZCLvsUxf5mvqtkQpe3CY7KS7UdKjMjuQ@mail.gmail.com>
+ <CAPcyv4hCds_vziivz164p5-zZcsB7kHV68imE3orw87y9A8TKA@mail.gmail.com>
+In-Reply-To: <CAPcyv4hCds_vziivz164p5-zZcsB7kHV68imE3orw87y9A8TKA@mail.gmail.com>
+From: Oliver <oohall@gmail.com>
+Date: Tue, 8 Jan 2019 22:00:21 +1100
+Message-ID: <CAOSf1CF=z--oNjvYW1KZCzcFQOgbMqvooqWqt7=1bqZK3UFcGw@mail.gmail.com>
+Subject: Re: [PATCH 2/4] ndctl/namespace: Check for seed namespaces earlier
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,210 +29,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for overwrite to libndctl. The operation will be triggered
-by the sanitize-dimm command with -o switch. This will initiate the request
-to wipe the entire nvdimm. Success return of the command only indicate
-overwrite has started and does not indicate completion of overwrite.
+On Tue, Jan 8, 2019 at 1:59 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> Sorry for letting this conversation go cold, lets try to revive it as
+> Vishal is looking to cut an ndctl v64 in the coming days and it would
+> be good to include this support.
+>
+> On Tue, Nov 27, 2018 at 5:27 AM Oliver <oohall@gmail.com> wrote:
+> >
+> > On Mon, Nov 26, 2018 at 7:12 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> > >
+> > > On Mon, Nov 19, 2018 at 12:11 AM Oliver O'Halloran <oohall@gmail.com> wrote:
+> > > >
+> > > > When creating an fsdax or devdax namespace we need to verify that the
+> > > > seed namespaces exist. This patch reworks the validation so that it's
+> > > > done earlier to simplify the subsequent patches in the series.
+> > > >
+> > > > No functional changes.
+> > >
+> > > It does appear to have a functional change. do_setup_pfn() supports
+> > > the case of statically allocated namespaces in NDCTL_NS_MODE_MEMORY
+> > > mode.
+> >
+> > Hmm, ok. Up until now I had assumed that as far as ndctl was concerned
+> > NS_MODE_MEMORY was synonymous with a pfn namespace.
+> >
+> > > This is what one gets by default with "legacy" pmem defined as
+> > > E820-type-12 memory. In that case the kernel assumes that the
+> > > resulting memmap is always small enough to be allocated from DRAM and
+> > > there is no need to use a dynamic  pfn device. So, if I'm not
+> > > mistaken, the deletion of do_setup_pfn() loses that special case
+> > > handling.
+> >
+> > From what I see, the main difference is that ndctl would fail
+> > validation when fsdax mode is specified and there's no pfn namespace
+> > support in the kernel. I agree that's not great, but I'm not sure what
+> > we should be doing here. The current behaviour will silently ignore -a
+> > if "-m fsdax -M mem" is specified in the reconfigure case, which
+> > doesn't seem great either.
+>
+> Right, both issues need to be addressed. As far as I can see
+> do_setup_pfn() just needs to be extended to detect attempts to set a
+> non-default alignment, and then when setting the alignment require it
+> to be one of the supported values.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/ndctl-sanitize-dimm.txt |    4 ++++
- ndctl/dimm.c                                |   21 +++++++++++++++++----
- ndctl/lib/dimm.c                            |    8 ++++++++
- ndctl/lib/keys.c                            |   21 ++++++++++++++++-----
- ndctl/lib/libndctl.sym                      |    2 ++
- ndctl/libndctl.h                            |    8 ++++++++
- 6 files changed, 55 insertions(+), 9 deletions(-)
+Seems reasonable. I'll dust off the series and post a respin tomorrow.
 
-diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-index 79629964..a1a43bdd 100644
---- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
-+++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
-@@ -35,4 +35,8 @@ include::xable-dimm-options.txt[]
- 	Replaces encryption keys and securely erases the data. This does not
- 	change label data. This is the default sanitize method.
- 
-+-o::
-+--ovewrite::
-+	Wipe the entire DIMM, including label data. Can take significant time.
-+
- include::../copyright.txt[]
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index a91b40d5..799823d6 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -48,6 +48,7 @@ static struct parameters {
- 	const char *key_path;
- 	const char *master_key;
- 	bool crypto_erase;
-+	bool overwrite;
- 	bool force;
- 	bool json;
- 	bool verbose;
-@@ -910,7 +911,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 	 * Setting crypto erase to be default. The other method will be
- 	 * overwrite.
- 	 */
--	if (!param.crypto_erase) {
-+	if (!param.crypto_erase && !param.overwrite) {
- 		param.crypto_erase = true;
- 		printf("No santize method passed in, default to crypto-erase\n");
- 	}
-@@ -921,6 +922,12 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 			return rc;
- 	}
- 
-+	if (param.overwrite) {
-+		rc = ndctl_dimm_overwrite_key(dimm, param.key_path);
-+		if (rc < 0)
-+			return rc;
-+	}
-+
- 	return 0;
- }
- 
-@@ -1023,7 +1030,9 @@ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
- 
- #define SANITIZE_OPTIONS() \
- OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
--		"crypto erase a dimm")
-+		"crypto erase a dimm"), \
-+OPT_BOOLEAN('o', "overwrite", &param.overwrite, \
-+		"overwrite a dimm")
- 
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
-@@ -1361,7 +1370,11 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
- 			sanitize_options,
- 			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
- 
--	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
--			count > 1 ? "s" : "");
-+	if (param.overwrite)
-+		fprintf(stderr, "overwrite issued for %d nmem%s.\n",
-+				count >= 0 ? count : 0, count > 1 ? "s" : "");
-+	else
-+		fprintf(stderr, "sanitized %d nmem%s.\n",
-+				count >= 0 ? count : 0, count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 285e09ce..f27b966c 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -685,3 +685,11 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
- 	sprintf(buf, "erase %ld\n", key);
- 	return write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
-+{
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	sprintf(buf, "overwrite %ld\n", key);
-+	return write_security(dimm, buf);
-+}
-diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
-index 39c4143c..beb5ab3b 100644
---- a/ndctl/lib/keys.c
-+++ b/ndctl/lib/keys.c
-@@ -92,6 +92,7 @@ NDCTL_EXPORT char *ndctl_load_key_blob(struct ndctl_ctx *ctx,
- 		err(ctx, "stat: %s\n", strerror(errno));
- 		return NULL;
- 	}
-+
- 	if ((st.st_mode & S_IFMT) != S_IFREG) {
- 		err(ctx, "%s not a regular file\n", path);
- 		return NULL;
-@@ -418,10 +419,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
- 	key = dimm_check_key(dimm, false);
- 	if (key < 0) {
- 		key = dimm_load_key(dimm, false, keypath);
--		if (key < 0) {
-+		if (key < 0 && run_op != ndctl_dimm_overwrite) {
- 			err(ctx, "Unable to load key\n");
- 			return -ENOKEY;
--		}
-+		} else
-+			key = 0;
- 	}
- 
- 	rc = run_op(dimm, key);
-@@ -431,9 +433,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
- 		return rc;
- 	}
- 
--	rc = dimm_remove_key(dimm, false, keypath);
--	if (rc < 0)
--		err(ctx, "Unable to cleanup key.\n");
-+	if (key) {
-+		rc = dimm_remove_key(dimm, false, keypath);
-+		if (rc < 0)
-+			err(ctx, "Unable to cleanup key.\n");
-+	}
- 	return 0;
- }
- 
-@@ -450,3 +454,10 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
- 	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
- 			"crypto erase", keypath);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
-+		const char *keypath)
-+{
-+	return check_key_run_and_discard(dimm, ndctl_dimm_overwrite,
-+			"overwrite", keypath);
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index bd85651e..ba9af99e 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -399,4 +399,6 @@ global:
- 	ndctl_dimm_freeze_security;
- 	ndctl_dimm_secure_erase;
- 	ndctl_dimm_secure_erase_key;
-+	ndctl_dimm_overwrite;
-+	ndctl_dimm_overwrite_key;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 9decc937..bcfcdfa5 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -706,6 +706,7 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
-+int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
- 
- enum ndctl_key_type {
- 	ND_USER_KEY,
-@@ -720,6 +721,7 @@ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master,
- int ndctl_dimm_disable_key(struct ndctl_dimm *dimm, const char *keypath);
- int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
- 		const char *keypath);
-+int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm, const char *keypath);
- #else
- static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
- 		const char *master, const char *keypath)
-@@ -744,6 +746,12 @@ static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
-+		const char *keypath)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif
- 
- #define ND_KEY_DESC_SIZE	128
+> I expect we should also extend the region listing output to include
+> the supported alignments.
 
+Probably a good idea. I think even have a patch to do that somewhere...
+
+> Does this clarify your concern enough to attempt a respin of the
+> series? If not just holler and Vishal and I will arm-wrestle to decide
+> who picks this up.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
