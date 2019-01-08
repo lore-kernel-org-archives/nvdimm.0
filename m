@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com
+ [IPv6:2607:f8b0:4864:20::d42])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46B3221B02822
- for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:21:52 -0800 (PST)
-Subject: [PATCH 1/5] mm/resource: return real error codes from walk failures
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Thu, 24 Jan 2019 15:14:42 -0800
-References: <20190124231441.37A4A305@viggo.jf.intel.com>
-In-Reply-To: <20190124231441.37A4A305@viggo.jf.intel.com>
-Message-Id: <20190124231442.EFD29EE0@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 413C2211B1F90
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 11:47:55 -0800 (PST)
+Received: by mail-io1-xd42.google.com with SMTP id m19so4124507ioh.3
+ for <linux-nvdimm@lists.01.org>; Tue, 08 Jan 2019 11:47:55 -0800 (PST)
+Subject: Re: [fio PATCH] engines/devdax: Make detection of device-dax
+ instances more robust
+References: <154697605958.939406.14480036379705502215.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <be0f90f5-b26c-43e6-489e-29770e1634c1@kernel.dk>
+Date: Tue, 8 Jan 2019 12:47:51 -0700
+MIME-Version: 1.0
+In-Reply-To: <154697605958.939406.14480036379705502215.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,81 +23,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: fio@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+On 1/8/19 12:34 PM, Dan Williams wrote:
+> In preparation for the kernel switching device-dax instances from the
+> "/sys/class/dax" subsystem to "/sys/bus/dax" [1], teach the device-dax
+> instance detection to be subsystem-type agnostic.
+> 
+> Note that the subsystem switch will require an administrator, or distro
+> opt-in. The opt-in will either be at kernel compile time by disabling
+> the default compatibility driver in the kernel, or at runtime with a
+> modprobe policy to override which kernel module service device-dax
+> devices. The daxctl utility [2] will ship a command to install the
+> modprobe policy and include a man page that lists the potential
+> regression risk to older FIO and other userspace tools that are hard
+> coded to "/sys/class/dax".
+> 
+> [1]: https://lwn.net/Articles/770128/
+> [2]: https://github.com/pmem/ndctl/tree/master/daxctl
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
+Applied, thanks Dan.
 
-walk_system_ram_range() can return an error code either becuase *it*
-failed, or because the 'func' that it calls returned an error.  The
-memory hotplug does the following:
+-- 
+Jens Axboe
 
-        ret = walk_system_ram_range(..., func);
-        if (ret)
-		return ret;
-
-and 'ret' makes it out to userspace, eventually.  The problem is,
-walk_system_ram_range() failues that result from *it* failing (as
-opposed to 'func') return -1.  That leads to a very odd -EPERM (-1)
-return code out to userspace.
-
-Make walk_system_ram_range() return -EINVAL for internal failures to
-keep userspace less confused.
-
-This return code is compatible with all the callers that I audited.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
----
-
- b/kernel/resource.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1 kernel/resource.c
---- a/kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1	2019-01-24 15:13:13.950199540 -0800
-+++ b/kernel/resource.c	2019-01-24 15:13:13.954199540 -0800
-@@ -375,7 +375,7 @@ static int __walk_iomem_res_desc(resourc
- 				 int (*func)(struct resource *, void *))
- {
- 	struct resource res;
--	int ret = -1;
-+	int ret = -EINVAL;
- 
- 	while (start < end &&
- 	       !find_next_iomem_res(start, end, flags, desc, first_lvl, &res)) {
-@@ -453,7 +453,7 @@ int walk_system_ram_range(unsigned long
- 	unsigned long flags;
- 	struct resource res;
- 	unsigned long pfn, end_pfn;
--	int ret = -1;
-+	int ret = -EINVAL;
- 
- 	start = (u64) start_pfn << PAGE_SHIFT;
- 	end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
-_
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
