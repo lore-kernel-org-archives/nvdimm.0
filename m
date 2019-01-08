@@ -1,15 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-x441.google.com (mail-wr1-x441.google.com
+ [IPv6:2a00:1450:4864:20::441])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A39A121197374
- for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 10:26:22 -0800 (PST)
-Subject: [PATCH] libnvdimm/security: fix nvdimm_security_state() state
- request selection
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Tue, 15 Jan 2019 11:26:21 -0700
-Message-ID: <154757678148.35482.4492154450935271566.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 27E88211B15A6
+ for <linux-nvdimm@lists.01.org>; Mon,  7 Jan 2019 21:18:51 -0800 (PST)
+Received: by mail-wr1-x441.google.com with SMTP id x10so2699850wrs.8
+ for <linux-nvdimm@lists.01.org>; Mon, 07 Jan 2019 21:18:51 -0800 (PST)
+Date: Mon, 7 Jan 2019 22:18:47 -0700
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: Re: [PATCH] nfit: Hide unused functions behind CONFIG_X86
+Message-ID: <20190108051847.GA17285@flashbox>
+References: <20190108045853.5471-1-natechancellor@gmail.com>
+ <CAPcyv4gA=qEm81k-f80oBBo9mmPcAg6szYQvtdOWFFWgd=9A4g@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gA=qEm81k-f80oBBo9mmPcAg6szYQvtdOWFFWgd=9A4g@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,41 +27,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: kbuild test robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The input parameter should be enum nvdimm_passphrase_type instead of bool
-for selection of master/user for selection of extended master passphrase
-state or the regular user passphrase state.
+On Mon, Jan 07, 2019 at 09:14:05PM -0800, Dan Williams wrote:
+> On Mon, Jan 7, 2019 at 8:59 PM Nathan Chancellor
+> <natechancellor@gmail.com> wrote:
+> >
+> > On arm64 little endian allyesconfig:
+> >
+> > drivers/acpi/nfit/intel.c:149:12: warning: unused function 'intel_security_unlock' [-Wunused-function]
+> > static int intel_security_unlock(struct nvdimm *nvdimm,
+> >            ^
+> > drivers/acpi/nfit/intel.c:230:12: warning: unused function 'intel_security_erase' [-Wunused-function]
+> > static int intel_security_erase(struct nvdimm *nvdimm,
+> >            ^
+> > drivers/acpi/nfit/intel.c:279:12: warning: unused function 'intel_security_query_overwrite' [-Wunused-function]
+> > static int intel_security_query_overwrite(struct nvdimm *nvdimm)
+> >            ^
+> > drivers/acpi/nfit/intel.c:316:12: warning: unused function 'intel_security_overwrite' [-Wunused-function]
+> > static int intel_security_overwrite(struct nvdimm *nvdimm,
+> >            ^
+> > 4 warnings generated.
+> >
+> > These functions are only used in __intel_security_ops when CONFIG_X86 is
+> > set so only define these functions under that same condition.
+> 
+> Thanks for the report, not sure how the kbuild robot missed this. I'd
+> prefer marking the functions __maybe_unused rather than expanding the
+> ifdef guards.
 
-Fixes: 89fa9d8ea7bdf ("acpi/nfit, libnvdimm/security: add Intel DSM 1.8 master passphrase support")
+allyesconfig defaults to big endian, which doesn't built the nfit folder
+(haven't looked into the dependency chain to see why). I have been
+working with Clang and have a local patch to avoid turning on big endian
+mode with it for now (avoids a few other warnings for now).
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- drivers/nvdimm/nd-core.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I can send a v2 with that change if you would like.
 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 2b2cf4e554d3..e5ffd5733540 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -54,12 +54,12 @@ struct nvdimm {
- };
- 
- static inline enum nvdimm_security_state nvdimm_security_state(
--		struct nvdimm *nvdimm, bool master)
-+		struct nvdimm *nvdimm, enum nvdimm_passphrase_type ptype)
- {
- 	if (!nvdimm->sec.ops)
- 		return -ENXIO;
- 
--	return nvdimm->sec.ops->state(nvdimm, master);
-+	return nvdimm->sec.ops->state(nvdimm, ptype);
- }
- int nvdimm_security_freeze(struct nvdimm *nvdimm);
- #if IS_ENABLED(CONFIG_NVDIMM_KEYS)
-
+Thanks for the quick reply,
+Nathan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
