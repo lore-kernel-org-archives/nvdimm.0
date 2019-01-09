@@ -1,49 +1,67 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [PATCH v3 4/5] ext4: disable map_sync for virtio pmem
-Date: Wed, 9 Jan 2019 09:54:19 -0500 (EST)
-Message-ID: <1413703615.61223613.1547045659656.JavaMail.zimbra@redhat.com>
-References: <20190109135606.15401-1-pagupta@redhat.com> <20190109144215.GI15397@quack2.suse.cz>
+From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 5/5] xfs: disable map_sync for virtio pmem
+Date: Wed, 9 Jan 2019 08:26:54 -0800
+Message-ID: <20190109162654.GW12689@magnolia>
+References: <20190109144736.17452-1-pagupta@redhat.com>
+ <20190109144736.17452-6-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190109144215.GI15397@quack2.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, stefanha@redhat.com, dan j williams <dan.j.williams@intel.com>, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, david@redhat.com, jmoyer@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, hch@infradead.org, mst@redhat.com, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger kernel <adilger.kernel@dilger.>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190109144736.17452-6-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-
+On Wed, Jan 09, 2019 at 08:17:36PM +0530, Pankaj Gupta wrote:
+> Virtio pmem provides asynchronous host page cache flush
+> mechanism. we don't support 'MAP_SYNC' with virtio pmem 
+> and xfs.
 > 
-> On Wed 09-01-19 19:26:05, Pankaj Gupta wrote:
-> > Virtio pmem provides asynchronous host page cache flush
-> > mechanism. We don't support 'MAP_SYNC' with virtio pmem
-> > and ext4.
-> > 
-> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> ...
-> > @@ -371,6 +373,13 @@ static int ext4_file_mmap(struct file *file, struct
-> > vm_area_struct *vma)
-> >  	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-> >  		return -EOPNOTSUPP;
-> >  
-> > +	/* We don't support synchronous mappings with guest direct access
-> > +	 * and virtio based host page cache flush mechanism.
-> > +	 */
-> > +	if (IS_DAX(file_inode(file)) && virtio_pmem_host_cache_enabled(dax_dev)
-> > +						&& (vma->vm_flags & VM_SYNC))
-> > +		return -EOPNOTSUPP;
-> > +
+> Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>  fs/xfs/xfs_file.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> Shouldn't there rather be some generic way of doing this? Having
-> virtio_pmem_host_cache_enabled() check in filesystem code just looks like
-> filesystem sniffing into details is should not care about... Maybe just
-> naming this (or having a wrapper) dax_dev_map_sync_supported()?
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index e474250..eae4aa4 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -1190,6 +1190,14 @@ xfs_file_mmap(
+>  	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+>  		return -EOPNOTSUPP;
+>  
+> +	/* We don't support synchronous mappings with guest direct access
+> +	 * and virtio based host page cache mechanism.
+> +	 */
+> +	if (IS_DAX(file_inode(filp)) && virtio_pmem_host_cache_enabled(
 
-Thanks for the feedback.
+Echoing what Jan said, this ought to be some sort of generic function
+that tells us whether or not memory mapped from the dax device will
+always still be accessible even after a crash (i.e. supports MAP_SYNC).
 
-Just wanted to avoid 'dax' in function name just to differentiate this with real dax.
-But yes can add a wrapper: dax_dev_map_sync_supported()
+What if the underlying file on the host is itself on pmem and can be
+MAP_SYNC'd?  Shouldn't the guest be able to use MAP_SYNC as well?
 
-Thanks,
-Pankaj
+--D
+
+> +		xfs_find_daxdev_for_inode(file_inode(filp))) &&
+> +					(vma->vm_flags & VM_SYNC))
+> +		return -EOPNOTSUPP;
+> +
+>  	file_accessed(filp);
+>  	vma->vm_ops = &xfs_file_vm_ops;
+>  	if (IS_DAX(file_inode(filp)))
+> -- 
+> 2.9.3
+> 
