@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C4AF7211A1E3B
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 16:11:53 -0800 (PST)
-Subject: [PATCH] acpi/nfit: Fix command-supported detection
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Jan 2019 15:59:16 -0800
-Message-ID: <154725096972.1367907.12968253382302127133.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8D61E211B5098
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 09:54:36 -0800 (PST)
+Subject: [PATCH v7 08/12] ndctl: add overwrite operation support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 09 Jan 2019 10:54:35 -0700
+Message-ID: <154705647591.23227.16371557710830841069.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
+References: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,124 +22,214 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Sujith Pandel <sujith_pandel@dell.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The _DSM function number validation only happens to succeed when the
-generic Linux command number translation corresponds with a
-DSM-family-specific function number. This breaks NVDIMM-N
-implementations that correctly implement _LSR, _LSW, and _LSI, but do
-not happen to publish support for DSM function numbers 4, 5, and 6.
+Add support for overwrite to libndctl. The operation will be triggered
+by the sanitize-dimm command with -o switch. This will initiate the request
+to wipe the entire nvdimm. Success return of the command only indicate
+overwrite has started and does not indicate completion of overwrite.
 
-Recall that the support for _LS{I,R,W} family of methods results in the
-DIMM being marked as supporting those command numbers at
-acpi_nfit_register_dimms() time. The DSM function mask is only used for
-ND_CMD_CALL support of non-NVDIMM_FAMILY_INTEL devices.
-
-Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command...")
-Cc: <stable@vger.kernel.org>
-Link: https://github.com/pmem/ndctl/issues/78
-Reported-by: Sujith Pandel <sujith_pandel@dell.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-Sujith, this is a larger change than what you originally tested, but it
-should behave the same. I wanted to consolidate all the code that
-handles Linux command number to DIMM _DSM function number translation.
+ Documentation/ndctl/ndctl-sanitize-dimm.txt |    4 ++++
+ ndctl/dimm.c                                |   21 +++++++++++++++++----
+ ndctl/lib/dimm.c                            |    8 ++++++++
+ ndctl/lib/keys.c                            |   25 +++++++++++++++++--------
+ ndctl/lib/libndctl.sym                      |    2 ++
+ ndctl/libndctl.h                            |    8 ++++++++
+ 6 files changed, 56 insertions(+), 12 deletions(-)
 
-If you have a chance to re-test with this it would be much appreciated.
-
-Thanks for the report!
-
- drivers/acpi/nfit/core.c |   43 +++++++++++++++++++++++++++++--------------
- 1 file changed, 29 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 790691d9a982..d5d64e90ae71 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -409,6 +409,29 @@ static bool payload_dumpable(struct nvdimm *nvdimm, unsigned int func)
- 	return true;
- }
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+index a1eab8bc..d37c2a4b 100644
+--- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -34,4 +34,8 @@ include::xable-dimm-options.txt[]
+ 	Replaces encryption keys and securely erases the data. This does not
+ 	change label data. This is the default sanitize method.
  
-+static int cmd_to_func(struct nvdimm *nvdimm, unsigned int cmd,
-+		struct nd_cmd_pkg *call_pkg)
-+{
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++-o::
++--ovewrite::
++	Wipe the entire DIMM, including label data. Can take significant time.
 +
-+	if (cmd == ND_CMD_CALL) {
-+		int i;
-+
-+		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
-+			return -ENOTTY;
-+
-+		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
-+			if (call_pkg->nd_reserved2[i])
-+				return -EINVAL;
-+		return call_pkg->nd_command;
+ include::../copyright.txt[]
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index a91b40d5..799823d6 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -48,6 +48,7 @@ static struct parameters {
+ 	const char *key_path;
+ 	const char *master_key;
+ 	bool crypto_erase;
++	bool overwrite;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -910,7 +911,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 	 * Setting crypto erase to be default. The other method will be
+ 	 * overwrite.
+ 	 */
+-	if (!param.crypto_erase) {
++	if (!param.crypto_erase && !param.overwrite) {
+ 		param.crypto_erase = true;
+ 		printf("No santize method passed in, default to crypto-erase\n");
+ 	}
+@@ -921,6 +922,12 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 			return rc;
+ 	}
+ 
++	if (param.overwrite) {
++		rc = ndctl_dimm_overwrite_key(dimm, param.key_path);
++		if (rc < 0)
++			return rc;
 +	}
 +
-+	/* Linux ND commands == NVDIMM_FAMILY_INTEL function numbers */
-+	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
-+		return cmd;
-+	return 0;
-+}
+ 	return 0;
+ }
+ 
+@@ -1023,7 +1030,9 @@ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
+ 
+ #define SANITIZE_OPTIONS() \
+ OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
+-		"crypto erase a dimm")
++		"crypto erase a dimm"), \
++OPT_BOOLEAN('o', "overwrite", &param.overwrite, \
++		"overwrite a dimm")
+ 
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+@@ -1361,7 +1370,11 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
+ 			sanitize_options,
+ 			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
+ 
+-	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
+-			count > 1 ? "s" : "");
++	if (param.overwrite)
++		fprintf(stderr, "overwrite issued for %d nmem%s.\n",
++				count >= 0 ? count : 0, count > 1 ? "s" : "");
++	else
++		fprintf(stderr, "sanitized %d nmem%s.\n",
++				count >= 0 ? count : 0, count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 285e09ce..f27b966c 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -685,3 +685,11 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
+ 	sprintf(buf, "erase %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
 +
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
- {
-@@ -422,30 +445,21 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	unsigned long cmd_mask, dsm_mask;
- 	u32 offset, fw_status = 0;
- 	acpi_handle handle;
--	unsigned int func;
- 	const guid_t *guid;
--	int rc, i;
-+	int func, rc, i;
++NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
++{
++	char buf[SYSFS_ATTR_SIZE];
++
++	sprintf(buf, "overwrite %ld\n", key);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+index 95abd61a..2eb23d38 100644
+--- a/ndctl/lib/keys.c
++++ b/ndctl/lib/keys.c
+@@ -85,10 +85,9 @@ static char *load_key_blob(struct ndctl_ctx *ctx, const char *path, int *size)
+ 	char prefix[] = "load ";
  
- 	if (cmd_rc)
- 		*cmd_rc = -EINVAL;
--	func = cmd;
--	if (cmd == ND_CMD_CALL) {
--		call_pkg = buf;
--		func = call_pkg->nd_command;
--
--		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
--			if (call_pkg->nd_reserved2[i])
--				return -EINVAL;
+ 	rc = stat(path, &st);
+-	if (rc < 0) {
+-		err(ctx, "stat: %s\n", strerror(errno));
++	if (rc < 0)
+ 		return NULL;
 -	}
++
+ 	if ((st.st_mode & S_IFMT) != S_IFREG) {
+ 		err(ctx, "%s not a regular file\n", path);
+ 		return NULL;
+@@ -404,10 +403,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
+ 	key = dimm_check_key(dimm, false);
+ 	if (key < 0) {
+ 		key = dimm_load_key(dimm, false, keypath);
+-		if (key < 0) {
++		if (key < 0 && run_op != ndctl_dimm_overwrite) {
+ 			err(ctx, "Unable to load key\n");
+ 			return -ENOKEY;
+-		}
++		} else
++			key = 0;
+ 	}
  
- 	if (nvdimm) {
- 		struct acpi_device *adev = nfit_mem->adev;
+ 	rc = run_op(dimm, key);
+@@ -417,9 +417,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
+ 		return rc;
+ 	}
  
- 		if (!adev)
- 			return -ENOTTY;
--		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
--			return -ENOTTY;
+-	rc = dimm_remove_key(dimm, false, keypath);
+-	if (rc < 0)
+-		err(ctx, "Unable to cleanup key.\n");
++	if (key) {
++		rc = dimm_remove_key(dimm, false, keypath);
++		if (rc < 0)
++			err(ctx, "Unable to cleanup key.\n");
++	}
+ 	return 0;
+ }
  
-+		func = cmd_to_func(nvdimm, cmd, buf);
-+		if (func < 0)
-+			return func;
- 		dimm_name = nvdimm_name(nvdimm);
- 		cmd_name = nvdimm_cmd_name(cmd);
- 		cmd_mask = nvdimm_cmd_mask(nvdimm);
-@@ -456,6 +470,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	} else {
- 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
+@@ -436,3 +438,10 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ 	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
+ 			"crypto erase", keypath);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
++		const char *keypath)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_overwrite,
++			"overwrite", keypath);
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 0e3aa5d9..0fedae1a 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -398,4 +398,6 @@ global:
+ 	ndctl_dimm_freeze_security;
+ 	ndctl_dimm_secure_erase;
+ 	ndctl_dimm_secure_erase_key;
++	ndctl_dimm_overwrite;
++	ndctl_dimm_overwrite_key;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 772aa7bb..1fbcfff4 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -704,6 +704,7 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
  
-+		func = cmd;
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
- 		cmd_mask = nd_desc->cmd_mask;
- 		dsm_mask = cmd_mask;
-@@ -470,7 +485,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
- 		return -ENOTTY;
+ enum ndctl_key_type {
+ 	ND_USER_KEY,
+@@ -718,6 +719,7 @@ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master,
+ int ndctl_dimm_disable_key(struct ndctl_dimm *dimm, const char *keypath);
+ int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ 		const char *keypath);
++int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm, const char *keypath);
+ #else
+ static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
+ 		const char *master, const char *keypath)
+@@ -742,6 +744,12 @@ static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
++		const char *keypath)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
  
--	if (!test_bit(cmd, &cmd_mask) || !test_bit(func, &dsm_mask))
-+	if (!test_bit(cmd, &cmd_mask) && !test_bit(func, &dsm_mask))
- 		return -ENOTTY;
- 
- 	in_obj.type = ACPI_TYPE_PACKAGE;
+ #ifdef __cplusplus
 
 _______________________________________________
 Linux-nvdimm mailing list
