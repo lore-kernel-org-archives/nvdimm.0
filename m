@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 91B23211B5A46
- for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 09:54:31 -0800 (PST)
-Subject: [PATCH v7 07/12] ndctl: setup modprobe rules
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Wed, 09 Jan 2019 10:54:30 -0700
-Message-ID: <154705647045.23227.7733373111052687524.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
-References: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7E345211B506D
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 21:32:18 -0800 (PST)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [RFC PATCH v2 2/4] dm-writecache: get rid of memory_data flush to
+ writecache_flush_entry
+Date: Wed,  9 Jan 2019 13:31:25 +0800
+Message-Id: <20190109053127.8128-3-yehs2007@zoho.com>
+In-Reply-To: <20190109053127.8128-1-yehs2007@zoho.com>
+References: <20190109053127.8128-1-yehs2007@zoho.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,86 +18,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: snitzer@redhat.com, agk@redhat.com
+Cc: jack@suse.cz, corbet@lwn.net, chengnt@lenovo.com, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Adding reference config file for modprobe.d in order to trigger the
-reference script that will inject keys associated with the nvdimms into
-the kernel user ring for unlock.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+writecache_flush_region only works when SSD mode.
+If wc->pmem_mode sets, writecache_flush_region doesn't need to be called in
+writecache_flush_entry.
+
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
- Makefile.am                  |   10 ++++++++++
- contrib/ndctl-loadkeys.sh    |   25 +++++++++++++++++++++++++
- contrib/nvdimm_modprobe.conf |    1 +
- 3 files changed, 36 insertions(+)
- create mode 100755 contrib/ndctl-loadkeys.sh
- create mode 100644 contrib/nvdimm_modprobe.conf
+ drivers/md/dm-writecache.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index e0c463a3..5a3f03aa 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -42,6 +42,16 @@ bashcompletiondir = $(BASH_COMPLETION_DIR)
- dist_bashcompletion_DATA = contrib/ndctl
- endif
+diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
+index 2d8e0c0..c69317c 100644
+--- a/drivers/md/dm-writecache.c
++++ b/drivers/md/dm-writecache.c
+@@ -688,8 +688,6 @@ static void writecache_poison_lists(struct dm_writecache *wc)
+ static void writecache_flush_entry(struct dm_writecache *wc, struct wc_entry *e)
+ {
+ 	writecache_flush_region(wc, memory_entry(wc, e));
+-	if (WC_MODE_PMEM(wc))
+-		writecache_flush_region(wc, memory_data(wc, e));
+ }
  
-+load_key_file = contrib/ndctl-loadkeys.sh
-+load_keydir = $(sysconfdir)/ndctl/
-+load_key_DATA = $(load_key_file)
-+EXTRA_DIST += $(load_key_file)
-+
-+modprobe_file = contrib/nvdimm_modprobe.conf
-+modprobedir = $(sysconfdir)/modprobe.d/
-+modprobe_DATA = $(modprobe_file)
-+EXTRA_DIST += $(modprobe_file)
-+
- noinst_LIBRARIES = libccan.a
- libccan_a_SOURCES = \
- 	ccan/str/str.h \
-diff --git a/contrib/ndctl-loadkeys.sh b/contrib/ndctl-loadkeys.sh
-new file mode 100755
-index 00000000..bc2c94df
---- /dev/null
-+++ b/contrib/ndctl-loadkeys.sh
-@@ -0,0 +1,25 @@
-+#!/bin/bash -Ex
-+
-+# This script assumes a single master key for all DIMMs
-+
-+key_path=/etc/ndctl/keys
-+tpmh_path="$key_path"/tpm.handle
-+key_type=""
-+tpm_handle=""
-+id=""
-+
-+if [ -f $tpmh_path ]; then
-+	key_type=trusted
-+	tpm_handle="keyhandle=$(cat $tpmh_path)"
-+else
-+	key_type=user
-+fi
-+
-+if ! keyctl search @u "$key_type" nvdimm-master; then
-+	keyctl add "$key_type" nvdimm-master "load $(cat $key_path/nvdimm-master.blob) $tpm_handle" @u > /dev/null
-+fi
-+
-+for file in "$key_path"/nvdimm_*; do
-+	id="$(cut -d'_' -f2 <<< "${file##*/}")"
-+	keyctl add encrypted nvdimm:"$id" "load $(cat "$file")" @u
-+done
-diff --git a/contrib/nvdimm_modprobe.conf b/contrib/nvdimm_modprobe.conf
-new file mode 100644
-index 00000000..b113d8d7
---- /dev/null
-+++ b/contrib/nvdimm_modprobe.conf
-@@ -0,0 +1 @@
-+install libnvdimm /usr/sbin/ndctl-loadkeys.sh ; /sbin/modprobe --ignore-install libnvdimm $CMDLINE_OPTS
+ static bool writecache_entry_is_committed(struct dm_writecache *wc, struct wc_entry *e)
+-- 
+1.8.3.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
