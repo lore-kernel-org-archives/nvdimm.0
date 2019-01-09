@@ -1,16 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com
+ [148.163.143.35])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F1198211B506F
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 21:32:07 -0800 (PST)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [RFC PATCH v2 1/4] dm-writecache: remove unused size to
- writecache_flush_region
-Date: Wed,  9 Jan 2019 13:31:24 +0800
-Message-Id: <20190109053127.8128-2-yehs2007@zoho.com>
-In-Reply-To: <20190109053127.8128-1-yehs2007@zoho.com>
-References: <20190109053127.8128-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5AA03211B1FB0
+ for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 16:11:31 -0800 (PST)
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: Question on Error Injection
+Date: Wed, 9 Jan 2019 00:11:27 +0000
+Message-ID: <AT5PR8401MB11698F196875F48D0002692BAB8B0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1351778734.5719210.1546535622423.ref@mail.yahoo.com>
+ <1351778734.5719210.1546535622423@mail.yahoo.com>
+ <873fd52419a7561f983927597dfb6fb613fc937e.camel@intel.com>
+ <69789157.5813313.1546545763506@mail.yahoo.com>
+ <199cc2d719c01c7099723e3c5f4aaa88060535e1.camel@intel.com>
+ <AT5PR8401MB1169B2838F6DB72BC62B308DAB8D0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ <985533328.5906467.1546556529562@mail.yahoo.com>
+ <AT5PR8401MB11699659E6B9E6EF513248C1AB8E0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ <1210203101.7636183.1546896524417@mail.yahoo.com>
+ <CAPcyv4giNsLO_c2fPmnhsQAetYSinuTMFKHFMoEo8cGYqCfU5A@mail.gmail.com>
+ <1204898506.8101813.1546965223934@mail.yahoo.com>
+In-Reply-To: <1204898506.8101813.1546965223934@mail.yahoo.com>
+Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,82 +30,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com, agk@redhat.com
-Cc: jack@suse.cz, corbet@lwn.net, chengnt@lenovo.com, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
+To: 'Kamal Kakri' <kamalkakri2017@yahoo.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
-
-writecache_flush_region doesn't use size to calculate flush region.
-That uses _set_bits to mark the region in dirty_bitmap directly.
-
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- drivers/md/dm-writecache.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 2d50eec..2d8e0c0 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -418,7 +418,7 @@ static void writecache_flush_all_metadata(struct dm_writecache *wc)
- 		memset(wc->dirty_bitmap, -1, wc->dirty_bitmap_size);
- }
- 
--static void writecache_flush_region(struct dm_writecache *wc, void *ptr, size_t size)
-+static void writecache_flush_region(struct dm_writecache *wc, void *ptr)
- {
- 	if (!WC_MODE_PMEM(wc))
- 		__set_bit(((char *)ptr - (char *)wc->memory_map) / BITMAP_GRANULARITY,
-@@ -657,7 +657,7 @@ static void writecache_free_entry(struct dm_writecache *wc, struct wc_entry *e)
- 	writecache_unlink(wc, e);
- 	writecache_add_to_freelist(wc, e);
- 	clear_seq_count(wc, e);
--	writecache_flush_region(wc, memory_entry(wc, e), sizeof(struct wc_memory_entry));
-+	writecache_flush_region(wc, memory_entry(wc, e));
- 	if (unlikely(waitqueue_active(&wc->freelist_wait)))
- 		wake_up(&wc->freelist_wait);
- }
-@@ -687,9 +687,9 @@ static void writecache_poison_lists(struct dm_writecache *wc)
- 
- static void writecache_flush_entry(struct dm_writecache *wc, struct wc_entry *e)
- {
--	writecache_flush_region(wc, memory_entry(wc, e), sizeof(struct wc_memory_entry));
-+	writecache_flush_region(wc, memory_entry(wc, e));
- 	if (WC_MODE_PMEM(wc))
--		writecache_flush_region(wc, memory_data(wc, e), wc->block_size);
-+		writecache_flush_region(wc, memory_data(wc, e));
- }
- 
- static bool writecache_entry_is_committed(struct dm_writecache *wc, struct wc_entry *e)
-@@ -733,7 +733,7 @@ static void writecache_flush(struct dm_writecache *wc)
- 
- 	wc->seq_count++;
- 	pmem_assign(sb(wc)->seq_count, cpu_to_le64(wc->seq_count));
--	writecache_flush_region(wc, &sb(wc)->seq_count, sizeof sb(wc)->seq_count);
-+	writecache_flush_region(wc, &sb(wc)->seq_count);
- 	writecache_commit_flushed(wc);
- 
- 	wc->overwrote_committed = false;
-@@ -1757,7 +1757,7 @@ static int init_memory(struct dm_writecache *wc)
- 	writecache_flush_all_metadata(wc);
- 	writecache_commit_flushed(wc);
- 	pmem_assign(sb(wc)->magic, cpu_to_le32(MEMORY_SUPERBLOCK_MAGIC));
--	writecache_flush_region(wc, &sb(wc)->magic, sizeof sb(wc)->magic);
-+	writecache_flush_region(wc, &sb(wc)->magic);
- 	writecache_commit_flushed(wc);
- 
- 	return 0;
--- 
-1.8.3.1
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Rm9yIG1haWxpbmcgbGlzdHMsIHBsZWFzZSB1c2UgcGxhaW50ZXh0IHJhdGhlciB0aGFuIEhUTUwg
+ZW1haWxzLCBhbmQgZG9u4oCZdCB0b3AtcG9zdC4NCg0KPiBBcmUgdGhlc2Ugc3RhdGVtZW50cyBj
+b3JyZWN0Pw0KPiANCj4gMSkgUmVhZGluZyBmcm9tIGEgbWVtb3J5IGxvY2F0aW9uIChtbWFwZWQp
+IHdpdGggdW5jb3JyZWN0YWJsZSBBTkQgdW5rbm93bg0KPiBlcnJvciAoYWxzbyBjYWxsZWQgYXMg
+bGF0ZW50IGVycm9yKSByZXN1bHRzIGluIGEgbWFjaGluZS1jaGVjayAod2hpY2gNCj4gdXN1YWxs
+eSByZXN1bHRzIGluIGEgU0lHQlVTICwgZGVmYXVsdCBhY3Rpb24gDQo+IGluIC9zeXMvZGV2aWNl
+cy9zeXN0ZW0vbWFjaGluZWNoZWNrL21hY2hpbmVjaGVja04pLg0KPg0KPiA0KSBXcml0aW5nLCBo
+b3dldmVyLCBpbiBhbGwgdGhlIGFib3ZlIGNhc2VzIGRvZXMgbm90IHJlc3VsdCBpbiBhbnkgZXJy
+b3IuDQoNCldoZW4gYSBDUFUgbG9hZCBpbnN0cnVjdGlvbiBnZXRzIGFuIHVuY29ycmVjdGFibGUg
+ZXJyb3IgKGkuZS4sIHRoZSBoYXJkd2FyZQ0KY2Fubm90IHByb3ZpZGUgYW55IGRhdGEgdG8gY29t
+cGxldGUgdGhhdCBpbnN0cnVjdGlvbiksIHRoZSBDUFUgY3JlYXRlcyBhDQptYWNoaW5lIGNoZWNr
+IGV4Y2VwdGlvbi4gIFRoZSBtYWNoaW5lIGNoZWNrIGhhbmRsZXIgZGVjaWRlcyB3aGF0IHRvIGRv
+IG5leHQuDQpUaGF0IHRocmVhZCBpcyBzdHVjayBhbmQgY2Fubm90IHByb2NlZWQsIHNvIHRoZSBo
+YW5kbGVyIG11c3QgZG8gc29tZXRoaW5nDQpsaWtlOg0KDQoqIGlmIHRoZSBpbnN0cnVjdGlvbiB3
+YXMgcGFydCBvZiB0aGUga2VybmVsJ3MgbWVtY3B5X21jc2FmZSgpIGZ1bmN0aW9uICh3aGljaA0K
+aXMgY2FsbGVkIGJ5IHRoZSByZWFkKCkgc3lzdGVtIGNhbGwpLCBmb3JjZSB0aGUgZnVuY3Rpb24g
+dG8gcmV0dXJuIGFuIGVycm9yDQp3aGljaCByZXN1bHRzIGluIHJlYWQoKSByZXR1cm5pbmcgYW4g
+SS9PIGVycm9yIHRvIGl0cyBjYWxsZXINCg0KKiBpZiB0aGUgaW5zdHJ1Y3Rpb24gd2FzIGlzc3Vl
+ZCBieSBhcHBsaWNhdGlvbiAoZS5nLiB0aGF0IGhhZCB1c2VkIG1tYXAoKQ0KdG8gZ2V0IGRpcmVj
+dCBhY2Nlc3MgdG8gcGVyc2lzdGVudCBtZW1vcnkpLCBzZW5kIFNJR0JVUyB0byB0aGUgYXBwbGlj
+YXRpb24uDQpNb3N0IGFwcGxpY2F0aW9ucyB3aWxsIGp1c3QgZXhpdCAoYW5kIGNyZWF0ZSBhIGNv
+cmUgZHVtcCkuICBTb21lIGFwcGxpY2F0aW9ucw0KY2FuIHByb2Nlc3MgU0lHQlVTIGFuZCBwcm9j
+ZWVkIChlLmcuLCBsaWtlIHRoZSBrZXJuZWwgZG9lcyB3aXRoIA0KbWVtY3B5X21jc2FmZSgpKS4N
+Cg0KKiBpZiB0aGUgaW5zdHJ1Y3Rpb24gd2FzIGlzc3VlZCBieSB0aGUga2VybmVsIG91dHNpZGUg
+bWVtY3B5X21jc2FmZSgpLCBkbyBhDQpwYW5pYyBjcmFzaCBvZiB0aGUga2VybmVsDQoNCkhpc3Rv
+cmljYWxseSwgIkVQIGNsYXNzIiBDUFVzIGFsd2F5cyBjcmFzaGVkIHRoZSBrZXJuZWwgd2hpbGUg
+IkVYIGNsYXNzIg0KQ1BVcyBjb3VsZCBwcm9jZWVkLiBGb3IgcGVyc2lzdGVudCBtZW1vcnksIHRv
+bGVyYW5jZSBpcyBhIGtleSBDUFUNCmZlYXR1cmUuICBUaGlzIGluZGljYXRlcyB0aGUgQ1BVIGRv
+ZXMgc3VwcG9ydCBwcm9jZWVkaW5nOg0KICAgIC9zeXMvZGV2aWNlcy9zeXN0ZW0vbWFjaGluZWNo
+ZWNrL21hY2hpbmVjaGVjayovdG9sZXJhbnQ6MQ0KDQo+IDIpIFJlYWRpbmcgZnJvbSBhIG1lbW9y
+eSBsb2NhdGlvbiAobW1hcGVkKSB3aXRoIGtub3duIGVycm9yDQo+IChiYWRibG9jayBsaXN0KSBh
+bHNvIHJlc3VsdHMgaW4gYSBTSUdCVVMuDQoNClRoZSBwbWVtIGRyaXZlciBjb25zdWx0cyB0aGUg
+YmFkYmxvY2sgbGlzdCB0byBhdm9pZCBhc2tpbmcgdGhlIENQVSB0bw0KbG9hZCBmcm9tIGEgYmFk
+IGFkZHJlc3MgYW5kIHRyaWdnZXJpbmcgYSBtYWNoaW5lIGNoZWNrOyBpdCBjYW4gZGlyZWN0bHkN
+CnN0YXJ0IHRoZSBhcHByb3ByaWF0ZSBlcnJvciBoYW5kbGluZy4NCg0KPiAzKSBSZWFkaW5nIHZp
+YSBmaWxlIGludGVyZmFjZSAocmVhZCgpKSB3aWxsIHJlc3VsdCBpbiBJTyBlcnJvcg0KPiByZXR1
+cm5lZCBpbiAiYm90aCIgdGhlIGFib3ZlIGNhc2VzLg0KDQpBIG5vbi10b2xlcmFudCBDUFUgd2ls
+bCBjcmFzaCB0aGUga2VybmVsIGJlZm9yZSByZWFkKCkgY29tcGxldGVzLg0KQSB0b2xlcmFudCBD
+UFUgd2lsbCBjb21wbGV0ZSByZWFkKCkgd2l0aCBhbiBlcnJvci4NCg0KPiA0KSBXcml0aW5nLCBo
+b3dldmVyLCBpbiBhbGwgdGhlIGFib3ZlIGNhc2VzIGRvZXMgbm90IHJlc3VsdCBpbiBhbnkgZXJy
+b3IuDQoNCkEgd3JpdGUgb2YgbGVzcyB0aGFuIHRoZSBFQ0MgZ3JhbnVsYXJpdHkgdHJpZ2dlcnMg
+YSByZWFkLW1vZGlmeS13cml0ZSwNCmFuZCB0aGUgQ1BVIG1pZ2h0IGRldGVjdCB0aGF0IHRoZSBy
+ZWFkIGZhaWxlZCBmaXJzdC4gIFRoaXMgaXNuJ3QgYW4NCmltbWVkaWF0ZSBwcm9ibGVtIGZvciB0
+aGUgc3RvcmUgaW5zdHJ1Y3Rpb24sIGJ1dCBpcyBhbiBlYXJseSBoaW50IHRoYXQNCnRoZXJlIHdp
+bGwgYmUgcHJvYmxlbXMgcmVhZGluZyB0aG9zZSBvdGhlciBieXRlcyBpbiB0aGUgZnV0dXJlLg0K
+DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
+dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
+cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
