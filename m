@@ -1,52 +1,169 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3 4/5] ext4: disable map_sync for virtio pmem
-Date: Wed, 9 Jan 2019 15:42:15 +0100
-Message-ID: <20190109144215.GI15397@quack2.suse.cz>
-References: <20190109135606.15401-1-pagupta@redhat.com>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [Qemu-devel] [PATCH v3 0/5] kvm "virtio pmem" device
+Date: Wed, 9 Jan 2019 09:46:08 -0500 (EST)
+Message-ID: <1814830087.61221572.1547045168645.JavaMail.zimbra@redhat.com>
+References: <20190109135024.14093-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20190109135606.15401-1-pagupta@redhat.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Pankaj Gupta <pagupta@redhat.com>
-Cc: jack@suse.cz, kvm@vger.kernel.org, linux-nvdimm@ml01.01.org, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger.kernel@dilger.ca, zwisler@kernel.org, eblake@redhat.com, dave.jiang@intel.com, darrick.wong@oracle.com, vishal.l.verma@intel.com, mst@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan.j.williams@intel.com, lcapitulino@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong.eric@gmail.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190109135024.14093-1-pagupta@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, david@redhat.com, jasowang@redhat.com, lcapitulino@redhat.com, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, mst@redhat.com, willy@infradead.org, hch@infradead.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, rjw@rjwysocki.net, pbonzini@redhat.com
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed 09-01-19 19:26:05, Pankaj Gupta wrote:
-> Virtio pmem provides asynchronous host page cache flush
-> mechanism. We don't support 'MAP_SYNC' with virtio pmem 
-> and ext4. 
+
+
+Please ignore this series as my network went down while 
+sending this. I will send this series again.
+
+Thanks,
+Pankaj  
+
 > 
-> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-...
-> @@ -371,6 +373,13 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
->  	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
->  		return -EOPNOTSUPP;
+> This patch series has implementation for "virtio pmem".
+>  "virtio pmem" is fake persistent memory(nvdimm) in guest
+>  which allows to bypass the guest page cache. This also
+>  implements a VIRTIO based asynchronous flush mechanism.
 >  
-> +	/* We don't support synchronous mappings with guest direct access
-> +	 * and virtio based host page cache flush mechanism.
-> +	 */
-> +	if (IS_DAX(file_inode(file)) && virtio_pmem_host_cache_enabled(dax_dev)
-> +						&& (vma->vm_flags & VM_SYNC))
-> +		return -EOPNOTSUPP;
-> +
-
-Shouldn't there rather be some generic way of doing this? Having
-virtio_pmem_host_cache_enabled() check in filesystem code just looks like
-filesystem sniffing into details is should not care about... Maybe just
-naming this (or having a wrapper) dax_dev_map_sync_supported()?
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+>  Sharing guest kernel driver in this patchset with the
+>  changes suggested in v2. Tested with Qemu side device
+>  emulation for virtio-pmem [6].
+>  
+>  Details of project idea for 'virtio pmem' flushing interface
+>  is shared [3] & [4].
+> 
+>  Implementation is divided into two parts:
+>  New virtio pmem guest driver and qemu code changes for new
+>  virtio pmem paravirtualized device.
+> 
+> 1. Guest virtio-pmem kernel driver
+> ---------------------------------
+>    - Reads persistent memory range from paravirt device and
+>      registers with 'nvdimm_bus'.
+>    - 'nvdimm/pmem' driver uses this information to allocate
+>      persistent memory region and setup filesystem operations
+>      to the allocated memory.
+>    - virtio pmem driver implements asynchronous flushing
+>      interface to flush from guest to host.
+> 
+> 2. Qemu virtio-pmem device
+> ---------------------------------
+>    - Creates virtio pmem device and exposes a memory range to
+>      KVM guest.
+>    - At host side this is file backed memory which acts as
+>      persistent memory.
+>    - Qemu side flush uses aio thread pool API's and virtio
+>      for asynchronous guest multi request handling.
+> 
+>    David Hildenbrand CCed also posted a modified version[6] of
+>    qemu virtio-pmem code based on updated Qemu memory device API.
+> 
+>  Virtio-pmem errors handling:
+>  ----------------------------------------
+>   Checked behaviour of virtio-pmem for below types of errors
+>   Need suggestions on expected behaviour for handling these errors?
+> 
+>   - Hardware Errors: Uncorrectable recoverable Errors:
+>   a] virtio-pmem:
+>     - As per current logic if error page belongs to Qemu process,
+>       host MCE handler isolates(hwpoison) that page and send SIGBUS.
+>       Qemu SIGBUS handler injects exception to KVM guest.
+>     - KVM guest then isolates the page and send SIGBUS to guest
+>       userspace process which has mapped the page.
+>   
+>   b] Existing implementation for ACPI pmem driver:
+>     - Handles such errors with MCE notifier and creates a list
+>       of bad blocks. Read/direct access DAX operation return EIO
+>       if accessed memory page fall in bad block list.
+>     - It also starts backgound scrubbing.
+>     - Similar functionality can be reused in virtio-pmem with MCE
+>       notifier but without scrubbing(no ACPI/ARS)? Need inputs to
+>       confirm if this behaviour is ok or needs any change?
+> 
+> Changes from PATCH v2: [1]
+> - Disable MAP_SYNC for ext4 & XFS filesystems - [Dan]
+> - Use name 'virtio pmem' in place of 'fake dax'
+> 
+> Changes from PATCH v1: [2]
+> - 0-day build test for build dependency on libnvdimm
+> 
+>  Changes suggested by - [Dan Williams]
+> - Split the driver into two parts virtio & pmem
+> - Move queuing of async block request to block layer
+> - Add "sync" parameter in nvdimm_flush function
+> - Use indirect call for nvdimm_flush
+> - Don’t move declarations to common global header e.g nd.h
+> - nvdimm_flush() return 0 or -EIO if it fails
+> - Teach nsio_rw_bytes() that the flush can fail
+> - Rename nvdimm_flush() to generic_nvdimm_flush()
+> - Use 'nd_region->provider_data' for long dereferencing
+> - Remove virtio_pmem_freeze/restore functions
+> - Remove BSD license text with SPDX license text
+> 
+> - Add might_sleep() in virtio_pmem_flush - [Luiz]
+> - Make spin_lock_irqsave() narrow
+> 
+> Changes from RFC v3
+> - Rebase to latest upstream - Luiz
+> - Call ndregion->flush in place of nvdimm_flush- Luiz
+> - kmalloc return check - Luiz
+> - virtqueue full handling - Stefan
+> - Don't map entire virtio_pmem_req to device - Stefan
+> - request leak, correct sizeof req- Stefan
+> - Move declaration to virtio_pmem.c
+> 
+> Changes from RFC v2:
+> - Add flush function in the nd_region in place of switching
+>   on a flag - Dan & Stefan
+> - Add flush completion function with proper locking and wait
+>   for host side flush completion - Stefan & Dan
+> - Keep userspace API in uapi header file - Stefan, MST
+> - Use LE fields & New device id - MST
+> - Indentation & spacing suggestions - MST & Eric
+> - Remove extra header files & add licensing - Stefan
+> 
+> Changes from RFC v1:
+> - Reuse existing 'pmem' code for registering persistent
+>   memory and other operations instead of creating an entirely
+>   new block driver.
+> - Use VIRTIO driver to register memory information with
+>   nvdimm_bus and create region_type accordingly.
+> - Call VIRTIO flush from existing pmem driver.
+> 
+> Pankaj Gupta (5):
+>    libnvdimm: nd_region flush callback support
+>    virtio-pmem: Add virtio-pmem guest driver
+>    libnvdimm: add nd_region buffered dax_dev flag
+>    ext4: disable map_sync for virtio pmem
+>    xfs: disable map_sync for virtio pmem
+> 
+> [2] https://lkml.org/lkml/2018/8/31/407
+> [3] https://www.spinics.net/lists/kvm/msg149761.html
+> [4] https://www.spinics.net/lists/kvm/msg153095.html
+> [5] https://lkml.org/lkml/2018/8/31/413
+> [6] https://marc.info/?l=qemu-devel&m=153555721901824&w=2
+> 
+>  drivers/acpi/nfit/core.c         |    4 -
+>  drivers/dax/super.c              |   17 +++++
+>  drivers/nvdimm/claim.c           |    6 +
+>  drivers/nvdimm/nd.h              |    1
+>  drivers/nvdimm/pmem.c            |   15 +++-
+>  drivers/nvdimm/region_devs.c     |   45 +++++++++++++-
+>  drivers/nvdimm/virtio_pmem.c     |   84 ++++++++++++++++++++++++++
+>  drivers/virtio/Kconfig           |   10 +++
+>  drivers/virtio/Makefile          |    1
+>  drivers/virtio/pmem.c            |  125
+>  +++++++++++++++++++++++++++++++++++++++
+>  fs/ext4/file.c                   |   11 +++
+>  fs/xfs/xfs_file.c                |    8 ++
+>  include/linux/dax.h              |    9 ++
+>  include/linux/libnvdimm.h        |   11 +++
+>  include/linux/virtio_pmem.h      |   60 ++++++++++++++++++
+>  include/uapi/linux/virtio_ids.h  |    1
+>  include/uapi/linux/virtio_pmem.h |   10 +++
+>  17 files changed, 406 insertions(+), 12 deletions(-)
+> 
+> 
+> 
