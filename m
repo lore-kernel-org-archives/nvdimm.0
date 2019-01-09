@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AF183211B5A4C
- for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 18:31:15 -0800 (PST)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v3 0/5] Optimize writecache when using pmem as cache
-Date: Thu, 31 Jan 2019 10:29:50 +0800
-Message-Id: <20190131022955.9920-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id CD776211AEA4E
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 09:54:14 -0800 (PST)
+Subject: [PATCH v7 04/12] ndctl: add support for freeze security
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 09 Jan 2019 10:54:13 -0700
+Message-ID: <154705645369.23227.18053157259182331013.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
+References: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,49 +18,171 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mpatocka@redhat.com, snitzer@redhat.com, agk@redhat.com
-Cc: jack@suse.cz, corbet@lwn.net, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+Add support for freeze security to libndctl and also command line option
+of "freeze-security" for ndctl. This will lock the ability to make changes
+to the NVDIMM security.
 
-This patch set could be used for dm-writecache when use persistent
-memory as cache data device.
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/ndctl/Makefile.am               |    3 ++-
+ Documentation/ndctl/ndctl-freeze-security.txt |   20 ++++++++++++++++++
+ ndctl/builtin.h                               |    1 +
+ ndctl/dimm.c                                  |   28 +++++++++++++++++++++++++
+ ndctl/lib/dimm.c                              |    5 ++++
+ ndctl/lib/libndctl.sym                        |    1 +
+ ndctl/libndctl.h                              |    1 +
+ ndctl/ndctl.c                                 |    1 +
+ 8 files changed, 59 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
 
-Patch 1 and 2 go towards removing unused parameter and codes which
-actually doesn't really work.
-
-Patch 3 and 4 are targeted at solving problem fn ctr failed to work
-due to invalid magic or version, which is caused by the super block
-of pmem has messy data stored.
-
-Patch 5 is used for getting the status of seq_count.
-
-Changes Since v2: 
-        - seq_count is important for flush operations, output it within status
-          for debugging and analyzing code behavior.
-	[1]: https://lkml.org/lkml/2019/1/3/43
-        [2]: https://lkml.org/lkml/2019/1/9/6
-
-Huaisheng Ye (5):
-  dm-writecache: remove unused size to writecache_flush_region
-  dm-writecache: get rid of memory_data flush to writecache_flush_entry
-  dm-writecache: expand pmem_reinit for struct dm_writecache
-  Documentation/device-mapper: add optional parameter reinit
-  dm-writecache: output seq_count within status
-
- Documentation/device-mapper/writecache.txt |  4 ++++
- drivers/md/dm-writecache.c                 | 23 +++++++++++++----------
- 2 files changed, 17 insertions(+), 10 deletions(-)
-
--- 
-1.8.3.1
-
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 31570a77..a97f193d 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -50,7 +50,8 @@ man1_MANS = \
+ 	ndctl-monitor.1 \
+ 	ndctl-enable-passphrase.1 \
+ 	ndctl-update-passphrase.1 \
+-	ndctl-disable-passphrase.1
++	ndctl-disable-passphrase.1 \
++	ndctl-freeze-security.1
+ 
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+new file mode 100644
+index 00000000..4e9d2d61
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -0,0 +1,20 @@
++// SPDX-License-Identifier: GPL-2.0
++
++ndctl-freeze-security(1)
++========================
++
++NAME
++----
++ndctl-freeze-security - enabling or freeze the security for an NVDIMM
++
++SYNOPSIS
++--------
++[verse]
++'ndctl freeze-security' <dimm>
++
++DESCRIPTION
++-----------
++Provide a generic interface to freeze the security for NVDIMM. Once security
++is frozen, no other security operations can succeed until reboot happens.
++
++include::../copyright.txt[]
+diff --git a/ndctl/builtin.h b/ndctl/builtin.h
+index 821ea690..f7469598 100644
+--- a/ndctl/builtin.h
++++ b/ndctl/builtin.h
+@@ -35,4 +35,5 @@ int cmd_inject_smart(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_passphrase_setup(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_passphrase_update(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_disable_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_freeze_security(int argc, const char **argv, struct ndctl_ctx *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 4f0466a1..19301791 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -876,6 +876,24 @@ static int action_passphrase_disable(struct ndctl_dimm *dimm,
+ 	return ndctl_dimm_disable_key(dimm, param.key_path);
+ }
+ 
++static int action_security_freeze(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
++
++	if (!ndctl_dimm_security_supported(dimm)) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	rc = ndctl_dimm_freeze_security(dimm);
++	if (rc < 0)
++		error("Failed to freeze security for %s\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
++}
++
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -1285,3 +1303,13 @@ int cmd_disable_passphrase(int argc, const char **argv, void *ctx)
+ 			count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_freeze_security(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
++			"ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	fprintf(stderr, "security freezed %d nmem%s.\n", count >= 0 ? count : 0,
++			count > 1 ? "s" : "");
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 076ccbf6..8f0f0486 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -672,3 +672,8 @@ NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
+ 	sprintf(buf, "disable %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
++{
++	return write_security(dimm, "freeze");
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 90038e75..a1c56060 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -395,4 +395,5 @@ global:
+ 	ndctl_dimm_update_passphrase;
+ 	ndctl_dimm_disable_passphrase;
+ 	ndctl_dimm_disable_key;
++	ndctl_dimm_freeze_security;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index cb58f89c..48c26476 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -702,6 +702,7 @@ bool ndctl_dimm_security_supported(struct ndctl_dimm *dimm);
+ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ 		long ckey, long nkey);
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ 
+ enum ndctl_key_type {
+ 	ND_USER_KEY,
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 21f1b834..da8dce11 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -91,6 +91,7 @@ static struct cmd_struct commands[] = {
+ 	{ "enable-passphrase", { cmd_passphrase_setup } },
+ 	{ "update-passphrase", { cmd_passphrase_update } },
+ 	{ "disable-passphrase", { cmd_disable_passphrase } },
++	{ "freeze-security", { cmd_freeze_security } },
+ 	{ "list", { cmd_list } },
+ 	{ "monitor", { cmd_monitor } },
+ 	{ "help", { cmd_help } },
 
 _______________________________________________
 Linux-nvdimm mailing list
