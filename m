@@ -1,15 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from esa20.fujitsucc.c3s2.iphmx.com (esa20.fujitsucc.c3s2.iphmx.com
+ [216.71.158.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2CCE3211B509C
- for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 18:45:44 -0800 (PST)
-Subject: [daxctl PATCH v3 1/3] daxctl: Support the /sys/bus/dax ABI
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 17 Jan 2019 18:33:06 -0800
-Message-ID: <154777878668.2060068.4181003086210283179.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154777878104.2060068.1465998507656988115.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154777878104.2060068.1465998507656988115.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 356AB21962301
+ for <linux-nvdimm@lists.01.org>; Wed,  9 Jan 2019 20:59:44 -0800 (PST)
+From: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+Subject: RE: [ndctl PATCH v2 1/2] ndctl: add the ciniparser tool from ccan
+Date: Thu, 10 Jan 2019 04:59:38 +0000
+Message-ID: <OSAPR01MB33968D34C2B250E920C9BB72F7840@OSAPR01MB3396.jpnprd01.prod.outlook.com>
+References: <20190107083833.25941-1-qi.fuli@jp.fujitsu.com>
+ <20190107083833.25941-2-qi.fuli@jp.fujitsu.com>
+ <04d69bf74e10c38550bc563aa61d2a9b70a5295d.camel@intel.com>
+ <CAPcyv4i412JwUQ6FSwisQtaUi089+1y1-umAdHv7q42QqrNuSg@mail.gmail.com>
+ <3b29a0fcd77d9ca8286298b13f4455329181680b.camel@intel.com>
+ <CAPcyv4hFCsH2gs4cyzXRwb7drgeW3cMvXyWzdLJOVxPMTwCw5w@mail.gmail.com>
+ <36d049bd0ca76fb13e068da3d940c463d843a746.camel@intel.com>
+In-Reply-To: <36d049bd0ca76fb13e068da3d940c463d843a746.camel@intel.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,198 +26,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "'Verma, Vishal L'" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel is implementing a '/sys/bus/dax' ABI to allow for alternate
-device-DAX drivers to be bound to device instances.  In support of this
-conversion, teach the libdaxctl subsystem-layout-specific code to parse
-the new layout.
-
-For backwards compatibility the implementation transparently and
-optionally supports either '/sys/bus/dax' or '/sys/class/dax'.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- daxctl/lib/libdaxctl-private.h |   11 ++++++
- daxctl/lib/libdaxctl.c         |   70 +++++++++++++++++++++++++++++-----------
- util/sysfs.c                   |    2 +
- 3 files changed, 62 insertions(+), 21 deletions(-)
-
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index f7667324026f..4a462e7245d2 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -15,6 +15,17 @@
- 
- #define DAXCTL_EXPORT __attribute__ ((visibility("default")))
- 
-+enum dax_subsystem {
-+	DAX_UNKNOWN,
-+	DAX_CLASS,
-+	DAX_BUS,
-+};
-+
-+static const char *dax_subsystems[] = {
-+	[DAX_CLASS] = "/sys/class/dax",
-+	[DAX_BUS] = "/sys/bus/dax/devices",
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 22f4210a7ea0..c2e3a52d6c7c 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -444,26 +444,38 @@ static void dax_devices_init(struct daxctl_region *region)
- {
- 	struct daxctl_ctx *ctx = daxctl_region_get_ctx(region);
- 	char daxdev_fmt[50];
--	char *region_path;
-+	size_t i;
- 
- 	if (region->devices_init)
- 		return;
- 
- 	region->devices_init = 1;
- 	sprintf(daxdev_fmt, "dax%d.", region->id);
--	if (asprintf(&region_path, "%s/dax", region->region_path) < 0) {
--		dbg(ctx, "region path alloc fail\n");
--		return;
-+	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
-+		char *region_path;
-+
-+		if (i == DAX_BUS)
-+			region_path = region->region_path;
-+		else if (i == DAX_CLASS) {
-+			if (asprintf(&region_path, "%s/dax",
-+						region->region_path) < 0) {
-+				dbg(ctx, "region path alloc fail\n");
-+				continue;
-+			}
-+		} else
-+			continue;
-+		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
-+				add_dax_dev);
-+		if (i == DAX_CLASS)
-+			free(region_path);
- 	}
--	sysfs_device_parse(ctx, region_path, daxdev_fmt, region, add_dax_dev);
--	free(region_path);
- }
- 
--static char *dax_region_path(const char *base, const char *device)
-+static char *dax_region_path(const char *device, enum dax_subsystem subsys)
- {
- 	char *path, *region_path, *c;
- 
--	if (asprintf(&path, "%s/%s", base, device) < 0)
-+	if (asprintf(&path, "%s/%s", dax_subsystems[subsys], device) < 0)
- 		return NULL;
- 
- 	/* dax_region must be the instance's direct parent */
-@@ -472,7 +484,11 @@ static char *dax_region_path(const char *base, const char *device)
- 	if (!region_path)
- 		return NULL;
- 
--	/* 'region_path' is now regionX/dax/daxX.Y', trim back to regionX */
-+	/*
-+	 * 'region_path' is now regionX/dax/daxX.Y' (DAX_CLASS), or
-+	 * regionX/daxX.Y (DAX_BUS), trim it back to the regionX
-+	 * component
-+	 */
- 	c = strrchr(region_path, '/');
- 	if (!c) {
- 		free(region_path);
-@@ -480,6 +496,9 @@ static char *dax_region_path(const char *base, const char *device)
- 	}
- 	*c = '\0';
- 
-+	if (subsys == DAX_BUS)
-+		return region_path;
-+
- 	c = strrchr(region_path, '/');
- 	if (!c) {
- 		free(region_path);
-@@ -490,20 +509,15 @@ static char *dax_region_path(const char *base, const char *device)
- 	return region_path;
- }
- 
--static void dax_regions_init(struct daxctl_ctx *ctx)
-+static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys)
- {
--	const char *base = "/sys/class/dax";
- 	struct dirent *de;
--	DIR *dir;
-+	DIR *dir = NULL;
- 
--	if (ctx->regions_init)
--		return;
--
--	ctx->regions_init = 1;
--
--	dir = opendir(base);
-+	dir = opendir(dax_subsystems[subsys]);
- 	if (!dir) {
--		dbg(ctx, "no dax regions found\n");
-+		dbg(ctx, "no dax regions found via: %s\n",
-+				dax_subsystems[subsys]);
- 		return;
- 	}
- 
-@@ -516,7 +530,7 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 			continue;
- 		if (sscanf(de->d_name, "dax%d.%d", &region_id, &id) != 2)
- 			continue;
--		dev_path = dax_region_path(base, de->d_name);
-+		dev_path = dax_region_path(de->d_name, subsys);
- 		if (!dev_path) {
- 			err(ctx, "dax region path allocation failure\n");
- 			continue;
-@@ -529,6 +543,22 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	closedir(dir);
- }
- 
-+static void dax_regions_init(struct daxctl_ctx *ctx)
-+{
-+	size_t i;
-+
-+	if (ctx->regions_init)
-+		return;
-+
-+	ctx->regions_init = 1;
-+
-+	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
-+		if (i == DAX_UNKNOWN)
-+			continue;
-+		__dax_regions_init(ctx, i);
-+	}
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/util/sysfs.c b/util/sysfs.c
-index 0440fd0f49a3..9f7bc1f4930f 100644
---- a/util/sysfs.c
-+++ b/util/sysfs.c
-@@ -91,7 +91,7 @@ int __sysfs_device_parse(struct log_ctx *ctx, const char *base_path,
- 	struct dirent *de;
- 	DIR *dir;
- 
--	log_dbg(ctx, "base: %s dev: %s\n", base_path, dev_name);
-+	log_dbg(ctx, "base: '%s' dev: '%s'\n", base_path, dev_name);
- 	dir = opendir(base_path);
- 	if (!dir) {
- 		log_dbg(ctx, "no \"%s\" devices found\n", dev_name);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gSGkgUWksDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBUaGFua3Mg
+Zm9yIHRoZXNlIHBhdGNoZXMsIGFuZCBhbHNvIGZvciByZWJhc2luZyB0byB0aGUgbGF0ZXN0IQ0K
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gY2luaXBhcnNlci5jIGFkZHMgYSBuZXcgd2FybmluZyAoc2Vl
+IGJlbG93KS4gQ291bGQgeW91IGZpeCB0aGF0DQo+ID4gPiA+ID4gdXAgaW4gYSBuZXcgcGF0Y2gg
+b24gdG9wIG9mIHRoZSBpbml0aWFsIGltcG9ydCAoaS5lLiB3ZSByZXRhaW4NCj4gPiA+ID4gPiB0
+aGUgYXMtaXMgaW1wb3J0LCBhbmQgbWFrZSBhIHJlY29yZCBvZiB3aGF0IHdlIGNoYW5nZWQpLg0K
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gTG9va3MgbGlrZSB0aGUgLVdmb3JtYXQtdHJ1bmNhdGlvbj0g
+d2FybmluZ3Mgd2VyZSBmaXJzdA0KPiA+ID4gPiA+IGludHJvZHVjZWQgaW4gZ2NjLTcuMSwgYnV0
+IG9ubHkgYmVjYW1lIHJlYWxseSB6ZWFsb3VzIGFmdGVyDQo+ID4gPiA+ID4gZ2NjLTguMS4gVGhl
+IHJpZ2h0IHNvbHV0aW9uIGhlcmUgbWlnaHQganVzdCBiZSB0byBzdXBwcmVzcyBpdCBieQ0KPiA+
+ID4gPiA+IGFkZGluZyBhIC1Xbm8tZm9ybWF0LSB0cnVuY2F0aW9uIHRvIENGTEFHUywgYnV0IEkn
+bSBvcGVuIHRvDQo+ID4gPiA+ID4gY29uc2lkZXJpbmcgb3RoZXIgYWx0ZXJuYXRpdmVzLg0KPiA+
+ID4gPg0KPiA+ID4gPiBUaGF0IHdhcm5pbmcgbG9va3MgcHJldHR5IGhhbmR5Lg0KPiA+ID4gPg0K
+PiA+ID4gPiA+DQo+ID4gPiA+ID4gICAgJCBnY2MgLS12ZXJzaW9uDQo+ID4gPiA+ID4gICAgZ2Nj
+IChHQ0MpIDguMi4xIDIwMTgxMTA1IChSZWQgSGF0IDguMi4xLTUpDQo+ID4gPiA+ID4NCj4gPiA+
+ID4gPiAgICBjY2FuL2NpbmlwYXJzZXIvY2luaXBhcnNlci5jOiBJbiBmdW5jdGlvbiDigJhjaW5p
+cGFyc2VyX2xvYWTigJk6DQo+ID4gPiA+ID4gICAgY2Nhbi9jaW5pcGFyc2VyL2NpbmlwYXJzZXIu
+Yzo0NDI6Mzk6IHdhcm5pbmc6IOKAmCVz4oCZIGRpcmVjdGl2ZQ0KPiA+ID4gPiA+IG91dHB1dCBt
+YXkgYmUgdHJ1bmNhdGVkIHdyaXRpbmcgdXAgdG8gMTAyNCBieXRlcyBpbnRvIGEgcmVnaW9uDQo+
+ID4gPiA+ID4gb2Ygc2l6ZSBiZXR3ZWVuIDAgYW5kIDEwMjQgWy1XZm9ybWF0LXRydW5jYXRpb249
+XQ0KPiA+ID4gPiA+ICAgICAgICBzbnByaW50Zih0bXAsIEFTQ0lJTElORVNaICsgMSwgIiVzOiVz
+Iiwgc2VjdGlvbiwga2V5KTsNCj4gPiA+ID4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBefiAgICAgICAgICAgIH5+fg0KPiA+ID4gPiA+ICAgIEluIGZpbGUgaW5j
+bHVkZWQgZnJvbSAvdXNyL2luY2x1ZGUvc3RkaW8uaDo4NzMsDQo+ID4gPiA+ID4gICAgICAgICAg
+ICAgICAgICAgICBmcm9tIC4vY2Nhbi9jaW5pcGFyc2VyL2NpbmlwYXJzZXIuaDozOSwNCj4gPiA+
+ID4gPiAgICAgICAgICAgICAgICAgICAgIGZyb20gY2Nhbi9jaW5pcGFyc2VyL2NpbmlwYXJzZXIu
+YzozNjoNCj4gPiA+ID4gPiAgICAvdXNyL2luY2x1ZGUvYml0cy9zdGRpbzIuaDo2NzoxMDogbm90
+ZToNCj4gPiA+ID4gPiDigJhfX2J1aWx0aW5fX19zbnByaW50Zl9jaGvigJkgb3V0cHV0IGJldHdl
+ZW4gMiBhbmQgMjA1MCBieXRlcyBpbnRvDQo+ID4gPiA+ID4gYSBkZXN0aW5hdGlvbiBvZiBzaXpl
+IDEwMjUNCj4gPiA+ID4gPiAgICAgICByZXR1cm4gX19idWlsdGluX19fc25wcmludGZfY2hrIChf
+X3MsIF9fbiwNCj4gPiA+ID4gPiBfX1VTRV9GT1JUSUZZX0xFVkVMIC0gMSwNCj4gPiA+ID4gPg0K
+PiA+ID4gPiA+IF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fg0KPiA+ID4gPiA+IH5+fn5+fg0KPiA+ID4gPiA+ICAgICAgICAgICAgX19ib3MgKF9f
+cyksIF9fZm10LCBfX3ZhX2FyZ19wYWNrICgpKTsNCj4gPiA+ID4gPiAgICAgICAgICAgIH5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn4NCj4gPiA+ID4NCj4gPiA+ID4gU2luY2Ug
+aXQncyBhbiBzbnByaW50ZiB3aXRob3V0IHRoZSBlcnJvciByZXR1cm4gYmVpbmcgY2hlY2tlZCwN
+Cj4gPiA+ID4gcGVyaGFwcyBpdCB3b3VsZCBiZSBoYXBwaWVyIGFzIGFuIHNwcmludGYgd2l0aCBh
+IHByZWNpc2lvbg0KPiA+ID4gPiBzcGVjaWZpZWQgdG8gbGltaXQgdGhlIG91dHB1dD8NCj4gPiA+
+DQo+ID4gPiBUaGF0IHdvdWxkIHdvcmssIGJ1dCAnc2VjdGlvbicgYW5kICdrZXknIGFyZSBib3Ro
+IEFTQ0lJTElORVNaKzEsIHNvDQo+ID4gPiBob3cgd291bGQgd2Ugc3BlY2lmeSBwcmVjaXNpb24g
+Zm9yIGJvdGggdGhlICVzIHNwZWNpZmllcnM/IGkuZS4NCj4gPiA+IHdvdWxkIHdlIGhhdmUgdG8g
+bWFrZSB1cCBhbiBhcnRpZmljaWFsIHNwbGl0Pw0KPiA+DQo+ID4gR29vZCBwb2ludC4gTm8gd2F5
+IHRvIGRvIGl0IHdpdGhvdXQgdmFyaWFibGUgcHJlY2lzaW9uLiBIb3dldmVyLA0KPiA+IGxvb2tp
+bmcgY2xvc2VyIEkgdGhpbmsgdGhlIHdhcm5pbmcgb25seSB0cmlnZ2VycyB3aGVuIHRoZSByZXR1
+cm4gdmFsdWUNCj4gPiBpcyBub3QgY2hlY2tlZCwgc28gcGVyaGFwcyBiZXR0ZXIgdG8ganVzdCBh
+ZGQgZXJyb3IgaGFuZGxpbmcgdG8gdGhhdA0KPiA+IGNhc2UuDQo+IA0KPiBZZXAgdGhhdCBzZWVt
+cyByZWFzb25hYmxlIHRvIG1lLg0KDQpIaSwNCg0KVGhhbmsgeW91IGZvciB5b3VyIGNvbW1lbnRz
+Lg0KSSB1cGRhdGVkIHRoZSBnY2MgdmVyc2lvbiBpbiBteSBsb2NhbCBlbnZpcm9ubWVudCBhbmQg
+Z290IHRoZSB3YXJuaW5nIG1lc3NhZ2VzLg0KSSB3aWxsIG1ha2UgYSBuZXcgdmVyc2lvbiB0byBm
+aXggdGhlbS4NCg0KVGhhbmsgeW91Lg0KUWkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LW52ZGltbQo=
