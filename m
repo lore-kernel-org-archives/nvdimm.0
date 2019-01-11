@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2B053211B6973
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 13:54:44 -0800 (PST)
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: 23222f8f8dce6: acpi, nfit: Add function to look up nvdimm
- device and provide SMBIOS handle
-Date: Fri, 11 Jan 2019 21:54:41 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F7D4C4F61@ORSMSX110.amr.corp.intel.com>
-References: <47b0eaaa-ad49-5062-5f1f-fb6f79b2448d@oracle.com>
-In-Reply-To: <47b0eaaa-ad49-5062-5f1f-fb6f79b2448d@oracle.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id BAB372194D3AE
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 13:43:37 -0800 (PST)
+From: Jane Chu <jane.chu@oracle.com>
+Subject: 23222f8f8dce6: acpi, nfit: Add function to look up nvdimm device and
+ provide SMBIOS handle
+Message-ID: <47b0eaaa-ad49-5062-5f1f-fb6f79b2448d@oracle.com>
+Date: Fri, 11 Jan 2019 13:43:29 -0800
 MIME-Version: 1.0
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,48 +18,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jane Chu <jane.chu@oracle.com>
+To: tony.luck@intel.com
 Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-SmFuZSwNCg0KSXQgZG9lcyBsb29rIGEgYml0IGZpc2h5LiAgQnV0IGlmIHRoZXJlIGlzIGFuIGlz
-c3VlIHdpdGgg4oCcbWVtZGV24oCdIGNoYW5naW5nIG9uY2Ugd2UgcmVsZWFzZSB0aGUgbG9ja3Ms
-DQp0aGVuIGl0IHdpbGwgb25seSBoZWxwIGEgbGl0dGxlIHRvIG1vdmUgdGhlIOKAnCpmbGFncyA9
-IG1lbWRldi0+ZmxhZ3PigJ0gYmFjayBiZWZvcmUgd2UgcmVsZWFzZSB0aGUgbG9ja3MuDQpOb3Rl
-IHRoYXQgd2UgYWNjZXNzIG1lbWRldiBvbmUgbW9yZSB0aW1lIHdpdGggdGhlIOKAnHJldHVybiBt
-ZW1kZXYtPnBoeXNpY2FsX2lk4oCdDQoNCkJ1dCBJ4oCZbSBub3QgYXQgYWxsIHN1cmUgd2hhdCB0
-aGUgcG9zc2libGUgcmFjZXMgYXJlIGhlcmUuIEkgaG9wZSBzb21lb25lIGZyb20gdGhlIGxpbngt
-bnZkaW1tIGxpc3QNCmNhbiBjb21tZW50LiBJIHRoaW5rIEkganVzdCBjdXQgJiBwYXN0ZWQgdGhl
-IGJ1bGsgb2YgdGhvc2UgbmVzdGVkIGxvb3BzIGZyb20gZWxzZXdoZXJlLiBBcyBmYXIgYXMgSQ0K
-a25vdyB3ZSBkb27igJl0IGN1cnJlbnRseSBoYXZlIGFueSBzdXBwb3J0IGZvciBob3RwbHVnIE5G
-SVQgZGV2aWNlcywgc28gSSBzdXNwZWN0IHRoZXJlIGlzIGN1cnJlbnRseQ0Kbm8gcmFjZSBoZXJl
-Lg0KDQotVG9ueQ0KDQpGcm9tOiBKYW5lIENodSBbbWFpbHRvOmphbmUuY2h1QG9yYWNsZS5jb21d
-DQpTZW50OiBGcmlkYXksIEphbnVhcnkgMTEsIDIwMTkgMTo0MyBQTQ0KVG86IEx1Y2ssIFRvbnkg
-PHRvbnkubHVja0BpbnRlbC5jb20+DQpDYzogbGludXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnPg0KU3ViamVjdDogMjMyMjJmOGY4ZGNlNjogYWNwaSwgbmZpdDogQWRkIGZ1bmN0
-aW9uIHRvIGxvb2sgdXAgbnZkaW1tIGRldmljZSBhbmQgcHJvdmlkZSBTTUJJT1MgaGFuZGxlDQoN
-Cg0KSGksIFRvbnksDQoNCg0KDQpJIGhhcHBlbiB0byBiZSBsb29raW5nIGF0IHRoZSBhYm92ZSBw
-YXRjaCwgYW5kIG5vdGljZWQgYmVsb3cgY2hhbmdlIGluDQoNCmRyaXZlcnMvYWNwaS9uZml0L2Nv
-cmUuYw0KDQoNCg0KKyAgICAgICBtdXRleF9sb2NrKCZhY3BpX2Rlc2NfbG9jayk7DQoNCisgICAg
-ICAgbGlzdF9mb3JfZWFjaF9lbnRyeShhY3BpX2Rlc2MsICZhY3BpX2Rlc2NzLCBsaXN0KSB7DQoN
-CisgICAgICAgICAgICAgICBtdXRleF9sb2NrKCZhY3BpX2Rlc2MtPmluaXRfbXV0ZXgpOw0KDQor
-ICAgICAgICAgICAgICAgbGlzdF9mb3JfZWFjaF9lbnRyeShuZml0X21lbSwgJmFjcGlfZGVzYy0+
-ZGltbXMsIGxpc3QpIHsNCg0KKyAgICAgICAgICAgICAgICAgICAgICAgbWVtZGV2ID0gX190b19u
-Zml0X21lbWRldihuZml0X21lbSk7DQoNCisgICAgICAgICAgICAgICAgICAgICAgIGlmIChtZW1k
-ZXYtPmRldmljZV9oYW5kbGUgPT0gZGV2aWNlX2hhbmRsZSkgew0KDQorICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIG11dGV4X3VubG9jaygmYWNwaV9kZXNjLT5pbml0X211dGV4KTsNCg0K
-KyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtdXRleF91bmxvY2soJmFjcGlfZGVzY19s
-b2NrKTsNCg0KKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqZmxhZ3MgPSBtZW1kZXYt
-PmZsYWdzOyAgIDwtLS0tLQ0KDQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVy
-biBtZW1kZXYtPnBoeXNpY2FsX2lkOw0KDQorICAgICAgICAgICAgICAgICAgICAgICB9DQoNCisg
-ICAgICAgICAgICAgICB9DQoNCisgICAgICAgICAgICAgICBtdXRleF91bmxvY2soJmFjcGlfZGVz
-Yy0+aW5pdF9tdXRleCk7DQoNCisgICAgICAgfQ0KDQorICAgICAgIG11dGV4X3VubG9jaygmYWNw
-aV9kZXNjX2xvY2spOw0KDQoNCg0KSXMgdGhlcmUgYSByZWFzb24gdG8gcmV0cmlldmUgdGhlIG1l
-bWRldi0+ZmxhZ3MgdmFsdWUgYWZ0ZXIgcmVsZWFzaW5nDQoNCnRoZSBsb2Nrcz8NCg0KDQoNClRo
-YW5rcyENCg0KLWphbmUNCg0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi, Tony,
+
+I happen to be looking at the above patch, and noticed below change in
+drivers/acpi/nfit/core.c
+
++       mutex_lock(&acpi_desc_lock);
++       list_for_each_entry(acpi_desc, &acpi_descs, list) {
++               mutex_lock(&acpi_desc->init_mutex);
++               list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++                       memdev = __to_nfit_memdev(nfit_mem);
++                       if (memdev->device_handle == device_handle) {
++                               mutex_unlock(&acpi_desc->init_mutex);
++                               mutex_unlock(&acpi_desc_lock);
++                               *flags = memdev->flags;   <-----
++                               return memdev->physical_id;
++                       }
++               }
++               mutex_unlock(&acpi_desc->init_mutex);
++       }
++       mutex_unlock(&acpi_desc_lock);
+
+Is there a reason to retrieve the memdev->flags value after releasing
+the locks?
+
+Thanks!
+-jane
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
