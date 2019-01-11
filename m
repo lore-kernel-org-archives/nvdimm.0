@@ -1,68 +1,66 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [PATCH v3 0/5] kvm "virtio pmem" device
-Date: Fri, 11 Jan 2019 02:45:04 -0500 (EST)
-Message-ID: <1326478078.61913951.1547192704870.JavaMail.zimbra@redhat.com>
-References: <20190109144736.17452-1-pagupta@redhat.com> <20190110012617.GA4205@dastard>
+From: "=?utf-8?B?WXVtaSA=?=" <yumi-x4dppBFqGcoMjHSeoOxd2DlRY1/6cnIP@public.gmane.org>
+Subject: =?utf-8?B?UmU6IE1VUkFUQSBpbiBzdG9jaw==?=
+Date: Fri, 11 Jan 2019 22:10:12 +0800 (CST)
+Message-ID: <1632#31693#linux-nvdimm@lists.01.org#e358f98847f1ee53ccc515b2fd0679bf#1547215812836>
+Reply-To: yumi-x4dppBFqGcoMjHSeoOxd2DlRY1/6cnIP@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190110012617.GA4205@dastard>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, stefanha@redhat.com, dan j williams <dan.j.williams@intel.com>, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, david@redhat.com, jmoyer@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, hch@infradead.org, mst@redhat.com, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger kernel <adilger.>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-
-> 
-> On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
-> >  This patch series has implementation for "virtio pmem".
-> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
-> >  which allows to bypass the guest page cache. This also
-> >  implements a VIRTIO based asynchronous flush mechanism.
-> 
-> Hmmmm. Sharing the host page cache direct into the guest VM. Sounds
-> like a good idea, but.....
-> 
-> This means the guest VM can now run timing attacks to observe host
-> side page cache residency, and depending on the implementation I'm
-> guessing that the guest will be able to control host side page
-> cache eviction, too (e.g. via discard or hole punch operations).
-
-Not sure how? this is similar to mmapping virtual memory by any userspace 
-process. Any host userspace process can do such attack on host page cache
-using mincore & mmap shared file. 
-
-But i don't think guest can do this alone. For virtio-pmem usecase guest 
-won't be using page cache so timing attack from only guest side is not 
-possible unless host userspace can run checks on page cache eviction state
-using mincore etc. 
-
-As rightly described by Rik, guest will only access its own page cache pages 
-and if guest page cache is managed directly by host, this saves alot of 
-effort for guest in transferring guest state of page cache.  
-
-> 
-> Which means this functionality looks to me like a new vector for
-> information leakage into and out of the guest VM via guest
-> controlled host page cache manipulation.
-> 
-> https://arxiv.org/pdf/1901.01161
-> 
-> I might be wrong, but if I'm not we're going to have to be very
-> careful about how guest VMs can access and manipulate host side
-> resources like the page cache.....
-
-If I am following correctly the discussions in MM thread. 
-Important steps to mitigate this:
-
-* Avoid running mincore in privilege mode: to safeguard page evict state of any 
-  page cache page.
-* tweaking RWF_NOWAIT 
-
-I think if we secure ways to find current state(cached/evicted) of a page in host, 
-we should be able to mitigate the impact for any page cache page access attack 
-including virtio-pmem.
-
-Thanks,
-Pankaj
+DQoJJm5ic3A7Jm5ic3A7ICZuYnNwOyAmbmJzcDsmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsg
+Jm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAm
+bmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZu
+YnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyZuYnNwOyBIYXJk
+Jm5ic3A7RmluZCZuYnNwO0VsZWN0cm9uaWNzIEx0ZC4gDQoNCg0KCSZuYnNwOyAmbmJzcDsgJm5i
+c3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJz
+cDsgJm5ic3A7WW91ciB0cnVzdCBzbWFsbCBxdWFudGl0eSAmYW1wOyBzaG9ydCBsZWFkIHRpbWUg
+SVNPIDkwMDE6MjAxNSBDZXJ0aWZpZWQgZGlzdHJpYnV0b3ImbmJzcDsNCkhpIGRlYXIsIA0KDQoN
+CglIYXBweSBOZXcgWWVhciB0byB5b3UhDQpJIGFtIFl1bWkgZnJvbSBIYXJkIEZpbmQgRWxlY3Ry
+b25pY3MgTHRkKHd3dy5oYXJkZmluZGVsZWN0cm9uaWNzLmNvbSkgd2hpY2ggaXMgSVNPIDkwMDE6
+MjAxNSBDZXJ0aWZpZWQgZWxlY3Ryb25pY3MgZGlzdHJpYnV0b3Igd2l0aCAxMCB5ZWFycyBvZiBl
+eHBlcmllbmNlcy4mbmJzcDsNCkRvIHlvdSBoYXZlIGFueSBpbnF1aXJ5IG9mIGVsZWN0cm9uaWMg
+Y29tcG9uZW50cz8mbmJzcDsmbmJzcDtJZiB5b3UmbmJzcDtuZWVkIHNhbXBsZSwgcGxlYXNlIGNv
+bnRhY3QgbWUuUGxzJm5ic3A7Y2hlY2sgb3VyJm5ic3A7aG90IG9mZmVyLCZuYnNwO3dlbGNvbWUg
+eW91ciBpbnF1aXJ5Lg0KDQogDQoNCg0KCUdSTTE1NTVDMUgxNTBKQTAxRAkxMEsvUglNVVJBVEEJ
+MjAxNysJMC4wMDJ1c2QNCkdSTTE4OFI2MEoyMjZNRUEwRAk0Sy9SCU1VUkFUQSAyMDE3KwkwLjAw
+MnVzZA0KR1JNMTU1NUMxSDI3MEpBMDFECTEwSy9SCU1VUkFUQQkyMDE3KwkwLjAwMnVzZA0KR1JN
+MTU1NUMxSDNSM0NBMDFECTEwSy9SCU1VUkFUQQkyMDE3KwkwLjAwMnVzZA0KR1JNMTU1NUMxSDEw
+MkpBMDFECTEwSy9SCU1VUkFUQQkyMDE3KwkwLjAwNTZ1c2QNCkdSTTE1NTVDMUgyUjdDQTAxRAkx
+MEsvUglNVVJBVEEJMjAxNysJMC4wMDJ1c2QNCkdSTTE1NTVDMUg0NzBKWjAxRAkxMEsvUglNVVJB
+VEEJMjAxNysJMC4wMDJ1c2QNCkdSTTE1NVI2MUExMDVLRTE1RAkxMEsvUglNVVJBVEEJMjAxNysJ
+MC4wMDQydXNkDQpHUk0yMUJSNzFFMjI1S0E3M0wJM0svUglNVVJBVEEgMjAxNysJMC4wMTk0dXNk
+DQpHUk0xNTU1QzFIUjgwQkEwMUQJMTBLL1IJTVVSQVRBCTIwMTcrCTAuMDAzM3VzZA0KR1JNMTU1
+NUMxSDdSNUNBMDFECTEwSy9SCU1VUkFUQQkyMDE3KwkwLjAwMnVzZA0KDQogDQoNClN0cm9uZyBs
+aW5lczpDYXBhY2l0b3JzJmFtcDtSZXNpc3RvcnMsIERpb2RlcyZhbXA7VHJhbnNpc3RvcnMsIENv
+bm5lY3RvcnMsIElDLCBMRUQsIENyeXN0YWwgT3NjaWxsYXRvciwgUmVsYXksIG9wdGljYWxjb3Vw
+bGVyLCBFVEMNCiZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNw
+OyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyAmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsoMSBwaWVjZSBvcmRlcjsgMSB5ZWFyIHdhcnJhbnR5OyAxMDAwMDAwIHByaWNl
+IHJlZmVyZW5jZSkmbmJzcDsmbmJzcDsgDQoNCglCZXN0IHJlZ2FyZHMgDQoNCg0KCUtlZXAgc21p
+bGluZyBldmVyeSBkYXkmbmJzcDsoKu+/oynvv6MpIA0KDQoNCgkgDQoNCg0KCVl1bWkgDQoNCg0K
+CVNhbGVzIE1hbmFnZXINCiANCg0KDQoJSGFyZCZuYnNwO0ZpbmQmbmJzcDtFbGVjdHJvbmljcyBM
+dGQuDQozMTUsIFNoYWhlIFJvZCwgTG9uZyBHYW5nIERpc3RyaWN0LCBTaGVuemhlbiwgQ04sIDUx
+ODAwMA0KVGVsOiArODYtNzU1LTg0MTggODEwMyZuYnNwOyAmbmJzcDsgJm5ic3A7ICZuYnNwOyZu
+YnNwOyANCg0KDQoJIFNreXBlOiZuYnNwO3l1bWlAaGFyZGZpbmRlbGVjdHJvbmljcy5jb20gDQoN
+Cg0KCUxpbmtlZGxuOnd3dy5saW5rZWRpbi5jb20vaW4veXVtaS1nYW8gDQoNCg0KCUZhY2Vib29r
+OiZuYnNwO2ZhY2Vib29rLmNvbS9ZdW1paGFyZGZpbmQgDQoNCg0KCVdlYjombmJzcDtodHRwOi8v
+d3d3LmhhcmRmaW5kZWxlY3Ryb25pY3MuY29tLyANCg0KDQoJJm5ic3A7IA0KDQoNCglQbGVhc2Ug
+bG9nIGluIG91ciB3ZWJzaXRlIGZvciBtb3JlIGVsZWN0cm9uaWMgY29tcG9uZW50cyZuYnNwOyZu
+YnNwOyZuYnNwOyANCg0KDQoJSWYgeW91IGRvbid0IHdhbnQgdG8gcmVjZWl2ZSB0aGlzIG1haWws
+IHBscyByZXR1cm4gd2l0aCAicmVtb3ZlIiBvbiB0aGUgc3ViamVjdCBsaW5lLiANCg0KDQoJDQog
+DQrlpoLmnpzkvaDkuI3mg7Plho3mlLbliLDor6Xkuqflk4HnmoTmjqjojZDpgq7ku7bvvIzor7fn
+grnlh7vov5nph4zpgIDorqIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
