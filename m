@@ -1,21 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
- [IPv6:2607:f8b0:4864:20::341])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7796A211A7565
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 17:58:24 -0800 (PST)
-Received: by mail-ot1-x341.google.com with SMTP id v23so14830165otk.9
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 17:58:24 -0800 (PST)
-MIME-Version: 1.0
-References: <20190112013035.32087-1-vishal.l.verma@intel.com>
- <20190112013035.32087-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190112013035.32087-3-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 11 Jan 2019 17:58:12 -0800
-Message-ID: <CAPcyv4hTw1Q8kK2py1sySEYMBpGTYSfmHLzAHJ41c3p08BQDmw@mail.gmail.com>
-Subject: Re: [ndctl PATCH v2 2/4] ndctl,
+ by ml01.01.org (Postfix) with ESMTPS id 6BB65211A1E3B
+ for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 17:31:06 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 2/4] ndctl,
  inject-smart: switch to ndctl_cmd_submit_xlat
+Date: Fri, 11 Jan 2019 18:30:33 -0700
+Message-Id: <20190112013035.32087-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190112013035.32087-1-vishal.l.verma@intel.com>
+References: <20190112013035.32087-1-vishal.l.verma@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,49 +18,105 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Ami Pathak <ami.g.pathak@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Ami Pathak <ami.g.pathak@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jan 11, 2019 at 5:31 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> The ndctl inject-smart command was neglecting to check the
-> 'firmware_status' field that is set by the platform firmware to indicate
-> failure. Use the new ndctl_cmd_submit_xlat facility to include the
-> firmware_status check as part of the command submission.
->
-> Reported-by: Ami Pathak <ami.g.pathak@intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-[..]
-> diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
-> index 3c1b917..92a9313 100644
-> --- a/ndctl/util/json-smart.c
-> +++ b/ndctl/util/json-smart.c
-> @@ -30,8 +30,8 @@ static void smart_threshold_to_json(struct ndctl_dimm *dimm,
->         if (!cmd)
->                 return;
->
-> -       rc = ndctl_cmd_submit(cmd);
-> -       if (rc || ndctl_cmd_get_firmware_status(cmd))
-> +       rc = ndctl_cmd_submit_xlat(cmd);
-> +       if ((rc < 0) || ndctl_cmd_get_firmware_status(cmd))
->                 goto out;
+The ndctl inject-smart command was neglecting to check the
+'firmware_status' field that is set by the platform firmware to indicate
+failure. Use the new ndctl_cmd_submit_xlat facility to include the
+firmware_status check as part of the command submission.
 
-Can't we just do:
+Reported-by: Ami Pathak <ami.g.pathak@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ ndctl/inject-smart.c    | 16 ++++++++--------
+ ndctl/util/json-smart.c |  8 ++++----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-rc = ndctl_cmd_submit_xlat(cmd);
-if (rc < 0)
-    goto out;
+diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
+index eaa137a..00c81b8 100644
+--- a/ndctl/inject-smart.c
++++ b/ndctl/inject-smart.c
+@@ -280,8 +280,8 @@ static int smart_set_thresh(struct ndctl_dimm *dimm)
+ 		goto out;
+ 	}
+ 
+-	rc = ndctl_cmd_submit(st_cmd);
+-	if (rc) {
++	rc = ndctl_cmd_submit_xlat(st_cmd);
++	if (rc < 0) {
+ 		error("%s: smart threshold command failed: %s (%d)\n",
+ 			name, strerror(abs(rc)), rc);
+ 		goto out;
+@@ -320,8 +320,8 @@ static int smart_set_thresh(struct ndctl_dimm *dimm)
+ 		ndctl_cmd_smart_threshold_set_alarm_control(sst_cmd, alarm);
+ 	}
+ 
+-	rc = ndctl_cmd_submit(sst_cmd);
+-	if (rc)
++	rc = ndctl_cmd_submit_xlat(sst_cmd);
++	if (rc < 0)
+ 		error("%s: smart set threshold command failed: %s (%d)\n",
+ 			name, strerror(abs(rc)), rc);
+ 
+@@ -351,8 +351,8 @@ out:
+ 			if (sctx.err_continue == false) \
+ 				goto out; \
+ 		} \
+-		rc = ndctl_cmd_submit(si_cmd); \
+-		if (rc) { \
++		rc = ndctl_cmd_submit_xlat(si_cmd); \
++		if (rc < 0) { \
+ 			error("%s: smart inject %s command failed: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+ 			if (sctx.err_continue == false) \
+@@ -382,8 +382,8 @@ out:
+ 			if (sctx.err_continue == false) \
+ 				goto out; \
+ 		} \
+-		rc = ndctl_cmd_submit(si_cmd); \
+-		if (rc) { \
++		rc = ndctl_cmd_submit_xlat(si_cmd); \
++		if (rc < 0) { \
+ 			error("%s: smart inject %s command failed: %s (%d)\n", \
+ 				name, #arg, strerror(abs(rc)), rc); \
+ 			if (sctx.err_continue == false) \
+diff --git a/ndctl/util/json-smart.c b/ndctl/util/json-smart.c
+index 3c1b917..92a9313 100644
+--- a/ndctl/util/json-smart.c
++++ b/ndctl/util/json-smart.c
+@@ -30,8 +30,8 @@ static void smart_threshold_to_json(struct ndctl_dimm *dimm,
+ 	if (!cmd)
+ 		return;
+ 
+-	rc = ndctl_cmd_submit(cmd);
+-	if (rc || ndctl_cmd_get_firmware_status(cmd))
++	rc = ndctl_cmd_submit_xlat(cmd);
++	if ((rc < 0) || ndctl_cmd_get_firmware_status(cmd))
+ 		goto out;
+ 
+ 	alarm_control = ndctl_cmd_smart_threshold_get_alarm_control(cmd);
+@@ -115,8 +115,8 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm)
+ 	if (!cmd)
+ 		goto err;
+ 
+-	rc = ndctl_cmd_submit(cmd);
+-	if (rc || ndctl_cmd_get_firmware_status(cmd)) {
++	rc = ndctl_cmd_submit_xlat(cmd);
++	if ((rc < 0) || ndctl_cmd_get_firmware_status(cmd)) {
+ 		jobj = json_object_new_string("unknown");
+ 		if (jobj)
+ 			json_object_object_add(jhealth, "health_state", jobj);
+-- 
+2.17.2
 
-...and drop the open coded ndctl_cmd_get_firmware_status()?
-
-In general it seems like most users of ndctl_cmd_get_firmware_status()
-would be happy with ndctl_cmd_submit_xlat() instead.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
