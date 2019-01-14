@@ -1,17 +1,19 @@
-From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 0/5] kvm "virtio pmem" device
-Date: Mon, 14 Jan 2019 02:15:40 -0500 (EST)
-Message-ID: <942065073.64011540.1547450140670.JavaMail.zimbra@redhat.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH v3 0/5] kvm "virtio pmem" device
+Date: Mon, 14 Jan 2019 10:55:20 +0100
+Message-ID: <20190114095520.GC13316@quack2.suse.cz>
 References: <20190109144736.17452-1-pagupta@redhat.com>
  <20190110012617.GA4205@dastard>
- <1326478078.61913951.1547192704870.JavaMail.zimbra@redhat.com>
- <20190113232902.GD4205@dastard>
- <20190113233820.GX6310@bombadil.infradead.org>
+ <20190110101757.GC15790@quack2.suse.cz>
+ <1354249849.63357171.1547343519970.JavaMail.zimbra@redhat.com>
+ <CAPcyv4hwcgTUpgNCefCGu4DvgkYBp5b=f+hJ+FC=s5APYKoycg@mail.gmail.com>
+ <540171952.63371441.1547345866585.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190113233820.GX6310-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <540171952.63371441.1547345866585.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,36 +23,40 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger kernel <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, darrick wong <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong eric <xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger kernel <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, darrick wong <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4 <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, xiaoguangrong eric <xiaoguangrong.eric@gmai>
 List-Id: linux-nvdimm@lists.01.org
 
-
-> > Until you have images (and hence host page cache) shared between
-> > multiple guests. People will want to do this, because it means they
-> > only need a single set of pages in host memory for executable
-> > binaries rather than a set of pages per guest. Then you have
-> > multiple guests being able to detect residency of the same set of
-> > pages. If the guests can then, in any way, control eviction of the
-> > pages from the host cache, then we have a guest-to-guest information
-> > leak channel.
+On Sat 12-01-19 21:17:46, Pankaj Gupta wrote:
+> > > > Right. Thinking about this I would be more concerned about the fact that
+> > > > guest can effectively pin amount of host's page cache upto size of the
+> > > > device/file passed to guest as PMEM, can't it Pankaj? Or is there some
+> > > > QEMU
+> > > > magic that avoids this?
+> > >
+> > > Yes, guest will pin these host page cache pages using 'get_user_pages' by
+> > > elevating the page reference count. But these pages can be reclaimed by
+> > > host
+> > > at any time when there is memory pressure.
+> > 
+> > Wait, how can the guest pin the host pages? I would expect this to
+> > happen only when using vfio and device assignment. Otherwise, no the
+> > host can't reclaim a pinned page, that's the whole point of a pin to
+> > prevent the mm from reclaiming ownership.
 > 
-> I don't think we should ever be considering something that would allow a
-> guest to evict page's from the host's pagecache [1].  The guest should
-> be able to kick its own references to the host's pagecache out of its
-> own pagecache, but not be able to influence whether the host or another
-> guest has a read-only mapping cached.
-> 
-> [1] Unless the guest is allowed to modify the host's file; obviously
-> truncation, holepunching, etc are going to evict pages from the host's
-> page cache.
+> yes. You are right I just used the pin word but it does not actually pin pages 
+> permanently. I had gone through the discussion on existing problems with 
+> get_user_pages and DMA e.g [1] to understand Jan's POV. It does mention GUP 
+> pin pages so I also used the word 'pin'. But guest does not permanently pin 
+> these pages and these pages can be reclaimed by host.
 
-This is so correct. Guest does not not evict host page cache pages directly. 
-In case of virtio-pmem & DAX, guest clears guest page cache exceptional entries.
-Its solely decision of host to take action on the host page cache pages.
+OK, then I was just confused how virtio-pmem is going to work. Thanks for
+explanation! So can I imagine this as guest mmaping the host file and
+providing the mapped range as "NVDIMM pages" to the kernel inside the
+guest? Or is it more complex?
 
-In case of virtio-pmem, guest does not modify host file directly i.e don't
-perform hole punch & truncation operation directly on host file.  
+								Honza
 
-Thanks,
-Pankaj 
+-- 
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
