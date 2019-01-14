@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail2-relais-roc.national.inria.fr
- (mail2-relais-roc.national.inria.fr [192.134.164.83])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C4CB211B7F66
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 03:05:14 -0800 (PST)
-Subject: Re: [PATCH 8/8] device-dax: Add /sys/class/dax backwards compatibility
-References: <154095556915.3271337.12581429676272726902.stgit@dwillia2-desk3.amr.corp.intel.com>
- <154095561122.3271337.123035797363130070.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Message-ID: <d1c1c05c-ffc3-619f-5367-90d8a19a449a@inria.fr>
-Date: Wed, 16 Jan 2019 12:05:11 +0100
+ by ml01.01.org (Postfix) with ESMTPS id 26DD7211B113B
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 12:06:37 -0800 (PST)
+Subject: [PATCH v8 00/12] ndctl: add security support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 14 Jan 2019 13:06:37 -0700
+Message-ID: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <154095561122.3271337.123035797363130070.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,30 +16,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-TGUgMzEvMTAvMjAxOCDDoCAwNDoxMywgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4gT24gdGhl
-IGV4cGVjdGF0aW9uIHRoYXQgc29tZSBlbnZpcm9ubWVudHMgbWF5IG5vdCB1cGdyYWRlIGxpYmRh
-eGN0bAo+ICh1c2Vyc3BhY2UgY29tcG9uZW50IHRoYXQgZGVwZW5kcyBvbiB0aGUgL3N5cy9jbGFz
-cy9kYXggaGllcmFyY2h5KSwKPiBwcm92aWRlIGEgZGVmYXVsdCAvIGxlZ2FjeSBkYXhfcG1lbV9j
-b21wYXQgZHJpdmVyLiBUaGUgZGF4X3BtZW1fY29tcGF0Cj4gZHJpdmVyIGltcGxlbWVudHMgdGhl
-IG9yaWdpbmFsIC9zeXMvY2xhc3MvZGF4IHN5c2ZzIGxheW91dCByYXRoZXIgdGhhbgo+IC9zeXMv
-YnVzL2RheC4gV2hlbiB1c2Vyc3BhY2UgaXMgdXBncmFkZWQgaXQgY2FuIGJsYWNrbGlzdCB0aGlz
-IG1vZHVsZQo+IGFuZCBzd2l0Y2ggdG8gdGhlIGRheF9wbWVtIGRyaXZlciBnb2luZyBmb3J3YXJk
-LgoKCkhlbGxvIERhbgoKSXQgbG9va3MgbGlrZSAvc3lzL2J1cy9kYXgvZGV2aWNlcyByZW1haW5z
-IGVtcHR5IGZvcmV2ZXIgaWYKZGF4X3BtZW1fY29tcGF0IGhhcyBldmVyIGJlZW4gbG9hZGVkIGR1
-cmluZyB0aGlzIGJvb3QuIFVubG9hZGluZwpkYXhfcG1lbV9jb21wYXQgYW5kIHJlY3JlYXRpbmcg
-ZGF4IGRldmljZXMgd2l0aCBuZGN0bCBhZnRlcndhcmRzIGRvZXNuJ3QKbWFrZSB0aGVtIGFwcGVh
-ciAobmVpdGhlciBpbiAvc3lzL2NsYXNzL2RheCBvYnZpb3VzbHksIG5vciBpbgovc3lzL2J1cy9k
-YXgvZGV2aWNlcyBzdXJwcmlzaW5nbHkpLiBJcyB0aGlzIGV4cGVjdGVkPwoKVGhpbmdzIGFwcGVh
-ciBmaW5lIGluIC9zeXMvYnVzL2RheC9kZXZpY2VzIGFmdGVyIGRpc2FibGluZyB0aGUgY29tcGF0
-Cm1vZHVsZSBpbiBLY29uZmlnLgoKSSBhbSB1c2luZyB5b3VyIG52ZGltbS1wZW5kaW5nIGJyYW5j
-aC4KClRoYW5rcwoKQnJpY2UKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+The following series implements mechanisms that utilize the sysfs knobs
+provided by the kernel in order to support the Intel DSM v1.8 spec
+that provides security to NVDIMM. The following abilities are added:
+1. display security state
+2. enable/update passphrase
+3. disable passphrase
+4. freeze security
+5. secure erase
+6. overwrite
+7. master passphrase enable/update
+
+v8:
+- Additional cleanup on test script. (Vishal)
+- Change load-keys script into internal command for ndctl. (Dan)
+
+v7:
+- Added option to provide path to key directory. (Vishal)
+- Cleaned up shell scripts. (Vishal)
+- Cleaned up documentation. (Vishal)
+- Addressed various comments from Vishal.
+
+v6:
+- Fix spelling and grammar errors for documentation. (Jing)
+- Change bool for indicate master passphrase and old passphrase to enum.
+- Fix key load script master key name.
+- Update to match v15 of kernel patch series.
+
+v5:
+- Updated to match latest kernel interface (encrypted keys)
+- Added overwrite support
+- Added support for DSM v1.8 master passphrase operations
+- Removed upcall related code
+- Moved security state to enum (Dan)
+- Change security output "security_state" to just "security". (Dan)
+- Break out enable and update passphrase operation. (Dan)
+- Security build can be compiled out when keyutils does not exist. (Dan)
+- Move all keyutils related operations to libndctl. (Dan)
+
+v4:
+- Updated to match latest kernel interface.
+- Added unit test for all security calls
+
+v3:
+- Added support to inject keys in order to update nvdimm security.
+
+v2:
+- Fixup the upcall util to match recent kernel updates for nvdimm security.
+
+---
+
+Dave Jiang (12):
+      ndctl: add support for display security state
+      ndctl: add passphrase update to ndctl
+      ndctl: add disable security support
+      ndctl: add support for freeze security
+      ndctl: add support for sanitize dimm
+      ndctl: add unit test for security ops (minus overwrite)
+      ndctl: add modprobe conf file and load-keys ndctl command
+      ndctl: add overwrite operation support
+      ndctl: add wait-overwrite support
+      ndctl: master phassphrase management support
+      ndctl: add master secure erase support
+      ndctl: documentation for security and key management
+
+
+ Documentation/ndctl/Makefile.am                  |    9 
+ Documentation/ndctl/intel-nvdimm-security.txt    |  140 ++++++
+ Documentation/ndctl/ndctl-disable-passphrase.txt |   35 +
+ Documentation/ndctl/ndctl-enable-passphrase.txt  |   49 ++
+ Documentation/ndctl/ndctl-freeze-security.txt    |   22 +
+ Documentation/ndctl/ndctl-list.txt               |    8 
+ Documentation/ndctl/ndctl-sanitize-dimm.txt      |   50 ++
+ Documentation/ndctl/ndctl-update-passphrase.txt  |   45 ++
+ Documentation/ndctl/ndctl-wait-overwrite.txt     |   31 +
+ Makefile.am                                      |    4 
+ configure.ac                                     |   19 +
+ contrib/nvdimm-security.conf                     |    1 
+ ndctl.spec.in                                    |    3 
+ ndctl/Makefile.am                                |    6 
+ ndctl/builtin.h                                  |    7 
+ ndctl/dimm.c                                     |  259 ++++++++++-
+ ndctl/lib/Makefile.am                            |    8 
+ ndctl/lib/dimm.c                                 |  202 ++++++++
+ ndctl/lib/keys.c                                 |  528 ++++++++++++++++++++++
+ ndctl/lib/libndctl.sym                           |   20 +
+ ndctl/libndctl.h                                 |   84 ++++
+ ndctl/load-keys.c                                |  260 +++++++++++
+ ndctl/ndctl.c                                    |    7 
+ test/Makefile.am                                 |    4 
+ test/security.sh                                 |  197 ++++++++
+ util/json.c                                      |   31 +
+ 26 files changed, 2015 insertions(+), 14 deletions(-)
+ create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-enable-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+ create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
+ create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
+ create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
+ create mode 100644 contrib/nvdimm-security.conf
+ create mode 100644 ndctl/lib/keys.c
+ create mode 100644 ndctl/load-keys.c
+ create mode 100755 test/security.sh
+
+--
+Signature
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
