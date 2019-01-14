@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 26DD7211B113B
- for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 12:06:37 -0800 (PST)
-Subject: [PATCH v8 00/12] ndctl: add security support
+ by ml01.01.org (Postfix) with ESMTPS id 139EC21959CB2
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 12:07:23 -0800 (PST)
+Subject: [PATCH v8 08/12] ndctl: add overwrite operation support
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 14 Jan 2019 13:06:37 -0700
-Message-ID: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+Date: Mon, 14 Jan 2019 13:07:20 -0700
+Message-ID: <154749644027.63704.10436851571300063502.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,112 +26,206 @@ To: vishal.l.verma@intel.com, dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The following series implements mechanisms that utilize the sysfs knobs
-provided by the kernel in order to support the Intel DSM v1.8 spec
-that provides security to NVDIMM. The following abilities are added:
-1. display security state
-2. enable/update passphrase
-3. disable passphrase
-4. freeze security
-5. secure erase
-6. overwrite
-7. master passphrase enable/update
+Add support for overwrite to libndctl. The operation will be triggered
+by the sanitize-dimm command with -o switch. This will initiate the request
+to wipe the entire nvdimm. Success return of the command only indicate
+overwrite has started and does not indicate completion of overwrite.
 
-v8:
-- Additional cleanup on test script. (Vishal)
-- Change load-keys script into internal command for ndctl. (Dan)
-
-v7:
-- Added option to provide path to key directory. (Vishal)
-- Cleaned up shell scripts. (Vishal)
-- Cleaned up documentation. (Vishal)
-- Addressed various comments from Vishal.
-
-v6:
-- Fix spelling and grammar errors for documentation. (Jing)
-- Change bool for indicate master passphrase and old passphrase to enum.
-- Fix key load script master key name.
-- Update to match v15 of kernel patch series.
-
-v5:
-- Updated to match latest kernel interface (encrypted keys)
-- Added overwrite support
-- Added support for DSM v1.8 master passphrase operations
-- Removed upcall related code
-- Moved security state to enum (Dan)
-- Change security output "security_state" to just "security". (Dan)
-- Break out enable and update passphrase operation. (Dan)
-- Security build can be compiled out when keyutils does not exist. (Dan)
-- Move all keyutils related operations to libndctl. (Dan)
-
-v4:
-- Updated to match latest kernel interface.
-- Added unit test for all security calls
-
-v3:
-- Added support to inject keys in order to update nvdimm security.
-
-v2:
-- Fixup the upcall util to match recent kernel updates for nvdimm security.
-
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
+ Documentation/ndctl/ndctl-sanitize-dimm.txt |    4 ++++
+ ndctl/dimm.c                                |   21 +++++++++++++++++----
+ ndctl/lib/dimm.c                            |    8 ++++++++
+ ndctl/lib/keys.c                            |   21 ++++++++++++++++-----
+ ndctl/lib/libndctl.sym                      |    2 ++
+ ndctl/libndctl.h                            |    8 ++++++++
+ 6 files changed, 55 insertions(+), 9 deletions(-)
 
-Dave Jiang (12):
-      ndctl: add support for display security state
-      ndctl: add passphrase update to ndctl
-      ndctl: add disable security support
-      ndctl: add support for freeze security
-      ndctl: add support for sanitize dimm
-      ndctl: add unit test for security ops (minus overwrite)
-      ndctl: add modprobe conf file and load-keys ndctl command
-      ndctl: add overwrite operation support
-      ndctl: add wait-overwrite support
-      ndctl: master phassphrase management support
-      ndctl: add master secure erase support
-      ndctl: documentation for security and key management
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+index 79629964..a1a43bdd 100644
+--- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -35,4 +35,8 @@ include::xable-dimm-options.txt[]
+ 	Replaces encryption keys and securely erases the data. This does not
+ 	change label data. This is the default sanitize method.
+ 
++-o::
++--ovewrite::
++	Wipe the entire DIMM, including label data. Can take significant time.
++
+ include::../copyright.txt[]
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index a91b40d5..799823d6 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -48,6 +48,7 @@ static struct parameters {
+ 	const char *key_path;
+ 	const char *master_key;
+ 	bool crypto_erase;
++	bool overwrite;
+ 	bool force;
+ 	bool json;
+ 	bool verbose;
+@@ -910,7 +911,7 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 	 * Setting crypto erase to be default. The other method will be
+ 	 * overwrite.
+ 	 */
+-	if (!param.crypto_erase) {
++	if (!param.crypto_erase && !param.overwrite) {
+ 		param.crypto_erase = true;
+ 		printf("No santize method passed in, default to crypto-erase\n");
+ 	}
+@@ -921,6 +922,12 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 			return rc;
+ 	}
+ 
++	if (param.overwrite) {
++		rc = ndctl_dimm_overwrite_key(dimm, param.key_path);
++		if (rc < 0)
++			return rc;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1023,7 +1030,9 @@ OPT_STRING('m', "master-key", &param.master_key, "<key_type>:<key_name>", \
+ 
+ #define SANITIZE_OPTIONS() \
+ OPT_BOOLEAN('c', "crypto-erase", &param.crypto_erase, \
+-		"crypto erase a dimm")
++		"crypto erase a dimm"), \
++OPT_BOOLEAN('o', "overwrite", &param.overwrite, \
++		"overwrite a dimm")
+ 
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
+@@ -1361,7 +1370,11 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
+ 			sanitize_options,
+ 			"ndctl sanitize-dimm <nmem0> [<nmem1>..<nmemN>] [<options>]");
+ 
+-	fprintf(stderr, "sanitized %d nmem%s.\n", count >= 0 ? count : 0,
+-			count > 1 ? "s" : "");
++	if (param.overwrite)
++		fprintf(stderr, "overwrite issued for %d nmem%s.\n",
++				count >= 0 ? count : 0, count > 1 ? "s" : "");
++	else
++		fprintf(stderr, "sanitized %d nmem%s.\n",
++				count >= 0 ? count : 0, count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 285e09ce..f27b966c 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -685,3 +685,11 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key)
+ 	sprintf(buf, "erase %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
++{
++	char buf[SYSFS_ATTR_SIZE];
++
++	sprintf(buf, "overwrite %ld\n", key);
++	return write_security(dimm, buf);
++}
+diff --git a/ndctl/lib/keys.c b/ndctl/lib/keys.c
+index 39c4143c..beb5ab3b 100644
+--- a/ndctl/lib/keys.c
++++ b/ndctl/lib/keys.c
+@@ -92,6 +92,7 @@ NDCTL_EXPORT char *ndctl_load_key_blob(struct ndctl_ctx *ctx,
+ 		err(ctx, "stat: %s\n", strerror(errno));
+ 		return NULL;
+ 	}
++
+ 	if ((st.st_mode & S_IFMT) != S_IFREG) {
+ 		err(ctx, "%s not a regular file\n", path);
+ 		return NULL;
+@@ -418,10 +419,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
+ 	key = dimm_check_key(dimm, false);
+ 	if (key < 0) {
+ 		key = dimm_load_key(dimm, false, keypath);
+-		if (key < 0) {
++		if (key < 0 && run_op != ndctl_dimm_overwrite) {
+ 			err(ctx, "Unable to load key\n");
+ 			return -ENOKEY;
+-		}
++		} else
++			key = 0;
+ 	}
+ 
+ 	rc = run_op(dimm, key);
+@@ -431,9 +433,11 @@ static int check_key_run_and_discard(struct ndctl_dimm *dimm,
+ 		return rc;
+ 	}
+ 
+-	rc = dimm_remove_key(dimm, false, keypath);
+-	if (rc < 0)
+-		err(ctx, "Unable to cleanup key.\n");
++	if (key) {
++		rc = dimm_remove_key(dimm, false, keypath);
++		if (rc < 0)
++			err(ctx, "Unable to cleanup key.\n");
++	}
+ 	return 0;
+ }
+ 
+@@ -450,3 +454,10 @@ NDCTL_EXPORT int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ 	return check_key_run_and_discard(dimm, ndctl_dimm_secure_erase,
+ 			"crypto erase", keypath);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
++		const char *keypath)
++{
++	return check_key_run_and_discard(dimm, ndctl_dimm_overwrite,
++			"overwrite", keypath);
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index bd85651e..ba9af99e 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -399,4 +399,6 @@ global:
+ 	ndctl_dimm_freeze_security;
+ 	ndctl_dimm_secure_erase;
+ 	ndctl_dimm_secure_erase_key;
++	ndctl_dimm_overwrite;
++	ndctl_dimm_overwrite_key;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 9decc937..bcfcdfa5 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -706,6 +706,7 @@ int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
+ 
+ enum ndctl_key_type {
+ 	ND_USER_KEY,
+@@ -720,6 +721,7 @@ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *master,
+ int ndctl_dimm_disable_key(struct ndctl_dimm *dimm, const char *keypath);
+ int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ 		const char *keypath);
++int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm, const char *keypath);
+ #else
+ static inline int ndctl_dimm_enable_key(struct ndctl_dimm *dimm,
+ 		const char *master, const char *keypath)
+@@ -744,6 +746,12 @@ static inline int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+ {
+ 	return -EOPNOTSUPP;
+ }
++
++static inline int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm,
++		const char *keypath)
++{
++	return -EOPNOTSUPP;
++}
+ #endif
+ 
+ #define ND_KEY_DESC_SIZE	128
 
-
- Documentation/ndctl/Makefile.am                  |    9 
- Documentation/ndctl/intel-nvdimm-security.txt    |  140 ++++++
- Documentation/ndctl/ndctl-disable-passphrase.txt |   35 +
- Documentation/ndctl/ndctl-enable-passphrase.txt  |   49 ++
- Documentation/ndctl/ndctl-freeze-security.txt    |   22 +
- Documentation/ndctl/ndctl-list.txt               |    8 
- Documentation/ndctl/ndctl-sanitize-dimm.txt      |   50 ++
- Documentation/ndctl/ndctl-update-passphrase.txt  |   45 ++
- Documentation/ndctl/ndctl-wait-overwrite.txt     |   31 +
- Makefile.am                                      |    4 
- configure.ac                                     |   19 +
- contrib/nvdimm-security.conf                     |    1 
- ndctl.spec.in                                    |    3 
- ndctl/Makefile.am                                |    6 
- ndctl/builtin.h                                  |    7 
- ndctl/dimm.c                                     |  259 ++++++++++-
- ndctl/lib/Makefile.am                            |    8 
- ndctl/lib/dimm.c                                 |  202 ++++++++
- ndctl/lib/keys.c                                 |  528 ++++++++++++++++++++++
- ndctl/lib/libndctl.sym                           |   20 +
- ndctl/libndctl.h                                 |   84 ++++
- ndctl/load-keys.c                                |  260 +++++++++++
- ndctl/ndctl.c                                    |    7 
- test/Makefile.am                                 |    4 
- test/security.sh                                 |  197 ++++++++
- util/json.c                                      |   31 +
- 26 files changed, 2015 insertions(+), 14 deletions(-)
- create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
- create mode 100644 Documentation/ndctl/ndctl-disable-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-enable-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
- create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
- create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
- create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
- create mode 100644 contrib/nvdimm-security.conf
- create mode 100644 ndctl/lib/keys.c
- create mode 100644 ndctl/load-keys.c
- create mode 100755 test/security.sh
-
---
-Signature
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
