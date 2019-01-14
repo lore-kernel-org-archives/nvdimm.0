@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E345211B506D
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 21:32:18 -0800 (PST)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [RFC PATCH v2 2/4] dm-writecache: get rid of memory_data flush to
- writecache_flush_entry
-Date: Wed,  9 Jan 2019 13:31:25 +0800
-Message-Id: <20190109053127.8128-3-yehs2007@zoho.com>
-In-Reply-To: <20190109053127.8128-1-yehs2007@zoho.com>
-References: <20190109053127.8128-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 84C92211B5A32
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 10:51:28 -0800 (PST)
+Received: by mail-ot1-x342.google.com with SMTP id 81so86288otj.2
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 10:51:28 -0800 (PST)
+MIME-Version: 1.0
+References: <20190114181115.11983-1-vishal.l.verma@intel.com>
+ <20190114181115.11983-5-vishal.l.verma@intel.com>
+ <CAPcyv4j7R6_V4fkoOYavswCSZGXVLnAD=3E3gZy+RSedsuTgVA@mail.gmail.com>
+ <a5dbd65d944a2cf45e1ebbfbb4b2e898f3a86778.camel@intel.com>
+ <20190114184912.GA17520@vverma7-desk1.lm.intel.com>
+In-Reply-To: <20190114184912.GA17520@vverma7-desk1.lm.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Jan 2019 10:51:15 -0800
+Message-ID: <CAPcyv4gRKwPfRu_QqR_6+cgS+uWiHd1txwR6YS5jcDEm-UkHow@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 4/4] ndctl: clean up usage of ndctl_cmd_submit
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,43 +25,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com, agk@redhat.com
-Cc: jack@suse.cz, corbet@lwn.net, chengnt@lenovo.com, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Mon, Jan 14, 2019 at 10:49 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
+[..]
+> I see how it can be replaced now. Here is a revised patch 4 that
+> includes thses conversions:
+>
+> 8<----
+>
+>
+> From 5c19c269dd0037c3f68725e0f721784056172433 Mon Sep 17 00:00:00 2001
+> From: Vishal Verma <vishal.l.verma@intel.com>
+> Date: Fri, 11 Jan 2019 18:20:31 -0700
+> Subject: [ndctl PATCH] ndctl: clean up usage of ndctl_cmd_submit
+>
+> It is possible for ndctl_cmd_submit to return a positive number,
+> indicating a buffer underrun. It is only truly an error if it returns a
+> negative number. Several places in the library, the ndctl utility, and
+> in test/ were simply checking for an error with "if (rc)". Fix these to
+> only error out for negative returns.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-writecache_flush_region only works when SSD mode.
-If wc->pmem_mode sets, writecache_flush_region doesn't need to be called in
-writecache_flush_entry.
+Looks good to me. For the series:
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- drivers/md/dm-writecache.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 2d8e0c0..c69317c 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -688,8 +688,6 @@ static void writecache_poison_lists(struct dm_writecache *wc)
- static void writecache_flush_entry(struct dm_writecache *wc, struct wc_entry *e)
- {
- 	writecache_flush_region(wc, memory_entry(wc, e));
--	if (WC_MODE_PMEM(wc))
--		writecache_flush_region(wc, memory_data(wc, e));
- }
- 
- static bool writecache_entry_is_committed(struct dm_writecache *wc, struct wc_entry *e)
--- 
-1.8.3.1
-
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
