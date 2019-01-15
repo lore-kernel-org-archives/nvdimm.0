@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CED14211B63DE
- for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 06:16:22 -0800 (PST)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v2 0/2] acpi/nfit: Fix command-supported detection
-References: <154751742416.1617064.8252289468130584022.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Tue, 15 Jan 2019 09:16:19 -0500
+ by ml01.01.org (Postfix) with ESMTPS id C5E26211B6C33
+ for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 18:09:51 -0800 (PST)
+Subject: [PATCH v2 2/2] acpi/nfit: Fix command-supported detection
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Jan 2019 17:57:14 -0800
+Message-ID: <154751743447.1617064.15326609523389400890.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <154751742416.1617064.8252289468130584022.stgit@dwillia2-desk3.amr.corp.intel.com>
- (Dan Williams's message of "Mon, 14 Jan 2019 17:57:04 -0800")
-Message-ID: <x49tvia80r0.fsf@segfault.boston.devel.redhat.com>
+References: <154751742416.1617064.8252289468130584022.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,52 +22,123 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Sujith Pandel <sujith_pandel@dell.com>, stuart hayes <stuart.w.hayes@gmail.com>
+To: linux-nvdimm@lists.01.org
+Cc: Sujith Pandel <sujith_pandel@dell.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+The _DSM function number validation only happens to succeed when the
+generic Linux command number translation corresponds with a
+DSM-family-specific function number. This breaks NVDIMM-N
+implementations that correctly implement _LSR, _LSW, and _LSI, but do
+not happen to publish support for DSM function numbers 4, 5, and 6.
 
-> Changes since v1 [1]:
-> * Include another patch make sure that function-number zero can be
->   safely used as an invalid function number (Jeff)
-> * Add a comment clarifying why zero is an invalid function number (Jeff)
-> * Pass nfit_mem to cmd_to_func() (Jeff)
-> * Collect a Tested-by from Sujith
-> [1]: https://lists.01.org/pipermail/linux-nvdimm/2019-January/019435.html
+Recall that the support for _LS{I,R,W} family of methods results in the
+DIMM being marked as supporting those command numbers at
+acpi_nfit_register_dimms() time. The DSM function mask is only used for
+ND_CMD_CALL support of non-NVDIMM_FAMILY_INTEL devices.
 
-For the series:
+Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command...")
+Cc: <stable@vger.kernel.org>
+Link: https://github.com/pmem/ndctl/issues/78
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Sujith Pandel <sujith_pandel@dell.com>
+Tested-by: Sujith Pandel <sujith_pandel@dell.com>
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   46 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 32 insertions(+), 14 deletions(-)
 
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 67aef1a793d5..f770758f5063 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -409,6 +409,32 @@ static bool payload_dumpable(struct nvdimm *nvdimm, unsigned int func)
+ 	return true;
+ }
+ 
++static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
++		struct nd_cmd_pkg *call_pkg)
++{
++	if (cmd == ND_CMD_CALL) {
++		int i;
++
++		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
++			return -ENOTTY;
++
++		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
++			if (call_pkg->nd_reserved2[i])
++				return -EINVAL;
++		return call_pkg->nd_command;
++	}
++
++	/* Linux ND commands == NVDIMM_FAMILY_INTEL function numbers */
++	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
++		return cmd;
++
++	/*
++	 * Force function number validation to fail since 0 is never
++	 * published as a valid function in dsm_mask.
++	 */
++	return 0;
++}
++
+ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
+ {
+@@ -422,30 +448,21 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	unsigned long cmd_mask, dsm_mask;
+ 	u32 offset, fw_status = 0;
+ 	acpi_handle handle;
+-	unsigned int func;
+ 	const guid_t *guid;
+-	int rc, i;
++	int func, rc, i;
+ 
+ 	if (cmd_rc)
+ 		*cmd_rc = -EINVAL;
+-	func = cmd;
+-	if (cmd == ND_CMD_CALL) {
+-		call_pkg = buf;
+-		func = call_pkg->nd_command;
+-
+-		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
+-			if (call_pkg->nd_reserved2[i])
+-				return -EINVAL;
+-	}
+ 
+ 	if (nvdimm) {
+ 		struct acpi_device *adev = nfit_mem->adev;
+ 
+ 		if (!adev)
+ 			return -ENOTTY;
+-		if (call_pkg && nfit_mem->family != call_pkg->nd_family)
+-			return -ENOTTY;
+ 
++		func = cmd_to_func(nfit_mem, cmd, buf);
++		if (func < 0)
++			return func;
+ 		dimm_name = nvdimm_name(nvdimm);
+ 		cmd_name = nvdimm_cmd_name(cmd);
+ 		cmd_mask = nvdimm_cmd_mask(nvdimm);
+@@ -456,6 +473,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	} else {
+ 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
+ 
++		func = cmd;
+ 		cmd_name = nvdimm_bus_cmd_name(cmd);
+ 		cmd_mask = nd_desc->cmd_mask;
+ 		dsm_mask = cmd_mask;
+@@ -470,7 +488,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+ 		return -ENOTTY;
+ 
+-	if (!test_bit(cmd, &cmd_mask) || !test_bit(func, &dsm_mask))
++	if (!test_bit(cmd, &cmd_mask) && !test_bit(func, &dsm_mask))
+ 		return -ENOTTY;
+ 
+ 	in_obj.type = ACPI_TYPE_PACKAGE;
 
-Thanks, Dan!
-
-
->
-> ---
->
-> Quote patch2 changelog:
->
-> The _DSM function number validation only happens to succeed when the
-> generic Linux command number translation corresponds with a
-> DSM-family-specific function number. This breaks NVDIMM-N
-> implementations that correctly implement _LSR, _LSW, and _LSI, but do
-> not happen to publish support for DSM function numbers 4, 5, and 6.
->
-> Recall that the support for _LS{I,R,W} family of methods results in the
-> DIMM being marked as supporting those command numbers at
-> acpi_nfit_register_dimms() time. The DSM function mask is only used for
-> ND_CMD_CALL support of non-NVDIMM_FAMILY_INTEL devices.
->
-> ---
->
-> Dan Williams (2):
->       acpi/nfit: Block function zero DSMs
->       acpi/nfit: Fix command-supported detection
->
->
->  drivers/acpi/nfit/core.c |   53 ++++++++++++++++++++++++++++++++++------------
->  1 file changed, 39 insertions(+), 14 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
