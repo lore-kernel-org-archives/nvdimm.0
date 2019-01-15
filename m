@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C215E2194D387
- for <linux-nvdimm@lists.01.org>; Sun, 27 Jan 2019 16:31:15 -0800 (PST)
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: [PATCH 3/5] libnvdimm,
- label: return nd_label directly instead of calculating it again
-Date: Mon, 28 Jan 2019 08:30:16 +0800
-Message-Id: <20190128003018.4087-3-richardw.yang@linux.intel.com>
-In-Reply-To: <20190128003018.4087-1-richardw.yang@linux.intel.com>
-References: <20190128003018.4087-1-richardw.yang@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 08DDB211B1110
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 14:46:39 -0800 (PST)
+Subject: [PATCH v3 1/2] acpi/nfit: Block function zero DSMs
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 15 Jan 2019 14:34:02 -0800
+Message-ID: <154759164209.1953028.13765956293945097723.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154759163682.1953028.16995572958827750312.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154759163682.1953028.16995572958827750312.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,34 +23,40 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: zwisler@kernel.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, stuart hayes <stuart.w.hayes@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In nd_label_active(), we get nd_label from label area. While it is not
-necessary to calculate it a second time.
+In preparation for using function number 0 as an error value, prevent it
+from being considered a valid function value by acpi_nfit_ctl().
 
-This patch return nd_label directly.
-
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Cc: <stable@vger.kernel.org>
+Cc: stuart hayes <stuart.w.hayes@gmail.com>
+Fixes: e02fb7264d8a ("nfit: add Microsoft NVDIMM DSM command set...")
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/label.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 750dbaa6ce82..63b7d40fe9d4 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -587,7 +587,7 @@ struct nd_namespace_label *nd_label_active(struct nvdimm_drvdata *ndd, int n)
- 			continue;
- 
- 		if (n-- == 0)
--			return to_label(ndd, slot);
-+			return nd_label;
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 5143e11e3b0f..73281b19d3dd 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1867,6 +1867,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		return 0;
  	}
  
- 	return NULL;
--- 
-2.19.1
++	/*
++	 * Function 0 is the command interrogation function, don't
++	 * export it to potential userspace use, and enable it to be
++	 * used as an error value in acpi_nfit_ctl().
++	 */
++	dsm_mask &= ~1UL;
++
+ 	guid = to_nfit_uuid(nfit_mem->family);
+ 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
+ 		if (acpi_check_dsm(adev_dimm->handle, guid,
 
 _______________________________________________
 Linux-nvdimm mailing list
