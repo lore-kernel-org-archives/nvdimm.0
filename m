@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com
- [IPv6:2607:f8b0:4864:20::542])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D7C5F21B02822
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:23 -0800 (PST)
-Received: by mail-pg1-x542.google.com with SMTP id m1so2599418pgq.8
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:23 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v3 1/6] libndctl: Use the supported_alignment attribute
-Date: Wed, 16 Jan 2019 20:49:04 +1100
-Message-Id: <20190116094909.23112-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id ACFE0211B818D
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 13:21:20 -0800 (PST)
+Subject: Re: ndctl v64 stage tree -- Re: [PATCH v7 00/12] ndctl: add security
+ support
+References: <154705633843.23227.15903675663299735878.stgit@djiang5-desk3.ch.intel.com>
+ <5b9f677a-2a6b-f999-ff3e-7a8ec8938868@oracle.com>
+ <3412a217ab51c55878362f28e40ed058c69148a8.camel@intel.com>
+ <b5e2bc32-127f-50c0-2728-ec81a9a47413@oracle.com>
+ <3798b7c9-396b-f2a2-4ed6-7624a54ff508@intel.com>
+From: Jane Chu <jane.chu@oracle.com>
+Message-ID: <2b7c1ad8-e4d4-6b56-2532-c2ecc142ecbd@oracle.com>
+Date: Wed, 16 Jan 2019 13:21:11 -0800
 MIME-Version: 1.0
+In-Reply-To: <3798b7c9-396b-f2a2-4ed6-7624a54ff508@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,144 +24,88 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Newer kernels provide the "supported_alignments" sysfs attribute that
-indicates what alignments can be used with a PFN or DAX namespace. This
-patch adds the plumbing inside of libndctl to allow users to query this
-information through using:
-	ndctl_{dax|pfn}_get_supported_alignment(), and
-	ndctl_{dax|pfn}_get_num_alignments()
+On 1/16/2019 12:19 PM, Dave Jiang wrote:
+> 
+> 
+> On 1/16/19 11:02 AM, Jane Chu wrote:
+>> Hi, Vishal,
+>>
+>> On 1/11/2019 3:36 PM, Verma, Vishal L wrote:
+>>> On Fri, 2019-01-11 at 15:18 -0800, Jane Chu wrote:
+>>>> Hi, Dave,
+>>>>
+>>>> Where is your ndctl git tree that might clone from to test the
+>>>> security features?
+>>> Hi Jane,
+>>>
+>>> I pushed out a for-v64-security branch with this (v7) series:
+>>>
+>>> https://github.com/pmem/ndctl/tree/for-v64-security
+>>>
+>>> I believe Dave plans to have v8 out early next week with a few changes,
+>>> most notably the loadkeys script becomes a first class ndctl command.
+>>
+>> Just thought I might get a quick answer here although I haven't
+>> gone thru all my homework.
+>>
+>> I'm seeing "FAIL: security.sh" from "make KVER=5.0.0 check" on a NVDIMM system,
+>> the security.sh.log indicates
+>>
+>> + '[' '!' -f /usr/bin/keyctl ']'
+>> + '[' '!' -d /etc/ndctl/keys ']'
+>> + echo '/etc/ndctl/keys directory does not exist.'
+>> /etc/ndctl/keys directory does not exist.
+>> + exit 1
+>>
+>> Indeed, what step did I miss?
+> 
+> Jane,
+> For now just go ahead and create the /etc/ndctl/keys directory to try
+> the test. Also, we discovered that the security test needs to be run as
+> a root user or sudo -i, just sudo will not do due to not having access
+> to the root user key ring. As Vishal said there's an update coming which
+> addresses several issues we found in the script.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
----
-v3: Changed the return type of the *_get_supported_alignment() functions
-    to unsigned long to match the existing *_get_alignment() functions.
----
- ndctl/lib/libndctl.c   | 40 ++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  7 +++++++
- ndctl/libndctl.h       |  6 ++++++
- 3 files changed, 53 insertions(+)
+Thanks Dave!  Will try the trick with the upcoming update.
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 0c3a35e5bcc9..53369b5c9886 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -31,6 +31,7 @@
- #include <ccan/build_assert/build_assert.h>
- 
- #include <ndctl.h>
-+#include <util/size.h>
- #include <util/sysfs.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/namespace.h>
-@@ -237,6 +238,7 @@ struct ndctl_pfn {
- 	int buf_len;
- 	uuid_t uuid;
- 	int id, generation;
-+	struct ndctl_lbasize alignments;
- };
- 
- struct ndctl_dax {
-@@ -4781,6 +4783,18 @@ static void *__add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 	else
- 		pfn->size = strtoull(buf, NULL, 0);
- 
-+	/*
-+	 * If the kernel doesn't provide the supported_alignments sysfs
-+	 * attribute then it's safe to assume that we are running on x86
-+	 * which will always support 2MB and 4KB alignments.
-+	 */
-+	sprintf(path, "%s/supported_alignments", pfn_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		sprintf(buf, "%d %d", SZ_4K, SZ_2M);
-+
-+	if (parse_lbasize_supported(ctx, pfn_base, buf, &pfn->alignments) < 0)
-+		goto err_read;
-+
- 	free(path);
- 	return pfn;
- 
-@@ -5015,6 +5029,22 @@ NDCTL_EXPORT int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align)
- 	return 0;
- }
- 
-+NDCTL_EXPORT int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn)
-+{
-+	return pfn->alignments.num;
-+}
-+
-+NDCTL_EXPORT unsigned long ndctl_pfn_get_supported_alignment(struct ndctl_pfn *pfn, int i)
-+{
-+	if (pfn->alignments.num == 0)
-+		return 0;
-+
-+	if (i < 0 || i > pfn->alignments.num)
-+		return -1;
-+	else
-+		return pfn->alignments.supported[i];
-+}
-+
- NDCTL_EXPORT int ndctl_pfn_set_namespace(struct ndctl_pfn *pfn,
- 		struct ndctl_namespace *ndns)
- {
-@@ -5237,6 +5267,16 @@ NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
- 	return ndctl_pfn_get_align(&dax->pfn);
- }
- 
-+NDCTL_EXPORT int ndctl_dax_get_num_alignments(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_num_alignments(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT unsigned long ndctl_dax_get_supported_alignment(struct ndctl_dax *dax, int i)
-+{
-+	return ndctl_pfn_get_supported_alignment(&dax->pfn, i);
-+}
-+
- NDCTL_EXPORT int ndctl_dax_has_align(struct ndctl_dax *dax)
- {
- 	return ndctl_pfn_has_align(&dax->pfn);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 6c4c8b4dfb8e..0103c1b71a1d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -385,3 +385,10 @@ global:
- 	ndctl_namespace_get_next_badblock;
- 	ndctl_dimm_get_dirty_shutdown;
- } LIBNDCTL_17;
-+
-+LIBNDCTL_19 {
-+	ndctl_pfn_get_supported_alignment;
-+	ndctl_pfn_get_num_alignments;
-+	ndctl_dax_get_supported_alignment;
-+	ndctl_dax_get_num_alignments;
-+} LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 62cef9e82da3..0f1f66256c1d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -681,6 +681,12 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
- int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
-+int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn);
-+unsigned long ndctl_pfn_get_supported_alignment(struct ndctl_pfn *pfn, int i);
-+
-+int ndctl_dax_get_num_alignments(struct ndctl_dax *dax);
-+unsigned long ndctl_dax_get_supported_alignment(struct ndctl_dax *dax, int i);
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
--- 
-2.20.1
+thanks,
+-jane
 
+>>
+>> Thanks!
+>> -jane
+>>
+>>> 	-Vishal
+>>>
+>>>> Thanks!
+>>>> -jane
+>>>>
+>>>> On 1/9/2019 9:53 AM, Dave Jiang wrote:
+>>>>> The following series implements mechanisms that utilize the sysfs
+>>>>> knobs
+>>>>> provided by the kernel in order to support the Intel DSM v1.8 spec
+>>>>> that provides security to NVDIMM. The following abilities are
+>>>>> added:
+>>>>> 1. display security state
+>>>>> 2. enable/update passphrase
+>>>>> 3. disable passphrase
+>>>>> 4. freeze security
+>>>>> 5. secure erase
+>>>>> 6. overwrite
+>>>>> 7. master passphrase enable/update
+>>>>>
+>>>> _______________________________________________
+>>>> Linux-nvdimm mailing list
+>>>> Linux-nvdimm@lists.01.org
+>>>> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
