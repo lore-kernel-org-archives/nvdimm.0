@@ -1,109 +1,123 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3F1292194D3B9
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 09:20:34 -0800 (PST)
-Subject: Re: [PATCH] mm: hwpoison: use do_send_sig_info() instead of
- force_sig() (Re: PMEM error-handling forces SIGKILL causes kernel panic)
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
 References: <e3c4c0e0-1434-4353-b893-2973c04e7ff7@oracle.com>
  <CAPcyv4j67n6H7hD6haXJqysbaauci4usuuj5c+JQ7VQBGngO1Q@mail.gmail.com>
- <20190111081401.GA5080@hori1.linux.bs1.fc.nec.co.jp>
- <20190116093046.GA29835@hori1.linux.bs1.fc.nec.co.jp>
- <CAPcyv4jnHqDp7s1SdqHePms2Z-8d0zk-+6meqKeMQUNArxHb_w@mail.gmail.com>
-From: Jane Chu <jane.chu@oracle.com>
-Message-ID: <bdf211ba-1429-fadb-9c0a-aa6dd52d48ab@oracle.com>
-Date: Wed, 16 Jan 2019 09:20:12 -0800
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jnHqDp7s1SdqHePms2Z-8d0zk-+6meqKeMQUNArxHb_w@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+ <20190111081401.GA5080@hori1.linux.bs1.fc.nec.co.jp> <20190116093046.GA29835@hori1.linux.bs1.fc.nec.co.jp>
+In-Reply-To: <20190116093046.GA29835@hori1.linux.bs1.fc.nec.co.jp>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 16 Jan 2019 08:55:52 -0800
+Message-ID: <CAPcyv4jnHqDp7s1SdqHePms2Z-8d0zk-+6meqKeMQUNArxHb_w@mail.gmail.com>
+Subject: Re: [PATCH] mm: hwpoison: use do_send_sig_info() instead of
+ force_sig() (Re: PMEM error-handling forces SIGKILL causes kernel panic)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Sender: owner-linux-mm@kvack.org
+To: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jane Chu <jane.chu@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ck9uIDEvMTYvMjAxOSA4OjU1IEFNLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4gT24gV2VkLCBKYW4g
-MTYsIDIwMTkgYXQgMTozMyBBTSBOYW95YSBIb3JpZ3VjaGkKPiA8bi1ob3JpZ3VjaGlAYWguanAu
-bmVjLmNvbT4gd3JvdGU6Cj4+IFsgQ0NlZCBBbmRyZXcgYW5kIGxpbnV4LW1tIF0KPj4KPj4gT24g
-RnJpLCBKYW4gMTEsIDIwMTkgYXQgMDg6MTQ6MDJBTSArMDAwMCwgSG9yaWd1Y2hpIE5hb3lhKOWg
-gOWPoyDnm7TkuZ8pIHdyb3RlOgo+Pj4gSGkgRGFuLCBKYW5lLAo+Pj4KPj4+IFRoYW5rcyBmb3Ig
-dGhlIHJlcG9ydC4KPj4+Cj4+PiBPbiBXZWQsIEphbiAwOSwgMjAxOSBhdCAwMzo0OTozMlBNIC0w
-ODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6Cj4+Pj4gWyBzd2l0Y2ggdG8gdGV4dCBtYWlsLCBhZGQg
-bGttbCBhbmQgTmFveWEgXQo+Pj4+Cj4+Pj4gT24gV2VkLCBKYW4gOSwgMjAxOSBhdCAxMjoxOSBQ
-TSBKYW5lIENodSA8amFuZS5jaHVAb3JhY2xlLmNvbT4gd3JvdGU6Cj4+PiAuLi4KPj4+Pj4gMy4g
-VGhlIGhhcmR3YXJlIGNvbnNpc3RzIHRoZSBsYXRlc3QgcmV2aXNpb24gQ1BVIGFuZCBJbnRlbCBO
-VkRJTU0sIHdlIHN1c3BlY3RlZAo+Pj4+PiAgICAgdGhlIENQVSBmYXVsdHkgYmVjYXVzZSBpdCBn
-ZW5lcmF0ZWQgTUNFIG92ZXIgUE1FTSBVRSBpbiBhIHVubGlrZWx5IGhpZ2gKPj4+Pj4gICAgIHJh
-dGUgZm9yIGFueSByZWFzb25hYmxlIE5WRElNTSAobGlrZSBhIGZldyBwZXIgMjRob3VycykuCj4+
-Pj4+Cj4+Pj4+IEFmdGVyIHN3YXBwaW5nIHRoZSBDUFUsIHRoZSBwcm9ibGVtIHN0b3BwZWQgcmVw
-cm9kdWNpbmcuCj4+Pj4+Cj4+Pj4+IEJ1dCBvbmUgY291bGQgYXJndWUgdGhhdCBwZXJoYXBzIHRo
-ZSBmYXVsdHkgQ1BVIGV4cG9zZWQgYSBzbWFsbCByYWNlIHdpbmRvdwo+Pj4+PiBmcm9tIGNvbGxl
-Y3RfcHJvY3MoKSB0byB1bm1hcF9tYXBwaW5nX3JhbmdlKCkgYW5kIHRvIGtpbGxfcHJvY3MoKSwg
-aGVuY2UKPj4+Pj4gY2F1Z2h0IHRoZSBrZXJuZWwgIFBNRU0gZXJyb3IgaGFuZGxlciBvZmYgZ3Vh
-cmQuCj4+Pj4gVGhlcmUncyBkZWZpbml0ZWx5IGEgcmFjZSwgYW5kIHRoZSBpbXBsZW1lbnRhdGlv
-biBpcyBidWdneSBhcyBjYW4gYmUKPj4+PiBzZWVuIGluIF9fZXhpdF9zaWduYWw6Cj4+Pj4KPj4+
-PiAgICAgICAgICBzaWdoYW5kID0gcmN1X2RlcmVmZXJlbmNlX2NoZWNrKHRzay0+c2lnaGFuZCwK
-Pj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvY2tkZXBfdGFz
-a2xpc3RfbG9ja19pc19oZWxkKCkpOwo+Pj4+ICAgICAgICAgIHNwaW5fbG9jaygmc2lnaGFuZC0+
-c2lnbG9jayk7Cj4+Pj4KPj4+PiAuLi50aGUgbWVtb3J5LWZhaWx1cmUgcGF0aCBuZWVkcyB0byBo
-b2xkIHRoZSBwcm9wZXIgbG9ja3MgYmVmb3JlIGl0Cj4+Pj4gY2FuIGFzc3VtZSB0aGF0IGRlLXJl
-ZmVyZW5jaW5nIHRzay0+c2lnaGFuZCBpcyB2YWxpZC4KPj4+Pgo+Pj4+PiBBbHNvIG5vdGUsIHRo
-ZSBzYW1lIHdvcmtsb2FkIG9uIHRoZSBzYW1lIGZhdWx0eSBDUFUgd2VyZSBydW4gb24gTGludXgg
-cHJpb3IgdG8KPj4+Pj4gdGhlIDQuMTkgUE1FTSBlcnJvciBoYW5kbGluZyBhbmQgZGlkIG5vdCBl
-bmNvdW50ZXIga2VybmVsIGNyYXNoLCBwcm9iYWJseSBiZWNhdXNlCj4+Pj4+IHRoZSBwcmlvciBI
-V1BPSVNPTiBoYW5kbGVyIGRpZCBub3QgZm9yY2UgU0lHS0lMTD8KPj4+PiBCZWZvcmUgNC4xOSB0
-aGlzIHRlc3Qgc2hvdWxkIHJlc3VsdCBpbiBhIG1hY2hpbmUtY2hlY2sgcmVib290LCBub3QKPj4+
-PiBtdWNoIGJldHRlciB0aGFuIGEga2VybmVsIGNyYXNoLgo+Pj4+Cj4+Pj4+IFNob3VsZCB3ZSBu
-b3QgdG8gZm9yY2UgdGhlIFNJR0tJTEwsIG9yIGZpbmQgYSB3YXkgdG8gY2xvc2UgdGhlIHJhY2Ug
-d2luZG93Pwo+Pj4+IFRoZSByYWNlIHNob3VsZCBiZSBjbG9zZWQgYnkgaG9sZGluZyB0aGUgcHJv
-cGVyIHRhc2tsaXN0IGFuZCByY3UgcmVhZCBsb2NrKHMpLgo+Pj4gVGhpcyByZWFzb25pbmcgYW5k
-IHByb3Bvc2FsIHNvdW5kIHJpZ2h0IHRvIG1lLiBJJ20gdHJ5aW5nIHRvIHJlcHJvZHVjZQo+Pj4g
-dGhpcyByYWNlIChmb3Igbm9uLXBtZW0gY2FzZSwpIGJ1dCBubyBsdWNrIGZvciBub3cuIEknbGwg
-aW52ZXN0aWdhdGUgbW9yZS4KPj4gSSB3cm90ZS90ZXN0ZWQgYSBwYXRjaCBmb3IgdGhpcyBpc3N1
-ZS4KPj4gSSB0aGluayB0aGF0IHN3aXRjaGluZyBzaWduYWwgQVBJIGVmZmVjdGl2ZWx5IGRvZXMg
-cHJvcGVyIGxvY2tpbmcuCj4+Cj4+IFRoYW5rcywKPj4gTmFveWEgSG9yaWd1Y2hpCj4+IC0tLQo+
-PiAgRnJvbSAxNmRiZjYxMDVmZjQ4MzFmNzMyNzZkNzlkNWRmMjM4YWI0NjdkZTc2IE1vbiBTZXAg
-MTcgMDA6MDA6MDAgMjAwMQo+PiBGcm9tOiBOYW95YSBIb3JpZ3VjaGkgPG4taG9yaWd1Y2hpQGFo
-LmpwLm5lYy5jb20+Cj4+IERhdGU6IFdlZCwgMTYgSmFuIDIwMTkgMTY6NTk6MjcgKzA5MDAKPj4g
-U3ViamVjdDogW1BBVENIXSBtbTogaHdwb2lzb246IHVzZSBkb19zZW5kX3NpZ19pbmZvKCkgaW5z
-dGVhZCBvZiBmb3JjZV9zaWcoKQo+Pgo+PiBDdXJyZW50bHkgbWVtb3J5X2ZhaWx1cmUoKSBpcyBy
-YWN5IGFnYWluc3QgcHJvY2VzcydzIGV4aXRpbmcsCj4+IHdoaWNoIHJlc3VsdHMgaW4ga2VybmVs
-IGNyYXNoIGJ5IG51bGwgcG9pbnRlciBkZXJlZmVyZW5jZS4KPj4KPj4gVGhlIHJvb3QgY2F1c2Ug
-aXMgdGhhdCBtZW1vcnlfZmFpbHVyZSgpIHVzZXMgZm9yY2Vfc2lnKCkgdG8gZm9yY2libHkKPj4g
-a2lsbCBhc3luY2hyb25vdXMgKG1lYW5pbmcgbm90IGluIHRoZSBjdXJyZW50IGNvbnRleHQpIHBy
-b2Nlc3Nlcy4gIEFzCj4+IGRpc2N1c3NlZCBpbiB0aHJlYWQgaHR0cHM6Ly9sa21sLm9yZy9sa21s
-LzIwMTAvNi84LzIzNiB5ZWFycyBhZ28gZm9yCj4+IE9PTSBmaXhlcywgdGhpcyBpcyBub3QgYSBy
-aWdodCB0aGluZyB0byBkby4gIE9PTSBzb2x2ZXMgdGhpcyBpc3N1ZSBieQo+PiB1c2luZyBkb19z
-ZW5kX3NpZ19pbmZvKCkgYXMgZG9uZSBpbiBjb21taXQgZDJkMzkzMDk5ZGUyICgic2lnbmFsOgo+
-PiBvb21fa2lsbF90YXNrOiB1c2UgU0VORF9TSUdfRk9SQ0VEIGluc3RlYWQgb2YgZm9yY2Vfc2ln
-KCkiKSwgc28gdGhpcwo+PiBwYXRjaCBpcyBzdWdnZXN0aW5nIHRvIGRvIHRoZSBzYW1lIGZvciBo
-d3BvaXNvbi4gIGRvX3NlbmRfc2lnX2luZm8oKQo+PiBwcm9wZXJseSBhY2Nlc3NlcyB0byBzaWds
-b2NrIHdpdGggbG9ja190YXNrX3NpZ2hhbmQoKSwgc28gaXMgZnJlZSBmcm9tCj4+IHRoZSByZXBv
-cnRlZCByYWNlLgo+Pgo+PiBJIGNvbmZpcm1lZCB0aGF0IHRoZSByZXBvcnRlZCBidWcgcmVwcm9k
-dWNlcyB3aXRoIGluc2VydGluZyBzb21lIGRlbGF5Cj4+IGluIGtpbGxfcHJvY3MoKSwgYW5kIGl0
-IG5ldmVyIHJlcHJvZHVjZXMgd2l0aCB0aGlzIHBhdGNoLgo+Pgo+PiBOb3RlIHRoYXQgbWVtb3J5
-X2ZhaWx1cmUoKSBjYW4gc2VuZCBhbm90aGVyIHR5cGUgb2Ygc2lnbmFsIHVzaW5nCj4+IGZvcmNl
-X3NpZ19tY2VlcnIoKSwgYW5kIHRoZSByZXBvcnRlZCByYWNlIHNob3VsZG4ndCBoYXBwZW4gb24g
-aXQKPj4gYmVjYXVzZSBmb3JjZV9zaWdfbWNlZXJyKCkgaXMgY2FsbGVkIG9ubHkgZm9yIHN5bmNo
-cm9ub3VzIHByb2Nlc3Nlcwo+PiAoaS5lLiBCVVNfTUNFRVJSX0FSIGhhcHBlbnMgb25seSB3aGVu
-IHNvbWUgcHJvY2VzcyBhY2Nlc3NlcyB0byB0aGUKPj4gY29ycnVwdGVkIG1lbW9yeS4pCj4+Cj4+
-IFJlcG9ydGVkLWJ5OiBKYW5lIENodSA8amFuZS5jaHVAb3JhY2xlLmNvbT4KPj4gQ2M6IERhbiBX
-aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+PiBDYzogc3RhYmxlQHZnZXIua2Vy
-bmVsLm9yZwo+PiBTaWduZWQtb2ZmLWJ5OiBOYW95YSBIb3JpZ3VjaGkgPG4taG9yaWd1Y2hpQGFo
-LmpwLm5lYy5jb20+Cj4+IC0tLQo+IExvb2tzIGdvb2QgdG8gbWUuCj4KPiBSZXZpZXdlZC1ieTog
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4KPiAuLi5idXQgaXQgd291
-bGQgc3RpbGwgYmUgZ29vZCB0byBnZXQgYSBUZXN0ZWQtYnkgZnJvbSBKYW5lLgoKU3VyZSwgd2ls
-bCBsZXQgeW91IGtub3cgaG93IHRoZSB0ZXN0IGdvZXMuCgpUaGFua3MhCi1qYW5lCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
-bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Wed, Jan 16, 2019 at 1:33 AM Naoya Horiguchi
+<n-horiguchi@ah.jp.nec.com> wrote:
+>
+> [ CCed Andrew and linux-mm ]
+>
+> On Fri, Jan 11, 2019 at 08:14:02AM +0000, Horiguchi Naoya(=E5=A0=80=E5=8F=
+=A3 =E7=9B=B4=E4=B9=9F) wrote:
+> > Hi Dan, Jane,
+> >
+> > Thanks for the report.
+> >
+> > On Wed, Jan 09, 2019 at 03:49:32PM -0800, Dan Williams wrote:
+> > > [ switch to text mail, add lkml and Naoya ]
+> > >
+> > > On Wed, Jan 9, 2019 at 12:19 PM Jane Chu <jane.chu@oracle.com> wrote:
+> > ...
+> > > > 3. The hardware consists the latest revision CPU and Intel NVDIMM, =
+we suspected
+> > > >    the CPU faulty because it generated MCE over PMEM UE in a unlike=
+ly high
+> > > >    rate for any reasonable NVDIMM (like a few per 24hours).
+> > > >
+> > > > After swapping the CPU, the problem stopped reproducing.
+> > > >
+> > > > But one could argue that perhaps the faulty CPU exposed a small rac=
+e window
+> > > > from collect_procs() to unmap_mapping_range() and to kill_procs(), =
+hence
+> > > > caught the kernel  PMEM error handler off guard.
+> > >
+> > > There's definitely a race, and the implementation is buggy as can be
+> > > seen in __exit_signal:
+> > >
+> > >         sighand =3D rcu_dereference_check(tsk->sighand,
+> > >                                         lockdep_tasklist_lock_is_held=
+());
+> > >         spin_lock(&sighand->siglock);
+> > >
+> > > ...the memory-failure path needs to hold the proper locks before it
+> > > can assume that de-referencing tsk->sighand is valid.
+> > >
+> > > > Also note, the same workload on the same faulty CPU were run on Lin=
+ux prior to
+> > > > the 4.19 PMEM error handling and did not encounter kernel crash, pr=
+obably because
+> > > > the prior HWPOISON handler did not force SIGKILL?
+> > >
+> > > Before 4.19 this test should result in a machine-check reboot, not
+> > > much better than a kernel crash.
+> > >
+> > > > Should we not to force the SIGKILL, or find a way to close the race=
+ window?
+> > >
+> > > The race should be closed by holding the proper tasklist and rcu read=
+ lock(s).
+> >
+> > This reasoning and proposal sound right to me. I'm trying to reproduce
+> > this race (for non-pmem case,) but no luck for now. I'll investigate mo=
+re.
+>
+> I wrote/tested a patch for this issue.
+> I think that switching signal API effectively does proper locking.
+>
+> Thanks,
+> Naoya Horiguchi
+> ---
+> From 16dbf6105ff4831f73276d79d5df238ab467de76 Mon Sep 17 00:00:00 2001
+> From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> Date: Wed, 16 Jan 2019 16:59:27 +0900
+> Subject: [PATCH] mm: hwpoison: use do_send_sig_info() instead of force_si=
+g()
+>
+> Currently memory_failure() is racy against process's exiting,
+> which results in kernel crash by null pointer dereference.
+>
+> The root cause is that memory_failure() uses force_sig() to forcibly
+> kill asynchronous (meaning not in the current context) processes.  As
+> discussed in thread https://lkml.org/lkml/2010/6/8/236 years ago for
+> OOM fixes, this is not a right thing to do.  OOM solves this issue by
+> using do_send_sig_info() as done in commit d2d393099de2 ("signal:
+> oom_kill_task: use SEND_SIG_FORCED instead of force_sig()"), so this
+> patch is suggesting to do the same for hwpoison.  do_send_sig_info()
+> properly accesses to siglock with lock_task_sighand(), so is free from
+> the reported race.
+>
+> I confirmed that the reported bug reproduces with inserting some delay
+> in kill_procs(), and it never reproduces with this patch.
+>
+> Note that memory_failure() can send another type of signal using
+> force_sig_mceerr(), and the reported race shouldn't happen on it
+> because force_sig_mceerr() is called only for synchronous processes
+> (i.e. BUS_MCEERR_AR happens only when some process accesses to the
+> corrupted memory.)
+>
+> Reported-by: Jane Chu <jane.chu@oracle.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> ---
+
+Looks good to me.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+...but it would still be good to get a Tested-by from Jane.
