@@ -1,16 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com
+ [IPv6:2607:f8b0:4864:20::544])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 47D0721959CB2
- for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 12:07:28 -0800 (PST)
-Subject: [PATCH v8 09/12] ndctl: add wait-overwrite support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Mon, 14 Jan 2019 13:07:27 -0700
-Message-ID: <154749644748.63704.7436448740831438431.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
-References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7A20021CB74A7
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 13:24:38 -0800 (PST)
+Received: by mail-pg1-x544.google.com with SMTP id m1so3375487pgq.8
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 13:24:38 -0800 (PST)
 MIME-Version: 1.0
+References: <CAGXu5jKUP9o-ZgW5Wa5-9DHeQNZ5VA3cLBCJ0P7AVkTQ5tqHtQ@mail.gmail.com>
+ <CAPcyv4iZZEM3D8vta_sge7a4iMgPZ5a1AnunXa4DKUaWauZk1g@mail.gmail.com>
+ <CAGXu5j+z_yRPgE0HO=Sjo_VwwDDPJ+VLxbxwKgbb2cUAB5jmwg@mail.gmail.com>
+ <CAPcyv4jhFGMzBrWHS_9q0Fe2MersRXz31VG3H2dJfujx1CJGhQ@mail.gmail.com>
+ <CAGXu5jKrhvUduv_XUYF94YM=bBfPGNkPrZ_EkvRKB0pDY_6uOw@mail.gmail.com>
+ <CAPcyv4jQ1Og_mEVjb77xdM263MugzK7_yrR_zi498JFrOrhSrg@mail.gmail.com>
+ <CAPcyv4if2YwyYSn9XLKHQXX2oe+nX2idvNx79M2s1j4FMftkBg@mail.gmail.com>
+In-Reply-To: <CAPcyv4if2YwyYSn9XLKHQXX2oe+nX2idvNx79M2s1j4FMftkBg@mail.gmail.com>
+From: Dexuan-Linux Cui <dexuan.linux@gmail.com>
+Date: Wed, 16 Jan 2019 13:24:26 -0800
+Message-ID: <CAA42JLYcpY_f4CJY5XU9zmbLWw6ivyWsp1rgfDWnovCUvcDCVg@mail.gmail.com>
+Subject: Re: nvdimm crash at boot
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,257 +31,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Dexuan Cui <decui@microsoft.com>, Kees Cook <keescook@chromium.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a blocking 'wait-overwrite' command to ndctl to let a user wait for an
-overwrite operation on a dimm to complete.
+On Tue, Jan 8, 2019 at 4:49 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> On Tue, Jan 8, 2019 at 4:02 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > On Tue, Jan 8, 2019 at 3:55 PM Kees Cook <keescook@chromium.org> wrote:
+> > >
+> > > On Tue, Jan 8, 2019 at 3:54 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> > > >
+> > > > On Tue, Jan 8, 2019 at 3:34 PM Kees Cook <keescook@chromium.org> wrote:
+> > > > >
+> > > > > On Tue, Jan 8, 2019 at 3:28 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> > > > > > Ah, thanks for the report! The key difference is that you don't define
+> > > > > > a "label area", so the driver bails out early and never initializes
+> > > > > > the security state.
+> > > > > >
+> > > > > > This should fix it up.
+> > > > > >
+> > > > > > diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> > > > > > index 4890310df874..636cdb06ee17 100644
+> > > > > > --- a/drivers/nvdimm/dimm_devs.c
+> > > > > > +++ b/drivers/nvdimm/dimm_devs.c
+> > > > > > @@ -514,7 +514,7 @@ static umode_t nvdimm_visible(struct kobject
+> > > > > > *kobj, struct attribute *a, int n)
+> > > > > >
+> > > > > >         if (a != &dev_attr_security.attr)
+> > > > > >                 return a->mode;
+> > > > > > -       if (nvdimm->sec.state < 0)
+> > > > > > +       if (!nvdimm->sec.ops || nvdimm->sec.state < 0)
+> > > > > >                 return 0;
+> > > > > >         /* Are there any state mutation ops? */
+> > > > > >         if (nvdimm->sec.ops->freeze || nvdimm->sec.ops->disable
+> > > > >
+> > > > > Okay, cool. I wasn't sure if that test needed a deeper check. :)
+> > > > >
+> > > > > Fixes: 37833fb7989a9 ("acpi/nfit, libnvdimm: Add freeze security
+> > > > > support to Intel nvdimm")
+> > > > > Tested-by: Kees Cook <keescook@chromium.org>
+> > > > >
+> > > >
+> > > > Actually, looking closer this should have been avoided by the fact
+> > > > that __nvdimm_create() initializes the security state early and that
+> > > > nvdimm->sec.state should have saved us.
+> > > >
+> > > > I'll dig a bit deeper with your qemu config.
+> > >
+> > > Maybe something goes weird with pstore stealing the region?
+> >
+> > No, pstore is off the hook. I was just able to reproduce locally and
+> > I'm not doing anything with pstore.
+>
+> Huh, this fixes it:
+>
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 5440f11b0907..7315977b64da 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -160,6 +160,7 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
+>  }
+>
+>  enum nvdimm_security_state {
+> +       NVDIMM_SECURITY_ERROR = -1,
+>         NVDIMM_SECURITY_DISABLED,
+>         NVDIMM_SECURITY_UNLOCKED,
+>         NVDIMM_SECURITY_LOCKED,
+>
+> Apparently I was wrong to think an enum was a signed int without
+> actually making a signed value a possibility. I would have a expected
+> the compiler to give me a "statement has no effect" for testing for a
+> negative value against an effectively unsigned quantity.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/ndctl/Makefile.am              |    3 +
- Documentation/ndctl/ndctl-wait-overwrite.txt |   31 ++++++++++
- ndctl/builtin.h                              |    1 
- ndctl/dimm.c                                 |   27 +++++++++
- ndctl/lib/dimm.c                             |   78 ++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym                       |    1 
- ndctl/libndctl.h                             |    1 
- ndctl/ndctl.c                                |    1 
- 8 files changed, 142 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
+Thanks for the one-line patch! It fixed the same crash for me.
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 0224cccd..9c1c95b5 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -53,7 +53,8 @@ man1_MANS = \
- 	ndctl-disable-passphrase.1 \
- 	ndctl-freeze-security.1 \
- 	ndctl-sanitize-dimm.1 \
--	ndctl-load-keys.1
-+	ndctl-load-keys.1 \
-+	ndctl-wait-overwrite.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-wait-overwrite.txt b/Documentation/ndctl/ndctl-wait-overwrite.txt
-new file mode 100644
-index 00000000..5d4c72ef
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-wait-overwrite.txt
-@@ -0,0 +1,31 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-wait-overwrite(1)
-+=======================
-+
-+NAME
-+----
-+ndctl-wait-overwrite - wait for nvdimm overwrite operation to complete
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl wait-overwrite' <dimm> [<options>]
-+
-+DESCRIPTION
-+-----------
-+The kernel provides a POLL(2) capable sysfs file ('security') to indicate
-+the state of overwrite. The 'ndctl wait-overwrite' operation waits for
-+a change in the state of the 'security' file across all specified dimms.
-+
-+OPTIONS
-+-------
-+-v::
-+--verbose::
-+	Emit debug messages for the overwrite wait process
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkndctl:ndctl-sanitize-dimm[1]
-diff --git a/ndctl/builtin.h b/ndctl/builtin.h
-index 2cdc0590..ebc3f5c7 100644
---- a/ndctl/builtin.h
-+++ b/ndctl/builtin.h
-@@ -38,4 +38,5 @@ int cmd_disable_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_freeze_security(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_sanitize_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_load_keys(int argc, const char **argv, struct ndctl_ctx *ctx);
-+int cmd_wait_overwrite(int argc, const char **argv, struct ndctl_ctx *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 799823d6..ce477981 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -931,6 +931,24 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 	return 0;
- }
- 
-+static int action_wait_overwrite(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	int rc;
-+
-+	if (!ndctl_dimm_security_supported(dimm)) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	rc = ndctl_dimm_wait_overwrite(dimm);
-+	if (rc == 1)
-+		printf("%s: overwrite completed.\n",
-+				ndctl_dimm_get_devname(dimm));
-+	return rc;
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -1378,3 +1396,12 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
- 				count >= 0 ? count : 0, count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_wait_overwrite(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_wait_overwrite,
-+			base_options,
-+			"ndctl wait-overwrite <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index f27b966c..eb950331 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -16,6 +16,7 @@
- #include <util/bitmap.h>
- #include <util/sysfs.h>
- #include <stdlib.h>
-+#include <poll.h>
- #include "private.h"
- 
- static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
-@@ -693,3 +694,80 @@ NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
- 	sprintf(buf, "overwrite %ld\n", key);
- 	return write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_wait_overwrite(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
-+	struct pollfd fds;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int fd = 0, rc;
-+	char *path = dimm->dimm_buf;
-+	int len = dimm->buf_len;
-+
-+	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -ERANGE;
-+	}
-+
-+	fd = open(path, O_RDONLY|O_CLOEXEC);
-+	if (fd < 0) {
-+		rc = -errno;
-+		err(ctx, "open: %s\n", strerror(errno));
-+		return rc;
-+	}
-+	memset(&fds, 0, sizeof(fds));
-+	fds.fd = fd;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc < 0) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+	/* skipping if we aren't in overwrite state */
-+	if (strcmp(buf, "overwrite") != 0) {
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	for (;;) {
-+		rc = sysfs_read_attr(ctx, path, buf);
-+		if (rc < 0) {
-+			rc = -EOPNOTSUPP;
-+			break;
-+		}
-+
-+		if (strcmp(buf, "overwrite") == 0) {
-+			rc = poll(&fds, 1, -1);
-+			if (rc < 0) {
-+				rc = -errno;
-+				err(ctx, "poll error: %s\n", strerror(errno));
-+				break;
-+			}
-+			dbg(ctx, "poll wake: revents: %d\n", fds.revents);
-+			if (pread(fd, buf, 1, 0) == -1) {
-+				rc = -errno;
-+				break;
-+			}
-+			fds.revents = 0;
-+		} else {
-+			if (strcmp(buf, "disabled") == 0)
-+				rc = 1;
-+			break;
-+		}
-+	}
-+
-+	if (rc == 1)
-+		dbg(ctx, "%s: overwrite complete\n",
-+				ndctl_dimm_get_devname(dimm));
-+	else if (rc == 0)
-+		dbg(ctx, "%s: ovewrite skipped\n",
-+				ndctl_dimm_get_devname(dimm));
-+	else
-+		dbg(ctx, "%s: overwrite error waiting for complete\n",
-+				ndctl_dimm_get_devname(dimm));
-+
-+ out:
-+	close(fd);
-+	return rc;
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index ba9af99e..d2ca19ee 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -401,4 +401,5 @@ global:
- 	ndctl_dimm_secure_erase_key;
- 	ndctl_dimm_overwrite;
- 	ndctl_dimm_overwrite_key;
-+	ndctl_dimm_wait_overwrite;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index bcfcdfa5..9217e381 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -707,6 +707,7 @@ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
-+int ndctl_dimm_wait_overwrite(struct ndctl_dimm *dimm);
- 
- enum ndctl_key_type {
- 	ND_USER_KEY,
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 91b080d5..d89b8fae 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -94,6 +94,7 @@ static struct cmd_struct commands[] = {
- 	{ "freeze-security", { cmd_freeze_security } },
- 	{ "sanitize-dimm", { cmd_sanitize_dimm } },
- 	{ "load-keys", { cmd_load_keys } },
-+	{ "wait-overwrite", { cmd_wait_overwrite } },
- 	{ "list", { cmd_list } },
- 	{ "monitor", { cmd_monitor } },
- 	{ "help", { cmd_help } },
-
+-- Dexuan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
