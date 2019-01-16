@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
+ [IPv6:2607:f8b0:4864:20::442])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2C768211B6C1D
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 14:53:51 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 0/3] Add missing firmware_status checks
-Date: Fri, 11 Jan 2019 15:53:36 -0700
-Message-Id: <20190111225339.6939-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3021B211B7F66
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:29 -0800 (PST)
+Received: by mail-pf1-x442.google.com with SMTP id z9so2835381pfi.2
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:29 -0800 (PST)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH v3 4/6] ndctl/namespace: Validate alignment from the {pfn|dax}
+ seed
+Date: Wed, 16 Jan 2019 20:49:07 +1100
+Message-Id: <20190116094909.23112-4-oohall@gmail.com>
+In-Reply-To: <20190116094909.23112-1-oohall@gmail.com>
+References: <20190116094909.23112-1-oohall@gmail.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,43 +22,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Ami Pathak <ami.g.pathak@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There were several places in ndctl where we neglected to check the
-firmware_status from a command submission.
+This patch adds support to the ndctl tool for validating that the
+namespace alignment is valid.
 
-Add an ndctl_dimm_op target to perform error translation for a DSM
-family, and provide a new helper -ndctl_cmd_submit_xlat - that will
-submit the command and call an error translation routing if one has been
-registered.
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+---
+ ndctl/namespace.c | 37 +++++++++++++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-Finally, switch the call sites in ndctl/inject-smart.c and
-ndctl/monitor.c over to the new command submission helper.
-
-Vishal Verma (3):
-  libndctl, intel: Add infrastructure for firmware_status translation
-  ndctl, inject-smart: switch to ndctl_cmd_submit_xlat
-  ndctl, monitor: switch to ndctl_cmd_submit_xlat
-
- ndctl/inject-smart.c   |  8 +++----
- ndctl/lib/intel.c      | 49 ++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/intel.h      |  1 +
- ndctl/lib/libndctl.c   | 26 ++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  6 ++++++
- ndctl/lib/private.h    |  1 +
- ndctl/libndctl.h       |  3 +++
- ndctl/monitor.c        |  4 ++--
- 8 files changed, 92 insertions(+), 6 deletions(-)
-
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index b27cc6967a68..44fc91232ecb 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -537,8 +537,23 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	}
+ 
+ 	if (param.align) {
+-		if (p->mode != NDCTL_NS_MODE_MEMORY &&
+-		    p->mode != NDCTL_NS_MODE_DAX) {
++		int i, alignments;
++
++		switch (p->mode) {
++		case NDCTL_NS_MODE_MEMORY:
++			if (!pfn) {
++				error("Kernel does not support setting an alignment in fsdax mode\n");
++				return -EINVAL;
++			}
++
++			alignments = ndctl_pfn_get_num_alignments(pfn);
++			break;
++
++		case NDCTL_NS_MODE_DAX:
++			alignments = ndctl_dax_get_num_alignments(dax);
++			break;
++
++		default:
+ 			error("%s mode does not support setting an alignment\n",
+ 					p->mode == NDCTL_NS_MODE_SAFE
+ 					? "sector" : "raw");
+@@ -546,13 +561,19 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		}
+ 
+ 		p->align = parse_size64(param.align);
++		for (i = 0; i < alignments; i++) {
++			uint64_t a;
+ 
+-		switch (p->align) {
+-		case SZ_4K:
+-		case SZ_2M:
+-		case SZ_1G:
+-			break;
+-		default:
++			if (p->mode == NDCTL_NS_MODE_MEMORY)
++				a = ndctl_pfn_get_supported_alignment(pfn, i);
++			else
++				a = ndctl_dax_get_supported_alignment(dax, i);
++
++			if (p->align == a)
++				break;
++		}
++
++		if (i >= alignments) {
+ 			error("unsupported align: %s\n", param.align);
+ 			return -ENXIO;
+ 		}
 -- 
-2.17.2
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
