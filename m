@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CF3F5211B5A4C
- for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 18:32:29 -0800 (PST)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [PATCH v3 4/5] Documentation/device-mapper: add optional parameter
- reinit
-Date: Thu, 31 Jan 2019 10:29:54 +0800
-Message-Id: <20190131022955.9920-5-yehs2007@zoho.com>
-In-Reply-To: <20190131022955.9920-1-yehs2007@zoho.com>
-References: <20190131022955.9920-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C2DC2194D3B9
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 17:13:58 -0800 (PST)
+Received: by mail-ot1-x344.google.com with SMTP id e12so4528560otl.5
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 17:13:58 -0800 (PST)
+MIME-Version: 1.0
+References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+ <154749640259.63704.13504377094743676447.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154749640259.63704.13504377094743676447.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 15 Jan 2019 17:13:46 -0800
+Message-ID: <CAPcyv4iqxVDeyPcfZa_KkvDxh6vASbAaXHrrZtTpM0Xj5=We9Q@mail.gmail.com>
+Subject: Re: [PATCH v8 01/12] ndctl: add support for display security state
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,43 +22,198 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mpatocka@redhat.com, snitzer@redhat.com, agk@redhat.com
-Cc: jack@suse.cz, corbet@lwn.net, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+Some comments below:
 
-Add intro and usage guide for reinit.
+On Mon, Jan 14, 2019 at 12:07 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+> Adding libndctl API call for retrieving security state for a DIMM and also
+> adding support to ndctl list for displaying security state.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/ndctl-list.txt |    8 ++++++++
+>  ndctl/lib/dimm.c                   |   37 ++++++++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym             |    5 +++++
+>  ndctl/libndctl.h                   |   13 +++++++++++++
+>  util/json.c                        |   31 ++++++++++++++++++++++++++++++
+>  5 files changed, 94 insertions(+)
+>
+> diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
+> index e24c8f40..bdd69add 100644
+> --- a/Documentation/ndctl/ndctl-list.txt
+> +++ b/Documentation/ndctl/ndctl-list.txt
+> @@ -98,6 +98,14 @@ include::xable-region-options.txt[]
+>  -D::
+>  --dimms::
+>         Include dimm info in the listing
+> +[verse]
+> +{
+> +  "dev":"nmem0",
+> +  "id":"cdab-0a-07e0-ffffffff",
+> +  "handle":0,
+> +  "phys_id":0,
+> +  "security:":"disabled"
+> +}
+>
+>  -H::
+>  --health::
+> diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+> index 79e2ca0a..e03135d9 100644
+> --- a/ndctl/lib/dimm.c
+> +++ b/ndctl/lib/dimm.c
+> @@ -587,3 +587,40 @@ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+>
+>         return strtoul(buf, NULL, 0);
+>  }
+> +
+> +NDCTL_EXPORT int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
+> +               enum nd_security_state *state)
 
-Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
----
- Documentation/device-mapper/writecache.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+Lets just have this routine return an "enum ndctl_security_state"
+rather than an in/out parameter. Also name it "enum ndctl_" to match
+the other enum definitions in libndctl.h, and use NDCTL_ in the enum
+value names.
 
-diff --git a/Documentation/device-mapper/writecache.txt b/Documentation/device-mapper/writecache.txt
-index 01532b3..255c68c 100644
---- a/Documentation/device-mapper/writecache.txt
-+++ b/Documentation/device-mapper/writecache.txt
-@@ -45,6 +45,10 @@ Constructor parameters:
- 		afterwards
- 		- some underlying devices perform better with fua, some
- 		  with nofua. The user should test it
-+	reinit		(by default off)
-+		applicable only to persistent memory - use the REINIT flag
-+		when the surper block has messy data, that would cause fn ctr
-+		failed to work with invalid magic or version in the superblock
- 
- Status:
- 1. error indicator - 0 if there was no error, otherwise error number
--- 
-1.8.3.1
+> +{
+> +       struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+> +       char *path = dimm->dimm_buf;
+> +       int len = dimm->buf_len;
+> +       char buf[64];
+> +       int rc;
+> +
+> +       if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
+> +               err(ctx, "%s: buffer too small!\n",
+> +                               ndctl_dimm_get_devname(dimm));
+> +               return -ERANGE;
+> +       }
+> +
+> +       rc = sysfs_read_attr(ctx, path, buf);
+> +       if (rc < 0)
+> +               return rc;
+> +
+> +       if (strcmp(buf, "unsupported") == 0)
+> +               *state = ND_SECURITY_UNSUPPORTED;
 
+We'll never get here because a missing "security" attribute is how the
+kernel indicates "unsupported" and the sysfs_read_attr() call above
+would have already failed with -ENOENT.
 
+> +       else if (strcmp(buf, "disabled") == 0)
+> +               *state = ND_SECURITY_DISABLED;
+> +       else if (strcmp(buf, "unlocked") == 0)
+> +               *state = ND_SECURITY_UNLOCKED;
+> +       else if (strcmp(buf, "locked") == 0)
+> +               *state = ND_SECURITY_LOCKED;
+> +       else if (strcmp(buf, "frozen") == 0)
+> +               *state = ND_SECURITY_FROZEN;
+> +       else if (strcmp(buf, "overwrite") == 0)
+> +               *state = ND_SECURITY_OVERWRITE;
+> +       else
+> +               *state = ND_SECURITY_INVALID;
+
+An error will be thrown before we get here, no need for
+ND_SECURITY_INVALID or ND_SECURITY_UNSUPPORTED should be defined.
+
+> +
+> +       return 0;
+> +}
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index 6c4c8b4d..1bd63fa1 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -385,3 +385,8 @@ global:
+>         ndctl_namespace_get_next_badblock;
+>         ndctl_dimm_get_dirty_shutdown;
+>  } LIBNDCTL_17;
+> +
+> +LIBNDCTL_19 {
+> +global:
+> +       ndctl_dimm_get_security;
+> +} LIBNDCTL_18;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index c81cc032..4255252c 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -681,6 +681,19 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
+>  struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
+>  int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
+>
+> +enum nd_security_state {
+> +       ND_SECURITY_INVALID = -1,
+> +       ND_SECURITY_UNSUPPORTED = 0,
+> +       ND_SECURITY_DISABLED,
+> +       ND_SECURITY_UNLOCKED,
+> +       ND_SECURITY_LOCKED,
+> +       ND_SECURITY_FROZEN,
+> +       ND_SECURITY_OVERWRITE,
+> +};
+> +
+> +int ndctl_dimm_get_security(struct ndctl_dimm *dimm,
+> +               enum nd_security_state *sstate);
+> +
+>  #ifdef __cplusplus
+>  } /* extern "C" */
+>  #endif
+> diff --git a/util/json.c b/util/json.c
+> index 5c3424e2..e3b9e72e 100644
+> --- a/util/json.c
+> +++ b/util/json.c
+> @@ -164,6 +164,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+>         unsigned int handle = ndctl_dimm_get_handle(dimm);
+>         unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
+>         struct json_object *jobj;
+> +       enum nd_security_state sstate;
+>
+>         if (!jdimm)
+>                 return NULL;
+> @@ -243,6 +244,36 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+>                 json_object_object_add(jdimm, "flag_smart_event", jobj);
+>         }
+>
+> +       if (ndctl_dimm_get_security(dimm, &sstate) == 0) {
+
+Returning the state directly means we can lose a level of identation.
+
+> +               switch (sstate) {
+> +               case ND_SECURITY_UNSUPPORTED:
+> +                       jobj = json_object_new_string("unsupported");
+> +                       break;
+> +               case ND_SECURITY_DISABLED:
+> +                       jobj = json_object_new_string("disabled");
+> +                       break;
+
+It's less lines to write an if / else tree rather than a switch.
+
+> +               case ND_SECURITY_UNLOCKED:
+> +                       jobj = json_object_new_string("unlocked");
+> +                       break;
+> +               case ND_SECURITY_LOCKED:
+> +                       jobj = json_object_new_string("locked");
+> +                       break;
+> +               case ND_SECURITY_FROZEN:
+> +                       jobj = json_object_new_string("frozen");
+> +                       break;
+> +               case ND_SECURITY_OVERWRITE:
+> +                       jobj = json_object_new_string("overwrite");
+> +                       break;
+> +               case ND_SECURITY_INVALID:
+> +               default:
+> +                       jobj = json_object_new_string("invalid");
+> +                       break;
+> +               }
+> +               if (!jobj)
+> +                       goto err;
+> +               json_object_object_add(jdimm, "security", jobj);
+> +       }
+> +
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
