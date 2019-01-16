@@ -1,13 +1,13 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] acpi/nfit: Fix command-supported detection
-Date: Wed, 16 Jan 2019 13:35:42 +0000
-Message-ID: <20190116133543.25AF220675@mail.kernel.org>
-References: <154725096972.1367907.12968253382302127133.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal RAM
+Date: Wed, 16 Jan 2019 10:19:05 -0800
+Message-ID: <20190116181905.12E102B4@viggo.jf.intel.com>
+References: <20190116181859.D1504459@viggo.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <154725096972.1367907.12968253382302127133.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20190116181859.D1504459-LXbPSdftPKxrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +17,198 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dave-gkUM19QKKo4@public.gmane.org
+Cc: thomas.lendacky-5C7GfCeVMHo@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, bp-l3A5Bk7waGM@public.gmane.org, baiyaowei-0p4V/sDNsUmm0O/7XYngnFaTQe2KTcn/@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
 
-[This is an automated email]
+From: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-This commit has been processed because it contains a "Fixes:" tag,
-fixing commit: 31eca76ba2fc nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism.
+Currently, a persistent memory region is "owned" by a device driver,
+either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
+allow applications to explicitly use persistent memory, generally
+by being modified to use special, new libraries.
 
-The bot has tested the following trees: v4.20.2, v4.19.15, v4.14.93, v4.9.150.
+However, this limits persistent memory use to applications which
+*have* been modified.  To make it more broadly usable, this driver
+"hotplugs" memory into the kernel, to be managed ad used just like
+normal RAM would be.
 
-v4.20.2: Failed to apply! Possible dependencies:
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
+To make this work, management software must remove the device from
+being controlled by the "Device DAX" infrastructure:
 
-v4.19.15: Failed to apply! Possible dependencies:
-    0ead11181fe0 ("acpi, nfit: Collect shutdown status")
-    6f07f86c4940 ("acpi, nfit: Introduce nfit_mem flags")
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
+	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/remove_id
+	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
 
-v4.14.93: Build OK!
-v4.9.150: Failed to apply! Possible dependencies:
-    0f817ae696b0 ("usb: dwc3: pci: add a private driver structure")
-    11e142701609 ("acpi, nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs")
-    23222f8f8dce ("acpi, nfit: Add function to look up nvdimm device and provide SMBIOS handle")
-    36daf3aa399c ("usb: dwc3: pci: avoid build warning")
-    3f23df72dc35 ("mmc: sdhci-pci: Use ACPI to get max frequency for Intel NI byt sdio")
-    41c8bdb3ab10 ("acpi, nfit: Switch to use new generic UUID API")
-    42237e393f64 ("libnvdimm: allow a platform to force enable label support")
-    42b06496407c ("mmc: sdhci-pci: Add PCI ID for Intel NI byt sdio")
-    4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and _LSW label methods")
-    8f078b38dd38 ("libnvdimm: convert NDD_ flags to use bitops, introduce NDD_LOCKED")
-    94116f8126de ("ACPI: Switch to use generic guid_t in acpi_evaluate_dsm()")
-    9cecca75b5a0 ("usb: dwc3: pci: call _DSM for suspend/resume")
-    9d62ed965118 ("libnvdimm: handle locked label storage areas")
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
-    b7fe92999a98 ("ACPI / extlog: Switch to use new generic UUID API")
-    b917078c1c10 ("net: hns: Add ACPI support to check SFP present")
-    c959a6b00ff5 ("mmc: sdhci-pci: Don't re-tune with runtime pm for some Intel devices")
-    d2061f9cc32d ("usb: typec: add driver for Intel Whiskey Cove PMIC USB Type-C PHY")
-    fab9288428ec ("usb: USB Type-C connector class")
+and then bind it to this new driver:
 
+	echo -n dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+	echo -n dax0.0 > /sys/bus/dax/drivers/kmem/bind
 
-How should we proceed with this patch?
+After this, there will be a number of new memory sections visible
+in sysfs that can be onlined, or that may get onlined by existing
+udev-initiated memory hotplug rules.
 
---
-Thanks,
-Sasha
+Note: this inherits any existing NUMA information for the newly-
+added memory from the persistent memory device that came from the
+firmware.  On Intel platforms, the firmware has guarantees that
+require each socket's persistent memory to be in a separate
+memory-only NUMA node.  That means that this patch is not expected
+to create NUMA nodes, but will simply hotplug memory into existing
+nodes.
+
+There is currently some metadata at the beginning of pmem regions.
+The section-size memory hotplug restrictions, plus this small
+reserved area can cause the "loss" of a section or two of capacity.
+This should be fixable in follow-on patches.  But, as a first step,
+losing 256MB of memory (worst case) out of hundreds of gigabytes
+is a good tradeoff vs. the required code to fix this up precisely.
+
+Signed-off-by: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Tom Lendacky <thomas.lendacky-5C7GfCeVMHo@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: Huang Ying <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
+Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Yaowei Bai <baiyaowei-0p4V/sDNsUmm0O/7XYngnFaTQe2KTcn/@public.gmane.org>
+Cc: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
+---
+
+ b/drivers/dax/Kconfig  |    5 ++
+ b/drivers/dax/Makefile |    1 
+ b/drivers/dax/kmem.c   |   93 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 99 insertions(+)
+
+diff -puN drivers/dax/Kconfig~dax-kmem-try-4 drivers/dax/Kconfig
+--- a/drivers/dax/Kconfig~dax-kmem-try-4	2019-01-08 09:54:44.051694874 -0800
++++ b/drivers/dax/Kconfig	2019-01-08 09:54:44.056694874 -0800
+@@ -32,6 +32,11 @@ config DEV_DAX_PMEM
+ 
+ 	  Say M if unsure
+ 
++config DEV_DAX_KMEM
++	def_bool y
++	depends on DEV_DAX_PMEM   # Needs DEV_DAX_PMEM infrastructure
++	depends on MEMORY_HOTPLUG # for add_memory() and friends
++
+ config DEV_DAX_PMEM_COMPAT
+ 	tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
+ 	depends on DEV_DAX_PMEM
+diff -puN /dev/null drivers/dax/kmem.c
+--- /dev/null	2018-12-03 08:41:47.355756491 -0800
++++ b/drivers/dax/kmem.c	2019-01-08 09:54:44.056694874 -0800
+@@ -0,0 +1,93 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2016-2018 Intel Corporation. All rights reserved. */
++#include <linux/memremap.h>
++#include <linux/pagemap.h>
++#include <linux/memory.h>
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/pfn_t.h>
++#include <linux/slab.h>
++#include <linux/dax.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/mman.h>
++#include "dax-private.h"
++#include "bus.h"
++
++int dev_dax_kmem_probe(struct device *dev)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++	struct resource *res = &dev_dax->region->res;
++	resource_size_t kmem_start;
++	resource_size_t kmem_size;
++	struct resource *new_res;
++	int numa_node;
++	int rc;
++
++	/* Hotplug starting at the beginning of the next block: */
++	kmem_start = ALIGN(res->start, memory_block_size_bytes());
++
++	kmem_size = resource_size(res);
++	/* Adjust the size down to compensate for moving up kmem_start: */
++        kmem_size -= kmem_start - res->start;
++	/* Align the size down to cover only complete blocks: */
++	kmem_size &= ~(memory_block_size_bytes() - 1);
++
++	new_res = devm_request_mem_region(dev, kmem_start, kmem_size,
++					  dev_name(dev));
++
++	if (!new_res) {
++		printk("could not reserve region %016llx -> %016llx\n",
++				kmem_start, kmem_start+kmem_size);
++		return -EBUSY;
++	}
++
++	/*
++	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
++	 * so that add_memory() can add a child resource.
++	 */
++	new_res->flags = IORESOURCE_SYSTEM_RAM;
++	new_res->name = dev_name(dev);
++
++	numa_node = dev_dax->target_node;
++	if (numa_node < 0) {
++		pr_warn_once("bad numa_node: %d, forcing to 0\n", numa_node);
++		numa_node = 0;
++	}
++
++	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
++	if (rc)
++		return rc;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(dev_dax_kmem_probe);
++
++static int dev_dax_kmem_remove(struct device *dev)
++{
++	/* Assume that hot-remove will fail for now */
++	return -EBUSY;
++}
++
++static struct dax_device_driver device_dax_kmem_driver = {
++	.drv = {
++		.probe = dev_dax_kmem_probe,
++		.remove = dev_dax_kmem_remove,
++	},
++};
++
++static int __init dax_kmem_init(void)
++{
++	return dax_driver_register(&device_dax_kmem_driver);
++}
++
++static void __exit dax_kmem_exit(void)
++{
++	dax_driver_unregister(&device_dax_kmem_driver);
++}
++
++MODULE_AUTHOR("Intel Corporation");
++MODULE_LICENSE("GPL v2");
++module_init(dax_kmem_init);
++module_exit(dax_kmem_exit);
++MODULE_ALIAS_DAX_DEVICE(0);
+diff -puN drivers/dax/Makefile~dax-kmem-try-4 drivers/dax/Makefile
+--- a/drivers/dax/Makefile~dax-kmem-try-4	2019-01-08 09:54:44.053694874 -0800
++++ b/drivers/dax/Makefile	2019-01-08 09:54:44.056694874 -0800
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ obj-$(CONFIG_DAX) += dax.o
+ obj-$(CONFIG_DEV_DAX) += device_dax.o
++obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
+ 
+ dax-y := super.o
+ dax-y += bus.o
+_
