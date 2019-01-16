@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9215211B506D
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 21:31:49 -0800 (PST)
-From: Huaisheng Ye <yehs2007@zoho.com>
-Subject: [RFC PATCH v2 0/4] add parameter for pmem cache device init
-Date: Wed,  9 Jan 2019 13:31:23 +0800
-Message-Id: <20190109053127.8128-1-yehs2007@zoho.com>
+ by ml01.01.org (Postfix) with ESMTPS id 61149211B7F83
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 20:53:18 -0800 (PST)
+Received: by mail-ot1-x343.google.com with SMTP id t5so124435otk.1
+ for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 20:53:18 -0800 (PST)
+MIME-Version: 1.0
+References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
+ <154749641859.63704.12807813922780466193.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154749641859.63704.12807813922780466193.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 15 Jan 2019 20:53:06 -0800
+Message-ID: <CAPcyv4jk1XhqJLChAT2O1JFBTxO96_w4je=xu=MXVnF9izkoWg@mail.gmail.com>
+Subject: Re: [PATCH v8 04/12] ndctl: add support for freeze security
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,46 +22,102 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: snitzer@redhat.com, agk@redhat.com
-Cc: jack@suse.cz, corbet@lwn.net, chengnt@lenovo.com, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Huaisheng Ye <yehs1@lenovo.com>
+On Mon, Jan 14, 2019 at 12:07 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+> Add support for freeze security to libndctl and also command line option
+> of "freeze-security" for ndctl. This will lock the ability to make changes
+> to the NVDIMM security.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/Makefile.am               |    3 ++-
+>  Documentation/ndctl/ndctl-freeze-security.txt |   20 ++++++++++++++++++
+>  ndctl/builtin.h                               |    1 +
+>  ndctl/dimm.c                                  |   28 +++++++++++++++++++++++++
+>  ndctl/lib/dimm.c                              |    5 ++++
+>  ndctl/lib/libndctl.sym                        |    1 +
+>  ndctl/libndctl.h                              |    1 +
+>  ndctl/ndctl.c                                 |    1 +
+>  8 files changed, 59 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+>
+> diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+> index 31570a77..a97f193d 100644
+> --- a/Documentation/ndctl/Makefile.am
+> +++ b/Documentation/ndctl/Makefile.am
+> @@ -50,7 +50,8 @@ man1_MANS = \
+>         ndctl-monitor.1 \
+>         ndctl-enable-passphrase.1 \
+>         ndctl-update-passphrase.1 \
+> -       ndctl-disable-passphrase.1
+> +       ndctl-disable-passphrase.1 \
+> +       ndctl-freeze-security.1
+>
+>  CLEANFILES = $(man1_MANS)
+>
+> diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+> new file mode 100644
+> index 00000000..4e9d2d61
+> --- /dev/null
+> +++ b/Documentation/ndctl/ndctl-freeze-security.txt
+> @@ -0,0 +1,20 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +ndctl-freeze-security(1)
+> +========================
+> +
+> +NAME
+> +----
+> +ndctl-freeze-security - enabling or freeze the security for an NVDIMM
 
-This patch set could be used for dm-writecache when use persistent
-memory as cache data device.
+What is it "enabling"?
 
-Patch 1 and 2 go towards removing unused parameter and codes which
-actually doesn't really work.
+I would just say:
 
-Patch 3 and 4 are targeted at solving problem fn ctr failed to work
-due to invalid magic or version, which is caused by the super block
-of pmem has messy data stored.
+"Set the given DIMM(s) to reject future security operations"
 
-Changes Since v1:
-	- add optional parameter reinit to avoid invalid magic or
-	  version.
-	[1]: https://lkml.org/lkml/2019/1/3/43
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'ndctl freeze-security' <dimm>
 
-Huaisheng Ye (4):
-  dm-writecache: remove unused size to writecache_flush_region
-  dm-writecache: get rid of memory_data flush to writecache_flush_entry
-  dm-writecache: expand pmem_reinit for struct dm_writecache
-  Documentation/device-mapper: add optional parameter reinit
+Code says:
 
- Documentation/device-mapper/writecache.txt |  4 ++++
- drivers/md/dm-writecache.c                 | 19 +++++++++++--------
- 2 files changed, 15 insertions(+), 8 deletions(-)
+    ndctl freeze-security <nmem0> [<nmem1>..<nmemN>] [<options>]
 
--- 
-1.8.3.1
+...I'm assuming the multiple nmem support is true, but there are no
+extra options?
 
+...and now that I say that out loud, I think all of these commands
+should support -v/--verbose to turn on libndctl debug.
 
+> +
+> +DESCRIPTION
+> +-----------
+> +Provide a generic interface to freeze the security for NVDIMM.
+
+That can go, it reads like a changelog, not a man page.
+
+> Once security
+> +is frozen, no other security operations can succeed until reboot happens.
+
+"Prevent any further security operations on the given DIMMs until the
+next reboot. This is used in scenarios where the administrator has
+taken all expected security actions for the current boot and wants the
+DIMM to enforce / lock the current state."
+
+An example section might show some before and after "ndctl list" data
+for the DIMM and perhaps the state changes of the /etc/ndctl/keys
+directory.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
