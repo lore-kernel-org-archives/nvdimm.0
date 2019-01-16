@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com
- [IPv6:2607:f8b0:4864:20::643])
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com
+ [IPv6:2607:f8b0:4864:20::543])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 55207211B7F96
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:25 -0800 (PST)
-Received: by mail-pl1-x643.google.com with SMTP id 101so2777503pld.6
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:25 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 45139211B7F66
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:31 -0800 (PST)
+Received: by mail-pg1-x543.google.com with SMTP id t13so2593485pgr.11
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:31 -0800 (PST)
 From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v3 2/6] ndctl/namespace: Check for seed namespaces earlier
-Date: Wed, 16 Jan 2019 20:49:05 +1100
-Message-Id: <20190116094909.23112-2-oohall@gmail.com>
+Subject: [PATCH v3 5/6] ndctl: Add alignment to the namespace JSON output
+Date: Wed, 16 Jan 2019 20:49:08 +1100
+Message-Id: <20190116094909.23112-5-oohall@gmail.com>
 In-Reply-To: <20190116094909.23112-1-oohall@gmail.com>
 References: <20190116094909.23112-1-oohall@gmail.com>
 MIME-Version: 1.0
@@ -28,93 +28,56 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When creating an fsdax or devdax namespace we need to verify that the
-seed namespaces exist. This patch reworks the validation so that it's
-done earlier to simplify the subsequent patches in the series.
+Automated tooling probably wants to know this and it's helpful output
+for command line users for ndctl.
 
 Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
-No functional changes, probably.
----
- ndctl/namespace.c | 48 +++++++++++++++++++++++------------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ util/json.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index b6f12306fe76..efa8250456d9 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -465,6 +465,8 @@ static int validate_namespace_options(struct ndctl_region *region,
- {
- 	const char *region_name = ndctl_region_get_devname(region);
- 	unsigned long long size_align = SZ_4K, units = 1, resource;
-+	struct ndctl_pfn *pfn = NULL;
-+	struct ndctl_dax *dax = NULL;
- 	unsigned int ways;
- 	int rc = 0;
+diff --git a/util/json.c b/util/json.c
+index 5c3424e2a707..77c96fb53c27 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -753,6 +753,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+ 	struct ndctl_dax *dax;
++	unsigned long align = 0;
+ 	char buf[40];
+ 	uuid_t uuid;
+ 	int numa;
+@@ -825,6 +826,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		util_raw_uuid_to_json(ndns, flags, jndns);
+ 		bdev = ndctl_btt_get_block_device(btt);
+ 	} else if (pfn) {
++		align = ndctl_pfn_get_align(pfn);
+ 		ndctl_pfn_get_uuid(pfn, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -837,6 +839,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		struct daxctl_region *dax_region;
  
-@@ -521,10 +523,24 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	} else if (ndns)
- 		p->mode = ndctl_namespace_get_mode(ndns);
- 
--	if (param.align) {
--		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
--		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
-+	if (p->mode == NDCTL_NS_MODE_MEMORY) {
-+		pfn = ndctl_region_get_pfn_seed(region);
-+		if (!pfn && param.mode_default) {
-+			debug("%s fsdax mode not available\n", region_name);
-+			p->mode = NDCTL_NS_MODE_RAW;
-+		}
-+		/*
-+		 * NB: We only fail validation if a pfn-specific option is used
-+		 */
-+	} else if (p->mode == NDCTL_NS_MODE_DAX) {
-+		dax = ndctl_region_get_dax_seed(region);
-+		if (!dax) {
-+			error("Kernel does not support devdax mode\n");
-+			return -ENODEV;
-+		}
-+	}
- 
-+	if (param.align) {
- 		p->align = parse_size64(param.align);
- 
- 		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
-@@ -705,30 +721,12 @@ static int validate_namespace_options(struct ndctl_region *region,
- 			|| p->mode == NDCTL_NS_MODE_DAX)
- 		p->loc = NDCTL_PFN_LOC_PMEM;
- 
--	/* check if we need, and whether the kernel supports, pfn devices */
--	if (do_setup_pfn(ndns, p)) {
--		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
--
--		if (!pfn && param.mode_default) {
--			debug("%s fsdax mode not available\n", region_name);
--			p->mode = NDCTL_NS_MODE_RAW;
--		} else if (!pfn) {
--			error("operation failed, %s fsdax mode not available\n",
--					region_name);
--			return -EINVAL;
--		}
-+	if (!pfn && do_setup_pfn(ndns, p)) {
-+		error("operation failed, %s cannot support requested mode\n",
-+			region_name);
-+		return -EINVAL;
+ 		dax_region = ndctl_dax_get_daxctl_region(dax);
++		align = ndctl_dax_get_align(dax);
+ 		ndctl_dax_get_uuid(dax, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -897,6 +900,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		json_object_object_add(jndns, "sector_size", jobj);
  	}
  
--	/* check if we need, and whether the kernel supports, dax devices */
--	if (p->mode == NDCTL_NS_MODE_DAX) {
--		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
--
--		if (!dax) {
--			error("operation failed, %s devdax mode not available\n",
--					region_name);
--			return -EINVAL;
--		}
--	}
- 
- 	p->autolabel = param.autolabel;
- 
++	if (align) {
++		jobj = json_object_new_int64(align);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jndns, "align", jobj);
++	}
++
+ 	if (bdev && bdev[0]) {
+ 		jobj = json_object_new_string(bdev);
+ 		if (!jobj)
 -- 
 2.20.1
 
