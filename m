@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 098FE211B81B5
- for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 08:58:24 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 384DC211B6C2B
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 19:08:28 -0800 (PST)
 Subject: Re: [PATCH v8 05/12] ndctl: add support for sanitize dimm
 References: <154749627829.63704.2987015129166185725.stgit@djiang5-desk3.ch.intel.com>
  <154749642390.63704.15541084216631565368.stgit@djiang5-desk3.ch.intel.com>
- <9f4a5a82-0eb3-e7c9-e1d1-0b7bff5c744d@oracle.com>
-From: Dave Jiang <dave.jiang@intel.com>
-Message-ID: <9596efed-6ed9-4856-4e28-83351462222b@intel.com>
-Date: Thu, 17 Jan 2019 09:58:23 -0700
+From: Jane Chu <jane.chu@oracle.com>
+Message-ID: <9f4a5a82-0eb3-e7c9-e1d1-0b7bff5c744d@oracle.com>
+Date: Wed, 16 Jan 2019 19:08:23 -0800
 MIME-Version: 1.0
-In-Reply-To: <9f4a5a82-0eb3-e7c9-e1d1-0b7bff5c744d@oracle.com>
+In-Reply-To: <154749642390.63704.15541084216631565368.stgit@djiang5-desk3.ch.intel.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,57 +20,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jane Chu <jane.chu@oracle.com>, vishal.l.verma@intel.com, dan.j.williams@intel.com
+To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com, dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-CgpPbiAxLzE2LzE5IDg6MDggUE0sIEphbmUgQ2h1IHdyb3RlOgo+IEhpLCBEYXZlLAo+IAo+IE9u
-IDEvMTQvMjAxOSAxMjowNyBQTSwgRGF2ZSBKaWFuZyB3cm90ZToKPj4gQWRkIHN1cHBvcnQgdG8g
-c2VjdXJlIGVyYXNlIHRvIGxpYm5kY3RsIGFuZCBhbHNvIGNvbW1hbmQgbGluZSBvcHRpb24KPj4g
-b2YgInNhbml0aXplLWRpbW0iIGZvciBuZGN0bC4gVGhpcyB3aWxsIGluaXRpYXRlIHRoZSByZXF1
-ZXN0IHRvIGNyeXB0bwo+PiBlcmFzZSBhIERJTU0uCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IERhdmUg
-SmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgo+PiAtLS0KPj4gwqAgRG9jdW1lbnRhdGlvbi9u
-ZGN0bC9NYWtlZmlsZS5hbcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDMgKy0KPj4g
-wqAgRG9jdW1lbnRhdGlvbi9uZGN0bC9uZGN0bC1zYW5pdGl6ZS1kaW1tLnR4dCB8wqDCoCAzOCAr
-KysrKysrKysrKysrKysrKysrKwo+PiDCoCBuZGN0bC9idWlsdGluLmjCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDEgKwo+PiDC
-oCBuZGN0bC9kaW1tLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoCA1Mgo+PiArKysrKysrKysrKysrKysrKysrKysrKysr
-KysKPj4gwqAgbmRjdGwvbGliL2RpbW0uY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDggKysrKwo+PiDCoCBuZGN0bC9saWIva2V5
-cy5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IHzCoMKgIDIxICsrKysrKysrKy0tCj4+IMKgIG5kY3RsL2xpYi9saWJuZGN0bC5zeW3CoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqDCoCAyICsKPj4gwqAgbmRj
-dGwvbGlibmRjdGwuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCB8wqDCoMKgIDkgKysrKysKPj4gwqAgbmRjdGwvbmRjdGwuY8KgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKg
-IDEgKwo+PiDCoCA5IGZpbGVzIGNoYW5nZWQsIDEzMSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9u
-cygtKQo+PiDCoCBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9uZGN0bC9uZGN0bC1z
-YW5pdGl6ZS1kaW1tLnR4dAo+Pgo+PiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9uZGN0bC9N
-YWtlZmlsZS5hbQo+PiBiL0RvY3VtZW50YXRpb24vbmRjdGwvTWFrZWZpbGUuYW0KPj4gaW5kZXgg
-YTk3ZjE5M2QuLmJiZWE5Njc0IDEwMDY0NAo+PiAtLS0gYS9Eb2N1bWVudGF0aW9uL25kY3RsL01h
-a2VmaWxlLmFtCj4+ICsrKyBiL0RvY3VtZW50YXRpb24vbmRjdGwvTWFrZWZpbGUuYW0KPj4gQEAg
-LTUxLDcgKzUxLDggQEAgbWFuMV9NQU5TID0gXAo+PiDCoMKgwqDCoMKgIG5kY3RsLWVuYWJsZS1w
-YXNzcGhyYXNlLjEgXAo+PiDCoMKgwqDCoMKgIG5kY3RsLXVwZGF0ZS1wYXNzcGhyYXNlLjEgXAo+
-PiDCoMKgwqDCoMKgIG5kY3RsLWRpc2FibGUtcGFzc3BocmFzZS4xIFwKPj4gLcKgwqDCoCBuZGN0
-bC1mcmVlemUtc2VjdXJpdHkuMQo+PiArwqDCoMKgIG5kY3RsLWZyZWV6ZS1zZWN1cml0eS4xIFwK
-Pj4gK8KgwqDCoCBuZGN0bC1zYW5pdGl6ZS1kaW1tLjEKPj4gwqAgwqAgQ0xFQU5GSUxFUyA9ICQo
-bWFuMV9NQU5TKQo+PiDCoCBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9uZGN0bC9uZGN0bC1z
-YW5pdGl6ZS1kaW1tLnR4dAo+PiBiL0RvY3VtZW50YXRpb24vbmRjdGwvbmRjdGwtc2FuaXRpemUt
-ZGltbS50eHQKPj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPj4gaW5kZXggMDAwMDAwMDAuLjc5NjI5
-OTY0Cj4+IC0tLSAvZGV2L251bGwKPj4gKysrIGIvRG9jdW1lbnRhdGlvbi9uZGN0bC9uZGN0bC1z
-YW5pdGl6ZS1kaW1tLnR4dAo+PiBAQCAtMCwwICsxLDM4IEBACj4+ICsvLyBTUERYLUxpY2Vuc2Ut
-SWRlbnRpZmllcjogR1BMLTIuMAo+PiArCj4+ICtuZGN0bC1zYW5pdGl6ZS1kaW1tKDEpCj4+ICs9
-PT09PT09PT09PT09PT09PT09PT09Cj4+ICsKPj4gK05BTUUKPj4gKy0tLS0KPj4gK25kY3RsLXNh
-bml0aXplLWRpbW0gLSBzYW5pdGl6ZSB0aGUgZGF0YSBvbiB0aGUgTlZESU1NCj4+ICsKPj4gK1NZ
-Tk9QU0lTCj4+ICstLS0tLS0tLQo+PiArW3ZlcnNlXQo+PiArJ25kY3RsIHNhbml0aXplJyA8ZGlt
-bT4gWzxvcHRpb25zPl0KPiAKPiBEaWQgeW91IGFjdHVhbGx5IG1lYW4KPiDCoCAnbmRjdGwgc2Fu
-aXRpemUtZGltbScgPGRpbW0+IFs8b3B0aW9ucz5dCj4gPwoKWWVzLiBUaGFua3MgZm9yIHRoZSBj
-YXRjaCEKCj4gCj4gdGhhbmtzIQo+IC1qYW5lCj4gCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+Hi, Dave,
+
+On 1/14/2019 12:07 PM, Dave Jiang wrote:
+> Add support to secure erase to libndctl and also command line option
+> of "sanitize-dimm" for ndctl. This will initiate the request to crypto
+> erase a DIMM.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>   Documentation/ndctl/Makefile.am             |    3 +-
+>   Documentation/ndctl/ndctl-sanitize-dimm.txt |   38 ++++++++++++++++++++
+>   ndctl/builtin.h                             |    1 +
+>   ndctl/dimm.c                                |   52 +++++++++++++++++++++++++++
+>   ndctl/lib/dimm.c                            |    8 ++++
+>   ndctl/lib/keys.c                            |   21 +++++++++--
+>   ndctl/lib/libndctl.sym                      |    2 +
+>   ndctl/libndctl.h                            |    9 +++++
+>   ndctl/ndctl.c                               |    1 +
+>   9 files changed, 131 insertions(+), 4 deletions(-)
+>   create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
+> 
+> diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+> index a97f193d..bbea9674 100644
+> --- a/Documentation/ndctl/Makefile.am
+> +++ b/Documentation/ndctl/Makefile.am
+> @@ -51,7 +51,8 @@ man1_MANS = \
+>   	ndctl-enable-passphrase.1 \
+>   	ndctl-update-passphrase.1 \
+>   	ndctl-disable-passphrase.1 \
+> -	ndctl-freeze-security.1
+> +	ndctl-freeze-security.1 \
+> +	ndctl-sanitize-dimm.1
+>   
+>   CLEANFILES = $(man1_MANS)
+>   
+> diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+> new file mode 100644
+> index 00000000..79629964
+> --- /dev/null
+> +++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+> @@ -0,0 +1,38 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +ndctl-sanitize-dimm(1)
+> +======================
+> +
+> +NAME
+> +----
+> +ndctl-sanitize-dimm - sanitize the data on the NVDIMM
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'ndctl sanitize' <dimm> [<options>]
+
+Did you actually mean
+   'ndctl sanitize-dimm' <dimm> [<options>]
+?
+
+thanks!
+-jane
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
