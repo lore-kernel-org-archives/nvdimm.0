@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0F28B2194D387
- for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 03:48:50 -0800 (PST)
-Date: Fri, 18 Jan 2019 19:48:46 +0800
-From: Fengguang Wu <fengguang.wu@intel.com>
+Received: from blackbird.sr71.net (unknown [198.145.64.142])
+ by ml01.01.org (Postfix) with ESMTP id 8336421B02822
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 14:43:58 -0800 (PST)
 Subject: Re: [PATCH 0/4] Allow persistent memory to be used like normal RAM
-Message-ID: <20190118114846.hmmcagscyjeycyfy@wfg-t540p.sh.intel.com>
 References: <20190116181859.D1504459@viggo.jf.intel.com>
  <x49sgxr9rjd.fsf@segfault.boston.devel.redhat.com>
- <20190117164736.GC31543@localhost.localdomain>
- <x49pnsv8am1.fsf@segfault.boston.devel.redhat.com>
+From: Dave Hansen <dave@sr71.net>
+Message-ID: <360f77dc-fe8e-c7c4-84a0-852ef3c4a152@sr71.net>
+Date: Thu, 17 Jan 2019 14:43:56 -0800
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <x49pnsv8am1.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <x49sgxr9rjd.fsf@segfault.boston.devel.redhat.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,37 +18,53 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: thomas.lendacky@amd.com, dave@sr71.net, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mhocko@suse.com, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, akpm@linux-foundation.org, bp@suse.de
+To: Jeff Moyer <jmoyer@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>
+Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, zwisler@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, fengguang.wu@intel.com, baiyaowei@cmss.chinamobile.com, ying.huang@intel.com, bhelgaas@google.com, akpm@linux-foundation.org, bp@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
->With this patch set, an unmodified application would either use:
->
->1) whatever memory it happened to get
->2) only the faster dram (via numactl --membind=)
->3) only the slower pmem (again, via numactl --membind1)
->4) preferentially one or the other (numactl --preferred=)
+On 1/17/19 8:29 AM, Jeff Moyer wrote:
+>> Persistent memory is cool.  But, currently, you have to rewrite
+>> your applications to use it.  Wouldn't it be cool if you could
+>> just have it show up in your system like normal RAM and get to
+>> it like a slow blob of memory?  Well... have I got the patch
+>> series for you!
+> So, isn't that what memory mode is for?
+>   https://itpeernetwork.intel.com/intel-optane-dc-persistent-memory-operating-modes/
+> 
+> Why do we need this code in the kernel?
 
-Yet another option:
+So, my bad for not mentioning memory mode.  This patch set existed
+before we could talk about it publicly, so it simply ignores its
+existence.  It's a pretty glaring omissions at this point, sorry.
 
-MemoryOptimizer -- hot page accounting and migration daemon
-https://github.com/intel/memory-optimizer
+I'll add this to the patches, but here are a few reasons you might want
+this instead of memory mode:
+1. Memory mode is all-or-nothing.  Either 100% of your persistent memory
+   is used for memory mode, or nothing is.  With this set, you can
+   (theoretically) have very granular (128MB) assignment of PMEM to
+   either volatile or persistent uses.  We have a few practical matters
+   to fix to get us down to that 128MB value, but we can get there.
+2. The capacity of memory mode is the size of your persistent memory.
+   DRAM capacity is "lost" because it is used for cache.  With this,
+   you get PMEM+DRAM capacity for memory.
+3. DRAM acts as a cache with memory mode, and caches can lead to
+   unpredictable latencies.  Since memory mode is all-or-nothing, your
+   entire memory space is exposed to these unpredictable latencies.
+   This solution lets you guarantee DRAM latencies if you need them.
+4. The new "tier" of memory is exposed to software.  That means that you
+   can build tiered applications or infrastructure.  A cloud provider
+   could sell cheaper VMs that use more PMEM and more expensive ones
+   that use DRAM.  That's impossible with memory mode.
 
-Once PMEM NUMA nodes are available, we may run a user space daemon to
-walk page tables of virtual machines (EPT) or processes, collect the
-"accessed" bits to find out hot pages, and finally migrate hot pages
-to DRAM and cold pages to PMEM.
-
-In that scenario, only kernel and the migrate daemon need to be aware
-of the PMEM nodes. Unmodified virtual machines and processes can enjoy
-the added memory space w/o knowing whether it's using DRAM or PMEM.
-
-Thanks,
-Fengguang
+Don't take this as criticism of memory mode.  Memory mode is awesome,
+and doesn't strictly require *any* software changes (we have software
+changes proposed for optimizing it though).  It has tons of other
+advantages over *this* approach.  Basically, they are complementary
+enough that we think both can live side-by-side.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
