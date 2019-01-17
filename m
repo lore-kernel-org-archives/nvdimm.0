@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F16C6211B6C17
- for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 23:47:11 -0800 (PST)
-Subject: Re: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal
- RAM
+ by ml01.01.org (Postfix) with ESMTPS id 6FB5D203B99BB
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 08:56:20 -0800 (PST)
+Received: by mail-ot1-x342.google.com with SMTP id w25so11687771otm.13
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 08:56:20 -0800 (PST)
+MIME-Version: 1.0
 References: <20190116181859.D1504459@viggo.jf.intel.com>
  <20190116181905.12E102B4@viggo.jf.intel.com>
- <5ef5d5e9-9d35-fb84-b69e-7456dcf4c241@linux.intel.com>
- <1e9377c6-11a0-3bbd-763d-d9347bd556cf@intel.com>
-From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Message-ID: <74c01a55-1a47-d649-a32a-ea597c24ab4a@linux.intel.com>
-Date: Fri, 18 Jan 2019 15:47:32 +0800
-MIME-Version: 1.0
-In-Reply-To: <1e9377c6-11a0-3bbd-763d-d9347bd556cf@intel.com>
-Content-Language: en-US
+ <5A90DA2E42F8AE43BC4A093BF06788482571FCB1@SHSMSX103.ccr.corp.intel.com>
+In-Reply-To: <5A90DA2E42F8AE43BC4A093BF06788482571FCB1@SHSMSX103.ccr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 17 Jan 2019 08:56:08 -0800
+Message-ID: <CAPcyv4heNGQf4NHYrMzUdBRw2n3tE08bMaVKzgYrPYVaVDWE9Q@mail.gmail.com>
+Subject: Re: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal
+ RAM
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,31 +24,48 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Hansen <dave.hansen@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, dave@sr71.net
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, ying.huang@intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: "Du, Fan" <fan.du@intel.com>
+Cc: "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "dave@sr71.net" <dave@sr71.net>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "tiwai@suse.de" <tiwai@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "mhocko@suse.com" <mhocko@suse.com>, "bp@suse.de" <bp@suse.de>, "baiyaowei@cmss.chinamobile.com" <baiyaowei@cmss.chinamobile.com>, "zwisler@kernel.org" <zwisler@kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Wu,
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMjAxOS8xLzE3IOS4i+WNiDExOjE3LCBEYXZlIEhhbnNlbiB3cm90ZToKPiBPbiAxLzE3LzE5
-IDEyOjE5IEFNLCBZYW5taW4gWmhhbmcgd3JvdGU6Cj4+Pgo+PiBJIGRpZG4ndCB0cnkgcG1lbSBh
-bmQgSSBhbSB3b25kZXJpbmcgaXQncyBzbG93ZXIgdGhhbiBEUkFNLgo+PiBTaG91bGQgYSBmbGFn
-LCBzdWNoIGxpa2UgX0dGUF9QTUVNLCBiZSBhZGRlZCB0byBkaXN0aW5ndWlzaCBpdCBmcm9tCj4+
-IERSQU0/Cj4gCj4gQWJzb2x1dGVseSBub3QuIDopCkFncmVlLgoKPiAKPiBXZSBhbHJlYWR5IGhh
-dmUgcGVyZm9ybWFuY2UtZGlmZmVyZW50aWF0ZWQgbWVtb3J5LCBhbmQgbG90cyBvZiB3YXlzIHRv
-Cj4gZW51bWVyYXRlIGFuZCBzZWxlY3QgaXQgaW4gdGhlIGtlcm5lbCAoYWxsIG9mIG91ciBOVU1B
-IGluZnJhc3RydWN0dXJlKS4KS2VybmVsIGRvZXMgbWFuYWdlIG1lbW9yeSBsaWtlIHdoYXQgeW91
-IHNheS4KTXkgcXVlc3Rpb24gaXM6IHdpdGggeW91ciBwYXRjaCwgUE1FTSBiZWNvbWVzIG5vcm1h
-bCBSQU0sIHRoZW4gdGhlcmUgaXMKYSBjaGFuY2UgZm9yIGtlcm5lbCB0byBhbGxvY2F0ZSBQTUVN
-IGFzIERNQSBidWZmZXIuClNvbWUgc3VwZXIgc3BlZWQgZGV2aWNlcyBsaWtlIDEwR2lnYSBOSUMs
-IFVTQiAoU1NJQyBjb25uZWN0aW5nIG1vZGVtKSwgCm1pZ2h0IG5vdCB3b3JrIHdlbGwgaWYgRE1B
-IGJ1ZmZlciBpcyBpbiBQTUVNIGFzIGl0J3Mgc2xvd2VyIHRoYW4gRFJBTS4KClNob3VsZCB5b3Vy
-IHBhdGNoc2V0IGNvbnNpZGVyIGl0PwoKCgo+IAo+IFBNRU0gaXMgYWxzbyBqdXN0IHRoZSBmaXJz
-dCBvZiBtYW55ICJraW5kcyIgb2YgbWVtb3J5IHRoYXQgZm9sa3Mgd2FudCB0bwo+IGJ1aWxkIGlu
-IHN5c3RlbXMgYW5kIHVzZSBhICJSQU0iLiAgV2UgbGl0ZXJhbGx5IGRvbid0IGhhdmUgc3BhY2Ug
-dG8gcHV0Cj4gYSBmbGFnIGluIGZvciBlYWNoIHR5cGUuCj4gCj4gCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Wed, Jan 16, 2019 at 9:21 PM Du, Fan <fan.du@intel.com> wrote:
+[..]
+> >From: Dave Hansen <dave.hansen@linux.intel.com>
+> >
+> >Currently, a persistent memory region is "owned" by a device driver,
+> >either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
+> >allow applications to explicitly use persistent memory, generally
+> >by being modified to use special, new libraries.
+> >
+> >However, this limits persistent memory use to applications which
+> >*have* been modified.  To make it more broadly usable, this driver
+> >"hotplugs" memory into the kernel, to be managed ad used just like
+> >normal RAM would be.
+> >
+> >To make this work, management software must remove the device from
+> >being controlled by the "Device DAX" infrastructure:
+> >
+> >       echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/remove_id
+> >       echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+> >
+> >and then bind it to this new driver:
+> >
+> >       echo -n dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+> >       echo -n dax0.0 > /sys/bus/dax/drivers/kmem/bind
+>
+> Is there any plan to introduce additional mode, e.g. "kmem" in the userspace
+> ndctl tool to do the configuration?
+>
+
+Yes, but not to ndctl. The daxctl tool will grow a helper for this.
+The policy of what device-dax instances should be hotplugged at system
+init will be managed by a persistent configuration file and udev
+rules.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
