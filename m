@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 434C22194D3AE
- for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 00:18:43 -0800 (PST)
-Subject: Re: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal
- RAM
+ by ml01.01.org (Postfix) with ESMTPS id 983FA211B6C32
+ for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 21:21:45 -0800 (PST)
+From: "Du, Fan" <fan.du@intel.com>
+Subject: RE: [PATCH 4/4] dax: "Hotplug" persistent memory for use like
+ normal RAM
+Date: Thu, 17 Jan 2019 05:21:42 +0000
+Message-ID: <5A90DA2E42F8AE43BC4A093BF06788482571FCB1@SHSMSX103.ccr.corp.intel.com>
 References: <20190116181859.D1504459@viggo.jf.intel.com>
  <20190116181905.12E102B4@viggo.jf.intel.com>
-From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Message-ID: <5ef5d5e9-9d35-fb84-b69e-7456dcf4c241@linux.intel.com>
-Date: Thu, 17 Jan 2019 16:19:06 +0800
-MIME-Version: 1.0
 In-Reply-To: <20190116181905.12E102B4@viggo.jf.intel.com>
 Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,115 +21,231 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Hansen <dave.hansen@linux.intel.com>, dave@sr71.net
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, ying.huang@intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: Dave Hansen <dave.hansen@linux.intel.com>, "dave@sr71.net" <dave@sr71.net>
+Cc: "thomas.lendacky@amd.com" <thomas.lendacky@amd.com>, "mhocko@suse.com" <mhocko@suse.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "tiwai@suse.de" <tiwai@suse.de>, "zwisler@kernel.org" <zwisler@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "Wu, Fengguang  <fengguang.wu@intel.com>, baiyaowei@cmss.chinamobile.com" <baiyaowei@cmss.chinamobile.com>, "Huang," Ying" <ying.huang@intel.com>, "bhelgaas@google.com, " <bhelgaas@google.com>, akpm@linux-foundation.org" <akpm@linux-foundation.org>, "bp@suse.de" <bp@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMjAxOS8xLzE3IOS4iuWNiDI6MTksIERhdmUgSGFuc2VuIHdyb3RlOgo+IEZyb206IERhdmUg
-SGFuc2VuIDxkYXZlLmhhbnNlbkBsaW51eC5pbnRlbC5jb20+Cj4gCj4gQ3VycmVudGx5LCBhIHBl
-cnNpc3RlbnQgbWVtb3J5IHJlZ2lvbiBpcyAib3duZWQiIGJ5IGEgZGV2aWNlIGRyaXZlciwKPiBl
-aXRoZXIgdGhlICJEaXJlY3QgREFYIiBvciAiRmlsZXN5c3RlbSBEQVgiIGRyaXZlcnMuICBUaGVz
-ZSBkcml2ZXJzCj4gYWxsb3cgYXBwbGljYXRpb25zIHRvIGV4cGxpY2l0bHkgdXNlIHBlcnNpc3Rl
-bnQgbWVtb3J5LCBnZW5lcmFsbHkKPiBieSBiZWluZyBtb2RpZmllZCB0byB1c2Ugc3BlY2lhbCwg
-bmV3IGxpYnJhcmllcy4KPiAKPiBIb3dldmVyLCB0aGlzIGxpbWl0cyBwZXJzaXN0ZW50IG1lbW9y
-eSB1c2UgdG8gYXBwbGljYXRpb25zIHdoaWNoCj4gKmhhdmUqIGJlZW4gbW9kaWZpZWQuICBUbyBt
-YWtlIGl0IG1vcmUgYnJvYWRseSB1c2FibGUsIHRoaXMgZHJpdmVyCj4gImhvdHBsdWdzIiBtZW1v
-cnkgaW50byB0aGUga2VybmVsLCB0byBiZSBtYW5hZ2VkIGFkIHVzZWQganVzdCBsaWtlCj4gbm9y
-bWFsIFJBTSB3b3VsZCBiZS4KPiAKPiBUbyBtYWtlIHRoaXMgd29yaywgbWFuYWdlbWVudCBzb2Z0
-d2FyZSBtdXN0IHJlbW92ZSB0aGUgZGV2aWNlIGZyb20KPiBiZWluZyBjb250cm9sbGVkIGJ5IHRo
-ZSAiRGV2aWNlIERBWCIgaW5mcmFzdHJ1Y3R1cmU6Cj4gCj4gCWVjaG8gLW4gZGF4MC4wID4gL3N5
-cy9idXMvZGF4L2RyaXZlcnMvZGV2aWNlX2RheC9yZW1vdmVfaWQKPiAJZWNobyAtbiBkYXgwLjAg
-PiAvc3lzL2J1cy9kYXgvZHJpdmVycy9kZXZpY2VfZGF4L3VuYmluZAo+IAo+IGFuZCB0aGVuIGJp
-bmQgaXQgdG8gdGhpcyBuZXcgZHJpdmVyOgo+IAo+IAllY2hvIC1uIGRheDAuMCA+IC9zeXMvYnVz
-L2RheC9kcml2ZXJzL2ttZW0vbmV3X2lkCj4gCWVjaG8gLW4gZGF4MC4wID4gL3N5cy9idXMvZGF4
-L2RyaXZlcnMva21lbS9iaW5kCj4gCj4gQWZ0ZXIgdGhpcywgdGhlcmUgd2lsbCBiZSBhIG51bWJl
-ciBvZiBuZXcgbWVtb3J5IHNlY3Rpb25zIHZpc2libGUKPiBpbiBzeXNmcyB0aGF0IGNhbiBiZSBv
-bmxpbmVkLCBvciB0aGF0IG1heSBnZXQgb25saW5lZCBieSBleGlzdGluZwo+IHVkZXYtaW5pdGlh
-dGVkIG1lbW9yeSBob3RwbHVnIHJ1bGVzLgo+IAo+IE5vdGU6IHRoaXMgaW5oZXJpdHMgYW55IGV4
-aXN0aW5nIE5VTUEgaW5mb3JtYXRpb24gZm9yIHRoZSBuZXdseS0KPiBhZGRlZCBtZW1vcnkgZnJv
-bSB0aGUgcGVyc2lzdGVudCBtZW1vcnkgZGV2aWNlIHRoYXQgY2FtZSBmcm9tIHRoZQo+IGZpcm13
-YXJlLiAgT24gSW50ZWwgcGxhdGZvcm1zLCB0aGUgZmlybXdhcmUgaGFzIGd1YXJhbnRlZXMgdGhh
-dAo+IHJlcXVpcmUgZWFjaCBzb2NrZXQncyBwZXJzaXN0ZW50IG1lbW9yeSB0byBiZSBpbiBhIHNl
-cGFyYXRlCj4gbWVtb3J5LW9ubHkgTlVNQSBub2RlLiAgVGhhdCBtZWFucyB0aGF0IHRoaXMgcGF0
-Y2ggaXMgbm90IGV4cGVjdGVkCj4gdG8gY3JlYXRlIE5VTUEgbm9kZXMsIGJ1dCB3aWxsIHNpbXBs
-eSBob3RwbHVnIG1lbW9yeSBpbnRvIGV4aXN0aW5nCj4gbm9kZXMuCj4gCj4gVGhlcmUgaXMgY3Vy
-cmVudGx5IHNvbWUgbWV0YWRhdGEgYXQgdGhlIGJlZ2lubmluZyBvZiBwbWVtIHJlZ2lvbnMuCj4g
-VGhlIHNlY3Rpb24tc2l6ZSBtZW1vcnkgaG90cGx1ZyByZXN0cmljdGlvbnMsIHBsdXMgdGhpcyBz
-bWFsbAo+IHJlc2VydmVkIGFyZWEgY2FuIGNhdXNlIHRoZSAibG9zcyIgb2YgYSBzZWN0aW9uIG9y
-IHR3byBvZiBjYXBhY2l0eS4KPiBUaGlzIHNob3VsZCBiZSBmaXhhYmxlIGluIGZvbGxvdy1vbiBw
-YXRjaGVzLiAgQnV0LCBhcyBhIGZpcnN0IHN0ZXAsCj4gbG9zaW5nIDI1Nk1CIG9mIG1lbW9yeSAo
-d29yc3QgY2FzZSkgb3V0IG9mIGh1bmRyZWRzIG9mIGdpZ2FieXRlcwo+IGlzIGEgZ29vZCB0cmFk
-ZW9mZiB2cy4gdGhlIHJlcXVpcmVkIGNvZGUgdG8gZml4IHRoaXMgdXAgcHJlY2lzZWx5Lgo+IAo+
-IFNpZ25lZC1vZmYtYnk6IERhdmUgSGFuc2VuIDxkYXZlLmhhbnNlbkBsaW51eC5pbnRlbC5jb20+
-Cj4gQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgo+IENjOiBEYXZl
-IEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4KPiBDYzogUm9zcyBad2lzbGVyIDx6d2lzbGVy
-QGtlcm5lbC5vcmc+Cj4gQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29t
-Pgo+IENjOiBUb20gTGVuZGFja3kgPHRob21hcy5sZW5kYWNreUBhbWQuY29tPgo+IENjOiBBbmRy
-ZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgo+IENjOiBNaWNoYWwgSG9ja28g
-PG1ob2Nrb0BzdXNlLmNvbT4KPiBDYzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwo+IENjOiBs
-aW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LW1tQGt2YWNrLm9yZwo+IENj
-OiBIdWFuZyBZaW5nIDx5aW5nLmh1YW5nQGludGVsLmNvbT4KPiBDYzogRmVuZ2d1YW5nIFd1IDxm
-ZW5nZ3Vhbmcud3VAaW50ZWwuY29tPgo+IENjOiBCb3Jpc2xhdiBQZXRrb3YgPGJwQHN1c2UuZGU+
-Cj4gQ2M6IEJqb3JuIEhlbGdhYXMgPGJoZWxnYWFzQGdvb2dsZS5jb20+Cj4gQ2M6IFlhb3dlaSBC
-YWkgPGJhaXlhb3dlaUBjbXNzLmNoaW5hbW9iaWxlLmNvbT4KPiBDYzogVGFrYXNoaSBJd2FpIDx0
-aXdhaUBzdXNlLmRlPgo+IC0tLQo+IAo+ICAgYi9kcml2ZXJzL2RheC9LY29uZmlnICB8ICAgIDUg
-KysKPiAgIGIvZHJpdmVycy9kYXgvTWFrZWZpbGUgfCAgICAxCj4gICBiL2RyaXZlcnMvZGF4L2tt
-ZW0uYyAgIHwgICA5MyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrCj4gICAzIGZpbGVzIGNoYW5nZWQsIDk5IGluc2VydGlvbnMoKykKPiAKPiBkaWZmIC1w
-dU4gZHJpdmVycy9kYXgvS2NvbmZpZ35kYXgta21lbS10cnktNCBkcml2ZXJzL2RheC9LY29uZmln
-Cj4gLS0tIGEvZHJpdmVycy9kYXgvS2NvbmZpZ35kYXgta21lbS10cnktNAkyMDE5LTAxLTA4IDA5
-OjU0OjQ0LjA1MTY5NDg3NCAtMDgwMAo+ICsrKyBiL2RyaXZlcnMvZGF4L0tjb25maWcJMjAxOS0w
-MS0wOCAwOTo1NDo0NC4wNTY2OTQ4NzQgLTA4MDAKPiBAQCAtMzIsNiArMzIsMTEgQEAgY29uZmln
-IERFVl9EQVhfUE1FTQo+ICAgCj4gICAJICBTYXkgTSBpZiB1bnN1cmUKPiAgIAo+ICtjb25maWcg
-REVWX0RBWF9LTUVNCj4gKwlkZWZfYm9vbCB5Cj4gKwlkZXBlbmRzIG9uIERFVl9EQVhfUE1FTSAg
-ICMgTmVlZHMgREVWX0RBWF9QTUVNIGluZnJhc3RydWN0dXJlCj4gKwlkZXBlbmRzIG9uIE1FTU9S
-WV9IT1RQTFVHICMgZm9yIGFkZF9tZW1vcnkoKSBhbmQgZnJpZW5kcwo+ICsKPiAgIGNvbmZpZyBE
-RVZfREFYX1BNRU1fQ09NUEFUCj4gICAJdHJpc3RhdGUgIlBNRU0gREFYOiBzdXBwb3J0IHRoZSBk
-ZXByZWNhdGVkIC9zeXMvY2xhc3MvZGF4IGludGVyZmFjZSIKPiAgIAlkZXBlbmRzIG9uIERFVl9E
-QVhfUE1FTQo+IGRpZmYgLXB1TiAvZGV2L251bGwgZHJpdmVycy9kYXgva21lbS5jCj4gLS0tIC9k
-ZXYvbnVsbAkyMDE4LTEyLTAzIDA4OjQxOjQ3LjM1NTc1NjQ5MSAtMDgwMAo+ICsrKyBiL2RyaXZl
-cnMvZGF4L2ttZW0uYwkyMDE5LTAxLTA4IDA5OjU0OjQ0LjA1NjY5NDg3NCAtMDgwMAo+IEBAIC0w
-LDAgKzEsOTMgQEAKPiArLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAKPiArLyog
-Q29weXJpZ2h0KGMpIDIwMTYtMjAxOCBJbnRlbCBDb3Jwb3JhdGlvbi4gQWxsIHJpZ2h0cyByZXNl
-cnZlZC4gKi8KPiArI2luY2x1ZGUgPGxpbnV4L21lbXJlbWFwLmg+Cj4gKyNpbmNsdWRlIDxsaW51
-eC9wYWdlbWFwLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9tZW1vcnkuaD4KPiArI2luY2x1ZGUgPGxp
-bnV4L21vZHVsZS5oPgo+ICsjaW5jbHVkZSA8bGludXgvZGV2aWNlLmg+Cj4gKyNpbmNsdWRlIDxs
-aW51eC9wZm5fdC5oPgo+ICsjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+ICsjaW5jbHVkZSA8bGlu
-dXgvZGF4Lmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9mcy5oPgo+ICsjaW5jbHVkZSA8bGludXgvbW0u
-aD4KPiArI2luY2x1ZGUgPGxpbnV4L21tYW4uaD4KPiArI2luY2x1ZGUgImRheC1wcml2YXRlLmgi
-Cj4gKyNpbmNsdWRlICJidXMuaCIKPiArCj4gK2ludCBkZXZfZGF4X2ttZW1fcHJvYmUoc3RydWN0
-IGRldmljZSAqZGV2KQo+ICt7Cj4gKwlzdHJ1Y3QgZGV2X2RheCAqZGV2X2RheCA9IHRvX2Rldl9k
-YXgoZGV2KTsKPiArCXN0cnVjdCByZXNvdXJjZSAqcmVzID0gJmRldl9kYXgtPnJlZ2lvbi0+cmVz
-Owo+ICsJcmVzb3VyY2Vfc2l6ZV90IGttZW1fc3RhcnQ7Cj4gKwlyZXNvdXJjZV9zaXplX3Qga21l
-bV9zaXplOwo+ICsJc3RydWN0IHJlc291cmNlICpuZXdfcmVzOwo+ICsJaW50IG51bWFfbm9kZTsK
-PiArCWludCByYzsKPiArCj4gKwkvKiBIb3RwbHVnIHN0YXJ0aW5nIGF0IHRoZSBiZWdpbm5pbmcg
-b2YgdGhlIG5leHQgYmxvY2s6ICovCj4gKwlrbWVtX3N0YXJ0ID0gQUxJR04ocmVzLT5zdGFydCwg
-bWVtb3J5X2Jsb2NrX3NpemVfYnl0ZXMoKSk7Cj4gKwo+ICsJa21lbV9zaXplID0gcmVzb3VyY2Vf
-c2l6ZShyZXMpOwo+ICsJLyogQWRqdXN0IHRoZSBzaXplIGRvd24gdG8gY29tcGVuc2F0ZSBmb3Ig
-bW92aW5nIHVwIGttZW1fc3RhcnQ6ICovCj4gKyAgICAgICAga21lbV9zaXplIC09IGttZW1fc3Rh
-cnQgLSByZXMtPnN0YXJ0Owo+ICsJLyogQWxpZ24gdGhlIHNpemUgZG93biB0byBjb3ZlciBvbmx5
-IGNvbXBsZXRlIGJsb2NrczogKi8KPiArCWttZW1fc2l6ZSAmPSB+KG1lbW9yeV9ibG9ja19zaXpl
-X2J5dGVzKCkgLSAxKTsKPiArCj4gKwluZXdfcmVzID0gZGV2bV9yZXF1ZXN0X21lbV9yZWdpb24o
-ZGV2LCBrbWVtX3N0YXJ0LCBrbWVtX3NpemUsCj4gKwkJCQkJICBkZXZfbmFtZShkZXYpKTsKPiAr
-Cj4gKwlpZiAoIW5ld19yZXMpIHsKPiArCQlwcmludGsoImNvdWxkIG5vdCByZXNlcnZlIHJlZ2lv
-biAlMDE2bGx4IC0+ICUwMTZsbHhcbiIsCj4gKwkJCQlrbWVtX3N0YXJ0LCBrbWVtX3N0YXJ0K2tt
-ZW1fc2l6ZSk7Cj4gKwkJcmV0dXJuIC1FQlVTWTsKPiArCX0KPiArCj4gKwkvKgo+ICsJICogU2V0
-IGZsYWdzIGFwcHJvcHJpYXRlIGZvciBTeXN0ZW0gUkFNLiAgTGVhdmUgLi4uX0JVU1kgY2xlYXIK
-PiArCSAqIHNvIHRoYXQgYWRkX21lbW9yeSgpIGNhbiBhZGQgYSBjaGlsZCByZXNvdXJjZS4KPiAr
-CSAqLwo+ICsJbmV3X3Jlcy0+ZmxhZ3MgPSBJT1JFU09VUkNFX1NZU1RFTV9SQU07Cj4gKwluZXdf
-cmVzLT5uYW1lID0gZGV2X25hbWUoZGV2KTsKPiArCj4gKwludW1hX25vZGUgPSBkZXZfZGF4LT50
-YXJnZXRfbm9kZTsKPiArCWlmIChudW1hX25vZGUgPCAwKSB7Cj4gKwkJcHJfd2Fybl9vbmNlKCJi
-YWQgbnVtYV9ub2RlOiAlZCwgZm9yY2luZyB0byAwXG4iLCBudW1hX25vZGUpOwo+ICsJCW51bWFf
-bm9kZSA9IDA7Cj4gKwl9Cj4gKwo+ICsJcmMgPSBhZGRfbWVtb3J5KG51bWFfbm9kZSwgbmV3X3Jl
-cy0+c3RhcnQsIHJlc291cmNlX3NpemUobmV3X3JlcykpOwpJIGRpZG4ndCB0cnkgcG1lbSBhbmQg
-SSBhbSB3b25kZXJpbmcgaXQncyBzbG93ZXIgdGhhbiBEUkFNLgpTaG91bGQgYSBmbGFnLCBzdWNo
-IGxpa2UgX0dGUF9QTUVNLCBiZSBhZGRlZCB0byBkaXN0aW5ndWlzaCBpdCBmcm9tCkRSQU0/CgpJ
-ZiBpdCdzIHVzZWQgZm9yIERNQSwgcGVyaGFwcyBpdCBtaWdodCBub3Qgc2F0aXNmeSBkZXZpY2Ug
-RE1BIHJlcXVlc3Qgb24gCnRpbWU/Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+>-----Original Message-----
+>From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
+>Of Dave Hansen
+>Sent: Thursday, January 17, 2019 2:19 AM
+>To: dave@sr71.net
+>Cc: thomas.lendacky@amd.com; mhocko@suse.com;
+>linux-nvdimm@lists.01.org; tiwai@suse.de; Dave Hansen
+><dave.hansen@linux.intel.com>; Huang, Ying <ying.huang@intel.com>;
+>linux-kernel@vger.kernel.org; linux-mm@kvack.org; bp@suse.de;
+>baiyaowei@cmss.chinamobile.com; zwisler@kernel.org;
+>bhelgaas@google.com; Wu, Fengguang <fengguang.wu@intel.com>;
+>akpm@linux-foundation.org
+>Subject: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal
+>RAM
+>
+>
+>From: Dave Hansen <dave.hansen@linux.intel.com>
+>
+>Currently, a persistent memory region is "owned" by a device driver,
+>either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
+>allow applications to explicitly use persistent memory, generally
+>by being modified to use special, new libraries.
+>
+>However, this limits persistent memory use to applications which
+>*have* been modified.  To make it more broadly usable, this driver
+>"hotplugs" memory into the kernel, to be managed ad used just like
+>normal RAM would be.
+>
+>To make this work, management software must remove the device from
+>being controlled by the "Device DAX" infrastructure:
+>
+>	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/remove_id
+>	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+>
+>and then bind it to this new driver:
+>
+>	echo -n dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+>	echo -n dax0.0 > /sys/bus/dax/drivers/kmem/bind
+
+Is there any plan to introduce additional mode, e.g. "kmem" in the userspace
+ndctl tool to do the configuration?
+
+>After this, there will be a number of new memory sections visible
+>in sysfs that can be onlined, or that may get onlined by existing
+>udev-initiated memory hotplug rules.
+>
+>Note: this inherits any existing NUMA information for the newly-
+>added memory from the persistent memory device that came from the
+>firmware.  On Intel platforms, the firmware has guarantees that
+>require each socket's persistent memory to be in a separate
+>memory-only NUMA node.  That means that this patch is not expected
+>to create NUMA nodes, but will simply hotplug memory into existing
+>nodes.
+>
+>There is currently some metadata at the beginning of pmem regions.
+>The section-size memory hotplug restrictions, plus this small
+>reserved area can cause the "loss" of a section or two of capacity.
+>This should be fixable in follow-on patches.  But, as a first step,
+>losing 256MB of memory (worst case) out of hundreds of gigabytes
+>is a good tradeoff vs. the required code to fix this up precisely.
+>
+>Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+>Cc: Dan Williams <dan.j.williams@intel.com>
+>Cc: Dave Jiang <dave.jiang@intel.com>
+>Cc: Ross Zwisler <zwisler@kernel.org>
+>Cc: Vishal Verma <vishal.l.verma@intel.com>
+>Cc: Tom Lendacky <thomas.lendacky@amd.com>
+>Cc: Andrew Morton <akpm@linux-foundation.org>
+>Cc: Michal Hocko <mhocko@suse.com>
+>Cc: linux-nvdimm@lists.01.org
+>Cc: linux-kernel@vger.kernel.org
+>Cc: linux-mm@kvack.org
+>Cc: Huang Ying <ying.huang@intel.com>
+>Cc: Fengguang Wu <fengguang.wu@intel.com>
+>Cc: Borislav Petkov <bp@suse.de>
+>Cc: Bjorn Helgaas <bhelgaas@google.com>
+>Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+>Cc: Takashi Iwai <tiwai@suse.de>
+>---
+>
+> b/drivers/dax/Kconfig  |    5 ++
+> b/drivers/dax/Makefile |    1
+> b/drivers/dax/kmem.c   |   93
+>+++++++++++++++++++++++++++++++++++++++++++++++++
+> 3 files changed, 99 insertions(+)
+>
+>diff -puN drivers/dax/Kconfig~dax-kmem-try-4 drivers/dax/Kconfig
+>--- a/drivers/dax/Kconfig~dax-kmem-try-4	2019-01-08 09:54:44.051694874
+>-0800
+>+++ b/drivers/dax/Kconfig	2019-01-08 09:54:44.056694874 -0800
+>@@ -32,6 +32,11 @@ config DEV_DAX_PMEM
+>
+> 	  Say M if unsure
+>
+>+config DEV_DAX_KMEM
+>+	def_bool y
+>+	depends on DEV_DAX_PMEM   # Needs DEV_DAX_PMEM infrastructure
+>+	depends on MEMORY_HOTPLUG # for add_memory() and friends
+>+
+> config DEV_DAX_PMEM_COMPAT
+> 	tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
+> 	depends on DEV_DAX_PMEM
+>diff -puN /dev/null drivers/dax/kmem.c
+>--- /dev/null	2018-12-03 08:41:47.355756491 -0800
+>+++ b/drivers/dax/kmem.c	2019-01-08 09:54:44.056694874 -0800
+>@@ -0,0 +1,93 @@
+>+// SPDX-License-Identifier: GPL-2.0
+>+/* Copyright(c) 2016-2018 Intel Corporation. All rights reserved. */
+>+#include <linux/memremap.h>
+>+#include <linux/pagemap.h>
+>+#include <linux/memory.h>
+>+#include <linux/module.h>
+>+#include <linux/device.h>
+>+#include <linux/pfn_t.h>
+>+#include <linux/slab.h>
+>+#include <linux/dax.h>
+>+#include <linux/fs.h>
+>+#include <linux/mm.h>
+>+#include <linux/mman.h>
+>+#include "dax-private.h"
+>+#include "bus.h"
+>+
+>+int dev_dax_kmem_probe(struct device *dev)
+>+{
+>+	struct dev_dax *dev_dax = to_dev_dax(dev);
+>+	struct resource *res = &dev_dax->region->res;
+>+	resource_size_t kmem_start;
+>+	resource_size_t kmem_size;
+>+	struct resource *new_res;
+>+	int numa_node;
+>+	int rc;
+>+
+>+	/* Hotplug starting at the beginning of the next block: */
+>+	kmem_start = ALIGN(res->start, memory_block_size_bytes());
+>+
+>+	kmem_size = resource_size(res);
+>+	/* Adjust the size down to compensate for moving up kmem_start: */
+>+        kmem_size -= kmem_start - res->start;
+>+	/* Align the size down to cover only complete blocks: */
+>+	kmem_size &= ~(memory_block_size_bytes() - 1);
+>+
+>+	new_res = devm_request_mem_region(dev, kmem_start, kmem_size,
+>+					  dev_name(dev));
+>+
+>+	if (!new_res) {
+>+		printk("could not reserve region %016llx -> %016llx\n",
+>+				kmem_start, kmem_start+kmem_size);
+>+		return -EBUSY;
+>+	}
+>+
+>+	/*
+>+	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
+>+	 * so that add_memory() can add a child resource.
+>+	 */
+>+	new_res->flags = IORESOURCE_SYSTEM_RAM;
+>+	new_res->name = dev_name(dev);
+>+
+>+	numa_node = dev_dax->target_node;
+>+	if (numa_node < 0) {
+>+		pr_warn_once("bad numa_node: %d, forcing to 0\n", numa_node);
+>+		numa_node = 0;
+>+	}
+>+
+>+	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
+>+	if (rc)
+>+		return rc;
+>+
+>+	return 0;
+>+}
+>+EXPORT_SYMBOL_GPL(dev_dax_kmem_probe);
+>+
+>+static int dev_dax_kmem_remove(struct device *dev)
+>+{
+>+	/* Assume that hot-remove will fail for now */
+>+	return -EBUSY;
+>+}
+>+
+>+static struct dax_device_driver device_dax_kmem_driver = {
+>+	.drv = {
+>+		.probe = dev_dax_kmem_probe,
+>+		.remove = dev_dax_kmem_remove,
+>+	},
+>+};
+>+
+>+static int __init dax_kmem_init(void)
+>+{
+>+	return dax_driver_register(&device_dax_kmem_driver);
+>+}
+>+
+>+static void __exit dax_kmem_exit(void)
+>+{
+>+	dax_driver_unregister(&device_dax_kmem_driver);
+>+}
+>+
+>+MODULE_AUTHOR("Intel Corporation");
+>+MODULE_LICENSE("GPL v2");
+>+module_init(dax_kmem_init);
+>+module_exit(dax_kmem_exit);
+>+MODULE_ALIAS_DAX_DEVICE(0);
+>diff -puN drivers/dax/Makefile~dax-kmem-try-4 drivers/dax/Makefile
+>--- a/drivers/dax/Makefile~dax-kmem-try-4	2019-01-08 09:54:44.053694874
+>-0800
+>+++ b/drivers/dax/Makefile	2019-01-08 09:54:44.056694874 -0800
+>@@ -1,6 +1,7 @@
+> # SPDX-License-Identifier: GPL-2.0
+> obj-$(CONFIG_DAX) += dax.o
+> obj-$(CONFIG_DEV_DAX) += device_dax.o
+>+obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
+>
+> dax-y := super.o
+> dax-y += bus.o
+>_
+>_______________________________________________
+>Linux-nvdimm mailing list
+>Linux-nvdimm@lists.01.org
+>https://lists.01.org/mailman/listinfo/linux-nvdimm
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
