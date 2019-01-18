@@ -1,81 +1,40 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D93D211AEA73
- for <linux-nvdimm@lists.01.org>; Thu, 10 Jan 2019 09:37:33 -0800 (PST)
-Message-ID: <0a72b8db91f9151ecc7f215b465ec8e69adc239c.camel@linux.intel.com>
-Subject: Re: [driver-core PATCH v9 1/9] driver core: Establish order of
- operations for device_add and device_del via bitflag
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 10 Jan 2019 09:37:32 -0800
-In-Reply-To: <20181220152844.GA27498@kroah.com>
-References: <154466182249.9126.3905559325944768059.stgit@ahduyck-desk1.jf.intel.com>
- <154466189880.9126.10737761541647369077.stgit@ahduyck-desk1.jf.intel.com>
- <CAJZ5v0hSWOb4b7FWJmfi86mYY+T1kedtC=ydS8VMUvpH4ctzbw@mail.gmail.com>
- <20181220152844.GA27498@kroah.com>
-Mime-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Len Brown <len.brown@intel.com>, bvanassche@acm.org, Linux PM <linux-pm@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Lai Jiangshan <jiangshanlai@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Luis R. Rodriguez  <mcgrof@kernel.org>, Pavel Machek <pavel@ucw.cz>, zwisler@kernel.org, Tejun Heo" <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: Re: [PATCH 4/4] dax: "Hotplug" persistent memory for use like normal
+ RAM
+References: <20190116181859.D1504459@viggo.jf.intel.com>
+ <20190116181905.12E102B4@viggo.jf.intel.com>
+ <5ef5d5e9-9d35-fb84-b69e-7456dcf4c241@linux.intel.com>
+ <1e9377c6-11a0-3bbd-763d-d9347bd556cf@intel.com>
+ <74c01a55-1a47-d649-a32a-ea597c24ab4a@linux.intel.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Message-ID: <49681805-b521-71c9-23c0-9bb35d25ba58@intel.com>
+Date: Fri, 18 Jan 2019 07:20:43 -0800
+MIME-Version: 1.0
+In-Reply-To: <74c01a55-1a47-d649-a32a-ea597c24ab4a@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: Yanmin Zhang <yanmin_zhang@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, dave@sr71.net
+Cc: dan.j.williams@intel.com, dave.jiang@intel.com, zwisler@kernel.org, vishal.l.verma@intel.com, thomas.lendacky@amd.com, akpm@linux-foundation.org, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2018-12-20 at 16:28 +0100, Greg Kroah-Hartman wrote:
-> On Wed, Dec 19, 2018 at 03:27:48PM +0100, Rafael J. Wysocki wrote:
-> > On Thu, Dec 13, 2018 at 1:45 AM Alexander Duyck
-> > <alexander.h.duyck@linux.intel.com> wrote:
-> > > 
-> > > Add an additional bit flag to the device struct named "dead".
-> > > 
-> > > This additional flag provides a guarantee that when a device_del is
-> > > executed on a given interface an async worker will not attempt to attach
-> > > the driver following the earlier device_del call. Previously this
-> > > guarantee was not present and could result in the device_del call
-> > > attempting to remove a driver from an interface only to have the async
-> > > worker attempt to probe the driver later when it finally completes the
-> > > asynchronous probe call.
-> > > 
-> > > One additional change added was that I pulled the check for dev->driver
-> > > out of the __device_attach_driver call and instead placed it in the
-> > > __device_attach_async_helper call. This was motivated by the fact that the
-> > > only other caller of this, __device_attach, had already taken the
-> > > device_lock() and checked for dev->driver. Instead of testing for this
-> > > twice in this path it makes more sense to just consolidate the dev->dead
-> > > and dev->driver checks together into one set of checks.
-> > > 
-> > > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> > > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> > 
-> > Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On 1/17/19 11:47 PM, Yanmin Zhang wrote:
+> a chance for kernel to allocate PMEM as DMA buffer.
+> Some super speed devices like 10Giga NIC, USB (SSIC connecting modem),
+> might not work well if DMA buffer is in PMEM as it's slower than DRAM.
 > 
-> It's too late for 4.21-rc1 as my tree should be closed by now.
-> 
-> So I'll hold on to these in my queue until 4.21-rc1 is out and then
-> queue them up and see what breaks in linux-next :)
-> 
-> thanks,
-> 
-> greg k-h
+> Should your patchset consider it?
 
-I just wanted to check on on this patch set in terms of workflow. Since
-it looks like we now have 5.0-rc1 out I was wondering what the ETA for
-this patch set being pulled was, or if I need to resubmit the set.
+No, I don't think so.
 
-Thanks.
+They can DMA to persistent memory whether this patch set exists or not.
+ So, if the hardware falls over, that's a separate problem.
 
-- Alex
+If an app wants memory that performs in a particular way, then I would
+suggest those app find the NUMA nodes on the system that match their
+needs with these patches:
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> http://lkml.kernel.org/r/20190116175804.30196-1-keith.busch@intel.com
+
+and use the existing NUMA APIs to select that memory.
