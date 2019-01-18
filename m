@@ -1,139 +1,54 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: [PATCH] nfit: Collect shutdown status for NVDIMM_FAMILY_HYPERV
-Date: Wed, 30 Jan 2019 18:48:40 +0000
-Message-ID: <PU1P153MB01691690696D8F83FC1872C7BF900@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 015CB211B509C
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 18:45:54 -0800 (PST)
+Subject: [daxctl PATCH v3 3/3] Documentation: Update copyright
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 17 Jan 2019 18:33:17 -0800
+Message-ID: <154777879769.2060068.2349207634094987479.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154777878104.2060068.1465998507656988115.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <154777878104.2060068.1465998507656988115.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Happy New Year!
 
-See http://www.uefi.org/RFIC_LIST ("Virtual NVDIMM 0x1901"):
-"Get Unsafe Shutdown Count (Function Index 2)".
-
-Let's expose the info to the userspace (e.g. ntctl) via sysfs.
-
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c   | 51 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/nfit/hyperv.h | 26 +++++++++++++++++++
- 2 files changed, 77 insertions(+)
- create mode 100644 drivers/acpi/nfit/hyperv.h
+ Documentation/copyright.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index d5a164b6833a..d504da34ce34 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -25,6 +25,7 @@
- #include <asm/cacheflush.h>
- #include <acpi/nfit.h>
- #include "intel.h"
-+#include "hyperv.h"
- #include "nfit.h"
-=20
- /*
-@@ -1802,6 +1803,54 @@ __weak void nfit_intel_shutdown_status(struct nfit_m=
-em *nfit_mem)
- 	}
- }
-=20
-+__weak void nfit_hyperv_shutdown_status(struct nfit_mem *nfit_mem)
-+{
-+	struct device *dev =3D &nfit_mem->adev->dev;
-+	struct nd_hyperv_shutdown_status status;
-+	union acpi_object in_buf =3D {
-+		.buffer.type =3D ACPI_TYPE_BUFFER,
-+		.buffer.length =3D 0,
-+	};
-+	union acpi_object in_obj =3D {
-+		.package.type =3D ACPI_TYPE_PACKAGE,
-+		.package.count =3D 1,
-+		.package.elements =3D &in_buf,
-+	};
-+	const u8 func =3D ND_HYPERV_GET_UNSAFE_SHUTDOWN_COUNT;
-+	const guid_t *guid =3D to_nfit_uuid(nfit_mem->family);
-+	u8 revid =3D nfit_dsm_revid(nfit_mem->family, func);
-+	struct acpi_device *adev =3D nfit_mem->adev;
-+	acpi_handle handle =3D adev->handle;
-+	union acpi_object *out_obj;
-+
-+	if ((nfit_mem->dsm_mask & BIT(func)) =3D=3D 0)
-+		return;
-+
-+	out_obj =3D acpi_evaluate_dsm(handle, guid, revid, func, &in_obj);
-+	if (!out_obj || out_obj->type !=3D ACPI_TYPE_BUFFER
-+		     || out_obj->buffer.length < sizeof(status)) {
-+		dev_dbg(dev->parent,
-+			"%s: failed to get Unsafe Shutdown Count\n",
-+			dev_name(dev));
-+		ACPI_FREE(out_obj);
-+		return;
-+	}
-+
-+	memcpy(&status, out_obj->buffer.pointer, sizeof(status));
-+	ACPI_FREE(out_obj);
-+
-+	if (status.general_err !=3D 0) {
-+		dev_dbg(dev->parent,
-+			"%s: failed to get Unsafe Shutdown Count: err=3D0x%x\n",
-+			dev_name(dev), status.status);
-+		return;
-+	}
-+
-+	set_bit(NFIT_MEM_DIRTY_COUNT, &nfit_mem->flags);
-+	nfit_mem->dirty_shutdown =3D status.shutdown_count;
-+}
-+
-+
- static void populate_shutdown_status(struct nfit_mem *nfit_mem)
- {
- 	/*
-@@ -1811,6 +1860,8 @@ static void populate_shutdown_status(struct nfit_mem =
-*nfit_mem)
- 	 */
- 	if (nfit_mem->family =3D=3D NVDIMM_FAMILY_INTEL)
- 		nfit_intel_shutdown_status(nfit_mem);
-+	else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_HYPERV)
-+		nfit_hyperv_shutdown_status(nfit_mem);
- }
-=20
- static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
-diff --git a/drivers/acpi/nfit/hyperv.h b/drivers/acpi/nfit/hyperv.h
-new file mode 100644
-index 000000000000..c4a25b8624cc
---- /dev/null
-+++ b/drivers/acpi/nfit/hyperv.h
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright(c) 2019 Microsoft Corporation. All rights reserved.
-+ * Hyper-V specific definitions for _DSM of Hyper-V Virtual NVDIMM
-+ *
-+ * See http://www.uefi.org/RFIC_LIST (Virtual NVDIMM 0x1901)
-+ */
-+#ifndef _NFIT_HYPERV_H_
-+#define _NFIT_HYPERV_H_
-+
-+#define ND_HYPERV_GET_UNSAFE_SHUTDOWN_COUNT 2
-+
-+struct nd_hyperv_shutdown_status {
-+	union {
-+		u32 status;
-+		struct {
-+			u16 general_err;
-+			u8  func_err;
-+			u8  vendor_err;
-+		};
-+	};
-+	u32 shutdown_count;
-+} __packed;
-+
-+
-+#endif
---=20
-2.19.1
+diff --git a/Documentation/copyright.txt b/Documentation/copyright.txt
+index 1d603645211c..2820a50d2980 100644
+--- a/Documentation/copyright.txt
++++ b/Documentation/copyright.txt
+@@ -2,7 +2,7 @@
+ 
+ COPYRIGHT
+ ---------
+-Copyright (c) 2016 - 2018, Intel Corporation. License GPLv2: GNU GPL
++Copyright (c) 2016 - 2019, Intel Corporation. License GPLv2: GNU GPL
+ version 2 <http://gnu.org/licenses/gpl.html>.  This is free software:
+ you are free to change and redistribute it.  There is NO WARRANTY, to
+ the extent permitted by law.
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
