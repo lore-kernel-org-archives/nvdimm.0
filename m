@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CC276211B509F
- for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 15:29:56 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v9 13/13] ndctl: documentation for security and key
- management
-Date: Fri, 18 Jan 2019 23:29:53 +0000
-Message-ID: <d98a6c4168bcbd87ce69abd2421823af81686186.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2A29A211B63F7
+ for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 18:39:33 -0800 (PST)
+Subject: [PATCH v9 13/13] ndctl: documentation for security and key management
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 17 Jan 2019 19:39:32 -0700
+Message-ID: <154777917249.42557.10571100683446353177.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
 References: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
- <154777917249.42557.10571100683446353177.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154777917249.42557.10571100683446353177.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <F3118254AB8DC649832245BFAE0885CC@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,29 +22,228 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add a "Theory of Operation" section describing the Intel DSM operations to
+the relevant man pages.
 
-On Thu, 2019-01-17 at 19:39 -0700, Dave Jiang wrote:
-> Add a "Theory of Operation" section describing the Intel DSM operations to
-> the relevant man pages.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  Documentation/ndctl/intel-nvdimm-security.txt   |  139 +++++++++++++++++++++++
->  Documentation/ndctl/ndctl-freeze-security.txt   |    2 
->  Documentation/ndctl/ndctl-remove-passphrase.txt |    2 
->  Documentation/ndctl/ndctl-sanitize-dimm.txt     |    2 
->  Documentation/ndctl/ndctl-setup-passphrase.txt  |    2 
->  Documentation/ndctl/ndctl-update-passphrase.txt |    2 
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ Documentation/ndctl/intel-nvdimm-security.txt   |  139 +++++++++++++++++++++++
+ Documentation/ndctl/ndctl-freeze-security.txt   |    2 
+ Documentation/ndctl/ndctl-remove-passphrase.txt |    2 
+ Documentation/ndctl/ndctl-sanitize-dimm.txt     |    2 
+ Documentation/ndctl/ndctl-setup-passphrase.txt  |    2 
+ Documentation/ndctl/ndctl-update-passphrase.txt |    2 
+ 6 files changed, 149 insertions(+)
+ create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
 
-Should this also be also be added to the new command,
-install-kek/install-encryption-key?
-
->  6 files changed, 149 insertions(+)
->  create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+new file mode 100644
+index 00000000..f1de511d
+--- /dev/null
++++ b/Documentation/ndctl/intel-nvdimm-security.txt
+@@ -0,0 +1,139 @@
++// SPDX-License-Identifier: GPL-2.0
++
++THEORY OF OPERATOIN
++-------------------
++With the introduction of Intel Device Specific Methods (DSM) specification
++v1.7 and v1.8 [1], security DSMs were introduced. The operations supported by
++ndctl are enable passhprase, update passphrase, disable security,
++freeze security, secure (crypto) erase, overwrite, master passphrase enable,
++master passphrase update, and master passphrase secure (crypto) erase.
++The 'unlock' DSM is not supported by ndctl, that is left for the kernel to
++manage with some assistance from userspace.
++
++The security management for nvdimm is composed of two parts. The front end
++utilizes the Linux key management framework (trusted and encrypted keys [2]).
++It uses the keyutils on the user side and Linux key management APIs in
++the kernel. The backend takes the decrypted payload of the key and passes the
++plaintext payload to the nvdimm for processing.
++
++Unlike typical DSMs, the security DSMs are managed through the 'security'
++sysfs attribute under the dimm devices rather than an ioctl call by libndctl.
++The relevant key id is written to the 'security' attribute and the kernel will
++pull that key from the kernel's user key ring for processing.
++
++The entire security process starts with a master key that is used to seal the
++encrypted keys that are used to protect the passphrase for each nvdimm. We
++recommend using the *system* master key from the Trusted Platform
++Module (TPM), but a master key generated by the TPM can also
++be used. For testing purposes a user key with randomized payload can
++also be served as a master key. See [2] for details. To perform any security
++operations, it is expected that at the minimum the master key is already
++in the kernel's user keyring as shown in example below:
++
++> keyctl show
++Session Keyring
++ 736023423 --alswrv      0     0  keyring: _ses
++ 675104189 --alswrv      0 65534   \_ keyring: _uid.0
++ 680187394 --alswrv      0     0       \_ trusted: nvdimm-master
++
++Except for 'overwrite', all operations expect the relevant regions associated
++with the nvdimm are disabled before proceeding. For 'overwrite', in addition
++to the regions, the dimm itself is expected to be disabled.
++
++The following sections describe specifics of each security features.
++
++UNLOCK
++------
++Unlock is performed by the kernel, however a preparation step must happen
++before the unlock DSM can be issued by the kernel. The expectation is that
++during initramfs, a setup script is called before the libnvdimm module is
++loaded by modprobe. This script script will inject the master key and the
++related encrypted keys into the kernel's user key ring. A reference modprobe
++config file and a setup script have been provided by ndctl. During the 'probe'
++of the nvdimm driver, it will:
++1. First, check the security state of the device and see if the DIMM is locked
++2. Request the associated encrypted key from the kernel's user key ring.
++3. Finally, create the unlock DSM, copy the decrypted payload into the DSM
++   passphrase field, and issue the DSM to unlock the DIMM.
++
++If the DIMM is already unlocked, the kernel will attempt to revalidate the key.
++This can be overriden with a kernel module parameter. If we fail to revalidate
++the key, the kernel will freeze the security and disallow any further security
++configuration changes.
++
++SETUP USER PASSPHRASE
++----------------------
++To setup the user passphrase for a DIMM, it is expected that the master key
++is already in the kernel's user key ring and the master key name is passed to
++ndctl so it can do key management. An encrypted key with a 32 bytes payload
++and encrypted key format 'enc32' is created and sealed by the master key. Be
++aware that the passphrase is never provided by or visible to the user.
++The decrypted payload for the encrypted key will be randomly generated by the
++kernel and userspace does not have access to this decrypted payload. When the
++encrypted key is created, a binary blob of the encrypted key is written to the
++key blob storage directory (/etc/ndctl/keys). The user is responsible for
++backing up the dimm key blobs to a secure location. When a key is successfully
++loaded into the kernel's user key ring, the payload is decrypted
++and can be accessed by the kernel.
++
++Key ids are written to the 'security' sysfs attribute with the command "update".
++A key id of 0 is provided for the old key id. The kernel will see that the
++update call is an enable call because the 0 old key id. A "passphrase update"
++DSM is issued by the kernel with the old passphrase as 0s.
++
++UPDATE USER PASSPHRASE
++----------------------
++The update user passphrase operation uses the same DSM command as enable user
++passphrase. Most of the work is done on the key management side. The user will
++provide a new master key name for the new passphrase key or use the existing
++one. ndctl will use whatever master key name that is passed in. The following
++operations are performed for update:
++1. Remove the associated encrypted key from the kernel's user key ring.
++2. Rename the key blob to old.
++3. Load the now old key blob into kernel's user key ring with "old" name.
++4. Create new encrypted key and seal with master key.
++5. Generate new key blob.
++6. Send DSM with old and new passphrase via the decrypted key payloads.
++7. On success, remove old key from key ring and old key blob.
++
++REMOVE USER PASSPHRASE
++-----------------------
++The current key id is written to sysfs by ndctl. Upon successfully disabling
++the passphrase, the key is removed from the kernel's user keyring, and the
++associated key blob is deleted.
++
++CRYPTO (SECURE) ERASE
++---------------------
++This operation is similar to passphrase-disable. The kernel will issue
++WBINVD before and after the operation to ensure no data corruption from a stale
++CPU cache. Use ndctl's sanitize-dimm command with the --crypto-erase option to
++perform this operation.
++
++OVERWRITE
++---------
++The overwrite operation wipes the entire nvdimm. The operation can take
++a significant amount of time. Issuing a command is very similar to
++"passphrase-disable" and "secure erase". However, when the command returns
++successfully it just means overwrite has been successfully started.
++The wait-overwrite command for ndctl can be used to wait on the nvdimms that
++are performing overwrite until the operation is completed. Upon successful
++completion of the operation, wbinvd will be issued by the kernel.
++The "sanitize-dimm" command with the --overwrite option is used via ndctl.
++If both --crypto-erase and --overwrite options are passed in, the crypt-erase
++will be issued first before overwrite.
++
++SECURITY FREEZE
++---------------
++This operation requires no key to succeed. ndctl will issue the DSM command
++and upon completion, the security commands besides status query will be locked
++out until the next boot.
++
++MASTER PASSPHRASE SETUP, UPDATE, and CRYPTO ERASE
++-----------------------------------------------------------
++These operations are similar to the user passphrase enable and update. The only
++difference is that a different encrypted key is being used for the master
++passphrase operations. Note that master passphrase has no relation to the
++master key for encryption.
++
++[1] http://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
++[2] https://www.kernel.org/doc/Documentation/security/keys/trusted-encrypted.rst
+diff --git a/Documentation/ndctl/ndctl-freeze-security.txt b/Documentation/ndctl/ndctl-freeze-security.txt
+index d14b8a39..43ea81eb 100644
+--- a/Documentation/ndctl/ndctl-freeze-security.txt
++++ b/Documentation/ndctl/ndctl-freeze-security.txt
+@@ -55,4 +55,6 @@ OPTIONS
+ <dimm>::
+ include::xable-dimm-options.txt[]
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-remove-passphrase.txt b/Documentation/ndctl/ndctl-remove-passphrase.txt
+index 17ff905b..df83eaee 100644
+--- a/Documentation/ndctl/ndctl-remove-passphrase.txt
++++ b/Documentation/ndctl/ndctl-remove-passphrase.txt
+@@ -23,4 +23,6 @@ OPTIONS
+ <dimm>::
+ include::xable-dimm-options.txt[]
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-sanitize-dimm.txt b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+index b01360d2..d28d7013 100644
+--- a/Documentation/ndctl/ndctl-sanitize-dimm.txt
++++ b/Documentation/ndctl/ndctl-sanitize-dimm.txt
+@@ -39,6 +39,8 @@ include::xable-dimm-options.txt[]
+ 	instead of the user passphrase. This only is applicable to the
+ 	crypto-erase option.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+ 
+ SEE ALSO
+diff --git a/Documentation/ndctl/ndctl-setup-passphrase.txt b/Documentation/ndctl/ndctl-setup-passphrase.txt
+index 044e9deb..a80e5138 100644
+--- a/Documentation/ndctl/ndctl-setup-passphrase.txt
++++ b/Documentation/ndctl/ndctl-setup-passphrase.txt
+@@ -36,4 +36,6 @@ include::xable-dimm-options.txt[]
+ 	Indicates that we are managing the master passphrase instead of the
+ 	user passphrase.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+diff --git a/Documentation/ndctl/ndctl-update-passphrase.txt b/Documentation/ndctl/ndctl-update-passphrase.txt
+index 09e69832..05bd1ded 100644
+--- a/Documentation/ndctl/ndctl-update-passphrase.txt
++++ b/Documentation/ndctl/ndctl-update-passphrase.txt
+@@ -34,6 +34,8 @@ include::xable-dimm-options.txt[]
+ 	Parameter to indicate that we are managing the master passphrase
+ 	instead of the user passphrase.
+ 
++include::intel-nvdimm-security.txt[]
++
+ include::../copyright.txt[]
+ 
+ SEE ALSO:
 
 _______________________________________________
 Linux-nvdimm mailing list
