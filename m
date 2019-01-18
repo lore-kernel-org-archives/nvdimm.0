@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
- [IPv6:2607:f8b0:4864:20::242])
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
+ [IPv6:2607:f8b0:4864:20::241])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 23CD4211B112A
- for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 10:59:35 -0800 (PST)
-Received: by mail-oi1-x242.google.com with SMTP id m6so9750530oig.11
- for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 10:59:35 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id AA9D1211B6C0E
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 00:38:31 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id v6so8415439oif.2
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 00:38:31 -0800 (PST)
 MIME-Version: 1.0
 References: <20190118033544.3980-1-richardw.yang@linux.intel.com>
  <CAPcyv4jOA-S=Z-0mCUW7d4+6gwHNEe1egaFrbyNq5UJL7Uz=Ow@mail.gmail.com>
  <20190118050333.GA4233@richard>
  <CAPcyv4j6Ud_cMkJneN13tv4_WjdAWM41RUhAOJsPPupZ-5KNmg@mail.gmail.com>
  <20190118073117.GA4628@richard>
- <CAPcyv4h+yJjBMfetF3ecxSHySgWjSWBH+Li9JWBZZSruqFBnLg@mail.gmail.com>
-In-Reply-To: <CAPcyv4h+yJjBMfetF3ecxSHySgWjSWBH+Li9JWBZZSruqFBnLg@mail.gmail.com>
+In-Reply-To: <20190118073117.GA4628@richard>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 Jan 2019 10:59:23 -0800
-Message-ID: <CAPcyv4ji+=145SNWWc+9Po8XuzuXjSJQhEU2SwgpMR8stiA_kA@mail.gmail.com>
+Date: Fri, 18 Jan 2019 00:38:18 -0800
+Message-ID: <CAPcyv4h+yJjBMfetF3ecxSHySgWjSWBH+Li9JWBZZSruqFBnLg@mail.gmail.com>
 Subject: Re: [PATCH] libnvdimm,
  pfn: not allocate nd_pfn->pfn_sb if already allocated
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -35,86 +34,74 @@ To: Wei Yang <richardw.yang@linux.intel.com>
 Cc: Ross Zwisler <zwisler@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jan 18, 2019 at 12:38 AM Dan Williams <dan.j.williams@intel.com> wrote:
+On Thu, Jan 17, 2019 at 11:31 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
 >
-> On Thu, Jan 17, 2019 at 11:31 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
+> On Thu, Jan 17, 2019 at 09:05:54PM -0800, Dan Williams wrote:
+> >On Thu, Jan 17, 2019 at 9:03 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
+> >>
+> >> On Thu, Jan 17, 2019 at 08:31:56PM -0800, Dan Williams wrote:
+> >> >On Thu, Jan 17, 2019 at 7:36 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
+> >> >>
+> >> >> In current implementation, we might re-allocate nd_pfn->pfn_sb.
+> >> >>
+> >> >> For example:
+> >> >>
+> >> >>     nd_dax_probe()
+> >> >>         nd_pfn->pfn_sb = devm_kzalloc()
+> >> >>
+> >> >>     dax_pmem_probe()
+> >> >>         nvdimm_setup_pfn()
+> >> >>             nd_pfn_init()
+> >> >>                 nd_pfn->pfn_sb = devm_kzalloc()
+> >> >>
+> >> >> This patch checks nd_pfn->pfn_sb before allocating it in nd_pfn_init().
+> >> >
+> >> >Ugh, this patch is unfortunately uncovering a deeper problem.
+> >> >nvdimm_setup_pfn() should not be calling nd_pfn_init(). This
+> >> >effectively is always re-initializing the info-block, benign but
+> >> >unnecessary. Instead it needs to be using nd_pfn_validate() followed
+> >> >by an __nvdimm_setup_pfn() in the dax_pmem_probe() path.
+> >> >
+> >> >Good find!
+> >>
+> >> So we should fix this like:
+> >>
+> >> dax_pmem_probe()
+> >>     nd_pfn_validate()
+> >>     __nvdimm_setup_pfn()
+> >>
+> >> Is my understanding correct?
 > >
-> > On Thu, Jan 17, 2019 at 09:05:54PM -0800, Dan Williams wrote:
-> > >On Thu, Jan 17, 2019 at 9:03 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
-> > >>
-> > >> On Thu, Jan 17, 2019 at 08:31:56PM -0800, Dan Williams wrote:
-> > >> >On Thu, Jan 17, 2019 at 7:36 PM Wei Yang <richardw.yang@linux.intel.com> wrote:
-> > >> >>
-> > >> >> In current implementation, we might re-allocate nd_pfn->pfn_sb.
-> > >> >>
-> > >> >> For example:
-> > >> >>
-> > >> >>     nd_dax_probe()
-> > >> >>         nd_pfn->pfn_sb = devm_kzalloc()
-> > >> >>
-> > >> >>     dax_pmem_probe()
-> > >> >>         nvdimm_setup_pfn()
-> > >> >>             nd_pfn_init()
-> > >> >>                 nd_pfn->pfn_sb = devm_kzalloc()
-> > >> >>
-> > >> >> This patch checks nd_pfn->pfn_sb before allocating it in nd_pfn_init().
-> > >> >
-> > >> >Ugh, this patch is unfortunately uncovering a deeper problem.
-> > >> >nvdimm_setup_pfn() should not be calling nd_pfn_init(). This
-> > >> >effectively is always re-initializing the info-block, benign but
-> > >> >unnecessary. Instead it needs to be using nd_pfn_validate() followed
-> > >> >by an __nvdimm_setup_pfn() in the dax_pmem_probe() path.
-> > >> >
-> > >> >Good find!
-> > >>
-> > >> So we should fix this like:
-> > >>
-> > >> dax_pmem_probe()
-> > >>     nd_pfn_validate()
-> > >>     __nvdimm_setup_pfn()
-> > >>
-> > >> Is my understanding correct?
-> > >
-> > >Yes, at first glance, but it would need a deeper review and testing.
-> > >The usage of nvdimm_setup_pfn() in drivers/nvdimm/pmem.c needs a
-> > >similar fixup.
-> >
-> > I went through the code again and found I may remove the allocation in
-> > nd_pfn_init().
-> >
-> > Below is my analysis.
-> >
-> > nvdimm_setup_pfn() is invoked in two places:
-> >
-> >   * dax_pmem_probe()
-> >   * pmem_attach_disk(), when it is_nd_pfn()
-> >
-> > And before these two function called, corresponding device should be allocated
-> > and created. And we can see these two corresponding places to create the
-> > devices are:
-> >
-> >   * nd_dax_probe()
-> >   * nd_pfn_probe()
-> >
-> > Both of them allocate pfn_sb. This means it is not necessary to allocate it
-> > again when we do the probe function.
-> >
-> > Do you think it looks good to you?
-> >
+> >Yes, at first glance, but it would need a deeper review and testing.
+> >The usage of nvdimm_setup_pfn() in drivers/nvdimm/pmem.c needs a
+> >similar fixup.
 >
-> No it doesn't because the real issue is that we should not be
-> recreating the info block. So the fix is not avoiding the allocation,
-> the fix is avoiding nd_pfn_init() in the probe path altogether.
+> I went through the code again and found I may remove the allocation in
+> nd_pfn_init().
+>
+> Below is my analysis.
+>
+> nvdimm_setup_pfn() is invoked in two places:
+>
+>   * dax_pmem_probe()
+>   * pmem_attach_disk(), when it is_nd_pfn()
+>
+> And before these two function called, corresponding device should be allocated
+> and created. And we can see these two corresponding places to create the
+> devices are:
+>
+>   * nd_dax_probe()
+>   * nd_pfn_probe()
+>
+> Both of them allocate pfn_sb. This means it is not necessary to allocate it
+> again when we do the probe function.
+>
+> Do you think it looks good to you?
+>
 
-I was wrong, thankfully! nd_pfn_init() *does* call nd_pfn_validate(),
-I was just overlooking it.
-
-I also don't see that this fix is needed. nd_dax_probe()
-devm-allocates pfn_sb and performs a validation. If the validation
-succeeds nd_dax_probe() returns 0 which creates a new device and then
-causes nd_pmem_probe() to fail. At that point devm frees the pfn_sb
-allocation. The allocation is also freed if the validation step
-failed.
+No it doesn't because the real issue is that we should not be
+recreating the info block. So the fix is not avoiding the allocation,
+the fix is avoiding nd_pfn_init() in the probe path altogether.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
