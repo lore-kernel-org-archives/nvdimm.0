@@ -1,8 +1,8 @@
 From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH] libnvdimm/label: Clear 'updating' flag after label-set
  update
-Date: Fri, 18 Jan 2019 15:01:43 +0000
-Message-ID: <20190118150144.A922C2087E@mail.kernel.org>
+Date: Fri, 18 Jan 2019 15:01:47 +0000
+Message-ID: <20190118150148.3D34D20896@mail.kernel.org>
 References: <154758319127.1865528.486579211628557163.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -33,8 +33,7 @@ The bot has tested the following trees: v4.20.2, v4.19.15, v4.14.93, v4.9.150, v
 
 v4.20.2: Build OK!
 v4.19.15: Build OK!
-v4.14.93: Build failed! Errors:
-
+v4.14.93: Build OK!
 v4.9.150: Build OK!
 v4.4.170: Failed to apply! Possible dependencies:
     0caeef63e6d2 ("libnvdimm: Add a poison list and export badblocks")
