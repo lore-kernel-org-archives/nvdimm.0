@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 93D0E211B81A5
- for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:07:38 -0800 (PST)
-Subject: [PATCH v10 06/12] ndctl: add unit test for security ops (minus
- overwrite)
+ by ml01.01.org (Postfix) with ESMTPS id 4CE1221B02822
+ for <linux-nvdimm@lists.01.org>; Fri, 18 Jan 2019 09:34:17 -0800 (PST)
+Subject: Re: [PATCH v9 00/13] ndctl: add security support
 From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 24 Jan 2019 16:07:37 -0700
-Message-ID: <154837125793.37086.1862844997973456756.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
-References: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
+References: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
+Message-ID: <766caa25-6841-2ecf-315c-bb9feb31551f@intel.com>
+Date: Fri, 18 Jan 2019 10:32:53 -0700
 MIME-Version: 1.0
+In-Reply-To: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,260 +27,143 @@ To: vishal.l.verma@intel.com, dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add unit test for security enable, disable, update, erase, unlock, and
-freeze.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- test/Makefile.am |    4 +
- test/security.sh |  222 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 226 insertions(+)
- create mode 100755 test/security.sh
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index ebdd23f6..42009c31 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -27,6 +27,10 @@ TESTS =\
- 	max_available_extent_ns.sh \
- 	pfn-meta-errors.sh
- 
-+if ENABLE_KEYUTILS
-+TESTS += security.sh
-+endif
-+
- check_PROGRAMS =\
- 	libndctl \
- 	dsm-fail \
-diff --git a/test/security.sh b/test/security.sh
-new file mode 100755
-index 00000000..38b21183
---- /dev/null
-+++ b/test/security.sh
-@@ -0,0 +1,222 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2018 Intel Corporation. All rights reserved.
-+
-+rc=77
-+dev=""
-+id=""
-+keypath="/etc/ndctl/keys"
-+masterkey="nvdimm-master-test"
-+masterpath="$keypath/$masterkey"
-+
-+. ./common
-+
-+trap 'err $LINENO' ERR
-+
-+setup()
-+{
-+	$NDCTL disable-region -b "$NFIT_TEST_BUS0" all
-+}
-+
-+detect()
-+{
-+	dev="$($NDCTL list -b "$NFIT_TEST_BUS0" -D | jq -r .[0].dev)"
-+	[ -n "$dev" ] || err "$LINENO"
-+	id="$($NDCTL list -b "$NFIT_TEST_BUS0" -D | jq -r .[0].id)"
-+	[ -n "$id" ] || err "$LINENO"
-+}
-+
-+setup_keys()
-+{
-+	if [ ! -d "$keypath" ]; then
-+		mkdir -p "$keypath"
-+	fi
-+
-+	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
-+	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
-+}
-+
-+test_cleanup()
-+{
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		keyctl unlink "$(keyctl search @u encrypted nvdimm:"$id")"
-+	fi
-+
-+	if keyctl search @u user "$masterkey"; then
-+		keyctl unlink "$(keyctl search @u user $masterkey)"
-+	fi
-+
-+	if [ -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob ]; then
-+		rm -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob
-+	fi
-+
-+	if [ -f $masterpath ]; then
-+		rm -f "$masterpath"
-+	fi
-+
-+	rm -f "$keypath"/"$NFIT_TEST_BUS0".kek
-+}
-+
-+lock_dimm()
-+{
-+	$NDCTL disable-dimm "$dev"
-+	# convert nmemX --> test_dimmY
-+	# for now this is the only user of such a conversion so we can leave it
-+	# inline once a subsequent user arrives we can refactor this to a
-+	# helper in test/common:
-+	#   get_test_dimm_path "nfit_test.0" "nmem3"
-+	handle="$(ndctl list -b "$NFIT_TEST_BUS0"  -d "$dev" -i | jq -r .[].dimms[0].handle)"
-+	test_dimm_path=""
-+	for test_dimm in /sys/devices/platform/"$NFIT_TEST_BUS0"/nfit_test_dimm/test_dimm*; do
-+		td_handle_file="$test_dimm/handle"
-+		test -e "$td_handle_file" || continue
-+		td_handle="$(cat "$td_handle_file")"
-+		if [[ "$td_handle" -eq "$handle" ]]; then
-+			test_dimm_path="$test_dimm"
-+			break
-+		fi
-+	done
-+	test -d "$test_dimm_path"
-+
-+	# now lock the dimm
-+	echo 1 > "${test_dimm_path}/lock_dimm"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "locked" ]; then
-+		echo "Incorrect security state: $sstate expected: locked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+get_security_state()
-+{
-+	$NDCTL list -i -b "$NFIT_TEST_BUS0" -d "$dev" | jq -r .[].dimms[0].security
-+}
-+
-+setup_passphrase()
-+{
-+	$NDCTL setup-passphrase "$dev" -k user:"$masterkey"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+remove_passphrase()
-+{
-+	$NDCTL remove-passphrase "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "disabled" ]; then
-+		echo "Incorrect security state: $sstate expected: disabled"
-+		err "$LINENO"
-+	fi
-+}
-+
-+erase_security()
-+{
-+	$NDCTL sanitize-dimm -c "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "disabled" ]; then
-+		echo "Incorrect security state: $sstate expected: disabled"
-+		err "$LINENO"
-+	fi
-+}
-+
-+update_security()
-+{
-+	$NDCTL update-passphrase "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+freeze_security()
-+{
-+	$NDCTL freeze-security "$dev"
-+}
-+
-+test_1_security_setup_and_remove()
-+{
-+	setup_passphrase
-+	remove_passphrase
-+}
-+
-+test_2_security_setup_and_update()
-+{
-+	setup_passphrase
-+	update_security
-+	remove_passphrase
-+}
-+
-+test_3_security_setup_and_erase()
-+{
-+	setup_passphrase
-+	erase_security
-+}
-+
-+test_4_security_unlock()
-+{
-+	setup_passphrase
-+	lock_dimm
-+	$NDCTL enable-dimm "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+	$NDCTL disable-region -b "$NFIT_TEST_BUS0" all
-+	remove_passphrase
-+}
-+
-+# this should always be the last test. with security frozen, nfit_test must
-+# be removed and is no longer usable
-+test_5_security_freeze()
-+{
-+	setup_passphrase
-+	freeze_security
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "frozen" ]; then
-+		echo "Incorrect security state: $sstate expected: frozen"
-+		err "$LINENO"
-+	fi
-+	$NDCTL remove-passphrase "$dev" && { echo "remove succeed after frozen"; }
-+	sstate="$(get_security_state)"
-+	echo "$sstate"
-+	if [ "$sstate" != "frozen" ]; then
-+		echo "Incorrect security state: $sstate expected: frozen"
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_min_kver "5.0" || do_skip "may lack security handling"
-+uid="$(keyctl show | grep -Eo "_uid.[0-9]+" | head -1 | cut -d. -f2-)"
-+if [ "$uid" -ne 0 ]; then
-+	do_skip "run as root or with a sudo login shell for test to work"
-+fi
-+
-+modprobe nfit_test
-+setup
-+check_prereq "keyctl"
-+rc=1
-+detect
-+test_cleanup
-+setup_keys
-+echo "Test 1, security setup and remove"
-+test_1_security_setup_and_remove
-+echo "Test 2, security setup, update, and remove"
-+test_2_security_setup_and_update
-+echo "Test 3, security setup and erase"
-+test_3_security_setup_and_erase
-+echo "Test 4, unlock dimm"
-+test_4_security_unlock
-+
-+# Freeze should always be run last because it locks security state and require
-+# nfit_test module unload.
-+echo "Test 5, freeze security"
-+test_5_security_freeze
-+
-+test_cleanup
-+_cleanup
-+exit 0
+On 1/17/19 7:38 PM, Dave Jiang wrote:
+> The following series implements mechanisms that utilize the sysfs knobs
+> provided by the kernel in order to support the Intel DSM v1.8 spec
+> that provides security to NVDIMM. The following abilities are added:
+> 1. display security state
+> 2. enable/update passphrase
+> 3. disable passphrase
+> 4. freeze security
+> 5. secure erase
+> 6. overwrite
+> 7. master passphrase enable/update
+> 
+> v9:
+> - Add install-encrypt-key command. (Dan)
+> - Change enable-passphrase to setup-passphrase. (Dan)
+> - Change disable-passphrase to remove-passphrase. (Dan)
+> - Change ndctl_dimm_get_security() to return state directly and remove
+>   ndctl_dimm_security_supported(). (Dan)
+> - Remove ND_SECURITY_UNSUPPORTED state
+> - change ND_SECURITY_* to NDCTL_SECURITY_*
+> - Fix man page issues (Dan, Jane)
+> - Define NDCTL_KEYSDIR in config.h (Dan)
+> - Break check_key_run_and_discard() to 3 helper functions. (Dan)
+> - Remove key path input parameter. (Dan)
+> - Remove master key input parameter. (Dan)
+> - Fixup various issues in security unit test script. (Vishal)
 
+Left out one thing:
+- Moved the load key script to an ndctl command load-keys. (Dan)
+
+> 
+> v8:
+> - Additional cleanup on test script. (Vishal)
+> - Change load-keys script into internal command for ndctl. (Dan)
+> 
+> v7:
+> - Added option to provide path to key directory. (Vishal)
+> - Cleaned up shell scripts. (Vishal)
+> - Cleaned up documentation. (Vishal)
+> - Addressed various comments from Vishal.
+> 
+> v6:
+> - Fix spelling and grammar errors for documentation. (Jing)
+> - Change bool for indicate master passphrase and old passphrase to enum.
+> - Fix key load script master key name.
+> - Update to match v15 of kernel patch series.
+> 
+> v5:
+> - Updated to match latest kernel interface (encrypted keys)
+> - Added overwrite support
+> - Added support for DSM v1.8 master passphrase operations
+> - Removed upcall related code
+> - Moved security state to enum (Dan)
+> - Change security output "security_state" to just "security". (Dan)
+> - Break out enable and update passphrase operation. (Dan)
+> - Security build can be compiled out when keyutils does not exist. (Dan)
+> - Move all keyutils related operations to libndctl. (Dan)
+> 
+> v4:
+> - Updated to match latest kernel interface.
+> - Added unit test for all security calls
+> 
+> v3:
+> - Added support to inject keys in order to update nvdimm security.
+> 
+> v2:
+> - Fixup the upcall util to match recent kernel updates for nvdimm security.
+> 
+> ---
+> 
+> Dave Jiang (13):
+>       ndctl: add support for display security state
+>       ndctl: add command for ndctl to receive the key encryption key (master)
+>       ndctl: add passphrase update to ndctl
+>       ndctl: add disable security support
+>       ndctl: add support for freeze security
+>       ndctl: add support for sanitize dimm
+>       ndctl: add unit test for security ops (minus overwrite)
+>       ndctl: add modprobe conf file and load-keys ndctl command
+>       ndctl: add overwrite operation support
+>       ndctl: add wait-overwrite support
+>       ndctl: master phassphrase management support
+>       ndctl: add master secure erase support
+>       ndctl: documentation for security and key management
+> 
+> 
+>  Documentation/ndctl/Makefile.am                   |   10 
+>  Documentation/ndctl/intel-nvdimm-security.txt     |  139 +++++
+>  Documentation/ndctl/ndctl-freeze-security.txt     |   60 ++
+>  Documentation/ndctl/ndctl-install-encrypt-key.txt |   31 +
+>  Documentation/ndctl/ndctl-list.txt                |    8 
+>  Documentation/ndctl/ndctl-load-keys.txt           |   43 ++
+>  Documentation/ndctl/ndctl-remove-passphrase.txt   |   28 +
+>  Documentation/ndctl/ndctl-sanitize-dimm.txt       |   48 ++
+>  Documentation/ndctl/ndctl-setup-passphrase.txt    |   41 +
+>  Documentation/ndctl/ndctl-update-passphrase.txt   |   43 ++
+>  Documentation/ndctl/ndctl-wait-overwrite.txt      |   31 +
+>  Makefile.am                                       |    4 
+>  configure.ac                                      |   17 +
+>  contrib/nvdimm-security.conf                      |    1 
+>  ndctl.spec.in                                     |    3 
+>  ndctl/Makefile.am                                 |    5 
+>  ndctl/builtin.h                                   |    8 
+>  ndctl/dimm.c                                      |  232 ++++++++
+>  ndctl/kek.c                                       |  133 +++++
+>  ndctl/lib/Makefile.am                             |    8 
+>  ndctl/lib/dimm.c                                  |  183 +++++++
+>  ndctl/lib/keys.c                                  |  581 +++++++++++++++++++++
+>  ndctl/lib/libndctl.c                              |   31 +
+>  ndctl/lib/libndctl.sym                            |   16 +
+>  ndctl/lib/private.h                               |    1 
+>  ndctl/libndctl.h                                  |   79 +++
+>  ndctl/load-keys.c                                 |  257 +++++++++
+>  ndctl/ndctl.c                                     |    8 
+>  test/Makefile.am                                  |    4 
+>  test/security.sh                                  |  223 ++++++++
+>  util/json.c                                       |   17 +
+>  31 files changed, 2280 insertions(+), 13 deletions(-)
+>  create mode 100644 Documentation/ndctl/intel-nvdimm-security.txt
+>  create mode 100644 Documentation/ndctl/ndctl-freeze-security.txt
+>  create mode 100644 Documentation/ndctl/ndctl-install-encrypt-key.txt
+>  create mode 100644 Documentation/ndctl/ndctl-load-keys.txt
+>  create mode 100644 Documentation/ndctl/ndctl-remove-passphrase.txt
+>  create mode 100644 Documentation/ndctl/ndctl-sanitize-dimm.txt
+>  create mode 100644 Documentation/ndctl/ndctl-setup-passphrase.txt
+>  create mode 100644 Documentation/ndctl/ndctl-update-passphrase.txt
+>  create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
+>  create mode 100644 contrib/nvdimm-security.conf
+>  create mode 100644 ndctl/kek.c
+>  create mode 100644 ndctl/lib/keys.c
+>  create mode 100644 ndctl/load-keys.c
+>  create mode 100755 test/security.sh
+> 
+> --
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
