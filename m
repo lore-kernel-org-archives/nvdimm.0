@@ -1,323 +1,122 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D51C211AEA57
- for <linux-nvdimm@lists.01.org>; Fri,  4 Jan 2019 17:21:33 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v6 06/12] ndctl: add unit test for security ops (minus
- overwrite)
-Date: Sat, 5 Jan 2019 01:21:31 +0000
-Message-ID: <85084f33914e23835d93e6e0e225ce207dda4e64.camel@intel.com>
-References: <154482154540.65434.14399161818571651882.stgit@djiang5-desk3.ch.intel.com>
- <154482177593.65434.4385425536053044648.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154482177593.65434.4385425536053044648.stgit@djiang5-desk3.ch.intel.com>
-Content-Language: en-US
-Content-ID: <D5C540E3067EE94791D4321F1E298E76@intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v10 0/9] Add NUMA aware async_schedule calls
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 22 Jan 2019 10:39:05 -0800
+Message-ID: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
+This patch set provides functionality that will help to improve the
+locality of the async_schedule calls used to provide deferred
+initialization.
 
-On Fri, 2018-12-14 at 14:09 -0700, Dave Jiang wrote:
-> Add unit test for security enable, disable, update, erase, unlock, and
-> freeze.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  test/Makefile.am |    4 +
->  test/security.sh |  191 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 195 insertions(+)
->  create mode 100755 test/security.sh
-> 
-> diff --git a/test/Makefile.am b/test/Makefile.am
-> index ebdd23f6..42009c31 100644
-> --- a/test/Makefile.am
-> +++ b/test/Makefile.am
-> @@ -27,6 +27,10 @@ TESTS =\
->  	max_available_extent_ns.sh \
->  	pfn-meta-errors.sh
->  
-> +if ENABLE_KEYUTILS
-> +TESTS += security.sh
-> +endif
-> +
->  check_PROGRAMS =\
->  	libndctl \
->  	dsm-fail \
-> diff --git a/test/security.sh b/test/security.sh
-> new file mode 100755
-> index 00000000..5238c9c4
-> --- /dev/null
-> +++ b/test/security.sh
-> @@ -0,0 +1,191 @@
-> +#!/bin/bash -Ex
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright(c) 2018 Intel Corporation. All rights reserved.
-> +
-> +rc=77
-> +dev=""
-> +id=""
-> +dev_no=""
-> +sstate=""
-> +KEYPATH="/etc/ndctl/keys"
-> +UNLOCK="/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimm"
-> +MASTERKEY="nvdimm-master-test"
-> +MASTERPATH="$KEYPATH/$MASTERKEY"
+This patch set originally started out focused on just the one call to
+async_schedule_domain in the nvdimm tree that was being used to defer the
+device_add call however after doing some digging I realized the scope of
+this was much broader than I had originally planned. As such I went
+through and reworked the underlying infrastructure down to replacing the
+queue_work call itself with a function of my own and opted to try and
+provide a NUMA aware solution that would work for a broader audience.
 
-Local-only variables don't need to be all uppercase. By convention,
-only variables you export are uppercase.
+In addition I have added several tweaks and/or clean-ups to the front of the
+patch set. Patches 1 through 3 address a number of issues that actually were
+causing the existing async_schedule calls to not show the performance that
+they could due to either not scaling on a per device basis, or due to issues
+that could result in a potential race. For example, patch 3 addresses the
+fact that we were calling async_schedule once per driver instead of once
+per device, and as a result we would have still ended up with devices
+being probed on a non-local node without addressing this first.
 
-> +
-> +. ./common
-> +
-> +trap 'err $LINENO' ERR
-> +
-> +setup()
-> +{
-> +	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
+I have also updated the kernel module used to test async driver probing so
+that it can expose the original issue I was attempting to address.
+It will fail on a system of asynchronous work either takes longer than it
+takes to load a single device and a single driver with a device already
+added. It will also fail if the NUMA node that the driver is loaded on does
+not match the NUMA node the device is associated with.
 
-quote all "$expansions".
-Generally, consider running the script through shellchek for styling
-problems.
+RFC->v1:
+    Dropped nvdimm patch to submit later.
+        It relies on code in libnvdimm development tree.
+    Simplified queue_work_near to just convert node into a CPU.
+    Split up drivers core and PM core patches.
+v1->v2:
+    Renamed queue_work_near to queue_work_node
+    Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
+v2->v3:
+    Added Acked-by for queue_work_node patch
+    Continued rename from _near to _node to be consistent with queue_work_node
+        Renamed async_schedule_near_domain to async_schedule_node_domain
+        Renamed async_schedule_near to async_schedule_node
+    Added kerneldoc for new async_schedule_XXX functions
+    Updated patch description for patch 4 to include data on potential gains
+v3->v4
+    Added patch to consolidate use of need_parent_lock
+    Make asynchronous driver probing explicit about use of drvdata
+v4->v5
+    Added patch to move async_synchronize_full to address deadlock
+    Added bit async_probe to act as mutex for probe/remove calls
+    Added back nvdimm patch as code it relies on is now in Linus's tree
+    Incorporated review comments on parent & device locking consolidation
+    Rebased on latest linux-next
+v5->v6:
+    Drop the "This patch" or "This change" from start of patch descriptions.
+    Drop unnecessary parenthesis in first patch
+    Use same wording for "selecting a CPU" in comments added in first patch
+    Added kernel documentation for async_probe member of device
+    Fixed up comments for async_schedule calls in patch 2
+    Moved code related setting async driver out of device.h and into dd.c
+    Added Reviewed-by for several patches
+v6->v7:
+    Fixed typo which had kernel doc refer to "lock" when I meant "unlock"
+    Dropped "bool X:1" to "u8 X:1" from patch description
+    Added async_driver to device_private structure to store driver
+    Dropped unecessary code shuffle from async_probe patch
+    Reordered patches to move fixes up to front
+    Added Reviewed-by for several patches
+    Updated cover page and patch descriptions throughout the set
+v7->v8:
+    Replaced async_probe value with dead, only apply dead in device_del
+    Dropped Reviewed-by from patch 2 due to significant changes
+    Added Reviewed-by for patches reviewed by Luis Chamberlain
+v8->v9:
+    Dropped patch 1 as it was applied, shifted remaining patches by 1
+    Added new patch 9 that adds test framework for NUMA and sequential init
+    Tweaked what is now patch 1, and added Reviewed-by from Dan Williams
+v9->v10:
+    Moved "dead" from device struct to device_private struct
+    Added Reviewed-by from Rafael to patch 1
+    Rebased on latest linux-next
 
-> +}
-> +
-> +detect()
-> +{
-> +	dev=$($NDCTL list -b $NFIT_TEST_BUS0 -D | jq .[0].dev | tr -d '"')
-> +	[ -n "$dev" ] || err "$LINENO"
-> +	id=$($NDCTL list -b $NFIT_TEST_BUS0 -D | jq .[0].id | tr -d '"')
-> +	[ -n "$id" ] || err "$LINENO"
-> +}
-> +
-> +setup_keys()
-> +{
-> +	if [ ! -f $MASTERPATH ]; then
-> +		keyctl add user $MASTERKEY "`dd if=/dev/urandom bs=1 count=32 2>/dev/null`" @u
+---
 
-Applies everyehere in the script - prefer "$()" instead of backticks.
-Also before using keyctl, lets make sure it is installed. test/common
-provides a function for this - check_prereq()
-
-> +		keyctl pipe `keyctl search @u user $MASTERKEY` > $MASTERPATH
-
-Before the first use, would be a good idea to make sure keypath exists.
-
-> +	else
-> +		echo "Unclean setup. Please cleanup $MASTERPATH file."
-> +		exit 1
-> +	fi
-> +}
-> +
-> +test_cleanup()
-> +{
-> +	keyctl unlink `keyctl search @u encrypted nvdimm:$id`
-> +	keyctl unlink `keyctl search @u user $MASTERKEY`
-> +	rm -f $KEYPATH/nvdimm_$id\_`hostname`.blob
-> +	rm -f $MASTERPATH
-> +}
-> +
-> +locking_dimm()
-
-Do you mean "unlock_dimm()" ?
-
-> +{
-> +	$NDCTL disable-dimm $dev
-> +	dev_no=$(echo $dev | cut -b 5-)
-> +	echo 1 > "$UNLOCK$dev_no/lock_dimm"
-
-Best to explicitly delineate each variable using ${}:
-"${path}/${id}/lock_dimm"
-Also 'unlock' isn't very descriptive, maybe 'unlock_path'? It also
-contains "nfit_test.0" which should be obtained from the variable
-"$NFIT_TEST_BUS0".
+Alexander Duyck (9):
+      driver core: Establish order of operations for device_add and device_del via bitflag
+      device core: Consolidate locking and unlocking of parent and device
+      driver core: Probe devices asynchronously instead of the driver
+      workqueue: Provide queue_work_node to queue work near a given NUMA node
+      async: Add support for queueing on specific NUMA node
+      driver core: Attach devices on CPU local to device node
+      PM core: Use new async_schedule_dev command
+      libnvdimm: Schedule device registration on node local to the device
+      driver core: Rewrite test_async_driver_probe to cover serialization and NUMA affinity
 
 
-> +	get_security_state
+ drivers/base/base.h                         |    8 +
+ drivers/base/bus.c                          |   46 +----
+ drivers/base/core.c                         |   11 +
+ drivers/base/dd.c                           |  160 +++++++++++++----
+ drivers/base/power/main.c                   |   12 +
+ drivers/base/test/test_async_driver_probe.c |  261 +++++++++++++++++++++------
+ drivers/nvdimm/bus.c                        |   11 +
+ include/linux/async.h                       |   82 ++++++++
+ include/linux/workqueue.h                   |    2 
+ kernel/async.c                              |   53 +++--
+ kernel/workqueue.c                          |   84 +++++++++
+ 11 files changed, 564 insertions(+), 166 deletions(-)
 
-See below
-
-> +	if [ "$sstate" != "locked" ]; then
-> +		echo "Incorrect security state: $sstate expected: disabled"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +get_security_state()
-> +{
-> +	sstate=$($NDCTL list -i -b $NFIT_TEST_BUS0 -d $dev | jq .[].dimms[0].security | tr -d '"')
-> +	[ -n "$sstate" ] || err "$LINENO"
-
-Avoid setting global variables, it is easy to lose track of what has
-been set where. Instead make helper functions like this simply print
-their result as the output. Then call them like so:
-sstate="$(get_security_state)"
-make the '-n' check the responsibility of the caller, and this function
-could simply be:
-
-	get_security_state()
-	{
-		$NDCTL list -i -b $NFIT_TEST_BUS0 -d $dev | jq .[].dimms[0].security | tr -d '"'
-	}
-
-In most of these cases, since you are checking for sstate to be exactly
-"some-state", you don't even need a -n check.
-
-> +}
-> +
-> +enable_passphrase()
-> +{
-> +	$NDCTL enable-passphrase -m user:$MASTERKEY $dev
-> +	get_security_state
-> +	if [ "$sstate" != "unlocked" ]; then
-> +		echo "Incorrect security state: $sstate expected: unlocked"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +disable_passphrase()
-> +{
-> +	$NDCTL disable-passphrase $dev
-> +	get_security_state
-> +	if [ "$sstate" != "disabled" ]; then
-> +		echo "Incorrect security state: $sstate expected: disabled"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +erase_security()
-> +{
-> +	$NDCTL sanitize-dimm -c $dev
-> +	get_security_state
-> +	if [ "$sstate" != "disabled" ]; then
-> +		echo "Incorrect security state: $sstate expected: disabled"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +update_security()
-> +{
-> +	$NDCTL update-passphrase -m user:$MASTERKEY $dev
-> +	get_security_state
-> +	if [ "$sstate" != "unlocked" ]; then
-> +		echo "Incorrect security state: $sstate expected: unlocked"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +freeze_security()
-> +{
-> +	$NDCTL freeze-security $dev
-> +}
-> +
-> +test_1_security_enable_and_disable()
-> +{
-> +	enable_passphrase
-> +	disable_passphrase
-> +}
-> +
-> +test_2_security_enable_and_update()
-> +{
-> +	enable_passphrase
-> +	update_security
-> +	disable_passphrase
-> +}
-> +
-> +test_3_security_enable_and_erase()
-> +{
-> +	enable_passphrase
-> +	erase_security
-> +}
-> +
-> +test_4_security_unlocking()
-> +{
-> +	enable_passphrase
-> +	locking_dimm
-> +	$NDCTL enable-dimm $dev
-> +	get_security_state
-> +	if [ "$sstate" != "unlocked" ]; then
-> +		echo "Incorrect security state: $sstate expected: unlocked"
-> +		exit 1
-> +	fi
-> +	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
-> +	disable_passphrase
-> +}
-> +
-> +# this should always be the last test. with security frozen, nfit_test must
-> +# be removed and is no longer usable
-> +test_5_security_freeze()
-> +{
-> +	enable_passphrase
-> +	freeze_security
-> +	get_security_state
-> +	if [ "$sstate" != "frozen" ]; then
-> +		echo "Incorrect security state: $sstate expected: frozen"
-> +		exit 1
-> +	fi
-> +	$NDCTL disable-passphrase $dev && { echo "diable succeed after frozen"; exit 1; }
-
-What is the 'exit 1' here for? Shouldn't we just fall through and check
-the  state explicitly anyway, even after a successful disable? And if
-so, no need to echo the success message, the state will just get
-checked later.
-
-> +	get_security_state
-> +	echo $sstate
-> +	if [ "$sstate" != "frozen" ]; then
-> +		echo "Incorrect security state: $sstate expected: disabled"
-> +		exit 1
-> +	fi
-> +}
-> +
-> +check_min_kver "4.21" || do_skip "may lack security test handling"
-
-"may lack security enabling" - its not just the test infrastructure
-that was added in 4.21
-
-> +
-> +modprobe nfit_test
-> +rc=1
-> +setup
-> +rc=2
-> +detect
-> +setup_keys
-> +echo "Test 1, security enable and disable"
-> +test_1_security_enable_and_disable
-> +echo "Test 2, security enable, update, and disable"
-> +test_2_security_enable_and_update
-> +echo "Test 3, security enable and erase"
-> +test_3_security_enable_and_erase
-> +echo "Test 4, unlocking dimm"
-> +test_4_security_unlocking
-> +
-> +# Freeze should always be run last because it locks security state and require
-> +# nfit_test module unload.
-> +echo "Test 5, freeze security"
-> +test_5_security_freeze
-> +
-> +test_cleanup
-> +_cleanup
-> +exit 0
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+--
