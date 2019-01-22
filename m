@@ -1,147 +1,148 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5567211B8189
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 10:25:41 -0800 (PST)
-Subject: [PATCH 2/4] mm/memory-hotplug: allow memory resources to be children
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Wed, 16 Jan 2019 10:19:02 -0800
-References: <20190116181859.D1504459@viggo.jf.intel.com>
-In-Reply-To: <20190116181859.D1504459@viggo.jf.intel.com>
-Message-Id: <20190116181902.670EEBC3@viggo.jf.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v10 4/9] workqueue: Provide queue_work_node to
+ queue work near a given NUMA node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 22 Jan 2019 10:39:26 -0800
+Message-ID: <154818236651.18753.15266328569026759419.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dave@sr71.net
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
+Provide a new function, queue_work_node, which is meant to schedule work on
+a "random" CPU of the requested NUMA node. The main motivation for this is
+to help assist asynchronous init to better improve boot times for devices
+that are local to a specific node.
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
+For now we just default to the first CPU that is in the intersection of the
+cpumask of the node and the online cpumask. The only exception is if the
+CPU is local to the node we will just use the current CPU. This should work
+for our purposes as we are currently only using this for unbound work so
+the CPU will be translated to a node anyway instead of being directly used.
 
-The mm/resource.c code is used to manage the physical address
-space.  We can view the current resource configuration in
-/proc/iomem.  An example of this is at the bottom of this
-description.
+As we are only using the first CPU to represent the NUMA node for now I am
+limiting the scope of the function so that it can only be used with unbound
+workqueues.
 
-The nvdimm subsystem "owns" the physical address resources which
-map to persistent memory and has resources inserted for them as
-"Persistent Memory".  We want to use this persistent memory, but
-as volatile memory, just like RAM.  The best way to do this is
-to leave the existing resource in place, but add a "System RAM"
-resource underneath it. This clearly communicates the ownership
-relationship of this memory.
-
-The request_resource_conflict() API only deals with the
-top-level resources.  Replace it with __request_region() which
-will search for !IORESOURCE_BUSY areas lower in the resource
-tree than the top level.
-
-We also rework the old error message a bit since we do not get
-the conflicting entry back: only an indication that we *had* a
-conflict.
-
-We *could* also simply truncate the existing top-level
-"Persistent Memory" resource and take over the released address
-space.  But, this means that if we ever decide to hot-unplug the
-"RAM" and give it back, we need to recreate the original setup,
-which may mean going back to the BIOS tables.
-
-This should have no real effect on the existing collision
-detection because the areas that truly conflict should be marked
-IORESOURCE_BUSY.
-
-00000000-00000fff : Reserved
-00001000-0009fbff : System RAM
-0009fc00-0009ffff : Reserved
-000a0000-000bffff : PCI Bus 0000:00
-000c0000-000c97ff : Video ROM
-000c9800-000ca5ff : Adapter ROM
-000f0000-000fffff : Reserved
-  000f0000-000fffff : System ROM
-00100000-9fffffff : System RAM
-  01000000-01e071d0 : Kernel code
-  01e071d1-027dfdff : Kernel data
-  02dc6000-0305dfff : Kernel bss
-a0000000-afffffff : Persistent Memory (legacy)
-  a0000000-a7ffffff : System RAM
-b0000000-bffdffff : System RAM
-bffe0000-bfffffff : Reserved
-c0000000-febfffff : PCI Bus 0000:00
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
+ include/linux/workqueue.h |    2 +
+ kernel/workqueue.c        |   84 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
- b/mm/memory_hotplug.c |   31 ++++++++++++++-----------------
- 1 file changed, 14 insertions(+), 17 deletions(-)
-
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child	2018-12-20 11:48:42.317771933 -0800
-+++ b/mm/memory_hotplug.c	2018-12-20 11:48:42.322771933 -0800
-@@ -98,24 +98,21 @@ void mem_hotplug_done(void)
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
- {
--	struct resource *res, *conflict;
--	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
--	if (!res)
--		return ERR_PTR(-ENOMEM);
-+	struct resource *res;
-+	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-+	char *resource_name = "System RAM";
+diff --git a/include/linux/workqueue.h b/include/linux/workqueue.h
+index 60d673e15632..1f50c1e586e7 100644
+--- a/include/linux/workqueue.h
++++ b/include/linux/workqueue.h
+@@ -463,6 +463,8 @@ int workqueue_set_unbound_cpumask(cpumask_var_t cpumask);
  
--	res->name = "System RAM";
--	res->start = start;
--	res->end = start + size - 1;
--	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
--	conflict =  request_resource_conflict(&iomem_resource, res);
--	if (conflict) {
--		if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
--			pr_debug("Device unaddressable memory block "
--				 "memory hotplug at %#010llx !\n",
--				 (unsigned long long)start);
--		}
--		pr_debug("System RAM resource %pR cannot be added\n", res);
--		kfree(res);
-+	/*
-+	 * Request ownership of the new memory range.  This might be
-+	 * a child of an existing resource that was present but
-+	 * not marked as busy.
-+	 */
-+	res = __request_region(&iomem_resource, start, size,
-+			       resource_name, flags);
+ extern bool queue_work_on(int cpu, struct workqueue_struct *wq,
+ 			struct work_struct *work);
++extern bool queue_work_node(int node, struct workqueue_struct *wq,
++			    struct work_struct *work);
+ extern bool queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
+ 			struct delayed_work *work, unsigned long delay);
+ extern bool mod_delayed_work_on(int cpu, struct workqueue_struct *wq,
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index 392be4b252f6..d5a26e456f7a 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -1492,6 +1492,90 @@ bool queue_work_on(int cpu, struct workqueue_struct *wq,
+ }
+ EXPORT_SYMBOL(queue_work_on);
+ 
++/**
++ * workqueue_select_cpu_near - Select a CPU based on NUMA node
++ * @node: NUMA node ID that we want to select a CPU from
++ *
++ * This function will attempt to find a "random" cpu available on a given
++ * node. If there are no CPUs available on the given node it will return
++ * WORK_CPU_UNBOUND indicating that we should just schedule to any
++ * available CPU if we need to schedule this work.
++ */
++static int workqueue_select_cpu_near(int node)
++{
++	int cpu;
 +
-+	if (!res) {
-+		pr_debug("Unable to reserve System RAM region: %016llx->%016llx\n",
-+				start, start + size);
- 		return ERR_PTR(-EEXIST);
- 	}
- 	return res;
-_
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
++	/* No point in doing this if NUMA isn't enabled for workqueues */
++	if (!wq_numa_enabled)
++		return WORK_CPU_UNBOUND;
++
++	/* Delay binding to CPU if node is not valid or online */
++	if (node < 0 || node >= MAX_NUMNODES || !node_online(node))
++		return WORK_CPU_UNBOUND;
++
++	/* Use local node/cpu if we are already there */
++	cpu = raw_smp_processor_id();
++	if (node == cpu_to_node(cpu))
++		return cpu;
++
++	/* Use "random" otherwise know as "first" online CPU of node */
++	cpu = cpumask_any_and(cpumask_of_node(node), cpu_online_mask);
++
++	/* If CPU is valid return that, otherwise just defer */
++	return cpu < nr_cpu_ids ? cpu : WORK_CPU_UNBOUND;
++}
++
++/**
++ * queue_work_node - queue work on a "random" cpu for a given NUMA node
++ * @node: NUMA node that we are targeting the work for
++ * @wq: workqueue to use
++ * @work: work to queue
++ *
++ * We queue the work to a "random" CPU within a given NUMA node. The basic
++ * idea here is to provide a way to somehow associate work with a given
++ * NUMA node.
++ *
++ * This function will only make a best effort attempt at getting this onto
++ * the right NUMA node. If no node is requested or the requested node is
++ * offline then we just fall back to standard queue_work behavior.
++ *
++ * Currently the "random" CPU ends up being the first available CPU in the
++ * intersection of cpu_online_mask and the cpumask of the node, unless we
++ * are running on the node. In that case we just use the current CPU.
++ *
++ * Return: %false if @work was already on a queue, %true otherwise.
++ */
++bool queue_work_node(int node, struct workqueue_struct *wq,
++		     struct work_struct *work)
++{
++	unsigned long flags;
++	bool ret = false;
++
++	/*
++	 * This current implementation is specific to unbound workqueues.
++	 * Specifically we only return the first available CPU for a given
++	 * node instead of cycling through individual CPUs within the node.
++	 *
++	 * If this is used with a per-cpu workqueue then the logic in
++	 * workqueue_select_cpu_near would need to be updated to allow for
++	 * some round robin type logic.
++	 */
++	WARN_ON_ONCE(!(wq->flags & WQ_UNBOUND));
++
++	local_irq_save(flags);
++
++	if (!test_and_set_bit(WORK_STRUCT_PENDING_BIT, work_data_bits(work))) {
++		int cpu = workqueue_select_cpu_near(node);
++
++		__queue_work(cpu, wq, work);
++		ret = true;
++	}
++
++	local_irq_restore(flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(queue_work_node);
++
+ void delayed_work_timer_fn(struct timer_list *t)
+ {
+ 	struct delayed_work *dwork = from_timer(dwork, t, timer);
