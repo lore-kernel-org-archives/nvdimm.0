@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH v4] acpi/nfit: Fix command-supported detection
-Date: Tue, 22 Jan 2019 15:55:56 +0000
-Message-ID: <20190122155557.7322F217F5@mail.kernel.org>
+Date: Tue, 22 Jan 2019 15:56:09 +0000
+Message-ID: <20190122155610.8614D217F5@mail.kernel.org>
 References: <154792410908.2360577.7879178748203288256.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
