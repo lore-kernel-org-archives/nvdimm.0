@@ -1,185 +1,233 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com
- [IPv6:2607:f8b0:4864:20::443])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 56809211BFCC4
- for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:41 -0800 (PST)
-Received: by mail-pf1-x443.google.com with SMTP id u6so11225565pfh.11
- for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:41 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v5 1/7] libndctl: Use the supported_alignment attribute
-Date: Wed, 30 Jan 2019 21:59:21 +1100
-Message-Id: <20190130105927.31901-1-oohall@gmail.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v10 5/9] async: Add support for queueing on
+ specific NUMA node
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 22 Jan 2019 10:39:31 -0800
+Message-ID: <154818237168.18753.5688016393714896354.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Newer kernels provide the "supported_alignments" sysfs attribute that
-indicates what alignments can be used with a PFN or DAX namespace. This
-patch adds the plumbing inside of libndctl to allow users to query this
-information through using:
-	ndctl_{dax|pfn}_get_supported_alignment(), and
-	ndctl_{dax|pfn}_get_num_alignments()
+Introduce four new variants of the async_schedule_ functions that allow
+scheduling on a specific NUMA node.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+The first two functions are async_schedule_near and
+async_schedule_near_domain end up mapping to async_schedule and
+async_schedule_domain, but provide NUMA node specific functionality. They
+replace the original functions which were moved to inline function
+definitions that call the new functions while passing NUMA_NO_NODE.
+
+The second two functions are async_schedule_dev and
+async_schedule_dev_domain which provide NUMA specific functionality when
+passing a device as the data member and that device has a NUMA node other
+than NUMA_NO_NODE.
+
+The main motivation behind this is to address the need to be able to
+schedule device specific init work on specific NUMA nodes in order to
+improve performance of memory initialization.
+
+I have seen a significant improvement in initialziation time for persistent
+memory as a result of this approach. In the case of 3TB of memory on a
+single node the initialization time in the worst case went from 36s down to
+about 26s for a 10s improvement. As such the data shows a general benefit
+for affinitizing the async work to the node local to the device.
+
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
-v5: Fixed comment wording
+ include/linux/async.h |   82 +++++++++++++++++++++++++++++++++++++++++++++++--
+ kernel/async.c        |   53 +++++++++++++++++---------------
+ 2 files changed, 108 insertions(+), 27 deletions(-)
 
-v4: Changed return code of ndctl_pfn_get_supported_alignment from -1 to
-    -1 to -EINVAL.
-
-    Reworded comment about why we default to 4K and 2M alignments when
-    the sysfs attribute is missing.
-
-    Shuffled around prototypes in ndctl.h.
-
-    80 char compliance fixes.
-
-    rebased onto pending branch
-
-v3: Changed the return type of the *_get_supported_alignment() functions
-    to unsigned long to match the existing *_get_alignment() functions.
----
- ndctl/lib/libndctl.c   | 43 ++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  4 ++++
- ndctl/libndctl.h       |  4 ++++
- 3 files changed, 51 insertions(+)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 830b791339d2..06f835d76117 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -31,6 +31,7 @@
- #include <ccan/build_assert/build_assert.h>
+diff --git a/include/linux/async.h b/include/linux/async.h
+index 6b0226bdaadc..f81d6dbffe68 100644
+--- a/include/linux/async.h
++++ b/include/linux/async.h
+@@ -14,6 +14,8 @@
  
- #include <ndctl.h>
-+#include <util/size.h>
- #include <util/sysfs.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/namespace.h>
-@@ -237,6 +238,7 @@ struct ndctl_pfn {
- 	int buf_len;
- 	uuid_t uuid;
- 	int id, generation;
-+	struct ndctl_lbasize alignments;
- };
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/numa.h>
++#include <linux/device.h>
  
- struct ndctl_dax {
-@@ -4814,6 +4816,19 @@ static void *__add_pfn(struct ndctl_pfn *pfn, const char *pfn_base)
- 	else
- 		pfn->size = strtoull(buf, NULL, 0);
+ typedef u64 async_cookie_t;
+ typedef void (*async_func_t) (void *data, async_cookie_t cookie);
+@@ -37,9 +39,83 @@ struct async_domain {
+ 	struct async_domain _name = { .pending = LIST_HEAD_INIT(_name.pending), \
+ 				      .registered = 0 }
  
-+	/*
-+	 * The supported_alignments attribute was added before arches other
-+	 * than x86 had pmem support. If the kernel doesn't provide the
-+	 * attribute then it's safe to assume that we running on x86 where
-+	 * 4KiB and 2MiB have always been supported.
-+	 */
-+	sprintf(path, "%s/supported_alignments", pfn_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		sprintf(buf, "%d %d", SZ_4K, SZ_2M);
+-extern async_cookie_t async_schedule(async_func_t func, void *data);
+-extern async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-					    struct async_domain *domain);
++async_cookie_t async_schedule_node(async_func_t func, void *data,
++				   int node);
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node,
++					  struct async_domain *domain);
 +
-+	if (parse_lbasize_supported(ctx, pfn_base, buf, &pfn->alignments) < 0)
-+		goto err_read;
++/**
++ * async_schedule - schedule a function for asynchronous execution
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t async_schedule(async_func_t func, void *data)
++{
++	return async_schedule_node(func, data, NUMA_NO_NODE);
++}
 +
- 	free(path);
- 	return pfn;
- 
-@@ -5048,6 +5063,23 @@ NDCTL_EXPORT int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align)
- 	return 0;
++/**
++ * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_domain(async_func_t func, void *data,
++		      struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, data, NUMA_NO_NODE, domain);
++}
++
++/**
++ * async_schedule_dev - A device specific version of async_schedule
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev(async_func_t func, struct device *dev)
++{
++	return async_schedule_node(func, dev, dev_to_node(dev));
++}
++
++/**
++ * async_schedule_dev_domain - A device specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @dev: device argument to be passed to function
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @dev is used as both the argument for the function and to provide NUMA
++ * context for where to run the function. By doing this we can try to
++ * provide for the best possible outcome by operating on the device on the
++ * CPUs closest to the device.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ * Note: This function may be called from atomic or non-atomic contexts.
++ */
++static inline async_cookie_t
++async_schedule_dev_domain(async_func_t func, struct device *dev,
++			  struct async_domain *domain)
++{
++	return async_schedule_node_domain(func, dev, dev_to_node(dev), domain);
++}
++
+ void async_unregister_domain(struct async_domain *domain);
+ extern void async_synchronize_full(void);
+ extern void async_synchronize_full_domain(struct async_domain *domain);
+diff --git a/kernel/async.c b/kernel/async.c
+index a893d6170944..f6bd0d9885e1 100644
+--- a/kernel/async.c
++++ b/kernel/async.c
+@@ -149,7 +149,25 @@ static void async_run_entry_fn(struct work_struct *work)
+ 	wake_up(&async_done);
  }
  
-+NDCTL_EXPORT int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn)
-+{
-+	return pfn->alignments.num;
-+}
-+
-+NDCTL_EXPORT unsigned long ndctl_pfn_get_supported_alignment(
-+		struct ndctl_pfn *pfn, int i)
-+{
-+	if (pfn->alignments.num == 0)
-+		return 0;
-+
-+	if (i < 0 || i > pfn->alignments.num)
-+		return -EINVAL;
-+	else
-+		return pfn->alignments.supported[i];
-+}
-+
- NDCTL_EXPORT int ndctl_pfn_set_namespace(struct ndctl_pfn *pfn,
- 		struct ndctl_namespace *ndns)
+-static async_cookie_t __async_schedule(async_func_t func, void *data, struct async_domain *domain)
++/**
++ * async_schedule_node_domain - NUMA specific version of async_schedule_domain
++ * @func: function to execute asynchronously
++ * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
++ * @domain: the domain
++ *
++ * Returns an async_cookie_t that may be used for checkpointing later.
++ * @domain may be used in the async_synchronize_*_domain() functions to
++ * wait within a certain synchronization domain rather than globally.
++ *
++ * Note: This function may be called from atomic or non-atomic contexts.
++ *
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
++ */
++async_cookie_t async_schedule_node_domain(async_func_t func, void *data,
++					  int node, struct async_domain *domain)
  {
-@@ -5270,6 +5302,17 @@ NDCTL_EXPORT unsigned long ndctl_dax_get_align(struct ndctl_dax *dax)
- 	return ndctl_pfn_get_align(&dax->pfn);
- }
+ 	struct async_entry *entry;
+ 	unsigned long flags;
+@@ -195,43 +213,30 @@ static async_cookie_t __async_schedule(async_func_t func, void *data, struct asy
+ 	current->flags |= PF_USED_ASYNC;
  
-+NDCTL_EXPORT int ndctl_dax_get_num_alignments(struct ndctl_dax *dax)
-+{
-+	return ndctl_pfn_get_num_alignments(&dax->pfn);
-+}
-+
-+NDCTL_EXPORT unsigned long ndctl_dax_get_supported_alignment(
-+		struct ndctl_dax *dax, int i)
-+{
-+	return ndctl_pfn_get_supported_alignment(&dax->pfn, i);
-+}
-+
- NDCTL_EXPORT int ndctl_dax_has_align(struct ndctl_dax *dax)
+ 	/* schedule for execution */
+-	queue_work(system_unbound_wq, &entry->work);
++	queue_work_node(node, system_unbound_wq, &entry->work);
+ 
+ 	return newcookie;
+ }
++EXPORT_SYMBOL_GPL(async_schedule_node_domain);
+ 
+ /**
+- * async_schedule - schedule a function for asynchronous execution
++ * async_schedule_node - NUMA specific version of async_schedule
+  * @func: function to execute asynchronously
+  * @data: data pointer to pass to the function
++ * @node: NUMA node that we want to schedule this on or close to
+  *
+  * Returns an async_cookie_t that may be used for checkpointing later.
+  * Note: This function may be called from atomic or non-atomic contexts.
+- */
+-async_cookie_t async_schedule(async_func_t func, void *data)
+-{
+-	return __async_schedule(func, data, &async_dfl_domain);
+-}
+-EXPORT_SYMBOL_GPL(async_schedule);
+-
+-/**
+- * async_schedule_domain - schedule a function for asynchronous execution within a certain domain
+- * @func: function to execute asynchronously
+- * @data: data pointer to pass to the function
+- * @domain: the domain
+  *
+- * Returns an async_cookie_t that may be used for checkpointing later.
+- * @domain may be used in the async_synchronize_*_domain() functions to
+- * wait within a certain synchronization domain rather than globally.  A
+- * synchronization domain is specified via @domain.  Note: This function
+- * may be called from atomic or non-atomic contexts.
++ * The node requested will be honored on a best effort basis. If the node
++ * has no CPUs associated with it then the work is distributed among all
++ * available CPUs.
+  */
+-async_cookie_t async_schedule_domain(async_func_t func, void *data,
+-				     struct async_domain *domain)
++async_cookie_t async_schedule_node(async_func_t func, void *data, int node)
  {
- 	return ndctl_pfn_has_align(&dax->pfn);
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 275db92ee103..a30a93e3c012 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -390,4 +390,8 @@ LIBNDCTL_19 {
- global:
- 	ndctl_cmd_xlat_firmware_status;
- 	ndctl_cmd_submit_xlat;
-+	ndctl_pfn_get_supported_alignment;
-+	ndctl_pfn_get_num_alignments;
-+	ndctl_dax_get_supported_alignment;
-+	ndctl_dax_get_num_alignments;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index e55a5932781d..ac639b7d9142 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -597,7 +597,9 @@ int ndctl_pfn_set_uuid(struct ndctl_pfn *pfn, uuid_t uu);
- void ndctl_pfn_get_uuid(struct ndctl_pfn *pfn, uuid_t uu);
- int ndctl_pfn_has_align(struct ndctl_pfn *pfn);
- int ndctl_pfn_set_align(struct ndctl_pfn *pfn, unsigned long align);
-+int ndctl_pfn_get_num_alignments(struct ndctl_pfn *pfn);
- unsigned long ndctl_pfn_get_align(struct ndctl_pfn *pfn);
-+unsigned long ndctl_pfn_get_supported_alignment(struct ndctl_pfn *pfn, int i);
- unsigned long long ndctl_pfn_get_resource(struct ndctl_pfn *pfn);
- unsigned long long ndctl_pfn_get_size(struct ndctl_pfn *pfn);
- int ndctl_pfn_set_namespace(struct ndctl_pfn *pfn, struct ndctl_namespace *ndns);
-@@ -628,7 +630,9 @@ unsigned long long ndctl_dax_get_resource(struct ndctl_dax *dax);
- int ndctl_dax_set_uuid(struct ndctl_dax *dax, uuid_t uu);
- enum ndctl_pfn_loc ndctl_dax_get_location(struct ndctl_dax *dax);
- int ndctl_dax_set_location(struct ndctl_dax *dax, enum ndctl_pfn_loc loc);
-+int ndctl_dax_get_num_alignments(struct ndctl_dax *dax);
- unsigned long ndctl_dax_get_align(struct ndctl_dax *dax);
-+unsigned long ndctl_dax_get_supported_alignment(struct ndctl_dax *dax, int i);
- int ndctl_dax_has_align(struct ndctl_dax *dax);
- int ndctl_dax_set_align(struct ndctl_dax *dax, unsigned long align);
- int ndctl_dax_set_namespace(struct ndctl_dax *dax,
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+-	return __async_schedule(func, data, domain);
++	return async_schedule_node_domain(func, data, node, &async_dfl_domain);
+ }
+-EXPORT_SYMBOL_GPL(async_schedule_domain);
++EXPORT_SYMBOL_GPL(async_schedule_node);
+ 
+ /**
+  * async_synchronize_full - synchronize all asynchronous function calls
