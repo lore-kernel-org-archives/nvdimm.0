@@ -1,404 +1,141 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EAAA211B509C
- for <linux-nvdimm@lists.01.org>; Thu, 17 Jan 2019 18:38:33 -0800 (PST)
-Subject: [PATCH v9 02/13] ndctl: add command for ndctl to receive the key
- encryption key (master)
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 17 Jan 2019 19:38:33 -0700
-Message-ID: <154777911312.42557.15688834797714631330.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
-References: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [driver-core PATCH v10 1/9] driver core: Establish order of
+ operations for device_add and device_del via bitflag
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 22 Jan 2019 10:39:10 -0800
+Message-ID: <154818235081.18753.1278409711806099880.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org
+Cc: mcgrof@kernel.org, linux-nvdimm@lists.01.org, tj@kernel.org, akpm@linux-foundation.org, linux-pm@vger.kernel.org, jiangshanlai@gmail.com, rafael@kernel.org, len.brown@intel.com, pavel@ucw.cz, zwisler@kernel.org, dan.j.williams@intel.com, dave.jiang@intel.com, bvanassche@acm.org, alexander.h.duyck@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add command that allows the user to provide the master encryption key name
-to be installed in the key material directory where ndctl can refer to
-for later security operations.
+Add an additional bit flag to the device_private struct named "dead".
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This additional flag provides a guarantee that when a device_del is
+executed on a given interface an async worker will not attempt to attach
+the driver following the earlier device_del call. Previously this
+guarantee was not present and could result in the device_del call
+attempting to remove a driver from an interface only to have the async
+worker attempt to probe the driver later when it finally completes the
+asynchronous probe call.
+
+One additional change added was that I pulled the check for dev->driver
+out of the __device_attach_driver call and instead placed it in the
+__device_attach_async_helper call. This was motivated by the fact that the
+only other caller of this, __device_attach, had already taken the
+device_lock() and checked for dev->driver. Instead of testing for this
+twice in this path it makes more sense to just consolidate the dev->dead
+and dev->driver checks together into one set of checks.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- Documentation/ndctl/Makefile.am                   |    3 
- Documentation/ndctl/ndctl-install-encrypt-key.txt |   31 +++++
- configure.ac                                      |    3 
- ndctl/Makefile.am                                 |    4 -
- ndctl/builtin.h                                   |    1 
- ndctl/kek.c                                       |  133 +++++++++++++++++++++
- ndctl/lib/libndctl.c                              |   31 +++++
- ndctl/lib/libndctl.sym                            |    1 
- ndctl/lib/private.h                               |    1 
- ndctl/libndctl.h                                  |    1 
- ndctl/ndctl.c                                     |    1 
- 11 files changed, 208 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/ndctl/ndctl-install-encrypt-key.txt
- create mode 100644 ndctl/kek.c
+ drivers/base/base.h |    4 ++++
+ drivers/base/core.c |   11 +++++++++++
+ drivers/base/dd.c   |   22 +++++++++++-----------
+ 3 files changed, 26 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index a30b139b..7cb7bd6b 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -47,7 +47,8 @@ man1_MANS = \
- 	ndctl-inject-smart.1 \
- 	ndctl-update-firmware.1 \
- 	ndctl-list.1 \
--	ndctl-monitor.1
-+	ndctl-monitor.1 \
-+	ndctl-install-encrypt-key.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-install-encrypt-key.txt b/Documentation/ndctl/ndctl-install-encrypt-key.txt
-new file mode 100644
-index 00000000..d00463e3
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-install-encrypt-key.txt
-@@ -0,0 +1,31 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-install-encrypt-key(1)
-+============================
-+
-+NAME
-+----
-+ndctl-install-encrypt-key - store encryption key name for nvdimm bus
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl install-encrypt-key <ndbus0> [<ndbus1>..<ndbusN>] [-k <master encryption key] [<options>]
-+
-+Take the provided master encryption key handle and store it in a file that
-+A file would be created for the designated bus provider.
-+i.e. /etc/ndctl/keys/nfit_test.0.kek
-+The command only succeeds on bus(es) that contain nvdimms with security support.
-+
-+OPTIONS
-+-------
-+-k::
-+--kek=::
-+	Key encryption key (master key) handle. The key handle has the format
-+	of <key type>:<key name>. i.e. trusted:nvdimm-master.
-+
-+-v::
-+--verbose::
-+	Turn on debug output
-+
-+include::../copyright.txt[]
-diff --git a/configure.ac b/configure.ac
-index a02a2d80..61e91e0a 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -159,6 +159,9 @@ ndctl_monitorconf=monitor.conf
- AC_SUBST([ndctl_monitorconfdir])
- AC_SUBST([ndctl_monitorconf])
- 
-+ndctl_keysdir=${sysconfdir}/ndctl/keys
-+AC_SUBST([ndctl_keysdir])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index 97de1814..e412dbf7 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -8,6 +8,7 @@ config.h: Makefile.am
- 	$(AM_V_GEN) echo "/* Autogenerated by ndctl/Makefile.am */" >$@
- 	$(AM_V_GEN) echo '#define NDCTL_CONF_FILE \
- 		"$(ndctl_monitorconfdir)/$(ndctl_monitorconf)"' >>$@
-+	$(AM_V_GEN) echo '#define NDCTL_KEYS_DIR  "$(ndctl_keysdir)"' >>$@
- 
- ndctl_SOURCES = ndctl.c \
- 		bus.c \
-@@ -23,7 +24,8 @@ ndctl_SOURCES = ndctl.c \
- 		util/json-firmware.c \
- 		inject-error.c \
- 		inject-smart.c \
--		monitor.c
-+		monitor.c \
-+		kek.c
- 
- if ENABLE_DESTRUCTIVE
- ndctl_SOURCES += ../test/blk_namespaces.c \
-diff --git a/ndctl/builtin.h b/ndctl/builtin.h
-index 17300df0..4af34f04 100644
---- a/ndctl/builtin.h
-+++ b/ndctl/builtin.h
-@@ -32,4 +32,5 @@ int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx);
- #endif
- int cmd_update_firmware(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_inject_smart(int argc, const char **argv, struct ndctl_ctx *ctx);
-+int cmd_install_kek(int argc, const char **argv, struct ndctl_ctx *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/kek.c b/ndctl/kek.c
-new file mode 100644
-index 00000000..1cb1555e
---- /dev/null
-+++ b/ndctl/kek.c
-@@ -0,0 +1,133 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <limits.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <dirent.h>
-+#include <fcntl.h>
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <util/log.h>
-+#include <json-c/json.h>
-+#include <ndctl/config.h>
-+#include <ndctl/libndctl.h>
-+#include <util/parse-options.h>
-+#include <ccan/array_size/array_size.h>
-+
-+#include <ndctl.h>
-+
-+static struct parameters {
-+	const char *kek;
-+	bool verbose;
-+} param;
-+
-+static int store_kek(const char *provider, const char *kek)
-+{
-+	char path[PATH_MAX];
-+	FILE *fp;
-+	ssize_t rc, wrote = 0;
-+	int size = strlen(kek);
-+
-+	rc = sprintf(path, "%s/%s.kek", NDCTL_KEYS_DIR, provider);
-+	if (rc < 0) {
-+		perror("sprintf kek path failed");
-+		return rc;
-+	}
-+
-+	fp = fopen(path, "w+");
-+	if (!fp) {
-+		fprintf(stderr, "Opening file %s failed: %s\n",
-+				path, strerror(errno));
-+		return -errno;
-+	}
-+
-+	do {
-+		rc = fwrite(kek + wrote, 1, size - wrote, fp);
-+		if (rc < 0) {
-+			fprintf(stderr, "writing file %s failed: %s\n",
-+					path, strerror(errno));
-+			fclose(fp);
-+			return -errno;
-+		}
-+		wrote += rc;
-+	} while (wrote != size);
-+
-+	fclose(fp);
-+	printf("key handle %s installed to %s\n", kek, path);
-+	return 0;
-+}
-+
-+int cmd_install_kek(int argc, const char **argv, struct ndctl_ctx *ctx)
-+{
-+	const struct option options[] = {
-+		OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug"),
-+		OPT_STRING('k', "kek", &param.kek, "kek",
-+				"Key encription key (master)"),
-+		OPT_END(),
-+	};
-+	const char * const u[] = {
-+		"ndctl intall-encrypt-key <ndbus0> [<ndbus1>..<ndbusN>] [-k <master encryption key>]",
-+		NULL
-+	};
-+	int i, rc;
-+	bool all = false;
-+
-+	argc = parse_options(argc, argv, options, u, 0);
-+
-+	if (argc == 0) {
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
-+	if (!param.kek) {
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < argc; i++) {
-+		if (strcmp(argv[i], "all") == 0) {
-+			argv[0] = "all";
-+			argc = 1;
-+			all = true;
-+			break;
-+		}
-+	}
-+
-+	if (param.verbose)
-+		ndctl_set_log_priority(ctx, LOG_DEBUG);
-+
-+	for (i = 0; i < argc; i++) {
-+		struct ndctl_bus *bus;
-+		struct ndctl_dimm *dimm;
-+		bool security = false;
-+
-+		ndctl_bus_foreach(ctx, bus) {
-+			if (!util_bus_filter(bus, argv[i]) && !all)
-+				continue;
-+
-+			ndctl_dimm_foreach(bus, dimm) {
-+				if (ndctl_dimm_get_security(dimm) >= 0) {
-+					security = true;
-+					break;
-+				}
-+			}
-+
-+			if (!security)
-+				continue;
-+
-+			rc = store_kek(ndctl_bus_get_provider(bus),
-+					param.kek);
-+			if (rc < 0)
-+				fprintf(stderr, "store kek %s for bus %s failed\n",
-+						param.kek, ndctl_bus_get_devname(bus));
-+
-+		}
-+	}
-+
-+	return 0;
-+}
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 830b7913..b255eb1b 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -36,6 +36,7 @@
- #include <ndctl/namespace.h>
- #include <daxctl/libdaxctl.h>
- #include <ndctl/libndctl-nfit.h>
-+#include <ndctl/config.h>
- #include "private.h"
- 
- static uuid_t null_uuid;
-@@ -620,6 +621,7 @@ static void free_bus(struct ndctl_bus *bus, struct list_head *head)
- 	free(bus->bus_buf);
- 	free(bus->wait_probe_path);
- 	free(bus->scrub_path);
-+	free(bus->kek_handle);
- 	free(bus);
- }
- 
-@@ -812,6 +814,28 @@ static void parse_dimm_flags(struct ndctl_dimm *dimm, char *flags)
- 				ndctl_dimm_get_devname(dimm), flags);
- }
- 
-+static int bus_retrieve_kek_handle(struct ndctl_bus *bus)
-+{
-+	char path[PATH_MAX];
-+	FILE *fp;
-+	ssize_t rc;
-+
-+	rc = sprintf(path, "%s/%s.kek", NDCTL_KEYS_DIR,
-+			ndctl_bus_get_provider(bus));
-+	if (rc < 0)
-+		return -errno;
-+
-+	fp = fopen(path, "r");
-+	if (!fp)
-+		return -errno;
-+
-+	if (fscanf(fp, "%ms", &bus->kek_handle) == EOF)
-+		return -errno;
-+
-+	fclose(fp);
-+	return 0;
-+}
-+
- static void *add_bus(void *parent, int id, const char *ctl_base)
- {
- 	char buf[SYSFS_ATTR_SIZE];
-@@ -890,6 +914,8 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
- 			return bus_dup;
- 		}
- 
-+	bus_retrieve_kek_handle(bus);
-+
- 	list_add(&ctx->busses, &bus->list);
- 	free(path);
- 
-@@ -5396,3 +5422,8 @@ NDCTL_EXPORT struct daxctl_region *ndctl_dax_get_daxctl_region(
- 
- 	return dax->region;
- }
-+
-+NDCTL_EXPORT const char *ndctl_bus_get_kek_handle(struct ndctl_bus *bus)
-+{
-+	return bus->kek_handle;
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 0888c824..6d5e6606 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -391,4 +391,5 @@ global:
- 	ndctl_cmd_xlat_firmware_status;
- 	ndctl_cmd_submit_xlat;
- 	ndctl_dimm_get_security;
-+	ndctl_bus_get_kek_handle;
- } LIBNDCTL_18;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index a387b0b5..a860f0db 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -172,6 +172,7 @@ struct ndctl_bus {
- 	char *scrub_path;
- 	unsigned long cmd_mask;
- 	unsigned long nfit_dsm_mask;
-+	char *kek_handle;
+diff --git a/drivers/base/base.h b/drivers/base/base.h
+index 37329a668935..7ca475af8953 100644
+--- a/drivers/base/base.h
++++ b/drivers/base/base.h
+@@ -67,6 +67,9 @@ struct driver_private {
+  *	probed first.
+  * @device - pointer back to the struct device that this structure is
+  * associated with.
++ * @dead - This device is currently either in the process of or has been
++ *	removed from the system. Any asynchronous events scheduled for this
++ *	device should exit without taking any action.
+  *
+  * Nothing outside of the driver core should ever touch these fields.
+  */
+@@ -78,6 +81,7 @@ struct device_private {
+ 	struct klist_node knode_class;
+ 	struct list_head deferred_probe;
+ 	struct device *device;
++	u8 dead:1;
  };
+ #define to_device_private_parent(obj)	\
+ 	container_of(obj, struct device_private, knode_parent)
+diff --git a/drivers/base/core.c b/drivers/base/core.c
+index 4a4b6f8cbc4f..c9a82e367480 100644
+--- a/drivers/base/core.c
++++ b/drivers/base/core.c
+@@ -2080,6 +2080,17 @@ void device_del(struct device *dev)
+ 	struct kobject *glue_dir = NULL;
+ 	struct class_interface *class_intf;
  
- /**
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index e228c64f..b0cc4543 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -694,6 +694,7 @@ enum ndctl_security_state {
- };
++	/*
++	 * Hold the device lock and set the "dead" flag to guarantee that
++	 * the update behavior is consistent with the other bitfields near
++	 * it and that we cannot have an asynchronous probe routine trying
++	 * to run while we are tearing out the bus/class/sysfs from
++	 * underneath the device.
++	 */
++	device_lock(dev);
++	dev->p->dead = true;
++	device_unlock(dev);
++
+ 	/* Notify clients of device removal.  This call must come
+ 	 * before dpm_sysfs_remove().
+ 	 */
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 8ac10af17c00..636cd16b1b62 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -731,15 +731,6 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+ 	bool async_allowed;
+ 	int ret;
  
- enum ndctl_security_state ndctl_dimm_get_security(struct ndctl_dimm *dimm);
-+const char *ndctl_bus_get_kek_handle(struct ndctl_bus *bus);
+-	/*
+-	 * Check if device has already been claimed. This may
+-	 * happen with driver loading, device discovery/registration,
+-	 * and deferred probe processing happens all at once with
+-	 * multiple threads.
+-	 */
+-	if (dev->driver)
+-		return -EBUSY;
+-
+ 	ret = driver_match_device(drv, dev);
+ 	if (ret == 0) {
+ 		/* no match */
+@@ -774,6 +765,15 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
  
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index b01594e0..bd11ec03 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
- 	{ "start-scrub", { cmd_start_scrub } },
- 	{ "list", { cmd_list } },
- 	{ "monitor", { cmd_monitor } },
-+	{ "install-encrypt-key", { cmd_install_kek } },
- 	{ "help", { cmd_help } },
- 	#ifdef ENABLE_TEST
- 	{ "test", { cmd_test } },
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ 	device_lock(dev);
+ 
++	/*
++	 * Check if device has already been removed or claimed. This may
++	 * happen with driver loading, device discovery/registration,
++	 * and deferred probe processing happens all at once with
++	 * multiple threads.
++	 */
++	if (dev->p->dead || dev->driver)
++		goto out_unlock;
++
+ 	if (dev->parent)
+ 		pm_runtime_get_sync(dev->parent);
+ 
+@@ -784,7 +784,7 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
+ 
+ 	if (dev->parent)
+ 		pm_runtime_put(dev->parent);
+-
++out_unlock:
+ 	device_unlock(dev);
+ 
+ 	put_device(dev);
+@@ -897,7 +897,7 @@ static int __driver_attach(struct device *dev, void *data)
+ 	if (dev->parent && dev->bus->need_parent_lock)
+ 		device_lock(dev->parent);
+ 	device_lock(dev);
+-	if (!dev->driver)
++	if (!dev->p->dead && !dev->driver)
+ 		driver_probe_device(drv, dev);
+ 	device_unlock(dev);
+ 	if (dev->parent && dev->bus->need_parent_lock)
