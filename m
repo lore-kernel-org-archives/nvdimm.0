@@ -1,19 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-wm1-x344.google.com (mail-wm1-x344.google.com
- [IPv6:2a00:1450:4864:20::344])
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 00F18211ADA2D
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 21:02:29 -0800 (PST)
-Received: by mail-wm1-x344.google.com with SMTP id y139so6206106wmc.5
- for <linux-nvdimm@lists.01.org>; Tue, 08 Jan 2019 21:02:29 -0800 (PST)
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: [PATCH v2] nfit: Mark some functions as __maybe_unused
-Date: Tue,  8 Jan 2019 22:00:37 -0700
-Message-Id: <20190109050036.17322-1-natechancellor@gmail.com>
-In-Reply-To: <20190108045853.5471-1-natechancellor@gmail.com>
-References: <20190108045853.5471-1-natechancellor@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id E3F4A211B85C2
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Jan 2019 10:25:14 -0800 (PST)
+Received: by mail-ot1-x343.google.com with SMTP id a11so2779760otr.10
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Jan 2019 10:25:14 -0800 (PST)
 MIME-Version: 1.0
+References: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
+ <154777914548.42557.12179051970472720250.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154777914548.42557.12179051970472720250.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Jan 2019 10:25:02 -0800
+Message-ID: <CAPcyv4iDupjeRVt3wSxwmaNwShK4Tnzc1s6=st+ZdD+MhLFyaw@mail.gmail.com>
+Subject: Re: [PATCH v9 08/13] ndctl: add modprobe conf file and load-keys
+ ndctl command
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,85 +27,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>, Len Brown <lenb@kernel.org>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On arm64 little endian allyesconfig:
+On Thu, Jan 17, 2019 at 6:39 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+> Add load-keys command to ndctl. This will attempt to load the master key
+> and the related encrypted keys for nvdimms. Also add reference config file
+> for modprobe.d in order to call ndctl load-keys and inject keys associated
+> with the nvdimms into the kernel user ring for unlock.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/Makefile.am         |    3
+>  Documentation/ndctl/ndctl-load-keys.txt |   43 +++++
+>  Makefile.am                             |    4
+>  contrib/nvdimm-security.conf            |    1
+>  ndctl.spec.in                           |    1
+>  ndctl/Makefile.am                       |    3
+>  ndctl/builtin.h                         |    1
+>  ndctl/lib/keys.c                        |   64 +++++---
+>  ndctl/lib/libndctl.sym                  |    1
+>  ndctl/libndctl.h                        |    2
+>  ndctl/load-keys.c                       |  257 +++++++++++++++++++++++++++++++
+>  ndctl/ndctl.c                           |    1
+>  12 files changed, 357 insertions(+), 24 deletions(-)
+>  create mode 100644 Documentation/ndctl/ndctl-load-keys.txt
+>  create mode 100644 contrib/nvdimm-security.conf
+>  create mode 100644 ndctl/load-keys.c
+[..]
+> -static char *load_key_blob(struct ndctl_ctx *ctx, const char *path, int *size)
+> +NDCTL_EXPORT char *ndctl_load_key_blob(struct ndctl_ctx *ctx,
+> +               const char *path, int *size, const char *postfix, int dirfd)
 
-drivers/acpi/nfit/intel.c:149:12: warning: unused function 'intel_security_unlock' [-Wunused-function]
-static int intel_security_unlock(struct nvdimm *nvdimm,
-           ^
-drivers/acpi/nfit/intel.c:230:12: warning: unused function 'intel_security_erase' [-Wunused-function]
-static int intel_security_erase(struct nvdimm *nvdimm,
-           ^
-drivers/acpi/nfit/intel.c:279:12: warning: unused function 'intel_security_query_overwrite' [-Wunused-function]
-static int intel_security_query_overwrite(struct nvdimm *nvdimm)
-           ^
-drivers/acpi/nfit/intel.c:316:12: warning: unused function 'intel_security_overwrite' [-Wunused-function]
-static int intel_security_overwrite(struct nvdimm *nvdimm,
-           ^
-4 warnings generated.
-
-Mark these functions as __maybe_unused because they are only used when
-CONFIG_X86 is set.
-
-Fixes: 4c6926a23b76 ("acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs")
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
----
-
-v1 -> v2:
-
-* Mark the functions as __maybe_unused rather than expanding the
-  CONFIG_X86, as requested by Dan.
-
- drivers/acpi/nfit/intel.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 850b2927b4e7..f70de71f79d6 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -146,7 +146,7 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 
- static void nvdimm_invalidate_cache(void);
- 
--static int intel_security_unlock(struct nvdimm *nvdimm,
-+static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-@@ -227,7 +227,7 @@ static int intel_security_disable(struct nvdimm *nvdimm,
- 	return 0;
- }
- 
--static int intel_security_erase(struct nvdimm *nvdimm,
-+static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key,
- 		enum nvdimm_passphrase_type ptype)
- {
-@@ -276,7 +276,7 @@ static int intel_security_erase(struct nvdimm *nvdimm,
- 	return 0;
- }
- 
--static int intel_security_query_overwrite(struct nvdimm *nvdimm)
-+static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- {
- 	int rc;
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-@@ -313,7 +313,7 @@ static int intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	return 0;
- }
- 
--static int intel_security_overwrite(struct nvdimm *nvdimm,
-+static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *nkey)
- {
- 	int rc;
--- 
-2.20.1
-
+As another example of the comment in patch3 this api seems
+particularly difficult to describe how a 3rd party could use it
+without subscribing to all of the assumptions of the ndctl
+implementation.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
