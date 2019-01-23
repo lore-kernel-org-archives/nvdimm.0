@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A971211B6C22
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 14:53:51 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/3] libndctl,
- intel: Add infrastructure for firmware_status translation
-Date: Fri, 11 Jan 2019 15:53:37 -0700
-Message-Id: <20190111225339.6939-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190111225339.6939-1-vishal.l.verma@intel.com>
-References: <20190111225339.6939-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id DE9AC210FBEE9
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Jan 2019 12:15:13 -0800 (PST)
+Date: Wed, 23 Jan 2019 15:15:06 -0500
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH 2/4] mm/memory-hotplug: allow memory resources to be
+ children
+Message-ID: <20190123201506.GG3097@redhat.com>
+References: <20190116181859.D1504459@viggo.jf.intel.com>
+ <20190116181902.670EEBC3@viggo.jf.intel.com>
+ <20190116191635.GD3617@redhat.com>
+ <2b52778d-f120-eec7-3e7a-3a9c182170f0@intel.com>
+ <20190116233849.GE3617@redhat.com>
+ <b1f22eda-b52f-af20-637f-b45971a12d33@intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <b1f22eda-b52f-af20-637f-b45971a12d33@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,195 +25,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Ami Pathak <ami.g.pathak@intel.com>
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: thomas.lendacky@amd.com, dave@sr71.net, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mhocko@suse.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new routine to ndctl_dimm_ops that allows a DSM family to provide
-a translation routine that will translate the status codes of the result
-of a DSM to generic errno style error codes. To use this routine
-effectively, add a new wrapper around ndctl_cmd_submit (called
-ndctl_cmd_submit_xlat) that submits the command, and also runs it
-through the above translator dimm_op (if one is is defined).
+On Wed, Jan 23, 2019 at 12:03:54PM -0800, Dave Hansen wrote:
+> On 1/16/19 3:38 PM, Jerome Glisse wrote:
+> > So right now i would rather that we keep properly reporting this
+> > hazard so that at least we know it failed because of that. This
+> > also include making sure that we can not register private memory
+> > as a child of an un-busy resource that does exist but might not
+> > have yet been claim by its rightful owner.
+> =
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/lib/intel.c      | 49 ++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/intel.h      |  1 +
- ndctl/lib/libndctl.c   | 26 ++++++++++++++++++++++
- ndctl/lib/libndctl.sym |  6 ++++++
- ndctl/lib/private.h    |  1 +
- ndctl/libndctl.h       |  3 +++
- 6 files changed, 86 insertions(+)
+> I can definitely keep the warning in.  But, I don't think there's a
+> chance of HMM registering a IORES_DESC_DEVICE_PRIVATE_MEMORY region as
+> the child of another.  The region_intersects() check *should* find that:
 
-diff --git a/ndctl/lib/intel.c b/ndctl/lib/intel.c
-index 744386f..d684bac 100644
---- a/ndctl/lib/intel.c
-+++ b/ndctl/lib/intel.c
-@@ -16,6 +16,54 @@
- #include <ndctl/libndctl.h>
- #include "private.h"
- 
-+static int intel_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
-+{
-+	struct nd_pkg_intel *pkg = cmd->intel;
-+	unsigned int status, ext_status;
-+
-+	status = (*cmd->firmware_status) & ND_INTEL_STATUS_MASK;
-+	ext_status = (*cmd->firmware_status) & ND_INTEL_STATUS_EXTEND_MASK;
-+
-+	/* Common statuses */
-+	switch (status) {
-+	case ND_INTEL_STATUS_SUCCESS:
-+		return 0;
-+	case ND_INTEL_STATUS_NOTSUPP:
-+		return -EOPNOTSUPP;
-+	case ND_INTEL_STATUS_NOTEXIST:
-+		return -ENXIO;
-+	case ND_INTEL_STATUS_INVALPARM:
-+		return -EINVAL;
-+	case ND_INTEL_STATUS_HWERR:
-+		return -EIO;
-+	case ND_INTEL_STATUS_RETRY:
-+		return -EAGAIN;
-+	case ND_INTEL_STATUS_EXTEND:
-+		/* refer to extended status, break out of this */
-+		break;
-+	case ND_INTEL_STATUS_NORES:
-+		return -EAGAIN;
-+	case ND_INTEL_STATUS_NOTREADY:
-+		return -EBUSY;
-+	}
-+
-+	/* Extended status is command specific */
-+	switch (pkg->gen.nd_command) {
-+	case ND_INTEL_SMART:
-+	case ND_INTEL_SMART_THRESHOLD:
-+	case ND_INTEL_SMART_SET_THRESHOLD:
-+		/* ext status not specified */
-+		break;
-+	case ND_INTEL_SMART_INJECT:
-+		/* smart injection not enabled */
-+		if (ext_status == ND_INTEL_STATUS_INJ_DISABLED)
-+			return -ENXIO;
-+		break;
-+	}
-+
-+	return -ENOMSG;
-+}
-+
- static struct ndctl_cmd *alloc_intel_cmd(struct ndctl_dimm *dimm,
- 		unsigned func, size_t in_size, size_t out_size)
- {
-@@ -780,4 +828,5 @@ struct ndctl_dimm_ops * const intel_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.fw_xlat_firmware_status = intel_cmd_fw_xlat_firmware_status,
- 	.new_ack_shutdown_count = intel_dimm_cmd_new_lss,
- 	.fw_update_supported = intel_dimm_fw_update_supported,
-+	.xlat_firmware_status = intel_cmd_xlat_firmware_status,
- };
-diff --git a/ndctl/lib/intel.h b/ndctl/lib/intel.h
-index 3b01bba..530c996 100644
---- a/ndctl/lib/intel.h
-+++ b/ndctl/lib/intel.h
-@@ -179,5 +179,6 @@ struct nd_pkg_intel {
- #define ND_INTEL_STATUS_FQ_BUSY		0x20000
- #define ND_INTEL_STATUS_FQ_BAD		0x30000
- #define ND_INTEL_STATUS_FQ_ORDER	0x40000
-+#define ND_INTEL_STATUS_INJ_DISABLED	0x10000
- 
- #endif /* __INTEL_H__ */
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index e82a08d..5f1fd84 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -2704,6 +2704,16 @@ static const char *ndctl_dimm_get_cmd_subname(struct ndctl_cmd *cmd)
- 	return ops->cmd_desc(cmd->pkg->nd_command);
- }
- 
-+NDCTL_EXPORT int ndctl_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
-+{
-+	struct ndctl_dimm *dimm = cmd->dimm;
-+	struct ndctl_dimm_ops *ops = dimm ? dimm->ops : NULL;
-+
-+	if (!dimm || !ops || !ops->xlat_firmware_status)
-+		return -ENOMSG;
-+	return ops->xlat_firmware_status(cmd);
-+}
-+
- static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
- {
- 	int rc;
-@@ -2819,6 +2829,22 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_cmd_submit_xlat(struct ndctl_cmd *cmd)
-+{
-+	int rc;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc < 0)
-+		return rc;
-+
-+	/*
-+	 * NOTE: This loses a positive rc which happens in the case of a
-+	 * buffer underrun. If the caller cares about that (usually not very
-+	 * useful), then the xlat function is available separately as well.
-+	 */
-+	return ndctl_cmd_xlat_firmware_status(cmd);
-+}
-+
- NDCTL_EXPORT int ndctl_cmd_get_status(struct ndctl_cmd *cmd)
- {
- 	return cmd->status;
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 6c4c8b4..275db92 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -385,3 +385,9 @@ global:
- 	ndctl_namespace_get_next_badblock;
- 	ndctl_dimm_get_dirty_shutdown;
- } LIBNDCTL_17;
-+
-+LIBNDCTL_19 {
-+global:
-+	ndctl_cmd_xlat_firmware_status;
-+	ndctl_cmd_submit_xlat;
-+} LIBNDCTL_18;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 4fbea56..a387b0b 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -338,6 +338,7 @@ struct ndctl_dimm_ops {
- 	enum ND_FW_STATUS (*fw_xlat_firmware_status)(struct ndctl_cmd *);
- 	struct ndctl_cmd *(*new_ack_shutdown_count)(struct ndctl_dimm *);
- 	int (*fw_update_supported)(struct ndctl_dimm *);
-+	int (*xlat_firmware_status)(struct ndctl_cmd *);
- };
- 
- struct ndctl_dimm_ops * const intel_dimm_ops;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index c81cc03..e55a593 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -681,6 +681,9 @@ enum ND_FW_STATUS ndctl_cmd_fw_xlat_firmware_status(struct ndctl_cmd *cmd);
- struct ndctl_cmd *ndctl_dimm_cmd_new_ack_shutdown_count(struct ndctl_dimm *dimm);
- int ndctl_dimm_fw_update_supported(struct ndctl_dimm *dimm);
- 
-+int ndctl_cmd_xlat_firmware_status(struct ndctl_cmd *cmd);
-+int ndctl_cmd_submit_xlat(struct ndctl_cmd *cmd);
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
--- 
-2.17.2
+Sounds fine to (just keep the warning).
+
+Cheers,
+J=E9r=F4me
+
+> =
+
+> >         for (; addr > size && addr >=3D iomem_resource.start; addr -=3D=
+ size) {
+> >                 ret =3D region_intersects(addr, size, 0, IORES_DESC_NON=
+E);
+> >                 if (ret !=3D REGION_DISJOINT)
+> >                         continue;
+> =
 
 _______________________________________________
 Linux-nvdimm mailing list
