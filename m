@@ -1,13 +1,12 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4] acpi/nfit: Fix command-supported detection
-Date: Tue, 22 Jan 2019 15:56:09 +0000
-Message-ID: <20190122155610.8614D217F5@mail.kernel.org>
-References: <154792410908.2360577.7879178748203288256.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: How can we better support vender specific _DSM commands in ndctl?
+Date: Wed, 23 Jan 2019 22:47:44 +0000
+Message-ID: <PU1P153MB0169D295CC946C507FBD1F34BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <154792410908.2360577.7879178748203288256.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +16,83 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Sujith Pandel <sujith_pandel-8PEkshWhKlo@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Pan <Lijun.Pan-8PEkshWhKlo@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Boylston, Brian" <brian.boylston-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
+Hi all,
+Hyper-V implements virtualized NVDIMM for guests running on it [1]. The
+command set is documented on the RFIC_LIST page on uefi.org [2]. 
 
-[This is an automated email]
+After Linux guest boots up, I can see these dev files:
+/dev/ndctl0   /dev/nmem0   /dev/pmem0 
+and I can create an xfs file system on /dev/pmem0, mount it and use it. 
 
-This commit has been processed because it contains a "Fixes:" tag,
-fixing commit: 31eca76ba2fc nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism.
+Everything works just fine except for one thing: I can't call the Hyper-V 
+specific _DSM methods. So I wrote a patch [3] to allow the methods to
+be called (I Cc'd you when posting the patch. Please review it.).
 
-The bot has tested the following trees: v4.20.3, v4.19.16, v4.14.94, v4.9.151.
+And then I found it looks ndctl doesn't allow me to easily call *all* the
+_DSM methods, and I can't easily use ndctl to interpret the output in a
+way I prefer.
 
-v4.20.3: Failed to apply! Possible dependencies:
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
+My understanding is that: it looks when the kernel nvdimm driver and ndctl
+were originally implemented, the code was mainly for Intel NVDIMM. Later
+people introduced the support for NVDIMM_FAMILY_{HPE1, HPE2, MSFT},
+and introduced the kernel ND_CMD_CALL ioctl to allow ndctl to call 
+vender-specific methods, but up to now, it looks the majority of the cmds
+(if not all of the cmds) shown by "ndctl --list-cmds" are not very useful to
+call vender specific methods, especially for NVDIMM_FAMILY_MSFT:
 
-v4.19.16: Failed to apply! Possible dependencies:
-    0ead11181fe0 ("acpi, nfit: Collect shutdown status")
-    6f07f86c4940 ("acpi, nfit: Introduce nfit_mem flags")
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
+e.g.: for NVDIMM_FAMILY_MSFT, only Function 11 is used, and the
+only useful info from "ndctl list --dimms --health" is:
 
-v4.14.94: Build OK!
-v4.9.151: Failed to apply! Possible dependencies:
-    0f817ae696b0 ("usb: dwc3: pci: add a private driver structure")
-    11e142701609 ("acpi, nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs")
-    23222f8f8dce ("acpi, nfit: Add function to look up nvdimm device and provide SMBIOS handle")
-    36daf3aa399c ("usb: dwc3: pci: avoid build warning")
-    3f23df72dc35 ("mmc: sdhci-pci: Use ACPI to get max frequency for Intel NI byt sdio")
-    41c8bdb3ab10 ("acpi, nfit: Switch to use new generic UUID API")
-    42237e393f64 ("libnvdimm: allow a platform to force enable label support")
-    42b06496407c ("mmc: sdhci-pci: Add PCI ID for Intel NI byt sdio")
-    4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and _LSW label methods")
-    8f078b38dd38 ("libnvdimm: convert NDD_ flags to use bitops, introduce NDD_LOCKED")
-    94116f8126de ("ACPI: Switch to use generic guid_t in acpi_evaluate_dsm()")
-    9cecca75b5a0 ("usb: dwc3: pci: call _DSM for suspend/resume")
-    9d62ed965118 ("libnvdimm: handle locked label storage areas")
-    b3ed2ce024c3 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
-    b7fe92999a98 ("ACPI / extlog: Switch to use new generic UUID API")
-    b917078c1c10 ("net: hns: Add ACPI support to check SFP present")
-    c959a6b00ff5 ("mmc: sdhci-pci: Don't re-tune with runtime pm for some Intel devices")
-    d2061f9cc32d ("usb: typec: add driver for Intel Whiskey Cove PMIC USB Type-C PHY")
-    fab9288428ec ("usb: USB Type-C connector class")
+  "health":{
+    "health_state":"ok",
+    "temperature_celsius":27.000000,
+    "life_used_percentage":3
+  }
+
+And, in msft_cmd_smart_get_health(), we only count the number of error bits,
+and we drop the detailed info about the errors, and we lose some info
+from the struct ndn_msft_smart_data, e.g. err_thresh_stat, warn_thresh_stat,
+count_dram_uncorr_err and count_dram_corr_err, which IMO could be useful.
+
+(See "libndctl: add support for the MSFT family of DSM functions" [4])
+
+And, NVDIMM_FAMILY_MSFT has 32 methods [5], but except Function 11, it
+looks the other methods can not be mapped to the existing ndctl commands.
 
 
-How should we proceed with this patch?
+Now, the new NVDIMM type NVDIMM_FAMILY_HYPERV has 4 Hyper-V specific
+_DSM methods [2]:
 
---
-Thanks,
-Sasha
+Get Health Information (Function Index 1)
+Get Unsafe Shutdown Count (Function Index 2)
+Inject Error (Function Index 3)
+Query Injected Errors (Function Index 4)
+
+For Function 1, I made a patch 
+"libndctl: add support for the HYPER-V family of DSM functions" (please see [6],
+especially hyperv_cmd_smart_get_health() in the patch) to use it, but the
+existing ndctl interface, i.e. util_dimm_health_to_json(), only allows me to
+return to the user a string of "fatal", "critical", "non-critical" or "ok", while 
+I would like to return more details about the errors to the user.
+
+Function 3 can not be mapped to ndctl/inject-smart.c: smart_inject(), because
+it's incompatible with Intel NVDIMM.
+
+Function 2 and 4 can't be mapped to the existing ndctl commands either.
+
+I'm wondering how I should use the 4 Hyper-V specific methods in ndctl.
+
+I appreciate your insights. Thank you!
+
+--Dexuan
+
+[1] https://docs.microsoft.com/en-us/windows-server/virtualization/hyper-v/manage/persistent-memory-cmdlets
+[2] http://www.uefi.org/RFIC_LIST, see the link to "Virtual NVDIMM 0x1901" on the page.
+[3] https://www.lkml.org/lkml/2019/1/23/761
+[4] https://github.com/pmem/ndctl/commit/2cf2acca0288389a39ac823a42a5e048575d52db
+[5] https://docs.microsoft.com/en-us/windows-hardware/drivers/storage/-dsm-interface-for-byte-addressable-energy-backed-function-class--function-interface-1-
+[6] https://github.com/dcui/ndctl/commit/12feb081c881b24fee9f6cf088037c2e30248252
