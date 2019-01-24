@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
- [IPv6:2607:f8b0:4864:20::442])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3021B211B7F66
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:29 -0800 (PST)
-Received: by mail-pf1-x442.google.com with SMTP id z9so2835381pfi.2
- for <linux-nvdimm@lists.01.org>; Wed, 16 Jan 2019 01:49:29 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v3 4/6] ndctl/namespace: Validate alignment from the {pfn|dax}
- seed
-Date: Wed, 16 Jan 2019 20:49:07 +1100
-Message-Id: <20190116094909.23112-4-oohall@gmail.com>
-In-Reply-To: <20190116094909.23112-1-oohall@gmail.com>
-References: <20190116094909.23112-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2A029211B81A5
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:07:58 -0800 (PST)
+Subject: [PATCH v10 09/12] ndctl: add wait-overwrite support
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 24 Jan 2019 16:07:57 -0700
+Message-ID: <154837127722.37086.14094509373956136731.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
+References: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,75 +22,256 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds support to the ndctl tool for validating that the
-namespace alignment is valid.
+Add a blocking 'wait-overwrite' command to ndctl to let a user wait for an
+overwrite operation on a dimm to complete.
 
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- ndctl/namespace.c | 37 +++++++++++++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 8 deletions(-)
+ Documentation/ndctl/Makefile.am              |    3 +
+ Documentation/ndctl/ndctl-wait-overwrite.txt |   31 ++++++++++
+ ndctl/builtin.h                              |    1 
+ ndctl/dimm.c                                 |   27 +++++++++
+ ndctl/lib/dimm.c                             |   78 ++++++++++++++++++++++++++
+ ndctl/lib/libndctl.sym                       |    1 
+ ndctl/libndctl.h                             |    1 
+ ndctl/ndctl.c                                |    1 
+ 8 files changed, 142 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/ndctl/ndctl-wait-overwrite.txt
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index b27cc6967a68..44fc91232ecb 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -537,8 +537,23 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	}
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index f64619b0..2593dbdc 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -53,7 +53,8 @@ man1_MANS = \
+ 	ndctl-remove-passphrase.1 \
+ 	ndctl-freeze-security.1 \
+ 	ndctl-sanitize-dimm.1 \
+-	ndctl-load-keys.1
++	ndctl-load-keys.1 \
++	ndctl-wait-overwrite.1
  
- 	if (param.align) {
--		if (p->mode != NDCTL_NS_MODE_MEMORY &&
--		    p->mode != NDCTL_NS_MODE_DAX) {
-+		int i, alignments;
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/ndctl/ndctl-wait-overwrite.txt b/Documentation/ndctl/ndctl-wait-overwrite.txt
+new file mode 100644
+index 00000000..5d4c72ef
+--- /dev/null
++++ b/Documentation/ndctl/ndctl-wait-overwrite.txt
+@@ -0,0 +1,31 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+		switch (p->mode) {
-+		case NDCTL_NS_MODE_MEMORY:
-+			if (!pfn) {
-+				error("Kernel does not support setting an alignment in fsdax mode\n");
-+				return -EINVAL;
-+			}
++ndctl-wait-overwrite(1)
++=======================
 +
-+			alignments = ndctl_pfn_get_num_alignments(pfn);
++NAME
++----
++ndctl-wait-overwrite - wait for nvdimm overwrite operation to complete
++
++SYNOPSIS
++--------
++[verse]
++'ndctl wait-overwrite' <dimm> [<options>]
++
++DESCRIPTION
++-----------
++The kernel provides a POLL(2) capable sysfs file ('security') to indicate
++the state of overwrite. The 'ndctl wait-overwrite' operation waits for
++a change in the state of the 'security' file across all specified dimms.
++
++OPTIONS
++-------
++-v::
++--verbose::
++	Emit debug messages for the overwrite wait process
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkndctl:ndctl-sanitize-dimm[1]
+diff --git a/ndctl/builtin.h b/ndctl/builtin.h
+index 733f41a5..60c3623f 100644
+--- a/ndctl/builtin.h
++++ b/ndctl/builtin.h
+@@ -38,4 +38,5 @@ int cmd_passphrase_remove(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_freeze_security(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_sanitize_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_load_keys(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_wait_overwrite(int argc, const char **argv, struct ndctl_ctx *ctx);
+ #endif /* _NDCTL_BUILTIN_H_ */
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index da940843..fb16e9c8 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -932,6 +932,24 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
+ 	return 0;
+ }
+ 
++static int action_wait_overwrite(struct ndctl_dimm *dimm,
++		struct action_context *actx)
++{
++	int rc;
++
++	if (ndctl_dimm_get_security(dimm) < 0) {
++		error("%s: security operation not supported\n",
++				ndctl_dimm_get_devname(dimm));
++		return -EOPNOTSUPP;
++	}
++
++	rc = ndctl_dimm_wait_overwrite(dimm);
++	if (rc == 1)
++		printf("%s: overwrite completed.\n",
++				ndctl_dimm_get_devname(dimm));
++	return rc;
++}
++
+ static int __action_init(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version version, int chk_only)
+ {
+@@ -1356,3 +1374,12 @@ int cmd_sanitize_dimm(int argc, const char **argv, void *ctx)
+ 				count >= 0 ? count : 0, count > 1 ? "s" : "");
+ 	return count >= 0 ? 0 : EXIT_FAILURE;
+ }
++
++int cmd_wait_overwrite(int argc, const char **argv, void *ctx)
++{
++	int count = dimm_action(argc, argv, ctx, action_wait_overwrite,
++			base_options,
++			"ndctl wait-overwrite <nmem0> [<nmem1>..<nmemN>] [<options>]");
++
++	return count >= 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index d7b70ebf..150e337a 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -16,6 +16,7 @@
+ #include <util/bitmap.h>
+ #include <util/sysfs.h>
+ #include <stdlib.h>
++#include <poll.h>
+ #include "private.h"
+ 
+ static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
+@@ -685,3 +686,80 @@ NDCTL_EXPORT int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key)
+ 	sprintf(buf, "overwrite %ld\n", key);
+ 	return write_security(dimm, buf);
+ }
++
++NDCTL_EXPORT int ndctl_dimm_wait_overwrite(struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
++	struct pollfd fds;
++	char buf[SYSFS_ATTR_SIZE];
++	int fd = 0, rc;
++	char *path = dimm->dimm_buf;
++	int len = dimm->buf_len;
++
++	if (snprintf(path, len, "%s/security", dimm->dimm_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				ndctl_dimm_get_devname(dimm));
++		return -ERANGE;
++	}
++
++	fd = open(path, O_RDONLY|O_CLOEXEC);
++	if (fd < 0) {
++		rc = -errno;
++		err(ctx, "open: %s\n", strerror(errno));
++		return rc;
++	}
++	memset(&fds, 0, sizeof(fds));
++	fds.fd = fd;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc < 0) {
++		rc = -EOPNOTSUPP;
++		goto out;
++	}
++	/* skipping if we aren't in overwrite state */
++	if (strcmp(buf, "overwrite") != 0) {
++		rc = 0;
++		goto out;
++	}
++
++	for (;;) {
++		rc = sysfs_read_attr(ctx, path, buf);
++		if (rc < 0) {
++			rc = -EOPNOTSUPP;
 +			break;
-+
-+		case NDCTL_NS_MODE_DAX:
-+			alignments = ndctl_dax_get_num_alignments(dax);
-+			break;
-+
-+		default:
- 			error("%s mode does not support setting an alignment\n",
- 					p->mode == NDCTL_NS_MODE_SAFE
- 					? "sector" : "raw");
-@@ -546,13 +561,19 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		}
- 
- 		p->align = parse_size64(param.align);
-+		for (i = 0; i < alignments; i++) {
-+			uint64_t a;
- 
--		switch (p->align) {
--		case SZ_4K:
--		case SZ_2M:
--		case SZ_1G:
--			break;
--		default:
-+			if (p->mode == NDCTL_NS_MODE_MEMORY)
-+				a = ndctl_pfn_get_supported_alignment(pfn, i);
-+			else
-+				a = ndctl_dax_get_supported_alignment(dax, i);
-+
-+			if (p->align == a)
-+				break;
 +		}
 +
-+		if (i >= alignments) {
- 			error("unsupported align: %s\n", param.align);
- 			return -ENXIO;
- 		}
--- 
-2.20.1
++		if (strcmp(buf, "overwrite") == 0) {
++			rc = poll(&fds, 1, -1);
++			if (rc < 0) {
++				rc = -errno;
++				err(ctx, "poll error: %s\n", strerror(errno));
++				break;
++			}
++			dbg(ctx, "poll wake: revents: %d\n", fds.revents);
++			if (pread(fd, buf, 1, 0) == -1) {
++				rc = -errno;
++				break;
++			}
++			fds.revents = 0;
++		} else {
++			if (strcmp(buf, "disabled") == 0)
++				rc = 1;
++			break;
++		}
++	}
++
++	if (rc == 1)
++		dbg(ctx, "%s: overwrite complete\n",
++				ndctl_dimm_get_devname(dimm));
++	else if (rc == 0)
++		dbg(ctx, "%s: ovewrite skipped\n",
++				ndctl_dimm_get_devname(dimm));
++	else
++		dbg(ctx, "%s: overwrite error waiting for complete\n",
++				ndctl_dimm_get_devname(dimm));
++
++ out:
++	close(fd);
++	return rc;
++}
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 732c621e..7bd4ba59 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -396,4 +396,5 @@ global:
+ 	ndctl_dimm_freeze_security;
+ 	ndctl_dimm_secure_erase;
+ 	ndctl_dimm_overwrite;
++	ndctl_dimm_wait_overwrite;
+ } LIBNDCTL_18;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index b191ad4a..f767d637 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -704,6 +704,7 @@ int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+ int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
+ int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
++int ndctl_dimm_wait_overwrite(struct ndctl_dimm *dimm);
+ 
+ #define ND_KEY_DESC_SIZE	128
+ #define ND_KEY_CMD_SIZE		128
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 041f66be..04bf56d6 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -94,6 +94,7 @@ static struct cmd_struct commands[] = {
+ 	{ "freeze-security", { cmd_freeze_security } },
+ 	{ "sanitize-dimm", { cmd_sanitize_dimm } },
+ 	{ "load-keys", { cmd_load_keys } },
++	{ "wait-overwrite", { cmd_wait_overwrite } },
+ 	{ "list", { cmd_list } },
+ 	{ "monitor", { cmd_monitor } },
+ 	{ "help", { cmd_help } },
 
 _______________________________________________
 Linux-nvdimm mailing list
