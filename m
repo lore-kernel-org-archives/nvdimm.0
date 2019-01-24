@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46CB9211B81B1
- for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:07:22 -0800 (PST)
-Subject: [PATCH v10 03/12] ndctl: add disable security support
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 24 Jan 2019 16:07:21 -0700
-Message-ID: <154837124124.37086.11776825409363769095.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
-References: <154837084784.37086.4597479371733088393.stgit@djiang5-desk3.ch.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 50712211BA456
+ for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:21:57 -0800 (PST)
+Subject: [PATCH 3/5] mm/memory-hotplug: allow memory resources to be children
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Thu, 24 Jan 2019 15:14:45 -0800
+References: <20190124231441.37A4A305@viggo.jf.intel.com>
+In-Reply-To: <20190124231441.37A4A305@viggo.jf.intel.com>
+Message-Id: <20190124231445.5D8EEDAF@viggo.jf.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,238 +17,124 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org
+Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add support for disable security to libndctl and also command line option
-of "disable-passphrase" for ndctl. This provides a way to disable security
-on the nvdimm.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+From: Dave Hansen <dave.hansen@linux.intel.com>
+
+The mm/resource.c code is used to manage the physical address
+space.  The current resource configuration can be viewed in
+/proc/iomem.  An example of this is at the bottom of this
+description.
+
+The nvdimm subsystem "owns" the physical address resources which
+map to persistent memory and has resources inserted for them as
+"Persistent Memory".  The best way to repurpose this for volatile
+use is to leave the existing resource in place, but add a "System
+RAM" resource underneath it. This clearly communicates the
+ownership relationship of this memory.
+
+The request_resource_conflict() API only deals with the
+top-level resources.  Replace it with __request_region() which
+will search for !IORESOURCE_BUSY areas lower in the resource
+tree than the top level.
+
+We *could* also simply truncate the existing top-level
+"Persistent Memory" resource and take over the released address
+space.  But, this means that if we ever decide to hot-unplug the
+"RAM" and give it back, we need to recreate the original setup,
+which may mean going back to the BIOS tables.
+
+This should have no real effect on the existing collision
+detection because the areas that truly conflict should be marked
+IORESOURCE_BUSY.
+
+00000000-00000fff : Reserved
+00001000-0009fbff : System RAM
+0009fc00-0009ffff : Reserved
+000a0000-000bffff : PCI Bus 0000:00
+000c0000-000c97ff : Video ROM
+000c9800-000ca5ff : Adapter ROM
+000f0000-000fffff : Reserved
+  000f0000-000fffff : System ROM
+00100000-9fffffff : System RAM
+  01000000-01e071d0 : Kernel code
+  01e071d1-027dfdff : Kernel data
+  02dc6000-0305dfff : Kernel bss
+a0000000-afffffff : Persistent Memory (legacy)
+  a0000000-a7ffffff : System RAM
+b0000000-bffdffff : System RAM
+bffe0000-bfffffff : Reserved
+c0000000-febfffff : PCI Bus 0000:00
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
 ---
- Documentation/ndctl/Makefile.am                 |    3 ++-
- Documentation/ndctl/ndctl-remove-passphrase.txt |   26 ++++++++++++++++++++++
- ndctl/builtin.h                                 |    1 +
- ndctl/dimm.c                                    |   23 ++++++++++++++++++++
- ndctl/lib/dimm.c                                |    9 ++++++++
- ndctl/lib/libndctl.sym                          |    1 +
- ndctl/libndctl.h                                |    1 +
- ndctl/ndctl.c                                   |    1 +
- ndctl/util/keys.c                               |   27 +++++++++++++++++++++++
- ndctl/util/keys.h                               |    6 +++++
- 10 files changed, 97 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/ndctl/ndctl-remove-passphrase.txt
 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index 79b12f8b..3b543216 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -49,7 +49,8 @@ man1_MANS = \
- 	ndctl-list.1 \
- 	ndctl-monitor.1 \
- 	ndctl-setup-passphrase.1 \
--	ndctl-update-passphrase.1
-+	ndctl-update-passphrase.1 \
-+	ndctl-remove-passphrase.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/ndctl/ndctl-remove-passphrase.txt b/Documentation/ndctl/ndctl-remove-passphrase.txt
-new file mode 100644
-index 00000000..17ff905b
---- /dev/null
-+++ b/Documentation/ndctl/ndctl-remove-passphrase.txt
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+ndctl-remove-passphrase(1)
-+===========================
-+
-+NAME
-+----
-+ndctl-remove-passphrase - Stop a DIMM from locking at power-loss and requiring a passphrase to access media
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'ndctl remove-passphrase' <nmem0> [<nmem1>..<nmemN>] [<options>]
-+
-+DESCRIPTION
-+-----------
-+Search the user key ring for the associated NVDIMM key. If not found,
-+attempt to load the key blob. After disabling the passphrase successfully,
-+remove the key and the key blob.
-+
-+OPTIONS
-+-------
-+<dimm>::
-+include::xable-dimm-options.txt[]
-+
-+include::../copyright.txt[]
-diff --git a/ndctl/builtin.h b/ndctl/builtin.h
-index 231fda25..9deb175b 100644
---- a/ndctl/builtin.h
-+++ b/ndctl/builtin.h
-@@ -34,4 +34,5 @@ int cmd_update_firmware(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_inject_smart(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_passphrase_setup(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_passphrase_update(int argc, const char **argv, struct ndctl_ctx *ctx);
-+int cmd_passphrase_remove(int argc, const char **argv, struct ndctl_ctx *ctx);
- #endif /* _NDCTL_BUILTIN_H_ */
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 88319b31..045f9408 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -865,6 +865,18 @@ static int action_passphrase_update(struct ndctl_dimm *dimm,
- 	return ndctl_dimm_update_key(dimm, param.kek);
- }
- 
-+static int action_passphrase_remove(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	if (ndctl_dimm_get_security(dimm) < 0) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return ndctl_dimm_remove_key(dimm);
-+}
-+
- static int __action_init(struct ndctl_dimm *dimm,
- 		enum ndctl_namespace_version version, int chk_only)
- {
-@@ -1242,3 +1254,14 @@ int cmd_passphrase_setup(int argc, const char **argv, struct ndctl_ctx *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_passphrase_remove(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_passphrase_remove,
-+			base_options,
-+			"ndctl remove-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "passphrase removed for %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 72b6f66c..a944c9af 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -655,3 +655,12 @@ NDCTL_EXPORT int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 	sprintf(buf, "update %ld %ld\n", ckey, nkey);
- 	return write_security(dimm, buf);
- }
-+
-+NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
-+		long key)
-+{
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	sprintf(buf, "disable %ld\n", key);
-+	return write_security(dimm, buf);
-+}
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 88557710..79b7f9e1 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -392,4 +392,5 @@ global:
- 	ndctl_cmd_submit_xlat;
- 	ndctl_dimm_get_security;
- 	ndctl_dimm_update_passphrase;
-+	ndctl_dimm_disable_passphrase;
- } LIBNDCTL_18;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 85c1537a..0253abf5 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -700,6 +700,7 @@ enum ndctl_security_state {
- enum ndctl_security_state ndctl_dimm_get_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 		long ckey, long nkey);
-+int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
- 
- #define ND_KEY_DESC_SIZE	128
- #define ND_KEY_CMD_SIZE		128
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 5cb5fa4f..9f4ab234 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -90,6 +90,7 @@ static struct cmd_struct commands[] = {
- 	{ "start-scrub", { cmd_start_scrub } },
- 	{ "setup-passphrase", { cmd_passphrase_setup } },
- 	{ "update-passphrase", { cmd_passphrase_update } },
-+	{ "remove-passphrase", { cmd_passphrase_remove } },
- 	{ "list", { cmd_list } },
- 	{ "monitor", { cmd_monitor } },
- 	{ "help", { cmd_help } },
-diff --git a/ndctl/util/keys.c b/ndctl/util/keys.c
-index 1592ff09..daf8e418 100644
---- a/ndctl/util/keys.c
-+++ b/ndctl/util/keys.c
-@@ -458,3 +458,30 @@ int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *kek)
- 
- 	return 0;
- }
-+
-+int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
-+{
-+	key_serial_t key;
-+	int rc;
-+
-+	key = dimm_check_key(dimm, false);
-+	if (key < 0) {
-+		key = dimm_load_key(dimm, false);
-+		if (key < 0) {
-+			fprintf(stderr, "Unable to load key\n");
-+			return -ENOKEY;
-+		}
-+	}
-+
-+	rc = ndctl_dimm_disable_passphrase(dimm, key);
-+	if (rc < 0) {
-+		fprintf(stderr, "Failed to disable security for %s\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return rc;
-+	}
-+
-+	rc = dimm_remove_key(dimm, false);
-+	if (rc < 0)
-+		fprintf(stderr, "Unable to cleanup key.\n");
-+	return 0;
-+}
-diff --git a/ndctl/util/keys.h b/ndctl/util/keys.h
-index 2cebdf0c..1ea428ef 100644
---- a/ndctl/util/keys.h
-+++ b/ndctl/util/keys.h
-@@ -12,6 +12,7 @@ enum ndctl_key_type {
- #ifdef ENABLE_KEYUTILS
- int ndctl_dimm_setup_key(struct ndctl_dimm *dimm, const char *kek);
- int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *kek);
-+int ndctl_dimm_remove_key(struct ndctl_dimm *dimm);
- #else
- static inline int ndctl_dimm_setup_key(struct ndctl_dimm *dimm,
- 		const char *kek)
-@@ -24,6 +25,11 @@ static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
- {
- 	return -EOPNOTSUPP;
- }
-+
-+static inline int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif /* ENABLE_KEYUTILS */
- 
- #endif
+ b/mm/memory_hotplug.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
+diff -puN mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory-hotplug-allow-memory-resource-to-be-child	2019-01-24 15:13:14.979199537 -0800
++++ b/mm/memory_hotplug.c	2019-01-24 15:13:14.983199537 -0800
+@@ -98,19 +98,21 @@ void mem_hotplug_done(void)
+ /* add this memory to iomem resource */
+ static struct resource *register_memory_resource(u64 start, u64 size)
+ {
+-	struct resource *res, *conflict;
+-	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+-	if (!res)
+-		return ERR_PTR(-ENOMEM);
++	struct resource *res;
++	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
++	char *resource_name = "System RAM";
+ 
+-	res->name = "System RAM";
+-	res->start = start;
+-	res->end = start + size - 1;
+-	res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+-	conflict =  request_resource_conflict(&iomem_resource, res);
+-	if (conflict) {
+-		pr_debug("System RAM resource %pR cannot be added\n", res);
+-		kfree(res);
++	/*
++	 * Request ownership of the new memory range.  This might be
++	 * a child of an existing resource that was present but
++	 * not marked as busy.
++	 */
++	res = __request_region(&iomem_resource, start, size,
++			       resource_name, flags);
++
++	if (!res) {
++		pr_debug("Unable to reserve System RAM region: %016llx->%016llx\n",
++				start, start + size);
+ 		return ERR_PTR(-EEXIST);
+ 	}
+ 	return res;
+_
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
