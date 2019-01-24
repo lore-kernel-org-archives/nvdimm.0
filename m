@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5AE202194D387
- for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 11:30:41 -0800 (PST)
-Subject: [PATCH] MAINTAINERS: Update filesystem-dax and NVDIMM entries
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 24 Jan 2019 11:17:59 -0800
-Message-ID: <154835747897.2884847.389054528444820204.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6BBDB211B1112
+ for <linux-nvdimm@lists.01.org>; Wed, 23 Jan 2019 17:07:51 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v9 02/13] ndctl: add command for ndctl to receive the
+ key encryption key (master)
+Date: Thu, 24 Jan 2019 01:07:50 +0000
+Message-ID: <4704317c462678f4451fc4902a0f7bdc78c4ddf6.camel@intel.com>
+References: <154777861562.42557.12388414625709189905.stgit@djiang5-desk3.ch.intel.com>
+ <154777911312.42557.15688834797714631330.stgit@djiang5-desk3.ch.intel.com>
+ <CAPcyv4hgA+uht-BeDdeom-sw3q2ihnXsx8p6csk41fRPeDXwRQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4hgA+uht-BeDdeom-sw3q2ihnXsx8p6csk41fRPeDXwRQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <9337CA39DE03224B8462A26C543C159C@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,99 +27,95 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <zwisler@kernel.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ross has moved on to other areas.
 
-Matthew and Jan are trusted reviewers for DAX.
+On Wed, 2019-01-23 at 09:45 -0800, Dan Williams wrote:
+> > 
 
-Dan is now coordinating filesystem-dax pull requests.
+[..]
 
-Ira and Keith are now involved with the NVDIMM and Device-DAX
-sub-systems.
+> On Thu, Jan 17, 2019 at 6:38 PM Dave Jiang <dave.jiang@intel.com> wrote:
+> > +static int store_kek(const char *provider, const char *kek)
+> > +{
+> > +       char path[PATH_MAX];
+> > +       FILE *fp;
+> > +       ssize_t rc, wrote = 0;
+> > +       int size = strlen(kek);
+> > +
+> > +       rc = sprintf(path, "%s/%s.kek", NDCTL_KEYS_DIR, provider);
+> > +       if (rc < 0) {
+> > +               perror("sprintf kek path failed");
+> > +               return rc;
+> > +       }
+> > +
+> > +       fp = fopen(path, "w+");
+> > +       if (!fp) {
+> > +               fprintf(stderr, "Opening file %s failed: %s\n",
+> > +                               path, strerror(errno));
+> > +               return -errno;
+> > +       }
+> > +
+> > +       do {
+> > +               rc = fwrite(kek + wrote, 1, size - wrote, fp);
+> > +               if (rc < 0) {
+> > +                       fprintf(stderr, "writing file %s failed: %s\n",
+> > +                                       path, strerror(errno));
+> > +                       fclose(fp);
+> > +                       return -errno;
+> > +               }
+> > +               wrote += rc;
+> > +       } while (wrote != size);
+> > +
+> > +       fclose(fp);
+> > +       printf("key handle %s installed to %s\n", kek, path);
+> > +       return 0;
+> 
+> So the format of this file is just name it by the bus provider and
+> store the flat key name inside? That would seem to make supporting a
+> key per-dimm more complicated in the future.
+> 
+> It would be nice to steal the git config file handling since it could
+> do something like this:
+> 
+> [ key "<description>" ]
+>     bus = <provider>
+>     dimm = <dimm unique-id>
+>     file = <path to key data>
+> 
+> Where multiple keys can be recorded by unique descriptions and the
+> properties can be used as a match spec to scope that key to a set of
+> DIMMs. For example a system-wide master key
+> 
+> [ key "system-master" ]
+>     bus = all
+>     file = key.blob
+> 
+> ...and the following would identify a kek for a single dimm.
+> 
+> [ key "dimm0" ]
+>     dimm = "8680-57341200"
+>     file = key.blob
+> 
+> ...the roadblock of course being how easy (or not easy) it is to steal
+> the config file capabilities from git.
+> 
+> Too complicated? Other ideas?
 
-The linux-nvdimm mailing hosts a patchwork instance for both DAX and
-NVDIMM patches.
+I like the general scheme..
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- MAINTAINERS |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+But it sounds like a pre-requisite for this might be the config rework
+that we will have for ndctl-monitor in the future. I'm trying to think
+of how this will tie in with that - ideally we have one global config
+file, and that includes sections for different commands. Ideally keys
+also get described there.. Maybe each [key "foo"] section can be such a
+top level section?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 51029a425dbe..5f43ee438a74 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4535,10 +4535,11 @@ S:	Maintained
- F:	drivers/i2c/busses/i2c-diolan-u2c.c
- 
- FILESYSTEM DIRECT ACCESS (DAX)
--M:	Matthew Wilcox <willy@infradead.org>
--M:	Ross Zwisler <zwisler@kernel.org>
--M:	Jan Kara <jack@suse.cz>
-+M:	Dan Williams <dan.j.williams@intel.com>
-+R:	Matthew Wilcox <willy@infradead.org>
-+R:	Jan Kara <jack@suse.cz>
- L:	linux-fsdevel@vger.kernel.org
-+L:	linux-nvdimm@lists.01.org
- S:	Supported
- F:	fs/dax.c
- F:	include/linux/dax.h
-@@ -4546,9 +4547,9 @@ F:	include/trace/events/fs_dax.h
- 
- DEVICE DIRECT ACCESS (DAX)
- M:	Dan Williams <dan.j.williams@intel.com>
--M:	Dave Jiang <dave.jiang@intel.com>
--M:	Ross Zwisler <zwisler@kernel.org>
- M:	Vishal Verma <vishal.l.verma@intel.com>
-+M:	Keith Busch <keith.busch@intel.com>
-+M:	Dave Jiang <dave.jiang@intel.com>
- L:	linux-nvdimm@lists.01.org
- S:	Supported
- F:	drivers/dax/
-@@ -8641,7 +8642,6 @@ S:	Maintained
- F:	tools/lib/lockdep/
- 
- LIBNVDIMM BLK: MMIO-APERTURE DRIVER
--M:	Ross Zwisler <zwisler@kernel.org>
- M:	Dan Williams <dan.j.williams@intel.com>
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
-@@ -8654,7 +8654,6 @@ F:	drivers/nvdimm/region_devs.c
- LIBNVDIMM BTT: BLOCK TRANSLATION TABLE
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dan Williams <dan.j.williams@intel.com>
--M:	Ross Zwisler <zwisler@kernel.org>
- M:	Dave Jiang <dave.jiang@intel.com>
- L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
-@@ -8662,7 +8661,6 @@ S:	Supported
- F:	drivers/nvdimm/btt*
- 
- LIBNVDIMM PMEM: PERSISTENT MEMORY DRIVER
--M:	Ross Zwisler <zwisler@kernel.org>
- M:	Dan Williams <dan.j.williams@intel.com>
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
-@@ -8681,9 +8679,10 @@ F:	Documentation/devicetree/bindings/pmem/pmem-region.txt
- 
- LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SUBSYSTEM
- M:	Dan Williams <dan.j.williams@intel.com>
--M:	Ross Zwisler <zwisler@kernel.org>
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
-+M:	Keith Busch <keith.busch@intel.com>
-+M:	Ira Weiny <ira.weiny@intel.com>
- L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
+The other option is a security specific config file, but if we're
+unifying the config file handling, I think this should be part of it
+from the start.
 
 _______________________________________________
 Linux-nvdimm mailing list
