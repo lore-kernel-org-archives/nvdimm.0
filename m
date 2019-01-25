@@ -1,12 +1,12 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: How can we better support vender specific _DSM commands in ndctl?
-Date: Wed, 23 Jan 2019 22:47:44 +0000
-Message-ID: <PU1P153MB0169D295CC946C507FBD1F34BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Avraham F <newsletter-hsj6ziGdmJhhZxZQj6uDGA@public.gmane.org>
+Subject: your mail subject
+Date: Fri, 25 Jan 2019 12:55:16 +0100
+Message-ID: <0.0.3.F1.1D4B4A4D68A53C6.0@land.estorin.info>
+Reply-To: newsletter-hsj6ziGdmJhhZxZQj6uDGA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,83 +16,70 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Lijun Pan <Lijun.Pan-8PEkshWhKlo@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Boylston, Brian" <brian.boylston-ZPxbGqLxI0U@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi all,
-Hyper-V implements virtualized NVDIMM for guests running on it [1]. The
-command set is documented on the RFIC_LIST page on uefi.org [2]. 
-
-After Linux guest boots up, I can see these dev files:
-/dev/ndctl0   /dev/nmem0   /dev/pmem0 
-and I can create an xfs file system on /dev/pmem0, mount it and use it. 
-
-Everything works just fine except for one thing: I can't call the Hyper-V 
-specific _DSM methods. So I wrote a patch [3] to allow the methods to
-be called (I Cc'd you when posting the patch. Please review it.).
-
-And then I found it looks ndctl doesn't allow me to easily call *all* the
-_DSM methods, and I can't easily use ndctl to interpret the output in a
-way I prefer.
-
-My understanding is that: it looks when the kernel nvdimm driver and ndctl
-were originally implemented, the code was mainly for Intel NVDIMM. Later
-people introduced the support for NVDIMM_FAMILY_{HPE1, HPE2, MSFT},
-and introduced the kernel ND_CMD_CALL ioctl to allow ndctl to call 
-vender-specific methods, but up to now, it looks the majority of the cmds
-(if not all of the cmds) shown by "ndctl --list-cmds" are not very useful to
-call vender specific methods, especially for NVDIMM_FAMILY_MSFT:
-
-e.g.: for NVDIMM_FAMILY_MSFT, only Function 11 is used, and the
-only useful info from "ndctl list --dimms --health" is:
-
-  "health":{
-    "health_state":"ok",
-    "temperature_celsius":27.000000,
-    "life_used_percentage":3
-  }
-
-And, in msft_cmd_smart_get_health(), we only count the number of error bits,
-and we drop the detailed info about the errors, and we lose some info
-from the struct ndn_msft_smart_data, e.g. err_thresh_stat, warn_thresh_stat,
-count_dram_uncorr_err and count_dram_corr_err, which IMO could be useful.
-
-(See "libndctl: add support for the MSFT family of DSM functions" [4])
-
-And, NVDIMM_FAMILY_MSFT has 32 methods [5], but except Function 11, it
-looks the other methods can not be mapped to the existing ndctl commands.
-
-
-Now, the new NVDIMM type NVDIMM_FAMILY_HYPERV has 4 Hyper-V specific
-_DSM methods [2]:
-
-Get Health Information (Function Index 1)
-Get Unsafe Shutdown Count (Function Index 2)
-Inject Error (Function Index 3)
-Query Injected Errors (Function Index 4)
-
-For Function 1, I made a patch 
-"libndctl: add support for the HYPER-V family of DSM functions" (please see [6],
-especially hyperv_cmd_smart_get_health() in the patch) to use it, but the
-existing ndctl interface, i.e. util_dimm_health_to_json(), only allows me to
-return to the user a string of "fatal", "critical", "non-critical" or "ok", while 
-I would like to return more details about the errors to the user.
-
-Function 3 can not be mapped to ndctl/inject-smart.c: smart_inject(), because
-it's incompatible with Intel NVDIMM.
-
-Function 2 and 4 can't be mapped to the existing ndctl commands either.
-
-I'm wondering how I should use the 4 Hyper-V specific methods in ndctl.
-
-I appreciate your insights. Thank you!
-
---Dexuan
-
-[1] https://docs.microsoft.com/en-us/windows-server/virtualization/hyper-v/manage/persistent-memory-cmdlets
-[2] http://www.uefi.org/RFIC_LIST, see the link to "Virtual NVDIMM 0x1901" on the page.
-[3] https://www.lkml.org/lkml/2019/1/23/761
-[4] https://github.com/pmem/ndctl/commit/2cf2acca0288389a39ac823a42a5e048575d52db
-[5] https://docs.microsoft.com/en-us/windows-hardware/drivers/storage/-dsm-interface-for-byte-addressable-energy-backed-function-class--function-interface-1-
-[6] https://github.com/dcui/ndctl/commit/12feb081c881b24fee9f6cf088037c2e30248252
+WW91ciBlbWFpbCBjbGllbnQgY2Fubm90IHJlYWQgdGhpcyBlbWFpbC4gVG8gdmlldyBpdCBvbmxp
+bmUsIHBsZWFzZSBnbyBoZXJlOiBodHRwOi8vdHJhY2sueW9nYW5ld3MuaW5mby9jYW1wYWlnbnMv
+d2VidmVyc2lvbi9OemsxTnc9PS9NelEwTlRBME9BPT0vTWpVNTxiciAvPsKgSGF2ZSB3ZSBnb3R0
+ZW4gdG8gdGhlIHdyb25nIGFkZHJlc3M/wqAgSWYgc28sIHdlIGFwb2xvZ2l6ZSBhbmQgeW91IGNh
+biBlYXNpbHkgcHJlc3MgdGhlIFVuc3Vic2NyaWJlIG1lIGZyb20gdGhpcyBsaXN0PGJyIC8+RGVh
+ciBjb2xsZWFndWVzLMKgPGJyIC8+PGJyIC8+Rm9sbG93aW5nIG91ciBNb3ZlbWVudCBhbmQgQ29n
+bml0aW9uIGNvbmZlcmVuY2VzIGF0IE94Zm9yZCBVbml2ZXJzaXR5IGFuZCBhdCBIYXJ2YXJkIE1l
+ZGljYWwgU2Nob29sLCB3ZSBoYXZlIHRoZSBob25vciB0byBpbnZpdGUgeW91IHRvIHRoZSAyMDE5
+IHdvcmxkIGNvbmZlcmVuY2Ugb24gTW92ZW1lbnQgYW5kIENvZ25pdGlvbiBhdCBUZWwtQXZpdiBV
+bml2ZXJzaXR5LjxiciAvPjxiciAvPlRoZSBwdXJwb3NlIG9mIHRoZSBjb25mZXJlbmNlIGlzIHRv
+IHNoYXJlIGtub3dsZWRnZSBvbiB0aGUgcmVsYXRpb24gb2YgaHVtYW4gbW92ZW1lbnQgdG8gY29n
+bml0aXZlIGZ1bmN0aW9uLiBBbW9uZyB0aGUgZm9jdXMgYXJlYXMgb2YgdGhlIGNvbmZlcmVuY2Ug
+aW5jbHVkZSBhcHBsaWNhdGlvbnMgZm9yOiBSZWhhYmlsaXRhdGlvbiBhbmQgdGhlcmFwZXV0aWNz
+LCBzcG9ydCwgbW90b3IgbGVhcm5pbmcsIGJyYWluLWJlaGF2aW9yIHJlbGF0aW9uc2hpcHMsIGdh
+aXQgYW5kIGNvZ25pdGlvbiwgYW5kIGRhbmNlLiBXZSBhcmUgYWxzbyBmb2N1c2luZyB0aGlzIHRp
+bWUgb24gZmVtYWxlIGNvZ25pdGl2ZSBtb3ZlbWVudCBpbnRlcmFjdGlvbiwgdGhlIGFnaW5nIGJy
+YWluIGFuZCBnZXJvbnRvbG9neSwgdHJlYXRtZW50IG9mIHRyYXVtYXRpYyBicmFpbiBpbmp1cnks
+IG5lb25hdGFsLCBpbmZhbnQgYW5kIGNoaWxkIGRldmVsb3BtZW50IGFuZCBlcmdvbm9taWNzIGFs
+bCBpbiB0aGUgY29udGV4dCBvZiBtb3ZlbWVudCBhbmQgY29nbml0aW9uLjxiciAvPjxiciAvPlRo
+ZSBjb25mZXJlbmNlIHdpbGwgYmUgaGVsZCBvbiB0aGUgY2FtcHVzIG9mIHRoZSBVbml2ZXJzaXR5
+IGluIHRoZSB2aWJyYW50IGFuZCBmYXNjaW5hdGluZyBjaXR5IG9mIFRlbC1Bdml2IGJldHdlZW4g
+MjItMjQgSnVseSAyMDE5LiBCZXNpZGVzIHRoZSBhY2FkZW1pYywgc2NpZW50aWZpYyBhbmQgY2xp
+bmljYWwgcHJlc2VudGF0aW9ucywgdG91cnMgd2lsbCBhbHNvIGJlIGF2YWlsYWJsZS7CoDxiciAv
+PjxiciAvPldlIHdlbGNvbWUgeW91ciBwYXJ0aWNpcGF0aW9uIGluIHRoaXMgY29uZmVyZW5jZS4g
+U2hvdWxkIHlvdSwgaW4gYWRkaXRpb24sIGRlc2lyZSB0byBwcmVzZW50IHlvdXIgcmVzZWFyY2gs
+IHVuaXF1ZSB0ZWNobmlxdWUgb3IgY2xpbmljYWwgZXhwZXJpZW5jZXMsIGtpbmRseSBzZW5kIHVz
+IHlvdXIgYWJzdHJhY3QuwqAgVGhpcyBjYW4gYmUgZG9uZSBieSBzZW5kaW5nIHRvIHRoZSBhdHRl
+bnRpb24gb2YgdGhlIHNlY3JldGFyeSBvZiB0aGUgc2NpZW50aWZpYyBjb21taXR0ZWUgYXQ6wqBq
+bWVycmlja0B6YWhhdi5uZXQuaWwuIFRoZSBhYnN0cmFjdHMgb2YgdGhlIGNvbmZlcmVuY2Ugd2ls
+bCBiZSBwdWJsaXNoZWQgaW4gdGhlIENvbmZlcmVuY2UgUHJvY2VlZGluZ3MgYXMgd2VsbCBhcyBz
+ZWxlY3RlZCBwYXBlcnMgcHVibGlzaGVkIGluIHZvbHVtZSA5IG9mIHRoZSBqb3VybmFswqBGdW5j
+dGlvbmFsIE5ldXJvbG9neSwgUmVoYWJpbGl0YXRpb24sIGFuZCBFcmdvbm9taWNzLjxiciAvPjxi
+ciAvPlRoZSBjb25mZXJlbmNlIGlzIGEgY29sbGFib3JhdGl2ZSB2ZW50dXJlIG9mIHRoZSBmb2xs
+b3dpbmcgaW5zdGl0dXRpb25zOiB0aGUgSGFydmFyZCBNZWRpY2FsIFNjaG9vbCBhZmZpbGlhdGVk
+IGhvc3BpdGFscywgTWNMZWFuLCBhbmQgQmV0aCBJc3JhZWwtRGVhY29uZXNzLCBUZWwtQXZpdiBV
+bml2ZXJzaXR5LCB0aGUgQ29tcHV0YXRpb25hbCBOZXVyb3NjaWVuY2VzIExhYm9yYXRvcnkgYXQg
+dGhlIE51ZmZpZWxkIERlcGFydG1lbnQgb2YgU3VyZ2ljYWwgU2NpZW5jZXMsIFVuaXZlcnNpdHkg
+b2YgT3hmb3JkLCB0aGUgU3ludGhldGljIEludGVsbGlnZW5jZSBMYWJvcmF0b3J5LCBNYXNzYWNo
+dXNldHRzIEluc3RpdHV0ZSBmb3IgVGVjaG5vbG9neSwgQmllbGVmZWxkIFVuaXZlcnNpdHkgaW4g
+R2VybWFueSwgdGhlIFNjaG9vbCBvZiBNZWRpY2luZSBvZiB0aGUgSGVicmV3IFVuaXZlcnNpdHkg
+b2YgSmVydXNhbGVtLMKgTGEgU29yYm9ubmUgKFVuaXZlcnNpdHkgb2YgUGFyaXMpIEZyYW5jZSzC
+oMKgdGhlIEplcnVzYWxlbSBBY2FkZW15IG9mIERhbmNlLMKgIHRoZSBGYWN1bHR5IG9mIEhlYWx0
+aCBTY2llbmNlcyBvZiBVbml2ZXJzaXR5IG9mIEhhaWZhLCB0aGUgV2luZ2F0ZSBJbnN0aXR1dGUg
+Zm9yIFNwb3J0cyBhbmQgRXhlcmNpc2UgU2NpZW5jZSwgdGhlIE5hdGlvbmFsIEluc3RpdHV0ZSBm
+b3IgQnJhaW4gYW5kIFJlaGFiaWxpdGF0aW9uIFNjaWVuY2VzLCBOYXphcmV0aCwgSXNyYWVsLCB0
+aGUgSW5zdGl0dXRlIGZvciBOZXVyb2xvZ3kgYW5kIE5ldXJvc3VyZ2VyeSwgSGF2YW5hIGFuZCB0
+aGUgVW5pdmVyc2l0eSBvZiB0aGUgTWVkaWNhbCBTY2llbmNlcyBIYXZhbmEuPGJyIC8+PGJyIC8+
+UGxlYXNlIGNoZWNrIG91dCB0aGUgY29uZmVyZW5jZSB3ZWJzaXRlIGF0IChsaW5rKTogaHR0cDov
+L2JpdC5seS8yUTduMFFzPGJyIC8+PGJyIC8+V2UgaG9wZSB0byBtZWV0IHlvdSBpbiBKdWx5IDIw
+MTkgaW4gVGVsLUF2aXYgYW5kIHdlbGNvbWUgeW91IHBlcnNvbmFsbHkgdG8gdGhlIEhvbHkgTGFu
+ZC48YnIgLz48YnIgLz5XaXNoIHZlcnkgYmVzdCB3aXNoZXMsPGJyIC8+PGJyIC8+wqA8YnIgLz48
+YnIgLz5HZXJyeSBMZWlzbWFuwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgwqDCoMKgwqA8YnIgLz48YnIgLz5DaGFpciwgU2NpZW50aWZpYyBDb21taXR0
+ZWU8YnIgLz48YnIgLz5NT1ZFTUVOVC0yMDE4PGJyIC8+PGJyIC8+UHJvZmVzc29yLCBOZXVyby0g
+YW5kIFJlaGFiaWxpdGF0aW9uIFNjaWVuY2VzPGJyIC8+PGJyIC8+VW5pdmVyc2l0eSBvZiBIYWlm
+YSBGYWN1bHR5IG9mIFNvY2lhbCBXZWxmYXJlPGJyIC8+PGJyIC8+YW5kIEhlYWx0aCBTY2llbmNl
+cy48YnIgLz7CoCDCoERpcmVjdG9yLCBUaGUgTmF0aW9uYWw8YnIgLz5JbnN0aXR1dGUgb2YgQnJh
+aW4gJiBSZWhhYmlsaXRhdGlvbiBTY2llbmNlcyw8YnIgLz48YnIgLz5OYXphcmV0aCwgSXNyYWVs
+LsKgPGJyIC8+UHJvZmVzc29yIE5ldXJvbG9nw61jYcKgUmVzdGF1cmF0aXZhwqA8YnIgLz7CoCDC
+oFVuaXZlcnNpZGFkIGRlIENpZW5jaWFzIE3DqWRpY2FzPGJyIC8+Cl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
