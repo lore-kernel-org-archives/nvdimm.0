@@ -1,40 +1,98 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id CA7D8211B81B1
+ for <linux-nvdimm@lists.01.org>; Fri, 25 Jan 2019 00:20:49 -0800 (PST)
+From: "Du, Fan" <fan.du@intel.com>
+Subject: RE: [PATCH 5/5] dax: "Hotplug" persistent memory for use like
+ normal RAM
+Date: Fri, 25 Jan 2019 08:20:45 +0000
+Message-ID: <5A90DA2E42F8AE43BC4A093BF067884825733A5B@SHSMSX104.ccr.corp.intel.com>
+References: <20190124231441.37A4A305@viggo.jf.intel.com>
+ <20190124231448.E102D18E@viggo.jf.intel.com>
+ <0852310e-41dc-dc96-2da5-11350f5adce6@oracle.com>
+ <CAPcyv4hjJhUQpMy1CVJZur0Ssr7Cr2fkcD50L5gzx6v_KY14vg@mail.gmail.com>
+In-Reply-To: <CAPcyv4hjJhUQpMy1CVJZur0Ssr7Cr2fkcD50L5gzx6v_KY14vg@mail.gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
-References: <20190124231441.37A4A305@viggo.jf.intel.com> <20190124231448.E102D18E@viggo.jf.intel.com>
- <0852310e-41dc-dc96-2da5-11350f5adce6@oracle.com> <CAPcyv4hjJhUQpMy1CVJZur0Ssr7Cr2fkcD50L5gzx6v_KY14vg@mail.gmail.com>
- <5A90DA2E42F8AE43BC4A093BF067884825733A5B@SHSMSX104.ccr.corp.intel.com>
-In-Reply-To: <5A90DA2E42F8AE43BC4A093BF067884825733A5B@SHSMSX104.ccr.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 25 Jan 2019 09:18:41 -0800
-Message-ID: <CAPcyv4ikXD8rJAmV6tGNiq56m_ZXPZNrYkTwOSUJ7D1O_M5s=w@mail.gmail.com>
-Subject: Re: [PATCH 5/5] dax: "Hotplug" persistent memory for use like normal RAM
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
-To: "Du, Fan" <fan.du@intel.com>
-Cc: Jane Chu <jane.chu@oracle.com>, Tom Lendacky <thomas.lendacky@amd.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Takashi Iwai <tiwai@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcj9tZSBHbGlzc2U=?= <jglisse@redhat.com>, Borislav Petkov <bp@suse.de>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Ross Zwisler <zwisler@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, "Wu, Fengguang" <fengguang.wu@intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, Jane Chu <jane.chu@oracle.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Takashi Iwai <tiwai@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?iso-8859-1?Q?J=E9r=3Fme_Glisse?= <jglisse@redhat.com>, "Wu, Fengguang  <fengguang.wu@intel.com>, Yaowei Bai" <baiyaowei@cmss.chinamobile.com>, "Huang, Ying  <ying.huang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Andrew Morton" <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jan 25, 2019 at 12:20 AM Du, Fan <fan.du@intel.com> wrote:
->
-> Dan
->
-> Thanks for the insights!
->
-> Can I say, the UCE is delivered from h/w to OS in a single way in case of machine
-> check, only PMEM/DAX stuff filter out UC address and managed in its own way by
-> badblocks, if PMEM/DAX doesn't do so, then common RAS workflow will kick in,
-> right?
+Dan
 
-The common RAS workflow always kicks in, it's just the page state
-presented by a DAX mapping needs distinct handling. Once it is
-hot-plugged it no longer needs to be treated differently than "System
-RAM".
+Thanks for the insights!
 
-> And how about when ARS is involved but no machine check fired for the function
-> of this patchset?
+Can I say, the UCE is delivered from h/w to OS in a single way in case of m=
+achine
+check, only PMEM/DAX stuff filter out UC address and managed in its own way=
+ by
+badblocks, if PMEM/DAX doesn't do so, then common RAS workflow will kick in,
+right?
 
-The hotplug effectively disconnects this address range from the ARS
-results. They will still be reported in the libnvdimm "region" level
-badblocks instance, but there's no safe / coordinated way to go clear
-those errors without additional kernel enabling. There is no "clear
-error" semantic for "System RAM".
+And how about when ARS is involved but no machine check fired for the funct=
+ion
+of this patchset?
+
+>-----Original Message-----
+>From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf
+>Of Dan Williams
+>Sent: Friday, January 25, 2019 2:28 PM
+>To: Jane Chu <jane.chu@oracle.com>
+>Cc: Tom Lendacky <thomas.lendacky@amd.com>; Michal Hocko
+><mhocko@suse.com>; linux-nvdimm <linux-nvdimm@lists.01.org>; Takashi
+>Iwai <tiwai@suse.de>; Dave Hansen <dave.hansen@linux.intel.com>; Huang,
+>Ying <ying.huang@intel.com>; Linux Kernel Mailing List
+><linux-kernel@vger.kernel.org>; Linux MM <linux-mm@kvack.org>; J=E9r=F4me
+>Glisse <jglisse@redhat.com>; Borislav Petkov <bp@suse.de>; Yaowei Bai
+><baiyaowei@cmss.chinamobile.com>; Ross Zwisler <zwisler@kernel.org>;
+>Bjorn Helgaas <bhelgaas@google.com>; Andrew Morton
+><akpm@linux-foundation.org>; Wu, Fengguang <fengguang.wu@intel.com>
+>Subject: Re: [PATCH 5/5] dax: "Hotplug" persistent memory for use like
+>normal RAM
+>
+>On Thu, Jan 24, 2019 at 10:13 PM Jane Chu <jane.chu@oracle.com> wrote:
+>>
+>> Hi, Dave,
+>>
+>> While chatting with my colleague Erwin about the patchset, it occurred
+>> that we're not clear about the error handling part. Specifically,
+>>
+>> 1. If an uncorrectable error is detected during a 'load' in the hot
+>> plugged pmem region, how will the error be handled?  will it be
+>> handled like PMEM or DRAM?
+>
+>DRAM.
+>
+>> 2. If a poison is set, and is persistent, which entity should clear
+>> the poison, and badblock(if applicable)? If it's user's responsibility,
+>> does ndctl support the clearing in this mode?
+>
+>With persistent memory advertised via a static logical-to-physical
+>storage/dax device mapping, once an error develops it destroys a
+>physical *and* logical part of a device address space. That loss of
+>logical address space makes error clearing a necessity. However, with
+>the DRAM / "System RAM" error handling model, the OS can just offline
+>the page and map a different one to repair the logical address space.
+>So, no, ndctl will not have explicit enabling to clear volatile
+>errors, the OS will just dynamically offline problematic pages.
+>_______________________________________________
+>Linux-nvdimm mailing list
+>Linux-nvdimm@lists.01.org
+>https://lists.01.org/mailman/listinfo/linux-nvdimm
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
