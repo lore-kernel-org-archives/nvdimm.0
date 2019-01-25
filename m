@@ -1,12 +1,15 @@
-From: Avraham F <newsletter-hsj6ziGdmJhhZxZQj6uDGA@public.gmane.org>
-Subject: your mail subject
-Date: Fri, 25 Jan 2019 12:55:16 +0100
-Message-ID: <0.0.3.F1.1D4B4A4D68A53C6.0@land.estorin.info>
-Reply-To: newsletter-hsj6ziGdmJhhZxZQj6uDGA@public.gmane.org
+From: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/5] mm/resource: return real error codes from walk
+ failures
+Date: Fri, 25 Jan 2019 15:02:55 -0600
+Message-ID: <CAErSpo7kMjfi-1r8ZyGbheWzo+JCFkDZ1zpVhyNV7VVy8NOV7g@mail.gmail.com>
+References: <20190124231441.37A4A305@viggo.jf.intel.com>
+ <20190124231442.EFD29EE0@viggo.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190124231442.EFD29EE0-LXbPSdftPKxrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,70 +19,80 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: thomas.lendacky-5C7GfCeVMHo@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Huang Ying <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, baiyaowei-0p4V/sDNsUmm0O/7XYngnFaTQe2KTcn/@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Wu Fengguang <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-WW91ciBlbWFpbCBjbGllbnQgY2Fubm90IHJlYWQgdGhpcyBlbWFpbC4gVG8gdmlldyBpdCBvbmxp
-bmUsIHBsZWFzZSBnbyBoZXJlOiBodHRwOi8vdHJhY2sueW9nYW5ld3MuaW5mby9jYW1wYWlnbnMv
-d2VidmVyc2lvbi9OemsxTnc9PS9NelEwTlRBME9BPT0vTWpVNTxiciAvPsKgSGF2ZSB3ZSBnb3R0
-ZW4gdG8gdGhlIHdyb25nIGFkZHJlc3M/wqAgSWYgc28sIHdlIGFwb2xvZ2l6ZSBhbmQgeW91IGNh
-biBlYXNpbHkgcHJlc3MgdGhlIFVuc3Vic2NyaWJlIG1lIGZyb20gdGhpcyBsaXN0PGJyIC8+RGVh
-ciBjb2xsZWFndWVzLMKgPGJyIC8+PGJyIC8+Rm9sbG93aW5nIG91ciBNb3ZlbWVudCBhbmQgQ29n
-bml0aW9uIGNvbmZlcmVuY2VzIGF0IE94Zm9yZCBVbml2ZXJzaXR5IGFuZCBhdCBIYXJ2YXJkIE1l
-ZGljYWwgU2Nob29sLCB3ZSBoYXZlIHRoZSBob25vciB0byBpbnZpdGUgeW91IHRvIHRoZSAyMDE5
-IHdvcmxkIGNvbmZlcmVuY2Ugb24gTW92ZW1lbnQgYW5kIENvZ25pdGlvbiBhdCBUZWwtQXZpdiBV
-bml2ZXJzaXR5LjxiciAvPjxiciAvPlRoZSBwdXJwb3NlIG9mIHRoZSBjb25mZXJlbmNlIGlzIHRv
-IHNoYXJlIGtub3dsZWRnZSBvbiB0aGUgcmVsYXRpb24gb2YgaHVtYW4gbW92ZW1lbnQgdG8gY29n
-bml0aXZlIGZ1bmN0aW9uLiBBbW9uZyB0aGUgZm9jdXMgYXJlYXMgb2YgdGhlIGNvbmZlcmVuY2Ug
-aW5jbHVkZSBhcHBsaWNhdGlvbnMgZm9yOiBSZWhhYmlsaXRhdGlvbiBhbmQgdGhlcmFwZXV0aWNz
-LCBzcG9ydCwgbW90b3IgbGVhcm5pbmcsIGJyYWluLWJlaGF2aW9yIHJlbGF0aW9uc2hpcHMsIGdh
-aXQgYW5kIGNvZ25pdGlvbiwgYW5kIGRhbmNlLiBXZSBhcmUgYWxzbyBmb2N1c2luZyB0aGlzIHRp
-bWUgb24gZmVtYWxlIGNvZ25pdGl2ZSBtb3ZlbWVudCBpbnRlcmFjdGlvbiwgdGhlIGFnaW5nIGJy
-YWluIGFuZCBnZXJvbnRvbG9neSwgdHJlYXRtZW50IG9mIHRyYXVtYXRpYyBicmFpbiBpbmp1cnks
-IG5lb25hdGFsLCBpbmZhbnQgYW5kIGNoaWxkIGRldmVsb3BtZW50IGFuZCBlcmdvbm9taWNzIGFs
-bCBpbiB0aGUgY29udGV4dCBvZiBtb3ZlbWVudCBhbmQgY29nbml0aW9uLjxiciAvPjxiciAvPlRo
-ZSBjb25mZXJlbmNlIHdpbGwgYmUgaGVsZCBvbiB0aGUgY2FtcHVzIG9mIHRoZSBVbml2ZXJzaXR5
-IGluIHRoZSB2aWJyYW50IGFuZCBmYXNjaW5hdGluZyBjaXR5IG9mIFRlbC1Bdml2IGJldHdlZW4g
-MjItMjQgSnVseSAyMDE5LiBCZXNpZGVzIHRoZSBhY2FkZW1pYywgc2NpZW50aWZpYyBhbmQgY2xp
-bmljYWwgcHJlc2VudGF0aW9ucywgdG91cnMgd2lsbCBhbHNvIGJlIGF2YWlsYWJsZS7CoDxiciAv
-PjxiciAvPldlIHdlbGNvbWUgeW91ciBwYXJ0aWNpcGF0aW9uIGluIHRoaXMgY29uZmVyZW5jZS4g
-U2hvdWxkIHlvdSwgaW4gYWRkaXRpb24sIGRlc2lyZSB0byBwcmVzZW50IHlvdXIgcmVzZWFyY2gs
-IHVuaXF1ZSB0ZWNobmlxdWUgb3IgY2xpbmljYWwgZXhwZXJpZW5jZXMsIGtpbmRseSBzZW5kIHVz
-IHlvdXIgYWJzdHJhY3QuwqAgVGhpcyBjYW4gYmUgZG9uZSBieSBzZW5kaW5nIHRvIHRoZSBhdHRl
-bnRpb24gb2YgdGhlIHNlY3JldGFyeSBvZiB0aGUgc2NpZW50aWZpYyBjb21taXR0ZWUgYXQ6wqBq
-bWVycmlja0B6YWhhdi5uZXQuaWwuIFRoZSBhYnN0cmFjdHMgb2YgdGhlIGNvbmZlcmVuY2Ugd2ls
-bCBiZSBwdWJsaXNoZWQgaW4gdGhlIENvbmZlcmVuY2UgUHJvY2VlZGluZ3MgYXMgd2VsbCBhcyBz
-ZWxlY3RlZCBwYXBlcnMgcHVibGlzaGVkIGluIHZvbHVtZSA5IG9mIHRoZSBqb3VybmFswqBGdW5j
-dGlvbmFsIE5ldXJvbG9neSwgUmVoYWJpbGl0YXRpb24sIGFuZCBFcmdvbm9taWNzLjxiciAvPjxi
-ciAvPlRoZSBjb25mZXJlbmNlIGlzIGEgY29sbGFib3JhdGl2ZSB2ZW50dXJlIG9mIHRoZSBmb2xs
-b3dpbmcgaW5zdGl0dXRpb25zOiB0aGUgSGFydmFyZCBNZWRpY2FsIFNjaG9vbCBhZmZpbGlhdGVk
-IGhvc3BpdGFscywgTWNMZWFuLCBhbmQgQmV0aCBJc3JhZWwtRGVhY29uZXNzLCBUZWwtQXZpdiBV
-bml2ZXJzaXR5LCB0aGUgQ29tcHV0YXRpb25hbCBOZXVyb3NjaWVuY2VzIExhYm9yYXRvcnkgYXQg
-dGhlIE51ZmZpZWxkIERlcGFydG1lbnQgb2YgU3VyZ2ljYWwgU2NpZW5jZXMsIFVuaXZlcnNpdHkg
-b2YgT3hmb3JkLCB0aGUgU3ludGhldGljIEludGVsbGlnZW5jZSBMYWJvcmF0b3J5LCBNYXNzYWNo
-dXNldHRzIEluc3RpdHV0ZSBmb3IgVGVjaG5vbG9neSwgQmllbGVmZWxkIFVuaXZlcnNpdHkgaW4g
-R2VybWFueSwgdGhlIFNjaG9vbCBvZiBNZWRpY2luZSBvZiB0aGUgSGVicmV3IFVuaXZlcnNpdHkg
-b2YgSmVydXNhbGVtLMKgTGEgU29yYm9ubmUgKFVuaXZlcnNpdHkgb2YgUGFyaXMpIEZyYW5jZSzC
-oMKgdGhlIEplcnVzYWxlbSBBY2FkZW15IG9mIERhbmNlLMKgIHRoZSBGYWN1bHR5IG9mIEhlYWx0
-aCBTY2llbmNlcyBvZiBVbml2ZXJzaXR5IG9mIEhhaWZhLCB0aGUgV2luZ2F0ZSBJbnN0aXR1dGUg
-Zm9yIFNwb3J0cyBhbmQgRXhlcmNpc2UgU2NpZW5jZSwgdGhlIE5hdGlvbmFsIEluc3RpdHV0ZSBm
-b3IgQnJhaW4gYW5kIFJlaGFiaWxpdGF0aW9uIFNjaWVuY2VzLCBOYXphcmV0aCwgSXNyYWVsLCB0
-aGUgSW5zdGl0dXRlIGZvciBOZXVyb2xvZ3kgYW5kIE5ldXJvc3VyZ2VyeSwgSGF2YW5hIGFuZCB0
-aGUgVW5pdmVyc2l0eSBvZiB0aGUgTWVkaWNhbCBTY2llbmNlcyBIYXZhbmEuPGJyIC8+PGJyIC8+
-UGxlYXNlIGNoZWNrIG91dCB0aGUgY29uZmVyZW5jZSB3ZWJzaXRlIGF0IChsaW5rKTogaHR0cDov
-L2JpdC5seS8yUTduMFFzPGJyIC8+PGJyIC8+V2UgaG9wZSB0byBtZWV0IHlvdSBpbiBKdWx5IDIw
-MTkgaW4gVGVsLUF2aXYgYW5kIHdlbGNvbWUgeW91IHBlcnNvbmFsbHkgdG8gdGhlIEhvbHkgTGFu
-ZC48YnIgLz48YnIgLz5XaXNoIHZlcnkgYmVzdCB3aXNoZXMsPGJyIC8+PGJyIC8+wqA8YnIgLz48
-YnIgLz5HZXJyeSBMZWlzbWFuwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoCDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqAgwqDCoMKgwqA8YnIgLz48YnIgLz5DaGFpciwgU2NpZW50aWZpYyBDb21taXR0
-ZWU8YnIgLz48YnIgLz5NT1ZFTUVOVC0yMDE4PGJyIC8+PGJyIC8+UHJvZmVzc29yLCBOZXVyby0g
-YW5kIFJlaGFiaWxpdGF0aW9uIFNjaWVuY2VzPGJyIC8+PGJyIC8+VW5pdmVyc2l0eSBvZiBIYWlm
-YSBGYWN1bHR5IG9mIFNvY2lhbCBXZWxmYXJlPGJyIC8+PGJyIC8+YW5kIEhlYWx0aCBTY2llbmNl
-cy48YnIgLz7CoCDCoERpcmVjdG9yLCBUaGUgTmF0aW9uYWw8YnIgLz5JbnN0aXR1dGUgb2YgQnJh
-aW4gJiBSZWhhYmlsaXRhdGlvbiBTY2llbmNlcyw8YnIgLz48YnIgLz5OYXphcmV0aCwgSXNyYWVs
-LsKgPGJyIC8+UHJvZmVzc29yIE5ldXJvbG9nw61jYcKgUmVzdGF1cmF0aXZhwqA8YnIgLz7CoCDC
-oFVuaXZlcnNpZGFkIGRlIENpZW5jaWFzIE3DqWRpY2FzPGJyIC8+Cl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
-TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Thu, Jan 24, 2019 at 5:21 PM Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>
+>
+> From: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+>
+> walk_system_ram_range() can return an error code either becuase *it*
+> failed, or because the 'func' that it calls returned an error.  The
+> memory hotplug does the following:
+>
+>         ret = walk_system_ram_range(..., func);
+>         if (ret)
+>                 return ret;
+>
+> and 'ret' makes it out to userspace, eventually.  The problem is,
+> walk_system_ram_range() failues that result from *it* failing (as
+> opposed to 'func') return -1.  That leads to a very odd -EPERM (-1)
+> return code out to userspace.
+>
+> Make walk_system_ram_range() return -EINVAL for internal failures to
+> keep userspace less confused.
+>
+> This return code is compatible with all the callers that I audited.
+>
+> Signed-off-by: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Tom Lendacky <thomas.lendacky-5C7GfCeVMHo@public.gmane.org>
+> Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+> Cc: Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>
+> Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+> Cc: Huang Ying <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
+> Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Cc: Yaowei Bai <baiyaowei-0p4V/sDNsUmm0O/7XYngnFaTQe2KTcn/@public.gmane.org>
+> Cc: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
+> Cc: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> ---
+>
+>  b/kernel/resource.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff -puN kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1 kernel/resource.c
+> --- a/kernel/resource.c~memory-hotplug-walk_system_ram_range-returns-neg-1      2019-01-24 15:13:13.950199540 -0800
+> +++ b/kernel/resource.c 2019-01-24 15:13:13.954199540 -0800
+> @@ -375,7 +375,7 @@ static int __walk_iomem_res_desc(resourc
+>                                  int (*func)(struct resource *, void *))
+>  {
+>         struct resource res;
+> -       int ret = -1;
+> +       int ret = -EINVAL;
+>
+>         while (start < end &&
+>                !find_next_iomem_res(start, end, flags, desc, first_lvl, &res)) {
+> @@ -453,7 +453,7 @@ int walk_system_ram_range(unsigned long
+>         unsigned long flags;
+>         struct resource res;
+>         unsigned long pfn, end_pfn;
+> -       int ret = -1;
+> +       int ret = -EINVAL;
+
+Can you either make a similar change to the powerpc version of
+walk_system_ram_range() in arch/powerpc/mm/mem.c or explain why it's
+not needed?  It *seems* like we'd want both versions of
+walk_system_ram_range() to behave similarly in this respect.
+
+>         start = (u64) start_pfn << PAGE_SHIFT;
+>         end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+> _
