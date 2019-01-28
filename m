@@ -1,97 +1,67 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
- [IPv6:2607:f8b0:4864:20::342])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 033B321962301
- for <linux-nvdimm@lists.01.org>; Mon, 28 Jan 2019 13:54:57 -0800 (PST)
-Received: by mail-ot1-x342.google.com with SMTP id i20so16115902otl.0
- for <linux-nvdimm@lists.01.org>; Mon, 28 Jan 2019 13:54:57 -0800 (PST)
-MIME-Version: 1.0
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Dexuan Cui <decui@microsoft.com>
+Subject: RE: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
+Date: Mon, 28 Jan 2019 21:39:50 +0000
+Message-ID: <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 References: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4gnpn9VBHBoSFn_2sAdvfD85wRffvfYfuurwMxXYSBAZQ@mail.gmail.com>
- <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-In-Reply-To: <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 28 Jan 2019 13:54:46 -0800
-Message-ID: <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
-Subject: Re: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dexuan Cui <decui@microsoft.com>
-Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
+In-Reply-To: <CAPcyv4gnpn9VBHBoSFn_2sAdvfD85wRffvfYfuurwMxXYSBAZQ@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Josh Poulson <jopoulso@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jan 28, 2019 at 1:40 PM Dexuan Cui <decui@microsoft.com> wrote:
->
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > Sent: Monday, January 28, 2019 1:01 PM
-> >
-> > Hi Dexuan,
-> > Looks good. Just one update request and a note below...
-> >
-> > On Wed, Jan 23, 2019 at 12:51 PM Dexuan Cui <decui@microsoft.com> wrote:
-> > > ...
-> > > --- a/drivers/acpi/nfit/core.c
-> > > +++ b/drivers/acpi/nfit/core.c
-> > > @@ -1840,7 +1840,7 @@ static int acpi_nfit_add_dimm(struct
-> > acpi_nfit_desc *acpi_desc,
-> > >         dev_set_drvdata(&adev_dimm->dev, nfit_mem);
-> > >
-> > >         /*
-> > > -        * Until standardization materializes we need to consider 4
-> > > +        * Until standardization materializes we need to consider 5
-> > >          * different command sets.  Note, that checking for function0
-> > (bit0)
-> > >          * tells us if any commands are reachable through this GUID.
-> > >          */
-> >
-> > This comment is stale. This "HYPERV" family is the first example of
-> > the "right" way to define a new NVDIMM command set. Lets update it to
-> > mention the process and considerations for submitting new command sets
-> > to UEFI (http://www.uefi.org/RFIC_LIST). The fact that there's now a
-> > defined process is a step forward from when this comment was initially
-> > written. Also, the fact that the process encourages "adopt" vs
-> > "supersede" addresses the main concern about vendor-specific
-> > command-set proliferation.
->
-> I made the below simple change. Is this enough? Please suggest the proper
-> wording/sentence, as I'm relatively new to NVDIMM, and I don't really know the
-> history of the standardization process.
->
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1732,8 +1732,10 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
->         dev_set_drvdata(&adev_dimm->dev, nfit_mem);
->
->         /*
-> -        * Until standardization materializes we need to consider 4
-> -        * different command sets.  Note, that checking for function0 (bit0)
-> +        * New command sets should be submitted to UEFI
-> +        * http://www.uefi.org/RFIC_LIST.
-> +        *
-
-How about something a bit more relevant for the code in question:
-
----
-
-There are 4 "legacy" NVDIMM command sets
-(NVDIMM_FAMILY_{INTEL,MSFT,HPE1,HPE2}) that were created before an EFI
-working group was established to constrain this proliferation. The
-nfit driver probes for the supported command set by GUID. Note, If
-you're a platform developer looking to add a new command set to this
-probe consider using an existing set, or otherwise seek approval to
-publish the command set at http://www.uefi.org/RFIC_LIST.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+TW9uZGF5LCBKYW51YXJ5IDI4LCAyMDE5IDE6MDEgUE0NCj4gDQo+IEhpIERleHVhbiwNCj4gTG9v
+a3MgZ29vZC4gSnVzdCBvbmUgdXBkYXRlIHJlcXVlc3QgYW5kIGEgbm90ZSBiZWxvdy4uLg0KPiAN
+Cj4gT24gV2VkLCBKYW4gMjMsIDIwMTkgYXQgMTI6NTEgUE0gRGV4dWFuIEN1aSA8ZGVjdWlAbWlj
+cm9zb2Z0LmNvbT4gd3JvdGU6DQo+ID4gLi4uDQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQv
+Y29yZS5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+ID4gQEAgLTE4NDAs
+NyArMTg0MCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X2FkZF9kaW1tKHN0cnVjdA0KPiBhY3Bp
+X25maXRfZGVzYyAqYWNwaV9kZXNjLA0KPiA+ICAgICAgICAgZGV2X3NldF9kcnZkYXRhKCZhZGV2
+X2RpbW0tPmRldiwgbmZpdF9tZW0pOw0KPiA+DQo+ID4gICAgICAgICAvKg0KPiA+IC0gICAgICAg
+ICogVW50aWwgc3RhbmRhcmRpemF0aW9uIG1hdGVyaWFsaXplcyB3ZSBuZWVkIHRvIGNvbnNpZGVy
+IDQNCj4gPiArICAgICAgICAqIFVudGlsIHN0YW5kYXJkaXphdGlvbiBtYXRlcmlhbGl6ZXMgd2Ug
+bmVlZCB0byBjb25zaWRlciA1DQo+ID4gICAgICAgICAgKiBkaWZmZXJlbnQgY29tbWFuZCBzZXRz
+LiAgTm90ZSwgdGhhdCBjaGVja2luZyBmb3IgZnVuY3Rpb24wDQo+IChiaXQwKQ0KPiA+ICAgICAg
+ICAgICogdGVsbHMgdXMgaWYgYW55IGNvbW1hbmRzIGFyZSByZWFjaGFibGUgdGhyb3VnaCB0aGlz
+IEdVSUQuDQo+ID4gICAgICAgICAgKi8NCj4gDQo+IFRoaXMgY29tbWVudCBpcyBzdGFsZS4gVGhp
+cyAiSFlQRVJWIiBmYW1pbHkgaXMgdGhlIGZpcnN0IGV4YW1wbGUgb2YNCj4gdGhlICJyaWdodCIg
+d2F5IHRvIGRlZmluZSBhIG5ldyBOVkRJTU0gY29tbWFuZCBzZXQuIExldHMgdXBkYXRlIGl0IHRv
+DQo+IG1lbnRpb24gdGhlIHByb2Nlc3MgYW5kIGNvbnNpZGVyYXRpb25zIGZvciBzdWJtaXR0aW5n
+IG5ldyBjb21tYW5kIHNldHMNCj4gdG8gVUVGSSAoaHR0cDovL3d3dy51ZWZpLm9yZy9SRklDX0xJ
+U1QpLiBUaGUgZmFjdCB0aGF0IHRoZXJlJ3Mgbm93IGENCj4gZGVmaW5lZCBwcm9jZXNzIGlzIGEg
+c3RlcCBmb3J3YXJkIGZyb20gd2hlbiB0aGlzIGNvbW1lbnQgd2FzIGluaXRpYWxseQ0KPiB3cml0
+dGVuLiBBbHNvLCB0aGUgZmFjdCB0aGF0IHRoZSBwcm9jZXNzIGVuY291cmFnZXMgImFkb3B0IiB2
+cw0KPiAic3VwZXJzZWRlIiBhZGRyZXNzZXMgdGhlIG1haW4gY29uY2VybiBhYm91dCB2ZW5kb3It
+c3BlY2lmaWMNCj4gY29tbWFuZC1zZXQgcHJvbGlmZXJhdGlvbi4NCg0KSSBtYWRlIHRoZSBiZWxv
+dyBzaW1wbGUgY2hhbmdlLiBJcyB0aGlzIGVub3VnaD8gUGxlYXNlIHN1Z2dlc3QgdGhlIHByb3Bl
+cg0Kd29yZGluZy9zZW50ZW5jZSwgYXMgSSdtIHJlbGF0aXZlbHkgbmV3IHRvIE5WRElNTSwgYW5k
+IEkgZG9uJ3QgcmVhbGx5IGtub3cgdGhlDQpoaXN0b3J5IG9mIHRoZSBzdGFuZGFyZGl6YXRpb24g
+cHJvY2Vzcy4NCg0KLS0tIGEvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQorKysgYi9kcml2ZXJz
+L2FjcGkvbmZpdC9jb3JlLmMNCkBAIC0xNzMyLDggKzE3MzIsMTAgQEAgc3RhdGljIGludCBhY3Bp
+X25maXRfYWRkX2RpbW0oc3RydWN0IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MsDQogICAgICAg
+IGRldl9zZXRfZHJ2ZGF0YSgmYWRldl9kaW1tLT5kZXYsIG5maXRfbWVtKTsNCg0KICAgICAgICAv
+Kg0KLSAgICAgICAgKiBVbnRpbCBzdGFuZGFyZGl6YXRpb24gbWF0ZXJpYWxpemVzIHdlIG5lZWQg
+dG8gY29uc2lkZXIgNA0KLSAgICAgICAgKiBkaWZmZXJlbnQgY29tbWFuZCBzZXRzLiAgTm90ZSwg
+dGhhdCBjaGVja2luZyBmb3IgZnVuY3Rpb24wIChiaXQwKQ0KKyAgICAgICAgKiBOZXcgY29tbWFu
+ZCBzZXRzIHNob3VsZCBiZSBzdWJtaXR0ZWQgdG8gVUVGSQ0KKyAgICAgICAgKiBodHRwOi8vd3d3
+LnVlZmkub3JnL1JGSUNfTElTVC4NCisgICAgICAgICoNCisgICAgICAgICogTm90ZSwgdGhhdCBj
+aGVja2luZyBmb3IgZnVuY3Rpb24wIChiaXQwKQ0KICAgICAgICAgKiB0ZWxscyB1cyBpZiBhbnkg
+Y29tbWFuZHMgYXJlIHJlYWNoYWJsZSB0aHJvdWdoIHRoaXMgR1VJRC4NCiAgICAgICAgICovDQog
+ICAgICAgIGZvciAoaSA9IDA7IGkgPD0gTlZESU1NX0ZBTUlMWV9NQVg7IGkrKykNCg0KIA0KPiA+
+IEBAIC0xODY1LDYgKzE4NjUsOCBAQCBzdGF0aWMgaW50IGFjcGlfbmZpdF9hZGRfZGltbShzdHJ1
+Y3QNCj4gYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywNCj4gPiAgICAgICAgICAgICAgICAgICAg
+ICAgICBkc21fbWFzayAmPSB+KDEgPDwgOCk7DQo+ID4gICAgICAgICB9IGVsc2UgaWYgKG5maXRf
+bWVtLT5mYW1pbHkgPT0gTlZESU1NX0ZBTUlMWV9NU0ZUKSB7DQo+ID4gICAgICAgICAgICAgICAg
+IGRzbV9tYXNrID0gMHhmZmZmZmZmZjsNCj4gPiArICAgICAgIH0gZWxzZSBpZiAobmZpdF9tZW0t
+PmZhbWlseSA9PSBOVkRJTU1fRkFNSUxZX0hZUEVSVikgew0KPiA+ICsgICAgICAgICAgICAgICBk
+c21fbWFzayA9IDB4MWY7DQo+IA0KPiBKdXN0IGEgbm90ZSB0aGF0IHN0YXJ0aW5nIHdpdGggY29t
+bWl0IDVlOWUzOGQwZGIxZCAiYWNwaS9uZml0OiBCbG9jaw0KPiBmdW5jdGlvbiB6ZXJvIERTTXMi
+LCBiaXQwIGluIHRoaXMgbWFzayB3aWxsIGJlIGNsZWFyZWQgdG8gZW5zdXJlIHRoYXQNCj4gb25s
+eSB0aGUga2VybmVsIGhhcyB0aGUgYWJpbGl0eSB0byBwcm9iZSBmb3Igc3VwcG9ydGVkIERTTSBm
+dW5jdGlvbnMuDQoNClRoYW5rcyBmb3IgdGhlIG5vdGUhDQoNClRoYW5rcywNCi0tIERleHVhbg0K
