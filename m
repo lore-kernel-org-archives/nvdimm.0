@@ -1,39 +1,97 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Mon, 28 Jan 2019 22:58:41 +0000
-Message-ID: <PU1P153MB01693CEF0955362BA0AD09BCBF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 033B321962301
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Jan 2019 13:54:57 -0800 (PST)
+Received: by mail-ot1-x342.google.com with SMTP id i20so16115902otl.0
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Jan 2019 13:54:57 -0800 (PST)
+MIME-Version: 1.0
 References: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4gnpn9VBHBoSFn_2sAdvfD85wRffvfYfuurwMxXYSBAZQ@mail.gmail.com>
  <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
-In-Reply-To: <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Josh Poulson <jopoulso@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>
+In-Reply-To: <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 28 Jan 2019 13:54:46 -0800
+Message-ID: <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
+Subject: Re: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dexuan Cui <decui@microsoft.com>
+Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-TW9uZGF5LCBKYW51YXJ5IDI4LCAyMDE5IDE6NTUgUE0NCj4gDQo+IE9uIE1vbiwgSmFuIDI4LCAy
-MDE5IGF0IDE6NDAgUE0gRGV4dWFuIEN1aSA8ZGVjdWlAbWljcm9zb2Z0LmNvbT4gd3JvdGU6DQo+
-IA0KPiA+IEkgbWFkZSB0aGUgYmVsb3cgc2ltcGxlIGNoYW5nZS4gSXMgdGhpcyBlbm91Z2g/IFBs
-ZWFzZSBzdWdnZXN0IHRoZSBwcm9wZXINCj4gPiB3b3JkaW5nL3NlbnRlbmNlLCBhcyBJJ20gcmVs
-YXRpdmVseSBuZXcgdG8gTlZESU1NLCBhbmQgSSBkb24ndCByZWFsbHkga25vdw0KPiB0aGUgaGlz
-dG9yeSBvZiB0aGUgc3RhbmRhcmRpemF0aW9uIHByb2Nlc3MuDQo+IA0KPiBIb3cgYWJvdXQgc29t
-ZXRoaW5nIGEgYml0IG1vcmUgcmVsZXZhbnQgZm9yIHRoZSBjb2RlIGluIHF1ZXN0aW9uOg0KPiAN
-CiANCj4gVGhlcmUgYXJlIDQgImxlZ2FjeSIgTlZESU1NIGNvbW1hbmQgc2V0cw0KPiAoTlZESU1N
-X0ZBTUlMWV97SU5URUwsTVNGVCxIUEUxLEhQRTJ9KSB0aGF0IHdlcmUgY3JlYXRlZCBiZWZvcmUg
-YW4gRUZJDQo+IHdvcmtpbmcgZ3JvdXAgd2FzIGVzdGFibGlzaGVkIHRvIGNvbnN0cmFpbiB0aGlz
-IHByb2xpZmVyYXRpb24uIFRoZQ0KPiBuZml0IGRyaXZlciBwcm9iZXMgZm9yIHRoZSBzdXBwb3J0
-ZWQgY29tbWFuZCBzZXQgYnkgR1VJRC4gTm90ZSwgSWYNCj4geW91J3JlIGEgcGxhdGZvcm0gZGV2
-ZWxvcGVyIGxvb2tpbmcgdG8gYWRkIGEgbmV3IGNvbW1hbmQgc2V0IHRvIHRoaXMNCj4gcHJvYmUg
-Y29uc2lkZXIgdXNpbmcgYW4gZXhpc3Rpbmcgc2V0LCBvciBvdGhlcndpc2Ugc2VlayBhcHByb3Zh
-bCB0bw0KPiBwdWJsaXNoIHRoZSBjb21tYW5kIHNldCBhdA0KPiBodHRwOi8vd3d3LnVlZmkub3Jn
-L1JGSUNfTElTVA0KDQpMb29rcyBwZXJmZWN0ISBMZXQgbWUgdXNlIHRoaXMsIHJlYmFzZSB0aGUg
-cGF0Y2ggdG8gDQpodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dp
-dC9udmRpbW0vbnZkaW1tLmdpdC90YWcvP2g9bGlibnZkaW1tLWZpeGVzLTUuMC1yYzQNCmFuZCBw
-b3N0IGEgdjIgbGF0ZXIgdG9kYXkuDQoNClRoYW5rcywNCi0tIERleHVhbg0K
+On Mon, Jan 28, 2019 at 1:40 PM Dexuan Cui <decui@microsoft.com> wrote:
+>
+> > From: Dan Williams <dan.j.williams@intel.com>
+> > Sent: Monday, January 28, 2019 1:01 PM
+> >
+> > Hi Dexuan,
+> > Looks good. Just one update request and a note below...
+> >
+> > On Wed, Jan 23, 2019 at 12:51 PM Dexuan Cui <decui@microsoft.com> wrote:
+> > > ...
+> > > --- a/drivers/acpi/nfit/core.c
+> > > +++ b/drivers/acpi/nfit/core.c
+> > > @@ -1840,7 +1840,7 @@ static int acpi_nfit_add_dimm(struct
+> > acpi_nfit_desc *acpi_desc,
+> > >         dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+> > >
+> > >         /*
+> > > -        * Until standardization materializes we need to consider 4
+> > > +        * Until standardization materializes we need to consider 5
+> > >          * different command sets.  Note, that checking for function0
+> > (bit0)
+> > >          * tells us if any commands are reachable through this GUID.
+> > >          */
+> >
+> > This comment is stale. This "HYPERV" family is the first example of
+> > the "right" way to define a new NVDIMM command set. Lets update it to
+> > mention the process and considerations for submitting new command sets
+> > to UEFI (http://www.uefi.org/RFIC_LIST). The fact that there's now a
+> > defined process is a step forward from when this comment was initially
+> > written. Also, the fact that the process encourages "adopt" vs
+> > "supersede" addresses the main concern about vendor-specific
+> > command-set proliferation.
+>
+> I made the below simple change. Is this enough? Please suggest the proper
+> wording/sentence, as I'm relatively new to NVDIMM, and I don't really know the
+> history of the standardization process.
+>
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1732,8 +1732,10 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+>         dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+>
+>         /*
+> -        * Until standardization materializes we need to consider 4
+> -        * different command sets.  Note, that checking for function0 (bit0)
+> +        * New command sets should be submitted to UEFI
+> +        * http://www.uefi.org/RFIC_LIST.
+> +        *
+
+How about something a bit more relevant for the code in question:
+
+---
+
+There are 4 "legacy" NVDIMM command sets
+(NVDIMM_FAMILY_{INTEL,MSFT,HPE1,HPE2}) that were created before an EFI
+working group was established to constrain this proliferation. The
+nfit driver probes for the supported command set by GUID. Note, If
+you're a platform developer looking to add a new command set to this
+probe consider using an existing set, or otherwise seek approval to
+publish the command set at http://www.uefi.org/RFIC_LIST.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
