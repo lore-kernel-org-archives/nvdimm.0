@@ -1,124 +1,39 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Dexuan Cui <decui@microsoft.com>
-Subject: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Tue, 29 Jan 2019 00:56:17 +0000
-Message-ID: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Subject: RE: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
+Date: Mon, 28 Jan 2019 22:58:41 +0000
+Message-ID: <PU1P153MB01693CEF0955362BA0AD09BCBF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4gnpn9VBHBoSFn_2sAdvfD85wRffvfYfuurwMxXYSBAZQ@mail.gmail.com>
+ <PU1P153MB0169CE6B02AE7D67E25DDD89BF960@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
+In-Reply-To: <CAPcyv4hGYFuW901KZ1xCR4TucgRTkqZ=SOsLOK0MpKq0BBCokw@mail.gmail.com>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Josh Poulson <jopoulso@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-Add the Hyper-V _DSM command set to the white list of NVDIMM command
-sets.
-
-This command set is documented at http://www.uefi.org/RFIC_LIST
-(see "Virtual NVDIMM 0x1901").
-
-Thanks Dan Williams <dan.j.williams@intel.com> for writing the
-comment change.
-
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
-Reviewed-by: Michael Kelley <mikelley@microsoft.com>
----
-
-Changes in v2:
-    Updated the comment and changelog (Thanks, Dan!)
-    Rebased to the tag libnvdimm-fixes-5.0-rc4 of the nvdimm tree.
-
- drivers/acpi/nfit/core.c   | 17 ++++++++++++++---
- drivers/acpi/nfit/nfit.h   |  6 +++++-
- include/uapi/linux/ndctl.h |  1 +
- 3 files changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e18ade5d74e9..a9270c99be72 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1861,9 +1861,17 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc =
-*acpi_desc,
- 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
-=20
- 	/*
--	 * Until standardization materializes we need to consider 4
--	 * different command sets.  Note, that checking for function0 (bit0)
--	 * tells us if any commands are reachable through this GUID.
-+	 * There are 4 "legacy" NVDIMM command sets
-+	 * (NVDIMM_FAMILY_{INTEL,MSFT,HPE1,HPE2}) that were created before
-+	 * an EFI working group was established to constrain this
-+	 * proliferation. The nfit driver probes for the supported command
-+	 * set by GUID. Note, if you're a platform developer looking to add
-+	 * a new command set to this probe, consider using an existing set,
-+	 * or otherwise seek approval to publish the command set at
-+	 * http://www.uefi.org/RFIC_LIST.
-+	 *
-+	 * Note, that checking for function0 (bit0) tells us if any commands
-+	 * are reachable through this GUID.
- 	 */
- 	for (i =3D 0; i <=3D NVDIMM_FAMILY_MAX; i++)
- 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-@@ -1886,6 +1894,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *=
-acpi_desc,
- 			dsm_mask &=3D ~(1 << 8);
- 	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_MSFT) {
- 		dsm_mask =3D 0xffffffff;
-+	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_HYPERV) {
-+		dsm_mask =3D 0x1f;
- 	} else {
- 		dev_dbg(dev, "unknown dimm command family\n");
- 		nfit_mem->family =3D -1;
-@@ -3729,6 +3739,7 @@ static __init int nfit_init(void)
- 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
- 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
- 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
-+	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
-=20
- 	nfit_wq =3D create_singlethread_workqueue("nfit");
- 	if (!nfit_wq)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 33691aecfcee..4de167b4f76f 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -34,11 +34,14 @@
- /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
- #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
-=20
-+/* http://www.uefi.org/RFIC_LIST (see "Virtual NVDIMM 0x1901") */
-+#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
-+
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
-=20
--#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
-=20
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS =
-\
-@@ -94,6 +97,7 @@ enum nfit_uuids {
- 	NFIT_DEV_DIMM_N_HPE1 =3D NVDIMM_FAMILY_HPE1,
- 	NFIT_DEV_DIMM_N_HPE2 =3D NVDIMM_FAMILY_HPE2,
- 	NFIT_DEV_DIMM_N_MSFT =3D NVDIMM_FAMILY_MSFT,
-+	NFIT_DEV_DIMM_N_HYPERV =3D NVDIMM_FAMILY_HYPERV,
- 	NFIT_SPA_VOLATILE,
- 	NFIT_SPA_PM,
- 	NFIT_SPA_DCR,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index f57c9e434d2d..de5d90212409 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE1 1
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
-+#define NVDIMM_FAMILY_HYPERV 4
-=20
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
---=20
-2.19.1
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+TW9uZGF5LCBKYW51YXJ5IDI4LCAyMDE5IDE6NTUgUE0NCj4gDQo+IE9uIE1vbiwgSmFuIDI4LCAy
+MDE5IGF0IDE6NDAgUE0gRGV4dWFuIEN1aSA8ZGVjdWlAbWljcm9zb2Z0LmNvbT4gd3JvdGU6DQo+
+IA0KPiA+IEkgbWFkZSB0aGUgYmVsb3cgc2ltcGxlIGNoYW5nZS4gSXMgdGhpcyBlbm91Z2g/IFBs
+ZWFzZSBzdWdnZXN0IHRoZSBwcm9wZXINCj4gPiB3b3JkaW5nL3NlbnRlbmNlLCBhcyBJJ20gcmVs
+YXRpdmVseSBuZXcgdG8gTlZESU1NLCBhbmQgSSBkb24ndCByZWFsbHkga25vdw0KPiB0aGUgaGlz
+dG9yeSBvZiB0aGUgc3RhbmRhcmRpemF0aW9uIHByb2Nlc3MuDQo+IA0KPiBIb3cgYWJvdXQgc29t
+ZXRoaW5nIGEgYml0IG1vcmUgcmVsZXZhbnQgZm9yIHRoZSBjb2RlIGluIHF1ZXN0aW9uOg0KPiAN
+CiANCj4gVGhlcmUgYXJlIDQgImxlZ2FjeSIgTlZESU1NIGNvbW1hbmQgc2V0cw0KPiAoTlZESU1N
+X0ZBTUlMWV97SU5URUwsTVNGVCxIUEUxLEhQRTJ9KSB0aGF0IHdlcmUgY3JlYXRlZCBiZWZvcmUg
+YW4gRUZJDQo+IHdvcmtpbmcgZ3JvdXAgd2FzIGVzdGFibGlzaGVkIHRvIGNvbnN0cmFpbiB0aGlz
+IHByb2xpZmVyYXRpb24uIFRoZQ0KPiBuZml0IGRyaXZlciBwcm9iZXMgZm9yIHRoZSBzdXBwb3J0
+ZWQgY29tbWFuZCBzZXQgYnkgR1VJRC4gTm90ZSwgSWYNCj4geW91J3JlIGEgcGxhdGZvcm0gZGV2
+ZWxvcGVyIGxvb2tpbmcgdG8gYWRkIGEgbmV3IGNvbW1hbmQgc2V0IHRvIHRoaXMNCj4gcHJvYmUg
+Y29uc2lkZXIgdXNpbmcgYW4gZXhpc3Rpbmcgc2V0LCBvciBvdGhlcndpc2Ugc2VlayBhcHByb3Zh
+bCB0bw0KPiBwdWJsaXNoIHRoZSBjb21tYW5kIHNldCBhdA0KPiBodHRwOi8vd3d3LnVlZmkub3Jn
+L1JGSUNfTElTVA0KDQpMb29rcyBwZXJmZWN0ISBMZXQgbWUgdXNlIHRoaXMsIHJlYmFzZSB0aGUg
+cGF0Y2ggdG8gDQpodHRwczovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dp
+dC9udmRpbW0vbnZkaW1tLmdpdC90YWcvP2g9bGlibnZkaW1tLWZpeGVzLTUuMC1yYzQNCmFuZCBw
+b3N0IGEgdjIgbGF0ZXIgdG9kYXkuDQoNClRoYW5rcywNCi0tIERleHVhbg0K
