@@ -1,56 +1,124 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com
- [IPv6:2607:f8b0:4864:20::335])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EC32211BFCB0
- for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 22:23:43 -0800 (PST)
-Received: by mail-ot1-x335.google.com with SMTP id k98so20207518otk.3
- for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 22:23:43 -0800 (PST)
-MIME-Version: 1.0
-References: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-In-Reply-To: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 29 Jan 2019 22:23:32 -0800
-Message-ID: <CAPcyv4jD1oRWzA4ZiMYZm1uxsbOdgqzbb9raH70-HBDqapcE_g@mail.gmail.com>
-Subject: Re: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Dexuan Cui <decui@microsoft.com>
+Subject: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
+Date: Tue, 29 Jan 2019 00:56:17 +0000
+Message-ID: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dexuan Cui <decui@microsoft.com>
-Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jan 28, 2019 at 4:56 PM Dexuan Cui <decui@microsoft.com> wrote:
->
->
-> Add the Hyper-V _DSM command set to the white list of NVDIMM command
-> sets.
->
-> This command set is documented at http://www.uefi.org/RFIC_LIST
-> (see "Virtual NVDIMM 0x1901").
->
-> Thanks Dan Williams <dan.j.williams@intel.com> for writing the
-> comment change.
->
-> Signed-off-by: Dexuan Cui <decui@microsoft.com>
-> Reviewed-by: Michael Kelley <mikelley@microsoft.com>
-> ---
->
-> Changes in v2:
->     Updated the comment and changelog (Thanks, Dan!)
->     Rebased to the tag libnvdimm-fixes-5.0-rc4 of the nvdimm tree.
 
-Thanks for the re-spin, applied.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Add the Hyper-V _DSM command set to the white list of NVDIMM command
+sets.
+
+This command set is documented at http://www.uefi.org/RFIC_LIST
+(see "Virtual NVDIMM 0x1901").
+
+Thanks Dan Williams <dan.j.williams@intel.com> for writing the
+comment change.
+
+Signed-off-by: Dexuan Cui <decui@microsoft.com>
+Reviewed-by: Michael Kelley <mikelley@microsoft.com>
+---
+
+Changes in v2:
+    Updated the comment and changelog (Thanks, Dan!)
+    Rebased to the tag libnvdimm-fixes-5.0-rc4 of the nvdimm tree.
+
+ drivers/acpi/nfit/core.c   | 17 ++++++++++++++---
+ drivers/acpi/nfit/nfit.h   |  6 +++++-
+ include/uapi/linux/ndctl.h |  1 +
+ 3 files changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e18ade5d74e9..a9270c99be72 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1861,9 +1861,17 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc =
+*acpi_desc,
+ 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+=20
+ 	/*
+-	 * Until standardization materializes we need to consider 4
+-	 * different command sets.  Note, that checking for function0 (bit0)
+-	 * tells us if any commands are reachable through this GUID.
++	 * There are 4 "legacy" NVDIMM command sets
++	 * (NVDIMM_FAMILY_{INTEL,MSFT,HPE1,HPE2}) that were created before
++	 * an EFI working group was established to constrain this
++	 * proliferation. The nfit driver probes for the supported command
++	 * set by GUID. Note, if you're a platform developer looking to add
++	 * a new command set to this probe, consider using an existing set,
++	 * or otherwise seek approval to publish the command set at
++	 * http://www.uefi.org/RFIC_LIST.
++	 *
++	 * Note, that checking for function0 (bit0) tells us if any commands
++	 * are reachable through this GUID.
+ 	 */
+ 	for (i =3D 0; i <=3D NVDIMM_FAMILY_MAX; i++)
+ 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+@@ -1886,6 +1894,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *=
+acpi_desc,
+ 			dsm_mask &=3D ~(1 << 8);
+ 	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_MSFT) {
+ 		dsm_mask =3D 0xffffffff;
++	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_HYPERV) {
++		dsm_mask =3D 0x1f;
+ 	} else {
+ 		dev_dbg(dev, "unknown dimm command family\n");
+ 		nfit_mem->family =3D -1;
+@@ -3729,6 +3739,7 @@ static __init int nfit_init(void)
+ 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
+ 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+ 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
++	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
+=20
+ 	nfit_wq =3D create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 33691aecfcee..4de167b4f76f 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -34,11 +34,14 @@
+ /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
+ #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
+=20
++/* http://www.uefi.org/RFIC_LIST (see "Virtual NVDIMM 0x1901") */
++#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
++
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+ 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
+=20
+-#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
++#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
+=20
+ #define NVDIMM_STANDARD_CMDMASK \
+ (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS =
+\
+@@ -94,6 +97,7 @@ enum nfit_uuids {
+ 	NFIT_DEV_DIMM_N_HPE1 =3D NVDIMM_FAMILY_HPE1,
+ 	NFIT_DEV_DIMM_N_HPE2 =3D NVDIMM_FAMILY_HPE2,
+ 	NFIT_DEV_DIMM_N_MSFT =3D NVDIMM_FAMILY_MSFT,
++	NFIT_DEV_DIMM_N_HYPERV =3D NVDIMM_FAMILY_HYPERV,
+ 	NFIT_SPA_VOLATILE,
+ 	NFIT_SPA_PM,
+ 	NFIT_SPA_DCR,
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index f57c9e434d2d..de5d90212409 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
+ #define NVDIMM_FAMILY_HPE1 1
+ #define NVDIMM_FAMILY_HPE2 2
+ #define NVDIMM_FAMILY_MSFT 3
++#define NVDIMM_FAMILY_HYPERV 4
+=20
+ #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
+ 					struct nd_cmd_pkg)
+--=20
+2.19.1
