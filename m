@@ -1,105 +1,144 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH] nfit: Fix nfit_intel_shutdown_status() command submission
-Date: Tue, 29 Jan 2019 06:54:15 +0000
-Message-ID: <PU1P153MB016960558904284804DC1324BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <154873933011.295327.10921465390915828081.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154873933011.295327.10921465390915828081.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0C7C2211B76B1
+ for <linux-nvdimm@lists.01.org>; Mon, 28 Jan 2019 21:34:48 -0800 (PST)
+Subject: [PATCH] nfit: Fix nfit_intel_shutdown_status() command submission
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 28 Jan 2019 21:22:10 -0800
+Message-ID: <154873933011.295327.10921465390915828081.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-TW9uZGF5LCBKYW51YXJ5IDI4LCAyMDE5IDk6MjIgUE0NCj4gVG86IGxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcNCj4gQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc7IERleHVhbiBDdWkgPGRlY3Vp
-QG1pY3Jvc29mdC5jb20+Ow0KPiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+IFN1Ympl
-Y3Q6IFtQQVRDSF0gbmZpdDogRml4IG5maXRfaW50ZWxfc2h1dGRvd25fc3RhdHVzKCkgY29tbWFu
-ZCBzdWJtaXNzaW9uDQo+IA0KPiBUaGUgaW1wbGVtZW50YXRpb24gaXMgYnJva2VuIGluIGFsbCB0
-aGUgd2F5cyB0aGUgdW5pdCB0ZXN0IGRpZCBub3QgdG91Y2g6DQo+IA0KPiAxLyBUaGUgbG9jYWwg
-ZGVmaW5pdGlvbiBvZiBpbl9idWYgYW5kIGluX29iaiB2aW9sYXRlZCBDOTkgaW5pdGlhbGl6ZXIN
-Cj4gICAgZXhwZWN0YXRpb25zIGZvciB6ZXJvaW5nLiBCeSBvbmx5IGluaXRpYWxpemluZyAyIG91
-dCBvZiB0aGUgdGhyZWUNCj4gICAgc3RydWN0IG1lbWJlcnMgdGhlIGNvbXBpbGVyIHdhcyBmcmVl
-IHRvIHplcm8taW5pdGlhbGl6ZSB0aGUgcmVtYWluaW5nDQo+ICAgIGVudHJ5IGV2ZW4gdGhvdWdo
-IHRoZSBhbGlhc2VkIGxvY2F0aW9uIGluIHRoZSB1bmlvbiB3YXMgaW5pdGlhbGl6ZWQuDQo+IA0K
-PiAyLyBUaGUgaW1wbGVtZW50YXRpb24gbWFkZSBhc3N1bXB0aW9ucyBhYm91dCB0aGUgc3RhdGUg
-b2YgdGhlICdzbWFydCcNCj4gICAgcGF5bG9hZCBhZnRlciBjb21tYW5kIGV4ZWN1dGlvbiB0aGF0
-IGFyZSBzYXRpc2ZpZWQgYnkNCj4gICAgYWNwaV9uZml0X2N0bCgpLCBidXQgbm90IGFjcGlfZXZh
-bHVhdGVfZHNtKCkuDQo+IA0KPiAzLyBwb3B1bGF0ZV9zaHV0ZG93bl9zdGF0dXMoKSBpcyBza2lw
-cGVkIG9uIEludGVsIE5WRElNTXMgZHVlIHRvIHRoZSBlYXJseQ0KPiAgICByZXR1cm4gZm9yIHNr
-aXBwaW5nIHRoZSBjb21tb24gX0xTe0ksUixXfSBlbmFibGluZy4NCj4gDQo+IDQvIFRoZSBpbnB1
-dCBsZW5ndGggc2hvdWxkIGJlIHplcm8uDQo+IA0KPiBUaGlzIGJyZWFrYWdlIHdhcyBtaXNzZWQg
-ZHVlIHRvIHRoZSB1bml0IHRlc3QgaW1wbGVtZW50YXRpb24gb25seQ0KPiB0ZXN0aW5nIHRoZSBj
-YXNlIHdoZXJlIG5maXRfaW50ZWxfc2h1dGRvd25fc3RhdHVzKCkgcmV0dXJucyBhIHZhbGlkDQo+
-IHBheWxvYWQuDQo+IA0KPiBNdWNoIG9mIHRoaXMgY29tcGxleGl0eSB3b3VsZCBiZSBzYXZlZCBp
-ZiBhY3BpX25maXRfY3RsKCkgY291bGQgYmUgdXNlZCwgYnV0DQo+IHRoYXQgY3VycmVudGx5IHJl
-cXVpcmVzIGEgJ3N0cnVjdCBudmRpbW0gKicgYXJndW1lbnQgYW5kIG9uZSBpcyBub3QgY3JlYXRl
-ZA0KPiB1bnRpbCBsYXRlciBpbiB0aGUgaW5pdCBwcm9jZXNzLiBUaGUgaGVhbHRoIHJlc3VsdCBp
-cyBuZWVkZWQgYmVmb3JlIHRoZSBkZXZpY2UNCj4gaXMgY3JlYXRlZCBiZWNhdXNlIHRoZSBwYXls
-b2FkIGdhdGVzIHdoZXRoZXIgdGhlIG5tZW1YL25maXQvZGlydHlfc2h1dGRvd24NCj4gcHJvcGVy
-dHkgaXMgdmlzaWJsZSBpbiBzeXNmcy4NCj4gDQo+IENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9y
-Zz4NCj4gRml4ZXM6IDBlYWQxMTE4MWZlMCAoImFjcGksIG5maXQ6IENvbGxlY3Qgc2h1dGRvd24g
-c3RhdHVzIikNCj4gUmVwb3J0ZWQtYnk6IERleHVhbiBDdWkgPGRlY3VpQG1pY3Jvc29mdC5jb20+
-DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29t
-Pg0KPiAtLS0NCj4gIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyB8ICAgNDEgKysrKysrKysrKysr
-KysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAyNCBpbnNl
-cnRpb25zKCspLCAxNyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2Fj
-cGkvbmZpdC9jb3JlLmMgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMNCj4gaW5kZXggZTE4YWRl
-NWQ3NGU5Li4wYTQ5YzU3MzM0Y2MgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9uZml0L2Nv
-cmUuYw0KPiArKysgYi9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMNCj4gQEAgLTE3NTksMTQgKzE3
-NTksMTQgQEAgc3RhdGljIGJvb2wgYWNwaV9udmRpbW1faGFzX21ldGhvZChzdHJ1Y3QNCj4gYWNw
-aV9kZXZpY2UgKmFkZXYsIGNoYXIgKm1ldGhvZCkNCj4gDQo+ICBfX3dlYWsgdm9pZCBuZml0X2lu
-dGVsX3NodXRkb3duX3N0YXR1cyhzdHJ1Y3QgbmZpdF9tZW0gKm5maXRfbWVtKQ0KPiAgew0KPiAr
-CXN0cnVjdCBkZXZpY2UgKmRldiA9ICZuZml0X21lbS0+YWRldi0+ZGV2Ow0KPiAgCXN0cnVjdCBu
-ZF9pbnRlbF9zbWFydCBzbWFydCA9IHsgMCB9Ow0KPiAgCXVuaW9uIGFjcGlfb2JqZWN0IGluX2J1
-ZiA9IHsNCj4gLQkJLnR5cGUgPSBBQ1BJX1RZUEVfQlVGRkVSLA0KPiAtCQkuYnVmZmVyLnBvaW50
-ZXIgPSAoY2hhciAqKSAmc21hcnQsDQo+IC0JCS5idWZmZXIubGVuZ3RoID0gc2l6ZW9mKHNtYXJ0
-KSwNCj4gKwkJLmJ1ZmZlci50eXBlID0gQUNQSV9UWVBFX0JVRkZFUiwNCj4gKwkJLmJ1ZmZlci5s
-ZW5ndGggPSAwLA0KPiAgCX07DQo+ICAJdW5pb24gYWNwaV9vYmplY3QgaW5fb2JqID0gew0KPiAt
-CQkudHlwZSA9IEFDUElfVFlQRV9QQUNLQUdFLA0KPiArCQkucGFja2FnZS50eXBlID0gQUNQSV9U
-WVBFX1BBQ0tBR0UsDQo+ICAJCS5wYWNrYWdlLmNvdW50ID0gMSwNCj4gIAkJLnBhY2thZ2UuZWxl
-bWVudHMgPSAmaW5fYnVmLA0KPiAgCX07DQo+IEBAIC0xNzgxLDggKzE3ODEsMTUgQEAgX193ZWFr
-IHZvaWQgbmZpdF9pbnRlbF9zaHV0ZG93bl9zdGF0dXMoc3RydWN0DQo+IG5maXRfbWVtICpuZml0
-X21lbSkNCj4gIAkJcmV0dXJuOw0KPiANCj4gIAlvdXRfb2JqID0gYWNwaV9ldmFsdWF0ZV9kc20o
-aGFuZGxlLCBndWlkLCByZXZpZCwgZnVuYywgJmluX29iaik7DQo+IC0JaWYgKCFvdXRfb2JqKQ0K
-PiArCWlmICghb3V0X29iaiB8fCBvdXRfb2JqLT50eXBlICE9IEFDUElfVFlQRV9CVUZGRVINCj4g
-KwkJCXx8IG91dF9vYmotPmJ1ZmZlci5sZW5ndGggPCBzaXplb2Yoc21hcnQpKSB7DQo+ICsJCWRl
-dl9kYmcoZGV2LT5wYXJlbnQsICIlczogZmFpbGVkIHRvIHJldHJpZXZlIGluaXRpYWwgaGVhbHRo
-XG4iLA0KPiArCQkJCWRldl9uYW1lKGRldikpOw0KPiArCQlBQ1BJX0ZSRUUob3V0X29iaik7DQo+
-ICAJCXJldHVybjsNCj4gKwl9DQo+ICsJbWVtY3B5KCZzbWFydCwgb3V0X29iai0+YnVmZmVyLnBv
-aW50ZXIsIHNpemVvZihzbWFydCkpOw0KPiArCUFDUElfRlJFRShvdXRfb2JqKTsNCj4gDQo+ICAJ
-aWYgKHNtYXJ0LmZsYWdzICYgTkRfSU5URUxfU01BUlRfU0hVVERPV05fVkFMSUQpIHsNCj4gIAkJ
-aWYgKHNtYXJ0LnNodXRkb3duX3N0YXRlKQ0KPiBAQCAtMTc5Myw3ICsxODAwLDYgQEAgX193ZWFr
-IHZvaWQgbmZpdF9pbnRlbF9zaHV0ZG93bl9zdGF0dXMoc3RydWN0DQo+IG5maXRfbWVtICpuZml0
-X21lbSkNCj4gIAkJc2V0X2JpdChORklUX01FTV9ESVJUWV9DT1VOVCwgJm5maXRfbWVtLT5mbGFn
-cyk7DQo+ICAJCW5maXRfbWVtLT5kaXJ0eV9zaHV0ZG93biA9IHNtYXJ0LnNodXRkb3duX2NvdW50
-Ow0KPiAgCX0NCj4gLQlBQ1BJX0ZSRUUob3V0X29iaik7DQo+ICB9DQo+IA0KPiAgc3RhdGljIHZv
-aWQgcG9wdWxhdGVfc2h1dGRvd25fc3RhdHVzKHN0cnVjdCBuZml0X21lbSAqbmZpdF9tZW0pDQo+
-IEBAIC0xOTE1LDE4ICsxOTIxLDE5IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X2FkZF9kaW1tKHN0
-cnVjdA0KPiBhY3BpX25maXRfZGVzYyAqYWNwaV9kZXNjLA0KPiAgCQl8IDEgPDwgTkRfQ01EX1NF
-VF9DT05GSUdfREFUQTsNCj4gIAlpZiAoZmFtaWx5ID09IE5WRElNTV9GQU1JTFlfSU5URUwNCj4g
-IAkJCSYmIChkc21fbWFzayAmIGxhYmVsX21hc2spID09IGxhYmVsX21hc2spDQo+IC0JCXJldHVy
-biAwOw0KPiAtDQo+IC0JaWYgKGFjcGlfbnZkaW1tX2hhc19tZXRob2QoYWRldl9kaW1tLCAiX0xT
-SSIpDQo+IC0JCQkmJiBhY3BpX252ZGltbV9oYXNfbWV0aG9kKGFkZXZfZGltbSwgIl9MU1IiKSkg
-ew0KPiAtCQlkZXZfZGJnKGRldiwgIiVzOiBoYXMgX0xTUlxuIiwgZGV2X25hbWUoJmFkZXZfZGlt
-bS0+ZGV2KSk7DQo+IC0JCXNldF9iaXQoTkZJVF9NRU1fTFNSLCAmbmZpdF9tZW0tPmZsYWdzKTsN
-Cj4gLQl9DQo+ICsJCS8qIHNraXAgX0xTe0ksUixXfSBlbmFibGluZyAqLzsNCj4gKwllbHNlIHsN
-Cj4gKwkJaWYgKGFjcGlfbnZkaW1tX2hhc19tZXRob2QoYWRldl9kaW1tLCAiX0xTSSIpDQo+ICsJ
-CQkJJiYgYWNwaV9udmRpbW1faGFzX21ldGhvZChhZGV2X2RpbW0sICJfTFNSIikpIHsNCj4gKwkJ
-CWRldl9kYmcoZGV2LCAiJXM6IGhhcyBfTFNSXG4iLCBkZXZfbmFtZSgmYWRldl9kaW1tLT5kZXYp
-KTsNCj4gKwkJCXNldF9iaXQoTkZJVF9NRU1fTFNSLCAmbmZpdF9tZW0tPmZsYWdzKTsNCj4gKwkJ
-fQ0KPiANCj4gLQlpZiAodGVzdF9iaXQoTkZJVF9NRU1fTFNSLCAmbmZpdF9tZW0tPmZsYWdzKQ0K
-PiAtCQkJJiYgYWNwaV9udmRpbW1faGFzX21ldGhvZChhZGV2X2RpbW0sICJfTFNXIikpIHsNCj4g
-LQkJZGV2X2RiZyhkZXYsICIlczogaGFzIF9MU1dcbiIsIGRldl9uYW1lKCZhZGV2X2RpbW0tPmRl
-dikpOw0KPiAtCQlzZXRfYml0KE5GSVRfTUVNX0xTVywgJm5maXRfbWVtLT5mbGFncyk7DQo+ICsJ
-CWlmICh0ZXN0X2JpdChORklUX01FTV9MU1IsICZuZml0X21lbS0+ZmxhZ3MpDQo+ICsJCQkJJiYg
-YWNwaV9udmRpbW1faGFzX21ldGhvZChhZGV2X2RpbW0sICJfTFNXIikpIHsNCj4gKwkJCWRldl9k
-YmcoZGV2LCAiJXM6IGhhcyBfTFNXXG4iLCBkZXZfbmFtZSgmYWRldl9kaW1tLT5kZXYpKTsNCj4g
-KwkJCXNldF9iaXQoTkZJVF9NRU1fTFNXLCAmbmZpdF9tZW0tPmZsYWdzKTsNCj4gKwkJfQ0KPiAg
-CX0NCj4gDQo+ICAJcG9wdWxhdGVfc2h1dGRvd25fc3RhdHVzKG5maXRfbWVtKTsNCg0KUmV2aWV3
-ZWQtYnk6IERleHVhbiBDdWkgPGRlY3VpQG1pY3Jvc29mdC5jb20+DQoNClRoYW5rcyBmb3IgdGhl
-IGZpeCwgRGFuIQ0KDQotLSBEZXh1YW4NCg==
+The implementation is broken in all the ways the unit test did not touch:
+
+1/ The local definition of in_buf and in_obj violated C99 initializer
+   expectations for zeroing. By only initializing 2 out of the three
+   struct members the compiler was free to zero-initialize the remaining
+   entry even though the aliased location in the union was initialized.
+
+2/ The implementation made assumptions about the state of the 'smart'
+   payload after command execution that are satisfied by
+   acpi_nfit_ctl(), but not acpi_evaluate_dsm().
+
+3/ populate_shutdown_status() is skipped on Intel NVDIMMs due to the early
+   return for skipping the common _LS{I,R,W} enabling.
+
+4/ The input length should be zero.
+
+This breakage was missed due to the unit test implementation only
+testing the case where nfit_intel_shutdown_status() returns a valid
+payload.
+
+Much of this complexity would be saved if acpi_nfit_ctl() could be used, but
+that currently requires a 'struct nvdimm *' argument and one is not created
+until later in the init process. The health result is needed before the device
+is created because the payload gates whether the nmemX/nfit/dirty_shutdown
+property is visible in sysfs.
+
+Cc: <stable@vger.kernel.org>
+Fixes: 0ead11181fe0 ("acpi, nfit: Collect shutdown status")
+Reported-by: Dexuan Cui <decui@microsoft.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   41 ++++++++++++++++++++++++-----------------
+ 1 file changed, 24 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e18ade5d74e9..0a49c57334cc 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1759,14 +1759,14 @@ static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
+ 
+ __weak void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
+ {
++	struct device *dev = &nfit_mem->adev->dev;
+ 	struct nd_intel_smart smart = { 0 };
+ 	union acpi_object in_buf = {
+-		.type = ACPI_TYPE_BUFFER,
+-		.buffer.pointer = (char *) &smart,
+-		.buffer.length = sizeof(smart),
++		.buffer.type = ACPI_TYPE_BUFFER,
++		.buffer.length = 0,
+ 	};
+ 	union acpi_object in_obj = {
+-		.type = ACPI_TYPE_PACKAGE,
++		.package.type = ACPI_TYPE_PACKAGE,
+ 		.package.count = 1,
+ 		.package.elements = &in_buf,
+ 	};
+@@ -1781,8 +1781,15 @@ __weak void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
+ 		return;
+ 
+ 	out_obj = acpi_evaluate_dsm(handle, guid, revid, func, &in_obj);
+-	if (!out_obj)
++	if (!out_obj || out_obj->type != ACPI_TYPE_BUFFER
++			|| out_obj->buffer.length < sizeof(smart)) {
++		dev_dbg(dev->parent, "%s: failed to retrieve initial health\n",
++				dev_name(dev));
++		ACPI_FREE(out_obj);
+ 		return;
++	}
++	memcpy(&smart, out_obj->buffer.pointer, sizeof(smart));
++	ACPI_FREE(out_obj);
+ 
+ 	if (smart.flags & ND_INTEL_SMART_SHUTDOWN_VALID) {
+ 		if (smart.shutdown_state)
+@@ -1793,7 +1800,6 @@ __weak void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
+ 		set_bit(NFIT_MEM_DIRTY_COUNT, &nfit_mem->flags);
+ 		nfit_mem->dirty_shutdown = smart.shutdown_count;
+ 	}
+-	ACPI_FREE(out_obj);
+ }
+ 
+ static void populate_shutdown_status(struct nfit_mem *nfit_mem)
+@@ -1915,18 +1921,19 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		| 1 << ND_CMD_SET_CONFIG_DATA;
+ 	if (family == NVDIMM_FAMILY_INTEL
+ 			&& (dsm_mask & label_mask) == label_mask)
+-		return 0;
+-
+-	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
+-			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
+-		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
+-		set_bit(NFIT_MEM_LSR, &nfit_mem->flags);
+-	}
++		/* skip _LS{I,R,W} enabling */;
++	else {
++		if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
++				&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
++			dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
++			set_bit(NFIT_MEM_LSR, &nfit_mem->flags);
++		}
+ 
+-	if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)
+-			&& acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
+-		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
+-		set_bit(NFIT_MEM_LSW, &nfit_mem->flags);
++		if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)
++				&& acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
++			dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
++			set_bit(NFIT_MEM_LSW, &nfit_mem->flags);
++		}
+ 	}
+ 
+ 	populate_shutdown_status(nfit_mem);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
