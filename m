@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
+ [IPv6:2607:f8b0:4864:20::241])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2842D211ADA52
- for <linux-nvdimm@lists.01.org>; Tue,  8 Jan 2019 14:15:13 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] libndctl: ignore ENXIO in ndctl_namespace_delete
-Date: Tue,  8 Jan 2019 15:15:10 -0700
-Message-Id: <20190108221510.28553-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4B2952194D3B8
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 12:16:48 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id j21so739159oii.8
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 12:16:48 -0800 (PST)
+MIME-Version: 1.0
+References: <20190130200521.9245-1-vishal.l.verma@intel.com>
+In-Reply-To: <20190130200521.9245-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 30 Jan 2019 12:16:36 -0800
+Message-ID: <CAPcyv4gMFYSk8gG8t7c-aPHSYHHmrQORZj=LD79m7-u1ErRgvw@mail.gmail.com>
+Subject: Re: [ndctl PATCH] libndctl: Fix the failure interpretation for status
+ translations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,50 +22,30 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel will return ENXIO and fail attempts to set the size of a
-namespace that has already been deleted. When we are deleting a
-namespace, we don't care that it has been previously destroyed, or is
-in an uninitialized state.
+On Wed, Jan 30, 2019 at 12:05 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> commit 62bbfce3cb62 ("libndctl, intel: Add infrastructure for
+> firmware_status translation") has the unfortunate side effect of making
+> all NDCTL commands fail with -ENOMSG unless an xlat_firmware_status
+> function is defined for the DIMM family. A failure to translate just
+> means proceed with the information that we do have, not report a
+> command failure.
+>
+> Fixes: 62bbfce3cb62 ("libndctl, intel: Add infrastructure for firmware_status translation")
+> Reported-by: Oliver O'Halloran <oohall@gmail.com>
+> Based-on-patch-by: Dan Williams <dan.j.williams@intel.com>
 
-Ignore the ENXIO from setting the size to zero in this case, and report
-to the callers of this API that the deletion was successful.
+You can just replace that with:
 
-This addresses github issue #73.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/lib/libndctl.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 0c3a35e..e82a08d 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -4303,7 +4303,12 @@ NDCTL_EXPORT int ndctl_namespace_delete(struct ndctl_namespace *ndns)
- 	}
- 
- 	rc = namespace_set_size(ndns, 0);
--	if (rc)
-+	/*
-+	 * if the namespace has already been deleted, this will return
-+	 * -ENXIO due to the uuid check in __size_store. We can safely
-+	 *  ignore it in the case of writing a zero.
-+	 */
-+	if (rc && (rc != -ENXIO))
- 		return rc;
- 
- 	region->namespaces_init = 0;
--- 
-2.17.2
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
