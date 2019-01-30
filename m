@@ -1,64 +1,105 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: [PATCH] nfit: acpi_nfit_ctl(): check out_obj->type in the right place
-Date: Wed, 30 Jan 2019 01:23:01 +0000
-Message-ID: <PU1P153MB01694923DF3280E5828E2BE2BF900@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
+ [IPv6:2607:f8b0:4864:20::642])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7B614211BFCCE
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:46 -0800 (PST)
+Received: by mail-pl1-x642.google.com with SMTP id b5so10883253plr.4
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:46 -0800 (PST)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH v5 4/7] ndctl/namespace: Validate alignment from the {pfn|dax}
+ seed
+Date: Wed, 30 Jan 2019 21:59:24 +1100
+Message-Id: <20190130105927.31901-4-oohall@gmail.com>
+In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+References: <20190130105927.31901-1-oohall@gmail.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, KY Srinivasan <kys@microsoft.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+This patch adds support to the ndctl tool for validating that the
+namespace alignment is valid.
 
-In the case of ND_CMD_CALL, we should also check out_obj->type.
-
-The patch uses out_obj->type, which is a short alias to
-out_obj->package.type.
-
-Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command mar=
-shaling mechanism")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- drivers/acpi/nfit/core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+v3: Fail validation if an alignment is specified, but pfn mode is
+    not supported.
+---
+ ndctl/namespace.c | 37 +++++++++++++++++++++++++++++--------
+ 1 file changed, 29 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 0a49c57334cc..1fa378435dd2 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -554,6 +554,13 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
-c, struct nvdimm *nvdimm,
- 		return -EINVAL;
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 5d672810a712..25e0a87676e4 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -541,8 +541,23 @@ static int validate_namespace_options(struct ndctl_region *region,
  	}
-=20
-+	if (out_obj->type !=3D ACPI_TYPE_BUFFER) {
-+		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
-+				dimm_name, cmd_name, out_obj->type);
-+		rc =3D -EINVAL;
-+		goto out;
-+	}
+ 
+ 	if (param.align) {
+-		if (p->mode != NDCTL_NS_MODE_MEMORY &&
+-		    p->mode != NDCTL_NS_MODE_DAX) {
++		int i, alignments;
 +
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size =3D out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -572,13 +579,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_des=
-c, struct nvdimm *nvdimm,
- 		return 0;
- 	}
-=20
--	if (out_obj->package.type !=3D ACPI_TYPE_BUFFER) {
--		dev_dbg(dev, "%s unexpected output object type cmd: %s type: %d\n",
--				dimm_name, cmd_name, out_obj->type);
--		rc =3D -EINVAL;
--		goto out;
--	}
--
- 	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
- 			cmd_name, out_obj->buffer.length);
- 	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
---=20
-2.19.1
++		switch (p->mode) {
++		case NDCTL_NS_MODE_MEMORY:
++			if (!pfn) {
++				error("Kernel does not support setting an alignment in fsdax mode\n");
++				return -EINVAL;
++			}
++
++			alignments = ndctl_pfn_get_num_alignments(pfn);
++			break;
++
++		case NDCTL_NS_MODE_DAX:
++			alignments = ndctl_dax_get_num_alignments(dax);
++			break;
++
++		default:
+ 			error("%s mode does not support setting an alignment\n",
+ 					p->mode == NDCTL_NS_MODE_SAFE
+ 					? "sector" : "raw");
+@@ -550,13 +565,19 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		}
+ 
+ 		p->align = parse_size64(param.align);
++		for (i = 0; i < alignments; i++) {
++			uint64_t a;
+ 
+-		switch (p->align) {
+-		case SZ_4K:
+-		case SZ_2M:
+-		case SZ_1G:
+-			break;
+-		default:
++			if (p->mode == NDCTL_NS_MODE_MEMORY)
++				a = ndctl_pfn_get_supported_alignment(pfn, i);
++			else
++				a = ndctl_dax_get_supported_alignment(dax, i);
++
++			if (p->align == a)
++				break;
++		}
++
++		if (i >= alignments) {
+ 			error("unsupported align: %s\n", param.align);
+ 			return -ENXIO;
+ 		}
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
