@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com
+ [IPv6:2607:f8b0:4864:20::541])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6019F211B6C23
- for <linux-nvdimm@lists.01.org>; Fri, 11 Jan 2019 14:53:51 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/3] ndctl, inject-smart: switch to ndctl_cmd_submit_xlat
-Date: Fri, 11 Jan 2019 15:53:38 -0700
-Message-Id: <20190111225339.6939-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190111225339.6939-1-vishal.l.verma@intel.com>
-References: <20190111225339.6939-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6F87A211BFCDB
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:48 -0800 (PST)
+Received: by mail-pg1-x541.google.com with SMTP id w7so10165256pgp.13
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:48 -0800 (PST)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH v5 5/7] ndctl: Add alignment to the namespace JSON output
+Date: Wed, 30 Jan 2019 21:59:25 +1100
+Message-Id: <20190130105927.31901-5-oohall@gmail.com>
+In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+References: <20190130105927.31901-1-oohall@gmail.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,69 +21,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Ami Pathak <ami.g.pathak@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ndctl inject-smart command was neglecting to check the
-'firmware_status' field that is set by the platform firmware to indicate
-failure. Use the new ndctl_cmd_submit_xlat facility to include the
-firmware_status check as part of the command submission.
+Automated tooling probably wants to know this and it's helpful output
+for command line users for ndctl.
 
-Reported-by: Ami Pathak <ami.g.pathak@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- ndctl/inject-smart.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ util/json.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index eaa137a..12f3474 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -280,7 +280,7 @@ static int smart_set_thresh(struct ndctl_dimm *dimm)
- 		goto out;
+diff --git a/util/json.c b/util/json.c
+index 5c3424e2a707..77c96fb53c27 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -753,6 +753,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+ 	struct ndctl_dax *dax;
++	unsigned long align = 0;
+ 	char buf[40];
+ 	uuid_t uuid;
+ 	int numa;
+@@ -825,6 +826,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		util_raw_uuid_to_json(ndns, flags, jndns);
+ 		bdev = ndctl_btt_get_block_device(btt);
+ 	} else if (pfn) {
++		align = ndctl_pfn_get_align(pfn);
+ 		ndctl_pfn_get_uuid(pfn, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -837,6 +839,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		struct daxctl_region *dax_region;
+ 
+ 		dax_region = ndctl_dax_get_daxctl_region(dax);
++		align = ndctl_dax_get_align(dax);
+ 		ndctl_dax_get_uuid(dax, uuid);
+ 		uuid_unparse(uuid, buf);
+ 		jobj = json_object_new_string(buf);
+@@ -897,6 +900,13 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		json_object_object_add(jndns, "sector_size", jobj);
  	}
  
--	rc = ndctl_cmd_submit(st_cmd);
-+	rc = ndctl_cmd_submit_xlat(st_cmd);
- 	if (rc) {
- 		error("%s: smart threshold command failed: %s (%d)\n",
- 			name, strerror(abs(rc)), rc);
-@@ -320,7 +320,7 @@ static int smart_set_thresh(struct ndctl_dimm *dimm)
- 		ndctl_cmd_smart_threshold_set_alarm_control(sst_cmd, alarm);
- 	}
- 
--	rc = ndctl_cmd_submit(sst_cmd);
-+	rc = ndctl_cmd_submit_xlat(sst_cmd);
- 	if (rc)
- 		error("%s: smart set threshold command failed: %s (%d)\n",
- 			name, strerror(abs(rc)), rc);
-@@ -351,7 +351,7 @@ out:
- 			if (sctx.err_continue == false) \
- 				goto out; \
- 		} \
--		rc = ndctl_cmd_submit(si_cmd); \
-+		rc = ndctl_cmd_submit_xlat(si_cmd); \
- 		if (rc) { \
- 			error("%s: smart inject %s command failed: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
-@@ -382,7 +382,7 @@ out:
- 			if (sctx.err_continue == false) \
- 				goto out; \
- 		} \
--		rc = ndctl_cmd_submit(si_cmd); \
-+		rc = ndctl_cmd_submit_xlat(si_cmd); \
- 		if (rc) { \
- 			error("%s: smart inject %s command failed: %s (%d)\n", \
- 				name, #arg, strerror(abs(rc)), rc); \
++	if (align) {
++		jobj = json_object_new_int64(align);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jndns, "align", jobj);
++	}
++
+ 	if (bdev && bdev[0]) {
+ 		jobj = json_object_new_string(bdev);
+ 		if (!jobj)
 -- 
-2.17.2
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
