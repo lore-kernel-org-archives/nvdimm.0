@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74DAD211BA45B
- for <linux-nvdimm@lists.01.org>; Thu, 24 Jan 2019 15:21:57 -0800 (PST)
-Subject: [PATCH 4/5] dax/kmem: let walk_system_ram_range() search child
- resources
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Thu, 24 Jan 2019 15:14:47 -0800
-References: <20190124231441.37A4A305@viggo.jf.intel.com>
-In-Reply-To: <20190124231441.37A4A305@viggo.jf.intel.com>
-Message-Id: <20190124231447.74358AA5@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D7D2F211BFCDD
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 15:20:31 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v5 1/7] libndctl: Use the supported_alignment attribute
+Date: Wed, 30 Jan 2019 23:20:30 +0000
+Message-ID: <8cd1f3f0731d2fbc98c16cbee20f8f7fa143db62.camel@intel.com>
+References: <20190130105927.31901-1-oohall@gmail.com>
+In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+Content-Language: en-US
+Content-ID: <3E265F90860FA04FAC83E7201D9297E9@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,80 +20,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "oohall@gmail.com" <oohall@gmail.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
-
-In the process of onlining memory, we use walk_system_ram_range()
-to find the actual RAM areas inside of the area being onlined.
-
-However, it currently only finds memory resources which are
-"top-level" iomem_resources.  Children are not currently
-searched which causes it to skip System RAM in areas like this
-(in the format of /proc/iomem):
-
-a0000000-bfffffff : Persistent Memory (legacy)
-  a0000000-afffffff : System RAM
-
-Changing the true->false here allows children to be searched
-as well.  We need this because we add a new "System RAM"
-resource underneath the "persistent memory" resource when
-we use persistent memory in a volatile mode.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
----
-
- b/kernel/resource.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff -puN kernel/resource.c~mm-walk_system_ram_range-search-child-resources kernel/resource.c
---- a/kernel/resource.c~mm-walk_system_ram_range-search-child-resources	2019-01-24 15:13:15.482199536 -0800
-+++ b/kernel/resource.c	2019-01-24 15:13:15.486199536 -0800
-@@ -445,6 +445,9 @@ int walk_mem_res(u64 start, u64 end, voi
-  * This function calls the @func callback against all memory ranges of type
-  * System RAM which are marked as IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY.
-  * It is to be used only for System RAM.
-+ *
-+ * This will find System RAM ranges that are children of top-level resources
-+ * in addition to top-level System RAM resources.
-  */
- int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
- 			  void *arg, int (*func)(unsigned long, unsigned long, void *))
-@@ -460,7 +463,7 @@ int walk_system_ram_range(unsigned long
- 	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
- 	while (start < end &&
- 	       !find_next_iomem_res(start, end, flags, IORES_DESC_NONE,
--				    true, &res)) {
-+				    false, &res)) {
- 		pfn = (res.start + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 		end_pfn = (res.end + 1) >> PAGE_SHIFT;
- 		if (end_pfn > pfn)
-_
+On Wed, 2019-01-30 at 21:59 +1100, Oliver O'Halloran wrote:
+> Newer kernels provide the "supported_alignments" sysfs attribute that
+> indicates what alignments can be used with a PFN or DAX namespace. This
+> patch adds the plumbing inside of libndctl to allow users to query this
+> information through using:
+> 	ndctl_{dax|pfn}_get_supported_alignment(), and
+> 	ndctl_{dax|pfn}_get_num_alignments()
+> 
+> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+> ---
+> v5: Fixed comment wording
+> 
+> v4: Changed return code of ndctl_pfn_get_supported_alignment from -1 to
+>     -1 to -EINVAL.
+> 
+>     Reworded comment about why we default to 4K and 2M alignments when
+>     the sysfs attribute is missing.
+> 
+>     Shuffled around prototypes in ndctl.h.
+> 
+>     80 char compliance fixes.
+> 
+>     rebased onto pending branch
+> 
+> v3: Changed the return type of the *_get_supported_alignment() functions
+>     to unsigned long to match the existing *_get_alignment() functions.
+> ---
+>  ndctl/lib/libndctl.c   | 43 ++++++++++++++++++++++++++++++++++++++++++
+>  ndctl/lib/libndctl.sym |  4 ++++
+>  ndctl/libndctl.h       |  4 ++++
+>  3 files changed, 51 insertions(+)
+> 
+Thanks for the reworks, Oliver. I've applied the series.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
