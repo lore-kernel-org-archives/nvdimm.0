@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x335.google.com (mail-ot1-x335.google.com
+ [IPv6:2607:f8b0:4864:20::335])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C45F12194D3B9
- for <linux-nvdimm@lists.01.org>; Mon, 14 Jan 2019 20:08:08 -0800 (PST)
-Subject: [ndctl PATCH] ndctl, rpm: Mark monitor.conf as a configuration file
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Jan 2019 19:55:31 -0800
-Message-ID: <154752453130.1624444.5980546681656304647.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0EC32211BFCB0
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 22:23:43 -0800 (PST)
+Received: by mail-ot1-x335.google.com with SMTP id k98so20207518otk.3
+ for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 22:23:43 -0800 (PST)
 MIME-Version: 1.0
+References: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+In-Reply-To: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 29 Jan 2019 22:23:32 -0800
+Message-ID: <CAPcyv4jD1oRWzA4ZiMYZm1uxsbOdgqzbb9raH70-HBDqapcE_g@mail.gmail.com>
+Subject: Re: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,35 +25,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dexuan Cui <decui@microsoft.com>
+Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In case a user has made local modifications to /etc/ndctl/monitor.conf,
-instrument the spec file to not clobber those changes.
+On Mon, Jan 28, 2019 at 4:56 PM Dexuan Cui <decui@microsoft.com> wrote:
+>
+>
+> Add the Hyper-V _DSM command set to the white list of NVDIMM command
+> sets.
+>
+> This command set is documented at http://www.uefi.org/RFIC_LIST
+> (see "Virtual NVDIMM 0x1901").
+>
+> Thanks Dan Williams <dan.j.williams@intel.com> for writing the
+> comment change.
+>
+> Signed-off-by: Dexuan Cui <decui@microsoft.com>
+> Reviewed-by: Michael Kelley <mikelley@microsoft.com>
+> ---
+>
+> Changes in v2:
+>     Updated the comment and changelog (Thanks, Dan!)
+>     Rebased to the tag libnvdimm-fixes-5.0-rc4 of the nvdimm tree.
 
-Cc: Qi Fuli <qi.fuli@jp.fujitsu.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl.spec.in |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 26396d4abad7..bc4d65c1f988 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -117,9 +117,10 @@ make check
- %{_bindir}/ndctl
- %{_mandir}/man1/ndctl*
- %{bashcompdir}/
--%{_sysconfdir}/ndctl/monitor.conf
- %{_unitdir}/ndctl-monitor.service
- 
-+%config(noreplace) %{_sysconfdir}/ndctl/monitor.conf
-+
- %files -n daxctl
- %defattr(-,root,root)
- %license util/COPYING licenses/BSD-MIT licenses/CC0
-
+Thanks for the re-spin, applied.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
