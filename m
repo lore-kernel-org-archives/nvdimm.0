@@ -1,108 +1,137 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: [PATCH] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Wed, 23 Jan 2019 20:51:13 +0000
-Message-ID: <PU1P153MB0169DF967C5BAAC8334FCC42BF990@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com
+ [IPv6:2607:f8b0:4864:20::644])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 45B0F211BFCC4
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:52 -0800 (PST)
+Received: by mail-pl1-x644.google.com with SMTP id w4so10918850plz.1
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:52 -0800 (PST)
+From: Oliver O'Halloran <oohall@gmail.com>
+Subject: [PATCH v5 7/7] ndctl: Add supported_alignments to the JSON output
+Date: Wed, 30 Jan 2019 21:59:27 +1100
+Message-Id: <20190130105927.31901-7-oohall@gmail.com>
+In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+References: <20190130105927.31901-1-oohall@gmail.com>
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Josh Poulson <jopoulso@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Add the list of supported alignemnts to PFN and DAX namespaces. Also add
+the list of supported sector sizes to BTT namespaces.
 
-Add the Hyper-V _DSM command set to the white list of NVDIMM command
-sets.
-
-This command set is documented at http://www.uefi.org/RFIC_LIST
-(see the link to "Virtual NVDIMM 0x1901" on the page).
-
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
+v5: Added again. The supported_size array is now only included in the
+    verbose JSON output. This means it won't be included in the JSON
+    output from setup_namespace() so to see the list of supported
+    alignments you need to use `ndctl list -v`.
 
-I'm going to change the user-space utility "ndctl" to support Hyper-V Virtu=
-al NVDIMM.
-This kernel patch is required first.
+v4: Dropped due to unit test breakage.
 
- drivers/acpi/nfit/core.c   | 5 ++++-
- drivers/acpi/nfit/nfit.h   | 6 +++++-
- include/uapi/linux/ndctl.h | 1 +
- 3 files changed, 10 insertions(+), 2 deletions(-)
+v3: Added
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 011d3db19c80..fb48cb17a519 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1840,7 +1840,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *=
-acpi_desc,
- 	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
-=20
- 	/*
--	 * Until standardization materializes we need to consider 4
-+	 * Until standardization materializes we need to consider 5
- 	 * different command sets.  Note, that checking for function0 (bit0)
- 	 * tells us if any commands are reachable through this GUID.
- 	 */
-@@ -1865,6 +1865,8 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *=
-acpi_desc,
- 			dsm_mask &=3D ~(1 << 8);
- 	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_MSFT) {
- 		dsm_mask =3D 0xffffffff;
-+	} else if (nfit_mem->family =3D=3D NVDIMM_FAMILY_HYPERV) {
-+		dsm_mask =3D 0x1f;
- 	} else {
- 		dev_dbg(dev, "unknown dimm command family\n");
- 		nfit_mem->family =3D -1;
-@@ -3707,6 +3709,7 @@ static __init int nfit_init(void)
- 	guid_parse(UUID_NFIT_DIMM_N_HPE1, &nfit_uuid[NFIT_DEV_DIMM_N_HPE1]);
- 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
- 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
-+	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
-=20
- 	nfit_wq =3D create_singlethread_workqueue("nfit");
- 	if (!nfit_wq)
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 33691aecfcee..9194022f29f3 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -34,11 +34,14 @@
- /* https://msdn.microsoft.com/library/windows/hardware/mt604741 */
- #define UUID_NFIT_DIMM_N_MSFT "1ee68b36-d4bd-4a1a-9a16-4f8e53d46e05"
-=20
-+/* http://www.uefi.org/RFIC_LIST */
-+#define UUID_NFIT_DIMM_N_HYPERV "5746c5f2-a9a2-4264-ad0e-e4ddc9e09e80"
+Not sure the namespace JSON blob are the best place to put these. The
+region might be better, but slightly less accessable to users.
+---
+ util/json.c | 48 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
+
+diff --git a/util/json.c b/util/json.c
+index eee459aa453b..dd77b41e114c 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -303,6 +303,38 @@ struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
+ 	return jdevs;
+ }
+ 
++#define _SZ(get_max, get_elem, type) \
++static struct json_object *type##_build_size_array(struct type *arg)	\
++{								\
++	struct json_object *arr = json_object_new_array();	\
++	int i;							\
++								\
++	if (!arr)						\
++		return NULL;					\
++								\
++	for (i = 0; i < get_max(arg); i++) {			\
++		struct json_object *jobj;			\
++		int64_t align;					\
++								\
++		align = get_elem(arg, i);			\
++		jobj = json_object_new_int64(align);		\
++		if (!jobj)					\
++			goto err;				\
++		json_object_array_add(arr, jobj);		\
++	}							\
++								\
++	return arr;						\
++err:								\
++	json_object_put(arr);					\
++	return NULL;						\
++}
++#define SZ(type, kind) _SZ(ndctl_##type##_get_num_##kind##s, \
++			   ndctl_##type##_get_supported_##kind, ndctl_##type)
++SZ(pfn, alignment)
++SZ(dax, alignment)
++SZ(btt, sector_size)
++//SZ(namespace, sector_size)
 +
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
-=20
--#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
-=20
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS =
-\
-@@ -94,6 +97,7 @@ enum nfit_uuids {
- 	NFIT_DEV_DIMM_N_HPE1 =3D NVDIMM_FAMILY_HPE1,
- 	NFIT_DEV_DIMM_N_HPE2 =3D NVDIMM_FAMILY_HPE2,
- 	NFIT_DEV_DIMM_N_MSFT =3D NVDIMM_FAMILY_MSFT,
-+	NFIT_DEV_DIMM_N_HYPERV =3D NVDIMM_FAMILY_HYPERV,
- 	NFIT_SPA_VOLATILE,
- 	NFIT_SPA_PM,
- 	NFIT_SPA_DCR,
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index f57c9e434d2d..de5d90212409 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -243,6 +243,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE1 1
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
-+#define NVDIMM_FAMILY_HYPERV 4
-=20
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
---=20
-2.19.1
+ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+ 		const char *ident, unsigned long flags)
+ {
+@@ -739,7 +771,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ {
+ 	struct json_object *jndns = json_object_new_object();
+ 	enum ndctl_pfn_loc loc = NDCTL_PFN_LOC_NONE;
+-	struct json_object *jobj, *jbbs = NULL;
++	struct json_object *jobj, *jbbs = NULL, *size_array = NULL;
+ 	const char *locations[] = {
+ 		[NDCTL_PFN_LOC_NONE] = "none",
+ 		[NDCTL_PFN_LOC_RAM] = "mem",
+@@ -749,6 +781,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	unsigned int sector_size = UINT_MAX;
+ 	enum ndctl_namespace_mode mode;
+ 	const char *bdev = NULL, *name;
++	const char *size_array_name;
+ 	unsigned int bb_count = 0;
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+@@ -936,6 +969,19 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 			json_object_object_add(jndns, "numa_node", jobj);
+ 	}
+ 
++	if (pfn) {
++		size_array_name = "supported_alignments";
++		size_array = ndctl_pfn_build_size_array(pfn);
++	} else if (dax) {
++		size_array_name = "supported_alignments";
++		size_array = ndctl_dax_build_size_array(dax);
++	} else if (btt) {
++		size_array_name = "supported sector sizes";
++		size_array = ndctl_btt_build_size_array(btt);
++	}
++	if (size_array && flags & UTIL_JSON_VERBOSE)
++		json_object_object_add(jndns, size_array_name, size_array);
++
+ 	if (pfn)
+ 		jbbs = util_pfn_badblocks_to_json(pfn, &bb_count, flags);
+ 	else if (dax)
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
