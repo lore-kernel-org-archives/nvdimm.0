@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com
- [IPv6:2607:f8b0:4864:20::643])
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com
+ [IPv6:2607:f8b0:4864:20::644])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ADCA6211B5A34
- for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 06:49:20 -0800 (PST)
-Received: by mail-pl1-x643.google.com with SMTP id e5so9446143plb.5
- for <linux-nvdimm@lists.01.org>; Tue, 29 Jan 2019 06:49:20 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 95681211BFCC4
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:42 -0800 (PST)
+Received: by mail-pl1-x644.google.com with SMTP id z23so10905039plo.0
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 02:59:42 -0800 (PST)
 From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH v4 4/5] ndctl/namespace: Validate alignment from the {pfn|dax}
- seed
-Date: Wed, 30 Jan 2019 01:48:56 +1100
-Message-Id: <20190129144857.6741-4-oohall@gmail.com>
-In-Reply-To: <20190129144857.6741-1-oohall@gmail.com>
-References: <20190129144857.6741-1-oohall@gmail.com>
+Subject: [PATCH v5 2/7] ndctl/namespace: Check for seed namespaces earlier
+Date: Wed, 30 Jan 2019 21:59:22 +1100
+Message-Id: <20190130105927.31901-2-oohall@gmail.com>
+In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+References: <20190130105927.31901-1-oohall@gmail.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -29,73 +28,97 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds support to the ndctl tool for validating that the
-namespace alignment is valid.
+When creating an fsdax or devdax namespace we need to verify that the
+seed namespaces exist. This patch reworks the validation so that it's
+done earlier to simplify the subsequent patches in the series.
 
 Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
-v3: Fail validation if an alignment is specified, but pfn mode is
-    not supported.
+No functional changes, I hope.
+
+v3: Don't fail early if the user specifies fsdax mode without pfn
+    support. Instead, if we try to validate a feature that requires
+    pfn support, fail the validation at that point.
 ---
- ndctl/namespace.c | 37 +++++++++++++++++++++++++++++--------
- 1 file changed, 29 insertions(+), 8 deletions(-)
+ ndctl/namespace.c | 48 +++++++++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 25 deletions(-)
 
 diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 5d672810a712..25e0a87676e4 100644
+index b35812bd17a9..12253a96e095 100644
 --- a/ndctl/namespace.c
 +++ b/ndctl/namespace.c
-@@ -541,8 +541,23 @@ static int validate_namespace_options(struct ndctl_region *region,
+@@ -469,6 +469,8 @@ static int validate_namespace_options(struct ndctl_region *region,
+ {
+ 	const char *region_name = ndctl_region_get_devname(region);
+ 	unsigned long long size_align = SZ_4K, units = 1, resource;
++	struct ndctl_pfn *pfn = NULL;
++	struct ndctl_dax *dax = NULL;
+ 	unsigned int ways;
+ 	int rc = 0;
+ 
+@@ -525,10 +527,24 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	} else if (ndns)
+ 		p->mode = ndctl_namespace_get_mode(ndns);
+ 
+-	if (param.align) {
+-		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
+-		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
++	if (p->mode == NDCTL_NS_MODE_MEMORY) {
++		pfn = ndctl_region_get_pfn_seed(region);
++		if (!pfn && param.mode_default) {
++			debug("%s fsdax mode not available\n", region_name);
++			p->mode = NDCTL_NS_MODE_RAW;
++		}
++		/*
++		 * NB: We only fail validation if a pfn-specific option is used
++		 */
++	} else if (p->mode == NDCTL_NS_MODE_DAX) {
++		dax = ndctl_region_get_dax_seed(region);
++		if (!dax) {
++			error("Kernel does not support devdax mode\n");
++			return -ENODEV;
++		}
++	}
+ 
++	if (param.align) {
+ 		p->align = parse_size64(param.align);
+ 
+ 		if (p->mode == NDCTL_NS_MODE_MEMORY && p->align != SZ_2M
+@@ -709,30 +725,12 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 			|| p->mode == NDCTL_NS_MODE_DAX)
+ 		p->loc = NDCTL_PFN_LOC_PMEM;
+ 
+-	/* check if we need, and whether the kernel supports, pfn devices */
+-	if (do_setup_pfn(ndns, p)) {
+-		struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
+-
+-		if (!pfn && param.mode_default) {
+-			debug("%s fsdax mode not available\n", region_name);
+-			p->mode = NDCTL_NS_MODE_RAW;
+-		} else if (!pfn) {
+-			error("operation failed, %s fsdax mode not available\n",
+-					region_name);
+-			return -EINVAL;
+-		}
++	if (!pfn && do_setup_pfn(ndns, p)) {
++		error("operation failed, %s cannot support requested mode\n",
++			region_name);
++		return -EINVAL;
  	}
  
- 	if (param.align) {
--		if (p->mode != NDCTL_NS_MODE_MEMORY &&
--		    p->mode != NDCTL_NS_MODE_DAX) {
-+		int i, alignments;
-+
-+		switch (p->mode) {
-+		case NDCTL_NS_MODE_MEMORY:
-+			if (!pfn) {
-+				error("Kernel does not support setting an alignment in fsdax mode\n");
-+				return -EINVAL;
-+			}
-+
-+			alignments = ndctl_pfn_get_num_alignments(pfn);
-+			break;
-+
-+		case NDCTL_NS_MODE_DAX:
-+			alignments = ndctl_dax_get_num_alignments(dax);
-+			break;
-+
-+		default:
- 			error("%s mode does not support setting an alignment\n",
- 					p->mode == NDCTL_NS_MODE_SAFE
- 					? "sector" : "raw");
-@@ -550,13 +565,19 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		}
+-	/* check if we need, and whether the kernel supports, dax devices */
+-	if (p->mode == NDCTL_NS_MODE_DAX) {
+-		struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
+-
+-		if (!dax) {
+-			error("operation failed, %s devdax mode not available\n",
+-					region_name);
+-			return -EINVAL;
+-		}
+-	}
  
- 		p->align = parse_size64(param.align);
-+		for (i = 0; i < alignments; i++) {
-+			uint64_t a;
+ 	p->autolabel = param.autolabel;
  
--		switch (p->align) {
--		case SZ_4K:
--		case SZ_2M:
--		case SZ_1G:
--			break;
--		default:
-+			if (p->mode == NDCTL_NS_MODE_MEMORY)
-+				a = ndctl_pfn_get_supported_alignment(pfn, i);
-+			else
-+				a = ndctl_dax_get_supported_alignment(dax, i);
-+
-+			if (p->align == a)
-+				break;
-+		}
-+
-+		if (i >= alignments) {
- 			error("unsupported align: %s\n", param.align);
- 			return -ENXIO;
- 		}
 -- 
 2.20.1
 
