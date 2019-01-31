@@ -1,14 +1,12 @@
-From: Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Subject: Re: [driver-core PATCH v10 0/9] Add NUMA aware async_schedule calls
-Date: Thu, 31 Jan 2019 16:17:31 +0100
-Message-ID: <20190131151731.GA19261@kroah.com>
-References: <154818223154.18753.12374915684623789884.stgit@ahduyck-desk1.amr.corp.intel.com>
+From: "Miss Kira"<kige32767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: =?UTF-8?B?44Kt44Op5ayi44GL44KJ44Gu44OX44Ot44K444Kn44Kv44OI44Oh44O844OrIC8gUHJvamVjdCBNYWlsIGZyb20gTWlzcyBLaXJh?=
+Date: 31 Jan 2019 12:12:30 -0800
+Message-ID: <20190131121230.DD7F20451679D90C@hotmail.com>
+Reply-To: Miss Kira <kige032767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <154818223154.18753.12374915684623789884.stgit-+uVpp3jiz/SWyQ3uPIV3rPooFf0ArEBIu+b9c/7xato@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,92 +16,80 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Alexander Duyck <alexander.h.duyck-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, jiangshanlai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jan 22, 2019 at 10:39:05AM -0800, Alexander Duyck wrote:
-> This patch set provides functionality that will help to improve the
-> locality of the async_schedule calls used to provide deferred
-> initialization.
-> 
-> This patch set originally started out focused on just the one call to
-> async_schedule_domain in the nvdimm tree that was being used to defer the
-> device_add call however after doing some digging I realized the scope of
-> this was much broader than I had originally planned. As such I went
-> through and reworked the underlying infrastructure down to replacing the
-> queue_work call itself with a function of my own and opted to try and
-> provide a NUMA aware solution that would work for a broader audience.
-> 
-> In addition I have added several tweaks and/or clean-ups to the front of the
-> patch set. Patches 1 through 3 address a number of issues that actually were
-> causing the existing async_schedule calls to not show the performance that
-> they could due to either not scaling on a per device basis, or due to issues
-> that could result in a potential race. For example, patch 3 addresses the
-> fact that we were calling async_schedule once per driver instead of once
-> per device, and as a result we would have still ended up with devices
-> being probed on a non-local node without addressing this first.
-> 
-> I have also updated the kernel module used to test async driver probing so
-> that it can expose the original issue I was attempting to address.
-> It will fail on a system of asynchronous work either takes longer than it
-> takes to load a single device and a single driver with a device already
-> added. It will also fail if the NUMA node that the driver is loaded on does
-> not match the NUMA node the device is associated with.
-> 
-> RFC->v1:
->     Dropped nvdimm patch to submit later.
->         It relies on code in libnvdimm development tree.
->     Simplified queue_work_near to just convert node into a CPU.
->     Split up drivers core and PM core patches.
-> v1->v2:
->     Renamed queue_work_near to queue_work_node
->     Added WARN_ON_ONCE if we use queue_work_node with per-cpu workqueue
-> v2->v3:
->     Added Acked-by for queue_work_node patch
->     Continued rename from _near to _node to be consistent with queue_work_node
->         Renamed async_schedule_near_domain to async_schedule_node_domain
->         Renamed async_schedule_near to async_schedule_node
->     Added kerneldoc for new async_schedule_XXX functions
->     Updated patch description for patch 4 to include data on potential gains
-> v3->v4
->     Added patch to consolidate use of need_parent_lock
->     Make asynchronous driver probing explicit about use of drvdata
-> v4->v5
->     Added patch to move async_synchronize_full to address deadlock
->     Added bit async_probe to act as mutex for probe/remove calls
->     Added back nvdimm patch as code it relies on is now in Linus's tree
->     Incorporated review comments on parent & device locking consolidation
->     Rebased on latest linux-next
-> v5->v6:
->     Drop the "This patch" or "This change" from start of patch descriptions.
->     Drop unnecessary parenthesis in first patch
->     Use same wording for "selecting a CPU" in comments added in first patch
->     Added kernel documentation for async_probe member of device
->     Fixed up comments for async_schedule calls in patch 2
->     Moved code related setting async driver out of device.h and into dd.c
->     Added Reviewed-by for several patches
-> v6->v7:
->     Fixed typo which had kernel doc refer to "lock" when I meant "unlock"
->     Dropped "bool X:1" to "u8 X:1" from patch description
->     Added async_driver to device_private structure to store driver
->     Dropped unecessary code shuffle from async_probe patch
->     Reordered patches to move fixes up to front
->     Added Reviewed-by for several patches
->     Updated cover page and patch descriptions throughout the set
-> v7->v8:
->     Replaced async_probe value with dead, only apply dead in device_del
->     Dropped Reviewed-by from patch 2 due to significant changes
->     Added Reviewed-by for patches reviewed by Luis Chamberlain
-> v8->v9:
->     Dropped patch 1 as it was applied, shifted remaining patches by 1
->     Added new patch 9 that adds test framework for NUMA and sequential init
->     Tweaked what is now patch 1, and added Reviewed-by from Dan Williams
-> v9->v10:
->     Moved "dead" from device struct to device_private struct
->     Added Reviewed-by from Rafael to patch 1
->     Rebased on latest linux-next
-
-Thanks for sticking with this, now all queued up.
-
-greg k-h
+44GT44KT44Gr44Gh44GvCgrnp4Hjga7lkI3liY3jga/jgq3jg6njg7vjgrjjgqfjg7Pjgr7jgZXj
+gpPjgIHnp4Hjga8xN+ats+OBruWls+OBruWtkOOAgeengeOBr+WtpOWFkOOBp+OBguOCi+OBk+OB
+qOOCkuOBguOBquOBn+OBq+S8neOBiOOCi+OBn+OCgeOBq+abuOOBhOOBpuOBhOOBvuOBmeengeOB
+r+S4oeimquOBruOBn+OBoOS4gOS6uuOBruWtkOS+m+OBp+OBmQoK44Kk44Oz44K/44O844ON44OD
+44OI5qSc57Si44KS5LuL44GX44Gm44Kq44Oz44Op44Kk44Oz44Gu6Zu75a2Q44Oh44O844Or44OH
+44O844K/44OZ44O844K544OH44Kj44Os44Kv44OI44Oq44GL44KJ44GC44Gq44Gf44Gu6Zu75a2Q
+44Oh44O844Or44Ki44OJ44Os44K544KS5qSc57Si44GX44CB44K744Kt44Ol44Oq44OG44Kj44Gu
+44Gf44KB44Gr44GC44Gq44Gf44Gu5Zu944Gr56e75YuV44GZ44KL44GT44Go44Gr6IiI5ZGz44GM
+44GC44KL44GL44Gp44GG44GL44Gr44Gk44GE44Gm44GC44Gq44Gf44Go6YCj57Wh44KS5Y+W44KK
+44Gf44GE44Go5oCd44GE44G+44GZ44CCCgrnp4Hjga/kuK3lm73kurrjgafjgZnjgIHnp4Hjga/o
+i7Hoqp7jgajkuK3lm73oqp7jgpLoqbHjgZfjgb7jgZnjgILnp4Hjga7niLbjga/jgZPjgZPmlbDj
+g7bmnIjjgaflv4Poh5Pnl4XjgafkuqHjgY/jgarjgorjgb7jgZfjgZ/jgIHjgZ3jgZfjgabnp4Hj
+ga7kurrnlJ/jgYzljbHpmbrjgavjgZXjgonjgZXjgozjgabjgYTjgovjga7jgafnp4Hjga/lv4Pj
+gYvjgonjgYLjgarjgZ/jga7liqnjgZHjgpLlv4XopoHjgajjgZfjgabjgYTjgb7jgZnjgIIKCuen
+geOBr+OBguOBquOBn+OBqOmdnuW4uOOBq+mHjeimgeOBquODk+OCuOODjeOCueOBq+OBpOOBhOOB
+puipseOBl+WQiOOBhOOAgeWvvuWHpuOBl+OBn+OBhOOBqOaAneOBhOOBvuOBmeOAggoK44GC44Gq
+44Gf44Gu6L+U5LqL44KS5Y+X44GR5Y+W44Gj44Gf5b6M44CB56eB44Gv44GC44Gq44Gf44Gu44Gf
+44KB44Gr44KC44Gj44Go44OT44K444ON44K544Gu6Kmz57Sw44KS5pu444GN44G+44GZ44CCCgoK
+44GZ44GQ44Gr56eB44Gu5YCL5Lq655So44Oh44O844Or44Ki44OJ44Os44K5a2lnZTAzMjc2N0Bo
+b3RtYWlsLmNvbeOBq+i/lOS/oeOBl+OBpuOBj+OBoOOBleOBhOOAggoKCuengeOBr+OBguOBquOB
+n+OBruasoeOBrui/lOS6i+OCkuW+heOBo+OBpuOBhOOBvuOBmeOAggoKCuengeOBruODl+ODqeOC
+pOODmeODvOODiEXjg6Hjg7zjg6vjgqLjg4njg6zjgrnjgavjga7jgb/ov5Tkv6HjgZnjgovvvJpr
+aWdlMDMyNzY3QGhvdG1haWwuY29tCgoK44GC44KK44GM44Go44GG44GU44GW44GE44G+44GZ44CC
+CgrmhJvjgIEK44Kt44Op44CCCuOCueOCq+OCpOODl0lE77ya44Op44Kk44OW77yaYmVrZWUzMjc2
+NwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18K5YWN6LKs5LqL6aCF77ya44GT44GuReODoeODvOOD
+q++8iOa3u+S7mOODleOCoeOCpOODq+OCkuWQq+OCgO+8ieOBr+aEj+Wbs+OBmeOCi+WPl+S/oeiA
+heOBq+OBruOBv+mAgeS/oeOBleOCjOOAgeeJueaoqeeahOOBquapn+WvhuaDheWgseOBjOWQq+OB
+vuOCjOOBpuOBhOOCi+WPr+iDveaAp+OBjOOBguOCiuOBvuOBmeOAguOBguOBquOBn+OBjOaEj+Wb
+s+OBl+OBn+WPl+S/oeiAheOBp+OBr+OBquOBhOWgtOWQiOOAgeOBguOBquOBn+OBr+OBk+OBrkXj
+g6Hjg7zjg6vjga7jgYTjgYvjgarjgovpg6jliIbjgoLkvb/nlKjjgIHkv53mjIHjgIHplovnpLrj
+gIHjgrPjg5Tjg7zjgIHljbDliLfjgIHphY3luIPjgb7jgZ/jga/phY3luIPjgZnjgovjgZPjgajj
+ga/jgafjgY3jgb7jgZvjgpPjgILjgZPjga5F44Oh44O844Or44KS6Kqk44Gj44Gm5Y+X5L+h44GX
+44Gf5aC05ZCI44Gv44CB44GT44GuReODoeODvOODq++8iOa3u+S7mOODleOCoeOCpOODq+OCkuWQ
+q+OCgO+8ieOCkuOCt+OCueODhuODoOOBi+OCieWJiumZpOOBl+OAgeOBk+OBrkXjg6Hjg7zjg6vj
+gavov5Tkv6HjgZnjgovjgZPjgajjgavjgojjgaPjgabnm7TjgaHjgavpgIHkv6HogIXjgavpgJrn
+n6XjgZfjgabjgY/jgaDjgZXjgYTjgILpm7vlrZDjg6Hjg7zjg6vpgIHkv6HjgYzjgIHjgr/jgqTj
+g6Djg6rjg7zjgIHlronlhajjgIHjgqjjg6njg7zjg5Xjg6rjg7zjgIHjgb7jgZ/jga/jgqbjgqTj
+g6vjgrnjg5Xjg6rjg7zjgafjgYLjgovjgZPjgajjgpLkv53oqLzjgZnjgovjgoLjga7jgafjga/j
+gYLjgorjgb7jgZvjgpPjgILpgIHkv6HogIXjga/jgIHpm7vlrZDjg6Hjg7zjg6vjga7pgIHkv6Hj
+gavjgojjgaPjgabnlJ/jgZjjgZ/jgYTjgYvjgarjgovmkI3lpLHjgIHoqqTjgorjgIHnnIHnlaXj
+gIHjgb7jgZ/jga/mkI3lrrPjgavjgaTjgYTjgabjgoLosqzku7vjgpLosqDjgYTjgb7jgZvjgpPj
+gIIKSGVsbG8gZGVhciwKCk15IE5hbWUgaXMgTWlzcyBLaXJhIEdlbnpvLCBJIGFtIGEgMTcgeWVh
+cnMgb2xkIGdpcmwsIEkgYW0gd3JpdGluZyB5b3UgdG8gbGV0IHlvdSBrbm93IHRoYXQgSSdtIGFu
+IE9ycGhhbiwgSSBhbSB0aGUgb25seSBjaGlsZCBvZiBteSBwYXJlbnRzLgoKSSBzZWFyY2ggeW91
+ciBlbWFpbCBhZGRyZXNzIGZyb20gdGhlIG9ubGluZSBlLW1haWwgRGF0YWJhc2UgRGlyZWN0b3J5
+IHRocm91Z2ggdGhlIEludGVybmV0IHNlYXJjaCwgSSB3b3VsZCBsaWtlIHRvIGNvbW11bmljYXRl
+IHdpdGggeW91IGFib3V0IG15IGludGVyZXN0IHBsYW4gaW4gcmVsb2NhdGluZyB0byB5b3VyIGNv
+dW50cnkgZm9yIG15IHNhZmV0eS4KCkkgYW0gYSBDaGluZXNlLCBhbmQgSSBjYW4gc3BlYWsgRW5n
+bGlzaCBhbmQgQ2hpbmVzZS4gTXkgZmF0aGVyIGhhcyBkaWVkIG9mIGEgaGVhcnQgYXR0YWNrIGZv
+ciB0aGUgcGFzdCBmZXcgbW9udGhzIGFuZCBJIHNpbmNlcmVseSBuZWVkIHlvdXIgaGVscCBub3cg
+YmVjYXVzZSBteSBsaWZlIGlzIGluIERhbmdlci4KCkkgd2FudCB0byBkaXNjdXNzIGFuZCBoYW5k
+bGUgYSB2ZXJ5IGltcG9ydGFudCBidXNpbmVzcyB3aXRoIHlvdS4KCkkgd2lsbCB3cml0ZSB5b3Ug
+bW9yZSBkZXRhaWxzIG9mIHRoZSBidXNpbmVzcyB3aGVuIEkgcmVjZWl2ZSB5b3VyIHJlcGx5LgoK
+ClBsZWFzZSByZXBseSBpbW1lZGlhdGVseSB0byBteSBwZXJzb25hbCBlbWFpbCBhZGRyZXNzIGtp
+Z2UwMzI3NjdAaG90bWFpbC5jb20KCgpJIHdhaXQgZm9yIHlvdXIgbmV4dCByZXBseS4KCgpSZXBs
+eSBvbmx5IHRvIG15IHByaXZhdGUgZW1haWwgYWRkcmVzczoga2lnZTAzMjc2N0Bob3RtYWlsLmNv
+bQoKClRoYW5rIHlvdS4KCkxvdmUsCktpcmEuClNreXBlIElEOiBsaXZlOmJla2VlMzI3NjcKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCkRJU0NMQUlNRVI6IFRoaXMgZW1haWwgKGluY2x1ZGluZyBh
+dHRhY2htZW50cykgaXMgYWRkcmVzc2VkIHRvIHRoZSBpbnRlbmRlZCByZWNpcGllbnQgb25seSBh
+bmQgbWF5IGNvbnRhaW4gaW5mb3JtYXRpb24gdGhhdCBpcyBwcml2aWxlZ2VkIGFuZCBjb25maWRl
+bnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHlvdSBtdXN0IG5v
+dCB1c2UsIHJldGFpbiwgZGlzY2xvc2UsIGNvcHksIHByaW50LCBkaXNzZW1pbmF0ZSBvciBkaXN0
+cmlidXRlIGFueSBwYXJ0IG9mIHRoaXMgZW1haWwuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMg
+ZW1haWwgaW4gZXJyb3IsIHBsZWFzZSBkZWxldGUgdGhpcyBlbWFpbCAoaW5jbHVkaW5nIGF0dGFj
+aG1lbnRzKSBmcm9tIHlvdXIgc3lzdGVtIGFuZCBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVs
+eSBieSByZXBseWluZyB0byB0aGlzIGVtYWlsLiBFbWFpbCB0cmFuc21pc3Npb24gY2Fubm90IGJl
+IGd1YXJhbnRlZWQgdG8gYmUgdGltZWx5LCBzZWN1cmUsIGVycm9yIG9yIHZpcnVzLWZyZWUuIFRo
+ZSBzZW5kZXIgYWNjZXB0cyBubyBsaWFiaWxpdHkgZm9yIGFueSBsb3NzLCBlcnJvciwgb21pc3Np
+b25zIG9yIGRhbWFnZSBhcmlzaW5nIGFzIGEgcmVzdWx0IG9mIGVtYWlsIHRyYW5zbWlzc2lvbi4K
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
+aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
+MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
