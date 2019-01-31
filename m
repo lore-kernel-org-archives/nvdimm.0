@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sender-pp-092.zoho.com (sender-pp-092.zoho.com [135.84.80.237])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C301211B7F72
- for <linux-nvdimm@lists.01.org>; Tue, 15 Jan 2019 17:48:27 -0800 (PST)
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: [PATCH] acpi/nfit: not set nfit_mem when it is found
-Date: Wed, 16 Jan 2019 09:48:07 +0800
-Message-Id: <20190116014807.11195-1-richardw.yang@linux.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 470B3211B5A4C
+ for <linux-nvdimm@lists.01.org>; Wed, 30 Jan 2019 18:33:04 -0800 (PST)
+From: Huaisheng Ye <yehs2007@zoho.com>
+Subject: [PATCH v3 5/5] dm-writecache: output seq_count within status
+Date: Thu, 31 Jan 2019 10:29:55 +0800
+Message-Id: <20190131022955.9920-6-yehs2007@zoho.com>
+In-Reply-To: <20190131022955.9920-1-yehs2007@zoho.com>
+References: <20190131022955.9920-1-yehs2007@zoho.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,47 +17,44 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: zwisler@kernel.org
+To: mpatocka@redhat.com, snitzer@redhat.com, agk@redhat.com
+Cc: jack@suse.cz, corbet@lwn.net, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, hch@lst.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In __nfit_mem_init(), one nfit_mem will be created in case we can't find
-one nfit_mem with matched device_handle. The variable *found* indicates
-this research result.
+From: Huaisheng Ye <yehs1@lenovo.com>
 
-If we found one, variable *found* is set to non-NULL and variable
-*nfit_mem* already points to the data structure we want to set up. This
-is not necessary to reset variable *nfit_mem* to *found* again.
+seq_count is important for flush operations, output it within status
+for debugging and analyzing code behavior.
 
-This patch removes the assignment of *nfit_mem* to *found* when they are
-the same.
-
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Signed-off-by: Huaisheng Ye <yehs1@lenovo.com>
 ---
- drivers/acpi/nfit/core.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/md/dm-writecache.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 9c3c2d2f37be..4643aa10ed2a 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1053,9 +1053,7 @@ static int __nfit_mem_init(struct acpi_nfit_desc *acpi_desc,
- 				break;
- 			}
+diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
+index 2c1e825..3396710 100644
+--- a/drivers/md/dm-writecache.c
++++ b/drivers/md/dm-writecache.c
+@@ -2231,9 +2231,9 @@ static void writecache_status(struct dm_target *ti, status_type_t type,
  
--		if (found)
--			nfit_mem = found;
--		else {
-+		if (!found) {
- 			nfit_mem = devm_kzalloc(acpi_desc->dev,
- 					sizeof(*nfit_mem), GFP_KERNEL);
- 			if (!nfit_mem)
+ 	switch (type) {
+ 	case STATUSTYPE_INFO:
+-		DMEMIT("%ld %llu %llu %llu", writecache_has_error(wc),
++		DMEMIT("%ld %llu %llu %llu %llu", writecache_has_error(wc),
+ 		       (unsigned long long)wc->n_blocks, (unsigned long long)wc->freelist_size,
+-		       (unsigned long long)wc->writeback_size);
++		       (unsigned long long)wc->writeback_size, wc->seq_count);
+ 		break;
+ 	case STATUSTYPE_TABLE:
+ 		DMEMIT("%c %s %s %u ", WC_MODE_PMEM(wc) ? 'p' : 's',
 -- 
-2.19.1
+1.8.3.1
+
 
 _______________________________________________
 Linux-nvdimm mailing list
