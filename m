@@ -1,22 +1,55 @@
-From: "lzio" <chenlishan-YspaReX1latWk0Htik3J/w@public.gmane.org>
-Subject: =?gb2312?B?s6TG2sjVueLUobXEveG5+w==?=
-Date: Thu, 27 Dec 2018 08:51:14 +0800
-Message-ID: <FEBBF15C808FCE54E94DE66FD623B28B@wzidw>
-Mime-Version: 1.0
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9F0D721B02822
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Jan 2019 16:37:11 -0800 (PST)
+Received: by mail-ot1-x342.google.com with SMTP id a11so4550542otr.10
+ for <linux-nvdimm@lists.01.org>; Thu, 31 Jan 2019 16:37:11 -0800 (PST)
+MIME-Version: 1.0
+References: <154897708013.51182.14455795448108189661.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <154897708013.51182.14455795448108189661.stgit@djiang5-desk3.ch.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 31 Jan 2019 16:36:58 -0800
+Message-ID: <CAPcyv4jJ_d3jmT+2vQBeWzrF7yoAiH2atxRBHiFXfZ0EJKfoqQ@mail.gmail.com>
+Subject: Re: [PATCH] ndctl: security documentation update
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: wmzzjcf-e/OITdSPGiHM1kAEIRd3EQ@public.gmane.org, wagocd-5GLqhDxsbEPM1kAEIRd3EQ@public.gmane.org, twz1-4TrOqeUk6cOVc3sceRu5cw@public.gmane.org, admin-BQdmp7o1AWxWk0Htik3J/w@public.gmane.org, ters-DquRZQo1TRulQ9BUahrlcQ@public.gmane.org, jquinby-wzuGq9dUTNCakBO8gow8eQ@public.gmane.org, chensj1964-LWX2ABx2E6zM1kAEIRd3EQ@public.gmane.org, metterpd-sr0r2BT00AXk1uMJSBkQmQ@public.gmane.org, baldrich-I5VFN86y1W83uPMLIKxrzw@public.gmane.org, wuguohua-7ruDPtmGZyXM1kAEIRd3EQ@public.gmane.org, admin-LQC9o1jSPPmsTnJN9+BGXg@public.gmane.org, admin-U4dhI3rO6ipl57MIdRCFDg@public.gmane.org, support-kyp0xuz1PNBWk0Htik3J/w@public.gmane.org, catch-rKKRn49UMtPQT0dZR+AlfA@public.gmane.org, jfloyd-DveEnsEKnjgS+FvcfC7Uqw@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, lvqing-NXN67KNX7eEnDS1+zs4M5A@public.gmane.org, afinkel-T43zkicklVOdJdNcDFJN0w@public.gmane.org, zyp-TYbvZUgRGGKB+jHODAdFcQ@public.gmane.org, a0029147-5JmTWrE4R8UWI+UwmH2aBQ@public.gmane.org, yan.l-pPthzkVRcG/by3iVrkZq2A@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+List-ID: <linux-nvdimm@lists.01.org>
 
-Message sent using Winmail Mail Server
+On Thu, Jan 31, 2019 at 3:25 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+> In order to avoid terminology confusion, update the security man pages so
+> that when we are talking about keys, we are exclusively talking about the
+> key encryption key. The encrypted keys with payload will be referred to as
+> passphrase instead.
+>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  Documentation/ndctl/intel-nvdimm-security.txt   |   14 +++++++-------
+>  Documentation/ndctl/ndctl-freeze-security.txt   |    4 ++++
+>  Documentation/ndctl/ndctl-remove-passphrase.txt |   10 +++++++---
+>  Documentation/ndctl/ndctl-sanitize-dimm.txt     |    6 +++++-
+>  Documentation/ndctl/ndctl-setup-passphrase.txt  |   16 ++++++++--------
+>  Documentation/ndctl/ndctl-update-passphrase.txt |   17 ++++++++---------
+>  6 files changed, 39 insertions(+), 28 deletions(-)
+
+This reads much better to me, thanks for fixups.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
