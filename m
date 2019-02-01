@@ -1,81 +1,108 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7EE70208AE3EC
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:21:26 -0800 (PST)
-From: ira.weiny@intel.com
-Subject: [PATCH] ndctl: Generalized make-git-snapshot.sh
-Date: Fri, 15 Feb 2019 11:21:17 -0800
-Message-Id: <20190215192117.28605-1-ira.weiny@intel.com>
-MIME-Version: 1.0
+From: "Miss Genzo"<kige32767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: =?UTF-8?B?0JzQuNGB0YEg0JrQuNGA0LAg0L3Rg9C20LXQvSDQstCw0Ygg0L7RgtCy0LXRgiAvIE1pc3MgS2lyYSBOZWVkcyBZb3VyIFJlc3BvbnNl?=
+Date: 1 Feb 2019 08:51:45 +0800
+Message-ID: <20190201085144.CAF251F0CA793929@hotmail.com>
+Reply-To: Miss Kira <kige032767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, vishal.l.verma@intel.com
-List-ID: <linux-nvdimm@lists.01.org>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+List-Id: linux-nvdimm@lists.01.org
 
-From: Ira Weiny <ira.weiny@intel.com>
-
-make-git-snapshot.sh made an assumption of the git tree location.
-
-Furthermore, it assumed the user has an rpmbuild environment directory
-structure set up.
-
-Enhance the script to figure out where in what location it has been
-cloned and create the rpmbuild directory if the user does not already
-have it.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- make-git-snapshot.sh | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/make-git-snapshot.sh b/make-git-snapshot.sh
-index 142419d623fe..26e29bd7953d 100755
---- a/make-git-snapshot.sh
-+++ b/make-git-snapshot.sh
-@@ -2,10 +2,18 @@
- set -e
- 
- NAME=ndctl
--REFDIR="$HOME/git/ndctl"  # for faster cloning, if available
-+
-+pushd `dirname $0`
-+REFDIR=`pwd`
-+popd
-+
- UPSTREAM=$REFDIR #TODO update once we have a public upstream
- OUTDIR=$HOME/rpmbuild/SOURCES
- 
-+if [ ! -d $OUTDIR ]; then
-+	mkdir -p $OUTDIR
-+fi
-+
- [ -n "$1" ] && HEAD="$1" || HEAD="HEAD"
- 
- WORKDIR="$(mktemp -d --tmpdir "$NAME.XXXXXXXXXX")"
-@@ -14,7 +22,7 @@ trap 'rm -rf $WORKDIR' exit
- [ -d "$REFDIR" ] && REFERENCE="--reference $REFDIR"
- git clone $REFERENCE "$UPSTREAM" "$WORKDIR"
- 
--VERSION=$(./git-version)
-+VERSION=$($REFDIR/git-version)
- DIRNAME="ndctl-${VERSION}"
- git archive --remote="$WORKDIR" --format=tar --prefix="$DIRNAME/" HEAD | gzip > $OUTDIR/"ndctl-${VERSION}.tar.gz"
- 
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+0J/RgNC40LLQtdGCINC00L7RgNC+0LPQvtC5CgrQnNC10L3RjyDQt9C+0LLRg9GCINC80LjRgdGB
+INCa0LjRgNCwINCT0LXQvdC30L4uINCc0L3QtSAxNyDQu9C10YIsINGPINC/0LjRiNGDLCDRh9GC
+0L7QsdGLINGB0LrQsNC30LDRgtGMINCy0LDQvCwg0YfRgtC+INGPINGB0LjRgNC+0YLQsC4g0K8g
+0LXQtNC40L3RgdGC0LLQtdC90L3Ri9C5INGA0LXQsdC10L3QvtC6INC80L7QuNGFINGA0L7QtNC4
+0YLQtdC70LXQuS4KCtCvINC40YHQutCw0Lsg0LLQsNGIINCw0LTRgNC10YEg0Y3Qu9C10LrRgtGA
+0L7QvdC90L7QuSDQv9C+0YfRgtGLINCyINC+0L3Qu9Cw0LnQvS3QutCw0YLQsNC70L7Qs9C1INCx
+0LDQtyDQtNCw0L3QvdGL0YUg0Y3Qu9C10LrRgtGA0L7QvdC90L7QuSDQv9C+0YfRgtGLINGBINC/
+0L7QvNC+0YnRjNGOINC/0L7QuNGB0LrQsCDQsiDQmNC90YLQtdGA0L3QtdGC0LUsINC4INGPINGF
+0L7Rh9GDINGB0L7QvtCx0YnQuNGC0Ywg0LLQsNC8INC+INGB0LLQvtC10Lkg0LfQsNC40L3RgtC1
+0YDQtdGB0L7QstCw0L3QvdC+0YHRgtC4INC/0LXRgNC10LXRhdCw0YLRjCDQsiDQstCw0YjRgyDR
+gdGC0YDQsNC90YMg0LIg0YbQtdC70Y/RhSDQsdC10LfQvtC/0LDRgdC90L7RgdGC0LguCgrQryDQ
+utC40YLQsNC50YHQutC40LksINGPINCz0L7QstC+0YDRjiDQv9C+LdCw0L3Qs9C70LjQudGB0LrQ
+uCDQuCDQv9C+LdC60LjRgtCw0LnRgdC60LguINCc0L7QuSDQvtGC0LXRhiDRg9C80LXRgCDQvtGC
+INCx0L7Qu9C10LfQvdC10Lkg0YHQtdGA0LTRhtCwINCyINC/0L7RgdC70LXQtNC90LjQtSDQvdC1
+0YHQutC+0LvRjNC60L4g0LzQtdGB0Y/RhtC10LIsINC4INGPINC40YHQutGA0LXQvdC90LUg0L3R
+g9C20LTQsNGO0YHRjCDQsiDQstCw0YjQtdC5INC/0L7QvNC+0YnQuCwg0L/QvtGC0L7QvNGDINGH
+0YLQviDQvNC+0Y8g0LbQuNC30L3RjCDQsiDQvtC/0LDRgdC90L7RgdGC0LguCgrQryDRhdC+0YfR
+gyDQvtCx0YHRg9C00LjRgtGMINC4INGA0LDQt9C+0LHRgNCw0YLRjNGB0Y8g0YEg0L7Rh9C10L3R
+jCDQstCw0LbQvdGL0Lwg0LTQtdC70L7QvCDRgSDQstCw0LzQuC4KCtCf0L7RgdC70LUg0L/QvtC7
+0YPRh9C10L3QuNGPINCy0LDRiNC10LPQviDQvtGC0LLQtdGC0LAg0Y8g0L3QsNC/0LjRiNGDINCx
+0L7Qu9GM0YjQtSDQtNC10YLQsNC70LXQuSDQtNC70Y8g0LLQsNGBLgoKCtCf0L7QttCw0LvRg9C5
+0YHRgtCwLCDQvtGC0LLQtdGC0YzRgtC1INC90LAg0LzQvtC5INC70LjRh9C90YvQuSDQsNC00YDQ
+tdGBINGN0LvQtdC60YLRgNC+0L3QvdC+0Lkg0L/QvtGH0YLRiyBraWdlMDMyNzY3QGhvdG1haWwu
+Y29tINC90LXQvNC10LTQu9C10L3QvdC+CgoK0K8g0LbQtNGDINCy0LDRiNC10LPQviDRgdC70LXQ
+tNGD0Y7RidC10LPQviDQvtGC0LLQtdGC0LAuCgoK0J7RgtCy0LXRgtC40YLRjCDRgtC+0LvRjNC6
+0L4g0L3QsCDQvNC+0Lkg0LvQuNGH0L3Ri9C5INCw0LTRgNC10YEg0Y3Qu9C10LrRgtGA0L7QvdC9
+0L7QuSDQv9C+0YfRgtGLOiBraWdlMDMyNzY3QGhvdG1haWwuY29tCgoK0KHQv9Cw0YHQuNCx0L4K
+CtCb0Y7QsdC+0LLRjCwK0JrQuNGA0LAuClNreXBlIElEOiBMaXZlOiBiZWtlZTMyNzY3Cl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwrQntGC0LrQsNC3INC+0YIg0L7RgtCy0LXRgtGB0YLQstC10L3Q
+vdC+0YHRgtC4OiDQrdGC0L4g0Y3Qu9C10LrRgtGA0L7QvdC90L7QtSDQv9C40YHRjNC80L4gKNCy
+0LrQu9GO0YfQsNGPINCy0LvQvtC20LXQvdC40Y8pINC+0YLQv9GA0LDQstC70Y/QtdGC0YHRjyDR
+gtC+0LvRjNC60L4g0L/RgNC10LTQv9C+0LvQsNCz0LDQtdC80L7QvNGDINC/0L7Qu9GD0YfQsNGC
+0LXQu9GOINC4INC80L7QttC10YIg0YHQvtC00LXRgNC20LDRgtGMINC60L7QvdGE0LjQtNC10L3R
+htC40LDQu9GM0L3Rg9GOINC4INC60L7QvdGE0LjQtNC10L3RhtC40LDQu9GM0L3Rg9GOINC40L3R
+hNC+0YDQvNCw0YbQuNGOLiDQldGB0LvQuCDQstGLINC90LUg0Y/QstC70Y/QtdGC0LXRgdGMINC/
+0YDQtdC00L/QvtC70LDQs9Cw0LXQvNGL0Lwg0L/QvtC70YPRh9Cw0YLQtdC70LXQvCwg0LLRiyDQ
+vdC1INC80L7QttC10YLQtSDQuNGB0L/QvtC70YzQt9C+0LLQsNGC0YwsINGB0L7RhdGA0LDQvdGP
+0YLRjCwg0YDQsNGB0LrRgNGL0LLQsNGC0YwsINC60L7Qv9C40YDQvtCy0LDRgtGMLCDRgNCw0YHQ
+v9C10YfQsNGC0YvQstCw0YLRjCwg0YDQsNGB0L/RgNC+0YHRgtGA0LDQvdGP0YLRjCDQuNC70Lgg
+0YDQsNGB0L/RgNC+0YHRgtGA0LDQvdGP0YLRjCDQutCw0LrRg9GOLdC70LjQsdC+INGH0LDRgdGC
+0Ywg0Y3RgtC+0LPQviDRjdC70LXQutGC0YDQvtC90L3QvtCz0L4g0L/QuNGB0YzQvNCwLiDQldGB
+0LvQuCDQstGLINC/0L7Qu9GD0YfQuNC70Lgg0Y3RgtC+INC/0LjRgdGM0LzQviDQv9C+INC+0YjQ
+uNCx0LrQtSwg0YPQtNCw0LvQuNGC0LUg0Y3RgtC+INC/0LjRgdGM0LzQviAo0LLQutC70Y7Rh9Cw
+0Y8g0LLQu9C+0LbQtdC90LjRjykg0LjQtyDQstCw0YjQtdC5INGB0LjRgdGC0LXQvNGLINC4INC9
+0LXQvNC10LTQu9C10L3QvdC+INGD0LLQtdC00L7QvNC40YLQtSDQvtGC0L/RgNCw0LLQuNGC0LXQ
+u9GPLCDQvtGC0LLQtdGC0LjQsiDQvdCwINGN0YLQviDQv9C40YHRjNC80L4uINCd0LUg0LPQsNGA
+0LDQvdGC0LjRgNGD0LXRgtGB0Y8sINGH0YLQviDQv9C10YDQtdC00LDRh9CwINC/0L4g0Y3Qu9C1
+0LrRgtGA0L7QvdC90L7QuSDQv9C+0YfRgtC1INCx0YPQtNC10YIg0YHQstC+0LXQstGA0LXQvNC1
+0L3QvdC+0LksINCx0LXQt9C+0L/QsNGB0L3QvtC5LCDQsdC10LfQvtGI0LjQsdC+0YfQvdC+0Lkg
+0LjQu9C4INCx0LXQtyDQstC40YDRg9GB0L7Qsi4g0J7RgtC/0YDQsNCy0LjRgtC10LvRjCDQvdC1
+INC90LXRgdC10YIg0L7RgtCy0LXRgtGB0YLQstC10L3QvdC+0YHRgtC4INC30LAg0LvRjtCx0YvQ
+tSDQv9C+0YLQtdGA0LgsINC+0YjQuNCx0LrQuCwg0YPQv9GD0YnQtdC90LjRjyDQuNC70Lgg0L/Q
+vtCy0YDQtdC20LTQtdC90LjRjywg0LLRi9C30LLQsNC90L3Ri9C1INC/0LXRgNC10LTQsNGH0LXQ
+uSDRjdC70LXQutGC0YDQvtC90L3QvtC5INC/0L7Rh9GC0YsuCgpIZWxsbyBkZWFyLAoKTXkgTmFt
+ZSBpcyBNaXNzIEtpcmEgR2Vuem8sIEkgYW0gYSAxNyB5ZWFycyBvbGQgZ2lybCwgSSBhbSB3cml0
+aW5nIHlvdSB0byBsZXQgeW91IGtub3cgdGhhdCBJJ20gYW4gT3JwaGFuLCBJIGFtIHRoZSBvbmx5
+IGNoaWxkIG9mIG15IHBhcmVudHMuCgpJIHNlYXJjaCB5b3VyIGVtYWlsIGFkZHJlc3MgZnJvbSB0
+aGUgb25saW5lIGUtbWFpbCBEYXRhYmFzZSBEaXJlY3RvcnkgdGhyb3VnaCB0aGUgSW50ZXJuZXQg
+c2VhcmNoLCBJIHdvdWxkIGxpa2UgdG8gY29tbXVuaWNhdGUgd2l0aCB5b3UgYWJvdXQgbXkgaW50
+ZXJlc3QgcGxhbiBpbiByZWxvY2F0aW5nIHRvIHlvdXIgY291bnRyeSBmb3IgbXkgc2FmZXR5LgoK
+SSBhbSBhIENoaW5lc2UsIGFuZCBJIGNhbiBzcGVhayBFbmdsaXNoIGFuZCBDaGluZXNlLiBNeSBm
+YXRoZXIgaGFzIGRpZWQgb2YgYSBoZWFydCBhdHRhY2sgZm9yIHRoZSBwYXN0IGZldyBtb250aHMg
+YW5kIEkgc2luY2VyZWx5IG5lZWQgeW91ciBoZWxwIG5vdyBiZWNhdXNlIG15IGxpZmUgaXMgaW4g
+RGFuZ2VyLgoKSSB3YW50IHRvIGRpc2N1c3MgYW5kIGhhbmRsZSBhIHZlcnkgaW1wb3J0YW50IGJ1
+c2luZXNzIHdpdGggeW91LgoKSSB3aWxsIHdyaXRlIHlvdSBtb3JlIGRldGFpbHMgb2YgdGhlIGJ1
+c2luZXNzIHdoZW4gSSByZWNlaXZlIHlvdXIgcmVwbHkuCgoKUGxlYXNlIHJlcGx5IGltbWVkaWF0
+ZWx5IHRvIG15IHBlcnNvbmFsIGVtYWlsIGFkZHJlc3Mga2lnZTAzMjc2N0Bob3RtYWlsLmNvbQoK
+Ckkgd2FpdCBmb3IgeW91ciBuZXh0IHJlcGx5LgoKClJlcGx5IG9ubHkgdG8gbXkgcHJpdmF0ZSBl
+bWFpbCBhZGRyZXNzOiBraWdlMDMyNzY3QGhvdG1haWwuY29tCgoKVGhhbmsgeW91LgoKTG92ZSwK
+S2lyYS4KU2t5cGUgSUQ6IGxpdmU6YmVrZWUzMjc2NwpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+RElTQ0xBSU1FUjogVGhpcyBlbWFpbCAoaW5jbHVkaW5nIGF0dGFjaG1lbnRzKSBpcyBhZGRyZXNz
+ZWQgdG8gdGhlIGludGVuZGVkIHJlY2lwaWVudCBvbmx5IGFuZCBtYXkgY29udGFpbiBpbmZvcm1h
+dGlvbiB0aGF0IGlzIHByaXZpbGVnZWQgYW5kIGNvbmZpZGVudGlhbC4gSWYgeW91IGFyZSBub3Qg
+dGhlIGludGVuZGVkIHJlY2lwaWVudCwgeW91IG11c3Qgbm90IHVzZSwgcmV0YWluLCBkaXNjbG9z
+ZSwgY29weSwgcHJpbnQsIGRpc3NlbWluYXRlIG9yIGRpc3RyaWJ1dGUgYW55IHBhcnQgb2YgdGhp
+cyBlbWFpbC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhpcyBlbWFpbCBpbiBlcnJvciwgcGxlYXNl
+IGRlbGV0ZSB0aGlzIGVtYWlsIChpbmNsdWRpbmcgYXR0YWNobWVudHMpIGZyb20geW91ciBzeXN0
+ZW0gYW5kIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5aW5nIHRvIHRoaXMg
+ZW1haWwuIEVtYWlsIHRyYW5zbWlzc2lvbiBjYW5ub3QgYmUgZ3VhcmFudGVlZCB0byBiZSB0aW1l
+bHksIHNlY3VyZSwgZXJyb3Igb3IgdmlydXMtZnJlZS4gVGhlIHNlbmRlciBhY2NlcHRzIG5vIGxp
+YWJpbGl0eSBmb3IgYW55IGxvc3MsIGVycm9yLCBvbWlzc2lvbnMgb3IgZGFtYWdlIGFyaXNpbmcg
+YXMgYSByZXN1bHQgb2YgZW1haWwgdHJhbnNtaXNzaW9uLgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
+LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
+by9saW51eC1udmRpbW0K
