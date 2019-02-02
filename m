@@ -1,8 +1,13 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
-Date: Sat, 2 Feb 2019 02:17:19 +0000
-Message-ID: <PU1P153MB0169FBCCB5639054FC0E6DB6BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 0C8C6211BA455
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 17:28:52 -0800 (PST)
+Received: by mail-ot1-x343.google.com with SMTP id w25so7646270otm.13
+ for <linux-nvdimm@lists.01.org>; Fri, 01 Feb 2019 17:28:52 -0800 (PST)
+MIME-Version: 1.0
 References: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4jD1oRWzA4ZiMYZm1uxsbOdgqzbb9raH70-HBDqapcE_g@mail.gmail.com>
  <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
@@ -11,120 +16,152 @@ References: <PU1P153MB01690EDA138D3ABDE5B4A482BF970@PU1P153MB0169.APCP153.PROD.O
  <CAPcyv4gdWJ8qtiASU9ggz56Mkrm9OXfsO74RM9OOrXFmBw_A9Q@mail.gmail.com>
  <PU1P153MB0169D8F7C6E29C22FE122F3FBF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <PU1P153MB0169D661955195EA070E7EF0BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4iEcCG0h+HLPkfSC0aNDLq9hdoO00XErF93PHTmEgO-TQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4iEcCG0h+HLPkfSC0aNDLq9hdoO00XErF93PHTmEgO-TQ@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Josh Poulson <jopoulso@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
+In-Reply-To: <PU1P153MB0169D661955195EA070E7EF0BF930@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 1 Feb 2019 17:28:39 -0800
+Message-ID: <CAPcyv4iEcCG0h+HLPkfSC0aNDLq9hdoO00XErF93PHTmEgO-TQ@mail.gmail.com>
+Subject: Re: [PATCH v2] nfit: add Hyper-V NVDIMM DSM command set to white list
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dexuan Cui <decui@microsoft.com>
+Cc: Josh Poulson <jopoulso@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Haiyang Zhang <haiyangz@microsoft.com>, "driverdev-devel@linuxdriverproject.org" <driverdev-devel@linuxdriverproject.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>, Sasha Levin <Alexander.Levin@microsoft.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ross Zwisler <zwisler@kernel.org>, KY Srinivasan <kys@microsoft.com>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-RnJpZGF5LCBGZWJydWFyeSAxLCAyMDE5IDU6MjkgUE0NCj4gPiAuLi4NCj4gPiBUaGUgInNpemUi
-IGFuZCAibW9kZSIgc3RpbGwgZG9uJ3QgbG9vayByaWdodCwgYnV0IHRoZSBpbXByb3ZlbWVudCBp
-cyB0aGF0DQo+ID4gbm93IEkgY2FuIHNlZSBhIGdvb2QgZGVzY3JpcHRpdmUgIm5hbWUiLCB3aGlj
-aCBJIHN1cHBvc2UgaXMgcmV0cmlldmVkDQo+ID4gZnJvbSBIeXBlci1WLg0KPiANCj4gTW9kZSBp
-cyByaWdodCwgdGhlcmUgaXMgbm8gd2F5IGZvciBIeXBlci1WIHRvIGNyZWF0ZSBMaW51eCBmc2Rh
-eCBtb2RlDQo+IG5hbWVzcGFjZXMgaXQgcmVxdWlyZXMgc29tZSBzZXR1cCB1c2luZyB2YXJpYWJs
-ZXMgb25seSBMaW51eCBrbm93cy4NCj4gQ2FuIHlvdSBzZW5kIHRoZSBvdXRwdXQgb2Y6DQo+IA0K
-PiBuZGN0bCByZWFkLWxhYmVscyAtaiBhbGwNCg0KVGhlIG91dHB1dCBpcyBmcm9tIGEga2VybmVs
-IGJ1aWx0IHdpdGggdGhlIGxpYm52ZGltbS1wZW5kaW5nIGJyYW5jaCBwbHVzDQp0aGUgb25lLWxp
-bmUgcGF0Y2ggKGxhYmVsLT5mbGFncyAmPSB+TlNMQUJFTF9GTEFHX0xPQ0FMKSBpbiANCmluaXRf
-YWN0aXZlX2xhYmVscygpOg0KDQpyb290QGRlY3VpLWdlbjItdTE5MDQ6fiMgbmRjdGwgcmVhZC1s
-YWJlbHMgLWogYWxsDQpbDQogIHsNCiAgICAiZGV2Ijoibm1lbTEiLA0KICAgICJpbmRleCI6Ww0K
-ICAgICAgew0KICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lOREVYIiwNCiAgICAgICAg
-Im1ham9yIjoxLA0KICAgICAgICAibWlub3IiOjIsDQogICAgICAgICJsYWJlbHNpemUiOjI1NiwN
-CiAgICAgICAgInNlcSI6MSwNCiAgICAgICAgIm5zbG90IjoyDQogICAgICB9LA0KICAgICAgew0K
-ICAgICAgICAic2lnbmF0dXJlIjoiTkFNRVNQQUNFX0lOREVYIiwNCiAgICAgICAgIm1ham9yIjox
-LA0KICAgICAgICAibWlub3IiOjIsDQogICAgICAgICJsYWJlbHNpemUiOjI1NiwNCiAgICAgICAg
-InNlcSI6MiwNCiAgICAgICAgIm5zbG90IjoyDQogICAgICB9DQogICAgXSwNCiAgICAibGFiZWwi
-OlsNCiAgICAgIHsNCiAgICAgICAgInV1aWQiOiJjMjU4YWFhYi1mNzJiLWU1NDYtYmZhNS1iZTVl
-MDc3NjFkYmMiLA0KICAgICAgICAibmFtZSI6Ik1pY3Jvc29mdCBIeXBlci1WIE5WRElNTSAxIExh
-YmVsIiwNCiAgICAgICAgInNsb3QiOjAsDQogICAgICAgICJwb3NpdGlvbiI6MCwNCiAgICAgICAg
-Im5sYWJlbCI6MSwNCiAgICAgICAgImlzZXRjb29raWUiOjcwODg5MTY2MjI1NzQ3Njg3MCwNCiAg
-ICAgICAgImxiYXNpemUiOjAsDQogICAgICAgICJkcGEiOjAsDQogICAgICAgICJyYXdzaXplIjox
-Mzc0Mzg5NTM0NzIsDQogICAgICAgICJ0eXBlX2d1aWQiOiI3OWQzZjA2Ni1mM2I0LTc0NDAtYWM0
-My0wZDMzMThiNzhjZGIiLA0KICAgICAgICAiYWJzdHJhY3Rpb25fZ3VpZCI6IjAwMDAwMDAwLTAw
-MDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCINCiAgICAgIH0NCiAgICBdDQogIH0sDQogIHsNCiAg
-ICAiZGV2Ijoibm1lbTAiLA0KICAgICJpbmRleCI6Ww0KICAgICAgew0KICAgICAgICAic2lnbmF0
-dXJlIjoiTkFNRVNQQUNFX0lOREVYIiwNCiAgICAgICAgIm1ham9yIjoxLA0KICAgICAgICAibWlu
-b3IiOjIsDQogICAgICAgICJsYWJlbHNpemUiOjI1NiwNCiAgICAgICAgInNlcSI6MSwNCiAgICAg
-ICAgIm5zbG90IjoyDQogICAgICB9LA0KICAgICAgew0KICAgICAgICAic2lnbmF0dXJlIjoiTkFN
-RVNQQUNFX0lOREVYIiwNCiAgICAgICAgIm1ham9yIjoxLA0KICAgICAgICAibWlub3IiOjIsDQog
-ICAgICAgICJsYWJlbHNpemUiOjI1NiwNCiAgICAgICAgInNlcSI6MiwNCiAgICAgICAgIm5zbG90
-IjoyDQogICAgICB9DQogICAgXSwNCiAgICAibGFiZWwiOlsNCiAgICAgIHsNCiAgICAgICAgInV1
-aWQiOiI5ZjA0OTdhNy00NDUzLTdjNDAtYWQzNS0yMWE3OTFlMDAzNDUiLA0KICAgICAgICAibmFt
-ZSI6Ik1pY3Jvc29mdCBIeXBlci1WIE5WRElNTSAwIExhYmVsIiwNCiAgICAgICAgInNsb3QiOjAs
-DQogICAgICAgICJwb3NpdGlvbiI6MCwNCiAgICAgICAgIm5sYWJlbCI6MSwNCiAgICAgICAgImlz
-ZXRjb29raWUiOjcwODg5MTYxOTMwNzgwMzkwOSwNCiAgICAgICAgImxiYXNpemUiOjAsDQogICAg
-ICAgICJkcGEiOjAsDQogICAgICAgICJyYXdzaXplIjozNDM1OTczODM2OCwNCiAgICAgICAgInR5
-cGVfZ3VpZCI6Ijc5ZDNmMDY2LWYzYjQtNzQ0MC1hYzQzLTBkMzMxOGI3OGNkYiIsDQogICAgICAg
-ICJhYnN0cmFjdGlvbl9ndWlkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
-Ig0KICAgICAgfQ0KICAgIF0NCiAgfQ0KXQ0KcmVhZCAyIG5tZW1zDQoNCj4gPiBXaXRoIFVidW50
-dSAxOS4wNCAoNC4xOC4wLTExLWdlbmVyaWMpLCBJIGdldCB0aGlzOg0KPiA+IChOb3RlOiB0aGUg
-Im1vZGUiIGFuZCAic2l6ZSIgYXJlIGNvcnJlY3QuIFRoZSAidXVpZCIgaXMgZGlmZmVyZW50IGZy
-b20NCj4gPiB0aGUgYWJvdmUgIjlmMDQ5N2E3LTQ0NTMtN2M0MC1hZDM1LTIxYTc5MWUwMDM0NSIg
-LS0gdGhpcyBpcyB3ZWlyZC4pDQo+ID4NCj4gPiByb290QGRlY3VpLWdlbjItdTE5MDQ6fiMgbmRj
-dGwgbGlzdA0KPiA+IFsNCj4gPiAgIHsNCj4gPiAgICAgImRldiI6Im5hbWVzcGFjZTEuMCIsDQo+
-ID4gICAgICJtb2RlIjoicmF3IiwNCj4gPiAgICAgInNpemUiOjEzNzQzODk1MzQ3MiwNCj4gPiAg
-ICAgImJsb2NrZGV2IjoicG1lbTEiDQo+ID4gICB9LA0KPiA+ICAgew0KPiA+ICAgICAiZGV2Ijoi
-bmFtZXNwYWNlMC4wIiwNCj4gPiAgICAgIm1vZGUiOiJmc2RheCIsDQo+ID4gICAgICJtYXAiOiJk
-ZXYiLA0KPiA+ICAgICAic2l6ZSI6MzM4MjA3NzAzMDQsDQo+ID4gICAgICJ1dWlkIjoiMzUwMTg4
-ODYtMzk3ZS00ZmU3LWEzNDgtMGE0ZDE2ZWVjNDRkIiwNCj4gPiAgICAgImJsb2NrZGV2IjoicG1l
-bTAiDQo+ID4gICB9DQo+ID4gXQ0KPiANCj4gVGhpcyBpcyBiZWNhdXNlIHRoZSBVYnVudHUga2Vy
-bmVsIGhhcyB0aGUgYnVnIHRoYXQgY2F1c2VzIF9MU1IgdG8gZmFpbA0KPiBzbyBMaW51eCBmYWxs
-cyBiYWNrIHRvIGEgbmFtZXNwYWNlIGRlZmluZWQgYnkgdGhlIHJlZ2lvbiBib3VuZGFyeS4gT24N
-Cj4gdGhhdCBuYW1lc3BhY2UgdGhlcmUgaXMgYW4gImZzZGF4IiBpbmZvIGJsb2NrIGxvY2F0ZWQg
-YXQgdGhlIHJlZ2lvbg0KPiBiYXNlICs0Sy4gVGhhdCBpbmZvIGJsb2NrIGlzIHRhZ2dlZCB3aXRo
-IHRoZSB1dWlkIG9mDQo+ICIzNTAxODg4Ni0zOTdlLTRmZTctYTM0OC0wYTRkMTZlZWM0NGQiLg0K
-VGhhbmtzIGZvciB0aGUgZXhwbGFuYXRpb24hDQogDQo+ID4gSSdtIHRyeWluZyB0byBmaW5kIG91
-dCB0aGUgY29ycmVjdCBzb2x1dGlvbi4gSSBhcHByZWNpdGUgeW91ciBpbnNpZ2h0cyENCj4gDQo+
-IEl0J3MgYSBtZXNzLiBGaXJzdCB3ZSBuZWVkIHRvIGZpZ3VyZSBvdXQgd2hldGhlciB0aGUgbGFi
-ZWwgaXMgYWN0dWFsbHkNCj4gc3BlY2lmeWluZyBhIHNpemUgb2YgemVybywgb3IgdGhlcmUgaXMg
-c29tZSBvdGhlciBidWcuDQpJIGFncmVlLg0KIA0KPiBIb3dldmVyLCB0aGUgbmV4dCBwcm9ibGVt
-IGlzIGdvaW5nIHRvIGJlIGFkZGluZyAiZnNkYXgiIG1vZGUgc3VwcG9ydA0KPiBvbiB0b3Agb2Yg
-dGhlIHJlYWQtb25seSBkZWZpbmVkIG5hbWVzcGFjZXMuIFRoZSBuZGN0bCByZWNvbmZpZ3VyYXRp
-b24NCj4gZmxvdzoNCj4gDQo+ICAgIG5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UgLWUgbmFtZXNwYWNl
-MC4wIC1tIGZzZGF4IC1mDQoNCj4gDQo+IC4uLndpbGwgbGlrZWx5IGZhaWwgYmVjYXVzZSBkZWxl
-dGluZyB0aGUgcHJldmlvdXMgbmFtZXNwYWNlIGluIHRoZQ0KPiBsYWJlbHMgaXMgcGFydCBvZiB0
-aGF0IGZsb3cuIEl0J3MgYWx3YXlzIHRoYXQgbGFiZWxzIGFyZSB3cml0YWJsZS4NCj4gDQo+IEhv
-bmVzdGx5LCB0aGUgcXVpY2tlc3QgcGF0aCB0byBzb21ldGhpbmcgZnVuY3Rpb25hbCBmb3IgTGlu
-dXggaXMgdG8NCj4gc2ltcGx5IGRlbGV0ZSB0aGUgX0xTUiBzdXBwb3J0IGFuZCB1c2UgcmF3IG1v
-ZGUgZGVmaW5lZCBuYW1lc3BhY2VzLg0KPiBXaHkgaGF2ZSBsYWJlbHMgaWYgdGhleSBhcmUgcmVh
-ZC1vbmx5IGFuZCB0aGUgcmVnaW9uIGlzIHN1ZmZpY2llbnQgZm9yDQo+IGRlZmluaW5nIGJvdW5k
-YXJpZXM/DQoNCkp1c3Qgbm93IEh5cGVyLVYgdGVhbSBjb25maXJtZWQgX0xTVyBpcyBub3Qgc3Vw
-cG9ydGVkLg0KDQpCdXQgd2l0aCBVYnVudHUgMTkuMDQga2VybmVsICg0LjE4LjAtMTEtZ2VuZXJp
-YyksIEknbSBhYmxlIHRvIHJ1biB0aGUgY29tbWFuZHMNCndpdGhvdXQgYW55IGlzc3VlOg0KDQpy
-b290QGRlY3VpLWdlbjItdTE5MDQ6fiMgbmRjdGwgbGlzdA0KWw0KICB7DQogICAgImRldiI6Im5h
-bWVzcGFjZTEuMCIsDQogICAgIm1vZGUiOiJyYXciLA0KICAgICJzaXplIjoxMzc0Mzg5NTM0NzIs
-DQogICAgImJsb2NrZGV2IjoicG1lbTEiDQogIH0sDQogIHsNCiAgICAiZGV2IjoibmFtZXNwYWNl
-MC4wIiwNCiAgICAibW9kZSI6ImZzZGF4IiwNCiAgICAibWFwIjoiZGV2IiwNCiAgICAic2l6ZSI6
-MzM4MjA3NzAzMDQsDQogICAgInV1aWQiOiIzNTAxODg4Ni0zOTdlLTRmZTctYTM0OC0wYTRkMTZl
-ZWM0NGQiLA0KICAgICJibG9ja2RldiI6InBtZW0wIg0KICB9DQpdDQoNCnJvb3RAZGVjdWktZ2Vu
-Mi11MTkwNDp+IyBuZGN0bCBkZXN0cm95LW5hbWVzcGFjZSAibmFtZXNwYWNlMC4wIg0KICBFcnJv
-cjogbmFtZXNwYWNlMC4wIGlzIGFjdGl2ZSwgc3BlY2lmeSAtLWZvcmNlIGZvciByZS1jb25maWd1
-cmF0aW9uDQoNCmVycm9yIGRlc3Ryb3lpbmcgbmFtZXNwYWNlczogRGV2aWNlIG9yIHJlc291cmNl
-IGJ1c3kNCmRlc3Ryb3llZCAwIG5hbWVzcGFjZXMNCg0Kcm9vdEBkZWN1aS1nZW4yLXUxOTA0On4j
-IG5kY3RsIGRlc3Ryb3ktbmFtZXNwYWNlICJuYW1lc3BhY2UwLjAiIC0tZm9yY2UNCmRlc3Ryb3ll
-ZCAxIG5hbWVzcGFjZQ0KDQpyb290QGRlY3VpLWdlbjItdTE5MDQ6fiMgbmRjdGwgbGlzdA0KWw0K
-ICB7DQogICAgImRldiI6Im5hbWVzcGFjZTEuMCIsDQogICAgIm1vZGUiOiJyYXciLA0KICAgICJz
-aXplIjoxMzc0Mzg5NTM0NzIsDQogICAgImJsb2NrZGV2IjoicG1lbTEiDQogIH0NCl0NCg0Kcm9v
-dEBkZWN1aS1nZW4yLXUxOTA0On4jIG5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UgLWUgbmFtZXNwYWNl
-MC4wIC1tIGZzZGF4IC1mDQp7DQogICJkZXYiOiJuYW1lc3BhY2UwLjAiLA0KICAibW9kZSI6ImZz
-ZGF4IiwNCiAgIm1hcCI6ImRldiIsDQogICJzaXplIjoiMzEuNTAgR2lCICgzMy44MiBHQikiLA0K
-ICAidXVpZCI6IjllNGU4MTliLWUyZWItNDc5Ni04ZjllLTE1Zjk2ZjYzYjVjMiIsDQogICJzZWN0
-b3Jfc2l6ZSI6NTEyLA0KICAiYmxvY2tkZXYiOiJwbWVtMCIsDQogICJudW1hX25vZGUiOjENCn0N
-Cg0Kcm9vdEBkZWN1aS1nZW4yLXUxOTA0On4jIG5kY3RsIGxpc3QNClsNCiAgew0KICAgICJkZXYi
-OiJuYW1lc3BhY2UxLjAiLA0KICAgICJtb2RlIjoicmF3IiwNCiAgICAic2l6ZSI6MTM3NDM4OTUz
-NDcyLA0KICAgICJibG9ja2RldiI6InBtZW0xIg0KICB9LA0KICB7DQogICAgImRldiI6Im5hbWVz
-cGFjZTAuMCIsDQogICAgIm1vZGUiOiJmc2RheCIsDQogICAgIm1hcCI6ImRldiIsDQogICAgInNp
-emUiOjMzODIwNzcwMzA0LA0KICAgICJ1dWlkIjoiOWU0ZTgxOWItZTJlYi00Nzk2LThmOWUtMTVm
-OTZmNjNiNWMyIiwNCiAgICAiYmxvY2tkZXYiOiJwbWVtMCINCiAgfQ0KXQ0KDQoNClRoZSBhYm92
-ZSBjb21tYW5kcyBjYW4gYWxzbyBydW4gZmluZSB3aXRoIGFuIHVwc3RyZWFtIGtlcm5lbCB0aGF0
-DQpkb2Vzbid0IGhhdmUgDQoxMTE4OWMxMDg5ZGEgKCJhY3BpL25maXQ6IEZpeCBjb21tYW5kLXN1
-cHBvcnRlZCBkZXRlY3Rpb24iKQ0Kb3INCjExOTRjNDEzMzE5NSAoIm5maXQ6IEFkZCBIeXBlci1W
-IE5WRElNTSBEU00gY29tbWFuZCBzZXQgdG8gd2hpdGUgbGlzdCIpDQoNClRoYW5rcw0KLS0gRGV4
-dWFuDQo=
+On Fri, Feb 1, 2019 at 5:06 PM Dexuan Cui <decui@microsoft.com> wrote:
+>
+> > From: Linux-nvdimm <linux-nvdimm-bounces@lists.01.org> On Behalf Of
+> > Dexuan Cui
+> > Sent: Friday, February 1, 2019 4:34 PM
+> > > > > ...
+> > > > > Those reads find a namespace index block
+> > > > > and a label. Unfortunately the label has the LOCAL flag set and Linux
+> > > > > explicitly ignores pmem namespace labels with that bit set. The reason
+> > > > > for that is due to the fact that the original definition of the LOCAL
+> > > > > bit from v1.1 of the namespace label implementation [1] explicitly
+> > > > > limited the LOCAL flag to "block aperture" regions. If you clear that
+> > > > > LOCAL flag I expect it will work. To my knowledge Windows pretends
+> > > > > that the v1.1 definition never existed.
+>
+> On the libnvdimm-pending branch, I get this:
+>
+> root@decui-gen2-u1904:~/nvdimm# ndctl list
+> root@decui-gen2-u1904:~/nvdimm# ndctl list --idle
+> [
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"raw",
+>     "size":0,
+>     "uuid":"00000000-0000-0000-0000-000000000000",
+>     "state":"disabled"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"raw",
+>     "size":0,
+>     "uuid":"00000000-0000-0000-0000-000000000000",
+>     "state":"disabled"
+>   }
+> ]
+>
+> With the patch that clears the LOCAL label (BTW, the initial value of flags is 0x3,
+> meaning a read-only local label) :
+> @@ -2496,6 +2500,7 @@ static int init_active_labels(struct nd_region *nd_region)
+>                         if (!label_ent)
+>                                 break;
+>                         label = nd_label_active(ndd, j);
+> +                       label->flags &= ~NSLABEL_FLAG_LOCAL;
+>                         label_ent->label = label;
+>
+> I get this:
+>
+> root@decui-gen2-u1904:~/nvdimm# ndctl list
+> root@decui-gen2-u1904:~/nvdimm# ndctl list --idle
+> [
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"raw",
+>     "size":0,
+>     "uuid":"c258aaab-f72b-e546-bfa5-be5e07761dbc",
+>     "state":"disabled",
+>     "name":"Microsoft Hyper-V NVDIMM 1 Label"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"raw",
+>     "size":0,
+>     "uuid":"9f0497a7-4453-7c40-ad35-21a791e00345",
+>     "state":"disabled",
+>     "name":"Microsoft Hyper-V NVDIMM 0 Label"
+>   }
+> ]
+>
+> The "size" and "mode" still don't look right, but the improvement is that
+> now I can see a good descriptive "name", which I suppose is retrieved
+> from Hyper-V.
+
+Mode is right, there is no way for Hyper-V to create Linux fsdax mode
+namespaces it requires some setup using variables only Linux knows.
+Can you send the output of:
+
+ndctl read-labels -j all
+
+>
+> With Ubuntu 19.04 (4.18.0-11-generic), I get this:
+> (Note: the "mode" and "size" are correct. The "uuid" is different from
+> the above "9f0497a7-4453-7c40-ad35-21a791e00345" -- this is weird.)
+>
+> root@decui-gen2-u1904:~# ndctl list
+> [
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"raw",
+>     "size":137438953472,
+>     "blockdev":"pmem1"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"fsdax",
+>     "map":"dev",
+>     "size":33820770304,
+>     "uuid":"35018886-397e-4fe7-a348-0a4d16eec44d",
+>     "blockdev":"pmem0"
+>   }
+> ]
+
+This is because the Ubuntu kernel has the bug that causes _LSR to fail
+so Linux falls back to a namespace defined by the region boundary. On
+that namespace there is an "fsdax" info block located at the region
+base +4K. That info block is tagged with the uuid of
+"35018886-397e-4fe7-a348-0a4d16eec44d".
+
+> I'm trying to find out the correct solution. I apprecite your insights!
+
+It's a mess. First we need to figure out whether the label is actually
+specifying a size of zero, or there is some other bug.
+
+However, the next problem is going to be adding "fsdax" mode support
+on top of the read-only defined namespaces. The ndctl reconfiguration
+flow:
+
+   ndctl create-namespace -e namespace0.0 -m fsdax -f
+
+...will likely fail because deleting the previous namespace in the
+labels is part of that flow. It's always that labels are writable.
+
+Honestly, the quickest path to something functional for Linux is to
+simply delete the _LSR support and use raw mode defined namespaces.
+Why have labels if they are read-only and the region is sufficient for
+defining boundaries?
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
