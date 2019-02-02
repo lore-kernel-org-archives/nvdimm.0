@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9333211BFCC5
- for <linux-nvdimm@lists.01.org>; Thu,  7 Feb 2019 16:10:12 -0800 (PST)
-Subject: [PATCH] acpi/nfit: Fix bus command validation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 07 Feb 2019 15:57:31 -0800
-Message-ID: <154958385172.3932544.193235520333886200.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6CE11211C649C
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 16:39:03 -0800 (PST)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl,
+ rpmbuild: Add a dummy readme file to ndctl_keysdir
+Date: Fri,  1 Feb 2019 17:39:00 -0700
+Message-Id: <20190202003900.8487-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,99 +22,75 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.verma@intel.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Commit 11189c1089da "acpi/nfit: Fix command-supported detection" broke
-ND_CMD_CALL for bus-level commands. The "func = cmd" assumption is only
-valid for:
+At build time, ndctl_keysdir (/etc/nddctl/keys/) was empty, and thus
+it never gets created. Since the directory is listed in the %files
+section of the RPM spec, RPM checks for it and fails since it is not
+present.
 
-    ND_CMD_ARS_CAP
-    ND_CMD_ARS_START
-    ND_CMD_ARS_STATUS
-    ND_CMD_CLEAR_ERROR
+Fix this by adding a simple 'keys.readme' file to the keys dorectory
+that points the user to the setup-passphrase man page, and installing it
+during the build.
 
-The function number otherwise needs to be pulled from the command
-payload for:
-
-    NFIT_CMD_TRANSLATE_SPA
-    NFIT_CMD_ARS_INJECT_SET
-    NFIT_CMD_ARS_INJECT_CLEAR
-    NFIT_CMD_ARS_INJECT_GET
-
-Update cmd_to_func() for the bus case and call it in the common path.
-
-Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
-Cc: <stable@vger.kernel.org>
-Cc: Vishal Verma <vishal.verma@intel.com>
-Reported-by: Grzegorz Burzynski <grzegorz.burzynski@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/nfit/core.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ configure.ac      | 2 ++
+ ndctl.spec.in     | 1 +
+ ndctl/Makefile.am | 2 ++
+ ndctl/keys.readme | 1 +
+ 4 files changed, 6 insertions(+)
+ create mode 100644 ndctl/keys.readme
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e18ade5d74e9..c34c595d6bb0 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -415,7 +415,7 @@ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
- 	if (call_pkg) {
- 		int i;
+diff --git a/configure.ac b/configure.ac
+index b08ddaf..d27a2b1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -179,7 +179,9 @@ AS_IF([test "x$with_keyutils" = "xyes"],
+ AM_CONDITIONAL([ENABLE_KEYUTILS], [test "x$with_keyutils" = "xyes"])
  
--		if (nfit_mem->family != call_pkg->nd_family)
-+		if (nfit_mem && nfit_mem->family != call_pkg->nd_family)
- 			return -ENOTTY;
+ ndctl_keysdir=${sysconfdir}/ndctl/keys
++ndctl_keysreadme=keys.readme
+ AC_SUBST([ndctl_keysdir])
++AC_SUBST([ndctl_keysreadme])
  
- 		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
-@@ -424,6 +424,10 @@ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
- 		return call_pkg->nd_command;
- 	}
+ my_CFLAGS="\
+ -Wall \
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 5ceb27a..8abccbf 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -110,6 +110,7 @@ make check
+ %{bashcompdir}/
+ %{_unitdir}/ndctl-monitor.service
+ %dir %{_sysconfdir}/ndctl/keys/
++%{_sysconfdir}/ndctl/keys/keys.readme
+ %{_sysconfdir}/modprobe.d/nvdimm-security.conf
  
-+	/* In the !call_pkg case, bus commands == bus functions */
-+	if (!nfit_mem)
-+		return cmd;
-+
- 	/* Linux ND commands == NVDIMM_FAMILY_INTEL function numbers */
- 	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
- 		return cmd;
-@@ -454,17 +458,18 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	if (cmd_rc)
- 		*cmd_rc = -EINVAL;
+ %config(noreplace) %{_sysconfdir}/ndctl/monitor.conf
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index cd3312b..3287dbb 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -29,6 +29,8 @@ ndctl_SOURCES = ndctl.c \
+ if ENABLE_KEYUTILS
+ ndctl_SOURCES += util/keys.c \
+ 		load-keys.c
++keys_configdir = $(ndctl_keysdir)
++keys_config_DATA = $(ndctl_keysreadme)
+ endif
  
-+	if (cmd == ND_CMD_CALL)
-+		call_pkg = buf;
-+	func = cmd_to_func(nfit_mem, cmd, call_pkg);
-+	if (func < 0)
-+		return func;
-+
- 	if (nvdimm) {
- 		struct acpi_device *adev = nfit_mem->adev;
- 
- 		if (!adev)
- 			return -ENOTTY;
- 
--		if (cmd == ND_CMD_CALL)
--			call_pkg = buf;
--		func = cmd_to_func(nfit_mem, cmd, call_pkg);
--		if (func < 0)
--			return func;
- 		dimm_name = nvdimm_name(nvdimm);
- 		cmd_name = nvdimm_cmd_name(cmd);
- 		cmd_mask = nvdimm_cmd_mask(nvdimm);
-@@ -475,12 +480,9 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 	} else {
- 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
- 
--		func = cmd;
- 		cmd_name = nvdimm_bus_cmd_name(cmd);
- 		cmd_mask = nd_desc->cmd_mask;
--		dsm_mask = cmd_mask;
--		if (cmd == ND_CMD_CALL)
--			dsm_mask = nd_desc->bus_dsm_mask;
-+		dsm_mask = nd_desc->bus_dsm_mask;
- 		desc = nd_cmd_bus_desc(cmd);
- 		guid = to_nfit_uuid(NFIT_DEV_BUS);
- 		handle = adev->handle;
+ if ENABLE_DESTRUCTIVE
+diff --git a/ndctl/keys.readme b/ndctl/keys.readme
+new file mode 100644
+index 0000000..506678a
+--- /dev/null
++++ b/ndctl/keys.readme
+@@ -0,0 +1 @@
++See 'ndctl setup-passphrase --help'
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
