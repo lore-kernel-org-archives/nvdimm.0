@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com
+ [IPv6:2607:f8b0:4864:20::232])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9EF2208AE352
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 00:31:57 -0800 (PST)
-Date: Fri, 15 Feb 2019 09:31:55 +0100
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [ndctl PATCH] ndctl, monitor: support NVDIMM_FAMILY_HYPERV
-Message-ID: <20190215083155.GA29711@linux-x5ow.site>
-References: <PU1P153MB016948B28D99FE01EE8252DFBF600@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ by ml01.01.org (Postfix) with ESMTPS id 07DAB211C64B5
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 17:58:53 -0800 (PST)
+Received: by mail-oi1-x232.google.com with SMTP id y23so7446171oia.4
+ for <linux-nvdimm@lists.01.org>; Fri, 01 Feb 2019 17:58:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <PU1P153MB016948B28D99FE01EE8252DFBF600@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <20190202015253.20051-1-vishal.l.verma@intel.com>
+ <20190202015253.20051-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190202015253.20051-2-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 1 Feb 2019 17:58:42 -0800
+Message-ID: <CAPcyv4jQPDbA8HVqiS4WY3_yhcuV-4OK30E95Epog8eBpxXGHg@mail.gmail.com>
+Subject: Re: [ndctl PATCH 2/4] ndctl, keys: fix a resource leak in verify_kek()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,24 +22,25 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dexuan Cui <decui@microsoft.com>
-Cc: Michael Kelley <mikelley@microsoft.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Looks good,
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
--- =
+On Fri, Feb 1, 2019 at 5:53 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> Static analysis reports that we were leaking key_handle in the above
+> function. Fix the error handling to properly free it for every error
+> case.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Johannes Thumshirn                            SUSE Labs Filesystems
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N=FCrnberg
-GF: Felix Imend=F6rffer, Jane Smithard, Graham Norton
-HRB 21284 (AG N=FCrnberg)
-Key fingerprint =3D EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+Looks good,
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
