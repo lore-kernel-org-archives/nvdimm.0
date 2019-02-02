@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail1.windriver.com (mail1.windriver.com [147.11.146.13])
- (using TLSv1.1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 155AD21B02822
- for <linux-nvdimm@lists.01.org>; Wed, 13 Feb 2019 20:10:55 -0800 (PST)
-Received: from ALA-HCB.corp.ad.wrs.com ([147.11.189.41])
- by mail1.windriver.com (8.15.2/8.15.1) with ESMTPS id x1E4AsYE005789
- (version=TLSv1 cipher=AES128-SHA bits=128 verify=FAIL)
- for <linux-nvdimm@lists.01.org>; Wed, 13 Feb 2019 20:10:54 -0800 (PST)
-From: "Liu, Yongxin" <Yongxin.Liu@windriver.com>
-Subject: Is nvdimm driver RT compatible?
-Date: Thu, 14 Feb 2019 04:10:53 +0000
-Message-ID: <597B109EC20B76429F71A8A97770610D12A200FA@ALA-MBD.corp.ad.wrs.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 3C09C211BB8CD
+ for <linux-nvdimm@lists.01.org>; Sat,  2 Feb 2019 12:38:24 -0800 (PST)
+Received: by mail-oi1-x243.google.com with SMTP id x23so8673513oix.3
+ for <linux-nvdimm@lists.01.org>; Sat, 02 Feb 2019 12:38:24 -0800 (PST)
 MIME-Version: 1.0
+References: <f0086a11a40fb97503fb559b53dcc94c9f873e32.camel@intel.com>
+ <CAHk-=wgXh57rgtmSEvbKd69QYtBTRzU3QH36rKcFGiETRj45Sg@mail.gmail.com>
+In-Reply-To: <CAHk-=wgXh57rgtmSEvbKd69QYtBTRzU3QH36rKcFGiETRj45Sg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 2 Feb 2019 12:38:12 -0800
+Message-ID: <CAPcyv4g2-DtUPE3MHKXgR9=Gbs9RoC=k2YY1-7wWukUHEZMGnA@mail.gmail.com>
+Subject: Re: [GIT PULL] libnvdimm fixes for v5.0-rc4
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,51 +26,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dave Hansen <dave.hansen@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi experts,
+On Sat, Feb 2, 2019 at 11:12 AM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> On Sat, Jan 26, 2019 at 3:31 PM Williams, Dan J
+> <dan.j.williams@intel.com> wrote:
+> >
+> > Hi Linus, please pull from:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.0-rc4
+>
+> Hmm. One more pr-tracker-bot note: going through the pull requests
+> from the last week, I notice that this one didn't get a pr-tracker
+> response.
+>
+> It looks like lkml still hates you, so your pull request email never
+> made it to the list despite being cc'd. And thus it never makes it to
+> the lore and pr-tracker-bot infrastructure either.
+>
+> Have you tried looking into why lkml has that red-hot hatred of your emails?
+>
+> Because it does seem to be personal - you have pissed off the email
+> gods some way. Did you get a bounce?
 
-Could anyone tell me whether Linux nvdimm driver is RT compatible?
+No bounce, but I at least have good company in the shunned group.
+Mel's analysis of the impact of page-allocator randomization [1]
+somehow also missed lore.kernel.org, but lkml.org caught it [2]. Add
+Dave Hansen on the outside chance his mail scripts have caught other
+instances of patches sent to the list but not archived in
+lore.kernel.org.
 
-When I was testing PMEM performance with fio using the following command, I got calltrace below.
-
-# fio -filename=/dev/pmem0s -direct=1 -iodepth 1 -thread -rw=randrw -rwmixread=70 -ioengine=psync -bs=16k -size=1G -numjobs=30 -runtime=100 -group_reporting -name=mytest
-
-    BUG: scheduling while atomic: fio/2514/0x00000002
-    Modules linked in: intel_rapl nd_pmem nd_btt skx_edac iTCO_wdt iTCO_vendor_support intel_powerclamp coretemp 
-    crct10dif_pclmul crct10dif_common aesni_intel aes_x86_64 crypto_simd    cryptd i40e nvme glue_helper nvme_core lpc_ich i2c_i801 nfit pcc_cpufreq wmi libnvdimm acpi_pad   
-    acpi_power_meter
-    Preemption disabled at:
-    [<ffffffffc03608d9>] nd_region_acquire_lane+0x19/0x80 [libnvdimm]
-    CPU: 44 PID: 2514 Comm: fio Tainted: G        W         4.18.20-rt8-preempt-rt #1
-    Call Trace:
-     dump_stack+0x4f/0x6a
-     ? nd_region_acquire_lane+0x19/0x80 [libnvdimm]
-     __schedule_bug.cold.17+0x38/0x55
-     __schedule+0x484/0x6c0
-     ? _raw_spin_lock+0x17/0x40
-     schedule+0x3d/0xe0
-     rt_spin_lock_slowlock_locked+0x118/0x2a0
-     rt_spin_lock_slowlock+0x57/0x90
-     rt_spin_lock+0x52/0x60
-     btt_write_pg.isra.16+0x280/0x4b0 [nd_btt]
-     btt_make_request+0x1b1/0x320 [nd_btt]
-     generic_make_request+0x1dc/0x3f0
-     submit_bio+0x49/0x140
-
-nd_region_acquire_lane() disables preemption with get_cpu() which causes "scheduling while atomic" spews on RT.
-
-Is it safe to replace get_cpu()/put_cpu() with get_cpu_light()/put_cpu_light() in nd_region_acquire_lane()/nd_region_release_lane()?
-After this replacement, the codes protected by nd_region_release_lane/nd_region_release_lane would become pre-emptible. 
-So are these codes reentrant?
-
-
-
-Thanks,
-Yongxin
-
-
+[1]: <20181012082213.GE5819@techsingularity.net>
+[2]: https://lkml.org/lkml/2018/10/12/309
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
