@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 533972119BBDC
- for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 18:35:38 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id B850C2194D3B8
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 18:32:31 -0800 (PST)
 From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ANNOUNCE] ndctl v64
-Date: Sat, 2 Feb 2019 02:35:36 +0000
-Message-ID: <33cfeb6d63ce4dad17abf2a89ea7c955850e575c.camel@intel.com>
-References: <82a5e3d490025fb3852e6c7d9eeff78af98e2c23.camel@intel.com>
-In-Reply-To: <82a5e3d490025fb3852e6c7d9eeff78af98e2c23.camel@intel.com>
+Subject: [ANNOUNCE] ndctl v64
+Date: Sat, 2 Feb 2019 02:32:30 +0000
+Message-ID: <82a5e3d490025fb3852e6c7d9eeff78af98e2c23.camel@intel.com>
 Content-Language: en-US
-Content-ID: <6E9E97E8A83E424BADCFDF2132B80DFC@intel.com>
+Content-ID: <749873B7C6DB6C499623D54350729925@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,21 +25,16 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+This release incorporates functionality up to the 5.0 kernel, and adds a
+number of bug fixes and improvements.
 
-On Sat, 2019-02-02 at 02:32 +0000, Verma, Vishal L wrote:
-> This release incorporates functionality up to the 5.0 kernel, and
-> adds a
-> number of bug fixes and improvements.
-> 
-> Highlights include a migration path for the new dax-bus ABI, several
-> cleanups to ndctl-monitor, support for firmware status translation,
-> displaying the supported_alignments attribute, and using it in the
-> namespace creation process, and support for security operations as
-> defined in the Intel DSM specification.
-> 
-> shortlog of the commits that went into this release:
-> 
-Ah I had a stale shortlog there. Here is the fixed up one:
+Highlights include a migration path for the new dax-bus ABI, several
+cleanups to ndctl-monitor, support for firmware status translation,
+displaying the supported_alignments attribute, and using it in the
+namespace creation process, and support for security operations as
+defined in the Intel DSM specification.
+
+shortlog of the commits that went into this release:
 
 Dan Williams (17):
       test, device-dax: Fix intermittent poison handling failures
@@ -100,7 +93,7 @@ Piotr Balcer (1):
 Toshi Kani (1):
       ndctl: fix zero-labels to handle firmware error properly
 
-Vishal Verma (15):
+Vishal Verma (11):
       libndctl: ignore ENXIO in ndctl_namespace_delete
       libndctl, intel: Add infrastructure for firmware_status translation
       ndctl, inject-smart: switch to ndctl_cmd_submit_xlat
@@ -111,11 +104,7 @@ Vishal Verma (15):
       libndctl: Fix the failure interpretation for status translations
       ndctl, bash-completion: add helpers for security commands
       ndctl, rpmbuild: Add a dummy readme file to ndctl_keysdir
-      ndctl, keys: fix a memory leak in dimm_create_key()
-      ndctl, keys: fix a resource leak in verify_kek()
-      libndctl: fix a couple of theoretical buffer overruns
-      ndctl, load-keys: fix a resource leak in load_dimm_keys()
-      ndctl: release v64
+      WIP: ndctl: release v64
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
