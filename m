@@ -1,55 +1,51 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
 From: Dexuan Cui <decui@microsoft.com>
 Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-Date: Sun, 3 Feb 2019 17:39:05 +0000
-Message-ID: <PU1P153MB016955790091DDD469B23E40BF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
- <201902032230.og6GVIra%fengguang.wu@intel.com>
-In-Reply-To: <201902032230.og6GVIra%fengguang.wu@intel.com>
+Date: Sun, 3 Feb 2019 17:21:32 +0000
+Message-ID: <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-> From: kbuild test robot <lkp@intel.com>
-> Sent: Sunday, February 3, 2019 6:32 AM
-> To: Dan Williams <dan.j.williams@intel.com>
-> Cc: kbuild-all@01.org; linux-nvdimm@lists.01.org; Dexuan Cui
-> <decui@microsoft.com>; linux-kernel@vger.kernel.org
-> Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM
-> family
->=20
-> Hi Dan,
->=20
-> I love your patch! Yet something to improve:
->=20
-> [auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
-> [also build test ERROR on v5.0-rc4 next-20190201]
-> [if your patch is applied to the wrong git tree, please drop us a note to=
- help
-> improve the system]
-> ...
-> All errors (new ones prefixed by >>):
->=20
->    drivers/acpi//nfit/core.c: In function 'acpi_nfit_register_dimms':
-> >> drivers/acpi//nfit/core.c:2003:27: error: 'NVDIMM_FAMILY_HYPERV'
-> undeclared (first use in this function); did you mean 'NVDIMM_FAMILY_HPE2=
-'?
->       if (nfit_mem->family =3D=3D NVDIMM_FAMILY_HYPERV)
->                               ^~~~~~~~~~~~~~~~~~~~
->                               NVDIMM_FAMILY_HPE2
->    drivers/acpi//nfit/core.c:2003:27: note: each undeclared identifier is
-> reported only once for each function it appears in
-
-This is a false alarm. The patch is only for
-https://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git/log/?h=3Dli=
-bnvdimm-pending
-where we have the dependant commid
-1194c4133195 ("nfit: Add Hyper-V NVDIMM DSM command set to white list")
-
-Thanks,
--- Dexuan
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+U2F0dXJkYXksIEZlYnJ1YXJ5IDIsIDIwMTkgNToxMyBQTQ0KPiAuLi4NCj4gQXMgRGV4dWFuIHJl
+cG9ydHMgdGhlIE5WRElNTV9GQU1JTFlfSFlQRVJWIHBsYXRmb3JtIGlzIGluY29tcGF0aWJsZSB3
+aXRoDQo+IHRoZSBleGlzdGluZyBMaW51eCBuYW1lc3BhY2UgaW1wbGVtZW50YXRpb24gYmVjYXVz
+ZSBpdCB1c2VzDQo+IE5TTEFCRUxfRkxBR19MT0NBTCBmb3IgeDEtd2lkdGggUE1FTSBpbnRlcmxl
+YXZlIHNldHMuIFF1aXJrIGl0IGFzIGFuDQo+IHBsYXRmb3JtIC8gRElNTSB0aGF0IGRvZXMgbm90
+IHByb3ZpZGUgQkxLLWFwZXJ0dXJlIGFjY2Vzcy4gQWxsb3cgdGhlDQo+IGxpYm52ZGltbSBjb3Jl
+IHRvIGFzc3VtZSBubyBwb3RlbnRpYWwgZm9yIGFsaWFzaW5nLiBJbiBjYXNlIG90aGVyDQo+IGlt
+cGxlbWVudGF0aW9ucyBtYWtlIHRoZSBzYW1lIG1pc3Rha2UsIHByb3ZpZGUgYSAibm9ibGsiIG1v
+ZHVsZQ0KPiBwYXJhbWV0ZXIgdG8gZm9yY2UtZW5hYmxlIHRoZSBxdWlyay4NCg0KSGkgRGFuLA0K
+VGhhbmtzIHZlcnkgbXVjaCBmb3IgdGhlIHBhdGNoISBXaXRoIGl0LCAibmRjdGwgbGlzdCIgY2Fu
+IHNob3cgdGhlIGJlbG93Og0KDQpyb290QGRlY3VpLWdlbjItdTE5MDQ6fi9uZGN0bCMgbmRjdGwg
+bGlzdA0KWw0KICB7DQogICAgImRldiI6Im5hbWVzcGFjZTEuMCIsDQogICAgIm1vZGUiOiJyYXci
+LA0KICAgICJzaXplIjoxMzc0Mzg5NTM0NzIsDQogICAgInV1aWQiOiJjMjU4YWFhYi1mNzJiLWU1
+NDYtYmZhNS1iZTVlMDc3NjFkYmMiLA0KICAgICJibG9ja2RldiI6InBtZW0xIiwNCiAgICAibmFt
+ZSI6Ik1pY3Jvc29mdCBIeXBlci1WIE5WRElNTSAxIExhYmVsIg0KICB9LA0KICB7DQogICAgImRl
+diI6Im5hbWVzcGFjZTAuMCIsDQogICAgIm1vZGUiOiJyYXciLA0KICAgICJzaXplIjozNDM1OTcz
+ODM2OCwNCiAgICAidXVpZCI6IjlmMDQ5N2E3LTQ0NTMtN2M0MC1hZDM1LTIxYTc5MWUwMDM0NSIs
+DQogICAgImJsb2NrZGV2IjoicG1lbTAiLA0KICAgICJuYW1lIjoiTWljcm9zb2Z0IEh5cGVyLVYg
+TlZESU1NIDAgTGFiZWwiDQogIH0NCl0NCg0KQW5kIC9kZXYvcG1lbTAgY2FuIGFwcGVhciwgYnV0
+IC9kZXYvcG1lbTBwMSBjYW4gbm90IGFwcGVhciwgYW5kIHRoZSAibW9kZSIgb2YNCiJuYW1lc3Bh
+Y2UwLjAiIGlzIG5vdCBjb3JyZWN0LiAgV2l0aCB0aGUgVWJ1bnR1IDE5LjA0IDQuMTgga2VuZWws
+IEkgZ2V0IHRoZSBiZWxvdzoNCg0Kcm9vdEBkZWN1aS1nZW4yLXUxOTA0On4vbmRjdGwjIG5kY3Rs
+IGxpc3QNClsNCiAgew0KICAgICJkZXYiOiJuYW1lc3BhY2UxLjAiLA0KICAgICJtb2RlIjoicmF3
+IiwNCiAgICAic2l6ZSI6MTM3NDM4OTUzNDcyLA0KICAgICJibG9ja2RldiI6InBtZW0xIg0KICB9
+LA0KICB7DQogICAgImRldiI6Im5hbWVzcGFjZTAuMCIsDQogICAgIm1vZGUiOiJmc2RheCIsDQog
+ICAgIm1hcCI6ImRldiIsDQogICAgInNpemUiOjMzODIwNzcwMzA0LA0KICAgICJ1dWlkIjoiZWYw
+MjhjNGUtMmIxZi00YmY4LWI5MmEtMTEwOWQ3YTFjOTE0IiwNCiAgICAiYmxvY2tkZXYiOiJwbWVt
+MCINCiAgfQ0KXQ0KYW5kIC9kZXYvcG1lbTBwMSBjYW4gYXBwZWFyLg0KDQpJdCBsb29rcyB0aGUg
+bmFtZXNwYWNlIGNyZWF0ZWQgYnkgVWJ1bnR1IDE5LjA0ICg0LjE4KSBpcyBpbmNvbXBhdGlibGUg
+d2l0aA0KdGhlIGxpYm52ZGltbS1wZW5kaW5nIGJyYW5jaCArIHRoaXMgcGF0Y2guDQoNCkl0IGxv
+b2tzIHdlIG5lZWQgdG8gY29tcGxldGVseSBkaXNhYmxlIHRoZSBsYWJlbCB1c2FnZSBmb3IgTlZE
+SU1NX0ZBTUlMWV9IWVBFUlYgDQpkdWUgdG8gY29tcGFiaWxpdHk/DQoNClRoYW5rcywNCi0tIERl
+eHVhbg0K
