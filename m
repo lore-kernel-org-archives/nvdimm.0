@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5AFF7211BA45B
- for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 06:38:29 -0800 (PST)
-Date: Sun, 3 Feb 2019 22:38:07 +0800
+ by ml01.01.org (Postfix) with ESMTPS id 96CA7203BBB80
+ for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 06:32:28 -0800 (PST)
+Date: Sun, 3 Feb 2019 22:31:47 +0800
 From: kbuild test robot <lkp@intel.com>
 Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-Message-ID: <201902032214.9a8kjJLO%fengguang.wu@intel.com>
+Message-ID: <201902032230.og6GVIra%fengguang.wu@intel.com>
 References: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 In-Reply-To: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -37,7 +37,7 @@ I love your patch! Yet something to improve:
 
 url:    https://github.com/0day-ci/linux/commits/Dan-Williams/libnvdimm-dimm-Add-a-no-BLK-quirk-based-on-NVDIMM-family/20190203-213444
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: x86_64-allmodconfig (attached as .config)
+config: x86_64-randconfig-x018-201905 (attached as .config)
 compiler: gcc-8 (Debian 8.2.0-14) 8.2.0
 reproduce:
         # save the attached .config to linux build tree
@@ -45,14 +45,14 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   drivers/acpi/nfit/core.c: In function 'acpi_nfit_register_dimms':
->> drivers/acpi/nfit/core.c:2003:27: error: 'NVDIMM_FAMILY_HYPERV' undeclared (first use in this function); did you mean 'NVDIMM_FAMILY_HPE1'?
+   drivers/acpi//nfit/core.c: In function 'acpi_nfit_register_dimms':
+>> drivers/acpi//nfit/core.c:2003:27: error: 'NVDIMM_FAMILY_HYPERV' undeclared (first use in this function); did you mean 'NVDIMM_FAMILY_HPE2'?
       if (nfit_mem->family == NVDIMM_FAMILY_HYPERV)
                               ^~~~~~~~~~~~~~~~~~~~
-                              NVDIMM_FAMILY_HPE1
-   drivers/acpi/nfit/core.c:2003:27: note: each undeclared identifier is reported only once for each function it appears in
+                              NVDIMM_FAMILY_HPE2
+   drivers/acpi//nfit/core.c:2003:27: note: each undeclared identifier is reported only once for each function it appears in
 
-vim +2003 drivers/acpi/nfit/core.c
+vim +2003 drivers/acpi//nfit/core.c
 
   1944	
   1945	static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
