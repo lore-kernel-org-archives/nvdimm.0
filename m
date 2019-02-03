@@ -1,37 +1,87 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH] acpi/nfit: Require opt-in for read-only label
- configurations
-Date: Mon, 4 Feb 2019 05:45:57 +0000
-Message-ID: <PU1P153MB0169B2995B66A08CEA44458DBF6D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D5F80211BB8DC
+ for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 11:41:28 -0800 (PST)
+Subject: [PATCH] acpi/nfit: Require opt-in for read-only label configurations
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 03 Feb 2019 11:28:50 -0800
+Message-ID: <154922213038.3561630.15221922065373676874.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
 References: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
- <154922213038.3561630.15221922065373676874.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154922213038.3561630.15221922065373676874.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-U3VuZGF5LCBGZWJydWFyeSAzLCAyMDE5IDExOjI5IEFNDQo+IC4uLg0KPiBSZWNlbnQgZml4ZXMg
-dG8gY29tbWFuZCBoYW5kbGluZyBlbmFibGVkIExpbnV4IHRvIHJlYWQgbGFiZWwNCj4gY29uZmln
-dXJhdGlvbnMgdGhhdCBpdCBjb3VsZCBub3QgYmVmb3JlLiBVbmZvcnR1bmF0ZWx5IHRoYXQgbWVh
-bnMgdGhhdA0KPiBjb25maWd1cmF0aW9ucyB0aGF0IHdlcmUgb3BlcmF0aW5nIGluIGxhYmVsLWxl
-c3MgbW9kZSB3aWxsIGJlIGJyb2tlbiBhcw0KPiB0aGUga2VybmVsIGlnbm9yZXMgdGhlIGV4aXN0
-aW5nIG5hbWVzcGFjZSBjb25maWd1cmF0aW9uIGFuZCB0cmllcyB0bw0KPiBob25vciB0aGUgbmV3
-IGZvdW5kIGxhYmVscy4NCj4gDQo+IEZvcnR1bmF0ZWx5IHRoaXMgc2VlbXMgbGltaXRlZCB0byBh
-IGNhc2Ugd2hlcmUgTGludXggY2FuIHF1aXJrIHRoZQ0KPiBiZWhhdmlvciBhbmQgbWFpbnRhaW4g
-dGhlIGV4aXN0aW5nIGxhYmVsLWxlc3Mgc2VtYW50aWNzIGJ5IGRlZmF1bHQuDQo+IFdoZW4gdGhl
-IHBsYXRmb3JtIGRvZXMgbm90IGVtaXQgYW4gX0xTVyBtZXRob2QsIGRpc2FibGUgYWxsIGxhYmVs
-IGFjY2Vzcw0KPiBtZXRob2RzLiBQcm92aWRlIGEgJ2ZvcmNlX2xhYmVscycgbW9kdWxlIHBhcmFt
-ZXRlciB0byBhbGxvdyByZWFkLW9ubHkNCj4gbGFiZWwgb3BlcmF0aW9uLg0KPiANCj4gRml4ZXM6
-IDExMTg5YzEwODlkYSAoImFjcGkvbmZpdDogRml4IGNvbW1hbmQtc3VwcG9ydGVkIGRldGVjdGlv
-biIpDQo+IFJlcG9ydGVkLWJ5OiBEZXh1YW4gQ3VpIDxkZWN1aUBtaWNyb3NvZnQuY29tPg0KPiBT
-aWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCg0K
-SGkgRGFuLA0KVGhhbmtzIGZvciB0aGUgcGF0Y2ggYW5kIGFsbCB0aGUgZGV0YWlsZWQgZXhwbGFu
-YXRpb24hIFdpdGggdGhpcyBwYXRjaCwNCnRoZSAiZnNkYXgiIG5hbWVzcGFjZSBjYW4gYmUgcHJv
-cGVybHkgZGV0ZWN0ZWQgbm93IQ0KDQpUaGFua3MsDQotLSBEZXh1YW4NCg==
+Recent fixes to command handling enabled Linux to read label
+configurations that it could not before. Unfortunately that means that
+configurations that were operating in label-less mode will be broken as
+the kernel ignores the existing namespace configuration and tries to
+honor the new found labels.
+
+Fortunately this seems limited to a case where Linux can quirk the
+behavior and maintain the existing label-less semantics by default.
+When the platform does not emit an _LSW method, disable all label access
+methods. Provide a 'force_labels' module parameter to allow read-only
+label operation.
+
+Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
+Reported-by: Dexuan Cui <decui@microsoft.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 811c399a3a76..5b5e802de7b8 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -56,6 +56,10 @@ static bool no_init_ars;
+ module_param(no_init_ars, bool, 0644);
+ MODULE_PARM_DESC(no_init_ars, "Skip ARS run at nfit init time");
+ 
++static bool force_labels;
++module_param(force_labels, bool, 0444);
++MODULE_PARM_DESC(force_labels, "Opt-in to labels despite missing methods");
++
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
+ 
+@@ -1916,6 +1920,19 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 			dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
+ 			set_bit(NFIT_MEM_LSW, &nfit_mem->flags);
+ 		}
++
++		/*
++		 * Quirk read-only label configurations to preserve
++		 * access to label-less namespaces by default.
++		 */
++		if (!test_bit(NFIT_MEM_LSW, &nfit_mem->flags)
++				&& !force_labels) {
++			dev_dbg(dev, "%s: No _LSW, disable labels\n",
++					dev_name(&adev_dimm->dev));
++			clear_bit(NFIT_MEM_LSR, &nfit_mem->flags);
++		} else
++			dev_dbg(dev, "%s: Force enable labels\n",
++					dev_name(&adev_dimm->dev));
+ 	}
+ 
+ 	populate_shutdown_status(nfit_mem);
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
