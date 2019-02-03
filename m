@@ -1,112 +1,54 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
- [IPv6:2607:f8b0:4864:20::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 59525211C7F39
- for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 11:13:50 -0800 (PST)
-Received: by mail-oi1-x244.google.com with SMTP id y1so9807765oie.12
- for <linux-nvdimm@lists.01.org>; Sun, 03 Feb 2019 11:13:50 -0800 (PST)
-MIME-Version: 1.0
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Dexuan Cui <decui@microsoft.com>
+Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
+Date: Sun, 3 Feb 2019 18:13:35 +0000
+Message-ID: <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
  <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
- <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-In-Reply-To: <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 3 Feb 2019 11:13:38 -0800
-Message-ID: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
-Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dexuan Cui <decui@microsoft.com>
-Cc: Michael Kelley <mikelley@microsoft.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+In-Reply-To: <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Feb 3, 2019 at 10:13 AM Dexuan Cui <decui@microsoft.com> wrote:
->
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > Sent: Sunday, February 3, 2019 9:49 AM
-> > > ...
-> > > It looks the namespace created by Ubuntu 19.04 (4.18) is incompatible with
-> > > the libnvdimm-pending branch + this patch.
-> >
-> > This is correct, the configuration switched from label-less by default
-> > to labeled.
-> Thanks for the confirmation!
->
-> > > It looks we need to completely disable the label usage for
-> > NVDIMM_FAMILY_HYPERV
-> > > due to compability?
-> >
-> > It's either going to be a quirk in Linux or a quirk in the Hyper-V
-> > configuration. I think it's more manageable for Hyper-V to ship a
-> > "label disable" switch than to try to ship a workaround in Linux. The
-> > "noblk" quirk in Linux works around the LOCAL bit in the labels.
-> > However, the namespace mode regression can only be resolved by hiding
-> > the label capability until the administrator manually switches from
-> > label-less to labeled operation.
->
-> As I understand, the essence of the issue is: Hyper-V emulates the
-> label mechanism (i.e. it supports _LSI and LSR), but doesn't do it
-> right (i.e. it doesn't support _LSW).
->
-> To manage the namespaces, Linux can choose to use label or not.
->
-> If _LSI/_LSR are supported, Linux assumes _LSW is supported as well
-> and chooses to use label (i.e. the label mode), but since Hyper-V doesn't
-> support _LSW, Linux fails to change the namespace configuration.
-
-No, that's not quite right. The reason Linux does not see the fsdax
-mode configuration is due to the missing "address abstraction GUID" in
-the label produced the default Hyper-V configuration. In label-less
-mode there is no "address abstraction GUID" to validate so it falls
-back to just using the info-block directly.
-
-The _LSW issue is if you wanted to reconfigure a raw namespace to
-fsdax mode. The current flow tries to delete the label, but that's
-only for reconfiguration, not the initial boot-up case that is
-currently failing. The deletion would fail on finding no label-write
-capability, but to be clear the boot-up case does not perform any
-writes.
-
-> In
-> Ubuntu 19.04 (4.18), the kernel is not aware of Hyper-V _LSI/_LSR, so
-> the created namespace is in "label-less" mode, and hence can't be used
-> with the libnvdimm-pending branch + this patch, unless we add a quirk
-> in Linux to explicitly not use the label.
->
-> I agree ideally Hyper-V should hide the label capability, and I'll request
-> Hyper-V team to do that. I hope Hyper-V guys are still able to do that
-> in time so we won't need a quirk in Linux kernel.
-
-After some more thought, the "no regressions" rule means that Linux
-should ship a quirk for this by default. I think a good heuristic is
-to disable label support by default if no _LSW method is detected. An
-opt-in can be specified to accept "read-only" configurations, but
-that's an exceptional case. I'll send a patch for this.
-
-> BTW, I suppose Windows VM should be in "label-less" mode.
-
-I expect Windows mandates labeled operation. This label-less concept
-was something Linux shipped in advance of a specification being
-ratified and to support early NVDIMMs that don't advertise label
-space.
-
-> Thanks for the help, Dan!
-
-Thanks for the quick feedback and testing.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+U3VuZGF5LCBGZWJydWFyeSAzLCAyMDE5IDk6NDkgQU0NCj4gPiAuLi4NCj4gPiBJdCBsb29rcyB0
+aGUgbmFtZXNwYWNlIGNyZWF0ZWQgYnkgVWJ1bnR1IDE5LjA0ICg0LjE4KSBpcyBpbmNvbXBhdGli
+bGUgd2l0aA0KPiA+IHRoZSBsaWJudmRpbW0tcGVuZGluZyBicmFuY2ggKyB0aGlzIHBhdGNoLg0K
+PiANCj4gVGhpcyBpcyBjb3JyZWN0LCB0aGUgY29uZmlndXJhdGlvbiBzd2l0Y2hlZCBmcm9tIGxh
+YmVsLWxlc3MgYnkgZGVmYXVsdA0KPiB0byBsYWJlbGVkLg0KVGhhbmtzIGZvciB0aGUgY29uZmly
+bWF0aW9uISANCiANCj4gPiBJdCBsb29rcyB3ZSBuZWVkIHRvIGNvbXBsZXRlbHkgZGlzYWJsZSB0
+aGUgbGFiZWwgdXNhZ2UgZm9yDQo+IE5WRElNTV9GQU1JTFlfSFlQRVJWDQo+ID4gZHVlIHRvIGNv
+bXBhYmlsaXR5Pw0KPiANCj4gSXQncyBlaXRoZXIgZ29pbmcgdG8gYmUgYSBxdWlyayBpbiBMaW51
+eCBvciBhIHF1aXJrIGluIHRoZSBIeXBlci1WDQo+IGNvbmZpZ3VyYXRpb24uIEkgdGhpbmsgaXQn
+cyBtb3JlIG1hbmFnZWFibGUgZm9yIEh5cGVyLVYgdG8gc2hpcCBhDQo+ICJsYWJlbCBkaXNhYmxl
+IiBzd2l0Y2ggdGhhbiB0byB0cnkgdG8gc2hpcCBhIHdvcmthcm91bmQgaW4gTGludXguIFRoZQ0K
+PiAibm9ibGsiIHF1aXJrIGluIExpbnV4IHdvcmtzIGFyb3VuZCB0aGUgTE9DQUwgYml0IGluIHRo
+ZSBsYWJlbHMuDQo+IEhvd2V2ZXIsIHRoZSBuYW1lc3BhY2UgbW9kZSByZWdyZXNzaW9uIGNhbiBv
+bmx5IGJlIHJlc29sdmVkIGJ5IGhpZGluZw0KPiB0aGUgbGFiZWwgY2FwYWJpbGl0eSB1bnRpbCB0
+aGUgYWRtaW5pc3RyYXRvciBtYW51YWxseSBzd2l0Y2hlcyBmcm9tDQo+IGxhYmVsLWxlc3MgdG8g
+bGFiZWxlZCBvcGVyYXRpb24uDQoNCkFzIEkgdW5kZXJzdGFuZCwgdGhlIGVzc2VuY2Ugb2YgdGhl
+IGlzc3VlIGlzOiBIeXBlci1WIGVtdWxhdGVzIHRoZQ0KbGFiZWwgbWVjaGFuaXNtIChpLmUuIGl0
+IHN1cHBvcnRzIF9MU0kgYW5kIExTUiksIGJ1dCBkb2Vzbid0IGRvIGl0DQpyaWdodCAoaS5lLiBp
+dCBkb2Vzbid0IHN1cHBvcnQgX0xTVykuDQoNClRvIG1hbmFnZSB0aGUgbmFtZXNwYWNlcywgTGlu
+dXggY2FuIGNob29zZSB0byB1c2UgbGFiZWwgb3Igbm90Lg0KDQpJZiBfTFNJL19MU1IgYXJlIHN1
+cHBvcnRlZCwgTGludXggYXNzdW1lcyBfTFNXIGlzIHN1cHBvcnRlZCBhcyB3ZWxsDQphbmQgY2hv
+b3NlcyB0byB1c2UgbGFiZWwgKGkuZS4gdGhlIGxhYmVsIG1vZGUpLCBidXQgc2luY2UgSHlwZXIt
+ViBkb2Vzbid0DQpzdXBwb3J0IF9MU1csIExpbnV4IGZhaWxzIHRvIGNoYW5nZSB0aGUgbmFtZXNw
+YWNlIGNvbmZpZ3VyYXRpb24uIEluDQpVYnVudHUgMTkuMDQgKDQuMTgpLCB0aGUga2VybmVsIGlz
+IG5vdCBhd2FyZSBvZiBIeXBlci1WIF9MU0kvX0xTUiwgc28NCnRoZSBjcmVhdGVkIG5hbWVzcGFj
+ZSBpcyBpbiAibGFiZWwtbGVzcyIgbW9kZSwgYW5kIGhlbmNlIGNhbid0IGJlIHVzZWQNCndpdGgg
+dGhlIGxpYm52ZGltbS1wZW5kaW5nIGJyYW5jaCArIHRoaXMgcGF0Y2gsIHVubGVzcyB3ZSBhZGQg
+YSBxdWlyaw0KaW4gTGludXggdG8gZXhwbGljaXRseSBub3QgdXNlIHRoZSBsYWJlbC4NCg0KSSBh
+Z3JlZSBpZGVhbGx5IEh5cGVyLVYgc2hvdWxkIGhpZGUgdGhlIGxhYmVsIGNhcGFiaWxpdHksIGFu
+ZCBJJ2xsIHJlcXVlc3QNCkh5cGVyLVYgdGVhbSB0byBkbyB0aGF0LiBJIGhvcGUgSHlwZXItViBn
+dXlzIGFyZSBzdGlsbCBhYmxlIHRvIGRvIHRoYXQNCmluIHRpbWUgc28gd2Ugd29uJ3QgbmVlZCBh
+IHF1aXJrIGluIExpbnV4IGtlcm5lbC4NCg0KQlRXLCBJIHN1cHBvc2UgV2luZG93cyBWTSBzaG91
+bGQgYmUgaW4gImxhYmVsLWxlc3MiIG1vZGUuDQoNClRoYW5rcyBmb3IgdGhlIGhlbHAsIERhbiEN
+Cg0KVGhhbmtzLA0KLS0gRGV4dWFuDQo=
