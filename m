@@ -1,51 +1,111 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-Date: Sun, 3 Feb 2019 17:21:32 +0000
-Message-ID: <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3361721962301
+ for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 09:49:23 -0800 (PST)
+Received: by mail-oi1-x243.google.com with SMTP id i6so9769349oia.6
+ for <linux-nvdimm@lists.01.org>; Sun, 03 Feb 2019 09:49:23 -0800 (PST)
+MIME-Version: 1.0
 References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
+ <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+In-Reply-To: <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 3 Feb 2019 09:49:10 -0800
+Message-ID: <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dexuan Cui <decui@microsoft.com>
+Cc: Michael Kelley <mikelley@microsoft.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-U2F0dXJkYXksIEZlYnJ1YXJ5IDIsIDIwMTkgNToxMyBQTQ0KPiAuLi4NCj4gQXMgRGV4dWFuIHJl
-cG9ydHMgdGhlIE5WRElNTV9GQU1JTFlfSFlQRVJWIHBsYXRmb3JtIGlzIGluY29tcGF0aWJsZSB3
-aXRoDQo+IHRoZSBleGlzdGluZyBMaW51eCBuYW1lc3BhY2UgaW1wbGVtZW50YXRpb24gYmVjYXVz
-ZSBpdCB1c2VzDQo+IE5TTEFCRUxfRkxBR19MT0NBTCBmb3IgeDEtd2lkdGggUE1FTSBpbnRlcmxl
-YXZlIHNldHMuIFF1aXJrIGl0IGFzIGFuDQo+IHBsYXRmb3JtIC8gRElNTSB0aGF0IGRvZXMgbm90
-IHByb3ZpZGUgQkxLLWFwZXJ0dXJlIGFjY2Vzcy4gQWxsb3cgdGhlDQo+IGxpYm52ZGltbSBjb3Jl
-IHRvIGFzc3VtZSBubyBwb3RlbnRpYWwgZm9yIGFsaWFzaW5nLiBJbiBjYXNlIG90aGVyDQo+IGlt
-cGxlbWVudGF0aW9ucyBtYWtlIHRoZSBzYW1lIG1pc3Rha2UsIHByb3ZpZGUgYSAibm9ibGsiIG1v
-ZHVsZQ0KPiBwYXJhbWV0ZXIgdG8gZm9yY2UtZW5hYmxlIHRoZSBxdWlyay4NCg0KSGkgRGFuLA0K
-VGhhbmtzIHZlcnkgbXVjaCBmb3IgdGhlIHBhdGNoISBXaXRoIGl0LCAibmRjdGwgbGlzdCIgY2Fu
-IHNob3cgdGhlIGJlbG93Og0KDQpyb290QGRlY3VpLWdlbjItdTE5MDQ6fi9uZGN0bCMgbmRjdGwg
-bGlzdA0KWw0KICB7DQogICAgImRldiI6Im5hbWVzcGFjZTEuMCIsDQogICAgIm1vZGUiOiJyYXci
-LA0KICAgICJzaXplIjoxMzc0Mzg5NTM0NzIsDQogICAgInV1aWQiOiJjMjU4YWFhYi1mNzJiLWU1
-NDYtYmZhNS1iZTVlMDc3NjFkYmMiLA0KICAgICJibG9ja2RldiI6InBtZW0xIiwNCiAgICAibmFt
-ZSI6Ik1pY3Jvc29mdCBIeXBlci1WIE5WRElNTSAxIExhYmVsIg0KICB9LA0KICB7DQogICAgImRl
-diI6Im5hbWVzcGFjZTAuMCIsDQogICAgIm1vZGUiOiJyYXciLA0KICAgICJzaXplIjozNDM1OTcz
-ODM2OCwNCiAgICAidXVpZCI6IjlmMDQ5N2E3LTQ0NTMtN2M0MC1hZDM1LTIxYTc5MWUwMDM0NSIs
-DQogICAgImJsb2NrZGV2IjoicG1lbTAiLA0KICAgICJuYW1lIjoiTWljcm9zb2Z0IEh5cGVyLVYg
-TlZESU1NIDAgTGFiZWwiDQogIH0NCl0NCg0KQW5kIC9kZXYvcG1lbTAgY2FuIGFwcGVhciwgYnV0
-IC9kZXYvcG1lbTBwMSBjYW4gbm90IGFwcGVhciwgYW5kIHRoZSAibW9kZSIgb2YNCiJuYW1lc3Bh
-Y2UwLjAiIGlzIG5vdCBjb3JyZWN0LiAgV2l0aCB0aGUgVWJ1bnR1IDE5LjA0IDQuMTgga2VuZWws
-IEkgZ2V0IHRoZSBiZWxvdzoNCg0Kcm9vdEBkZWN1aS1nZW4yLXUxOTA0On4vbmRjdGwjIG5kY3Rs
-IGxpc3QNClsNCiAgew0KICAgICJkZXYiOiJuYW1lc3BhY2UxLjAiLA0KICAgICJtb2RlIjoicmF3
-IiwNCiAgICAic2l6ZSI6MTM3NDM4OTUzNDcyLA0KICAgICJibG9ja2RldiI6InBtZW0xIg0KICB9
-LA0KICB7DQogICAgImRldiI6Im5hbWVzcGFjZTAuMCIsDQogICAgIm1vZGUiOiJmc2RheCIsDQog
-ICAgIm1hcCI6ImRldiIsDQogICAgInNpemUiOjMzODIwNzcwMzA0LA0KICAgICJ1dWlkIjoiZWYw
-MjhjNGUtMmIxZi00YmY4LWI5MmEtMTEwOWQ3YTFjOTE0IiwNCiAgICAiYmxvY2tkZXYiOiJwbWVt
-MCINCiAgfQ0KXQ0KYW5kIC9kZXYvcG1lbTBwMSBjYW4gYXBwZWFyLg0KDQpJdCBsb29rcyB0aGUg
-bmFtZXNwYWNlIGNyZWF0ZWQgYnkgVWJ1bnR1IDE5LjA0ICg0LjE4KSBpcyBpbmNvbXBhdGlibGUg
-d2l0aA0KdGhlIGxpYm52ZGltbS1wZW5kaW5nIGJyYW5jaCArIHRoaXMgcGF0Y2guDQoNCkl0IGxv
-b2tzIHdlIG5lZWQgdG8gY29tcGxldGVseSBkaXNhYmxlIHRoZSBsYWJlbCB1c2FnZSBmb3IgTlZE
-SU1NX0ZBTUlMWV9IWVBFUlYgDQpkdWUgdG8gY29tcGFiaWxpdHk/DQoNClRoYW5rcywNCi0tIERl
-eHVhbg0K
+On Sun, Feb 3, 2019 at 9:22 AM Dexuan Cui <decui@microsoft.com> wrote:
+>
+> > From: Dan Williams <dan.j.williams@intel.com>
+> > Sent: Saturday, February 2, 2019 5:13 PM
+> > ...
+> > As Dexuan reports the NVDIMM_FAMILY_HYPERV platform is incompatible with
+> > the existing Linux namespace implementation because it uses
+> > NSLABEL_FLAG_LOCAL for x1-width PMEM interleave sets. Quirk it as an
+> > platform / DIMM that does not provide BLK-aperture access. Allow the
+> > libnvdimm core to assume no potential for aliasing. In case other
+> > implementations make the same mistake, provide a "noblk" module
+> > parameter to force-enable the quirk.
+>
+> Hi Dan,
+> Thanks very much for the patch! With it, "ndctl list" can show the below:
+>
+> root@decui-gen2-u1904:~/ndctl# ndctl list
+> [
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"raw",
+>     "size":137438953472,
+>     "uuid":"c258aaab-f72b-e546-bfa5-be5e07761dbc",
+>     "blockdev":"pmem1",
+>     "name":"Microsoft Hyper-V NVDIMM 1 Label"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"raw",
+>     "size":34359738368,
+>     "uuid":"9f0497a7-4453-7c40-ad35-21a791e00345",
+>     "blockdev":"pmem0",
+>     "name":"Microsoft Hyper-V NVDIMM 0 Label"
+>   }
+> ]
+>
+> And /dev/pmem0 can appear, but /dev/pmem0p1 can not appear, and the "mode" of
+> "namespace0.0" is not correct.  With the Ubuntu 19.04 4.18 kenel, I get the below:
+>
+> root@decui-gen2-u1904:~/ndctl# ndctl list
+> [
+>   {
+>     "dev":"namespace1.0",
+>     "mode":"raw",
+>     "size":137438953472,
+>     "blockdev":"pmem1"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"fsdax",
+>     "map":"dev",
+>     "size":33820770304,
+>     "uuid":"ef028c4e-2b1f-4bf8-b92a-1109d7a1c914",
+>     "blockdev":"pmem0"
+>   }
+> ]
+> and /dev/pmem0p1 can appear.
+>
+> It looks the namespace created by Ubuntu 19.04 (4.18) is incompatible with
+> the libnvdimm-pending branch + this patch.
+
+This is correct, the configuration switched from label-less by default
+to labeled.
+
+> It looks we need to completely disable the label usage for NVDIMM_FAMILY_HYPERV
+> due to compability?
+
+It's either going to be a quirk in Linux or a quirk in the Hyper-V
+configuration. I think it's more manageable for Hyper-V to ship a
+"label disable" switch than to try to ship a workaround in Linux. The
+"noblk" quirk in Linux works around the LOCAL bit in the labels.
+However, the namespace mode regression can only be resolved by hiding
+the label capability until the administrator manually switches from
+label-less to labeled operation.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
