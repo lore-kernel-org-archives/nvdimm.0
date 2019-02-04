@@ -1,81 +1,94 @@
-From: Stefan Hajnoczi <stefanha@redhat.com>
-Subject: Querying the size of devdax devices from userspace
-Date: Mon, 4 Feb 2019 15:50:23 +0800
-Message-ID: <20190204075023.GA15322@stefanha-x1.localdomain>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: security implications of caching with virtio pmem (was Re: [PATCH v3
+ 0/5] kvm "virtio pmem" device)
+Date: Mon, 4 Feb 2019 17:56:22 -0500
+Message-ID: <20190204170515-mutt-send-email-mst@kernel.org>
+References: <20190109144736.17452-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Zhang Yi <yi.z.zhang@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: qemu-devel@nongnu.org, linux-nvdimm@lists.01.org
+In-Reply-To: <20190109144736.17452-1-pagupta@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, david@redhat.com, jmoyer@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, rjw@rjwysocki.net, Andrea Arcangeli <aarcange@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
 
---wac7ysb48OaltWcw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
+>  This patch series has implementation for "virtio pmem". 
+>  "virtio pmem" is fake persistent memory(nvdimm) in guest 
+>  which allows to bypass the guest page cache. This also
+>  implements a VIRTIO based asynchronous flush mechanism.  
 
-How can userspace applications query the size of devdax character
-devices?
 
-stat(1) doesn't know how large the device is:
+At Pankaj's request I looked at information leak implications of virtio
+pmem in light of the recent page cache side channels paper
+(https://arxiv.org/pdf/1901.01161.pdf) - to see what
+kind of side channels it might create if any.  TLDR - I think that
+depending on the host side implementation there could be some, but this
+might be addressable by better documentation in both code and spec.
+The fake dax approach backing the guest memory by a host page cache
+does seem to have potential issues.
 
-  # stat /dev/dax0.0
-    File: /dev/dax0.0
-    Size: 0         	Blocks: 0          IO Block: 4096   character special file
-  Device: 6h/6d	Inode: 56764       Links: 1     Device type: fa,d
+For clarity: we are talking about leaking information either to a VM, or
+within a VM (I did not look into leaks to hypervisor in configurations
+such as SEV) through host page cache.
 
-ndctl(1) finds out by digging in /sys:
+Leaks into a VM: It seems clear that while pmem allows memory accesses
+versus read/write with e.g. a block device, from host page cache point
+of view this doesn't matter much: reads populate cache in the same way
+as memory faults.  Thus ignoring presence of information leaks (which is
+an interesting question e.g. in light of recent discard support) pmem
+doesn't seem to be any better or worse for leaking information into a
+VM.
 
-  # ndctl list
-  [
-    {
-      "dev":"namespace0.0",
-      "mode":"devdax",
-      "map":"dev",
-      "size":2111832064,
-      "uuid":"235acf4d-503f-46be-bf64-f26faf9777ef",
-      "chardev":"dax0.0"
-    }
-  ]
+Leaks within VM: Right now pmem seems to bypass the guest page cache
+completely.  Whether pmem memory is then resident in a page cache would
+be up to the device/host. Assuming that it is, the "Preventing
+Efficient Eviction while Increasing the System Performance"
+countermeasure for the page cache side channel attack would appear to
+become ineffective with pmem. What is suggested is a per-process
+management of the page cache, and host does not have visibility of
+processes within a VM. Another possible countermeasure - not discussed
+in the paper - could be modify the applications to lock the security
+relevant pages in memory.  Again this becomes impractical with pmem as
+host does not have visibility into that. However note that as long
+as the only countermeasure linux uses is "Privileged Access"
+(i.e. blocking mincore) nothing can be done as guest page cache
+remains as vulnerable as host page cache.
 
-I'm not sure how to do it without enumerating all nvdimms in /sys.  Is
-there a mapping from devdax major/minor number to a /sys path?
 
-The use case I have in mind is that QEMU currently takes the size as a
-command-line parameter.  The failure mode is ugly when users get this
-value wrong: the guest gets a softlockup and there is no error message
-on the host side.
+Countermeasures: which host-side countermeasures can be designed would
+depend on which countermeasures are used guest-side - we would need to
+make sure they are not broken by pmem.  For "Preventing Efficient
+Eviction while Increasing the System Performance" modifying the host
+implementation to ensure that pmem device bypasses the host page cache
+would seem to address the security problem.Similarly, ensuring that a
+real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
+virt) is used for pmem would make the memory locking countermeasure
+work.  Whether with such limitations the device is still useful
+performance wise is an open question.  These questions probably should
+be addressed in the documentation, spec and possible qemu code.
 
-I'd like QEMU to detect the size or at least reject size values that are
-too large.  In order to do that userspace needs a convenient way of
-querying the size.  Any ideas?
 
-Stefan
 
---wac7ysb48OaltWcw
-Content-Type: application/pgp-signature; name="signature.asc"
+Severity of the security implications: some people argue that the
+security implications of the page cache leaks are minor.  I do not have
+an opinion on this: the severity would seem to depend on the specific
+configuration.
 
------BEGIN PGP SIGNATURE-----
 
-iQEcBAEBAgAGBQJcV+6/AAoJEJykq7OBq3PIE2MIAMXxtSr5u1UIYoiPbz9ZvVlu
-gEb4tn/t3lMDq91aaZ4KdfWHWCxr9kNeKWw1xMgyLQiL8RlPp/ssK3los2giZDAR
-ifjfImHbcq1mZsj1x18uYHk7outeciAiAfArssLT2190hHzDhFxSh1sbqo47bJm5
-Uo/gY7gEjVa7fP9tFlRzvsjfIEaCESqCyQ1HbJlHbog/TvteontM9QSiFUE7Wu2j
-utagrJjIgp0tpvTubf27LOQUxtmYN18HZWpzSDwy2RWaTO3unoup4rID4Tujo56Z
-qbM77x9qKsEf81aYYtffHiOWTT1/D6oLYdd9p7I55qrSPGHPXLbT+DPDWcl/674=
-=tye0
------END PGP SIGNATURE-----
+Other security implications: recent discussion seems to suggest there
+are other concerns around e.g. resource management and thus DOS
+potential. If that's so, it's a matter for a separate discussion
+as I didn't look into that in depth.
 
---wac7ysb48OaltWcw--
+Some or all of the above might be based on a misunderstanding of the
+current pmem code, the whitepaper and linux page cache in general.
+If so I apologise, do not hesitate to call out any mistakes.
+
+Thanks!
+
+-- 
+MST
