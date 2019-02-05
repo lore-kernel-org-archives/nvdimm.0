@@ -1,65 +1,86 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-MIME-Version: 1.0
+From: Dexuan Cui <decui@microsoft.com>
+Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
+Date: Tue, 5 Feb 2019 16:53:36 +0000
+Message-ID: <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
  <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
  <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com> <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-In-Reply-To: <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 5 Feb 2019 09:11:59 -0800
-Message-ID: <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
-Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-Content-Type: text/plain; charset="UTF-8"
+ <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
+In-Reply-To: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dexuan Cui <decui@microsoft.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Feb 5, 2019 at 8:53 AM Dexuan Cui <decui@microsoft.com> wrote:
->
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > Sent: Sunday, February 3, 2019 11:14 AM
-> > > ...
-> > > As I understand, the essence of the issue is: Hyper-V emulates the
-> > > label mechanism (i.e. it supports _LSI and LSR), but doesn't do it
-> > > right (i.e. it doesn't support _LSW).
-> > >
-> > > To manage the namespaces, Linux can choose to use label or not.
-> > >
-> > > If _LSI/_LSR are supported, Linux assumes _LSW is supported as well
-> > > and chooses to use label (i.e. the label mode), but since Hyper-V doesn't
-> > > support _LSW, Linux fails to change the namespace configuration.
-> >
-> > No, that's not quite right. The reason Linux does not see the fsdax
-> > mode configuration is due to the missing "address abstraction GUID" in
-> > the label produced the default Hyper-V configuration.
-> Hi Dan,
-> Do you mean NVDIMM_DAX_GUID?
-
-Correct.
-
->
-> > In label-less mode there is no "address abstraction GUID" to validate so
-> > it falls back to just using the info-block directly.
-> In the case of not using label storage area, as I understand the info-block
-> resides in regular data storage area. Can you please tell me where exactly
-> the info-block is and how its location is decided?
-> And I suppose the info-block contains the NVDIMM_DAX_GUID?
-
-The info-block always lives in the data-storage area, even with
-labels. It's placed at namespace base address + 4K.
-
-When labels are present the label gives the namespace a uuid and the
-info-block "parent uuid" field must match that value. Without labels
-the "parent uuid" field is unused / filled with zero's. Also with v1.2
-labels the address abstraction uuid must match the info-block type.
-
-> I'm asking because I found I lose ~500MBytes of the 32GBytes Hyper-V
-> NVDIMM device, when the namespace is in fsdax mode. When it's in
-> raw mode, I'm able to use all of the 32GB space.
-
-Yes. A portion of the capacity is reserved for page structures.
-
-https://lwn.net/Articles/656197/
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+U3VuZGF5LCBGZWJydWFyeSAzLCAyMDE5IDExOjE0IEFNDQo+ID4gLi4uDQo+ID4gQXMgSSB1bmRl
+cnN0YW5kLCB0aGUgZXNzZW5jZSBvZiB0aGUgaXNzdWUgaXM6IEh5cGVyLVYgZW11bGF0ZXMgdGhl
+DQo+ID4gbGFiZWwgbWVjaGFuaXNtIChpLmUuIGl0IHN1cHBvcnRzIF9MU0kgYW5kIExTUiksIGJ1
+dCBkb2Vzbid0IGRvIGl0DQo+ID4gcmlnaHQgKGkuZS4gaXQgZG9lc24ndCBzdXBwb3J0IF9MU1cp
+Lg0KPiA+DQo+ID4gVG8gbWFuYWdlIHRoZSBuYW1lc3BhY2VzLCBMaW51eCBjYW4gY2hvb3NlIHRv
+IHVzZSBsYWJlbCBvciBub3QuDQo+ID4NCj4gPiBJZiBfTFNJL19MU1IgYXJlIHN1cHBvcnRlZCwg
+TGludXggYXNzdW1lcyBfTFNXIGlzIHN1cHBvcnRlZCBhcyB3ZWxsDQo+ID4gYW5kIGNob29zZXMg
+dG8gdXNlIGxhYmVsIChpLmUuIHRoZSBsYWJlbCBtb2RlKSwgYnV0IHNpbmNlIEh5cGVyLVYgZG9l
+c24ndA0KPiA+IHN1cHBvcnQgX0xTVywgTGludXggZmFpbHMgdG8gY2hhbmdlIHRoZSBuYW1lc3Bh
+Y2UgY29uZmlndXJhdGlvbi4NCj4NCj4gTm8sIHRoYXQncyBub3QgcXVpdGUgcmlnaHQuIFRoZSBy
+ZWFzb24gTGludXggZG9lcyBub3Qgc2VlIHRoZSBmc2RheA0KPiBtb2RlIGNvbmZpZ3VyYXRpb24g
+aXMgZHVlIHRvIHRoZSBtaXNzaW5nICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIGluDQo+IHRo
+ZSBsYWJlbCBwcm9kdWNlZCB0aGUgZGVmYXVsdCBIeXBlci1WIGNvbmZpZ3VyYXRpb24uDQpIaSBE
+YW4sDQpEbyB5b3UgbWVhbiBOVkRJTU1fREFYX0dVSUQ/DQoNCj4gSW4gbGFiZWwtbGVzcyBtb2Rl
+IHRoZXJlIGlzIG5vICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIHRvIHZhbGlkYXRlIHNvDQo+
+IGl0IGZhbGxzIGJhY2sgdG8ganVzdCB1c2luZyB0aGUgaW5mby1ibG9jayBkaXJlY3RseS4NCklu
+IHRoZSBjYXNlIG9mIG5vdCB1c2luZyBsYWJlbCBzdG9yYWdlIGFyZWEsIGFzIEkgdW5kZXJzdGFu
+ZCB0aGUgaW5mby1ibG9jaw0KcmVzaWRlcyBpbiByZWd1bGFyIGRhdGEgc3RvcmFnZSBhcmVhLiBD
+YW4geW91IHBsZWFzZSB0ZWxsIG1lIHdoZXJlIGV4YWN0bHkNCnRoZSBpbmZvLWJsb2NrIGlzIGFu
+ZCBob3cgaXRzIGxvY2F0aW9uIGlzIGRlY2lkZWQ/DQpBbmQgSSBzdXBwb3NlIHRoZSBpbmZvLWJs
+b2NrIGNvbnRhaW5zIHRoZSBOVkRJTU1fREFYX0dVSUQ/DQoNCkknbSBhc2tpbmcgYmVjYXVzZSBJ
+IGZvdW5kIEkgbG9zZSB+NTAwTUJ5dGVzIG9mIHRoZSAzMkdCeXRlcyBIeXBlci1WDQpOVkRJTU0g
+ZGV2aWNlLCB3aGVuIHRoZSBuYW1lc3BhY2UgaXMgaW4gZnNkYXggbW9kZS4gV2hlbiBpdCdzIGlu
+DQpyYXcgbW9kZSwgSSdtIGFibGUgdG8gdXNlIGFsbCBvZiB0aGUgMzJHQiBzcGFjZS4NCg0KPiBU
+aGUgX0xTVyBpc3N1ZSBpcyBpZiB5b3Ugd2FudGVkIHRvIHJlY29uZmlndXJlIGEgcmF3IG5hbWVz
+cGFjZSB0bw0KPiBmc2RheCBtb2RlLiBUaGUgY3VycmVudCBmbG93IHRyaWVzIHRvIGRlbGV0ZSB0
+aGUgbGFiZWwsIGJ1dCB0aGF0J3MNCj4gb25seSBmb3IgcmVjb25maWd1cmF0aW9uLCBub3QgdGhl
+IGluaXRpYWwgYm9vdC11cCBjYXNlIHRoYXQgaXMNCj4gY3VycmVudGx5IGZhaWxpbmcuIFRoZSBk
+ZWxldGlvbiB3b3VsZCBmYWlsIG9uIGZpbmRpbmcgbm8gbGFiZWwtd3JpdGUNCj4gY2FwYWJpbGl0
+eSwgYnV0IHRvIGJlIGNsZWFyIHRoZSBib290LXVwIGNhc2UgZG9lcyBub3QgcGVyZm9ybSBhbnkN
+Cj4gd3JpdGVzLg0KVGhhbmtzIGZvciB0aGUgZXhwbGFuYXRpb24hDQoNCj4gPiBJbiBVYnVudHUg
+MTkuMDQgKDQuMTgpLCB0aGUga2VybmVsIGlzIG5vdCBhd2FyZSBvZiBIeXBlci1WIF9MU0kvX0xT
+Uiwgc28NCj4gPiB0aGUgY3JlYXRlZCBuYW1lc3BhY2UgaXMgaW4gImxhYmVsLWxlc3MiIG1vZGUs
+IGFuZCBoZW5jZSBjYW4ndCBiZSB1c2VkDQo+ID4gd2l0aCB0aGUgbGlibnZkaW1tLXBlbmRpbmcg
+YnJhbmNoICsgdGhpcyBwYXRjaCwgdW5sZXNzIHdlIGFkZCBhIHF1aXJrDQo+ID4gaW4gTGludXgg
+dG8gZXhwbGljaXRseSBub3QgdXNlIHRoZSBsYWJlbC4NCj4gPg0KPiA+IEkgYWdyZWUgaWRlYWxs
+eSBIeXBlci1WIHNob3VsZCBoaWRlIHRoZSBsYWJlbCBjYXBhYmlsaXR5LCBhbmQgSSdsbCByZXF1
+ZXN0DQo+ID4gSHlwZXItViB0ZWFtIHRvIGRvIHRoYXQuIEkgaG9wZSBIeXBlci1WIGd1eXMgYXJl
+IHN0aWxsIGFibGUgdG8gZG8gdGhhdA0KPiA+IGluIHRpbWUgc28gd2Ugd29uJ3QgbmVlZCBhIHF1
+aXJrIGluIExpbnV4IGtlcm5lbC4NCj4NCj4gQWZ0ZXIgc29tZSBtb3JlIHRob3VnaHQsIHRoZSAi
+bm8gcmVncmVzc2lvbnMiIHJ1bGUgbWVhbnMgdGhhdCBMaW51eA0KPiBzaG91bGQgc2hpcCBhIHF1
+aXJrIGZvciB0aGlzIGJ5IGRlZmF1bHQuIEkgdGhpbmsgYSBnb29kIGhldXJpc3RpYyBpcw0KPiB0
+byBkaXNhYmxlIGxhYmVsIHN1cHBvcnQgYnkgZGVmYXVsdCBpZiBubyBfTFNXIG1ldGhvZCBpcyBk
+ZXRlY3RlZC4gQW4NCj4gb3B0LWluIGNhbiBiZSBzcGVjaWZpZWQgdG8gYWNjZXB0ICJyZWFkLW9u
+bHkiIGNvbmZpZ3VyYXRpb25zLCBidXQNCj4gdGhhdCdzIGFuIGV4Y2VwdGlvbmFsIGNhc2UuIEkn
+bGwgc2VuZCBhIHBhdGNoIGZvciB0aGlzLg0KPg0KPiA+IEJUVywgSSBzdXBwb3NlIFdpbmRvd3Mg
+Vk0gc2hvdWxkIGJlIGluICJsYWJlbC1sZXNzIiBtb2RlLg0KPg0KPiBJIGV4cGVjdCBXaW5kb3dz
+IG1hbmRhdGVzIGxhYmVsZWQgb3BlcmF0aW9uLiBUaGlzIGxhYmVsLWxlc3MgY29uY2VwdA0KPiB3
+YXMgc29tZXRoaW5nIExpbnV4IHNoaXBwZWQgaW4gYWR2YW5jZSBvZiBhIHNwZWNpZmljYXRpb24g
+YmVpbmcNCj4gcmF0aWZpZWQgYW5kIHRvIHN1cHBvcnQgZWFybHkgTlZESU1NcyB0aGF0IGRvbid0
+IGFkdmVydGlzZSBsYWJlbA0KPiBzcGFjZS4NClNpbmNlIEh5cGVyLVYgTlZESU1NIGRvZXNuJ3Qg
+c3VwcG9ydCBfTFNXLCBJTU8gV2luZG93cyBWTQ0KY2FuJ3QgdXBkYXRlIHRoZSBMU0kgYXJlYSBl
+aXRoZXIsIHNvIEkgZ3Vlc3MgV2luZG93cyBWTSBjYW4ndCB1c2UNCmxhYmVsIGVpdGhlciwganVz
+dCBsaWtlIExpbnV4IFZNPyBJIGd1ZXNzIFdpbmRvd3MgVk0gYWxzbyBzdG9yZXMgYW4NCiJpbmZv
+IGJsb2NrIiB3aGVuIHRoZSBuYW1lc3BhY2UgaXMgaW4gZGF4IG1vZGUsIGp1c3QgbGlrZSBMaW51
+eCBWTT8NCg0KQlRXLCBpdCBsb29rcyB0aGUgZGF4IG1vZGUgY29uZmlndXJhdGlvbiBpbiBMaW51
+eCBWTSBpcyBpbmNvbXBhdGlibGUNCndpdGggdGhhdCBpbiBXaW5kb3dzIFZNKD8pIFdoZW4gSSBj
+cmVhdGUgYSBEQVgtZW5hYmxlZCBOVEZTIHBhcnRpdGlvbg0KaW4gV2luZG93cyBWTSBpbiB0aGUg
+c2FtZSBIeXBlci1WIE5WRElNTSwgV2luZG93cyBWTSBpcyBhYmxlIHRvDQp1c2UgYWxsIG9mIHRo
+ZSAzMkdCIHNwYWNlIChBcyBJIG1lbnRpb25lZCBhYm92ZSwgaW4gTGludXggSSBsb3NlIH41MDBN
+QikuDQpBbmQgdGhlICJkYXgiIG1vZGUgbmFtZXNwYWNlIGNyZWF0ZWQgaW4gV2luZG93cyBWTSBp
+cyBkZXRlY3RlZA0KYXMgInJhdyIsIGFuZCB2aWNlIHZlcnNlIChJIHRoaW5rKS4NCg0KSSdtIHRy
+eWluZyB0byB1bmRlcnN0YW5kIHdoeSBJIGxvc2UgfjUwME1CIGluIExpbnV4IGRheCBtb2RlLg0K
+WW91ciBpbnNpZ2h0cyBhcmUgYXBwcmVjaWF0ZWQhDQoNClRoYW5rcywNCi0tRGV4dWFuDQo=
