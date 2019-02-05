@@ -1,86 +1,65 @@
 Return-Path: <linux-kernel-owner@vger.kernel.org>
-From: Dexuan Cui <decui@microsoft.com>
-Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-Date: Wed, 6 Feb 2019 00:57:48 +0000
-Message-ID: <PU1P153MB01691648EF8354319EA0244CBF6F0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+MIME-Version: 1.0
 References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
  <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
  <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
- <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
-In-Reply-To: <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+ <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com> <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+In-Reply-To: <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 5 Feb 2019 09:11:59 -0800
+Message-ID: <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
+To: Dexuan Cui <decui@microsoft.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
-VHVlc2RheSwgRmVicnVhcnkgNSwgMjAxOSA5OjEyIEFNDQo+IE9uIFR1ZSwgRmViIDUsIDIwMTkg
-YXQgODo1MyBBTSBEZXh1YW4gQ3VpIDxkZWN1aUBtaWNyb3NvZnQuY29tPiB3cm90ZToNCj4gPg0K
-PiA+ID4gRnJvbTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4g
-PiBTZW50OiBTdW5kYXksIEZlYnJ1YXJ5IDMsIDIwMTkgMTE6MTQgQU0NCj4gPiA+ID4gLi4uDQo+
-ID4gPiA+IEFzIEkgdW5kZXJzdGFuZCwgdGhlIGVzc2VuY2Ugb2YgdGhlIGlzc3VlIGlzOiBIeXBl
-ci1WIGVtdWxhdGVzIHRoZQ0KPiA+ID4gPiBsYWJlbCBtZWNoYW5pc20gKGkuZS4gaXQgc3VwcG9y
-dHMgX0xTSSBhbmQgTFNSKSwgYnV0IGRvZXNuJ3QgZG8gaXQNCj4gPiA+ID4gcmlnaHQgKGkuZS4g
-aXQgZG9lc24ndCBzdXBwb3J0IF9MU1cpLg0KPiA+ID4gPg0KPiA+ID4gPiBUbyBtYW5hZ2UgdGhl
-IG5hbWVzcGFjZXMsIExpbnV4IGNhbiBjaG9vc2UgdG8gdXNlIGxhYmVsIG9yIG5vdC4NCj4gPiA+
-ID4NCj4gPiA+ID4gSWYgX0xTSS9fTFNSIGFyZSBzdXBwb3J0ZWQsIExpbnV4IGFzc3VtZXMgX0xT
-VyBpcyBzdXBwb3J0ZWQgYXMgd2VsbA0KPiA+ID4gPiBhbmQgY2hvb3NlcyB0byB1c2UgbGFiZWwg
-KGkuZS4gdGhlIGxhYmVsIG1vZGUpLCBidXQgc2luY2UgSHlwZXItViBkb2Vzbid0DQo+ID4gPiA+
-IHN1cHBvcnQgX0xTVywgTGludXggZmFpbHMgdG8gY2hhbmdlIHRoZSBuYW1lc3BhY2UgY29uZmln
-dXJhdGlvbi4NCj4gPiA+DQo+ID4gPiBObywgdGhhdCdzIG5vdCBxdWl0ZSByaWdodC4gVGhlIHJl
-YXNvbiBMaW51eCBkb2VzIG5vdCBzZWUgdGhlIGZzZGF4DQo+ID4gPiBtb2RlIGNvbmZpZ3VyYXRp
-b24gaXMgZHVlIHRvIHRoZSBtaXNzaW5nICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIGluDQo+
-ID4gPiB0aGUgbGFiZWwgcHJvZHVjZWQgdGhlIGRlZmF1bHQgSHlwZXItViBjb25maWd1cmF0aW9u
-Lg0KPiA+IEhpIERhbiwNCj4gPiBEbyB5b3UgbWVhbiBOVkRJTU1fREFYX0dVSUQ/DQo+IA0KPiBD
-b3JyZWN0Lg0KRllJOiBpbiBjcmVhdGVfbmFtZXNwYWNlX3BtZW0oKSwgbGFiZWwwLT5hYnN0cmFj
-dGlvbl9ndWlkIGlzIGd1aWRfbnVsbCBpbg0KdGhlIGNhc2Ugb2YgSHlwZXItViBOVkRJTU0uIEl0
-IGxvb2tzIEh5cGVyLVYgZG9lcyd0IHVzZSB0aGUgZ3VpZC4NCg0KPiA+ID4gSW4gbGFiZWwtbGVz
-cyBtb2RlIHRoZXJlIGlzIG5vICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIHRvIHZhbGlkYXRl
-IHNvDQo+ID4gPiBpdCBmYWxscyBiYWNrIHRvIGp1c3QgdXNpbmcgdGhlIGluZm8tYmxvY2sgZGly
-ZWN0bHkuDQo+ID4gSW4gdGhlIGNhc2Ugb2Ygbm90IHVzaW5nIGxhYmVsIHN0b3JhZ2UgYXJlYSwg
-YXMgSSB1bmRlcnN0YW5kIHRoZSBpbmZvLWJsb2NrDQo+ID4gcmVzaWRlcyBpbiByZWd1bGFyIGRh
-dGEgc3RvcmFnZSBhcmVhLiBDYW4geW91IHBsZWFzZSB0ZWxsIG1lIHdoZXJlIGV4YWN0bHkNCj4g
-PiB0aGUgaW5mby1ibG9jayBpcyBhbmQgaG93IGl0cyBsb2NhdGlvbiBpcyBkZWNpZGVkPw0KPiA+
-IEFuZCBJIHN1cHBvc2UgdGhlIGluZm8tYmxvY2sgY29udGFpbnMgdGhlIE5WRElNTV9EQVhfR1VJ
-RD8NCj4gDQo+IFRoZSBpbmZvLWJsb2NrIGFsd2F5cyBsaXZlcyBpbiB0aGUgZGF0YS1zdG9yYWdl
-IGFyZWEsIGV2ZW4gd2l0aA0KPiBsYWJlbHMuIEl0J3MgcGxhY2VkIGF0IG5hbWVzcGFjZSBiYXNl
-IGFkZHJlc3MgKyA0Sy4NCj4NCj4gV2hlbiBsYWJlbHMgYXJlIHByZXNlbnQgdGhlIGxhYmVsIGdp
-dmVzIHRoZSBuYW1lc3BhY2UgYSB1dWlkIGFuZCB0aGUNCj4gaW5mby1ibG9jayAicGFyZW50IHV1
-aWQiIGZpZWxkIG11c3QgbWF0Y2ggdGhhdCB2YWx1ZS4gV2l0aG91dCBsYWJlbHMNCj4gdGhlICJw
-YXJlbnQgdXVpZCIgZmllbGQgaXMgdW51c2VkIC8gZmlsbGVkIHdpdGggemVybydzLiBBbHNvIHdp
-dGggdjEuMg0KPiBsYWJlbHMgdGhlIGFkZHJlc3MgYWJzdHJhY3Rpb24gdXVpZCBtdXN0IG1hdGNo
-IHRoZSBpbmZvLWJsb2NrIHR5cGUuDQpUaGFua3MgZm9yIGVsYWJvcmF0aW5nIG9uIHRoaXMhDQoN
-Ckl0IGxvb2tzIHRoZSBsYWJlbCBtZWNoYW5pc20gaXMgZm9yIGFkdmFuY2VkIHVzYWdlcywgZS5n
-LiwgYSBQTUVNIG5hbWVzcGFjZQ0KY2FuIGNvbnNpc3Qgb2YgbXVsdGlwbGUgTlZESU1Ncywgb3Ig
-YSBuYW1lc3BhY2Ugb25seSB1c2VzIHBhcnQgb2YgdGhlDQpjYXBhY2l0eSBvZiBhIE5WRElNTSwg
-b3IgYSBOVkRJTU0gY29udGFpbnMgYm90aCBQTUVNIGFuZCBCbG9jay1Nb2RlDQpuYW1lc3BhY2Vz
-Lg0KDQpGb3IgYSBzaW1wbGUgdXNhZ2UsIGUuZy4gaWYgYSBOVkRJTU0gb25seSBjb250YWlucyBv
-bmUgUE1FTSBuYW1lc3BhY2Ugd2hpY2gNCmNvbnN1bWVzIGFsbCB0aGUgc3RvcmFnZSBzcGFjZSBv
-ZiB0aGUgTlZESU1NLCBpdCBsb29rcyB0aGUgbmFtZXNwYWNlIGNhbg0KYmUgbm9ybWFsbHkgdXNl
-ZCB3aXRoIHRoZSBoZWxwIG9mIHRoZSBpbmZvLWJsb2NrLCBhbmQgd2UgZG9uJ3QgcmVhbGx5IG5l
-ZWQNCnRoZSBsYWJlbC4gSU1PIHRoaXMgaXMgdGhlIGNhc2Ugb2YgSHlwZXItViwgaS5lLiB3ZSBk
-b24ndCB1c2UgdGhlIGxhYmVsIGF0IGFsbCwNCnNpbmNlIF9MU1cgaXMgbm90IGltcGxlbWVudGVk
-Lg0KDQo+ID4gSSdtIGFza2luZyBiZWNhdXNlIEkgZm91bmQgSSBsb3NlIH41MDBNQnl0ZXMgb2Yg
-dGhlIDMyR0J5dGVzIEh5cGVyLVYNCj4gPiBOVkRJTU0gZGV2aWNlLCB3aGVuIHRoZSBuYW1lc3Bh
-Y2UgaXMgaW4gZnNkYXggbW9kZS4gV2hlbiBpdCdzIGluDQo+ID4gcmF3IG1vZGUsIEknbSBhYmxl
-IHRvIHVzZSBhbGwgb2YgdGhlIDMyR0Igc3BhY2UuDQo+IA0KPiBZZXMuIEEgcG9ydGlvbiBvZiB0
-aGUgY2FwYWNpdHkgaXMgcmVzZXJ2ZWQgZm9yIHBhZ2Ugc3RydWN0dXJlcy4NCkdvdCBpdC4gSXQg
-bG9va3MgdGhlIHNpemUgb2YgdGhlIGluZm8tYmxvY2sgKGFuZCB0aGUgcmVsYXRlZCBwYWRkaW5n
-PykgaXMgMk1CLA0KYW5kICJ0aGUgb3ZlcmhlYWQgaXMgNjQtYnl0ZXMgcGVyIDRLICgxNkdCIHBl
-ciAxVEIpIG9uIHg4NiIsIHNvIHRoZSB0b3RhbA0Kb3ZlcmhlYWQgaW4gbXkgMzJHQiBjYXNlIGlz
-OiAyTUIgKyAzMkdCLyg0MDk2LzY0KSA9IDUxNE1CLg0KDQpUaGFua3MgZm9yIHNoYXJpbmcgdGhl
-IGxpbmshIE5vdyBJIHJlYWxpemVkIHdlIGNhbiB1c2UgdGhlIC1NIHBhcmFtZXRlcg0KdG8gbm90
-IHN0b3JlIHRoZSBwYWdlIG1ldGFkYXRhIGluIHRoZSBOVkRJTU06IA0KDQotTTsgLS1tYXA9DQpB
-IHBtZW0gbmFtZXNwYWNlIGluIOKAnGZzZGF44oCdIG9yIOKAnGRldmRheOKAnSBtb2RlIHJlcXVp
-cmVzIGFsbG9jYXRpb24gb2YNCnBlci1wYWdlIG1ldGFkYXRhLiBUaGUgYWxsb2NhdGlvbiBjYW4g
-YmUgZHJhd24gZnJvbSBlaXRoZXI6DQrigJxtZW3igJ06IHR5cGljYWwgc3lzdGVtIG1lbW9yeQ0K
-4oCcZGV24oCdOiBwZXJzaXN0ZW50IG1lbW9yeSByZXNlcnZlZCBmcm9tIHRoZSBuYW1lc3BhY2UN
-Cg0KVGhhbmtzLA0KLS1EZXh1YW4NCg0K
+On Tue, Feb 5, 2019 at 8:53 AM Dexuan Cui <decui@microsoft.com> wrote:
+>
+> > From: Dan Williams <dan.j.williams@intel.com>
+> > Sent: Sunday, February 3, 2019 11:14 AM
+> > > ...
+> > > As I understand, the essence of the issue is: Hyper-V emulates the
+> > > label mechanism (i.e. it supports _LSI and LSR), but doesn't do it
+> > > right (i.e. it doesn't support _LSW).
+> > >
+> > > To manage the namespaces, Linux can choose to use label or not.
+> > >
+> > > If _LSI/_LSR are supported, Linux assumes _LSW is supported as well
+> > > and chooses to use label (i.e. the label mode), but since Hyper-V doesn't
+> > > support _LSW, Linux fails to change the namespace configuration.
+> >
+> > No, that's not quite right. The reason Linux does not see the fsdax
+> > mode configuration is due to the missing "address abstraction GUID" in
+> > the label produced the default Hyper-V configuration.
+> Hi Dan,
+> Do you mean NVDIMM_DAX_GUID?
+
+Correct.
+
+>
+> > In label-less mode there is no "address abstraction GUID" to validate so
+> > it falls back to just using the info-block directly.
+> In the case of not using label storage area, as I understand the info-block
+> resides in regular data storage area. Can you please tell me where exactly
+> the info-block is and how its location is decided?
+> And I suppose the info-block contains the NVDIMM_DAX_GUID?
+
+The info-block always lives in the data-storage area, even with
+labels. It's placed at namespace base address + 4K.
+
+When labels are present the label gives the namespace a uuid and the
+info-block "parent uuid" field must match that value. Without labels
+the "parent uuid" field is unused / filled with zero's. Also with v1.2
+labels the address abstraction uuid must match the info-block type.
+
+> I'm asking because I found I lose ~500MBytes of the 32GBytes Hyper-V
+> NVDIMM device, when the namespace is in fsdax mode. When it's in
+> raw mode, I'm able to use all of the 32GB space.
+
+Yes. A portion of the capacity is reserved for page structures.
+
+https://lwn.net/Articles/656197/
