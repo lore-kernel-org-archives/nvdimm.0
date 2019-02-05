@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 100722194EB78
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:25 -0800 (PST)
-Subject: [PATCH v2 0/6] nfit/ars: Improve polling and short-ARS execution
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Feb 2019 11:43:47 -0800
-Message-ID: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id ED02D211C3F68
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Feb 2019 13:50:03 -0800 (PST)
+Subject: Re: [ndctl PATCH] ndctl: fix ndctl linking with libkeyutils
+References: <20190205214705.1009-1-vishal.l.verma@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Message-ID: <253309eb-3efe-86f2-47e1-4860437a015c@intel.com>
+Date: Tue, 5 Feb 2019 14:49:48 -0700
 MIME-Version: 1.0
+In-Reply-To: <20190205214705.1009-1-vishal.l.verma@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,42 +23,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, Krzysztof Rusocki <krzysztof.rusocki@intel.com>, linux-kernel@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Cc: Piotr Balcer <piotr.balcer@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v1: [1]
-* Fix the root poll interval support to avoid a infinite loop condition
-  when the polling is faster than the ARS completion.
-* Move the introduction of scrub_flags earlier in the series and
-  introduce ARS_POLL to fix the above issue.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2019-February/019964.html
-
----
-
-Here is a small pile of updates to better coordinate the Linux ARS state
-machine with platform-BIOS implementations. Specifically, take advantage
-of opportunities to run short-ARS whenever the ARS interface is found to
-be idle at init, always run short-ARS even if no_init_ars is specified,
-allow root to reset the exponential backoff polling interval for ARS
-completion, and protect the kernel against the consumption of stale ARS
-results.
-
----
-
-Dan Williams (6):
-      nfit/ars: Attempt a short-ARS whenever the ARS state is idle at boot
-      nfit/ars: Attempt short-ARS even in the no_init_ars case
-      nfit/ars: Remove ars_start_flags
-      nfit/ars: Introduce scrub_flags
-      nfit/ars: Allow root to busy-poll the ARS state machine
-      nfit/ars: Avoid stale ARS results
 
 
- drivers/acpi/nfit/core.c |   70 ++++++++++++++++++++++++++++++++--------------
- drivers/acpi/nfit/nfit.h |   11 +++++--
- 2 files changed, 57 insertions(+), 24 deletions(-)
+On 2/5/19 2:47 PM, Vishal Verma wrote:
+> From: Piotr Balcer <piotr.balcer@intel.com>
+> 
+> Compilation on Ubuntu 18.04 fails with:
+> 
+>   /usr/bin/ld: util/keys.o: undefined reference to symbol 'keyctl_read_alloc@@KEYUTILS_0.3'
+>   /lib/x86_64-linux-gnu/libkeyutils.so.1: error adding symbols: DSO missing from command line
+> 
+> Seems like libkeyutils is incorrectly linked against libndctl,
+> where in reality it's the ndctl application that uses keyutils.
+> 
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Fixes: 86b078b44275 ("ndctl: add passphrase management commands")
+> Signed-off-by: Piotr Balcer <piotr.balcer@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+
+Ah yeah it used to be in libndctl, but in the last round of changes it
+was moved to ndctl/utils.
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+>  ndctl/Makefile.am     | 4 ++++
+>  ndctl/lib/Makefile.am | 4 ----
+>  2 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index 3287dbb..502271e 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -47,6 +47,10 @@ ndctl_LDADD =\
+>  	$(KMOD_LIBS) \
+>  	$(JSON_LIBS)
+>  
+> +if ENABLE_KEYUTILS
+> +ndctl_LDADD += -lkeyutils
+> +endif
+> +
+>  if ENABLE_TEST
+>  ndctl_SOURCES += ../test/libndctl.c \
+>  		 ../test/dsm-fail.c \
+> diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+> index 99eaae0..7797039 100644
+> --- a/ndctl/lib/Makefile.am
+> +++ b/ndctl/lib/Makefile.am
+> @@ -30,10 +30,6 @@ libndctl_la_LIBADD =\
+>  	$(UUID_LIBS) \
+>  	$(KMOD_LIBS)
+>  
+> -if ENABLE_KEYUTILS
+> -libndctl_la_LIBADD += -lkeyutils
+> -endif
+> -
+>  EXTRA_DIST += libndctl.sym
+>  
+>  libndctl_la_LDFLAGS = $(AM_LDFLAGS) \
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
