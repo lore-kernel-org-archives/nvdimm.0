@@ -1,213 +1,126 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: [ndctl PATCH 2/2] libndctl: NVDIMM_FAMILY_HYPERV: add
- .smart_get_shutdown_count (Function 2)
-Date: Wed, 6 Feb 2019 03:15:24 +0000
-Message-ID: <PU1P153MB01693C413FA650C5C39E509DBF6F0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: security implications of caching with virtio pmem (was Re: [PATCH
+ v3 0/5] kvm "virtio pmem" device)
+Date: Wed, 6 Feb 2019 15:00:26 +0100
+Message-ID: <5b8a06a7-be44-698f-f319-6b2cbcf1eb8a@redhat.com>
+References: <20190109144736.17452-1-pagupta@redhat.com>
+ <20190204170515-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>, Pankaj Gupta <pagupta@redhat.com>
+Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, stefanha@redhat.com, dan.j.williams@intel.com, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal.l.verma@intel.com, dave.jiang@intel.com, jmoyer@redhat.com, xiaoguangrong.eric@gmail.com, hch@infradead.org, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger.kernel@dilger.ca, darrick.wong@oracle.com, rjw@rjwysocki.net, Andrea Arcangeli <aarcange@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
+On 04.02.19 23:56, Michael S. Tsirkin wrote:
+> 
+> On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
+>>  This patch series has implementation for "virtio pmem". 
+>>  "virtio pmem" is fake persistent memory(nvdimm) in guest 
+>>  which allows to bypass the guest page cache. This also
+>>  implements a VIRTIO based asynchronous flush mechanism.  
+> 
+> 
+> At Pankaj's request I looked at information leak implications of virtio
+> pmem in light of the recent page cache side channels paper
+> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
+> kind of side channels it might create if any.  TLDR - I think that
+> depending on the host side implementation there could be some, but this
+> might be addressable by better documentation in both code and spec.
+> The fake dax approach backing the guest memory by a host page cache
+> does seem to have potential issues.
+> 
+> For clarity: we are talking about leaking information either to a VM, or
+> within a VM (I did not look into leaks to hypervisor in configurations
+> such as SEV) through host page cache.
+> 
+> Leaks into a VM: It seems clear that while pmem allows memory accesses
+> versus read/write with e.g. a block device, from host page cache point
+> of view this doesn't matter much: reads populate cache in the same way
+> as memory faults.  Thus ignoring presence of information leaks (which is
+> an interesting question e.g. in light of recent discard support) pmem
+> doesn't seem to be any better or worse for leaking information into a
+> VM.
 
-With the patch, "ndctl list --dimms --health --idle" can show
-"shutdown_count" now, e.g.
++1, just a different way to access that cache.
 
-{
-    "dev":"nmem0",
-    "id":"04d5-01-1701-00000000",
-    "handle":0,
-    "phys_id":0,
-    "health":{
-      "health_state":"ok",
-      "shutdown_count":2
-    }
-}
+Conceptually a virtio-pmem devices is from the guest view a "device with
+a managed buffer". Some accesses might be faster than others. There are
+no guarantees on how fast a certain access is. And yes, actions on other
+guests can result in accesses being slower but not faster.
 
-The patch has to directly call ndctl_cmd_submit() in
-hyperv_cmd_smart_get_flags() and hyperv_cmd_smart_get_shutdown_count() to
-get the needed info, because util_dimm_health_to_json() only submits one
-command, and unluckily for Hyper-V Virtual NVDIMM we need to call both
-Function 1 and 2 to get the needed info.
+Also other storage devices have caches like that (well, the caches size
+depends on the device) - thinking especially about storage systems -
+which would in my opinion, also allow similar leaks. How are such
+security concerns handled there? Are they different (besides eventually
+access speed)?
 
-My feeling is that it's not good to directly call ndctl_cmd_submit(), but
-doing this requires no change to the common code, and I'm unsure if it's
-better to change the common code just for Hyper-V.
+> 
+> Leaks within VM: Right now pmem seems to bypass the guest page cache
+> completely.  Whether pmem memory is then resident in a page cache would
+> be up to the device/host. Assuming that it is, the "Preventing
+> Efficient Eviction while Increasing the System Performance"
+> countermeasure for the page cache side channel attack would appear to
+> become ineffective with pmem. What is suggested is a per-process
+> management of the page cache, and host does not have visibility of
+> processes within a VM. Another possible countermeasure - not discussed
+> in the paper - could be modify the applications to lock the security
+> relevant pages in memory.  Again this becomes impractical with pmem as
+> host does not have visibility into that. However note that as long
+> as the only countermeasure linux uses is "Privileged Access"
+> (i.e. blocking mincore) nothing can be done as guest page cache
+> remains as vulnerable as host page cache.
 
-Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
----
- ndctl/lib/hyperv.c | 62 ++++++++++++++++++++++++++++++++++++++++------
- ndctl/lib/hyperv.h |  7 ++++++
- 2 files changed, 62 insertions(+), 7 deletions(-)
+This sounds very use-case specific. If I run a VM only with a very
+specific workload (say, a container running one application), I usually
+don't care about leaks within the VM. At least not leaks between
+applications ;)
 
-diff --git a/ndctl/lib/hyperv.c b/ndctl/lib/hyperv.c
-index b303d50..e8ec142 100644
---- a/ndctl/lib/hyperv.c
-+++ b/ndctl/lib/hyperv.c
-@@ -22,7 +22,8 @@
- #define CMD_HYPERV_STATUS(_c) (CMD_HYPERV(_c)->u.status)
- #define CMD_HYPERV_SMART_DATA(_c) (CMD_HYPERV(_c)->u.smart.data)
- 
--static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
-+static struct ndctl_cmd *hyperv_dimm_cmd_new_cmd(struct ndctl_dimm *dimm,
-+						 unsigned int command)
- {
- 	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
-@@ -35,8 +36,7 @@ static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 		return NULL;
- 	}
- 
--	if (test_dimm_dsm(dimm, ND_HYPERV_CMD_GET_HEALTH_INFO) ==
--			  DIMM_DSM_UNSUPPORTED) {
-+	if (test_dimm_dsm(dimm, command) ==  DIMM_DSM_UNSUPPORTED) {
- 		dbg(ctx, "unsupported function\n");
- 		return NULL;
- 	}
-@@ -54,7 +54,7 @@ static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 
- 	hyperv = CMD_HYPERV(cmd);
- 	hyperv->gen.nd_family = NVDIMM_FAMILY_HYPERV;
--	hyperv->gen.nd_command = ND_HYPERV_CMD_GET_HEALTH_INFO;
-+	hyperv->gen.nd_command = command;
- 	hyperv->gen.nd_fw_size = 0;
- 	hyperv->gen.nd_size_in = offsetof(struct nd_hyperv_smart, status);
- 	hyperv->gen.nd_size_out = sizeof(hyperv->u.smart);
-@@ -65,34 +65,74 @@ static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
- 	return cmd;
- }
- 
--static int hyperv_smart_valid(struct ndctl_cmd *cmd)
-+static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
-+{
-+	return hyperv_dimm_cmd_new_cmd(dimm, ND_HYPERV_CMD_GET_HEALTH_INFO);
-+}
-+
-+static int hyperv_cmd_valid(struct ndctl_cmd *cmd, unsigned int command)
- {
- 	if (cmd->type != ND_CMD_CALL ||
- 	    cmd->size != sizeof(*cmd) + sizeof(struct nd_pkg_hyperv) ||
- 	    CMD_HYPERV(cmd)->gen.nd_family != NVDIMM_FAMILY_HYPERV ||
--	    CMD_HYPERV(cmd)->gen.nd_command != ND_HYPERV_CMD_GET_HEALTH_INFO ||
-+	    CMD_HYPERV(cmd)->gen.nd_command != command ||
- 	    cmd->status != 0 ||
- 	    CMD_HYPERV_STATUS(cmd) != 0)
- 		return cmd->status < 0 ? cmd->status : -EINVAL;
- 	return 0;
- }
- 
-+static int hyperv_smart_valid(struct ndctl_cmd *cmd)
-+{
-+	return hyperv_cmd_valid(cmd, ND_HYPERV_CMD_GET_HEALTH_INFO);
-+}
-+
- static int hyperv_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
- {
- 	return CMD_HYPERV_STATUS(cmd) == 0 ? 0 : -EINVAL;
- }
- 
-+static int hyperv_get_shutdown_count(struct ndctl_cmd *cmd,
-+				     unsigned int *count)
-+{
-+	unsigned int command = ND_HYPERV_CMD_GET_SHUTDOWN_INFO;
-+	struct ndctl_cmd *cmd_get_shutdown_info;
-+	int rc;
-+
-+	cmd_get_shutdown_info = hyperv_dimm_cmd_new_cmd(cmd->dimm, command);
-+	if (!cmd_get_shutdown_info)
-+		return -EINVAL;
-+
-+	if (ndctl_cmd_submit(cmd_get_shutdown_info) < 0 ||
-+	    hyperv_cmd_valid(cmd_get_shutdown_info, command) < 0) {
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	*count = CMD_HYPERV(cmd_get_shutdown_info)->u.shutdown_info.count;
-+	rc = 0;
-+out:
-+	ndctl_cmd_unref(cmd_get_shutdown_info);
-+	return rc;
-+}
-+
- static unsigned int hyperv_cmd_smart_get_flags(struct ndctl_cmd *cmd)
- {
- 	int rc;
-+	unsigned int count;
-+	unsigned int flags = 0;
- 
- 	rc = hyperv_smart_valid(cmd);
- 	if (rc < 0) {
- 		errno = -rc;
- 		return 0;
- 	}
-+	flags |= ND_SMART_HEALTH_VALID;
- 
--	return ND_SMART_HEALTH_VALID;
-+	if (hyperv_get_shutdown_count(cmd, &count) == 0)
-+		flags |= ND_SMART_SHUTDOWN_COUNT_VALID;
-+
-+	return flags;
- }
- 
- static unsigned int hyperv_cmd_smart_get_health(struct ndctl_cmd *cmd)
-@@ -121,9 +161,17 @@ static unsigned int hyperv_cmd_smart_get_health(struct ndctl_cmd *cmd)
- 	return health;
- }
- 
-+static unsigned int hyperv_cmd_smart_get_shutdown_count(struct ndctl_cmd *cmd)
-+{
-+	unsigned int count;
-+
-+	return hyperv_get_shutdown_count(cmd, &count) == 0 ? count : UINT_MAX;
-+}
-+
- struct ndctl_dimm_ops * const hyperv_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.new_smart = hyperv_dimm_cmd_new_smart,
- 	.smart_get_flags = hyperv_cmd_smart_get_flags,
- 	.smart_get_health = hyperv_cmd_smart_get_health,
-+	.smart_get_shutdown_count = hyperv_cmd_smart_get_shutdown_count,
- 	.xlat_firmware_status = hyperv_cmd_xlat_firmware_status,
- };
-diff --git a/ndctl/lib/hyperv.h b/ndctl/lib/hyperv.h
-index 8e55a97..5232d60 100644
---- a/ndctl/lib/hyperv.h
-+++ b/ndctl/lib/hyperv.h
-@@ -19,6 +19,7 @@ enum {
- 
- 	/* non-root commands */
- 	ND_HYPERV_CMD_GET_HEALTH_INFO = 1,
-+	ND_HYPERV_CMD_GET_SHUTDOWN_INFO = 2,
- };
- 
- /*
-@@ -38,9 +39,15 @@ struct nd_hyperv_smart {
- 	};
- } __attribute__((packed));
- 
-+struct nd_hyperv_shutdown_info {
-+	 __u32   status;
-+	 __u32   count;
-+} __attribute__((packed));
-+
- union nd_hyperv_cmd {
- 	__u32			status;
- 	struct nd_hyperv_smart	smart;
-+	struct nd_hyperv_shutdown_info shutdown_info;
- } __attribute__((packed));
- 
- struct nd_pkg_hyperv {
+In contrast, to running different applications (e.g. containers from
+different customers) on one system, I really care about leaks within a VM.
+
+> 
+> 
+> Countermeasures: which host-side countermeasures can be designed would
+> depend on which countermeasures are used guest-side - we would need to
+> make sure they are not broken by pmem.  For "Preventing Efficient
+> Eviction while Increasing the System Performance" modifying the host
+> implementation to ensure that pmem device bypasses the host page cache
+> would seem to address the security problem.Similarly, ensuring that a
+> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
+> virt) is used for pmem would make the memory locking countermeasure
+> work.  Whether with such limitations the device is still useful
+> performance wise is an open question.  These questions probably should
+> be addressed in the documentation, spec and possible qemu code.
+> 
+I also want to note that using a disk/file as memory backend with
+NVDIMMs in QEMU essentially results in the exact same questions we have
+with virtio-pmem.
+
+E.g. kata-containers use nvdimms for the rootfile system (read-only) as
+far as I am aware.
+
+Conceptually, a virtio-pmem device is just an emulated nvdimm device
+with a flush interface. And the nice thing is, that it is designed to
+also work on architectures that don't speak "nvdimm".
+
+> 
+> Severity of the security implications: some people argue that the
+> security implications of the page cache leaks are minor.  I do not have
+> an opinion on this: the severity would seem to depend on the specific
+> configuration.
+
+I guess configuration and use case.
+
+Nice summary, thanks for looking into this Michael!
+
+
 -- 
-2.19.1
+
+Thanks,
+
+David / dhildenb
