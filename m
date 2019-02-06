@@ -1,173 +1,86 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B06A2202E5348
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 20:26:48 -0800 (PST)
-Subject: [PATCH v2] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Feb 2019 20:14:10 -0800
-Message-ID: <155003117983.733096.1672828968568209328.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+From: Dexuan Cui <decui@microsoft.com>
+Subject: RE: [PATCH] libnvdimm/dimm: Add a no-BLK quirk based on NVDIMM family
+Date: Wed, 6 Feb 2019 00:57:48 +0000
+Message-ID: <PU1P153MB01691648EF8354319EA0244CBF6F0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <154915640488.3541628.4947340559510114602.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <PU1P153MB0169BD9237F2DC1FA64721BABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4h0B0sBMjiAC=Tk=Mu58A4vZ5F9yUPQsXqf5jyYF37VCw@mail.gmail.com>
+ <PU1P153MB0169F7C111EEC5890D3F840ABF6C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
+ <PU1P153MB0169997F36D28D8EA80923CFBF6E0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
+In-Reply-To: <CAPcyv4h6xBmsO+KrJas2YcsZRayn50UVGp1Sjs3nv4+_6XwGLA@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Kelley <mikelley@microsoft.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As Dexuan reports the NVDIMM_FAMILY_HYPERV platform is incompatible with
-the existing Linux namespace implementation because it uses
-NSLABEL_FLAG_LOCAL for x1-width PMEM interleave sets. Quirk it as an
-platform / DIMM that does not provide BLK-aperture access. Allow the
-libnvdimm core to assume no potential for aliasing. In case other
-implementations make the same mistake, provide a "noblk" module
-parameter to force-enable the quirk.
-
-Link: https://lkml.kernel.org/r/PU1P153MB0169977604493B82B662A01CBF920@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM
-Reported-by: Dexuan Cui <decui@microsoft.com>
-Tested-by: Dexuan Cui <decui@microsoft.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v1:
-* Fix the default setting for NDD_NOBLK in __nvdimm_create().
-
- drivers/acpi/nfit/core.c        |    4 ++++
- drivers/nvdimm/dimm_devs.c      |    7 +++++++
- drivers/nvdimm/label.c          |    3 +++
- drivers/nvdimm/namespace_devs.c |    6 ++++++
- drivers/nvdimm/region_devs.c    |    7 +++++++
- include/linux/libnvdimm.h       |    2 ++
- 6 files changed, 29 insertions(+)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4a7e8b1fa43b..811c399a3a76 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2016,6 +2016,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
- 		}
- 
-+		/* Quirk to ignore LOCAL for labels on HYPERV DIMMs */
-+		if (nfit_mem->family == NVDIMM_FAMILY_HYPERV)
-+			set_bit(NDD_NOBLK, &flags);
-+
- 		if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)) {
- 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
- 			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 4890310df874..553aa78abeee 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/moduleparam.h>
- #include <linux/vmalloc.h>
- #include <linux/device.h>
- #include <linux/ndctl.h>
-@@ -25,6 +26,10 @@
- 
- static DEFINE_IDA(dimm_ida);
- 
-+static bool noblk;
-+module_param(noblk, bool, 0444);
-+MODULE_PARM_DESC(noblk, "force disable BLK / local alias support");
-+
- /*
-  * Retrieve bus and dimm handle and return if this bus supports
-  * get_config_data commands
-@@ -551,6 +556,8 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 
- 	nvdimm->dimm_id = dimm_id;
- 	nvdimm->provider_data = provider_data;
-+	if (noblk)
-+		flags |= 1 << NDD_NOBLK;
- 	nvdimm->flags = flags;
- 	nvdimm->cmd_mask = cmd_mask;
- 	nvdimm->num_flush = num_flush;
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 6d6e9a12150b..f3d753d3169c 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -392,6 +392,7 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
- 		return 0; /* no label, nothing to reserve */
- 
- 	for_each_clear_bit_le(slot, free, nslot) {
-+		struct nvdimm *nvdimm = to_nvdimm(ndd->dev);
- 		struct nd_namespace_label *nd_label;
- 		struct nd_region *nd_region = NULL;
- 		u8 label_uuid[NSLABEL_UUID_LEN];
-@@ -406,6 +407,8 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
- 
- 		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
- 		flags = __le32_to_cpu(nd_label->flags);
-+		if (test_bit(NDD_NOBLK, &nvdimm->flags))
-+			flags &= ~NSLABEL_FLAG_LOCAL;
- 		nd_label_gen_id(&label_id, label_uuid, flags);
- 		res = nvdimm_allocate_dpa(ndd, &label_id,
- 				__le64_to_cpu(nd_label->dpa),
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 4b077555ac70..3677b0c4a33d 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -2492,6 +2492,12 @@ static int init_active_labels(struct nd_region *nd_region)
- 			if (!label_ent)
- 				break;
- 			label = nd_label_active(ndd, j);
-+			if (test_bit(NDD_NOBLK, &nvdimm->flags)) {
-+				u32 flags = __le32_to_cpu(label->flags);
-+
-+				flags &= ~NSLABEL_FLAG_LOCAL;
-+				label->flags = __cpu_to_le32(flags);
-+			}
- 			label_ent->label = label;
- 
- 			mutex_lock(&nd_mapping->lock);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e2818f94f292..3b58baa44b5c 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1003,6 +1003,13 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 
- 		if (test_bit(NDD_UNARMED, &nvdimm->flags))
- 			ro = 1;
-+
-+		if (test_bit(NDD_NOBLK, &nvdimm->flags)
-+				&& dev_type == &nd_blk_device_type) {
-+			dev_err(&nvdimm_bus->dev, "%s: %s mapping%d is not BLK capable\n",
-+					caller, dev_name(&nvdimm->dev), i);
-+			return NULL;
-+		}
- 	}
- 
- 	if (dev_type == &nd_blk_device_type) {
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 5440f11b0907..7da406ae3a2b 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -42,6 +42,8 @@ enum {
- 	NDD_SECURITY_OVERWRITE = 3,
- 	/*  tracking whether or not there is a pending device reference */
- 	NDD_WORK_PENDING = 4,
-+	/* ignore / filter NSLABEL_FLAG_LOCAL for this DIMM, i.e. no aliasing */
-+	NDD_NOBLK = 5,
- 
- 	/* need to set a limit somewhere, but yes, this is likely overkill */
- 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+PiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gU2VudDog
+VHVlc2RheSwgRmVicnVhcnkgNSwgMjAxOSA5OjEyIEFNDQo+IE9uIFR1ZSwgRmViIDUsIDIwMTkg
+YXQgODo1MyBBTSBEZXh1YW4gQ3VpIDxkZWN1aUBtaWNyb3NvZnQuY29tPiB3cm90ZToNCj4gPg0K
+PiA+ID4gRnJvbTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+ID4g
+PiBTZW50OiBTdW5kYXksIEZlYnJ1YXJ5IDMsIDIwMTkgMTE6MTQgQU0NCj4gPiA+ID4gLi4uDQo+
+ID4gPiA+IEFzIEkgdW5kZXJzdGFuZCwgdGhlIGVzc2VuY2Ugb2YgdGhlIGlzc3VlIGlzOiBIeXBl
+ci1WIGVtdWxhdGVzIHRoZQ0KPiA+ID4gPiBsYWJlbCBtZWNoYW5pc20gKGkuZS4gaXQgc3VwcG9y
+dHMgX0xTSSBhbmQgTFNSKSwgYnV0IGRvZXNuJ3QgZG8gaXQNCj4gPiA+ID4gcmlnaHQgKGkuZS4g
+aXQgZG9lc24ndCBzdXBwb3J0IF9MU1cpLg0KPiA+ID4gPg0KPiA+ID4gPiBUbyBtYW5hZ2UgdGhl
+IG5hbWVzcGFjZXMsIExpbnV4IGNhbiBjaG9vc2UgdG8gdXNlIGxhYmVsIG9yIG5vdC4NCj4gPiA+
+ID4NCj4gPiA+ID4gSWYgX0xTSS9fTFNSIGFyZSBzdXBwb3J0ZWQsIExpbnV4IGFzc3VtZXMgX0xT
+VyBpcyBzdXBwb3J0ZWQgYXMgd2VsbA0KPiA+ID4gPiBhbmQgY2hvb3NlcyB0byB1c2UgbGFiZWwg
+KGkuZS4gdGhlIGxhYmVsIG1vZGUpLCBidXQgc2luY2UgSHlwZXItViBkb2Vzbid0DQo+ID4gPiA+
+IHN1cHBvcnQgX0xTVywgTGludXggZmFpbHMgdG8gY2hhbmdlIHRoZSBuYW1lc3BhY2UgY29uZmln
+dXJhdGlvbi4NCj4gPiA+DQo+ID4gPiBObywgdGhhdCdzIG5vdCBxdWl0ZSByaWdodC4gVGhlIHJl
+YXNvbiBMaW51eCBkb2VzIG5vdCBzZWUgdGhlIGZzZGF4DQo+ID4gPiBtb2RlIGNvbmZpZ3VyYXRp
+b24gaXMgZHVlIHRvIHRoZSBtaXNzaW5nICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIGluDQo+
+ID4gPiB0aGUgbGFiZWwgcHJvZHVjZWQgdGhlIGRlZmF1bHQgSHlwZXItViBjb25maWd1cmF0aW9u
+Lg0KPiA+IEhpIERhbiwNCj4gPiBEbyB5b3UgbWVhbiBOVkRJTU1fREFYX0dVSUQ/DQo+IA0KPiBD
+b3JyZWN0Lg0KRllJOiBpbiBjcmVhdGVfbmFtZXNwYWNlX3BtZW0oKSwgbGFiZWwwLT5hYnN0cmFj
+dGlvbl9ndWlkIGlzIGd1aWRfbnVsbCBpbg0KdGhlIGNhc2Ugb2YgSHlwZXItViBOVkRJTU0uIEl0
+IGxvb2tzIEh5cGVyLVYgZG9lcyd0IHVzZSB0aGUgZ3VpZC4NCg0KPiA+ID4gSW4gbGFiZWwtbGVz
+cyBtb2RlIHRoZXJlIGlzIG5vICJhZGRyZXNzIGFic3RyYWN0aW9uIEdVSUQiIHRvIHZhbGlkYXRl
+IHNvDQo+ID4gPiBpdCBmYWxscyBiYWNrIHRvIGp1c3QgdXNpbmcgdGhlIGluZm8tYmxvY2sgZGly
+ZWN0bHkuDQo+ID4gSW4gdGhlIGNhc2Ugb2Ygbm90IHVzaW5nIGxhYmVsIHN0b3JhZ2UgYXJlYSwg
+YXMgSSB1bmRlcnN0YW5kIHRoZSBpbmZvLWJsb2NrDQo+ID4gcmVzaWRlcyBpbiByZWd1bGFyIGRh
+dGEgc3RvcmFnZSBhcmVhLiBDYW4geW91IHBsZWFzZSB0ZWxsIG1lIHdoZXJlIGV4YWN0bHkNCj4g
+PiB0aGUgaW5mby1ibG9jayBpcyBhbmQgaG93IGl0cyBsb2NhdGlvbiBpcyBkZWNpZGVkPw0KPiA+
+IEFuZCBJIHN1cHBvc2UgdGhlIGluZm8tYmxvY2sgY29udGFpbnMgdGhlIE5WRElNTV9EQVhfR1VJ
+RD8NCj4gDQo+IFRoZSBpbmZvLWJsb2NrIGFsd2F5cyBsaXZlcyBpbiB0aGUgZGF0YS1zdG9yYWdl
+IGFyZWEsIGV2ZW4gd2l0aA0KPiBsYWJlbHMuIEl0J3MgcGxhY2VkIGF0IG5hbWVzcGFjZSBiYXNl
+IGFkZHJlc3MgKyA0Sy4NCj4NCj4gV2hlbiBsYWJlbHMgYXJlIHByZXNlbnQgdGhlIGxhYmVsIGdp
+dmVzIHRoZSBuYW1lc3BhY2UgYSB1dWlkIGFuZCB0aGUNCj4gaW5mby1ibG9jayAicGFyZW50IHV1
+aWQiIGZpZWxkIG11c3QgbWF0Y2ggdGhhdCB2YWx1ZS4gV2l0aG91dCBsYWJlbHMNCj4gdGhlICJw
+YXJlbnQgdXVpZCIgZmllbGQgaXMgdW51c2VkIC8gZmlsbGVkIHdpdGggemVybydzLiBBbHNvIHdp
+dGggdjEuMg0KPiBsYWJlbHMgdGhlIGFkZHJlc3MgYWJzdHJhY3Rpb24gdXVpZCBtdXN0IG1hdGNo
+IHRoZSBpbmZvLWJsb2NrIHR5cGUuDQpUaGFua3MgZm9yIGVsYWJvcmF0aW5nIG9uIHRoaXMhDQoN
+Ckl0IGxvb2tzIHRoZSBsYWJlbCBtZWNoYW5pc20gaXMgZm9yIGFkdmFuY2VkIHVzYWdlcywgZS5n
+LiwgYSBQTUVNIG5hbWVzcGFjZQ0KY2FuIGNvbnNpc3Qgb2YgbXVsdGlwbGUgTlZESU1Ncywgb3Ig
+YSBuYW1lc3BhY2Ugb25seSB1c2VzIHBhcnQgb2YgdGhlDQpjYXBhY2l0eSBvZiBhIE5WRElNTSwg
+b3IgYSBOVkRJTU0gY29udGFpbnMgYm90aCBQTUVNIGFuZCBCbG9jay1Nb2RlDQpuYW1lc3BhY2Vz
+Lg0KDQpGb3IgYSBzaW1wbGUgdXNhZ2UsIGUuZy4gaWYgYSBOVkRJTU0gb25seSBjb250YWlucyBv
+bmUgUE1FTSBuYW1lc3BhY2Ugd2hpY2gNCmNvbnN1bWVzIGFsbCB0aGUgc3RvcmFnZSBzcGFjZSBv
+ZiB0aGUgTlZESU1NLCBpdCBsb29rcyB0aGUgbmFtZXNwYWNlIGNhbg0KYmUgbm9ybWFsbHkgdXNl
+ZCB3aXRoIHRoZSBoZWxwIG9mIHRoZSBpbmZvLWJsb2NrLCBhbmQgd2UgZG9uJ3QgcmVhbGx5IG5l
+ZWQNCnRoZSBsYWJlbC4gSU1PIHRoaXMgaXMgdGhlIGNhc2Ugb2YgSHlwZXItViwgaS5lLiB3ZSBk
+b24ndCB1c2UgdGhlIGxhYmVsIGF0IGFsbCwNCnNpbmNlIF9MU1cgaXMgbm90IGltcGxlbWVudGVk
+Lg0KDQo+ID4gSSdtIGFza2luZyBiZWNhdXNlIEkgZm91bmQgSSBsb3NlIH41MDBNQnl0ZXMgb2Yg
+dGhlIDMyR0J5dGVzIEh5cGVyLVYNCj4gPiBOVkRJTU0gZGV2aWNlLCB3aGVuIHRoZSBuYW1lc3Bh
+Y2UgaXMgaW4gZnNkYXggbW9kZS4gV2hlbiBpdCdzIGluDQo+ID4gcmF3IG1vZGUsIEknbSBhYmxl
+IHRvIHVzZSBhbGwgb2YgdGhlIDMyR0Igc3BhY2UuDQo+IA0KPiBZZXMuIEEgcG9ydGlvbiBvZiB0
+aGUgY2FwYWNpdHkgaXMgcmVzZXJ2ZWQgZm9yIHBhZ2Ugc3RydWN0dXJlcy4NCkdvdCBpdC4gSXQg
+bG9va3MgdGhlIHNpemUgb2YgdGhlIGluZm8tYmxvY2sgKGFuZCB0aGUgcmVsYXRlZCBwYWRkaW5n
+PykgaXMgMk1CLA0KYW5kICJ0aGUgb3ZlcmhlYWQgaXMgNjQtYnl0ZXMgcGVyIDRLICgxNkdCIHBl
+ciAxVEIpIG9uIHg4NiIsIHNvIHRoZSB0b3RhbA0Kb3ZlcmhlYWQgaW4gbXkgMzJHQiBjYXNlIGlz
+OiAyTUIgKyAzMkdCLyg0MDk2LzY0KSA9IDUxNE1CLg0KDQpUaGFua3MgZm9yIHNoYXJpbmcgdGhl
+IGxpbmshIE5vdyBJIHJlYWxpemVkIHdlIGNhbiB1c2UgdGhlIC1NIHBhcmFtZXRlcg0KdG8gbm90
+IHN0b3JlIHRoZSBwYWdlIG1ldGFkYXRhIGluIHRoZSBOVkRJTU06IA0KDQotTTsgLS1tYXA9DQpB
+IHBtZW0gbmFtZXNwYWNlIGluIOKAnGZzZGF44oCdIG9yIOKAnGRldmRheOKAnSBtb2RlIHJlcXVp
+cmVzIGFsbG9jYXRpb24gb2YNCnBlci1wYWdlIG1ldGFkYXRhLiBUaGUgYWxsb2NhdGlvbiBjYW4g
+YmUgZHJhd24gZnJvbSBlaXRoZXI6DQrigJxtZW3igJ06IHR5cGljYWwgc3lzdGVtIG1lbW9yeQ0K
+4oCcZGV24oCdOiBwZXJzaXN0ZW50IG1lbW9yeSByZXNlcnZlZCBmcm9tIHRoZSBuYW1lc3BhY2UN
+Cg0KVGhhbmtzLA0KLS1EZXh1YW4NCg0K
