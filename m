@@ -1,130 +1,69 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8A23201B0435
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:24 -0800 (PST)
-Subject: [PATCH 1/7] libnvdimm/pfn: Account for PAGE_SIZE > info-block-size
- in nd_pfn_init()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Feb 2019 13:24:46 -0800
-Message-ID: <155000668608.348031.18233783401856221451.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Wed, 6 Feb 2019 22:33:07 -0700
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Message-ID: <20190207053307.GB22726@ziepe.ca>
+References: <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
+ <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
+ <20190206210356.GZ6173@dastard>
+ <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
+ <20190206232130.GK12227@ziepe.ca>
+ <CAPcyv4g2r=L3jfSDoRPt4VG7D_2CxCgv3s+JLu4FQRUSRWg+4Q@mail.gmail.com>
+ <20190206234132.GB15234@ziepe.ca>
+ <CAPcyv4h1=GTAqHBw+Zsp9eNYR3HFbB_qjmhntwnO-jyGun4QNA@mail.gmail.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4h1=GTAqHBw+Zsp9eNYR3HFbB_qjmhntwnO-jyGun4QNA@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Similar to "libnvdimm: Fix altmap reservation size calculation" provide
-for a reservation of a full page worth of info block space at info-block
-establishment time.  Typically there is already slack in the padding
-from honoring the default 2MB alignment, but provide for a reservation
-for corner case configurations that would otherwise fit.
+On Wed, Feb 06, 2019 at 04:22:16PM -0800, Dan Williams wrote:
+> On Wed, Feb 6, 2019 at 3:41 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> [..]
+> > > You're describing the current situation, i.e. Linux already implements
+> > > this, it's called Device-DAX and some users of RDMA find it
+> > > insufficient. The choices are to continue to tell them "no", or say
+> > > "yes, but you need to submit to lease coordination".
+> >
+> > Device-DAX is not what I'm imagining when I say XFS--.
+> >
+> > I mean more like XFS with all features that require rellocation of
+> > blocks disabled.
+> >
+> > Forbidding hold punch, reflink, cow, etc, doesn't devolve back to
+> > device-dax.
+> 
+> True, not all the way, but the distinction loses significance as you
+> lose fs features.
+> 
+> Filesystems mark DAX functionality experimental [1] precisely because
+> it forbids otherwise typical operations that work in the nominal page
+> cache case. An approach that says "lets cement the list of things a
+> filesystem or a core-memory-mangement facility can't do because RDMA
+> finds it awkward" is bad precedent. 
 
-Cc: Oliver O'Halloran <oohall@gmail.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/pfn_devs.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+I'm not saying these rules should apply globaly.
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 7760c1b91853..ba74a341da5d 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -580,6 +580,11 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- }
- EXPORT_SYMBOL(nd_pfn_probe);
- 
-+static u32 info_block_reserve(void)
-+{
-+	return ALIGN(SZ_8K, PAGE_SIZE);
-+}
-+
- /*
-  * We hotplug memory at section granularity, pad the reserved area from
-  * the previous section base to the namespace base address.
-@@ -593,7 +598,7 @@ static unsigned long init_altmap_base(resource_size_t base)
- 
- static unsigned long init_altmap_reserve(resource_size_t base)
- {
--	unsigned long reserve = PFN_UP(SZ_8K);
-+	unsigned long reserve = info_block_reserve() >> PAGE_SHIFT;
- 	unsigned long base_pfn = PHYS_PFN(base);
- 
- 	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
-@@ -608,6 +613,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
- 	u64 offset = le64_to_cpu(pfn_sb->dataoff);
- 	u32 start_pad = __le32_to_cpu(pfn_sb->start_pad);
- 	u32 end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
-+	u32 reserve = info_block_reserve();
- 	struct nd_namespace_common *ndns = nd_pfn->ndns;
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	resource_size_t base = nsio->res.start + start_pad;
-@@ -621,7 +627,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
- 	res->end -= end_trunc;
- 
- 	if (nd_pfn->mode == PFN_MODE_RAM) {
--		if (offset < SZ_8K)
-+		if (offset < reserve)
- 			return -EINVAL;
- 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
- 		pgmap->altmap_valid = false;
-@@ -634,7 +640,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
- 					le64_to_cpu(nd_pfn->pfn_sb->npfns),
- 					nd_pfn->npfns);
- 		memcpy(altmap, &__altmap, sizeof(*altmap));
--		altmap->free = PHYS_PFN(offset - SZ_8K);
-+		altmap->free = PHYS_PFN(offset - reserve);
- 		altmap->alloc = 0;
- 		pgmap->altmap_valid = true;
- 	} else
-@@ -687,9 +693,9 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
- 	struct nd_namespace_common *ndns = nd_pfn->ndns;
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-+	u32 start_pad, end_trunc, reserve = info_block_reserve();
- 	resource_size_t start, size;
- 	struct nd_region *nd_region;
--	u32 start_pad, end_trunc;
- 	struct nd_pfn_sb *pfn_sb;
- 	unsigned long npfns;
- 	phys_addr_t offset;
-@@ -734,7 +740,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	 */
- 	start = nsio->res.start + start_pad;
- 	size = resource_size(&nsio->res);
--	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - SZ_8K)
-+	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - reserve)
- 			/ PAGE_SIZE);
- 	if (nd_pfn->mode == PFN_MODE_PMEM) {
- 		/*
-@@ -742,10 +748,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		 * when populating the vmemmap. This *should* be equal to
- 		 * PMD_SIZE for most architectures.
- 		 */
--		offset = ALIGN(start + SZ_8K + 64 * npfns + dax_label_reserve,
-+		offset = ALIGN(start + reserve + 64 * npfns + dax_label_reserve,
- 				max(nd_pfn->align, PMD_SIZE)) - start;
- 	} else if (nd_pfn->mode == PFN_MODE_RAM)
--		offset = ALIGN(start + SZ_8K + dax_label_reserve,
-+		offset = ALIGN(start + reserve + dax_label_reserve,
- 				nd_pfn->align) - start;
- 	else
- 		return -ENXIO;
+I'm suggesting you could have a FS that supports gup_longterm by
+design, and a FS that doesn't. And that is OK. They can have different
+rules.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Obviously the golden case here is to use ODP (which doesn't call
+gup_longterm at all) - that works for both.
+
+Supporting non-ODP is a trade off case - users that want to run on
+limited HW must accept limited functionality. Limited functionality is
+better than no-funtionality.
+
+Linux has many of these user-choose tradeoffs. This is how it supports
+such a wide range of HW capabilities. Not all HW can do all
+things. Some features really do need HW support. It has always been
+that way.
+
+Jason
