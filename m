@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2C29C211CACAD
- for <linux-nvdimm@lists.01.org>; Thu,  7 Feb 2019 16:41:11 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] acpi/nfit: Fix bus command validation
-Date: Fri, 8 Feb 2019 00:41:09 +0000
-Message-ID: <df5958d2e4f94e1a898d53761ac13dc543a8b577.camel@intel.com>
-References: <154958385172.3932544.193235520333886200.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <154958385172.3932544.193235520333886200.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <B19C8DBDAEA5F94DB27A3C30DB33F08D@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A9333211BFCC5
+ for <linux-nvdimm@lists.01.org>; Thu,  7 Feb 2019 16:10:12 -0800 (PST)
+Subject: [PATCH] acpi/nfit: Fix bus command validation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 07 Feb 2019 15:57:31 -0800
+Message-ID: <154958385172.3932544.193235520333886200.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,42 +20,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Verma,
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.verma@intel.com>, stable@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Commit 11189c1089da "acpi/nfit: Fix command-supported detection" broke
+ND_CMD_CALL for bus-level commands. The "func = cmd" assumption is only
+valid for:
 
-On Thu, 2019-02-07 at 15:57 -0800, Dan Williams wrote:
-> Commit 11189c1089da "acpi/nfit: Fix command-supported detection" broke
-> ND_CMD_CALL for bus-level commands. The "func = cmd" assumption is only
-> valid for:
-> 
->     ND_CMD_ARS_CAP
->     ND_CMD_ARS_START
->     ND_CMD_ARS_STATUS
->     ND_CMD_CLEAR_ERROR
-> 
-> The function number otherwise needs to be pulled from the command
-> payload for:
-> 
->     NFIT_CMD_TRANSLATE_SPA
->     NFIT_CMD_ARS_INJECT_SET
->     NFIT_CMD_ARS_INJECT_CLEAR
->     NFIT_CMD_ARS_INJECT_GET
-> 
-> Update cmd_to_func() for the bus case and call it in the common path.
-> 
-> Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
-> Cc: <stable@vger.kernel.org>
-> Cc: Vishal Verma <vishal.verma@intel.com>
-> Reported-by: Grzegorz Burzynski <grzegorz.burzynski@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/acpi/nfit/core.c |   22 ++++++++++++----------
->  1 file changed, 12 insertions(+), 10 deletions(-)
+    ND_CMD_ARS_CAP
+    ND_CMD_ARS_START
+    ND_CMD_ARS_STATUS
+    ND_CMD_CLEAR_ERROR
 
-Looks good,
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+The function number otherwise needs to be pulled from the command
+payload for:
+
+    NFIT_CMD_TRANSLATE_SPA
+    NFIT_CMD_ARS_INJECT_SET
+    NFIT_CMD_ARS_INJECT_CLEAR
+    NFIT_CMD_ARS_INJECT_GET
+
+Update cmd_to_func() for the bus case and call it in the common path.
+
+Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
+Cc: <stable@vger.kernel.org>
+Cc: Vishal Verma <vishal.verma@intel.com>
+Reported-by: Grzegorz Burzynski <grzegorz.burzynski@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e18ade5d74e9..c34c595d6bb0 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -415,7 +415,7 @@ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
+ 	if (call_pkg) {
+ 		int i;
+ 
+-		if (nfit_mem->family != call_pkg->nd_family)
++		if (nfit_mem && nfit_mem->family != call_pkg->nd_family)
+ 			return -ENOTTY;
+ 
+ 		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
+@@ -424,6 +424,10 @@ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
+ 		return call_pkg->nd_command;
+ 	}
+ 
++	/* In the !call_pkg case, bus commands == bus functions */
++	if (!nfit_mem)
++		return cmd;
++
+ 	/* Linux ND commands == NVDIMM_FAMILY_INTEL function numbers */
+ 	if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
+ 		return cmd;
+@@ -454,17 +458,18 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	if (cmd_rc)
+ 		*cmd_rc = -EINVAL;
+ 
++	if (cmd == ND_CMD_CALL)
++		call_pkg = buf;
++	func = cmd_to_func(nfit_mem, cmd, call_pkg);
++	if (func < 0)
++		return func;
++
+ 	if (nvdimm) {
+ 		struct acpi_device *adev = nfit_mem->adev;
+ 
+ 		if (!adev)
+ 			return -ENOTTY;
+ 
+-		if (cmd == ND_CMD_CALL)
+-			call_pkg = buf;
+-		func = cmd_to_func(nfit_mem, cmd, call_pkg);
+-		if (func < 0)
+-			return func;
+ 		dimm_name = nvdimm_name(nvdimm);
+ 		cmd_name = nvdimm_cmd_name(cmd);
+ 		cmd_mask = nvdimm_cmd_mask(nvdimm);
+@@ -475,12 +480,9 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	} else {
+ 		struct acpi_device *adev = to_acpi_dev(acpi_desc);
+ 
+-		func = cmd;
+ 		cmd_name = nvdimm_bus_cmd_name(cmd);
+ 		cmd_mask = nd_desc->cmd_mask;
+-		dsm_mask = cmd_mask;
+-		if (cmd == ND_CMD_CALL)
+-			dsm_mask = nd_desc->bus_dsm_mask;
++		dsm_mask = nd_desc->bus_dsm_mask;
+ 		desc = nd_cmd_bus_desc(cmd);
+ 		guid = to_nfit_uuid(NFIT_DEV_BUS);
+ 		handle = adev->handle;
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
