@@ -1,135 +1,97 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: Re: security implications of caching with virtio pmem (was Re:
- [PATCH v3 0/5] kvm "virtio pmem" device)
-Date: Wed, 6 Feb 2019 13:01:36 -0500
-Message-ID: <20190206125535-mutt-send-email-mst@kernel.org>
-References: <20190109144736.17452-1-pagupta@redhat.com>
- <20190204170515-mutt-send-email-mst@kernel.org>
- <5b8a06a7-be44-698f-f319-6b2cbcf1eb8a@redhat.com>
+From: Stefan Hajnoczi <stefanha@redhat.com>
+Subject: Re: Querying the size of devdax devices from userspace
+Date: Fri, 8 Feb 2019 09:53:13 +0800
+Message-ID: <20190208015313.GA16257@stefanha-x1.localdomain>
+References: <20190204075023.GA15322@stefanha-x1.localdomain>
+	<CAPcyv4huSKQueADyF5wJPWxMdLAn6yvEqWyMZfWPVQ4vQ_X0RA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
 Content-Disposition: inline
-In-Reply-To: <5b8a06a7-be44-698f-f319-6b2cbcf1eb8a@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Hildenbrand <david@redhat.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>, jack@suse.cz, kvm@vger.kernel.org, linux-nvdimm@ml01.01.org, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger.kernel@dilger.ca, zwisler@kernel.org, eblake@redhat.com, Andrea Arcangeli <aarcange@redhat.com>, dave.jiang@intel.com, darrick.wong@oracle.com, vishal.l.verma@intel.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan.j.williams@intel.com, lcapitulino@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong.eric@gmail.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com
+In-Reply-To: <CAPcyv4huSKQueADyF5wJPWxMdLAn6yvEqWyMZfWPVQ4vQ_X0RA@mail.gmail.com>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Zhang Yi <yi.z.zhang@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Feb 06, 2019 at 03:00:26PM +0100, David Hildenbrand wrote:
-> On 04.02.19 23:56, Michael S. Tsirkin wrote:
-> > 
-> > On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
-> >>  This patch series has implementation for "virtio pmem". 
-> >>  "virtio pmem" is fake persistent memory(nvdimm) in guest 
-> >>  which allows to bypass the guest page cache. This also
-> >>  implements a VIRTIO based asynchronous flush mechanism.  
-> > 
-> > 
-> > At Pankaj's request I looked at information leak implications of virtio
-> > pmem in light of the recent page cache side channels paper
-> > (https://arxiv.org/pdf/1901.01161.pdf) - to see what
-> > kind of side channels it might create if any.  TLDR - I think that
-> > depending on the host side implementation there could be some, but this
-> > might be addressable by better documentation in both code and spec.
-> > The fake dax approach backing the guest memory by a host page cache
-> > does seem to have potential issues.
-> > 
-> > For clarity: we are talking about leaking information either to a VM, or
-> > within a VM (I did not look into leaks to hypervisor in configurations
-> > such as SEV) through host page cache.
-> > 
-> > Leaks into a VM: It seems clear that while pmem allows memory accesses
-> > versus read/write with e.g. a block device, from host page cache point
-> > of view this doesn't matter much: reads populate cache in the same way
-> > as memory faults.  Thus ignoring presence of information leaks (which is
-> > an interesting question e.g. in light of recent discard support) pmem
-> > doesn't seem to be any better or worse for leaking information into a
-> > VM.
-> 
-> +1, just a different way to access that cache.
-> 
-> Conceptually a virtio-pmem devices is from the guest view a "device with
-> a managed buffer". Some accesses might be faster than others. There are
-> no guarantees on how fast a certain access is. And yes, actions on other
-> guests can result in accesses being slower but not faster.
-> 
-> Also other storage devices have caches like that (well, the caches size
-> depends on the device) - thinking especially about storage systems -
-> which would in my opinion, also allow similar leaks. How are such
-> security concerns handled there? Are they different (besides eventually
-> access speed)?
-> 
-> > 
-> > Leaks within VM: Right now pmem seems to bypass the guest page cache
-> > completely.  Whether pmem memory is then resident in a page cache would
-> > be up to the device/host. Assuming that it is, the "Preventing
-> > Efficient Eviction while Increasing the System Performance"
-> > countermeasure for the page cache side channel attack would appear to
-> > become ineffective with pmem. What is suggested is a per-process
-> > management of the page cache, and host does not have visibility of
-> > processes within a VM. Another possible countermeasure - not discussed
-> > in the paper - could be modify the applications to lock the security
-> > relevant pages in memory.  Again this becomes impractical with pmem as
-> > host does not have visibility into that. However note that as long
-> > as the only countermeasure linux uses is "Privileged Access"
-> > (i.e. blocking mincore) nothing can be done as guest page cache
-> > remains as vulnerable as host page cache.
-> 
-> This sounds very use-case specific. If I run a VM only with a very
-> specific workload (say, a container running one application), I usually
-> don't care about leaks within the VM. At least not leaks between
-> applications ;)
-> 
-> In contrast, to running different applications (e.g. containers from
-> different customers) on one system, I really care about leaks within a VM.
 
-Clearly, not everyone cares about closing off information leaks.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > 
-> > 
-> > Countermeasures: which host-side countermeasures can be designed would
-> > depend on which countermeasures are used guest-side - we would need to
-> > make sure they are not broken by pmem.  For "Preventing Efficient
-> > Eviction while Increasing the System Performance" modifying the host
-> > implementation to ensure that pmem device bypasses the host page cache
-> > would seem to address the security problem.Similarly, ensuring that a
-> > real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
-> > virt) is used for pmem would make the memory locking countermeasure
-> > work.  Whether with such limitations the device is still useful
-> > performance wise is an open question.  These questions probably should
-> > be addressed in the documentation, spec and possible qemu code.
-> > 
-> I also want to note that using a disk/file as memory backend with
-> NVDIMMs in QEMU essentially results in the exact same questions we have
-> with virtio-pmem.
-> 
-> E.g. kata-containers use nvdimms for the rootfile system (read-only) as
-> far as I am aware.
-> 
-> Conceptually, a virtio-pmem device is just an emulated nvdimm device
-> with a flush interface. And the nice thing is, that it is designed to
-> also work on architectures that don't speak "nvdimm".
-> 
-> > 
-> > Severity of the security implications: some people argue that the
-> > security implications of the page cache leaks are minor.  I do not have
-> > an opinion on this: the severity would seem to depend on the specific
-> > configuration.
-> 
-> I guess configuration and use case.
+On Mon, Feb 04, 2019 at 12:06:32AM -0800, Dan Williams wrote:
+> On Sun, Feb 3, 2019 at 11:56 PM Stefan Hajnoczi <stefanha@redhat.com> wro=
+te:
+> >
+> > How can userspace applications query the size of devdax character
+> > devices?
+> >
+> > stat(1) doesn't know how large the device is:
+> >
+> >   # stat /dev/dax0.0
+> >     File: /dev/dax0.0
+> >     Size: 0             Blocks: 0          IO Block: 4096   character s=
+pecial file
+> >   Device: 6h/6d Inode: 56764       Links: 1     Device type: fa,d
+> >
+> > ndctl(1) finds out by digging in /sys:
+> >
+> >   # ndctl list
+> >   [
+> >     {
+> >       "dev":"namespace0.0",
+> >       "mode":"devdax",
+> >       "map":"dev",
+> >       "size":2111832064,
+> >       "uuid":"235acf4d-503f-46be-bf64-f26faf9777ef",
+> >       "chardev":"dax0.0"
+> >     }
+> >   ]
+> >
+> > I'm not sure how to do it without enumerating all nvdimms in /sys.  Is
+> > there a mapping from devdax major/minor number to a /sys path?
+> >
+> > The use case I have in mind is that QEMU currently takes the size as a
+> > command-line parameter.  The failure mode is ugly when users get this
+> > value wrong: the guest gets a softlockup and there is no error message
+> > on the host side.
+> >
+> > I'd like QEMU to detect the size or at least reject size values that are
+> > too large.  In order to do that userspace needs a convenient way of
+> > querying the size.  Any ideas?
+>=20
+> You're looking for /sys/dev/char. That will wake you from major:minor
+> to sysfs. Perhaps borrow fio's implementation for the same:
+>=20
+>    http://git.kernel.dk/cgit/fio/tree/engines/dev-dax.c#n258
 
-Good point.
+Excellent, thanks!
 
-> Nice summary, thanks for looking into this Michael!
-> 
-> 
-> -- 
-> 
-> Thanks,
-> 
-> David / dhildenb
-> _______________________________________________
-> Virtualization mailing list
-> Virtualization@lists.linux-foundation.org
-> https://lists.linuxfoundation.org/mailman/listinfo/virtualization
+Stefan
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEcBAEBAgAGBQJcXOEJAAoJEJykq7OBq3PIp7gH/2N8132TeleBKZLsNiZfBrFH
+ug3Vj9gDR7xsSDjJX0NQkZGaQCF8+rQ4wcvR3ls+aWCkD6IbfISOzRwlzxYxpIIh
+jJAdTbp+ZryBxvivRFLCuOO0Y2QmuVDfxvbOK6KO9NhvFbD5vjcRV1lWh99oGDjQ
+0fdA0QbHaoRM7fN4XGzW6moTfyFTDeDamkz4T8+HrGSb4R8w0eHm9brbgGnn64Nt
+1RLR8Rsxwzu+rvDdiS5cEJ4arnE17yJ2FE9uybkJ5NyHognqdim721BPsf41c+Nc
+Unje4mQuthCq7CoN3UxP3uOcI9PVmgvrKREIgQnx61in4RK1xSNJPD76R4n9RQg=
+=+kVP
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
