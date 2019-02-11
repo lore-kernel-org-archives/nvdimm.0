@@ -1,112 +1,357 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [Qemu-devel] security implications of caching with virtio pmem
- (was Re: [PATCH v3 0/5] kvm "virtio pmem" device)
-Date: Mon, 11 Feb 2019 02:29:46 -0500 (EST)
-Message-ID: <888328358.132676.1549870186945.JavaMail.zimbra@redhat.com>
-References: <20190109144736.17452-1-pagupta@redhat.com> <20190204170515-mutt-send-email-mst@kernel.org>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [ndctl PATCH 1/2] libndctl: add support for
+ NVDIMM_FAMILY_HYPERV's _DSM Function 1
+Date: Mon, 11 Feb 2019 17:09:42 +0000
+Message-ID: <PU1P153MB0169F86177F2855C347522F6BF640@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <PU1P153MB0169195057B6A76C29626248BF6F0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@redhat.com>, dchinner@redhat.com
-Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, linux-nvdimm@ml01.01.org, jasowang@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, Andrea Arcangeli <aarcange@redhat.com>, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.o
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <PU1P153MB0169195057B6A76C29626248BF6F0-7hHSCQUTt08p9lVGRpUb+2HfQuWdHs3hiGd9ebBGJoev3QGu/rdwKA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
+> From: Linux-nvdimm <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org> On Behalf Of
+> Dexuan Cui
+> Sent: Tuesday, February 5, 2019 7:13 PM
+> To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+> Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Subject: [ndctl PATCH 1/2] libndctl: add support for
+> NVDIMM_FAMILY_HYPERV's _DSM Function 1
+> 
+> 
+> This patch retrieves the health info by Hyper-V _DSM method Function 1:
+> 
+> Get Health Information (Function Index 1)
+> See https : // uefi.org/RFIC_LIST
+> 
+> Now "ndctl list --dimms --health --idle" can show a line "health_state":"ok",
+> e.g.
+> 
+>   {
+>     "dev":"nmem0",
+>     "id":"04d5-01-1701-00000000",
+>     "handle":0,
+>     "phys_id":0,
+>     "health":{
+>       "health_state":"ok"
+>     }
+>   }
+> 
+> If there is an error with the NVDIMM, the "ok" will be replaced with "unknown",
+> "fatal", "critical", or "non-critical".
+> 
+> Hyper-V also supports "Get Unsafe Shutdown Count (Function Index 2)", but
+> unluckily util_dimm_health_to_json() only submits *one* command, so we
+> don't
+> have a chance to call Function 2 here, and hence we can't show a line
+> "shutdown_count" in the output. If a user in a Linux virtual machine running
+> on Hyper-V is interested in the Unsafe Shutdown Count, please directly run:
+> "cat /sys/bus/nd/devices/nmem*/nfit/dirty_shutdown" (there is a pending
+> patch
+> submitted to the kernel for this sysfs node).
+> 
+> Signed-off-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> ---
+>  ndctl/lib/Makefile.am |   1 +
+>  ndctl/lib/hyperv.c    | 129
+> ++++++++++++++++++++++++++++++++++++++++++
+>  ndctl/lib/hyperv.h    |  51 +++++++++++++++++
+>  ndctl/lib/libndctl.c  |   2 +
+>  ndctl/lib/private.h   |   3 +
+>  ndctl/ndctl.h         |   1 +
+>  6 files changed, 187 insertions(+)
+>  create mode 100644 ndctl/lib/hyperv.c
+>  create mode 100644 ndctl/lib/hyperv.h
+> 
+> diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+> index 7797039..fb75fda 100644
+> --- a/ndctl/lib/Makefile.am
+> +++ b/ndctl/lib/Makefile.am
+> @@ -20,6 +20,7 @@ libndctl_la_SOURCES =\
+>  	intel.c \
+>  	hpe1.c \
+>  	msft.c \
+> +	hyperv.c \
+>  	ars.c \
+>  	firmware.c \
+>  	libndctl.c
+> diff --git a/ndctl/lib/hyperv.c b/ndctl/lib/hyperv.c
+> new file mode 100644
+> index 0000000..b303d50
+> --- /dev/null
+> +++ b/ndctl/lib/hyperv.c
+> @@ -0,0 +1,129 @@
+> +/*
+> + * Copyright (c) 2019, Microsoft Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU Lesser General Public License,
+> + * version 2.1, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT ANY
+> + * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> FITNESS
+> + * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+> for
+> + * more details.
+> + */
+> +#include <stdlib.h>
+> +#include <limits.h>
+> +#include <util/bitmap.h>
+> +#include <util/log.h>
+> +#include <ndctl/libndctl.h>
+> +#include "private.h"
+> +#include "hyperv.h"
+> +
+> +#define CMD_HYPERV(_c) ((_c)->hyperv)
+> +#define CMD_HYPERV_STATUS(_c) (CMD_HYPERV(_c)->u.status)
+> +#define CMD_HYPERV_SMART_DATA(_c) (CMD_HYPERV(_c)->u.smart.data)
+> +
+> +static struct ndctl_cmd *hyperv_dimm_cmd_new_smart(struct ndctl_dimm
+> *dimm)
+> +{
+> +	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+> +	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+> +	struct ndctl_cmd *cmd;
+> +	size_t size;
+> +	struct nd_pkg_hyperv *hyperv;
+> +
+> +	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL)) {
+> +		dbg(ctx, "unsupported cmd\n");
+> +		return NULL;
+> +	}
+> +
+> +	if (test_dimm_dsm(dimm, ND_HYPERV_CMD_GET_HEALTH_INFO) ==
+> +			  DIMM_DSM_UNSUPPORTED) {
+> +		dbg(ctx, "unsupported function\n");
+> +		return NULL;
+> +	}
+> +
+> +	size = sizeof(*cmd) + sizeof(struct nd_pkg_hyperv);
+> +	cmd = calloc(1, size);
+> +	if (!cmd)
+> +		return NULL;
+> +
+> +	cmd->dimm = dimm;
+> +	ndctl_cmd_ref(cmd);
+> +	cmd->type = ND_CMD_CALL;
+> +	cmd->size = size;
+> +	cmd->status = 1;
+> +
+> +	hyperv = CMD_HYPERV(cmd);
+> +	hyperv->gen.nd_family = NVDIMM_FAMILY_HYPERV;
+> +	hyperv->gen.nd_command = ND_HYPERV_CMD_GET_HEALTH_INFO;
+> +	hyperv->gen.nd_fw_size = 0;
+> +	hyperv->gen.nd_size_in = offsetof(struct nd_hyperv_smart, status);
+> +	hyperv->gen.nd_size_out = sizeof(hyperv->u.smart);
+> +	hyperv->u.smart.status = 0;
+> +
+> +	cmd->firmware_status = &hyperv->u.smart.status;
+> +
+> +	return cmd;
+> +}
+> +
+> +static int hyperv_smart_valid(struct ndctl_cmd *cmd)
+> +{
+> +	if (cmd->type != ND_CMD_CALL ||
+> +	    cmd->size != sizeof(*cmd) + sizeof(struct nd_pkg_hyperv) ||
+> +	    CMD_HYPERV(cmd)->gen.nd_family != NVDIMM_FAMILY_HYPERV ||
+> +	    CMD_HYPERV(cmd)->gen.nd_command !=
+> ND_HYPERV_CMD_GET_HEALTH_INFO ||
+> +	    cmd->status != 0 ||
+> +	    CMD_HYPERV_STATUS(cmd) != 0)
+> +		return cmd->status < 0 ? cmd->status : -EINVAL;
+> +	return 0;
+> +}
+> +
+> +static int hyperv_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
+> +{
+> +	return CMD_HYPERV_STATUS(cmd) == 0 ? 0 : -EINVAL;
+> +}
+> +
+> +static unsigned int hyperv_cmd_smart_get_flags(struct ndctl_cmd *cmd)
+> +{
+> +	int rc;
+> +
+> +	rc = hyperv_smart_valid(cmd);
+> +	if (rc < 0) {
+> +		errno = -rc;
+> +		return 0;
+> +	}
+> +
+> +	return ND_SMART_HEALTH_VALID;
+> +}
+> +
+> +static unsigned int hyperv_cmd_smart_get_health(struct ndctl_cmd *cmd)
+> +{
+> +	unsigned int health = 0;
+> +	__u32 num;
+> +	int rc;
+> +
+> +	rc = hyperv_smart_valid(cmd);
+> +	if (rc < 0) {
+> +		errno = -rc;
+> +		return UINT_MAX;
+> +	}
+> +
+> +	num = CMD_HYPERV_SMART_DATA(cmd)->health & 0x3F;
+> +
+> +	if (num & (BIT(0) | BIT(1)))
+> +		health |= ND_SMART_CRITICAL_HEALTH;
+> +
+> +	if (num & BIT(2))
+> +		health |= ND_SMART_FATAL_HEALTH;
+> +
+> +	if (num & (BIT(3) | BIT(4) | BIT(5)))
+> +		health |= ND_SMART_NON_CRITICAL_HEALTH;
+> +
+> +	return health;
+> +}
+> +
+> +struct ndctl_dimm_ops * const hyperv_dimm_ops = &(struct ndctl_dimm_ops)
+> {
+> +	.new_smart = hyperv_dimm_cmd_new_smart,
+> +	.smart_get_flags = hyperv_cmd_smart_get_flags,
+> +	.smart_get_health = hyperv_cmd_smart_get_health,
+> +	.xlat_firmware_status = hyperv_cmd_xlat_firmware_status,
+> +};
+> diff --git a/ndctl/lib/hyperv.h b/ndctl/lib/hyperv.h
+> new file mode 100644
+> index 0000000..8e55a97
+> --- /dev/null
+> +++ b/ndctl/lib/hyperv.h
+> @@ -0,0 +1,51 @@
+> +/*
+> + * Copyright (c) 2019, Microsoft Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms and conditions of the GNU Lesser General Public License,
+> + * version 2.1, as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope it will be useful, but WITHOUT ANY
+> + * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> FITNESS
+> + * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
+> for
+> + * more details.
+> + */
+> +#ifndef __NDCTL_HYPERV_H__
+> +#define __NDCTL_HYPERV_H__
+> +
+> +/* See
+> https://nam06.safelinks.protection.outlook.com/?url=http%3A%2F%2Fwww.ue
+> fi.org%2FRFIC_LIST&amp;data=02%7C01%7Cdecui%40microsoft.com%7Cd212
+> 073ac2914cc2380a08d68be113d6%7C72f988bf86f141af91ab2d7cd011db47
+> %7C1%7C0%7C636850196154313168&amp;sdata=oPd0DX6VbD88CivxWehIro
+> 4A4tmPR3UslUlMPqV7%2FRs%3D&amp;reserved=0 ("Virtual NVDIMM
+> 0x1901") */
+> +enum {
+> +	ND_HYPERV_CMD_QUERY = 0,
+> +
+> +	/* non-root commands */
+> +	ND_HYPERV_CMD_GET_HEALTH_INFO = 1,
+> +};
+> +
+> +/*
+> + * This is actually Function 1's data,
+> + * This is the closest I can find to match the "smart".
+> + * Hyper-V _DSM methods don't have a smart function.
+> + */
+> +struct nd_hyperv_smart_data {
+> +	__u32	health;
+> +} __attribute__((packed));
+> +
+> +struct nd_hyperv_smart {
+> +	__u32	status;
+> +	union {
+> +		__u8 buf[4];
+> +		struct nd_hyperv_smart_data data[0];
+> +	};
+> +} __attribute__((packed));
+> +
+> +union nd_hyperv_cmd {
+> +	__u32			status;
+> +	struct nd_hyperv_smart	smart;
+> +} __attribute__((packed));
+> +
+> +struct nd_pkg_hyperv {
+> +	struct nd_cmd_pkg	gen;
+> +	union nd_hyperv_cmd	u;
+> +} __attribute__((packed));
+> +
+> +#endif /* __NDCTL_HYPERV_H__ */
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index c9e2875..48bdb27 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -1492,6 +1492,8 @@ static void *add_dimm(void *parent, int id, const
+> char *dimm_base)
+>  		dimm->ops = hpe1_dimm_ops;
+>  	if (dimm->cmd_family == NVDIMM_FAMILY_MSFT)
+>  		dimm->ops = msft_dimm_ops;
+> +	if (dimm->cmd_family == NVDIMM_FAMILY_HYPERV)
+> +		dimm->ops = hyperv_dimm_ops;
+> 
+>  	sprintf(path, "%s/nfit/dsm_mask", dimm_base);
+>  	if (sysfs_read_attr(ctx, path, buf) == 0)
+> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> index a387b0b..a9d35c5 100644
+> --- a/ndctl/lib/private.h
+> +++ b/ndctl/lib/private.h
+> @@ -31,6 +31,7 @@
+>  #include "intel.h"
+>  #include "hpe1.h"
+>  #include "msft.h"
+> +#include "hyperv.h"
+> 
+>  struct nvdimm_data {
+>  	struct ndctl_cmd *cmd_read;
+> @@ -270,6 +271,7 @@ struct ndctl_cmd {
+>  		struct nd_cmd_pkg pkg[0];
+>  		struct ndn_pkg_hpe1 hpe1[0];
+>  		struct ndn_pkg_msft msft[0];
+> +		struct nd_pkg_hyperv hyperv[0];
+>  		struct nd_pkg_intel intel[0];
+>  		struct nd_cmd_get_config_size get_size[0];
+>  		struct nd_cmd_get_config_data_hdr get_data[0];
+> @@ -344,6 +346,7 @@ struct ndctl_dimm_ops {
+>  struct ndctl_dimm_ops * const intel_dimm_ops;
+>  struct ndctl_dimm_ops * const hpe1_dimm_ops;
+>  struct ndctl_dimm_ops * const msft_dimm_ops;
+> +struct ndctl_dimm_ops * const hyperv_dimm_ops;
+> 
+>  static inline struct ndctl_bus *cmd_to_bus(struct ndctl_cmd *cmd)
+>  {
+> diff --git a/ndctl/ndctl.h b/ndctl/ndctl.h
+> index c6aaa4c..008f81c 100644
+> --- a/ndctl/ndctl.h
+> +++ b/ndctl/ndctl.h
+> @@ -262,6 +262,7 @@ struct nd_cmd_pkg {
+>  #define NVDIMM_FAMILY_HPE1 1
+>  #define NVDIMM_FAMILY_HPE2 2
+>  #define NVDIMM_FAMILY_MSFT 3
+> +#define NVDIMM_FAMILY_HYPERV 4
+> 
+>  #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
+>  					struct nd_cmd_pkg)
+> --
 
-Hi Michael, 
+Hi Vishal/Dav/Dave and all,
 
-Thanks for looking into this and summarizing in detail. 
+Can I have your comments on the patch?
 
-> >  This patch series has implementation for "virtio pmem".
-> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
-> >  which allows to bypass the guest page cache. This also
-> >  implements a VIRTIO based asynchronous flush mechanism.
-> 
-> 
-> At Pankaj's request I looked at information leak implications of virtio
-> pmem in light of the recent page cache side channels paper
-> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
-> kind of side channels it might create if any.  TLDR - I think that
-> depending on the host side implementation there could be some, but this
-> might be addressable by better documentation in both code and spec.
-> The fake dax approach backing the guest memory by a host page cache
-> does seem to have potential issues.
-> 
-> For clarity: we are talking about leaking information either to a VM, or
-> within a VM (I did not look into leaks to hypervisor in configurations
-> such as SEV) through host page cache.
-> 
-> Leaks into a VM: It seems clear that while pmem allows memory accesses
-> versus read/write with e.g. a block device, from host page cache point
-> of view this doesn't matter much: reads populate cache in the same way
-> as memory faults.  Thus ignoring presence of information leaks (which is
-> an interesting question e.g. in light of recent discard support) pmem
-> doesn't seem to be any better or worse for leaking information into a
-> VM.
-> 
-> Leaks within VM: Right now pmem seems to bypass the guest page cache
-> completely.  Whether pmem memory is then resident in a page cache would
-> be up to the device/host. Assuming that it is, the "Preventing
-> Efficient Eviction while Increasing the System Performance"
-> countermeasure for the page cache side channel attack would appear to
-> become ineffective with pmem. What is suggested is a per-process
-> management of the page cache, and host does not have visibility of
-> processes within a VM. Another possible countermeasure - not discussed
-> in the paper - could be modify the applications to lock the security
-> relevant pages in memory.  Again this becomes impractical with pmem as
-> host does not have visibility into that. However note that as long
-> as the only countermeasure linux uses is "Privileged Access"
-> (i.e. blocking mincore) nothing can be done as guest page cache
-> remains as vulnerable as host page cache.
-> 
-> 
-> Countermeasures: which host-side countermeasures can be designed would
-> depend on which countermeasures are used guest-side - we would need to
-> make sure they are not broken by pmem.  For "Preventing Efficient
-> Eviction while Increasing the System Performance" modifying the host
-> implementation to ensure that pmem device bypasses the host page cache
-> would seem to address the security problem.Similarly, ensuring that a
-> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
-> virt) is used for pmem would make the memory locking countermeasure
-> work.  Whether with such limitations the device is still useful
-> performance wise is an open question.  These questions probably should
-> be addressed in the documentation, spec and possible qemu code.
-> 
-> 
-> 
-> Severity of the security implications: some people argue that the
-> security implications of the page cache leaks are minor.  I do not have
-> an opinion on this: the severity would seem to depend on the specific
-> configuration.
-> 
-> 
-> Other security implications: recent discussion seems to suggest there
-> are other concerns around e.g. resource management and thus DOS
-> potential. If that's so, it's a matter for a separate discussion
-> as I didn't look into that in depth.
-> 
-> Some or all of the above might be based on a misunderstanding of the
-> current pmem code, the whitepaper and linux page cache in general.
-> If so I apologise, do not hesitate to call out any mistakes.
-
-I agree similar to any guest VM(without virtio-pmem) or any host 
-userspace process, virtio-pmem may also have some security implications.
-We need to document these in virtio-pmem host device specification
-and in qemu code. This is to make sure while creating virtio-pmem
-device, we are aware of these implications and create/use 
-host side device backing file accordingly as per the use-case
-described by David here [1].
-
-I will document these in next version of my patch series.
-
-Hello Dave,
-Are we okay with this?
-
-Thank you everyone for the discussion.
-
-[1] https://marc.info/?l=linux-kernel&m=154946989419403&w=2
-
-Best regards,
-Pankaj    
+Thanks,
+-- Dexuan
