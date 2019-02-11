@@ -1,64 +1,48 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 4D97A2194EB70
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 10:22:39 -0800 (PST)
 Subject: Re: [PATCH 5/5] dax: "Hotplug" persistent memory for use like normal
  RAM
 References: <20190124231441.37A4A305@viggo.jf.intel.com>
  <20190124231448.E102D18E@viggo.jf.intel.com>
  <c4c6aca8-6ee8-be10-65ae-4cbe0aa03bfb@inria.fr>
- <26ac36f4-7391-5321-217b-50d67e2119d7@intel.com>
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Message-ID: <453f13cd-a7fe-33eb-9a27-8490825ca29c@inria.fr>
-Date: Tue, 12 Feb 2019 20:59:45 +0100
+From: Dave Hansen <dave.hansen@intel.com>
+Message-ID: <26ac36f4-7391-5321-217b-50d67e2119d7@intel.com>
+Date: Mon, 11 Feb 2019 08:22:20 -0800
 MIME-Version: 1.0
-In-Reply-To: <26ac36f4-7391-5321-217b-50d67e2119d7@intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <c4c6aca8-6ee8-be10-65ae-4cbe0aa03bfb@inria.fr>
 Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave.hansen@intel.com>, linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Brice Goglin <Brice.Goglin@inria.fr>, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, zwisler@kernel.org, linux-mm@kvack.org, jglisse@redhat.com, fengguang.wu@intel.com, baiyaowei@cmss.chinamobile.com, ying.huang@intel.com, bhelgaas@google.com, akpm@linux-foundation.org, bp@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Le 11/02/2019 à 17:22, Dave Hansen a écrit :
+On 2/9/19 3:00 AM, Brice Goglin wrote:
+> I've used your patches on fake hardware (memmap=xx!yy) with an older
+> nvdimm-pending branch (without Keith's patches). It worked fine. This
+> time I am running on real Intel hardware. Any idea where to look ?
 
-> On 2/9/19 3:00 AM, Brice Goglin wrote:
->> I've used your patches on fake hardware (memmap=xx!yy) with an older
->> nvdimm-pending branch (without Keith's patches). It worked fine. This
->> time I am running on real Intel hardware. Any idea where to look ?
-> I've run them on real Intel hardware too.
->
-> Could you share the exact sequence of commands you're issuing to
-> reproduce the hang?  My guess would be that there's some odd interaction
-> between Dan's latest branch and my now (slightly) stale patches.
->
-> I'll refresh them this week and see if I can reproduce what you're seeing.
+I've run them on real Intel hardware too.
 
-# ndctl disable-region all
-# ndctl zero-labels all
-# ndctl enable-region region0
-# ndctl create-namespace -r region0 -t pmem -m devdax
-{
-  "dev":"namespace0.0",
-  "mode":"devdax",
-  "map":"dev",
-  "size":"1488.37 GiB (1598.13 GB)",
-  "uuid":"ad0096d7-3fe7-4402-b529-ad64ed0bf789",
-  "daxregion":{
-    "id":0,
-    "size":"1488.37 GiB (1598.13 GB)",
-    "align":2097152,
-    "devices":[
-      {
-        "chardev":"dax0.0",
-        "size":"1488.37 GiB (1598.13 GB)"
-      }
-    ]
-  },
-  "align":2097152
-}
-# ndctl enable-namespace namespace0.0
-# echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/remove_id
-<hang>
+Could you share the exact sequence of commands you're issuing to
+reproduce the hang?  My guess would be that there's some odd interaction
+between Dan's latest branch and my now (slightly) stale patches.
 
-I tried with and without dax_pmem_compat loaded, but it doesn't help.
-
-Brice
+I'll refresh them this week and see if I can reproduce what you're seeing.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
