@@ -1,97 +1,101 @@
-From: Stefan Hajnoczi <stefanha@redhat.com>
-Subject: Re: Querying the size of devdax devices from userspace
-Date: Fri, 8 Feb 2019 09:53:13 +0800
-Message-ID: <20190208015313.GA16257@stefanha-x1.localdomain>
-References: <20190204075023.GA15322@stefanha-x1.localdomain>
-	<CAPcyv4huSKQueADyF5wJPWxMdLAn6yvEqWyMZfWPVQ4vQ_X0RA@mail.gmail.com>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Security Notice. Someone have access to your system.
+Date: 11 Feb 2019 01:05:30 +0000
+Message-ID: <DE69C6D1D8717ECF78D7C0C9606FDE69@DFBVWWTDFBV>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4huSKQueADyF5wJPWxMdLAn6yvEqWyMZfWPVQ4vQ_X0RA@mail.gmail.com>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Zhang Yi <yi.z.zhang@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Type: multipart/mixed; boundary="===============1072091807866092082=="
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
+--===============1072091807866092082==
+Content-Type: text/plain;
+	charset="cp-850"
+Content-Transfer-Encoding: 8bit
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
+I'll begin with the most important.
+
+I hacked your device and then got access to all your accounts... Including linux-nvdimm-hn68Rpc1hR1TeqIcxkLZrQ@public.gmane.org
+It is easy to check - I wrote you this email from your account.
+
+Moreover, I know your intim secret, and I have proof of this.
+You do not know me personally, and no one paid me to check you.
+
+It is just a coincidence that I discovered your mistake.
+In fact, I posted a malicious code (exploit) to an adult site, and you visited this site... 
+
+While watching a video Trojan virus has been installed on your device through an exploit.
+This darknet software working as RDP (remote-controlled desktop), which has a keylogger,
+which gave me access to your microphone and webcam.
+Soon after, my software received all your contacts from your messenger, social network and email.
+
+At that moment I spent much more time than I should have. 
+I studied your love life and created a good video series.
+The first part shows the video that you watched,
+and the second part shows the video clip taken from your webcam (you are doing inappropriate things).
+
+Honestly, I want to forget all the information about you and allow you to continue your daily life.
+And I will give you two suitable options. Both are easy to do.
+First option: you ignore this email.
+The second option: you pay me $750(USD).
+
+Let's look at 2 options in detail.
+
+The first option is to ignore this email.
+Let me tell you what happens if you choose this path.
+I will send your video to your contacts, including family members, colleagues, etc.
+This does not protect you from the humiliation that you and
+your family need to know when friends and family members know about your unpleasant details.
+
+The second option is to pay me. We will call this "privacy advice."
+Now let me tell you what happens if you choose this path.
+Your secret is your secret. I immediately destroy the video.
+You continue your life as if none of this has happened.
+
+Now you might think: "I'll call to police!"
+Undoubtedly, I have taken steps to ensure that this letter cannot be traced to me,
+and it will not remain aloof from the evidence of the destruction of your daily life.
+I don't want to steal all your savings.
+I just want to get compensation for my efforts that I put in to investigate you.
+Let us hope that you decide to create all this in full and pay me a fee for confidentiality.
+You make a Bitcoin payment (if you don't know how to do it, just enter "how to buy bitcoins" in Google search)
+
+Shipping amount: $750(USD).
+Getting Bitcoin Addresses: 1GF8J1XRaiX2oHM7SQo9VAFAtWZcRgMncg
+(This is sensitive, so copy and paste it carefully)
+
+Don't tell anyone what to use bitcoins for. The procedure for obtaining bitcoins can take several days, so do not wait.
+
+I have a spetial code in Trojan, and now I know that you have read this letter.
+You have 48 hours to pay.
+If I don't get BitCoins, I'll send your video to your contacts, including close relatives, co-workers, and so on.
+Start looking for the best excuse for friends and family before they all know.
+But if I get paid, I immediately delete the video. 
+
+This is a one-time offer that is non-negotiable, so do not waste my and your time.
+Time is running out.
+
+Bye!
+
+
+--===============1072091807866092082==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Feb 04, 2019 at 12:06:32AM -0800, Dan Williams wrote:
-> On Sun, Feb 3, 2019 at 11:56 PM Stefan Hajnoczi <stefanha@redhat.com> wro=
-te:
-> >
-> > How can userspace applications query the size of devdax character
-> > devices?
-> >
-> > stat(1) doesn't know how large the device is:
-> >
-> >   # stat /dev/dax0.0
-> >     File: /dev/dax0.0
-> >     Size: 0             Blocks: 0          IO Block: 4096   character s=
-pecial file
-> >   Device: 6h/6d Inode: 56764       Links: 1     Device type: fa,d
-> >
-> > ndctl(1) finds out by digging in /sys:
-> >
-> >   # ndctl list
-> >   [
-> >     {
-> >       "dev":"namespace0.0",
-> >       "mode":"devdax",
-> >       "map":"dev",
-> >       "size":2111832064,
-> >       "uuid":"235acf4d-503f-46be-bf64-f26faf9777ef",
-> >       "chardev":"dax0.0"
-> >     }
-> >   ]
-> >
-> > I'm not sure how to do it without enumerating all nvdimms in /sys.  Is
-> > there a mapping from devdax major/minor number to a /sys path?
-> >
-> > The use case I have in mind is that QEMU currently takes the size as a
-> > command-line parameter.  The failure mode is ugly when users get this
-> > value wrong: the guest gets a softlockup and there is no error message
-> > on the host side.
-> >
-> > I'd like QEMU to detect the size or at least reject size values that are
-> > too large.  In order to do that userspace needs a convenient way of
-> > querying the size.  Any ideas?
->=20
-> You're looking for /sys/dev/char. That will wake you from major:minor
-> to sysfs. Perhaps borrow fio's implementation for the same:
->=20
->    http://git.kernel.dk/cgit/fio/tree/engines/dev-dax.c#n258
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-Excellent, thanks!
-
-Stefan
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEcBAEBAgAGBQJcXOEJAAoJEJykq7OBq3PIp7gH/2N8132TeleBKZLsNiZfBrFH
-ug3Vj9gDR7xsSDjJX0NQkZGaQCF8+rQ4wcvR3ls+aWCkD6IbfISOzRwlzxYxpIIh
-jJAdTbp+ZryBxvivRFLCuOO0Y2QmuVDfxvbOK6KO9NhvFbD5vjcRV1lWh99oGDjQ
-0fdA0QbHaoRM7fN4XGzW6moTfyFTDeDamkz4T8+HrGSb4R8w0eHm9brbgGnn64Nt
-1RLR8Rsxwzu+rvDdiS5cEJ4arnE17yJ2FE9uybkJ5NyHognqdim721BPsf41c+Nc
-Unje4mQuthCq7CoN3UxP3uOcI9PVmgvrKREIgQnx61in4RK1xSNJPD76R4n9RQg=
-=+kVP
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+--===============1072091807866092082==--
