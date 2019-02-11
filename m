@@ -1,101 +1,112 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Security Notice. Someone have access to your system.
-Date: 11 Feb 2019 01:05:30 +0000
-Message-ID: <DE69C6D1D8717ECF78D7C0C9606FDE69@DFBVWWTDFBV>
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: Re: [Qemu-devel] security implications of caching with virtio pmem
+ (was Re: [PATCH v3 0/5] kvm "virtio pmem" device)
+Date: Mon, 11 Feb 2019 02:29:46 -0500 (EST)
+Message-ID: <888328358.132676.1549870186945.JavaMail.zimbra@redhat.com>
+References: <20190109144736.17452-1-pagupta@redhat.com> <20190204170515-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1072091807866092082=="
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190204170515-mutt-send-email-mst@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>, dchinner@redhat.com
+Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, linux-nvdimm@ml01.01.org, jasowang@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, Andrea Arcangeli <aarcange@redhat.com>, dave jiang <dave.jiang@intel.com>, darrick wong <darrick.wong@oracle.com>, vishal l verma <vishal.l.verma@intel.com>, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, nilal@redhat.com, riel@surriel.com, stefanha@redhat.com, imammedo@redhat.com, dan j williams <dan.j.williams@intel.com>, lcapitulino@redhat.com, kwolf@redhat.com, linux-ext4@vger.kernel.org, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.o
 List-Id: linux-nvdimm@lists.01.org
 
---===============1072091807866092082==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: 8bit
 
-I'll begin with the most important.
+Hi Michael, 
 
-I hacked your device and then got access to all your accounts... Including linux-nvdimm-hn68Rpc1hR1TeqIcxkLZrQ@public.gmane.org
-It is easy to check - I wrote you this email from your account.
+Thanks for looking into this and summarizing in detail. 
 
-Moreover, I know your intim secret, and I have proof of this.
-You do not know me personally, and no one paid me to check you.
+> >  This patch series has implementation for "virtio pmem".
+> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
+> >  which allows to bypass the guest page cache. This also
+> >  implements a VIRTIO based asynchronous flush mechanism.
+> 
+> 
+> At Pankaj's request I looked at information leak implications of virtio
+> pmem in light of the recent page cache side channels paper
+> (https://arxiv.org/pdf/1901.01161.pdf) - to see what
+> kind of side channels it might create if any.  TLDR - I think that
+> depending on the host side implementation there could be some, but this
+> might be addressable by better documentation in both code and spec.
+> The fake dax approach backing the guest memory by a host page cache
+> does seem to have potential issues.
+> 
+> For clarity: we are talking about leaking information either to a VM, or
+> within a VM (I did not look into leaks to hypervisor in configurations
+> such as SEV) through host page cache.
+> 
+> Leaks into a VM: It seems clear that while pmem allows memory accesses
+> versus read/write with e.g. a block device, from host page cache point
+> of view this doesn't matter much: reads populate cache in the same way
+> as memory faults.  Thus ignoring presence of information leaks (which is
+> an interesting question e.g. in light of recent discard support) pmem
+> doesn't seem to be any better or worse for leaking information into a
+> VM.
+> 
+> Leaks within VM: Right now pmem seems to bypass the guest page cache
+> completely.  Whether pmem memory is then resident in a page cache would
+> be up to the device/host. Assuming that it is, the "Preventing
+> Efficient Eviction while Increasing the System Performance"
+> countermeasure for the page cache side channel attack would appear to
+> become ineffective with pmem. What is suggested is a per-process
+> management of the page cache, and host does not have visibility of
+> processes within a VM. Another possible countermeasure - not discussed
+> in the paper - could be modify the applications to lock the security
+> relevant pages in memory.  Again this becomes impractical with pmem as
+> host does not have visibility into that. However note that as long
+> as the only countermeasure linux uses is "Privileged Access"
+> (i.e. blocking mincore) nothing can be done as guest page cache
+> remains as vulnerable as host page cache.
+> 
+> 
+> Countermeasures: which host-side countermeasures can be designed would
+> depend on which countermeasures are used guest-side - we would need to
+> make sure they are not broken by pmem.  For "Preventing Efficient
+> Eviction while Increasing the System Performance" modifying the host
+> implementation to ensure that pmem device bypasses the host page cache
+> would seem to address the security problem.Similarly, ensuring that a
+> real memory device (e.g. DAX, RAM such as hugetlbfs, pmem for nested
+> virt) is used for pmem would make the memory locking countermeasure
+> work.  Whether with such limitations the device is still useful
+> performance wise is an open question.  These questions probably should
+> be addressed in the documentation, spec and possible qemu code.
+> 
+> 
+> 
+> Severity of the security implications: some people argue that the
+> security implications of the page cache leaks are minor.  I do not have
+> an opinion on this: the severity would seem to depend on the specific
+> configuration.
+> 
+> 
+> Other security implications: recent discussion seems to suggest there
+> are other concerns around e.g. resource management and thus DOS
+> potential. If that's so, it's a matter for a separate discussion
+> as I didn't look into that in depth.
+> 
+> Some or all of the above might be based on a misunderstanding of the
+> current pmem code, the whitepaper and linux page cache in general.
+> If so I apologise, do not hesitate to call out any mistakes.
 
-It is just a coincidence that I discovered your mistake.
-In fact, I posted a malicious code (exploit) to an adult site, and you visited this site... 
+I agree similar to any guest VM(without virtio-pmem) or any host 
+userspace process, virtio-pmem may also have some security implications.
+We need to document these in virtio-pmem host device specification
+and in qemu code. This is to make sure while creating virtio-pmem
+device, we are aware of these implications and create/use 
+host side device backing file accordingly as per the use-case
+described by David here [1].
 
-While watching a video Trojan virus has been installed on your device through an exploit.
-This darknet software working as RDP (remote-controlled desktop), which has a keylogger,
-which gave me access to your microphone and webcam.
-Soon after, my software received all your contacts from your messenger, social network and email.
+I will document these in next version of my patch series.
 
-At that moment I spent much more time than I should have. 
-I studied your love life and created a good video series.
-The first part shows the video that you watched,
-and the second part shows the video clip taken from your webcam (you are doing inappropriate things).
+Hello Dave,
+Are we okay with this?
 
-Honestly, I want to forget all the information about you and allow you to continue your daily life.
-And I will give you two suitable options. Both are easy to do.
-First option: you ignore this email.
-The second option: you pay me $750(USD).
+Thank you everyone for the discussion.
 
-Let's look at 2 options in detail.
+[1] https://marc.info/?l=linux-kernel&m=154946989419403&w=2
 
-The first option is to ignore this email.
-Let me tell you what happens if you choose this path.
-I will send your video to your contacts, including family members, colleagues, etc.
-This does not protect you from the humiliation that you and
-your family need to know when friends and family members know about your unpleasant details.
-
-The second option is to pay me. We will call this "privacy advice."
-Now let me tell you what happens if you choose this path.
-Your secret is your secret. I immediately destroy the video.
-You continue your life as if none of this has happened.
-
-Now you might think: "I'll call to police!"
-Undoubtedly, I have taken steps to ensure that this letter cannot be traced to me,
-and it will not remain aloof from the evidence of the destruction of your daily life.
-I don't want to steal all your savings.
-I just want to get compensation for my efforts that I put in to investigate you.
-Let us hope that you decide to create all this in full and pay me a fee for confidentiality.
-You make a Bitcoin payment (if you don't know how to do it, just enter "how to buy bitcoins" in Google search)
-
-Shipping amount: $750(USD).
-Getting Bitcoin Addresses: 1GF8J1XRaiX2oHM7SQo9VAFAtWZcRgMncg
-(This is sensitive, so copy and paste it carefully)
-
-Don't tell anyone what to use bitcoins for. The procedure for obtaining bitcoins can take several days, so do not wait.
-
-I have a spetial code in Trojan, and now I know that you have read this letter.
-You have 48 hours to pay.
-If I don't get BitCoins, I'll send your video to your contacts, including close relatives, co-workers, and so on.
-Start looking for the best excuse for friends and family before they all know.
-But if I get paid, I immediately delete the video. 
-
-This is a one-time offer that is non-negotiable, so do not waste my and your time.
-Time is running out.
-
-Bye!
-
-
---===============1072091807866092082==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============1072091807866092082==--
+Best regards,
+Pankaj    
