@@ -2,14 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5BA18211B6C26
- for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 17:52:59 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/4] ndctl, keys: fix a resource leak in verify_kek()
-Date: Fri,  1 Feb 2019 18:52:51 -0700
-Message-Id: <20190202015253.20051-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190202015253.20051-1-vishal.l.verma@intel.com>
-References: <20190202015253.20051-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 30756202E5318
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:40 -0800 (PST)
+Subject: [PATCH 4/7] libnvdimm/pfn: Introduce super-block minimum version
+ requirements
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Feb 2019 13:25:01 -0800
+Message-ID: <155000670159.348031.17631616775326330606.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,71 +24,78 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis reports that we were leaking key_handle in the above
-function. Fix the error handling to properly free it for every error
-case.
+In support of fixing a pfn info-block interpretation problem that
+requires a backwards incompatible format change introduce a mechanism to
+indicate a minimum support level to the parsing agent. Hopefully this
+mechanism never needs to be used, but it otherwise prevents the need to
+hunt for a state that causes old implementations to bail out.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+For now, the method chosen to make implementations prior to this
+introduction fail is to use new PFN3_MODE_* values. The use of 'mode'
+ensures that older Linux fails, but agents like the EFI driver that only
+care about 'data_offset' can continue to ignore the requirement. That is
+to say 'data_offset' should always be valid, but the interpretation of
+values that older Linux kernels use to setup the dev_pagemap and perform
+sector-to-pfn translations is going to change.
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/util/keys.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ drivers/nvdimm/pfn.h      |    4 +++-
+ drivers/nvdimm/pfn_devs.c |    7 +++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/ndctl/util/keys.c b/ndctl/util/keys.c
-index acc2ff3..c1f2e84 100644
---- a/ndctl/util/keys.c
-+++ b/ndctl/util/keys.c
-@@ -393,6 +393,7 @@ static int verify_kek(struct ndctl_dimm *dimm, const char *kek)
- {
- 	char *type, *desc, *key_handle;
- 	key_serial_t key;
-+	int rc = 0;
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index dde9853453d3..710cb743fad6 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -20,6 +20,7 @@
+ #define PFN_SIG_LEN 16
+ #define PFN_SIG "NVDIMM_PFN_INFO\0"
+ #define DAX_SIG "NVDIMM_DAX_INFO\0"
++#define PFN_VERSION_SUPPORT 2
  
- 	key_handle = strdup(kek);
- 	if (!key_handle)
-@@ -401,29 +402,34 @@ static int verify_kek(struct ndctl_dimm *dimm, const char *kek)
- 	type = strtok(key_handle, ":");
- 	if (!type) {
- 		fprintf(stderr, "No key type found for kek handle\n");
--		return -EINVAL;
-+		rc = -EINVAL;
-+		goto out;
- 	}
+ struct nd_pfn_sb {
+ 	u8 signature[PFN_SIG_LEN];
+@@ -36,7 +37,8 @@ struct nd_pfn_sb {
+ 	__le32 end_trunc;
+ 	/* minor-version-2 record the base alignment of the mapping */
+ 	__le32 align;
+-	u8 padding[4000];
++	__le16 min_version;
++	u8 padding[3998];
+ 	__le64 checksum;
+ };
  
- 	if (strcmp(type, "trusted") != 0 &&
- 			strcmp(type, "user") != 0) {
- 		fprintf(stderr, "No such key type: %s", type);
--		return -EINVAL;
-+		rc = -EINVAL;
-+		goto out;
- 	}
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index ba74a341da5d..108f9f7ed064 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -459,6 +459,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
+ 		pfn_sb->align = 0;
  
- 	desc = strtok(NULL, ":");
- 	if (!desc) {
- 		fprintf(stderr, "No description found for kek handle\n");
--		return -EINVAL;
-+		rc = -EINVAL;
-+		goto out;
- 	}
- 
- 	key = keyctl_search(KEY_SPEC_USER_KEYRING, type, desc, 0);
- 	if (key < 0) {
- 		fprintf(stderr, "No key encryption key found\n");
--		return key;
-+		rc = key;
-+		goto out;
- 	}
- 
-+out:
- 	free(key_handle);
--	return 0;
-+	return rc;
- }
- 
- int ndctl_dimm_setup_key(struct ndctl_dimm *dimm, const char *kek,
--- 
-2.20.1
++	if (__le16_to_cpu(pfn_sb->version_major) != 1)
++		return -EINVAL;
++
++	if (__le16_to_cpu(pfn_sb->min_version) > PFN_VERSION_SUPPORT)
++		return -EINVAL;
++
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -771,6 +777,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+ 	pfn_sb->version_minor = cpu_to_le16(2);
++	pfn_sb->min_version = cpu_to_le16(2);
+ 	pfn_sb->start_pad = cpu_to_le32(start_pad);
+ 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
 
 _______________________________________________
 Linux-nvdimm mailing list
