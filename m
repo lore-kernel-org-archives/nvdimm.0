@@ -1,56 +1,64 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Thu, 21 Feb 2019 09:23:53 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] libnvdimm, region: use struct_size() in kzalloc()
-Message-ID: <20190221152353.GA14585@embeddedor>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8F6ED21A134A1
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:41:57 -0800 (PST)
+Subject: [ndctl PATCH 6/8] ndctl/test: Make dax.sh more robust vs small
+ namespaces
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Feb 2019 13:29:19 -0800
+Message-ID: <155000695951.348282.13436729465082257744.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155000692826.348282.2795434657787204298.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155000692826.348282.2795434657787204298.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-One of the more common cases of allocation size calculations is finding
-the size of a structure that has a zero-sized array at the end, along
-with memory for some number of elements for that array. For example:
+If the namespace returned by test/dax-dev is too small ext4 may default
+to a 1K block-size. A 1K block-size precludes dax operation, so force a
+4K block-size in all cases.
 
-struct foo {
-    int stuff;
-    struct boo entry[];
-};
-
-instance = kzalloc(sizeof(struct foo) + count * sizeof(struct boo), GFP_KERNEL);
-
-Instead of leaving these open-coded and prone to type mistakes, we can
-now use the new struct_size() helper:
-
-instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
-
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/region_devs.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ test/dax.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e2818f94f292..d36cb5df9683 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1020,10 +1020,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 		}
- 		region_buf = ndbr;
- 	} else {
--		nd_region = kzalloc(sizeof(struct nd_region)
--				+ sizeof(struct nd_mapping)
--				* ndr_desc->num_mappings,
--				GFP_KERNEL);
-+		nd_region = kzalloc(struct_size(nd_region, mapping,
-+				    ndr_desc->num_mappings),
-+				    GFP_KERNEL);
- 		region_buf = nd_region;
- 	}
+diff --git a/test/dax.sh b/test/dax.sh
+index d38fd01acb07..e703e1222dee 100755
+--- a/test/dax.sh
++++ b/test/dax.sh
+@@ -47,7 +47,7 @@ json=$($NDCTL list -N -n $dev)
+ eval $(json2var <<< "$json")
+ rc=1
  
--- 
-2.20.1
+-mkfs.ext4 /dev/$blockdev
++mkfs.ext4 -b 4096 /dev/$blockdev
+ mount /dev/$blockdev $MNT -o dax
+ fallocate -l 1GiB $MNT/$FILE
+ run_test
+@@ -59,7 +59,7 @@ eval $(json2var <<< "$json")
+ [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+ 
+ #note the blockdev returned from ndctl create-namespace lacks the /dev prefix
+-mkfs.ext4 /dev/$blockdev
++mkfs.ext4 -b 4096 /dev/$blockdev
+ mount /dev/$blockdev $MNT -o dax
+ fallocate -l 1GiB $MNT/$FILE
+ run_test
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
