@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F73A2194EB76
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 18:34:57 -0800 (PST)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 052/105] acpi/nfit: Fix race accessing memdev in
- nfit_get_smbios_id()
-Date: Tue, 12 Feb 2019 21:32:43 -0500
-Message-Id: <20190213023336.19019-52-sashal@kernel.org>
-In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
-References: <20190213023336.19019-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 503F5202E531B
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:45 -0800 (PST)
+Subject: [PATCH 5/7] libnvdimm/pfn: Remove dax_label_reserve
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Feb 2019 13:25:06 -0800
+Message-ID: <155000670671.348031.8414677031368179860.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,57 +22,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Tony Luck <tony.luck@intel.com>
+The reserve was for an abandoned effort to add label (partitioning
+support) to device-dax instances. Remove it.
 
-[ Upstream commit 0919871ac37fdcf46c7657da0f1742efe096b399 ]
-
-Possible race accessing memdev structures after dropping the
-mutex. Dan Williams says this could race against another thread
-that is doing:
-
- # echo "ACPI0012:00" > /sys/bus/acpi/drivers/nfit/unbind
-
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Fixes: 23222f8f8dce ("acpi, nfit: Add function to look up nvdimm...")
-Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/nfit/core.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/nvdimm/pfn_devs.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 8535e7999769..2a2d7ec77252 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -724,6 +724,7 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
- 	struct acpi_nfit_memory_map *memdev;
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct nfit_mem *nfit_mem;
-+	u16 physical_id;
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 108f9f7ed064..110699f4c3e4 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -696,7 +696,6 @@ static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trun
  
- 	mutex_lock(&acpi_desc_lock);
- 	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-@@ -731,10 +732,11 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
- 		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
- 			memdev = __to_nfit_memdev(nfit_mem);
- 			if (memdev->device_handle == device_handle) {
-+				*flags = memdev->flags;
-+				physical_id = memdev->physical_id;
- 				mutex_unlock(&acpi_desc->init_mutex);
- 				mutex_unlock(&acpi_desc_lock);
--				*flags = memdev->flags;
--				return memdev->physical_id;
-+				return physical_id;
- 			}
- 		}
- 		mutex_unlock(&acpi_desc->init_mutex);
--- 
-2.19.1
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ {
+-	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	u32 start_pad, end_trunc, reserve = info_block_reserve();
+@@ -754,11 +753,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + reserve + 64 * npfns + dax_label_reserve,
++		offset = ALIGN(start + reserve + 64 * npfns,
+ 				max(nd_pfn->align, PMD_SIZE)) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+-		offset = ALIGN(start + reserve + dax_label_reserve,
+-				nd_pfn->align) - start;
++		offset = ALIGN(start + reserve, nd_pfn->align) - start;
+ 	else
+ 		return -ENXIO;
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
