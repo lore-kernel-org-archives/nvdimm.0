@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D5F80211BB8DC
- for <linux-nvdimm@lists.01.org>; Sun,  3 Feb 2019 11:41:28 -0800 (PST)
-Subject: [PATCH] acpi/nfit: Require opt-in for read-only label configurations
+ by ml01.01.org (Postfix) with ESMTPS id E8A23201B0435
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:24 -0800 (PST)
+Subject: [PATCH 1/7] libnvdimm/pfn: Account for PAGE_SIZE > info-block-size
+ in nd_pfn_init()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 03 Feb 2019 11:28:50 -0800
-Message-ID: <154922213038.3561630.15221922065373676874.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
-References: <CAPcyv4iMau=fvOfubDvK=cg5v5287TvXqBCm=p8nqbz2es6YEg@mail.gmail.com>
+Date: Tue, 12 Feb 2019 13:24:46 -0800
+Message-ID: <155000668608.348031.18233783401856221451.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,63 +24,105 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Recent fixes to command handling enabled Linux to read label
-configurations that it could not before. Unfortunately that means that
-configurations that were operating in label-less mode will be broken as
-the kernel ignores the existing namespace configuration and tries to
-honor the new found labels.
+Similar to "libnvdimm: Fix altmap reservation size calculation" provide
+for a reservation of a full page worth of info block space at info-block
+establishment time.  Typically there is already slack in the padding
+from honoring the default 2MB alignment, but provide for a reservation
+for corner case configurations that would otherwise fit.
 
-Fortunately this seems limited to a case where Linux can quirk the
-behavior and maintain the existing label-less semantics by default.
-When the platform does not emit an _LSW method, disable all label access
-methods. Provide a 'force_labels' module parameter to allow read-only
-label operation.
-
-Fixes: 11189c1089da ("acpi/nfit: Fix command-supported detection")
-Reported-by: Dexuan Cui <decui@microsoft.com>
+Cc: Oliver O'Halloran <oohall@gmail.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/nvdimm/pfn_devs.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 811c399a3a76..5b5e802de7b8 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -56,6 +56,10 @@ static bool no_init_ars;
- module_param(no_init_ars, bool, 0644);
- MODULE_PARM_DESC(no_init_ars, "Skip ARS run at nfit init time");
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 7760c1b91853..ba74a341da5d 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -580,6 +580,11 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
+ }
+ EXPORT_SYMBOL(nd_pfn_probe);
  
-+static bool force_labels;
-+module_param(force_labels, bool, 0444);
-+MODULE_PARM_DESC(force_labels, "Opt-in to labels despite missing methods");
++static u32 info_block_reserve(void)
++{
++	return ALIGN(SZ_8K, PAGE_SIZE);
++}
 +
- LIST_HEAD(acpi_descs);
- DEFINE_MUTEX(acpi_desc_lock);
+ /*
+  * We hotplug memory at section granularity, pad the reserved area from
+  * the previous section base to the namespace base address.
+@@ -593,7 +598,7 @@ static unsigned long init_altmap_base(resource_size_t base)
  
-@@ -1916,6 +1920,19 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 			dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
- 			set_bit(NFIT_MEM_LSW, &nfit_mem->flags);
- 		}
-+
-+		/*
-+		 * Quirk read-only label configurations to preserve
-+		 * access to label-less namespaces by default.
-+		 */
-+		if (!test_bit(NFIT_MEM_LSW, &nfit_mem->flags)
-+				&& !force_labels) {
-+			dev_dbg(dev, "%s: No _LSW, disable labels\n",
-+					dev_name(&adev_dimm->dev));
-+			clear_bit(NFIT_MEM_LSR, &nfit_mem->flags);
-+		} else
-+			dev_dbg(dev, "%s: Force enable labels\n",
-+					dev_name(&adev_dimm->dev));
- 	}
+ static unsigned long init_altmap_reserve(resource_size_t base)
+ {
+-	unsigned long reserve = PFN_UP(SZ_8K);
++	unsigned long reserve = info_block_reserve() >> PAGE_SHIFT;
+ 	unsigned long base_pfn = PHYS_PFN(base);
  
- 	populate_shutdown_status(nfit_mem);
+ 	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
+@@ -608,6 +613,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	u64 offset = le64_to_cpu(pfn_sb->dataoff);
+ 	u32 start_pad = __le32_to_cpu(pfn_sb->start_pad);
+ 	u32 end_trunc = __le32_to_cpu(pfn_sb->end_trunc);
++	u32 reserve = info_block_reserve();
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	resource_size_t base = nsio->res.start + start_pad;
+@@ -621,7 +627,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	res->end -= end_trunc;
+ 
+ 	if (nd_pfn->mode == PFN_MODE_RAM) {
+-		if (offset < SZ_8K)
++		if (offset < reserve)
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		pgmap->altmap_valid = false;
+@@ -634,7 +640,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 					le64_to_cpu(nd_pfn->pfn_sb->npfns),
+ 					nd_pfn->npfns);
+ 		memcpy(altmap, &__altmap, sizeof(*altmap));
+-		altmap->free = PHYS_PFN(offset - SZ_8K);
++		altmap->free = PHYS_PFN(offset - reserve);
+ 		altmap->alloc = 0;
+ 		pgmap->altmap_valid = true;
+ 	} else
+@@ -687,9 +693,9 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
++	u32 start_pad, end_trunc, reserve = info_block_reserve();
+ 	resource_size_t start, size;
+ 	struct nd_region *nd_region;
+-	u32 start_pad, end_trunc;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	unsigned long npfns;
+ 	phys_addr_t offset;
+@@ -734,7 +740,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	 */
+ 	start = nsio->res.start + start_pad;
+ 	size = resource_size(&nsio->res);
+-	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - SZ_8K)
++	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - reserve)
+ 			/ PAGE_SIZE);
+ 	if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		/*
+@@ -742,10 +748,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + SZ_8K + 64 * npfns + dax_label_reserve,
++		offset = ALIGN(start + reserve + 64 * npfns + dax_label_reserve,
+ 				max(nd_pfn->align, PMD_SIZE)) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+-		offset = ALIGN(start + SZ_8K + dax_label_reserve,
++		offset = ALIGN(start + reserve + dax_label_reserve,
+ 				nd_pfn->align) - start;
+ 	else
+ 		return -ENXIO;
 
 _______________________________________________
 Linux-nvdimm mailing list
