@@ -2,15 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EF6D9202E53A7
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 18:38:16 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 2F73A2194EB76
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 18:34:57 -0800 (PST)
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 44/83] acpi/nfit: Fix race accessing memdev in
+Subject: [PATCH AUTOSEL 4.20 052/105] acpi/nfit: Fix race accessing memdev in
  nfit_get_smbios_id()
-Date: Tue, 12 Feb 2019 21:36:22 -0500
-Message-Id: <20190213023701.20286-44-sashal@kernel.org>
-In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
-References: <20190213023701.20286-1-sashal@kernel.org>
+Date: Tue, 12 Feb 2019 21:32:43 -0500
+Message-Id: <20190213023336.19019-52-sashal@kernel.org>
+In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
+References: <20190213023336.19019-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -47,10 +47,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ea59c01ce8db..f530d3541242 100644
+index 8535e7999769..2a2d7ec77252 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -719,6 +719,7 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
+@@ -724,6 +724,7 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
  	struct acpi_nfit_memory_map *memdev;
  	struct acpi_nfit_desc *acpi_desc;
  	struct nfit_mem *nfit_mem;
@@ -58,7 +58,7 @@ index ea59c01ce8db..f530d3541242 100644
  
  	mutex_lock(&acpi_desc_lock);
  	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-@@ -726,10 +727,11 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
+@@ -731,10 +732,11 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
  		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
  			memdev = __to_nfit_memdev(nfit_mem);
  			if (memdev->device_handle == device_handle) {
