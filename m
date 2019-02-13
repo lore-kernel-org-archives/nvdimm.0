@@ -1,21 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 610F8202E535D
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 17:44:37 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id n71so1257434ota.10
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 17:44:37 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 888E42194EB76
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Feb 2019 08:19:18 -0800 (PST)
+Received: by mail-ot1-x341.google.com with SMTP id 98so5185684oty.1
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Feb 2019 08:19:18 -0800 (PST)
 MIME-Version: 1.0
-References: <20181128193636.254378-1-brendanhiggins@google.com>
- <20181128193636.254378-18-brendanhiggins@google.com>
- <CAL_Jsq+09Kx7yMBC_Jw45QGmk6U_fp4N6HOZDwYrM4tWw+_dOA@mail.gmail.com>
-In-Reply-To: <CAL_Jsq+09Kx7yMBC_Jw45QGmk6U_fp4N6HOZDwYrM4tWw+_dOA@mail.gmail.com>
-From: Brendan Higgins <brendanhiggins@google.com>
-Date: Tue, 12 Feb 2019 17:44:23 -0800
-Message-ID: <CAFd5g46NehKo=TT4reQ8r74bDTG9BkR=ELg+Q3n5YooUxFwBmA@mail.gmail.com>
-Subject: Re: [RFC v3 17/19] of: unittest: migrate tests to run on KUnit
+References: <20190124231441.37A4A305@viggo.jf.intel.com>
+ <20190124231448.E102D18E@viggo.jf.intel.com>
+ <c4c6aca8-6ee8-be10-65ae-4cbe0aa03bfb@inria.fr>
+ <26ac36f4-7391-5321-217b-50d67e2119d7@intel.com>
+ <453f13cd-a7fe-33eb-9a27-8490825ca29c@inria.fr>
+ <CAPcyv4jF7ZyKaFDw7nb04UvWkVWGJdLGkZDQ1g=X7i+kdu7JRg@mail.gmail.com>
+ <a3bfe739-228e-26fe-90f7-4a4f8ceb3a9a@inria.fr>
+ <CAPcyv4jJ=C7ZEsJqBxzBMsQWz4+C8BZmWuk7OkztOebprd2rMg@mail.gmail.com>
+ <057ad938-e745-02f7-edce-e19bd326da6a@inria.fr>
+ <eb58cb96-1f61-2dd2-b1ab-5a7d4df78297@inria.fr>
+In-Reply-To: <eb58cb96-1f61-2dd2-b1ab-5a7d4df78297@inria.fr>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 13 Feb 2019 08:19:05 -0800
+Message-ID: <CAPcyv4iAex_rgPXfhsjWjbvKX79s0ZoieE2NeX14_F56WoQ_7A@mail.gmail.com>
+Subject: Re: [PATCH 5/5] dax: "Hotplug" persistent memory for use like normal
+ RAM
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,265 +31,60 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Rob Herring <robh@kernel.org>
-Cc: brakmo@fb.com, dri-devel <dri-devel@lists.freedesktop.org>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Joel Stanley <joel@jms.id.au>, Jeff Dike <jdike@addtoit.com>, "Bird," Timothy" <Tim.Bird@sony.com>, Kees Cook <keescook@google.com>," linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
+To: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Takashi Iwai <tiwai@suse.de>, "Huang, Ying  <ying.huang@intel.com>, Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Dave Hansen <dave.hansen@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Borislav Petkov <bp@suse.de>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Ross Zwisler <zwisler@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Fengguang Wu <fengguang.wu@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Nov 28, 2018 at 12:56 PM Rob Herring <robh@kernel.org> wrote:
->
-> On Wed, Nov 28, 2018 at 1:38 PM Brendan Higgins
-> <brendanhiggins@google.com> wrote:
-> >
-> > Migrate tests without any cleanup, or modifying test logic in anyway to
-> > run under KUnit using the KUnit expectation and assertion API.
->
-> Nice! You beat me to it. This is probably going to conflict with what
-> is in the DT tree for 4.21. Also, please Cc the DT list for
-> drivers/of/ changes.
->
-> Looks good to me, but a few mostly formatting comments below.
-
-I just realized that we never talked about your other comments, and I
-still have some questions. (Sorry, it was the last thing I looked at
-while getting v4 ready.) No worries if you don't get to it before I
-send v4 out, I just didn't want you to think I was ignoring you.
-
->
-> >
-> > Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> > ---
-> >  drivers/of/Kconfig    |    1 +
-> >  drivers/of/unittest.c | 1405 ++++++++++++++++++++++-------------------
-> >  2 files changed, 752 insertions(+), 654 deletions(-)
-> >
-<snip>
-> > diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
-> > index 41b49716ac75f..a5ef44730ffdb 100644
-> > --- a/drivers/of/unittest.c
-> > +++ b/drivers/of/unittest.c
-<snip>
-> > -
-> > -static void __init of_unittest_find_node_by_name(void)
-> > +static void of_unittest_find_node_by_name(struct kunit *test)
->
-> Why do we have to drop __init everywhere? The tests run later?
-
->From the standpoint of a unit test __init doesn't really make any
-sense, right? I know that right now we are running as part of a
-kernel, but the goal should be that a unit test is not part of a
-kernel and we just include what we need.
-
-Even so, that's the future. For now, I did not put the KUnit
-infrastructure in the .init section because I didn't think it belonged
-there. In practice, KUnit only knows how to run during the init phase
-of the kernel, but I don't think it should be restricted there. You
-should be able to run tests whenever you want because you should be
-able to test anything right? I figured any restriction on that is
-misleading and will potentially get in the way at worst, and
-unnecessary at best especially since people shouldn't build a
-production kernel with all kinds of unit tests inside.
-
->
-> >  {
-> >         struct device_node *np;
-> >         const char *options, *name;
-> >
-<snip>
-> >
-> >
-> > -       np = of_find_node_by_path("/testcase-data/missing-path");
-> > -       unittest(!np, "non-existent path returned node %pOF\n", np);
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_find_node_by_path("/testcase-data/missing-path"),
-> > +                           NULL,
-> > +                           "non-existent path returned node %pOF\n", np);
->
-> 1 tab indent would help with less vertical code (in general, not this
-> one so much).
-
-Will do.
-
->
-> >         of_node_put(np);
-> >
-> > -       np = of_find_node_by_path("missing-alias");
-> > -       unittest(!np, "non-existent alias returned node %pOF\n", np);
-> > +       KUNIT_EXPECT_EQ_MSG(test, of_find_node_by_path("missing-alias"), NULL,
-> > +                           "non-existent alias returned node %pOF\n", np);
-> >         of_node_put(np);
-> >
-> > -       np = of_find_node_by_path("testcase-alias/missing-path");
-> > -       unittest(!np, "non-existent alias with relative path returned node %pOF\n", np);
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_find_node_by_path("testcase-alias/missing-path"),
-> > +                           NULL,
-> > +                           "non-existent alias with relative path returned node %pOF\n",
-> > +                           np);
-> >         of_node_put(np);
-> >
-<snip>
-> >
-> > -static void __init of_unittest_property_string(void)
-> > +static void of_unittest_property_string(struct kunit *test)
-> >  {
-> >         const char *strings[4];
-> >         struct device_node *np;
-> >         int rc;
-> >
-> >         np = of_find_node_by_path("/testcase-data/phandle-tests/consumer-a");
-> > -       if (!np) {
-> > -               pr_err("No testcase data in device tree\n");
-> > -               return;
-> > -       }
-> > -
-> > -       rc = of_property_match_string(np, "phandle-list-names", "first");
-> > -       unittest(rc == 0, "first expected:0 got:%i\n", rc);
-> > -       rc = of_property_match_string(np, "phandle-list-names", "second");
-> > -       unittest(rc == 1, "second expected:1 got:%i\n", rc);
-> > -       rc = of_property_match_string(np, "phandle-list-names", "third");
-> > -       unittest(rc == 2, "third expected:2 got:%i\n", rc);
-> > -       rc = of_property_match_string(np, "phandle-list-names", "fourth");
-> > -       unittest(rc == -ENODATA, "unmatched string; rc=%i\n", rc);
-> > -       rc = of_property_match_string(np, "missing-property", "blah");
-> > -       unittest(rc == -EINVAL, "missing property; rc=%i\n", rc);
-> > -       rc = of_property_match_string(np, "empty-property", "blah");
-> > -       unittest(rc == -ENODATA, "empty property; rc=%i\n", rc);
-> > -       rc = of_property_match_string(np, "unterminated-string", "blah");
-> > -       unittest(rc == -EILSEQ, "unterminated string; rc=%i\n", rc);
-> > +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, np);
-> > +
-> > +       KUNIT_EXPECT_EQ(test,
-> > +                       of_property_match_string(np,
-> > +                                                "phandle-list-names",
-> > +                                                "first"),
-> > +                       0);
-> > +       KUNIT_EXPECT_EQ(test,
-> > +                       of_property_match_string(np,
-> > +                                                "phandle-list-names",
-> > +                                                "second"),
-> > +                       1);
->
-> Fewer lines on these would be better even if we go over 80 chars.
-
-On the of_property_match_string(...), I have no opinion. I will do
-whatever you like best.
-
-Nevertheless, as far as the KUNIT_EXPECT_*(...), I do have an opinion: I am
-trying to establish a good, readable convention. Given an expect statement
-structured as
-```
-KUNIT_EXPECT_*(
-    test,
-    expect_arg_0, ..., expect_arg_n,
-    fmt_str, fmt_arg_0, ..., fmt_arg_n)
-```
-where `test` is the `struct kunit` context argument, `expect_arg_{0, ..., n}`
-are the arguments the expectations is being made about (so in the above example,
-`of_property_match_string(...)` and `1`), and `fmt_*` is the optional format
-string that comes at the end of some expectations.
-
-The pattern I had been trying to promote is the following:
-
-1) If everything fits on 1 line, do that.
-2) If you must make a line split, prefer to keep `test` on its own line,
-`expect_arg_{0, ..., n}` should be kept together, if possible, and the format
-string should follow the conventions already most commonly used with format
-strings.
-3) If you must split up `expect_arg_{0, ..., n}` each argument should get its
-own line and should not share a line with either `test` or any `fmt_*`.
-
-The reason I care about this so much is because expectations should be
-extremely easy to read; they are the most important part of a unit
-test because they tell you what the test is verifying. I am not
-married to the formatting I proposed above, but I want something that
-will be extremely easy to identify the arguments that the expectation
-is on. Maybe that means that I need to add some syntactic fluff to
-make it clearer, I don't know, but this is definitely something we
-need to get right, especially in the earliest examples.
-
->
-> > +       KUNIT_EXPECT_EQ(test,
-> > +                       of_property_match_string(np,
-> > +                                                "phandle-list-names",
-> > +                                                "third"),
-> > +                       2);
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_property_match_string(np,
-> > +                                                    "phandle-list-names",
-> > +                                                    "fourth"),
-> > +                           -ENODATA,
-> > +                           "unmatched string");
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_property_match_string(np,
-> > +                                                    "missing-property",
-> > +                                                    "blah"),
-> > +                           -EINVAL,
-> > +                           "missing property");
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_property_match_string(np,
-> > +                                                    "empty-property",
-> > +                                                    "blah"),
-> > +                           -ENODATA,
-> > +                           "empty property");
-> > +       KUNIT_EXPECT_EQ_MSG(test,
-> > +                           of_property_match_string(np,
-> > +                                                    "unterminated-string",
-> > +                                                    "blah"),
-> > +                           -EILSEQ,
-> > +                           "unterminated string");
-<snip>
-> >  /* test insertion of a bus with parent devices */
-> > -static void __init of_unittest_overlay_10(void)
-> > +static void of_unittest_overlay_10(struct kunit *test)
-> >  {
-> > -       int ret;
-> >         char *child_path;
-> >
-> >         /* device should disable */
-> > -       ret = of_unittest_apply_overlay_check(10, 10, 0, 1, PDEV_OVERLAY);
-> > -       if (unittest(ret == 0,
-> > -                       "overlay test %d failed; overlay application\n", 10))
-> > -               return;
-> > +       KUNIT_ASSERT_EQ_MSG(test,
-> > +                           of_unittest_apply_overlay_check(test,
-> > +                                                           10,
-> > +                                                           10,
-> > +                                                           0,
-> > +                                                           1,
-> > +                                                           PDEV_OVERLAY),
->
-> I prefer putting multiple args on a line and having fewer lines.
-
-Looking at this now, I tend to agree, but I don't think I saw a
-consistent way to break them up for these functions. I figured there
-should be some type of pattern.
-
->
-> > +                           0,
-> > +                           "overlay test %d failed; overlay application\n",
-> > +                           10);
-> >
-> >         child_path = kasprintf(GFP_KERNEL, "%s/test-unittest101",
-> >                         unittest_path(10, PDEV_OVERLAY));
-> > -       if (unittest(child_path, "overlay test %d failed; kasprintf\n", 10))
-> > -               return;
-> > +       KUNIT_ASSERT_NOT_ERR_OR_NULL(test, child_path);
-> >
-> > -       ret = of_path_device_type_exists(child_path, PDEV_OVERLAY);
-> > +       KUNIT_EXPECT_TRUE_MSG(test,
-> > +                             of_path_device_type_exists(child_path,
-> > +                                                        PDEV_OVERLAY),
-> > +                             "overlay test %d failed; no child device\n", 10);
-> >         kfree(child_path);
-> > -
-> > -       unittest(ret, "overlay test %d failed; no child device\n", 10);
-> >  }
-<snip>
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCBGZWIgMTMsIDIwMTkgYXQgNTowNyBBTSBCcmljZSBHb2dsaW4gPEJyaWNlLkdvZ2xp
+bkBpbnJpYS5mcj4gd3JvdGU6Cj4KPgo+IExlIDEzLzAyLzIwMTkgw6AgMDk6NDMsIEJyaWNlIEdv
+Z2xpbiBhIMOpY3JpdCA6Cj4gPiBMZSAxMy8wMi8yMDE5IMOgIDA5OjI0LCBEYW4gV2lsbGlhbXMg
+YSDDqWNyaXQgOgo+ID4+IE9uIFdlZCwgRmViIDEzLCAyMDE5IGF0IDEyOjEyIEFNIEJyaWNlIEdv
+Z2xpbiA8QnJpY2UuR29nbGluQGlucmlhLmZyPiB3cm90ZToKPiA+Pj4gTGUgMTMvMDIvMjAxOSDD
+oCAwMTozMCwgRGFuIFdpbGxpYW1zIGEgw6ljcml0IDoKPiA+Pj4+IE9uIFR1ZSwgRmViIDEyLCAy
+MDE5IGF0IDExOjU5IEFNIEJyaWNlIEdvZ2xpbiA8QnJpY2UuR29nbGluQGlucmlhLmZyPiB3cm90
+ZToKPiA+Pj4+PiAjIG5kY3RsIGRpc2FibGUtcmVnaW9uIGFsbAo+ID4+Pj4+ICMgbmRjdGwgemVy
+by1sYWJlbHMgYWxsCj4gPj4+Pj4gIyBuZGN0bCBlbmFibGUtcmVnaW9uIHJlZ2lvbjAKPiA+Pj4+
+PiAjIG5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UgLXIgcmVnaW9uMCAtdCBwbWVtIC1tIGRldmRheAo+
+ID4+Pj4+IHsKPiA+Pj4+PiAgICJkZXYiOiJuYW1lc3BhY2UwLjAiLAo+ID4+Pj4+ICAgIm1vZGUi
+OiJkZXZkYXgiLAo+ID4+Pj4+ICAgIm1hcCI6ImRldiIsCj4gPj4+Pj4gICAic2l6ZSI6IjE0ODgu
+MzcgR2lCICgxNTk4LjEzIEdCKSIsCj4gPj4+Pj4gICAidXVpZCI6ImFkMDA5NmQ3LTNmZTctNDQw
+Mi1iNTI5LWFkNjRlZDBiZjc4OSIsCj4gPj4+Pj4gICAiZGF4cmVnaW9uIjp7Cj4gPj4+Pj4gICAg
+ICJpZCI6MCwKPiA+Pj4+PiAgICAgInNpemUiOiIxNDg4LjM3IEdpQiAoMTU5OC4xMyBHQikiLAo+
+ID4+Pj4+ICAgICAiYWxpZ24iOjIwOTcxNTIsCj4gPj4+Pj4gICAgICJkZXZpY2VzIjpbCj4gPj4+
+Pj4gICAgICAgewo+ID4+Pj4+ICAgICAgICAgImNoYXJkZXYiOiJkYXgwLjAiLAo+ID4+Pj4+ICAg
+ICAgICAgInNpemUiOiIxNDg4LjM3IEdpQiAoMTU5OC4xMyBHQikiCj4gPj4+Pj4gICAgICAgfQo+
+ID4+Pj4+ICAgICBdCj4gPj4+Pj4gICB9LAo+ID4+Pj4+ICAgImFsaWduIjoyMDk3MTUyCj4gPj4+
+Pj4gfQo+ID4+Pj4+ICMgbmRjdGwgZW5hYmxlLW5hbWVzcGFjZSBuYW1lc3BhY2UwLjAKPiA+Pj4+
+PiAjIGVjaG8gLW4gZGF4MC4wID4gL3N5cy9idXMvZGF4L2RyaXZlcnMvZGV2aWNlX2RheC9yZW1v
+dmVfaWQKPiA+Pj4+PiA8aGFuZz4KPiA+Pj4+Pgo+ID4+Pj4+IEkgdHJpZWQgd2l0aCBhbmQgd2l0
+aG91dCBkYXhfcG1lbV9jb21wYXQgbG9hZGVkLCBidXQgaXQgZG9lc24ndCBoZWxwLgo+ID4+Pj4g
+SSB0aGluayB0aGlzIGlzIGR1ZSB0bzoKPiA+Pj4+Cj4gPj4+PiAgIGE5ZjFmZmRiNmEyMCBkZXZp
+Y2UtZGF4OiBBdXRvLWJpbmQgZGV2aWNlIGFmdGVyIHN1Y2Nlc3NmdWwgbmV3X2lkCj4gPj4+Pgo+
+ID4+Pj4gSSBtaXNzZWQgdGhhdCB0aGlzIHBhdGggaXMgYWxzbyBjYWxsZWQgaW4gdGhlIHJlbW92
+ZV9pZCBwYXRoLiBUaGFua3MKPiA+Pj4+IGZvciB0aGUgYnVnIHJlcG9ydCEgSSdsbCBnZXQgdGhp
+cyBmaXhlZCB1cC4KPiA+Pj4gTm93IHRoYXQgcmVtb3ZlX2lkIGlzIGZpeGVkLCB0aGluZ3MgZmFp
+bHMgbGF0ZXIgaW4gRGF2ZSdzIHByb2NlZHVyZToKPiA+Pj4KPiA+Pj4gIyBlY2hvIC1uIGRheDAu
+MCA+IC9zeXMvYnVzL2RheC9kcml2ZXJzL2RldmljZV9kYXgvcmVtb3ZlX2lkCj4gPj4+ICMgZWNo
+byAtbiBkYXgwLjAgPiAvc3lzL2J1cy9kYXgvZHJpdmVycy9kZXZpY2VfZGF4L3VuYmluZAo+ID4+
+PiAjIGVjaG8gLW4gZGF4MC4wID4gL3N5cy9idXMvZGF4L2RyaXZlcnMva21lbS9uZXdfaWQKPiA+
+PiBJbiB0aGUgY3VycmVudCB2ZXJzaW9uIG9mIHRoZSBjb2RlIHRoZSBiaW5kIGlzIG5vdCBuZWNl
+c3NhcnksIHNvIHRoZQo+ID4+IGxhY2sgb2YgZXJyb3IgbWVzc2FnZXMgaGVyZSBtZWFucyB0aGUg
+YmluZCBzdWNjZWVkZWQuCj4KPgo+IEl0IGxvb2tzIGxpa2UgInVuYmluZCIgaXMgcmVxdWlyZWQg
+dG8gbWFrZSB0aGUgUE1FTSBhcHBlYXIgYXMgYSBuZXcKPiBub2RlLiBJZiBJIHJlbW92ZV9pZCBm
+cm9tIGRldmRheCBhbmQgbmV3X2lkIHRvIGttZW0gd2l0aG91dCAidW5iaW5kIiBpbgo+IHRoZSBt
+aWRkbGUsIG5vdGhpbmcgYXBwZWFycy4KPgo+IFdyaXRpbmcgdG8gImttZW0vYmluZCIgZGlkbid0
+IHNlZW0gbmVjZXNzYXJ5LgoKWWVzLCBpbiBzaG9ydDoKCmRldmljZV9kYXgvcmVtb3ZlX2lkOiBu
+b3QgcmVxdWlyZWQsIHRoaXMgZHJpdmVyIGF0dGFjaGVzIHRvIGFueSBhbmQKYWxsIGRldmljZS1k
+YXggZGV2aWNlcyBieSBkZWZhdWx0CmRldmljZV9kYXgvdW5iaW5kOiByZXF1aXJlZCwgbm90aGlu
+ZyBlbHNlIHdpbGwgZnJlZSB0aGUgZGV2aWNlIGZvcgprbWVtIHRvIGF0dGFjaAprbWVtL25ld19p
+ZDogcmVxdWlyZWQsIGl0IHdpbGwgYXR0YWNoIGlmIHRoZSBkZXZpY2UgaXMgY3VycmVudGx5CnVu
+Ym91bmQgb3RoZXJ3aXNlIHRoZSBkZXZpY2UgbXVzdCBiZSB1bmJvdW5kIGJlZm9yZSBwcm9jZWVk
+aW5nCmttZW0vYmluZDogb25seSByZXF1aXJlZCBpZiB0aGUgZGV2aWNlIHdhcyBidXN5IC8gYXR0
+YWNoZWQgdG8KZGV2aWNlX2RheCB3aGVuIG5ld19pZCB3YXMgd3JpdHRlbi4KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
+YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
