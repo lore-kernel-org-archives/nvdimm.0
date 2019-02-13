@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E4D5C2194EB78
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:30 -0800 (PST)
-Subject: [PATCH v2 1/6] nfit/ars: Attempt a short-ARS whenever the ARS state
- is idle at boot
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Feb 2019 11:43:52 -0800
-Message-ID: <155025983247.1043225.5927153534700111609.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EF6D9202E53A7
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 18:38:16 -0800 (PST)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 44/83] acpi/nfit: Fix race accessing memdev in
+ nfit_get_smbios_id()
+Date: Tue, 12 Feb 2019 21:36:22 -0500
+Message-Id: <20190213023701.20286-44-sashal@kernel.org>
+In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
+References: <20190213023701.20286-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,40 +23,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, Krzysztof Rusocki <krzysztof.rusocki@intel.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-If query-ARS reports that ARS has stopped and requires continuation
-attempt to retrieve short-ARS results before continuing the long
-operation.
+From: Tony Luck <tony.luck@intel.com>
 
-Reported-by: Krzysztof Rusocki <krzysztof.rusocki@intel.com>
+[ Upstream commit 0919871ac37fdcf46c7657da0f1742efe096b399 ]
+
+Possible race accessing memdev structures after dropping the
+mutex. Dan Williams says this could race against another thread
+that is doing:
+
+ # echo "ACPI0012:00" > /sys/bus/acpi/drivers/nfit/unbind
+
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Fixes: 23222f8f8dce ("acpi, nfit: Add function to look up nvdimm...")
+Signed-off-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/acpi/nfit/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index e18ade5d74e9..3d681a92ff7f 100644
+index ea59c01ce8db..f530d3541242 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -3012,6 +3012,7 @@ static int ars_register(struct acpi_nfit_desc *acpi_desc,
+@@ -719,6 +719,7 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
+ 	struct acpi_nfit_memory_map *memdev;
+ 	struct acpi_nfit_desc *acpi_desc;
+ 	struct nfit_mem *nfit_mem;
++	u16 physical_id;
  
- 	switch (acpi_nfit_query_poison(acpi_desc)) {
- 	case 0:
-+	case -ENOSPC:
- 	case -EAGAIN:
- 		rc = ars_start(acpi_desc, nfit_spa, ARS_REQ_SHORT);
- 		/* shouldn't happen, try again later */
-@@ -3036,7 +3037,6 @@ static int ars_register(struct acpi_nfit_desc *acpi_desc,
- 		break;
- 	case -EBUSY:
- 	case -ENOMEM:
--	case -ENOSPC:
- 		/*
- 		 * BIOS was using ARS, wait for it to complete (or
- 		 * resources to become available) and then perform our
+ 	mutex_lock(&acpi_desc_lock);
+ 	list_for_each_entry(acpi_desc, &acpi_descs, list) {
+@@ -726,10 +727,11 @@ int nfit_get_smbios_id(u32 device_handle, u16 *flags)
+ 		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
+ 			memdev = __to_nfit_memdev(nfit_mem);
+ 			if (memdev->device_handle == device_handle) {
++				*flags = memdev->flags;
++				physical_id = memdev->physical_id;
+ 				mutex_unlock(&acpi_desc->init_mutex);
+ 				mutex_unlock(&acpi_desc_lock);
+-				*flags = memdev->flags;
+-				return memdev->physical_id;
++				return physical_id;
+ 			}
+ 		}
+ 		mutex_unlock(&acpi_desc->init_mutex);
+-- 
+2.19.1
 
 _______________________________________________
 Linux-nvdimm mailing list
