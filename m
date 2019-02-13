@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mail2-relais-roc.national.inria.fr
+ (mail2-relais-roc.national.inria.fr [192.134.164.83])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BE2FF201B043C
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:29 -0800 (PST)
-Subject: [PATCH 2/7] libnvdimm/pmem: Honor force_raw for legacy pmem regions
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Feb 2019 13:24:51 -0800
-Message-ID: <155000669130.348031.13764885263577554365.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4D11321B02822
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Feb 2019 00:06:39 -0800 (PST)
+Subject: Re: [PATCH v2] device-dax: Auto-bind device after successful new_id
+References: <155002261877.645460.9109209504128012410.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+Message-ID: <37673cff-fec8-a575-5e50-164497fbe7d3@inria.fr>
+Date: Wed, 13 Feb 2019 09:06:16 +0100
 MIME-Version: 1.0
+In-Reply-To: <155002261877.645460.9109209504128012410.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,53 +20,64 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For recovery, where non-dax access is needed to a given physical address
-range, and testing, allow the 'force_raw' attribute to override the
-default establishment of a dev_pagemap.
-
-Otherwise without this capability it is possible to end up with a
-namespace that can not be activated due to corrupted info-block, and one
-that can not be repaired due to a section collision.
-
-Cc: <stable@vger.kernel.org>
-Fixes: 004f1afbe199 ("libnvdimm, pmem: direct map legacy pmem by default")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/namespace_devs.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 4b077555ac70..33a3b23b3db7 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -138,6 +138,7 @@ bool nd_is_uuid_unique(struct device *dev, u8 *uuid)
- bool pmem_should_map_pages(struct device *dev)
- {
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nd_namespace_common *ndns = to_ndns(dev);
- 	struct nd_namespace_io *nsio;
- 
- 	if (!IS_ENABLED(CONFIG_ZONE_DEVICE))
-@@ -149,6 +150,9 @@ bool pmem_should_map_pages(struct device *dev)
- 	if (is_nd_pfn(dev) || is_nd_btt(dev))
- 		return false;
- 
-+	if (ndns->force_raw)
-+		return false;
-+
- 	nsio = to_nd_namespace_io(dev);
- 	if (region_intersects(nsio->res.start, resource_size(&nsio->res),
- 				IORESOURCE_SYSTEM_RAM,
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhhbmtzIERhbiwgcmVtb3ZlX2lkIHdvcmtzIG5vdy4KCkJyaWNlCgoKTGUgMTMvMDIvMjAxOSDD
+oCAwMjo1MCwgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4gVGhlIHR5cGljYWwgJ25ld19pZCcg
+YXR0cmlidXRlIGJlaGF2aW9yIGlzIHRvIGltbWVkaWF0ZWx5IGF0dGFjaCBhCj4gZGV2aWNlIHRv
+IGl0cyBkcml2ZXIgYWZ0ZXIgYSBuZXcgZGV2aWNlLWlkIGlzIGFkZGVkLiBJbXBsZW1lbnQgdGhp
+cwo+IGJlaGF2aW9yIGZvciB0aGUgZGF4IGJ1cy4KPgo+IFJlcG9ydGVkLWJ5OiBBbGV4YW5kZXIg
+RHV5Y2sgPGFsZXhhbmRlci5oLmR1eWNrQGxpbnV4LmludGVsLmNvbT4KPiBSZXBvcnRlZC1ieTog
+QnJpY2UgR29nbGluIDxCcmljZS5Hb2dsaW5AaW5yaWEuZnI+Cj4gQ2M6IERhdmUgSGFuc2VuIDxk
+YXZlLmhhbnNlbkBsaW51eC5pbnRlbC5jb20+Cj4gU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1z
+IDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4gLS0tCj4gQ2hhbmdlcyBzaW5jZSB2MToKPiAq
+IEZpeCB0aGUgcmVtb3ZlX2lkIHBhdGggc2luY2UgZG9faWRfc3RvcmUoKSBpcyBzaGFyZWQgd2l0
+aCB0aGUgbmV3X2lkCj4gICBwYXRoIChCcmljZSkKPgo+IEJyaWNlLCB0aGlzIHdvcmtzIGZvciBt
+ZS4gSSdsbCBwdXNoIGl0IG91dCBvbiBsaWJudmRpbW0tcGVuZGluZywgb3IgaW4KPiB0aGUgbWVh
+bnRpbWUgeW91IGNhbiBhcHBseSB0aGlzIHBhdGNoIGFmdGVyIHJldmVydGluZyBjb21taXQKPiBh
+OWYxZmZkYjZhMjAgb24gdGhlIGN1cnJlbnQgc3RhdGUgb2YgdGhlIGJyYW5jaC4KPgo+ICBkcml2
+ZXJzL2RheC9idXMuYyB8ICAgMjQgKysrKysrKysrKysrKysrKysrLS0tLS0tCj4gIDEgZmlsZSBj
+aGFuZ2VkLCAxOCBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZGF4L2J1cy5jIGIvZHJpdmVycy9kYXgvYnVzLmMKPiBpbmRleCBjNjIwYWQ1MmQ3
+ZTUuLmE0MTAxNTRkNzVmYiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2RheC9idXMuYwo+ICsrKyBi
+L2RyaXZlcnMvZGF4L2J1cy5jCj4gQEAgLTU3LDggKzU3LDEzIEBAIHN0YXRpYyBpbnQgZGF4X21h
+dGNoX2lkKHN0cnVjdCBkYXhfZGV2aWNlX2RyaXZlciAqZGF4X2Rydiwgc3RydWN0IGRldmljZSAq
+ZGV2KQo+ICAJcmV0dXJuIG1hdGNoOwo+ICB9Cj4gIAo+ICtlbnVtIGlkX2FjdGlvbiB7Cj4gKwlJ
+RF9SRU1PVkUsCj4gKwlJRF9BREQsCj4gK307Cj4gKwo+ICBzdGF0aWMgc3NpemVfdCBkb19pZF9z
+dG9yZShzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZHJ2LCBjb25zdCBjaGFyICpidWYsCj4gLQkJc2l6
+ZV90IGNvdW50LCBib29sIGFkZCkKPiArCQlzaXplX3QgY291bnQsIGVudW0gaWRfYWN0aW9uIGFj
+dGlvbikKPiAgewo+ICAJc3RydWN0IGRheF9kZXZpY2VfZHJpdmVyICpkYXhfZHJ2ID0gdG9fZGF4
+X2RydihkcnYpOwo+ICAJdW5zaWduZWQgaW50IHJlZ2lvbl9pZCwgaWQ7Cj4gQEAgLTc3LDcgKzgy
+LDcgQEAgc3RhdGljIHNzaXplX3QgZG9faWRfc3RvcmUoc3RydWN0IGRldmljZV9kcml2ZXIgKmRy
+diwgY29uc3QgY2hhciAqYnVmLAo+ICAJbXV0ZXhfbG9jaygmZGF4X2J1c19sb2NrKTsKPiAgCWRh
+eF9pZCA9IF9fZGF4X21hdGNoX2lkKGRheF9kcnYsIGJ1Zik7Cj4gIAlpZiAoIWRheF9pZCkgewo+
+IC0JCWlmIChhZGQpIHsKPiArCQlpZiAoYWN0aW9uID09IElEX0FERCkgewo+ICAJCQlkYXhfaWQg
+PSBremFsbG9jKHNpemVvZigqZGF4X2lkKSwgR0ZQX0tFUk5FTCk7Cj4gIAkJCWlmIChkYXhfaWQp
+IHsKPiAgCQkJCXN0cm5jcHkoZGF4X2lkLT5kZXZfbmFtZSwgYnVmLCBEQVhfTkFNRV9MRU4pOwo+
+IEBAIC04NiwyNiArOTEsMzMgQEAgc3RhdGljIHNzaXplX3QgZG9faWRfc3RvcmUoc3RydWN0IGRl
+dmljZV9kcml2ZXIgKmRydiwgY29uc3QgY2hhciAqYnVmLAo+ICAJCQkJcmMgPSAtRU5PTUVNOwo+
+ICAJCX0gZWxzZQo+ICAJCQkvKiBub3RoaW5nIHRvIHJlbW92ZSAqLzsKPiAtCX0gZWxzZSBpZiAo
+IWFkZCkgewo+ICsJfSBlbHNlIGlmIChhY3Rpb24gPT0gSURfUkVNT1ZFKSB7Cj4gIAkJbGlzdF9k
+ZWwoJmRheF9pZC0+bGlzdCk7Cj4gIAkJa2ZyZWUoZGF4X2lkKTsKPiAgCX0gZWxzZQo+ICAJCS8q
+IGRheF9pZCBhbHJlYWR5IGFkZGVkICovOwo+ICAJbXV0ZXhfdW5sb2NrKCZkYXhfYnVzX2xvY2sp
+Owo+IC0JcmV0dXJuIHJjOwo+ICsKPiArCWlmIChyYyA8IDApCj4gKwkJcmV0dXJuIHJjOwo+ICsJ
+aWYgKGFjdGlvbiA9PSBJRF9BREQpCj4gKwkJcmMgPSBkcml2ZXJfYXR0YWNoKGRydik7Cj4gKwlp
+ZiAocmMpCj4gKwkJcmV0dXJuIHJjOwo+ICsJcmV0dXJuIGNvdW50Owo+ICB9Cj4gIAo+ICBzdGF0
+aWMgc3NpemVfdCBuZXdfaWRfc3RvcmUoc3RydWN0IGRldmljZV9kcml2ZXIgKmRydiwgY29uc3Qg
+Y2hhciAqYnVmLAo+ICAJCXNpemVfdCBjb3VudCkKPiAgewo+IC0JcmV0dXJuIGRvX2lkX3N0b3Jl
+KGRydiwgYnVmLCBjb3VudCwgdHJ1ZSk7Cj4gKwlyZXR1cm4gZG9faWRfc3RvcmUoZHJ2LCBidWYs
+IGNvdW50LCBJRF9BREQpOwo+ICB9Cj4gIHN0YXRpYyBEUklWRVJfQVRUUl9XTyhuZXdfaWQpOwo+
+ICAKPiAgc3RhdGljIHNzaXplX3QgcmVtb3ZlX2lkX3N0b3JlKHN0cnVjdCBkZXZpY2VfZHJpdmVy
+ICpkcnYsIGNvbnN0IGNoYXIgKmJ1ZiwKPiAgCQlzaXplX3QgY291bnQpCj4gIHsKPiAtCXJldHVy
+biBkb19pZF9zdG9yZShkcnYsIGJ1ZiwgY291bnQsIGZhbHNlKTsKPiArCXJldHVybiBkb19pZF9z
+dG9yZShkcnYsIGJ1ZiwgY291bnQsIElEX1JFTU9WRSk7Cj4gIH0KPiAgc3RhdGljIERSSVZFUl9B
+VFRSX1dPKHJlbW92ZV9pZCk7Cj4gIAo+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
