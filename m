@@ -1,14 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DCE3D211CC3AF
- for <linux-nvdimm@lists.01.org>; Wed, 20 Feb 2019 14:09:08 -0800 (PST)
-Subject: [PATCH] device-dax: Add a 'target_node' attribute
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 20 Feb 2019 13:56:30 -0800
-Message-ID: <155069979014.1936094.2387722425017107280.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2124420886FC5
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 14:07:30 -0800 (PST)
+Received: by mail-ot1-x344.google.com with SMTP id i20so13328463otl.0
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 14:07:30 -0800 (PST)
 MIME-Version: 1.0
+References: <20181128193636.254378-15-brendanhiggins@google.com>
+ <b4c72234-8c56-6efa-8003-f89d99a9779e@ideasonboard.com>
+ <20181130034525.GP18410@garbanzo.do-not-panic.com>
+ <CAFd5g47Cew6pmebsopjzmkd4RpnnC3zLAUfxCybjdhrO35OBpQ@mail.gmail.com>
+ <0927c42a-8e65-f410-e6ed-27576572577f@ideasonboard.com>
+ <CAFd5g44fKzriEs_pGyANxe7GuC9Ji2SD7EEz76__h8q9jjg8yA@mail.gmail.com>
+ <57c3dc86-236f-e981-249a-8bbfe5c19f0e@ideasonboard.com>
+ <CAFd5g46AEquMKzfrjLDVi+PP5-7aGs6C6pCunGAXDn3VRkJP+g@mail.gmail.com>
+ <eade3052-0aa4-90b4-d55b-8c44556f98bc@ideasonboard.com>
+ <CAFd5g46cO_rZYjqKu6CooKcV-uAsCUJjuib38cQv6WHQS3ooaA@mail.gmail.com>
+ <20190214172639.GD11489@garbanzo.do-not-panic.com>
+In-Reply-To: <20190214172639.GD11489@garbanzo.do-not-panic.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Date: Thu, 14 Feb 2019 14:07:18 -0800
+Message-ID: <CAFd5g46BG=-sjA+ZFz_F-2wEGrD_mhU-W+kHsr1rGsKEv2YtJw@mail.gmail.com>
+Subject: Re: [RFC v3 14/19] Documentation: kunit: add documentation for KUnit
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,74 +35,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: brakmo@fb.com, dri-devel <dri-devel@lists.freedesktop.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Felix Guo <felixguoxiuping@gmail.com>, Joel Stanley <joel@jms.id.au>, Jeff Dike <jdike@addtoit.com>, "Bird, Timothy" <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The target-node attribute is the Linux numa-node that a device-dax
-instance may create when it is online. Prior to being online the
-device's 'numa_node' property reflects the closest online cpu node which
-is the typical expectation of a device 'numa_node'. Once it is online it
-becomes its own distinct numa node, i.e. 'target_node'.
+On Thu, Feb 14, 2019 at 9:26 AM Luis Chamberlain <mcgrof@kernel.org> wrote:
+>
+> On Wed, Feb 13, 2019 at 04:17:13PM -0800, Brendan Higgins wrote:
+> > On Wed, Feb 13, 2019 at 1:55 PM Kieran Bingham
+> > <kieran.bingham@ideasonboard.com> wrote:
+> > Oh, yep, you are right. Does that mean we should bother at all with a defconfig?
+>
+> If one wanted a qemu enabled type of kernel and also for kuniut one
+> could imply run:
+>
+> make kvmconfig
+> make kunitconfig
+>
+> That would get what you suggest above of default "bells and whistles"
+> and keep the kuniut as a fragment.
+>
+> Hm, actually the kvmconfig doesn't really enable the required fragments
+> for qemu, so perhaps one would be good. It would have the serial stuff
+> for instance.
+>
+> > Luis, I know you said you wanted one. I am thinking just stick with
+> > the UML one? The downside there is we then get stuck having to
+> > maintain the fragment and the defconfig. I right now (in the new
+> > revision I am working on) have the Python kunit_tool copy the
+> > defconfig if no kunitconfig is provided and a flag is set. It would be
+> > pretty straightforward to make it merge in the fragment instead.
+>
+> Up to you in the end.
 
-Export the 'target_node' property to give userspace tooling the ability
-to predict the effective numa-node from a device-dax instance configured
-to provide 'System RAM' capacity.
+I don't really have any opinions on the matter; I don't really use
+defconfigs in any of my workflows. So, I just want whatever is easier
+for people. The thing that makes the most sense to me would be to
+provide a "merge-kunitconfig" option similar to what kselftest does,
+but I don't intend on doing that in the initial patchset, unless
+someone really thinks that I should do it. So in the meantime, I guess
+provide both since that gives people options?
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/bus.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+In anycase, I just (finally) sent out v4, so I suggest we continue the
+discussion over there.
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index a410154d75fb..28c3324271ac 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -279,13 +279,41 @@ static ssize_t size_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(size);
- 
-+static int dev_dax_target_node(struct dev_dax *dev_dax)
-+{
-+	struct dax_region *dax_region = dev_dax->region;
-+
-+	return dax_region->target_node;
-+}
-+
-+static ssize_t target_node_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+
-+	return sprintf(buf, "%d\n", dev_dax_target_node(dev_dax));
-+}
-+static DEVICE_ATTR_RO(target_node);
-+
-+static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+
-+	if (a == &dev_attr_target_node.attr && dev_dax_target_node(dev_dax) < 0)
-+		return 0;
-+	return a->mode;
-+}
-+
- static struct attribute *dev_dax_attributes[] = {
- 	&dev_attr_size.attr,
-+	&dev_attr_target_node.attr,
- 	NULL,
- };
- 
- static const struct attribute_group dev_dax_attribute_group = {
- 	.attrs = dev_dax_attributes,
-+	.is_visible = dev_dax_visible,
- };
- 
- static const struct attribute_group *dax_attribute_groups[] = {
-
+Cheers
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
