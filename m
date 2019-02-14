@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail.windriver.com (mail.windriver.com [147.11.1.11])
+ (using TLSv1.1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 54E0A208AE34C
- for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 23:24:37 -0800 (PST)
-Date: Fri, 15 Feb 2019 02:24:36 -0500 (EST)
-From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <826274621.1169097.1550215476500.JavaMail.zimbra@redhat.com>
-In-Reply-To: <CAPcyv4j=E+upkn=eP=w2KMHrb7Mv3-ov=j_S4pnA_HjbRF42Sw@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5C2E02194EB78
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 15:46:18 -0800 (PST)
+From: "Liu, Yongxin" <Yongxin.Liu@windriver.com>
+Subject: RE: Is nvdimm driver RT compatible?
+Date: Thu, 14 Feb 2019 23:46:16 +0000
+Message-ID: <597B109EC20B76429F71A8A97770610D12A20C24@ALA-MBD.corp.ad.wrs.com>
 References: <597B109EC20B76429F71A8A97770610D12A200FA@ALA-MBD.corp.ad.wrs.com>
  <590537850.947438.1550126965817.JavaMail.zimbra@redhat.com>
  <CAPcyv4j=E+upkn=eP=w2KMHrb7Mv3-ov=j_S4pnA_HjbRF42Sw@mail.gmail.com>
-Subject: Re: Is nvdimm driver RT compatible?
+In-Reply-To: <CAPcyv4j=E+upkn=eP=w2KMHrb7Mv3-ov=j_S4pnA_HjbRF42Sw@mail.gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,11 +25,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Yongxin Liu <Yongxin.Liu@windriver.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, Pankaj Gupta <pagupta@redhat.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Thank you all for the valuable opinions and suggestions.
+Appreciate it so much.
 
+
+-Yongxin
+
+
+> -----Original Message-----
+> From: Dan Williams [mailto:dan.j.williams@intel.com]
+> Sent: Friday, February 15, 2019 04:45
+> To: Pankaj Gupta
+> Cc: Liu, Yongxin; linux-nvdimm
+> Subject: Re: Is nvdimm driver RT compatible?
+> 
+> On Wed, Feb 13, 2019 at 10:50 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> >
 > >
 > > Hi Yongxin,
 > >
@@ -37,18 +53,20 @@ List-ID: <linux-nvdimm@lists.01.org>
 > > >
 > > > Could anyone tell me whether Linux nvdimm driver is RT compatible?
 > > >
-> > > When I was testing PMEM performance with fio using the following command,
-> > > I
+> > > When I was testing PMEM performance with fio using the following
+> command, I
 > > > got calltrace below.
 > > >
 > > > # fio -filename=/dev/pmem0s -direct=1 -iodepth 1 -thread -rw=randrw
-> > > -rwmixread=70 -ioengine=psync -bs=16k -size=1G -numjobs=30 -runtime=100
+> > > -rwmixread=70 -ioengine=psync -bs=16k -size=1G -numjobs=30 -
+> runtime=100
 > > > -group_reporting -name=mytest
 > > >
 > > >     BUG: scheduling while atomic: fio/2514/0x00000002
 > > >     Modules linked in: intel_rapl nd_pmem nd_btt skx_edac iTCO_wdt
 > > >     iTCO_vendor_support intel_powerclamp coretemp
-> > >     crct10dif_pclmul crct10dif_common aesni_intel aes_x86_64 crypto_simd
+> > >     crct10dif_pclmul crct10dif_common aesni_intel aes_x86_64
+> crypto_simd
 > > >     cryptd i40e nvme glue_helper nvme_core lpc_ich i2c_i801 nfit
 > > >     pcc_cpufreq wmi libnvdimm acpi_pad
 > > >     acpi_power_meter
@@ -71,7 +89,8 @@ List-ID: <linux-nvdimm@lists.01.org>
 > > >      generic_make_request+0x1dc/0x3f0
 > > >      submit_bio+0x49/0x140
 > > >
-> > > nd_region_acquire_lane() disables preemption with get_cpu() which causes
+> > > nd_region_acquire_lane() disables preemption with get_cpu() which
+> causes
 > > > "scheduling while atomic" spews on RT.
 > > >
 > > > Is it safe to replace get_cpu()/put_cpu() with
@@ -83,21 +102,24 @@ List-ID: <linux-nvdimm@lists.01.org>
 > > I think there is possibility of a race here.
 > >
 > > > After this replacement, the codes protected by
-> > > nd_region_release_lane/nd_region_release_lane would become pre-emptible.
+> > > nd_region_release_lane/nd_region_release_lane would become pre-
+> emptible.
 > > > So are these codes reentrant?
 > >
-> > Another thing I see is when get_cpu is called in "nd_region_acquire_lane"
+> > Another thing I see is when get_cpu is called in
+> "nd_region_acquire_lane"
 > > there is no corresponding call for "put_cpu" in same function. This is
 > > called only in "nd_region_release_lane". It means for the duration of
 > > these calls preemption will be disabled.
 > >
 > > Here, we cannot change preemption disable to migration disable for
-> > mainline.
+> mainline.
 > > As there is code which can result in race.
 > >
 > > For RT only patchset as well, IIUC will have same problem as there is
-> > spin_lock
-> > protection on a condition and path before/without spinlock may also race.
+> spin_lock
+> > protection on a condition and path before/without spinlock may also
+> race.
 > > We can have something like local_lock_* =>  local_lock_cpu
 > >
 > > This are my two cents.
@@ -108,12 +130,6 @@ List-ID: <linux-nvdimm@lists.01.org>
 > using a lock along with migration being disabled. In other words I
 > think changing nd_region_acquire_lane() like the following would be
 > sufficient for RT kernels:
-
-o.k
-Not sure if its good idea to have different implementation for both mainline
-and RT Kernel. It at all its possible to have single implementation. But I 
-don't understand all of optimizations in original code so this might be okay.  
-
 > 
 > diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
 > index e2818f94f292..e720fc42bbc0 100644
@@ -142,24 +158,13 @@ don't understand all of optimizations in original code so this might be okay.
 > +       ndl_lock = per_cpu_ptr(nd_region->lane, lane);
 > +       if (ndl_count->count++ == 0)
 > +               spin_lock(&ndl_lock->lock);
-
-I could not understand why spinlock here with condition?.
-Are two tasks sharing same lane in same cpu and we are increasing
-the count with first consumer. Other task won't wait/spin as count is
-already elevated?
-
-Or I am misunderstanding it.
-
-Thanks,
-Pankaj
-
-
 > 
 >         return lane;
 >  }
 > @@ -966,17 +963,14 @@ EXPORT_SYMBOL(nd_region_acquire_lane);
 > 
->  void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane)
+>  void nd_region_release_lane(struct nd_region *nd_region, unsigned int
+> lane)
 >  {
 > -       if (nd_region->num_lanes < nr_cpu_ids) {
 > -               unsigned int cpu = get_cpu();
@@ -173,9 +178,6 @@ Pankaj
 > -       }
 > -       put_cpu();
 > +       unsigned int cpu = get_cpu();
-
-Is this get_cpu_light here?
-
 > +       struct nd_percpu_lane *ndl_lock, *ndl_count;
 > +
 > +       ndl_count = per_cpu_ptr(nd_region->lane, cpu);
@@ -185,10 +187,6 @@ Is this get_cpu_light here?
 > +       put_cpu_light();
 >  }
 >  EXPORT_SYMBOL(nd_region_release_lane);
-> 
-
-Thanks,
-Pankaj
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
