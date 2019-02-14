@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE11221B02822
- for <linux-nvdimm@lists.01.org>; Wed, 20 Feb 2019 10:59:17 -0800 (PST)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v3 1/2] nfit, mce: only handle uncorrectable machine checks
-References: <20181026003729.8420-1-vishal.l.verma@intel.com>
-Date: Wed, 20 Feb 2019 13:59:15 -0500
-In-Reply-To: <20181026003729.8420-1-vishal.l.verma@intel.com> (Vishal Verma's
- message of "Thu, 25 Oct 2018 18:37:28 -0600")
-Message-ID: <x49lg2a2sn0.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id DC46920886FE7
+ for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 12:23:15 -0800 (PST)
+Subject: [PATCH 6/6] nfit/ars: Avoid stale ARS results
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Feb 2019 12:10:37 -0800
+Message-ID: <155017503725.944049.1596090801791232896.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155017500427.944049.2254497897075714747.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155017500427.944049.2254497897075714747.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,101 +22,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-edac@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, Krzysztof Rusocki <krzysztof.rusocki@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Vishal,
+Gate ARS result consumption on whether the OS issued start-ARS since the
+previous consumption. The BIOS may only clear its result buffers after a
+successful start-ARS.
 
-Vishal Verma <vishal.l.verma@intel.com> writes:
+Reported-by: Krzysztof Rusocki <krzysztof.rusocki@intel.com>
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   17 ++++++++++++++++-
+ drivers/acpi/nfit/nfit.h |    1 +
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-> The mce handler for 'nfit' devices is called for memory errors on a
-> Non-Volatile DIMM, and adds the error location to a 'badblocks' list.
-> This list is used by the various NVDIMM drivers to avoid consuming known
-> poison locations during IO.
->
-> The mce handler gets called for both corrected and uncorrectable errors.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 612cf5d92e25..2a49051d5317 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2650,7 +2650,10 @@ static int ars_start(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	if (rc < 0)
+ 		return rc;
+-	return cmd_rc;
++	if (cmd_rc < 0)
++		return cmd_rc;
++	set_bit(ARS_VALID, &acpi_desc->scrub_flags);
++	return 0;
+ }
+ 
+ static int ars_continue(struct acpi_nfit_desc *acpi_desc)
+@@ -2743,6 +2746,17 @@ static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc)
+ 	 */
+ 	if (ars_status->out_length < 44)
+ 		return 0;
++
++	/*
++	 * Ignore potentially stale results that are only refreshed
++	 * after a start-ARS event.
++	 */
++	if (!test_and_clear_bit(ARS_VALID, &acpi_desc->scrub_flags)) {
++		dev_dbg(acpi_desc->dev, "skip %d stale records\n",
++				ars_status->num_records);
++		return 0;
++	}
++
+ 	for (i = 0; i < ars_status->num_records; i++) {
+ 		/* only process full records */
+ 		if (ars_status->out_length
+@@ -3226,6 +3240,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 	struct nfit_spa *nfit_spa;
+ 	int rc;
+ 
++	set_bit(ARS_VALID, &acpi_desc->scrub_flags);
+ 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+ 		switch (nfit_spa_type(nfit_spa->spa)) {
+ 		case NFIT_SPA_VOLATILE:
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 897ce10192a0..1efd248104e0 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -213,6 +213,7 @@ struct nfit_mem {
+ enum scrub_flags {
+ 	ARS_BUSY,
+ 	ARS_CANCEL,
++	ARS_VALID,
+ };
+ 
+ struct acpi_nfit_desc {
 
-Sorry for necroposting.  I thought the point of the CEC was to make sure
-that the other registered decoders only ever saw uncorrected errors.
-How do we end up getting called with a correctable error?
-
-Thanks,
-Jeff
-
-> Until now, both kinds of errors have been added to the badblocks list.
-> However, corrected memory errors indicate that the problem has already
-> been fixed by hardware, and the resulting interrupt is merely a
-> notification to Linux. As far as future accesses to that location are
-> concerned, it is perfectly fine to use, and thus doesn't need to be
-> included in the above badblocks list.
->
-> Add a check in the nfit mce handler to filter out corrected mce events,
-> and only process uncorrectable errors.
->
-> Reported-by: Omar Avelar <omar.avelar@intel.com>
-> Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-> Cc: stable@vger.kernel.org
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  arch/x86/include/asm/mce.h       | 1 +
->  arch/x86/kernel/cpu/mcheck/mce.c | 3 ++-
->  drivers/acpi/nfit/mce.c          | 4 ++--
->  3 files changed, 5 insertions(+), 3 deletions(-)
->
-> v3: Unchanged from v2
->
-> diff --git a/arch/x86/include/asm/mce.h b/arch/x86/include/asm/mce.h
-> index 3a17107594c8..3111b3cee2ee 100644
-> --- a/arch/x86/include/asm/mce.h
-> +++ b/arch/x86/include/asm/mce.h
-> @@ -216,6 +216,7 @@ static inline int umc_normaddr_to_sysaddr(u64 norm_addr, u16 nid, u8 umc, u64 *s
->  
->  int mce_available(struct cpuinfo_x86 *c);
->  bool mce_is_memory_error(struct mce *m);
-> +bool mce_is_correctable(struct mce *m);
->  
->  DECLARE_PER_CPU(unsigned, mce_exception_count);
->  DECLARE_PER_CPU(unsigned, mce_poll_count);
-> diff --git a/arch/x86/kernel/cpu/mcheck/mce.c b/arch/x86/kernel/cpu/mcheck/mce.c
-> index 953b3ce92dcc..27015948bc41 100644
-> --- a/arch/x86/kernel/cpu/mcheck/mce.c
-> +++ b/arch/x86/kernel/cpu/mcheck/mce.c
-> @@ -534,7 +534,7 @@ bool mce_is_memory_error(struct mce *m)
->  }
->  EXPORT_SYMBOL_GPL(mce_is_memory_error);
->  
-> -static bool mce_is_correctable(struct mce *m)
-> +bool mce_is_correctable(struct mce *m)
->  {
->  	if (m->cpuvendor == X86_VENDOR_AMD && m->status & MCI_STATUS_DEFERRED)
->  		return false;
-> @@ -544,6 +544,7 @@ static bool mce_is_correctable(struct mce *m)
->  
->  	return true;
->  }
-> +EXPORT_SYMBOL_GPL(mce_is_correctable);
->  
->  static bool cec_add_mce(struct mce *m)
->  {
-> diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-> index e9626bf6ca29..7a51707f87e9 100644
-> --- a/drivers/acpi/nfit/mce.c
-> +++ b/drivers/acpi/nfit/mce.c
-> @@ -25,8 +25,8 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
->  	struct acpi_nfit_desc *acpi_desc;
->  	struct nfit_spa *nfit_spa;
->  
-> -	/* We only care about memory errors */
-> -	if (!mce_is_memory_error(mce))
-> +	/* We only care about uncorrectable memory errors */
-> +	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
->  		return NOTIFY_DONE;
->  
->  	/*
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
