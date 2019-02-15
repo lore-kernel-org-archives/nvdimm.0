@@ -1,95 +1,62 @@
-From: "Miss Kira"<kige32767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: =?UTF-8?B?44Kt44Op5ayi44GL44KJ44Gu44OX44Ot44K444Kn44Kv44OI44Oh44O844OrIC8gUHJvamVjdCBNYWlsIGZyb20gTWlzcyBLaXJh?=
-Date: 31 Jan 2019 12:12:30 -0800
-Message-ID: <20190131121230.DD7F20451679D90C@hotmail.com>
-Reply-To: Miss Kira <kige032767-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DC74D2194EB78
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:35 -0800 (PST)
+Subject: [PATCH v2 2/6] nfit/ars: Attempt short-ARS even in the no_init_ars
+ case
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Feb 2019 11:43:57 -0800
+Message-ID: <155025983758.1043225.7069046151889688538.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, linux-kernel@vger.kernel.org
+List-ID: <linux-nvdimm@lists.01.org>
 
-44GT44KT44Gr44Gh44GvCgrnp4Hjga7lkI3liY3jga/jgq3jg6njg7vjgrjjgqfjg7Pjgr7jgZXj
-gpPjgIHnp4Hjga8xN+ats+OBruWls+OBruWtkOOAgeengeOBr+WtpOWFkOOBp+OBguOCi+OBk+OB
-qOOCkuOBguOBquOBn+OBq+S8neOBiOOCi+OBn+OCgeOBq+abuOOBhOOBpuOBhOOBvuOBmeengeOB
-r+S4oeimquOBruOBn+OBoOS4gOS6uuOBruWtkOS+m+OBp+OBmQoK44Kk44Oz44K/44O844ON44OD
-44OI5qSc57Si44KS5LuL44GX44Gm44Kq44Oz44Op44Kk44Oz44Gu6Zu75a2Q44Oh44O844Or44OH
-44O844K/44OZ44O844K544OH44Kj44Os44Kv44OI44Oq44GL44KJ44GC44Gq44Gf44Gu6Zu75a2Q
-44Oh44O844Or44Ki44OJ44Os44K544KS5qSc57Si44GX44CB44K744Kt44Ol44Oq44OG44Kj44Gu
-44Gf44KB44Gr44GC44Gq44Gf44Gu5Zu944Gr56e75YuV44GZ44KL44GT44Go44Gr6IiI5ZGz44GM
-44GC44KL44GL44Gp44GG44GL44Gr44Gk44GE44Gm44GC44Gq44Gf44Go6YCj57Wh44KS5Y+W44KK
-44Gf44GE44Go5oCd44GE44G+44GZ44CCCgrnp4Hjga/kuK3lm73kurrjgafjgZnjgIHnp4Hjga/o
-i7Hoqp7jgajkuK3lm73oqp7jgpLoqbHjgZfjgb7jgZnjgILnp4Hjga7niLbjga/jgZPjgZPmlbDj
-g7bmnIjjgaflv4Poh5Pnl4XjgafkuqHjgY/jgarjgorjgb7jgZfjgZ/jgIHjgZ3jgZfjgabnp4Hj
-ga7kurrnlJ/jgYzljbHpmbrjgavjgZXjgonjgZXjgozjgabjgYTjgovjga7jgafnp4Hjga/lv4Pj
-gYvjgonjgYLjgarjgZ/jga7liqnjgZHjgpLlv4XopoHjgajjgZfjgabjgYTjgb7jgZnjgIIKCuen
-geOBr+OBguOBquOBn+OBqOmdnuW4uOOBq+mHjeimgeOBquODk+OCuOODjeOCueOBq+OBpOOBhOOB
-puipseOBl+WQiOOBhOOAgeWvvuWHpuOBl+OBn+OBhOOBqOaAneOBhOOBvuOBmeOAggoK44GC44Gq
-44Gf44Gu6L+U5LqL44KS5Y+X44GR5Y+W44Gj44Gf5b6M44CB56eB44Gv44GC44Gq44Gf44Gu44Gf
-44KB44Gr44KC44Gj44Go44OT44K444ON44K544Gu6Kmz57Sw44KS5pu444GN44G+44GZ44CCCgoK
-44GZ44GQ44Gr56eB44Gu5YCL5Lq655So44Oh44O844Or44Ki44OJ44Os44K5a2lnZTAzMjc2N0Bo
-b3RtYWlsLmNvbeOBq+i/lOS/oeOBl+OBpuOBj+OBoOOBleOBhOOAggoKCuengeOBr+OBguOBquOB
-n+OBruasoeOBrui/lOS6i+OCkuW+heOBo+OBpuOBhOOBvuOBmeOAggoKCuengeOBruODl+ODqeOC
-pOODmeODvOODiEXjg6Hjg7zjg6vjgqLjg4njg6zjgrnjgavjga7jgb/ov5Tkv6HjgZnjgovvvJpr
-aWdlMDMyNzY3QGhvdG1haWwuY29tCgoK44GC44KK44GM44Go44GG44GU44GW44GE44G+44GZ44CC
-CgrmhJvjgIEK44Kt44Op44CCCuOCueOCq+OCpOODl0lE77ya44Op44Kk44OW77yaYmVrZWUzMjc2
-NwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18K5YWN6LKs5LqL6aCF77ya44GT44GuReODoeODvOOD
-q++8iOa3u+S7mOODleOCoeOCpOODq+OCkuWQq+OCgO+8ieOBr+aEj+Wbs+OBmeOCi+WPl+S/oeiA
-heOBq+OBruOBv+mAgeS/oeOBleOCjOOAgeeJueaoqeeahOOBquapn+WvhuaDheWgseOBjOWQq+OB
-vuOCjOOBpuOBhOOCi+WPr+iDveaAp+OBjOOBguOCiuOBvuOBmeOAguOBguOBquOBn+OBjOaEj+Wb
-s+OBl+OBn+WPl+S/oeiAheOBp+OBr+OBquOBhOWgtOWQiOOAgeOBguOBquOBn+OBr+OBk+OBrkXj
-g6Hjg7zjg6vjga7jgYTjgYvjgarjgovpg6jliIbjgoLkvb/nlKjjgIHkv53mjIHjgIHplovnpLrj
-gIHjgrPjg5Tjg7zjgIHljbDliLfjgIHphY3luIPjgb7jgZ/jga/phY3luIPjgZnjgovjgZPjgajj
-ga/jgafjgY3jgb7jgZvjgpPjgILjgZPjga5F44Oh44O844Or44KS6Kqk44Gj44Gm5Y+X5L+h44GX
-44Gf5aC05ZCI44Gv44CB44GT44GuReODoeODvOODq++8iOa3u+S7mOODleOCoeOCpOODq+OCkuWQ
-q+OCgO+8ieOCkuOCt+OCueODhuODoOOBi+OCieWJiumZpOOBl+OAgeOBk+OBrkXjg6Hjg7zjg6vj
-gavov5Tkv6HjgZnjgovjgZPjgajjgavjgojjgaPjgabnm7TjgaHjgavpgIHkv6HogIXjgavpgJrn
-n6XjgZfjgabjgY/jgaDjgZXjgYTjgILpm7vlrZDjg6Hjg7zjg6vpgIHkv6HjgYzjgIHjgr/jgqTj
-g6Djg6rjg7zjgIHlronlhajjgIHjgqjjg6njg7zjg5Xjg6rjg7zjgIHjgb7jgZ/jga/jgqbjgqTj
-g6vjgrnjg5Xjg6rjg7zjgafjgYLjgovjgZPjgajjgpLkv53oqLzjgZnjgovjgoLjga7jgafjga/j
-gYLjgorjgb7jgZvjgpPjgILpgIHkv6HogIXjga/jgIHpm7vlrZDjg6Hjg7zjg6vjga7pgIHkv6Hj
-gavjgojjgaPjgabnlJ/jgZjjgZ/jgYTjgYvjgarjgovmkI3lpLHjgIHoqqTjgorjgIHnnIHnlaXj
-gIHjgb7jgZ/jga/mkI3lrrPjgavjgaTjgYTjgabjgoLosqzku7vjgpLosqDjgYTjgb7jgZvjgpPj
-gIIKSGVsbG8gZGVhciwKCk15IE5hbWUgaXMgTWlzcyBLaXJhIEdlbnpvLCBJIGFtIGEgMTcgeWVh
-cnMgb2xkIGdpcmwsIEkgYW0gd3JpdGluZyB5b3UgdG8gbGV0IHlvdSBrbm93IHRoYXQgSSdtIGFu
-IE9ycGhhbiwgSSBhbSB0aGUgb25seSBjaGlsZCBvZiBteSBwYXJlbnRzLgoKSSBzZWFyY2ggeW91
-ciBlbWFpbCBhZGRyZXNzIGZyb20gdGhlIG9ubGluZSBlLW1haWwgRGF0YWJhc2UgRGlyZWN0b3J5
-IHRocm91Z2ggdGhlIEludGVybmV0IHNlYXJjaCwgSSB3b3VsZCBsaWtlIHRvIGNvbW11bmljYXRl
-IHdpdGggeW91IGFib3V0IG15IGludGVyZXN0IHBsYW4gaW4gcmVsb2NhdGluZyB0byB5b3VyIGNv
-dW50cnkgZm9yIG15IHNhZmV0eS4KCkkgYW0gYSBDaGluZXNlLCBhbmQgSSBjYW4gc3BlYWsgRW5n
-bGlzaCBhbmQgQ2hpbmVzZS4gTXkgZmF0aGVyIGhhcyBkaWVkIG9mIGEgaGVhcnQgYXR0YWNrIGZv
-ciB0aGUgcGFzdCBmZXcgbW9udGhzIGFuZCBJIHNpbmNlcmVseSBuZWVkIHlvdXIgaGVscCBub3cg
-YmVjYXVzZSBteSBsaWZlIGlzIGluIERhbmdlci4KCkkgd2FudCB0byBkaXNjdXNzIGFuZCBoYW5k
-bGUgYSB2ZXJ5IGltcG9ydGFudCBidXNpbmVzcyB3aXRoIHlvdS4KCkkgd2lsbCB3cml0ZSB5b3Ug
-bW9yZSBkZXRhaWxzIG9mIHRoZSBidXNpbmVzcyB3aGVuIEkgcmVjZWl2ZSB5b3VyIHJlcGx5LgoK
-ClBsZWFzZSByZXBseSBpbW1lZGlhdGVseSB0byBteSBwZXJzb25hbCBlbWFpbCBhZGRyZXNzIGtp
-Z2UwMzI3NjdAaG90bWFpbC5jb20KCgpJIHdhaXQgZm9yIHlvdXIgbmV4dCByZXBseS4KCgpSZXBs
-eSBvbmx5IHRvIG15IHByaXZhdGUgZW1haWwgYWRkcmVzczoga2lnZTAzMjc2N0Bob3RtYWlsLmNv
-bQoKClRoYW5rIHlvdS4KCkxvdmUsCktpcmEuClNreXBlIElEOiBsaXZlOmJla2VlMzI3NjcKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkRJU0NMQUlNRVI6IFRoaXMgZW1haWwgKGluY2x1ZGluZyBh
-dHRhY2htZW50cykgaXMgYWRkcmVzc2VkIHRvIHRoZSBpbnRlbmRlZCByZWNpcGllbnQgb25seSBh
-bmQgbWF5IGNvbnRhaW4gaW5mb3JtYXRpb24gdGhhdCBpcyBwcml2aWxlZ2VkIGFuZCBjb25maWRl
-bnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHlvdSBtdXN0IG5v
-dCB1c2UsIHJldGFpbiwgZGlzY2xvc2UsIGNvcHksIHByaW50LCBkaXNzZW1pbmF0ZSBvciBkaXN0
-cmlidXRlIGFueSBwYXJ0IG9mIHRoaXMgZW1haWwuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMg
-ZW1haWwgaW4gZXJyb3IsIHBsZWFzZSBkZWxldGUgdGhpcyBlbWFpbCAoaW5jbHVkaW5nIGF0dGFj
-aG1lbnRzKSBmcm9tIHlvdXIgc3lzdGVtIGFuZCBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVs
-eSBieSByZXBseWluZyB0byB0aGlzIGVtYWlsLiBFbWFpbCB0cmFuc21pc3Npb24gY2Fubm90IGJl
-IGd1YXJhbnRlZWQgdG8gYmUgdGltZWx5LCBzZWN1cmUsIGVycm9yIG9yIHZpcnVzLWZyZWUuIFRo
-ZSBzZW5kZXIgYWNjZXB0cyBubyBsaWFiaWxpdHkgZm9yIGFueSBsb3NzLCBlcnJvciwgb21pc3Np
-b25zIG9yIGRhbWFnZSBhcmlzaW5nIGFzIGEgcmVzdWx0IG9mIGVtYWlsIHRyYW5zbWlzc2lvbi4K
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZk
-aW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMu
-MDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The no_init_ars option is meant to prevent long-ARS, but short-ARS
+should be allowed to grab any immediate results.
+
+Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 3d681a92ff7f..934be96dc149 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3004,11 +3004,12 @@ static int ars_register(struct acpi_nfit_desc *acpi_desc,
+ {
+ 	int rc;
+ 
+-	if (no_init_ars || test_bit(ARS_FAILED, &nfit_spa->ars_state))
++	if (test_bit(ARS_FAILED, &nfit_spa->ars_state))
+ 		return acpi_nfit_register_region(acpi_desc, nfit_spa);
+ 
+ 	set_bit(ARS_REQ_SHORT, &nfit_spa->ars_state);
+-	set_bit(ARS_REQ_LONG, &nfit_spa->ars_state);
++	if (!no_init_ars)
++		set_bit(ARS_REQ_LONG, &nfit_spa->ars_state);
+ 
+ 	switch (acpi_nfit_query_poison(acpi_desc)) {
+ 	case 0:
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
