@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A0CF3202E53CF
- for <linux-nvdimm@lists.01.org>; Thu, 28 Feb 2019 20:24:54 -0800 (PST)
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH] dax: Flush partial PMDs correctly
-Date: Thu, 28 Feb 2019 20:24:48 -0800
-Message-Id: <20190301042448.6868-1-willy@infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id E5721202E531F
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:46 -0800 (PST)
+Subject: [PATCH v2 4/6] nfit/ars: Introduce scrub_flags
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Feb 2019 11:44:07 -0800
+Message-ID: <155025984777.1043225.11995149236324481755.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,80 +18,132 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Piotr Balcer <piotr.balcer@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <willy@infradead.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The radix tree would rewind the index in an iterator to the lowest index
-of a multi-slot entry.  The XArray iterators instead leave the index
-unchanged, but I overlooked that when converting DAX from the radix tree
-to the XArray.  Adjust the index that we use for flushing to the start
-of the PMD range.
+In preparation for introducing new flags to gate whether ARS results are
+stale, or poll the completion state, convert the existing flags to an
+unsigned long with enumerated values. This conversion allows the flags
+to be atomically updated outside of ->init_mutex.
 
-Fixes: c1901cd33cf4 "page cache: Convert find_get_entries_tag to XArray"
-Reported-by: Piotr Balcer <piotr.balcer@intel.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/acpi/nfit/core.c |   30 +++++++++++++++++-------------
+ drivers/acpi/nfit/nfit.h |    8 ++++++--
+ 2 files changed, 23 insertions(+), 15 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6959837cc465..f7a7af766efe 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -843,9 +843,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
- static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 		struct address_space *mapping, void *entry)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 9a23ae74e82b..90312892093e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1317,19 +1317,23 @@ static ssize_t scrub_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
--	unsigned long pfn;
-+	unsigned long pfn, index, count;
- 	long ret = 0;
--	size_t size;
+ 	struct nvdimm_bus_descriptor *nd_desc;
++	struct acpi_nfit_desc *acpi_desc;
+ 	ssize_t rc = -ENXIO;
++	bool busy;
  
- 	/*
- 	 * A page got tagged dirty in DAX mapping? Something is seriously
-@@ -894,17 +893,18 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 	xas_unlock_irq(xas);
+ 	device_lock(dev);
+ 	nd_desc = dev_get_drvdata(dev);
+-	if (nd_desc) {
+-		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-
+-		mutex_lock(&acpi_desc->init_mutex);
+-		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
+-				acpi_desc->scrub_busy
+-				&& !acpi_desc->cancel ? "+\n" : "\n");
+-		mutex_unlock(&acpi_desc->init_mutex);
++	if (!nd_desc) {
++		device_unlock(dev);
++		return rc;
+ 	}
++	acpi_desc = to_acpi_desc(nd_desc);
++
++	mutex_lock(&acpi_desc->init_mutex);
++	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
++		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
++	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
++	mutex_unlock(&acpi_desc->init_mutex);
+ 	device_unlock(dev);
+ 	return rc;
+ }
+@@ -3072,7 +3076,7 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
  
- 	/*
--	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
--	 * in the middle of a PMD, the 'index' we are given will be aligned to
--	 * the start index of the PMD, as will the pfn we pull from 'entry'.
-+	 * If dax_writeback_mapping_range() was given a wbc->range_start
-+	 * in the middle of a PMD, the 'index' we are given needs to be
-+	 * aligned to the start index of the PMD.
- 	 * This allows us to flush for PMD_SIZE and not have to worry about
- 	 * partial PMD writebacks.
- 	 */
- 	pfn = dax_to_pfn(entry);
--	size = PAGE_SIZE << dax_entry_order(entry);
-+	count = 1UL << dax_entry_order(entry);
-+	index = xas->xa_index &~ (count - 1);
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
  
- 	dax_entry_mkclean(mapping, xas->xa_index, pfn);
--	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
-+	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-@@ -917,8 +917,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 	xas_clear_mark(xas, PAGECACHE_TAG_DIRTY);
- 	dax_wake_entry(xas, entry, false);
+-	if (acpi_desc->cancel)
++	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags))
+ 		return 0;
  
--	trace_dax_writeback_one(mapping->host, xas->xa_index,
--			size >> PAGE_SHIFT);
-+	trace_dax_writeback_one(mapping->host, xas->xa_index, count);
- 	return ret;
+ 	if (query_rc == -EBUSY) {
+@@ -3146,7 +3150,7 @@ static void __sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
+ {
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
  
-  put_unlocked:
--- 
-2.20.1
+-	acpi_desc->scrub_busy = 1;
++	set_bit(ARS_BUSY, &acpi_desc->scrub_flags);
+ 	/* note this should only be set from within the workqueue */
+ 	if (tmo)
+ 		acpi_desc->scrub_tmo = tmo;
+@@ -3162,7 +3166,7 @@ static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
+ 
+-	acpi_desc->scrub_busy = 0;
++	clear_bit(ARS_BUSY, &acpi_desc->scrub_flags);
+ 	acpi_desc->scrub_count++;
+ 	if (acpi_desc->scrub_count_state)
+ 		sysfs_notify_dirent(acpi_desc->scrub_count_state);
+@@ -3451,7 +3455,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
+ 	struct nfit_spa *nfit_spa;
+ 
+ 	mutex_lock(&acpi_desc->init_mutex);
+-	if (acpi_desc->cancel) {
++	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags)) {
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 		return 0;
+ 	}
+@@ -3530,7 +3534,7 @@ void acpi_nfit_shutdown(void *data)
+ 	mutex_unlock(&acpi_desc_lock);
+ 
+ 	mutex_lock(&acpi_desc->init_mutex);
+-	acpi_desc->cancel = 1;
++	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
+ 	cancel_delayed_work_sync(&acpi_desc->dwork);
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 871fb3de3b30..897ce10192a0 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -210,6 +210,11 @@ struct nfit_mem {
+ 	int family;
+ };
+ 
++enum scrub_flags {
++	ARS_BUSY,
++	ARS_CANCEL,
++};
++
+ struct acpi_nfit_desc {
+ 	struct nvdimm_bus_descriptor nd_desc;
+ 	struct acpi_table_header acpi_header;
+@@ -231,8 +236,7 @@ struct acpi_nfit_desc {
+ 	unsigned int max_ars;
+ 	unsigned int scrub_count;
+ 	unsigned int scrub_mode;
+-	unsigned int scrub_busy:1;
+-	unsigned int cancel:1;
++	unsigned long scrub_flags;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+ 	unsigned long bus_nfit_cmd_force_en;
 
 _______________________________________________
 Linux-nvdimm mailing list
