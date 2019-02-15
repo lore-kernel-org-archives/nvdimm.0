@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 17E95202E531F
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:51 -0800 (PST)
-Subject: [PATCH v2 5/6] nfit/ars: Allow root to busy-poll the ARS state machine
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Feb 2019 11:44:13 -0800
-Message-ID: <155025985341.1043225.5482732552253707094.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CA305208AE352
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 08:44:04 -0800 (PST)
+Received: by mail-ot1-x343.google.com with SMTP id 32so17471101ota.12
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 08:44:04 -0800 (PST)
 MIME-Version: 1.0
+References: <155017502147.944049.2893295352368862579.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155017550946.954637.8586902409974005660.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155017550946.954637.8586902409974005660.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Feb 2019 08:43:52 -0800
+Message-ID: <CAPcyv4jVK-0F4BrSEb5VBn+Bq_qa4Ex5a=O=FGYdVYccf4hhzg@mail.gmail.com>
+Subject: Re: [PATCH v2] nfit/ars: Allow root to busy-poll the ARS state machine
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,63 +26,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, linux-kernel@vger.kernel.org
+To: linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The ARS implementation implements exponential back-off on the poll
-interval to prevent high-frequency access to the DIMM / platform
-interface. Depending on when the ARS completes the poll interval may
-exceed the completion event by minutes. Allow root to reset the timeout
-each time it probes the status. A one-second timeout is still enforced,
-but root can otherwise can control the poll interval.
+On Thu, Feb 14, 2019 at 12:32 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> The ARS implementation implements exponential back-off on the poll
+> interval to prevent high-frequency access to the DIMM / platform
+> interface. Depending on when the ARS completes the poll interval may
+> exceed the completion event by minutes. Allow root to reset the timeout
+> each time it probes the status. A one-second timeout is still enforced,
+> but root can otherwise can control the poll interval.
+>
+> Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Change since v1: Use mod_delayed_work() instead of queue_delayed_work()
+> to modify the timeout for existing work.
+>
+>  drivers/acpi/nfit/core.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 934be96dc149..b1ab593a808a 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1328,6 +1328,12 @@ static ssize_t scrub_show(struct device *dev,
+>                 rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
+>                                 acpi_desc->scrub_busy
+>                                 && !acpi_desc->cancel ? "+\n" : "\n");
+> +               /* Allow an admin to poll the busy state at a higher rate */
+> +               if (acpi_desc->scrub_busy && !acpi_desc->cancel
+> +                               && capable(CAP_SYS_RAWIO)) {
+> +                       acpi_desc->scrub_tmo = 1;
+> +                       mod_delayed_work(nfit_wq, &acpi_desc->dwork, HZ);
+> +               }
 
-Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |    8 ++++++++
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 9 insertions(+)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 90312892093e..629cf91649d2 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1333,6 +1333,13 @@ static ssize_t scrub_show(struct device *dev,
- 	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
- 		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
- 	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
-+	/* Allow an admin to poll the busy state at a higher rate */
-+	if (busy && capable(CAP_SYS_RAWIO) && !test_and_set_bit(ARS_POLL,
-+				&acpi_desc->scrub_flags)) {
-+		acpi_desc->scrub_tmo = 1;
-+		mod_delayed_work(nfit_wq, &acpi_desc->dwork, HZ);
-+	}
-+
- 	mutex_unlock(&acpi_desc->init_mutex);
- 	device_unlock(dev);
- 	return rc;
-@@ -3187,6 +3194,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	else
- 		notify_ars_done(acpi_desc);
- 	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
-+	clear_bit(ARS_POLL, &acpi_desc->scrub_flags);
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 897ce10192a0..d14bad687fb8 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -213,6 +213,7 @@ struct nfit_mem {
- enum scrub_flags {
- 	ARS_BUSY,
- 	ARS_CANCEL,
-+	ARS_POLL,
- };
- 
- struct acpi_nfit_desc {
-
+I added support to ndctl to specify a poll-interval to 'ndctl
+wait-scrub'. The support highlighted an infinite loop problem as
+mod_delayed_work() called in a loop prevented the workqueue from ever
+running. A revised patch-set adds a new ARS_POLL flag to ensure that
+the workqueue runs at least once after every mod_delayed_work().
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
