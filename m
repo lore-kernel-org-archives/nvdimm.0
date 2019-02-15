@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 503F5202E531B
- for <linux-nvdimm@lists.01.org>; Tue, 12 Feb 2019 13:37:45 -0800 (PST)
-Subject: [PATCH 5/7] libnvdimm/pfn: Remove dax_label_reserve
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Feb 2019 13:25:06 -0800
-Message-ID: <155000670671.348031.8414677031368179860.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155000668075.348031.9371497273408112600.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 20F28208D6125
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 15:57:51 -0800 (PST)
+From: ira.weiny@intel.com
+Subject: [PATCH V3] ndctl: Generalized make-git-snapshot.sh
+Date: Fri, 15 Feb 2019 15:57:43 -0800
+Message-Id: <20190215235743.3591-1-ira.weiny@intel.com>
+In-Reply-To: <20190215192117.28605-1-ira.weiny@intel.com>
+References: <20190215192117.28605-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,44 +22,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org, vishal.l.verma@intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-The reserve was for an abandoned effort to add label (partitioning
-support) to device-dax instances. Remove it.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+make-git-snapshot.sh made an assumption of the git tree location.
+
+Furthermore, it assumed the user has an rpmbuild environment directory
+structure set up.
+
+Enhance the script to error out if not run in the root of the git tree
+and create the output directory if the user does not already have it.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+
 ---
- drivers/nvdimm/pfn_devs.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Changes since V2
+	Don't use $0 to determine git tree location
+	Instead expect user to run within root of git tree
+		Error out if not
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 108f9f7ed064..110699f4c3e4 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -696,7 +696,6 @@ static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trun
+Changes since V1
+	use rpmdev-setuptree
+
+ make-git-snapshot.sh | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/make-git-snapshot.sh b/make-git-snapshot.sh
+index 142419d623fe..0b5de17a6d5c 100755
+--- a/make-git-snapshot.sh
++++ b/make-git-snapshot.sh
+@@ -2,10 +2,21 @@
+ set -e
  
- static int nd_pfn_init(struct nd_pfn *nd_pfn)
- {
--	u32 dax_label_reserve = is_nd_dax(&nd_pfn->dev) ? SZ_128K : 0;
- 	struct nd_namespace_common *ndns = nd_pfn->ndns;
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	u32 start_pad, end_trunc, reserve = info_block_reserve();
-@@ -754,11 +753,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		 * when populating the vmemmap. This *should* be equal to
- 		 * PMD_SIZE for most architectures.
- 		 */
--		offset = ALIGN(start + reserve + 64 * npfns + dax_label_reserve,
-+		offset = ALIGN(start + reserve + 64 * npfns,
- 				max(nd_pfn->align, PMD_SIZE)) - start;
- 	} else if (nd_pfn->mode == PFN_MODE_RAM)
--		offset = ALIGN(start + reserve + dax_label_reserve,
--				nd_pfn->align) - start;
-+		offset = ALIGN(start + reserve, nd_pfn->align) - start;
- 	else
- 		return -ENXIO;
+ NAME=ndctl
+-REFDIR="$HOME/git/ndctl"  # for faster cloning, if available
++
++if [ ! -x ./git-version ]; then
++	echo "$0 : ERROR: Must run from top level of git tree"
++	exit 1
++fi
++
++REFDIR=$PWD
++
+ UPSTREAM=$REFDIR #TODO update once we have a public upstream
+ OUTDIR=$HOME/rpmbuild/SOURCES
  
++if [ ! -d $OUTDIR ]; then
++	mkdir -p $OUTDIR
++fi
++
+ [ -n "$1" ] && HEAD="$1" || HEAD="HEAD"
+ 
+ WORKDIR="$(mktemp -d --tmpdir "$NAME.XXXXXXXXXX")"
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
