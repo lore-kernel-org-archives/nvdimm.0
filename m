@@ -1,14 +1,14 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/7] libnvdimm/pmem: Honor force_raw for legacy pmem
- regions
-Date: Fri, 15 Feb 2019 15:48:39 +0000
-Message-ID: <20190215154840.A8088222A1@mail.kernel.org>
-References: <155000669130.348031.13764885263577554365.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC v4 10/17] kunit: test: add test managed resource tests
+Date: Fri, 15 Feb 2019 12:54:47 -0800
+Message-ID: <155026408761.115909.17855438744578437385@swboyd.mtv.corp.google.com>
+References: <20190214213729.21702-1-brendanhiggins@google.com>
+ <20190214213729.21702-11-brendanhiggins@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <155000669130.348031.13764885263577554365.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20190214213729.21702-11-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,41 +18,49 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, pmladek-IBi9RG/b67k@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Avinash Kondareddy <avikr-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
+Quoting Brendan Higgins (2019-02-14 13:37:22)
+> diff --git a/kunit/test-test.c b/kunit/test-test.c
+> index 0b4ad6690310d..bb34431398526 100644
+> --- a/kunit/test-test.c
+> +++ b/kunit/test-test.c
+[...]
+> +
+> +#define KUNIT_RESOURCE_NUM 5
+> +static void kunit_resource_test_cleanup_resources(struct kunit *test)
+> +{
+> +       int i;
+> +       struct kunit_test_resource_context *ctx = test->priv;
+> +       struct kunit_resource *resources[KUNIT_RESOURCE_NUM];
+> +
+> +       for (i = 0; i < KUNIT_RESOURCE_NUM; i++) {
 
-[This is an automated email]
+Nitpick: This could use ARRAY_SIZE(resources) and then the #define could
+be dropped.
 
-This commit has been processed because it contains a "Fixes:" tag,
-fixing commit: 004f1afbe199 libnvdimm, pmem: direct map legacy pmem by default.
+> +               resources[i] = kunit_alloc_resource(&ctx->test,
+> +                                                   fake_resource_init,
+> +                                                   fake_resource_free,
+> +                                                   ctx);
+> +       }
+> +
+> +       kunit_cleanup(&ctx->test);
+> +
+> +       KUNIT_EXPECT_TRUE(test, list_empty(&ctx->test.resources));
+> +}
+> +
+[...]
+> +
+> +static struct kunit_case kunit_resource_test_cases[] = {
 
-The bot has tested the following trees: v4.20.8, v4.19.21, v4.14.99, v4.9.156, v4.4.174.
+Can these arrays be const?
 
-v4.20.8: Build OK!
-v4.19.21: Build OK!
-v4.14.99: Build OK!
-v4.9.156: Build OK!
-v4.4.174: Failed to apply! Possible dependencies:
-    0caeef63e6d2 ("libnvdimm: Add a poison list and export badblocks")
-    0e749e54244e ("dax: increase granularity of dax_clear_blocks() operations")
-    34c0fd540e79 ("mm, dax, pmem: introduce pfn_t")
-    4b94ffdc4163 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
-    52db400fcd50 ("pmem, dax: clean up clear_pmem()")
-    87ba05dff351 ("libnvdimm: don't fail init for full badblocks list")
-    9476df7d80df ("mm: introduce find_dev_pagemap()")
-    ad9a8bde2cb1 ("libnvdimm, pmem: move definition of nvdimm_namespace_add_poison to nd.h")
-    b2e0d1625e19 ("dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()")
-    b95f5f4391fa ("libnvdimm: convert to statically allocated badblocks")
-    cfe30b872058 ("libnvdimm, pmem: adjust for section collisions with 'System RAM'")
-    d2c0f041e1bb ("libnvdimm, pfn, pmem: allocate memmap array in persistent memory")
-    d9cbe09d39aa ("libnvdimm, pmem: fix 'pfn' support for section-misaligned namespaces")
-
-
-How should we proceed with this patch?
-
---
-Thanks,
-Sasha
+> +       KUNIT_CASE(kunit_resource_test_init_resources),
+> +       KUNIT_CASE(kunit_resource_test_alloc_resource),
+> +       KUNIT_CASE(kunit_resource_test_free_resource),
+> +       KUNIT_CASE(kunit_resource_test_cleanup_resources),
+> +       {},
+> +};
