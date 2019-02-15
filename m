@@ -2,13 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6CE11211C649C
- for <linux-nvdimm@lists.01.org>; Fri,  1 Feb 2019 16:39:03 -0800 (PST)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl,
- rpmbuild: Add a dummy readme file to ndctl_keysdir
-Date: Fri,  1 Feb 2019 17:39:00 -0700
-Message-Id: <20190202003900.8487-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 38A6A2194EB78
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:41 -0800 (PST)
+Subject: [PATCH v2 3/6] nfit/ars: Remove ars_start_flags
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Feb 2019 11:44:02 -0800
+Message-ID: <155025984267.1043225.13642468395161111076.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,75 +23,52 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-At build time, ndctl_keysdir (/etc/nddctl/keys/) was empty, and thus
-it never gets created. Since the directory is listed in the %files
-section of the RPM spec, RPM checks for it and fails since it is not
-present.
+The ars_start_flags property of 'struct acpi_nfit_desc' is no longer
+used since ARS_REQ_SHORT and ARS_REQ_LONG were added.
 
-Fix this by adding a simple 'keys.readme' file to the keys dorectory
-that points the user to the setup-passphrase man page, and installing it
-during the build.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- configure.ac      | 2 ++
- ndctl.spec.in     | 1 +
- ndctl/Makefile.am | 2 ++
- ndctl/keys.readme | 1 +
- 4 files changed, 6 insertions(+)
- create mode 100644 ndctl/keys.readme
+ drivers/acpi/nfit/core.c |   10 +++++-----
+ drivers/acpi/nfit/nfit.h |    1 -
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index b08ddaf..d27a2b1 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -179,7 +179,9 @@ AS_IF([test "x$with_keyutils" = "xyes"],
- AM_CONDITIONAL([ENABLE_KEYUTILS], [test "x$with_keyutils" = "xyes"])
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 934be96dc149..9a23ae74e82b 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2651,11 +2651,11 @@ static int ars_continue(struct acpi_nfit_desc *acpi_desc)
+ 	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
+ 	struct nd_cmd_ars_status *ars_status = acpi_desc->ars_status;
  
- ndctl_keysdir=${sysconfdir}/ndctl/keys
-+ndctl_keysreadme=keys.readme
- AC_SUBST([ndctl_keysdir])
-+AC_SUBST([ndctl_keysreadme])
- 
- my_CFLAGS="\
- -Wall \
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 5ceb27a..8abccbf 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -110,6 +110,7 @@ make check
- %{bashcompdir}/
- %{_unitdir}/ndctl-monitor.service
- %dir %{_sysconfdir}/ndctl/keys/
-+%{_sysconfdir}/ndctl/keys/keys.readme
- %{_sysconfdir}/modprobe.d/nvdimm-security.conf
- 
- %config(noreplace) %{_sysconfdir}/ndctl/monitor.conf
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index cd3312b..3287dbb 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -29,6 +29,8 @@ ndctl_SOURCES = ndctl.c \
- if ENABLE_KEYUTILS
- ndctl_SOURCES += util/keys.c \
- 		load-keys.c
-+keys_configdir = $(ndctl_keysdir)
-+keys_config_DATA = $(ndctl_keysreadme)
- endif
- 
- if ENABLE_DESTRUCTIVE
-diff --git a/ndctl/keys.readme b/ndctl/keys.readme
-new file mode 100644
-index 0000000..506678a
---- /dev/null
-+++ b/ndctl/keys.readme
-@@ -0,0 +1 @@
-+See 'ndctl setup-passphrase --help'
--- 
-2.20.1
+-	memset(&ars_start, 0, sizeof(ars_start));
+-	ars_start.address = ars_status->restart_address;
+-	ars_start.length = ars_status->restart_length;
+-	ars_start.type = ars_status->type;
+-	ars_start.flags = acpi_desc->ars_start_flags;
++	ars_start = (struct nd_cmd_ars_start) {
++		.address = ars_status->restart_address,
++		.length = ars_status->restart_length,
++		.type = ars_status->type,
++	};
+ 	rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_START, &ars_start,
+ 			sizeof(ars_start), &cmd_rc);
+ 	if (rc < 0)
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 33691aecfcee..871fb3de3b30 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -223,7 +223,6 @@ struct acpi_nfit_desc {
+ 	struct list_head idts;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 	struct device *dev;
+-	u8 ars_start_flags;
+ 	struct nd_cmd_ars_status *ars_status;
+ 	struct nfit_spa *scrub_spa;
+ 	struct delayed_work dwork;
 
 _______________________________________________
 Linux-nvdimm mailing list
