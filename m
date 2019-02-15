@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com
- [IPv6:2607:f8b0:4864:20::444])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 29D3E211CA2BF
- for <linux-nvdimm@lists.01.org>; Tue,  5 Feb 2019 18:05:08 -0800 (PST)
-Received: by mail-pf1-x444.google.com with SMTP id b85so2396105pfc.3
- for <linux-nvdimm@lists.01.org>; Tue, 05 Feb 2019 18:05:08 -0800 (PST)
-From: Oliver O'Halloran <oohall@gmail.com>
-Subject: [PATCH] libnvdimm: Fix altmap reservation size calculation
-Date: Wed,  6 Feb 2019 13:04:53 +1100
-Message-Id: <20190206020453.25534-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 17E95202E531F
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:51 -0800 (PST)
+Subject: [PATCH v2 5/6] nfit/ars: Allow root to busy-poll the ARS state machine
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Feb 2019 11:44:13 -0800
+Message-ID: <155025985341.1043225.5482732552253707094.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,60 +23,61 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: stable@vger.kernel.org
+Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Libnvdimm reserves the first 8K of pfn and devicedax namespaces to
-store a superblock describing the namespace. This 8K reservation
-is contained within the altmap area which the kernel uses for the
-vmemmap backing for the pages within the namespace. The altmap
-allows for some pages at the start of the altmap area to be reserved
-and that mechanism is used to protect the superblock from being
-re-used as vmemmap backing.
+The ARS implementation implements exponential back-off on the poll
+interval to prevent high-frequency access to the DIMM / platform
+interface. Depending on when the ARS completes the poll interval may
+exceed the completion event by minutes. Allow root to reset the timeout
+each time it probes the status. A one-second timeout is still enforced,
+but root can otherwise can control the poll interval.
 
-The number of PFNs to reserve is calculated using:
-
-	PHYS_PFN(SZ_8K)
-
-Which is implemented as:
-
- #define PHYS_PFN(x) ((unsigned long)((x) >> PAGE_SHIFT))
-
-So on systems where PAGE_SIZE is greater than 8K the reservation
-size is truncated to zero and the superblock area is re-used as
-vmemmap backing. As a result all the namespace information stored
-in the superblock (i.e. if it's a PFN or DAX namespace) is lost
-and the namespace needs to be re-created to get access to the
-contents.
-
-This patch fixes this by using PFN_UP() rather than PHYS_PFN() to ensure
-that at least one page is reserved. On systems with a 4K pages size this
-patch should have no effect.
-
-Cc: stable@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-Fixes: ac515c084be9 ("libnvdimm, pmem, pfn: move pfn setup to the core")
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
----
- drivers/nvdimm/pfn_devs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c |    8 ++++++++
+ drivers/acpi/nfit/nfit.h |    1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 6f22272e8d80..9b9be83da0e7 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -593,7 +593,7 @@ static unsigned long init_altmap_base(resource_size_t base)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 90312892093e..629cf91649d2 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1333,6 +1333,13 @@ static ssize_t scrub_show(struct device *dev,
+ 	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
+ 		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
+ 	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
++	/* Allow an admin to poll the busy state at a higher rate */
++	if (busy && capable(CAP_SYS_RAWIO) && !test_and_set_bit(ARS_POLL,
++				&acpi_desc->scrub_flags)) {
++		acpi_desc->scrub_tmo = 1;
++		mod_delayed_work(nfit_wq, &acpi_desc->dwork, HZ);
++	}
++
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 	device_unlock(dev);
+ 	return rc;
+@@ -3187,6 +3194,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 	else
+ 		notify_ars_done(acpi_desc);
+ 	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
++	clear_bit(ARS_POLL, &acpi_desc->scrub_flags);
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
  
- static unsigned long init_altmap_reserve(resource_size_t base)
- {
--	unsigned long reserve = PHYS_PFN(SZ_8K);
-+	unsigned long reserve = PFN_UP(SZ_8K);
- 	unsigned long base_pfn = PHYS_PFN(base);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 897ce10192a0..d14bad687fb8 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -213,6 +213,7 @@ struct nfit_mem {
+ enum scrub_flags {
+ 	ARS_BUSY,
+ 	ARS_CANCEL,
++	ARS_POLL,
+ };
  
- 	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
--- 
-2.20.1
+ struct acpi_nfit_desc {
 
 _______________________________________________
 Linux-nvdimm mailing list
