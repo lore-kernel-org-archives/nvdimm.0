@@ -1,20 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com
- [IPv6:2607:f8b0:4864:20::742])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3EE28201B0440
- for <linux-nvdimm@lists.01.org>; Sun, 17 Feb 2019 12:29:18 -0800 (PST)
-Received: by mail-qk1-x742.google.com with SMTP id p15so8886365qkl.5
- for <linux-nvdimm@lists.01.org>; Sun, 17 Feb 2019 12:29:18 -0800 (PST)
-Subject: Re: [LSF/MM TOPIC] The end of the DAX experiment
+Received: from ipmail06.adl2.internode.on.net (ipmail06.adl2.internode.on.net
+ [150.101.137.129])
+ by ml01.01.org (Postfix) with ESMTP id 44939208EB3E1
+ for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 21:37:13 -0800 (PST)
+Date: Sat, 16 Feb 2019 16:37:11 +1100
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [Lsf-pc] [LSF/MM TOPIC] The end of the DAX experiment
+Message-ID: <20190216053711.GA14116@dastard>
 References: <CAPcyv4jyCDJTpGZB6qVX7_FiaxJfDzWA1cw8dfPjHM2j3j3yqQ@mail.gmail.com>
-From: Ric Wheeler <ricwheeler@gmail.com>
-Message-ID: <3eb67ffa-76c9-aa66-d162-d4e209330f48@gmail.com>
-Date: Sun, 17 Feb 2019 15:29:14 -0500
+ <20190214134622.GG4525@dhcp22.suse.cz>
+ <CAPcyv4gxFKBQ9eVdn+pNEzBXRfw6Qwfmu21H2i5uj-PyFmRAGQ@mail.gmail.com>
+ <20190214191013.GA3420@redhat.com>
+ <CAPcyv4jLTdJyTOy715qvBL_j_deiLoBmu_thkUnFKZKMvZL6hA@mail.gmail.com>
+ <20190214200840.GB12668@bombadil.infradead.org>
+ <CAPcyv4hsDqvrV5yiDq8oWPuWb3WpuCEk_HB4qBxfiDpUwo75QQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jyCDJTpGZB6qVX7_FiaxJfDzWA1cw8dfPjHM2j3j3yqQ@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hsDqvrV5yiDq8oWPuWb3WpuCEk_HB4qBxfiDpUwo75QQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,78 +24,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, lsf-pc@lists.linux-foundation.org
-Cc: linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-ext4 <linux-ext4@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, lsf-pc@lists.linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gMi82LzE5IDQ6MTIgUE0sIERhbiBXaWxsaWFtcyB3cm90ZToKPiBCZWZvcmUgcGVvcGxlIGdl
-dCB0b28gZXhjaXRlZCB0aGlzIGlzbid0IGEgcHJvcG9zYWwgdG8ga2lsbCBEQVguIFRoZQo+IHRv
-cGljIHByb3Bvc2FsIGlzIGEgZGlzY3Vzc2lvbiB0byByZXNvbHZlIGxpbmdlcmluZyBvcGVuIHF1
-ZXN0aW9ucwo+IHRoYXQgY3VycmVudGx5IG1vdGl2YXRlIGV4dDQgYW5kIHhmcyB0byBzY3JlYW0g
-IkVYUEVSSU1FTlRBTCIgd2hlbiB0aGUKPiBjdXJyZW50IERBWCBmYWNpbGl0aWVzIGFyZSBlbmFi
-bGVkLiBUaGUgYXJlIDIgcHJpbWFyeSBjb25jZXJucyB0bwo+IHJlc29sdmUuIEVudW1lcmF0ZSB0
-aGUgcmVtYWluaW5nIGZlYXR1cmVzL2ZpeGVzLCBhbmQgaWRlbnRpZnkgYSBwYXRoCj4gdG8gaW1w
-bGVtZW50IGl0IGFsbCB3aXRob3V0IHJlZ3Jlc3NpbmcgYW55IGV4aXN0aW5nIGFwcGxpY2F0aW9u
-IHVzZQo+IGNhc2VzLgo+Cj4gQW4gZW51bWVyYXRpb24gb2YgcmVtYWluaW5nIHByb2plY3RzIGZv
-bGxvd3MsIHBsZWFzZSBleHBhbmQgdGhpcyBsaXN0Cj4gaWYgSSBtaXNzZWQgc29tZXRoaW5nOgo+
-Cj4gKiAiREFYIiBoYXMgbm8gc3BlY2lmaWMgbWVhbmluZyBieSBpdHNlbGYsIHVzZXJzIGhhdmUg
-MiB1c2UgY2FzZXMgZm9yCj4gIkRBWCIgY2FwYWJpbGl0aWVzOiB1c2Vyc3BhY2UgY2FjaGUgbWFu
-YWdlbWVudCB2aWEgTUFQX1NZTkMsIGFuZCBwYWdlCj4gY2FjaGUgYXZvaWRhbmNlIHdoZXJlIHRo
-ZSBsYXR0ZXIgYXNwZWN0IG9mIERBWCBoYXMgbm8gY3VycmVudCBhcGkgdG8KPiBkaXNjb3ZlciAv
-IHVzZSBpdC4gVGhlIHByb2plY3QgaXMgdG8gc3VwcGxlbWVudCBNQVBfU1lOQyB3aXRoIGEKPiBN
-QVBfRElSRUNUIGZhY2lsaXR5IGFuZCBNQURWX1NZTkMgLyBNQURWX0RJUkVDVCB0byBpbmRpY2F0
-ZSB0aGUgc2FtZQo+IGR5bmFtaWNhbGx5IHZpYSBtYWR2aXNlLiBTaW1pbGFyIHRvIE9fRElSRUNU
-LCBNQVBfRElSRUNUIHdvdWxkIGJlIGFuCj4gYXBwbGljYXRpb24gaGludCB0byBhdm9pZCAvIG1p
-bmltaWl6ZSBwYWdlIGNhY2hlIHVzYWdlLCBidXQgbm8gc3RyaWN0Cj4gZ3VhcmFudGVlIGxpa2Ug
-d2hhdCBNQVBfU1lOQyBwcm92aWRlcy4KCgpTb3VuZHMgbGlrZSBhIGdyZWF0IHRvcGljIHRvIG1l
-LiBIYXZpbmcganVzdCBnb25lIHRocm91Z2ggYSBuZXcgcm91bmQgb2YgVVNFTklYIApwYXBlciBy
-ZXZpZXdzLCBpdCBpcyBpbnRlcmVzdGluZyB0byBzZWUgaG93IG1hbnkgYWNhZGVtaWMgc3lzdGVt
-cyBhcmUgYmVpbmcgCnBpdGNoZWQgaW4gdGhpcyBzcGFjZSAoYW5kIG1vc3Qgb2YgdGhlbSBkb24n
-dCBtZW50aW9uIHRoZSBrZXJuZWwgYmFzZWQgeGZzL2V4dDQgCndpdGggZGF4KS4KClJlZ2FyZHMs
-CgpSaWMKCgo+Cj4gKiBSZXNvbHZlIGFsbCAiaWYgKGRheCkgZ290byBmYWlsOyIgcGF0dGVybnMg
-aW4gdGhlIGtlcm5lbC4gT3V0c2lkZSBvZgo+IGxvbmd0ZXJtLUdVUCAoYSB0b3BpYyBpbiBpdHMg
-b3duIHJpZ2h0KSB0aGUgcHJvamVjdHMgaGVyZSBhcmUKPiBYRlMtcmVmbGluayBhbmQgWEZTLXJl
-YWx0aW1lLWRldmljZSBzdXBwb3J0LiBEQVgrcmVmbGluayBlZmZlY3RpdmVseQo+IHJlcXVpcmVz
-IGEgZ2l2ZW4gcGh5c2ljYWwgcGFnZSB0byBiZSBtYXBwZWQgaW50byB0d28gZGlmZmVyZW50IGlu
-b2Rlcwo+IGF0IGRpZmZlcmVudCAocGFnZS0+aW5kZXgpIG9mZnNldHMuIFRoZSBjaGFsbGVuZ2Ug
-aXMgdG8gc3VwcG9ydAo+IERBWC1yZWZsaW5rIHdpdGhvdXQgdmlvbGF0aW5nIGFueSBleGlzdGlu
-ZyBhcHBsaWNhdGlvbiB2aXNpYmxlCj4gc2VtYW50aWNzLCB0aGUgb3BlcmF0aW5nIGFzc3VtcHRp
-b24gLyBzdHJhd21hbiB0byBkZWJhdGUgaXMgdGhhdAo+IGV4cGVyaW1lbnRhbCBzdGF0dXMgaXMg
-bm90IGJsYW5rZXQgcGVybWlzc2lvbiB0byBnbyBjaGFuZ2UgZXhpc3RpbmcKPiBzZW1hbnRpY3Mg
-aW4gYmFja3dhcmRzIGluY29tcGF0aWJsZSB3YXlzLgo+Cj4gKiBEZXByZWNhdGUsIGJ1dCBub3Qg
-cmVtb3ZlLCB0aGUgREFYIG1vdW50IG9wdGlvbi4gVG9vIG1hbnkgZmxvd3MKPiBkZXBlbmQgb24g
-dGhlIG9wdGlvbiBzbyBpdCB3aWxsIG5ldmVyIGdvIGF3YXksIGJ1dCB0aGUgZmFjaWxpdHkgaXMg
-dG9vCj4gY29hcnNlLiBQcm92aWRlIGFuIG9wdGlvbiB0byBlbmFibGUgTUFQX1NZTkMgYW5kCj4g
-bW9yZS1saWtlbHktdG8tZG8tc29tZXRoaW5nLXVzZWZ1bC1NQVBfRElSRUNUIG9uIGEgcGVyLWRp
-cmVjdG9yeQo+IGJhc2lzLiBUaGUgY3VycmVudCBwcm9wb3NhbCBpcyB0byBhbGxvdyB0aGlzIHBy
-b3BlcnR5IHRvIG9ubHkgYmUKPiB0b2dnbGVkIHdoaWxlIHRoZSBkaXJlY3RvcnkgaXMgZW1wdHkg
-dG8gYXZvaWQgdGhlIGNvbXBsaWNhdGlvbnMgb2YKPiByYWNpbmcgcGFnZSBpbnZhbGlkYXRpb24g
-d2l0aCBuZXcgREFYIG1hcHBpbmdzLgo+Cj4KPiBTZWNvbmRhcnkgcHJvamVjdHMsIGkuZS4gaW1w
-b3J0YW50IGJ1dCBJIHdvdWxkIHN1Ym1pdCBhcmUgbm90IGluIHRoZQo+IGNyaXRpY2FsIHBhdGgg
-dG8gcmVtb3ZpbmcgdGhlICJleHBlcmltZW50YWwiIGRlc2lnbmF0aW9uOgo+ICogRmlsZXN5c3Rl
-bS1pbnRlZ3JhdGVkIGJhZGJsb2NrIG1hbmFnZW1lbnQuIEhvb2sgdXAgdGhlIG1lZGlhIGVycm9y
-Cj4gbm90aWZpY2F0aW9ucyBmcm9tIGxpYm52ZGltbSB0byB0aGUgZmlsZXN5c3RlbSB0byBhbGxv
-dyBmb3Igb3BlcmF0aW9ucwo+IGxpa2UgImxpc3QgZmlsZXMgd2l0aCBtZWRpYSBlcnJvcnMiIGFu
-ZCAiZW51bWVyYXRlIGJhZCBmaWxlIG9mZnNldHMgb24KPiBhIGdyYW51bGF0aXkgc21hbGxlciB0
-aGFuIGEgcGFnZSIuIEFub3RoZXIgY29uc2lkZXJhdGlvbiBhbG9uZyB0aGVzZQo+IGxpbmVzIGlz
-IHRvIGludGVncmF0ZSBtYWNoaW5lLWNoZWNrLWhhbmRsaW5nIGFuZCBkeW5hbWljIGVycm9yCj4g
-bm90aWZpY2F0aW9uIGludG8gYSBmaWxlc3lzdGVtIGludGVyZmFjZS4gSSd2ZSBoZWFyZCBjb21w
-bGFpbnRzIHRoYXQKPiB0aGUgc2lnYWN0aW9uKCkgYmFzZWQgbWVjaGFuaXNtIHRvIHJlY2VpdmUg
-QlVTX01DRUVSUl8qIGluZm9ybWF0aW9uLAo+IHdoaWxlIHN1ZmZpY2llbnQgZm9yIHRoZSAiU3lz
-dGVtIFJBTSIgdXNlIGNhc2UsIGlzIG5vdCBwcmVjaXNlIGVub3VnaAo+IGZvciB0aGUgIlBlcnNp
-c3RlbnQgTWVtb3J5IC8gREFYIiB1c2UgY2FzZSB3aGVyZSBlcnJvcnMgYXJlIHJlcGFpcmFibGUK
-PiBhbmQgc3ViLXBhZ2UgZXJyb3IgaW5mb3JtYXRpb24gaXMgdXNlZnVsLgo+Cj4gKiBVc2VyZmF1
-bHRmZCBmb3IgZmlsZS1iYWNrZWQgbWFwcGluZ3MgYW5kIERBWAo+Cj4KPiBJZGVhbGx5IGFsbCB0
-aGUgdXN1YWwgREFYLCBwZXJzaXN0ZW50IG1lbW9yeSwgYW5kIEdVUCBzdXNwZWN0cyBjb3VsZAo+
-IGJlIGluIHRoZSByb29tIHRvIGRpc2N1c3MgdGhpczoKPiAqIEphbiBLYXJhCj4gKiBEYXZlIENo
-aW5uZXIKPiAqIENocmlzdG9waCBIZWxsd2lnCj4gKiBKZWZmIE1veWVyCj4gKiBKb2hhbm5lcyBU
-aHVtc2hpcm4KPiAqIE1hdHRoZXcgV2lsY294Cj4gKiBKb2huIEh1YmJhcmQKPiAqIErDqXLDtG1l
-IEdsaXNzZQo+ICogTU0gZm9sa3MgZm9yIHRoZSByZWZsaW5rIHZzICdzdHJ1Y3QgcGFnZScgdnMg
-WGFycmF5IGNvbnNpZGVyYXRpb25zCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+On Thu, Feb 14, 2019 at 12:20:11PM -0800, Dan Williams wrote:
+> On Thu, Feb 14, 2019 at 12:09 PM Matthew Wilcox <willy@infradead.org> wrote:
+> >
+> > On Thu, Feb 14, 2019 at 11:31:24AM -0800, Dan Williams wrote:
+> > > On Thu, Feb 14, 2019 at 11:10 AM Jerome Glisse <jglisse@redhat.com> wrote:
+> > > > I am just again working on my struct page mapping patchset as well as
+> > > > the generic page write protection that sits on top. I hope to be able
+> > > > to post the v2 in couple weeks. You can always look at my posting last
+> > > > year to see more details.
+> > >
+> > > Yes, I have that in mind as one of the contenders. However, it's not
+> > > clear to me that its a suitable fit for filesystem-reflink. Others
+> > > have floated the 'page proxy' idea, so it would be good to discuss the
+> > > merits of the general approaches.
+> >
+> > ... and my preferred option of putting pfn entries in the page cache.
+> 
+> Another option to include the discussion.
+> 
+> > Or is that what you meant by "page proxy"?
+> 
+> Page proxy would be an object that a filesystem could allocate to
+> point back to a single physical 'struct page *'. The proxy would
+> contain an override for page->index.
+
+Needs to override page->mapping, potentially the page flags, what
+happens when someone takes a gup reference to the proxy structure,
+etc?
+
+Besides, didn't we discuss all this last year? how about we start
+with a summary of all the options considered last year, the pros and
+cons, etc, and then go from there? Regurgitating everything we've
+already talked about last year doesn't seem particularly useful to
+me...
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
