@@ -1,20 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
+Received: from mail-qk1-x742.google.com (mail-qk1-x742.google.com
+ [IPv6:2607:f8b0:4864:20::742])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A7A321A07094
- for <linux-nvdimm@lists.01.org>; Mon, 18 Feb 2019 10:17:41 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id m1so29841412otf.5
- for <linux-nvdimm@lists.01.org>; Mon, 18 Feb 2019 10:17:41 -0800 (PST)
-MIME-Version: 1.0
-References: <CAPcyv4jyCDJTpGZB6qVX7_FiaxJfDzWA1cw8dfPjHM2j3j3yqQ@mail.gmail.com>
- <3eb67ffa-76c9-aa66-d162-d4e209330f48@gmail.com>
-In-Reply-To: <3eb67ffa-76c9-aa66-d162-d4e209330f48@gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Feb 2019 10:17:30 -0800
-Message-ID: <CAPcyv4grMnrviSDJrA5FQOFvxuAMUXoKvgNpdy9sF9zi+OHJNA@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3EE28201B0440
+ for <linux-nvdimm@lists.01.org>; Sun, 17 Feb 2019 12:29:18 -0800 (PST)
+Received: by mail-qk1-x742.google.com with SMTP id p15so8886365qkl.5
+ for <linux-nvdimm@lists.01.org>; Sun, 17 Feb 2019 12:29:18 -0800 (PST)
 Subject: Re: [LSF/MM TOPIC] The end of the DAX experiment
+References: <CAPcyv4jyCDJTpGZB6qVX7_FiaxJfDzWA1cw8dfPjHM2j3j3yqQ@mail.gmail.com>
+From: Ric Wheeler <ricwheeler@gmail.com>
+Message-ID: <3eb67ffa-76c9-aa66-d162-d4e209330f48@gmail.com>
+Date: Sun, 17 Feb 2019 15:29:14 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jyCDJTpGZB6qVX7_FiaxJfDzWA1cw8dfPjHM2j3j3yqQ@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,47 +22,78 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ric Wheeler <ricwheeler@gmail.com>
-Cc: lsf-pc@lists.linux-foundation.org, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, lsf-pc@lists.linux-foundation.org
+Cc: linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Feb 17, 2019 at 12:29 PM Ric Wheeler <ricwheeler@gmail.com> wrote:
->
-> On 2/6/19 4:12 PM, Dan Williams wrote:
-> > Before people get too excited this isn't a proposal to kill DAX. The
-> > topic proposal is a discussion to resolve lingering open questions
-> > that currently motivate ext4 and xfs to scream "EXPERIMENTAL" when the
-> > current DAX facilities are enabled. The are 2 primary concerns to
-> > resolve. Enumerate the remaining features/fixes, and identify a path
-> > to implement it all without regressing any existing application use
-> > cases.
-> >
-> > An enumeration of remaining projects follows, please expand this list
-> > if I missed something:
-> >
-> > * "DAX" has no specific meaning by itself, users have 2 use cases for
-> > "DAX" capabilities: userspace cache management via MAP_SYNC, and page
-> > cache avoidance where the latter aspect of DAX has no current api to
-> > discover / use it. The project is to supplement MAP_SYNC with a
-> > MAP_DIRECT facility and MADV_SYNC / MADV_DIRECT to indicate the same
-> > dynamically via madvise. Similar to O_DIRECT, MAP_DIRECT would be an
-> > application hint to avoid / minimiize page cache usage, but no strict
-> > guarantee like what MAP_SYNC provides.
->
->
-> Sounds like a great topic to me. Having just gone through a new round of USENIX
-> paper reviews, it is interesting to see how many academic systems are being
-> pitched in this space (and most of them don't mention the kernel based xfs/ext4
-> with dax).
-
-Makes sense, the current fsdax facility is chasing feature
-deficiencies relative to device-dax (longterm pin support) and nova
-(dax techniques for fs-metadata).
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gMi82LzE5IDQ6MTIgUE0sIERhbiBXaWxsaWFtcyB3cm90ZToKPiBCZWZvcmUgcGVvcGxlIGdl
+dCB0b28gZXhjaXRlZCB0aGlzIGlzbid0IGEgcHJvcG9zYWwgdG8ga2lsbCBEQVguIFRoZQo+IHRv
+cGljIHByb3Bvc2FsIGlzIGEgZGlzY3Vzc2lvbiB0byByZXNvbHZlIGxpbmdlcmluZyBvcGVuIHF1
+ZXN0aW9ucwo+IHRoYXQgY3VycmVudGx5IG1vdGl2YXRlIGV4dDQgYW5kIHhmcyB0byBzY3JlYW0g
+IkVYUEVSSU1FTlRBTCIgd2hlbiB0aGUKPiBjdXJyZW50IERBWCBmYWNpbGl0aWVzIGFyZSBlbmFi
+bGVkLiBUaGUgYXJlIDIgcHJpbWFyeSBjb25jZXJucyB0bwo+IHJlc29sdmUuIEVudW1lcmF0ZSB0
+aGUgcmVtYWluaW5nIGZlYXR1cmVzL2ZpeGVzLCBhbmQgaWRlbnRpZnkgYSBwYXRoCj4gdG8gaW1w
+bGVtZW50IGl0IGFsbCB3aXRob3V0IHJlZ3Jlc3NpbmcgYW55IGV4aXN0aW5nIGFwcGxpY2F0aW9u
+IHVzZQo+IGNhc2VzLgo+Cj4gQW4gZW51bWVyYXRpb24gb2YgcmVtYWluaW5nIHByb2plY3RzIGZv
+bGxvd3MsIHBsZWFzZSBleHBhbmQgdGhpcyBsaXN0Cj4gaWYgSSBtaXNzZWQgc29tZXRoaW5nOgo+
+Cj4gKiAiREFYIiBoYXMgbm8gc3BlY2lmaWMgbWVhbmluZyBieSBpdHNlbGYsIHVzZXJzIGhhdmUg
+MiB1c2UgY2FzZXMgZm9yCj4gIkRBWCIgY2FwYWJpbGl0aWVzOiB1c2Vyc3BhY2UgY2FjaGUgbWFu
+YWdlbWVudCB2aWEgTUFQX1NZTkMsIGFuZCBwYWdlCj4gY2FjaGUgYXZvaWRhbmNlIHdoZXJlIHRo
+ZSBsYXR0ZXIgYXNwZWN0IG9mIERBWCBoYXMgbm8gY3VycmVudCBhcGkgdG8KPiBkaXNjb3ZlciAv
+IHVzZSBpdC4gVGhlIHByb2plY3QgaXMgdG8gc3VwcGxlbWVudCBNQVBfU1lOQyB3aXRoIGEKPiBN
+QVBfRElSRUNUIGZhY2lsaXR5IGFuZCBNQURWX1NZTkMgLyBNQURWX0RJUkVDVCB0byBpbmRpY2F0
+ZSB0aGUgc2FtZQo+IGR5bmFtaWNhbGx5IHZpYSBtYWR2aXNlLiBTaW1pbGFyIHRvIE9fRElSRUNU
+LCBNQVBfRElSRUNUIHdvdWxkIGJlIGFuCj4gYXBwbGljYXRpb24gaGludCB0byBhdm9pZCAvIG1p
+bmltaWl6ZSBwYWdlIGNhY2hlIHVzYWdlLCBidXQgbm8gc3RyaWN0Cj4gZ3VhcmFudGVlIGxpa2Ug
+d2hhdCBNQVBfU1lOQyBwcm92aWRlcy4KCgpTb3VuZHMgbGlrZSBhIGdyZWF0IHRvcGljIHRvIG1l
+LiBIYXZpbmcganVzdCBnb25lIHRocm91Z2ggYSBuZXcgcm91bmQgb2YgVVNFTklYIApwYXBlciBy
+ZXZpZXdzLCBpdCBpcyBpbnRlcmVzdGluZyB0byBzZWUgaG93IG1hbnkgYWNhZGVtaWMgc3lzdGVt
+cyBhcmUgYmVpbmcgCnBpdGNoZWQgaW4gdGhpcyBzcGFjZSAoYW5kIG1vc3Qgb2YgdGhlbSBkb24n
+dCBtZW50aW9uIHRoZSBrZXJuZWwgYmFzZWQgeGZzL2V4dDQgCndpdGggZGF4KS4KClJlZ2FyZHMs
+CgpSaWMKCgo+Cj4gKiBSZXNvbHZlIGFsbCAiaWYgKGRheCkgZ290byBmYWlsOyIgcGF0dGVybnMg
+aW4gdGhlIGtlcm5lbC4gT3V0c2lkZSBvZgo+IGxvbmd0ZXJtLUdVUCAoYSB0b3BpYyBpbiBpdHMg
+b3duIHJpZ2h0KSB0aGUgcHJvamVjdHMgaGVyZSBhcmUKPiBYRlMtcmVmbGluayBhbmQgWEZTLXJl
+YWx0aW1lLWRldmljZSBzdXBwb3J0LiBEQVgrcmVmbGluayBlZmZlY3RpdmVseQo+IHJlcXVpcmVz
+IGEgZ2l2ZW4gcGh5c2ljYWwgcGFnZSB0byBiZSBtYXBwZWQgaW50byB0d28gZGlmZmVyZW50IGlu
+b2Rlcwo+IGF0IGRpZmZlcmVudCAocGFnZS0+aW5kZXgpIG9mZnNldHMuIFRoZSBjaGFsbGVuZ2Ug
+aXMgdG8gc3VwcG9ydAo+IERBWC1yZWZsaW5rIHdpdGhvdXQgdmlvbGF0aW5nIGFueSBleGlzdGlu
+ZyBhcHBsaWNhdGlvbiB2aXNpYmxlCj4gc2VtYW50aWNzLCB0aGUgb3BlcmF0aW5nIGFzc3VtcHRp
+b24gLyBzdHJhd21hbiB0byBkZWJhdGUgaXMgdGhhdAo+IGV4cGVyaW1lbnRhbCBzdGF0dXMgaXMg
+bm90IGJsYW5rZXQgcGVybWlzc2lvbiB0byBnbyBjaGFuZ2UgZXhpc3RpbmcKPiBzZW1hbnRpY3Mg
+aW4gYmFja3dhcmRzIGluY29tcGF0aWJsZSB3YXlzLgo+Cj4gKiBEZXByZWNhdGUsIGJ1dCBub3Qg
+cmVtb3ZlLCB0aGUgREFYIG1vdW50IG9wdGlvbi4gVG9vIG1hbnkgZmxvd3MKPiBkZXBlbmQgb24g
+dGhlIG9wdGlvbiBzbyBpdCB3aWxsIG5ldmVyIGdvIGF3YXksIGJ1dCB0aGUgZmFjaWxpdHkgaXMg
+dG9vCj4gY29hcnNlLiBQcm92aWRlIGFuIG9wdGlvbiB0byBlbmFibGUgTUFQX1NZTkMgYW5kCj4g
+bW9yZS1saWtlbHktdG8tZG8tc29tZXRoaW5nLXVzZWZ1bC1NQVBfRElSRUNUIG9uIGEgcGVyLWRp
+cmVjdG9yeQo+IGJhc2lzLiBUaGUgY3VycmVudCBwcm9wb3NhbCBpcyB0byBhbGxvdyB0aGlzIHBy
+b3BlcnR5IHRvIG9ubHkgYmUKPiB0b2dnbGVkIHdoaWxlIHRoZSBkaXJlY3RvcnkgaXMgZW1wdHkg
+dG8gYXZvaWQgdGhlIGNvbXBsaWNhdGlvbnMgb2YKPiByYWNpbmcgcGFnZSBpbnZhbGlkYXRpb24g
+d2l0aCBuZXcgREFYIG1hcHBpbmdzLgo+Cj4KPiBTZWNvbmRhcnkgcHJvamVjdHMsIGkuZS4gaW1w
+b3J0YW50IGJ1dCBJIHdvdWxkIHN1Ym1pdCBhcmUgbm90IGluIHRoZQo+IGNyaXRpY2FsIHBhdGgg
+dG8gcmVtb3ZpbmcgdGhlICJleHBlcmltZW50YWwiIGRlc2lnbmF0aW9uOgo+ICogRmlsZXN5c3Rl
+bS1pbnRlZ3JhdGVkIGJhZGJsb2NrIG1hbmFnZW1lbnQuIEhvb2sgdXAgdGhlIG1lZGlhIGVycm9y
+Cj4gbm90aWZpY2F0aW9ucyBmcm9tIGxpYm52ZGltbSB0byB0aGUgZmlsZXN5c3RlbSB0byBhbGxv
+dyBmb3Igb3BlcmF0aW9ucwo+IGxpa2UgImxpc3QgZmlsZXMgd2l0aCBtZWRpYSBlcnJvcnMiIGFu
+ZCAiZW51bWVyYXRlIGJhZCBmaWxlIG9mZnNldHMgb24KPiBhIGdyYW51bGF0aXkgc21hbGxlciB0
+aGFuIGEgcGFnZSIuIEFub3RoZXIgY29uc2lkZXJhdGlvbiBhbG9uZyB0aGVzZQo+IGxpbmVzIGlz
+IHRvIGludGVncmF0ZSBtYWNoaW5lLWNoZWNrLWhhbmRsaW5nIGFuZCBkeW5hbWljIGVycm9yCj4g
+bm90aWZpY2F0aW9uIGludG8gYSBmaWxlc3lzdGVtIGludGVyZmFjZS4gSSd2ZSBoZWFyZCBjb21w
+bGFpbnRzIHRoYXQKPiB0aGUgc2lnYWN0aW9uKCkgYmFzZWQgbWVjaGFuaXNtIHRvIHJlY2VpdmUg
+QlVTX01DRUVSUl8qIGluZm9ybWF0aW9uLAo+IHdoaWxlIHN1ZmZpY2llbnQgZm9yIHRoZSAiU3lz
+dGVtIFJBTSIgdXNlIGNhc2UsIGlzIG5vdCBwcmVjaXNlIGVub3VnaAo+IGZvciB0aGUgIlBlcnNp
+c3RlbnQgTWVtb3J5IC8gREFYIiB1c2UgY2FzZSB3aGVyZSBlcnJvcnMgYXJlIHJlcGFpcmFibGUK
+PiBhbmQgc3ViLXBhZ2UgZXJyb3IgaW5mb3JtYXRpb24gaXMgdXNlZnVsLgo+Cj4gKiBVc2VyZmF1
+bHRmZCBmb3IgZmlsZS1iYWNrZWQgbWFwcGluZ3MgYW5kIERBWAo+Cj4KPiBJZGVhbGx5IGFsbCB0
+aGUgdXN1YWwgREFYLCBwZXJzaXN0ZW50IG1lbW9yeSwgYW5kIEdVUCBzdXNwZWN0cyBjb3VsZAo+
+IGJlIGluIHRoZSByb29tIHRvIGRpc2N1c3MgdGhpczoKPiAqIEphbiBLYXJhCj4gKiBEYXZlIENo
+aW5uZXIKPiAqIENocmlzdG9waCBIZWxsd2lnCj4gKiBKZWZmIE1veWVyCj4gKiBKb2hhbm5lcyBU
+aHVtc2hpcm4KPiAqIE1hdHRoZXcgV2lsY294Cj4gKiBKb2huIEh1YmJhcmQKPiAqIErDqXLDtG1l
+IEdsaXNzZQo+ICogTU0gZm9sa3MgZm9yIHRoZSByZWZsaW5rIHZzICdzdHJ1Y3QgcGFnZScgdnMg
+WGFycmF5IGNvbnNpZGVyYXRpb25zCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
