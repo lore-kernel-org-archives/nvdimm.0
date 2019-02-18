@@ -1,14 +1,14 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [ndctl PATCH] ndctl, monitor: support NVDIMM_FAMILY_HYPERV
-Date: Sat, 16 Feb 2019 07:25:47 +0000
-Message-ID: <PU1P153MB01693A3809BC7EA9B19AC30CBF610@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <PU1P153MB016948B28D99FE01EE8252DFBF600@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <OSAPR01MB3396F103A8B3B5569F26D4DDF7600@OSAPR01MB3396.jpnprd01.prod.outlook.com>
+From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
+Date: Mon, 18 Feb 2019 11:52:37 -0800
+Message-ID: <da1995fa-a362-dfe6-8184-7fcdf2b923e8@gmail.com>
+References: <20190214213729.21702-1-brendanhiggins@google.com>
+ <20190214213729.21702-9-brendanhiggins@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <OSAPR01MB3396F103A8B3B5569F26D4DDF7600-OxqQCv4d1nQ3UXb08eLJjncolHNk5qUtvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <20190214213729.21702-9-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,55 +19,100 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
+Cc: brakmo-b10kYP2dOMg@public.gmane.org, pmladek-IBi9RG/b67k@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-> From: qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
-> Sent: Friday, February 15, 2019 1:26 AM
-> > ...
-> > --- a/ndctl/monitor.c
-> > +++ b/ndctl/monitor.c
-> > @@ -265,31 +265,50 @@ static bool filter_region(struct ndctl_region
-> *region,
-> >  	return true;
-> >  }
-> >
-> > -static void filter_dimm(struct ndctl_dimm *dimm, struct util_filter_ctx *fctx)
-> > +static bool ndctl_dimm_test_and_enable_notification(struct ndctl_dimm
-> *dimm)
-> >  {
-> > -	struct monitor_dimm *mdimm;
-> > -	struct monitor_filter_arg *mfa = fctx->monitor;
-> >  	const char *name = ndctl_dimm_get_devname(dimm);
-> >
-> > +	/*
-> > +	 * Hyper-V Virtual NVDIMM doesn't use ND_CMD_SMART to get the
-> > health
-> > +	 * info. Instead, it uses ND_CMD_CALL, so the checking here can't
-> > +	 * apply, and it doesn't support threshold alarms.
-> > +	 */
-> > +	if (ndctl_dimm_get_cmd_family(dimm) == NVDIMM_FAMILY_HYPERV)
-> > +		return true;
+On 2/14/19 1:37 PM, Brendan Higgins wrote:
+> Add support for aborting/bailing out of test cases. Needed for
+> implementing assertions.
 > 
-> Hi,
-> 
-> I think it would be better to add a checking monitor.event_flags step here.
-> Users should be notified if they setup monitoring smart threshold events on
-> NVDIMM_FAMILY_HYPERV.
-> 
-> QI
+> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> ---
+> Changes Since Last Version
+>  - This patch is new introducing a new cross-architecture way to abort
+>    out of a test case (needed for KUNIT_ASSERT_*, see next patch for
+>    details).
+>  - On a side note, this is not a complete replacement for the UML abort
+>    mechanism, but covers the majority of necessary functionality. UML
+>    architecture specific featurs have been dropped from the initial
+>    patchset.
+> ---
+>  include/kunit/test.h |  24 +++++
+>  kunit/Makefile       |   3 +-
+>  kunit/test-test.c    | 127 ++++++++++++++++++++++++++
+>  kunit/test.c         | 208 +++++++++++++++++++++++++++++++++++++++++--
+>  4 files changed, 353 insertions(+), 9 deletions(-)
+>  create mode 100644 kunit/test-test.c
 
-Hi Qi,
-Unluckily NVDIMM_FAMILY_HYPERV doesn't support monitoring smart 
-threshold events. Please see the _DSM Interface for Hyper-V Virtual NVDIMM
-at https://uefi.org/RFIC_LIST (Virtual NVDIMM 0x1901). 
+< snip >
 
-So there is no ops->new_smart_threshold defined for
-NVDIMM_FAMILY_HYPERV.
+> diff --git a/kunit/test.c b/kunit/test.c
+> index d18c50d5ed671..6e5244642ab07 100644
+> --- a/kunit/test.c
+> +++ b/kunit/test.c
+> @@ -6,9 +6,9 @@
+>   * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+>   */
+>  
+> -#include <linux/sched.h>
+>  #include <linux/sched/debug.h>
+> -#include <os.h>
+> +#include <linux/completion.h>
+> +#include <linux/kthread.h>
+>  #include <kunit/test.h>
+>  
+>  static bool kunit_get_success(struct kunit *test)
+> @@ -32,6 +32,27 @@ static void kunit_set_success(struct kunit *test, bool success)
+>  	spin_unlock_irqrestore(&test->lock, flags);
+>  }
+>  
+> +static bool kunit_get_death_test(struct kunit *test)
+> +{
+> +	unsigned long flags;
+> +	bool death_test;
+> +
+> +	spin_lock_irqsave(&test->lock, flags);
+> +	death_test = test->death_test;
+> +	spin_unlock_irqrestore(&test->lock, flags);
+> +
+> +	return death_test;
+> +}
+> +
+> +static void kunit_set_death_test(struct kunit *test, bool death_test)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&test->lock, flags);
+> +	test->death_test = death_test;
+> +	spin_unlock_irqrestore(&test->lock, flags);
+> +}
+> +
+>  static int kunit_vprintk_emit(const struct kunit *test,
+>  			      int level,
+>  			      const char *fmt,
+> @@ -70,13 +91,29 @@ static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
+>  	stream->commit(stream);
+>  }
+>  
+> +static void __noreturn kunit_abort(struct kunit *test)
+> +{
+> +	kunit_set_death_test(test, true);
+> +
+> +	test->try_catch.throw(&test->try_catch);
+> +
+> +	/*
+> +	 * Throw could not abort from test.
+> +	 */
+> +	kunit_err(test, "Throw could not abort from test!");
+> +	show_stack(NULL, NULL);
+> +	BUG();
 
-The patch only skips the checks for NVDIMM_FAMILY_HYPERV, and the behavior
-for the others remains the same.
+kunit_abort() is what will be call as the result of an assert failure.
 
-Thanks,
--- Dexuan
+BUG(), which is a panic, which is crashing the system is not acceptable
+in the Linux kernel.  You will just annoy Linus if you submit this.
+
+-Frank
+
+< snip >
