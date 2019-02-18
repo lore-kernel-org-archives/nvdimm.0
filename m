@@ -1,118 +1,100 @@
-From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
-Date: Mon, 18 Feb 2019 11:52:37 -0800
-Message-ID: <da1995fa-a362-dfe6-8184-7fcdf2b923e8@gmail.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [RFC v4 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Mon, 18 Feb 2019 12:02:24 -0800
+Message-ID: <a6ae907e-391b-993e-6011-6f40c761b339@gmail.com>
 References: <20190214213729.21702-1-brendanhiggins@google.com>
- <20190214213729.21702-9-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190214213729.21702-9-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190214213729.21702-1-brendanhiggins@google.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
-Cc: brakmo-b10kYP2dOMg@public.gmane.org, pmladek-IBi9RG/b67k@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>, keescook@google.com, mcgrof@kernel.org, shuah@kernel.org, robh@kernel.org, kieran.bingham@ideasonboard.com
+Cc: gregkh@linuxfoundation.org, joel@jms.id.au, mpe@ellerman.id.au, joe@perches.com, brakmo@fb.com, rostedt@goodmis.org, Tim.Bird@sony.com, khilman@baylibre.com, julia.lawall@lip6.fr, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, linux-kernel@vger.kernel.org, jdike@addtoit.com, richard@nod.at, linux-um@lists.infradead.org, daniel@ffwll.ch, dri-devel@lists.freedesktop.org, dan.j.williams@intel.com, linux-nvdimm@lists.01.org, knut.omang@oracle.com, devicetree@vger.kernel.org, pmladek@suse.com, Alexander.Levin@microsoft.com, amir73il@gmail.com, dan.carpenter@oracle.com, wfg@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
 On 2/14/19 1:37 PM, Brendan Higgins wrote:
-> Add support for aborting/bailing out of test cases. Needed for
-> implementing assertions.
+> This patch set proposes KUnit, a lightweight unit testing and mocking
+> framework for the Linux kernel.
 > 
-> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> ---
-> Changes Since Last Version
->  - This patch is new introducing a new cross-architecture way to abort
->    out of a test case (needed for KUNIT_ASSERT_*, see next patch for
->    details).
->  - On a side note, this is not a complete replacement for the UML abort
->    mechanism, but covers the majority of necessary functionality. UML
->    architecture specific featurs have been dropped from the initial
->    patchset.
-> ---
->  include/kunit/test.h |  24 +++++
->  kunit/Makefile       |   3 +-
->  kunit/test-test.c    | 127 ++++++++++++++++++++++++++
->  kunit/test.c         | 208 +++++++++++++++++++++++++++++++++++++++++--
->  4 files changed, 353 insertions(+), 9 deletions(-)
->  create mode 100644 kunit/test-test.c
+> Unlike Autotest and kselftest, KUnit is a true unit testing framework;
+> it does not require installing the kernel on a test machine or in a VM
+> and does not require tests to be written in userspace running on a host
+> kernel. Additionally, KUnit is fast: From invocation to completion KUnit
+> can run several dozen tests in under a second. Currently, the entire
+> KUnit test suite for KUnit runs in under a second from the initial
+> invocation (build time excluded).
+> 
+> KUnit is heavily inspired by JUnit, Python's unittest.mock, and
+> Googletest/Googlemock for C++. KUnit provides facilities for defining
+> unit test cases, grouping related test cases into test suites, providing
+> common infrastructure for running tests, mocking, spying, and much more.
+> 
+> ## What's so special about unit testing?
+> 
+> A unit test is supposed to test a single unit of code in isolation,
+> hence the name. There should be no dependencies outside the control of
+> the test; this means no external dependencies, which makes tests orders
+> of magnitudes faster. Likewise, since there are no external dependencies,
+> there are no hoops to jump through to run the tests. Additionally, this
+> makes unit tests deterministic: a failing unit test always indicates a
+> problem. Finally, because unit tests necessarily have finer granularity,
+> they are able to test all code paths easily solving the classic problem
+> of difficulty in exercising error handling code.
+> 
+> ## Is KUnit trying to replace other testing frameworks for the kernel?
+> 
+> No. Most existing tests for the Linux kernel are end-to-end tests, which
+> have their place. A well tested system has lots of unit tests, a
+> reasonable number of integration tests, and some end-to-end tests. KUnit
+> is just trying to address the unit test space which is currently not
+> being addressed.
+> 
+> ## More information on KUnit
+> 
+> There is a bunch of documentation near the end of this patch set that
+> describes how to use KUnit and best practices for writing unit tests.
+> For convenience I am hosting the compiled docs here:
+> https://google.github.io/kunit-docs/third_party/kernel/docs/
+> Additionally for convenience, I have applied these patches to a branch:
+> https://kunit.googlesource.com/linux/+/kunit/rfc/5.0-rc5/v4
+> The repo may be cloned with:
+> git clone https://kunit.googlesource.com/linux
+> This patchset is on the kunit/rfc/5.0-rc5/v4 branch.
+> 
+> ## Changes Since Last Version
+> 
+>  - Got KUnit working on (hypothetically) all architectures (tested on
+>    x86), as per Rob's (and other's) request
+>  - Punting all KUnit features/patches depending on UML for now.
+>  - Broke out UML specific support into arch/um/* as per "[RFC v3 01/19]
+>    kunit: test: add KUnit test runner core", as requested by Luis.
+>  - Added support to kunit_tool to allow it to build kernels in external
+>    directories, as suggested by Kieran.
+>  - Added a UML defconfig, and a config fragment for KUnit as suggested
+>    by Kieran and Luis.
+>  - Cleaned up, and reformatted a bunch of stuff.
+> 
 
-< snip >
+I have not read through the patches in any detail.  I have read some of
+the code to try to understand the patches to the devicetree unit tests.
+So that may limit how valid my comments below are.
 
-> diff --git a/kunit/test.c b/kunit/test.c
-> index d18c50d5ed671..6e5244642ab07 100644
-> --- a/kunit/test.c
-> +++ b/kunit/test.c
-> @@ -6,9 +6,9 @@
->   * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->   */
->  
-> -#include <linux/sched.h>
->  #include <linux/sched/debug.h>
-> -#include <os.h>
-> +#include <linux/completion.h>
-> +#include <linux/kthread.h>
->  #include <kunit/test.h>
->  
->  static bool kunit_get_success(struct kunit *test)
-> @@ -32,6 +32,27 @@ static void kunit_set_success(struct kunit *test, bool success)
->  	spin_unlock_irqrestore(&test->lock, flags);
->  }
->  
-> +static bool kunit_get_death_test(struct kunit *test)
-> +{
-> +	unsigned long flags;
-> +	bool death_test;
-> +
-> +	spin_lock_irqsave(&test->lock, flags);
-> +	death_test = test->death_test;
-> +	spin_unlock_irqrestore(&test->lock, flags);
-> +
-> +	return death_test;
-> +}
-> +
-> +static void kunit_set_death_test(struct kunit *test, bool death_test)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&test->lock, flags);
-> +	test->death_test = death_test;
-> +	spin_unlock_irqrestore(&test->lock, flags);
-> +}
-> +
->  static int kunit_vprintk_emit(const struct kunit *test,
->  			      int level,
->  			      const char *fmt,
-> @@ -70,13 +91,29 @@ static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
->  	stream->commit(stream);
->  }
->  
-> +static void __noreturn kunit_abort(struct kunit *test)
-> +{
-> +	kunit_set_death_test(test, true);
-> +
-> +	test->try_catch.throw(&test->try_catch);
-> +
-> +	/*
-> +	 * Throw could not abort from test.
-> +	 */
-> +	kunit_err(test, "Throw could not abort from test!");
-> +	show_stack(NULL, NULL);
-> +	BUG();
-
-kunit_abort() is what will be call as the result of an assert failure.
-
-BUG(), which is a panic, which is crashing the system is not acceptable
-in the Linux kernel.  You will just annoy Linus if you submit this.
+I found the code difficult to read in places where it should have been
+much simpler to read.  Structuring the code in a pseudo object oriented
+style meant that everywhere in a code path that I encountered a dynamic
+function call, I had to go find where that dynamic function call was
+initialized (and being the cautious person that I am, verify that
+no where else was the value of that dynamic function call).  With
+primitive vi and tags, that search would have instead just been a
+simple key press (or at worst a few keys) if hard coded function
+calls were done instead of dynamic function calls.  In the code paths
+that I looked at, I did not see any case of a dynamic function being
+anything other than the value it was originally initialized as.
+There may be such cases, I did not read the entire patch set.  There
+may also be cases envisioned in the architects mind of how this
+flexibility may be of future value.  Dunno.
 
 -Frank
-
-< snip >
