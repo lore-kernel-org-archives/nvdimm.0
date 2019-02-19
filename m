@@ -1,17 +1,10 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [ndctl PATCH] ndctl, monitor: support NVDIMM_FAMILY_HYPERV
-Date: Tue, 19 Feb 2019 06:07:37 +0000
-Message-ID: <PU1P153MB01693F6D5E6C3D1E6CE6ECF9BF7C0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <PU1P153MB016948B28D99FE01EE8252DFBF600@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <OSAPR01MB3396F103A8B3B5569F26D4DDF7600@OSAPR01MB3396.jpnprd01.prod.outlook.com>
- <PU1P153MB01693A3809BC7EA9B19AC30CBF610@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <OSAPR01MB3396721CFC3535CC201B799DF7630@OSAPR01MB3396.jpnprd01.prod.outlook.com>
+From: "Returned mail" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery failed
+Date: Tue, 19 Feb 2019 15:06:03 +0700
+Message-ID: <20190219151042.BA724231806B@local.host>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5784844187133588552=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <OSAPR01MB3396721CFC3535CC201B799DF7630-OxqQCv4d1nQ3UXb08eLJjncolHNk5qUtvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,23 +14,31 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-> From: qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
-> Sent: Sunday, February 17, 2019 5:52 PM
-> ... 
-> I am sorry I didn't explain it clearly enough.
-> I want to say that users may not know that NVDIMM_FAMILY_HYPERV doesn't
-> support monitoring smart threshold events.
-> If users setup monitoring smart threshold events on
-> NVDIMM_FAMILY_HYPERV by mistake,
-> it would be more friendly to send them a notification.
-> 
->  Qi
-Got it. 
-I'll add an explicit warning and don't monitor unsupported events.
+This is a multi-part message in MIME format.
 
-Thanks,
--- Dexuan
+--===============5784844187133588552==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+B-•²ISceâª2ûÎ‰rÁˆÈîÕ®”
+ÏàßênÈá±Êaj¿u¾BnÑiv§ù­ò{¬Qvİt/ëY
+[ïúš
+üŒéHTÙ²†0Šv`‡Íè ÌÕ$¤ù‡‹M&~QK ¯ı÷óÅ:š±³şJqû÷XØ—D~8&Ô_œ³‹†ò3¡S^—˜Qô;i{°*ÂD¤şQYõ÷[-
+
+
+--===============5784844187133588552==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============5784844187133588552==--
