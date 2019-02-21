@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 196F3211CF362
- for <linux-nvdimm@lists.01.org>; Mon, 25 Feb 2019 11:02:43 -0800 (PST)
-Subject: [PATCH 4/5] mm/resource: let walk_system_ram_range() search child
- resources
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 25 Feb 2019 10:57:38 -0800
-References: <20190225185727.BCBD768C@viggo.jf.intel.com>
-In-Reply-To: <20190225185727.BCBD768C@viggo.jf.intel.com>
-Message-Id: <20190225185738.F6C24E62@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 428B9208D6133
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Feb 2019 21:28:30 -0800 (PST)
+Subject: [PATCH v2] dax: Check the end of the block-device capacity with
+ dax_direct_access()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 20 Feb 2019 21:15:51 -0800
+Message-ID: <155072611007.2172474.11471824752162528833.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <CAPcyv4jwMx2ohs9QobTohL8jxc5G74XhmY5QFpmiVF9siWLuwA@mail.gmail.com>
+References: <CAPcyv4jwMx2ohs9QobTohL8jxc5G74XhmY5QFpmiVF9siWLuwA@mail.gmail.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,81 +19,112 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, "Darrick J. Wong" <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+The checks in __bdev_dax_supported() helped mitigate a potential data
+corruption bug in the pmem driver's handling of section alignment
+padding. Strengthen the checks, including checking the end of the range,
+to validate the dev_pagemap, Xarray entries, and sector-to-pfn
+translation established for pmem namespaces.
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
-
-In the process of onlining memory, we use walk_system_ram_range()
-to find the actual RAM areas inside of the area being onlined.
-
-However, it currently only finds memory resources which are
-"top-level" iomem_resources.  Children are not currently
-searched which causes it to skip System RAM in areas like this
-(in the format of /proc/iomem):
-
-a0000000-bfffffff : Persistent Memory (legacy)
-  a0000000-afffffff : System RAM
-
-Changing the true->false here allows children to be searched
-as well.  We need this because we add a new "System RAM"
-resource underneath the "persistent memory" resource when
-we use persistent memory in a volatile mode.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+Changes in v2, simplify the calculation of the sector representing the
+last page / pfn of the device.
 
- b/kernel/resource.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/dax/super.c |   38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
 
-diff -puN kernel/resource.c~mm-walk_system_ram_range-search-child-resources kernel/resource.c
---- a/kernel/resource.c~mm-walk_system_ram_range-search-child-resources	2019-02-25 10:56:50.750908026 -0800
-+++ b/kernel/resource.c	2019-02-25 10:56:50.754908026 -0800
-@@ -454,6 +454,9 @@ int walk_mem_res(u64 start, u64 end, voi
-  * This function calls the @func callback against all memory ranges of type
-  * System RAM which are marked as IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY.
-  * It is to be used only for System RAM.
-+ *
-+ * This will find System RAM ranges that are children of top-level resources
-+ * in addition to top-level System RAM resources.
-  */
- int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
- 			  void *arg, int (*func)(unsigned long, unsigned long, void *))
-@@ -469,7 +472,7 @@ int walk_system_ram_range(unsigned long
- 	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
- 	while (start < end &&
- 	       !find_next_iomem_res(start, end, flags, IORES_DESC_NONE,
--				    true, &res)) {
-+				    false, &res)) {
- 		pfn = (res.start + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 		end_pfn = (res.end + 1) >> PAGE_SHIFT;
- 		if (end_pfn > pfn)
-_
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 6e928f37d084..0cb8c30ea278 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -86,12 +86,14 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ {
+ 	struct dax_device *dax_dev;
+ 	bool dax_enabled = false;
++	pgoff_t pgoff, pgoff_end;
+ 	struct request_queue *q;
+-	pgoff_t pgoff;
+-	int err, id;
+-	pfn_t pfn;
+-	long len;
+ 	char buf[BDEVNAME_SIZE];
++	void *kaddr, *end_kaddr;
++	pfn_t pfn, end_pfn;
++	sector_t last_page;
++	long len, len2;
++	int err, id;
+ 
+ 	if (blocksize != PAGE_SIZE) {
+ 		pr_debug("%s: error: unsupported blocksize for dax\n",
+@@ -113,6 +115,14 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
+ 
++	last_page = PFN_DOWN(i_size_read(bdev->bd_inode) - 1) * 8;
++	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
++	if (err) {
++		pr_debug("%s: error: unaligned partition for dax\n",
++				bdevname(bdev, buf));
++		return false;
++	}
++
+ 	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+ 	if (!dax_dev) {
+ 		pr_debug("%s: error: device does not support dax\n",
+@@ -121,14 +131,15 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 	}
+ 
+ 	id = dax_read_lock();
+-	len = dax_direct_access(dax_dev, pgoff, 1, NULL, &pfn);
++	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
++	len2 = dax_direct_access(dax_dev, pgoff_end, 1, &end_kaddr, &end_pfn);
+ 	dax_read_unlock(id);
+ 
+ 	put_dax(dax_dev);
+ 
+-	if (len < 1) {
++	if (len < 1 || len2 < 1) {
+ 		pr_debug("%s: error: dax access failed (%ld)\n",
+-				bdevname(bdev, buf), len);
++				bdevname(bdev, buf), len < 1 ? len : len2);
+ 		return false;
+ 	}
+ 
+@@ -143,13 +154,20 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		 */
+ 		WARN_ON(IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API));
+ 		dax_enabled = true;
+-	} else if (pfn_t_devmap(pfn)) {
+-		struct dev_pagemap *pgmap;
++	} else if (pfn_t_devmap(pfn) && pfn_t_devmap(end_pfn)) {
++		struct dev_pagemap *pgmap, *end_pgmap;
+ 
+ 		pgmap = get_dev_pagemap(pfn_t_to_pfn(pfn), NULL);
+-		if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
++		end_pgmap = get_dev_pagemap(pfn_t_to_pfn(end_pfn), NULL);
++		if (pgmap && pgmap == end_pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX
++				&& pfn_t_to_page(pfn)->pgmap == pgmap
++				&& pfn_t_to_page(end_pfn)->pgmap == pgmap
++				&& pfn_t_to_pfn(pfn) == PHYS_PFN(__pa(kaddr))
++				&& pfn_t_to_pfn(end_pfn) == PHYS_PFN(__pa(end_kaddr)))
+ 			dax_enabled = true;
+ 		put_dev_pagemap(pgmap);
++		put_dev_pagemap(end_pgmap);
++
+ 	}
+ 
+ 	if (!dax_enabled) {
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
