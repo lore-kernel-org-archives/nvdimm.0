@@ -1,77 +1,56 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com
- [148.163.147.86])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 463BB208AE349
- for <linux-nvdimm@lists.01.org>; Thu, 14 Feb 2019 18:52:10 -0800 (PST)
-Received: from pps.filterd (m0134422.ppops.net [127.0.0.1])
- by mx0b-002e3701.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x1F2pONu027772
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 02:52:09 GMT
-Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
- by mx0b-002e3701.pphosted.com with ESMTP id 2qngjj1tbb-1
- (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 02:52:09 +0000
-Received: from g9t2301.houston.hpecorp.net (g9t2301.houston.hpecorp.net
- [16.220.97.129])
- by g9t5009.houston.hpe.com (Postfix) with ESMTP id 8B4B46B
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 02:52:08 +0000 (UTC)
-From: Robert Elliott <elliott@hpe.com>
-Subject: [ndctl PATCH v2 3/3] ndctl,
- test: Make tests using MAP_SYNC only include <sys/mman.h>
-Date: Thu, 14 Feb 2019 20:57:25 -0600
-Message-Id: <20190215025725.19366-3-elliott@hpe.com>
-In-Reply-To: <20190215025725.19366-1-elliott@hpe.com>
-References: <20190214163422.15221-1-elliott@hpe.com>
- <20190215025725.19366-1-elliott@hpe.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Thu, 21 Feb 2019 09:23:53 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] libnvdimm, region: use struct_size() in kzalloc()
+Message-ID: <20190221152353.GA14585@embeddedor>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <zwisler@kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel-4.15 mmap() manpage defines that MAP_SHARED_VALIDATE and
-MAP_SYNC are provided to applications by <sys/mman.h>. This requires
-glibc-2.28 and architecture support.
+One of the more common cases of allocation size calculations is finding
+the size of a structure that has a zero-sized array at the end, along
+with memory for some number of elements for that array. For example:
 
-Although they are also available via <linux/mman.h>, that is not the
-defined API.
+struct foo {
+    int stuff;
+    struct boo entry[];
+};
 
-Make tests using it (currently only dax-poison) rely on <sys/mman.h>
-by removing inclusion of <linux/mman.h>.
+instance = kzalloc(sizeof(struct foo) + count * sizeof(struct boo), GFP_KERNEL);
 
-Fixes: e6a1d12d4a6e2 ("ndctl: autoconf detect BUS_MCEERR_AR")
-Signed-off-by: Robert Elliott <elliott@hpe.com>
+Instead of leaving these open-coded and prone to type mistakes, we can
+now use the new struct_size() helper:
+
+instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- test/dax-poison.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/nvdimm/region_devs.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/test/dax-poison.c b/test/dax-poison.c
-index a25bf0b..69bb161 100644
---- a/test/dax-poison.c
-+++ b/test/dax-poison.c
-@@ -5,7 +5,6 @@
- #include <signal.h>
- #include <setjmp.h>
- #include <sys/mman.h>
--#include <linux/mman.h>
- #include <fcntl.h>
- #include <string.h>
- #include <errno.h>
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index e2818f94f292..d36cb5df9683 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1020,10 +1020,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		}
+ 		region_buf = ndbr;
+ 	} else {
+-		nd_region = kzalloc(sizeof(struct nd_region)
+-				+ sizeof(struct nd_mapping)
+-				* ndr_desc->num_mappings,
+-				GFP_KERNEL);
++		nd_region = kzalloc(struct_size(nd_region, mapping,
++				    ndr_desc->num_mappings),
++				    GFP_KERNEL);
+ 		region_buf = nd_region;
+ 	}
+ 
 -- 
 2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
