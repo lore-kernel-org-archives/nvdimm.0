@@ -1,44 +1,39 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [RFC v4 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Date: Tue, 19 Feb 2019 22:34:54 -0800
-Message-ID: <CAFd5g44AmF6eN-HKwHOqPiGZHNc2K_wAmWR3PkV0OX-=YNUKDw@mail.gmail.com>
-References: <20190214213729.21702-1-brendanhiggins@google.com> <a6ae907e-391b-993e-6011-6f40c761b339@gmail.com>
+From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Delivery reports about your e-mail
+Date: Thu, 21 Feb 2019 09:43:09 +0800
+Message-ID: <20190221014312.C0F2F211CCD4D@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a6ae907e-391b-993e-6011-6f40c761b339@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>
-Cc: Kees Cook <keescook@google.com>, Luis Chamberlain <mcgrof@kernel.org>, shuah@kernel.org, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Greg KH <gregkh@linuxfoundation.org>, Joel Stanley <joel@jms.id.au>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, brakmo@fb.com, Steven Rostedt <rostedt@goodmis.org>, "Bird, Timothy" <Tim.Bird@sony.com>, Kevin Hilman <khilman@baylibre.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel <dri-devel@lists.freedeskto>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Feb 18, 2019 at 12:02 PM Frank Rowand <frowand.list@gmail.com> wrote:
-<snip>
-> I have not read through the patches in any detail.  I have read some of
-> the code to try to understand the patches to the devicetree unit tests.
-> So that may limit how valid my comments below are.
+Your message was not delivered due to the following reason(s):
 
-No problem.
+Your message could not be delivered because the destination computer was
+unreachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
 
->
-> I found the code difficult to read in places where it should have been
-> much simpler to read.  Structuring the code in a pseudo object oriented
-> style meant that everywhere in a code path that I encountered a dynamic
-> function call, I had to go find where that dynamic function call was
-> initialized (and being the cautious person that I am, verify that
-> no where else was the value of that dynamic function call).  With
-> primitive vi and tags, that search would have instead just been a
-> simple key press (or at worst a few keys) if hard coded function
-> calls were done instead of dynamic function calls.  In the code paths
-> that I looked at, I did not see any case of a dynamic function being
-> anything other than the value it was originally initialized as.
-> There may be such cases, I did not read the entire patch set.  There
-> may also be cases envisioned in the architects mind of how this
-> flexibility may be of future value.  Dunno.
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
 
-Yeah, a lot of it is intended to make architecture specific
-implementations and some other future work easier. Some of it is also
-for testing purposes. Admittedly some is for neither reason, but given
-the heavy usage elsewhere, I figured there was no harm since it was
-all private internal usage anyway.
+Your message was not delivered within 7 days:
+Server 60.229.90.220 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
