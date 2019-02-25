@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8F03E202E531F
- for <linux-nvdimm@lists.01.org>; Fri, 15 Feb 2019 11:56:57 -0800 (PST)
-Subject: [PATCH v2 6/6] nfit/ars: Avoid stale ARS results
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 15 Feb 2019 11:44:18 -0800
-Message-ID: <155025985870.1043225.8854289247736261912.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155025982726.1043225.15436410616433285475.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 196F3211CF362
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Feb 2019 11:02:43 -0800 (PST)
+Subject: [PATCH 4/5] mm/resource: let walk_system_ram_range() search child
+ resources
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Mon, 25 Feb 2019 10:57:38 -0800
+References: <20190225185727.BCBD768C@viggo.jf.intel.com>
+In-Reply-To: <20190225185727.BCBD768C@viggo.jf.intel.com>
+Message-Id: <20190225185738.F6C24E62@viggo.jf.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,81 +18,81 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, Krzysztof Rusocki <krzysztof.rusocki@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Gate ARS result consumption on whether the OS issued start-ARS since the
-previous consumption. The BIOS may only clear its result buffers after a
-successful start-ARS.
 
-Reported-by: Krzysztof Rusocki <krzysztof.rusocki@intel.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+From: Dave Hansen <dave.hansen@linux.intel.com>
+
+In the process of onlining memory, we use walk_system_ram_range()
+to find the actual RAM areas inside of the area being onlined.
+
+However, it currently only finds memory resources which are
+"top-level" iomem_resources.  Children are not currently
+searched which causes it to skip System RAM in areas like this
+(in the format of /proc/iomem):
+
+a0000000-bfffffff : Persistent Memory (legacy)
+  a0000000-afffffff : System RAM
+
+Changing the true->false here allows children to be searched
+as well.  We need this because we add a new "System RAM"
+resource underneath the "persistent memory" resource when
+we use persistent memory in a volatile mode.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jerome Glisse <jglisse@redhat.com>
 ---
- drivers/acpi/nfit/core.c |   17 ++++++++++++++++-
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 629cf91649d2..5c9eb8d700d3 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2652,7 +2652,10 @@ static int ars_start(struct acpi_nfit_desc *acpi_desc,
- 
- 	if (rc < 0)
- 		return rc;
--	return cmd_rc;
-+	if (cmd_rc < 0)
-+		return cmd_rc;
-+	set_bit(ARS_VALID, &acpi_desc->scrub_flags);
-+	return 0;
- }
- 
- static int ars_continue(struct acpi_nfit_desc *acpi_desc)
-@@ -2745,6 +2748,17 @@ static int ars_status_process_records(struct acpi_nfit_desc *acpi_desc)
- 	 */
- 	if (ars_status->out_length < 44)
- 		return 0;
-+
-+	/*
-+	 * Ignore potentially stale results that are only refreshed
-+	 * after a start-ARS event.
-+	 */
-+	if (!test_and_clear_bit(ARS_VALID, &acpi_desc->scrub_flags)) {
-+		dev_dbg(acpi_desc->dev, "skip %d stale records\n",
-+				ars_status->num_records);
-+		return 0;
-+	}
-+
- 	for (i = 0; i < ars_status->num_records; i++) {
- 		/* only process full records */
- 		if (ars_status->out_length
-@@ -3229,6 +3243,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 	struct nfit_spa *nfit_spa;
- 	int rc;
- 
-+	set_bit(ARS_VALID, &acpi_desc->scrub_flags);
- 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
- 		switch (nfit_spa_type(nfit_spa->spa)) {
- 		case NFIT_SPA_VOLATILE:
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index d14bad687fb8..0cbe5009eb2c 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -213,6 +213,7 @@ struct nfit_mem {
- enum scrub_flags {
- 	ARS_BUSY,
- 	ARS_CANCEL,
-+	ARS_VALID,
- 	ARS_POLL,
- };
- 
+ b/kernel/resource.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
+diff -puN kernel/resource.c~mm-walk_system_ram_range-search-child-resources kernel/resource.c
+--- a/kernel/resource.c~mm-walk_system_ram_range-search-child-resources	2019-02-25 10:56:50.750908026 -0800
++++ b/kernel/resource.c	2019-02-25 10:56:50.754908026 -0800
+@@ -454,6 +454,9 @@ int walk_mem_res(u64 start, u64 end, voi
+  * This function calls the @func callback against all memory ranges of type
+  * System RAM which are marked as IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY.
+  * It is to be used only for System RAM.
++ *
++ * This will find System RAM ranges that are children of top-level resources
++ * in addition to top-level System RAM resources.
+  */
+ int walk_system_ram_range(unsigned long start_pfn, unsigned long nr_pages,
+ 			  void *arg, int (*func)(unsigned long, unsigned long, void *))
+@@ -469,7 +472,7 @@ int walk_system_ram_range(unsigned long
+ 	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+ 	while (start < end &&
+ 	       !find_next_iomem_res(start, end, flags, IORES_DESC_NONE,
+-				    true, &res)) {
++				    false, &res)) {
+ 		pfn = (res.start + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 		end_pfn = (res.end + 1) >> PAGE_SHIFT;
+ 		if (end_pfn > pfn)
+_
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
