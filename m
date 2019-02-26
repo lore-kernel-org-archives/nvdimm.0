@@ -1,11 +1,10 @@
-From: "ChooseOne.online" <info-xOoyRjE/k5pfMDdXlkxZp7NAH6kLmebB@public.gmane.org>
-Subject: Good News
-Date: Mon, 25 Feb 2019 12:50:27 +0000
-Message-ID: <cc1d0ea2f160e48900f6055ca4f07edc@choose-one.online>
-Reply-To: "ChooseOne.online" <info-xOoyRjE/k5pfMDdXlkxZp7NAH6kLmebB@public.gmane.org>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Security Notice. Someone have access to your system.
+Date: Tue, 26 Feb 2019 16:13:54 +0000
+Message-ID: <5C7565C2.2050701@lists.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -16,49 +15,42 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-KnxNQ19QUkVWSUVXX1RFWFR8KgpCZXN0IFQtc2hpcnRzIEV2ZXIKV2VsY29tZSB0byBvdXIgQm91
-dGlxdWUKV2UgYXJlIGEgZ3JvdXAgb2YgZGVzaWdu4oCZcyBsb3ZlcnMgZnJvbSBhbGwgb3ZlciB0
-aGUgd29ybGQsIHdlIGxvdmVkCnRvIGhhdmUgb3VyIG93biBzcGFjZSB0byBzaG93IG91ciBkZXNp
-Z25zIGFuZCB3b3JrIGluIG9uZSBwbGFjZS4KV2UgaG9wZSB5b3UgbGlrZSBvdXIgZGVzaWducyB3
-aGljaCB3ZSB3aWxsIHRyeSB0byBjb3ZlciBhbGwgeW91cgppbnRlcmVzdHMsIG9jY2FzaW9ucyBh
-cm91bmQgdGhlIHllYXIuCkFsbCBvZiBvdXIgVHNoaXJ0cyBhcmUgYXZhaWxhYmxlIG9uIHRoZSBi
-ZXN0IHNlbGxpbmcgcGxhdGZvcm0gaW4gdGhlCndvcmxkIEFtYXpvbi5jb23CoApUaGFuayB5b3Ug
-Zm9yIHlvdXIgdGltZSByZWFkaW5nIGFib3V0IHVzLgpfTm93IHdlIGludml0ZSB5b3UgdG8gc2Vl
-IHNvbWUgY29sbGVjdGlvbnMgdGhhdCBtYXkgaW50ZXJlc3QgeW91IDpfCsKgCkZ1bm55IFNoaXJ0
-cyBDb2xsZWN0aW9uCkdvIHRvIENvbGxlY3Rpb24KaHR0cDovL2Nob29zZS1vbmUub25saW5lL2lu
-ZGV4LnBocC9jYW1wYWlnbnMvc3AyMDc5YjJmMWNmYi90cmFjay11cmwvem85MThtc3lkdGMxOS8x
-YTNjZDMyNWRmMjM4NzU4ZDEwM2I2NzRjODMyMTQyYWExMDgyMTM3CsKgClBldHMgU2hpcnRzIENv
-bGxlY3Rpb24KR28gdG8gQ29sbGVjdGlvbgpodHRwOi8vY2hvb3NlLW9uZS5vbmxpbmUvaW5kZXgu
-cGhwL2NhbXBhaWducy9zcDIwNzliMmYxY2ZiL3RyYWNrLXVybC96bzkxOG1zeWR0YzE5L2EyNWI1
-YThjYmFlZGExYWJhYmM2ZWM4YjMzMTFhYzY4NTNkYjIyNDYKwqAKQ2FtcGluZyBzaGlydCBjb2xs
-ZWN0aW9uCkdvIHRvIENvbGxlY3Rpb24KaHR0cDovL2Nob29zZS1vbmUub25saW5lL2luZGV4LnBo
-cC9jYW1wYWlnbnMvc3AyMDc5YjJmMWNmYi90cmFjay11cmwvem85MThtc3lkdGMxOS8yYzY2YWI4
-ZDYzNzU3MGE4ZDAxZWUyYjFlYWE1NDBlOGE5YzYzYWE1CsKgCkZpc2hpbmcgc2hpcnRzIGNvbGxl
-Y3Rpb24KR28gdG8gQ29sbGVjdGlvbgpodHRwOi8vY2hvb3NlLW9uZS5vbmxpbmUvaW5kZXgucGhw
-L2NhbXBhaWducy9zcDIwNzliMmYxY2ZiL3RyYWNrLXVybC96bzkxOG1zeWR0YzE5L2NiZDEwM2Q3
-Y2E4NzY2OTc3OWJlZDFkMDVlYmJhNWNmNWI2ZmY0ODkKwqAKTWFyY2ggYmlydGhkYXkgY29sbGVj
-dGlvbgpHbyB0byBDb2xsZWN0aW9uCmh0dHA6Ly9jaG9vc2Utb25lLm9ubGluZS9pbmRleC5waHAv
-Y2FtcGFpZ25zL3NwMjA3OWIyZjFjZmIvdHJhY2stdXJsL3pvOTE4bXN5ZHRjMTkvNWY0MmFhYjNm
-ODQ2YjE0MjdlMWEwY2U0MmNlYmNkZDZkNTM5NmYxOArCoApWaWRlbyBnYW1lIHNoaXJ0cyBjb2xs
-ZWN0aW9uCkdvIHRvIENvbGxlY3Rpb24KaHR0cDovL2Nob29zZS1vbmUub25saW5lL2luZGV4LnBo
-cC9jYW1wYWlnbnMvc3AyMDc5YjJmMWNmYi90cmFjay11cmwvem85MThtc3lkdGMxOS9iMDk1ZTA1
-YmM4NWNmNWM3YjBiYmVlMmQwMjJkN2M5MTBlYTRkYjg2CsKgCkJhc2tldGJhbGwgc2hpcnRzIGNv
-bGxlY3Rpb24KR28gdG8gQ29sbGVjdGlvbgpodHRwOi8vY2hvb3NlLW9uZS5vbmxpbmUvaW5kZXgu
-cGhwL2NhbXBhaWducy9zcDIwNzliMmYxY2ZiL3RyYWNrLXVybC96bzkxOG1zeWR0YzE5LzkxYmQ1
-OTgwYWFkYjcyYzFjMjZkN2YwYzU4OWQzOTE3YzQxMmMzZjYKwqAKQW5kIG1vcmUgOgpodHRwczov
-L2Nob29zZW9uZS5vbmxpbmUKaHR0cDovL2Nob29zZS1vbmUub25saW5lL2luZGV4LnBocC9jYW1w
-YWlnbnMvc3AyMDc5YjJmMWNmYi90cmFjay11cmwvem85MThtc3lkdGMxOS9iZTZmNGQyMzUwY2U0
-MWJmZmJjMDdlYjA0NWU3OTczYjNkMzQzNWIwCsKgCsKgCsKgCmh0dHA6Ly9jaG9vc2Utb25lLm9u
-bGluZS9pbmRleC5waHAvbGlzdHMvYXIxNjlqbW4xbzgxMC91bnN1YnNjcmliZS96bzkxOG1zeWR0
-YzE5L3NwMjA3OWIyZjFjZmIKwqAKY2hvb3Nlb25lLm9ubGluZQpuZXcgeW9yawpuZXcgeW9yayBO
-ZXcgWW9yayAxMDAwMQpVbml0ZWQgU3RhdGVzCmh0dHA6Ly9jaG9vc2Utb25lLm9ubGluZS9pbmRl
-eC5waHAvY2FtcGFpZ25zL3NwMjA3OWIyZjFjZmIvdHJhY2stdXJsL3pvOTE4bXN5ZHRjMTkvYTli
-OGU3MTM4NmMwNzhhMGIyMTkwMjEwZWQ4MDRkYzlmOGM1ZTdmMgpodHRwOi8vY2hvb3NlLW9uZS5v
-bmxpbmUvaW5kZXgucGhwL2NhbXBhaWducy9zcDIwNzliMmYxY2ZiL3RyYWNrLXVybC96bzkxOG1z
-eWR0YzE5L2JlNmY0ZDIzNTBjZTQxYmZmYmMwN2ViMDQ1ZTc5NzNiM2QzNDM1YjAKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
-bmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hi!
+
+As you may have noticed, I sent you an email from your account.
+This means that I have full access to your account.
+
+I've been watching you for a few months now.
+The fact is that you were infected with malware through an adult site that you visited.
+
+If you are not familiar with this, I will explain.
+Trojan Virus gives me full access and control over a computer or other device.
+This means that I can see everything on your screen, turn on the camera and microphone, but you do not know about it.
+
+I also have access to all your contacts and all your correspondence.
+
+Why your antivirus did not detect malware?
+Answer: My malware uses the driver, I update its signatures every 4 hours so that your antivirus is silent.
+
+I made a video showing how you satisfy yourself in the left half of the screen, and in the right half you see the video that you watched.
+With one click of the mouse, I can send this video to all your emails and contacts on social networks.
+I can also post access to all your e-mail correspondence and messengers that you use.
+
+If you want to prevent this,
+transfer the amount of $705 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
+
+My bitcoin address (BTC Wallet) is: 1GoWy5yMzh3XXBiYxLU9tKCBMgibpznGio
+
+After receiving the payment, I will delete the video and you will never hear me again.
+I give you 48 hours to pay.
+I have a notice reading this letter, and the timer will work when you see this letter.
+
+Filing a complaint somewhere does not make sense because this email cannot be tracked like my bitcoin address.
+I do not make any mistakes.
+
+If I find that you have shared this message with someone else, the video will be immediately distributed.
+
+Best regards!
