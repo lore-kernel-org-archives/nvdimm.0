@@ -1,10 +1,16 @@
-From: "Returned mail" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Wed, 27 Feb 2019 06:57:27 +0700
-Message-ID: <20190227070324.677382318068@local.host>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [PATCH v4] nvdimm, btt: fix LBA masking during 'free list'
+ population
+Date: Wed, 27 Feb 2019 05:55:01 +0000
+Message-ID: <PU1P153MB01693156DE97BEA6BF300ACBBF740@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <CAPcyv4g_FJkDa+0M9p-JwkwLLCkSr=NEw=-GAYnJ0NDD7Sbk2g@mail.gmail.com>
+ <20190226231331.8730-1-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0606703295942092204=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190226231331.8730-1-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,58 +20,58 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: Pedro d'Aquino Filocre F S Barbuda <pbarbuda-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+> From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Sent: Tuesday, February 26, 2019 3:14 PM
+> ...
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> @@ -555,16 +555,21 @@ static int btt_freelist_init(struct arena_info *arena)
+>  		if (new < 0)
+>  			return new;
+> 
+> +		/* old and new map entries with any flags stripped out */
+> +		log_oldmap = ent_lba(le32_to_cpu(log_new.old_map));
+> +		log_newmap = ent_lba(le32_to_cpu(log_new.new_map));
+> +
+>  		/* sub points to the next one to be overwritten */
+>  		arena->freelist[i].sub = 1 - new;
+>  		arena->freelist[i].seq = nd_inc_seq(le32_to_cpu(log_new.seq));
+> -		arena->freelist[i].block = le32_to_cpu(log_new.old_map);
+> +		arena->freelist[i].block = log_oldmap;
+> 
+>  		/*
+>  		 * FIXME: if error clearing fails during init, we want to make
+>  		 * the BTT read-only
+>  		 */
+>  		if (ent_e_flag(log_new.old_map)) {
+> +			set_e_flag(arena->freelist[i].block);
+Hi Vishal,
+The logic doesn't look quite right to me: as I understand, if both the zero flag and
+the error flag are set, it means a normal map entry rather than an error.
 
---===============0606703295942092204==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Windows can indeed set both flags: 
+[    3.756239] freelist_init: i=0, log_old: lba=bcc01, old_map=c00bcc30, new_map=c00bcc02, seq=2
+[    3.765583] freelist_init: i=0, log_new: lba=bcc00, old_map=c0001b7b, new_map=c00bcc30, seq=3
+(For the full log, see https://github.com/dcui/linux/commit/b472968e01d72be3bd42e4568befc4602f9ac396 )
 
-9]\F¦úÖE0¾Hí)T"ƒ¯zbö…8Z~úÌğàä×woØ|ËGÏ¸ğ†ÜË>Ë¶ÔÛe
-÷QÊ,VP‘’`Rùˆ‚5MÕZ{ç¤m­¼\_]Ä Ç’ØÄ¯><•İádu–÷PéDUíPì>C´è,VÜ‚§èéÆ
-œFÁ¬—±s±/üÒ®õ
-ÚæÏûé¶mÚ
-Hº99¼Nyà&[¾S³
-ñyYJ8âEñÓ–k
-Yóé‚ºC¹-`­Fc^sÓ†4BõnºWÓr³âÅPj›œ†–7Š}d3_v~k-Éµµ}´0¸vˆ.oÚÇ‡ÁgHe—(Ñvê—J7ß÷D§&¬ÛOF-ÛlX¶W…Ü&eZ>îºÜUe­ln©¡‹gô#iİRX­5aü|ØSôá[uîÊ”¸‘)¿~‡¡à´œ¼Ùüå®Âêôm?6º;%Z|’ÌsFÓ’ÃfÂV0îşÂ5¨ñ(Vœ4¯3ó[d¥æ6ÚğZWáõH)½ E…†”¯pí!µ„/4ç\š.¡aŠpF-×¶'0EzHûéªNNïÃ.;?5;½À`CŸÌu‰F^w/ã³¼5JåÓÙ½Qö?”n†ºJT:_Ï_¬àŞN`œÊœ„šø#qgÔ]ÜÑL"Œ‚şKñè"ˆÆ
-‘'<ø]XÆp!R75Şç†i“hòÖ××BE&|Şı“Ñ.Ê½"¶q(s`¿ÎOQ0•~Ÿ¦p%.µx^-¢´¬ª›µğÄJ–øW‚ ú±&©IÓ{ÊS'ƒÇ%Ù;¬íPhhn—->*ã«½$y`íjêªUò‘A{ŒÙ83'¤s0_Xìq!ÇÚ¤¿
-Œ_
-‰H›~Å{/¼WØ¨´OöJ¼ÁšHûãÏ~Ãµ}…¢óğ³óëÅÚf¤eº„amÚAqËn·éşà¥‡§ß0ŠŞç3•“œYQx9¹qNè©Ì•BWŸZNºWÇ?¬,×²}"jõ/ûoƒ”z¤!hS¹mO'>4ÒYÇËAı|9Ëôü£TË†ˆ¢yC"İC‰ºµhØ…õY´ñ¸
-VV FŒR²şı±çlÀ ’ÒÀ™^hu¾0½3ëüaƒê:e‚rŞì˜-£1v¼–'Ë%"e¸äZñÙúKëŞS¿¾!!¯ÍÀ¡öèô’M`ÑßÏ§`§Şì«Éhofş}”Oôªâ¶M
-o®È2ïĞcä£H
-:¿R*×ÖnÉÆ Ì:ÆR§j¹oşå1,Rúcş*Ã2Ø.óÁ
-MzñTL¿êB9cËo¦sº|à-nZÆ/‹
-v›}B“{[e¢eÔ¬CgV7¸öõ¯¥¾ÛHyåR¤TòE¤“
-Â&Ÿ°xàå_Ú6"UmkP*BxfÚÀîfîõäÉ‰P}g
-?8ñ’Ô0*Ñ¼ğDCşÙä¬ï—èÆ{j±Ïõ“4ßÀÀ7á¶\JĞ§´‚XEª.-İ~ğVÛ¤-Ÿï¹7Îú¢"ŠàiDŞß¸»æmÜsbğÓ>tà5Üqmy”Í(ö8o±?ËYK?kOábìEm†6İîü}OFrîTÚ0¥ÅÒl¶­<ÚªÕ¦3Mqf>Q”}
-UbjZ¶¼´ÊE
-‘x<uÛdcŠöµeÛôş]Rï×ğX\XGã·Óı˜–5P‹­ÚŒ…O“D«Bø[Cº/7k(,yÛ¤ÃZÑù\DÓÕ:^†5Kæ&6¢©pä†´3¶Îäı~mş8?÷a!‰v0õeIš|Iòéãa¼†•'_j¼I.­©¤0ßkl¯vÎw8ÊrËX˜ş„êÏ£²ZÕÀÑIäUŒaUƒ².t³pe6ñyBÁi»Ş¸£sõµ¨QìÃ
-<n92æU¿$Xiš)K¶Hßñ¥àj…¶2¥G»‰mÙæí*O2èf7ô¢†Ôºã°Â¢&îï#ÎÙá¢í{3º±´Üj1Ù¾ó% yÍ4‡t4äçìú³ìÌø¯Ñı>ÆŸ¤õ}á
-z
-é†ëfÊ£Øó±øÃ‚şÖBüyÒ1±`Àk`X…
-•0ŸTk,
-«Â¡•`Bş¶s?(›nIQIy#N*`^`D`ò xŒ¼3è­ƒÓC0"²³¥·âìD%\Ÿ
-f“{¬ë~aK\möÙ¥îó—</Î“{9ËñXïˆ|<¸}_jAx¨Wè'7é¿3ò(‘AÄuYX¬i©İ–ºA
-é‰àıÜÃÖ¹$,7é¾ÅsåSy4á6ñµĞ1
-À‡ü°¾;-,?ÏgSÜ)ò)ù§Ø¹ƒé¦uIO0í
-–^b¡­l–9ĞMÔúxõE9İ<)k5 ¶°µ„qú%`XÉn§ÁØÌğb®„*n7zDÍ'Ex
-ö9Ÿ¶¯`;ş6eŠz`Ûc¬èÆš¤^®!i¹ÈDvcº?ÊPHÈ‘šC
-!‹Ä¿Ûå!¤ŒÒÇ‰ã}JŒô—İ‘¶ÕÚ½…p‰0¤0z¬1p-/İèJjK·´¶ßñ±'ˆ·û{K©ùe#ü\>ÍKîf Ó c¥4à)j>5Ôá<â,0x¿¨kt¬ŸA¡©m-.xŞ1áĞS‹Bèw.’iK4xÖâ—Øº»‡*¥6ÕºáëÎ/Y3¢7"­â¸9}ñ›{:£ùW5ö>ƒòNE½§lÄ[r±’8›qÆ˜l´ˆ%\
-(Šdï—o¶höî"Ô[á¥Šj[p"jĞ›ô\\ÕŒx®}<ÇÈ.ˆ":GOm‡fE
+Due to this new line, the 'block' can exceed the normal internal_nlba, and cause I/O failure:
 
+[  103.589766] btt_write_pg failed: lane=0x0, new_postmap=0x40001b7b, internal_nlba=0x1ff8018
+[  103.602387] nd_pmem btt1.1: io error in WRITE sector 33056, len 4096,
+[  103.611662] Buffer I/O error on dev pmem1s2, logical block 36, lost async page write 
 
---===============0606703295942092204==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I suppose the new line should not be added, and the line 
+  		if (ent_e_flag(log_new.old_map)) {
+should be changed to
+  		if (ent_e_flag(log_new.old_map) && ! ent_z_flag(log_new.old_map)) {
+?
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>  			ret = arena_clear_freelist_error(arena, i);
+>  			if (ret)
+>  				dev_err_ratelimited(to_dev(arena),
 
---===============0606703295942092204==--
+Thanks,
+-- Dexuan
