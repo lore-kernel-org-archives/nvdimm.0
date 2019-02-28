@@ -1,202 +1,110 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: Re: [PATCH 5/5] dax: "Hotplug" persistent memory for use like normal
- RAM
-References: <20190124231441.37A4A305@viggo.jf.intel.com>
- <20190124231448.E102D18E@viggo.jf.intel.com>
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Message-ID: <c4c6aca8-6ee8-be10-65ae-4cbe0aa03bfb@inria.fr>
-Date: Sat, 9 Feb 2019 12:00:05 +0100
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 42A0D208AE2B5
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Feb 2019 23:54:04 -0800 (PST)
+Received: by mail-oi1-x244.google.com with SMTP id u128so15792157oie.2
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Feb 2019 23:54:04 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20190124231448.E102D18E@viggo.jf.intel.com>
-Content-Type: multipart/alternative;
- boundary="------------B1FBBAC4595CC6A4AB516193"
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+References: <20190225185727.BCBD768C@viggo.jf.intel.com>
+In-Reply-To: <20190225185727.BCBD768C@viggo.jf.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 27 Feb 2019 23:53:52 -0800
+Message-ID: <CAPcyv4g8ACK6ZOmDWVVhCAwcoaxRZdXQDt_8D6Omckuop8DapQ@mail.gmail.com>
+Subject: Re: [PATCH 0/5] [v5] Allow persistent memory to be used like normal
+ RAM
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Juergen Gross <jgross@suse.com>, Tom Lendacky <thomas.lendacky@amd.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Takashi Iwai <tiwai@suse.de>, "Huang, Ying" <ying.huang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Borislav Petkov <bp@suse.de>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Ross Zwisler <zwisler@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, Fengguang Wu <fengguang.wu@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
---------------B1FBBAC4595CC6A4AB516193
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+[ add Stephen and Juergen ]
 
-Le 25/01/2019 à 00:14, Dave Hansen a écrit :
-> From: Dave Hansen <dave.hansen@linux.intel.com>
+On Mon, Feb 25, 2019 at 11:02 AM Dave Hansen
+<dave.hansen@linux.intel.com> wrote:
 >
-> This is intended for use with NVDIMMs that are physically persistent
-> (physically like flash) so that they can be used as a cost-effective
-> RAM replacement.  Intel Optane DC persistent memory is one
-> implementation of this kind of NVDIMM.
+> This is a relatively small delta from v4.  The review comments seem
+> to be settling down, so it seems like we should start thinking about
+> how this might get merged.  Are there any objections to taking it in
+> via the nvdimm tree?
 >
-> Currently, a persistent memory region is "owned" by a device driver,
-> either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
-> allow applications to explicitly use persistent memory, generally
-> by being modified to use special, new libraries. (DIMM-based
-> persistent memory hardware/software is described in great detail
-> here: Documentation/nvdimm/nvdimm.txt).
+> Dan Williams, our intrepid nvdimm maintainer has said he would
+> appreciate acks on these from relevant folks before merging them.
+> Reviews/acks on any in the series would be welcome, but the last
+> two especially are lacking any non-Intel acks:
 >
-> However, this limits persistent memory use to applications which
-> *have* been modified.  To make it more broadly usable, this driver
-> "hotplugs" memory into the kernel, to be managed and used just like
-> normal RAM would be.
->
-> To make this work, management software must remove the device from
-> being controlled by the "Device DAX" infrastructure:
->
-> 	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/remove_id
-> 	echo -n dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+>         mm/resource: let walk_system_ram_range() search child resources
+>         dax: "Hotplug" persistent memory for use like normal RAM
 
+I've gone ahead and added this to the libnvdimm-for-next branch for
+wider exposure. Acks of course still welcome.
 
-Hello Dave
+Stephen, this collides with commit 357b4da50a62 "x86: respect memory
+size limiting via mem= parameter" in current -next. Here's my
+resolution for reference, basically just add the max_mem_size
+statement to Dave's rework. Holler if this causes any other problems.
 
-I am trying to use these patches (on top on Dan's nvdimm-pending branch
-with Keith's HMAT patches). Writing to remove_id just hangs. echo never
-returns, it uses 100% CPU and I can't kill it.
-
-[ 5468.744898] bash            R  running task        0 21419  21416 0x00000080
-[ 5468.744899] Call Trace:
-[ 5468.744902]  ? vsnprintf+0x372/0x4e0
-[ 5468.744904]  ? klist_next+0x79/0xe0
-[ 5468.744905]  ? sprintf+0x56/0x80
-[ 5468.744907]  ? bus_for_each_dev+0x8a/0xc0
-[ 5468.744911]  ? do_id_store+0xe8/0x1e0
-[ 5468.744914]  ? _cond_resched+0x15/0x30
-[ 5468.744915]  ? __kmalloc+0x17f/0x200
-[ 5468.744918]  ? kernfs_fop_write+0x83/0x190
-[ 5468.744918]  ? __vfs_write+0x36/0x1b0
-[ 5468.744919]  ? selinux_file_permission+0xe1/0x130
-[ 5468.744921]  ? security_file_permission+0x36/0x100
-[ 5468.744922]  ? vfs_write+0xad/0x1b0
-[ 5468.744922]  ? ksys_write+0x52/0xc0
-[ 5468.744924]  ? do_syscall_64+0x5b/0x180
-[ 5468.744927]  ? entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-CONFIG_NVDIMM_DAX=y
-CONFIG_DAX_DRIVER=y
-CONFIG_DAX=y
-CONFIG_DEV_DAX=m
-CONFIG_DEV_DAX_PMEM=m
-CONFIG_DEV_DAX_KMEM=m
-CONFIG_DEV_DAX_PMEM_COMPAT=m
-CONFIG_FS_DAX=y
-CONFIG_FS_DAX_PMD=y
-
+diff --cc mm/memory_hotplug.c
+index a9d5787044e1,b37f3a5c4833..c4f59ac21014
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@@ -102,28 -99,21 +102,24 @@@ u64 max_mem_size = U64_MAX
+  /* add this memory to iomem resource */
+  static struct resource *register_memory_resource(u64 start, u64 size)
   {
-    "dev":"namespace0.0",
-    "mode":"devdax",
-    "map":"dev",
-    "size":1598128390144,
-    "uuid":"7046a749-477f-4690-9b3c-a640a1aa44f1",
-    "chardev":"dax0.0"
-  }
+-       struct resource *res, *conflict;
++       struct resource *res;
++       unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
++       char *resource_name = "System RAM";
 
-
-I've used your patches on fake hardware (memmap=xx!yy) with an older
-nvdimm-pending branch (without Keith's patches). It worked fine. This
-time I am running on real Intel hardware. Any idea where to look ?
-
-Thanks
-
-Brice
-
-
-
---------------B1FBBAC4595CC6A4AB516193
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 8bit
-
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  </head>
-  <body text="#000000" bgcolor="#FFFFFF">
-    <div class="moz-cite-prefix">Le 25/01/2019 à 00:14, Dave Hansen a
-      écrit :<br>
-    </div>
-    <blockquote type="cite"
-      cite="mid:20190124231448.E102D18E@viggo.jf.intel.com">
-      <pre class="moz-quote-pre" wrap="">
-From: Dave Hansen <a class="moz-txt-link-rfc2396E" href="mailto:dave.hansen@linux.intel.com">&lt;dave.hansen@linux.intel.com&gt;</a>
-
-This is intended for use with NVDIMMs that are physically persistent
-(physically like flash) so that they can be used as a cost-effective
-RAM replacement.  Intel Optane DC persistent memory is one
-implementation of this kind of NVDIMM.
-
-Currently, a persistent memory region is "owned" by a device driver,
-either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
-allow applications to explicitly use persistent memory, generally
-by being modified to use special, new libraries. (DIMM-based
-persistent memory hardware/software is described in great detail
-here: Documentation/nvdimm/nvdimm.txt).
-
-However, this limits persistent memory use to applications which
-*have* been modified.  To make it more broadly usable, this driver
-"hotplugs" memory into the kernel, to be managed and used just like
-normal RAM would be.
-
-To make this work, management software must remove the device from
-being controlled by the "Device DAX" infrastructure:
-
-	echo -n dax0.0 &gt; /sys/bus/dax/drivers/device_dax/remove_id
-	echo -n dax0.0 &gt; /sys/bus/dax/drivers/device_dax/unbind
-</pre>
-    </blockquote>
-    <p><br>
-    </p>
-    <p>Hello Dave</p>
-    <p>I am trying to use these patches (on top on Dan's nvdimm-pending
-      branch with Keith's HMAT patches). Writing to remove_id just
-      hangs. echo never returns, it uses 100% CPU and I can't kill it.</p>
-    <pre>[ 5468.744898] bash            R  running task        0 21419  21416 0x00000080
-[ 5468.744899] Call Trace:
-[ 5468.744902]  ? vsnprintf+0x372/0x4e0
-[ 5468.744904]  ? klist_next+0x79/0xe0
-[ 5468.744905]  ? sprintf+0x56/0x80
-[ 5468.744907]  ? bus_for_each_dev+0x8a/0xc0
-[ 5468.744911]  ? do_id_store+0xe8/0x1e0
-[ 5468.744914]  ? _cond_resched+0x15/0x30
-[ 5468.744915]  ? __kmalloc+0x17f/0x200
-[ 5468.744918]  ? kernfs_fop_write+0x83/0x190
-[ 5468.744918]  ? __vfs_write+0x36/0x1b0
-[ 5468.744919]  ? selinux_file_permission+0xe1/0x130
-[ 5468.744921]  ? security_file_permission+0x36/0x100
-[ 5468.744922]  ? vfs_write+0xad/0x1b0
-[ 5468.744922]  ? ksys_write+0x52/0xc0
-[ 5468.744924]  ? do_syscall_64+0x5b/0x180
-[ 5468.744927]  ? entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-CONFIG_NVDIMM_DAX=y
-CONFIG_DAX_DRIVER=y
-CONFIG_DAX=y
-CONFIG_DEV_DAX=m
-CONFIG_DEV_DAX_PMEM=m
-CONFIG_DEV_DAX_KMEM=m
-CONFIG_DEV_DAX_PMEM_COMPAT=m
-CONFIG_FS_DAX=y
-CONFIG_FS_DAX_PMD=y
-
-  {
-    "dev":"namespace0.0",
-    "mode":"devdax",
-    "map":"dev",
-    "size":1598128390144,
-    "uuid":"7046a749-477f-4690-9b3c-a640a1aa44f1",
-    "chardev":"dax0.0"
-  }
-
-
-</pre>
-    <p>I've used your patches on fake hardware (memmap=xx!yy) with an
-      older nvdimm-pending branch (without Keith's patches). It worked
-      fine. This time I am running on real Intel hardware. Any idea
-      where to look ?</p>
-    <p>Thanks</p>
-    <p>Brice</p>
-    <p><br>
-    </p>
-  </body>
-</html>
-
---------------B1FBBAC4595CC6A4AB516193--
+ +      if (start + size > max_mem_size)
+ +              return ERR_PTR(-E2BIG);
+ +
+-       res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+-       if (!res)
+-               return ERR_PTR(-ENOMEM);
+-
+-       res->name = "System RAM";
+-       res->start = start;
+-       res->end = start + size - 1;
+-       res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+-       conflict =  request_resource_conflict(&iomem_resource, res);
+-       if (conflict) {
+-               if (conflict->desc == IORES_DESC_DEVICE_PRIVATE_MEMORY) {
+-                       pr_debug("Device unaddressable memory block "
+-                                "memory hotplug at %#010llx !\n",
+-                                (unsigned long long)start);
+-               }
+-               pr_debug("System RAM resource %pR cannot be added\n", res);
+-               kfree(res);
++       /*
++        * Request ownership of the new memory range.  This might be
++        * a child of an existing resource that was present but
++        * not marked as busy.
++        */
++       res = __request_region(&iomem_resource, start, size,
++                              resource_name, flags);
++
++       if (!res) {
++               pr_debug("Unable to reserve System RAM region:
+%016llx->%016llx\n",
++                               start, start + size);
+                return ERR_PTR(-EEXIST);
+        }
+        return res;
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
