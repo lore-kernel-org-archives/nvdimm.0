@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6742F211CF369
- for <linux-nvdimm@lists.01.org>; Mon, 25 Feb 2019 11:02:46 -0800 (PST)
-Subject: [PATCH 5/5] dax: "Hotplug" persistent memory for use like normal RAM
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 25 Feb 2019 10:57:40 -0800
-References: <20190225185727.BCBD768C@viggo.jf.intel.com>
-In-Reply-To: <20190225185727.BCBD768C@viggo.jf.intel.com>
-Message-Id: <20190225185740.8660866F@viggo.jf.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 76627211CFBE7
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Feb 2019 10:02:25 -0800 (PST)
+MIME-Version: 1.0
+References: <20190214213729.21702-1-brendanhiggins@google.com>
+ <20190214213729.21702-9-brendanhiggins@google.com>
+ <155121334527.260864.5324117081460979741@swboyd.mtv.corp.google.com>
+ <CAFd5g46QCisA4PHQXo57-LC6sNdk=OUjBE0O1s4005uBz_Vo6Q@mail.gmail.com>
+Message-ID: <155137694423.260864.2846034318906225490@swboyd.mtv.corp.google.com>
+Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
+From: Stephen Boyd <sboyd@kernel.org>
+In-Reply-To: <CAFd5g46QCisA4PHQXo57-LC6sNdk=OUjBE0O1s4005uBz_Vo6Q@mail.gmail.com>
+Date: Thu, 28 Feb 2019 10:02:24 -0800
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,270 +21,134 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, Dave Hansen <dave.hansen@linux.intel.com>, ying.huang@intel.com, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, fengguang.wu@intel.com, akpm@linux-foundation.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: brakmo@fb.com, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, linux-kselftest@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, Jeff Dike <jdike@addtoit.com>, dan.carpenter@oracle.com, devicetree <devicetree@vger.kernel.org>, shuah@kernel.org, "Bird, Timothy" <Tim.Bird@sony.com>, Kees Cook <keescook@google.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, om@ml01.01.org, Petr Mladek <pmladek@suse.c>, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+Quoting Brendan Higgins (2019-02-28 01:03:24)
+> On Tue, Feb 26, 2019 at 12:35 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> >
+> > when they need to abort and then the test runner would detect that error
+> > via the return value from the 'run test' function. That would be a more
+> > direct approach, but also more verbose than a single KUNIT_ASSERT()
+> > line. It would be more kernel idiomatic too because the control flow
+> 
+> Yeah, I was intentionally going against that idiom. I think that idiom
+> makes test logic more complicated than it needs to be, especially if
+> the assertion failure happens in a helper function; then you have to
+> pass that error all the way back up. It is important that test code
+> should be as simple as possible to the point of being immediately
+> obviously correct at first glance because there are no tests for
+> tests.
+> 
+> The idea with assertions is that you use them to state all the
+> preconditions for your test. Logically speaking, these are the
+> premises of the test case, so if a premise isn't true, there is no
+> point in continuing the test case because there are no conclusions
+> that can be drawn without the premises. Whereas, the expectation is
+> the thing you are trying to prove. It is not used universally in
+> x-unit style test frameworks, but I really like it as a convention.
+> You could still express the idea of a premise using the above idiom,
+> but I think KUNIT_ASSERT_* states the intended idea perfectly.
 
-From: Dave Hansen <dave.hansen@linux.intel.com>
+Fair enough. It would be great if these sorts of things were described
+in the commit text.
 
-This is intended for use with NVDIMMs that are physically persistent
-(physically like flash) so that they can be used as a cost-effective
-RAM replacement.  Intel Optane DC persistent memory is one
-implementation of this kind of NVDIMM.
+Is the assumption that things like held locks and refcounted elements
+won't exist when one of these assertions is made? It sounds like some of
+the cleanup logic could be fairly complicated if a helper function
+changes some state and then an assert fails and we have to unwind all
+the state from a corrupt location. A similar problem exists for a test
+timeout too. How do we get back to a sane state if the test locks up for
+a long time? Just don't try?
 
-Currently, a persistent memory region is "owned" by a device driver,
-either the "Direct DAX" or "Filesystem DAX" drivers.  These drivers
-allow applications to explicitly use persistent memory, generally
-by being modified to use special, new libraries. (DIMM-based
-persistent memory hardware/software is described in great detail
-here: Documentation/nvdimm/nvdimm.txt).
+> 
+> > isn't hidden inside a macro and it isn't intimately connected with
+> > kthreads and completions.
+> 
+> Yeah, I wasn't a fan of that myself, but it was broadly available. My
+> previous version (still the architecture specific version for UML, not
+> in this patchset though) relies on UML_LONGJMP, but is obviously only
+> works on UML. A number of people wanted support for other
+> architectures. Rob and Luis specifically wanted me to provide a
+> version of abort that would work on any architecture, even if it only
+> had reduced functionality; I thought this fit the bill okay.
 
-However, this limits persistent memory use to applications which
-*have* been modified.  To make it more broadly usable, this driver
-"hotplugs" memory into the kernel, to be managed and used just like
-normal RAM would be.
+Ok.
 
-To make this work, management software must remove the device from
-being controlled by the "Device DAX" infrastructure:
+> 
+> >
+> > >
+> > > diff --git a/kunit/test.c b/kunit/test.c
+> > > index d18c50d5ed671..6e5244642ab07 100644
+> > > --- a/kunit/test.c
+> > > +++ b/kunit/test.c
+> > [...]
+> > > +
+> > > +static void kunit_generic_throw(struct kunit_try_catch *try_catch)
+> > > +{
+> > > +       try_catch->context.try_result = -EFAULT;
+> > > +       complete_and_exit(try_catch->context.try_completion, -EFAULT);
+> > > +}
+> > > +
+> > > +static int kunit_generic_run_threadfn_adapter(void *data)
+> > > +{
+> > > +       struct kunit_try_catch *try_catch = data;
+> > >
+> > > +       try_catch->try(&try_catch->context);
+> > > +
+> > > +       complete_and_exit(try_catch->context.try_completion, 0);
+> >
+> > The exit code doesn't matter, right? If so, it might be clearer to just
+> > return 0 from this function because kthreads exit themselves as far as I
+> > recall.
+> 
+> You mean complete and then return?
 
-	echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+Yes. I was confused for a minute because I thought the exit code was
+checked, but it isn't. Instead, the try_catch->context.try_result is
+where the test result goes, so calling exit explicitly doesn't seem to
+be important here, but it is important in the throw case.
 
-and then tell the new driver that it can bind to the device:
+> 
+> >
+> > > +       else if (exit_code)
+> > > +               kunit_err(test, "Unknown error: %d", exit_code);
+> > > +}
+> > > +
+> > > +void kunit_generic_try_catch_init(struct kunit_try_catch *try_catch)
+> > > +{
+> > > +       try_catch->run = kunit_generic_run_try_catch;
+> >
+> > Is the idea that 'run' would be anything besides
+> > 'kunit_generic_run_try_catch'? If it isn't going to be different, then
+> 
+> Yeah, it can be overridden with an architecture specific version.
+> 
+> > maybe it's simpler to just have a function like
+> > kunit_generic_run_try_catch() that is called by the unit tests instead
+> > of having to write 'try_catch->run(try_catch)' and indirect for the
+> > basic case. Maybe I've missed the point entirely though and this is all
+> > scaffolding for more complicated exception handling later on.
+> 
+> Yeah, the idea is that different architectures can override exception
+> handling with their own implementation. This is just the generic one.
+> For example, UML has one that doesn't depend on kthreads or
+> completions; the UML version also allows recovery from some segfault
+> conditions.
 
-	echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+Ok, got it. It may still be nice to have a wrapper or macro for that
+try_catch->run(try_catch) statement so we don't have to know that a
+try_catch struct has a run member.
 
-After this, there will be a number of new memory sections visible
-in sysfs that can be onlined, or that may get onlined by existing
-udev-initiated memory hotplug rules.
-
-This rebinding procedure is currently a one-way trip.  Once memory
-is bound to "kmem", it's there permanently and can not be
-unbound and assigned back to device_dax.
-
-The kmem driver will never bind to a dax device unless the device
-is *explicitly* bound to the driver.  There are two reasons for
-this: One, since it is a one-way trip, it can not be undone if
-bound incorrectly.  Two, the kmem driver destroys data on the
-device.  Think of if you had good data on a pmem device.  It
-would be catastrophic if you compile-in "kmem", but leave out
-the "device_dax" driver.  kmem would take over the device and
-write volatile data all over your good data.
-
-This inherits any existing NUMA information for the newly-added
-memory from the persistent memory device that came from the
-firmware.  On Intel platforms, the firmware has guarantees that
-require each socket's persistent memory to be in a separate
-memory-only NUMA node.  That means that this patch is not expected
-to create NUMA nodes, but will simply hotplug memory into existing
-nodes.
-
-Because NUMA nodes are created, the existing NUMA APIs and tools
-are sufficient to create policies for applications or memory areas
-to have affinity for or an aversion to using this memory.
-
-There is currently some metadata at the beginning of pmem regions.
-The section-size memory hotplug restrictions, plus this small
-reserved area can cause the "loss" of a section or two of capacity.
-This should be fixable in follow-on patches.  But, as a first step,
-losing 256MB of memory (worst case) out of hundreds of gigabytes
-is a good tradeoff vs. the required code to fix this up precisely.
-This calculation is also the reason we export
-memory_block_size_bytes().
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Keith Busch <keith.busch@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tom Lendacky <thomas.lendacky@amd.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jerome Glisse <jglisse@redhat.com>
----
-
- b/drivers/base/memory.c |    1 
- b/drivers/dax/Kconfig   |   16 +++++++
- b/drivers/dax/Makefile  |    1 
- b/drivers/dax/kmem.c    |  108 ++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 126 insertions(+)
-
-diff -puN drivers/base/memory.c~dax-kmem-try-4 drivers/base/memory.c
---- a/drivers/base/memory.c~dax-kmem-try-4	2019-02-25 10:56:51.791908023 -0800
-+++ b/drivers/base/memory.c	2019-02-25 10:56:51.800908023 -0800
-@@ -88,6 +88,7 @@ unsigned long __weak memory_block_size_b
- {
- 	return MIN_MEMORY_BLOCK_SIZE;
- }
-+EXPORT_SYMBOL_GPL(memory_block_size_bytes);
- 
- static unsigned long get_memory_block_size(void)
- {
-diff -puN drivers/dax/Kconfig~dax-kmem-try-4 drivers/dax/Kconfig
---- a/drivers/dax/Kconfig~dax-kmem-try-4	2019-02-25 10:56:51.793908023 -0800
-+++ b/drivers/dax/Kconfig	2019-02-25 10:56:51.800908023 -0800
-@@ -32,6 +32,22 @@ config DEV_DAX_PMEM
- 
- 	  Say M if unsure
- 
-+config DEV_DAX_KMEM
-+	tristate "KMEM DAX: volatile-use of persistent memory"
-+	default DEV_DAX
-+	depends on DEV_DAX
-+	depends on MEMORY_HOTPLUG # for add_memory() and friends
-+	help
-+	  Support access to persistent memory as if it were RAM.  This
-+	  allows easier use of persistent memory by unmodified
-+	  applications.
-+
-+	  To use this feature, a DAX device must be unbound from the
-+	  device_dax driver (PMEM DAX) and bound to this kmem driver
-+	  on each boot.
-+
-+	  Say N if unsure.
-+
- config DEV_DAX_PMEM_COMPAT
- 	tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
- 	depends on DEV_DAX_PMEM
-diff -puN /dev/null drivers/dax/kmem.c
---- /dev/null	2019-02-15 15:42:29.903470860 -0800
-+++ b/drivers/dax/kmem.c	2019-02-25 10:56:51.800908023 -0800
-@@ -0,0 +1,108 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright(c) 2016-2019 Intel Corporation. All rights reserved. */
-+#include <linux/memremap.h>
-+#include <linux/pagemap.h>
-+#include <linux/memory.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/pfn_t.h>
-+#include <linux/slab.h>
-+#include <linux/dax.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include "dax-private.h"
-+#include "bus.h"
-+
-+int dev_dax_kmem_probe(struct device *dev)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct resource *res = &dev_dax->region->res;
-+	resource_size_t kmem_start;
-+	resource_size_t kmem_size;
-+	resource_size_t kmem_end;
-+	struct resource *new_res;
-+	int numa_node;
-+	int rc;
-+
-+	/*
-+	 * Ensure good NUMA information for the persistent memory.
-+	 * Without this check, there is a risk that slow memory
-+	 * could be mixed in a node with faster memory, causing
-+	 * unavoidable performance issues.
-+	 */
-+	numa_node = dev_dax->target_node;
-+	if (numa_node < 0) {
-+		dev_warn(dev, "rejecting DAX region %pR with invalid node: %d\n",
-+			 res, numa_node);
-+		return -EINVAL;
-+	}
-+
-+	/* Hotplug starting at the beginning of the next block: */
-+	kmem_start = ALIGN(res->start, memory_block_size_bytes());
-+
-+	kmem_size = resource_size(res);
-+	/* Adjust the size down to compensate for moving up kmem_start: */
-+	kmem_size -= kmem_start - res->start;
-+	/* Align the size down to cover only complete blocks: */
-+	kmem_size &= ~(memory_block_size_bytes() - 1);
-+	kmem_end = kmem_start + kmem_size;
-+
-+	/* Region is permanently reserved.  Hot-remove not yet implemented. */
-+	new_res = request_mem_region(kmem_start, kmem_size, dev_name(dev));
-+	if (!new_res) {
-+		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
-+			 &kmem_start, &kmem_end);
-+		return -EBUSY;
-+	}
-+
-+	/*
-+	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
-+	 * so that add_memory() can add a child resource.  Do not
-+	 * inherit flags from the parent since it may set new flags
-+	 * unknown to us that will break add_memory() below.
-+	 */
-+	new_res->flags = IORESOURCE_SYSTEM_RAM;
-+	new_res->name = dev_name(dev);
-+
-+	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
-+	if (rc)
-+		return rc;
-+
-+	return 0;
-+}
-+
-+static int dev_dax_kmem_remove(struct device *dev)
-+{
-+	/*
-+	 * Purposely leak the request_mem_region() for the device-dax
-+	 * range and return '0' to ->remove() attempts. The removal of
-+	 * the device from the driver always succeeds, but the region
-+	 * is permanently pinned as reserved by the unreleased
-+	 * request_mem_region().
-+	 */
-+	return 0;
-+}
-+
-+static struct dax_device_driver device_dax_kmem_driver = {
-+	.drv = {
-+		.probe = dev_dax_kmem_probe,
-+		.remove = dev_dax_kmem_remove,
-+	},
-+};
-+
-+static int __init dax_kmem_init(void)
-+{
-+	return dax_driver_register(&device_dax_kmem_driver);
-+}
-+
-+static void __exit dax_kmem_exit(void)
-+{
-+	dax_driver_unregister(&device_dax_kmem_driver);
-+}
-+
-+MODULE_AUTHOR("Intel Corporation");
-+MODULE_LICENSE("GPL v2");
-+module_init(dax_kmem_init);
-+module_exit(dax_kmem_exit);
-+MODULE_ALIAS_DAX_DEVICE(0);
-diff -puN drivers/dax/Makefile~dax-kmem-try-4 drivers/dax/Makefile
---- a/drivers/dax/Makefile~dax-kmem-try-4	2019-02-25 10:56:51.796908023 -0800
-+++ b/drivers/dax/Makefile	2019-02-25 10:56:51.800908023 -0800
-@@ -1,6 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_DAX) += dax.o
- obj-$(CONFIG_DEV_DAX) += device_dax.o
-+obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
- 
- dax-y := super.o
- dax-y += bus.o
-_
+	static inline void kunit_run_try_catch(struct kunit_try_catch *try_catch)
+	{
+		try_catch->run(try_catch);
+	}
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
