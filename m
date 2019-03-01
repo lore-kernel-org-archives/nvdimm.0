@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com
- [IPv6:2607:f8b0:4864:20::22e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9C855211CD9C9
- for <linux-nvdimm@lists.01.org>; Fri,  1 Mar 2019 17:35:32 -0800 (PST)
-Received: by mail-oi1-x22e.google.com with SMTP id s16so21079413oih.9
- for <linux-nvdimm@lists.01.org>; Fri, 01 Mar 2019 17:35:32 -0800 (PST)
+ by ml01.01.org (Postfix) with ESMTPS id 8D1C0208AE2C9
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Mar 2019 11:13:53 -0800 (PST)
+Date: Fri, 1 Mar 2019 11:13:52 -0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH] dax: Flush partial PMDs correctly
+Message-ID: <20190301191352.GN11592@bombadil.infradead.org>
+References: <20190301042448.6868-1-willy@infradead.org>
+ <20190301134954.GA31094@quack2.suse.cz>
 MIME-Version: 1.0
-References: <20190228201218.12501-1-toshi.kani@hpe.com>
-In-Reply-To: <20190228201218.12501-1-toshi.kani@hpe.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 1 Mar 2019 17:35:19 -0800
-Message-ID: <CAPcyv4g0rderGJ+tQvfzNvhrndLWJSsTYPiM=FjL+eoKcHDKkA@mail.gmail.com>
-Subject: Re: [PATCH] update NFIT flags error message
+Content-Disposition: inline
+In-Reply-To: <20190301134954.GA31094@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,20 +25,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org, Piotr Balcer <piotr.balcer@intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Feb 28, 2019 at 12:14 PM Toshi Kani <toshi.kani@hpe.com> wrote:
->
-> ACPI NFIT flags field reports major errors on NVDIMM, which need
-> user's attention.
->
-> Update the current log to a proper error message with dev_err().
-> The current message string is kept for grep-compatibility.
->
+On Fri, Mar 01, 2019 at 02:49:54PM +0100, Jan Kara wrote:
+> >  	pfn = dax_to_pfn(entry);
+> > -	size = PAGE_SIZE << dax_entry_order(entry);
+> > +	count = 1UL << dax_entry_order(entry);
+> > +	index = xas->xa_index &~ (count - 1);
+> 
+> Hum, why do you compute 'index' here when you actually never use it? The
+> whole patch looks fishy since it is effectively a noop AFAICT...
 
-Looks good, applied.
+*facepalm*.  I lost the change to the next line while I was backing out
+some extraneous changes.
+
+> >  	dax_entry_mkclean(mapping, xas->xa_index, pfn);
+
+Replacement patch sent.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
