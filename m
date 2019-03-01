@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C7BD208D6133
- for <linux-nvdimm@lists.01.org>; Wed, 20 Feb 2019 14:03:54 -0800 (PST)
-MIME-Version: 1.0
-Subject: Re: [RFC v4 10/17] kunit: test: add test managed resource tests
-Message-ID: <155070023383.77512.8827935805798619870@swboyd.mtv.corp.google.com>
-References: <20190214213729.21702-1-brendanhiggins@google.com>
- <20190214213729.21702-11-brendanhiggins@google.com>
- <155026408761.115909.17855438744578437385@swboyd.mtv.corp.google.com>
- <CAFd5g44Dizk-VsFOmGn++E0d40sZmH6V+j05Eu6zUXaBj1xfcA@mail.gmail.com>
-From: Stephen Boyd <sboyd@kernel.org>
-In-Reply-To: <CAFd5g44Dizk-VsFOmGn++E0d40sZmH6V+j05Eu6zUXaBj1xfcA@mail.gmail.com>
-Date: Wed, 20 Feb 2019 14:03:53 -0800
+ by ml01.01.org (Postfix) with ESMTPS id A0CF3202E53CF
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Feb 2019 20:24:54 -0800 (PST)
+From: Matthew Wilcox <willy@infradead.org>
+Subject: [PATCH] dax: Flush partial PMDs correctly
+Date: Thu, 28 Feb 2019 20:24:48 -0800
+Message-Id: <20190301042448.6868-1-willy@infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,28 +16,80 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: brakmo@fb.com, amir73il@gmail.com, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, linux-kselftest@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, Jeff Dike <jdike@addtoit.com>, dan.carpenter@oracle.com, devicetree <devicetree@vger.kernel.org>, shuah@kernel.org, "Bird, Timothy" <Tim.Bird@sony.com>, Kees Cook <keescook@google.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, om@ml01.01.org, Petr Mladek <pmladek@suse.c>, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Avinash Kondareddy <avikr@google.com>, Daniel Vetter <daniel@ffwll.ch>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
+To: Piotr Balcer <piotr.balcer@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
+Cc: Matthew Wilcox <willy@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Brendan Higgins (2019-02-19 15:20:18)
-> On Fri, Feb 15, 2019 at 12:54 PM Stephen Boyd <sboyd@kernel.org> wrote:
-> >
-> > Quoting Brendan Higgins (2019-02-14 13:37:22)
-> > > +
-> > > +static struct kunit_case kunit_resource_test_cases[] = {
-> >
-> > Can these arrays be const?
-> 
-> There is some private mutable state inside of `struct kunit_case` that
-> would be kind of annoying to pull out; I don't think it would make it
-> cleaner.
+The radix tree would rewind the index in an iterator to the lowest index
+of a multi-slot entry.  The XArray iterators instead leave the index
+unchanged, but I overlooked that when converting DAX from the radix tree
+to the XArray.  Adjust the index that we use for flushing to the start
+of the PMD range.
 
-Fair enough. Thanks for checking.
+Fixes: c1901cd33cf4 "page cache: Convert find_get_entries_tag to XArray"
+Reported-by: Piotr Balcer <piotr.balcer@intel.com>
+Tested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+---
+ fs/dax.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index 6959837cc465..f7a7af766efe 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -843,9 +843,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 		struct address_space *mapping, void *entry)
+ {
+-	unsigned long pfn;
++	unsigned long pfn, index, count;
+ 	long ret = 0;
+-	size_t size;
+ 
+ 	/*
+ 	 * A page got tagged dirty in DAX mapping? Something is seriously
+@@ -894,17 +893,18 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 	xas_unlock_irq(xas);
+ 
+ 	/*
+-	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
+-	 * in the middle of a PMD, the 'index' we are given will be aligned to
+-	 * the start index of the PMD, as will the pfn we pull from 'entry'.
++	 * If dax_writeback_mapping_range() was given a wbc->range_start
++	 * in the middle of a PMD, the 'index' we are given needs to be
++	 * aligned to the start index of the PMD.
+ 	 * This allows us to flush for PMD_SIZE and not have to worry about
+ 	 * partial PMD writebacks.
+ 	 */
+ 	pfn = dax_to_pfn(entry);
+-	size = PAGE_SIZE << dax_entry_order(entry);
++	count = 1UL << dax_entry_order(entry);
++	index = xas->xa_index &~ (count - 1);
+ 
+ 	dax_entry_mkclean(mapping, xas->xa_index, pfn);
+-	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
++	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
+ 	/*
+ 	 * After we have flushed the cache, we can clear the dirty tag. There
+ 	 * cannot be new dirty data in the pfn after the flush has completed as
+@@ -917,8 +917,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
+ 	xas_clear_mark(xas, PAGECACHE_TAG_DIRTY);
+ 	dax_wake_entry(xas, entry, false);
+ 
+-	trace_dax_writeback_one(mapping->host, xas->xa_index,
+-			size >> PAGE_SHIFT);
++	trace_dax_writeback_one(mapping->host, xas->xa_index, count);
+ 	return ret;
+ 
+  put_unlocked:
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
