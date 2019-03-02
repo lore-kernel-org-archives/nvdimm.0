@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 50BDF211CF375
- for <linux-nvdimm@lists.01.org>; Mon, 11 Mar 2019 02:05:59 -0700 (PDT)
-Date: Mon, 11 Mar 2019 10:05:57 +0100
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH] dax: Flush partial PMDs correctly
-Message-ID: <20190311090557.GB11553@quack2.suse.cz>
-References: <20190301191241.27842-1-willy@infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 28DC6211D0C7F
+ for <linux-nvdimm@lists.01.org>; Fri,  1 Mar 2019 19:50:13 -0800 (PST)
+Received: by mail-oi1-x243.google.com with SMTP id u128so21255702oie.2
+ for <linux-nvdimm@lists.01.org>; Fri, 01 Mar 2019 19:50:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
+References: <20190301191241.27842-1-willy@infradead.org>
 In-Reply-To: <20190301191241.27842-1-willy@infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 1 Mar 2019 19:50:01 -0800
+Message-ID: <CAPcyv4j6cUpOktma8YRNiC51UZ5HzO_F8x5VzdP6A4HZrOfrrg@mail.gmail.com>
+Subject: Re: [PATCH] dax: Flush partial PMDs correctly
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,40 +26,26 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Matthew Wilcox <willy@infradead.org>
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Piotr Balcer <piotr.balcer@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, Piotr Balcer <piotr.balcer@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 01-03-19 11:12:41, Matthew Wilcox wrote:
+On Fri, Mar 1, 2019 at 11:12 AM Matthew Wilcox <willy@infradead.org> wrote:
+>
 > The radix tree would rewind the index in an iterator to the lowest index
 > of a multi-slot entry.  The XArray iterators instead leave the index
 > unchanged, but I overlooked that when converting DAX from the radix tree
 > to the XArray.  Adjust the index that we use for flushing to the start
 > of the PMD range.
-> 
+>
 > Fixes: c1901cd33cf4 "page cache: Convert find_get_entries_tag to XArray"
 > Reported-by: Piotr Balcer <piotr.balcer@intel.com>
 > Tested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Matthew Wilcox <willy@infradead.org>
-> ---
-...
-> @@ -917,8 +917,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
->  	xas_clear_mark(xas, PAGECACHE_TAG_DIRTY);
->  	dax_wake_entry(xas, entry, false);
->  
-> -	trace_dax_writeback_one(mapping->host, xas->xa_index,
-> -			size >> PAGE_SHIFT);
-> +	trace_dax_writeback_one(mapping->host, xas->xa_index, count);
 
-I think here should be 'index' as well, shouldn't it? Otherwise the tracing
-data will be somewhat misleading... Besides this the patch looks good to me
-now so feel free to add:
+Given this is a new patch my previous tested-by is invalid.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+...that said, this one works.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Tested-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
