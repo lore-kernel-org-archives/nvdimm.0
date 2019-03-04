@@ -1,10 +1,9 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Be sure to read this message! Your personal data is threatened!
-Date: 2 Mar 2019 18:04:18 -0600
-Message-ID: <603992823.20190303-627@lists.01.org>
+From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: (unknown)
+Date: Mon, 4 Mar 2019 11:42:07 +0800
+Message-ID: <20190304034155.AD7BB211D2317@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4666477662524685387=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,39 +17,37 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi!
+This is a multi-part message in MIME format.
 
-As you may have noticed, I sent you an email from your account.
-This means that I have full access to your account.
+--===============4666477662524685387==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-I've been watching you for a few months now.
-The fact is that you were infected with malware through an adult site that you visited.
+±'Ã³ÛıpZ·Âu<êZxfv›ª
+„–Tœ'fŠ…>X90î±Î|…&†œì#*œˆ”~™zâı^°a¦ü^Èà£cĞ}øAèÍ¾£
+¼µ8[èÅ«/øP¬
+îÅ®_Ö™Ë««XÉ·íÊ{¼
+µöuCÇüöL~‰½¡±-_÷u¹.(v1OƒsM:I¿ù>1ÁÕüäuµèé"ËÚÌŞÙs9ùn,(SO)6ö\4_²ñ£•¬UNß¿5
+<¦Ÿı4øÉüG!gü§´QrÓÀ:<(§9h7jÈø¹iï§eÛ–ğ˜WõxY¼×ü|ëÙÙPışçš»ú‘U] PİˆKx]»É‚Îâ÷]mù‹[ã.ÂÁf™;œÔ´5ÙtµU`İµ
+ÛÅ–£J$kÊ[À´U
+ä|"&`»öÔ[»ã$
+Ÿ¨¢X„m‚¡ÂålJ±
+!aÇJÂHpºÆˆat¬â69½#ß‰t0k¤‰I¤|
+Z9
+¢Z‹w£Œ[ªûşS
+ç²
 
-If you are not familiar with this, I will explain.
-Trojan Virus gives me full access and control over a computer or other device.
-This means that I can see everything on your screen, turn on the camera and microphone, but you do not know about it.
 
-I also have access to all your contacts and all your correspondence.
+--===============4666477662524685387==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Why your antivirus did not detect malware?
-Answer: My malware uses the driver, I update its signatures every 4 hours so that your antivirus is silent.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-I made a video showing how you satisfy yourself in the left half of the screen, and in the right half you see the video that you watched.
-With one click of the mouse, I can send this video to all your emails and contacts on social networks.
-I can also post access to all your e-mail correspondence and messengers that you use.
-
-If you want to prevent this,
-transfer the amount of $749 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
-
-My bitcoin address (BTC Wallet) is: 1GdSHQ4aE7zUD8HDqVJDEwU9dxn3LfJLMK
-
-After receiving the payment, I will delete the video and you will never hear me again.
-I give you 48 hours to pay.
-I have a notice reading this letter, and the timer will work when you see this letter.
-
-Filing a complaint somewhere does not make sense because this email cannot be tracked like my bitcoin address.
-I do not make any mistakes.
-
-If I find that you have shared this message with someone else, the video will be immediately distributed.
-
-Best regards!
+--===============4666477662524685387==--
