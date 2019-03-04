@@ -1,13 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5540F2194EB70
- for <linux-nvdimm@lists.01.org>; Wed, 27 Mar 2019 13:26:58 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: enable 'travis-ci'
-Date: Wed, 27 Mar 2019 14:26:54 -0600
-Message-Id: <20190327202654.20866-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 71AC5211CF36A
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Mar 2019 12:36:40 -0800 (PST)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] libnvdimm/namespace: Clean up holder_class_store()
+Date: Mon, 4 Mar 2019 20:36:35 +0000
+Message-ID: <a96203c060b8e7d589a251f53bec2cd0e57292d7.camel@intel.com>
+References: <155173044436.4154095.17954771880753980013.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155173044436.4154095.17954771880753980013.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <EFC28E659EF09A458B0AC603C40B4DBB@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,66 +24,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a .travis.yml config to enable Travis CI.
-Also add the Travis CI  status 'badge' to README.md
+On Mon, 2019-03-04 at 12:14 -0800, Dan Williams wrote:
+> Use sysfs_streq() in place of open-coded strcmp()'s that check for an
+> optional "\n" at the end of the input.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/nvdimm/namespace_devs.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 
-For now, this only does a compile test. It can be built upon in the
-future to do more runtime testing. Since the travis environment uses
-Ubuntu, this is useful regardless, as it will immediately catch any
-build failures in an Ubuntu environment.
+Looks good,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- .travis.yml | 23 +++++++++++++++++++++++
- README.md   |  2 ++
- 2 files changed, 25 insertions(+)
- create mode 100644 .travis.yml
-
-diff --git a/.travis.yml b/.travis.yml
-new file mode 100644
-index 0000000..eb0c665
---- /dev/null
-+++ b/.travis.yml
-@@ -0,0 +1,23 @@
-+dist: xenial
-+language: c
-+sudo: required
-+ccache: ccache
-+
-+git:
-+  depth: 5
-+  quiet: true
-+
-+before_install:
-+  - sudo apt-get update -qq
-+  - sudo apt-get install -qq --no-install-recommends -y systemd dh-systemd libkmod2 libkmod-dev libudev1 libudev-dev keyutils libkeyutils-dev libjson-c-dev libuuid1 asciidoctor jq kmod dracut build-essential git-core libelf-dev asciidoc binutils-dev
-+  - sudo apt-get build-dep linux-image-$(uname -r)
-+
-+install:
-+  - ./autogen.sh
-+  - ./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib
-+  - make -j$(nproc --all)
-+  - sudo make install
-+
-+jobs:
-+  include:
-+      script: true
-diff --git a/README.md b/README.md
-index 7c420d5..d2fe874 100644
---- a/README.md
-+++ b/README.md
-@@ -1,4 +1,6 @@
- # ndctl
-+[![Build Status](https://travis-ci.org/stellarhopper/ndctl.svg?branch=master)](https://travis-ci.org/stellarhopper/ndctl)
-+
- Utility library for managing the libnvdimm (non-volatile memory device)
- sub-system in the Linux kernel
-   
--- 
-2.20.1
+> 
+> diff --git a/drivers/nvdimm/namespace_devs.c
+> b/drivers/nvdimm/namespace_devs.c
+> index 3677b0c4a33d..17fb7f931f0c 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1506,13 +1506,13 @@ static ssize_t __holder_class_store(struct
+> device *dev, const char *buf)
+>  	if (dev->driver || ndns->claim)
+>  		return -EBUSY;
+>  
+> -	if (strcmp(buf, "btt") == 0 || strcmp(buf, "btt\n") == 0)
+> +	if (sysfs_streq(buf, "btt"))
+>  		ndns->claim_class = btt_claim_class(dev);
+> -	else if (strcmp(buf, "pfn") == 0 || strcmp(buf, "pfn\n") == 0)
+> +	else if (sysfs_streq(buf, "pfn"))
+>  		ndns->claim_class = NVDIMM_CCLASS_PFN;
+> -	else if (strcmp(buf, "dax") == 0 || strcmp(buf, "dax\n") == 0)
+> +	else if (sysfs_streq(buf, "dax"))
+>  		ndns->claim_class = NVDIMM_CCLASS_DAX;
+> -	else if (strcmp(buf, "") == 0 || strcmp(buf, "\n") == 0)
+> +	else if (sysfs_streq(buf, ""))
+>  		ndns->claim_class = NVDIMM_CCLASS_NONE;
+>  	else
+>  		return -EINVAL;
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
