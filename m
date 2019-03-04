@@ -1,53 +1,35 @@
-From: "Automatic Email Delivery Software" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: (unknown)
-Date: Mon, 4 Mar 2019 11:42:07 +0800
-Message-ID: <20190304034155.AD7BB211D2317@ml01.01.org>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
+Date: Mon, 4 Mar 2019 14:28:05 -0800
+Message-ID: <CAFd5g46iqZ6+r9BUzPLSrEmomJQfei=Bb0CH1Tb2ZDr3f1s0jQ@mail.gmail.com>
+References: <20190214213729.21702-1-brendanhiggins@google.com>
+ <20190214213729.21702-9-brendanhiggins@google.com> <155121334527.260864.5324117081460979741@swboyd.mtv.corp.google.com>
+ <CAFd5g46QCisA4PHQXo57-LC6sNdk=OUjBE0O1s4005uBz_Vo6Q@mail.gmail.com> <20190228135403.GD9806@kadam>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4666477662524685387=="
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190228135403.GD9806@kadam>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Stephen Boyd <sboyd@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, shuah@kernel.org, Greg KH <gregkh@linuxfoundation.org>, Joel Stanley <joel@jms.id.au>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, brakmo@fb.com, Steven Rostedt <rostedt@goodmis.org>, "Bird, Timothy" <Tim.Bird@sony.com>, Kevin Hilman <khilman@baylibre.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, linux-um@lists.infra
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Thu, Feb 28, 2019 at 5:55 AM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> On Thu, Feb 28, 2019 at 01:03:24AM -0800, Brendan Higgins wrote:
+> > you could do:
+> >
+> > if (IS_ERR_OR_NULL(ptr)) {
+> >         KUNIT_FAIL(test, "ptr is an errno or null: %ld", ptr);
+> >         return;
+> > }
+>
+> It's best to not mix error pointers and NULL but when we do mix them,
+> it means that NULL is a special kind of success.  Like we try to load
+> a feature and we get back:
+>
+>     valid pointer <-- success
+>     null          <-- feature is disabled.  not an error.
+>     error pointer <-- feature is broken.  fail.
 
---===============4666477662524685387==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-±'√≥€˝pZ∑¬u<êÍZxfvõ™
-ÑñTú'fäÖ>X90Ó±Œ|Ö&ÅÜúÏ#*úàî~ôz‚˝^∞a¶¸^»‡£c–}¯AËÕæ£
-ºµ8[Ë≈´/¯P¨
-Ó≈Æ_÷ôÀ´´X…∑Ì {º
-µˆuC«¸ˆL~âΩ°±-_˜uπ.(v1OÉsM:Iø˘>1¡’¸‰uµËÅÈ"À⁄ÃﬁŸs9˘n,(SO)è6ˆ\4_≤Ò£ï¨UNﬂø5
-<¶ü˝4¯…¸G!g¸ß¥Qr”¿:<(ßÅ9h7j»¯πiùÔße€ñòWıxYº◊¸|ÎŸŸP˝˛Áöª˙èëU]†P›àùKx]ª…ÇŒ‚˜]m˘ã[„.¬¡fôç;ú‘¥5ŸtµU`›µ
-€≈ñ£J$k [¿¥U
-‰|é"&`ªˆ‘[ª„$
-ü®¢XÑmÇ°¬ÂlJ±
-!a«J¬Hp∫∆àat¨‚Å69Ω#ﬂâèt0k§âI§|
-Z9
-¢Zãw£å[™˚˛S
-Á≤
-
-
---===============4666477662524685387==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4666477662524685387==--
+Thanks for pointing that out! Will fix.
