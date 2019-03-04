@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 71AC5211CF36A
- for <linux-nvdimm@lists.01.org>; Mon,  4 Mar 2019 12:36:40 -0800 (PST)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] libnvdimm/namespace: Clean up holder_class_store()
-Date: Mon, 4 Mar 2019 20:36:35 +0000
-Message-ID: <a96203c060b8e7d589a251f53bec2cd0e57292d7.camel@intel.com>
-References: <155173044436.4154095.17954771880753980013.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155173044436.4154095.17954771880753980013.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <EFC28E659EF09A458B0AC603C40B4DBB@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C09B5211CFFC9
+ for <linux-nvdimm@lists.01.org>; Mon,  4 Mar 2019 12:26:43 -0800 (PST)
+Subject: [PATCH] libnvdimm/namespace: Clean up holder_class_store()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 04 Mar 2019 12:14:04 -0800
+Message-ID: <155173044436.4154095.17954771880753980013.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,48 +20,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, 2019-03-04 at 12:14 -0800, Dan Williams wrote:
-> Use sysfs_streq() in place of open-coded strcmp()'s that check for an
-> optional "\n" at the end of the input.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/nvdimm/namespace_devs.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+Use sysfs_streq() in place of open-coded strcmp()'s that check for an
+optional "\n" at the end of the input.
 
-Looks good,
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/namespace_devs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> 
-> diff --git a/drivers/nvdimm/namespace_devs.c
-> b/drivers/nvdimm/namespace_devs.c
-> index 3677b0c4a33d..17fb7f931f0c 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -1506,13 +1506,13 @@ static ssize_t __holder_class_store(struct
-> device *dev, const char *buf)
->  	if (dev->driver || ndns->claim)
->  		return -EBUSY;
->  
-> -	if (strcmp(buf, "btt") == 0 || strcmp(buf, "btt\n") == 0)
-> +	if (sysfs_streq(buf, "btt"))
->  		ndns->claim_class = btt_claim_class(dev);
-> -	else if (strcmp(buf, "pfn") == 0 || strcmp(buf, "pfn\n") == 0)
-> +	else if (sysfs_streq(buf, "pfn"))
->  		ndns->claim_class = NVDIMM_CCLASS_PFN;
-> -	else if (strcmp(buf, "dax") == 0 || strcmp(buf, "dax\n") == 0)
-> +	else if (sysfs_streq(buf, "dax"))
->  		ndns->claim_class = NVDIMM_CCLASS_DAX;
-> -	else if (strcmp(buf, "") == 0 || strcmp(buf, "\n") == 0)
-> +	else if (sysfs_streq(buf, ""))
->  		ndns->claim_class = NVDIMM_CCLASS_NONE;
->  	else
->  		return -EINVAL;
-> 
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 3677b0c4a33d..17fb7f931f0c 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1506,13 +1506,13 @@ static ssize_t __holder_class_store(struct device *dev, const char *buf)
+ 	if (dev->driver || ndns->claim)
+ 		return -EBUSY;
+ 
+-	if (strcmp(buf, "btt") == 0 || strcmp(buf, "btt\n") == 0)
++	if (sysfs_streq(buf, "btt"))
+ 		ndns->claim_class = btt_claim_class(dev);
+-	else if (strcmp(buf, "pfn") == 0 || strcmp(buf, "pfn\n") == 0)
++	else if (sysfs_streq(buf, "pfn"))
+ 		ndns->claim_class = NVDIMM_CCLASS_PFN;
+-	else if (strcmp(buf, "dax") == 0 || strcmp(buf, "dax\n") == 0)
++	else if (sysfs_streq(buf, "dax"))
+ 		ndns->claim_class = NVDIMM_CCLASS_DAX;
+-	else if (strcmp(buf, "") == 0 || strcmp(buf, "\n") == 0)
++	else if (sysfs_streq(buf, ""))
+ 		ndns->claim_class = NVDIMM_CCLASS_NONE;
+ 	else
+ 		return -EINVAL;
 
 _______________________________________________
 Linux-nvdimm mailing list
