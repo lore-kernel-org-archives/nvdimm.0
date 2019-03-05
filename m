@@ -1,10 +1,10 @@
-From: =?utf-8?B?5LuO6I2P?= <blukvtai-fHndPUmTaG8AvxtiuMwx3w@public.gmane.org>
-Subject: =?utf-8?B?562U5aSNOumbtuaVhemanOeuoeeQhu+8jOehruS/neeUn+S6p+iuvuWkh+eahOmrmOaViOi/kOi9rA==?=
-Date: Tue, 5 Mar 2019 09:31:45 +0800
-Message-ID: <B1DBC13477D06A618FFC02B43A614F5E@noyaa.com>
+From: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Subject: Delivery reports about your e-mail
+Date: Tue, 5 Mar 2019 11:44:14 +0800
+Message-ID: <20190305034403.C200F211D3910@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,11 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-UmVjZWl2ZWQ6IGZyb20gV1Mtd2ViIChibHVrdnRhaUBub3lhYS5jb20pIA0KRGF0ZTog5pif5pyf
-5LqUIDIwMTktMy01IDk6MzE6NTErMDgwMA0KRnJvbTogIuS7juiNjyIgPGJsdWt2dGFpQG5veWFh
-LmNvbT4NClJlcGx5LVRvOiAibGludXgtbnZkaW1tIiA8bGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-Zz4NCk1lc3NhZ2UtSUQ6IDxpbXVrdGxhcS10aDdxNC0yMzUxNjExODItY3ZscWYtMWxxc2F6aWN3
-cWcuYmx1a3Z0YWlAbm95YWEuY29tPg0K6K+mIOe7hiDlhoUg5a65IOeDpiDor7cg5p+lIOmYhSDp
-mYQg5Lu2Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+This Message was undeliverable due to the following reason:
+
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 4 days:
+Host 73.209.114.86 is not responding.
+
+The following recipients did not receive this message:
+<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+if you feel this message to be in error.
