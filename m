@@ -1,20 +1,33 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBBAD2194EB7A
- for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 03:44:57 -0800 (PST)
-Date: Wed, 6 Mar 2019 12:44:53 +0100
-From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 5B7CA211D56C4
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 01:17:46 -0800 (PST)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x2694APe034661
+ for <linux-nvdimm@lists.01.org>; Wed, 6 Mar 2019 04:17:45 -0500
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2r2a8emb2p-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 06 Mar 2019 04:17:45 -0500
+Received: from localhost
+ by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Wed, 6 Mar 2019 09:17:42 -0000
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Subject: Re: [PATCH 2/2] mm/dax: Don't enable huge dax mapping by default
-Message-ID: <20190306124453.126d36d8@naga.suse.cz>
-In-Reply-To: <87k1hc8iqa.fsf@linux.ibm.com>
+In-Reply-To: <CAPcyv4jhEvijybSVsy+wmvgqfvyxfePQ3PUqy1hhmVmPtJTyqQ@mail.gmail.com>
 References: <20190228083522.8189-1-aneesh.kumar@linux.ibm.com>
  <20190228083522.8189-2-aneesh.kumar@linux.ibm.com>
  <CAOSf1CHjkyX2NTex7dc1AEHXSDcWA_UGYX8NoSyHpb5s_RkwXQ@mail.gmail.com>
  <CAPcyv4jhEvijybSVsy+wmvgqfvyxfePQ3PUqy1hhmVmPtJTyqQ@mail.gmail.com>
- <87k1hc8iqa.fsf@linux.ibm.com>
+Date: Wed, 06 Mar 2019 14:47:33 +0530
 MIME-Version: 1.0
+Message-Id: <87k1hc8iqa.fsf@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,39 +35,97 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Ross Zwisler <zwisler@kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Oliver <oohall@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Ross Zwisler <zwisler@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 06 Mar 2019 14:47:33 +0530
-"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> wrote:
-
-> Dan Williams <dan.j.williams@intel.com> writes:
-> 
-> > On Thu, Feb 28, 2019 at 1:40 AM Oliver <oohall@gmail.com> wrote:  
-> >>
-> >> On Thu, Feb 28, 2019 at 7:35 PM Aneesh Kumar K.V
-> >> <aneesh.kumar@linux.ibm.com> wrote:  
- 
-> Also even if the user decided to not use THP, by
-> echo "never" > transparent_hugepage/enabled , we should continue to map
-> dax fault using huge page on platforms that can support huge pages.
-
-Is this a good idea?
-
-This knob is there for a reason. In some situations having huge pages
-can severely impact performance of the system (due to host-guest
-interaction or whatever) and the ability to really turn off all THP
-would be important in those cases, right?
-
-Thanks
-
-Michal
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+IHdyaXRlczoKCj4gT24gVGh1
+LCBGZWIgMjgsIDIwMTkgYXQgMTo0MCBBTSBPbGl2ZXIgPG9vaGFsbEBnbWFpbC5jb20+IHdyb3Rl
+Ogo+Pgo+PiBPbiBUaHUsIEZlYiAyOCwgMjAxOSBhdCA3OjM1IFBNIEFuZWVzaCBLdW1hciBLLlYK
+Pj4gPGFuZWVzaC5rdW1hckBsaW51eC5pYm0uY29tPiB3cm90ZToKPj4gPgo+PiA+IEFkZCBhIGZs
+YWcgdG8gaW5kaWNhdGUgdGhlIGFiaWxpdHkgdG8gZG8gaHVnZSBwYWdlIGRheCBtYXBwaW5nLiBP
+biBhcmNoaXRlY3R1cmUKPj4gPiBsaWtlIHBwYzY0LCB0aGUgaHlwZXJ2aXNvciBjYW4gZGlzYWJs
+ZSBodWdlIHBhZ2Ugc3VwcG9ydCBpbiB0aGUgZ3Vlc3QuIEluCj4+ID4gc3VjaCBhIGNhc2UsIHdl
+IHNob3VsZCBub3QgZW5hYmxlIGh1Z2UgcGFnZSBkYXggbWFwcGluZy4gVGhpcyBwYXRjaCBhZGRz
+Cj4+ID4gYSBmbGFnIHdoaWNoIHRoZSBhcmNoaXRlY3R1cmUgY29kZSB3aWxsIHVwZGF0ZSB0byBp
+bmRpY2F0ZSBodWdlIHBhZ2UKPj4gPiBkYXggbWFwcGluZyBzdXBwb3J0Lgo+Pgo+PiAqZ3JvYW4q
+Cj4+Cj4+ID4gQXJjaGl0ZWN0dXJlcyBtb3N0bHkgZG8gdHJhbnNwYXJlbnRfaHVnZXBhZ2VfZmxh
+ZyA9IDA7IGlmIHRoZXkgY2FuJ3QKPj4gPiBkbyBodWdlcGFnZXMuIFRoYXQgYWxzbyB0YWtlcyBj
+YXJlIG9mIGRpc2FibGluZyBkYXggaHVnZXBhZ2UgbWFwcGluZwo+PiA+IHdpdGggdGhpcyBjaGFu
+Z2UuCj4+ID4KPj4gPiBXaXRob3V0IHRoaXMgcGF0Y2ggd2UgZ2V0IHRoZSBiZWxvdyBlcnJvciB3
+aXRoIGt2bSBvbiBwcGM2NC4KPj4gPgo+PiA+IFsgIDExOC44NDk5NzVdIGxwYXI6IEZhaWxlZCBo
+YXNoIHB0ZSBpbnNlcnQgd2l0aCBlcnJvciAtNAo+PiA+Cj4+ID4gTk9URTogVGhlIHBhdGNoIGFs
+c28gdXNlCj4+ID4KPj4gPiBlY2hvIG5ldmVyID4gL3N5cy9rZXJuZWwvbW0vdHJhbnNwYXJlbnRf
+aHVnZXBhZ2UvZW5hYmxlZAo+PiA+IHRvIGRpc2FibGUgZGF4IGh1Z2UgcGFnZSBtYXBwaW5nLgo+
+PiA+Cj4+ID4gU2lnbmVkLW9mZi1ieTogQW5lZXNoIEt1bWFyIEsuViA8YW5lZXNoLmt1bWFyQGxp
+bnV4LmlibS5jb20+Cj4+ID4gLS0tCj4+ID4gVE9ETzoKPj4gPiAqIEFkZCBGaXhlczogdGFnCj4+
+ID4KPj4gPiAgaW5jbHVkZS9saW51eC9odWdlX21tLmggfCA0ICsrKy0KPj4gPiAgbW0vaHVnZV9t
+ZW1vcnkuYyAgICAgICAgfCA0ICsrKysKPj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlv
+bnMoKyksIDEgZGVsZXRpb24oLSkKPj4gPgo+PiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4
+L2h1Z2VfbW0uaCBiL2luY2x1ZGUvbGludXgvaHVnZV9tbS5oCj4+ID4gaW5kZXggMzgxZTg3MmJm
+ZGUwLi4wMWFkNTI1ODU0NWUgMTAwNjQ0Cj4+ID4gLS0tIGEvaW5jbHVkZS9saW51eC9odWdlX21t
+LmgKPj4gPiArKysgYi9pbmNsdWRlL2xpbnV4L2h1Z2VfbW0uaAo+PiA+IEBAIC01Myw2ICs1Myw3
+IEBAIHZtX2ZhdWx0X3Qgdm1mX2luc2VydF9wZm5fcHVkKHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAq
+dm1hLCB1bnNpZ25lZCBsb25nIGFkZHIsCj4+ID4gICAgICAgICAgICAgICAgICAgICAgICAgcHVk
+X3QgKnB1ZCwgcGZuX3QgcGZuLCBib29sIHdyaXRlKTsKPj4gPiAgZW51bSB0cmFuc3BhcmVudF9o
+dWdlcGFnZV9mbGFnIHsKPj4gPiAgICAgICAgIFRSQU5TUEFSRU5UX0hVR0VQQUdFX0ZMQUcsCj4+
+ID4gKyAgICAgICBUUkFOU1BBUkVOVF9IVUdFUEFHRV9EQVhfRkxBRywKPj4gPiAgICAgICAgIFRS
+QU5TUEFSRU5UX0hVR0VQQUdFX1JFUV9NQURWX0ZMQUcsCj4+ID4gICAgICAgICBUUkFOU1BBUkVO
+VF9IVUdFUEFHRV9ERUZSQUdfRElSRUNUX0ZMQUcsCj4+ID4gICAgICAgICBUUkFOU1BBUkVOVF9I
+VUdFUEFHRV9ERUZSQUdfS1NXQVBEX0ZMQUcsCj4+ID4gQEAgLTExMSw3ICsxMTIsOCBAQCBzdGF0
+aWMgaW5saW5lIGJvb2wgX190cmFuc3BhcmVudF9odWdlcGFnZV9lbmFibGVkKHN0cnVjdCB2bV9h
+cmVhX3N0cnVjdCAqdm1hKQo+PiA+ICAgICAgICAgaWYgKHRyYW5zcGFyZW50X2h1Z2VwYWdlX2Zs
+YWdzICYgKDEgPDwgVFJBTlNQQVJFTlRfSFVHRVBBR0VfRkxBRykpCj4+ID4gICAgICAgICAgICAg
+ICAgIHJldHVybiB0cnVlOwo+PiA+Cj4+ID4gLSAgICAgICBpZiAodm1hX2lzX2RheCh2bWEpKQo+
+PiA+ICsgICAgICAgaWYgKHZtYV9pc19kYXgodm1hKSAmJgo+PiA+ICsgICAgICAgICAgICh0cmFu
+c3BhcmVudF9odWdlcGFnZV9mbGFncyAmICgxIDw8IFRSQU5TUEFSRU5UX0hVR0VQQUdFX0RBWF9G
+TEFHKSkpCj4+ID4gICAgICAgICAgICAgICAgIHJldHVybiB0cnVlOwo+Pgo+PiBGb3JjaW5nIFBU
+RSBzaXplZCBmYXVsdHMgc2hvdWxkIGJlIGZpbmUgZm9yIGZzZGF4LCBidXQgaXQnbGwgYnJlYWsK
+Pj4gZGV2ZGF4LiBUaGUgZGV2ZGF4IGRyaXZlciByZXF1aXJlcyB0aGUgZmF1bHQgc2l6ZSBiZSA+
+PSB0aGUgbmFtZXNwYWNlCj4+IGFsaWdubWVudCBzaW5jZSBkZXZkYXggdHJpZXMgdG8gZ3VhcmFu
+dGVlIGh1Z2VwYWdlIG1hcHBpbmdzIHdpbGwgYmUKPj4gdXNlZCBhbmQgUE1EIGFsaWdubWVudCBp
+cyB0aGUgZGVmYXVsdC4gV2UgY2FuIHByb2JhYmx5IGhhdmUgZGV2ZGF4Cj4+IGZhbGwgYmFjayB0
+byB0aGUgbGFyZ2VzdCBzaXplIHRoZSBoeXBlcnZpc29yIGhhcyBtYWRlIGF2YWlsYWJsZSwgYnV0
+Cj4+IGl0IGRvZXMgcnVuIGNvbnRyYXJ5IHRvIHRoZSBkZXNpZ24uIEFoIHdlbGwsIEkgc3VwcG9z
+ZSBpdCdzIGJldHRlciBvZmYKPj4gYmVpbmcgZGVncmFkZWQgcmF0aGVyIHRoYW4gdW51c2FibGUu
+Cj4KPiBHaXZlbiB0aGlzIGlzIGFuIGV4cGxpY2l0IHNldHRpbmcgSSB0aGluayBkZXZpY2UtZGF4
+IHNob3VsZCBleHBsaWNpdGx5Cj4gZmFpbCB0byBlbmFibGUgaW4gdGhlIHByZXNlbmNlIG9mIHRo
+aXMgZmxhZyB0byBwcmVzZXJ2ZSB0aGUKPiBhcHBsaWNhdGlvbiB2aXNpYmxlIGJlaGF2aW9yLgo+
+Cj4gSS5lLiBpZiBkZXZpY2UtZGF4IHdhcyBlbmFibGVkIGFmdGVyIHRoaXMgc2V0dGluZyB3YXMg
+bWFkZSB0aGVuIEkKPiB0aGluayBmdXR1cmUgZmF1bHRzIHNob3VsZCBmYWlsIGFzIHdlbGwuCgpO
+b3Qgc3VyZSBJIHVuZGVyc3Rvb2QgdGhhdC4gTm93IHdlIGFyZSBkaXNhYmxpbmcgdGhlIGFiaWxp
+dHkgdG8gbWFwCnBhZ2VzIGFzIGh1Z2UgcGFnZXMuIEkgYW0gbm93IGNvbnNpZGVyaW5nIHRoYXQg
+dGhpcyBzaG91bGQgbm90IGJlCnVzZXIgY29uZmlndXJhYmxlLiBJZSwgdGhpcyBpcyBzb21ldGhp
+bmcgdGhhdCBwbGF0Zm9ybSBjYW4gdXNlIHRvIGF2b2lkCmRheCBmb3JjaW5nIGh1Z2UgcGFnZSBt
+YXBwaW5nLCBidXQgaWYgdGhlIGFyY2hpdGVjdHVyZSBjYW4gZW5hYmxlIGh1Z2UKZGF4IG1hcHBp
+bmcsIHdlIHNob3VsZCBhbHdheXMgZGVmYXVsdCB0byB1c2luZyB0aGF0LgoKTm93IHcuci50IHRv
+IGZhaWx1cmVzLCBjYW4gZGV2aWNlLWRheCBkbyBhbiBvcHBvcnR1bmlzdGljIGh1Z2UgcGFnZQp1
+c2FnZT8gSSBoYXZlbid0IGxvb2tlZCBhdCB0aGUgZGV2aWNlLWRheCBkZXRhaWxzIGZ1bGx5IHll
+dC4gRG8gd2UgbWFrZSB0aGUKYXNzdW1wdGlvbiBvZiB0aGUgbWFwcGluZyBwYWdlIHNpemUgYXMg
+YSBmb3JtYXQgdy5yLnQgZGV2aWNlLWRheD8gSXMgdGhhdApkZXJpdmVkIGZyb20gbmRfcGZuLT5h
+bGlnbiB2YWx1ZT8KCkhlcmUgaXMgd2hhdCBJIGFtIHdvcmtpbmcgb246CjEpIElmIHRoZSBwbGF0
+Zm9ybSBkb2Vzbid0IHN1cHBvcnQgaHVnZSBwYWdlwqBhbmQgaWYgdGhlIGRldmljZSBzdXBlcmJs
+b2NrCmluZGljYXRlZCB0aGF0IGl0IHdhcyBjcmVhdGVkIHdpdGggaHVnZSBwYWdlIHN1cHBvcnQs
+IHdlIGZhaWwgdGhlIGRldmljZQppbml0LgoKMikgTm93IGlmIHdlIGFyZSBjcmVhdGluZyBhIG5l
+dyBuYW1lc3BhY2Ugd2l0aG91dCBodWdlIHBhZ2Ugc3VwcG9ydCBpbgp0aGUgcGxhdGZvcm0sIHRo
+ZW4gd2UgZm9yY2UgdGhlIGFsaWduIGRldGFpbHMgdG8gUEFHRV9TSVpFLiBJbiBzdWNoIGEKY29u
+ZmlndXJhdGlvbiB3aGVuIGhhbmRsaW5nIGRheCBmYXVsdCBldmVuIHdpdGggVEhQIGVuYWJsZWQg
+ZHVyaW5nCnRoZSBidWlsZCwgd2Ugc2hvdWxkIG5vdCB0cnkgdG8gdXNlIGh1Z2VwYWdlLiBUaGlz
+IEkgdGhpbmsgd2UgY2FuCmFjaGlldmUgYnkgdXNpbmcgVFJBTlNQQVJFTlRfSFVHRVBBRUdfREFY
+X0ZMQUcuCgpBbHNvIGV2ZW4gaWYgdGhlIHVzZXIgZGVjaWRlZCB0byBub3QgdXNlIFRIUCwgYnkK
+ZWNobyAibmV2ZXIiID4gdHJhbnNwYXJlbnRfaHVnZXBhZ2UvZW5hYmxlZCAsIHdlIHNob3VsZCBj
+b250aW51ZSB0byBtYXAKZGF4IGZhdWx0IHVzaW5nIGh1Z2UgcGFnZSBvbiBwbGF0Zm9ybXMgdGhh
+dCBjYW4gc3VwcG9ydCBodWdlIHBhZ2VzLgoKVGhpcyBzdGlsbCBkb2Vzbid0IGNvdmVyIHRoZSBk
+ZXRhaWxzIG9mIGEgZGV2aWNlLWRheCBjcmVhdGVkIHdpdGgKUEFHRV9TSVpFIGFsaWduIGxhdGVy
+IGJvb3RlZCB3aXRoIGEga2VybmVsIHRoYXQgY2FuIGRvIGh1Z2VwYWdlIGRheC5Ib3cKc2hvdWxk
+IHdlIGhhbmRsZSB0aGF0PyBUaGF0IG1ha2VzIG1lIHRoaW5rLCB0aGlzIHNob3VsZCBiZSBhIFZN
+QSBmbGFnCndoaWNoIGdvdCBkZXJpdmVkIGZyb20gZGV2aWNlIGNvbmZpZz8gTWF5IGJlIHVzZSBW
+TV9IVUdFUEFHRSB0byBpbmRpY2F0ZQppZiBkZXZpY2Ugc2hvdWxkIHVzZSBhIGh1Z2VwYWdlIG1h
+cHBpbmcgb3Igbm90PwoKLWFuZWVzaAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
