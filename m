@@ -1,102 +1,129 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 2/2] vsprintf: Remove support for %pF and %pf in favour of %pS and %ps
-Date: Fri, 22 Mar 2019 15:21:08 +0200
-Message-Id: <20190322132108.25501-3-sakari.ailus@linux.intel.com>
-In-Reply-To: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
-References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Petr Mladek <pmladek@suse.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-mm@kvack.org, ceph-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 282B521A134A1
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Mar 2019 17:46:59 -0800 (PST)
+Subject: [ndctl PATCH 4/5] ndctl/dimm: Limit read-labels with --index option
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 05 Mar 2019 17:34:20 -0800
+Message-ID: <155183606035.191625.14877180930823274559.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-%pS and %ps are now the preferred conversion specifiers to print function
-%names. The functionality is equivalent; remove the old, deprecated %pF
-%and %pf support.
+Provide a capability to limit the read-labels payload to just the
+index-block data space.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/core-api/printk-formats.rst | 10 ----------
- lib/vsprintf.c                            |  8 ++------
- scripts/checkpatch.pl                     |  5 -----
- 3 files changed, 2 insertions(+), 21 deletions(-)
+ ndctl/dimm.c |   43 +++++++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/core-api/printk-formats.rst b/Documentation/core-api/printk-formats.rst
-index c37ec7cd9c06..c90826a1ff17 100644
---- a/Documentation/core-api/printk-formats.rst
-+++ b/Documentation/core-api/printk-formats.rst
-@@ -78,8 +78,6 @@ Symbols/Function Pointers
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 478e0fea3afc..a4b9999d9c67 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -54,6 +54,7 @@ static struct parameters {
+ 	bool master_pass;
+ 	bool human;
+ 	bool force;
++	bool index;
+ 	bool json;
+ 	bool verbose;
+ } param = {
+@@ -275,27 +276,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
  
- 	%pS	versatile_init+0x0/0x110
- 	%ps	versatile_init
--	%pF	versatile_init+0x0/0x110
--	%pf	versatile_init
- 	%pSR	versatile_init+0x9/0x110
- 		(with __builtin_extract_return_addr() translation)
- 	%pB	prev_fn_of_versatile_init+0x88/0x88
-@@ -89,14 +87,6 @@ The ``S`` and ``s`` specifiers are used for printing a pointer in symbolic
- format. They result in the symbol name with (S) or without (s)
- offsets. If KALLSYMS are disabled then the symbol address is printed instead.
+ 	if (!jdimm)
+ 		return NULL;
+-	jindex = dump_index_json(cmd_read, size);
+-	if (!jindex)
+-		goto err_jindex;
+-	jlabel = dump_label_json(dimm, cmd_read, size, flags);
+-	if (!jlabel)
+-		goto err_jlabel;
  
--Note, that the ``F`` and ``f`` specifiers are identical to ``S`` (``s``)
--and thus deprecated. We have ``F`` and ``f`` because on ia64, ppc64 and
--parisc64 function pointers are indirect and, in fact, are function
--descriptors, which require additional dereferencing before we can lookup
--the symbol. As of now, ``S`` and ``s`` perform dereferencing on those
--platforms (when needed), so ``F`` and ``f`` exist for compatibility
--reasons only.
+ 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+ 	if (!jobj)
+-		goto err_jobj;
 -
- The ``B`` specifier results in the symbol name with offsets and should be
- used when printing stack backtraces. The specifier takes into
- consideration the effect of compiler optimisations which may occur
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index 791b6fa36905..5f60b8d41277 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -797,7 +797,7 @@ char *symbol_string(char *buf, char *end, void *ptr,
- #ifdef CONFIG_KALLSYMS
- 	if (*fmt == 'B')
- 		sprint_backtrace(sym, value);
--	else if (*fmt != 'f' && *fmt != 's')
-+	else if (*fmt != 's')
- 		sprint_symbol(sym, value);
- 	else
- 		sprint_symbol_no_offset(sym, value);
-@@ -1853,9 +1853,7 @@ char *device_node_string(char *buf, char *end, struct device_node *dn,
-  *
-  * - 'S' For symbolic direct pointers (or function descriptors) with offset
-  * - 's' For symbolic direct pointers (or function descriptors) without offset
-- * - 'F' Same as 'S'
-- * - 'f' Same as 's'
-- * - '[FfSs]R' as above with __builtin_extract_return_addr() translation
-+ * - '[Ss]R' as above with __builtin_extract_return_addr() translation
-  * - 'B' For backtraced symbolic direct pointers with offset
-  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
-  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
-@@ -1970,8 +1968,6 @@ char *pointer(const char *fmt, char *buf, char *end, void *ptr,
++		goto err;
+ 	json_object_object_add(jdimm, "dev", jobj);
++
++	jindex = dump_index_json(cmd_read, size);
++	if (!jindex)
++		goto err;
+ 	json_object_object_add(jdimm, "index", jindex);
++	if (param.index)
++		return jdimm;
++
++	jlabel = dump_label_json(dimm, cmd_read, size, flags);
++	if (!jlabel)
++		goto err;
+ 	json_object_object_add(jdimm, "label", jlabel);
+-	return jdimm;
+ 
+- err_jobj:
+-	json_object_put(jlabel);
+- err_jlabel:
+-	json_object_put(jindex);
+- err_jindex:
++	return jdimm;
++err:
+ 	json_object_put(jdimm);
+ 	return NULL;
+ }
+@@ -384,7 +384,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	ssize_t size;
+ 	int rc = 0;
+ 
+-	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
++	if (param.index)
++		cmd_read = ndctl_dimm_read_label_index(dimm);
++	else
++		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
++				param.offset);
+ 	if (!cmd_read)
+ 		return -EINVAL;
+ 
+@@ -1046,7 +1050,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
+ OPT_STRING('o', "output", &param.outfile, "output-file", \
+ 	"filename to write label area contents"), \
+ OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
+-OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats ")
++OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats "), \
++OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
+ 
+ #define WRITE_OPTIONS() \
+ OPT_STRING('i', "input", &param.infile, "input-file", \
+@@ -1173,6 +1178,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		return -EINVAL;
  	}
  
- 	switch (*fmt) {
--	case 'F':
--	case 'f':
- 	case 'S':
- 	case 's':
- 		ptr = dereference_symbol_descriptor(ptr);
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 5b756278df13..b4e456b48fd7 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5993,11 +5993,6 @@ sub process {
- 					my $stat_real = get_stat_real($linenr, $lc);
- 					my $ext_type = "Invalid";
- 					my $use = "";
--					if ($bad_specifier =~ /p[Ff]/) {
--						$ext_type = "Deprecated";
--						$use = " - use %pS instead";
--						$use =~ s/pS/ps/ if ($bad_specifier =~ /pf/);
--					}
- 
- 					WARN("VSPRINTF_POINTER_EXTENSION",
- 					     "$ext_type vsprintf pointer extension '$bad_specifier'$use\n" . "$here\n$stat_real\n");
--- 
-2.11.0
++	if (param.index && param.len) {
++		fprintf(stderr, "pick either --size, or --index, not both\n");
++		usage_with_options(u, options);
++		return -EINVAL;
++	}
++
+ 	if (param.json) {
+ 		actx.jdimms = json_object_new_array();
+ 		if (!actx.jdimms)
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
