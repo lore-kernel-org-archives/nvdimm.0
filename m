@@ -1,19 +1,33 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F184C211E2BF5
- for <linux-nvdimm@lists.01.org>; Wed, 20 Mar 2019 18:41:56 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH v2 3/4] ndctl, lib: implement
- ndctl_dimm_get_cmd_family()
-Date: Thu, 21 Mar 2019 01:41:54 +0000
-Message-ID: <221ceaa03f0a46d020da7a1c7fcd4d521bf5e09e.camel@intel.com>
-References: <PU1P153MB01696E7773E8C8129D8CCE8BBF7D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-In-Reply-To: <PU1P153MB01696E7773E8C8129D8CCE8BBF7D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-Content-Language: en-US
-Content-ID: <8C74B6E8A39100479ECDAA42011DCFA8@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 27F1D211D56C9
+ for <linux-nvdimm@lists.01.org>; Tue,  5 Mar 2019 23:58:35 -0800 (PST)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x267j1ge003803
+ for <linux-nvdimm@lists.01.org>; Wed, 6 Mar 2019 02:58:34 -0500
+Received: from e17.ny.us.ibm.com (e17.ny.us.ibm.com [129.33.205.207])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2r29v7sae7-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 06 Mar 2019 02:58:34 -0500
+Received: from localhost
+ by e17.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Wed, 6 Mar 2019 07:58:33 -0000
+Subject: Re: [RFC PATCH] drivers/nvdimm: Architecture specific abstraction for
+ pfn device alignment
+References: <20190306053515.6480-1-aneesh.kumar@linux.ibm.com>
+ <CAOSf1CFhu1XL5oJ=5-DR3tOspDsn_Esi3xymdaHeOUDmp9uhtg@mail.gmail.com>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Date: Wed, 6 Mar 2019 13:28:25 +0530
 MIME-Version: 1.0
+In-Reply-To: <CAOSf1CFhu1XL5oJ=5-DR3tOspDsn_Esi3xymdaHeOUDmp9uhtg@mail.gmail.com>
+Content-Language: en-US
+Message-Id: <22f5e704-f23a-5e53-86b8-e125fba2ed68@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,74 +35,286 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "decui@microsoft.com" <decui@microsoft.com>, "Jiang, Dave" <dave.jiang@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jthumshirn@suse.de" <jthumshirn@suse.de>, "mikelley@microsoft.com" <mikelley@microsoft.com>, "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+To: Oliver <oohall@gmail.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On 3/6/19 12:28 PM, Oliver wrote:
+> On Wed, Mar 6, 2019 at 4:35 PM Aneesh Kumar K.V
+> <aneesh.kumar@linux.ibm.com> wrote:
+>>
+>> Even if the kernel is built with THP or HUGEPAGE_PUD, the platform can decide
+>> not to allow huge pages based on different parameters. The huge page support
+>> checks are mostly arch specific and this patch provides arch specific
+>> callbacks/abstraction for finding alignment values we should use when configuring
+>> pfn device.
+>>
+>> Cc: Oliver O'Halloran <oohall@gmail.com>
+>> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+>> ---
+>>   arch/powerpc/include/asm/libnvdimm.h | 10 ++++++
+>>   arch/powerpc/mm/Makefile             |  1 +
+>>   arch/powerpc/mm/nvdimm.c             | 48 ++++++++++++++++++++++++++++
+>>   arch/x86/include/asm/libnvdimm.h     | 19 +++++++++++
+>>   drivers/nvdimm/nd.h                  |  6 ----
+>>   drivers/nvdimm/pfn_devs.c            | 31 ++++++++++++++++--
+>>   6 files changed, 107 insertions(+), 8 deletions(-)
+>>   create mode 100644 arch/powerpc/include/asm/libnvdimm.h
+>>   create mode 100644 arch/powerpc/mm/nvdimm.c
+>>   create mode 100644 arch/x86/include/asm/libnvdimm.h
+>>
+>> diff --git a/arch/powerpc/include/asm/libnvdimm.h b/arch/powerpc/include/asm/libnvdimm.h
+>> new file mode 100644
+>> index 000000000000..0928096eca90
+>> --- /dev/null
+>> +++ b/arch/powerpc/include/asm/libnvdimm.h
+>> @@ -0,0 +1,10 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 */
+>> +#ifndef _ASM_POWERPC_LIBNVDIMM_H
+>> +#define _ASM_POWERPC_LIBNVDIMM_H
+>> +
+>> +#define nd_pfn_supported_alignment nd_pfn_supported_alignment
+>> +extern unsigned long *nd_pfn_supported_alignments(void);
+>> +extern unsigned long nd_pfn_default_alignment(void);
+>> +extern unsigned long nd_altmap_align_size(unsigned long nd_align);
+>> +
+>> +#endif
+>> diff --git a/arch/powerpc/mm/Makefile b/arch/powerpc/mm/Makefile
+>> index f965fc33a8b7..fed0d4b3b4bc 100644
+>> --- a/arch/powerpc/mm/Makefile
+>> +++ b/arch/powerpc/mm/Makefile
+>> @@ -55,3 +55,4 @@ obj-$(CONFIG_PPC_BOOK3S_64)   += dump_linuxpagetables-book3s64.o
+>>   endif
+>>   obj-$(CONFIG_PPC_HTDUMP)       += dump_hashpagetable.o
+>>   obj-$(CONFIG_PPC_MEM_KEYS)     += pkeys.o
+>> +obj-$(CONFIG_NVDIMM_PFN)       += nvdimm.o
+>> diff --git a/arch/powerpc/mm/nvdimm.c b/arch/powerpc/mm/nvdimm.c
+>> new file mode 100644
+>> index 000000000000..ae47a65362a1
+>> --- /dev/null
+>> +++ b/arch/powerpc/mm/nvdimm.c
+>> @@ -0,0 +1,48 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +
+>> +#include <linux/mm.h>
+>> +
+>> +/*
+>> + * We support only pte and pmd mappings for now.
+>> + */
+>> +const unsigned long *nd_pfn_supported_alignments(void)
+>> +{
+>> +       static unsigned long supported_alignments[3];
+>> +
+>> +#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+>> +#error "Update page size"
+>> +#endif
+>> +       supported_alignments[0] = PAGE_SIZE;
+>> +
+>> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+>> +       if (mmu_psize_defs[MMU_PAGE_16M].shift ||
+>> +           mmu_psize_defs[MMU_PAGE_2M].shift)
+>> +               supported_alignments[1] = HPAGE_PMD_SIZE;
+>> +#else
+>> +       supported_alignments[1] = 0;
+>> +#endif
+>> +
+>> +       supported_alignments[2] = 0;
+>> +       return supported_alignments;
+>> +}
+>> +
+>> +/*
+>> + * Use pmd mapping if supported as default alignment
+>> + */
+>> +unsigned long nd_pfn_default_alignment(void)
+>> +{
+>> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+>> +       if (mmu_psize_defs[MMU_PAGE_16M].shift ||
+>> +           mmu_psize_defs[MMU_PAGE_2M].shift)
+>> +               return HPAGE_PMD_SIZE;
+>> +#endif
+>> +       return PAGE_SIZE;
+>> +}
+>> +
+>> +unsigned long nd_altmap_align_size(unsigned long nd_align)
+>> +{
+>> +       unsigned long vmemmap_psize;
+>> +
+>> +       vmemmap_psize = 1UL << mmu_psize_defs[mmu_vmemmap_psize].shift;
+>> +       return max(nd_align, vmemmap_psize);
+>> +}
+> 
+> It seems a bit heavyweight to have every arch define these functions
+> when we'll be the only ones doing anything interesting with them. I
+> think we'd be better off using the same method we use for PAGE_SIZE
+> where the arch #defines them to a variable that we fill out at
+> runtime. That way libnvdimm can keep using PFN_DEFAULT_ALIGNMENT or
+> whatever and the rest of the world doesn't need to care about the
+> weird stuff our firmware is doing today.
 
-On Wed, 2019-02-20 at 05:11 +0000, Dexuan Cui wrote:
-> Let's export the family info so we can do some family-specific
-> handling in ndctl/monitor.c for Hyper-V NVDIMM.
 
-s/Let's//
+I can definitely do what we did with nd_pfn_supported_alginments. That 
+does a default implementation in case arch doesn't want to override. I 
+am not sure about doing this as #define, that will make it similar to 
+what we have with HPAGE_SHIFT which IMHO is not clean. But if your 
+concern is why bother other architecture when ppc is the only one 
+impacted, we can fix that by providing a default implementation of these 
+function?
 
 > 
-> Signed-off-by: Dexuan Cui <decui@microsoft.com>
-> ---
->  ndctl/lib/libndctl.c   | 5 +++++
->  ndctl/lib/libndctl.sym | 1 +
->  ndctl/libndctl.h       | 1 +
->  3 files changed, 7 insertions(+)
+>> diff --git a/arch/x86/include/asm/libnvdimm.h b/arch/x86/include/asm/libnvdimm.h
+>> new file mode 100644
+>> index 000000000000..3d5361db9164
+>> --- /dev/null
+>> +++ b/arch/x86/include/asm/libnvdimm.h
+>> @@ -0,0 +1,19 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 */
+>> +#ifndef _ASM_X86_LIBNVDIMM_H
+>> +#define _ASM_X86_LIBNVDIMM_H
+>> +
+>> +static inline unsigned long nd_pfn_default_alignment(void)
+>> +{
+>> +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+>> +       return HPAGE_PMD_SIZE;
+>> +#else
+>> +       return PAGE_SIZE;
+>> +#endif
+>> +}
+>> +
+>> +static inline unsigned long nd_altmap_align_size(unsigned long nd_align)
+>> +{
+>> +       return PMD_SIZE;
+>> +}
+>> +
+>> +#endif
+>> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+>> index 379bf4305e61..e5a65868476f 100644
+>> --- a/drivers/nvdimm/nd.h
+>> +++ b/drivers/nvdimm/nd.h
+>> @@ -292,12 +292,6 @@ static inline struct device *nd_btt_create(struct nd_region *nd_region)
+>>   struct nd_pfn *to_nd_pfn(struct device *dev);
+>>   #if IS_ENABLED(CONFIG_NVDIMM_PFN)
+>>
+>> -#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+>> -#define PFN_DEFAULT_ALIGNMENT HPAGE_PMD_SIZE
+>> -#else
+>> -#define PFN_DEFAULT_ALIGNMENT PAGE_SIZE
+>> -#endif
+>> -
+>>   int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns);
+>>   bool is_nd_pfn(struct device *dev);
+>>   struct device *nd_pfn_create(struct nd_region *nd_region);
+>> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+>> index 6f22272e8d80..331e53bcb65e 100644
+>> --- a/drivers/nvdimm/pfn_devs.c
+>> +++ b/drivers/nvdimm/pfn_devs.c
+>> @@ -18,6 +18,7 @@
+>>   #include <linux/slab.h>
+>>   #include <linux/fs.h>
+>>   #include <linux/mm.h>
+>> +#include <asm/libnvdimm.h>
+>>   #include "nd-core.h"
+>>   #include "pfn.h"
+>>   #include "nd.h"
+>> @@ -111,6 +112,8 @@ static ssize_t align_show(struct device *dev,
+>>          return sprintf(buf, "%ld\n", nd_pfn->align);
+>>   }
+>>
+>> +#ifndef nd_pfn_supported_alignment
+>> +#define nd_pfn_supported_alignment nd_pfn_supported_alignment
+>>   static const unsigned long *nd_pfn_supported_alignments(void)
+>>   {
+>>          /*
+>> @@ -133,6 +136,7 @@ static const unsigned long *nd_pfn_supported_alignments(void)
+>>
+>>          return data;
+>>   }
+>> +#endif
+>>
+>>   static ssize_t align_store(struct device *dev,
+>>                  struct device_attribute *attr, const char *buf, size_t len)
+>> @@ -310,7 +314,7 @@ struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
+>>                  return NULL;
+>>
+>>          nd_pfn->mode = PFN_MODE_NONE;
+>> -       nd_pfn->align = PFN_DEFAULT_ALIGNMENT;
+>> +       nd_pfn->align = nd_pfn_default_alignment();
+>>          dev = &nd_pfn->dev;
+>>          device_initialize(&nd_pfn->dev);
+>>          if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
+>> @@ -420,6 +424,20 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
+>>          return 0;
+>>   }
+>>
+>> +static bool nd_supported_alignment(unsigned long align)
+>> +{
+>> +       int i;
+>> +       const unsigned long *supported = nd_pfn_supported_alignments();
+>> +
+>> +       if (align == 0)
+>> +               return false;
+>> +
+>> +       for (i = 0; supported[i]; i++)
+>> +               if (align == supported[i])
+>> +                       return true;
+>> +       return false;
+>> +}
+>> +
+>>   int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+>>   {
+>>          u64 checksum, offset;
+>> @@ -474,6 +492,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+>>                  align = 1UL << ilog2(offset);
+>>          mode = le32_to_cpu(pfn_sb->mode);
+>>
+>> +       /*
+>> +        * Check whether the we support the alignment
+>> +        */
+>> +       if (!nd_supported_alignment(align)) {
+>> +               dev_err(&nd_pfn->dev, "init failed, settings mismatch\n");
+>> +               dev_dbg(&nd_pfn->dev, "align: %lx:%lx\n", nd_pfn->align, align);
 > 
-> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> index 48bdb27..1186579 100644
-> --- a/ndctl/lib/libndctl.c
-> +++ b/ndctl/lib/libndctl.c
-> @@ -1550,6 +1550,11 @@ NDCTL_EXPORT struct ndctl_dimm *ndctl_dimm_get_next(struct ndctl_dimm *dimm)
->  	return list_next(&bus->dimms, dimm, list);
->  }
->  
-> +NDCTL_EXPORT unsigned long ndctl_dimm_get_cmd_family(struct ndctl_dimm *dimm)
-> +{
-> +	return dimm->cmd_family;
-> +}
-> +
->  NDCTL_EXPORT unsigned int ndctl_dimm_get_handle(struct ndctl_dimm *dimm)
->  {
->  	return dimm->handle;
-> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-> index cb9f769..470e895 100644
-> --- a/ndctl/lib/libndctl.sym
-> +++ b/ndctl/lib/libndctl.sym
-> @@ -38,6 +38,7 @@ global:
->  	ndctl_bus_wait_probe;
->  	ndctl_dimm_get_first;
->  	ndctl_dimm_get_next;
-> +	ndctl_dimm_get_cmd_family;
+> print both at pr_err(), context-less errors are mostly just annoying.
+> 
+>> +               return -EINVAL;
+>> +       }
 
-Any new APIs need to go in a new LIBNDCTL_XX section (for this release
-that would be LIBNDCTL_20).
-If you rebase to the current 'pending' branch on github, the section has
-already been created at the bottom, and you can just add to that.
 
->  	ndctl_dimm_get_handle;
->  	ndctl_dimm_get_phys_id;
->  	ndctl_dimm_get_vendor;
-> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-> index 0debdb6..cb5a8fc 100644
-> --- a/ndctl/libndctl.h
-> +++ b/ndctl/libndctl.h
-> @@ -145,6 +145,7 @@ struct ndctl_dimm *ndctl_dimm_get_next(struct ndctl_dimm *dimm);
->          for (dimm = ndctl_dimm_get_first(bus); \
->               dimm != NULL; \
->               dimm = ndctl_dimm_get_next(dimm))
-> +unsigned long ndctl_dimm_get_cmd_family(struct ndctl_dimm *dimm);
->  unsigned int ndctl_dimm_get_handle(struct ndctl_dimm *dimm);
->  unsigned short ndctl_dimm_get_phys_id(struct ndctl_dimm *dimm);
->  unsigned short ndctl_dimm_get_vendor(struct ndctl_dimm *dimm);
+That is the same style used in other part of the code. Was not sure why 
+that align details was not printed with dev_err. Do we want to switch 
+other usage
+
+if (nd_pfn->align != align || nd_pfn->mode != mode) {
+	dev_err(&nd_pfn->dev,
+			"init failed, settings mismatch\n");
+	dev_dbg(&nd_pfn->dev, "align: %lx:%lx mode: %d:%d\n",
+			nd_pfn->align, align, nd_pfn->mode,
+					mode);
+	
+
+
+>> +
+>>          if (!nd_pfn->uuid) {
+>>                  /*
+>>                   * When probing a namepace via nd_pfn_probe() the uuid
+>> @@ -743,7 +770,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>>                   * PMD_SIZE for most architectures.
+>>                   */
+>>                  offset = ALIGN(start + SZ_8K + 64 * npfns + dax_label_reserve,
+>> -                               max(nd_pfn->align, PMD_SIZE)) - start;
+>> +                              nd_altmap_align_size(nd_pfn->align)) - start;
+>>          } else if (nd_pfn->mode == PFN_MODE_RAM)
+>>                  offset = ALIGN(start + SZ_8K + dax_label_reserve,
+>>                                  nd_pfn->align) - start;
+>> --
+>> 2.20.1
+>>
+> 
+
+-aneesh
 
 _______________________________________________
 Linux-nvdimm mailing list
