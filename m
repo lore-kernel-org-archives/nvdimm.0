@@ -1,55 +1,40 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from datastacks.com (unknown [183.14.133.106])
+ by ml01.01.org (Postfix) with ESMTP id 07B69211CC3D9
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 19:39:41 -0800 (PST)
+From: kernel@datastacks.com
+Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
+Date: Thu, 7 Mar 2019 11:39:50 +0800
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Mar 2019 16:20:52 -0700
-Message-ID: <CAPcyv4g5NH=4wKs7+V3hTw1Qv6peBQbb7xCyjjQn3bhj7J0WTw@mail.gmail.com>
-Subject: [GIT PULL] Filesystem-DAX fixes for 5.1
-Content-Type: text/plain; charset="UTF-8"
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20190307033947.C9A71211D6167@ml01.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+The original message was received at Thu, 7 Mar 2019 11:39:50 +0800
+from datastacks.com [16.128.169.184]
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-for-5.1
+----- The following addresses had permanent fatal errors -----
+<linux-nvdimm@lists.01.org>
 
-...to receive a small collection of cleanups and an Xarray fix for
-v5.1-rc1. It has soaked in -next without issue, although the Xarray
-fix was recently re-flowed to fix up a tracepoint argument and add
-Jan's reviewed-by.
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:kernel@datastacks.com
+<<< 501 kernel@datastacks.com... Refused
 
----
 
-The following changes since commit d13937116f1e82bf508a6325111b322c30c85eb9:
 
-  Linux 5.0-rc6 (2019-02-10 14:42:20 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-for-5.1
-
-for you to fetch changes up to e4b3448bc346fedf36db64124a664a959995b085:
-
-  dax: Flush partial PMDs correctly (2019-03-01 17:24:48 -0800)
-
-----------------------------------------------------------------
-filesystem-dax for 5.1
-
-* Fix handling of PMD-sized entries in the Xarray that lead to a crash
-  scenario.
-
-* Miscellaneous cleanups and small fixes
-
-----------------------------------------------------------------
-Ira Weiny (1):
-      fs/dax: NIT fix comment regarding start/end vs range
-
-Matthew Wilcox (1):
-      dax: Flush partial PMDs correctly
-
-Souptick Joarder (1):
-      fs/dax: Convert to use vmf_error()
-
- fs/dax.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
