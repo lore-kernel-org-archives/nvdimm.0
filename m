@@ -1,7 +1,7 @@
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Wed, 6 Mar 2019 08:29:30 +0700
-Message-ID: <20190306083633.4B92D2318071@local.host>
+From: kernel-DeYz5IzT+BNSwrhanM7KvQ@public.gmane.org
+Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
+Date: Thu, 7 Mar 2019 11:39:50 +0800
+Message-ID: <20190307033947.C830B211D59DE@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,8 +18,13 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Wed, 6 Mar 2019 08:29:30 +0700
-from lists.01.org [154.254.98.124]
+The original message was received at Thu, 7 Mar 2019 11:39:50 +0800
+from datastacks.com [16.128.169.184]
 
 ----- The following addresses had permanent fatal errors -----
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+----- Transcript of session follows -----
+  while talking to lists.01.org.:
+>>> MAIL From:kernel-DeYz5IzT+BNSwrhanM7KvQ@public.gmane.org
+<<< 501 kernel-DeYz5IzT+BM5Nr4OO/UUnuG/Ez6ZCGd0@public.gmane.org Refused
