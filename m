@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D5D41211DCDB8
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 23:19:26 -0700 (PDT)
-Subject: [PATCH 6/6] security/keys/encrypted: Drop export of key_type_encrypted
+ by ml01.01.org (Postfix) with ESMTPS id 66430211CFBFA
+ for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 23:32:25 -0800 (PST)
+Subject: [ndctl PATCH] ndctl/list: Introduce region capability objects
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Mar 2019 23:06:47 -0700
-Message-ID: <155297560738.2276575.13044997734939158888.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155297557534.2276575.16264199708584900090.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155297557534.2276575.16264199708584900090.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 06 Mar 2019 23:19:45 -0800
+Message-ID: <155194318519.231776.375451851390009628.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,53 +20,282 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: keyrings@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, linux-kernel@vger.kernel.org, Mimi Zohar <zohar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Now that all users lookup the key type by name, drop the export and the
-direct module dependency.
+For common capabilities that a region can create provide a json object
+of the following form:
 
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
+    "capabilities":[
+      {
+        "mode":"sector",
+        "sector_sizes":[
+          512,
+          520,
+          528,
+          4096,
+          4104,
+          4160,
+          4224
+        ]
+      },
+      {
+        "mode":"fsdax",
+        "alignments":[
+          4096,
+          2097152,
+          1073741824
+        ]
+      },
+      {
+        "mode":"devdax",
+        "alignments":[
+          4096,
+          2097152,
+          1073741824
+        ]
+      }
+    ]
+
+This replaces the "supported_alignments" and "supported sector sizes"
+fields which ended up being too repetitive at the namespace level.
+
+Cc: Oliver O'Halloran <oohall@gmail.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/keys/encrypted-type.h            |    2 --
- security/keys/encrypted-keys/encrypted.c |    3 +--
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ Documentation/ndctl/ndctl-list.txt |    9 +++-
+ ndctl/list.c                       |   12 +++++
+ util/json.c                        |   89 +++++++++++++++++++++++++++++-------
+ util/json.h                        |    2 +
+ 4 files changed, 93 insertions(+), 19 deletions(-)
 
-diff --git a/include/keys/encrypted-type.h b/include/keys/encrypted-type.h
-index 1d4541370a64..dd509835b4a4 100644
---- a/include/keys/encrypted-type.h
-+++ b/include/keys/encrypted-type.h
-@@ -33,6 +33,4 @@ struct encrypted_key_payload {
- 	u8 payload_data[0];	/* payload data + datablob + hmac */
- };
+diff --git a/Documentation/ndctl/ndctl-list.txt b/Documentation/ndctl/ndctl-list.txt
+index bdd69add9f22..80ad6100060f 100644
+--- a/Documentation/ndctl/ndctl-list.txt
++++ b/Documentation/ndctl/ndctl-list.txt
+@@ -175,6 +175,12 @@ include::xable-region-options.txt[]
+ --idle::
+ 	Include idle (not enabled) devices in the listing
  
--extern struct key_type key_type_encrypted;
--
- #endif /* _KEYS_ENCRYPTED_TYPE_H */
-diff --git a/security/keys/encrypted-keys/encrypted.c b/security/keys/encrypted-keys/encrypted.c
-index 06925d3b30c9..c3999d5e2a19 100644
---- a/security/keys/encrypted-keys/encrypted.c
-+++ b/security/keys/encrypted-keys/encrypted.c
-@@ -1012,7 +1012,7 @@ static void encrypted_destroy(struct key *key)
- 	kzfree(key->payload.data[0]);
++-C::
++--capabilities::
++	Include region capabilities in the listing, i.e. supported
++	namespace modes and variable properties like sector sizes and
++	alignments.
++
+ -M::
+ --media-errors::
+ 	Include media errors (badblocks) in the listing. Note that the
+@@ -222,7 +228,8 @@ include::xable-region-options.txt[]
+ 	  Everything '-v' provides, plus automatically enable --dimms,
+ 	  --buses, and --regions. +
+ 	- *-vvv*
+-	  Everything '-vv' provides, plus --health, --idle, and --firmware.
++	  Everything '-vv' provides, plus --health, --capabilities,
++	  --idle, and --firmware.
+ 
+ include::human-option.txt[]
+ 
+diff --git a/ndctl/list.c b/ndctl/list.c
+index 506404db11b0..1c3e34d58ddb 100644
+--- a/ndctl/list.c
++++ b/ndctl/list.c
+@@ -36,6 +36,7 @@ static struct {
+ 	bool media_errors;
+ 	bool human;
+ 	bool firmware;
++	bool capabilities;
+ 	int verbose;
+ } list;
+ 
+@@ -53,6 +54,8 @@ static unsigned long listopts_to_flags(void)
+ 		flags |= UTIL_JSON_HUMAN;
+ 	if (list.verbose)
+ 		flags |= UTIL_JSON_VERBOSE;
++	if (list.capabilities)
++		flags |= UTIL_JSON_CAPABILITIES;
+ 	return flags;
  }
  
--struct key_type key_type_encrypted = {
-+static struct key_type key_type_encrypted = {
- 	.name = "encrypted",
- 	.instantiate = encrypted_instantiate,
- 	.update = encrypted_update,
-@@ -1020,7 +1020,6 @@ struct key_type key_type_encrypted = {
- 	.describe = user_describe,
- 	.read = encrypted_read,
- };
--EXPORT_SYMBOL_GPL(key_type_encrypted);
+@@ -186,6 +189,12 @@ static struct json_object *region_to_json(struct ndctl_region *region,
+ 	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
+ 		json_object_object_add(jregion, "badblocks", jbbs);
  
- static int __init init_encrypted(void)
++	if (flags & UTIL_JSON_CAPABILITIES) {
++		jobj = util_region_capabilities_to_json(region);
++		if (jobj)
++			json_object_object_add(jregion, "capabilities", jobj);
++	}
++
+ 	pd = ndctl_region_get_persistence_domain(region);
+ 	switch (pd) {
+ 	case PERSISTENCE_CPU_CACHE:
+@@ -450,6 +459,8 @@ int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 				"include namespace info (default)"),
+ 		OPT_BOOLEAN('X', "device-dax", &list.dax,
+ 				"include device-dax info"),
++		OPT_BOOLEAN('C', "capabilities", &list.capabilities,
++				"include region capability info"),
+ 		OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
+ 		OPT_BOOLEAN('M', "media-errors", &list.media_errors,
+ 				"include media errors"),
+@@ -487,6 +498,7 @@ int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		list.idle = true;
+ 		list.firmware = true;
+ 		list.health = true;
++		list.capabilities = true;
+ 	case 2:
+ 		list.dimms = true;
+ 		list.buses = true;
+diff --git a/util/json.c b/util/json.c
+index c732f1b77522..babdc8c47565 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -321,7 +321,7 @@ struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
+ }
+ 
+ #define _SZ(get_max, get_elem, type) \
+-static struct json_object *type##_build_size_array(struct type *arg)	\
++static struct json_object *util_##type##_build_size_array(struct ndctl_##type *arg)	\
+ {								\
+ 	struct json_object *arr = json_object_new_array();	\
+ 	int i;							\
+@@ -346,11 +346,78 @@ err:								\
+ 	return NULL;						\
+ }
+ #define SZ(type, kind) _SZ(ndctl_##type##_get_num_##kind##s, \
+-			   ndctl_##type##_get_supported_##kind, ndctl_##type)
++			   ndctl_##type##_get_supported_##kind, type)
+ SZ(pfn, alignment)
+ SZ(dax, alignment)
+ SZ(btt, sector_size)
+-//SZ(namespace, sector_size)
++
++struct json_object *util_region_capabilities_to_json(struct ndctl_region *region)
++{
++	struct json_object *jcaps, *jcap, *jobj;
++	struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
++	struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
++	struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
++
++	if (!btt || !pfn || !dax)
++		return NULL;
++
++	jcaps = json_object_new_array();
++	if (!jcaps)
++		return NULL;
++
++	if (btt) {
++		jcap = json_object_new_object();
++		if (!jcap)
++			goto err;
++		json_object_array_add(jcaps, jcap);
++
++		jobj = json_object_new_string("sector");
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "mode", jobj);
++		jobj = util_btt_build_size_array(btt);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "sector_sizes", jobj);
++	}
++
++	if (pfn) {
++		jcap = json_object_new_object();
++		if (!jcap)
++			goto err;
++		json_object_array_add(jcaps, jcap);
++
++		jobj = json_object_new_string("fsdax");
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "mode", jobj);
++		jobj = util_pfn_build_size_array(pfn);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "alignments", jobj);
++	}
++
++	if (dax) {
++		jcap = json_object_new_object();
++		if (!jcap)
++			goto err;
++		json_object_array_add(jcaps, jcap);
++
++		jobj = json_object_new_string("devdax");
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "mode", jobj);
++		jobj = util_dax_build_size_array(dax);
++		if (!jobj)
++			goto err;
++		json_object_object_add(jcap, "alignments", jobj);
++	}
++
++	return jcaps;
++err:
++	json_object_put(jcaps);
++	return NULL;
++}
+ 
+ struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
+ 		const char *ident, unsigned long flags)
+@@ -788,7 +855,7 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
  {
+ 	struct json_object *jndns = json_object_new_object();
+ 	enum ndctl_pfn_loc loc = NDCTL_PFN_LOC_NONE;
+-	struct json_object *jobj, *jbbs = NULL, *size_array = NULL;
++	struct json_object *jobj, *jbbs = NULL;
+ 	const char *locations[] = {
+ 		[NDCTL_PFN_LOC_NONE] = "none",
+ 		[NDCTL_PFN_LOC_RAM] = "mem",
+@@ -798,7 +865,6 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 	unsigned int sector_size = UINT_MAX;
+ 	enum ndctl_namespace_mode mode;
+ 	const char *bdev = NULL, *name;
+-	const char *size_array_name;
+ 	unsigned int bb_count = 0;
+ 	struct ndctl_btt *btt;
+ 	struct ndctl_pfn *pfn;
+@@ -986,19 +1052,6 @@ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 			json_object_object_add(jndns, "numa_node", jobj);
+ 	}
+ 
+-	if (pfn) {
+-		size_array_name = "supported_alignments";
+-		size_array = ndctl_pfn_build_size_array(pfn);
+-	} else if (dax) {
+-		size_array_name = "supported_alignments";
+-		size_array = ndctl_dax_build_size_array(dax);
+-	} else if (btt) {
+-		size_array_name = "supported sector sizes";
+-		size_array = ndctl_btt_build_size_array(btt);
+-	}
+-	if (size_array && flags & UTIL_JSON_VERBOSE)
+-		json_object_object_add(jndns, size_array_name, size_array);
+-
+ 	if (pfn)
+ 		jbbs = util_pfn_badblocks_to_json(pfn, &bb_count, flags);
+ 	else if (dax)
+diff --git a/util/json.h b/util/json.h
+index e292973dbbbf..7c3f64932cec 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -24,6 +24,7 @@ enum util_json_flags {
+ 	UTIL_JSON_DAX_DEVS = (1 << 3),
+ 	UTIL_JSON_HUMAN = (1 << 4),
+ 	UTIL_JSON_VERBOSE = (1 << 5),
++	UTIL_JSON_CAPABILITIES = (1 << 6),
+ };
+ 
+ struct json_object;
+@@ -56,4 +57,5 @@ struct json_object *util_json_object_hex(unsigned long long val,
+ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
+ struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
+ 		unsigned long flags);
++struct json_object *util_region_capabilities_to_json(struct ndctl_region *region);
+ #endif /* __NDCTL_JSON_H__ */
 
 _______________________________________________
 Linux-nvdimm mailing list
