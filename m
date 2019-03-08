@@ -1,12 +1,11 @@
 From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Hackers know password from your account. Password must be changed now.
-Date: 8 Mar 2019 15:12:34 +0200
-Message-ID: <004d01d4d5b4$03623ff4$4bcd1e80$@lists.01.org>
+Subject: Caution! Attack hackers to your account!
+Date: 8 Mar 2019 21:02:45 +0400
+Message-ID: <003c01d4d5d4$0684eb9c$b3198d85$@lists.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-us
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -46,7 +45,7 @@ The first part displays the film that you were watching (you have got an interes
 and the second screen displays the recording from your own camera.
 
 What exactly should you do?
-Clearly, I think, $774(USD) will be a fair price for our small riddle.
+Clearly, I think, $782(USD) will be a fair price for our small riddle.
 You will make the deposit by bitcoins
 (if you do not understand this, go searching "how to purchase bitcoin" in any search engine).
 
