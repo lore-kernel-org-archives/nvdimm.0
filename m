@@ -1,7 +1,7 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Caution! Attack hackers to your account!
-Date: 8 Mar 2019 21:02:45 +0400
-Message-ID: <003c01d4d5d4$0684eb9c$b3198d85$@lists.01.org>
+From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: [PATCH v2] fs/dax: deposit pagetable even when installing zero page
+Date: Sat,  9 Mar 2019 17:37:21 +0530
+Message-ID: <20190309120721.21416-1-aneesh.kumar@linux.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,50 +15,102 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi, your account has been infected! Renew the password this time!
+Architectures like ppc64 use the deposited page table to store hardware
+page table slot information. Make sure we deposit a page table when
+using zero page at the pmd level for hash.
 
-You do not know anything about me and you may be probably surprised for what reason you're reading this particular letter, proper?
+Without this we hit
 
-I'm hacker who exploitedyour emailand all devicesnot so long ago.
-Never try out to msg me or alternatively seek for me, it's impossible,
-because I forwarded you this message using YOUR hacked account.
+Unable to handle kernel paging request for data at address 0x00000000
+Faulting instruction address: 0xc000000000082a74
+Oops: Kernel access of bad area, sig: 11 [#1]
+....
 
-I've installed special program on the adult videos (porno) site
-and guess that you visited this site to have fun (you understand what I mean).
+NIP [c000000000082a74] __hash_page_thp+0x224/0x5b0
+LR [c0000000000829a4] __hash_page_thp+0x154/0x5b0
+Call Trace:
+ hash_page_mm+0x43c/0x740
+ do_hash_page+0x2c/0x3c
+ copy_from_iter_flushcache+0xa4/0x4a0
+ pmem_copy_from_iter+0x2c/0x50 [nd_pmem]
+ dax_copy_from_iter+0x40/0x70
+ dax_iomap_actor+0x134/0x360
+ iomap_apply+0xfc/0x1b0
+ dax_iomap_rw+0xac/0x130
+ ext4_file_write_iter+0x254/0x460 [ext4]
+ __vfs_write+0x120/0x1e0
+ vfs_write+0xd8/0x220
+ SyS_write+0x6c/0x110
+ system_call+0x3c/0x130
 
-While you have been keeping an eye on video clips,
-your internet browser started out to act like a RDP (Remote Control)
-having a keylogger that provided me access to your screen and network camera.
+Fixes: b5beae5e224f ("powerpc/pseries: Add driver for PAPR SCM regions")
+Reviewed-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+---
+Changes from v1:
+* Add reviewed-by:
+* Add Fixes:
 
-Then, my softobtainedall information.
-You have typed passcodes on the online resources you visited, I caught them.
-Surely, you are able change each of them, or have already modified them.
-However it doesn't matter, my program renews needed data regularly.
+ fs/dax.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-What actually I have done?
-I generated a reserve copy of every your system. Of all the files and each contact.
-I formed a dual-screen videofile.
-The first part displays the film that you were watching (you have got an interesting preferences, ahahhh...),
-and the second screen displays the recording from your own camera.
-
-What exactly should you do?
-Clearly, I think, $782(USD) will be a fair price for our small riddle.
-You will make the deposit by bitcoins
-(if you do not understand this, go searching "how to purchase bitcoin" in any search engine).
-
-My bitcoin wallet address: 12s4cfoNTzT68gSdxLjmSRT3qdvaqwDWNz
-(It is cAsE sensitive, so copy and paste it).
-
-Important:
-You will have 2 days in order to make the payment.
-(I have an unique pixel in this letter, and at the moment I understand that you've read through this email).
-
-To tracethe reading of a messageand the actionsin it, I utilizea Facebook pixel.
-
-Thanks to them. (That whichis usedfor the authorities may helpus.)
-
-In case I fail to get bitcoins,
-I shall undoubtedly send your video files to each of your contacts, along with relatives, co-workers, etc?
+diff --git a/fs/dax.c b/fs/dax.c
+index 6959837cc465..01bfb2ac34f9 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -33,6 +33,7 @@
+ #include <linux/sizes.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
++#include <asm/pgalloc.h>
+ #include "internal.h"
+ 
+ #define CREATE_TRACE_POINTS
+@@ -1410,7 +1411,9 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+ {
+ 	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
+ 	struct inode *inode = mapping->host;
++	pgtable_t pgtable = NULL;
+ 	struct page *zero_page;
+ 	spinlock_t *ptl;
+ 	pmd_t pmd_entry;
+@@ -1425,12 +1428,22 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+ 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+ 			DAX_PMD | DAX_ZERO_PAGE, false);
+ 
++	if (arch_needs_pgtable_deposit()) {
++		pgtable = pte_alloc_one(vma->vm_mm);
++		if (!pgtable)
++			return VM_FAULT_OOM;
++	}
++
+ 	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+ 	if (!pmd_none(*(vmf->pmd))) {
+ 		spin_unlock(ptl);
+ 		goto fallback;
+ 	}
+ 
++	if (pgtable) {
++		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
++		mm_inc_nr_ptes(vma->vm_mm);
++	}
+ 	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
+ 	pmd_entry = pmd_mkhuge(pmd_entry);
+ 	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+@@ -1439,6 +1452,8 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+ 	return VM_FAULT_NOPAGE;
+ 
+ fallback:
++	if (pgtable)
++		pte_free(vma->vm_mm, pgtable);
+ 	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, *entry);
+ 	return VM_FAULT_FALLBACK;
+ }
+-- 
+2.20.1
