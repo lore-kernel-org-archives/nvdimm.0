@@ -1,28 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-lf1-x142.google.com (mail-lf1-x142.google.com
- [IPv6:2a00:1450:4864:20::142])
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A6A60211D0C8A
- for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 17:22:17 -0700 (PDT)
-Received: by mail-lf1-x142.google.com with SMTP id h6so2080905lfc.2
- for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 17:22:17 -0700 (PDT)
-Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com.
- [209.85.167.49])
- by smtp.gmail.com with ESMTPSA id b21sm863823lfi.7.2019.03.10.17.22.12
- for <linux-nvdimm@lists.01.org>
- (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
- Sun, 10 Mar 2019 17:22:13 -0700 (PDT)
-Received: by mail-lf1-f49.google.com with SMTP id k136so2075646lfg.5
- for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 17:22:12 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 00E73211D230E
+ for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 16:54:42 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id z14so2262990oid.0
+ for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 16:54:42 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAPcyv4he0q_FdqqiXarp0bXjcggs8QZX8Od560E2iFxzCU3Qag@mail.gmail.com>
  <CAHk-=wjvmwD_0=CRQtNs5RBh8oJwrriXDn+XNWOU=wk8OyQ5ew@mail.gmail.com>
- <CAPcyv4hafLUr2rKdLG+3SHXyWaa0d_2g8AKKZRf2mKPW+3DUSA@mail.gmail.com>
-In-Reply-To: <CAPcyv4hafLUr2rKdLG+3SHXyWaa0d_2g8AKKZRf2mKPW+3DUSA@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 10 Mar 2019 17:21:56 -0700
-Message-ID: <CAHk-=wiTM93XKaFqUOR7q7133wvzNS8Kj777EZ9E8S99NbZhAA@mail.gmail.com>
+In-Reply-To: <CAHk-=wjvmwD_0=CRQtNs5RBh8oJwrriXDn+XNWOU=wk8OyQ5ew@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 10 Mar 2019 16:54:29 -0700
+Message-ID: <CAPcyv4hafLUr2rKdLG+3SHXyWaa0d_2g8AKKZRf2mKPW+3DUSA@mail.gmail.com>
 Subject: Re: [GIT PULL] device-dax for 5.1: PMEM as RAM
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -35,37 +26,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Linux MM <linux-mm@kvack.org>, "Luck, Tony" <tony.luck@intel.com>, Dave Hansen <dave.hansen@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Mar 10, 2019 at 4:54 PM Dan Williams <dan.j.williams@intel.com> wrote:
+[ add Tony, who has wrestled with how to detect rep; movs recover-ability ]
+
+On Sun, Mar 10, 2019 at 1:02 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Unfortunately this particular b0rkage is not constrained to nvmem.
-> I.e. there's nothing specific about nvmem requiring mc-safe memory
-> copy, it's a cpu problem consuming any poison regardless of
-> source-media-type with "rep; movs".
+> On Sun, Mar 10, 2019 at 12:54 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > Hi Linus, please pull from:
+> >
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+> > tags/devdax-for-5.1
+> >
+> > ...to receive new device-dax infrastructure to allow persistent memory
+> > and other "reserved" / performance differentiated memories, to be
+> > assigned to the core-mm as "System RAM".
+>
+> I'm not pulling this until I get official Intel clarification on the
+> whole "pmem vs rep movs vs machine check" behavior.
+>
+> Last I saw it was deadly and didn't work, and we have a whole "mc-safe
+> memory copy" thing for it in the kernel because repeat string
+> instructions didn't work correctly on nvmem.
+>
+> No way am I exposing any users to something like that.
+>
+> We need a way to know when it works and when it doesn't, and only do
+> it when it's safe.
 
-So why is it sold and used for the nvdimm pmem driver?
-
-People told me it was a big deal and machines died.
-
-You can't suddenly change the story just because you want to expose it
-to user space.
-
-You can't have it both ways. Either nvdimms have more likelihood of,
-and problems with, machine checks, or it doesn't.
-
-The end result is the same: if intel believes the kernel needs to
-treat nvdimms specially, then we're sure as hell not exposing those
-snowflakes to user space.
-
-And if intel *doesn't* believe that, then we're removing the mcsafe_* functions.
-
-There's no "oh, it's safe to show to user space, but the kernel is
-magical" middle ground here that makes sense to me.
-
-                Linus
+Unfortunately this particular b0rkage is not constrained to nvmem.
+I.e. there's nothing specific about nvmem requiring mc-safe memory
+copy, it's a cpu problem consuming any poison regardless of
+source-media-type with "rep; movs".
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
