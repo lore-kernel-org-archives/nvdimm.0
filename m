@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79A952194EB7A
- for <linux-nvdimm@lists.01.org>; Fri, 29 Mar 2019 08:40:09 -0700 (PDT)
-Subject: [PATCH 1/6] drivers/base/devres: Introduce devm_release_action()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Mar 2019 08:27:29 -0700
-Message-ID: <155387324904.2443841.8406657131473708859.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D6B0C208EB3E5
+ for <linux-nvdimm@lists.01.org>; Mon, 11 Mar 2019 12:47:15 -0700 (PDT)
+Subject: [PATCH] tools/testing/nvdimm: retain security state after overwrite
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Mon, 11 Mar 2019 12:47:14 -0700
+Message-ID: <155233363473.16621.18394372960766895221.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,79 +20,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Christoph Hellwig <hch@lst.de>
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The devm_add_action() facility allows a resource allocation routine to
-add custom devm semantics. One such user is devm_memremap_pages().
+Overwrite retains the security state after completion of operation.
+Fix nfit_test to reflect this.
 
-There is now a need to manually trigger devm_memremap_pages_release().
-Introduce devm_release_action() so the release action can be triggered
-via a new devm_memunmap_pages() api in a follow-on change.
+Fixes: 926f74802cb ("tools/testing/nvdimm: Add overwrite support for
+nfit_test")
 
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/base/devres.c  |   24 +++++++++++++++++++++++-
- include/linux/device.h |    1 +
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ tools/testing/nvdimm/test/nfit.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/base/devres.c b/drivers/base/devres.c
-index e038e2b3b7ea..0bbb328bd17f 100644
---- a/drivers/base/devres.c
-+++ b/drivers/base/devres.c
-@@ -755,10 +755,32 @@ void devm_remove_action(struct device *dev, void (*action)(void *), void *data)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index b579f962451d..c7c19ca7588f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -146,6 +146,7 @@ static int dimm_fail_cmd_code[ARRAY_SIZE(handle)];
+ struct nfit_test_sec {
+ 	u8 state;
+ 	u8 ext_state;
++	u8 old_state;
+ 	u8 passphrase[32];
+ 	u8 master_passphrase[32];
+ 	u64 overwrite_end_time;
+@@ -1093,7 +1094,7 @@ static int nd_intel_test_cmd_overwrite(struct nfit_test *t,
+ 		return 0;
+ 	}
  
- 	WARN_ON(devres_destroy(dev, devm_action_release, devm_action_match,
- 			       &devres));
--
- }
- EXPORT_SYMBOL_GPL(devm_remove_action);
+-	memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
++	sec->old_state = sec->state;
+ 	sec->state = ND_INTEL_SEC_STATE_OVERWRITE;
+ 	dev_dbg(dev, "overwrite progressing.\n");
+ 	sec->overwrite_end_time = get_jiffies_64() + 5 * HZ;
+@@ -1115,7 +1116,8 @@ static int nd_intel_test_cmd_query_overwrite(struct nfit_test *t,
  
-+/**
-+ * devm_release_action() - release previously added custom action
-+ * @dev: Device that owns the action
-+ * @action: Function implementing the action
-+ * @data: Pointer to data passed to @action implementation
-+ *
-+ * Releases and removes instance of @action previously added by
-+ * devm_add_action().  Both action and data should match one of the
-+ * existing entries.
-+ */
-+void devm_release_action(struct device *dev, void (*action)(void *), void *data)
-+{
-+	struct action_devres devres = {
-+		.data = data,
-+		.action = action,
-+	};
-+
-+	WARN_ON(devres_release(dev, devm_action_release, devm_action_match,
-+			       &devres));
-+
-+}
-+EXPORT_SYMBOL_GPL(devm_release_action);
-+
- /*
-  * Managed kmalloc/kfree
-  */
-diff --git a/include/linux/device.h b/include/linux/device.h
-index b425a7ee04ce..02a3e45de9af 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -715,6 +715,7 @@ void __iomem *devm_of_iomap(struct device *dev,
- /* allows to add/remove a custom action to devres stack */
- int devm_add_action(struct device *dev, void (*action)(void *), void *data);
- void devm_remove_action(struct device *dev, void (*action)(void *), void *data);
-+void devm_release_action(struct device *dev, void (*action)(void *), void *data);
- 
- static inline int devm_add_action_or_reset(struct device *dev,
- 					   void (*action)(void *), void *data)
+ 	if (time_is_before_jiffies64(sec->overwrite_end_time)) {
+ 		sec->overwrite_end_time = 0;
+-		sec->state = 0;
++		sec->state = sec->old_state;
++		sec->old_state = 0;
+ 		sec->ext_state = ND_INTEL_SEC_ESTATE_ENABLED;
+ 		dev_dbg(dev, "overwrite is complete\n");
+ 	} else
 
 _______________________________________________
 Linux-nvdimm mailing list
