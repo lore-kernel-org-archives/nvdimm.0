@@ -1,10 +1,9 @@
-From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Tue, 12 Mar 2019 11:48:21 +0800
-Message-ID: <20190312035650.AC831211DB43F@ml01.01.org>
+From: =?GB2312?B?zO+c6bP+?= <bvahene-t4w4XrNWpXJDPfheJLI6IQ@public.gmane.org>
+Subject: (AD) =?GB2312?B?vLzK9deq0M2jrMjnus7X38nPudzA7bjazrs=?=
+Date: Tue, 12 Mar 2019 12:49:32 +0800
+Message-ID: <20190312044937.6632E211DBDE1@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1997545897453800667=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -15,25 +14,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This Message was undeliverable due to the following reason:
+This is a multi-part message in MIME format
 
-Your message was not delivered because the destination computer was
-not reachable within the allowed queue period. The amount of time
-a message is queued before it is returned depends on local configura-
-tion parameters.
+--===============1997545897453800667==
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Most likely there is a network problem that prevented delivery, but
-it is also possible that the computer is turned off, or does not
-have a mail system running right now.
+linux-nvdimm
 
-Your message was not delivered within 1 days:
-Host 87.98.99.152 is not responding.
+(AD) 亲，如对此课程感兴趣，烦请查阅附件大纲
 
-The following recipients did not receive this message:
-<linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+田滈楚<bvahene-t4w4XrNWpXJDPfheJLI6IQ@public.gmane.org>
 
-Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-if you feel this message to be in error.
+发送时间:2019-03-12  12:49:31
+
+--===============1997545897453800667==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============1997545897453800667==--
