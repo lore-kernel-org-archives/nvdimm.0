@@ -1,44 +1,55 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 59F54211D35CE
- for <linux-nvdimm@lists.01.org>; Wed, 13 Mar 2019 09:50:17 -0700 (PDT)
-Subject: Re: [GIT PULL] Filesystem-DAX fixes for 5.1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAPcyv4g5NH=4wKs7+V3hTw1Qv6peBQbb7xCyjjQn3bhj7J0WTw@mail.gmail.com>
-References: <CAPcyv4g5NH=4wKs7+V3hTw1Qv6peBQbb7xCyjjQn3bhj7J0WTw@mail.gmail.com>
-Message-Id: <155249581723.9487.16609965772986241330.pr-tracker-bot@kernel.org>
-Date: Wed, 13 Mar 2019 16:50:17 +0000
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Mar 2019 16:20:52 -0700
+Message-ID: <CAPcyv4g5NH=4wKs7+V3hTw1Qv6peBQbb7xCyjjQn3bhj7J0WTw@mail.gmail.com>
+Subject: [GIT PULL] Filesystem-DAX fixes for 5.1
+Content-Type: text/plain; charset="UTF-8"
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pull request you sent on Tue, 12 Mar 2019 16:20:52 -0700:
+Hi Linus, please pull from:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-for-5.1
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-for-5.1
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/3bb0f28d84f3d4e3800ae57d6b1a931b3f88c1f8
+...to receive a small collection of cleanups and an Xarray fix for
+v5.1-rc1. It has soaked in -next without issue, although the Xarray
+fix was recently re-flowed to fix up a tracepoint argument and add
+Jan's reviewed-by.
 
-Thank you!
+---
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+The following changes since commit d13937116f1e82bf508a6325111b322c30c85eb9:
+
+  Linux 5.0-rc6 (2019-02-10 14:42:20 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-for-5.1
+
+for you to fetch changes up to e4b3448bc346fedf36db64124a664a959995b085:
+
+  dax: Flush partial PMDs correctly (2019-03-01 17:24:48 -0800)
+
+----------------------------------------------------------------
+filesystem-dax for 5.1
+
+* Fix handling of PMD-sized entries in the Xarray that lead to a crash
+  scenario.
+
+* Miscellaneous cleanups and small fixes
+
+----------------------------------------------------------------
+Ira Weiny (1):
+      fs/dax: NIT fix comment regarding start/end vs range
+
+Matthew Wilcox (1):
+      dax: Flush partial PMDs correctly
+
+Souptick Joarder (1):
+      fs/dax: Convert to use vmf_error()
+
+ fs/dax.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
