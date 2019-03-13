@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8ADBD211E82F7
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:10:49 -0700 (PDT)
-Subject: [PATCH v5 03/10] mm/sparsemem: Add helpers track active portions of
- a section at boot
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Mar 2019 09:58:10 -0700
-Message-ID: <155327389029.225273.1972826189687261996.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C52CE21B02822
+ for <linux-nvdimm@lists.01.org>; Tue, 12 Mar 2019 17:10:45 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] acpi/nfit: Always dump _DSM output payload
+Date: Wed, 13 Mar 2019 00:10:42 +0000
+Message-ID: <7b33acb9a5741f06bbac7dae307a74a300a5422f.camel@intel.com>
+References: <155242666957.581839.11006696811038518218.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155242666957.581839.11006696811038518218.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <E2362C3AD847C34FB36B5A1260D4BFF0@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,166 +24,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
-section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
-map_active bitmask length (64)). If it turns out that 2MB is too large
-of an active tracking granularity it is trivial to increase the size of
-the map_active bitmap.
+On Tue, 2019-03-12 at 14:37 -0700, Dan Williams wrote:
+> The dynamic-debug statements for command payload output only get
+> emitted
+> when the command is not ND_CMD_CALL. Move the output payload dumping
+> ahead of the early return path for ND_CMD_CALL.
+> 
+> Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling
+> mechanism")
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c |   12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+> 
 
-The implications of a partially populated section is that pfn_valid()
-needs to go beyond a valid_section() check and read the sub-section
-active ranges from the bitmask.
+Looks good to me,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/mmzone.h |   29 ++++++++++++++++++++++++++++-
- mm/page_alloc.c        |    4 +++-
- mm/sparse.c            |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 79 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 69b9cb9cb2ed..ae4aa7f63d2e 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1122,6 +1122,8 @@ struct mem_section_usage {
- 	unsigned long pageblock_flags[0];
- };
- 
-+void section_active_init(unsigned long pfn, unsigned long nr_pages);
-+
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1259,12 +1261,36 @@ static inline struct mem_section *__pfn_to_section(unsigned long pfn)
- 
- extern int __highest_present_section_nr;
- 
-+static inline int section_active_index(phys_addr_t phys)
-+{
-+	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
-+}
-+
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	int idx = section_active_index(PFN_PHYS(pfn));
-+
-+	return !!(ms->usage->map_active & (1UL << idx));
-+}
-+#else
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	return 1;
-+}
-+#endif
-+
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- static inline int pfn_valid(unsigned long pfn)
- {
-+	struct mem_section *ms;
-+
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
--	return valid_section(__nr_to_section(pfn_to_section_nr(pfn)));
-+	ms = __nr_to_section(pfn_to_section_nr(pfn));
-+	if (!valid_section(ms))
-+		return 0;
-+	return pfn_section_valid(ms, pfn);
- }
- #endif
- 
-@@ -1295,6 +1321,7 @@ void sparse_init(void);
- #else
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
-+#define section_active_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index bf23bc0b8399..508a810fd514 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7221,10 +7221,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 
- 	/* Print out the early node map */
- 	pr_info("Early memory node ranges\n");
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
- 			(u64)start_pfn << PAGE_SHIFT,
- 			((u64)end_pfn << PAGE_SHIFT) - 1);
-+		section_active_init(start_pfn, end_pfn - start_pfn);
-+	}
- 
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
-diff --git a/mm/sparse.c b/mm/sparse.c
-index cdd2978d0ffe..3cd7ce46e749 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -210,6 +210,54 @@ static inline unsigned long first_present_section_nr(void)
- 	return next_present_section_nr(-1);
- }
- 
-+static unsigned long section_active_mask(unsigned long pfn,
-+		unsigned long nr_pages)
-+{
-+	int idx_start, idx_size;
-+	phys_addr_t start, size;
-+
-+	if (!nr_pages)
-+		return 0;
-+
-+	start = PFN_PHYS(pfn);
-+	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK)));
-+	size = ALIGN(size, SECTION_ACTIVE_SIZE);
-+
-+	idx_start = section_active_index(start);
-+	idx_size = section_active_index(size);
-+
-+	if (idx_size == 0)
-+		return -1;
-+	return ((1UL << idx_size) - 1) << idx_start;
-+}
-+
-+void section_active_init(unsigned long pfn, unsigned long nr_pages)
-+{
-+	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	int i, start_sec = pfn_to_section_nr(pfn);
-+
-+	if (!nr_pages)
-+		return;
-+
-+	for (i = start_sec; i <= end_sec; i++) {
-+		struct mem_section *ms;
-+		unsigned long mask;
-+		unsigned long pfns;
-+
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		mask = section_active_mask(pfn, pfns);
-+
-+		ms = __nr_to_section(i);
-+		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
-+		ms->usage->map_active = mask;
-+
-+		pfn += pfns;
-+		nr_pages -= pfns;
-+	}
-+}
-+
- /* Record a memory area against a node. */
- void __init memory_present(int nid, unsigned long start, unsigned long end)
- {
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index a22e2f2bbb75..c9367e78521b 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -546,6 +546,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor
+> *nd_desc, struct nvdimm *nvdimm,
+>  		goto out;
+>  	}
+>  
+> +	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
+> +			cmd_name, out_obj->buffer.length);
+> +	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
+> +			out_obj->buffer.pointer,
+> +			min_t(u32, 128, out_obj->buffer.length), true);
+> +
+>  	if (call_pkg) {
+>  		call_pkg->nd_fw_size = out_obj->buffer.length;
+>  		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
+> @@ -564,12 +570,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor
+> *nd_desc, struct nvdimm *nvdimm,
+>  		return 0;
+>  	}
+>  
+> -	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
+> -			cmd_name, out_obj->buffer.length);
+> -	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
+> -			out_obj->buffer.pointer,
+> -			min_t(u32, 128, out_obj->buffer.length), true);
+> -
+>  	for (i = 0, offset = 0; i < desc->out_num; i++) {
+>  		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+> buf,
+>  				(u32 *) out_obj->buffer.pointer,
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
