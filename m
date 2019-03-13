@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
- [IPv6:2607:f8b0:4864:20::844])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4D3F2211E9FA3
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 21:20:41 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id t28so4881358qte.6
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 21:20:41 -0700 (PDT)
-From: Dexuan Cui <dexuan.cui@gmail.com>
-Subject: [ndctl PATCH v3 4/5] libndctl: Add a new dimm-op cmd_is_supported()
-Date: Sat, 23 Mar 2019 04:20:28 +0000
-Message-Id: <20190323042028.4310-5-decui@microsoft.com>
-In-Reply-To: <20190323042028.4310-1-decui@microsoft.com>
-References: <20190323042028.4310-1-decui@microsoft.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1C665211D35CE
+ for <linux-nvdimm@lists.01.org>; Wed, 13 Mar 2019 09:50:15 -0700 (PDT)
+Subject: Re: [GIT PULL] libnvdimm updates for 5.1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAPcyv4hPv7b1FWUxuDvcx8+kFWh7Npgk92P+SEpSPWvT2cxheg@mail.gmail.com>
+References: <CAPcyv4hPv7b1FWUxuDvcx8+kFWh7Npgk92P+SEpSPWvT2cxheg@mail.gmail.com>
+Message-Id: <155249581531.9487.8832163781314389778.pr-tracker-bot@kernel.org>
+Date: Wed, 13 Mar 2019 16:50:15 +0000
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,57 +17,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, linux-nvdimm@lists.01.org, mikelley@microsoft.com
-Cc: qi.fuli@fujitsu.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-A NVDIMM family may need to report that it supports a command, even if
-the command is not set in dimm->cmd_mask, e.g. a non-NVDIMM_FAMILY_INTEL
-famimy may support ND_CMD_SMART or some kind of variant of ND_CMD_SMART,
-while the kernel only sets ND_CMD_SMART in the nvdimm->cmd_mask for
-NVDIMM_FAMILY_INTEL.
+The pull request you sent on Mon, 11 Mar 2019 14:54:47 -0700:
 
-Signed-off-by: Dexuan Cui <decui@microsoft.com>
----
- ndctl/lib/libndctl.c | 5 +++++
- ndctl/lib/private.h  | 1 +
- 2 files changed, 6 insertions(+)
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.1
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 24b8ad3..4acfb03 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1769,6 +1769,11 @@ NDCTL_EXPORT int ndctl_dimm_failed_map(struct ndctl_dimm *dimm)
- NDCTL_EXPORT int ndctl_dimm_is_cmd_supported(struct ndctl_dimm *dimm,
- 		int cmd)
- {
-+	struct ndctl_dimm_ops *ops = dimm->ops;
-+
-+	if (ops && ops->cmd_is_supported)
-+		return ops->cmd_is_supported(dimm, cmd);
-+
- 	return !!(dimm->cmd_mask & (1ULL << cmd));
- }
- 
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index a9d35c5..2ddc1d2 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -292,6 +292,7 @@ struct ndctl_bb {
- 
- struct ndctl_dimm_ops {
- 	const char *(*cmd_desc)(int);
-+	bool (*cmd_is_supported)(struct ndctl_dimm *, int);
- 	struct ndctl_cmd *(*new_smart)(struct ndctl_dimm *);
- 	unsigned int (*smart_get_flags)(struct ndctl_cmd *);
- 	unsigned int (*smart_get_health)(struct ndctl_cmd *);
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/5ea6718b1f1bb58825426e19a21cdba47075a954
+
+Thank you!
+
 -- 
-2.19.1
-
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
