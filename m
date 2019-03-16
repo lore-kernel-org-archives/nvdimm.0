@@ -1,23 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail3-relais-sop.national.inria.fr
- (mail3-relais-sop.national.inria.fr [192.134.164.104])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x336.google.com (mail-ot1-x336.google.com
+ [IPv6:2607:f8b0:4864:20::336])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C03A2194EB77
- for <linux-nvdimm@lists.01.org>; Sat, 16 Mar 2019 11:16:29 -0700 (PDT)
-Subject: Re: failure to setup devdax over fake nvdimm
+ by ml01.01.org (Postfix) with ESMTPS id 64384211D07B2
+ for <linux-nvdimm@lists.01.org>; Sat, 16 Mar 2019 09:16:16 -0700 (PDT)
+Received: by mail-ot1-x336.google.com with SMTP id c18so10973791otl.13
+ for <linux-nvdimm@lists.01.org>; Sat, 16 Mar 2019 09:16:16 -0700 (PDT)
+MIME-Version: 1.0
 References: <54fb48ed-f681-1420-b2d0-082ed14802a7@inria.fr>
  <CAPcyv4g0KCON5KfTyeoK3UWApD=Gg=-eg=9Cc0OR-QcArXKMFA@mail.gmail.com>
  <f1374ac6-5007-8ac9-782d-d0615feb3b09@inria.fr>
  <CAPcyv4ivcUmiPSgS-27iB2dv455n64nmeSMh690QjYUTLmG1ow@mail.gmail.com>
  <c7e6e156-8060-35f4-8265-885cdc7b5a77@inria.fr>
- <CAPcyv4jzpbhPYQOCUpNLV5o_9tPP2FJNxFffg-uddBFMGQhbcQ@mail.gmail.com>
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Message-ID: <a4a352ce-d814-2f97-3773-e22ddd6bbdec@inria.fr>
-Date: Sat, 16 Mar 2019 19:16:26 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4jzpbhPYQOCUpNLV5o_9tPP2FJNxFffg-uddBFMGQhbcQ@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <c7e6e156-8060-35f4-8265-885cdc7b5a77@inria.fr>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 16 Mar 2019 09:16:03 -0700
+Message-ID: <CAPcyv4jzpbhPYQOCUpNLV5o_9tPP2FJNxFffg-uddBFMGQhbcQ@mail.gmail.com>
+Subject: Re: failure to setup devdax over fake nvdimm
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,17 +29,48 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-TGUgMTYvMDMvMjAxOSDDoCAxNzoxNiwgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4KPiBXaGF0
-IHZlcnNpb24gb2YgbmRjdGw/IFNvdW5kcyBsaWtlIHlvdSBtYXkgYmUgcnVubmluZyBzb21ldGhp
-bmcgcHJpb3IKPiB0byB2NjQgdGhhdCBkb2VzIG5vdCB1bmRlcnN0YW5kIHRoZSBuZXcgZGV2aWNl
-IHRvcG9sb2d5LgoKCkl0J3MgbmRjdGwgZnJvbSBnaXQgbWFzdGVyLCBoZW5jZSA2NC4xLgoKSSBh
-bSB1c2luZyBhIHNpbWlsYXIgc29mdHdhcmUga2VybmVsK25kY3RsIG9uIGEgbWFjaGluZSB3aXRo
-IHJlYWwKbnZkaW1tcywgbm8gcHJvYmxlbSB0aGVyZS4gSXQncyBvbmx5IHRoZSBtYWNoaW5lIHdp
-dGggZmFrZSBudmRpbW0gdXNpbmcKbWVtbWFwIHRoYXQgc2hvdyB0aGlzIGlzc3VlLgoKQnJpY2UK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
-cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+T24gU2F0LCBNYXIgMTYsIDIwMTkgYXQgMTI6NTAgQU0gQnJpY2UgR29nbGluIDxCcmljZS5Hb2ds
+aW5AaW5yaWEuZnI+IHdyb3RlOgo+Cj4gTGUgMTYvMDMvMjAxOSDDoCAwMjoxOSwgRGFuIFdpbGxp
+YW1zIGEgw6ljcml0IDoKPgo+ID4KPiA+IEhtbSwgb2suIENhbiB5b3UgYm9vdCB3aXRoIGxpYm52
+ZGltbS5keW5kYmcgYW5kIHNlZSBpZiBpdCBzcXVhd2tzCj4gPiBhYm91dCB0aGUgcHJvYmxlbT8g
+SWYgdGhpcyBpcyAxZmZjNjY0ZjliOGMgdGhlbiB5b3UgbmVlZCB0byBoYXZlIHRoZQo+ID4gZGF4
+X3BtZW1fY29tcGF0IGRyaXZlciBvciB0aGUgZGF4X3BtZW0gZHJpdmVyIHRvIGF0dGFjaCwgYW5k
+IHRoaXMgYWxzbwo+ID4gd29uJ3Qgd29yayBpZiB5b3UndmUgaG90cGx1Z2dlZCBpdCB3aXRoIHRo
+ZSBrbWVtIGRyaXZlci4KPgo+Cj4gVGhpbmdzIHdvcmsgd2hlbiBkYXhfcG1lbV9jb21wYXQgaXMg
+bG9hZGVkLgo+Cj4gWyAgIDkzLjM4NzA3OF0gbmRfYnVzIG5kYnVzMDogU1RBUlQ6IGRheF9wbWVt
+X2NvbXBhdC5wcm9iZShkYXgwLjApCj4gWyAgIDkzLjM4NzA4Ml0gbmRfYnVzIG5kYnVzMDogRU5E
+OiBkYXhfcG1lbV9jb21wYXQucHJvYmUoZGF4MC4wKSA9IC0xOQo+IFsgICA5My4zODcxMDFdIG5k
+X2J1cyBuZGJ1czA6IFNUQVJUOiBkYXhfcG1lbV9jb21wYXQucHJvYmUoZGF4MS4wKQo+IFsgICA5
+My4zODcxMDNdIG5kX2J1cyBuZGJ1czA6IEVORDogZGF4X3BtZW1fY29tcGF0LnByb2JlKGRheDEu
+MCkgPSAtMTkKPiBbICAgOTYuNzQxODA2XSBuZF9idXMgbmRidXMwOiBuZF9wbWVtLnJlbW92ZShu
+YW1lc3BhY2UxLjApID0gMAo+IFsgICA5Ni45NDA1NjddIG5kIG5hbWVzcGFjZTEuMDogZmFpbCAo
+LTYpCj4gWyAgIDk2Ljk0MTM0M10gbmQgbmFtZXNwYWNlMS4wOiBmYWlsICgtNikKPiBbICAgOTYu
+OTQxNDg4XSBuZCBkYXgxLjA6IHJlc3VsdDogMCB3cm90ZTogMWNkYWUzYTEtNWVkZS00NWQ2LWEz
+ZmMtMzFiYjVjNGM4OTFhCj4gWyAgIDk2Ljk0MTU4M10gbmQgZGF4MS4wOiByZXN1bHQ6IDAgd3Jv
+dGU6IHBtZW0KPiBbICAgOTYuOTQxNjUwXSBuZCBkYXgxLjA6IHJlc3VsdDogMCB3cm90ZTogMjA5
+NzE1Mgo+Cj4gWyAgIDk2Ljk0MTc0NV0gbmQgZGF4MS4wOiByZXN1bHQ6IDEzIHdyb3RlOiBuYW1l
+c3BhY2UxLjAKPiBbICAgOTYuOTQyNDQ1XSBuZF9idXMgbmRidXMwOiBTVEFSVDogZGF4X3BtZW1f
+Y29tcGF0LnByb2JlKGRheDEuMCkKPiBbICAgOTcuMDg3NzY0XSBkYXgxLjAgaW5pdGlhbGlzZWQs
+IDYxOTI2NDAgcGFnZXMgaW4gMTI0bXMKPiBbICAgOTcuMDkzNTU0XSBuZF9idXMgbmRidXMwOiBF
+TkQ6IGRheF9wbWVtX2NvbXBhdC5wcm9iZShkYXgxLjApID0gMAo+IFsgICA5Ny4wOTM2NzNdIG5k
+X2J1cyBuZGJ1czA6IFNUQVJUOiBkYXhfcG1lbV9jb21wYXQucHJvYmUoZGF4MS4xKQo+IFsgICA5
+Ny4wOTM2NzddIG5kX2J1cyBuZGJ1czA6IEVORDogZGF4X3BtZW1fY29tcGF0LnByb2JlKGRheDEu
+MSkgPSAtMTkKPgo+Cj4gV2hlbiBvbmx5IGRheF9wbWVtIGlzIGxvYWRlZCAoY29tcGF0IGlzIGJs
+YWNrbGlzdGVkKSwgaXQgZmFpbHMgd2l0aDoKPgo+IFsgICAzNi4xNDEwMzJdIG5kX2J1cyBuZGJ1
+czA6IG5kX3BtZW0ucmVtb3ZlKG5hbWVzcGFjZTEuMCkgPSAwCj4gWyAgIDM2LjM0MzQ0NF0gbmQg
+bmFtZXNwYWNlMS4wOiBmYWlsICgtNikKPiBbICAgMzYuMzQ0MjY4XSBuZCBuYW1lc3BhY2UxLjA6
+IGZhaWwgKC02KQo+IFsgICAzNi4zNDQ0NDBdIG5kIGRheDEuMDogcmVzdWx0OiAwIHdyb3RlOiBi
+ZjFlZDllYi01ZmMxLTQ2MzctODVlNS1jNjdhNTljN2M1OWQKPiBbICAgMzYuMzQ0NTI4XSBuZCBk
+YXgxLjA6IHJlc3VsdDogMCB3cm90ZTogcG1lbQo+IFsgICAzNi4zNDQ1OTVdIG5kIGRheDEuMDog
+cmVzdWx0OiAwIHdyb3RlOiAyMDk3MTUyCj4KPiBbICAgMzYuMzQ0NzA0XSBuZCBkYXgxLjA6IHJl
+c3VsdDogMTMgd3JvdGU6IG5hbWVzcGFjZTEuMAo+IFsgICAzNi4zNDU4MDJdIG5kIGRheDEuMDog
+cmVzdWx0OiAyIHdyb3RlOgo+Cj4gQm9vdCBkbWVzZyBiZWxvdyAoYmVmb3JlIHJ1bm5pbmcgbmRj
+dGwpLgoKV2hhdCB2ZXJzaW9uIG9mIG5kY3RsPyBTb3VuZHMgbGlrZSB5b3UgbWF5IGJlIHJ1bm5p
+bmcgc29tZXRoaW5nIHByaW9yCnRvIHY2NCB0aGF0IGRvZXMgbm90IHVuZGVyc3RhbmQgdGhlIG5l
+dyBkZXZpY2UgdG9wb2xvZ3kuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAx
+Lm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
