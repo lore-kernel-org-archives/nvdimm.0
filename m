@@ -1,12 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
- [IPv6:2607:f8b0:4864:20::242])
+Received: from mail-oi1-x22e.google.com (mail-oi1-x22e.google.com
+ [IPv6:2607:f8b0:4864:20::22e])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 61E93211DF235
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 17:34:31 -0700 (PDT)
-Received: by mail-oi1-x242.google.com with SMTP id k11so14621345oic.7
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 17:34:31 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 35AFB211D56BE
+ for <linux-nvdimm@lists.01.org>; Sat, 16 Mar 2019 12:48:31 -0700 (PDT)
+Received: by mail-oi1-x22e.google.com with SMTP id b4so10036599oif.6
+ for <linux-nvdimm@lists.01.org>; Sat, 16 Mar 2019 12:48:31 -0700 (PDT)
 MIME-Version: 1.0
 References: <54fb48ed-f681-1420-b2d0-082ed14802a7@inria.fr>
  <CAPcyv4g0KCON5KfTyeoK3UWApD=Gg=-eg=9Cc0OR-QcArXKMFA@mail.gmail.com>
@@ -15,11 +15,10 @@ References: <54fb48ed-f681-1420-b2d0-082ed14802a7@inria.fr>
  <c7e6e156-8060-35f4-8265-885cdc7b5a77@inria.fr>
  <CAPcyv4jzpbhPYQOCUpNLV5o_9tPP2FJNxFffg-uddBFMGQhbcQ@mail.gmail.com>
  <a4a352ce-d814-2f97-3773-e22ddd6bbdec@inria.fr>
- <CAPcyv4j_-irtAr3SD7gw2FNeKxM+OMAo04w5ms6SOVKupkMP0A@mail.gmail.com>
-In-Reply-To: <CAPcyv4j_-irtAr3SD7gw2FNeKxM+OMAo04w5ms6SOVKupkMP0A@mail.gmail.com>
+In-Reply-To: <a4a352ce-d814-2f97-3773-e22ddd6bbdec@inria.fr>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Mar 2019 17:34:19 -0700
-Message-ID: <CAPcyv4i1jT+_+Ya4N=2D4wg1iEo1dVqmc3Z5abyptaCUd6rhjw@mail.gmail.com>
+Date: Sat, 16 Mar 2019 12:48:18 -0700
+Message-ID: <CAPcyv4j_-irtAr3SD7gw2FNeKxM+OMAo04w5ms6SOVKupkMP0A@mail.gmail.com>
 Subject: Re: failure to setup devdax over fake nvdimm
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,24 +35,20 @@ To: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gU2F0LCBNYXIgMTYsIDIwMTkgYXQgMTI6NDggUE0gRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+IHdyb3RlOgo+Cj4gT24gU2F0LCBNYXIgMTYsIDIwMTkgYXQgMTE6MTYg
-QU0gQnJpY2UgR29nbGluIDxCcmljZS5Hb2dsaW5AaW5yaWEuZnI+IHdyb3RlOgo+ID4KPiA+IExl
-IDE2LzAzLzIwMTkgw6AgMTc6MTYsIERhbiBXaWxsaWFtcyBhIMOpY3JpdCA6Cj4gPiA+Cj4gPiA+
-IFdoYXQgdmVyc2lvbiBvZiBuZGN0bD8gU291bmRzIGxpa2UgeW91IG1heSBiZSBydW5uaW5nIHNv
-bWV0aGluZyBwcmlvcgo+ID4gPiB0byB2NjQgdGhhdCBkb2VzIG5vdCB1bmRlcnN0YW5kIHRoZSBu
-ZXcgZGV2aWNlIHRvcG9sb2d5Lgo+ID4KPiA+Cj4gPiBJdCdzIG5kY3RsIGZyb20gZ2l0IG1hc3Rl
-ciwgaGVuY2UgNjQuMS4KPiA+Cj4gPiBJIGFtIHVzaW5nIGEgc2ltaWxhciBzb2Z0d2FyZSBrZXJu
-ZWwrbmRjdGwgb24gYSBtYWNoaW5lIHdpdGggcmVhbAo+ID4gbnZkaW1tcywgbm8gcHJvYmxlbSB0
-aGVyZS4gSXQncyBvbmx5IHRoZSBtYWNoaW5lIHdpdGggZmFrZSBudmRpbW0gdXNpbmcKPiA+IG1l
-bW1hcCB0aGF0IHNob3cgdGhpcyBpc3N1ZS4KPiA+Cj4KPiBIbW0sIGFsbCBteSBndWVzc2VzIGFy
-ZSBjb21pbmcgdXAgZW1wdHkuLi4gd2hpY2ggdXN1YWxseSBtZWFucyB0aGVyZQo+IGlzIGluZGVl
-ZCBhIGJ1Zy4gTGV0IG1lIHRyeSBzb21lIGV4cGVyaW1lbnRzIGhlcmUsIGJ1dCBJIG1heSBuZWVk
-IHRvCj4gc2VuZCB5b3UgYSBkZWJ1ZyBwYXRjaCBmb3IgbW9yZSBpbmZvLiBUaGFua3MgZm9yIHRo
-ZSBtZW1tYXA9Cj4gaW5zaWdodC4uLiBJIGRvIHRlc3Qgd2l0aCB0aGF0LCBidXQgbGV0IG1lIHNl
-ZSBpZiB0aGVyZSBpcyBzb21ldGhpbmcKPiBzcGVjaWZpYyBhYm91dCB5b3VyIGNvbmZpZy4KCkJy
-aWNlLCBtYXkgSSBhc2sgeW91IHRvIHJ1bjoKCiAgICB1ZGV2YWRtIG1vbml0b3IgLXAKCi4uLndo
-aWxlIHJ1bm5pbmcgdGhlICJuZGN0bCBjcmVhdGUtbmFtZXNwYWNlIiBjb21tYW5kIGFuZCBzZW5k
-IHRoZSBvdXRwdXQ/Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
-dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+T24gU2F0LCBNYXIgMTYsIDIwMTkgYXQgMTE6MTYgQU0gQnJpY2UgR29nbGluIDxCcmljZS5Hb2ds
+aW5AaW5yaWEuZnI+IHdyb3RlOgo+Cj4gTGUgMTYvMDMvMjAxOSDDoCAxNzoxNiwgRGFuIFdpbGxp
+YW1zIGEgw6ljcml0IDoKPiA+Cj4gPiBXaGF0IHZlcnNpb24gb2YgbmRjdGw/IFNvdW5kcyBsaWtl
+IHlvdSBtYXkgYmUgcnVubmluZyBzb21ldGhpbmcgcHJpb3IKPiA+IHRvIHY2NCB0aGF0IGRvZXMg
+bm90IHVuZGVyc3RhbmQgdGhlIG5ldyBkZXZpY2UgdG9wb2xvZ3kuCj4KPgo+IEl0J3MgbmRjdGwg
+ZnJvbSBnaXQgbWFzdGVyLCBoZW5jZSA2NC4xLgo+Cj4gSSBhbSB1c2luZyBhIHNpbWlsYXIgc29m
+dHdhcmUga2VybmVsK25kY3RsIG9uIGEgbWFjaGluZSB3aXRoIHJlYWwKPiBudmRpbW1zLCBubyBw
+cm9ibGVtIHRoZXJlLiBJdCdzIG9ubHkgdGhlIG1hY2hpbmUgd2l0aCBmYWtlIG52ZGltbSB1c2lu
+Zwo+IG1lbW1hcCB0aGF0IHNob3cgdGhpcyBpc3N1ZS4KPgoKSG1tLCBhbGwgbXkgZ3Vlc3NlcyBh
+cmUgY29taW5nIHVwIGVtcHR5Li4uIHdoaWNoIHVzdWFsbHkgbWVhbnMgdGhlcmUKaXMgaW5kZWVk
+IGEgYnVnLiBMZXQgbWUgdHJ5IHNvbWUgZXhwZXJpbWVudHMgaGVyZSwgYnV0IEkgbWF5IG5lZWQg
+dG8Kc2VuZCB5b3UgYSBkZWJ1ZyBwYXRjaCBmb3IgbW9yZSBpbmZvLiBUaGFua3MgZm9yIHRoZSBt
+ZW1tYXA9Cmluc2lnaHQuLi4gSSBkbyB0ZXN0IHdpdGggdGhhdCwgYnV0IGxldCBtZSBzZWUgaWYg
+dGhlcmUgaXMgc29tZXRoaW5nCnNwZWNpZmljIGFib3V0IHlvdXIgY29uZmlnLgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGlu
+ZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
