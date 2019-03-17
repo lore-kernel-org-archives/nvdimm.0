@@ -1,20 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
- [IPv6:2607:f8b0:4864:20::342])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C46112194EB7D
- for <linux-nvdimm@lists.01.org>; Tue, 26 Mar 2019 11:32:03 -0700 (PDT)
-Received: by mail-ot1-x342.google.com with SMTP id f10so12436886otb.6
- for <linux-nvdimm@lists.01.org>; Tue, 26 Mar 2019 11:32:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190325215527.12574-1-pakki001@umn.edu>
- <5fa84f18-7253-2543-57e4-6a9e2b2da716@codeaurora.org>
-In-Reply-To: <5fa84f18-7253-2543-57e4-6a9e2b2da716@codeaurora.org>
+ by ml01.01.org (Postfix) with ESMTPS id 2B86E211D6163
+ for <linux-nvdimm@lists.01.org>; Sun, 17 Mar 2019 11:02:14 -0700 (PDT)
+Subject: [PATCH] device-dax: Drop register_filesystem()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Mar 2019 11:31:51 -0700
-Message-ID: <CAPcyv4jMrU4n1fOv31TOZ-8Re4-7mwG_C_d6WzxZbjnu91UVeQ@mail.gmail.com>
-Subject: Re: [PATCH v4] nvdimm: btt_devs: fix a NULL pointer dereference
+Date: Sun, 17 Mar 2019 10:49:34 -0700
+Message-ID: <155284497431.996981.8629530520988419809.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,76 +20,55 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Mukesh Ojha <mojha@codeaurora.org>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Kangjie Lu <kjlu@umn.edu>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Aditya Pakki <pakki001@umn.edu>
+To: viro@zeniv.linux.org.uk
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Mar 26, 2019 at 3:23 AM Mukesh Ojha <mojha@codeaurora.org> wrote:
->
->
-> On 3/26/2019 3:25 AM, Aditya Pakki wrote:
-> > In case kmemdup fails, the fix releases resources and returns to
-> > avoid the NULL pointer dereference.
-> >
-> > Signed-off-by: Aditya Pakki <pakki001@umn.edu>
-> >
-> > ---
-> > v3: Move kfree(nd_btt) to goto block.
-> > v2: Replace incorrect kfree with ida_simple_remove, suggested by
-> > Johannes Thumshirn
-> > v1: Free nd_btt->id in case of failure and avoid double free, suggested
-> > by Dan Williams
-> > ---
-> >   drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
-> >   1 file changed, 13 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-> > index b72a303176c7..9486acc08402 100644
-> > --- a/drivers/nvdimm/btt_devs.c
-> > +++ b/drivers/nvdimm/btt_devs.c
-> > @@ -198,14 +198,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
-> >               return NULL;
-> >
-> >       nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
-> > -     if (nd_btt->id < 0) {
-> > -             kfree(nd_btt);
-> > -             return NULL;
-> > -     }
-> > +     if (nd_btt->id < 0)
-> > +             goto out_nd_btt;
-> >
-> >       nd_btt->lbasize = lbasize;
-> > -     if (uuid)
-> > +     if (uuid) {
-> >               uuid = kmemdup(uuid, 16, GFP_KERNEL);
-> > +             if (!uuid)
-> > +                     goto out_put_id;
-> > +     }
-> >       nd_btt->uuid = uuid;
-> >       dev = &nd_btt->dev;
-> >       dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
-> > @@ -220,6 +221,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
-> >               return NULL;
-> >       }
-> >       return dev;
-> > +
-> > +out_put_id:
-> > +     ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-> > +
-> > +out_nd_btt:
-> > +     kfree(nd_btt);
-> > +     return NULL;
-> >   }
-> >
-> >   struct device *nd_btt_create(struct nd_region *nd_region)
->
->
-> you have to take care of this below if block(true) as well as you are
-> touching the function.
->   if (ndns && !__nd_attach_ndns(&nd_btt->dev, ndns, &nd_btt->ndns)) {
+The device-dax fs is only there to allocate a common inode for each
+device-node that refers to the same device by major:minor. It is
+otherwise not user mountable and need not be displayed in
+/proc/filesystems.
 
-No, once the device is successfully initialized then put_device()
-takes care of the rest.
+Reported-by: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/super.c |    7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index ccb22d8db3a2..3d6a9e61e358 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -615,10 +615,6 @@ static int dax_fs_init(void)
+ 	if (!dax_cache)
+ 		return -ENOMEM;
+ 
+-	rc = register_filesystem(&dax_fs_type);
+-	if (rc)
+-		goto err_register_fs;
+-
+ 	dax_mnt = kern_mount(&dax_fs_type);
+ 	if (IS_ERR(dax_mnt)) {
+ 		rc = PTR_ERR(dax_mnt);
+@@ -629,8 +625,6 @@ static int dax_fs_init(void)
+ 	return 0;
+ 
+  err_mount:
+-	unregister_filesystem(&dax_fs_type);
+- err_register_fs:
+ 	kmem_cache_destroy(dax_cache);
+ 
+ 	return rc;
+@@ -639,7 +633,6 @@ static int dax_fs_init(void)
+ static void dax_fs_exit(void)
+ {
+ 	kern_unmount(dax_mnt);
+-	unregister_filesystem(&dax_fs_type);
+ 	kmem_cache_destroy(dax_cache);
+ }
+ 
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
