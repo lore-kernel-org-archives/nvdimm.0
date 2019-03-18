@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F97B21B02822
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 16:57:53 -0700 (PDT)
-Subject: [PATCH] security/keys/trusted: Allow operation without hardware TPM
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Mar 2019 16:45:13 -0700
-Message-ID: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F0CEE2194EB77
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 15:56:44 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id r19so16010248otn.1
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 15:56:44 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190318225337.2648-1-vishal.l.verma@intel.com>
+In-Reply-To: <20190318225337.2648-1-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 18 Mar 2019 15:56:32 -0700
+Message-ID: <CAPcyv4jGEKm+V-aBJStNbD1kkqPn=gP=8Hskj9kVG6VqN4aFUg@mail.gmail.com>
+Subject: Re: [PATCH] dax/pmem: Fix whitespace in dax_pmem
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,85 +25,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: jarkko.sakkinen@linux.intel.com
-Cc: linux-nvdimm@lists.01.org, James Bottomley <jejb@linux.ibm.com>, Roberto Sassu <roberto.sassu@huawei.com>, linux-kernel@vger.kernel.org, Mimi Zohar <zohar@linux.ibm.com>, David Howells <dhowells@redhat.com>, keyrings@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Rather than fail initialization of the trusted.ko module, arrange for
-the module to load, but rely on trusted_instantiate() to fail
-trusted-key operations.
+On Mon, Mar 18, 2019 at 3:54 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> A few lines were whitespace damaged, with spaces at the start instead of
+> tabs. This was noticed while debugging an nfit_test failure, so fix
+> them.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/dax/pmem/core.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/dax/pmem/core.c b/drivers/dax/pmem/core.c
+> index f71019ce0647..f9f51786d556 100644
+> --- a/drivers/dax/pmem/core.c
+> +++ b/drivers/dax/pmem/core.c
+> @@ -37,13 +37,13 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+>         devm_nsio_disable(dev, nsio);
+>
+>         /* reserve the metadata area, device-dax will reserve the data */
+> -        pfn_sb = nd_pfn->pfn_sb;
+> +       pfn_sb = nd_pfn->pfn_sb;
+>         offset = le64_to_cpu(pfn_sb->dataoff);
+>         if (!devm_request_mem_region(dev, nsio->res.start, offset,
+>                                 dev_name(&ndns->dev))) {
+> -                dev_warn(dev, "could not reserve metadata\n");
+> +               dev_warn(dev, "could not reserve metadata\n");
+>                 return ERR_PTR(-EBUSY);
+> -        }
+> +       }
 
-Fixes: 240730437deb ("KEYS: trusted: explicitly use tpm_chip structure...")
-Cc: Roberto Sassu <roberto.sassu@huawei.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Mimi Zohar <zohar@linux.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- security/keys/trusted.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
-
-diff --git a/security/keys/trusted.c b/security/keys/trusted.c
-index bcc9c6ead7fd..d959597a688e 100644
---- a/security/keys/trusted.c
-+++ b/security/keys/trusted.c
-@@ -45,6 +45,13 @@ struct sdesc {
- static struct crypto_shash *hashalg;
- static struct crypto_shash *hmacalg;
- 
-+static struct device *chip_dev(struct tpm_chip *chip)
-+{
-+	if (chip)
-+		return &chip->dev;
-+	return NULL;
-+}
-+
- static struct sdesc *init_sdesc(struct crypto_shash *alg)
- {
- 	struct sdesc *sdesc;
-@@ -1224,6 +1231,14 @@ static int __init init_digests(void)
- 	int ret;
- 	int i;
- 
-+	/*
-+	 * Hardware tpm operations are disabled, but allow the software
-+	 * module to initialize, and depend on trusted_instantiate() to
-+	 * fail any attempts to access the missing hardware.
-+	 */
-+	if (!chip)
-+		return 0;
-+
- 	ret = tpm_get_random(chip, digest, TPM_MAX_DIGEST_SIZE);
- 	if (ret < 0)
- 		return ret;
-@@ -1246,8 +1261,6 @@ static int __init init_trusted(void)
- 	int ret;
- 
- 	chip = tpm_default_chip();
--	if (!chip)
--		return -ENOENT;
- 	ret = init_digests();
- 	if (ret < 0)
- 		goto err_put;
-@@ -1263,13 +1276,13 @@ static int __init init_trusted(void)
- err_free:
- 	kfree(digests);
- err_put:
--	put_device(&chip->dev);
-+	put_device(chip_dev(chip));
- 	return ret;
- }
- 
- static void __exit cleanup_trusted(void)
- {
--	put_device(&chip->dev);
-+	put_device(chip_dev(chip));
- 	kfree(digests);
- 	trusted_shash_release();
- 	unregister_key_type(&key_type_trusted);
-
+Looks good to me, literally, no chance of regression :).
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
