@@ -1,21 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-it1-x141.google.com (mail-it1-x141.google.com
- [IPv6:2607:f8b0:4864:20::141])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AFAF7211DF22F
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 17:30:34 -0700 (PDT)
-Received: by mail-it1-x141.google.com with SMTP id l139so24307754ita.5
- for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 17:30:34 -0700 (PDT)
-MIME-Version: 1.0
-References: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.corp.intel.com>
- <1552955080.2785.26.camel@linux.ibm.com>
-In-Reply-To: <1552955080.2785.26.camel@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6F97B21B02822
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 16:57:53 -0700 (PDT)
+Subject: [PATCH] security/keys/trusted: Allow operation without hardware TPM
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Mar 2019 17:30:22 -0700
-Message-ID: <CAA9_cmcOD2zPaaNbkYAaH5DRDRAebPkW+hwPA0zPKY4kU8R-rg@mail.gmail.com>
-Subject: Re: [PATCH] security/keys/trusted: Allow operation without hardware
- TPM
+Date: Mon, 18 Mar 2019 16:45:13 -0700
+Message-ID: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,31 +20,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: James Bottomley <jejb@linux.ibm.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Roberto Sassu <roberto.sassu@huawei.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mimi Zohar <zohar@linux.ibm.com>, David Howells <dhowells@redhat.com>, keyrings@vger.kernel.org, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: jarkko.sakkinen@linux.intel.com
+Cc: linux-nvdimm@lists.01.org, James Bottomley <jejb@linux.ibm.com>, Roberto Sassu <roberto.sassu@huawei.com>, linux-kernel@vger.kernel.org, Mimi Zohar <zohar@linux.ibm.com>, David Howells <dhowells@redhat.com>, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 18, 2019 at 5:24 PM James Bottomley <jejb@linux.ibm.com> wrote:
->
-> On Mon, 2019-03-18 at 16:45 -0700, Dan Williams wrote:
-> > Rather than fail initialization of the trusted.ko module, arrange for
-> > the module to load, but rely on trusted_instantiate() to fail
-> > trusted-key operations.
->
-> What actual problem is this fixing?  To me it would seem like an
-> enhancement to make the trusted module fail at load time if there's no
-> TPM rather than waiting until first use to find out it can never work.
-> Is there some piece of user code that depends on the successful
-> insertion of trusted.ko?
+Rather than fail initialization of the trusted.ko module, arrange for
+the module to load, but rely on trusted_instantiate() to fail
+trusted-key operations.
 
-The module dependency chain relies on it. If that can be broken that
-would also be an acceptable fix.
+Fixes: 240730437deb ("KEYS: trusted: explicitly use tpm_chip structure...")
+Cc: Roberto Sassu <roberto.sassu@huawei.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: James Bottomley <jejb@linux.ibm.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ security/keys/trusted.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-I found this through the following dependency chain: libnvdimm.ko ->
-encrypted_keys.ko -> trusted.ko.
+diff --git a/security/keys/trusted.c b/security/keys/trusted.c
+index bcc9c6ead7fd..d959597a688e 100644
+--- a/security/keys/trusted.c
++++ b/security/keys/trusted.c
+@@ -45,6 +45,13 @@ struct sdesc {
+ static struct crypto_shash *hashalg;
+ static struct crypto_shash *hmacalg;
+ 
++static struct device *chip_dev(struct tpm_chip *chip)
++{
++	if (chip)
++		return &chip->dev;
++	return NULL;
++}
++
+ static struct sdesc *init_sdesc(struct crypto_shash *alg)
+ {
+ 	struct sdesc *sdesc;
+@@ -1224,6 +1231,14 @@ static int __init init_digests(void)
+ 	int ret;
+ 	int i;
+ 
++	/*
++	 * Hardware tpm operations are disabled, but allow the software
++	 * module to initialize, and depend on trusted_instantiate() to
++	 * fail any attempts to access the missing hardware.
++	 */
++	if (!chip)
++		return 0;
++
+ 	ret = tpm_get_random(chip, digest, TPM_MAX_DIGEST_SIZE);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1246,8 +1261,6 @@ static int __init init_trusted(void)
+ 	int ret;
+ 
+ 	chip = tpm_default_chip();
+-	if (!chip)
+-		return -ENOENT;
+ 	ret = init_digests();
+ 	if (ret < 0)
+ 		goto err_put;
+@@ -1263,13 +1276,13 @@ static int __init init_trusted(void)
+ err_free:
+ 	kfree(digests);
+ err_put:
+-	put_device(&chip->dev);
++	put_device(chip_dev(chip));
+ 	return ret;
+ }
+ 
+ static void __exit cleanup_trusted(void)
+ {
+-	put_device(&chip->dev);
++	put_device(chip_dev(chip));
+ 	kfree(digests);
+ 	trusted_shash_release();
+ 	unregister_key_type(&key_type_trusted);
 
-"key_type_trusted" is the symbol that encrypted_keys needs regardless
-of whether the tpm is present.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
