@@ -1,10 +1,16 @@
-From: jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Subject: Mail System Error - Returned Mail
-Date: Tue, 19 Mar 2019 11:34:58 +0800
-Message-ID: <20190319033513.00B2D21A09130@ml01.01.org>
+From: Mimi Zohar <zohar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: Re: [PATCH] security/keys/trusted: Allow operation without hardware
+ TPM
+Date: Tue, 19 Mar 2019 18:56:29 -0400
+Message-ID: <1553036189.4899.136.camel@linux.ibm.com>
+References: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <1552955080.2785.26.camel@linux.ibm.com>
+ <CAA9_cmcOD2zPaaNbkYAaH5DRDRAebPkW+hwPA0zPKY4kU8R-rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7542472175698752173=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAA9_cmcOD2zPaaNbkYAaH5DRDRAebPkW+hwPA0zPKY4kU8R-rg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,68 +20,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James Bottomley <jejb-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Roberto Sassu <roberto.sassu-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============7542472175698752173==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-™Ò0JàÑ™ñK6øß—gíà8óÛft
-e¢ç)ZÃ™HK
-TÒ f…æ2¹ÔZÀ./åğ^gÄÖşÛF:İMˆ3Ñ#—\;6 ûá7œ-îª¿ğAâHÓß8C\9U¥6Y†ñJ>
-Ò’]½ç»ÒáA˜ı?HD‚ß;¶Ş*}£Ö;È^¬_¾Y¥vÏ>lA|îşu6»Qq©ê<)\?¨Ô:ZO¡lQÁ‘HÇ5[Ö¿¾¬"®ƒâş“MÃfŸo¸Â,½Ø†
-¹¶Ë»‡{©96½¾¯ŞE­îA#PMa9ÍÔîF±Ìbç
-ô}‘ğ#‡ø¨£|£ı]CIŠ¹’`ß³Xüşy~ZmÊßj)İœˆb•©>`H›UÚ²_È9]üè9 )sR%¹ò’P¥õ÷™§ı¿^,Èö|µúäÑö«Ú†ê1ú5ïÉ¯¹¥©Úk·‰Òã¥f3ÖïÊÙøê²²±$&mN  ÀuĞwÈVÓ{J©WïÔwíØ¤K˜9Î­{ª™­ê&X-ê5
-T:ÑKe6¶#ú*Êª•^ÇPgõ¤\„‡ãô¯Ìh»…b†›÷)ò`*çç…3³_q›Ô›ñ~¯ùF§Ã ­Bé1ÛœÎÂ–µs^9Â®ƒ4ª¨£‰‰]¥P1ó4¤ú©Éçs}<óøà £%TÔ¸‘6›Îõ1‹Y»'l3ÚÚeËB4Åä»°ViÓßÄ%?äÜ`î_nf¸Š¿†f,ŠüÌØPdu¢è7"2U½iCt£ñâœ(
-ÔÄ9oÑ?Ú½jõ,Ï,Øé3äè|Mu
-`ğóô¹ŸÅ4cõg®TçT
-òæÙ|¿qRıVÉ]·ÀU•UÆ'İ5Ê›)F&’ğÒ­ÏX~6å_™cJëş¾ÃAlcŠÀÕ¦-ÙÍ¼R™3é±›LK¡¥â{„¤µP“¨>ş?Íú
-¶Zõu¨‰¥Ò›ámÅVòÂˆö·±™ƒÖíî”Ø”Ãô]à«±ò›™z1‹¬KyÑèDşyØÉsf.ö3•4Ò>RŞ÷
-B¶šr·³#§îèBš
-›y?\|ísyû¤ò\Ñ¸çş÷¾]Š–^öí¼Åôô”cËş©P›W
-MËd¯h|ôw&
-2OÃFU|ßrq,W7™TÚ¬Vˆ¾Qè¥ªú¢
-ÊÀØ:. ôlŸÚeúôdí“cõàŞˆ£a•¡ŒÉ7#QVĞ8`ã[²Í×Fd#N Oü1ØIáB®Ñs¸xxÌ[Y›–.æÈñ¶ƒEøF X İ^qo''o,4q¢P•iiÊ»qiÕNCÂƒc¸jH{z¨üøB³É)s‰2/|F”%
-·ßÇVıÖûclÃdÎ#Æ|Yñ:[ø
-Ë–T1çysvÙ©N•güqO„
-k_Íûİªâfû˜·©YÌniéâNœzí¼û°¬ÄP¢ Åp{˜Éh•İÉa³mÍªLüc×ÚéeİšmaTå©ùOHšGa‘îæVEûÁq­¾`ôh:àv
-,ò—Ñƒ$‹sÜ?„ìÛ
-[\ğ°ÕŠ•`¹Ddşô)‰í7y/ÉƒnÂ–¤ÆËIïØ(¶¢Ü®ÅM/‡‰÷·ádøwzIRièĞœŠjMK¸'ù
-¨Ó|éÇnQ‰n$<¶*ì×óî4Mj—U½¤ÎÃ#İò:3ºwh#Q±tYÅîå—mÜCò]³{î³“«½3Mœ
-–d}¢Ì—
-çŞ] ½«ö2ø\v,ÜİãFØR¢L£°VU\‡å·‹7Ş1ZT|¿&üİgrîá—ÑDdã8]"Šbõnºd¯ÂİE%OõóÊÛŸuøÇ‹z¾kq¨1Ğ.*œ1XPÏê£®}BİxıÄµpÖ)F
-›¼Ï#¬?½’4/³;º¡NÂê[U¦Â•ÏÄõ]™K ¢MM}ª)32_^Ã}’ÒN«œ²œbòÒ“Â`.U$—©ã|Ä•$IÖ5µ;
-vâ8s65æfLNSŒ\
-¡qûƒëÒ‹ä#Ü“A9œşé')šĞËÛ Cp÷éc
-ÂK¡¶nX$¹<¥}[Çû¥àæèp˜ªšYPÈ~øP”î'PT¨,G±)„ÕÁº%s§ò]›kH%tI{KzwòøÉ1w#¦j0ÃÇ
-GqYÂ7±
-‹ÊÉ5×z!õ
-Z“ÆŞÉ>£qU'Y×9Ó(îõ‡ñÕïònèz¼Í«:³LU*š½T
-6‘"½Y­æö9’1‘z¾$ eŠ9z5`n‚ôŞRiíæ88ÈT^5yÛ³_Œ×izİ9nr¶–rJpüdš†š±n.dôG4ìŒ˜õ­©Âf>\u&n«éC ¦³î†Å¡¢—å
-\¾Q7huˆ:3¯faÀ‰ç(Ò]£†íæDy~³lr
-¿«[ï<{ô0Œ#¦ä85û1ûYÚ†h#t˜âæAš#Fİù»åuö¶£W¡mÄÚ–/Ğo2ãÌ×Hm[Ü †
-Å)ÀQùŒ>ÌÔºæ–²qt¼;÷'ÖOò_àª s·ü]»z’hD›‰(±„Š„ĞÕÏ/õŞOü`_
-°«öM4F, ½iĞ36‹ò
-¬ŸGËi^à*«Ïz…íœGŠ¸‰Dù#(ö?Ö¿îÆÜ[6·Ï¨¦
-:·÷¤ûçœÛ¡>z½–Ó’¶[<[]û\aKHgü‡;ô´ö Ìõîgwíè­ŸÍñhêå½é¢mb;¬sIöã¿”Ò:“p#tÊíŒ"ıjVãÇg#brš¤^¿j’(R«sÅü(yÖ*J7ìVŞ‚™¥î¸JÒ «¡$ğX™Ñš˜¥Ñ;Ròj²^ØúàÓ|z½
-?Ø90¾Yª‰Õb•)óÕGğs}3ƒùNzOåZ»Ô-0ÅØ¤&~ˆPP¢İ¬c•*Å ¶>yå[ü¢­dGàñ>ÀøVØ|„œ]È¨şì«šmóo*N,¶Ù`QŠï…·(pvb­¸'08pXK„±ôlÁ-ŞyAËA˜²´9ŒÀ’]¥q1e½—^IJt¬Ïyòh¼|;ga¶nd¼%ñ‘†Âçâ{.ICÎQ”Có†·ëÁı®Î³÷Ë
-ÚË9¬|0£4•õ›&Ë‡„'¹í)»§ÊiZ\ÉùYÅ÷ˆ_G(Û
-/rKÒÄr˜æ˜$0¡>ÜèœˆrÌ­¼ıŸóPBC™ª9b„…³¾o¿Ôˆ/…ªÛø!C, Kš„½0q6Ddù™w»ôÌ£¿‘‘ZÂ³yTêVjcJ(HæMî:F|çá(©{áWìuc?†“s_À#'‘U†È
-
-
---===============7542472175698752173==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============7542472175698752173==--
+SGkgRGFuLAoKT24gTW9uLCAyMDE5LTAzLTE4IGF0IDE3OjMwIC0wNzAwLCBEYW4gV2lsbGlhbXMg
+d3JvdGU6CgpTb3JyeSBmb3IgdGhlIGxhdGUgcmVwbHkuCgo+IE9uIE1vbiwgTWFyIDE4LCAyMDE5
+IGF0IDU6MjQgUE0gSmFtZXMgQm90dG9tbGV5IDxqZWpiQGxpbnV4LmlibS5jb20+IHdyb3RlOgo+
+ID4KPiA+IE9uIE1vbiwgMjAxOS0wMy0xOCBhdCAxNjo0NSAtMDcwMCwgRGFuIFdpbGxpYW1zIHdy
+b3RlOgo+ID4gPiBSYXRoZXIgdGhhbiBmYWlsIGluaXRpYWxpemF0aW9uIG9mIHRoZSB0cnVzdGVk
+LmtvIG1vZHVsZSwgYXJyYW5nZSBmb3IKPiA+ID4gdGhlIG1vZHVsZSB0byBsb2FkLCBidXQgcmVs
+eSBvbiB0cnVzdGVkX2luc3RhbnRpYXRlKCkgdG8gZmFpbAo+ID4gPiB0cnVzdGVkLWtleSBvcGVy
+YXRpb25zLgo+ID4KPiA+IFdoYXQgYWN0dWFsIHByb2JsZW0gaXMgdGhpcyBmaXhpbmc/ICBUbyBt
+ZSBpdCB3b3VsZCBzZWVtIGxpa2UgYW4KPiA+IGVuaGFuY2VtZW50IHRvIG1ha2UgdGhlIHRydXN0
+ZWQgbW9kdWxlIGZhaWwgYXQgbG9hZCB0aW1lIGlmIHRoZXJlJ3Mgbm8KPiA+IFRQTSByYXRoZXIg
+dGhhbiB3YWl0aW5nIHVudGlsIGZpcnN0IHVzZSB0byBmaW5kIG91dCBpdCBjYW4gbmV2ZXIgd29y
+ay4KPiA+IElzIHRoZXJlIHNvbWUgcGllY2Ugb2YgdXNlciBjb2RlIHRoYXQgZGVwZW5kcyBvbiB0
+aGUgc3VjY2Vzc2Z1bAo+ID4gaW5zZXJ0aW9uIG9mIHRydXN0ZWQua28/Cj4gCj4gVGhlIG1vZHVs
+ZSBkZXBlbmRlbmN5IGNoYWluIHJlbGllcyBvbiBpdC4gSWYgdGhhdCBjYW4gYmUgYnJva2VuIHRo
+YXQKPiB3b3VsZCBhbHNvIGJlIGFuIGFjY2VwdGFibGUgZml4Lgo+IAo+IEkgZm91bmQgdGhpcyB0
+aHJvdWdoIHRoZSBmb2xsb3dpbmcgZGVwZW5kZW5jeSBjaGFpbjogbGlibnZkaW1tLmtvIC0+Cj4g
+ZW5jcnlwdGVkX2tleXMua28gLT4gdHJ1c3RlZC5rby4KPiAKPiAia2V5X3R5cGVfdHJ1c3RlZCIg
+aXMgdGhlIHN5bWJvbCB0aGF0IGVuY3J5cHRlZF9rZXlzIG5lZWRzIHJlZ2FyZGxlc3MKPiBvZiB3
+aGV0aGVyIHRoZSB0cG0gaXMgcHJlc2VudC4KCkNvbW1pdMKgOTgyZTYxN2EzMTNiICgiZW5jcnlw
+dGVkLWtleXM6IHJlbW92ZSB0cnVzdGVkLWtleXMgZGVwZW5kZW5jeSIpCnJlbW92ZWQgdGhlIGRl
+cGVuZGVuY3kgb24gdHJ1c3RlZCBrZXlzLiDCoG1hc3RlcmtleV90cnVzdGVkLmMgc2hvdWxkCm9u
+bHkgYmUgaW5jbHVkZWQgaWYgIkNPTkZJR19UUlVTVEVEX0tFWVMiIGlzIGVuYWJsZWQuIMKgSXMK
+Q09ORklHX1RSVVNURURfS0VZUyBlbmFibGVkPwoKTWltaQoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51
+eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtbnZkaW1tCg==
