@@ -1,20 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
+Received: from mail2-relais-roc.national.inria.fr
+ (mail2-relais-roc.national.inria.fr [192.134.164.83])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C7D8521959CB2
- for <linux-nvdimm@lists.01.org>; Thu, 21 Mar 2019 08:56:22 -0700 (PDT)
-References: <20190214213729.21702-1-brendanhiggins@google.com>
- <6d9b3b21-1179-3a45-7545-30aa15306cb4@deltatee.com>
- <01b2a950f661e8ebd6acbc45c2f89c8f10063daf.camel@oracle.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <ce355f5c-189c-816c-cde4-fb4e816d44e7@deltatee.com>
-Date: Thu, 21 Mar 2019 09:56:10 -0600
+ by ml01.01.org (Postfix) with ESMTPS id 3C113211DDA39
+ for <linux-nvdimm@lists.01.org>; Mon, 18 Mar 2019 23:38:38 -0700 (PDT)
+Subject: Re: failure to setup devdax over fake nvdimm
+References: <54fb48ed-f681-1420-b2d0-082ed14802a7@inria.fr>
+ <CAPcyv4g0KCON5KfTyeoK3UWApD=Gg=-eg=9Cc0OR-QcArXKMFA@mail.gmail.com>
+ <f1374ac6-5007-8ac9-782d-d0615feb3b09@inria.fr>
+ <CAPcyv4ivcUmiPSgS-27iB2dv455n64nmeSMh690QjYUTLmG1ow@mail.gmail.com>
+ <c7e6e156-8060-35f4-8265-885cdc7b5a77@inria.fr>
+ <CAPcyv4jzpbhPYQOCUpNLV5o_9tPP2FJNxFffg-uddBFMGQhbcQ@mail.gmail.com>
+ <a4a352ce-d814-2f97-3773-e22ddd6bbdec@inria.fr>
+ <CAPcyv4j_-irtAr3SD7gw2FNeKxM+OMAo04w5ms6SOVKupkMP0A@mail.gmail.com>
+ <CAPcyv4i1jT+_+Ya4N=2D4wg1iEo1dVqmc3Z5abyptaCUd6rhjw@mail.gmail.com>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+Message-ID: <efbb681a-7e60-e2d6-5456-66322d31abce@inria.fr>
+Date: Tue, 19 Mar 2019 07:38:36 +0100
 MIME-Version: 1.0
-In-Reply-To: <01b2a950f661e8ebd6acbc45c2f89c8f10063daf.camel@oracle.com>
-Content-Language: en-CA
-Subject: Re: [RFC v4 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
+In-Reply-To: <CAPcyv4i1jT+_+Ya4N=2D4wg1iEo1dVqmc3Z5abyptaCUd6rhjw@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,52 +28,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Knut Omang <knut.omang@oracle.com>, Brendan Higgins <brendanhiggins@google.com>, keescook@google.com, mcgrof@kernel.org, shuah@kernel.org, robh@kernel.org, kieran.bingham@ideasonboard.com, frowand.list@gmail.com
-Cc: brakmo@fb.com, pmladek@suse.com, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, richard@nod.at, wfg@linux.intel.com, joel@jms.id.au, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, joe@perches.com, khilman@baylibre.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 2019-03-20 11:23 p.m., Knut Omang wrote:
-> Testing drivers, hardware and firmware within production kernels was the use
-> case that inspired KTF (Kernel Test Framework). Currently KTF is available as a
-> standalone git repository. That's been the most efficient form for us so far, 
-> as we typically want tests to be developed once but deployed on many different
-> kernel versions simultaneously, as part of continuous integration.
-
-Interesting. It seems like it's really in direct competition with KUnit.
-I didn't really go into it in too much detail but these are my thoughts:
-
->From a developer perspective I think KTF not being in the kernel tree is
-a huge negative. I want minimal effort to include my tests in a patch
-series and minimal effort for other developers to be able to use them.
-Needing to submit these tests to another project or use another project
-to run them is too much friction.
-
-Also I think the goal of having tests that run on any kernel version is
-a pipe dream. You'd absolutely need a way to encode which kernel
-versions a test is expected to pass on because the tests might not make
-sense until a feature is finished in upstream. And this makes it even
-harder to develop these tests because, when we write them, we might not
-even know which kernel version the feature will be added to. Similarly,
-if a feature is removed or substantially changed, someone will have to
-do a patch to disable the test for subsequent kernel versions and create
-a new test for changed features. So, IMO, tests absolutely have to be
-part of the kernel tree so they can be changed with the respective
-features they test.
-
-Kunit's ability to run without having to build and run the entire kernel
- is also a huge plus. (Assuming there's a way to get around the build
-dependency issues). Because of this, it can be very quick to run these
-tests which makes development a *lot* easier seeing you don't have to
-reboot a machine every time you want to test a fix.
-
-Logan
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+TGUgMTkvMDMvMjAxOSDDoCAwMTozNCwgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4gT24gU2F0
+LCBNYXIgMTYsIDIwMTkgYXQgMTI6NDggUE0gRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
+bnRlbC5jb20+IHdyb3RlOgo+PiBPbiBTYXQsIE1hciAxNiwgMjAxOSBhdCAxMToxNiBBTSBCcmlj
+ZSBHb2dsaW4gPEJyaWNlLkdvZ2xpbkBpbnJpYS5mcj4gd3JvdGU6Cj4+PiBMZSAxNi8wMy8yMDE5
+IMOgIDE3OjE2LCBEYW4gV2lsbGlhbXMgYSDDqWNyaXQgOgo+Pj4+IFdoYXQgdmVyc2lvbiBvZiBu
+ZGN0bD8gU291bmRzIGxpa2UgeW91IG1heSBiZSBydW5uaW5nIHNvbWV0aGluZyBwcmlvcgo+Pj4+
+IHRvIHY2NCB0aGF0IGRvZXMgbm90IHVuZGVyc3RhbmQgdGhlIG5ldyBkZXZpY2UgdG9wb2xvZ3ku
+Cj4+Pgo+Pj4gSXQncyBuZGN0bCBmcm9tIGdpdCBtYXN0ZXIsIGhlbmNlIDY0LjEuCj4+Pgo+Pj4g
+SSBhbSB1c2luZyBhIHNpbWlsYXIgc29mdHdhcmUga2VybmVsK25kY3RsIG9uIGEgbWFjaGluZSB3
+aXRoIHJlYWwKPj4+IG52ZGltbXMsIG5vIHByb2JsZW0gdGhlcmUuIEl0J3Mgb25seSB0aGUgbWFj
+aGluZSB3aXRoIGZha2UgbnZkaW1tIHVzaW5nCj4+PiBtZW1tYXAgdGhhdCBzaG93IHRoaXMgaXNz
+dWUuCj4+Pgo+PiBIbW0sIGFsbCBteSBndWVzc2VzIGFyZSBjb21pbmcgdXAgZW1wdHkuLi4gd2hp
+Y2ggdXN1YWxseSBtZWFucyB0aGVyZQo+PiBpcyBpbmRlZWQgYSBidWcuIExldCBtZSB0cnkgc29t
+ZSBleHBlcmltZW50cyBoZXJlLCBidXQgSSBtYXkgbmVlZCB0bwo+PiBzZW5kIHlvdSBhIGRlYnVn
+IHBhdGNoIGZvciBtb3JlIGluZm8uIFRoYW5rcyBmb3IgdGhlIG1lbW1hcD0KPj4gaW5zaWdodC4u
+LiBJIGRvIHRlc3Qgd2l0aCB0aGF0LCBidXQgbGV0IG1lIHNlZSBpZiB0aGVyZSBpcyBzb21ldGhp
+bmcKPj4gc3BlY2lmaWMgYWJvdXQgeW91ciBjb25maWcuCj4gQnJpY2UsIG1heSBJIGFzayB5b3Ug
+dG8gcnVuOgo+Cj4gICAgIHVkZXZhZG0gbW9uaXRvciAtcAo+Cj4gLi4ud2hpbGUgcnVubmluZyB0
+aGUgIm5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UiIGNvbW1hbmQgYW5kIHNlbmQgdGhlIG91dHB1dD8K
+CgpLRVJORUxbMzQ3LjM4NjM0OV0gcmVtb3ZlwqDCoCAvZGV2aWNlcy92aXJ0dWFsL2JkaS8yNTk6
+MCAoYmRpKQpBQ1RJT049cmVtb3ZlCkRFVlBBVEg9L2RldmljZXMvdmlydHVhbC9iZGkvMjU5OjAK
+U0VRTlVNPTMxMDUKU1VCU1lTVEVNPWJkaQoKS0VSTkVMWzM0Ny4zODY0MTRdIHJlbW92ZcKgwqAK
+L2RldmljZXMvcGxhdGZvcm0vZTgyMF9wbWVtL25kYnVzMC9yZWdpb24wL25hbWVzcGFjZTAuMC9i
+bG9jay9wbWVtMCAoYmxvY2spCkFDVElPTj1yZW1vdmUKREVWTkFNRT0vZGV2L3BtZW0wCkRFVlBB
+VEg9L2RldmljZXMvcGxhdGZvcm0vZTgyMF9wbWVtL25kYnVzMC9yZWdpb24wL25hbWVzcGFjZTAu
+MC9ibG9jay9wbWVtMApERVZUWVBFPWRpc2sKTUFKT1I9MjU5Ck1JTk9SPTAKU0VRTlVNPTMxMDYK
+U1VCU1lTVEVNPWJsb2NrCgpVREVWwqAgWzM0Ny4zODcxMzRdIHJlbW92ZcKgwqAgL2RldmljZXMv
+dmlydHVhbC9iZGkvMjU5OjAgKGJkaSkKQUNUSU9OPXJlbW92ZQpERVZQQVRIPS9kZXZpY2VzL3Zp
+cnR1YWwvYmRpLzI1OTowClNFUU5VTT0zMTA1ClNVQlNZU1RFTT1iZGkKVVNFQ19JTklUSUFMSVpF
+RD0zNDczODYzODgKClVERVbCoCBbMzQ3LjM4ODMzMF0gcmVtb3ZlwqDCoAovZGV2aWNlcy9wbGF0
+Zm9ybS9lODIwX3BtZW0vbmRidXMwL3JlZ2lvbjAvbmFtZXNwYWNlMC4wL2Jsb2NrL3BtZW0wIChi
+bG9jaykKQUNUSU9OPXJlbW92ZQpERVZMSU5LUz0vZGV2L2Rpc2svYnktcGF0aC9wbGF0Zm9ybS1l
+ODIwX3BtZW0KREVWTkFNRT0vZGV2L3BtZW0wCkRFVlBBVEg9L2RldmljZXMvcGxhdGZvcm0vZTgy
+MF9wbWVtL25kYnVzMC9yZWdpb24wL25hbWVzcGFjZTAuMC9ibG9jay9wbWVtMApERVZUWVBFPWRp
+c2sKSURfUEFUSD1wbGF0Zm9ybS1lODIwX3BtZW0KSURfUEFUSF9UQUc9cGxhdGZvcm0tZTgyMF9w
+bWVtCk1BSk9SPTI1OQpNSU5PUj0wClNFUU5VTT0zMTA2ClNVQlNZU1RFTT1ibG9jawpUQUdTPTpz
+eXN0ZW1kOgpVU0VDX0lOSVRJQUxJWkVEPTEzNzA5NzY0CgpLRVJORUxbMzQ3LjU2NzQ4NF0gdW5i
+aW5kwqDCoAovZGV2aWNlcy9wbGF0Zm9ybS9lODIwX3BtZW0vbmRidXMwL3JlZ2lvbjAvbmFtZXNw
+YWNlMC4wIChuZCkKQUNUSU9OPXVuYmluZApERVZQQVRIPS9kZXZpY2VzL3BsYXRmb3JtL2U4MjBf
+cG1lbS9uZGJ1czAvcmVnaW9uMC9uYW1lc3BhY2UwLjAKREVWVFlQRT1uZF9uYW1lc3BhY2VfaW8K
+U0VRTlVNPTMxMDcKU1VCU1lTVEVNPW5kCgpVREVWwqAgWzM0Ny41Njg0NzRdIHVuYmluZMKgwqAK
+L2RldmljZXMvcGxhdGZvcm0vZTgyMF9wbWVtL25kYnVzMC9yZWdpb24wL25hbWVzcGFjZTAuMCAo
+bmQpCkFDVElPTj11bmJpbmQKREVWUEFUSD0vZGV2aWNlcy9wbGF0Zm9ybS9lODIwX3BtZW0vbmRi
+dXMwL3JlZ2lvbjAvbmFtZXNwYWNlMC4wCkRFVlRZUEU9bmRfbmFtZXNwYWNlX2lvClNFUU5VTT0z
+MTA3ClNVQlNZU1RFTT1uZApVU0VDX0lOSVRJQUxJWkVEPTM0NzU2ODQyNAoKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
