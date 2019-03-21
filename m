@@ -1,77 +1,113 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A8FA8211E2EE9
- for <linux-nvdimm@lists.01.org>; Thu, 21 Mar 2019 15:36:09 -0700 (PDT)
-Date: Thu, 21 Mar 2019 16:37:08 -0600
-From: Keith Busch <keith.busch@intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Zi Yan <ziy@nvidia.com>
 Subject: Re: [PATCH 0/5] Page demotion for memory reclaim
-Message-ID: <20190321223706.GA29817@localhost.localdomain>
+Date: Thu, 21 Mar 2019 14:20:51 -0700
+Message-ID: <5B5EFBC2-2979-4B9F-A43A-1A14F16ACCE1@nvidia.com>
+In-Reply-To: <20190321200157.29678-1-keith.busch@intel.com>
 References: <20190321200157.29678-1-keith.busch@intel.com>
- <5B5EFBC2-2979-4B9F-A43A-1A14F16ACCE1@nvidia.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <5B5EFBC2-2979-4B9F-A43A-1A14F16ACCE1@nvidia.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@intel.com>, David Nellans <dnellans@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "Kirill A. Shutemov" <kirill@shutemov.name>
+Content-Type: multipart/signed;
+	boundary="=_MailMate_64525BCB-86AC-4202-8D74-2FF72494C4AB_=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Sender: owner-linux-mm@kvack.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, David Nellans <dnellans@nvidia.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gVGh1LCBNYXIgMjEsIDIwMTkgYXQgMDI6MjA6NTFQTSAtMDcwMCwgWmkgWWFuIHdyb3RlOgo+
-IDEuIFRoZSBuYW1lIG9mIOKAnHBhZ2UgZGVtb3Rpb27igJ0gc2VlbXMgY29uZnVzaW5nIHRvIG1l
-LCBzaW5jZSBJIHRob3VnaHQgaXQgd2FzIGFib3V0IGxhcmdlIHBhZ2VzCj4gZGVtb3RlIHRvIHNt
-YWxsIHBhZ2VzIGFzIG9wcG9zaXRlIHRvIHByb21vdGluZyBzbWFsbCBwYWdlcyB0byBUSFBzLiBB
-bSBJIHRoZSBvbmx5Cj4gb25lIGhlcmU/CgpJZiB5b3UgaGF2ZSBhIFRIUCwgd2UnbGwgc2tpcCB0
-aGUgcGFnZSBtaWdyYXRpb24gYW5kIGZhbGwgdGhyb3VnaCB0bwpzcGxpdF9odWdlX3BhZ2VfdG9f
-bGlzdCgpLCB0aGVuIHRoZSBzbWFsbGVyIHBhZ2VzIGNhbiBiZSBjb25zaWRlcmVkLAptaWdyYXRl
-ZCBhbmQgcmVjbGFpbWVkIGluZGl2aWR1YWxseS4gTm90IHRoYXQgd2UgY291bGRuJ3QgdHJ5IHRv
-IG1pZ3JhdGUKYSBUSFAgZGlyZWN0bHkuIEl0IHdhcyBqdXN0IHNpbXBsZXIgaW1wbGVtZW50YXRp
-b24gZm9yIHRoaXMgZmlyc3QgYXR0ZW1wdC4KCj4gMi4gRm9yIHRoZSBkZW1vdGlvbiBwYXRoLCBh
-IGNvbW1vbiBjYXNlIHdvdWxkIGJlIGZyb20gaGlnaC1wZXJmb3JtYW5jZSBtZW1vcnksIGxpa2Ug
-SEJNCj4gb3IgTXVsdGktQ2hhbm5lbCBEUkFNLCB0byBEUkFNLCB0aGVuIHRvIFBNRU0sIGFuZCBm
-aW5hbGx5IHRvIGRpc2tzLCByaWdodD8gTW9yZSBnZW5lcmFsCj4gY2FzZSBmb3IgZGVtb3Rpb24g
-cGF0aCB3b3VsZCBiZSBkZXJpdmVkIGZyb20gdGhlIG1lbW9yeSBwZXJmb3JtYW5jZSBkZXNjcmlw
-dGlvbiBmcm9tIEhNQVRbMV0sCj4gcmlnaHQ/IERvIHlvdSBoYXZlIGFueSBhbGdvcml0aG0gdG8g
-Zm9ybSBzdWNoIGEgcGF0aCBmcm9tIEhNQVQ/CgpZZXMsIEkgaGF2ZSBhIFBvQyBmb3IgdGhlIGtl
-cm5lbCBzZXR0aW5nIHVwIGEgZGVtb3Rpb24gcGF0aCBiYXNlZCBvbgpITUFUIHByb3BlcnRpZXMg
-aGVyZToKCiAgaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
-a2J1c2NoL2xpbnV4LmdpdC9jb21taXQvP2g9bW0tbWlncmF0ZSZpZD00ZDAwNzY1OWUxZGQxYjBk
-YWQ0OTUxNDM0OGJlNDQ0MWZiZTdjYWRiCgpUaGUgYWJvdmUgaXMganVzdCBmcm9tIGFuIGV4cGVy
-aW1lbnRhbCBicmFuY2guCgo+IDMuIERvIHlvdSBoYXZlIGEgcGxhbiBmb3IgcHJvbW90aW5nIHBh
-Z2VzIGZyb20gbG93ZXItbGV2ZWwgbWVtb3J5IHRvIGhpZ2hlci1sZXZlbCBtZW1vcnksCj4gbGlr
-ZSBmcm9tIFBNRU0gdG8gRFJBTT8gV2lsbCB0aGlzIG9uZS13YXkgZGVtb3Rpb24gbWFrZSBhbGwg
-cGFnZXMgc2luayB0byBQTUVNIGFuZCBkaXNrPwoKUHJvbW90aW5nIHByZXZpb3VzbHkgZGVtb3Rl
-ZCBwYWdlcyB3b3VsZCByZXF1aXJlIHRoZSBhcHBsaWNhdGlvbiBkbwpzb21ldGhpbmcgdG8gbWFr
-ZSB0aGF0IGhhcHBlbiBpZiB5b3UgdHVybiBkZW1vdGlvbiBvbiB3aXRoIHRoaXMgc2VyaWVzLgpL
-ZXJuZWwgYXV0by1wcm9tb3Rpb24gaXMgc3RpbGwgYmVpbmcgaW52ZXN0aWdhdGVkLCBhbmQgaXQn
-cyBhIGxpdHRsZQp0cmlja2llciB0aGFuIHJlY2xhaW0uCgpJZiBpdCBzaW5rcyB0byBkaXNrLCB0
-aG91Z2gsIHRoZSBuZXh0IGFjY2VzcyBiZWhhdmlvciBpcyB0aGUgc2FtZSBhcwpiZWZvcmUsIHdp
-dGhvdXQgdGhpcyBzZXJpZXMuCgo+IDQuIEluIHlvdXIgcGF0Y2ggMywgeW91IGNyZWF0ZWQgYSBu
-ZXcgbWV0aG9kIG1pZ3JhdGVfZGVtb3RlX21hcHBpbmcoKSB0byBtaWdyYXRlIHBhZ2VzIHRvCj4g
-b3RoZXIgbWVtb3J5IG5vZGUsIGlzIHRoZXJlIGFueSBwcm9ibGVtIG9mIHJldXNpbmcgZXhpc3Rp
-bmcgbWlncmF0ZV9wYWdlcygpIGludGVyZmFjZT8KClllcywgd2UgbWF5IG5vdCB3YW50IHRvIG1p
-Z3JhdGUgZXZlcnl0aGluZyBpbiB0aGUgc2hyaW5rX3BhZ2VfbGlzdCgpCnBhZ2VzLiBXZSBtaWdo
-dCB3YW50IHRvIGtlZXAgYSBwYWdlLCBzbyB3ZSBoYXZlIHRvIGRvIHRob3NlIGNoZWNrcyBmaXJz
-dC4gQXQKdGhlIHBvaW50IHdlIGtub3cgd2Ugd2FudCB0byBhdHRlbXB0IG1pZ3JhdGlvbiwgdGhl
-IHBhZ2UgaXMgYWxyZWFkeQpsb2NrZWQgYW5kIG5vdCBpbiBhIGxpc3QsIHNvIGl0IGlzIGp1c3Qg
-ZWFzaWVyIHRvIGRpcmVjdGx5IGludm9rZSB0aGUKbmV3IF9fdW5tYXBfYW5kX21vdmVfbG9ja2Vk
-KCkgdGhhdCBtaWdyYXRlX3BhZ2VzKCkgZXZlbnR1YWxseSBhbHNvIGNhbGxzLgogCj4gNS4gSW4g
-YWRkaXRpb24sIHlvdSBvbmx5IG1pZ3JhdGUgYmFzZSBwYWdlcywgaXMgdGhlcmUgYW55IHBlcmZv
-cm1hbmNlIGNvbmNlcm4gb24gbWlncmF0aW5nIFRIUHM/Cj4gSXMgaXQgdG9vIGNvc3RseSB0byBt
-aWdyYXRlIFRIUHM/CgpJdCB3YXMganVzdCBlYXNpZXIgdG8gY29uc2lkZXIgc2luZ2xlIHBhZ2Vz
-IGZpcnN0LCBzbyB3ZSBsZXQgYSBUSFAgc3BsaXQKaWYgcG9zc2libGUuIEknbSBub3Qgc3VyZSBv
-ZiB0aGUgY29zdCBpbiBtaWdyYXRpbmcgVEhQcyBkaXJlY3RseS4KX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApM
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlz
-dGluZm8vbGludXgtbnZkaW1tCg==
+--=_MailMate_64525BCB-86AC-4202-8D74-2FF72494C4AB_=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 21 Mar 2019, at 13:01, Keith Busch wrote:
+
+> The kernel has recently added support for using persistent memory as
+> normal RAM:
+>
+>   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/co=
+mmit/?id=3Dc221c0b0308fd01d9fb33a16f64d2fd95f8830a4
+>
+> The persistent memory is hot added to nodes separate from other memory
+> types, which makes it convenient to make node based memory policies.
+>
+> When persistent memory provides a larger and cheaper address space, but=
+
+> with slower access characteristics than system RAM, we'd like the kerne=
+l
+> to make use of these memory-only nodes as a migration tier for pages
+> that would normally be discared during memory reclaim. This is faster
+> than doing IO for swap or page cache, and makes better utilization of
+> available physical address space.
+>
+> The feature is not enabled by default. The user must opt-in to kernel
+> managed page migration by defining the demotion path. In the future,
+> we may want to have the kernel automatically create this based on
+> heterogeneous memory attributes and CPU locality.
+>
+
+Cc more people here.
+
+Thank you for the patchset. This is definitely useful when we have larger=
+ PMEM
+backing existing DRAM. I have several questions:
+
+1. The name of =E2=80=9Cpage demotion=E2=80=9D seems confusing to me, sin=
+ce I thought it was about large pages
+demote to small pages as opposite to promoting small pages to THPs. Am I =
+the only
+one here?
+
+2. For the demotion path, a common case would be from high-performance me=
+mory, like HBM
+or Multi-Channel DRAM, to DRAM, then to PMEM, and finally to disks, right=
+? More general
+case for demotion path would be derived from the memory performance descr=
+iption from HMAT[1],
+right? Do you have any algorithm to form such a path from HMAT?
+
+3. Do you have a plan for promoting pages from lower-level memory to high=
+er-level memory,
+like from PMEM to DRAM? Will this one-way demotion make all pages sink to=
+ PMEM and disk?
+
+4. In your patch 3, you created a new method migrate_demote_mapping() to =
+migrate pages to
+other memory node, is there any problem of reusing existing migrate_pages=
+() interface?
+
+5. In addition, you only migrate base pages, is there any performance con=
+cern on migrating THPs?
+Is it too costly to migrate THPs?
+
+Thanks.
+
+
+[1] https://lwn.net/Articles/724562/
+
+--
+Best Regards,
+Yan Zi
+
+--=_MailMate_64525BCB-86AC-4202-8D74-2FF72494C4AB_=
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJDBAEBAgAtFiEEh7yFAW3gwjwQ4C9anbJR82th+ooFAlyUADMPHHppeUBudmlk
+aWEuY29tAAoJEJ2yUfNrYfqKSFgQALRovEKyG0/MfQCHU7h0VuN+Y1Ed/08d75x8
+EToYq9az+/ecbuxikO5CcMDAa7Llw6BpMkeRaldPARrXIPj3tXeJeHgwLFO6C1Wg
+CC4oSM2XsZYoZ1JDwXeTDKIcO1OWCnANPHh3IbjdfcOKF8Z465sxaC70U9OCbzEb
+K/Tky+mUMBqokj40A7cTq72FLcOTcrXpyXMJqoWrl188E4bTiQs87FzSaN2wIKNr
+XP4MJCJR5cWcS0B1rLKfBTP/gZCWmOO6vCO9uxi/IH4QddfC8u8zZsIqzDQ3hc45
+37iYKoWMxSpqeynoz0elvjFYQB5QaXEsmzKXrpDbuiHyaaB25QPl0KbbVTllQJdH
+7DNe/zE2gS5MQl16r3DkHDssAZPu48vTgQNlVciDmzeEB4KURuZf/ItrGGXGfdDN
+3xScDxR4+fAJ3GzDRyG9M/CwsxbCgHl3fA60/ohO/Yyg0q1E42DWyMTammRikR7z
+4xI+r/jBXQMoiDrZ8DpU44QzRyWQugCJV2sX7BqtHpSxiMwlY7VR6g9PNn5bfHi9
+9hlI0k3xlEhLvF8voePfAY4iKhSpT5tNkNiwCJwikGByT+IJEAZW3+ESAYmv5U69
+dEZBjMSUbPS2uEVTEByjWw40FbuLWUh+7U3wloXwvKpfqQJby1RBl5gEKKIi8xBu
+PZ6qi/3K
+=WKXP
+-----END PGP SIGNATURE-----
+
+--=_MailMate_64525BCB-86AC-4202-8D74-2FF72494C4AB_=--
