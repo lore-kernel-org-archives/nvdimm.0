@@ -1,33 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5B7CA211D56C4
- for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 01:17:46 -0800 (PST)
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x2694APe034661
- for <linux-nvdimm@lists.01.org>; Wed, 6 Mar 2019 04:17:45 -0500
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2r2a8emb2p-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Wed, 06 Mar 2019 04:17:45 -0500
-Received: from localhost
- by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Wed, 6 Mar 2019 09:17:42 -0000
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: Re: [PATCH 2/2] mm/dax: Don't enable huge dax mapping by default
-In-Reply-To: <CAPcyv4jhEvijybSVsy+wmvgqfvyxfePQ3PUqy1hhmVmPtJTyqQ@mail.gmail.com>
-References: <20190228083522.8189-1-aneesh.kumar@linux.ibm.com>
- <20190228083522.8189-2-aneesh.kumar@linux.ibm.com>
- <CAOSf1CHjkyX2NTex7dc1AEHXSDcWA_UGYX8NoSyHpb5s_RkwXQ@mail.gmail.com>
- <CAPcyv4jhEvijybSVsy+wmvgqfvyxfePQ3PUqy1hhmVmPtJTyqQ@mail.gmail.com>
-Date: Wed, 06 Mar 2019 14:47:33 +0530
+ by ml01.01.org (Postfix) with ESMTPS id 3A5F2211E2C0A
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Mar 2019 06:48:40 -0700 (PDT)
+Date: Thu, 21 Mar 2019 15:48:31 +0200
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH 0/6] security/keys/encrypted: Break module dependency chain
+Message-ID: <20190321134831.GC4603@linux.intel.com>
+References: <155297557534.2276575.16264199708584900090.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAPcyv4ij2nHD7JumKNcNYB4gAGujWzCPkcpoi=XafmG3EP2b0g@mail.gmail.com>
+ <20190321134549.GB4603@linux.intel.com>
 MIME-Version: 1.0
-Message-Id: <87k1hc8iqa.fsf@linux.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <20190321134549.GB4603@linux.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,97 +21,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Oliver <oohall@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Michael Ellerman <mpe@ellerman.id.au>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Ross Zwisler <zwisler@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: David Howells <dhowells@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, James Bottomley <jejb@linux.ibm.com>, ecryptfs@vger.kernel.org, Roberto Sassu <roberto.sassu@huawei.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mimi Zohar <zohar@linux.ibm.com>, Tyler Hicks <tyhicks@canonical.com>, keyrings@vger.kernel.org, linux-integrity@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-RGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+IHdyaXRlczoKCj4gT24gVGh1
-LCBGZWIgMjgsIDIwMTkgYXQgMTo0MCBBTSBPbGl2ZXIgPG9vaGFsbEBnbWFpbC5jb20+IHdyb3Rl
-Ogo+Pgo+PiBPbiBUaHUsIEZlYiAyOCwgMjAxOSBhdCA3OjM1IFBNIEFuZWVzaCBLdW1hciBLLlYK
-Pj4gPGFuZWVzaC5rdW1hckBsaW51eC5pYm0uY29tPiB3cm90ZToKPj4gPgo+PiA+IEFkZCBhIGZs
-YWcgdG8gaW5kaWNhdGUgdGhlIGFiaWxpdHkgdG8gZG8gaHVnZSBwYWdlIGRheCBtYXBwaW5nLiBP
-biBhcmNoaXRlY3R1cmUKPj4gPiBsaWtlIHBwYzY0LCB0aGUgaHlwZXJ2aXNvciBjYW4gZGlzYWJs
-ZSBodWdlIHBhZ2Ugc3VwcG9ydCBpbiB0aGUgZ3Vlc3QuIEluCj4+ID4gc3VjaCBhIGNhc2UsIHdl
-IHNob3VsZCBub3QgZW5hYmxlIGh1Z2UgcGFnZSBkYXggbWFwcGluZy4gVGhpcyBwYXRjaCBhZGRz
-Cj4+ID4gYSBmbGFnIHdoaWNoIHRoZSBhcmNoaXRlY3R1cmUgY29kZSB3aWxsIHVwZGF0ZSB0byBp
-bmRpY2F0ZSBodWdlIHBhZ2UKPj4gPiBkYXggbWFwcGluZyBzdXBwb3J0Lgo+Pgo+PiAqZ3JvYW4q
-Cj4+Cj4+ID4gQXJjaGl0ZWN0dXJlcyBtb3N0bHkgZG8gdHJhbnNwYXJlbnRfaHVnZXBhZ2VfZmxh
-ZyA9IDA7IGlmIHRoZXkgY2FuJ3QKPj4gPiBkbyBodWdlcGFnZXMuIFRoYXQgYWxzbyB0YWtlcyBj
-YXJlIG9mIGRpc2FibGluZyBkYXggaHVnZXBhZ2UgbWFwcGluZwo+PiA+IHdpdGggdGhpcyBjaGFu
-Z2UuCj4+ID4KPj4gPiBXaXRob3V0IHRoaXMgcGF0Y2ggd2UgZ2V0IHRoZSBiZWxvdyBlcnJvciB3
-aXRoIGt2bSBvbiBwcGM2NC4KPj4gPgo+PiA+IFsgIDExOC44NDk5NzVdIGxwYXI6IEZhaWxlZCBo
-YXNoIHB0ZSBpbnNlcnQgd2l0aCBlcnJvciAtNAo+PiA+Cj4+ID4gTk9URTogVGhlIHBhdGNoIGFs
-c28gdXNlCj4+ID4KPj4gPiBlY2hvIG5ldmVyID4gL3N5cy9rZXJuZWwvbW0vdHJhbnNwYXJlbnRf
-aHVnZXBhZ2UvZW5hYmxlZAo+PiA+IHRvIGRpc2FibGUgZGF4IGh1Z2UgcGFnZSBtYXBwaW5nLgo+
-PiA+Cj4+ID4gU2lnbmVkLW9mZi1ieTogQW5lZXNoIEt1bWFyIEsuViA8YW5lZXNoLmt1bWFyQGxp
-bnV4LmlibS5jb20+Cj4+ID4gLS0tCj4+ID4gVE9ETzoKPj4gPiAqIEFkZCBGaXhlczogdGFnCj4+
-ID4KPj4gPiAgaW5jbHVkZS9saW51eC9odWdlX21tLmggfCA0ICsrKy0KPj4gPiAgbW0vaHVnZV9t
-ZW1vcnkuYyAgICAgICAgfCA0ICsrKysKPj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlv
-bnMoKyksIDEgZGVsZXRpb24oLSkKPj4gPgo+PiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4
-L2h1Z2VfbW0uaCBiL2luY2x1ZGUvbGludXgvaHVnZV9tbS5oCj4+ID4gaW5kZXggMzgxZTg3MmJm
-ZGUwLi4wMWFkNTI1ODU0NWUgMTAwNjQ0Cj4+ID4gLS0tIGEvaW5jbHVkZS9saW51eC9odWdlX21t
-LmgKPj4gPiArKysgYi9pbmNsdWRlL2xpbnV4L2h1Z2VfbW0uaAo+PiA+IEBAIC01Myw2ICs1Myw3
-IEBAIHZtX2ZhdWx0X3Qgdm1mX2luc2VydF9wZm5fcHVkKHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAq
-dm1hLCB1bnNpZ25lZCBsb25nIGFkZHIsCj4+ID4gICAgICAgICAgICAgICAgICAgICAgICAgcHVk
-X3QgKnB1ZCwgcGZuX3QgcGZuLCBib29sIHdyaXRlKTsKPj4gPiAgZW51bSB0cmFuc3BhcmVudF9o
-dWdlcGFnZV9mbGFnIHsKPj4gPiAgICAgICAgIFRSQU5TUEFSRU5UX0hVR0VQQUdFX0ZMQUcsCj4+
-ID4gKyAgICAgICBUUkFOU1BBUkVOVF9IVUdFUEFHRV9EQVhfRkxBRywKPj4gPiAgICAgICAgIFRS
-QU5TUEFSRU5UX0hVR0VQQUdFX1JFUV9NQURWX0ZMQUcsCj4+ID4gICAgICAgICBUUkFOU1BBUkVO
-VF9IVUdFUEFHRV9ERUZSQUdfRElSRUNUX0ZMQUcsCj4+ID4gICAgICAgICBUUkFOU1BBUkVOVF9I
-VUdFUEFHRV9ERUZSQUdfS1NXQVBEX0ZMQUcsCj4+ID4gQEAgLTExMSw3ICsxMTIsOCBAQCBzdGF0
-aWMgaW5saW5lIGJvb2wgX190cmFuc3BhcmVudF9odWdlcGFnZV9lbmFibGVkKHN0cnVjdCB2bV9h
-cmVhX3N0cnVjdCAqdm1hKQo+PiA+ICAgICAgICAgaWYgKHRyYW5zcGFyZW50X2h1Z2VwYWdlX2Zs
-YWdzICYgKDEgPDwgVFJBTlNQQVJFTlRfSFVHRVBBR0VfRkxBRykpCj4+ID4gICAgICAgICAgICAg
-ICAgIHJldHVybiB0cnVlOwo+PiA+Cj4+ID4gLSAgICAgICBpZiAodm1hX2lzX2RheCh2bWEpKQo+
-PiA+ICsgICAgICAgaWYgKHZtYV9pc19kYXgodm1hKSAmJgo+PiA+ICsgICAgICAgICAgICh0cmFu
-c3BhcmVudF9odWdlcGFnZV9mbGFncyAmICgxIDw8IFRSQU5TUEFSRU5UX0hVR0VQQUdFX0RBWF9G
-TEFHKSkpCj4+ID4gICAgICAgICAgICAgICAgIHJldHVybiB0cnVlOwo+Pgo+PiBGb3JjaW5nIFBU
-RSBzaXplZCBmYXVsdHMgc2hvdWxkIGJlIGZpbmUgZm9yIGZzZGF4LCBidXQgaXQnbGwgYnJlYWsK
-Pj4gZGV2ZGF4LiBUaGUgZGV2ZGF4IGRyaXZlciByZXF1aXJlcyB0aGUgZmF1bHQgc2l6ZSBiZSA+
-PSB0aGUgbmFtZXNwYWNlCj4+IGFsaWdubWVudCBzaW5jZSBkZXZkYXggdHJpZXMgdG8gZ3VhcmFu
-dGVlIGh1Z2VwYWdlIG1hcHBpbmdzIHdpbGwgYmUKPj4gdXNlZCBhbmQgUE1EIGFsaWdubWVudCBp
-cyB0aGUgZGVmYXVsdC4gV2UgY2FuIHByb2JhYmx5IGhhdmUgZGV2ZGF4Cj4+IGZhbGwgYmFjayB0
-byB0aGUgbGFyZ2VzdCBzaXplIHRoZSBoeXBlcnZpc29yIGhhcyBtYWRlIGF2YWlsYWJsZSwgYnV0
-Cj4+IGl0IGRvZXMgcnVuIGNvbnRyYXJ5IHRvIHRoZSBkZXNpZ24uIEFoIHdlbGwsIEkgc3VwcG9z
-ZSBpdCdzIGJldHRlciBvZmYKPj4gYmVpbmcgZGVncmFkZWQgcmF0aGVyIHRoYW4gdW51c2FibGUu
-Cj4KPiBHaXZlbiB0aGlzIGlzIGFuIGV4cGxpY2l0IHNldHRpbmcgSSB0aGluayBkZXZpY2UtZGF4
-IHNob3VsZCBleHBsaWNpdGx5Cj4gZmFpbCB0byBlbmFibGUgaW4gdGhlIHByZXNlbmNlIG9mIHRo
-aXMgZmxhZyB0byBwcmVzZXJ2ZSB0aGUKPiBhcHBsaWNhdGlvbiB2aXNpYmxlIGJlaGF2aW9yLgo+
-Cj4gSS5lLiBpZiBkZXZpY2UtZGF4IHdhcyBlbmFibGVkIGFmdGVyIHRoaXMgc2V0dGluZyB3YXMg
-bWFkZSB0aGVuIEkKPiB0aGluayBmdXR1cmUgZmF1bHRzIHNob3VsZCBmYWlsIGFzIHdlbGwuCgpO
-b3Qgc3VyZSBJIHVuZGVyc3Rvb2QgdGhhdC4gTm93IHdlIGFyZSBkaXNhYmxpbmcgdGhlIGFiaWxp
-dHkgdG8gbWFwCnBhZ2VzIGFzIGh1Z2UgcGFnZXMuIEkgYW0gbm93IGNvbnNpZGVyaW5nIHRoYXQg
-dGhpcyBzaG91bGQgbm90IGJlCnVzZXIgY29uZmlndXJhYmxlLiBJZSwgdGhpcyBpcyBzb21ldGhp
-bmcgdGhhdCBwbGF0Zm9ybSBjYW4gdXNlIHRvIGF2b2lkCmRheCBmb3JjaW5nIGh1Z2UgcGFnZSBt
-YXBwaW5nLCBidXQgaWYgdGhlIGFyY2hpdGVjdHVyZSBjYW4gZW5hYmxlIGh1Z2UKZGF4IG1hcHBp
-bmcsIHdlIHNob3VsZCBhbHdheXMgZGVmYXVsdCB0byB1c2luZyB0aGF0LgoKTm93IHcuci50IHRv
-IGZhaWx1cmVzLCBjYW4gZGV2aWNlLWRheCBkbyBhbiBvcHBvcnR1bmlzdGljIGh1Z2UgcGFnZQp1
-c2FnZT8gSSBoYXZlbid0IGxvb2tlZCBhdCB0aGUgZGV2aWNlLWRheCBkZXRhaWxzIGZ1bGx5IHll
-dC4gRG8gd2UgbWFrZSB0aGUKYXNzdW1wdGlvbiBvZiB0aGUgbWFwcGluZyBwYWdlIHNpemUgYXMg
-YSBmb3JtYXQgdy5yLnQgZGV2aWNlLWRheD8gSXMgdGhhdApkZXJpdmVkIGZyb20gbmRfcGZuLT5h
-bGlnbiB2YWx1ZT8KCkhlcmUgaXMgd2hhdCBJIGFtIHdvcmtpbmcgb246CjEpIElmIHRoZSBwbGF0
-Zm9ybSBkb2Vzbid0IHN1cHBvcnQgaHVnZSBwYWdlwqBhbmQgaWYgdGhlIGRldmljZSBzdXBlcmJs
-b2NrCmluZGljYXRlZCB0aGF0IGl0IHdhcyBjcmVhdGVkIHdpdGggaHVnZSBwYWdlIHN1cHBvcnQs
-IHdlIGZhaWwgdGhlIGRldmljZQppbml0LgoKMikgTm93IGlmIHdlIGFyZSBjcmVhdGluZyBhIG5l
-dyBuYW1lc3BhY2Ugd2l0aG91dCBodWdlIHBhZ2Ugc3VwcG9ydCBpbgp0aGUgcGxhdGZvcm0sIHRo
-ZW4gd2UgZm9yY2UgdGhlIGFsaWduIGRldGFpbHMgdG8gUEFHRV9TSVpFLiBJbiBzdWNoIGEKY29u
-ZmlndXJhdGlvbiB3aGVuIGhhbmRsaW5nIGRheCBmYXVsdCBldmVuIHdpdGggVEhQIGVuYWJsZWQg
-ZHVyaW5nCnRoZSBidWlsZCwgd2Ugc2hvdWxkIG5vdCB0cnkgdG8gdXNlIGh1Z2VwYWdlLiBUaGlz
-IEkgdGhpbmsgd2UgY2FuCmFjaGlldmUgYnkgdXNpbmcgVFJBTlNQQVJFTlRfSFVHRVBBRUdfREFY
-X0ZMQUcuCgpBbHNvIGV2ZW4gaWYgdGhlIHVzZXIgZGVjaWRlZCB0byBub3QgdXNlIFRIUCwgYnkK
-ZWNobyAibmV2ZXIiID4gdHJhbnNwYXJlbnRfaHVnZXBhZ2UvZW5hYmxlZCAsIHdlIHNob3VsZCBj
-b250aW51ZSB0byBtYXAKZGF4IGZhdWx0IHVzaW5nIGh1Z2UgcGFnZSBvbiBwbGF0Zm9ybXMgdGhh
-dCBjYW4gc3VwcG9ydCBodWdlIHBhZ2VzLgoKVGhpcyBzdGlsbCBkb2Vzbid0IGNvdmVyIHRoZSBk
-ZXRhaWxzIG9mIGEgZGV2aWNlLWRheCBjcmVhdGVkIHdpdGgKUEFHRV9TSVpFIGFsaWduIGxhdGVy
-IGJvb3RlZCB3aXRoIGEga2VybmVsIHRoYXQgY2FuIGRvIGh1Z2VwYWdlIGRheC5Ib3cKc2hvdWxk
-IHdlIGhhbmRsZSB0aGF0PyBUaGF0IG1ha2VzIG1lIHRoaW5rLCB0aGlzIHNob3VsZCBiZSBhIFZN
-QSBmbGFnCndoaWNoIGdvdCBkZXJpdmVkIGZyb20gZGV2aWNlIGNvbmZpZz8gTWF5IGJlIHVzZSBW
-TV9IVUdFUEFHRSB0byBpbmRpY2F0ZQppZiBkZXZpY2Ugc2hvdWxkIHVzZSBhIGh1Z2VwYWdlIG1h
-cHBpbmcgb3Igbm90PwoKLWFuZWVzaAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+On Thu, Mar 21, 2019 at 03:45:49PM +0200, Jarkko Sakkinen wrote:
+> On Tue, Mar 19, 2019 at 02:01:44PM -0700, Dan Williams wrote:
+> > On Mon, Mar 18, 2019 at 11:18 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> > >
+> > > With v5.1-rc1 all the nvdimm sub-system regression tests started failing
+> > > because the libnvdimm module failed to load in the qemu-kvm test
+> > > environment.  Critically that environment does not have a TPM. Commit
+> > > 240730437deb "KEYS: trusted: explicitly use tpm_chip structure..."
+> > > started to require a TPM to be present for the trusted.ko module to load
+> > > where there was no requirement for that before.
+> > >
+> > > Rather than undo the "fail if no hardware" behavior James points out
+> > > that the module dependencies can be broken by looking up the key-type by
+> > > name. Remove the dependencies on the "key_type_trusted" and
+> > > "key_type_encrypted" symbol exports, and clean up other boilerplate that
+> > > supported those exports in different configurations.
+> > 
+> > Any feedback? Was hoping to get at least patch1 in the queue for
+> > v5.1-rc2 since this effectively disables the nvdimm driver on typical
+> > configurations. Jarkko, would you be willing to merge it since the
+> > regression came through your tree?
+> 
+> Yes, of course. The feedback has been extremely passive because I've
+> been sick leave for the early week :-)
+> 
+> Before I'm merging this I'm just thinking that would it be better
+> idea to merge a patch for trusted.c that reverts the old behavior
+> with cc to stable and fixes tags as I said in my earlier response.
+> 
+> It would less intrusive for stable kernels. Lets quickly sort out
+> the best strategy before merging.
+
+I.e. the way I see the situation:
+
+1. Reverting the old behavior in the sense that missing TPM does
+   not prevent init of trusted.ko should be done right now.
+2. Your patch could be definitely merged but not as a bug fix.
+3. At some point we could consider failing the init of trusted.ko
+   if TPM is missing because that is kind of senseful anyway with
+   better testing now that we understand the dependency context
+   better.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
