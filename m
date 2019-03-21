@@ -1,8 +1,8 @@
 Return-Path: <owner-linux-mm@kvack.org>
 From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 3/5] mm: Attempt to migrate page in lieu of discard
-Date: Thu, 21 Mar 2019 14:01:55 -0600
-Message-Id: <20190321200157.29678-4-keith.busch@intel.com>
+Subject: [PATCH 4/5] mm: Consider anonymous pages without swap
+Date: Thu, 21 Mar 2019 14:01:56 -0600
+Message-Id: <20190321200157.29678-5-keith.busch@intel.com>
 In-Reply-To: <20190321200157.29678-1-keith.busch@intel.com>
 References: <20190321200157.29678-1-keith.busch@intel.com>
 Sender: owner-linux-mm@kvack.org
@@ -10,167 +10,93 @@ To: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If a memory node has a preferred migration path to demote cold pages,
-attempt to move those inactive pages to that migration node before
-reclaiming. This will better utilize available memory, provide a faster
-tier than swapping or discarding, and allow such pages to be reused
-immediately without IO to retrieve the data.
-
-Some places we would like to see this used:
-
- 1. Persistent memory being as a slower, cheaper DRAM replacement
- 2. Remote memory-only "expansion" NUMA nodes
- 3. Resolving memory imbalances where one NUMA node is seeing more
-    allocation activity than another.  This helps keep more recent
-    allocations closer to the CPUs on the node doing the allocating.
+Age and reclaim anonymous pages from nodes that have an online migration node even
+if swap is not enabled.
 
 Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- include/linux/migrate.h        |  6 ++++++
- include/trace/events/migrate.h |  3 ++-
- mm/debug.c                     |  1 +
- mm/migrate.c                   | 45 ++++++++++++++++++++++++++++++++++++++++++
- mm/vmscan.c                    | 15 ++++++++++++++
- 5 files changed, 69 insertions(+), 1 deletion(-)
+ include/linux/swap.h | 20 ++++++++++++++++++++
+ mm/vmscan.c          | 10 +++++-----
+ 2 files changed, 25 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/migrate.h b/include/linux/migrate.h
-index e13d9bf2f9a5..a004cb1b2dbb 100644
---- a/include/linux/migrate.h
-+++ b/include/linux/migrate.h
-@@ -25,6 +25,7 @@ enum migrate_reason {
- 	MR_MEMPOLICY_MBIND,
- 	MR_NUMA_MISPLACED,
- 	MR_CONTIG_RANGE,
-+	MR_DEMOTION,
- 	MR_TYPES
- };
- 
-@@ -79,6 +80,7 @@ extern int migrate_huge_page_move_mapping(struct address_space *mapping,
- extern int migrate_page_move_mapping(struct address_space *mapping,
- 		struct page *newpage, struct page *page, enum migrate_mode mode,
- 		int extra_count);
-+extern bool migrate_demote_mapping(struct page *page);
- #else
- 
- static inline void putback_movable_pages(struct list_head *l) {}
-@@ -105,6 +107,10 @@ static inline int migrate_huge_page_move_mapping(struct address_space *mapping,
- 	return -ENOSYS;
+diff --git a/include/linux/swap.h b/include/linux/swap.h
+index 4bfb5c4ac108..91b405a3b44f 100644
+--- a/include/linux/swap.h
++++ b/include/linux/swap.h
+@@ -680,5 +680,25 @@ static inline bool mem_cgroup_swap_full(struct page *page)
  }
+ #endif
  
-+static inline bool migrate_demote_mapping(struct page *page)
++static inline bool reclaim_anon_pages(struct mem_cgroup *memcg,
++				      int node_id)
 +{
-+	return false;
-+}
- #endif /* CONFIG_MIGRATION */
- 
- #ifdef CONFIG_COMPACTION
-diff --git a/include/trace/events/migrate.h b/include/trace/events/migrate.h
-index 705b33d1e395..d25de0cc8714 100644
---- a/include/trace/events/migrate.h
-+++ b/include/trace/events/migrate.h
-@@ -20,7 +20,8 @@
- 	EM( MR_SYSCALL,		"syscall_or_cpuset")		\
- 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
- 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
--	EMe(MR_CONTIG_RANGE,	"contig_range")
-+	EM(MR_CONTIG_RANGE,	"contig_range")			\
-+	EMe(MR_DEMOTION,	"demotion")
- 
- /*
-  * First define the enums in the above macros to be exported to userspace
-diff --git a/mm/debug.c b/mm/debug.c
-index c0b31b6c3877..53d499f65199 100644
---- a/mm/debug.c
-+++ b/mm/debug.c
-@@ -25,6 +25,7 @@ const char *migrate_reason_names[MR_TYPES] = {
- 	"mempolicy_mbind",
- 	"numa_misplaced",
- 	"cma",
-+	"demotion",
- };
- 
- const struct trace_print_flags pageflag_names[] = {
-diff --git a/mm/migrate.c b/mm/migrate.c
-index 705b320d4b35..83fad87361bf 100644
---- a/mm/migrate.c
-+++ b/mm/migrate.c
-@@ -1152,6 +1152,51 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
- 	return rc;
- }
- 
-+/**
-+ * migrate_demote_mapping() - Migrate this page and its mappings to its
-+ * 			      demotion node.
-+ * @page: An isolated, non-compound page that should move to
-+ * 	  its current node's migration path.
-+ *
-+ * @returns: True if migrate demotion was successful, false otherwise
-+ */
-+bool migrate_demote_mapping(struct page *page)
-+{
-+	int rc, next_nid = next_migration_node(page_to_nid(page));
-+	struct page *newpage;
-+
-+	/*
-+	 * The flags are set to allocate only on the desired node in the
-+	 * migration path, and to fail fast if not immediately available. We
-+	 * are already in the memory reclaim path, we don't want heroic
-+	 * efforts to get a page.
-+	 */
-+	gfp_t mask = GFP_NOWAIT	| __GFP_NOWARN | __GFP_NORETRY |
-+		     __GFP_NOMEMALLOC | __GFP_THISNODE;
-+
-+	VM_BUG_ON_PAGE(PageCompound(page), page);
-+	VM_BUG_ON_PAGE(PageLRU(page), page);
-+
-+	if (next_nid < 0)
-+		return false;
-+
-+	newpage = alloc_pages_node(next_nid, mask, 0);
-+	if (!newpage)
-+		return false;
-+
-+	/*
-+	 * MIGRATE_ASYNC is the most light weight and never blocks.
-+	 */
-+	rc = __unmap_and_move_locked(page, newpage, MIGRATE_ASYNC);
-+	if (rc != MIGRATEPAGE_SUCCESS) {
-+		__free_pages(newpage, 0);
-+		return false;
++	/* Always age anon pages when we have swap */
++	if (memcg == NULL) {
++		if (get_nr_swap_pages() > 0)
++			return true;
++	} else {
++		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
++			return true;
 +	}
 +
-+	set_page_owner_migrate_reason(newpage, MR_DEMOTION);
-+	return true;
++	/* Also age anon pages if we can auto-migrate them */
++	if (next_migration_node(node_id) >= 0)
++		return true;
++
++	/* No way to reclaim anon pages */
++	return false;
 +}
 +
- /*
-  * gcc 4.7 and 4.8 on arm get an ICEs when inlining unmap_and_move().  Work
-  * around it.
+ #endif /* __KERNEL__*/
+ #endif /* _LINUX_SWAP_H */
 diff --git a/mm/vmscan.c b/mm/vmscan.c
-index a5ad0b35ab8e..0a95804e946a 100644
+index 0a95804e946a..226c4c838947 100644
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -1261,6 +1261,21 @@ static unsigned long shrink_page_list(struct list_head *page_list,
- 			; /* try to reclaim the page below */
- 		}
+@@ -327,7 +327,7 @@ unsigned long zone_reclaimable_pages(struct zone *zone)
  
-+		if (!PageCompound(page)) {
-+			if (migrate_demote_mapping(page)) {
-+                                unlock_page(page);
-+                                if (likely(put_page_testzero(page)))
-+                                        goto free_it;
-+
-+                                /*
-+				 * Speculative reference will free this page,
-+				 * so leave it off the LRU.
-+				 */
-+                                nr_reclaimed++;
-+                                continue;
-+                        }
-+		}
-+
- 		/*
- 		 * Anonymous process memory has backing store?
- 		 * Try to allocate it some swap space here.
+ 	nr = zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_FILE) +
+ 		zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (reclaim_anon_pages(NULL, zone_to_nid(zone)))
+ 		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
+ 			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
+ 
+@@ -2206,7 +2206,7 @@ static bool inactive_list_is_low(struct lruvec *lruvec, bool file,
+ 	 * If we don't have swap space, anonymous page deactivation
+ 	 * is pointless.
+ 	 */
+-	if (!file && !total_swap_pages)
++	if (!file && !reclaim_anon_pages(NULL, pgdat->node_id))
+ 		return false;
+ 
+ 	inactive = lruvec_lru_size(lruvec, inactive_lru, sc->reclaim_idx);
+@@ -2287,7 +2287,7 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+ 	enum lru_list lru;
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (!sc->may_swap || mem_cgroup_get_nr_swap_pages(memcg) <= 0) {
++	if (!sc->may_swap || !reclaim_anon_pages(memcg, pgdat->node_id)) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
+@@ -2650,7 +2650,7 @@ static inline bool should_continue_reclaim(struct pglist_data *pgdat,
+ 	 */
+ 	pages_for_compaction = compact_gap(sc->order);
+ 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (!reclaim_anon_pages(NULL, pgdat->node_id))
+ 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+ 	if (sc->nr_reclaimed < pages_for_compaction &&
+ 			inactive_lru_pages > pages_for_compaction)
+@@ -3347,7 +3347,7 @@ static void age_active_anon(struct pglist_data *pgdat,
+ {
+ 	struct mem_cgroup *memcg;
+ 
+-	if (!total_swap_pages)
++	if (!reclaim_anon_pages(NULL, pgdat->node_id))
+ 		return;
+ 
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
 -- 
 2.14.4
