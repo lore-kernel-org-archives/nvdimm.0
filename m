@@ -1,16 +1,30 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C67A211D56AB
- for <linux-nvdimm@lists.01.org>; Tue,  5 Mar 2019 17:46:49 -0800 (PST)
-Subject: [ndctl PATCH 2/5] ndctl/dimm: Minimize data-transfer for init-labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 05 Mar 2019 17:34:10 -0800
-Message-ID: <155183605011.191625.7927964225736910065.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2B1CD211D0C87
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Mar 2019 20:12:46 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id e22so3620734oiy.0
+ for <linux-nvdimm@lists.01.org>; Wed, 20 Mar 2019 20:12:46 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190228083522.8189-1-aneesh.kumar@linux.ibm.com>
+ <20190228083522.8189-2-aneesh.kumar@linux.ibm.com>
+ <CAOSf1CHjkyX2NTex7dc1AEHXSDcWA_UGYX8NoSyHpb5s_RkwXQ@mail.gmail.com>
+ <CAPcyv4jhEvijybSVsy+wmvgqfvyxfePQ3PUqy1hhmVmPtJTyqQ@mail.gmail.com>
+ <87k1hc8iqa.fsf@linux.ibm.com>
+ <CAPcyv4ir4irASBQrZD_a6kMkEUt=XPUCuKajF75O7wDCgeG=7Q@mail.gmail.com>
+ <871s3aqfup.fsf@linux.ibm.com>
+ <CAPcyv4i0SahDP=_ZQV3RG_b5pMkjn-9Cjy7OpY2sm1PxLdO8jA@mail.gmail.com>
+ <87bm267ywc.fsf@linux.ibm.com> <878sxa7ys5.fsf@linux.ibm.com>
+ <CAPcyv4iuAPg3HWh5e8-Ud3oCrvp5AoFmjOzf4bbA+VLgR7NLFg@mail.gmail.com>
+ <CAPcyv4hMzVuOYzy2tTq-my8Z1y+X6Ug-fyObpKTxVU44p5rBZw@mail.gmail.com>
+ <CAOSf1CEZoLw5QqEMTKwiZ+d_qPLp_D9pJZUtnQWMXWpAXOQ2YA@mail.gmail.com>
+In-Reply-To: <CAOSf1CEZoLw5QqEMTKwiZ+d_qPLp_D9pJZUtnQWMXWpAXOQ2YA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 20 Mar 2019 20:12:34 -0700
+Message-ID: <CAPcyv4hiAE9Y3Jeudr=Ys=eu2gei088xGyTCJGOoz04iUExUfw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] mm/dax: Don't enable huge dax mapping by default
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,145 +36,100 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Oliver <oohall@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Ross Zwisler <zwisler@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently init-labels implementation reads the entire namespace-label
-capacity, initializes just the namespace index, and then writes the
-entire label capacity. It turns out that DIMM label-area access methods
-can be exceedingly slow.
+On Wed, Mar 20, 2019 at 8:09 PM Oliver <oohall@gmail.com> wrote:
+>
+> On Thu, Mar 21, 2019 at 7:57 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > On Wed, Mar 20, 2019 at 8:34 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> > >
+> > > On Wed, Mar 20, 2019 at 1:09 AM Aneesh Kumar K.V
+> > > <aneesh.kumar@linux.ibm.com> wrote:
+> > > >
+> > > > Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com> writes:
+> > > >
+> > > > > Dan Williams <dan.j.williams@intel.com> writes:
+> > > > >
+> > > > >>
+> > > > >>> Now what will be page size used for mapping vmemmap?
+> > > > >>
+> > > > >> That's up to the architecture's vmemmap_populate() implementation.
+> > > > >>
+> > > > >>> Architectures
+> > > > >>> possibly will use PMD_SIZE mapping if supported for vmemmap. Now a
+> > > > >>> device-dax with struct page in the device will have pfn reserve area aligned
+> > > > >>> to PAGE_SIZE with the above example? We can't map that using
+> > > > >>> PMD_SIZE page size?
+> > > > >>
+> > > > >> IIUC, that's a different alignment. Currently that's handled by
+> > > > >> padding the reservation area up to a section (128MB on x86) boundary,
+> > > > >> but I'm working on patches to allow sub-section sized ranges to be
+> > > > >> mapped.
+> > > > >
+> > > > > I am missing something w.r.t code. The below code align that using nd_pfn->align
+> > > > >
+> > > > >       if (nd_pfn->mode == PFN_MODE_PMEM) {
+> > > > >               unsigned long memmap_size;
+> > > > >
+> > > > >               /*
+> > > > >                * vmemmap_populate_hugepages() allocates the memmap array in
+> > > > >                * HPAGE_SIZE chunks.
+> > > > >                */
+> > > > >               memmap_size = ALIGN(64 * npfns, HPAGE_SIZE);
+> > > > >               offset = ALIGN(start + SZ_8K + memmap_size + dax_label_reserve,
+> > > > >                               nd_pfn->align) - start;
+> > > > >       }
+> > > > >
+> > > > > IIUC that is finding the offset where to put vmemmap start. And that has
+> > > > > to be aligned to the page size with which we may end up mapping vmemmap
+> > > > > area right?
+> > >
+> > > Right, that's the physical offset of where the vmemmap ends, and the
+> > > memory to be mapped begins.
+> > >
+> > > > > Yes we find the npfns by aligning up using PAGES_PER_SECTION. But that
+> > > > > is to compute howmany pfns we should map for this pfn dev right?
+> > > > >
+> > > >
+> > > > Also i guess those 4K assumptions there is wrong?
+> > >
+> > > Yes, I think to support non-4K-PAGE_SIZE systems the 'pfn' metadata
+> > > needs to be revved and the PAGE_SIZE needs to be recorded in the
+> > > info-block.
+> >
+> > How often does a system change page-size. Is it fixed or do
+> > environment change it from one boot to the next? I'm thinking through
+> > the behavior of what do when the recorded PAGE_SIZE in the info-block
+> > does not match the current system page size. The simplest option is to
+> > just fail the device and require it to be reconfigured. Is that
+> > acceptable?
+>
+> The kernel page size is set at build time and as far as I know every
+> distro configures their ppc64(le) kernel for 64K. I've used 4K kernels
+> a few times in the past to debug PAGE_SIZE dependent problems, but I'd
+> be surprised if anyone is using 4K in production.
 
-For example, the time to read the entire label area on a single dimm:
-2s, but the time to just read the index block space: 45ms.
+Ah, ok.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/dimm.c           |    2 +-
- ndctl/lib/dimm.c       |   53 +++++++++++++++++++++++++++++++++++++++++++++---
- ndctl/lib/libndctl.sym |    1 +
- ndctl/libndctl.h       |    1 +
- 4 files changed, 53 insertions(+), 4 deletions(-)
+> Anyway, my view is that using 4K here isn't really a problem since
+> it's just the accounting unit of the pfn superblock format. The kernel
+> reading form it should understand that and scale it to whatever
+> accounting unit it wants to use internally. Currently we don't so that
+> should probably be fixed, but that doesn't seem to cause any real
+> issues. As far as I can tell the only user of npfns in
+> __nvdimm_setup_pfn() whih prints the "number of pfns truncated"
+> message.
+>
+> Am I missing something?
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 5ff730f42a45..5edada678c9c 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -974,7 +974,7 @@ static int __action_init(struct ndctl_dimm *dimm,
- 	struct ndctl_cmd *cmd_read;
- 	int rc;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_index(dimm);
- 	if (!cmd_read)
- 		return -ENXIO;
- 
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 22cf4e10b56c..9c5a34e542c3 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -370,14 +370,15 @@ static struct namespace_label *label_base(struct nvdimm_data *ndd)
- 	return (struct namespace_label *) base;
- }
- 
--static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read)
-+static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read,
-+		struct ndctl_cmd *cmd_size)
- {
- 	ndctl_cmd_unref(ndd->cmd_read);
- 	memset(ndd, 0, sizeof(*ndd));
- 	ndd->cmd_read = cmd_read;
- 	ndctl_cmd_ref(cmd_read);
- 	ndd->data = cmd_read->iter.total_buf;
--	ndd->config_size = cmd_read->iter.total_xfer;
-+	ndd->config_size = cmd_size->get_size->config_size;
- 	ndd->ns_current = -1;
- 	ndd->ns_next = -1;
- }
-@@ -490,6 +491,52 @@ NDCTL_EXPORT int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm)
- 	return label_validate(&dimm->ndd);
- }
- 
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm)
-+{
-+        struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-+        struct ndctl_cmd *cmd_size, *cmd_read;
-+	struct nvdimm_data *ndd = &dimm->ndd;
-+        int rc;
-+
-+        rc = ndctl_bus_wait_probe(bus);
-+        if (rc < 0)
-+                return NULL;
-+
-+        cmd_size = ndctl_dimm_cmd_new_cfg_size(dimm);
-+        if (!cmd_size)
-+                return NULL;
-+        rc = ndctl_cmd_submit_xlat(cmd_size);
-+        if (rc < 0)
-+                goto out_size;
-+
-+        cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
-+        if (!cmd_read)
-+                goto out_size;
-+	/*
-+	 * To calc the namespace index size use the minimum label
-+	 * size which corresponds to the maximum namespace index size.
-+	 */
-+	init_ndd(ndd, cmd_read, cmd_size);
-+	ndd->nslabel_size = 128;
-+	rc = ndctl_cmd_cfg_read_set_extent(cmd_read,
-+			sizeof_namespace_index(ndd) * 2, 0);
-+	if (rc < 0)
-+		goto out_size;
-+
-+        rc = ndctl_cmd_submit_xlat(cmd_read);
-+        if (rc < 0)
-+                goto out_read;
-+	ndctl_cmd_unref(cmd_size);
-+
-+	return cmd_read;
-+
-+ out_read:
-+        ndctl_cmd_unref(cmd_read);
-+ out_size:
-+        ndctl_cmd_unref(cmd_size);
-+        return NULL;
-+}
-+
- NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
- {
-         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-@@ -515,7 +562,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-                 goto out_read;
- 	ndctl_cmd_unref(cmd_size);
- 
--	init_ndd(&dimm->ndd, cmd_read);
-+	init_ndd(&dimm->ndd, cmd_read, cmd_size);
- 
- 	return cmd_read;
- 
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index e79b31c71ae6..3cd431a90e55 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -411,4 +411,5 @@ global:
- 	ndctl_bus_poll_scrub_completion;
- 	ndctl_cmd_cfg_read_set_extent;
- 	ndctl_cmd_cfg_write_set_extent;
-+	ndctl_dimm_read_label_index;
- } LIBNDCTL_19;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 310814fe924c..8aa4b8bbe6c2 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -308,6 +308,7 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
- int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
-+struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
- int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
- enum ndctl_namespace_version {
- 	NDCTL_NS_VERSION_1_1,
-
+No, I don't think so. The only time it would break is if a system with
+64K page size laid down an info-block with not enough reserved
+capacity when the page-size is 4K (npfns too small). However, that
+sounds like an exceptional case which is why no problems have been
+reported to date.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
