@@ -1,192 +1,93 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Zi Yan <ziy@nvidia.com>
-Subject: Re: [PATCH 0/5] Page demotion for memory reclaim
-Date: Thu, 21 Mar 2019 17:12:33 -0700
-Message-ID: <F33CDC43-745B-4555-B8E0-D50D8024C727@nvidia.com>
-In-Reply-To: <20190321223706.GA29817@localhost.localdomain>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com
+ [IPv6:2607:f8b0:4864:20::843])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 35085211E2EEB
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Mar 2019 16:02:20 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id v20so496161qtv.12
+ for <linux-nvdimm@lists.01.org>; Thu, 21 Mar 2019 16:02:20 -0700 (PDT)
+MIME-Version: 1.0
 References: <20190321200157.29678-1-keith.busch@intel.com>
  <5B5EFBC2-2979-4B9F-A43A-1A14F16ACCE1@nvidia.com>
  <20190321223706.GA29817@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-	boundary="=_MailMate_2FF9B97D-293E-453D-9986-85B2771222A1_=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
-Sender: owner-linux-mm@kvack.org
+In-Reply-To: <20190321223706.GA29817@localhost.localdomain>
+From: Yang Shi <shy828301@gmail.com>
+Date: Thu, 21 Mar 2019 16:02:07 -0700
+Message-ID: <CAHbLzkrLyG-j8kRrrQ==4Y4LDDLubvXMF88muyzXWAQWKw1ZSw@mail.gmail.com>
+Subject: Re: [PATCH 0/5] Page demotion for memory reclaim
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, David Nellans <dnellans@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@intel.com>, David Nellans <dnellans@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Zi Yan <ziy@nvidia.com>, "Kirill A. Shutemov" <kirill@shutemov.name>
 List-ID: <linux-nvdimm@lists.01.org>
 
---=_MailMate_2FF9B97D-293E-453D-9986-85B2771222A1_=
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<snip>
->> 2. For the demotion path, a common case would be from high-performance=
- memory, like HBM
->> or Multi-Channel DRAM, to DRAM, then to PMEM, and finally to disks, ri=
-ght? More general
->> case for demotion path would be derived from the memory performance de=
-scription from HMAT[1],
->> right? Do you have any algorithm to form such a path from HMAT?
->
-> Yes, I have a PoC for the kernel setting up a demotion path based on
-> HMAT properties here:
->
->   https://git.kernel.org/pub/scm/linux/kernel/git/kbusch/linux.git/comm=
-it/?h=3Dmm-migrate&id=3D4d007659e1dd1b0dad49514348be4441fbe7cadb
->
-> The above is just from an experimental branch.
-
-Got it. Thanks.
-
->
->> 3. Do you have a plan for promoting pages from lower-level memory to h=
-igher-level memory,
->> like from PMEM to DRAM? Will this one-way demotion make all pages sink=
- to PMEM and disk?
->
-> Promoting previously demoted pages would require the application do
-> something to make that happen if you turn demotion on with this series.=
-
-> Kernel auto-promotion is still being investigated, and it's a little
-> trickier than reclaim.
->
-> If it sinks to disk, though, the next access behavior is the same as
-> before, without this series.
-
-This means, when demotion is on, the path for a page would be DRAM->PMEM-=
->Disk->DRAM->PMEM->=E2=80=A6 .
-This could be a start point.
-
-I actually did something similar here for two-level heterogeneous memory =
-structure: https://github.com/ysarch-lab/nimble_page_management_asplos_20=
-19/blob/nimble_page_management_4_14_78/mm/memory_manage.c#L401.
-What I did basically was calling shrink_page_list() periodically, so page=
-s will be separated
-in active and inactive lists. Then, pages in the _inactive_ list of fast =
-memory (like DRAM)
-are migrated to slow memory (like PMEM) and pages in the _active_ list of=
- slow memory are migrated
-to fast memory. It is kinda of abusing the existing page lists. :)
-
-My conclusion from that experiments is that you need high-throughput page=
- migration mechanisms,
-like multi-threaded page migration, migrating a bunch of pages in a batch=
- (https://github.com/ysarch-lab/nimble_page_management_asplos_2019/blob/n=
-imble_page_management_4_14_78/mm/copy_page.c), and
-a new mechanism called exchange pages (https://github.com/ysarch-lab/nimb=
-le_page_management_asplos_2019/blob/nimble_page_management_4_14_78/mm/exc=
-hange.c), so that using page migration to manage multi-level
-memory systems becomes useful. Otherwise, the overheads (TLB shootdown an=
-d other kernel activities
-in the page migration process) of page migration may kill the benefit. Be=
-cause the performance
-gap between DRAM and PMEM is supposed to be smaller than the one between =
-DRAM and disk,
-the benefit of putting data in DRAM might not compensate the cost of migr=
-ating cold pages from DRAM
-to PMEM. Namely, directly putting data in PMEM after DRAM is full might b=
-e better.
-
-
->> 4. In your patch 3, you created a new method migrate_demote_mapping() =
-to migrate pages to
->> other memory node, is there any problem of reusing existing migrate_pa=
-ges() interface?
->
-> Yes, we may not want to migrate everything in the shrink_page_list()
-> pages. We might want to keep a page, so we have to do those checks firs=
-t. At
-> the point we know we want to attempt migration, the page is already
-> locked and not in a list, so it is just easier to directly invoke the
-> new __unmap_and_move_locked() that migrate_pages() eventually also call=
-s.
-
-Right, I understand that you want to only migrate small pages to begin wi=
-th. My question is
-why not using the existing migrate_pages() in your patch 3. Like:
-
-diff --git a/mm/vmscan.c b/mm/vmscan.c
-index a5ad0b35ab8e..0a0753af357f 100644
---- a/mm/vmscan.c
-+++ b/mm/vmscan.c
-@@ -1261,6 +1261,20 @@ static unsigned long shrink_page_list(struct list_=
-head *page_list,
-                        ; /* try to reclaim the page below */
-                }
-
-+               if (!PageCompound(page)) {
-+                       int next_nid =3D next_migration_node(page);
-+                       int err;
-+
-+                       if (next_nid !=3D TERMINAL_NODE) {
-+                               LIST_HEAD(migrate_list);
-+                               list_add(&migrate_list, &page->lru);
-+                               err =3D migrate_pages(&migrate_list, allo=
-c_new_node_page, NULL,
-+                                       next_nid, MIGRATE_ASYNC, MR_DEMOT=
-ION);
-+                               if (err)
-+                                       putback_movable_pages(&migrate_li=
-st);
-+                       }
-+               }
-+
-                /*
-                 * Anonymous process memory has backing store?
-                 * Try to allocate it some swap space here.
-
-Because your new migrate_demote_mapping() basically does the same thing a=
-s the code above.
-If you are not OK with the gfp flags in alloc_new_node_page(), you can ju=
-st write your own
-alloc_new_node_page(). :)
-
->
->> 5. In addition, you only migrate base pages, is there any performance =
-concern on migrating THPs?
->> Is it too costly to migrate THPs?
->
-> It was just easier to consider single pages first, so we let a THP spli=
-t
-> if possible. I'm not sure of the cost in migrating THPs directly.
-
-AFAICT, when migrating the same amount of 2MB data, migrating a THP is mu=
-ch quick than migrating
-512 4KB pages. Because you save 511 TLB shootdowns in THP migration and c=
-opying 2MB contiguous data
-achieves higher throughput than copying individual 4KB pages. But it high=
-ly depends on whether
-any subpage in a THP is hotter than others, so migrating a THP as a whole=
- might hurt performance
-sometimes. Just some of my observation in my own experiments.
-
-
---
-Best Regards,
-Yan Zi
-
---=_MailMate_2FF9B97D-293E-453D-9986-85B2771222A1_=
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQJDBAEBAgAtFiEEh7yFAW3gwjwQ4C9anbJR82th+ooFAlyUKHEPHHppeUBudmlk
-aWEuY29tAAoJEJ2yUfNrYfqKG6oP/3OQ573fMxvauLNuxYpady5bM1FB6ugGHtCW
-XEzJKifXTMVue0qe8Jctz+tHwzljpzuralc3brVasDu3CLBAOKbzHtWuOrEuqprm
-njE8WJEY/tcegYGuiYzIi+EIr7r0+hINCZiqbdQqxyXRKRahYNnoqVBG/riBusYT
-cFwjE6Rg6hadb3QimDz4zYfHIk9ztTc4HbNwLOOrm8VhzLTXOWyq2b+xfe8Ko2Oq
-BRtJcX49jIP3HMAo07YzSultExpHuYJnNTvNvAlkJVAMWAKM4HxRsNzBopRABgKg
-3bA78ay4WODc0rKiqfoGOq+L3zpB+Qwwdq/G6OOuRl+/Hlp2hXAh3zEUQu9q5m2B
-35cskVwYw1YG2zVJauI2MWRXbklFp8aMNJYn0jpF3U3xcTs+qVw5+Bo81sq1vFT6
-oOkqsiXKPxp8lIPYFpRJA45UHw1oAOEPNyD7gAsz7b+TKQ6x1/JaDpXh0sCzMyWl
-jyxexCon0SSLnOw5iRX6yyGVQsJkrp/5GqHtFwrTn+liXHl/p0Kisk1Em+y70dj5
-BTHIQ7BLSavWJ+s4BczEu6ur4mJUIcQhtSFFodKAqv6CN5NioBd8k2ZoXsLJ5NBi
-ufQd5XsFSNp8Zkv7GZk077NKRFhB5FsaHN4HzWsXwi0C0GbsidkPP61FGw/G2gQS
-MkLYyxFh
-=lbIR
------END PGP SIGNATURE-----
-
---=_MailMate_2FF9B97D-293E-453D-9986-85B2771222A1_=--
+T24gVGh1LCBNYXIgMjEsIDIwMTkgYXQgMzozNiBQTSBLZWl0aCBCdXNjaCA8a2VpdGguYnVzY2hA
+aW50ZWwuY29tPiB3cm90ZToKPgo+IE9uIFRodSwgTWFyIDIxLCAyMDE5IGF0IDAyOjIwOjUxUE0g
+LTA3MDAsIFppIFlhbiB3cm90ZToKPiA+IDEuIFRoZSBuYW1lIG9mIOKAnHBhZ2UgZGVtb3Rpb27i
+gJ0gc2VlbXMgY29uZnVzaW5nIHRvIG1lLCBzaW5jZSBJIHRob3VnaHQgaXQgd2FzIGFib3V0IGxh
+cmdlIHBhZ2VzCj4gPiBkZW1vdGUgdG8gc21hbGwgcGFnZXMgYXMgb3Bwb3NpdGUgdG8gcHJvbW90
+aW5nIHNtYWxsIHBhZ2VzIHRvIFRIUHMuIEFtIEkgdGhlIG9ubHkKPiA+IG9uZSBoZXJlPwo+Cj4g
+SWYgeW91IGhhdmUgYSBUSFAsIHdlJ2xsIHNraXAgdGhlIHBhZ2UgbWlncmF0aW9uIGFuZCBmYWxs
+IHRocm91Z2ggdG8KPiBzcGxpdF9odWdlX3BhZ2VfdG9fbGlzdCgpLCB0aGVuIHRoZSBzbWFsbGVy
+IHBhZ2VzIGNhbiBiZSBjb25zaWRlcmVkLAo+IG1pZ3JhdGVkIGFuZCByZWNsYWltZWQgaW5kaXZp
+ZHVhbGx5LiBOb3QgdGhhdCB3ZSBjb3VsZG4ndCB0cnkgdG8gbWlncmF0ZQo+IGEgVEhQIGRpcmVj
+dGx5LiBJdCB3YXMganVzdCBzaW1wbGVyIGltcGxlbWVudGF0aW9uIGZvciB0aGlzIGZpcnN0IGF0
+dGVtcHQuCj4KPiA+IDIuIEZvciB0aGUgZGVtb3Rpb24gcGF0aCwgYSBjb21tb24gY2FzZSB3b3Vs
+ZCBiZSBmcm9tIGhpZ2gtcGVyZm9ybWFuY2UgbWVtb3J5LCBsaWtlIEhCTQo+ID4gb3IgTXVsdGkt
+Q2hhbm5lbCBEUkFNLCB0byBEUkFNLCB0aGVuIHRvIFBNRU0sIGFuZCBmaW5hbGx5IHRvIGRpc2tz
+LCByaWdodD8gTW9yZSBnZW5lcmFsCj4gPiBjYXNlIGZvciBkZW1vdGlvbiBwYXRoIHdvdWxkIGJl
+IGRlcml2ZWQgZnJvbSB0aGUgbWVtb3J5IHBlcmZvcm1hbmNlIGRlc2NyaXB0aW9uIGZyb20gSE1B
+VFsxXSwKPiA+IHJpZ2h0PyBEbyB5b3UgaGF2ZSBhbnkgYWxnb3JpdGhtIHRvIGZvcm0gc3VjaCBh
+IHBhdGggZnJvbSBITUFUPwo+Cj4gWWVzLCBJIGhhdmUgYSBQb0MgZm9yIHRoZSBrZXJuZWwgc2V0
+dGluZyB1cCBhIGRlbW90aW9uIHBhdGggYmFzZWQgb24KPiBITUFUIHByb3BlcnRpZXMgaGVyZToK
+Pgo+ICAgaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQva2J1
+c2NoL2xpbnV4LmdpdC9jb21taXQvP2g9bW0tbWlncmF0ZSZpZD00ZDAwNzY1OWUxZGQxYjBkYWQ0
+OTUxNDM0OGJlNDQ0MWZiZTdjYWRiCj4KPiBUaGUgYWJvdmUgaXMganVzdCBmcm9tIGFuIGV4cGVy
+aW1lbnRhbCBicmFuY2guCj4KPiA+IDMuIERvIHlvdSBoYXZlIGEgcGxhbiBmb3IgcHJvbW90aW5n
+IHBhZ2VzIGZyb20gbG93ZXItbGV2ZWwgbWVtb3J5IHRvIGhpZ2hlci1sZXZlbCBtZW1vcnksCj4g
+PiBsaWtlIGZyb20gUE1FTSB0byBEUkFNPyBXaWxsIHRoaXMgb25lLXdheSBkZW1vdGlvbiBtYWtl
+IGFsbCBwYWdlcyBzaW5rIHRvIFBNRU0gYW5kIGRpc2s/Cj4KPiBQcm9tb3RpbmcgcHJldmlvdXNs
+eSBkZW1vdGVkIHBhZ2VzIHdvdWxkIHJlcXVpcmUgdGhlIGFwcGxpY2F0aW9uIGRvCj4gc29tZXRo
+aW5nIHRvIG1ha2UgdGhhdCBoYXBwZW4gaWYgeW91IHR1cm4gZGVtb3Rpb24gb24gd2l0aCB0aGlz
+IHNlcmllcy4KPiBLZXJuZWwgYXV0by1wcm9tb3Rpb24gaXMgc3RpbGwgYmVpbmcgaW52ZXN0aWdh
+dGVkLCBhbmQgaXQncyBhIGxpdHRsZQo+IHRyaWNraWVyIHRoYW4gcmVjbGFpbS4KCkp1c3QgRllJ
+LiBJJ20gY3VycmVudGx5IHdvcmtpbmcgb24gYSBwYXRjaHNldCB3aGljaCB0cmllcyB0byBwcm9t
+b3RlcwpwYWdlIGZyb20gc2Vjb25kIHRpZXIgbWVtb3J5IChpLmUuIFBNRU0pIHRvIERSQU0gdmlh
+IE5VTUEgYmFsYW5jaW5nLgpCdXQsIE5VTUEgYmFsYW5jaW5nIGNhbid0IGRlYWwgd2l0aCB1bm1h
+cHBlZCBwYWdlIGNhY2hlLCB0aGV5IGhhdmUgdG8KYmUgcHJvbW90ZWQgZnJvbSBkaWZmZXJlbnQg
+cGF0aCwgaS5lLiBtYXJrX3BhZ2VfYWNjZXNzZWQoKS4KCkFuZCwgSSBkbyBhZ3JlZSB3aXRoIEtl
+aXRoLCBwcm9tb3Rpb24gaXMgZGVmaW5pdGVseSB0cmlja2llciB0aGFuCnJlY2xhaW0gc2luY2Ug
+a2VybmVsIGNhbid0IHJlY29nbml6ZSAiaG90IiBwYWdlcyBhY2N1cmF0ZWx5LiBOVU1BCmJhbGFu
+Y2luZyBpcyBzdGlsbCBjb3JzZS1ncmFpbmVkIGFuZCBpbmFjY3VyYXRlLCBidXQgaXQgaXMgc2lt
+cGxlLiBJZgp3ZSB3b3VsZCBsaWtlIHRvIGltcGxlbWVudCBtb3JlIHNvcGhpc3RpY2F0ZWQgYWxn
+b3JpdGhtLCBpbi1rZXJuZWwKaW1wbGVtZW50YXRpb24gbWlnaHQgYmUgbm90IGEgZ29vZCBpZGVh
+LgoKVGhhbmtzLApZYW5nCgo+Cj4gSWYgaXQgc2lua3MgdG8gZGlzaywgdGhvdWdoLCB0aGUgbmV4
+dCBhY2Nlc3MgYmVoYXZpb3IgaXMgdGhlIHNhbWUgYXMKPiBiZWZvcmUsIHdpdGhvdXQgdGhpcyBz
+ZXJpZXMuCj4KPiA+IDQuIEluIHlvdXIgcGF0Y2ggMywgeW91IGNyZWF0ZWQgYSBuZXcgbWV0aG9k
+IG1pZ3JhdGVfZGVtb3RlX21hcHBpbmcoKSB0byBtaWdyYXRlIHBhZ2VzIHRvCj4gPiBvdGhlciBt
+ZW1vcnkgbm9kZSwgaXMgdGhlcmUgYW55IHByb2JsZW0gb2YgcmV1c2luZyBleGlzdGluZyBtaWdy
+YXRlX3BhZ2VzKCkgaW50ZXJmYWNlPwo+Cj4gWWVzLCB3ZSBtYXkgbm90IHdhbnQgdG8gbWlncmF0
+ZSBldmVyeXRoaW5nIGluIHRoZSBzaHJpbmtfcGFnZV9saXN0KCkKPiBwYWdlcy4gV2UgbWlnaHQg
+d2FudCB0byBrZWVwIGEgcGFnZSwgc28gd2UgaGF2ZSB0byBkbyB0aG9zZSBjaGVja3MgZmlyc3Qu
+IEF0Cj4gdGhlIHBvaW50IHdlIGtub3cgd2Ugd2FudCB0byBhdHRlbXB0IG1pZ3JhdGlvbiwgdGhl
+IHBhZ2UgaXMgYWxyZWFkeQo+IGxvY2tlZCBhbmQgbm90IGluIGEgbGlzdCwgc28gaXQgaXMganVz
+dCBlYXNpZXIgdG8gZGlyZWN0bHkgaW52b2tlIHRoZQo+IG5ldyBfX3VubWFwX2FuZF9tb3ZlX2xv
+Y2tlZCgpIHRoYXQgbWlncmF0ZV9wYWdlcygpIGV2ZW50dWFsbHkgYWxzbyBjYWxscy4KPgo+ID4g
+NS4gSW4gYWRkaXRpb24sIHlvdSBvbmx5IG1pZ3JhdGUgYmFzZSBwYWdlcywgaXMgdGhlcmUgYW55
+IHBlcmZvcm1hbmNlIGNvbmNlcm4gb24gbWlncmF0aW5nIFRIUHM/Cj4gPiBJcyBpdCB0b28gY29z
+dGx5IHRvIG1pZ3JhdGUgVEhQcz8KPgo+IEl0IHdhcyBqdXN0IGVhc2llciB0byBjb25zaWRlciBz
+aW5nbGUgcGFnZXMgZmlyc3QsIHNvIHdlIGxldCBhIFRIUCBzcGxpdAo+IGlmIHBvc3NpYmxlLiBJ
+J20gbm90IHN1cmUgb2YgdGhlIGNvc3QgaW4gbWlncmF0aW5nIFRIUHMgZGlyZWN0bHkuCj4KX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
+IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
