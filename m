@@ -1,54 +1,79 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9898B21A134A1
- for <linux-nvdimm@lists.01.org>; Tue,  5 Mar 2019 17:47:04 -0800 (PST)
-Subject: [ndctl PATCH 5/5] ndctl/namespace: Minimize label data transfer for
- autolabel
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 05 Mar 2019 17:34:25 -0800
-Message-ID: <155183606560.191625.374613203843183629.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Return-Path: <owner-linux-mm@kvack.org>
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCH 5/5] mm/migrate: Add page movement trace event
+Date: Thu, 21 Mar 2019 14:01:57 -0600
+Message-Id: <20190321200157.29678-6-keith.busch@intel.com>
+In-Reply-To: <20190321200157.29678-1-keith.busch@intel.com>
+References: <20190321200157.29678-1-keith.busch@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the new ndctl_dimm_read_label_index() helper to minimize the amount
-of label I/O needed to execute an autolabel event.
+Trace the source and destination node of a page migration to help debug
+memory usage.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- ndctl/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/migrate.h | 26 ++++++++++++++++++++++++++
+ mm/migrate.c                   |  1 +
+ 2 files changed, 27 insertions(+)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 63b870ff7a6d..05e5ab792941 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1016,7 +1016,7 @@ retry:
- 		int num_labels, avail;
+diff --git a/include/trace/events/migrate.h b/include/trace/events/migrate.h
+index d25de0cc8714..3d4b7131e547 100644
+--- a/include/trace/events/migrate.h
++++ b/include/trace/events/migrate.h
+@@ -6,6 +6,7 @@
+ #define _TRACE_MIGRATE_H
  
- 		ndctl_cmd_unref(cmd_read);
--		cmd_read = ndctl_dimm_read_labels(dimm);
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
- 		if (!cmd_read)
- 			continue;
+ #include <linux/tracepoint.h>
++#include <trace/events/mmflags.h>
  
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+ #define MIGRATE_MODE						\
+ 	EM( MIGRATE_ASYNC,	"MIGRATE_ASYNC")		\
+@@ -71,6 +72,31 @@ TRACE_EVENT(mm_migrate_pages,
+ 		__print_symbolic(__entry->mode, MIGRATE_MODE),
+ 		__print_symbolic(__entry->reason, MIGRATE_REASON))
+ );
++
++TRACE_EVENT(mm_migrate_move_page,
++
++	TP_PROTO(struct page *from, struct page *to, int status),
++
++	TP_ARGS(from, to, status),
++
++	TP_STRUCT__entry(
++		__field(struct page *, from)
++		__field(struct page *, to)
++		__field(int, status)
++	),
++
++	TP_fast_assign(
++		__entry->from = from;
++		__entry->to = to;
++		__entry->status = status;
++	),
++
++	TP_printk("node from=%d to=%d status=%d flags=%s refs=%d",
++		page_to_nid(__entry->from), page_to_nid(__entry->to),
++		__entry->status,
++		show_page_flags(__entry->from->flags & ((1UL << NR_PAGEFLAGS) - 1)),
++		page_ref_count(__entry->from))
++);
+ #endif /* _TRACE_MIGRATE_H */
+ 
+ /* This part must be outside protection */
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 83fad87361bf..d97433da12c0 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -997,6 +997,7 @@ static int move_to_new_page(struct page *newpage, struct page *page,
+ 			page->mapping = NULL;
+ 	}
+ out:
++	trace_mm_migrate_move_page(page, newpage, rc);
+ 	return rc;
+ }
+ 
+-- 
+2.14.4
