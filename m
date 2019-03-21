@@ -1,119 +1,199 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E9D82194D387
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:10:33 -0700 (PDT)
-Subject: [PATCH v5 00/10] mm: Sub-section memory hotplug support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Mar 2019 09:57:54 -0700
-Message-ID: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Vlastimil Babka <vbabka@suse.cz>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCH 2/5] mm: Split handling old page for migration
+Date: Thu, 21 Mar 2019 14:01:54 -0600
+Message-Id: <20190321200157.29678-3-keith.busch@intel.com>
+In-Reply-To: <20190321200157.29678-1-keith.busch@intel.com>
+References: <20190321200157.29678-1-keith.busch@intel.com>
+Sender: owner-linux-mm@kvack.org
+To: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4 [1]:
-- Given v4 was from March of 2017 the bulk of the changes result from
-  rebasing the patch set from a v4.11-rc2 baseline to v5.1-rc1.
+Refactor unmap_and_move() handling for the new page into a separate
+function from locking and preparing the old page.
 
-- A unit test is added to ndctl to exercise the creation and dax
-  mounting of multiple independent namespaces in a single 128M section.
+No functional change here: this is just making it easier to reuse this
+part of the page migration from contexts that already locked the old page.
 
-[1]: https://lwn.net/Articles/717383/
-
+Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
+ mm/migrate.c | 115 +++++++++++++++++++++++++++++++----------------------------
+ 1 file changed, 61 insertions(+), 54 deletions(-)
 
-Quote patch7:
-
-"The libnvdimm sub-system has suffered a series of hacks and broken
- workarounds for the memory-hotplug implementation's awkward
- section-aligned (128MB) granularity. For example the following backtrace
- is emitted when attempting arch_add_memory() with physical address
- ranges that intersect 'System RAM' (RAM) with 'Persistent Memory' (PMEM)
- within a given section:
+diff --git a/mm/migrate.c b/mm/migrate.c
+index ac6f4939bb59..705b320d4b35 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -1000,57 +1000,14 @@ static int move_to_new_page(struct page *newpage, struct page *page,
+ 	return rc;
+ }
  
-  WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
-  devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
-  [..]
-  Call Trace:
-    dump_stack+0x86/0xc3
-    __warn+0xcb/0xf0
-    warn_slowpath_fmt+0x5f/0x80
-    devm_memremap_pages+0x3b5/0x4c0
-    __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-    pmem_attach_disk+0x19a/0x440 [nd_pmem]
+-static int __unmap_and_move(struct page *page, struct page *newpage,
+-				int force, enum migrate_mode mode)
++static int __unmap_and_move_locked(struct page *page, struct page *newpage,
++				   enum migrate_mode mode)
+ {
+ 	int rc = -EAGAIN;
+ 	int page_was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+ 	bool is_lru = !__PageMovable(page);
  
- Recently it was discovered that the problem goes beyond RAM vs PMEM
- collisions as some platform produce PMEM vs PMEM collisions within a
- given section. The libnvdimm workaround for that case revealed that the
- libnvdimm section-alignment-padding implementation has been broken for a
- long while. A fix for that long-standing breakage introduces as many
- problems as it solves as it would require a backward-incompatible change
- to the namespace metadata interpretation. Instead of that dubious route
- [2], address the root problem in the memory-hotplug implementation."
-
-The approach is taken is to observe that each section already maintains
-an array of 'unsigned long' values to hold the pageblock_flags. A single
-additional 'unsigned long' is added to house a 'sub-section active'
-bitmask. Each bit tracks the mapped state of one sub-section's worth of
-capacity which is SECTION_SIZE / BITS_PER_LONG, or 2MB on x86-64.
-
-The implication of allowing sections to be piecemeal mapped/unmapped is
-that the valid_section() helper is no longer authoritative to determine
-if a section is fully mapped. Instead pfn_valid() is updated to consult
-the section-active bitmask. Given that typical memory hotplug still has
-deep "section" dependencies the sub-section capability is limited to
-'want_memblock=false' invocations of arch_add_memory(), effectively only
-devm_memremap_pages() users for now.
-
-With this in place the hacks in the libnvdimm sub-system can be
-dropped, and other devm_memremap_pages() users need no longer be
-constrained to 128MB mapping granularity.
-
-[2]: https://lore.kernel.org/r/155000671719.348031.2347363160141119237.stgit@dwillia2-desk3.amr.corp.intel.com
-
----
-
-Dan Williams (10):
-      mm/sparsemem: Introduce struct mem_section_usage
-      mm/sparsemem: Introduce common definitions for the size and mask of a section
-      mm/sparsemem: Add helpers track active portions of a section at boot
-      mm/hotplug: Prepare shrink_{zone,pgdat}_span for sub-section removal
-      mm/sparsemem: Convert kmalloc_section_memmap() to populate_section_memmap()
-      mm/sparsemem: Prepare for sub-section ranges
-      mm/sparsemem: Support sub-section hotplug
-      mm/devm_memremap_pages: Enable sub-section remap
-      libnvdimm/pfn: Fix fsdax-mode namespace info-block zero-fields
-      libnvdimm/pfn: Stop padding pmem namespaces to section alignment
-
-
- arch/x86/mm/init_64.c          |   15 +-
- drivers/nvdimm/dax_devs.c      |    2 
- drivers/nvdimm/pfn.h           |   12 -
- drivers/nvdimm/pfn_devs.c      |   93 +++-------
- include/linux/memory_hotplug.h |    7 -
- include/linux/mm.h             |    4 
- include/linux/mmzone.h         |   60 ++++++
- kernel/memremap.c              |   57 ++----
- mm/hmm.c                       |    2 
- mm/memory_hotplug.c            |  119 +++++++-----
- mm/page_alloc.c                |    6 -
- mm/sparse-vmemmap.c            |   21 +-
- mm/sparse.c                    |  382 ++++++++++++++++++++++++++++------------
- 13 files changed, 476 insertions(+), 304 deletions(-)
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+-	if (!trylock_page(page)) {
+-		if (!force || mode == MIGRATE_ASYNC)
+-			goto out;
+-
+-		/*
+-		 * It's not safe for direct compaction to call lock_page.
+-		 * For example, during page readahead pages are added locked
+-		 * to the LRU. Later, when the IO completes the pages are
+-		 * marked uptodate and unlocked. However, the queueing
+-		 * could be merging multiple pages for one bio (e.g.
+-		 * mpage_readpages). If an allocation happens for the
+-		 * second or third page, the process can end up locking
+-		 * the same page twice and deadlocking. Rather than
+-		 * trying to be clever about what pages can be locked,
+-		 * avoid the use of lock_page for direct compaction
+-		 * altogether.
+-		 */
+-		if (current->flags & PF_MEMALLOC)
+-			goto out;
+-
+-		lock_page(page);
+-	}
+-
+-	if (PageWriteback(page)) {
+-		/*
+-		 * Only in the case of a full synchronous migration is it
+-		 * necessary to wait for PageWriteback. In the async case,
+-		 * the retry loop is too short and in the sync-light case,
+-		 * the overhead of stalling is too much
+-		 */
+-		switch (mode) {
+-		case MIGRATE_SYNC:
+-		case MIGRATE_SYNC_NO_COPY:
+-			break;
+-		default:
+-			rc = -EBUSY;
+-			goto out_unlock;
+-		}
+-		if (!force)
+-			goto out_unlock;
+-		wait_on_page_writeback(page);
+-	}
+-
+ 	/*
+ 	 * By try_to_unmap(), page->mapcount goes down to 0 here. In this case,
+ 	 * we cannot notice that anon_vma is freed while we migrates a page.
+@@ -1077,11 +1034,11 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
+ 	 * This is much like races on refcount of oldpage: just don't BUG().
+ 	 */
+ 	if (unlikely(!trylock_page(newpage)))
+-		goto out_unlock;
++		goto out;
+ 
+ 	if (unlikely(!is_lru)) {
+ 		rc = move_to_new_page(newpage, page, mode);
+-		goto out_unlock_both;
++		goto out_unlock;
+ 	}
+ 
+ 	/*
+@@ -1100,7 +1057,7 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
+ 		VM_BUG_ON_PAGE(PageAnon(page), page);
+ 		if (page_has_private(page)) {
+ 			try_to_free_buffers(page);
+-			goto out_unlock_both;
++			goto out_unlock;
+ 		}
+ 	} else if (page_mapped(page)) {
+ 		/* Establish migration ptes */
+@@ -1110,22 +1067,19 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
+ 			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
+ 		page_was_mapped = 1;
+ 	}
+-
+ 	if (!page_mapped(page))
+ 		rc = move_to_new_page(newpage, page, mode);
+ 
+ 	if (page_was_mapped)
+ 		remove_migration_ptes(page,
+ 			rc == MIGRATEPAGE_SUCCESS ? newpage : page, false);
+-
+-out_unlock_both:
+-	unlock_page(newpage);
+ out_unlock:
++	unlock_page(newpage);
+ 	/* Drop an anon_vma reference if we took one */
++out:
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
+-	unlock_page(page);
+-out:
++
+ 	/*
+ 	 * If migration is successful, decrease refcount of the newpage
+ 	 * which will not free the page because new page owner increased
+@@ -1141,7 +1095,60 @@ static int __unmap_and_move(struct page *page, struct page *newpage,
+ 		else
+ 			putback_lru_page(newpage);
+ 	}
++	return rc;
++}
++
++static int __unmap_and_move(struct page *page, struct page *newpage,
++				int force, enum migrate_mode mode)
++{
++	int rc = -EAGAIN;
++
++	if (!trylock_page(page)) {
++		if (!force || mode == MIGRATE_ASYNC)
++			goto out;
++
++		/*
++		 * It's not safe for direct compaction to call lock_page.
++		 * For example, during page readahead pages are added locked
++		 * to the LRU. Later, when the IO completes the pages are
++		 * marked uptodate and unlocked. However, the queueing
++		 * could be merging multiple pages for one bio (e.g.
++		 * mpage_readpages). If an allocation happens for the
++		 * second or third page, the process can end up locking
++		 * the same page twice and deadlocking. Rather than
++		 * trying to be clever about what pages can be locked,
++		 * avoid the use of lock_page for direct compaction
++		 * altogether.
++		 */
++		if (current->flags & PF_MEMALLOC)
++			goto out;
++
++		lock_page(page);
++	}
+ 
++	if (PageWriteback(page)) {
++		/*
++		 * Only in the case of a full synchronous migration is it
++		 * necessary to wait for PageWriteback. In the async case,
++		 * the retry loop is too short and in the sync-light case,
++		 * the overhead of stalling is too much
++		 */
++		switch (mode) {
++		case MIGRATE_SYNC:
++		case MIGRATE_SYNC_NO_COPY:
++			break;
++		default:
++			rc = -EBUSY;
++			goto out_unlock;
++		}
++		if (!force)
++			goto out_unlock;
++		wait_on_page_writeback(page);
++	}
++	rc = __unmap_and_move_locked(page, newpage, mode);
++out_unlock:
++	unlock_page(page);
++out:
+ 	return rc;
+ }
+ 
+-- 
+2.14.4
