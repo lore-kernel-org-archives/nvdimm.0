@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A68E0211E82F7
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:11:15 -0700 (PDT)
-Subject: [PATCH v5 08/10] mm/devm_memremap_pages: Enable sub-section remap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Mar 2019 09:58:36 -0700
-Message-ID: <155327391603.225273.924677730380586912.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 851F8211E8300
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 15:21:59 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id d24so3273506otl.11
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 15:21:59 -0700 (PDT)
 MIME-Version: 1.0
+References: <155183603979.191625.11689546261255336448.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155183605525.191625.7383205178321396418.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <32fe21cd06ec2e1a3add9235511e6ac536efcda9.camel@intel.com>
+In-Reply-To: <32fe21cd06ec2e1a3add9235511e6ac536efcda9.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 22 Mar 2019 15:21:47 -0700
+Message-ID: <CAPcyv4ieCpkQ=GjP2Et7jePfM30Oq6dv5rSvH7vhge+yBx6TFg@mail.gmail.com>
+Subject: Re: [ndctl PATCH 3/5] ndctl/dimm: Add offset and size options to
+ {read, write, zero}-labels
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,129 +24,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGVhY2ggZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFib3V0IHRoZSBuZXcgc3ViLXNlY3Rpb24gY2Fw
-YWJpbGl0aWVzIG9mCmFyY2hfe2FkZCxyZW1vdmV9X21lbW9yeSgpLiBFZmZlY3RpdmVseSwganVz
-dCByZXBsYWNlIGFsbCB1c2FnZSBvZgphbGlnbl9zdGFydCwgYWxpZ25fZW5kLCBhbmQgYWxpZ25f
-c2l6ZSB3aXRoIHJlcy0+c3RhcnQsIHJlcy0+ZW5kLCBhbmQKcmVzb3VyY2Vfc2l6ZShyZXMpLiBU
-aGUgZXhpc3Rpbmcgc2FuaXR5IGNoZWNrIHdpbGwgc3RpbGwgbWFrZSBzdXJlIHRoYXQKdGhlIHR3
-byBzZXBhcmF0ZSByZW1hcCBhdHRlbXB0cyBkbyBub3QgY29sbGlkZSB3aXRoaW4gYSBzdWItc2Vj
-dGlvbiAoMk1CCm9uIHg4NikuCgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+CkNj
-OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+CkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNv
-bT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-Ci0tLQoga2VybmVsL21lbXJlbWFwLmMgfCAgIDU1ICsrKysrKysrKysrKysrKysrKysrKy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjIgaW5zZXJ0aW9u
-cygrKSwgMzMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEva2VybmVsL21lbXJlbWFwLmMgYi9r
-ZXJuZWwvbWVtcmVtYXAuYwppbmRleCBkZGExMzY3YjM4NWQuLjA4MzQ0ODY5ZTcxNyAxMDA2NDQK
-LS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFwLmMKQEAgLTU5LDcg
-KzU5LDcgQEAgc3RhdGljIHVuc2lnbmVkIGxvbmcgcGZuX2ZpcnN0KHN0cnVjdCBkZXZfcGFnZW1h
-cCAqcGdtYXApCiAJc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAgPSAmcGdtYXAtPmFsdG1hcDsK
-IAl1bnNpZ25lZCBsb25nIHBmbjsKIAotCXBmbiA9IHJlcy0+c3RhcnQgPj4gUEFHRV9TSElGVDsK
-KwlwZm4gPSBQSFlTX1BGTihyZXMtPnN0YXJ0KTsKIAlpZiAocGdtYXAtPmFsdG1hcF92YWxpZCkK
-IAkJcGZuICs9IHZtZW1fYWx0bWFwX29mZnNldChhbHRtYXApOwogCXJldHVybiBwZm47CkBAIC04
-Nyw3ICs4Nyw2IEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lk
-ICpkYXRhKQogCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXRhOwogCXN0cnVjdCBkZXZp
-Y2UgKmRldiA9IHBnbWFwLT5kZXY7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdtYXAtPnJl
-czsKLQlyZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemU7CiAJdW5zaWduZWQg
-bG9uZyBwZm47CiAJaW50IG5pZDsKIApAQCAtOTYsMjUgKzk1LDIxIEBAIHN0YXRpYyB2b2lkIGRl
-dm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lkICpkYXRhKQogCQlwdXRfcGFnZShwZm5fdG9f
-cGFnZShwZm4pKTsKIAogCS8qIHBhZ2VzIGFyZSBkZWFkIGFuZCB1bnVzZWQsIHVuZG8gdGhlIGFy
-Y2ggbWFwcGluZyAqLwotCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4oUEFfU0VDVElPTl9T
-SVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXpl
-KHJlcyksIFBBX1NFQ1RJT05fU0laRSkKLQkJLSBhbGlnbl9zdGFydDsKLQotCW5pZCA9IHBhZ2Vf
-dG9fbmlkKHBmbl90b19wYWdlKGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQpKTsKKwluaWQgPSBw
-YWdlX3RvX25pZChwZm5fdG9fcGFnZShQSFlTX1BGTihyZXMtPnN0YXJ0KSkpOwogCiAJbWVtX2hv
-dHBsdWdfYmVnaW4oKTsKIAlpZiAocGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QUklWQVRF
-KSB7Ci0JCXBmbiA9IGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQ7CisJCXBmbiA9IFBIWVNfUEZO
-KHJlcy0+c3RhcnQpOwogCQlfX3JlbW92ZV9wYWdlcyhwYWdlX3pvbmUocGZuX3RvX3BhZ2UocGZu
-KSksIHBmbiwKLQkJCQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIE5VTEwpOworCQkJCVBIWVNf
-UEZOKHJlc291cmNlX3NpemUocmVzKSksIE5VTEwpOwogCX0gZWxzZSB7Ci0JCWFyY2hfcmVtb3Zl
-X21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLAorCQlhcmNoX3JlbW92ZV9tZW1v
-cnkobmlkLCByZXMtPnN0YXJ0LCByZXNvdXJjZV9zaXplKHJlcyksCiAJCQkJcGdtYXAtPmFsdG1h
-cF92YWxpZCA/ICZwZ21hcC0+YWx0bWFwIDogTlVMTCk7Ci0JCWthc2FuX3JlbW92ZV96ZXJvX3No
-YWRvdyhfX3ZhKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJCWthc2FuX3JlbW92ZV96ZXJv
-X3NoYWRvdyhfX3ZhKHJlcy0+c3RhcnQpLCByZXNvdXJjZV9zaXplKHJlcykpOwogCX0KIAltZW1f
-aG90cGx1Z19kb25lKCk7CiAKLQl1bnRyYWNrX3BmbihOVUxMLCBQSFlTX1BGTihhbGlnbl9zdGFy
-dCksIGFsaWduX3NpemUpOworCXVudHJhY2tfcGZuKE5VTEwsIFBIWVNfUEZOKHJlcy0+c3RhcnQp
-LCByZXNvdXJjZV9zaXplKHJlcykpOwogCXBnbWFwX2FycmF5X2RlbGV0ZShyZXMpOwogCWRldl9X
-QVJOX09OQ0UoZGV2LCBwZ21hcC0+YWx0bWFwLmFsbG9jLAogCQkgICAgICAiJXM6IGZhaWxlZCB0
-byBmcmVlIGFsbCByZXNlcnZlZCBwYWdlc1xuIiwgX19mdW5jX18pOwpAQCAtMTQxLDcgKzEzNiw2
-IEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lkICpkYXRhKQog
-ICovCiB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-IGRldl9wYWdlbWFwICpwZ21hcCkKIHsKLQlyZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFs
-aWduX3NpemUsIGFsaWduX2VuZDsKIAlzdHJ1Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCA9IHBnbWFw
-LT5hbHRtYXBfdmFsaWQgPwogCQkJJnBnbWFwLT5hbHRtYXAgOiBOVUxMOwogCXN0cnVjdCByZXNv
-dXJjZSAqcmVzID0gJnBnbWFwLT5yZXM7CkBAIC0xNTIsMjYgKzE0NiwyMSBAQCB2b2lkICpkZXZt
-X21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpw
-Z21hcCkKIAlpZiAoIXBnbWFwLT5yZWYgfHwgIXBnbWFwLT5raWxsKQogCQlyZXR1cm4gRVJSX1BU
-UigtRUlOVkFMKTsKIAotCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4oUEFfU0VDVElPTl9T
-SVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXpl
-KHJlcyksIFBBX1NFQ1RJT05fU0laRSkKLQkJLSBhbGlnbl9zdGFydDsKLQlhbGlnbl9lbmQgPSBh
-bGlnbl9zdGFydCArIGFsaWduX3NpemUgLSAxOwotCi0JY29uZmxpY3RfcGdtYXAgPSBnZXRfZGV2
-X3BhZ2VtYXAoUEhZU19QRk4oYWxpZ25fc3RhcnQpLCBOVUxMKTsKKwljb25mbGljdF9wZ21hcCA9
-IGdldF9kZXZfcGFnZW1hcChQSFlTX1BGTihyZXMtPnN0YXJ0KSwgTlVMTCk7CiAJaWYgKGNvbmZs
-aWN0X3BnbWFwKSB7CiAJCWRldl9XQVJOKGRldiwgIkNvbmZsaWN0aW5nIG1hcHBpbmcgaW4gc2Ft
-ZSBzZWN0aW9uXG4iKTsKIAkJcHV0X2Rldl9wYWdlbWFwKGNvbmZsaWN0X3BnbWFwKTsKIAkJcmV0
-dXJuIEVSUl9QVFIoLUVOT01FTSk7CiAJfQogCi0JY29uZmxpY3RfcGdtYXAgPSBnZXRfZGV2X3Bh
-Z2VtYXAoUEhZU19QRk4oYWxpZ25fZW5kKSwgTlVMTCk7CisJY29uZmxpY3RfcGdtYXAgPSBnZXRf
-ZGV2X3BhZ2VtYXAoUEhZU19QRk4ocmVzLT5lbmQpLCBOVUxMKTsKIAlpZiAoY29uZmxpY3RfcGdt
-YXApIHsKIAkJZGV2X1dBUk4oZGV2LCAiQ29uZmxpY3RpbmcgbWFwcGluZyBpbiBzYW1lIHNlY3Rp
-b25cbiIpOwogCQlwdXRfZGV2X3BhZ2VtYXAoY29uZmxpY3RfcGdtYXApOwogCQlyZXR1cm4gRVJS
-X1BUUigtRU5PTUVNKTsKIAl9CiAKLQlpc19yYW0gPSByZWdpb25faW50ZXJzZWN0cyhhbGlnbl9z
-dGFydCwgYWxpZ25fc2l6ZSwKKwlpc19yYW0gPSByZWdpb25faW50ZXJzZWN0cyhyZXMtPnN0YXJ0
-LCByZXNvdXJjZV9zaXplKHJlcyksCiAJCUlPUkVTT1VSQ0VfU1lTVEVNX1JBTSwgSU9SRVNfREVT
-Q19OT05FKTsKIAogCWlmIChpc19yYW0gIT0gUkVHSU9OX0RJU0pPSU5UKSB7CkBAIC0xOTIsOCAr
-MTgxLDggQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0
-cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJaWYgKG5pZCA8IDApCiAJCW5pZCA9IG51bWFfbWVt
-X2lkKCk7CiAKLQllcnJvciA9IHRyYWNrX3Bmbl9yZW1hcChOVUxMLCAmcGdwcm90LCBQSFlTX1BG
-TihhbGlnbl9zdGFydCksIDAsCi0JCQlhbGlnbl9zaXplKTsKKwllcnJvciA9IHRyYWNrX3Bmbl9y
-ZW1hcChOVUxMLCAmcGdwcm90LCBQSFlTX1BGTihyZXMtPnN0YXJ0KSwgMCwKKwkJCXJlc291cmNl
-X3NpemUocmVzKSk7CiAJaWYgKGVycm9yKQogCQlnb3RvIGVycl9wZm5fcmVtYXA7CiAKQEAgLTIx
-MSwxNiArMjAwLDE2IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAq
-ZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCSAqIGFyY2hfYWRkX21lbW9yeSgpLgog
-CSAqLwogCWlmIChwZ21hcC0+dHlwZSA9PSBNRU1PUllfREVWSUNFX1BSSVZBVEUpIHsKLQkJZXJy
-b3IgPSBhZGRfcGFnZXMobmlkLCBhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAotCQkJCWFsaWdu
-X3NpemUgPj4gUEFHRV9TSElGVCwgTlVMTCwgZmFsc2UpOworCQllcnJvciA9IGFkZF9wYWdlcyhu
-aWQsIFBIWVNfUEZOKHJlcy0+c3RhcnQpLAorCQkJCVBIWVNfUEZOKHJlc291cmNlX3NpemUocmVz
-KSksIE5VTEwsIGZhbHNlKTsKIAl9IGVsc2UgewotCQllcnJvciA9IGthc2FuX2FkZF96ZXJvX3No
-YWRvdyhfX3ZhKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJCWVycm9yID0ga2FzYW5fYWRk
-X3plcm9fc2hhZG93KF9fdmEocmVzLT5zdGFydCksIHJlc291cmNlX3NpemUocmVzKSk7CiAJCWlm
-IChlcnJvcikgewogCQkJbWVtX2hvdHBsdWdfZG9uZSgpOwogCQkJZ290byBlcnJfa2FzYW47CiAJ
-CX0KIAotCQllcnJvciA9IGFyY2hfYWRkX21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9z
-aXplLCBhbHRtYXAsCisJCWVycm9yID0gYXJjaF9hZGRfbWVtb3J5KG5pZCwgcmVzLT5zdGFydCwg
-cmVzb3VyY2Vfc2l6ZShyZXMpLCBhbHRtYXAsCiAJCQkJZmFsc2UpOwogCX0KIApAQCAtMjI4LDgg
-KzIxNyw4IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LCBz
-dHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCQlzdHJ1Y3Qgem9uZSAqem9uZTsKIAogCQl6b25l
-ID0gJk5PREVfREFUQShuaWQpLT5ub2RlX3pvbmVzW1pPTkVfREVWSUNFXTsKLQkJbW92ZV9wZm5f
-cmFuZ2VfdG9fem9uZSh6b25lLCBhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAotCQkJCWFsaWdu
-X3NpemUgPj4gUEFHRV9TSElGVCwgYWx0bWFwKTsKKwkJbW92ZV9wZm5fcmFuZ2VfdG9fem9uZSh6
-b25lLCBQSFlTX1BGTihyZXMtPnN0YXJ0KSwKKwkJCQlQSFlTX1BGTihyZXNvdXJjZV9zaXplKHJl
-cykpLCBhbHRtYXApOwogCX0KIAogCW1lbV9ob3RwbHVnX2RvbmUoKTsKQEAgLTI0MSw4ICsyMzAs
-OCBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-IGRldl9wYWdlbWFwICpwZ21hcCkKIAkgKiB0byBhbGxvdyB1cyB0byBkbyB0aGUgd29yayB3aGls
-ZSBub3QgaG9sZGluZyB0aGUgaG90cGx1ZyBsb2NrLgogCSAqLwogCW1lbW1hcF9pbml0X3pvbmVf
-ZGV2aWNlKCZOT0RFX0RBVEEobmlkKS0+bm9kZV96b25lc1taT05FX0RFVklDRV0sCi0JCQkJYWxp
-Z25fc3RhcnQgPj4gUEFHRV9TSElGVCwKLQkJCQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIHBn
-bWFwKTsKKwkJCQlQSFlTX1BGTihyZXMtPnN0YXJ0KSwKKwkJCQlQSFlTX1BGTihyZXNvdXJjZV9z
-aXplKHJlcykpLCBwZ21hcCk7CiAJcGVyY3B1X3JlZl9nZXRfbWFueShwZ21hcC0+cmVmLCBwZm5f
-ZW5kKHBnbWFwKSAtIHBmbl9maXJzdChwZ21hcCkpOwogCiAJZXJyb3IgPSBkZXZtX2FkZF9hY3Rp
-b25fb3JfcmVzZXQoZGV2LCBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2UsCkBAIC0yNTMsOSAr
-MjQyLDkgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0
-cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJcmV0dXJuIF9fdmEocmVzLT5zdGFydCk7CiAKICBl
-cnJfYWRkX21lbW9yeToKLQlrYXNhbl9yZW1vdmVfemVyb19zaGFkb3coX192YShhbGlnbl9zdGFy
-dCksIGFsaWduX3NpemUpOworCWthc2FuX3JlbW92ZV96ZXJvX3NoYWRvdyhfX3ZhKHJlcy0+c3Rh
-cnQpLCByZXNvdXJjZV9zaXplKHJlcykpOwogIGVycl9rYXNhbjoKLQl1bnRyYWNrX3BmbihOVUxM
-LCBQSFlTX1BGTihhbGlnbl9zdGFydCksIGFsaWduX3NpemUpOworCXVudHJhY2tfcGZuKE5VTEws
-IFBIWVNfUEZOKHJlcy0+c3RhcnQpLCByZXNvdXJjZV9zaXplKHJlcykpOwogIGVycl9wZm5fcmVt
-YXA6CiAJcGdtYXBfYXJyYXlfZGVsZXRlKHJlcyk7CiAgZXJyX2FycmF5OgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxt
-YW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Fri, Mar 22, 2019 at 2:49 PM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+>
+> On Tue, 2019-03-05 at 17:34 -0800, Dan Williams wrote:
+> > Allow for more precision in label utilities, i.e. stop operating over
+> > the entire label area.
+> >
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  Documentation/ndctl/labels-options.txt |    9 ++++++
+> >  ndctl/dimm.c                           |   45 ++++++++++++++++++++++++--------
+> >  ndctl/lib/dimm.c                       |   36 +++++++++++++++++++++-----
+> >  ndctl/lib/libndctl.sym                 |    2 +
+> >  ndctl/lib/private.h                    |    3 --
+> >  ndctl/libndctl.h                       |    4 +++
+> >  util/util.h                            |    4 +++
+> >  7 files changed, 83 insertions(+), 20 deletions(-)
+> >
+>
+> [..]
+>
+> > diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> > index 5a17f0b63b80..1304017d5e3b 100644
+> > --- a/ndctl/lib/private.h
+> > +++ b/ndctl/lib/private.h
+> > @@ -241,9 +241,6 @@ struct ndctl_namespace {
+> >   *
+> >   * A command may only specify one of @source, or @iter.total_buf, not both.
+> >   */
+> > -enum {
+> > -     READ, WRITE,
+> > -};
+>
+> This fails to build as libndctl.c now needs to include util/util.h..
+> Stale version perhaps? (Patch 4 in the series also fails to apply
+> cleanly)
+
+Hmm, ok I'll resend. It probably depends on something in the
+read-infoblock patch that needs to be fixed up.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
