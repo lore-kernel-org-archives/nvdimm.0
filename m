@@ -1,231 +1,221 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E5C232194EB70
- for <linux-nvdimm@lists.01.org>; Wed, 27 Mar 2019 16:40:42 -0700 (PDT)
-Subject: [RFC PATCH 00/68] VFS: Convert a bunch of filesystems to the new
- mount API
-From: David Howells <dhowells@redhat.com>
-Date: Wed, 27 Mar 2019 23:40:00 +0000
-Message-ID: <155372999953.7602.13784796495137723805.stgit@warthog.procyon.org.uk>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: [PATCH v5 10/10] libnvdimm/pfn: Stop padding pmem namespaces to
+ section alignment
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 22 Mar 2019 09:58:46 -0700
+Message-ID: <155327392690.225273.7607286722861237500.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: viro@zeniv.linux.org.uk
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, dri-devel@lists.freedesktop.org, "J. Bruce Fields" <bfields@fieldses.org>, ceph-devel@vger.kernel.org, Mike Marshall <hubcap@omnibond.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, Felipe Balbi <balbi@kernel.org>, Uma Krishnan <ukrishn@linux.ibm.com>, "Manoj N. Kumar" <manoj@linux.ibm.com>, Joel Becker <jlbec@evilplan.org>, Trond Myklebust <trond.myklebust@hammerspace.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Arve =?utf-8?b?SGrDuG5uZXbDpWc=?= <arve@android.com>, Frederic Barrat <fbarrat@linux.ibm.com>, Martin Brandenburg <martin@omnibond.com>, linux-ia64@vger.kernel.org, David Airlie <airlied@linux.ie>, virtualization@lists.linux-foundation.org, Masahiro Yamada <yamada.masahiro@socionext.com>, Jens Axboe <axboe@kernel.dk>, Christian Brauner <christian.brauner@ubuntu.com>, Matthew Garrett <matthew.garrett@nebula.com>, Stefano Stabellini <sstabellini@kernel.org>, Paul Moore <paul@paul-moore.com>, Andreas Schwab <schwab@suse.de>, Anton Vorontsov <anton@enomsg.org>, Hugh Dickins <hughd@google.com>, Christoph Hellwig <hch@lst.de>, Yonghong Song <yhs@fb.com>, Todd Kjos <tkjos@android.com>, Felipe Balbi <felipe.balbi@linux.intel.com>, selinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Casey Schaufler <casey@schaufler-ca.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Nitin Gupta <ngupta@vflare.org>, Martijn Coenen <maco@android.com>, Tony Luck <tony.luck@intel.com>, Boris Brezillon <bbrezillon@kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-nvdimm@lists.01.org, "Yan, Zheng" <zyan@redhat.com>, Minchan Kim <minchan@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, linux-efi@vger.kernel.org, linux-aio@kvack.org, Jason Wang <jasowang@redhat.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Alexei Starovoitov <ast@kernel.org>, Chris Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Joel Fernandes <joel@joelfernandes.org>, Daniel Borkmann <daniel@iogearbox.net>, Miklos Szeredi <miklos@szeredi.hu>, linux-rdma@vger.kernel.org, coda@cs.cmu.edu, Andrew Price <anprice@redhat.com>, Ilya Dryomov <idryomov@gmail.com>, Stephen Smalley <sds@tycho.nsa.gov>, Fenghua Yu <fenghua.yu@intel.com>, Robert Richter <rric@kernel.org>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, "James E.J. Bottomley" <jejb@linux.ibm.com>, Steven Rostedt <rostedt@goodmis.org>, Eric Paris <eparis@parisplace.org>, Christian Brauner <christian@brauner.io>, Jan Harkes <jaharkes@cs.cmu.edu>, linux-nfs@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-s390@vger.kernel.org, Jeff Layton <jlayton@kernel.org>, Jeremy Kerr <jk@ozlabs.org>, Andrew Donnellan <andrew.donnellan@au1.ibm.com>, Colin Cross <ccross@android.com>, linux-fsdevel@vger.kernel.org, bpf@vger.kernel.org, Brian Norris <computersforpeace@gmail.com>, Anna Schumaker <anna.schumaker@netapp.com>, "Michael S. Tsirkin" <mst@redhat.com>, dhowells@redhat.com, linux-mm@kvack.org, devel@driverdev.osuosl.org, Sage Weil <sage@redhat.com>, Nicolas Pitre <nico@linaro.org>, Richard Weinberger <richard@nod.at>, cluster-devel@redhat.com, Marek Vasut <marek.vasut@gmail.com>, oprofile-list@lists.sf.net, squashfs-devel@lists.sourceforge.net, "Matthew R. Ochs" <mrochs@linux.vnet.ibm.com>, apparmor@lists.ubuntu.com, Josef Bacik <josef@toxicpanda.com>, =?utf-8?q?Micha=C5=82?= Nazarewicz <mina86@mina86.com>, linux-block@vger.kernel.org, David Sterba <dsterba@suse.com>, Juergen Gross <jgross@suse.com>, John Johansen <john.johansen@canonical.com>, linux-scsi@vger.kernel.org, Artem Bityutskiy <dedekind1@gmail.com>, netdev@vger.kernel.org, Adrian Hunter <adrian.hunter@intel.com>, linux-security-module@vger.kernel.org, Benjamin LaHaise <bcrl@kvack.org>, Daniel Vetter <daniel@ffwll.ch>, Phillip Lougher <phillip@squashfs.org.uk>, David Woodhouse <dwmw2@infradead.org>, linux-btrfs@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: Jeff Moyer <jmoyer@redhat.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
+Now that the mm core supports section-unaligned hotplug of ZONE_DEVICE
+memory, we no longer need to add padding at pfn/dax device creation
+time. The kernel will still honor padding established by older kernels.
 
-Hi Al,
-
-Here's a set of patches that converts a bunch (but not yet all!) to the new
-mount API.  To this end, it makes the following changes:
-
- (1) Provides a convenience member in struct fs_context that is OR'd into
-     sb->s_iflags by sget_fc().
-
- (2) Provides a convenience helper function, vfs_init_pseudo_fs_context(),
-     for doing most of the work in mounting a pseudo filesystem.
-
- (3) Provides a convenience helper function, vfs_get_block_super(), for
-     doing the work in setting up a block-based superblock.
-
- (4) Improves the handling of fd-type parameters.
-
- (5) Moves some of the subtype handling int fuse.
-
- (6) Provides a convenience helper function, vfs_get_mtd_super(), for
-     doing the work in setting up an MTD device-based superblock.
-
- (7) Kills off mount_pseudo(), mount_pseudo_xattr(), mount_ns(),
-     sget_userns(), mount_mtd(), mount_single().
-
- (8) Converts a slew of filesystems to use the mount API.
-
- (9) Fixes a bug in hypfs.
-
-The patches can be found here also:
-
-	https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs.git
-
-on branch:
-
-	mount-api-viro
-
-David
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-Andrew Price (1):
-      gfs2: Convert gfs2 to fs_context
+ drivers/nvdimm/pfn.h      |   11 ++-----
+ drivers/nvdimm/pfn_devs.c |   75 +++++++--------------------------------------
+ include/linux/mmzone.h    |    4 ++
+ 3 files changed, 19 insertions(+), 71 deletions(-)
 
-David Howells (66):
-      vfs: Update mount API docs
-      vfs: Fix refcounting of filenames in fs_parser
-      vfs: Provide sb->s_iflags settings in fs_context struct
-      vfs: Provide a mount_pseudo-replacement for the new mount API
-      vfs: Convert aio to use the new mount API
-      vfs: Convert anon_inodes to use the new mount API
-      vfs: Convert bdev to use the new mount API
-      vfs: Convert nsfs to use the new mount API
-      vfs: Convert pipe to use the new mount API
-      vfs: Convert zsmalloc to use the new mount API
-      vfs: Convert sockfs to use the new mount API
-      vfs: Convert dax to use the new mount API
-      vfs: Convert drm to use the new mount API
-      vfs: Convert ia64 perfmon to use the new mount API
-      vfs: Convert cxl to use the new mount API
-      vfs: Convert ocxlflash to use the new mount API
-      vfs: Convert virtio_balloon to use the new mount API
-      vfs: Convert btrfs_test to use the new mount API
-      vfs: Kill off mount_pseudo() and mount_pseudo_xattr()
-      vfs: Use sget_fc() for pseudo-filesystems
-      vfs: Convert binderfs to use the new mount API
-      vfs: Convert nfsctl to use the new mount API
-      vfs: Convert rpc_pipefs to use the new mount API
-      vfs: Kill mount_ns()
-      vfs: Kill sget_userns()
-      vfs: Convert binfmt_misc to use the new mount API
-      vfs: Convert configfs to use the new mount API
-      vfs: Convert efivarfs to use the new mount API
-      vfs: Convert fusectl to use the new mount API
-      vfs: Convert qib_fs/ipathfs to use the new mount API
-      vfs: Convert ibmasmfs to use the new mount API
-      vfs: Convert oprofilefs to use the new mount API
-      vfs: Convert gadgetfs to use the new mount API
-      vfs: Convert xenfs to use the new mount API
-      vfs: Convert openpromfs to use the new mount API
-      vfs: Convert apparmorfs to use the new mount API
-      vfs: Convert securityfs to use the new mount API
-      vfs: Convert selinuxfs to use the new mount API
-      vfs: Convert smackfs to use the new mount API
-      vfs: Convert ramfs, shmem, tmpfs, devtmpfs, rootfs to use the new mount API
-      vfs: Create fs_context-aware mount_bdev() replacement
-      vfs: Make fs_parse() handle fs_param_is_fd-type params better
-      vfs: Convert fuse to use the new mount API
-      vfs: Move the subtype parameter into fuse
-      mtd: Provide fs_context-aware mount_mtd() replacement
-      vfs: Convert romfs to use the new mount API
-      vfs: Convert cramfs to use the new mount API
-      vfs: Convert jffs2 to use the new mount API
-      mtd: Kill mount_mtd()
-      vfs: Convert squashfs to use the new mount API
-      vfs: Convert ceph to use the new mount API
-      vfs: Convert functionfs to use the new mount API
-      vfs: Add a single-or-reconfig keying to vfs_get_super()
-      vfs: Convert debugfs to use the new mount API
-      vfs: Convert tracefs to use the new mount API
-      vfs: Convert pstore to use the new mount API
-      hypfs: Fix error number left in struct pointer member
-      vfs: Convert hypfs to use the new mount API
-      vfs: Convert spufs to use the new mount API
-      vfs: Kill mount_single()
-      vfs: Convert coda to use the new mount API
-      vfs: Convert autofs to use the new mount API
-      vfs: Convert devpts to use the new mount API
-      vfs: Convert bpf to use the new mount API
-      vfs: Convert ubifs to use the new mount API
-      vfs: Convert orangefs to use the new mount API
-
-Masahiro Yamada (1):
-      kbuild: skip sub-make for in-tree build with GNU Make 4.x
-
-
- Documentation/filesystems/mount_api.txt   |  367 ++++++++-------
- Documentation/filesystems/vfs.txt         |    4 
- Makefile                                  |   31 +
- arch/ia64/kernel/perfmon.c                |   14 -
- arch/powerpc/platforms/cell/spufs/inode.c |  207 +++++----
- arch/s390/hypfs/inode.c                   |  137 +++---
- drivers/android/binderfs.c                |  173 ++++---
- drivers/base/devtmpfs.c                   |   16 -
- drivers/block/rbd.c                       |  363 ++++++++-------
- drivers/dax/super.c                       |   13 -
- drivers/gpu/drm/drm_drv.c                 |   14 -
- drivers/infiniband/hw/qib/qib_fs.c        |   26 +
- drivers/misc/cxl/api.c                    |   10 
- drivers/misc/ibmasm/ibmasmfs.c            |   21 +
- drivers/mtd/mtdcore.h                     |    1 
- drivers/mtd/mtdsuper.c                    |  181 ++++----
- drivers/oprofile/oprofilefs.c             |   20 +
- drivers/scsi/cxlflash/ocxl_hw.c           |   21 -
- drivers/usb/gadget/function/f_fs.c        |  233 +++++-----
- drivers/usb/gadget/legacy/inode.c         |   21 +
- drivers/virtio/virtio_balloon.c           |   19 -
- drivers/xen/xenfs/super.c                 |   21 +
- fs/aio.c                                  |   15 -
- fs/anon_inodes.c                          |   12 
- fs/autofs/autofs_i.h                      |   13 -
- fs/autofs/init.c                          |    9 
- fs/autofs/inode.c                         |  429 ++++++++++--------
- fs/binfmt_misc.c                          |   20 +
- fs/block_dev.c                            |   14 -
- fs/btrfs/tests/btrfs-tests.c              |   13 -
- fs/ceph/cache.c                           |    9 
- fs/ceph/cache.h                           |    5 
- fs/ceph/super.c                           |  697 ++++++++++++++---------------
- fs/ceph/super.h                           |    1 
- fs/coda/inode.c                           |  171 +++++--
- fs/configfs/mount.c                       |   20 +
- fs/cramfs/inode.c                         |   69 ++-
- fs/debugfs/inode.c                        |  186 ++++----
- fs/devpts/inode.c                         |  265 +++++------
- fs/efivarfs/super.c                       |   20 +
- fs/fs_context.c                           |   16 -
- fs/fs_parser.c                            |   18 +
- fs/fuse/control.c                         |   20 +
- fs/fuse/inode.c                           |  291 +++++++-----
- fs/gfs2/incore.h                          |    8 
- fs/gfs2/ops_fstype.c                      |  495 ++++++++++++++++-----
- fs/gfs2/super.c                           |  335 --------------
- fs/gfs2/super.h                           |    3 
- fs/jffs2/fs.c                             |   21 -
- fs/jffs2/os-linux.h                       |    4 
- fs/jffs2/super.c                          |  172 +++----
- fs/libfs.c                                |   91 +++-
- fs/nfsd/nfsctl.c                          |   33 +
- fs/nsfs.c                                 |   13 -
- fs/openpromfs/inode.c                     |   20 +
- fs/orangefs/orangefs-kernel.h             |    8 
- fs/orangefs/orangefs-mod.c                |    3 
- fs/orangefs/super.c                       |  186 ++++----
- fs/pipe.c                                 |   12 
- fs/pstore/inode.c                         |  109 +++--
- fs/ramfs/inode.c                          |  104 +++-
- fs/romfs/super.c                          |   46 +-
- fs/squashfs/super.c                       |  100 ++--
- fs/super.c                                |  301 ++++++-------
- fs/tracefs/inode.c                        |  180 +++----
- fs/ubifs/super.c                          |  447 ++++++++-----------
- include/linux/ceph/ceph_debug.h           |    1 
- include/linux/ceph/libceph.h              |   17 +
- include/linux/fs.h                        |   24 -
- include/linux/fs_context.h                |   20 +
- include/linux/mtd/super.h                 |    6 
- include/linux/ramfs.h                     |    6 
- include/linux/shmem_fs.h                  |    4 
- init/do_mounts.c                          |   12 
- kernel/bpf/inode.c                        |   92 ++--
- mm/shmem.c                                |  396 +++++++++++-----
- mm/zsmalloc.c                             |   19 -
- net/ceph/ceph_common.c                    |  410 +++++++----------
- net/socket.c                              |   14 -
- net/sunrpc/rpc_pipe.c                     |   34 +
- security/apparmor/apparmorfs.c            |   20 +
- security/inode.c                          |   21 +
- security/selinux/selinuxfs.c              |   20 +
- security/smack/smackfs.c                  |   34 +
- 84 files changed, 4257 insertions(+), 3810 deletions(-)
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index e901e3a3b04c..ae589cc528f2 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -41,18 +41,13 @@ struct nd_pfn_sb {
+ 	__le64 checksum;
+ };
+ 
+-#ifdef CONFIG_SPARSEMEM
+-#define PFN_SECTION_ALIGN_DOWN(x) SECTION_ALIGN_DOWN(x)
+-#define PFN_SECTION_ALIGN_UP(x) SECTION_ALIGN_UP(x)
+-#else
+ /*
+  * In this case ZONE_DEVICE=n and we will disable 'pfn' device support,
+  * but we still want pmem to compile.
+  */
+-#define PFN_SECTION_ALIGN_DOWN(x) (x)
+-#define PFN_SECTION_ALIGN_UP(x) (x)
++#ifndef SUB_SECTION_ALIGN_DOWN
++#define SUB_SECTION_ALIGN_DOWN(x) (x)
++#define SUB_SECTION_ALIGN_UP(x) (x)
+ #endif
+ 
+-#define PHYS_SECTION_ALIGN_DOWN(x) PFN_PHYS(PFN_SECTION_ALIGN_DOWN(PHYS_PFN(x)))
+-#define PHYS_SECTION_ALIGN_UP(x) PFN_PHYS(PFN_SECTION_ALIGN_UP(PHYS_PFN(x)))
+ #endif /* __NVDIMM_PFN_H */
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index f0e918186504..b7928bfc5691 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -595,14 +595,14 @@ static u32 info_block_reserve(void)
+ }
+ 
+ /*
+- * We hotplug memory at section granularity, pad the reserved area from
+- * the previous section base to the namespace base address.
++ * We hotplug memory at sub-section granularity, pad the reserved area
++ * from the previous section base to the namespace base address.
+  */
+ static unsigned long init_altmap_base(resource_size_t base)
+ {
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	return PFN_SECTION_ALIGN_DOWN(base_pfn);
++	return SUB_SECTION_ALIGN_DOWN(base_pfn);
+ }
+ 
+ static unsigned long init_altmap_reserve(resource_size_t base)
+@@ -610,7 +610,7 @@ static unsigned long init_altmap_reserve(resource_size_t base)
+ 	unsigned long reserve = info_block_reserve() >> PAGE_SHIFT;
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
++	reserve += base_pfn - SUB_SECTION_ALIGN_DOWN(base_pfn);
+ 	return reserve;
+ }
+ 
+@@ -641,8 +641,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		pgmap->altmap_valid = false;
+ 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+-		nd_pfn->npfns = PFN_SECTION_ALIGN_UP((resource_size(res)
+-					- offset) / PAGE_SIZE);
++		nd_pfn->npfns = PHYS_PFN((resource_size(res) - offset));
+ 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
+ 			dev_info(&nd_pfn->dev,
+ 					"number of pfns truncated from %lld to %ld\n",
+@@ -658,50 +657,10 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	return 0;
+ }
+ 
+-static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
+-{
+-	return min_t(u64, PHYS_SECTION_ALIGN_DOWN(phys),
+-			ALIGN_DOWN(phys, nd_pfn->align));
+-}
+-
+-/*
+- * Check if pmem collides with 'System RAM', or other regions when
+- * section aligned.  Trim it accordingly.
+- */
+-static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
+-{
+-	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
+-	const resource_size_t start = nsio->res.start;
+-	const resource_size_t end = start + resource_size(&nsio->res);
+-	resource_size_t adjust, size;
+-
+-	*start_pad = 0;
+-	*end_trunc = 0;
+-
+-	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| nd_region_conflict(nd_region, start - adjust, size))
+-		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+-
+-	/* Now check that end of the range does not collide. */
+-	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| !IS_ALIGNED(end, nd_pfn->align)
+-			|| nd_region_conflict(nd_region, start, size))
+-		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
+-}
+-
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ {
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	u32 start_pad, end_trunc, reserve = info_block_reserve();
+ 	resource_size_t start, size;
+ 	struct nd_region *nd_region;
+ 	struct nd_pfn_sb *pfn_sb;
+@@ -736,43 +695,35 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		return -ENXIO;
+ 	}
+ 
+-	memset(pfn_sb, 0, sizeof(*pfn_sb));
+-
+-	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
+-	if (start_pad + end_trunc)
+-		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+-				dev_name(&ndns->dev), start_pad + end_trunc);
+-
+ 	/*
+ 	 * Note, we use 64 here for the standard size of struct page,
+ 	 * debugging options may cause it to be larger in which case the
+ 	 * implementation will limit the pfns advertised through
+ 	 * ->direct_access() to those that are included in the memmap.
+ 	 */
+-	start = nsio->res.start + start_pad;
++	start = nsio->res.start;
+ 	size = resource_size(&nsio->res);
+-	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - reserve)
+-			/ PAGE_SIZE);
++	npfns = PHYS_PFN(size - SZ_8K);
+ 	if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		/*
+ 		 * The altmap should be padded out to the block size used
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + reserve + 64 * npfns,
+-				max(nd_pfn->align, PMD_SIZE)) - start;
++		offset = ALIGN(start + SZ_8K + 64 * npfns,
++				max(nd_pfn->align, SECTION_ACTIVE_SIZE)) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+-		offset = ALIGN(start + reserve, nd_pfn->align) - start;
++		offset = ALIGN(start + SZ_8K, nd_pfn->align) - start;
+ 	else
+ 		return -ENXIO;
+ 
+-	if (offset + start_pad + end_trunc >= size) {
++	if (offset >= size) {
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
+ 	}
+ 
+-	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
++	npfns = PHYS_PFN(size - offset);
+ 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
+ 	pfn_sb->dataoff = cpu_to_le64(offset);
+ 	pfn_sb->npfns = cpu_to_le64(npfns);
+@@ -781,8 +732,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+ 	pfn_sb->version_minor = cpu_to_le16(3);
+-	pfn_sb->start_pad = cpu_to_le32(start_pad);
+-	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 067ee217c692..3117aa9d0f33 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1114,6 +1114,10 @@ static inline unsigned long section_nr_to_pfn(unsigned long sec)
+ #define PAGES_PER_SUB_SECTION (SECTION_ACTIVE_SIZE / PAGE_SIZE)
+ #define PAGE_SUB_SECTION_MASK (~(PAGES_PER_SUB_SECTION-1))
+ 
++#define SUB_SECTION_ALIGN_UP(pfn) (((pfn) + PAGES_PER_SUB_SECTION - 1) \
++		& PAGE_SUB_SECTION_MASK)
++#define SUB_SECTION_ALIGN_DOWN(pfn) ((pfn) & PAGE_SUB_SECTION_MASK)
++
+ struct mem_section_usage {
+ 	/*
+ 	 * SECTION_ACTIVE_SIZE portions of the section that are populated in
