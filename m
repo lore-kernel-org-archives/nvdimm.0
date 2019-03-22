@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 68FA8211D56B5
- for <linux-nvdimm@lists.01.org>; Tue,  5 Mar 2019 22:33:06 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id n71so9749346ota.10
- for <linux-nvdimm@lists.01.org>; Tue, 05 Mar 2019 22:33:06 -0800 (PST)
-MIME-Version: 1.0
-References: <20190130105927.31901-1-oohall@gmail.com>
-In-Reply-To: <20190130105927.31901-1-oohall@gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8ADBD211E82F7
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:10:49 -0700 (PDT)
+Subject: [PATCH v5 03/10] mm/sparsemem: Add helpers track active portions of
+ a section at boot
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 5 Mar 2019 22:32:53 -0800
-Message-ID: <CAPcyv4iKk2_QS=+8z03c7cQ-r6nvZbwp0aM9jj+T2YaSHDHg=A@mail.gmail.com>
-Subject: Re: [PATCH v5 1/7] libndctl: Use the supported_alignment attribute
+Date: Fri, 22 Mar 2019 09:58:10 -0700
+Message-ID: <155327389029.225273.1972826189687261996.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,54 +23,167 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oliver O'Halloran <oohall@gmail.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jan 30, 2019 at 2:59 AM Oliver O'Halloran <oohall@gmail.com> wrote:
->
-> Newer kernels provide the "supported_alignments" sysfs attribute that
-> indicates what alignments can be used with a PFN or DAX namespace. This
-> patch adds the plumbing inside of libndctl to allow users to query this
-> information through using:
->         ndctl_{dax|pfn}_get_supported_alignment(), and
->         ndctl_{dax|pfn}_get_num_alignments()
->
-> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-> ---
-> v5: Fixed comment wording
->
-> v4: Changed return code of ndctl_pfn_get_supported_alignment from -1 to
->     -1 to -EINVAL.
->
->     Reworded comment about why we default to 4K and 2M alignments when
->     the sysfs attribute is missing.
->
->     Shuffled around prototypes in ndctl.h.
->
->     80 char compliance fixes.
->
->     rebased onto pending branch
->
-> v3: Changed the return type of the *_get_supported_alignment() functions
->     to unsigned long to match the existing *_get_alignment() functions.
+Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
+section active bitmask, each bit representing 2MB (SECTION_SIZE (128M) /
+map_active bitmask length (64)). If it turns out that 2MB is too large
+of an active tracking granularity it is trivial to increase the size of
+the map_active bitmap.
 
-After playing with this facility in the v64 release I think it needs a
-redo for the following reasons:
+The implications of a partially populated section is that pfn_valid()
+needs to go beyond a valid_section() check and read the sub-section
+active ranges from the bitmask.
 
-* It's a bit too chatty and redundant even behind a "-v" because all
-namespaces share the same attributes,
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/mmzone.h |   29 ++++++++++++++++++++++++++++-
+ mm/page_alloc.c        |    4 +++-
+ mm/sparse.c            |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 79 insertions(+), 2 deletions(-)
 
-* this breaks the long standing, but admittedly not documented, style
-guideline that all json values have an associated key, even if the key
-is effectively just a generic index value. There are common methods to
-enumerate the key space, but key-less arrays need to be handled
-explicitly.
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 69b9cb9cb2ed..ae4aa7f63d2e 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1122,6 +1122,8 @@ struct mem_section_usage {
+ 	unsigned long pageblock_flags[0];
+ };
+ 
++void section_active_init(unsigned long pfn, unsigned long nr_pages);
++
+ struct page;
+ struct page_ext;
+ struct mem_section {
+@@ -1259,12 +1261,36 @@ static inline struct mem_section *__pfn_to_section(unsigned long pfn)
+ 
+ extern int __highest_present_section_nr;
+ 
++static inline int section_active_index(phys_addr_t phys)
++{
++	return (phys & ~(PA_SECTION_MASK)) / SECTION_ACTIVE_SIZE;
++}
++
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
++{
++	int idx = section_active_index(PFN_PHYS(pfn));
++
++	return !!(ms->usage->map_active & (1UL << idx));
++}
++#else
++static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
++{
++	return 1;
++}
++#endif
++
+ #ifndef CONFIG_HAVE_ARCH_PFN_VALID
+ static inline int pfn_valid(unsigned long pfn)
+ {
++	struct mem_section *ms;
++
+ 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+ 		return 0;
+-	return valid_section(__nr_to_section(pfn_to_section_nr(pfn)));
++	ms = __nr_to_section(pfn_to_section_nr(pfn));
++	if (!valid_section(ms))
++		return 0;
++	return pfn_section_valid(ms, pfn);
+ }
+ #endif
+ 
+@@ -1295,6 +1321,7 @@ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
++#define section_active_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
+ /*
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index bf23bc0b8399..508a810fd514 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7221,10 +7221,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+ 
+ 	/* Print out the early node map */
+ 	pr_info("Early memory node ranges\n");
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
+ 			(u64)start_pfn << PAGE_SHIFT,
+ 			((u64)end_pfn << PAGE_SHIFT) - 1);
++		section_active_init(start_pfn, end_pfn - start_pfn);
++	}
+ 
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
+diff --git a/mm/sparse.c b/mm/sparse.c
+index cdd2978d0ffe..3cd7ce46e749 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -210,6 +210,54 @@ static inline unsigned long first_present_section_nr(void)
+ 	return next_present_section_nr(-1);
+ }
+ 
++static unsigned long section_active_mask(unsigned long pfn,
++		unsigned long nr_pages)
++{
++	int idx_start, idx_size;
++	phys_addr_t start, size;
++
++	if (!nr_pages)
++		return 0;
++
++	start = PFN_PHYS(pfn);
++	size = PFN_PHYS(min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK)));
++	size = ALIGN(size, SECTION_ACTIVE_SIZE);
++
++	idx_start = section_active_index(start);
++	idx_size = section_active_index(size);
++
++	if (idx_size == 0)
++		return -1;
++	return ((1UL << idx_size) - 1) << idx_start;
++}
++
++void section_active_init(unsigned long pfn, unsigned long nr_pages)
++{
++	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
++	int i, start_sec = pfn_to_section_nr(pfn);
++
++	if (!nr_pages)
++		return;
++
++	for (i = start_sec; i <= end_sec; i++) {
++		struct mem_section *ms;
++		unsigned long mask;
++		unsigned long pfns;
++
++		pfns = min(nr_pages, PAGES_PER_SECTION
++				- (pfn & ~PAGE_SECTION_MASK));
++		mask = section_active_mask(pfn, pfns);
++
++		ms = __nr_to_section(i);
++		pr_debug("%s: sec: %d mask: %#018lx\n", __func__, i, mask);
++		ms->usage->map_active = mask;
++
++		pfn += pfns;
++		nr_pages -= pfns;
++	}
++}
++
+ /* Record a memory area against a node. */
+ void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
 
-* It's the only field in the json that does not reflect the current
-state of a device. For this reason I think it should be moved behind a
---capabilities flag and a named "capability" object as a child of a
-region. This would also help with the redundant "supported" prefix.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
