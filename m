@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BD824211EC663
- for <linux-nvdimm@lists.01.org>; Fri, 29 Mar 2019 08:40:13 -0700 (PDT)
-Subject: [PATCH 2/6] mm/devm_memremap_pages: Introduce devm_memunmap_pages
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Mar 2019 08:27:34 -0700
-Message-ID: <155387325416.2443841.6074930471073650165.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 712A1211E9593
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 16:31:46 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] nvdimm: btt_devs: fix a NULL pointer dereference and a
+ memory leak
+Date: Fri, 22 Mar 2019 23:31:43 +0000
+Message-ID: <a5240c40ca3353f3798e1a52d4ca663dd278f0aa.camel@intel.com>
+References: <20190312081529.4889-1-kjlu@umn.edu>
+ <eea1b50fe8c76d45fef0aaca1878c30fa8f2cbde.camel@intel.com>
+ <4377c210798b000d60ebdc5150e015737d05565b.camel@intel.com>
+In-Reply-To: <4377c210798b000d60ebdc5150e015737d05565b.camel@intel.com>
+Content-Language: en-US
+Content-ID: <2AD9C8742838CC4E96CFEB432B12CF70@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,65 +27,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Christoph Hellwig <hch@lst.de>
+To: "kjlu@umn.edu" <kjlu@umn.edu>
+Cc: "zwisler@kernel.org" <zwisler@kernel.org>, "pakki001@umn.edu" <pakki001@umn.edu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the new devm_relase_action() facility to allow
-devm_memremap_pages_release() to be manually triggered.
 
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/memremap.h |    6 ++++++
- kernel/memremap.c        |    6 ++++++
- 2 files changed, 12 insertions(+)
+On Fri, 2019-03-22 at 22:56 +0000, Verma, Vishal L wrote:
+> On Fri, 2019-03-22 at 22:49 +0000, Verma, Vishal L wrote:
+> > On Tue, 2019-03-12 at 03:15 -0500, Kangjie Lu wrote:
+> > > In case kmemdup fails, the fix releases resources and returns to
+> > > avoid the NULL pointer dereference.
+> > > Also, the error paths in the following code should release
+> > > resources to avoid memory leaks.
+> > > 
+> > > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+> > > ---
+> > >  drivers/nvdimm/btt_devs.c | 8 +++++++-
+> > >  1 file changed, 7 insertions(+), 1 deletion(-)
+> > > 
+> > 
+> > Looks good,
+> > Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> 
+> Looking again, there is another kmemdup() call in __nd_btt_probe which
+> is lacking error checking.
+> And referring to your other related patch to namespace_devs, that has
+> /several/ instances of the same thing.
+> 
+> Instead of fixing just a couple of these, it might be worthwhile to send
+> a wider cleanup patch to catch all of these, at least within
+> drivers/nvdimm/ for starters, instead of a select few.
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index f0628660d541..7601ee314c4a 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -100,6 +100,7 @@ struct dev_pagemap {
- 
- #ifdef CONFIG_ZONE_DEVICE
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
-+void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
- struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 		struct dev_pagemap *pgmap);
- 
-@@ -118,6 +119,11 @@ static inline void *devm_memremap_pages(struct device *dev,
- 	return ERR_PTR(-ENXIO);
- }
- 
-+static inline void devm_memunmap_pages(struct device *dev,
-+		struct dev_pagemap *pgmap)
-+{
-+}
-+
- static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 		struct dev_pagemap *pgmap)
- {
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index a856cb5ff192..65afbacab44e 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -266,6 +266,12 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- }
- EXPORT_SYMBOL_GPL(devm_memremap_pages);
- 
-+void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	devm_release_action(dev, devm_memremap_pages_release, pgmap);
-+}
-+EXPORT_SYMBOL_GPL(devm_memunmap_pages);
-+
- unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
- {
- 	/* number of pfns from base where pfn_to_page() is valid */
-
+Hm, ignore this comment - these are the only two unchecked instances.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
