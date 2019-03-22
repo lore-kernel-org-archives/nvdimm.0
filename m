@@ -1,78 +1,243 @@
-From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [ndctl PATCH v2 3/4] ndctl, lib: implement
- ndctl_dimm_get_cmd_family()
-Date: Fri, 22 Mar 2019 01:33:14 +0000
-Message-ID: <PU1P153MB016964775966CCD6A47BCB3CBF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
-References: <PU1P153MB01696E7773E8C8129D8CCE8BBF7D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
- <221ceaa03f0a46d020da7a1c7fcd4d521bf5e09e.camel@intel.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
+Date: Thu, 21 Mar 2019 18:41:46 -0700
+Message-ID: <CAFd5g46AP9yZQ+z+60HGaZuqhJQmfSBw9+r62w4k=cGiMEkqLA@mail.gmail.com>
+References: <20190214213729.21702-1-brendanhiggins@google.com>
+ <20190214213729.21702-9-brendanhiggins@google.com> <da1995fa-a362-dfe6-8184-7fcdf2b923e8@gmail.com>
+ <CAFd5g467OV8wTB7zEshgZw8g8=zoq0dLVfwx3wDH-8UA+9GWFA@mail.gmail.com>
+ <0124ed28-466c-e954-ddde-495419630a9f@gmail.com> <CAFd5g47EDmsBWKNiW0jpHW2VG_GWCfe8UO+=ofgM2_ru+_UBQA@mail.gmail.com>
+ <118d89b7-d468-6d68-a48d-4d6d9cefd106@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <221ceaa03f0a46d020da7a1c7fcd4d521bf5e09e.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <118d89b7-d468-6d68-a48d-4d6d9cefd106@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Frank Rowand <frowand.list@gmail.com>
+Cc: Kees Cook <keescook@google.com>, Luis Chamberlain <mcgrof@kernel.org>, shuah@kernel.org, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Greg KH <gregkh@linuxfoundation.org>, Joel Stanley <joel@jms.id.au>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, brakmo@fb.com, Steven Rostedt <rostedt@goodmis.org>, "Bird, Timothy" <Tim.Bird@sony.com>, Kevin Hilman <khilman@baylibre.com>, Julia Lawall <julia.lawall@lip6.fr>, linux-kselftest@vger.kernel.org, kunit-dev@googlegroups.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, linux-um@lists.infradead.org, Daniel Vetter <daniel@ffwll.ch>, dri-devel <dri-devel@lists.freedeskto>
 List-Id: linux-nvdimm@lists.01.org
 
-> From: Verma, Vishal L <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Sent: Wednesday, March 20, 2019 6:42 PM
-> On Wed, 2019-02-20 at 05:11 +0000, Dexuan Cui wrote:
-> > Let's export the family info so we can do some family-specific
-> > handling in ndctl/monitor.c for Hyper-V NVDIMM.
-> 
-> s/Let's//
-
-Will fix it.
-
-> >  ndctl/lib/libndctl.c   | 5 +++++
-> >  ndctl/lib/libndctl.sym | 1 +
-> >  ndctl/libndctl.h       | 1 +
-> >  3 files changed, 7 insertions(+)
+On Thu, Mar 21, 2019 at 6:10 PM Frank Rowand <frowand.list@gmail.com> wrote:
+>
+> On 2/27/19 11:42 PM, Brendan Higgins wrote:
+> > On Tue, Feb 19, 2019 at 10:44 PM Frank Rowand <frowand.list@gmail.com> wrote:
+> >>
+> >> On 2/19/19 7:39 PM, Brendan Higgins wrote:
+> >>> On Mon, Feb 18, 2019 at 11:52 AM Frank Rowand <frowand.list@gmail.com> wrote:
+> >>>>
+> >>>> On 2/14/19 1:37 PM, Brendan Higgins wrote:
+> >>>>> Add support for aborting/bailing out of test cases. Needed for
+> >>>>> implementing assertions.
+> >>>>>
+> >>>>> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> >>>>> ---
+> >>>>> Changes Since Last Version
+> >>>>>  - This patch is new introducing a new cross-architecture way to abort
+> >>>>>    out of a test case (needed for KUNIT_ASSERT_*, see next patch for
+> >>>>>    details).
+> >>>>>  - On a side note, this is not a complete replacement for the UML abort
+> >>>>>    mechanism, but covers the majority of necessary functionality. UML
+> >>>>>    architecture specific featurs have been dropped from the initial
+> >>>>>    patchset.
+> >>>>> ---
+> >>>>>  include/kunit/test.h |  24 +++++
+> >>>>>  kunit/Makefile       |   3 +-
+> >>>>>  kunit/test-test.c    | 127 ++++++++++++++++++++++++++
+> >>>>>  kunit/test.c         | 208 +++++++++++++++++++++++++++++++++++++++++--
+> >>>>>  4 files changed, 353 insertions(+), 9 deletions(-)
+> >>>>>  create mode 100644 kunit/test-test.c
+> >>>>
+> >>>> < snip >
+> >>>>
+> >>>>> diff --git a/kunit/test.c b/kunit/test.c
+> >>>>> index d18c50d5ed671..6e5244642ab07 100644
+> >>>>> --- a/kunit/test.c
+> >>>>> +++ b/kunit/test.c
+> >>>>> @@ -6,9 +6,9 @@
+> >>>>>   * Author: Brendan Higgins <brendanhiggins@google.com>
+> >>>>>   */
+> >>>>>
+> >>>>> -#include <linux/sched.h>
+> >>>>>  #include <linux/sched/debug.h>
+> >>>>> -#include <os.h>
+> >>>>> +#include <linux/completion.h>
+> >>>>> +#include <linux/kthread.h>
+> >>>>>  #include <kunit/test.h>
+> >>>>>
+> >>>>>  static bool kunit_get_success(struct kunit *test)
+> >>>>> @@ -32,6 +32,27 @@ static void kunit_set_success(struct kunit *test, bool success)
+> >>>>>       spin_unlock_irqrestore(&test->lock, flags);
+> >>>>>  }
+> >>>>>
+> >>>>> +static bool kunit_get_death_test(struct kunit *test)
+> >>>>> +{
+> >>>>> +     unsigned long flags;
+> >>>>> +     bool death_test;
+> >>>>> +
+> >>>>> +     spin_lock_irqsave(&test->lock, flags);
+> >>>>> +     death_test = test->death_test;
+> >>>>> +     spin_unlock_irqrestore(&test->lock, flags);
+> >>>>> +
+> >>>>> +     return death_test;
+> >>>>> +}
+> >>>>> +
+> >>>>> +static void kunit_set_death_test(struct kunit *test, bool death_test)
+> >>>>> +{
+> >>>>> +     unsigned long flags;
+> >>>>> +
+> >>>>> +     spin_lock_irqsave(&test->lock, flags);
+> >>>>> +     test->death_test = death_test;
+> >>>>> +     spin_unlock_irqrestore(&test->lock, flags);
+> >>>>> +}
+> >>>>> +
+> >>>>>  static int kunit_vprintk_emit(const struct kunit *test,
+> >>>>>                             int level,
+> >>>>>                             const char *fmt,
+> >>>>> @@ -70,13 +91,29 @@ static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
+> >>>>>       stream->commit(stream);
+> >>>>>  }
+> >>>>>
+> >>>>> +static void __noreturn kunit_abort(struct kunit *test)
+> >>>>> +{
+> >>>>> +     kunit_set_death_test(test, true);
+> >>>>> +
+> >>>>> +     test->try_catch.throw(&test->try_catch);
+> >>>>> +
+> >>>>> +     /*
+> >>>>> +      * Throw could not abort from test.
+> >>>>> +      */
+> >>>>> +     kunit_err(test, "Throw could not abort from test!");
+> >>>>> +     show_stack(NULL, NULL);
+> >>>>> +     BUG();
+> >>>>
+> >>>> kunit_abort() is what will be call as the result of an assert failure.
+> >>>
+> >>> Yep. Does that need clarified somewhere.
+> >>>>
+> >>>> BUG(), which is a panic, which is crashing the system is not acceptable
+> >>>> in the Linux kernel.  You will just annoy Linus if you submit this.
+> >>>
+> >>> Sorry, I thought this was an acceptable use case since, a) this should
+> >>> never be compiled in a production kernel, b) we are in a pretty bad,
+> >>> unpredictable state if we get here and keep going. I think you might
+> >>> have said elsewhere that you think "a" is not valid? In any case, I
+> >>> can replace this with a WARN, would that be acceptable?
+> >>
+> >> A WARN may or may not make sense, depending on the context.  It may
+> >> be sufficient to simply report a test failure (as in the old version
+> >> of case (2) below.
+> >>
+> >> Answers to "a)" and "b)":
+> >>
+> >> a) it might be in a production kernel
 > >
-> > diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> > index 48bdb27..1186579 100644
-> > --- a/ndctl/lib/libndctl.c
-> > +++ b/ndctl/lib/libndctl.c
-> > @@ -1550,6 +1550,11 @@ NDCTL_EXPORT struct ndctl_dimm
-> *ndctl_dimm_get_next(struct ndctl_dimm *dimm)
-> >  	return list_next(&bus->dimms, dimm, list);
-> >  }
+> > Sorry for a possibly stupid question, how might it be so? Why would
+> > someone intentionally build unit tests into a production kernel?
+>
+> People do things.  Just expect it.
+
+Huh, alright. I will take your word for it then.
+
+>
+> >>
+> >> a') it is not acceptable in my development kernel either
 > >
-> > +NDCTL_EXPORT unsigned long ndctl_dimm_get_cmd_family(struct
-> ndctl_dimm *dimm)
-> > +{
-> > +	return dimm->cmd_family;
-> > +}
-> > +
-> >  NDCTL_EXPORT unsigned int ndctl_dimm_get_handle(struct ndctl_dimm
-> *dimm)
-> >  {
-> >  	return dimm->handle;
-> > diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-> > index cb9f769..470e895 100644
-> > --- a/ndctl/lib/libndctl.sym
-> > +++ b/ndctl/lib/libndctl.sym
-> > @@ -38,6 +38,7 @@ global:
-> >  	ndctl_bus_wait_probe;
-> >  	ndctl_dimm_get_first;
-> >  	ndctl_dimm_get_next;
-> > +	ndctl_dimm_get_cmd_family;
-> 
-> Any new APIs need to go in a new LIBNDCTL_XX section (for this release
-> that would be LIBNDCTL_20).
-> If you rebase to the current 'pending' branch on github, the section has
-> already been created at the bottom, and you can just add to that.
+> > Fair enough.
+> >
+> >>
+> >> b) No.  You don't crash a developer's kernel either unless it is
+> >> required to avoid data corruption.
+> >
+> > Alright, I thought that was one of those cases, but I am not going to
+> > push the point. Also, in case it wasn't clear, the path where BUG()
+> > gets called only happens if there is a bug in KUnit itself, not just
+> > because a test case fails catastrophically.
+>
+> Still not out of the woods.  Still facing Lions and Tigers and Bears,
+> Oh my!
 
-Will fix it
+Nope, I guess not :-)
 
-Thanks,
--- Dexuan 
+>
+> So kunit_abort() is normally called as the result of an assert
+> failure (as written many lines further above).
+>
+> kunit_abort()
+>    test->try_catch.throw(&test->try_catch)
+>    // this is really kunit_generic_throw(), yes?
+>       complete_and_exit()
+>          if (comp)
+>             // comp is test_case_completion?
+>             complete(comp)
+>          do_exit()
+>             // void __noreturn do_exit(long code)
+>             // depending on the task, either panic
+>             // or the task dies
+
+You are right up until after it calls do_exit().
+
+KUnit actually spawns a thread for the test case to run in so that
+when exit is called, only the test case thread dies. The thread that
+started KUnit is never affected.
+
+>
+> I did not read through enough of the code to understand what is going
+> on here.  Is each kunit_module executed in a newly created thread?
+> And if kunit_abort() is called then that thread dies?  Or something
+> else?
+
+Mostly right, each kunit_case (not kunit_module) gets executed in its
+own newly created thread. If kunit_abort() is called in that thread,
+the kunit_case thread dies. The parent thread keeps going, and other
+test cases are executed.
+
+>
+>
+> >>
+> >> b') And you can not do replacements like:
+> >>
+> >> (1) in of_unittest_check_tree_linkage()
+> >>
+> >> -----  old  -----
+> >>
+> >>         if (!of_root)
+> >>                 return;
+> >>
+> >> -----  new  -----
+> >>
+> >>         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, of_root);
+> >>
+> >> (2) in of_unittest_property_string()
+> >>
+> >> -----  old  -----
+> >>
+> >>         /* of_property_read_string_index() tests */
+> >>         rc = of_property_read_string_index(np, "string-property", 0, strings);
+> >>         unittest(rc == 0 && !strcmp(strings[0], "foobar"), "of_property_read_string_index() failure; rc=%i\n", rc);
+> >>
+> >> -----  new  -----
+> >>
+> >>         /* of_property_read_string_index() tests */
+> >>         rc = of_property_read_string_index(np, "string-property", 0, strings);
+> >>         KUNIT_ASSERT_EQ(test, rc, 0);
+> >>         KUNIT_EXPECT_STREQ(test, strings[0], "foobar");
+> >>
+> >>
+> >> If a test fails, that is no reason to abort testing.  The remainder of the unit
+> >> tests can still run.  There may be cascading failures, but that is ok.
+> >
+> > Sure, that's what I am trying to do. I don't see how (1) changes
+> > anything, a failed KUNIT_ASSERT_* only bails on the current test case,
+> > it does not quit the entire test suite let alone crash the kernel.
+>
+> This may be another case of whether a kunit_module is approximately a
+> single KUNIT_EXPECT_*() or a larger number of them.
+>
+> I still want, for example, of_unittest_property_string() to include a large
+> number of KUNIT_EXPECT_*() instances.  In that case I still want the rest of
+> the tests in the kunit_module to be executed even after a KUNIT_ASSERT_*()
+> fails.  The existing test code has that property.
+
+Sure, in the context of the reply you just sent me on the DT unittest
+thread, that makes sense. I can pull out all but the ones that would
+have terminated the collection of test cases (where you return early),
+if that makes it better.
