@@ -1,10 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.135.175])
- by ml01.01.org (Postfix) with ESMTP id 7157A2194EB78
- for <linux-nvdimm@lists.01.org>; Sun, 10 Mar 2019 20:44:41 -0700 (PDT)
-From: "MAILER-DAEMON" <noreply@lists.01.org>
-Subject: error
-Date: Mon, 11 Mar 2019 11:44:43 +0800
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C7FDC211E82F7
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:10:44 -0700 (PDT)
+Subject: [PATCH v5 02/10] mm/sparsemem: Introduce common definitions for the
+ size and mask of a section
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 22 Mar 2019 09:58:05 -0700
+Message-ID: <155327388517.225273.8517440825117584932.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -13,23 +19,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20190311034935.BB6D5211D9406@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Mon, 11 Mar 2019 11:44:43 +0800
-from lists.01.org [32.243.43.235]
-
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm@lists.01.org>
-
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VXAtbGV2ZWwgdGhlIGxvY2FsIHNlY3Rpb24gc2l6ZSBhbmQgbWFzayBmcm9tIGtlcm5lbC9tZW1y
+ZW1hcC5jIHRvCmdsb2JhbCBkZWZpbml0aW9ucy4gIFRoZXNlIHdpbGwgYmUgdXNlZCBieSB0aGUg
+bmV3IHN1Yi1zZWN0aW9uIGhvdHBsdWcKc3VwcG9ydC4KCkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nr
+b0BzdXNlLmNvbT4KQ2M6IFZsYXN0aW1pbCBCYWJrYSA8dmJhYmthQHN1c2UuY3o+CkNjOiBKw6ly
+w7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRob3JwZSA8bG9n
+YW5nQGRlbHRhdGVlLmNvbT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
+aWFtc0BpbnRlbC5jb20+Ci0tLQogaW5jbHVkZS9saW51eC9tbXpvbmUuaCB8ICAgIDIgKysKIGtl
+cm5lbC9tZW1yZW1hcC5jICAgICAgfCAgIDEwICsrKystLS0tLS0KIG1tL2htbS5jICAgICAgICAg
+ICAgICAgfCAgICAyIC0tCiAzIGZpbGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgOCBkZWxl
+dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21tem9uZS5oIGIvaW5jbHVkZS9s
+aW51eC9tbXpvbmUuaAppbmRleCAxNTFkZDczMjdlMGIuLjY5YjljYjljYjJlZCAxMDA2NDQKLS0t
+IGEvaW5jbHVkZS9saW51eC9tbXpvbmUuaAorKysgYi9pbmNsdWRlL2xpbnV4L21tem9uZS5oCkBA
+IC0xMDgxLDYgKzEwODEsOCBAQCBzdGF0aWMgaW5saW5lIHVuc2lnbmVkIGxvbmcgZWFybHlfcGZu
+X3RvX25pZCh1bnNpZ25lZCBsb25nIHBmbikKICAqIFBGTl9TRUNUSU9OX1NISUZUCQlwZm4gdG8v
+ZnJvbSBzZWN0aW9uIG51bWJlcgogICovCiAjZGVmaW5lIFBBX1NFQ1RJT05fU0hJRlQJKFNFQ1RJ
+T05fU0laRV9CSVRTKQorI2RlZmluZSBQQV9TRUNUSU9OX1NJWkUJCSgxVUwgPDwgUEFfU0VDVElP
+Tl9TSElGVCkKKyNkZWZpbmUgUEFfU0VDVElPTl9NQVNLCQkofihQQV9TRUNUSU9OX1NJWkUtMSkp
+CiAjZGVmaW5lIFBGTl9TRUNUSU9OX1NISUZUCShTRUNUSU9OX1NJWkVfQklUUyAtIFBBR0VfU0hJ
+RlQpCiAKICNkZWZpbmUgTlJfTUVNX1NFQ1RJT05TCQkoMVVMIDw8IFNFQ1RJT05TX1NISUZUKQpk
+aWZmIC0tZ2l0IGEva2VybmVsL21lbXJlbWFwLmMgYi9rZXJuZWwvbWVtcmVtYXAuYwppbmRleCBh
+ODU2Y2I1ZmYxOTIuLmRkYTEzNjdiMzg1ZCAxMDA2NDQKLS0tIGEva2VybmVsL21lbXJlbWFwLmMK
+KysrIGIva2VybmVsL21lbXJlbWFwLmMKQEAgLTE0LDggKzE0LDYgQEAKICNpbmNsdWRlIDxsaW51
+eC9obW0uaD4KIAogc3RhdGljIERFRklORV9YQVJSQVkocGdtYXBfYXJyYXkpOwotI2RlZmluZSBT
+RUNUSU9OX01BU0sgfigoMVVMIDw8IFBBX1NFQ1RJT05fU0hJRlQpIC0gMSkKLSNkZWZpbmUgU0VD
+VElPTl9TSVpFICgxVUwgPDwgUEFfU0VDVElPTl9TSElGVCkKIAogI2lmIElTX0VOQUJMRUQoQ09O
+RklHX0RFVklDRV9QUklWQVRFKQogdm1fZmF1bHRfdCBkZXZpY2VfcHJpdmF0ZV9lbnRyeV9mYXVs
+dChzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYSwKQEAgLTk4LDggKzk2LDggQEAgc3RhdGljIHZv
+aWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZvaWQgKmRhdGEpCiAJCXB1dF9wYWdlKHBm
+bl90b19wYWdlKHBmbikpOwogCiAJLyogcGFnZXMgYXJlIGRlYWQgYW5kIHVudXNlZCwgdW5kbyB0
+aGUgYXJjaCBtYXBwaW5nICovCi0JYWxpZ25fc3RhcnQgPSByZXMtPnN0YXJ0ICYgfihTRUNUSU9O
+X1NJWkUgLSAxKTsKLQlhbGlnbl9zaXplID0gQUxJR04ocmVzLT5zdGFydCArIHJlc291cmNlX3Np
+emUocmVzKSwgU0VDVElPTl9TSVpFKQorCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4oUEFf
+U0VDVElPTl9TSVpFIC0gMSk7CisJYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyByZXNv
+dXJjZV9zaXplKHJlcyksIFBBX1NFQ1RJT05fU0laRSkKIAkJLSBhbGlnbl9zdGFydDsKIAogCW5p
+ZCA9IHBhZ2VfdG9fbmlkKHBmbl90b19wYWdlKGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQpKTsK
+QEAgLTE1NCw4ICsxNTIsOCBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZp
+Y2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlpZiAoIXBnbWFwLT5yZWYgfHwg
+IXBnbWFwLT5raWxsKQogCQlyZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsKIAotCWFsaWduX3N0YXJ0
+ID0gcmVzLT5zdGFydCAmIH4oU0VDVElPTl9TSVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdO
+KHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXplKHJlcyksIFNFQ1RJT05fU0laRSkKKwlhbGlnbl9z
+dGFydCA9IHJlcy0+c3RhcnQgJiB+KFBBX1NFQ1RJT05fU0laRSAtIDEpOworCWFsaWduX3NpemUg
+PSBBTElHTihyZXMtPnN0YXJ0ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBQQV9TRUNUSU9OX1NJWkUp
+CiAJCS0gYWxpZ25fc3RhcnQ7CiAJYWxpZ25fZW5kID0gYWxpZ25fc3RhcnQgKyBhbGlnbl9zaXpl
+IC0gMTsKIApkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBmZTFjZDg3ZTQ5
+YWMuLmVmOWU0ZTZjOWY5MiAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAg
+LTMzLDggKzMzLDYgQEAKICNpbmNsdWRlIDxsaW51eC9tbXVfbm90aWZpZXIuaD4KICNpbmNsdWRl
+IDxsaW51eC9tZW1vcnlfaG90cGx1Zy5oPgogCi0jZGVmaW5lIFBBX1NFQ1RJT05fU0laRSAoMVVM
+IDw8IFBBX1NFQ1RJT05fU0hJRlQpCi0KICNpZiBJU19FTkFCTEVEKENPTkZJR19ITU1fTUlSUk9S
+KQogc3RhdGljIGNvbnN0IHN0cnVjdCBtbXVfbm90aWZpZXJfb3BzIGhtbV9tbXVfbm90aWZpZXJf
+b3BzOwogCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
+aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
+Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
