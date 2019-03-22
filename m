@@ -1,15 +1,17 @@
 From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 Subject: RE: [ndctl PATCH v2 4/4] ndctl, monitor: support NVDIMM_FAMILY_HYPERV
-Date: Fri, 22 Mar 2019 04:05:47 +0000
-Message-ID: <PU1P153MB0169F3CEDB7C2F4965450BB6BF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+Date: Fri, 22 Mar 2019 05:09:27 +0000
+Message-ID: <PU1P153MB0169A7A65DB3A54040DE291ABF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
 References: <PU1P153MB01691E80896E9EAA0C8245EDBF7D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
  <9876fd8a491e339f2f41a47e2195d354bf0d5fb2.camel@intel.com>
  <PU1P153MB0169CA436F52268DD2BEF745BF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <PU1P153MB0169F3CEDB7C2F4965450BB6BF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <CAPcyv4hVZLW2OSMZ9NqqsQWMg7vxyS9J1ekDZW8G44cmD9_YCw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <PU1P153MB0169CA436F52268DD2BEF745BF430-7hHSCQUTt08p9lVGRpUb+2HfQuWdHs3hiGd9ebBGJoev3QGu/rdwKA@public.gmane.org>
+In-Reply-To: <CAPcyv4hVZLW2OSMZ9NqqsQWMg7vxyS9J1ekDZW8G44cmD9_YCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -20,52 +22,46 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-> From: Dexuan Cui
-> Sent: Thursday, March 21, 2019 7:09 PM
- 
-> IMO there are 2 issues in ndctl/monitor.c: filter_dimm():
+> From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Sent: Thursday, March 21, 2019 9:13 PM
+> > ...
+> > Actually, this _is_ an issue for NVDIMM_FAMILY_HYPERV (and the other
+> > families except for NVDIMM_FAMILY_INTEL) : see the kernel function
+> > acpi_nfit_register_dimms(), where ND_CMD_SMART is set in the
+> > "cmd_mask" only for NVDIMM_FAMILY_INTEL.
+> >
+> > So, on Hyper-V, ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART)
+> > is always false, and "ndctl monitor" exits with "no smart support".
 > 
-> 1. IMO the cmd numbers ND_CMD_SMART (1) and
-> ND_CMD_SMART_THRESHOLD(2) are not really device-neutral. They
-> work for ndctl/lib/intel.c and it looks they happen to work for
-> ndctl/lib/hpe1.c, as hpe "happens" to have:
->        NDN_HPE1_CMD_SMART = 1,
->        NDN_HPE1_CMD_SMART_THRESHOLD = 2,
-> 
-> But for ndctl/lib/msft.c, 1 and 2 mean different things. See [1].
-> So the current "ndctl monitor" can't support msft.c.
-> 
-> For ndctl/lib/hyperv.c, 1 and 2 means:
->         ND_HYPERV_CMD_GET_HEALTH_INFO = 1,
->         ND_HYPERV_CMD_GET_SHUTDOWN_INFO = 2,
-> They're also incompatible with ND_CMD_SMART and
-> ND_CMD_SMART_THRESHOLD.
-> Of source, the current code can "work" since these ND_HYPERV_CMD*
-> numbers happen to be the same as ND_CMD_SMART and
-> ND_CMD_SMART_THRESHOLD. So this may not be an isue for hyperv.c.
+> Can the Hyper-V implementation emulate those commands? That's the
+> expectation, i.e. that the implementation can return they required
+> payloads, but it's fine if the payloads disclaim support for certain
+> fields.
 
-Actually, this _is_ an issue for NVDIMM_FAMILY_HYPERV (and the other
-families except for NVDIMM_FAMILY_INTEL) : see the kernel function
-acpi_nfit_register_dimms(), where ND_CMD_SMART is set in the 
-"cmd_mask" only for NVDIMM_FAMILY_INTEL.
+Hyper-V Virtual NVDIMM doesn't emulate ND_CMD_SMART(1). 
+The _DSM Function 1 on Hyper-V is "Get Health Information" [1], which is
+incomptabile with NVDIMM_FAMILY_INTEL's ND_CMD_SMART(1). 
 
-So, on Hyper-V, ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART) 
-is always false, and "ndctl monitor" exits with "no smart support".
- 
-> 2. The current code assumes ND_SMART_ALARM_VALID must be supported.
-> However, NVDIMM_FAMILY_HYPERV doesn't support it, so currently
-> ndctl/monitor.c: filter_dimm() reports an error and returns -- for Hyper-V,
-> we should not return... hence I made this patch.
-> 
-> Of source, we can add a new op to dimm->ops, e.g.
-> ops->monitor_supported() and then change the common code accordingly,
-> but I can imagine that would require a lot more changes and I guess it may not
-> worth that effort? Please share your insights!
+Even if Hyper-V could emulate ND_CMD_SMART, the current "ndctl monitor"
+code still wouldn't work for Hyper-V (and the other families): the essence of the
+issue is that:
+1. the kernel only sets ND_CMD_SMART flag for NVDIMM_FAMILY_INTEL.
+2. "ndctl monitor" assumes the ND_CMD_SMART should be set by checking
+/sys/class/nd/ndctl0/device/nmem0/commands.
 
-Looking forward to your suggestion!
- 
+This means ndctl_dimm_is_cmd_supported(dimm, ND_CMD_SMART) can
+only be true on NVDIMM_FAMILY_INTEL.
+
+My patch skips the assumption of ndctl on Hyper-V, so "ndctl monitor"
+can work on Hyper-V.
+
+It looks we do need an ops->monitor_supported() in ndctl?
+
 Thanks,
 -- Dexuan
+
+[1] See http://www.uefi.org/RFIC_LIST ("Virtual NVDIMM 0x1901").
