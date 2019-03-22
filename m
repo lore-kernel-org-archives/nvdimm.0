@@ -1,84 +1,123 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A7C6B211E745D
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 07:40:20 -0700 (PDT)
-Date: Fri, 22 Mar 2019 08:41:21 -0600
-From: Keith Busch <keith.busch@intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Zi Yan <ziy@nvidia.com>
 Subject: Re: [PATCH 0/5] Page demotion for memory reclaim
-Message-ID: <20190322144120.GB29817@localhost.localdomain>
+Date: Thu, 21 Mar 2019 17:20:54 -0700
+Message-ID: <2137A80F-CC90-411B-A1AF-A56384ADE0B8@nvidia.com>
+In-Reply-To: <CAHbLzkrLyG-j8kRrrQ==4Y4LDDLubvXMF88muyzXWAQWKw1ZSw@mail.gmail.com>
 References: <20190321200157.29678-1-keith.busch@intel.com>
  <5B5EFBC2-2979-4B9F-A43A-1A14F16ACCE1@nvidia.com>
  <20190321223706.GA29817@localhost.localdomain>
- <F33CDC43-745B-4555-B8E0-D50D8024C727@nvidia.com>
+ <CAHbLzkrLyG-j8kRrrQ==4Y4LDDLubvXMF88muyzXWAQWKw1ZSw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <F33CDC43-745B-4555-B8E0-D50D8024C727@nvidia.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@intel.com>, David Nellans <dnellans@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, "Kirill A. Shutemov" <kirill@shutemov.name>
+Content-Type: multipart/signed;
+	boundary="=_MailMate_9EF958FC-2C3D-4B16-B110-D853B6A94A0D_=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Sender: owner-linux-mm@kvack.org
+To: Yang Shi <shy828301@gmail.com>
+Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, David Nellans <dnellans@nvidia.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 21, 2019 at 05:12:33PM -0700, Zi Yan wrote:
-> > Yes, we may not want to migrate everything in the shrink_page_list()
-> > pages. We might want to keep a page, so we have to do those checks first. At
-> > the point we know we want to attempt migration, the page is already
-> > locked and not in a list, so it is just easier to directly invoke the
-> > new __unmap_and_move_locked() that migrate_pages() eventually also calls.
-> 
-> Right, I understand that you want to only migrate small pages to begin with. My question is
-> why not using the existing migrate_pages() in your patch 3. Like:
-> 
-> diff --git a/mm/vmscan.c b/mm/vmscan.c
-> index a5ad0b35ab8e..0a0753af357f 100644
-> --- a/mm/vmscan.c
-> +++ b/mm/vmscan.c
-> @@ -1261,6 +1261,20 @@ static unsigned long shrink_page_list(struct list_head *page_list,
->                         ; /* try to reclaim the page below */
->                 }
-> 
-> +               if (!PageCompound(page)) {
-> +                       int next_nid = next_migration_node(page);
-> +                       int err;
-> +
-> +                       if (next_nid != TERMINAL_NODE) {
-> +                               LIST_HEAD(migrate_list);
-> +                               list_add(&migrate_list, &page->lru);
-> +                               err = migrate_pages(&migrate_list, alloc_new_node_page, NULL,
-> +                                       next_nid, MIGRATE_ASYNC, MR_DEMOTION);
-> +                               if (err)
-> +                                       putback_movable_pages(&migrate_list);
-> +                       }
-> +               }
-> +
->                 /*
->                  * Anonymous process memory has backing store?
->                  * Try to allocate it some swap space here.
-> 
-> Because your new migrate_demote_mapping() basically does the same thing as the code above.
-> If you are not OK with the gfp flags in alloc_new_node_page(), you can just write your own
-> alloc_new_node_page(). :)
+--=_MailMate_9EF958FC-2C3D-4B16-B110-D853B6A94A0D_=
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-The page is already locked, you can't call migrate_pages()
-with locked pages. You'd have to surround migrate_pages with
-unlock_page/try_lock_page, and I thought that looked odd. Further,
-it changes the flow if the subsequent try lock fails, and I'm trying to
-be careful about not introducing different behavior if migration fails.
+On 21 Mar 2019, at 16:02, Yang Shi wrote:
 
-Patch 2/5 is included here so we can reuse the necessary code from a
-locked page context.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> On Thu, Mar 21, 2019 at 3:36 PM Keith Busch <keith.busch@intel.com> wro=
+te:
+>>
+>> On Thu, Mar 21, 2019 at 02:20:51PM -0700, Zi Yan wrote:
+>>> 1. The name of =E2=80=9Cpage demotion=E2=80=9D seems confusing to me,=
+ since I thought it was about large pages
+>>> demote to small pages as opposite to promoting small pages to THPs. A=
+m I the only
+>>> one here?
+>>
+>> If you have a THP, we'll skip the page migration and fall through to
+>> split_huge_page_to_list(), then the smaller pages can be considered,
+>> migrated and reclaimed individually. Not that we couldn't try to migra=
+te
+>> a THP directly. It was just simpler implementation for this first atte=
+mpt.
+>>
+>>> 2. For the demotion path, a common case would be from high-performanc=
+e memory, like HBM
+>>> or Multi-Channel DRAM, to DRAM, then to PMEM, and finally to disks, r=
+ight? More general
+>>> case for demotion path would be derived from the memory performance d=
+escription from HMAT[1],
+>>> right? Do you have any algorithm to form such a path from HMAT?
+>>
+>> Yes, I have a PoC for the kernel setting up a demotion path based on
+>> HMAT properties here:
+>>
+>>   https://git.kernel.org/pub/scm/linux/kernel/git/kbusch/linux.git/com=
+mit/?h=3Dmm-migrate&id=3D4d007659e1dd1b0dad49514348be4441fbe7cadb
+>>
+>> The above is just from an experimental branch.
+>>
+>>> 3. Do you have a plan for promoting pages from lower-level memory to =
+higher-level memory,
+>>> like from PMEM to DRAM? Will this one-way demotion make all pages sin=
+k to PMEM and disk?
+>>
+>> Promoting previously demoted pages would require the application do
+>> something to make that happen if you turn demotion on with this series=
+=2E
+>> Kernel auto-promotion is still being investigated, and it's a little
+>> trickier than reclaim.
+>
+> Just FYI. I'm currently working on a patchset which tries to promotes
+> page from second tier memory (i.e. PMEM) to DRAM via NUMA balancing.
+> But, NUMA balancing can't deal with unmapped page cache, they have to
+> be promoted from different path, i.e. mark_page_accessed().
+
+Got it. Another concern is that NUMA balancing marks pages inaccessible
+to obtain access information. It might add more overheads on top of page =
+migration
+overheads. Considering the benefit of migrating pages from PMEM to DRAM
+is not as large as =E2=80=9Cbring data from disk to DRAM=E2=80=9D, the ov=
+erheads might offset
+the benefit, meaning you might see performance degradation.
+
+>
+> And, I do agree with Keith, promotion is definitely trickier than
+> reclaim since kernel can't recognize "hot" pages accurately. NUMA
+> balancing is still corse-grained and inaccurate, but it is simple. If
+> we would like to implement more sophisticated algorithm, in-kernel
+> implementation might be not a good idea.
+
+I agree. Or hardware vendor, like Intel, could bring more information
+on page hotness, like multi-bit access bits or page-modification log
+provided by Intel for virtualization.
+
+
+
+--
+Best Regards,
+Yan Zi
+
+--=_MailMate_9EF958FC-2C3D-4B16-B110-D853B6A94A0D_=
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQJDBAEBAgAtFiEEh7yFAW3gwjwQ4C9anbJR82th+ooFAlyUKmYPHHppeUBudmlk
+aWEuY29tAAoJEJ2yUfNrYfqKleMP/RceC2q7vQiOE19ilpxcSX4iAX7dUwtbkZg0
+YVrSR3WceWx6L62+6B9RYCGPZEnMYGm1UJFKG+wBAO7QsWv11lt1baBqtNn6ORSX
+tvgRMOVNW65YfCy/6vciv+nRuLkK/87aOF2nfie+RUIv6yt+KK0sWm1qN0x6vvHH
+AXNXNSz0yUpcJqOhktVOCyAdLcI16afxmLdYDReOpMinToKySZVUswpA/BMoX/qP
+zUH/96JflS5p8QGs07A8M1kGxG9shQldIEQIkbuOy3JuqAA4dr7q3mB9Kz3RKgwg
+iPKMpEFEZWmwSJfYFrr/frlwlua3HP+NHpfvlP3lZQJcFUyB2TAIkIbUtsZcDJ9R
+Z2Nb4CEE8MDusB3Fqg3KQE9cGJ++PFAA+QN2Y8UNBngi1Gcpjxxxd5JSdjI27R2c
+xRrYZQy6BYW3WgMg+jKq/Gjf2PHRal+KDV+ttuxTFp6pPMJpdt3MdylptI8it8jZ
+ro5yeu6yeV+fe9QkvlTrRKcvndSwANvx/H9ZWRdwKiHAnWWxChzq2fRaezOjNLzP
+VB+8/5uST6eg5+r/Z7TIkkwOT9mNjrxfgRqW6jRTMOe15JAJlzh1Za9REQgCQtLI
+HxvHdp0z0JkFBLwrtWCFkHeJsJ1vs7r6Red1h1ZjDYwHWH1OQ3X7qml6P1DzyFtY
+qFY2/Suf
+=+UmC
+-----END PGP SIGNATURE-----
+
+--=_MailMate_9EF958FC-2C3D-4B16-B110-D853B6A94A0D_=--
