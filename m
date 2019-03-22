@@ -1,18 +1,15 @@
-From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v4 08/17] kunit: test: add support for test abort
-Date: Thu, 21 Mar 2019 18:09:55 -0700
-Message-ID: <118d89b7-d468-6d68-a48d-4d6d9cefd106@gmail.com>
-References: <20190214213729.21702-1-brendanhiggins@google.com>
- <20190214213729.21702-9-brendanhiggins@google.com>
- <da1995fa-a362-dfe6-8184-7fcdf2b923e8@gmail.com>
- <CAFd5g467OV8wTB7zEshgZw8g8=zoq0dLVfwx3wDH-8UA+9GWFA@mail.gmail.com>
- <0124ed28-466c-e954-ddde-495419630a9f@gmail.com>
- <CAFd5g47EDmsBWKNiW0jpHW2VG_GWCfe8UO+=ofgM2_ru+_UBQA@mail.gmail.com>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [ndctl PATCH v2 1/4] libndctl: add support for
+ NVDIMM_FAMILY_HYPERV's _DSM Function 1
+Date: Fri, 22 Mar 2019 01:11:19 +0000
+Message-ID: <PU1P153MB0169C507CF47A6BFD63F1E0DBF430@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <PU1P153MB016988DC99DD57082BEC6006BF7D0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+ <b883122b7bbbe46d4895136ebac7305defb03e91.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAFd5g47EDmsBWKNiW0jpHW2VG_GWCfe8UO+=ofgM2_ru+_UBQA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <b883122b7bbbe46d4895136ebac7305defb03e91.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -23,221 +20,150 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: brakmo-b10kYP2dOMg@public.gmane.org, Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Richard Weinberger <richard-/L3Ra7n9ekc@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Bird,
- Timothy" <Tim.Bird-7U/KSKJipcs@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>Linux Kernel Mailing List <lin>
+To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On 2/27/19 11:42 PM, Brendan Higgins wrote:
-> On Tue, Feb 19, 2019 at 10:44 PM Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->> On 2/19/19 7:39 PM, Brendan Higgins wrote:
->>> On Mon, Feb 18, 2019 at 11:52 AM Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>>>
->>>> On 2/14/19 1:37 PM, Brendan Higgins wrote:
->>>>> Add support for aborting/bailing out of test cases. Needed for
->>>>> implementing assertions.
->>>>>
->>>>> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>>>> ---
->>>>> Changes Since Last Version
->>>>>  - This patch is new introducing a new cross-architecture way to abort
->>>>>    out of a test case (needed for KUNIT_ASSERT_*, see next patch for
->>>>>    details).
->>>>>  - On a side note, this is not a complete replacement for the UML abort
->>>>>    mechanism, but covers the majority of necessary functionality. UML
->>>>>    architecture specific featurs have been dropped from the initial
->>>>>    patchset.
->>>>> ---
->>>>>  include/kunit/test.h |  24 +++++
->>>>>  kunit/Makefile       |   3 +-
->>>>>  kunit/test-test.c    | 127 ++++++++++++++++++++++++++
->>>>>  kunit/test.c         | 208 +++++++++++++++++++++++++++++++++++++++++--
->>>>>  4 files changed, 353 insertions(+), 9 deletions(-)
->>>>>  create mode 100644 kunit/test-test.c
->>>>
->>>> < snip >
->>>>
->>>>> diff --git a/kunit/test.c b/kunit/test.c
->>>>> index d18c50d5ed671..6e5244642ab07 100644
->>>>> --- a/kunit/test.c
->>>>> +++ b/kunit/test.c
->>>>> @@ -6,9 +6,9 @@
->>>>>   * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>>>>   */
->>>>>
->>>>> -#include <linux/sched.h>
->>>>>  #include <linux/sched/debug.h>
->>>>> -#include <os.h>
->>>>> +#include <linux/completion.h>
->>>>> +#include <linux/kthread.h>
->>>>>  #include <kunit/test.h>
->>>>>
->>>>>  static bool kunit_get_success(struct kunit *test)
->>>>> @@ -32,6 +32,27 @@ static void kunit_set_success(struct kunit *test, bool success)
->>>>>       spin_unlock_irqrestore(&test->lock, flags);
->>>>>  }
->>>>>
->>>>> +static bool kunit_get_death_test(struct kunit *test)
->>>>> +{
->>>>> +     unsigned long flags;
->>>>> +     bool death_test;
->>>>> +
->>>>> +     spin_lock_irqsave(&test->lock, flags);
->>>>> +     death_test = test->death_test;
->>>>> +     spin_unlock_irqrestore(&test->lock, flags);
->>>>> +
->>>>> +     return death_test;
->>>>> +}
->>>>> +
->>>>> +static void kunit_set_death_test(struct kunit *test, bool death_test)
->>>>> +{
->>>>> +     unsigned long flags;
->>>>> +
->>>>> +     spin_lock_irqsave(&test->lock, flags);
->>>>> +     test->death_test = death_test;
->>>>> +     spin_unlock_irqrestore(&test->lock, flags);
->>>>> +}
->>>>> +
->>>>>  static int kunit_vprintk_emit(const struct kunit *test,
->>>>>                             int level,
->>>>>                             const char *fmt,
->>>>> @@ -70,13 +91,29 @@ static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
->>>>>       stream->commit(stream);
->>>>>  }
->>>>>
->>>>> +static void __noreturn kunit_abort(struct kunit *test)
->>>>> +{
->>>>> +     kunit_set_death_test(test, true);
->>>>> +
->>>>> +     test->try_catch.throw(&test->try_catch);
->>>>> +
->>>>> +     /*
->>>>> +      * Throw could not abort from test.
->>>>> +      */
->>>>> +     kunit_err(test, "Throw could not abort from test!");
->>>>> +     show_stack(NULL, NULL);
->>>>> +     BUG();
->>>>
->>>> kunit_abort() is what will be call as the result of an assert failure.
->>>
->>> Yep. Does that need clarified somewhere.
->>>>
->>>> BUG(), which is a panic, which is crashing the system is not acceptable
->>>> in the Linux kernel.  You will just annoy Linus if you submit this.
->>>
->>> Sorry, I thought this was an acceptable use case since, a) this should
->>> never be compiled in a production kernel, b) we are in a pretty bad,
->>> unpredictable state if we get here and keep going. I think you might
->>> have said elsewhere that you think "a" is not valid? In any case, I
->>> can replace this with a WARN, would that be acceptable?
->>
->> A WARN may or may not make sense, depending on the context.  It may
->> be sufficient to simply report a test failure (as in the old version
->> of case (2) below.
->>
->> Answers to "a)" and "b)":
->>
->> a) it might be in a production kernel
+> From: Verma, Vishal L <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Sent: Wednesday, March 20, 2019 5:23 PM
+> ...
+> Also on a more general note, the patches in this series don't appear to
+> be correctly threaded. Normally, patch emails in a series are replies to
+> the first patch (either 1/N or the cover letter), and this allows for
+> easier review as all related emails can be found in a single top-level
+> thread. It would be nice if you can fix this for the future - git send-
+> email should do this correctly automatically, if you use it for sending
+> the patches.
+
+OK, I'll use git-send-email. Previously due to some SMTP server issue I 
+couldn't use that, but now I can.
+ 
 > 
-> Sorry for a possibly stupid question, how might it be so? Why would
-> someone intentionally build unit tests into a production kernel?
+> On Wed, 2019-02-20 at 05:10 +0000, Dexuan Cui wrote:
+> > This patch retrieves the health info by Hyper-V _DSM method Function 1:
+> We should never use "This patch.." in a commit message. See 4.c in [1].
 
-People do things.  Just expect it.
+Thanks for sharing the good read! I'll update my changelog accordingly.
 
+> > diff --git a/ndctl/lib/hyperv.c b/ndctl/lib/hyperv.c
+> > new file mode 100644
+> For new files, use the SPDX license identifiers, for an example, see:
 
->>
->> a') it is not acceptable in my development kernel either
+Ok, will do.
+
+> > +#include <stdlib.h>
+> > +#include <limits.h>
+> > +#include <util/bitmap.h>
+> > +#include <util/log.h>
+> > +#include <ndctl/libndctl.h>
+> > +#include "private.h"
+> > +#include "hyperv.h"
+> > +
+> > +#define CMD_HYPERV(_c) ((_c)->hyperv)
 > 
-> Fair enough.
+> I'm not sure this macro improves readability, in fact I think it rather
+> detracts from it in many cases - see further below.
+> Additionally, no need for the preceeding underscore in the macro
+> arguments - the rest of the code base doesn't do this, and I'm not sure
+> what value it provides.
+
+I agree. Will change it.
+Previously I tried to follow the same style in 
+ndctl/lib/hpe1.c and ndctl/lib/msft.c.
+ 
+> > +	size = sizeof(*cmd) + sizeof(struct nd_pkg_hyperv);
+> > + ...
+> > +	hyperv = CMD_HYPERV(cmd);
+> > +	hyperv->gen.nd_family = NVDIMM_FAMILY_HYPERV;
+> > +	hyperv->gen.nd_command = ND_HYPERV_CMD_GET_HEALTH_INFO;
+> > +	hyperv->gen.nd_fw_size = 0;
+> > +	hyperv->gen.nd_size_in = offsetof(struct nd_hyperv_smart, status);
+> > +	hyperv->gen.nd_size_out = sizeof(hyperv->u.smart);
+> > +	hyperv->u.smart.status = 0;
 > 
->>
->> b) No.  You don't crash a developer's kernel either unless it is
->> required to avoid data corruption.
+> calloc() zeroes the newly allocated memory - no need to set any of the
+> fields in the struct to '0' manually.
+
+Will fix it.
+
+> > +	cmd->firmware_status = &hyperv->u.smart.status;
+> > +
+> > +	return cmd;
+> > +}
+> > +
+> > +static int hyperv_smart_valid(struct ndctl_cmd *cmd)
+> > +{
+> > +	if (cmd->type != ND_CMD_CALL ||
+> > +	    cmd->size != sizeof(*cmd) + sizeof(struct nd_pkg_hyperv) ||
+> > +	    CMD_HYPERV(cmd)->gen.nd_family != NVDIMM_FAMILY_HYPERV
+> ||
+> > +	    CMD_HYPERV(cmd)->gen.nd_command !=
+> ND_HYPERV_CMD_GET_HEALTH_INFO ||
 > 
-> Alright, I thought that was one of those cases, but I am not going to
-> push the point. Also, in case it wasn't clear, the path where BUG()
-> gets called only happens if there is a bug in KUnit itself, not just
-> because a test case fails catastrophically.
+> I feel in these cases, cmd->hyperv->stuff is /much/ more readable than
+> CMD_HYPERV(cmd)->stuff - and shorter as well as easier to type :)
 
-Still not out of the woods.  Still facing Lions and Tigers and Bears,
-Oh my!
-
-So kunit_abort() is normally called as the result of an assert
-failure (as written many lines further above).
-
-kunit_abort()
-   test->try_catch.throw(&test->try_catch)
-   // this is really kunit_generic_throw(), yes?
-      complete_and_exit()
-         if (comp)
-            // comp is test_case_completion?
-            complete(comp)
-         do_exit()
-            // void __noreturn do_exit(long code)
-            // depending on the task, either panic
-            // or the task dies
-
-I did not read through enough of the code to understand what is going
-on here.  Is each kunit_module executed in a newly created thread?
-And if kunit_abort() is called then that thread dies?  Or something
-else?
-
-
->>
->> b') And you can not do replacements like:
->>
->> (1) in of_unittest_check_tree_linkage()
->>
->> -----  old  -----
->>
->>         if (!of_root)
->>                 return;
->>
->> -----  new  -----
->>
->>         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, of_root);
->>
->> (2) in of_unittest_property_string()
->>
->> -----  old  -----
->>
->>         /* of_property_read_string_index() tests */
->>         rc = of_property_read_string_index(np, "string-property", 0, strings);
->>         unittest(rc == 0 && !strcmp(strings[0], "foobar"), "of_property_read_string_index() failure; rc=%i\n", rc);
->>
->> -----  new  -----
->>
->>         /* of_property_read_string_index() tests */
->>         rc = of_property_read_string_index(np, "string-property", 0, strings);
->>         KUNIT_ASSERT_EQ(test, rc, 0);
->>         KUNIT_EXPECT_STREQ(test, strings[0], "foobar");
->>
->>
->> If a test fails, that is no reason to abort testing.  The remainder of the unit
->> tests can still run.  There may be cascading failures, but that is ok.
+Will fix it. 
+ 
+> > --- /dev/null
+> > +++ b/ndctl/lib/hyperv.h
+> > @@ -0,0 +1,51 @@
+> > +/*
+> > + * Copyright (c) 2019, Microsoft Corporation.
+> > ...
 > 
-> Sure, that's what I am trying to do. I don't see how (1) changes
-> anything, a failed KUNIT_ASSERT_* only bails on the current test case,
-> it does not quit the entire test suite let alone crash the kernel.
+> Same comment about SPDX License format as above.
 
-This may be another case of whether a kunit_module is approximately a
-single KUNIT_EXPECT_*() or a larger number of them.
+Will fix it.
 
-I still want, for example, of_unittest_property_string() to include a large
-number of KUNIT_EXPECT_*() instances.  In that case I still want the rest of
-the tests in the kunit_module to be executed even after a KUNIT_ASSERT_*()
-fails.  The existing test code has that property.
-
-
+> > +enum {
+> > +	ND_HYPERV_CMD_QUERY = 0,
 > 
-> In case it wasn't clear above,
->>>>> +     test->try_catch.throw(&test->try_catch);
-> should never, ever return. The only time it would, would be if KUnit
-> was very broken. This should never actually happen, even if the
-> assertion that called it was violated. KUNIT_ASSERT_* just says, "this
-> is a prerequisite property for this test case"; if it is violated, the
-> test case should fail and bail because the preconditions for the test
-> case cannot be satisfied. Nevertheless, other tests cases will still
-> run.
+> It sounds like the intention for this function index 0 was to function
+> as a supported DSM mask, but the spec says it just returns a static
+> value. Nonetheless, should we not include some "_cmd_is_supported"
+> helpers, and test them before submitting the smart command in this patch
+> for example?
+
+Hyper-V guys told me that 0x1F is always supported, and we do 
+check if a cmd is supported or not in the kernel in
+acpi_nfit_add_dimm() and acpi_nfit_ctl(). In case a cmd is not supported,
+acpi_nfit_ctl() returns -ENOTTY. So IMO we don't bother to check it in ndctl.
+ 
+> Also the name of this enum field can be a bit ambiguous - query /what/?
+> (In other DSM families, there are functions to query ARS status,
+> firmware update status, etc.). It might be better to name it something
+> like "ND_HYPERV_CMD_QUERY_SUPPORTED_FUNCTIONS"
+
+Will fix it.
+
+> > +
+> > +	/* non-root commands */
+> > +	ND_HYPERV_CMD_GET_HEALTH_INFO = 1,
+> > +};
+> > +
+> > +/*
+> > + * This is actually Function 1's data,
+> > + * This is the closest I can find to match the "smart".
+> > + * Hyper-V _DSM methods don't have a smart function.
+> > + */
+> > +struct nd_hyperv_smart_data {
+> > +	__u32	health;
+> > +} __attribute__((packed));
 > 
+> I'm not sure I fully understand the comment above. Generally speaking,
+> we should avoid comments in the first person - i.e. instead of "This is
+> the closest thing I found..", it should simply be "X is the closest
+> thing to Y".
+> 
+> But I think you were trying to say:
+> 
+> /*
+>  * This corresponds to 'function 1' (Get Health Information) in the
+>  * HYPERV DSM spec referenced above
+>  */
+
+I copid the sentences from ndctl/lib/msft.h. :-)
+Will fix it. 
+
+Thanks,
+-- Dexuan
