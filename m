@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 065EF211E82F7
- for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:11:21 -0700 (PDT)
-Subject: [PATCH v5 09/10] libnvdimm/pfn: Fix fsdax-mode namespace info-block
- zero-fields
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Mar 2019 09:58:41 -0700
-Message-ID: <155327392164.225273.1248065676074470935.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D561F211E8300
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 15:20:16 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id t206so2911317oib.3
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 15:20:16 -0700 (PDT)
 MIME-Version: 1.0
+References: <155329041583.44801.16828658341038796912.stgit@djiang5-desk3.ch.intel.com>
+ <CAPcyv4jkL0KDuhBTfZN-2GFkvoDQ2G4gDsvpX_cx7TpruDx2Zg@mail.gmail.com>
+ <ebe1ac15-e102-da97-3c9e-56113d8638d2@intel.com>
+In-Reply-To: <ebe1ac15-e102-da97-3c9e-56113d8638d2@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 22 Mar 2019 15:20:04 -0700
+Message-ID: <CAPcyv4jNuoKganpn==DfCnQOzmNxFoEtmZTjXbayFgT_pARYAA@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: security: allow secure erase to execute without
+ key
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,122 +28,105 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-At namespace creation time there is the potential for the "expected to
-be zero" fields of a 'pfn' info-block to be filled with indeterminate
-data. While the kernel buffer is zeroed on allocation it is immediately
-overwritten by nd_pfn_validate() filling it with the current contents of
-the on-media info-block location. For fields like, 'flags' and the
-'padding' it potentially means that future implementations can not rely
-on those fields being zero.
+On Fri, Mar 22, 2019 at 2:58 PM Dave Jiang <dave.jiang@intel.com> wrote:
+>
+>
+>
+> On 3/22/19 2:43 PM, Dan Williams wrote:
+> > On Fri, Mar 22, 2019 at 2:33 PM Dave Jiang <dave.jiang@intel.com> wrote:
+> >>
+> >> Adding support to allow secure erase to happen when security state is not
+> >> enabled. Key data of 0's will be passed in.
+> >
+> > I think I want to change this wording and patch title to say
+> > "libnvdimm/security: Support a zero-key for secure-erase". Because we
+> > are still passing a key and the kernel interface requires the key-id
+> > parameter, we're just arranging for a special key to be used.
+> >
+> >>
+> >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> >> ---
+> >>  drivers/nvdimm/security.c        |   17 ++++++++++++-----
+> >>  tools/testing/nvdimm/test/nfit.c |    3 +--
+> >>  2 files changed, 13 insertions(+), 7 deletions(-)
+> >>
+> >> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+> >> index f8bb746a549f..b7bd26030964 100644
+> >> --- a/drivers/nvdimm/security.c
+> >> +++ b/drivers/nvdimm/security.c
+> >> @@ -286,8 +286,9 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+> >>  {
+> >>         struct device *dev = &nvdimm->dev;
+> >>         struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+> >> -       struct key *key;
+> >> +       struct key *key = NULL;
+> >>         int rc;
+> >> +       char *data, dummy_key[NVDIMM_PASSPHRASE_LEN];
+> >
+> > Let's make this
+> >
+> > static const char zero_key[NVDIMM_PASSPHRASE_LEN];
+> >
+> > ...and make it global.
+> >
+> >>
+> >>         /* The bus lock should be held at the top level of the call stack */
+> >>         lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
+> >> @@ -319,11 +320,17 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+> >>                 return -EOPNOTSUPP;
+> >>         }
+> >>
+> >> -       key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+> >> -       if (!key)
+> >> -               return -ENOKEY;
+> >> +       if (keyid != 0) {
+> >> +               key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+> >> +               if (!key)
+> >> +                       return -ENOKEY;
+> >> +               data = key_data(key);
+> >> +       } else {
+> >> +               memset(dummy_key, 0, NVDIMM_PASSPHRASE_LEN);
+> >
+> > ...with the above change no need to do a memset.
+> >
+> >> +               data = dummy_key;
+> >
+> > There may be hardware that actually expects zeroes so I'd rather be
+> > explicit, because if it was truly "dummy" there would be no need to
+> > initialize it.
+> >
+> >> +       }
+> >>
+> >> -       rc = nvdimm->sec.ops->erase(nvdimm, key_data(key), pass_type);
+> >> +       rc = nvdimm->sec.ops->erase(nvdimm, (void *)data, pass_type);
+> >>         dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
+> >>                         pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+> >>                         rc == 0 ? "success" : "fail");
+> >> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> >> index b579f962451d..9351a81ea945 100644
+> >> --- a/tools/testing/nvdimm/test/nfit.c
+> >> +++ b/tools/testing/nvdimm/test/nfit.c
+> >> @@ -1059,8 +1059,7 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+> >>         struct device *dev = &t->pdev.dev;
+> >>         struct nfit_test_sec *sec = &dimm_sec_info[dimm];
+> >>
+> >> -       if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
+> >> -                       (sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
+> >> +       if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
+> >
+> > What does this have to do with the new zero-key?
+> >
+> Because otherwise we will reject the op when security is not enabled.
+> The whole point of this was to support secure erase when security is not
+> enabled.
 
-In preparation to stop using the 'start_pad' and 'end_trunc' fields for
-section alignment, arrange for fields that are not explicitly
-initialized to be guaranteed zero. Bump the minor version to indicate it
-is safe to assume the 'padding' and 'flags' are zero. Otherwise, this
-corruption is expected to benign since all other critical fields are
-explicitly initialized.
-
-Fixes: 32ab0a3f5170 ("libnvdimm, pmem: 'struct page' for pmem")
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/dax_devs.c |    2 +-
- drivers/nvdimm/pfn.h      |    1 +
- drivers/nvdimm/pfn_devs.c |   18 +++++++++++++++---
- 3 files changed, 17 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 0453f49dc708..326f02ffca81 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -126,7 +126,7 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	nvdimm_bus_unlock(&ndns->dev);
- 	if (!dax_dev)
- 		return -ENOMEM;
--	pfn_sb = devm_kzalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, DAX_SIG);
- 	dev_dbg(dev, "dax: %s\n", rc == 0 ? dev_name(dax_dev) : "<none>");
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index dde9853453d3..e901e3a3b04c 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -36,6 +36,7 @@ struct nd_pfn_sb {
- 	__le32 end_trunc;
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
-+	/* minor-version-3 guarantee the padding and flags are zero */
- 	u8 padding[4000];
- 	__le64 checksum;
- };
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index d271bd731af7..f0e918186504 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -420,6 +420,15 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
- 	return 0;
- }
- 
-+/**
-+ * nd_pfn_validate - read and validate info-block
-+ * @nd_pfn: fsdax namespace runtime state / properties
-+ * @sig: 'devdax' or 'fsdax' signature
-+ *
-+ * Upon return the info-block buffer contents (->pfn_sb) are
-+ * indeterminate when validation fails, and a coherent info-block
-+ * otherwise.
-+ */
- int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- {
- 	u64 checksum, offset;
-@@ -565,7 +574,7 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	nvdimm_bus_unlock(&ndns->dev);
- 	if (!pfn_dev)
- 		return -ENOMEM;
--	pfn_sb = devm_kzalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	nd_pfn = to_nd_pfn(pfn_dev);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
-@@ -702,7 +711,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	u64 checksum;
- 	int rc;
- 
--	pfn_sb = devm_kzalloc(&nd_pfn->dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(&nd_pfn->dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	if (!pfn_sb)
- 		return -ENOMEM;
- 
-@@ -711,11 +720,14 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		sig = DAX_SIG;
- 	else
- 		sig = PFN_SIG;
-+
- 	rc = nd_pfn_validate(nd_pfn, sig);
- 	if (rc != -ENODEV)
- 		return rc;
- 
- 	/* no info block, do init */;
-+	memset(pfn_sb, 0, sizeof(*pfn_sb));
-+
- 	nd_region = to_nd_region(nd_pfn->dev.parent);
- 	if (nd_region->ro) {
- 		dev_info(&nd_pfn->dev,
-@@ -768,7 +780,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(2);
-+	pfn_sb->version_minor = cpu_to_le16(3);
- 	pfn_sb->start_pad = cpu_to_le32(start_pad);
- 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
-
+I'd rather this be explicitly about accepting zero when the security
+state is not enabled. Rather than accepting anything, because we've
+seen zero be chosen as a default passphrase in some platforms.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
