@@ -2,14 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 203772117AE40
- for <linux-nvdimm@lists.01.org>; Thu, 28 Mar 2019 12:07:16 -0700 (PDT)
-Subject: [PATCH 2/3] ndctl: fix key blob loading for user keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 28 Mar 2019 12:07:14 -0700
-Message-ID: <155380003495.7924.1527087606331560941.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <155380002962.7924.11109542476291499729.stgit@djiang5-desk3.ch.intel.com>
-References: <155380002962.7924.11109542476291499729.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A8A28211E82F7
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 10:10:59 -0700 (PDT)
+Subject: [PATCH v5 05/10] mm/sparsemem: Convert kmalloc_section_memmap() to
+ populate_section_memmap()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 22 Mar 2019 09:58:20 -0700
+Message-ID: <155327390049.225273.851253292223555625.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155327387405.225273.9325594075351253804.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,153 +23,249 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The syntax for loading user master key is different than loading a trusted
-key. Fix so we can load user key properly.
+Allow sub-section sized ranges to be added to the memmap.
+populate_section_memmap() takes an explict pfn range rather than
+assuming a full section, and those parameters are plumbed all the way
+through to vmmemap_populate(). There should be no sub-section usage in
+current deployments. New warnings are added to clarify which memmap
+allocation paths are sub-section capable.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/load-keys.c |   13 +++++--------
- ndctl/util/keys.c |   20 +++++++++++++++-----
- ndctl/util/keys.h |   10 ++++++++--
- 3 files changed, 28 insertions(+), 15 deletions(-)
+ arch/x86/mm/init_64.c |    4 ++-
+ include/linux/mm.h    |    4 ++-
+ mm/sparse-vmemmap.c   |   21 +++++++++++------
+ mm/sparse.c           |   61 +++++++++++++++++++++++++++++++------------------
+ 4 files changed, 57 insertions(+), 33 deletions(-)
 
-diff --git a/ndctl/load-keys.c b/ndctl/load-keys.c
-index 19380152..c0d0d743 100644
---- a/ndctl/load-keys.c
-+++ b/ndctl/load-keys.c
-@@ -25,12 +25,7 @@ static struct parameters {
- 	const char *tpm_handle;
- } param;
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index bccff68e3267..799887eada60 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1461,7 +1461,9 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+ {
+ 	int err;
  
--enum key_type {
--	KEY_USER = 0,
--	KEY_TRUSTED,
--};
--
--static const char *key_names[] = {"user", "trusted"};
-+static const char *key_names[] = {"user", "trusted", "encrypted"};
+-	if (boot_cpu_has(X86_FEATURE_PSE))
++	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
++		err = vmemmap_populate_basepages(start, end, node);
++	else if (boot_cpu_has(X86_FEATURE_PSE))
+ 		err = vmemmap_populate_hugepages(start, end, node, altmap);
+ 	else if (altmap) {
+ 		pr_err_once("%s: no cpu support for altmap allocations\n",
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 76769749b5a5..76ba638ceda8 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2666,8 +2666,8 @@ const char * arch_vma_name(struct vm_area_struct *vma);
+ void print_vma_addr(char *prefix, unsigned long rip);
  
- static struct loadkeys {
- 	enum key_type key_type;
-@@ -44,6 +39,7 @@ static int load_master_key(struct loadkeys *lk_ctx, const char *keypath)
- 	char *blob;
- 	int size, rc;
- 	char path[PATH_MAX];
-+	enum key_type;
- 
- 	rc = sprintf(path, "%s/nvdimm-master.blob", keypath);
- 	if (rc < 0)
-@@ -65,7 +61,8 @@ static int load_master_key(struct loadkeys *lk_ctx, const char *keypath)
- 		return -errno;
- 	}
- 
--	blob = ndctl_load_key_blob(path, &size, param.tpm_handle, -1);
-+	blob = ndctl_load_key_blob(path, &size, param.tpm_handle, -1,
-+			lk_ctx->key_type);
- 	if (!blob)
- 		return -ENOMEM;
- 
-@@ -122,7 +119,7 @@ static int load_dimm_keys(struct loadkeys *lk_ctx)
- 		}
- 
- 		blob = ndctl_load_key_blob(dent->d_name, &size, NULL,
--				lk_ctx->dirfd);
-+				lk_ctx->dirfd, KEY_ENCRYPTED);
- 		if (!blob) {
- 			free(fname);
- 			continue;
-diff --git a/ndctl/util/keys.c b/ndctl/util/keys.c
-index 622533d7..a621a5f5 100644
---- a/ndctl/util/keys.c
-+++ b/ndctl/util/keys.c
-@@ -103,13 +103,17 @@ static int get_key_desc(struct ndctl_dimm *dimm, char *desc,
+ void *sparse_buffer_alloc(unsigned long size);
+-struct page *sparse_mem_map_populate(unsigned long pnum, int nid,
+-		struct vmem_altmap *altmap);
++struct page * __populate_section_memmap(unsigned long pfn,
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index 7fec05796796..dcb023aa23d1 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -245,19 +245,26 @@ int __meminit vmemmap_populate_basepages(unsigned long start,
+ 	return 0;
  }
  
- char *ndctl_load_key_blob(const char *path, int *size, const char *postfix,
--		int dirfd)
-+		int dirfd, enum key_type key_type)
+-struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid,
+-		struct vmem_altmap *altmap)
++struct page * __meminit __populate_section_memmap(unsigned long pfn,
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
  {
- 	struct stat st;
- 	ssize_t read_bytes = 0;
- 	int rc, fd;
- 	char *blob, *pl, *rdptr;
- 	char prefix[] = "load ";
-+	bool need_prefix = false;
-+
-+	if (key_type == KEY_ENCRYPTED || key_type == KEY_TRUSTED)
-+		need_prefix = true;
+ 	unsigned long start;
+ 	unsigned long end;
+-	struct page *map;
  
- 	fd = openat(dirfd, path, O_RDONLY);
- 	if (fd < 0) {
-@@ -133,7 +137,10 @@ char *ndctl_load_key_blob(const char *path, int *size, const char *postfix,
+-	map = pfn_to_page(pnum * PAGES_PER_SECTION);
+-	start = (unsigned long)map;
+-	end = (unsigned long)(map + PAGES_PER_SECTION);
++	/*
++	 * The minimum granularity of memmap extensions is
++	 * SECTION_ACTIVE_SIZE as allocations are tracked in the
++	 * 'map_active' bitmap of the section.
++	 */
++	end = ALIGN(pfn + nr_pages, PHYS_PFN(SECTION_ACTIVE_SIZE));
++	pfn &= PHYS_PFN(SECTION_ACTIVE_MASK);
++	nr_pages = end - pfn;
++
++	start = (unsigned long) pfn_to_page(pfn);
++	end = start + nr_pages * sizeof(struct page);
+ 
+ 	if (vmemmap_populate(start, end, nid, altmap))
  		return NULL;
+ 
+-	return map;
++	return pfn_to_page(pfn);
+ }
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 3cd7ce46e749..38f80639c6cc 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -452,8 +452,8 @@ static unsigned long __init section_map_size(void)
+ 	return PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
+ }
+ 
+-struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid,
+-		struct vmem_altmap *altmap)
++struct page __init *__populate_section_memmap(unsigned long pfn,
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+ {
+ 	unsigned long size = section_map_size();
+ 	struct page *map = sparse_buffer_alloc(size);
+@@ -534,10 +534,13 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
  	}
- 
--	*size = st.st_size + sizeof(prefix) - 1;
-+	*size = st.st_size;
-+	if (need_prefix)
-+		*size += strlen(prefix);
+ 	sparse_buffer_init(map_count * section_map_size(), nid);
+ 	for_each_present_section_nr(pnum_begin, pnum) {
++		unsigned long pfn = section_nr_to_pfn(pnum);
 +
- 	/*
- 	 * We need to increment postfix and space.
- 	 * "keyhandle=" is 10 bytes, plus null termination.
-@@ -146,8 +153,11 @@ char *ndctl_load_key_blob(const char *path, int *size, const char *postfix,
- 		return NULL;
- 	}
+ 		if (pnum >= pnum_end)
+ 			break;
  
--	memcpy(blob, prefix, sizeof(prefix) - 1);
--	pl = blob + sizeof(prefix) - 1;
-+	if (need_prefix) {
-+		memcpy(blob, prefix, strlen(prefix));
-+		pl = blob + strlen(prefix);
-+	} else
-+		pl = blob;
+-		map = sparse_mem_map_populate(pnum, nid, NULL);
++		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
++				nid, NULL);
+ 		if (!map) {
+ 			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
+ 			       __func__, nid);
+@@ -637,17 +640,17 @@ void offline_mem_sections(unsigned long start_pfn, unsigned long end_pfn)
+ #endif
  
- 	rdptr = pl;
- 	do {
-@@ -300,7 +310,7 @@ static key_serial_t dimm_load_key(struct ndctl_dimm *dimm,
- 	if (rc < 0)
- 		return rc;
- 
--	blob = ndctl_load_key_blob(path, &size, NULL, -1);
-+	blob = ndctl_load_key_blob(path, &size, NULL, -1, KEY_ENCRYPTED);
- 	if (!blob)
- 		return -ENOMEM;
- 
-diff --git a/ndctl/util/keys.h b/ndctl/util/keys.h
-index eab78d2f..9bc995ac 100644
---- a/ndctl/util/keys.h
-+++ b/ndctl/util/keys.h
-@@ -12,9 +12,15 @@ enum ndctl_key_type {
- 	ND_ZERO_KEY,
- };
- 
-+enum key_type {
-+	KEY_USER = 0,
-+	KEY_TRUSTED,
-+	KEY_ENCRYPTED,
-+};
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+-		struct vmem_altmap *altmap)
++static struct page *populate_section_memmap(unsigned long pfn,
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+ {
+-	/* This will make the necessary allocations eventually. */
+-	return sparse_mem_map_populate(pnum, nid, altmap);
++	return __populate_section_memmap(pfn, nr_pages, nid, altmap);
+ }
+-static void __kfree_section_memmap(struct page *memmap,
 +
- #ifdef ENABLE_KEYUTILS
- char *ndctl_load_key_blob(const char *path, int *size, const char *postfix,
--		int dirfd);
-+		int dirfd, enum key_type key_type);
- int ndctl_dimm_setup_key(struct ndctl_dimm *dimm, const char *kek,
- 				enum ndctl_key_type key_type);
- int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *kek,
-@@ -25,7 +31,7 @@ int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
- int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm);
++static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
+ 		struct vmem_altmap *altmap)
+ {
+-	unsigned long start = (unsigned long)memmap;
+-	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
++	unsigned long start = (unsigned long) pfn_to_page(pfn);
++	unsigned long end = start + nr_pages * sizeof(struct page);
+ 
+ 	vmemmap_free(start, end, altmap);
+ }
+@@ -661,11 +664,18 @@ static void free_map_bootmem(struct page *memmap)
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  #else
- char *ndctl_load_key_blob(const char *path, int *size, const char *postfix,
--		int dirfd)
-+		int dirfd, enum key_type key_type)
+-static struct page *__kmalloc_section_memmap(void)
++struct page *populate_section_memmap(unsigned long pfn,
++		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
  {
- 	return NULL;
+ 	struct page *page, *ret;
+ 	unsigned long memmap_size = sizeof(struct page) * PAGES_PER_SECTION;
+ 
++	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
++		WARN(1, "%s: called with section unaligned parameters\n",
++				__func__);
++		return NULL;
++	}
++
+ 	page = alloc_pages(GFP_KERNEL|__GFP_NOWARN, get_order(memmap_size));
+ 	if (page)
+ 		goto got_map_page;
+@@ -682,15 +692,17 @@ static struct page *__kmalloc_section_memmap(void)
+ 	return ret;
  }
+ 
+-static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
++static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
+ 		struct vmem_altmap *altmap)
+ {
+-	return __kmalloc_section_memmap();
+-}
++	struct page *memmap = pfn_to_page(pfn);
++
++	if ((pfn & ~PAGE_SECTION_MASK) || nr_pages != PAGES_PER_SECTION) {
++		WARN(1, "%s: called with section unaligned parameters\n",
++				__func__);
++		return;
++	}
+ 
+-static void __kfree_section_memmap(struct page *memmap,
+-		struct vmem_altmap *altmap)
+-{
+ 	if (is_vmalloc_addr(memmap))
+ 		vfree(memmap);
+ 	else
+@@ -753,12 +765,13 @@ int __meminit sparse_add_one_section(int nid, unsigned long start_pfn,
+ 	if (ret < 0 && ret != -EEXIST)
+ 		return ret;
+ 	ret = 0;
+-	memmap = kmalloc_section_memmap(section_nr, nid, altmap);
++	memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION, nid,
++			altmap);
+ 	if (!memmap)
+ 		return -ENOMEM;
+ 	usage = kzalloc(mem_section_usage_size(), GFP_KERNEL);
+ 	if (!usage) {
+-		__kfree_section_memmap(memmap, altmap);
++		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION, altmap);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -780,7 +793,7 @@ int __meminit sparse_add_one_section(int nid, unsigned long start_pfn,
+ out:
+ 	if (ret < 0) {
+ 		kfree(usage);
+-		__kfree_section_memmap(memmap, altmap);
++		depopulate_section_memmap(start_pfn, PAGES_PER_SECTION, altmap);
+ 	}
+ 	return ret;
+ }
+@@ -817,7 +830,8 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
+ #endif
+ 
+ static void free_section_usage(struct page *memmap,
+-		struct mem_section_usage *usage, struct vmem_altmap *altmap)
++		struct mem_section_usage *usage, unsigned long pfn,
++		unsigned long nr_pages, struct vmem_altmap *altmap)
+ {
+ 	struct page *usage_page;
+ 
+@@ -831,7 +845,7 @@ static void free_section_usage(struct page *memmap,
+ 	if (PageSlab(usage_page) || PageCompound(usage_page)) {
+ 		kfree(usage);
+ 		if (memmap)
+-			__kfree_section_memmap(memmap, altmap);
++			depopulate_section_memmap(pfn, nr_pages, altmap);
+ 		return;
+ 	}
+ 
+@@ -860,7 +874,8 @@ void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+ 
+ 	clear_hwpoisoned_pages(memmap + map_offset,
+ 			PAGES_PER_SECTION - map_offset);
+-	free_section_usage(memmap, usage, altmap);
++	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
++			PAGES_PER_SECTION, altmap);
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_MEMORY_HOTPLUG */
 
 _______________________________________________
 Linux-nvdimm mailing list
