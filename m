@@ -1,28 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-x730.google.com (mail-qk1-x730.google.com
+ [IPv6:2607:f8b0:4864:20::730])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 423A9211EC0D4
- for <linux-nvdimm@lists.01.org>; Fri, 29 Mar 2019 22:42:16 -0700 (PDT)
-Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x2U5YGjF058063
- for <linux-nvdimm@lists.01.org>; Sat, 30 Mar 2019 01:42:15 -0400
-Received: from e13.ny.us.ibm.com (e13.ny.us.ibm.com [129.33.205.203])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2rj27e8g37-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Sat, 30 Mar 2019 01:42:15 -0400
-Received: from localhost
- by e13.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Sat, 30 Mar 2019 05:42:14 -0000
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [RFC PATCH] drivers/dax: Allow to include DEV_DAX_PMEM as builtin
-Date: Sat, 30 Mar 2019 11:12:05 +0530
+ by ml01.01.org (Postfix) with ESMTPS id A2E63211E95B2
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 21:20:35 -0700 (PDT)
+Received: by mail-qk1-x730.google.com with SMTP id s81so2434723qke.13
+ for <linux-nvdimm@lists.01.org>; Fri, 22 Mar 2019 21:20:35 -0700 (PDT)
+From: Dexuan Cui <dexuan.cui@gmail.com>
+Subject: [ndctl PATCH v3 0/5] Add the support for Hyper-V virtual NVDIMM
+Date: Sat, 23 Mar 2019 04:20:24 +0000
+Message-Id: <20190323042028.4310-1-decui@microsoft.com>
 MIME-Version: 1.0
-Message-Id: <20190330054205.28005-1-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -34,44 +23,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, linux-nvdimm@lists.01.org, mikelley@microsoft.com
+Cc: qi.fuli@fujitsu.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-This move the dependency to DEV_DAX_PMEM_COMPAT such that only
-if DEV_DAX_PMEM is built as module we can allow the compat support.
+Hi all,
 
-This allows to test the new code easily in a emulation setup where we
-often build things without module support.
+I polished the first 2 patches following Vishal and Dan's comments.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/dax/Kconfig | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+And, I dropped this v2 patch:
+[ndctl,v2,3/4] ndctl, lib: implement ndctl_dimm_get_cmd_family()
+and re-implemented the support for "ndctl monitor" for Hyper-V by following
+Vishal/Dan's suggestions. Thank you!
 
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index 5ef624fe3934..e582e088b48c 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -23,7 +23,6 @@ config DEV_DAX
- config DEV_DAX_PMEM
- 	tristate "PMEM DAX: direct access to persistent memory"
- 	depends on LIBNVDIMM && NVDIMM_DAX && DEV_DAX
--	depends on m # until we can kill DEV_DAX_PMEM_COMPAT
- 	default DEV_DAX
- 	help
- 	  Support raw access to persistent memory.  Note that this
-@@ -50,7 +49,7 @@ config DEV_DAX_KMEM
- 
- config DEV_DAX_PMEM_COMPAT
- 	tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
--	depends on DEV_DAX_PMEM
-+	depends on DEV_DAX_PMEM=m
- 	default DEV_DAX_PMEM
- 	help
- 	  Older versions of the libdaxctl library expect to find all
+Please review the patchset.
+
+Dexuan Cui (5):
+  libndctl: Implement the "smart_get_health" dimm-op for Hyper-V
+  libndctl: Implement the smart_get_shutdown_count dimm-op for Hyper-V
+  ndctl, monitor: Don't require the support of ND_CMD_SMART_THRESHOLD
+  libndctl: Add a new dimm-op cmd_is_supported()
+  libndctl: Implement the "cmd_is_supported" dimm-op for Hyper-V
+
+ ndctl/lib/Makefile.am |   1 +
+ ndctl/lib/hyperv.c    | 183 ++++++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/hyperv.h    |  38 +++++++++
+ ndctl/lib/libndctl.c  |   7 ++
+ ndctl/lib/private.h   |   4 +
+ ndctl/monitor.c       |  12 +--
+ ndctl/ndctl.h         |   1 +
+ 7 files changed, 238 insertions(+), 8 deletions(-)
+ create mode 100644 ndctl/lib/hyperv.c
+ create mode 100644 ndctl/lib/hyperv.h
+
 -- 
-2.20.1
+2.19.1
 
 _______________________________________________
 Linux-nvdimm mailing list
