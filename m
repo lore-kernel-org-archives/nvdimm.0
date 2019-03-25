@@ -1,14 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7156721B02822
- for <linux-nvdimm@lists.01.org>; Fri,  1 Mar 2019 11:12:47 -0800 (PST)
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH] dax: Flush partial PMDs correctly
-Date: Fri,  1 Mar 2019 11:12:41 -0800
-Message-Id: <20190301191241.27842-1-willy@infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 4C3662194EB77
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 07:56:24 -0700 (PDT)
+Date: Mon, 25 Mar 2019 16:56:19 +0200
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH] KEYS: trusted: defer execution of TPM-specific code
+ until key instantiate
+Message-ID: <20190325145619.GC29989@linux.intel.com>
+References: <20190322180139.18856-1-roberto.sassu@huawei.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190322180139.18856-1-roberto.sassu@huawei.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,82 +20,39 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Piotr Balcer <piotr.balcer@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org
-Cc: Matthew Wilcox <willy@infradead.org>
+To: Roberto Sassu <roberto.sassu@huawei.com>
+Cc: silviu.vlasceanu@huawei.com, linux-nvdimm@lists.01.org, jejb@linux.ibm.com, linux-kernel@vger.kernel.org, zohar@linux.ibm.com, dhowells@redhat.com, linux-security-module@vger.kernel.org, keyrings@vger.kernel.org, david.safford@ge.com, stable@vger.kernel.org, linux-integrity@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The radix tree would rewind the index in an iterator to the lowest index
-of a multi-slot entry.  The XArray iterators instead leave the index
-unchanged, but I overlooked that when converting DAX from the radix tree
-to the XArray.  Adjust the index that we use for flushing to the start
-of the PMD range.
+On Fri, Mar 22, 2019 at 07:01:39PM +0100, Roberto Sassu wrote:
+> Commit 240730437deb ("KEYS: trusted: explicitly use tpm_chip structure from
+> tpm_default_chip()") changed the tpm_chip argument of every TPM function
+> from NULL to a pointer that is retrieved at module initialization time.
+> 
+> Unlike before this patch, the trusted module cannot be loaded if no TPM is
+> available. Unfortunately, this causes a dependency problem because the
+> encrypted key type requires the 'key_type_trusted' symbol when
+> CONFIG_TRUSTED_KEYS is defined.
+> 
+> This patch fixes the issue by deferring the execution of TPM-specific code
+> until a new trusted key is instantiated: init_tpm(), to obtain a tpm_chip
+> pointer; init_digests(), introduced by commit 0b6cf6b97b7e ("tpm: pass an
+> array of tpm_extend_digest structures to tpm_pcr_extend()"), to get random
+> bytes from the TPM to lock a PCR.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 240730437deb ("KEYS: trusted: explicitly use tpm_chip structure from tpm_default_chip()")
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
 
-Fixes: c1901cd33cf4 "page cache: Convert find_get_entries_tag to XArray"
-Reported-by: Piotr Balcer <piotr.balcer@intel.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
----
- fs/dax.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+Definitive NAK for the release. Sorting out the dependency problem is
+definitely out of scope for v5.1.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6959837cc465..4116cd9f55dd 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -843,9 +843,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
- static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 		struct address_space *mapping, void *entry)
- {
--	unsigned long pfn;
-+	unsigned long pfn, index, count;
- 	long ret = 0;
--	size_t size;
- 
- 	/*
- 	 * A page got tagged dirty in DAX mapping? Something is seriously
-@@ -894,17 +893,18 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 	xas_unlock_irq(xas);
- 
- 	/*
--	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
--	 * in the middle of a PMD, the 'index' we are given will be aligned to
--	 * the start index of the PMD, as will the pfn we pull from 'entry'.
-+	 * If dax_writeback_mapping_range() was given a wbc->range_start
-+	 * in the middle of a PMD, the 'index' we use needs to be
-+	 * aligned to the start of the PMD.
- 	 * This allows us to flush for PMD_SIZE and not have to worry about
- 	 * partial PMD writebacks.
- 	 */
- 	pfn = dax_to_pfn(entry);
--	size = PAGE_SIZE << dax_entry_order(entry);
-+	count = 1UL << dax_entry_order(entry);
-+	index = xas->xa_index & ~(count - 1);
- 
--	dax_entry_mkclean(mapping, xas->xa_index, pfn);
--	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
-+	dax_entry_mkclean(mapping, index, pfn);
-+	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
- 	/*
- 	 * After we have flushed the cache, we can clear the dirty tag. There
- 	 * cannot be new dirty data in the pfn after the flush has completed as
-@@ -917,8 +917,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
- 	xas_clear_mark(xas, PAGECACHE_TAG_DIRTY);
- 	dax_wake_entry(xas, entry, false);
- 
--	trace_dax_writeback_one(mapping->host, xas->xa_index,
--			size >> PAGE_SHIFT);
-+	trace_dax_writeback_one(mapping->host, xas->xa_index, count);
- 	return ret;
- 
-  put_unlocked:
--- 
-2.20.1
-
+/Jarkko
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
