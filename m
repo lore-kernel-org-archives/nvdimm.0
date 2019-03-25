@@ -1,12 +1,12 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
- [IPv6:2607:f8b0:4864:20::343])
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA32A211DBE13
- for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 15:18:24 -0700 (PDT)
-Received: by mail-ot1-x343.google.com with SMTP id e5so9587350otk.12
- for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 15:18:24 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E0A202194EB7D
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 15:15:57 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id e5so9582126otk.12
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 15:15:57 -0700 (PDT)
 MIME-Version: 1.0
 References: <20181128193636.254378-1-brendanhiggins@google.com>
  <20181128193636.254378-19-brendanhiggins@google.com>
@@ -20,11 +20,12 @@ References: <20181128193636.254378-1-brendanhiggins@google.com>
  <72cd1c5b-6f68-73ad-c8fd-f3a3268a0529@gmail.com>
  <CAFd5g46UU9wk+F6A5wnKYYtYKmmtv__SaY8eg6v-T9xUjsoxhA@mail.gmail.com>
  <bb5bcd3d-a09a-cfbe-c7fa-16e5eb75b0e4@gmail.com>
- <767d14bf-3429-58b7-dcbf-c8ef86133265@gmail.com>
-In-Reply-To: <767d14bf-3429-58b7-dcbf-c8ef86133265@gmail.com>
+ <CAFd5g448xQLOJwVYU5Zmu4+OPWuboiWZPhBvK6au8Pgm5B9haQ@mail.gmail.com>
+ <bf094685-3f2a-dc7b-7291-0340136b87f3@gmail.com>
+In-Reply-To: <bf094685-3f2a-dc7b-7291-0340136b87f3@gmail.com>
 From: Brendan Higgins <brendanhiggins@google.com>
-Date: Mon, 25 Mar 2019 15:18:12 -0700
-Message-ID: <CAFd5g45yNw5VA5teZ0fBzqND47yfGZyFJiEfNqZfvNYJqiG78Q@mail.gmail.com>
+Date: Mon, 25 Mar 2019 15:15:45 -0700
+Message-ID: <CAFd5g46tpL8KaqKnAEWNRSBWpYMcptu1Eig+nEzq9HX7DF1YUA@mail.gmail.com>
 Subject: Re: [RFC v3 18/19] of: unittest: split out a couple of test cases
  from unittest
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -42,26 +43,44 @@ To: Frank Rowand <frowand.list@gmail.com>
 Cc: brakmo@fb.com, dri-devel <dri-devel@lists.freedesktop.org>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Richard Weinberger <richard@nod.at>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Joel Stanley <joel@jms.id.au>, Jeff Dike <jdike@addtoit.com>, "Bird," Timothy" <Tim.Bird@sony.com>, Kees Cook <keescook@google.com>," linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Michael Ellerman <mpe@ellerman.id.au>, Joe Perches <joe@perches.com>, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Mar 21, 2019 at 6:34 PM Frank Rowand <frowand.list@gmail.com> wrote:
+On Thu, Mar 21, 2019 at 6:47 PM Frank Rowand <frowand.list@gmail.com> wrote:
 >
-> On 3/21/19 5:22 PM, Frank Rowand wrote:
-> > On 2/27/19 7:52 PM, Brendan Higgins wrote:
+> On 3/21/19 6:30 PM, Brendan Higgins wrote:
+> > On Thu, Mar 21, 2019 at 5:22 PM Frank Rowand <frowand.list@gmail.com> wrote:
+> >>
+> >> On 2/27/19 7:52 PM, Brendan Higgins wrote:
 >
-> < snip >
+> < snip >  but thanks for the comments in the snipped section.
 >
-> >> Now I know that, hermeticity especially, but other features as well
-> >> (test suite summary, error on unused test case function, etc) are not
-> >> actually in KUnit as it is under consideration here. Maybe it would be
-> >> best to save these last two patches (18/19, and 19/19) until I have
-> >> these other features checked in and reconsider them then?
+>
+> >>
+> >> Thanks for leaving 18/19 and 19/19 off in v4.
 > >
-> > Thanks for leaving 18/19 and 19/19 off in v4.
+> > Sure, no problem. It was pretty clear that it was a waste of both of
+> > our times to continue discussing those at this juncture. :-)
+> >
+> > Do you still want me to try to convert the DT not-exactly-unittest to
+> > KUnit? I would kind of prefer (I don't feel *super* strongly about the
+> > matter) we don't call it that since I was intending for it to be the
+> > flagship initial example, but I certainly don't mind trying to clean
+> > this patch up to get it up to snuff. It's really just a question of
+> > whether it is worth it to you.
 >
-> Oops, they got into v4 but as 16/17 and 17/17, I think.  But it sounds
-> like you are planning to leave them out of v5.
+> In the long term, if KUnit is adopted by the kernel, then I think it
+> probably makes sense for devicetree unittest to convert from using
+> our own unittest() function to report an individual test pass/fail
+> to instead use something like KUNIT_EXPECT_*() to provide more
+> consistent test messages to test frameworks.  That is assuming
+> KUNIT_EXPECT_*() provides comparable functionality.  I still have
+> not looked into that question since the converted tests (patch 15/17
+> in v4) still does not execute without throwing internal errors.
 
-Oh, I thought you meant v5 when you were thanking me. In any case, to
-confirm, I will be leaving off 16/17, and 17/17 in the next version.
+Sounds good.
+
+>
+> If that conversion occurred, I would also avoid the ASSERTs.
+
+Noted.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
