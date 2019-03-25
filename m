@@ -1,55 +1,78 @@
-From: Aditya Pakki <pakki001-OJFnDUYgAso@public.gmane.org>
-Subject: [PATCH v2] nvdimm: btt_devs: fix a NULL pointer dereference
-Date: Sat, 23 Mar 2019 16:41:25 -0500
-Message-ID: <20190323214125.10233-1-pakki001@umn.edu>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH v2] nvdimm: btt_devs: fix a NULL pointer dereference
+Date: Mon, 25 Mar 2019 09:56:36 +0100
+Message-ID: <08d11679-8efd-3710-b7b5-a25714c37920@suse.de>
+References: <20190323214125.10233-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: pakki001-OJFnDUYgAso@public.gmane.org
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, kjlu-OJFnDUYgAso@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190323214125.10233-1-pakki001@umn.edu>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aditya Pakki <pakki001@umn.edu>
+Cc: linux-nvdimm@lists.01.org, kjlu@umn.edu, linux-kernel@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-In case kmemdup fails, the fix releases resources and returns to
-avoid the NULL pointer dereference.
+On 23/03/2019 22:41, Aditya Pakki wrote:
+> In case kmemdup fails, the fix releases resources and returns to
+> avoid the NULL pointer dereference.
+> 
+> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+> 
+> ---
+> v1: Free nd_btt->id in case of failure and avoid double free, suggested
+> by Dan Williams
+> ---
+>  drivers/nvdimm/btt_devs.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+> index b72a303176c7..119a4ead2e46 100644
+> --- a/drivers/nvdimm/btt_devs.c
+> +++ b/drivers/nvdimm/btt_devs.c
+> @@ -204,8 +204,14 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+>  	}
+>  
+>  	nd_btt->lbasize = lbasize;
+> -	if (uuid)
+> +	if (uuid) {
+>  		uuid = kmemdup(uuid, 16, GFP_KERNEL);
+> +		if (!uuid) {
+> +			kfree(nd_btt->id);
+> +			kfree(nd_btt);
+> +			return NULL;
+> +		}
+> +	}
 
-Signed-off-by: Aditya Pakki <pakki001-OJFnDUYgAso@public.gmane.org>
+nd_btt->id is an ida and thus must be freed using:
+ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
 
----
-v1: Free nd_btt->id in case of failure and avoid double free, suggested
-by Dan Williams
----
- drivers/nvdimm/btt_devs.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+that being I'd prefer a 'out_put_id' label at the end of the function
+and to the cleanups there.
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index b72a303176c7..119a4ead2e46 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -204,8 +204,14 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	}
- 
- 	nd_btt->lbasize = lbasize;
--	if (uuid)
-+	if (uuid) {
- 		uuid = kmemdup(uuid, 16, GFP_KERNEL);
-+		if (!uuid) {
-+			kfree(nd_btt->id);
-+			kfree(nd_btt);
-+			return NULL;
-+		}
-+	}
- 	nd_btt->uuid = uuid;
- 	dev = &nd_btt->dev;
- 	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
+Something like this:
+
+	if (uuid) {
+		uuid = kmemdup(uuid, 16, GFP_KERNEL);
+		if (!uuid)
+			goto out_put_id;
+
+	[...]
+
+	return dev;
+
+out_put_id:
+	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
+	kfree(nd_btt);
+	return NULL;
+}
+
+
 -- 
-2.17.1
+Johannes Thumshirn                            SUSE Labs Filesystems
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Mary Higgins, Sri Rasiah
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
