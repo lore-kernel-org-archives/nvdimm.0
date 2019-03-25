@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AD651211EABB3
- for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 07:50:36 -0700 (PDT)
-Date: Mon, 25 Mar 2019 16:50:32 +0200
+ by ml01.01.org (Postfix) with ESMTPS id CC135211EABB3
+ for <linux-nvdimm@lists.01.org>; Mon, 25 Mar 2019 07:12:27 -0700 (PDT)
+Date: Mon, 25 Mar 2019 16:12:23 +0200
 From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
 Subject: Re: [PATCH] security/keys/trusted: Allow operation without hardware
  TPM
-Message-ID: <20190325145032.GA29989@linux.intel.com>
+Message-ID: <20190325141223.GA13766@linux.intel.com>
 References: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20190321135451.GD4603@linux.intel.com>
  <809e827b-fdbe-fbb8-8acf-2878ae9f7777@huawei.com>
@@ -16,10 +16,9 @@ References: <155295271345.1945351.6465460744078693578.stgit@dwillia2-desk3.amr.c
  <d0434a90-4010-8c76-c02e-bb1a6ec831ef@huawei.com>
  <20190322101227.GB3122@linux.intel.com>
  <CAPcyv4g=W9Fc=nfYjXG9-mpzn2cfiYEz4J7ksP3ziFUc_5k1OQ@mail.gmail.com>
- <20190325141223.GA13766@linux.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190325141223.GA13766@linux.intel.com>
+In-Reply-To: <CAPcyv4g=W9Fc=nfYjXG9-mpzn2cfiYEz4J7ksP3ziFUc_5k1OQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,21 +34,75 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: Silviu Vlasceanu <Silviu.Vlasceanu@huawei.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, James Bottomley <jejb@linux.ibm.com>, Roberto Sassu <roberto.sassu@huawei.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mimi Zohar <zohar@linux.ibm.com>, David Howells <dhowells@redhat.com>, keyrings@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 25, 2019 at 04:12:23PM +0200, Jarkko Sakkinen wrote:
-> > Robert, please feel free to re-author the proposed patch however you
-> > see fit, I just want whatever will get libnvdimm operational again in
-> > the shortest amount of time.
+On Fri, Mar 22, 2019 at 08:24:01AM -0700, Dan Williams wrote:
+> On Fri, Mar 22, 2019 at 3:12 AM Jarkko Sakkinen
+> <jarkko.sakkinen@linux.intel.com> wrote:
+> >
+> > On Thu, Mar 21, 2019 at 06:45:47PM +0100, Roberto Sassu wrote:
+> > > On 3/21/2019 5:30 PM, Dan Williams wrote:
+> > > > On Thu, Mar 21, 2019 at 7:27 AM Roberto Sassu <roberto.sassu@huawei.com> wrote:
+> > > > >
+> > > > > On 3/21/2019 2:54 PM, Jarkko Sakkinen wrote:
+> > > > > > On Mon, Mar 18, 2019 at 04:45:13PM -0700, Dan Williams wrote:
+> > > > > > > Rather than fail initialization of the trusted.ko module, arrange for
+> > > > > > > the module to load, but rely on trusted_instantiate() to fail
+> > > > > > > trusted-key operations.
+> > > > > > >
+> > > > > > > Fixes: 240730437deb ("KEYS: trusted: explicitly use tpm_chip structure...")
+> > > > > > > Cc: Roberto Sassu <roberto.sassu@huawei.com>
+> > > > > > > Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> > > > > > > Cc: James Bottomley <jejb@linux.ibm.com>
+> > > > > > > Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> > > > > > > Cc: Mimi Zohar <zohar@linux.ibm.com>
+> > > > > > > Cc: David Howells <dhowells@redhat.com>
+> > > > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > > > >
+> > > > > > It should check for chip in each function that uses TPM now that
+> > > > > > the code does not rely on default chip. Otherwise, the semantics
+> > > > > > are kind of inconsistent.
+> > > > >
+> > > > > If no other TPM function can be used before a successful key
+> > > > > instantiate, checking for a chip only in trusted_instantiate() seems
+> > > > > sufficient. Then, the same chip will be used by all TPM functions until
+> > > > > module unloading, since we incremented the reference count.
+> > > > >
+> > > > > I would suggest to move the tpm_default_chip() and init_digests() calls
+> > > > > to trusted_instantiate() to restore the old behavior of init_trusted().
+> > > > >
+> > > > > trusted_instantiate() should look like:
+> > > > > ---
+> > > > > if (!chip) {
+> > > > >          chip = tpm_default_chip();
+> > > > >          if (!chip)
+> > > > >                  return -ENODEV;
+> > > > > }
+> > > > >
+> > > > > if (!digests) {
+> > > > >          ret = init_digests();
+> > > > >          if (ret < 0)
+> > > > >                  return ret;
+> > > > > }
+> > > >
+> > > > This patch already achieves that because tpm_find_get_ops() will fail
+> > > > and cause tpm_is_tpm2() to return NULL.
+> > >
+> > > In addition, the changes I proposed would allow users to create trusted
+> > > keys if a TPM is added later. CONFIG_TRUSTED_KEYS=y and
+> > > CONFIG_TCG_TPM=m is a valid configuration.
+> > >
+> > > Jarkko, Dan's patch seems sufficient to fix the issue. He could include
+> > > the changes I proposed in his patch. What is your opinion?
+> >
+> > Agreed.
 > 
-> I've decided go with a patch of least innovation i.e. one that simply reverts
-> the old behavior. Sending patch soon.
+> What changes?
+> 
+> Robert, please feel free to re-author the proposed patch however you
+> see fit, I just want whatever will get libnvdimm operational again in
+> the shortest amount of time.
 
-I.e. https://www.lkml.org/lkml/2019/3/25/674
-
-I think fixing the actual dependency issue would be unorthodox at this
-point of release cycle as adding dependencies was not the root cause
-for the bug even if existing somewhat unorthodox were. Better to just
-the problem by reverting the semantics near the same as in v5.0 and
-take this dependency discussion "offline" for the release work...
+I've decided go with a patch of least innovation i.e. one that simply reverts
+the old behavior. Sending patch soon.
 
 /Jarkko
 _______________________________________________
