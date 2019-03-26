@@ -1,80 +1,61 @@
-From: Mukesh Ojha <mojha@codeaurora.org>
-Subject: Re: [PATCH v4] nvdimm: btt_devs: fix a NULL pointer dereference
-Date: Tue, 26 Mar 2019 15:53:07 +0530
-Message-ID: <5fa84f18-7253-2543-57e4-6a9e2b2da716@codeaurora.org>
-References: <20190325215527.12574-1-pakki001@umn.edu>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [ndctl PATCH v3 4/5] libndctl: Add a new dimm-op
+ cmd_is_supported()
+Date: Tue, 26 Mar 2019 23:29:00 +0000
+Message-ID: <PU1P153MB0169D3CF9E54018F22C5EB30BF5F0@PU1P153MB0169.APCP153.PROD.OUTLOOK.COM>
+References: <20190323042028.4310-1-decui@microsoft.com>
+ <20190323042028.4310-5-decui@microsoft.com>
+ <072e59f43a276b9daa93c131866fc26fabaad626.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190325215527.12574-1-pakki001@umn.edu>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <072e59f43a276b9daa93c131866fc26fabaad626.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aditya Pakki <pakki001@umn.edu>
-Cc: kjlu@umn.edu, Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, Keith Busch <keith.busch@intel.com>, Ira Weiny <ira.weiny@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "dexuan.cui-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dexuan.cui-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Kelley <mikelley-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: "qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org" <qi.fuli-LMvhtfratI1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
+> From: Verma, Vishal L <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Sent: Tuesday, March 26, 2019 2:56 PM
+> 
+> Hi Dexuan,
+> 
+> Thanks for making the changes, this revision /mostly/ looks good to me
+> except -
+> 
+> The kernel dsm mask just seems to be hard-coded in [1]
 
-On 3/26/2019 3:25 AM, Aditya Pakki wrote:
-> In case kmemdup fails, the fix releases resources and returns to
-> avoid the NULL pointer dereference.
->
-> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
->
-> ---
-> v3: Move kfree(nd_btt) to goto block.
-> v2: Replace incorrect kfree with ida_simple_remove, suggested by
-> Johannes Thumshirn
-> v1: Free nd_btt->id in case of failure and avoid double free, suggested
-> by Dan Williams
-> ---
->   drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
->   1 file changed, 13 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-> index b72a303176c7..9486acc08402 100644
-> --- a/drivers/nvdimm/btt_devs.c
-> +++ b/drivers/nvdimm/btt_devs.c
-> @@ -198,14 +198,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
->   		return NULL;
->   
->   	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
-> -	if (nd_btt->id < 0) {
-> -		kfree(nd_btt);
-> -		return NULL;
-> -	}
-> +	if (nd_btt->id < 0)
-> +		goto out_nd_btt;
->   
->   	nd_btt->lbasize = lbasize;
-> -	if (uuid)
-> +	if (uuid) {
->   		uuid = kmemdup(uuid, 16, GFP_KERNEL);
-> +		if (!uuid)
-> +			goto out_put_id;
-> +	}
->   	nd_btt->uuid = uuid;
->   	dev = &nd_btt->dev;
->   	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
-> @@ -220,6 +221,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
->   		return NULL;
->   	}
->   	return dev;
-> +
-> +out_put_id:
-> +	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-> +
-> +out_nd_btt:
-> +	kfree(nd_btt);
-> +	return NULL;
->   }
->   
->   struct device *nd_btt_create(struct nd_region *nd_region)
+Yes, the kernel basically hard-codes the dsm_mask to 0x1F for Hyper-V,
+but the kernel doesn't export the dsm_mask to the userspace; instead,
+the kernel exports the "nvdimm->cmd_mask" to the userspace: see
+drivers/nvdimm/dimm_devs.c: commands_show().
 
+The cmd_mask is initialized in acpi_nfit_register_dimms(), and it's not
+1:1 mapped to the dsm_mask for non-NVDIMM_FAMILY_INTEL families:
+see acpi_nfit_register_dimms().
+ 
+> So is there any reason that that can't simply be allowed to advertise
+> "everything is supported", similar to what the MSFT family does, and
+> that should remove the need for playing games with dimm-ops (i.e. now
+> there is another layer that can affect command support detection).
 
-you have to take care of this below if block(true) as well as you are 
-touching the function.
-  if (ndns && !__nd_attach_ndns(&nd_btt->dev, ndns, &nd_btt->ndns)) {
+Here ndctl is checking if ND_CMD_SMART is supported in
+dimm->cmd_mask. For all the non-NVDIMM_FAMILY_INTEL families,
+the check is false, including the HPE1 and MSFT families.
+
+So IMO we need this new dimm-ops to make "ndctl monitor" work
+for Hyper-V. I think the other non-INTEL families can't work with
+"ndctl monitor" either, but I don't have a hardward to test.
 
 Thanks,
-Mukesh
+-- Dexuan
