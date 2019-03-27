@@ -1,10 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from lists.01.org (unknown [183.14.134.212])
- by ml01.01.org (Postfix) with ESMTP id 01786211D67F6
- for <linux-nvdimm@lists.01.org>; Mon, 11 Mar 2019 04:03:42 -0700 (PDT)
-From: "Post Office" <noreply@lists.01.org>
-Subject: MAIL SYSTEM ERROR - RETURNED MAIL
-Date: Mon, 11 Mar 2019 19:03:45 +0800
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DA4E521A02937
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Mar 2019 11:10:45 -0700 (PDT)
+Subject: [PATCH v5 1/2] libnvdimm/security: provide fix for secure-erase to
+ use zero-key
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Wed, 27 Mar 2019 11:10:44 -0700
+Message-ID: <155371019392.41052.2119245365191332271.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -13,57 +17,123 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============5420558547606060050=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20190311110345.A71A9211D9416@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is a multi-part message in MIME format.
+Add a zero key in order to standardize hardware that want a key of 0's to
+be passed. Some platforms defaults to a zero-key with security enabled
+rather than allow the OS to enable the security. The zero key would allow
+us to manage those platform as well. This also adds a fix to secure erase
+so it can use the zero key to do crypto erase. Some other security commands
+already use zero keys. This introduces a standard zero-key to allow
+unification of semantics cross nvdimm security commands.
 
---===============5420558547606060050==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+v5:
+- Updated commit message and header. (Dan)
 
-;uO��s�*�����mZᯁmM᪺Ľ��i�gֵΏ��Tq<��~y�t|����ܙā��
-*��(�~��jm����������q�?[��F
-e9�`}��"���<{�B�(K���եy8/܊�f�4�S�y�U� ��;mҵ#�O�%Y�`�w4àSy�L9�|Ԟے��]���9.�&�,��%����܎/���˔}���`5�3o4J�2��]�T[�j��4*>O���&s\���*�SeĦP/��0v��at�{�����*XMI3TͿ�HAd��y;�l3�O�F:�E��sN|ڋ����A���o[��HR/����
-^����;^|5��M%� �L5tT�P���A��`7�و�P��[S55wY}`A�e�]&\"t2{W�E
-��|,�n�� �~z/}o��x���O�zU�$da{�D����&�5�&��T�{Mԁ^���]�&��������Jc��k���Js���l�t̑����^��Ԟ��!;r�F�j?F�2
-���� �Udw�
-���QIC��0g�LDoԵb_՝ᶟ��ʿϝ�M3���VRv�6lH)�
-]%��1}iKi1���?~�z�_����
-��h��L�B��l��dF�P�6d�_���pF�|������l��'��RR��~%�w��-L�i��j��3��~�
-IbM^��;���
-�k��w4�
-���I{��P����O�b� �g��z�&\��a��&���8`M���֪����o��-�v�B
-�ϱl���Vn�]<S�Y�٩:8�-���;��CZ��;��*0iu
-�$3����D�*�0��P�,�$��TǺ�9��W���4�<���9$�Ǟ�r8Z�*��R�
-<��A��2��  NZ�j�����܏3��vÁ؁`�2c�E�u��0��E&"�[�_�˸�.�ID�H�,k�{S�}-��j�%)x��j��u��Å�D6��º}�8���z�" Xz��k
-�Ek0�����e&y�<V�
-/�Z#����]GZ<�����R� eJ����O�
-��� �6L����O4$I�/(�Bj�{�X&:Ѯ�Fu��As�絎&t��.�ݹZ`#_J&RR�9Y�%�/qor���-�7COOӢb�L,\�'��߉Ԋ4��b��W�Tz5�K>x;���<�v�<�)����sp�랔�ѧ;H�7��|�θG>�M
--^Q��b�Nt����d���bR�Ǧ��\bJM�#WA�W:�*M��Y��z�">�̓ԡ��0��̴�
-/"�ǯ�m�9��Ix⩓߇�"�ﱳ�W��p9��sZ&��Z���b�J�z�{�T
-�հ��%�7�xH�r��G�Otwb�/9?_b�B����f��`��r��~j(XN��Y��T��}�6~�F�P�JzIS�.j�sV��R�L蜔c�Eʪ�nj۳�R�i5V
-�J�-����p�s�-��F�sG\a�����|V��
-���O��ژ ��^�����j��e�i膖b�d����jǂ�5�Xk����< <�T�)!���F�&�
-�vB�
-�/&���k��g<D�?�//�Z�I��z��0�Z������ꇫ���������[�� �Q*yz�mWa��J��\8K�K�9���v}F�l�z�SE�1�W��nu��e�h�n�Cs��.��6���_c�7�����d,��}�B谐n��!��|4��D�"2>��cBRM�h��������
-R�UJ���r�mFp��*�L�ѤQR�L���ϯ8�Y��"��p)�Y�\r�R����m��� �mf`3��u
+v4: No change
 
+v3:
+- Add note in commit header about syncing zero key usage. (Dan)
 
---===============5420558547606060050==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+v2:
+- Make patch header explicitly zero key (Dan)
+- Declare global static zero key (Dan)
+- Make nfit_test explicitly test zero key (Dan)
+
+ drivers/nvdimm/security.c        |   17 ++++++++++++-----
+ tools/testing/nvdimm/test/nfit.c |   11 +++++++++--
+ 2 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index f8bb746a549f..6bea6852bf27 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -22,6 +22,8 @@ static bool key_revalidate = true;
+ module_param(key_revalidate, bool, 0444);
+ MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
+ 
++static const char zero_key[NVDIMM_PASSPHRASE_LEN];
++
+ static void *key_data(struct key *key)
+ {
+ 	struct encrypted_key_payload *epayload = dereference_key_locked(key);
+@@ -286,8 +288,9 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+ {
+ 	struct device *dev = &nvdimm->dev;
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+-	struct key *key;
++	struct key *key = NULL;
+ 	int rc;
++	const void *data;
+ 
+ 	/* The bus lock should be held at the top level of the call stack */
+ 	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
+@@ -319,11 +322,15 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+-	if (!key)
+-		return -ENOKEY;
++	if (keyid != 0) {
++		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
++		if (!key)
++			return -ENOKEY;
++		data = key_data(key);
++	} else
++		data = zero_key;
+ 
+-	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key), pass_type);
++	rc = nvdimm->sec.ops->erase(nvdimm, data, pass_type);
+ 	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
+ 			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+ 			rc == 0 ? "success" : "fail");
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index b579f962451d..cad719876ef4 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -225,6 +225,8 @@ static struct workqueue_struct *nfit_wq;
+ 
+ static struct gen_pool *nfit_pool;
+ 
++static const char zero_key[NVDIMM_PASSPHRASE_LEN];
++
+ static struct nfit_test *to_nfit_test(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -1059,8 +1061,7 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 	struct device *dev = &t->pdev.dev;
+ 	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
+ 
+-	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
+-			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
++	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
+ 		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
+ 		dev_dbg(dev, "secure erase: wrong security state\n");
+ 	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
+@@ -1068,6 +1069,12 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
+ 		dev_dbg(dev, "secure erase: wrong passphrase\n");
+ 	} else {
++		if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)
++				&& (memcmp(nd_cmd->passphrase, zero_key,
++					ND_INTEL_PASSPHRASE_SIZE) != 0)) {
++			dev_dbg(dev, "invalid zero key\n");
++			return 0;
++		}
+ 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
+ 		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
+ 		sec->state = 0;
 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============5420558547606060050==--
