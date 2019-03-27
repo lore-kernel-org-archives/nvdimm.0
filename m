@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B11CF21959CB2
- for <linux-nvdimm@lists.01.org>; Wed, 27 Mar 2019 13:44:24 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 5540F2194EB70
+ for <linux-nvdimm@lists.01.org>; Wed, 27 Mar 2019 13:26:58 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2] ndctl: enable 'travis-ci'
-Date: Wed, 27 Mar 2019 14:44:20 -0600
-Message-Id: <20190327204421.24618-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl: enable 'travis-ci'
+Date: Wed, 27 Mar 2019 14:26:54 -0600
+Message-Id: <20190327202654.20866-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -33,10 +33,6 @@ build failures in an Ubuntu environment.
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-
-v2: Fix the 'badge' to point to the pmem/ndctl repo instead of a
-personal one used for testing.
-
  .travis.yml | 23 +++++++++++++++++++++++
  README.md   |  2 ++
  2 files changed, 25 insertions(+)
@@ -72,12 +68,12 @@ index 0000000..eb0c665
 +  include:
 +      script: true
 diff --git a/README.md b/README.md
-index 7c420d5..690d152 100644
+index 7c420d5..d2fe874 100644
 --- a/README.md
 +++ b/README.md
 @@ -1,4 +1,6 @@
  # ndctl
-+[![Build Status](https://travis-ci.org/pmem/ndctl.svg?branch=master)](https://travis-ci.org/pmem/ndctl)
++[![Build Status](https://travis-ci.org/stellarhopper/ndctl.svg?branch=master)](https://travis-ci.org/stellarhopper/ndctl)
 +
  Utility library for managing the libnvdimm (non-volatile memory device)
  sub-system in the Linux kernel
