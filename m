@@ -1,10 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from datastacks.com (unknown [183.14.133.106])
- by ml01.01.org (Postfix) with ESMTP id 07B69211CC3D9
- for <linux-nvdimm@lists.01.org>; Wed,  6 Mar 2019 19:39:41 -0800 (PST)
-From: kernel@datastacks.com
-Subject: RETURNED MAIL: SEE TRANSCRIPT FOR DETAILS
-Date: Thu, 7 Mar 2019 11:39:50 +0800
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 5EDC6211E82F7
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Mar 2019 14:29:04 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 3/3] ndctl: add unit test for load-keys
+Date: Thu, 28 Mar 2019 21:29:01 +0000
+Message-ID: <af086e43050f9d032d5e918d06b0dd5a81fe5170.camel@intel.com>
+References: <155380002962.7924.11109542476291499729.stgit@djiang5-desk3.ch.intel.com>
+ <155380004030.7924.13233540083178591968.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <155380004030.7924.13233540083178591968.stgit@djiang5-desk3.ch.intel.com>
+Content-Language: en-US
+Content-ID: <7AFF977C049036429DF5CD16E92DB43E@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -17,22 +25,131 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20190307033947.C9A71211D6167@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The original message was received at Thu, 7 Mar 2019 11:39:50 +0800
-from datastacks.com [16.128.169.184]
 
------ The following addresses had permanent fatal errors -----
-<linux-nvdimm@lists.01.org>
+On Thu, 2019-03-28 at 12:07 -0700, Dave Jiang wrote:
+> Add to security.sh to test load-keys for user keys.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  test/security.sh |   56 ++++++++++++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 52 insertions(+), 4 deletions(-)
+> 
+> diff --git a/test/security.sh b/test/security.sh
+> index 1b7a9a1a..7bd60293 100755
+> --- a/test/security.sh
+> +++ b/test/security.sh
+> @@ -6,8 +6,10 @@ rc=77
+>  dev=""
+>  id=""
+>  keypath="/etc/ndctl/keys"
+> -masterkey="nvdimm-master-test"
+> -masterpath="$keypath/$masterkey"
+> +masterkey="nvdimm-master"
+> +masterpath="$keypath/$masterkey.blob"
+> +backup_key=0
+> +backup_handle=0
+>  
+>  . ./common
+>  
+> @@ -32,6 +34,15 @@ setup_keys()
+>  		mkdir -p "$keypath"
+>  	fi
+>  
+> +	if [ -f "$masterpath" ]; then
+> +		mv "$masterpath" "$masterpath.bak"
+> +		$backup_key=1
+> +	fi
+> +	if [ -f "$keypath/tpm.handle" ]; then
+> +		mv "$keypath/tpm.handle" "$keypath/tmp.handle.bak"
+> +		$backup_handle=1
+> +	fi
+> +
+>  	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
+>  	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
+>  }
+> @@ -53,6 +64,12 @@ test_cleanup()
+>  	if [ -f $masterpath ]; then
+>  		rm -f "$masterpath"
+>  	fi
+> +	if [ "$backup_key" -eq 1 ]; then
+> +		mv "$masterpath.bak" "$masterpath"
+> +	fi
+> +	if [ "$backup_handle" -eq 1 ]; then
+> +		mv "$keypath/tpm.handle.bak" "$keypath/tmp.handle"
+> +	fi
+>  }
+>  
+>  lock_dimm()
+> @@ -188,6 +205,33 @@ test_5_security_freeze()
+>  	fi
+>  }
+>  
+> +test_6_load_keys()
+> +{
+> +	if keyctl search @u encrypted nvdimm:"$id"; then
+> +		keyctl unlink "$(keyctl search @u encrypted nvdimm:"$id")"
+> +	fi
+> +
+> +	if keyctl search @u user "$masterkey"; then
+> +		keyctl unlink "$(keyctl search @u user $masterkey)"
 
------ Transcript of session follows -----
-  while talking to lists.01.org.:
->>> MAIL From:kernel@datastacks.com
-<<< 501 kernel@datastacks.com... Refused
+missing quotes around "$masterkey"
 
+> +	fi
+> +
+> +	$NDCTL load-keys
+> +
+> +	if keyctl search @u user "$masterkey"; then
+> +		echo "master key loaded"
+> +	else
+> +		echo "master key fail to loaded"
 
+'failed to load'
+
+> +		err "$LINENO"
+> +	fi
+> +
+> +	if keyctl search @u encrypted nvdimm:"$id"; then
+> +		echo "dimm key loaded"
+> +	else
+> +		echo "dimm key failed to load"
+> +		err "$LINENO"
+> +	fi
+> +}
+> +
+>  check_min_kver "5.0" || do_skip "may lack security handling"
+>  uid="$(keyctl show | grep -Eo "_uid.[0-9]+" | head -1 | cut -d. -f2-)"
+>  if [ "$uid" -ne 0 ]; then
+> @@ -210,11 +254,15 @@ test_3_security_setup_and_erase
+>  echo "Test 4, unlock dimm"
+>  test_4_security_unlock
+>  
+> -# Freeze should always be run last because it locks security state and require
+> -# nfit_test module unload.
+> +# Freeze should always be run as last DIMM operation because it locks
+> +# security state and require nfit_test module unload.
+
+Should we just insert this new test as test_0 at the start?
+a. That preserves the last-ness or test_5, and the comment above doesn't
+get lost in the middle, and
+b. keyctl is kind of core to any security operation, so it makes sense
+to test out aspects of it first.
+
+>  echo "Test 5, freeze security"
+>  test_5_security_freeze
+>  
+> +# this is purely on keyctl management and does not involve nvdimm
+> +echo "Test 6, test load-keys"
+> +test_6_load_keys
+> +
+>  test_cleanup
+>  _cleanup
+>  exit 0
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
