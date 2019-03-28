@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EC11211BD619
- for <linux-nvdimm@lists.01.org>; Fri,  1 Mar 2019 05:49:57 -0800 (PST)
-Date: Fri, 1 Mar 2019 14:49:54 +0100
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH] dax: Flush partial PMDs correctly
-Message-ID: <20190301134954.GA31094@quack2.suse.cz>
-References: <20190301042448.6868-1-willy@infradead.org>
+ by ml01.01.org (Postfix) with ESMTPS id 7403A21959CB2
+ for <linux-nvdimm@lists.01.org>; Thu, 28 Mar 2019 15:24:31 -0700 (PDT)
+Subject: [PATCH v2 1/3] ndctl: fix load-keys for user master-key
+From: Dave Jiang <dave.jiang@intel.com>
+Date: Thu, 28 Mar 2019 15:24:30 -0700
+Message-ID: <155381182887.13778.15556671056565903543.stgit@djiang5-desk3.ch.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190301042448.6868-1-willy@infradead.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,72 +20,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Piotr Balcer <piotr.balcer@intel.com>, linux-nvdimm@lists.01.org
+To: vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 28-02-19 20:24:48, Matthew Wilcox wrote:
-> The radix tree would rewind the index in an iterator to the lowest index
-> of a multi-slot entry.  The XArray iterators instead leave the index
-> unchanged, but I overlooked that when converting DAX from the radix tree
-> to the XArray.  Adjust the index that we use for flushing to the start
-> of the PMD range.
-> 
-> Fixes: c1901cd33cf4 "page cache: Convert find_get_entries_tag to XArray"
-> Reported-by: Piotr Balcer <piotr.balcer@intel.com>
-> Tested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Matthew Wilcox <willy@infradead.org>
-> ---
+load-keys incorrectly assumes that all keys have TPM handles. TPM handle is
+only for trusted-keys. Fix in order to allow user master-key to operate.
 
-Thanks for the patch! One comment below:
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
 
-> @@ -894,17 +893,18 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
->  	xas_unlock_irq(xas);
->  
->  	/*
-> -	 * Even if dax_writeback_mapping_range() was given a wbc->range_start
-> -	 * in the middle of a PMD, the 'index' we are given will be aligned to
-> -	 * the start index of the PMD, as will the pfn we pull from 'entry'.
-> +	 * If dax_writeback_mapping_range() was given a wbc->range_start
-> +	 * in the middle of a PMD, the 'index' we are given needs to be
-> +	 * aligned to the start index of the PMD.
->  	 * This allows us to flush for PMD_SIZE and not have to worry about
->  	 * partial PMD writebacks.
->  	 */
->  	pfn = dax_to_pfn(entry);
-> -	size = PAGE_SIZE << dax_entry_order(entry);
-> +	count = 1UL << dax_entry_order(entry);
-> +	index = xas->xa_index &~ (count - 1);
-
-Hum, why do you compute 'index' here when you actually never use it? The
-whole patch looks fishy since it is effectively a noop AFAICT...
+v2:
+- Make output go to stderr. (Dan)
 
 
-								Honza
+ ndctl/load-keys.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
->  
->  	dax_entry_mkclean(mapping, xas->xa_index, pfn);
-> -	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), size);
-> +	dax_flush(dax_dev, page_address(pfn_to_page(pfn)), count * PAGE_SIZE);
->  	/*
->  	 * After we have flushed the cache, we can clear the dirty tag. There
->  	 * cannot be new dirty data in the pfn after the flush has completed as
-> @@ -917,8 +917,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
->  	xas_clear_mark(xas, PAGECACHE_TAG_DIRTY);
->  	dax_wake_entry(xas, entry, false);
->  
-> -	trace_dax_writeback_one(mapping->host, xas->xa_index,
-> -			size >> PAGE_SHIFT);
-> +	trace_dax_writeback_one(mapping->host, xas->xa_index, count);
->  	return ret;
->  
->   put_unlocked:
-> -- 
-> 2.20.1
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+diff --git a/ndctl/load-keys.c b/ndctl/load-keys.c
+index 8e4998f2..7d86a94b 100644
+--- a/ndctl/load-keys.c
++++ b/ndctl/load-keys.c
+@@ -213,10 +213,8 @@ static int load_keys(struct loadkeys *lk_ctx, const char *keypath,
+ 
+ 	if (!tpmhandle) {
+ 		rc = check_tpm_handle(lk_ctx);
+-		if (rc < 0) {
+-			rc = -errno;
+-			goto erropen;
+-		}
++		if (rc < 0)
++			fprintf(stderr, "No TPM handle discovered.\n");
+ 	}
+ 
+ 	rc = load_master_key(lk_ctx, param.key_path);
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
