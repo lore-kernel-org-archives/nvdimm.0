@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7403A21959CB2
- for <linux-nvdimm@lists.01.org>; Thu, 28 Mar 2019 15:24:31 -0700 (PDT)
-Subject: [PATCH v2 1/3] ndctl: fix load-keys for user master-key
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 28 Mar 2019 15:24:30 -0700
-Message-ID: <155381182887.13778.15556671056565903543.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 79A952194EB7A
+ for <linux-nvdimm@lists.01.org>; Fri, 29 Mar 2019 08:40:09 -0700 (PDT)
+Subject: [PATCH 1/6] drivers/base/devres: Introduce devm_release_action()
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 29 Mar 2019 08:27:29 -0700
+Message-ID: <155387324904.2443841.8406657131473708859.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155387324370.2443841.574715745262628837.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,40 +22,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: akpm@linux-foundation.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bjorn Helgaas <bhelgaas@google.com>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-load-keys incorrectly assumes that all keys have TPM handles. TPM handle is
-only for trusted-keys. Fix in order to allow user master-key to operate.
+The devm_add_action() facility allows a resource allocation routine to
+add custom devm semantics. One such user is devm_memremap_pages().
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+There is now a need to manually trigger devm_memremap_pages_release().
+Introduce devm_release_action() so the release action can be triggered
+via a new devm_memunmap_pages() api in a follow-on change.
+
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/base/devres.c  |   24 +++++++++++++++++++++++-
+ include/linux/device.h |    1 +
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-v2:
-- Make output go to stderr. (Dan)
-
-
- ndctl/load-keys.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/ndctl/load-keys.c b/ndctl/load-keys.c
-index 8e4998f2..7d86a94b 100644
---- a/ndctl/load-keys.c
-+++ b/ndctl/load-keys.c
-@@ -213,10 +213,8 @@ static int load_keys(struct loadkeys *lk_ctx, const char *keypath,
+diff --git a/drivers/base/devres.c b/drivers/base/devres.c
+index e038e2b3b7ea..0bbb328bd17f 100644
+--- a/drivers/base/devres.c
++++ b/drivers/base/devres.c
+@@ -755,10 +755,32 @@ void devm_remove_action(struct device *dev, void (*action)(void *), void *data)
  
- 	if (!tpmhandle) {
- 		rc = check_tpm_handle(lk_ctx);
--		if (rc < 0) {
--			rc = -errno;
--			goto erropen;
--		}
-+		if (rc < 0)
-+			fprintf(stderr, "No TPM handle discovered.\n");
- 	}
+ 	WARN_ON(devres_destroy(dev, devm_action_release, devm_action_match,
+ 			       &devres));
+-
+ }
+ EXPORT_SYMBOL_GPL(devm_remove_action);
  
- 	rc = load_master_key(lk_ctx, param.key_path);
++/**
++ * devm_release_action() - release previously added custom action
++ * @dev: Device that owns the action
++ * @action: Function implementing the action
++ * @data: Pointer to data passed to @action implementation
++ *
++ * Releases and removes instance of @action previously added by
++ * devm_add_action().  Both action and data should match one of the
++ * existing entries.
++ */
++void devm_release_action(struct device *dev, void (*action)(void *), void *data)
++{
++	struct action_devres devres = {
++		.data = data,
++		.action = action,
++	};
++
++	WARN_ON(devres_release(dev, devm_action_release, devm_action_match,
++			       &devres));
++
++}
++EXPORT_SYMBOL_GPL(devm_release_action);
++
+ /*
+  * Managed kmalloc/kfree
+  */
+diff --git a/include/linux/device.h b/include/linux/device.h
+index b425a7ee04ce..02a3e45de9af 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -715,6 +715,7 @@ void __iomem *devm_of_iomap(struct device *dev,
+ /* allows to add/remove a custom action to devres stack */
+ int devm_add_action(struct device *dev, void (*action)(void *), void *data);
+ void devm_remove_action(struct device *dev, void (*action)(void *), void *data);
++void devm_release_action(struct device *dev, void (*action)(void *), void *data);
+ 
+ static inline int devm_add_action_or_reset(struct device *dev,
+ 					   void (*action)(void *), void *data)
 
 _______________________________________________
 Linux-nvdimm mailing list
