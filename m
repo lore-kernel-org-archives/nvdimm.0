@@ -1,10 +1,11 @@
-From: =?utf-8?B?6YKA6K+35Ye9?= <mivczrufz-8gw8mPcsg+4@public.gmane.org>
-Subject: (unknown)
-Date: Fri, 29 Mar 2019 08:36:37 +0800
-Message-ID: <2A232363A3CB4F5E50B6005E467DF83B@exu.net>
+From: "Linda Wang" <0210-uaoUKfwVi9aTnpBtbRfDVg@public.gmane.org>
+Subject: E-mail for Investment. 1
+Date: Fri, 29 Mar 2019 00:41:09 -0400
+Message-ID: <20190329044142.26D7F211EC0DA@ml01.01.org>
+Reply-To: linda.wang1-9Vj9tDbzfuSlVyrhU4qvOw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,9 +19,11 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJptaXZjenJ1
-ZnpAZXh1Lm5ldA0K5Y+R6YCB5pel5pyf77yaMjAxOS0zLTI5ICA4OjM2OjQ5DQrmlLbku7bkurrv
-vJpsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnDQp+6ZmEfuS7tn7lhoV+5a65fuivt37mgqh+5p+l
-fumYhX4NCjg6MzY6NDkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hello,
+
+I sent you an e-mail previously about our proposal on Investment in your country, but I did not receive any feedback from you.
+
+Kindly confirm that you got my message as I await for your response.
+
+Sincere regards,
+Linda Wang
