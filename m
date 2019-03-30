@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail3-relais-sop.national.inria.fr
- (mail3-relais-sop.national.inria.fr [192.134.164.104])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 87A252194EB76
- for <linux-nvdimm@lists.01.org>; Fri, 15 Mar 2019 15:31:51 -0700 (PDT)
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Subject: failure to setup devdax over fake nvdimm
-Message-ID: <54fb48ed-f681-1420-b2d0-082ed14802a7@inria.fr>
-Date: Fri, 15 Mar 2019 23:31:49 +0100
+ by ml01.01.org (Postfix) with ESMTPS id 2D19A211CFBE9
+ for <linux-nvdimm@lists.01.org>; Sat, 30 Mar 2019 08:33:17 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id 3so3982445oir.7
+ for <linux-nvdimm@lists.01.org>; Sat, 30 Mar 2019 08:33:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Language: en-US
+References: <20190330054205.28005-1-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190330054205.28005-1-aneesh.kumar@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 30 Mar 2019 08:33:05 -0700
+Message-ID: <CAPcyv4h60V+1pnsF28AJQrFjNbU2jp6G+wVeEucxVbo-RETXOg@mail.gmail.com>
+Subject: Re: [RFC PATCH] drivers/dax: Allow to include DEV_DAX_PMEM as builtin
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,35 +25,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Linux MM <linux-mm@kvack.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello Dan,
+On Fri, Mar 29, 2019 at 10:42 PM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
+>
+> This move the dependency to DEV_DAX_PMEM_COMPAT such that only
+> if DEV_DAX_PMEM is built as module we can allow the compat support.
+>
+> This allows to test the new code easily in a emulation setup where we
+> often build things without module support.
+>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  drivers/dax/Kconfig | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+> index 5ef624fe3934..e582e088b48c 100644
+> --- a/drivers/dax/Kconfig
+> +++ b/drivers/dax/Kconfig
+> @@ -23,7 +23,6 @@ config DEV_DAX
+>  config DEV_DAX_PMEM
+>         tristate "PMEM DAX: direct access to persistent memory"
+>         depends on LIBNVDIMM && NVDIMM_DAX && DEV_DAX
+> -       depends on m # until we can kill DEV_DAX_PMEM_COMPAT
+>         default DEV_DAX
+>         help
+>           Support raw access to persistent memory.  Note that this
+> @@ -50,7 +49,7 @@ config DEV_DAX_KMEM
+>
+>  config DEV_DAX_PMEM_COMPAT
+>         tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
+> -       depends on DEV_DAX_PMEM
+> +       depends on DEV_DAX_PMEM=m
 
-On a machine emulating nvdimms over DDR using the memmap kernel parameter,
-I can't enable devdax anymore with ndctl, when using your libnvdimm-pending
-branch (1ffc664f9b8ca7346f2af0fb4f62b923193bf65c):
-
-# ndctl create-namespace -f -e namespace1.0 -t pmem -m devdax
-libndctl: ndctl_dax_enable: dax1.0: failed to enable
-  Error: namespace1.0: failed to enable
-failed to reconfigure namespace: No such device or address
-
-In the previous version of your libnvdimm-pending branch that I used before
-(8d4a7e3da68e88a6efd3acb5cc971d0c2ca219a4 from January 8th) this ndctl line
-worked fine right after boot.
-
-The difference between strace ndctl doesn't show anything obvious.
-* /sys/devices/platform/e820_pmem/ndbus0/region1/namespace1.0/holder_class contains nothing instead of "dax"
-* /sys/devices/platform/e820_pmem/ndbus0/region1/dax_seed contains dax1.0 instead of dax1.1
-
-Any idea where to look?
-
-Thanks
-Brice
-
-
+Looks ok, just also a needs a "depends on m" here, because
+DEV_DAX_PMEM_COMPAT=y is an invalid config.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
