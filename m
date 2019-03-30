@@ -1,29 +1,95 @@
-From: "Linda Wang" <0210-uaoUKfwVi9aTnpBtbRfDVg@public.gmane.org>
-Subject: E-mail for Investment. 1
-Date: Fri, 29 Mar 2019 00:41:09 -0400
-Message-ID: <20190329044142.26D7F211EC0DA@ml01.01.org>
-Reply-To: linda.wang1-9Vj9tDbzfuSlVyrhU4qvOw@public.gmane.org
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH] mm: Fix modifying of page protection by insert_pfn_pmd()
+Date: Sat, 30 Mar 2019 11:11:21 +0530
+Message-ID: <20190330054121.27831-1-aneesh.kumar@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: dan.j.williams@intel.com, akpm@linux-foundation.org, Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, stable@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello,
+With some architectures like ppc64, set_pmd_at() cannot cope with
+a situation where there is already some (different) valid entry present.
 
-I sent you an e-mail previously about our proposal on Investment in your country, but I did not receive any feedback from you.
+Use pmdp_set_access_flags() instead to modify the pfn which is built to
+deal with modifying existing PMD entries.
 
-Kindly confirm that you got my message as I await for your response.
+This is similar to
+commit cae85cb8add3 ("mm/memory.c: fix modifying of page protection by insert_pfn()")
 
-Sincere regards,
-Linda Wang
+We also do similar update w.r.t insert_pfn_pud eventhough ppc64 don't support
+pud pfn entries now.
+
+CC: stable@vger.kernel.org
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ mm/huge_memory.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 404acdcd0455..f7dca413c4b2 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -755,6 +755,20 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_lock(mm, pmd);
++	if (!pmd_none(*pmd)) {
++		if (write) {
++			if (pmd_pfn(*pmd) != pfn_t_to_pfn(pfn)) {
++				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
++				goto out_unlock;
++			}
++			entry = pmd_mkyoung(*pmd);
++			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
++			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
++				update_mmu_cache_pmd(vma, addr, pmd);
++		}
++		goto out_unlock;
++	}
++
+ 	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
+ 	if (pfn_t_devmap(pfn))
+ 		entry = pmd_mkdevmap(entry);
+@@ -770,6 +784,7 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	set_pmd_at(mm, addr, pmd, entry);
+ 	update_mmu_cache_pmd(vma, addr, pmd);
++out_unlock:
+ 	spin_unlock(ptl);
+ }
+ 
+@@ -821,6 +836,20 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pud_lock(mm, pud);
++	if (!pud_none(*pud)) {
++		if (write) {
++			if (pud_pfn(*pud) != pfn_t_to_pfn(pfn)) {
++				WARN_ON_ONCE(!is_huge_zero_pud(*pud));
++				goto out_unlock;
++			}
++			entry = pud_mkyoung(*pud);
++			entry = maybe_pud_mkwrite(pud_mkdirty(entry), vma);
++			if (pudp_set_access_flags(vma, addr, pud, entry, 1))
++				update_mmu_cache_pud(vma, addr, pud);
++		}
++		goto out_unlock;
++	}
++
+ 	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
+ 	if (pfn_t_devmap(pfn))
+ 		entry = pud_mkdevmap(entry);
+@@ -830,6 +859,8 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	}
+ 	set_pud_at(mm, addr, pud, entry);
+ 	update_mmu_cache_pud(vma, addr, pud);
++
++out_unlock:
+ 	spin_unlock(ptl);
+ }
+ 
+-- 
+2.20.1
