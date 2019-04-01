@@ -1,23 +1,82 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from esa4.fujitsucc.c3s2.iphmx.com (esa4.fujitsucc.c3s2.iphmx.com
+ [68.232.151.214])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C1DD4211E2EE1
+ for <linux-nvdimm@lists.01.org>; Sun, 31 Mar 2019 23:21:01 -0700 (PDT)
+From: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+Subject: RE: [ndctl PATCH] monitor: removing the requirement of default config
+Date: Mon, 1 Apr 2019 06:20:44 +0000
+Message-ID: <OSAPR01MB49936987822E8585110E83D0F7550@OSAPR01MB4993.jpnprd01.prod.outlook.com>
+References: <20190329110150.3725-1-qi.fuli@jp.fujitsu.com>
+ <cda88d4b0faf32de5ed449bc648f1a684337154d.camel@intel.com>
+In-Reply-To: <cda88d4b0faf32de5ed449bc648f1a684337154d.camel@intel.com>
+Content-Language: ja-JP
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 7 Mar 2019 22:16:17 -0800
-Message-ID: <CAPcyv4hwHpX-MkUEqxwdTj7wCCZCN4RV-L4jsnuwLGyL_UEG4A@mail.gmail.com>
-Subject: Hang / zombie process from Xarray page-fault conversion (bisected)
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Barror, Robert" <robert.barror@intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "'Verma, Vishal L'" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Willy,
-
-We're seeing a case where RocksDB hangs and becomes defunct when
-trying to kill the process. v4.19 succeeds and v4.20 fails. Robert was
-able to bisect this to commit b15cd800682f "dax: Convert page fault
-handlers to XArray".
-
-I see some direct usage of xa_index and wonder if there are some more
-pmd fixups to do?
-
-Other thoughts?
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVmVybWEsIFZpc2hhbCBM
+IFttYWlsdG86dmlzaGFsLmwudmVybWFAaW50ZWwuY29tXQ0KPiBTZW50OiBTYXR1cmRheSwgTWFy
+Y2ggMzAsIDIwMTkgMjozNyBBTQ0KPiBUbzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZzsgUWks
+IEZ1bGkv5paJIOemj+WIqSA8cWkuZnVsaUBmdWppdHN1LmNvbT4NCj4gU3ViamVjdDogUmU6IFtu
+ZGN0bCBQQVRDSF0gbW9uaXRvcjogcmVtb3ZpbmcgdGhlIHJlcXVpcmVtZW50IG9mIGRlZmF1bHQN
+Cj4gY29uZmlnDQo+IA0KPiANCj4gT24gRnJpLCAyMDE5LTAzLTI5IGF0IDIwOjAxICswOTAwLCBR
+SSBGdWxpIHdyb3RlOg0KPiA+IFJlbW92aW5nIHRoZSByZXF1aXJlbWVudCBvZiBkZWZhdWx0IGNv
+bmZpZ3VyYXRpb24gZmlsZS4NCj4gPiBJZiAiLWMsIC0tY29uZmlnLWZpbGUiIG9wdGlvbiBpcyBu
+b3Qgc3BlY2lmaWVkLCBkZWZhdWx0IGNvbmZpZ3VyYXRpb24NCj4gPiBmaWxlIHNob3VsZCBiZSBk
+aXNwZW5zYWJsZS4NCj4gPg0KPiA+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9wbWVtL25kY3Rs
+L2lzc3Vlcy84Mw0KPiA+IFNpZ25lZC1vZmYtYnk6IFFJIEZ1bGkgPHFpLmZ1bGlAanAuZnVqaXRz
+dS5jb20+DQo+ID4NCj4gPiAtLS0NCj4gPiAgbmRjdGwvbW9uaXRvci5jIHwgNyArKysrKy0tDQo+
+ID4gIDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+ID4N
+Cj4gPiBkaWZmIC0tZ2l0IGEvbmRjdGwvbW9uaXRvci5jIGIvbmRjdGwvbW9uaXRvci5jDQo+ID4g
+aW5kZXggMzQ2YTZkZi4uNjgyOWE2YiAxMDA2NDQNCj4gPiAtLS0gYS9uZGN0bC9tb25pdG9yLmMN
+Cj4gPiArKysgYi9uZGN0bC9tb25pdG9yLmMNCj4gPiBAQCAtNDg0LDggKzQ4NCwxMSBAQCBzdGF0
+aWMgaW50IHJlYWRfY29uZmlnX2ZpbGUoc3RydWN0IG5kY3RsX2N0eCAqY3R4LA0KPiBzdHJ1Y3Qg
+bW9uaXRvciAqX21vbml0b3IsDQo+ID4NCj4gPiAgCWYgPSBmb3Blbihjb25maWdfZmlsZSwgInIi
+KTsNCj4gPiAgCWlmICghZikgew0KPiA+IC0JCWVycigmbW9uaXRvciwgImNvbmZpZy1maWxlOiAl
+cyBjYW5ub3QgYmUgb3BlbmVkXG4iLA0KPiBjb25maWdfZmlsZSk7DQo+ID4gLQkJcmMgPSAtZXJy
+bm87DQo+ID4gKwkJaWYgKF9tb25pdG9yLT5jb25maWdfZmlsZSkgew0KPiA+ICsJCQllcnIoJm1v
+bml0b3IsICJjb25maWctZmlsZTogJXMgY2Fubm90IGJlDQo+IG9wZW5lZFxuIiwNCj4gPiArCQkJ
+CWNvbmZpZ19maWxlKTsNCj4gPiArCQkJcmMgPSAtZXJybm87DQo+ID4gKwkJfQ0KPiA+ICAJCWdv
+dG8gb3V0Ow0KPiA+ICAJfQ0KPiA+DQo+IEhpIFFpLA0KPiANCj4gVGhhbmtzIGZvciB0aGUgcXVp
+Y2sgcGF0Y2guIEhvd2V2ZXIsIHRoaXMgbWFrZXMgaXQgc28gdGhhdCB0aGUgb25seSB3YXkNCj4g
+aW4gd2hpY2ggYSBjb25maWcgZmlsZSBnZXRzIHVzZWQgaXMgYnkgZXhwbGljaXRseSBzcGVjaWZ5
+aW5nIGl0IHdpdGggYQ0KPiAtYyBvcHRpb24sIGFuZCB0aGF0IGtpbmQgb2YgbWFrZXMgYSAnZGVm
+YXVsdCcgY29uZmlnIGZpbGUgcG9pbnRsZXNzLi4NCj4gDQo+IFRoZSBpZGVhbCBzY2VuYXJpbyB3
+b3VsZCBiZToNCj4gMS4gQ2hlY2sgaWYgZGVmYXVsdCBjb25maWcgZXhpc3RzDQo+ICAgIGEuIGlm
+IGl0IGRvZXMsIHVzZSBvcHRpb25zIGZyb20gdGhlcmUNCj4gICAgYi4gaWYgYW55IGNsaSBvcHRp
+b25zIHByb3ZpZGVkLCB1c2UgdGhvc2UgdG8gb3ZlcnJpZGUgdGhlIG9uZXMgaW4NCj4gY29uZmln
+IGZpbGUgKGlmIGFueSkNCj4gDQo+IDIuIElmIGRlZmF1bHQgY29uZmlnIGZpbGUgaXMgbWlzc2lu
+Zywgb25seSB1c2UgY2xpIG9wdGlvbnMNCj4gDQo+IDMuIElmIC1jIDxmaWxlPiBwcm92aWRlZCwg
+dXNlIHRoYXQsIGJ1dCBwZXJmb3JtIHRoZSBzYW1lIHRyZWF0bWVudCBhcw0KPiAxYg0KPiBhYm92
+ZSwgaS5lLiBhbnkgY2xpIG9wdGlvbnMgb3ZlcnJpZGUgYW55dGhpbmcgaW4gdGhlIGNvbmZpZyBm
+aWxlIGZyb20NCj4gLWMNCj4gYXMgd2VsbC4NCg0KSGkgVmlzaGFsLA0KDQpUaGFua3MgZm9yIHlv
+dXIgY29tbWVudC4NCkkgdGhpbmsgaXQgbWlnaHQgYmUgbWlzdW5kZXJzdG9vZC4NCg0KQ3VycmVu
+dCBzY2VuYXJpbyBpczoNCjEuIENoZWNrIGlmICItYyA8ZmlsZT4iIG9wdGlvbiBpcyBwcm92aWRl
+ZA0KICBhLiBpZiBpdCBpcywgbWFrZSB0aGUgPGZpbGU+IGFzIGNvbmZpZ19maWxlDQogIGIuIGlm
+IGl0IGlzIG5vdCwgbWFrZSBkZWZhdWx0IGNvbmZpZ3VyYXRpb24gZmlsZSgvZXRjL25kY3RsL21v
+bml0b3IuY29uZikgYXMgY29uZmlnX2ZpbGUNCjIuIFRyeSB0byByZWFkIG9wdGlvbnMgZnJvbSBj
+b25maWdfZmlsZQ0KICBhLiBpZiBjb25maWdfZmlsZSBjYW5ub3QgYmUgb3BlbmVkLCB0aGVuIGNo
+ZWNrIGlmICItYyIgb3B0aW9uIGlzIHByb3ZpZGVkDQogICAoMSkgaWYgaXQgaXMsIHN0b3Agc3Rh
+cnRpbmcgbW9uaXRvciAodXNlciBtYXkgbWFrZSBhIHdyb25nIDxmaWxlPiBpbiAiLWMiIG9wdGlv
+bikNCiAgICgyKSBpZiBpdCBpcyBub3QsIGZpbmlzaCByZWFkX2NvbmZpZ19maWxlIChkZWZhdWx0
+IGNvbmZpZ3VyYXRpb24gZmlsZSgvZXRjL25kY3RsL21vbml0b3IuY29uZikgaXMgbWlzc2luZykN
+CiAgYi4gaWYgY29uZmlnX2ZpbGUgY2FuIGJlIG9wZW5lZCBzdWNjZXNzZnVsbHksIG1lcmdlIHRo
+ZSBvcHRpb25zIGZyb20gY29uZmlnX2ZpbGUgd2l0aCBjbGkgb3B0aW9ucw0KDQpJdCBpcyBjb25z
+aXN0ZW50IHdpdGggdGhlIGlkZWFsIHNjZW5hcmlvIGFzIHlvdSBtZW50aW9uZWQuDQoNClRoYW5r
+cywNClFJIEZ1bGkNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
+dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
