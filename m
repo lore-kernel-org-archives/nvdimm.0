@@ -1,16 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 924C7211E9FBD
- for <linux-nvdimm@lists.01.org>; Thu, 28 Mar 2019 15:26:06 -0700 (PDT)
-Subject: [PATCH v2 3/3] ndctl: add unit test for load-keys
-From: Dave Jiang <dave.jiang@intel.com>
-Date: Thu, 28 Mar 2019 15:26:05 -0700
-Message-ID: <155381190641.13778.16998322434894711396.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <155381182887.13778.15556671056565903543.stgit@djiang5-desk3.ch.intel.com>
-References: <155381182887.13778.15556671056565903543.stgit@djiang5-desk3.ch.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EBC9E211D6729
+ for <linux-nvdimm@lists.01.org>; Sun, 31 Mar 2019 22:14:40 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x315EBcV187443
+ for <linux-nvdimm@lists.01.org>; Mon, 1 Apr 2019 01:14:39 -0400
+Received: from e35.co.us.ibm.com (e35.co.us.ibm.com [32.97.110.153])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2rk9qadh62-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Mon, 01 Apr 2019 01:14:39 -0400
+Received: from localhost
+ by e35.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Mon, 1 Apr 2019 06:14:38 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v2] drivers/dax: Allow to include DEV_DAX_PMEM as builtin
+Date: Mon,  1 Apr 2019 10:44:21 +0530
 MIME-Version: 1.0
+Message-Id: <20190401051421.17878-1-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,148 +34,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add to security.sh to test load-keys for user keys.
+This move the dependency to DEV_DAX_PMEM_COMPAT such that only
+if DEV_DAX_PMEM is built as module we can allow the compat support.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+This allows to test the new code easily in a emulation setup where we
+often build things without module support.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
+Changes from V1:
+* Make sure we only build compat code as module
 
-V2:
-- Add quotes around $masterkey. (Vishal)
-- Change fail to failed in output. (Vishal)
+ drivers/dax/Kconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
- test/security.sh |   68 ++++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 61 insertions(+), 7 deletions(-)
-
-diff --git a/test/security.sh b/test/security.sh
-index 1b7a9a1a..8a36265f 100755
---- a/test/security.sh
-+++ b/test/security.sh
-@@ -6,8 +6,10 @@ rc=77
- dev=""
- id=""
- keypath="/etc/ndctl/keys"
--masterkey="nvdimm-master-test"
--masterpath="$keypath/$masterkey"
-+masterkey="nvdimm-master"
-+masterpath="$keypath/$masterkey.blob"
-+backup_key=0
-+backup_handle=0
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 5ef624fe3934..a59f338f520f 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -23,7 +23,6 @@ config DEV_DAX
+ config DEV_DAX_PMEM
+ 	tristate "PMEM DAX: direct access to persistent memory"
+ 	depends on LIBNVDIMM && NVDIMM_DAX && DEV_DAX
+-	depends on m # until we can kill DEV_DAX_PMEM_COMPAT
+ 	default DEV_DAX
+ 	help
+ 	  Support raw access to persistent memory.  Note that this
+@@ -50,7 +49,7 @@ config DEV_DAX_KMEM
  
- . ./common
- 
-@@ -32,6 +34,15 @@ setup_keys()
- 		mkdir -p "$keypath"
- 	fi
- 
-+	if [ -f "$masterpath" ]; then
-+		mv "$masterpath" "$masterpath.bak"
-+		$backup_key=1
-+	fi
-+	if [ -f "$keypath/tpm.handle" ]; then
-+		mv "$keypath/tpm.handle" "$keypath/tmp.handle.bak"
-+		$backup_handle=1
-+	fi
-+
- 	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
- 	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
- }
-@@ -43,16 +54,25 @@ test_cleanup()
- 	fi
- 
- 	if keyctl search @u user "$masterkey"; then
--		keyctl unlink "$(keyctl search @u user $masterkey)"
-+		keyctl unlink "$(keyctl search @u user "$masterkey")"
- 	fi
- 
- 	if [ -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob ]; then
- 		rm -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob
- 	fi
-+}
- 
-+post_cleanup()
-+{
- 	if [ -f $masterpath ]; then
- 		rm -f "$masterpath"
- 	fi
-+	if [ "$backup_key" -eq 1 ]; then
-+		mv "$masterpath.bak" "$masterpath"
-+	fi
-+	if [ "$backup_handle" -eq 1 ]; then
-+		mv "$keypath/tpm.handle.bak" "$keypath/tmp.handle"
-+	fi
- }
- 
- lock_dimm()
-@@ -168,8 +188,8 @@ test_4_security_unlock()
- 	remove_passphrase
- }
- 
--# this should always be the last test. with security frozen, nfit_test must
--# be removed and is no longer usable
-+# This should always be the last nvdimm security test.
-+# with security frozen, nfit_test must be removed and is no longer usable
- test_5_security_freeze()
- {
- 	setup_passphrase
-@@ -188,6 +208,33 @@ test_5_security_freeze()
- 	fi
- }
- 
-+test_6_load_keys()
-+{
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		keyctl unlink "$(keyctl search @u encrypted nvdimm:"$id")"
-+	fi
-+
-+	if keyctl search @u user "$masterkey"; then
-+		keyctl unlink "$(keyctl search @u user "$masterkey")"
-+	fi
-+
-+	$NDCTL load-keys
-+
-+	if keyctl search @u user "$masterkey"; then
-+		echo "master key loaded"
-+	else
-+		echo "master key failed to loaded"
-+		err "$LINENO"
-+	fi
-+
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		echo "dimm key loaded"
-+	else
-+		echo "dimm key failed to load"
-+		err "$LINENO"
-+	fi
-+}
-+
- check_min_kver "5.0" || do_skip "may lack security handling"
- uid="$(keyctl show | grep -Eo "_uid.[0-9]+" | head -1 | cut -d. -f2-)"
- if [ "$uid" -ne 0 ]; then
-@@ -210,11 +257,18 @@ test_3_security_setup_and_erase
- echo "Test 4, unlock dimm"
- test_4_security_unlock
- 
--# Freeze should always be run last because it locks security state and require
--# nfit_test module unload.
-+# Freeze should always be the last nvdimm security test because it locks
-+# security state and require nfit_test module unload. However, this does
-+# not impact any key management testing via libkeyctl.
- echo "Test 5, freeze security"
- test_5_security_freeze
- 
-+# Load-keys is independent of actual nvdimm security and is part of key
-+# mangement testing.
-+echo "Test 6, test load-keys"
-+test_6_load_keys
-+
- test_cleanup
-+post_cleanup
- _cleanup
- exit 0
+ config DEV_DAX_PMEM_COMPAT
+ 	tristate "PMEM DAX: support the deprecated /sys/class/dax interface"
+-	depends on DEV_DAX_PMEM
++	depends on m && DEV_DAX_PMEM=m
+ 	default DEV_DAX_PMEM
+ 	help
+ 	  Older versions of the libdaxctl library expect to find all
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
