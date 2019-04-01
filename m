@@ -1,7 +1,7 @@
-From: "Mail Administrator" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Delivery reports about your e-mail
-Date: Mon, 1 Apr 2019 11:44:12 +0800
-Message-ID: <20190401034450.933EE211E95A9@ml01.01.org>
+From: "Bounced mail" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Mon, 1 Apr 2019 17:22:09 +0800
+Message-ID: <20190401093323.A39C82194D3AE@ml01.01.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,8 +18,22 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-The original message was received at Mon, 1 Apr 2019 11:44:12 +0800
-from lists.01.org [179.192.212.234]
+This Message was undeliverable due to the following reason:
 
------ The following addresses had permanent fatal errors -----
+Your message was not delivered because the destination computer was
+not reachable within the allowed queue period. The amount of time
+a message is queued before it is returned depends on local configura-
+tion parameters.
+
+Most likely there is a network problem that prevented delivery, but
+it is also possible that the computer is turned off, or does not
+have a mail system running right now.
+
+Your message was not delivered within 5 days:
+Host 154.69.21.136 is not responding.
+
+The following recipients did not receive this message:
 <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+
+Please reply to postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+if you feel this message to be in error.
