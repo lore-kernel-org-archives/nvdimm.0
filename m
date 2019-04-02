@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DA9C211EC0FC
- for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 05:29:40 -0700 (PDT)
-Date: Wed, 03 Apr 2019 12:29:39 +0000
-From: Sasha Levin <sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id DB76D211D6729
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Apr 2019 08:24:07 -0700 (PDT)
+Date: Tue, 2 Apr 2019 17:24:05 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH v2] mm: Fix modifying of page protection by
  insert_pfn_pmd()
-In-Reply-To: <20190402115125.18803-1-aneesh.kumar@linux.ibm.com>
+Message-ID: <20190402152405.GC25668@quack2.suse.cz>
 References: <20190402115125.18803-1-aneesh.kumar@linux.ibm.com>
-Message-Id: <20190403122939.C4187214AF@mail.kernel.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190402115125.18803-1-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,82 +20,126 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Sasha Levin <sashal@kernel.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, dan.j.williams@intel.com, akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-mm@kvack.org, Chandan Rajendra <chandan@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, akpm@linux-foundation.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+On Tue 02-04-19 17:21:25, Aneesh Kumar K.V wrote:
+> With some architectures like ppc64, set_pmd_at() cannot cope with
+> a situation where there is already some (different) valid entry present.
+> 
+> Use pmdp_set_access_flags() instead to modify the pfn which is built to
+> deal with modifying existing PMD entries.
+> 
+> This is similar to
+> commit cae85cb8add3 ("mm/memory.c: fix modifying of page protection by insert_pfn()")
+> 
+> We also do similar update w.r.t insert_pfn_pud eventhough ppc64 don't support
+> pud pfn entries now.
+> 
+> Without this patch we also see the below message in kernel log
+> "BUG: non-zero pgtables_bytes on freeing mm:"
+> 
+> CC: stable@vger.kernel.org
+> Reported-by: Chandan Rajendra <chandan@linux.ibm.com>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 
-[This is an automated email]
+Looks good to me. You can add:
 
-This commit has been processed because it contains a -stable tag.
-The stable tag indicates that it's relevant for the following trees: all
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-The bot has tested the following trees: v5.0.5, v4.19.32, v4.14.109, v4.9.166, v4.4.177, v3.18.137.
+								Honza
 
-v5.0.5: Build OK!
-v4.19.32: Build OK!
-v4.14.109: Failed to apply! Possible dependencies:
-    b4e98d9ac775 ("mm: account pud page tables")
-    c4812909f5d5 ("mm: introduce wrappers to access mm->nr_ptes")
-
-v4.9.166: Failed to apply! Possible dependencies:
-    166f61b9435a ("mm: codgin-style fixes")
-    505a60e22560 ("asm-generic: introduce 5level-fixup.h")
-    5c6a84a3f455 ("mm/kasan: Switch to using __pa_symbol and lm_alias")
-    82b0f8c39a38 ("mm: join struct fault_env and vm_fault")
-    953c66c2b22a ("mm: THP page cache support for ppc64")
-    b279ddc33824 ("mm: clarify mm_struct.mm_{users,count} documentation")
-    b4e98d9ac775 ("mm: account pud page tables")
-    c2febafc6773 ("mm: convert generic code to 5-level paging")
-    c4812909f5d5 ("mm: introduce wrappers to access mm->nr_ptes")
-
-v4.4.177: Failed to apply! Possible dependencies:
-    01871e59af5c ("mm, dax: fix livelock, allow dax pmd mappings to become writeable")
-    01c8f1c44b83 ("mm, dax, gpu: convert vm_insert_mixed to pfn_t")
-    0e749e54244e ("dax: increase granularity of dax_clear_blocks() operations")
-    1bdb2d4ee05f ("ARM: split off core mapping logic from create_mapping")
-    34c0fd540e79 ("mm, dax, pmem: introduce pfn_t")
-    3ed3a4f0ddff ("mm: cleanup *pte_alloc* interfaces")
-    52db400fcd50 ("pmem, dax: clean up clear_pmem()")
-    7bc3777ca19c ("sparc64: Trim page tables for 8M hugepages")
-    b2e0d1625e19 ("dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()")
-    c4812909f5d5 ("mm: introduce wrappers to access mm->nr_ptes")
-    c7936206b971 ("ARM: implement create_mapping_late() for EFI use")
-    f25748e3c34e ("mm, dax: convert vmf_insert_pfn_pmd() to pfn_t")
-    f579b2b10412 ("ARM: factor out allocation routine from __create_mapping()")
-
-v3.18.137: Failed to apply! Possible dependencies:
-    047fc8a1f9a6 ("libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory")
-    2a3746984c98 ("x86: Use new cache mode type in track_pfn_remap() and track_pfn_insert()")
-    34c0fd540e79 ("mm, dax, pmem: introduce pfn_t")
-    4c1eaa2344fb ("drivers/block/pmem: Fix 32-bit build warning in pmem_alloc()")
-    5cad465d7fa6 ("mm: add vmf_insert_pfn_pmd()")
-    61031952f4c8 ("arch, x86: pmem api for ensuring durability of persistent memory updates")
-    62232e45f4a2 ("libnvdimm: control (ioctl) messages for nvdimm_bus and nvdimm devices")
-    777783e0abae ("staging: android: binder: move to the "real" part of the kernel")
-    957e3facd147 ("gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs")
-    9e853f2313e5 ("drivers/block/pmem: Add a driver for persistent memory")
-    9f53f9fa4ad1 ("libnvdimm, pmem: add libnvdimm support to the pmem driver")
-    b94d5230d06e ("libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support")
-    cb389b9c0e00 ("dax: drop size parameter to ->direct_access()")
-    dd22f551ac0a ("block: Change direct_access calling convention")
-    e2e05394e4a3 ("pmem, dax: have direct_access use __pmem annotation")
-    ec776ef6bbe1 ("x86/mm: Add support for the non-standard protected e820 type")
-    f0dc089ce217 ("libnvdimm: enable iostat")
-    f25748e3c34e ("mm, dax: convert vmf_insert_pfn_pmd() to pfn_t")
-
-
-How should we proceed with this patch?
-
---
-Thanks,
-Sasha
+> ---
+> Changes from v1:
+> * Fix the pgtable leak 
+> 
+>  mm/huge_memory.c | 36 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+> 
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index 404acdcd0455..165ea46bf149 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -755,6 +755,21 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  	spinlock_t *ptl;
+>  
+>  	ptl = pmd_lock(mm, pmd);
+> +	if (!pmd_none(*pmd)) {
+> +		if (write) {
+> +			if (pmd_pfn(*pmd) != pfn_t_to_pfn(pfn)) {
+> +				WARN_ON_ONCE(!is_huge_zero_pmd(*pmd));
+> +				goto out_unlock;
+> +			}
+> +			entry = pmd_mkyoung(*pmd);
+> +			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+> +			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
+> +				update_mmu_cache_pmd(vma, addr, pmd);
+> +		}
+> +
+> +		goto out_unlock;
+> +	}
+> +
+>  	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
+>  	if (pfn_t_devmap(pfn))
+>  		entry = pmd_mkdevmap(entry);
+> @@ -766,11 +781,16 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  	if (pgtable) {
+>  		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+>  		mm_inc_nr_ptes(mm);
+> +		pgtable = NULL;
+>  	}
+>  
+>  	set_pmd_at(mm, addr, pmd, entry);
+>  	update_mmu_cache_pmd(vma, addr, pmd);
+> +
+> +out_unlock:
+>  	spin_unlock(ptl);
+> +	if (pgtable)
+> +		pte_free(mm, pgtable);
+>  }
+>  
+>  vm_fault_t vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+> @@ -821,6 +841,20 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+>  	spinlock_t *ptl;
+>  
+>  	ptl = pud_lock(mm, pud);
+> +	if (!pud_none(*pud)) {
+> +		if (write) {
+> +			if (pud_pfn(*pud) != pfn_t_to_pfn(pfn)) {
+> +				WARN_ON_ONCE(!is_huge_zero_pud(*pud));
+> +				goto out_unlock;
+> +			}
+> +			entry = pud_mkyoung(*pud);
+> +			entry = maybe_pud_mkwrite(pud_mkdirty(entry), vma);
+> +			if (pudp_set_access_flags(vma, addr, pud, entry, 1))
+> +				update_mmu_cache_pud(vma, addr, pud);
+> +		}
+> +		goto out_unlock;
+> +	}
+> +
+>  	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
+>  	if (pfn_t_devmap(pfn))
+>  		entry = pud_mkdevmap(entry);
+> @@ -830,6 +864,8 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+>  	}
+>  	set_pud_at(mm, addr, pud, entry);
+>  	update_mmu_cache_pud(vma, addr, pud);
+> +
+> +out_unlock:
+>  	spin_unlock(ptl);
+>  }
+>  
+> -- 
+> 2.20.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
