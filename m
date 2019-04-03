@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A5458212108E6
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:26 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 09/18] btrfs: Add dax specific address_space_operations
-Date: Tue, 16 Apr 2019 11:41:45 -0500
-Message-Id: <20190416164154.30390-10-rgoldwyn@suse.de>
-In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
-References: <20190416164154.30390-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 06889211F1E0E
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 03:41:50 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v4 3/5] libnvdimm: add dax_dev sync flag
+Date: Wed,  3 Apr 2019 16:10:16 +0530
+Message-Id: <20190403104018.23947-4-pagupta@redhat.com>
+In-Reply-To: <20190403104018.23947-1-pagupta@redhat.com>
+References: <20190403104018.23947-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,113 +22,181 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, riel@surriel.com, stefanha@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+This patch adds 'DAXDEV_SYNC' flag which is set
+for nd_region doing synchronous flush. This later 
+is used to disable MAP_SYNC functionality for 
+ext4 & xfs filesystem for devices don't support
+synchronous flush.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 ---
- fs/btrfs/inode.c | 34 +++++++++++++++++++++++++++++++---
- 1 file changed, 31 insertions(+), 3 deletions(-)
+ drivers/dax/bus.c            |  2 +-
+ drivers/dax/super.c          | 13 ++++++++++++-
+ drivers/md/dm.c              |  2 +-
+ drivers/nvdimm/pmem.c        |  3 ++-
+ drivers/nvdimm/region_devs.c |  7 +++++++
+ include/linux/dax.h          |  9 +++++++--
+ include/linux/libnvdimm.h    |  1 +
+ 7 files changed, 31 insertions(+), 6 deletions(-)
 
-diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-index 7fc778eb6bd2..c2c0544009a7 100644
---- a/fs/btrfs/inode.c
-+++ b/fs/btrfs/inode.c
-@@ -28,6 +28,7 @@
- #include <linux/magic.h>
- #include <linux/iversion.h>
- #include <linux/swap.h>
-+#include <linux/dax.h>
- #include <asm/unaligned.h>
- #include "ctree.h"
- #include "disk-io.h"
-@@ -65,6 +66,7 @@ static const struct inode_operations btrfs_dir_ro_inode_operations;
- static const struct inode_operations btrfs_special_inode_operations;
- static const struct inode_operations btrfs_file_inode_operations;
- static const struct address_space_operations btrfs_aops;
-+static const struct address_space_operations btrfs_dax_aops;
- static const struct file_operations btrfs_dir_file_operations;
- static const struct extent_io_ops btrfs_extent_io_ops;
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 2109cfe80219..431bf7d2a7f9 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 	 * No 'host' or dax_operations since there is no access to this
+ 	 * device outside of mmap of the resulting character device.
+ 	 */
+-	dax_dev = alloc_dax(dev_dax, NULL, NULL);
++	dax_dev = alloc_dax(dev_dax, NULL, NULL, true);
+ 	if (!dax_dev)
+ 		goto err;
  
-@@ -3757,7 +3759,10 @@ static int btrfs_read_locked_inode(struct inode *inode,
- 
- 	switch (inode->i_mode & S_IFMT) {
- 	case S_IFREG:
--		inode->i_mapping->a_ops = &btrfs_aops;
-+		if (btrfs_test_opt(fs_info, DAX))
-+			inode->i_mapping->a_ops = &btrfs_dax_aops;
-+		else
-+			inode->i_mapping->a_ops = &btrfs_aops;
- 		BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
- 		inode->i_fop = &btrfs_file_operations;
- 		inode->i_op = &btrfs_file_inode_operations;
-@@ -3778,6 +3783,7 @@ static int btrfs_read_locked_inode(struct inode *inode,
- 	}
- 
- 	btrfs_sync_inode_flags_to_i_flags(inode);
-+
- 	return 0;
- }
- 
-@@ -6538,7 +6544,10 @@ static int btrfs_create(struct inode *dir, struct dentry *dentry,
- 	*/
- 	inode->i_fop = &btrfs_file_operations;
- 	inode->i_op = &btrfs_file_inode_operations;
--	inode->i_mapping->a_ops = &btrfs_aops;
-+	if (IS_DAX(inode) && S_ISREG(mode))
-+		inode->i_mapping->a_ops = &btrfs_dax_aops;
-+	else
-+		inode->i_mapping->a_ops = &btrfs_aops;
- 
- 	err = btrfs_init_inode_security(trans, inode, dir, &dentry->d_name);
- 	if (err)
-@@ -8665,6 +8674,15 @@ static int btrfs_writepages(struct address_space *mapping,
- 	return extent_writepages(mapping, wbc);
- }
- 
-+static int btrfs_dax_writepages(struct address_space *mapping,
-+			    struct writeback_control *wbc)
-+{
-+	struct inode *inode = mapping->host;
-+	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-+	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
-+			wbc);
-+}
-+
- static int
- btrfs_readpages(struct file *file, struct address_space *mapping,
- 		struct list_head *pages, unsigned nr_pages)
-@@ -10436,7 +10454,10 @@ static int btrfs_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
- 	inode->i_fop = &btrfs_file_operations;
- 	inode->i_op = &btrfs_file_inode_operations;
- 
--	inode->i_mapping->a_ops = &btrfs_aops;
-+	if (IS_DAX(inode))
-+		inode->i_mapping->a_ops = &btrfs_dax_aops;
-+	else
-+		inode->i_mapping->a_ops = &btrfs_aops;
- 	BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
- 
- 	ret = btrfs_init_inode_security(trans, inode, dir, NULL);
-@@ -10892,6 +10913,13 @@ static const struct address_space_operations btrfs_aops = {
- 	.swap_deactivate = btrfs_swap_deactivate,
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 0a339b85133e..bd6509308d05 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -186,6 +186,8 @@ enum dax_device_flags {
+ 	DAXDEV_ALIVE,
+ 	/* gate whether dax_flush() calls the low level flush routine */
+ 	DAXDEV_WRITE_CACHE,
++	/* flag to check if device supports synchronous flush */
++	DAXDEV_SYNC,
  };
  
-+static const struct address_space_operations btrfs_dax_aops = {
-+	.writepages             = btrfs_dax_writepages,
-+	.direct_IO              = noop_direct_IO,
-+	.set_page_dirty         = noop_set_page_dirty,
-+	.invalidatepage         = noop_invalidatepage,
-+};
+ /**
+@@ -354,6 +356,12 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ }
+ EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+ 
++bool dax_synchronous(struct dax_device *dax_dev)
++{
++	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
++}
++EXPORT_SYMBOL_GPL(dax_synchronous);
 +
- static const struct inode_operations btrfs_file_inode_operations = {
- 	.getattr	= btrfs_getattr,
- 	.setattr	= btrfs_setattr,
+ bool dax_alive(struct dax_device *dax_dev)
+ {
+ 	lockdep_assert_held(&dax_srcu);
+@@ -511,7 +519,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
+ }
+ 
+ struct dax_device *alloc_dax(void *private, const char *__host,
+-		const struct dax_operations *ops)
++		const struct dax_operations *ops, bool sync)
+ {
+ 	struct dax_device *dax_dev;
+ 	const char *host;
+@@ -534,6 +542,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
+ 	dax_add_host(dax_dev, host);
+ 	dax_dev->ops = ops;
+ 	dax_dev->private = private;
++	if (sync)
++		set_bit(DAXDEV_SYNC, &dax_dev->flags);
++
+ 	return dax_dev;
+ 
+  err_dev:
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 68d24056d0b1..534e12ca6329 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1965,7 +1965,7 @@ static struct mapped_device *alloc_dev(int minor)
+ 	sprintf(md->disk->disk_name, "dm-%d", minor);
+ 
+ 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
+-		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
++		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops, true);
+ 		if (!dax_dev)
+ 			goto bad;
+ 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 5a5b3ea4d073..78f71ba0e7cf 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -466,7 +466,8 @@ static int pmem_attach_disk(struct device *dev,
+ 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
+ 	disk->bb = &pmem->bb;
+ 
+-	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
++	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops,
++					is_nvdimm_sync(nd_region));
+ 
+ 	if (!dax_dev) {
+ 		put_disk(disk);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index fb1041ab32a6..8c7aa047fe2b 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1231,6 +1231,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_cache);
+ 
++bool is_nvdimm_sync(struct nd_region *nd_region)
++{
++	return is_nd_pmem(&nd_region->dev) &&
++		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
++}
++EXPORT_SYMBOL_GPL(is_nvdimm_sync);
++
+ struct conflict_context {
+ 	struct nd_region *nd_region;
+ 	resource_size_t start, size;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 0dd316a74a29..9bdd50d06ef6 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -32,18 +32,19 @@ extern struct attribute_group dax_attribute_group;
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *dax_get_by_host(const char *host);
+ struct dax_device *alloc_dax(void *private, const char *host,
+-		const struct dax_operations *ops);
++		const struct dax_operations *ops, bool sync);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
++bool dax_synchronous(struct dax_device *dax_dev);
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+ 	return NULL;
+ }
+ static inline struct dax_device *alloc_dax(void *private, const char *host,
+-		const struct dax_operations *ops)
++		const struct dax_operations *ops, bool sync)
+ {
+ 	/*
+ 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+@@ -64,6 +65,10 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
+ }
++static inline bool dax_synchronous(struct dax_device *dax_dev)
++{
++	return false;
++}
+ #endif
+ 
+ struct writeback_control;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index d9d2ab8a6e64..9a8aea370cbc 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -270,6 +270,7 @@ int generic_nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
+ int nvdimm_in_overwrite(struct nvdimm *nvdimm);
++bool is_nvdimm_sync(struct nd_region *nd_region);
+ 
+ static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len, int *cmd_rc)
 -- 
-2.16.4
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
