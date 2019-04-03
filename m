@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
- [IPv6:2607:f8b0:4864:20::844])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 77135211F9D74
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:36 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id w5so8938697qtb.11
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:36 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v2 2/2] device-dax: "Hotremove" persistent memory that is used like
- normal RAM
-Date: Sat, 20 Apr 2019 21:44:29 -0400
-Message-Id: <20190421014429.31206-3-pasha.tatashin@soleen.com>
-In-Reply-To: <20190421014429.31206-1-pasha.tatashin@soleen.com>
-References: <20190421014429.31206-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0B171211F26B5
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 04:30:53 -0700 (PDT)
+Date: Wed, 3 Apr 2019 13:30:49 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v4 4/5] ext4: disable map_sync for async flush
+Message-ID: <20190403113049.GF8836@quack2.suse.cz>
+References: <20190403104018.23947-1-pagupta@redhat.com>
+ <20190403104018.23947-5-pagupta@redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190403104018.23947-5-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,171 +24,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: cohuck@redhat.com, jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, linux-nvdimm@lists.01.org, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, riel@surriel.com, stefanha@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, darrick.wong@oracle.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-It is now allowed to use persistent memory like a regular RAM, but
-currently there is no way to remove this memory until machine is
-rebooted.
+On Wed 03-04-19 16:10:17, Pankaj Gupta wrote:
+> Virtio pmem provides asynchronous host page cache flush
+> mechanism. We don't support 'MAP_SYNC' with virtio pmem 
+> and ext4. 
+> 
+> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 
-This work expands the functionality to also allows hotremoving
-previously hotplugged persistent memory, and recover the device for use
-for other purposes.
+The patch looks good to me. You can add:
 
-To hotremove persistent memory, the management software must first
-offline all memory blocks of dax region, and than unbind it from
-device-dax/kmem driver. So, operations should look like this:
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-echo offline > echo offline > /sys/devices/system/memory/memoryN/state
-...
-echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+								Honza
 
-Note: if unbind is done without offlining memory beforehand, it won't be
-possible to do dax0.0 hotremove, and dax's memory is going to be part of
-System RAM until reboot.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
----
- drivers/dax/dax-private.h |  2 +
- drivers/dax/kmem.c        | 91 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 89 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a45612148ca0..999aaf3a29b3 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -53,6 +53,7 @@ struct dax_region {
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @ref: pgmap reference count (driver owned)
-  * @cmp: @ref final put completion (driver owned)
-+ * @dax_mem_res: physical address range of hotadded DAX memory
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -62,6 +63,7 @@ struct dev_dax {
- 	struct dev_pagemap pgmap;
- 	struct percpu_ref ref;
- 	struct completion cmp;
-+	struct resource *dax_kmem_res;
- };
- 
- static inline struct dev_dax *to_dev_dax(struct device *dev)
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 4c0131857133..d4896b281036 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -71,21 +71,104 @@ int dev_dax_kmem_probe(struct device *dev)
- 		kfree(new_res);
- 		return rc;
- 	}
-+	dev_dax->dax_kmem_res = new_res;
- 
- 	return 0;
- }
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+/*
-+ * Check that device-dax's memory_blocks are offline. If a memory_block is not
-+ * offline a warning is printed and an error is returned. dax hotremove can
-+ * succeed only when every memory_block is offlined beforehand.
-+ */
-+static int
-+offline_memblock_cb(struct memory_block *mem, void *arg)
-+{
-+	struct device *mem_dev = &mem->dev;
-+	bool is_offline;
-+
-+	device_lock(mem_dev);
-+	is_offline = mem_dev->offline;
-+	device_unlock(mem_dev);
-+
-+	if (!is_offline) {
-+		struct device *dev = (struct device *)arg;
-+		unsigned long spfn = section_nr_to_pfn(mem->start_section_nr);
-+		unsigned long epfn = section_nr_to_pfn(mem->end_section_nr);
-+		phys_addr_t spa = spfn << PAGE_SHIFT;
-+		phys_addr_t epa = epfn << PAGE_SHIFT;
-+
-+		dev_warn(dev, "memory block [%pa-%pa] is not offline\n",
-+			 &spa, &epa);
-+
-+		return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dev_dax_kmem_remove(struct device *dev)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct resource *res = dev_dax->dax_kmem_res;
-+	resource_size_t kmem_start;
-+	resource_size_t kmem_size;
-+	unsigned long start_pfn;
-+	unsigned long end_pfn;
-+	int rc;
-+
-+	/*
-+	 * dax kmem resource does not exist, means memory was never hotplugged.
-+	 * So, nothing to do here.
-+	 */
-+	if (!res)
-+		return 0;
-+
-+	kmem_start = res->start;
-+	kmem_size = resource_size(res);
-+	start_pfn = kmem_start >> PAGE_SHIFT;
-+	end_pfn = start_pfn + (kmem_size >> PAGE_SHIFT) - 1;
-+
-+	/*
-+	 * Walk and check that every singe memory_block of dax region is
-+	 * offline
-+	 */
-+	lock_device_hotplug();
-+	rc = walk_memory_range(start_pfn, end_pfn, dev, offline_memblock_cb);
-+	unlock_device_hotplug();
-+
-+	/*
-+	 * If admin has not offlined memory beforehand, we cannot hotremove dax.
-+	 * Unfortunately, because unbind will still succeed there is no way for
-+	 * user to hotremove dax after this.
-+	 */
-+	if (rc)
-+		return rc;
-+
-+	/* Hotremove memory, cannot fail because memory is already offlined */
-+	remove_memory(dev_dax->target_node, kmem_start, kmem_size);
-+
-+	/* Release and free dax resources */
-+	release_resource(res);
-+	kfree(res);
-+	dev_dax->dax_kmem_res = NULL;
-+
-+	return 0;
-+}
-+#else
- static int dev_dax_kmem_remove(struct device *dev)
- {
- 	/*
--	 * Purposely leak the request_mem_region() for the device-dax
--	 * range and return '0' to ->remove() attempts. The removal of
--	 * the device from the driver always succeeds, but the region
--	 * is permanently pinned as reserved by the unreleased
-+	 * Without hotremove purposely leak the request_mem_region() for the
-+	 * device-dax range and return '0' to ->remove() attempts. The removal
-+	 * of the device from the driver always succeeds, but the region is
-+	 * permanently pinned as reserved by the unreleased
- 	 * request_mem_region().
- 	 */
- 	return 0;
- }
-+#endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- static struct dax_device_driver device_dax_kmem_driver = {
- 	.drv = {
+> ---
+>  fs/ext4/file.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> index 69d65d49837b..86e4bf464320 100644
+> --- a/fs/ext4/file.c
+> +++ b/fs/ext4/file.c
+> @@ -360,8 +360,10 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+>  static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+>  {
+>  	struct inode *inode = file->f_mapping->host;
+> +	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
+> +	struct dax_device *dax_dev = sbi->s_daxdev;
+>  
+> -	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+> +	if (unlikely(ext4_forced_shutdown(sbi)))
+>  		return -EIO;
+>  
+>  	/*
+> @@ -371,6 +373,13 @@ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+>  	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+>  		return -EOPNOTSUPP;
+>  
+> +	/* We don't support synchronous mappings with DAX files if
+> +	 * dax_device is not synchronous.
+> +	 */
+> +	if (IS_DAX(file_inode(file)) && !dax_synchronous(dax_dev)
+> +						&& (vma->vm_flags & VM_SYNC))
+> +		return -EOPNOTSUPP;
+> +
+>  	file_accessed(file);
+>  	if (IS_DAX(file_inode(file))) {
+>  		vma->vm_ops = &ext4_dax_vm_ops;
+> -- 
+> 2.20.1
+> 
 -- 
-2.21.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
