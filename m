@@ -1,161 +1,177 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Date: Mon, 8 Apr 2019 10:49:32 -0400 (EDT)
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Message-ID: <1447252022.1166.1554734972823.JavaMail.zimbra@efficios.com>
-In-Reply-To: <20190408142230.GJ14111@linux.ibm.com>
-References: <20190402142816.GA13084@linux.ibm.com> <134026717.535.1554665176677.JavaMail.zimbra@efficios.com> <20190407193202.GA30934@localhost> <1632568795.549.1554669696728.JavaMail.zimbra@efficios.com> <20190407210718.GA6656@localhost> <20190408022728.GF14111@linux.ibm.com> <1504296005.857.1554728734661.JavaMail.zimbra@efficios.com> <20190408142230.GJ14111@linux.ibm.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com
+ [IPv6:2607:f8b0:4864:20::542])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DE3E6211F35EB
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 12:30:15 -0700 (PDT)
+Received: by mail-pg1-x542.google.com with SMTP id e6so4457163pgc.4
+ for <linux-nvdimm@lists.01.org>; Wed, 03 Apr 2019 12:30:15 -0700 (PDT)
+Date: Wed, 3 Apr 2019 15:30:12 -0400
+From: Joel Fernandes <joel@joelfernandes.org>
 Subject: Re: [PATCH RFC tip/core/rcu 0/4] Forbid static SRCU use in modules
+Message-ID: <20190403193012.GA55298@google.com>
+References: <20190402142816.GA13084@linux.ibm.com>
+ <886051277.1395.1554218080591.JavaMail.zimbra@efficios.com>
+ <20190402152334.GC4102@linux.ibm.com>
+ <161156422.1435.1554219247444.JavaMail.zimbra@efficios.com>
+ <20190403133243.GE4102@linux.ibm.com>
+ <1028306587.504.1554301662374.JavaMail.zimbra@efficios.com>
+ <20190403162039.GA14111@linux.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20190403162039.GA14111@linux.ibm.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
-To: paulmck <paulmck@linux.ibm.com>
-Cc: "Joel Fernandes, Google" <joel@joelfernandes.org>, rcu <rcu@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, dipankar <dipankar@in.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, rostedt <rostedt@goodmis.org>, David Howells <dhowells@redhat.com>, Eric Dumazet <edumazet@google.com>, fweisbec <fweisbec@gmail.com>, Oleg Nesterov <oleg@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, dri-devel <dri-devel@lists.freedesktop.org>, amd-gfx <amd-gfx@lists.freedesktop.org>
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: "Paul E. McKenney" <paulmck@linux.ibm.com>
+Cc: David Howells <dhowells@redhat.com>, amd-gfx <amd-gfx@lists.freedesktop.org>, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Peter Zijlstra <peterz@infradead.org>, fweisbec <fweisbec@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Lai Jiangshan <jiangshanlai@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, rostedt <rostedt@goodmis.org>, Josh Triplett <josh@joshtriplett.org>, rcu <rcu@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Oleg Nesterov <oleg@redhat.com>, dipankar <dipankar@in.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
------ On Apr 8, 2019, at 10:22 AM, paulmck paulmck@linux.ibm.com wrote:
-
-> On Mon, Apr 08, 2019 at 09:05:34AM -0400, Mathieu Desnoyers wrote:
->> ----- On Apr 7, 2019, at 10:27 PM, paulmck paulmck@linux.ibm.com wrote:
->> 
->> > On Sun, Apr 07, 2019 at 09:07:18PM +0000, Joel Fernandes wrote:
->> >> On Sun, Apr 07, 2019 at 04:41:36PM -0400, Mathieu Desnoyers wrote:
->> >> > 
->> >> > ----- On Apr 7, 2019, at 3:32 PM, Joel Fernandes, Google joel@joelfernandes.org
->> >> > wrote:
->> >> > 
->> >> > > On Sun, Apr 07, 2019 at 03:26:16PM -0400, Mathieu Desnoyers wrote:
->> >> > >> ----- On Apr 7, 2019, at 9:59 AM, paulmck paulmck@linux.ibm.com wrote:
->> >> > >> 
->> >> > >> > On Sun, Apr 07, 2019 at 06:39:41AM -0700, Paul E. McKenney wrote:
->> >> > >> >> On Sat, Apr 06, 2019 at 07:06:13PM -0400, Joel Fernandes wrote:
->> >> > >> > 
->> >> > >> > [ . . . ]
->> >> > >> > 
->> >> > >> >> > > diff --git a/include/asm-generic/vmlinux.lds.h
->> >> > >> >> > > b/include/asm-generic/vmlinux.lds.h
->> >> > >> >> > > index f8f6f04c4453..c2d919a1566e 100644
->> >> > >> >> > > --- a/include/asm-generic/vmlinux.lds.h
->> >> > >> >> > > +++ b/include/asm-generic/vmlinux.lds.h
->> >> > >> >> > > @@ -338,6 +338,10 @@
->> >> > >> >> > >  		KEEP(*(__tracepoints_ptrs)) /* Tracepoints: pointer array */ \
->> >> > >> >> > >  		__stop___tracepoints_ptrs = .;				\
->> >> > >> >> > >  		*(__tracepoints_strings)/* Tracepoints: strings */	\
->> >> > >> >> > > +		. = ALIGN(8);						\
->> >> > >> >> > > +		__start___srcu_struct = .;				\
->> >> > >> >> > > +		*(___srcu_struct_ptrs)					\
->> >> > >> >> > > +		__end___srcu_struct = .;				\
->> >> > >> >> > >  	}								\
->> >> > >> >> > 
->> >> > >> >> > This vmlinux linker modification is not needed. I tested without it and srcu
->> >> > >> >> > torture works fine with rcutorture built as a module. Putting further prints
->> >> > >> >> > in kernel/module.c verified that the kernel is able to find the srcu structs
->> >> > >> >> > just fine. You could squash the below patch into this one or apply it on top
->> >> > >> >> > of the dev branch.
->> >> > >> >> 
->> >> > >> >> Good point, given that otherwise FORTRAN named common blocks would not
->> >> > >> >> work.
->> >> > >> >> 
->> >> > >> >> But isn't one advantage of leaving that stuff in the RO_DATA_SECTION()
->> >> > >> >> macro that it can be mapped read-only?  Or am I suffering from excessive
->> >> > >> >> optimism?
->> >> > >> > 
->> >> > >> > And to answer the other question, in the case where I am suffering from
->> >> > >> > excessive optimism, it should be a separate commit.  Please see below
->> >> > >> > for the updated original commit thus far.
->> >> > >> > 
->> >> > >> > And may I have your Tested-by?
->> >> > >> 
->> >> > >> Just to confirm: does the cleanup performed in the modules going
->> >> > >> notifier end up acting as a barrier first before freeing the memory ?
->> >> > >> If not, is it explicitly stated that a barrier must be issued before
->> >> > >> module unload ?
->> >> > >> 
->> >> > > 
->> >> > > You mean rcu_barrier? It is mentioned in the documentation that this is the
->> >> > > responsibility of the module writer to prevent delays for all modules.
->> >> > 
->> >> > It's a srcu barrier yes. Considering it would be a barrier specific to the
->> >> > srcu domain within that module, I don't see how it would cause delays for
->> >> > "all" modules if we implicitly issue the barrier on module unload. What
->> >> > am I missing ?
->> >> 
->> >> Yes you are right. I thought of this after I just sent my email. I think it
->> >> makes sense for srcu case to do and could avoid a class of bugs.
->> > 
->> > If there are call_srcu() callbacks outstanding, the module writer still
->> > needs the srcu_barrier() because otherwise callbacks arrive after
->> > the module text has gone, which will be disappoint the CPU when it
->> > tries fetching instructions that are no longer mapped.  If there are
->> > no call_srcu() callbacks from that module, then there is no need for
->> > srcu_barrier() either way.
->> > 
->> > So if an srcu_barrier() is needed, the module developer needs to
->> > supply it.
->> 
->> When you say "callbacks arrive after the module text has gone",
->> I think you assume that free_module() is invoked before the
->> MODULE_STATE_GOING notifiers are called. But it's done in the
->> opposite order: going notifiers are called first, and then
->> free_module() is invoked.
->> 
->> So AFAIU it would be safe to issue the srcu_barrier() from the module
->> going notifier.
->> 
->> Or am I missing something ?
+On Wed, Apr 03, 2019 at 09:20:39AM -0700, Paul E. McKenney wrote:
+> On Wed, Apr 03, 2019 at 10:27:42AM -0400, Mathieu Desnoyers wrote:
+> > ----- On Apr 3, 2019, at 9:32 AM, paulmck paulmck@linux.ibm.com wrote:
+> > 
+> > > On Tue, Apr 02, 2019 at 11:34:07AM -0400, Mathieu Desnoyers wrote:
+> > >> ----- On Apr 2, 2019, at 11:23 AM, paulmck paulmck@linux.ibm.com wrote:
+> > >> 
+> > >> > On Tue, Apr 02, 2019 at 11:14:40AM -0400, Mathieu Desnoyers wrote:
+> > >> >> ----- On Apr 2, 2019, at 10:28 AM, paulmck paulmck@linux.ibm.com wrote:
+> > >> >> 
+> > >> >> > Hello!
+> > >> >> > 
+> > >> >> > This series prohibits use of DEFINE_SRCU() and DEFINE_STATIC_SRCU()
+> > >> >> > by loadable modules.  The reason for this prohibition is the fact
+> > >> >> > that using these two macros within modules requires that the size of
+> > >> >> > the reserved region be increased, which is not something we want to
+> > >> >> > be doing all that often.  Instead, loadable modules should define an
+> > >> >> > srcu_struct and invoke init_srcu_struct() from their module_init function
+> > >> >> > and cleanup_srcu_struct() from their module_exit function.  Note that
+> > >> >> > modules using call_srcu() will also need to invoke srcu_barrier() from
+> > >> >> > their module_exit function.
+> > >> >> 
+> > >> >> This arbitrary API limitation seems weird.
+> > >> >> 
+> > >> >> Isn't there a way to allow modules to use DEFINE_SRCU and DEFINE_STATIC_SRCU
+> > >> >> while implementing them with dynamic allocation under the hood ?
+> > >> > 
+> > >> > Although call_srcu() already has initialization hooks, some would
+> > >> > also be required in srcu_read_lock(), and I am concerned about adding
+> > >> > memory allocation at that point, especially given the possibility
+> > >> > of memory-allocation failure.  And the possibility that the first
+> > >> > srcu_read_lock() happens in an interrupt handler or similar.
+> > >> > 
+> > >> > Or am I missing a trick here?
+> > >> 
+> > >> I was more thinking that under #ifdef MODULE, both DEFINE_SRCU and
+> > >> DEFINE_STATIC_SRCU could append data in a dedicated section. module.c
+> > >> would additionally lookup that section on module load, and deal with
+> > >> those statically defined SRCU entries as if they were dynamically
+> > >> allocated ones. It would of course cleanup those resources on module
+> > >> unload.
+> > >> 
+> > >> Am I missing some subtlety there ?
+> > > 
+> > > If I understand you correctly, that is actually what is already done.  The
+> > > size of this dedicated section is currently set by PERCPU_MODULE_RESERVE,
+> > > and the additions of DEFINE{_STATIC}_SRCU() in modules was requiring that
+> > > this to be increased frequently.  That led to a request that something
+> > > be done, in turn leading to this patch series.
+> > 
+> > I think we are not expressing quite the same idea.
+> > 
+> > AFAIU, yours is to have DEFINE*_SRCU directly define per-cpu data within modules,
+> > which ends up using percpu module reserved memory.
+> > 
+> > My idea is to make DEFINE*_SRCU have a different behavior under #ifdef MODULE.
+> > It could emit a _global variable_ (_not_ per-cpu) within a new section. That
+> > section would then be used by module init/exit code to figure out what "srcu
+> > descriptors" are present in the modules. It would therefore rely on dynamic
+> > allocation for those, therefore removing the need to involve the percpu module
+> > reserved pool at all.
+> > 
+> > > 
+> > > I don't see a way around this short of changing module loading to do
+> > > alloc_percpu() and then updating the relocation based on this result.
+> > > Which would admittedly be far more convenient.  I was assuming that
+> > > this would be difficult due to varying CPU offsets or the like.
+> > > 
+> > > But if it can be done reasonably, it would be quite a bit nicer than
+> > > forcing dynamic allocation in cases where it is not otherwise needed.
+> > 
+> > Hopefully my explanation above helps clear out what I have in mind.
+> > 
+> > You can find similar tricks performed by include/linux/tracepoint.h:
+> > 
+> > #ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
+> > static inline struct tracepoint *tracepoint_ptr_deref(tracepoint_ptr_t *p)
+> > {
+> >         return offset_to_ptr(p);
+> > }
+> > 
+> > #define __TRACEPOINT_ENTRY(name)                                        \
+> >         asm("   .section \"__tracepoints_ptrs\", \"a\"          \n"     \
+> >             "   .balign 4                                       \n"     \
+> >             "   .long   __tracepoint_" #name " - .              \n"     \
+> >             "   .previous                                       \n")
+> > #else
+> > static inline struct tracepoint *tracepoint_ptr_deref(tracepoint_ptr_t *p)
+> > {
+> >         return *p;
+> > }
+> > 
+> > #define __TRACEPOINT_ENTRY(name)                                         \
+> >         static tracepoint_ptr_t __tracepoint_ptr_##name __used           \
+> >         __attribute__((section("__tracepoints_ptrs"))) =                 \
+> >                 &__tracepoint_##name
+> > #endif
+> > 
+> > [...]
+> > 
+> > #define DEFINE_TRACE_FN(name, reg, unreg)                                \
+> >         static const char __tpstrtab_##name[]                            \
+> >         __attribute__((section("__tracepoints_strings"))) = #name;       \
+> >         struct tracepoint __tracepoint_##name                            \
+> >         __attribute__((section("__tracepoints"), used)) =                \
+> >                 { __tpstrtab_##name, STATIC_KEY_INIT_FALSE, reg, unreg, NULL };\
+> >         __TRACEPOINT_ENTRY(name);
+> > 
+> > And kernel/module.c:
+> > 
+> > find_module_sections():
+> > 
+> > #ifdef CONFIG_TRACEPOINTS
+> >         mod->tracepoints_ptrs = section_objs(info, "__tracepoints_ptrs",
+> >                                              sizeof(*mod->tracepoints_ptrs),
+> >                                              &mod->num_tracepoints);
+> > #endif
+> > 
+> > And kernel/tracepoint.c:tracepoint_module_notify() for the module coming/going
+> > notifier.
+> > 
+> > Basically you would want to have your own structure within your own section of
+> > the module which describes the srcu domain, and have a module coming/going
+> > notifier responsible for dynamically allocating the srcu domain on "coming", and
+> > doing a srcu barrier and cleanup the domain on "going".
 > 
-> We do seem to be talking past each other.  ;-)
-> 
-> This has nothing to do with the order of events at module-unload time.
-> 
-> So please let me try again.
-> 
-> If a given srcu_struct in a module never has call_srcu() invoked, there
-> is no need to invoke rcu_barrier() at any time, whether at module-unload
-> time or not.  Adding rcu_barrier() in this case adds overhead and latency
-> for no good reason.
+> Ah, sounds like an excellent approach!  I will give it a shot, thank you!
 
-Not if we invoke srcu_barrier() for that specific domain. If
-call_srcu was never invoked for a srcu domain, I don't see why
-srcu_barrier() should be more expensive than a simple check that
-the domain does not have any srcu work queued.
+I agree with the idea as well. It is nice that tracepoints work with modules
+so well, a feature that many folks use for debugging ;-)
 
-> 
-> If a given srcu_struct in a module does have at least one call_srcu()
-> invoked, it is already that module's responsibility to make sure that
-> the code sticks around long enough for the callback to be invoked.
+thanks!
 
-I understand that when users do explicit dynamic allocation/cleanup of
-srcu domains, they indeed need to take care of doing explicit srcu_barrier().
-However, if they do static definition of srcu domains, it would be nice
-if we can handle the barriers under the hood.
+- Joel
 
-> 
-> This means that correct SRCU users that invoke call_srcu() already
-> have srcu_barrier() at module-unload time.  Incorrect SRCU users, with
-> reasonable probability, now get a WARN_ON() at module-unload time, with
-> the per-CPU state getting leaked.  Before this change, they would (also
-> with reasonable probability) instead get an instruction-fetch fault when
-> the SRCU callback was invoked after the completion of the module unload.
-> Furthermore, in all cases where they would previously have gotten the
-> instruction-fetch fault, they now get the WARN_ON(), like this:
-> 
->	if (WARN_ON(rcu_segcblist_n_cbs(&sdp->srcu_cblist)))
->		return; /* Forgot srcu_barrier(), so just leak it! */
-> 
-> So this change already represents an improvement in usability.
-
-Considering that we can do a srcu_barrier() for the specific domain,
-and that it should add no noticeable overhead if there is no queued
-callbacks, I don't see a good reason for leaving the srcu_barrier
-invocation to the user rather than implicitly doing it from the
-module going notifier.
-
-Thanks,
-
-Mathieu
-
--- 
-Mathieu Desnoyers
-EfficiOS Inc.
-http://www.efficios.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
