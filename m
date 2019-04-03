@@ -1,20 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
- [IPv6:2607:f8b0:4864:20::442])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A81C2211EE6B2
- for <linux-nvdimm@lists.01.org>; Fri,  5 Apr 2019 15:12:33 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id t21so1684065pfh.2
- for <linux-nvdimm@lists.01.org>; Fri, 05 Apr 2019 15:12:33 -0700 (PDT)
-Subject: [mm PATCH v7 4/4] mm: Initialize MAX_ORDER_NR_PAGES at a time
- instead of doing larger sections
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 15:12:32 -0700
-Message-ID: <20190405221231.12227.85836.stgit@localhost.localdomain>
-In-Reply-To: <20190405221043.12227.19679.stgit@localhost.localdomain>
-References: <20190405221043.12227.19679.stgit@localhost.localdomain>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 074EA211F1E0E
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 03:41:03 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v4 1/5] ibnvdimm: nd_region flush callback support
+Date: Wed,  3 Apr 2019 16:10:14 +0530
+Message-Id: <20190403104018.23947-2-pagupta@redhat.com>
+In-Reply-To: <20190403104018.23947-1-pagupta@redhat.com>
+References: <20190403104018.23947-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,279 +17,274 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, sparclinux@vger.kernel.org, alexander.h.duyck@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, vbabka@suse.cz
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, riel@surriel.com, stefanha@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+This patch adds functionality to perform flush from guest
+to host over VIRTIO. We are registering a callback based
+on 'nd_region' type. virtio_pmem driver requires this special
+flush function. For rest of the region types we are registering
+existing flush function. Report error returned by host fsync
+failure to userspace.
 
-Add yet another iterator, for_each_free_mem_range_in_zone_from, and then
-use it to support initializing and freeing pages in groups no larger than
-MAX_ORDER_NR_PAGES. By doing this we can greatly improve the cache locality
-of the pages while we do several loops over them in the init and freeing
-process.
+This also handles asynchronous flush requests from the block layer
+by creating a child bio and chaining it with parent bio.
 
-We are able to tighten the loops further as a result of the "from" iterator
-as we can perform the initial checks for first_init_pfn in our first call
-to the iterator, and continue without the need for those checks via the
-"from" iterator. I have added this functionality in the function called
-deferred_init_mem_pfn_range_in_zone that primes the iterator and causes us
-to exit if we encounter any failure.
-
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 1.85s to 1.38s as a result of this patch.
-
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 ---
- include/linux/memblock.h |   16 +++++
- mm/page_alloc.c          |  162 ++++++++++++++++++++++++++++++++++------------
- 2 files changed, 137 insertions(+), 41 deletions(-)
+ drivers/acpi/nfit/core.c     |  4 ++--
+ drivers/nvdimm/claim.c       |  6 ++++--
+ drivers/nvdimm/nd.h          |  1 +
+ drivers/nvdimm/pmem.c        | 14 ++++++++-----
+ drivers/nvdimm/region_devs.c | 38 ++++++++++++++++++++++++++++++++++--
+ include/linux/libnvdimm.h    |  8 +++++++-
+ 6 files changed, 59 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index f8b78892b977..47e3c0612592 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -263,6 +263,22 @@ void __next_mem_pfn_range_in_zone(u64 *idx, struct zone *zone,
- 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end);	\
- 	     i != U64_MAX;					\
- 	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
-+
-+/**
-+ * for_each_free_mem_range_in_zone_from - iterate through zone specific
-+ * free memblock areas from a given point
-+ * @i: u64 used as loop variable
-+ * @zone: zone in which all of the memory blocks reside
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over free (memory && !reserved) areas of memblock in a specific
-+ * zone, continuing from current position. Available as soon as memblock is
-+ * initialized.
-+ */
-+#define for_each_free_mem_pfn_range_in_zone_from(i, zone, p_start, p_end) \
-+	for (; i != U64_MAX;					  \
-+	     __next_mem_pfn_range_in_zone(&i, zone, p_start, p_end))
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 5a389a4f4f65..567017a2190e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2434,7 +2434,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 		offset = to_interleave_offset(offset, mmio);
  
- /**
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 61467e28c966..06fbec9edf84 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1609,16 +1609,100 @@ static unsigned long  __init deferred_init_pages(struct zone *zone,
- 	return (nr_pages);
+ 	writeq(cmd, mmio->addr.base + offset);
+-	nvdimm_flush(nfit_blk->nd_region);
++	nvdimm_flush(nfit_blk->nd_region, NULL, false);
+ 
+ 	if (nfit_blk->dimm_flags & NFIT_BLK_DCR_LATCH)
+ 		readq(mmio->addr.base + offset);
+@@ -2483,7 +2483,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 	}
+ 
+ 	if (rw)
+-		nvdimm_flush(nfit_blk->nd_region);
++		nvdimm_flush(nfit_blk->nd_region, NULL, false);
+ 
+ 	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
+ 	return rc;
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index fb667bf469c7..a1dfa066786b 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -263,7 +263,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+ 	sector_t sector = offset >> 9;
+-	int rc = 0;
++	int rc = 0, ret = 0;
+ 
+ 	if (unlikely(!size))
+ 		return 0;
+@@ -301,7 +301,9 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	memcpy_flushcache(nsio->addr + offset, buf, size);
+-	nvdimm_flush(to_nd_region(ndns->dev.parent));
++	ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL, false);
++	if (ret)
++		rc = ret;
+ 
+ 	return rc;
+ }
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index a5ac3b240293..916cd6c5451a 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -159,6 +159,7 @@ struct nd_region {
+ 	struct badblocks bb;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_percpu_lane __percpu *lane;
++	int (*flush)(struct nd_region *nd_region);
+ 	struct nd_mapping mapping[0];
+ };
+ 
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index bc2f700feef8..5a5b3ea4d073 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -192,6 +192,7 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 
+ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ {
++	int ret = 0;
+ 	blk_status_t rc = 0;
+ 	bool do_acct;
+ 	unsigned long start;
+@@ -201,7 +202,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ 	struct nd_region *nd_region = to_region(pmem);
+ 
+ 	if (bio->bi_opf & REQ_PREFLUSH)
+-		nvdimm_flush(nd_region);
++		ret = nvdimm_flush(nd_region, bio, true);
+ 
+ 	do_acct = nd_iostat_start(bio, &start);
+ 	bio_for_each_segment(bvec, bio, iter) {
+@@ -216,7 +217,10 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ 		nd_iostat_end(bio, start);
+ 
+ 	if (bio->bi_opf & REQ_FUA)
+-		nvdimm_flush(nd_region);
++		ret = nvdimm_flush(nd_region, bio, true);
++
++	if (ret)
++		bio->bi_status = errno_to_blk_status(ret);
+ 
+ 	bio_endio(bio);
+ 	return BLK_QC_T_NONE;
+@@ -463,13 +467,13 @@ static int pmem_attach_disk(struct device *dev,
+ 	disk->bb = &pmem->bb;
+ 
+ 	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
++
+ 	if (!dax_dev) {
+ 		put_disk(disk);
+ 		return -ENOMEM;
+ 	}
+ 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+ 	pmem->dax_dev = dax_dev;
+-
+ 	gendev = disk_to_dev(disk);
+ 	gendev->groups = pmem_attribute_groups;
+ 
+@@ -527,14 +531,14 @@ static int nd_pmem_remove(struct device *dev)
+ 		sysfs_put(pmem->bb_state);
+ 		pmem->bb_state = NULL;
+ 	}
+-	nvdimm_flush(to_nd_region(dev->parent));
++	nvdimm_flush(to_nd_region(dev->parent), NULL, false);
+ 
+ 	return 0;
  }
  
-+/*
-+ * This function is meant to pre-load the iterator for the zone init.
-+ * Specifically it walks through the ranges until we are caught up to the
-+ * first_init_pfn value and exits there. If we never encounter the value we
-+ * return false indicating there are no valid ranges left.
-+ */
-+static bool __init
-+deferred_init_mem_pfn_range_in_zone(u64 *i, struct zone *zone,
-+				    unsigned long *spfn, unsigned long *epfn,
-+				    unsigned long first_init_pfn)
-+{
-+	u64 j;
-+
-+	/*
-+	 * Start out by walking through the ranges in this zone that have
-+	 * already been initialized. We don't need to do anything with them
-+	 * so we just need to flush them out of the system.
-+	 */
-+	for_each_free_mem_pfn_range_in_zone(j, zone, spfn, epfn) {
-+		if (*epfn <= first_init_pfn)
-+			continue;
-+		if (*spfn < first_init_pfn)
-+			*spfn = first_init_pfn;
-+		*i = j;
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+/*
-+ * Initialize and free pages. We do it in two loops: first we initialize
-+ * struct page, then free to buddy allocator, because while we are
-+ * freeing pages we can access pages that are ahead (computing buddy
-+ * page in __free_one_page()).
-+ *
-+ * In order to try and keep some memory in the cache we have the loop
-+ * broken along max page order boundaries. This way we will not cause
-+ * any issues with the buddy page computation.
-+ */
-+static unsigned long __init
-+deferred_init_maxorder(u64 *i, struct zone *zone, unsigned long *start_pfn,
-+		       unsigned long *end_pfn)
-+{
-+	unsigned long mo_pfn = ALIGN(*start_pfn + 1, MAX_ORDER_NR_PAGES);
-+	unsigned long spfn = *start_pfn, epfn = *end_pfn;
-+	unsigned long nr_pages = 0;
-+	u64 j = *i;
-+
-+	/* First we loop through and initialize the page values */
-+	for_each_free_mem_pfn_range_in_zone_from(j, zone, start_pfn, end_pfn) {
-+		unsigned long t;
-+
-+		if (mo_pfn <= *start_pfn)
-+			break;
-+
-+		t = min(mo_pfn, *end_pfn);
-+		nr_pages += deferred_init_pages(zone, *start_pfn, t);
-+
-+		if (mo_pfn < *end_pfn) {
-+			*start_pfn = mo_pfn;
-+			break;
-+		}
-+	}
-+
-+	/* Reset values and now loop through freeing pages as needed */
-+	swap(j, *i);
-+
-+	for_each_free_mem_pfn_range_in_zone_from(j, zone, &spfn, &epfn) {
-+		unsigned long t;
-+
-+		if (mo_pfn <= spfn)
-+			break;
-+
-+		t = min(mo_pfn, epfn);
-+		deferred_free_pages(spfn, t);
-+
-+		if (mo_pfn <= epfn)
-+			break;
-+	}
-+
-+	return nr_pages;
-+}
-+
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
+ static void nd_pmem_shutdown(struct device *dev)
  {
- 	pg_data_t *pgdat = data;
-+	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-+	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
-+	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
--	unsigned long nr_pages = 0;
--	unsigned long spfn, epfn, first_init_pfn, flags;
--	int zid;
- 	struct zone *zone;
--	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-+	int zid;
- 	u64 i;
+-	nvdimm_flush(to_nd_region(dev->parent));
++	nvdimm_flush(to_nd_region(dev->parent), NULL, false);
+ }
  
- 	/* Bind memory initialisation thread to a local node if possible */
-@@ -1644,22 +1728,20 @@ static int __init deferred_init_memmap(void *data)
- 		if (first_init_pfn < zone_end_pfn(zone))
- 			break;
- 	}
--	first_init_pfn = max(zone->zone_start_pfn, first_init_pfn);
+ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b4ef7d9ff22e..fb1041ab32a6 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
+ 		return rc;
+ 	if (!flush)
+ 		return -EINVAL;
+-	nvdimm_flush(nd_region);
++	rc = nvdimm_flush(nd_region, NULL, false);
++	if (rc)
++		return rc;
+ 
+ 	return len;
+ }
+@@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	dev->of_node = ndr_desc->of_node;
+ 	nd_region->ndr_size = resource_size(ndr_desc->res);
+ 	nd_region->ndr_start = ndr_desc->res->start;
++	if (ndr_desc->flush)
++		nd_region->flush = ndr_desc->flush;
++	else
++		nd_region->flush = generic_nvdimm_flush;
 +
-+	/* If the zone is empty somebody else may have cleared out the zone */
-+	if (!deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn,
-+						 first_init_pfn))
-+		goto zone_empty;
+ 	nd_device_register(dev);
  
- 	/*
--	 * Initialize and free pages. We do it in two loops: first we initialize
--	 * struct page, than free to buddy allocator, because while we are
--	 * freeing pages we can access pages that are ahead (computing buddy
--	 * page in __free_one_page()).
-+	 * Initialize and free pages in MAX_ORDER sized increments so
-+	 * that we can avoid introducing any issues with the buddy
-+	 * allocator.
+ 	return nd_region;
+@@ -1125,11 +1132,36 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
+ 
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool async)
++{
++	int rc = 0;
++
++	/* Create child bio for asynchronous flush and chain with
++	 * parent bio. Otherwise directly call nd_region flush.
++	 */
++	if (async && bio->bi_iter.bi_sector != -1) {
++
++		struct bio *child = bio_alloc(GFP_ATOMIC, 0);
++
++		if (!child)
++			return -ENOMEM;
++		bio_copy_dev(child, bio);
++		child->bi_opf = REQ_PREFLUSH;
++		child->bi_iter.bi_sector = -1;
++		bio_chain(child, bio);
++		submit_bio(child);
++	} else {
++		if (nd_region->flush(nd_region))
++			rc = -EIO;
++	}
++
++	return rc;
++}
+ /**
+  * nvdimm_flush - flush any posted write queues between the cpu and pmem media
+  * @nd_region: blk or interleaved pmem region
+  */
+-void nvdimm_flush(struct nd_region *nd_region)
++int generic_nvdimm_flush(struct nd_region *nd_region)
+ {
+ 	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
+ 	int i, idx;
+@@ -1153,6 +1185,8 @@ void nvdimm_flush(struct nd_region *nd_region)
+ 		if (ndrd_get_flush_wpq(ndrd, i, 0))
+ 			writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
+ 	wmb();
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_flush);
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index feb342d026f2..d9d2ab8a6e64 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -65,6 +65,9 @@ enum {
  	 */
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		nr_pages += deferred_init_pages(zone, spfn, epfn);
--	}
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		deferred_free_pages(spfn, epfn);
--	}
-+	while (spfn < epfn)
-+		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+zone_empty:
- 	pgdat_resize_unlock(pgdat, &flags);
+ 	ND_REGION_PERSIST_MEMCTRL = 2,
  
- 	/* Sanity check that the next zone really is unpopulated */
-@@ -1692,9 +1774,9 @@ static int __init deferred_init_memmap(void *data)
- {
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
- 	pg_data_t *pgdat = zone->zone_pgdat;
--	unsigned long nr_pages = 0;
--	unsigned long first_init_pfn, spfn, epfn, t, flags;
- 	unsigned long first_deferred_pfn = pgdat->first_deferred_pfn;
-+	unsigned long spfn, epfn, flags;
-+	unsigned long nr_pages = 0;
- 	u64 i;
- 
- 	/* Only the last zone may have deferred pages */
-@@ -1723,37 +1805,35 @@ static int __init deferred_init_memmap(void *data)
- 		return true;
- 	}
- 
--	first_init_pfn = max(zone->zone_start_pfn, first_deferred_pfn);
--
--	if (first_init_pfn >= pgdat_end_pfn(pgdat)) {
-+	/* If the zone is empty somebody else may have cleared out the zone */
-+	if (!deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn,
-+						 first_deferred_pfn)) {
-+		pgdat->first_deferred_pfn = ULONG_MAX;
- 		pgdat_resize_unlock(pgdat, &flags);
--		return false;
-+		return true;
- 	}
- 
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
-+	/*
-+	 * Initialize and free pages in MAX_ORDER sized increments so
-+	 * that we can avoid introducing any issues with the buddy
-+	 * allocator.
-+	 */
-+	while (spfn < epfn) {
-+		/* update our first deferred PFN for this section */
-+		first_deferred_pfn = spfn;
++	/* Platform provides asynchronous flush mechanism */
++	ND_REGION_ASYNC = 3,
 +
-+		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
+ };
+@@ -121,6 +124,7 @@ struct nd_mapping_desc {
+ 	int position;
+ };
  
--		while (spfn < epfn && nr_pages < nr_pages_needed) {
--			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
--			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(zone, spfn,
--							first_deferred_pfn);
--			spfn = first_deferred_pfn;
--		}
-+		/* We should only stop along section boundaries */
-+		if ((first_deferred_pfn ^ spfn) < PAGES_PER_SECTION)
-+			continue;
++struct nd_region;
+ struct nd_region_desc {
+ 	struct resource *res;
+ 	struct nd_mapping_desc *mapping;
+@@ -133,6 +137,7 @@ struct nd_region_desc {
+ 	int target_node;
+ 	unsigned long flags;
+ 	struct device_node *of_node;
++	int (*flush)(struct nd_region *nd_region);
+ };
  
-+		/* If our quota has been met we can stop here */
- 		if (nr_pages >= nr_pages_needed)
- 			break;
- 	}
- 
--	for_each_free_mem_pfn_range_in_zone(i, zone, &spfn, &epfn) {
--		spfn = max_t(unsigned long, first_init_pfn, spfn);
--		epfn = min_t(unsigned long, first_deferred_pfn, epfn);
--		deferred_free_pages(spfn, epfn);
--
--		if (first_deferred_pfn == epfn)
--			break;
--	}
--	pgdat->first_deferred_pfn = first_deferred_pfn;
-+	pgdat->first_deferred_pfn = spfn;
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	return nr_pages > 0;
+ struct device;
+@@ -260,7 +265,8 @@ unsigned long nd_blk_memremap_flags(struct nd_blk_region *ndbr);
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
+ u64 nd_fletcher64(void *addr, size_t len, bool le);
+-void nvdimm_flush(struct nd_region *nd_region);
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool async);
++int generic_nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
+ int nvdimm_in_overwrite(struct nvdimm *nvdimm);
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
