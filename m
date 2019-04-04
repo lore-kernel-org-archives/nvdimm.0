@@ -1,96 +1,503 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v1 11/17] kunit: test: add test managed resource tests
-Date: Thu,  4 Apr 2019 15:06:46 -0700
-Message-ID: <20190404220652.19765-12-brendanhiggins@google.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 12/17] kunit: tool: add Python wrappers for running KUnit
+ tests
+Date: Thu,  4 Apr 2019 15:06:47 -0700
+Message-ID: <20190404220652.19765-13-brendanhiggins@google.com>
 References: <20190404220652.19765-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190404220652.19765-1-brendanhiggins@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: corbet@lwn.net, frowand.list@gmail.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, shuah@kernel.org, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, Avinash Kondareddy <akndr41@gmail.com>, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, dan.j.williams@intel.com, kunit-dev@googlegroups.com, richard@nod.at, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190404220652.19765-1-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: corbet-T1hC0tSOHrs@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-RnJvbTogQXZpbmFzaCBLb25kYXJlZGR5IDxha25kcjQxQGdtYWlsLmNvbT4KClRlc3RzIGhvdyB0
-ZXN0cyBpbnRlcmFjdCB3aXRoIHRlc3QgbWFuYWdlZCByZXNvdXJjZXMgaW4gdGhlaXIgbGlmZXRp
-bWUuCgpTaWduZWQtb2ZmLWJ5OiBBdmluYXNoIEtvbmRhcmVkZHkgPGFrbmRyNDFAZ21haWwuY29t
-PgpTaWduZWQtb2ZmLWJ5OiBCcmVuZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5j
-b20+Ci0tLQoga3VuaXQvdGVzdC10ZXN0LmMgfCAxMjIgKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDEyMiBpbnNlcnRpb25zKCsp
-CgpkaWZmIC0tZ2l0IGEva3VuaXQvdGVzdC10ZXN0LmMgYi9rdW5pdC90ZXN0LXRlc3QuYwppbmRl
-eCA0YmQ3YTM0ZDBhNmNiLi41NGFkZDhjYTQxOGEwIDEwMDY0NAotLS0gYS9rdW5pdC90ZXN0LXRl
-c3QuYworKysgYi9rdW5pdC90ZXN0LXRlc3QuYwpAQCAtMTM1LDMgKzEzNSwxMjUgQEAgc3RhdGlj
-IHN0cnVjdCBrdW5pdF9tb2R1bGUga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfbW9kdWxlID0gewogCS50
-ZXN0X2Nhc2VzID0ga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfY2FzZXMsCiB9OwogbW9kdWxlX3Rlc3Qo
-a3VuaXRfdHJ5X2NhdGNoX3Rlc3RfbW9kdWxlKTsKKworLyoKKyAqIENvbnRleHQgZm9yIHRlc3Rp
-bmcgdGVzdCBtYW5hZ2VkIHJlc291cmNlcworICogaXNfcmVzb3VyY2VfaW5pdGlhbGl6ZWQgaXMg
-dXNlZCB0byB0ZXN0IGFyYml0cmFyeSByZXNvdXJjZXMKKyAqLworc3RydWN0IGt1bml0X3Rlc3Rf
-cmVzb3VyY2VfY29udGV4dCB7CisJc3RydWN0IGt1bml0IHRlc3Q7CisJYm9vbCBpc19yZXNvdXJj
-ZV9pbml0aWFsaXplZDsKK307CisKK3N0YXRpYyBpbnQgZmFrZV9yZXNvdXJjZV9pbml0KHN0cnVj
-dCBrdW5pdF9yZXNvdXJjZSAqcmVzLCB2b2lkICpjb250ZXh0KQoreworCXN0cnVjdCBrdW5pdF90
-ZXN0X3Jlc291cmNlX2NvbnRleHQgKmN0eCA9IGNvbnRleHQ7CisKKwlyZXMtPmFsbG9jYXRpb24g
-PSAmY3R4LT5pc19yZXNvdXJjZV9pbml0aWFsaXplZDsKKwljdHgtPmlzX3Jlc291cmNlX2luaXRp
-YWxpemVkID0gdHJ1ZTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIHZvaWQgZmFrZV9yZXNvdXJj
-ZV9mcmVlKHN0cnVjdCBrdW5pdF9yZXNvdXJjZSAqcmVzKQoreworCWJvb2wgKmlzX3Jlc291cmNl
-X2luaXRpYWxpemVkID0gcmVzLT5hbGxvY2F0aW9uOworCisJKmlzX3Jlc291cmNlX2luaXRpYWxp
-emVkID0gZmFsc2U7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3Jlc291cmNlX3Rlc3RfaW5pdF9y
-ZXNvdXJjZXMoc3RydWN0IGt1bml0ICp0ZXN0KQoreworCXN0cnVjdCBrdW5pdF90ZXN0X3Jlc291
-cmNlX2NvbnRleHQgKmN0eCA9IHRlc3QtPnByaXY7CisKKwlrdW5pdF9pbml0X3Rlc3QoJmN0eC0+
-dGVzdCwgInRlc3RpbmdfdGVzdF9pbml0X3Rlc3QiKTsKKworCUtVTklUX0VYUEVDVF9UUlVFKHRl
-c3QsIGxpc3RfZW1wdHkoJmN0eC0+dGVzdC5yZXNvdXJjZXMpKTsKK30KKworc3RhdGljIHZvaWQg
-a3VuaXRfcmVzb3VyY2VfdGVzdF9hbGxvY19yZXNvdXJjZShzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7
-CisJc3RydWN0IGt1bml0X3Rlc3RfcmVzb3VyY2VfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsK
-KwlzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlczsKKwlrdW5pdF9yZXNvdXJjZV9mcmVlX3QgZnJl
-ZSA9IGZha2VfcmVzb3VyY2VfZnJlZTsKKworCXJlcyA9IGt1bml0X2FsbG9jX3Jlc291cmNlKCZj
-dHgtPnRlc3QsCisJCQkJICAgZmFrZV9yZXNvdXJjZV9pbml0LAorCQkJCSAgIGZha2VfcmVzb3Vy
-Y2VfZnJlZSwKKwkJCQkgICBjdHgpOworCisJS1VOSVRfQVNTRVJUX05PVF9FUlJfT1JfTlVMTCh0
-ZXN0LCByZXMpOworCUtVTklUX0VYUEVDVF9FUSh0ZXN0LCAmY3R4LT5pc19yZXNvdXJjZV9pbml0
-aWFsaXplZCwgcmVzLT5hbGxvY2F0aW9uKTsKKwlLVU5JVF9FWFBFQ1RfVFJVRSh0ZXN0LCBsaXN0
-X2lzX2xhc3QoJnJlcy0+bm9kZSwgJmN0eC0+dGVzdC5yZXNvdXJjZXMpKTsKKwlLVU5JVF9FWFBF
-Q1RfRVEodGVzdCwgZnJlZSwgcmVzLT5mcmVlKTsKK30KKworc3RhdGljIHZvaWQga3VuaXRfcmVz
-b3VyY2VfdGVzdF9mcmVlX3Jlc291cmNlKHN0cnVjdCBrdW5pdCAqdGVzdCkKK3sKKwlzdHJ1Y3Qg
-a3VuaXRfdGVzdF9yZXNvdXJjZV9jb250ZXh0ICpjdHggPSB0ZXN0LT5wcml2OworCXN0cnVjdCBr
-dW5pdF9yZXNvdXJjZSAqcmVzID0ga3VuaXRfYWxsb2NfcmVzb3VyY2UoJmN0eC0+dGVzdCwKKwkJ
-CQkJCQkgIGZha2VfcmVzb3VyY2VfaW5pdCwKKwkJCQkJCQkgIGZha2VfcmVzb3VyY2VfZnJlZSwK
-KwkJCQkJCQkgIGN0eCk7CisKKwlrdW5pdF9mcmVlX3Jlc291cmNlKCZjdHgtPnRlc3QsIHJlcyk7
-CisKKwlLVU5JVF9FWFBFQ1RfRVEodGVzdCwgZmFsc2UsIGN0eC0+aXNfcmVzb3VyY2VfaW5pdGlh
-bGl6ZWQpOworCUtVTklUX0VYUEVDVF9UUlVFKHRlc3QsIGxpc3RfZW1wdHkoJmN0eC0+dGVzdC5y
-ZXNvdXJjZXMpKTsKK30KKworc3RhdGljIHZvaWQga3VuaXRfcmVzb3VyY2VfdGVzdF9jbGVhbnVw
-X3Jlc291cmNlcyhzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJaW50IGk7CisJc3RydWN0IGt1bml0
-X3Rlc3RfcmVzb3VyY2VfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsKKwlzdHJ1Y3Qga3VuaXRf
-cmVzb3VyY2UgKnJlc291cmNlc1s1XTsKKworCWZvciAoaSA9IDA7IGkgPCBBUlJBWV9TSVpFKHJl
-c291cmNlcyk7IGkrKykgeworCQlyZXNvdXJjZXNbaV0gPSBrdW5pdF9hbGxvY19yZXNvdXJjZSgm
-Y3R4LT50ZXN0LAorCQkJCQkJICAgIGZha2VfcmVzb3VyY2VfaW5pdCwKKwkJCQkJCSAgICBmYWtl
-X3Jlc291cmNlX2ZyZWUsCisJCQkJCQkgICAgY3R4KTsKKwl9CisKKwlrdW5pdF9jbGVhbnVwKCZj
-dHgtPnRlc3QpOworCisJS1VOSVRfRVhQRUNUX1RSVUUodGVzdCwgbGlzdF9lbXB0eSgmY3R4LT50
-ZXN0LnJlc291cmNlcykpOworfQorCitzdGF0aWMgaW50IGt1bml0X3Jlc291cmNlX3Rlc3RfaW5p
-dChzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJc3RydWN0IGt1bml0X3Rlc3RfcmVzb3VyY2VfY29u
-dGV4dCAqY3R4ID0KKwkJCWt6YWxsb2Moc2l6ZW9mKCpjdHgpLCBHRlBfS0VSTkVMKTsKKworCWlm
-ICghY3R4KQorCQlyZXR1cm4gLUVOT01FTTsKKworCXRlc3QtPnByaXYgPSBjdHg7CisKKwlrdW5p
-dF9pbml0X3Rlc3QoJmN0eC0+dGVzdCwgInRlc3RfdGVzdF9jb250ZXh0Iik7CisKKwlyZXR1cm4g
-MDsKK30KKworc3RhdGljIHZvaWQga3VuaXRfcmVzb3VyY2VfdGVzdF9leGl0KHN0cnVjdCBrdW5p
-dCAqdGVzdCkKK3sKKwlzdHJ1Y3Qga3VuaXRfdGVzdF9yZXNvdXJjZV9jb250ZXh0ICpjdHggPSB0
-ZXN0LT5wcml2OworCisJa3VuaXRfY2xlYW51cCgmY3R4LT50ZXN0KTsKKwlrZnJlZShjdHgpOwor
-fQorCitzdGF0aWMgc3RydWN0IGt1bml0X2Nhc2Uga3VuaXRfcmVzb3VyY2VfdGVzdF9jYXNlc1td
-ID0geworCUtVTklUX0NBU0Uoa3VuaXRfcmVzb3VyY2VfdGVzdF9pbml0X3Jlc291cmNlcyksCisJ
-S1VOSVRfQ0FTRShrdW5pdF9yZXNvdXJjZV90ZXN0X2FsbG9jX3Jlc291cmNlKSwKKwlLVU5JVF9D
-QVNFKGt1bml0X3Jlc291cmNlX3Rlc3RfZnJlZV9yZXNvdXJjZSksCisJS1VOSVRfQ0FTRShrdW5p
-dF9yZXNvdXJjZV90ZXN0X2NsZWFudXBfcmVzb3VyY2VzKSwKKwl7fSwKK307CisKK3N0YXRpYyBz
-dHJ1Y3Qga3VuaXRfbW9kdWxlIGt1bml0X3Jlc291cmNlX3Rlc3RfbW9kdWxlID0geworCS5uYW1l
-ID0gImt1bml0LXJlc291cmNlLXRlc3QiLAorCS5pbml0ID0ga3VuaXRfcmVzb3VyY2VfdGVzdF9p
-bml0LAorCS5leGl0ID0ga3VuaXRfcmVzb3VyY2VfdGVzdF9leGl0LAorCS50ZXN0X2Nhc2VzID0g
-a3VuaXRfcmVzb3VyY2VfdGVzdF9jYXNlcywKK307Cittb2R1bGVfdGVzdChrdW5pdF9yZXNvdXJj
-ZV90ZXN0X21vZHVsZSk7Ci0tIAoyLjIxLjAuMzkyLmdmOGY2Nzg3MTU5ZS1nb29nCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+From: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+The ultimate goal is to create minimal isolated test binaries; in the
+meantime we are using UML to provide the infrastructure to run tests, so
+define an abstract way to configure and run tests that allow us to
+change the context in which tests are built without affecting the user.
+This also makes pretty and dynamic error reporting, and a lot of other
+nice features easier.
+
+kunit_config.py:
+  - parse .config and Kconfig files.
+
+kunit_kernel.py: provides helper functions to:
+  - configure the kernel using kunitconfig.
+  - build the kernel with the appropriate configuration.
+  - provide function to invoke the kernel and stream the output back.
+
+Signed-off-by: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+---
+ tools/testing/kunit/.gitignore      |   3 +
+ tools/testing/kunit/kunit.py        |  78 +++++++++++++++
+ tools/testing/kunit/kunit_config.py |  66 +++++++++++++
+ tools/testing/kunit/kunit_kernel.py | 148 ++++++++++++++++++++++++++++
+ tools/testing/kunit/kunit_parser.py | 119 ++++++++++++++++++++++
+ 5 files changed, 414 insertions(+)
+ create mode 100644 tools/testing/kunit/.gitignore
+ create mode 100755 tools/testing/kunit/kunit.py
+ create mode 100644 tools/testing/kunit/kunit_config.py
+ create mode 100644 tools/testing/kunit/kunit_kernel.py
+ create mode 100644 tools/testing/kunit/kunit_parser.py
+
+diff --git a/tools/testing/kunit/.gitignore b/tools/testing/kunit/.gitignore
+new file mode 100644
+index 0000000000000..c791ff59a37a9
+--- /dev/null
++++ b/tools/testing/kunit/.gitignore
+@@ -0,0 +1,3 @@
++# Byte-compiled / optimized / DLL files
++__pycache__/
++*.py[cod]
+\ No newline at end of file
+diff --git a/tools/testing/kunit/kunit.py b/tools/testing/kunit/kunit.py
+new file mode 100755
+index 0000000000000..7413ec7351a20
+--- /dev/null
++++ b/tools/testing/kunit/kunit.py
+@@ -0,0 +1,78 @@
++#!/usr/bin/python3
++# SPDX-License-Identifier: GPL-2.0
++#
++# A thin wrapper on top of the KUnit Kernel
++#
++# Copyright (C) 2019, Google LLC.
++# Author: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++# Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++
++import argparse
++import sys
++import os
++import time
++
++import kunit_config
++import kunit_kernel
++import kunit_parser
++
++parser = argparse.ArgumentParser(description='Runs KUnit tests.')
++
++parser.add_argument('--raw_output', help='don\'t format output from kernel',
++		    action='store_true')
++
++parser.add_argument('--timeout', help='maximum number of seconds to allow for '
++		    'all tests to run. This does not include time taken to '
++		    'build the tests.', type=int, default=300,
++		    metavar='timeout')
++
++parser.add_argument('--jobs',
++		    help='As in the make command, "Specifies  the number of '
++		    'jobs (commands) to run simultaneously."',
++		    type=int, default=8, metavar='jobs')
++
++parser.add_argument('--build_dir',
++		    help='As in the make command, it specifies the build '
++		    'directory.',
++		    type=str, default=None, metavar='build_dir')
++
++cli_args = parser.parse_args()
++
++linux = kunit_kernel.LinuxSourceTree()
++
++build_dir = None
++if cli_args.build_dir:
++	build_dir = cli_args.build_dir
++
++config_start = time.time()
++success = linux.build_reconfig(build_dir)
++config_end = time.time()
++if not success:
++	quit()
++
++kunit_parser.print_with_timestamp('Building KUnit Kernel ...')
++
++build_start = time.time()
++
++success = linux.build_um_kernel(jobs=cli_args.jobs, build_dir=build_dir)
++build_end = time.time()
++if not success:
++	quit()
++
++kunit_parser.print_with_timestamp('Starting KUnit Kernel ...')
++test_start = time.time()
++
++if cli_args.raw_output:
++	kunit_parser.raw_output(linux.run_kernel(timeout=cli_args.timeout,
++						 build_dir=build_dir))
++else:
++	kunit_parser.parse_run_tests(linux.run_kernel(timeout=cli_args.timeout,
++						      build_dir=build_dir))
++
++test_end = time.time()
++
++kunit_parser.print_with_timestamp((
++	"Elapsed time: %.3fs total, %.3fs configuring, %.3fs " +
++	"building, %.3fs running.\n") % (test_end - config_start,
++	config_end - config_start, build_end - build_start,
++	test_end - test_start))
+diff --git a/tools/testing/kunit/kunit_config.py b/tools/testing/kunit/kunit_config.py
+new file mode 100644
+index 0000000000000..167f47d9ab8e4
+--- /dev/null
++++ b/tools/testing/kunit/kunit_config.py
+@@ -0,0 +1,66 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Builds a .config from a kunitconfig.
++#
++# Copyright (C) 2019, Google LLC.
++# Author: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++# Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++
++import collections
++import re
++
++CONFIG_IS_NOT_SET_PATTERN = r'^# CONFIG_\w+ is not set$'
++CONFIG_PATTERN = r'^CONFIG_\w+=\S+$'
++
++KconfigEntryBase = collections.namedtuple('KconfigEntry', ['raw_entry'])
++
++
++class KconfigEntry(KconfigEntryBase):
++
++	def __str__(self) -> str:
++		return self.raw_entry
++
++
++class KconfigParseError(Exception):
++	"""Error parsing Kconfig defconfig or .config."""
++
++
++class Kconfig(object):
++	"""Represents defconfig or .config specified using the Kconfig language."""
++
++	def __init__(self):
++		self._entries = []
++
++	def entries(self):
++		return set(self._entries)
++
++	def add_entry(self, entry: KconfigEntry) -> None:
++		self._entries.append(entry)
++
++	def is_subset_of(self, other: "Kconfig") -> bool:
++		return self.entries().issubset(other.entries())
++
++	def write_to_file(self, path: str) -> None:
++		with open(path, 'w') as f:
++			for entry in self.entries():
++				f.write(str(entry) + '\n')
++
++	def parse_from_string(self, blob: str) -> None:
++		"""Parses a string containing KconfigEntrys and populates this Kconfig."""
++		self._entries = []
++		is_not_set_matcher = re.compile(CONFIG_IS_NOT_SET_PATTERN)
++		config_matcher = re.compile(CONFIG_PATTERN)
++		for line in blob.split('\n'):
++			line = line.strip()
++			if not line:
++				continue
++			elif config_matcher.match(line) or is_not_set_matcher.match(line):
++				self._entries.append(KconfigEntry(line))
++			elif line[0] == '#':
++				continue
++			else:
++				raise KconfigParseError('Failed to parse: ' + line)
++
++	def read_from_file(self, path: str) -> None:
++		with open(path, 'r') as f:
++			self.parse_from_string(f.read())
+diff --git a/tools/testing/kunit/kunit_kernel.py b/tools/testing/kunit/kunit_kernel.py
+new file mode 100644
+index 0000000000000..07c0abf2f47df
+--- /dev/null
++++ b/tools/testing/kunit/kunit_kernel.py
+@@ -0,0 +1,148 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Runs UML kernel, collects output, and handles errors.
++#
++# Copyright (C) 2019, Google LLC.
++# Author: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++# Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++
++
++import logging
++import subprocess
++import os
++
++import kunit_config
++
++KCONFIG_PATH = '.config'
++
++class ConfigError(Exception):
++	"""Represents an error trying to configure the Linux kernel."""
++
++
++class BuildError(Exception):
++	"""Represents an error trying to build the Linux kernel."""
++
++
++class LinuxSourceTreeOperations(object):
++	"""An abstraction over command line operations performed on a source tree."""
++
++	def make_mrproper(self):
++		try:
++			subprocess.check_output(['make', 'mrproper'])
++		except OSError as e:
++			raise ConfigError('Could not call make command: ' + e)
++		except subprocess.CalledProcessError as e:
++			raise ConfigError(e.output)
++
++	def make_olddefconfig(self, build_dir):
++		command = ['make', 'ARCH=um', 'olddefconfig']
++		if build_dir:
++			command += ['O=' + build_dir]
++		try:
++			subprocess.check_output(command)
++		except OSError as e:
++			raise ConfigError('Could not call make command: ' + e)
++		except subprocess.CalledProcessError as e:
++			raise ConfigError(e.output)
++
++	def make(self, jobs, build_dir):
++		command = ['make', 'ARCH=um', '--jobs=' + str(jobs)]
++		if build_dir:
++			command += ['O=' + build_dir]
++		try:
++			subprocess.check_output(command)
++		except OSError as e:
++			raise BuildError('Could not call execute make: ' + e)
++		except subprocess.CalledProcessError as e:
++			raise BuildError(e.output)
++
++	def linux_bin(self, params, timeout, build_dir):
++		"""Runs the Linux UML binary. Must be named 'linux'."""
++		linux_bin = './linux'
++		if build_dir:
++			linux_bin = os.path.join(build_dir, 'linux')
++		process = subprocess.Popen(
++			[linux_bin] + params,
++			stdin=subprocess.PIPE,
++			stdout=subprocess.PIPE,
++			stderr=subprocess.PIPE)
++		process.wait(timeout=timeout)
++		return process
++
++
++def get_kconfig_path(build_dir):
++	kconfig_path = KCONFIG_PATH
++	if build_dir:
++		kconfig_path = os.path.join(build_dir, KCONFIG_PATH)
++	return kconfig_path
++
++class LinuxSourceTree(object):
++	"""Represents a Linux kernel source tree with KUnit tests."""
++
++	def __init__(self):
++		self._kconfig = kunit_config.Kconfig()
++		self._kconfig.read_from_file('kunitconfig')
++		self._ops = LinuxSourceTreeOperations()
++
++	def clean(self):
++		try:
++			self._ops.make_mrproper()
++		except ConfigError as e:
++			logging.error(e)
++			return False
++		return True
++
++	def build_config(self, build_dir):
++		kconfig_path = get_kconfig_path(build_dir)
++		if build_dir and not os.path.exists(build_dir):
++			os.mkdir(build_dir)
++		self._kconfig.write_to_file(kconfig_path)
++		try:
++			self._ops.make_olddefconfig(build_dir)
++		except ConfigError as e:
++			logging.error(e)
++			return False
++		validated_kconfig = kunit_config.Kconfig()
++		validated_kconfig.read_from_file(kconfig_path)
++		if not self._kconfig.is_subset_of(validated_kconfig):
++			logging.error('Provided Kconfig is not contained in validated .config!')
++			return False
++		return True
++
++	def build_reconfig(self, build_dir):
++		"""Creates a new .config if it is not a subset of the kunitconfig."""
++		kconfig_path = get_kconfig_path(build_dir)
++		if os.path.exists(kconfig_path):
++			existing_kconfig = kunit_config.Kconfig()
++			existing_kconfig.read_from_file(kconfig_path)
++			if not self._kconfig.is_subset_of(existing_kconfig):
++				print('Regenerating .config ...')
++				os.remove(kconfig_path)
++				return self.build_config(build_dir)
++			else:
++				return True
++		else:
++			print('Generating .config ...')
++			return self.build_config(build_dir)
++
++	def build_um_kernel(self, jobs, build_dir):
++		try:
++			self._ops.make_olddefconfig(build_dir)
++			self._ops.make(jobs, build_dir)
++		except (ConfigError, BuildError) as e:
++			logging.error(e)
++			return False
++		used_kconfig = kunit_config.Kconfig()
++		used_kconfig.read_from_file(get_kconfig_path(build_dir))
++		if not self._kconfig.is_subset_of(used_kconfig):
++			logging.error('Provided Kconfig is not contained in final config!')
++			return False
++		return True
++
++	def run_kernel(self, args=[], timeout=None, build_dir=None):
++		args.extend(['mem=256M'])
++		process = self._ops.linux_bin(args, timeout, build_dir)
++		with open('test.log', 'w') as f:
++			for line in process.stdout:
++				f.write(line.rstrip().decode('ascii') + '\n')
++				yield line.rstrip().decode('ascii')
+diff --git a/tools/testing/kunit/kunit_parser.py b/tools/testing/kunit/kunit_parser.py
+new file mode 100644
+index 0000000000000..6c81d4dcfabb5
+--- /dev/null
++++ b/tools/testing/kunit/kunit_parser.py
+@@ -0,0 +1,119 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Parses test results from a kernel dmesg log.
++#
++# Copyright (C) 2019, Google LLC.
++# Author: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++# Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++
++import re
++from datetime import datetime
++
++kunit_start_re = re.compile('printk: console .* enabled')
++kunit_end_re = re.compile('List of all partitions:')
++
++def isolate_kunit_output(kernel_output):
++	started = False
++	for line in kernel_output:
++		if kunit_start_re.match(line):
++			started = True
++		elif kunit_end_re.match(line):
++			break
++		elif started:
++			yield line
++
++def raw_output(kernel_output):
++	for line in kernel_output:
++		print(line)
++
++DIVIDER = "=" * 30
++
++RESET = '\033[0;0m'
++
++def red(text):
++	return '\033[1;31m' + text + RESET
++
++def yellow(text):
++	return '\033[1;33m' + text + RESET
++
++def green(text):
++	return '\033[1;32m' + text + RESET
++
++def print_with_timestamp(message):
++	print('[%s] %s' % (datetime.now().strftime('%H:%M:%S'), message))
++
++def print_log(log):
++	for m in log:
++		print_with_timestamp(m)
++
++def parse_run_tests(kernel_output):
++	test_case_output = re.compile('^kunit .*?: (.*)$')
++
++	test_module_success = re.compile('^kunit .*: all tests passed')
++	test_module_fail = re.compile('^kunit .*: one or more tests failed')
++
++	test_case_success = re.compile('^kunit (.*): (.*) passed')
++	test_case_fail = re.compile('^kunit (.*): (.*) failed')
++	test_case_crash = re.compile('^kunit (.*): (.*) crashed')
++
++	total_tests = set()
++	failed_tests = set()
++	crashed_tests = set()
++
++	def get_test_name(match):
++		return match.group(1) + ":" + match.group(2)
++
++	current_case_log = []
++	def end_one_test(match, log):
++		log.clear()
++		total_tests.add(get_test_name(match))
++
++	print_with_timestamp(DIVIDER)
++	for line in isolate_kunit_output(kernel_output):
++		# Ignore module output:
++		if (test_module_success.match(line) or
++		    test_module_fail.match(line)):
++			print_with_timestamp(DIVIDER)
++			continue
++
++		match = re.match(test_case_success, line)
++		if match:
++			print_with_timestamp(green("[PASSED] ") +
++					     get_test_name(match))
++			end_one_test(match, current_case_log)
++			continue
++
++		match = re.match(test_case_fail, line)
++		# Crashed tests will report as both failed and crashed. We only
++		# want to show and count it once.
++		if match and get_test_name(match) not in crashed_tests:
++			failed_tests.add(get_test_name(match))
++			print_with_timestamp(red("[FAILED] " +
++						 get_test_name(match)))
++			print_log(map(yellow, current_case_log))
++			print_with_timestamp("")
++			end_one_test(match, current_case_log)
++			continue
++
++		match = re.match(test_case_crash, line)
++		if match:
++			crashed_tests.add(get_test_name(match))
++			print_with_timestamp(yellow("[CRASH] " +
++						    get_test_name(match)))
++			print_log(current_case_log)
++			print_with_timestamp("")
++			end_one_test(match, current_case_log)
++			continue
++
++		# Strip off the `kunit module-name:` prefix
++		match = re.match(test_case_output, line)
++		if match:
++			current_case_log.append(match.group(1))
++		else:
++			current_case_log.append(line)
++
++	fmt = green if (len(failed_tests) + len(crashed_tests) == 0) else red
++	print_with_timestamp(
++		fmt("Testing complete. %d tests run. %d failed. %d crashed." %
++		    (len(total_tests), len(failed_tests), len(crashed_tests))))
++
+-- 
+2.21.0.392.gf8f6787159e-goog
