@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C35272121797B
- for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:29 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 11/18] btrfs: add dax mmap support
-Date: Mon, 29 Apr 2019 12:26:42 -0500
-Message-Id: <20190429172649.8288-12-rgoldwyn@suse.de>
-In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id D9488211D6729
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Apr 2019 08:43:44 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH] libnvdimm,
+ pmem: fix a possible OOB access when read and write pmem
+References: <1554346681-31163-1-git-send-email-lirongqing@baidu.com>
+Date: Fri, 05 Apr 2019 11:43:42 -0400
+In-Reply-To: <1554346681-31163-1-git-send-email-lirongqing@baidu.com> (Li
+ RongQing's message of "Thu, 4 Apr 2019 10:58:01 +0800")
+Message-ID: <x49v9zsfoep.fsf@segfault.boston.devel.redhat.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,110 +20,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: Li RongQing <lirongqing@baidu.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Li RongQing <lirongqing@baidu.com> writes:
 
-Add a new vm_operations struct btrfs_dax_vm_ops
-specifically for dax files.
+> If offset is not zero and length is bigger than PAGE_SIZE,
+> this will cause to out of boundary access to a page memory
 
-Since we will be removing(nulling) readpages/writepages for dax
-return ENOEXEC only for non-dax files.
+Agreed, though I don't think this can be triggered in practice.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- fs/btrfs/ctree.h |  1 +
- fs/btrfs/dax.c   | 13 ++++++++++++-
- fs/btrfs/file.c  | 18 ++++++++++++++++--
- 3 files changed, 29 insertions(+), 3 deletions(-)
+> Fixes: 98cc093cba1e "(block, THP: make block_device_operations.rw_page support THP)"
+> Co-developed-by: Liang ZhiCheng <liangzhicheng@baidu.com>
+> Signed-off-by: Liang ZhiCheng <liangzhicheng@baidu.com>
+> Signed-off-by: Li RongQing <lirongqing@baidu.com>
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index eec01eb92f33..2b7bdabb44f8 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3802,6 +3802,7 @@ int btree_readahead_hook(struct extent_buffer *eb, int err);
- /* dax.c */
- ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
- ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from);
-+vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
- #else
- static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
- {
-diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-index f5cc9bcdbf14..de957d681e16 100644
---- a/fs/btrfs/dax.c
-+++ b/fs/btrfs/dax.c
-@@ -139,7 +139,7 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
- 
- 	iomap->addr = em->block_start + diff;
- 	/* Check if we really need to copy data from old extent */
--	if (bi && !bi->nocow && (offset || pos + length < bi->end)) {
-+	if (bi && !bi->nocow && (offset || pos + length < bi->end || flags & IOMAP_FAULT)) {
- 		iomap->type = IOMAP_DAX_COW;
- 		if (srcblk) {
- 			sector_t sector = (srcblk + (pos & PAGE_MASK) -
-@@ -216,4 +216,15 @@ ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *iter)
- 	}
- 	return ret;
- }
-+
-+vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
-+{
-+	vm_fault_t ret;
-+	pfn_t pfn;
-+	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
-+	if (ret & VM_FAULT_NEEDDSYNC)
-+		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
-+
-+	return ret;
-+}
- #endif /* CONFIG_FS_DAX */
-diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
-index a795023e26ca..9d5a3c99a6b9 100644
---- a/fs/btrfs/file.c
-+++ b/fs/btrfs/file.c
-@@ -2214,15 +2214,29 @@ static const struct vm_operations_struct btrfs_file_vm_ops = {
- 	.page_mkwrite	= btrfs_page_mkwrite,
- };
- 
-+#ifdef CONFIG_FS_DAX
-+static const struct vm_operations_struct btrfs_dax_vm_ops = {
-+	.fault          = btrfs_dax_fault,
-+	.page_mkwrite   = btrfs_dax_fault,
-+	.pfn_mkwrite    = btrfs_dax_fault,
-+};
-+#else
-+#define btrfs_dax_vm_ops btrfs_file_vm_ops
-+#endif
-+
- static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
- {
- 	struct address_space *mapping = filp->f_mapping;
-+	struct inode *inode = file_inode(filp);
- 
--	if (!mapping->a_ops->readpage)
-+	if (!IS_DAX(inode) && !mapping->a_ops->readpage)
- 		return -ENOEXEC;
- 
- 	file_accessed(filp);
--	vma->vm_ops = &btrfs_file_vm_ops;
-+	if (IS_DAX(inode))
-+		vma->vm_ops = &btrfs_dax_vm_ops;
-+	else
-+		vma->vm_ops = &btrfs_file_vm_ops;
- 
- 	return 0;
- }
--- 
-2.16.4
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 
+
+> ---
+>  drivers/nvdimm/pmem.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index bc2f700feef8..0279eb1da3ef 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -113,13 +113,13 @@ static void write_pmem(void *pmem_addr, struct page *page,
+>  
+>  	while (len) {
+>  		mem = kmap_atomic(page);
+> -		chunk = min_t(unsigned int, len, PAGE_SIZE);
+> +		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
+>  		memcpy_flushcache(pmem_addr, mem + off, chunk);
+>  		kunmap_atomic(mem);
+>  		len -= chunk;
+>  		off = 0;
+>  		page++;
+> -		pmem_addr += PAGE_SIZE;
+> +		pmem_addr += chunk;
+>  	}
+>  }
+>  
+> @@ -132,7 +132,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
+>  
+>  	while (len) {
+>  		mem = kmap_atomic(page);
+> -		chunk = min_t(unsigned int, len, PAGE_SIZE);
+> +		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
+>  		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
+>  		kunmap_atomic(mem);
+>  		if (rem)
+> @@ -140,7 +140,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
+>  		len -= chunk;
+>  		off = 0;
+>  		page++;
+> -		pmem_addr += PAGE_SIZE;
+> +		pmem_addr += chunk;
+>  	}
+>  	return BLK_STS_OK;
+>  }
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
