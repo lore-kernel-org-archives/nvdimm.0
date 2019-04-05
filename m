@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com
+ [IPv6:2607:f8b0:4864:20::542])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 236B821214947
- for <linux-nvdimm@lists.01.org>; Tue, 23 Apr 2019 01:07:52 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v6 4/6]  dax: check synchronous mapping is supported
-Date: Tue, 23 Apr 2019 13:36:10 +0530
-Message-Id: <20190423080612.15361-5-pagupta@redhat.com>
-In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
-References: <20190423080612.15361-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id D08CC21B02822
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Apr 2019 15:12:08 -0700 (PDT)
+Received: by mail-pg1-x542.google.com with SMTP id v12so3766990pgq.1
+ for <linux-nvdimm@lists.01.org>; Fri, 05 Apr 2019 15:12:08 -0700 (PDT)
+Subject: [mm PATCH v7 0/4] Deferred page init improvements
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Date: Fri, 05 Apr 2019 15:12:06 -0700
+Message-ID: <20190405221043.12227.19679.stgit@localhost.localdomain>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,65 +19,76 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-mm@kvack.org, akpm@linux-foundation.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, sparclinux@vger.kernel.org, alexander.h.duyck@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, vbabka@suse.cz
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch introduces 'daxdev_mapping_supported' helper
-which checks if 'MAP_SYNC' is supported with filesystem
-mapping. It also checks if corresponding dax_device is
-synchronous. Virtio pmem device is asynchronous and
-does not not support VM_SYNC. 
+This patchset is essentially a refactor of the page initialization logic
+that is meant to provide for better code reuse while providing a
+significant improvement in deferred page initialization performance.
 
-Suggested-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+In my testing on an x86_64 system with 384GB of RAM I have seen the
+following. In the case of regular memory initialization the deferred init
+time was decreased from 3.75s to 1.38s on average. This amounts to a 172%
+improvement for the deferred memory initialization performance.
+
+I have called out the improvement observed with each patch.
+
+v1->v2:
+    Fixed build issue on PowerPC due to page struct size being 56
+    Added new patch that removed __SetPageReserved call for hotplug
+v2->v3:
+    Rebased on latest linux-next
+    Removed patch that had removed __SetPageReserved call from init
+    Added patch that folded __SetPageReserved into set_page_links
+    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
+v3->v4:
+    Updated patch description and comments for mm_zero_struct_page patch
+        Replaced "default" with "case 64"
+        Removed #ifndef mm_zero_struct_page
+    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
+    Added Reviewed-by for patches reviewed by Pavel
+    Added Acked-by from Michal Hocko
+    Added deferred init times for patches that affect init performance
+    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
+v4->v5:
+    Updated Acks/Reviewed-by
+    Rebased on latest linux-next
+    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
+v5->v6:
+    Rebased on linux-next with previous v5 reverted
+    Drop the "This patch" or "This change" from patch descriptions.
+    Cleaned up patch descriptions for patches 3 & 4
+    Fixed kerneldoc for __next_mem_pfn_range_in_zone
+    Updated several Reviewed-by, and incorporated suggestions from Pavel
+    Added __init_single_page_nolru to patch 5 to consolidate code
+    Refactored iterator in patch 7 and fixed several issues
+v6->v7:
+    Updated MAX_ORDER_NR_PAGES patch to stop on section aligned boundaries
+    Dropped patches 5-7
+        Will follow-up later with reserved bit rework before resubmitting
+
 ---
- include/linux/dax.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index c97fc0cc7167..41b4a5db6305 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -41,6 +41,18 @@ void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
- bool dax_synchronous(struct dax_device *dax_dev);
-+/*
-+ * Check if given mapping is supported by the file / underlying device.
-+ */
-+static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-+				struct dax_device *dax_dev)
-+{
-+	if (!(vma->vm_flags & VM_SYNC))
-+		return true;
-+	if (!IS_DAX(file_inode(vma->vm_file)))
-+		return false;
-+	return dax_synchronous(dax_dev);
-+}
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
-@@ -68,6 +80,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- {
- 	return false;
- }
-+static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-+				struct dax_device *dax_dev)
-+{
-+	return !(vma->flags & VM_SYNC);
-+}
- #endif
- 
- struct writeback_control;
--- 
-2.20.1
+Alexander Duyck (4):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Implement new zone specific memblock iterator
+      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
 
+
+ arch/sparc/include/asm/pgtable_64.h |   30 -----
+ include/linux/memblock.h            |   41 +++++++
+ include/linux/mm.h                  |   41 ++++++-
+ mm/memblock.c                       |   64 ++++++++++
+ mm/page_alloc.c                     |  218 ++++++++++++++++++++++-------------
+ 5 files changed, 277 insertions(+), 117 deletions(-)
+
+--
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
