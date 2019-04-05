@@ -1,19 +1,21 @@
-From: Jonathan Cameron <jonathan.cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH 4/5] acpi/hmat: Register special purpose memory as a
- device
-Date: Fri, 5 Apr 2019 18:39:45 +0100
-Message-ID: <20190405183945.0000155f@huawei.com>
-References: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
- <155440492988.3190322.4475460421334178449.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20190405121857.0000718a@huawei.com>
- <CAPcyv4hpKkWm0x2jecvmtLNgmwUnAZn3jM_9sKyBAUFaRLj=cQ@mail.gmail.com>
- <20190405172342.00006a56@huawei.com>
- <CAPcyv4hxBFcJKbVVgNiE4UYXZS4XY9hfE8W9mN+VrcWS9AvJLw@mail.gmail.com>
+From: "Paul E. McKenney" <paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: Re: [PATCH RFC tip/core/rcu 0/4] Forbid static SRCU use in modules
+Date: Fri, 5 Apr 2019 16:28:35 -0700
+Message-ID: <20190405232835.GA24702@linux.ibm.com>
+References: <20190402142816.GA13084@linux.ibm.com>
+ <886051277.1395.1554218080591.JavaMail.zimbra@efficios.com>
+ <20190402152334.GC4102@linux.ibm.com>
+ <161156422.1435.1554219247444.JavaMail.zimbra@efficios.com>
+ <20190403133243.GE4102@linux.ibm.com>
+ <1028306587.504.1554301662374.JavaMail.zimbra@efficios.com>
+ <20190403162039.GA14111@linux.ibm.com>
+Reply-To: paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4hxBFcJKbVVgNiE4UYXZS4XY9hfE8W9mN+VrcWS9AvJLw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20190403162039.GA14111-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,138 +25,331 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Mathieu Desnoyers <mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>
+Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, fweisbec <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Lai Jiangshan <jiangshanlai-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, rcu <rcu-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, dipankar <dipankar-xthvdsQ13ZrQT0dZR+AlfA@public.gmane.org>, "Joel Fernandes, Google" <joel-QYYGw3jwrUn5owFQY34kdNi2O/JbrIOy@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, 5 Apr 2019 09:56:22 -0700
-Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-
-> On Fri, Apr 5, 2019 at 9:24 AM Jonathan Cameron
-> <jonathan.cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
-> >
-> > On Fri, 5 Apr 2019 08:43:03 -0700
-> > Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> >  
-> > > On Fri, Apr 5, 2019 at 4:19 AM Jonathan Cameron
-> > > <jonathan.cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:  
-> > > >
-> > > > On Thu, 4 Apr 2019 12:08:49 -0700
-> > > > Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > > >  
-> > > > > Memory that has been tagged EFI_SPECIAL_PURPOSE, and has performance
-> > > > > properties described by the ACPI HMAT is expected to have an application
-> > > > > specific consumer.
-> > > > >
-> > > > > Those consumers may want 100% of the memory capacity to be reserved from
-> > > > > any usage by the kernel. By default, with this enabling, a platform
-> > > > > device is created to represent this differentiated resource.
-> > > > >
-> > > > > A follow on change arranges for device-dax to claim these devices by
-> > > > > default and provide an mmap interface for the target application.
-> > > > > However, if the administrator prefers that some or all of the special
-> > > > > purpose memory is made available to the core-mm the device-dax hotplug
-> > > > > facility can be used to online the memory with its own numa node.
-> > > > >
-> > > > > Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-> > > > > Cc: Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > > > Cc: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > > Cc: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > > Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>  
-> > > >
-> > > > Hi Dan,
-> > > >
-> > > > Great to see you getting this discussion going so fast and in
-> > > > general the approach makes sense to me.
-> > > >
-> > > > I'm a little confused why HMAT has anything to do with this.
-> > > > SPM is defined either via the attribute in SRAT SPA entries,
-> > > > EF_MEMORY_SP or via the EFI memory map.
-> > > >
-> > > > Whether it is in HMAT or not isn't all that relevant.
-> > > > Back in the days of the reservation hint (so before yesterday :)
-> > > > it was relevant obviously but that's no longer true.
-> > > >
-> > > > So what am I missing?  
-> > >
-> > > It's a good question, and an assumption I should have explicitly
-> > > declared in the changelog. The problem with EFI_MEMORY_SP is the same
-> > > as the problem with the EfiPersistentMemory type, it isn't precise
-> > > enough on its own for the kernel to delineate 'type' or
-> > > device/replaceable-unit boundaries. For example, I expect one
-> > > EFI_MEMORY_SP range of a specific type may be contiguous with another
-> > > range of a different type. Similar to the NFIT there is no requirement
-> > > in the specification that platform firmware inject multiple range
-> > > entries. Instead that precision is left to the SRAT + HMAT, or the
-> > > NFIT in the case of PMEM.  
-> >
-> > Absolutely, as long as they are all SPM, they could be anywhere in
-> > the system.
-> >  
-> > >
-> > > Conversely, and thinking through this a bit more, if a memory range is
-> > > "special", but the platform fails to enumerate it in HMAT I think
-> > > Linux should scream loudly that the firmware is broken and leave the
-> > > range alone. The "scream loudly" piece is missing in the current set,
-> > > but the "leave the range alone" functionality is included.  
-> >
-> > I am certainly keen on screaming if the various entries are inconsistent
-> > but am not sure they necessarily are here.
-> >
-> > So there are a couple of ways we could get an SPM range defined.
-> > The key thing here is that firmware should be attempting to describe
-> > what it has to some degree somewhere.  If not it won't get a good
-> > result ;)  So if there is no SRAT then you are on your own. SCREAM!
-> >
-> > 1. Directly in the memory map.  If there is no other information then
-> >    tough luck the kernel can only sensibly handle it as one device.
-> >    Or not at all, which seems like a reasonable decision to me.
-> >    SCREAM
-> >
-> > 2. In memory map + a proximity domain entry in SRAT.  Given memory
-> >    with different characteristics should be in different proximity
-> >    domains anyway - this should be fairly precise. The slight snag
-> >    here is that the fine grained nature of SRAT is actually a side
-> >    effect of HMAT, so not sure well platforms have traditional
-> >    describe their more subtle differences.
-> >
-> > 3. In NFIT as NFIT SPA carries the memory attribute.  Not sure if
-> >    we should scream if this disagrees with the memory map.
-> >
-> > 4. In HMAT?  Now this changed in ACPI 6.3 to clean up the 'messy'
-> >    prior relationship between it and SRAT.  Now HMAT no longer has
-> >    memory address ranges as you observed.  That means, to describe
-> >    properties of memory, it has to use the proximity domains of
-> >    SRAT.  It provides lots of additional info about those domains
-> >    but it is SRAT that defines them.
-> >
-> > So I would argue that HMAT itself doesn't tell us anything useful.
-> > SRAT certainly does though so I think this should be coming from
-> > SRAT (or NFIT as that also defines the required precision)  
+On Wed, Apr 03, 2019 at 09:20:39AM -0700, Paul E. McKenney wrote:
+> On Wed, Apr 03, 2019 at 10:27:42AM -0400, Mathieu Desnoyers wrote:
+> > ----- On Apr 3, 2019, at 9:32 AM, paulmck paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org wrote:
+> > 
+> > > On Tue, Apr 02, 2019 at 11:34:07AM -0400, Mathieu Desnoyers wrote:
+> > >> ----- On Apr 2, 2019, at 11:23 AM, paulmck paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org wrote:
+> > >> 
+> > >> > On Tue, Apr 02, 2019 at 11:14:40AM -0400, Mathieu Desnoyers wrote:
+> > >> >> ----- On Apr 2, 2019, at 10:28 AM, paulmck paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org wrote:
+> > >> >> 
+> > >> >> > Hello!
+> > >> >> > 
+> > >> >> > This series prohibits use of DEFINE_SRCU() and DEFINE_STATIC_SRCU()
+> > >> >> > by loadable modules.  The reason for this prohibition is the fact
+> > >> >> > that using these two macros within modules requires that the size of
+> > >> >> > the reserved region be increased, which is not something we want to
+> > >> >> > be doing all that often.  Instead, loadable modules should define an
+> > >> >> > srcu_struct and invoke init_srcu_struct() from their module_init function
+> > >> >> > and cleanup_srcu_struct() from their module_exit function.  Note that
+> > >> >> > modules using call_srcu() will also need to invoke srcu_barrier() from
+> > >> >> > their module_exit function.
+> > >> >> 
+> > >> >> This arbitrary API limitation seems weird.
+> > >> >> 
+> > >> >> Isn't there a way to allow modules to use DEFINE_SRCU and DEFINE_STATIC_SRCU
+> > >> >> while implementing them with dynamic allocation under the hood ?
+> > >> > 
+> > >> > Although call_srcu() already has initialization hooks, some would
+> > >> > also be required in srcu_read_lock(), and I am concerned about adding
+> > >> > memory allocation at that point, especially given the possibility
+> > >> > of memory-allocation failure.  And the possibility that the first
+> > >> > srcu_read_lock() happens in an interrupt handler or similar.
+> > >> > 
+> > >> > Or am I missing a trick here?
+> > >> 
+> > >> I was more thinking that under #ifdef MODULE, both DEFINE_SRCU and
+> > >> DEFINE_STATIC_SRCU could append data in a dedicated section. module.c
+> > >> would additionally lookup that section on module load, and deal with
+> > >> those statically defined SRCU entries as if they were dynamically
+> > >> allocated ones. It would of course cleanup those resources on module
+> > >> unload.
+> > >> 
+> > >> Am I missing some subtlety there ?
+> > > 
+> > > If I understand you correctly, that is actually what is already done.  The
+> > > size of this dedicated section is currently set by PERCPU_MODULE_RESERVE,
+> > > and the additions of DEFINE{_STATIC}_SRCU() in modules was requiring that
+> > > this to be increased frequently.  That led to a request that something
+> > > be done, in turn leading to this patch series.
+> > 
+> > I think we are not expressing quite the same idea.
+> > 
+> > AFAIU, yours is to have DEFINE*_SRCU directly define per-cpu data within modules,
+> > which ends up using percpu module reserved memory.
+> > 
+> > My idea is to make DEFINE*_SRCU have a different behavior under #ifdef MODULE.
+> > It could emit a _global variable_ (_not_ per-cpu) within a new section. That
+> > section would then be used by module init/exit code to figure out what "srcu
+> > descriptors" are present in the modules. It would therefore rely on dynamic
+> > allocation for those, therefore removing the need to involve the percpu module
+> > reserved pool at all.
+> > 
+> > > 
+> > > I don't see a way around this short of changing module loading to do
+> > > alloc_percpu() and then updating the relocation based on this result.
+> > > Which would admittedly be far more convenient.  I was assuming that
+> > > this would be difficult due to varying CPU offsets or the like.
+> > > 
+> > > But if it can be done reasonably, it would be quite a bit nicer than
+> > > forcing dynamic allocation in cases where it is not otherwise needed.
+> > 
+> > Hopefully my explanation above helps clear out what I have in mind.
+> > 
+> > You can find similar tricks performed by include/linux/tracepoint.h:
+> > 
+> > #ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
+> > static inline struct tracepoint *tracepoint_ptr_deref(tracepoint_ptr_t *p)
+> > {
+> >         return offset_to_ptr(p);
+> > }
+> > 
+> > #define __TRACEPOINT_ENTRY(name)                                        \
+> >         asm("   .section \"__tracepoints_ptrs\", \"a\"          \n"     \
+> >             "   .balign 4                                       \n"     \
+> >             "   .long   __tracepoint_" #name " - .              \n"     \
+> >             "   .previous                                       \n")
+> > #else
+> > static inline struct tracepoint *tracepoint_ptr_deref(tracepoint_ptr_t *p)
+> > {
+> >         return *p;
+> > }
+> > 
+> > #define __TRACEPOINT_ENTRY(name)                                         \
+> >         static tracepoint_ptr_t __tracepoint_ptr_##name __used           \
+> >         __attribute__((section("__tracepoints_ptrs"))) =                 \
+> >                 &__tracepoint_##name
+> > #endif
+> > 
+> > [...]
+> > 
+> > #define DEFINE_TRACE_FN(name, reg, unreg)                                \
+> >         static const char __tpstrtab_##name[]                            \
+> >         __attribute__((section("__tracepoints_strings"))) = #name;       \
+> >         struct tracepoint __tracepoint_##name                            \
+> >         __attribute__((section("__tracepoints"), used)) =                \
+> >                 { __tpstrtab_##name, STATIC_KEY_INIT_FALSE, reg, unreg, NULL };\
+> >         __TRACEPOINT_ENTRY(name);
+> > 
+> > And kernel/module.c:
+> > 
+> > find_module_sections():
+> > 
+> > #ifdef CONFIG_TRACEPOINTS
+> >         mod->tracepoints_ptrs = section_objs(info, "__tracepoints_ptrs",
+> >                                              sizeof(*mod->tracepoints_ptrs),
+> >                                              &mod->num_tracepoints);
+> > #endif
+> > 
+> > And kernel/tracepoint.c:tracepoint_module_notify() for the module coming/going
+> > notifier.
+> > 
+> > Basically you would want to have your own structure within your own section of
+> > the module which describes the srcu domain, and have a module coming/going
+> > notifier responsible for dynamically allocating the srcu domain on "coming", and
+> > doing a srcu barrier and cleanup the domain on "going".
 > 
-> I agree, yes, SRAT by itself is sufficient for this "precision"
-> concern. However, do we, core Linux developers, really want to
-> encourage platform vendors that they can ignore deploying HMAT data
-> and get Linux to honor that sub-case for EFI_MEMORY_SP? My personal
-> experience is that platform firmware will take advantage of almost any
-> opportunity to minimize the data it provides to the OS. The only hard
-> lever Linux has to encourage platform firmware to give complete data
-> is to decline to support configurations that have incomplete data.
-> 
+> Ah, sounds like an excellent approach!  I will give it a shot, thank you!
 
-If we decide as a community that this is the way we want to go, I'm
-happy to politely point it out to our firmware people (who are a more
-proactive group on detailed system descriptions than many!)
+Please see below for an untested shot.
 
-If we make this a clearly stated policy, perhaps via some comments
-in the code or Documentation/ that that would be even better
-and avoid people taking the 'but you could support my firmware'
-line in the future.
+The original commits posted in this series are still available within
+the -srcu tree at branch srcunomod.2019.04.05a.  Yes, I am a digital
+packrat.  Why do you ask?
 
-I'll see if I can reach out to other OS vendors as well so we
-can present a unified front on this (perhaps after a few days, just
-in case we have any dissenting voices here!)
+Thoughts?  Or more accurately, given that this is the first time I
+have used linker sections, what did I mess up?
 
-Thanks,
+							Thanx, Paul
 
-Jonathan
+------------------------------------------------------------------------
+
+commit e24a0dab1414c563bb96bcb28d5963c9df18b1e8
+Author: Paul E. McKenney <paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Date:   Fri Apr 5 16:15:00 2019 -0700
+
+    srcu: Allocate per-CPU data for DEFINE_SRCU() in modules
+    
+    Adding DEFINE_SRCU() or DEFINE_STATIC_SRCU() to a loadable module requires
+    that the size of the reserved region be increased, which is not something
+    we want to be doing all that often.  One approach would be to require
+    that loadable modules define an srcu_struct and invoke init_srcu_struct()
+    from their module_init function and cleanup_srcu_struct() from their
+    module_exit function.  However, this is more than a bit user unfriendly.
+    
+    This commit therefore creates an ___srcu_struct_ptrs linker section,
+    and pointers to srcu_struct structures created by DEFINE_SRCU() and
+    DEFINE_STATIC_SRCU() within a module are placed into that module's
+    ___srcu_struct_ptrs section.  The required init_srcu_struct() and
+    cleanup_srcu_struct() functions are then automatically invoked as needed
+    when that module is loaded and unloaded, thus allowing modules to continue
+    to use DEFINE_SRCU() and DEFINE_STATIC_SRCU() while avoiding the need
+    to increase the size of the reserved region.
+    
+    Many of the algorithms and some of the code was cheerfully cherry-picked
+    from other code making use of linker sections, perhaps most notably from
+    tracepoints.  All bugs are nevertheless the sole property of the author.
+    
+    Suggested-by: Mathieu Desnoyers <mathieu.desnoyers-vg+e7yoeK/dWk0Htik3J/w@public.gmane.org>
+    Signed-off-by: Paul E. McKenney <paulmck-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index f8f6f04c4453..c2d919a1566e 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -338,6 +338,10 @@
+ 		KEEP(*(__tracepoints_ptrs)) /* Tracepoints: pointer array */ \
+ 		__stop___tracepoints_ptrs = .;				\
+ 		*(__tracepoints_strings)/* Tracepoints: strings */	\
++		. = ALIGN(8);						\
++		__start___srcu_struct = .;				\
++		*(___srcu_struct_ptrs)					\
++		__end___srcu_struct = .;				\
+ 	}								\
+ 									\
+ 	.rodata1          : AT(ADDR(.rodata1) - LOAD_OFFSET) {		\
+diff --git a/include/linux/module.h b/include/linux/module.h
+index 5bf5dcd91009..921443a026dd 100644
+--- a/include/linux/module.h
++++ b/include/linux/module.h
+@@ -21,6 +21,7 @@
+ #include <linux/rbtree_latch.h>
+ #include <linux/error-injection.h>
+ #include <linux/tracepoint-defs.h>
++#include <linux/srcu.h>
+ 
+ #include <linux/percpu.h>
+ #include <asm/module.h>
+@@ -448,6 +449,10 @@ struct module {
+ 	unsigned int num_tracepoints;
+ 	tracepoint_ptr_t *tracepoints_ptrs;
+ #endif
++#ifdef CONFIG_TREE_SRCU
++	unsigned int num_srcu_structs;
++	struct srcu_struct **srcu_struct_ptrs;
++#endif
+ #ifdef CONFIG_BPF_EVENTS
+ 	unsigned int num_bpf_raw_events;
+ 	struct bpf_raw_event_map *bpf_raw_events;
+diff --git a/include/linux/srcutree.h b/include/linux/srcutree.h
+index 7f7c8c050f63..93685a9f3b4c 100644
+--- a/include/linux/srcutree.h
++++ b/include/linux/srcutree.h
+@@ -120,9 +120,17 @@ struct srcu_struct {
+  *
+  * See include/linux/percpu-defs.h for the rules on per-CPU variables.
+  */
+-#define __DEFINE_SRCU(name, is_static)					\
+-	static DEFINE_PER_CPU(struct srcu_data, name##_srcu_data);\
+-	is_static struct srcu_struct name = __SRCU_STRUCT_INIT(name, name##_srcu_data)
++#ifdef MODULE
++# define __DEFINE_SRCU(name, is_static)					\
++	is_static struct srcu_struct name;				\
++	struct srcu_struct *__srcu_struct_##name			\
++		__attribute__((section("___srcu_struct_ptrs"))) = &name
++#else
++# define __DEFINE_SRCU(name, is_static)					\
++	static DEFINE_PER_CPU(struct srcu_data, name##_srcu_data);	\
++	is_static struct srcu_struct name =				\
++		__SRCU_STRUCT_INIT(name, name##_srcu_data)
++#endif
+ #define DEFINE_SRCU(name)		__DEFINE_SRCU(name, /* not static */)
+ #define DEFINE_STATIC_SRCU(name)	__DEFINE_SRCU(name, static)
+ 
+diff --git a/kernel/module.c b/kernel/module.c
+index 0b9aa8ab89f0..524da609c884 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -3093,6 +3093,11 @@ static int find_module_sections(struct module *mod, struct load_info *info)
+ 					     sizeof(*mod->tracepoints_ptrs),
+ 					     &mod->num_tracepoints);
+ #endif
++#ifdef CONFIG_TREE_SRCU
++	mod->srcu_struct_ptrs = section_objs(info, "___srcu_struct_ptrs",
++					     sizeof(*mod->srcu_struct_ptrs),
++					     &mod->num_srcu_structs);
++#endif
+ #ifdef CONFIG_BPF_EVENTS
+ 	mod->bpf_raw_events = section_objs(info, "__bpf_raw_tp_map",
+ 					   sizeof(*mod->bpf_raw_events),
+diff --git a/kernel/rcu/srcutree.c b/kernel/rcu/srcutree.c
+index 9b761e546de8..ac0f6f0a8916 100644
+--- a/kernel/rcu/srcutree.c
++++ b/kernel/rcu/srcutree.c
+@@ -1310,3 +1310,70 @@ void __init srcu_init(void)
+ 		queue_work(rcu_gp_wq, &ssp->work.work);
+ 	}
+ }
++
++#ifdef CONFIG_MODULES
++
++/* Initialize any global-scope srcu_struct structures used by this module. */
++static int srcu_module_coming(struct module *mod)
++{
++	int i;
++	struct srcu_struct **sspp = mod->srcu_struct_ptrs;
++	int ret;
++
++	for (i = 0; i < mod->num_srcu_structs; i++) {
++		ret = init_srcu_struct(*(sspp++));
++		if (WARN_ON_ONCE(ret))
++			return ret;
++	}
++	return 0;
++}
++
++/* Clean up any global-scope srcu_struct structures used by this module. */
++static void srcu_module_going(struct module *mod)
++{
++	int i;
++	struct srcu_struct **sspp = mod->srcu_struct_ptrs;
++
++	for (i = 0; i < mod->num_srcu_structs; i++)
++		cleanup_srcu_struct(*(sspp++));
++}
++
++/* Handle one module, either coming or going. */
++static int srcu_module_notify(struct notifier_block *self,
++			      unsigned long val, void *data)
++{
++	struct module *mod = data;
++	int ret = 0;
++
++	switch (val) {
++	case MODULE_STATE_COMING:
++		ret = srcu_module_coming(mod);
++		break;
++	case MODULE_STATE_LIVE:
++		break;
++	case MODULE_STATE_GOING:
++		srcu_module_going(mod);
++		break;
++	case MODULE_STATE_UNFORMED:
++		break;
++	}
++	return ret;
++}
++
++static struct notifier_block srcu_module_nb = {
++	.notifier_call = srcu_module_notify,
++	.priority = 0,
++};
++
++static __init int init_srcu_module_notifier(void)
++{
++	int ret;
++
++	ret = register_module_notifier(&srcu_module_nb);
++	if (ret)
++		pr_warn("Failed to register srcu module notifier\n");
++	return ret;
++}
++late_initcall(init_srcu_module_notifier);
++
++#endif /* #ifdef CONFIG_MODULES */
