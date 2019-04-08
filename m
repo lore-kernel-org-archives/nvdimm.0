@@ -1,19 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail2-relais-roc.national.inria.fr
- (mail2-relais-roc.national.inria.fr [192.134.164.83])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x233.google.com (mail-oi1-x233.google.com
+ [IPv6:2607:f8b0:4864:20::233])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 94822211F99BC
- for <linux-nvdimm@lists.01.org>; Mon,  8 Apr 2019 01:13:20 -0700 (PDT)
-Subject: Re: DAX numa_attribute vs SubNUMA clusters
-References: <62b31d43-d12c-ae99-b915-2049e7179e7e@inria.fr>
- <CAPcyv4h=m_zQg_C2kZyMTo1H2CP0qnuQ7e=0NE4rPWkvWMCHLA@mail.gmail.com>
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Message-ID: <9ba3542e-7467-aa77-4670-1ddc936a0656@inria.fr>
-Date: Mon, 8 Apr 2019 10:13:19 +0200
+ by ml01.01.org (Postfix) with ESMTPS id 3663C211F99D8
+ for <linux-nvdimm@lists.01.org>; Sun,  7 Apr 2019 21:26:57 -0700 (PDT)
+Received: by mail-oi1-x233.google.com with SMTP id a6so9410221oie.5
+ for <linux-nvdimm@lists.01.org>; Sun, 07 Apr 2019 21:26:57 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4h=m_zQg_C2kZyMTo1H2CP0qnuQ7e=0NE4rPWkvWMCHLA@mail.gmail.com>
-Content-Language: en-US
+References: <62b31d43-d12c-ae99-b915-2049e7179e7e@inria.fr>
+In-Reply-To: <62b31d43-d12c-ae99-b915-2049e7179e7e@inria.fr>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 7 Apr 2019 21:26:43 -0700
+Message-ID: <CAPcyv4h=m_zQg_C2kZyMTo1H2CP0qnuQ7e=0NE4rPWkvWMCHLA@mail.gmail.com>
+Subject: Re: DAX numa_attribute vs SubNUMA clusters
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,99 +21,90 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
+To: Brice Goglin <Brice.Goglin@inria.fr>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-TGUgMDgvMDQvMjAxOSDDoCAwNjoyNiwgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4gT24gVGh1
-LCBBcHIgNCwgMjAxOSBhdCAxMjo0OCBQTSBCcmljZSBHb2dsaW4gPEJyaWNlLkdvZ2xpbkBpbnJp
-YS5mcj4gd3JvdGU6Cj4+IEhlbGxvCj4+Cj4+IEkgYW0gdHJ5aW5nIHRvIHVuZGVyc3RhbmQgdGhl
-IGxvY2FsaXR5IG9mIHRoZSBEQVggZGV2aWNlcyB3aXRoCj4+IHJlc3BlY3QgdG8gcHJvY2Vzc29y
-cyB3aXRoIFN1Yk5VTUEgY2x1c3RlcmluZyBlbmFibGVkLiBUaGUgbWFjaGluZQo+PiBJIGFtIHVz
-aW5nIGhhcyA2aW52YWxpZGF0ZV9tYXBwaW5nX3BhZ2VzIHByb3hpbWl0eSBkb21haW5zOiAjMC0z
-IGFyZSB0aGUgU05DcyBvZiBib3RoCj4+IHByb2Nlc3NvcnMsICM0LTUgYXJlIHByb3ggZG9tYWlu
-cyBmb3IgZWFjaCBzb2NrZXQgc2V0IG9mIE5WRElNTXMuCj4+Cj4+IFNMSVQgc2F5cyB0aGUgdG9w
-b2xvZ3kgbG9va3MgbGlrZSB0aGlzLCB3aGljaCBzZWVtcyBPSyB0byBtZToKPj4KPj4gICBQYWNr
-YWdlIDAgLS0tLS0tLS0tLSBQYWNrYWdlIDEKPj4gICBOVnJlZ2lvbjAgICAgICAgICAgICBOVnJl
-Z2lvbjEKPj4gICAgfCAgICAgfCAgICAgICAgICAgICAgfCAgICAgfAo+PiBTTkMgMCAgIFNOQyAx
-ICAgICAgICBTTkMgMiAgIFNOQyAzCj4+IG5vZGUwICAgbm9kZTEgICAgICAgIG5vZGUyICAgbm9k
-ZTMKPj4KPj4gSG93ZXZlciBlYWNoIERBWCAibnVtYV9ub2RlIiBhdHRyaWJ1dGUgY29udGFpbnMg
-YSBzaW5nbGUgbm9kZSBJRCwKPj4gd2hpY2ggbGVhZHMgdG8gdGhpcyB0b3BvbG9neSBpbnN0ZWFk
-Ogo+Pgo+PiAgIFBhY2thZ2UgMCAtLS0tLS0tLS0tIFBhY2thZ2UgMQo+PiAgICB8ICAgICB8ICAg
-ICAgICAgICAgICB8ICAgICB8Cj4+IFNOQyAwICAgU05DIDEgICAgICAgIFNOQyAyICAgU05DIDMK
-Pj4gbm9kZTAgICBub2RlMSAgICAgICAgbm9kZTIgICBub2RlMwo+PiAgICB8ICAgICAgICAgICAg
-ICAgICAgIHwKPj4gZGF4MC4wICAgICAgICAgICAgICAgZGF4MS4wCj4+Cj4+IEl0IGxvb2tzIGxp
-a2UgdGhpcyBpcyBjYXVzZWQgYnkgYWNwaV9tYXBfcHhtX3RvX29ubGluZV9ub2RlKCkKPj4gb25s
-eSByZXR1cm5pbmcgdGhlIGZpcnN0IGNsb3Nlc3Qgbm9kZSBmb3VuZCBpbiB0aGUgU0xJVC4KPj4g
-SG93ZXZlciwgZXZlbiBpZiB3ZSBjaGFuZ2UgaXQgdG8gcmV0dXJuIG11bHRpcGxlIGxvY2FsIG5v
-ZGVzLAo+PiB0aGUgREFYICJudW1hX25vZGUiIGF0dHJpYnV0ZSBjYW5ub3QgZXhwb3NlIG11bHRp
-cGxlIG5vZGVzLgo+PiBTaG91bGQgd2UgcmF0aGVyIGV4cG9zZSBLZWl0aCBITUFUIGF0dHJpYnV0
-ZXMgZm9yIERBWCBkZXZpY2VzPwo+IElmIEkgdW5kZXJzdGFuZCB0aGUgc3VnZ2VzdGlvbiBjb3Jy
-ZWN0bHkgeW91J3JlIHJlZmVycmluZyB0byB0aGUKPiAidGFyZ2V0X25vZGUiIG9yIHRoZSB1bmlx
-dWUgbm9kZSBudW1iZXIgdGhhdCBnZXRzIGFzc2lnbmVkIHdoZW4gdGhlCj4gbWVtb3J5IGlzIHRy
-YW5zaXRpb25lZCBvbmxpbmUuIEkgc3RydWdnbGUgdG8gc2VlIHRoZSBpbmNyZW1lbnRhbAo+IGJl
-bmVmaXQgcmVsYXRpdmUgdG8gd2hhdCB3ZSBsb3NlIHdpdGggY29tcGF0aWJpbGl0eSBvZiB0aGUK
-PiAidHJhZGl0aW9uYWwiIG51bWEgbm9kZSBpbnRlcnByZXRhdGlvbiBmb3IgYSBkZXZpY2UgdGhh
-dCBpbmRpY2F0ZXMKPiB3aGljaCBjcHVzIGFyZSBjbG9zZSB0byB0aGUgZ2l2ZW4gZGV2aWNlLiBJ
-IHRoaW5rIHRoZSBidWxrIG9mIHRoZQo+IHByb2JsZW0gaXMgc29sdmVkIHdpdGggdGhlIG5leHQg
-c3VnZ2VzdGlvbiBiZWxvdy4KCgpIZWxsbyBEYW4sCgpOb3Qgc3VyZSB3aHkgeW91J3JlIHRhbGtp
-bmcgYWJvdXQgInRhcmdldF9ub2RlIiBoZXJlLiBUaGF0IGF0dHJpYnV0ZSBpcwpjb3JyZWN0OgoK
-JCBjYXQgL3N5cy9idXMvZGF4L2RldmljZXMvZGF4MC4wL3RhcmdldF9ub2RlCjQKCk15IGlzc3Vl
-IGlzIHdpdGggIm51bWFfbm9kZSIgd2hpY2ggZmFpbHMgdG8gcmV0dXJuIGVub3VnaCBpbmZvcm1h
-dGlvbiBoZXJlOgoKJCBjYXQKL3N5cy9kZXZpY2VzL0xOWFNZU1RNOjAwL0xOWFNZQlVTOjAwL0FD
-UEkwMDEyOjAwL25kYnVzMC9yZWdpb24wL2RheDAuMC9udW1hX25vZGUKCjAKCihpbnN0ZWFkIG9m
-IDArMSBidXQgSSBkb24ndCB3YW50IHRvIGNoYW5nZSB0aGUgc2VtYW50aWNzIG9mIHRoYXQgZmls
-ZSwKc2VlIGJlbG93KQoKCj4KPj4gTWF5YmUgdGhlcmUncyBldmVuIGEgd2F5IHRvIHNoYXJlIHRo
-ZW0gYmV0d2VlbiBEQVggZGV2aWNlcwo+PiBhbmQgRGF2ZSdzIEtNRU0gaG90cGx1Z2dlZCBOVU1B
-IG5vZGVzPwo+IEluIHRoaXMgaW5zdGFuY2UsIHdoZXJlIHRoZSBleHBlY3RhdGlvbiBpcyB0aGF0
-IHRoZSBOVkRJTU0gcmFuZ2UgaXMKPiBlcXVpZGlzdGFudCBmcm9tIGJvdGggU05DIG5vZGVzIG9u
-IGEgcGFja2FnZSwgSSB3b3VsZCB0ZWFjaCBudW1hY3RsCj4gdG9vbCBhbmQgb3RoZXIgdG9vbGlu
-ZyB0byByZXR1cm4gYSBsaXN0IG9mIGxvY2FsIG5vZGVzIHJhdGhlciB0aGFuIHRoZQo+IHNpbmds
-ZSBhdHRyaWJ1dGUuIEVmZmVjdGl2ZWx5IGFuIG9wZXJhdGlvbiBsaWtlICJudW1hY3RsIC0tcHJl
-ZmVycmVkCj4gYmxvY2s6cG1lbTAiIHdvdWxkIHJldHVybiBhIG5vZGUtbWFzayB0aGF0IGluY2x1
-ZGVzIG5vZGVzIDAgYW5kIDEuCgoKVGVhY2hpbmcgdGhlc2UgdG9vbHMgaXMgZXhhY3RseSB3aGF0
-IEkgd2FudCB0byBzb2x2ZSBoZXJlIChJIHdhcyByYXRoZXIKdGFsa2luZyBhYm91dCBkYXgwLjAg
-dGhhbiBwbWVtMCBidXQgaXQgZG9lc24ndCBtYXR0ZXIgbXVjaCkuIFRoZXJlIGFyZQp1c3VhbGx5
-IHR3byB3YXlzIHRvIGZpbmQgdGhlIGxvY2FsaXR5IG9mIGEgZGV2aWNlIGZyb20gdXNlcnNwYWNl
-OgoKKiBSZWFkaW5nIGEgImxvY2FsX2NwdXMiIHN5c2ZzIGF0dHJpYnV0ZS4gV29ya3Mgd2VsbCBm
-b3IgZmluZGluZyBsb2NhbApDUFVzLiBEb2Vzbid0IGFsd2F5cyB3b3JrIGZvciBmaW5kaW5nIGxv
-Y2FsIG1lbW9yeSB3aGVuIHNvbWUgQ1BVcyBhcmUKb2ZmbGluZTogaWYgYWxsIENQVXMgb2YgdGhl
-IGxvY2FsIG5vZGUgYXJlIG9mZmxpbmUsIHlvdSBsb29zZSB0aGUKaW5mb3JtYXRpb24gYWJvdXQg
-dGhlIGxvY2FsIG1lbW9yeSBiZWluZyBjbG9zZSB0byB5b3VyIGRldmljZSAoSW50ZWwKcGVvcGxl
-IGZyb20gIm1PUyIgaGVhdmlseSByZWx5IG9mIHRoaXMpLgoKKiBSZWFkaW5nIGEgIm51bWFfbm9k
-ZSIgc3lzZnMgYXR0cmlidXRlLCBidXQgaXQgcG9pbnRzIHRvIGEgc2luZ2xlIG5vZGUuCgoKS2Vp
-dGggSE1BVCBwYXRjaGVzIGFyZSBzb21laG93IGEgM3JkIHdheSB0aGF0IGRvZXNuJ3QgaGF2ZSBh
-bnkgb2YgdGhlc2UKaXNzdWVzOiB5b3UganVzdCByZWFkICJhY2Nlc3MwL2luaXRpYXRvcnMvbm9k
-ZSoiOgoKKiBJZiB5b3Ugd2FudCBsb2NhbCBDUFVzLCB5b3UgcmVhZCB0aGUgImNwdW1hcCIgb2Yg
-dGhlIGluaXRpYXRvcnMgbm9kZXMuCgoqIElmIHlvdSB3YW50IHRoZSBsaXN0IG9mICJjbG9zZSIg
-bWVtb3J5IG5vZGVzLCB5b3UgaGF2ZSB0aGUgbGlzdCBvZgppbml0aWF0b3IgIm5vZGVzIiwgb3Ig
-dGhlaXIgdGFyZ2V0cy4KCkl0IHdvdWxkIHdvcmsgdmVyeSB3ZWxsIGZvciBkZXNjcmliaW5nIHRo
-ZSB0b3BvbG9neSBvZiBteSBtYWNoaW5lIG9uY2UgSQpob3RwbHVnIG5vZGU0IGFuZCBub2RlNSB1
-c2luZyBEYXZlJ3MgImttZW0iIGRyaXZlcjogSSBnZXQgbm9kZTAgYW5kCm5vZGUxIGlzIG5vZGU0
-L2FjY2VzczAvaW5pdGlhdG9ycy8KCgpJIGtub3cgSE1BVCBhdHRyaWJ1dGVzIGRvbid0IGFwcGVh
-ciBpbiBob3RwbHVnZ2VkIG5vZGUgc3lzZnMgZGlyZWN0b3JpZXMKeWV0LCBidXQgaXQgd291bGQg
-YWxzbyBiZSBuaWNlIHRvIGhhdmUgYSB3YXkgdG8gZ2V0IHRoYXQgaW5mb3JtYXRpb24gZm9yCmRh
-eCBkZXZpY2VzIGJlZm9yZSBob3RwbHVnLCBzaW5jZSB0aGUgZGF4IGRldmljZSBhbmQgaG90cGx1
-Z2dlZCBub2RlcwphcmUgdGhlIHNhbWUgdGhpbmcuCgoKSW4gYW4gY3Jhenkgd29ybGQsIG1heWJl
-IHdlIGNvdWxkIGhhdmUgc29tZXRoaW5nIGxpa2UgdGhpczoKCiogYmVmb3JlIGhvdHBsdWcgd2l0
-aCBrbWVtIGRyaXZlciwgdW5yZWdpc3RlcmVkIG5vZGVzIGFwcGVhciBpbiBhCnNwZWNpYWwgZGly
-ZWN0b3J5IHN1Y2ggYXMKL3N5cy9kZXZpY2VzL3N5c3RlbS9ub2RlL3VucmVnaXN0ZXJlZF9obWF0
-L25vZGVYIHRvZ2V0aGVyIHdpdGggdGhlaXIKSE1BVCBhdHRyaWJ1dGVzLiBJZiBJIHdhbnQgdG8g
-ZmluZCB0aGUgbG9jYWxpdHkgb2YgYSBEQVggZGV2aWNlLCBJIHJlYWQKaXRzIHRhcmdldF9ub2Rl
-LCBhbmQgZ28gdG8gdGhlIGNvcnJlc3BvbmRpbmcgdW5yZWdpc3RlcmVkX2htYXQvbm9kZVggYW5k
-CnJlYWQgY3B1bWFwLCBpbml0aWF0b3JzLCBldGMuCgoqIGF0IGhvdHBsdWcsIHRoZSBub2RlIGlz
-IG1vdmVkIG91dCBvZiB1bnJlZ2lzdGVyZWRfaG1hdC8KCgo+PiBJZiB3ZSBoYWQgb25lIFNQQSBy
-YW5nZSBwZXIgU05DLCB3b3VsZCBpdCBzdGlsbCBiZSBwb3NzaWJsZQo+PiB0byBpbnRlcmxlYXZl
-IE5WRElNTXMgb2YgYm90aCBTTkMgdG8gY3JlYXRlIGEgc2luZ2xlIHJlZ2lvbgo+PiBmb3IgZWFj
-aCBzb2NrZXQ/Cj4gSSBkb24ndCBmb2xsb3cgdGhlIHF1ZXN0aW9uLCBpZiB0aGUgU1BBIHJhbmdl
-IGlzIHNwbGl0IHlvdSB3YW50IHRoZQo+IFNMSVQgdG8gbGllIGFuZCBzYXkgaXQgaXNuJ3Q/CgoK
-U29ycnksIHRoZXNlIHF1ZXN0aW9ucyBhYm91dCBORklUIHdlcmUgbm90IHJlbGF0ZWQgdG8gbXkg
-c3BlY2lmaWMgY29uZmlnCmJ1dCByYXRoZXIgdG8gdW5kZXJzdGFuZCB3aGF0IGNvbmZpZ3MgYXJl
-IHBvc3NpYmxlLiBFbGxpb3R0J3MgYW5zd2VyIGFuZAp5b3VycyBjbGFyaWZpZWQgdGhpbmdzLCB0
-aGFua3MuCgpCcmljZQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Thu, Apr 4, 2019 at 12:48 PM Brice Goglin <Brice.Goglin@inria.fr> wrote:
+>
+> Hello
+>
+> I am trying to understand the locality of the DAX devices with
+> respect to processors with SubNUMA clustering enabled. The machine
+> I am using has 6invalidate_mapping_pages proximity domains: #0-3 are the SNCs of both
+> processors, #4-5 are prox domains for each socket set of NVDIMMs.
+>
+> SLIT says the topology looks like this, which seems OK to me:
+>
+>   Package 0 ---------- Package 1
+>   NVregion0            NVregion1
+>    |     |              |     |
+> SNC 0   SNC 1        SNC 2   SNC 3
+> node0   node1        node2   node3
+>
+> However each DAX "numa_node" attribute contains a single node ID,
+> which leads to this topology instead:
+>
+>   Package 0 ---------- Package 1
+>    |     |              |     |
+> SNC 0   SNC 1        SNC 2   SNC 3
+> node0   node1        node2   node3
+>    |                   |
+> dax0.0               dax1.0
+>
+> It looks like this is caused by acpi_map_pxm_to_online_node()
+> only returning the first closest node found in the SLIT.
+> However, even if we change it to return multiple local nodes,
+> the DAX "numa_node" attribute cannot expose multiple nodes.
+> Should we rather expose Keith HMAT attributes for DAX devices?
+
+If I understand the suggestion correctly you're referring to the
+"target_node" or the unique node number that gets assigned when the
+memory is transitioned online. I struggle to see the incremental
+benefit relative to what we lose with compatibility of the
+"traditional" numa node interpretation for a device that indicates
+which cpus are close to the given device. I think the bulk of the
+problem is solved with the next suggestion below.
+
+> Maybe there's even a way to share them between DAX devices
+> and Dave's KMEM hotplugged NUMA nodes?
+
+In this instance, where the expectation is that the NVDIMM range is
+equidistant from both SNC nodes on a package, I would teach numactl
+tool and other tooling to return a list of local nodes rather than the
+single attribute. Effectively an operation like "numactl --preferred
+block:pmem0" would return a node-mask that includes nodes 0 and 1.
+
+> By the way, I am not sure if my above configuration is what
+> we should expect on SNC-enabled production machines.
+> Is the NFIT table supposed to expose one SPA Range per SNC,
+> or one per socket? Should it depend with the SNC config in
+> the BIOS?
+
+The NFIT is "supposed" to expose the interleave boundaries, and in
+this case it seems to be saying that System RAM is interleaved
+differently than the PMEM. Whether that is correct or not is for the
+platform BIOS developer to validate. The OS is only equipped to trust
+the SLIT.
+
+> If we had one SPA range per SNC, would it still be possible
+> to interleave NVDIMMs of both SNC to create a single region
+> for each socket?
+
+I don't follow the question, if the SPA range is split you want the
+SLIT to lie and say it isn't?
+
+> If I don't interleave NVDIMMs, I get the same result even if
+> some regions should be only local to node1 (or node3). Maybe
+> because they are still in the same SPA range, and thus still
+> get the entire range locality?
+
+...or the SLIT is incorrect for that config.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
