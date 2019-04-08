@@ -1,120 +1,81 @@
-From: "Paul E. McKenney" <paulmck@linux.ibm.com>
-Subject: Re: [PATCH RFC tip/core/rcu 0/4] Forbid static SRCU use in modules
-Date: Sun, 7 Apr 2019 19:28:12 -0700
-Message-ID: <20190408022811.GG14111@linux.ibm.com>
-References: <20190403133243.GE4102@linux.ibm.com>
- <1028306587.504.1554301662374.JavaMail.zimbra@efficios.com>
- <20190403162039.GA14111@linux.ibm.com>
- <20190405232835.GA24702@linux.ibm.com>
- <20190406230613.GA187766@google.com>
- <20190407133941.GC14111@linux.ibm.com>
- <20190407135937.GA30053@linux.ibm.com>
- <20190407154613.GA2770@localhost>
- <20190407170514.GE14111@linux.ibm.com>
- <20190408003646.GA135726@google.com>
-Reply-To: paulmck@linux.ibm.com
+From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: Re: [PATCH v2] fs/dax: deposit pagetable even when installing zero
+ page
+Date: Mon, 08 Apr 2019 15:08:53 +0530
+Message-ID: <87r2acn8eq.fsf@linux.ibm.com>
+References: <20190309120721.21416-1-aneesh.kumar@linux.ibm.com>
+ <8736nrnzxm.fsf@linux.ibm.com> <20190313095834.GF32521@quack2.suse.cz>
+ <CAPcyv4irZP2F1acuco7UVbvTARzn5SXvCAWstFYtP7ygLRSXTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190408003646.GA135726@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joel Fernandes <joel@joelfernandes.org>
-Cc: Jessica Yu <jeyu@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, rcu <rcu@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, dipankar <dipankar@in.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, rostedt <rostedt@goodmis.org>, David Howells <dhowells@redhat.com>, Eric Dumazet <edumazet@google.com>, fweisbec <fweisbec@gmail.com>, Oleg Nesterov <oleg@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, dri-devel <dri-devel@lists.freedesktop.org>, amd-gfx <amd-gfx@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4irZP2F1acuco7UVbvTARzn5SXvCAWstFYtP7ygLRSXTg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-fsdevel <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Sun, Apr 07, 2019 at 08:36:46PM -0400, Joel Fernandes wrote:
-> On Sun, Apr 07, 2019 at 10:05:14AM -0700, Paul E. McKenney wrote:
-> > On Sun, Apr 07, 2019 at 03:46:13PM +0000, Joel Fernandes wrote:
-> > > On Sun, Apr 07, 2019 at 06:59:37AM -0700, Paul E. McKenney wrote:
-> > > > On Sun, Apr 07, 2019 at 06:39:41AM -0700, Paul E. McKenney wrote:
-> > > > > On Sat, Apr 06, 2019 at 07:06:13PM -0400, Joel Fernandes wrote:
-> > > > 
-> > > > [ . . . ]
-> > > > 
-> > > > > > > diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> > > > > > > index f8f6f04c4453..c2d919a1566e 100644
-> > > > > > > --- a/include/asm-generic/vmlinux.lds.h
-> > > > > > > +++ b/include/asm-generic/vmlinux.lds.h
-> > > > > > > @@ -338,6 +338,10 @@
-> > > > > > >  		KEEP(*(__tracepoints_ptrs)) /* Tracepoints: pointer array */ \
-> > > > > > >  		__stop___tracepoints_ptrs = .;				\
-> > > > > > >  		*(__tracepoints_strings)/* Tracepoints: strings */	\
-> > > > > > > +		. = ALIGN(8);						\
-> > > > > > > +		__start___srcu_struct = .;				\
-> > > > > > > +		*(___srcu_struct_ptrs)					\
-> > > > > > > +		__end___srcu_struct = .;				\
-> > > > > > >  	}								\
-> > > > > > 
-> > > > > > This vmlinux linker modification is not needed. I tested without it and srcu
-> > > > > > torture works fine with rcutorture built as a module. Putting further prints
-> > > > > > in kernel/module.c verified that the kernel is able to find the srcu structs
-> > > > > > just fine. You could squash the below patch into this one or apply it on top
-> > > > > > of the dev branch.
-> > > > > 
-> > > > > Good point, given that otherwise FORTRAN named common blocks would not
-> > > > > work.
-> > > > > 
-> > > > > But isn't one advantage of leaving that stuff in the RO_DATA_SECTION()
-> > > > > macro that it can be mapped read-only?  Or am I suffering from excessive
-> > > > > optimism?
-> > > > 
-> > > > And to answer the other question, in the case where I am suffering from
-> > > > excessive optimism, it should be a separate commit.  Please see below
-> > > > for the updated original commit thus far.
-> > > 
-> > > Actually the vmlinux.lds.h file is unused for module building. For ex, if you
-> > > delete include/asm-generic/vmlinux.lds.h , then you can still build
-> > > rcutorture.ko. Did I miss something obvious? In that case the vmlinux.lds.h
-> > > are not needed since the __section annotations automatically place the srcu
-> > > structs in a separate section.
-> > 
-> > Hard to argue given that I just deleted include/asm-generic/vmlinux.lds.h,
-> > touched kernel/rcu/rcutorture.c, and rebuilt the corresponding .ko
-> > without errors.  ;-)
-> > 
-> > Hmmm...  Is there some way to place a section into a read-only page,
-> > for example, tagged onto the text section for that module?  That would
-> > get rid of a class of bugs, if nothing else.
-> 
-> Strictly speaking, the array of pointers in the new srcu section are fixed up
-> at runtime because the srcu_struct(s) they point to can be loaded at a
-> dynamic location in memory. The srcu_struct(s) are themselves in the .bss
-> section of the module and their locations depend on where the .bss section of
-> the module is loaded in memory at load time.
-> 
-> I agree that after such relocation fixups are done, there is no reason to keep
-> the array-of-pointers section readable but unfortunately I couldn't figure a
-> way out to make them read-only post the relocations.
-> 
-> I copied Jessica Yu who maintains module loading for any input. Jessica, as a
-> summary, we are trying to create a custom ELF section of srcu_struct pointers
-> in kernels modules, and then make the module loader do SRCU initialization
-> from structs pointed to by this section.  The srcu_struct themselves are defined
-> on the .bss section. Is there any way we can make this pointer array section
-> read-only *after* the relocation fixups of the array are completed?
-> 
-> > > Let me know if you would like me to send a patch separately, or if the
-> > > appended patch for the same in my previous email suffices.
-> > 
-> > Please do resend as a formal patch with the above in the commit log.
-> > I doubt that I am the only one needing a bit of module-build education!
-> > And thank you for providing that education, by the way!
-> 
-> Sounds great, I will go ahead and send out a patch in the morning for this
-> part.
 
-Sounds good on both counts!
+ Hi Dan,
 
-							Thanx, Paul
+Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
-> > > > And may I have your Tested-by?
-> > > 
-> > > Absolutely, please do and thanks!
-> > 
-> > Done, and thank you for giving it a go!
-> 
-> You're very welcome. thanks,
-> 
->  - Joel
-> 
+> On Wed, Mar 13, 2019 at 2:58 AM Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> wrote:
+>>
+>> On Wed 13-03-19 10:17:17, Aneesh Kumar K.V wrote:
+>> >
+>> > Hi Dan/Andrew/Jan,
+>> >
+>> > "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org> writes:
+>> >
+>> > > Architectures like ppc64 use the deposited page table to store hardware
+>> > > page table slot information. Make sure we deposit a page table when
+>> > > using zero page at the pmd level for hash.
+>> > >
+>> > > Without this we hit
+>> > >
+>> > > Unable to handle kernel paging request for data at address 0x00000000
+>> > > Faulting instruction address: 0xc000000000082a74
+>> > > Oops: Kernel access of bad area, sig: 11 [#1]
+>> > > ....
+>> > >
+>> > > NIP [c000000000082a74] __hash_page_thp+0x224/0x5b0
+>> > > LR [c0000000000829a4] __hash_page_thp+0x154/0x5b0
+>> > > Call Trace:
+>> > >  hash_page_mm+0x43c/0x740
+>> > >  do_hash_page+0x2c/0x3c
+>> > >  copy_from_iter_flushcache+0xa4/0x4a0
+>> > >  pmem_copy_from_iter+0x2c/0x50 [nd_pmem]
+>> > >  dax_copy_from_iter+0x40/0x70
+>> > >  dax_iomap_actor+0x134/0x360
+>> > >  iomap_apply+0xfc/0x1b0
+>> > >  dax_iomap_rw+0xac/0x130
+>> > >  ext4_file_write_iter+0x254/0x460 [ext4]
+>> > >  __vfs_write+0x120/0x1e0
+>> > >  vfs_write+0xd8/0x220
+>> > >  SyS_write+0x6c/0x110
+>> > >  system_call+0x3c/0x130
+>> > >
+>> > > Fixes: b5beae5e224f ("powerpc/pseries: Add driver for PAPR SCM regions")
+>> > > Reviewed-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+>> > > Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+>> >
+>> > Any suggestion on which tree this patch should got to? Also since this
+>> > fix a kernel crash, we may want to get this to 5.1?
+>>
+>> I think this should go through Dan's tree...
+>
+> I'll merge this and let it soak in -next for a week and then submit for 5.1-rc2.
+
+Any update on this? Did you get to merge this?
+
+-aneesh
