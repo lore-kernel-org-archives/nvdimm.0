@@ -1,154 +1,260 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95B10212108C9
- for <linux-nvdimm@lists.01.org>; Mon, 22 Apr 2019 16:22:02 -0700 (PDT)
-Subject: [4.19, 5.0 stable PATCH 2/4] nfit/ars: Introduce scrub_flags
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 22 Apr 2019 16:08:16 -0700
-Message-ID: <155597449609.2675082.11870677141069917115.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Date: Tue, 9 Apr 2019 10:55:49 -0700
+From: "Paul E. McKenney" <paulmck@linux.ibm.com>
+Subject: Re: [PATCH RFC tip/core/rcu 0/4] Forbid static SRCU use in modules
+Reply-To: paulmck@linux.ibm.com
+References: <20190402142816.GA13084@linux.ibm.com>
+ <20190408142230.GJ14111@linux.ibm.com>
+ <1447252022.1166.1554734972823.JavaMail.zimbra@efficios.com>
+ <20190408154616.GO14111@linux.ibm.com>
+ <1489474416.1465.1554744287985.JavaMail.zimbra@efficios.com>
+ <20190409154012.GC248418@google.com>
+ <534133139.2374.1554825363211.JavaMail.zimbra@efficios.com>
+ <20190409164031.GE14111@linux.ibm.com>
+ <1958511501.2412.1554828325809.JavaMail.zimbra@efficios.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1958511501.2412.1554828325809.JavaMail.zimbra@efficios.com>
+Message-Id: <20190409175549.GG14111@linux.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: "Joel Fernandes, Google" <joel@joelfernandes.org>, rcu <rcu@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Lai Jiangshan <jiangshanlai@gmail.com>, dipankar <dipankar@in.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Josh Triplett <josh@joshtriplett.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, rostedt <rostedt@goodmis.org>, David Howells <dhowells@redhat.com>, Eric Dumazet <edumazet@google.com>, fweisbec <fweisbec@gmail.com>, Oleg Nesterov <oleg@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, dri-devel <dri-devel@lists.freedesktop.org>, amd-gfx <amd-gfx@lists.freedesktop.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit e34b8252a3d2893ca55c82dbfcdaa302fa03d400 upstream.
+On Tue, Apr 09, 2019 at 12:45:25PM -0400, Mathieu Desnoyers wrote:
+> ----- On Apr 9, 2019, at 12:40 PM, paulmck paulmck@linux.ibm.com wrote:
+> 
+> > On Tue, Apr 09, 2019 at 11:56:03AM -0400, Mathieu Desnoyers wrote:
+> >> ----- On Apr 9, 2019, at 11:40 AM, Joel Fernandes, Google joel@joelfernandes.org
+> >> wrote:
+> >> 
+> >> > On Mon, Apr 08, 2019 at 01:24:47PM -0400, Mathieu Desnoyers wrote:
+> >> >> ----- On Apr 8, 2019, at 11:46 AM, paulmck paulmck@linux.ibm.com wrote:
+> >> >> 
+> >> >> > On Mon, Apr 08, 2019 at 10:49:32AM -0400, Mathieu Desnoyers wrote:
+> >> >> >> ----- On Apr 8, 2019, at 10:22 AM, paulmck paulmck@linux.ibm.com wrote:
+> >> >> >> 
+> >> >> >> > On Mon, Apr 08, 2019 at 09:05:34AM -0400, Mathieu Desnoyers wrote:
+> >> >> >> >> ----- On Apr 7, 2019, at 10:27 PM, paulmck paulmck@linux.ibm.com wrote:
+> >> >> >> >> 
+> >> >> >> >> > On Sun, Apr 07, 2019 at 09:07:18PM +0000, Joel Fernandes wrote:
+> >> >> >> >> >> On Sun, Apr 07, 2019 at 04:41:36PM -0400, Mathieu Desnoyers wrote:
+> >> >> >> >> >> > 
+> >> >> >> >> >> > ----- On Apr 7, 2019, at 3:32 PM, Joel Fernandes, Google joel@joelfernandes.org
+> >> >> >> >> >> > wrote:
+> >> >> >> >> >> > 
+> >> >> >> >> >> > > On Sun, Apr 07, 2019 at 03:26:16PM -0400, Mathieu Desnoyers wrote:
+> >> >> >> >> >> > >> ----- On Apr 7, 2019, at 9:59 AM, paulmck paulmck@linux.ibm.com wrote:
+> >> >> >> >> >> > >> 
+> >> >> >> >> >> > >> > On Sun, Apr 07, 2019 at 06:39:41AM -0700, Paul E. McKenney wrote:
+> >> >> >> >> >> > >> >> On Sat, Apr 06, 2019 at 07:06:13PM -0400, Joel Fernandes wrote:
+> >> >> >> >> >> > >> > 
+> >> >> >> >> >> > >> > [ . . . ]
+> >> >> >> >> >> > >> > 
+> >> >> >> >> >> > >> >> > > diff --git a/include/asm-generic/vmlinux.lds.h
+> >> >> >> >> >> > >> >> > > b/include/asm-generic/vmlinux.lds.h
+> >> >> >> >> >> > >> >> > > index f8f6f04c4453..c2d919a1566e 100644
+> >> >> >> >> >> > >> >> > > --- a/include/asm-generic/vmlinux.lds.h
+> >> >> >> >> >> > >> >> > > +++ b/include/asm-generic/vmlinux.lds.h
+> >> >> >> >> >> > >> >> > > @@ -338,6 +338,10 @@
+> >> >> >> >> >> > >> >> > >  		KEEP(*(__tracepoints_ptrs)) /* Tracepoints: pointer array */ \
+> >> >> >> >> >> > >> >> > >  		__stop___tracepoints_ptrs = .;				\
+> >> >> >> >> >> > >> >> > >  		*(__tracepoints_strings)/* Tracepoints: strings */	\
+> >> >> >> >> >> > >> >> > > +		. = ALIGN(8);						\
+> >> >> >> >> >> > >> >> > > +		__start___srcu_struct = .;				\
+> >> >> >> >> >> > >> >> > > +		*(___srcu_struct_ptrs)					\
+> >> >> >> >> >> > >> >> > > +		__end___srcu_struct = .;				\
+> >> >> >> >> >> > >> >> > >  	}								\
+> >> >> >> >> >> > >> >> > 
+> >> >> >> >> >> > >> >> > This vmlinux linker modification is not needed. I tested without it and srcu
+> >> >> >> >> >> > >> >> > torture works fine with rcutorture built as a module. Putting further prints
+> >> >> >> >> >> > >> >> > in kernel/module.c verified that the kernel is able to find the srcu structs
+> >> >> >> >> >> > >> >> > just fine. You could squash the below patch into this one or apply it on top
+> >> >> >> >> >> > >> >> > of the dev branch.
+> >> >> >> >> >> > >> >> 
+> >> >> >> >> >> > >> >> Good point, given that otherwise FORTRAN named common blocks would not
+> >> >> >> >> >> > >> >> work.
+> >> >> >> >> >> > >> >> 
+> >> >> >> >> >> > >> >> But isn't one advantage of leaving that stuff in the RO_DATA_SECTION()
+> >> >> >> >> >> > >> >> macro that it can be mapped read-only?  Or am I suffering from excessive
+> >> >> >> >> >> > >> >> optimism?
+> >> >> >> >> >> > >> > 
+> >> >> >> >> >> > >> > And to answer the other question, in the case where I am suffering from
+> >> >> >> >> >> > >> > excessive optimism, it should be a separate commit.  Please see below
+> >> >> >> >> >> > >> > for the updated original commit thus far.
+> >> >> >> >> >> > >> > 
+> >> >> >> >> >> > >> > And may I have your Tested-by?
+> >> >> >> >> >> > >> 
+> >> >> >> >> >> > >> Just to confirm: does the cleanup performed in the modules going
+> >> >> >> >> >> > >> notifier end up acting as a barrier first before freeing the memory ?
+> >> >> >> >> >> > >> If not, is it explicitly stated that a barrier must be issued before
+> >> >> >> >> >> > >> module unload ?
+> >> >> >> >> >> > >> 
+> >> >> >> >> >> > > 
+> >> >> >> >> >> > > You mean rcu_barrier? It is mentioned in the documentation that this is the
+> >> >> >> >> >> > > responsibility of the module writer to prevent delays for all modules.
+> >> >> >> >> >> > 
+> >> >> >> >> >> > It's a srcu barrier yes. Considering it would be a barrier specific to the
+> >> >> >> >> >> > srcu domain within that module, I don't see how it would cause delays for
+> >> >> >> >> >> > "all" modules if we implicitly issue the barrier on module unload. What
+> >> >> >> >> >> > am I missing ?
+> >> >> >> >> >> 
+> >> >> >> >> >> Yes you are right. I thought of this after I just sent my email. I think it
+> >> >> >> >> >> makes sense for srcu case to do and could avoid a class of bugs.
+> >> >> >> >> > 
+> >> >> >> >> > If there are call_srcu() callbacks outstanding, the module writer still
+> >> >> >> >> > needs the srcu_barrier() because otherwise callbacks arrive after
+> >> >> >> >> > the module text has gone, which will be disappoint the CPU when it
+> >> >> >> >> > tries fetching instructions that are no longer mapped.  If there are
+> >> >> >> >> > no call_srcu() callbacks from that module, then there is no need for
+> >> >> >> >> > srcu_barrier() either way.
+> >> >> >> >> > 
+> >> >> >> >> > So if an srcu_barrier() is needed, the module developer needs to
+> >> >> >> >> > supply it.
+> >> >> >> >> 
+> >> >> >> >> When you say "callbacks arrive after the module text has gone",
+> >> >> >> >> I think you assume that free_module() is invoked before the
+> >> >> >> >> MODULE_STATE_GOING notifiers are called. But it's done in the
+> >> >> >> >> opposite order: going notifiers are called first, and then
+> >> >> >> >> free_module() is invoked.
+> >> >> >> >> 
+> >> >> >> >> So AFAIU it would be safe to issue the srcu_barrier() from the module
+> >> >> >> >> going notifier.
+> >> >> >> >> 
+> >> >> >> >> Or am I missing something ?
+> >> >> >> > 
+> >> >> >> > We do seem to be talking past each other.  ;-)
+> >> >> >> > 
+> >> >> >> > This has nothing to do with the order of events at module-unload time.
+> >> >> >> > 
+> >> >> >> > So please let me try again.
+> >> >> >> > 
+> >> >> >> > If a given srcu_struct in a module never has call_srcu() invoked, there
+> >> >> >> > is no need to invoke rcu_barrier() at any time, whether at module-unload
+> >> >> >> > time or not.  Adding rcu_barrier() in this case adds overhead and latency
+> >> >> >> > for no good reason.
+> >> >> >> 
+> >> >> >> Not if we invoke srcu_barrier() for that specific domain. If
+> >> >> >> call_srcu was never invoked for a srcu domain, I don't see why
+> >> >> >> srcu_barrier() should be more expensive than a simple check that
+> >> >> >> the domain does not have any srcu work queued.
+> >> >> > 
+> >> >> > But that simple check does involve a cache miss for each possible CPU (not
+> >> >> > just each online CPU), so it is non-trivial, especially on large systems.
+> >> >> > 
+> >> >> >> > If a given srcu_struct in a module does have at least one call_srcu()
+> >> >> >> > invoked, it is already that module's responsibility to make sure that
+> >> >> >> > the code sticks around long enough for the callback to be invoked.
+> >> >> >> 
+> >> >> >> I understand that when users do explicit dynamic allocation/cleanup of
+> >> >> >> srcu domains, they indeed need to take care of doing explicit srcu_barrier().
+> >> >> >> However, if they do static definition of srcu domains, it would be nice
+> >> >> >> if we can handle the barriers under the hood.
+> >> >> > 
+> >> >> > All else being equal, of course.  But...
+> >> >> > 
+> >> >> >> > This means that correct SRCU users that invoke call_srcu() already
+> >> >> >> > have srcu_barrier() at module-unload time.  Incorrect SRCU users, with
+> >> >> >> > reasonable probability, now get a WARN_ON() at module-unload time, with
+> >> >> >> > the per-CPU state getting leaked.  Before this change, they would (also
+> >> >> >> > with reasonable probability) instead get an instruction-fetch fault when
+> >> >> >> > the SRCU callback was invoked after the completion of the module unload.
+> >> >> >> > Furthermore, in all cases where they would previously have gotten the
+> >> >> >> > instruction-fetch fault, they now get the WARN_ON(), like this:
+> >> >> >> > 
+> >> >> >> >	if (WARN_ON(rcu_segcblist_n_cbs(&sdp->srcu_cblist)))
+> >> >> >> >		return; /* Forgot srcu_barrier(), so just leak it! */
+> >> >> >> > 
+> >> >> >> > So this change already represents an improvement in usability.
+> >> >> >> 
+> >> >> >> Considering that we can do a srcu_barrier() for the specific domain,
+> >> >> >> and that it should add no noticeable overhead if there is no queued
+> >> >> >> callbacks, I don't see a good reason for leaving the srcu_barrier
+> >> >> >> invocation to the user rather than implicitly doing it from the
+> >> >> >> module going notifier.
+> >> >> > 
+> >> >> > Now, I could automatically add an indicator of whether or not a
+> >> >> > call_srcu() had happened, but then again, that would either add a
+> >> >> > call_srcu() scalability bottleneck or again require a scan of all possible
+> >> >> > CPUs...  to figure out if it was necessary to scan all possible CPUs.
+> >> >> > 
+> >> >> > Or is scanning all possible CPUs down in the noise in this case?  Or
+> >> >> > am I missing a trick that would reduce the overhead?
+> >> >> 
+> >> >> Module unloading implicitly does a synchronize_rcu (for RCU-sched), and
+> >> >> a stop_machine. So I would be tempted to say that overhead of iteration
+> >> >> over all CPUs might not matter that much considering the rest.
+> >> >> 
+> >> >> About notifying that a call_srcu has happened for the srcu domain in a
+> >> >> scalable fashion, let's see... We could have a flag "call_srcu_used"
+> >> >> for each call_srcu domain. Whenever call_srcu is invoked, it would
+> >> >> load that flag. It sets it on first use.
+> >> >> 
+> >> >> The idea here is to only use that flag when srcu_barrier is performed
+> >> >> right before the srcu domain cleanup (it could become part of that
+> >> >> cleanup). Else, using it in all srcu_barrier() might be tricky, because
+> >> >> we may then need to add memory barriers or locking to the call_srcu
+> >> >> fast-path, which is an overhead we try to avoid.
+> >> >> 
+> >> >> However, if we only use that flag as part of the srcu domain cleanup,
+> >> >> it's already prohibited to invoke call_srcu concurrently with the
+> >> >> cleanup of the same domain, so I don't think we would need any
+> >> >> memory barriers in call_srcu.
+> >> > 
+> >> > About the last part of your email, it seems to that if after call_srcu has
+> >> > returned, if the module could be unloaded on some other CPU - then it would
+> >> > need to see the flag stored by the preceding call_srcu, so I believe there
+> >> > would be a memory barrier between the two opreations (call_srcu and module
+> >> > unload).
+> >> 
+> >> In order for the module unload not to race against module execution, it needs
+> >> to happen after the call_srcu in a way that is already ordered by other means,
+> >> else module unload races against the module code.
+> >> 
+> >> > 
+> >> > Also about doing the unconditional srcu_barrier, since a module could be
+> >> > unloaded at any time - don't all SRCU using modules need to invoke
+> >> > srcu_barrier() during their clean up anyway so we are incurring the barrier
+> >> > overhead anyway? Or, am I missing a design pattern here? It seems to me
+> >> > rcutorture module definitely calls srcu_barrier() before it is unloaded.
+> >> 
+> >> I think a valid approach which is even simpler might be: if a module statically
+> >> defines a SRCU domain, it should be expected to use it. So adding a
+> >> srcu_barrier()
+> >> to its module going notifier should not hurt. The rare case where a module
+> >> defines
+> >> a static SRCU domain *and* does not actually use it with call_srcu() does not
+> >> seem that usual, and not worth optimizing for.
+> >> 
+> >> Thoughts ?
+> > 
+> > Most SRCU users use only synchronize_srcu(), and don't ever use
+> > call_srcu().  Which is not too surprising given that call_srcu() showed
+> > up late in the game.
+> > 
+> > But something still bothers me about this, and I am not yet sure
+> > what.  One thing that seems to reduce anxiety somewhat is doing the
+> > srcu_barrier() on all calls to cleanup_srcu_struct() rather than just
+> > those invoked from the modules infrastructure, but I don't see why at
+> > the moment.
+> 
+> Indeed, providing similar guarantees for the dynamic allocation case
+> would be nice.
+> 
+> The one thing that is making me anxious here is use-cases where
+> users would decide to chain their call_srcu(). Then they would
+> need as many srcu_barrier() as chain hops. This would be a valid
+> reason for leaving invocation of srcu_barrier() to the user and
+> not hide it under the hood.
+> 
+> Thoughts ?
 
-In preparation for introducing new flags to gate whether ARS results are
-stale, or poll the completion state, convert the existing flags to an
-unsigned long with enumerated values. This conversion allows the flags
-to be atomically updated outside of ->init_mutex.
+The current state is not horrible, so my thought would be to give it
+some time to see if better thoughts arise.
 
-Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |   30 +++++++++++++++++-------------
- drivers/acpi/nfit/nfit.h |    8 ++++++--
- 2 files changed, 23 insertions(+), 15 deletions(-)
+Either way, cleanup_srcu_struct() keeps its current checks for callbacks
+still being in flight, which is why I believe that the current state is
+not horrible.  ;-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 1a48c92eaed5..64308e669250 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1319,19 +1319,23 @@ static ssize_t scrub_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct nvdimm_bus_descriptor *nd_desc;
-+	struct acpi_nfit_desc *acpi_desc;
- 	ssize_t rc = -ENXIO;
-+	bool busy;
- 
- 	device_lock(dev);
- 	nd_desc = dev_get_drvdata(dev);
--	if (nd_desc) {
--		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
--
--		mutex_lock(&acpi_desc->init_mutex);
--		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
--				acpi_desc->scrub_busy
--				&& !acpi_desc->cancel ? "+\n" : "\n");
--		mutex_unlock(&acpi_desc->init_mutex);
-+	if (!nd_desc) {
-+		device_unlock(dev);
-+		return rc;
- 	}
-+	acpi_desc = to_acpi_desc(nd_desc);
-+
-+	mutex_lock(&acpi_desc->init_mutex);
-+	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
-+		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
-+	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
-+	mutex_unlock(&acpi_desc->init_mutex);
- 	device_unlock(dev);
- 	return rc;
- }
-@@ -3081,7 +3085,7 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
- 
- 	lockdep_assert_held(&acpi_desc->init_mutex);
- 
--	if (acpi_desc->cancel)
-+	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags))
- 		return 0;
- 
- 	if (query_rc == -EBUSY) {
-@@ -3155,7 +3159,7 @@ static void __sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
- {
- 	lockdep_assert_held(&acpi_desc->init_mutex);
- 
--	acpi_desc->scrub_busy = 1;
-+	set_bit(ARS_BUSY, &acpi_desc->scrub_flags);
- 	/* note this should only be set from within the workqueue */
- 	if (tmo)
- 		acpi_desc->scrub_tmo = tmo;
-@@ -3171,7 +3175,7 @@ static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
- {
- 	lockdep_assert_held(&acpi_desc->init_mutex);
- 
--	acpi_desc->scrub_busy = 0;
-+	clear_bit(ARS_BUSY, &acpi_desc->scrub_flags);
- 	acpi_desc->scrub_count++;
- 	if (acpi_desc->scrub_count_state)
- 		sysfs_notify_dirent(acpi_desc->scrub_count_state);
-@@ -3460,7 +3464,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
- 	struct nfit_spa *nfit_spa;
- 
- 	mutex_lock(&acpi_desc->init_mutex);
--	if (acpi_desc->cancel) {
-+	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags)) {
- 		mutex_unlock(&acpi_desc->init_mutex);
- 		return 0;
- 	}
-@@ -3539,7 +3543,7 @@ void acpi_nfit_shutdown(void *data)
- 	mutex_unlock(&acpi_desc_lock);
- 
- 	mutex_lock(&acpi_desc->init_mutex);
--	acpi_desc->cancel = 1;
-+	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
- 	cancel_delayed_work_sync(&acpi_desc->dwork);
- 	mutex_unlock(&acpi_desc->init_mutex);
- 
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 871fb3de3b30..897ce10192a0 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -210,6 +210,11 @@ struct nfit_mem {
- 	int family;
- };
- 
-+enum scrub_flags {
-+	ARS_BUSY,
-+	ARS_CANCEL,
-+};
-+
- struct acpi_nfit_desc {
- 	struct nvdimm_bus_descriptor nd_desc;
- 	struct acpi_table_header acpi_header;
-@@ -231,8 +236,7 @@ struct acpi_nfit_desc {
- 	unsigned int max_ars;
- 	unsigned int scrub_count;
- 	unsigned int scrub_mode;
--	unsigned int scrub_busy:1;
--	unsigned int cancel:1;
-+	unsigned long scrub_flags;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
- 	unsigned long bus_nfit_cmd_force_en;
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+							Thanx, Paul
