@@ -1,10 +1,12 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Security Notice. Someone have access to your system.
-Date: 9 Apr 2019 01:49:24 +0000
-Message-ID: <248138150.201904090203@lists.01.org>
+From: "Jason Wang" <test-sTRgZehwhjRWk0Htik3J/w@public.gmane.org>
+Subject: New Order
+Date: Tue, 09 Apr 2019 04:33:48 -0700
+Message-ID: <201904091133.x39BX5RI032483@mail.higoblin.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0174463404385933835=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,57 +19,20 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============0174463404385933835==
-Content-Type: text/plain; charset="cp-850"
-Content-Transfer-Encoding: 8bit
-
-Hello!
-
-As you may have noticed, I sent you an email from your account.
-This means that I have full access to your device.
-
-I've been watching you for a few months now.
-The fact is that you were infected with malware through an adult site that you visited.
-
-If you are not familiar with this, I will explain.
-Trojan Virus gives me full access and control over a computer or other device.
-This means that I can see everything on your screen, turn on the camera and microphone, but you do not know about it.
-
-I also have access to all your contacts and all your correspondence.
-
-Why your antivirus did not detect malware?
-Answer: My malware uses the driver, I update its signatures every 4 hours so that your antivirus is silent.
-
-I made a video showing how you satisfy yourself in the left half of the screen, and in the right half you see the video that you watched.
-With one click of the mouse, I can send this video to all your emails and contacts on social networks.
-I can also post access to all your e-mail correspondence and messengers that you use.
-
-If you want to prevent this,
-transfer the amount of $756 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
-
-My bitcoin address (BTC Wallet) is: 14tfS3yWL2cABhXVJZ97XRhuDXC69aWH6Y
-
-After receiving the payment, I will delete the video and you will never hear me again.
-I give you 50 hours (more than 2 days) to pay.
-I have a notice reading this letter, and the timer will work when you see this letter.
-
-Filing a complaint somewhere does not make sense because this email cannot be tracked like my bitcoin address.
-I do not make any mistakes.
-
-If I find that you have shared this message with someone else, the video will be immediately distributed.
-
-Best regards!
+Good day
 
 
---===============0174463404385933835==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Please arrange to provide the best offer for below attached Purchase Order
+The requirement for our green field project in Berghofen,Dortmund.
+ Kindly get back to us   
+ 
+1) Proforma invoice with bank details
+ 2) Delivery date 
+ 3) FOB/CIF Port
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+  
+  
+   Regards,
 
---===============0174463404385933835==--
+kahn Gotze Sales & Services Assistant       
+ 1.0MB-Download PO162 .pdf
