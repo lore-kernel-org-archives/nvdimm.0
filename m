@@ -1,12 +1,12 @@
-From: "Jason Wang" <test-sTRgZehwhjRWk0Htik3J/w@public.gmane.org>
-Subject: New Order
-Date: Tue, 09 Apr 2019 04:33:48 -0700
-Message-ID: <201904091133.x39BX5RI032483@mail.higoblin.com>
+From: =?utf-8?B?572X5YWI55Sf?= <kzij-IOzyM66oJ/U@public.gmane.org>
+Subject: =?utf-8?B?NzIyODI3OTjlhazlvIDlrqHnkIbnmoTlvIDluq3lvaLlvI/vvIzmnInkvZU=?=
+ =?utf-8?B?6aOO6Zmp77yM5aaC5L2V6YG/5YWN6aOO6Zmp77yf?=
+Date: Tue, 9 Apr 2019 21:26:55 +0800
+Message-ID: <9EA380BDCC50B722BA26CEF4CFA2B46B@ue.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,20 +19,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Good day
-
-
-Please arrange to provide the best offer for below attached Purchase Order
-The requirement for our green field project in Berghofen,Dortmund.
- Kindly get back to us   
- 
-1) Proforma invoice with bank details
- 2) Delivery date 
- 3) FOB/CIF Port
-
-  
-  
-   Regards,
-
-kahn Gotze Sales & Services Assistant       
- 1.0MB-Download PO162 .pdf
+IA0K5Y+R5Lu25Lq6OiAi572X5YWI55SfIjs8a3ppakB1ZS5vcmc+Ow0K5Y+R6YCB5pe26Ze0OiAy
+MDE5LTQtOS8gMjE6Mjc6MDINCuaUtuS7tuS6ujogImxpbnV4LW52ZGltbSI8bGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZz47DQror6Yg57uGICDlhoUg5a65IOivtyAg6ZiFIOivuyDpmYQg5Lu2Cl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
