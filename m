@@ -2,13 +2,19 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A26D2211F9D69
- for <linux-nvdimm@lists.01.org>; Mon, 15 Apr 2019 13:32:05 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] libnvdimm/label: Check for a disabled nmem when deleting
- labels
-Date: Mon, 15 Apr 2019 16:32:03 -0400
-Message-ID: <x49bm17qabg.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id ADF8C211EC670
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Apr 2019 09:53:05 -0700 (PDT)
+Date: Wed, 10 Apr 2019 18:52:41 +0200
+From: Cornelia Huck <cohuck@redhat.com>
+Subject: Re: [Qemu-devel] [PATCH v5 2/5] virtio-pmem: Add virtio pmem driver
+Message-ID: <20190410185241.1b0b1982.cohuck@redhat.com>
+In-Reply-To: <20190410124114-mutt-send-email-mst@kernel.org>
+References: <20190410040826.24371-1-pagupta@redhat.com>
+ <20190410040826.24371-3-pagupta@redhat.com>
+ <20190410091216-mutt-send-email-mst@kernel.org>
+ <127904196.20807948.1554904981681.JavaMail.zimbra@redhat.com>
+ <20190410163139.4a04175e.cohuck@redhat.com>
+ <20190410124114-mutt-send-email-mst@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,46 +27,84 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: jack@suse.cz, kvm@vger.kernel.org, david@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, linux-nvdimm@lists.01.org, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, darrick wong <darrick.wong@oracle.com>, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+On Wed, 10 Apr 2019 12:46:12 -0400
+"Michael S. Tsirkin" <mst@redhat.com> wrote:
 
-We ran into a situation where one dimm's label area was corrupt (it had
-multiple entries for the same DPA), and so that nmem was disabled.  The
-region as a whole was enabled, though.  In this case, there was a single
-namespace that showed up as disabled.  Trying to reconfigure that
-namespace resulted in the following panic:
+> On Wed, Apr 10, 2019 at 04:31:39PM +0200, Cornelia Huck wrote:
+> > On Wed, 10 Apr 2019 10:03:01 -0400 (EDT)
+> > Pankaj Gupta <pagupta@redhat.com> wrote:
+> >   
+> > > > 
+> > > > On Wed, Apr 10, 2019 at 09:38:22AM +0530, Pankaj Gupta wrote:    
+> > > > > This patch adds virtio-pmem driver for KVM guest.
+> > > > > 
+> > > > > Guest reads the persistent memory range information from
+> > > > > Qemu over VIRTIO and registers it on nvdimm_bus. It also
+> > > > > creates a nd_region object with the persistent memory
+> > > > > range information so that existing 'nvdimm/pmem' driver
+> > > > > can reserve this into system memory map. This way
+> > > > > 'virtio-pmem' driver uses existing functionality of pmem
+> > > > > driver to register persistent memory compatible for DAX
+> > > > > capable filesystems.
+> > > > > 
+> > > > > This also provides function to perform guest flush over
+> > > > > VIRTIO from 'pmem' driver when userspace performs flush
+> > > > > on DAX memory range.
+> > > > > 
+> > > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>  
+> >   
+> > > > > diff --git a/include/uapi/linux/virtio_ids.h
+> > > > > b/include/uapi/linux/virtio_ids.h
+> > > > > index 6d5c3b2d4f4d..346389565ac1 100644
+> > > > > --- a/include/uapi/linux/virtio_ids.h
+> > > > > +++ b/include/uapi/linux/virtio_ids.h
+> > > > > @@ -43,5 +43,6 @@
+> > > > >  #define VIRTIO_ID_INPUT        18 /* virtio input */
+> > > > >  #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
+> > > > >  #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
+> > > > > +#define VIRTIO_ID_PMEM         25 /* virtio pmem */
+> > > > >  
+> > > > >  #endif /* _LINUX_VIRTIO_IDS_H */    
+> > > > 
+> > > > Didn't Paolo point out someone is using 25 for audio?    
+> > > 
+> > > 
+> > > Sorry! I did not notice this.
+> > >   
+> > > > 
+> > > > Please, reserve an ID with the Virtio TC before using it.    
+> > > 
+> > > I thought I requested[1] ID 25.
+> > > 
+> > > [1] https://github.com/oasis-tcs/virtio-spec/issues/38
+> > > [2] https://lists.oasis-open.org/archives/virtio-dev/201805/threads.html
+> > > 
+> > > In that case I will send request for next available ID i.e 26?  
+> > 
+> > Have the folks using this for audio sent a reservation request as well?
+> > If not, I'd say the first requester should get the id...  
+> 
+> No but I think they ship their's already. No one ships pmem
+> so it's less pain for everyone if we just skip 25.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000024
-[  108.386384] #PF error: [normal kernel read fault]
-[  108.391090] PGD 11c3eae5067 P4D 11c3eae5067 PUD 11c262c9067 PMD 0 
-[  108.397267] Oops: 0000 [#1] SMP NOPTI
-[  108.400936] CPU: 39 PID: 3838 Comm: ndctl Not tainted 5.1.0-rc5 #1
-[  108.407114] Hardware name: Intel Corporation PURLEY/PURLEY, BIOS SE5C620.86B.0D.01.0286.011120190816 01/11/2019
-[  108.417200] RIP: 0010:preamble_next+0xd/0x60 [libnvdimm]
-...
+Ugh. Ok, then we should change pmem...
 
-The problem is that there is no driver data associated with the
-nd_mapping in this case.  Check for that.
+> 
+> > (And yes, we need to be quicker with voting on/applying id
+> > reservations :/)  
+> 
+> We can't vote on what was not proposed for a vote.
+> At the moment that responsibility is with the commented
+> once discussion on the comment has taken place.
+> 
+> I think what's missing is a description of the process
+> in the README. Want to write it up and post it?
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Zhang Yi <yizhan@redhat.com>
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index f3d753d3169c..da1f28d8c9e6 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -1217,7 +1217,7 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
- 		return 0;
- 
- 	/* no index || no labels == nothing to delete */
--	if (!preamble_next(ndd, &nsindex, &free, &nslot))
-+	if (!ndd || !preamble_next(ndd, &nsindex, &free, &nslot))
- 		return 0;
- 
- 	mutex_lock(&nd_mapping->lock);
+I can add that to my TODO list, can't promise speedy resolution, though.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
