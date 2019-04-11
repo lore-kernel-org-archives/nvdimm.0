@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E0F3B211F35EB
- for <linux-nvdimm@lists.01.org>; Thu,  4 Apr 2019 12:21:29 -0700 (PDT)
-Subject: [RFC PATCH 4/5] acpi/hmat: Register special purpose memory as a device
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 04 Apr 2019 12:08:49 -0700
-Message-ID: <155440492988.3190322.4475460421334178449.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9BC602194EB76
+ for <linux-nvdimm@lists.01.org>; Thu, 11 Apr 2019 08:39:15 -0700 (PDT)
+Date: Thu, 11 Apr 2019 11:39:06 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <393821092.21153045.1554997146416.JavaMail.zimbra@redhat.com>
+In-Reply-To: <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
+References: <20190410040826.24371-1-pagupta@redhat.com>
+ <20190410040826.24371-4-pagupta@redhat.com>
+ <CAPcyv4gXwE2k3JU94GPav0xn2LEgR6-7ZEVYyTHFRjCfTYjerw@mail.gmail.com>
+Subject: Re: [PATCH v5 3/6] libnvdimm: add dax_dev sync flag
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,150 +24,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Len Brown <lenb@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: cohuck@redhat.com, Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, Andreas Dilger <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>, kilobyte@angband.pl, Rik van Riel <riel@surriel.com>, yuval shaia <yuval.shaia@oracle.com>, Stefan Hajnoczi <stefanha@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Memory that has been tagged EFI_SPECIAL_PURPOSE, and has performance
-properties described by the ACPI HMAT is expected to have an application
-specific consumer.
 
-Those consumers may want 100% of the memory capacity to be reserved from
-any usage by the kernel. By default, with this enabling, a platform
-device is created to represent this differentiated resource.
+Hi Dan,
 
-A follow on change arranges for device-dax to claim these devices by
-default and provide an mmap interface for the target application.
-However, if the administrator prefers that some or all of the special
-purpose memory is made available to the core-mm the device-dax hotplug
-facility can be used to online the memory with its own numa node.
+Thank you for the review.
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/hmat/Kconfig |    1 +
- drivers/acpi/hmat/hmat.c  |   63 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/memregion.h |    3 ++
- 3 files changed, 67 insertions(+)
+> >
+> > This patch adds 'DAXDEV_SYNC' flag which is set
+> > for nd_region doing synchronous flush. This later
+> > is used to disable MAP_SYNC functionality for
+> > ext4 & xfs filesystem for devices don't support
+> > synchronous flush.
+> >
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > ---
+> >  drivers/dax/bus.c            |  2 +-
+> >  drivers/dax/super.c          | 13 ++++++++++++-
+> >  drivers/md/dm.c              |  2 +-
+> >  drivers/nvdimm/pmem.c        |  3 ++-
+> >  drivers/nvdimm/region_devs.c |  7 +++++++
+> >  include/linux/dax.h          |  9 +++++++--
+> >  include/linux/libnvdimm.h    |  1 +
+> >  7 files changed, 31 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index 2109cfe80219..431bf7d2a7f9 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region
+> > *dax_region, int id,
+> >          * No 'host' or dax_operations since there is no access to this
+> >          * device outside of mmap of the resulting character device.
+> >          */
+> > -       dax_dev = alloc_dax(dev_dax, NULL, NULL);
+> > +       dax_dev = alloc_dax(dev_dax, NULL, NULL, true);
+> 
+> I find apis that take a boolean as unreadable. What does 'true' mean?
+> It wastes time to go look at the function definition vs something
+> like:
+> 
+>     alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
 
-diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
-index 95a29964dbea..4fcf76e8aa1d 100644
---- a/drivers/acpi/hmat/Kconfig
-+++ b/drivers/acpi/hmat/Kconfig
-@@ -3,6 +3,7 @@ config ACPI_HMAT
- 	bool "ACPI Heterogeneous Memory Attribute Table Support"
- 	depends on ACPI_NUMA
- 	select HMEM_REPORTING
-+	select MEMREGION
- 	help
- 	 If set, this option has the kernel parse and report the
- 	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-index e7ae44c8d359..482360004ea0 100644
---- a/drivers/acpi/hmat/hmat.c
-+++ b/drivers/acpi/hmat/hmat.c
-@@ -13,6 +13,9 @@
- #include <linux/device.h>
- #include <linux/init.h>
- #include <linux/list.h>
-+#include <linux/mm.h>
-+#include <linux/memregion.h>
-+#include <linux/platform_device.h>
- #include <linux/list_sort.h>
- #include <linux/node.h>
- #include <linux/sysfs.h>
-@@ -612,6 +615,65 @@ static __init void hmat_register_target_perf(struct memory_target *target)
- 	node_set_perf_attrs(mem_nid, &target->hmem_attrs, 0);
- }
- 
-+static __init void hmat_register_target_device(struct memory_target *target)
-+{
-+	struct memregion_info info;
-+	struct resource res = {
-+		.start = target->start,
-+		.end = target->start + target->size - 1,
-+		.flags = IORESOURCE_MEM,
-+		.desc = IORES_DESC_APPLICATION_RESERVED,
-+	};
-+	struct platform_device *pdev;
-+	int rc, id;
-+
-+	if (region_intersects(target->start, target->size, IORESOURCE_MEM,
-+				IORES_DESC_APPLICATION_RESERVED)
-+			!= REGION_INTERSECTS)
-+		return;
-+
-+	id = memregion_alloc();
-+	if (id < 0) {
-+		pr_err("acpi/hmat: memregion allocation failure for %pr\n", &res);
-+		return;
-+	}
-+
-+	pdev = platform_device_alloc("hmem", id);
-+	if (!pdev) {
-+		pr_err("acpi/hmat: hmem device allocation failure for %pr\n", &res);
-+		goto out_pdev;
-+	}
-+
-+	pdev->dev.numa_node = acpi_map_pxm_to_online_node(target->processor_pxm);
-+	info = (struct memregion_info) {
-+		.target_node = acpi_map_pxm_to_node(target->memory_pxm),
-+	};
-+	rc = platform_device_add_data(pdev, &info, sizeof(info));
-+	if (rc < 0) {
-+		pr_err("acpi/hmat: hmem memregion_info allocation failure for %pr\n", &res);
-+		goto out_pdev;
-+	}
-+
-+	rc = platform_device_add_resources(pdev, &res, 1);
-+	if (rc < 0) {
-+		pr_err("acpi/hmat: hmem resource allocation failure for %pr\n", &res);
-+		goto out_resource;
-+	}
-+
-+	rc = platform_device_add(pdev);
-+	if (rc < 0) {
-+		dev_err(&pdev->dev, "acpi/hmat: device add failed for %pr\n", &res);
-+		goto out_resource;
-+	}
-+
-+	return;
-+
-+out_resource:
-+	put_device(&pdev->dev);
-+out_pdev:
-+	memregion_free(id);
-+}
-+
- static __init void hmat_register_targets(void)
- {
- 	struct memory_target *target;
-@@ -619,6 +681,7 @@ static __init void hmat_register_targets(void)
- 	list_for_each_entry(target, &targets, node) {
- 		hmat_register_target_initiators(target);
- 		hmat_register_target_perf(target);
-+		hmat_register_target_device(target);
- 	}
- }
- 
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-index 99fa47793b49..5de2ac7fcf5e 100644
---- a/include/linux/memregion.h
-+++ b/include/linux/memregion.h
-@@ -1,6 +1,9 @@
- // SPDX-License-Identifier: GPL-2.0
- #ifndef _MEMREGION_H_
- #define _MEMREGION_H_
-+struct memregion_info {
-+	int target_node;
-+};
- int memregion_alloc(void);
- void memregion_free(int id);
- #endif /* _MEMREGION_H_ */
+Agree. Will change as suggested.
 
+Best regards,
+Pankaj
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
