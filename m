@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 381F3211F1E0E
- for <linux-nvdimm@lists.01.org>; Wed,  3 Apr 2019 03:41:26 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v4 2/5] virtio-pmem: Add virtio pmem driver
-Date: Wed,  3 Apr 2019 16:10:15 +0530
-Message-Id: <20190403104018.23947-3-pagupta@redhat.com>
-In-Reply-To: <20190403104018.23947-1-pagupta@redhat.com>
-References: <20190403104018.23947-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2B2E0211F35D4
+ for <linux-nvdimm@lists.01.org>; Thu, 11 Apr 2019 18:35:22 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl: add a 'clear-errors' command
+Date: Thu, 11 Apr 2019 19:35:15 -0600
+Message-Id: <20190412013515.31330-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,389 +16,540 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, riel@surriel.com, stefanha@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds virtio-pmem driver for KVM guest.
+Add a nre command, ndctl-clear-errors, to clear any errors (badblocks)
+on a namespace. This is in preparation for a 'system-ram' mode for
+devdax devices using the kernel's 'kmem' facility. Since the device is
+being used as volatile RAM, we can take the opportunity to clear any
+badblocks on the device before reconfiguration, so that the user doesn't
+come across one unexpectedly.
 
-Guest reads the persistent memory range information from
-Qemu over VIRTIO and registers it on nvdimm_bus. It also
-creates a nd_region object with the persistent memory
-range information so that existing 'nvdimm/pmem' driver
-can reserve this into system memory map. This way
-'virtio-pmem' driver uses existing functionality of pmem
-driver to register persistent memory compatible for DAX
-capable filesystems.
+Make this error clearing facility generic to all namespace types (i.e.
+devdax, fsdax, and raw; sector mode namespaces are not supported). To
+clear errors, use the "Clear Uncorrectable Errors" ACPI DSM command via
+the helpers provided by libndctl.
 
-This also provides function to perform guest flush over
-VIRTIO from 'pmem' driver when userspace performs flush
-on DAX memory range.
-
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/virtio_pmem.c     |  84 +++++++++++++++++++++
- drivers/virtio/Kconfig           |  10 +++
- drivers/virtio/Makefile          |   1 +
- drivers/virtio/pmem.c            | 125 +++++++++++++++++++++++++++++++
- include/linux/virtio_pmem.h      |  60 +++++++++++++++
- include/uapi/linux/virtio_ids.h  |   1 +
- include/uapi/linux/virtio_pmem.h |  10 +++
- 7 files changed, 291 insertions(+)
- create mode 100644 drivers/nvdimm/virtio_pmem.c
- create mode 100644 drivers/virtio/pmem.c
- create mode 100644 include/linux/virtio_pmem.h
- create mode 100644 include/uapi/linux/virtio_pmem.h
+ Documentation/ndctl/Makefile.am            |   1 +
+ Documentation/ndctl/ndctl-clear-errors.txt | 106 ++++++++
+ contrib/ndctl                              |   3 +
+ ndctl/action.h                             |   1 +
+ ndctl/builtin.h                            |   1 +
+ ndctl/namespace.c                          | 279 +++++++++++++++++++++
+ ndctl/ndctl.c                              |   1 +
+ 7 files changed, 392 insertions(+)
+ create mode 100644 Documentation/ndctl/ndctl-clear-errors.txt
 
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
+index 2593dbd..fb46d7c 100644
+--- a/Documentation/ndctl/Makefile.am
++++ b/Documentation/ndctl/Makefile.am
+@@ -43,6 +43,7 @@ man1_MANS = \
+ 	ndctl-create-namespace.1 \
+ 	ndctl-destroy-namespace.1 \
+ 	ndctl-check-namespace.1 \
++	ndctl-clear-errors.1 \
+ 	ndctl-inject-error.1 \
+ 	ndctl-inject-smart.1 \
+ 	ndctl-update-firmware.1 \
+diff --git a/Documentation/ndctl/ndctl-clear-errors.txt b/Documentation/ndctl/ndctl-clear-errors.txt
 new file mode 100644
-index 000000000000..2a1b1ba2c1ff
+index 0000000..206ab58
 --- /dev/null
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -0,0 +1,84 @@
++++ b/Documentation/ndctl/ndctl-clear-errors.txt
+@@ -0,0 +1,106 @@
 +// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * virtio_pmem.c: Virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and provides a virtio based flushing
-+ * interface.
-+ */
-+#include <linux/virtio_pmem.h>
-+#include "nd.h"
 +
-+ /* The interrupt handler */
-+void host_ack(struct virtqueue *vq)
++ndctl-clear-errors(1)
++=====================
++
++NAME
++----
++ndctl-clear-errors - clear all errors (badblocks) on the given namespace
++
++SYNOPSIS
++--------
++[verse]
++'ndctl clear-errors' <namespace> [<options>]
++
++DESCRIPTION
++-----------
++
++A namespace may have one or more 'media errors', either known to the kernel
++or in a latent state. These error locations, or 'badblocks' can cause poison
++consumption events if read in an unsafe manner.
++
++Moreover, these badblocks also indicate that due to media corruption, any data
++that may have been in these locations has been unrecoverably lost.
++
++Normally, in the presence of such errors, the administrator is expected to
++recover the data from out of band means (such as backups), destroy the
++namespace, recreate it, and then restore the data. When the data is re-written,
++the writes will allow any errors to be cleared as they are encountered. In such
++a workflow, one should *never* need to use the 'clear-errors' command.
++
++However, there may be special use cases, where the data currently on the
++namespace does not matter - for example, if a 'devdax' mode namespace is being
++prepared for use as 'system-ram'. In such cases, it may be desirable to clear
++any errors on the namespace prior to switching its mode to prevent disruptive
++machine checks due to poison consumption.
++
++NOTE: *Only* use this command when the data on the namespace is immaterial.
++For any blocks that are cleared via this command, any data on the blocks in
++question will be lost, and replaced with content that is implementation
++(platform) defined, and unpredictable.
++
++WARNING: This is a DANGEROUS command, and should only be used after fully
++understanding its implications and consequences. This WILL erase your data.
++
++For namespaces in one of 'fsdax' or 'davdax' modes, this command will
++only consider the 'data' area for error clearing. Namespace metadata, such as
++info-blocks, will not be touched. For namespaces in 'raw' mode, the full
++available capacity of the namespace is considered for error clearing.
++Namespaces that are in 'sector' mode are not supported, and will be skipped.
++
++NOTE: It is expected that the command is run with the namespace 'enabled'.
++A namespace in the 'disabled' state will appear as, and will be treated as a
++'raw' namespace, and error clearing will be performed for the full available
++capacity of the namespace, including any potential metadata areas. If there
++happen to be errors in the metadata area, clearing them may result in
++unpredictable outcomes. You have been warned!
++
++Known errors are ones that the kernel has encountered before, either via a
++previous scrub, or by an attempted read from those locations. These can be
++listed by running 'ndctl list --media-errors' for a given namespace. Latent
++errors, as the name indicates, are unknown to the kernel. These can be found
++by running a scrub operation on the NVDIMMs in question. By default, the
++ndctl-clear-errors command only clears known errors. This can be overridden
++using the '--scrub' option to clear *all* errors.
++
++NOTE: If a scrub is in progress when the command is called, it will
++unconditionally wait for it to complete.
++
++EXAMPLES
++--------
++
++Clear errors on namespace 0.0
++[verse]
++    ndctl clear-errors namespace0.0
++
++Clear errors on all namespaces belonging to region1, including scrubbing for
++latent errors
++[verse]
++    ndctl clear-errors --scrub --region=region1 all
++
++OPTIONS
++-------
++
++-s::
++--scrub::
++	Perform a 'scrub' on the bus prior to clearing errors. This allows
++	for the clearing of any latent media errors in addition to errors
++	the kernel already knows about.
++
++NOTE: This will cause the command to start and wait for a full scrub, and this
++can potentially be a very long-running operation.
++
++-v::
++--verbose::
++	Emit debug messages.
++
++-r::
++--region=::
++include::xable-region-options.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkndctl:ndctl-start-scrub[1],
++linkndctl:ndctl-list[1]
+diff --git a/contrib/ndctl b/contrib/ndctl
+index e17fb0b..396a344 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -328,6 +328,9 @@ __ndctl_comp_non_option_args()
+ 	check-namespace)
+ 		opts="$(__ndctl_get_ns -i) all"
+ 		;;
++	clear-errors)
++		opts="$(__ndctl_get_ns) all"
++		;;
+ 	enable-region)
+ 		opts="$(__ndctl_get_regions -i) all"
+ 		;;
+diff --git a/ndctl/action.h b/ndctl/action.h
+index 1ecad49..50da010 100644
+--- a/ndctl/action.h
++++ b/ndctl/action.h
+@@ -13,5 +13,6 @@ enum device_action {
+ 	ACTION_CHECK,
+ 	ACTION_WAIT,
+ 	ACTION_START,
++	ACTION_CLEAR,
+ };
+ #endif /* __NDCTL_ACTION_H__ */
+diff --git a/ndctl/builtin.h b/ndctl/builtin.h
+index 681a69f..94ab317 100644
+--- a/ndctl/builtin.h
++++ b/ndctl/builtin.h
+@@ -10,6 +10,7 @@ int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_destroy_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_disable_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_check_namespace(int argc, const char **argv, struct ndctl_ctx *ctx);
++int cmd_clear_errors(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_enable_region(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_disable_region(int argc, const char **argv, struct ndctl_ctx *ctx);
+ int cmd_enable_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 03d805a..c7abcbf 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -36,6 +36,7 @@ static bool verbose;
+ static bool force;
+ static bool repair;
+ static bool logfix;
++static bool scrub;
+ static struct parameters {
+ 	bool do_scan;
+ 	bool mode_default;
+@@ -120,6 +121,9 @@ OPT_BOOLEAN('R', "repair", &repair, "perform metadata repairs"), \
+ OPT_BOOLEAN('L', "rewrite-log", &logfix, "regenerate the log"), \
+ OPT_BOOLEAN('f', "force", &force, "check namespace even if currently active")
+ 
++#define CLEAR_OPTIONS() \
++OPT_BOOLEAN('s', "scrub", &scrub, "run a scrub to find latent errors")
++
+ static const struct option base_options[] = {
+ 	BASE_OPTIONS(),
+ 	OPT_END(),
+@@ -144,6 +148,12 @@ static const struct option check_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option clear_options[] = {
++	BASE_OPTIONS(),
++	CLEAR_OPTIONS(),
++	OPT_END(),
++};
++
+ static int set_defaults(enum device_action mode)
+ {
+ 	int rc = 0;
+@@ -285,6 +295,9 @@ static const char *parse_namespace_options(int argc, const char **argv,
+ 			case ACTION_CHECK:
+ 				action_string = "check";
+ 				break;
++			case ACTION_CLEAR:
++				action_string = "clear errors for";
++				break;
+ 			default:
+ 				action_string = "<>";
+ 				break;
+@@ -1051,6 +1064,251 @@ static int namespace_reconfig(struct ndctl_region *region,
+ int namespace_check(struct ndctl_namespace *ndns, bool verbose, bool force,
+ 		bool repair, bool logfix);
+ 
++static int bus_send_clear(struct ndctl_bus *bus, unsigned long long start,
++		unsigned long long size)
 +{
-+	unsigned int len;
-+	unsigned long flags;
-+	struct virtio_pmem_request *req, *req_buf;
-+	struct virtio_pmem *vpmem = vq->vdev->priv;
++	const char *busname = ndctl_bus_get_provider(bus);
++	struct ndctl_cmd *cmd_cap, *cmd_clear;
++	unsigned long long cleared;
++	struct ndctl_range range;
++	int rc;
 +
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	while ((req = virtqueue_get_buf(vq, &len)) != NULL) {
-+		req->done = true;
-+		wake_up(&req->host_acked);
++	/* get ars_cap */
++	cmd_cap = ndctl_bus_cmd_new_ars_cap(bus, start, size);
++	if (!cmd_cap) {
++		debug("bus: %s failed to create cmd\n", busname);
++		return -ENOTTY;
++	}
 +
-+		if (!list_empty(&vpmem->req_list)) {
-+			req_buf = list_first_entry(&vpmem->req_list,
-+					struct virtio_pmem_request, list);
-+			list_del(&vpmem->req_list);
-+			req_buf->wq_buf_avail = true;
-+			wake_up(&req_buf->wq_buf);
++	rc = ndctl_cmd_submit_xlat(cmd_cap);
++	if (rc < 0) {
++		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
++		ndctl_cmd_unref(cmd_cap);
++		return rc;
++	}
++
++	/* send clear_error */
++	if (ndctl_cmd_ars_cap_get_range(cmd_cap, &range)) {
++		debug("bus: %s failed to get ars_cap range\n", busname);
++		return -ENXIO;
++	}
++
++	cmd_clear = ndctl_bus_cmd_new_clear_error(range.address,
++					range.length, cmd_cap);
++	if (!cmd_clear) {
++		debug("bus: %s failed to create cmd\n", busname);
++		return -ENOTTY;
++	}
++
++	rc = ndctl_cmd_submit_xlat(cmd_clear);
++	if (rc < 0) {
++		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
++		ndctl_cmd_unref(cmd_clear);
++		return rc;
++	}
++
++	cleared = ndctl_cmd_clear_error_get_cleared(cmd_clear);
++	if (cleared != range.length) {
++		debug("bus: %s expected to clear: %lld actual: %lld\n",
++				busname, range.length, cleared);
++		return -ENXIO;
++	}
++
++	ndctl_cmd_unref(cmd_cap);
++	ndctl_cmd_unref(cmd_clear);
++	return 0;
++}
++
++static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
++		const char *devname, unsigned long long dev_begin,
++		unsigned long long dev_size)
++{
++	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
++	struct ndctl_bus *bus = ndctl_region_get_bus(region);
++	unsigned long long region_begin, dev_end;
++	unsigned int cleared = 0;
++	struct badblock *bb;
++	int rc = 0;
++
++	region_begin = ndctl_region_get_resource(region);
++	if (region_begin == ULLONG_MAX) {
++		ndctl_namespace_enable(ndns);
++		return -errno;
++	}
++
++	dev_end = dev_begin + dev_size - 1;
++
++	ndctl_region_badblock_foreach(region, bb) {
++		unsigned long long bb_begin, bb_end, bb_len;
++
++		bb_begin = region_begin + (bb->offset << 9);
++		bb_len = bb->len << 9;
++		bb_end = bb_begin + bb_len - 1;
++
++		/* bb is not fully contained in the usable area */
++		if (bb_begin < dev_begin || bb_end > dev_end)
++			continue;
++
++		rc = bus_send_clear(bus, bb_begin, bb_len);
++		if (rc) {
++			error("%s: failed to clear badblock at {%lld, %u}\n",
++				devname, bb->offset, bb->len);
++			break;
++		}
++		cleared += bb->len;
++	}
++	debug("%s: cleared %u badblocks\n", devname, cleared);
++
++	rc = ndctl_namespace_enable(ndns);
++	if (rc < 0)
++		return rc;
++	return 0;
++}
++
++static int dax_clear_badblocks(struct ndctl_dax *dax)
++{
++	struct ndctl_namespace *ndns = ndctl_dax_get_namespace(dax);
++	const char *devname = ndctl_dax_get_devname(dax);
++	unsigned long long begin, size;
++	int rc;
++
++	begin = ndctl_dax_get_resource(dax);
++	if (begin == ULLONG_MAX)
++		return -ENXIO;
++
++	size = ndctl_dax_get_size(dax);
++	if (size == ULLONG_MAX)
++		return -ENXIO;
++
++	rc = ndctl_namespace_disable_safe(ndns);
++	if (rc) {
++		error("%s: unable to disable namespace: %s\n", devname,
++			strerror(-rc));
++		return rc;
++	}
++	return nstype_clear_badblocks(ndns, devname, begin, size);
++}
++
++static int pfn_clear_badblocks(struct ndctl_pfn *pfn)
++{
++	struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
++	const char *devname = ndctl_pfn_get_devname(pfn);
++	unsigned long long begin, size;
++	int rc;
++
++	begin = ndctl_pfn_get_resource(pfn);
++	if (begin == ULLONG_MAX)
++		return -ENXIO;
++
++	size = ndctl_pfn_get_size(pfn);
++	if (size == ULLONG_MAX)
++		return -ENXIO;
++
++	rc = ndctl_namespace_disable_safe(ndns);
++	if (rc) {
++		error("%s: unable to disable namespace: %s\n", devname,
++			strerror(-rc));
++		return rc;
++	}
++	return nstype_clear_badblocks(ndns, devname, begin, size);
++}
++
++static int raw_clear_badblocks(struct ndctl_namespace *ndns)
++{
++	const char *devname = ndctl_namespace_get_devname(ndns);
++	unsigned long long begin, size;
++	int rc;
++
++	begin = ndctl_namespace_get_resource(ndns);
++	if (begin == ULLONG_MAX)
++		return -ENXIO;
++
++	size = ndctl_namespace_get_size(ndns);
++	if (size == ULLONG_MAX)
++		return -ENXIO;
++
++	rc = ndctl_namespace_disable_safe(ndns);
++	if (rc) {
++		error("%s: unable to disable namespace: %s\n", devname,
++			strerror(-rc));
++		return rc;
++	}
++	return nstype_clear_badblocks(ndns, devname, begin, size);
++}
++
++static int namespace_wait_scrub(struct ndctl_namespace *ndns)
++{
++	const char *devname = ndctl_namespace_get_devname(ndns);
++	struct ndctl_bus *bus = ndctl_namespace_get_bus(ndns);
++	int in_progress, rc;
++
++	in_progress = ndctl_bus_get_scrub_state(bus);
++	if (in_progress < 0) {
++		error("%s: Unable to determine scrub state: %s\n", devname,
++				strerror(-in_progress));
++		return in_progress;
++	}
++
++	/* start a scrub if asked and if one isn't in progress */
++	if (scrub && (!in_progress)) {
++		rc = ndctl_bus_start_scrub(bus);
++		if (rc) {
++			error("%s: Unable to start scrub: %s\n", devname,
++					strerror(-rc));
++			return rc;
 +		}
 +	}
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(host_ack);
 +
-+ /* The request submission function */
-+int virtio_pmem_flush(struct nd_region *nd_region)
-+{
-+	int err;
-+	unsigned long flags;
-+	struct scatterlist *sgs[2], sg, ret;
-+	struct virtio_device *vdev = nd_region->provider_data;
-+	struct virtio_pmem *vpmem = vdev->priv;
-+	struct virtio_pmem_request *req;
-+
-+	might_sleep();
-+	req = kmalloc(sizeof(*req), GFP_KERNEL);
-+	if (!req)
-+		return -ENOMEM;
-+
-+	req->done = req->wq_buf_avail = false;
-+	strcpy(req->name, "FLUSH");
-+	init_waitqueue_head(&req->host_acked);
-+	init_waitqueue_head(&req->wq_buf);
-+	sg_init_one(&sg, req->name, strlen(req->name));
-+	sgs[0] = &sg;
-+	sg_init_one(&ret, &req->ret, sizeof(req->ret));
-+	sgs[1] = &ret;
-+
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req, GFP_ATOMIC);
-+	if (err) {
-+		dev_err(&vdev->dev, "failed to send command to virtio pmem device\n");
-+
-+		list_add_tail(&vpmem->req_list, &req->list);
-+		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
-+		/* When host has read buffer, this completes via host_ack */
-+		wait_event(req->wq_buf, req->wq_buf_avail);
-+		spin_lock_irqsave(&vpmem->pmem_lock, flags);
++	/*
++	 * wait for any in-progress scrub, whether started above, or
++	 * started automatically at boot time
++	 */
++	rc = ndctl_bus_wait_for_scrub_completion(bus);
++	if (rc) {
++		error("%s: Error waiting for scrub: %s\n", devname,
++				strerror(-rc));
++		return rc;
 +	}
-+	virtqueue_kick(vpmem->req_vq);
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
-+	/* When host has read buffer, this completes via host_ack */
-+	wait_event(req->host_acked, req->done);
-+	err = req->ret;
-+	kfree(req);
-+
-+	return err;
-+};
-+EXPORT_SYMBOL_GPL(virtio_pmem_flush);
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index 35897649c24f..9f634a2ed638 100644
---- a/drivers/virtio/Kconfig
-+++ b/drivers/virtio/Kconfig
-@@ -42,6 +42,16 @@ config VIRTIO_PCI_LEGACY
- 
- 	  If unsure, say Y.
- 
-+config VIRTIO_PMEM
-+	tristate "Support for virtio pmem driver"
-+	depends on VIRTIO
-+	depends on LIBNVDIMM
-+	help
-+	This driver provides support for virtio based flushing interface
-+	for persistent memory range.
-+
-+	If unsure, say M.
-+
- config VIRTIO_BALLOON
- 	tristate "Virtio balloon driver"
- 	depends on VIRTIO
-diff --git a/drivers/virtio/Makefile b/drivers/virtio/Makefile
-index 3a2b5c5dcf46..143ce91eabe9 100644
---- a/drivers/virtio/Makefile
-+++ b/drivers/virtio/Makefile
-@@ -6,3 +6,4 @@ virtio_pci-y := virtio_pci_modern.o virtio_pci_common.o
- virtio_pci-$(CONFIG_VIRTIO_PCI_LEGACY) += virtio_pci_legacy.o
- obj-$(CONFIG_VIRTIO_BALLOON) += virtio_balloon.o
- obj-$(CONFIG_VIRTIO_INPUT) += virtio_input.o
-+obj-$(CONFIG_VIRTIO_PMEM) += pmem.o ../nvdimm/virtio_pmem.o
-diff --git a/drivers/virtio/pmem.c b/drivers/virtio/pmem.c
-new file mode 100644
-index 000000000000..52f74064f67e
---- /dev/null
-+++ b/drivers/virtio/pmem.c
-@@ -0,0 +1,125 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * virtio_pmem.c: Virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and registers the virtual pmem device
-+ * with libnvdimm core.
-+ */
-+#include <linux/virtio_pmem.h>
-+#include <../../drivers/nvdimm/nd.h>
-+
-+static struct virtio_device_id id_table[] = {
-+	{ VIRTIO_ID_PMEM, VIRTIO_DEV_ANY_ID },
-+	{ 0 },
-+};
-+
-+ /* Initialize virt queue */
-+static int init_vq(struct virtio_pmem *vpmem)
-+{
-+	struct virtqueue *vq;
-+
-+	/* single vq */
-+	vpmem->req_vq = vq = virtio_find_single_vq(vpmem->vdev,
-+				host_ack, "flush_queue");
-+	if (IS_ERR(vq))
-+		return PTR_ERR(vq);
-+
-+	spin_lock_init(&vpmem->pmem_lock);
-+	INIT_LIST_HEAD(&vpmem->req_list);
 +
 +	return 0;
-+};
++}
 +
-+static int virtio_pmem_probe(struct virtio_device *vdev)
++static int namespace_clear_bb(struct ndctl_namespace *ndns)
 +{
-+	int err = 0;
-+	struct resource res;
-+	struct virtio_pmem *vpmem;
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct nd_region_desc ndr_desc;
-+	int nid = dev_to_node(&vdev->dev);
-+	struct nd_region *nd_region;
++	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
++	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
++	struct json_object *jndns;
++	int rc;
 +
-+	if (!vdev->config->get) {
-+		dev_err(&vdev->dev, "%s failure: config disabled\n",
-+			__func__);
-+		return -EINVAL;
++	if (btt) {
++		/* skip btt error clearing for now */
++		debug("%s: skip error clearing for btt\n",
++				ndctl_btt_get_devname(btt));
++		return 1;
 +	}
 +
-+	vdev->priv = vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem),
-+			GFP_KERNEL);
-+	if (!vpmem) {
-+		err = -ENOMEM;
-+		goto out_err;
-+	}
++	rc = namespace_wait_scrub(ndns);
++	if (rc)
++		return rc;
 +
-+	vpmem->vdev = vdev;
-+	err = init_vq(vpmem);
-+	if (err)
-+		goto out_err;
++	if (dax)
++		rc = dax_clear_badblocks(dax);
++	else if (pfn)
++		rc = pfn_clear_badblocks(pfn);
++	else
++		rc = raw_clear_badblocks(ndns);
 +
-+	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-+			start, &vpmem->start);
-+	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-+			size, &vpmem->size);
++	if (rc)
++		return rc;
 +
-+	res.start = vpmem->start;
-+	res.end   = vpmem->start + vpmem->size-1;
-+	vpmem->nd_desc.provider_name = "virtio-pmem";
-+	vpmem->nd_desc.module = THIS_MODULE;
-+
-+	vpmem->nvdimm_bus = nvdimm_bus = nvdimm_bus_register(&vdev->dev,
-+						&vpmem->nd_desc);
-+	if (!nvdimm_bus)
-+		goto out_vq;
-+
-+	dev_set_drvdata(&vdev->dev, nvdimm_bus);
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+
-+	ndr_desc.res = &res;
-+	ndr_desc.numa_node = nid;
-+	ndr_desc.flush = virtio_pmem_flush;
-+	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-+	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-+	nd_region = nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc);
-+	nd_region->provider_data =  dev_to_virtio
-+					(nd_region->dev.parent->parent);
-+
-+	if (!nd_region)
-+		goto out_nd;
-+
-+	//virtio_device_ready(vdev);
++	jndns = util_namespace_to_json(ndns, UTIL_JSON_MEDIA_ERRORS);
++	if (jndns)
++		printf("%s\n", json_object_to_json_string_ext(jndns,
++				JSON_C_TO_STRING_PRETTY));
 +	return 0;
-+out_nd:
-+	err = -ENXIO;
-+	nvdimm_bus_unregister(nvdimm_bus);
-+out_vq:
-+	vdev->config->del_vqs(vdev);
-+out_err:
-+	dev_err(&vdev->dev, "failed to register virtio pmem memory\n");
-+	return err;
 +}
 +
-+static void virtio_pmem_remove(struct virtio_device *vdev)
+ static int do_xaction_namespace(const char *namespace,
+ 		enum device_action action, struct ndctl_ctx *ctx,
+ 		int *processed)
+@@ -1131,6 +1389,11 @@ static int do_xaction_namespace(const char *namespace,
+ 					if (rc == 0)
+ 						(*processed)++;
+ 					break;
++				case ACTION_CLEAR:
++					rc = namespace_clear_bb(ndns);
++					if (rc == 0)
++						(*processed)++;
++					break;
+ 				case ACTION_CREATE:
+ 					rc = namespace_reconfig(region, ndns);
+ 					if (rc == 0)
+@@ -1240,3 +1503,19 @@ int cmd_check_namespace(int argc , const char **argv, struct ndctl_ctx *ctx)
+ 			checked == 1 ? "" : "s");
+ 	return rc;
+ }
++
++int cmd_clear_errors(int argc , const char **argv, struct ndctl_ctx *ctx)
 +{
-+	struct virtio_pmem *vpmem = vdev->priv;
-+	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
++	char *xable_usage = "ndctl clear_errors <namespace> [<options>]";
++	const char *namespace = parse_namespace_options(argc, argv,
++			ACTION_CLEAR, clear_options, xable_usage);
++	int cleared, rc;
 +
-+	nvdimm_bus_unregister(nvdimm_bus);
-+	vdev->config->del_vqs(vdev);
-+	kfree(vpmem);
++	rc = do_xaction_namespace(namespace, ACTION_CLEAR, ctx, &cleared);
++	if (rc < 0)
++		fprintf(stderr, "error clearing namespaces: %s\n",
++				strerror(-rc));
++	fprintf(stderr, "cleared %d namespace%s\n", cleared,
++			cleared == 1 ? "" : "s");
++	return rc;
 +}
-+
-+static struct virtio_driver virtio_pmem_driver = {
-+	.driver.name		= KBUILD_MODNAME,
-+	.driver.owner		= THIS_MODULE,
-+	.id_table		= id_table,
-+	.probe			= virtio_pmem_probe,
-+	.remove			= virtio_pmem_remove,
-+};
-+
-+module_virtio_driver(virtio_pmem_driver);
-+MODULE_DEVICE_TABLE(virtio, id_table);
-+MODULE_DESCRIPTION("Virtio pmem driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/virtio_pmem.h b/include/linux/virtio_pmem.h
-new file mode 100644
-index 000000000000..224f9d934be6
---- /dev/null
-+++ b/include/linux/virtio_pmem.h
-@@ -0,0 +1,60 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * virtio_pmem.h: virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and provides a virtio based flushing
-+ * interface.
-+ **/
-+
-+#ifndef _LINUX_VIRTIO_PMEM_H
-+#define _LINUX_VIRTIO_PMEM_H
-+
-+#include <linux/virtio_ids.h>
-+#include <linux/module.h>
-+#include <linux/virtio_config.h>
-+#include <uapi/linux/virtio_pmem.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/spinlock.h>
-+
-+struct virtio_pmem_request {
-+	/* Host return status corresponding to flush request */
-+	int ret;
-+
-+	/* command name*/
-+	char name[16];
-+
-+	/* Wait queue to process deferred work after ack from host */
-+	wait_queue_head_t host_acked;
-+	bool done;
-+
-+	/* Wait queue to process deferred work after virt queue buffer avail */
-+	wait_queue_head_t wq_buf;
-+	bool wq_buf_avail;
-+	struct list_head list;
-+};
-+
-+struct virtio_pmem {
-+	struct virtio_device *vdev;
-+
-+	/* Virtio pmem request queue */
-+	struct virtqueue *req_vq;
-+
-+	/* nvdimm bus registers virtio pmem device */
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct nvdimm_bus_descriptor nd_desc;
-+
-+	/* List to store deferred work if virtqueue is full */
-+	struct list_head req_list;
-+
-+	/* Synchronize virtqueue data */
-+	spinlock_t pmem_lock;
-+
-+	/* Memory region information */
-+	uint64_t start;
-+	uint64_t size;
-+};
-+
-+void host_ack(struct virtqueue *vq);
-+int virtio_pmem_flush(struct nd_region *nd_region);
-+#endif
-diff --git a/include/uapi/linux/virtio_ids.h b/include/uapi/linux/virtio_ids.h
-index 6d5c3b2d4f4d..346389565ac1 100644
---- a/include/uapi/linux/virtio_ids.h
-+++ b/include/uapi/linux/virtio_ids.h
-@@ -43,5 +43,6 @@
- #define VIRTIO_ID_INPUT        18 /* virtio input */
- #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
- #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
-+#define VIRTIO_ID_PMEM         25 /* virtio pmem */
- 
- #endif /* _LINUX_VIRTIO_IDS_H */
-diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio_pmem.h
-new file mode 100644
-index 000000000000..fa3f7d52717a
---- /dev/null
-+++ b/include/uapi/linux/virtio_pmem.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _UAPI_LINUX_VIRTIO_PMEM_H
-+#define _UAPI_LINUX_VIRTIO_PMEM_H
-+
-+struct virtio_pmem_config {
-+	__le64 start;
-+	__le64 size;
-+};
-+#endif
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index bd333b2..6c4975c 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -74,6 +74,7 @@ static struct cmd_struct commands[] = {
+ 	{ "create-namespace", { cmd_create_namespace } },
+ 	{ "destroy-namespace", { cmd_destroy_namespace } },
+ 	{ "check-namespace", { cmd_check_namespace } },
++	{ "clear-errors", { cmd_clear_errors } },
+ 	{ "enable-region", { cmd_enable_region } },
+ 	{ "disable-region", { cmd_disable_region } },
+ 	{ "enable-dimm", { cmd_enable_dimm } },
 -- 
 2.20.1
 
