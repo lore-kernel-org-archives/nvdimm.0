@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 016AF212017C0
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 18:27:27 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 3/4] fs/dax: copy source blocks before writing when COW
-Date: Wed, 17 Apr 2019 09:27:14 +0800
-Message-ID: <20190417012715.8287-4-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190417012715.8287-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190417012715.8287-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com
+ [IPv6:2607:f8b0:4864:20::32c])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 78170212017CD
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Apr 2019 10:05:04 -0700 (PDT)
+Received: by mail-ot1-x32c.google.com with SMTP id 103so15069409otd.9
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Apr 2019 10:05:04 -0700 (PDT)
 MIME-Version: 1.0
+References: <1555051638-32354-1-git-send-email-lirongqing@baidu.com>
+ <CAPcyv4hD9rwFHyEh=5gAWe0JPwzUJqUTi4FaUkyLtyovE==U1w@mail.gmail.com>
+ <46ecaf420d664ebfab035e8202a774a9@baidu.com>
+ <AT5PR8401MB11694F5888BCE7133F1FDD4FAB2A0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+ <0ebe45b82dbf48348e4582e597e6edfc@baidu.com>
+In-Reply-To: <0ebe45b82dbf48348e4582e597e6edfc@baidu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 15 Apr 2019 10:04:52 -0700
+Message-ID: <CAPcyv4i0oMipX1jySgmmgBjn_nZr+pN=_EemzZ3TdKyAW5xC6g@mail.gmail.com>
+Subject: Re: [PATCH][RFC] nvdimm: pmem: always flush nvdimm for write request
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,145 +25,38 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "Li,Rongqing" <lirongqing@baidu.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The actor functions get the source blocks' start address from
-iomap->src_addr, and then copy these blocks to the new allocated
-blocks before writing the user data.
-
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-cc: linux-nvdimm@lists.01.org
----
- fs/dax.c | 70 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index ca0671d55aa6..28519bdecf7c 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -982,6 +982,11 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
- 	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
- }
- 
-+static sector_t dax_iomap_src_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return (iomap->src_addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
-+}
-+
- static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
- 			 pfn_t *pfnp)
- {
-@@ -1014,6 +1019,51 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
- 	return rc;
- }
- 
-+static int dax_iomap_addr(struct iomap *iomap, sector_t sector, size_t size,
-+			    void **kaddr)
-+{
-+	pgoff_t pgoff;
-+	int id, rc;
-+	long length;
-+
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, size, &pgoff);
-+	if (rc)
-+		return rc;
-+
-+	id = dax_read_lock();
-+	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
-+					kaddr, NULL);
-+	if (length < 0)
-+		rc = length;
-+	if (!*kaddr)
-+		rc = -EFAULT;
-+
-+	dax_read_unlock(id);
-+	return rc;
-+}
-+
-+static int dax_iomap_cow_copy(struct iomap *iomap, loff_t pos, size_t size)
-+{
-+	void *kaddr = 0, *src_kaddr = 0;
-+	int error = 0;
-+	const sector_t src_sector = dax_iomap_src_sector(iomap, pos);
-+	const sector_t sector = dax_iomap_sector(iomap, pos);
-+
-+	error = dax_iomap_addr(iomap, src_sector, size, &src_kaddr);
-+	if (error < 0)
-+		return error;
-+	error = dax_iomap_addr(iomap, sector, size, &kaddr);
-+	if (error < 0)
-+		return error;
-+
-+	/*
-+	 * Copy data from source blocks to the new allocated blocks before
-+	 * writing user data.
-+	 */
-+	memcpy(kaddr, src_kaddr, size);
-+	return 0;
-+}
-+
- /*
-  * The user has performed a load from a hole in the file.  Allocating a new
-  * page in the file would cause excessive storage usage for workloads with
-@@ -1149,6 +1199,12 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		if (map_len > end - pos)
- 			map_len = end - pos;
- 
-+		if (iomap->src_addr) {
-+			ret = dax_iomap_cow_copy(iomap, pos, size);
-+			if (ret < 0)
-+				break;
-+		}
-+
- 		/*
- 		 * The userspace address for the memory copy has already been
- 		 * validated via access_ok() in either vfs_read() or
-@@ -1336,6 +1392,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
- 		}
-+
- 		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
- 		if (error < 0)
- 			goto error_finish_iomap;
-@@ -1358,6 +1415,13 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			ret = VM_FAULT_NEEDDSYNC | major;
- 			goto finish_iomap;
- 		}
-+
-+		if (iomap.src_addr) {
-+			error = dax_iomap_cow_copy(&iomap, pos, PAGE_SIZE);
-+			if (error < 0)
-+				goto error_finish_iomap;
-+		}
-+
- 		trace_dax_insert_mapping(inode, vmf, entry);
- 		if (write)
- 			ret = vmf_insert_mixed_mkwrite(vma, vaddr, pfn);
-@@ -1559,6 +1623,12 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			goto finish_iomap;
- 		}
- 
-+		if (iomap.src_addr) {
-+			error = dax_iomap_cow_copy(&iomap, pos, PMD_SIZE);
-+			if (error < 0)
-+				goto finish_iomap;
-+		}
-+
- 		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
- 		result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
- 					    write);
--- 
-2.17.0
-
-
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gU3VuLCBBcHIgMTQsIDIwMTkgYXQgODoyNiBQTSBMaSxSb25ncWluZyA8bGlyb25ncWluZ0Bi
+YWlkdS5jb20+IHdyb3RlOgo+Cj4KPgo+ID4gLS0tLS3pgq7ku7bljp/ku7YtLS0tLQo+ID4g5Y+R
+5Lu25Lq6OiBFbGxpb3R0LCBSb2JlcnQgKFNlcnZlcnMpIFttYWlsdG86ZWxsaW90dEBocGUuY29t
+XQo+ID4g5Y+R6YCB5pe26Ze0OiAyMDE55bm0NOaciDE05pelIDExOjIxCj4gPiDmlLbku7bkuro6
+IExpLFJvbmdxaW5nIDxsaXJvbmdxaW5nQGJhaWR1LmNvbT47IERhbiBXaWxsaWFtcwo+ID4gPGRh
+bi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiA+IOaKhOmAgTogbGludXgtbnZkaW1tIDxsaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnPgo+ID4g5Li76aKYOiBSRTogW1BBVENIXVtSRkNdIG52ZGltbTog
+cG1lbTogYWx3YXlzIGZsdXNoIG52ZGltbSBmb3Igd3JpdGUgcmVxdWVzdAo+ID4KPiA+Cj4gPgo+
+ID4gPj4gQEAgLTIxNSw3ICsyMTYsNyBAQCBzdGF0aWMgYmxrX3FjX3QgcG1lbV9tYWtlX3JlcXVl
+c3Qoc3RydWN0Cj4gPiByZXF1ZXN0X3F1ZXVlICpxLCBzdHJ1Y3QgYmlvICpiaW8pCj4gPiA+PiAg
+ICBpZiAoZG9fYWNjdCkKPiA+ID4+ICAgICAgICAgICAgbmRfaW9zdGF0X2VuZChiaW8sIHN0YXJ0
+KTsKPiA+ID4+Cj4gPiA+PiAtICBpZiAoYmlvLT5iaV9vcGYgJiBSRVFfRlVBKQo+ID4gPj4gKyAg
+aWYgKGJpby0+Ymlfb3BmICYgUkVRX0ZVQSB8fCBvcF9pc193cml0ZShvcCkpCj4gPiA+PiAgICAg
+ICAgICAgIG52ZGltbV9mbHVzaChuZF9yZWdpb24pOwo+ID4gLi4uCj4gPiA+PiBCZWZvcmU6Cj4g
+PiA+PiBKb2JzOiAzMiAoZj0zMik6IFtXKDMyKV1bMTQuMiVdW3c9MTg4NE1pQi9zXVt3PTQ4Mmsg
+SU9QU11bZXRhCj4gPiA+PiAwMW06NDNzXQo+ID4gPj4gQWZ0ZXI6Cj4gPiA+PiBKb2JzOiAzMiAo
+Zj0zMik6IFtXKDMyKV1bOC4zJV1bdz0yMzc4TWlCL3NdW3c9NjA5ayBJT1BTXVtldGEgMDFtOjUw
+c10KPiA+ID4+Cj4gPiA+PiAtUm9uZ1FpbmcKPiA+Cj4gPgo+ID4gRG9pbmcgbW9yZSB3b3JrIGNh
+bm5vdCBiZSBmYXN0ZXIgdGhhbiBkb2luZyBsZXNzIHdvcmssIHNvIHNvbWV0aGluZyBlbHNlCj4g
+PiBtdXN0IGJlIGhhcHBlbmluZyBoZXJlLgo+ID4KPgo+IERhbiBXaWxsaWFtcyBtYXliZSBrbm93
+IG1vcmUuCgpPbmUgdGhvdWdodCBpcyB0aGF0IGJhY2stcHJlc3N1cmUgZnJvbSBhd2FpdGluZyB3
+cml0ZS1wb3N0ZWQtcXVldWUKZmx1c2ggY29tcGxldGlvbiBjYXVzZXMgZnVsbCBidWZmZXIgd3Jp
+dGVzIHRvIGNvYWxlc2NlIGF0IHRoZQpjb250cm9sbGVyLCBpLmUuIHdyaXRlLWNvbWJpbmluZyBl
+ZmZlY3RzIGZyb20gdGhlIGZsdXNoLWRlbGF5LgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51
+eC1udmRpbW0K
