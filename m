@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com
- [IPv6:2607:f8b0:4864:20::841])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE406212017C8
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 08:31:53 -0700 (PDT)
-Received: by mail-qt1-x841.google.com with SMTP id l17so1450266qtp.2
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 08:31:53 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v1 1/2] device-dax: fix memory and resource leak if hotplug fails
-Date: Sat, 20 Apr 2019 11:31:47 -0400
-Message-Id: <20190420153148.21548-2-pasha.tatashin@soleen.com>
-In-Reply-To: <20190420153148.21548-1-pasha.tatashin@soleen.com>
-References: <20190420153148.21548-1-pasha.tatashin@soleen.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 31ADF211F9D69
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Apr 2019 15:15:05 -0700 (PDT)
+Subject: Re: [GIT PULL] Fileystem-DAX fix for v5.1-rc6
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAPcyv4g97hof42jNAx__GpZ9ATPLv4J2AFo56nRzH-whCj7vgg@mail.gmail.com>
+References: <CAPcyv4g97hof42jNAx__GpZ9ATPLv4J2AFo56nRzH-whCj7vgg@mail.gmail.com>
+Message-Id: <155536650499.9216.14416230494985731086.pr-tracker-bot@kernel.org>
+Date: Mon, 15 Apr 2019 22:15:04 +0000
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,43 +17,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When add_memory() function fails, the resource and the memory should be
-freed.
+The pull request you sent on Mon, 15 Apr 2019 12:34:33 -0700:
 
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/fsdax-fix-5.1-rc6
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
----
- drivers/dax/kmem.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/5512320c9f6f2acd7972c05400473c2338325339
 
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index a02318c6d28a..4c0131857133 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
- 	new_res->name = dev_name(dev);
- 
- 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
--	if (rc)
-+	if (rc) {
-+		release_resource(new_res);
-+		kfree(new_res);
- 		return rc;
-+	}
- 
- 	return 0;
- }
+Thank you!
+
 -- 
-2.21.0
-
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
