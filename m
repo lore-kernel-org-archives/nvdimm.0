@@ -1,13 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id E1C39212017C0
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 18:27:28 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 1/4] fs/iomap: Introduce src_addr for COW in fsdax mode.
-Date: Wed, 17 Apr 2019 09:27:12 +0800
-Message-ID: <20190417012715.8287-2-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190417012715.8287-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190417012715.8287-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mx0b-002e3701.pphosted.com (mx0b-002e3701.pphosted.com
+ [148.163.143.35])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F1C82211FB8B9
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Apr 2019 11:29:31 -0700 (PDT)
+From: "Elliott, Robert (Servers)" <elliott@hpe.com>
+Subject: RE: [PATCH ndctl] ndctl, region: return the rc value in region_action
+Date: Mon, 15 Apr 2019 18:29:28 +0000
+Message-ID: <AT5PR8401MB1169A9F7AADEA04F521CBDD0AB2B0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
+References: <20190415082357.31127-1-yi.zhang@redhat.com>
+ <CAPcyv4g5cp=5QZsTi02ouwqLPcoTFmos+146p9_jkgUofEhnzQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4g5cp=5QZsTi02ouwqLPcoTFmos+146p9_jkgUofEhnzQ@mail.gmail.com>
+Content-Language: en-US
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,35 +25,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>, Yi Zhang <yi.zhang@redhat.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When using reflink, coping the source blocks before writing data
-into new allocated blocks is required.  In fsdax mode, we need a source
-blocks' start address to handle the COW operation.
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
----
- include/linux/iomap.h | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 0fefb5455bda..3b3aec2311c5 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -61,6 +61,10 @@ struct iomap {
- 	u16			flags;	/* flags for mapping */
- 	struct block_device	*bdev;	/* block device for I/O */
- 	struct dax_device	*dax_dev; /* dax_dev for dax operations */
-+	u64			src_addr; /* disk offset of mapping, bytes,
-+					   * the source blocks' start address
-+					   * for cow in dax
-+					   */
- 	void			*inline_data;
- 	void			*private; /* filesystem private */
- 
--- 
-2.17.0
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of Dan Williams
+> Sent: Monday, April 15, 2019 11:29 AM
+> Subject: Re: [PATCH ndctl] ndctl, region: return the rc value in region_action
+> 
+> On Mon, Apr 15, 2019 at 1:24 AM Yi Zhang <yi.zhang@redhat.com> wrote:
+> >
+> > if region_action failed, return the rc valude instead of 0
+
+valude s/b value
+
+> >
+> > Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
+> > ---
+> >  ndctl/region.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/ndctl/region.c b/ndctl/region.c
+> > index 993b3f8..7945007 100644
+> > --- a/ndctl/region.c
+> > +++ b/ndctl/region.c
+> > @@ -89,7 +89,7 @@ static int region_action(struct ndctl_region *region, enum device_action mode)
+> >                 break;
+> >         }
+> >
+> > -       return 0;
+> > +       return rc;
+> >  }
+> 
+> Looks good to me:
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+Perhaps a similar change should be made to ndctl_namespace_disable_safe(),
+one of the functions called by region_action() whose rc is propagated, to 
+propagate the rc from ndctl_namespace_disable_invalidate().
+
 
 
 
