@@ -1,124 +1,96 @@
-From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 10/18] dax: replace mmap entry in case of CoW
-Date: Tue, 16 Apr 2019 11:41:46 -0500
-Message-ID: <20190416164154.30390-11-rgoldwyn@suse.de>
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 15/18] btrfs: handle dax page zeroing
+Date: Tue, 16 Apr 2019 11:41:51 -0500
+Message-ID: <20190416164154.30390-16-rgoldwyn@suse.de>
 References: <20190416164154.30390-1-rgoldwyn@suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190416164154.30390-1-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+Return-path: <linux-btrfs-owner@vger.kernel.org>
+In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
+Sender: linux-btrfs-owner@vger.kernel.org
+To: linux-btrfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, darrick.wong@oracle.com, kilobyte@angband.pl, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-Id: linux-nvdimm@lists.01.org
 
-From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-We replace the existing entry to the newly allocated one
-in case of CoW. Also, we mark the entry as PAGECACHE_TAG_TOWRITE
-so writeback marks this entry as writeprotected. This
-helps us snapshots so new write pagefaults after snapshots
-trigger a CoW.
+btrfs_dax_zero_block() zeros part of the page, either from the
+front or the regular rest of the block.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/dax.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ fs/btrfs/ctree.h |  1 +
+ fs/btrfs/dax.c   | 27 ++++++++++++++++++++++++++-
+ fs/btrfs/inode.c |  4 ++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 45fc2e18969a..d5100cbe8bd2 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -708,14 +708,15 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
-  */
- static void *dax_insert_entry(struct xa_state *xas,
- 		struct address_space *mapping, struct vm_fault *vmf,
--		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
-+		void *entry, pfn_t pfn, unsigned long flags, bool dirty,
-+		bool cow)
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index d3d044125619..ee1ed18f8b3c 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3806,6 +3806,7 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
+ int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
+ 		struct inode *dest, loff_t destoff, loff_t len,
+ 		bool *is_same);
++int btrfs_dax_zero_block(struct inode *inode, loff_t from, loff_t len, bool front);
+ #else
+ static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
  {
- 	void *new_entry = dax_make_entry(pfn, flags);
- 
- 	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
--	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
-+	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
- 		unsigned long index = xas->xa_index;
- 		/* we are replacing a zero page with block mapping */
- 		if (dax_is_pmd_entry(entry))
-@@ -727,12 +728,12 @@ static void *dax_insert_entry(struct xa_state *xas,
- 
- 	xas_reset(xas);
- 	xas_lock_irq(xas);
--	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
-+	if (cow || (dax_entry_size(entry) != dax_entry_size(new_entry))) {
- 		dax_disassociate_entry(entry, mapping, false);
- 		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
+index a29628b403b3..a4b36d5b537c 100644
+--- a/fs/btrfs/dax.c
++++ b/fs/btrfs/dax.c
+@@ -132,7 +132,8 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
+ 	 * This will be true for reads only since we have already
+ 	 * allocated em
+ 	 */
+-	if (em->block_start == EXTENT_MAP_HOLE) {
++	if (em->block_start == EXTENT_MAP_HOLE ||
++			em->flags == EXTENT_FLAG_FILLING) {
+ 		iomap->type = IOMAP_HOLE;
+ 		return 0;
  	}
- 
--	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-+	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
-@@ -752,6 +753,9 @@ static void *dax_insert_entry(struct xa_state *xas,
- 	if (dirty)
- 		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
- 
-+	if (cow)
-+		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
-+
- 	xas_unlock_irq(xas);
- 	return entry;
+@@ -234,4 +235,28 @@ int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
+ {
+ 	return dax_file_range_compare(src, srcoff, dest, destoff, len, is_same, &btrfs_iomap_ops);
  }
-@@ -1031,7 +1035,7 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
- 	vm_fault_t ret;
++
++/*
++ * zero a part of the page only. This should CoW (via iomap_begin) if required
++ */
++int btrfs_dax_zero_block(struct inode *inode, loff_t from, loff_t len, bool front)
++{
++	loff_t start = round_down(from, PAGE_SIZE);
++	loff_t end = round_up(from, PAGE_SIZE);
++	loff_t offset = from;
++	int ret = 0;
++
++	if (front) {
++		len = from - start;
++		offset = start;
++	} else	{
++		if (!len)
++			len = end - from;
++	}
++
++	if (len)
++		ret = iomap_zero_range(inode, offset, len, NULL, &btrfs_iomap_ops);
++
++	return (ret < 0) ? ret : 0;
++}
+ #endif /* CONFIG_FS_DAX */
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index c2c0544009a7..f6a64607bc8c 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -4833,6 +4833,10 @@ int btrfs_truncate_block(struct inode *inode, loff_t from, loff_t len,
+ 	    (!len || IS_ALIGNED(len, blocksize)))
+ 		goto out;
  
- 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_ZERO_PAGE, false);
-+			DAX_ZERO_PAGE, false, false);
++#ifdef CONFIG_FS_DAX
++	if (IS_DAX(inode))
++		return btrfs_dax_zero_block(inode, from, len, front);
++#endif
+ 	block_start = round_down(from, blocksize);
+ 	block_end = block_start + blocksize - 1;
  
- 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
- 	trace_dax_load_hole(inode, vmf, ret);
-@@ -1388,7 +1392,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 				memset(addr, 0, PAGE_SIZE);
- 		}
- 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
--						 0, write && !sync);
-+						 0, write && !sync,
-+						 iomap.type == IOMAP_DAX_COW);
- 
- 		/*
- 		 * If we are doing synchronous page fault and inode needs fsync,
-@@ -1467,7 +1472,8 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
- 
- 	pfn = page_to_pfn_t(zero_page);
- 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_PMD | DAX_ZERO_PAGE, false);
-+			DAX_PMD | DAX_ZERO_PAGE, false,
-+			iomap->type == IOMAP_DAX_COW);
- 
- 	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
- 	if (!pmd_none(*(vmf->pmd))) {
-@@ -1590,7 +1596,8 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			goto finish_iomap;
- 
- 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
--						DAX_PMD, write && !sync);
-+						DAX_PMD, write && !sync,
-+						false);
- 
- 		/*
- 		 * If we are doing synchronous page fault and inode needs fsync,
 -- 
 2.16.4
