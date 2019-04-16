@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 88ADE212108E3
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:38 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 34319212108EE
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:14 -0700 (PDT)
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 14/18] dax: memcpy before zeroing range
-Date: Tue, 16 Apr 2019 11:41:50 -0500
-Message-Id: <20190416164154.30390-15-rgoldwyn@suse.de>
+Subject: [PATCH 03/18] btrfs: basic dax read
+Date: Tue, 16 Apr 2019 11:41:39 -0500
+Message-Id: <20190416164154.30390-4-rgoldwyn@suse.de>
 In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
 References: <20190416164154.30390-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -28,137 +28,126 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-However, this needed more iomap fields, so it was easier
-to pass iomap and compute inside the function rather
-than passing a log of arguments.
-
-Note, there is subtle difference between iomap_sector and
-dax_iomap_sector(). Can we replace dax_iomap_sector with
-iomap_sector()? It would need pos & PAGE_MASK though or else
-bdev_dax_pgoff() return -EINVAL.
+Perform a basic read using iomap support. The btrfs_iomap_begin()
+finds the extent at the position and fills the iomap data
+structure with the values.
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/dax.c              | 14 ++++++++++----
- fs/iomap.c            |  9 +--------
- include/linux/dax.h   | 11 +++++------
- include/linux/iomap.h |  6 ++++++
- 4 files changed, 22 insertions(+), 18 deletions(-)
+ fs/btrfs/Makefile |  1 +
+ fs/btrfs/ctree.h  |  5 +++++
+ fs/btrfs/dax.c    | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/btrfs/file.c   | 11 ++++++++++-
+ 4 files changed, 65 insertions(+), 1 deletion(-)
+ create mode 100644 fs/btrfs/dax.c
 
-diff --git a/fs/dax.c b/fs/dax.c
-index abbe4a79f219..af94909640ea 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1055,11 +1055,15 @@ static bool dax_range_is_aligned(struct block_device *bdev,
- 	return true;
- }
+diff --git a/fs/btrfs/Makefile b/fs/btrfs/Makefile
+index ca693dd554e9..1fa77b875ae9 100644
+--- a/fs/btrfs/Makefile
++++ b/fs/btrfs/Makefile
+@@ -12,6 +12,7 @@ btrfs-y += super.o ctree.o extent-tree.o print-tree.o root-tree.o dir-item.o \
+ 	   reada.o backref.o ulist.o qgroup.o send.o dev-replace.o raid56.o \
+ 	   uuid-tree.o props.o free-space-tree.o tree-checker.o
  
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int size)
-+int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+			  unsigned int offset, unsigned int size)
- {
--	if (dax_range_is_aligned(bdev, offset, size)) {
-+	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
-+	struct block_device *bdev = iomap->bdev;
-+	struct dax_device *dax_dev = iomap->dax_dev;
++btrfs-$(CONFIG_FS_DAX) += dax.o
+ btrfs-$(CONFIG_BTRFS_FS_POSIX_ACL) += acl.o
+ btrfs-$(CONFIG_BTRFS_FS_CHECK_INTEGRITY) += check-integrity.o
+ btrfs-$(CONFIG_BTRFS_FS_REF_VERIFY) += ref-verify.o
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 9512f49262dd..b7bbe5130a3b 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3795,6 +3795,11 @@ int btrfs_reada_wait(void *handle);
+ void btrfs_reada_detach(void *handle);
+ int btree_readahead_hook(struct extent_buffer *eb, int err);
+ 
++#ifdef CONFIG_FS_DAX
++/* dax.c */
++ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
++#endif /* CONFIG_FS_DAX */
 +
-+	if (!(iomap->type == IOMAP_DAX_COW) &&
-+	    dax_range_is_aligned(bdev, offset, size)) {
- 		sector_t start_sector = sector + (offset >> 9);
- 
- 		return blkdev_issue_zeroout(bdev, start_sector,
-@@ -1079,6 +1083,8 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			dax_read_unlock(id);
- 			return rc;
- 		}
-+		if (iomap->type == IOMAP_DAX_COW)
-+			memcpy(iomap->inline_data, kaddr, offset);
- 		memset(kaddr + offset, 0, size);
- 		dax_flush(dax_dev, kaddr + offset, size);
- 		dax_read_unlock(id);
-diff --git a/fs/iomap.c b/fs/iomap.c
-index abdd18e404f8..90698c854883 100644
---- a/fs/iomap.c
-+++ b/fs/iomap.c
-@@ -98,12 +98,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
- 	return written ? written : ret;
- }
- 
--static sector_t
--iomap_sector(struct iomap *iomap, loff_t pos)
--{
--	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
--}
--
- static struct iomap_page *
- iomap_page_create(struct inode *inode, struct page *page)
+ static inline int is_fstree(u64 rootid)
  {
-@@ -990,8 +984,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
- static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
- 		struct iomap *iomap)
- {
--	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
--			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
-+	return __dax_zero_page_range(iomap, pos, offset, bytes);
- }
- 
- static loff_t
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index a11bc7b1f526..892c478d7073 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -9,6 +9,7 @@
- 
- typedef unsigned long dax_entry_t;
- 
-+struct iomap;
- struct iomap_ops;
- struct dax_device;
- struct dax_operations {
-@@ -161,13 +162,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
-                 loff_t destoff, loff_t len, bool *is_same, const struct iomap_ops *ops);
- 
- #ifdef CONFIG_FS_DAX
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length);
-+int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+		unsigned int offset, unsigned int size);
- #else
--static inline int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length)
-+static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+		unsigned int offset, unsigned int size)
- {
- 	return -ENXIO;
- }
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 6e885c5a38a3..3a803566dea1 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -7,6 +7,7 @@
- #include <linux/mm.h>
- #include <linux/types.h>
- #include <linux/mm_types.h>
-+#include <linux/blkdev.h>
- 
- struct address_space;
- struct fiemap_extent_info;
-@@ -120,6 +121,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
- 	return NULL;
- }
- 
-+static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
+ 	if (rootid == BTRFS_FS_TREE_OBJECTID ||
+diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
+new file mode 100644
+index 000000000000..bf3d46b0acb6
+--- /dev/null
++++ b/fs/btrfs/dax.c
+@@ -0,0 +1,49 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * DAX support for BTRFS
++ *
++ * Copyright (c) 2019  SUSE Linux
++ * Author: Goldwyn Rodrigues <rgoldwyn@suse.com>
++ */
++
++#ifdef CONFIG_FS_DAX
++#include <linux/dax.h>
++#include <linux/iomap.h>
++#include "ctree.h"
++#include "btrfs_inode.h"
++
++static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
++		loff_t length, unsigned flags, struct iomap *iomap)
 +{
-+	        return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
++	struct extent_map *em;
++	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
++	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
++	if (em->block_start == EXTENT_MAP_HOLE) {
++		iomap->type = IOMAP_HOLE;
++		return 0;
++	}
++	iomap->type = IOMAP_MAPPED;
++	iomap->bdev = em->bdev;
++	iomap->dax_dev = fs_info->dax_dev;
++	iomap->offset = em->start;
++	iomap->length = em->len;
++	iomap->addr = em->block_start;
++	return 0;
 +}
 +
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		const struct iomap_ops *ops);
- int iomap_readpage(struct page *page, const struct iomap_ops *ops);
++static const struct iomap_ops btrfs_iomap_ops = {
++	.iomap_begin		= btrfs_iomap_begin,
++};
++
++ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to)
++{
++	ssize_t ret;
++	struct inode *inode = file_inode(iocb->ki_filp);
++
++	inode_lock_shared(inode);
++	ret = dax_iomap_rw(iocb, to, &btrfs_iomap_ops);
++	inode_unlock_shared(inode);
++
++	return ret;
++}
++#endif /* CONFIG_FS_DAX */
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index 34fe8a58b0e9..9194591f9eea 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -3288,9 +3288,18 @@ static int btrfs_file_open(struct inode *inode, struct file *filp)
+ 	return generic_file_open(inode, filp);
+ }
+ 
++static ssize_t btrfs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++#ifdef CONFIG_FS_DAX
++	if (IS_DAX(file_inode(iocb->ki_filp)))
++		return btrfs_file_dax_read(iocb, to);
++#endif
++	return generic_file_read_iter(iocb, to);
++}
++
+ const struct file_operations btrfs_file_operations = {
+ 	.llseek		= btrfs_file_llseek,
+-	.read_iter      = generic_file_read_iter,
++	.read_iter      = btrfs_file_read_iter,
+ 	.splice_read	= generic_file_splice_read,
+ 	.write_iter	= btrfs_file_write_iter,
+ 	.mmap		= btrfs_file_mmap,
 -- 
 2.16.4
 
