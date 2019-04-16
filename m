@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
- [IPv6:2607:f8b0:4864:20::844])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2BA4211F9D74
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:34 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id p20so8949092qtc.9
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:34 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v2 1/2] device-dax: fix memory and resource leak if hotplug fails
-Date: Sat, 20 Apr 2019 21:44:28 -0400
-Message-Id: <20190421014429.31206-2-pasha.tatashin@soleen.com>
-In-Reply-To: <20190421014429.31206-1-pasha.tatashin@soleen.com>
-References: <20190421014429.31206-1-pasha.tatashin@soleen.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 7F5A8212108E6
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:24 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 08/18] dax: memcpy page in case of IOMAP_DAX_COW for mmap
+ faults
+Date: Tue, 16 Apr 2019 11:41:44 -0500
+Message-Id: <20190416164154.30390-9-rgoldwyn@suse.de>
+In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
+References: <20190416164154.30390-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,42 +18,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When add_memory() function fails, the resource and the memory should be
-freed.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
+Change dax_iomap_pfn to return the address as well in order to
+use it for performing a memcpy in case the type is IOMAP_DAX_COW.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Question:
+The sequence of bdev_dax_pgoff() and dax_direct_access() is
+used multiple times to calculate address and pfn's. Would it make
+sense to call it while calculating address as well to reduce code?
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- drivers/dax/kmem.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/dax.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index a02318c6d28a..4c0131857133 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
- 	new_res->name = dev_name(dev);
- 
- 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
--	if (rc)
-+	if (rc) {
-+		release_resource(new_res);
-+		kfree(new_res);
- 		return rc;
-+	}
- 
- 	return 0;
+diff --git a/fs/dax.c b/fs/dax.c
+index 4b4ac51fbd16..45fc2e18969a 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -983,7 +983,7 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
  }
+ 
+ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+-			 pfn_t *pfnp)
++			 pfn_t *pfnp, void **addr)
+ {
+ 	const sector_t sector = dax_iomap_sector(iomap, pos);
+ 	pgoff_t pgoff;
+@@ -995,7 +995,7 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 		return rc;
+ 	id = dax_read_lock();
+ 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   NULL, pfnp);
++				   addr, pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+@@ -1280,6 +1280,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+ 	struct inode *inode = mapping->host;
+ 	unsigned long vaddr = vmf->address;
++	void *addr;
+ 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
+ 	struct iomap iomap = { 0 };
+ 	unsigned flags = IOMAP_FAULT;
+@@ -1369,16 +1370,23 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	sync = dax_fault_is_synchronous(flags, vma, &iomap);
+ 
+ 	switch (iomap.type) {
++	case IOMAP_DAX_COW:
+ 	case IOMAP_MAPPED:
+ 		if (iomap.flags & IOMAP_F_NEW) {
+ 			count_vm_event(PGMAJFAULT);
+ 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+ 		}
+-		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
++		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn, &addr);
+ 		if (error < 0)
+ 			goto error_finish_iomap;
+ 
++		if (iomap.type == IOMAP_DAX_COW) {
++			if (iomap.inline_data)
++				memcpy(addr, iomap.inline_data, PAGE_SIZE);
++			else
++				memset(addr, 0, PAGE_SIZE);
++		}
+ 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+ 						 0, write && !sync);
+ 
+@@ -1577,7 +1585,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
++		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn, NULL);
+ 		if (error < 0)
+ 			goto finish_iomap;
+ 
 -- 
-2.21.0
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
