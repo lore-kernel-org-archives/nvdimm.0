@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A005C212108E3
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:42 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A5458212108E6
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:26 -0700 (PDT)
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 16/18] btrfs: Writeprotect mmap pages on snapshot
-Date: Tue, 16 Apr 2019 11:41:52 -0500
-Message-Id: <20190416164154.30390-17-rgoldwyn@suse.de>
+Subject: [PATCH 09/18] btrfs: Add dax specific address_space_operations
+Date: Tue, 16 Apr 2019 11:41:45 -0500
+Message-Id: <20190416164154.30390-10-rgoldwyn@suse.de>
 In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
 References: <20190416164154.30390-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -28,113 +28,105 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Inorder to make sure mmap'd files don't change after snapshot,
-writeprotect the mmap pages on snapshot. This is done by performing
-a data writeback on the pages (which simply mark the pages are
-wrprotected). This way if the user process tries to access the memory
-we will get another fault and we can perform a CoW.
-
-In order to accomplish this, we tag all CoW pages as
-PAGECACHE_TAG_TOWRITE, and add the mmapd inode in delalloc_inodes.
-During snapshot, it starts writeback of all delalloc'd inodes and
-here we perform a data writeback. We don't want to keep the inodes
-in delalloc_inodes until it umount (WARN_ON), so we remove it
-during inode evictions.
-
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/btrfs/ctree.h |  3 ++-
- fs/btrfs/dax.c   |  7 +++++++
- fs/btrfs/inode.c | 13 ++++++++++++-
- 3 files changed, 21 insertions(+), 2 deletions(-)
+ fs/btrfs/inode.c | 34 +++++++++++++++++++++++++++++++---
+ 1 file changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index ee1ed18f8b3c..d1b70f24adeb 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3252,7 +3252,8 @@ int btrfs_create_subvol_root(struct btrfs_trans_handle *trans,
- 			     struct btrfs_root *new_root,
- 			     struct btrfs_root *parent_root,
- 			     u64 new_dirid);
-- void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
-+void btrfs_add_delalloc_inodes(struct btrfs_root *root, struct inode *inode);
-+void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
- 			       unsigned *bits);
- void btrfs_clear_delalloc_extent(struct inode *inode,
- 				 struct extent_state *state, unsigned *bits);
-diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-index a4b36d5b537c..2740c15286ee 100644
---- a/fs/btrfs/dax.c
-+++ b/fs/btrfs/dax.c
-@@ -222,10 +222,17 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
- {
- 	vm_fault_t ret;
- 	pfn_t pfn;
-+	struct inode *inode = file_inode(vmf->vma->vm_file);
-+	struct btrfs_inode *binode = BTRFS_I(inode);
- 	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
- 	if (ret & VM_FAULT_NEEDDSYNC)
- 		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
- 
-+	/* Insert into delalloc so we get writeback calls on snapshots */
-+	if (vmf->flags & FAULT_FLAG_WRITE &&
-+			!test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_add_delalloc_inodes(binode->root, inode);
-+
- 	return ret;
- }
- 
 diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-index f6a64607bc8c..d439c6c80a2a 100644
+index 7fc778eb6bd2..c2c0544009a7 100644
 --- a/fs/btrfs/inode.c
 +++ b/fs/btrfs/inode.c
-@@ -1713,7 +1713,7 @@ void btrfs_merge_delalloc_extent(struct inode *inode, struct extent_state *new,
- 	spin_unlock(&BTRFS_I(inode)->lock);
- }
+@@ -28,6 +28,7 @@
+ #include <linux/magic.h>
+ #include <linux/iversion.h>
+ #include <linux/swap.h>
++#include <linux/dax.h>
+ #include <asm/unaligned.h>
+ #include "ctree.h"
+ #include "disk-io.h"
+@@ -65,6 +66,7 @@ static const struct inode_operations btrfs_dir_ro_inode_operations;
+ static const struct inode_operations btrfs_special_inode_operations;
+ static const struct inode_operations btrfs_file_inode_operations;
+ static const struct address_space_operations btrfs_aops;
++static const struct address_space_operations btrfs_dax_aops;
+ static const struct file_operations btrfs_dir_file_operations;
+ static const struct extent_io_ops btrfs_extent_io_ops;
  
--static void btrfs_add_delalloc_inodes(struct btrfs_root *root,
-+void btrfs_add_delalloc_inodes(struct btrfs_root *root,
- 				      struct inode *inode)
- {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-@@ -5358,12 +5358,17 @@ void btrfs_evict_inode(struct inode *inode)
- {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
- 	struct btrfs_trans_handle *trans;
-+	struct btrfs_inode *binode = BTRFS_I(inode);
- 	struct btrfs_root *root = BTRFS_I(inode)->root;
- 	struct btrfs_block_rsv *rsv;
- 	int ret;
+@@ -3757,7 +3759,10 @@ static int btrfs_read_locked_inode(struct inode *inode,
  
- 	trace_btrfs_inode_evict(inode);
+ 	switch (inode->i_mode & S_IFMT) {
+ 	case S_IFREG:
+-		inode->i_mapping->a_ops = &btrfs_aops;
++		if (btrfs_test_opt(fs_info, DAX))
++			inode->i_mapping->a_ops = &btrfs_dax_aops;
++		else
++			inode->i_mapping->a_ops = &btrfs_aops;
+ 		BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
+ 		inode->i_fop = &btrfs_file_operations;
+ 		inode->i_op = &btrfs_file_inode_operations;
+@@ -3778,6 +3783,7 @@ static int btrfs_read_locked_inode(struct inode *inode,
+ 	}
  
-+	if (IS_DAX(inode)
-+	    && test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_del_delalloc_inode(root, binode);
+ 	btrfs_sync_inode_flags_to_i_flags(inode);
 +
- 	if (!root) {
- 		clear_inode(inode);
- 		return;
-@@ -8683,6 +8688,10 @@ static int btrfs_dax_writepages(struct address_space *mapping,
- {
- 	struct inode *inode = mapping->host;
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-+	struct btrfs_inode *binode = BTRFS_I(inode);
-+	if ((wbc->sync_mode == WB_SYNC_ALL) &&
-+	    test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_del_delalloc_inode(binode->root, binode);
- 	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
- 			wbc);
+ 	return 0;
  }
-@@ -9981,6 +9990,8 @@ static void btrfs_run_delalloc_work(struct btrfs_work *work)
- 	delalloc_work = container_of(work, struct btrfs_delalloc_work,
- 				     work);
- 	inode = delalloc_work->inode;
+ 
+@@ -6538,7 +6544,10 @@ static int btrfs_create(struct inode *dir, struct dentry *dentry,
+ 	*/
+ 	inode->i_fop = &btrfs_file_operations;
+ 	inode->i_op = &btrfs_file_inode_operations;
+-	inode->i_mapping->a_ops = &btrfs_aops;
++	if (IS_DAX(inode) && S_ISREG(mode))
++		inode->i_mapping->a_ops = &btrfs_dax_aops;
++	else
++		inode->i_mapping->a_ops = &btrfs_aops;
+ 
+ 	err = btrfs_init_inode_security(trans, inode, dir, &dentry->d_name);
+ 	if (err)
+@@ -8665,6 +8674,15 @@ static int btrfs_writepages(struct address_space *mapping,
+ 	return extent_writepages(mapping, wbc);
+ }
+ 
++static int btrfs_dax_writepages(struct address_space *mapping,
++			    struct writeback_control *wbc)
++{
++	struct inode *inode = mapping->host;
++	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
++	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
++			wbc);
++}
++
+ static int
+ btrfs_readpages(struct file *file, struct address_space *mapping,
+ 		struct list_head *pages, unsigned nr_pages)
+@@ -10436,7 +10454,10 @@ static int btrfs_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
+ 	inode->i_fop = &btrfs_file_operations;
+ 	inode->i_op = &btrfs_file_inode_operations;
+ 
+-	inode->i_mapping->a_ops = &btrfs_aops;
 +	if (IS_DAX(inode))
-+		filemap_fdatawrite(inode->i_mapping);
- 	filemap_flush(inode->i_mapping);
- 	if (test_bit(BTRFS_INODE_HAS_ASYNC_EXTENT,
- 				&BTRFS_I(inode)->runtime_flags))
++		inode->i_mapping->a_ops = &btrfs_dax_aops;
++	else
++		inode->i_mapping->a_ops = &btrfs_aops;
+ 	BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
+ 
+ 	ret = btrfs_init_inode_security(trans, inode, dir, NULL);
+@@ -10892,6 +10913,13 @@ static const struct address_space_operations btrfs_aops = {
+ 	.swap_deactivate = btrfs_swap_deactivate,
+ };
+ 
++static const struct address_space_operations btrfs_dax_aops = {
++	.writepages             = btrfs_dax_writepages,
++	.direct_IO              = noop_direct_IO,
++	.set_page_dirty         = noop_set_page_dirty,
++	.invalidatepage         = noop_invalidatepage,
++};
++
+ static const struct inode_operations btrfs_file_inode_operations = {
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
 -- 
 2.16.4
 
