@@ -1,11 +1,12 @@
-From: "Postmaster" <test-sTRgZehwhjRWk0Htik3J/w@public.gmane.org>
-Subject: E-mail De-activation
-Date: Thu, 11 Apr 2019 11:41:00 -0700
-Message-ID: <201904111840.x3BIeCLb000589@mail.higoblin.com>
+From: =?utf-8?B?5p2c6LSl?= <ot-O8e7nZUylxw@public.gmane.org>
+Subject: =?utf-8?B?bGludXgtbnZkaW1tOuaOjOaPoVRPWU9U?=
+ =?utf-8?B?QSBUUFPnsr7nm4rnlJ/kuqfnrqHnkIbmqKHlvI/nmoTnsr7pq5M=?=
+Date: Wed, 17 Apr 2019 00:34:05 +0800
+Message-ID: <71FB324270D068C3A171EAE20EC62961@lh.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3484752361262640407=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,53 +19,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-You will not see this in a MIME-aware mail reader.
---===============3484752361262640407==
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
-
- =
-
-      =4E2D=56FD=65B0=5E74=5FEB=4E50=5047=671F
-      =5C0A=656C=7684=5BA2=6237=60A8=597D=FF01linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
- =6211=4EEC=4ECA=5929=65E9=4E0A=5728=60A8=7684=5E10=6237=4E2D=68C0=6D4B=
-=5230=4E00=4E2A=5F02=5E38=9519=8BEF=FF0C=9519=8BEF=4EE3=7801=5982=4E0B=FF1A=
-=FF03744=6B64=9519=8BEF=53EF=80FD=662F=60A8=6536=5230=7684=90AE=4EF6=901F=
-=5EA6=6162=7684=539F=56E0
- =7ACB=5373=9A8C=8BC1=6211=7684=5E10=6237=9519=8BEF
- =70ED=70C8=7684=95EE=5019=FF0C=8C22=8C22
- =90AE=653F=5C40=957F=670D=52A1
- =
-
-
- =
-
-
- =
-
-
- =
-
-
- =
-
-
- =
-
-
-
-
-
---===============3484752361262640407==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============3484752361262640407==--
+5bqPIOWPt++8mjY3OTQ2OTk5Mw0KbGludXgtbnZkaW1t77ya5LqyDQror7cg5Y+C6ICDICDpmYQg
+IOS7tu+8jOS4pCAg5aSpIOS4uiAg5oKoICDop6MgIOWGsyAg5LiAICDliIcgIOmXriAg6aKYIApf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
