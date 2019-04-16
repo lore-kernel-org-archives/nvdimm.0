@@ -1,22 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com
- [IPv6:2607:f8b0:4864:20::441])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE453211E7444
- for <linux-nvdimm@lists.01.org>; Tue,  2 Apr 2019 11:40:57 -0700 (PDT)
-Received: by mail-pf1-x441.google.com with SMTP id i17so6812354pfo.6
- for <linux-nvdimm@lists.01.org>; Tue, 02 Apr 2019 11:40:57 -0700 (PDT)
-Date: Tue, 2 Apr 2019 14:40:54 -0400
-From: Joel Fernandes <joel@joelfernandes.org>
-Subject: Re: [PATCH RFC tip/core/rcu 0/4] Forbid static SRCU use in modules
-Message-ID: <20190402184054.GA18150@google.com>
-References: <20190402142816.GA13084@linux.ibm.com>
- <886051277.1395.1554218080591.JavaMail.zimbra@efficios.com>
- <20190402152334.GC4102@linux.ibm.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190402152334.GC4102@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id 886C3212108E9
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:20 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 06/18] btrfs: Rename __endio_write_update_ordered() to
+ btrfs_update_ordered_extent()
+Date: Tue, 16 Apr 2019 11:41:42 -0500
+Message-Id: <20190416164154.30390-7-rgoldwyn@suse.de>
+In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
+References: <20190416164154.30390-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,52 +18,106 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Paul E. McKenney" <paulmck@linux.ibm.com>
-Cc: David Howells <dhowells@redhat.com>, amd-gfx@lists.freedesktop.org, Thomas Gleixner <tglx@linutronix.de>, linux-nvdimm@lists.01.org, Peter Zijlstra <peterz@infradead.org>, fweisbec <fweisbec@gmail.com>, dri-devel@lists.freedesktop.org, Lai Jiangshan <jiangshanlai@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, rostedt <rostedt@goodmis.org>, Josh Triplett <josh@joshtriplett.org>, rcu@vger.kernel.org, Eric Dumazet <edumazet@google.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Oleg Nesterov <oleg@redhat.com>, dipankar <dipankar@in.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, Apr 02, 2019 at 08:23:34AM -0700, Paul E. McKenney wrote:
-> On Tue, Apr 02, 2019 at 11:14:40AM -0400, Mathieu Desnoyers wrote:
-> > ----- On Apr 2, 2019, at 10:28 AM, paulmck paulmck@linux.ibm.com wrote:
-> > 
-> > > Hello!
-> > > 
-> > > This series prohibits use of DEFINE_SRCU() and DEFINE_STATIC_SRCU()
-> > > by loadable modules.  The reason for this prohibition is the fact
-> > > that using these two macros within modules requires that the size of
-> > > the reserved region be increased, which is not something we want to
-> > > be doing all that often.  Instead, loadable modules should define an
-> > > srcu_struct and invoke init_srcu_struct() from their module_init function
-> > > and cleanup_srcu_struct() from their module_exit function.  Note that
-> > > modules using call_srcu() will also need to invoke srcu_barrier() from
-> > > their module_exit function.
-> > 
-> > This arbitrary API limitation seems weird.
-> > 
-> > Isn't there a way to allow modules to use DEFINE_SRCU and DEFINE_STATIC_SRCU
-> > while implementing them with dynamic allocation under the hood ?
-> 
-> Although call_srcu() already has initialization hooks, some would
-> also be required in srcu_read_lock(), and I am concerned about adding
-> memory allocation at that point, especially given the possibility
-> of memory-allocation failure.  And the possibility that the first
-> srcu_read_lock() happens in an interrupt handler or similar.
-> 
-> Or am I missing a trick here?
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Hi Paul,
+Since we will be using it in another part of the code, use a
+better name to declare it non-static
 
-Which 'reserved region' are you referring to? Isn't this region also
-used for non-module cases in which case the same problem applies to
-non-modules?
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+---
+ fs/btrfs/ctree.h |  7 +++++--
+ fs/btrfs/inode.c | 14 +++++---------
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-thanks!
-
- - Joel
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 050f30165531..1e3e758b83c2 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3280,8 +3280,11 @@ struct inode *btrfs_iget(struct super_block *s, struct btrfs_key *location,
+ int btrfs_get_extent_map_write(struct extent_map **map, struct buffer_head *bh,
+ 		struct inode *inode, u64 start, u64 len, bool *nocow);
+ struct extent_map *btrfs_get_extent(struct btrfs_inode *inode,
+-				    struct page *page, size_t pg_offset,
+-				    u64 start, u64 end, int create);
++		struct page *page, size_t pg_offset,
++		u64 start, u64 end, int create);
++void btrfs_update_ordered_extent(struct inode *inode,
++		const u64 offset, const u64 bytes,
++		const bool uptodate);
+ int btrfs_update_inode(struct btrfs_trans_handle *trans,
+ 			      struct btrfs_root *root,
+ 			      struct inode *inode);
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 06764d89490f..7fc778eb6bd2 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -98,10 +98,6 @@ static struct extent_map *create_io_em(struct inode *inode, u64 start, u64 len,
+ 				       u64 ram_bytes, int compress_type,
+ 				       int type);
+ 
+-static void __endio_write_update_ordered(struct inode *inode,
+-					 const u64 offset, const u64 bytes,
+-					 const bool uptodate);
+-
+ /*
+  * Cleanup all submitted ordered extents in specified range to handle errors
+  * from the btrfs_run_delalloc_range() callback.
+@@ -142,7 +138,7 @@ static inline void btrfs_cleanup_ordered_extents(struct inode *inode,
+ 		bytes -= PAGE_SIZE;
+ 	}
+ 
+-	return __endio_write_update_ordered(inode, offset, bytes, false);
++	return btrfs_update_ordered_extent(inode, offset, bytes, false);
+ }
+ 
+ static int btrfs_dirty_inode(struct inode *inode);
+@@ -8085,7 +8081,7 @@ static void btrfs_endio_direct_read(struct bio *bio)
+ 	bio_put(bio);
+ }
+ 
+-static void __endio_write_update_ordered(struct inode *inode,
++void btrfs_update_ordered_extent(struct inode *inode,
+ 					 const u64 offset, const u64 bytes,
+ 					 const bool uptodate)
+ {
+@@ -8138,7 +8134,7 @@ static void btrfs_endio_direct_write(struct bio *bio)
+ 	struct btrfs_dio_private *dip = bio->bi_private;
+ 	struct bio *dio_bio = dip->dio_bio;
+ 
+-	__endio_write_update_ordered(dip->inode, dip->logical_offset,
++	btrfs_update_ordered_extent(dip->inode, dip->logical_offset,
+ 				     dip->bytes, !bio->bi_status);
+ 
+ 	kfree(dip);
+@@ -8457,7 +8453,7 @@ static void btrfs_submit_direct(struct bio *dio_bio, struct inode *inode,
+ 		bio = NULL;
+ 	} else {
+ 		if (write)
+-			__endio_write_update_ordered(inode,
++			btrfs_update_ordered_extent(inode,
+ 						file_offset,
+ 						dio_bio->bi_iter.bi_size,
+ 						false);
+@@ -8597,7 +8593,7 @@ static ssize_t btrfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ 			 */
+ 			if (dio_data.unsubmitted_oe_range_start <
+ 			    dio_data.unsubmitted_oe_range_end)
+-				__endio_write_update_ordered(inode,
++				btrfs_update_ordered_extent(inode,
+ 					dio_data.unsubmitted_oe_range_start,
+ 					dio_data.unsubmitted_oe_range_end -
+ 					dio_data.unsubmitted_oe_range_start,
+-- 
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
