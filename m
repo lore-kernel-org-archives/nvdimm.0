@@ -1,62 +1,118 @@
-From: Adam Borowski <kilobyte@angband.pl>
-Subject: Re: [PATCH v3 00/18] btrfs dax support
-Date: Wed, 17 Apr 2019 18:49:47 +0200
-Message-ID: <20190417164947.GA17089@angband.pl>
+From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 08/18] dax: memcpy page in case of IOMAP_DAX_COW for mmap
+ faults
+Date: Wed, 17 Apr 2019 09:52:27 -0700
+Message-ID: <20190417165227.GE4740@magnolia>
 References: <20190416164154.30390-1-rgoldwyn@suse.de>
+ <20190416164154.30390-9-rgoldwyn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, darrick.wong@oracle.com, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org
+In-Reply-To: <20190416164154.30390-9-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Apr 16, 2019 at 11:41:36AM -0500, Goldwyn Rodrigues wrote:
-> This patch set adds support for dax on the BTRFS filesystem.
-> In order to support for CoW for btrfs, there were changes which had to be
-> made to the dax handling. The important one is copying blocks into the
-> same dax device before using them which is performed by iomap
-> type IOMAP_DAX_COW.
+On Tue, Apr 16, 2019 at 11:41:44AM -0500, Goldwyn Rodrigues wrote:
+> From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+> 
+> Change dax_iomap_pfn to return the address as well in order to
+> use it for performing a memcpy in case the type is IOMAP_DAX_COW.
+> 
+> Question:
+> The sequence of bdev_dax_pgoff() and dax_direct_access() is
+> used multiple times to calculate address and pfn's. Would it make
+> sense to call it while calculating address as well to reduce code?
+> 
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+> ---
+>  fs/dax.c | 16 ++++++++++++----
+>  1 file changed, 12 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 4b4ac51fbd16..45fc2e18969a 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -983,7 +983,7 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+>  }
+>  
+>  static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+> -			 pfn_t *pfnp)
+> +			 pfn_t *pfnp, void **addr)
+>  {
+>  	const sector_t sector = dax_iomap_sector(iomap, pos);
+>  	pgoff_t pgoff;
+> @@ -995,7 +995,7 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+>  		return rc;
+>  	id = dax_read_lock();
+>  	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+> -				   NULL, pfnp);
+> +				   addr, pfnp);
+>  	if (length < 0) {
+>  		rc = length;
+>  		goto out;
+> @@ -1280,6 +1280,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+>  	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+>  	struct inode *inode = mapping->host;
+>  	unsigned long vaddr = vmf->address;
+> +	void *addr;
+>  	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
+>  	struct iomap iomap = { 0 };
+>  	unsigned flags = IOMAP_FAULT;
+> @@ -1369,16 +1370,23 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+>  	sync = dax_fault_is_synchronous(flags, vma, &iomap);
+>  
+>  	switch (iomap.type) {
+> +	case IOMAP_DAX_COW:
+>  	case IOMAP_MAPPED:
+>  		if (iomap.flags & IOMAP_F_NEW) {
+>  			count_vm_event(PGMAJFAULT);
+>  			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+>  			major = VM_FAULT_MAJOR;
+>  		}
+> -		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
+> +		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn, &addr);
+>  		if (error < 0)
+>  			goto error_finish_iomap;
+>  
+> +		if (iomap.type == IOMAP_DAX_COW) {
+> +			if (iomap.inline_data)
+> +				memcpy(addr, iomap.inline_data, PAGE_SIZE);
 
-I'm afraid that PMDK's testsuite nearly instantly makes this patchset
-explode in different ways.
+Same memcpy_mcsafe question from my reply to patch 4 applies here.
 
-It'd probably be a waste of your time to require a round-trip to report such
-fails and re-test.  As PMDK is probably the biggest userspace component, and
-exercises DAX paths in interesting ways, I guess it'd be best if you ran its
-testsuite locally until it no longer kills the kernel.
+> +			else
+> +				memset(addr, 0, PAGE_SIZE);
+> +		}
+>  		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+>  						 0, write && !sync);
+>  
+> @@ -1577,7 +1585,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+>  
+>  	switch (iomap.type) {
+>  	case IOMAP_MAPPED:
+> -		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
+> +		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn, NULL);
 
+Same (unanswered) question from the v2 series -- doesn't a PMD fault
+also require handling IOMAP_DAX_COW?
 
-Quick start:
+--D
 
-git clone https://github.com/pmem/pmdk
-deps: libndctl-dev[el], libdaxctl-dev[el]; rest are mostly optional
-(full deps for Fedora:
-https://github.com/pmem/pmdk/blob/master/utils/docker/images/Dockerfile.fedora-28
-SuSE's should be similar)
-
-cp src/test/testconfig.sh{.example,}
--- then edit, you'd want:
-PMEM_FS_DIR=/mnt/pmem      # where you have the dax filesystem on
-KEEP_GOING=y               # to see more than one broken test
-
-make
-make test    # to build tests
-make check   # to build and run all tests
-cd src/test && ./RUNTESTS a_single_test
-
-Obviously, PMDK's tests may fail due to some difference of behaviour between
-ext4, xfs, and your btrfs implementation -- that'll require some
-cooperation.  But crashing the kernel is something where the blame is quite
-obvious.
-
-
-Meow!
--- 
-⢀⣴⠾⠻⢶⣦⠀ 
-⣾⠁⢠⠒⠀⣿⡁ A dumb species has no way to open a tuna can.
-⢿⡄⠘⠷⠚⠋⠀ A smart species invents a can opener.
-⠈⠳⣄⠀⠀⠀⠀ A master species delegates.
+>  		if (error < 0)
+>  			goto finish_iomap;
+>  
+> -- 
+> 2.16.4
+> 
