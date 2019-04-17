@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.linuxfoundation.org (mail.linuxfoundation.org
- [140.211.169.12])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 569CF211F35CA
- for <linux-nvdimm@lists.01.org>; Wed, 17 Apr 2019 15:03:33 -0700 (PDT)
-Date: Wed, 17 Apr 2019 15:03:31 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v6 00/12] mm: Sub-section memory hotplug support
-Message-Id: <20190417150331.90219ca42a1c0db8632d0fd5@linux-foundation.org>
-In-Reply-To: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 74DE12120ADDF
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Apr 2019 11:52:41 -0700 (PDT)
+Subject: [PATCH v6 00/12] mm: Sub-section memory hotplug support
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 17 Apr 2019 11:38:55 -0700
+Message-ID: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,26 +20,148 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Vlastimil Babka <vbabka@suse.cz>
+To: akpm@linux-foundation.org
+Cc: mhocko@suse.com, david@redhat.com, linux-nvdimm@lists.01.org, stable@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 17 Apr 2019 11:38:55 -0700 Dan Williams <dan.j.williams@intel.com> wrote:
+Changes since v5 [1]:
 
-> The memory hotplug section is an arbitrary / convenient unit for memory
-> hotplug. 'Section-size' units have bled into the user interface
-> ('memblock' sysfs) and can not be changed without breaking existing
-> userspace. The section-size constraint, while mostly benign for typical
-> memory hotplug, has and continues to wreak havoc with 'device-memory'
-> use cases, persistent memory (pmem) in particular. Recall that pmem uses
-> devm_memremap_pages(), and subsequently arch_add_memory(), to allocate a
-> 'struct page' memmap for pmem. However, it does not use the 'bottom
-> half' of memory hotplug, i.e. never marks pmem pages online and never
-> exposes the userspace memblock interface for pmem. This leaves an
-> opening to redress the section-size constraint.
+- Rebase on next-20190416 and the new 'struct mhp_restrictions'
+  infrastructure.
 
-v6 and we're not showing any review activity.  Who would be suitable
-people to help out here?
+- Extend mhp_restrictions to the 'remove' case so the sub-section policy
+  can be clarified with respect to the memblock-api in a symmetric
+  manner with the 'add' case.
+
+- Kill is_dev_zone() since cleanups have now made it moot
+
+[1]: https://lwn.net/Articles/783808/
+
+---
+
+The memory hotplug section is an arbitrary / convenient unit for memory
+hotplug. 'Section-size' units have bled into the user interface
+('memblock' sysfs) and can not be changed without breaking existing
+userspace. The section-size constraint, while mostly benign for typical
+memory hotplug, has and continues to wreak havoc with 'device-memory'
+use cases, persistent memory (pmem) in particular. Recall that pmem uses
+devm_memremap_pages(), and subsequently arch_add_memory(), to allocate a
+'struct page' memmap for pmem. However, it does not use the 'bottom
+half' of memory hotplug, i.e. never marks pmem pages online and never
+exposes the userspace memblock interface for pmem. This leaves an
+opening to redress the section-size constraint.
+
+To date, the libnvdimm subsystem has attempted to inject padding to
+satisfy the internal constraints of arch_add_memory(). Beyond
+complicating the code, leading to bugs [2], wasting memory, and limiting
+configuration flexibility, the padding hack is broken when the platform
+changes this physical memory alignment of pmem from one boot to the
+next. Device failure (intermittent or permanent) and physical
+reconfiguration are events that can cause the platform firmware to
+change the physical placement of pmem on a subsequent boot, and device
+failure is an everyday event in a data-center.
+
+It turns out that sections are only a hard requirement of the
+user-facing interface for memory hotplug and with a bit more
+infrastructure sub-section arch_add_memory() support can be added for
+kernel internal usages like devm_memremap_pages(). Here is an analysis
+of the current design assumptions in the current code and how they are
+addressed in the new implementation:
+
+Current design assumptions:
+
+- Sections that describe boot memory (early sections) are never
+  unplugged / removed.
+
+- pfn_valid(), in the CONFIG_SPARSEMEM_VMEMMAP=y, case devolves to a
+  valid_section() check
+
+- __add_pages() and helper routines assume all operations occur in
+  PAGES_PER_SECTION units.
+
+- The memblock sysfs interface only comprehends full sections
+
+New design assumptions:
+
+- Sections are instrumented with a sub-section bitmask to track (on x86)
+  individual 2MB sub-divisions of a 128MB section.
+
+- Partially populated early sections can be extended with additional
+  sub-sections, and those sub-sections can be removed with
+  arch_remove_memory(). With this in place we no longer lose usable memory
+  capacity to padding.
+
+- pfn_valid() is updated to look deeper than valid_section() to also check the
+  active-sub-section mask. This indication is in the same cacheline as
+  the valid_section() so the performance impact is expected to be
+  negligible. So far the lkp robot has not reported any regressions.
+
+- Outside of the core vmemmap population routines which are replaced,
+  other helper routines like shrink_{zone,pgdat}_span() are updated to
+  handle the smaller granularity. Core memory hotplug routines that deal
+  with online memory are not touched.
+
+- The existing memblock sysfs user api guarantees / assumptions are
+  not touched since this capability is limited to !online
+  !memblock-sysfs-accessible sections.
+
+Meanwhile the issue reports continue to roll in from users that do not
+understand when and how the 128MB constraint will bite them. The current
+implementation relied on being able to support at least one misaligned
+namespace, but that immediately falls over on any moderately complex
+namespace creation attempt. Beyond the initial problem of 'System RAM'
+colliding with pmem, and the unsolvable problem of physical alignment
+changes, Linux is now being exposed to platforms that collide pmem
+ranges with other pmem ranges by default [3]. In short,
+devm_memremap_pages() has pushed the venerable section-size constraint
+past the breaking point, and the simplicity of section-aligned
+arch_add_memory() is no longer tenable.
+
+These patches are exposed to the kbuild robot on my libnvdimm-pending
+branch [4], and a preview of the unit test for this functionality is
+available on the 'subsection-pending' branch of ndctl [5].
+
+[2]: https://lore.kernel.org/r/155000671719.348031.2347363160141119237.stgit@dwillia2-desk3.amr.corp.intel.com
+[3]: https://github.com/pmem/ndctl/issues/76
+[4]: https://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git/log/?h=libnvdimm-pending
+[5]: https://github.com/pmem/ndctl/commit/7c59b4867e1c
+
+---
+
+Dan Williams (12):
+      mm/sparsemem: Introduce struct mem_section_usage
+      mm/sparsemem: Introduce common definitions for the size and mask of a section
+      mm/sparsemem: Add helpers track active portions of a section at boot
+      mm/hotplug: Prepare shrink_{zone,pgdat}_span for sub-section removal
+      mm/sparsemem: Convert kmalloc_section_memmap() to populate_section_memmap()
+      mm/hotplug: Add mem-hotplug restrictions for remove_memory()
+      mm: Kill is_dev_zone() helper
+      mm/sparsemem: Prepare for sub-section ranges
+      mm/sparsemem: Support sub-section hotplug
+      mm/devm_memremap_pages: Enable sub-section remap
+      libnvdimm/pfn: Fix fsdax-mode namespace info-block zero-fields
+      libnvdimm/pfn: Stop padding pmem namespaces to section alignment
+
+
+ arch/ia64/mm/init.c            |    4 
+ arch/powerpc/mm/mem.c          |    5 -
+ arch/s390/mm/init.c            |    2 
+ arch/sh/mm/init.c              |    4 
+ arch/x86/mm/init_32.c          |    4 
+ arch/x86/mm/init_64.c          |    9 +
+ drivers/nvdimm/dax_devs.c      |    2 
+ drivers/nvdimm/pfn.h           |   12 -
+ drivers/nvdimm/pfn_devs.c      |   93 +++-------
+ include/linux/memory_hotplug.h |   12 +
+ include/linux/mm.h             |    4 
+ include/linux/mmzone.h         |   72 ++++++--
+ kernel/memremap.c              |   70 +++-----
+ mm/hmm.c                       |    2 
+ mm/memory_hotplug.c            |  148 +++++++++-------
+ mm/page_alloc.c                |    8 +
+ mm/sparse-vmemmap.c            |   21 ++
+ mm/sparse.c                    |  371 +++++++++++++++++++++++++++-------------
+ 18 files changed, 503 insertions(+), 340 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
