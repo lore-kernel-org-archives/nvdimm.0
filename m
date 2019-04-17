@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A39042121797F
- for <linux-nvdimm@lists.01.org>; Fri, 26 Apr 2019 07:04:43 -0700 (PDT)
-Date: Fri, 26 Apr 2019 16:04:39 +0200
-From: Oscar Salvador <osalvador@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 2D7462120B130
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Apr 2019 13:17:47 -0700 (PDT)
 Subject: Re: [PATCH v6 07/12] mm: Kill is_dev_zone() helper
-Message-ID: <20190426140439.GC30513@linux>
 References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
  <155552637207.2015392.16917498971420465931.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Message-ID: <f189190c-4d70-be54-e194-fb736505f38e@redhat.com>
+Date: Wed, 17 Apr 2019 22:17:44 +0200
 MIME-Version: 1.0
-Content-Disposition: inline
 In-Reply-To: <155552637207.2015392.16917498971420465931.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,11 +24,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm@lists.01.org, David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, akpm@linux-foundation.org
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 17, 2019 at 11:39:32AM -0700, Dan Williams wrote:
+On 17.04.19 20:39, Dan Williams wrote:
 > Given there are no more usages of is_dev_zone() outside of 'ifdef
 > CONFIG_ZONE_DEVICE' protection, kill off the compilation helper.
 > 
@@ -36,9 +36,6 @@ On Wed, Apr 17, 2019 at 11:39:32AM -0700, Dan Williams wrote:
 > Cc: David Hildenbrand <david@redhat.com>
 > Cc: Logan Gunthorpe <logang@deltatee.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-
 > ---
 >  include/linux/mmzone.h |   12 ------------
 >  mm/page_alloc.c        |    2 +-
@@ -82,9 +79,15 @@ Reviewed-by: Oscar Salvador <osalvador@suse.de>
 >  	/*
 > 
 
+I like seeing that go
+
+Acked-by: David Hildenbrand <david@redhat.com>
+
 -- 
-Oscar Salvador
-SUSE L3
+
+Thanks,
+
+David / dhildenb
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
