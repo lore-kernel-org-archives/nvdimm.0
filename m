@@ -1,177 +1,148 @@
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: Re: [PATCH 14/18] dax: memcpy before zeroing range
-Date: Wed, 17 Apr 2019 11:39:30 -0500
-Message-ID: <20190417163930.fpwvcj55rnzgo7dh@merlin>
+From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 04/18] dax: Introduce IOMAP_DAX_COW to CoW edges during
+ writes
+Date: Wed, 17 Apr 2019 09:46:59 -0700
+Message-ID: <20190417164659.GD4740@magnolia>
 References: <20190416164154.30390-1-rgoldwyn@suse.de>
- <20190416164154.30390-15-rgoldwyn@suse.de>
- <20190417154504.GC4740@magnolia>
+ <20190416164154.30390-5-rgoldwyn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-btrfs-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190417154504.GC4740@magnolia>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-btrfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, kilobyte@angband.pl, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org
+In-Reply-To: <20190416164154.30390-5-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On  8:45 17/04, Darrick J. Wong wrote:
-> On Tue, Apr 16, 2019 at 11:41:50AM -0500, Goldwyn Rodrigues wrote:
-> > From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > 
-> > However, this needed more iomap fields, so it was easier
-> > to pass iomap and compute inside the function rather
-> > than passing a log of arguments.
-> > 
-> > Note, there is subtle difference between iomap_sector and
-> > dax_iomap_sector(). Can we replace dax_iomap_sector with
-> > iomap_sector()? It would need pos & PAGE_MASK though or else
-> > bdev_dax_pgoff() return -EINVAL.
-> > 
-> > Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > ---
-> >  fs/dax.c              | 14 ++++++++++----
-> >  fs/iomap.c            |  9 +--------
-> >  include/linux/dax.h   | 11 +++++------
-> >  include/linux/iomap.h |  6 ++++++
-> >  4 files changed, 22 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/fs/dax.c b/fs/dax.c
-> > index abbe4a79f219..af94909640ea 100644
-> > --- a/fs/dax.c
-> > +++ b/fs/dax.c
-> > @@ -1055,11 +1055,15 @@ static bool dax_range_is_aligned(struct block_device *bdev,
-> >  	return true;
-> >  }
-> >  
-> > -int __dax_zero_page_range(struct block_device *bdev,
-> > -		struct dax_device *dax_dev, sector_t sector,
-> > -		unsigned int offset, unsigned int size)
-> > +int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> > +			  unsigned int offset, unsigned int size)
-> >  {
-> > -	if (dax_range_is_aligned(bdev, offset, size)) {
-> > +	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
-> > +	struct block_device *bdev = iomap->bdev;
-> > +	struct dax_device *dax_dev = iomap->dax_dev;
-> > +
-> > +	if (!(iomap->type == IOMAP_DAX_COW) &&
-> > +	    dax_range_is_aligned(bdev, offset, size)) {
-> >  		sector_t start_sector = sector + (offset >> 9);
-> >  
-> >  		return blkdev_issue_zeroout(bdev, start_sector,
-> > @@ -1079,6 +1083,8 @@ int __dax_zero_page_range(struct block_device *bdev,
-> >  			dax_read_unlock(id);
-> >  			return rc;
-> >  		}
-> > +		if (iomap->type == IOMAP_DAX_COW)
-> > +			memcpy(iomap->inline_data, kaddr, offset);
+On Tue, Apr 16, 2019 at 11:41:40AM -0500, Goldwyn Rodrigues wrote:
+> From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 > 
-> I'm confused, why are we copying into the source page before zeroing
-> some part of the dax device?
-
-Clearly my testing was not good enough. This should be -
-memcpy(kaddr, iomap->inline_data, offset);
-
-We copy the part which is not zeroed to new location.
-
+> The IOMAP_DAX_COW is a iomap type which performs copy of
+> edges of data while performing a write if start/end are
+> not page aligned. The source address is expected in
+> iomap->inline_data.
 > 
-> >  		memset(kaddr + offset, 0, size);
-> >  		dax_flush(dax_dev, kaddr + offset, size);
-> >  		dax_read_unlock(id);
-> > diff --git a/fs/iomap.c b/fs/iomap.c
-> > index abdd18e404f8..90698c854883 100644
-> > --- a/fs/iomap.c
-> > +++ b/fs/iomap.c
-> > @@ -98,12 +98,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
-> >  	return written ? written : ret;
-> >  }
-> >  
-> > -static sector_t
-> > -iomap_sector(struct iomap *iomap, loff_t pos)
-> > -{
-> > -	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
-> > -}
-> > -
-> >  static struct iomap_page *
-> >  iomap_page_create(struct inode *inode, struct page *page)
-> >  {
-> > @@ -990,8 +984,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
-> >  static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
-> >  		struct iomap *iomap)
-> >  {
-> > -	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
-> > -			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
-> > +	return __dax_zero_page_range(iomap, pos, offset, bytes);
-> >  }
-> >  
-> >  static loff_t
-> > diff --git a/include/linux/dax.h b/include/linux/dax.h
-> > index a11bc7b1f526..892c478d7073 100644
-> > --- a/include/linux/dax.h
-> > +++ b/include/linux/dax.h
-> > @@ -9,6 +9,7 @@
-> >  
-> >  typedef unsigned long dax_entry_t;
-> >  
-> > +struct iomap;
-> >  struct iomap_ops;
-> >  struct dax_device;
-> >  struct dax_operations {
-> > @@ -161,13 +162,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
-> >                  loff_t destoff, loff_t len, bool *is_same, const struct iomap_ops *ops);
-> >  
-> >  #ifdef CONFIG_FS_DAX
-> > -int __dax_zero_page_range(struct block_device *bdev,
-> > -		struct dax_device *dax_dev, sector_t sector,
-> > -		unsigned int offset, unsigned int length);
-> > +int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> > +		unsigned int offset, unsigned int size);
-> >  #else
-> > -static inline int __dax_zero_page_range(struct block_device *bdev,
-> > -		struct dax_device *dax_dev, sector_t sector,
-> > -		unsigned int offset, unsigned int length)
-> > +static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> > +		unsigned int offset, unsigned int size)
-> >  {
-> >  	return -ENXIO;
-> >  }
-> > diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-> > index 6e885c5a38a3..3a803566dea1 100644
-> > --- a/include/linux/iomap.h
-> > +++ b/include/linux/iomap.h
-> > @@ -7,6 +7,7 @@
-> >  #include <linux/mm.h>
-> >  #include <linux/types.h>
-> >  #include <linux/mm_types.h>
-> > +#include <linux/blkdev.h>
-> >  
-> >  struct address_space;
-> >  struct fiemap_extent_info;
-> > @@ -120,6 +121,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
-> >  	return NULL;
-> >  }
-> >  
-> > +static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
-> > +{
-> > +	        return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
+> dax_copy_edges() is a helper functions performs a copy from
+> one part of the device to another for data not page aligned.
+> If iomap->inline_data is NULL, it memset's the area to zero.
 > 
-> Why the double indent?
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+> ---
+>  fs/dax.c              | 41 ++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/iomap.h |  1 +
+>  2 files changed, 41 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index ca0671d55aa6..4b4ac51fbd16 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1083,6 +1083,40 @@ int __dax_zero_page_range(struct block_device *bdev,
+>  }
+>  EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+>  
+> +/*
+> + * dax_copy_edges - Copies the part of the pages not included in
+> + * 		    the write, but required for CoW because
+> + * 		    offset/offset+length are not page aligned.
+> + */
+> +static void dax_copy_edges(struct inode *inode, loff_t pos, loff_t length,
+> +			   struct iomap *iomap, void *daddr)
+> +{
+> +	unsigned offset = pos & (PAGE_SIZE - 1);
+> +	loff_t end = pos + length;
+> +	loff_t pg_end = round_up(end, PAGE_SIZE);
+> +	void *saddr = iomap->inline_data;
+> +	/*
+> +	 * Copy the first part of the page
+> +	 * Note: we pass offset as length
+> +	 */
+> +	if (offset) {
+> +		if (saddr)
+> +			memcpy(daddr, saddr, offset);
 
-Ahh.. I will fix this.
+I've been wondering, do we need memcpy_mcsafe here?
 
-> 
-> --D
-> 
-> > +}
-> > +
-> >  ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
-> >  		const struct iomap_ops *ops);
-> >  int iomap_readpage(struct page *page, const struct iomap_ops *ops);
-> > -- 
-> > 2.16.4
-> > 
-> 
+> +		else
+> +			memset(daddr, 0, offset);
 
--- 
-Goldwyn
+Or here?
+
+(Or any of the other places we call memcpy/memset in this series...)
+
+Because I think we'd prefer to return EIO on bad pmem over a machine
+check.
+
+--D
+
+> +	}
+> +
+> +	/* Copy the last part of the range */
+> +	if (end < pg_end) {
+> +		if (saddr)
+> +			memcpy(daddr + offset + length,
+> +			       saddr + offset + length,	pg_end - end);
+> +		else
+> +			memset(daddr + offset + length, 0,
+> +					pg_end - end);
+> +	}
+> +}
+> +
+>  static loff_t
+>  dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  		struct iomap *iomap)
+> @@ -1104,9 +1138,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  			return iov_iter_zero(min(length, end - pos), iter);
+>  	}
+>  
+> -	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
+> +	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED
+> +			 && iomap->type != IOMAP_DAX_COW))
+
+Usually the '&&' goes on the first line, right?
+
+>  		return -EIO;
+>  
+> +
+>  	/*
+>  	 * Write can allocate block for an area which has a hole page mapped
+>  	 * into page tables. We have to tear down these mappings so that data
+> @@ -1143,6 +1179,9 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+>  			break;
+>  		}
+>  
+> +		if (iomap->type == IOMAP_DAX_COW)
+> +			dax_copy_edges(inode, pos, length, iomap, kaddr);
+
+No return value?  So the pmem copy never fails?
+
+--D
+
+> +
+>  		map_len = PFN_PHYS(map_len);
+>  		kaddr += offset;
+>  		map_len -= offset;
+> diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+> index 0fefb5455bda..6e885c5a38a3 100644
+> --- a/include/linux/iomap.h
+> +++ b/include/linux/iomap.h
+> @@ -25,6 +25,7 @@ struct vm_fault;
+>  #define IOMAP_MAPPED	0x03	/* blocks allocated at @addr */
+>  #define IOMAP_UNWRITTEN	0x04	/* blocks allocated at @addr in unwritten state */
+>  #define IOMAP_INLINE	0x05	/* data inline in the inode */
+> +#define IOMAP_DAX_COW	0x06	/* Copy data pointed by inline_data before write*/
+>  
+>  /*
+>   * Flags for all iomap mappings:
+> -- 
+> 2.16.4
+> 
