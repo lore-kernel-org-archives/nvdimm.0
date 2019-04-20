@@ -1,12 +1,13 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: =?utf-8?B?5a6J5YWo6YCa55+l44CCIOacieS6uuWPr+S7peiuv+mXruaCqOeahOaWh+S7tuOAgg==?=
-Date: 19 Apr 2019 12:56:00 -0600
-Message-ID: <004d01d4f6e2$0442a592$13a1c78c$@lists.01.org>
+From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] libnvdimm/namespace: Fix label tracking error
+Date: Sat, 20 Apr 2019 01:19:13 +0000
+Message-ID: <20190420011914.C966D20854@mail.kernel.org>
+References: <155572004134.2603218.13620079500159805086.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
+In-Reply-To: <155572004134.2603218.13620079500159805086.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,42 +17,64 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-&#20320;&#22909;&#65281;
+Hi,
 
-&#24744;&#21487;&#33021;&#24050;&#32463;&#27880;&#24847;&#21040;&#65292;&#25105;&#20174;&#24744;&#30340;&#24080;&#25143;&#21457;&#36865;&#20102;&#19968;&#23553;&#30005;&#23376;&#37038;&#20214;&#12290;
-&#36825;&#24847;&#21619;&#30528;&#25105;&#21487;&#20197;&#23436;&#20840;&#35775;&#38382;&#24744;&#30340;&#35774;&#22791;&#12290;
+[This is an automated email]
 
-&#25105;&#24050;&#32463;&#30475;&#20102;&#22909;&#20960;&#20010;&#26376;&#20102;&#12290;
-&#20107;&#23454;&#26159;&#65292;&#24744;&#36890;&#36807;&#24744;&#35775;&#38382;&#36807;&#30340;&#25104;&#20154;&#32593;&#31449;&#24863;&#26579;&#20102;&#24694;&#24847;&#36719;&#20214;&#12290;
+This commit has been processed because it contains a "Fixes:" tag,
+fixing commit: bf9bccc14c05 libnvdimm: pmem label sets and namespace instantiation..
 
-&#22914;&#26524;&#24744;&#23545;&#27492;&#19981;&#29087;&#24713;&#65292;&#25105;&#20250;&#35299;&#37322;&#12290;
-&#25105;&#21019;&#24314;&#20102;&#39640;&#36136;&#37327;&#30340;&#38388;&#35853;&#36719;&#20214;&#12290; &#23427;&#20801;&#35768;&#25105;&#33719;&#24471;&#23545;&#24744;&#35774;&#22791;&#30340;&#23436;&#20840;&#35775;&#38382;&#26435;&#38480;&#21644;&#25511;&#21046;&#26435;&#12290;
-&#36825;&#24847;&#21619;&#30528;&#25105;&#21487;&#20197;&#22312;&#23631;&#24149;&#19978;&#30475;&#21040;&#25152;&#26377;&#20869;&#23481;&#65292;&#25171;&#24320;&#30456;&#26426;&#21644;&#40614;&#20811;&#39118;&#65292;&#20294;&#24744;&#19981;&#30693;&#36947;&#12290;
+The bot has tested the following trees: v5.0.8, v4.19.35, v4.14.112, v4.9.169, v4.4.178, 
 
-&#25105;&#20063;&#21487;&#20197;&#35775;&#38382;&#24744;&#30340;&#25152;&#26377;&#32852;&#31995;&#20154;&#21644;&#25152;&#26377;&#36890;&#20449;&#12290;
+v5.0.8: Build OK!
+v4.19.35: Build OK!
+v4.14.112: Failed to apply! Possible dependencies:
+    426824d63b77 ("libnvdimm: remove redundant __func__ in dev_dbg")
 
-&#20026;&#20160;&#20040;&#24744;&#30340;&#38450;&#30149;&#27602;&#36719;&#20214;&#27809;&#26377;&#26816;&#27979;&#21040;&#24694;&#24847;&#36719;&#20214;&#65311;
-&#22238;&#31572;&#65306;&#65306;&#25105;&#30340;&#24694;&#24847;&#36719;&#20214;&#20351;&#29992;&#39537;&#21160;&#31243;&#24207;&#65292;&#25105;&#27599;4&#23567;&#26102;&#26356;&#26032;&#19968;&#27425;&#31614;&#21517;&#65292;&#20197;&#20415;&#24744;&#30340;&#38450;&#30149;&#27602;&#36719;&#20214;&#26080;&#22768;&#12290;
+v4.9.169: Failed to apply! Possible dependencies:
+    006358b35c73 ("libnvdimm: add support for clear poison list and badblocks for device dax")
+    355d838878e1 ("libnvdimm, label: add v1.2 label checksum support")
+    426824d63b77 ("libnvdimm: remove redundant __func__ in dev_dbg")
+    53b85a449b15 ("libnvdimm: passthru functions clear to send")
+    564e871aa66f ("libnvdimm, label: add v1.2 nvdimm label definitions")
+    b3fde74ea195 ("libnvdimm, label: add address abstraction identifiers")
+    c12c48ce869d ("libnvdimm, label: add v1.2 interleave-set-cookie algorithm")
+    f979b13c3cc5 ("libnvdimm, label: honor the lba size specified in v1.2 labels")
+    faec6f8a1cd2 ("libnvdimm, label: populate the type_guid property for v1.2 namespaces")
 
-&#25105;&#21046;&#20316;&#20102;&#19968;&#20010;&#35270;&#39057;&#65292;&#23637;&#31034;&#20102;&#20320;&#22914;&#20309;&#22312;&#23631;&#24149;&#30340;&#24038;&#21322;&#37096;&#20998;&#35753;&#33258;&#24049;&#28385;&#24847;&#65292;&#22312;&#21491;&#21322;&#37096;&#20998;&#65292;&#20320;&#20250;&#30475;&#21040;&#20320;&#35266;&#30475;&#30340;&#35270;&#39057;&#12290;
-&#19968;&#38190;&#65281; &#24744;&#22312;&#30005;&#23376;&#37038;&#20214;&#21644;&#31038;&#20132;&#32593;&#32476;&#20013;&#30340;&#25152;&#26377;&#32852;&#31995;&#20154;&#37117;&#23558;&#25910;&#21040;&#27492;&#35270;&#39057;&#65281; &#20320;&#30340;&#29983;&#27963;&#23558;&#27704;&#36828;&#25913;&#21464;&#65281;
-&#25105;&#36824;&#21487;&#20197;&#21457;&#24067;&#24744;&#20351;&#29992;&#30340;&#25152;&#26377;&#30005;&#23376;&#37038;&#20214;&#36890;&#20449;&#21644;&#20449;&#20351;&#30340;&#35775;&#38382;&#26435;&#38480;&#12290;
+v4.4.178: Failed to apply! Possible dependencies:
+    0731de0dd95b ("libnvdimm, pfn: move 'memory mode' indication to sysfs")
+    0bfb8dd3edd6 ("libnvdimm: cleanup nvdimm_namespace_common_probe(), kill 'host'")
+    0caeef63e6d2 ("libnvdimm: Add a poison list and export badblocks")
+    0e749e54244e ("dax: increase granularity of dax_clear_blocks() operations")
+    2dc43331e34f ("libnvdimm, pfn: fix pfn seed creation")
+    315c562536c4 ("libnvdimm, pfn: add 'align' attribute, default to HPAGE_SIZE")
+    34c0fd540e79 ("mm, dax, pmem: introduce pfn_t")
+    4b94ffdc4163 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
+    52db400fcd50 ("pmem, dax: clean up clear_pmem()")
+    87ba05dff351 ("libnvdimm: don't fail init for full badblocks list")
+    9476df7d80df ("mm: introduce find_dev_pagemap()")
+    9c41242817f4 ("libnvdimm: fix mode determination for e820 devices")
+    ad9a8bde2cb1 ("libnvdimm, pmem: move definition of nvdimm_namespace_add_poison to nd.h")
+    b2e0d1625e19 ("dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()")
+    b3fde74ea195 ("libnvdimm, label: add address abstraction identifiers")
+    b95f5f4391fa ("libnvdimm: convert to statically allocated badblocks")
+    bd032943b5b2 ("libnvdimm, pfn, convert nd_pfn_probe() to devm")
+    c5ed9268643c ("libnvdimm, dax: autodetect support")
+    cd03412a51ac ("libnvdimm, dax: introduce device-dax infrastructure")
+    cfe30b872058 ("libnvdimm, pmem: adjust for section collisions with 'System RAM'")
+    d2c0f041e1bb ("libnvdimm, pfn, pmem: allocate memmap array in persistent memory")
+    d9cbe09d39aa ("libnvdimm, pmem: fix 'pfn' support for section-misaligned namespaces")
+    f6ed58c70d14 ("libnvdimm, pfn: 'resource'-address and 'size' attributes for pfn devices")
+    f7c6ab80fa5f ("libnvdimm, pfn: clean up pfn create parameters")
 
-&#22914;&#26524;&#20320;&#24819;&#38459;&#27490;&#36825;&#20010;&#652
-&#23558;385&#32654;&#20803;&#30340;&#37329;&#39069;&#36716;&#20837;&#25105;&#30340;&#27604;&#29305;&#24065;&#22320;&#22336;&#65288;&#22914;&#26524;&#24744;&#19981;&#30693;&#36947;&#22914;&#20309;&#20570;&#21040;&#36825;&#19968;&#28857;&#65292;&#35831;&#20889;&#20449;&#32473;Google&#65306;&#8220;&#36141;&#20080;&#27604;&#29305;&#24065;&#8221;&#65289;&#12290;
 
-&#25105;&#30340;&#27604;&#29305;&#24065;&#22320;&#22336;&#65288;BTC&#38065;&#21253;&#65289;&#26159;&#65306;1DjuN5PM9VLXCeqYrb9nxzpQ8rb2hXZiEt
+How should we proceed with this patch?
 
-&#25910;&#21040;&#20184;&#27454;&#21518;&#65292;&#25105;&#23558;&#21024;&#38500;&#35813;&#35270;&#39057;&#65292;&#24744;&#23558;&#27704;&#36828;&#19981;&#20250;&#20877;&#21548;&#21040;&#25105;&#30340;&#22768;&#38899;&#12290;
-&#25105;&#32473;&#20320;50&#20010;&#23567;&#26102;&#65288;&#36229;&#36807;2&#22825;&#65289;&#20184;&#27454;&#12290;
-&#25105;&#25910;&#21040;&#20102;&#36825;&#23553;&#20449;&#30340;&#36890;&#30693;&#65292;&#24403;&#20320;&#30475;&#21040;&#36825;&#23553;&#20449;&#26102;&#65292;&#35745;&#26102;&#22120;&#20250;&#36215;&#20316;&#29992;&#12290;
-
-&#22312;&#26576;&#22788;&#25552;&#20132;&#25237;&#35785;&#27809;&#26377;&#24847;&#20041;&#65292;&#22240;&#20026;&#26080;&#27861;&#20687;&#25105;&#30340;&#27604;&#29305;&#24065;&#22320;&#22336;&#37027;&#26679;&#36319;&#36394;&#27492;&#30005;&#23376;&#37038;&#20214;&#12290;
-&#25105;&#27809;&#26377;&#29359;&#20219;&#20309;&#38169;&#35823;&#12290;
-
-&#22914;&#26524;&#25105;&#21457;&#29616;&#24744;&#19982;&#20854;&#20182;&#20154;&#20998;&#20139;&#20102;&#27492;&#28040;&#24687;&#65292;&#21017;&#35270;&#39057;&#23558;&#31435;&#21363;&#20998;&#21457;&#12290;
-
-&#31069;&#20320;&#22909;&#36816;&#65292;&#20877;&#35265;&#65281;
+--
+Thanks,
+Sasha
