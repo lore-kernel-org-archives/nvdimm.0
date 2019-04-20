@@ -1,16 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com
+ [IPv6:2607:f8b0:4864:20::22d])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 919452120ADDF
- for <linux-nvdimm@lists.01.org>; Wed, 17 Apr 2019 11:53:33 -0700 (PDT)
-Subject: [PATCH v6 10/12] mm/devm_memremap_pages: Enable sub-section remap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Apr 2019 11:39:47 -0700
-Message-ID: <155552638740.2015392.3474262226224495313.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0236821A02937
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 16:19:37 -0700 (PDT)
+Received: by mail-oi1-x22d.google.com with SMTP id x188so6206540oia.13
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 16:19:37 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190420153148.21548-1-pasha.tatashin@soleen.com>
+ <20190420153148.21548-3-pasha.tatashin@soleen.com>
+ <CAPcyv4j9sG6Wy3EfTuPb0uZ2qp=gr9UgUhpnXQA_g6Ko9KFmLA@mail.gmail.com>
+ <CA+CK2bA2QTzZtFvGRMaG10_TretDr6CGgZc4Hyi_1pku4ECqXw@mail.gmail.com>
+ <CAPcyv4jrxMNEEeUZZG3=CdkYSyX7OtJLv_ZQ1gbML7bscePiQA@mail.gmail.com>
+ <CA+CK2bA-wDwRT5Gv2p9Nm1Vr8LNg84rQdE6=s2m2hQLYqj5Rog@mail.gmail.com>
+ <CAPcyv4gBu5QhgRQ+maJs108JwBrcCa9U1e9wgO8FP6Q3qwy69g@mail.gmail.com>
+ <CA+CK2bBFqq0tNOE9gh7JAhjw8XLW_pMpVQtUwbm6JwW=LWt_iQ@mail.gmail.com>
+In-Reply-To: <CA+CK2bBFqq0tNOE9gh7JAhjw8XLW_pMpVQtUwbm6JwW=LWt_iQ@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 20 Apr 2019 16:19:25 -0700
+Message-ID: <CAPcyv4in0N9yHzXBWTBTyeYcLgxKBkjj2UBPLpkBuyP2kUY22w@mail.gmail.com>
+Subject: Re: [v1 2/2] device-dax: "Hotremove" persistent memory that is used
+ like normal RAM
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,130 +29,73 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, david@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>
+To: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Sasha Levin <sashal@kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Takashi Iwai <tiwai@suse.de>, Dave Hansen <dave.hansen@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>, James Morris <jmorris@namei.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Borislav Petkov <bp@suse.de>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Ross Zwisler <zwisler@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Fengguang Wu <fengguang.wu@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGVhY2ggZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFib3V0IHRoZSBuZXcgc3ViLXNlY3Rpb24gY2Fw
-YWJpbGl0aWVzIG9mCmFyY2hfe2FkZCxyZW1vdmV9X21lbW9yeSgpLiBFZmZlY3RpdmVseSwganVz
-dCByZXBsYWNlIGFsbCB1c2FnZSBvZgphbGlnbl9zdGFydCwgYWxpZ25fZW5kLCBhbmQgYWxpZ25f
-c2l6ZSB3aXRoIHJlcy0+c3RhcnQsIHJlcy0+ZW5kLCBhbmQKcmVzb3VyY2Vfc2l6ZShyZXMpLiBU
-aGUgZXhpc3Rpbmcgc2FuaXR5IGNoZWNrIHdpbGwgc3RpbGwgbWFrZSBzdXJlIHRoYXQKdGhlIHR3
-byBzZXBhcmF0ZSByZW1hcCBhdHRlbXB0cyBkbyBub3QgY29sbGlkZSB3aXRoaW4gYSBzdWItc2Vj
-dGlvbiAoMk1CCm9uIHg4NikuCgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+CkNj
-OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+CkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNv
-bT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-Ci0tLQoga2VybmVsL21lbXJlbWFwLmMgfCAgIDU4ICsrKysrKysrKysrKysrKysrKysrKystLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjQgaW5zZXJ0aW9u
-cygrKSwgMzQgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEva2VybmVsL21lbXJlbWFwLmMgYi9r
-ZXJuZWwvbWVtcmVtYXAuYwppbmRleCAzMzQ3NWUyMTE1NjguLmNhNzRhMDA2MzcxYSAxMDA2NDQK
-LS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFwLmMKQEAgLTU5LDcg
-KzU5LDcgQEAgc3RhdGljIHVuc2lnbmVkIGxvbmcgcGZuX2ZpcnN0KHN0cnVjdCBkZXZfcGFnZW1h
-cCAqcGdtYXApCiAJc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAgPSAmcGdtYXAtPmFsdG1hcDsK
-IAl1bnNpZ25lZCBsb25nIHBmbjsKIAotCXBmbiA9IHJlcy0+c3RhcnQgPj4gUEFHRV9TSElGVDsK
-KwlwZm4gPSBQSFlTX1BGTihyZXMtPnN0YXJ0KTsKIAlpZiAocGdtYXAtPmFsdG1hcF92YWxpZCkK
-IAkJcGZuICs9IHZtZW1fYWx0bWFwX29mZnNldChhbHRtYXApOwogCXJldHVybiBwZm47CkBAIC04
-Nyw3ICs4Nyw2IEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lk
-ICpkYXRhKQogCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXRhOwogCXN0cnVjdCBkZXZp
-Y2UgKmRldiA9IHBnbWFwLT5kZXY7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdtYXAtPnJl
-czsKLQlyZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemU7CiAJdW5zaWduZWQg
-bG9uZyBwZm47CiAJaW50IG5pZDsKIApAQCAtOTYsMjggKzk1LDI1IEBAIHN0YXRpYyB2b2lkIGRl
-dm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lkICpkYXRhKQogCQlwdXRfcGFnZShwZm5fdG9f
-cGFnZShwZm4pKTsKIAogCS8qIHBhZ2VzIGFyZSBkZWFkIGFuZCB1bnVzZWQsIHVuZG8gdGhlIGFy
-Y2ggbWFwcGluZyAqLwotCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4oUEFfU0VDVElPTl9T
-SVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXpl
-KHJlcyksIFBBX1NFQ1RJT05fU0laRSkKLQkJLSBhbGlnbl9zdGFydDsKLQotCW5pZCA9IHBhZ2Vf
-dG9fbmlkKHBmbl90b19wYWdlKGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQpKTsKKwluaWQgPSBw
-YWdlX3RvX25pZChwZm5fdG9fcGFnZShQSFlTX1BGTihyZXMtPnN0YXJ0KSkpOwogCiAJbWVtX2hv
-dHBsdWdfYmVnaW4oKTsKIAlpZiAocGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QUklWQVRF
-KSB7Ci0JCXBmbiA9IGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQ7CisJCXBmbiA9IFBIWVNfUEZO
-KHJlcy0+c3RhcnQpOwogCQlfX3JlbW92ZV9wYWdlcyhwYWdlX3pvbmUocGZuX3RvX3BhZ2UocGZu
-KSksIHBmbiwKLQkJCQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIE5VTEwpOworCQkJCVBIWVNf
-UEZOKHJlc291cmNlX3NpemUocmVzKSksIE5VTEwpOwogCX0gZWxzZSB7CiAJCXN0cnVjdCBtaHBf
-cmVzdHJpY3Rpb25zIHJlc3RyaWN0aW9ucyA9IHsKIAkJCS5hbHRtYXAgPSBwZ21hcC0+YWx0bWFw
-X3ZhbGlkID8gJnBnbWFwLT5hbHRtYXAgOiBOVUxMLAogCQl9OwogCi0JCWFyY2hfcmVtb3ZlX21l
-bW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLCAmcmVzdHJpY3Rpb25zKTsKLQkJa2Fz
-YW5fcmVtb3ZlX3plcm9fc2hhZG93KF9fdmEoYWxpZ25fc3RhcnQpLCBhbGlnbl9zaXplKTsKKwkJ
-YXJjaF9yZW1vdmVfbWVtb3J5KG5pZCwgcmVzLT5zdGFydCwgcmVzb3VyY2Vfc2l6ZShyZXMpLAor
-CQkJCSZyZXN0cmljdGlvbnMpOworCQlrYXNhbl9yZW1vdmVfemVyb19zaGFkb3coX192YShyZXMt
-PnN0YXJ0KSwgcmVzb3VyY2Vfc2l6ZShyZXMpKTsKIAl9CiAJbWVtX2hvdHBsdWdfZG9uZSgpOwog
-Ci0JdW50cmFja19wZm4oTlVMTCwgUEhZU19QRk4oYWxpZ25fc3RhcnQpLCBhbGlnbl9zaXplKTsK
-Kwl1bnRyYWNrX3BmbihOVUxMLCBQSFlTX1BGTihyZXMtPnN0YXJ0KSwgcmVzb3VyY2Vfc2l6ZShy
-ZXMpKTsKIAlwZ21hcF9hcnJheV9kZWxldGUocmVzKTsKIAlkZXZfV0FSTl9PTkNFKGRldiwgcGdt
-YXAtPmFsdG1hcC5hbGxvYywKIAkJICAgICAgIiVzOiBmYWlsZWQgdG8gZnJlZSBhbGwgcmVzZXJ2
-ZWQgcGFnZXNcbiIsIF9fZnVuY19fKTsKQEAgLTE0NCw3ICsxNDAsNiBAQCBzdGF0aWMgdm9pZCBk
-ZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2Uodm9pZCAqZGF0YSkKICAqLwogdm9pZCAqZGV2bV9t
-ZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdt
-YXApCiB7Ci0JcmVzb3VyY2Vfc2l6ZV90IGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLCBhbGlnbl9l
-bmQ7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdtYXAtPnJlczsKIAlzdHJ1Y3QgZGV2X3Bh
-Z2VtYXAgKmNvbmZsaWN0X3BnbWFwOwogCXN0cnVjdCBtaHBfcmVzdHJpY3Rpb25zIHJlc3RyaWN0
-aW9ucyA9IHsKQEAgLTE2MCwyNiArMTU1LDIxIEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMo
-c3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCWlmICghcGdt
-YXAtPnJlZiB8fCAhcGdtYXAtPmtpbGwpCiAJCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOwogCi0J
-YWxpZ25fc3RhcnQgPSByZXMtPnN0YXJ0ICYgfihQQV9TRUNUSU9OX1NJWkUgLSAxKTsKLQlhbGln
-bl9zaXplID0gQUxJR04ocmVzLT5zdGFydCArIHJlc291cmNlX3NpemUocmVzKSwgUEFfU0VDVElP
-Tl9TSVpFKQotCQktIGFsaWduX3N0YXJ0OwotCWFsaWduX2VuZCA9IGFsaWduX3N0YXJ0ICsgYWxp
-Z25fc2l6ZSAtIDE7Ci0KLQljb25mbGljdF9wZ21hcCA9IGdldF9kZXZfcGFnZW1hcChQSFlTX1BG
-TihhbGlnbl9zdGFydCksIE5VTEwpOworCWNvbmZsaWN0X3BnbWFwID0gZ2V0X2Rldl9wYWdlbWFw
-KFBIWVNfUEZOKHJlcy0+c3RhcnQpLCBOVUxMKTsKIAlpZiAoY29uZmxpY3RfcGdtYXApIHsKIAkJ
-ZGV2X1dBUk4oZGV2LCAiQ29uZmxpY3RpbmcgbWFwcGluZyBpbiBzYW1lIHNlY3Rpb25cbiIpOwog
-CQlwdXRfZGV2X3BhZ2VtYXAoY29uZmxpY3RfcGdtYXApOwogCQlyZXR1cm4gRVJSX1BUUigtRU5P
-TUVNKTsKIAl9CiAKLQljb25mbGljdF9wZ21hcCA9IGdldF9kZXZfcGFnZW1hcChQSFlTX1BGTihh
-bGlnbl9lbmQpLCBOVUxMKTsKKwljb25mbGljdF9wZ21hcCA9IGdldF9kZXZfcGFnZW1hcChQSFlT
-X1BGTihyZXMtPmVuZCksIE5VTEwpOwogCWlmIChjb25mbGljdF9wZ21hcCkgewogCQlkZXZfV0FS
-TihkZXYsICJDb25mbGljdGluZyBtYXBwaW5nIGluIHNhbWUgc2VjdGlvblxuIik7CiAJCXB1dF9k
-ZXZfcGFnZW1hcChjb25mbGljdF9wZ21hcCk7CiAJCXJldHVybiBFUlJfUFRSKC1FTk9NRU0pOwog
-CX0KIAotCWlzX3JhbSA9IHJlZ2lvbl9pbnRlcnNlY3RzKGFsaWduX3N0YXJ0LCBhbGlnbl9zaXpl
-LAorCWlzX3JhbSA9IHJlZ2lvbl9pbnRlcnNlY3RzKHJlcy0+c3RhcnQsIHJlc291cmNlX3NpemUo
-cmVzKSwKIAkJSU9SRVNPVVJDRV9TWVNURU1fUkFNLCBJT1JFU19ERVNDX05PTkUpOwogCiAJaWYg
-KGlzX3JhbSAhPSBSRUdJT05fRElTSk9JTlQpIHsKQEAgLTIwMCw4ICsxOTAsOCBAQCB2b2lkICpk
-ZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFw
-ICpwZ21hcCkKIAlpZiAobmlkIDwgMCkKIAkJbmlkID0gbnVtYV9tZW1faWQoKTsKIAotCWVycm9y
-ID0gdHJhY2tfcGZuX3JlbWFwKE5VTEwsICZwZ3Byb3QsIFBIWVNfUEZOKGFsaWduX3N0YXJ0KSwg
-MCwKLQkJCWFsaWduX3NpemUpOworCWVycm9yID0gdHJhY2tfcGZuX3JlbWFwKE5VTEwsICZwZ3By
-b3QsIFBIWVNfUEZOKHJlcy0+c3RhcnQpLCAwLAorCQkJcmVzb3VyY2Vfc2l6ZShyZXMpKTsKIAlp
-ZiAoZXJyb3IpCiAJCWdvdG8gZXJyX3Bmbl9yZW1hcDsKIApAQCAtMjE5LDI1ICsyMDksMjUgQEAg
-dm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZf
-cGFnZW1hcCAqcGdtYXApCiAJICogYXJjaF9hZGRfbWVtb3J5KCkuCiAJICovCiAJaWYgKHBnbWFw
-LT50eXBlID09IE1FTU9SWV9ERVZJQ0VfUFJJVkFURSkgewotCQllcnJvciA9IGFkZF9wYWdlcyhu
-aWQsIGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQsCi0JCQkJYWxpZ25fc2l6ZSA+PiBQQUdFX1NI
-SUZULCAmcmVzdHJpY3Rpb25zKTsKKwkJZXJyb3IgPSBhZGRfcGFnZXMobmlkLCBQSFlTX1BGTihy
-ZXMtPnN0YXJ0KSwKKwkJCQlQSFlTX1BGTihyZXNvdXJjZV9zaXplKHJlcykpLCAmcmVzdHJpY3Rp
-b25zKTsKIAl9IGVsc2UgewotCQllcnJvciA9IGthc2FuX2FkZF96ZXJvX3NoYWRvdyhfX3ZhKGFs
-aWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJCWVycm9yID0ga2FzYW5fYWRkX3plcm9fc2hhZG93
-KF9fdmEocmVzLT5zdGFydCksIHJlc291cmNlX3NpemUocmVzKSk7CiAJCWlmIChlcnJvcikgewog
-CQkJbWVtX2hvdHBsdWdfZG9uZSgpOwogCQkJZ290byBlcnJfa2FzYW47CiAJCX0KIAotCQllcnJv
-ciA9IGFyY2hfYWRkX21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLAotCQkJCQkm
-cmVzdHJpY3Rpb25zKTsKKwkJZXJyb3IgPSBhcmNoX2FkZF9tZW1vcnkobmlkLCByZXMtPnN0YXJ0
-LCByZXNvdXJjZV9zaXplKHJlcyksCisJCQkJJnJlc3RyaWN0aW9ucyk7CiAJfQogCiAJaWYgKCFl
-cnJvcikgewogCQlzdHJ1Y3Qgem9uZSAqem9uZTsKIAogCQl6b25lID0gJk5PREVfREFUQShuaWQp
-LT5ub2RlX3pvbmVzW1pPTkVfREVWSUNFXTsKLQkJbW92ZV9wZm5fcmFuZ2VfdG9fem9uZSh6b25l
-LCBhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAotCQkJCWFsaWduX3NpemUgPj4gUEFHRV9TSElG
-VCwgcmVzdHJpY3Rpb25zLmFsdG1hcCk7CisJCW1vdmVfcGZuX3JhbmdlX3RvX3pvbmUoem9uZSwg
-UEhZU19QRk4ocmVzLT5zdGFydCksCisJCQkJUEhZU19QRk4ocmVzb3VyY2Vfc2l6ZShyZXMpKSwg
-cmVzdHJpY3Rpb25zLmFsdG1hcCk7CiAJfQogCiAJbWVtX2hvdHBsdWdfZG9uZSgpOwpAQCAtMjQ5
-LDggKzIzOSw4IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2
-LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCSAqIHRvIGFsbG93IHVzIHRvIGRvIHRoZSB3
-b3JrIHdoaWxlIG5vdCBob2xkaW5nIHRoZSBob3RwbHVnIGxvY2suCiAJICovCiAJbWVtbWFwX2lu
-aXRfem9uZV9kZXZpY2UoJk5PREVfREFUQShuaWQpLT5ub2RlX3pvbmVzW1pPTkVfREVWSUNFXSwK
-LQkJCQlhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAotCQkJCWFsaWduX3NpemUgPj4gUEFHRV9T
-SElGVCwgcGdtYXApOworCQkJCVBIWVNfUEZOKHJlcy0+c3RhcnQpLAorCQkJCVBIWVNfUEZOKHJl
-c291cmNlX3NpemUocmVzKSksIHBnbWFwKTsKIAlwZXJjcHVfcmVmX2dldF9tYW55KHBnbWFwLT5y
-ZWYsIHBmbl9lbmQocGdtYXApIC0gcGZuX2ZpcnN0KHBnbWFwKSk7CiAKIAllcnJvciA9IGRldm1f
-YWRkX2FjdGlvbl9vcl9yZXNldChkZXYsIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSwKQEAg
-LTI2MSw5ICsyNTEsOSBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZpY2Ug
-KmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlyZXR1cm4gX192YShyZXMtPnN0YXJ0
-KTsKIAogIGVycl9hZGRfbWVtb3J5OgotCWthc2FuX3JlbW92ZV96ZXJvX3NoYWRvdyhfX3ZhKGFs
-aWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJa2FzYW5fcmVtb3ZlX3plcm9fc2hhZG93KF9fdmEo
-cmVzLT5zdGFydCksIHJlc291cmNlX3NpemUocmVzKSk7CiAgZXJyX2thc2FuOgotCXVudHJhY2tf
-cGZuKE5VTEwsIFBIWVNfUEZOKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJdW50cmFja19w
-Zm4oTlVMTCwgUEhZU19QRk4ocmVzLT5zdGFydCksIHJlc291cmNlX3NpemUocmVzKSk7CiAgZXJy
-X3Bmbl9yZW1hcDoKIAlwZ21hcF9hcnJheV9kZWxldGUocmVzKTsKICBlcnJfYXJyYXk6CgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Sat, Apr 20, 2019 at 3:04 PM Pavel Tatashin
+<pasha.tatashin@soleen.com> wrote:
+>
+> On Sat, Apr 20, 2019 at 5:02 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > On Sat, Apr 20, 2019 at 10:02 AM Pavel Tatashin
+> > <pasha.tatashin@soleen.com> wrote:
+> > >
+> > > > > Thank you for looking at this.  Are you saying, that if drv.remove()
+> > > > > returns a failure it is simply ignored, and unbind proceeds?
+> > > >
+> > > > Yeah, that's the problem. I've looked at making unbind able to fail,
+> > > > but that can lead to general bad behavior in device-drivers. I.e. why
+> > > > spend time unwinding allocated resources when the driver can simply
+> > > > fail unbind? About the best a driver can do is make unbind wait on
+> > > > some event, but any return results in device-unbind.
+> > >
+> > > Hm, just tested, and it is indeed so.
+> > >
+> > > I see the following options:
+> > >
+> > > 1. Move hot remove code to some other interface, that can fail. Not
+> > > sure what that would be, but outside of unbind/remove_id. Any
+> > > suggestion?
+> > > 2. Option two is don't attept to offline memory in unbind. Do
+> > > hot-remove memory in unbind if every section is already offlined.
+> > > Basically, do a walk through memblocks, and if every section is
+> > > offlined, also do the cleanup.
+> >
+> > I think something like option-2 could work just as long as the user is
+> > ok with failure and prepared to handle it. It's already the case that
+> > the request_region() in kmem permanently prevents the memory range
+> > from being reused by any other driver. So if the hot-unplug fails it
+> > could skip the corresponding release_region() and effectively it's the
+> > same as what we have now in terms of reuse protection. In your flow if
+> > the memory remove failed then the conversion attempt from devdax to
+> > raw mode would also fail and presumably you could fall back to doing a
+> > full reboot / rebuild of the application state?
+>
+> With option two, where we will simply check that every memory_block is
+> offlined, we will have deterministic behavior:
+>
+> 1. If user did not offline every dax memory section beforehand via
+> echo offline > /sys/devices/system/memory/memoryN/state
+>
+> echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+> Will be the same as now, will simply return, and user won't be able to
+> use dax afterwords or hotremove it.
+>
+> 2. If user did offline ever dax memory section beforehand
+> echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+> Will be guaranteed to succeed to hotremove the memory, as there is
+> nothing that can fail.
+>
+> So, if user wants to hotremove dax memory, he/she must ensure that
+> every section is offlined before unbinding.
+
+Sounds reasonable to me.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
