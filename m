@@ -1,92 +1,60 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com
- [IPv6:2607:f8b0:4864:20::843])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0CEE7211F9D74
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:33 -0700 (PDT)
-Received: by mail-qt1-x843.google.com with SMTP id f13so8598815qto.6
- for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:33 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v2 0/2] "Hotremove" persistent memory
-Date: Sat, 20 Apr 2019 21:44:27 -0400
-Message-Id: <20190421014429.31206-1-pasha.tatashin@soleen.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
+References: <20190420153148.21548-1-pasha.tatashin@soleen.com> <CAPcyv4h73gUwntDYx012qcyMYCmzZDU3HOvKcW5DRkO-GoTc+w@mail.gmail.com>
+In-Reply-To: <CAPcyv4h73gUwntDYx012qcyMYCmzZDU3HOvKcW5DRkO-GoTc+w@mail.gmail.com>
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Date: Sat, 20 Apr 2019 12:56:09 -0400
+Message-ID: <CA+CK2bBpyiUKeiT5tPtT9Dt73DmKX9pOFLU2iZy=Xpubt1AhAA@mail.gmail.com>
+Subject: Re: [v1 0/2] "Hotremove" persistent memory
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: James Morris <jmorris@namei.org>, Sasha Levin <sashal@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, "Huang, Ying" <ying.huang@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Takashi Iwai <tiwai@suse.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changelog:
-v2
-- Dan Williams mentioned that drv->remove() return is ignored
-  by unbind. Unbind always succeeds. Because we cannot guarantee
-  that memory can be offlined from the driver, don't even
-  attempt to do so. Simply check that every section is offlined
-  beforehand and only then proceed with removing dax memory.
+> Makes sense, but I have some questions about the details.
+>
+> >
+> > Copy the state, and hotadd the persistent memory so machine still has all
+> > 8G for runtime. Before reboot, hotremove device-dax 2G, copy the memory
+> > that is needed to be preserved to pmem0 device, and reboot.
+> >
+> > The series of operations look like this:
+> >
+> >         1. After boot restore /dev/pmem0 to boot
 
----
+s/boot/to a ramdisk from which is is picked by apps/
 
-Recently, adding a persistent memory to be used like a regular RAM was
-added to Linux. This work extends this functionality to also allow hot
-removing persistent memory.
+> >         2. Convert raw pmem0 to devdax
+> >         ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
+> >         3. Hotadd to System RAM
+> >         echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+> >         echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+> >         4. Before reboot hotremove device-dax memory from System RAM
+> >         echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+> >         5. Create raw pmem0 device
+> >         ndctl create-namespace --mode raw  -e namespace0.0 -f
+> >         6. Copy the state to this device
+>
+> What is the source of this copy? The state that was in the hot-added
+> memory? Isn't it "already there" since you effectively renamed dax0.0
+> to pmem0?
 
-We (Microsoft) have an important use case for this functionality.
+Before hotremove, applications create a file in a ramdisk that is 2G
+in size. After that applications, exist. We copy this file from
+ramdisk to /dev/pmem0  (RAM to RAM copy) to be able to quickly restore
+after reboot. After reboot, applications take that file from ramdisk,
+and ramdisk is freed.
 
-The requirement is for physical machines with small amount of RAM (~8G)
-to be able to reboot in a very short period of time (<1s). Yet, there is
-a userland state that is expensive to recreate (~2G).
+>
+> >         7. Do kexec reboot, or reboot through firmware, is firmware does not
+> >         zero memory in pmem region.
+s/is/if/
+>
+> Wouldn't the dax0.0 contents be preserved regardless? How does the
+> guest recover the pre-initialized state / how does the kernel know to
+> give out the same pages to the application as the previous boot?
 
-The solution is to boot machines with 2G preserved for persistent
-memory.
-
-Copy the state, and hotadd the persistent memory so machine still has
-all 8G available for runtime. Before reboot, offline and hotremove
-device-dax 2G, copy the memory that is needed to be preserved to pmem0
-device, and reboot.
-
-The series of operations look like this:
-
-1. After boot restore /dev/pmem0 to ramdisk to be consumed by apps.
-   and free ramdisk.
-2. Convert raw pmem0 to devdax
-   ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
-3. Hotadd to System RAM
-   echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
-   echo online_movable > /sys/devices/system/memoryXXX/state
-4. Before reboot hotremove device-dax memory from System RAM
-   echo offline > /sys/devices/system/memoryXXX/state
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
-5. Create raw pmem0 device
-   ndctl create-namespace --mode raw  -e namespace0.0 -f
-6. Copy the state that was stored by apps to ramdisk to pmem device
-7. Do kexec reboot or reboot through firmware if firmware does not
-   zero memory in pmem0 region (These machines have only regular
-   volatile memory). So to have pmem0 device either memmap kernel
-   parameter is used, or devices nodes in dtb are specified.
-
-Pavel Tatashin (2):
-  device-dax: fix memory and resource leak if hotplug fails
-  device-dax: "Hotremove" persistent memory that is used like normal RAM
-
- drivers/dax/dax-private.h |  2 +
- drivers/dax/kmem.c        | 96 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 93 insertions(+), 5 deletions(-)
-
--- 
-2.21.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+On these machines we do not have real persistent memory, only regular
+volatile RAM. So, kernel has to either be booted via memap arguments
+that specify persistent range, or via special pmem device node in DTB.
