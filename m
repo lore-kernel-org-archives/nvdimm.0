@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 509FB2120ADF4
- for <linux-nvdimm@lists.01.org>; Mon, 22 Apr 2019 16:22:08 -0700 (PDT)
-Subject: [4.19, 5.0 stable PATCH 3/4] nfit/ars: Allow root to busy-poll the ARS
- state machine
+ by ml01.01.org (Postfix) with ESMTPS id BA85F211F9D7B
+ for <linux-nvdimm@lists.01.org>; Fri, 19 Apr 2019 17:41:07 -0700 (PDT)
+Subject: [PATCH] libnvdimm/namespace: Fix label tracking error
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 22 Apr 2019 16:08:21 -0700
-Message-ID: <155597450168.2675082.12797199567190628607.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 19 Apr 2019 17:27:21 -0700
+Message-ID: <155572004134.2603218.13620079500159805086.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,67 +20,163 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: Erwin Tsaur <erwin.tsaur@oracle.com>, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, Erwin Tsaur <erwin.tsaur@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit 5479b2757f26fe9908fc341d105b2097fe820b6f upstream.
+Users have reported intermittent occurrences of DIMM initialization
+failures due to duplicate allocations of address capacity detected in
+the labels, or errors of the form below, both have the same root cause.
 
-The ARS implementation implements exponential back-off on the poll
-interval to prevent high-frequency access to the DIMM / platform
-interface. Depending on when the ARS completes the poll interval may
-exceed the completion event by minutes. Allow root to reset the timeout
-each time it probes the status. A one-second timeout is still enforced,
-but root can otherwise can control the poll interval.
+    nd namespace1.4: failed to track label: 0
+    WARNING: CPU: 17 PID: 1381 at drivers/nvdimm/label.c:863
 
-Fixes: bc6ba8085842 ("nfit, address-range-scrub: rework and simplify ARS...")
+    RIP: 0010:__pmem_label_update+0x56c/0x590 [libnvdimm]
+    Call Trace:
+     ? nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
+     nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
+     uuid_store+0x17e/0x190 [libnvdimm]
+     kernfs_fop_write+0xf0/0x1a0
+     vfs_write+0xb7/0x1b0
+     ksys_write+0x57/0xd0
+     do_syscall_64+0x60/0x210
+
+Unfortunately those reports were typically with a busy parallel
+namespace creation / destruction loop making it difficult to see the
+components of the bug. However, Jane provided a simple reproducer using
+the work-in-progress sub-section implementation.
+
+When ndctl is reconfiguring a namespace it may take an existing defunct
+/ disabled namespace and reconfigure it with a new uuid and other
+parameters. Critically namespace_update_uuid() takes existing address
+resources and renames them for the new namespace to use / reconfigure as
+it sees fit. The bug is that this rename only happens in the resource
+tracking tree. Existing labels with the old uuid are not reaped leading
+to a scenario where multiple active labels reference the same span of
+address range.
+
+Teach namespace_update_uuid() to flag any references to the old uuid for
+reaping at the next label update attempt.
+
 Cc: <stable@vger.kernel.org>
+Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace instantiation")
+Link: https://github.com/pmem/ndctl/issues/91
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
 Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
-Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Johannes Thumshirn <jthumshirn@suse.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |    8 ++++++++
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 9 insertions(+)
+ drivers/nvdimm/label.c          |   29 ++++++++++++++++-------------
+ drivers/nvdimm/namespace_devs.c |   15 +++++++++++++++
+ drivers/nvdimm/nd.h             |    4 ++++
+ 3 files changed, 35 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 64308e669250..61d3fd65fbe9 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1335,6 +1335,13 @@ static ssize_t scrub_show(struct device *dev,
- 	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
- 		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
- 	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
-+	/* Allow an admin to poll the busy state at a higher rate */
-+	if (busy && capable(CAP_SYS_RAWIO) && !test_and_set_bit(ARS_POLL,
-+				&acpi_desc->scrub_flags)) {
-+		acpi_desc->scrub_tmo = 1;
-+		mod_delayed_work(nfit_wq, &acpi_desc->dwork, HZ);
-+	}
-+
- 	mutex_unlock(&acpi_desc->init_mutex);
- 	device_unlock(dev);
- 	return rc;
-@@ -3196,6 +3203,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	else
- 		notify_ars_done(acpi_desc);
- 	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
-+	clear_bit(ARS_POLL, &acpi_desc->scrub_flags);
- 	mutex_unlock(&acpi_desc->init_mutex);
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index f3d753d3169c..2030805aa216 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -756,6 +756,17 @@ static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
+ 		return &guid_null;
  }
  
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 897ce10192a0..d14bad687fb8 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -213,6 +213,7 @@ struct nfit_mem {
- enum scrub_flags {
- 	ARS_BUSY,
- 	ARS_CANCEL,
-+	ARS_POLL,
++static void reap_victim(struct nd_mapping *nd_mapping,
++		struct nd_label_ent *victim)
++{
++	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++	u32 slot = to_slot(ndd, victim->label);
++
++	dev_dbg(ndd->dev, "free: %d\n", slot);
++	nd_label_free_slot(ndd, slot);
++	victim->label = NULL;
++}
++
+ static int __pmem_label_update(struct nd_region *nd_region,
+ 		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
+ 		int pos, unsigned long flags)
+@@ -763,9 +774,9 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	struct nd_namespace_common *ndns = &nspm->nsio.common;
+ 	struct nd_interleave_set *nd_set = nd_region->nd_set;
+ 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+-	struct nd_label_ent *label_ent, *victim = NULL;
+ 	struct nd_namespace_label *nd_label;
+ 	struct nd_namespace_index *nsindex;
++	struct nd_label_ent *label_ent;
+ 	struct nd_label_id label_id;
+ 	struct resource *res;
+ 	unsigned long *free;
+@@ -834,18 +845,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+ 		if (!label_ent->label)
+ 			continue;
+-		if (memcmp(nspm->uuid, label_ent->label->uuid,
+-					NSLABEL_UUID_LEN) != 0)
+-			continue;
+-		victim = label_ent;
+-		list_move_tail(&victim->list, &nd_mapping->labels);
+-		break;
+-	}
+-	if (victim) {
+-		dev_dbg(ndd->dev, "free: %d\n", slot);
+-		slot = to_slot(ndd, victim->label);
+-		nd_label_free_slot(ndd, slot);
+-		victim->label = NULL;
++		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags)
++				|| memcmp(nspm->uuid, label_ent->label->uuid,
++					NSLABEL_UUID_LEN) == 0)
++			reap_victim(nd_mapping, label_ent);
+ 	}
+ 
+ 	/* update index */
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 7849bf1812c4..3e2fdfdbe7b8 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1247,12 +1247,27 @@ static int namespace_update_uuid(struct nd_region *nd_region,
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
++		struct nd_label_ent *label_ent;
+ 		struct resource *res;
+ 
+ 		for_each_dpa_resource(ndd, res)
+ 			if (strcmp(res->name, old_label_id.id) == 0)
+ 				sprintf((void *) res->name, "%s",
+ 						new_label_id.id);
++
++		mutex_lock(&nd_mapping->lock);
++		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
++			struct nd_namespace_label *nd_label = label_ent->label;
++			struct nd_label_id label_id;
++
++			if (!nd_label)
++				continue;
++			nd_label_gen_id(&label_id, nd_label->uuid,
++					__le32_to_cpu(nd_label->flags));
++			if (strcmp(old_label_id.id, label_id.id) == 0)
++				set_bit(ND_LABEL_REAP, &label_ent->flags);
++		}
++		mutex_unlock(&nd_mapping->lock);
+ 	}
+ 	kfree(*old_uuid);
+  out:
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index a5ac3b240293..191d62af0e51 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -113,8 +113,12 @@ struct nd_percpu_lane {
+ 	spinlock_t lock;
  };
  
- struct acpi_nfit_desc {
++enum nd_label_flags {
++	ND_LABEL_REAP,
++};
+ struct nd_label_ent {
+ 	struct list_head list;
++	unsigned long flags;
+ 	struct nd_namespace_label *label;
+ };
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
