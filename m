@@ -3,16 +3,16 @@ Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com
  [IPv6:2607:f8b0:4864:20::841])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E2E4D21217972
- for <linux-nvdimm@lists.01.org>; Thu, 25 Apr 2019 10:54:45 -0700 (PDT)
-Received: by mail-qt1-x841.google.com with SMTP id p20so1070732qtc.9
- for <linux-nvdimm@lists.01.org>; Thu, 25 Apr 2019 10:54:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id CE406212017C8
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 08:31:53 -0700 (PDT)
+Received: by mail-qt1-x841.google.com with SMTP id l17so1450266qtp.2
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 08:31:53 -0700 (PDT)
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v3 1/2] device-dax: fix memory and resource leak if hotplug fails
-Date: Thu, 25 Apr 2019 13:54:39 -0400
-Message-Id: <20190425175440.9354-2-pasha.tatashin@soleen.com>
-In-Reply-To: <20190425175440.9354-1-pasha.tatashin@soleen.com>
-References: <20190425175440.9354-1-pasha.tatashin@soleen.com>
+Subject: [v1 1/2] device-dax: fix memory and resource leak if hotplug fails
+Date: Sat, 20 Apr 2019 11:31:47 -0400
+Message-Id: <20190420153148.21548-2-pasha.tatashin@soleen.com>
+In-Reply-To: <20190420153148.21548-1-pasha.tatashin@soleen.com>
+References: <20190420153148.21548-1-pasha.tatashin@soleen.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,7 +25,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
 When add_memory() function fails, the resource and the memory should be
