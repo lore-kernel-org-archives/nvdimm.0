@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
+ [IPv6:2607:f8b0:4864:20::844])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5421B2122B994
- for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:15 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 04/18] dax: Introduce IOMAP_DAX_COW to CoW edges during writes
-Date: Mon, 29 Apr 2019 12:26:35 -0500
-Message-Id: <20190429172649.8288-5-rgoldwyn@suse.de>
-In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id E2BA4211F9D74
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:34 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id p20so8949092qtc.9
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:34 -0700 (PDT)
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: [v2 1/2] device-dax: fix memory and resource leak if hotplug fails
+Date: Sat, 20 Apr 2019 21:44:28 -0400
+Message-Id: <20190421014429.31206-2-pasha.tatashin@soleen.com>
+In-Reply-To: <20190421014429.31206-1-pasha.tatashin@soleen.com>
+References: <20190421014429.31206-1-pasha.tatashin@soleen.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,119 +21,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+When add_memory() function fails, the resource and the memory should be
+freed.
 
-The IOMAP_DAX_COW is a iomap type which performs copy of
-edges of data while performing a write if start/end are
-not page aligned. The source address is expected in
-iomap->inline_data.
+Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
 
-dax_copy_edges() is a helper functions performs a copy from
-one part of the device to another for data not page aligned.
-If iomap->inline_data is NULL, it memset's the area to zero.
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 ---
- fs/dax.c              | 46 +++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/iomap.h |  1 +
- 2 files changed, 46 insertions(+), 1 deletion(-)
+ drivers/dax/kmem.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index e5e54da1715f..610bfa861a28 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1084,6 +1084,42 @@ int __dax_zero_page_range(struct block_device *bdev,
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index a02318c6d28a..4c0131857133 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
+ 	new_res->name = dev_name(dev);
+ 
+ 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
+-	if (rc)
++	if (rc) {
++		release_resource(new_res);
++		kfree(new_res);
+ 		return rc;
++	}
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(__dax_zero_page_range);
- 
-+/*
-+ * dax_copy_edges - Copies the part of the pages not included in
-+ * 		    the write, but required for CoW because
-+ * 		    offset/offset+length are not page aligned.
-+ */
-+static int dax_copy_edges(struct inode *inode, loff_t pos, loff_t length,
-+			   struct iomap *iomap, void *daddr)
-+{
-+	unsigned offset = pos & (PAGE_SIZE - 1);
-+	loff_t end = pos + length;
-+	loff_t pg_end = round_up(end, PAGE_SIZE);
-+	void *saddr = iomap->inline_data;
-+	int ret = 0;
-+	/*
-+	 * Copy the first part of the page
-+	 * Note: we pass offset as length
-+	 */
-+	if (offset) {
-+		if (saddr)
-+			ret = memcpy_mcsafe(daddr, saddr, offset);
-+		else
-+			memset(daddr, 0, offset);
-+	}
-+
-+	/* Copy the last part of the range */
-+	if (end < pg_end) {
-+		if (saddr)
-+			ret = memcpy_mcsafe(daddr + offset + length,
-+			       saddr + offset + length,	pg_end - end);
-+		else
-+			memset(daddr + offset + length, 0,
-+					pg_end - end);
-+	}
-+	return ret;
-+}
-+
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		struct iomap *iomap)
-@@ -1105,9 +1141,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			return iov_iter_zero(min(length, end - pos), iter);
- 	}
- 
--	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
-+	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED
-+			 && iomap->type != IOMAP_DAX_COW))
- 		return -EIO;
- 
-+
- 	/*
- 	 * Write can allocate block for an area which has a hole page mapped
- 	 * into page tables. We have to tear down these mappings so that data
-@@ -1144,6 +1182,12 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 			break;
- 		}
- 
-+		if (iomap->type == IOMAP_DAX_COW) {
-+			ret = dax_copy_edges(inode, pos, length, iomap, kaddr);
-+			if (ret)
-+				break;
-+		}
-+
- 		map_len = PFN_PHYS(map_len);
- 		kaddr += offset;
- 		map_len -= offset;
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 0fefb5455bda..6e885c5a38a3 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -25,6 +25,7 @@ struct vm_fault;
- #define IOMAP_MAPPED	0x03	/* blocks allocated at @addr */
- #define IOMAP_UNWRITTEN	0x04	/* blocks allocated at @addr in unwritten state */
- #define IOMAP_INLINE	0x05	/* data inline in the inode */
-+#define IOMAP_DAX_COW	0x06	/* Copy data pointed by inline_data before write*/
- 
- /*
-  * Flags for all iomap mappings:
 -- 
-2.16.4
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
