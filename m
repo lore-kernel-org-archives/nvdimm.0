@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com
+ [IPv6:2607:f8b0:4864:20::843])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5183D21214924
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:31 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 11/18] btrfs: add dax mmap support
-Date: Tue, 16 Apr 2019 11:41:47 -0500
-Message-Id: <20190416164154.30390-12-rgoldwyn@suse.de>
-In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
-References: <20190416164154.30390-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 0CEE7211F9D74
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:33 -0700 (PDT)
+Received: by mail-qt1-x843.google.com with SMTP id f13so8598815qto.6
+ for <linux-nvdimm@lists.01.org>; Sat, 20 Apr 2019 18:44:33 -0700 (PDT)
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: [v2 0/2] "Hotremove" persistent memory
+Date: Sat, 20 Apr 2019 21:44:27 -0400
+Message-Id: <20190421014429.31206-1-pasha.tatashin@soleen.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,109 +19,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Changelog:
+v2
+- Dan Williams mentioned that drv->remove() return is ignored
+  by unbind. Unbind always succeeds. Because we cannot guarantee
+  that memory can be offlined from the driver, don't even
+  attempt to do so. Simply check that every section is offlined
+  beforehand and only then proceed with removing dax memory.
 
-Add a new vm_operations struct btrfs_dax_vm_ops
-specifically for dax files.
-
-Since we will be removing(nulling) readpages/writepages for dax
-return ENOEXEC only for non-dax files.
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/btrfs/ctree.h |  1 +
- fs/btrfs/dax.c   | 13 ++++++++++++-
- fs/btrfs/file.c  | 18 ++++++++++++++++--
- 3 files changed, 29 insertions(+), 3 deletions(-)
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index eec01eb92f33..2b7bdabb44f8 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3802,6 +3802,7 @@ int btree_readahead_hook(struct extent_buffer *eb, int err);
- /* dax.c */
- ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
- ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from);
-+vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
- #else
- static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
- {
-diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-index f5cc9bcdbf14..de957d681e16 100644
---- a/fs/btrfs/dax.c
-+++ b/fs/btrfs/dax.c
-@@ -139,7 +139,7 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
- 
- 	iomap->addr = em->block_start + diff;
- 	/* Check if we really need to copy data from old extent */
--	if (bi && !bi->nocow && (offset || pos + length < bi->end)) {
-+	if (bi && !bi->nocow && (offset || pos + length < bi->end || flags & IOMAP_FAULT)) {
- 		iomap->type = IOMAP_DAX_COW;
- 		if (srcblk) {
- 			sector_t sector = (srcblk + (pos & PAGE_MASK) -
-@@ -216,4 +216,15 @@ ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *iter)
- 	}
- 	return ret;
- }
-+
-+vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
-+{
-+	vm_fault_t ret;
-+	pfn_t pfn;
-+	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
-+	if (ret & VM_FAULT_NEEDDSYNC)
-+		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
-+
-+	return ret;
-+}
- #endif /* CONFIG_FS_DAX */
-diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
-index a795023e26ca..9d5a3c99a6b9 100644
---- a/fs/btrfs/file.c
-+++ b/fs/btrfs/file.c
-@@ -2214,15 +2214,29 @@ static const struct vm_operations_struct btrfs_file_vm_ops = {
- 	.page_mkwrite	= btrfs_page_mkwrite,
- };
- 
-+#ifdef CONFIG_FS_DAX
-+static const struct vm_operations_struct btrfs_dax_vm_ops = {
-+	.fault          = btrfs_dax_fault,
-+	.page_mkwrite   = btrfs_dax_fault,
-+	.pfn_mkwrite    = btrfs_dax_fault,
-+};
-+#else
-+#define btrfs_dax_vm_ops btrfs_file_vm_ops
-+#endif
-+
- static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
- {
- 	struct address_space *mapping = filp->f_mapping;
-+	struct inode *inode = file_inode(filp);
- 
--	if (!mapping->a_ops->readpage)
-+	if (!IS_DAX(inode) && !mapping->a_ops->readpage)
- 		return -ENOEXEC;
- 
- 	file_accessed(filp);
--	vma->vm_ops = &btrfs_file_vm_ops;
-+	if (IS_DAX(inode))
-+		vma->vm_ops = &btrfs_dax_vm_ops;
-+	else
-+		vma->vm_ops = &btrfs_file_vm_ops;
- 
- 	return 0;
- }
+Recently, adding a persistent memory to be used like a regular RAM was
+added to Linux. This work extends this functionality to also allow hot
+removing persistent memory.
+
+We (Microsoft) have an important use case for this functionality.
+
+The requirement is for physical machines with small amount of RAM (~8G)
+to be able to reboot in a very short period of time (<1s). Yet, there is
+a userland state that is expensive to recreate (~2G).
+
+The solution is to boot machines with 2G preserved for persistent
+memory.
+
+Copy the state, and hotadd the persistent memory so machine still has
+all 8G available for runtime. Before reboot, offline and hotremove
+device-dax 2G, copy the memory that is needed to be preserved to pmem0
+device, and reboot.
+
+The series of operations look like this:
+
+1. After boot restore /dev/pmem0 to ramdisk to be consumed by apps.
+   and free ramdisk.
+2. Convert raw pmem0 to devdax
+   ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
+3. Hotadd to System RAM
+   echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+   echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+   echo online_movable > /sys/devices/system/memoryXXX/state
+4. Before reboot hotremove device-dax memory from System RAM
+   echo offline > /sys/devices/system/memoryXXX/state
+   echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+5. Create raw pmem0 device
+   ndctl create-namespace --mode raw  -e namespace0.0 -f
+6. Copy the state that was stored by apps to ramdisk to pmem device
+7. Do kexec reboot or reboot through firmware if firmware does not
+   zero memory in pmem0 region (These machines have only regular
+   volatile memory). So to have pmem0 device either memmap kernel
+   parameter is used, or devices nodes in dtb are specified.
+
+Pavel Tatashin (2):
+  device-dax: fix memory and resource leak if hotplug fails
+  device-dax: "Hotremove" persistent memory that is used like normal RAM
+
+ drivers/dax/dax-private.h |  2 +
+ drivers/dax/kmem.c        | 96 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 93 insertions(+), 5 deletions(-)
+
 -- 
-2.16.4
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
