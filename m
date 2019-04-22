@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 34319212108EE
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:14 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 03/18] btrfs: basic dax read
-Date: Tue, 16 Apr 2019 11:41:39 -0500
-Message-Id: <20190416164154.30390-4-rgoldwyn@suse.de>
-In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
-References: <20190416164154.30390-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 95B10212108C9
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Apr 2019 16:22:02 -0700 (PDT)
+Subject: [4.19, 5.0 stable PATCH 2/4] nfit/ars: Introduce scrub_flags
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 22 Apr 2019 16:08:16 -0700
+Message-ID: <155597449609.2675082.11870677141069917115.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155597449036.2675082.7035380482732870260.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,139 +18,135 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: stable@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+commit e34b8252a3d2893ca55c82dbfcdaa302fa03d400 upstream.
 
-Perform a basic read using iomap support. The btrfs_iomap_begin()
-finds the extent at the position and fills the iomap data
-structure with the values.
+In preparation for introducing new flags to gate whether ARS results are
+stale, or poll the completion state, convert the existing flags to an
+unsigned long with enumerated values. This conversion allows the flags
+to be atomically updated outside of ->init_mutex.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/btrfs/Makefile |  1 +
- fs/btrfs/ctree.h  |  5 +++++
- fs/btrfs/dax.c    | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
- fs/btrfs/file.c   | 11 ++++++++++-
- 4 files changed, 65 insertions(+), 1 deletion(-)
- create mode 100644 fs/btrfs/dax.c
+ drivers/acpi/nfit/core.c |   30 +++++++++++++++++-------------
+ drivers/acpi/nfit/nfit.h |    8 ++++++--
+ 2 files changed, 23 insertions(+), 15 deletions(-)
 
-diff --git a/fs/btrfs/Makefile b/fs/btrfs/Makefile
-index ca693dd554e9..1fa77b875ae9 100644
---- a/fs/btrfs/Makefile
-+++ b/fs/btrfs/Makefile
-@@ -12,6 +12,7 @@ btrfs-y += super.o ctree.o extent-tree.o print-tree.o root-tree.o dir-item.o \
- 	   reada.o backref.o ulist.o qgroup.o send.o dev-replace.o raid56.o \
- 	   uuid-tree.o props.o free-space-tree.o tree-checker.o
- 
-+btrfs-$(CONFIG_FS_DAX) += dax.o
- btrfs-$(CONFIG_BTRFS_FS_POSIX_ACL) += acl.o
- btrfs-$(CONFIG_BTRFS_FS_CHECK_INTEGRITY) += check-integrity.o
- btrfs-$(CONFIG_BTRFS_FS_REF_VERIFY) += ref-verify.o
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index 9512f49262dd..b7bbe5130a3b 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3795,6 +3795,11 @@ int btrfs_reada_wait(void *handle);
- void btrfs_reada_detach(void *handle);
- int btree_readahead_hook(struct extent_buffer *eb, int err);
- 
-+#ifdef CONFIG_FS_DAX
-+/* dax.c */
-+ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
-+#endif /* CONFIG_FS_DAX */
-+
- static inline int is_fstree(u64 rootid)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 1a48c92eaed5..64308e669250 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1319,19 +1319,23 @@ static ssize_t scrub_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	if (rootid == BTRFS_FS_TREE_OBJECTID ||
-diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-new file mode 100644
-index 000000000000..bf3d46b0acb6
---- /dev/null
-+++ b/fs/btrfs/dax.c
-@@ -0,0 +1,49 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * DAX support for BTRFS
-+ *
-+ * Copyright (c) 2019  SUSE Linux
-+ * Author: Goldwyn Rodrigues <rgoldwyn@suse.com>
-+ */
+ 	struct nvdimm_bus_descriptor *nd_desc;
++	struct acpi_nfit_desc *acpi_desc;
+ 	ssize_t rc = -ENXIO;
++	bool busy;
+ 
+ 	device_lock(dev);
+ 	nd_desc = dev_get_drvdata(dev);
+-	if (nd_desc) {
+-		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+-
+-		mutex_lock(&acpi_desc->init_mutex);
+-		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
+-				acpi_desc->scrub_busy
+-				&& !acpi_desc->cancel ? "+\n" : "\n");
+-		mutex_unlock(&acpi_desc->init_mutex);
++	if (!nd_desc) {
++		device_unlock(dev);
++		return rc;
+ 	}
++	acpi_desc = to_acpi_desc(nd_desc);
 +
-+#ifdef CONFIG_FS_DAX
-+#include <linux/dax.h>
-+#include <linux/iomap.h>
-+#include "ctree.h"
-+#include "btrfs_inode.h"
-+
-+static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
-+		loff_t length, unsigned flags, struct iomap *iomap)
-+{
-+	struct extent_map *em;
-+	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-+	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
-+	if (em->block_start == EXTENT_MAP_HOLE) {
-+		iomap->type = IOMAP_HOLE;
-+		return 0;
-+	}
-+	iomap->type = IOMAP_MAPPED;
-+	iomap->bdev = em->bdev;
-+	iomap->dax_dev = fs_info->dax_dev;
-+	iomap->offset = em->start;
-+	iomap->length = em->len;
-+	iomap->addr = em->block_start;
-+	return 0;
-+}
-+
-+static const struct iomap_ops btrfs_iomap_ops = {
-+	.iomap_begin		= btrfs_iomap_begin,
++	mutex_lock(&acpi_desc->init_mutex);
++	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
++		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
++	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
++	mutex_unlock(&acpi_desc->init_mutex);
+ 	device_unlock(dev);
+ 	return rc;
+ }
+@@ -3081,7 +3085,7 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
+ 
+-	if (acpi_desc->cancel)
++	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags))
+ 		return 0;
+ 
+ 	if (query_rc == -EBUSY) {
+@@ -3155,7 +3159,7 @@ static void __sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
+ {
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
+ 
+-	acpi_desc->scrub_busy = 1;
++	set_bit(ARS_BUSY, &acpi_desc->scrub_flags);
+ 	/* note this should only be set from within the workqueue */
+ 	if (tmo)
+ 		acpi_desc->scrub_tmo = tmo;
+@@ -3171,7 +3175,7 @@ static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	lockdep_assert_held(&acpi_desc->init_mutex);
+ 
+-	acpi_desc->scrub_busy = 0;
++	clear_bit(ARS_BUSY, &acpi_desc->scrub_flags);
+ 	acpi_desc->scrub_count++;
+ 	if (acpi_desc->scrub_count_state)
+ 		sysfs_notify_dirent(acpi_desc->scrub_count_state);
+@@ -3460,7 +3464,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc,
+ 	struct nfit_spa *nfit_spa;
+ 
+ 	mutex_lock(&acpi_desc->init_mutex);
+-	if (acpi_desc->cancel) {
++	if (test_bit(ARS_CANCEL, &acpi_desc->scrub_flags)) {
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 		return 0;
+ 	}
+@@ -3539,7 +3543,7 @@ void acpi_nfit_shutdown(void *data)
+ 	mutex_unlock(&acpi_desc_lock);
+ 
+ 	mutex_lock(&acpi_desc->init_mutex);
+-	acpi_desc->cancel = 1;
++	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
+ 	cancel_delayed_work_sync(&acpi_desc->dwork);
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ 
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 871fb3de3b30..897ce10192a0 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -210,6 +210,11 @@ struct nfit_mem {
+ 	int family;
+ };
+ 
++enum scrub_flags {
++	ARS_BUSY,
++	ARS_CANCEL,
 +};
 +
-+ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to)
-+{
-+	ssize_t ret;
-+	struct inode *inode = file_inode(iocb->ki_filp);
-+
-+	inode_lock_shared(inode);
-+	ret = dax_iomap_rw(iocb, to, &btrfs_iomap_ops);
-+	inode_unlock_shared(inode);
-+
-+	return ret;
-+}
-+#endif /* CONFIG_FS_DAX */
-diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
-index 34fe8a58b0e9..9194591f9eea 100644
---- a/fs/btrfs/file.c
-+++ b/fs/btrfs/file.c
-@@ -3288,9 +3288,18 @@ static int btrfs_file_open(struct inode *inode, struct file *filp)
- 	return generic_file_open(inode, filp);
- }
- 
-+static ssize_t btrfs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
-+{
-+#ifdef CONFIG_FS_DAX
-+	if (IS_DAX(file_inode(iocb->ki_filp)))
-+		return btrfs_file_dax_read(iocb, to);
-+#endif
-+	return generic_file_read_iter(iocb, to);
-+}
-+
- const struct file_operations btrfs_file_operations = {
- 	.llseek		= btrfs_file_llseek,
--	.read_iter      = generic_file_read_iter,
-+	.read_iter      = btrfs_file_read_iter,
- 	.splice_read	= generic_file_splice_read,
- 	.write_iter	= btrfs_file_write_iter,
- 	.mmap		= btrfs_file_mmap,
--- 
-2.16.4
+ struct acpi_nfit_desc {
+ 	struct nvdimm_bus_descriptor nd_desc;
+ 	struct acpi_table_header acpi_header;
+@@ -231,8 +236,7 @@ struct acpi_nfit_desc {
+ 	unsigned int max_ars;
+ 	unsigned int scrub_count;
+ 	unsigned int scrub_mode;
+-	unsigned int scrub_busy:1;
+-	unsigned int cancel:1;
++	unsigned long scrub_flags;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+ 	unsigned long bus_nfit_cmd_force_en;
 
 _______________________________________________
 Linux-nvdimm mailing list
