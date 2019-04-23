@@ -2,14 +2,22 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 386F3212017D2
- for <linux-nvdimm@lists.01.org>; Tue,  9 Apr 2019 21:10:56 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 0BF92211F99B5
+ for <linux-nvdimm@lists.01.org>; Mon, 22 Apr 2019 21:07:06 -0700 (PDT)
+Date: Tue, 23 Apr 2019 00:07:03 -0400 (EDT)
 From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v5 5/6] ext4: disable map_sync for async flush
-Date: Wed, 10 Apr 2019 09:38:25 +0530
-Message-Id: <20190410040826.24371-6-pagupta@redhat.com>
-In-Reply-To: <20190410040826.24371-1-pagupta@redhat.com>
+Message-ID: <1744824090.22901808.1555992423081.JavaMail.zimbra@redhat.com>
+In-Reply-To: <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
 References: <20190410040826.24371-1-pagupta@redhat.com>
+ <x494l73z7th.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4jrNHqW3FuGkeo==ZoJr7LKahCv4_esnokfy7enek8=2Q@mail.gmail.com>
+ <20190418161833.GA22970@infradead.org>
+ <CAPcyv4jPOF_+R6U17J_+88+X8LC-LSPCugA6gbKxuphuuFB2gg@mail.gmail.com>
+ <x497ebm82d4.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4gGmN2LLMPy6BzWpYhRyV7fFNVgh=xAWSAdnnAWu5APtg@mail.gmail.com>
+ <x49ef5t7nwp.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,54 +25,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: cohuck@redhat.com, Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, Andreas Dilger <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>, kilobyte@angband.pl, Rik van Riel <riel@surriel.com>, yuval shaia <yuval.shaia@oracle.com>, Stefan Hajnoczi <stefanha@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dont support 'MAP_SYNC' with non-DAX files and DAX files
-with asynchronous dax_device. Virtio pmem provides 
-asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and ext4.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
----
- fs/ext4/file.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+> 
+> Dan Williams <dan.j.williams@intel.com> writes:
+> 
+> > On Mon, Apr 22, 2019 at 8:59 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+> >>
+> >> Dan Williams <dan.j.williams@intel.com> writes:
+> >>
+> >> > On Thu, Apr 18, 2019 at 9:18 AM Christoph Hellwig <hch@infradead.org>
+> >> > wrote:
+> >> >>
+> >> >> On Thu, Apr 18, 2019 at 09:05:05AM -0700, Dan Williams wrote:
+> >> >> > > > I'd either add a comment about avoiding retpoline overhead here
+> >> >> > > > or just
+> >> >> > > > make ->flush == NULL mean generic_nvdimm_flush(). Just so that
+> >> >> > > > people don't
+> >> >> > > > get confused by the code.
+> >> >> > >
+> >> >> > > Isn't this premature optimization?  I really don't like adding
+> >> >> > > things
+> >> >> > > like this without some numbers to show it's worth it.
+> >> >> >
+> >> >> > I don't think it's premature given this optimization technique is
+> >> >> > already being deployed elsewhere, see:
+> >> >> >
+> >> >> > https://lwn.net/Articles/774347/
+> >> >>
+> >> >> For one this one was backed by numbers, and second after feedback
+> >> >> from Linux we switched to the NULL pointer check instead.
+> >> >
+> >> > Ok I should have noticed the switch to NULL pointer check. However,
+> >> > the question still stands do we want everyone to run numbers to
+> >> > justify this optimization, or make it a new common kernel coding
+> >> > practice to do:
+> >> >
+> >> >     if (!object->op)
+> >> >         generic_op(object);
+> >> >     else
+> >> >         object->op(object);
+> >> >
+> >> > ...in hot paths?
+> >>
+> >> I don't think nvdimm_flush is a hot path.  Numbers of some
+> >> representative workload would prove one of us right.
+> >
+> > I'd rather say that the if "if (!op) do_generic()" pattern is more
+> > readable in the general case, saves grepping for who set the op in the
+> > common case. The fact that it has the potential to be faster is gravy
+> > at that point.
+> 
+> If the primary motivation is performance, then I'd expect performance
+> numbers to back it up.  If that isn't the primary motivation, then
+> choose whichever way you feel is appropriate.
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 69d65d49837b..4b2ccaf1932e 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -360,15 +360,16 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
- static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *inode = file->f_mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-+	struct dax_device *dax_dev = sbi->s_daxdev;
- 
--	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+	if (unlikely(ext4_forced_shutdown(sbi)))
- 		return -EIO;
- 
--	/*
--	 * We don't support synchronous mappings for non-DAX files. At least
--	 * until someone comes with a sensible use case.
-+	/* We don't support synchronous mappings for non-DAX files and
-+	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+	if (!daxdev_mapping_supported(vma, dax_dev))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(file);
--- 
-2.20.1
+Agree. This change enhances the code readability. Will add this change in
+v6 with other changes.
 
+Thank you! 
+
+Pankaj
+
+> 
+> Cheers,
+> Jeff
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
