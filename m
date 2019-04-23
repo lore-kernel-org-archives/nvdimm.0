@@ -2,14 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1734E212017D2
- for <linux-nvdimm@lists.01.org>; Tue,  9 Apr 2019 21:09:19 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A728C21214947
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Apr 2019 01:06:45 -0700 (PDT)
 From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v5 1/6] libnvdimm: nd_region flush callback support
-Date: Wed, 10 Apr 2019 09:38:21 +0530
-Message-Id: <20190410040826.24371-2-pagupta@redhat.com>
-In-Reply-To: <20190410040826.24371-1-pagupta@redhat.com>
-References: <20190410040826.24371-1-pagupta@redhat.com>
+Subject: [PATCH v6 1/6] libnvdimm: nd_region flush callback support
+Date: Tue, 23 Apr 2019 13:36:07 +0530
+Message-Id: <20190423080612.15361-2-pagupta@redhat.com>
+In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
+References: <20190423080612.15361-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,21 +33,18 @@ flush function. For rest of the region types we are registering
 existing flush function. Report error returned by host fsync
 failure to userspace.
 
-This also handles asynchronous flush requests from the block layer
-by creating a child bio and chaining it with parent bio.
-
 Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 ---
  drivers/acpi/nfit/core.c     |  4 ++--
  drivers/nvdimm/claim.c       |  6 ++++--
  drivers/nvdimm/nd.h          |  1 +
- drivers/nvdimm/pmem.c        | 14 ++++++++-----
- drivers/nvdimm/region_devs.c | 38 ++++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/pmem.c        | 13 ++++++++-----
+ drivers/nvdimm/region_devs.c | 26 ++++++++++++++++++++++++--
  include/linux/libnvdimm.h    |  8 +++++++-
- 6 files changed, 59 insertions(+), 12 deletions(-)
+ 6 files changed, 46 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5a389a4f4f65..567017a2190e 100644
+index 5a389a4f4f65..08dde76cf459 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
 @@ -2434,7 +2434,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
@@ -55,7 +52,7 @@ index 5a389a4f4f65..567017a2190e 100644
  
  	writeq(cmd, mmio->addr.base + offset);
 -	nvdimm_flush(nfit_blk->nd_region);
-+	nvdimm_flush(nfit_blk->nd_region, NULL, false);
++	nvdimm_flush(nfit_blk->nd_region, NULL);
  
  	if (nfit_blk->dimm_flags & NFIT_BLK_DCR_LATCH)
  		readq(mmio->addr.base + offset);
@@ -64,12 +61,12 @@ index 5a389a4f4f65..567017a2190e 100644
  
  	if (rw)
 -		nvdimm_flush(nfit_blk->nd_region);
-+		nvdimm_flush(nfit_blk->nd_region, NULL, false);
++		nvdimm_flush(nfit_blk->nd_region, NULL);
  
  	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
  	return rc;
 diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index fb667bf469c7..a1dfa066786b 100644
+index fb667bf469c7..13510bae1e6f 100644
 --- a/drivers/nvdimm/claim.c
 +++ b/drivers/nvdimm/claim.c
 @@ -263,7 +263,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
@@ -86,26 +83,26 @@ index fb667bf469c7..a1dfa066786b 100644
  
  	memcpy_flushcache(nsio->addr + offset, buf, size);
 -	nvdimm_flush(to_nd_region(ndns->dev.parent));
-+	ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL, false);
++	ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
 +	if (ret)
 +		rc = ret;
  
  	return rc;
  }
 diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index a5ac3b240293..916cd6c5451a 100644
+index a5ac3b240293..0c74d2428bd7 100644
 --- a/drivers/nvdimm/nd.h
 +++ b/drivers/nvdimm/nd.h
 @@ -159,6 +159,7 @@ struct nd_region {
  	struct badblocks bb;
  	struct nd_interleave_set *nd_set;
  	struct nd_percpu_lane __percpu *lane;
-+	int (*flush)(struct nd_region *nd_region);
++	int (*flush)(struct nd_region *nd_region, struct bio *bio);
  	struct nd_mapping mapping[0];
  };
  
 diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index bc2f700feef8..5a5b3ea4d073 100644
+index bc2f700feef8..f719245da170 100644
 --- a/drivers/nvdimm/pmem.c
 +++ b/drivers/nvdimm/pmem.c
 @@ -192,6 +192,7 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
@@ -121,7 +118,7 @@ index bc2f700feef8..5a5b3ea4d073 100644
  
  	if (bio->bi_opf & REQ_PREFLUSH)
 -		nvdimm_flush(nd_region);
-+		ret = nvdimm_flush(nd_region, bio, true);
++		ret = nvdimm_flush(nd_region, bio);
  
  	do_acct = nd_iostat_start(bio, &start);
  	bio_for_each_segment(bvec, bio, iter) {
@@ -130,21 +127,14 @@ index bc2f700feef8..5a5b3ea4d073 100644
  
  	if (bio->bi_opf & REQ_FUA)
 -		nvdimm_flush(nd_region);
-+		ret = nvdimm_flush(nd_region, bio, true);
++		ret = nvdimm_flush(nd_region, bio);
 +
 +	if (ret)
 +		bio->bi_status = errno_to_blk_status(ret);
  
  	bio_endio(bio);
  	return BLK_QC_T_NONE;
-@@ -463,13 +467,13 @@ static int pmem_attach_disk(struct device *dev,
- 	disk->bb = &pmem->bb;
- 
- 	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-+
- 	if (!dax_dev) {
- 		put_disk(disk);
- 		return -ENOMEM;
+@@ -469,7 +473,6 @@ static int pmem_attach_disk(struct device *dev,
  	}
  	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
  	pmem->dax_dev = dax_dev;
@@ -152,12 +142,12 @@ index bc2f700feef8..5a5b3ea4d073 100644
  	gendev = disk_to_dev(disk);
  	gendev->groups = pmem_attribute_groups;
  
-@@ -527,14 +531,14 @@ static int nd_pmem_remove(struct device *dev)
+@@ -527,14 +530,14 @@ static int nd_pmem_remove(struct device *dev)
  		sysfs_put(pmem->bb_state);
  		pmem->bb_state = NULL;
  	}
 -	nvdimm_flush(to_nd_region(dev->parent));
-+	nvdimm_flush(to_nd_region(dev->parent), NULL, false);
++	nvdimm_flush(to_nd_region(dev->parent), NULL);
  
  	return 0;
  }
@@ -165,12 +155,12 @@ index bc2f700feef8..5a5b3ea4d073 100644
  static void nd_pmem_shutdown(struct device *dev)
  {
 -	nvdimm_flush(to_nd_region(dev->parent));
-+	nvdimm_flush(to_nd_region(dev->parent), NULL, false);
++	nvdimm_flush(to_nd_region(dev->parent), NULL);
  }
  
  static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
 diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..fb1041ab32a6 100644
+index b4ef7d9ff22e..e5b59708865e 100644
 --- a/drivers/nvdimm/region_devs.c
 +++ b/drivers/nvdimm/region_devs.c
 @@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
@@ -178,7 +168,7 @@ index b4ef7d9ff22e..fb1041ab32a6 100644
  	if (!flush)
  		return -EINVAL;
 -	nvdimm_flush(nd_region);
-+	rc = nvdimm_flush(nd_region, NULL, false);
++	rc = nvdimm_flush(nd_region, NULL);
 +	if (rc)
 +		return rc;
  
@@ -191,35 +181,23 @@ index b4ef7d9ff22e..fb1041ab32a6 100644
 +	if (ndr_desc->flush)
 +		nd_region->flush = ndr_desc->flush;
 +	else
-+		nd_region->flush = generic_nvdimm_flush;
++		nd_region->flush = NULL;
 +
  	nd_device_register(dev);
  
  	return nd_region;
-@@ -1125,11 +1132,36 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
+@@ -1125,11 +1132,24 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
  }
  EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
  
-+int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool async)
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
 +{
 +	int rc = 0;
 +
-+	/* Create child bio for asynchronous flush and chain with
-+	 * parent bio. Otherwise directly call nd_region flush.
-+	 */
-+	if (async && bio->bi_iter.bi_sector != -1) {
-+
-+		struct bio *child = bio_alloc(GFP_ATOMIC, 0);
-+
-+		if (!child)
-+			return -ENOMEM;
-+		bio_copy_dev(child, bio);
-+		child->bi_opf = REQ_PREFLUSH;
-+		child->bi_iter.bi_sector = -1;
-+		bio_chain(child, bio);
-+		submit_bio(child);
-+	} else {
-+		if (nd_region->flush(nd_region))
++	if (!nd_region->flush)
++		rc = generic_nvdimm_flush(nd_region);
++	else {
++		if (nd_region->flush(nd_region, bio))
 +			rc = -EIO;
 +	}
 +
@@ -234,7 +212,7 @@ index b4ef7d9ff22e..fb1041ab32a6 100644
  {
  	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
  	int i, idx;
-@@ -1153,6 +1185,8 @@ void nvdimm_flush(struct nd_region *nd_region)
+@@ -1153,6 +1173,8 @@ void nvdimm_flush(struct nd_region *nd_region)
  		if (ndrd_get_flush_wpq(ndrd, i, 0))
  			writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
  	wmb();
@@ -244,7 +222,7 @@ index b4ef7d9ff22e..fb1041ab32a6 100644
  EXPORT_SYMBOL_GPL(nvdimm_flush);
  
 diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index feb342d026f2..d9d2ab8a6e64 100644
+index feb342d026f2..a5f369ec3726 100644
 --- a/include/linux/libnvdimm.h
 +++ b/include/linux/libnvdimm.h
 @@ -65,6 +65,9 @@ enum {
@@ -269,7 +247,7 @@ index feb342d026f2..d9d2ab8a6e64 100644
  	int target_node;
  	unsigned long flags;
  	struct device_node *of_node;
-+	int (*flush)(struct nd_region *nd_region);
++	int (*flush)(struct nd_region *nd_region, struct bio *bio);
  };
  
  struct device;
@@ -278,7 +256,7 @@ index feb342d026f2..d9d2ab8a6e64 100644
  void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
  u64 nd_fletcher64(void *addr, size_t len, bool le);
 -void nvdimm_flush(struct nd_region *nd_region);
-+int nvdimm_flush(struct nd_region *nd_region, struct bio *bio, bool async);
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio);
 +int generic_nvdimm_flush(struct nd_region *nd_region);
  int nvdimm_has_flush(struct nd_region *nd_region);
  int nvdimm_has_cache(struct nd_region *nd_region);
