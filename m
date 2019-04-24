@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8BD41211E2EF3
- for <linux-nvdimm@lists.01.org>; Mon,  1 Apr 2019 12:30:53 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH] monitor: removing the requirement of default config
-Date: Mon, 1 Apr 2019 19:30:51 +0000
-Message-ID: <37ead1c68bee8618e235dca3f0059ed83f84af5c.camel@intel.com>
-References: <20190329110150.3725-1-qi.fuli@jp.fujitsu.com>
- <cda88d4b0faf32de5ed449bc648f1a684337154d.camel@intel.com>
- <OSAPR01MB49936987822E8585110E83D0F7550@OSAPR01MB4993.jpnprd01.prod.outlook.com>
-In-Reply-To: <OSAPR01MB49936987822E8585110E83D0F7550@OSAPR01MB4993.jpnprd01.prod.outlook.com>
-Content-Language: en-US
-Content-ID: <2396D09AA3D778479387F1F15B3A34FE@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id EF5C321214944
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Apr 2019 22:21:45 -0700 (PDT)
+Date: Wed, 24 Apr 2019 01:21:44 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <1325148804.23168491.1556083304080.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190423142748.GE9910@quack2.suse.cz>
+References: <20190423080612.15361-1-pagupta@redhat.com>
+ <20190423080612.15361-6-pagupta@redhat.com>
+ <20190423142748.GE9910@quack2.suse.cz>
+Subject: Re: [Qemu-devel] [PATCH v6 5/6] ext4: disable map_sync for async flush
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,38 +24,72 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+To: Jan Kara <jack@suse.cz>
+Cc: kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, linux-nvdimm@lists.01.org, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com, darrick wong <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
 
-On Mon, 2019-04-01 at 06:20 +0000, qi.fuli@fujitsu.com wrote:
 > 
-> Hi Vishal,
+> On Tue 23-04-19 13:36:11, Pankaj Gupta wrote:
+> > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > with asynchronous dax_device. Virtio pmem provides
+> > asynchronous host page cache flush mechanism. We don't
+> > support 'MAP_SYNC' with virtio pmem and ext4.
+> > 
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 > 
-> Thanks for your comment.
-> I think it might be misunderstood.
+> The patch looks good to me. You can add:
 > 
-> Current scenario is:
-> 1. Check if "-c <file>" option is provided
->   a. if it is, make the <file> as config_file
->   b. if it is not, make default configuration file(/etc/ndctl/monitor.conf) as config_file
-> 2. Try to read options from config_file
->   a. if config_file cannot be opened, then check if "-c" option is provided
->    (1) if it is, stop starting monitor (user may make a wrong <file> in "-c" option)
->    (2) if it is not, finish read_config_file (default configuration file(/etc/ndctl/monitor.conf) is missing)
->   b. if config_file can be opened successfully, merge the options from config_file with cli options
-> 
-> It is consistent with the ideal scenario as you mentioned.
+> Reviewed-by: Jan Kara <jack@suse.cz>
 
-Hi Qi,
+Thank you. Will add this.
 
-Looking at it in more detail, I see you're right.
-I've applied the patch - thanks for the explanation.
+Best regards,
+Pankaj
 
 > 
-> Thanks,
-> QI Fuli
-
+> 								Honza
+> 
+> 
+> > ---
+> >  fs/ext4/file.c | 11 ++++++-----
+> >  1 file changed, 6 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+> > index 69d65d49837b..4b2ccaf1932e 100644
+> > --- a/fs/ext4/file.c
+> > +++ b/fs/ext4/file.c
+> > @@ -360,15 +360,16 @@ static const struct vm_operations_struct
+> > ext4_file_vm_ops = {
+> >  static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+> >  {
+> >  	struct inode *inode = file->f_mapping->host;
+> > +	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
+> > +	struct dax_device *dax_dev = sbi->s_daxdev;
+> >  
+> > -	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
+> > +	if (unlikely(ext4_forced_shutdown(sbi)))
+> >  		return -EIO;
+> >  
+> > -	/*
+> > -	 * We don't support synchronous mappings for non-DAX files. At least
+> > -	 * until someone comes with a sensible use case.
+> > +	/* We don't support synchronous mappings for non-DAX files and
+> > +	 * for DAX files if underneath dax_device is not synchronous.
+> >  	 */
+> > -	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
+> > +	if (!daxdev_mapping_supported(vma, dax_dev))
+> >  		return -EOPNOTSUPP;
+> >  
+> >  	file_accessed(file);
+> > --
+> > 2.20.1
+> > 
+> --
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
