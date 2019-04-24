@@ -1,85 +1,82 @@
-Return-Path: <owner-linux-mm@kvack.org>
-MIME-Version: 1.0
-References: <20190423203843.2898-1-pasha.tatashin@soleen.com> <7f7499bd-8d48-945b-6d69-60685a02c8da@arm.com>
-In-Reply-To: <7f7499bd-8d48-945b-6d69-60685a02c8da@arm.com>
-From: Pavel Tatashin <patatash@linux.microsoft.com>
-Date: Wed, 24 Apr 2019 15:48:44 -0400
-Message-ID: <CA+CK2bCD11x64pJj5gSnsu5jsUqJyU6o+=J4K8oYAsHqz9ULqQ@mail.gmail.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from foss.arm.com (foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id B14F821217953
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Apr 2019 02:07:18 -0700 (PDT)
 Subject: Re: [PATCH] arm64: configurable sparsemem section size
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: James Morris <jmorris@namei.org>, Sasha Levin <sashal@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, "Huang, Ying" <ying.huang@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Takashi Iwai <tiwai@suse.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, catalin.marinas@arm.com, Will Deacon <will.deacon@arm.com>, rppt@linux.vnet.ibm.com, Ard Biesheuvel <ard.biesheuvel@linaro.org>, andrew.murray@arm.com, james.morse@arm.com, Marc Zyngier <marc.zyngier@arm.com>, sboyd@kernel.org, linux-arm-kernel@lists.infradead.org
+References: <20190423203843.2898-1-pasha.tatashin@soleen.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <7f7499bd-8d48-945b-6d69-60685a02c8da@arm.com>
+Date: Wed, 24 Apr 2019 14:37:11 +0530
+MIME-Version: 1.0
+In-Reply-To: <20190423203843.2898-1-pasha.tatashin@soleen.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Pavel Tatashin <pasha.tatashin@soleen.com>, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, catalin.marinas@arm.com, will.deacon@arm.com, rppt@linux.vnet.ibm.com, ard.biesheuvel@linaro.org, andrew.murray@arm.com, james.morse@arm.com, marc.zyngier@arm.com, sboyd@kernel.org, linux-arm-kernel@lists.infradead.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Apr 24, 2019 at 5:07 AM Anshuman Khandual
-<anshuman.khandual@arm.com> wrote:
->
-> On 04/24/2019 02:08 AM, Pavel Tatashin wrote:
-> > sparsemem section size determines the maximum size and alignment that
-> > is allowed to offline/online memory block. The bigger the size the less
-> > the clutter in /sys/devices/system/memory/*. On the other hand, however,
-> > there is less flexability in what granules of memory can be added and
-> > removed.
->
-> Is there any scenario where less than a 1GB needs to be added on arm64 ?
 
-Yes, DAX hotplug loses 1G of memory without allowing smaller sections.
-Machines on which we are going to be using this functionality have 8G
-of System RAM, therefore losing 1G is a big problem.
 
-For details about using scenario see this cover letter:
-https://lore.kernel.org/lkml/20190421014429.31206-1-pasha.tatashin@soleen.com/
+On 04/24/2019 02:08 AM, Pavel Tatashin wrote:
+> sparsemem section size determines the maximum size and alignment that
+> is allowed to offline/online memory block. The bigger the size the less
+> the clutter in /sys/devices/system/memory/*. On the other hand, however,
+> there is less flexability in what granules of memory can be added and
+> removed.
 
->
-> >
-> > Recently, it was enabled in Linux to hotadd persistent memory that
-> > can be either real NV device, or reserved from regular System RAM
-> > and has identity of devdax.
->
-> devdax (even ZONE_DEVICE) support has not been enabled on arm64 yet.
+Is there any scenario where less than a 1GB needs to be added on arm64 ?
 
-Correct, I use your patches to enable ZONE_DEVICE, and  thus devdax on ARM64:
-https://lore.kernel.org/lkml/1554265806-11501-1-git-send-email-anshuman.khandual@arm.com/
+> 
+> Recently, it was enabled in Linux to hotadd persistent memory that
+> can be either real NV device, or reserved from regular System RAM
+> and has identity of devdax.
 
->
-> >
-> > The problem is that because ARM64's section size is 1G, and devdax must
-> > have 2M label section, the first 1G is always missed when device is
-> > attached, because it is not 1G aligned.
->
-> devdax has to be 2M aligned ? Does Linux enforce that right now ?
+devdax (even ZONE_DEVICE) support has not been enabled on arm64 yet.
 
-Unfortunately, there is no way around this. Part of the memory can be
-reserved as persistent memory via device tree.
-        memory@40000000 {
-                device_type = "memory";
-                reg = < 0x00000000 0x40000000
-                        0x00000002 0x00000000 >;
-        };
+> 
+> The problem is that because ARM64's section size is 1G, and devdax must
+> have 2M label section, the first 1G is always missed when device is
+> attached, because it is not 1G aligned.
 
-        pmem@1c0000000 {
-                compatible = "pmem-region";
-                reg = <0x00000001 0xc0000000
-                       0x00000000 0x80000000>;
-                volatile;
-                numa-node-id = <0>;
-        };
+devdax has to be 2M aligned ? Does Linux enforce that right now ?
 
-So, while pmem is section aligned, as it should be, the dax device is
-going to be pmem start address + label size, which is 2M. The actual
-DAX device starts at:
-0x1c0000000 + 2M.
+> 
+> Allow, better flexibility by making section size configurable.
 
-Because section size is 1G, the hotplug will able to add only memory
-starting from
-0x1c0000000 + 1G
+Unless 2M is being enforced from Linux not sure why this is necessary at
+the moment.
 
-> 27 and 28 do not even compile for ARM64_64_PAGES because of MAX_ORDER and
-> SECTION_SIZE mismatch.
+> 
+> Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+> ---
+>  arch/arm64/Kconfig                 | 10 ++++++++++
+>  arch/arm64/include/asm/sparsemem.h |  2 +-
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index b5d8cf57e220..a0c5b9d13a7f 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -801,6 +801,16 @@ config ARM64_PA_BITS
+>  	default 48 if ARM64_PA_BITS_48
+>  	default 52 if ARM64_PA_BITS_52
+>  
+> +config ARM64_SECTION_SIZE_BITS
+> +	int "sparsemem section size shift"
+> +	range 27 30
 
-Can you please elaborate what configs are you using? I have no
-problems compiling with 27 and 28 bit.
-
-Thank you,
-Pasha
+27 and 28 do not even compile for ARM64_64_PAGES because of MAX_ORDER and
+SECTION_SIZE mismatch.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
