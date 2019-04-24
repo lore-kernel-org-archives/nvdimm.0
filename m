@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5FC3A212108E6
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:18 -0700 (PDT)
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 05/18] btrfs: return whether extent is nocow or not
-Date: Tue, 16 Apr 2019 11:41:41 -0500
-Message-Id: <20190416164154.30390-6-rgoldwyn@suse.de>
-In-Reply-To: <20190416164154.30390-1-rgoldwyn@suse.de>
-References: <20190416164154.30390-1-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 40DA0212108F5
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Apr 2019 22:10:30 -0700 (PDT)
+Date: Wed, 24 Apr 2019 01:10:28 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <750624039.23167994.1556082628248.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190423221011.GD178290@magnolia>
+References: <20190423080612.15361-1-pagupta@redhat.com>
+ <20190423080612.15361-7-pagupta@redhat.com>
+ <20190423220217.GA29573@dread.disaster.area>
+ <20190423221011.GD178290@magnolia>
+Subject: Re: [Qemu-devel] [PATCH v6 6/6] xfs: disable map_sync for async flush
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,81 +21,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, Dave Chinner <david@fromorbit.com>, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, linux-nvdimm@lists.01.org, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-We require this to make sure we return type IOMAP_DAX_COW in
-iomap structure, in the later patches.
+> 
+> On Wed, Apr 24, 2019 at 08:02:17AM +1000, Dave Chinner wrote:
+> > On Tue, Apr 23, 2019 at 01:36:12PM +0530, Pankaj Gupta wrote:
+> > > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > > with asynchronous dax_device. Virtio pmem provides
+> > > asynchronous host page cache flush mechanism. We don't
+> > > support 'MAP_SYNC' with virtio pmem and xfs.
+> > > 
+> > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > > ---
+> > >  fs/xfs/xfs_file.c | 10 ++++++----
+> > >  1 file changed, 6 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > > index 1f2e2845eb76..0e59be018511 100644
+> > > --- a/fs/xfs/xfs_file.c
+> > > +++ b/fs/xfs/xfs_file.c
+> > > @@ -1196,11 +1196,13 @@ xfs_file_mmap(
+> > >  	struct file	*filp,
+> > >  	struct vm_area_struct *vma)
+> > >  {
+> > > -	/*
+> > > -	 * We don't support synchronous mappings for non-DAX files. At least
+> > > -	 * until someone comes with a sensible use case.
+> > > +	struct dax_device *dax_dev = xfs_find_daxdev_for_inode
+> > > +						(file_inode(filp));
+> 
+>     tab separation here ^^^                   ^^^^ and cut
+>                                                        down the indent
+>                                              while you're at
+> 						    it, please:
+> 
+> 	struct dax_device	*dax_dev;
+> 
+> 	dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
+> 	if (!dax_is_frobbed(dax))
+> 		return -EMEWANTCOOKIE;
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- fs/btrfs/ctree.h | 2 +-
- fs/btrfs/inode.c | 9 +++++++--
- 2 files changed, 8 insertions(+), 3 deletions(-)
+Done. 
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index b7bbe5130a3b..050f30165531 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3278,7 +3278,7 @@ struct inode *btrfs_iget_path(struct super_block *s, struct btrfs_key *location,
- struct inode *btrfs_iget(struct super_block *s, struct btrfs_key *location,
- 			 struct btrfs_root *root, int *was_new);
- int btrfs_get_extent_map_write(struct extent_map **map, struct buffer_head *bh,
--		struct inode *inode, u64 start, u64 len);
-+		struct inode *inode, u64 start, u64 len, bool *nocow);
- struct extent_map *btrfs_get_extent(struct btrfs_inode *inode,
- 				    struct page *page, size_t pg_offset,
- 				    u64 start, u64 end, int create);
-diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-index 80184d0c3b52..06764d89490f 100644
---- a/fs/btrfs/inode.c
-+++ b/fs/btrfs/inode.c
-@@ -7499,12 +7499,15 @@ static int btrfs_get_blocks_direct_read(struct extent_map *em,
- int btrfs_get_extent_map_write(struct extent_map **map,
- 		struct buffer_head *bh,
- 		struct inode *inode,
--		u64 start, u64 len)
-+		u64 start, u64 len, bool *nocow)
- {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
- 	struct extent_map *em = *map;
- 	int ret = 0;
- 
-+	if (nocow)
-+		*nocow = false;
-+
- 	/*
- 	 * We don't allocate a new extent in the following cases
- 	 *
-@@ -7553,6 +7556,8 @@ int btrfs_get_extent_map_write(struct extent_map **map,
- 			 */
- 			btrfs_free_reserved_data_space_noquota(inode, start,
- 							       len);
-+			if (nocow)
-+				*nocow = true;
- 			/* skip COW */
- 			goto out;
- 		}
-@@ -7579,7 +7584,7 @@ static int btrfs_get_blocks_direct_write(struct extent_map **map,
- 	struct extent_map *em;
- 
- 	ret = btrfs_get_extent_map_write(map, bh_result, inode,
--			start, len);
-+			start, len, NULL);
- 	if (ret < 0)
- 		return ret;
- 	em = *map;
--- 
-2.16.4
+Thanks,
+Pankaj
 
+> 
+> --D
+> 
+> > > +
+> > > +	/* We don't support synchronous mappings for non-DAX files and
+> > > +	 * for DAX files if underneath dax_device is not synchronous.
+> > >  	 */
+> > 
+> > 	/*
+> > 	 * This is the correct multi-line comment format. Please
+> > 	 * update the patch to maintain the existing comment format.
+> > 	 */
+> > 
+> > Cheers,
+> > 
+> > Dave.
+> > --
+> > Dave Chinner
+> > david@fromorbit.com
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
