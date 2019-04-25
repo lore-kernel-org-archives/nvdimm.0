@@ -1,12 +1,19 @@
-From: =?utf-8?B?6YKA6K+35Ye9?= <vkazexgjn-HTSX2bmlbEk@public.gmane.org>
-Subject: =?utf-8?B?562U5aSN77ya5bu656uL56eR5a2m55qE5qCH5YeG5bel5pe25Yi25a6a5pa55rOV77yM5ZCI55CG5Yi2?=
- =?utf-8?B?5a6a5Yqz5Yqo5a6a6aKd?=
-Date: Fri, 26 Apr 2019 00:48:27 +0800
-Message-ID: <D8B62A93E0558792D6E14D8FE7366218@srtw.org>
+From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to
+ compat_ptr_ioctl
+Date: Thu, 25 Apr 2019 23:25:43 +0200
+Message-ID: <5511420228cb38d08a67c0f6a614b7671d7d23d4.camel@sipsolutions.net>
+References: <20190416202013.4034148-1-arnd@arndb.de>
+ <20190416202701.127745-1-arnd@arndb.de> <20190425122153.450fc094@coco.lan>
+ <20190425153534.GS2217@ZenIV.linux.org.uk>
+ <CAK8P3a2HmiYQJ2FV2FgLiFsD8M9UKteC9Jetx7ja06PQVZWYfA@mail.gmail.com>
+ (sfid-20190425_175600_668610_93FA972E)
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAK8P3a2HmiYQJ2FV2FgLiFsD8M9UKteC9Jetx7ja06PQVZWYfA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ (sfid-20190425_175600_668610_93FA972E)
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,12 +23,40 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: Sean Young <sean-hENCXIMQXOg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, driverdevel <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, y2038 Mailman List <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "open list:HID CORE LAYER" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, David Sterba <dsterba@su>
 List-Id: linux-nvdimm@lists.01.org
 
-IA0K5Y+R5Lu25Lq6OiAi6YKA6K+35Ye9Ijs8dmthemV4Z2puQHNydHcub3JnPjsNCuWPkemAgeaX
-tumXtDogMjAxOS00LTI2LyAwOjQ4OjM5DQrmlLbku7bkuro6ICJsaW51eC1udmRpbW0iPGxpbnV4
-LW52ZGltbUBsaXN0cy4wMS5vcmc+OwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+On Thu, 2019-04-25 at 17:55 +0200, Arnd Bergmann wrote:
+> On Thu, Apr 25, 2019 at 5:35 PM Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org> wrote:
+> > 
+> > On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
+> > 
+> > > If I understand your patch description well, using compat_ptr_ioctl
+> > > only works if the driver is not for s390, right?
+> > 
+> > No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
+> > and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
+> > s390 is the reason for having compat_ptr_ioctl() in the first place;
+> > that thing works on all biarch architectures, as long as all stuff
+> > handled by ->ioctl() takes pointer to arch-independent object as
+> > argument.  IOW,
+> >         argument ignored => OK
+> >         any arithmetical type => no go, compat_ptr() would bugger it
+> >         pointer to int => OK
+> >         pointer to string => OK
+> >         pointer to u64 => OK
+> >         pointer to struct {u64 addr; char s[11];} => OK
+> 
+> To be extra pedantic, the 'struct {u64 addr; char s[11];} '
+> case is also broken on x86, because sizeof (obj) is smaller
+> on i386, even though the location of the members are
+> the same. i.e. you can copy_from_user() this
+
+Actually, you can't even do that because the struct might sit at the end
+of a page and then you'd erroneously fault in this case.
+
+We had this a while ago with struct ifreq, see commit 98406133dd and its
+parents.
+
+johannes
