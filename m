@@ -1,168 +1,75 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com
- [IPv6:2607:f8b0:4864:20::643])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E81AF211EE6B1
- for <linux-nvdimm@lists.01.org>; Fri,  5 Apr 2019 15:12:14 -0700 (PDT)
-Received: by mail-pl1-x643.google.com with SMTP id g12so3720536pll.11
- for <linux-nvdimm@lists.01.org>; Fri, 05 Apr 2019 15:12:14 -0700 (PDT)
-Subject: [mm PATCH v7 1/4] mm: Use mm_zero_struct_page from SPARC on all 64b
- architectures
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 15:12:13 -0700
-Message-ID: <20190405221213.12227.9392.stgit@localhost.localdomain>
-In-Reply-To: <20190405221043.12227.19679.stgit@localhost.localdomain>
-References: <20190405221043.12227.19679.stgit@localhost.localdomain>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: [v3 0/2] "Hotremove" persistent memory
+Date: Thu, 25 Apr 2019 13:54:38 -0400
+Message-Id: <20190425175440.9354-1-pasha.tatashin@soleen.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, sparclinux@vger.kernel.org, alexander.h.duyck@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, vbabka@suse.cz
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Changelog:
+v3
+- Addressed comments from David Hildenbrand. Don't release
+  lock_device_hotplug after checking memory status, and rename
+  memblock_offlined_cb() to check_memblock_offlined_cb()
 
-Use the same approach that was already in use on Sparc on all the
-architectures that support a 64b long.
+v2
+- Dan Williams mentioned that drv->remove() return is ignored
+  by unbind. Unbind always succeeds. Because we cannot guarantee
+  that memory can be offlined from the driver, don't even
+  attempt to do so. Simply check that every section is offlined
+  beforehand and only then proceed with removing dax memory.
 
-This is mostly motivated by the fact that 7 to 10 store/move instructions
-are likely always going to be faster than having to call into a function
-that is not specialized for handling page init.
-
-An added advantage to doing it this way is that the compiler can get away
-with combining writes in the __init_single_page call. As a result the
-memset call will be reduced to only about 4 write operations, or at least
-that is what I am seeing with GCC 6.2 as the flags, LRU pointers, and
-count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
-my system.
-
-One change I had to make to the function was to reduce the minimum page
-size to 56 to support some powerpc64 configurations.
-
-This change should introduce no change on SPARC since it already had this
-code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
-initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
-Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
-takes 19.30ns / 64-byte struct page before this patch and with this patch
-it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
-a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
-results per 64-byte struct page were 4.68ns before, and 4.59ns after this
-patch.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
- include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
- 2 files changed, 38 insertions(+), 33 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..22500c3be7a9 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -231,36 +231,6 @@
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
- 
--/* This macro must be updated when the size of struct page grows above 80
-- * or reduces below 64.
-- * The idea that compiler optimizes out switch() statement, and only
-- * leaves clrx instructions
-- */
--#define	mm_zero_struct_page(pp) do {					\
--	unsigned long *_pp = (void *)(pp);				\
--									\
--	 /* Check that struct page is either 64, 72, or 80 bytes */	\
--	BUILD_BUG_ON(sizeof(struct page) & 7);				\
--	BUILD_BUG_ON(sizeof(struct page) < 64);				\
--	BUILD_BUG_ON(sizeof(struct page) > 80);				\
--									\
--	switch (sizeof(struct page)) {					\
--	case 80:							\
--		_pp[9] = 0;	/* fallthrough */			\
--	case 72:							\
--		_pp[8] = 0;	/* fallthrough */			\
--	default:							\
--		_pp[7] = 0;						\
--		_pp[6] = 0;						\
--		_pp[5] = 0;						\
--		_pp[4] = 0;						\
--		_pp[3] = 0;						\
--		_pp[2] = 0;						\
--		_pp[1] = 0;						\
--		_pp[0] = 0;						\
--	}								\
--} while (0)
--
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fe52e266016e..f391c2d7c180 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -124,10 +124,45 @@ static inline void totalram_pages_set(long val)
- 
- /*
-  * On some architectures it is expensive to call memset() for small sizes.
-- * Those architectures should provide their own implementation of "struct page"
-- * zeroing by defining this macro in <asm/pgtable.h>.
-+ * If an architecture decides to implement their own version of
-+ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
-+ * define their own version of this macro in <asm/pgtable.h>
-  */
--#ifndef mm_zero_struct_page
-+#if BITS_PER_LONG == 64
-+/* This function must be updated when the size of struct page grows above 80
-+ * or reduces below 56. The idea that compiler optimizes out switch()
-+ * statement, and only leaves move/store instructions. Also the compiler can
-+ * combine write statments if they are both assignments and can be reordered,
-+ * this can result in several of the writes here being dropped.
-+ */
-+#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
-+static inline void __mm_zero_struct_page(struct page *page)
-+{
-+	unsigned long *_pp = (void *)page;
-+
-+	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
-+	BUILD_BUG_ON(sizeof(struct page) & 7);
-+	BUILD_BUG_ON(sizeof(struct page) < 56);
-+	BUILD_BUG_ON(sizeof(struct page) > 80);
-+
-+	switch (sizeof(struct page)) {
-+	case 80:
-+		_pp[9] = 0;	/* fallthrough */
-+	case 72:
-+		_pp[8] = 0;	/* fallthrough */
-+	case 64:
-+		_pp[7] = 0;	/* fallthrough */
-+	case 56:
-+		_pp[6] = 0;
-+		_pp[5] = 0;
-+		_pp[4] = 0;
-+		_pp[3] = 0;
-+		_pp[2] = 0;
-+		_pp[1] = 0;
-+		_pp[0] = 0;
-+	}
-+}
-+#else
- #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
- #endif
- 
+Recently, adding a persistent memory to be used like a regular RAM was
+added to Linux. This work extends this functionality to also allow hot
+removing persistent memory.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+We (Microsoft) have an important use case for this functionality.
+
+The requirement is for physical machines with small amount of RAM (~8G)
+to be able to reboot in a very short period of time (<1s). Yet, there is
+a userland state that is expensive to recreate (~2G).
+
+The solution is to boot machines with 2G preserved for persistent
+memory.
+
+Copy the state, and hotadd the persistent memory so machine still has
+all 8G available for runtime. Before reboot, offline and hotremove
+device-dax 2G, copy the memory that is needed to be preserved to pmem0
+device, and reboot.
+
+The series of operations look like this:
+
+1. After boot restore /dev/pmem0 to ramdisk to be consumed by apps.
+   and free ramdisk.
+2. Convert raw pmem0 to devdax
+   ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
+3. Hotadd to System RAM
+   echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+   echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+   echo online_movable > /sys/devices/system/memoryXXX/state
+4. Before reboot hotremove device-dax memory from System RAM
+   echo offline > /sys/devices/system/memoryXXX/state
+   echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
+5. Create raw pmem0 device
+   ndctl create-namespace --mode raw  -e namespace0.0 -f
+6. Copy the state that was stored by apps to ramdisk to pmem device
+7. Do kexec reboot or reboot through firmware if firmware does not
+   zero memory in pmem0 region (These machines have only regular
+   volatile memory). So to have pmem0 device either memmap kernel
+   parameter is used, or devices nodes in dtb are specified.
+
+Pavel Tatashin (2):
+  device-dax: fix memory and resource leak if hotplug fails
+  device-dax: "Hotremove" persistent memory that is used like normal RAM
+
+ drivers/dax/dax-private.h |  2 +
+ drivers/dax/kmem.c        | 99 +++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 96 insertions(+), 5 deletions(-)
+
+-- 
+2.21.0
