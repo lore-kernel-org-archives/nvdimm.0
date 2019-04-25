@@ -1,432 +1,177 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E0DEA21214947
- for <linux-nvdimm@lists.01.org>; Tue, 23 Apr 2019 01:07:04 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v6 2/6] virtio-pmem: Add virtio pmem driver
-Date: Tue, 23 Apr 2019 13:36:08 +0530
-Message-Id: <20190423080612.15361-3-pagupta@redhat.com>
-In-Reply-To: <20190423080612.15361-1-pagupta@redhat.com>
-References: <20190423080612.15361-1-pagupta@redhat.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+References: <20190425175440.9354-1-pasha.tatashin@soleen.com>
+ <20190425175440.9354-3-pasha.tatashin@soleen.com> <77c286e3-8708-6e64-94a1-fb44b6bbff3f@intel.com>
+In-Reply-To: <77c286e3-8708-6e64-94a1-fb44b6bbff3f@intel.com>
+From: Pavel Tatashin <patatash@linux.microsoft.com>
+Date: Thu, 25 Apr 2019 16:21:49 -0400
+Message-ID: <CA+CK2bA=t2U51-Zoii1RWEDbXwvQ_ZALtJyQVZ392b8f7H+sew@mail.gmail.com>
+Subject: Re: [v3 2/2] device-dax: "Hotremove" persistent memory that is used
+ like normal RAM
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: James Morris <jmorris@namei.org>, Sasha Levin <sashal@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, "Huang, Ying" <ying.huang@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Takashi Iwai <tiwai@suse.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, David Hildenbrand <david@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds virtio-pmem driver for KVM guest.
+On Thu, Apr 25, 2019 at 3:01 PM Dave Hansen <dave.hansen@intel.com> wrote:
+>
+> Hi Pavel,
+>
+> Thanks for doing this!  I knew we'd have to get to it eventually, but
+> sounds like you needed it sooner rather than later.
 
-Guest reads the persistent memory range information from
-Qemu over VIRTIO and registers it on nvdimm_bus. It also
-creates a nd_region object with the persistent memory
-range information so that existing 'nvdimm/pmem' driver
-can reserve this into system memory map. This way
-'virtio-pmem' driver uses existing functionality of pmem
-driver to register persistent memory compatible for DAX
-capable filesystems.
+Hi Dave,
 
-This also provides function to perform guest flush over
-VIRTIO from 'pmem' driver when userspace performs flush
-on DAX memory range.
+Thank you for taking time reviewing this work, my comments below:
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
----
- drivers/nvdimm/virtio_pmem.c     | 114 +++++++++++++++++++++++++++++
- drivers/virtio/Kconfig           |  10 +++
- drivers/virtio/Makefile          |   1 +
- drivers/virtio/pmem.c            | 118 +++++++++++++++++++++++++++++++
- include/linux/virtio_pmem.h      |  60 ++++++++++++++++
- include/uapi/linux/virtio_ids.h  |   1 +
- include/uapi/linux/virtio_pmem.h |  10 +++
- 7 files changed, 314 insertions(+)
- create mode 100644 drivers/nvdimm/virtio_pmem.c
- create mode 100644 drivers/virtio/pmem.c
- create mode 100644 include/linux/virtio_pmem.h
- create mode 100644 include/uapi/linux/virtio_pmem.h
+> >
+> > +#ifdef CONFIG_MEMORY_HOTREMOVE
+>
+> Instead of this #ifdef, is there any downside to doing
+>
+>         if (!IS_ENABLED(CONFIG_MEMORY_HOTREMOVE)) {
+>                 /*
+>                  * Without hotremove, purposely leak ...
+>                  */
+>                 return 0;
+>         }
 
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-new file mode 100644
-index 000000000000..66b582f751a3
---- /dev/null
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -0,0 +1,114 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * virtio_pmem.c: Virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and provides a virtio based flushing
-+ * interface.
-+ */
-+#include <linux/virtio_pmem.h>
-+#include "nd.h"
-+
-+ /* The interrupt handler */
-+void host_ack(struct virtqueue *vq)
-+{
-+	unsigned int len;
-+	unsigned long flags;
-+	struct virtio_pmem_request *req, *req_buf;
-+	struct virtio_pmem *vpmem = vq->vdev->priv;
-+
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	while ((req = virtqueue_get_buf(vq, &len)) != NULL) {
-+		req->done = true;
-+		wake_up(&req->host_acked);
-+
-+		if (!list_empty(&vpmem->req_list)) {
-+			req_buf = list_first_entry(&vpmem->req_list,
-+					struct virtio_pmem_request, list);
-+			list_del(&vpmem->req_list);
-+			req_buf->wq_buf_avail = true;
-+			wake_up(&req_buf->wq_buf);
-+		}
-+	}
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(host_ack);
-+
-+ /* The request submission function */
-+int virtio_pmem_flush(struct nd_region *nd_region)
-+{
-+	int err;
-+	unsigned long flags;
-+	struct scatterlist *sgs[2], sg, ret;
-+	struct virtio_device *vdev = nd_region->provider_data;
-+	struct virtio_pmem *vpmem = vdev->priv;
-+	struct virtio_pmem_request *req;
-+
-+	might_sleep();
-+	req = kmalloc(sizeof(*req), GFP_KERNEL);
-+	if (!req)
-+		return -ENOMEM;
-+
-+	req->done = req->wq_buf_avail = false;
-+	strcpy(req->name, "FLUSH");
-+	init_waitqueue_head(&req->host_acked);
-+	init_waitqueue_head(&req->wq_buf);
-+	sg_init_one(&sg, req->name, strlen(req->name));
-+	sgs[0] = &sg;
-+	sg_init_one(&ret, &req->ret, sizeof(req->ret));
-+	sgs[1] = &ret;
-+
-+	spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	err = virtqueue_add_sgs(vpmem->req_vq, sgs, 1, 1, req, GFP_ATOMIC);
-+	if (err) {
-+		dev_err(&vdev->dev, "failed to send command to virtio pmem device\n");
-+
-+		list_add_tail(&vpmem->req_list, &req->list);
-+		spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
-+		/* When host has read buffer, this completes via host_ack */
-+		wait_event(req->wq_buf, req->wq_buf_avail);
-+		spin_lock_irqsave(&vpmem->pmem_lock, flags);
-+	}
-+	err = virtqueue_kick(vpmem->req_vq);
-+	spin_unlock_irqrestore(&vpmem->pmem_lock, flags);
-+
-+	if (!err) {
-+		err = -EIO;
-+		goto ret;
-+	}
-+	/* When host has read buffer, this completes via host_ack */
-+	wait_event(req->host_acked, req->done);
-+	err = req->ret;
-+ret:
-+	kfree(req);
-+	return err;
-+};
-+
-+ /* The asynchronous flush callback function */
-+int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
-+{
-+	int rc = 0;
-+
-+	/* Create child bio for asynchronous flush and chain with
-+	 * parent bio. Otherwise directly call nd_region flush.
-+	 */
-+	if (bio && bio->bi_iter.bi_sector != -1) {
-+		struct bio *child = bio_alloc(GFP_ATOMIC, 0);
-+
-+		if (!child)
-+			return -ENOMEM;
-+		bio_copy_dev(child, bio);
-+		child->bi_opf = REQ_PREFLUSH;
-+		child->bi_iter.bi_sector = -1;
-+		bio_chain(child, bio);
-+		submit_bio(child);
-+	} else {
-+		if (virtio_pmem_flush(nd_region))
-+			rc = -EIO;
-+	}
-+
-+	return rc;
-+};
-+EXPORT_SYMBOL_GPL(async_pmem_flush);
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-index 35897649c24f..9f634a2ed638 100644
---- a/drivers/virtio/Kconfig
-+++ b/drivers/virtio/Kconfig
-@@ -42,6 +42,16 @@ config VIRTIO_PCI_LEGACY
- 
- 	  If unsure, say Y.
- 
-+config VIRTIO_PMEM
-+	tristate "Support for virtio pmem driver"
-+	depends on VIRTIO
-+	depends on LIBNVDIMM
-+	help
-+	This driver provides support for virtio based flushing interface
-+	for persistent memory range.
-+
-+	If unsure, say M.
-+
- config VIRTIO_BALLOON
- 	tristate "Virtio balloon driver"
- 	depends on VIRTIO
-diff --git a/drivers/virtio/Makefile b/drivers/virtio/Makefile
-index 3a2b5c5dcf46..143ce91eabe9 100644
---- a/drivers/virtio/Makefile
-+++ b/drivers/virtio/Makefile
-@@ -6,3 +6,4 @@ virtio_pci-y := virtio_pci_modern.o virtio_pci_common.o
- virtio_pci-$(CONFIG_VIRTIO_PCI_LEGACY) += virtio_pci_legacy.o
- obj-$(CONFIG_VIRTIO_BALLOON) += virtio_balloon.o
- obj-$(CONFIG_VIRTIO_INPUT) += virtio_input.o
-+obj-$(CONFIG_VIRTIO_PMEM) += pmem.o ../nvdimm/virtio_pmem.o
-diff --git a/drivers/virtio/pmem.c b/drivers/virtio/pmem.c
-new file mode 100644
-index 000000000000..309788628e41
---- /dev/null
-+++ b/drivers/virtio/pmem.c
-@@ -0,0 +1,118 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * virtio_pmem.c: Virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and registers the virtual pmem device
-+ * with libnvdimm core.
-+ */
-+#include <linux/virtio_pmem.h>
-+#include <../../drivers/nvdimm/nd.h>
-+
-+static struct virtio_device_id id_table[] = {
-+	{ VIRTIO_ID_PMEM, VIRTIO_DEV_ANY_ID },
-+	{ 0 },
-+};
-+
-+ /* Initialize virt queue */
-+static int init_vq(struct virtio_pmem *vpmem)
-+{
-+	/* single vq */
-+	vpmem->req_vq = virtio_find_single_vq(vpmem->vdev,
-+				host_ack, "flush_queue");
-+	if (IS_ERR(vpmem->req_vq))
-+		return PTR_ERR(vpmem->req_vq);
-+
-+	spin_lock_init(&vpmem->pmem_lock);
-+	INIT_LIST_HEAD(&vpmem->req_list);
-+
-+	return 0;
-+};
-+
-+static int virtio_pmem_probe(struct virtio_device *vdev)
-+{
-+	int err = 0;
-+	struct resource res;
-+	struct virtio_pmem *vpmem;
-+	struct nd_region_desc ndr_desc = {};
-+	int nid = dev_to_node(&vdev->dev);
-+	struct nd_region *nd_region;
-+
-+	if (!vdev->config->get) {
-+		dev_err(&vdev->dev, "%s failure: config access disabled\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem), GFP_KERNEL);
-+	if (!vpmem) {
-+		err = -ENOMEM;
-+		goto out_err;
-+	}
-+
-+	vpmem->vdev = vdev;
-+	vdev->priv = vpmem;
-+	err = init_vq(vpmem);
-+	if (err)
-+		goto out_err;
-+
-+	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-+			start, &vpmem->start);
-+	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-+			size, &vpmem->size);
-+
-+	res.start = vpmem->start;
-+	res.end   = vpmem->start + vpmem->size-1;
-+	vpmem->nd_desc.provider_name = "virtio-pmem";
-+	vpmem->nd_desc.module = THIS_MODULE;
-+
-+	vpmem->nvdimm_bus = nvdimm_bus_register(&vdev->dev,
-+						&vpmem->nd_desc);
-+	if (!vpmem->nvdimm_bus)
-+		goto out_vq;
-+
-+	dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
-+
-+	ndr_desc.res = &res;
-+	ndr_desc.numa_node = nid;
-+	ndr_desc.flush = async_pmem_flush;
-+	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-+	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-+	nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-+
-+	if (!nd_region)
-+		goto out_nd;
-+	nd_region->provider_data =  dev_to_virtio
-+					(nd_region->dev.parent->parent);
-+	return 0;
-+out_nd:
-+	err = -ENXIO;
-+	nvdimm_bus_unregister(vpmem->nvdimm_bus);
-+out_vq:
-+	vdev->config->del_vqs(vdev);
-+out_err:
-+	dev_err(&vdev->dev, "failed to register virtio pmem memory\n");
-+	return err;
-+}
-+
-+static void virtio_pmem_remove(struct virtio_device *vdev)
-+{
-+	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
-+
-+	nvdimm_bus_unregister(nvdimm_bus);
-+	vdev->config->del_vqs(vdev);
-+	vdev->config->reset(vdev);
-+}
-+
-+static struct virtio_driver virtio_pmem_driver = {
-+	.driver.name		= KBUILD_MODNAME,
-+	.driver.owner		= THIS_MODULE,
-+	.id_table		= id_table,
-+	.probe			= virtio_pmem_probe,
-+	.remove			= virtio_pmem_remove,
-+};
-+
-+module_virtio_driver(virtio_pmem_driver);
-+MODULE_DEVICE_TABLE(virtio, id_table);
-+MODULE_DESCRIPTION("Virtio pmem driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/linux/virtio_pmem.h b/include/linux/virtio_pmem.h
-new file mode 100644
-index 000000000000..ab1da877575d
---- /dev/null
-+++ b/include/linux/virtio_pmem.h
-@@ -0,0 +1,60 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * virtio_pmem.h: virtio pmem Driver
-+ *
-+ * Discovers persistent memory range information
-+ * from host and provides a virtio based flushing
-+ * interface.
-+ **/
-+
-+#ifndef _LINUX_VIRTIO_PMEM_H
-+#define _LINUX_VIRTIO_PMEM_H
-+
-+#include <linux/virtio_ids.h>
-+#include <linux/module.h>
-+#include <linux/virtio_config.h>
-+#include <uapi/linux/virtio_pmem.h>
-+#include <linux/libnvdimm.h>
-+#include <linux/spinlock.h>
-+
-+struct virtio_pmem_request {
-+	/* Host return status corresponding to flush request */
-+	int ret;
-+
-+	/* command name*/
-+	char name[16];
-+
-+	/* Wait queue to process deferred work after ack from host */
-+	wait_queue_head_t host_acked;
-+	bool done;
-+
-+	/* Wait queue to process deferred work after virt queue buffer avail */
-+	wait_queue_head_t wq_buf;
-+	bool wq_buf_avail;
-+	struct list_head list;
-+};
-+
-+struct virtio_pmem {
-+	struct virtio_device *vdev;
-+
-+	/* Virtio pmem request queue */
-+	struct virtqueue *req_vq;
-+
-+	/* nvdimm bus registers virtio pmem device */
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct nvdimm_bus_descriptor nd_desc;
-+
-+	/* List to store deferred work if virtqueue is full */
-+	struct list_head req_list;
-+
-+	/* Synchronize virtqueue data */
-+	spinlock_t pmem_lock;
-+
-+	/* Memory region information */
-+	uint64_t start;
-+	uint64_t size;
-+};
-+
-+void host_ack(struct virtqueue *vq);
-+int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
-+#endif
-diff --git a/include/uapi/linux/virtio_ids.h b/include/uapi/linux/virtio_ids.h
-index 6d5c3b2d4f4d..32b2f94d1f58 100644
---- a/include/uapi/linux/virtio_ids.h
-+++ b/include/uapi/linux/virtio_ids.h
-@@ -43,5 +43,6 @@
- #define VIRTIO_ID_INPUT        18 /* virtio input */
- #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
- #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
-+#define VIRTIO_ID_PMEM         27 /* virtio pmem */
- 
- #endif /* _LINUX_VIRTIO_IDS_H */
-diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio_pmem.h
-new file mode 100644
-index 000000000000..fa3f7d52717a
---- /dev/null
-+++ b/include/uapi/linux/virtio_pmem.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _UAPI_LINUX_VIRTIO_PMEM_H
-+#define _UAPI_LINUX_VIRTIO_PMEM_H
-+
-+struct virtio_pmem_config {
-+	__le64 start;
-+	__le64 size;
-+};
-+#endif
--- 
-2.20.1
+Your method relies that compiler will optimize out all the code that
+is not needed, and that dependencies such as __remove_memory() have
+empty stubs. So, I prefer that way it is currently implemented.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+>
+>
+> > +/*
+> > + * Check that device-dax's memory_blocks are offline. If a memory_block is not
+> > + * offline a warning is printed and an error is returned. dax hotremove can
+> > + * succeed only when every memory_block is offlined beforehand.
+> > + */
+>
+> I'd much rather see comments inline with the code than all piled at the
+> top of a function like this.
+
+OK
+
+>
+> One thing that would be helpful, though, is a reminder about needing the
+> device hotplug lock.
+
+OK
+
+>
+> > +static int
+> > +check_memblock_offlined_cb(struct memory_block *mem, void *arg)
+> > +{
+> > +     struct device *mem_dev = &mem->dev;
+> > +     bool is_offline;
+> > +
+> > +     device_lock(mem_dev);
+> > +     is_offline = mem_dev->offline;
+> > +     device_unlock(mem_dev);
+> > +
+> > +     if (!is_offline) {
+> > +             struct device *dev = (struct device *)arg;
+>
+> The two devices confused me for a bit here.  Seems worth a comment to
+> remind the reader what this device _is_ versus 'mem_dev'.
+
+OK
+
+>
+> > +             unsigned long spfn = section_nr_to_pfn(mem->start_section_nr);
+> > +             unsigned long epfn = section_nr_to_pfn(mem->end_section_nr);
+> > +             phys_addr_t spa = spfn << PAGE_SHIFT;
+> > +             phys_addr_t epa = epfn << PAGE_SHIFT;
+> > +
+> > +             dev_warn(dev, "memory block [%pa-%pa] is not offline\n",
+> > +                      &spa, &epa);
+>
+> I thought we had a magic resource printk %something.  Could we just
+> print one of the device resources here to save all the section/pfn/paddr
+> calculations?
+
+There is no resource for each memory block device, only for system
+ram. Since here we inform admin about a particular memory block that
+is not offlined, I do not see how to do it differently.
+
+>
+> Also, should we consider a slightly scarier message?  This path has a
+> permanent, user-visible effect (we can never try to unbind again).
+
+hm, how about:
+dev_err(
+"DAX region %pR cannot be hotremoved until next reboot because memory
+block [%pa-%pa] is not offline"
+)
+
+>
+> > +             return -EBUSY;
+> > +     }
+> > +
+> > +     return 0;
+> > +}
+>
+> Even though they're static, I'd prefer that we not create two versions
+> of check_memblock_offlined_cb() in the kernel.  Can we give this a
+> better, non-conflicting name?
+
+how about check_devdax_mem_offlined_cb ?
+
+>
+> > +static int dev_dax_kmem_remove(struct device *dev)
+> > +{
+> > +     struct dev_dax *dev_dax = to_dev_dax(dev);
+> > +     struct resource *res = dev_dax->dax_kmem_res;
+> > +     resource_size_t kmem_start;
+> > +     resource_size_t kmem_size;
+> > +     unsigned long start_pfn;
+> > +     unsigned long end_pfn;
+> > +     int rc;
+> > +
+> > +     /*
+> > +      * dax kmem resource does not exist, means memory was never hotplugged.
+> > +      * So, nothing to do here.
+> > +      */
+> > +     if (!res)
+> > +             return 0;
+>
+> How could that happen?  I can't think of any obvious scenarios.
+
+Yes, I do not think this is possible. I can remove this check. Just
+feels safer to have it though.
+
+>
+> > +     kmem_start = res->start;
+> > +     kmem_size = resource_size(res);
+> > +     start_pfn = kmem_start >> PAGE_SHIFT;
+> > +     end_pfn = start_pfn + (kmem_size >> PAGE_SHIFT) - 1;
+> > +
+> > +     /*
+> > +      * Walk and check that every singe memory_block of dax region is
+> > +      * offline
+> > +      */
+> > +     lock_device_hotplug();
+> > +     rc = walk_memory_range(start_pfn, end_pfn, dev,
+> > +                            check_memblock_offlined_cb);
+>
+> Does lock_device_hotplug() also lock memory online/offline?  Otherwise,
+> isn't this offline check racy?  If not, can you please spell that out in
+> a comment?
+
+Yes, it locks memory online/offline via sysfs: online_store(), as that
+one also takes this lock lock_device_hotplug(). If someone else wants
+to offline/online the memory they also need to take this lock.
+
+>
+> Also, could you compare this a bit to the walk_memory_range() use in
+> __remove_memory()?  Why do we need two walks looking for offline blocks?
+
+It is basically doing the same thing, but I do not really see a way
+around this. Because __remove_memory() assumes that pages are
+offlined, checks, and panics if they are not. Here, we do not panic,
+but inform admin of consequences.
+
+Thank you,
+Pasha
