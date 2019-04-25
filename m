@@ -1,43 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Al Viro <viro@zeniv.linux.org.uk>
 Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to
  compat_ptr_ioctl
-Date: Thu, 25 Apr 2019 17:32:05 +0200
-Message-ID: <CAK8P3a1qCQJEkne3uAw-Ep-taNU9t5Y2ZmgoiCGmOz1BSwmzEw@mail.gmail.com>
+Date: Thu, 25 Apr 2019 16:35:34 +0100
+Message-ID: <20190425153534.GS2217@ZenIV.linux.org.uk>
 References: <20190416202013.4034148-1-arnd@arndb.de>
  <20190416202701.127745-1-arnd@arndb.de>
  <20190425122153.450fc094@coco.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20190425122153.450fc094@coco.lan>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-nvme@lists.infradead.org, Sean Young <sean@mess.org>, linux-iio@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, linux-pci <linux-pci@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Bjorn Andersson <bjorn.andersson@linaro.org>, sparclinux <sparclinux@vger.kernel.org>, driverdevel <devel@driverdev.osuosl.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-rdma <linux-rdma@vger.kernel.org>, qat-linux@intel.com, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@mellanox.com>, "open list:HID CORE LAYER" <linux-input@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-remoteproc@vger.kernel.org, linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, David Sterba <dsterba@suse.com>, ceph
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-fsdevel@vger.kernel.org, y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Sterba <dsterba@suse.com>, Darren Hart <dvhart@infradead.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, devel@driverdev.osuosl.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-T24gVGh1LCBBcHIgMjUsIDIwMTkgYXQgNToyMiBQTSBNYXVybyBDYXJ2YWxobyBDaGVoYWIKPG1j
-aGVoYWIrc2Ftc3VuZ0BrZXJuZWwub3JnPiB3cm90ZToKPiBFbSBUdWUsIDE2IEFwciAyMDE5IDIy
-OjI1OjMzICswMjAwIEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+IGVzY3JldmV1Ogo+Cj4g
-SWYgSSB1bmRlcnN0YW5kIHlvdXIgcGF0Y2ggZGVzY3JpcHRpb24gd2VsbCwgdXNpbmcgY29tcGF0
-X3B0cl9pb2N0bAo+IG9ubHkgd29ya3MgaWYgdGhlIGRyaXZlciBpcyBub3QgZm9yIHMzOTAsIHJp
-Z2h0PwoKTm8sIHRoZSBwdXJwb3NlIG9mIGNvbXBhdF9wdHJfaW9jdGwoKSBpcyB0byBtYWtlIHN1
-cmUgaXQgd29ya3MKZXZlcnl3aGVyZSBpbmNsdWRpbmcgczM5MC4KCkV2ZW4gb24gczM5MCBpdCB0
-ZW5kcyB0byB3b3JrIG1vc3Qgb2YgdGhlIHRpbWUsIGJ1dCBmb3IgY29ycmVjdG5lc3MKdGhlIHVw
-cGVyIGJpdCBvZiBhIDMyLWJpdCBwb2ludGVyIG5lZWRzIHRvIGJlIGNsZWFyZWQsIGFzCmNvbXBh
-dF9wdHJfaW9jdGwgZG9lcywgaW4gY2FzZSBzb21lIGFwcGxpY2F0aW9uIHBhc3NlcyBhIHBvaW50
-ZXIKd2l0aCB0aGF0IGJpdCBzZXQuIFtJSVJDLCBpbiB0aGUgaW5zdHJ1Y3Rpb24gcG9pbnRlciwg
-dGhlIGhpZ2ggYml0IGlzIHNldCwgaW4KZGF0YSByZWZlcmVuY2VzIGl0IGlzIGlnbm9yZWQgYnV0
-IHVzdWFsbHkgY2xlYXJlZCwgYnV0IGl0IG1heSBiZSBsZWZ0Cm9uIGZvciBJUC1yZWxhdGl2ZSBh
-ZGRyZXNzIGdlbmVyYXRpb25dCgogICAgICAgQXJuZApfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9kcmktZGV2ZWw=
+On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
+
+> If I understand your patch description well, using compat_ptr_ioctl
+> only works if the driver is not for s390, right?
+
+No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
+and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
+s390 is the reason for having compat_ptr_ioctl() in the first place;
+that thing works on all biarch architectures, as long as all stuff
+handled by ->ioctl() takes pointer to arch-independent object as
+argument.  IOW,
+	argument ignored => OK
+	any arithmetical type => no go, compat_ptr() would bugger it
+	pointer to int => OK
+	pointer to string => OK
+	pointer to u64 => OK
+	pointer to struct {u64 addr; char s[11];} => OK
+	pointer to long => needs explicit handler
+	pointer to struct {void *addr; char s[11];} => needs explicit handler
+	pointer to struct {int x; u64 y;} => needs explicit handler on amd64
+For "just use ->unlocked_ioctl for ->ioctl" we have
+	argument ignored => OK
+	any arithmetical type => OK
+	any pointer => instant breakage on s390, in addtion to cases that break
+with compat_ptr_ioctl().
+
+Probably some form of that ought to go into commit message for compat_ptr_ioctl()
+introduction...
