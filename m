@@ -1,19 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x443.google.com (mail-pf1-x443.google.com
- [IPv6:2607:f8b0:4864:20::443])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 53DED211EE6B1
- for <linux-nvdimm@lists.01.org>; Fri,  5 Apr 2019 15:12:21 -0700 (PDT)
-Received: by mail-pf1-x443.google.com with SMTP id 9so3985052pfj.13
- for <linux-nvdimm@lists.01.org>; Fri, 05 Apr 2019 15:12:21 -0700 (PDT)
-Subject: [mm PATCH v7 2/4] mm: Drop meminit_pfn_in_nid as it is redundant
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 15:12:19 -0700
-Message-ID: <20190405221219.12227.93957.stgit@localhost.localdomain>
-In-Reply-To: <20190405221043.12227.19679.stgit@localhost.localdomain>
-References: <20190405221043.12227.19679.stgit@localhost.localdomain>
+ by ml01.01.org (Postfix) with ESMTPS id 832AF21219AF0
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Apr 2019 01:36:56 -0700 (PDT)
+Date: Fri, 26 Apr 2019 10:36:53 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2] mm: Fix modifying of page protection by
+ insert_pfn_pmd()
+Message-ID: <20190426083653.GB11637@quack2.suse.cz>
+References: <20190402115125.18803-1-aneesh.kumar@linux.ibm.com>
+ <CAPcyv4hzRj5yxVJ5-7AZgzzBxEL02xf2xwhDv-U9_osWFm9kiA@mail.gmail.com>
+ <20190424173833.GE19031@bombadil.infradead.org>
+ <CAPcyv4gLGUa69svQnwjvruALZ0ChqUJZHQJ1Mt_Cjr1Jh_6vbQ@mail.gmail.com>
+ <20190425073149.GA21215@quack2.suse.cz>
+ <CAPcyv4iYMP4NWxa08zTdRxtc4UcbFFOCwbMZijB0bc2WcawggQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iYMP4NWxa08zTdRxtc4UcbFFOCwbMZijB0bc2WcawggQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,187 +29,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, sparclinux@vger.kernel.org, alexander.h.duyck@linux.intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, vbabka@suse.cz
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Matthew Wilcox <willy@infradead.org>, Linux MM <linux-mm@kvack.org>, Chandan Rajendra <chandan@linux.ibm.com>, stable <stable@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+On Thu 25-04-19 17:33:04, Dan Williams wrote:
+> On Thu, Apr 25, 2019 at 12:32 AM Jan Kara <jack@suse.cz> wrote:
+> >
+> > On Wed 24-04-19 11:13:48, Dan Williams wrote:
+> > > On Wed, Apr 24, 2019 at 10:38 AM Matthew Wilcox <willy@infradead.org> wrote:
+> > > >
+> > > > On Wed, Apr 24, 2019 at 10:13:15AM -0700, Dan Williams wrote:
+> > > > > I think unaligned addresses have always been passed to
+> > > > > vmf_insert_pfn_pmd(), but nothing cared until this patch. I *think*
+> > > > > the only change needed is the following, thoughts?
+> > > > >
+> > > > > diff --git a/fs/dax.c b/fs/dax.c
+> > > > > index ca0671d55aa6..82aee9a87efa 100644
+> > > > > --- a/fs/dax.c
+> > > > > +++ b/fs/dax.c
+> > > > > @@ -1560,7 +1560,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct
+> > > > > vm_fault *vmf, pfn_t *pfnp,
+> > > > >                 }
+> > > > >
+> > > > >                 trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
+> > > > > -               result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
+> > > > > +               result = vmf_insert_pfn_pmd(vma, pmd_addr, vmf->pmd, pfn,
+> > > > >                                             write);
+> > > >
+> > > > We also call vmf_insert_pfn_pmd() in dax_insert_pfn_mkwrite() -- does
+> > > > that need to change too?
+> > >
+> > > It wasn't clear to me that it was a problem. I think that one already
+> > > happens to be pmd-aligned.
+> >
+> > Why would it need to be? The address is taken from vmf->address and that's
+> > set up in __handle_mm_fault() like .address = address & PAGE_MASK. So I
+> > don't see anything forcing PMD alignment of the virtual address...
+> 
+> True. So now I'm wondering if the masking should be done internal to
+> the routine. Given it's prefixed vmf_ it seems to imply the api is
+> prepared to take raw 'struct vm_fault' parameters. I think I'll go
+> that route unless someone sees a reason to require the caller to
+> handle this responsibility.
 
-As best as I can tell the meminit_pfn_in_nid call is completely redundant.
-The deferred memory initialization is already making use of
-for_each_free_mem_range which in turn will call into __next_mem_range which
-will only return a memory range if it matches the node ID provided assuming
-it is not NUMA_NO_NODE.
+Yeah, that sounds good to me. Thanks for fixing this.
 
-I am operating on the assumption that there are no zones or pgdata_t
-structures that have a NUMA node of NUMA_NO_NODE associated with them. If
-that is the case then __next_mem_range will never return a memory range
-that doesn't match the zone's node ID and as such the check is redundant.
-
-So one piece I would like to verify on this is if this works for ia64.
-Technically it was using a different approach to get the node ID, but it
-seems to have the node ID also encoded into the memblock. So I am
-assuming this is okay, but would like to get confirmation on that.
-
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 2.80s to 1.85s as a result of this patch.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- mm/page_alloc.c |   51 ++++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 37 deletions(-)
-
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 0c53807a2943..2d2bca9803d2 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1398,36 +1398,22 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
- #endif
- 
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--static inline bool __meminit __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn, state);
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
- 	if (nid >= 0 && nid != node)
- 		return false;
- 	return true;
- }
- 
--/* Only safe to use early in boot when initialisation is single-threaded */
--static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
--}
--
- #else
--
- static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	return true;
- }
--static inline bool __meminit  __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
--{
--	return true;
--}
- #endif
- 
- 
-@@ -1556,21 +1542,13 @@ static inline void __init pgdat_init_report_one_done(void)
-  *
-  * Then, we check if a current large page is valid by only checking the validity
-  * of the head pfn.
-- *
-- * Finally, meminit_pfn_in_nid is checked on systems where pfns can interleave
-- * within a node: a pfn is between start and end of a node, but does not belong
-- * to this memory node.
-  */
--static inline bool __init
--deferred_pfn_valid(int nid, unsigned long pfn,
--		   struct mminit_pfnnid_cache *nid_init_state)
-+static inline bool __init deferred_pfn_valid(unsigned long pfn)
- {
- 	if (!pfn_valid_within(pfn))
- 		return false;
- 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
- 		return false;
--	if (!meminit_pfn_in_nid(pfn, nid, nid_init_state))
--		return false;
- 	return true;
- }
- 
-@@ -1578,15 +1556,14 @@ static inline void __init pgdat_init_report_one_done(void)
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long pfn,
- 				       unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	unsigned long nr_free = 0;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			deferred_free_range(pfn - nr_free, nr_free);
- 			nr_free = 0;
- 		} else if (!(pfn & nr_pgmask)) {
-@@ -1606,17 +1583,18 @@ static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-  * by performing it only once every pageblock_nr_pages.
-  * Return number of pages initialized.
-  */
--static unsigned long  __init deferred_init_pages(int nid, int zid,
-+static unsigned long  __init deferred_init_pages(struct zone *zone,
- 						 unsigned long pfn,
- 						 unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
-+	int zid = zone_idx(zone);
- 	struct page *page = NULL;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			page = NULL;
- 			continue;
- 		} else if (!page || !(pfn & nr_pgmask)) {
-@@ -1679,12 +1657,12 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		nr_pages += deferred_init_pages(nid, zid, spfn, epfn);
-+		nr_pages += deferred_init_pages(zone, spfn, epfn);
- 	}
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
-@@ -1716,7 +1694,6 @@ static int __init deferred_init_memmap(void *data)
- static noinline bool __init
- deferred_grow_zone(struct zone *zone, unsigned int order)
- {
--	int zid = zone_idx(zone);
- 	int nid = zone_to_nid(zone);
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
-@@ -1766,7 +1743,7 @@ static int __init deferred_init_memmap(void *data)
- 		while (spfn < epfn && nr_pages < nr_pages_needed) {
- 			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
- 			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(nid, zid, spfn,
-+			nr_pages += deferred_init_pages(zone, spfn,
- 							first_deferred_pfn);
- 			spfn = first_deferred_pfn;
- 		}
-@@ -1778,7 +1755,7 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, first_deferred_pfn, PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 
- 		if (first_deferred_pfn == epfn)
- 			break;
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
