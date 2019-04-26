@@ -1,12 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 9257B212017C0
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 18:27:29 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 0/4] xfs: add handle for reflink in dax
-Date: Wed, 17 Apr 2019 09:27:11 +0800
-Message-ID: <20190417012715.8287-1-ruansy.fnst@cn.fujitsu.com>
-MIME-Version: 1.0
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id EAF082122B98D
+ for <linux-nvdimm@lists.01.org>; Thu, 25 Apr 2019 22:02:51 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v7 5/6] ext4: disable map_sync for async flush
+Date: Fri, 26 Apr 2019 10:30:38 +0530
+Message-Id: <20190426050039.17460-6-pagupta@redhat.com>
+In-Reply-To: <20190426050039.17460-1-pagupta@redhat.com>
+References: <20190426050039.17460-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,54 +17,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In XFS (under fsdax mode), reflink did not work correctly because xfs
-iomap operators did not handle the inode with both reflink and dax flag.
+Dont support 'MAP_SYNC' with non-DAX files and DAX files
+with asynchronous dax_device. Virtio pmem provides
+asynchronous host page cache flush mechanism. We don't
+support 'MAP_SYNC' with virtio pmem and ext4.
 
-This patchset aims to take care of this issue to make COW operation work
-correctly in XFS.
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-XFS uses iomap to do read/write/mmap operations:
-  vfs interface       xfs:
-    iomap_bengin();     --> xfs_iomap_begin();
-    actor();            --> dax_iomap_actor() / mmap actor function
-    iomap_end();        --> xfs_iomap_end();
-
-In xfs_iomap_begin(), COW operation is detected but not told to actor
-function.  To resolve this, a new field 'src_addr' is added into
-'struct iomap' to pass this COW info.  It means the start address of
-source blocks in a COW operation, for actor functions to copy data
-before writing.
-
-In actor functions, the value of iomap->src_addr determines if it is a
-COW operation.  If it is, copy data from source blocks to destination
-blocks first, and then write user data.
-
-After the COW operation, it is supposed to update the metadata of the
-inode.  Added in xfs_iomap_end().
-
-
-Shiyang Ruan (4):
-  fs/iomap: Introduce src_addr for COW in fsdax mode.
-  fs/xfs: iomap: add handle for reflink in fsdax mode
-  fs/dax: copy source blocks before writing when COW
-  fs/xfs: iomap: update the extent list after a COW
-
- fs/dax.c              | 70 +++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_iomap.c    | 23 +++++++++++---
- include/linux/iomap.h |  4 +++
- 3 files changed, 93 insertions(+), 4 deletions(-)
-
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 98ec11f69cd4..dee549339e13 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
+ 	/*
+-	 * We don't support synchronous mappings for non-DAX files. At least
+-	 * until someone comes with a sensible use case.
++	 * We don't support synchronous mappings for non-DAX files and
++	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++	if (!daxdev_mapping_supported(vma, dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
 -- 
-2.17.0
-
-
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
