@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 832AF21219AF0
- for <linux-nvdimm@lists.01.org>; Fri, 26 Apr 2019 01:36:56 -0700 (PDT)
-Date: Fri, 26 Apr 2019 10:36:53 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 147B52120B128
+ for <linux-nvdimm@lists.01.org>; Thu, 25 Apr 2019 17:51:29 -0700 (PDT)
+Date: Thu, 25 Apr 2019 17:51:24 -0700
+From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [PATCH v2] mm: Fix modifying of page protection by
  insert_pfn_pmd()
-Message-ID: <20190426083653.GB11637@quack2.suse.cz>
+Message-ID: <20190426005124.GA25606@bombadil.infradead.org>
 References: <20190402115125.18803-1-aneesh.kumar@linux.ibm.com>
  <CAPcyv4hzRj5yxVJ5-7AZgzzBxEL02xf2xwhDv-U9_osWFm9kiA@mail.gmail.com>
  <20190424173833.GE19031@bombadil.infradead.org>
@@ -30,33 +31,11 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Matthew Wilcox <willy@infradead.org>, Linux MM <linux-mm@kvack.org>, Chandan Rajendra <chandan@linux.ibm.com>, stable <stable@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, stable <stable@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Chandan Rajendra <chandan@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 25-04-19 17:33:04, Dan Williams wrote:
+On Thu, Apr 25, 2019 at 05:33:04PM -0700, Dan Williams wrote:
 > On Thu, Apr 25, 2019 at 12:32 AM Jan Kara <jack@suse.cz> wrote:
-> >
-> > On Wed 24-04-19 11:13:48, Dan Williams wrote:
-> > > On Wed, Apr 24, 2019 at 10:38 AM Matthew Wilcox <willy@infradead.org> wrote:
-> > > >
-> > > > On Wed, Apr 24, 2019 at 10:13:15AM -0700, Dan Williams wrote:
-> > > > > I think unaligned addresses have always been passed to
-> > > > > vmf_insert_pfn_pmd(), but nothing cared until this patch. I *think*
-> > > > > the only change needed is the following, thoughts?
-> > > > >
-> > > > > diff --git a/fs/dax.c b/fs/dax.c
-> > > > > index ca0671d55aa6..82aee9a87efa 100644
-> > > > > --- a/fs/dax.c
-> > > > > +++ b/fs/dax.c
-> > > > > @@ -1560,7 +1560,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct
-> > > > > vm_fault *vmf, pfn_t *pfnp,
-> > > > >                 }
-> > > > >
-> > > > >                 trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
-> > > > > -               result = vmf_insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn,
-> > > > > +               result = vmf_insert_pfn_pmd(vma, pmd_addr, vmf->pmd, pfn,
-> > > > >                                             write);
-> > > >
 > > > > We also call vmf_insert_pfn_pmd() in dax_insert_pfn_mkwrite() -- does
 > > > > that need to change too?
 > > >
@@ -73,12 +52,12 @@ On Thu 25-04-19 17:33:04, Dan Williams wrote:
 > that route unless someone sees a reason to require the caller to
 > handle this responsibility.
 
-Yeah, that sounds good to me. Thanks for fixing this.
+The vmf_ prefix was originally used to indicate 'returns a vm_fault_t'
+instead of 'returns an errno'.  That said, I like the interpretation
+you're coming up with here, and it makes me wonder if we shouldn't
+change vmf_insert_pfn_pmd() to take (vmf, pfn, write) as arguments
+instead of separate vma, address & pmd arguments.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
