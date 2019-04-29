@@ -2,12 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6B1EF212108E3
- for <linux-nvdimm@lists.01.org>; Tue, 16 Apr 2019 09:42:09 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6A0522122C2EC
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:19 -0700 (PDT)
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH v3 00/18] btrfs dax support
-Date: Tue, 16 Apr 2019 11:41:36 -0500
-Message-Id: <20190416164154.30390-1-rgoldwyn@suse.de>
+Subject: [PATCH 06/18] btrfs: Rename __endio_write_update_ordered() to
+ btrfs_update_ordered_extent()
+Date: Mon, 29 Apr 2019 12:26:37 -0500
+Message-Id: <20190429172649.8288-7-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,53 +24,100 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch set adds support for dax on the BTRFS filesystem.
-In order to support for CoW for btrfs, there were changes which had to be
-made to the dax handling. The important one is copying blocks into the
-same dax device before using them which is performed by iomap
-type IOMAP_DAX_COW.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Snapshotting and CoW features are supported (including mmap preservation
-across snapshots).
+Since we will be using it in another part of the code, use a
+better name to declare it non-static
 
-Git: https://github.com/goldwynr/linux/tree/btrfs-dax
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+---
+ fs/btrfs/ctree.h |  7 +++++--
+ fs/btrfs/inode.c | 14 +++++---------
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-Changes since v2:
- - Created a new type IOMAP_DAX_COW as opposed to flag IOMAP_F_COW
- - CoW source address is presented in iomap.inline_data
- - Split the patches to more elaborate dax/iomap patches
-
-Changes since v1:
- - use iomap instead of redoing everything in btrfs
- - support for mmap writeprotecting on snapshotting
-
-
- fs/btrfs/Makefile            |    1 
- fs/btrfs/ctree.h             |   38 +++++
- fs/btrfs/dax.c               |  288 +++++++++++++++++++++++++++++++++++++++++--
- fs/btrfs/disk-io.c           |    4 
- fs/btrfs/file.c              |   37 ++++-
- fs/btrfs/inode.c             |  114 ++++++++++++-----
- fs/btrfs/ioctl.c             |   29 +++-
- fs/btrfs/send.c              |    4 
- fs/btrfs/super.c             |   30 ++++
- fs/dax.c                     |  152 ++++++++++++++++++++--
- fs/iomap.c                   |    9 -
- fs/ocfs2/file.c              |    2 
- fs/read_write.c              |   10 -
- fs/xfs/xfs_reflink.c         |    2 
- include/linux/dax.h          |   13 +
- include/linux/fs.h           |    7 -
- include/linux/iomap.h        |    7 +
- include/trace/events/btrfs.h |   56 ++++++++
- 18 files changed, 717 insertions(+), 86 deletions(-)
-
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 050f30165531..1e3e758b83c2 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3280,8 +3280,11 @@ struct inode *btrfs_iget(struct super_block *s, struct btrfs_key *location,
+ int btrfs_get_extent_map_write(struct extent_map **map, struct buffer_head *bh,
+ 		struct inode *inode, u64 start, u64 len, bool *nocow);
+ struct extent_map *btrfs_get_extent(struct btrfs_inode *inode,
+-				    struct page *page, size_t pg_offset,
+-				    u64 start, u64 end, int create);
++		struct page *page, size_t pg_offset,
++		u64 start, u64 end, int create);
++void btrfs_update_ordered_extent(struct inode *inode,
++		const u64 offset, const u64 bytes,
++		const bool uptodate);
+ int btrfs_update_inode(struct btrfs_trans_handle *trans,
+ 			      struct btrfs_root *root,
+ 			      struct inode *inode);
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 8e33c38511bb..af4b56cba104 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -98,10 +98,6 @@ static struct extent_map *create_io_em(struct inode *inode, u64 start, u64 len,
+ 				       u64 ram_bytes, int compress_type,
+ 				       int type);
+ 
+-static void __endio_write_update_ordered(struct inode *inode,
+-					 const u64 offset, const u64 bytes,
+-					 const bool uptodate);
+-
+ /*
+  * Cleanup all submitted ordered extents in specified range to handle errors
+  * from the btrfs_run_delalloc_range() callback.
+@@ -142,7 +138,7 @@ static inline void btrfs_cleanup_ordered_extents(struct inode *inode,
+ 		bytes -= PAGE_SIZE;
+ 	}
+ 
+-	return __endio_write_update_ordered(inode, offset, bytes, false);
++	return btrfs_update_ordered_extent(inode, offset, bytes, false);
+ }
+ 
+ static int btrfs_dirty_inode(struct inode *inode);
+@@ -8085,7 +8081,7 @@ static void btrfs_endio_direct_read(struct bio *bio)
+ 	bio_put(bio);
+ }
+ 
+-static void __endio_write_update_ordered(struct inode *inode,
++void btrfs_update_ordered_extent(struct inode *inode,
+ 					 const u64 offset, const u64 bytes,
+ 					 const bool uptodate)
+ {
+@@ -8138,7 +8134,7 @@ static void btrfs_endio_direct_write(struct bio *bio)
+ 	struct btrfs_dio_private *dip = bio->bi_private;
+ 	struct bio *dio_bio = dip->dio_bio;
+ 
+-	__endio_write_update_ordered(dip->inode, dip->logical_offset,
++	btrfs_update_ordered_extent(dip->inode, dip->logical_offset,
+ 				     dip->bytes, !bio->bi_status);
+ 
+ 	kfree(dip);
+@@ -8457,7 +8453,7 @@ static void btrfs_submit_direct(struct bio *dio_bio, struct inode *inode,
+ 		bio = NULL;
+ 	} else {
+ 		if (write)
+-			__endio_write_update_ordered(inode,
++			btrfs_update_ordered_extent(inode,
+ 						file_offset,
+ 						dio_bio->bi_iter.bi_size,
+ 						false);
+@@ -8597,7 +8593,7 @@ static ssize_t btrfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ 			 */
+ 			if (dio_data.unsubmitted_oe_range_start <
+ 			    dio_data.unsubmitted_oe_range_end)
+-				__endio_write_update_ordered(inode,
++				btrfs_update_ordered_extent(inode,
+ 					dio_data.unsubmitted_oe_range_start,
+ 					dio_data.unsubmitted_oe_range_end -
+ 					dio_data.unsubmitted_oe_range_start,
 -- 
-Goldwyn
-
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
