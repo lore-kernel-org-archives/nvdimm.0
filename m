@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1D3ED2121C128
- for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:40 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id EFC512122C30B
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:35 -0700 (PDT)
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 16/18] btrfs: Writeprotect mmap pages on snapshot
-Date: Mon, 29 Apr 2019 12:26:47 -0500
-Message-Id: <20190429172649.8288-17-rgoldwyn@suse.de>
+Subject: [PATCH 14/18] dax: memcpy before zeroing range
+Date: Mon, 29 Apr 2019 12:26:45 -0500
+Message-Id: <20190429172649.8288-15-rgoldwyn@suse.de>
 In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
 References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -28,113 +28,144 @@ List-ID: <linux-nvdimm@lists.01.org>
 
 From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Inorder to make sure mmap'd files don't change after snapshot,
-writeprotect the mmap pages on snapshot. This is done by performing
-a data writeback on the pages (which simply mark the pages are
-wrprotected). This way if the user process tries to access the memory
-we will get another fault and we can perform a CoW.
+However, this needed more iomap fields, so it was easier
+to pass iomap and compute inside the function rather
+than passing a log of arguments.
 
-In order to accomplish this, we tag all CoW pages as
-PAGECACHE_TAG_TOWRITE, and add the mmapd inode in delalloc_inodes.
-During snapshot, it starts writeback of all delalloc'd inodes and
-here we perform a data writeback. We don't want to keep the inodes
-in delalloc_inodes until it umount (WARN_ON), so we remove it
-during inode evictions.
+Note, there is subtle difference between iomap_sector and
+dax_iomap_sector(). Can we replace dax_iomap_sector with
+iomap_sector()? It would need pos & PAGE_MASK though or else
+bdev_dax_pgoff() return -EINVAL.
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- fs/btrfs/ctree.h |  3 ++-
- fs/btrfs/dax.c   |  7 +++++++
- fs/btrfs/inode.c | 13 ++++++++++++-
- 3 files changed, 21 insertions(+), 2 deletions(-)
+ fs/dax.c              | 17 ++++++++++++-----
+ fs/iomap.c            |  9 +--------
+ include/linux/dax.h   | 11 +++++------
+ include/linux/iomap.h |  6 ++++++
+ 4 files changed, 24 insertions(+), 19 deletions(-)
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index ee1ed18f8b3c..d1b70f24adeb 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3252,7 +3252,8 @@ int btrfs_create_subvol_root(struct btrfs_trans_handle *trans,
- 			     struct btrfs_root *new_root,
- 			     struct btrfs_root *parent_root,
- 			     u64 new_dirid);
-- void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
-+void btrfs_add_delalloc_inodes(struct btrfs_root *root, struct inode *inode);
-+void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
- 			       unsigned *bits);
- void btrfs_clear_delalloc_extent(struct inode *inode,
- 				 struct extent_state *state, unsigned *bits);
-diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-index bf2ddac5b5a1..20ec2ec49c68 100644
---- a/fs/btrfs/dax.c
-+++ b/fs/btrfs/dax.c
-@@ -222,10 +222,17 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
- {
- 	vm_fault_t ret;
- 	pfn_t pfn;
-+	struct inode *inode = file_inode(vmf->vma->vm_file);
-+	struct btrfs_inode *binode = BTRFS_I(inode);
- 	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
- 	if (ret & VM_FAULT_NEEDDSYNC)
- 		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
+diff --git a/fs/dax.c b/fs/dax.c
+index fa9ccbad7c03..82a08b0eec23 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1063,11 +1063,16 @@ static bool dax_range_is_aligned(struct block_device *bdev,
+ 	return true;
+ }
  
-+	/* Insert into delalloc so we get writeback calls on snapshots */
-+	if (vmf->flags & FAULT_FLAG_WRITE &&
-+			!test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_add_delalloc_inodes(binode->root, inode);
+-int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int size)
++int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++			  unsigned int offset, unsigned int size)
+ {
+-	if (dax_range_is_aligned(bdev, offset, size)) {
++	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
++	struct block_device *bdev = iomap->bdev;
++	struct dax_device *dax_dev = iomap->dax_dev;
++	int ret = 0;
 +
- 	return ret;
++	if (!(iomap->type == IOMAP_DAX_COW) &&
++	    dax_range_is_aligned(bdev, offset, size)) {
+ 		sector_t start_sector = sector + (offset >> 9);
+ 
+ 		return blkdev_issue_zeroout(bdev, start_sector,
+@@ -1087,11 +1092,13 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 			dax_read_unlock(id);
+ 			return rc;
+ 		}
++		if (iomap->type == IOMAP_DAX_COW)
++			ret = memcpy_mcsafe(kaddr, iomap->inline_data, offset);
+ 		memset(kaddr + offset, 0, size);
+ 		dax_flush(dax_dev, kaddr + offset, size);
+ 		dax_read_unlock(id);
+ 	}
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+ 
+diff --git a/fs/iomap.c b/fs/iomap.c
+index abdd18e404f8..90698c854883 100644
+--- a/fs/iomap.c
++++ b/fs/iomap.c
+@@ -98,12 +98,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
+ 	return written ? written : ret;
  }
  
-diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-index 7e88280a2c3b..e98fb512e1ca 100644
---- a/fs/btrfs/inode.c
-+++ b/fs/btrfs/inode.c
-@@ -1713,7 +1713,7 @@ void btrfs_merge_delalloc_extent(struct inode *inode, struct extent_state *new,
- 	spin_unlock(&BTRFS_I(inode)->lock);
+-static sector_t
+-iomap_sector(struct iomap *iomap, loff_t pos)
+-{
+-	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
+-}
+-
+ static struct iomap_page *
+ iomap_page_create(struct inode *inode, struct page *page)
+ {
+@@ -990,8 +984,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
+ static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
+ 		struct iomap *iomap)
+ {
+-	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
+-			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
++	return __dax_zero_page_range(iomap, pos, offset, bytes);
  }
  
--static void btrfs_add_delalloc_inodes(struct btrfs_root *root,
-+void btrfs_add_delalloc_inodes(struct btrfs_root *root,
- 				      struct inode *inode)
- {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-@@ -5358,12 +5358,17 @@ void btrfs_evict_inode(struct inode *inode)
- {
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
- 	struct btrfs_trans_handle *trans;
-+	struct btrfs_inode *binode = BTRFS_I(inode);
- 	struct btrfs_root *root = BTRFS_I(inode)->root;
- 	struct btrfs_block_rsv *rsv;
- 	int ret;
+ static loff_t
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 1370d39c91b6..c469d9ff54b4 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -9,6 +9,7 @@
  
- 	trace_btrfs_inode_evict(inode);
+ typedef unsigned long dax_entry_t;
  
-+	if (IS_DAX(inode)
-+	    && test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_del_delalloc_inode(root, binode);
++struct iomap;
+ struct iomap_ops;
+ struct dax_device;
+ struct dax_operations {
+@@ -163,13 +164,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff,
+ 			   const struct iomap_ops *ops);
+ 
+ #ifdef CONFIG_FS_DAX
+-int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int length);
++int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++		unsigned int offset, unsigned int size);
+ #else
+-static inline int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int length)
++static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++		unsigned int offset, unsigned int size)
+ {
+ 	return -ENXIO;
+ }
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index 6e885c5a38a3..fcfce269db3e 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/types.h>
+ #include <linux/mm_types.h>
++#include <linux/blkdev.h>
+ 
+ struct address_space;
+ struct fiemap_extent_info;
+@@ -120,6 +121,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
+ 	return NULL;
+ }
+ 
++static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
++{
++	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
++}
 +
- 	if (!root) {
- 		clear_inode(inode);
- 		return;
-@@ -8683,6 +8688,10 @@ static int btrfs_dax_writepages(struct address_space *mapping,
- {
- 	struct inode *inode = mapping->host;
- 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-+	struct btrfs_inode *binode = BTRFS_I(inode);
-+	if ((wbc->sync_mode == WB_SYNC_ALL) &&
-+	    test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
-+		btrfs_del_delalloc_inode(binode->root, binode);
- 	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
- 			wbc);
- }
-@@ -9981,6 +9990,8 @@ static void btrfs_run_delalloc_work(struct btrfs_work *work)
- 	delalloc_work = container_of(work, struct btrfs_delalloc_work,
- 				     work);
- 	inode = delalloc_work->inode;
-+	if (IS_DAX(inode))
-+		filemap_fdatawrite(inode->i_mapping);
- 	filemap_flush(inode->i_mapping);
- 	if (test_bit(BTRFS_INODE_HAS_ASYNC_EXTENT,
- 				&BTRFS_I(inode)->runtime_flags))
+ ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
+ 		const struct iomap_ops *ops);
+ int iomap_readpage(struct page *page, const struct iomap_ops *ops);
 -- 
 2.16.4
 
