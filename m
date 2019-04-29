@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA85F211F9D7B
- for <linux-nvdimm@lists.01.org>; Fri, 19 Apr 2019 17:41:07 -0700 (PDT)
-Subject: [PATCH] libnvdimm/namespace: Fix label tracking error
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 19 Apr 2019 17:27:21 -0700
-Message-ID: <155572004134.2603218.13620079500159805086.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 1D3ED2121C128
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:40 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 16/18] btrfs: Writeprotect mmap pages on snapshot
+Date: Mon, 29 Apr 2019 12:26:47 -0500
+Message-Id: <20190429172649.8288-17-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,167 +17,126 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, Erwin Tsaur <erwin.tsaur@oracle.com>
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Users have reported intermittent occurrences of DIMM initialization
-failures due to duplicate allocations of address capacity detected in
-the labels, or errors of the form below, both have the same root cause.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-    nd namespace1.4: failed to track label: 0
-    WARNING: CPU: 17 PID: 1381 at drivers/nvdimm/label.c:863
+Inorder to make sure mmap'd files don't change after snapshot,
+writeprotect the mmap pages on snapshot. This is done by performing
+a data writeback on the pages (which simply mark the pages are
+wrprotected). This way if the user process tries to access the memory
+we will get another fault and we can perform a CoW.
 
-    RIP: 0010:__pmem_label_update+0x56c/0x590 [libnvdimm]
-    Call Trace:
-     ? nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
-     nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
-     uuid_store+0x17e/0x190 [libnvdimm]
-     kernfs_fop_write+0xf0/0x1a0
-     vfs_write+0xb7/0x1b0
-     ksys_write+0x57/0xd0
-     do_syscall_64+0x60/0x210
+In order to accomplish this, we tag all CoW pages as
+PAGECACHE_TAG_TOWRITE, and add the mmapd inode in delalloc_inodes.
+During snapshot, it starts writeback of all delalloc'd inodes and
+here we perform a data writeback. We don't want to keep the inodes
+in delalloc_inodes until it umount (WARN_ON), so we remove it
+during inode evictions.
 
-Unfortunately those reports were typically with a busy parallel
-namespace creation / destruction loop making it difficult to see the
-components of the bug. However, Jane provided a simple reproducer using
-the work-in-progress sub-section implementation.
-
-When ndctl is reconfiguring a namespace it may take an existing defunct
-/ disabled namespace and reconfigure it with a new uuid and other
-parameters. Critically namespace_update_uuid() takes existing address
-resources and renames them for the new namespace to use / reconfigure as
-it sees fit. The bug is that this rename only happens in the resource
-tracking tree. Existing labels with the old uuid are not reaped leading
-to a scenario where multiple active labels reference the same span of
-address range.
-
-Teach namespace_update_uuid() to flag any references to the old uuid for
-reaping at the next label update attempt.
-
-Cc: <stable@vger.kernel.org>
-Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace instantiation")
-Link: https://github.com/pmem/ndctl/issues/91
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- drivers/nvdimm/label.c          |   29 ++++++++++++++++-------------
- drivers/nvdimm/namespace_devs.c |   15 +++++++++++++++
- drivers/nvdimm/nd.h             |    4 ++++
- 3 files changed, 35 insertions(+), 13 deletions(-)
+ fs/btrfs/ctree.h |  3 ++-
+ fs/btrfs/dax.c   |  7 +++++++
+ fs/btrfs/inode.c | 13 ++++++++++++-
+ 3 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index f3d753d3169c..2030805aa216 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -756,6 +756,17 @@ static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
- 		return &guid_null;
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index ee1ed18f8b3c..d1b70f24adeb 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3252,7 +3252,8 @@ int btrfs_create_subvol_root(struct btrfs_trans_handle *trans,
+ 			     struct btrfs_root *new_root,
+ 			     struct btrfs_root *parent_root,
+ 			     u64 new_dirid);
+- void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
++void btrfs_add_delalloc_inodes(struct btrfs_root *root, struct inode *inode);
++void btrfs_set_delalloc_extent(struct inode *inode, struct extent_state *state,
+ 			       unsigned *bits);
+ void btrfs_clear_delalloc_extent(struct inode *inode,
+ 				 struct extent_state *state, unsigned *bits);
+diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
+index bf2ddac5b5a1..20ec2ec49c68 100644
+--- a/fs/btrfs/dax.c
++++ b/fs/btrfs/dax.c
+@@ -222,10 +222,17 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
+ {
+ 	vm_fault_t ret;
+ 	pfn_t pfn;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	struct btrfs_inode *binode = BTRFS_I(inode);
+ 	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
+ 	if (ret & VM_FAULT_NEEDDSYNC)
+ 		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
+ 
++	/* Insert into delalloc so we get writeback calls on snapshots */
++	if (vmf->flags & FAULT_FLAG_WRITE &&
++			!test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
++		btrfs_add_delalloc_inodes(binode->root, inode);
++
+ 	return ret;
  }
  
-+static void reap_victim(struct nd_mapping *nd_mapping,
-+		struct nd_label_ent *victim)
-+{
-+	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+	u32 slot = to_slot(ndd, victim->label);
-+
-+	dev_dbg(ndd->dev, "free: %d\n", slot);
-+	nd_label_free_slot(ndd, slot);
-+	victim->label = NULL;
-+}
-+
- static int __pmem_label_update(struct nd_region *nd_region,
- 		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
- 		int pos, unsigned long flags)
-@@ -763,9 +774,9 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	struct nd_namespace_common *ndns = &nspm->nsio.common;
- 	struct nd_interleave_set *nd_set = nd_region->nd_set;
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
--	struct nd_label_ent *label_ent, *victim = NULL;
- 	struct nd_namespace_label *nd_label;
- 	struct nd_namespace_index *nsindex;
-+	struct nd_label_ent *label_ent;
- 	struct nd_label_id label_id;
- 	struct resource *res;
- 	unsigned long *free;
-@@ -834,18 +845,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
- 		if (!label_ent->label)
- 			continue;
--		if (memcmp(nspm->uuid, label_ent->label->uuid,
--					NSLABEL_UUID_LEN) != 0)
--			continue;
--		victim = label_ent;
--		list_move_tail(&victim->list, &nd_mapping->labels);
--		break;
--	}
--	if (victim) {
--		dev_dbg(ndd->dev, "free: %d\n", slot);
--		slot = to_slot(ndd, victim->label);
--		nd_label_free_slot(ndd, slot);
--		victim->label = NULL;
-+		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags)
-+				|| memcmp(nspm->uuid, label_ent->label->uuid,
-+					NSLABEL_UUID_LEN) == 0)
-+			reap_victim(nd_mapping, label_ent);
- 	}
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 7e88280a2c3b..e98fb512e1ca 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -1713,7 +1713,7 @@ void btrfs_merge_delalloc_extent(struct inode *inode, struct extent_state *new,
+ 	spin_unlock(&BTRFS_I(inode)->lock);
+ }
  
- 	/* update index */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 7849bf1812c4..3e2fdfdbe7b8 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1247,12 +1247,27 @@ static int namespace_update_uuid(struct nd_region *nd_region,
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+		struct nd_label_ent *label_ent;
- 		struct resource *res;
+-static void btrfs_add_delalloc_inodes(struct btrfs_root *root,
++void btrfs_add_delalloc_inodes(struct btrfs_root *root,
+ 				      struct inode *inode)
+ {
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
+@@ -5358,12 +5358,17 @@ void btrfs_evict_inode(struct inode *inode)
+ {
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
+ 	struct btrfs_trans_handle *trans;
++	struct btrfs_inode *binode = BTRFS_I(inode);
+ 	struct btrfs_root *root = BTRFS_I(inode)->root;
+ 	struct btrfs_block_rsv *rsv;
+ 	int ret;
  
- 		for_each_dpa_resource(ndd, res)
- 			if (strcmp(res->name, old_label_id.id) == 0)
- 				sprintf((void *) res->name, "%s",
- 						new_label_id.id);
+ 	trace_btrfs_inode_evict(inode);
+ 
++	if (IS_DAX(inode)
++	    && test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
++		btrfs_del_delalloc_inode(root, binode);
 +
-+		mutex_lock(&nd_mapping->lock);
-+		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
-+			struct nd_namespace_label *nd_label = label_ent->label;
-+			struct nd_label_id label_id;
-+
-+			if (!nd_label)
-+				continue;
-+			nd_label_gen_id(&label_id, nd_label->uuid,
-+					__le32_to_cpu(nd_label->flags));
-+			if (strcmp(old_label_id.id, label_id.id) == 0)
-+				set_bit(ND_LABEL_REAP, &label_ent->flags);
-+		}
-+		mutex_unlock(&nd_mapping->lock);
- 	}
- 	kfree(*old_uuid);
-  out:
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index a5ac3b240293..191d62af0e51 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -113,8 +113,12 @@ struct nd_percpu_lane {
- 	spinlock_t lock;
- };
- 
-+enum nd_label_flags {
-+	ND_LABEL_REAP,
-+};
- struct nd_label_ent {
- 	struct list_head list;
-+	unsigned long flags;
- 	struct nd_namespace_label *label;
- };
- 
+ 	if (!root) {
+ 		clear_inode(inode);
+ 		return;
+@@ -8683,6 +8688,10 @@ static int btrfs_dax_writepages(struct address_space *mapping,
+ {
+ 	struct inode *inode = mapping->host;
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
++	struct btrfs_inode *binode = BTRFS_I(inode);
++	if ((wbc->sync_mode == WB_SYNC_ALL) &&
++	    test_bit(BTRFS_INODE_IN_DELALLOC_LIST, &binode->runtime_flags))
++		btrfs_del_delalloc_inode(binode->root, binode);
+ 	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
+ 			wbc);
+ }
+@@ -9981,6 +9990,8 @@ static void btrfs_run_delalloc_work(struct btrfs_work *work)
+ 	delalloc_work = container_of(work, struct btrfs_delalloc_work,
+ 				     work);
+ 	inode = delalloc_work->inode;
++	if (IS_DAX(inode))
++		filemap_fdatawrite(inode->i_mapping);
+ 	filemap_flush(inode->i_mapping);
+ 	if (test_bit(BTRFS_INODE_HAS_ASYNC_EXTENT,
+ 				&BTRFS_I(inode)->runtime_flags))
+-- 
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
