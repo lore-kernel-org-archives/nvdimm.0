@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 56A22211F35EB
- for <linux-nvdimm@lists.01.org>; Thu,  4 Apr 2019 12:21:13 -0700 (PDT)
-Subject: [RFC PATCH 1/5] efi: Detect UEFI 2.8 Special Purpose Memory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 04 Apr 2019 12:08:33 -0700
-Message-ID: <155440491334.3190322.44013027330479237.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 402FE2121797B
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:11 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 02/18] btrfs: Carve out btrfs_get_extent_map_write() out of
+ btrfs_get_blocks_write()
+Date: Mon, 29 Apr 2019 12:26:33 -0500
+Message-Id: <20190429172649.8288-3-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,251 +18,115 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, x86@kernel.org, linux-mm@kvack.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy@infradead.org>, linux-nvdimm@lists.01.org
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
-interpretation of the EFI Memory Types as "reserved for a special
-purpose".
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-The proposed Linux behavior for special purpose memory is that it is
-reserved for direct-access (device-dax) by default and not available for
-any kernel usage, not even as an OOM fallback. Later, through udev
-scripts or another init mechanism, these device-dax claimed ranges can
-be reconfigured and hot-added to the available System-RAM with a unique
-node identifier.
+This makes btrfs_get_extent_map_write() independent of Direct
+I/O code.
 
-A follow-on patch integrates parsing of the ACPI HMAT to identify the
-node and sub-range boundaries of EFI_MEMORY_SP designated memory. For
-now, arrange for EFI_MEMORY_SP memory to be reserved.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Darren Hart <dvhart@infradead.org>
-Cc: Andy Shevchenko <andy@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- arch/x86/Kconfig                  |   18 ++++++++++++++++++
- arch/x86/boot/compressed/eboot.c  |    5 ++++-
- arch/x86/boot/compressed/kaslr.c  |    2 +-
- arch/x86/include/asm/e820/types.h |    9 +++++++++
- arch/x86/kernel/e820.c            |    9 +++++++--
- arch/x86/platform/efi/efi.c       |   10 +++++++++-
- include/linux/efi.h               |   14 ++++++++++++++
- include/linux/ioport.h            |    1 +
- 8 files changed, 63 insertions(+), 5 deletions(-)
+ fs/btrfs/ctree.h |  2 ++
+ fs/btrfs/inode.c | 40 +++++++++++++++++++++++++++-------------
+ 2 files changed, 29 insertions(+), 13 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index c1f9b3cf437c..cb9ca27de7a5 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1961,6 +1961,24 @@ config EFI_MIXED
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 8ca1c0d120f4..9512f49262dd 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3277,6 +3277,8 @@ struct inode *btrfs_iget_path(struct super_block *s, struct btrfs_key *location,
+ 			      struct btrfs_path *path);
+ struct inode *btrfs_iget(struct super_block *s, struct btrfs_key *location,
+ 			 struct btrfs_root *root, int *was_new);
++int btrfs_get_extent_map_write(struct extent_map **map, struct buffer_head *bh,
++		struct inode *inode, u64 start, u64 len);
+ struct extent_map *btrfs_get_extent(struct btrfs_inode *inode,
+ 				    struct page *page, size_t pg_offset,
+ 				    u64 start, u64 end, int create);
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 82fdda8ff5ab..68b8a4935ba6 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -7496,11 +7496,10 @@ static int btrfs_get_blocks_direct_read(struct extent_map *em,
+ 	return 0;
+ }
  
- 	   If unsure, say N.
- 
-+config EFI_SPECIAL_MEMORY
-+	bool "EFI Special Purpose Memory Support"
-+	depends on EFI
-+	---help---
-+	  On systems that have mixed performance classes of memory EFI
-+	  may indicate special purpose memory with an attribute (See
-+	  EFI_MEMORY_SP in UEFI 2.8). A memory range tagged with this
-+	  attribute may have unique performance characteristics compared
-+	  to the system's general purpose "System RAM" pool. On the
-+	  expectation that such memory has application specific usage
-+	  answer Y to arrange for the kernel to reserve it for
-+	  direct-access (device-dax) by default. The memory range can
-+	  later be optionally assigned to the page allocator by system
-+	  administrator policy. Say N to have the kernel treat this
-+	  memory as general purpose by default.
-+
-+	  If unsure, say Y.
-+
- config SECCOMP
- 	def_bool y
- 	prompt "Enable seccomp to safely compute untrusted bytecode"
-diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
-index 544ac4fafd11..9b90fae21abe 100644
---- a/arch/x86/boot/compressed/eboot.c
-+++ b/arch/x86/boot/compressed/eboot.c
-@@ -560,7 +560,10 @@ setup_e820(struct boot_params *params, struct setup_data *e820ext, u32 e820ext_s
- 		case EFI_BOOT_SERVICES_CODE:
- 		case EFI_BOOT_SERVICES_DATA:
- 		case EFI_CONVENTIONAL_MEMORY:
--			e820_type = E820_TYPE_RAM;
-+			if (is_efi_special(d))
-+				e820_type = E820_TYPE_SPECIAL;
-+			else
-+				e820_type = E820_TYPE_RAM;
- 			break;
- 
- 		case EFI_ACPI_MEMORY_NVS:
-diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-index 2e53c056ba20..897e46eb9714 100644
---- a/arch/x86/boot/compressed/kaslr.c
-+++ b/arch/x86/boot/compressed/kaslr.c
-@@ -757,7 +757,7 @@ process_efi_entries(unsigned long minimum, unsigned long image_size)
- 		 *
- 		 * Only EFI_CONVENTIONAL_MEMORY is guaranteed to be free.
- 		 */
--		if (md->type != EFI_CONVENTIONAL_MEMORY)
-+		if (md->type != EFI_CONVENTIONAL_MEMORY || is_efi_special(md))
- 			continue;
- 
- 		if (efi_mirror_found &&
-diff --git a/arch/x86/include/asm/e820/types.h b/arch/x86/include/asm/e820/types.h
-index c3aa4b5e49e2..0ab8abae2e8b 100644
---- a/arch/x86/include/asm/e820/types.h
-+++ b/arch/x86/include/asm/e820/types.h
-@@ -28,6 +28,15 @@ enum e820_type {
- 	 */
- 	E820_TYPE_PRAM		= 12,
- 
-+	/*
-+	 * Special-purpose / application-specific memory is indicated to
-+	 * the system via the EFI_MEMORY_SP attribute. Define an e820
-+	 * translation of this memory type for the purpose of
-+	 * reserving this range and marking it with the
-+	 * IORES_DESC_APPLICATION_RESERVED designation.
-+	 */
-+	E820_TYPE_SPECIAL	= 0xefffffff,
-+
- 	/*
- 	 * Reserved RAM used by the kernel itself if
- 	 * CONFIG_INTEL_TXT=y is enabled, memory of this type
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index 2879e234e193..9f50dd0bbb04 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -176,6 +176,7 @@ static void __init e820_print_type(enum e820_type type)
- 	switch (type) {
- 	case E820_TYPE_RAM:		/* Fall through: */
- 	case E820_TYPE_RESERVED_KERN:	pr_cont("usable");			break;
-+	case E820_TYPE_SPECIAL:		/* Fall through: */
- 	case E820_TYPE_RESERVED:	pr_cont("reserved");			break;
- 	case E820_TYPE_ACPI:		pr_cont("ACPI data");			break;
- 	case E820_TYPE_NVS:		pr_cont("ACPI NVS");			break;
-@@ -1023,6 +1024,7 @@ static const char *__init e820_type_to_string(struct e820_entry *entry)
- 	case E820_TYPE_UNUSABLE:	return "Unusable memory";
- 	case E820_TYPE_PRAM:		return "Persistent Memory (legacy)";
- 	case E820_TYPE_PMEM:		return "Persistent Memory";
-+	case E820_TYPE_SPECIAL:		/* Fall-through: */
- 	case E820_TYPE_RESERVED:	return "Reserved";
- 	default:			return "Unknown E820 type";
+-static int btrfs_get_blocks_direct_write(struct extent_map **map,
+-					 struct buffer_head *bh_result,
+-					 struct inode *inode,
+-					 struct btrfs_dio_data *dio_data,
+-					 u64 start, u64 len)
++int btrfs_get_extent_map_write(struct extent_map **map,
++		struct buffer_head *bh,
++		struct inode *inode,
++		u64 start, u64 len)
+ {
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
+ 	struct extent_map *em = *map;
+@@ -7554,22 +7553,38 @@ static int btrfs_get_blocks_direct_write(struct extent_map **map,
+ 			 */
+ 			btrfs_free_reserved_data_space_noquota(inode, start,
+ 							       len);
+-			goto skip_cow;
++			/* skip COW */
++			goto out;
+ 		}
  	}
-@@ -1038,6 +1040,7 @@ static unsigned long __init e820_type_to_iomem_type(struct e820_entry *entry)
- 	case E820_TYPE_UNUSABLE:	/* Fall-through: */
- 	case E820_TYPE_PRAM:		/* Fall-through: */
- 	case E820_TYPE_PMEM:		/* Fall-through: */
-+	case E820_TYPE_SPECIAL:		/* Fall-through: */
- 	case E820_TYPE_RESERVED:	/* Fall-through: */
- 	default:			return IORESOURCE_MEM;
- 	}
-@@ -1050,6 +1053,7 @@ static unsigned long __init e820_type_to_iores_desc(struct e820_entry *entry)
- 	case E820_TYPE_NVS:		return IORES_DESC_ACPI_NV_STORAGE;
- 	case E820_TYPE_PMEM:		return IORES_DESC_PERSISTENT_MEMORY;
- 	case E820_TYPE_PRAM:		return IORES_DESC_PERSISTENT_MEMORY_LEGACY;
-+	case E820_TYPE_SPECIAL:		return IORES_DESC_APPLICATION_RESERVED;
- 	case E820_TYPE_RESERVED_KERN:	/* Fall-through: */
- 	case E820_TYPE_RAM:		/* Fall-through: */
- 	case E820_TYPE_UNUSABLE:	/* Fall-through: */
-@@ -1065,13 +1069,14 @@ static bool __init do_mark_busy(enum e820_type type, struct resource *res)
- 		return true;
  
- 	/*
--	 * Treat persistent memory like device memory, i.e. reserve it
--	 * for exclusive use of a driver
-+	 * Treat persistent memory and other special memory ranges like
-+	 * device memory, i.e. reserve it for exclusive use of a driver
- 	 */
- 	switch (type) {
- 	case E820_TYPE_RESERVED:
- 	case E820_TYPE_PRAM:
- 	case E820_TYPE_PMEM:
-+	case E820_TYPE_SPECIAL:
- 		return false;
- 	case E820_TYPE_RESERVED_KERN:
- 	case E820_TYPE_RAM:
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index e1cb01a22fa8..d227751f331b 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -139,7 +139,9 @@ static void __init do_add_efi_memmap(void)
- 		case EFI_BOOT_SERVICES_CODE:
- 		case EFI_BOOT_SERVICES_DATA:
- 		case EFI_CONVENTIONAL_MEMORY:
--			if (md->attribute & EFI_MEMORY_WB)
-+			if (is_efi_special(md))
-+				e820_type = E820_TYPE_SPECIAL;
-+			else if (md->attribute & EFI_MEMORY_WB)
- 				e820_type = E820_TYPE_RAM;
- 			else
- 				e820_type = E820_TYPE_RESERVED;
-@@ -753,6 +755,12 @@ static bool should_map_region(efi_memory_desc_t *md)
- 	if (IS_ENABLED(CONFIG_X86_32))
- 		return false;
- 
-+	/*
-+	 * Special purpose memory is not mapped by default.
-+	 */
-+	if (is_efi_special(md))
-+		return false;
-+
- 	/*
- 	 * Map all of RAM so that we can access arguments in the 1:1
- 	 * mapping when making EFI runtime calls.
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 54357a258b35..cecbc2bda1da 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -112,6 +112,7 @@ typedef	struct {
- #define EFI_MEMORY_MORE_RELIABLE \
- 				((u64)0x0000000000010000ULL)	/* higher reliability */
- #define EFI_MEMORY_RO		((u64)0x0000000000020000ULL)	/* read-only */
-+#define EFI_MEMORY_SP		((u64)0x0000000000040000ULL)	/* special purpose */
- #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
- #define EFI_MEMORY_DESCRIPTOR_VERSION	1
- 
-@@ -128,6 +129,19 @@ typedef struct {
- 	u64 attribute;
- } efi_memory_desc_t;
- 
-+#ifdef CONFIG_EFI_SPECIAL_MEMORY
-+static inline bool is_efi_special(efi_memory_desc_t *md)
-+{
-+	return md->type == EFI_CONVENTIONAL_MEMORY
-+		&& (md->attribute & EFI_MEMORY_SP);
+ 	/* this will cow the extent */
+-	len = bh_result->b_size;
++	if (bh)
++		len = bh->b_size;
+ 	free_extent_map(em);
+ 	*map = em = btrfs_new_extent_direct(inode, start, len);
+-	if (IS_ERR(em)) {
+-		ret = PTR_ERR(em);
+-		goto out;
+-	}
++	if (IS_ERR(em))
++		return PTR_ERR(em);
++out:
++	return ret;
 +}
-+#else
-+static inline bool is_efi_special(efi_memory_desc_t *md)
-+{
-+	return false;
-+}
-+#endif
-+
- typedef struct {
- 	efi_guid_t guid;
- 	u32 headersize;
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index da0ebaec25f0..2d79841ee9b9 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -133,6 +133,7 @@ enum {
- 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
- 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
- 	IORES_DESC_DEVICE_PUBLIC_MEMORY		= 7,
-+	IORES_DESC_APPLICATION_RESERVED		= 8,
- };
  
- /* helpers to define resources */
++static int btrfs_get_blocks_direct_write(struct extent_map **map,
++					 struct buffer_head *bh_result,
++					 struct inode *inode,
++					 struct btrfs_dio_data *dio_data,
++					 u64 start, u64 len)
++{
++	int ret;
++	struct extent_map *em;
++
++	ret = btrfs_get_extent_map_write(map, bh_result, inode,
++			start, len);
++	if (ret < 0)
++		return ret;
++	em = *map;
+ 	len = min(len, em->len - (start - em->start));
+ 
+-skip_cow:
+ 	bh_result->b_blocknr = (em->block_start + (start - em->start)) >>
+ 		inode->i_blkbits;
+ 	bh_result->b_size = len;
+@@ -7590,7 +7605,6 @@ static int btrfs_get_blocks_direct_write(struct extent_map **map,
+ 	dio_data->reserve -= len;
+ 	dio_data->unsubmitted_oe_range_end = start + len;
+ 	current->journal_info = dio_data;
+-out:
+ 	return ret;
+ }
+ 
+-- 
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
