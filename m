@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail3-relais-sop.national.inria.fr
- (mail3-relais-sop.national.inria.fr [192.134.164.104])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F951211DBDE8
- for <linux-nvdimm@lists.01.org>; Thu,  4 Apr 2019 12:47:52 -0700 (PDT)
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Subject: DAX numa_attribute vs SubNUMA clusters
-Message-ID: <62b31d43-d12c-ae99-b915-2049e7179e7e@inria.fr>
-Date: Thu, 4 Apr 2019 21:47:50 +0200
-MIME-Version: 1.0
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id D036221A07094
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:10 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 01/18] btrfs: create a mount option for dax
+Date: Mon, 29 Apr 2019 12:26:32 -0500
+Message-Id: <20190429172649.8288-2-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,63 +17,175 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-I am trying to understand the locality of the DAX devices with
-respect to processors with SubNUMA clustering enabled. The machine
-I am using has 6invalidate_mapping_pages proximity domains: #0-3 are the SNCs of both
-processors, #4-5 are prox domains for each socket set of NVDIMMs.
+This sets S_DAX in inode->i_flags, which can be used with
+IS_DAX().
 
-SLIT says the topology looks like this, which seems OK to me:
+The dax option is restricted to non multi-device mounts.
+dax interacts with the device directly instead of using bio, so
+all bio-hooks which we use for multi-device cannot be performed
+here. While regular read/writes could be manipulated with
+RAID0/1, mmap() is still an issue.
 
-  Package 0 ---------- Package 1
-  NVregion0            NVregion1
-   |     |              |     |
-SNC 0   SNC 1        SNC 2   SNC 3
-node0   node1        node2   node3
+Auto-setting free space tree, because dealing with free space
+inode (specifically readpages) is a nightmare.
+Auto-setting nodatasum because we don't get callback for writing
+checksums after mmap()s.
+Deny compression because it does not go with direct I/O.
 
-However each DAX "numa_node" attribute contains a single node ID,
-which leads to this topology instead:
+Store the dax_device in fs_info which will be used in iomap code.
 
-  Package 0 ---------- Package 1
-   |     |              |     |
-SNC 0   SNC 1        SNC 2   SNC 3
-node0   node1        node2   node3
-   |                   |
-dax0.0               dax1.0
+I am aware of the push to directory-based flags for dax. Until, that
+code is in the kernel, we will work with mount flags.
 
-It looks like this is caused by acpi_map_pxm_to_online_node()
-only returning the first closest node found in the SLIT.
-However, even if we change it to return multiple local nodes,
-the DAX "numa_node" attribute cannot expose multiple nodes.
-Should we rather expose Keith HMAT attributes for DAX devices?
-Maybe there's even a way to share them between DAX devices
-and Dave's KMEM hotplugged NUMA nodes?
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+---
+ fs/btrfs/ctree.h   |  2 ++
+ fs/btrfs/disk-io.c |  4 ++++
+ fs/btrfs/ioctl.c   |  5 ++++-
+ fs/btrfs/super.c   | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 40 insertions(+), 1 deletion(-)
 
-By the way, I am not sure if my above configuration is what
-we should expect on SNC-enabled production machines.
-Is the NFIT table supposed to expose one SPA Range per SNC,
-or one per socket? Should it depend with the SNC config in
-the BIOS?
-
-If we had one SPA range per SNC, would it still be possible
-to interleave NVDIMMs of both SNC to create a single region
-for each socket?
-
-If I don't interleave NVDIMMs, I get the same result even if
-some regions should be only local to node1 (or node3). Maybe
-because they are still in the same SPA range, and thus still
-get the entire range locality?
-
-Brice
-
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index b3642367a595..8ca1c0d120f4 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -1067,6 +1067,7 @@ struct btrfs_fs_info {
+ 	u32 metadata_ratio;
+ 
+ 	void *bdev_holder;
++	struct dax_device *dax_dev;
+ 
+ 	/* private scrub information */
+ 	struct mutex scrub_lock;
+@@ -1442,6 +1443,7 @@ static inline u32 BTRFS_MAX_XATTR_SIZE(const struct btrfs_fs_info *info)
+ #define BTRFS_MOUNT_FREE_SPACE_TREE	(1 << 26)
+ #define BTRFS_MOUNT_NOLOGREPLAY		(1 << 27)
+ #define BTRFS_MOUNT_REF_VERIFY		(1 << 28)
++#define BTRFS_MOUNT_DAX			(1 << 29)
+ 
+ #define BTRFS_DEFAULT_COMMIT_INTERVAL	(30)
+ #define BTRFS_DEFAULT_MAX_INLINE	(2048)
+diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
+index 6fe9197f6ee4..2bbb63b2fcff 100644
+--- a/fs/btrfs/disk-io.c
++++ b/fs/btrfs/disk-io.c
+@@ -16,6 +16,7 @@
+ #include <linux/uuid.h>
+ #include <linux/semaphore.h>
+ #include <linux/error-injection.h>
++#include <linux/dax.h>
+ #include <linux/crc32c.h>
+ #include <linux/sched/mm.h>
+ #include <asm/unaligned.h>
+@@ -2805,6 +2806,8 @@ int open_ctree(struct super_block *sb,
+ 		goto fail_alloc;
+ 	}
+ 
++	fs_info->dax_dev = fs_dax_get_by_bdev(fs_devices->latest_bdev);
++
+ 	/*
+ 	 * We want to check superblock checksum, the type is stored inside.
+ 	 * Pass the whole disk block of size BTRFS_SUPER_INFO_SIZE (4k).
+@@ -4043,6 +4046,7 @@ void close_ctree(struct btrfs_fs_info *fs_info)
+ #endif
+ 
+ 	btrfs_close_devices(fs_info->fs_devices);
++	fs_put_dax(fs_info->dax_dev);
+ 	btrfs_mapping_tree_free(&fs_info->mapping_tree);
+ 
+ 	percpu_counter_destroy(&fs_info->dirty_metadata_bytes);
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index cd4e693406a0..0138119cd9a3 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -149,8 +149,11 @@ void btrfs_sync_inode_flags_to_i_flags(struct inode *inode)
+ 	if (binode->flags & BTRFS_INODE_DIRSYNC)
+ 		new_fl |= S_DIRSYNC;
+ 
++	if ((btrfs_test_opt(btrfs_sb(inode->i_sb), DAX)) && S_ISREG(inode->i_mode))
++		new_fl |= S_DAX;
++
+ 	set_mask_bits(&inode->i_flags,
+-		      S_SYNC | S_APPEND | S_IMMUTABLE | S_NOATIME | S_DIRSYNC,
++		      S_SYNC | S_APPEND | S_IMMUTABLE | S_NOATIME | S_DIRSYNC | S_DAX,
+ 		      new_fl);
+ }
+ 
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index 120e4340792a..3b85e61e5182 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -326,6 +326,7 @@ enum {
+ 	Opt_treelog, Opt_notreelog,
+ 	Opt_usebackuproot,
+ 	Opt_user_subvol_rm_allowed,
++	Opt_dax,
+ 
+ 	/* Deprecated options */
+ 	Opt_alloc_start,
+@@ -393,6 +394,7 @@ static const match_table_t tokens = {
+ 	{Opt_notreelog, "notreelog"},
+ 	{Opt_usebackuproot, "usebackuproot"},
+ 	{Opt_user_subvol_rm_allowed, "user_subvol_rm_allowed"},
++	{Opt_dax, "dax"},
+ 
+ 	/* Deprecated options */
+ 	{Opt_alloc_start, "alloc_start=%s"},
+@@ -745,6 +747,32 @@ int btrfs_parse_options(struct btrfs_fs_info *info, char *options,
+ 		case Opt_user_subvol_rm_allowed:
+ 			btrfs_set_opt(info->mount_opt, USER_SUBVOL_RM_ALLOWED);
+ 			break;
++		case Opt_dax:
++#ifdef CONFIG_FS_DAX
++			if (btrfs_super_num_devices(info->super_copy) > 1) {
++				btrfs_info(info,
++					   "dax not supported for multi-device btrfs partition\n");
++				ret = -EOPNOTSUPP;
++				goto out;
++			}
++			btrfs_set_opt(info->mount_opt, DAX);
++			btrfs_warn(info, "DAX enabled. Warning: EXPERIMENTAL, use at your own risk\n");
++			btrfs_set_and_info(info, NODATASUM,
++					   "auto-setting nodatasum (dax)");
++			btrfs_clear_opt(info->mount_opt, SPACE_CACHE);
++			btrfs_set_and_info(info, FREE_SPACE_TREE,
++					"auto-setting free space tree (dax)");
++			if (btrfs_test_opt(info, COMPRESS)) {
++				btrfs_info(info, "disabling compress (dax)");
++				btrfs_clear_opt(info->mount_opt, COMPRESS);
++			}
++			break;
++#else
++			btrfs_err(info,
++				  "DAX option not supported\n");
++			ret = -EINVAL;
++			goto out;
++#endif
+ 		case Opt_enospc_debug:
+ 			btrfs_set_opt(info->mount_opt, ENOSPC_DEBUG);
+ 			break;
+@@ -1335,6 +1363,8 @@ static int btrfs_show_options(struct seq_file *seq, struct dentry *dentry)
+ 		seq_puts(seq, ",clear_cache");
+ 	if (btrfs_test_opt(info, USER_SUBVOL_RM_ALLOWED))
+ 		seq_puts(seq, ",user_subvol_rm_allowed");
++	if (btrfs_test_opt(info, DAX))
++		seq_puts(seq, ",dax");
+ 	if (btrfs_test_opt(info, ENOSPC_DEBUG))
+ 		seq_puts(seq, ",enospc_debug");
+ 	if (btrfs_test_opt(info, AUTO_DEFRAG))
+-- 
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
