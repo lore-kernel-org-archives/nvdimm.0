@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0DDA3212017D2
- for <linux-nvdimm@lists.01.org>; Tue,  9 Apr 2019 21:08:55 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v5 0/6] virtio pmem driver 
-Date: Wed, 10 Apr 2019 09:38:20 +0530
-Message-Id: <20190410040826.24371-1-pagupta@redhat.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id C35272121797B
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:29 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 11/18] btrfs: add dax mmap support
+Date: Mon, 29 Apr 2019 12:26:42 -0500
+Message-Id: <20190429172649.8288-12-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,155 +17,111 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-IFRoaXMgcGF0Y2ggc2VyaWVzIGhhcyBpbXBsZW1lbnRhdGlvbiBmb3IgInZpcnRpbyBwbWVtIi4g
-CiAidmlydGlvIHBtZW0iIGlzIGZha2UgcGVyc2lzdGVudCBtZW1vcnkobnZkaW1tKSBpbiBndWVz
-dCAKIHdoaWNoIGFsbG93cyB0byBieXBhc3MgdGhlIGd1ZXN0IHBhZ2UgY2FjaGUuIFRoaXMgYWxz
-bwogaW1wbGVtZW50cyBhIFZJUlRJTyBiYXNlZCBhc3luY2hyb25vdXMgZmx1c2ggbWVjaGFuaXNt
-LiAgCiAKIFNoYXJpbmcgZ3Vlc3Qga2VybmVsIGRyaXZlciBpbiB0aGlzIHBhdGNoc2V0IHdpdGgg
-dGhlIAogY2hhbmdlcyBzdWdnZXN0ZWQgaW4gdjQuIFRlc3RlZCB3aXRoIFFlbXUgc2lkZSBkZXZp
-Y2UgCiBlbXVsYXRpb24gWzZdIGZvciB2aXJ0aW8tcG1lbS4gCgogV2UgaGF2ZSBpbmNvcnBvcmF0
-ZWQgYWxsIHRoZSBzdWdnZXN0aW9ucyBpbiBWNC4gRG9jdW1lbnRlZCAKIHRoZSBpbXBhY3Qgb2Yg
-cG9zc2libGUgcGFnZSBjYWNoZSBzaWRlIGNoYW5uZWwgYXR0YWNrcyB3aXRoIAogc3VnZ2VzdGVk
-IGNvdW50ZXJtZWFzdXJlcy4KIAogRGV0YWlscyBvZiBwcm9qZWN0IGlkZWEgZm9yICd2aXJ0aW8g
-cG1lbScgZmx1c2hpbmcgaW50ZXJmYWNlIAogaXMgc2hhcmVkIFszXSAmIFs0XS4KCiBJbXBsZW1l
-bnRhdGlvbiBpcyBkaXZpZGVkIGludG8gdHdvIHBhcnRzOgogTmV3IHZpcnRpbyBwbWVtIGd1ZXN0
-IGRyaXZlciBhbmQgcWVtdSBjb2RlIGNoYW5nZXMgZm9yIG5ldyAKIHZpcnRpbyBwbWVtIHBhcmF2
-aXJ0dWFsaXplZCBkZXZpY2UuCgoxLiBHdWVzdCB2aXJ0aW8tcG1lbSBrZXJuZWwgZHJpdmVyCi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICAtIFJlYWRzIHBlcnNpc3RlbnQgbWVt
-b3J5IHJhbmdlIGZyb20gcGFyYXZpcnQgZGV2aWNlIGFuZCAKICAgICByZWdpc3RlcnMgd2l0aCAn
-bnZkaW1tX2J1cycuICAKICAgLSAnbnZkaW1tL3BtZW0nIGRyaXZlciB1c2VzIHRoaXMgaW5mb3Jt
-YXRpb24gdG8gYWxsb2NhdGUgCiAgICAgcGVyc2lzdGVudCBtZW1vcnkgcmVnaW9uIGFuZCBzZXR1
-cCBmaWxlc3lzdGVtIG9wZXJhdGlvbnMgCiAgICAgdG8gdGhlIGFsbG9jYXRlZCBtZW1vcnkuIAog
-ICAtIHZpcnRpbyBwbWVtIGRyaXZlciBpbXBsZW1lbnRzIGFzeW5jaHJvbm91cyBmbHVzaGluZyAK
-ICAgICBpbnRlcmZhY2UgdG8gZmx1c2ggZnJvbSBndWVzdCB0byBob3N0LgoKMi4gUWVtdSB2aXJ0
-aW8tcG1lbSBkZXZpY2UKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgIC0gQ3Jl
-YXRlcyB2aXJ0aW8gcG1lbSBkZXZpY2UgYW5kIGV4cG9zZXMgYSBtZW1vcnkgcmFuZ2UgdG8gCiAg
-ICAgS1ZNIGd1ZXN0LiAKICAgLSBBdCBob3N0IHNpZGUgdGhpcyBpcyBmaWxlIGJhY2tlZCBtZW1v
-cnkgd2hpY2ggYWN0cyBhcyAKICAgICBwZXJzaXN0ZW50IG1lbW9yeS4gCiAgIC0gUWVtdSBzaWRl
-IGZsdXNoIHVzZXMgYWlvIHRocmVhZCBwb29sIEFQSSdzIGFuZCB2aXJ0aW8gCiAgICAgZm9yIGFz
-eW5jaHJvbm91cyBndWVzdCBtdWx0aSByZXF1ZXN0IGhhbmRsaW5nLiAKCiAgIERhdmlkIEhpbGRl
-bmJyYW5kIENDZWQgYWxzbyBwb3N0ZWQgYSBtb2RpZmllZCB2ZXJzaW9uWzddIG9mIAogICBxZW11
-IHZpcnRpby1wbWVtIGNvZGUgYmFzZWQgb24gdXBkYXRlZCBRZW11IG1lbW9yeSBkZXZpY2UgQVBJ
-LiAKCiBWaXJ0aW8tcG1lbSBzZWN1cml0eSBpbXBsaWNhdGlvbnMgYW5kIGNvdW50ZXJtZWFzdXJl
-czoKIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-CgogSW4gcHJldmlvdXMgcG9zdGluZyBvZiBrZXJuZWwgZHJpdmVyLCB0aGVyZSB3YXMgZGlzY3Vz
-c2lvbiBbOV0KIG9uIHBvc3NpYmxlIGltcGxpY2F0aW9ucyBvZiBwYWdlIGNhY2hlIHNpZGUgY2hh
-bm5lbCBhdHRhY2tzIHdpdGggCiB2aXJ0aW8gcG1lbS4gQWZ0ZXIgdGhvcm91Z2ggYW5hbHlzaXMg
-b2YgZGV0YWlscyBvZiBrbm93biBzaWRlIAogY2hhbm5lbCBhdHRhY2tzLCBiZWxvdyBhcmUgdGhl
-IHN1Z2dlc3Rpb25zOgoKIC0gRGVwZW5kcyBlbnRpcmVseSBvbiBob3cgaG9zdCBiYWNraW5nIGlt
-YWdlIGZpbGUgaXMgbWFwcGVkIAogICBpbnRvIGd1ZXN0IGFkZHJlc3Mgc3BhY2UuIAoKIC0gdmly
-dGlvLXBtZW0gZGV2aWNlIGVtdWxhdGlvbiwgYnkgZGVmYXVsdCBzaGFyZWQgbWFwcGluZyBpcyB1
-c2VkCiAgIHRvIG1hcCBob3N0IGJhY2tpbmcgZmlsZS4gSXQgaXMgcmVjb21tZW5kZWQgdG8gdXNl
-IHNlcGFyYXRlCiAgIGJhY2tpbmcgZmlsZSBhdCBob3N0IHNpZGUgZm9yIGV2ZXJ5IGd1ZXN0LiBU
-aGlzIHdpbGwgcHJldmVudAogICBhbnkgcG9zc2liaWxpdHkgb2YgZXhlY3V0aW5nIGNvbW1vbiBj
-b2RlIGZyb20gbXVsdGlwbGUgZ3Vlc3RzCiAgIGFuZCBhbnkgY2hhbmNlIG9mIGluZmVycmluZyBn
-dWVzdCBsb2NhbCBkYXRhIGJhc2VkIGJhc2VkIG9uIAogICBleGVjdXRpb24gdGltZS4KCiAtIElm
-IGJhY2tpbmcgZmlsZSBpcyByZXF1aXJlZCB0byBiZSBzaGFyZWQgYW1vbmcgbXVsdGlwbGUgZ3Vl
-c3RzIAogICBpdCBpcyByZWNvbW1lbmRlZCB0byBkb24ndCBzdXBwb3J0IGhvc3QgcGFnZSBjYWNo
-ZSBldmljdGlvbiAKICAgY29tbWFuZHMgZnJvbSB0aGUgZ3Vlc3QgZHJpdmVyLiBUaGlzIHdpbGwg
-YXZvaWQgYW55IHBvc3NpYmlsaXR5CiAgIG9mIGluZmVycmluZyBndWVzdCBsb2NhbCBkYXRhIG9y
-IGhvc3QgZGF0YSBmcm9tIGFub3RoZXIgZ3Vlc3QuIAoKIC0gUHJvcG9zZWQgZGV2aWNlIHNwZWNp
-ZmljYXRpb24gWzhdIGZvciB2aXJ0aW8tcG1lbSBkZXZpY2Ugd2l0aCAKICAgZGV0YWlscyBvZiBw
-b3NzaWJsZSBzZWN1cml0eSBpbXBsaWNhdGlvbnMgYW5kIHN1Z2dlc3RlZCAKICAgY291bnRlcm1l
-YXN1cmVzIGZvciBkZXZpY2UgZW11bGF0aW9uLgoKIFZpcnRpby1wbWVtIGVycm9ycyBoYW5kbGlu
-ZzoKIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICBDaGVja2VkIGJl
-aGF2aW91ciBvZiB2aXJ0aW8tcG1lbSBmb3IgYmVsb3cgdHlwZXMgb2YgZXJyb3JzCiAgTmVlZCBz
-dWdnZXN0aW9ucyBvbiBleHBlY3RlZCBiZWhhdmlvdXIgZm9yIGhhbmRsaW5nIHRoZXNlIGVycm9y
-cz8KCiAgLSBIYXJkd2FyZSBFcnJvcnM6IFVuY29ycmVjdGFibGUgcmVjb3ZlcmFibGUgRXJyb3Jz
-OiAKICBhXSB2aXJ0aW8tcG1lbTogCiAgICAtIEFzIHBlciBjdXJyZW50IGxvZ2ljIGlmIGVycm9y
-IHBhZ2UgYmVsb25ncyB0byBRZW11IHByb2Nlc3MsIAogICAgICBob3N0IE1DRSBoYW5kbGVyIGlz
-b2xhdGVzKGh3cG9pc29uKSB0aGF0IHBhZ2UgYW5kIHNlbmQgU0lHQlVTLiAKICAgICAgUWVtdSBT
-SUdCVVMgaGFuZGxlciBpbmplY3RzIGV4Y2VwdGlvbiB0byBLVk0gZ3Vlc3QuIAogICAgLSBLVk0g
-Z3Vlc3QgdGhlbiBpc29sYXRlcyB0aGUgcGFnZSBhbmQgc2VuZCBTSUdCVVMgdG8gZ3Vlc3QgCiAg
-ICAgIHVzZXJzcGFjZSBwcm9jZXNzIHdoaWNoIGhhcyBtYXBwZWQgdGhlIHBhZ2UuIAogIAogIGJd
-IEV4aXN0aW5nIGltcGxlbWVudGF0aW9uIGZvciBBQ1BJIHBtZW0gZHJpdmVyOiAKICAgIC0gSGFu
-ZGxlcyBzdWNoIGVycm9ycyB3aXRoIE1DRSBub3RpZmllciBhbmQgY3JlYXRlcyBhIGxpc3QgCiAg
-ICAgIG9mIGJhZCBibG9ja3MuIFJlYWQvZGlyZWN0IGFjY2VzcyBEQVggb3BlcmF0aW9uIHJldHVy
-biBFSU8gCiAgICAgIGlmIGFjY2Vzc2VkIG1lbW9yeSBwYWdlIGZhbGwgaW4gYmFkIGJsb2NrIGxp
-c3QuCiAgICAtIEl0IGFsc28gc3RhcnRzIGJhY2tnb3VuZCBzY3J1YmJpbmcuICAKICAgIC0gU2lt
-aWxhciBmdW5jdGlvbmFsaXR5IGNhbiBiZSByZXVzZWQgaW4gdmlydGlvLXBtZW0gd2l0aCBNQ0Ug
-CiAgICAgIG5vdGlmaWVyIGJ1dCB3aXRob3V0IHNjcnViYmluZyhubyBBQ1BJL0FSUyk/IE5lZWQg
-aW5wdXRzIHRvIAogICAgICBjb25maXJtIGlmIHRoaXMgYmVoYXZpb3VyIGlzIG9rIG9yIG5lZWRz
-IGFueSBjaGFuZ2U/CgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjQ6IFsxXQotIEZhY3RvciBvdXQgTUFQ
-X1NZTkMgc3VwcG9ydGVkIGZ1bmN0aW9uYWxpdHkgdG8gYSBjb21tb24gaGVscGVyCgkJCQlbRGF2
-ZSwgRGFycmljaywgSmFuXQotIENvbW1lbnQsIGluZGVudGF0aW9uIGFuZCB2aXJ0cXVldWVfa2lj
-ayBmYWlsdXJlIGhhbmRsZSAtIFl1dmFsIFNoYWlhCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjM6IFsy
-XQotIFVzZSBnZW5lcmljIGRheF9zeW5jaHJvbm91cygpIGhlbHBlciB0byBjaGVjayBmb3IgREFY
-REVWX1NZTkMgCiAgZmxhZyAtIFtEYW4sIERhcnJpY2ssIEphbl0KLSBBZGQgJ2lzX252ZGltbV9h
-c3luYycgZnVuY3Rpb24KLSBEb2N1bWVudCBwYWdlIGNhY2hlIHNpZGUgY2hhbm5lbCBhdHRhY2tz
-IGltcGxpY2F0aW9ucyAmIAogIGNvdW50ZXJtZWFzdXJlcyAtIFtEYXZlIENoaW5uZXIsIE1pY2hh
-ZWxdCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjI6IAotIERpc2FibGUgTUFQX1NZTkMgZm9yIGV4dDQg
-JiBYRlMgZmlsZXN5c3RlbXMgLSBbRGFuXSAKLSBVc2UgbmFtZSAndmlydGlvIHBtZW0nIGluIHBs
-YWNlIG9mICdmYWtlIGRheCcgCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjE6IAotIDAtZGF5IGJ1aWxk
-IHRlc3QgZm9yIGJ1aWxkIGRlcGVuZGVuY3kgb24gbGlibnZkaW1tIAoKIENoYW5nZXMgc3VnZ2Vz
-dGVkIGJ5IC0gW0RhbiBXaWxsaWFtc10KLSBTcGxpdCB0aGUgZHJpdmVyIGludG8gdHdvIHBhcnRz
-IHZpcnRpbyAmIHBtZW0gIAotIE1vdmUgcXVldWluZyBvZiBhc3luYyBibG9jayByZXF1ZXN0IHRv
-IGJsb2NrIGxheWVyCi0gQWRkICJzeW5jIiBwYXJhbWV0ZXIgaW4gbnZkaW1tX2ZsdXNoIGZ1bmN0
-aW9uCi0gVXNlIGluZGlyZWN0IGNhbGwgZm9yIG52ZGltbV9mbHVzaAotIERvbuKAmXQgbW92ZSBk
-ZWNsYXJhdGlvbnMgdG8gY29tbW9uIGdsb2JhbCBoZWFkZXIgZS5nIG5kLmgKLSBudmRpbW1fZmx1
-c2goKSByZXR1cm4gMCBvciAtRUlPIGlmIGl0IGZhaWxzCi0gVGVhY2ggbnNpb19yd19ieXRlcygp
-IHRoYXQgdGhlIGZsdXNoIGNhbiBmYWlsCi0gUmVuYW1lIG52ZGltbV9mbHVzaCgpIHRvIGdlbmVy
-aWNfbnZkaW1tX2ZsdXNoKCkKLSBVc2UgJ25kX3JlZ2lvbi0+cHJvdmlkZXJfZGF0YScgZm9yIGxv
-bmcgZGVyZWZlcmVuY2luZwotIFJlbW92ZSB2aXJ0aW9fcG1lbV9mcmVlemUvcmVzdG9yZSBmdW5j
-dGlvbnMKLSBSZW1vdmUgQlNEIGxpY2Vuc2UgdGV4dCB3aXRoIFNQRFggbGljZW5zZSB0ZXh0Cgot
-IEFkZCBtaWdodF9zbGVlcCgpIGluIHZpcnRpb19wbWVtX2ZsdXNoIC0gW0x1aXpdCi0gTWFrZSBz
-cGluX2xvY2tfaXJxc2F2ZSgpIG5hcnJvdwoKQ2hhbmdlcyBmcm9tIFJGQyB2MwotIFJlYmFzZSB0
-byBsYXRlc3QgdXBzdHJlYW0gLSBMdWl6Ci0gQ2FsbCBuZHJlZ2lvbi0+Zmx1c2ggaW4gcGxhY2Ug
-b2YgbnZkaW1tX2ZsdXNoLSBMdWl6Ci0ga21hbGxvYyByZXR1cm4gY2hlY2sgLSBMdWl6Ci0gdmly
-dHF1ZXVlIGZ1bGwgaGFuZGxpbmcgLSBTdGVmYW4KLSBEb24ndCBtYXAgZW50aXJlIHZpcnRpb19w
-bWVtX3JlcSB0byBkZXZpY2UgLSBTdGVmYW4KLSByZXF1ZXN0IGxlYWssIGNvcnJlY3Qgc2l6ZW9m
-IHJlcS0gU3RlZmFuCi0gTW92ZSBkZWNsYXJhdGlvbiB0byB2aXJ0aW9fcG1lbS5jCgpDaGFuZ2Vz
-IGZyb20gUkZDIHYyOgotIEFkZCBmbHVzaCBmdW5jdGlvbiBpbiB0aGUgbmRfcmVnaW9uIGluIHBs
-YWNlIG9mIHN3aXRjaGluZwogIG9uIGEgZmxhZyAtIERhbiAmIFN0ZWZhbgotIEFkZCBmbHVzaCBj
-b21wbGV0aW9uIGZ1bmN0aW9uIHdpdGggcHJvcGVyIGxvY2tpbmcgYW5kIHdhaXQKICBmb3IgaG9z
-dCBzaWRlIGZsdXNoIGNvbXBsZXRpb24gLSBTdGVmYW4gJiBEYW4KLSBLZWVwIHVzZXJzcGFjZSBB
-UEkgaW4gdWFwaSBoZWFkZXIgZmlsZSAtIFN0ZWZhbiwgTVNUCi0gVXNlIExFIGZpZWxkcyAmIE5l
-dyBkZXZpY2UgaWQgLSBNU1QKLSBJbmRlbnRhdGlvbiAmIHNwYWNpbmcgc3VnZ2VzdGlvbnMgLSBN
-U1QgJiBFcmljCi0gUmVtb3ZlIGV4dHJhIGhlYWRlciBmaWxlcyAmIGFkZCBsaWNlbnNpbmcgLSBT
-dGVmYW4KCkNoYW5nZXMgZnJvbSBSRkMgdjE6Ci0gUmV1c2UgZXhpc3RpbmcgJ3BtZW0nIGNvZGUg
-Zm9yIHJlZ2lzdGVyaW5nIHBlcnNpc3RlbnQgCiAgbWVtb3J5IGFuZCBvdGhlciBvcGVyYXRpb25z
-IGluc3RlYWQgb2YgY3JlYXRpbmcgYW4gZW50aXJlbHkgCiAgbmV3IGJsb2NrIGRyaXZlci4KLSBV
-c2UgVklSVElPIGRyaXZlciB0byByZWdpc3RlciBtZW1vcnkgaW5mb3JtYXRpb24gd2l0aCAKICBu
-dmRpbW1fYnVzIGFuZCBjcmVhdGUgcmVnaW9uX3R5cGUgYWNjb3JkaW5nbHkuIAotIENhbGwgVklS
-VElPIGZsdXNoIGZyb20gZXhpc3RpbmcgcG1lbSBkcml2ZXIuCgpQYW5rYWogR3VwdGEgKDYpOgog
-ICBsaWJudmRpbW06IG5kX3JlZ2lvbiBmbHVzaCBjYWxsYmFjayBzdXBwb3J0CiAgIHZpcnRpby1w
-bWVtOiBBZGQgdmlydGlvLXBtZW0gZ3Vlc3QgZHJpdmVyCiAgIGxpYm52ZGltbTogYWRkIG5kX3Jl
-Z2lvbiBidWZmZXJlZCBkYXhfZGV2IGZsYWcKICAgZGF4OiBjaGVjayBzeW5jaHJvbm91cyBtYXBw
-aW5nIGlzIHN1cHBvcnRlZAogICBleHQ0OiBkaXNhYmxlIG1hcF9zeW5jIGZvciB2aXJ0aW8gcG1l
-bQogICB4ZnM6IGRpc2FibGUgbWFwX3N5bmMgZm9yIHZpcnRpbyBwbWVtCgpbMV0gaHR0cHM6Ly9s
-a21sLm9yZy9sa21sLzIwMTkvNC8zLzM5NApbMl0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkv
-MS85LzQ3MQpbM10gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva3ZtL21zZzE0OTc2MS5o
-dG1sCls0XSBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9rdm0vbXNnMTUzMDk1Lmh0bWwg
-IApbNV0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvOC8zMS80MTMKWzZdIGh0dHBzOi8vbWFy
-Yy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTE1MzU3MjIyODcxOTIzNyZ3PTIgCls3XSBodHRwczov
-L21hcmMuaW5mby8/bD1xZW11LWRldmVsJm09MTUzNTU1NzIxOTAxODI0Jnc9MgpbOF0gaHR0cHM6
-Ly9saXN0cy5vYXNpcy1vcGVuLm9yZy9hcmNoaXZlcy92aXJ0aW8tZGV2LzIwMTkwMy9tc2cwMDA4
-My5odG1sCls5XSBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzkvMTE5MQoKIGRyaXZlcnMv
-YWNwaS9uZml0L2NvcmUuYyAgICAgICAgIHwgICAgNCAtCiBkcml2ZXJzL2RheC9idXMuYyAgICAg
-ICAgICAgICAgICB8ICAgIDIgCiBkcml2ZXJzL2RheC9zdXBlci5jICAgICAgICAgICAgICB8ICAg
-MTMgKysrLQogZHJpdmVycy9tZC9kbS5jICAgICAgICAgICAgICAgICAgfCAgICAyIAogZHJpdmVy
-cy9udmRpbW0vY2xhaW0uYyAgICAgICAgICAgfCAgICA2ICsKIGRyaXZlcnMvbnZkaW1tL25kLmgg
-ICAgICAgICAgICAgIHwgICAgMSAKIGRyaXZlcnMvbnZkaW1tL3BtZW0uYyAgICAgICAgICAgIHwg
-ICAxNyArKystLQogZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyAgICAgfCAgIDQ1ICsrKysr
-KysrKysrKystCiBkcml2ZXJzL252ZGltbS92aXJ0aW9fcG1lbS5jICAgICB8ICAgODggKysrKysr
-KysrKysrKysrKysrKysrKysrKysrCiBkcml2ZXJzL3ZpcnRpby9LY29uZmlnICAgICAgICAgICB8
-ICAgMTAgKysrCiBkcml2ZXJzL3ZpcnRpby9NYWtlZmlsZSAgICAgICAgICB8ICAgIDEgCiBkcml2
-ZXJzL3ZpcnRpby9wbWVtLmMgICAgICAgICAgICB8ICAxMjQgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrCiBmcy9leHQ0L2ZpbGUuYyAgICAgICAgICAgICAgICAgICB8ICAg
-MTEgKy0tCiBmcy94ZnMveGZzX2ZpbGUuYyAgICAgICAgICAgICAgICB8ICAgMTAgKy0tCiBpbmNs
-dWRlL2xpbnV4L2RheC5oICAgICAgICAgICAgICB8ICAgMzIgKysrKysrKysrLQogaW5jbHVkZS9s
-aW51eC9saWJudmRpbW0uaCAgICAgICAgfCAgICA5ICsrCiBpbmNsdWRlL2xpbnV4L3ZpcnRpb19w
-bWVtLmggICAgICB8ICAgNjAgKysrKysrKysrKysrKysrKysrCiBpbmNsdWRlL3VhcGkvbGludXgv
-dmlydGlvX2lkcy5oICB8ICAgIDEgCiBpbmNsdWRlL3VhcGkvbGludXgvdmlydGlvX3BtZW0uaCB8
-ICAgMTAgKysrCiAxOSBmaWxlcyBjaGFuZ2VkLCA0MTkgaW5zZXJ0aW9ucygrKSwgMjcgZGVsZXRp
-b25zKC0pCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+
+Add a new vm_operations struct btrfs_dax_vm_ops
+specifically for dax files.
+
+Since we will be removing(nulling) readpages/writepages for dax
+return ENOEXEC only for non-dax files.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+---
+ fs/btrfs/ctree.h |  1 +
+ fs/btrfs/dax.c   | 13 ++++++++++++-
+ fs/btrfs/file.c  | 18 ++++++++++++++++--
+ 3 files changed, 29 insertions(+), 3 deletions(-)
+
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index eec01eb92f33..2b7bdabb44f8 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3802,6 +3802,7 @@ int btree_readahead_hook(struct extent_buffer *eb, int err);
+ /* dax.c */
+ ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
+ ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from);
++vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
+ #else
+ static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
+ {
+diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
+index f5cc9bcdbf14..de957d681e16 100644
+--- a/fs/btrfs/dax.c
++++ b/fs/btrfs/dax.c
+@@ -139,7 +139,7 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
+ 
+ 	iomap->addr = em->block_start + diff;
+ 	/* Check if we really need to copy data from old extent */
+-	if (bi && !bi->nocow && (offset || pos + length < bi->end)) {
++	if (bi && !bi->nocow && (offset || pos + length < bi->end || flags & IOMAP_FAULT)) {
+ 		iomap->type = IOMAP_DAX_COW;
+ 		if (srcblk) {
+ 			sector_t sector = (srcblk + (pos & PAGE_MASK) -
+@@ -216,4 +216,15 @@ ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *iter)
+ 	}
+ 	return ret;
+ }
++
++vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
++{
++	vm_fault_t ret;
++	pfn_t pfn;
++	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, &pfn, NULL, &btrfs_iomap_ops);
++	if (ret & VM_FAULT_NEEDDSYNC)
++		ret = dax_finish_sync_fault(vmf, PE_SIZE_PTE, pfn);
++
++	return ret;
++}
+ #endif /* CONFIG_FS_DAX */
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index a795023e26ca..9d5a3c99a6b9 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -2214,15 +2214,29 @@ static const struct vm_operations_struct btrfs_file_vm_ops = {
+ 	.page_mkwrite	= btrfs_page_mkwrite,
+ };
+ 
++#ifdef CONFIG_FS_DAX
++static const struct vm_operations_struct btrfs_dax_vm_ops = {
++	.fault          = btrfs_dax_fault,
++	.page_mkwrite   = btrfs_dax_fault,
++	.pfn_mkwrite    = btrfs_dax_fault,
++};
++#else
++#define btrfs_dax_vm_ops btrfs_file_vm_ops
++#endif
++
+ static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
+ {
+ 	struct address_space *mapping = filp->f_mapping;
++	struct inode *inode = file_inode(filp);
+ 
+-	if (!mapping->a_ops->readpage)
++	if (!IS_DAX(inode) && !mapping->a_ops->readpage)
+ 		return -ENOEXEC;
+ 
+ 	file_accessed(filp);
+-	vma->vm_ops = &btrfs_file_vm_ops;
++	if (IS_DAX(inode))
++		vma->vm_ops = &btrfs_dax_vm_ops;
++	else
++		vma->vm_ops = &btrfs_file_vm_ops;
+ 
+ 	return 0;
+ }
+-- 
+2.16.4
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
