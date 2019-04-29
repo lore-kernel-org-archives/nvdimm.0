@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F665211F2696
- for <linux-nvdimm@lists.01.org>; Thu,  4 Apr 2019 12:21:24 -0700 (PDT)
-Subject: [RFC PATCH 3/5] acpi/hmat: Track target address ranges
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 04 Apr 2019 12:08:44 -0700
-Message-ID: <155440492414.3190322.12683374224345847860.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 9840F2194EB7E
+ for <linux-nvdimm@lists.01.org>; Mon, 29 Apr 2019 10:27:25 -0700 (PDT)
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: [PATCH 09/18] btrfs: Add dax specific address_space_operations
+Date: Mon, 29 Apr 2019 12:26:40 -0500
+Message-Id: <20190429172649.8288-10-rgoldwyn@suse.de>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,215 +17,118 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Len Brown <lenb@kernel.org>
+To: linux-btrfs@vger.kernel.org
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As of ACPI 6.3 the HMAT no longer advertises the physical memory address
-range for its entries. Instead, the expectation is the corresponding
-entry in the SRAT is looked up by the target proximity domain.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Given there may be multiple distinct address ranges that share the same
-performance profile (sparse address space), find_mem_target() is updated
-to also consider the start address of the memory range. Target property
-updates are also adjusted to loop over all possible 'struct target'
-instances that may share the same proximity domain identification.
-
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- drivers/acpi/hmat/hmat.c |   77 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 53 insertions(+), 24 deletions(-)
+ fs/btrfs/inode.c | 34 +++++++++++++++++++++++++++++++---
+ 1 file changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat/hmat.c
-index b275016ff648..e7ae44c8d359 100644
---- a/drivers/acpi/hmat/hmat.c
-+++ b/drivers/acpi/hmat/hmat.c
-@@ -38,6 +38,7 @@ static struct memory_locality *localities_types[4];
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index af4b56cba104..05714ffc4894 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -28,6 +28,7 @@
+ #include <linux/magic.h>
+ #include <linux/iversion.h>
+ #include <linux/swap.h>
++#include <linux/dax.h>
+ #include <asm/unaligned.h>
+ #include "ctree.h"
+ #include "disk-io.h"
+@@ -65,6 +66,7 @@ static const struct inode_operations btrfs_dir_ro_inode_operations;
+ static const struct inode_operations btrfs_special_inode_operations;
+ static const struct inode_operations btrfs_file_inode_operations;
+ static const struct address_space_operations btrfs_aops;
++static const struct address_space_operations btrfs_dax_aops;
+ static const struct file_operations btrfs_dir_file_operations;
+ static const struct extent_io_ops btrfs_extent_io_ops;
  
- struct memory_target {
- 	struct list_head node;
-+	u64 start, size;
- 	unsigned int memory_pxm;
- 	unsigned int processor_pxm;
- 	struct node_hmem_attrs hmem_attrs;
-@@ -63,12 +64,13 @@ static __init struct memory_initiator *find_mem_initiator(unsigned int cpu_pxm)
- 	return NULL;
- }
+@@ -3757,7 +3759,10 @@ static int btrfs_read_locked_inode(struct inode *inode,
  
--static __init struct memory_target *find_mem_target(unsigned int mem_pxm)
-+static __init struct memory_target *find_mem_target(unsigned int mem_pxm,
-+		u64 start)
- {
- 	struct memory_target *target;
- 
- 	list_for_each_entry(target, &targets, node)
--		if (target->memory_pxm == mem_pxm)
-+		if (target->memory_pxm == mem_pxm && target->start == start)
- 			return target;
- 	return NULL;
- }
-@@ -92,14 +94,15 @@ static __init void alloc_memory_initiator(unsigned int cpu_pxm)
- 	list_add_tail(&initiator->node, &initiators);
- }
- 
--static __init void alloc_memory_target(unsigned int mem_pxm)
-+static __init void alloc_memory_target(unsigned int mem_pxm,
-+		u64 start, u64 size)
- {
- 	struct memory_target *target;
- 
- 	if (pxm_to_node(mem_pxm) == NUMA_NO_NODE)
- 		return;
- 
--	target = find_mem_target(mem_pxm);
-+	target = find_mem_target(mem_pxm, start);
- 	if (target)
- 		return;
- 
-@@ -109,6 +112,8 @@ static __init void alloc_memory_target(unsigned int mem_pxm)
- 
- 	target->memory_pxm = mem_pxm;
- 	target->processor_pxm = PXM_INVAL;
-+	target->start = start;
-+	target->size = size;
- 	list_add_tail(&target->node, &targets);
- }
- 
-@@ -183,8 +188,8 @@ static __init u32 hmat_normalize(u16 entry, u64 base, u8 type)
- 	return value;
- }
- 
--static __init void hmat_update_target_access(struct memory_target *target,
--					     u8 type, u32 value)
-+static __init void __hmat_update_target_access(struct memory_target *target,
-+		u8 type, u32 value)
- {
- 	switch (type) {
- 	case ACPI_HMAT_ACCESS_LATENCY:
-@@ -212,6 +217,20 @@ static __init void hmat_update_target_access(struct memory_target *target,
+ 	switch (inode->i_mode & S_IFMT) {
+ 	case S_IFREG:
+-		inode->i_mapping->a_ops = &btrfs_aops;
++		if (btrfs_test_opt(fs_info, DAX))
++			inode->i_mapping->a_ops = &btrfs_dax_aops;
++		else
++			inode->i_mapping->a_ops = &btrfs_aops;
+ 		BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
+ 		inode->i_fop = &btrfs_file_operations;
+ 		inode->i_op = &btrfs_file_inode_operations;
+@@ -3778,6 +3783,7 @@ static int btrfs_read_locked_inode(struct inode *inode,
  	}
+ 
+ 	btrfs_sync_inode_flags_to_i_flags(inode);
++
+ 	return 0;
  }
  
-+static __init void hmat_update_target_access(int memory_pxm, int processor_pxm,
-+		u8 type, u32 value)
+@@ -6538,7 +6544,10 @@ static int btrfs_create(struct inode *dir, struct dentry *dentry,
+ 	*/
+ 	inode->i_fop = &btrfs_file_operations;
+ 	inode->i_op = &btrfs_file_inode_operations;
+-	inode->i_mapping->a_ops = &btrfs_aops;
++	if (IS_DAX(inode) && S_ISREG(mode))
++		inode->i_mapping->a_ops = &btrfs_dax_aops;
++	else
++		inode->i_mapping->a_ops = &btrfs_aops;
+ 
+ 	err = btrfs_init_inode_security(trans, inode, dir, &dentry->d_name);
+ 	if (err)
+@@ -8665,6 +8674,15 @@ static int btrfs_writepages(struct address_space *mapping,
+ 	return extent_writepages(mapping, wbc);
+ }
+ 
++static int btrfs_dax_writepages(struct address_space *mapping,
++			    struct writeback_control *wbc)
 +{
-+	struct memory_target *target;
-+
-+	list_for_each_entry(target, &targets, node) {
-+		if (target->processor_pxm != processor_pxm)
-+			continue;
-+		if (target->memory_pxm != memory_pxm)
-+			continue;
-+		__hmat_update_target_access(target, type, value);
-+	}
++	struct inode *inode = mapping->host;
++	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
++	return dax_writeback_mapping_range(mapping, fs_info->fs_devices->latest_bdev,
++			wbc);
 +}
 +
- static __init void hmat_add_locality(struct acpi_hmat_locality *hmat_loc)
- {
- 	struct memory_locality *loc;
-@@ -255,7 +274,6 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
- 				      const unsigned long end)
- {
- 	struct acpi_hmat_locality *hmat_loc = (void *)header;
--	struct memory_target *target;
- 	unsigned int init, targ, total_size, ipds, tpds;
- 	u32 *inits, *targs, value;
- 	u16 *entries;
-@@ -296,11 +314,9 @@ static __init int hmat_parse_locality(union acpi_subtable_headers *header,
- 				inits[init], targs[targ], value,
- 				hmat_data_type_suffix(type));
+ static int
+ btrfs_readpages(struct file *file, struct address_space *mapping,
+ 		struct list_head *pages, unsigned nr_pages)
+@@ -10436,7 +10454,10 @@ static int btrfs_tmpfile(struct inode *dir, struct dentry *dentry, umode_t mode)
+ 	inode->i_fop = &btrfs_file_operations;
+ 	inode->i_op = &btrfs_file_inode_operations;
  
--			if (mem_hier == ACPI_HMAT_MEMORY) {
--				target = find_mem_target(targs[targ]);
--				if (target && target->processor_pxm == inits[init])
--					hmat_update_target_access(target, type, value);
--			}
-+			if (mem_hier == ACPI_HMAT_MEMORY)
-+				hmat_update_target_access(targs[targ],
-+						inits[init], type, value);
- 		}
- 	}
+-	inode->i_mapping->a_ops = &btrfs_aops;
++	if (IS_DAX(inode))
++		inode->i_mapping->a_ops = &btrfs_dax_aops;
++	else
++		inode->i_mapping->a_ops = &btrfs_aops;
+ 	BTRFS_I(inode)->io_tree.ops = &btrfs_extent_io_ops;
  
-@@ -367,6 +383,7 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
- {
- 	struct acpi_hmat_proximity_domain *p = (void *)header;
- 	struct memory_target *target = NULL;
-+	bool found = false;
+ 	ret = btrfs_init_inode_security(trans, inode, dir, NULL);
+@@ -10892,6 +10913,13 @@ static const struct address_space_operations btrfs_aops = {
+ 	.swap_deactivate = btrfs_swap_deactivate,
+ };
  
- 	if (p->header.length != sizeof(*p)) {
- 		pr_notice("HMAT: Unexpected address range header length: %d\n",
-@@ -382,23 +399,34 @@ static int __init hmat_parse_proximity_domain(union acpi_subtable_headers *heade
- 		pr_info("HMAT: Memory Flags:%04x Processor Domain:%d Memory Domain:%d\n",
- 			p->flags, p->processor_PD, p->memory_PD);
- 
--	if (p->flags & ACPI_HMAT_MEMORY_PD_VALID) {
--		target = find_mem_target(p->memory_PD);
--		if (!target) {
--			pr_debug("HMAT: Memory Domain missing from SRAT\n");
--			return -EINVAL;
--		}
--	}
--	if (target && p->flags & ACPI_HMAT_PROCESSOR_PD_VALID) {
--		int p_node = pxm_to_node(p->processor_PD);
-+	if ((p->flags & ACPI_HMAT_MEMORY_PD_VALID) == 0)
-+		return 0;
++static const struct address_space_operations btrfs_dax_aops = {
++	.writepages             = btrfs_dax_writepages,
++	.direct_IO              = noop_direct_IO,
++	.set_page_dirty         = noop_set_page_dirty,
++	.invalidatepage         = noop_invalidatepage,
++};
 +
-+	list_for_each_entry(target, &targets, node) {
-+		int p_node;
-+
-+		if (target->memory_pxm != p->memory_PD)
-+			continue;
-+		found = true;
- 
-+		if ((p->flags & ACPI_HMAT_PROCESSOR_PD_VALID) == 0)
-+			continue;
-+
-+		p_node = pxm_to_node(p->processor_PD);
- 		if (p_node == NUMA_NO_NODE) {
--			pr_debug("HMAT: Invalid Processor Domain\n");
-+			pr_debug("HMAT: Invalid Processor Domain: %d\n",
-+					p->processor_PD);
- 			return -EINVAL;
- 		}
-+
- 		target->processor_pxm = p_node;
- 	}
- 
-+	if (!found) {
-+		pr_debug("HMAT: Memory Domain missing from SRAT for pxm: %d\n",
-+				p->memory_PD);
-+		return -EINVAL;
-+	}
- 	return 0;
- }
- 
-@@ -431,7 +459,7 @@ static __init int srat_parse_mem_affinity(union acpi_subtable_headers *header,
- 		return -EINVAL;
- 	if (!(ma->flags & ACPI_SRAT_MEM_ENABLED))
- 		return 0;
--	alloc_memory_target(ma->proximity_domain);
-+	alloc_memory_target(ma->proximity_domain, ma->base_address, ma->length);
- 	return 0;
- }
- 
-@@ -568,7 +596,8 @@ static __init void hmat_register_target_initiators(struct memory_target *target)
- 				clear_bit(initiator->processor_pxm, p_nodes);
- 		}
- 		if (best)
--			hmat_update_target_access(target, loc->hmat_loc->data_type, best);
-+			__hmat_update_target_access(target,
-+					loc->hmat_loc->data_type, best);
- 	}
- 
- 	for_each_set_bit(i, p_nodes, MAX_NUMNODES) {
+ static const struct inode_operations btrfs_file_inode_operations = {
+ 	.getattr	= btrfs_getattr,
+ 	.setattr	= btrfs_setattr,
+-- 
+2.16.4
 
 _______________________________________________
 Linux-nvdimm mailing list
