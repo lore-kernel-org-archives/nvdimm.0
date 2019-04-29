@@ -1,96 +1,123 @@
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: [PATCH 15/18] btrfs: handle dax page zeroing
-Date: Mon, 29 Apr 2019 12:26:46 -0500
-Message-ID: <20190429172649.8288-16-rgoldwyn@suse.de>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH 18/18] btrfs: trace functions for btrfs_iomap_begin/end
+Date: Mon, 29 Apr 2019 12:26:49 -0500
+Message-ID: <20190429172649.8288-19-rgoldwyn@suse.de>
 References: <20190429172649.8288-1-rgoldwyn@suse.de>
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-In-Reply-To: <20190429172649.8288-1-rgoldwyn@suse.de>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: linux-btrfs@vger.kernel.org
-Cc: kilobyte@angband.pl, linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, darrick.wong@oracle.com, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 
-btrfs_dax_zero_block() zeros part of the page, either from the
-front or the regular rest of the block.
+This is for debug purposes only and can be skipped.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 ---
- fs/btrfs/ctree.h |  1 +
- fs/btrfs/dax.c   | 27 ++++++++++++++++++++++++++-
- fs/btrfs/inode.c |  4 ++++
- 3 files changed, 31 insertions(+), 1 deletion(-)
+ fs/btrfs/dax.c               |  3 +++
+ include/trace/events/btrfs.h | 56 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
-diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-index d3d044125619..ee1ed18f8b3c 100644
---- a/fs/btrfs/ctree.h
-+++ b/fs/btrfs/ctree.h
-@@ -3806,6 +3806,7 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
- int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
- 		struct inode *dest, loff_t destoff, loff_t len,
- 		bool *is_same);
-+int btrfs_dax_zero_block(struct inode *inode, loff_t from, loff_t len, bool front);
- #else
- static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
- {
 diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-index af64696a5337..bf2ddac5b5a1 100644
+index 20ec2ec49c68..3fee28f5a199 100644
 --- a/fs/btrfs/dax.c
 +++ b/fs/btrfs/dax.c
-@@ -132,7 +132,8 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
- 	 * This will be true for reads only since we have already
- 	 * allocated em
- 	 */
--	if (em->block_start == EXTENT_MAP_HOLE) {
-+	if (em->block_start == EXTENT_MAP_HOLE ||
-+			em->flags == EXTENT_FLAG_FILLING) {
- 		iomap->type = IOMAP_HOLE;
+@@ -104,6 +104,8 @@ static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
+ 	u64 srcblk = 0;
+ 	loff_t diff;
+ 
++	trace_btrfs_iomap_begin(inode, pos, length, flags);
++
+ 	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
+ 
+ 	iomap->type = IOMAP_MAPPED;
+@@ -164,6 +166,7 @@ static int btrfs_iomap_end(struct inode *inode, loff_t pos,
+ {
+ 	struct btrfs_iomap *bi = iomap->private;
+ 	u64 wend;
++	trace_btrfs_iomap_end(inode, pos, length, written, flags);
+ 
+ 	if (!bi)
  		return 0;
- 	}
-@@ -235,4 +236,28 @@ int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
- 	return dax_file_range_compare(src, srcoff, dest, destoff, len,
- 				      is_same, &btrfs_iomap_ops);
- }
-+
-+/*
-+ * zero a part of the page only. This should CoW (via iomap_begin) if required
-+ */
-+int btrfs_dax_zero_block(struct inode *inode, loff_t from, loff_t len, bool front)
-+{
-+	loff_t start = round_down(from, PAGE_SIZE);
-+	loff_t end = round_up(from, PAGE_SIZE);
-+	loff_t offset = from;
-+	int ret = 0;
-+
-+	if (front) {
-+		len = from - start;
-+		offset = start;
-+	} else	{
-+		if (!len)
-+			len = end - from;
-+	}
-+
-+	if (len)
-+		ret = iomap_zero_range(inode, offset, len, NULL, &btrfs_iomap_ops);
-+
-+	return (ret < 0) ? ret : 0;
-+}
- #endif /* CONFIG_FS_DAX */
-diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
-index 05714ffc4894..7e88280a2c3b 100644
---- a/fs/btrfs/inode.c
-+++ b/fs/btrfs/inode.c
-@@ -4833,6 +4833,10 @@ int btrfs_truncate_block(struct inode *inode, loff_t from, loff_t len,
- 	    (!len || IS_ALIGNED(len, blocksize)))
- 		goto out;
+diff --git a/include/trace/events/btrfs.h b/include/trace/events/btrfs.h
+index ab1cc33adbac..8779e5789a7c 100644
+--- a/include/trace/events/btrfs.h
++++ b/include/trace/events/btrfs.h
+@@ -1850,6 +1850,62 @@ DEFINE_EVENT(btrfs__block_group, btrfs_skip_unused_block_group,
+ 	TP_ARGS(bg_cache)
+ );
  
-+#ifdef CONFIG_FS_DAX
-+	if (IS_DAX(inode))
-+		return btrfs_dax_zero_block(inode, from, len, front);
-+#endif
- 	block_start = round_down(from, blocksize);
- 	block_end = block_start + blocksize - 1;
++TRACE_EVENT(btrfs_iomap_begin,
++
++	TP_PROTO(const struct inode *inode, loff_t pos, loff_t length, int flags),
++
++	TP_ARGS(inode, pos, length, flags),
++
++	TP_STRUCT__entry_btrfs(
++		__field(	u64,	ino		)
++		__field(	u64,	pos		)
++		__field(	u64,	length		)
++		__field(	int,    flags		)
++	),
++
++	TP_fast_assign_btrfs(btrfs_sb(inode->i_sb),
++		__entry->ino		= btrfs_ino(BTRFS_I(inode));
++		__entry->pos		= pos;
++		__entry->length		= length;
++		__entry->flags		= flags;
++	),
++
++	TP_printk_btrfs("ino=%llu pos=%llu len=%llu flags=0x%x",
++		  __entry->ino,
++		  __entry->pos,
++		  __entry->length,
++		  __entry->flags)
++);
++
++TRACE_EVENT(btrfs_iomap_end,
++
++	TP_PROTO(const struct inode *inode, loff_t pos, loff_t length, loff_t written, int flags),
++
++	TP_ARGS(inode, pos, length, written, flags),
++
++	TP_STRUCT__entry_btrfs(
++		__field(	u64,	ino		)
++		__field(	u64,	pos		)
++		__field(	u64,	length		)
++		__field(	u64,	written		)
++		__field(	int,    flags		)
++	),
++
++	TP_fast_assign_btrfs(btrfs_sb(inode->i_sb),
++		__entry->ino		= btrfs_ino(BTRFS_I(inode));
++		__entry->pos		= pos;
++		__entry->length		= length;
++		__entry->written		= written;
++		__entry->flags		= flags;
++	),
++
++	TP_printk_btrfs("ino=%llu pos=%llu len=%llu written=%llu flags=0x%x",
++		  __entry->ino,
++		  __entry->pos,
++		  __entry->length,
++		  __entry->written,
++		  __entry->flags)
++);
+ #endif /* _TRACE_BTRFS_H */
  
+ /* This part must be outside protection */
 -- 
 2.16.4
