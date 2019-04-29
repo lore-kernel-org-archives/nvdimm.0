@@ -1,10 +1,13 @@
-From: "Automatic Email Delivery Software" <noreply-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Mon, 29 Apr 2019 11:38:21 +0800
-Message-ID: <20190429033951.7D18D2121C12A@ml01.01.org>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH 03/18] btrfs: basic dax read
+Date: Mon, 29 Apr 2019 12:26:34 -0500
+Message-ID: <20190429172649.8288-4-rgoldwyn@suse.de>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4882970689030431592=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190429172649.8288-1-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,60 +17,131 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 
---===============4882970689030431592==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Perform a basic read using iomap support. The btrfs_iomap_begin()
+finds the extent at the position and fills the iomap data
+structure with the values.
 
-|8ßÚ½·VY^qƒ
-B­¢sI[È’¿§ÄÚä4ôcÎPsF— >¸Ÿ‚îm¢ÆÛÀ ÃPI¯¨,W•ñ…ğ#Vooğ–õ½)ÄŠûÕŠÖ9‚÷£|àùÑ§¦‚ÖjØ%D¤5‡ñãÌBIëƒdË6“ğ‹nT;NG‹ní"ñ†Šğyğ^ä&ü·{{#lí
-nşâ×xÌD·]ğîEhMÍ¨vœÃı(†àì×Uå°ÀTÉ¼`
-[®¬šf 8;ğã³í‚RƒÇÑtƒEäş÷ËgÔ½|îFŸ—‹›äòÍûAe9(<ïáëb2¨šÖûçtè&¶„òÕŒâ}[Yue$Y™
-›ê¦3éG:ò¡94ÄÀe N8)š¿ıÆ¹{G‡-Ï?ê-Nä†å»9Ö²åsÀ²ì½¿
-;ÅµcUºíÎ:èk9İ¿)m`†•JœÔû“<ŒR
-ŞŠ:#W‚DÑ±{c<œû9µoU‰°nĞ¿¶åÕ&RKS¥LáÌi—²²
-œ¼™‰¼0s»ï¬»¸'`
-Õt9)Mk†täô5G
-?ˆ¡ïMC7sæñÒÁØ?É
-bıä˜£Ãë&¯es_ĞiËŞ†s¤¢nì‰-ÂÌé5â‰ù“v
-£CDíĞÜxP†Ï[t„ d.C(9o|FÂy¿GBvè_fçó¦î_.uÌ"YDè­¼â®FğuH³AÕºˆ5‘¾lÙã¹à²Ü$v$÷êP3®ÜÔ¶ekÀ½0àÍ}!¼9ôş>-%¥t)[Q}TÇ?áWÑ£Jø
-æ0}bå"À‚ÄiËçşn™Œ‚rÓèOŒ±o»Œr#-jíÃ¢y¡¨.Ö†;ç&¾–8é·ZP˜d>p¼š•ŠÌ{˜’_nâF”óQ0w®†Ó.Ú¤Ê:¤2áÔÖ0Ú×C;sÃÜ ¼º³t¶‹.Ğ
-s»¯s»ŞeÚ™Ÿ%Ë¦*·Ğ¨PbÇ5¢Yü4çRê!‹øsWÎqñç?×M,¸‡Ù–—3^Ãjö†ª#mêíâÜRŞo¿ÌÀ>}w­éCğaU‚ŒC%›©
-Š.ç‘xB
-Ã,;z»öM„F8Rª ëBÆÂÎ–İ`‘‘˜‹·äg ¸Ú\øÈYUÄ8ÌW¶[o'B}¥*bå›{)‘Iè2·YÑ¼µØï<åómÎ;ueFøcl5çw?RºD§Ô(67G®O³Lß: ‘Û†ü¨Ù¡©Èéd åùÇ“a“§7-…×{j¨“qÚrGÜQZGñvfÒßº”fh„brİî»‡Yh|n˜Â²âØ©Ñ4ÙÄ\<
-f/[>è¡9ÍƒÜ&Åú7é¸¡÷°4‚n¥·Ïâ5‡{vm.}?i¦Àc‹B÷?³°ô#‡ÒBùa™*YKF®óø¼uºİ¢)ĞE0È»D‰hô¡õÆÂgtºêÔRë3kö˜¤uñåzÌpSÙıÏG’uQ[‚ÉŒh
-µs´7>Ö¿ÀU²š3|¹†LòbWkº¢]ˆÙ‘l;ß<b÷KÜ[X™ajzI/I¶âõÜŒnğÙ´Ë„ötû#½goÎ²,*nu
-ñ$mÈ’M¾z-ÃRñgr]µ2—º°n_¿¼ªÎ7¢HÁ±¥™òlˆ-¡ÉÊU#ãy¼$òùá[[­f¨È¬NÕÆ||l¯ô
-B;´
-ÔR’«EÆ
-‡Ì]%É¢
-p²ÒyÎrhYËHŠ Ä–è˜‡
-`qgù¹¨H3‡«4ôux'–o
-l22å)à©wÅr“»‚Zî£ò®~¡‹
-ö%¿&Hly
-™&BV
-J´T“â/¾5š†ó8;Ş6¥¤'.›ÃĞ
-óÆéü6;ÕQÌÒşw„·–›å %³À—p.r¯
-Ã,’À0ıß˜Ò¿„üo:y
-*uæëÕU'5YÁJ‘şb)ñˆEd‹Ş˜ŒÔf¼W_¡A¿èŞîwÈ©DR´èï¤˜æ£Õ—Ç—oG×.óí}-ŠÖ`‹1.^ˆÖ’šoPæ¦’*©õ˜„á¥
-9¹P
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
+---
+ fs/btrfs/Makefile |  1 +
+ fs/btrfs/ctree.h  |  5 +++++
+ fs/btrfs/dax.c    | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/btrfs/file.c   | 11 ++++++++++-
+ 4 files changed, 65 insertions(+), 1 deletion(-)
+ create mode 100644 fs/btrfs/dax.c
 
-
-
---===============4882970689030431592==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4882970689030431592==--
+diff --git a/fs/btrfs/Makefile b/fs/btrfs/Makefile
+index ca693dd554e9..1fa77b875ae9 100644
+--- a/fs/btrfs/Makefile
++++ b/fs/btrfs/Makefile
+@@ -12,6 +12,7 @@ btrfs-y += super.o ctree.o extent-tree.o print-tree.o root-tree.o dir-item.o \
+ 	   reada.o backref.o ulist.o qgroup.o send.o dev-replace.o raid56.o \
+ 	   uuid-tree.o props.o free-space-tree.o tree-checker.o
+ 
++btrfs-$(CONFIG_FS_DAX) += dax.o
+ btrfs-$(CONFIG_BTRFS_FS_POSIX_ACL) += acl.o
+ btrfs-$(CONFIG_BTRFS_FS_CHECK_INTEGRITY) += check-integrity.o
+ btrfs-$(CONFIG_BTRFS_FS_REF_VERIFY) += ref-verify.o
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 9512f49262dd..b7bbe5130a3b 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3795,6 +3795,11 @@ int btrfs_reada_wait(void *handle);
+ void btrfs_reada_detach(void *handle);
+ int btree_readahead_hook(struct extent_buffer *eb, int err);
+ 
++#ifdef CONFIG_FS_DAX
++/* dax.c */
++ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
++#endif /* CONFIG_FS_DAX */
++
+ static inline int is_fstree(u64 rootid)
+ {
+ 	if (rootid == BTRFS_FS_TREE_OBJECTID ||
+diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
+new file mode 100644
+index 000000000000..bf3d46b0acb6
+--- /dev/null
++++ b/fs/btrfs/dax.c
+@@ -0,0 +1,49 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * DAX support for BTRFS
++ *
++ * Copyright (c) 2019  SUSE Linux
++ * Author: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
++ */
++
++#ifdef CONFIG_FS_DAX
++#include <linux/dax.h>
++#include <linux/iomap.h>
++#include "ctree.h"
++#include "btrfs_inode.h"
++
++static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
++		loff_t length, unsigned flags, struct iomap *iomap)
++{
++	struct extent_map *em;
++	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
++	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
++	if (em->block_start == EXTENT_MAP_HOLE) {
++		iomap->type = IOMAP_HOLE;
++		return 0;
++	}
++	iomap->type = IOMAP_MAPPED;
++	iomap->bdev = em->bdev;
++	iomap->dax_dev = fs_info->dax_dev;
++	iomap->offset = em->start;
++	iomap->length = em->len;
++	iomap->addr = em->block_start;
++	return 0;
++}
++
++static const struct iomap_ops btrfs_iomap_ops = {
++	.iomap_begin		= btrfs_iomap_begin,
++};
++
++ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to)
++{
++	ssize_t ret;
++	struct inode *inode = file_inode(iocb->ki_filp);
++
++	inode_lock_shared(inode);
++	ret = dax_iomap_rw(iocb, to, &btrfs_iomap_ops);
++	inode_unlock_shared(inode);
++
++	return ret;
++}
++#endif /* CONFIG_FS_DAX */
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index 34fe8a58b0e9..9194591f9eea 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -3288,9 +3288,18 @@ static int btrfs_file_open(struct inode *inode, struct file *filp)
+ 	return generic_file_open(inode, filp);
+ }
+ 
++static ssize_t btrfs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++#ifdef CONFIG_FS_DAX
++	if (IS_DAX(file_inode(iocb->ki_filp)))
++		return btrfs_file_dax_read(iocb, to);
++#endif
++	return generic_file_read_iter(iocb, to);
++}
++
+ const struct file_operations btrfs_file_operations = {
+ 	.llseek		= btrfs_file_llseek,
+-	.read_iter      = generic_file_read_iter,
++	.read_iter      = btrfs_file_read_iter,
+ 	.splice_read	= generic_file_splice_read,
+ 	.write_iter	= btrfs_file_write_iter,
+ 	.mmap		= btrfs_file_mmap,
+-- 
+2.16.4
