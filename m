@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x843.google.com (mail-qt1-x843.google.com
- [IPv6:2607:f8b0:4864:20::843])
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
+ [IPv6:2607:f8b0:4864:20::844])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 224F5212604F2
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 14:54:47 -0700 (PDT)
-Received: by mail-qt1-x843.google.com with SMTP id a17so9802560qth.3
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 14:54:47 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A73892122DDB1
+ for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 12:18:51 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id c13so1101810qtn.8
+ for <linux-nvdimm@lists.01.org>; Wed, 01 May 2019 12:18:51 -0700 (PDT)
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v6 3/3] device-dax: "Hotremove" persistent memory that is used like
- normal RAM
-Date: Fri, 17 May 2019 17:54:38 -0400
-Message-Id: <20190517215438.6487-4-pasha.tatashin@soleen.com>
-In-Reply-To: <20190517215438.6487-1-pasha.tatashin@soleen.com>
-References: <20190517215438.6487-1-pasha.tatashin@soleen.com>
+Subject: [v4 1/2] device-dax: fix memory and resource leak if hotplug fails
+Date: Wed,  1 May 2019 15:18:45 -0400
+Message-Id: <20190501191846.12634-2-pasha.tatashin@soleen.com>
+In-Reply-To: <20190501191846.12634-1-pasha.tatashin@soleen.com>
+References: <20190501191846.12634-1-pasha.tatashin@soleen.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -29,116 +28,34 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-It is now allowed to use persistent memory like a regular RAM, but
-currently there is no way to remove this memory until machine is
-rebooted.
+When add_memory() function fails, the resource and the memory should be
+freed.
 
-This work expands the functionality to also allows hotremoving
-previously hotplugged persistent memory, and recover the device for use
-for other purposes.
-
-To hotremove persistent memory, the management software must first
-offline all memory blocks of dax region, and than unbind it from
-device-dax/kmem driver. So, operations should look like this:
-
-echo offline > /sys/devices/system/memory/memoryN/state
-...
-echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
-
-Note: if unbind is done without offlining memory beforehand, it won't be
-possible to do dax0.0 hotremove, and dax's memory is going to be part of
-System RAM until reboot.
+Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Dave Hansen <dave.hansen@intel.com>
 ---
- drivers/dax/dax-private.h |  2 ++
- drivers/dax/kmem.c        | 41 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ drivers/dax/kmem.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a45612148ca0..999aaf3a29b3 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -53,6 +53,7 @@ struct dax_region {
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @ref: pgmap reference count (driver owned)
-  * @cmp: @ref final put completion (driver owned)
-+ * @dax_mem_res: physical address range of hotadded DAX memory
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -62,6 +63,7 @@ struct dev_dax {
- 	struct dev_pagemap pgmap;
- 	struct percpu_ref ref;
- 	struct completion cmp;
-+	struct resource *dax_kmem_res;
- };
- 
- static inline struct dev_dax *to_dev_dax(struct device *dev)
 diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 4c0131857133..3d0a7e702c94 100644
+index a02318c6d28a..4c0131857133 100644
 --- a/drivers/dax/kmem.c
 +++ b/drivers/dax/kmem.c
-@@ -71,21 +71,54 @@ int dev_dax_kmem_probe(struct device *dev)
- 		kfree(new_res);
- 		return rc;
- 	}
-+	dev_dax->dax_kmem_res = new_res;
+@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
+ 	new_res->name = dev_name(dev);
  
- 	return 0;
- }
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+static int dev_dax_kmem_remove(struct device *dev)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct resource *res = dev_dax->dax_kmem_res;
-+	resource_size_t kmem_start = res->start;
-+	resource_size_t kmem_size = resource_size(res);
-+	int rc;
-+
-+	/*
-+	 * We have one shot for removing memory, if some memory blocks were not
-+	 * offline prior to calling this function remove_memory() will fail, and
-+	 * there is no way to hotremove this memory until reboot because device
-+	 * unbind will succeed even if we return failure.
-+	 */
-+	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
+ 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
+-	if (rc)
 +	if (rc) {
-+		dev_err(dev,
-+			"DAX region %pR cannot be hotremoved until the next reboot\n",
-+			res);
-+		return rc;
++		release_resource(new_res);
++		kfree(new_res);
+ 		return rc;
 +	}
-+
-+	/* Release and free dax resources */
-+	release_resource(res);
-+	kfree(res);
-+	dev_dax->dax_kmem_res = NULL;
-+
-+	return 0;
-+}
-+#else
- static int dev_dax_kmem_remove(struct device *dev)
- {
- 	/*
--	 * Purposely leak the request_mem_region() for the device-dax
--	 * range and return '0' to ->remove() attempts. The removal of
--	 * the device from the driver always succeeds, but the region
--	 * is permanently pinned as reserved by the unreleased
-+	 * Without hotremove purposely leak the request_mem_region() for the
-+	 * device-dax range and return '0' to ->remove() attempts. The removal
-+	 * of the device from the driver always succeeds, but the region is
-+	 * permanently pinned as reserved by the unreleased
- 	 * request_mem_region().
- 	 */
+ 
  	return 0;
  }
-+#endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- static struct dax_device_driver device_dax_kmem_driver = {
- 	.drv = {
 -- 
 2.21.0
 
