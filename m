@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com
+ [IPv6:2a00:1450:4864:20::541])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E4822194EB7F
- for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:41:31 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 06/25] libnvdimm/btt: Fix a kmemdup failure check
-Date: Tue,  7 May 2019 01:41:03 -0400
-Message-Id: <20190507054123.32514-6-sashal@kernel.org>
-In-Reply-To: <20190507054123.32514-1-sashal@kernel.org>
-References: <20190507054123.32514-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id C4BCB21237ACE
+ for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 13:37:23 -0700 (PDT)
+Received: by mail-ed1-x541.google.com with SMTP id e24so3387575edq.6
+ for <linux-nvdimm@lists.01.org>; Thu, 02 May 2019 13:37:23 -0700 (PDT)
 MIME-Version: 1.0
+References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155552637207.2015392.16917498971420465931.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155552637207.2015392.16917498971420465931.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Date: Thu, 2 May 2019 16:37:11 -0400
+Message-ID: <CA+CK2bCq1KvdqZA6=_=F4CAem0aPCLYWFvrMavjm5F1+h7MA+A@mail.gmail.com>
+Subject: Re: [PATCH v6 07/12] mm: Kill is_dev_zone() helper
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,66 +26,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Aditya Pakki <pakki001@umn.edu>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Aditya Pakki <pakki001@umn.edu>
+On Wed, Apr 17, 2019 at 2:53 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> Given there are no more usages of is_dev_zone() outside of 'ifdef
+> CONFIG_ZONE_DEVICE' protection, kill off the compilation helper.
+>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Logan Gunthorpe <logang@deltatee.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-[ Upstream commit 486fa92df4707b5df58d6508728bdb9321a59766 ]
-
-In case kmemdup fails, the fix releases resources and returns to
-avoid the NULL pointer dereference.
-
-Signed-off-by: Aditya Pakki <pakki001@umn.edu>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index 97dd2925ed6e..5d2c76682848 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -190,14 +190,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 		return NULL;
- 
- 	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
--	if (nd_btt->id < 0) {
--		kfree(nd_btt);
--		return NULL;
--	}
-+	if (nd_btt->id < 0)
-+		goto out_nd_btt;
- 
- 	nd_btt->lbasize = lbasize;
--	if (uuid)
-+	if (uuid) {
- 		uuid = kmemdup(uuid, 16, GFP_KERNEL);
-+		if (!uuid)
-+			goto out_put_id;
-+	}
- 	nd_btt->uuid = uuid;
- 	dev = &nd_btt->dev;
- 	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
-@@ -212,6 +213,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 		return NULL;
- 	}
- 	return dev;
-+
-+out_put_id:
-+	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-+
-+out_nd_btt:
-+	kfree(nd_btt);
-+	return NULL;
- }
- 
- struct device *nd_btt_create(struct nd_region *nd_region)
--- 
-2.20.1
-
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
