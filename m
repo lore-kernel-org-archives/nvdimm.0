@@ -1,55 +1,38 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4B8B921243BC6
- for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 10:34:26 -0700 (PDT)
-Date: Thu, 2 May 2019 13:34:19 -0400
-From: Sasha Levin <sashal@kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+MIME-Version: 1.0
+References: <20190501191846.12634-1-pasha.tatashin@soleen.com>
+ <20190501191846.12634-3-pasha.tatashin@soleen.com> <CAPcyv4iPzpP-gzuDtPB2ixd6_uTuO8-YdVSfGw_Dq=igaKuOEg@mail.gmail.com>
+In-Reply-To: <CAPcyv4iPzpP-gzuDtPB2ixd6_uTuO8-YdVSfGw_Dq=igaKuOEg@mail.gmail.com>
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Date: Thu, 2 May 2019 12:47:52 -0400
+Message-ID: <CA+CK2bB3G_tO04M1eXPdm4b=OojD6QpYkW51YArj6z44RhQo+g@mail.gmail.com>
 Subject: Re: [v4 2/2] device-dax: "Hotremove" persistent memory that is used
  like normal RAM
-Message-ID: <20190502173419.GA3048@sasha-vm>
-References: <20190501191846.12634-1-pasha.tatashin@soleen.com>
- <20190501191846.12634-3-pasha.tatashin@soleen.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190501191846.12634-3-pasha.tatashin@soleen.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: thomas.lendacky@amd.com, mhocko@suse.com, linux-nvdimm@lists.01.org, tiwai@suse.de, dave.hansen@linux.intel.com, ying.huang@intel.com, jmorris@namei.org, david@redhat.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, bp@suse.de, baiyaowei@cmss.chinamobile.com, zwisler@kernel.org, bhelgaas@google.com, akpm@linux-foundation.org, fengguang.wu@intel.com
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: James Morris <jmorris@namei.org>, Sasha Levin <sashal@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Dave Hansen <dave.hansen@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ross Zwisler <zwisler@kernel.org>, Tom Lendacky <thomas.lendacky@amd.com>, "Huang, Ying" <ying.huang@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Borislav Petkov <bp@suse.de>, Bjorn Helgaas <bhelgaas@google.com>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Takashi Iwai <tiwai@suse.de>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, David Hildenbrand <david@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 01, 2019 at 03:18:46PM -0400, Pavel Tatashin wrote:
->It is now allowed to use persistent memory like a regular RAM, but
->currently there is no way to remove this memory until machine is
->rebooted.
+> Currently the kmem driver can be built as a module, and I don't see a
+> need to drop that flexibility. What about wrapping these core
+> routines:
 >
->This work expands the functionality to also allows hotremoving
->previously hotplugged persistent memory, and recover the device for use
->for other purposes.
+>     unlock_device_hotplug
+>     __remove_memory
+>     walk_memory_range
+>     lock_device_hotplug
 >
->To hotremove persistent memory, the management software must first
->offline all memory blocks of dax region, and than unbind it from
->device-dax/kmem driver. So, operations should look like this:
+> ...into a common exported (gpl) helper like:
 >
->echo offline > echo offline > /sys/devices/system/memory/memoryN/state
+>     int try_remove_memory(int nid, struct resource *res)
+>
+> Because as far as I can see there's nothing device-dax specific about
+> this "try remove iff offline" functionality outside of looking up the
+> related 'struct resource'. The check_devdax_mem_offlined_cb callback
+> can be made generic if the callback argument is the resource pointer.
 
-This looks wrong :)
+Makes sense, I will do both things that you suggested.
 
---
-Thanks,
-Sasha
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Thank you,
+Pasha
