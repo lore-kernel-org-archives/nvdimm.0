@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79A0E21265788
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 08:53:42 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v8 3/6] libnvdimm: add dax_dev sync flag
-Date: Fri, 10 May 2019 21:21:59 +0530
-Message-Id: <20190510155202.14737-4-pagupta@redhat.com>
-In-Reply-To: <20190510155202.14737-1-pagupta@redhat.com>
-References: <20190510155202.14737-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id D0D91212377FF
+ for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 23:10:14 -0700 (PDT)
+Subject: [PATCH v7 12/12] libnvdimm/pfn: Stop padding pmem namespaces to
+ section alignment
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 01 May 2019 22:56:26 -0700
+Message-ID: <155677658661.2336373.9934181067409522929.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,195 +19,219 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: akpm@linux-foundation.org
+Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds 'DAXDEV_SYNC' flag which is set
-for nd_region doing synchronous flush. This later
-is used to disable MAP_SYNC functionality for
-ext4 & xfs filesystem for devices don't support
-synchronous flush.
+Now that the mm core supports section-unaligned hotplug of ZONE_DEVICE
+memory, we no longer need to add padding at pfn/dax device creation
+time. The kernel will still honor padding established by older kernels.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/bus.c            |  2 +-
- drivers/dax/super.c          | 13 ++++++++++++-
- drivers/md/dm.c              |  3 ++-
- drivers/nvdimm/pmem.c        |  5 ++++-
- drivers/nvdimm/region_devs.c |  7 +++++++
- include/linux/dax.h          |  8 ++++++--
- include/linux/libnvdimm.h    |  1 +
- 7 files changed, 33 insertions(+), 6 deletions(-)
+ drivers/nvdimm/pfn.h      |   11 ++-----
+ drivers/nvdimm/pfn_devs.c |   75 +++++++--------------------------------------
+ include/linux/mmzone.h    |    4 ++
+ 3 files changed, 19 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 2109cfe80219..5f184e751c82 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
- 	 * No 'host' or dax_operations since there is no access to this
- 	 * device outside of mmap of the resulting character device.
- 	 */
--	dax_dev = alloc_dax(dev_dax, NULL, NULL);
-+	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
- 	if (!dax_dev)
- 		goto err;
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index bbd57ca0634a..b6c44b5062e9 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -186,6 +186,8 @@ enum dax_device_flags {
- 	DAXDEV_ALIVE,
- 	/* gate whether dax_flush() calls the low level flush routine */
- 	DAXDEV_WRITE_CACHE,
-+	/* flag to check if device supports synchronous flush */
-+	DAXDEV_SYNC,
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index e901e3a3b04c..ae589cc528f2 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -41,18 +41,13 @@ struct nd_pfn_sb {
+ 	__le64 checksum;
  };
  
- /**
-@@ -354,6 +356,12 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+-#ifdef CONFIG_SPARSEMEM
+-#define PFN_SECTION_ALIGN_DOWN(x) SECTION_ALIGN_DOWN(x)
+-#define PFN_SECTION_ALIGN_UP(x) SECTION_ALIGN_UP(x)
+-#else
+ /*
+  * In this case ZONE_DEVICE=n and we will disable 'pfn' device support,
+  * but we still want pmem to compile.
+  */
+-#define PFN_SECTION_ALIGN_DOWN(x) (x)
+-#define PFN_SECTION_ALIGN_UP(x) (x)
++#ifndef SUB_SECTION_ALIGN_DOWN
++#define SUB_SECTION_ALIGN_DOWN(x) (x)
++#define SUB_SECTION_ALIGN_UP(x) (x)
+ #endif
  
-+bool dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(dax_synchronous);
-+
- bool dax_alive(struct dax_device *dax_dev)
+-#define PHYS_SECTION_ALIGN_DOWN(x) PFN_PHYS(PFN_SECTION_ALIGN_DOWN(PHYS_PFN(x)))
+-#define PHYS_SECTION_ALIGN_UP(x) PFN_PHYS(PFN_SECTION_ALIGN_UP(PHYS_PFN(x)))
+ #endif /* __NVDIMM_PFN_H */
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index a2406253eb70..7bdaaf3dc77e 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -595,14 +595,14 @@ static u32 info_block_reserve(void)
+ }
+ 
+ /*
+- * We hotplug memory at section granularity, pad the reserved area from
+- * the previous section base to the namespace base address.
++ * We hotplug memory at sub-section granularity, pad the reserved area
++ * from the previous section base to the namespace base address.
+  */
+ static unsigned long init_altmap_base(resource_size_t base)
  {
- 	lockdep_assert_held(&dax_srcu);
-@@ -508,7 +516,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	return PFN_SECTION_ALIGN_DOWN(base_pfn);
++	return SUB_SECTION_ALIGN_DOWN(base_pfn);
  }
  
- struct dax_device *alloc_dax(void *private, const char *__host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
+ static unsigned long init_altmap_reserve(resource_size_t base)
+@@ -610,7 +610,7 @@ static unsigned long init_altmap_reserve(resource_size_t base)
+ 	unsigned long reserve = info_block_reserve() >> PAGE_SHIFT;
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
++	reserve += base_pfn - SUB_SECTION_ALIGN_DOWN(base_pfn);
+ 	return reserve;
+ }
+ 
+@@ -641,8 +641,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		pgmap->altmap_valid = false;
+ 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+-		nd_pfn->npfns = PFN_SECTION_ALIGN_UP((resource_size(res)
+-					- offset) / PAGE_SIZE);
++		nd_pfn->npfns = PHYS_PFN((resource_size(res) - offset));
+ 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
+ 			dev_info(&nd_pfn->dev,
+ 					"number of pfns truncated from %lld to %ld\n",
+@@ -658,50 +657,10 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	return 0;
+ }
+ 
+-static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
+-{
+-	return min_t(u64, PHYS_SECTION_ALIGN_DOWN(phys),
+-			ALIGN_DOWN(phys, nd_pfn->align));
+-}
+-
+-/*
+- * Check if pmem collides with 'System RAM', or other regions when
+- * section aligned.  Trim it accordingly.
+- */
+-static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
+-{
+-	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
+-	const resource_size_t start = nsio->res.start;
+-	const resource_size_t end = start + resource_size(&nsio->res);
+-	resource_size_t adjust, size;
+-
+-	*start_pad = 0;
+-	*end_trunc = 0;
+-
+-	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| nd_region_conflict(nd_region, start - adjust, size))
+-		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+-
+-	/* Now check that end of the range does not collide. */
+-	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| !IS_ALIGNED(end, nd_pfn->align)
+-			|| nd_region_conflict(nd_region, start, size))
+-		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
+-}
+-
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
  {
- 	struct dax_device *dax_dev;
- 	const char *host;
-@@ -531,6 +539,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
- 	dax_add_host(dax_dev, host);
- 	dax_dev->ops = ops;
- 	dax_dev->private = private;
-+	if (flags & DAXDEV_F_SYNC)
-+		set_bit(DAXDEV_SYNC, &dax_dev->flags);
-+
- 	return dax_dev;
- 
-  err_dev:
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 043f0761e4a0..ee007b75d9fd 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1969,7 +1969,8 @@ static struct mapped_device *alloc_dev(int minor)
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
- 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
--		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops,
-+							 DAXDEV_F_SYNC);
- 		if (!dax_dev)
- 			goto bad;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0279eb1da3ef..bdbd2b414d3d 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -365,6 +365,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct gendisk *disk;
- 	void *addr;
- 	int rc;
-+	unsigned long flags = 0UL;
- 
- 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
- 	if (!pmem)
-@@ -462,7 +463,9 @@ static int pmem_attach_disk(struct device *dev,
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
- 	disk->bb = &pmem->bb;
- 
--	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-+	if (is_nvdimm_sync(nd_region))
-+		flags = DAXDEV_F_SYNC;
-+	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
- 	if (!dax_dev) {
- 		put_disk(disk);
- 		return -ENOMEM;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..f3ea5369d20a 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1197,6 +1197,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_cache);
- 
-+bool is_nvdimm_sync(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev) &&
-+		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
-+}
-+EXPORT_SYMBOL_GPL(is_nvdimm_sync);
-+
- struct conflict_context {
- 	struct nd_region *nd_region;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	u32 start_pad, end_trunc, reserve = info_block_reserve();
  	resource_size_t start, size;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0dd316a74a29..ed75b7d9d178 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,6 +7,9 @@
- #include <linux/radix-tree.h>
- #include <asm/pgtable.h>
+ 	struct nd_region *nd_region;
+ 	struct nd_pfn_sb *pfn_sb;
+@@ -736,43 +695,35 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		return -ENXIO;
+ 	}
  
-+/* Flag for synchronous flush */
-+#define DAXDEV_F_SYNC (1UL << 0)
-+
- typedef unsigned long dax_entry_t;
- 
- struct iomap_ops;
-@@ -32,18 +35,19 @@ extern struct attribute_group dax_attribute_group;
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
- struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
-+		const struct dax_operations *ops, unsigned long flags);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
-+bool dax_synchronous(struct dax_device *dax_dev);
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
- }
- static inline struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
- {
+-	memset(pfn_sb, 0, sizeof(*pfn_sb));
+-
+-	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
+-	if (start_pad + end_trunc)
+-		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+-				dev_name(&ndns->dev), start_pad + end_trunc);
+-
  	/*
- 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index feb342d026f2..3238a206e563 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -264,6 +264,7 @@ void nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
-+bool is_nvdimm_sync(struct nd_region *nd_region);
+ 	 * Note, we use 64 here for the standard size of struct page,
+ 	 * debugging options may cause it to be larger in which case the
+ 	 * implementation will limit the pfns advertised through
+ 	 * ->direct_access() to those that are included in the memmap.
+ 	 */
+-	start = nsio->res.start + start_pad;
++	start = nsio->res.start;
+ 	size = resource_size(&nsio->res);
+-	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - reserve)
+-			/ PAGE_SIZE);
++	npfns = PHYS_PFN(size - SZ_8K);
+ 	if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		/*
+ 		 * The altmap should be padded out to the block size used
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + reserve + 64 * npfns,
+-				max(nd_pfn->align, PMD_SIZE)) - start;
++		offset = ALIGN(start + SZ_8K + 64 * npfns,
++				max(nd_pfn->align, SECTION_ACTIVE_SIZE)) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+-		offset = ALIGN(start + reserve, nd_pfn->align) - start;
++		offset = ALIGN(start + SZ_8K, nd_pfn->align) - start;
+ 	else
+ 		return -ENXIO;
  
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
--- 
-2.20.1
+-	if (offset + start_pad + end_trunc >= size) {
++	if (offset >= size) {
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
+ 	}
+ 
+-	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
++	npfns = PHYS_PFN(size - offset);
+ 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
+ 	pfn_sb->dataoff = cpu_to_le64(offset);
+ 	pfn_sb->npfns = cpu_to_le64(npfns);
+@@ -781,8 +732,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+ 	pfn_sb->version_minor = cpu_to_le16(3);
+-	pfn_sb->start_pad = cpu_to_le32(start_pad);
+-	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 3237c5e456df..d2445c483ad4 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1155,6 +1155,10 @@ static inline unsigned long section_nr_to_pfn(unsigned long sec)
+ #define PAGES_PER_SUB_SECTION (SECTION_ACTIVE_SIZE / PAGE_SIZE)
+ #define PAGE_SUB_SECTION_MASK (~(PAGES_PER_SUB_SECTION-1))
+ 
++#define SUB_SECTION_ALIGN_UP(pfn) (((pfn) + PAGES_PER_SUB_SECTION - 1) \
++		& PAGE_SUB_SECTION_MASK)
++#define SUB_SECTION_ALIGN_DOWN(pfn) ((pfn) & PAGE_SUB_SECTION_MASK)
++
+ struct mem_section_usage {
+ 	/*
+ 	 * SECTION_ACTIVE_SIZE portions of the section that are populated in
 
 _______________________________________________
 Linux-nvdimm mailing list
