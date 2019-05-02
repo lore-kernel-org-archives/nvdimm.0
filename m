@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 46AEC212741FB
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 07:58:57 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v9 7/7] xfs: disable map_sync for async flush
-Date: Tue, 14 May 2019 20:24:22 +0530
-Message-Id: <20190514145422.16923-8-pagupta@redhat.com>
-In-Reply-To: <20190514145422.16923-1-pagupta@redhat.com>
-References: <20190514145422.16923-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id EB1812122CA8A
+ for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 03:07:43 -0700 (PDT)
+Date: Thu, 2 May 2019 13:07:28 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] acpi/nfit: Add support for Intel DSM 1.8 commands
+Message-ID: <20190502100728.GA10650@mwanda>
+MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,51 +17,172 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>, dave.jiang@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dont support 'MAP_SYNC' with non-DAX files and DAX files
-with asynchronous dax_device. Virtio pmem provides
-asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and xfs.
+Hello Dan Williams,
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
----
- fs/xfs/xfs_file.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+Commit 11189c1089da ("acpi/nfit: Fix command-supported detection") from
+Jan 19, 2019 leads to the following static checker warning:
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index a7ceae90110e..f17652cca5ff 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1203,11 +1203,14 @@ xfs_file_mmap(
- 	struct file	*filp,
- 	struct vm_area_struct *vma)
- {
-+	struct dax_device 	*dax_dev;
-+
-+	dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
- 	/*
--	 * We don't support synchronous mappings for non-DAX files. At least
--	 * until someone comes with a sensible use case.
-+	 * We don't support synchronous mappings for non-DAX files and
-+	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
-+	if (!daxdev_mapping_supported(vma, dax_dev))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(filp);
--- 
-2.20.1
+    drivers/acpi/nfit/core.c:503 acpi_nfit_ctl()
+    error: passing untrusted data 'func' to 'variable_test_bit()'
 
+Related but not critical:
+
+    drivers/acpi/nfit/core.c:3510 acpi_nfit_clear_to_send()
+    error: undefined (user controlled) shift '1 << func'
+
+drivers/nvdimm/bus.c
+  1062          buf = vmalloc(buf_len);
+  1063          if (!buf)
+  1064                  return -ENOMEM;
+  1065  
+  1066          if (copy_from_user(buf, p, buf_len)) {
+  1067                  rc = -EFAULT;
+  1068                  goto out;
+  1069          }
+  1070  
+  1071          nvdimm_bus_lock(&nvdimm_bus->dev);
+  1072          rc = nd_cmd_clear_to_send(nvdimm_bus, nvdimm, func, buf);
+  1073          if (rc)
+  1074                  goto out_unlock;
+  1075  
+  1076          rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len, &cmd_rc);
+  1077          if (rc < 0)
+  1078                  goto out_unlock;
+
+This is __nd_ioctl().  We get "buf" from the user and then pass it to
+acpi_nfit_clear_to_send() and then acpi_nfit_ctl().
+
+drivers/acpi/nfit/core.c
+   446  int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+   447                  unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
+   448  {
+   449          struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+   450          struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+   451          union acpi_object in_obj, in_buf, *out_obj;
+   452          const struct nd_cmd_desc *desc = NULL;
+   453          struct device *dev = acpi_desc->dev;
+   454          struct nd_cmd_pkg *call_pkg = NULL;
+   455          const char *cmd_name, *dimm_name;
+   456          unsigned long cmd_mask, dsm_mask;
+   457          u32 offset, fw_status = 0;
+   458          acpi_handle handle;
+   459          const guid_t *guid;
+   460          int func, rc, i;
+   461  
+   462          if (cmd_rc)
+   463                  *cmd_rc = -EINVAL;
+   464  
+   465          if (cmd == ND_CMD_CALL)
+   466                  call_pkg = buf;
+                        ^^^^^^^^^^^^^^
+
+   467          func = cmd_to_func(nfit_mem, cmd, call_pkg);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We set func = call_pkg->nd_command (0-s32max).
+
+
+   468          if (func < 0)
+   469                  return func;
+   470  
+   471          if (nvdimm) {
+   472                  struct acpi_device *adev = nfit_mem->adev;
+   473  
+   474                  if (!adev)
+   475                          return -ENOTTY;
+   476  
+   477                  dimm_name = nvdimm_name(nvdimm);
+   478                  cmd_name = nvdimm_cmd_name(cmd);
+   479                  cmd_mask = nvdimm_cmd_mask(nvdimm);
+   480                  dsm_mask = nfit_mem->dsm_mask;
+   481                  desc = nd_cmd_dimm_desc(cmd);
+   482                  guid = to_nfit_uuid(nfit_mem->family);
+   483                  handle = adev->handle;
+   484          } else {
+   485                  struct acpi_device *adev = to_acpi_dev(acpi_desc);
+   486  
+   487                  cmd_name = nvdimm_bus_cmd_name(cmd);
+   488                  cmd_mask = nd_desc->cmd_mask;
+   489                  dsm_mask = nd_desc->bus_dsm_mask;
+   490                  desc = nd_cmd_bus_desc(cmd);
+   491                  guid = to_nfit_uuid(NFIT_DEV_BUS);
+   492                  handle = adev->handle;
+   493                  dimm_name = "bus";
+   494          }
+   495  
+   496          if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+   497                  return -ENOTTY;
+   498  
+   499          /*
+   500           * Check for a valid command.  For ND_CMD_CALL, we also have to
+   501           * make sure that the DSM function is supported.
+   502           */
+   503          if (cmd == ND_CMD_CALL && !test_bit(func, &dsm_mask))
+                                                    ^^^^
+
+"func" might be beyond the end of the bitmap so it could be an out of
+bounds read.  We do bounds check it to <= 31 in nfit_dsm_revid() but I
+couldn't see any range checking in acpi_evaluate_dsm().
+
+   504                  return -ENOTTY;
+   505          else if (!test_bit(cmd, &cmd_mask))
+   506                  return -ENOTTY;
+   507  
+   508          in_obj.type = ACPI_TYPE_PACKAGE;
+   509          in_obj.package.count = 1;
+   510          in_obj.package.elements = &in_buf;
+   511          in_buf.type = ACPI_TYPE_BUFFER;
+   512          in_buf.buffer.pointer = buf;
+   513          in_buf.buffer.length = 0;
+   514  
+   515          /* libnvdimm has already validated the input envelope */
+   516          for (i = 0; i < desc->in_num; i++)
+   517                  in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+   518                                  i, buf);
+   519  
+   520          if (call_pkg) {
+   521                  /* skip over package wrapper */
+   522                  in_buf.buffer.pointer = (void *) &call_pkg->nd_payload;
+   523                  in_buf.buffer.length = call_pkg->nd_size_in;
+   524          }
+   525  
+   526          dev_dbg(dev, "%s cmd: %d: func: %d input length: %d\n",
+   527                  dimm_name, cmd, func, in_buf.buffer.length);
+   528          if (payload_dumpable(nvdimm, func))
+
+[ snip ]
+
+  3500  /* prevent security commands from being issued via ioctl */
+  3501  static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+  3502                  struct nvdimm *nvdimm, unsigned int cmd, void *buf)
+  3503  {
+  3504          struct nd_cmd_pkg *call_pkg = buf;
+  3505          unsigned int func;
+  3506  
+  3507          if (nvdimm && cmd == ND_CMD_CALL &&
+  3508                          call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
+  3509                  func = call_pkg->nd_command;
+  3510                  if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
+                             ^^^^^^^^^
+This is undefined and it would be nice to fix, but not important for
+run time.
+
+  3511                          return -EOPNOTSUPP;
+  3512          }
+  3513  
+  3514          return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
+  3515  }
+
+regards,
+dan carpenter
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
