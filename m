@@ -1,14 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com
+ [IPv6:2607:f8b0:4864:20::543])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E17C42126CF81
- for <linux-nvdimm@lists.01.org>; Sat, 25 May 2019 16:16:37 -0700 (PDT)
-Subject: [for-4.9.y PATCH] libnvdimm/namespace: Fix label tracking error
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 25 May 2019 16:02:49 -0700
-Message-ID: <155882536896.2470998.15501697202623097741.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5C0D321243BA5
+ for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 14:18:57 -0700 (PDT)
+Received: by mail-pg1-x543.google.com with SMTP id e6so1636227pgc.4
+ for <linux-nvdimm@lists.01.org>; Thu, 02 May 2019 14:18:57 -0700 (PDT)
+Subject: Re: [PATCH v2 04/17] kunit: test: add kunit_stream a std::stream like
+ logger
+References: <20190501230126.229218-1-brendanhiggins@google.com>
+ <20190501230126.229218-5-brendanhiggins@google.com>
+ <20190502110008.GC12416@kroah.com>
+ <CAFd5g47ssM7RQZxQsUJ86UigcF-Uz+Kwv2yvKN_gZK-TtW89bA@mail.gmail.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Message-ID: <6fcf1218-a026-fd7b-236f-ea95f6312e1d@gmail.com>
+Date: Thu, 2 May 2019 14:18:53 -0700
 MIME-Version: 1.0
+In-Reply-To: <CAFd5g47ssM7RQZxQsUJ86UigcF-Uz+Kwv2yvKN_gZK-TtW89bA@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,165 +30,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: stable@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org, Erwin Tsaur <erwin.tsaur@oracle.com>
+To: Brendan Higgins <brendanhiggins@google.com>, Greg KH <gregkh@linuxfoundation.org>
+Cc: Petr Mladek <pmladek@suse.com>, linux-doc@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, linux-kselftest@vger.kernel.org, shuah@kernel.org, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Kevin Hilman <khilman@baylibre.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild@vger.kernel.org, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Richard Weinberger <richard@nod.at>, Stephen Boyd <sboyd@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-commit c4703ce11c23423d4b46e3d59aef7979814fd608 upstream.
+On 5/2/19 1:25 PM, Brendan Higgins wrote:
+> On Thu, May 2, 2019 at 4:00 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+>>
+>> On Wed, May 01, 2019 at 04:01:13PM -0700, Brendan Higgins wrote:
+>>> A lot of the expectation and assertion infrastructure prints out fairly
+>>> complicated test failure messages, so add a C++ style log library for
+>>> for logging test results.
+>>
+>> Ideally we would always use a standard logging format, like the
+>> kselftest tests all are aiming to do.  That way the output can be easily
+>> parsed by tools to see if the tests succeed/fail easily.
+>>
+>> Any chance of having this logging framework enforcing that format as
+>> well?
+> 
+> I agree with your comment on the later patch that we should handle
+> this at the wrapper script layer (KUnit tool).
 
-Users have reported intermittent occurrences of DIMM initialization
-failures due to duplicate allocations of address capacity detected in
-the labels, or errors of the form below, both have the same root cause.
+This discussion is a little confusing, because it is spread across two
+patches.
 
-    nd namespace1.4: failed to track label: 0
-    WARNING: CPU: 17 PID: 1381 at drivers/nvdimm/label.c:863
+I do not agree that this should be handled in the wrapper script, as
+noted in my reply to patch 12, so not repeating it here.
 
-    RIP: 0010:__pmem_label_update+0x56c/0x590 [libnvdimm]
-    Call Trace:
-     ? nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
-     nd_pmem_namespace_label_update+0xd6/0x160 [libnvdimm]
-     uuid_store+0x17e/0x190 [libnvdimm]
-     kernfs_fop_write+0xf0/0x1a0
-     vfs_write+0xb7/0x1b0
-     ksys_write+0x57/0xd0
-     do_syscall_64+0x60/0x210
-
-Unfortunately those reports were typically with a busy parallel
-namespace creation / destruction loop making it difficult to see the
-components of the bug. However, Jane provided a simple reproducer using
-the work-in-progress sub-section implementation.
-
-When ndctl is reconfiguring a namespace it may take an existing defunct
-/ disabled namespace and reconfigure it with a new uuid and other
-parameters. Critically namespace_update_uuid() takes existing address
-resources and renames them for the new namespace to use / reconfigure as
-it sees fit. The bug is that this rename only happens in the resource
-tracking tree. Existing labels with the old uuid are not reaped leading
-to a scenario where multiple active labels reference the same span of
-address range.
-
-Teach namespace_update_uuid() to flag any references to the old uuid for
-reaping at the next label update attempt.
-
-Cc: <stable@vger.kernel.org>
-Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace instantiation")
-Link: https://github.com/pmem/ndctl/issues/91
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
-Cc: Johannes Thumshirn <jthumshirn@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/label.c          |   29 ++++++++++++++++-------------
- drivers/nvdimm/namespace_devs.c |   15 +++++++++++++++
- drivers/nvdimm/nd.h             |    4 ++++
- 3 files changed, 35 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 66a089d561cf..9108004a0d9b 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -490,15 +490,26 @@ static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
- 		- (unsigned long) to_namespace_index(ndd, 0);
- }
- 
-+static void reap_victim(struct nd_mapping *nd_mapping,
-+		struct nd_label_ent *victim)
-+{
-+	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+	u32 slot = to_slot(ndd, victim->label);
-+
-+	dev_dbg(ndd->dev, "free: %d\n", slot);
-+	nd_label_free_slot(ndd, slot);
-+	victim->label = NULL;
-+}
-+
- static int __pmem_label_update(struct nd_region *nd_region,
- 		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
- 		int pos, unsigned long flags)
- {
- 	u64 cookie = nd_region_interleave_set_cookie(nd_region);
- 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
--	struct nd_label_ent *label_ent, *victim = NULL;
- 	struct nd_namespace_label *nd_label;
- 	struct nd_namespace_index *nsindex;
-+	struct nd_label_ent *label_ent;
- 	struct nd_label_id label_id;
- 	struct resource *res;
- 	unsigned long *free;
-@@ -551,18 +562,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
- 		if (!label_ent->label)
- 			continue;
--		if (memcmp(nspm->uuid, label_ent->label->uuid,
--					NSLABEL_UUID_LEN) != 0)
--			continue;
--		victim = label_ent;
--		list_move_tail(&victim->list, &nd_mapping->labels);
--		break;
--	}
--	if (victim) {
--		dev_dbg(ndd->dev, "%s: free: %d\n", __func__, slot);
--		slot = to_slot(ndd, victim->label);
--		nd_label_free_slot(ndd, slot);
--		victim->label = NULL;
-+		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags)
-+				|| memcmp(nspm->uuid, label_ent->label->uuid,
-+					NSLABEL_UUID_LEN) == 0)
-+			reap_victim(nd_mapping, label_ent);
- 	}
- 
- 	/* update index */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index cf4a90b50f8b..e83453e1b308 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1210,12 +1210,27 @@ static int namespace_update_uuid(struct nd_region *nd_region,
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
-+		struct nd_label_ent *label_ent;
- 		struct resource *res;
- 
- 		for_each_dpa_resource(ndd, res)
- 			if (strcmp(res->name, old_label_id.id) == 0)
- 				sprintf((void *) res->name, "%s",
- 						new_label_id.id);
-+
-+		mutex_lock(&nd_mapping->lock);
-+		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
-+			struct nd_namespace_label *nd_label = label_ent->label;
-+			struct nd_label_id label_id;
-+
-+			if (!nd_label)
-+				continue;
-+			nd_label_gen_id(&label_id, nd_label->uuid,
-+					__le32_to_cpu(nd_label->flags));
-+			if (strcmp(old_label_id.id, label_id.id) == 0)
-+				set_bit(ND_LABEL_REAP, &label_ent->flags);
-+		}
-+		mutex_unlock(&nd_mapping->lock);
- 	}
- 	kfree(*old_uuid);
-  out:
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index d869236b474f..bd29e598bac1 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -113,8 +113,12 @@ struct nd_percpu_lane {
- 	spinlock_t lock;
- };
- 
-+enum nd_label_flags {
-+	ND_LABEL_REAP,
-+};
- struct nd_label_ent {
- 	struct list_head list;
-+	unsigned long flags;
- 	struct nd_namespace_label *label;
- };
- 
-
+-Frank
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
