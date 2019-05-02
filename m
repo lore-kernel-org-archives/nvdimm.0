@@ -1,80 +1,43 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v2 16/17] kernel/sysctl-test: Add null pointer test for sysctl.c:proc_dointvec()
-Date: Thu, 2 May 2019 11:45:43 -0700
-Message-ID: <CAFd5g471Wawu6g14p0AO3aY8VPBKLA0mjHSdfR1qStFGzp3iGQ@mail.gmail.com>
+Subject: Re: [PATCH v2 04/17] kunit: test: add kunit_stream a std::stream like
+ logger
+Date: Thu, 2 May 2019 13:25:54 -0700
+Message-ID: <CAFd5g47ssM7RQZxQsUJ86UigcF-Uz+Kwv2yvKN_gZK-TtW89bA@mail.gmail.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-17-brendanhiggins@google.com> <20190502110347.GE12416@kroah.com>
- <ECADFF3FD767C149AD96A924E7EA6EAF9770A3A0@USCULXMSG01.am.sony.com>
+ <20190501230126.229218-5-brendanhiggins@google.com>
+ <20190502110008.GC12416@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ECADFF3FD767C149AD96A924E7EA6EAF9770A3A0@USCULXMSG01.am.sony.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Bird, Timothy" <Tim.Bird@sony.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah@kernel.org, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-kselftest@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190502110008.GC12416@kroah.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Petr Mladek <pmladek@suse.com>, linux-doc@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, linux-kselftest@vger.kernel.org, shuah@kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild@vger.kernel.org, "Bird,
+ Timothy" <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Dan Williams <dan.j.williams@intel.com>, kunit-dev@googlegroups.
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, May 2, 2019 at 11:15 AM <Tim.Bird@sony.com> wrote:
->
->
->
-> > -----Original Message-----
-> > From: Greg KH
-> >
-> > On Wed, May 01, 2019 at 04:01:25PM -0700, Brendan Higgins wrote:
-> > > From: Iurii Zaikin <yzaikin@google.com>
-> > >
-> > > KUnit tests for initialized data behavior of proc_dointvec that is
-> > > explicitly checked in the code. Includes basic parsing tests including
-> > > int min/max overflow.
-> > >
-> > > Signed-off-by: Iurii Zaikin <yzaikin@google.com>
-> > > Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> > > ---
-> > >  kernel/Makefile      |   2 +
-> > >  kernel/sysctl-test.c | 292
-> > +++++++++++++++++++++++++++++++++++++++++++
-> > >  lib/Kconfig.debug    |   6 +
-> > >  3 files changed, 300 insertions(+)
-> > >  create mode 100644 kernel/sysctl-test.c
-> > >
-> > > diff --git a/kernel/Makefile b/kernel/Makefile
-> > > index 6c57e78817dad..c81a8976b6a4b 100644
-> > > --- a/kernel/Makefile
-> > > +++ b/kernel/Makefile
-> > > @@ -112,6 +112,8 @@ obj-$(CONFIG_HAS_IOMEM) += iomem.o
-> > >  obj-$(CONFIG_ZONE_DEVICE) += memremap.o
-> > >  obj-$(CONFIG_RSEQ) += rseq.o
-> > >
-> > > +obj-$(CONFIG_SYSCTL_KUNIT_TEST) += sysctl-test.o
-> >
-> > You are going to have to have a "standard" naming scheme for test
-> > modules, are you going to recommend "foo-test" over "test-foo"?  If so,
-> > that's fine, we should just be consistant and document it somewhere.
-> >
-> > Personally, I'd prefer "test-foo", but that's just me, naming is hard...
->
-> My preference would be "test-foo" as well.  Just my 2 cents.
-
-I definitely agree we should be consistent. My personal bias
-(unsurprisingly) is "foo-test," but this is just because that is the
-convention I am used to in other projects I have worked on.
-
-On an unbiased note, we are currently almost evenly split between the
-two conventions with *slight* preference for "foo-test": I ran the two
-following grep commands on v5.1-rc7:
-
-grep -Hrn --exclude-dir="build" -e "config [a-zA-Z_0-9]\+_TEST$" | wc -l
-grep -Hrn --exclude-dir="build" -e "config TEST_[a-zA-Z_0-9]\+" | wc -l
-
-"foo-test" has 36 occurrences.
-"test-foo" has 33 occurrences.
-
-The things I am more concerned about is how this would affect file
-naming. If we have a unit test for foo.c, I think foo_test.c is more
-consistent with our namespacing conventions. The other thing, is if we
-already have a Kconfig symbol called FOO_TEST (or TEST_FOO) what
-should we name the KUnit test in this case? FOO_UNIT_TEST?
-FOO_KUNIT_TEST, like I did above?
-
-Cheers
+T24gVGh1LCBNYXkgMiwgMjAxOSBhdCA0OjAwIEFNIEdyZWcgS0ggPGdyZWdraEBsaW51eGZvdW5k
+YXRpb24ub3JnPiB3cm90ZToKPgo+IE9uIFdlZCwgTWF5IDAxLCAyMDE5IGF0IDA0OjAxOjEzUE0g
+LTA3MDAsIEJyZW5kYW4gSGlnZ2lucyB3cm90ZToKPiA+IEEgbG90IG9mIHRoZSBleHBlY3RhdGlv
+biBhbmQgYXNzZXJ0aW9uIGluZnJhc3RydWN0dXJlIHByaW50cyBvdXQgZmFpcmx5Cj4gPiBjb21w
+bGljYXRlZCB0ZXN0IGZhaWx1cmUgbWVzc2FnZXMsIHNvIGFkZCBhIEMrKyBzdHlsZSBsb2cgbGli
+cmFyeSBmb3IKPiA+IGZvciBsb2dnaW5nIHRlc3QgcmVzdWx0cy4KPgo+IElkZWFsbHkgd2Ugd291
+bGQgYWx3YXlzIHVzZSBhIHN0YW5kYXJkIGxvZ2dpbmcgZm9ybWF0LCBsaWtlIHRoZQo+IGtzZWxm
+dGVzdCB0ZXN0cyBhbGwgYXJlIGFpbWluZyB0byBkby4gIFRoYXQgd2F5IHRoZSBvdXRwdXQgY2Fu
+IGJlIGVhc2lseQo+IHBhcnNlZCBieSB0b29scyB0byBzZWUgaWYgdGhlIHRlc3RzIHN1Y2NlZWQv
+ZmFpbCBlYXNpbHkuCj4KPiBBbnkgY2hhbmNlIG9mIGhhdmluZyB0aGlzIGxvZ2dpbmcgZnJhbWV3
+b3JrIGVuZm9yY2luZyB0aGF0IGZvcm1hdCBhcwo+IHdlbGw/CgpJIGFncmVlIHdpdGggeW91ciBj
+b21tZW50IG9uIHRoZSBsYXRlciBwYXRjaCB0aGF0IHdlIHNob3VsZCBoYW5kbGUKdGhpcyBhdCB0
+aGUgd3JhcHBlciBzY3JpcHQgbGF5ZXIgKEtVbml0IHRvb2wpLgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
+ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
