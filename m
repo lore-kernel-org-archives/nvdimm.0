@@ -1,43 +1,66 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v2 04/17] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Thu, 2 May 2019 13:25:54 -0700
-Message-ID: <CAFd5g47ssM7RQZxQsUJ86UigcF-Uz+Kwv2yvKN_gZK-TtW89bA@mail.gmail.com>
+Subject: Re: [PATCH v2 07/17] kunit: test: add initial tests
+Date: Thu, 2 May 2019 13:30:12 -0700
+Message-ID: <CAFd5g44os8xEMMiROkmX_KM4-9yL=+y6kw4-JApxhdzJV5pwkg@mail.gmail.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-5-brendanhiggins@google.com>
- <20190502110008.GC12416@kroah.com>
+ <20190501230126.229218-8-brendanhiggins@google.com> <20190502105849.GB12416@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190502110008.GC12416@kroah.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190502105849.GB12416@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Petr Mladek <pmladek@suse.com>, linux-doc@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, linux-kselftest@vger.kernel.org, shuah@kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild@vger.kernel.org, "Bird,
- Timothy" <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Dan Williams <dan.j.williams@intel.com>, kunit-dev@googlegroups.
+Cc: Frank Rowand <frowand.list@gmail.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah@kernel.org, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-kselftest@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>, "Bird, Timothy" <Tim.Bird@sony.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-nvdimm@lists.01.org
 
-T24gVGh1LCBNYXkgMiwgMjAxOSBhdCA0OjAwIEFNIEdyZWcgS0ggPGdyZWdraEBsaW51eGZvdW5k
-YXRpb24ub3JnPiB3cm90ZToKPgo+IE9uIFdlZCwgTWF5IDAxLCAyMDE5IGF0IDA0OjAxOjEzUE0g
-LTA3MDAsIEJyZW5kYW4gSGlnZ2lucyB3cm90ZToKPiA+IEEgbG90IG9mIHRoZSBleHBlY3RhdGlv
-biBhbmQgYXNzZXJ0aW9uIGluZnJhc3RydWN0dXJlIHByaW50cyBvdXQgZmFpcmx5Cj4gPiBjb21w
-bGljYXRlZCB0ZXN0IGZhaWx1cmUgbWVzc2FnZXMsIHNvIGFkZCBhIEMrKyBzdHlsZSBsb2cgbGli
-cmFyeSBmb3IKPiA+IGZvciBsb2dnaW5nIHRlc3QgcmVzdWx0cy4KPgo+IElkZWFsbHkgd2Ugd291
-bGQgYWx3YXlzIHVzZSBhIHN0YW5kYXJkIGxvZ2dpbmcgZm9ybWF0LCBsaWtlIHRoZQo+IGtzZWxm
-dGVzdCB0ZXN0cyBhbGwgYXJlIGFpbWluZyB0byBkby4gIFRoYXQgd2F5IHRoZSBvdXRwdXQgY2Fu
-IGJlIGVhc2lseQo+IHBhcnNlZCBieSB0b29scyB0byBzZWUgaWYgdGhlIHRlc3RzIHN1Y2NlZWQv
-ZmFpbCBlYXNpbHkuCj4KPiBBbnkgY2hhbmNlIG9mIGhhdmluZyB0aGlzIGxvZ2dpbmcgZnJhbWV3
-b3JrIGVuZm9yY2luZyB0aGF0IGZvcm1hdCBhcwo+IHdlbGw/CgpJIGFncmVlIHdpdGggeW91ciBj
-b21tZW50IG9uIHRoZSBsYXRlciBwYXRjaCB0aGF0IHdlIHNob3VsZCBoYW5kbGUKdGhpcyBhdCB0
-aGUgd3JhcHBlciBzY3JpcHQgbGF5ZXIgKEtVbml0IHRvb2wpLgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1k
-ZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+On Thu, May 2, 2019 at 3:58 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+>
+> On Wed, May 01, 2019 at 04:01:16PM -0700, Brendan Higgins wrote:
+> > Add a test for string stream along with a simpler example.
+> >
+> > Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> > ---
+> >  kunit/Kconfig              | 12 ++++++
+> >  kunit/Makefile             |  4 ++
+> >  kunit/example-test.c       | 88 ++++++++++++++++++++++++++++++++++++++
+> >  kunit/string-stream-test.c | 61 ++++++++++++++++++++++++++
+> >  4 files changed, 165 insertions(+)
+> >  create mode 100644 kunit/example-test.c
+> >  create mode 100644 kunit/string-stream-test.c
+> >
+> > diff --git a/kunit/Kconfig b/kunit/Kconfig
+> > index 64480092b2c24..5cb500355c873 100644
+> > --- a/kunit/Kconfig
+> > +++ b/kunit/Kconfig
+> > @@ -13,4 +13,16 @@ config KUNIT
+> >         special hardware. For more information, please see
+> >         Documentation/kunit/
+> >
+> > +config KUNIT_TEST
+> > +     bool "KUnit test for KUnit"
+> > +     depends on KUNIT
+> > +     help
+> > +       Enables KUnit test to test KUnit.
+> > +
+> > +config KUNIT_EXAMPLE_TEST
+> > +     bool "Example test for KUnit"
+> > +     depends on KUNIT
+> > +     help
+> > +       Enables example KUnit test to demo features of KUnit.
+>
+> Can't these tests be module?
+
+At this time, no. KUnit doesn't support loading tests as kernel
+modules; it is something we could add in in the future, but I would
+rather not open that can of worms right now. There are some other
+things I would like to do that would probably be easier to do before
+adding support for tests as loadable modules.
+
+>
+> Or am I mis-reading the previous logic?
+>
+> Anyway, just a question, nothing objecting to this as-is for now.
+
+Cool
+
+Cheers!
