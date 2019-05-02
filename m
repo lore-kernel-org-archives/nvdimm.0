@@ -1,189 +1,148 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Tue, 21 May 2019 09:51:58 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 04/18] dax: Introduce IOMAP_DAX_COW to CoW edges during
- writes
-Message-ID: <20190521165158.GB5125@magnolia>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
- <20190429172649.8288-5-rgoldwyn@suse.de>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com
+ [IPv6:2607:f8b0:4864:20::741])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 2DA1B21243BDB
+ for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 11:43:47 -0700 (PDT)
+Received: by mail-qk1-x741.google.com with SMTP id n68so2147530qka.1
+ for <linux-nvdimm@lists.01.org>; Thu, 02 May 2019 11:43:47 -0700 (PDT)
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: [v5 3/3] device-dax: "Hotremove" persistent memory that is used like
+ normal RAM
+Date: Thu,  2 May 2019 14:43:37 -0400
+Message-Id: <20190502184337.20538-4-pasha.tatashin@soleen.com>
+In-Reply-To: <20190502184337.20538-1-pasha.tatashin@soleen.com>
+References: <20190502184337.20538-1-pasha.tatashin@soleen.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190429172649.8288-5-rgoldwyn@suse.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: linux-btrfs@vger.kernel.org, kilobyte@angband.pl, linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 29, 2019 at 12:26:35PM -0500, Goldwyn Rodrigues wrote:
-> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> 
-> The IOMAP_DAX_COW is a iomap type which performs copy of
-> edges of data while performing a write if start/end are
-> not page aligned. The source address is expected in
-> iomap->inline_data.
-> 
-> dax_copy_edges() is a helper functions performs a copy from
-> one part of the device to another for data not page aligned.
-> If iomap->inline_data is NULL, it memset's the area to zero.
-> 
-> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> ---
->  fs/dax.c              | 46 +++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/iomap.h |  1 +
->  2 files changed, 46 insertions(+), 1 deletion(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index e5e54da1715f..610bfa861a28 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1084,6 +1084,42 @@ int __dax_zero_page_range(struct block_device *bdev,
->  }
->  EXPORT_SYMBOL_GPL(__dax_zero_page_range);
->  
-> +/*
-> + * dax_copy_edges - Copies the part of the pages not included in
-> + * 		    the write, but required for CoW because
-> + * 		    offset/offset+length are not page aligned.
-> + */
-> +static int dax_copy_edges(struct inode *inode, loff_t pos, loff_t length,
-> +			   struct iomap *iomap, void *daddr)
-> +{
-> +	unsigned offset = pos & (PAGE_SIZE - 1);
-> +	loff_t end = pos + length;
-> +	loff_t pg_end = round_up(end, PAGE_SIZE);
-> +	void *saddr = iomap->inline_data;
-> +	int ret = 0;
-> +	/*
-> +	 * Copy the first part of the page
-> +	 * Note: we pass offset as length
-> +	 */
-> +	if (offset) {
-> +		if (saddr)
-> +			ret = memcpy_mcsafe(daddr, saddr, offset);
-> +		else
-> +			memset(daddr, 0, offset);
-> +	}
-> +
-> +	/* Copy the last part of the range */
-> +	if (end < pg_end) {
-> +		if (saddr)
-> +			ret = memcpy_mcsafe(daddr + offset + length,
-> +			       saddr + offset + length,	pg_end - end);
-> +		else
-> +			memset(daddr + offset + length, 0,
-> +					pg_end - end);
-> +	}
-> +	return ret;
-> +}
-> +
->  static loff_t
->  dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
->  		struct iomap *iomap)
-> @@ -1105,9 +1141,11 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
->  			return iov_iter_zero(min(length, end - pos), iter);
->  	}
->  
-> -	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED))
-> +	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED
-> +			 && iomap->type != IOMAP_DAX_COW))
+It is now allowed to use persistent memory like a regular RAM, but
+currently there is no way to remove this memory until machine is
+rebooted.
 
-I reiterate (from V3) that the && goes on the previous line...
+This work expands the functionality to also allows hotremoving
+previously hotplugged persistent memory, and recover the device for use
+for other purposes.
 
-	if (WARN_ON_ONCE(iomap->type != IOMAP_MAPPED &&
-			 iomap->type != IOMAP_DAX_COW))
+To hotremove persistent memory, the management software must first
+offline all memory blocks of dax region, and than unbind it from
+device-dax/kmem driver. So, operations should look like this:
 
->  		return -EIO;
->  
-> +
->  	/*
->  	 * Write can allocate block for an area which has a hole page mapped
->  	 * into page tables. We have to tear down these mappings so that data
-> @@ -1144,6 +1182,12 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
->  			break;
->  		}
->  
-> +		if (iomap->type == IOMAP_DAX_COW) {
-> +			ret = dax_copy_edges(inode, pos, length, iomap, kaddr);
-> +			if (ret)
-> +				break;
-> +		}
-> +
->  		map_len = PFN_PHYS(map_len);
->  		kaddr += offset;
->  		map_len -= offset;
-> diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-> index 0fefb5455bda..6e885c5a38a3 100644
-> --- a/include/linux/iomap.h
-> +++ b/include/linux/iomap.h
-> @@ -25,6 +25,7 @@ struct vm_fault;
->  #define IOMAP_MAPPED	0x03	/* blocks allocated at @addr */
->  #define IOMAP_UNWRITTEN	0x04	/* blocks allocated at @addr in unwritten state */
->  #define IOMAP_INLINE	0x05	/* data inline in the inode */
+echo offline > /sys/devices/system/memory/memoryN/state
+...
+echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
 
-> +#define IOMAP_DAX_COW	0x06
+Note: if unbind is done without offlining memory beforehand, it won't be
+possible to do dax0.0 hotremove, and dax's memory is going to be part of
+System RAM until reboot.
 
-DAX isn't going to be the only scenario where we need a way to
-communicate to iomap actors the need to implement copy on write.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+---
+ drivers/dax/dax-private.h |  2 ++
+ drivers/dax/kmem.c        | 41 +++++++++++++++++++++++++++++++++++----
+ 2 files changed, 39 insertions(+), 4 deletions(-)
 
-XFS also uses struct iomap to hand out file leases to clients.  The
-lease code /currently/ doesn't support files with shared blocks (because
-the only user is pNFS) but one could easily imagine a future where some
-client wants to lease a file with shared blocks, in which case XFS will
-want to convey the COW details to the lessee.
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index a45612148ca0..999aaf3a29b3 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -53,6 +53,7 @@ struct dax_region {
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+  * @ref: pgmap reference count (driver owned)
+  * @cmp: @ref final put completion (driver owned)
++ * @dax_mem_res: physical address range of hotadded DAX memory
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+@@ -62,6 +63,7 @@ struct dev_dax {
+ 	struct dev_pagemap pgmap;
+ 	struct percpu_ref ref;
+ 	struct completion cmp;
++	struct resource *dax_kmem_res;
+ };
+ 
+ static inline struct dev_dax *to_dev_dax(struct device *dev)
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 4c0131857133..3d0a7e702c94 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -71,21 +71,54 @@ int dev_dax_kmem_probe(struct device *dev)
+ 		kfree(new_res);
+ 		return rc;
+ 	}
++	dev_dax->dax_kmem_res = new_res;
+ 
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++static int dev_dax_kmem_remove(struct device *dev)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++	struct resource *res = dev_dax->dax_kmem_res;
++	resource_size_t kmem_start = res->start;
++	resource_size_t kmem_size = resource_size(res);
++	int rc;
++
++	/*
++	 * We have one shot for removing memory, if some memory blocks were not
++	 * offline prior to calling this function remove_memory() will fail, and
++	 * there is no way to hotremove this memory until reboot because device
++	 * unbind will succeed even if we return failure.
++	 */
++	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
++	if (rc) {
++		dev_err(dev,
++			"DAX region %pR cannot be hotremoved until the next reboot\n",
++			res);
++		return rc;
++	}
++
++	/* Release and free dax resources */
++	release_resource(res);
++	kfree(res);
++	dev_dax->dax_kmem_res = NULL;
++
++	return 0;
++}
++#else
+ static int dev_dax_kmem_remove(struct device *dev)
+ {
+ 	/*
+-	 * Purposely leak the request_mem_region() for the device-dax
+-	 * range and return '0' to ->remove() attempts. The removal of
+-	 * the device from the driver always succeeds, but the region
+-	 * is permanently pinned as reserved by the unreleased
++	 * Without hotremove purposely leak the request_mem_region() for the
++	 * device-dax range and return '0' to ->remove() attempts. The removal
++	 * of the device from the driver always succeeds, but the region is
++	 * permanently pinned as reserved by the unreleased
+ 	 * request_mem_region().
+ 	 */
+ 	return 0;
+ }
++#endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ static struct dax_device_driver device_dax_kmem_driver = {
+ 	.drv = {
+-- 
+2.21.0
 
-> +/* Copy data pointed by inline_data before write*/
-
-A month ago during the V3 patchset review, I wrote (possibly in an other
-thread, sorry) about something that I'm putting my foot down about now
-for the V4 patchset, which is the {re,ab}use of @inline_data for the
-data source address.
-
-We cannot use @inline_data to convey the source address.  @inline_data
-(so far) is used to point to the in-memory representation of the storage
-described by @addr.  For data writes, @addr is the location of the write
-on disk and @inline_data is the location of the write in memory.
-
-Reusing @inline_data here to point to the location of the source data in
-memory is a totally different thing and will likely result in confusion.
-On a practical level, this also means that we cannot support the case of
-COW && INLINE because the type codes collide and so would the users of
-@inline_data.  This isn't required *right now*, but if you had a pmem
-filesystem that stages inode updates in memory and flips a pointer to
-commit changes then the ->iomap_begin function will need to convey two
-pointers at once.
-
-So this brings us back to Dave's suggestion during the V1 patchset
-review that instead of adding more iomap flags/types and overloading
-fields, we simply pass two struct iomaps into ->iomap_begin:
-
- - Change iomap_apply() to "struct iomap iomap[2] = 0;" and pass
-   &iomap[0] into the ->iomap_begin and ->iomap_end functions.  The
-   first iomap will be filled in with the destination for the write (as
-   all implementations do now), and the second iomap can be filled in
-   with the source information for a COW operation.
-
- - If the ->iomap_begin implementation decides that COW is necessary for
-   the requested operation, then it should fill out that second iomap
-   with information about the extent that the actor must copied before
-   returning.  The second iomap's offset and length must match the
-   first.  If COW isn't necessary, the ->iomap_begin implementation
-   ignores it, and the second iomap retains type == 0 (i.e. invalid
-   mapping).
-
-Proceeding along these lines will (AFAICT) still allow you to enable all
-the btrfs functionality in the rest of this patchset while making the
-task of wiring up XFS fairly simple.  No overloaded fields and no new
-flags.
-
-This is how I'd like to see this patchset should proceed to V5.  Does
-that make sense?
-
---D
-
->  
->  /*
->   * Flags for all iomap mappings:
-> -- 
-> 2.16.4
-> 
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
