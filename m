@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD08A212532F5
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:41:00 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id C6BCB2194EB76
+ for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:42 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 04/10] libdaxctl: add interfaces to get/set the
- online state for a node
-Date: Thu, 16 May 2019 16:40:47 -0600
-Message-Id: <20190516224053.3655-5-vishal.l.verma@intel.com>
-In-Reply-To: <20190516224053.3655-1-vishal.l.verma@intel.com>
-References: <20190516224053.3655-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 4/8] ndctl: add helpers to get/set the online state for
+ a node
+Date: Fri,  3 May 2019 15:32:27 -0600
+Message-Id: <20190503213231.12280-5-vishal.l.verma@intel.com>
+In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
+References: <20190503213231.12280-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
