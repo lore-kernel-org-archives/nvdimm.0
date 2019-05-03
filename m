@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF4112125ADFF
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:35 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 08/30] fuse: extract fuse_fill_super_common()
-Date: Wed, 15 May 2019 15:26:53 -0400
-Message-Id: <20190515192715.18000-9-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id E36A221244A5F
+ for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 03:48:38 -0700 (PDT)
+Date: Fri, 3 May 2019 12:48:32 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: Re: [PATCH v6 00/12] mm: Sub-section memory hotplug support
+Message-ID: <20190503104831.GF15740@linux>
+References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+CK2bBT=goxf5KWLhca7uQutUj9670aL9r02_+BsJ+bLkjj=g@mail.gmail.com>
+ <CAPcyv4gWZxSepaACiyR43qytA1jR8fVaeLy1rv7dFJW-ZE63EA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gWZxSepaACiyR43qytA1jR8fVaeLy1rv7dFJW-ZE63EA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,334 +25,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, stable <stable@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Stefan Hajnoczi <stefanha@redhat.com>
+On Thu, May 02, 2019 at 04:20:03PM -0700, Dan Williams wrote:
+> On Thu, May 2, 2019 at 3:46 PM Pavel Tatashin <pasha.tatashin@soleen.com> wrote:
+> >
+> > Hi Dan,
+> >
+> > How do you test these patches? Do you have any instructions?
+> 
+> Yes, I briefly mentioned this in the cover letter, but here is the
+> test I am using:
+> 
+> >
+> > I see for example that check_hotplug_memory_range() still enforces
+> > memory_block_size_bytes() alignment.
+> >
+> > Also, after removing check_hotplug_memory_range(), I tried to online
+> > 16M aligned DAX memory, and got the following panic:
+> 
+> Right, this functionality is currently strictly limited to the
+> devm_memremap_pages() case where there are guarantees that the memory
+> will never be onlined. This is due to the fact that the section size
+> is entangled with the memblock api. That said I would have expected
+> you to trigger the warning in subsection_check() before getting this
+> far into the hotplug process.
+> >
+> > # echo online > /sys/devices/system/memory/memory7/state
+> > [  202.193132] WARNING: CPU: 2 PID: 351 at drivers/base/memory.c:207
+> > memory_block_action+0x110/0x178
+> > [  202.193391] Modules linked in:
+> > [  202.193698] CPU: 2 PID: 351 Comm: sh Not tainted
+> > 5.1.0-rc7_pt_devdax-00038-g865af4385544-dirty #9
+> > [  202.193909] Hardware name: linux,dummy-virt (DT)
+> > [  202.194122] pstate: 60000005 (nZCv daif -PAN -UAO)
+> > [  202.194243] pc : memory_block_action+0x110/0x178
+> > [  202.194404] lr : memory_block_action+0x90/0x178
+> > [  202.194506] sp : ffff000016763ca0
+> > [  202.194592] x29: ffff000016763ca0 x28: ffff80016fd29b80
+> > [  202.194724] x27: 0000000000000000 x26: 0000000000000000
+> > [  202.194838] x25: ffff000015546000 x24: 00000000001c0000
+> > [  202.194949] x23: 0000000000000000 x22: 0000000000040000
+> > [  202.195058] x21: 00000000001c0000 x20: 0000000000000008
+> > [  202.195168] x19: 0000000000000007 x18: 0000000000000000
+> > [  202.195281] x17: 0000000000000000 x16: 0000000000000000
+> > [  202.195393] x15: 0000000000000000 x14: 0000000000000000
+> > [  202.195505] x13: 0000000000000000 x12: 0000000000000000
+> > [  202.195614] x11: 0000000000000000 x10: 0000000000000000
+> > [  202.195744] x9 : 0000000000000000 x8 : 0000000180000000
+> > [  202.195858] x7 : 0000000000000018 x6 : ffff000015541930
+> > [  202.195966] x5 : ffff000015541930 x4 : 0000000000000001
+> > [  202.196074] x3 : 0000000000000001 x2 : 0000000000000000
+> > [  202.196185] x1 : 0000000000000070 x0 : 0000000000000000
+> > [  202.196366] Call trace:
+> > [  202.196455]  memory_block_action+0x110/0x178
+> > [  202.196589]  memory_subsys_online+0x3c/0x80
+> > [  202.196681]  device_online+0x6c/0x90
+> > [  202.196761]  state_store+0x84/0x100
+> > [  202.196841]  dev_attr_store+0x18/0x28
+> > [  202.196927]  sysfs_kf_write+0x40/0x58
+> > [  202.197010]  kernfs_fop_write+0xcc/0x1d8
+> > [  202.197099]  __vfs_write+0x18/0x40
+> > [  202.197187]  vfs_write+0xa4/0x1b0
+> > [  202.197295]  ksys_write+0x64/0xd8
+> > [  202.197430]  __arm64_sys_write+0x18/0x20
+> > [  202.197521]  el0_svc_common.constprop.0+0x7c/0xe8
+> > [  202.197621]  el0_svc_handler+0x28/0x78
+> > [  202.197706]  el0_svc+0x8/0xc
+> > [  202.197828] ---[ end trace 57719823dda6d21e ]---
 
-fuse_fill_super() includes code to process the fd= option and link the
-struct fuse_dev to the fd's struct file.  In virtio-fs there is no file
-descriptor because /dev/fuse is not used.
+This warning relates to:
 
-This patch extracts fuse_fill_super_common() so that both classic fuse
-and virtio-fs can share the code to initialize a mount.
+        for (; section_nr < section_nr_end; section_nr++) {
+                if (WARN_ON_ONCE(!pfn_valid(pfn)))
+                        return false;
 
-parse_fuse_opt() is also extracted so that the fuse_fill_super_common()
-caller has access to the mount options.  This allows classic fuse to
-handle the fd= option outside fuse_fill_super_common().
+from pages_correctly_probed().
+AFAICS, this is orthogonal to subsection_check().
 
-Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/fuse/fuse_i.h |  33 ++++++++++++
- fs/fuse/inode.c  | 137 ++++++++++++++++++++++++-----------------------
- 2 files changed, 103 insertions(+), 67 deletions(-)
 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 38a572ba650d..84f094e4ac36 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -56,6 +56,25 @@ extern struct mutex fuse_mutex;
- extern unsigned max_user_bgreq;
- extern unsigned max_user_congthresh;
- 
-+/** Mount options */
-+struct fuse_mount_data {
-+	int fd;
-+	unsigned rootmode;
-+	kuid_t user_id;
-+	kgid_t group_id;
-+	unsigned fd_present:1;
-+	unsigned rootmode_present:1;
-+	unsigned user_id_present:1;
-+	unsigned group_id_present:1;
-+	unsigned default_permissions:1;
-+	unsigned allow_other:1;
-+	unsigned max_read;
-+	unsigned blksize;
-+
-+	/* fuse_dev pointer to fill in, should contain NULL on entry */
-+	void **fudptr;
-+};
-+
- /* One forget request */
- struct fuse_forget_link {
- 	struct fuse_forget_one forget_one;
-@@ -989,6 +1008,20 @@ struct fuse_dev *fuse_dev_alloc(struct fuse_conn *fc);
- void fuse_dev_free(struct fuse_dev *fud);
- void fuse_send_init(struct fuse_conn *fc, struct fuse_req *req);
- 
-+/**
-+ * Parse a mount options string
-+ */
-+int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
-+				struct user_namespace *user_ns);
-+
-+/**
-+ * Fill in superblock and initialize fuse connection
-+ * @sb: partially-initialized superblock to fill in
-+ * @mount_data: mount parameters
-+ */
-+int fuse_fill_super_common(struct super_block *sb,
-+			   struct fuse_mount_data *mount_data);
-+
- /**
-  * Add connection to control filesystem
-  */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index f02291469518..baf2966a753a 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -59,21 +59,6 @@ MODULE_PARM_DESC(max_user_congthresh,
- /** Congestion starts at 75% of maximum */
- #define FUSE_DEFAULT_CONGESTION_THRESHOLD (FUSE_DEFAULT_MAX_BACKGROUND * 3 / 4)
- 
--struct fuse_mount_data {
--	int fd;
--	unsigned rootmode;
--	kuid_t user_id;
--	kgid_t group_id;
--	unsigned fd_present:1;
--	unsigned rootmode_present:1;
--	unsigned user_id_present:1;
--	unsigned group_id_present:1;
--	unsigned default_permissions:1;
--	unsigned allow_other:1;
--	unsigned max_read;
--	unsigned blksize;
--};
--
- struct fuse_forget_link *fuse_alloc_forget(void)
- {
- 	return kzalloc(sizeof(struct fuse_forget_link), GFP_KERNEL);
-@@ -482,7 +467,7 @@ static int fuse_match_uint(substring_t *s, unsigned int *res)
- 	return err;
- }
- 
--static int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
-+int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
- 			  struct user_namespace *user_ns)
- {
- 	char *p;
-@@ -559,12 +544,13 @@ static int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
- 		}
- 	}
- 
--	if (!d->fd_present || !d->rootmode_present ||
--	    !d->user_id_present || !d->group_id_present)
-+	if (!d->rootmode_present || !d->user_id_present ||
-+	    !d->group_id_present)
- 		return 0;
- 
- 	return 1;
- }
-+EXPORT_SYMBOL_GPL(parse_fuse_opt);
- 
- static int fuse_show_options(struct seq_file *m, struct dentry *root)
- {
-@@ -1079,15 +1065,13 @@ void fuse_dev_free(struct fuse_dev *fud)
- }
- EXPORT_SYMBOL_GPL(fuse_dev_free);
- 
--static int fuse_fill_super(struct super_block *sb, void *data, int silent)
-+int fuse_fill_super_common(struct super_block *sb,
-+			   struct fuse_mount_data *mount_data)
- {
- 	struct fuse_dev *fud;
- 	struct fuse_conn *fc;
- 	struct inode *root;
--	struct fuse_mount_data d;
--	struct file *file;
- 	struct dentry *root_dentry;
--	struct fuse_req *init_req;
- 	int err;
- 	int is_bdev = sb->s_bdev != NULL;
- 
-@@ -1097,13 +1081,10 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	sb->s_flags &= ~(SB_NOSEC | SB_I_VERSION);
- 
--	if (!parse_fuse_opt(data, &d, is_bdev, sb->s_user_ns))
--		goto err;
--
- 	if (is_bdev) {
- #ifdef CONFIG_BLOCK
- 		err = -EINVAL;
--		if (!sb_set_blocksize(sb, d.blksize))
-+		if (!sb_set_blocksize(sb, mount_data->blksize))
- 			goto err;
- #endif
- 	} else {
-@@ -1120,19 +1101,6 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 	if (sb->s_user_ns != &init_user_ns)
- 		sb->s_iflags |= SB_I_UNTRUSTED_MOUNTER;
- 
--	file = fget(d.fd);
--	err = -EINVAL;
--	if (!file)
--		goto err;
--
--	/*
--	 * Require mount to happen from the same user namespace which
--	 * opened /dev/fuse to prevent potential attacks.
--	 */
--	if (file->f_op != &fuse_dev_operations ||
--	    file->f_cred->user_ns != sb->s_user_ns)
--		goto err_fput;
--
- 	/*
- 	 * If we are not in the initial user namespace posix
- 	 * acls must be translated.
-@@ -1143,7 +1111,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 	fc = kmalloc(sizeof(*fc), GFP_KERNEL);
- 	err = -ENOMEM;
- 	if (!fc)
--		goto err_fput;
-+		goto err;
- 
- 	fuse_conn_init(fc, sb->s_user_ns);
- 	fc->release = fuse_free_conn;
-@@ -1163,17 +1131,17 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 		fc->dont_mask = 1;
- 	sb->s_flags |= SB_POSIXACL;
- 
--	fc->default_permissions = d.default_permissions;
--	fc->allow_other = d.allow_other;
--	fc->user_id = d.user_id;
--	fc->group_id = d.group_id;
--	fc->max_read = max_t(unsigned, 4096, d.max_read);
-+	fc->default_permissions = mount_data->default_permissions;
-+	fc->allow_other = mount_data->allow_other;
-+	fc->user_id = mount_data->user_id;
-+	fc->group_id = mount_data->group_id;
-+	fc->max_read = max_t(unsigned, 4096, mount_data->max_read);
- 
- 	/* Used by get_root_inode() */
- 	sb->s_fs_info = fc;
- 
- 	err = -ENOMEM;
--	root = fuse_get_root_inode(sb, d.rootmode);
-+	root = fuse_get_root_inode(sb, mount_data->rootmode);
- 	sb->s_d_op = &fuse_root_dentry_operations;
- 	root_dentry = d_make_root(root);
- 	if (!root_dentry)
-@@ -1181,20 +1149,15 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 	/* Root dentry doesn't have .d_revalidate */
- 	sb->s_d_op = &fuse_dentry_operations;
- 
--	init_req = fuse_request_alloc(0);
--	if (!init_req)
--		goto err_put_root;
--	__set_bit(FR_BACKGROUND, &init_req->flags);
--
- 	if (is_bdev) {
- 		fc->destroy_req = fuse_request_alloc(0);
- 		if (!fc->destroy_req)
--			goto err_free_init_req;
-+			goto err_put_root;
- 	}
- 
- 	mutex_lock(&fuse_mutex);
- 	err = -EINVAL;
--	if (file->private_data)
-+	if (*mount_data->fudptr)
- 		goto err_unlock;
- 
- 	err = fuse_ctl_add_conn(fc);
-@@ -1203,23 +1166,12 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 
- 	list_add_tail(&fc->entry, &fuse_conn_list);
- 	sb->s_root = root_dentry;
--	file->private_data = fud;
-+	*mount_data->fudptr = fud;
- 	mutex_unlock(&fuse_mutex);
--	/*
--	 * atomic_dec_and_test() in fput() provides the necessary
--	 * memory barrier for file->private_data to be visible on all
--	 * CPUs after this
--	 */
--	fput(file);
--
--	fuse_send_init(fc, init_req);
--
- 	return 0;
- 
-  err_unlock:
- 	mutex_unlock(&fuse_mutex);
-- err_free_init_req:
--	fuse_request_free(init_req);
-  err_put_root:
- 	dput(root_dentry);
-  err_dev_free:
-@@ -1227,11 +1179,62 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
-  err_put_conn:
- 	fuse_conn_put(fc);
- 	sb->s_fs_info = NULL;
-- err_fput:
--	fput(file);
-  err:
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(fuse_fill_super_common);
-+
-+static int fuse_fill_super(struct super_block *sb, void *data, int silent)
-+{
-+	struct fuse_mount_data d;
-+	struct file *file;
-+	int is_bdev = sb->s_bdev != NULL;
-+	int err;
-+	struct fuse_req *init_req;
-+
-+	err = -EINVAL;
-+	if (!parse_fuse_opt(data, &d, is_bdev, sb->s_user_ns))
-+		goto err;
-+	if (!d.fd_present)
-+		goto err;
-+
-+	file = fget(d.fd);
-+	if (!file)
-+		goto err;
-+
-+	/*
-+	 * Require mount to happen from the same user namespace which
-+	 * opened /dev/fuse to prevent potential attacks.
-+	 */
-+	if ((file->f_op != &fuse_dev_operations) ||
-+	    (file->f_cred->user_ns != sb->s_user_ns))
-+		goto err_fput;
-+
-+	init_req = fuse_request_alloc(0);
-+	if (!init_req)
-+		goto err_fput;
-+	__set_bit(FR_BACKGROUND, &init_req->flags);
-+
-+	d.fudptr = &file->private_data;
-+	err = fuse_fill_super_common(sb, &d);
-+	if (err < 0)
-+		goto err_free_init_req;
-+	/*
-+	 * atomic_dec_and_test() in fput() provides the necessary
-+	 * memory barrier for file->private_data to be visible on all
-+	 * CPUs after this
-+	 */
-+	fput(file);
-+	fuse_send_init(get_fuse_conn_super(sb), init_req);
-+	return 0;
-+
-+err_free_init_req:
-+	fuse_request_free(init_req);
-+err_fput:
-+	fput(file);
-+err:
-+	return err;
-+}
- 
- static struct dentry *fuse_mount(struct file_system_type *fs_type,
- 		       int flags, const char *dev_name,
 -- 
-2.20.1
-
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
