@@ -1,141 +1,341 @@
-From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 12/17] kunit: tool: add Python wrappers for running
- KUnit tests
-Date: Thu, 2 May 2019 18:45:44 -0700
-Message-ID: <1a5f3c44-9fa9-d423-66bf-45255a90c468@gmail.com>
+From: shuah <shuah@kernel.org>
+Subject: Re: [PATCH v2 04/17] kunit: test: add kunit_stream a std::stream like
+ logger
+Date: Thu, 2 May 2019 19:50:14 -0600
+Message-ID: <ead23600-eecd-cf74-bdd1-94a6964e29b2@kernel.org>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-13-brendanhiggins@google.com>
- <20190502110220.GD12416@kroah.com>
- <CAFd5g47t=EdLKFCT=CnPkrM2z0nDVo24Gz4j0VxFOJbARP37Lg@mail.gmail.com>
- <a49c5088-a821-210c-66de-f422536f5b01@gmail.com>
- <CAFd5g44iWRchQKdJYtjRtPY6e-6e0eXpKXXsx5Ooi6sWE474KA@mail.gmail.com>
+ <20190501230126.229218-5-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAFd5g44iWRchQKdJYtjRtPY6e-6e0eXpKXXsx5Ooi6sWE474KA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190501230126.229218-5-brendanhiggins@google.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Bird,
- Timothy" <Tim.Bird-7U/KSKJipcs@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Julia Lawall <julia.lawall@lip6.>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
-On 5/2/19 4:45 PM, Brendan Higgins wrote:
-> On Thu, May 2, 2019 at 2:16 PM Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->> On 5/2/19 11:07 AM, Brendan Higgins wrote:
->>> On Thu, May 2, 2019 at 4:02 AM Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> wrote:
->>>>
->>>> On Wed, May 01, 2019 at 04:01:21PM -0700, Brendan Higgins wrote:
->>>>> From: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>>
->>>>> The ultimate goal is to create minimal isolated test binaries; in the
->>>>> meantime we are using UML to provide the infrastructure to run tests, so
->>>>> define an abstract way to configure and run tests that allow us to
->>>>> change the context in which tests are built without affecting the user.
->>>>> This also makes pretty and dynamic error reporting, and a lot of other
->>>>> nice features easier.
->>>>>
->>>>> kunit_config.py:
->>>>>   - parse .config and Kconfig files.
->>>>>
->>>>> kunit_kernel.py: provides helper functions to:
->>>>>   - configure the kernel using kunitconfig.
->>>>>   - build the kernel with the appropriate configuration.
->>>>>   - provide function to invoke the kernel and stream the output back.
->>>>>
->>>>> Signed-off-by: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>>>> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>>>
->>>> Ah, here's probably my answer to my previous logging format question,
->>>> right?  What's the chance that these wrappers output stuff in a standard
->>>> format that test-framework-tools can already parse?  :)
+On 5/1/19 5:01 PM, Brendan Higgins wrote:
+> A lot of the expectation and assertion infrastructure prints out fairly
+> complicated test failure messages, so add a C++ style log library for
+> for logging test results.
 > 
-> To be clear, the test-framework-tools format we are talking about is
-> TAP13[1], correct?
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> ---
+>   include/kunit/kunit-stream.h |  85 ++++++++++++++++++++
+>   include/kunit/test.h         |   2 +
+>   kunit/Makefile               |   3 +-
+>   kunit/kunit-stream.c         | 149 +++++++++++++++++++++++++++++++++++
+>   kunit/test.c                 |   8 ++
+>   5 files changed, 246 insertions(+), 1 deletion(-)
+>   create mode 100644 include/kunit/kunit-stream.h
+>   create mode 100644 kunit/kunit-stream.c
+> 
+> diff --git a/include/kunit/kunit-stream.h b/include/kunit/kunit-stream.h
+> new file mode 100644
+> index 0000000000000..d457a54fe0100
+> --- /dev/null
+> +++ b/include/kunit/kunit-stream.h
+> @@ -0,0 +1,85 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * C++ stream style string formatter and printer used in KUnit for outputting
+> + * KUnit messages.
+> + *
+> + * Copyright (C) 2019, Google LLC.
+> + * Author: Brendan Higgins <brendanhiggins@google.com>
+> + */
+> +
+> +#ifndef _KUNIT_KUNIT_STREAM_H
+> +#define _KUNIT_KUNIT_STREAM_H
+> +
+> +#include <linux/types.h>
+> +#include <kunit/string-stream.h>
+> +
+> +struct kunit;
+> +
+> +/**
+> + * struct kunit_stream - a std::stream style string builder.
+> + *
+> + * A std::stream style string builder. Allows messages to be built up and
+> + * printed all at once.
+> + */
+> +struct kunit_stream {
+> +	/* private: internal use only. */
+> +	struct kunit *test;
+> +	spinlock_t lock; /* Guards level. */
+> +	const char *level;
+> +	struct string_stream *internal_stream;
+> +};
+> +
+> +/**
+> + * kunit_new_stream() - constructs a new &struct kunit_stream.
+> + * @test: The test context object.
+> + *
+> + * Constructs a new test managed &struct kunit_stream.
+> + */
+> +struct kunit_stream *kunit_new_stream(struct kunit *test);
+> +
+> +/**
+> + * kunit_stream_set_level(): sets the level that string should be printed at.
+> + * @this: the stream being operated on.
+> + * @level: the print level the stream is set to output to.
+> + *
+> + * Sets the print level at which the stream outputs.
+> + */
+> +void kunit_stream_set_level(struct kunit_stream *this, const char *level);
+> +
+> +/**
+> + * kunit_stream_add(): adds the formatted input to the internal buffer.
+> + * @this: the stream being operated on.
+> + * @fmt: printf style format string to append to stream.
+> + *
+> + * Appends the formatted string, @fmt, to the internal buffer.
+> + */
+> +void __printf(2, 3) kunit_stream_add(struct kunit_stream *this,
+> +				     const char *fmt, ...);
+> +
+> +/**
+> + * kunit_stream_append(): appends the contents of @other to @this.
+> + * @this: the stream to which @other is appended.
+> + * @other: the stream whose contents are appended to @this.
+> + *
+> + * Appends the contents of @other to @this.
+> + */
+> +void kunit_stream_append(struct kunit_stream *this, struct kunit_stream *other);
+> +
+> +/**
+> + * kunit_stream_commit(): prints out the internal buffer to the user.
+> + * @this: the stream being operated on.
+> + *
+> + * Outputs the contents of the internal buffer as a kunit_printk formatted
+> + * output.
+> + */
+> +void kunit_stream_commit(struct kunit_stream *this);
+> +
+> +/**
+> + * kunit_stream_clear(): clears the internal buffer.
+> + * @this: the stream being operated on.
+> + *
+> + * Clears the contents of the internal buffer.
+> + */
+> +void kunit_stream_clear(struct kunit_stream *this);
+> +
+> +#endif /* _KUNIT_KUNIT_STREAM_H */
+> diff --git a/include/kunit/test.h b/include/kunit/test.h
+> index 819edd8db4e81..4668e8a635954 100644
+> --- a/include/kunit/test.h
+> +++ b/include/kunit/test.h
+> @@ -11,6 +11,7 @@
+>   
+>   #include <linux/types.h>
+>   #include <linux/slab.h>
+> +#include <kunit/kunit-stream.h>
+>   
+>   struct kunit_resource;
+>   
+> @@ -171,6 +172,7 @@ struct kunit {
+>   	void (*vprintk)(const struct kunit *test,
+>   			const char *level,
+>   			struct va_format *vaf);
+> +	void (*fail)(struct kunit *test, struct kunit_stream *stream);
+>   };
+>   
+>   int kunit_init_test(struct kunit *test, const char *name);
+> diff --git a/kunit/Makefile b/kunit/Makefile
+> index 275b565a0e81f..6ddc622ee6b1c 100644
+> --- a/kunit/Makefile
+> +++ b/kunit/Makefile
+> @@ -1,2 +1,3 @@
+>   obj-$(CONFIG_KUNIT) +=			test.o \
+> -					string-stream.o
+> +					string-stream.o \
+> +					kunit-stream.o
+> diff --git a/kunit/kunit-stream.c b/kunit/kunit-stream.c
+> new file mode 100644
+> index 0000000000000..93c14eec03844
+> --- /dev/null
+> +++ b/kunit/kunit-stream.c
+> @@ -0,0 +1,149 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * C++ stream style string formatter and printer used in KUnit for outputting
+> + * KUnit messages.
+> + *
+> + * Copyright (C) 2019, Google LLC.
+> + * Author: Brendan Higgins <brendanhiggins@google.com>
+> + */
+> +
+> +#include <kunit/test.h>
+> +#include <kunit/kunit-stream.h>
+> +#include <kunit/string-stream.h>
+> +
+> +const char *kunit_stream_get_level(struct kunit_stream *this)
+> +{
+> +	unsigned long flags;
+> +	const char *level;
+> +
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	level = this->level;
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +
+> +	return level;
+> +}
+> +
+> +void kunit_stream_set_level(struct kunit_stream *this, const char *level)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&this->lock, flags);
+> +	this->level = level;
+> +	spin_unlock_irqrestore(&this->lock, flags);
+> +}
+> +
+> +void kunit_stream_add(struct kunit_stream *this, const char *fmt, ...)
+> +{
+> +	va_list args;
+> +	struct string_stream *stream = this->internal_stream;
+> +
+> +	va_start(args, fmt);
+> +
+> +	if (string_stream_vadd(stream, fmt, args) < 0)
+> +		kunit_err(this->test, "Failed to allocate fragment: %s\n", fmt);
+> +
+> +	va_end(args);
+> +}
+> +
+> +void kunit_stream_append(struct kunit_stream *this,
+> +				struct kunit_stream *other)
+> +{
+> +	struct string_stream *other_stream = other->internal_stream;
+> +	const char *other_content;
+> +
+> +	other_content = string_stream_get_string(other_stream);
+> +
+> +	if (!other_content) {
+> +		kunit_err(this->test,
+> +			  "Failed to get string from second argument for appending.\n");
+> +		return;
+> +	}
+> +
+> +	kunit_stream_add(this, other_content);
+> +}
+> +
+> +void kunit_stream_clear(struct kunit_stream *this)
+> +{
+> +	string_stream_clear(this->internal_stream);
+> +}
+> +
+> +void kunit_stream_commit(struct kunit_stream *this)
+> +{
+> +	struct string_stream *stream = this->internal_stream;
+> +	struct string_stream_fragment *fragment;
+> +	const char *level;
+> +	char *buf;
+> +
+> +	level = kunit_stream_get_level(this);
+> +	if (!level) {
+> +		kunit_err(this->test,
+> +			  "Stream was committed without a specified log level.\n");
+> +		level = KERN_ERR;
+> +		kunit_stream_set_level(this, level);
+> +	}
+> +
+> +	buf = string_stream_get_string(stream);
+> +	if (!buf) {
+> +		kunit_err(this->test,
+> +			 "Could not allocate buffer, dumping stream:\n");
+> +		list_for_each_entry(fragment, &stream->fragments, node) {
+> +			kunit_err(this->test, fragment->fragment);
+> +		}
+> +		kunit_err(this->test, "\n");
+> +		goto cleanup;
+> +	}
+> +
+> +	kunit_printk(level, this->test, buf);
+> +	kfree(buf);
+> +
+> +cleanup:
+> +	kunit_stream_clear(this);
+> +}
+> +
+> +static int kunit_stream_init(struct kunit_resource *res, void *context)
+> +{
+> +	struct kunit *test = context;
+> +	struct kunit_stream *stream;
+> +
+> +	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
+> +	if (!stream)
+> +		return -ENOMEM;
+> +	res->allocation = stream;
+> +	stream->test = test;
+> +	spin_lock_init(&stream->lock);
+> +	stream->internal_stream = new_string_stream();
+> +
+> +	if (!stream->internal_stream)
+> +		return -ENOMEM;
 
-I'm not sure what the test community prefers for a format.  I'll let them
-jump in and debate that question.
+What happens to stream? Don't you want to free that?
 
+> +
+> +	return 0;
+> +}
+> +
+> +static void kunit_stream_free(struct kunit_resource *res)
+> +{
+> +	struct kunit_stream *stream = res->allocation;
+> +
+> +	if (!string_stream_is_empty(stream->internal_stream)) {
+> +		kunit_err(stream->test,
+> +			 "End of test case reached with uncommitted stream entries.\n");
+> +		kunit_stream_commit(stream);
+> +	}
+> +
+> +	destroy_string_stream(stream->internal_stream);
+> +	kfree(stream);
+> +}
+> +
+> +struct kunit_stream *kunit_new_stream(struct kunit *test)
+> +{
+> +	struct kunit_resource *res;
+> +
+> +	res = kunit_alloc_resource(test,
+> +				   kunit_stream_init,
+> +				   kunit_stream_free,
+> +				   test);
+> +
+> +	if (res)
+> +		return res->allocation;
+> +	else
+> +		return NULL;
+> +}
+> diff --git a/kunit/test.c b/kunit/test.c
+> index 541f9adb1608c..f7575b127e2df 100644
+> --- a/kunit/test.c
+> +++ b/kunit/test.c
+> @@ -63,12 +63,20 @@ static void kunit_vprintk(const struct kunit *test,
+>   			  "kunit %s: %pV", test->name, vaf);
+>   }
+>   
+> +static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
+> +{
+> +	kunit_set_success(test, false);
+> +	kunit_stream_set_level(stream, KERN_ERR);
+> +	kunit_stream_commit(stream);
+> +}
+> +
+>   int kunit_init_test(struct kunit *test, const char *name)
+>   {
+>   	spin_lock_init(&test->lock);
+>   	INIT_LIST_HEAD(&test->resources);
+>   	test->name = name;
+>   	test->vprintk = kunit_vprintk;
+> +	test->fail = kunit_fail;
+>   
+>   	return 0;
+>   }
+> 
 
-> 
-> My understanding is that is what kselftest is being converted to use.
-> 
->>>
->>> It should be pretty easy to do. I had some patches that pack up the
->>> results into a serialized format for a presubmit service; it should be
->>> pretty straightforward to take the same logic and just change the
->>> output format.
->>
->> When examining and trying out the previous versions of the patch I found
->> the wrappers useful to provide information about how to control and use
->> the tests, but I had no interest in using the scripts as they do not
->> fit in with my personal environment and workflow.
->>
->> In the previous versions of the patch, these helper scripts are optional,
->> which is good for my use case.  If the helper scripts are required to
-> 
-> They are still optional.
-> 
->> get the data into the proper format then the scripts are not quite so
->> optional, they become the expected environment.  I think the proper
->> format should exist without the helper scripts.
-> 
-> That's a good point. A couple things,
-> 
-> First off, supporting TAP13, either in the kernel or the wrapper
-> script is not hard, but I don't think that is the real issue that you
-> raise.
-> 
-> If your only concern is that you will always be able to have human
-> readable KUnit results printed to the kernel log, that is a guarantee
-> I feel comfortable making. Beyond that, I think it is going to take a
-> long while before I would feel comfortable guaranteeing anything about
-> how will KUnit work, what kind of data it will want to expose, and how
-> it will be organized. I think the wrapper script provides a nice
-> facade that I can maintain, can mediate between the implementation
-> details and the user, and can mediate between the implementation
-> details and other pieces of software that might want to consume
-> results.
-> 
-> [1] https://testanything.org/tap-version-13-specification.html
-
-My concern is based on a focus on my little part of the world
-(which in _previous_ versions of the patch series was the devicetree
-unittest.c tests being converted to use the kunit infrastructure).
-If I step back and think of the entire kernel globally I may end
-up with a different conclusion - but I'm going to remain myopic
-for this email.
-
-I want the test results to be usable by me and my fellow
-developers.  I prefer that the test results be easily accessible
-(current printk() implementation means that kunit messages are
-just as accessible as the current unittest.c printk() output).
-If the printk() output needs to be filtered through a script
-to generate the actual test results then that is sub-optimal
-to me.  It is one more step added to my workflow.  And
-potentially with an embedded target a major pain to get a
-data file (the kernel log file) transferred from a target
-to my development host.
-
-I want a reported test failure to be easy to trace back to the
-point in the source where the failure is reported.  With printk()
-the search is a simple grep for the failure message.  If the
-failure message has been processed by a script, and then the
-failure reported to me in an email, then I may have to look
-at the script to reverse engineer how the original failure
-message was transformed into the message that was reported
-to me in the email.  Then I search for the point in the
-source where the failure is reported.  So a basic task has
-just become more difficult and time consuming.
-
--Frank
+thanks,
+-- Shuah
