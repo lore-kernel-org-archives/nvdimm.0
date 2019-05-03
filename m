@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 28974212794B0
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:35 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 02/30] fuse: Clear setuid bit even in cache=never path
-Date: Wed, 15 May 2019 15:26:47 -0400
-Message-Id: <20190515192715.18000-3-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id A9D6C21244A78
+ for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 06:00:33 -0700 (PDT)
+Date: Fri, 3 May 2019 15:00:29 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: Re: [PATCH v6 02/12] mm/sparsemem: Introduce common definitions for
+ the size and mask of a section
+Message-ID: <20190503130023.GA22564@linux>
+References: <155552633539.2015392.2477781120122237934.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155552634586.2015392.2662168839054356692.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+CK2bCkqLc82G2MW+rYrKTi4KafC+tLCASkaT8zRfVJCCe8HQ@mail.gmail.com>
+ <CAPcyv4g+KNu=upejy7Xm=jWR0cdhygPAdSRbkfFGpJeHFGc4+w@mail.gmail.com>
+ <bd76cb2f-7cdc-f11b-11ec-285862db66f3@arm.com>
+ <CA+CK2bBS5Csz0O9sDVwt_NjtrBtLaMfkycjhaOmR7mXoKJ5XEg@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CA+CK2bBS5Csz0O9sDVwt_NjtrBtLaMfkycjhaOmR7mXoKJ5XEg@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,69 +25,74 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Robin Murphy <robin.murphy@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If fuse daemon is started with cache=never, fuse falls back to direct IO.
-In that write path we don't call file_remove_privs() and that means setuid
-bit is not cleared if unpriviliged user writes to a file with setuid bit set.
+On Fri, May 03, 2019 at 08:57:09AM -0400, Pavel Tatashin wrote:
+> On Fri, May 3, 2019 at 6:35 AM Robin Murphy <robin.murphy@arm.com> wrote:
+> >
+> > On 03/05/2019 01:41, Dan Williams wrote:
+> > > On Thu, May 2, 2019 at 7:53 AM Pavel Tatashin <pasha.tatashin@soleen.=
+com> wrote:
+> > >>
+> > >> On Wed, Apr 17, 2019 at 2:52 PM Dan Williams <dan.j.williams@intel.c=
+om> wrote:
+> > >>>
+> > >>> Up-level the local section size and mask from kernel/memremap.c to
+> > >>> global definitions.  These will be used by the new sub-section hotp=
+lug
+> > >>> support.
+> > >>>
+> > >>> Cc: Michal Hocko <mhocko@suse.com>
+> > >>> Cc: Vlastimil Babka <vbabka@suse.cz>
+> > >>> Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
+> > >>> Cc: Logan Gunthorpe <logang@deltatee.com>
+> > >>> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > >>
+> > >> Should be dropped from this series as it has been replaced by a very
+> > >> similar patch in the mainline:
+> > >>
+> > >> 7c697d7fb5cb14ef60e2b687333ba3efb74f73da
+> > >>   mm/memremap: Rename and consolidate SECTION_SIZE
+> > >
+> > > I saw that patch fly by and acked it, but I have not seen it picked up
+> > > anywhere. I grabbed latest -linus and -next, but don't see that
+> > > commit.
+> > >
+> > > $ git show 7c697d7fb5cb14ef60e2b687333ba3efb74f73da
+> > > fatal: bad object 7c697d7fb5cb14ef60e2b687333ba3efb74f73da
+> >
+> > Yeah, I don't recognise that ID either, nor have I had any notifications
+> > that Andrew's picked up anything of mine yet :/
+> =
 
-pjdfstest chmod test 12.t tests this and fails.
+> Sorry for the confusion. I thought I checked in a master branch, but
+> turns out I checked in a branch where I applied arm hotremove patches
+> and Robin's patch as well. These two patches are essentially the same,
+> so which one goes first the other should be dropped.
+> =
 
-Fix this by calling fuse_remove_privs() even for direct I/O path.
+> Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 
-I tested this as follows.
+Hey Pavel,
 
-- Run fuse example pasthrough fs.
+just a friendly note :-) :
 
-  $ passthrough_ll /mnt/pasthrough-mnt -o default_permissions,allow_other,cache=never
-  $ mkdir /mnt/pasthrough-mnt/testdir
-  $ cd /mnt/pasthrough-mnt/testdir
-  $ prove -rv pjdfstests/tests/chmod/12.t
+you are reviewing v6, I think you might want to review v7 [1] instead ;-)?
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/fuse/file.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+[1] https://patchwork.kernel.org/cover/10926035/
+ =
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 06096b60f1df..5baf07fd2876 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -1456,14 +1456,18 @@ static ssize_t fuse_direct_write_iter(struct kiocb *iocb, struct iov_iter *from)
- 	/* Don't allow parallel writes to the same file */
- 	inode_lock(inode);
- 	res = generic_write_checks(iocb, from);
--	if (res > 0) {
--		if (!is_sync_kiocb(iocb) && iocb->ki_flags & IOCB_DIRECT) {
--			res = fuse_direct_IO(iocb, from);
--		} else {
--			res = fuse_direct_io(&io, from, &iocb->ki_pos,
--					     FUSE_DIO_WRITE);
--		}
-+	if (res <= 0)
-+		goto out;
-+
-+	res = file_remove_privs(iocb->ki_filp);
-+	if (res)
-+		goto out;
-+	if (!is_sync_kiocb(iocb) && iocb->ki_flags & IOCB_DIRECT) {
-+		res = fuse_direct_IO(iocb, from);
-+	} else {
-+		res = fuse_direct_io(&io, from, &iocb->ki_pos, FUSE_DIO_WRITE);
- 	}
-+out:
- 	fuse_invalidate_attr(inode);
- 	if (res > 0)
- 		fuse_write_update_size(inode, iocb->ki_pos);
--- 
-2.20.1
 
+-- =
+
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
