@@ -1,69 +1,117 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 2/8] acpi/hmat: Skip publishing target info for nodes
- with no online memory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 May 2019 15:59:32 -0700
-Message-ID: <155925717294.3775979.5007799093584209240.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3B8FE21244A76
+ for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:42 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/8] libdaxctl: add interfaces in support of device modes
+Date: Fri,  3 May 2019 15:32:24 -0600
+Message-Id: <20190503213231.12280-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
+References: <20190503213231.12280-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-efi@vger.kernel.org
-Cc: vishal.l.verma@intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are multiple scenarios where the HMAT may contain information
-about proximity domains that are not currently online. Rather than fail
-to report any HMAT data just elide those offline domains.
+In preparation for libdaxctl and daxctl to grow operational modes for
+DAX devices, add the following supporting APIs:
 
-If and when those domains are later onlined they can be added to the
-HMEM reporting at that point.
+  daxctl_dev_get_ctx
+  daxctl_dev_is_enabled
 
-This was found while testing EFI_MEMORY_SP support which reserves
-"specific purpose" memory from the general allocation pool. If that
-reservation results in an empty numa-node then the node is not marked
-online leading a spurious:
-
-    "acpi/hmat: Ignoring HMAT: Invalid table"
-
-...result for HMAT parsing.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/acpi/hmat.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  6 ++++++
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 38 insertions(+)
 
-diff --git a/drivers/acpi/hmat.c b/drivers/acpi/hmat.c
-index 96b7d39a97c6..2c220cb7b620 100644
---- a/drivers/acpi/hmat.c
-+++ b/drivers/acpi/hmat.c
-@@ -96,9 +96,6 @@ static __init void alloc_memory_target(unsigned int mem_pxm)
- {
- 	struct memory_target *target;
- 
--	if (pxm_to_node(mem_pxm) == NUMA_NO_NODE)
--		return;
--
- 	target = find_mem_target(mem_pxm);
- 	if (target)
- 		return;
-@@ -588,6 +585,17 @@ static __init void hmat_register_targets(void)
- 	struct memory_target *target;
- 
- 	list_for_each_entry(target, &targets, node) {
-+		int nid = pxm_to_node(target->memory_pxm);
-+
-+		/*
-+		 * Skip offline nodes. This can happen when memory
-+		 * marked EFI_MEMORY_SP, "specific purpose", is applied
-+		 * to all the memory in a promixity domain leading to
-+		 * the node being marked offline / unplugged, or if
-+		 * memory-only "hotplug" node is offline.
-+		 */
-+		if (nid == NUMA_NO_NODE || !node_online(nid))
-+			continue;
- 		hmat_register_target_initiators(target);
- 		hmat_register_target_perf(target);
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c2e3a52..70f896b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
  	}
+ }
+ 
++static int is_enabled(const char *drvpath)
++{
++	struct stat st;
++
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
++}
++
++DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
++{
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
++
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return 0;
++	}
++
++	return is_enabled(path);
++}
++
++DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
++{
++	return dev->region->ctx;
++}
++
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 84d3a69..c4af9a7 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
+ global:
+ 	daxctl_region_get_path;
+ } LIBDAXCTL_4;
++
++LIBDAXCTL_6 {
++global:
++	daxctl_dev_get_ctx;
++	daxctl_dev_is_enabled;
++} LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 1d13ea2..e20ccb4 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
++struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
++int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
