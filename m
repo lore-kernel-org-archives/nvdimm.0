@@ -1,181 +1,46 @@
-From: Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH v2 12/17] kunit: tool: add Python wrappers for running
- KUnit tests
-Date: Fri, 3 May 2019 11:59:33 -0700
-Message-ID: <052fa196-4ea9-8384-79b7-fe6bacc0ee82@gmail.com>
+From: shuah <shuah@kernel.org>
+Subject: Re: [PATCH v2 15/17] MAINTAINERS: add entry for KUnit the unit
+ testing framework
+Date: Fri, 3 May 2019 08:38:21 -0600
+Message-ID: <68f88e1c-d40f-9dad-7296-ab2b2303c575@kernel.org>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-13-brendanhiggins@google.com>
- <20190502110220.GD12416@kroah.com>
- <CAFd5g47t=EdLKFCT=CnPkrM2z0nDVo24Gz4j0VxFOJbARP37Lg@mail.gmail.com>
- <a49c5088-a821-210c-66de-f422536f5b01@gmail.com>
- <CAFd5g44iWRchQKdJYtjRtPY6e-6e0eXpKXXsx5Ooi6sWE474KA@mail.gmail.com>
- <1a5f3c44-9fa9-d423-66bf-45255a90c468@gmail.com>
- <CAFd5g45RYm+zfdJXnyp2KZZH5ojfOzy++aq+4zBeE5VDu6WgEw@mail.gmail.com>
+ <20190501230126.229218-16-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFd5g45RYm+zfdJXnyp2KZZH5ojfOzy++aq+4zBeE5VDu6WgEw@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190501230126.229218-16-brendanhiggins@google.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah@kernel.org, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-kselftest@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>, "Bird, Timothy" <Tim.Bird@sony.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, shuah <shuah@kernel.org>, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, Shuah Khan <skhan@linuxfoundation.org>, dan.j.williams@intel.com, kunit-dev@googlegroups.com, richard@nod.at, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
 List-Id: linux-nvdimm@lists.01.org
 
-On 5/2/19 10:36 PM, Brendan Higgins wrote:
-> On Thu, May 2, 2019 at 6:45 PM Frank Rowand <frowand.list@gmail.com> wrote:
->>
->> On 5/2/19 4:45 PM, Brendan Higgins wrote:
->>> On Thu, May 2, 2019 at 2:16 PM Frank Rowand <frowand.list@gmail.com> wrote:
->>>>
->>>> On 5/2/19 11:07 AM, Brendan Higgins wrote:
->>>>> On Thu, May 2, 2019 at 4:02 AM Greg KH <gregkh@linuxfoundation.org> wrote:
->>>>>>
->>>>>> On Wed, May 01, 2019 at 04:01:21PM -0700, Brendan Higgins wrote:
->>>>>>> From: Felix Guo <felixguoxiuping@gmail.com>
->>>>>>>
->>>>>>> The ultimate goal is to create minimal isolated test binaries; in the
->>>>>>> meantime we are using UML to provide the infrastructure to run tests, so
->>>>>>> define an abstract way to configure and run tests that allow us to
->>>>>>> change the context in which tests are built without affecting the user.
->>>>>>> This also makes pretty and dynamic error reporting, and a lot of other
->>>>>>> nice features easier.
->>>>>>>
->>>>>>> kunit_config.py:
->>>>>>>   - parse .config and Kconfig files.
->>>>>>>
->>>>>>> kunit_kernel.py: provides helper functions to:
->>>>>>>   - configure the kernel using kunitconfig.
->>>>>>>   - build the kernel with the appropriate configuration.
->>>>>>>   - provide function to invoke the kernel and stream the output back.
->>>>>>>
->>>>>>> Signed-off-by: Felix Guo <felixguoxiuping@gmail.com>
->>>>>>> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
->>>>>>
->>>>>> Ah, here's probably my answer to my previous logging format question,
->>>>>> right?  What's the chance that these wrappers output stuff in a standard
->>>>>> format that test-framework-tools can already parse?  :)
->>>
->>> To be clear, the test-framework-tools format we are talking about is
->>> TAP13[1], correct?
->>
->> I'm not sure what the test community prefers for a format.  I'll let them
->> jump in and debate that question.
->>
->>
->>>
->>> My understanding is that is what kselftest is being converted to use.
->>>
->>>>>
->>>>> It should be pretty easy to do. I had some patches that pack up the
->>>>> results into a serialized format for a presubmit service; it should be
->>>>> pretty straightforward to take the same logic and just change the
->>>>> output format.
->>>>
->>>> When examining and trying out the previous versions of the patch I found
->>>> the wrappers useful to provide information about how to control and use
->>>> the tests, but I had no interest in using the scripts as they do not
->>>> fit in with my personal environment and workflow.
->>>>
->>>> In the previous versions of the patch, these helper scripts are optional,
->>>> which is good for my use case.  If the helper scripts are required to
->>>
->>> They are still optional.
->>>
->>>> get the data into the proper format then the scripts are not quite so
->>>> optional, they become the expected environment.  I think the proper
->>>> format should exist without the helper scripts.
->>>
->>> That's a good point. A couple things,
->>>
->>> First off, supporting TAP13, either in the kernel or the wrapper
->>> script is not hard, but I don't think that is the real issue that you
->>> raise.
->>>
->>> If your only concern is that you will always be able to have human
->>> readable KUnit results printed to the kernel log, that is a guarantee
->>> I feel comfortable making. Beyond that, I think it is going to take a
->>> long while before I would feel comfortable guaranteeing anything about
->>> how will KUnit work, what kind of data it will want to expose, and how
->>> it will be organized. I think the wrapper script provides a nice
->>> facade that I can maintain, can mediate between the implementation
->>> details and the user, and can mediate between the implementation
->>> details and other pieces of software that might want to consume
->>> results.
->>>
->>> [1] https://testanything.org/tap-version-13-specification.html
->>
->> My concern is based on a focus on my little part of the world
->> (which in _previous_ versions of the patch series was the devicetree
->> unittest.c tests being converted to use the kunit infrastructure).
->> If I step back and think of the entire kernel globally I may end
->> up with a different conclusion - but I'm going to remain myopic
->> for this email.
->>
->> I want the test results to be usable by me and my fellow
->> developers.  I prefer that the test results be easily accessible
->> (current printk() implementation means that kunit messages are
->> just as accessible as the current unittest.c printk() output).
->> If the printk() output needs to be filtered through a script
->> to generate the actual test results then that is sub-optimal
->> to me.  It is one more step added to my workflow.  And
->> potentially with an embedded target a major pain to get a
->> data file (the kernel log file) transferred from a target
->> to my development host.
-> 
-> That's fair. If that is indeed your only concern, then I don't think
-> the wrapper script will ever be an issue for you. You will always be
-> able to execute a given test the old fashioned/manual way, and the
-> wrapper script only summarizes results, it does not change the
-> contents.
-> 
->>
->> I want a reported test failure to be easy to trace back to the
->> point in the source where the failure is reported.  With printk()
->> the search is a simple grep for the failure message.  If the
->> failure message has been processed by a script, and then the
->> failure reported to me in an email, then I may have to look
->> at the script to reverse engineer how the original failure
->> message was transformed into the message that was reported
->> to me in the email.  Then I search for the point in the
->> source where the failure is reported.  So a basic task has
->> just become more difficult and time consuming.
-> 
-> That seems to be a valid concern. I would reiterate that you shouldn't
-> be concerned by any processing done by the wrapper script itself, but
-> the reality is that depending on what happens with automated
-> testing/presubmit/CI other people might end up parsing and
-> transforming test results - it might happen, it might not.
-
-You seem to be missing my point.
-
-Greg asked that the output be in a standard format.
-
-You replied that the standard format could be created by the wrapper script.
-
-Now you say that "it might happen, it might not".  In other words the output
-may or may not end up in the standard format.
-
-As Greg points out in comments to patch 12:
-
-  "The core of kunit should also log the messages in this format as well,
-  and not rely on the helper scripts as Frank points out, not everyone
-  will use/want them.  Might as well make it easy for everyone to always
-  do the right thing and not force it to always be added in later."
-
-I am requesting that the original message be in the standard format.  Of
-course anyone is free to transform the messages in later processing, no
-big deal.
-
-
-> I currently
-> have a CI system set up for KUnit on my public repo that I don't think
-> you would be offended by, but I don't know what we are going to do
-> when it comes time to integrate with existing upstream CI systems.
-> 
-> In anycase, I don't think that either sticking with or doing away with
-> the wrapper script is going to have any long term bearing on what
-> happens in this regard.
-> 
-> Cheers
-> 
+T24gNS8xLzE5IDU6MDEgUE0sIEJyZW5kYW4gSGlnZ2lucyB3cm90ZToKPiBBZGQgbXlzZWxmIGFz
+IG1haW50YWluZXIgb2YgS1VuaXQsIHRoZSBMaW51eCBrZXJuZWwncyB1bml0IHRlc3RpbmcKPiBm
+cmFtZXdvcmsuCj4gCj4gU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBIaWdnaW5zIDxicmVuZGFuaGln
+Z2luc0Bnb29nbGUuY29tPgo+IC0tLQo+ICAgTUFJTlRBSU5FUlMgfCAxMCArKysrKysrKysrCj4g
+ICAxIGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9NQUlO
+VEFJTkVSUyBiL01BSU5UQUlORVJTCj4gaW5kZXggNWMzOGYyMWFlZTc4Ny4uYzc4YWU5NWM1NmI4
+MCAxMDA2NDQKPiAtLS0gYS9NQUlOVEFJTkVSUwo+ICsrKyBiL01BSU5UQUlORVJTCj4gQEAgLTg0
+NDgsNiArODQ0OCwxNiBAQCBTOglNYWludGFpbmVkCj4gICBGOgl0b29scy90ZXN0aW5nL3NlbGZ0
+ZXN0cy8KPiAgIEY6CURvY3VtZW50YXRpb24vZGV2LXRvb2xzL2tzZWxmdGVzdCoKPiAgIAo+ICtL
+RVJORUwgVU5JVCBURVNUSU5HIEZSQU1FV09SSyAoS1VuaXQpCj4gK006CUJyZW5kYW4gSGlnZ2lu
+cyA8YnJlbmRhbmhpZ2dpbnNAZ29vZ2xlLmNvbT4KPiArTDoJa3VuaXQtZGV2QGdvb2dsZWdyb3Vw
+cy5jb20KPiArVzoJaHR0cHM6Ly9nb29nbGUuZ2l0aHViLmlvL2t1bml0LWRvY3MvdGhpcmRfcGFy
+dHkva2VybmVsL2RvY3MvCj4gK1M6CU1haW50YWluZWQKPiArRjoJRG9jdW1lbnRhdGlvbi9rdW5p
+dC8KPiArRjoJaW5jbHVkZS9rdW5pdC8KPiArRjoJa3VuaXQvCj4gK0Y6CXRvb2xzL3Rlc3Rpbmcv
+a3VuaXQvCj4gKwoKUGxlYXNlIGFkZCBrc2VsZnRlc3QgbWFpbGluZyBsaXN0IHRvIHRoaXMgZW50
+cnksIGJhc2VkIG9uIG91cgpjb252ZXJzYXRpb24gb24gdGFraW5nIHRoZXNlIHBhdGNoZXMgdGhy
+b3VnaCBrc2VsZnRlc3QgdHJlZS4KCnRoYW5rcywKLS0gU2h1YWgKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
