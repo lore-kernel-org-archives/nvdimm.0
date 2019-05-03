@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3CCB2194EB7A
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 11:16:27 -0700 (PDT)
-Date: Tue, 14 May 2019 12:16:23 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v3 15/18] Documentation: kunit: add documentation for KUnit
-Message-ID: <20190514121623.0314bf07@lwn.net>
-In-Reply-To: <20190514180810.GA109557@google.com>
-References: <20190514054251.186196-1-brendanhiggins@google.com>
- <20190514054251.186196-16-brendanhiggins@google.com>
- <20190514073422.4287267c@lwn.net>
- <20190514180810.GA109557@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2086421237AA7
+ for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:42 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/8] libdaxctl: cache 'subsystem' in daxctl_ctx
+Date: Fri,  3 May 2019 15:32:25 -0600
+Message-Id: <20190503213231.12280-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
+References: <20190503213231.12280-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,26 +22,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, Felix Guo <felixguoxiuping@gmail.com>, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 14 May 2019 11:08:10 -0700
-Brendan Higgins <brendanhiggins@google.com> wrote:
+The 'DAX subsystem' in effect is determined at region or device init
+time, and dictates the sysfs base paths for all device/region
+operations. In preparation for adding bind/unbind functionality, cache
+the subsystem as determined at init time in the library context.
 
-> > Naturally, though, I have one request: I'd rather not see this at the top
-> > level, which is more than crowded enough as it is.  Can this material
-> > please go into the development tools book, alongside the kselftest
-> > documentation?  
-> 
-> Oh yeah, that seems like the obvious home for this in hindsight. Sorry
-> about that. Will fix in next revision!
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/libdaxctl.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-No need to apologize - I have to say the same thing to everybody :)
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 70f896b..f8f5b8c 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -46,6 +46,7 @@ struct daxctl_ctx {
+ 	void *userdata;
+ 	int regions_init;
+ 	struct list_head regions;
++	enum dax_subsystem subsys;
+ };
+ 
+ /**
+@@ -96,6 +97,7 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
+ 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
+ 	*ctx = c;
+ 	list_head_init(&c->regions);
++	c->subsys = DAX_UNKNOWN;
+ 
+ 	return 0;
+ }
+@@ -454,14 +456,18 @@ static void dax_devices_init(struct daxctl_region *region)
+ 	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
+ 		char *region_path;
+ 
+-		if (i == DAX_BUS)
++		if (i == DAX_BUS) {
+ 			region_path = region->region_path;
+-		else if (i == DAX_CLASS) {
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_BUS;
++		} else if (i == DAX_CLASS) {
+ 			if (asprintf(&region_path, "%s/dax",
+ 						region->region_path) < 0) {
+ 				dbg(ctx, "region path alloc fail\n");
+ 				continue;
+ 			}
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_CLASS;
+ 		} else
+ 			continue;
+ 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
+@@ -539,6 +545,8 @@ static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys
+ 		free(dev_path);
+ 		if (!region)
+ 			err(ctx, "add_dax_region() for %s failed\n", de->d_name);
++		if (ctx->subsys == DAX_UNKNOWN)
++			ctx->subsys = subsys;
+ 	}
+ 	closedir(dir);
+ }
+-- 
+2.20.1
 
-Thanks,
-
-jon
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
