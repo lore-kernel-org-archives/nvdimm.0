@@ -1,341 +1,91 @@
-From: shuah <shuah@kernel.org>
-Subject: Re: [PATCH v2 04/17] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Thu, 2 May 2019 19:50:14 -0600
-Message-ID: <ead23600-eecd-cf74-bdd1-94a6964e29b2@kernel.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 08/17] kunit: test: add support for test abort
+Date: Thu, 2 May 2019 21:14:08 -0600
+Message-ID: <0a605543-477a-1854-eb35-6e586606889b@deltatee.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-5-brendanhiggins@google.com>
+ <20190501230126.229218-9-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190501230126.229218-5-brendanhiggins@google.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190501230126.229218-9-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 5/1/19 5:01 PM, Brendan Higgins wrote:
-> A lot of the expectation and assertion infrastructure prints out fairly
-> complicated test failure messages, so add a C++ style log library for
-> for logging test results.
-> 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> ---
->   include/kunit/kunit-stream.h |  85 ++++++++++++++++++++
->   include/kunit/test.h         |   2 +
->   kunit/Makefile               |   3 +-
->   kunit/kunit-stream.c         | 149 +++++++++++++++++++++++++++++++++++
->   kunit/test.c                 |   8 ++
->   5 files changed, 246 insertions(+), 1 deletion(-)
->   create mode 100644 include/kunit/kunit-stream.h
->   create mode 100644 kunit/kunit-stream.c
-> 
-> diff --git a/include/kunit/kunit-stream.h b/include/kunit/kunit-stream.h
-> new file mode 100644
-> index 0000000000000..d457a54fe0100
-> --- /dev/null
-> +++ b/include/kunit/kunit-stream.h
-> @@ -0,0 +1,85 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
+
+
+On 2019-05-01 5:01 p.m., Brendan Higgins wrote:
 > +/*
-> + * C++ stream style string formatter and printer used in KUnit for outputting
-> + * KUnit messages.
+> + * struct kunit_try_catch - provides a generic way to run code which might fail.
+> + * @context: used to pass user data to the try and catch functions.
 > + *
-> + * Copyright (C) 2019, Google LLC.
-> + * Author: Brendan Higgins <brendanhiggins@google.com>
-> + */
-> +
-> +#ifndef _KUNIT_KUNIT_STREAM_H
-> +#define _KUNIT_KUNIT_STREAM_H
-> +
-> +#include <linux/types.h>
-> +#include <kunit/string-stream.h>
-> +
-> +struct kunit;
-> +
-> +/**
-> + * struct kunit_stream - a std::stream style string builder.
-> + *
-> + * A std::stream style string builder. Allows messages to be built up and
-> + * printed all at once.
-> + */
-> +struct kunit_stream {
-> +	/* private: internal use only. */
-> +	struct kunit *test;
-> +	spinlock_t lock; /* Guards level. */
-> +	const char *level;
-> +	struct string_stream *internal_stream;
-> +};
-> +
-> +/**
-> + * kunit_new_stream() - constructs a new &struct kunit_stream.
-> + * @test: The test context object.
-> + *
-> + * Constructs a new test managed &struct kunit_stream.
-> + */
-> +struct kunit_stream *kunit_new_stream(struct kunit *test);
-> +
-> +/**
-> + * kunit_stream_set_level(): sets the level that string should be printed at.
-> + * @this: the stream being operated on.
-> + * @level: the print level the stream is set to output to.
-> + *
-> + * Sets the print level at which the stream outputs.
-> + */
-> +void kunit_stream_set_level(struct kunit_stream *this, const char *level);
-> +
-> +/**
-> + * kunit_stream_add(): adds the formatted input to the internal buffer.
-> + * @this: the stream being operated on.
-> + * @fmt: printf style format string to append to stream.
-> + *
-> + * Appends the formatted string, @fmt, to the internal buffer.
-> + */
-> +void __printf(2, 3) kunit_stream_add(struct kunit_stream *this,
-> +				     const char *fmt, ...);
-> +
-> +/**
-> + * kunit_stream_append(): appends the contents of @other to @this.
-> + * @this: the stream to which @other is appended.
-> + * @other: the stream whose contents are appended to @this.
-> + *
-> + * Appends the contents of @other to @this.
-> + */
-> +void kunit_stream_append(struct kunit_stream *this, struct kunit_stream *other);
-> +
-> +/**
-> + * kunit_stream_commit(): prints out the internal buffer to the user.
-> + * @this: the stream being operated on.
-> + *
-> + * Outputs the contents of the internal buffer as a kunit_printk formatted
-> + * output.
-> + */
-> +void kunit_stream_commit(struct kunit_stream *this);
-> +
-> +/**
-> + * kunit_stream_clear(): clears the internal buffer.
-> + * @this: the stream being operated on.
-> + *
-> + * Clears the contents of the internal buffer.
-> + */
-> +void kunit_stream_clear(struct kunit_stream *this);
-> +
-> +#endif /* _KUNIT_KUNIT_STREAM_H */
-> diff --git a/include/kunit/test.h b/include/kunit/test.h
-> index 819edd8db4e81..4668e8a635954 100644
-> --- a/include/kunit/test.h
-> +++ b/include/kunit/test.h
-> @@ -11,6 +11,7 @@
->   
->   #include <linux/types.h>
->   #include <linux/slab.h>
-> +#include <kunit/kunit-stream.h>
->   
->   struct kunit_resource;
->   
-> @@ -171,6 +172,7 @@ struct kunit {
->   	void (*vprintk)(const struct kunit *test,
->   			const char *level,
->   			struct va_format *vaf);
-> +	void (*fail)(struct kunit *test, struct kunit_stream *stream);
->   };
->   
->   int kunit_init_test(struct kunit *test, const char *name);
-> diff --git a/kunit/Makefile b/kunit/Makefile
-> index 275b565a0e81f..6ddc622ee6b1c 100644
-> --- a/kunit/Makefile
-> +++ b/kunit/Makefile
-> @@ -1,2 +1,3 @@
->   obj-$(CONFIG_KUNIT) +=			test.o \
-> -					string-stream.o
-> +					string-stream.o \
-> +					kunit-stream.o
-> diff --git a/kunit/kunit-stream.c b/kunit/kunit-stream.c
-> new file mode 100644
-> index 0000000000000..93c14eec03844
-> --- /dev/null
-> +++ b/kunit/kunit-stream.c
-> @@ -0,0 +1,149 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * C++ stream style string formatter and printer used in KUnit for outputting
-> + * KUnit messages.
-> + *
-> + * Copyright (C) 2019, Google LLC.
-> + * Author: Brendan Higgins <brendanhiggins@google.com>
-> + */
-> +
-> +#include <kunit/test.h>
-> +#include <kunit/kunit-stream.h>
-> +#include <kunit/string-stream.h>
-> +
-> +const char *kunit_stream_get_level(struct kunit_stream *this)
-> +{
-> +	unsigned long flags;
-> +	const char *level;
-> +
-> +	spin_lock_irqsave(&this->lock, flags);
-> +	level = this->level;
-> +	spin_unlock_irqrestore(&this->lock, flags);
-> +
-> +	return level;
-> +}
-> +
-> +void kunit_stream_set_level(struct kunit_stream *this, const char *level)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&this->lock, flags);
-> +	this->level = level;
-> +	spin_unlock_irqrestore(&this->lock, flags);
-> +}
-> +
-> +void kunit_stream_add(struct kunit_stream *this, const char *fmt, ...)
-> +{
-> +	va_list args;
-> +	struct string_stream *stream = this->internal_stream;
-> +
-> +	va_start(args, fmt);
-> +
-> +	if (string_stream_vadd(stream, fmt, args) < 0)
-> +		kunit_err(this->test, "Failed to allocate fragment: %s\n", fmt);
-> +
-> +	va_end(args);
-> +}
-> +
-> +void kunit_stream_append(struct kunit_stream *this,
-> +				struct kunit_stream *other)
-> +{
-> +	struct string_stream *other_stream = other->internal_stream;
-> +	const char *other_content;
-> +
-> +	other_content = string_stream_get_string(other_stream);
-> +
-> +	if (!other_content) {
-> +		kunit_err(this->test,
-> +			  "Failed to get string from second argument for appending.\n");
-> +		return;
-> +	}
-> +
-> +	kunit_stream_add(this, other_content);
-> +}
-> +
-> +void kunit_stream_clear(struct kunit_stream *this)
-> +{
-> +	string_stream_clear(this->internal_stream);
-> +}
-> +
-> +void kunit_stream_commit(struct kunit_stream *this)
-> +{
-> +	struct string_stream *stream = this->internal_stream;
-> +	struct string_stream_fragment *fragment;
-> +	const char *level;
-> +	char *buf;
-> +
-> +	level = kunit_stream_get_level(this);
-> +	if (!level) {
-> +		kunit_err(this->test,
-> +			  "Stream was committed without a specified log level.\n");
-> +		level = KERN_ERR;
-> +		kunit_stream_set_level(this, level);
-> +	}
-> +
-> +	buf = string_stream_get_string(stream);
-> +	if (!buf) {
-> +		kunit_err(this->test,
-> +			 "Could not allocate buffer, dumping stream:\n");
-> +		list_for_each_entry(fragment, &stream->fragments, node) {
-> +			kunit_err(this->test, fragment->fragment);
-> +		}
-> +		kunit_err(this->test, "\n");
-> +		goto cleanup;
-> +	}
-> +
-> +	kunit_printk(level, this->test, buf);
-> +	kfree(buf);
-> +
-> +cleanup:
-> +	kunit_stream_clear(this);
-> +}
-> +
-> +static int kunit_stream_init(struct kunit_resource *res, void *context)
-> +{
-> +	struct kunit *test = context;
-> +	struct kunit_stream *stream;
-> +
-> +	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
-> +	if (!stream)
-> +		return -ENOMEM;
-> +	res->allocation = stream;
-> +	stream->test = test;
-> +	spin_lock_init(&stream->lock);
-> +	stream->internal_stream = new_string_stream();
-> +
-> +	if (!stream->internal_stream)
-> +		return -ENOMEM;
+> + * kunit_try_catch provides a generic, architecture independent way to execute
+> + * an arbitrary function of type kunit_try_catch_func_t which may bail out by
+> + * calling kunit_try_catch_throw(). If kunit_try_catch_throw() is called, @try
+> + * is stopped at the site of invocation and @catch is catch is called.
 
-What happens to stream? Don't you want to free that?
+I found some of the C++ comparisons in this series a bit distasteful but
+wasn't going to say anything until I saw the try catch.... But looking
+into the implementation it's just a thread that can exit early which
+seems fine to me. Just a poor choice of name I guess...
 
-> +
-> +	return 0;
-> +}
-> +
-> +static void kunit_stream_free(struct kunit_resource *res)
-> +{
-> +	struct kunit_stream *stream = res->allocation;
-> +
-> +	if (!string_stream_is_empty(stream->internal_stream)) {
-> +		kunit_err(stream->test,
-> +			 "End of test case reached with uncommitted stream entries.\n");
-> +		kunit_stream_commit(stream);
-> +	}
-> +
-> +	destroy_string_stream(stream->internal_stream);
-> +	kfree(stream);
-> +}
-> +
-> +struct kunit_stream *kunit_new_stream(struct kunit *test)
-> +{
-> +	struct kunit_resource *res;
-> +
-> +	res = kunit_alloc_resource(test,
-> +				   kunit_stream_init,
-> +				   kunit_stream_free,
-> +				   test);
-> +
-> +	if (res)
-> +		return res->allocation;
-> +	else
-> +		return NULL;
-> +}
-> diff --git a/kunit/test.c b/kunit/test.c
-> index 541f9adb1608c..f7575b127e2df 100644
-> --- a/kunit/test.c
-> +++ b/kunit/test.c
-> @@ -63,12 +63,20 @@ static void kunit_vprintk(const struct kunit *test,
->   			  "kunit %s: %pV", test->name, vaf);
->   }
->   
-> +static void kunit_fail(struct kunit *test, struct kunit_stream *stream)
-> +{
-> +	kunit_set_success(test, false);
-> +	kunit_stream_set_level(stream, KERN_ERR);
-> +	kunit_stream_commit(stream);
-> +}
-> +
->   int kunit_init_test(struct kunit *test, const char *name)
->   {
->   	spin_lock_init(&test->lock);
->   	INIT_LIST_HEAD(&test->resources);
->   	test->name = name;
->   	test->vprintk = kunit_vprintk;
-> +	test->fail = kunit_fail;
->   
->   	return 0;
->   }
-> 
+[snip]
 
-thanks,
--- Shuah
+> +static void __noreturn kunit_abort(struct kunit *test)
+> +{
+> +	kunit_set_death_test(test, true);
+> +
+> +	kunit_try_catch_throw(&test->try_catch);
+> +
+> +	/*
+> +	 * Throw could not abort from test.
+> +	 *
+> +	 * XXX: we should never reach this line! As kunit_try_catch_throw is
+> +	 * marked __noreturn.
+> +	 */
+> +	WARN_ONCE(true, "Throw could not abort from test!\n");
+> +}
+> +
+>  int kunit_init_test(struct kunit *test, const char *name)
+>  {
+>  	spin_lock_init(&test->lock);
+> @@ -77,6 +103,7 @@ int kunit_init_test(struct kunit *test, const char *name)
+>  	test->name = name;
+>  	test->vprintk = kunit_vprintk;
+>  	test->fail = kunit_fail;
+> +	test->abort = kunit_abort;
+
+There are a number of these function pointers which seem to be pointless
+to me as you only ever set them to one function. Just call the function
+directly. As it is, it is an unnecessary indirection for someone reading
+the code. If and when you have multiple implementations of the function
+then add the pointer. Don't assume you're going to need it later on and
+add all this maintenance burden if you never use it..
+
+[snip]
+
+> +void kunit_generic_try_catch_init(struct kunit_try_catch *try_catch)
+> +{
+> +	try_catch->run = kunit_generic_run_try_catch;
+> +	try_catch->throw = kunit_generic_throw;
+> +}
+
+Same here. There's only one implementation of try_catch and I can't
+really see any sensible justification for another implementation. Even
+if there is, add the indirection when the second implementation is
+added. This isn't C++ and we don't need to make everything a "method".
+
+Thanks,
+
+Logan
