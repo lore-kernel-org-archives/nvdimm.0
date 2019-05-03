@@ -1,151 +1,181 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 08/17] kunit: test: add support for test abort
-Date: Fri, 3 May 2019 06:33:02 -0600
-Message-ID: <b2379db6-634a-001e-6f67-37427d8a2666@deltatee.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH v2 12/17] kunit: tool: add Python wrappers for running
+ KUnit tests
+Date: Fri, 3 May 2019 11:59:33 -0700
+Message-ID: <052fa196-4ea9-8384-79b7-fe6bacc0ee82@gmail.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-9-brendanhiggins@google.com>
- <0a605543-477a-1854-eb35-6e586606889b@deltatee.com>
- <CAFd5g47hxAd=+72xbPJbWPdZCXRXmtLpsGhUh=zc7MSwfcaGJQ@mail.gmail.com>
+ <20190501230126.229218-13-brendanhiggins@google.com>
+ <20190502110220.GD12416@kroah.com>
+ <CAFd5g47t=EdLKFCT=CnPkrM2z0nDVo24Gz4j0VxFOJbARP37Lg@mail.gmail.com>
+ <a49c5088-a821-210c-66de-f422536f5b01@gmail.com>
+ <CAFd5g44iWRchQKdJYtjRtPY6e-6e0eXpKXXsx5Ooi6sWE474KA@mail.gmail.com>
+ <1a5f3c44-9fa9-d423-66bf-45255a90c468@gmail.com>
+ <CAFd5g45RYm+zfdJXnyp2KZZH5ojfOzy++aq+4zBeE5VDu6WgEw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAFd5g47hxAd=+72xbPJbWPdZCXRXmtLpsGhUh=zc7MSwfcaGJQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFd5g45RYm+zfdJXnyp2KZZH5ojfOzy++aq+4zBeE5VDu6WgEw@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Bird,
- Timothy" <Tim.Bird-7U/KSKJipcs@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Rich
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah@kernel.org, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-kselftest@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>, "Bird, Timothy" <Tim.Bird@sony.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>
 List-Id: linux-nvdimm@lists.01.org
 
-
-
-On 2019-05-03 12:48 a.m., Brendan Higgins wrote:
-> On Thu, May 2, 2019 at 8:15 PM Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->> On 2019-05-01 5:01 p.m., Brendan Higgins wrote:
->>> +/*
->>> + * struct kunit_try_catch - provides a generic way to run code which might fail.
->>> + * @context: used to pass user data to the try and catch functions.
->>> + *
->>> + * kunit_try_catch provides a generic, architecture independent way to execute
->>> + * an arbitrary function of type kunit_try_catch_func_t which may bail out by
->>> + * calling kunit_try_catch_throw(). If kunit_try_catch_throw() is called, @try
->>> + * is stopped at the site of invocation and @catch is catch is called.
+On 5/2/19 10:36 PM, Brendan Higgins wrote:
+> On Thu, May 2, 2019 at 6:45 PM Frank Rowand <frowand.list@gmail.com> wrote:
 >>
->> I found some of the C++ comparisons in this series a bit distasteful but
->> wasn't going to say anything until I saw the try catch.... But looking
->> into the implementation it's just a thread that can exit early which
->> seems fine to me. Just a poor choice of name I guess...
+>> On 5/2/19 4:45 PM, Brendan Higgins wrote:
+>>> On Thu, May 2, 2019 at 2:16 PM Frank Rowand <frowand.list@gmail.com> wrote:
+>>>>
+>>>> On 5/2/19 11:07 AM, Brendan Higgins wrote:
+>>>>> On Thu, May 2, 2019 at 4:02 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+>>>>>>
+>>>>>> On Wed, May 01, 2019 at 04:01:21PM -0700, Brendan Higgins wrote:
+>>>>>>> From: Felix Guo <felixguoxiuping@gmail.com>
+>>>>>>>
+>>>>>>> The ultimate goal is to create minimal isolated test binaries; in the
+>>>>>>> meantime we are using UML to provide the infrastructure to run tests, so
+>>>>>>> define an abstract way to configure and run tests that allow us to
+>>>>>>> change the context in which tests are built without affecting the user.
+>>>>>>> This also makes pretty and dynamic error reporting, and a lot of other
+>>>>>>> nice features easier.
+>>>>>>>
+>>>>>>> kunit_config.py:
+>>>>>>>   - parse .config and Kconfig files.
+>>>>>>>
+>>>>>>> kunit_kernel.py: provides helper functions to:
+>>>>>>>   - configure the kernel using kunitconfig.
+>>>>>>>   - build the kernel with the appropriate configuration.
+>>>>>>>   - provide function to invoke the kernel and stream the output back.
+>>>>>>>
+>>>>>>> Signed-off-by: Felix Guo <felixguoxiuping@gmail.com>
+>>>>>>> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+>>>>>>
+>>>>>> Ah, here's probably my answer to my previous logging format question,
+>>>>>> right?  What's the chance that these wrappers output stuff in a standard
+>>>>>> format that test-framework-tools can already parse?  :)
+>>>
+>>> To be clear, the test-framework-tools format we are talking about is
+>>> TAP13[1], correct?
+>>
+>> I'm not sure what the test community prefers for a format.  I'll let them
+>> jump in and debate that question.
+>>
+>>
+>>>
+>>> My understanding is that is what kselftest is being converted to use.
+>>>
+>>>>>
+>>>>> It should be pretty easy to do. I had some patches that pack up the
+>>>>> results into a serialized format for a presubmit service; it should be
+>>>>> pretty straightforward to take the same logic and just change the
+>>>>> output format.
+>>>>
+>>>> When examining and trying out the previous versions of the patch I found
+>>>> the wrappers useful to provide information about how to control and use
+>>>> the tests, but I had no interest in using the scripts as they do not
+>>>> fit in with my personal environment and workflow.
+>>>>
+>>>> In the previous versions of the patch, these helper scripts are optional,
+>>>> which is good for my use case.  If the helper scripts are required to
+>>>
+>>> They are still optional.
+>>>
+>>>> get the data into the proper format then the scripts are not quite so
+>>>> optional, they become the expected environment.  I think the proper
+>>>> format should exist without the helper scripts.
+>>>
+>>> That's a good point. A couple things,
+>>>
+>>> First off, supporting TAP13, either in the kernel or the wrapper
+>>> script is not hard, but I don't think that is the real issue that you
+>>> raise.
+>>>
+>>> If your only concern is that you will always be able to have human
+>>> readable KUnit results printed to the kernel log, that is a guarantee
+>>> I feel comfortable making. Beyond that, I think it is going to take a
+>>> long while before I would feel comfortable guaranteeing anything about
+>>> how will KUnit work, what kind of data it will want to expose, and how
+>>> it will be organized. I think the wrapper script provides a nice
+>>> facade that I can maintain, can mediate between the implementation
+>>> details and the user, and can mediate between the implementation
+>>> details and other pieces of software that might want to consume
+>>> results.
+>>>
+>>> [1] https://testanything.org/tap-version-13-specification.html
+>>
+>> My concern is based on a focus on my little part of the world
+>> (which in _previous_ versions of the patch series was the devicetree
+>> unittest.c tests being converted to use the kunit infrastructure).
+>> If I step back and think of the entire kernel globally I may end
+>> up with a different conclusion - but I'm going to remain myopic
+>> for this email.
+>>
+>> I want the test results to be usable by me and my fellow
+>> developers.  I prefer that the test results be easily accessible
+>> (current printk() implementation means that kunit messages are
+>> just as accessible as the current unittest.c printk() output).
+>> If the printk() output needs to be filtered through a script
+>> to generate the actual test results then that is sub-optimal
+>> to me.  It is one more step added to my workflow.  And
+>> potentially with an embedded target a major pain to get a
+>> data file (the kernel log file) transferred from a target
+>> to my development host.
 > 
-> Guilty as charged (I have a long history with C++, sorry). Would you
-> prefer I changed the name? I just figured that try-catch is a commonly
-> understood pattern that describes exactly what I am doing.
-
-It is a commonly understood pattern, but I don't think it's what the
-code is doing. Try-catch cleans up an entire stack and allows each level
-of the stack to apply local cleanup. This implementation simply exits a
-thread and has none of that complexity. To me, it seems like an odd
-abstraction here as it's really just a test runner that can exit early
-(though I haven't seen the follow-up UML implementation).
-
-I would prefer to see this cleaned up such that the abstraction matches
-more what's going on but I don't feel that strongly about it so I'll
-leave it up to you to figure out what's best unless other reviewers have
-stronger opinions.
-
->>
->> [snip]
->>
->>> +static void __noreturn kunit_abort(struct kunit *test)
->>> +{
->>> +     kunit_set_death_test(test, true);
->>> +
->>> +     kunit_try_catch_throw(&test->try_catch);
->>> +
->>> +     /*
->>> +      * Throw could not abort from test.
->>> +      *
->>> +      * XXX: we should never reach this line! As kunit_try_catch_throw is
->>> +      * marked __noreturn.
->>> +      */
->>> +     WARN_ONCE(true, "Throw could not abort from test!\n");
->>> +}
->>> +
->>>  int kunit_init_test(struct kunit *test, const char *name)
->>>  {
->>>       spin_lock_init(&test->lock);
->>> @@ -77,6 +103,7 @@ int kunit_init_test(struct kunit *test, const char *name)
->>>       test->name = name;
->>>       test->vprintk = kunit_vprintk;
->>>       test->fail = kunit_fail;
->>> +     test->abort = kunit_abort;
->>
->> There are a number of these function pointers which seem to be pointless
->> to me as you only ever set them to one function. Just call the function
->> directly. As it is, it is an unnecessary indirection for someone reading
->> the code. If and when you have multiple implementations of the function
->> then add the pointer. Don't assume you're going to need it later on and
->> add all this maintenance burden if you never use it..
+> That's fair. If that is indeed your only concern, then I don't think
+> the wrapper script will ever be an issue for you. You will always be
+> able to execute a given test the old fashioned/manual way, and the
+> wrapper script only summarizes results, it does not change the
+> contents.
 > 
-> Ah, yes, Frank (and probably others) previously asked me to remove
-> unnecessary method pointers; I removed all the totally unused ones. As
-> for these, I don't use them in this patchset, but I use them in my
-> patchsets that will follow up this one. These in particular are
-> present so that they can be mocked out for testing.
-
-Adding indirection and function pointers solely for the purpose of
-mocking out while testing doesn't sit well with me and I don't think it
-should be a pattern that's encouraged. Adding extra complexity like this
-to a design to make it unit-testable doesn't seem like something that
-makes sense in kernel code. Especially given that indirect calls are
-more expensive in the age of spectre.
-
-Also, mocking these particular functions seems like it's an artifact of
-how you've designed the try/catch abstraction. If the abstraction was
-more around an abort-able test runner then it doesn't make sense to need
-to mock out the abort/fail functions as you will be testing overly
-generic features of something that don't seem necessary to the
-implementation.
-
 >>
->> [snip]
->>
->>> +void kunit_generic_try_catch_init(struct kunit_try_catch *try_catch)
->>> +{
->>> +     try_catch->run = kunit_generic_run_try_catch;
->>> +     try_catch->throw = kunit_generic_throw;
->>> +}
->>
->> Same here. There's only one implementation of try_catch and I can't
->> really see any sensible justification for another implementation. Even
->> if there is, add the indirection when the second implementation is
->> added. This isn't C++ and we don't need to make everything a "method".
+>> I want a reported test failure to be easy to trace back to the
+>> point in the source where the failure is reported.  With printk()
+>> the search is a simple grep for the failure message.  If the
+>> failure message has been processed by a script, and then the
+>> failure reported to me in an email, then I may have to look
+>> at the script to reverse engineer how the original failure
+>> message was transformed into the message that was reported
+>> to me in the email.  Then I search for the point in the
+>> source where the failure is reported.  So a basic task has
+>> just become more difficult and time consuming.
 > 
-> These methods are for a UML specific implementation in a follow up
-> patchset, which is needed for some features like crash recovery, death
-> tests, and removes dependence on kthreads.
+> That seems to be a valid concern. I would reiterate that you shouldn't
+> be concerned by any processing done by the wrapper script itself, but
+> the reality is that depending on what happens with automated
+> testing/presubmit/CI other people might end up parsing and
+> transforming test results - it might happen, it might not.
+
+You seem to be missing my point.
+
+Greg asked that the output be in a standard format.
+
+You replied that the standard format could be created by the wrapper script.
+
+Now you say that "it might happen, it might not".  In other words the output
+may or may not end up in the standard format.
+
+As Greg points out in comments to patch 12:
+
+  "The core of kunit should also log the messages in this format as well,
+  and not rely on the helper scripts as Frank points out, not everyone
+  will use/want them.  Might as well make it easy for everyone to always
+  do the right thing and not force it to always be added in later."
+
+I am requesting that the original message be in the standard format.  Of
+course anyone is free to transform the messages in later processing, no
+big deal.
+
+
+> I currently
+> have a CI system set up for KUnit on my public repo that I don't think
+> you would be offended by, but I don't know what we are going to do
+> when it comes time to integrate with existing upstream CI systems.
 > 
-> I know this probably sounds like premature complexity. Arguably it is
-> in hindsight, but I wrote those features before I pulled out these
-> interfaces (they were actually both originally in this patchset, but I
-> dropped them to make this patchset easier to review). I can remove
-> these methods and add them back in when I actually use them in the
-> follow up patchsets if you prefer.
-
-Yes, remove them now and add them back when you use them in follow-up
-patches. If reviewers find problems with the follow-up patches or have a
-better suggestion on how to do what ever it is you are doing, then you
-just have this unnecessary code and there's wasted developer time and
-review bandwidth that will need to be spent cleaning it up.
-
-Thanks,
-
-Logan
+> In anycase, I don't think that either sticking with or doing away with
+> the wrapper script is going to have any long term bearing on what
+> happens in this regard.
+> 
+> Cheers
+> 
