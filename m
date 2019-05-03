@@ -1,20 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E43CD21243BA3
- for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 08:23:49 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 05AA521237AA6
+ for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 20:19:21 -0700 (PDT)
+References: <20190501230126.229218-1-brendanhiggins@google.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <ea36c3d6-8c13-2186-16f3-596d834aeebe@deltatee.com>
+Date: Thu, 2 May 2019 21:18:40 -0600
+MIME-Version: 1.0
+In-Reply-To: <20190501230126.229218-1-brendanhiggins@google.com>
+Content-Language: en-US
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
-References: <20190501230126.229218-1-brendanhiggins@google.com>
- <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
- <20190507080119.GB28121@kroah.com>
-From: shuah <shuah@kernel.org>
-Message-ID: <1b1efa91-0523-21a9-e541-fdc3612bd117@kernel.org>
-Date: Tue, 7 May 2019 09:23:31 -0600
-MIME-Version: 1.0
-In-Reply-To: <20190507080119.GB28121@kroah.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,118 +20,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg KH <gregkh@linuxfoundation.org>, Frank Rowand <frowand.list@gmail.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah <shuah@kernel.org>, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/7/19 2:01 AM, Greg KH wrote:
-> On Mon, May 06, 2019 at 08:14:12PM -0700, Frank Rowand wrote:
->> On 5/1/19 4:01 PM, Brendan Higgins wrote:
->>> ## TLDR
->>>
->>> I rebased the last patchset on 5.1-rc7 in hopes that we can get this in
->>> 5.2.
->>>
->>> Shuah, I think you, Greg KH, and myself talked off thread, and we agreed
->>> we would merge through your tree when the time came? Am I remembering
->>> correctly?
->>>
->>> ## Background
->>>
->>> This patch set proposes KUnit, a lightweight unit testing and mocking
->>> framework for the Linux kernel.
->>>
->>> Unlike Autotest and kselftest, KUnit is a true unit testing framework;
->>> it does not require installing the kernel on a test machine or in a VM
->>> and does not require tests to be written in userspace running on a host
->>> kernel. Additionally, KUnit is fast: From invocation to completion KUnit
->>> can run several dozen tests in under a second. Currently, the entire
->>> KUnit test suite for KUnit runs in under a second from the initial
->>> invocation (build time excluded).
->>>
->>> KUnit is heavily inspired by JUnit, Python's unittest.mock, and
->>> Googletest/Googlemock for C++. KUnit provides facilities for defining
->>> unit test cases, grouping related test cases into test suites, providing
->>> common infrastructure for running tests, mocking, spying, and much more.
->>
->> As a result of the emails replying to this patch thread, I am now
->> starting to look at kselftest.  My level of understanding is based
->> on some slide presentations, an LWN article, https://kselftest.wiki.kernel.org/
->> and a _tiny_ bit of looking at kselftest code.
->>
->> tl;dr; I don't really understand kselftest yet.
->>
->>
->> (1) why KUnit exists
->>
->>> ## What's so special about unit testing?
->>>
->>> A unit test is supposed to test a single unit of code in isolation,
->>> hence the name. There should be no dependencies outside the control of
->>> the test; this means no external dependencies, which makes tests orders
->>> of magnitudes faster. Likewise, since there are no external dependencies,
->>> there are no hoops to jump through to run the tests. Additionally, this
->>> makes unit tests deterministic: a failing unit test always indicates a
->>> problem. Finally, because unit tests necessarily have finer granularity,
->>> they are able to test all code paths easily solving the classic problem
->>> of difficulty in exercising error handling code.
->>
->> (2) KUnit is not meant to replace kselftest
->>
->>> ## Is KUnit trying to replace other testing frameworks for the kernel?
->>>
->>> No. Most existing tests for the Linux kernel are end-to-end tests, which
->>> have their place. A well tested system has lots of unit tests, a
->>> reasonable number of integration tests, and some end-to-end tests. KUnit
->>> is just trying to address the unit test space which is currently not
->>> being addressed.
->>
->> My understanding is that the intent of KUnit is to avoid booting a kernel on
->> real hardware or in a virtual machine.  That seems to be a matter of semantics
->> to me because isn't invoking a UML Linux just running the Linux kernel in
->> a different form of virtualization?
->>
->> So I do not understand why KUnit is an improvement over kselftest.
 
-They are in two different categories. Kselftest falls into black box
-regression test suite which is a collection of user-space tests with a
-few kernel test modules back-ending the tests in some cases.
 
-Kselftest can be used by both kernel developers and users and provides
-a good way to regression test releases in test rings.
-
-KUnit is a white box category and is a better fit as unit test framework
-for development and provides a in-kernel testing. I wouldn't view them
-one replacing the other. They just provide coverage for different areas
-of testing.
-
-I wouldn't view KUnit as something that would be easily run in test 
-rings for example.
-
-Brendan, does that sound about right?
-
->>
->> It seems to me that KUnit is just another piece of infrastructure that I
->> am going to have to be familiar with as a kernel developer.  More overhead,
->> more information to stuff into my tiny little brain.
->>
->> I would guess that some developers will focus on just one of the two test
->> environments (and some will focus on both), splitting the development
->> resources instead of pooling them on a common infrastructure.
-
->> What am I missing?
+On 2019-05-01 5:01 p.m., Brendan Higgins wrote:
+> ## TLDR
 > 
-> kselftest provides no in-kernel framework for testing kernel code
-> specifically.  That should be what kunit provides, an "easy" way to
-> write in-kernel tests for things.
+> I rebased the last patchset on 5.1-rc7 in hopes that we can get this in
+> 5.2.
 > 
-> Brendan, did I get it right?
-thanks,
--- Shuah
+
+As I said on the last posting, I like this and would like to see it move
+forward. I still have the same concerns over the downsides of using UML
+(ie. not being able to compile large swaths of the tree due to features
+that don't exist in that arch) but these are concerns for later.
+
+I'd prefer to see the unnecessary indirection that I pointed out in
+patch 8 cleaned up but, besides that, the code looks good to me.
+
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+
+Thanks!
+
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
