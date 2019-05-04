@@ -1,98 +1,119 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 1/8] acpi: Drop drivers/acpi/hmat/ directory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 May 2019 15:59:27 -0700
-Message-ID: <155925716783.3775979.13301455166290564145.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 8C35321243BC2
+ for <linux-nvdimm@lists.01.org>; Sat,  4 May 2019 12:42:12 -0700 (PDT)
+Date: Sat, 4 May 2019 12:42:09 -0700
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: Hang / zombie process from Xarray page-fault conversion (bisected)
+Message-ID: <20190504194209.GB16963@bombadil.infradead.org>
+References: <CAPcyv4hwHpX-MkUEqxwdTj7wCCZCN4RV-L4jsnuwLGyL_UEG4A@mail.gmail.com>
+ <20190311150947.GD19508@bombadil.infradead.org>
+ <CAPcyv4jG5r2LOesxSx+Mdf+L_gQWqnhk+gKZyKAAPTHy1Drvqw@mail.gmail.com>
+ <20190312043754.GD23020@dastard>
+ <CAPcyv4i+z0RT7rTw+4w-h8dOyscVk1g3F+cu2pKHqqJjTgU++A@mail.gmail.com>
+ <20190315022604.GO26298@dastard>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20190315022604.GO26298@dastard>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-efi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, vishal.l.verma@intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "Barror, Robert" <robert.barror@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As a single source file object there is no need for the hmat enabling to
-have its own directory.
+On Fri, Mar 15, 2019 at 01:26:04PM +1100, Dave Chinner wrote:
+> On Thu, Mar 14, 2019 at 12:34:51AM -0700, Dan Williams wrote:
+> > On Mon, Mar 11, 2019 at 9:38 PM Dave Chinner <david@fromorbit.com> wrote:
+> > >
+> > > On Mon, Mar 11, 2019 at 08:35:05PM -0700, Dan Williams wrote:
+> > > > On Mon, Mar 11, 2019 at 8:10 AM Matthew Wilcox <willy@infradead.org> wrote:
+> > > > >
+> > > > > On Thu, Mar 07, 2019 at 10:16:17PM -0800, Dan Williams wrote:
+> > > > > > Hi Willy,
+> > > > > >
+> > > > > > We're seeing a case where RocksDB hangs and becomes defunct when
+> > > > > > trying to kill the process. v4.19 succeeds and v4.20 fails. Robert was
+> > > > > > able to bisect this to commit b15cd800682f "dax: Convert page fault
+> > > > > > handlers to XArray".
+> > > > > >
+> > > > > > I see some direct usage of xa_index and wonder if there are some more
+> > > > > > pmd fixups to do?
+> > > > > >
+> > > > > > Other thoughts?
+> > > > >
+> > > > > I don't see why killing a process would have much to do with PMD
+> > > > > misalignment.  The symptoms (hanging on a signal) smell much more like
+> > > > > leaving a locked entry in the tree.  Is this easy to reproduce?  Can you
+> > > > > get /proc/$pid/stack for a hung task?
+> > > >
+> > > > It's fairly easy to reproduce, I'll see if I can package up all the
+> > > > dependencies into something that fails in a VM.
+> > > >
+> > > > It's limited to xfs, no failure on ext4 to date.
+> > > >
+> > > > The hung process appears to be:
+> > > >
+> > > >      kworker/53:1-xfs-sync/pmem0
+> > >
+> > > That's completely internal to XFS. Every 30s the work is triggered
+> > > and it either does a log flush (if the fs is active) or it syncs the
+> > > superblock to clean the log and idle the filesystem. It has nothing
+> > > to do with user processes, and I don't see why killing a process has
+> > > any effect on what it does...
+> > >
+> > > > ...and then the rest of the database processes grind to a halt from there.
+> > > >
+> > > > Robert was kind enough to capture /proc/$pid/stack, but nothing interesting:
+> > > >
+> > > > [<0>] worker_thread+0xb2/0x380
+> > > > [<0>] kthread+0x112/0x130
+> > > > [<0>] ret_from_fork+0x1f/0x40
+> > > > [<0>] 0xffffffffffffffff
+> > >
+> > > Much more useful would be:
+> > >
+> > > # echo w > /proc/sysrq-trigger
+> > >
+> > > And post the entire output of dmesg.
+> > 
+> > Here it is:
+> > 
+> > https://gist.github.com/djbw/ca7117023305f325aca6f8ef30e11556
+> 
+> Which tells us nothing. :(
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/Kconfig       |   12 +++++++++++-
- drivers/acpi/Makefile      |    2 +-
- drivers/acpi/hmat.c        |    0 
- drivers/acpi/hmat/Kconfig  |   11 -----------
- drivers/acpi/hmat/Makefile |    2 --
- 5 files changed, 12 insertions(+), 15 deletions(-)
- rename drivers/acpi/{hmat/hmat.c => hmat.c} (100%)
- delete mode 100644 drivers/acpi/hmat/Kconfig
- delete mode 100644 drivers/acpi/hmat/Makefile
+Nothing from a filesystem side, perhaps, but I find it quite interesting.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 283ee94224c6..ec8691e4152f 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -475,7 +475,17 @@ config ACPI_REDUCED_HARDWARE_ONLY
- 	  If you are unsure what to do, do not enable this option.
- 
- source "drivers/acpi/nfit/Kconfig"
--source "drivers/acpi/hmat/Kconfig"
-+
-+config ACPI_HMAT
-+	bool "ACPI Heterogeneous Memory Attribute Table Support"
-+	depends on ACPI_NUMA
-+	select HMEM_REPORTING
-+	help
-+	 If set, this option has the kernel parse and report the
-+	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
-+	 register memory initiators with their targets, and export
-+	 performance attributes through the node's sysfs device if
-+	 provided.
- 
- source "drivers/acpi/apei/Kconfig"
- source "drivers/acpi/dptf/Kconfig"
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 5d361e4e3405..fc89686498dd 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -80,7 +80,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit/
--obj-$(CONFIG_ACPI_HMAT)		+= hmat/
-+obj-$(CONFIG_ACPI_HMAT)		+= hmat.o
- obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
-diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat.c
-similarity index 100%
-rename from drivers/acpi/hmat/hmat.c
-rename to drivers/acpi/hmat.c
-diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
-deleted file mode 100644
-index 95a29964dbea..000000000000
---- a/drivers/acpi/hmat/Kconfig
-+++ /dev/null
-@@ -1,11 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0
--config ACPI_HMAT
--	bool "ACPI Heterogeneous Memory Attribute Table Support"
--	depends on ACPI_NUMA
--	select HMEM_REPORTING
--	help
--	 If set, this option has the kernel parse and report the
--	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
--	 register memory initiators with their targets, and export
--	 performance attributes through the node's sysfs device if
--	 provided.
-diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
-deleted file mode 100644
-index 1c20ef36a385..000000000000
---- a/drivers/acpi/hmat/Makefile
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0-only
--obj-$(CONFIG_ACPI_HMAT) := hmat.o
+We have a number of threads blocking in down_read() on mmap_sem.  That
+means a task is holding the mmap_sem for write, or is blocked trying
+to take the mmap_sem for write.  I think it's the latter; pid 4650
+is blocked in munmap().  pid 4673 is blocking in get_unlocked_entry()
+and will be holding the mmap_sem for read while doing so.
+
+Since this is provoked by a fatal signal, it must have something to do
+with a killable or interruptible sleep.  There's only one of those in the
+DAX code; fatal_signal_pending() in dax_iomap_actor().  Does rocksdb do
+I/O with write() or through a writable mmap()?  I'd like to know before
+I chase too far down this fault tree analysis.
+
+My current suspicion is that we have a PMD fault being not-woken by a PTE
+modification, and the evidence seems to fit, but I don't quite see it yet.
+
+(I meant to ask Dan about this while we were in San Juan, but with all
+the other excitement, it slipped my mind).
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
