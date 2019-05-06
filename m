@@ -1,15 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E249211F9D7B
- for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:10:02 -0700 (PDT)
-Subject: [PATCH v2 3/6] PCI/P2PDMA: Fix the gen_pool_add_virt() failure path
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 07 May 2019 16:56:16 -0700
-Message-ID: <155727337603.292046.13101332703665246702.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155727335978.292046.12068191395005445711.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155727335978.292046.12068191395005445711.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3743A211EB815
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 15:17:57 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH 0/8] daxctl: add a new reconfigure-device command
+Date: Mon, 6 May 2019 22:17:55 +0000
+Message-ID: <6d832ef8fa6e0f1201048021dd1aa18b359efc25.camel@intel.com>
+References: <20190503213231.12280-1-vishal.l.verma@intel.com>
+ <12edf619-be22-8ae9-77c0-8a81cb353a87@intel.com>
+ <e251c59c27e52515a0eb9f93ec1990d37cb8b31d.camel@intel.com>
+In-Reply-To: <e251c59c27e52515a0eb9f93ec1990d37cb8b31d.camel@intel.com>
+Content-Language: en-US
+Content-ID: <9833C5939E7A7E40AF816810441DBF53@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,50 +26,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Bjorn Helgaas <bhelgaas@google.com>, Christoph Hellwig <hch@lst.de>
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Hansen, Dave" <dave.hansen@intel.com>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The pci_p2pdma_add_resource() implementation immediately frees the pgmap
-if gen_pool_add_virt() fails. However, that means that when @dev
-triggers a devres release devm_memremap_pages_release() will crash
-trying to access the freed @pgmap.
 
-Use the new devm_memunmap_pages() to manually free the mapping in the
-error path.
+On Mon, 2019-05-06 at 22:14 +0000, Verma, Vishal L wrote:
+> On Mon, 2019-05-06 at 14:50 -0700, Dave Hansen wrote:
+> > This all looks quite nice to me.  Thanks, Vishal!
+> > 
+> > One minor nit: for those of us new to daxctl and friends, they can
+> > be
+> > a
+> > bit hard to get started with.  Could you maybe add a few example
+> > invocations to the Documentation, or even this cover letter to help
+> > us
+> > newbies get started?
+> 
+> Yes, good idea, I'll add an examples section to the Documentation page
+> (other commands do this, and this should too), and add those to the
+> cover letter as well for v2.
 
-Fixes: 52916982af48 ("PCI/P2PDMA: Support peer-to-peer memory")
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/pci/p2pdma.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+I meant to add, for now, a few of the most useful invocations probably
+look like:
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index c52298d76e64..595a534bd749 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -208,13 +208,15 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
- 			pci_bus_address(pdev, bar) + offset,
- 			resource_size(&pgmap->res), dev_to_node(&pdev->dev));
- 	if (error)
--		goto pgmap_free;
-+		goto pages_free;
- 
- 	pci_info(pdev, "added peer-to-peer DMA memory %pR\n",
- 		 &pgmap->res);
- 
- 	return 0;
- 
-+pages_free:
-+	devm_memunmap_pages(&pdev->dev, pgmap);
- pgmap_free:
- 	devm_kfree(&pdev->dev, pgmap);
- 	return error;
+1. # daxctl reconfigure-device --mode=system-ram dax0.0
+(this will also online the memory sections)
 
+2. # daxctl reconfigure-device --mode=system-ram --no-online dax0.0
+(this will *not* online the memory sections)
+
+3. # daxctl reconfigure-device --mode=devdax --attempt-offline dax0.0
+(this requires Pavel's patches for kmem-unbind, and won't work with
+vanilla v5.1)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
