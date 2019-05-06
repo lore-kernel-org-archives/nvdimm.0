@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C6BCB2194EB76
- for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 4/8] ndctl: add helpers to get/set the online state for
- a node
-Date: Fri,  3 May 2019 15:32:27 -0600
-Message-Id: <20190503213231.12280-5-vishal.l.verma@intel.com>
-In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
-References: <20190503213231.12280-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CC4122121493D
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 16:53:34 -0700 (PDT)
+Subject: [PATCH v8 04/12] mm/hotplug: Prepare shrink_{zone,
+ pgdat}_span for sub-section removal
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 06 May 2019 16:39:47 -0700
+Message-ID: <155718598766.130019.2843092676507694047.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,346 +23,105 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: akpm@linux-foundation.org
+Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for converting DAX devices for use as system-ram via the
-kernel's 'kmem' facility, add libndctl helpers to manipulate the sysfs
-interfaces to get the target_node of a DAX device, and to online,
-offline, and query the state of hotplugged memory sections associated
-with a given node.
+Sub-section hotplug support reduces the unit of operation of hotplug
+from section-sized-units (PAGES_PER_SECTION) to sub-section-sized units
+(PAGES_PER_SUBSECTION). Teach shrink_{zone,pgdat}_span() to consider
+PAGES_PER_SUBSECTION boundaries as the points where pfn_valid(), not
+valid_section(), can toggle.
 
-This adds the following new interfaces:
-
-  daxctl_dev_get_target_node
-  daxctl_dev_online_node
-  daxctl_dev_offline_node
-  daxctl_dev_node_is_online
-
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- daxctl/lib/libdaxctl-private.h |   6 +
- daxctl/lib/libdaxctl.c         | 228 +++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |   4 +
- daxctl/libdaxctl.h             |   4 +
- 4 files changed, 242 insertions(+)
+ mm/memory_hotplug.c |   29 ++++++++---------------------
+ 1 file changed, 8 insertions(+), 21 deletions(-)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index e64d0a7..ef443aa 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -33,6 +33,11 @@ static const char *dax_modules[] = {
- 	[DAXCTL_DEV_MODE_RAM] = "kmem",
- };
- 
-+enum node_state {
-+	NODE_OFFLINE,
-+	NODE_ONLINE,
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-@@ -63,6 +68,7 @@ struct daxctl_dev {
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
- 	struct daxctl_region *region;
-+	int target_node;
- };
- 
- static inline int check_kmod(struct kmod_ctx *kmod_ctx)
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index d50b321..aab2364 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -28,6 +28,7 @@
- #include "libdaxctl-private.h"
- 
- static const char *attrs = "dax_region";
-+static const char *node_base = "/sys/devices/system/node";
- 
- static void free_region(struct daxctl_region *region, struct list_head *head);
- 
-@@ -397,6 +398,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	} else
- 		dbg(ctx, "%s: modalias attribute missing\n", devname);
- 
-+	sprintf(path, "%s/target_node", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->target_node = strtol(buf, NULL, 0);
-+	else
-+		dev->target_node = -1;
-+
- 	daxctl_dev_foreach(region, dev_dup)
- 		if (dev_dup->id == dev->id) {
- 			free_dev(dev, NULL);
-@@ -897,3 +904,224 @@ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index a76fc6a6e9fe..393ab2b9c3f7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -325,12 +325,8 @@ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
+ 				     unsigned long start_pfn,
+ 				     unsigned long end_pfn)
  {
- 	return dev->size;
- }
-+
-+DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
-+{
-+	return dev->target_node;
-+}
-+
-+static int online_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "online_movable";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/*
-+	 * if already online, possibly due to kernel config or a udev rule,
-+	 * there is nothing to do and we can skip over the memblock
-+	 */
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 0;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc)
-+		err(ctx, "%s: Failed to online %s: %s\n",
-+			devname, path, strerror(-rc));
-+	return rc;
-+}
-+
-+static int offline_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "offline";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/* if already offline, there is nothing to do */
-+	if (strncmp(buf, "offline", 6) == 0)
-+		return 0;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc)
-+		err(ctx, "%s: Failed to offline %s: %s\n",
-+			devname, path, strerror(-rc));
-+	return rc;
-+}
-+
-+static int daxctl_dev_node_set_state(struct daxctl_dev *dev,
-+		enum node_state state)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int target_node, rc, changed = 0;
-+	struct dirent *de;
-+	char *node_path;
-+	DIR *node_dir;
-+
-+	target_node = daxctl_dev_get_target_node(dev);
-+	if (target_node < 0) {
-+		err(ctx, "%s: Unable to get target node\n",
-+			daxctl_dev_get_devname(dev));
-+		return -ENXIO;
-+	}
-+
-+	rc = asprintf(&node_path, "%s/node%d", node_base, target_node);
-+	if (rc < 0)
-+		return -ENOMEM;
-+
-+	node_dir = opendir(node_path);
-+	if (!node_dir) {
-+		rc = -errno;
-+		goto out_path;
-+	}
-+
-+	errno = 0;
-+	while ((de = readdir(node_dir)) != NULL) {
-+		char *mem_path;
-+
-+		if (strcmp(de->d_name, ".") == 0 ||
-+				strcmp(de->d_name, "..") == 0)
-+			continue;
-+		if (strncmp(de->d_name, "memory", 6) == 0) {
-+			rc = asprintf(&mem_path, "%s/%s/state",
-+				node_path, de->d_name);
-+			if (rc < 0) {
-+				rc = -ENOMEM;
-+				goto out_dir;
-+			}
-+			if (state == NODE_ONLINE)
-+				rc = online_one_memblock(dev, mem_path);
-+			else if (state == NODE_OFFLINE)
-+				rc = offline_one_memblock(dev, mem_path);
-+			else
-+				rc = -EINVAL;
-+			free(mem_path);
-+			if (rc)
-+				goto out_dir;
-+			changed++;
-+		}
-+		errno = 0;
-+	}
-+	if (errno) {
-+		rc = -errno;
-+		goto out_dir;
-+	}
-+	rc = changed;
-+
-+out_dir:
-+	closedir(node_dir);
-+out_path:
-+	free(node_path);
-+	return rc;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_online_node(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_node_set_state(dev, NODE_ONLINE);
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_offline_node(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_node_set_state(dev, NODE_OFFLINE);
-+}
-+
-+static int memblock_is_online(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_node_is_online(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int target_node, rc, num_online = 0;
-+	struct dirent *de;
-+	char *node_path;
-+	DIR *node_dir;
-+
-+	target_node = daxctl_dev_get_target_node(dev);
-+	if (target_node < 0) {
-+		err(ctx, "%s: Unable to get target node\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	rc = asprintf(&node_path, "%s/node%d", node_base, target_node);
-+	if (rc < 0)
-+		return -ENOMEM;
-+
-+	node_dir = opendir(node_path);
-+	if (!node_dir) {
-+		rc = -errno;
-+		goto out_path;
-+	}
-+
-+	errno = 0;
-+	while ((de = readdir(node_dir)) != NULL) {
-+		char *mem_path;
-+
-+		if (strcmp(de->d_name, ".") == 0 ||
-+				strcmp(de->d_name, "..") == 0)
-+			continue;
-+		if (strncmp(de->d_name, "memory", 6) == 0) {
-+			rc = asprintf(&mem_path, "%s/%s/state",
-+				node_path, de->d_name);
-+			if (rc < 0) {
-+				rc = -ENOMEM;
-+				goto out_dir;
-+			}
-+			rc = memblock_is_online(dev, mem_path);
-+			if (rc < 0) {
-+				err(ctx, "%s: Unable to determine state: %s\n",
-+					devname, mem_path);
-+				goto out_dir;
-+			}
-+			if (rc > 0)
-+				num_online++;
-+			free(mem_path);
-+		}
-+		errno = 0;
-+	}
-+	if (errno) {
-+		rc = -errno;
-+		goto out_dir;
-+	}
-+	rc = num_online;
-+
-+out_dir:
-+	closedir(node_dir);
-+out_path:
-+	free(node_path);
-+	return rc;
-+
-+}
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..cc47ed6 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -54,8 +54,12 @@ global:
- LIBDAXCTL_6 {
- global:
- 	daxctl_dev_get_ctx;
-+	daxctl_dev_get_target_node;
- 	daxctl_dev_is_enabled;
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_online_node;
-+	daxctl_dev_offline_node;
-+	daxctl_dev_node_is_online;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index b80488e..db0d4ea 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -68,10 +68,14 @@ int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_get_target_node(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- int daxctl_dev_disable(struct daxctl_dev *dev);
- int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
- int daxctl_dev_enable_ram(struct daxctl_dev *dev);
-+int daxctl_dev_online_node(struct daxctl_dev *dev);
-+int daxctl_dev_offline_node(struct daxctl_dev *dev);
-+int daxctl_dev_node_is_online(struct daxctl_dev *dev);
+-	struct mem_section *ms;
+-
+-	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SECTION) {
+-		ms = __pfn_to_section(start_pfn);
+-
+-		if (unlikely(!valid_section(ms)))
++	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SUBSECTION) {
++		if (unlikely(!pfn_valid(start_pfn)))
+ 			continue;
  
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
--- 
-2.20.1
+ 		if (unlikely(pfn_to_nid(start_pfn) != nid))
+@@ -350,15 +346,12 @@ static unsigned long find_biggest_section_pfn(int nid, struct zone *zone,
+ 				    unsigned long start_pfn,
+ 				    unsigned long end_pfn)
+ {
+-	struct mem_section *ms;
+ 	unsigned long pfn;
+ 
+ 	/* pfn is the end pfn of a memory section. */
+ 	pfn = end_pfn - 1;
+-	for (; pfn >= start_pfn; pfn -= PAGES_PER_SECTION) {
+-		ms = __pfn_to_section(pfn);
+-
+-		if (unlikely(!valid_section(ms)))
++	for (; pfn >= start_pfn; pfn -= PAGES_PER_SUBSECTION) {
++		if (unlikely(!pfn_valid(pfn)))
+ 			continue;
+ 
+ 		if (unlikely(pfn_to_nid(pfn) != nid))
+@@ -380,7 +373,6 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
+ 	unsigned long zone_end_pfn = z;
+ 	unsigned long pfn;
+-	struct mem_section *ms;
+ 	int nid = zone_to_nid(zone);
+ 
+ 	zone_span_writelock(zone);
+@@ -417,10 +409,8 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+ 	 * it check the zone has only hole or not.
+ 	 */
+ 	pfn = zone_start_pfn;
+-	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SECTION) {
+-		ms = __pfn_to_section(pfn);
+-
+-		if (unlikely(!valid_section(ms)))
++	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SUBSECTION) {
++		if (unlikely(!pfn_valid(pfn)))
+ 			continue;
+ 
+ 		if (page_zone(pfn_to_page(pfn)) != zone)
+@@ -448,7 +438,6 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
+ 	unsigned long p = pgdat_end_pfn(pgdat); /* pgdat_end_pfn namespace clash */
+ 	unsigned long pgdat_end_pfn = p;
+ 	unsigned long pfn;
+-	struct mem_section *ms;
+ 	int nid = pgdat->node_id;
+ 
+ 	if (pgdat_start_pfn == start_pfn) {
+@@ -485,10 +474,8 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
+ 	 * has only hole or not.
+ 	 */
+ 	pfn = pgdat_start_pfn;
+-	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SECTION) {
+-		ms = __pfn_to_section(pfn);
+-
+-		if (unlikely(!valid_section(ms)))
++	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SUBSECTION) {
++		if (unlikely(!pfn_valid(pfn)))
+ 			continue;
+ 
+ 		if (pfn_to_nid(pfn) != nid)
 
 _______________________________________________
 Linux-nvdimm mailing list
