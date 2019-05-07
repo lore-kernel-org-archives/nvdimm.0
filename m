@@ -1,62 +1,114 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v2 12/17] kunit: tool: add Python wrappers for running
- KUnit tests
-Date: Mon, 6 May 2019 14:42:53 -0700
-Message-ID: <CAFd5g47d-e31NecDEbMud0rUH55EbhcS0wJpjB1PZZaX5Udqmw@mail.gmail.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Mon, 6 May 2019 20:14:12 -0700
+Message-ID: <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-13-brendanhiggins@google.com>
- <20190502110220.GD12416@kroah.com>
- <CAFd5g47t=EdLKFCT=CnPkrM2z0nDVo24Gz4j0VxFOJbARP37Lg@mail.gmail.com>
- <a49c5088-a821-210c-66de-f422536f5b01@gmail.com>
- <CAFd5g44iWRchQKdJYtjRtPY6e-6e0eXpKXXsx5Ooi6sWE474KA@mail.gmail.com>
- <1a5f3c44-9fa9-d423-66bf-45255a90c468@gmail.com>
- <CAFd5g45RYm+zfdJXnyp2KZZH5ojfOzy++aq+4zBeE5VDu6WgEw@mail.gmail.com>
- <052fa196-4ea9-8384-79b7-fe6bacc0ee82@gmail.com>
- <CAFd5g47aY-CL+d7DfiyTidY4aAVY+eg1TM1UJ4nYqKSfHOi-0w@mail.gmail.com>
- <63f63c7c-6185-5e64-b338-6a5e7fb9e27c@gmail.com>
- <CAGXu5jJpp2HyEWMtAde+VUt=9ni3HRu69NM4rUQJu4kBrnx9Kw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAGXu5jJpp2HyEWMtAde+VUt=9ni3HRu69NM4rUQJu4kBrnx9Kw@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Kees Cook <keescook@google.com>
-Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Shuah Khan <shuah@kernel.org>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Felix Guo <felixguoxiuping@gmail.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird,
- Timothy" <Tim.Bird@sony.com>, linux-um@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190501230126.229218-1-brendanhiggins@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
 List-Id: linux-nvdimm@lists.01.org
 
-PiBPbiBTdW4sIE1heSA1LCAyMDE5IGF0IDU6MTkgUE0gRnJhbmsgUm93YW5kIDxmcm93YW5kLmxp
-c3RAZ21haWwuY29tPiB3cm90ZToKPiA+IFlvdSBjYW4gc2VlIHRoZSBmdWxsIHZlcnNpb24gMTQg
-ZG9jdW1lbnQgaW4gdGhlIHN1Ym1pdHRlcidzIHJlcG86Cj4gPgo+ID4gICAkIGdpdCBjbG9uZSBo
-dHRwczovL2dpdGh1Yi5jb20vaXNhYWNzL3Rlc3Rhbnl0aGluZy5naXRodWIuaW8uZ2l0Cj4gPiAg
-ICQgY2QgdGVzdGFueXRoaW5nLmdpdGh1Yi5pbwo+ID4gICAkIGdpdCBjaGVja291dCB0YXAxNAo+
-ID4gICAkIGxzIHRhcC12ZXJzaW9uLTE0LXNwZWNpZmljYXRpb24ubWQKPiA+Cj4gPiBNeSB1bmRl
-cnN0YW5kaW5nIGlzIHRoZSB0aGUgdmVyc2lvbiAxNCBzcGVjaWZpY2F0aW9uIGlzIG5vdCB0cnlp
-bmcgdG8KPiA+IGFkZCBuZXcgZmVhdHVyZXMsIGJ1dCBpbnN0ZWFkIGNhcHR1cmUgd2hhdCBpcyBh
-bHJlYWR5IGltcGxlbWVudGVkIGluCj4gPiB0aGUgd2lsZC4KPgo+IE9oISBJIGRpZG4ndCBrbm93
-IGFib3V0IHRoZSB3b3JrIG9uIFRBUCAxNC4gSSdsbCBnbyByZWFkIHRocm91Z2ggdGhpcy4KPgo+
-ID4gPiAjIyBIZXJlIGlzIHdoYXQgSSBwcm9wb3NlIGZvciB0aGlzIHBhdGNoc2V0Ogo+ID4gPgo+
-ID4gPiAgLSBQcmludCBvdXQgdGVzdCBudW1iZXIgcmFuZ2UgYXQgdGhlIGJlZ2lubmluZyBvZiBl
-YWNoIHRlc3Qgc3VpdGUuCj4gPiA+ICAtIFByaW50IG91dCBsb2cgbGluZXMgYXMgc29vbiBhcyB0
-aGV5IGhhcHBlbiBhcyBkaWFnbm9zdGljcy4KPiA+ID4gIC0gUHJpbnQgb3V0IHRoZSBsaW5lcyB0
-aGF0IHN0YXRlIHdoZXRoZXIgYSB0ZXN0IHBhc3NlcyBvciBmYWlscyBhcyBhCj4gPiA+IG9rL25v
-dCBvayBsaW5lLgo+ID4gPgo+ID4gPiBUaGlzIHdvdWxkIGJlIHRlY2huaWNhbGx5IGNvbmZvcm1p
-bmcgd2l0aCBUQVAxMyBhbmQgaXMgY29uc2lzdGVudCB3aXRoCj4gPiA+IHdoYXQgc29tZSBrc2Vs
-ZnRlc3RzIGhhdmUgZG9uZS4KPgo+IFRoaXMgaXMgd2hhdCBJIGZpeGVkIGtzZWxmdGVzdCB0byBh
-Y3R1YWxseSBkbyAoaXQgd2Fzbid0IGRvaW5nIGNvcnJlY3QKPiBUQVAxMyksIGFuZCBTaHVhaCBp
-cyB0ZXN0aW5nIHRoZSBzZXJpZXMgbm93Ogo+IGh0dHBzOi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3Nj
-bS9saW51eC9rZXJuZWwvZ2l0L3NodWFoL2xpbnV4LWtzZWxmdGVzdC5naXQvbG9nLz9oPWtzZnQt
-dGFwLXJlZmFjdG9yCgpPaCwgY29vbCEgSSBndWVzcyB0aGlzIGlzIGFuIG9rYXkgYXBwcm9hY2gg
-dGhlbi4KClRoYW5rcyEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
-dmVs
+On 5/1/19 4:01 PM, Brendan Higgins wrote:
+> ## TLDR
+> 
+> I rebased the last patchset on 5.1-rc7 in hopes that we can get this in
+> 5.2.
+> 
+> Shuah, I think you, Greg KH, and myself talked off thread, and we agreed
+> we would merge through your tree when the time came? Am I remembering
+> correctly?
+> 
+> ## Background
+> 
+> This patch set proposes KUnit, a lightweight unit testing and mocking
+> framework for the Linux kernel.
+> 
+> Unlike Autotest and kselftest, KUnit is a true unit testing framework;
+> it does not require installing the kernel on a test machine or in a VM
+> and does not require tests to be written in userspace running on a host
+> kernel. Additionally, KUnit is fast: From invocation to completion KUnit
+> can run several dozen tests in under a second. Currently, the entire
+> KUnit test suite for KUnit runs in under a second from the initial
+> invocation (build time excluded).
+> 
+> KUnit is heavily inspired by JUnit, Python's unittest.mock, and
+> Googletest/Googlemock for C++. KUnit provides facilities for defining
+> unit test cases, grouping related test cases into test suites, providing
+> common infrastructure for running tests, mocking, spying, and much more.
+
+As a result of the emails replying to this patch thread, I am now
+starting to look at kselftest.  My level of understanding is based
+on some slide presentations, an LWN article, https://kselftest.wiki.kernel.org/
+and a _tiny_ bit of looking at kselftest code.
+
+tl;dr; I don't really understand kselftest yet.
+
+
+(1) why KUnit exists
+
+> ## What's so special about unit testing?
+> 
+> A unit test is supposed to test a single unit of code in isolation,
+> hence the name. There should be no dependencies outside the control of
+> the test; this means no external dependencies, which makes tests orders
+> of magnitudes faster. Likewise, since there are no external dependencies,
+> there are no hoops to jump through to run the tests. Additionally, this
+> makes unit tests deterministic: a failing unit test always indicates a
+> problem. Finally, because unit tests necessarily have finer granularity,
+> they are able to test all code paths easily solving the classic problem
+> of difficulty in exercising error handling code.
+
+(2) KUnit is not meant to replace kselftest
+
+> ## Is KUnit trying to replace other testing frameworks for the kernel?
+> 
+> No. Most existing tests for the Linux kernel are end-to-end tests, which
+> have their place. A well tested system has lots of unit tests, a
+> reasonable number of integration tests, and some end-to-end tests. KUnit
+> is just trying to address the unit test space which is currently not
+> being addressed.
+
+My understanding is that the intent of KUnit is to avoid booting a kernel on
+real hardware or in a virtual machine.  That seems to be a matter of semantics
+to me because isn't invoking a UML Linux just running the Linux kernel in
+a different form of virtualization?
+
+So I do not understand why KUnit is an improvement over kselftest.
+
+It seems to me that KUnit is just another piece of infrastructure that I
+am going to have to be familiar with as a kernel developer.  More overhead,
+more information to stuff into my tiny little brain.
+
+I would guess that some developers will focus on just one of the two test
+environments (and some will focus on both), splitting the development
+resources instead of pooling them on a common infrastructure.
+
+What am I missing?
+
+-Frank
+
+
+> 
+> ## More information on KUnit
+> 
+> There is a bunch of documentation near the end of this patch set that
+> describes how to use KUnit and best practices for writing unit tests.
+> For convenience I am hosting the compiled docs here:
+> https://google.github.io/kunit-docs/third_party/kernel/docs/
+> Additionally for convenience, I have applied these patches to a branch:
+> https://kunit.googlesource.com/linux/+/kunit/rfc/v5.1-rc7/v1
+> The repo may be cloned with:
+> git clone https://kunit.googlesource.com/linux
+> This patchset is on the kunit/rfc/v5.1-rc7/v1 branch.
+> 
+> ## Changes Since Last Version
+> 
+> None. I just rebased the last patchset on v5.1-rc7.
+> 
