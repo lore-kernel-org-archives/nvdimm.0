@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0A99321DF37B3
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:36 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 09/30] fuse: add fuse_iqueue_ops callbacks
-Date: Wed, 15 May 2019 15:26:54 -0400
-Message-Id: <20190515192715.18000-10-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3650621253306
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:58 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 16/99] libnvdimm/security: provide fix for
+ secure-erase to use zero-key
+Date: Tue,  7 May 2019 01:31:10 -0400
+Message-Id: <20190507053235.29900-16-sashal@kernel.org>
+In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
+References: <20190507053235.29900-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,299 +23,110 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Stefan Hajnoczi <stefanha@redhat.com>
+From: Dave Jiang <dave.jiang@intel.com>
 
-The /dev/fuse device uses fiq->waitq and fasync to signal that requests
-are available.  These mechanisms do not apply to virtio-fs.  This patch
-introduces callbacks so alternative behavior can be used.
+[ Upstream commit 037c8489ade669e0f09ad40d5b91e5e1159a14b1 ]
 
-Note that queue_interrupt() changes along these lines:
+Add a zero key in order to standardize hardware that want a key of 0's to
+be passed. Some platforms defaults to a zero-key with security enabled
+rather than allow the OS to enable the security. The zero key would allow
+us to manage those platform as well. This also adds a fix to secure erase
+so it can use the zero key to do crypto erase. Some other security commands
+already use zero keys. This introduces a standard zero-key to allow
+unification of semantics cross nvdimm security commands.
 
-  spin_lock(&fiq->waitq.lock);
-  wake_up_locked(&fiq->waitq);
-+ kill_fasync(&fiq->fasync, SIGIO, POLL_IN);
-  spin_unlock(&fiq->waitq.lock);
-- kill_fasync(&fiq->fasync, SIGIO, POLL_IN);
-
-Since queue_request() and queue_forget() also call kill_fasync() inside
-the spinlock this should be safe.
-
-Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/fuse/cuse.c   |  2 +-
- fs/fuse/dev.c    | 50 ++++++++++++++++++++++++++++++++----------------
- fs/fuse/fuse_i.h | 48 +++++++++++++++++++++++++++++++++++++++++++++-
- fs/fuse/inode.c  | 16 ++++++++++++----
- 4 files changed, 94 insertions(+), 22 deletions(-)
+ drivers/nvdimm/security.c        | 17 ++++++++++++-----
+ tools/testing/nvdimm/test/nfit.c | 11 +++++++++--
+ 2 files changed, 21 insertions(+), 7 deletions(-)
 
-diff --git a/fs/fuse/cuse.c b/fs/fuse/cuse.c
-index 55a26f351467..a6ed7a036b50 100644
---- a/fs/fuse/cuse.c
-+++ b/fs/fuse/cuse.c
-@@ -504,7 +504,7 @@ static int cuse_channel_open(struct inode *inode, struct file *file)
- 	 * Limit the cuse channel to requests that can
- 	 * be represented in file->f_cred->user_ns.
- 	 */
--	fuse_conn_init(&cc->fc, file->f_cred->user_ns);
-+	fuse_conn_init(&cc->fc, file->f_cred->user_ns, &fuse_dev_fiq_ops, NULL);
+diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+index f8bb746a549f..6bea6852bf27 100644
+--- a/drivers/nvdimm/security.c
++++ b/drivers/nvdimm/security.c
+@@ -22,6 +22,8 @@ static bool key_revalidate = true;
+ module_param(key_revalidate, bool, 0444);
+ MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
  
- 	fud = fuse_dev_alloc(&cc->fc);
- 	if (!fud) {
-diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index 42fd3b576686..ef489beadf58 100644
---- a/fs/fuse/dev.c
-+++ b/fs/fuse/dev.c
-@@ -375,13 +375,33 @@ static unsigned int fuse_req_hash(u64 unique)
- 	return hash_long(unique & ~FUSE_INT_REQ_BIT, FUSE_PQ_HASH_BITS);
- }
- 
--static void queue_request(struct fuse_iqueue *fiq, struct fuse_req *req)
-+/**
-+ * A new request is available, wake fiq->waitq
-+ */
-+static void fuse_dev_wake_and_unlock(struct fuse_iqueue *fiq)
-+__releases(fiq->waitq.lock)
++static const char zero_key[NVDIMM_PASSPHRASE_LEN];
++
+ static void *key_data(struct key *key)
  {
--	req->in.h.len = sizeof(struct fuse_in_header) +
--		fuse_len_args(req->in.numargs, (struct fuse_arg *) req->in.args);
--	list_add_tail(&req->list, &fiq->pending);
- 	wake_up_locked(&fiq->waitq);
- 	kill_fasync(&fiq->fasync, SIGIO, POLL_IN);
-+	spin_unlock(&fiq->waitq.lock);
-+}
-+
-+const struct fuse_iqueue_ops fuse_dev_fiq_ops = {
-+	.wake_forget_and_unlock		= fuse_dev_wake_and_unlock,
-+	.wake_interrupt_and_unlock	= fuse_dev_wake_and_unlock,
-+	.wake_pending_and_unlock	= fuse_dev_wake_and_unlock,
-+};
-+EXPORT_SYMBOL_GPL(fuse_dev_fiq_ops);
-+
-+static void queue_request_and_unlock(struct fuse_iqueue *fiq,
-+				     struct fuse_req *req)
-+__releases(fiq->waitq.lock)
-+{
-+	req->in.h.len = sizeof(struct fuse_in_header) +
-+		fuse_len_args(req->in.numargs,
-+			      (struct fuse_arg *) req->in.args);
-+	list_add_tail(&req->list, &fiq->pending);
-+	fiq->ops->wake_pending_and_unlock(fiq);
- }
+ 	struct encrypted_key_payload *epayload = dereference_key_locked(key);
+@@ -286,8 +288,9 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+ {
+ 	struct device *dev = &nvdimm->dev;
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+-	struct key *key;
++	struct key *key = NULL;
+ 	int rc;
++	const void *data;
  
- void fuse_queue_forget(struct fuse_conn *fc, struct fuse_forget_link *forget,
-@@ -396,12 +416,11 @@ void fuse_queue_forget(struct fuse_conn *fc, struct fuse_forget_link *forget,
- 	if (fiq->connected) {
- 		fiq->forget_list_tail->next = forget;
- 		fiq->forget_list_tail = forget;
--		wake_up_locked(&fiq->waitq);
--		kill_fasync(&fiq->fasync, SIGIO, POLL_IN);
-+		fiq->ops->wake_forget_and_unlock(fiq);
+ 	/* The bus lock should be held at the top level of the call stack */
+ 	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
+@@ -319,11 +322,15 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
+-	if (!key)
+-		return -ENOKEY;
++	if (keyid != 0) {
++		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
++		if (!key)
++			return -ENOKEY;
++		data = key_data(key);
++	} else
++		data = zero_key;
+ 
+-	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key), pass_type);
++	rc = nvdimm->sec.ops->erase(nvdimm, data, pass_type);
+ 	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
+ 			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+ 			rc == 0 ? "success" : "fail");
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index b579f962451d..cad719876ef4 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -225,6 +225,8 @@ static struct workqueue_struct *nfit_wq;
+ 
+ static struct gen_pool *nfit_pool;
+ 
++static const char zero_key[NVDIMM_PASSPHRASE_LEN];
++
+ static struct nfit_test *to_nfit_test(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -1059,8 +1061,7 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 	struct device *dev = &t->pdev.dev;
+ 	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
+ 
+-	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
+-			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
++	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
+ 		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
+ 		dev_dbg(dev, "secure erase: wrong security state\n");
+ 	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
+@@ -1068,6 +1069,12 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
+ 		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
+ 		dev_dbg(dev, "secure erase: wrong passphrase\n");
  	} else {
- 		kfree(forget);
-+		spin_unlock(&fiq->waitq.lock);
- 	}
--	spin_unlock(&fiq->waitq.lock);
- }
- 
- static void flush_bg_queue(struct fuse_conn *fc)
-@@ -417,8 +436,7 @@ static void flush_bg_queue(struct fuse_conn *fc)
- 		fc->active_background++;
- 		spin_lock(&fiq->waitq.lock);
- 		req->in.h.unique = fuse_get_unique(fiq);
--		queue_request(fiq, req);
--		spin_unlock(&fiq->waitq.lock);
-+		queue_request_and_unlock(fiq, req);
- 	}
- }
- 
-@@ -506,10 +524,10 @@ static int queue_interrupt(struct fuse_iqueue *fiq, struct fuse_req *req)
- 			spin_unlock(&fiq->waitq.lock);
- 			return 0;
- 		}
--		wake_up_locked(&fiq->waitq);
--		kill_fasync(&fiq->fasync, SIGIO, POLL_IN);
-+		fiq->ops->wake_interrupt_and_unlock(fiq);
-+	} else {
-+		spin_unlock(&fiq->waitq.lock);
- 	}
--	spin_unlock(&fiq->waitq.lock);
- 	return 0;
- }
- 
-@@ -569,11 +587,10 @@ static void __fuse_request_send(struct fuse_conn *fc, struct fuse_req *req)
- 		req->out.h.error = -ENOTCONN;
- 	} else {
- 		req->in.h.unique = fuse_get_unique(fiq);
--		queue_request(fiq, req);
- 		/* acquire extra reference, since request is still needed
- 		   after fuse_request_end() */
- 		__fuse_get_request(req);
--		spin_unlock(&fiq->waitq.lock);
-+		queue_request_and_unlock(fiq, req);
- 
- 		request_wait_answer(fc, req);
- 		/* Pairs with smp_wmb() in fuse_request_end() */
-@@ -706,10 +723,11 @@ static int fuse_request_send_notify_reply(struct fuse_conn *fc,
- 	req->in.h.unique = unique;
- 	spin_lock(&fiq->waitq.lock);
- 	if (fiq->connected) {
--		queue_request(fiq, req);
-+		queue_request_and_unlock(fiq, req);
- 		err = 0;
-+	} else {
-+		spin_unlock(&fiq->waitq.lock);
- 	}
--	spin_unlock(&fiq->waitq.lock);
- 
- 	return err;
- }
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 84f094e4ac36..0b578e07156d 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -71,6 +71,12 @@ struct fuse_mount_data {
- 	unsigned max_read;
- 	unsigned blksize;
- 
-+	/* fuse input queue operations */
-+	const struct fuse_iqueue_ops *fiq_ops;
-+
-+	/* device-specific state for fuse_iqueue */
-+	void *fiq_priv;
-+
- 	/* fuse_dev pointer to fill in, should contain NULL on entry */
- 	void **fudptr;
- };
-@@ -461,6 +467,39 @@ struct fuse_req {
- 	struct file *stolen_file;
- };
- 
-+struct fuse_iqueue;
-+
-+/**
-+ * Input queue callbacks
-+ *
-+ * Input queue signalling is device-specific.  For example, the /dev/fuse file
-+ * uses fiq->waitq and fasync to wake processes that are waiting on queue
-+ * readiness.  These callbacks allow other device types to respond to input
-+ * queue activity.
-+ */
-+struct fuse_iqueue_ops {
-+	/**
-+	 * Signal that a forget has been queued
-+	 */
-+	void (*wake_forget_and_unlock)(struct fuse_iqueue *fiq)
-+	__releases(fiq->waitq.lock);
-+
-+	/**
-+	 * Signal that an INTERRUPT request has been queued
-+	 */
-+	void (*wake_interrupt_and_unlock)(struct fuse_iqueue *fiq)
-+	__releases(fiq->waitq.lock);
-+
-+	/**
-+	 * Signal that a request has been queued
-+	 */
-+	void (*wake_pending_and_unlock)(struct fuse_iqueue *fiq)
-+	__releases(fiq->waitq.lock);
-+};
-+
-+/** /dev/fuse input queue operations */
-+extern const struct fuse_iqueue_ops fuse_dev_fiq_ops;
-+
- struct fuse_iqueue {
- 	/** Connection established */
- 	unsigned connected;
-@@ -486,6 +525,12 @@ struct fuse_iqueue {
- 
- 	/** O_ASYNC requests */
- 	struct fasync_struct *fasync;
-+
-+	/** Device-specific callbacks */
-+	const struct fuse_iqueue_ops *ops;
-+
-+	/** Device-specific state */
-+	void *priv;
- };
- 
- #define FUSE_PQ_HASH_BITS 8
-@@ -997,7 +1042,8 @@ struct fuse_conn *fuse_conn_get(struct fuse_conn *fc);
- /**
-  * Initialize fuse_conn
-  */
--void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns);
-+void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
-+		    const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv);
- 
- /**
-  * Release reference to fuse_conn
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index baf2966a753a..126e77854dac 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -570,7 +570,9 @@ static int fuse_show_options(struct seq_file *m, struct dentry *root)
- 	return 0;
- }
- 
--static void fuse_iqueue_init(struct fuse_iqueue *fiq)
-+static void fuse_iqueue_init(struct fuse_iqueue *fiq,
-+			     const struct fuse_iqueue_ops *ops,
-+			     void *priv)
- {
- 	memset(fiq, 0, sizeof(struct fuse_iqueue));
- 	init_waitqueue_head(&fiq->waitq);
-@@ -578,6 +580,8 @@ static void fuse_iqueue_init(struct fuse_iqueue *fiq)
- 	INIT_LIST_HEAD(&fiq->interrupts);
- 	fiq->forget_list_tail = &fiq->forget_list_head;
- 	fiq->connected = 1;
-+	fiq->ops = ops;
-+	fiq->priv = priv;
- }
- 
- static void fuse_pqueue_init(struct fuse_pqueue *fpq)
-@@ -591,7 +595,8 @@ static void fuse_pqueue_init(struct fuse_pqueue *fpq)
- 	fpq->connected = 1;
- }
- 
--void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns)
-+void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
-+		    const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv)
- {
- 	memset(fc, 0, sizeof(*fc));
- 	spin_lock_init(&fc->lock);
-@@ -601,7 +606,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns)
- 	atomic_set(&fc->dev_count, 1);
- 	init_waitqueue_head(&fc->blocked_waitq);
- 	init_waitqueue_head(&fc->reserved_req_waitq);
--	fuse_iqueue_init(&fc->iq);
-+	fuse_iqueue_init(&fc->iq, fiq_ops, fiq_priv);
- 	INIT_LIST_HEAD(&fc->bg_queue);
- 	INIT_LIST_HEAD(&fc->entry);
- 	INIT_LIST_HEAD(&fc->devices);
-@@ -1113,7 +1118,8 @@ int fuse_fill_super_common(struct super_block *sb,
- 	if (!fc)
- 		goto err;
- 
--	fuse_conn_init(fc, sb->s_user_ns);
-+	fuse_conn_init(fc, sb->s_user_ns, mount_data->fiq_ops,
-+		       mount_data->fiq_priv);
- 	fc->release = fuse_free_conn;
- 
- 	fud = fuse_dev_alloc(fc);
-@@ -1215,6 +1221,8 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
- 		goto err_fput;
- 	__set_bit(FR_BACKGROUND, &init_req->flags);
- 
-+	d.fiq_ops = &fuse_dev_fiq_ops;
-+	d.fiq_priv = NULL;
- 	d.fudptr = &file->private_data;
- 	err = fuse_fill_super_common(sb, &d);
- 	if (err < 0)
++		if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)
++				&& (memcmp(nd_cmd->passphrase, zero_key,
++					ND_INTEL_PASSPHRASE_SIZE) != 0)) {
++			dev_dbg(dev, "invalid zero key\n");
++			return 0;
++		}
+ 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
+ 		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
+ 		sec->state = 0;
 -- 
 2.20.1
 
