@@ -1,19 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 87940212733F9
- for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 10:46:41 -0700 (PDT)
-Date: Tue, 21 May 2019 10:46:25 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 08/18] dax: memcpy page in case of IOMAP_DAX_COW for mmap
- faults
-Message-ID: <20190521174625.GF5125@magnolia>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
- <20190429172649.8288-9-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id E1AE821253306
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:43 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 04/99] acpi/nfit: Always dump _DSM output payload
+Date: Tue,  7 May 2019 01:30:58 -0400
+Message-Id: <20190507053235.29900-4-sashal@kernel.org>
+In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
+References: <20190507053235.29900-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190429172649.8288-9-rgoldwyn@suse.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,109 +22,59 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: kilobyte@angband.pl, jack@suse.cz, linux-nvdimm@lists.01.org, nborisov@suse.com, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 29, 2019 at 12:26:39PM -0500, Goldwyn Rodrigues wrote:
-> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> 
-> Change dax_iomap_pfn to return the address as well in order to
-> use it for performing a memcpy in case the type is IOMAP_DAX_COW.
-> We don't handle PMD because btrfs does not support hugepages.
-> 
-> Question:
-> The sequence of bdev_dax_pgoff() and dax_direct_access() is
-> used multiple times to calculate address and pfn's. Would it make
-> sense to call it while calculating address as well to reduce code?
-> 
-> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> ---
->  fs/dax.c | 19 +++++++++++++++----
->  1 file changed, 15 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 610bfa861a28..718b1632a39d 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -984,7 +984,7 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
->  }
->  
->  static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
-> -			 pfn_t *pfnp)
-> +			 pfn_t *pfnp, void **addr)
->  {
->  	const sector_t sector = dax_iomap_sector(iomap, pos);
->  	pgoff_t pgoff;
-> @@ -996,7 +996,7 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
->  		return rc;
->  	id = dax_read_lock();
->  	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
-> -				   NULL, pfnp);
-> +				   addr, pfnp);
->  	if (length < 0) {
->  		rc = length;
->  		goto out;
-> @@ -1286,6 +1286,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
->  	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
->  	struct inode *inode = mapping->host;
->  	unsigned long vaddr = vmf->address;
-> +	void *addr;
->  	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
->  	struct iomap iomap = { 0 };
+From: Dan Williams <dan.j.williams@intel.com>
 
-Ugh, I had forgotten that fs/dax.c open-codes iomap_apply, probably
-because the actor returns vm_fault_t, not bytes copied.  I guess that
-makes it a tiny bit more complicated to pass in two (struct iomap *) to
-the iomap_begin function...
+[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
 
->  	unsigned flags = IOMAP_FAULT;
-> @@ -1375,16 +1376,26 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
->  	sync = dax_fault_is_synchronous(flags, vma, &iomap);
->  
->  	switch (iomap.type) {
-> +	case IOMAP_DAX_COW:
->  	case IOMAP_MAPPED:
->  		if (iomap.flags & IOMAP_F_NEW) {
->  			count_vm_event(PGMAJFAULT);
->  			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
->  			major = VM_FAULT_MAJOR;
->  		}
-> -		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
-> +		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn, &addr);
->  		if (error < 0)
->  			goto error_finish_iomap;
->  
-> +		if (iomap.type == IOMAP_DAX_COW) {
-> +			if (iomap.inline_data) {
-> +				error = memcpy_mcsafe(addr, iomap.inline_data,
-> +					      PAGE_SIZE);
-> +				if (error < 0)
-> +					goto error_finish_iomap;
-> +			} else
-> +				memset(addr, 0, PAGE_SIZE);
+The dynamic-debug statements for command payload output only get emitted
+when the command is not ND_CMD_CALL. Move the output payload dumping
+ahead of the early return path for ND_CMD_CALL.
 
-This memcpy_mcsafe/memset chunk shows up a lot in this series.  Maybe it
-should be a static inline within dax.c?
+Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/nfit/core.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---D
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 4be4dc3e8aa6..38ec79bb3edd 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -563,6 +563,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		goto out;
+ 	}
+ 
++	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
++			cmd_name, out_obj->buffer.length);
++	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
++			out_obj->buffer.pointer,
++			min_t(u32, 128, out_obj->buffer.length), true);
++
+ 	if (call_pkg) {
+ 		call_pkg->nd_fw_size = out_obj->buffer.length;
+ 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
+@@ -581,12 +587,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		return 0;
+ 	}
+ 
+-	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
+-			cmd_name, out_obj->buffer.length);
+-	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
+-			out_obj->buffer.pointer,
+-			min_t(u32, 128, out_obj->buffer.length), true);
+-
+ 	for (i = 0, offset = 0; i < desc->out_num; i++) {
+ 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
+ 				(u32 *) out_obj->buffer.pointer,
+-- 
+2.20.1
 
-> +		}
->  		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
->  						 0, write && !sync);
->  
-> @@ -1597,7 +1608,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
->  
->  	switch (iomap.type) {
->  	case IOMAP_MAPPED:
-> -		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
-> +		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn, NULL);
->  		if (error < 0)
->  			goto finish_iomap;
->  
-> -- 
-> 2.16.4
-> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
