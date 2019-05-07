@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 936F221D49185
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 29/30] fuse: Take inode lock for dax inode truncation
-Date: Wed, 15 May 2019 15:27:14 -0400
-Message-Id: <20190515192715.18000-30-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id B54852125330F
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:36:03 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 05/81] libnvdimm/namespace: Fix a potential NULL
+ pointer dereference
+Date: Tue,  7 May 2019 01:34:36 -0400
+Message-Id: <20190507053554.30848-5-sashal@kernel.org>
+In-Reply-To: <20190507053554.30848-1-sashal@kernel.org>
+References: <20190507053554.30848-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,42 +23,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, Kangjie Lu <kjlu@umn.edu>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a file is opened with O_TRUNC, we need to make sure that any other
-DAX operation is not in progress. DAX expects i_size to be stable.
+From: Kangjie Lu <kjlu@umn.edu>
 
-In fuse_iomap_begin() we check for i_size at multiple places and we expect
-i_size to not change.
+[ Upstream commit 55c1fc0af29a6c1b92f217b7eb7581a882e0c07c ]
 
-Another problem is, if we setup a mapping in fuse_iomap_begin(), and
-file gets truncated and dax read/write happens, KVM currently hangs.
-It tries to fault in a page which does not exist on host (file got
-truncated). It probably requries fixing in KVM.
+In case kmemdup fails, the fix goes to blk_err to avoid NULL
+pointer dereference.
 
-So for now, take inode lock. Once KVM is fixed, we might have to
-have a look at it again.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/fuse/file.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvdimm/namespace_devs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 9b82d9b4ebc3..d0979dc32f08 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -420,7 +420,7 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
- 	int err;
- 	bool lock_inode = (file->f_flags & O_TRUNC) &&
- 			  fc->atomic_o_trunc &&
--			  fc->writeback_cache;
-+			  (fc->writeback_cache || IS_DAX(inode));
- 
- 	err = generic_file_open(inode, file);
- 	if (err)
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 54d79837f7c6..73a444c41cde 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2251,9 +2251,12 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	if (!nsblk->uuid)
+ 		goto blk_err;
+ 	memcpy(name, nd_label->name, NSLABEL_NAME_LEN);
+-	if (name[0])
++	if (name[0]) {
+ 		nsblk->alt_name = kmemdup(name, NSLABEL_NAME_LEN,
+ 				GFP_KERNEL);
++		if (!nsblk->alt_name)
++			goto blk_err;
++	}
+ 	res = nsblk_add_resource(nd_region, ndd, nsblk,
+ 			__le64_to_cpu(nd_label->dpa));
+ 	if (!res)
 -- 
 2.20.1
 
