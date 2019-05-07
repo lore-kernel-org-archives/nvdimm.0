@@ -1,67 +1,88 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [RFC PATCH] mm/nvdimm: Fix kernel crash on devm_mremap_pages_release
-Date: Tue, 14 May 2019 08:23:54 +0530
-Message-Id: <20190514025354.9108-1-aneesh.kumar@linux.ibm.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BDA8721253307
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:36:07 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 09/81] libnvdimm/btt: Fix a kmemdup failure check
+Date: Tue,  7 May 2019 01:34:40 -0400
+Message-Id: <20190507053554.30848-9-sashal@kernel.org>
+In-Reply-To: <20190507053554.30848-1-sashal@kernel.org>
+References: <20190507053554.30848-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: owner-linux-mm@kvack.org
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Aditya Pakki <pakki001@umn.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When we initialize the namespace, if we support altmap, we don't initialize all the
-backing struct page where as while releasing the namespace we look at some of
-these uninitilized struct page. This results in a kernel crash as below.
+From: Aditya Pakki <pakki001@umn.edu>
 
-kernel BUG at include/linux/mm.h:1034!
-cpu 0x2: Vector: 700 (Program Check) at [c00000024146b870]
-    pc: c0000000003788f8: devm_memremap_pages_release+0x258/0x3a0
-    lr: c0000000003788f4: devm_memremap_pages_release+0x254/0x3a0
-    sp: c00000024146bb00
-   msr: 800000000282b033
-  current = 0xc000000241382f00
-  paca    = 0xc00000003fffd680   irqmask: 0x03   irq_happened: 0x01
-    pid   = 4114, comm = ndctl
- c0000000009bf8c0 devm_action_release+0x30/0x50
- c0000000009c0938 release_nodes+0x268/0x2d0
- c0000000009b95b4 device_release_driver_internal+0x164/0x230
- c0000000009b638c unbind_store+0x13c/0x190
- c0000000009b4f44 drv_attr_store+0x44/0x60
- c00000000058ccc0 sysfs_kf_write+0x70/0xa0
- c00000000058b52c kernfs_fop_write+0x1ac/0x290
- c0000000004a415c __vfs_write+0x3c/0x70
- c0000000004a85ac vfs_write+0xec/0x200
- c0000000004a8920 ksys_write+0x80/0x130
- c00000000000bee4 system_call+0x5c/0x70
+[ Upstream commit 486fa92df4707b5df58d6508728bdb9321a59766 ]
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+In case kmemdup fails, the fix releases resources and returns to
+avoid the NULL pointer dereference.
+
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- mm/page_alloc.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 59661106da16..892eabe1ec13 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5740,8 +5740,7 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 795ad4ff35ca..e341498876ca 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -190,14 +190,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
  
- #ifdef CONFIG_ZONE_DEVICE
- 	/*
--	 * Honor reservation requested by the driver for this ZONE_DEVICE
--	 * memory. We limit the total number of pages to initialize to just
-+	 * We limit the total number of pages to initialize to just
- 	 * those that might contain the memory mapping. We will defer the
- 	 * ZONE_DEVICE page initialization until after we have released
- 	 * the hotplug lock.
-@@ -5750,8 +5749,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		if (!altmap)
- 			return;
+ 	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
+-	if (nd_btt->id < 0) {
+-		kfree(nd_btt);
+-		return NULL;
+-	}
++	if (nd_btt->id < 0)
++		goto out_nd_btt;
  
--		if (start_pfn == altmap->base_pfn)
--			start_pfn += altmap->reserve;
- 		end_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
+ 	nd_btt->lbasize = lbasize;
+-	if (uuid)
++	if (uuid) {
+ 		uuid = kmemdup(uuid, 16, GFP_KERNEL);
++		if (!uuid)
++			goto out_put_id;
++	}
+ 	nd_btt->uuid = uuid;
+ 	dev = &nd_btt->dev;
+ 	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
+@@ -212,6 +213,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
  	}
- #endif
+ 	return dev;
++
++out_put_id:
++	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++
++out_nd_btt:
++	kfree(nd_btt);
++	return NULL;
+ }
+ 
+ struct device *nd_btt_create(struct nd_region *nd_region)
 -- 
-2.21.0
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
