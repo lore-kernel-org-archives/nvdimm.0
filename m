@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BA64B211F9D7B
- for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:09:52 -0700 (PDT)
-Subject: [PATCH v2 1/6] drivers/base/devres: Introduce devm_release_action()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 07 May 2019 16:56:05 -0700
-Message-ID: <155727336530.292046.2926860263201336366.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155727335978.292046.12068191395005445711.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155727335978.292046.12068191395005445711.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8863121253307
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:38:33 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 06/95] libnvdimm/btt: Fix a kmemdup failure check
+Date: Tue,  7 May 2019 01:36:55 -0400
+Message-Id: <20190507053826.31622-6-sashal@kernel.org>
+In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+References: <20190507053826.31622-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,79 +22,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Bjorn Helgaas <bhelgaas@google.com>, Christoph Hellwig <hch@lst.de>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Aditya Pakki <pakki001@umn.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The devm_add_action() facility allows a resource allocation routine to
-add custom devm semantics. One such user is devm_memremap_pages().
+From: Aditya Pakki <pakki001@umn.edu>
 
-There is now a need to manually trigger devm_memremap_pages_release().
-Introduce devm_release_action() so the release action can be triggered
-via a new devm_memunmap_pages() api in a follow-on change.
+[ Upstream commit 486fa92df4707b5df58d6508728bdb9321a59766 ]
 
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+In case kmemdup fails, the fix releases resources and returns to
+avoid the NULL pointer dereference.
+
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/base/devres.c  |   24 +++++++++++++++++++++++-
- include/linux/device.h |    1 +
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/base/devres.c b/drivers/base/devres.c
-index e038e2b3b7ea..0bbb328bd17f 100644
---- a/drivers/base/devres.c
-+++ b/drivers/base/devres.c
-@@ -755,10 +755,32 @@ void devm_remove_action(struct device *dev, void (*action)(void *), void *data)
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index d58925295aa7..e610dd890263 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -190,14 +190,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
  
- 	WARN_ON(devres_destroy(dev, devm_action_release, devm_action_match,
- 			       &devres));
--
+ 	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
+-	if (nd_btt->id < 0) {
+-		kfree(nd_btt);
+-		return NULL;
+-	}
++	if (nd_btt->id < 0)
++		goto out_nd_btt;
+ 
+ 	nd_btt->lbasize = lbasize;
+-	if (uuid)
++	if (uuid) {
+ 		uuid = kmemdup(uuid, 16, GFP_KERNEL);
++		if (!uuid)
++			goto out_put_id;
++	}
+ 	nd_btt->uuid = uuid;
+ 	dev = &nd_btt->dev;
+ 	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
+@@ -212,6 +213,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
+ 	}
+ 	return dev;
++
++out_put_id:
++	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++
++out_nd_btt:
++	kfree(nd_btt);
++	return NULL;
  }
- EXPORT_SYMBOL_GPL(devm_remove_action);
  
-+/**
-+ * devm_release_action() - release previously added custom action
-+ * @dev: Device that owns the action
-+ * @action: Function implementing the action
-+ * @data: Pointer to data passed to @action implementation
-+ *
-+ * Releases and removes instance of @action previously added by
-+ * devm_add_action().  Both action and data should match one of the
-+ * existing entries.
-+ */
-+void devm_release_action(struct device *dev, void (*action)(void *), void *data)
-+{
-+	struct action_devres devres = {
-+		.data = data,
-+		.action = action,
-+	};
-+
-+	WARN_ON(devres_release(dev, devm_action_release, devm_action_match,
-+			       &devres));
-+
-+}
-+EXPORT_SYMBOL_GPL(devm_release_action);
-+
- /*
-  * Managed kmalloc/kfree
-  */
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 4e6987e11f68..6d7fd5370f3d 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -713,6 +713,7 @@ void __iomem *devm_of_iomap(struct device *dev,
- /* allows to add/remove a custom action to devres stack */
- int devm_add_action(struct device *dev, void (*action)(void *), void *data);
- void devm_remove_action(struct device *dev, void (*action)(void *), void *data);
-+void devm_release_action(struct device *dev, void (*action)(void *), void *data);
- 
- static inline int devm_add_action_or_reset(struct device *dev,
- 					   void (*action)(void *), void *data)
+ struct device *nd_btt_create(struct nd_region *nd_region)
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
