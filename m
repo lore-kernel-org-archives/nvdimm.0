@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E1AB1212377FF
- for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 23:09:29 -0700 (PDT)
-Subject: [PATCH v7 04/12] mm/hotplug: Prepare shrink_{zone,
- pgdat}_span for sub-section removal
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 01 May 2019 22:55:43 -0700
-Message-ID: <155677654297.2336373.3779112213402789415.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9810221253307
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:48 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 09/99] libnvdimm/btt: Fix a kmemdup failure check
+Date: Tue,  7 May 2019 01:31:03 -0400
+Message-Id: <20190507053235.29900-9-sashal@kernel.org>
+In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
+References: <20190507053235.29900-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,118 +22,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Aditya Pakki <pakki001@umn.edu>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Sub-section hotplug support reduces the unit of operation of hotplug
-from section-sized-units (PAGES_PER_SECTION) to sub-section-sized units
-(PAGES_PER_SUBSECTION). Teach shrink_{zone,pgdat}_span() to consider
-PAGES_PER_SUBSECTION boundaries as the points where pfn_valid(), not
-valid_section(), can toggle.
+From: Aditya Pakki <pakki001@umn.edu>
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+[ Upstream commit 486fa92df4707b5df58d6508728bdb9321a59766 ]
+
+In case kmemdup fails, the fix releases resources and returns to
+avoid the NULL pointer dereference.
+
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/mmzone.h |    2 ++
- mm/memory_hotplug.c    |   29 ++++++++---------------------
- 2 files changed, 10 insertions(+), 21 deletions(-)
+ drivers/nvdimm/btt_devs.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index cffde898e345..b13f0cddf75e 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1164,6 +1164,8 @@ static inline unsigned long section_nr_to_pfn(unsigned long sec)
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 795ad4ff35ca..e341498876ca 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -190,14 +190,15 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
  
- #define SECTION_ACTIVE_SIZE ((1UL << SECTION_SIZE_BITS) / BITS_PER_LONG)
- #define SECTION_ACTIVE_MASK (~(SECTION_ACTIVE_SIZE - 1))
-+#define PAGES_PER_SUB_SECTION (SECTION_ACTIVE_SIZE / PAGE_SIZE)
-+#define PAGE_SUB_SECTION_MASK (~(PAGES_PER_SUB_SECTION-1))
+ 	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
+-	if (nd_btt->id < 0) {
+-		kfree(nd_btt);
+-		return NULL;
+-	}
++	if (nd_btt->id < 0)
++		goto out_nd_btt;
  
- struct mem_section_usage {
- 	/*
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index a76fc6a6e9fe..0d379da0f1a8 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -325,12 +325,8 @@ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
- 				     unsigned long start_pfn,
- 				     unsigned long end_pfn)
- {
--	struct mem_section *ms;
--
--	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(start_pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SUB_SECTION) {
-+		if (unlikely(!pfn_valid(start_pfn)))
- 			continue;
+ 	nd_btt->lbasize = lbasize;
+-	if (uuid)
++	if (uuid) {
+ 		uuid = kmemdup(uuid, 16, GFP_KERNEL);
++		if (!uuid)
++			goto out_put_id;
++	}
+ 	nd_btt->uuid = uuid;
+ 	dev = &nd_btt->dev;
+ 	dev_set_name(dev, "btt%d.%d", nd_region->id, nd_btt->id);
+@@ -212,6 +213,13 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 		return NULL;
+ 	}
+ 	return dev;
++
++out_put_id:
++	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++
++out_nd_btt:
++	kfree(nd_btt);
++	return NULL;
+ }
  
- 		if (unlikely(pfn_to_nid(start_pfn) != nid))
-@@ -350,15 +346,12 @@ static unsigned long find_biggest_section_pfn(int nid, struct zone *zone,
- 				    unsigned long start_pfn,
- 				    unsigned long end_pfn)
- {
--	struct mem_section *ms;
- 	unsigned long pfn;
- 
- 	/* pfn is the end pfn of a memory section. */
- 	pfn = end_pfn - 1;
--	for (; pfn >= start_pfn; pfn -= PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn >= start_pfn; pfn -= PAGES_PER_SUB_SECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (unlikely(pfn_to_nid(pfn) != nid))
-@@ -380,7 +373,6 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
- 	unsigned long zone_end_pfn = z;
- 	unsigned long pfn;
--	struct mem_section *ms;
- 	int nid = zone_to_nid(zone);
- 
- 	zone_span_writelock(zone);
-@@ -417,10 +409,8 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 	 * it check the zone has only hole or not.
- 	 */
- 	pfn = zone_start_pfn;
--	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SUB_SECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (page_zone(pfn_to_page(pfn)) != zone)
-@@ -448,7 +438,6 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	unsigned long p = pgdat_end_pfn(pgdat); /* pgdat_end_pfn namespace clash */
- 	unsigned long pgdat_end_pfn = p;
- 	unsigned long pfn;
--	struct mem_section *ms;
- 	int nid = pgdat->node_id;
- 
- 	if (pgdat_start_pfn == start_pfn) {
-@@ -485,10 +474,8 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	 * has only hole or not.
- 	 */
- 	pfn = pgdat_start_pfn;
--	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SUB_SECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (pfn_to_nid(pfn) != nid)
+ struct device *nd_btt_create(struct nd_region *nd_region)
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
