@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 93FB121D49194
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 25/30] fuse: Maintain a list of busy elements
-Date: Wed, 15 May 2019 15:27:10 -0400
-Message-Id: <20190515192715.18000-26-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1345921250C8D
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:41:27 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 02/25] libnvdimm/namespace: Fix a potential NULL
+ pointer dereference
+Date: Tue,  7 May 2019 01:40:59 -0400
+Message-Id: <20190507054123.32514-2-sashal@kernel.org>
+In-Reply-To: <20190507054123.32514-1-sashal@kernel.org>
+References: <20190507054123.32514-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,100 +23,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, Kangjie Lu <kjlu@umn.edu>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This list will be used selecting fuse_dax_mapping to free when number of
-free mappings drops below a threshold.
+From: Kangjie Lu <kjlu@umn.edu>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+[ Upstream commit 55c1fc0af29a6c1b92f217b7eb7581a882e0c07c ]
+
+In case kmemdup fails, the fix goes to blk_err to avoid NULL
+pointer dereference.
+
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/fuse/file.c   | 8 ++++++++
- fs/fuse/fuse_i.h | 7 +++++++
- fs/fuse/inode.c  | 4 ++++
- 3 files changed, 19 insertions(+)
+ drivers/nvdimm/namespace_devs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index e536a04aaa06..3f0f7a387341 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -273,6 +273,10 @@ static int fuse_setup_one_mapping(struct inode *inode,
- 	/* Protected by fi->i_dmap_sem */
- 	fuse_dax_interval_tree_insert(dmap, &fi->dmap_tree);
- 	fi->nr_dmaps++;
-+	spin_lock(&fc->lock);
-+	list_add_tail(&dmap->busy_list, &fc->busy_ranges);
-+	fc->nr_busy_ranges++;
-+	spin_unlock(&fc->lock);
- 	return 0;
- }
- 
-@@ -317,6 +321,10 @@ void fuse_removemapping(struct inode *inode)
- 		if (dmap) {
- 			fuse_dax_interval_tree_remove(dmap, &fi->dmap_tree);
- 			fi->nr_dmaps--;
-+			spin_lock(&fc->lock);
-+			list_del_init(&dmap->busy_list);
-+			fc->nr_busy_ranges--;
-+			spin_unlock(&fc->lock);
- 		}
- 
- 		if (!dmap)
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index a234cf30538d..c93e9155b723 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -114,6 +114,9 @@ struct fuse_dax_mapping {
- 	__u64 end;
- 	__u64 __subtree_last;
- 
-+	/* Will connect in fc->busy_ranges to keep track busy memory */
-+	struct list_head busy_list;
-+
-        /** Position in DAX window */
-        u64 window_offset;
- 
-@@ -873,6 +876,10 @@ struct fuse_conn {
- 	/** DAX device, non-NULL if DAX is supported */
- 	struct dax_device *dax_dev;
- 
-+	/* List of memory ranges which are busy */
-+	unsigned long nr_busy_ranges;
-+	struct list_head busy_ranges;
-+
- 	/*
- 	 * DAX Window Free Ranges. TODO: This might not be best place to store
- 	 * this free list
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 713c5f32ab35..f57f7ce02acc 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -626,6 +626,8 @@ static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
- 	/* Free All allocated elements */
- 	list_for_each_entry_safe(range, temp, mem_list, list) {
- 		list_del(&range->list);
-+		if (!list_empty(&range->busy_list))
-+			list_del(&range->busy_list);
- 		kfree(range);
- 	}
- }
-@@ -670,6 +672,7 @@ static int fuse_dax_mem_range_init(struct fuse_conn *fc,
- 		 */
- 		range->window_offset = i * FUSE_DAX_MEM_RANGE_SZ;
- 		range->length = FUSE_DAX_MEM_RANGE_SZ;
-+		INIT_LIST_HEAD(&range->busy_list);
- 		list_add_tail(&range->list, &mem_ranges);
- 	}
- 
-@@ -720,6 +723,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 	fc->user_ns = get_user_ns(user_ns);
- 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
- 	INIT_LIST_HEAD(&fc->free_ranges);
-+	INIT_LIST_HEAD(&fc->busy_ranges);
- }
- EXPORT_SYMBOL_GPL(fuse_conn_init);
- 
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 9bc5f555ee68..cf4a90b50f8b 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2028,9 +2028,12 @@ struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	if (!nsblk->uuid)
+ 		goto blk_err;
+ 	memcpy(name, nd_label->name, NSLABEL_NAME_LEN);
+-	if (name[0])
++	if (name[0]) {
+ 		nsblk->alt_name = kmemdup(name, NSLABEL_NAME_LEN,
+ 				GFP_KERNEL);
++		if (!nsblk->alt_name)
++			goto blk_err;
++	}
+ 	res = nsblk_add_resource(nd_region, ndd, nsblk,
+ 			__le64_to_cpu(nd_label->dpa));
+ 	if (!res)
 -- 
 2.20.1
 
