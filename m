@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
- [IPv6:2607:f8b0:4864:20::341])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0D3A21275441
- for <linux-nvdimm@lists.01.org>; Sat, 25 May 2019 09:05:15 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id l17so11399201otq.1
- for <linux-nvdimm@lists.01.org>; Sat, 25 May 2019 09:05:15 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 9EF0A21253306
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:44 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 05/99] libnvdimm/namespace: Fix a potential NULL
+ pointer dereference
+Date: Tue,  7 May 2019 01:30:59 -0400
+Message-Id: <20190507053235.29900-5-sashal@kernel.org>
+In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
+References: <20190507053235.29900-1-sashal@kernel.org>
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 25 May 2019 09:05:03 -0700
-Message-ID: <CAPcyv4ghA3bGeTFw+wVV5N8cb-izpwdi9BQU5Ec6wNTw8ZywMw@mail.gmail.com>
-Subject: [GIT PULL] libnvdimm fixes for v5.2-rc2
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,66 +23,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, Kangjie Lu <kjlu@umn.edu>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Linus, please pull from:
+From: Kangjie Lu <kjlu@umn.edu>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.2-rc2
+[ Upstream commit 55c1fc0af29a6c1b92f217b7eb7581a882e0c07c ]
 
-...to receive a regression fix, a small (2 line code change)
-performance enhancement, and some miscellaneous compilation warning
-fixes. These have soaked in -next the past week with no known issues.
-The device-mapper touches have Mike's ack, and the hardened user-copy
-bypass was reviewed with Kees.
+In case kmemdup fails, the fix goes to blk_err to avoid NULL
+pointer dereference.
 
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
+ drivers/nvdimm/namespace_devs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 33a3b23b3db7..e761b29f7160 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -2249,9 +2249,12 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	if (!nsblk->uuid)
+ 		goto blk_err;
+ 	memcpy(name, nd_label->name, NSLABEL_NAME_LEN);
+-	if (name[0])
++	if (name[0]) {
+ 		nsblk->alt_name = kmemdup(name, NSLABEL_NAME_LEN,
+ 				GFP_KERNEL);
++		if (!nsblk->alt_name)
++			goto blk_err;
++	}
+ 	res = nsblk_add_resource(nd_region, ndd, nsblk,
+ 			__le64_to_cpu(nd_label->dpa));
+ 	if (!res)
+-- 
+2.20.1
 
-  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.2-rc2
-
-for you to fetch changes up to 52f476a323f9efc959be1c890d0cdcf12e1582e0:
-
-  libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY overhead (2019-05-20
-20:43:32 -0700)
-
-----------------------------------------------------------------
-libnvdimm fixes v5.2-rc2
-
-- Fix a regression that disabled device-mapper dax support
-
-- Remove unnecessary hardened-user-copy overhead (>30%) for dax
-  read(2)/write(2).
-
-- Fix some compilation warnings.
-
-----------------------------------------------------------------
-Dan Williams (2):
-      dax: Arrange for dax_supported check to span multiple devices
-      libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY overhead
-
-Qian Cai (1):
-      libnvdimm: Fix compilation warnings with W=1
-
- drivers/dax/super.c          | 88 ++++++++++++++++++++++++++++----------------
- drivers/md/dm-table.c        | 17 ++++++---
- drivers/md/dm.c              | 20 ++++++++++
- drivers/md/dm.h              |  1 +
- drivers/nvdimm/bus.c         |  4 +-
- drivers/nvdimm/label.c       |  2 +
- drivers/nvdimm/label.h       |  2 -
- drivers/nvdimm/pmem.c        | 11 +++++-
- drivers/s390/block/dcssblk.c |  1 +
- include/linux/dax.h          | 26 +++++++++++++
- 10 files changed, 129 insertions(+), 43 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
