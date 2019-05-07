@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 258F2211CED9A
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 07:58:34 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v9 6/7] ext4: disable map_sync for async flush
-Date: Tue, 14 May 2019 20:24:21 +0530
-Message-Id: <20190514145422.16923-7-pagupta@redhat.com>
-In-Reply-To: <20190514145422.16923-1-pagupta@redhat.com>
-References: <20190514145422.16923-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id DDD9521253312
+ for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:33:01 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 18/99] libnvdimm/pmem: fix a possible OOB access
+ when read and write pmem
+Date: Tue,  7 May 2019 01:31:12 -0400
+Message-Id: <20190507053235.29900-18-sashal@kernel.org>
+In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
+References: <20190507053235.29900-1-sashal@kernel.org>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +19,71 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Liang ZhiCheng <liangzhicheng@baidu.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dont support 'MAP_SYNC' with non-DAX files and DAX files
-with asynchronous dax_device. Virtio pmem provides
-asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and ext4.
+From: Li RongQing <lirongqing@baidu.com>
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+[ Upstream commit 9dc6488e84b0f64df17672271664752488cd6a25 ]
+
+If offset is not zero and length is bigger than PAGE_SIZE,
+this will cause to out of boundary access to a page memory
+
+Fixes: 98cc093cba1e ("block, THP: make block_device_operations.rw_page support THP")
+Co-developed-by: Liang ZhiCheng <liangzhicheng@baidu.com>
+Signed-off-by: Liang ZhiCheng <liangzhicheng@baidu.com>
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/ext4/file.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/nvdimm/pmem.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 98ec11f69cd4..dee549339e13 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
- static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *inode = file->f_mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-+	struct dax_device *dax_dev = sbi->s_daxdev;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index bc2f700feef8..0279eb1da3ef 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -113,13 +113,13 @@ static void write_pmem(void *pmem_addr, struct page *page,
  
--	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+	if (unlikely(ext4_forced_shutdown(sbi)))
- 		return -EIO;
+ 	while (len) {
+ 		mem = kmap_atomic(page);
+-		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
+ 		memcpy_flushcache(pmem_addr, mem + off, chunk);
+ 		kunmap_atomic(mem);
+ 		len -= chunk;
+ 		off = 0;
+ 		page++;
+-		pmem_addr += PAGE_SIZE;
++		pmem_addr += chunk;
+ 	}
+ }
  
- 	/*
--	 * We don't support synchronous mappings for non-DAX files. At least
--	 * until someone comes with a sensible use case.
-+	 * We don't support synchronous mappings for non-DAX files and
-+	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+	if (!daxdev_mapping_supported(vma, dax_dev))
- 		return -EOPNOTSUPP;
+@@ -132,7 +132,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
  
- 	file_accessed(file);
+ 	while (len) {
+ 		mem = kmap_atomic(page);
+-		chunk = min_t(unsigned int, len, PAGE_SIZE);
++		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
+ 		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
+ 		kunmap_atomic(mem);
+ 		if (rem)
+@@ -140,7 +140,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
+ 		len -= chunk;
+ 		off = 0;
+ 		page++;
+-		pmem_addr += PAGE_SIZE;
++		pmem_addr += chunk;
+ 	}
+ 	return BLK_STS_OK;
+ }
 -- 
 2.20.1
 
