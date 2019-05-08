@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74A8921217957
- for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 16:53:45 -0700 (PDT)
-Subject: [PATCH v8 06/12] mm/hotplug: Kill is_dev_zone() usage in
- __remove_pages()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 06 May 2019 16:39:58 -0700
-Message-ID: <155718599876.130019.1344795832811586975.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 10731211EDB5C
+ for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:39:19 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 01/10] libdaxctl: add interfaces in support of device
+ modes
+Date: Tue,  7 May 2019 18:38:42 -0600
+Message-Id: <20190508003851.32416-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190508003851.32416-1-vishal.l.verma@intel.com>
+References: <20190508003851.32416-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,42 +23,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The zone type check was a leftover from the cleanup that plumbed altmap
-through the memory hotplug path, i.e. commit da024512a1fa "mm: pass the
-vmem_altmap to arch_remove_memory and __remove_pages".
+In preparation for libdaxctl and daxctl to grow operational modes for
+DAX devices, add the following supporting APIs:
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+  daxctl_dev_get_ctx
+  daxctl_dev_is_enabled
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- mm/memory_hotplug.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  6 ++++++
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 38 insertions(+)
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 393ab2b9c3f7..cb9e68729ea3 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -544,11 +544,8 @@ void __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
- 	unsigned long map_offset = 0;
- 	int sections_to_remove;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c2e3a52..70f896b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
+ 	}
+ }
  
--	/* In the ZONE_DEVICE case device driver owns the memory region */
--	if (is_dev_zone(zone)) {
--		if (altmap)
--			map_offset = vmem_altmap_offset(altmap);
--	}
-+	if (altmap)
-+		map_offset = vmem_altmap_offset(altmap);
++static int is_enabled(const char *drvpath)
++{
++	struct stat st;
++
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
++}
++
++DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
++{
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
++
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return 0;
++	}
++
++	return is_enabled(path);
++}
++
++DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
++{
++	return dev->region->ctx;
++}
++
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 84d3a69..c4af9a7 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
+ global:
+ 	daxctl_region_get_path;
+ } LIBDAXCTL_4;
++
++LIBDAXCTL_6 {
++global:
++	daxctl_dev_get_ctx;
++	daxctl_dev_is_enabled;
++} LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 1d13ea2..e20ccb4 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
++struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
++int daxctl_dev_is_enabled(struct daxctl_dev *dev);
  
- 	clear_zone_contiguous(zone);
- 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
