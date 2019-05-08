@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
- [IPv6:2607:f8b0:4864:20::844])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A73892122DDB1
- for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 12:18:51 -0700 (PDT)
-Received: by mail-qt1-x844.google.com with SMTP id c13so1101810qtn.8
- for <linux-nvdimm@lists.01.org>; Wed, 01 May 2019 12:18:51 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v4 1/2] device-dax: fix memory and resource leak if hotplug fails
-Date: Wed,  1 May 2019 15:18:45 -0400
-Message-Id: <20190501191846.12634-2-pasha.tatashin@soleen.com>
-In-Reply-To: <20190501191846.12634-1-pasha.tatashin@soleen.com>
-References: <20190501191846.12634-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3DE88212449EF
+ for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:39:20 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 02/10] libdaxctl: cache 'subsystem' in daxctl_ctx
+Date: Tue,  7 May 2019 18:38:43 -0600
+Message-Id: <20190508003851.32416-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190508003851.32416-1-vishal.l.verma@intel.com>
+References: <20190508003851.32416-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,39 +22,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When add_memory() function fails, the resource and the memory should be
-freed.
+The 'DAX subsystem' in effect is determined at region or device init
+time, and dictates the sysfs base paths for all device/region
+operations. In preparation for adding bind/unbind functionality, cache
+the subsystem as determined at init time in the library context.
 
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/kmem.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ daxctl/lib/libdaxctl.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index a02318c6d28a..4c0131857133 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
- 	new_res->name = dev_name(dev);
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 70f896b..f8f5b8c 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -46,6 +46,7 @@ struct daxctl_ctx {
+ 	void *userdata;
+ 	int regions_init;
+ 	struct list_head regions;
++	enum dax_subsystem subsys;
+ };
  
- 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
--	if (rc)
-+	if (rc) {
-+		release_resource(new_res);
-+		kfree(new_res);
- 		return rc;
-+	}
+ /**
+@@ -96,6 +97,7 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
+ 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
+ 	*ctx = c;
+ 	list_head_init(&c->regions);
++	c->subsys = DAX_UNKNOWN;
  
  	return 0;
  }
+@@ -454,14 +456,18 @@ static void dax_devices_init(struct daxctl_region *region)
+ 	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
+ 		char *region_path;
+ 
+-		if (i == DAX_BUS)
++		if (i == DAX_BUS) {
+ 			region_path = region->region_path;
+-		else if (i == DAX_CLASS) {
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_BUS;
++		} else if (i == DAX_CLASS) {
+ 			if (asprintf(&region_path, "%s/dax",
+ 						region->region_path) < 0) {
+ 				dbg(ctx, "region path alloc fail\n");
+ 				continue;
+ 			}
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_CLASS;
+ 		} else
+ 			continue;
+ 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
+@@ -539,6 +545,8 @@ static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys
+ 		free(dev_path);
+ 		if (!region)
+ 			err(ctx, "add_dax_region() for %s failed\n", de->d_name);
++		if (ctx->subsys == DAX_UNKNOWN)
++			ctx->subsys = subsys;
+ 	}
+ 	closedir(dir);
+ }
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
