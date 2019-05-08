@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 10731211EDB5C
- for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:39:19 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 01/10] libdaxctl: add interfaces in support of device
- modes
-Date: Tue,  7 May 2019 18:38:42 -0600
-Message-Id: <20190508003851.32416-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190508003851.32416-1-vishal.l.verma@intel.com>
-References: <20190508003851.32416-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A07ED21255855
+ for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 22:49:06 -0700 (PDT)
+Date: Wed, 8 May 2019 01:49:04 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <7976014.27184867.1557294544901.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190507161736.GV5207@magnolia>
+References: <20190426050039.17460-1-pagupta@redhat.com>
+ <20190426050039.17460-7-pagupta@redhat.com>
+ <CAPcyv4hCP4E4xPkQx25tqhznon6ADwrYJB1yujkrO-A7LUnsmg@mail.gmail.com>
+ <20190507161736.GV5207@magnolia>
+Subject: Re: [Qemu-devel] [PATCH v7 6/6] xfs: disable map_sync for async flush
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,95 +25,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, Andreas Dilger <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>, kilobyte@angband.pl, Rik van Riel <riel@surriel.com>, yuval shaia <yuval.shaia@oracle.com>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>, lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libdaxctl and daxctl to grow operational modes for
-DAX devices, add the following supporting APIs:
 
-  daxctl_dev_get_ctx
-  daxctl_dev_is_enabled
+> 
+> On Tue, May 07, 2019 at 08:37:01AM -0700, Dan Williams wrote:
+> > On Thu, Apr 25, 2019 at 10:03 PM Pankaj Gupta <pagupta@redhat.com> wrote:
+> > >
+> > > Dont support 'MAP_SYNC' with non-DAX files and DAX files
+> > > with asynchronous dax_device. Virtio pmem provides
+> > > asynchronous host page cache flush mechanism. We don't
+> > > support 'MAP_SYNC' with virtio pmem and xfs.
+> > >
+> > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > > ---
+> > >  fs/xfs/xfs_file.c | 9 ++++++---
+> > >  1 file changed, 6 insertions(+), 3 deletions(-)
+> > 
+> > Darrick, does this look ok to take through the nvdimm tree?
+> 
+> <urk> forgot about this, sorry. :/
+> 
+> > >
+> > > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > > index a7ceae90110e..f17652cca5ff 100644
+> > > --- a/fs/xfs/xfs_file.c
+> > > +++ b/fs/xfs/xfs_file.c
+> > > @@ -1203,11 +1203,14 @@ xfs_file_mmap(
+> > >         struct file     *filp,
+> > >         struct vm_area_struct *vma)
+> > >  {
+> > > +       struct dax_device       *dax_dev;
+> > > +
+> > > +       dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
+> > >         /*
+> > > -        * We don't support synchronous mappings for non-DAX files. At
+> > > least
+> > > -        * until someone comes with a sensible use case.
+> > > +        * We don't support synchronous mappings for non-DAX files and
+> > > +        * for DAX files if underneath dax_device is not synchronous.
+> > >          */
+> > > -       if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+> > > +       if (!daxdev_mapping_supported(vma, dax_dev))
+> > >                 return -EOPNOTSUPP;
+> 
+> LGTM, and I'm fine with it going through nvdimm.  Nothing in
+> xfs-5.2-merge touches that function so it should be clean.
+> 
+> Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  6 ++++++
- daxctl/libdaxctl.h       |  2 ++
- 3 files changed, 38 insertions(+)
+Thank you for the review.
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c2e3a52..70f896b 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	}
- }
- 
-+static int is_enabled(const char *drvpath)
-+{
-+	struct stat st;
-+
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
-+{
-+	return dev->region->ctx;
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 84d3a69..c4af9a7 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
- global:
- 	daxctl_region_get_path;
- } LIBDAXCTL_4;
-+
-+LIBDAXCTL_6 {
-+global:
-+	daxctl_dev_get_ctx;
-+	daxctl_dev_is_enabled;
-+} LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 1d13ea2..e20ccb4 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
-+struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
--- 
-2.20.1
+Pankaj
 
+> 
+> --D
+> 
+> > >
+> > >         file_accessed(filp);
+> > > --
+> > > 2.20.1
+> > >
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
