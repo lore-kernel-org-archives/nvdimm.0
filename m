@@ -1,15 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4C4BA21237AC1
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:08:44 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7F8BF2121AA3A
+ for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 18:25:14 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/4] ndctl/namespace.c: fix an unchecked return value
-Date: Fri, 10 May 2019 13:08:37 -0600
-Message-Id: <20190510190839.29637-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190510190839.29637-1-vishal.l.verma@intel.com>
-References: <20190510190839.29637-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] contrib: add an example qemu setup script for HMAT
+ emulation
+Date: Tue,  7 May 2019 19:25:05 -0600
+Message-Id: <20190508012505.28543-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,36 +24,235 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis complains that we were neglecting to check the return
-value from the ndctl_enable_namespace call in nstype_clear_badblocks.
+Add a script to demonstrate HMAT emulation using qemu by injecting the
+initramfs with a made-up ACPI HMAT table.
 
-The instance pointed out is in an error-out path, so there isn't much to
-do there, however if the enable fails, we can check for it and print a
-message. This ends up being more user friendly in addition to quelling
-the warning.
-
+Cc: Dan Williams <dan.j.williams@intel.com>
+Originally-authored-by: Keith Busch <keith.busch@intel.com>
+[vishal: minor shellcheck fixups]
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/namespace.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ contrib/daxctl-qemu-hmat-setup | 211 +++++++++++++++++++++++++++++++++
+ 1 file changed, 211 insertions(+)
+ create mode 100755 contrib/daxctl-qemu-hmat-setup
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index e281298..31e6ecd 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1134,8 +1134,10 @@ static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
- 
- 	region_begin = ndctl_region_get_resource(region);
- 	if (region_begin == ULLONG_MAX) {
--		ndctl_namespace_enable(ndns);
--		return -errno;
-+		rc = -errno;
-+		if (ndctl_namespace_enable(ndns) < 0)
-+			error("%s: failed to reenable namespace\n", devname);
-+		return rc;
- 	}
- 
- 	dev_end = dev_begin + dev_size - 1;
+diff --git a/contrib/daxctl-qemu-hmat-setup b/contrib/daxctl-qemu-hmat-setup
+new file mode 100755
+index 0000000..0670e99
+--- /dev/null
++++ b/contrib/daxctl-qemu-hmat-setup
+@@ -0,0 +1,211 @@
++#!/bin/bash -e
++
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2019 Intel Corporation. All rights reserved.
++
++KERNEL=${KERNEL:-$(uname -r)}
++ROOT_IMAGE=${ROOT_IMAGE:-root.img}
++
++INITIATORS=4
++TARGETS=128
++TARGET_SIZE_MB=128
++TARGET_SIZE="$((TARGET_SIZE_MB * 1024 * 1024))"
++QEMU_MEM="$((TARGET_SIZE_MB * TARGETS))"
++
++for i in $(seq 0 $((TARGETS - 1))); do
++  qemu-img create -f raw "dimm-$i" "${TARGET_SIZE}"
++done;
++
++# Address Range Structures
++cat <<EOF > hmat.dsl
++                       Signature : "HMAT"    [Heterogeneous Memory Attributes Table]
++                    Table Length : 00000200
++                        Revision : 01
++                        Checksum : F4
++                          Oem ID : "BOCHS "
++                    Oem Table ID : "BXPCHMAT"
++                    Oem Revision : 00000001
++                 Asl Compiler ID : "INTL"
++           Asl Compiler Revision : 20170929
++                        Reserved : 00000000
++
++                  Structure Type : 0000 [Memory Subystem Address Range]
++                        Reserved : 0000
++                          Length : 00000028
++           Flags (decoded below) : 0003
++Processor Proximity Domain Valid : 1
++   Memory Proximity Domain Valid : 1
++                Reservation Hint : 0
++                       Reserved1 : 0000
++      Processor Proximity Domain : 00000000
++         Memory Proximity Domain : 00000000
++                       Reserved2 : 00000000
++     Physical Address Range Base : 0000000000000000
++     Physical Address Range Size : 00000000000A0000
++
++                  Structure Type : 0000 [Memory Subystem Address Range]
++                        Reserved : 0000
++                          Length : 00000028
++           Flags (decoded below) : 0003
++Processor Proximity Domain Valid : 1
++   Memory Proximity Domain Valid : 1
++                Reservation Hint : 0
++                       Reserved1 : 0000
++      Processor Proximity Domain : 00000000
++         Memory Proximity Domain : 00000000
++                       Reserved2 : 00000000
++     Physical Address Range Base : 0000000000100000
++     Physical Address Range Size : 0000000007F00000
++EOF
++
++for i in $(seq 1 $((TARGETS - 1))); do
++  BASE=$(printf "%016x" $((0x8000000 * i)))
++cat <<EOF >> hmat.dsl
++
++                  Structure Type : 0000 [Memory Subystem Address Range]
++                        Reserved : 0000
++                          Length : 00000028
++           Flags (decoded below) : 0003
++Processor Proximity Domain Valid : 1
++   Memory Proximity Domain Valid : 1
++                Reservation Hint : 0
++                       Reserved1 : 0000
++      Processor Proximity Domain : $(printf "%08x" $((i % INITIATORS)))
++         Memory Proximity Domain : $(printf "%08x" "${i}")
++                       Reserved2 : 00000000
++     Physical Address Range Base : ${BASE}
++     Physical Address Range Size : 0000000008000000
++EOF
++done
++
++# System Locality Latency
++TABLE_SIZE="$(printf "%08x" $((40 + 4 * INITIATORS + 4 * TARGETS + 2 * INITIATORS * TARGETS)))"
++cat <<EOF >> hmat.dsl
++
++                  Structure Type : 0001 [System Locality Latency and Bandwidth Information]
++                        Reserved : 0000
++                          Length : ${TABLE_SIZE}
++           Flags (decoded below) : 00
++                Memory Hierarchy : 0
++                       Data Type : 00
++                       Reserved1 : 0000
++   Initiator Proximity Domains # : $(printf "%08x" ${INITIATORS})
++      Target Proximity Domains # : $(printf "%08x" ${TARGETS})
++                       Reserved2 : 00000000
++                 Entry Base Unit : 0000000000000001
++EOF
++
++for i in $(seq 0 $((INITIATORS - 1))); do
++cat <<EOF >> hmat.dsl
++ Initiator Proximity Domain List : $(printf "%08x" "${i}")
++EOF
++done
++
++for i in $(seq 0 $((TARGETS - 1))); do
++cat <<EOF >> hmat.dsl
++    Target Proximity Domain List : $(printf "%08x" "${i}")
++EOF
++done
++
++LOCAL_START=0x10
++REMOTE_START=0x20
++for i in $(seq 0 $((INITIATORS - 1))); do
++  for j in $(seq 0 $((TARGETS - 1))); do
++    if [ "$((j % INITIATORS))" -eq "${i}" ]; then
++      cat <<EOF >> hmat.dsl
++                           Entry : $(printf "%04x" $((LOCAL_START + j * 10)))
++EOF
++    else
++      cat <<EOF >> hmat.dsl
++                           Entry : $(printf "%04x" $((REMOTE_START + j * 10)))
++EOF
++    fi
++  done
++done
++
++# System Locality Bandwidth
++TABLE_SIZE=$(printf "%08x" $((40 + 4 * INITIATORS + 4 * TARGETS + 2 * INITIATORS * TARGETS)))
++cat <<EOF >> hmat.dsl
++
++                  Structure Type : 0001 [System Locality Latency and Bandwidth Information]
++                        Reserved : 0000
++                          Length : ${TABLE_SIZE}
++           Flags (decoded below) : 00
++                Memory Hierarchy : 0
++                       Data Type : 03
++                       Reserved1 : 0000
++   Initiator Proximity Domains # : $(printf "%08x" ${INITIATORS})
++      Target Proximity Domains # : $(printf "%08x" ${TARGETS})
++                       Reserved2 : 00000000
++                 Entry Base Unit : 0000000000000400
++EOF
++
++for i in $(seq 0 $((INITIATORS - 1))); do
++cat <<EOF >> hmat.dsl
++ Initiator Proximity Domain List : $(printf "%08x" "${i}")
++EOF
++done
++
++for i in $(seq 0 $((TARGETS - 1))); do
++cat <<EOF >> hmat.dsl
++    Target Proximity Domain List : $(printf "%08x" "${i}")
++EOF
++done
++
++LOCAL_START=0x2000
++REMOTE_START=0x1000
++for i in $(seq 0 $((INITIATORS - 1))); do
++  for j in $(seq 0 $((TARGETS - 1))); do
++    if [ "$((j % INITIATORS))" -eq "${i}" ]; then
++      cat <<EOF >> hmat.dsl
++                           Entry : $(printf "%04x" $((LOCAL_START - j * 32)))
++EOF
++    else
++      cat <<EOF >> hmat.dsl
++                           Entry : $(printf "%04x" $((REMOTE_START - j * 32)))
++EOF
++    fi
++  done
++done
++
++# Side Caches
++for i in $(seq 0 ${TARGETS}); do
++cat <<EOF >> hmat.dsl
++
++                  Structure Type : 0002 [Memory Side Cache Information Structure]
++                        Reserved : 0000
++                          Length : 00000020
++         Memory Proximity Domain : $(printf "%08x" "${i}")
++                       Reserved1 : 00000000
++          Memory Side Cache Size : 0000000000100000
++Cache Attributes (decoded below) : 01001113
++              Total Cache Levels : 1
++                     Cache Level : 1
++             Cache Associativity : 1
++                    Write Policy : 1
++                 Cache Line Size : 0100
++                       Reserved2 : 0000
++                 SMBIOS Handle # : 0000
++EOF
++done
++
++# Generate injected initrd
++iasl ./*dsl
++mkdir -p kernel/firmware/acpi/
++rm -f kernel/firmware/acpi/*.aml hmat-initramfs
++cp ./*aml kernel/firmware/acpi/
++find kernel | cpio -c -o > hmat-initramfs
++cat "/boot/initramfs-${KERNEL}.img" >> hmat-initramfs
++
++# Build and evaluate QEMU command line
++QEMU="qemu-system-x86_64 -m ${QEMU_MEM} -smp 8,sockets=${INITIATORS},maxcpus=8 -machine pc,accel=kvm "
++QEMU+="-enable-kvm -display none -nographic -snapshot -hda ${ROOT_IMAGE} "
++QEMU+="-kernel /boot/vmlinuz-${KERNEL} -initrd ./hmat-initramfs "
++QEMU+="-append \"console=tty0 console=ttyS0 root=/dev/sda rw\" "
++
++for i in $(seq 0 $((TARGETS - 1))); do
++  QEMU+="-object memory-backend-file,id=mem${i},share,mem-path=dimm-${i},size=${TARGET_SIZE_MB}M "
++  QEMU+="-numa node,nodeid=${i},memdev=mem${i} "
++done
++
++eval "${QEMU}"
 -- 
 2.20.1
 
