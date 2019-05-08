@@ -1,24 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
- [IPv6:2607:f8b0:4864:20::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7280621268F9E
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 13:26:28 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id v10so827317oib.1
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 13:26:28 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id E532E2194D387
+ for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:39:22 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 10/10] contrib/ndctl: add bash-completion for
+ daxctl-reconfigure-device
+Date: Tue,  7 May 2019 18:38:51 -0600
+Message-Id: <20190508003851.32416-11-vishal.l.verma@intel.com>
+In-Reply-To: <20190508003851.32416-1-vishal.l.verma@intel.com>
+References: <20190508003851.32416-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-References: <CAPcyv4he0q_FdqqiXarp0bXjcggs8QZX8Od560E2iFxzCU3Qag@mail.gmail.com>
- <CAHk-=wjvmwD_0=CRQtNs5RBh8oJwrriXDn+XNWOU=wk8OyQ5ew@mail.gmail.com>
- <CAPcyv4hafLUr2rKdLG+3SHXyWaa0d_2g8AKKZRf2mKPW+3DUSA@mail.gmail.com>
- <CAHk-=wiTM93XKaFqUOR7q7133wvzNS8Kj777EZ9E8S99NbZhAA@mail.gmail.com>
- <CAPcyv4hMZMuSEtUkKqL067f4cWPGivzn9mCtv3gZsJG2qUOYvg@mail.gmail.com>
- <CAHk-=wgnJd_qY1wGc0KcoGrNz3Mp9-8mQFMDLoTXvEMVtAxyZQ@mail.gmail.com>
-In-Reply-To: <CAHk-=wgnJd_qY1wGc0KcoGrNz3Mp9-8mQFMDLoTXvEMVtAxyZQ@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 May 2019 13:26:16 -0700
-Message-ID: <CAPcyv4g+reM9y+CiGXpxBYMQZ-Yh4LuXDi2530FR0zt3o6J8Hg@mail.gmail.com>
-Subject: Re: [GIT PULL] device-dax for 5.1: PMEM as RAM
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,35 +23,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Dave Hansen <dave.hansen@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Mar 11, 2019 at 5:08 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> On Mon, Mar 11, 2019 at 8:37 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> >
-> > Another feature the userspace tooling can support for the PMEM as RAM
-> > case is the ability to complete an Address Range Scrub of the range
-> > before it is added to the core-mm. I.e at least ensure that previously
-> > encountered poison is eliminated.
->
-> Ok, so this at least makes sense as an argument to me.
->
-> In the "PMEM as filesystem" part, the errors have long-term history,
-> while in "PMEM as RAM" the memory may be physically the same thing,
-> but it doesn't have the history and as such may not be prone to
-> long-term errors the same way.
->
-> So that validly argues that yes, when used as RAM, the likelihood for
-> errors is much lower because they don't accumulate the same way.
+Add bash completion helpers for the new daxctl-reconfigure-device
+command.
 
-In case anyone is looking for the above mentioned tooling for use with
-the v5.1 kernel, Vishal has released ndctl-v65 with the new
-"clear-errors" command [1].
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ contrib/ndctl | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-[1]: https://pmem.io/ndctl/ndctl-clear-errors.html
+diff --git a/contrib/ndctl b/contrib/ndctl
+index d1f8bd6..32c4731 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -544,7 +544,7 @@ __daxctlcomp()
+ 
+ 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
+ 	for cword in "${COMPREPLY[@]}"; do
+-		if [[ "$cword" == @(--region|--dev) ]]; then
++		if [[ "$cword" == @(--region|--dev|--mode) ]]; then
+ 			COMPREPLY[$i]="${cword}="
+ 		else
+ 			COMPREPLY[$i]="${cword} "
+@@ -569,6 +569,9 @@ __daxctl_comp_options()
+ 		--dev)
+ 			opts="$(__daxctl_get_devs -i)"
+ 			;;
++		--mode)
++			opts="system-ram devdax"
++			;;
+ 		*)
+ 			return
+ 			;;
+@@ -579,8 +582,19 @@ __daxctl_comp_options()
+ 
+ __daxctl_comp_non_option_args()
+ {
+-	# there aren't any commands that accept non option arguments yet
+-	return
++	local subcmd=$1
++	local cur=$2
++	local opts
++
++	case $subcmd in
++	reconfigure-device)
++		opts="$(__daxctl_get_devs -i) all"
++		;;
++	*)
++		return
++		;;
++	esac
++	__daxctlcomp "$opts" "$cur"
+ }
+ 
+ __daxctl_main()
+-- 
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
