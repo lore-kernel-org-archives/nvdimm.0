@@ -1,22 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from merlin.infradead.org (merlin.infradead.org
- [IPv6:2001:8b0:10b:1231::1])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 89E0E2125330C
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 01:48:12 -0700 (PDT)
-Date: Tue, 14 May 2019 10:46:55 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH v3 08/18] objtool: add kunit_try_catch_throw to the
- noreturn list
-Message-ID: <20190514084655.GK2589@hirez.programming.kicks-ass.net>
-References: <20190514054251.186196-1-brendanhiggins@google.com>
- <20190514054251.186196-9-brendanhiggins@google.com>
- <20190514065643.GC2589@hirez.programming.kicks-ass.net>
- <20190514081223.GA230665@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 26F482125ADF0
+ for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 05:24:27 -0700 (PDT)
+Date: Thu, 9 May 2019 08:24:24 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <511098535.27565704.1557404664499.JavaMail.zimbra@redhat.com>
+In-Reply-To: <CAPcyv4hRdvypEj4LBTMfUFm80BdpRYbOugrkkj-3Kk_LErXPqQ@mail.gmail.com>
+References: <20190426050039.17460-1-pagupta@redhat.com>
+ <20190426050039.17460-4-pagupta@redhat.com>
+ <CAPcyv4hRdvypEj4LBTMfUFm80BdpRYbOugrkkj-3Kk_LErXPqQ@mail.gmail.com>
+Subject: Re: [PATCH v7 3/6] libnvdimm: add dax_dev sync flag
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190514081223.GA230665@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,30 +24,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: cohuck@redhat.com, Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, Andreas Dilger <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>, kilobyte@angband.pl, Rik van Riel <riel@surriel.com>, yuval shaia <yuval.shaia@oracle.com>, Stefan Hajnoczi <stefanha@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Xiao Guangrong <xiaoguangrong.eric@gmail.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Igor Mammedov <imammedo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 14, 2019 at 01:12:23AM -0700, Brendan Higgins wrote:
-> On Tue, May 14, 2019 at 08:56:43AM +0200, Peter Zijlstra wrote:
-> > On Mon, May 13, 2019 at 10:42:42PM -0700, Brendan Higgins wrote:
-> > > This fixes the following warning seen on GCC 7.3:
-> > >   kunit/test-test.o: warning: objtool: kunit_test_unsuccessful_try() falls through to next function kunit_test_catch()
-> > > 
-> > 
-> > What is that file and function; no kernel tree near me seems to have
-> > that.
-> 
-> Oh, sorry about that. The function is added in the following patch,
-> "[PATCH v3 09/18] kunit: test: add support for test abort"[1].
-> 
-> My apologies if this patch is supposed to come after it in sequence, but
-> I assumed it should come before otherwise objtool would complain about
-> the symbol when it is introduced.
 
-Or send me all patches such that I have context, or have a sane
-Changelog that gives me context. Just don't give me one patch with a
-crappy changelog.
+> >
+> > This patch adds 'DAXDEV_SYNC' flag which is set
+> > for nd_region doing synchronous flush. This later
+> > is used to disable MAP_SYNC functionality for
+> > ext4 & xfs filesystem for devices don't support
+> > synchronous flush.
+> >
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> [..]
+> > diff --git a/include/linux/dax.h b/include/linux/dax.h
+> > index 0dd316a74a29..c97fc0cc7167 100644
+> > --- a/include/linux/dax.h
+> > +++ b/include/linux/dax.h
+> > @@ -7,6 +7,9 @@
+> >  #include <linux/radix-tree.h>
+> >  #include <asm/pgtable.h>
+> >
+> > +/* Flag for synchronous flush */
+> > +#define DAXDEV_F_SYNC true
+> 
+> I'd feel better, i.e. it reads more canonically, if this was defined
+> as (1UL << 0) and the argument to alloc_dax() was changed to 'unsigned
+> long flags' rather than a bool.
+
+Sure, Will send a v8 with suggested changes.
+
+Thank You,
+Pankaj
+
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
