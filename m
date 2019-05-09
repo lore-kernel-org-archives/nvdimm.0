@@ -1,15 +1,20 @@
-From: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 14/17] Documentation: kunit: add documentation for KUnit
-Date: Wed, 8 May 2019 22:08:45 -0700
-Message-ID: <498d42d8-0b8b-6ee4-c0ad-42760a7e89d4@infradead.org>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Thu, 09 May 2019 13:52:15 +0200
+Message-ID: <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-15-brendanhiggins@google.com>
+ <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
+ <20190507080119.GB28121@kroah.com>
+ <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
+ <20190509015856.GB7031@mit.edu>
+ <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
+ <20190509032017.GA29703@mit.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190501230126.229218-15-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20190509032017.GA29703-3s7WtUTddSA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,313 +24,101 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>
-Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
-
-On 5/1/19 4:01 PM, Brendan Higgins wrote:
-> Add documentation for KUnit, the Linux kernel unit testing framework.
-> - Add intro and usage guide for KUnit
-> - Add API reference
+On Wed, 2019-05-08 at 23:20 -0400, Theodore Ts'o wrote:
+> On Wed, May 08, 2019 at 07:13:59PM -0700, Frank Rowand wrote:
+> > > If you want to use vice grips as a hammer, screwdriver, monkey wrench,
+> > > etc.  there's nothing stopping you from doing that.  But it's not fair
+> > > to object to other people who might want to use better tools.
+> > > 
+> > > The reality is that we have a lot of testing tools.  It's not just
+> > > kselftests.  There is xfstests for file system code, blktests for
+> > > block layer tests, etc.   We use the right tool for the right job.
+> > 
+> > More specious arguments.
 > 
-> Signed-off-by: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-> ---
->  Documentation/index.rst           |   1 +
->  Documentation/kunit/api/index.rst |  16 ++
->  Documentation/kunit/api/test.rst  |  15 +
->  Documentation/kunit/faq.rst       |  46 +++
->  Documentation/kunit/index.rst     |  80 ++++++
->  Documentation/kunit/start.rst     | 180 ++++++++++++
->  Documentation/kunit/usage.rst     | 447 ++++++++++++++++++++++++++++++
->  7 files changed, 785 insertions(+)
->  create mode 100644 Documentation/kunit/api/index.rst
->  create mode 100644 Documentation/kunit/api/test.rst
->  create mode 100644 Documentation/kunit/faq.rst
->  create mode 100644 Documentation/kunit/index.rst
->  create mode 100644 Documentation/kunit/start.rst
->  create mode 100644 Documentation/kunit/usage.rst
-> 
+> Well, *I* don't think they are specious; so I think we're going to
+> have to agree to disagree.
 
-> diff --git a/Documentation/kunit/api/index.rst b/Documentation/kunit/api/index.rst
-> new file mode 100644
-> index 0000000000000..c31c530088153
-> --- /dev/null
-> +++ b/Documentation/kunit/api/index.rst
-> @@ -0,0 +1,16 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +=============
-> +API Reference
-> +=============
-> +.. toctree::
-> +
-> +	test
-> +
-> +This section documents the KUnit kernel testing API. It is divided into 3
-> +sections:
-> +
-> +================================= ==============================================
-> +:doc:`test`                       documents all of the standard testing API
-> +                                  excluding mocking or mocking related features.
-> +================================= ==============================================
+Looking at both Frank's and Ted's arguments here, I don't think you 
+really disagree, I just think you are having different classes of tests in mind.
 
-What 3 sections does the above refer to?  seems to be missing.
+In my view it's useful to think in terms of two main categories of 
+interesting unit tests for kernel code (using the term "unit test" pragmatically):
 
+1) Tests that exercises typically algorithmic or intricate, complex
+   code with relatively few outside dependencies, or where the dependencies 
+   are considered worth mocking, such as the basics of container data 
+   structures or page table code. If I get you right, Ted, the tests 
+   you refer to in this thread are such tests. I believe covering this space 
+   is the goal Brendan has in mind for KUnit.
 
+2) Tests that exercises interaction between a module under test and other 
+   parts of the kernel, such as testing intricacies of the interaction of 
+   a driver or file system with the rest of the kernel, and with hardware, 
+   whether that is real hardware or a model/emulation. 
+   Using your testing needs as example again, Ted, from my shallow understanding,
+   you have such needs within the context of xfstests (https://github.com/tytso/xfstests)
 
-> diff --git a/Documentation/kunit/start.rst b/Documentation/kunit/start.rst
-> new file mode 100644
-> index 0000000000000..5cdba5091905e
-> --- /dev/null
-> +++ b/Documentation/kunit/start.rst
-> @@ -0,0 +1,180 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +===============
-> +Getting Started
-> +===============
-> +
-> +Installing dependencies
-> +=======================
-> +KUnit has the same dependencies as the Linux kernel. As long as you can build
-> +the kernel, you can run KUnit.
-> +
-> +KUnit Wrapper
-> +=============
-> +Included with KUnit is a simple Python wrapper that helps format the output to
-> +easily use and read KUnit output. It handles building and running the kernel, as
-> +well as formatting the output.
-> +
-> +The wrapper can be run with:
-> +
-> +.. code-block:: bash
-> +
-> +   ./tools/testing/kunit/kunit.py
-> +
-> +Creating a kunitconfig
-> +======================
-> +The Python script is a thin wrapper around Kbuild as such, it needs to be
+To 1) I agree with Frank in that the problem with using UML is that you still have to
+relate to the complexity of a kernel run time system, while what you really want for these
+types of tests is just to compile a couple of kernel source files in a normal user land
+context, to allow the use of Valgrind and other user space tools on the code. The
+challenge is to get the code compiled in such an environment as it usually relies on
+subtle kernel macros and definitions, which is why UML seems like such an attractive
+solution. Like Frank I really see no big difference from a testing and debugging 
+perspective of UML versus running inside a Qemu/KVM process, and I think I have an idea 
+for a better solution: 
 
-                                       around Kbuild. As such,
+In the early phases of the SIF project which mention below, I did a lot of experimentation around this. My biggest challenge then was to test the driver
+implementation of the pages table handling of an Intel page table compatible on-device 
+MMU, using a mix of page sizes, but with a few subtle limitations in the hardware. With some efforts of code generation and heavy automated use of
+compiler feedback, I was able 
+to do that to great satisfaction, as it probably saved the project a lot of time in 
+debugging, and myself a lot of pain :)
 
-> +configured with a ``kunitconfig`` file. This file essentially contains the
-> +regular Kernel config, with the specific test targets as well.
-> +
-> +.. code-block:: bash
-> +
-> +	git clone -b master https://kunit.googlesource.com/kunitconfig $PATH_TO_KUNITCONFIG_REPO
-> +	cd $PATH_TO_LINUX_REPO
-> +	ln -s $PATH_TO_KUNIT_CONFIG_REPO/kunitconfig kunitconfig
-> +
-> +You may want to add kunitconfig to your local gitignore.
-> +
-> +Verifying KUnit Works
-> +-------------------------
+To 2) most of the current xfstests (if not all?) are user space tests that do not use 
+extra test specific kernel code, or test specific changes to the modules under test (am I 
+right, Ted?) and I believe that's just as it should be: if something can be exercised well enough from user space, then that's the easier approach. 
 
-I would expect Sphinx to complain about the underline length not being the
-same as the header/title above it.
+However sometimes the test cannot be made easily without interacting directly 
+with internal kernel interfaces, or having such interaction would greatly simplify or
+increase the precision of the test. This need was the initial motivation for us to make 
+KTF (https://github.com/oracle/ktf, http://heim.ifi.uio.no/~knuto/ktf/index.html) which we are working on to adapt to fit naturally and in the right way
+as a kernel patch set.
 
-> +
-> +To make sure that everything is set up correctly, simply invoke the Python
-> +wrapper from your kernel repo:
-> +
-> +.. code-block:: bash
-> +
-> +	./tools/testing/kunit/kunit.py
-> +
-> +.. note::
-> +   You may want to run ``make mrproper`` first.
-> +
-> +If everything worked correctly, you should see the following:
-> +
-> +.. code-block:: bash
-> +
-> +	Generating .config ...
-> +	Building KUnit Kernel ...
-> +	Starting KUnit Kernel ...
-> +
-> +followed by a list of tests that are run. All of them should be passing.
-> +
-> +.. note::
-> +   Because it is building a lot of sources for the first time, the ``Building
-> +   kunit kernel`` step may take a while.
-> +
-> +Writing your first test
-> +==========================
+We developed the SIF infiniband HCA driver
+(https://github.com/oracle/linux-uek/tree/uek4/qu7/drivers/infiniband/hw/sif)
+and associated user level libraries in what I like to call a "pragmatically test driven" 
+way. At the end of the project we had quite a few unit tests, but only a small fraction of them were KTF tests, most of the testing needs were covered
+by user land unit tests, 
+and higher level application testing.
 
-underline length warning?
+To you Frank, and your concern about having to learn yet another tool with it's own set of syntax, I completely agree with you. We definitely would want
+to minimize the need to 
+learn new ways, which is why I think it is important to see the whole complex of unit
+testing together, and at least make sure it works in a unified and efficient way from a
+syntax and operational way. 
 
-> +
-> +In your kernel repo let's add some code that we can test. Create a file
-> +``drivers/misc/example.h`` with the contents:
-> +
-> +.. code-block:: c
-> +
-> +	int misc_example_add(int left, int right);
-> +
-> +create a file ``drivers/misc/example.c``:
-> +
-> +.. code-block:: c
-> +
-> +	#include <linux/errno.h>
-> +
-> +	#include "example.h"
-> +
-> +	int misc_example_add(int left, int right)
-> +	{
-> +		return left + right;
-> +	}
-> +
-> +Now add the following lines to ``drivers/misc/Kconfig``:
-> +
-> +.. code-block:: kconfig
-> +
-> +	config MISC_EXAMPLE
-> +		bool "My example"
-> +
-> +and the following lines to ``drivers/misc/Makefile``:
-> +
-> +.. code-block:: make
-> +
-> +	obj-$(CONFIG_MISC_EXAMPLE) += example.o
-> +
-> +Now we are ready to write the test. The test will be in
-> +``drivers/misc/example-test.c``:
-> +
-> +.. code-block:: c
-> +
-> +	#include <kunit/test.h>
-> +	#include "example.h"
-> +
-> +	/* Define the test cases. */
-> +
-> +	static void misc_example_add_test_basic(struct kunit *test)
-> +	{
-> +		KUNIT_EXPECT_EQ(test, 1, misc_example_add(1, 0));
-> +		KUNIT_EXPECT_EQ(test, 2, misc_example_add(1, 1));
-> +		KUNIT_EXPECT_EQ(test, 0, misc_example_add(-1, 1));
-> +		KUNIT_EXPECT_EQ(test, INT_MAX, misc_example_add(0, INT_MAX));
-> +		KUNIT_EXPECT_EQ(test, -1, misc_example_add(INT_MAX, INT_MIN));
-> +	}
-> +
-> +	static void misc_example_test_failure(struct kunit *test)
-> +	{
-> +		KUNIT_FAIL(test, "This test never passes.");
-> +	}
-> +
-> +	static struct kunit_case misc_example_test_cases[] = {
-> +		KUNIT_CASE(misc_example_add_test_basic),
-> +		KUNIT_CASE(misc_example_test_failure),
-> +		{},
-> +	};
-> +
-> +	static struct kunit_module misc_example_test_module = {
-> +		.name = "misc-example",
-> +		.test_cases = misc_example_test_cases,
-> +	};
-> +	module_test(misc_example_test_module);
-> +
-> +Now add the following to ``drivers/misc/Kconfig``:
-> +
-> +.. code-block:: kconfig
-> +
-> +	config MISC_EXAMPLE_TEST
-> +		bool "Test for my example"
-> +		depends on MISC_EXAMPLE && KUNIT
-> +
-> +and the following to ``drivers/misc/Makefile``:
-> +
-> +.. code-block:: make
-> +
-> +	obj-$(CONFIG_MISC_EXAMPLE_TEST) += example-test.o
-> +
-> +Now add it to your ``kunitconfig``:
-> +
-> +.. code-block:: none
-> +
-> +	CONFIG_MISC_EXAMPLE=y
-> +	CONFIG_MISC_EXAMPLE_TEST=y
-> +
-> +Now you can run the test:
-> +
-> +.. code-block:: bash
-> +
-> +	./tools/testing/kunit/kunit.py
-> +
-> +You should see the following failure:
-> +
-> +.. code-block:: none
-> +
-> +	...
-> +	[16:08:57] [PASSED] misc-example:misc_example_add_test_basic
-> +	[16:08:57] [FAILED] misc-example:misc_example_test_failure
-> +	[16:08:57] EXPECTATION FAILED at drivers/misc/example-test.c:17
-> +	[16:08:57] 	This test never passes.
-> +	...
-> +
-> +Congrats! You just wrote your first KUnit test!
-> +
-> +Next Steps
-> +=============
+With KTF we focus on trying to make kernel testing as similar and integrated with user
+space tests as possible, using similar test macros, and also to not reinvent more wheels than necessary by basing reporting and test execution on
+existing user land tools.
+KTF integrates with Googletest for this functionality. This also makes the reporting format discussion here irrelevant for KTF, as KTF supports whatever
+reporting format the user land tool supports - Googletest for instance naturally supports pluggable reporting implementations, and there already seems
+to be a TAP reporting extension out there (I haven't tried it yet though)
 
-underline length warning. (?)
+Using and relating to an existing user land framework allows us to have a set of 
+tests that works the same way from a user/developer perspective, 
+but some of them are kernel only tests, some are ordinary user land 
+tests, exercising system call boundaries and other kernel
+interfaces, and some are what we call "hybrid", where parts of 
+the test run in user mode and parts in kernel mode.
 
-> +*   Check out the :doc:`usage` page for a more
-> +    in-depth explanation of KUnit.
-> diff --git a/Documentation/kunit/usage.rst b/Documentation/kunit/usage.rst
-> new file mode 100644
-> index 0000000000000..5c83ea9e21bc5
-> --- /dev/null
-> +++ b/Documentation/kunit/usage.rst
-> @@ -0,0 +1,447 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +=============
-> +Using KUnit
-> +=============
+I hope we can discuss this complex in more detail, for instance at the testing 
+and fuzzing workshop at LPC later this year, where I have proposed a topic for it.
 
-over/underline length warnings?
-
-> +
-> +The purpose of this document is to describe what KUnit is, how it works, how it
-> +is intended to be used, and all the concepts and terminology that are needed to
-> +understand it. This guide assumes a working knowledge of the Linux kernel and
-> +some basic knowledge of testing.
-> +
-> +For a high level introduction to KUnit, including setting up KUnit for your
-> +project, see :doc:`start`.
-> +
-> +Organization of this document
-> +=================================
-
-underline length?  (and more below, but not being marked)
-
-> +
-> +This document is organized into two main sections: Testing and Isolating
-> +Behavior. The first covers what a unit test is and how to use KUnit to write
-> +them. The second covers how to use KUnit to isolate code and make it possible
-> +to unit test code that was otherwise un-unit-testable.
-> +
-> +Testing
-> +==========
-> +
-> +What is KUnit?
-> +------------------
-> +
-> +"K" is short for "kernel" so "KUnit" is the "(Linux) Kernel Unit Testing
-> +Framework." KUnit is intended first and foremost for writing unit tests; it is
-> +general enough that it can be used to write integration tests; however, this is
-> +a secondary goal. KUnit has no ambition of being the only testing framework for
-> +the kernel; for example, it does not intend to be an end-to-end testing
-> +framework.
-> +
-> +What is Unit Testing?
-> +-------------------------
-
-
-thanks.
--- 
-~Randy
+Thanks,
+Knut
