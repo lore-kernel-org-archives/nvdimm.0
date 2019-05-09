@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 576B121D0DE65
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 22/30] fuse, dax: add DAX mmap support
-Date: Wed, 15 May 2019 15:27:07 -0400
-Message-Id: <20190515192715.18000-23-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 6A30A212532E3
+ for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 00:40:59 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH v2] Documentation: nvdimm: Fix typo
+Date: Thu, 9 May 2019 15:40:49 +0800
+Message-ID: <20190509074049.12192-1-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190509023744.4936-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190509023744.4936-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,116 +20,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: corbet@lwn.net
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Stefan Hajnoczi <stefanha@redhat.com>
+Remove the extra 'we '.
 
-Add DAX mmap() support.
-
-Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- fs/fuse/file.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 1 deletion(-)
+ Documentation/nvdimm/nvdimm.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index edbb11ca735e..a053bcb9498d 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -2576,10 +2576,15 @@ static const struct vm_operations_struct fuse_file_vm_ops = {
- 	.page_mkwrite	= fuse_page_mkwrite,
- };
+diff --git a/Documentation/nvdimm/nvdimm.txt b/Documentation/nvdimm/nvdimm.txt
+index e894de69915a..1669f626b037 100644
+--- a/Documentation/nvdimm/nvdimm.txt
++++ b/Documentation/nvdimm/nvdimm.txt
+@@ -284,8 +284,8 @@ A bus has a 1:1 relationship with an NFIT.  The current expectation for
+ ACPI based systems is that there is only ever one platform-global NFIT.
+ That said, it is trivial to register multiple NFITs, the specification
+ does not preclude it.  The infrastructure supports multiple busses and
+-we we use this capability to test multiple NFIT configurations in the
+-unit test.
++we use this capability to test multiple NFIT configurations in the unit
++test.
  
-+static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma);
- static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fuse_file *ff = file->private_data;
+ LIBNVDIMM: control class device in /sys/class
  
-+	/* DAX mmap is superior to direct_io mmap */
-+	if (IS_DAX(file_inode(file)))
-+		return fuse_dax_mmap(file, vma);
-+
- 	if (ff->open_flags & FOPEN_DIRECT_IO) {
- 		/* Can't provide the coherency needed for MAP_SHARED */
- 		if (vma->vm_flags & VM_MAYSHARE)
-@@ -2611,9 +2616,65 @@ static ssize_t fuse_file_splice_read(struct file *in, loff_t *ppos,
- 
- }
- 
-+static int __fuse_dax_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
-+			    bool write)
-+{
-+	vm_fault_t ret;
-+	struct inode *inode = file_inode(vmf->vma->vm_file);
-+	struct super_block *sb = inode->i_sb;
-+	pfn_t pfn;
-+
-+	if (write)
-+		sb_start_pagefault(sb);
-+
-+	/* TODO inode semaphore to protect faults vs truncate */
-+
-+	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
-+
-+	if (ret & VM_FAULT_NEEDDSYNC)
-+		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
-+
-+	if (write)
-+		sb_end_pagefault(sb);
-+
-+	return ret;
-+}
-+
-+static vm_fault_t fuse_dax_fault(struct vm_fault *vmf)
-+{
-+	return __fuse_dax_fault(vmf, PE_SIZE_PTE,
-+				vmf->flags & FAULT_FLAG_WRITE);
-+}
-+
-+static vm_fault_t fuse_dax_huge_fault(struct vm_fault *vmf,
-+			       enum page_entry_size pe_size)
-+{
-+	return __fuse_dax_fault(vmf, pe_size, vmf->flags & FAULT_FLAG_WRITE);
-+}
-+
-+static vm_fault_t fuse_dax_page_mkwrite(struct vm_fault *vmf)
-+{
-+	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
-+}
-+
-+static vm_fault_t fuse_dax_pfn_mkwrite(struct vm_fault *vmf)
-+{
-+	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
-+}
-+
-+static const struct vm_operations_struct fuse_dax_vm_ops = {
-+	.fault		= fuse_dax_fault,
-+	.huge_fault	= fuse_dax_huge_fault,
-+	.page_mkwrite	= fuse_dax_page_mkwrite,
-+	.pfn_mkwrite	= fuse_dax_pfn_mkwrite,
-+};
-+
- static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	return -EINVAL; /* TODO */
-+	file_accessed(file);
-+	vma->vm_ops = &fuse_dax_vm_ops;
-+	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
-+	return 0;
- }
- 
- static int convert_fuse_file_lock(struct fuse_conn *fc,
-@@ -3622,6 +3683,7 @@ static const struct file_operations fuse_file_operations = {
- 	.release	= fuse_release,
- 	.fsync		= fuse_fsync,
- 	.lock		= fuse_file_lock,
-+	.get_unmapped_area = thp_get_unmapped_area,
- 	.flock		= fuse_file_flock,
- 	.splice_read	= fuse_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
 -- 
-2.20.1
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
