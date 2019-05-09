@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 450A321237ABD
- for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 07:04:30 -0700 (PDT)
-Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190502105053.GA12416@kroah.com>
-From: shuah <shuah@kernel.org>
-Message-ID: <76e84d54-6b7e-8cc1-492b-43822fc43ac4@kernel.org>
-Date: Thu, 2 May 2019 08:04:14 -0600
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 417F421244A6A
+ for <linux-nvdimm@lists.01.org>; Wed,  8 May 2019 19:48:03 -0700 (PDT)
+Received: from G08CNEXCHPEKD02.g08.fujitsu.local (unknown [10.167.33.83])
+ by cn.fujitsu.com (Postfix) with ESMTP id 3C54F4CDE919
+ for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 10:40:43 +0800 (CST)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH] Documentation: nvdimm: Fix typo
+Date: Thu, 9 May 2019 10:40:36 +0800
+Message-ID: <20190509024036.7743-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-In-Reply-To: <20190502105053.GA12416@kroah.com>
-Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,37 +17,37 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Greg KH <gregkh@linuxfoundation.org>, Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, frowand.list@gmail.com, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, shuah <shuah@kernel.org>, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/2/19 4:50 AM, Greg KH wrote:
-> On Wed, May 01, 2019 at 04:01:09PM -0700, Brendan Higgins wrote:
->> ## TLDR
->>
->> I rebased the last patchset on 5.1-rc7 in hopes that we can get this in
->> 5.2.
-> 
-> That might be rushing it, normally trees are already closed now for
-> 5.2-rc1 if 5.1-final comes out this Sunday.
-> 
->> Shuah, I think you, Greg KH, and myself talked off thread, and we agreed
->> we would merge through your tree when the time came? Am I remembering
->> correctly?
-> 
-> No objection from me.
-> 
+Remove the extra 'we '.
 
-Yes. I can take these through kselftest tree when the time comes.
-Agree with Greg that 5.2 might be rushing it. 5.3 would be a good
-target.
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+---
+ Documentation/nvdimm/nvdimm.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-thanks,
--- Shuah
+diff --git a/Documentation/nvdimm/nvdimm.txt b/Documentation/nvdimm/nvdimm.txt
+index e894de69915a..a2013750bcf1 100644
+--- a/Documentation/nvdimm/nvdimm.txt
++++ b/Documentation/nvdimm/nvdimm.txt
+@@ -284,8 +284,8 @@ A bus has a 1:1 relationship with an NFIT.  The current expectation for
+ ACPI based systems is that there is only ever one platform-global NFIT.
+ That said, it is trivial to register multiple NFITs, the specification
+ does not preclude it.  The infrastructure supports multiple busses and
+-we we use this capability to test multiple NFIT configurations in the
+-unit test.
++we use this capability to test multiple NFIT configurations in theunit
++test.
+ 
+ LIBNVDIMM: control class device in /sys/class
+ 
+-- 
+2.17.0
 
 
 
