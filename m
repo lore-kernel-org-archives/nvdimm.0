@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com
- [IPv6:2607:f8b0:4864:20::441])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outgoing.mit.edu (outgoing-auth-1.mit.edu [18.9.28.11])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9D9E921214958
- for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 11:12:16 -0700 (PDT)
-Received: by mail-pf1-x441.google.com with SMTP id c6so1715022pfa.10
- for <linux-nvdimm@lists.01.org>; Thu, 09 May 2019 11:12:16 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2E4AC2125F1CA
+ for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 06:36:59 -0700 (PDT)
+Date: Thu, 9 May 2019 09:35:51 -0400
+From: "Theodore Ts'o" <tytso@mit.edu>
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
+Message-ID: <20190509133551.GD29703@mit.edu>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
  <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
  <20190507080119.GB28121@kroah.com>
@@ -17,14 +17,9 @@ References: <20190501230126.229218-1-brendanhiggins@google.com>
  <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
  <20190509032017.GA29703@mit.edu>
  <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
- <20190509133551.GD29703@mit.edu>
- <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
-From: Frank Rowand <frowand.list@gmail.com>
-Message-ID: <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
-Date: Thu, 9 May 2019 11:12:12 -0700
 MIME-Version: 1.0
-In-Reply-To: <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,114 +31,161 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Tim.Bird@sony.com, tytso@mit.edu, knut.omang@oracle.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, brendanhiggins@google.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, jdike@addtoit.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
+To: Knut Omang <knut.omang@oracle.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, Frank Rowand <frowand.list@gmail.com>, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/9/19 10:00 AM, Tim.Bird@sony.com wrote:
->> -----Original Message-----
->> From: Theodore Ts'o 
->>
+On Thu, May 09, 2019 at 01:52:15PM +0200, Knut Omang wrote:
+> 1) Tests that exercises typically algorithmic or intricate, complex
+>    code with relatively few outside dependencies, or where the dependencies 
+>    are considered worth mocking, such as the basics of container data 
+>    structures or page table code. If I get you right, Ted, the tests 
+>    you refer to in this thread are such tests. I believe covering this space 
+>    is the goal Brendan has in mind for KUnit.
 
-< massive snip >
+Yes, that's correct.  I'd also add that one of the key differences is
+that it sounds like Frank and you are coming from the perspective of
+testing *device drivers* where in general there aren't a lot of
+complex code which is hardware independent.  After all, the vast
+majority of device drivers are primarily interface code to hardware,
+with as much as possible abstracted away to common code.  (Take, for
+example, the model of the SCSI layer; or all of the kobject code.)
 
-I'll reply in more detail to some other earlier messages in this thread
-later.
+> 2) Tests that exercises interaction between a module under test and other 
+>    parts of the kernel, such as testing intricacies of the interaction of 
+>    a driver or file system with the rest of the kernel, and with hardware, 
+>    whether that is real hardware or a model/emulation. 
+>    Using your testing needs as example again, Ted, from my shallow understanding,
+>    you have such needs within the context of xfstests (https://github.com/tytso/xfstests)
 
-This reply is an attempt to return to the intent of my original reply to
-patch 0 of this series.
+Well, upstream is for xfstests is git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 
+The test framework where I can run 20 hours worth of xfstests
+(multiple file system features enabled, multiple mount options, etc.)
+in 3 hours of wall clock time using multiple cloud VM is something
+called gce-xfstests.
 
->> Ultimately, I'm a pragmatist.  If KTF serves your needs best, good for
->> you.  If other approaches are better for other parts of the kernel,
->> let's not try to impose a strict "There Must Be Only One" religion.
->> That's already not true today, and for good reason.  There are many
->> different kinds of kernel code, and many different types of test
->> philosophies.  Trying to force all kernel testing into a single
->> Procrustean Bed is simply not productive.
-> 
-> Had to look up "Procrustean Bed" - great phrase.  :-)
-> 
-> I'm not of the opinion that there must only be one test framework
-> in the kernel. But we should avoid unnecessary multiplication. Every
-> person is going to have a different idea for where the line of necessity
-> is drawn.  My own opinion is that what KUnit is adding is different enough
-> from kselftest, that it's a valuable addition.  
-> 
->  -- Tim
+I also have kvm-xfstests, which optimizes low test latency, where I
+want to run a one or a small number of tests with a minimum of
+overhead --- gce startup and shutdown is around 2 minutes, where as
+kvm startup and shutdown is about 7 seconds.  As far as I'm concerned,
+7 seconds is still too slow, but that's the best I've been able to do
+given all of the other things I want a test framework to do, including
+archiving test results, parsing the test results so it's easy to
+interpret, etc.  Both kvm-xfstests and gce-xfstests are located at:
 
-My first reply to patch 0 was in the context of knowing next to nothing
-about kselftest.  My level of understanding was essentially from slideware.
-(As the thread progressed, I dug a little deeper into kselftest, so now have
-a slightly better, though still fairly surface understanding of kselftest).
+	git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 
-Maybe I did not explain myself clearly enough in that reply.  I will try
-again here.
+So if Frank's primary argument is "too many frameworks", it's already
+too late.  The block layer has blktests has a seprate framework,
+called blktests --- and yeah, it's a bit painful to launch or learn
+how to set things up.
 
-Patch 0 provided a one paragraph explanation of why KUnit exists, titled
+That's why I added support to run blktests using gce-xfstests and
+kvm-xfstests, so that "gce-xfstests --blktests" or "kvm-xfstests
+--xfstests" will pluck a kernel from your build tree, and launch at
+test appliance VM using that kernel and run the block layer tests.
 
-   "## What's so special about unit testing?"
+The point is we *already* have multiple test frameworks, which are
+optimized for testing different parts of the kernel.  And if you plan
+to do a lot of work in these parts of the kernel, you're going to have
+to learn how to use some other test framework other than kselftest.
+Sorry, that's just the way it goes.
 
-Patch 0 also provided a statement that it is not meant to replace
-kselftest, in a paragraph titled
+Of course, I'll accept trivial patches that haven't been tested using
+xfstests --- but that's because I can trivially run the smoke test for
+you.  Of course, if I get a lot of patches from a contributor which
+cause test regressions, I'll treat them much like someone who
+contribute patches which fail to build.  I'll apply pressure to the
+contributor to actually build test, or run a ten minute kvm-xfstests
+smoke test.  Part of the reason why I feel comfortable to do this is
+it's really easy to run the smoke test.  There are pre-compiled test
+appliances, and a lot of documentation:
 
-   "## Is KUnit trying to replace other testing frameworks for the kernel?"
+https://github.com/tytso/xfstests-bld/blob/master/Documentation/kvm-quickstart.md
 
-I stated:
+This is why I have close to zero sympathy to Frank's complaint that
+extra test frameworks are a bad thing.  To me, that's whining.  I've
+done a huge amount of work to meet contributors more than half-way.
+The insistence that "There Must Be One", ala the Highlander movie, is
+IMHO so wrong that it's not even close.  Is it really that hard to do
+a "git pull", download a test appliance, set up a config file to tell
+kvm-xfstests where to find your build tree, and then run "kvm-xfstests
+--smoke" or "gce-xfstests --smoke"?  Cry me a river.
 
-   "My understanding is that the intent of KUnit is to avoid booting a kernel on
-   real hardware or in a virtual machine.  That seems to be a matter of semantics
-   to me because isn't invoking a UML Linux just running the Linux kernel in
-   a different form of virtualization?
+There are already multiple test frameworks, and if you expect to do a
+lot of work in a particular subsystem, you'll be expected to use the
+Maintainer's choice of tests.  Deal with it.  We do this so we can
+scale to the number of contributors we have in our subsystem.
 
-   So I do not understand why KUnit is an improvement over kselftest.
+> To 1) I agree with Frank in that the problem with using UML is that you still have to
+> relate to the complexity of a kernel run time system, while what you really want for these
+> types of tests is just to compile a couple of kernel source files in a normal user land
+> context, to allow the use of Valgrind and other user space tools on the code.
 
-   ...
+"Just compiling a couple of kernel source files in a normal user land"
+is much harder than you think.  It requires writing vast numbers of
+mocking functions --- for a file system I would have to simulate the
+block device layer, large portions of the VFS layer, the scheduler and
+the locking layer if I want to test locking bugs, etc., etc.  In
+practice, UML itself is serving as mocking layer, by its mere
+existence.  So when Frank says that KUnit doesn't provide any mocking
+functions, I don't at all agree.  Using KUnit and UML makes testing
+internal interfaces *far* simpler, especially if the comparison is
+"just compile some kernel source files as part of a userspace test
+program".
 
-   What am I missing?"
+Perhaps your and Frank's experience is different --- perhaps that can
+be explained by your past experience and interest in testing device
+drivers as opposed to file systems.
 
+The other thing I'd add is that at least for me, a really important
+consideration is how quickly we can run tests.  I consider
+minimization of developer friction (e.g., all you need to do is
+running "make ; kvm-xfstests --smoke" to run tests), and maximizing
+developer velocity to be high priority goals.  Developer velocity is
+how quickly can you run the tests; ideally, less than 5-10 seconds.
 
-I was looking for a fuller, better explanation than was given in patch 0
-of how KUnit provides something that is different than what kselftest
-provides for creating unit tests for kernel code.
+And that's the other reason why I consider unit tests to be a
+complement to integration tests.  "gce-xfstests --smoke" takes 10-15
+minutes.  If I can have unit tests which takes 5-15 seconds for a
+smoke test of the specific part of ext4 that I am modifying (and often
+with much better coverage than integration tests from userspace),
+that's at really big deal.  I can do this for e2fsprogs; but if I have
+to launch a VM, the VM overhead pretty much eats all or most of that
+time budget right there.
 
-New question "(2)":
+>From looking at your documentation of KTF, you are targetting the use
+case of continuous testing.  That's a different testing scenario than
+what I'm describing; with continuous testing, overhead measured in
+minutes or even tens of minutes is not a big deal.  But if you are
+trying to do real-time testing as part of your development process ---
+*real* Test Driven Development, then test latency is a really big
+deal.
 
-(2) If KUnit provides something unique, then the obvious follow on
-question would be: does it make sense to (a) integrate that feature into
-kselftest, (b) integrate the current kselftest in kernel test functionality
-into KUnit and convert the in kernel test portion of kselftest to use
-KUnit, or (c) KUnit and kselftest are so different that they need to
-remain separate features.
+I'll grant that for people who are working on device drivers where
+architecture dependencies are a big deal, building for an architecture
+where you can run in a virtual environment or using test hardware is
+going to be a better way to go.  And Brendan has said he's willing to
+look at adapting KUnit so it can be built for use in a virtual
+environment to accomodate your requirements.
 
-*****  Please do not reply to this email with a discussion of "(2)".
-*****  Such a discussion is premature if there is not an answer
-*****  to my first question.
+As far as I'm concerned, however, I would *not* be interested in KTF
+unless you could demonstrate to me that launching at test VM, somehow
+getting the kernel modules copied into the VM, and running the tests
+as kernel modules, has zero overhead compared to using UML.
 
-Observation (3), rephrased:
+Ultimately, I'm a pragmatist.  If KTF serves your needs best, good for
+you.  If other approaches are better for other parts of the kernel,
+let's not try to impose a strict "There Must Be Only One" religion.
+That's already not true today, and for good reason.  There are many
+different kinds of kernel code, and many different types of test
+philosophies.  Trying to force all kernel testing into a single
+Procrustean Bed is simply not productive.
 
-(3) I also brought up the issue that if option (c) was the answer to
-question "(2)" (instead of either option (a) or option (b)) then this
-is extra overhead for any developer or maintainer involved in different
-subsystems that use the different frameworks.  I intended this as one
-possible motivation for why my first question mattered.
+Regards,
 
-Ted grabbed hold of this issue and basically ignored what I intended
-to be my core question.  Nobody else has answered my core question,
-though Knut's first reply did manage to get somewhere near the
-intent of my core question.
-
-*****  Please do not reply to this email with a discussion of "(3)".
-*****  Such a discussion is premature if there is not an answer
-*****  to my first question.
-*****
-*****  Also that discussion is already occurring in this thread,
-*****  feel free to discuss it there if you want, even though I
-*****  feel such discussion is premature.
-
-I still do not have an answer to my original question.
-
--Frank
+						- Ted
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
