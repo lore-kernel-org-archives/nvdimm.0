@@ -1,8 +1,8 @@
 From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
-Date: Thu, 09 May 2019 13:52:15 +0200
-Message-ID: <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
+Date: Thu, 09 May 2019 16:48:51 +0200
+Message-ID: <3ce70d58c41be8c907c21ec7d3450b269ede8287.camel@oracle.com>
 References: <20190501230126.229218-1-brendanhiggins@google.com>
  <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
  <20190507080119.GB28121@kroah.com>
@@ -10,11 +10,13 @@ References: <20190501230126.229218-1-brendanhiggins@google.com>
  <20190509015856.GB7031@mit.edu>
  <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
  <20190509032017.GA29703@mit.edu>
+ <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
+ <20190509133551.GD29703@mit.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190509032017.GA29703-3s7WtUTddSA@public.gmane.org>
+In-Reply-To: <20190509133551.GD29703-3s7WtUTddSA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,101 +26,210 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, 2019-05-08 at 23:20 -0400, Theodore Ts'o wrote:
-> On Wed, May 08, 2019 at 07:13:59PM -0700, Frank Rowand wrote:
-> > > If you want to use vice grips as a hammer, screwdriver, monkey wrench,
-> > > etc.  there's nothing stopping you from doing that.  But it's not fair
-> > > to object to other people who might want to use better tools.
-> > > 
-> > > The reality is that we have a lot of testing tools.  It's not just
-> > > kselftests.  There is xfstests for file system code, blktests for
-> > > block layer tests, etc.   We use the right tool for the right job.
-> > 
-> > More specious arguments.
+On Thu, 2019-05-09 at 09:35 -0400, Theodore Ts'o wrote:
+> On Thu, May 09, 2019 at 01:52:15PM +0200, Knut Omang wrote:
+> > 1) Tests that exercises typically algorithmic or intricate, complex
+> >    code with relatively few outside dependencies, or where the dependencies 
+> >    are considered worth mocking, such as the basics of container data 
+> >    structures or page table code. If I get you right, Ted, the tests 
+> >    you refer to in this thread are such tests. I believe covering this space 
+> >    is the goal Brendan has in mind for KUnit.
 > 
-> Well, *I* don't think they are specious; so I think we're going to
-> have to agree to disagree.
+> Yes, that's correct.  I'd also add that one of the key differences is
+> that it sounds like Frank and you are coming from the perspective of
+> testing *device drivers* where in general there aren't a lot of
+> complex code which is hardware independent.  After all, the vast
+> majority of device drivers are primarily interface code to hardware,
+> with as much as possible abstracted away to common code.  (Take, for
+> example, the model of the SCSI layer; or all of the kobject code.)
+>
+> > 2) Tests that exercises interaction between a module under test and other 
+> >    parts of the kernel, such as testing intricacies of the interaction of 
+> >    a driver or file system with the rest of the kernel, and with hardware, 
+> >    whether that is real hardware or a model/emulation. 
+> >    Using your testing needs as example again, Ted, from my shallow understanding,
+> >    you have such needs within the context of xfstests (
+> https://github.com/tytso/xfstests)
+> 
+> Well, upstream is for xfstests is git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
 
-Looking at both Frank's and Ted's arguments here, I don't think you 
-really disagree, I just think you are having different classes of tests in mind.
+Thanks for the correction!
 
-In my view it's useful to think in terms of two main categories of 
-interesting unit tests for kernel code (using the term "unit test" pragmatically):
+> The test framework where I can run 20 hours worth of xfstests
+> (multiple file system features enabled, multiple mount options, etc.)
+> in 3 hours of wall clock time using multiple cloud VM is something
+> called gce-xfstests.
+> 
+> I also have kvm-xfstests, which optimizes low test latency, where I
+> want to run a one or a small number of tests with a minimum of
+> overhead --- gce startup and shutdown is around 2 minutes, where as
+> kvm startup and shutdown is about 7 seconds.  As far as I'm concerned,
+> 7 seconds is still too slow, but that's the best I've been able to do
+> given all of the other things I want a test framework to do, including
+> archiving test results, parsing the test results so it's easy to
+> interpret, etc.  Both kvm-xfstests and gce-xfstests are located at:
+> 
+> 	git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+> 
+> So if Frank's primary argument is "too many frameworks", it's already
+> too late.  The block layer has blktests has a seprate framework,
+> called blktests --- and yeah, it's a bit painful to launch or learn
+> how to set things up.
 
-1) Tests that exercises typically algorithmic or intricate, complex
-   code with relatively few outside dependencies, or where the dependencies 
-   are considered worth mocking, such as the basics of container data 
-   structures or page table code. If I get you right, Ted, the tests 
-   you refer to in this thread are such tests. I believe covering this space 
-   is the goal Brendan has in mind for KUnit.
+I agree at that level - and the good thing is that there are a lot to learn 
+from looking at other people's ways - but working towards unification rather than even
+more similar, but subtly different ways I think is a good thing anyway!
 
-2) Tests that exercises interaction between a module under test and other 
-   parts of the kernel, such as testing intricacies of the interaction of 
-   a driver or file system with the rest of the kernel, and with hardware, 
-   whether that is real hardware or a model/emulation. 
-   Using your testing needs as example again, Ted, from my shallow understanding,
-   you have such needs within the context of xfstests (https://github.com/tytso/xfstests)
+> That's why I added support to run blktests using gce-xfstests and
+> kvm-xfstests, so that "gce-xfstests --blktests" or "kvm-xfstests
+> --xfstests" will pluck a kernel from your build tree, and launch at
+> test appliance VM using that kernel and run the block layer tests.
+> 
+> The point is we *already* have multiple test frameworks, which are
+> optimized for testing different parts of the kernel.  And if you plan
+> to do a lot of work in these parts of the kernel, you're going to have
+> to learn how to use some other test framework other than kselftest.
+> Sorry, that's just the way it goes.
+> 
+> Of course, I'll accept trivial patches that haven't been tested using
+> xfstests --- but that's because I can trivially run the smoke test for
+> you.  Of course, if I get a lot of patches from a contributor which
+> cause test regressions, I'll treat them much like someone who
+> contribute patches which fail to build.  I'll apply pressure to the
+> contributor to actually build test, or run a ten minute kvm-xfstests
+> smoke test.  Part of the reason why I feel comfortable to do this is
+> it's really easy to run the smoke test.  There are pre-compiled test
+> appliances, and a lot of documentation:
+> 
+> https://github.com/tytso/xfstests-bld/blob/master/Documentation/kvm-quickstart.md
+> 
+> This is why I have close to zero sympathy to Frank's complaint that
+> extra test frameworks are a bad thing.  To me, that's whining.  I've
+> done a huge amount of work to meet contributors more than half-way.
+> The insistence that "There Must Be One", ala the Highlander movie, is
+> IMHO so wrong that it's not even close.  Is it really that hard to do
+> a "git pull", download a test appliance, set up a config file to tell
+> kvm-xfstests where to find your build tree, and then run "kvm-xfstests
+> --smoke" or "gce-xfstests --smoke"?  Cry me a river.
+> 
+> There are already multiple test frameworks, and if you expect to do a
+> lot of work in a particular subsystem, you'll be expected to use the
+> Maintainer's choice of tests.  Deal with it.  We do this so we can
+> scale to the number of contributors we have in our subsystem.
+> 
+> > To 1) I agree with Frank in that the problem with using UML is that you still have to
+> > relate to the complexity of a kernel run time system, while what you really want for
+> these
+> > types of tests is just to compile a couple of kernel source files in a normal user
+> land
+> > context, to allow the use of Valgrind and other user space tools on the code.
+> 
+> "Just compiling a couple of kernel source files in a normal user land"
+> is much harder than you think.  It requires writing vast numbers of
+> mocking functions --- for a file system I would have to simulate the
+> block device layer, large portions of the VFS layer, the scheduler and
+> the locking layer if I want to test locking bugs, etc., etc.  In
+> practice, UML itself is serving as mocking layer, by its mere
+> existence.  
 
-To 1) I agree with Frank in that the problem with using UML is that you still have to
-relate to the complexity of a kernel run time system, while what you really want for these
-types of tests is just to compile a couple of kernel source files in a normal user land
-context, to allow the use of Valgrind and other user space tools on the code. The
-challenge is to get the code compiled in such an environment as it usually relies on
-subtle kernel macros and definitions, which is why UML seems like such an attractive
-solution. Like Frank I really see no big difference from a testing and debugging 
-perspective of UML versus running inside a Qemu/KVM process, and I think I have an idea 
-for a better solution: 
+I might not see the full picture here wrt file system testing, 
+but I do know exactly how difficult it is to do it for that ~29,000 
+lines of code Infiniband driver I was working on, since actually I did it
+with several versions of the kernel. Anyway that's probably more of a 
+topic for a talk than an email thread :-)
 
-In the early phases of the SIF project which mention below, I did a lot of experimentation around this. My biggest challenge then was to test the driver
-implementation of the pages table handling of an Intel page table compatible on-device 
-MMU, using a mix of page sizes, but with a few subtle limitations in the hardware. With some efforts of code generation and heavy automated use of
-compiler feedback, I was able 
-to do that to great satisfaction, as it probably saved the project a lot of time in 
-debugging, and myself a lot of pain :)
+> So when Frank says that KUnit doesn't provide any mocking
+> functions, I don't at all agree.  Using KUnit and UML makes testing
+> internal interfaces *far* simpler, especially if the comparison is
+> "just compile some kernel source files as part of a userspace test
+> program".
+> 
+> Perhaps your and Frank's experience is different --- perhaps that can
+> be explained by your past experience and interest in testing device
+> drivers as opposed to file systems.
+> 
+> The other thing I'd add is that at least for me, a really important
+> consideration is how quickly we can run tests.  I consider
+> minimization of developer friction (e.g., all you need to do is
+> running "make ; kvm-xfstests --smoke" to run tests), and maximizing
+> developer velocity to be high priority goals.  Developer velocity is
+> how quickly can you run the tests; ideally, less than 5-10 seconds.
 
-To 2) most of the current xfstests (if not all?) are user space tests that do not use 
-extra test specific kernel code, or test specific changes to the modules under test (am I 
-right, Ted?) and I believe that's just as it should be: if something can be exercised well enough from user space, then that's the easier approach. 
+I completely agree on that one. I think a fundamental feature of any 
+framework at this level is that it should be usable as developer tests as part
+of an efficient work cycle.
 
-However sometimes the test cannot be made easily without interacting directly 
-with internal kernel interfaces, or having such interaction would greatly simplify or
-increase the precision of the test. This need was the initial motivation for us to make 
-KTF (https://github.com/oracle/ktf, http://heim.ifi.uio.no/~knuto/ktf/index.html) which we are working on to adapt to fit naturally and in the right way
-as a kernel patch set.
+> And that's the other reason why I consider unit tests to be a
+> complement to integration tests.  "gce-xfstests --smoke" takes 10-15
+> minutes.  If I can have unit tests which takes 5-15 seconds for a
+> smoke test of the specific part of ext4 that I am modifying (and often
+> with much better coverage than integration tests from userspace),
+> that's at really big deal.  I can do this for e2fsprogs; but if I have
+> to launch a VM, the VM overhead pretty much eats all or most of that
+> time budget right there.
 
-We developed the SIF infiniband HCA driver
-(https://github.com/oracle/linux-uek/tree/uek4/qu7/drivers/infiniband/hw/sif)
-and associated user level libraries in what I like to call a "pragmatically test driven" 
-way. At the end of the project we had quite a few unit tests, but only a small fraction of them were KTF tests, most of the testing needs were covered
-by user land unit tests, 
-and higher level application testing.
+This is exactly the way we work with KTF as well: 
+Change the kernel module under test, and/or the test code, 
+compile, unload/load modules and run the tests again, all within seconds.
+The overhead of rebooting one or more VMs (network tests sometimes 
+require more than one node) or even a physical system, 
+if the issue cannot be reproduced without running non-virtualized, 
+would only be necessary if the test causes an oops or other crash 
+that prevents the unload/load path.
 
-To you Frank, and your concern about having to learn yet another tool with it's own set of syntax, I completely agree with you. We definitely would want
-to minimize the need to 
-learn new ways, which is why I think it is important to see the whole complex of unit
-testing together, and at least make sure it works in a unified and efficient way from a
-syntax and operational way. 
+> From looking at your documentation of KTF, you are targetting the use
+> case of continuous testing.  That's a different testing scenario than
+> what I'm describing; with continuous testing, overhead measured in
+> minutes or even tens of minutes is not a big deal.  But if you are
+> trying to do real-time testing as part of your development process ---
+> *real* Test Driven Development, then test latency is a really big
+> deal.
 
-With KTF we focus on trying to make kernel testing as similar and integrated with user
-space tests as possible, using similar test macros, and also to not reinvent more wheels than necessary by basing reporting and test execution on
-existing user land tools.
-KTF integrates with Googletest for this functionality. This also makes the reporting format discussion here irrelevant for KTF, as KTF supports whatever
-reporting format the user land tool supports - Googletest for instance naturally supports pluggable reporting implementations, and there already seems
-to be a TAP reporting extension out there (I haven't tried it yet though)
+My experience is that unless one can enforce tests to be run on 
+everyone else's changes as well, one often ends up having to pursue the bugs 
+introduced by others but caught by the tests, so I believe automation and 
+unit/low level testing really should go hand in hand. This is the reason for 
+the emphasis on automation in the KTF docs, but the primary driver for me has 
+always been as a developer toolkit.
 
-Using and relating to an existing user land framework allows us to have a set of 
-tests that works the same way from a user/developer perspective, 
-but some of them are kernel only tests, some are ordinary user land 
-tests, exercising system call boundaries and other kernel
-interfaces, and some are what we call "hybrid", where parts of 
-the test run in user mode and parts in kernel mode.
+> I'll grant that for people who are working on device drivers where
+> architecture dependencies are a big deal, building for an architecture
+> where you can run in a virtual environment or using test hardware is
+> going to be a better way to go.  And Brendan has said he's willing to
+> look at adapting KUnit so it can be built for use in a virtual
+> environment to accomodate your requirements.
+> 
+> As far as I'm concerned, however, I would *not* be interested in KTF
+> unless you could demonstrate to me that launching at test VM, somehow
+> getting the kernel modules copied into the VM, and running the tests
+> as kernel modules, has zero overhead compared to using UML.
 
-I hope we can discuss this complex in more detail, for instance at the testing 
-and fuzzing workshop at LPC later this year, where I have proposed a topic for it.
+As you alluded to above, the development cycle time is really the crucial 
+thing here - if what you get has more value to you, then you'd be willing 
+to wait just a few more seconds for it. And IMHO the real interesting notion of 
+time is the time from saving the changes until you can verify that 
+the test either passes, or even more important: Why it failed..
 
-Thanks,
+> Ultimately, I'm a pragmatist.  If KTF serves your needs best, good for
+> you.  If other approaches are better for other parts of the kernel,
+> let's not try to impose a strict "There Must Be Only One" religion.
+> That's already not true today, and for good reason.  There are many
+> different kinds of kernel code, and many different types of test
+> philosophies.  Trying to force all kernel testing into a single
+> Procrustean Bed is simply not productive.
+
+I definitely pragmatically prefer evolution over revolution myself, 
+no doubt about that, and I definitely appreciate this detailed view seen from the 
+filesystem side,
+
+Thanks!
 Knut
+
+> 
+> Regards,
+> 
+> 						- Ted
