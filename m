@@ -1,10 +1,26 @@
-From: "Mail Administrator" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: see transcript for details
-Date: Fri, 10 May 2019 11:47:23 +0800
-Message-ID: <20190510034912.86A5021260A7D@ml01.01.org>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Fri, 10 May 2019 07:48:35 +0200
+Message-ID: <a1b88d5add15d43de0468c32d9a2427629337abb.camel@oracle.com>
+References: <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
+ <20190509015856.GB7031@mit.edu>
+ <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
+ <20190509032017.GA29703@mit.edu>
+ <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
+ <20190509133551.GD29703@mit.edu>
+ <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
+ <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
+ <20190509214233.GA20877@mit.edu>
+ <b09ba170-229b-fde4-3e9a-e50d6ab4c1b5@deltatee.com>
+ <20190509233043.GC20877@mit.edu>
+ <8914afef-1e66-e6e3-f891-5855768d3018@deltatee.com>
+ <6d6e91ec-33d3-830b-4895-4d7a20ba7d45@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2219363431367333886=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <6d6e91ec-33d3-830b-4895-4d7a20ba7d45-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -14,66 +30,112 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Tim.Bird-7U/KSKJipcs@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, pmladek-IBi9RG/b67k@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+On Thu, 2019-05-09 at 22:18 -0700, Frank Rowand wrote:
+> On 5/9/19 4:40 PM, Logan Gunthorpe wrote:
+> > 
+> > 
+> > On 2019-05-09 5:30 p.m., Theodore Ts'o wrote:
+> >> On Thu, May 09, 2019 at 04:20:05PM -0600, Logan Gunthorpe wrote:
+> >>>
+> >>> The second item, arguably, does have significant overlap with kselftest.
+> >>> Whether you are running short tests in a light weight UML environment or
+> >>> higher level tests in an heavier VM the two could be using the same
+> >>> framework for writing or defining in-kernel tests. It *may* also be valuable
+> >>> for some people to be able to run all the UML tests in the heavy VM
+> >>> environment along side other higher level tests.
+> >>>
+> >>> Looking at the selftests tree in the repo, we already have similar items to
+> >>> what Kunit is adding as I described in point (2) above. kselftest_harness.h
+> >>> contains macros like EXPECT_* and ASSERT_* with very similar intentions to
+> >>> the new KUNIT_EXECPT_* and KUNIT_ASSERT_* macros.
+> >>>
+> >>> However, the number of users of this harness appears to be quite small. Most
+> >>> of the code in the selftests tree seems to be a random mismash of scripts
+> >>> and userspace code so it's not hard to see it as something completely
+> >>> different from the new Kunit:
+> >>>
+> >>> $ git grep --files-with-matches kselftest_harness.h *
+> >>
+> >> To the extent that we can unify how tests are written, I agree that
+> >> this would be a good thing.  However, you should note that
+> >> kselftest_harness.h is currently assums that it will be included in
+> >> userspace programs.  This is most obviously seen if you look closely
+> >> at the functions defined in the header files which makes calls to
+> >> fork(), abort() and fprintf().
+> > 
+> > Ah, yes. I obviously did not dig deep enough. Using kunit for
+> > in-kernel tests and kselftest_harness for userspace tests seems like
+> > a sensible line to draw to me. Trying to unify kernel and userspace
+> > here sounds like it could be difficult so it's probably not worth
+> > forcing the issue unless someone wants to do some really fancy work
+> > to get it done.
+> > 
+> > Based on some of the other commenters, I was under the impression
+> > that kselftests had in-kernel tests but I'm not sure where or if they
+> > exist.
+> 
+> YES, kselftest has in-kernel tests.  (Excuse the shouting...)
+> 
+> Here is a likely list of them in the kernel source tree:
+> 
+> $ grep module_init lib/test_*.c
+> lib/test_bitfield.c:module_init(test_bitfields)
+> lib/test_bitmap.c:module_init(test_bitmap_init);
+> lib/test_bpf.c:module_init(test_bpf_init);
+> lib/test_debug_virtual.c:module_init(test_debug_virtual_init);
+> lib/test_firmware.c:module_init(test_firmware_init);
+> lib/test_hash.c:module_init(test_hash_init);	/* Does everything */
+> lib/test_hexdump.c:module_init(test_hexdump_init);
+> lib/test_ida.c:module_init(ida_checks);
+> lib/test_kasan.c:module_init(kmalloc_tests_init);
+> lib/test_list_sort.c:module_init(list_sort_test);
+> lib/test_memcat_p.c:module_init(test_memcat_p_init);
+> lib/test_module.c:static int __init test_module_init(void)
+> lib/test_module.c:module_init(test_module_init);
+> lib/test_objagg.c:module_init(test_objagg_init);
+> lib/test_overflow.c:static int __init test_module_init(void)
+> lib/test_overflow.c:module_init(test_module_init);
+> lib/test_parman.c:module_init(test_parman_init);
+> lib/test_printf.c:module_init(test_printf_init);
+> lib/test_rhashtable.c:module_init(test_rht_init);
+> lib/test_siphash.c:module_init(siphash_test_init);
+> lib/test_sort.c:module_init(test_sort_init);
+> lib/test_stackinit.c:module_init(test_stackinit_init);
+> lib/test_static_key_base.c:module_init(test_static_key_base_init);
+> lib/test_static_keys.c:module_init(test_static_key_init);
+> lib/test_string.c:module_init(string_selftest_init);
+> lib/test_ubsan.c:module_init(test_ubsan_init);
+> lib/test_user_copy.c:module_init(test_user_copy_init);
+> lib/test_uuid.c:module_init(test_uuid_init);
+> lib/test_vmalloc.c:module_init(vmalloc_test_init)
+> lib/test_xarray.c:module_init(xarray_checks);
+> 
+> 
+> > If they do exists, it seems like it would make sense to
+> > convert those to kunit and have Kunit tests run-able in a VM or
+> > baremetal instance.
+> 
+> They already run in a VM.
+> 
+> They already run on bare metal.
+> 
+> They already run in UML.
+> 
+> This is not to say that KUnit does not make sense.  But I'm still trying
+> to get a better description of the KUnit features (and there are
+> some).
 
---===============2219363431367333886==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+FYI, I have a master student who looks at converting some of these to KTF, such as for
+instance the XArray tests, which lended themselves quite good to a semi-automated
+conversion. 
 
-æl¬Y¨R$Äøw¥ùÇP:à!-&c¶‰ƒÅÎÛÆãøÁ¾yâ¹ô¼Tp©_{iÇ–ô©)lÕŠZ3kÚ5%ÏUUt<ÊÁ—Joì¤i¬‚õ¼Ìd[şØMçÃ[êqîwj>‰a/4í-ç†Y`ÊK“ ó¾mQ'Ô‘ÔFw7¾’°ÖoÔßMGô‡›6Ík²·Dæ<¬š£kñ“&ÉcãÁTğó.K¬ÕOŠ«Ö±?<›æ£jã yìsñ©c ‘®"_ú£¬¶áüøj}ÔôŸ8W—Ñ,©Ú<£ø„öTíeäl?}Ëöó±~Ç§C&ûãõù-³(§
-ÂEŞƒH¡ëWGNtwñ'Š\¶ıÈìeEKe¾P
-½›U\»2&Ëõ
-àégÇab‘5K·ßÏ¡ Ñ{öRG’ñIñPšBp’¿”ÊµÊ U;2"
-lS¥«­‘Sq{lqM}¿¸¾6Üe–‡©·ğÚœß‰î×Í§±å²ƒfÁÆ”;Pi­:ÚÇ¹#şaª²øÉéMæ”
-§®U¥ë7;oÂ0:‡:öóÖ(œZx‰³|{¬ì ]æ\ÂJ z´}7^
-v¬PH
-Gm
-¤FÚÑ
-éŞÚËÏXà oÆì|560 ² “µüwnLGé&ÔHúm4j†|£ıœÖ±$ª(5ÈE!pIh¢wooïSÅÕ
-Ë&Â~¸á,Ú&ú”§´/†»YSSFhÛxÖC›êñt›µÀñá²kq¦Ò¨3©¿šŠwÜeª¡ºÄÚi?nt‹“x¶Ø/v—¸Ì3†ƒq“%T
-ÈÂÕÆ’±ŸI”ÓçÌÚä¶âà{rDDfjDı^u9ñ‡oªÇ‰ë<ş­ŸÇ­¬BùTø;¤İ6-›’p‚Tª‘3¼¤°ĞnS¾Ú’æ1ÎÓÔ¼c|)iü¤LPxNûwşÏlÁ§_ó§Ù·Hoµ»>pñ¤ê³n>àöÅøQ)¯::~ïø
-"¹qi÷#Â†
-†’OƒRç;É™å¥Æİ‰îå×hLN«İI“;A$İ‰ªÒïŸtˆ¤
-°‰g"g!nàôAAthôåÀlÅ$Pe…ª{×¿…cíıòóõ—ÊŠP0¾'-âW”PPn)0UØ“øSJAó¿}Öqs(ĞŞ0uÌÏ*şÂ6n]ás“ôTâàq­lqÕäÌÇ±%Ù®P’È3K\áw}üœ8 Ò>T¼\•¨'ÌÄ^L×¯®ià!ı˜Wø¤LE?˜N¡3'5ÄCtİS½O—Ş¯†î˜5Zš…_Í„ Œ7 ,ú(Ö®
-‚ãï.-¤
-ö¦b Úë ò”¥Ê¾Š"ëB‰?¬£•öÀ½2Ëõ
-‡Ë©ÀôZ*§h.©‰jàl” HŞ·ÚHUä½¾Zá®wLD5A‡ÊÑÁ¢
-J?÷ëJ\ÌpY´¡yCr†v¢IèÂ"N£Bİ¿B¾‹ƒ]4ëXTÉŸuMW°z¾ç¹)è|:r®£Jûı¨…w;µêáG¢¯‡ìW'—/¸aúz®rğAX³XÇå9*#¼f!KjõË•1”²ë!MîÌÚL7[rö$FcQûH*#A`ro(ª¸,:ç;ñ²MÕmø
-õmîuòXe¥q÷š$™·g¡˜Â/ËòDz£âÄBÍ
-AİqÇNW²ò
-BnâÁQEH|Ï¯­:E¾PÏ,íw¶İY.N´EÃ\‘”H†ZRk0*ÇTTó2’5¾&½õ•s/~¯ÄY¡!İâ?©aõ8şCª™7h7¹ëãbUái“4à~…¹£ÕíFvQáJºÉşQŞ/À¥‡HRªRÉ ¥fØ"ŞTmyHÇíŠ,‘KßcpS¤;À
-Ï2of¢'í6l}3*†L‡¦´U±³H|®/87œy…İãù)úËY:¨µ÷K*Zã“·fDãW§ uÁFJí§¦»PŠ%7‹dÛFÑzõ…èÎíê;]¨ÏNRáO„Ü1Ğé•jhzëqÊùŸ®fq›«ÆË¢Q×6
-Õ±±‘Ó#-‹Ôd³b÷Ô‘Rè¬t ˆĞos»JÚUêÈÎ¹‚dÛºn“1±<ín‚r“`ÎJx7tÉ/_"aßP]³7Ü-9»»ùÛ¿Û|&0ÎDteÅ0~çúB_Å!¸Ğ\
-ç ousŞ³Fœ—xˆã·~÷çëèÔî§½cc¡jlRT?¾î~í¨gxô FÉC®¸zXåè™³ùıµ¥ïÉ>
-ó™oµœIèÙT>ŠgsÅs)Ç.çÀ)O&ÉÚ¾ğÃı—}¶
-z÷ª:ûßÇÃì£¿ŠUáúğÓ Á…‡¦G÷Å¹L%bænŠÛ!Æçv‰¹#”£pµ|#õ°P­úağ·Uè
- [Vë—ƒf­#´ôtø1j'íd—ê>?SµÕ’e³ßÛDKø“.§ 5ƒ6ºÄJW*$~Ç:vãõ7›`J°µd‰oi·Š5Æ¦ìƒ[4ÏzIWv»0-Qwùx¼öÑ~¢%T©oo,¢ˆù®¢p±·İhy]&]E¸Gs¥®8Ÿ¡‰Âõ ?‹UåeŠDèà8ú[Åm¦ôõğ­8‚9\FO0Í½Ú×´Ó[vÖ¥#Â1ËÆ1Ú_Ø¸ÛÚIídQí:×(ĞpG!ôDÁÀt –tşv/Íä$È›5ëş"<çl>pÁ5W“Dtb9­YWã½g½h4
->±Q“–ı¹2ÔÛéÛúĞú[”Ù%wm|-i¦5Æ4—K73ÂzÑ&œ•]9æyÅ&ü“©’çÄüµEs†èkáöåW"oE1¼TŸ[.Sì%±Sófs~„
-’Äj‘Ær.p%Í,kc'Æ¡“ç±!R
-â.VwÈuhnLÈ´q’Juz”£ÙÆÁ?5¼ÂOKò_¨ŞôC{<³`SaÃµÉn,ûÍ‹áfCKûmUñGhêFîa‚ùtöšrpw,ha‰y`
-İß5ŞƒŸZöXàæğ-ø1µ;V|8òô›™J·Ç&˜ëà¢Mg>¡7Éø¥’¼ŞŞ‡>jŞ³’HNWğk[
-¢Å¦¥¾åAåÍÌâC˜>‘‰,£ûĞxjóxÏ‚î£jß†·äûøà¼R¥‹Öå•ìû¸ïzUT‚nóF?GK½I³p´ùçW‚¢†íªÔ”TOàú°½]«á¥ÛğÌY™)¢  òÍv®Ÿ\öşGYR]Õg<rsèX·p¨Øí¡,IİlJ*™!A¸®“K-5Ş¥ÌİùèK'äğ¯¥C¸·x[ˆB²
-!/¥ÄQ¢~Œ 7Ìöw—‡rjCs›{Jn
-Û° ÉÜä
-s¨'ıL—o“œ©¾{yPœ*Ç‹CÍåkœ#£°C5PßöÆ¶«k1¹Ü±åígë†{
-©‡¹bŞ°Ş!Œ¦±*ƒá!)özQA¤(Š:éW×›-×[1äQËrG¹¾Åñ‡uTb8O}ÍR¥/Â39 ²%ªVæjr<o™%vOiÙ.XÁF÷½aù†åAAA86tä”MÙŞ/ö)Æ,ÆÀ;%1¦”º§Şù-–1zùKkGÜ{Ş5Y½Ş7–Õ¹a]e°¹4aS…êF-Æ÷-ä¨åüîó||á‚^cy„À[ )T¢Îİ{Xj±ãP<ëå®Dv1ñøøR½é9Y¸¿Æ¯L÷”æ‰ÎĞic7B·Àô[‡“ZÑNúNî
-÷M:!ü˜î¼¼Ìƒ¥Â¼LëQ³£„Š^çÍ2$Œ¥O­êWTü
-VåÉé¡ß‹±Š2ñªæÔ{³<Ş5#9×DØ<İG 3Fh®{BÊ"®Î81”$nÊ1«9øá‡óx"±5É%Ó`®ğUJE?[ş2¬M¨ª”¡P‹,|ÁÁi—`}43Ï ^åÇxÈ¸Æ7Y[†Tè¯PKÒÆ²¦h
+The result is also a somewhat more compact code as well as the flexibility 
+provided by the Googletest executor and the KTF frameworks, such as running selected
+tests, output formatting, debugging features etc.
 
+Knut
 
---===============2219363431367333886==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============2219363431367333886==--
+> -Frank
