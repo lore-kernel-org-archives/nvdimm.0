@@ -1,30 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com
- [IPv6:2607:f8b0:4864:20::442])
+Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com
+ [IPv6:2607:f8b0:4864:20::644])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B191E212657B2
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:12:43 -0700 (PDT)
-Received: by mail-pf1-x442.google.com with SMTP id s11so3827163pfm.12
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:12:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 31DD7212657B2
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:05:29 -0700 (PDT)
+Received: by mail-pl1-x644.google.com with SMTP id p15so3363300pll.4
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:05:29 -0700 (PDT)
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
-References: <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
+References: <20190501230126.229218-1-brendanhiggins@google.com>
+ <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
  <20190507080119.GB28121@kroah.com>
  <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
  <20190509015856.GB7031@mit.edu>
  <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
- <20190509032017.GA29703@mit.edu>
- <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
- <20190509133551.GD29703@mit.edu>
- <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
- <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
- <20190509214233.GA20877@mit.edu>
+ <78e4d46e-6212-9871-51d6-dd2126f39d45@gmail.com>
+ <20190510104338.GB6889@mit.edu>
 From: Frank Rowand <frowand.list@gmail.com>
-Message-ID: <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
-Date: Fri, 10 May 2019 14:12:40 -0700
+Message-ID: <86ea0fa1-8ce7-c299-3144-c57fc465c891@gmail.com>
+Date: Fri, 10 May 2019 14:05:26 -0700
 MIME-Version: 1.0
-In-Reply-To: <20190509214233.GA20877@mit.edu>
+In-Reply-To: <20190510104338.GB6889@mit.edu>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -37,49 +34,113 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Theodore Ts'o <tytso@mit.edu>, Tim.Bird@sony.com, knut.omang@oracle.com, gregkh@linuxfoundation.org, brendanhiggins@google.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
+To: Theodore Ts'o <tytso@mit.edu>, Greg KH <gregkh@linuxfoundation.org>, Brendan Higgins <brendanhiggins@google.com>, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/9/19 2:42 PM, Theodore Ts'o wrote:
-> On Thu, May 09, 2019 at 11:12:12AM -0700, Frank Rowand wrote:
+On 5/10/19 3:43 AM, Theodore Ts'o wrote:
+> On Thu, May 09, 2019 at 10:11:01PM -0700, Frank Rowand wrote:
+>>>> You *can* run in-kernel test using modules; but there is no framework
+>>>> for the in-kernel code found in the test modules, which means each of
+>>>> the in-kernel code has to create their own in-kernel test
+>>>> infrastructure.
 >>
->>    "My understanding is that the intent of KUnit is to avoid booting a kernel on
->>    real hardware or in a virtual machine.  That seems to be a matter of semantics
->>    to me because isn't invoking a UML Linux just running the Linux kernel in
->>    a different form of virtualization?
->>
->>    So I do not understand why KUnit is an improvement over kselftest.
->>
->>    ...
->>
->>    What am I missing?"
+>> The kselftest in-kernel tests follow a common pattern.  As such, there
+>> is a framework.
 > 
-> One major difference: kselftest requires a userspace environment; it
-> starts systemd, requires a root file system from which you can load
-> modules, etc.  Kunit doesn't require a root file system; doesn't
-> require that you start systemd; doesn't allow you to run arbitrary
-> perl, python, bash, etc. scripts.  As such, it's much lighter weight
-> than kselftest, and will have much less overhead before you can start
-> running tests.  So it's not really the same kind of virtualization.
+> So we may have different definitions of "framework".  In my book, code
+> reuse by "cut and paste" does not make a framework.  Could they be
+> rewritten to *use* a framework, whether it be KTF or KUnit?  Sure!
+> But they are not using a framework *today*.
 > 
-> Does this help?
+>> This next two paragraphs you ignored entirely in your reply:
+>>
+>>> Why create an entire new subsystem (KUnit) when you can add a header
+>>> file (and .c code as appropriate) that outputs the proper TAP formatted
+>>> results from kselftest kernel test modules?
 > 
-> 					- Ted
+> And you keep ignoring my main observation, which is that spinning up a
+> VM, letting systemd start, mounting a root file system, etc., is all
+> unnecessary overhead which takes time.  This is important to me,
+> because developer velocity is extremely important if you are doing
+> test driven development.
+
+No, I do not "keep ignoring my main observation".  You made that
+observation in an email of Thu, 9 May 2019 09:35:51 -0400.  In my
+reply to Tim's reply to your email, I wrote:
+
+   "< massive snip >
+
+   I'll reply in more detail to some other earlier messages in this thread
+   later.
+
+   This reply is an attempt to return to the intent of my original reply to
+   patch 0 of this series."
+
+
+I have not directly replied to any of your other emails that have made
+that observation (I may have replied to other emails that were replies
+to such an email of yours, but not in the context of the overhead).
+After this email, my next reply will be my delayed response to your
+original email about overhead.
+
+And the "mommy, he hit me first" argument does not contribute to a
+constructive conversation about a kernel patch submittal.
+
+
+> Yes, you can manually unload a module, recompile the module, somehow
+> get the module back into the VM (perhaps by using virtio-9p), and then
+> reloading the module with the in-kernel test code, and the restart the
+> test.  BUT: (a) even if it is faster, it requires a lot of manual
+> steps, and would be very hard to automate, and (b) if the test code
+> ever OOPS or triggers a lockdep warning, you will need to restart the
+> VM, and so this involves all of the VM restart overhead, plus trying
+> to automate determining when you actually do need to restart the VM
+> versus unloading and reloading the module.   It's clunky.
+
+I have mentioned before that the in-kernel kselftest tests can be
+run in UML.  You simply select the configure options to build them
+into the kernel instead of building them as modules.  Then build
+a UML kernel and execute ("boot") the UML kernel.
+
+This is exactly the same as for KUnit.  No more overhead.  No less
+overhead.  No more steps.  No fewer steps.
+
+
+> 
+> Being able to do the equivalent of "make && make check" is a really
+> big deal.  And "make check" needs to go fast.
+> 
+> You keep ignore this point, perhaps because you don't care about this
+> issue?  Which is fine, and why we may just need to agree to disagree.
+
+No, I agree that fast test execution is useful.
+
+
+> 
+> Cheers,
+> 
+> 						- Ted
+> 
+> P.S.  Running scripts is Turing-equivalent, so it's self-evident that
+> *anything* you can do with other test frameworks you can somehow do in
+> kselftests.  That argument doesn't impress me, and why I do consider
+> it quite flippant.  (Heck, /bin/vi is Turing equivalent so we could
+> use vi to as a kernel test framework.  Or we could use emacs.  Let's
+> not.  :-)
+
+I have not been talking about running scripts, other than to the extent
+that _one of the ways_ the in-kernel kselftests can be invoked is via
+a script that loads the test module.  The same exact in-kernel test can
+instead be built into a UML kernel, as mentioned above.
+
+
+> The question is whether it is the most best and most efficient way to
+> do that testing.  And developer velocity is a really big part of my
+> evaluation function when judging whether or a test framework is fit
+> for that purpose.
+> .
 > 
 
-I'm back to reply to this subthread, after a delay, as promised.
-
-That is the type of information that I was looking for, so
-thank you for the reply.
-
-However, the reply is incorrect.  Kselftest in-kernel tests (which
-is the context here) can be configured as built in instead of as
-a module, and built in a UML kernel.  The UML kernel can boot,
-running the in-kernel tests before UML attempts to invoke the
-init process.
-
-No userspace environment needed.  So exactly the same overhead
-as KUnit when invoked in that manner.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
