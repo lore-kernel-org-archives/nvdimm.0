@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E428821268FBB
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:33 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 10/30] fuse: Separate fuse device allocation and
- installation in fuse_conn
-Date: Wed, 15 May 2019 15:26:55 -0400
-Message-Id: <20190515192715.18000-11-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0F42821237808
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:08:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 1/4] ndctl/namespace.c: fix resource leak
+Date: Fri, 10 May 2019 13:08:36 -0600
+Message-Id: <20190510190839.29637-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190510190839.29637-1-vishal.l.verma@intel.com>
+References: <20190510190839.29637-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,135 +22,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-As of now fuse_dev_alloc() both allocates a fuse device and installs it
-in fuse_conn list. fuse_dev_alloc() can fail if fuse_device allocation
-fails.
+Static analysis warns that we could be leaking cmd_cap and cmd_clear.
+Fix the error handling to avoid the leaks.
 
-virtio-fs needs to initialize multiple fuse devices (one per virtio
-queue). It initializes one fuse device as part of call to
-fuse_fill_super_common() and rest of the devices are allocated and
-installed after that.
-
-But, we can't affort to fail after calling fuse_fill_super_common() as
-we don't have a way to undo all the actions done by fuse_fill_super_common().
-So to avoid failures after the call to fuse_fill_super_common(),
-pre-allocate all fuse devices early and install them into fuse connection
-later.
-
-This patch provides two separate helpers for fuse device allocation and
-fuse device installation in fuse_conn.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/fuse/cuse.c   |  2 +-
- fs/fuse/dev.c    |  2 +-
- fs/fuse/fuse_i.h |  4 +++-
- fs/fuse/inode.c  | 25 ++++++++++++++++++++-----
- 4 files changed, 25 insertions(+), 8 deletions(-)
+ ndctl/namespace.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/fs/fuse/cuse.c b/fs/fuse/cuse.c
-index a6ed7a036b50..a509747153a7 100644
---- a/fs/fuse/cuse.c
-+++ b/fs/fuse/cuse.c
-@@ -506,7 +506,7 @@ static int cuse_channel_open(struct inode *inode, struct file *file)
- 	 */
- 	fuse_conn_init(&cc->fc, file->f_cred->user_ns, &fuse_dev_fiq_ops, NULL);
- 
--	fud = fuse_dev_alloc(&cc->fc);
-+	fud = fuse_dev_alloc_install(&cc->fc);
- 	if (!fud) {
- 		kfree(cc);
- 		return -ENOMEM;
-diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index ef489beadf58..ee9dd38bc0f0 100644
---- a/fs/fuse/dev.c
-+++ b/fs/fuse/dev.c
-@@ -2318,7 +2318,7 @@ static int fuse_device_clone(struct fuse_conn *fc, struct file *new)
- 	if (new->private_data)
- 		return -EINVAL;
- 
--	fud = fuse_dev_alloc(fc);
-+	fud = fuse_dev_alloc_install(fc);
- 	if (!fud)
- 		return -ENOMEM;
- 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 0b578e07156d..4008ed65a48d 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -1050,7 +1050,9 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
-  */
- void fuse_conn_put(struct fuse_conn *fc);
- 
--struct fuse_dev *fuse_dev_alloc(struct fuse_conn *fc);
-+struct fuse_dev *fuse_dev_alloc_install(struct fuse_conn *fc);
-+struct fuse_dev *fuse_dev_alloc(void);
-+void fuse_dev_install(struct fuse_dev *fud, struct fuse_conn *fc);
- void fuse_dev_free(struct fuse_dev *fud);
- void fuse_send_init(struct fuse_conn *fc, struct fuse_req *req);
- 
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 126e77854dac..9b0114437a14 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -1027,8 +1027,7 @@ static int fuse_bdi_init(struct fuse_conn *fc, struct super_block *sb)
- 	return 0;
- }
- 
--struct fuse_dev *fuse_dev_alloc(struct fuse_conn *fc)
--{
-+struct fuse_dev *fuse_dev_alloc(void) {
- 	struct fuse_dev *fud;
- 	struct list_head *pq;
- 
-@@ -1043,16 +1042,32 @@ struct fuse_dev *fuse_dev_alloc(struct fuse_conn *fc)
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index c7abcbf..e281298 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1083,40 +1083,42 @@ static int bus_send_clear(struct ndctl_bus *bus, unsigned long long start,
+ 	rc = ndctl_cmd_submit_xlat(cmd_cap);
+ 	if (rc < 0) {
+ 		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
+-		ndctl_cmd_unref(cmd_cap);
+-		return rc;
++		goto out_cap;
  	}
  
- 	fud->pq.processing = pq;
--	fud->fc = fuse_conn_get(fc);
- 	fuse_pqueue_init(&fud->pq);
+ 	/* send clear_error */
+ 	if (ndctl_cmd_ars_cap_get_range(cmd_cap, &range)) {
+ 		debug("bus: %s failed to get ars_cap range\n", busname);
+-		return -ENXIO;
++		rc = -ENXIO;
++		goto out_cap;
+ 	}
  
-+	return fud;
-+}
-+EXPORT_SYMBOL_GPL(fuse_dev_alloc);
-+
-+void fuse_dev_install(struct fuse_dev *fud, struct fuse_conn *fc) {
-+	fud->fc = fuse_conn_get(fc);
- 	spin_lock(&fc->lock);
- 	list_add_tail(&fud->entry, &fc->devices);
- 	spin_unlock(&fc->lock);
-+}
-+EXPORT_SYMBOL_GPL(fuse_dev_install);
+ 	cmd_clear = ndctl_bus_cmd_new_clear_error(range.address,
+ 					range.length, cmd_cap);
+ 	if (!cmd_clear) {
+ 		debug("bus: %s failed to create cmd\n", busname);
+-		return -ENOTTY;
++		rc = -ENOTTY;
++		goto out_cap;
+ 	}
  
-+struct fuse_dev *fuse_dev_alloc_install(struct fuse_conn *fc)
-+{
-+	struct fuse_dev *fud;
-+
-+	fud = fuse_dev_alloc();
-+	if (!fud)
-+		return NULL;
-+
-+	fuse_dev_install(fud, fc);
- 	return fud;
+ 	rc = ndctl_cmd_submit_xlat(cmd_clear);
+ 	if (rc < 0) {
+ 		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
+-		ndctl_cmd_unref(cmd_clear);
+-		return rc;
++		goto out_clr;
+ 	}
+ 
+ 	cleared = ndctl_cmd_clear_error_get_cleared(cmd_clear);
+ 	if (cleared != range.length) {
+ 		debug("bus: %s expected to clear: %lld actual: %lld\n",
+ 				busname, range.length, cleared);
+-		return -ENXIO;
++		rc = -ENXIO;
+ 	}
+ 
+-	ndctl_cmd_unref(cmd_cap);
++out_clr:
+ 	ndctl_cmd_unref(cmd_clear);
+-	return 0;
++out_cap:
++	ndctl_cmd_unref(cmd_cap);
++	return rc;
  }
--EXPORT_SYMBOL_GPL(fuse_dev_alloc);
-+EXPORT_SYMBOL_GPL(fuse_dev_alloc_install);
  
- void fuse_dev_free(struct fuse_dev *fud)
- {
-@@ -1122,7 +1137,7 @@ int fuse_fill_super_common(struct super_block *sb,
- 		       mount_data->fiq_priv);
- 	fc->release = fuse_free_conn;
- 
--	fud = fuse_dev_alloc(fc);
-+	fud = fuse_dev_alloc_install(fc);
- 	if (!fud)
- 		goto err_put_conn;
- 
+ static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
 -- 
 2.20.1
 
