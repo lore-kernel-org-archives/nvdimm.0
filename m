@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0693B21219AE5
- for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:41 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 0/8] daxctl: add a new reconfigure-device command
-Date: Fri,  3 May 2019 15:32:23 -0600
-Message-Id: <20190503213231.12280-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 9572D2125F1F6
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 08:54:20 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v8 4/6]  dax: check synchronous mapping is supported
+Date: Fri, 10 May 2019 21:22:00 +0530
+Message-Id: <20190510155202.14737-5-pagupta@redhat.com>
+In-Reply-To: <20190510155202.14737-1-pagupta@redhat.com>
+References: <20190510155202.14737-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,56 +17,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new daxctl-reconfigure-device command that lets us reconfigure DAX
-devices back and forth between 'system-ram' and 'device-dax' modes. It
-also includes facilities to online any newly hot-plugged memory
-(default), and attempt to offline memory before converting away from the
-system-ram mode (not default, requires a --attempt-offline option).
+This patch introduces 'daxdev_mapping_supported' helper
+which checks if 'MAP_SYNC' is supported with filesystem
+mapping. It also checks if corresponding dax_device is
+synchronous. Virtio pmem device is asynchronous and
+does not not support VM_SYNC. 
 
-Currently missing from this series is a way to persistently store which
-devices have been 'marked' for use as system-ram. This depends on a
-config system overhaul in ndctl, and patches for those will follow
-separately and are independent of this work.
+Suggested-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ include/linux/dax.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-
-
-Vishal Verma (8):
-  libdaxctl: add interfaces in support of device modes
-  libdaxctl: cache 'subsystem' in daxctl_ctx
-  daxctl: add libdaxctl interfaces to enable/disable devices
-  ndctl: add helpers to get/set the online state for a node
-  daxctl: add a new reconfigure-device command
-  Documentation/daxctl: add a man page for daxctl-reconfigure-device
-  contrib/ndctl: fix region-id completions for daxctl
-  contrib/ndctl: add bash-completion for daxctl-reconfigure-device
-
- Documentation/daxctl/Makefile.am              |   3 +-
- .../daxctl/daxctl-reconfigure-device.txt      |  74 +++
- contrib/ndctl                                 |  34 +-
- daxctl/Makefile.am                            |   2 +
- daxctl/builtin.h                              |   1 +
- daxctl/daxctl.c                               |   1 +
- daxctl/device.c                               | 217 ++++++++
- daxctl/lib/Makefile.am                        |   3 +-
- daxctl/lib/libdaxctl-private.h                |  21 +
- daxctl/lib/libdaxctl.c                        | 511 +++++++++++++++++-
- daxctl/lib/libdaxctl.sym                      |  13 +
- daxctl/libdaxctl.h                            |  15 +
- 12 files changed, 884 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/daxctl/daxctl-reconfigure-device.txt
- create mode 100644 daxctl/device.c
-
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index c97fc0cc7167..41b4a5db6305 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -41,6 +41,18 @@ void kill_dax(struct dax_device *dax_dev);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
++/*
++ * Check if given mapping is supported by the file / underlying device.
++ */
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
++{
++	if (!(vma->vm_flags & VM_SYNC))
++		return true;
++	if (!IS_DAX(file_inode(vma->vm_file)))
++		return false;
++	return dax_synchronous(dax_dev);
++}
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+@@ -68,6 +80,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
+ }
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
++{
++	return !(vma->vm_flags & VM_SYNC);
++}
+ #endif
+ 
+ struct writeback_control;
 -- 
 2.20.1
 
