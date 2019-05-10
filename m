@@ -1,19 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com
- [IPv6:2607:f8b0:4864:20::330])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B8B2521268F9C
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:58:57 -0700 (PDT)
-Received: by mail-ot1-x330.google.com with SMTP id g8so6655019otl.8
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:58:57 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id DCA40212377E1
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:08:43 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 0/4] static analysis fixes
+Date: Fri, 10 May 2019 13:08:35 -0600
+Message-Id: <20190510190839.29637-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-References: <20190510190839.29637-1-vishal.l.verma@intel.com>
-In-Reply-To: <20190510190839.29637-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 May 2019 12:58:45 -0700
-Message-ID: <CAPcyv4h+hRYTAefvK78PEe0+1UQAmmvR=feDderNc7nB35nGzg@mail.gmail.com>
-Subject: Re: [ndctl PATCH 0/4] static analysis fixes
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,24 +20,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, May 10, 2019 at 12:08 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> This series just contains a handful of static analysis fixes in
-> preparation for the v65 release.
->
-> Vishal Verma (4):
->   ndctl/namespace.c: fix resource leak
->   ndctl/namespace.c: fix an unchecked return value
->   libndctl: Fix an unhandled return in ndctl_bus_poll_scrub_completion()
->   ndctl/namespace.c: Fix a potential integer overflow
+This series just contains a handful of static analysis fixes in
+preparation for the v65 release.
 
-These all look good to me.
+Vishal Verma (4):
+  ndctl/namespace.c: fix resource leak
+  ndctl/namespace.c: fix an unchecked return value
+  libndctl: Fix an unhandled return in ndctl_bus_poll_scrub_completion()
+  ndctl/namespace.c: Fix a potential integer overflow
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+ ndctl/lib/libndctl.c |  2 ++
+ ndctl/namespace.c    | 28 ++++++++++++++++------------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
+
+-- 
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
