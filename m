@@ -1,57 +1,185 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v2 06/17] kbuild: enable building KUnit
-Date: Fri, 10 May 2019 03:33:52 -0700
-Message-ID: <CAFd5g46dE78f3bx33Sv-CPNx9i8VV=v0Ezwytp8eiQU1MzWbbQ@mail.gmail.com>
-References: <20190501230126.229218-1-brendanhiggins@google.com>
- <20190501230126.229218-7-brendanhiggins@google.com> <CAK7LNAQ+SRMn8UFjW1dZv_TrL0qjD2v2S=rXgtUpiA-urr1DDA@mail.gmail.com>
- <CAFd5g47BNZ0gRz4SXb37XjyXF_LyNZrSmoqDbzaaCUrTg3O7Yg@mail.gmail.com> <CAK7LNAR3DW5UxtsTNtW6mtQic8cukJwJ18=KitC2HX+jO5eo4g@mail.gmail.com>
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Fri, 10 May 2019 13:36:54 +0200
+Message-ID: <0a1659f2abb2cba109ba588e4a87bda252c57be6.camel@oracle.com>
+References: <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
+ <20190509015856.GB7031@mit.edu>
+ <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
+ <20190509032017.GA29703@mit.edu>
+ <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
+ <20190509133551.GD29703@mit.edu>
+ <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
+ <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
+ <20190509214233.GA20877@mit.edu>
+ <b09ba170-229b-fde4-3e9a-e50d6ab4c1b5@deltatee.com>
+ <20190509233043.GC20877@mit.edu>
+ <8914afef-1e66-e6e3-f891-5855768d3018@deltatee.com>
+ <6d6e91ec-33d3-830b-4895-4d7a20ba7d45@gmail.com>
+ <a1b88d5add15d43de0468c32d9a2427629337abb.camel@oracle.com>
+ <CAKMK7uFd1xUx8u3xWLwifVSq4OEnMO4S-m0hESe68UzONXnMFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK7LNAR3DW5UxtsTNtW6mtQic8cukJwJ18=KitC2HX+jO5eo4g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Frank Rowand <frowand.list@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, "Luis R. Rodriguez" <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, "Cc: Shuah Khan" <shuah@kernel.org>, DTML <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infrad
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAKMK7uFd1xUx8u3xWLwifVSq4OEnMO4S-m0hESe68UzONXnMFg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
+Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, Linux Doc Mailing List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, "open list:KERNEL SELFTEST
+ FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>, Julia Lawall <julia.lawall>
 List-Id: linux-nvdimm@lists.01.org
 
-> On Fri, May 10, 2019 at 7:27 PM Brendan Higgins
-> <brendanhiggins@google.com> wrote:
+On Fri, 2019-05-10 at 10:12 +0200, Daniel Vetter wrote:
+> On Fri, May 10, 2019 at 7:49 AM Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > >
-> > > On Thu, May 2, 2019 at 8:03 AM Brendan Higgins
-> > > <brendanhiggins@google.com> wrote:
+> > On Thu, 2019-05-09 at 22:18 -0700, Frank Rowand wrote:
+> > > On 5/9/19 4:40 PM, Logan Gunthorpe wrote:
 > > > >
-> > > > Add KUnit to root Kconfig and Makefile allowing it to actually be built.
 > > > >
-> > > > Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> > > > On 2019-05-09 5:30 p.m., Theodore Ts'o wrote:
+> > > >> On Thu, May 09, 2019 at 04:20:05PM -0600, Logan Gunthorpe wrote:
+> > > >>>
+> > > >>> The second item, arguably, does have significant overlap with kselftest.
+> > > >>> Whether you are running short tests in a light weight UML environment or
+> > > >>> higher level tests in an heavier VM the two could be using the same
+> > > >>> framework for writing or defining in-kernel tests. It *may* also be valuable
+> > > >>> for some people to be able to run all the UML tests in the heavy VM
+> > > >>> environment along side other higher level tests.
+> > > >>>
+> > > >>> Looking at the selftests tree in the repo, we already have similar items to
+> > > >>> what Kunit is adding as I described in point (2) above. kselftest_harness.h
+> > > >>> contains macros like EXPECT_* and ASSERT_* with very similar intentions to
+> > > >>> the new KUNIT_EXECPT_* and KUNIT_ASSERT_* macros.
+> > > >>>
+> > > >>> However, the number of users of this harness appears to be quite small. Most
+> > > >>> of the code in the selftests tree seems to be a random mismash of scripts
+> > > >>> and userspace code so it's not hard to see it as something completely
+> > > >>> different from the new Kunit:
+> > > >>>
+> > > >>> $ git grep --files-with-matches kselftest_harness.h *
+> > > >>
+> > > >> To the extent that we can unify how tests are written, I agree that
+> > > >> this would be a good thing.  However, you should note that
+> > > >> kselftest_harness.h is currently assums that it will be included in
+> > > >> userspace programs.  This is most obviously seen if you look closely
+> > > >> at the functions defined in the header files which makes calls to
+> > > >> fork(), abort() and fprintf().
+> > > >
+> > > > Ah, yes. I obviously did not dig deep enough. Using kunit for
+> > > > in-kernel tests and kselftest_harness for userspace tests seems like
+> > > > a sensible line to draw to me. Trying to unify kernel and userspace
+> > > > here sounds like it could be difficult so it's probably not worth
+> > > > forcing the issue unless someone wants to do some really fancy work
+> > > > to get it done.
+> > > >
+> > > > Based on some of the other commenters, I was under the impression
+> > > > that kselftests had in-kernel tests but I'm not sure where or if they
+> > > > exist.
 > > >
-> > > You need to make sure
-> > > to not break git-bisect'abililty.
+> > > YES, kselftest has in-kernel tests.  (Excuse the shouting...)
+> > >
+> > > Here is a likely list of them in the kernel source tree:
+> > >
+> > > $ grep module_init lib/test_*.c
+> > > lib/test_bitfield.c:module_init(test_bitfields)
+> > > lib/test_bitmap.c:module_init(test_bitmap_init);
+> > > lib/test_bpf.c:module_init(test_bpf_init);
+> > > lib/test_debug_virtual.c:module_init(test_debug_virtual_init);
+> > > lib/test_firmware.c:module_init(test_firmware_init);
+> > > lib/test_hash.c:module_init(test_hash_init);  /* Does everything */
+> > > lib/test_hexdump.c:module_init(test_hexdump_init);
+> > > lib/test_ida.c:module_init(ida_checks);
+> > > lib/test_kasan.c:module_init(kmalloc_tests_init);
+> > > lib/test_list_sort.c:module_init(list_sort_test);
+> > > lib/test_memcat_p.c:module_init(test_memcat_p_init);
+> > > lib/test_module.c:static int __init test_module_init(void)
+> > > lib/test_module.c:module_init(test_module_init);
+> > > lib/test_objagg.c:module_init(test_objagg_init);
+> > > lib/test_overflow.c:static int __init test_module_init(void)
+> > > lib/test_overflow.c:module_init(test_module_init);
+> > > lib/test_parman.c:module_init(test_parman_init);
+> > > lib/test_printf.c:module_init(test_printf_init);
+> > > lib/test_rhashtable.c:module_init(test_rht_init);
+> > > lib/test_siphash.c:module_init(siphash_test_init);
+> > > lib/test_sort.c:module_init(test_sort_init);
+> > > lib/test_stackinit.c:module_init(test_stackinit_init);
+> > > lib/test_static_key_base.c:module_init(test_static_key_base_init);
+> > > lib/test_static_keys.c:module_init(test_static_key_init);
+> > > lib/test_string.c:module_init(string_selftest_init);
+> > > lib/test_ubsan.c:module_init(test_ubsan_init);
+> > > lib/test_user_copy.c:module_init(test_user_copy_init);
+> > > lib/test_uuid.c:module_init(test_uuid_init);
+> > > lib/test_vmalloc.c:module_init(vmalloc_test_init)
+> > > lib/test_xarray.c:module_init(xarray_checks);
 > > >
 > > >
-> > > With this commit, I see build error.
+> > > > If they do exists, it seems like it would make sense to
+> > > > convert those to kunit and have Kunit tests run-able in a VM or
+> > > > baremetal instance.
 > > >
-> > >   CC      kunit/test.o
-> > > kunit/test.c:11:10: fatal error: os.h: No such file or directory
-> > >  #include <os.h>
-> > >           ^~~~~~
-> > > compilation terminated.
-> > > make[1]: *** [scripts/Makefile.build;279: kunit/test.o] Error 1
-> > > make: *** [Makefile;1763: kunit/] Error 2
+> > > They already run in a VM.
+> > >
+> > > They already run on bare metal.
+> > >
+> > > They already run in UML.
+> > >
+> > > This is not to say that KUnit does not make sense.  But I'm still trying
+> > > to get a better description of the KUnit features (and there are
+> > > some).
 > >
-> > Nice catch! That header shouldn't even be in there.
+> > FYI, I have a master student who looks at converting some of these to KTF, such as for
+> > instance the XArray tests, which lended themselves quite good to a semi-automated
+> > conversion.
 > >
-> > Sorry about that. I will have it fixed in the next revision.
->
->
-> BTW, I applied whole of this series
-> to my kernel.org repository.
->
-> 0day bot started to report issues.
-> I hope several reports reached you,
-> and they are useful to fix your code.
+> > The result is also a somewhat more compact code as well as the flexibility
+> > provided by the Googletest executor and the KTF frameworks, such as running selected
+> > tests, output formatting, debugging features etc.
+> 
+> So is KTF already in upstream? 
 
-Yep, I have received several. They are very helpful.
+No..
 
-I greatly appreciate it.
+> Or is the plan to unify the KTF and
+> Kunit in-kernel test harnesses? 
 
-Thanks!
+Since KTF delegates reporting and test running to user space - reporting is based on
+netlink communication with the user land frontend (Googletest based, but can in principle
+be ported to any user land framework if need be) - little specific test harness features
+are needed for KTF, so there's little if no direct overlap with the infrastructure in
+kselftests (as far as I understand, I'd like to spend more time on the details there..)
+
+> Because there's tons of these
+> in-kernel unit tests already, and every merge we get more (Frank's
+> list didn't even look into drivers or anywhere else, e.g. it's missing
+> the locking self tests I worked on in the past), and a more structured
+> approach would really be good.
+
+That's been my thinking too. Having a unified way to gradually move to would benefit
+anyone who needs to relate to these tests in that there will be less to learn.
+But that would be a long term evolutionary goal of course.
+
+Also I think each of these test suites/sets would benefit from being more available for
+running even in kernels not made specifically for testing, and I think using the module
+structure and a lean, common module (ktf.ko) as a library for the tests, but no
+"polluting" of the "production" kernel code with anything else, is a kind of a policy that
+comes implicitly with KTF that can make it easier to maintain a sort of standard
+"language" for writing kernel tests. 
+
+Wrt KTF, we're working on making a suitable patch set for the kernel,
+but also have projects running internally that uses KTF as a standalone git repository,
+and that inspires new features and other changes, as well as a growing set of tests. 
+I want to make sure we find a good candidate kernel integration that can coexist nicely
+with the separate git repo version without becoming too much of a back/forward porting
+challenge.
+
+Knut
+
+> -Daniel
