@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com
- [IPv6:2607:f8b0:4864:20::543])
+Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com
+ [IPv6:2607:f8b0:4864:20::441])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 860C02125F1EB
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 15:13:44 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id i21so3618607pgi.12
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 15:13:44 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id D324A21260A4C
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:53:03 -0700 (PDT)
+Received: by mail-pf1-x441.google.com with SMTP id v80so3899294pfa.3
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 14:53:03 -0700 (PDT)
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
-References: <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
+References: <54940124-50df-16ec-1a32-ad794ee05da7@gmail.com>
+ <20190507080119.GB28121@kroah.com>
+ <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
  <20190509015856.GB7031@mit.edu>
  <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
  <20190509032017.GA29703@mit.edu>
@@ -19,15 +21,11 @@ References: <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
  <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
  <20190509214233.GA20877@mit.edu>
  <b09ba170-229b-fde4-3e9a-e50d6ab4c1b5@deltatee.com>
- <20190509233043.GC20877@mit.edu>
- <8914afef-1e66-e6e3-f891-5855768d3018@deltatee.com>
- <6d6e91ec-33d3-830b-4895-4d7a20ba7d45@gmail.com>
- <3faa022b-0b70-0375-aa6d-12ea83a2671f@deltatee.com>
 From: Frank Rowand <frowand.list@gmail.com>
-Message-ID: <d148a554-2a71-a5a4-4bb2-d84d2c483277@gmail.com>
-Date: Fri, 10 May 2019 15:13:40 -0700
+Message-ID: <2aed675e-0408-c812-3e1a-b90710c528f2@gmail.com>
+Date: Fri, 10 May 2019 14:52:59 -0700
 MIME-Version: 1.0
-In-Reply-To: <3faa022b-0b70-0375-aa6d-12ea83a2671f@deltatee.com>
+In-Reply-To: <b09ba170-229b-fde4-3e9a-e50d6ab4c1b5@deltatee.com>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,76 +34,92 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Logan Gunthorpe <logang@deltatee.com>, Theodore Ts'o <tytso@mit.edu>, Tim.Bird@sony.com, knut.omang@oracle.com, gregkh@linuxfoundation.org, brendanhiggins@google.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, mpe@ellerman.id.au, pmladek@suse.com, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/10/19 9:17 AM, Logan Gunthorpe wrote:
-> 
-> 
-> On 2019-05-09 11:18 p.m., Frank Rowand wrote:
-> 
->> YES, kselftest has in-kernel tests.  (Excuse the shouting...)
-> 
-> Cool. From my cursory look, in my opinion, these would be greatly
-> improved by converting them to the framework Brendan is proposing for Kunit.
-> 
->>> If they do exists, it seems like it would make sense to
->>> convert those to kunit and have Kunit tests run-able in a VM or
->>> baremetal instance.
->>
->> They already run in a VM.
->>
->> They already run on bare metal.
->>
->> They already run in UML.
-> 
-> Simply being able to run in UML is not the only thing here. Kunit
-> provides the infrastructure to quickly build, run and report results for
-> all the tests from userspace without needing to worry about the details
-> of building and running a UML kernel, then parsing dmesg to figure out
-> what tests were run or not.
-
-Yes.  But that is not the only environment that KUnit must support to be
-of use to me for devicetree unittests (this is not new, Brendan is quite
-aware of my needs and is not ignoring them).
-
-
->> This is not to say that KUnit does not make sense.  But I'm still trying
->> to get a better description of the KUnit features (and there are
->> some).
-> 
-> So read the patches, or the documentation[1] or the LWN article[2]. It's
-> pretty well described in a lot of places -- that's one of the big
-> advantages of it. In contrast, few people seems to have any concept of
-> what kselftests are or where they are or how to run them (I was
-> surprised to find the in-kernel tests in the lib tree).
-> 
-> Logan
-> 
-> [1] https://google.github.io/kunit-docs/third_party/kernel/docs/
-> [2] https://lwn.net/Articles/780985/
-
-I have been following the RFC versions.  I have installed the RFC patches
-and run them to the extent that they worked (devicetree unittests were
-a guinea pig for test conversion in the RFC series, but the converted
-tests did not work).  I read portions of the code while trying to
-understand the unittests conversion.  I made review comments based on
-the portion of the code that I did read.  I have read the documentation
-(very nice btw, as I have said before, but should be expanded).
-
-My comment is that the description to submit the patch series should
-be fuller -- KUnit potentially has a lot of nice attributes, and I
-still think I have only scratched the surface.  The average reviewer
-may have even less in-depth knowledge than I do.  And as I have
-commented before, I keep diving into areas that I had no previous
-experience with (such as kselftest) to be able to properly judge this
-patch series.
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gNS85LzE5IDM6MjAgUE0sIExvZ2FuIEd1bnRob3JwZSB3cm90ZToKPiAKPiAKPiBPbiAyMDE5
+LTA1LTA5IDM6NDIgcC5tLiwgVGhlb2RvcmUgVHMnbyB3cm90ZToKPj4gT24gVGh1LCBNYXkgMDks
+IDIwMTkgYXQgMTE6MTI6MTJBTSAtMDcwMCwgRnJhbmsgUm93YW5kIHdyb3RlOgo+Pj4KPj4+IMKg
+wqDCoCAiTXkgdW5kZXJzdGFuZGluZyBpcyB0aGF0IHRoZSBpbnRlbnQgb2YgS1VuaXQgaXMgdG8g
+YXZvaWQgYm9vdGluZyBhIGtlcm5lbCBvbgo+Pj4gwqDCoMKgIHJlYWwgaGFyZHdhcmUgb3IgaW4g
+YSB2aXJ0dWFsIG1hY2hpbmUuwqAgVGhhdCBzZWVtcyB0byBiZSBhIG1hdHRlciBvZiBzZW1hbnRp
+Y3MKPj4+IMKgwqDCoCB0byBtZSBiZWNhdXNlIGlzbid0IGludm9raW5nIGEgVU1MIExpbnV4IGp1
+c3QgcnVubmluZyB0aGUgTGludXgga2VybmVsIGluCj4+PiDCoMKgwqAgYSBkaWZmZXJlbnQgZm9y
+bSBvZiB2aXJ0dWFsaXphdGlvbj8KPj4+Cj4+PiDCoMKgwqAgU28gSSBkbyBub3QgdW5kZXJzdGFu
+ZCB3aHkgS1VuaXQgaXMgYW4gaW1wcm92ZW1lbnQgb3ZlciBrc2VsZnRlc3QuCj4+Pgo+Pj4gwqDC
+oCAgLi4uCj4+PiAKPj4+IFdoYXQgYW0gSSBtaXNzaW5nPyIKPj4gCj4+IE9uZSBtYWpvciBkaWZm
+ZXJlbmNlOiBrc2VsZnRlc3QgcmVxdWlyZXMgYSB1c2Vyc3BhY2UgZW52aXJvbm1lbnQ7Cj4+IGl0
+IHN0YXJ0cyBzeXN0ZW1kLCByZXF1aXJlcyBhIHJvb3QgZmlsZSBzeXN0ZW0gZnJvbSB3aGljaCB5
+b3UgY2FuCj4+IGxvYWQgbW9kdWxlcywgZXRjLiAgS3VuaXQgZG9lc24ndCByZXF1aXJlIGEgcm9v
+dCBmaWxlIHN5c3RlbTsKPj4gZG9lc24ndCByZXF1aXJlIHRoYXQgeW91IHN0YXJ0IHN5c3RlbWQ7
+IGRvZXNuJ3QgYWxsb3cgeW91IHRvIHJ1bgo+PiBhcmJpdHJhcnkgcGVybCwgcHl0aG9uLCBiYXNo
+LCBldGMuIHNjcmlwdHMuICBBcyBzdWNoLCBpdCdzIG11Y2gKPj4gbGlnaHRlciB3ZWlnaHQgdGhh
+biBrc2VsZnRlc3QsIGFuZCB3aWxsIGhhdmUgbXVjaCBsZXNzIG92ZXJoZWFkCj4+IGJlZm9yZSB5
+b3UgY2FuIHN0YXJ0IHJ1bm5pbmcgdGVzdHMuICBTbyBpdCdzIG5vdCByZWFsbHkgdGhlIHNhbWUK
+Pj4ga2luZCBvZiB2aXJ0dWFsaXphdGlvbi4KCkknbSBiYWNrIHRvIHJlcGx5IHRvIHRoaXMgc3Vi
+dGhyZWFkLCBhZnRlciBhIGRlbGF5LCBhcyBwcm9taXNlZC4KCgo+IEkgbGFyZ2VseSBhZ3JlZSB3
+aXRoIGV2ZXJ5dGhpbmcgVGVkIGhhcyBzYWlkIGluIHRoaXMgdGhyZWFkLCBidXQgSQo+IHdvbmRl
+ciBpZiB3ZSBhcmUgY29uZmxhdGluZyB0d28gZGlmZmVyZW50IGlkZWFzIHRoYXQgaXMgY2F1c2lu
+ZyBhbgo+IGltcGFzc2UuIEZyb20gd2hhdCBJIHNlZSwgS3VuaXQgYWN0dWFsbHkgcHJvdmlkZXMg
+dHdvIGRpZmZlcmVudAo+IHRoaW5nczoKCj4gMSkgQW4gZXhlY3V0aW9uIGVudmlyb25tZW50IHRo
+YXQgY2FuIGJlIHJ1biB2ZXJ5IHF1aWNrbHkgaW4gdXNlcnNwYWNlCj4gb24gdGVzdHMgaW4gdGhl
+IGtlcm5lbCBzb3VyY2UuIFRoaXMgc3BlZWRzIHVwIHRoZSB0ZXN0cyBhbmQgZ2l2ZXMgYQo+IGxv
+dCBvZiBiZW5lZml0IHRvIGRldmVsb3BlcnMgdXNpbmcgdGhvc2UgdGVzdHMgYmVjYXVzZSB0aGV5
+IGNhbiBnZXQKPiBmZWVkYmFjayBvbiB0aGVpciBjb2RlIGNoYW5nZXMgYSAqbG90KiBxdWlja2Vy
+LgoKa3NlbGZ0ZXN0IGluLWtlcm5lbCB0ZXN0cyBwcm92aWRlIGV4YWN0bHkgdGhlIHNhbWUgd2hl
+biB0aGUgdGVzdHMgYXJlCmNvbmZpZ3VyZWQgYXMgImJ1aWx0LWluIiBjb2RlIGluc3RlYWQgb2Yg
+YXMgbW9kdWxlcy4KCgo+IDIpIEEgZnJhbWV3b3JrIHRvIHdyaXRlIHVuaXQgdGVzdHMgdGhhdCBw
+cm92aWRlcyBhIGxvdCBvZiB0aGUgc2FtZQo+IGZhY2lsaXRpZXMgYXMgb3RoZXIgY29tbW9uIHVu
+aXQgdGVzdGluZyBmcmFtZXdvcmtzIGZyb20gdXNlcnNwYWNlCj4gKGllLiBhIHJ1bm5lciB0aGF0
+IHJ1bnMgYSBsaXN0IG9mIHRlc3RzIGFuZCBhIGJ1bmNoIG9mIGhlbHBlcnMgc3VjaAo+IGFzIEtV
+TklUX0VYUEVDVF8qIHRvIHNpbXBsaWZ5IHRlc3QgcGFzc2VzIGFuZCBmYWlsdXJlcykuCgo+IFRo
+ZSBmaXJzdCBpdGVtIGZyb20gS3VuaXQgaXMgbm92ZWwgYW5kIEkgc2VlIGFic29sdXRlbHkgbm8g
+b3ZlcmxhcAo+IHdpdGggYW55dGhpbmcga3NlbGZ0ZXN0IGRvZXMuIEl0J3MgYWxzbyB0aGUgdmFs
+dWFibGUgdGhpbmcgSSdkIGxpa2UKPiB0byBzZWUgbWVyZ2VkIGFuZCBncm93LgoKVGhlIGZpcnN0
+IGl0ZW0gZXhpc3RzIGluIGtzZWxmdGVzdC4KCgo+IFRoZSBzZWNvbmQgaXRlbSwgYXJndWFibHks
+IGRvZXMgaGF2ZSBzaWduaWZpY2FudCBvdmVybGFwIHdpdGgKPiBrc2VsZnRlc3QuIFdoZXRoZXIg
+eW91IGFyZSBydW5uaW5nIHNob3J0IHRlc3RzIGluIGEgbGlnaHQgd2VpZ2h0IFVNTAo+IGVudmly
+b25tZW50IG9yIGhpZ2hlciBsZXZlbCB0ZXN0cyBpbiBhbiBoZWF2aWVyIFZNIHRoZSB0d28gY291
+bGQgYmUKPiB1c2luZyB0aGUgc2FtZSBmcmFtZXdvcmsgZm9yIHdyaXRpbmcgb3IgZGVmaW5pbmcg
+aW4ta2VybmVsIHRlc3RzLiBJdAo+ICptYXkqIGFsc28gYmUgdmFsdWFibGUgZm9yIHNvbWUgcGVv
+cGxlIHRvIGJlIGFibGUgdG8gcnVuIGFsbCB0aGUgVU1MCj4gdGVzdHMgaW4gdGhlIGhlYXZ5IFZN
+IGVudmlyb25tZW50IGFsb25nIHNpZGUgb3RoZXIgaGlnaGVyIGxldmVsCj4gdGVzdHMuCj4gCj4g
+TG9va2luZyBhdCB0aGUgc2VsZnRlc3RzIHRyZWUgaW4gdGhlIHJlcG8sIHdlIGFscmVhZHkgaGF2
+ZSBzaW1pbGFyCj4gaXRlbXMgdG8gd2hhdCBLdW5pdCBpcyBhZGRpbmcgYXMgSSBkZXNjcmliZWQg
+aW4gcG9pbnQgKDIpIGFib3ZlLgo+IGtzZWxmdGVzdF9oYXJuZXNzLmggY29udGFpbnMgbWFjcm9z
+IGxpa2UgRVhQRUNUXyogYW5kIEFTU0VSVF8qIHdpdGgKPiB2ZXJ5IHNpbWlsYXIgaW50ZW50aW9u
+cyB0byB0aGUgbmV3IEtVTklUX0VYRUNQVF8qIGFuZCBLVU5JVF9BU1NFUlRfKgo+IG1hY3Jvcy4K
+CkkgbWlnaHQgYmUgd3JvbmcgaGVyZSBiZWNhdXNlIEkgaGF2ZSBub3QgZHVnIGRlZXBseSBlbm91
+Z2ggaW50byB0aGUKY29kZSEhISAgRG9lcyB0aGlzIGZyYW1ld29yayBhcHBseSB0byB0aGUgdXNl
+cnNwYWNlIHRlc3RzLCB0aGUKaW4ta2VybmVsIHRlc3RzLCBvciBib3RoPyAgTXkgIm5vdCBoYXZp
+bmcgZHVnIGVub3VnaCBHVUVTUyIgaXMgdGhhdAp0aGVzZSBhcmUgZm9yIHRoZSB1c2VyIHNwYWNl
+IHRlc3RzIChhbHRob3VnaCBpZiBzbywgdGhleSBjb3VsZCBiZQpleHRlbmRlZCBmb3IgaW4ta2Vy
+bmVsIHVzZSBhbHNvKS4KClNvIEkgdGhpbmsgdGhpcyBvbmUgbWF5YmUgZG9lcyBub3QgaGF2ZSBh
+biBvdmVybGFwIGJldHdlZW4gS1VuaXQKYW5kIGtzZWxmdGVzdC4KCgo+IEhvd2V2ZXIsIHRoZSBu
+dW1iZXIgb2YgdXNlcnMgb2YgdGhpcyBoYXJuZXNzIGFwcGVhcnMgdG8gYmUgcXVpdGUKPiBzbWFs
+bC4gTW9zdCBvZiB0aGUgY29kZSBpbiB0aGUgc2VsZnRlc3RzIHRyZWUgc2VlbXMgdG8gYmUgYSBy
+YW5kb20KPiBtaXNtYXNoIG9mIHNjcmlwdHMgYW5kIHVzZXJzcGFjZSBjb2RlIHNvIGl0J3Mgbm90
+IGhhcmQgdG8gc2VlIGl0IGFzCj4gc29tZXRoaW5nIGNvbXBsZXRlbHkgZGlmZmVyZW50IGZyb20g
+dGhlIG5ldyBLdW5pdDoKPiAkIGdpdCBncmVwIC0tZmlsZXMtd2l0aC1tYXRjaGVzIGtzZWxmdGVz
+dF9oYXJuZXNzLmggKgo+IERvY3VtZW50YXRpb24vZGV2LXRvb2xzL2tzZWxmdGVzdC5yc3QKPiBN
+QUlOVEFJTkVSUwo+IHRvb2xzL3Rlc3Rpbmcvc2VsZnRlc3RzL2tzZWxmdGVzdF9oYXJuZXNzLmgK
+PiB0b29scy90ZXN0aW5nL3NlbGZ0ZXN0cy9uZXQvdGxzLmMKPiB0b29scy90ZXN0aW5nL3NlbGZ0
+ZXN0cy9ydGMvcnRjdGVzdC5jCj4gdG9vbHMvdGVzdGluZy9zZWxmdGVzdHMvc2VjY29tcC9NYWtl
+ZmlsZQo+IHRvb2xzL3Rlc3Rpbmcvc2VsZnRlc3RzL3NlY2NvbXAvc2VjY29tcF9icGYuYwo+IHRv
+b2xzL3Rlc3Rpbmcvc2VsZnRlc3RzL3VldmVudC9NYWtlZmlsZQo+IHRvb2xzL3Rlc3Rpbmcvc2Vs
+ZnRlc3RzL3VldmVudC91ZXZlbnRfZmlsdGVyaW5nLmMKCgo+IFRodXMsIEkgY2FuIHBlcnNvbmFs
+bHkgc2VlIGEgbG90IG9mIHZhbHVlIGluIGludGVncmF0aW5nIHRoZSBrdW5pdAo+IHRlc3QgZnJh
+bWV3b3JrIHdpdGggdGhpcyBrc2VsZnRlc3QgaGFybmVzcy4gVGhlcmUncyBvbmx5IGEgc21hbGwK
+PiBudW1iZXIgb2YgdXNlcnMgb2YgdGhlIGtzZWxmdGVzdCBoYXJuZXNzIHRvZGF5LCBzbyBvbmUg
+d2F5IG9yIGFub3RoZXIKPiBpdCBzZWVtcyBsaWtlIGdldHRpbmcgdGhpcyBpbnRlZ3JhdGVkIGVh
+cmx5IHdvdWxkIGJlIGEgZ29vZCBpZGVhLgo+IExldHRpbmcgS3VuaXQgYW5kIEtzZWxmdGVzdHMg
+cHJvZ3Jlc3MgaW5kZXBlbmRlbnRseSBmb3IgYSBmZXcgeWVhcnMKPiB3aWxsIG9ubHkgbWFrZSB0
+aGlzIHdvcnNlIGFuZCBtYXkgYmVjb21lIHNvbWV0aGluZyB3ZSBlbmQgdXAKPiByZWdyZXR0aW5n
+LgoKWWVzLCB0aGlzIEkgYWdyZWUgd2l0aC4KCi1GcmFuawoKPiAKPiBMb2dhbgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGlu
+ZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
