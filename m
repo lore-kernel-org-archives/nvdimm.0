@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E3F7121250447
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 17:47:25 -0700 (PDT)
-Subject: [PATCH] libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY overhead
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 May 2019 17:33:38 -0700
-Message-ID: <155805321833.867447.3864104616303535270.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4C4BA21237AC1
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:08:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 2/4] ndctl/namespace.c: fix an unchecked return value
+Date: Fri, 10 May 2019 13:08:37 -0600
+Message-Id: <20190510190839.29637-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190510190839.29637-1-vishal.l.verma@intel.com>
+References: <20190510190839.29637-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,73 +23,40 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Jeff Smits <jeff.smits@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jeff discovered that performance improves from ~375K iops to ~519K iops
-on a simple psync-write fio workload when moving the location of 'struct
-page' from the default PMEM location to DRAM. This result is surprising
-because the expectation is that 'struct page' for dax is only needed for
-third party references to dax mappings. For example, a dax-mapped buffer
-passed to another system call for direct-I/O requires 'struct page' for
-sending the request down the driver stack and pinning the page. There is
-no usage of 'struct page' for first party access to a file via
-read(2)/write(2) and friends.
+Static analysis complains that we were neglecting to check the return
+value from the ndctl_enable_namespace call in nstype_clear_badblocks.
 
-However, this "no page needed" expectation is violated by
-CONFIG_HARDENED_USERCOPY and the check_copy_size() performed in
-copy_from_iter_full_nocache() and copy_to_iter_mcsafe(). The
-check_heap_object() helper routine assumes the buffer is backed by a
-page-allocator DRAM page and applies some checks.  Those checks are
-invalid, dax pages are not from the heap, and redundant,
-dax_iomap_actor() has already validated that the I/O is within bounds.
+The instance pointed out is in an error-out path, so there isn't much to
+do there, however if the enable fails, we can check for it and print a
+message. This ends up being more user friendly in addition to quelling
+the warning.
 
-Bypass this overhead and call the 'no check' versions of the
-copy_{to,from}_iter operations directly.
-
-Fixes: 0aed55af8834 ("x86, uaccess: introduce copy_from_iter_flushcache...")
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Reported-and-tested-by: Jeff Smits <jeff.smits@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/pmem.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ ndctl/namespace.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 845c5b430cdd..c894f45e5077 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -281,16 +281,21 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
- 	return __pmem_direct_access(pmem, pgoff, nr_pages, kaddr, pfn);
- }
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index e281298..31e6ecd 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1134,8 +1134,10 @@ static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
  
-+/*
-+ * Use the 'no check' versions of copy_from_iter_flushcache() and
-+ * copy_to_iter_mcsafe() to bypass HARDENED_USERCOPY overhead. Bounds
-+ * checking is handled by dax_iomap_actor()
-+ */
- static size_t pmem_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i)
- {
--	return copy_from_iter_flushcache(addr, bytes, i);
-+	return _copy_from_iter_flushcache(addr, bytes, i);
- }
+ 	region_begin = ndctl_region_get_resource(region);
+ 	if (region_begin == ULLONG_MAX) {
+-		ndctl_namespace_enable(ndns);
+-		return -errno;
++		rc = -errno;
++		if (ndctl_namespace_enable(ndns) < 0)
++			error("%s: failed to reenable namespace\n", devname);
++		return rc;
+ 	}
  
- static size_t pmem_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i)
- {
--	return copy_to_iter_mcsafe(addr, bytes, i);
-+	return _copy_to_iter_mcsafe(addr, bytes, i);
- }
- 
- static const struct dax_operations pmem_dax_ops = {
+ 	dev_end = dev_begin + dev_size - 1;
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
