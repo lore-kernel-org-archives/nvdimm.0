@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EFEB321219AD5
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 08:55:17 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 19E9121219AD5
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 08:54:54 -0700 (PDT)
 From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v8 6/6] xfs: disable map_sync for async flush
-Date: Fri, 10 May 2019 21:22:02 +0530
-Message-Id: <20190510155202.14737-7-pagupta@redhat.com>
+Subject: [PATCH v8 5/6] ext4: disable map_sync for async flush
+Date: Fri, 10 May 2019 21:22:01 +0530
+Message-Id: <20190510155202.14737-6-pagupta@redhat.com>
 In-Reply-To: <20190510155202.14737-1-pagupta@redhat.com>
 References: <20190510155202.14737-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -29,36 +29,40 @@ List-ID: <linux-nvdimm@lists.01.org>
 Dont support 'MAP_SYNC' with non-DAX files and DAX files
 with asynchronous dax_device. Virtio pmem provides
 asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and xfs.
+support 'MAP_SYNC' with virtio pmem and ext4.
 
 Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- fs/xfs/xfs_file.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/ext4/file.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index a7ceae90110e..f17652cca5ff 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -1203,11 +1203,14 @@ xfs_file_mmap(
- 	struct file	*filp,
- 	struct vm_area_struct *vma)
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 98ec11f69cd4..dee549339e13 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
  {
-+	struct dax_device 	*dax_dev;
-+
-+	dax_dev = xfs_find_daxdev_for_inode(file_inode(filp));
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
  	/*
 -	 * We don't support synchronous mappings for non-DAX files. At least
 -	 * until someone comes with a sensible use case.
 +	 * We don't support synchronous mappings for non-DAX files and
 +	 * for DAX files if underneath dax_device is not synchronous.
  	 */
--	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
 +	if (!daxdev_mapping_supported(vma, dax_dev))
  		return -EOPNOTSUPP;
  
- 	file_accessed(filp);
+ 	file_accessed(file);
 -- 
 2.20.1
 
