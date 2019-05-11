@@ -2,18 +2,17 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A44CD212735BF
- for <linux-nvdimm@lists.01.org>; Mon, 13 May 2019 10:32:41 -0700 (PDT)
-Date: Mon, 13 May 2019 13:32:28 -0400 (EDT)
+ by ml01.01.org (Postfix) with ESMTPS id 657F62125ADD3
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 18:23:20 -0700 (PDT)
+Date: Fri, 10 May 2019 21:23:17 -0400 (EDT)
 From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <116369545.28425569.1557768748009.JavaMail.zimbra@redhat.com>
-In-Reply-To: <2003480558.28042237.1557537797923.JavaMail.zimbra@redhat.com>
+Message-ID: <2003480558.28042237.1557537797923.JavaMail.zimbra@redhat.com>
+In-Reply-To: <CAPcyv4gL3ODfOr52Ztgq7BM4gVf1cih6cj0271gcpVvpi9aFSA@mail.gmail.com>
 References: <20190510155202.14737-1-pagupta@redhat.com>
  <20190510155202.14737-4-pagupta@redhat.com>
  <CAPcyv4hbVNRFSyS2CTbmO88uhnbeH4eiukAng2cxgbDzLfizwg@mail.gmail.com>
  <864186878.28040999.1557535549792.JavaMail.zimbra@redhat.com>
  <CAPcyv4gL3ODfOr52Ztgq7BM4gVf1cih6cj0271gcpVvpi9aFSA@mail.gmail.com>
- <2003480558.28042237.1557537797923.JavaMail.zimbra@redhat.com>
 Subject: Re: [Qemu-devel] [PATCH v8 3/6] libnvdimm: add dax_dev sync flag
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -32,39 +31,64 @@ Cc: Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin
 List-ID: <linux-nvdimm@lists.01.org>
 
 
-Hi Dan,
+> > > >
+> > > > This patch adds 'DAXDEV_SYNC' flag which is set
+> > > > for nd_region doing synchronous flush. This later
+> > > > is used to disable MAP_SYNC functionality for
+> > > > ext4 & xfs filesystem for devices don't support
+> > > > synchronous flush.
+> > > >
+> > > > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> > > > ---
+> > > >  drivers/dax/bus.c            |  2 +-
+> > > >  drivers/dax/super.c          | 13 ++++++++++++-
+> > > >  drivers/md/dm.c              |  3 ++-
+> > > >  drivers/nvdimm/pmem.c        |  5 ++++-
+> > > >  drivers/nvdimm/region_devs.c |  7 +++++++
+> > > >  include/linux/dax.h          |  8 ++++++--
+> > > >  include/linux/libnvdimm.h    |  1 +
+> > > >  7 files changed, 33 insertions(+), 6 deletions(-)
+> > > [..]
+> > > > diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+> > > > index 043f0761e4a0..ee007b75d9fd 100644
+> > > > --- a/drivers/md/dm.c
+> > > > +++ b/drivers/md/dm.c
+> > > > @@ -1969,7 +1969,8 @@ static struct mapped_device *alloc_dev(int minor)
+> > > >         sprintf(md->disk->disk_name, "dm-%d", minor);
+> > > >
+> > > >         if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
+> > > > -               dax_dev = alloc_dax(md, md->disk->disk_name,
+> > > > &dm_dax_ops);
+> > > > +               dax_dev = alloc_dax(md, md->disk->disk_name,
+> > > > &dm_dax_ops,
+> > > > +
+> > > > DAXDEV_F_SYNC);
+> > >
+> > > Apologies for not realizing this until now, but this is broken.
+> > > Imaging a device-mapper configuration composed of both 'async'
+> > > virtio-pmem and 'sync' pmem. The 'sync' flag needs to be unified
+> > > across all members. I would change this argument to '0' and then
+> > > arrange for it to be set at dm_table_supports_dax() time after
+> > > validating that all components support synchronous dax.
+> >
+> > o.k. Need to set 'DAXDEV_F_SYNC' flag after verifying all the target
+> > components support synchronous DAX.
+> >
+> > Just a question, If device mapper configuration have composed of both
+> > virtio-pmem or pmem devices, we want to configure device mapper for async
+> > flush?
+> 
+> If it's composed of both then, yes, it needs to be async flush at the
+> device-mapper level. Otherwise MAP_SYNC will succeed and fail to
+> trigger fsync on the host file when necessary for the virtio-pmem
+> backed portion of the device-mapper device.
 
-While testing device mapper with DAX, I faced a bug with the commit:
+o.k. Agree.
 
-commit ad428cdb525a97d15c0349fdc80f3d58befb50df
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Wed Feb 20 21:12:50 2019 -0800
-
-When I reverted the condition to old code[1] it worked for me. I 
-am thinking when we map two different devices (e.g with device mapper), will 
-start & end pfn still point to same pgmap? Or there is something else which
-I am missing here. 
-
-Note: I tested only EXT4.
-
-[1]
-
--               if (pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX)
-+               end_pgmap = get_dev_pagemap(pfn_t_to_pfn(end_pfn), NULL);
-+               if (pgmap && pgmap == end_pgmap && pgmap->type == MEMORY_DEVICE_FS_DAX
-+                               && pfn_t_to_page(pfn)->pgmap == pgmap
-+                               && pfn_t_to_page(end_pfn)->pgmap == pgmap
-+                               && pfn_t_to_pfn(pfn) == PHYS_PFN(__pa(kaddr))
-+                               && pfn_t_to_pfn(end_pfn) == PHYS_PFN(__pa(end_kaddr)))
-                        dax_enabled = true;
-                put_dev_pagemap(pgmap);
-
-Thanks,
+Thanks you,
 Pankaj
-
-
-
-
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
