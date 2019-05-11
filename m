@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x841.google.com (mail-qt1-x841.google.com
- [IPv6:2607:f8b0:4864:20::841])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CBEAB212604F2
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 14:54:43 -0700 (PDT)
-Received: by mail-qt1-x841.google.com with SMTP id f24so9718482qtk.11
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 14:54:43 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v6 1/3] device-dax: fix memory and resource leak if hotplug fails
-Date: Fri, 17 May 2019 17:54:36 -0400
-Message-Id: <20190517215438.6487-2-pasha.tatashin@soleen.com>
-In-Reply-To: <20190517215438.6487-1-pasha.tatashin@soleen.com>
-References: <20190517215438.6487-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id E983D2125ADD3
+ for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 17:13:36 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: [ANNOUNCE] ndctl v65
+Date: Sat, 11 May 2019 00:13:33 +0000
+Message-ID: <0a3d425cd6c4e19c5f877dfbee2d55556744f3c0.camel@intel.com>
+Content-Language: en-US
+Content-ID: <EDB35B58C469D648971FDBA86F96296A@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,45 +18,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When add_memory() function fails, the resource and the memory should be
-freed.
-
-Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like normal RAM")
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Dave Hansen <dave.hansen@intel.com>
----
- drivers/dax/kmem.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index a02318c6d28a..4c0131857133 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -66,8 +66,11 @@ int dev_dax_kmem_probe(struct device *dev)
- 	new_res->name = dev_name(dev);
- 
- 	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
--	if (rc)
-+	if (rc) {
-+		release_resource(new_res);
-+		kfree(new_res);
- 		return rc;
-+	}
- 
- 	return 0;
- }
--- 
-2.21.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGhpcyByZWxlYXNlIGluY29ycG9yYXRlcyBmdW5jdGlvbmFsaXR5IHVwIHRvIHRoZSA1LjEga2Vy
+bmVsLCBhbmQgYWRkcyBhDQpudW1iZXIgb2YgYnVnIGZpeGVzIGFuZCBpbXByb3ZlbWVudHMuDQoN
+CkhpZ2hsaWdodHMgaW5jbHVkZSBhIG5ldyBjb21tYW5kIHRvIGNsZWFyIGVycm9ycyBvbiBhIGdp
+dmVuIG5hbWVzcGFjZSwgYQ0KbmV3IHRyYXZpcyBZQU1MIGNvbmZpZ3VyYXRpb24gdG8gZW5hYmxl
+IHRyYXZpcyBidWlsZHMgZm9yIFVidW50dSwgYW4NCmV4YW1wbGUgUUVNVSBzY3JpcHQgaW4gY29u
+dHJpYi8gZm9yIEhNQVQgZW11bGF0aW9uLCBhbiBvcHRpb25hbCBwb2xsDQppbnRlcnZhbCBmb3Ig
+d2FpdC1zY3J1Yiwgc2V2ZXJhbCBmaXhlcyByZWxhdGVkIHRvIHRoZSBzZWN1cml0eSBjb21tYW5k
+cywNCnN1cHBvcnQgZm9yIHRoZSBIWVBFUi1WIGZhbWlseSBvZiBEU00gY29tbWFuZHMsIGFuZCBz
+ZXZlcmFsIGZpeGVzIHRvDQp0ZXN0cywgZG9jdW1lbnRhdGlvbiwgYW5kIHJlbGF0ZWQgdG8gYnVp
+bGRpbmcuDQoNCg0KU2hvcnRsb2cgZm9yIHRoaXMgcmVsZWFzZToNCg0KRGFuIFdpbGxpYW1zICgy
+KToNCiAgICAgIG5kY3RsL2J1czogQWRkIHBvbGwgaW50ZXJ2YWwgdG8gd2FpdC1zY3J1Yg0KICAg
+ICAgbmRjdGwvbGlzdDogSW50cm9kdWNlIHJlZ2lvbiBjYXBhYmlsaXR5IG9iamVjdHMNCg0KRGF2
+ZSBKaWFuZyAoNyk6DQogICAgICBuZGN0bDogcHJlc2VydmUga2V5cyBhZnRlciBhbiBvdmVyd3Jp
+dGUgY29tbWFuZA0KICAgICAgbmRjdGw6IGFsbG93IGEgInplcm8ta2V5IiBmb3Igc2VjdXJlIGVy
+YXNlDQogICAgICBuZGN0bDogYWRkIGEgd2FybmluZyBhYm91dCBvdmVyd3JpdGUgdGFraW5nIGEg
+bG9uZyB0aW1lDQogICAgICBuZGN0bDogZml4IGEgdHlwbyBpbiB0aGUgbmRjdGwtc2FuaXRpemUt
+ZGltbSBtYW4gcGFnZQ0KICAgICAgbmRjdGw6IGZpeCBsb2FkLWtleXMgZm9yIG5vbi1UUE0gbWFz
+dGVyLWtleXMNCiAgICAgIG5kY3RsOiBmaXgga2V5IGJsb2IgbG9hZGluZyBmb3Igbm9uLVRQTSBr
+ZXlzDQogICAgICBuZGN0bDogYWRkIGEgbG9hZC1rZXlzIHRlc3QgaW4gdGhlIHNlY3VyaXR5IHVu
+aXQgdGVzdA0KDQpEZXh1YW4gQ3VpICg1KToNCiAgICAgIGxpYm5kY3RsOiBJbXBsZW1lbnQgdGhl
+ICJzbWFydF9nZXRfaGVhbHRoIiBkaW1tLW9wIGZvciBIeXBlci1WDQogICAgICBsaWJuZGN0bDog
+SW1wbGVtZW50IHRoZSBzbWFydF9nZXRfc2h1dGRvd25fY291bnQgZGltbS1vcCBmb3INCkh5cGVy
+LVYNCiAgICAgIG5kY3RsLCBtb25pdG9yOiBEb24ndCByZXF1aXJlIHRoZSBzdXBwb3J0IG9mDQpO
+RF9DTURfU01BUlRfVEhSRVNIT0xEDQogICAgICBsaWJuZGN0bDogQWRkIGEgbmV3IGRpbW0tb3Ag
+Y21kX2lzX3N1cHBvcnRlZCgpDQogICAgICBsaWJuZGN0bDogSW1wbGVtZW50IHRoZSAiY21kX2lz
+X3N1cHBvcnRlZCIgZGltbS1vcCBmb3IgSHlwZXItVg0KDQpJcmEgV2VpbnkgKDEpOg0KICAgICAg
+bmRjdGw6IGdlbmVyYWxpemUgbWFrZS1naXQtc25hcHNob3Quc2gNCg0KUUkgRnVsaSAoMSk6DQog
+ICAgICBtb25pdG9yOiByZW1vdmUgdGhlIHJlcXVpcmVtZW50IG9mIGEgZGVmYXVsdCBjb25maWcN
+Cg0KUm9iZXJ0IEVsbGlvdHQgKDMpOg0KICAgICAgYXV0b2NvbmY6IHByaW50IG1vcmUgcG9zc2li
+bGUgcGFja2FnZSBuYW1lcyBmb3IgPGtleXV0aWxzLmg+DQogICAgICBhdXRvY29uZjogQ2hlY2sg
+Zm9yIE1BUF9TSEFSRURfVkFMSURBVEUgYW5kIGtlcm5lbC9nbGliYyBjb25mbGljdHMNCiAgICAg
+IG5kY3RsLCB0ZXN0OiBNYWtlIHRlc3RzIHVzaW5nIE1BUF9TWU5DIG9ubHkgaW5jbHVkZSA8c3lz
+L21tYW4uaD4NCg0KU3RldmUgU2NhcmdhbGwgKDIpOg0KICAgICAgbmRjdGwvRG9jdW1lbnRhdGlv
+bjogRml4IHR5cG8gaW4gc2VjdXJpdHkgbWFuIHBhZ2VzDQogICAgICBuZGN0bC9Eb2N1bWVudGF0
+aW9uOiBjaGFuZ2UgZGlzYWJsZS1wYXNzcGhyYXNlIHRvIHJlbW92ZS0NCnBhc3NwaHJhc2UNCg0K
+VmlzaGFsIFZlcm1hICgxMSk6DQogICAgICBuZGN0bCwgdGVzdDogZml4IGluY29ycmVjdCAnbmRj
+dGwnIHVzYWdlIGluIHNlY3VyaXR5LnNoDQogICAgICBuZGN0bDogdXBkYXRlIFJFQURNRSBmb3Ig
+ZGVwbW9kIG92ZXJyaWRlcywgc2hpcCBhIHNhbXBsZSBjb25maWcNCiAgICAgIG5kY3RsL3Rlc3Q6
+IGFkZCBkYXhfcG1lbSogbW9kdWxlcyB0byB0aGUgdGVzdC1jb3JlDQogICAgICBuZGN0bDogZW5h
+YmxlICd0cmF2aXMtY2knDQogICAgICBjb250cmliOiBhZGQgYW4gZXhhbXBsZSBxZW11IHNldHVw
+IHNjcmlwdCBmb3IgSE1BVCBlbXVsYXRpb24NCiAgICAgIG5kY3RsOiBhZGQgYSAnY2xlYXItZXJy
+b3JzJyBjb21tYW5kDQogICAgICBuZGN0bC9uYW1lc3BhY2UuYzogZml4IGEgcmVzb3VyY2UgbGVh
+ayBpbiBidXNfc2VuZF9jbGVhcigpDQogICAgICBuZGN0bC9uYW1lc3BhY2UuYzogZml4IGFuIHVu
+Y2hlY2tlZCByZXR1cm4gdmFsdWUNCiAgICAgIGxpYm5kY3RsOiBmaXggYW4gdW5oYW5kbGVkIHJl
+dHVybiBpbg0KbmRjdGxfYnVzX3BvbGxfc2NydWJfY29tcGxldGlvbigpDQogICAgICBuZGN0bC9u
+YW1lc3BhY2UuYzogZml4IGEgcG90ZW50aWFsIGludGVnZXIgb3ZlcmZsb3cNCiAgICAgIG5kY3Rs
+OiByZWxlYXNlIHY2NQ0KDQpZaSBaaGFuZyAoMSk6DQogICAgICBuZGN0bC9yZWdpb246IGZpeCBl
+cnJvciBwcm9wYWdhdGlvbiBpbiByZWdpb25fYWN0aW9uKCkNCg0KxYF1a2FzeiBQbGV3YSAoMSk6
+DQogICAgICBuZGN0bDogZml4IGEgbWVtb3J5IGxlYWsgaW4gbGlibmRjdGwNCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
+IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
