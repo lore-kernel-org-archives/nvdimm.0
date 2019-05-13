@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 828742126578B
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:32 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 01/30] fuse: delete dentry if timeout is zero
-Date: Wed, 15 May 2019 15:26:46 -0400
-Message-Id: <20190515192715.18000-2-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 53C0F212741E6
+ for <linux-nvdimm@lists.01.org>; Mon, 13 May 2019 14:12:07 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id t24so4475058otl.12
+ for <linux-nvdimm@lists.01.org>; Mon, 13 May 2019 14:12:06 -0700 (PDT)
 MIME-Version: 1.0
+References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20190513210148.GA21574@rapoport-lnx>
+In-Reply-To: <20190513210148.GA21574@rapoport-lnx>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 13 May 2019 14:11:54 -0700
+Message-ID: <CAPcyv4he64-d=govm4+OEt75gxeuLZcrwrhow5dT=rA3KwQ4JA@mail.gmail.com>
+Subject: Re: [PATCH v8 00/12] mm: Sub-section memory hotplug support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,75 +26,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Anshuman Khandual <anshuman.khandual@arm.com>, stable <stable@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Robin Murphy <robin.murphy@arm.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Miklos Szeredi <mszeredi@redhat.com>
+On Mon, May 13, 2019 at 2:02 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+>
+> Hi Dan,
+>
+> On Mon, May 06, 2019 at 04:39:26PM -0700, Dan Williams wrote:
+> > Changes since v7 [1]:
+>
+> Sorry for jumping late
 
-Don't hold onto dentry in lru list if need to re-lookup it anyway at next
-access.
+No worries, it needs to be rebased on David's "mm/memory_hotplug:
+Factor out memory block device handling" series which puts it firmly
+in v5.3 territory.
 
-More advanced version of this patch would periodically flush out dentries
-from the lru which have gone stale.
+> but presuming there will be v9, it'd be great if it
+> would also include include updates to
+> Documentation/admin-guide/mm/memory-hotplug.rst and
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/fuse/dir.c | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+If I've done my job right this series should be irrelevant to
+Documentation/admin-guide/mm/memory-hotplug.rst. The subsection
+capability is strictly limited to arch_add_memory() users that never
+online the memory, i.e. only ZONE_DEVICE / devm_memremap_pages()
+users. So this isn't "memory-hotplug" as much as it is "support for
+subsection vmemmap management".
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index dd0f64f7bc06..fd8636e67ae9 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -29,12 +29,26 @@ union fuse_dentry {
- 	struct rcu_head rcu;
- };
- 
--static inline void fuse_dentry_settime(struct dentry *entry, u64 time)
-+static void fuse_dentry_settime(struct dentry *dentry, u64 time)
- {
--	((union fuse_dentry *) entry->d_fsdata)->time = time;
-+	/*
-+	 * Mess with DCACHE_OP_DELETE because dput() will be faster without it.
-+	 *  Don't care about races, either way it's just an optimization
-+	 */
-+	if ((time && (dentry->d_flags & DCACHE_OP_DELETE)) ||
-+	    (!time && !(dentry->d_flags & DCACHE_OP_DELETE))) {
-+		spin_lock(&dentry->d_lock);
-+		if (time)
-+			dentry->d_flags &= ~DCACHE_OP_DELETE;
-+		else
-+			dentry->d_flags |= DCACHE_OP_DELETE;
-+		spin_unlock(&dentry->d_lock);
-+	}
-+
-+	((union fuse_dentry *) dentry->d_fsdata)->time = time;
- }
- 
--static inline u64 fuse_dentry_time(struct dentry *entry)
-+static inline u64 fuse_dentry_time(const struct dentry *entry)
- {
- 	return ((union fuse_dentry *) entry->d_fsdata)->time;
- }
-@@ -255,8 +269,14 @@ static void fuse_dentry_release(struct dentry *dentry)
- 	kfree_rcu(fd, rcu);
- }
- 
-+static int fuse_dentry_delete(const struct dentry *dentry)
-+{
-+	return time_before64(fuse_dentry_time(dentry), get_jiffies_64());
-+}
-+
- const struct dentry_operations fuse_dentry_operations = {
- 	.d_revalidate	= fuse_dentry_revalidate,
-+	.d_delete	= fuse_dentry_delete,
- 	.d_init		= fuse_dentry_init,
- 	.d_release	= fuse_dentry_release,
- };
--- 
-2.20.1
+> Documentation/vm/memory-model.rst
 
+This looks more fitting and should probably include a paragraph on the
+general ZONE_DEVICE / devm_memremap_pages() use case.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
