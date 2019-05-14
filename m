@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from merlin.infradead.org (merlin.infradead.org
+ [IPv6:2001:8b0:10b:1231::1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6C1C52128A647
- for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 16:13:37 -0700 (PDT)
-Subject: [PATCH v2 5/8] lib/memregion: Uplevel the pmem "region" ida to a
- global allocator
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 May 2019 15:59:48 -0700
-Message-ID: <155925718863.3775979.5027759142906684801.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 89E0E2125330C
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 01:48:12 -0700 (PDT)
+Date: Tue, 14 May 2019 10:46:55 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v3 08/18] objtool: add kunit_try_catch_throw to the
+ noreturn list
+Message-ID: <20190514084655.GK2589@hirez.programming.kicks-ass.net>
+References: <20190514054251.186196-1-brendanhiggins@google.com>
+ <20190514054251.186196-9-brendanhiggins@google.com>
+ <20190514065643.GC2589@hirez.programming.kicks-ass.net>
+ <20190514081223.GA230665@google.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190514081223.GA230665@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,189 +28,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-efi@vger.kernel.org
-Cc: ard.biesheuvel@linaro.org, x86@kernel.org, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, kbuild test robot <lkp@intel.com>, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for handling platform differentiated memory types beyond
-persistent memory, uplevel the "region" identifier to a global number
-space. This enables a device-dax instance to be registered to any memory
-type with guaranteed unique names.
+On Tue, May 14, 2019 at 01:12:23AM -0700, Brendan Higgins wrote:
+> On Tue, May 14, 2019 at 08:56:43AM +0200, Peter Zijlstra wrote:
+> > On Mon, May 13, 2019 at 10:42:42PM -0700, Brendan Higgins wrote:
+> > > This fixes the following warning seen on GCC 7.3:
+> > >   kunit/test-test.o: warning: objtool: kunit_test_unsuccessful_try() falls through to next function kunit_test_catch()
+> > > 
+> > 
+> > What is that file and function; no kernel tree near me seems to have
+> > that.
+> 
+> Oh, sorry about that. The function is added in the following patch,
+> "[PATCH v3 09/18] kunit: test: add support for test abort"[1].
+> 
+> My apologies if this patch is supposed to come after it in sequence, but
+> I assumed it should come before otherwise objtool would complain about
+> the symbol when it is introduced.
 
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/Kconfig       |    1 +
- drivers/nvdimm/core.c        |    1 -
- drivers/nvdimm/nd-core.h     |    1 -
- drivers/nvdimm/region_devs.c |   13 ++++---------
- include/linux/memregion.h    |    8 ++++++++
- lib/Kconfig                  |    7 +++++++
- lib/Makefile                 |    1 +
- lib/memregion.c              |   15 +++++++++++++++
- 8 files changed, 36 insertions(+), 11 deletions(-)
- create mode 100644 include/linux/memregion.h
- create mode 100644 lib/memregion.c
-
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 54500798f23a..4b3e66fe61c1 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -4,6 +4,7 @@ menuconfig LIBNVDIMM
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on HAS_IOMEM
- 	depends on BLK_DEV
-+	select MEMREGION
- 	help
- 	  Generic support for non-volatile memory devices including
- 	  ACPI-6-NFIT defined resources.  On platforms that define an
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index acce050856a8..75fe651d327d 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -463,7 +463,6 @@ static __exit void libnvdimm_exit(void)
- 	nd_region_exit();
- 	nvdimm_exit();
- 	nvdimm_bus_exit();
--	nd_region_devs_exit();
- 	nvdimm_devs_exit();
- }
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index e5ffd5733540..17561302dfec 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -133,7 +133,6 @@ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
- void nvdimm_devs_exit(void);
--void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- struct nd_region;
- void nd_region_create_ns_seed(struct nd_region *nd_region);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..9e070363ff70 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #include <linux/scatterlist.h>
-+#include <linux/memregion.h>
- #include <linux/highmem.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -27,7 +28,6 @@
-  */
- #include <linux/io-64-nonatomic-hi-lo.h>
- 
--static DEFINE_IDA(region_ida);
- static DEFINE_PER_CPU(int, flush_idx);
- 
- static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
-@@ -141,7 +141,7 @@ static void nd_region_release(struct device *dev)
- 		put_device(&nvdimm->dev);
- 	}
- 	free_percpu(nd_region->lane);
--	ida_simple_remove(&region_ida, nd_region->id);
-+	memregion_free(nd_region->id);
- 	if (is_nd_blk(dev))
- 		kfree(to_nd_blk_region(dev));
- 	else
-@@ -1036,7 +1036,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 
- 	if (!region_buf)
- 		return NULL;
--	nd_region->id = ida_simple_get(&region_ida, 0, 0, GFP_KERNEL);
-+	nd_region->id = memregion_alloc(GFP_KERNEL);
- 	if (nd_region->id < 0)
- 		goto err_id;
- 
-@@ -1090,7 +1090,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	return nd_region;
- 
-  err_percpu:
--	ida_simple_remove(&region_ida, nd_region->id);
-+	memregion_free(nd_region->id);
-  err_id:
- 	kfree(region_buf);
- 	return NULL;
-@@ -1237,8 +1237,3 @@ int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
- 
- 	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
- }
--
--void __exit nd_region_devs_exit(void)
--{
--	ida_destroy(&region_ida);
--}
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-new file mode 100644
-index 000000000000..ba03c70f98d2
---- /dev/null
-+++ b/include/linux/memregion.h
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#ifndef _MEMREGION_H_
-+#define _MEMREGION_H_
-+#include <linux/types.h>
-+
-+int memregion_alloc(gfp_t gfp);
-+void memregion_free(int id);
-+#endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 90623a0e1942..68621a0505a6 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -335,6 +335,13 @@ config DECOMPRESS_LZ4
- config GENERIC_ALLOCATOR
- 	bool
- 
-+#
-+# Memory Region ID allocation for persistent memory and "specific
-+# purpose" / performance differentiated memory ranges.
-+#
-+config MEMREGION
-+	bool
-+
- #
- # reed solomon support is select'ed if needed
- #
-diff --git a/lib/Makefile b/lib/Makefile
-index fb7697031a79..58cf99f68f36 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -136,6 +136,7 @@ obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
- obj-$(CONFIG_CRC8)	+= crc8.o
- obj-$(CONFIG_XXHASH)	+= xxhash.o
- obj-$(CONFIG_GENERIC_ALLOCATOR) += genalloc.o
-+obj-$(CONFIG_MEMREGION) += memregion.o
- 
- obj-$(CONFIG_842_COMPRESS) += 842/
- obj-$(CONFIG_842_DECOMPRESS) += 842/
-diff --git a/lib/memregion.c b/lib/memregion.c
-new file mode 100644
-index 000000000000..f6c6a94c7921
---- /dev/null
-+++ b/lib/memregion.c
-@@ -0,0 +1,15 @@
-+#include <linux/idr.h>
-+
-+static DEFINE_IDA(region_ids);
-+
-+int memregion_alloc(gfp_t gfp)
-+{
-+	return ida_alloc(&region_ids, gfp);
-+}
-+EXPORT_SYMBOL(memregion_alloc);
-+
-+void memregion_free(int id)
-+{
-+	ida_free(&region_ids, id);
-+}
-+EXPORT_SYMBOL(memregion_free);
-
+Or send me all patches such that I have context, or have a sane
+Changelog that gives me context. Just don't give me one patch with a
+crappy changelog.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
