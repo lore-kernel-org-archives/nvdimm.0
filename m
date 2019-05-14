@@ -1,58 +1,256 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Date: Mon, 13 May 2019 16:44:51 +0200
-Message-ID: <20190513144451.GQ17751@phenom.ffwll.local>
-References: <20190509015856.GB7031@mit.edu>
- <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
- <20190509032017.GA29703@mit.edu>
- <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
- <20190509133551.GD29703@mit.edu>
- <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
- <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
- <20190509214233.GA20877@mit.edu>
- <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
- <20190511173344.GA8507@mit.edu>
+From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: [PATCH] mm/nvdimm: Pick the right alignment default when creating dax
+ devices
+Date: Tue, 14 May 2019 08:24:49 +0530
+Message-ID: <20190514025449.9416-1-aneesh.kumar@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190511173344.GA8507@mit.edu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>, Frank Rowand <frowand.list@gmail.com>, Tim.Bird@sony.com, knut.omang@oracle.com, gregkh@linuxfoundation.org, brendanhiggins@google.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Sat, May 11, 2019 at 01:33:44PM -0400, Theodore Ts'o wrote:
-> On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
-> > However, the reply is incorrect.  Kselftest in-kernel tests (which
-> > is the context here) can be configured as built in instead of as
-> > a module, and built in a UML kernel.  The UML kernel can boot,
-> > running the in-kernel tests before UML attempts to invoke the
-> > init process.
-> 
-> Um, Citation needed?
-> 
-> I don't see any evidence for this in the kselftest documentation, nor
-> do I see any evidence of this in the kselftest Makefiles.
-> 
-> There exists test modules in the kernel that run before the init
-> scripts run --- but that's not strictly speaking part of kselftests,
-> and do not have any kind of infrastructure.  As noted, the
-> kselftests_harness header file fundamentally assumes that you are
-> running test code in userspace.
+Allow arch to provide the supported alignments and use hugepage alignment only
+if we support hugepage. Right now we depend on compile time configs whereas this
+patch switch this to runtime discovery.
 
-Yeah I really like the "no userspace required at all" design of kunit,
-while still collecting results in a well-defined way (unless the current
-self-test that just run when you load the module, with maybe some
-kselftest ad-hoc wrapper around to collect the results).
+Architectures like ppc64 can have THP enabled in code, but then can have
+hugepage size disabled by the hypervisor. This allows us to create dax devices
+with PAGE_SIZE alignment in this case.
 
-What I want to do long-term is to run these kernel unit tests as part of
-the build-testing, most likely in gitlab (sooner or later, for drm.git
-only ofc). So that people get their pull requests (and patch series, we
-have some ideas to tie this into patchwork) automatically tested for this
-super basic stuff.
--Daniel
+Existing dax namespace with alignment larger than PAGE_SIZE will fail to
+initialize in this specific case. We still allow fsdax namespace initialization.
+
+With respect to identifying whether to enable hugepage fault for a dax device,
+if THP is enabled during compile, we default to taking hugepage fault and in dax
+fault handler if we find the fault size > alignment we retry with PAGE_SIZE
+fault size.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+---
+ arch/powerpc/include/asm/libnvdimm.h |  9 ++++++++
+ arch/powerpc/mm/Makefile             |  1 +
+ arch/powerpc/mm/nvdimm.c             | 34 ++++++++++++++++++++++++++++
+ arch/x86/include/asm/libnvdimm.h     | 19 ++++++++++++++++
+ drivers/nvdimm/nd.h                  |  6 -----
+ drivers/nvdimm/pfn_devs.c            | 32 +++++++++++++++++++++++++-
+ include/linux/huge_mm.h              |  7 +++++-
+ 7 files changed, 100 insertions(+), 8 deletions(-)
+ create mode 100644 arch/powerpc/include/asm/libnvdimm.h
+ create mode 100644 arch/powerpc/mm/nvdimm.c
+ create mode 100644 arch/x86/include/asm/libnvdimm.h
+
+diff --git a/arch/powerpc/include/asm/libnvdimm.h b/arch/powerpc/include/asm/libnvdimm.h
+new file mode 100644
+index 000000000000..d35fd7f48603
+--- /dev/null
++++ b/arch/powerpc/include/asm/libnvdimm.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_POWERPC_LIBNVDIMM_H
++#define _ASM_POWERPC_LIBNVDIMM_H
++
++#define nd_pfn_supported_alignments nd_pfn_supported_alignments
++extern unsigned long *nd_pfn_supported_alignments(void);
++extern unsigned long nd_pfn_default_alignment(void);
++
++#endif
+diff --git a/arch/powerpc/mm/Makefile b/arch/powerpc/mm/Makefile
+index 0f499db315d6..42e4a399ba5d 100644
+--- a/arch/powerpc/mm/Makefile
++++ b/arch/powerpc/mm/Makefile
+@@ -20,3 +20,4 @@ obj-$(CONFIG_HIGHMEM)		+= highmem.o
+ obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
+ obj-$(CONFIG_PPC_PTDUMP)	+= ptdump/
+ obj-$(CONFIG_KASAN)		+= kasan/
++obj-$(CONFIG_NVDIMM_PFN)		+= nvdimm.o
+diff --git a/arch/powerpc/mm/nvdimm.c b/arch/powerpc/mm/nvdimm.c
+new file mode 100644
+index 000000000000..a29a4510715e
+--- /dev/null
++++ b/arch/powerpc/mm/nvdimm.c
+@@ -0,0 +1,34 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <asm/pgtable.h>
++#include <asm/page.h>
++
++#include <linux/mm.h>
++/*
++ * We support only pte and pmd mappings for now.
++ */
++const unsigned long *nd_pfn_supported_alignments(void)
++{
++	static unsigned long supported_alignments[3];
++
++	supported_alignments[0] = PAGE_SIZE;
++
++	if (has_transparent_hugepage())
++		supported_alignments[1] = HPAGE_PMD_SIZE;
++	else
++		supported_alignments[1] = 0;
++
++	supported_alignments[2] = 0;
++	return supported_alignments;
++}
++
++/*
++ * Use pmd mapping if supported as default alignment
++ */
++unsigned long nd_pfn_default_alignment(void)
++{
++
++	if (has_transparent_hugepage())
++		return HPAGE_PMD_SIZE;
++	return PAGE_SIZE;
++}
+diff --git a/arch/x86/include/asm/libnvdimm.h b/arch/x86/include/asm/libnvdimm.h
+new file mode 100644
+index 000000000000..3d5361db9164
+--- /dev/null
++++ b/arch/x86/include/asm/libnvdimm.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_X86_LIBNVDIMM_H
++#define _ASM_X86_LIBNVDIMM_H
++
++static inline unsigned long nd_pfn_default_alignment(void)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return HPAGE_PMD_SIZE;
++#else
++	return PAGE_SIZE;
++#endif
++}
++
++static inline unsigned long nd_altmap_align_size(unsigned long nd_align)
++{
++	return PMD_SIZE;
++}
++
++#endif
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index a5ac3b240293..44fe923b2ee3 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -292,12 +292,6 @@ static inline struct device *nd_btt_create(struct nd_region *nd_region)
+ struct nd_pfn *to_nd_pfn(struct device *dev);
+ #if IS_ENABLED(CONFIG_NVDIMM_PFN)
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define PFN_DEFAULT_ALIGNMENT HPAGE_PMD_SIZE
+-#else
+-#define PFN_DEFAULT_ALIGNMENT PAGE_SIZE
+-#endif
+-
+ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns);
+ bool is_nd_pfn(struct device *dev);
+ struct device *nd_pfn_create(struct nd_region *nd_region);
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 01f40672507f..347cab166376 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <asm/libnvdimm.h>
+ #include "nd-core.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -111,6 +112,8 @@ static ssize_t align_show(struct device *dev,
+ 	return sprintf(buf, "%ld\n", nd_pfn->align);
+ }
+ 
++#ifndef nd_pfn_supported_alignments
++#define nd_pfn_supported_alignments nd_pfn_supported_alignments
+ static const unsigned long *nd_pfn_supported_alignments(void)
+ {
+ 	/*
+@@ -133,6 +136,7 @@ static const unsigned long *nd_pfn_supported_alignments(void)
+ 
+ 	return data;
+ }
++#endif
+ 
+ static ssize_t align_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+@@ -310,7 +314,7 @@ struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
+ 		return NULL;
+ 
+ 	nd_pfn->mode = PFN_MODE_NONE;
+-	nd_pfn->align = PFN_DEFAULT_ALIGNMENT;
++	nd_pfn->align = nd_pfn_default_alignment();
+ 	dev = &nd_pfn->dev;
+ 	device_initialize(&nd_pfn->dev);
+ 	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
+@@ -420,6 +424,20 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
+ 	return 0;
+ }
+ 
++static bool nd_supported_alignment(unsigned long align)
++{
++	int i;
++	const unsigned long *supported = nd_pfn_supported_alignments();
++
++	if (align == 0)
++		return false;
++
++	for (i = 0; supported[i]; i++)
++		if (align == supported[i])
++			return true;
++	return false;
++}
++
+ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ {
+ 	u64 checksum, offset;
+@@ -474,6 +492,18 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+ 
++	/*
++	 * Check whether the we support the alignment. For Dax if the
++	 * superblock alignment is not matching, we won't initialize
++	 * the device.
++	 */
++	if (!nd_supported_alignment(align) &&
++	    memcmp(pfn_sb->signature, DAX_SIG, PFN_SIG_LEN)) {
++		dev_err(&nd_pfn->dev, "init failed, settings mismatch\n");
++		dev_dbg(&nd_pfn->dev, "align: %lx:%lx\n", nd_pfn->align, align);
++		return -EINVAL;
++	}
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 381e872bfde0..d5cfea3d8b86 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -110,7 +110,12 @@ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+ 
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+-
++	/*
++	 * For dax let's try to do hugepage fault always. If we don't support
++	 * hugepages we will not have enabled namespaces with hugepage alignment.
++	 * This also means we try to handle hugepage fault on device with
++	 * smaller alignment. But for then we will return with VM_FAULT_FALLBACK
++	 */
+ 	if (vma_is_dax(vma))
+ 		return true;
+ 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.21.0
