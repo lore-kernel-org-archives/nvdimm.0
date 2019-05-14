@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8D937212449F1
- for <linux-nvdimm@lists.01.org>; Tue,  7 May 2019 17:39:20 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 04/10] libdaxctl: add interfaces to get/set the
- online state for a node
-Date: Tue,  7 May 2019 18:38:45 -0600
-Message-Id: <20190508003851.32416-5-vishal.l.verma@intel.com>
-In-Reply-To: <20190508003851.32416-1-vishal.l.verma@intel.com>
-References: <20190508003851.32416-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5A0932125ADD1
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 07:58:13 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v9 5/7] dax: check synchronous mapping is supported
+Date: Tue, 14 May 2019 20:24:20 +0530
+Message-Id: <20190514145422.16923-6-pagupta@redhat.com>
+In-Reply-To: <20190514145422.16923-1-pagupta@redhat.com>
+References: <20190514145422.16923-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,348 +17,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for converting DAX devices for use as system-ram via the
-kernel's 'kmem' facility, add libndctl helpers to manipulate the sysfs
-interfaces to get the target_node of a DAX device, and to online,
-offline, and query the state of hotplugged memory sections associated
-with a given node.
+This patch introduces 'daxdev_mapping_supported' helper
+which checks if 'MAP_SYNC' is supported with filesystem
+mapping. It also checks if corresponding dax_device is
+synchronous. Virtio pmem device is asynchronous and
+does not not support VM_SYNC.
 
-This adds the following new interfaces:
-
-  daxctl_dev_get_target_node
-  daxctl_dev_online_node
-  daxctl_dev_offline_node
-  daxctl_dev_node_is_online
-
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- daxctl/lib/libdaxctl-private.h |   6 +
- daxctl/lib/libdaxctl.c         | 228 +++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |   4 +
- daxctl/libdaxctl.h             |   4 +
- 4 files changed, 242 insertions(+)
+ include/linux/dax.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index e64d0a7..ef443aa 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -33,6 +33,11 @@ static const char *dax_modules[] = {
- 	[DAXCTL_DEV_MODE_RAM] = "kmem",
- };
- 
-+enum node_state {
-+	NODE_OFFLINE,
-+	NODE_ONLINE,
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-@@ -63,6 +68,7 @@ struct daxctl_dev {
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
- 	struct daxctl_region *region;
-+	int target_node;
- };
- 
- static inline int check_kmod(struct kmod_ctx *kmod_ctx)
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index d50b321..aab2364 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -28,6 +28,7 @@
- #include "libdaxctl-private.h"
- 
- static const char *attrs = "dax_region";
-+static const char *node_base = "/sys/devices/system/node";
- 
- static void free_region(struct daxctl_region *region, struct list_head *head);
- 
-@@ -397,6 +398,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	} else
- 		dbg(ctx, "%s: modalias attribute missing\n", devname);
- 
-+	sprintf(path, "%s/target_node", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->target_node = strtol(buf, NULL, 0);
-+	else
-+		dev->target_node = -1;
-+
- 	daxctl_dev_foreach(region, dev_dup)
- 		if (dev_dup->id == dev->id) {
- 			free_dev(dev, NULL);
-@@ -897,3 +904,224 @@ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 2b106752b1b8..267251a394fa 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -42,6 +42,18 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+ void set_dax_synchronous(struct dax_device *dax_dev);
++/*
++ * Check if given mapping is supported by the file / underlying device.
++ */
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++					    struct dax_device *dax_dev)
++{
++	if (!(vma->vm_flags & VM_SYNC))
++		return true;
++	if (!IS_DAX(file_inode(vma->vm_file)))
++		return false;
++	return dax_synchronous(dax_dev);
++}
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
  {
- 	return dev->size;
+@@ -69,6 +81,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
  }
-+
-+DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
 +{
-+	return dev->target_node;
++	return !(vma->vm_flags & VM_SYNC);
 +}
-+
-+static int online_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "online_movable";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/*
-+	 * if already online, possibly due to kernel config or a udev rule,
-+	 * there is nothing to do and we can skip over the memblock
-+	 */
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 0;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc)
-+		err(ctx, "%s: Failed to online %s: %s\n",
-+			devname, path, strerror(-rc));
-+	return rc;
-+}
-+
-+static int offline_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "offline";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/* if already offline, there is nothing to do */
-+	if (strncmp(buf, "offline", 6) == 0)
-+		return 0;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc)
-+		err(ctx, "%s: Failed to offline %s: %s\n",
-+			devname, path, strerror(-rc));
-+	return rc;
-+}
-+
-+static int daxctl_dev_node_set_state(struct daxctl_dev *dev,
-+		enum node_state state)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int target_node, rc, changed = 0;
-+	struct dirent *de;
-+	char *node_path;
-+	DIR *node_dir;
-+
-+	target_node = daxctl_dev_get_target_node(dev);
-+	if (target_node < 0) {
-+		err(ctx, "%s: Unable to get target node\n",
-+			daxctl_dev_get_devname(dev));
-+		return -ENXIO;
-+	}
-+
-+	rc = asprintf(&node_path, "%s/node%d", node_base, target_node);
-+	if (rc < 0)
-+		return -ENOMEM;
-+
-+	node_dir = opendir(node_path);
-+	if (!node_dir) {
-+		rc = -errno;
-+		goto out_path;
-+	}
-+
-+	errno = 0;
-+	while ((de = readdir(node_dir)) != NULL) {
-+		char *mem_path;
-+
-+		if (strcmp(de->d_name, ".") == 0 ||
-+				strcmp(de->d_name, "..") == 0)
-+			continue;
-+		if (strncmp(de->d_name, "memory", 6) == 0) {
-+			rc = asprintf(&mem_path, "%s/%s/state",
-+				node_path, de->d_name);
-+			if (rc < 0) {
-+				rc = -ENOMEM;
-+				goto out_dir;
-+			}
-+			if (state == NODE_ONLINE)
-+				rc = online_one_memblock(dev, mem_path);
-+			else if (state == NODE_OFFLINE)
-+				rc = offline_one_memblock(dev, mem_path);
-+			else
-+				rc = -EINVAL;
-+			free(mem_path);
-+			if (rc)
-+				goto out_dir;
-+			changed++;
-+		}
-+		errno = 0;
-+	}
-+	if (errno) {
-+		rc = -errno;
-+		goto out_dir;
-+	}
-+	rc = changed;
-+
-+out_dir:
-+	closedir(node_dir);
-+out_path:
-+	free(node_path);
-+	return rc;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_online_node(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_node_set_state(dev, NODE_ONLINE);
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_offline_node(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_node_set_state(dev, NODE_OFFLINE);
-+}
-+
-+static int memblock_is_online(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_node_is_online(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int target_node, rc, num_online = 0;
-+	struct dirent *de;
-+	char *node_path;
-+	DIR *node_dir;
-+
-+	target_node = daxctl_dev_get_target_node(dev);
-+	if (target_node < 0) {
-+		err(ctx, "%s: Unable to get target node\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	rc = asprintf(&node_path, "%s/node%d", node_base, target_node);
-+	if (rc < 0)
-+		return -ENOMEM;
-+
-+	node_dir = opendir(node_path);
-+	if (!node_dir) {
-+		rc = -errno;
-+		goto out_path;
-+	}
-+
-+	errno = 0;
-+	while ((de = readdir(node_dir)) != NULL) {
-+		char *mem_path;
-+
-+		if (strcmp(de->d_name, ".") == 0 ||
-+				strcmp(de->d_name, "..") == 0)
-+			continue;
-+		if (strncmp(de->d_name, "memory", 6) == 0) {
-+			rc = asprintf(&mem_path, "%s/%s/state",
-+				node_path, de->d_name);
-+			if (rc < 0) {
-+				rc = -ENOMEM;
-+				goto out_dir;
-+			}
-+			rc = memblock_is_online(dev, mem_path);
-+			if (rc < 0) {
-+				err(ctx, "%s: Unable to determine state: %s\n",
-+					devname, mem_path);
-+				goto out_dir;
-+			}
-+			if (rc > 0)
-+				num_online++;
-+			free(mem_path);
-+		}
-+		errno = 0;
-+	}
-+	if (errno) {
-+		rc = -errno;
-+		goto out_dir;
-+	}
-+	rc = num_online;
-+
-+out_dir:
-+	closedir(node_dir);
-+out_path:
-+	free(node_path);
-+	return rc;
-+
-+}
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..cc47ed6 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -54,8 +54,12 @@ global:
- LIBDAXCTL_6 {
- global:
- 	daxctl_dev_get_ctx;
-+	daxctl_dev_get_target_node;
- 	daxctl_dev_is_enabled;
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_online_node;
-+	daxctl_dev_offline_node;
-+	daxctl_dev_node_is_online;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index b80488e..db0d4ea 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -68,10 +68,14 @@ int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_get_target_node(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- int daxctl_dev_disable(struct daxctl_dev *dev);
- int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
- int daxctl_dev_enable_ram(struct daxctl_dev *dev);
-+int daxctl_dev_online_node(struct daxctl_dev *dev);
-+int daxctl_dev_offline_node(struct daxctl_dev *dev);
-+int daxctl_dev_node_is_online(struct daxctl_dev *dev);
+ #endif
  
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
+ struct writeback_control;
 -- 
 2.20.1
 
