@@ -1,104 +1,149 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v3 12/18] kunit: test: add tests for KUnit managed resources
-Date: Mon, 13 May 2019 22:42:46 -0700
-Message-ID: <20190514054251.186196-13-brendanhiggins@google.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 14/18] kunit: defconfig: add defconfigs for building KUnit
+ tests
+Date: Mon, 13 May 2019 22:42:48 -0700
+Message-ID: <20190514054251.186196-15-brendanhiggins@google.com>
 References: <20190514054251.186196-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190514054251.186196-1-brendanhiggins@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, Avinash Kondareddy <akndr41@gmail.com>, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, dan.j.williams@intel.com, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190514054251.186196-1-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-RnJvbTogQXZpbmFzaCBLb25kYXJlZGR5IDxha25kcjQxQGdtYWlsLmNvbT4KCkFkZCB1bml0IHRl
-c3RzIGZvciBLVW5pdCBtYW5hZ2VkIHJlc291cmNlcy4gS1VuaXQgbWFuYWdlZCByZXNvdXJjZXMK
-KHN0cnVjdCBrdW5pdF9yZXNvdXJjZSkgYXJlIHJlc291cmNlcyB0aGF0IGFyZSBhdXRvbWF0aWNh
-bGx5IGNsZWFuZWQgdXAKYXQgdGhlIGVuZCBvZiBhIEtVbml0IHRlc3QsIHNpbWlsYXIgdG8gdGhl
-IGNvbmNlcHQgb2YgZGV2bV8qIG1hbmFnZWQKcmVzb3VyY2VzLgoKU2lnbmVkLW9mZi1ieTogQXZp
-bmFzaCBLb25kYXJlZGR5IDxha25kcjQxQGdtYWlsLmNvbT4KU2lnbmVkLW9mZi1ieTogQnJlbmRh
-biBIaWdnaW5zIDxicmVuZGFuaGlnZ2luc0Bnb29nbGUuY29tPgpSZXZpZXdlZC1ieTogR3JlZyBL
-cm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KUmV2aWV3ZWQtYnk6IExv
-Z2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCkNoYW5nZXMgU2luY2UgTGFz
-dCBSZXZpc2lvbjoKIC0gQWRkZWQgbW9yZSBkZXRhaWxzIHRvIGNoYW5nZSBsb2cgYXMgcGVyIFNo
-dWFoJ3MgY29tbWVudHMuCiAtIE1hZGUgdXNlIG9mIG5ldyBFWFBFQ1QgbWFjcm8gZm9yIHBvaW50
-ZXIgY29tcGFyaXNvbiB0byB3YXJuaW5nCiAgIHJlcG9ydGVkIGJ5IGtidWlsZCBib3QuCi0tLQog
-a3VuaXQvdGVzdC10ZXN0LmMgfCAxMjMgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDEyMyBpbnNlcnRpb25zKCspCgpkaWZmIC0t
-Z2l0IGEva3VuaXQvdGVzdC10ZXN0LmMgYi9rdW5pdC90ZXN0LXRlc3QuYwppbmRleCA3YWZjOWJi
-NTJmN2JlLi5lZTkyNmY3OThiMjY2IDEwMDY0NAotLS0gYS9rdW5pdC90ZXN0LXRlc3QuYworKysg
-Yi9rdW5pdC90ZXN0LXRlc3QuYwpAQCAtMTAxLDMgKzEwMSwxMjYgQEAgc3RhdGljIHN0cnVjdCBr
-dW5pdF9tb2R1bGUga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfbW9kdWxlID0gewogCS50ZXN0X2Nhc2Vz
-ID0ga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfY2FzZXMsCiB9OwogbW9kdWxlX3Rlc3Qoa3VuaXRfdHJ5
-X2NhdGNoX3Rlc3RfbW9kdWxlKTsKKworLyoKKyAqIENvbnRleHQgZm9yIHRlc3RpbmcgdGVzdCBt
-YW5hZ2VkIHJlc291cmNlcworICogaXNfcmVzb3VyY2VfaW5pdGlhbGl6ZWQgaXMgdXNlZCB0byB0
-ZXN0IGFyYml0cmFyeSByZXNvdXJjZXMKKyAqLworc3RydWN0IGt1bml0X3Rlc3RfcmVzb3VyY2Vf
-Y29udGV4dCB7CisJc3RydWN0IGt1bml0IHRlc3Q7CisJYm9vbCBpc19yZXNvdXJjZV9pbml0aWFs
-aXplZDsKK307CisKK3N0YXRpYyBpbnQgZmFrZV9yZXNvdXJjZV9pbml0KHN0cnVjdCBrdW5pdF9y
-ZXNvdXJjZSAqcmVzLCB2b2lkICpjb250ZXh0KQoreworCXN0cnVjdCBrdW5pdF90ZXN0X3Jlc291
-cmNlX2NvbnRleHQgKmN0eCA9IGNvbnRleHQ7CisKKwlyZXMtPmFsbG9jYXRpb24gPSAmY3R4LT5p
-c19yZXNvdXJjZV9pbml0aWFsaXplZDsKKwljdHgtPmlzX3Jlc291cmNlX2luaXRpYWxpemVkID0g
-dHJ1ZTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIHZvaWQgZmFrZV9yZXNvdXJjZV9mcmVlKHN0
-cnVjdCBrdW5pdF9yZXNvdXJjZSAqcmVzKQoreworCWJvb2wgKmlzX3Jlc291cmNlX2luaXRpYWxp
-emVkID0gcmVzLT5hbGxvY2F0aW9uOworCisJKmlzX3Jlc291cmNlX2luaXRpYWxpemVkID0gZmFs
-c2U7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3Jlc291cmNlX3Rlc3RfaW5pdF9yZXNvdXJjZXMo
-c3RydWN0IGt1bml0ICp0ZXN0KQoreworCXN0cnVjdCBrdW5pdF90ZXN0X3Jlc291cmNlX2NvbnRl
-eHQgKmN0eCA9IHRlc3QtPnByaXY7CisKKwlrdW5pdF9pbml0X3Rlc3QoJmN0eC0+dGVzdCwgInRl
-c3RpbmdfdGVzdF9pbml0X3Rlc3QiKTsKKworCUtVTklUX0VYUEVDVF9UUlVFKHRlc3QsIGxpc3Rf
-ZW1wdHkoJmN0eC0+dGVzdC5yZXNvdXJjZXMpKTsKK30KKworc3RhdGljIHZvaWQga3VuaXRfcmVz
-b3VyY2VfdGVzdF9hbGxvY19yZXNvdXJjZShzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJc3RydWN0
-IGt1bml0X3Rlc3RfcmVzb3VyY2VfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsKKwlzdHJ1Y3Qg
-a3VuaXRfcmVzb3VyY2UgKnJlczsKKwlrdW5pdF9yZXNvdXJjZV9mcmVlX3QgZnJlZSA9IGZha2Vf
-cmVzb3VyY2VfZnJlZTsKKworCXJlcyA9IGt1bml0X2FsbG9jX3Jlc291cmNlKCZjdHgtPnRlc3Qs
-CisJCQkJICAgZmFrZV9yZXNvdXJjZV9pbml0LAorCQkJCSAgIGZha2VfcmVzb3VyY2VfZnJlZSwK
-KwkJCQkgICBjdHgpOworCisJS1VOSVRfQVNTRVJUX05PVF9FUlJfT1JfTlVMTCh0ZXN0LCByZXMp
-OworCUtVTklUX0VYUEVDVF9QVFJfRVEodGVzdCwKKwkJCSAgICAmY3R4LT5pc19yZXNvdXJjZV9p
-bml0aWFsaXplZCwgcmVzLT5hbGxvY2F0aW9uKTsKKwlLVU5JVF9FWFBFQ1RfVFJVRSh0ZXN0LCBs
-aXN0X2lzX2xhc3QoJnJlcy0+bm9kZSwgJmN0eC0+dGVzdC5yZXNvdXJjZXMpKTsKKwlLVU5JVF9F
-WFBFQ1RfUFRSX0VRKHRlc3QsIGZyZWUsIHJlcy0+ZnJlZSk7Cit9CisKK3N0YXRpYyB2b2lkIGt1
-bml0X3Jlc291cmNlX3Rlc3RfZnJlZV9yZXNvdXJjZShzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJ
-c3RydWN0IGt1bml0X3Rlc3RfcmVzb3VyY2VfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsKKwlz
-dHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlcyA9IGt1bml0X2FsbG9jX3Jlc291cmNlKCZjdHgtPnRl
-c3QsCisJCQkJCQkJICBmYWtlX3Jlc291cmNlX2luaXQsCisJCQkJCQkJICBmYWtlX3Jlc291cmNl
-X2ZyZWUsCisJCQkJCQkJICBjdHgpOworCisJa3VuaXRfZnJlZV9yZXNvdXJjZSgmY3R4LT50ZXN0
-LCByZXMpOworCisJS1VOSVRfRVhQRUNUX0VRKHRlc3QsIGZhbHNlLCBjdHgtPmlzX3Jlc291cmNl
-X2luaXRpYWxpemVkKTsKKwlLVU5JVF9FWFBFQ1RfVFJVRSh0ZXN0LCBsaXN0X2VtcHR5KCZjdHgt
-PnRlc3QucmVzb3VyY2VzKSk7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3Jlc291cmNlX3Rlc3Rf
-Y2xlYW51cF9yZXNvdXJjZXMoc3RydWN0IGt1bml0ICp0ZXN0KQoreworCWludCBpOworCXN0cnVj
-dCBrdW5pdF90ZXN0X3Jlc291cmNlX2NvbnRleHQgKmN0eCA9IHRlc3QtPnByaXY7CisJc3RydWN0
-IGt1bml0X3Jlc291cmNlICpyZXNvdXJjZXNbNV07CisKKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlf
-U0laRShyZXNvdXJjZXMpOyBpKyspIHsKKwkJcmVzb3VyY2VzW2ldID0ga3VuaXRfYWxsb2NfcmVz
-b3VyY2UoJmN0eC0+dGVzdCwKKwkJCQkJCSAgICBmYWtlX3Jlc291cmNlX2luaXQsCisJCQkJCQkg
-ICAgZmFrZV9yZXNvdXJjZV9mcmVlLAorCQkJCQkJICAgIGN0eCk7CisJfQorCisJa3VuaXRfY2xl
-YW51cCgmY3R4LT50ZXN0KTsKKworCUtVTklUX0VYUEVDVF9UUlVFKHRlc3QsIGxpc3RfZW1wdHko
-JmN0eC0+dGVzdC5yZXNvdXJjZXMpKTsKK30KKworc3RhdGljIGludCBrdW5pdF9yZXNvdXJjZV90
-ZXN0X2luaXQoc3RydWN0IGt1bml0ICp0ZXN0KQoreworCXN0cnVjdCBrdW5pdF90ZXN0X3Jlc291
-cmNlX2NvbnRleHQgKmN0eCA9CisJCQlremFsbG9jKHNpemVvZigqY3R4KSwgR0ZQX0tFUk5FTCk7
-CisKKwlpZiAoIWN0eCkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwl0ZXN0LT5wcml2ID0gY3R4Owor
-CisJa3VuaXRfaW5pdF90ZXN0KCZjdHgtPnRlc3QsICJ0ZXN0X3Rlc3RfY29udGV4dCIpOworCisJ
-cmV0dXJuIDA7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3Jlc291cmNlX3Rlc3RfZXhpdChzdHJ1
-Y3Qga3VuaXQgKnRlc3QpCit7CisJc3RydWN0IGt1bml0X3Rlc3RfcmVzb3VyY2VfY29udGV4dCAq
-Y3R4ID0gdGVzdC0+cHJpdjsKKworCWt1bml0X2NsZWFudXAoJmN0eC0+dGVzdCk7CisJa2ZyZWUo
-Y3R4KTsKK30KKworc3RhdGljIHN0cnVjdCBrdW5pdF9jYXNlIGt1bml0X3Jlc291cmNlX3Rlc3Rf
-Y2FzZXNbXSA9IHsKKwlLVU5JVF9DQVNFKGt1bml0X3Jlc291cmNlX3Rlc3RfaW5pdF9yZXNvdXJj
-ZXMpLAorCUtVTklUX0NBU0Uoa3VuaXRfcmVzb3VyY2VfdGVzdF9hbGxvY19yZXNvdXJjZSksCisJ
-S1VOSVRfQ0FTRShrdW5pdF9yZXNvdXJjZV90ZXN0X2ZyZWVfcmVzb3VyY2UpLAorCUtVTklUX0NB
-U0Uoa3VuaXRfcmVzb3VyY2VfdGVzdF9jbGVhbnVwX3Jlc291cmNlcyksCisJe30sCit9OworCitz
-dGF0aWMgc3RydWN0IGt1bml0X21vZHVsZSBrdW5pdF9yZXNvdXJjZV90ZXN0X21vZHVsZSA9IHsK
-KwkubmFtZSA9ICJrdW5pdC1yZXNvdXJjZS10ZXN0IiwKKwkuaW5pdCA9IGt1bml0X3Jlc291cmNl
-X3Rlc3RfaW5pdCwKKwkuZXhpdCA9IGt1bml0X3Jlc291cmNlX3Rlc3RfZXhpdCwKKwkudGVzdF9j
-YXNlcyA9IGt1bml0X3Jlc291cmNlX3Rlc3RfY2FzZXMsCit9OworbW9kdWxlX3Rlc3Qoa3VuaXRf
-cmVzb3VyY2VfdGVzdF9tb2R1bGUpOwotLSAKMi4yMS4wLjEwMjAuZ2YyODIwY2YwMWEtZ29vZwoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Add defconfig for UML and a fragment that can be used to configure other
+architectures for building KUnit tests. Add option to kunit_tool to use
+a defconfig to create the kunitconfig.
+
+Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+---
+ arch/um/configs/kunit_defconfig              |  8 ++++++++
+ tools/testing/kunit/configs/all_tests.config |  8 ++++++++
+ tools/testing/kunit/kunit.py                 | 18 ++++++++++++++++--
+ tools/testing/kunit/kunit_kernel.py          |  3 ++-
+ 4 files changed, 34 insertions(+), 3 deletions(-)
+ create mode 100644 arch/um/configs/kunit_defconfig
+ create mode 100644 tools/testing/kunit/configs/all_tests.config
+
+diff --git a/arch/um/configs/kunit_defconfig b/arch/um/configs/kunit_defconfig
+new file mode 100644
+index 0000000000000..bfe49689038f1
+--- /dev/null
++++ b/arch/um/configs/kunit_defconfig
+@@ -0,0 +1,8 @@
++CONFIG_OF=y
++CONFIG_OF_UNITTEST=y
++CONFIG_OF_OVERLAY=y
++CONFIG_I2C=y
++CONFIG_I2C_MUX=y
++CONFIG_KUNIT=y
++CONFIG_KUNIT_TEST=y
++CONFIG_KUNIT_EXAMPLE_TEST=y
+diff --git a/tools/testing/kunit/configs/all_tests.config b/tools/testing/kunit/configs/all_tests.config
+new file mode 100644
+index 0000000000000..bfe49689038f1
+--- /dev/null
++++ b/tools/testing/kunit/configs/all_tests.config
+@@ -0,0 +1,8 @@
++CONFIG_OF=y
++CONFIG_OF_UNITTEST=y
++CONFIG_OF_OVERLAY=y
++CONFIG_I2C=y
++CONFIG_I2C_MUX=y
++CONFIG_KUNIT=y
++CONFIG_KUNIT_TEST=y
++CONFIG_KUNIT_EXAMPLE_TEST=y
+diff --git a/tools/testing/kunit/kunit.py b/tools/testing/kunit/kunit.py
+index 85ed1c32a6c48..956326f87101f 100755
+--- a/tools/testing/kunit/kunit.py
++++ b/tools/testing/kunit/kunit.py
+@@ -11,6 +11,7 @@ import argparse
+ import sys
+ import os
+ import time
++import shutil
+ 
+ from collections import namedtuple
+ from enum import Enum, auto
+@@ -21,7 +22,7 @@ import kunit_parser
+ 
+ KunitResult = namedtuple('KunitResult', ['status','result'])
+ 
+-KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir'])
++KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir', 'defconfig'])
+ 
+ class KunitStatus(Enum):
+ 	SUCCESS = auto()
+@@ -29,8 +30,16 @@ class KunitStatus(Enum):
+ 	BUILD_FAILURE = auto()
+ 	TEST_FAILURE = auto()
+ 
++def create_default_kunitconfig():
++	if not os.path.exists(kunit_kernel.KUNITCONFIG_PATH):
++		shutil.copyfile('arch/um/configs/kunit_defconfig',
++				kunit_kernel.KUNITCONFIG_PATH)
++
+ def run_tests(linux: kunit_kernel.LinuxSourceTree,
+ 	      request: KunitRequest) -> KunitResult:
++	if request.defconfig:
++		create_default_kunitconfig()
++
+ 	config_start = time.time()
+ 	success = linux.build_reconfig(request.build_dir)
+ 	config_end = time.time()
+@@ -99,13 +108,18 @@ def main(argv, linux):
+ 				'directory.',
+ 				type=str, default=None, metavar='build_dir')
+ 
++	run_parser.add_argument('--defconfig',
++				help='Uses a default kunitconfig.',
++				action='store_true')
++
+ 	cli_args = parser.parse_args(argv)
+ 
+ 	if cli_args.subcommand == 'run':
+ 		request = KunitRequest(cli_args.raw_output,
+ 				       cli_args.timeout,
+ 				       cli_args.jobs,
+-				       cli_args.build_dir)
++				       cli_args.build_dir,
++				       cli_args.defconfig)
+ 		result = run_tests(linux, request)
+ 		if result.status != KunitStatus.SUCCESS:
+ 			sys.exit(1)
+diff --git a/tools/testing/kunit/kunit_kernel.py b/tools/testing/kunit/kunit_kernel.py
+index 07c0abf2f47df..bf38768353313 100644
+--- a/tools/testing/kunit/kunit_kernel.py
++++ b/tools/testing/kunit/kunit_kernel.py
+@@ -14,6 +14,7 @@ import os
+ import kunit_config
+ 
+ KCONFIG_PATH = '.config'
++KUNITCONFIG_PATH = 'kunitconfig'
+ 
+ class ConfigError(Exception):
+ 	"""Represents an error trying to configure the Linux kernel."""
+@@ -81,7 +82,7 @@ class LinuxSourceTree(object):
+ 
+ 	def __init__(self):
+ 		self._kconfig = kunit_config.Kconfig()
+-		self._kconfig.read_from_file('kunitconfig')
++		self._kconfig.read_from_file(KUNITCONFIG_PATH)
+ 		self._ops = LinuxSourceTreeOperations()
+ 
+ 	def clean(self):
+-- 
+2.21.0.1020.gf2820cf01a-goog
