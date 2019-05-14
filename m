@@ -1,95 +1,105 @@
-From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Returned mail: Data format error
-Date: Tue, 14 May 2019 11:51:53 +0800
-Message-ID: <20190514035349.A6BFD2126CF83@ml01.01.org>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: [PATCH v3 00/18] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Mon, 13 May 2019 22:42:33 -0700
+Message-ID: <20190514054251.186196-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5020941607101117256=="
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
+## TLDR
 
---===============5020941607101117256==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+I mostly wanted to incorporate feedback I got over the last week and a
+half.
 
-;“«ôÎÁ:kŞàZY?Ü¿ Ïñ3Ó²û7½ŞDO…Ku„
-z² ã<ßàÜŒåd‹†®U{ë‡YƒŠ¢ú´kŒ´~‚YÔ½á9\²÷hø%<ûB]`|¾7]½¡¢
-Ø2¦ìV·©ÊÇoÍèv³{
-/l¹DPŸ¢m
-„%<FCc0÷w
-)˜¡–š«8:ƒN¢ÕJ$‰ôÑİ-Šä(ãºuÛ~EŠ6ï'ğ<jpªDmğÑ¥° Ğ~ZRõ´uë¬ÜXaT.(3`t´¦ğïî·©y Ü¤¶ÊËD$Œ¦elçÃê½õ¨ıß$#ÓÛF·K“Fy»‚'%\L6LUjÂÕ—VşâÊøÀû\Ùr‚Ûîv¼ü)ç‚ßÚªG*Ü1 —¿Š&wE|™ÜøNö(¹Ò¢ô§
-¥a M,Xh¼S¢ºßR:ãÖ$4{—6¦xÁåÛs¦b*Ì:Ø`[<W
-bCz’¶ö'û¡'ÏÅTš¾ûÙYôñ0¡Yëd®SÛ
-¹¯˜N|´ŸÅÆ#S-àÜãØ§U«ÕK­®OöC“¼±¶äıUÄ%˜5 ê’¼ÆékÄ(©jíë…²a0ğUBIX®‡%xî«÷ÕÃçEŞıŸ’q®$ãœy—`Î±KÓC|¸dÌLß?ø‚‚jÉˆ‡¾•Ñ·JoÕÁkb~É±Í¶Æ
-¿Ÿ5-­¿’¾DqdéòÛçšÓÜÅÁkSnÖÊÙ¯Š…BÅŠxKg7Ï)'¼~{H#rùµj¬iUÂQÌ‰”›‹1¶ß(¤¯
-ìî‘±çı9¤ƒˆF–¢ïküvpÕ
-^¥É%
-ôÓw#“wÃL“±µşRÂı¯ñ#ßæ\âùwLóğ¯MNÀäï»Êt¢•¬úm^ˆ®z`‡ıjwì´ n§0.5æW-
-•vâºT.hÙ÷õ¸˜Ÿ®\?¦s˜z³\™ÃQ
-ÀªóDƒÃ×d¨O¡Ù©C™e;rê•Ùs´BîâÕ)ö<×íéG¸feVr,Üõp£È¾ÆU(:\o•ÛAïs~Ã×»ïá<kŞ´«î§¶øK
-âI8î|F'"C“ X‰ùUéç‡ FmÌ˜¢IúÒ«M×úşÁ¢(íÂ(M-Š×L·Î»åÆº1ù°3”KÉ??]Õæ-ÀeïŒuˆ’ı¸”v^ïhœĞŠ„óQO é„<k-ƒ‘çğıˆ•xĞ±6ÍD¦;w˜x£ïöÑ‰µ¸£qMæEŠ3ÃäM¼Óâ×ô{•™ŞŠ#J7o4À1>Ú.ø¸W,Š#µø&”.á/÷ÁLÈÈù·)~°ÃûDÛâÎÕ1Ü˜
-9µ‚¿zJ"M×»\9X'R^Í•¤'à¢ßÅ%¯‡‚XHN¼2CáHA~;“o“ °3<1Ö“8ì'q˜r§ıà7À•‚O647'‘Œ1º¼…U¢‚,x‹Pàè•
-ú½01G>6
-o·†_…ï.óB£»…×5líÊKËAÁîß!ŞÂ«9 ÌPÃloãkÍ"Š‘¦OovÓMºÁ,Æ5 »6ÆhÎ‰„o¥›iÑº—Qoï)÷åÖâXs1½ÎŠâ
-X³•
-9ôõWm©’¦ı|CøÆğÇ4I¡èXtIõR
-ì«ÜcõØWÙ6^Òik»äwymurĞ”eåÚ¸;±;ä«¸N¥óc.mT^Ûú“çS¾µ¦
-"úqÛeÓw¸ÖÔ­B¤›©Óğ]8–Q`Û:éÆƒJ8‚ÔµîE%8
-C
-Ã‰§sã“
-43
-Û< W§r
-â\
-Èyò<Œ^8®a}ââ‡_åRRçáÓNñõ-  ¿äµ,Í3ÆVyÔ¼Ò…¢SDÉ-œH°;~ë¹B10÷ïÂŒ‘£’jCğ×§Û!2Š®Ü6~Ë©‰p8ò“
-'÷<Ò:c{3ÊÜ˜‡‹µäOb¡c¦M†,]>ê
-xv¯®STÕík—¿êÏøö*óG÷0ıÏZJ•|x¥g`ñÖ¥2'UƒÊÀü¹¦(Œbà(¥VáØàÙ[~lQŠ‰!™{¹M"¼åSÓnIçùFZ,î•›ÁÔÏÈ
-ÚR~R³#U&ZZ‚Ó.ŒÌ©õ¹êá¼R’Ô¶W©¨‰Ë?«÷¤&,–KGWâ%<¹|ò`Ó (W#ê
-âò°ÎD~‘fÑóÜ‰ÈËpÜ»—íæà'ÕŞdl‘ şuAk^‡¬Zò2RrÓ‡Ei.CUgRËq43"èIºö¾W8RhNšĞ,Ê|‡VÈeZNq$&
- ±ÔË‚×[Íàh´]Ø[¬#Ó­Ux8eR‡jÒî§bâjã«Y~M/9òûV gR®Ö™Å–ËàrQøÆéÎf4é˜ÇÀâßŸsŸÆ»§àU¦ƒMG‹Ñ£°Št|mh¼DŠÖsäÓV[±e­EÛƒ±9z™Æ¹s³±›!3•i £F}kCÏ³ãÙ?.6Æ®Ì.,
-9ÛŒ’xv>İA^b%OµÙ±ß; '8;QmÇşÒáşÎÜXòÉx#Ğ’ˆ^ŠD.ªgü
-*™?wfèñâ¨–`£Ğ‰¡`ÄÊq)¬±ã´ûí•ÜùëTªö„<mYÆVX…"TÚë¸üôYòâM“:¼¾SE¸7åœÊÏéœP¸>W4°2p
-§gZû\Ã^hNÎn‘x©0è“ªÌ©êMœmÍ$&ªHÕlİw7-]lÏWW´’‘¬.ko‘¸7håÊÕ”Ór¢
-9úwS¨¬«Ù—/J´Ì!e]~†¨¤¸æSD z†ŒŠ_nòõòûPÅ
-—ÇsÃ^{²'ÌÔ”P8gò>:-:Ì‚QıÙ“`?Œ{
-ğ»¶ow#Cœ(k`ÂÈ‡”§A­Ì“"××Ò¡é6úaQ;ã©‡·6šêD¸„‡·PJû,o¢ø5‚]¹X×G?Ì³×Ç½
-–‹³™cbÄ˜ç¿eÀ'Õ¬·0<Z`’ÛÍhu¤bR¨JF ™bR\Ò¥œªì–`åZ21¼]ŒĞ&AYùA
-šQ­¨ (ÔW Ü
-„ã³ÃÎŞóÉö®îîô
-œqoÃñÕòW¿OøÈqğø¾•b`äQœò‡3›.õ
-,J¢É`
-óåÈ¥äò‡#e*•s•aSÚÄÕÙ¹\&¦¢r÷÷t™1Ìóåz¶å04¶/CŒ"iÉ PÖ®A¾o§G§!®]YRW‘«of‡0÷$Ìáºİæac«ˆ¤Šg ´RÎz ôÑ»Íş
-É–I¢¯âÎØ^xì(×Ò;ÚYvÂRÔAÌ
-ì«™ZV[´¿°’
-ÜÉÅşˆÆğîßïâ¶Ê`(Cs¸ê¡(¿ÜÓ
-ğŞ-ÑÛèé©4ê(NÖ»Zh#YŠiTæÂrárÜ
-ö×ó'r‚gÛR9’`´õ~ÛwĞC‚õY”Š¹–
-<gàCpÊuwæ‹§°Oİ
-.yÃ:q"ü
-r/†X!zRëšmC5õæPI—Æö'
-¼T%,¦ /zõnnÀ Y\v¯œœ4GG±‰¾—–}L{¾õôö›ìF:•Qzo˜s7P¢ØT{k`YµİC2E†z­yüó…7õl<¢‹4¹
+Biggest things to look out for:
 
+- KUnit core now outputs results in TAP14.
+- Heavily reworked tools/testing/kunit/kunit.py
+  - Changed how parsing works.
+  - Added testing.
+  - Greg, Logan, you might want to re-review this.
+- Added documentation on how to use KUnit on non-UML kernels. You can
+  see the docs rendered here[1].
 
---===============5020941607101117256==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+There is still some discussion going on on the [PATCH v2 00/17] thread,
+but I wanted to get some of these updates out before they got too stale
+(and too difficult for me to keep track of). I hope no one minds.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+## Background
 
---===============5020941607101117256==--
+This patch set proposes KUnit, a lightweight unit testing and mocking
+framework for the Linux kernel.
+
+Unlike Autotest and kselftest, KUnit is a true unit testing framework;
+it does not require installing the kernel on a test machine or in a VM
+(however, KUnit still allows you to run tests on test machines or in VMs
+if you want) and does not require tests to be written in userspace
+running on a host kernel. Additionally, KUnit is fast: From invocation
+to completion KUnit can run several dozen tests in under a second.
+Currently, the entire KUnit test suite for KUnit runs in under a second
+from the initial invocation (build time excluded).
+
+KUnit is heavily inspired by JUnit, Python's unittest.mock, and
+Googletest/Googlemock for C++. KUnit provides facilities for defining
+unit test cases, grouping related test cases into test suites, providing
+common infrastructure for running tests, mocking, spying, and much more.
+
+## What's so special about unit testing?
+
+A unit test is supposed to test a single unit of code in isolation,
+hence the name. There should be no dependencies outside the control of
+the test; this means no external dependencies, which makes tests orders
+of magnitudes faster. Likewise, since there are no external dependencies,
+there are no hoops to jump through to run the tests. Additionally, this
+makes unit tests deterministic: a failing unit test always indicates a
+problem. Finally, because unit tests necessarily have finer granularity,
+they are able to test all code paths easily solving the classic problem
+of difficulty in exercising error handling code.
+
+## Is KUnit trying to replace other testing frameworks for the kernel?
+
+No. Most existing tests for the Linux kernel are end-to-end tests, which
+have their place. A well tested system has lots of unit tests, a
+reasonable number of integration tests, and some end-to-end tests. KUnit
+is just trying to address the unit test space which is currently not
+being addressed.
+
+## More information on KUnit
+
+There is a bunch of documentation near the end of this patch set that
+describes how to use KUnit and best practices for writing unit tests.
+For convenience I am hosting the compiled docs here[2].
+
+Additionally for convenience, I have applied these patches to a
+branch[3].
+The repo may be cloned with:
+git clone https://kunit.googlesource.com/linux
+This patchset is on the kunit/rfc/v5.1/v3 branch.
+
+## Changes Since Last Version
+
+- Converted KUnit core to print test results in TAP14 format as
+  suggested by Greg and Frank.
+- Heavily reworked tools/testing/kunit/kunit.py
+  - Changed how parsing works.
+  - Added testing.
+- Added documentation on how to use KUnit on non-UML kernels. You can
+  see the docs rendered here[1].
+- Added a new set of EXPECTs and ASSERTs for pointer comparison.
+- Removed more function indirection as suggested by Logan.
+- Added a new patch that adds `kunit_try_catch_throw` to objtool's
+  noreturn list.
+- Fixed a number of minorish issues pointed out by Shuah, Masahiro, and
+  kbuild bot.
+
+[1] https://google.github.io/kunit-docs/third_party/kernel/docs/usage.html#kunit-on-non-uml-architectures
+[2] https://google.github.io/kunit-docs/third_party/kernel/docs/
+[3] https://kunit.googlesource.com/linux/+/kunit/rfc/v5.1/v3
+
+-- 
+2.21.0.1020.gf2820cf01a-goog
