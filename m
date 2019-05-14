@@ -1,11 +1,9 @@
-From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-Subject: [PATCH] mm/nvdimm: Pick the right alignment default when creating dax
- devices
-Date: Tue, 14 May 2019 08:24:49 +0530
-Message-ID: <20190514025449.9416-1-aneesh.kumar@linux.ibm.com>
+From: "Mail Delivery Subsystem" <MAILER-DAEMON-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Returned mail: Data format error
+Date: Tue, 14 May 2019 11:51:53 +0800
+Message-ID: <20190514035349.A6BFD2126CF83@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5020941607101117256=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -16,241 +14,82 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Allow arch to provide the supported alignments and use hugepage alignment only
-if we support hugepage. Right now we depend on compile time configs whereas this
-patch switch this to runtime discovery.
+This is a multi-part message in MIME format.
 
-Architectures like ppc64 can have THP enabled in code, but then can have
-hugepage size disabled by the hypervisor. This allows us to create dax devices
-with PAGE_SIZE alignment in this case.
+--===============5020941607101117256==
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Existing dax namespace with alignment larger than PAGE_SIZE will fail to
-initialize in this specific case. We still allow fsdax namespace initialization.
+;“«ôÎÁ:kŞàZY?Ü¿ Ïñ3Ó²û7½ŞDO…Ku„
+z² ã<ßàÜŒåd‹†®U{ë‡YƒŠ¢ú´kŒ´~‚YÔ½á9\²÷hø%<ûB]`|¾7]½¡¢
+Ø2¦ìV·©ÊÇoÍèv³{
+/l¹DPŸ¢m
+„%<FCc0÷w
+)˜¡–š«8:ƒN¢ÕJ$‰ôÑİ-Šä(ãºuÛ~EŠ6ï'ğ<jpªDmğÑ¥° Ğ~ZRõ´uë¬ÜXaT.(3`t´¦ğïî·©y Ü¤¶ÊËD$Œ¦elçÃê½õ¨ıß$#ÓÛF·K“Fy»‚'%\L6LUjÂÕ—VşâÊøÀû\Ùr‚Ûîv¼ü)ç‚ßÚªG*Ü1 —¿Š&wE|™ÜøNö(¹Ò¢ô§
+¥a M,Xh¼S¢ºßR:ãÖ$4{—6¦xÁåÛs¦b*Ì:Ø`[<W
+bCz’¶ö'û¡'ÏÅTš¾ûÙYôñ0¡Yëd®SÛ
+¹¯˜N|´ŸÅÆ#S-àÜãØ§U«ÕK­®OöC“¼±¶äıUÄ%˜5 ê’¼ÆékÄ(©jíë…²a0ğUBIX®‡%xî«÷ÕÃçEŞıŸ’q®$ãœy—`Î±KÓC|¸dÌLß?ø‚‚jÉˆ‡¾•Ñ·JoÕÁkb~É±Í¶Æ
+¿Ÿ5-­¿’¾DqdéòÛçšÓÜÅÁkSnÖÊÙ¯Š…BÅŠxKg7Ï)'¼~{H#rùµj¬iUÂQÌ‰”›‹1¶ß(¤¯
+ìî‘±çı9¤ƒˆF–¢ïküvpÕ
+^¥É%
+ôÓw#“wÃL“±µşRÂı¯ñ#ßæ\âùwLóğ¯MNÀäï»Êt¢•¬úm^ˆ®z`‡ıjwì´ n§0.5æW-
+•vâºT.hÙ÷õ¸˜Ÿ®\?¦s˜z³\™ÃQ
+ÀªóDƒÃ×d¨O¡Ù©C™e;rê•Ùs´BîâÕ)ö<×íéG¸feVr,Üõp£È¾ÆU(:\o•ÛAïs~Ã×»ïá<kŞ´«î§¶øK
+âI8î|F'"C“ X‰ùUéç‡ FmÌ˜¢IúÒ«M×úşÁ¢(íÂ(M-Š×L·Î»åÆº1ù°3”KÉ??]Õæ-ÀeïŒuˆ’ı¸”v^ïhœĞŠ„óQO é„<k-ƒ‘çğıˆ•xĞ±6ÍD¦;w˜x£ïöÑ‰µ¸£qMæEŠ3ÃäM¼Óâ×ô{•™ŞŠ#J7o4À1>Ú.ø¸W,Š#µø&”.á/÷ÁLÈÈù·)~°ÃûDÛâÎÕ1Ü˜
+9µ‚¿zJ"M×»\9X'R^Í•¤'à¢ßÅ%¯‡‚XHN¼2CáHA~;“o“ °3<1Ö“8ì'q˜r§ıà7À•‚O647'‘Œ1º¼…U¢‚,x‹Pàè•
+ú½01G>6
+o·†_…ï.óB£»…×5líÊKËAÁîß!ŞÂ«9 ÌPÃloãkÍ"Š‘¦OovÓMºÁ,Æ5 »6ÆhÎ‰„o¥›iÑº—Qoï)÷åÖâXs1½ÎŠâ
+X³•
+9ôõWm©’¦ı|CøÆğÇ4I¡èXtIõR
+ì«ÜcõØWÙ6^Òik»äwymurĞ”eåÚ¸;±;ä«¸N¥óc.mT^Ûú“çS¾µ¦
+"úqÛeÓw¸ÖÔ­B¤›©Óğ]8–Q`Û:éÆƒJ8‚ÔµîE%8
+C
+Ã‰§sã“
+43
+Û< W§r
+â\
+Èyò<Œ^8®a}ââ‡_åRRçáÓNñõ-  ¿äµ,Í3ÆVyÔ¼Ò…¢SDÉ-œH°;~ë¹B10÷ïÂŒ‘£’jCğ×§Û!2Š®Ü6~Ë©‰p8ò“
+'÷<Ò:c{3ÊÜ˜‡‹µäOb¡c¦M†,]>ê
+xv¯®STÕík—¿êÏøö*óG÷0ıÏZJ•|x¥g`ñÖ¥2'UƒÊÀü¹¦(Œbà(¥VáØàÙ[~lQŠ‰!™{¹M"¼åSÓnIçùFZ,î•›ÁÔÏÈ
+ÚR~R³#U&ZZ‚Ó.ŒÌ©õ¹êá¼R’Ô¶W©¨‰Ë?«÷¤&,–KGWâ%<¹|ò`Ó (W#ê
+âò°ÎD~‘fÑóÜ‰ÈËpÜ»—íæà'ÕŞdl‘ şuAk^‡¬Zò2RrÓ‡Ei.CUgRËq43"èIºö¾W8RhNšĞ,Ê|‡VÈeZNq$&
+ ±ÔË‚×[Íàh´]Ø[¬#Ó­Ux8eR‡jÒî§bâjã«Y~M/9òûV gR®Ö™Å–ËàrQøÆéÎf4é˜ÇÀâßŸsŸÆ»§àU¦ƒMG‹Ñ£°Št|mh¼DŠÖsäÓV[±e­EÛƒ±9z™Æ¹s³±›!3•i £F}kCÏ³ãÙ?.6Æ®Ì.,
+9ÛŒ’xv>İA^b%OµÙ±ß; '8;QmÇşÒáşÎÜXòÉx#Ğ’ˆ^ŠD.ªgü
+*™?wfèñâ¨–`£Ğ‰¡`ÄÊq)¬±ã´ûí•ÜùëTªö„<mYÆVX…"TÚë¸üôYòâM“:¼¾SE¸7åœÊÏéœP¸>W4°2p
+§gZû\Ã^hNÎn‘x©0è“ªÌ©êMœmÍ$&ªHÕlİw7-]lÏWW´’‘¬.ko‘¸7håÊÕ”Ór¢
+9úwS¨¬«Ù—/J´Ì!e]~†¨¤¸æSD z†ŒŠ_nòõòûPÅ
+—ÇsÃ^{²'ÌÔ”P8gò>:-:Ì‚QıÙ“`?Œ{
+ğ»¶ow#Cœ(k`ÂÈ‡”§A­Ì“"××Ò¡é6úaQ;ã©‡·6šêD¸„‡·PJû,o¢ø5‚]¹X×G?Ì³×Ç½
+–‹³™cbÄ˜ç¿eÀ'Õ¬·0<Z`’ÛÍhu¤bR¨JF ™bR\Ò¥œªì–`åZ21¼]ŒĞ&AYùA
+šQ­¨ (ÔW Ü
+„ã³ÃÎŞóÉö®îîô
+œqoÃñÕòW¿OøÈqğø¾•b`äQœò‡3›.õ
+,J¢É`
+óåÈ¥äò‡#e*•s•aSÚÄÕÙ¹\&¦¢r÷÷t™1Ìóåz¶å04¶/CŒ"iÉ PÖ®A¾o§G§!®]YRW‘«of‡0÷$Ìáºİæac«ˆ¤Šg ´RÎz ôÑ»Íş
+É–I¢¯âÎØ^xì(×Ò;ÚYvÂRÔAÌ
+ì«™ZV[´¿°’
+ÜÉÅşˆÆğîßïâ¶Ê`(Cs¸ê¡(¿ÜÓ
+ğŞ-ÑÛèé©4ê(NÖ»Zh#YŠiTæÂrárÜ
+ö×ó'r‚gÛR9’`´õ~ÛwĞC‚õY”Š¹–
+<gàCpÊuwæ‹§°Oİ
+.yÃ:q"ü
+r/†X!zRëšmC5õæPI—Æö'
+¼T%,¦ /zõnnÀ Y\v¯œœ4GG±‰¾—–}L{¾õôö›ìF:•Qzo˜s7P¢ØT{k`YµİC2E†z­yüó…7õl<¢‹4¹
 
-With respect to identifying whether to enable hugepage fault for a dax device,
-if THP is enabled during compile, we default to taking hugepage fault and in dax
-fault handler if we find the fault size > alignment we retry with PAGE_SIZE
-fault size.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
----
- arch/powerpc/include/asm/libnvdimm.h |  9 ++++++++
- arch/powerpc/mm/Makefile             |  1 +
- arch/powerpc/mm/nvdimm.c             | 34 ++++++++++++++++++++++++++++
- arch/x86/include/asm/libnvdimm.h     | 19 ++++++++++++++++
- drivers/nvdimm/nd.h                  |  6 -----
- drivers/nvdimm/pfn_devs.c            | 32 +++++++++++++++++++++++++-
- include/linux/huge_mm.h              |  7 +++++-
- 7 files changed, 100 insertions(+), 8 deletions(-)
- create mode 100644 arch/powerpc/include/asm/libnvdimm.h
- create mode 100644 arch/powerpc/mm/nvdimm.c
- create mode 100644 arch/x86/include/asm/libnvdimm.h
+--===============5020941607101117256==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-diff --git a/arch/powerpc/include/asm/libnvdimm.h b/arch/powerpc/include/asm/libnvdimm.h
-new file mode 100644
-index 000000000000..d35fd7f48603
---- /dev/null
-+++ b/arch/powerpc/include/asm/libnvdimm.h
-@@ -0,0 +1,9 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_POWERPC_LIBNVDIMM_H
-+#define _ASM_POWERPC_LIBNVDIMM_H
-+
-+#define nd_pfn_supported_alignments nd_pfn_supported_alignments
-+extern unsigned long *nd_pfn_supported_alignments(void);
-+extern unsigned long nd_pfn_default_alignment(void);
-+
-+#endif
-diff --git a/arch/powerpc/mm/Makefile b/arch/powerpc/mm/Makefile
-index 0f499db315d6..42e4a399ba5d 100644
---- a/arch/powerpc/mm/Makefile
-+++ b/arch/powerpc/mm/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_HIGHMEM)		+= highmem.o
- obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
- obj-$(CONFIG_PPC_PTDUMP)	+= ptdump/
- obj-$(CONFIG_KASAN)		+= kasan/
-+obj-$(CONFIG_NVDIMM_PFN)		+= nvdimm.o
-diff --git a/arch/powerpc/mm/nvdimm.c b/arch/powerpc/mm/nvdimm.c
-new file mode 100644
-index 000000000000..a29a4510715e
---- /dev/null
-+++ b/arch/powerpc/mm/nvdimm.c
-@@ -0,0 +1,34 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <asm/pgtable.h>
-+#include <asm/page.h>
-+
-+#include <linux/mm.h>
-+/*
-+ * We support only pte and pmd mappings for now.
-+ */
-+const unsigned long *nd_pfn_supported_alignments(void)
-+{
-+	static unsigned long supported_alignments[3];
-+
-+	supported_alignments[0] = PAGE_SIZE;
-+
-+	if (has_transparent_hugepage())
-+		supported_alignments[1] = HPAGE_PMD_SIZE;
-+	else
-+		supported_alignments[1] = 0;
-+
-+	supported_alignments[2] = 0;
-+	return supported_alignments;
-+}
-+
-+/*
-+ * Use pmd mapping if supported as default alignment
-+ */
-+unsigned long nd_pfn_default_alignment(void)
-+{
-+
-+	if (has_transparent_hugepage())
-+		return HPAGE_PMD_SIZE;
-+	return PAGE_SIZE;
-+}
-diff --git a/arch/x86/include/asm/libnvdimm.h b/arch/x86/include/asm/libnvdimm.h
-new file mode 100644
-index 000000000000..3d5361db9164
---- /dev/null
-+++ b/arch/x86/include/asm/libnvdimm.h
-@@ -0,0 +1,19 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_X86_LIBNVDIMM_H
-+#define _ASM_X86_LIBNVDIMM_H
-+
-+static inline unsigned long nd_pfn_default_alignment(void)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	return HPAGE_PMD_SIZE;
-+#else
-+	return PAGE_SIZE;
-+#endif
-+}
-+
-+static inline unsigned long nd_altmap_align_size(unsigned long nd_align)
-+{
-+	return PMD_SIZE;
-+}
-+
-+#endif
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index a5ac3b240293..44fe923b2ee3 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -292,12 +292,6 @@ static inline struct device *nd_btt_create(struct nd_region *nd_region)
- struct nd_pfn *to_nd_pfn(struct device *dev);
- #if IS_ENABLED(CONFIG_NVDIMM_PFN)
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#define PFN_DEFAULT_ALIGNMENT HPAGE_PMD_SIZE
--#else
--#define PFN_DEFAULT_ALIGNMENT PAGE_SIZE
--#endif
--
- int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns);
- bool is_nd_pfn(struct device *dev);
- struct device *nd_pfn_create(struct nd_region *nd_region);
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 01f40672507f..347cab166376 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
-+#include <asm/libnvdimm.h>
- #include "nd-core.h"
- #include "pfn.h"
- #include "nd.h"
-@@ -111,6 +112,8 @@ static ssize_t align_show(struct device *dev,
- 	return sprintf(buf, "%ld\n", nd_pfn->align);
- }
- 
-+#ifndef nd_pfn_supported_alignments
-+#define nd_pfn_supported_alignments nd_pfn_supported_alignments
- static const unsigned long *nd_pfn_supported_alignments(void)
- {
- 	/*
-@@ -133,6 +136,7 @@ static const unsigned long *nd_pfn_supported_alignments(void)
- 
- 	return data;
- }
-+#endif
- 
- static ssize_t align_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
-@@ -310,7 +314,7 @@ struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
- 		return NULL;
- 
- 	nd_pfn->mode = PFN_MODE_NONE;
--	nd_pfn->align = PFN_DEFAULT_ALIGNMENT;
-+	nd_pfn->align = nd_pfn_default_alignment();
- 	dev = &nd_pfn->dev;
- 	device_initialize(&nd_pfn->dev);
- 	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
-@@ -420,6 +424,20 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
- 	return 0;
- }
- 
-+static bool nd_supported_alignment(unsigned long align)
-+{
-+	int i;
-+	const unsigned long *supported = nd_pfn_supported_alignments();
-+
-+	if (align == 0)
-+		return false;
-+
-+	for (i = 0; supported[i]; i++)
-+		if (align == supported[i])
-+			return true;
-+	return false;
-+}
-+
- int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- {
- 	u64 checksum, offset;
-@@ -474,6 +492,18 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		align = 1UL << ilog2(offset);
- 	mode = le32_to_cpu(pfn_sb->mode);
- 
-+	/*
-+	 * Check whether the we support the alignment. For Dax if the
-+	 * superblock alignment is not matching, we won't initialize
-+	 * the device.
-+	 */
-+	if (!nd_supported_alignment(align) &&
-+	    memcmp(pfn_sb->signature, DAX_SIG, PFN_SIG_LEN)) {
-+		dev_err(&nd_pfn->dev, "init failed, settings mismatch\n");
-+		dev_dbg(&nd_pfn->dev, "align: %lx:%lx\n", nd_pfn->align, align);
-+		return -EINVAL;
-+	}
-+
- 	if (!nd_pfn->uuid) {
- 		/*
- 		 * When probing a namepace via nd_pfn_probe() the uuid
-diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
-index 381e872bfde0..d5cfea3d8b86 100644
---- a/include/linux/huge_mm.h
-+++ b/include/linux/huge_mm.h
-@@ -110,7 +110,12 @@ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
- 
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
- 		return true;
--
-+	/*
-+	 * For dax let's try to do hugepage fault always. If we don't support
-+	 * hugepages we will not have enabled namespaces with hugepage alignment.
-+	 * This also means we try to handle hugepage fault on device with
-+	 * smaller alignment. But for then we will return with VM_FAULT_FALLBACK
-+	 */
- 	if (vma_is_dax(vma))
- 		return true;
- 
--- 
-2.21.0
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
+
+--===============5020941607101117256==--
