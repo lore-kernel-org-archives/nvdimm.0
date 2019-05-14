@@ -1,248 +1,301 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v3 01/18] kunit: test: add KUnit test runner core
-Date: Mon, 13 May 2019 22:42:34 -0700
-Message-ID: <20190514054251.186196-2-brendanhiggins@google.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 02/18] kunit: test: add test resource management API
+Date: Mon, 13 May 2019 22:42:35 -0700
+Message-ID: <20190514054251.186196-3-brendanhiggins@google.com>
 References: <20190514054251.186196-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190514054251.186196-1-brendanhiggins@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: frowand.list@gmail.com, gregkh@linuxfoundation.org, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, dan.j.williams@intel.com, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190514054251.186196-1-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-QWRkIGNvcmUgZmFjaWxpdGllcyBmb3IgZGVmaW5pbmcgdW5pdCB0ZXN0czsgdGhpcyBwcm92aWRl
-cyBhIGNvbW1vbiB3YXkKdG8gZGVmaW5lIHRlc3QgY2FzZXMsIGZ1bmN0aW9ucyB0aGF0IGV4ZWN1
-dGUgY29kZSB3aGljaCBpcyB1bmRlciB0ZXN0CmFuZCBkZXRlcm1pbmUgd2hldGhlciB0aGUgY29k
-ZSB1bmRlciB0ZXN0IGJlaGF2ZXMgYXMgZXhwZWN0ZWQ7IHRoaXMgYWxzbwpwcm92aWRlcyBhIHdh
-eSB0byBncm91cCB0b2dldGhlciByZWxhdGVkIHRlc3QgY2FzZXMgaW4gdGVzdCBzdWl0ZXMgKGhl
-cmUKd2UgY2FsbCB0aGVtIHRlc3RfbW9kdWxlcykuCgpKdXN0IGRlZmluZSB0ZXN0IGNhc2VzIGFu
-ZCBob3cgdG8gZXhlY3V0ZSB0aGVtIGZvciBub3c7IHNldHRpbmcKZXhwZWN0YXRpb25zIG9uIGNv
-ZGUgd2lsbCBiZSBkZWZpbmVkIGxhdGVyLgoKU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBIaWdnaW5z
-IDxicmVuZGFuaGlnZ2luc0Bnb29nbGUuY29tPgpSZXZpZXdlZC1ieTogR3JlZyBLcm9haC1IYXJ0
-bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KUmV2aWV3ZWQtYnk6IExvZ2FuIEd1bnRo
-b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCkNoYW5nZXMgU2luY2UgTGFzdCBSZXZpc2lv
-bjoKIC0gQ29udmVydGVkIEtVbml0IGNvcmUgdG8gcHJpbnQgdGVzdCByZXN1bHRzIGluIFRBUDE0
-IGZvcm1hdC4KIC0gUmVtb3ZlZCB1bm5lY2Vzc2FyeSBmdW5jdGlvbiBpbmRpcmVjdGlvbiwgYXMg
-cGVyIExvZ2FuJ3MgY29tbWVudHMuCiAtIFJlbW92ZWQgdW51c2VkIGhlYWRlciB0aGF0IHdhcyBj
-YXVzaW5nIHNvbWUgYnVpbGQgYnJlYWthZ2UsIGFzIHBlcgogICBNYXNhaGlybydzIGNvbW1lbnRz
-LgotLS0KIGluY2x1ZGUva3VuaXQvdGVzdC5oIHwgMTYyICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKwoga3VuaXQvS2NvbmZpZyAgICAgICAgfCAgMTYgKysrCiBrdW5pdC9NYWtlZmlsZSAg
-ICAgICB8ICAgMSArCiBrdW5pdC90ZXN0LmMgICAgICAgICB8IDIyOSArKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrCiA0IGZpbGVzIGNoYW5nZWQsIDQwOCBpbnNlcnRp
-b25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9rdW5pdC90ZXN0LmgKIGNyZWF0ZSBt
-b2RlIDEwMDY0NCBrdW5pdC9LY29uZmlnCiBjcmVhdGUgbW9kZSAxMDA2NDQga3VuaXQvTWFrZWZp
-bGUKIGNyZWF0ZSBtb2RlIDEwMDY0NCBrdW5pdC90ZXN0LmMKCmRpZmYgLS1naXQgYS9pbmNsdWRl
-L2t1bml0L3Rlc3QuaCBiL2luY2x1ZGUva3VuaXQvdGVzdC5oCm5ldyBmaWxlIG1vZGUgMTAwNjQ0
-CmluZGV4IDAwMDAwMDAwMDAwMDAuLmU2ODJlYTBlMWY5YTUKLS0tIC9kZXYvbnVsbAorKysgYi9p
-bmNsdWRlL2t1bml0L3Rlc3QuaApAQCAtMCwwICsxLDE2MiBAQAorLyogU1BEWC1MaWNlbnNlLUlk
-ZW50aWZpZXI6IEdQTC0yLjAgKi8KKy8qCisgKiBCYXNlIHVuaXQgdGVzdCAoS1VuaXQpIEFQSS4K
-KyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMTksIEdvb2dsZSBMTEMuCisgKiBBdXRob3I6IEJyZW5k
-YW4gSGlnZ2lucyA8YnJlbmRhbmhpZ2dpbnNAZ29vZ2xlLmNvbT4KKyAqLworCisjaWZuZGVmIF9L
-VU5JVF9URVNUX0gKKyNkZWZpbmUgX0tVTklUX1RFU1RfSAorCisjaW5jbHVkZSA8bGludXgvdHlw
-ZXMuaD4KKyNpbmNsdWRlIDxsaW51eC9zbGFiLmg+CisKK3N0cnVjdCBrdW5pdDsKKworLyoqCisg
-KiBzdHJ1Y3Qga3VuaXRfY2FzZSAtIHJlcHJlc2VudHMgYW4gaW5kaXZpZHVhbCB0ZXN0IGNhc2Uu
-CisgKiBAcnVuX2Nhc2U6IHRoZSBmdW5jdGlvbiByZXByZXNlbnRpbmcgdGhlIGFjdHVhbCB0ZXN0
-IGNhc2UuCisgKiBAbmFtZTogdGhlIG5hbWUgb2YgdGhlIHRlc3QgY2FzZS4KKyAqCisgKiBBIHRl
-c3QgY2FzZSBpcyBhIGZ1bmN0aW9uIHdpdGggdGhlIHNpZ25hdHVyZSwgYGB2b2lkICgqKShzdHJ1
-Y3Qga3VuaXQgKilgYAorICogdGhhdCBtYWtlcyBleHBlY3RhdGlvbnMgKHNlZSBLVU5JVF9FWFBF
-Q1RfVFJVRSgpKSBhYm91dCBjb2RlIHVuZGVyIHRlc3QuIEVhY2gKKyAqIHRlc3QgY2FzZSBpcyBh
-c3NvY2lhdGVkIHdpdGggYSAmc3RydWN0IGt1bml0X21vZHVsZSBhbmQgd2lsbCBiZSBydW4gYWZ0
-ZXIgdGhlCisgKiBtb2R1bGUncyBpbml0IGZ1bmN0aW9uIGFuZCBmb2xsb3dlZCBieSB0aGUgbW9k
-dWxlJ3MgZXhpdCBmdW5jdGlvbi4KKyAqCisgKiBBIHRlc3QgY2FzZSBzaG91bGQgYmUgc3RhdGlj
-IGFuZCBzaG91bGQgb25seSBiZSBjcmVhdGVkIHdpdGggdGhlIEtVTklUX0NBU0UoKQorICogbWFj
-cm87IGFkZGl0aW9uYWxseSwgZXZlcnkgYXJyYXkgb2YgdGVzdCBjYXNlcyBzaG91bGQgYmUgdGVy
-bWluYXRlZCB3aXRoIGFuCisgKiBlbXB0eSB0ZXN0IGNhc2UuCisgKgorICogRXhhbXBsZToKKyAq
-CisgKiAuLiBjb2RlLWJsb2NrOjogYworICoKKyAqCXZvaWQgYWRkX3Rlc3RfYmFzaWMoc3RydWN0
-IGt1bml0ICp0ZXN0KQorICoJeworICoJCUtVTklUX0VYUEVDVF9FUSh0ZXN0LCAxLCBhZGQoMSwg
-MCkpOworICoJCUtVTklUX0VYUEVDVF9FUSh0ZXN0LCAyLCBhZGQoMSwgMSkpOworICoJCUtVTklU
-X0VYUEVDVF9FUSh0ZXN0LCAwLCBhZGQoLTEsIDEpKTsKKyAqCQlLVU5JVF9FWFBFQ1RfRVEodGVz
-dCwgSU5UX01BWCwgYWRkKDAsIElOVF9NQVgpKTsKKyAqCQlLVU5JVF9FWFBFQ1RfRVEodGVzdCwg
-LTEsIGFkZChJTlRfTUFYLCBJTlRfTUlOKSk7CisgKgl9CisgKgorICoJc3RhdGljIHN0cnVjdCBr
-dW5pdF9jYXNlIGV4YW1wbGVfdGVzdF9jYXNlc1tdID0geworICoJCUtVTklUX0NBU0UoYWRkX3Rl
-c3RfYmFzaWMpLAorICoJCXt9LAorICoJfTsKKyAqCisgKi8KK3N0cnVjdCBrdW5pdF9jYXNlIHsK
-Kwl2b2lkICgqcnVuX2Nhc2UpKHN0cnVjdCBrdW5pdCAqdGVzdCk7CisJY29uc3QgY2hhciBuYW1l
-WzI1Nl07CisKKwkvKiBwcml2YXRlOiBpbnRlcm5hbCB1c2Ugb25seS4gKi8KKwlib29sIHN1Y2Nl
-c3M7Cit9OworCisvKioKKyAqIEtVTklUX0NBU0UgLSBBIGhlbHBlciBmb3IgY3JlYXRpbmcgYSAm
-c3RydWN0IGt1bml0X2Nhc2UKKyAqIEB0ZXN0X25hbWU6IGEgcmVmZXJlbmNlIHRvIGEgdGVzdCBj
-YXNlIGZ1bmN0aW9uLgorICoKKyAqIFRha2VzIGEgc3ltYm9sIGZvciBhIGZ1bmN0aW9uIHJlcHJl
-c2VudGluZyBhIHRlc3QgY2FzZSBhbmQgY3JlYXRlcyBhCisgKiAmc3RydWN0IGt1bml0X2Nhc2Ug
-b2JqZWN0IGZyb20gaXQuIFNlZSB0aGUgZG9jdW1lbnRhdGlvbiBmb3IKKyAqICZzdHJ1Y3Qga3Vu
-aXRfY2FzZSBmb3IgYW4gZXhhbXBsZSBvbiBob3cgdG8gdXNlIGl0LgorICovCisjZGVmaW5lIEtV
-TklUX0NBU0UodGVzdF9uYW1lKSB7IC5ydW5fY2FzZSA9IHRlc3RfbmFtZSwgLm5hbWUgPSAjdGVz
-dF9uYW1lIH0KKworLyoqCisgKiBzdHJ1Y3Qga3VuaXRfbW9kdWxlIC0gZGVzY3JpYmVzIGEgcmVs
-YXRlZCBjb2xsZWN0aW9uIG9mICZzdHJ1Y3Qga3VuaXRfY2FzZSBzLgorICogQG5hbWU6IHRoZSBu
-YW1lIG9mIHRoZSB0ZXN0LiBQdXJlbHkgaW5mb3JtYXRpb25hbC4KKyAqIEBpbml0OiBjYWxsZWQg
-YmVmb3JlIGV2ZXJ5IHRlc3QgY2FzZS4KKyAqIEBleGl0OiBjYWxsZWQgYWZ0ZXIgZXZlcnkgdGVz
-dCBjYXNlLgorICogQHRlc3RfY2FzZXM6IGEgbnVsbCB0ZXJtaW5hdGVkIGFycmF5IG9mIHRlc3Qg
-Y2FzZXMuCisgKgorICogQSBrdW5pdF9tb2R1bGUgaXMgYSBjb2xsZWN0aW9uIG9mIHJlbGF0ZWQg
-JnN0cnVjdCBrdW5pdF9jYXNlIHMsIHN1Y2ggdGhhdAorICogQGluaXQgaXMgY2FsbGVkIGJlZm9y
-ZSBldmVyeSB0ZXN0IGNhc2UgYW5kIEBleGl0IGlzIGNhbGxlZCBhZnRlciBldmVyeSB0ZXN0Cisg
-KiBjYXNlLCBzaW1pbGFyIHRvIHRoZSBub3Rpb24gb2YgYSAqdGVzdCBmaXh0dXJlKiBvciBhICp0
-ZXN0IGNsYXNzKiBpbiBvdGhlcgorICogdW5pdCB0ZXN0aW5nIGZyYW1ld29ya3MgbGlrZSBKVW5p
-dCBvciBHb29nbGV0ZXN0LgorICoKKyAqIEV2ZXJ5ICZzdHJ1Y3Qga3VuaXRfY2FzZSBtdXN0IGJl
-IGFzc29jaWF0ZWQgd2l0aCBhIGt1bml0X21vZHVsZSBmb3IgS1VuaXQgdG8KKyAqIHJ1biBpdC4K
-KyAqLworc3RydWN0IGt1bml0X21vZHVsZSB7CisJY29uc3QgY2hhciBuYW1lWzI1Nl07CisJaW50
-ICgqaW5pdCkoc3RydWN0IGt1bml0ICp0ZXN0KTsKKwl2b2lkICgqZXhpdCkoc3RydWN0IGt1bml0
-ICp0ZXN0KTsKKwlzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNlczsKK307CisKKy8qKgorICog
-c3RydWN0IGt1bml0IC0gcmVwcmVzZW50cyBhIHJ1bm5pbmcgaW5zdGFuY2Ugb2YgYSB0ZXN0Lgor
-ICogQHByaXY6IGZvciB1c2VyIHRvIHN0b3JlIGFyYml0cmFyeSBkYXRhLiBDb21tb25seSB1c2Vk
-IHRvIHBhc3MgZGF0YSBjcmVhdGVkCisgKiBpbiB0aGUgaW5pdCBmdW5jdGlvbiAoc2VlICZzdHJ1
-Y3Qga3VuaXRfbW9kdWxlKS4KKyAqCisgKiBVc2VkIHRvIHN0b3JlIGluZm9ybWF0aW9uIGFib3V0
-IHRoZSBjdXJyZW50IGNvbnRleHQgdW5kZXIgd2hpY2ggdGhlIHRlc3QgaXMKKyAqIHJ1bm5pbmcu
-IE1vc3Qgb2YgdGhpcyBkYXRhIGlzIHByaXZhdGUgYW5kIHNob3VsZCBvbmx5IGJlIGFjY2Vzc2Vk
-IGluZGlyZWN0bHkKKyAqIHZpYSBwdWJsaWMgZnVuY3Rpb25zOyB0aGUgb25lIGV4Y2VwdGlvbiBp
-cyBAcHJpdiB3aGljaCBjYW4gYmUgdXNlZCBieSB0aGUKKyAqIHRlc3Qgd3JpdGVyIHRvIHN0b3Jl
-IGFyYml0cmFyeSBkYXRhLgorICovCitzdHJ1Y3Qga3VuaXQgeworCXZvaWQgKnByaXY7CisKKwkv
-KiBwcml2YXRlOiBpbnRlcm5hbCB1c2Ugb25seS4gKi8KKwljb25zdCBjaGFyICpuYW1lOyAvKiBS
-ZWFkIG9ubHkgYWZ0ZXIgaW5pdGlhbGl6YXRpb24hICovCisJc3BpbmxvY2tfdCBsb2NrOyAvKiBH
-YXVyZHMgYWxsIG11dGFibGUgdGVzdCBzdGF0ZS4gKi8KKwlib29sIHN1Y2Nlc3M7IC8qIFByb3Rl
-Y3RlZCBieSBsb2NrLiAqLworfTsKKwordm9pZCBrdW5pdF9pbml0X3Rlc3Qoc3RydWN0IGt1bml0
-ICp0ZXN0LCBjb25zdCBjaGFyICpuYW1lKTsKKworaW50IGt1bml0X3J1bl90ZXN0cyhzdHJ1Y3Qg
-a3VuaXRfbW9kdWxlICptb2R1bGUpOworCisvKioKKyAqIG1vZHVsZV90ZXN0KCkgLSB1c2VkIHRv
-IHJlZ2lzdGVyIGEgJnN0cnVjdCBrdW5pdF9tb2R1bGUgd2l0aCBLVW5pdC4KKyAqIEBtb2R1bGU6
-IGEgc3RhdGljYWxseSBhbGxvY2F0ZWQgJnN0cnVjdCBrdW5pdF9tb2R1bGUuCisgKgorICogUmVn
-aXN0ZXJzIEBtb2R1bGUgd2l0aCB0aGUgdGVzdCBmcmFtZXdvcmsuIFNlZSAmc3RydWN0IGt1bml0
-X21vZHVsZSBmb3IgbW9yZQorICogaW5mb3JtYXRpb24uCisgKi8KKyNkZWZpbmUgbW9kdWxlX3Rl
-c3QobW9kdWxlKSBcCisJCXN0YXRpYyBpbnQgbW9kdWxlX2t1bml0X2luaXQjI21vZHVsZSh2b2lk
-KSBcCisJCXsgXAorCQkJcmV0dXJuIGt1bml0X3J1bl90ZXN0cygmbW9kdWxlKTsgXAorCQl9IFwK
-KwkJbGF0ZV9pbml0Y2FsbChtb2R1bGVfa3VuaXRfaW5pdCMjbW9kdWxlKQorCit2b2lkIF9fcHJp
-bnRmKDMsIDQpIGt1bml0X3ByaW50ayhjb25zdCBjaGFyICpsZXZlbCwKKwkJCQkgY29uc3Qgc3Ry
-dWN0IGt1bml0ICp0ZXN0LAorCQkJCSBjb25zdCBjaGFyICpmbXQsIC4uLik7CisKKy8qKgorICog
-a3VuaXRfaW5mbygpIC0gUHJpbnRzIGFuIElORk8gbGV2ZWwgbWVzc2FnZSBhc3NvY2lhdGVkIHdp
-dGggdGhlIGN1cnJlbnQgdGVzdC4KKyAqIEB0ZXN0OiBUaGUgdGVzdCBjb250ZXh0IG9iamVjdC4K
-KyAqIEBmbXQ6IEEgcHJpbnRrKCkgc3R5bGUgZm9ybWF0IHN0cmluZy4KKyAqCisgKiBQcmludHMg
-YW4gaW5mbyBsZXZlbCBtZXNzYWdlIGFzc29jaWF0ZWQgd2l0aCB0aGUgdGVzdCBtb2R1bGUgYmVp
-bmcgcnVuLiBUYWtlcworICogYSB2YXJpYWJsZSBudW1iZXIgb2YgZm9ybWF0IHBhcmFtZXRlcnMg
-anVzdCBsaWtlIHByaW50aygpLgorICovCisjZGVmaW5lIGt1bml0X2luZm8odGVzdCwgZm10LCAu
-Li4pIFwKKwkJa3VuaXRfcHJpbnRrKEtFUk5fSU5GTywgdGVzdCwgZm10LCAjI19fVkFfQVJHU19f
-KQorCisvKioKKyAqIGt1bml0X3dhcm4oKSAtIFByaW50cyBhIFdBUk4gbGV2ZWwgbWVzc2FnZSBh
-c3NvY2lhdGVkIHdpdGggdGhlIGN1cnJlbnQgdGVzdC4KKyAqIEB0ZXN0OiBUaGUgdGVzdCBjb250
-ZXh0IG9iamVjdC4KKyAqIEBmbXQ6IEEgcHJpbnRrKCkgc3R5bGUgZm9ybWF0IHN0cmluZy4KKyAq
-CisgKiBTZWUga3VuaXRfaW5mbygpLgorICovCisjZGVmaW5lIGt1bml0X3dhcm4odGVzdCwgZm10
-LCAuLi4pIFwKKwkJa3VuaXRfcHJpbnRrKEtFUk5fV0FSTklORywgdGVzdCwgZm10LCAjI19fVkFf
-QVJHU19fKQorCisvKioKKyAqIGt1bml0X2VycigpIC0gUHJpbnRzIGFuIEVSUk9SIGxldmVsIG1l
-c3NhZ2UgYXNzb2NpYXRlZCB3aXRoIHRoZSBjdXJyZW50IHRlc3QuCisgKiBAdGVzdDogVGhlIHRl
-c3QgY29udGV4dCBvYmplY3QuCisgKiBAZm10OiBBIHByaW50aygpIHN0eWxlIGZvcm1hdCBzdHJp
-bmcuCisgKgorICogU2VlIGt1bml0X2luZm8oKS4KKyAqLworI2RlZmluZSBrdW5pdF9lcnIodGVz
-dCwgZm10LCAuLi4pIFwKKwkJa3VuaXRfcHJpbnRrKEtFUk5fRVJSLCB0ZXN0LCBmbXQsICMjX19W
-QV9BUkdTX18pCisKKyNlbmRpZiAvKiBfS1VOSVRfVEVTVF9IICovCmRpZmYgLS1naXQgYS9rdW5p
-dC9LY29uZmlnIGIva3VuaXQvS2NvbmZpZwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAw
-MDAwMDAwMDAwLi42NDQ4MDA5MmIyYzI0Ci0tLSAvZGV2L251bGwKKysrIGIva3VuaXQvS2NvbmZp
-ZwpAQCAtMCwwICsxLDE2IEBACisjCisjIEtVbml0IGJhc2UgY29uZmlndXJhdGlvbgorIworCitt
-ZW51ICJLVW5pdCBzdXBwb3J0IgorCitjb25maWcgS1VOSVQKKwlib29sICJFbmFibGUgc3VwcG9y
-dCBmb3IgdW5pdCB0ZXN0cyAoS1VuaXQpIgorCWhlbHAKKwkgIEVuYWJsZXMgc3VwcG9ydCBmb3Ig
-a2VybmVsIHVuaXQgdGVzdHMgKEtVbml0KSwgYSBsaWdodHdlaWdodCB1bml0CisJICB0ZXN0aW5n
-IGFuZCBtb2NraW5nIGZyYW1ld29yayBmb3IgdGhlIExpbnV4IGtlcm5lbC4gVGhlc2UgdGVzdHMg
-YXJlCisJICBhYmxlIHRvIGJlIHJ1biBsb2NhbGx5IG9uIGEgZGV2ZWxvcGVyJ3Mgd29ya3N0YXRp
-b24gd2l0aG91dCBhIFZNIG9yCisJICBzcGVjaWFsIGhhcmR3YXJlLiBGb3IgbW9yZSBpbmZvcm1h
-dGlvbiwgcGxlYXNlIHNlZQorCSAgRG9jdW1lbnRhdGlvbi9rdW5pdC8KKworZW5kbWVudQpkaWZm
-IC0tZ2l0IGEva3VuaXQvTWFrZWZpbGUgYi9rdW5pdC9NYWtlZmlsZQpuZXcgZmlsZSBtb2RlIDEw
-MDY0NAppbmRleCAwMDAwMDAwMDAwMDAwLi41ZWZkYzRkZWEyYzA4Ci0tLSAvZGV2L251bGwKKysr
-IGIva3VuaXQvTWFrZWZpbGUKQEAgLTAsMCArMSBAQAorb2JqLSQoQ09ORklHX0tVTklUKSArPQkJ
-CXRlc3QubwpkaWZmIC0tZ2l0IGEva3VuaXQvdGVzdC5jIGIva3VuaXQvdGVzdC5jCm5ldyBmaWxl
-IG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAwMDAwMDAuLjg2ZjY1YmEyYmNmOTIKLS0tIC9kZXYv
-bnVsbAorKysgYi9rdW5pdC90ZXN0LmMKQEAgLTAsMCArMSwyMjkgQEAKKy8vIFNQRFgtTGljZW5z
-ZS1JZGVudGlmaWVyOiBHUEwtMi4wCisvKgorICogQmFzZSB1bml0IHRlc3QgKEtVbml0KSBBUEku
-CisgKgorICogQ29weXJpZ2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICogQXV0aG9yOiBCcmVu
-ZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8KKworI2luY2x1ZGUg
-PGxpbnV4L3NjaGVkLmg+CisjaW5jbHVkZSA8bGludXgvc2NoZWQvZGVidWcuaD4KKyNpbmNsdWRl
-IDxrdW5pdC90ZXN0Lmg+CisKK3N0YXRpYyBib29sIGt1bml0X2dldF9zdWNjZXNzKHN0cnVjdCBr
-dW5pdCAqdGVzdCkKK3sKKwl1bnNpZ25lZCBsb25nIGZsYWdzOworCWJvb2wgc3VjY2VzczsKKwor
-CXNwaW5fbG9ja19pcnFzYXZlKCZ0ZXN0LT5sb2NrLCBmbGFncyk7CisJc3VjY2VzcyA9IHRlc3Qt
-PnN1Y2Nlc3M7CisJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmdGVzdC0+bG9jaywgZmxhZ3MpOwor
-CisJcmV0dXJuIHN1Y2Nlc3M7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3NldF9zdWNjZXNzKHN0
-cnVjdCBrdW5pdCAqdGVzdCwgYm9vbCBzdWNjZXNzKQoreworCXVuc2lnbmVkIGxvbmcgZmxhZ3M7
-CisKKwlzcGluX2xvY2tfaXJxc2F2ZSgmdGVzdC0+bG9jaywgZmxhZ3MpOworCXRlc3QtPnN1Y2Nl
-c3MgPSBzdWNjZXNzOworCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJnRlc3QtPmxvY2ssIGZsYWdz
-KTsKK30KKworc3RhdGljIGludCBrdW5pdF92cHJpbnRrX2VtaXQoaW50IGxldmVsLCBjb25zdCBj
-aGFyICpmbXQsIHZhX2xpc3QgYXJncykKK3sKKwlyZXR1cm4gdnByaW50a19lbWl0KDAsIGxldmVs
-LCBOVUxMLCAwLCBmbXQsIGFyZ3MpOworfQorCitzdGF0aWMgaW50IGt1bml0X3ByaW50a19lbWl0
-KGludCBsZXZlbCwgY29uc3QgY2hhciAqZm10LCAuLi4pCit7CisJdmFfbGlzdCBhcmdzOworCWlu
-dCByZXQ7CisKKwl2YV9zdGFydChhcmdzLCBmbXQpOworCXJldCA9IGt1bml0X3ZwcmludGtfZW1p
-dChsZXZlbCwgZm10LCBhcmdzKTsKKwl2YV9lbmQoYXJncyk7CisKKwlyZXR1cm4gcmV0OworfQor
-CitzdGF0aWMgdm9pZCBrdW5pdF92cHJpbnRrKGNvbnN0IHN0cnVjdCBrdW5pdCAqdGVzdCwKKwkJ
-CSAgY29uc3QgY2hhciAqbGV2ZWwsCisJCQkgIHN0cnVjdCB2YV9mb3JtYXQgKnZhZikKK3sKKwlr
-dW5pdF9wcmludGtfZW1pdChsZXZlbFsxXSAtICcwJywgIlx0IyAlczogJXBWIiwgdGVzdC0+bmFt
-ZSwgdmFmKTsKK30KKworc3RhdGljIGJvb2wga3VuaXRfaGFzX3ByaW50ZWRfdGFwX3ZlcnNpb247
-CisKK3N0YXRpYyB2b2lkIGt1bml0X3ByaW50X3RhcF92ZXJzaW9uKHZvaWQpCit7CisJaWYgKCFr
-dW5pdF9oYXNfcHJpbnRlZF90YXBfdmVyc2lvbikgeworCQlrdW5pdF9wcmludGtfZW1pdChMT0dM
-RVZFTF9JTkZPLCAiVEFQIHZlcnNpb24gMTRcbiIpOworCQlrdW5pdF9oYXNfcHJpbnRlZF90YXBf
-dmVyc2lvbiA9IHRydWU7CisJfQorfQorCitzdGF0aWMgc2l6ZV90IGt1bml0X3Rlc3RfY2FzZXNf
-bGVuKHN0cnVjdCBrdW5pdF9jYXNlICp0ZXN0X2Nhc2VzKQoreworCXN0cnVjdCBrdW5pdF9jYXNl
-ICp0ZXN0X2Nhc2U7CisJc2l6ZV90IGxlbiA9IDA7CisKKwlmb3IgKHRlc3RfY2FzZSA9IHRlc3Rf
-Y2FzZXM7IHRlc3RfY2FzZS0+cnVuX2Nhc2U7IHRlc3RfY2FzZSsrKQorCQlsZW4rKzsKKworCXJl
-dHVybiBsZW47Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3ByaW50X3N1YnRlc3Rfc3RhcnQoc3Ry
-dWN0IGt1bml0X21vZHVsZSAqbW9kdWxlKQoreworCWt1bml0X3ByaW50X3RhcF92ZXJzaW9uKCk7
-CisJa3VuaXRfcHJpbnRrX2VtaXQoTE9HTEVWRUxfSU5GTywgIlx0IyBTdWJ0ZXN0OiAlc1xuIiwg
-bW9kdWxlLT5uYW1lKTsKKwlrdW5pdF9wcmludGtfZW1pdChMT0dMRVZFTF9JTkZPLAorCQkJICAi
-XHQxLi4lemRcbiIsCisJCQkgIGt1bml0X3Rlc3RfY2FzZXNfbGVuKG1vZHVsZS0+dGVzdF9jYXNl
-cykpOworfQorCitzdGF0aWMgdm9pZCBrdW5pdF9wcmludF9va19ub3Rfb2soYm9vbCBzaG91bGRf
-aW5kZW50LAorCQkJCSAgYm9vbCBpc19vaywKKwkJCQkgIHNpemVfdCB0ZXN0X251bWJlciwKKwkJ
-CQkgIGNvbnN0IGNoYXIgKmRlc2NyaXB0aW9uKQoreworCWNvbnN0IGNoYXIgKmluZGVudCwgKm9r
-X25vdF9vazsKKworCWlmIChzaG91bGRfaW5kZW50KQorCQlpbmRlbnQgPSAiXHQiOworCWVsc2UK
-KwkJaW5kZW50ID0gIiI7CisKKwlpZiAoaXNfb2spCisJCW9rX25vdF9vayA9ICJvayI7CisJZWxz
-ZQorCQlva19ub3Rfb2sgPSAibm90IG9rIjsKKworCWt1bml0X3ByaW50a19lbWl0KExPR0xFVkVM
-X0lORk8sCisJCQkgICIlcyVzICV6ZCAtICVzXG4iLAorCQkJICBpbmRlbnQsIG9rX25vdF9vaywg
-dGVzdF9udW1iZXIsIGRlc2NyaXB0aW9uKTsKK30KKworc3RhdGljIGJvb2wga3VuaXRfbW9kdWxl
-X2hhc19zdWNjZWVkZWQoc3RydWN0IGt1bml0X21vZHVsZSAqbW9kdWxlKQoreworCXN0cnVjdCBr
-dW5pdF9jYXNlICp0ZXN0X2Nhc2U7CisJYm9vbCBzdWNjZXNzID0gdHJ1ZTsKKworCWZvciAodGVz
-dF9jYXNlID0gbW9kdWxlLT50ZXN0X2Nhc2VzOyB0ZXN0X2Nhc2UtPnJ1bl9jYXNlOyB0ZXN0X2Nh
-c2UrKykKKwkJaWYgKCF0ZXN0X2Nhc2UtPnN1Y2Nlc3MpCisJCQlzdWNjZXNzID0gZmFsc2U7CisK
-KwlyZXR1cm4gc3VjY2VzczsKK30KKworc2l6ZV90IGt1bml0X21vZHVsZV9jb3VudGVyID0gMTsK
-Kworc3RhdGljIHZvaWQga3VuaXRfcHJpbnRfc3VidGVzdF9lbmQoc3RydWN0IGt1bml0X21vZHVs
-ZSAqbW9kdWxlKQoreworCWt1bml0X3ByaW50X29rX25vdF9vayhmYWxzZSwKKwkJCSAgICAgIGt1
-bml0X21vZHVsZV9oYXNfc3VjY2VlZGVkKG1vZHVsZSksCisJCQkgICAgICBrdW5pdF9tb2R1bGVf
-Y291bnRlcisrLAorCQkJICAgICAgbW9kdWxlLT5uYW1lKTsKK30KKworc3RhdGljIHZvaWQga3Vu
-aXRfcHJpbnRfdGVzdF9jYXNlX29rX25vdF9vayhzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNl
-LAorCQkJCQkgICAgc2l6ZV90IHRlc3RfbnVtYmVyKQoreworCWt1bml0X3ByaW50X29rX25vdF9v
-ayh0cnVlLAorCQkJICAgICAgdGVzdF9jYXNlLT5zdWNjZXNzLAorCQkJICAgICAgdGVzdF9udW1i
-ZXIsCisJCQkgICAgICB0ZXN0X2Nhc2UtPm5hbWUpOworfQorCit2b2lkIGt1bml0X2luaXRfdGVz
-dChzdHJ1Y3Qga3VuaXQgKnRlc3QsIGNvbnN0IGNoYXIgKm5hbWUpCit7CisJc3Bpbl9sb2NrX2lu
-aXQoJnRlc3QtPmxvY2spOworCXRlc3QtPm5hbWUgPSBuYW1lOworfQorCisvKgorICogSW5pdGlh
-bGl6ZXMgYW5kIHJ1bnMgdGVzdCBjYXNlLiBEb2VzIG5vdCBjbGVhbiB1cCBvciBkbyBwb3N0IHZh
-bGlkYXRpb25zLgorICovCitzdGF0aWMgdm9pZCBrdW5pdF9ydW5fY2FzZV9pbnRlcm5hbChzdHJ1
-Y3Qga3VuaXQgKnRlc3QsCisJCQkJICAgIHN0cnVjdCBrdW5pdF9tb2R1bGUgKm1vZHVsZSwKKwkJ
-CQkgICAgc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZSkKK3sKKwlpbnQgcmV0OworCisJaWYg
-KG1vZHVsZS0+aW5pdCkgeworCQlyZXQgPSBtb2R1bGUtPmluaXQodGVzdCk7CisJCWlmIChyZXQp
-IHsKKwkJCWt1bml0X2Vycih0ZXN0LCAiZmFpbGVkIHRvIGluaXRpYWxpemU6ICVkXG4iLCByZXQp
-OworCQkJa3VuaXRfc2V0X3N1Y2Nlc3ModGVzdCwgZmFsc2UpOworCQkJcmV0dXJuOworCQl9CisJ
-fQorCisJdGVzdF9jYXNlLT5ydW5fY2FzZSh0ZXN0KTsKK30KKworLyoKKyAqIFBlcmZvcm1zIHBv
-c3QgdmFsaWRhdGlvbnMgYW5kIGNsZWFudXAgYWZ0ZXIgYSB0ZXN0IGNhc2Ugd2FzIHJ1bi4KKyAq
-IFhYWDogU2hvdWxkIE9OTFkgQkUgQ0FMTEVEIEFGVEVSIGt1bml0X3J1bl9jYXNlX2ludGVybmFs
-IQorICovCitzdGF0aWMgdm9pZCBrdW5pdF9ydW5fY2FzZV9jbGVhbnVwKHN0cnVjdCBrdW5pdCAq
-dGVzdCwKKwkJCQkgICBzdHJ1Y3Qga3VuaXRfbW9kdWxlICptb2R1bGUsCisJCQkJICAgc3RydWN0
-IGt1bml0X2Nhc2UgKnRlc3RfY2FzZSkKK3sKKwlpZiAobW9kdWxlLT5leGl0KQorCQltb2R1bGUt
-PmV4aXQodGVzdCk7Cit9CisKKy8qCisgKiBQZXJmb3JtcyBhbGwgbG9naWMgdG8gcnVuIGEgdGVz
-dCBjYXNlLgorICovCitzdGF0aWMgdm9pZCBrdW5pdF9ydW5fY2FzZShzdHJ1Y3Qga3VuaXRfbW9k
-dWxlICptb2R1bGUsCisJCQkgICBzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNlKQoreworCXN0
-cnVjdCBrdW5pdCB0ZXN0OworCisJa3VuaXRfaW5pdF90ZXN0KCZ0ZXN0LCB0ZXN0X2Nhc2UtPm5h
-bWUpOworCWt1bml0X3NldF9zdWNjZXNzKCZ0ZXN0LCB0cnVlKTsKKworCWt1bml0X3J1bl9jYXNl
-X2ludGVybmFsKCZ0ZXN0LCBtb2R1bGUsIHRlc3RfY2FzZSk7CisJa3VuaXRfcnVuX2Nhc2VfY2xl
-YW51cCgmdGVzdCwgbW9kdWxlLCB0ZXN0X2Nhc2UpOworCisJdGVzdF9jYXNlLT5zdWNjZXNzID0g
-a3VuaXRfZ2V0X3N1Y2Nlc3MoJnRlc3QpOworfQorCitpbnQga3VuaXRfcnVuX3Rlc3RzKHN0cnVj
-dCBrdW5pdF9tb2R1bGUgKm1vZHVsZSkKK3sKKwlzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNl
-OworCXNpemVfdCB0ZXN0X2Nhc2VfY291bnQgPSAxOworCisJa3VuaXRfcHJpbnRfc3VidGVzdF9z
-dGFydChtb2R1bGUpOworCisJZm9yICh0ZXN0X2Nhc2UgPSBtb2R1bGUtPnRlc3RfY2FzZXM7IHRl
-c3RfY2FzZS0+cnVuX2Nhc2U7IHRlc3RfY2FzZSsrKSB7CisJCWt1bml0X3J1bl9jYXNlKG1vZHVs
-ZSwgdGVzdF9jYXNlKTsKKwkJa3VuaXRfcHJpbnRfdGVzdF9jYXNlX29rX25vdF9vayh0ZXN0X2Nh
-c2UsIHRlc3RfY2FzZV9jb3VudCsrKTsKKwl9CisKKwlrdW5pdF9wcmludF9zdWJ0ZXN0X2VuZCht
-b2R1bGUpOworCisJcmV0dXJuIDA7Cit9CisKK3ZvaWQga3VuaXRfcHJpbnRrKGNvbnN0IGNoYXIg
-KmxldmVsLAorCQkgIGNvbnN0IHN0cnVjdCBrdW5pdCAqdGVzdCwKKwkJICBjb25zdCBjaGFyICpm
-bXQsIC4uLikKK3sKKwlzdHJ1Y3QgdmFfZm9ybWF0IHZhZjsKKwl2YV9saXN0IGFyZ3M7CisKKwl2
-YV9zdGFydChhcmdzLCBmbXQpOworCisJdmFmLmZtdCA9IGZtdDsKKwl2YWYudmEgPSAmYXJnczsK
-KworCWt1bml0X3ZwcmludGsodGVzdCwgbGV2ZWwsICZ2YWYpOworCisJdmFfZW5kKGFyZ3MpOwor
-fQotLSAKMi4yMS4wLjEwMjAuZ2YyODIwY2YwMWEtZ29vZwoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+Create a common API for test managed resources like memory and test
+objects. A lot of times a test will want to set up infrastructure to be
+used in test cases; this could be anything from just wanting to allocate
+some memory to setting up a driver stack; this defines facilities for
+creating "test resources" which are managed by the test infrastructure
+and are automatically cleaned up at the conclusion of the test.
+
+Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+---
+ include/kunit/test.h | 109 +++++++++++++++++++++++++++++++++++++++++++
+ kunit/test.c         |  95 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 204 insertions(+)
+
+diff --git a/include/kunit/test.h b/include/kunit/test.h
+index e682ea0e1f9a5..5e86d88cd5305 100644
+--- a/include/kunit/test.h
++++ b/include/kunit/test.h
+@@ -12,6 +12,69 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ 
++struct kunit_resource;
++
++typedef int (*kunit_resource_init_t)(struct kunit_resource *, void *);
++typedef void (*kunit_resource_free_t)(struct kunit_resource *);
++
++/**
++ * struct kunit_resource - represents a *test managed resource*
++ * @allocation: for the user to store arbitrary data.
++ * @free: a user supplied function to free the resource. Populated by
++ * kunit_alloc_resource().
++ *
++ * Represents a *test managed resource*, a resource which will automatically be
++ * cleaned up at the end of a test case.
++ *
++ * Example:
++ *
++ * .. code-block:: c
++ *
++ *	struct kunit_kmalloc_params {
++ *		size_t size;
++ *		gfp_t gfp;
++ *	};
++ *
++ *	static int kunit_kmalloc_init(struct kunit_resource *res, void *context)
++ *	{
++ *		struct kunit_kmalloc_params *params = context;
++ *		res->allocation = kmalloc(params->size, params->gfp);
++ *
++ *		if (!res->allocation)
++ *			return -ENOMEM;
++ *
++ *		return 0;
++ *	}
++ *
++ *	static void kunit_kmalloc_free(struct kunit_resource *res)
++ *	{
++ *		kfree(res->allocation);
++ *	}
++ *
++ *	void *kunit_kmalloc(struct kunit *test, size_t size, gfp_t gfp)
++ *	{
++ *		struct kunit_kmalloc_params params;
++ *		struct kunit_resource *res;
++ *
++ *		params.size = size;
++ *		params.gfp = gfp;
++ *
++ *		res = kunit_alloc_resource(test, kunit_kmalloc_init,
++ *			kunit_kmalloc_free, &params);
++ *		if (res)
++ *			return res->allocation;
++ *		else
++ *			return NULL;
++ *	}
++ */
++struct kunit_resource {
++	void *allocation;
++	kunit_resource_free_t free;
++
++	/* private: internal use only. */
++	struct list_head node;
++};
++
+ struct kunit;
+ 
+ /**
+@@ -104,6 +167,7 @@ struct kunit {
+ 	const char *name; /* Read only after initialization! */
+ 	spinlock_t lock; /* Gaurds all mutable test state. */
+ 	bool success; /* Protected by lock. */
++	struct list_head resources; /* Protected by lock. */
+ };
+ 
+ void kunit_init_test(struct kunit *test, const char *name);
+@@ -124,6 +188,51 @@ int kunit_run_tests(struct kunit_module *module);
+ 		} \
+ 		late_initcall(module_kunit_init##module)
+ 
++/**
++ * kunit_alloc_resource() - Allocates a *test managed resource*.
++ * @test: The test context object.
++ * @init: a user supplied function to initialize the resource.
++ * @free: a user supplied function to free the resource.
++ * @context: for the user to pass in arbitrary data to the init function.
++ *
++ * Allocates a *test managed resource*, a resource which will automatically be
++ * cleaned up at the end of a test case. See &struct kunit_resource for an
++ * example.
++ */
++struct kunit_resource *kunit_alloc_resource(struct kunit *test,
++					    kunit_resource_init_t init,
++					    kunit_resource_free_t free,
++					    void *context);
++
++void kunit_free_resource(struct kunit *test, struct kunit_resource *res);
++
++/**
++ * kunit_kmalloc() - Like kmalloc() except the allocation is *test managed*.
++ * @test: The test context object.
++ * @size: The size in bytes of the desired memory.
++ * @gfp: flags passed to underlying kmalloc().
++ *
++ * Just like `kmalloc(...)`, except the allocation is managed by the test case
++ * and is automatically cleaned up after the test case concludes. See &struct
++ * kunit_resource for more information.
++ */
++void *kunit_kmalloc(struct kunit *test, size_t size, gfp_t gfp);
++
++/**
++ * kunit_kzalloc() - Just like kunit_kmalloc(), but zeroes the allocation.
++ * @test: The test context object.
++ * @size: The size in bytes of the desired memory.
++ * @gfp: flags passed to underlying kmalloc().
++ *
++ * See kzalloc() and kunit_kmalloc() for more information.
++ */
++static inline void *kunit_kzalloc(struct kunit *test, size_t size, gfp_t gfp)
++{
++	return kunit_kmalloc(test, size, gfp | __GFP_ZERO);
++}
++
++void kunit_cleanup(struct kunit *test);
++
+ void __printf(3, 4) kunit_printk(const char *level,
+ 				 const struct kunit *test,
+ 				 const char *fmt, ...);
+diff --git a/kunit/test.c b/kunit/test.c
+index 86f65ba2bcf92..a15e6f8c41582 100644
+--- a/kunit/test.c
++++ b/kunit/test.c
+@@ -141,6 +141,7 @@ static void kunit_print_test_case_ok_not_ok(struct kunit_case *test_case,
+ void kunit_init_test(struct kunit *test, const char *name)
+ {
+ 	spin_lock_init(&test->lock);
++	INIT_LIST_HEAD(&test->resources);
+ 	test->name = name;
+ }
+ 
+@@ -165,6 +166,11 @@ static void kunit_run_case_internal(struct kunit *test,
+ 	test_case->run_case(test);
+ }
+ 
++static void kunit_case_internal_cleanup(struct kunit *test)
++{
++	kunit_cleanup(test);
++}
++
+ /*
+  * Performs post validations and cleanup after a test case was run.
+  * XXX: Should ONLY BE CALLED AFTER kunit_run_case_internal!
+@@ -175,6 +181,8 @@ static void kunit_run_case_cleanup(struct kunit *test,
+ {
+ 	if (module->exit)
+ 		module->exit(test);
++
++	kunit_case_internal_cleanup(test);
+ }
+ 
+ /*
+@@ -211,6 +219,93 @@ int kunit_run_tests(struct kunit_module *module)
+ 	return 0;
+ }
+ 
++struct kunit_resource *kunit_alloc_resource(struct kunit *test,
++					    kunit_resource_init_t init,
++					    kunit_resource_free_t free,
++					    void *context)
++{
++	struct kunit_resource *res;
++	unsigned long flags;
++	int ret;
++
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
++		return NULL;
++
++	ret = init(res, context);
++	if (ret)
++		return NULL;
++
++	res->free = free;
++	spin_lock_irqsave(&test->lock, flags);
++	list_add_tail(&res->node, &test->resources);
++	spin_unlock_irqrestore(&test->lock, flags);
++
++	return res;
++}
++
++void kunit_free_resource(struct kunit *test, struct kunit_resource *res)
++{
++	res->free(res);
++	list_del(&res->node);
++	kfree(res);
++}
++
++struct kunit_kmalloc_params {
++	size_t size;
++	gfp_t gfp;
++};
++
++static int kunit_kmalloc_init(struct kunit_resource *res, void *context)
++{
++	struct kunit_kmalloc_params *params = context;
++
++	res->allocation = kmalloc(params->size, params->gfp);
++	if (!res->allocation)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void kunit_kmalloc_free(struct kunit_resource *res)
++{
++	kfree(res->allocation);
++}
++
++void *kunit_kmalloc(struct kunit *test, size_t size, gfp_t gfp)
++{
++	struct kunit_kmalloc_params params;
++	struct kunit_resource *res;
++
++	params.size = size;
++	params.gfp = gfp;
++
++	res = kunit_alloc_resource(test,
++				   kunit_kmalloc_init,
++				   kunit_kmalloc_free,
++				   &params);
++
++	if (res)
++		return res->allocation;
++	else
++		return NULL;
++}
++
++void kunit_cleanup(struct kunit *test)
++{
++	struct kunit_resource *resource, *resource_safe;
++	unsigned long flags;
++
++	spin_lock_irqsave(&test->lock, flags);
++	list_for_each_entry_safe(resource,
++				 resource_safe,
++				 &test->resources,
++				 node) {
++		kunit_free_resource(test, resource);
++	}
++	spin_unlock_irqrestore(&test->lock, flags);
++}
++
+ void kunit_printk(const char *level,
+ 		  const struct kunit *test,
+ 		  const char *fmt, ...)
+-- 
+2.21.0.1020.gf2820cf01a-goog
