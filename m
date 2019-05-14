@@ -1,249 +1,176 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v4 03/18] kunit: test: add string_stream a std::stream like
- string builder
-Date: Tue, 14 May 2019 15:16:56 -0700
-Message-ID: <20190514221711.248228-4-brendanhiggins@google.com>
+Subject: [PATCH v4 04/18] kunit: test: add kunit_stream a std::stream like
+ logger
+Date: Tue, 14 May 2019 15:16:57 -0700
+Message-ID: <20190514221711.248228-5-brendanhiggins@google.com>
 References: <20190514221711.248228-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20190514221711.248228-1-brendanhiggins@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
 List-Id: linux-nvdimm@lists.01.org
 
-A number of test features need to do pretty complicated string printing
-where it may not be possible to rely on a single preallocated string
-with parameters.
-
-So provide a library for constructing the string as you go similar to
-C++'s std::string.
-
-Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
----
- include/kunit/string-stream.h |  51 ++++++++++++
- kunit/Makefile                |   3 +-
- kunit/string-stream.c         | 143 ++++++++++++++++++++++++++++++++++
- 3 files changed, 196 insertions(+), 1 deletion(-)
- create mode 100644 include/kunit/string-stream.h
- create mode 100644 kunit/string-stream.c
-
-diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
-new file mode 100644
-index 0000000000000..567a4629406da
---- /dev/null
-+++ b/include/kunit/string-stream.h
-@@ -0,0 +1,51 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * C++ stream style string builder used in KUnit for building messages.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#ifndef _KUNIT_STRING_STREAM_H
-+#define _KUNIT_STRING_STREAM_H
-+
-+#include <linux/types.h>
-+#include <linux/spinlock.h>
-+#include <linux/kref.h>
-+#include <stdarg.h>
-+
-+struct string_stream_fragment {
-+	struct list_head node;
-+	char *fragment;
-+};
-+
-+struct string_stream {
-+	size_t length;
-+	struct list_head fragments;
-+
-+	/* length and fragments are protected by this lock */
-+	spinlock_t lock;
-+	struct kref refcount;
-+};
-+
-+struct string_stream *new_string_stream(void);
-+
-+void destroy_string_stream(struct string_stream *stream);
-+
-+void string_stream_get(struct string_stream *stream);
-+
-+int string_stream_put(struct string_stream *stream);
-+
-+int string_stream_add(struct string_stream *this, const char *fmt, ...);
-+
-+int string_stream_vadd(struct string_stream *this,
-+		       const char *fmt,
-+		       va_list args);
-+
-+char *string_stream_get_string(struct string_stream *this);
-+
-+void string_stream_clear(struct string_stream *this);
-+
-+bool string_stream_is_empty(struct string_stream *this);
-+
-+#endif /* _KUNIT_STRING_STREAM_H */
-diff --git a/kunit/Makefile b/kunit/Makefile
-index 5efdc4dea2c08..275b565a0e81f 100644
---- a/kunit/Makefile
-+++ b/kunit/Makefile
-@@ -1 +1,2 @@
--obj-$(CONFIG_KUNIT) +=			test.o
-+obj-$(CONFIG_KUNIT) +=			test.o \
-+					string-stream.o
-diff --git a/kunit/string-stream.c b/kunit/string-stream.c
-new file mode 100644
-index 0000000000000..d4e4252dc10b8
---- /dev/null
-+++ b/kunit/string-stream.c
-@@ -0,0 +1,143 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * C++ stream style string builder used in KUnit for building messages.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#include <linux/list.h>
-+#include <linux/slab.h>
-+#include <kunit/string-stream.h>
-+
-+int string_stream_vadd(struct string_stream *this,
-+		       const char *fmt,
-+		       va_list args)
-+{
-+	struct string_stream_fragment *frag_container;
-+	int len;
-+	va_list args_for_counting;
-+	unsigned long flags;
-+
-+	/* Make a copy because `vsnprintf` could change it */
-+	va_copy(args_for_counting, args);
-+
-+	/* Need space for null byte. */
-+	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
-+
-+	va_end(args_for_counting);
-+
-+	frag_container = kmalloc(sizeof(*frag_container), GFP_KERNEL);
-+	if (!frag_container)
-+		return -ENOMEM;
-+
-+	frag_container->fragment = kmalloc(len, GFP_KERNEL);
-+	if (!frag_container->fragment) {
-+		kfree(frag_container);
-+		return -ENOMEM;
-+	}
-+
-+	len = vsnprintf(frag_container->fragment, len, fmt, args);
-+	spin_lock_irqsave(&this->lock, flags);
-+	this->length += len;
-+	list_add_tail(&frag_container->node, &this->fragments);
-+	spin_unlock_irqrestore(&this->lock, flags);
-+	return 0;
-+}
-+
-+int string_stream_add(struct string_stream *this, const char *fmt, ...)
-+{
-+	va_list args;
-+	int result;
-+
-+	va_start(args, fmt);
-+	result = string_stream_vadd(this, fmt, args);
-+	va_end(args);
-+	return result;
-+}
-+
-+void string_stream_clear(struct string_stream *this)
-+{
-+	struct string_stream_fragment *frag_container, *frag_container_safe;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&this->lock, flags);
-+	list_for_each_entry_safe(frag_container,
-+				 frag_container_safe,
-+				 &this->fragments,
-+				 node) {
-+		list_del(&frag_container->node);
-+		kfree(frag_container->fragment);
-+		kfree(frag_container);
-+	}
-+	this->length = 0;
-+	spin_unlock_irqrestore(&this->lock, flags);
-+}
-+
-+char *string_stream_get_string(struct string_stream *this)
-+{
-+	struct string_stream_fragment *frag_container;
-+	size_t buf_len = this->length + 1; /* +1 for null byte. */
-+	char *buf;
-+	unsigned long flags;
-+
-+	buf = kzalloc(buf_len, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
-+
-+	spin_lock_irqsave(&this->lock, flags);
-+	list_for_each_entry(frag_container, &this->fragments, node)
-+		strlcat(buf, frag_container->fragment, buf_len);
-+	spin_unlock_irqrestore(&this->lock, flags);
-+
-+	return buf;
-+}
-+
-+bool string_stream_is_empty(struct string_stream *this)
-+{
-+	bool is_empty;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&this->lock, flags);
-+	is_empty = list_empty(&this->fragments);
-+	spin_unlock_irqrestore(&this->lock, flags);
-+
-+	return is_empty;
-+}
-+
-+void destroy_string_stream(struct string_stream *stream)
-+{
-+	string_stream_clear(stream);
-+	kfree(stream);
-+}
-+
-+static void string_stream_destroy(struct kref *kref)
-+{
-+	struct string_stream *stream = container_of(kref,
-+						    struct string_stream,
-+						    refcount);
-+	destroy_string_stream(stream);
-+}
-+
-+struct string_stream *new_string_stream(void)
-+{
-+	struct string_stream *stream = kzalloc(sizeof(*stream), GFP_KERNEL);
-+
-+	if (!stream)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&stream->fragments);
-+	spin_lock_init(&stream->lock);
-+	kref_init(&stream->refcount);
-+	return stream;
-+}
-+
-+void string_stream_get(struct string_stream *stream)
-+{
-+	kref_get(&stream->refcount);
-+}
-+
-+int string_stream_put(struct string_stream *stream)
-+{
-+	return kref_put(&stream->refcount, &string_stream_destroy);
-+}
--- 
-2.21.0.1020.gf2820cf01a-goog
+QSBsb3Qgb2YgdGhlIGV4cGVjdGF0aW9uIGFuZCBhc3NlcnRpb24gaW5mcmFzdHJ1Y3R1cmUgcHJp
+bnRzIG91dCBmYWlybHkKY29tcGxpY2F0ZWQgdGVzdCBmYWlsdXJlIG1lc3NhZ2VzLCBzbyBhZGQg
+YSBDKysgc3R5bGUgbG9nIGxpYnJhcnkgZm9yCmZvciBsb2dnaW5nIHRlc3QgcmVzdWx0cy4KClNp
+Z25lZC1vZmYtYnk6IEJyZW5kYW4gSGlnZ2lucyA8YnJlbmRhbmhpZ2dpbnNAZ29vZ2xlLmNvbT4K
+UmV2aWV3ZWQtYnk6IEdyZWcgS3JvYWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5v
+cmc+ClJldmlld2VkLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5jb20+Ci0t
+LQogaW5jbHVkZS9rdW5pdC9rdW5pdC1zdHJlYW0uaCB8ICA4NSArKysrKysrKysrKysrKysrKysr
+KwogaW5jbHVkZS9rdW5pdC90ZXN0LmggICAgICAgICB8ICAgMyArCiBrdW5pdC9NYWtlZmlsZSAg
+ICAgICAgICAgICAgIHwgICAzICstCiBrdW5pdC9rdW5pdC1zdHJlYW0uYyAgICAgICAgIHwgMTUy
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBrdW5pdC90ZXN0LmMgICAgICAg
+ICAgICAgICAgIHwgICA3ICsrCiA1IGZpbGVzIGNoYW5nZWQsIDI0OSBpbnNlcnRpb25zKCspLCAx
+IGRlbGV0aW9uKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9rdW5pdC9rdW5pdC1zdHJl
+YW0uaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGt1bml0L2t1bml0LXN0cmVhbS5jCgpkaWZmIC0tZ2l0
+IGEvaW5jbHVkZS9rdW5pdC9rdW5pdC1zdHJlYW0uaCBiL2luY2x1ZGUva3VuaXQva3VuaXQtc3Ry
+ZWFtLmgKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMDAwMDAwMC4uZDQ1N2E1NGZl
+MDEwMAotLS0gL2Rldi9udWxsCisrKyBiL2luY2x1ZGUva3VuaXQva3VuaXQtc3RyZWFtLmgKQEAg
+LTAsMCArMSw4NSBAQAorLyogU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAgKi8KKy8q
+CisgKiBDKysgc3RyZWFtIHN0eWxlIHN0cmluZyBmb3JtYXR0ZXIgYW5kIHByaW50ZXIgdXNlZCBp
+biBLVW5pdCBmb3Igb3V0cHV0dGluZworICogS1VuaXQgbWVzc2FnZXMuCisgKgorICogQ29weXJp
+Z2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICogQXV0aG9yOiBCcmVuZGFuIEhpZ2dpbnMgPGJy
+ZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8KKworI2lmbmRlZiBfS1VOSVRfS1VOSVRfU1RS
+RUFNX0gKKyNkZWZpbmUgX0tVTklUX0tVTklUX1NUUkVBTV9ICisKKyNpbmNsdWRlIDxsaW51eC90
+eXBlcy5oPgorI2luY2x1ZGUgPGt1bml0L3N0cmluZy1zdHJlYW0uaD4KKworc3RydWN0IGt1bml0
+OworCisvKioKKyAqIHN0cnVjdCBrdW5pdF9zdHJlYW0gLSBhIHN0ZDo6c3RyZWFtIHN0eWxlIHN0
+cmluZyBidWlsZGVyLgorICoKKyAqIEEgc3RkOjpzdHJlYW0gc3R5bGUgc3RyaW5nIGJ1aWxkZXIu
+IEFsbG93cyBtZXNzYWdlcyB0byBiZSBidWlsdCB1cCBhbmQKKyAqIHByaW50ZWQgYWxsIGF0IG9u
+Y2UuCisgKi8KK3N0cnVjdCBrdW5pdF9zdHJlYW0geworCS8qIHByaXZhdGU6IGludGVybmFsIHVz
+ZSBvbmx5LiAqLworCXN0cnVjdCBrdW5pdCAqdGVzdDsKKwlzcGlubG9ja190IGxvY2s7IC8qIEd1
+YXJkcyBsZXZlbC4gKi8KKwljb25zdCBjaGFyICpsZXZlbDsKKwlzdHJ1Y3Qgc3RyaW5nX3N0cmVh
+bSAqaW50ZXJuYWxfc3RyZWFtOworfTsKKworLyoqCisgKiBrdW5pdF9uZXdfc3RyZWFtKCkgLSBj
+b25zdHJ1Y3RzIGEgbmV3ICZzdHJ1Y3Qga3VuaXRfc3RyZWFtLgorICogQHRlc3Q6IFRoZSB0ZXN0
+IGNvbnRleHQgb2JqZWN0LgorICoKKyAqIENvbnN0cnVjdHMgYSBuZXcgdGVzdCBtYW5hZ2VkICZz
+dHJ1Y3Qga3VuaXRfc3RyZWFtLgorICovCitzdHJ1Y3Qga3VuaXRfc3RyZWFtICprdW5pdF9uZXdf
+c3RyZWFtKHN0cnVjdCBrdW5pdCAqdGVzdCk7CisKKy8qKgorICoga3VuaXRfc3RyZWFtX3NldF9s
+ZXZlbCgpOiBzZXRzIHRoZSBsZXZlbCB0aGF0IHN0cmluZyBzaG91bGQgYmUgcHJpbnRlZCBhdC4K
+KyAqIEB0aGlzOiB0aGUgc3RyZWFtIGJlaW5nIG9wZXJhdGVkIG9uLgorICogQGxldmVsOiB0aGUg
+cHJpbnQgbGV2ZWwgdGhlIHN0cmVhbSBpcyBzZXQgdG8gb3V0cHV0IHRvLgorICoKKyAqIFNldHMg
+dGhlIHByaW50IGxldmVsIGF0IHdoaWNoIHRoZSBzdHJlYW0gb3V0cHV0cy4KKyAqLwordm9pZCBr
+dW5pdF9zdHJlYW1fc2V0X2xldmVsKHN0cnVjdCBrdW5pdF9zdHJlYW0gKnRoaXMsIGNvbnN0IGNo
+YXIgKmxldmVsKTsKKworLyoqCisgKiBrdW5pdF9zdHJlYW1fYWRkKCk6IGFkZHMgdGhlIGZvcm1h
+dHRlZCBpbnB1dCB0byB0aGUgaW50ZXJuYWwgYnVmZmVyLgorICogQHRoaXM6IHRoZSBzdHJlYW0g
+YmVpbmcgb3BlcmF0ZWQgb24uCisgKiBAZm10OiBwcmludGYgc3R5bGUgZm9ybWF0IHN0cmluZyB0
+byBhcHBlbmQgdG8gc3RyZWFtLgorICoKKyAqIEFwcGVuZHMgdGhlIGZvcm1hdHRlZCBzdHJpbmcs
+IEBmbXQsIHRvIHRoZSBpbnRlcm5hbCBidWZmZXIuCisgKi8KK3ZvaWQgX19wcmludGYoMiwgMykg
+a3VuaXRfc3RyZWFtX2FkZChzdHJ1Y3Qga3VuaXRfc3RyZWFtICp0aGlzLAorCQkJCSAgICAgY29u
+c3QgY2hhciAqZm10LCAuLi4pOworCisvKioKKyAqIGt1bml0X3N0cmVhbV9hcHBlbmQoKTogYXBw
+ZW5kcyB0aGUgY29udGVudHMgb2YgQG90aGVyIHRvIEB0aGlzLgorICogQHRoaXM6IHRoZSBzdHJl
+YW0gdG8gd2hpY2ggQG90aGVyIGlzIGFwcGVuZGVkLgorICogQG90aGVyOiB0aGUgc3RyZWFtIHdo
+b3NlIGNvbnRlbnRzIGFyZSBhcHBlbmRlZCB0byBAdGhpcy4KKyAqCisgKiBBcHBlbmRzIHRoZSBj
+b250ZW50cyBvZiBAb3RoZXIgdG8gQHRoaXMuCisgKi8KK3ZvaWQga3VuaXRfc3RyZWFtX2FwcGVu
+ZChzdHJ1Y3Qga3VuaXRfc3RyZWFtICp0aGlzLCBzdHJ1Y3Qga3VuaXRfc3RyZWFtICpvdGhlcik7
+CisKKy8qKgorICoga3VuaXRfc3RyZWFtX2NvbW1pdCgpOiBwcmludHMgb3V0IHRoZSBpbnRlcm5h
+bCBidWZmZXIgdG8gdGhlIHVzZXIuCisgKiBAdGhpczogdGhlIHN0cmVhbSBiZWluZyBvcGVyYXRl
+ZCBvbi4KKyAqCisgKiBPdXRwdXRzIHRoZSBjb250ZW50cyBvZiB0aGUgaW50ZXJuYWwgYnVmZmVy
+IGFzIGEga3VuaXRfcHJpbnRrIGZvcm1hdHRlZAorICogb3V0cHV0LgorICovCit2b2lkIGt1bml0
+X3N0cmVhbV9jb21taXQoc3RydWN0IGt1bml0X3N0cmVhbSAqdGhpcyk7CisKKy8qKgorICoga3Vu
+aXRfc3RyZWFtX2NsZWFyKCk6IGNsZWFycyB0aGUgaW50ZXJuYWwgYnVmZmVyLgorICogQHRoaXM6
+IHRoZSBzdHJlYW0gYmVpbmcgb3BlcmF0ZWQgb24uCisgKgorICogQ2xlYXJzIHRoZSBjb250ZW50
+cyBvZiB0aGUgaW50ZXJuYWwgYnVmZmVyLgorICovCit2b2lkIGt1bml0X3N0cmVhbV9jbGVhcihz
+dHJ1Y3Qga3VuaXRfc3RyZWFtICp0aGlzKTsKKworI2VuZGlmIC8qIF9LVU5JVF9LVU5JVF9TVFJF
+QU1fSCAqLwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9rdW5pdC90ZXN0LmggYi9pbmNsdWRlL2t1bml0
+L3Rlc3QuaAppbmRleCA1ZTg2ZDg4Y2Q1MzA1Li40YmM4Mzk4ODRhODNjIDEwMDY0NAotLS0gYS9p
+bmNsdWRlL2t1bml0L3Rlc3QuaAorKysgYi9pbmNsdWRlL2t1bml0L3Rlc3QuaApAQCAtMTEsNiAr
+MTEsNyBAQAogCiAjaW5jbHVkZSA8bGludXgvdHlwZXMuaD4KICNpbmNsdWRlIDxsaW51eC9zbGFi
+Lmg+CisjaW5jbHVkZSA8a3VuaXQva3VuaXQtc3RyZWFtLmg+CiAKIHN0cnVjdCBrdW5pdF9yZXNv
+dXJjZTsKIApAQCAtMTcyLDYgKzE3Myw4IEBAIHN0cnVjdCBrdW5pdCB7CiAKIHZvaWQga3VuaXRf
+aW5pdF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgY29uc3QgY2hhciAqbmFtZSk7CiAKK3ZvaWQg
+a3VuaXRfZmFpbChzdHJ1Y3Qga3VuaXQgKnRlc3QsIHN0cnVjdCBrdW5pdF9zdHJlYW0gKnN0cmVh
+bSk7CisKIGludCBrdW5pdF9ydW5fdGVzdHMoc3RydWN0IGt1bml0X21vZHVsZSAqbW9kdWxlKTsK
+IAogLyoqCmRpZmYgLS1naXQgYS9rdW5pdC9NYWtlZmlsZSBiL2t1bml0L01ha2VmaWxlCmluZGV4
+IDI3NWI1NjVhMGU4MWYuLjZkZGM2MjJlZTZiMWMgMTAwNjQ0Ci0tLSBhL2t1bml0L01ha2VmaWxl
+CisrKyBiL2t1bml0L01ha2VmaWxlCkBAIC0xLDIgKzEsMyBAQAogb2JqLSQoQ09ORklHX0tVTklU
+KSArPQkJCXRlc3QubyBcCi0JCQkJCXN0cmluZy1zdHJlYW0ubworCQkJCQlzdHJpbmctc3RyZWFt
+Lm8gXAorCQkJCQlrdW5pdC1zdHJlYW0ubwpkaWZmIC0tZ2l0IGEva3VuaXQva3VuaXQtc3RyZWFt
+LmMgYi9rdW5pdC9rdW5pdC1zdHJlYW0uYwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAw
+MDAwMDAwMDAwLi4xODg0ZjFiNTUwODg4Ci0tLSAvZGV2L251bGwKKysrIGIva3VuaXQva3VuaXQt
+c3RyZWFtLmMKQEAgLTAsMCArMSwxNTIgQEAKKy8vIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBH
+UEwtMi4wCisvKgorICogQysrIHN0cmVhbSBzdHlsZSBzdHJpbmcgZm9ybWF0dGVyIGFuZCBwcmlu
+dGVyIHVzZWQgaW4gS1VuaXQgZm9yIG91dHB1dHRpbmcKKyAqIEtVbml0IG1lc3NhZ2VzLgorICoK
+KyAqIENvcHlyaWdodCAoQykgMjAxOSwgR29vZ2xlIExMQy4KKyAqIEF1dGhvcjogQnJlbmRhbiBI
+aWdnaW5zIDxicmVuZGFuaGlnZ2luc0Bnb29nbGUuY29tPgorICovCisKKyNpbmNsdWRlIDxrdW5p
+dC90ZXN0Lmg+CisjaW5jbHVkZSA8a3VuaXQva3VuaXQtc3RyZWFtLmg+CisjaW5jbHVkZSA8a3Vu
+aXQvc3RyaW5nLXN0cmVhbS5oPgorCitzdGF0aWMgY29uc3QgY2hhciAqa3VuaXRfc3RyZWFtX2dl
+dF9sZXZlbChzdHJ1Y3Qga3VuaXRfc3RyZWFtICp0aGlzKQoreworCXVuc2lnbmVkIGxvbmcgZmxh
+Z3M7CisJY29uc3QgY2hhciAqbGV2ZWw7CisKKwlzcGluX2xvY2tfaXJxc2F2ZSgmdGhpcy0+bG9j
+aywgZmxhZ3MpOworCWxldmVsID0gdGhpcy0+bGV2ZWw7CisJc3Bpbl91bmxvY2tfaXJxcmVzdG9y
+ZSgmdGhpcy0+bG9jaywgZmxhZ3MpOworCisJcmV0dXJuIGxldmVsOworfQorCit2b2lkIGt1bml0
+X3N0cmVhbV9zZXRfbGV2ZWwoc3RydWN0IGt1bml0X3N0cmVhbSAqdGhpcywgY29uc3QgY2hhciAq
+bGV2ZWwpCit7CisJdW5zaWduZWQgbG9uZyBmbGFnczsKKworCXNwaW5fbG9ja19pcnFzYXZlKCZ0
+aGlzLT5sb2NrLCBmbGFncyk7CisJdGhpcy0+bGV2ZWwgPSBsZXZlbDsKKwlzcGluX3VubG9ja19p
+cnFyZXN0b3JlKCZ0aGlzLT5sb2NrLCBmbGFncyk7Cit9CisKK3ZvaWQga3VuaXRfc3RyZWFtX2Fk
+ZChzdHJ1Y3Qga3VuaXRfc3RyZWFtICp0aGlzLCBjb25zdCBjaGFyICpmbXQsIC4uLikKK3sKKwl2
+YV9saXN0IGFyZ3M7CisJc3RydWN0IHN0cmluZ19zdHJlYW0gKnN0cmVhbSA9IHRoaXMtPmludGVy
+bmFsX3N0cmVhbTsKKworCXZhX3N0YXJ0KGFyZ3MsIGZtdCk7CisKKwlpZiAoc3RyaW5nX3N0cmVh
+bV92YWRkKHN0cmVhbSwgZm10LCBhcmdzKSA8IDApCisJCWt1bml0X2Vycih0aGlzLT50ZXN0LCAi
+RmFpbGVkIHRvIGFsbG9jYXRlIGZyYWdtZW50OiAlc1xuIiwgZm10KTsKKworCXZhX2VuZChhcmdz
+KTsKK30KKwordm9pZCBrdW5pdF9zdHJlYW1fYXBwZW5kKHN0cnVjdCBrdW5pdF9zdHJlYW0gKnRo
+aXMsCisJCQkJc3RydWN0IGt1bml0X3N0cmVhbSAqb3RoZXIpCit7CisJc3RydWN0IHN0cmluZ19z
+dHJlYW0gKm90aGVyX3N0cmVhbSA9IG90aGVyLT5pbnRlcm5hbF9zdHJlYW07CisJY29uc3QgY2hh
+ciAqb3RoZXJfY29udGVudDsKKworCW90aGVyX2NvbnRlbnQgPSBzdHJpbmdfc3RyZWFtX2dldF9z
+dHJpbmcob3RoZXJfc3RyZWFtKTsKKworCWlmICghb3RoZXJfY29udGVudCkgeworCQlrdW5pdF9l
+cnIodGhpcy0+dGVzdCwKKwkJCSAgIkZhaWxlZCB0byBnZXQgc3RyaW5nIGZyb20gc2Vjb25kIGFy
+Z3VtZW50IGZvciBhcHBlbmRpbmcuXG4iKTsKKwkJcmV0dXJuOworCX0KKworCWt1bml0X3N0cmVh
+bV9hZGQodGhpcywgb3RoZXJfY29udGVudCk7Cit9CisKK3ZvaWQga3VuaXRfc3RyZWFtX2NsZWFy
+KHN0cnVjdCBrdW5pdF9zdHJlYW0gKnRoaXMpCit7CisJc3RyaW5nX3N0cmVhbV9jbGVhcih0aGlz
+LT5pbnRlcm5hbF9zdHJlYW0pOworfQorCit2b2lkIGt1bml0X3N0cmVhbV9jb21taXQoc3RydWN0
+IGt1bml0X3N0cmVhbSAqdGhpcykKK3sKKwlzdHJ1Y3Qgc3RyaW5nX3N0cmVhbSAqc3RyZWFtID0g
+dGhpcy0+aW50ZXJuYWxfc3RyZWFtOworCXN0cnVjdCBzdHJpbmdfc3RyZWFtX2ZyYWdtZW50ICpm
+cmFnbWVudDsKKwljb25zdCBjaGFyICpsZXZlbDsKKwljaGFyICpidWY7CisKKwlsZXZlbCA9IGt1
+bml0X3N0cmVhbV9nZXRfbGV2ZWwodGhpcyk7CisJaWYgKCFsZXZlbCkgeworCQlrdW5pdF9lcnIo
+dGhpcy0+dGVzdCwKKwkJCSAgIlN0cmVhbSB3YXMgY29tbWl0dGVkIHdpdGhvdXQgYSBzcGVjaWZp
+ZWQgbG9nIGxldmVsLlxuIik7CisJCWxldmVsID0gS0VSTl9FUlI7CisJCWt1bml0X3N0cmVhbV9z
+ZXRfbGV2ZWwodGhpcywgbGV2ZWwpOworCX0KKworCWJ1ZiA9IHN0cmluZ19zdHJlYW1fZ2V0X3N0
+cmluZyhzdHJlYW0pOworCWlmICghYnVmKSB7CisJCWt1bml0X2Vycih0aGlzLT50ZXN0LAorCQkJ
+ICJDb3VsZCBub3QgYWxsb2NhdGUgYnVmZmVyLCBkdW1waW5nIHN0cmVhbTpcbiIpOworCQlsaXN0
+X2Zvcl9lYWNoX2VudHJ5KGZyYWdtZW50LCAmc3RyZWFtLT5mcmFnbWVudHMsIG5vZGUpIHsKKwkJ
+CWt1bml0X2Vycih0aGlzLT50ZXN0LCBmcmFnbWVudC0+ZnJhZ21lbnQpOworCQl9CisJCWt1bml0
+X2Vycih0aGlzLT50ZXN0LCAiXG4iKTsKKwkJZ290byBjbGVhbnVwOworCX0KKworCWt1bml0X3By
+aW50ayhsZXZlbCwgdGhpcy0+dGVzdCwgYnVmKTsKKwlrZnJlZShidWYpOworCitjbGVhbnVwOgor
+CWt1bml0X3N0cmVhbV9jbGVhcih0aGlzKTsKK30KKworc3RhdGljIGludCBrdW5pdF9zdHJlYW1f
+aW5pdChzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlcywgdm9pZCAqY29udGV4dCkKK3sKKwlzdHJ1
+Y3Qga3VuaXQgKnRlc3QgPSBjb250ZXh0OworCXN0cnVjdCBrdW5pdF9zdHJlYW0gKnN0cmVhbTsK
+KworCXN0cmVhbSA9IGt6YWxsb2Moc2l6ZW9mKCpzdHJlYW0pLCBHRlBfS0VSTkVMKTsKKwlpZiAo
+IXN0cmVhbSkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlyZXMtPmFsbG9jYXRpb24gPSBzdHJlYW07
+CisJc3RyZWFtLT50ZXN0ID0gdGVzdDsKKwlzcGluX2xvY2tfaW5pdCgmc3RyZWFtLT5sb2NrKTsK
+KwlzdHJlYW0tPmludGVybmFsX3N0cmVhbSA9IG5ld19zdHJpbmdfc3RyZWFtKCk7CisKKwlpZiAo
+IXN0cmVhbS0+aW50ZXJuYWxfc3RyZWFtKSB7CisJCWtmcmVlKHN0cmVhbSk7CisJCXJldHVybiAt
+RU5PTUVNOworCX0KKworCXJldHVybiAwOworfQorCitzdGF0aWMgdm9pZCBrdW5pdF9zdHJlYW1f
+ZnJlZShzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlcykKK3sKKwlzdHJ1Y3Qga3VuaXRfc3RyZWFt
+ICpzdHJlYW0gPSByZXMtPmFsbG9jYXRpb247CisKKwlpZiAoIXN0cmluZ19zdHJlYW1faXNfZW1w
+dHkoc3RyZWFtLT5pbnRlcm5hbF9zdHJlYW0pKSB7CisJCWt1bml0X2VycihzdHJlYW0tPnRlc3Qs
+CisJCQkgIkVuZCBvZiB0ZXN0IGNhc2UgcmVhY2hlZCB3aXRoIHVuY29tbWl0dGVkIHN0cmVhbSBl
+bnRyaWVzLlxuIik7CisJCWt1bml0X3N0cmVhbV9jb21taXQoc3RyZWFtKTsKKwl9CisKKwlkZXN0
+cm95X3N0cmluZ19zdHJlYW0oc3RyZWFtLT5pbnRlcm5hbF9zdHJlYW0pOworCWtmcmVlKHN0cmVh
+bSk7Cit9CisKK3N0cnVjdCBrdW5pdF9zdHJlYW0gKmt1bml0X25ld19zdHJlYW0oc3RydWN0IGt1
+bml0ICp0ZXN0KQoreworCXN0cnVjdCBrdW5pdF9yZXNvdXJjZSAqcmVzOworCisJcmVzID0ga3Vu
+aXRfYWxsb2NfcmVzb3VyY2UodGVzdCwKKwkJCQkgICBrdW5pdF9zdHJlYW1faW5pdCwKKwkJCQkg
+ICBrdW5pdF9zdHJlYW1fZnJlZSwKKwkJCQkgICB0ZXN0KTsKKworCWlmIChyZXMpCisJCXJldHVy
+biByZXMtPmFsbG9jYXRpb247CisJZWxzZQorCQlyZXR1cm4gTlVMTDsKK30KZGlmZiAtLWdpdCBh
+L2t1bml0L3Rlc3QuYyBiL2t1bml0L3Rlc3QuYwppbmRleCBhMTVlNmY4YzQxNTgyLi4wYmI2ZjUz
+YTdmODdlIDEwMDY0NAotLS0gYS9rdW5pdC90ZXN0LmMKKysrIGIva3VuaXQvdGVzdC5jCkBAIC0x
+MzgsNiArMTM4LDEzIEBAIHN0YXRpYyB2b2lkIGt1bml0X3ByaW50X3Rlc3RfY2FzZV9va19ub3Rf
+b2soc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZSwKIAkJCSAgICAgIHRlc3RfY2FzZS0+bmFt
+ZSk7CiB9CiAKK3ZvaWQga3VuaXRfZmFpbChzdHJ1Y3Qga3VuaXQgKnRlc3QsIHN0cnVjdCBrdW5p
+dF9zdHJlYW0gKnN0cmVhbSkKK3sKKwlrdW5pdF9zZXRfc3VjY2Vzcyh0ZXN0LCBmYWxzZSk7CisJ
+a3VuaXRfc3RyZWFtX3NldF9sZXZlbChzdHJlYW0sIEtFUk5fRVJSKTsKKwlrdW5pdF9zdHJlYW1f
+Y29tbWl0KHN0cmVhbSk7Cit9CisKIHZvaWQga3VuaXRfaW5pdF90ZXN0KHN0cnVjdCBrdW5pdCAq
+dGVzdCwgY29uc3QgY2hhciAqbmFtZSkKIHsKIAlzcGluX2xvY2tfaW5pdCgmdGVzdC0+bG9jayk7
+Ci0tIAoyLjIxLjAuMTAyMC5nZjI4MjBjZjAxYS1nb29nCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
