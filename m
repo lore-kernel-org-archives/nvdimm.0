@@ -1,18 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A362219493E6
- for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 10:27:57 -0700 (PDT)
-Date: Tue, 21 May 2019 10:27:42 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: [PATCH 14/18] dax: memcpy before zeroing range
-Message-ID: <20190521172742.GD5125@magnolia>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
- <20190429172649.8288-15-rgoldwyn@suse.de>
+ by ml01.01.org (Postfix) with ESMTPS id 1487821275442
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 12:24:34 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id i8so16330892oth.10
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 12:24:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190429172649.8288-15-rgoldwyn@suse.de>
+References: <155727335978.292046.12068191395005445711.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155727336530.292046.2926860263201336366.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20190514191243.GA17226@kroah.com>
+In-Reply-To: <20190514191243.GA17226@kroah.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 14 May 2019 12:24:23 -0700
+Message-ID: <CAPcyv4jO5KA4ddvBx6PFTgv2D+PfJ4Znzt5RFP4ry9NUDZ+eSQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] drivers/base/devres: Introduce
+ devm_release_action()
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,166 +28,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: kilobyte@angband.pl, jack@suse.cz, linux-nvdimm@lists.01.org, nborisov@suse.com, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Bjorn Helgaas <bhelgaas@google.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Apr 29, 2019 at 12:26:45PM -0500, Goldwyn Rodrigues wrote:
-> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> 
-> However, this needed more iomap fields, so it was easier
-> to pass iomap and compute inside the function rather
-> than passing a log of arguments.
-> 
-> Note, there is subtle difference between iomap_sector and
-> dax_iomap_sector(). Can we replace dax_iomap_sector with
-> iomap_sector()? It would need pos & PAGE_MASK though or else
-> bdev_dax_pgoff() return -EINVAL.
-> 
-> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> ---
->  fs/dax.c              | 17 ++++++++++++-----
->  fs/iomap.c            |  9 +--------
->  include/linux/dax.h   | 11 +++++------
->  include/linux/iomap.h |  6 ++++++
->  4 files changed, 24 insertions(+), 19 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index fa9ccbad7c03..82a08b0eec23 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1063,11 +1063,16 @@ static bool dax_range_is_aligned(struct block_device *bdev,
->  	return true;
->  }
->  
-> -int __dax_zero_page_range(struct block_device *bdev,
-> -		struct dax_device *dax_dev, sector_t sector,
-> -		unsigned int offset, unsigned int size)
-> +int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> +			  unsigned int offset, unsigned int size)
->  {
-> -	if (dax_range_is_aligned(bdev, offset, size)) {
-> +	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
-> +	struct block_device *bdev = iomap->bdev;
-> +	struct dax_device *dax_dev = iomap->dax_dev;
-> +	int ret = 0;
-> +
-> +	if (!(iomap->type == IOMAP_DAX_COW) &&
-> +	    dax_range_is_aligned(bdev, offset, size)) {
->  		sector_t start_sector = sector + (offset >> 9);
->  
->  		return blkdev_issue_zeroout(bdev, start_sector,
-> @@ -1087,11 +1092,13 @@ int __dax_zero_page_range(struct block_device *bdev,
->  			dax_read_unlock(id);
->  			return rc;
->  		}
-> +		if (iomap->type == IOMAP_DAX_COW)
-> +			ret = memcpy_mcsafe(kaddr, iomap->inline_data, offset);
+On Tue, May 14, 2019 at 12:12 PM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Tue, May 07, 2019 at 04:56:05PM -0700, Dan Williams wrote:
+> > The devm_add_action() facility allows a resource allocation routine to
+> > add custom devm semantics. One such user is devm_memremap_pages().
+> >
+> > There is now a need to manually trigger devm_memremap_pages_release().
+> > Introduce devm_release_action() so the release action can be triggered
+> > via a new devm_memunmap_pages() api in a follow-on change.
+> >
+> > Cc: Logan Gunthorpe <logang@deltatee.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > Cc: Christoph Hellwig <hch@lst.de>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  drivers/base/devres.c  |   24 +++++++++++++++++++++++-
+> >  include/linux/device.h |    1 +
+> >  2 files changed, 24 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/base/devres.c b/drivers/base/devres.c
+> > index e038e2b3b7ea..0bbb328bd17f 100644
+> > --- a/drivers/base/devres.c
+> > +++ b/drivers/base/devres.c
+> > @@ -755,10 +755,32 @@ void devm_remove_action(struct device *dev, void (*action)(void *), void *data)
+> >
+> >       WARN_ON(devres_destroy(dev, devm_action_release, devm_action_match,
+> >                              &devres));
+> > -
+> >  }
+> >  EXPORT_SYMBOL_GPL(devm_remove_action);
+> >
+> > +/**
+> > + * devm_release_action() - release previously added custom action
+> > + * @dev: Device that owns the action
+> > + * @action: Function implementing the action
+> > + * @data: Pointer to data passed to @action implementation
+> > + *
+> > + * Releases and removes instance of @action previously added by
+> > + * devm_add_action().  Both action and data should match one of the
+> > + * existing entries.
+> > + */
+> > +void devm_release_action(struct device *dev, void (*action)(void *), void *data)
+> > +{
+> > +     struct action_devres devres = {
+> > +             .data = data,
+> > +             .action = action,
+> > +     };
+> > +
+> > +     WARN_ON(devres_release(dev, devm_action_release, devm_action_match,
+> > +                            &devres));
+>
+> What does WARN_ON help here?  are we going to start getting syzbot
+> reports of this happening?
 
-If the memcpy fails, does it make sense to keep going?
+Hopefully, yes, if developers misuse the api they get a loud
+notification similar to devm_remove_action() misuse.
 
->  		memset(kaddr + offset, 0, size);
+> How can this fail?
 
-Is it ever the case that offset + size isn't the end of the page?  If
-so, then don't we need a second memcpy_mcsafe to handle that too?
-
->  		dax_flush(dax_dev, kaddr + offset, size);
->  		dax_read_unlock(id);
->  	}
-> -	return 0;
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(__dax_zero_page_range);
->  
-> diff --git a/fs/iomap.c b/fs/iomap.c
-> index abdd18e404f8..90698c854883 100644
-> --- a/fs/iomap.c
-> +++ b/fs/iomap.c
-> @@ -98,12 +98,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
->  	return written ? written : ret;
->  }
->  
-> -static sector_t
-> -iomap_sector(struct iomap *iomap, loff_t pos)
-> -{
-> -	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
-> -}
-> -
->  static struct iomap_page *
->  iomap_page_create(struct inode *inode, struct page *page)
->  {
-> @@ -990,8 +984,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
->  static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
->  		struct iomap *iomap)
->  {
-> -	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
-> -			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
-> +	return __dax_zero_page_range(iomap, pos, offset, bytes);
->  }
->  
->  static loff_t
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 1370d39c91b6..c469d9ff54b4 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -9,6 +9,7 @@
->  
->  typedef unsigned long dax_entry_t;
->  
-> +struct iomap;
->  struct iomap_ops;
->  struct dax_device;
->  struct dax_operations {
-> @@ -163,13 +164,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff,
->  			   const struct iomap_ops *ops);
->  
->  #ifdef CONFIG_FS_DAX
-> -int __dax_zero_page_range(struct block_device *bdev,
-> -		struct dax_device *dax_dev, sector_t sector,
-> -		unsigned int offset, unsigned int length);
-> +int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> +		unsigned int offset, unsigned int size);
->  #else
-> -static inline int __dax_zero_page_range(struct block_device *bdev,
-> -		struct dax_device *dax_dev, sector_t sector,
-> -		unsigned int offset, unsigned int length)
-> +static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-> +		unsigned int offset, unsigned int size)
->  {
->  	return -ENXIO;
->  }
-> diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-> index 6e885c5a38a3..fcfce269db3e 100644
-> --- a/include/linux/iomap.h
-> +++ b/include/linux/iomap.h
-> @@ -7,6 +7,7 @@
->  #include <linux/mm.h>
->  #include <linux/types.h>
->  #include <linux/mm_types.h>
-> +#include <linux/blkdev.h>
->  
->  struct address_space;
->  struct fiemap_extent_info;
-> @@ -120,6 +121,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
->  	return NULL;
->  }
->  
-> +static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
-> +{
-> +	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
-> +}
-
-FWIW the iomap changes seem fine to me.
-
---D
-
-> +
->  ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
->  		const struct iomap_ops *ops);
->  int iomap_readpage(struct page *page, const struct iomap_ops *ops);
-> -- 
-> 2.16.4
-> 
+It's a catch to make sure that @dev actually has a live devres
+resource that can be found via @action and @data.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
