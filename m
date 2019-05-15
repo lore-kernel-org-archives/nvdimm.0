@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B02A02125ADC4
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:41:02 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 06/10] libdaxctl: add an interface to get the mode
- for a dax device
-Date: Thu, 16 May 2019 16:40:49 -0600
-Message-Id: <20190516224053.3655-7-vishal.l.verma@intel.com>
-In-Reply-To: <20190516224053.3655-1-vishal.l.verma@intel.com>
-References: <20190516224053.3655-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 00EE821D4919A
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:35 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 07/30] fuse: export fuse_get_unique()
+Date: Wed, 15 May 2019 15:26:52 -0400
+Message-Id: <20190515192715.18000-8-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,139 +22,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for a reconfigure-device command, add an interface to
-retrieve the 'mode' of a dax device. This will allow the
-reconfigure-device command (and via daxctl_dev_to_json()), also
-daxctl-list) to print the mode on device listings via a list command or
-immediately after a mode change.
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+virtio-fs will need unique IDs for FORGET requests from outside
+fs/fuse/dev.c.  Make the symbol visible.
+
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
 ---
- daxctl/lib/libdaxctl.c   | 41 ++++++++++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  1 +
- daxctl/libdaxctl.h       |  1 +
- util/json.c              | 14 ++++++++++++++
- 4 files changed, 57 insertions(+)
+ fs/fuse/dev.c    | 3 ++-
+ fs/fuse/fuse_i.h | 5 +++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index aab2364..5c85328 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -12,6 +12,8 @@
+diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
+index 40eb827caa10..42fd3b576686 100644
+--- a/fs/fuse/dev.c
++++ b/fs/fuse/dev.c
+@@ -363,11 +363,12 @@ unsigned fuse_len_args(unsigned numargs, struct fuse_arg *args)
+ }
+ EXPORT_SYMBOL_GPL(fuse_len_args);
+ 
+-static u64 fuse_get_unique(struct fuse_iqueue *fiq)
++u64 fuse_get_unique(struct fuse_iqueue *fiq)
+ {
+ 	fiq->reqctr += FUSE_REQ_ID_STEP;
+ 	return fiq->reqctr;
+ }
++EXPORT_SYMBOL_GPL(fuse_get_unique);
+ 
+ static unsigned int fuse_req_hash(u64 unique)
+ {
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 16f238d7f624..38a572ba650d 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -1097,4 +1097,9 @@ int fuse_readdir(struct file *file, struct dir_context *ctx);
   */
- #include <stdio.h>
- #include <errno.h>
-+#include <limits.h>
-+#include <libgen.h>
- #include <stdlib.h>
- #include <dirent.h>
- #include <unistd.h>
-@@ -840,6 +842,45 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
- 	return 0;
- }
+ unsigned fuse_len_args(unsigned numargs, struct fuse_arg *args);
  
-+DAXCTL_EXPORT enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int rc = DAXCTL_DEV_MODE_UNKNOWN;
-+	char path[200];
-+	const int len = sizeof(path);
-+	char *mod_path, *mod_base;
++/**
++ * Get the next unique ID for a request
++ */
++u64 fuse_get_unique(struct fuse_iqueue *fiq);
 +
-+	if (!daxctl_dev_is_enabled(dev))
-+		return rc;
-+
-+	/* dax-class model only has conventional devdax devices */
-+	if (ctx->subsys != DAX_BUS)
-+		return DAXCTL_DEV_MODE_DEVDAX;
-+
-+	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	mod_path = realpath(path, NULL);
-+	if (!mod_path) {
-+		rc = -errno;
-+		err(ctx, "%s:  unable to determine module: %s\n", devname,
-+			strerror(errno));
-+		return rc;
-+	}
-+
-+	mod_base = basename(mod_path);
-+	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
-+		rc = DAXCTL_DEV_MODE_RAM;
-+	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
-+		rc = DAXCTL_DEV_MODE_DEVDAX;
-+
-+	free(mod_path);
-+	return rc;
-+}
-+
- DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
- {
- 	return dev->region->ctx;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index cc47ed6..d53976d 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -62,4 +62,5 @@ global:
- 	daxctl_dev_online_node;
- 	daxctl_dev_offline_node;
- 	daxctl_dev_node_is_online;
-+	daxctl_dev_get_mode;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index db0d4ea..4f9088f 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -76,6 +76,7 @@ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
- int daxctl_dev_online_node(struct daxctl_dev *dev);
- int daxctl_dev_offline_node(struct daxctl_dev *dev);
- int daxctl_dev_node_is_online(struct daxctl_dev *dev);
-+enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
-diff --git a/util/json.c b/util/json.c
-index b7ce719..4f13222 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- {
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct json_object *jdev, *jobj;
-+	enum daxctl_dev_mode mode;
- 	int node;
- 
- 	jdev = json_object_new_object();
-@@ -292,6 +293,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- 			json_object_object_add(jdev, "numa_node", jobj);
- 	}
- 
-+	mode = daxctl_dev_get_mode(dev);
-+	if (mode > 0) {
-+		jobj = NULL;
-+		if (mode == DAXCTL_DEV_MODE_RAM)
-+			jobj = json_object_new_string("system-ram");
-+		else if (mode == DAXCTL_DEV_MODE_DEVDAX)
-+			jobj = json_object_new_string("devdax");
-+		else
-+			jobj = json_object_new_string("unknown");
-+		if (jobj)
-+			json_object_object_add(jdev, "mode", jobj);
-+	}
-+
- 	return jdev;
- }
- 
+ #endif /* _FS_FUSE_I_H */
 -- 
 2.20.1
 
