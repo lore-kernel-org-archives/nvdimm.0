@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E90CD21CE7418
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:33 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7CC6B2125ADFF
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:32 -0700 (PDT)
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 15/30] virtio: Implement get_shm_region for PCI transport
-Date: Wed, 15 May 2019 15:27:00 -0400
-Message-Id: <20190515192715.18000-16-vgoyal@redhat.com>
+Subject: [PATCH v2 03/30] fuse: Use default_file_splice_read for direct IO
+Date: Wed, 15 May 2019 15:26:48 -0400
+Message-Id: <20190515192715.18000-4-vgoyal@redhat.com>
 In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
 References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
@@ -26,179 +26,81 @@ To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel
 Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Sebastien Boeuf <sebastien.boeuf@intel.com>
+From: Miklos Szeredi <mszeredi@redhat.com>
 
-On PCI the shm regions are found using capability entries;
-find a region by searching for the capability.
-
-Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
-Signed-off-by: Dr. David Alan Gilbert <dgilbert@redhat.com>
 ---
- drivers/virtio/virtio_pci_modern.c | 108 +++++++++++++++++++++++++++++
- include/uapi/linux/virtio_pci.h    |  10 +++
- 2 files changed, 118 insertions(+)
+ fs/fuse/file.c     | 15 ++++++++++++++-
+ fs/splice.c        |  3 ++-
+ include/linux/fs.h |  2 ++
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/virtio/virtio_pci_modern.c b/drivers/virtio/virtio_pci_modern.c
-index 07571daccfec..51c9e6eca5ac 100644
---- a/drivers/virtio/virtio_pci_modern.c
-+++ b/drivers/virtio/virtio_pci_modern.c
-@@ -446,6 +446,112 @@ static void del_vq(struct virtio_pci_vq_info *info)
- 	vring_del_virtqueue(vq);
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 5baf07fd2876..e9a7aa97c539 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2167,6 +2167,19 @@ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return 0;
  }
  
-+static int virtio_pci_find_shm_cap(struct pci_dev *dev,
-+                                   u8 required_id,
-+                                   u8 *bar, u64 *offset, u64 *len)
++static ssize_t fuse_file_splice_read(struct file *in, loff_t *ppos,
++				     struct pipe_inode_info *pipe, size_t len,
++				     unsigned int flags)
 +{
-+	int pos;
++	struct fuse_file *ff = in->private_data;
 +
-+        for (pos = pci_find_capability(dev, PCI_CAP_ID_VNDR);
-+             pos > 0;
-+             pos = pci_find_next_capability(dev, pos, PCI_CAP_ID_VNDR)) {
-+		u8 type, cap_len, id;
-+                u32 tmp32;
-+                u64 res_offset, res_length;
++	if (ff->open_flags & FOPEN_DIRECT_IO)
++		return default_file_splice_read(in, ppos, pipe, len, flags);
++	else
++		return generic_file_splice_read(in, ppos, pipe, len, flags);
 +
-+		pci_read_config_byte(dev, pos + offsetof(struct virtio_pci_cap,
-+                                                         cfg_type),
-+                                     &type);
-+                if (type != VIRTIO_PCI_CAP_SHARED_MEMORY_CFG)
-+                        continue;
-+
-+		pci_read_config_byte(dev, pos + offsetof(struct virtio_pci_cap,
-+                                                         cap_len),
-+                                     &cap_len);
-+                if (cap_len != sizeof(struct virtio_pci_shm_cap)) {
-+		        printk(KERN_ERR "%s: shm cap with bad size offset: %d size: %d\n",
-+                               __func__, pos, cap_len);
-+                        continue;
-+                };
-+
-+		pci_read_config_byte(dev, pos + offsetof(struct virtio_pci_shm_cap,
-+                                                         id),
-+                                     &id);
-+                if (id != required_id)
-+                        continue;
-+
-+                /* Type, and ID match, looks good */
-+                pci_read_config_byte(dev, pos + offsetof(struct virtio_pci_cap,
-+                                                         bar),
-+                                     bar);
-+
-+                /* Read the lower 32bit of length and offset */
-+                pci_read_config_dword(dev, pos + offsetof(struct virtio_pci_cap, offset),
-+                                      &tmp32);
-+                res_offset = tmp32;
-+                pci_read_config_dword(dev, pos + offsetof(struct virtio_pci_cap, length),
-+                                      &tmp32);
-+                res_length = tmp32;
-+
-+                /* and now the top half */
-+                pci_read_config_dword(dev,
-+                                      pos + offsetof(struct virtio_pci_shm_cap,
-+                                                     offset_hi),
-+                                      &tmp32);
-+                res_offset |= ((u64)tmp32) << 32;
-+                pci_read_config_dword(dev,
-+                                      pos + offsetof(struct virtio_pci_shm_cap,
-+                                                     length_hi),
-+                                      &tmp32);
-+                res_length |= ((u64)tmp32) << 32;
-+
-+                *offset = res_offset;
-+                *len = res_length;
-+
-+                return pos;
-+        }
-+        return 0;
 +}
 +
-+static bool vp_get_shm_region(struct virtio_device *vdev,
-+			      struct virtio_shm_region *region, u8 id)
-+{
-+	struct virtio_pci_device *vp_dev = to_vp_device(vdev);
-+	struct pci_dev *pci_dev = vp_dev->pci_dev;
-+	u8 bar;
-+	u64 offset, len;
-+	phys_addr_t phys_addr;
-+	size_t bar_len;
-+	char *bar_name;
-+	int ret;
-+
-+	if (!virtio_pci_find_shm_cap(pci_dev, id, &bar, &offset, &len)) {
-+		return false;
-+	}
-+
-+	ret = pci_request_region(pci_dev, bar, "virtio-pci-shm");
-+	if (ret < 0) {
-+		dev_err(&pci_dev->dev, "%s: failed to request BAR\n",
-+			__func__);
-+		return false;
-+	}
-+
-+	phys_addr = pci_resource_start(pci_dev, bar);
-+	bar_len = pci_resource_len(pci_dev, bar);
-+
-+        if (offset + len > bar_len) {
-+                dev_err(&pci_dev->dev,
-+                        "%s: bar shorter than cap offset+len\n",
-+                        __func__);
-+                return false;
-+        }
-+
-+	region->len = len;
-+	region->addr = (u64) phys_addr + offset;
-+
-+	return true;
-+}
-+
- static const struct virtio_config_ops virtio_pci_config_nodev_ops = {
- 	.get		= NULL,
- 	.set		= NULL,
-@@ -460,6 +566,7 @@ static const struct virtio_config_ops virtio_pci_config_nodev_ops = {
- 	.bus_name	= vp_bus_name,
- 	.set_vq_affinity = vp_set_vq_affinity,
- 	.get_vq_affinity = vp_get_vq_affinity,
-+	.get_shm_region  = vp_get_shm_region,
- };
+ static int convert_fuse_file_lock(struct fuse_conn *fc,
+ 				  const struct fuse_file_lock *ffl,
+ 				  struct file_lock *fl)
+@@ -3174,7 +3187,7 @@ static const struct file_operations fuse_file_operations = {
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
+ 	.flock		= fuse_file_flock,
+-	.splice_read	= generic_file_splice_read,
++	.splice_read	= fuse_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.unlocked_ioctl	= fuse_file_ioctl,
+ 	.compat_ioctl	= fuse_file_compat_ioctl,
+diff --git a/fs/splice.c b/fs/splice.c
+index 25212dcca2df..e2e881e34935 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -361,7 +361,7 @@ static ssize_t kernel_readv(struct file *file, const struct kvec *vec,
+ 	return res;
+ }
  
- static const struct virtio_config_ops virtio_pci_config_ops = {
-@@ -476,6 +583,7 @@ static const struct virtio_config_ops virtio_pci_config_ops = {
- 	.bus_name	= vp_bus_name,
- 	.set_vq_affinity = vp_set_vq_affinity,
- 	.get_vq_affinity = vp_get_vq_affinity,
-+	.get_shm_region  = vp_get_shm_region,
- };
+-static ssize_t default_file_splice_read(struct file *in, loff_t *ppos,
++ssize_t default_file_splice_read(struct file *in, loff_t *ppos,
+ 				 struct pipe_inode_info *pipe, size_t len,
+ 				 unsigned int flags)
+ {
+@@ -425,6 +425,7 @@ static ssize_t default_file_splice_read(struct file *in, loff_t *ppos,
+ 	iov_iter_advance(&to, copied);	/* truncates and discards */
+ 	return res;
+ }
++EXPORT_SYMBOL(default_file_splice_read);
  
- /**
-diff --git a/include/uapi/linux/virtio_pci.h b/include/uapi/linux/virtio_pci.h
-index 90007a1abcab..31841a60a4ad 100644
---- a/include/uapi/linux/virtio_pci.h
-+++ b/include/uapi/linux/virtio_pci.h
-@@ -113,6 +113,8 @@
- #define VIRTIO_PCI_CAP_DEVICE_CFG	4
- /* PCI configuration access */
- #define VIRTIO_PCI_CAP_PCI_CFG		5
-+/* Additional shared memory capability */
-+#define VIRTIO_PCI_CAP_SHARED_MEMORY_CFG 8
- 
- /* This is the PCI capability header: */
- struct virtio_pci_cap {
-@@ -163,6 +165,14 @@ struct virtio_pci_cfg_cap {
- 	__u8 pci_cfg_data[4]; /* Data for BAR access. */
- };
- 
-+/* Fields in VIRTIO_PCI_CAP_SHARED_MEMORY_CFG */
-+struct virtio_pci_shm_cap {
-+       struct virtio_pci_cap cap;
-+       __le32 offset_hi;             /* Most sig 32 bits of offset */
-+       __le32 length_hi;             /* Most sig 32 bits of length */
-+        __u8   id;                    /* To distinguish shm chunks */
-+};
-+
- /* Macro versions of offsets for the Old Timers! */
- #define VIRTIO_PCI_CAP_VNDR		0
- #define VIRTIO_PCI_CAP_NEXT		1
+ /*
+  * Send 'sd->len' bytes to socket from 'sd->file' at position 'sd->pos'
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index dd28e7679089..6804aecf7e30 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3055,6 +3055,8 @@ extern void block_sync_page(struct page *page);
+ /* fs/splice.c */
+ extern ssize_t generic_file_splice_read(struct file *, loff_t *,
+ 		struct pipe_inode_info *, size_t, unsigned int);
++extern ssize_t default_file_splice_read(struct file *, loff_t *,
++		struct pipe_inode_info *, size_t, unsigned int);
+ extern ssize_t iter_file_splice_write(struct pipe_inode_info *,
+ 		struct file *, loff_t *, size_t, unsigned int);
+ extern ssize_t generic_splice_sendpage(struct pipe_inode_info *pipe,
 -- 
 2.20.1
 
