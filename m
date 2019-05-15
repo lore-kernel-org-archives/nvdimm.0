@@ -1,60 +1,92 @@
-From: Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Date: Tue, 14 May 2019 17:26:47 -0700
-Message-ID: <a305c732-9953-8724-b4a4-25aa50c89365@gmail.com>
-References: <a09a7e0e-9894-8c1a-34eb-fc482b1759d0@gmail.com>
- <20190509015856.GB7031@mit.edu>
- <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
- <20190509032017.GA29703@mit.edu>
- <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
- <20190509133551.GD29703@mit.edu>
- <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
- <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
- <20190509214233.GA20877@mit.edu>
- <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
- <20190511173344.GA8507@mit.edu>
+From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Subject: Hackers know password from your account. Password must be changed now.
+Date: 15 May 2019 18:21:15 +0600
+Message-ID: <109080288104984583139156@lists.01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190511173344.GA8507@mit.edu>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Theodore Ts'o <tytso@mit.edu>, Tim.Bird@sony.com, knut.omang@oracle.com, gregkh@linuxfoundation.org, brendanhiggins@google.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, amir73il@gmail.com, dan.carpenter@oracle.com, dan.j.williams@intel.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, logang@deltatee.com, mpe@ellerman.
+Content-Type: multipart/mixed; boundary="===============5118055020459796457=="
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 5/11/19 10:33 AM, Theodore Ts'o wrote:
-> On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
->> However, the reply is incorrect.  Kselftest in-kernel tests (which
->> is the context here) can be configured as built in instead of as
->> a module, and built in a UML kernel.  The UML kernel can boot,
->> running the in-kernel tests before UML attempts to invoke the
->> init process.
-> 
-> Um, Citation needed?
+--===============5118055020459796457==
+Content-type: text/plain;
+ charset="cp-850"
+Content-transfer-encoding: 8bit
 
-The paragraph that you quoted tells you exactly how to run a kselftest
-in-kernel test in a UML kernel.  Just to what that paragraph says.
+Hello!
+
+I have very bad news for you.
+21/10/2018 - on this day I hacked your OS and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+
+So, you can change the password, yes... But my malware intercepts it every time.
+
+How I made it:
+In the software of the router, through which you went online, was a vulnerability.
+I just hacked this router and placed my malicious code on it.
+When you went online, my trojan was installed on the OS of your device.
+
+After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
+
+A month ago, I wanted to lock your device and ask for a not big amount of btc to unlock.
+But I looked at the sites that you regularly visit, and I was shocked by what I saw!!!
+I'm talk you about sites for adults.
+
+I want to say - you are a BIG pervert. Your fantasy is shifted far away from the normal course!
+
+And I got an idea....
+I made a screenshot of the adult sites where you have fun (do you understand what it is about, huh?).
+After that, I made a screenshot of your joys (using the camera of your device) and glued them together.
+Turned out amazing! You are so spectacular!
+
+I'm know that you would not like to show these screenshots to your friends, relatives or colleagues.
+I think $725 is a very, very small amount for my silence.
+Besides, I have been spying on you for so long, having spent a lot of time!
+
+Pay ONLY in Bitcoins!
+My BTC wallet: 1E9qZgNC9KRnJfwZChcBtXN8D4g17T51p7
+
+You do not know how to use bitcoins?
+Enter a query in any search engine: "how to replenish btc wallet".
+It's extremely easy
+
+For this payment I give you two days (48 hours).
+As soon as this letter is opened, the timer will work.
+
+After payment, my virus and dirty screenshots with your enjoys will be self-destruct automatically.
+If I do not receive from you the specified amount, then your device will be locked, and all your contacts will receive a screenshots with your "enjoys".
+
+I hope you understand your situation.
+- Do not try to find and destroy my virus! (All your data, files and screenshots is already uploaded to a remote server)
+- Do not try to contact me (this is not feasible, I sent you an email from your account)
+- Various security services will not help you; formatting a disk or destroying a device will not help, since your data is already on a remote server.
+
+P.S. You are not my single victim. so, I guarantee you that I will not disturb you again after payment!
+ This is the word of honor hacker
+
+I also ask you to regularly update your antiviruses in the future. This way you will no longer fall into a similar situation.
+
+Do not hold evil! I just do my job.
+Have a nice day!
 
 
-> 
-> I don't see any evidence for this in the kselftest documentation, nor
-> do I see any evidence of this in the kselftest Makefiles.
-> 
-> There exists test modules in the kernel that run before the init
-> scripts run --- but that's not strictly speaking part of kselftests,
-> and do not have any kind of infrastructure.  As noted, the
-> kselftests_harness header file fundamentally assumes that you are
-> running test code in userspace.
+--===============5118055020459796457==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-You are ignoring the kselftest in-kernel tests.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
 
-We are talking in circles.  I'm done with this thread.
-
--Frank
-
-> 
-> 				- Ted
-> .
-> 
+--===============5118055020459796457==--
