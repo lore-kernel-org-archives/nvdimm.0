@@ -1,9 +1,10 @@
-From: <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Hackers know password from your account. Password must be changed now.
-Date: 15 May 2019 18:21:15 +0600
-Message-ID: <109080288104984583139156@lists.01.org>
+From: =?utf-8?B?572X5YWI55Sf?= <iln-5IMwoJvYSfc@public.gmane.org>
+Subject: =?utf-8?B?572X5YWI55Sf77ya5aaC5L2V5o+Q6auY5oub6IGY5LiO6Z2i6K+V55qE55+l6K+G5ZKM5oqA5ben?=
+Date: Thu, 16 May 2019 02:08:11 +0800
+Message-ID: <D0EA98BE4F74DB56F46D98A086B55E84@nlv.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5118055020459796457=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,76 +18,9 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
---===============5118055020459796457==
-Content-type: text/plain;
- charset="cp-850"
-Content-transfer-encoding: 8bit
-
-Hello!
-
-I have very bad news for you.
-21/10/2018 - on this day I hacked your OS and got full access to your account linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-
-So, you can change the password, yes... But my malware intercepts it every time.
-
-How I made it:
-In the software of the router, through which you went online, was a vulnerability.
-I just hacked this router and placed my malicious code on it.
-When you went online, my trojan was installed on the OS of your device.
-
-After that, I made a full dump of your disk (I have all your address book, history of viewing sites, all files, phone numbers and addresses of all your contacts).
-
-A month ago, I wanted to lock your device and ask for a not big amount of btc to unlock.
-But I looked at the sites that you regularly visit, and I was shocked by what I saw!!!
-I'm talk you about sites for adults.
-
-I want to say - you are a BIG pervert. Your fantasy is shifted far away from the normal course!
-
-And I got an idea....
-I made a screenshot of the adult sites where you have fun (do you understand what it is about, huh?).
-After that, I made a screenshot of your joys (using the camera of your device) and glued them together.
-Turned out amazing! You are so spectacular!
-
-I'm know that you would not like to show these screenshots to your friends, relatives or colleagues.
-I think $725 is a very, very small amount for my silence.
-Besides, I have been spying on you for so long, having spent a lot of time!
-
-Pay ONLY in Bitcoins!
-My BTC wallet: 1E9qZgNC9KRnJfwZChcBtXN8D4g17T51p7
-
-You do not know how to use bitcoins?
-Enter a query in any search engine: "how to replenish btc wallet".
-It's extremely easy
-
-For this payment I give you two days (48 hours).
-As soon as this letter is opened, the timer will work.
-
-After payment, my virus and dirty screenshots with your enjoys will be self-destruct automatically.
-If I do not receive from you the specified amount, then your device will be locked, and all your contacts will receive a screenshots with your "enjoys".
-
-I hope you understand your situation.
-- Do not try to find and destroy my virus! (All your data, files and screenshots is already uploaded to a remote server)
-- Do not try to contact me (this is not feasible, I sent you an email from your account)
-- Various security services will not help you; formatting a disk or destroying a device will not help, since your data is already on a remote server.
-
-P.S. You are not my single victim. so, I guarantee you that I will not disturb you again after payment!
- This is the word of honor hacker
-
-I also ask you to regularly update your antiviruses in the future. This way you will no longer fall into a similar situation.
-
-Do not hold evil! I just do my job.
-Have a nice day!
-
-
---===============5118055020459796457==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============5118055020459796457==--
+DQoNCg0KLS0tLSDljp/pgq7ku7bkv6Hmga8gLS0tLS0NCuWPkeS7tuS6ujrnvZflhYjnlJ88aWxu
+QG5sdi5vcmc+DQrmlLbku7bkuro6bGludXgtbnZkaW1tIDxsaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnPg0K5Y+R6YCB5pe26Ze0OjIwMTktNS0xNiAgMjowODoyMwpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0Ckxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0
+aW5mby9saW51eC1udmRpbW0K
