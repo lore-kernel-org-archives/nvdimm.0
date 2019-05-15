@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
- [IPv6:2607:f8b0:4864:20::243])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 69F3D21945DE0
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 17:22:03 -0700 (PDT)
-Received: by mail-oi1-x243.google.com with SMTP id z65so1165959oia.11
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 17:22:03 -0700 (PDT)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 5142D21DF8064
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:36 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 12/30] dax: remove block device dependencies
+Date: Wed, 15 May 2019 15:26:57 -0400
+Message-Id: <20190515192715.18000-13-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
 References: <20190515192715.18000-1-vgoyal@redhat.com>
- <20190515192715.18000-13-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-13-vgoyal@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 15 May 2019 17:21:51 -0700
-Message-ID: <CAPcyv4i_-ri=w0jYJ4WjK4QD9E8pMzkGQNdMbt9H_nawDqYD3A@mail.gmail.com>
-Subject: Re: [PATCH v2 12/30] dax: remove block device dependencies
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,33 +22,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Miklos Szeredi <miklos@szeredi.hu>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 15, 2019 at 12:28 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> From: Stefan Hajnoczi <stefanha@redhat.com>
->
-> Although struct dax_device itself is not tied to a block device, some
-> DAX code assumes there is a block device.  Make block devices optional
-> by allowing bdev to be NULL in commonly used DAX APIs.
->
-> When there is no block device:
->  * Skip the partition offset calculation in bdev_dax_pgoff()
->  * Skip the blkdev_issue_zeroout() optimization
->
-> Note that more block device assumptions remain but I haven't reach those
-> code paths yet.
->
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-Is there a generic object that non-block-based filesystems reference
-for physical storage as a bdev stand-in? I assume "sector_t" is still
-the common type for addressing filesystem capacity?
+Although struct dax_device itself is not tied to a block device, some
+DAX code assumes there is a block device.  Make block devices optional
+by allowing bdev to be NULL in commonly used DAX APIs.
 
-It just seems to me that we should stop pretending that the
-filesystem-dax facility requires block devices and try to move this
-functionality to generically use a dax device across all interfaces.
+When there is no block device:
+ * Skip the partition offset calculation in bdev_dax_pgoff()
+ * Skip the blkdev_issue_zeroout() optimization
+
+Note that more block device assumptions remain but I haven't reach those
+code paths yet.
+
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+---
+ drivers/dax/super.c | 3 ++-
+ fs/dax.c            | 7 ++++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 0a339b85133e..cb44ec663991 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -53,7 +53,8 @@ EXPORT_SYMBOL_GPL(dax_read_unlock);
+ int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
+ 		pgoff_t *pgoff)
+ {
+-	phys_addr_t phys_off = (get_start_sect(bdev) + sector) * 512;
++	sector_t start_sect = bdev ? get_start_sect(bdev) : 0;
++	phys_addr_t phys_off = (start_sect + sector) * 512;
+ 
+ 	if (pgoff)
+ 		*pgoff = PHYS_PFN(phys_off);
+diff --git a/fs/dax.c b/fs/dax.c
+index e5e54da1715f..815bc32fd967 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1042,7 +1042,12 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ static bool dax_range_is_aligned(struct block_device *bdev,
+ 				 unsigned int offset, unsigned int length)
+ {
+-	unsigned short sector_size = bdev_logical_block_size(bdev);
++	unsigned short sector_size;
++
++	if (!bdev)
++		return false;
++
++	sector_size = bdev_logical_block_size(bdev);
+ 
+ 	if (!IS_ALIGNED(offset, sector_size))
+ 		return false;
+-- 
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
