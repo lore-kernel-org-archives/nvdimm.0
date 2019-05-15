@@ -1,30 +1,27 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com
- [IPv6:2a00:1450:4864:20::543])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outgoing.mit.edu (outgoing-auth-1.mit.edu [18.9.28.11])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0C19621260A75
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 00:41:47 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id m4so2742981edd.8
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 00:41:47 -0700 (PDT)
-Date: Wed, 15 May 2019 09:41:41 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
+ by ml01.01.org (Postfix) with ESMTPS id 0963D21276B97
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 21:29:51 -0700 (PDT)
+Date: Wed, 15 May 2019 00:28:38 -0400
+From: "Theodore Ts'o" <tytso@mit.edu>
 Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
  testing framework
-Message-ID: <20190515074141.GY17751@phenom.ffwll.local>
-References: <20190509133551.GD29703@mit.edu>
+Message-ID: <20190515042838.GA26954@mit.edu>
+References: <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
+ <20190509032017.GA29703@mit.edu>
+ <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
+ <20190509133551.GD29703@mit.edu>
  <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
  <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
  <20190509214233.GA20877@mit.edu>
  <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
  <20190511173344.GA8507@mit.edu>
- <20190513144451.GQ17751@phenom.ffwll.local>
- <20190514060433.GA181462@google.com>
- <CAKMK7uHqtSF_sazJTbFL+xmQJRk4iwukCKZHoDHhsKkLXk=ECQ@mail.gmail.com>
- <20190514183618.GC109557@google.com>
+ <a305c732-9953-8724-b4a4-25aa50c89365@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190514183618.GC109557@google.com>
+In-Reply-To: <a305c732-9953-8724-b4a4-25aa50c89365@gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,147 +33,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: Petr Mladek <pmladek@suse.com>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Shuah Khan <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm@lists.01.org, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, jdike@addtoit.com, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, sboyd@kernel.org, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
+To: Frank Rowand <frowand.list@gmail.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, brendanhiggins@google.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 14, 2019 at 11:36:18AM -0700, Brendan Higgins wrote:
-> On Tue, May 14, 2019 at 02:05:05PM +0200, Daniel Vetter wrote:
-> > On Tue, May 14, 2019 at 8:04 AM Brendan Higgins
-> > <brendanhiggins@google.com> wrote:
-> > >
-> > > On Mon, May 13, 2019 at 04:44:51PM +0200, Daniel Vetter wrote:
-> > > > On Sat, May 11, 2019 at 01:33:44PM -0400, Theodore Ts'o wrote:
-> > > > > On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
-> > > > > > However, the reply is incorrect.  Kselftest in-kernel tests (which
-> > > > > > is the context here) can be configured as built in instead of as
-> > > > > > a module, and built in a UML kernel.  The UML kernel can boot,
-> > > > > > running the in-kernel tests before UML attempts to invoke the
-> > > > > > init process.
-> > > > >
-> > > > > Um, Citation needed?
-> > > > >
-> > > > > I don't see any evidence for this in the kselftest documentation, nor
-> > > > > do I see any evidence of this in the kselftest Makefiles.
-> > > > >
-> > > > > There exists test modules in the kernel that run before the init
-> > > > > scripts run --- but that's not strictly speaking part of kselftests,
-> > > > > and do not have any kind of infrastructure.  As noted, the
-> > > > > kselftests_harness header file fundamentally assumes that you are
-> > > > > running test code in userspace.
-> > > >
-> > > > Yeah I really like the "no userspace required at all" design of kunit,
-> > > > while still collecting results in a well-defined way (unless the current
-> > > > self-test that just run when you load the module, with maybe some
-> > > > kselftest ad-hoc wrapper around to collect the results).
-> > > >
-> > > > What I want to do long-term is to run these kernel unit tests as part of
-> > > > the build-testing, most likely in gitlab (sooner or later, for drm.git
-> > >
-> > > Totally! This is part of the reason I have been insisting on a minimum
-> > > of UML compatibility for all unit tests. If you can suffiently constrain
-> > > the environment that is required for tests to run in, it makes it much
-> > > easier not only for a human to run your tests, but it also makes it a
-> > > lot easier for an automated service to be able to run your tests.
-> > >
-> > > I actually have a prototype presubmit already working on my
-> > > "stable/non-upstream" branch. You can checkout what presubmit results
-> > > look like here[1][2].
+On Tue, May 14, 2019 at 05:26:47PM -0700, Frank Rowand wrote:
+> On 5/11/19 10:33 AM, Theodore Ts'o wrote:
+> > On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
+> >> However, the reply is incorrect.  Kselftest in-kernel tests (which
+> >> is the context here) can be configured as built in instead of as
+> >> a module, and built in a UML kernel.  The UML kernel can boot,
+> >> running the in-kernel tests before UML attempts to invoke the
+> >> init process.
 > > 
-> > ug gerrit :-)
+> > Um, Citation needed?
 > 
-> Yeah, yeah, I know, but it is a lot easier for me to get a project set
-> up here using Gerrit, when we already use that for a lot of other
-> projects.
+> The paragraph that you quoted tells you exactly how to run a kselftest
+> in-kernel test in a UML kernel.  Just to what that paragraph says.
+
+I didn't quote a paragraph.  But I'll quote from it now:
+
+  $ make -C tools/testing/selftests run_tests
+
+This runs the kselftest harness, *in userspace*.  That means you have
+to have a root file system, and it's run after init has started, by
+default.  You asserted that kselftests allows you to run modules
+before init has started.  There is absolutely zero, cero, nada, zilch
+mentions of any of anything like that in Documentation/dev-tools/kselftests.rst
+
+> > There exists test modules in the kernel that run before the init
+> > scripts run --- but that's not strictly speaking part of kselftests,
+> > and do not have any kind of infrastructure.  As noted, the
+> > kselftests_harness header file fundamentally assumes that you are
+> > running test code in userspace.
 > 
-> Also, Gerrit has gotten a lot better over the last two years or so. Two
-> years ago, I wouldn't touch it with a ten foot pole. It's not so bad
-> anymore, at least if you are used to using a web UI to review code.
+> You are ignoring the kselftest in-kernel tests.
 
-I was somewhat joking, I'm just not used to gerrit ... And seems to indeed
-be a lot more polished than last time I looked at it seriously.
+I'm talking specifically about what you have been *claiming* to be
+kselftest in-kernel tests above.  And I'm asserting they are really
+not kselftests.  They are just ad hoc tests that are run in kernel
+space, which, when compiled as modules, can be loaded by a kselftest
+shell script.  You can certainly hook in these ad hoc in-kernel tests
+via kselftests --- but then they aren't run before init starts,
+because kselftests is inherently a userspace-driven system.
 
-> > > > only ofc). So that people get their pull requests (and patch series, we
-> > > > have some ideas to tie this into patchwork) automatically tested for this
-> > >
-> > > Might that be Snowpatch[3]? I talked to Russell, the creator of Snowpatch,
-> > > and he seemed pretty open to collaboration.
-> > >
-> > > Before I heard about Snowpatch, I had an intern write a translation
-> > > layer that made Prow (the presubmit service that I used in the prototype
-> > > above) work with LKML[4].
-> > 
-> > There's about 3-4 forks/clones of patchwork. snowpatch is one, we have
-> > a different one on freedesktop.org. It's a bit a mess :-/
-> 
-> Oh, I didn't realize that. I found your patchwork instance here[5], but
-> do you have a place where I can see the changes you have added to
-> support presubmit?
+If you build these tests (many of which existed before kselftests was
+merged) into the kernel such that they are run before init starts,
+without the kselftest harness, then they are not kselftests, by
+definition.  Both in how they are run, and since many of these
+in-kernel tests predate the introduction of kselftests --- in some
+cases, by many years.
 
-Ok here's a few links. Aside from the usual patch view we've also added a
-series view:
+> We are talking in circles.  I'm done with this thread.
 
-https://patchwork.freedesktop.org/project/intel-gfx/series/?ordering=-last_updated
+Yes, that sounds like it would be best.
 
-This ties the patches + cover letter together, and it even (tries to at
-least) track revisions. Here's an example which is currently at revision
-9:
-
-https://patchwork.freedesktop.org/series/57232/
-
-Below the patch list for each revision we also have the test result list.
-If you click on the grey bar it'll expand with the summary from CI, the
-"See full logs" is link to the full results from our CI. This is driven
-with some REST api from our jenkins.
-
-Patchwork also sends out mails for these results.
-
-Source is on gitlab: https://gitlab.freedesktop.org/patchwork-fdo
- 
-> > > I am not married to either approach, but I think between the two of
-> > > them, most of the initial legwork has been done to make presubmit on
-> > > LKML a reality.
-> > 
-> > We do have presubmit CI working already with our freedesktop.org
-> > patchwork. The missing glue is just tying that into gitlab CI somehow
-> > (since we want to unify build testing more and make it easier for
-> > contributors to adjust things).
-> 
-> I checked out a couple of your projects on your patchwork instance: AMD
-> X.Org drivers, DRI devel, and Wayland. I saw the tab you added for
-> tests, but none of them actually had any test results. Can you point me
-> at one that does?
-
-Atm we use the CI stuff only on intel-gfx, with the our gpu CI farm, see
-links above.
-
-Cheers, Daniel
-
-> 
-> Cheers!
-> 
-> [5] https://patchwork.freedesktop.org/
-> 
-> > > > super basic stuff.
-> > >
-> > > I am really excited to hear back on what you think!
-> > >
-> > > Cheers!
-> > >
-> > > [1] https://kunit-review.googlesource.com/c/linux/+/1509/10#message-7bfa40efb132e15c8388755c273837559911425c
-> > > [2] https://kunit-review.googlesource.com/c/linux/+/1509/10#message-a6784496eafff442ac98fb068bf1a0f36ee73509
-> > > [3] https://developer.ibm.com/open/projects/snowpatch/
-> > > [4] https://kunit.googlesource.com/prow-lkml/
-> > > _______________________________________________
-> > > dri-devel mailing list
-> > > dri-devel@lists.freedesktop.org
-> > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+						- Ted
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
