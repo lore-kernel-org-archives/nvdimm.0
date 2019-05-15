@@ -1,19 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x741.google.com (mail-qk1-x741.google.com
- [IPv6:2607:f8b0:4864:20::741])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2DA1B21243BDB
- for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 11:43:47 -0700 (PDT)
-Received: by mail-qk1-x741.google.com with SMTP id n68so2147530qka.1
- for <linux-nvdimm@lists.01.org>; Thu, 02 May 2019 11:43:47 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v5 3/3] device-dax: "Hotremove" persistent memory that is used like
- normal RAM
-Date: Thu,  2 May 2019 14:43:37 -0400
-Message-Id: <20190502184337.20538-4-pasha.tatashin@soleen.com>
-In-Reply-To: <20190502184337.20538-1-pasha.tatashin@soleen.com>
-References: <20190502184337.20538-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id 828742126578B
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:32 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 01/30] fuse: delete dentry if timeout is zero
+Date: Wed, 15 May 2019 15:26:46 -0400
+Message-Id: <20190515192715.18000-2-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,121 +22,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-It is now allowed to use persistent memory like a regular RAM, but
-currently there is no way to remove this memory until machine is
-rebooted.
+From: Miklos Szeredi <mszeredi@redhat.com>
 
-This work expands the functionality to also allows hotremoving
-previously hotplugged persistent memory, and recover the device for use
-for other purposes.
+Don't hold onto dentry in lru list if need to re-lookup it anyway at next
+access.
 
-To hotremove persistent memory, the management software must first
-offline all memory blocks of dax region, and than unbind it from
-device-dax/kmem driver. So, operations should look like this:
+More advanced version of this patch would periodically flush out dentries
+from the lru which have gone stale.
 
-echo offline > /sys/devices/system/memory/memoryN/state
-...
-echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
-
-Note: if unbind is done without offlining memory beforehand, it won't be
-possible to do dax0.0 hotremove, and dax's memory is going to be part of
-System RAM until reboot.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- drivers/dax/dax-private.h |  2 ++
- drivers/dax/kmem.c        | 41 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 39 insertions(+), 4 deletions(-)
+ fs/fuse/dir.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a45612148ca0..999aaf3a29b3 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -53,6 +53,7 @@ struct dax_region {
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @ref: pgmap reference count (driver owned)
-  * @cmp: @ref final put completion (driver owned)
-+ * @dax_mem_res: physical address range of hotadded DAX memory
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -62,6 +63,7 @@ struct dev_dax {
- 	struct dev_pagemap pgmap;
- 	struct percpu_ref ref;
- 	struct completion cmp;
-+	struct resource *dax_kmem_res;
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index dd0f64f7bc06..fd8636e67ae9 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -29,12 +29,26 @@ union fuse_dentry {
+ 	struct rcu_head rcu;
  };
  
- static inline struct dev_dax *to_dev_dax(struct device *dev)
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 4c0131857133..3d0a7e702c94 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -71,21 +71,54 @@ int dev_dax_kmem_probe(struct device *dev)
- 		kfree(new_res);
- 		return rc;
- 	}
-+	dev_dax->dax_kmem_res = new_res;
- 
- 	return 0;
- }
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+static int dev_dax_kmem_remove(struct device *dev)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct resource *res = dev_dax->dax_kmem_res;
-+	resource_size_t kmem_start = res->start;
-+	resource_size_t kmem_size = resource_size(res);
-+	int rc;
-+
+-static inline void fuse_dentry_settime(struct dentry *entry, u64 time)
++static void fuse_dentry_settime(struct dentry *dentry, u64 time)
+ {
+-	((union fuse_dentry *) entry->d_fsdata)->time = time;
 +	/*
-+	 * We have one shot for removing memory, if some memory blocks were not
-+	 * offline prior to calling this function remove_memory() will fail, and
-+	 * there is no way to hotremove this memory until reboot because device
-+	 * unbind will succeed even if we return failure.
++	 * Mess with DCACHE_OP_DELETE because dput() will be faster without it.
++	 *  Don't care about races, either way it's just an optimization
 +	 */
-+	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
-+	if (rc) {
-+		dev_err(dev,
-+			"DAX region %pR cannot be hotremoved until the next reboot\n",
-+			res);
-+		return rc;
++	if ((time && (dentry->d_flags & DCACHE_OP_DELETE)) ||
++	    (!time && !(dentry->d_flags & DCACHE_OP_DELETE))) {
++		spin_lock(&dentry->d_lock);
++		if (time)
++			dentry->d_flags &= ~DCACHE_OP_DELETE;
++		else
++			dentry->d_flags |= DCACHE_OP_DELETE;
++		spin_unlock(&dentry->d_lock);
 +	}
 +
-+	/* Release and free dax resources */
-+	release_resource(res);
-+	kfree(res);
-+	dev_dax->dax_kmem_res = NULL;
-+
-+	return 0;
-+}
-+#else
- static int dev_dax_kmem_remove(struct device *dev)
- {
- 	/*
--	 * Purposely leak the request_mem_region() for the device-dax
--	 * range and return '0' to ->remove() attempts. The removal of
--	 * the device from the driver always succeeds, but the region
--	 * is permanently pinned as reserved by the unreleased
-+	 * Without hotremove purposely leak the request_mem_region() for the
-+	 * device-dax range and return '0' to ->remove() attempts. The removal
-+	 * of the device from the driver always succeeds, but the region is
-+	 * permanently pinned as reserved by the unreleased
- 	 * request_mem_region().
- 	 */
- 	return 0;
++	((union fuse_dentry *) dentry->d_fsdata)->time = time;
  }
-+#endif /* CONFIG_MEMORY_HOTREMOVE */
  
- static struct dax_device_driver device_dax_kmem_driver = {
- 	.drv = {
+-static inline u64 fuse_dentry_time(struct dentry *entry)
++static inline u64 fuse_dentry_time(const struct dentry *entry)
+ {
+ 	return ((union fuse_dentry *) entry->d_fsdata)->time;
+ }
+@@ -255,8 +269,14 @@ static void fuse_dentry_release(struct dentry *dentry)
+ 	kfree_rcu(fd, rcu);
+ }
+ 
++static int fuse_dentry_delete(const struct dentry *dentry)
++{
++	return time_before64(fuse_dentry_time(dentry), get_jiffies_64());
++}
++
+ const struct dentry_operations fuse_dentry_operations = {
+ 	.d_revalidate	= fuse_dentry_revalidate,
++	.d_delete	= fuse_dentry_delete,
+ 	.d_init		= fuse_dentry_init,
+ 	.d_release	= fuse_dentry_release,
+ };
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
