@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 417F421244A6A
- for <linux-nvdimm@lists.01.org>; Wed,  8 May 2019 19:48:03 -0700 (PDT)
-Received: from G08CNEXCHPEKD02.g08.fujitsu.local (unknown [10.167.33.83])
- by cn.fujitsu.com (Postfix) with ESMTP id 3C54F4CDE919
- for <linux-nvdimm@lists.01.org>; Thu,  9 May 2019 10:40:43 +0800 (CST)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [PATCH] Documentation: nvdimm: Fix typo
-Date: Thu, 9 May 2019 10:40:36 +0800
-Message-ID: <20190509024036.7743-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 936F221D49185
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 29/30] fuse: Take inode lock for dax inode truncation
+Date: Wed, 15 May 2019 15:27:14 -0400
+Message-Id: <20190515192715.18000-30-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,35 +22,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the extra 'we '.
+When a file is opened with O_TRUNC, we need to make sure that any other
+DAX operation is not in progress. DAX expects i_size to be stable.
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+In fuse_iomap_begin() we check for i_size at multiple places and we expect
+i_size to not change.
+
+Another problem is, if we setup a mapping in fuse_iomap_begin(), and
+file gets truncated and dax read/write happens, KVM currently hangs.
+It tries to fault in a page which does not exist on host (file got
+truncated). It probably requries fixing in KVM.
+
+So for now, take inode lock. Once KVM is fixed, we might have to
+have a look at it again.
+
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- Documentation/nvdimm/nvdimm.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/fuse/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/nvdimm/nvdimm.txt b/Documentation/nvdimm/nvdimm.txt
-index e894de69915a..a2013750bcf1 100644
---- a/Documentation/nvdimm/nvdimm.txt
-+++ b/Documentation/nvdimm/nvdimm.txt
-@@ -284,8 +284,8 @@ A bus has a 1:1 relationship with an NFIT.  The current expectation for
- ACPI based systems is that there is only ever one platform-global NFIT.
- That said, it is trivial to register multiple NFITs, the specification
- does not preclude it.  The infrastructure supports multiple busses and
--we we use this capability to test multiple NFIT configurations in the
--unit test.
-+we use this capability to test multiple NFIT configurations in theunit
-+test.
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 9b82d9b4ebc3..d0979dc32f08 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -420,7 +420,7 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
+ 	int err;
+ 	bool lock_inode = (file->f_flags & O_TRUNC) &&
+ 			  fc->atomic_o_trunc &&
+-			  fc->writeback_cache;
++			  (fc->writeback_cache || IS_DAX(inode));
  
- LIBNVDIMM: control class device in /sys/class
- 
+ 	err = generic_file_open(inode, file);
+ 	if (err)
 -- 
-2.17.0
-
-
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
