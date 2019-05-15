@@ -1,19 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CEAF121BADAB3
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 22:31:44 -0700 (PDT)
-Date: Fri, 17 May 2019 01:31:40 -0400 (EDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Message-ID: <1808083054.29407926.1558071100913.JavaMail.zimbra@redhat.com>
-In-Reply-To: <20190516095618-mutt-send-email-mst@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 15C132126CF94
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 13:46:20 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id n14so1368883otk.2
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 13:46:20 -0700 (PDT)
+MIME-Version: 1.0
 References: <20190514145422.16923-1-pagupta@redhat.com>
  <20190514145422.16923-3-pagupta@redhat.com>
- <9f6b1d8e-ef90-7d8b-56da-61a426953ba3@redhat.com>
- <20190516095618-mutt-send-email-mst@kernel.org>
+ <c22d42f6-ef94-0310-36f2-e9085d3464c2@infradead.org>
+ <1112624345.28705248.1557847520326.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1112624345.28705248.1557847520326.JavaMail.zimbra@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 May 2019 13:46:08 -0700
+Message-ID: <CAPcyv4iK1ivHkdw3JQV1wVLeLi0TA++VgKDZvYjPGo_i1j_pbA@mail.gmail.com>
 Subject: Re: [Qemu-devel] [PATCH v9 2/7] virtio-pmem: Add virtio pmem driver
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,165 +28,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Michael S. Tsirkin" <mst@redhat.com>, David Hildenbrand <david@redhat.com>
-Cc: jack@suse.cz, kvm@vger.kernel.org, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, linux-nvdimm@lists.01.org, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com, darrick wong <darrick.wong@oracle.com>
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: cohuck@redhat.com, Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, david <david@fromorbit.com>, Qemu Developers <qemu-devel@nongnu.org>, virtualization@lists.linux-foundation.org, adilger kernel <adilger.kernel@dilger.ca>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, jstaron@google.com, linux-nvdimm <linux-nvdimm@lists.01.org>, David Hildenbrand <david@redhat.com>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Len Brown <lenb@kernel.org>, Adam Borowski <kilobyte@angband.pl>, Rik van Riel <riel@surriel.com>, yuval shaia <yuval.shaia@oracle.com>, Stefan Hajnoczi <stefanha@redhat.com>, Igor Mammedov <imammedo@redhat.com>, lcapitulino@redhat.com, Kevin Wolf <kwolf@redhat.com>, Nitesh Narayan Lal <nilal@redhat.com>, Theodore Ts'o <tytso@mit.edu>, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, darrick wong <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Tue, May 14, 2019 at 8:25 AM Pankaj Gupta <pagupta@redhat.com> wrote:
+>
+>
+> > On 5/14/19 7:54 AM, Pankaj Gupta wrote:
+> > > diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+> > > index 35897649c24f..94bad084ebab 100644
+> > > --- a/drivers/virtio/Kconfig
+> > > +++ b/drivers/virtio/Kconfig
+> > > @@ -42,6 +42,17 @@ config VIRTIO_PCI_LEGACY
+> > >
+> > >       If unsure, say Y.
+> > >
+> > > +config VIRTIO_PMEM
+> > > +   tristate "Support for virtio pmem driver"
+> > > +   depends on VIRTIO
+> > > +   depends on LIBNVDIMM
+> > > +   help
+> > > +   This driver provides access to virtio-pmem devices, storage devices
+> > > +   that are mapped into the physical address space - similar to NVDIMMs
+> > > +    - with a virtio-based flushing interface.
+> > > +
+> > > +   If unsure, say M.
+> >
+> > <beep>
+> > from Documentation/process/coding-style.rst:
+> > "Lines under a ``config`` definition
+> > are indented with one tab, while help text is indented an additional two
+> > spaces."
+>
+> ah... I changed help text and 'checkpatch' did not say anything :( .
+>
+> Will wait for Dan, If its possible to add two spaces to help text while applying
+> the series.
 
-> 
-> On Wed, May 15, 2019 at 10:46:00PM +0200, David Hildenbrand wrote:
-> > > +	vpmem->vdev = vdev;
-> > > +	vdev->priv = vpmem;
-> > > +	err = init_vq(vpmem);
-> > > +	if (err) {
-> > > +		dev_err(&vdev->dev, "failed to initialize virtio pmem vq's\n");
-> > > +		goto out_err;
-> > > +	}
-> > > +
-> > > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-> > > +			start, &vpmem->start);
-> > > +	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-> > > +			size, &vpmem->size);
-> > > +
-> > > +	res.start = vpmem->start;
-> > > +	res.end   = vpmem->start + vpmem->size-1;
-> > 
-> > nit: " - 1;"
-> > 
-> > > +	vpmem->nd_desc.provider_name = "virtio-pmem";
-> > > +	vpmem->nd_desc.module = THIS_MODULE;
-> > > +
-> > > +	vpmem->nvdimm_bus = nvdimm_bus_register(&vdev->dev,
-> > > +						&vpmem->nd_desc);
-> > > +	if (!vpmem->nvdimm_bus) {
-> > > +		dev_err(&vdev->dev, "failed to register device with nvdimm_bus\n");
-> > > +		err = -ENXIO;
-> > > +		goto out_vq;
-> > > +	}
-> > > +
-> > > +	dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
-> > > +
-> > > +	ndr_desc.res = &res;
-> > > +	ndr_desc.numa_node = nid;
-> > > +	ndr_desc.flush = async_pmem_flush;
-> > > +	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-> > > +	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-> > > +	nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-> > > +	if (!nd_region) {
-> > > +		dev_err(&vdev->dev, "failed to create nvdimm region\n");
-> > > +		err = -ENXIO;
-> > > +		goto out_nd;
-> > > +	}
-> > > +	nd_region->provider_data =
-> > > dev_to_virtio(nd_region->dev.parent->parent);
-> > > +	return 0;
-> > > +out_nd:
-> > > +	nvdimm_bus_unregister(vpmem->nvdimm_bus);
-> > > +out_vq:
-> > > +	vdev->config->del_vqs(vdev);
-> > > +out_err:
-> > > +	return err;
-> > > +}
-> > > +
-> > > +static void virtio_pmem_remove(struct virtio_device *vdev)
-> > > +{
-> > > +	struct nvdimm_bus *nvdimm_bus = dev_get_drvdata(&vdev->dev);
-> > > +
-> > > +	nvdimm_bus_unregister(nvdimm_bus);
-> > > +	vdev->config->del_vqs(vdev);
-> > > +	vdev->config->reset(vdev);
-> > > +}
-> > > +
-> > > +static struct virtio_driver virtio_pmem_driver = {
-> > > +	.driver.name		= KBUILD_MODNAME,
-> > > +	.driver.owner		= THIS_MODULE,
-> > > +	.id_table		= id_table,
-> > > +	.probe			= virtio_pmem_probe,
-> > > +	.remove			= virtio_pmem_remove,
-> > > +};
-> > > +
-> > > +module_virtio_driver(virtio_pmem_driver);
-> > > +MODULE_DEVICE_TABLE(virtio, id_table);
-> > > +MODULE_DESCRIPTION("Virtio pmem driver");
-> > > +MODULE_LICENSE("GPL");
-> > > diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
-> > > new file mode 100644
-> > > index 000000000000..ab1da877575d
-> > > --- /dev/null
-> > > +++ b/drivers/nvdimm/virtio_pmem.h
-> > > @@ -0,0 +1,60 @@
-> > > +/* SPDX-License-Identifier: GPL-2.0 */
-> > > +/*
-> > > + * virtio_pmem.h: virtio pmem Driver
-> > > + *
-> > > + * Discovers persistent memory range information
-> > > + * from host and provides a virtio based flushing
-> > > + * interface.
-> > > + **/
-> > > +
-> > > +#ifndef _LINUX_VIRTIO_PMEM_H
-> > > +#define _LINUX_VIRTIO_PMEM_H
-> > > +
-> > > +#include <linux/virtio_ids.h>
-> > > +#include <linux/module.h>
-> > > +#include <linux/virtio_config.h>
-> > > +#include <uapi/linux/virtio_pmem.h>
-> > > +#include <linux/libnvdimm.h>
-> > > +#include <linux/spinlock.h>
-> > > +
-> > > +struct virtio_pmem_request {
-> > > +	/* Host return status corresponding to flush request */
-> > > +	int ret;
-> > > +
-> > > +	/* command name*/
-> > > +	char name[16];
-> > 
-> > So ... why are we sending string commands and expect native-endianess
-> > integers and don't define a proper request/response structure + request
-> > types in include/uapi/linux/virtio_pmem.h like
-> 
-> passing names could be ok.
-> I missed the fact we return a native endian int.
-> Pls fix that.
-
-Sure. will fix this.
-
-> 
-> 
-> > 
-> > struct virtio_pmem_resp {
-> > 	__virtio32 ret;
-> > }
-> > 
-> > #define VIRTIO_PMEM_REQ_TYPE_FLUSH	1
-> > struct virtio_pmem_req {
-> > 	__virtio16 type;
-> > }
-> > 
-> > ... and this way we also define a proper endianess format for exchange
-> > and keep it extensible
-> > 
-> > @MST, what's your take on this?
-> 
-> Extensions can always use feature bits so I don't think
-> it's a problem.
-
-That was exactly my thought when I implemented this. Though I am
-fine with separate structures for request/response and I made the
-change. 
-
-Thank you for all the comments.
-
-Best regards,
-Pankaj 
-> > 
-> > --
-> > 
-> > Thanks,
-> > 
-> > David / dhildenb
-> 
-> 
+I'm inclined to handle this with a fixup appended to the end of the
+series just so the patchwork-bot does not get confused by the content
+changing from what was sent to the list.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
