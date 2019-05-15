@@ -2,14 +2,16 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D3EC321256BA2
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 07:55:43 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v9 1/7] libnvdimm: nd_region flush callback support
-Date: Tue, 14 May 2019 20:24:16 +0530
-Message-Id: <20190514145422.16923-2-pagupta@redhat.com>
-In-Reply-To: <20190514145422.16923-1-pagupta@redhat.com>
-References: <20190514145422.16923-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5C53721D0DE66
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 24/30] fuse,
+ dax: Take ->i_mmap_sem lock during dax page fault
+Date: Wed, 15 May 2019 15:27:09 -0400
+Message-Id: <20190515192715.18000-25-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,250 +19,121 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds functionality to perform flush from guest
-to host over VIRTIO. We are registering a callback based
-on 'nd_region' type. virtio_pmem driver requires this special
-flush function. For rest of the region types we are registering
-existing flush function. Report error returned by host fsync
-failure to userspace.
+We need some kind of locking mechanism here. Normal file systems like
+ext4 and xfs seems to take their own semaphore to protect agains
+truncate while fault is going on.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+We have additional requirement to protect against fuse dax memory range
+reclaim. When a range has been selected for reclaim, we need to make sure
+no other read/write/fault can try to access that memory range while
+reclaim is in progress. Once reclaim is complete, lock will be released
+and read/write/fault will trigger allocation of fresh dax range.
+
+Taking inode_lock() is not an option in fault path as lockdep complains
+about circular dependencies. So define a new fuse_inode->i_mmap_sem.
+
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- drivers/acpi/nfit/core.c     |  4 ++--
- drivers/nvdimm/claim.c       |  6 ++++--
- drivers/nvdimm/nd.h          |  1 +
- drivers/nvdimm/pmem.c        | 13 ++++++++-----
- drivers/nvdimm/region_devs.c | 26 ++++++++++++++++++++++++--
- include/linux/libnvdimm.h    |  8 +++++++-
- 6 files changed, 46 insertions(+), 12 deletions(-)
+ fs/fuse/dir.c    |  2 ++
+ fs/fuse/file.c   | 17 +++++++++++++----
+ fs/fuse/fuse_i.h |  7 +++++++
+ fs/fuse/inode.c  |  1 +
+ 4 files changed, 23 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 5a389a4f4f65..08dde76cf459 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2434,7 +2434,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 		offset = to_interleave_offset(offset, mmio);
- 
- 	writeq(cmd, mmio->addr.base + offset);
--	nvdimm_flush(nfit_blk->nd_region);
-+	nvdimm_flush(nfit_blk->nd_region, NULL);
- 
- 	if (nfit_blk->dimm_flags & NFIT_BLK_DCR_LATCH)
- 		readq(mmio->addr.base + offset);
-@@ -2483,7 +2483,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 	}
- 
- 	if (rw)
--		nvdimm_flush(nfit_blk->nd_region);
-+		nvdimm_flush(nfit_blk->nd_region, NULL);
- 
- 	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
- 	return rc;
-diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
-index fb667bf469c7..13510bae1e6f 100644
---- a/drivers/nvdimm/claim.c
-+++ b/drivers/nvdimm/claim.c
-@@ -263,7 +263,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
- 	sector_t sector = offset >> 9;
--	int rc = 0;
-+	int rc = 0, ret = 0;
- 
- 	if (unlikely(!size))
- 		return 0;
-@@ -301,7 +301,9 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
- 	}
- 
- 	memcpy_flushcache(nsio->addr + offset, buf, size);
--	nvdimm_flush(to_nd_region(ndns->dev.parent));
-+	ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
-+	if (ret)
-+		rc = ret;
- 
- 	return rc;
- }
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index a5ac3b240293..0c74d2428bd7 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -159,6 +159,7 @@ struct nd_region {
- 	struct badblocks bb;
- 	struct nd_interleave_set *nd_set;
- 	struct nd_percpu_lane __percpu *lane;
-+	int (*flush)(struct nd_region *nd_region, struct bio *bio);
- 	struct nd_mapping mapping[0];
- };
- 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index bc2f700feef8..f719245da170 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -192,6 +192,7 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 
- static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- {
-+	int ret = 0;
- 	blk_status_t rc = 0;
- 	bool do_acct;
- 	unsigned long start;
-@@ -201,7 +202,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 	struct nd_region *nd_region = to_region(pmem);
- 
- 	if (bio->bi_opf & REQ_PREFLUSH)
--		nvdimm_flush(nd_region);
-+		ret = nvdimm_flush(nd_region, bio);
- 
- 	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
-@@ -216,7 +217,10 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 		nd_iostat_end(bio, start);
- 
- 	if (bio->bi_opf & REQ_FUA)
--		nvdimm_flush(nd_region);
-+		ret = nvdimm_flush(nd_region, bio);
-+
-+	if (ret)
-+		bio->bi_status = errno_to_blk_status(ret);
- 
- 	bio_endio(bio);
- 	return BLK_QC_T_NONE;
-@@ -469,7 +473,6 @@ static int pmem_attach_disk(struct device *dev,
- 	}
- 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
- 	pmem->dax_dev = dax_dev;
--
- 	gendev = disk_to_dev(disk);
- 	gendev->groups = pmem_attribute_groups;
- 
-@@ -527,14 +530,14 @@ static int nd_pmem_remove(struct device *dev)
- 		sysfs_put(pmem->bb_state);
- 		pmem->bb_state = NULL;
- 	}
--	nvdimm_flush(to_nd_region(dev->parent));
-+	nvdimm_flush(to_nd_region(dev->parent), NULL);
- 
- 	return 0;
- }
- 
- static void nd_pmem_shutdown(struct device *dev)
- {
--	nvdimm_flush(to_nd_region(dev->parent));
-+	nvdimm_flush(to_nd_region(dev->parent), NULL);
- }
- 
- static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..e5b59708865e 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
- 		return rc;
- 	if (!flush)
- 		return -EINVAL;
--	nvdimm_flush(nd_region);
-+	rc = nvdimm_flush(nd_region, NULL);
-+	if (rc)
-+		return rc;
- 
- 	return len;
- }
-@@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	dev->of_node = ndr_desc->of_node;
- 	nd_region->ndr_size = resource_size(ndr_desc->res);
- 	nd_region->ndr_start = ndr_desc->res->start;
-+	if (ndr_desc->flush)
-+		nd_region->flush = ndr_desc->flush;
-+	else
-+		nd_region->flush = NULL;
-+
- 	nd_device_register(dev);
- 
- 	return nd_region;
-@@ -1125,11 +1132,24 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
- }
- EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
- 
-+int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
-+{
-+	int rc = 0;
-+
-+	if (!nd_region->flush)
-+		rc = generic_nvdimm_flush(nd_region);
-+	else {
-+		if (nd_region->flush(nd_region, bio))
-+			rc = -EIO;
-+	}
-+
-+	return rc;
-+}
- /**
-  * nvdimm_flush - flush any posted write queues between the cpu and pmem media
-  * @nd_region: blk or interleaved pmem region
-  */
--void nvdimm_flush(struct nd_region *nd_region)
-+int generic_nvdimm_flush(struct nd_region *nd_region)
- {
- 	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
- 	int i, idx;
-@@ -1153,6 +1173,8 @@ void nvdimm_flush(struct nd_region *nd_region)
- 		if (ndrd_get_flush_wpq(ndrd, i, 0))
- 			writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
- 	wmb();
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(nvdimm_flush);
- 
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index feb342d026f2..a5f369ec3726 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -65,6 +65,9 @@ enum {
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index fd8636e67ae9..84c0b638affb 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -1559,8 +1559,10 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
  	 */
- 	ND_REGION_PERSIST_MEMCTRL = 2,
+ 	if ((is_truncate || !is_wb) &&
+ 	    S_ISREG(inode->i_mode) && oldsize != outarg.attr.size) {
++		down_write(&fi->i_mmap_sem);
+ 		truncate_pagecache(inode, outarg.attr.size);
+ 		invalidate_inode_pages2(inode->i_mapping);
++		up_write(&fi->i_mmap_sem);
+ 	}
  
-+	/* Platform provides asynchronous flush mechanism */
-+	ND_REGION_ASYNC = 3,
+ 	clear_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 2777355bc245..e536a04aaa06 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2638,13 +2638,20 @@ static int __fuse_dax_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+ 	if (write)
+ 		sb_start_pagefault(sb);
+ 
+-	/* TODO inode semaphore to protect faults vs truncate */
+-
++	/*
++	 * We need to serialize against not only truncate but also against
++	 * fuse dax memory range reclaim. While a range is being reclaimed,
++	 * we do not want any read/write/mmap to make progress and try
++	 * to populate page cache or access memory we are trying to free.
++	 */
++	down_read(&get_fuse_inode(inode)->i_mmap_sem);
+ 	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
+ 
+ 	if (ret & VM_FAULT_NEEDDSYNC)
+ 		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
+ 
++	up_read(&get_fuse_inode(inode)->i_mmap_sem);
 +
- 	/* mark newly adjusted resources as requiring a label update */
- 	DPA_RESOURCE_ADJUSTED = 1 << 0,
- };
-@@ -121,6 +124,7 @@ struct nd_mapping_desc {
- 	int position;
- };
+ 	if (write)
+ 		sb_end_pagefault(sb);
  
-+struct nd_region;
- struct nd_region_desc {
- 	struct resource *res;
- 	struct nd_mapping_desc *mapping;
-@@ -133,6 +137,7 @@ struct nd_region_desc {
- 	int target_node;
- 	unsigned long flags;
- 	struct device_node *of_node;
-+	int (*flush)(struct nd_region *nd_region, struct bio *bio);
- };
+@@ -3593,9 +3600,11 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
+ 			file_update_time(file);
+ 	}
  
- struct device;
-@@ -260,7 +265,8 @@ unsigned long nd_blk_memremap_flags(struct nd_blk_region *ndbr);
- unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
- void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
- u64 nd_fletcher64(void *addr, size_t len, bool le);
--void nvdimm_flush(struct nd_region *nd_region);
-+int nvdimm_flush(struct nd_region *nd_region, struct bio *bio);
-+int generic_nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
+-	if (mode & FALLOC_FL_PUNCH_HOLE)
++	if (mode & FALLOC_FL_PUNCH_HOLE) {
++		down_write(&fi->i_mmap_sem);
+ 		truncate_pagecache_range(inode, offset, offset + length - 1);
+-
++		up_write(&fi->i_mmap_sem);
++	}
+ 	fuse_invalidate_attr(inode);
+ 
+ out:
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index f1ae549eff98..a234cf30538d 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -212,6 +212,13 @@ struct fuse_inode {
+ 	 */
+ 	struct rw_semaphore i_dmap_sem;
+ 
++	/**
++	 * Can't take inode lock in fault path (leads to circular dependency).
++	 * So take this in fuse dax fault path to make sure truncate and
++	 * punch hole etc. can't make progress in parallel.
++	 */
++	struct rw_semaphore i_mmap_sem;
++
+ 	/** Sorted rb tree of struct fuse_dax_mapping elements */
+ 	struct rb_root_cached dmap_tree;
+ 	unsigned long nr_dmaps;
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index ad66a353554b..713c5f32ab35 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -85,6 +85,7 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
+ 	fi->state = 0;
+ 	fi->nr_dmaps = 0;
+ 	mutex_init(&fi->mutex);
++	init_rwsem(&fi->i_mmap_sem);
+ 	init_rwsem(&fi->i_dmap_sem);
+ 	spin_lock_init(&fi->lock);
+ 	fi->forget = fuse_alloc_forget();
 -- 
 2.20.1
 
