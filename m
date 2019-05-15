@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com
- [IPv6:2607:f8b0:4864:20::82e])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 38C1721243BD8
- for <linux-nvdimm@lists.01.org>; Thu,  2 May 2019 11:43:41 -0700 (PDT)
-Received: by mail-qt1-x82e.google.com with SMTP id j6so3826059qtq.1
- for <linux-nvdimm@lists.01.org>; Thu, 02 May 2019 11:43:41 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v5 0/3] "Hotremove" persistent memory
-Date: Thu,  2 May 2019 14:43:34 -0400
-Message-Id: <20190502184337.20538-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8C65221D2BF0D
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 27/30] fuse: Release file in process context
+Date: Wed, 15 May 2019 15:27:12 -0400
+Message-Id: <20190515192715.18000-28-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,83 +22,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changelog:
-v5
-- Addressed comments from Dan Williams: made remove_memory() to return
-  an error code, and use this function from dax.
+fuse_file_put(sync) can be called with sync=true/false. If sync=true,
+it waits for release request response and then calls iput() in the
+caller's context. If sync=false, it does not wait for release request
+response, frees the fuse_file struct immediately and req->end function
+does the iput().
 
-v4
-- Addressed comments from Dave Hansen
+iput() can be a problem with DAX if called in req->end context. If this
+is last reference to inode (VFS has let go its reference already), then
+iput() will clean DAX mappings as well and send REMOVEMAPPING requests
+and wait for completion. (All the the worker thread context which is
+processing fuse replies from daemon on the host).
 
-v3
-- Addressed comments from David Hildenbrand. Don't release
-  lock_device_hotplug after checking memory status, and rename
-  memblock_offlined_cb() to check_memblock_offlined_cb()
+That means it blocks worker thread and it stops processing further
+replies and system deadlocks.
 
-v2
-- Dan Williams mentioned that drv->remove() return is ignored
-  by unbind. Unbind always succeeds. Because we cannot guarantee
-  that memory can be offlined from the driver, don't even
-  attempt to do so. Simply check that every section is offlined
-  beforehand and only then proceed with removing dax memory.
+So for now, force sync release of file in case of DAX inodes.
 
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
+ fs/fuse/file.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-Recently, adding a persistent memory to be used like a regular RAM was
-added to Linux. This work extends this functionality to also allow hot
-removing persistent memory.
-
-We (Microsoft) have an important use case for this functionality.
-
-The requirement is for physical machines with small amount of RAM (~8G)
-to be able to reboot in a very short period of time (<1s). Yet, there is
-a userland state that is expensive to recreate (~2G).
-
-The solution is to boot machines with 2G preserved for persistent
-memory.
-
-Copy the state, and hotadd the persistent memory so machine still has
-all 8G available for runtime. Before reboot, offline and hotremove
-device-dax 2G, copy the memory that is needed to be preserved to pmem0
-device, and reboot.
-
-The series of operations look like this:
-
-1. After boot restore /dev/pmem0 to ramdisk to be consumed by apps.
-   and free ramdisk.
-2. Convert raw pmem0 to devdax
-   ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
-3. Hotadd to System RAM
-   echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
-   echo online_movable > /sys/devices/system/memoryXXX/state
-4. Before reboot hotremove device-dax memory from System RAM
-   echo offline > /sys/devices/system/memoryXXX/state
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
-5. Create raw pmem0 device
-   ndctl create-namespace --mode raw  -e namespace0.0 -f
-6. Copy the state that was stored by apps to ramdisk to pmem device
-7. Do kexec reboot or reboot through firmware if firmware does not
-   zero memory in pmem0 region (These machines have only regular
-   volatile memory). So to have pmem0 device either memmap kernel
-   parameter is used, or devices nodes in dtb are specified.
-
-Pavel Tatashin (3):
-  device-dax: fix memory and resource leak if hotplug fails
-  mm/hotplug: make remove_memory() interface useable
-  device-dax: "Hotremove" persistent memory that is used like normal RAM
-
- drivers/dax/dax-private.h      |  2 ++
- drivers/dax/kmem.c             | 46 ++++++++++++++++++++++---
- include/linux/memory_hotplug.h |  8 +++--
- mm/memory_hotplug.c            | 61 ++++++++++++++++++++++------------
- 4 files changed, 89 insertions(+), 28 deletions(-)
-
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 87fc2b5e0a3a..b0293a308b5e 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -475,6 +475,7 @@ void fuse_release_common(struct file *file, bool isdir)
+ 	struct fuse_file *ff = file->private_data;
+ 	struct fuse_req *req = ff->reserved_req;
+ 	int opcode = isdir ? FUSE_RELEASEDIR : FUSE_RELEASE;
++	bool sync = false;
+ 
+ 	fuse_prepare_release(fi, ff, file->f_flags, opcode);
+ 
+@@ -495,8 +496,20 @@ void fuse_release_common(struct file *file, bool isdir)
+ 	 * Make the release synchronous if this is a fuseblk mount,
+ 	 * synchronous RELEASE is allowed (and desirable) in this case
+ 	 * because the server can be trusted not to screw up.
++	 *
++	 * For DAX, fuse server is trusted. So it should be fine to
++	 * do a sync file put. Doing async file put is creating
++	 * problems right now because when request finish, iput()
++	 * can lead to freeing of inode. That means it tears down
++	 * mappings backing DAX memory and sends REMOVEMAPPING message
++	 * to server and blocks for completion. Currently, waiting
++	 * in req->end context deadlocks the system as same worker thread
++	 * can't process REMOVEMAPPING reply it is waiting for.
+ 	 */
+-	fuse_file_put(ff, ff->fc->destroy_req != NULL, isdir);
++	if (IS_DAX(req->misc.release.inode) || ff->fc->destroy_req != NULL)
++		sync = true;
++
++	fuse_file_put(ff, sync, isdir);
+ }
+ 
+ static int fuse_open(struct inode *inode, struct file *file)
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
