@@ -1,27 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from outgoing.mit.edu (outgoing-auth-1.mit.edu [18.9.28.11])
+Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0963D21276B97
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 21:29:51 -0700 (PDT)
-Date: Wed, 15 May 2019 00:28:38 -0400
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Message-ID: <20190515042838.GA26954@mit.edu>
-References: <580e092f-fa4e-eedc-9e9a-a57dd085f0a6@gmail.com>
- <20190509032017.GA29703@mit.edu>
- <7fd35df81c06f6eb319223a22e7b93f29926edb9.camel@oracle.com>
- <20190509133551.GD29703@mit.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 6E801212777A5
+ for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 17:26:58 -0700 (PDT)
+References: <20190509133551.GD29703@mit.edu>
  <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
  <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
  <20190509214233.GA20877@mit.edu>
- <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
- <20190511173344.GA8507@mit.edu>
- <a305c732-9953-8724-b4a4-25aa50c89365@gmail.com>
+ <b09ba170-229b-fde4-3e9a-e50d6ab4c1b5@deltatee.com>
+ <20190509233043.GC20877@mit.edu>
+ <8914afef-1e66-e6e3-f891-5855768d3018@deltatee.com>
+ <6d6e91ec-33d3-830b-4895-4d7a20ba7d45@gmail.com>
+ <3faa022b-0b70-0375-aa6d-12ea83a2671f@deltatee.com>
+ <d148a554-2a71-a5a4-4bb2-d84d2c483277@gmail.com>
+ <20190514083819.GC230665@google.com>
+ <5ff098a9-9424-901c-9017-d4492e306528@gmail.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <8c693b9f-43ec-8982-825c-cabfd61b659d@deltatee.com>
+Date: Tue, 14 May 2019 18:26:11 -0600
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <a305c732-9953-8724-b4a4-25aa50c89365@gmail.com>
+In-Reply-To: <5ff098a9-9424-901c-9017-d4492e306528@gmail.com>
+Content-Language: en-CA
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,62 +35,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Frank Rowand <frowand.list@gmail.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, brendanhiggins@google.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
+To: Frank Rowand <frowand.list@gmail.com>, Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 14, 2019 at 05:26:47PM -0700, Frank Rowand wrote:
-> On 5/11/19 10:33 AM, Theodore Ts'o wrote:
-> > On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
-> >> However, the reply is incorrect.  Kselftest in-kernel tests (which
-> >> is the context here) can be configured as built in instead of as
-> >> a module, and built in a UML kernel.  The UML kernel can boot,
-> >> running the in-kernel tests before UML attempts to invoke the
-> >> init process.
-> > 
-> > Um, Citation needed?
-> 
-> The paragraph that you quoted tells you exactly how to run a kselftest
-> in-kernel test in a UML kernel.  Just to what that paragraph says.
 
-I didn't quote a paragraph.  But I'll quote from it now:
 
-  $ make -C tools/testing/selftests run_tests
+On 2019-05-14 6:14 p.m., Frank Rowand wrote:
+> The high level issue is to provide reviewers with enough context to be
+> able to evaluate the patch series.  That is probably not very obvious
+> at this point in the thread.  At this point I was responding to Logan's
+> response to me that I should be reading Documentation to get a better
+> description of KUnit features.  I _think_ that Logan thought that I
+> did not understand KUnit features and was trying to be helpful by
+> pointing out where I could get more information.  If so, he was missing
+> my intended point had been that patch 0 should provide more information
+> to justify adding this feature.
 
-This runs the kselftest harness, *in userspace*.  That means you have
-to have a root file system, and it's run after init has started, by
-default.  You asserted that kselftests allows you to run modules
-before init has started.  There is absolutely zero, cero, nada, zilch
-mentions of any of anything like that in Documentation/dev-tools/kselftests.rst
+Honestly, I lost track of wait exactly your point was. And, in my
+opinion, Brendan has provided over and above the information required to
+justify Kunit's inclusion.
 
-> > There exists test modules in the kernel that run before the init
-> > scripts run --- but that's not strictly speaking part of kselftests,
-> > and do not have any kind of infrastructure.  As noted, the
-> > kselftests_harness header file fundamentally assumes that you are
-> > running test code in userspace.
-> 
-> You are ignoring the kselftest in-kernel tests.
+> One thing that has become very apparent in the discussion of this patch
+> series is that some people do not understand that kselftest includes
+> in-kernel tests, not just userspace tests.  As such, KUnit is an
+> additional implementation of "the same feature".  (One can debate
+> exactly which in-kernel test features kselftest and KUnit provide,
+> and how much overlap exists or does not exist.  So don't take "the
+> same feature" as my final opinion of how much overlap exists.)  So
+> that is a key element to be noted and explained.
 
-I'm talking specifically about what you have been *claiming* to be
-kselftest in-kernel tests above.  And I'm asserting they are really
-not kselftests.  They are just ad hoc tests that are run in kernel
-space, which, when compiled as modules, can be loaded by a kselftest
-shell script.  You can certainly hook in these ad hoc in-kernel tests
-via kselftests --- but then they aren't run before init starts,
-because kselftests is inherently a userspace-driven system.
+>From my perspective, once we were actually pointed to the in-kernel
+kselftest code and took a look at it, it was clear there was no
+over-arching framework to them and that Kunit could be used to
+significantly improve those tests with a common structure. Based on my
+reading of the thread, Ted came to the same conclusion.
 
-If you build these tests (many of which existed before kselftests was
-merged) into the kernel such that they are run before init starts,
-without the kselftest harness, then they are not kselftests, by
-definition.  Both in how they are run, and since many of these
-in-kernel tests predate the introduction of kselftests --- in some
-cases, by many years.
+I don't think we should block this feature from being merged, and for
+future work, someone can update the in-kernel kselftests to use the new
+framework.
 
-> We are talking in circles.  I'm done with this thread.
-
-Yes, that sounds like it would be best.
-
-						- Ted
+Logan
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
