@@ -2,13 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACEA021D49196
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id D662521268FB5
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:33 -0700 (PDT)
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 28/30] fuse: Reschedule dax free work if too many EAGAIN
- attempts
-Date: Wed, 15 May 2019 15:27:13 -0400
-Message-Id: <20190515192715.18000-29-vgoyal@redhat.com>
+Subject: [PATCH v2 14/30] virtio: Add get_shm_region method
+Date: Wed, 15 May 2019 15:26:59 -0400
+Message-Id: <20190515192715.18000-15-vgoyal@redhat.com>
 In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
 References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
@@ -27,58 +26,68 @@ To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel
 Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-fuse_dax_free_memory() can be very cpu intensive in corner cases. For example,
-if one inode has consumed all the memory and a setupmapping request is
-pending, that means inode lock is held by request and worker thread will
-not get lock for a while. And given there is only one inode consuming all
-the dax ranges, all the attempts to acquire lock will fail.
+From: Sebastien Boeuf <sebastien.boeuf@intel.com>
 
-So if there are too many inode lock failures (-EAGAIN), reschedule the
-worker with a 10ms delay.
+Virtio defines 'shared memory regions' that provide a continuously
+shared region between the host and guest.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Provide a method to find a particular region on a device.
+
+Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Signed-off-by: Dr. David Alan Gilbert <dgilbert@redhat.com>
 ---
- fs/fuse/file.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/linux/virtio_config.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index b0293a308b5e..9b82d9b4ebc3 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -4047,7 +4047,7 @@ int fuse_dax_free_one_mapping(struct fuse_conn *fc, struct inode *inode,
- int fuse_dax_free_memory(struct fuse_conn *fc, unsigned long nr_to_free)
- {
- 	struct fuse_dax_mapping *dmap, *pos, *temp;
--	int ret, nr_freed = 0;
-+	int ret, nr_freed = 0, nr_eagain = 0;
- 	u64 dmap_start = 0, window_offset = 0;
- 	struct inode *inode = NULL;
+diff --git a/include/linux/virtio_config.h b/include/linux/virtio_config.h
+index bb4cc4910750..c859f000a751 100644
+--- a/include/linux/virtio_config.h
++++ b/include/linux/virtio_config.h
+@@ -10,6 +10,11 @@
  
-@@ -4056,6 +4056,12 @@ int fuse_dax_free_memory(struct fuse_conn *fc, unsigned long nr_to_free)
- 		if (nr_freed >= nr_to_free)
- 			break;
+ struct irq_affinity;
  
-+		if (nr_eagain > 20) {
-+			queue_delayed_work(system_long_wq, &fc->dax_free_work,
-+						msecs_to_jiffies(10));
-+			return 0;
-+		}
++struct virtio_shm_region {
++       u64 addr;
++       u64 len;
++};
 +
- 		dmap = NULL;
- 		spin_lock(&fc->lock);
+ /**
+  * virtio_config_ops - operations for configuring a virtio device
+  * Note: Do not assume that a transport implements all of the operations
+@@ -65,6 +70,7 @@ struct irq_affinity;
+  *      the caller can then copy.
+  * @set_vq_affinity: set the affinity for a virtqueue (optional).
+  * @get_vq_affinity: get the affinity for a virtqueue (optional).
++ * @get_shm_region: get a shared memory region based on the index.
+  */
+ typedef void vq_callback_t(struct virtqueue *);
+ struct virtio_config_ops {
+@@ -88,6 +94,8 @@ struct virtio_config_ops {
+ 			       const struct cpumask *cpu_mask);
+ 	const struct cpumask *(*get_vq_affinity)(struct virtio_device *vdev,
+ 			int index);
++	bool (*get_shm_region)(struct virtio_device *vdev,
++			       struct virtio_shm_region *region, u8 id);
+ };
  
-@@ -4093,8 +4099,10 @@ int fuse_dax_free_memory(struct fuse_conn *fc, unsigned long nr_to_free)
- 		}
- 
- 		/* Could not get inode lock. Try next element */
--		if (ret == -EAGAIN)
-+		if (ret == -EAGAIN) {
-+			nr_eagain++;
- 			continue;
-+		}
- 		nr_freed++;
- 	}
+ /* If driver didn't advertise the feature, it will never appear. */
+@@ -250,6 +258,15 @@ int virtqueue_set_affinity(struct virtqueue *vq, const struct cpumask *cpu_mask)
  	return 0;
+ }
+ 
++static inline
++bool virtio_get_shm_region(struct virtio_device *vdev,
++                         struct virtio_shm_region *region, u8 id)
++{
++	if (!vdev->config->get_shm_region)
++		return false;
++	return vdev->config->get_shm_region(vdev, region, id);
++}
++
+ static inline bool virtio_is_little_endian(struct virtio_device *vdev)
+ {
+ 	return virtio_has_feature(vdev, VIRTIO_F_VERSION_1) ||
 -- 
 2.20.1
 
