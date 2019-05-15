@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 67BBE2128D875
- for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:44 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 02/10] libdaxctl: cache 'subsystem' in daxctl_ctx
-Date: Tue, 28 May 2019 16:24:32 -0600
-Message-Id: <20190528222440.30392-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190528222440.30392-1-vishal.l.verma@intel.com>
-References: <20190528222440.30392-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2C34221D0B64D
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v2 19/30] fuse: Keep a list of free dax memory ranges
+Date: Wed, 15 May 2019 15:27:04 -0400
+Message-Id: <20190515192715.18000-20-vgoyal@redhat.com>
+In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,71 +22,216 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-The 'DAX subsystem' in effect is determined at region or device init
-time, and dictates the sysfs base paths for all device/region
-operations. In preparation for adding bind/unbind functionality, cache
-the subsystem as determined at init time in the library context.
+Divide the dax memory range into fixed size ranges (2MB for now) and put
+them in a list. This will track free ranges. Once an inode requires a
+free range, we will take one from here and put it in interval-tree
+of ranges assigned to inode.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
 ---
- daxctl/lib/libdaxctl.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/fuse/fuse_i.h    | 23 ++++++++++++
+ fs/fuse/inode.c     | 86 +++++++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/virtio_fs.c |  2 ++
+ 3 files changed, 111 insertions(+)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 70f896b..f8f5b8c 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -46,6 +46,7 @@ struct daxctl_ctx {
- 	void *userdata;
- 	int regions_init;
- 	struct list_head regions;
-+	enum dax_subsystem subsys;
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 840c88af711c..5439e4628362 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -46,6 +46,10 @@
+ /** Number of page pointers embedded in fuse_req */
+ #define FUSE_REQ_INLINE_PAGES 1
+ 
++/* Default memory range size, 2MB */
++#define FUSE_DAX_MEM_RANGE_SZ	(2*1024*1024)
++#define FUSE_DAX_MEM_RANGE_PAGES	(FUSE_DAX_MEM_RANGE_SZ/PAGE_SIZE)
++
+ /** List of active connections */
+ extern struct list_head fuse_conn_list;
+ 
+@@ -94,6 +98,18 @@ struct fuse_forget_link {
+ 	struct fuse_forget_link *next;
  };
  
- /**
-@@ -96,6 +97,7 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
- 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
- 	*ctx = c;
- 	list_head_init(&c->regions);
-+	c->subsys = DAX_UNKNOWN;
++/** Translation information for file offsets to DAX window offsets */
++struct fuse_dax_mapping {
++	/* Will connect in fc->free_ranges to keep track of free memory */
++	struct list_head list;
++
++       /** Position in DAX window */
++       u64 window_offset;
++
++       /** Length of mapping, in bytes */
++       loff_t length;
++};
++
+ /** FUSE inode */
+ struct fuse_inode {
+ 	/** Inode data */
+@@ -829,6 +845,13 @@ struct fuse_conn {
  
- 	return 0;
- }
-@@ -454,14 +456,18 @@ static void dax_devices_init(struct daxctl_region *region)
- 	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
- 		char *region_path;
+ 	/** DAX device, non-NULL if DAX is supported */
+ 	struct dax_device *dax_dev;
++
++	/*
++	 * DAX Window Free Ranges. TODO: This might not be best place to store
++	 * this free list
++	 */
++	long nr_free_ranges;
++	struct list_head free_ranges;
+ };
  
--		if (i == DAX_BUS)
-+		if (i == DAX_BUS) {
- 			region_path = region->region_path;
--		else if (i == DAX_CLASS) {
-+			if (ctx->subsys == DAX_UNKNOWN)
-+				ctx->subsys = DAX_BUS;
-+		} else if (i == DAX_CLASS) {
- 			if (asprintf(&region_path, "%s/dax",
- 						region->region_path) < 0) {
- 				dbg(ctx, "region path alloc fail\n");
- 				continue;
- 			}
-+			if (ctx->subsys == DAX_UNKNOWN)
-+				ctx->subsys = DAX_CLASS;
- 		} else
- 			continue;
- 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
-@@ -539,6 +545,8 @@ static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys
- 		free(dev_path);
- 		if (!region)
- 			err(ctx, "add_dax_region() for %s failed\n", de->d_name);
-+		if (ctx->subsys == DAX_UNKNOWN)
-+			ctx->subsys = subsys;
- 	}
- 	closedir(dir);
+ static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 97d218a7daa8..8a3dd72f9843 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -22,6 +22,8 @@
+ #include <linux/exportfs.h>
+ #include <linux/posix_acl.h>
+ #include <linux/pid_namespace.h>
++#include <linux/dax.h>
++#include <linux/pfn_t.h>
+ 
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+ MODULE_DESCRIPTION("Filesystem in Userspace");
+@@ -610,6 +612,76 @@ static void fuse_pqueue_init(struct fuse_pqueue *fpq)
+ 	fpq->connected = 1;
  }
+ 
++static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
++{
++	struct fuse_dax_mapping *range, *temp;
++
++	/* Free All allocated elements */
++	list_for_each_entry_safe(range, temp, mem_list, list) {
++		list_del(&range->list);
++		kfree(range);
++	}
++}
++
++#ifdef CONFIG_FS_DAX
++static int fuse_dax_mem_range_init(struct fuse_conn *fc,
++				   struct dax_device *dax_dev)
++{
++	long nr_pages, nr_ranges;
++	void *kaddr;
++	pfn_t pfn;
++	struct fuse_dax_mapping *range;
++	LIST_HEAD(mem_ranges);
++	phys_addr_t phys_addr;
++	int ret = 0, id;
++	size_t dax_size = -1;
++	unsigned long i;
++
++	id = dax_read_lock();
++	nr_pages = dax_direct_access(dax_dev, 0, PHYS_PFN(dax_size), &kaddr,
++					&pfn);
++	dax_read_unlock(id);
++	if (nr_pages < 0) {
++		pr_debug("dax_direct_access() returned %ld\n", nr_pages);
++		return nr_pages;
++	}
++
++	phys_addr = pfn_t_to_phys(pfn);
++	nr_ranges = nr_pages/FUSE_DAX_MEM_RANGE_PAGES;
++	printk("fuse_dax_mem_range_init(): dax mapped %ld pages. nr_ranges=%ld\n", nr_pages, nr_ranges);
++
++	for (i = 0; i < nr_ranges; i++) {
++		range = kzalloc(sizeof(struct fuse_dax_mapping), GFP_KERNEL);
++		if (!range) {
++			pr_debug("memory allocation for mem_range failed.\n");
++			ret = -ENOMEM;
++			goto out_err;
++		}
++		/* TODO: This offset only works if virtio-fs driver is not
++		 * having some memory hidden at the beginning. This needs
++		 * better handling
++		 */
++		range->window_offset = i * FUSE_DAX_MEM_RANGE_SZ;
++		range->length = FUSE_DAX_MEM_RANGE_SZ;
++		list_add_tail(&range->list, &mem_ranges);
++	}
++
++	list_replace_init(&mem_ranges, &fc->free_ranges);
++	fc->nr_free_ranges = nr_ranges;
++	return 0;
++out_err:
++	/* Free All allocated elements */
++	fuse_free_dax_mem_ranges(&mem_ranges);
++	return ret;
++}
++#else /* !CONFIG_FS_DAX */
++static inline int fuse_dax_mem_range_init(struct fuse_conn *fc,
++					  struct dax_device *dax_dev)
++{
++	return 0;
++}
++#endif /* CONFIG_FS_DAX */
++
+ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 			struct dax_device *dax_dev,
+ 			const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv)
+@@ -640,6 +712,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 	fc->dax_dev = dax_dev;
+ 	fc->user_ns = get_user_ns(user_ns);
+ 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
++	INIT_LIST_HEAD(&fc->free_ranges);
+ }
+ EXPORT_SYMBOL_GPL(fuse_conn_init);
+ 
+@@ -648,6 +721,8 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 	if (refcount_dec_and_test(&fc->count)) {
+ 		if (fc->destroy_req)
+ 			fuse_request_free(fc->destroy_req);
++		if (fc->dax_dev)
++			fuse_free_dax_mem_ranges(&fc->free_ranges);
+ 		put_pid_ns(fc->pid_ns);
+ 		put_user_ns(fc->user_ns);
+ 		fc->release(fc);
+@@ -1154,6 +1229,14 @@ int fuse_fill_super_common(struct super_block *sb,
+ 		       mount_data->fiq_ops, mount_data->fiq_priv);
+ 	fc->release = fuse_free_conn;
+ 
++	if (mount_data->dax_dev) {
++		err = fuse_dax_mem_range_init(fc, mount_data->dax_dev);
++		if (err) {
++			pr_debug("fuse_dax_mem_range_init() returned %d\n", err);
++			goto err_free_ranges;
++		}
++	}
++
+ 	fud = fuse_dev_alloc_install(fc);
+ 	if (!fud)
+ 		goto err_put_conn;
+@@ -1214,6 +1297,9 @@ int fuse_fill_super_common(struct super_block *sb,
+ 	dput(root_dentry);
+  err_dev_free:
+ 	fuse_dev_free(fud);
++ err_free_ranges:
++	if (mount_data->dax_dev)
++		fuse_free_dax_mem_ranges(&fc->free_ranges);
+  err_put_conn:
+ 	fuse_conn_put(fc);
+ 	sb->s_fs_info = NULL;
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 2b790865dc21..76c46edcc8ac 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -453,6 +453,8 @@ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	phys_addr_t offset = PFN_PHYS(pgoff);
+ 	size_t max_nr_pages = fs->window_len/PAGE_SIZE - pgoff;
+ 
++	pr_debug("virtio_fs_direct_access(): called. nr_pages=%ld max_nr_pages=%zu\n", nr_pages, max_nr_pages);
++
+ 	if (kaddr)
+ 		*kaddr = fs->window_kaddr + offset;
+ 	if (pfn)
 -- 
 2.20.1
 
