@@ -2,12 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F0AF321268FBE
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:33 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id DF4112125ADFF
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:35 -0700 (PDT)
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 16/30] virtio: Implement get_shm_region for MMIO transport
-Date: Wed, 15 May 2019 15:27:01 -0400
-Message-Id: <20190515192715.18000-17-vgoyal@redhat.com>
+Subject: [PATCH v2 08/30] fuse: extract fuse_fill_super_common()
+Date: Wed, 15 May 2019 15:26:53 -0400
+Message-Id: <20190515192715.18000-9-vgoyal@redhat.com>
 In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
 References: <20190515192715.18000-1-vgoyal@redhat.com>
 MIME-Version: 1.0
@@ -26,89 +26,327 @@ To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel
 Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Sebastien Boeuf <sebastien.boeuf@intel.com>
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-On MMIO a new set of registers is defined for finding SHM
-regions.  Add their definitions and use them to find the region.
+fuse_fill_super() includes code to process the fd= option and link the
+struct fuse_dev to the fd's struct file.  In virtio-fs there is no file
+descriptor because /dev/fuse is not used.
 
-Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+This patch extracts fuse_fill_super_common() so that both classic fuse
+and virtio-fs can share the code to initialize a mount.
+
+parse_fuse_opt() is also extracted so that the fuse_fill_super_common()
+caller has access to the mount options.  This allows classic fuse to
+handle the fd= option outside fuse_fill_super_common().
+
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- drivers/virtio/virtio_mmio.c     | 32 ++++++++++++++++++++++++++++++++
- include/uapi/linux/virtio_mmio.h | 11 +++++++++++
- 2 files changed, 43 insertions(+)
+ fs/fuse/fuse_i.h |  33 ++++++++++++
+ fs/fuse/inode.c  | 137 ++++++++++++++++++++++++-----------------------
+ 2 files changed, 103 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/virtio/virtio_mmio.c b/drivers/virtio/virtio_mmio.c
-index d9dd0f789279..ac42520abd86 100644
---- a/drivers/virtio/virtio_mmio.c
-+++ b/drivers/virtio/virtio_mmio.c
-@@ -499,6 +499,37 @@ static const char *vm_bus_name(struct virtio_device *vdev)
- 	return vm_dev->pdev->name;
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 38a572ba650d..84f094e4ac36 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -56,6 +56,25 @@ extern struct mutex fuse_mutex;
+ extern unsigned max_user_bgreq;
+ extern unsigned max_user_congthresh;
+ 
++/** Mount options */
++struct fuse_mount_data {
++	int fd;
++	unsigned rootmode;
++	kuid_t user_id;
++	kgid_t group_id;
++	unsigned fd_present:1;
++	unsigned rootmode_present:1;
++	unsigned user_id_present:1;
++	unsigned group_id_present:1;
++	unsigned default_permissions:1;
++	unsigned allow_other:1;
++	unsigned max_read;
++	unsigned blksize;
++
++	/* fuse_dev pointer to fill in, should contain NULL on entry */
++	void **fudptr;
++};
++
+ /* One forget request */
+ struct fuse_forget_link {
+ 	struct fuse_forget_one forget_one;
+@@ -989,6 +1008,20 @@ struct fuse_dev *fuse_dev_alloc(struct fuse_conn *fc);
+ void fuse_dev_free(struct fuse_dev *fud);
+ void fuse_send_init(struct fuse_conn *fc, struct fuse_req *req);
+ 
++/**
++ * Parse a mount options string
++ */
++int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
++				struct user_namespace *user_ns);
++
++/**
++ * Fill in superblock and initialize fuse connection
++ * @sb: partially-initialized superblock to fill in
++ * @mount_data: mount parameters
++ */
++int fuse_fill_super_common(struct super_block *sb,
++			   struct fuse_mount_data *mount_data);
++
+ /**
+  * Add connection to control filesystem
+  */
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index f02291469518..baf2966a753a 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -59,21 +59,6 @@ MODULE_PARM_DESC(max_user_congthresh,
+ /** Congestion starts at 75% of maximum */
+ #define FUSE_DEFAULT_CONGESTION_THRESHOLD (FUSE_DEFAULT_MAX_BACKGROUND * 3 / 4)
+ 
+-struct fuse_mount_data {
+-	int fd;
+-	unsigned rootmode;
+-	kuid_t user_id;
+-	kgid_t group_id;
+-	unsigned fd_present:1;
+-	unsigned rootmode_present:1;
+-	unsigned user_id_present:1;
+-	unsigned group_id_present:1;
+-	unsigned default_permissions:1;
+-	unsigned allow_other:1;
+-	unsigned max_read;
+-	unsigned blksize;
+-};
+-
+ struct fuse_forget_link *fuse_alloc_forget(void)
+ {
+ 	return kzalloc(sizeof(struct fuse_forget_link), GFP_KERNEL);
+@@ -482,7 +467,7 @@ static int fuse_match_uint(substring_t *s, unsigned int *res)
+ 	return err;
  }
  
-+static bool vm_get_shm_region(struct virtio_device *vdev,
-+			      struct virtio_shm_region *region, u8 id)
+-static int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
++int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
+ 			  struct user_namespace *user_ns)
+ {
+ 	char *p;
+@@ -559,12 +544,13 @@ static int parse_fuse_opt(char *opt, struct fuse_mount_data *d, int is_bdev,
+ 		}
+ 	}
+ 
+-	if (!d->fd_present || !d->rootmode_present ||
+-	    !d->user_id_present || !d->group_id_present)
++	if (!d->rootmode_present || !d->user_id_present ||
++	    !d->group_id_present)
+ 		return 0;
+ 
+ 	return 1;
+ }
++EXPORT_SYMBOL_GPL(parse_fuse_opt);
+ 
+ static int fuse_show_options(struct seq_file *m, struct dentry *root)
+ {
+@@ -1079,15 +1065,13 @@ void fuse_dev_free(struct fuse_dev *fud)
+ }
+ EXPORT_SYMBOL_GPL(fuse_dev_free);
+ 
+-static int fuse_fill_super(struct super_block *sb, void *data, int silent)
++int fuse_fill_super_common(struct super_block *sb,
++			   struct fuse_mount_data *mount_data)
+ {
+ 	struct fuse_dev *fud;
+ 	struct fuse_conn *fc;
+ 	struct inode *root;
+-	struct fuse_mount_data d;
+-	struct file *file;
+ 	struct dentry *root_dentry;
+-	struct fuse_req *init_req;
+ 	int err;
+ 	int is_bdev = sb->s_bdev != NULL;
+ 
+@@ -1097,13 +1081,10 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_flags &= ~(SB_NOSEC | SB_I_VERSION);
+ 
+-	if (!parse_fuse_opt(data, &d, is_bdev, sb->s_user_ns))
+-		goto err;
+-
+ 	if (is_bdev) {
+ #ifdef CONFIG_BLOCK
+ 		err = -EINVAL;
+-		if (!sb_set_blocksize(sb, d.blksize))
++		if (!sb_set_blocksize(sb, mount_data->blksize))
+ 			goto err;
+ #endif
+ 	} else {
+@@ -1120,19 +1101,6 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (sb->s_user_ns != &init_user_ns)
+ 		sb->s_iflags |= SB_I_UNTRUSTED_MOUNTER;
+ 
+-	file = fget(d.fd);
+-	err = -EINVAL;
+-	if (!file)
+-		goto err;
+-
+-	/*
+-	 * Require mount to happen from the same user namespace which
+-	 * opened /dev/fuse to prevent potential attacks.
+-	 */
+-	if (file->f_op != &fuse_dev_operations ||
+-	    file->f_cred->user_ns != sb->s_user_ns)
+-		goto err_fput;
+-
+ 	/*
+ 	 * If we are not in the initial user namespace posix
+ 	 * acls must be translated.
+@@ -1143,7 +1111,7 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	fc = kmalloc(sizeof(*fc), GFP_KERNEL);
+ 	err = -ENOMEM;
+ 	if (!fc)
+-		goto err_fput;
++		goto err;
+ 
+ 	fuse_conn_init(fc, sb->s_user_ns);
+ 	fc->release = fuse_free_conn;
+@@ -1163,17 +1131,17 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 		fc->dont_mask = 1;
+ 	sb->s_flags |= SB_POSIXACL;
+ 
+-	fc->default_permissions = d.default_permissions;
+-	fc->allow_other = d.allow_other;
+-	fc->user_id = d.user_id;
+-	fc->group_id = d.group_id;
+-	fc->max_read = max_t(unsigned, 4096, d.max_read);
++	fc->default_permissions = mount_data->default_permissions;
++	fc->allow_other = mount_data->allow_other;
++	fc->user_id = mount_data->user_id;
++	fc->group_id = mount_data->group_id;
++	fc->max_read = max_t(unsigned, 4096, mount_data->max_read);
+ 
+ 	/* Used by get_root_inode() */
+ 	sb->s_fs_info = fc;
+ 
+ 	err = -ENOMEM;
+-	root = fuse_get_root_inode(sb, d.rootmode);
++	root = fuse_get_root_inode(sb, mount_data->rootmode);
+ 	sb->s_d_op = &fuse_root_dentry_operations;
+ 	root_dentry = d_make_root(root);
+ 	if (!root_dentry)
+@@ -1181,20 +1149,15 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 	/* Root dentry doesn't have .d_revalidate */
+ 	sb->s_d_op = &fuse_dentry_operations;
+ 
+-	init_req = fuse_request_alloc(0);
+-	if (!init_req)
+-		goto err_put_root;
+-	__set_bit(FR_BACKGROUND, &init_req->flags);
+-
+ 	if (is_bdev) {
+ 		fc->destroy_req = fuse_request_alloc(0);
+ 		if (!fc->destroy_req)
+-			goto err_free_init_req;
++			goto err_put_root;
+ 	}
+ 
+ 	mutex_lock(&fuse_mutex);
+ 	err = -EINVAL;
+-	if (file->private_data)
++	if (*mount_data->fudptr)
+ 		goto err_unlock;
+ 
+ 	err = fuse_ctl_add_conn(fc);
+@@ -1203,23 +1166,12 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	list_add_tail(&fc->entry, &fuse_conn_list);
+ 	sb->s_root = root_dentry;
+-	file->private_data = fud;
++	*mount_data->fudptr = fud;
+ 	mutex_unlock(&fuse_mutex);
+-	/*
+-	 * atomic_dec_and_test() in fput() provides the necessary
+-	 * memory barrier for file->private_data to be visible on all
+-	 * CPUs after this
+-	 */
+-	fput(file);
+-
+-	fuse_send_init(fc, init_req);
+-
+ 	return 0;
+ 
+  err_unlock:
+ 	mutex_unlock(&fuse_mutex);
+- err_free_init_req:
+-	fuse_request_free(init_req);
+  err_put_root:
+ 	dput(root_dentry);
+  err_dev_free:
+@@ -1227,11 +1179,62 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+  err_put_conn:
+ 	fuse_conn_put(fc);
+ 	sb->s_fs_info = NULL;
+- err_fput:
+-	fput(file);
+  err:
+ 	return err;
+ }
++EXPORT_SYMBOL_GPL(fuse_fill_super_common);
++
++static int fuse_fill_super(struct super_block *sb, void *data, int silent)
 +{
-+	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
-+	u64 len, addr;
++	struct fuse_mount_data d;
++	struct file *file;
++	int is_bdev = sb->s_bdev != NULL;
++	int err;
++	struct fuse_req *init_req;
 +
-+	/* Select the region we're interested in */
-+	writel(id, vm_dev->base + VIRTIO_MMIO_SHM_SEL);
++	err = -EINVAL;
++	if (!parse_fuse_opt(data, &d, is_bdev, sb->s_user_ns))
++		goto err;
++	if (!d.fd_present)
++		goto err;
 +
-+	/* Read the region size */
-+	len = (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_LOW);
-+	len |= (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_HIGH) << 32;
++	file = fget(d.fd);
++	if (!file)
++		goto err;
 +
-+	region->len = len;
-+
-+	/* Check if region length is -1. If that's the case, the shared memory
-+	 * region does not exist and there is no need to proceed further.
++	/*
++	 * Require mount to happen from the same user namespace which
++	 * opened /dev/fuse to prevent potential attacks.
 +	 */
-+	if (len == ~(u64)0) {
-+		return false;
-+	}
++	if ((file->f_op != &fuse_dev_operations) ||
++	    (file->f_cred->user_ns != sb->s_user_ns))
++		goto err_fput;
 +
-+	/* Read the region base address */
-+	addr = (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_BASE_LOW);
-+	addr |= (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_BASE_HIGH) << 32;
++	init_req = fuse_request_alloc(0);
++	if (!init_req)
++		goto err_fput;
++	__set_bit(FR_BACKGROUND, &init_req->flags);
 +
-+	region->addr = addr;
++	d.fudptr = &file->private_data;
++	err = fuse_fill_super_common(sb, &d);
++	if (err < 0)
++		goto err_free_init_req;
++	/*
++	 * atomic_dec_and_test() in fput() provides the necessary
++	 * memory barrier for file->private_data to be visible on all
++	 * CPUs after this
++	 */
++	fput(file);
++	fuse_send_init(get_fuse_conn_super(sb), init_req);
++	return 0;
 +
-+	return true;
++err_free_init_req:
++	fuse_request_free(init_req);
++err_fput:
++	fput(file);
++err:
++	return err;
 +}
-+
- static const struct virtio_config_ops virtio_mmio_config_ops = {
- 	.get		= vm_get,
- 	.set		= vm_set,
-@@ -511,6 +542,7 @@ static const struct virtio_config_ops virtio_mmio_config_ops = {
- 	.get_features	= vm_get_features,
- 	.finalize_features = vm_finalize_features,
- 	.bus_name	= vm_bus_name,
-+	.get_shm_region = vm_get_shm_region,
- };
  
- 
-diff --git a/include/uapi/linux/virtio_mmio.h b/include/uapi/linux/virtio_mmio.h
-index c4b09689ab64..0650f91bea6c 100644
---- a/include/uapi/linux/virtio_mmio.h
-+++ b/include/uapi/linux/virtio_mmio.h
-@@ -122,6 +122,17 @@
- #define VIRTIO_MMIO_QUEUE_USED_LOW	0x0a0
- #define VIRTIO_MMIO_QUEUE_USED_HIGH	0x0a4
- 
-+/* Shared memory region id */
-+#define VIRTIO_MMIO_SHM_SEL             0x0ac
-+
-+/* Shared memory region length, 64 bits in two halves */
-+#define VIRTIO_MMIO_SHM_LEN_LOW         0x0b0
-+#define VIRTIO_MMIO_SHM_LEN_HIGH        0x0b4
-+
-+/* Shared memory region base address, 64 bits in two halves */
-+#define VIRTIO_MMIO_SHM_BASE_LOW        0x0b8
-+#define VIRTIO_MMIO_SHM_BASE_HIGH       0x0bc
-+
- /* Configuration atomicity value */
- #define VIRTIO_MMIO_CONFIG_GENERATION	0x0fc
- 
+ static struct dentry *fuse_mount(struct file_system_type *fs_type,
+ 		       int flags, const char *dev_name,
 -- 
 2.20.1
 
