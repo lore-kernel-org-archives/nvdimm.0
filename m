@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0F42821237808
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 12:08:44 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 0CD0F2125F1C0
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:40:59 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/4] ndctl/namespace.c: fix resource leak
-Date: Fri, 10 May 2019 13:08:36 -0600
-Message-Id: <20190510190839.29637-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190510190839.29637-1-vishal.l.verma@intel.com>
-References: <20190510190839.29637-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 02/10] libdaxctl: cache 'subsystem' in daxctl_ctx
+Date: Thu, 16 May 2019 16:40:45 -0600
+Message-Id: <20190516224053.3655-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190516224053.3655-1-vishal.l.verma@intel.com>
+References: <20190516224053.3655-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,72 +23,70 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Static analysis warns that we could be leaking cmd_cap and cmd_clear.
-Fix the error handling to avoid the leaks.
+The 'DAX subsystem' in effect is determined at region or device init
+time, and dictates the sysfs base paths for all device/region
+operations. In preparation for adding bind/unbind functionality, cache
+the subsystem as determined at init time in the library context.
 
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/namespace.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ daxctl/lib/libdaxctl.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index c7abcbf..e281298 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1083,40 +1083,42 @@ static int bus_send_clear(struct ndctl_bus *bus, unsigned long long start,
- 	rc = ndctl_cmd_submit_xlat(cmd_cap);
- 	if (rc < 0) {
- 		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
--		ndctl_cmd_unref(cmd_cap);
--		return rc;
-+		goto out_cap;
- 	}
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 70f896b..f8f5b8c 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -46,6 +46,7 @@ struct daxctl_ctx {
+ 	void *userdata;
+ 	int regions_init;
+ 	struct list_head regions;
++	enum dax_subsystem subsys;
+ };
  
- 	/* send clear_error */
- 	if (ndctl_cmd_ars_cap_get_range(cmd_cap, &range)) {
- 		debug("bus: %s failed to get ars_cap range\n", busname);
--		return -ENXIO;
-+		rc = -ENXIO;
-+		goto out_cap;
- 	}
+ /**
+@@ -96,6 +97,7 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
+ 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
+ 	*ctx = c;
+ 	list_head_init(&c->regions);
++	c->subsys = DAX_UNKNOWN;
  
- 	cmd_clear = ndctl_bus_cmd_new_clear_error(range.address,
- 					range.length, cmd_cap);
- 	if (!cmd_clear) {
- 		debug("bus: %s failed to create cmd\n", busname);
--		return -ENOTTY;
-+		rc = -ENOTTY;
-+		goto out_cap;
- 	}
- 
- 	rc = ndctl_cmd_submit_xlat(cmd_clear);
- 	if (rc < 0) {
- 		debug("bus: %s failed to submit cmd: %d\n", busname, rc);
--		ndctl_cmd_unref(cmd_clear);
--		return rc;
-+		goto out_clr;
- 	}
- 
- 	cleared = ndctl_cmd_clear_error_get_cleared(cmd_clear);
- 	if (cleared != range.length) {
- 		debug("bus: %s expected to clear: %lld actual: %lld\n",
- 				busname, range.length, cleared);
--		return -ENXIO;
-+		rc = -ENXIO;
- 	}
- 
--	ndctl_cmd_unref(cmd_cap);
-+out_clr:
- 	ndctl_cmd_unref(cmd_clear);
--	return 0;
-+out_cap:
-+	ndctl_cmd_unref(cmd_cap);
-+	return rc;
+ 	return 0;
  }
+@@ -454,14 +456,18 @@ static void dax_devices_init(struct daxctl_region *region)
+ 	for (i = 0; i < ARRAY_SIZE(dax_subsystems); i++) {
+ 		char *region_path;
  
- static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
+-		if (i == DAX_BUS)
++		if (i == DAX_BUS) {
+ 			region_path = region->region_path;
+-		else if (i == DAX_CLASS) {
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_BUS;
++		} else if (i == DAX_CLASS) {
+ 			if (asprintf(&region_path, "%s/dax",
+ 						region->region_path) < 0) {
+ 				dbg(ctx, "region path alloc fail\n");
+ 				continue;
+ 			}
++			if (ctx->subsys == DAX_UNKNOWN)
++				ctx->subsys = DAX_CLASS;
+ 		} else
+ 			continue;
+ 		sysfs_device_parse(ctx, region_path, daxdev_fmt, region,
+@@ -539,6 +545,8 @@ static void __dax_regions_init(struct daxctl_ctx *ctx, enum dax_subsystem subsys
+ 		free(dev_path);
+ 		if (!region)
+ 			err(ctx, "add_dax_region() for %s failed\n", de->d_name);
++		if (ctx->subsys == DAX_UNKNOWN)
++			ctx->subsys = subsys;
+ 	}
+ 	closedir(dir);
+ }
 -- 
 2.20.1
 
