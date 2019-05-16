@@ -1,19 +1,28 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
- [IPv6:2607:f8b0:4864:20::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A93E62125ADC4
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 11:23:01 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id y10so3254013oia.8
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 11:23:01 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B2183212377E4
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 22:55:25 -0700 (PDT)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x4G5koNs091262
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 01:55:24 -0400
+Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2sh0db3k94-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 01:55:23 -0400
+Received: from localhost
+ by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+ Thu, 16 May 2019 06:55:21 +0100
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: [PATCH] dax: Fix last_page check in  __bdev_dax_supported()
+Date: Thu, 16 May 2019 11:24:22 +0530
 MIME-Version: 1.0
-References: <20190516055422.16939-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20190516055422.16939-1-vaibhav@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 May 2019 11:22:49 -0700
-Message-ID: <CAPcyv4j6Jhpqg9SqAAmz2A6PDry7UUtnniNVoc_qG=WXwuVOWA@mail.gmail.com>
-Subject: Re: [PATCH] dax: Fix last_page check in __bdev_dax_supported()
+Message-Id: <20190516055422.16939-1-vaibhav@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,34 +34,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Mike Snitzer <snitzer@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Chandan Rajendra <chandan@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>
+To: akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-kernel@vger.kernel.org, Chandan Rajendra <chandan@linux.ibm.com>, Vaibhav Jain <vaibhav@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, May 15, 2019 at 10:55 PM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->
-> Presently __bdev_dax_supported() checks if first sector of last
-> page ( last_page ) on the block device is aligned to page
-> boundary. However the code to compute 'last_page' assumes that there
-> are 8 sectors/page assuming a 4K page-size.
->
-> This assumption breaks on architectures which use a different page
-> size specifically PPC64 where page-size == 64K. Hence a warning is
-> seen while trying to mount a xfs/ext4 file-system with dax enabled:
->
-> $ sudo mount -o dax /dev/pmem0 /mnt/pmem
-> XFS (pmem0): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
-> XFS (pmem0): DAX unsupported by block device. Turning off DAX.
->
-> The patch fixes this issue by updating calculation of 'last_var' to
-> take into account number-of-sectors/page instead of assuming it to be
-> '8'.
+Presently __bdev_dax_supported() checks if first sector of last
+page ( last_page ) on the block device is aligned to page
+boundary. However the code to compute 'last_page' assumes that there
+are 8 sectors/page assuming a 4K page-size.
 
-Yes, I noticed this too and fixed it up in a wider change that also
-allows device-mapper to validate each component device. Does this
-patch work for you?
+This assumption breaks on architectures which use a different page
+size specifically PPC64 where page-size == 64K. Hence a warning is
+seen while trying to mount a xfs/ext4 file-system with dax enabled:
 
-https://lore.kernel.org/lkml/155789172402.748145.11853718580748830476.stgit@dwillia2-desk3.amr.corp.intel.com/
+$ sudo mount -o dax /dev/pmem0 /mnt/pmem
+XFS (pmem0): DAX enabled. Warning: EXPERIMENTAL, use at your own risk
+XFS (pmem0): DAX unsupported by block device. Turning off DAX.
+
+The patch fixes this issue by updating calculation of 'last_var' to
+take into account number-of-sectors/page instead of assuming it to be
+'8'.
+
+Fixes: ad428cdb525a ("dax: Check the end of the block-device capacity with dax_direct_access()")
+Signed-off-by: Chandan Rajendra <chandan@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+ drivers/dax/super.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index bbd57ca0634a..6b50ed3673d3 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -116,7 +116,9 @@ bool __bdev_dax_supported(struct block_device *bdev, int blocksize)
+ 		return false;
+ 	}
+ 
+-	last_page = PFN_DOWN(i_size_read(bdev->bd_inode) - 1) * 8;
++	/* Calculate the first sector of last page on the block device */
++	last_page = PFN_DOWN(i_size_read(bdev->bd_inode) - 1) *
++		(PAGE_SIZE >> SECTOR_SHIFT);
+ 	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
+ 	if (err) {
+ 		pr_debug("%s: error: unaligned partition for dax\n",
+-- 
+2.21.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
