@@ -1,73 +1,59 @@
-Return-Path: <linux-fsdevel-owner@vger.kernel.org>
-Date: Thu, 16 May 2019 11:07:37 +0100
-From: Stefan Hajnoczi <stefanha@redhat.com>
-Subject: Re: [PATCH v2 12/30] dax: remove block device dependencies
-Message-ID: <20190516100737.GT29507@stefanha-x1.localdomain>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com
+ [IPv6:2607:f8b0:4864:20::243])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 69F3D21945DE0
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 17:22:03 -0700 (PDT)
+Received: by mail-oi1-x243.google.com with SMTP id z65so1165959oia.11
+ for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 17:22:03 -0700 (PDT)
+MIME-Version: 1.0
 References: <20190515192715.18000-1-vgoyal@redhat.com>
  <20190515192715.18000-13-vgoyal@redhat.com>
- <CAPcyv4i_-ri=w0jYJ4WjK4QD9E8pMzkGQNdMbt9H_nawDqYD3A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="flpRHSNNLnUanxKW"
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4i_-ri=w0jYJ4WjK4QD9E8pMzkGQNdMbt9H_nawDqYD3A@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Steven Whitehouse <swhiteho@redhat.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>
+In-Reply-To: <20190515192715.18000-13-vgoyal@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 15 May 2019 17:21:51 -0700
+Message-ID: <CAPcyv4i_-ri=w0jYJ4WjK4QD9E8pMzkGQNdMbt9H_nawDqYD3A@mail.gmail.com>
+Subject: Re: [PATCH v2 12/30] dax: remove block device dependencies
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: KVM list <kvm@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Miklos Szeredi <miklos@szeredi.hu>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Steven Whitehouse <swhiteho@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+On Wed, May 15, 2019 at 12:28 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> From: Stefan Hajnoczi <stefanha@redhat.com>
+>
+> Although struct dax_device itself is not tied to a block device, some
+> DAX code assumes there is a block device.  Make block devices optional
+> by allowing bdev to be NULL in commonly used DAX APIs.
+>
+> When there is no block device:
+>  * Skip the partition offset calculation in bdev_dax_pgoff()
+>  * Skip the blkdev_issue_zeroout() optimization
+>
+> Note that more block device assumptions remain but I haven't reach those
+> code paths yet.
+>
 
---flpRHSNNLnUanxKW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is there a generic object that non-block-based filesystems reference
+for physical storage as a bdev stand-in? I assume "sector_t" is still
+the common type for addressing filesystem capacity?
 
-On Wed, May 15, 2019 at 05:21:51PM -0700, Dan Williams wrote:
-> On Wed, May 15, 2019 at 12:28 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > From: Stefan Hajnoczi <stefanha@redhat.com>
-> >
-> > Although struct dax_device itself is not tied to a block device, some
-> > DAX code assumes there is a block device.  Make block devices optional
-> > by allowing bdev to be NULL in commonly used DAX APIs.
-> >
-> > When there is no block device:
-> >  * Skip the partition offset calculation in bdev_dax_pgoff()
-> >  * Skip the blkdev_issue_zeroout() optimization
-> >
-> > Note that more block device assumptions remain but I haven't reach those
-> > code paths yet.
-> >
->=20
-> Is there a generic object that non-block-based filesystems reference
-> for physical storage as a bdev stand-in? I assume "sector_t" is still
-> the common type for addressing filesystem capacity?
->=20
-> It just seems to me that we should stop pretending that the
-> filesystem-dax facility requires block devices and try to move this
-> functionality to generically use a dax device across all interfaces.
-
-virtio-fs uses a PCI BAR called the DAX Window to access data.  This
-object is internal to the virtio_fs.ko driver, not really a generic
-object that DAX code can reference.
-
-But does the DAX code need to reference any object at all?  It seems
-like block device users just want callbacks for the partition offset
-calculation and blkdev_issue_zeroout().
-
---flpRHSNNLnUanxKW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEEhpWov9P5fNqsNXdanKSrs4Grc8gFAlzdNmkACgkQnKSrs4Gr
-c8hlhwf/ZCSwXpZNQdt/OCUHk7Hmm4JUkkwbqJjArJ+4xdT38FYyvgvQRx48CaHc
-j4Nk4DMd4zRI3u8A95ycomu+EEM8lelihD7TZHrPwgfz2lSbIxZoWyimDwwVtV3e
-wW1CKnQjdPd0cRLUfj77Ob3JlBLoBXXpX4twezwP4IWKAk8Y1Roe2e3CCSVqbonV
-2MKgECxGzqozQBS80h775/sQ3kwGrfR59KP3RyVAtpUgnkW3KQPHBF4psTviVd7j
-uqJsUq0NsDX7TaUHVsR0H9o2k1S7RcYHf3yyCBvmCJwYwLrCwQFFBjM+qWRdfx/2
-K8WG0G/Hq/TRCkuVc6+0hpyQDsKtDg==
-=Y/FU
------END PGP SIGNATURE-----
-
---flpRHSNNLnUanxKW--
+It just seems to me that we should stop pretending that the
+filesystem-dax facility requires block devices and try to move this
+functionality to generically use a dax device across all interfaces.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
