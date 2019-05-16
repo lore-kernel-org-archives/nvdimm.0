@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACDE621244A76
- for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B02A02125ADC4
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:41:02 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 7/8] contrib/ndctl: fix region-id completions for daxctl
-Date: Fri,  3 May 2019 15:32:30 -0600
-Message-Id: <20190503213231.12280-8-vishal.l.verma@intel.com>
-In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
-References: <20190503213231.12280-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 06/10] libdaxctl: add an interface to get the mode
+ for a dax device
+Date: Thu, 16 May 2019 16:40:49 -0600
+Message-Id: <20190516224053.3655-7-vishal.l.verma@intel.com>
+In-Reply-To: <20190516224053.3655-1-vishal.l.verma@intel.com>
+References: <20190516224053.3655-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,57 +27,135 @@ To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The completion helpers for daxctl assumed the region arguments for
-specifying daxctl regions were the same as ndctl regions, i.e.
-"regionX". This is not true - daxctl region arguments are a simple
-numeric 'id'.
+In preparation for a reconfigure-device command, add an interface to
+retrieve the 'mode' of a dax device. This will allow the
+reconfigure-device command (and via daxctl_dev_to_json()), also
+daxctl-list) to print the mode on device listings via a list command or
+immediately after a mode change.
 
-Add a new helper __daxctl_get_regions() to complete daxctl region IDs
-properly.
-
-While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
-quoting in __daxctl_comp_options()
-
-Fixes: d6790a32f32c ("daxctl: Add bash-completion")
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- contrib/ndctl | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ daxctl/lib/libdaxctl.c   | 41 ++++++++++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  1 +
+ daxctl/libdaxctl.h       |  1 +
+ util/json.c              | 14 ++++++++++++++
+ 4 files changed, 57 insertions(+)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index e17fb0b..d1f8bd6 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -528,8 +528,14 @@ _ndctl()
- 
- __daxctl_get_devs()
- {
--	local opts="--devices $*"
--	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
-+	local opts=("--devices" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
-+}
-+
-+__daxctl_get_regions()
-+{
-+	local opts=("--regions" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index aab2364..5c85328 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -12,6 +12,8 @@
+  */
+ #include <stdio.h>
+ #include <errno.h>
++#include <limits.h>
++#include <libgen.h>
+ #include <stdlib.h>
+ #include <dirent.h>
+ #include <unistd.h>
+@@ -840,6 +842,45 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+ 	return 0;
  }
  
- __daxctlcomp()
-@@ -558,10 +564,10 @@ __daxctl_comp_options()
- 		local cur_arg=${cur##*=}
- 		case $cur_subopt in
- 		--region)
--			opts=$(__ndctl_get_regions -i)
-+			opts="$(__daxctl_get_regions -i)"
- 			;;
- 		--dev)
--			opts=$(__daxctl_get_devs -i)
-+			opts="$(__daxctl_get_devs -i)"
- 			;;
- 		*)
- 			return
++DAXCTL_EXPORT enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	int rc = DAXCTL_DEV_MODE_UNKNOWN;
++	char path[200];
++	const int len = sizeof(path);
++	char *mod_path, *mod_base;
++
++	if (!daxctl_dev_is_enabled(dev))
++		return rc;
++
++	/* dax-class model only has conventional devdax devices */
++	if (ctx->subsys != DAX_BUS)
++		return DAXCTL_DEV_MODE_DEVDAX;
++
++	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	mod_path = realpath(path, NULL);
++	if (!mod_path) {
++		rc = -errno;
++		err(ctx, "%s:  unable to determine module: %s\n", devname,
++			strerror(errno));
++		return rc;
++	}
++
++	mod_base = basename(mod_path);
++	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
++		rc = DAXCTL_DEV_MODE_RAM;
++	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
++		rc = DAXCTL_DEV_MODE_DEVDAX;
++
++	free(mod_path);
++	return rc;
++}
++
+ DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
+ {
+ 	return dev->region->ctx;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index cc47ed6..d53976d 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -62,4 +62,5 @@ global:
+ 	daxctl_dev_online_node;
+ 	daxctl_dev_offline_node;
+ 	daxctl_dev_node_is_online;
++	daxctl_dev_get_mode;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index db0d4ea..4f9088f 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -76,6 +76,7 @@ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
+ int daxctl_dev_online_node(struct daxctl_dev *dev);
+ int daxctl_dev_offline_node(struct daxctl_dev *dev);
+ int daxctl_dev_node_is_online(struct daxctl_dev *dev);
++enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+diff --git a/util/json.c b/util/json.c
+index b7ce719..4f13222 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ {
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
++	enum daxctl_dev_mode mode;
+ 	int node;
+ 
+ 	jdev = json_object_new_object();
+@@ -292,6 +293,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "numa_node", jobj);
+ 	}
+ 
++	mode = daxctl_dev_get_mode(dev);
++	if (mode > 0) {
++		jobj = NULL;
++		if (mode == DAXCTL_DEV_MODE_RAM)
++			jobj = json_object_new_string("system-ram");
++		else if (mode == DAXCTL_DEV_MODE_DEVDAX)
++			jobj = json_object_new_string("devdax");
++		else
++			jobj = json_object_new_string("unknown");
++		if (jobj)
++			json_object_object_add(jdev, "mode", jobj);
++	}
++
+ 	return jdev;
+ }
+ 
 -- 
 2.20.1
 
