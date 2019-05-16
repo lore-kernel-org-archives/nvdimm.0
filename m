@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CFC332128D875
- for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 720BD21268F93
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:41:05 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 00/10] daxctl: add a new reconfigure-device command
-Date: Tue, 28 May 2019 16:24:30 -0600
-Message-Id: <20190528222440.30392-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 09/10] contrib/ndctl: fix region-id completions for
+ daxctl
+Date: Thu, 16 May 2019 16:40:52 -0600
+Message-Id: <20190516224053.3655-10-vishal.l.verma@intel.com>
+In-Reply-To: <20190516224053.3655-1-vishal.l.verma@intel.com>
+References: <20190516224053.3655-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,86 +19,69 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Q2hhbmdlcyBpbiB2NDoKIC0gRG9uJ3QgZmFpbCBhZGRfZGF4X2RldiBmb3Iga21vZCBmYWlsdXJl
-cy4gSW5zdGVhZCBmYWlsIG9ubHkgd2hlbiB0aGUga21vZAogICBsaXN0IGlzIGFjdHVhbGx5IHVz
-ZWQsIGkuZS4gZHVyaW5nIGRheGN0bC1yZWNvbmZpZ3VyZS1kZXZpY2UKCkNoYW5nZXMgaW4gdjM6
-CiAtIEluIGRheGN0bF9kZXZfZ2V0X21vZGUoKSwgcmVtb3ZlIHRoZSBzdWJzeXN0ZW0gd2Fybmlu
-ZywgZGV0ZWN0IGRheC1jbGFzcwogICBhbmQgc2ltcGx5IG1ha2UgaXQgcmV0dXJuIGRldmRheAoK
-Q2hhbmdlcyBpbiB2MjoKIC0gQWRkIGV4YW1wbGVzIHRvIHRoZSBkb2N1bWVudGF0aW9uIHBhZ2Ug
-KERhdmUgSGFuc2VuKQogLSBDbGFyaWZ5IGRvY3VtZW50YXRpb24gcmVnYXJkaW5nIHRoZSBjb252
-ZXJzaW9uIGZyb20gc3lzdGVtLXJhbSB0byBkZXZkYXgKIC0gUmVtb3ZlIGFueSByZWZlcmVuY2Vz
-IHRvIGEgcGVyc2lzdGVudCBjb25maWcgZnJvbSB0aGUgZG9jdW1lbnRhdGlvbiAtCiAgIHRob3Nl
-IGNhbiBiZSBhZGRlZCB3aGVuIHRoZSBmZWF0dXJlIGlzIGFkZGVkLgogLSBkZXZpY2UuYzogdmFs
-aWRhdGUgb3B0aW9uIGNvbXBhdGliaWxpdHkKIC0gZGF4Y3RsLWxpc3Q6IGRpc3BsYXkgbnVtYV9u
-b2RlIGZvciBkZXZpY2UgbGlzdGluZ3MKIC0gZGF4Y3RsLWxpc3Q6IGRpc3BsYXkgbW9kZSBmb3Ig
-ZGV2aWNlIGxpc3RpbmdzCiAtIG1ha2UgdGhlIG9wdGlvbnMgbW9yZSBjb25zaXN0ZW50IGJ5IGFk
-ZGluZyBhICctTycgc2hvcnQgb3B0aW9uCiAgIGZvciAtLWF0dGVtcHQtb2ZmbGluZQoKQWRkIGEg
-bmV3IGRheGN0bC1yZWNvbmZpZ3VyZS1kZXZpY2UgY29tbWFuZCB0aGF0IGxldHMgdXMgcmVjb25m
-aWd1cmUgREFYCmRldmljZXMgYmFjayBhbmQgZm9ydGggYmV0d2VlbiAnc3lzdGVtLXJhbScgYW5k
-ICdkZXZpY2UtZGF4JyBtb2Rlcy4gSXQKYWxzbyBpbmNsdWRlcyBmYWNpbGl0aWVzIHRvIG9ubGlu
-ZSBhbnkgbmV3bHkgaG90LXBsdWdnZWQgbWVtb3J5CihkZWZhdWx0KSwgYW5kIGF0dGVtcHQgdG8g
-b2ZmbGluZSBtZW1vcnkgYmVmb3JlIGNvbnZlcnRpbmcgYXdheSBmcm9tIHRoZQpzeXN0ZW0tcmFt
-IG1vZGUgKG5vdCBkZWZhdWx0LCByZXF1aXJlcyBhIC0tYXR0ZW1wdC1vZmZsaW5lIG9wdGlvbiku
-CgpDdXJyZW50bHkgbWlzc2luZyBmcm9tIHRoaXMgc2VyaWVzIGlzIGEgd2F5IHRvIHBlcnNpc3Rl
-bnRseSBzdG9yZSB3aGljaApkZXZpY2VzIGhhdmUgYmVlbiAnbWFya2VkJyBmb3IgdXNlIGFzIHN5
-c3RlbS1yYW0uIFRoaXMgZGVwZW5kcyBvbiBhCmNvbmZpZyBzeXN0ZW0gb3ZlcmhhdWwgaW4gbmRj
-dGwsIGFuZCBwYXRjaGVzIGZvciB0aG9zZSB3aWxsIGZvbGxvdwpzZXBhcmF0ZWx5IGFuZCBhcmUg
-aW5kZXBlbmRlbnQgb2YgdGhpcyB3b3JrLgoKRXhhbXBsZSBpbnZvY2F0aW9uczoKCjEuIFJlY29u
-ZmlndXJlIGRheDAuMCB0byBzeXN0ZW0tcmFtIG1vZGUsIGRvbuKAmXQgb25saW5lIHRoZSBtZW1v
-cnkKICAgICMgZGF4Y3RsIHJlY29uZmlndXJlLWRldmljZSAtLW1vZGU9c3lzdGVtLXJhbSAtLW5v
-LW9ubGluZSBkYXgwLjAKICAgIFsKICAgICAgewogICAgICAgICJjaGFyZGV2IjoiZGF4MC4wIiwK
-ICAgICAgICAic2l6ZSI6MTY3NzcyMTYwMDAsCiAgICAgICAgIm51bWFfbm9kZSI6MiwKICAgICAg
-ICAibW9kZSI6InN5c3RlbS1yYW0iCiAgICAgIH0KICAgIF0KCjIuIFJlY29uZmlndXJlIGRheDAu
-MCB0byBkZXZkYXggbW9kZSwgYXR0ZW1wdCB0byBvZmZsaW5lIHRoZSBtZW1vcnkKICAgICMgZGF4
-Y3RsIHJlY29uZmlndXJlLWRldmljZSAtLWh1bWFuIC0tbW9kZT1kZXZkYXggLS1hdHRlbXB0LW9m
-ZmxpbmUgZGF4MC4wCiAgICB7CiAgICAgICJjaGFyZGV2IjoiZGF4MC4wIiwKICAgICAgInNpemUi
-OiIxNS42MyBHaUIgKDE2Ljc4IEdCKSIsCiAgICAgICJudW1hX25vZGUiOjIsCiAgICAgICJtb2Rl
-IjoiZGV2ZGF4IgogICAgfQoKMy4gUmVjb25maWd1cmUgYWxsIGRheCBkZXZpY2VzIG9uIHJlZ2lv
-bjAgdG8gc3lzdGVtLXJhbSBtb2RlCiAgICAjIGRheGN0bCByZWNvbmZpZ3VyZS1kZXZpY2UgLS1t
-b2RlPXN5c3RlbS1yYW0gLS1yZWdpb249MCBhbGwKICAgIFsKICAgICAgewogICAgICAgICJjaGFy
-ZGV2IjoiZGF4MC4wIiwKICAgICAgICAic2l6ZSI6MTY3NzcyMTYwMDAsCiAgICAgICAgIm51bWFf
-bm9kZSI6MiwKICAgICAgICAibW9kZSI6InN5c3RlbS1yYW0iCiAgICAgIH0sCiAgICAgIHsKICAg
-ICAgICAiY2hhcmRldiI6ImRheDAuMSIsCiAgICAgICAgInNpemUiOjE2Nzc3MjE2MDAwLAogICAg
-ICAgICJudW1hX25vZGUiOjMsCiAgICAgICAgIm1vZGUiOiJzeXN0ZW0tcmFtIgogICAgICB9CiAg
-ICBdCgpUaGVzZSBwYXRjaGVzIGNhbiBhbHNvIGJlIGZvdW5kIGluIHRoZSAna21lbS1wZW5kaW5n
-JyBicmFuY2ggb24gZ2l0aHViOgpodHRwczovL2dpdGh1Yi5jb20vcG1lbS9uZGN0bC90cmVlL2tt
-ZW0tcGVuZGluZwoKQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpD
-YzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGxpbnV4LmludGVsLmNvbT4KQ2M6IFBhdmVsIFRh
-dGFzaGluIDxwYXNoYS50YXRhc2hpbkBzb2xlZW4uY29tPgoKVmlzaGFsIFZlcm1hICgxMCk6CiAg
-bGliZGF4Y3RsOiBhZGQgaW50ZXJmYWNlcyBpbiBzdXBwb3J0IG9mIGRldmljZSBtb2RlcwogIGxp
-YmRheGN0bDogY2FjaGUgJ3N1YnN5c3RlbScgaW4gZGF4Y3RsX2N0eAogIGxpYmRheGN0bDogYWRk
-IGludGVyZmFjZXMgdG8gZW5hYmxlL2Rpc2FibGUgZGV2aWNlcwogIGxpYmRheGN0bDogYWRkIGlu
-dGVyZmFjZXMgdG8gZ2V0L3NldCB0aGUgb25saW5lIHN0YXRlIGZvciBhIG5vZGUKICBkYXhjdGwv
-bGlzdDogYWRkIG51bWFfbm9kZSBmb3IgZGV2aWNlIGxpc3RpbmdzCiAgbGliZGF4Y3RsOiBhZGQg
-YW4gaW50ZXJmYWNlIHRvIGdldCB0aGUgbW9kZSBmb3IgYSBkYXggZGV2aWNlCiAgZGF4Y3RsOiBh
-ZGQgYSBuZXcgcmVjb25maWd1cmUtZGV2aWNlIGNvbW1hbmQKICBEb2N1bWVudGF0aW9uL2RheGN0
-bDogYWRkIGEgbWFuIHBhZ2UgZm9yIGRheGN0bC1yZWNvbmZpZ3VyZS1kZXZpY2UKICBjb250cmli
-L25kY3RsOiBmaXggcmVnaW9uLWlkIGNvbXBsZXRpb25zIGZvciBkYXhjdGwKICBjb250cmliL25k
-Y3RsOiBhZGQgYmFzaC1jb21wbGV0aW9uIGZvciBkYXhjdGwtcmVjb25maWd1cmUtZGV2aWNlCgog
-RG9jdW1lbnRhdGlvbi9kYXhjdGwvTWFrZWZpbGUuYW0gICAgICAgICAgICAgIHwgICAzICstCiAu
-Li4vZGF4Y3RsL2RheGN0bC1yZWNvbmZpZ3VyZS1kZXZpY2UudHh0ICAgICAgfCAxMTggKysrKwog
-Y29udHJpYi9uZGN0bCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDM0ICstCiBk
-YXhjdGwvTWFrZWZpbGUuYW0gICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDIgKwogZGF4
-Y3RsL2J1aWx0aW4uaCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxICsKIGRheGN0
-bC9kYXhjdGwuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMSArCiBkYXhjdGwv
-ZGV2aWNlLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAyMzcgKysrKysrKysKIGRh
-eGN0bC9saWIvTWFrZWZpbGUuYW0gICAgICAgICAgICAgICAgICAgICAgICB8ICAgMyArLQogZGF4
-Y3RsL2xpYi9saWJkYXhjdGwtcHJpdmF0ZS5oICAgICAgICAgICAgICAgIHwgIDIxICsKIGRheGN0
-bC9saWIvbGliZGF4Y3RsLmMgICAgICAgICAgICAgICAgICAgICAgICB8IDU0OCArKysrKysrKysr
-KysrKysrKy0KIGRheGN0bC9saWIvbGliZGF4Y3RsLnN5bSAgICAgICAgICAgICAgICAgICAgICB8
-ICAxNCArCiBkYXhjdGwvbGliZGF4Y3RsLmggICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
-MTYgKwogdXRpbC9qc29uLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIy
-ICsKIDEzIGZpbGVzIGNoYW5nZWQsIDEwMDkgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0p
-CiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kYXhjdGwvZGF4Y3RsLXJlY29uZmln
-dXJlLWRldmljZS50eHQKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkYXhjdGwvZGV2aWNlLmMKCi0tIAoy
-LjIwLjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczov
-L2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+The completion helpers for daxctl assumed the region arguments for
+specifying daxctl regions were the same as ndctl regions, i.e.
+"regionX". This is not true - daxctl region arguments are a simple
+numeric 'id'.
+
+Add a new helper __daxctl_get_regions() to complete daxctl region IDs
+properly.
+
+While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
+quoting in __daxctl_comp_options()
+
+Fixes: d6790a32f32c ("daxctl: Add bash-completion")
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ contrib/ndctl | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 396a344..cacee2d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -531,8 +531,14 @@ _ndctl()
+ 
+ __daxctl_get_devs()
+ {
+-	local opts="--devices $*"
+-	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
++	local opts=("--devices" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
++}
++
++__daxctl_get_regions()
++{
++	local opts=("--regions" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+ }
+ 
+ __daxctlcomp()
+@@ -561,10 +567,10 @@ __daxctl_comp_options()
+ 		local cur_arg=${cur##*=}
+ 		case $cur_subopt in
+ 		--region)
+-			opts=$(__ndctl_get_regions -i)
++			opts="$(__daxctl_get_regions -i)"
+ 			;;
+ 		--dev)
+-			opts=$(__daxctl_get_devs -i)
++			opts="$(__daxctl_get_devs -i)"
+ 			;;
+ 		*)
+ 			return
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
