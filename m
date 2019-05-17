@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2CC9F2126CFB5
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 11:20:38 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Received: from foss.arm.com (usa-sjc-mx-foss1.foss.arm.com [217.140.101.70])
+ by ml01.01.org (Postfix) with ESMTP id AABF921945DE1
+ for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 21:47:56 -0700 (PDT)
 Subject: Re: [PATCH] mm, memory-failure: clarify error message
-Date: Fri, 17 May 2019 18:20:35 +0000
-Message-ID: <530f16a9207bd90b7752c8ea6bf38302a8cd7b4b.camel@intel.com>
 References: <1558066095-9495-1-git-send-email-jane.chu@oracle.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <512532de-4c09-626d-380f-58cef519166b@arm.com>
+Date: Fri, 17 May 2019 10:18:02 +0530
+MIME-Version: 1.0
 In-Reply-To: <1558066095-9495-1-git-send-email-jane.chu@oracle.com>
 Content-Language: en-US
-Content-ID: <B9903A53504C41478420F4FC21BBEA5A@intel.com>
-MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,16 +21,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "jane.chu@oracle.com" <jane.chu@oracle.com>, "n-horiguchi@ah.jp.nec.com" <n-horiguchi@ah.jp.nec.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Jane Chu <jane.chu@oracle.com>, n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2019-05-16 at 22:08 -0600, Jane Chu wrote:
+
+
+On 05/17/2019 09:38 AM, Jane Chu wrote:
 > Some user who install SIGBUS handler that does longjmp out
+
+What the longjmp about ? Are you referring to the mechanism of catching the
+signal which was registered ?
+
 > therefore keeping the process alive is confused by the error
 > message
 >   "[188988.765862] Memory failure: 0x1840200: Killing
 >    cellsrv:33395 due to hardware memory corruption"
+
+Its a valid point because those are two distinct actions.
+
 > Slightly modify the error message to improve clarity.
 > 
 > Signed-off-by: Jane Chu <jane.chu@oracle.com>
@@ -55,11 +61,6 @@ On Thu, 2019-05-16 at 22:08 -0600, Jane Chu wrote:
 >  	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
 > +		pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory "
 > +			"corruption\n", pfn, t->comm, t->pid);
-
-Minor nit, but the string shouldn't be split over multiple lines to
-preserve grep-ability. In such a case it is usually considered OK to
-exceed 80 characters for the line if needed.
-
 >  		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)tk->addr,
 >  				       addr_lsb, current);
 >  	} else {
@@ -71,7 +72,10 @@ exceed 80 characters for the line if needed.
 > +			"memory corruption\n", pfn, t->comm, t->pid);
 >  		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
 >  				      addr_lsb, t);  /* synchronous? */
->  	}
+
+As both the pr_err() messages are very similar, could not we just switch between "Killing"
+and "Sending SIGBUS to" based on a variable e.g action_[kill|sigbus] evaluated previously
+with ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm).
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
