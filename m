@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from eu-smtp-delivery-151.mimecast.com
- (eu-smtp-delivery-151.mimecast.com [207.82.80.151])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
+ [IPv6:2607:f8b0:4864:20::642])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4576721253310
- for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 09:14:07 -0700 (PDT)
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH] libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY overhead
-Date: Fri, 17 May 2019 16:14:03 +0000
-Message-ID: <ac76e29576b14fcb9a18e5a9e6ab8394@AcuMS.aculab.com>
+ by ml01.01.org (Postfix) with ESMTPS id A055621BC6A80
+ for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 08:56:54 -0700 (PDT)
+Received: by mail-pl1-x642.google.com with SMTP id r18so3524426pls.13
+ for <linux-nvdimm@lists.01.org>; Fri, 17 May 2019 08:56:54 -0700 (PDT)
+Date: Fri, 17 May 2019 08:56:52 -0700
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY overhead
+Message-ID: <201905170855.8E2E1AC616@keescook>
 References: <155805321833.867447.3864104616303535270.stgit@dwillia2-desk3.amr.corp.intel.com>
  <20190517084739.GB20550@quack2.suse.cz>
- <2d8b1ba7890940bf8a512d4eef0d99b3@AcuMS.aculab.com>
- <201905170845.1B4E2A03@keescook>
-In-Reply-To: <201905170845.1B4E2A03@keescook>
-Content-Language: en-US
+ <CAPcyv4iZZCgcC657ZOysBP9=1ejp3jfFj=VETVBPrgmfg7xUEw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iZZCgcC657ZOysBP9=1ejp3jfFj=VETVBPrgmfg7xUEw@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,28 +28,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: 'Kees Cook' <keescook@chromium.org>
-Cc: Jeff Smits <jeff.smits@intel.com>, Matthew Wilcox <willy@infradead.org>, 'Jan Kara' <jack@suse.cz>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Al Viro <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jeff Smits <jeff.smits@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Kees Cook
-> Sent: 17 May 2019 16:54
-...
-> > I've changed some of our code to use __get_user() to avoid
-> > these stupid overheads.
-> 
-> __get_user() skips even access_ok() checking too, so that doesn't seem
-> like a good idea. Did you run access_ok() checks separately? (This
-> generally isn't recommended.)
+On Fri, May 17, 2019 at 08:08:27AM -0700, Dan Williams wrote:
+> As far as I can see it's mostly check_heap_object() that is the
+> problem, so I'm open to finding a way to just bypass that sub-routine.
+> However, as far as I can see none of the other block / filesystem user
+> copy implementations submit to the hardened checks, like
+> bio_copy_from_iter(), and iov_iter_copy_from_user_atomic() . So,
+> either those need to grow additional checks, or the hardened copy
+> implementation is targeting single object copy use cases, not
+> necessarily block-I/O. Yes, Kees, please advise.
 
-Of course, I'm not THAT stupid :-)
+The intention is mainly for copies that haven't had explicit bounds
+checking already performed on them, yes. Is there something getting
+checked out of the slab, or is it literally just the overhead of doing
+the "is this slab?" check that you're seeing?
 
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
-
+-- 
+Kees Cook
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
