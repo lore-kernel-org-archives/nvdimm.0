@@ -1,15 +1,15 @@
 From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 07/18] btrfs: add dax write support
-Date: Tue, 21 May 2019 10:08:43 -0700
-Message-ID: <20190521170843.GC5125@magnolia>
+Subject: Re: [PATCH 13/18] fs: dedup file range to use a compare function
+Date: Tue, 21 May 2019 11:17:02 -0700
+Message-ID: <20190521181702.GA5155@magnolia>
 References: <20190429172649.8288-1-rgoldwyn@suse.de>
- <20190429172649.8288-8-rgoldwyn@suse.de>
+ <20190429172649.8288-14-rgoldwyn@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190429172649.8288-8-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20190429172649.8288-14-rgoldwyn-l3A5Bk7waGM@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,39 +23,48 @@ To: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
 Cc: kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, nborisov-IBi9RG/b67k@public.gmane.org, david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org, dsterba-AlSwsSmVLrQ@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Apr 29, 2019 at 12:26:38PM -0500, Goldwyn Rodrigues wrote:
+On Mon, Apr 29, 2019 at 12:26:44PM -0500, Goldwyn Rodrigues wrote:
 > From: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 > 
-> IOMAP_DAX_COW allows to inform the dax code, to first perform
-> a copy which are not page-aligned before performing the write.
-> The responsibility of checking if data edges are page aligned
-> is performed in ->iomap_begin() and the source address is
-> stored in ->inline_data
+> With dax we cannot deal with readpage() etc. So, we create a
+> funciton callback to perform the file data comparison and pass
+> it to generic_remap_file_range_prep() so it can use iomap-based
+> functions.
 > 
-> A new struct btrfs_iomap is passed from iomap_begin() to
-> iomap_end(), which contains all the accounting and locking information
-> for CoW based writes.
-> 
-> For writing to a hole, iomap->inline_data is set to zero.
+> This may not be the best way to solve this. Suggestions welcome.
 > 
 > Signed-off-by: Goldwyn Rodrigues <rgoldwyn-IBi9RG/b67k@public.gmane.org>
 > ---
->  fs/btrfs/ctree.h |   6 ++
->  fs/btrfs/dax.c   | 182 +++++++++++++++++++++++++++++++++++++++++++++++++++++--
->  fs/btrfs/file.c  |   4 +-
->  3 files changed, 185 insertions(+), 7 deletions(-)
+>  fs/btrfs/ctree.h     |  9 ++++++++
+>  fs/btrfs/dax.c       |  8 +++++++
+>  fs/btrfs/ioctl.c     | 11 +++++++--
+>  fs/dax.c             | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/ocfs2/file.c      |  2 +-
+>  fs/read_write.c      | 11 +++++----
+>  fs/xfs/xfs_reflink.c |  2 +-
+>  include/linux/dax.h  |  4 ++++
+>  include/linux/fs.h   |  8 ++++++-
+>  9 files changed, 110 insertions(+), 10 deletions(-)
 > 
 > diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-> index 1e3e758b83c2..eec01eb92f33 100644
+> index 2b7bdabb44f8..d3d044125619 100644
 > --- a/fs/btrfs/ctree.h
 > +++ b/fs/btrfs/ctree.h
-> @@ -3801,6 +3801,12 @@ int btree_readahead_hook(struct extent_buffer *eb, int err);
->  #ifdef CONFIG_FS_DAX
->  /* dax.c */
+> @@ -3803,11 +3803,20 @@ int btree_readahead_hook(struct extent_buffer *eb, int err);
 >  ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
-> +ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from);
-> +#else
-> +static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
+>  ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from);
+>  vm_fault_t btrfs_dax_fault(struct vm_fault *vmf);
+> +int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
+> +		struct inode *dest, loff_t destoff, loff_t len,
+> +		bool *is_same);
+>  #else
+>  static inline ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *from)
+>  {
+>  	return 0;
+>  }
+> +static inline int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
+> +		struct inode *dest, loff_t destoff, loff_t len,
+> +		bool *is_same)
 > +{
 > +	return 0;
 > +}
@@ -63,241 +72,253 @@ On Mon, Apr 29, 2019 at 12:26:38PM -0500, Goldwyn Rodrigues wrote:
 >  
 >  static inline int is_fstree(u64 rootid)
 > diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-> index bf3d46b0acb6..f5cc9bcdbf14 100644
+> index de957d681e16..af64696a5337 100644
 > --- a/fs/btrfs/dax.c
 > +++ b/fs/btrfs/dax.c
-> @@ -9,30 +9,184 @@
->  #ifdef CONFIG_FS_DAX
->  #include <linux/dax.h>
->  #include <linux/iomap.h>
-> +#include <linux/uio.h>
->  #include "ctree.h"
->  #include "btrfs_inode.h"
->  
-> +struct btrfs_iomap {
-> +	u64 start;
-> +	u64 end;
-> +	bool nocow;
-> +	struct extent_changeset *data_reserved;
-> +	struct extent_state *cached_state;
-> +};
-> +
-> +static struct btrfs_iomap *btrfs_iomap_init(struct inode *inode,
-> +				     struct extent_map **em,
-> +				     loff_t pos, loff_t length)
-> +{
-> +	int ret = 0;
-> +	struct extent_map *map = *em;
-> +	struct btrfs_iomap *bi;
-> +
-> +	bi = kzalloc(sizeof(struct btrfs_iomap), GFP_NOFS);
-> +	if (!bi)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	bi->start = round_down(pos, PAGE_SIZE);
-> +	bi->end = PAGE_ALIGN(pos + length);
-> +
-> +	/* Wait for existing ordered extents in range to finish */
-> +	btrfs_wait_ordered_range(inode, bi->start, bi->end - bi->start);
-> +
-> +	lock_extent_bits(&BTRFS_I(inode)->io_tree, bi->start, bi->end, &bi->cached_state);
-> +
-> +	ret = btrfs_delalloc_reserve_space(inode, &bi->data_reserved,
-> +			bi->start, bi->end - bi->start);
-> +	if (ret) {
-> +		unlock_extent_cached(&BTRFS_I(inode)->io_tree, bi->start, bi->end,
-> +				&bi->cached_state);
-> +		kfree(bi);
-> +		return ERR_PTR(ret);
-> +	}
-> +
-> +	refcount_inc(&map->refs);
-> +	ret = btrfs_get_extent_map_write(em, NULL,
-> +			inode, bi->start, bi->end - bi->start, &bi->nocow);
-> +	if (ret) {
-> +		unlock_extent_cached(&BTRFS_I(inode)->io_tree, bi->start, bi->end,
-> +				&bi->cached_state);
-> +		btrfs_delalloc_release_space(inode,
-> +				bi->data_reserved, bi->start,
-> +				bi->end - bi->start, true);
-> +		extent_changeset_free(bi->data_reserved);
-> +		kfree(bi);
-> +		return ERR_PTR(ret);
-> +	}
-> +	free_extent_map(map);
-> +	return bi;
-> +}
-> +
-> +static void *dax_address(struct block_device *bdev, struct dax_device *dax_dev,
-> +			 sector_t sector, loff_t pos, loff_t length)
-
-This looks like a common function for fs/dax.c.
-
---D
-
-> +{
-> +	size_t size = ALIGN(pos + length, PAGE_SIZE);
-> +	int id, ret = 0;
-> +	void *kaddr = NULL;
-> +	pgoff_t pgoff;
-> +	long map_len;
-> +
-> +	id = dax_read_lock();
-> +
-> +	ret = bdev_dax_pgoff(bdev, sector, size, &pgoff);
-> +	if (ret)
-> +		goto out;
-> +
-> +	map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
-> +			&kaddr, NULL);
-> +	if (map_len < 0)
-> +		ret = map_len;
-> +
-> +out:
-> +	dax_read_unlock(id);
-> +	if (ret)
-> +		return ERR_PTR(ret);
-> +	return kaddr;
-> +}
-> +
->  static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
->  		loff_t length, unsigned flags, struct iomap *iomap)
->  {
->  	struct extent_map *em;
->  	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-> +	struct btrfs_iomap *bi = NULL;
-> +	unsigned offset = pos & (PAGE_SIZE - 1);
-> +	u64 srcblk = 0;
-> +	loff_t diff;
-> +
->  	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
-> +
-> +	iomap->type = IOMAP_MAPPED;
-> +
-> +	if (flags & IOMAP_WRITE) {
-> +		if (em->block_start != EXTENT_MAP_HOLE)
-> +			srcblk = em->block_start + pos - em->start - offset;
-> +
-> +		bi = btrfs_iomap_init(inode, &em, pos, length);
-> +		if (IS_ERR(bi))
-> +			return PTR_ERR(bi);
-> +
-> +	}
-> +
-> +	/*
-> +	 * Advance the difference between pos and start, to align well with
-> +	 * inline_data in case of writes
-> +	 */
-> +	diff = round_down(pos - em->start, PAGE_SIZE);
-> +	iomap->offset = em->start + diff;
-> +	iomap->length = em->len - diff;
-> +	iomap->bdev = em->bdev;
-> +	iomap->dax_dev = fs_info->dax_dev;
-> +
-> +	/*
-> +	 * This will be true for reads only since we have already
-> +	 * allocated em
-> +	 */
->  	if (em->block_start == EXTENT_MAP_HOLE) {
->  		iomap->type = IOMAP_HOLE;
->  		return 0;
->  	}
-> -	iomap->type = IOMAP_MAPPED;
-> -	iomap->bdev = em->bdev;
-> -	iomap->dax_dev = fs_info->dax_dev;
-> -	iomap->offset = em->start;
-> -	iomap->length = em->len;
-> -	iomap->addr = em->block_start;
-> +
-> +	iomap->addr = em->block_start + diff;
-> +	/* Check if we really need to copy data from old extent */
-> +	if (bi && !bi->nocow && (offset || pos + length < bi->end)) {
-> +		iomap->type = IOMAP_DAX_COW;
-> +		if (srcblk) {
-> +			sector_t sector = (srcblk + (pos & PAGE_MASK) -
-> +					  iomap->offset) >> 9;
-> +			iomap->inline_data = dax_address(em->bdev,
-> +					fs_info->dax_dev, sector, pos, length);
-> +			if (IS_ERR(iomap->inline_data)) {
-> +				kfree(bi);
-> +				return PTR_ERR(iomap->inline_data);
-> +			}
-> +		}
-> +	}
-> +
-> +	iomap->private = bi;
-> +	return 0;
-> +}
-> +
-> +static int btrfs_iomap_end(struct inode *inode, loff_t pos,
-> +		loff_t length, ssize_t written, unsigned flags,
-> +		struct iomap *iomap)
-> +{
-> +	struct btrfs_iomap *bi = iomap->private;
-> +	u64 wend;
-> +
-> +	if (!bi)
-> +		return 0;
-> +
-> +	unlock_extent_cached(&BTRFS_I(inode)->io_tree, bi->start, bi->end,
-> +			&bi->cached_state);
-> +
-> +	wend = PAGE_ALIGN(pos + written);
-> +	if (wend < bi->end) {
-> +		btrfs_delalloc_release_space(inode,
-> +				bi->data_reserved, wend,
-> +				bi->end - wend, true);
-> +	}
-> +
-> +	btrfs_update_ordered_extent(inode, bi->start, wend - bi->start, true);
-> +	btrfs_delalloc_release_extents(BTRFS_I(inode), wend - bi->start, false);
-> +	extent_changeset_free(bi->data_reserved);
-> +	kfree(bi);
->  	return 0;
->  }
->  
->  static const struct iomap_ops btrfs_iomap_ops = {
->  	.iomap_begin		= btrfs_iomap_begin,
-> +	.iomap_end		= btrfs_iomap_end,
->  };
->  
->  ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to)
-> @@ -46,4 +200,20 @@ ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to)
+> @@ -227,4 +227,12 @@ vm_fault_t btrfs_dax_fault(struct vm_fault *vmf)
 >  
 >  	return ret;
 >  }
 > +
-> +ssize_t btrfs_file_dax_write(struct kiocb *iocb, struct iov_iter *iter)
+> +int btrfs_dax_file_range_compare(struct inode *src, loff_t srcoff,
+> +		struct inode *dest, loff_t destoff, loff_t len,
+> +		bool *is_same)
 > +{
-> +	ssize_t ret = 0;
-> +	u64 pos = iocb->ki_pos;
-> +	struct inode *inode = file_inode(iocb->ki_filp);
-> +	ret = dax_iomap_rw(iocb, iter, &btrfs_iomap_ops);
-> +
-> +	if (ret > 0) {
-> +		pos += ret;
-> +		if (pos > i_size_read(inode))
-> +			i_size_write(inode, pos);
-> +		iocb->ki_pos = pos;
-> +	}
-> +	return ret;
+> +	return dax_file_range_compare(src, srcoff, dest, destoff, len,
+> +				      is_same, &btrfs_iomap_ops);
 > +}
 >  #endif /* CONFIG_FS_DAX */
-> diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
-> index 9194591f9eea..a795023e26ca 100644
-> --- a/fs/btrfs/file.c
-> +++ b/fs/btrfs/file.c
-> @@ -1964,7 +1964,9 @@ static ssize_t btrfs_file_write_iter(struct kiocb *iocb,
->  	if (sync)
->  		atomic_inc(&BTRFS_I(inode)->sync_writers);
+> diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+> index 0138119cd9a3..5ebb52848d5a 100644
+> --- a/fs/btrfs/ioctl.c
+> +++ b/fs/btrfs/ioctl.c
+> @@ -3939,6 +3939,7 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  	bool same_inode = inode_out == inode_in;
+>  	u64 wb_len;
+>  	int ret;
+> +	compare_range_t cmp;
 >  
-> -	if (iocb->ki_flags & IOCB_DIRECT) {
-> +	if (IS_DAX(inode)) {
-> +		num_written = btrfs_file_dax_write(iocb, from);
-> +	} else if (iocb->ki_flags & IOCB_DIRECT) {
->  		num_written = __btrfs_direct_write(iocb, from);
->  	} else {
->  		num_written = btrfs_buffered_write(iocb, from);
+>  	if (!(remap_flags & REMAP_FILE_DEDUP)) {
+>  		struct btrfs_root *root_out = BTRFS_I(inode_out)->root;
+> @@ -4000,8 +4001,14 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  	if (ret < 0)
+>  		goto out_unlock;
+>  
+> -	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+> -					    len, remap_flags);
+> +	if (IS_DAX(file_inode(file_in)) && IS_DAX(file_inode(file_out)))
+
+If we're moving towards a world where IS_DAX is a per-file condition, I
+think this is going to need quite a bit more work to support doing
+mixed-mode comparisons.
+
+That, I think, could involve reworking vfs_dedupe_file_range_compare to
+take a pair of (inode, iomap_ops) so that we can use the iomap
+information to skip holes, avoid reading pages for uncached unwritten
+ranges, etc.
+
+TBH that sounds like a whole series on its own, so maybe we just want to
+say no dedupe for now unless both files are in the page cache or both
+files are DAX?
+
+--D
+
+> +		cmp = btrfs_dax_file_range_compare;
+> +	else
+> +		cmp = vfs_dedupe_file_range_compare;
+> +
+> +	ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
+> +			pos_out, len, remap_flags, cmp);
+> +
+>  	if (ret < 0 || *len == 0)
+>  		goto out_unlock;
+>  
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 07e8ff20161d..fa9ccbad7c03 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -39,6 +39,8 @@
+>  #define CREATE_TRACE_POINTS
+>  #include <trace/events/fs_dax.h>
+>  
+> +#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+> +
+>  static inline unsigned int pe_order(enum page_entry_size pe_size)
+>  {
+>  	if (pe_size == PE_SIZE_PTE)
+> @@ -1795,3 +1797,66 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+>  	return dax_insert_pfn_mkwrite(vmf, pfn, order);
+>  }
+>  EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
+> +
+> +static inline void *iomap_address(struct iomap *iomap, loff_t off, loff_t len)
+> +{
+> +	loff_t start;
+> +	void *addr;
+> +	start = (get_start_sect(iomap->bdev) << 9) + iomap->addr +
+> +		(off - iomap->offset);
+> +	dax_direct_access(iomap->dax_dev, PHYS_PFN(start), PHYS_PFN(len),
+> +			  &addr, NULL);
+> +	return addr;
+> +}
+> +
+> +int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
+> +		loff_t destoff, loff_t len, bool *is_same, const struct iomap_ops *ops)
+> +{
+> +	void *saddr, *daddr;
+> +	struct iomap s_iomap = {0};
+> +	struct iomap d_iomap = {0};
+> +	bool same = true;
+> +	loff_t cmp_len;
+> +	int id, ret = 0;
+> +
+> +	id = dax_read_lock();
+> +	while (len) {
+> +		ret = ops->iomap_begin(src, srcoff, len, 0, &s_iomap);
+> +		if (ret < 0) {
+> +			if (ops->iomap_end)
+> +				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
+> +			return ret;
+> +		}
+> +		cmp_len = len;
+> +		cmp_len = MIN(len, s_iomap.offset + s_iomap.length - srcoff);
+> +
+> +		ret = ops->iomap_begin(dest, destoff, cmp_len, 0, &d_iomap);
+> +		if (ret < 0) {
+> +			if (ops->iomap_end) {
+> +				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
+> +				ops->iomap_end(dest, destoff, len, ret, 0, &d_iomap);
+> +			}
+> +			return ret;
+> +		}
+> +		cmp_len = MIN(cmp_len, d_iomap.offset + d_iomap.length - destoff);
+> +
+> +		saddr = iomap_address(&s_iomap, srcoff, cmp_len);
+> +		daddr = iomap_address(&d_iomap, destoff, cmp_len);
+> +
+> +		same = !memcmp(saddr, daddr, cmp_len);
+> +		if (!same)
+> +			break;
+> +		len -= cmp_len;
+> +		srcoff += cmp_len;
+> +		destoff += cmp_len;
+> +
+> +		if (ops->iomap_end) {
+> +			ret = ops->iomap_end(src, srcoff, len, 0, 0, &s_iomap);
+> +			ret = ops->iomap_end(dest, destoff, len, 0, 0, &d_iomap);
+> +		}
+> +	}
+> +	dax_read_unlock(id);
+> +	*is_same = same;
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_file_range_compare);
+> diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+> index d640c5f8a85d..9d470306cfc3 100644
+> --- a/fs/ocfs2/file.c
+> +++ b/fs/ocfs2/file.c
+> @@ -2558,7 +2558,7 @@ static loff_t ocfs2_remap_file_range(struct file *file_in, loff_t pos_in,
+>  		goto out_unlock;
+>  
+>  	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+> -			&len, remap_flags);
+> +			&len, remap_flags, vfs_dedupe_file_range_compare);
+>  	if (ret < 0 || len == 0)
+>  		goto out_unlock;
+>  
+> diff --git a/fs/read_write.c b/fs/read_write.c
+> index 61b43ad7608e..c6283802ef1c 100644
+> --- a/fs/read_write.c
+> +++ b/fs/read_write.c
+> @@ -1778,7 +1778,7 @@ static struct page *vfs_dedupe_get_page(struct inode *inode, loff_t offset)
+>   * Compare extents of two files to see if they are the same.
+>   * Caller must have locked both inodes to prevent write races.
+>   */
+> -static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> +int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  					 struct inode *dest, loff_t destoff,
+>  					 loff_t len, bool *is_same)
+>  {
+> @@ -1845,6 +1845,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  out_error:
+>  	return error;
+>  }
+> +EXPORT_SYMBOL_GPL(vfs_dedupe_file_range_compare);
+>  
+>  /*
+>   * Check that the two inodes are eligible for cloning, the ranges make
+> @@ -1856,7 +1857,8 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>   */
+>  int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  				  struct file *file_out, loff_t pos_out,
+> -				  loff_t *len, unsigned int remap_flags)
+> +				  loff_t *len, unsigned int remap_flags,
+> +				  compare_range_t compare)
+>  {
+>  	struct inode *inode_in = file_inode(file_in);
+>  	struct inode *inode_out = file_inode(file_out);
+> @@ -1915,9 +1917,8 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  	 */
+>  	if (remap_flags & REMAP_FILE_DEDUP) {
+>  		bool		is_same = false;
+> -
+> -		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
+> -				inode_out, pos_out, *len, &is_same);
+> +		ret = (*compare)(inode_in, pos_in,
+> +			inode_out, pos_out, *len, &is_same);
+>  		if (ret)
+>  			return ret;
+>  		if (!is_same)
+> diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+> index 680ae7662a78..68e4257cebb0 100644
+> --- a/fs/xfs/xfs_reflink.c
+> +++ b/fs/xfs/xfs_reflink.c
+> @@ -1350,7 +1350,7 @@ xfs_reflink_remap_prep(
+>  		goto out_unlock;
+>  
+>  	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+> -			len, remap_flags);
+> +			len, remap_flags, vfs_dedupe_file_range_compare);
+>  	if (ret < 0 || *len == 0)
+>  		goto out_unlock;
+>  
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 0dd316a74a29..1370d39c91b6 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -157,6 +157,10 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+>  int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+>  int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+>  				      pgoff_t index);
+> +int dax_file_range_compare(struct inode *src, loff_t srcoff,
+> +			   struct inode *dest, loff_t destoff,
+> +			   loff_t len, bool *is_same,
+> +			   const struct iomap_ops *ops);
+>  
+>  #ifdef CONFIG_FS_DAX
+>  int __dax_zero_page_range(struct block_device *bdev,
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index dd28e7679089..0224503e42ce 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1883,10 +1883,16 @@ extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
+>  		unsigned long, loff_t *, rwf_t);
+>  extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+>  				   loff_t, size_t, unsigned int);
+> +extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> +					 struct inode *dest, loff_t destoff,
+> +					 loff_t len, bool *is_same);
+> +typedef int (*compare_range_t)(struct inode *src, loff_t srcpos,
+> +			       struct inode *dest, loff_t destpos,
+> +			       loff_t len, bool *is_same);
+>  extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  					 struct file *file_out, loff_t pos_out,
+>  					 loff_t *count,
+> -					 unsigned int remap_flags);
+> +					 unsigned int remap_flags, compare_range_t cmp);
+>  extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+>  				  struct file *file_out, loff_t pos_out,
+>  				  loff_t len, unsigned int remap_flags);
 > -- 
 > 2.16.4
 > 
