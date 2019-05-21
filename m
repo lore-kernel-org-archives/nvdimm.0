@@ -1,30 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 119A421276B8F
- for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 01:20:44 -0700 (PDT)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x4U8IXZC078522
- for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 04:20:43 -0400
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2sta87kxpb-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 04:20:43 -0400
-Received: from localhost
- by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Thu, 30 May 2019 09:20:40 +0100
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: Re: Picking 0th namespace if it is idle
-In-Reply-To: <87a7f45qik.fsf@linux.ibm.com>
-References: <87a7f45qik.fsf@linux.ibm.com>
-Date: Thu, 30 May 2019 13:50:35 +0530
+ by ml01.01.org (Postfix) with ESMTPS id 792C021265793
+ for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 08:01:34 -0700 (PDT)
+Date: Tue, 21 May 2019 11:01:31 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2 02/30] fuse: Clear setuid bit even in cache=never path
+Message-ID: <20190521150131.GB29075@redhat.com>
+References: <20190515192715.18000-1-vgoyal@redhat.com>
+ <20190515192715.18000-3-vgoyal@redhat.com>
+ <20190520144137.GA24093@localhost.localdomain>
 MIME-Version: 1.0
-Message-Id: <877ea85p64.fsf@linux.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <20190520144137.GA24093@localhost.localdomain>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,148 +25,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: kvm@vger.kernel.org, linux-nvdimm@lists.01.org, dgilbert@redhat.com, linux-kernel@vger.kernel.org, stefanha@redhat.com, linux-fsdevel@vger.kernel.org, swhiteho@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-aneesh.kumar@linux.ibm.com (Aneesh Kumar K.V) writes:
+On Mon, May 20, 2019 at 04:41:37PM +0200, Miklos Szeredi wrote:
+> On Wed, May 15, 2019 at 03:26:47PM -0400, Vivek Goyal wrote:
+> > If fuse daemon is started with cache=never, fuse falls back to direct IO.
+> > In that write path we don't call file_remove_privs() and that means setuid
+> > bit is not cleared if unpriviliged user writes to a file with setuid bit set.
+> > 
+> > pjdfstest chmod test 12.t tests this and fails.
+> 
+> I think better sulution is to tell the server if the suid bit needs to be
+> removed, so it can do so in a race free way.
+> 
+> Here's the kernel patch, and I'll reply with the libfuse patch.
 
-> Hi Dan,
->
-> With the patch series to mark the namespace disabled if we have mismatch
-> in pfn superblock, we can endup with namespace0 marked idle/disabled.
->
-> I am wondering why do do the below in ndctl.
->
->
-> static struct ndctl_namespace *region_get_namespace(struct ndctl_region *region)
-> {
-> 	struct ndctl_namespace *ndns;
->
-> 	/* prefer the 0th namespace if it is idle */
-> 	ndctl_namespace_foreach(region, ndns)
-> 		if (ndctl_namespace_get_id(ndns) == 0
-> 				&& !is_namespace_active(ndns))
-> 			return ndns;
-> 	return ndctl_region_get_namespace_seed(region);
-> }
->
-> I have a kernel patch that will create a namespace_seed even if we fail
-> to ename a pfn backing device. Something like below
+Hi Miklos,
+
+I tested and it works for me.
+
+Vivek
+
+> 
+> ---
+>  fs/fuse2/file.c           |    2 ++
+>  include/uapi/linux/fuse.h |    3 +++
+>  2 files changed, 5 insertions(+)
+> 
+> --- a/fs/fuse2/file.c
+> +++ b/fs/fuse2/file.c
+> @@ -363,6 +363,8 @@ static ssize_t fuse_send_write(struct fu
+>  		inarg->flags |= O_DSYNC;
+>  	if (iocb->ki_flags & IOCB_SYNC)
+>  		inarg->flags |= O_SYNC;
+> +	if (!capable(CAP_FSETID))
+> +		inarg->write_flags |= FUSE_WRITE_KILL_PRIV;
+>  	req->inh.opcode = FUSE_WRITE;
+>  	req->inh.nodeid = ff->nodeid;
+>  	req->inh.len = req->inline_inlen + count;
+> --- a/include/uapi/linux/fuse.h
+> +++ b/include/uapi/linux/fuse.h
+> @@ -125,6 +125,7 @@
+>   *
+>   *  7.29
+>   *  - add FUSE_NO_OPENDIR_SUPPORT flag
+> + *  - add FUSE_WRITE_KILL_PRIV flag
+>   */
 >  
-> @@ -747,12 +752,23 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
->  		}
->  	}
->  	if (dev->parent && is_nd_region(dev->parent) && probe) {
->  		nd_region = to_nd_region(dev->parent);
->  		nvdimm_bus_lock(dev);
->  		if (nd_region->ns_seed == dev)
->  			nd_region_create_ns_seed(nd_region);
->  		nvdimm_bus_unlock(dev);
->  	}
-> +
-> +	if (dev->parent && is_nd_region(dev->parent) && !probe && (ret == -EOPNOTSUPP)) {
-> +		nd_region = to_nd_region(dev->parent);
-> +		nvdimm_bus_lock(dev);
-> +		if (nd_region->ns_seed == dev)
-> +			nd_region_create_ns_seed(nd_region);
-> +		nvdimm_bus_unlock(dev);
-> +	}
-> +
->
-> With that we can end up with something like the below after boot.
-> :/sys/bus/nd/devices/region0$ sudo ndctl list -Ni        
-> [                                                                          
->   {                                                                                                                                                    
->     "dev":"namespace0.1",                                                  
->     "mode":"fsdax",                                                        
->     "map":"mem",                                                           
->     "size":0,                                                              
->     "uuid":"00000000-0000-0000-0000-000000000000",                                                                                                     
->     "state":"disabled"                                                     
->   },                                                                       
->   {                                                                        
->     "dev":"namespace0.0",                                                  
->     "mode":"fsdax",                  
->     "map":"mem",                                                           
->     "size":2147483648,               
->     "uuid":"094e703b-4bf8-4078-ad42-50bebc03e538",                                                                                                     
->     "state":"disabled"                                                                                                                                 
->   }                                                                        
-> ]                                             
->
-> namespace0.0 is the one we failed to initialize due to PAGE_SIZE
-> mismatch. 
->
-> We do have namespace_seed pointing to namespacece0.1 correct. But a ndtl
-> create-namespace will pick namespace0.0 even if we have seed file
-> pointing to namespacec0.1.
->
->
-> I am trying to resolve the issues related to creation of new namespaces
-> when we have some namespace marked disabled due to pfn_sb setting
-> mismatch.
->
-> -aneesh
-
-With that ndctl namespace0.0 selection commented out, we do get pick the
-right idle namespace.
-
-#ndctl list -Ni
-[                         
-  {                
-    "dev":"namespace0.1",
-    "mode":"fsdax",                                                        
-    "map":"mem",      
-    "size":0,
-    "uuid":"00000000-0000-0000-0000-000000000000",
-    "state":"disabled"   
-  },               
-  {             
-    "dev":"namespace0.0",
-    "mode":"fsdax",                                                        
-    "map":"mem",  
-    "size":2147483648,   
-    "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
-    "state":"disabled"
-  }  
-]   
-
-after ndctl create-namespace -s 2G -r region0                   
-
-
-# ndctl list -Ni                                           
-[                     
-  {                    
-    "dev":"namespace0.2",
-    "mode":"fsdax",       
-    "map":"mem",   
-    "size":0,   
-    "uuid":"00000000-0000-0000-0000-000000000000",
-    "state":"disabled"
-  },
-  {
-    "dev":"namespace0.1",
-    "mode":"fsdax",
-    "map":"dev",
-    "size":2130706432,
-    "uuid":"60970059-9412-4eeb-9e7a-b314585a4da3",
-    "align":65536,
-    "blockdev":"pmem0.1",
-    "supported_alignments":[
-      65536
-    ]
-  },
-  {
-    "dev":"namespace0.0",
-    "mode":"fsdax",
-    "map":"mem",
-    "size":2147483648,
-    "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
-    "state":"disabled"
-  }
-]
-
+>  #ifndef _LINUX_FUSE_H
+> @@ -318,9 +319,11 @@ struct fuse_file_lock {
+>   *
+>   * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
+>   * FUSE_WRITE_LOCKOWNER: lock_owner field is valid
+> + * FUSE_WRITE_KILL_PRIV: kill suid and sgid bits
+>   */
+>  #define FUSE_WRITE_CACHE	(1 << 0)
+>  #define FUSE_WRITE_LOCKOWNER	(1 << 1)
+> +#define FUSE_WRITE_KILL_PRIV	(1 << 2)
+>  
+>  /**
+>   * Read flags
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
