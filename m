@@ -1,28 +1,58 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: Re: [PATCH] mm, memory-failure: clarify error message
-References: <1558066095-9495-1-git-send-email-jane.chu@oracle.com>
- <512532de-4c09-626d-380f-58cef519166b@arm.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 52CD221274209
+ for <linux-nvdimm@lists.01.org>; Mon, 20 May 2019 18:52:15 -0700 (PDT)
 From: Jane Chu <jane.chu@oracle.com>
-Message-ID: <a2be5833-2161-38b6-2569-46084207ee47@oracle.com>
-Date: Mon, 20 May 2019 18:53:14 -0700
+Subject: [PATCH v2] mm, memory-failure: clarify error message
+Date: Mon, 20 May 2019 19:52:03 -0600
+Message-Id: <1558403523-22079-1-git-send-email-jane.chu@oracle.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
 MIME-Version: 1.0
-In-Reply-To: <512532de-4c09-626d-380f-58cef519166b@arm.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Anshuman Khandual <anshuman.khandual@arm.com>, n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 5/16/2019 9:48 PM, Anshuman Khandual wrote:
+Some user who install SIGBUS handler that does longjmp out
+therefore keeping the process alive is confused by the error
+message
+  "[188988.765862] Memory failure: 0x1840200: Killing
+   cellsrv:33395 due to hardware memory corruption"
+Slightly modify the error message to improve clarity.
 
-> On 05/17/2019 09:38 AM, Jane Chu wrote:
->> Some user who install SIGBUS handler that does longjmp out
-> What the longjmp about ? Are you referring to the mechanism of catching the
-> signal which was registered ?
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+---
+ mm/memory-failure.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Yes.
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index fc8b517..c4f4bcd 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -216,7 +216,7 @@ static int kill_proc(struct to_kill *tk, unsigned long pfn, int flags)
+ 	short addr_lsb = tk->size_shift;
+ 	int ret;
+ 
+-	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
++	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+ 		pfn, t->comm, t->pid);
+ 
+ 	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+-- 
+1.8.3.1
 
-thanks,
--jane
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
