@@ -2,15 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 337A421D0DE61
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:34 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 20/30] fuse: Introduce setupmapping/removemapping commands
-Date: Wed, 15 May 2019 15:27:05 -0400
-Message-Id: <20190515192715.18000-21-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 104EE21275448
+ for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 06:42:52 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v10 5/7] dax: check synchronous mapping is supported
+Date: Tue, 21 May 2019 19:07:11 +0530
+Message-Id: <20190521133713.31653-6-pagupta@redhat.com>
+In-Reply-To: <20190521133713.31653-1-pagupta@redhat.com>
+References: <20190521133713.31653-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,71 +17,63 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, dm-devel@redhat.com
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce two new fuse commands to setup/remove memory mappings. This
-will be used to setup/tear down file mapping in dax window.
+This patch introduces 'daxdev_mapping_supported' helper
+which checks if 'MAP_SYNC' is supported with filesystem
+mapping. It also checks if corresponding dax_device is
+synchronous. Virtio pmem device is asynchronous and
+does not not support VM_SYNC.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- include/uapi/linux/fuse.h | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ include/linux/dax.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index 2ac598614a8f..9eb313220549 100644
---- a/include/uapi/linux/fuse.h
-+++ b/include/uapi/linux/fuse.h
-@@ -399,6 +399,8 @@ enum fuse_opcode {
- 	FUSE_RENAME2		= 45,
- 	FUSE_LSEEK		= 46,
- 	FUSE_COPY_FILE_RANGE	= 47,
-+	FUSE_SETUPMAPPING       = 48,
-+	FUSE_REMOVEMAPPING      = 49,
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 2b106752b1b8..267251a394fa 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -42,6 +42,18 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+ void set_dax_synchronous(struct dax_device *dax_dev);
++/*
++ * Check if given mapping is supported by the file / underlying device.
++ */
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++					    struct dax_device *dax_dev)
++{
++	if (!(vma->vm_flags & VM_SYNC))
++		return true;
++	if (!IS_DAX(file_inode(vma->vm_file)))
++		return false;
++	return dax_synchronous(dax_dev);
++}
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+@@ -69,6 +81,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
+ }
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
++{
++	return !(vma->vm_flags & VM_SYNC);
++}
+ #endif
  
- 	/* CUSE specific operations */
- 	CUSE_INIT		= 4096,
-@@ -822,4 +824,35 @@ struct fuse_copy_file_range_in {
- 	uint64_t	flags;
- };
- 
-+#define FUSE_SETUPMAPPING_ENTRIES 8
-+#define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
-+struct fuse_setupmapping_in {
-+	/* An already open handle */
-+	uint64_t	fh;
-+	/* Offset into the file to start the mapping */
-+	uint64_t	foffset;
-+	/* Length of mapping required */
-+	uint64_t	len;
-+	/* Flags, FUSE_SETUPMAPPING_FLAG_* */
-+	uint64_t	flags;
-+	/* Offset in Memory Window */
-+	uint64_t	moffset;
-+};
-+
-+struct fuse_setupmapping_out {
-+	/* Offsets into the cache of mappings */
-+	uint64_t	coffset[FUSE_SETUPMAPPING_ENTRIES];
-+        /* Lengths of each mapping */
-+        uint64_t	len[FUSE_SETUPMAPPING_ENTRIES];
-+};
-+
-+struct fuse_removemapping_in {
-+        /* An already open handle */
-+        uint64_t	fh;
-+	/* Offset into the dax window start the unmapping */
-+	uint64_t        moffset;
-+        /* Length of mapping required */
-+        uint64_t	len;
-+};
-+
- #endif /* _LINUX_FUSE_H */
+ struct writeback_control;
 -- 
 2.20.1
 
