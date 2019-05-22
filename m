@@ -1,150 +1,102 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 458DB212377FF
- for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 23:10:05 -0700 (PDT)
-Subject: [PATCH v7 10/12] mm/devm_memremap_pages: Enable sub-section remap
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 01 May 2019 22:56:15 -0700
-Message-ID: <155677657576.2336373.1598502251563862624.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [RFC PATCH V2 2/3] mm/nvdimm: Add page size and struct page size to pfn superblock
+Date: Wed, 22 May 2019 13:57:00 +0530
+In-Reply-To: <20190522082701.6817-1-aneesh.kumar@linux.ibm.com>
+References: <20190522082701.6817-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, osalvador@suse.de
+Content-Transfer-Encoding: 8bit
+Message-Id: <20190522082701.6817-2-aneesh.kumar@linux.ibm.com>
+Sender: owner-linux-mm@kvack.org
+To: dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGVhY2ggZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFib3V0IHRoZSBuZXcgc3ViLXNlY3Rpb24gY2Fw
-YWJpbGl0aWVzIG9mCmFyY2hfe2FkZCxyZW1vdmV9X21lbW9yeSgpLiBFZmZlY3RpdmVseSwganVz
-dCByZXBsYWNlIGFsbCB1c2FnZSBvZgphbGlnbl9zdGFydCwgYWxpZ25fZW5kLCBhbmQgYWxpZ25f
-c2l6ZSB3aXRoIHJlcy0+c3RhcnQsIHJlcy0+ZW5kLCBhbmQKcmVzb3VyY2Vfc2l6ZShyZXMpLiBU
-aGUgZXhpc3Rpbmcgc2FuaXR5IGNoZWNrIHdpbGwgc3RpbGwgbWFrZSBzdXJlIHRoYXQKdGhlIHR3
-byBzZXBhcmF0ZSByZW1hcCBhdHRlbXB0cyBkbyBub3QgY29sbGlkZSB3aXRoaW4gYSBzdWItc2Vj
-dGlvbiAoMk1CCm9uIHg4NikuCgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+CkNj
-OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+CkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNv
-bT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-Ci0tLQoga2VybmVsL21lbXJlbWFwLmMgfCAgIDYxICsrKysrKysrKysrKysrKysrKysrKy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjQgaW5zZXJ0aW9u
-cygrKSwgMzcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEva2VybmVsL21lbXJlbWFwLmMgYi9r
-ZXJuZWwvbWVtcmVtYXAuYwppbmRleCBmMzU1NTg2ZWE1NGEuLjQyNTkwNDg1OGQ5NyAxMDA2NDQK
-LS0tIGEva2VybmVsL21lbXJlbWFwLmMKKysrIGIva2VybmVsL21lbXJlbWFwLmMKQEAgLTU5LDcg
-KzU5LDcgQEAgc3RhdGljIHVuc2lnbmVkIGxvbmcgcGZuX2ZpcnN0KHN0cnVjdCBkZXZfcGFnZW1h
-cCAqcGdtYXApCiAJc3RydWN0IHZtZW1fYWx0bWFwICphbHRtYXAgPSAmcGdtYXAtPmFsdG1hcDsK
-IAl1bnNpZ25lZCBsb25nIHBmbjsKIAotCXBmbiA9IHJlcy0+c3RhcnQgPj4gUEFHRV9TSElGVDsK
-KwlwZm4gPSBQSFlTX1BGTihyZXMtPnN0YXJ0KTsKIAlpZiAocGdtYXAtPmFsdG1hcF92YWxpZCkK
-IAkJcGZuICs9IHZtZW1fYWx0bWFwX29mZnNldChhbHRtYXApOwogCXJldHVybiBwZm47CkBAIC04
-Nyw3ICs4Nyw2IEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lk
-ICpkYXRhKQogCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBkYXRhOwogCXN0cnVjdCBkZXZp
-Y2UgKmRldiA9IHBnbWFwLT5kZXY7CiAJc3RydWN0IHJlc291cmNlICpyZXMgPSAmcGdtYXAtPnJl
-czsKLQlyZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemU7CiAJdW5zaWduZWQg
-bG9uZyBwZm47CiAJaW50IG5pZDsKIApAQCAtOTYsMjUgKzk1LDIxIEBAIHN0YXRpYyB2b2lkIGRl
-dm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSh2b2lkICpkYXRhKQogCQlwdXRfcGFnZShwZm5fdG9f
-cGFnZShwZm4pKTsKIAogCS8qIHBhZ2VzIGFyZSBkZWFkIGFuZCB1bnVzZWQsIHVuZG8gdGhlIGFy
-Y2ggbWFwcGluZyAqLwotCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4oUEFfU0VDVElPTl9T
-SVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyByZXNvdXJjZV9zaXpl
-KHJlcyksIFBBX1NFQ1RJT05fU0laRSkKLQkJLSBhbGlnbl9zdGFydDsKLQotCW5pZCA9IHBhZ2Vf
-dG9fbmlkKHBmbl90b19wYWdlKGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQpKTsKKwluaWQgPSBw
-YWdlX3RvX25pZChwZm5fdG9fcGFnZShQSFlTX1BGTihyZXMtPnN0YXJ0KSkpOwogCiAJbWVtX2hv
-dHBsdWdfYmVnaW4oKTsKIAlpZiAocGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9QUklWQVRF
-KSB7Ci0JCXBmbiA9IGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJRlQ7CisJCXBmbiA9IFBIWVNfUEZO
-KHJlcy0+c3RhcnQpOwogCQlfX3JlbW92ZV9wYWdlcyhwYWdlX3pvbmUocGZuX3RvX3BhZ2UocGZu
-KSksIHBmbiwKLQkJCQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIE5VTEwpOworCQkJCVBIWVNf
-UEZOKHJlc291cmNlX3NpemUocmVzKSksIE5VTEwpOwogCX0gZWxzZSB7Ci0JCWFyY2hfcmVtb3Zl
-X21lbW9yeShuaWQsIGFsaWduX3N0YXJ0LCBhbGlnbl9zaXplLAorCQlhcmNoX3JlbW92ZV9tZW1v
-cnkobmlkLCByZXMtPnN0YXJ0LCByZXNvdXJjZV9zaXplKHJlcyksCiAJCQkJcGdtYXAtPmFsdG1h
-cF92YWxpZCA/ICZwZ21hcC0+YWx0bWFwIDogTlVMTCk7Ci0JCWthc2FuX3JlbW92ZV96ZXJvX3No
-YWRvdyhfX3ZhKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJCWthc2FuX3JlbW92ZV96ZXJv
-X3NoYWRvdyhfX3ZhKHJlcy0+c3RhcnQpLCByZXNvdXJjZV9zaXplKHJlcykpOwogCX0KIAltZW1f
-aG90cGx1Z19kb25lKCk7CiAKLQl1bnRyYWNrX3BmbihOVUxMLCBQSFlTX1BGTihhbGlnbl9zdGFy
-dCksIGFsaWduX3NpemUpOworCXVudHJhY2tfcGZuKE5VTEwsIFBIWVNfUEZOKHJlcy0+c3RhcnQp
-LCByZXNvdXJjZV9zaXplKHJlcykpOwogCXBnbWFwX2FycmF5X2RlbGV0ZShyZXMpOwogCWRldl9X
-QVJOX09OQ0UoZGV2LCBwZ21hcC0+YWx0bWFwLmFsbG9jLAogCQkgICAgICAiJXM6IGZhaWxlZCB0
-byBmcmVlIGFsbCByZXNlcnZlZCBwYWdlc1xuIiwgX19mdW5jX18pOwpAQCAtMTQxLDE2ICsxMzYs
-MTMgQEAgc3RhdGljIHZvaWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZvaWQgKmRhdGEp
-CiAgKi8KIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
-Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogewotCXJlc291cmNlX3NpemVfdCBhbGlnbl9zdGFydCwg
-YWxpZ25fc2l6ZSwgYWxpZ25fZW5kOwotCXN0cnVjdCB2bWVtX2FsdG1hcCAqYWx0bWFwID0gcGdt
-YXAtPmFsdG1hcF92YWxpZCA/Ci0JCQkmcGdtYXAtPmFsdG1hcCA6IE5VTEw7CiAJc3RydWN0IHJl
-c291cmNlICpyZXMgPSAmcGdtYXAtPnJlczsKIAlzdHJ1Y3QgZGV2X3BhZ2VtYXAgKmNvbmZsaWN0
-X3BnbWFwOwogCXN0cnVjdCBtaHBfcmVzdHJpY3Rpb25zIHJlc3RyaWN0aW9ucyA9IHsKIAkJLyoK
-IAkJICogV2UgZG8gbm90IHdhbnQgYW55IG9wdGlvbmFsIGZlYXR1cmVzIG9ubHkgb3VyIG93biBt
-ZW1tYXAKIAkJKi8KLQkJLmFsdG1hcCA9IGFsdG1hcCwKKwkJLmFsdG1hcCA9IHBnbWFwLT5hbHRt
-YXBfdmFsaWQgPyAmcGdtYXAtPmFsdG1hcCA6IE5VTEwsCiAJfTsKIAlwZ3Byb3RfdCBwZ3Byb3Qg
-PSBQQUdFX0tFUk5FTDsKIAlpbnQgZXJyb3IsIG5pZCwgaXNfcmFtOwpAQCAtMTU4LDI2ICsxNTAs
-MjEgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
-dCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJaWYgKCFwZ21hcC0+cmVmIHx8ICFwZ21hcC0+a2lsbCkK
-IAkJcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7CiAKLQlhbGlnbl9zdGFydCA9IHJlcy0+c3RhcnQg
-JiB+KFBBX1NFQ1RJT05fU0laRSAtIDEpOwotCWFsaWduX3NpemUgPSBBTElHTihyZXMtPnN0YXJ0
-ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBQQV9TRUNUSU9OX1NJWkUpCi0JCS0gYWxpZ25fc3RhcnQ7
-Ci0JYWxpZ25fZW5kID0gYWxpZ25fc3RhcnQgKyBhbGlnbl9zaXplIC0gMTsKLQotCWNvbmZsaWN0
-X3BnbWFwID0gZ2V0X2Rldl9wYWdlbWFwKFBIWVNfUEZOKGFsaWduX3N0YXJ0KSwgTlVMTCk7CisJ
-Y29uZmxpY3RfcGdtYXAgPSBnZXRfZGV2X3BhZ2VtYXAoUEhZU19QRk4ocmVzLT5zdGFydCksIE5V
-TEwpOwogCWlmIChjb25mbGljdF9wZ21hcCkgewogCQlkZXZfV0FSTihkZXYsICJDb25mbGljdGlu
-ZyBtYXBwaW5nIGluIHNhbWUgc2VjdGlvblxuIik7CiAJCXB1dF9kZXZfcGFnZW1hcChjb25mbGlj
-dF9wZ21hcCk7CiAJCXJldHVybiBFUlJfUFRSKC1FTk9NRU0pOwogCX0KIAotCWNvbmZsaWN0X3Bn
-bWFwID0gZ2V0X2Rldl9wYWdlbWFwKFBIWVNfUEZOKGFsaWduX2VuZCksIE5VTEwpOworCWNvbmZs
-aWN0X3BnbWFwID0gZ2V0X2Rldl9wYWdlbWFwKFBIWVNfUEZOKHJlcy0+ZW5kKSwgTlVMTCk7CiAJ
-aWYgKGNvbmZsaWN0X3BnbWFwKSB7CiAJCWRldl9XQVJOKGRldiwgIkNvbmZsaWN0aW5nIG1hcHBp
-bmcgaW4gc2FtZSBzZWN0aW9uXG4iKTsKIAkJcHV0X2Rldl9wYWdlbWFwKGNvbmZsaWN0X3BnbWFw
-KTsKIAkJcmV0dXJuIEVSUl9QVFIoLUVOT01FTSk7CiAJfQogCi0JaXNfcmFtID0gcmVnaW9uX2lu
-dGVyc2VjdHMoYWxpZ25fc3RhcnQsIGFsaWduX3NpemUsCisJaXNfcmFtID0gcmVnaW9uX2ludGVy
-c2VjdHMocmVzLT5zdGFydCwgcmVzb3VyY2Vfc2l6ZShyZXMpLAogCQlJT1JFU09VUkNFX1NZU1RF
-TV9SQU0sIElPUkVTX0RFU0NfTk9ORSk7CiAKIAlpZiAoaXNfcmFtICE9IFJFR0lPTl9ESVNKT0lO
-VCkgewpAQCAtMTk4LDggKzE4NSw4IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0
-IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCWlmIChuaWQgPCAwKQog
-CQluaWQgPSBudW1hX21lbV9pZCgpOwogCi0JZXJyb3IgPSB0cmFja19wZm5fcmVtYXAoTlVMTCwg
-JnBncHJvdCwgUEhZU19QRk4oYWxpZ25fc3RhcnQpLCAwLAotCQkJYWxpZ25fc2l6ZSk7CisJZXJy
-b3IgPSB0cmFja19wZm5fcmVtYXAoTlVMTCwgJnBncHJvdCwgUEhZU19QRk4ocmVzLT5zdGFydCks
-IDAsCisJCQlyZXNvdXJjZV9zaXplKHJlcykpOwogCWlmIChlcnJvcikKIAkJZ290byBlcnJfcGZu
-X3JlbWFwOwogCkBAIC0yMTcsMjUgKzIwNCwyNSBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2Vz
-KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAkgKiBhcmNo
-X2FkZF9tZW1vcnkoKS4KIAkgKi8KIAlpZiAocGdtYXAtPnR5cGUgPT0gTUVNT1JZX0RFVklDRV9Q
-UklWQVRFKSB7Ci0JCWVycm9yID0gYWRkX3BhZ2VzKG5pZCwgYWxpZ25fc3RhcnQgPj4gUEFHRV9T
-SElGVCwKLQkJCQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsICZyZXN0cmljdGlvbnMpOworCQll
-cnJvciA9IGFkZF9wYWdlcyhuaWQsIFBIWVNfUEZOKHJlcy0+c3RhcnQpLAorCQkJCVBIWVNfUEZO
-KHJlc291cmNlX3NpemUocmVzKSksICZyZXN0cmljdGlvbnMpOwogCX0gZWxzZSB7Ci0JCWVycm9y
-ID0ga2FzYW5fYWRkX3plcm9fc2hhZG93KF9fdmEoYWxpZ25fc3RhcnQpLCBhbGlnbl9zaXplKTsK
-KwkJZXJyb3IgPSBrYXNhbl9hZGRfemVyb19zaGFkb3coX192YShyZXMtPnN0YXJ0KSwgcmVzb3Vy
-Y2Vfc2l6ZShyZXMpKTsKIAkJaWYgKGVycm9yKSB7CiAJCQltZW1faG90cGx1Z19kb25lKCk7CiAJ
-CQlnb3RvIGVycl9rYXNhbjsKIAkJfQogCi0JCWVycm9yID0gYXJjaF9hZGRfbWVtb3J5KG5pZCwg
-YWxpZ25fc3RhcnQsIGFsaWduX3NpemUsCi0JCQkJCSZyZXN0cmljdGlvbnMpOworCQllcnJvciA9
-IGFyY2hfYWRkX21lbW9yeShuaWQsIHJlcy0+c3RhcnQsIHJlc291cmNlX3NpemUocmVzKSwKKwkJ
-CQkmcmVzdHJpY3Rpb25zKTsKIAl9CiAKIAlpZiAoIWVycm9yKSB7CiAJCXN0cnVjdCB6b25lICp6
-b25lOwogCiAJCXpvbmUgPSAmTk9ERV9EQVRBKG5pZCktPm5vZGVfem9uZXNbWk9ORV9ERVZJQ0Vd
-OwotCQltb3ZlX3Bmbl9yYW5nZV90b196b25lKHpvbmUsIGFsaWduX3N0YXJ0ID4+IFBBR0VfU0hJ
-RlQsCi0JCQkJYWxpZ25fc2l6ZSA+PiBQQUdFX1NISUZULCBhbHRtYXApOworCQltb3ZlX3Bmbl9y
-YW5nZV90b196b25lKHpvbmUsIFBIWVNfUEZOKHJlcy0+c3RhcnQpLAorCQkJCVBIWVNfUEZOKHJl
-c291cmNlX3NpemUocmVzKSksIHJlc3RyaWN0aW9ucy5hbHRtYXApOwogCX0KIAogCW1lbV9ob3Rw
-bHVnX2RvbmUoKTsKQEAgLTI0Nyw4ICsyMzQsOCBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2Vz
-KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAkgKiB0byBh
-bGxvdyB1cyB0byBkbyB0aGUgd29yayB3aGlsZSBub3QgaG9sZGluZyB0aGUgaG90cGx1ZyBsb2Nr
-LgogCSAqLwogCW1lbW1hcF9pbml0X3pvbmVfZGV2aWNlKCZOT0RFX0RBVEEobmlkKS0+bm9kZV96
-b25lc1taT05FX0RFVklDRV0sCi0JCQkJYWxpZ25fc3RhcnQgPj4gUEFHRV9TSElGVCwKLQkJCQlh
-bGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIHBnbWFwKTsKKwkJCQlQSFlTX1BGTihyZXMtPnN0YXJ0
-KSwKKwkJCQlQSFlTX1BGTihyZXNvdXJjZV9zaXplKHJlcykpLCBwZ21hcCk7CiAJcGVyY3B1X3Jl
-Zl9nZXRfbWFueShwZ21hcC0+cmVmLCBwZm5fZW5kKHBnbWFwKSAtIHBmbl9maXJzdChwZ21hcCkp
-OwogCiAJZXJyb3IgPSBkZXZtX2FkZF9hY3Rpb25fb3JfcmVzZXQoZGV2LCBkZXZtX21lbXJlbWFw
-X3BhZ2VzX3JlbGVhc2UsCkBAIC0yNTksOSArMjQ2LDkgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9w
-YWdlcyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJcmV0
-dXJuIF9fdmEocmVzLT5zdGFydCk7CiAKICBlcnJfYWRkX21lbW9yeToKLQlrYXNhbl9yZW1vdmVf
-emVyb19zaGFkb3coX192YShhbGlnbl9zdGFydCksIGFsaWduX3NpemUpOworCWthc2FuX3JlbW92
-ZV96ZXJvX3NoYWRvdyhfX3ZhKHJlcy0+c3RhcnQpLCByZXNvdXJjZV9zaXplKHJlcykpOwogIGVy
-cl9rYXNhbjoKLQl1bnRyYWNrX3BmbihOVUxMLCBQSFlTX1BGTihhbGlnbl9zdGFydCksIGFsaWdu
-X3NpemUpOworCXVudHJhY2tfcGZuKE5VTEwsIFBIWVNfUEZOKHJlcy0+c3RhcnQpLCByZXNvdXJj
-ZV9zaXplKHJlcykpOwogIGVycl9wZm5fcmVtYXA6CiAJcGdtYXBfYXJyYXlfZGVsZXRlKHJlcyk7
-CiAgZXJyX2FycmF5OgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+This is needed so that we don't wrongly initialize a namespace
+which doesn't have enough space reserved for holding struct pages
+with the current kernel.
+
+We also increment PFN_MIN_VERSION to make sure that older kernel
+won't initialize namespace created with newer kernel.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/pfn.h      |  7 +++++--
+ drivers/nvdimm/pfn_devs.c | 19 ++++++++++++++++++-
+ 2 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index 5fd29242745a..ba11738ca8a2 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -25,7 +25,7 @@
+  * kernel should fail to initialize that namespace.
+  */
+ 
+-#define PFN_MIN_VERSION 0
++#define PFN_MIN_VERSION 1
+ 
+ struct nd_pfn_sb {
+ 	u8 signature[PFN_SIG_LEN];
+@@ -43,7 +43,10 @@ struct nd_pfn_sb {
+ 	/* minor-version-2 record the base alignment of the mapping */
+ 	__le32 align;
+ 	__le16 min_version;
+-	u8 padding[3998];
++	/* minor-version-3 record the page size and struct page size */
++	__le16 page_struct_size;
++	__le32 page_size;
++	u8 padding[3992];
+ 	__le64 checksum;
+ };
+ 
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index a2268cf262f5..39fa8cf8ef58 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -466,6 +466,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
+ 		pfn_sb->align = 0;
+ 
++	if (__le16_to_cpu(pfn_sb->version_minor) < 3) {
++		/*
++		 * For a large part we use PAGE_SIZE. But we
++		 * do have some accounting code using SZ_4K.
++		 */
++		pfn_sb->page_struct_size = cpu_to_le16(64);
++		pfn_sb->page_size = cpu_to_le32(SZ_4K);
++	}
++
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -481,6 +490,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+ 
++	if (le32_to_cpu(pfn_sb->page_size) != PAGE_SIZE)
++		return -EOPNOTSUPP;
++
++	if (le16_to_cpu(pfn_sb->page_struct_size) != sizeof(struct page))
++		return -EOPNOTSUPP;
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+@@ -775,11 +790,13 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+-	pfn_sb->version_minor = cpu_to_le16(2);
++	pfn_sb->version_minor = cpu_to_le16(3);
+ 	pfn_sb->min_version = cpu_to_le16(PFN_MIN_VERSION);
+ 	pfn_sb->start_pad = cpu_to_le32(start_pad);
+ 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
++	pfn_sb->page_struct_size = cpu_to_le16(sizeof(struct page));
++	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+ 
+-- 
+2.21.0
