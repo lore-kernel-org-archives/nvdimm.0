@@ -1,17 +1,33 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3650621253306
- for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:58 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 16/99] libnvdimm/security: provide fix for
- secure-erase to use zero-key
-Date: Tue,  7 May 2019 01:31:10 -0400
-Message-Id: <20190507053235.29900-16-sashal@kernel.org>
-In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 3EE5E2126D822
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 02:17:05 -0700 (PDT)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x4M92WTX013913
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 05:17:04 -0400
+Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2sn37y154j-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 05:17:03 -0400
+Received: from localhost
+ by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <sathnaga@linux.vnet.ibm.com>;
+ Wed, 22 May 2019 10:17:02 +0100
+Date: Wed, 22 May 2019 14:46:56 +0530
+From: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
+Subject: Re: [RFC PATCH V2 3/3] mm/nvdimm: Use correct #defines instead of
+ opencoding
+References: <20190522082701.6817-1-aneesh.kumar@linux.ibm.com>
+ <20190522082701.6817-3-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190522082701.6817-3-aneesh.kumar@linux.ibm.com>
+Message-Id: <20190522091656.GA19800@sathnaga86.d4t-in.ibmmobiledemo.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,116 +35,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dave Jiang <dave.jiang@intel.com>
+On Wed, May 22, 2019 at 01:57:01PM +0530, Aneesh Kumar K.V wrote:
+> The nfpn related change is needed to fix the kernel message
+> 
+> "number of pfns truncated from 2617344 to 163584"
+> 
+> The change makes sure the nfpns stored in the superblock is right value.
+> 
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  drivers/nvdimm/label.c       | 2 +-
+>  drivers/nvdimm/pfn_devs.c    | 6 +++---
+>  drivers/nvdimm/region_devs.c | 8 ++++----
+>  3 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+> index f3d753d3169c..bc6de8fb0153 100644
+> --- a/drivers/nvdimm/label.c
+> +++ b/drivers/nvdimm/label.c
+> @@ -361,7 +361,7 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
+> 
+>  	/* check that DPA allocations are page aligned */
+>  	if ((__le64_to_cpu(nd_label->dpa)
+> -				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
+> +				| __le64_to_cpu(nd_label->rawsize)) % PAGE_SIZE)
+>  		return false;
+> 
+>  	/* check checksum */
+> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+> index 39fa8cf8ef58..9fc2e514e28a 100644
+> --- a/drivers/nvdimm/pfn_devs.c
+> +++ b/drivers/nvdimm/pfn_devs.c
+> @@ -769,8 +769,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>  		 * when populating the vmemmap. This *should* be equal to
+>  		 * PMD_SIZE for most architectures.
+>  		 */
+> -		offset = ALIGN(start + reserve + 64 * npfns,
+> -				max(nd_pfn->align, PMD_SIZE)) - start;
+> +		offset = ALIGN(start + reserve + sizeof(struct page) * npfns,
+> +			       max(nd_pfn->align, PMD_SIZE)) - start;
+>  	} else if (nd_pfn->mode == PFN_MODE_RAM)
+>  		offset = ALIGN(start + reserve, nd_pfn->align) - start;
+>  	else
+> @@ -782,7 +782,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+>  		return -ENXIO;
+>  	}
+> 
+> -	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
+> +	npfns = (size - offset - start_pad - end_trunc) / PAGE_SIZE;
+>  	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
+>  	pfn_sb->dataoff = cpu_to_le64(offset);
+>  	pfn_sb->npfns = cpu_to_le64(npfns);
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index b4ef7d9ff22e..2d8facea5a03 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -994,10 +994,10 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+>  		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
+>  		struct nvdimm *nvdimm = mapping->nvdimm;
+> 
+> -		if ((mapping->start | mapping->size) % SZ_4K) {
+> -			dev_err(&nvdimm_bus->dev, "%s: %s mapping%d is not 4K aligned\n",
+> -					caller, dev_name(&nvdimm->dev), i);
+> -
+> +		if ((mapping->start | mapping->size) % PAGE_SIZE) {
+> +			dev_err(&nvdimm_bus->dev,
+> +				"%s: %s mapping%d is not 4K aligned\n",
 
-[ Upstream commit 037c8489ade669e0f09ad40d5b91e5e1159a14b1 ]
+s/not 4K aligned/not PAGE_SIZE aligned ?
 
-Add a zero key in order to standardize hardware that want a key of 0's to
-be passed. Some platforms defaults to a zero-key with security enabled
-rather than allow the OS to enable the security. The zero key would allow
-us to manage those platform as well. This also adds a fix to secure erase
-so it can use the zero key to do crypto erase. Some other security commands
-already use zero keys. This introduces a standard zero-key to allow
-unification of semantics cross nvdimm security commands.
+hope the error msg need to be changed as well..
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/nvdimm/security.c        | 17 ++++++++++++-----
- tools/testing/nvdimm/test/nfit.c | 11 +++++++++--
- 2 files changed, 21 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index f8bb746a549f..6bea6852bf27 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -22,6 +22,8 @@ static bool key_revalidate = true;
- module_param(key_revalidate, bool, 0444);
- MODULE_PARM_DESC(key_revalidate, "Require key validation at init.");
- 
-+static const char zero_key[NVDIMM_PASSPHRASE_LEN];
-+
- static void *key_data(struct key *key)
- {
- 	struct encrypted_key_payload *epayload = dereference_key_locked(key);
-@@ -286,8 +288,9 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
- {
- 	struct device *dev = &nvdimm->dev;
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
--	struct key *key;
-+	struct key *key = NULL;
- 	int rc;
-+	const void *data;
- 
- 	/* The bus lock should be held at the top level of the call stack */
- 	lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
-@@ -319,11 +322,15 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
- 		return -EOPNOTSUPP;
- 	}
- 
--	key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
--	if (!key)
--		return -ENOKEY;
-+	if (keyid != 0) {
-+		key = nvdimm_lookup_user_key(nvdimm, keyid, NVDIMM_BASE_KEY);
-+		if (!key)
-+			return -ENOKEY;
-+		data = key_data(key);
-+	} else
-+		data = zero_key;
- 
--	rc = nvdimm->sec.ops->erase(nvdimm, key_data(key), pass_type);
-+	rc = nvdimm->sec.ops->erase(nvdimm, data, pass_type);
- 	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
- 			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
- 			rc == 0 ? "success" : "fail");
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index b579f962451d..cad719876ef4 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -225,6 +225,8 @@ static struct workqueue_struct *nfit_wq;
- 
- static struct gen_pool *nfit_pool;
- 
-+static const char zero_key[NVDIMM_PASSPHRASE_LEN];
-+
- static struct nfit_test *to_nfit_test(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
-@@ -1059,8 +1061,7 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 	struct device *dev = &t->pdev.dev;
- 	struct nfit_test_sec *sec = &dimm_sec_info[dimm];
- 
--	if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED) ||
--			(sec->state & ND_INTEL_SEC_STATE_FROZEN)) {
-+	if (sec->state & ND_INTEL_SEC_STATE_FROZEN) {
- 		nd_cmd->status = ND_INTEL_STATUS_INVALID_STATE;
- 		dev_dbg(dev, "secure erase: wrong security state\n");
- 	} else if (memcmp(nd_cmd->passphrase, sec->passphrase,
-@@ -1068,6 +1069,12 @@ static int nd_intel_test_cmd_secure_erase(struct nfit_test *t,
- 		nd_cmd->status = ND_INTEL_STATUS_INVALID_PASS;
- 		dev_dbg(dev, "secure erase: wrong passphrase\n");
- 	} else {
-+		if (!(sec->state & ND_INTEL_SEC_STATE_ENABLED)
-+				&& (memcmp(nd_cmd->passphrase, zero_key,
-+					ND_INTEL_PASSPHRASE_SIZE) != 0)) {
-+			dev_dbg(dev, "invalid zero key\n");
-+			return 0;
-+		}
- 		memset(sec->passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
- 		memset(sec->master_passphrase, 0, ND_INTEL_PASSPHRASE_SIZE);
- 		sec->state = 0;
--- 
-2.20.1
+Regards,
+-Satheesh.
+> +				caller, dev_name(&nvdimm->dev), i);
+>  			return NULL;
+>  		}
+> 
+> -- 
+> 2.21.0
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
