@@ -1,15 +1,31 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 01C642125ADD1
- for <linux-nvdimm@lists.01.org>; Tue, 14 May 2019 07:57:46 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v9 4/7] dm: enable synchronous dax
-Date: Tue, 14 May 2019 20:24:19 +0530
-Message-Id: <20190514145422.16923-5-pagupta@redhat.com>
-In-Reply-To: <20190514145422.16923-1-pagupta@redhat.com>
-References: <20190514145422.16923-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 41CC721959CB2
+ for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 23:21:13 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x4M6HInE047221
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 02:21:12 -0400
+Received: from e17.ny.us.ibm.com (e17.ny.us.ibm.com [129.33.205.207])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2smyx6jr7t-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 02:21:12 -0400
+Received: from localhost
+ by e17.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Wed, 22 May 2019 07:21:11 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [RFC PATCH 2/3] mm/nvdimm: Add page size and struct page size to pfn
+ superblock
+Date: Wed, 22 May 2019 11:50:56 +0530
+In-Reply-To: <20190522062057.26581-1-aneesh.kumar@linux.ibm.com>
+References: <20190522062057.26581-1-aneesh.kumar@linux.ibm.com>
+MIME-Version: 1.0
+Message-Id: <20190522062057.26581-2-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,64 +33,104 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: jack@suse.cz, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
- This patch sets dax device 'DAXDEV_SYNC' flag if all the target
- devices of device mapper support synchrononous DAX. If device
- mapper consists of both synchronous and asynchronous dax devices,
- we don't set 'DAXDEV_SYNC' flag. 
+This is needed so that we don't wrongly initialize a namespace
+which doesn't have enough space reserved for holding struct pages
+with the current kernel.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+We also increment PFN_MIN_VERSION to make sure that older kernel
+won't initialize namespace created with newer kernel.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- drivers/md/dm-table.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/nvdimm/pfn.h      |  9 ++++++---
+ drivers/nvdimm/pfn_devs.c | 19 ++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index cde3b49b2a91..1cce626ff576 100644
---- a/drivers/md/dm-table.c
-+++ b/drivers/md/dm-table.c
-@@ -886,10 +886,17 @@ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 	return bdev_dax_supported(dev->bdev, PAGE_SIZE);
- }
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index 1b10ae5773b6..ba11738ca8a2 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -25,7 +25,7 @@
+  * kernel should fail to initialize that namespace.
+  */
  
-+static int device_synchronous(struct dm_target *ti, struct dm_dev *dev,
-+			       sector_t start, sector_t len, void *data)
-+{
-+	return dax_synchronous(dev->dax_dev);
-+}
+-#define PFN_MIN_VERSION 0
++#define PFN_MIN_VERSION 1
+ 
+ struct nd_pfn_sb {
+ 	u8 signature[PFN_SIG_LEN];
+@@ -42,8 +42,11 @@ struct nd_pfn_sb {
+ 	__le32 end_trunc;
+ 	/* minor-version-2 record the base alignment of the mapping */
+ 	__le32 align;
+-	__le16 min_verison;
+-	u8 padding[3998];
++	__le16 min_version;
++	/* minor-version-3 record the page size and struct page size */
++	__le16 page_struct_size;
++	__le32 page_size;
++	u8 padding[3992];
+ 	__le64 checksum;
+ };
+ 
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 3250de70a7b3..94918a4e6e73 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -462,6 +462,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
+ 		pfn_sb->align = 0;
+ 
++	if (__le16_to_cpu(pfn_sb->version_minor) < 3) {
++		/*
++		 * For a large part we use PAGE_SIZE. But we
++		 * do have some accounting code using SZ_4K.
++		 */
++		pfn_sb->page_struct_size = cpu_to_le16(64);
++		pfn_sb->page_size = cpu_to_le32(SZ_4K);
++	}
 +
- static bool dm_table_supports_dax(struct dm_table *t)
- {
- 	struct dm_target *ti;
- 	unsigned i;
-+	bool dax_sync = true;
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -477,6 +486,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
  
- 	/* Ensure that all targets support DAX. */
- 	for (i = 0; i < dm_table_get_num_targets(t); i++) {
-@@ -901,7 +908,14 @@ static bool dm_table_supports_dax(struct dm_table *t)
- 		if (!ti->type->iterate_devices ||
- 		    !ti->type->iterate_devices(ti, device_supports_dax, NULL))
- 			return false;
++	if (le32_to_cpu(pfn_sb->page_size) != PAGE_SIZE)
++		return -EOPNOTSUPP;
 +
-+		/* Check devices support synchronous DAX */
-+		if (dax_sync &&
-+		    !ti->type->iterate_devices(ti, device_synchronous, NULL))
-+			dax_sync = false;
- 	}
-+	if (dax_sync)
-+		set_dax_synchronous(t->md->dax_dev);
++	if (le16_to_cpu(pfn_sb->page_struct_size) != sizeof(struct page))
++		return -EOPNOTSUPP;
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+@@ -771,11 +786,13 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+-	pfn_sb->version_minor = cpu_to_le16(2);
++	pfn_sb->version_minor = cpu_to_le16(3);
+ 	pfn_sb->min_version = cpu_to_le16(PFN_MIN_VERSION);
+ 	pfn_sb->start_pad = cpu_to_le32(start_pad);
+ 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
++	pfn_sb->page_struct_size = cpu_to_le16(sizeof(struct page));
++	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
  
- 	return true;
- }
 -- 
-2.20.1
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
