@@ -1,14 +1,24 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] libnvdimm/pmem: Bypass CONFIG_HARDENED_USERCOPY
- overhead
-Date: Wed, 22 May 2019 01:23:47 +0000
-Message-ID: <20190522012348.AF43621841@mail.kernel.org>
-References: <155837931725.876528.6291628638777172042.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/17] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Wed, 22 May 2019 14:38:48 -0700
+Message-ID: <CAFd5g476Hc+6jL5sV=VJamXCbqGebwHqqN9N9RppQYMCoo052Q__6921.73972945369$1558561154$gmane$org@mail.gmail.com>
+References: <20190509133551.GD29703@mit.edu>
+ <ECADFF3FD767C149AD96A924E7EA6EAF9770D591@USCULXMSG01.am.sony.com>
+ <875c546d-9713-bb59-47e4-77a1d2c69a6d@gmail.com>
+ <20190509214233.GA20877@mit.edu>
+ <80c72e64-2665-bd51-f78c-97f50f9a53ba@gmail.com>
+ <20190511173344.GA8507@mit.edu>
+ <20190513144451.GQ17751@phenom.ffwll.local>
+ <20190514060433.GA181462@google.com>
+ <CAKMK7uHqtSF_sazJTbFL+xmQJRk4iwukCKZHoDHhsKkLXk=ECQ@mail.gmail.com>
+ <20190514183618.GC109557@google.com>
+ <20190515074141.GY17751@phenom.ffwll.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <155837931725.876528.6291628638777172042.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20190515074141.GY17751-dv86pmgwkMBes7Z6vYuT8azUEOm+Xw19@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,31 +28,168 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Bird, Timothy" <Tim.Bird-7U/KSKJipcs@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Kees Cook <keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, "Luis R. Rodriguez" <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Linux Doc Mailing List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild <linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-u
+Cc: Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-Hi,
++Bjorn Helgaas
 
-[This is an automated email]
+On Wed, May 15, 2019 at 12:41 AM Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org> wrote:
+>
+> On Tue, May 14, 2019 at 11:36:18AM -0700, Brendan Higgins wrote:
+> > On Tue, May 14, 2019 at 02:05:05PM +0200, Daniel Vetter wrote:
+> > > On Tue, May 14, 2019 at 8:04 AM Brendan Higgins
+> > > <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
+> > > >
+> > > > On Mon, May 13, 2019 at 04:44:51PM +0200, Daniel Vetter wrote:
+> > > > > On Sat, May 11, 2019 at 01:33:44PM -0400, Theodore Ts'o wrote:
+> > > > > > On Fri, May 10, 2019 at 02:12:40PM -0700, Frank Rowand wrote:
+> > > > > > > However, the reply is incorrect.  Kselftest in-kernel tests (which
+> > > > > > > is the context here) can be configured as built in instead of as
+> > > > > > > a module, and built in a UML kernel.  The UML kernel can boot,
+> > > > > > > running the in-kernel tests before UML attempts to invoke the
+> > > > > > > init process.
+> > > > > >
+> > > > > > Um, Citation needed?
+> > > > > >
+> > > > > > I don't see any evidence for this in the kselftest documentation, nor
+> > > > > > do I see any evidence of this in the kselftest Makefiles.
+> > > > > >
+> > > > > > There exists test modules in the kernel that run before the init
+> > > > > > scripts run --- but that's not strictly speaking part of kselftests,
+> > > > > > and do not have any kind of infrastructure.  As noted, the
+> > > > > > kselftests_harness header file fundamentally assumes that you are
+> > > > > > running test code in userspace.
+> > > > >
+> > > > > Yeah I really like the "no userspace required at all" design of kunit,
+> > > > > while still collecting results in a well-defined way (unless the current
+> > > > > self-test that just run when you load the module, with maybe some
+> > > > > kselftest ad-hoc wrapper around to collect the results).
+> > > > >
+> > > > > What I want to do long-term is to run these kernel unit tests as part of
+> > > > > the build-testing, most likely in gitlab (sooner or later, for drm.git
+> > > >
+> > > > Totally! This is part of the reason I have been insisting on a minimum
+> > > > of UML compatibility for all unit tests. If you can suffiently constrain
+> > > > the environment that is required for tests to run in, it makes it much
+> > > > easier not only for a human to run your tests, but it also makes it a
+> > > > lot easier for an automated service to be able to run your tests.
+> > > >
+> > > > I actually have a prototype presubmit already working on my
+> > > > "stable/non-upstream" branch. You can checkout what presubmit results
+> > > > look like here[1][2].
+> > >
+> > > ug gerrit :-)
+> >
+> > Yeah, yeah, I know, but it is a lot easier for me to get a project set
+> > up here using Gerrit, when we already use that for a lot of other
+> > projects.
+> >
+> > Also, Gerrit has gotten a lot better over the last two years or so. Two
+> > years ago, I wouldn't touch it with a ten foot pole. It's not so bad
+> > anymore, at least if you are used to using a web UI to review code.
+>
+> I was somewhat joking, I'm just not used to gerrit ... And seems to indeed
+> be a lot more polished than last time I looked at it seriously.
 
-This commit has been processed because it contains a "Fixes:" tag,
-fixing commit: 0aed55af8834 x86, uaccess: introduce copy_from_iter_flushcache for pmem / cache-bypass operations.
+I mean, it is still not perfect, but I think it has finally gotten to
+the point where I prefer it over reviewing by email for high context
+patches where you don't expect a lot of deep discussion.
 
-The bot has tested the following trees: v5.1.3, v5.0.17, v4.19.44, v4.14.120.
+Still not great for patches where you want to have a lot of discussion.
 
-v5.1.3: Build OK!
-v5.0.17: Build OK!
-v4.19.44: Build OK!
-v4.14.120: Failed to apply! Possible dependencies:
-    6dfdb2b6d877 ("pmem: Switch to copy_to_iter_mcsafe()")
-    976431b02c2e ("dax, dm: allow device-mapper to operate without dax support")
-    98d82f48f198 ("dm log writes: add support for DAX")
-    b3a9a0c36e1f ("dax: Introduce a ->copy_to_iter dax operation")
+> > > > > only ofc). So that people get their pull requests (and patch series, we
+> > > > > have some ideas to tie this into patchwork) automatically tested for this
+> > > >
+> > > > Might that be Snowpatch[3]? I talked to Russell, the creator of Snowpatch,
+> > > > and he seemed pretty open to collaboration.
+> > > >
+> > > > Before I heard about Snowpatch, I had an intern write a translation
+> > > > layer that made Prow (the presubmit service that I used in the prototype
+> > > > above) work with LKML[4].
+> > >
+> > > There's about 3-4 forks/clones of patchwork. snowpatch is one, we have
+> > > a different one on freedesktop.org. It's a bit a mess :-/
 
+I think Snowpatch is an ozlabs project; at least the maintainer works at IBM.
 
-How should we proceed with this patch?
+Patchwork originally was a ozlabs project, right?
 
---
-Thanks,
-Sasha
+Has any discussion taken place trying to consolidate some of the forks?
+
+Presubmit clearly seems like a feature that a number of people want.
+
+> > Oh, I didn't realize that. I found your patchwork instance here[5], but
+> > do you have a place where I can see the changes you have added to
+> > support presubmit?
+>
+> Ok here's a few links. Aside from the usual patch view we've also added a
+> series view:
+>
+> https://patchwork.freedesktop.org/project/intel-gfx/series/?ordering=-last_updated
+>
+> This ties the patches + cover letter together, and it even (tries to at
+> least) track revisions. Here's an example which is currently at revision
+> 9:
+>
+> https://patchwork.freedesktop.org/series/57232/
+
+Oooh, nice! That looks awesome! Looks like you have a number of presubmits too.
+
+> Below the patch list for each revision we also have the test result list.
+> If you click on the grey bar it'll expand with the summary from CI, the
+> "See full logs" is link to the full results from our CI. This is driven
+> with some REST api from our jenkins.
+>
+> Patchwork also sends out mails for these results.
+
+Nice! There are obviously a lot of other bots on various kernel
+mailing lists. Do you think people would object to sending presubmit
+results to the mailing lists by default?
+
+> Source is on gitlab: https://gitlab.freedesktop.org/patchwork-fdo
+
+Err, looks like you forked from the ozlab's repo a good while ago.
+
+Still, this all looks great!
+
+> > > > I am not married to either approach, but I think between the two of
+> > > > them, most of the initial legwork has been done to make presubmit on
+> > > > LKML a reality.
+> > >
+> > > We do have presubmit CI working already with our freedesktop.org
+> > > patchwork. The missing glue is just tying that into gitlab CI somehow
+> > > (since we want to unify build testing more and make it easier for
+> > > contributors to adjust things).
+> >
+> > I checked out a couple of your projects on your patchwork instance: AMD
+> > X.Org drivers, DRI devel, and Wayland. I saw the tab you added for
+> > tests, but none of them actually had any test results. Can you point me
+> > at one that does?
+>
+> Atm we use the CI stuff only on intel-gfx, with the our gpu CI farm, see
+> links above.
+>
+> Cheers, Daniel
+>
+> >
+> > Cheers!
+> >
+> > [5] https://patchwork.freedesktop.org/
+> >
+> > > > > super basic stuff.
+> > > >
+> > > > I am really excited to hear back on what you think!
+> > > >
+> > > > Cheers!
+> > > >
+> > > > [1] https://kunit-review.googlesource.com/c/linux/+/1509/10#message-7bfa40efb132e15c8388755c273837559911425c
+> > > > [2] https://kunit-review.googlesource.com/c/linux/+/1509/10#message-a6784496eafff442ac98fb068bf1a0f36ee73509
+> > > > [3] https://developer.ibm.com/open/projects/snowpatch/
+> > > > [4] https://kunit.googlesource.com/prow-lkml/
+> > > > _______________________________________________
+> > > > dri-devel mailing list
+> > > > dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+> > > > https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+Cheers!
