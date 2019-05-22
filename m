@@ -1,16 +1,38 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8030521265783
- for <linux-nvdimm@lists.01.org>; Wed, 15 May 2019 12:27:32 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v2 04/30] fuse: export fuse_end_request()
-Date: Wed, 15 May 2019 15:26:49 -0400
-Message-Id: <20190515192715.18000-5-vgoyal@redhat.com>
-In-Reply-To: <20190515192715.18000-1-vgoyal@redhat.com>
-References: <20190515192715.18000-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5393521276749
+ for <linux-nvdimm@lists.01.org>; Tue, 21 May 2019 22:41:28 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x4M5b1wc097808
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 01:41:27 -0400
+Received: from e31.co.us.ibm.com (e31.co.us.ibm.com [32.97.110.149])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2smyx6h9tp-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 22 May 2019 01:41:27 -0400
+Received: from localhost
+ by e31.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Wed, 22 May 2019 06:41:27 +0100
+Subject: Re: [PATCH] mm/nvdimm: Use correct #defines instead of opencoding
+References: <20190514025604.9997-1-aneesh.kumar@linux.ibm.com>
+ <CAPcyv4iNgFbSq0Hqb+CStRhGWMHfXx7tL3vrDaQ95DcBBY8QCQ@mail.gmail.com>
+ <f99c4f11-a43d-c2d3-ab4f-b7072d090351@linux.ibm.com>
+ <CAPcyv4gOr8SFbdtBbWhMOU-wdYuMCQ4Jn2SznGRsv6Vku97Xnw@mail.gmail.com>
+ <02d1d14d-650b-da38-0828-1af330f594d5@linux.ibm.com>
+ <CAPcyv4jcSgg0wxY9FAM4ke9JzVc9Pu3qe6dviS3seNgHfG2oNw@mail.gmail.com>
+ <87mujgcf0h.fsf@linux.ibm.com>
+ <CAPcyv4j5Y+AFkbvYjDnfqTdmN_Sq=O0qfGUorgpjAE8Ww7vH=A@mail.gmail.com>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Date: Wed, 22 May 2019 11:11:19 +0530
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4j5Y+AFkbvYjDnfqTdmN_Sq=O0qfGUorgpjAE8Ww7vH=A@mail.gmail.com>
+Content-Language: en-US
+Message-Id: <d328ce41-4a65-c35e-72d7-74e722795428@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,133 +40,51 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, kvm@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: swhiteho@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux MM <linux-mm@kvack.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Stefan Hajnoczi <stefanha@redhat.com>
+On 5/21/19 9:37 PM, Dan Williams wrote:
+> On Tue, May 21, 2019 at 2:51 AM Aneesh Kumar K.V
+> <aneesh.kumar@linux.ibm.com> wrote:
 
-virtio-fs will need to complete requests from outside fs/fuse/dev.c.
-Make the symbol visible.
 
-Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
----
- fs/fuse/dev.c    | 19 ++++++++++---------
- fs/fuse/fuse_i.h |  5 +++++
- 2 files changed, 15 insertions(+), 9 deletions(-)
+....
 
-diff --git a/fs/fuse/dev.c b/fs/fuse/dev.c
-index 9971a35cf1ef..46d1aecd7506 100644
---- a/fs/fuse/dev.c
-+++ b/fs/fuse/dev.c
-@@ -427,7 +427,7 @@ static void flush_bg_queue(struct fuse_conn *fc)
-  * the 'end' callback is called if given, else the reference to the
-  * request is released
-  */
--static void request_end(struct fuse_conn *fc, struct fuse_req *req)
-+void fuse_request_end(struct fuse_conn *fc, struct fuse_req *req)
- {
- 	struct fuse_iqueue *fiq = &fc->iq;
- 
-@@ -480,6 +480,7 @@ static void request_end(struct fuse_conn *fc, struct fuse_req *req)
- put_request:
- 	fuse_put_request(fc, req);
- }
-+EXPORT_SYMBOL_GPL(fuse_request_end);
- 
- static int queue_interrupt(struct fuse_iqueue *fiq, struct fuse_req *req)
- {
-@@ -567,12 +568,12 @@ static void __fuse_request_send(struct fuse_conn *fc, struct fuse_req *req)
- 		req->in.h.unique = fuse_get_unique(fiq);
- 		queue_request(fiq, req);
- 		/* acquire extra reference, since request is still needed
--		   after request_end() */
-+		   after fuse_request_end() */
- 		__fuse_get_request(req);
- 		spin_unlock(&fiq->waitq.lock);
- 
- 		request_wait_answer(fc, req);
--		/* Pairs with smp_wmb() in request_end() */
-+		/* Pairs with smp_wmb() in fuse_request_end() */
- 		smp_rmb();
- 	}
- }
-@@ -1302,7 +1303,7 @@ __releases(fiq->waitq.lock)
-  * the pending list and copies request data to userspace buffer.  If
-  * no reply is needed (FORGET) or request has been aborted or there
-  * was an error during the copying then it's finished by calling
-- * request_end().  Otherwise add it to the processing list, and set
-+ * fuse_request_end().  Otherwise add it to the processing list, and set
-  * the 'sent' flag.
-  */
- static ssize_t fuse_dev_do_read(struct fuse_dev *fud, struct file *file,
-@@ -1362,7 +1363,7 @@ static ssize_t fuse_dev_do_read(struct fuse_dev *fud, struct file *file,
- 		/* SETXATTR is special, since it may contain too large data */
- 		if (in->h.opcode == FUSE_SETXATTR)
- 			req->out.h.error = -E2BIG;
--		request_end(fc, req);
-+		fuse_request_end(fc, req);
- 		goto restart;
- 	}
- 	spin_lock(&fpq->lock);
-@@ -1405,7 +1406,7 @@ static ssize_t fuse_dev_do_read(struct fuse_dev *fud, struct file *file,
- 	if (!test_bit(FR_PRIVATE, &req->flags))
- 		list_del_init(&req->list);
- 	spin_unlock(&fpq->lock);
--	request_end(fc, req);
-+	fuse_request_end(fc, req);
- 	return err;
- 
-  err_unlock:
-@@ -1913,7 +1914,7 @@ static int copy_out_args(struct fuse_copy_state *cs, struct fuse_out *out,
-  * the write buffer.  The request is then searched on the processing
-  * list by the unique ID found in the header.  If found, then remove
-  * it from the list and copy the rest of the buffer to the request.
-- * The request is finished by calling request_end()
-+ * The request is finished by calling fuse_request_end().
-  */
- static ssize_t fuse_dev_do_write(struct fuse_dev *fud,
- 				 struct fuse_copy_state *cs, size_t nbytes)
-@@ -2000,7 +2001,7 @@ static ssize_t fuse_dev_do_write(struct fuse_dev *fud,
- 		list_del_init(&req->list);
- 	spin_unlock(&fpq->lock);
- 
--	request_end(fc, req);
-+	fuse_request_end(fc, req);
- out:
- 	return err ? err : nbytes;
- 
-@@ -2140,7 +2141,7 @@ static void end_requests(struct fuse_conn *fc, struct list_head *head)
- 		req->out.h.error = -ECONNABORTED;
- 		clear_bit(FR_SENT, &req->flags);
- 		list_del_init(&req->list);
--		request_end(fc, req);
-+		fuse_request_end(fc, req);
- 	}
- }
- 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 0920c0c032a0..c4584c873b87 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -949,6 +949,11 @@ ssize_t fuse_simple_request(struct fuse_conn *fc, struct fuse_args *args);
- void fuse_request_send_background(struct fuse_conn *fc, struct fuse_req *req);
- bool fuse_request_queue_background(struct fuse_conn *fc, struct fuse_req *req);
- 
-+/**
-+ * End a finished request
-+ */
-+void fuse_request_end(struct fuse_conn *fc, struct fuse_req *req);
-+
- /* Abort all requests */
- void fuse_abort_conn(struct fuse_conn *fc);
- void fuse_wait_aborted(struct fuse_conn *fc);
--- 
-2.20.1
+>>
+>> Something like the below (Not tested). I am not sure what we will init the page_size
+>> for minor version < 3. This will mark the namespace disabled if the
+>> PAGE_SIZE and sizeof(struct page) doesn't match with the values used
+>> during namespace create.
+> 
+> Yes, this is on the right track.
+> 
+> I would special-case page_size == 0 as 4096 and page_struct_size == 0
+> as 64. If either of those is non-zero then the info-block version
+> needs to be revved and it needs to be crafted to make older kernels
+> fail to parse it.
+> 
+
+page_size = SZ_4K implies we fail to enable namesepaces created on ppc64 
+till now. We do work fine with page_size = PAGE_SIZE. It is a few error 
+check and pfn_sb->npfns that got wrong values. We do reserve the correct 
+space for the required pfns even when we recorded wrong pfn_sb->npfs.
+
+
+> There was an earlier attempt to implement minimum info-block versions here:
+> 
+> https://lore.kernel.org/lkml/155000670159.348031.17631616775326330606.stgit@dwillia2-desk3.amr.corp.intel.com/
+> 
+> ...but that was dropped in favor of the the "sub-section" patches.
+> 
+
+Ok i will pick that too.
+
+-aneesh
 
 _______________________________________________
 Linux-nvdimm mailing list
