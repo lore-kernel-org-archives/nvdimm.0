@@ -1,114 +1,115 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Subject: [PATCH v2 0/8] EFI Specific Purpose Memory Support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 May 2019 15:59:22 -0700
-Message-ID: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 57CA4212532F0
+ for <linux-nvdimm@lists.01.org>; Thu, 23 May 2019 06:38:44 -0700 (PDT)
+Date: Thu, 23 May 2019 15:38:41 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 10/18] dax: replace mmap entry in case of CoW
+Message-ID: <20190523133841.GB2949@quack2.suse.cz>
+References: <20190429172649.8288-1-rgoldwyn@suse.de>
+ <20190429172649.8288-11-rgoldwyn@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <20190429172649.8288-11-rgoldwyn@suse.de>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: owner-linux-mm@kvack.org
-To: linux-efi@vger.kernel.org
-Cc: Dave Jiang <dave.jiang@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Keith Busch <keith.busch@intel.com>, Andy Shevchenko <andy@infradead.org>, Borislav Petkov <bp@alien8.de>, Vishal Verma <vishal.l.verma@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>, kbuild test robot <lkp@intel.com>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, Matthew Wilcox <willy@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Darren Hart <dvhart@infradead.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.orgx86@kernel.org, linux-nvdimm@lists.01.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: kilobyte@angband.pl, jack@suse.cz, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since the initial RFC [1]
-* Split the generic detection of the attribute from any policy /
-  mechanism that leverages the EFI_MEMORY_SP designation (Ard).
+On Mon 29-04-19 12:26:41, Goldwyn Rodrigues wrote:
+> From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> 
+> We replace the existing entry to the newly allocated one
+> in case of CoW. Also, we mark the entry as PAGECACHE_TAG_TOWRITE
+> so writeback marks this entry as writeprotected. This
+> helps us snapshots so new write pagefaults after snapshots
+> trigger a CoW.
 
-* Various cleanups to the lib/memregion implementation (Willy)
+I don't understand why do you need to mark the new entry with
+PAGECACHE_TAG_TOWRITE. dax_insert_entry() will unmap the entry from all
+page tables so what's there left to writeprotect?
 
-* Rebase on v5.2-rc2
+>  /*
+>   * By this point grab_mapping_entry() has ensured that we have a locked entry
+>   * of the appropriate size so we don't have to worry about downgrading PMDs to
+> @@ -709,14 +712,17 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+>   */
+>  static void *dax_insert_entry(struct xa_state *xas,
+>  		struct address_space *mapping, struct vm_fault *vmf,
+> -		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
+> +		void *entry, pfn_t pfn, unsigned long flags,
+> +		unsigned long insert_flags)
+>  {
+>  	void *new_entry = dax_make_entry(pfn, flags);
+> +	bool dirty = insert_flags & DAX_IF_DIRTY;
+> +	bool cow = insert_flags & DAX_IF_COW;
 
-* Several fixes resulting from testing with efi_fake_mem and the
-  work-in-progress patches that add HMAT support to qemu. Details in
-  patch3 and patch8.
+Does 'cow' really need to be a separate flag? dax_insert_entry() can just
+figure out the right thing to do on its own based on old entry value and
+new entry to be inserted...
 
-[1]: https://lore.kernel.org/lkml/155440490809.3190322.15060922240602775809.stgit@dwillia2-desk3.amr.corp.intel.com/
+>  
+>  	if (dirty)
+>  		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+>  
+> -	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
+> +	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
 
----
+E.g. here we need to unmap if old entry is not 'empty' and the pfns differ
+(well, the pfns differ check should better be done like I outline below to
+make pmd + pte match work correctly).
 
-The EFI 2.8 Specification [2] introduces the EFI_MEMORY_SP ("specific
-purpose") memory attribute. This attribute bit replaces the deprecated
-ACPI HMAT "reservation hint" that was introduced in ACPI 6.2 and removed
-in ACPI 6.3.
+>  		unsigned long index = xas->xa_index;
+>  		/* we are replacing a zero page with block mapping */
+>  		if (dax_is_pmd_entry(entry))
+> @@ -728,12 +734,12 @@ static void *dax_insert_entry(struct xa_state *xas,
+>  
+>  	xas_reset(xas);
+>  	xas_lock_irq(xas);
+> -	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
+> +	if (cow || (dax_entry_size(entry) != dax_entry_size(new_entry))) {
 
-Given the increasing diversity of memory types that might be advertised
-to the operating system, there is a need for platform firmware to hint
-which memory ranges are free for the OS to use as general purpose memory
-and which ranges are intended for application specific usage. For
-example, an application with prior knowledge of the platform may expect
-to be able to exclusively allocate a precious / limited pool of high
-bandwidth memory. Alternatively, for the general purpose case, the
-operating system may want to make the memory available on a best effort
-basis as a unique numa-node with performance properties by the new
-CONFIG_HMEM_REPORTING [3] facility.
+This needs to be done if entries are different at all...
 
-In support of optionally allowing either application-exclusive and
-core-kernel-mm managed access to differentiated memory, claim
-EFI_MEMORY_SP ranges for exposure as device-dax instances by default.
-Such instances can be directly owned / mapped by a
-platform-topology-aware application. Alternatively, with the new kmem
-facility [4], the administrator has the option to instead designate that
-those memory ranges be hot-added to the core-kernel-mm as a unique
-memory numa-node. In short, allow for the decision about what software
-agent manages specific-purpose memory to be made at runtime.
+>  		dax_disassociate_entry(entry, mapping, false);
+>  		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+>  	}
+>  
+> -	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+> +	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
 
-The patches are based on the new HMAT+HMEM_REPORTING facilities merged
-for v5.2-rc1. The implementation is tested with qemu emulation of HMAT
-[5] plus the efi_fake_mem facility for applying the EFI_MEMORY_SP
-attribute.
+This is the only place that will be a bit more subtle - you need to check
+whether the new entry is not a subset of the old one (i.e., a PTE inside a
+PMD) and skip setting in that case. So something like:
 
-[2]: https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
-[3]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e1cf33aafb84
-[4]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c221c0b0308f
-[5]: http://patchwork.ozlabs.org/cover/1096737/
-
----
-
-Dan Williams (8):
-      acpi: Drop drivers/acpi/hmat/ directory
-      acpi/hmat: Skip publishing target info for nodes with no online memory
-      efi: Enumerate EFI_MEMORY_SP
-      x86, efi: Reserve UEFI 2.8 Specific Purpose Memory for dax
-      lib/memregion: Uplevel the pmem "region" ida to a global allocator
-      device-dax: Add a driver for "hmem" devices
-      acpi/hmat: Register HMAT at device_initcall level
-      acpi/hmat: Register "specific purpose" memory as an "hmem" device
+	if (xa_to_value(new_entry) | DAX_LOCKED == xa_to_value(entry) ||
+	    (dax_is_pmd_entry(entry) && dax_is_pte_entry(new_entry) &&
+	     dax_to_pfn(entry) + (xas->xa_index & PG_PMD_COLOUR) ==
+	     dax_to_pfn(new_entry))) {
+		/* New entry is a subset of the current one? Skip update... */
+		xas_load(xas);
+	} else {
+		do work...
+	}
 
 
- arch/x86/Kconfig                  |   20 +++++
- arch/x86/boot/compressed/eboot.c  |    5 +
- arch/x86/boot/compressed/kaslr.c  |    2
- arch/x86/include/asm/e820/types.h |    9 ++
- arch/x86/kernel/e820.c            |    9 ++
- arch/x86/kernel/setup.c           |    1
- arch/x86/platform/efi/efi.c       |   37 ++++++++-
- drivers/acpi/Kconfig              |   13 +++
- drivers/acpi/Makefile             |    2
- drivers/acpi/hmat.c               |  149 +++++++++++++++++++++++++++++++++----
- drivers/acpi/hmat/Kconfig         |   11 ---
- drivers/acpi/hmat/Makefile        |    2
- drivers/acpi/numa.c               |   15 +++-
- drivers/dax/Kconfig               |   27 +++++--
- drivers/dax/Makefile              |    2
- drivers/dax/hmem.c                |   58 ++++++++++++++
- drivers/firmware/efi/efi.c        |    5 +
- drivers/nvdimm/Kconfig            |    1
- drivers/nvdimm/core.c             |    1
- drivers/nvdimm/nd-core.h          |    1
- drivers/nvdimm/region_devs.c      |   13 +--
- include/linux/efi.h               |   15 ++++
- include/linux/ioport.h            |    1
- include/linux/memblock.h          |    7 ++
- include/linux/memregion.h         |   11 +++
- lib/Kconfig                       |    7 ++
- lib/Makefile                      |    1
- lib/memregion.c                   |   15 ++++
- mm/memblock.c                     |    4 +
- 29 files changed, 387 insertions(+), 57 deletions(-)
- rename drivers/acpi/{hmat/hmat.c => hmat.c} (81%)
- delete mode 100644 drivers/acpi/hmat/Kconfig
- delete mode 100644 drivers/acpi/hmat/Makefile
- create mode 100644 drivers/dax/hmem.c
- create mode 100644 include/linux/memregion.h
- create mode 100644 lib/memregion.c
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
