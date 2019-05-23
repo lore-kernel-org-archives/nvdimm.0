@@ -1,100 +1,27 @@
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: Re: [PATCH 03/18] btrfs: basic dax read
-Date: Wed, 22 May 2019 16:50:31 -0500
-Message-ID: <20190522215031.p2zmos3usl2pigwj@fiona>
-References: <20190429172649.8288-1-rgoldwyn@suse.de>
- <20190429172649.8288-4-rgoldwyn@suse.de>
- <20190521151445.GA5125@magnolia>
+From: =?utf-8?B?5Y+y5aWz5aOr?= <tqz-ZfIFN8aKUss@public.gmane.org>
+Subject: =?utf-8?B?5Y+y5aWz5aOrL+WmguS9leWunueOsOS4mue7qeeahOeqgeegtO+8jOWwpOWFtuaYr+mSiOWvueWkpw==?=
+ =?utf-8?B?5a6i5oi3?=
+Date: Thu, 23 May 2019 09:50:32 +0800
+Message-ID: <BDA812ADC46D214F5947A319E7C9D2D0@jc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-btrfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190521151445.GA5125@magnolia>
-Sender: linux-btrfs-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: linux-btrfs@vger.kernel.org, kilobyte@angband.pl, linux-fsdevel@vger.kernel.org, jack@suse.cz, david@fromorbit.com, willy@infradead.org, hch@lst.de, dsterba@suse.cz, nborisov@suse.com, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On  8:14 21/05, Darrick J. Wong wrote:
-> On Mon, Apr 29, 2019 at 12:26:34PM -0500, Goldwyn Rodrigues wrote:
-> > From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > 
-> > Perform a basic read using iomap support. The btrfs_iomap_begin()
-> > finds the extent at the position and fills the iomap data
-> > structure with the values.
-> > 
-> > Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > ---
-> >  fs/btrfs/Makefile |  1 +
-> >  fs/btrfs/ctree.h  |  5 +++++
-> >  fs/btrfs/dax.c    | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
-> >  fs/btrfs/file.c   | 11 ++++++++++-
-> >  4 files changed, 65 insertions(+), 1 deletion(-)
-> >  create mode 100644 fs/btrfs/dax.c
-> > 
-> > diff --git a/fs/btrfs/Makefile b/fs/btrfs/Makefile
-> > index ca693dd554e9..1fa77b875ae9 100644
-> > --- a/fs/btrfs/Makefile
-> > +++ b/fs/btrfs/Makefile
-> > @@ -12,6 +12,7 @@ btrfs-y += super.o ctree.o extent-tree.o print-tree.o root-tree.o dir-item.o \
-> >  	   reada.o backref.o ulist.o qgroup.o send.o dev-replace.o raid56.o \
-> >  	   uuid-tree.o props.o free-space-tree.o tree-checker.o
-> >  
-> > +btrfs-$(CONFIG_FS_DAX) += dax.o
-> >  btrfs-$(CONFIG_BTRFS_FS_POSIX_ACL) += acl.o
-> >  btrfs-$(CONFIG_BTRFS_FS_CHECK_INTEGRITY) += check-integrity.o
-> >  btrfs-$(CONFIG_BTRFS_FS_REF_VERIFY) += ref-verify.o
-> > diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
-> > index 9512f49262dd..b7bbe5130a3b 100644
-> > --- a/fs/btrfs/ctree.h
-> > +++ b/fs/btrfs/ctree.h
-> > @@ -3795,6 +3795,11 @@ int btrfs_reada_wait(void *handle);
-> >  void btrfs_reada_detach(void *handle);
-> >  int btree_readahead_hook(struct extent_buffer *eb, int err);
-> >  
-> > +#ifdef CONFIG_FS_DAX
-> > +/* dax.c */
-> > +ssize_t btrfs_file_dax_read(struct kiocb *iocb, struct iov_iter *to);
-> > +#endif /* CONFIG_FS_DAX */
-> > +
-> >  static inline int is_fstree(u64 rootid)
-> >  {
-> >  	if (rootid == BTRFS_FS_TREE_OBJECTID ||
-> > diff --git a/fs/btrfs/dax.c b/fs/btrfs/dax.c
-> > new file mode 100644
-> > index 000000000000..bf3d46b0acb6
-> > --- /dev/null
-> > +++ b/fs/btrfs/dax.c
-> > @@ -0,0 +1,49 @@
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/*
-> > + * DAX support for BTRFS
-> > + *
-> > + * Copyright (c) 2019  SUSE Linux
-> > + * Author: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > + */
-> > +
-> > +#ifdef CONFIG_FS_DAX
-> > +#include <linux/dax.h>
-> > +#include <linux/iomap.h>
-> > +#include "ctree.h"
-> > +#include "btrfs_inode.h"
-> > +
-> > +static int btrfs_iomap_begin(struct inode *inode, loff_t pos,
-> > +		loff_t length, unsigned flags, struct iomap *iomap)
-> > +{
-> > +	struct extent_map *em;
-> > +	struct btrfs_fs_info *fs_info = btrfs_sb(inode->i_sb);
-> > +	em = btrfs_get_extent(BTRFS_I(inode), NULL, 0, pos, length, 0);
-> > +	if (em->block_start == EXTENT_MAP_HOLE) {
-> > +		iomap->type = IOMAP_HOLE;
-> > +		return 0;
-> 
-> I'm not doing a rigorous review of the btrfs-specific pieces, but you're
-> required to fill out the other iomap fields for a read hole.
-
-I fixed this in the patch adding write support. However, this
-looks wrong as a patch. I will fix this.
-
--- 
-Goldwyn
+LS0tLSDljp/pgq7ku7bkv6Hmga8gLS0tLS0NCuWPkeS7tuS6ujrlj7LlpbPlo6s8dHF6QGpjLm5l
+dD4NCuaUtuS7tuS6ujpsaW51eC1udmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+DQrl
+j5HpgIHml7bpl7Q6MjAxOS01LTIzICA5OjUwOjM4IApfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1udmRpbW0K
