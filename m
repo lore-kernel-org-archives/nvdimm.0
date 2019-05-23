@@ -2,19 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 66277212735B6
- for <linux-nvdimm@lists.01.org>; Thu, 23 May 2019 12:07:59 -0700 (PDT)
-Date: Thu, 23 May 2019 21:07:55 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 38E882126579B
+ for <linux-nvdimm@lists.01.org>; Thu, 23 May 2019 08:27:27 -0700 (PDT)
+Date: Thu, 23 May 2019 10:27:22 -0500
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Subject: Re: [PATCH 16/18] btrfs: Writeprotect mmap pages on snapshot
-Message-ID: <20190523190755.GA26522@quack2.suse.cz>
+Message-ID: <20190523152722.ybo5xuhej3yonvgt@fiona>
 References: <20190429172649.8288-1-rgoldwyn@suse.de>
  <20190429172649.8288-17-rgoldwyn@suse.de>
  <20190523140445.GD2949@quack2.suse.cz>
- <20190523152722.ybo5xuhej3yonvgt@fiona>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190523152722.ybo5xuhej3yonvgt@fiona>
+In-Reply-To: <20190523140445.GD2949@quack2.suse.cz>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,46 +25,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: kilobyte@angband.pl, Jan Kara <jack@suse.cz>, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: kilobyte@angband.pl, darrick.wong@oracle.com, nborisov@suse.com, linux-nvdimm@lists.01.org, david@fromorbit.com, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 23-05-19 10:27:22, Goldwyn Rodrigues wrote:
-> On 16:04 23/05, Jan Kara wrote:
-> > On Mon 29-04-19 12:26:47, Goldwyn Rodrigues wrote:
-> > > From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> > > 
-> > > Inorder to make sure mmap'd files don't change after snapshot,
-> > > writeprotect the mmap pages on snapshot. This is done by performing
-> > > a data writeback on the pages (which simply mark the pages are
-> > > wrprotected). This way if the user process tries to access the memory
-> > > we will get another fault and we can perform a CoW.
-> > > 
-> > > In order to accomplish this, we tag all CoW pages as
-> > > PAGECACHE_TAG_TOWRITE, and add the mmapd inode in delalloc_inodes.
-> > > During snapshot, it starts writeback of all delalloc'd inodes and
-> > > here we perform a data writeback. We don't want to keep the inodes
-> > > in delalloc_inodes until it umount (WARN_ON), so we remove it
-> > > during inode evictions.
-> > > 
-> > > Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+On 16:04 23/05, Jan Kara wrote:
+> On Mon 29-04-19 12:26:47, Goldwyn Rodrigues wrote:
+> > From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 > > 
-> > OK, so here you use PAGECACHE_TAG_TOWRITE. But why is not
-> > PAGECACHE_TAG_DIRTY enough for you? Also why isn't the same needed also for
-> > normal non-DAX inodes? There you also need to trigger CoW on mmap write so
-> > I just don't see the difference...
+> > Inorder to make sure mmap'd files don't change after snapshot,
+> > writeprotect the mmap pages on snapshot. This is done by performing
+> > a data writeback on the pages (which simply mark the pages are
+> > wrprotected). This way if the user process tries to access the memory
+> > we will get another fault and we can perform a CoW.
+> > 
+> > In order to accomplish this, we tag all CoW pages as
+> > PAGECACHE_TAG_TOWRITE, and add the mmapd inode in delalloc_inodes.
+> > During snapshot, it starts writeback of all delalloc'd inodes and
+> > here we perform a data writeback. We don't want to keep the inodes
+> > in delalloc_inodes until it umount (WARN_ON), so we remove it
+> > during inode evictions.
+> > 
+> > Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 > 
-> Because dax_writeback_mapping_range() writebacks pages marked 
-> PAGECACHE_TAG_TOWRITE and not PAGECACHE_TAG_DIRTY. Should it
-> writeback pages marked as PAGECACHE_TAG_DIRTY as well?
+> OK, so here you use PAGECACHE_TAG_TOWRITE. But why is not
+> PAGECACHE_TAG_DIRTY enough for you? Also why isn't the same needed also for
+> normal non-DAX inodes? There you also need to trigger CoW on mmap write so
+> I just don't see the difference...
 
-It does writeback PAGECACHE_TAG_DIRTY pages - tag_pages_for_writeback()
-moves PAGECACHE_TAG_DIRTY to PAGECACHE_TAG_TOWRITE...
+Because dax_writeback_mapping_range() writebacks pages marked 
+PAGECACHE_TAG_TOWRITE and not PAGECACHE_TAG_DIRTY. Should it
+writeback pages marked as PAGECACHE_TAG_DIRTY as well?
 
-								Honza
+
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Goldwyn
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
