@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AA23F2126CF81
- for <linux-nvdimm@lists.01.org>; Sat, 25 May 2019 16:17:36 -0700 (PDT)
-Subject: [for-4.14.y PATCH] libnvdimm/namespace: Fix label tracking error
+ by ml01.01.org (Postfix) with ESMTPS id E17C42126CF81
+ for <linux-nvdimm@lists.01.org>; Sat, 25 May 2019 16:16:37 -0700 (PDT)
+Subject: [for-4.9.y PATCH] libnvdimm/namespace: Fix label tracking error
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 25 May 2019 16:03:49 -0700
-Message-ID: <155882542900.2471091.11258089584930875450.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 25 May 2019 16:02:49 -0700
+Message-ID: <155882536896.2470998.15501697202623097741.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -75,11 +75,11 @@ Signed-off-by: Dan Williams <dan.j.williams@intel.com>
  3 files changed, 35 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 184149a49b02..6a16017cc0d9 100644
+index 66a089d561cf..9108004a0d9b 100644
 --- a/drivers/nvdimm/label.c
 +++ b/drivers/nvdimm/label.c
-@@ -614,6 +614,17 @@ static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
- 		return &guid_null;
+@@ -490,15 +490,26 @@ static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
+ 		- (unsigned long) to_namespace_index(ndd, 0);
  }
  
 +static void reap_victim(struct nd_mapping *nd_mapping,
@@ -96,9 +96,8 @@ index 184149a49b02..6a16017cc0d9 100644
  static int __pmem_label_update(struct nd_region *nd_region,
  		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
  		int pos, unsigned long flags)
-@@ -621,9 +632,9 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	struct nd_namespace_common *ndns = &nspm->nsio.common;
- 	struct nd_interleave_set *nd_set = nd_region->nd_set;
+ {
+ 	u64 cookie = nd_region_interleave_set_cookie(nd_region);
  	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
 -	struct nd_label_ent *label_ent, *victim = NULL;
  	struct nd_namespace_label *nd_label;
@@ -107,7 +106,7 @@ index 184149a49b02..6a16017cc0d9 100644
  	struct nd_label_id label_id;
  	struct resource *res;
  	unsigned long *free;
-@@ -692,18 +703,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
+@@ -551,18 +562,10 @@ static int __pmem_label_update(struct nd_region *nd_region,
  	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
  		if (!label_ent->label)
  			continue;
@@ -131,10 +130,10 @@ index 184149a49b02..6a16017cc0d9 100644
  
  	/* update index */
 diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index e3f228af59d1..ace9958f2905 100644
+index cf4a90b50f8b..e83453e1b308 100644
 --- a/drivers/nvdimm/namespace_devs.c
 +++ b/drivers/nvdimm/namespace_devs.c
-@@ -1229,12 +1229,27 @@ static int namespace_update_uuid(struct nd_region *nd_region,
+@@ -1210,12 +1210,27 @@ static int namespace_update_uuid(struct nd_region *nd_region,
  	for (i = 0; i < nd_region->ndr_mappings; i++) {
  		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
  		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
@@ -163,10 +162,10 @@ index e3f228af59d1..ace9958f2905 100644
  	kfree(*old_uuid);
   out:
 diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 156be00e1f76..e3f060f0b83e 100644
+index d869236b474f..bd29e598bac1 100644
 --- a/drivers/nvdimm/nd.h
 +++ b/drivers/nvdimm/nd.h
-@@ -120,8 +120,12 @@ struct nd_percpu_lane {
+@@ -113,8 +113,12 @@ struct nd_percpu_lane {
  	spinlock_t lock;
  };
  
