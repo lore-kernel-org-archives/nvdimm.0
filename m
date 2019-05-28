@@ -2,13 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DF0CF2128D885
- for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:43 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 14EEE2128D88C
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:50 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 01/10] libdaxctl: add interfaces in support of device
- modes
-Date: Tue, 28 May 2019 16:24:31 -0600
-Message-Id: <20190528222440.30392-2-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 09/10] contrib/ndctl: fix region-id completions for
+ daxctl
+Date: Tue, 28 May 2019 16:24:39 -0600
+Message-Id: <20190528222440.30392-10-vishal.l.verma@intel.com>
 In-Reply-To: <20190528222440.30392-1-vishal.l.verma@intel.com>
 References: <20190528222440.30392-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
@@ -27,88 +27,57 @@ To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libdaxctl and daxctl to grow operational modes for
-DAX devices, add the following supporting APIs:
+The completion helpers for daxctl assumed the region arguments for
+specifying daxctl regions were the same as ndctl regions, i.e.
+"regionX". This is not true - daxctl region arguments are a simple
+numeric 'id'.
 
-  daxctl_dev_get_ctx
-  daxctl_dev_is_enabled
+Add a new helper __daxctl_get_regions() to complete daxctl region IDs
+properly.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
+While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
+quoting in __daxctl_comp_options()
+
+Fixes: d6790a32f32c ("daxctl: Add bash-completion")
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  6 ++++++
- daxctl/libdaxctl.h       |  2 ++
- 3 files changed, 38 insertions(+)
+ contrib/ndctl | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c2e3a52..70f896b 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	}
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 396a344..cacee2d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -531,8 +531,14 @@ _ndctl()
+ 
+ __daxctl_get_devs()
+ {
+-	local opts="--devices $*"
+-	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
++	local opts=("--devices" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
++}
++
++__daxctl_get_regions()
++{
++	local opts=("--regions" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
  }
  
-+static int is_enabled(const char *drvpath)
-+{
-+	struct stat st;
-+
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
-+{
-+	return dev->region->ctx;
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 84d3a69..c4af9a7 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
- global:
- 	daxctl_region_get_path;
- } LIBDAXCTL_4;
-+
-+LIBDAXCTL_6 {
-+global:
-+	daxctl_dev_get_ctx;
-+	daxctl_dev_is_enabled;
-+} LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 1d13ea2..e20ccb4 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
-+struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
+ __daxctlcomp()
+@@ -561,10 +567,10 @@ __daxctl_comp_options()
+ 		local cur_arg=${cur##*=}
+ 		case $cur_subopt in
+ 		--region)
+-			opts=$(__ndctl_get_regions -i)
++			opts="$(__daxctl_get_regions -i)"
+ 			;;
+ 		--dev)
+-			opts=$(__daxctl_get_devs -i)
++			opts="$(__daxctl_get_devs -i)"
+ 			;;
+ 		*)
+ 			return
 -- 
 2.20.1
 
