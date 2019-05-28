@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com
- [148.163.147.86])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 293D521268FAC
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 09:32:41 -0700 (PDT)
-From: "Elliott, Robert (Servers)" <elliott@hpe.com>
-Subject: RE: [PATCH, RFC 1/2] Add config option to enable FS/DAX PMD sharing
-Date: Fri, 10 May 2019 16:32:26 +0000
-Message-ID: <AT5PR8401MB116928031D52A318F04A2819AB0C0@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1557417933-15701-1-git-send-email-larry.bassel@oracle.com>
- <1557417933-15701-2-git-send-email-larry.bassel@oracle.com>
-In-Reply-To: <1557417933-15701-2-git-send-email-larry.bassel@oracle.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id DF0CF2128D885
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:43 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 01/10] libdaxctl: add interfaces in support of device
+ modes
+Date: Tue, 28 May 2019 16:24:31 -0600
+Message-Id: <20190528222440.30392-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190528222440.30392-1-vishal.l.verma@intel.com>
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,32 +23,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Larry Bassel <larry.bassel@oracle.com>, "mike.kravetz@oracle.com" <mike.kravetz@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
+In preparation for libdaxctl and daxctl to grow operational modes for
+DAX devices, add the following supporting APIs:
 
+  daxctl_dev_get_ctx
+  daxctl_dev_is_enabled
 
-> -----Original Message-----
-> From: Linux-nvdimm <linux-nvdimm-bounces@lists.01.org> On Behalf Of
-> Larry Bassel
-> Sent: Thursday, May 09, 2019 11:06 AM
-> Subject: [PATCH, RFC 1/2] Add config option to enable FS/DAX PMD
-> sharing
-> 
-> If enabled, sharing of FS/DAX PMDs will be attempted.
-> 
-...
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-...
-> 
-> +config MAY_SHARE_FSDAX_PMD
-> +	def_bool y
-> +
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  6 ++++++
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 38 insertions(+)
 
-Is a config option really necessary - is there any reason to
-not choose to do this?
-
-
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c2e3a52..70f896b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
+ 	}
+ }
+ 
++static int is_enabled(const char *drvpath)
++{
++	struct stat st;
++
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
++}
++
++DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
++{
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
++
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return 0;
++	}
++
++	return is_enabled(path);
++}
++
++DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
++{
++	return dev->region->ctx;
++}
++
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 84d3a69..c4af9a7 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
+ global:
+ 	daxctl_region_get_path;
+ } LIBDAXCTL_4;
++
++LIBDAXCTL_6 {
++global:
++	daxctl_dev_get_ctx;
++	daxctl_dev_is_enabled;
++} LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 1d13ea2..e20ccb4 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
++struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
++int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
