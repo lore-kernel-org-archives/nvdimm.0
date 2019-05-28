@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F6C421275441
- for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 10:44:05 -0700 (PDT)
-Received: by mail-ot1-x344.google.com with SMTP id l17so2924309otq.1
- for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 10:44:05 -0700 (PDT)
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 95FDD2128D892
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:47 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 06/10] libdaxctl: add an interface to get the mode
+ for a dax device
+Date: Tue, 28 May 2019 16:24:36 -0600
+Message-Id: <20190528222440.30392-7-vishal.l.verma@intel.com>
+In-Reply-To: <20190528222440.30392-1-vishal.l.verma@intel.com>
 References: <20190528222440.30392-1-vishal.l.verma@intel.com>
- <20190528222440.30392-7-vishal.l.verma@intel.com>
-In-Reply-To: <20190528222440.30392-7-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 29 May 2019 10:43:53 -0700
-Message-ID: <CAPcyv4izGNU8iDmnqH1k7CU0iHXqVUpd5YjXGAL4a9UM65geow@mail.gmail.com>
-Subject: Re: [ndctl PATCH v4 06/10] libdaxctl: add an interface to get the
- mode for a dax device
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,29 +23,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, May 28, 2019 at 3:24 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> In preparation for a reconfigure-device command, add an interface to
-> retrieve the 'mode' of a dax device. This will allow the
-> reconfigure-device command (and via daxctl_dev_to_json()), also
-> daxctl-list) to print the mode on device listings via a list command or
-> immediately after a mode change.
->
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+In preparation for a reconfigure-device command, add an interface to
+retrieve the 'mode' of a dax device. This will allow the
+reconfigure-device command (and via daxctl_dev_to_json()), also
+daxctl-list) to print the mode on device listings via a list command or
+immediately after a mode change.
 
-Hmm, if we add a daxctl_dev_get_memory() helper to retrieve a context
-for doing kmem-related operations could that be a stand-in for
-daxctl_dev_get_mode()? I.e. "if (!daxctl_dev_get_memory())
-is_devdax..."
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/libdaxctl.c   | 41 ++++++++++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  1 +
+ daxctl/libdaxctl.h       |  1 +
+ util/json.c              | 14 ++++++++++++++
+ 4 files changed, 57 insertions(+)
 
-I also think it's ok to treat disabled device instances as devdax mode
-as "unknown" will just increase user anxiety.
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 46dbd63..9d23d12 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -12,6 +12,8 @@
+  */
+ #include <stdio.h>
+ #include <errno.h>
++#include <limits.h>
++#include <libgen.h>
+ #include <stdlib.h>
+ #include <dirent.h>
+ #include <unistd.h>
+@@ -836,6 +838,45 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+ 	return 0;
+ }
+ 
++DAXCTL_EXPORT enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	int rc = DAXCTL_DEV_MODE_UNKNOWN;
++	char path[200];
++	const int len = sizeof(path);
++	char *mod_path, *mod_base;
++
++	if (!daxctl_dev_is_enabled(dev))
++		return rc;
++
++	/* dax-class model only has conventional devdax devices */
++	if (ctx->subsys != DAX_BUS)
++		return DAXCTL_DEV_MODE_DEVDAX;
++
++	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	mod_path = realpath(path, NULL);
++	if (!mod_path) {
++		rc = -errno;
++		err(ctx, "%s:  unable to determine module: %s\n", devname,
++			strerror(errno));
++		return rc;
++	}
++
++	mod_base = basename(mod_path);
++	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
++		rc = DAXCTL_DEV_MODE_RAM;
++	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
++		rc = DAXCTL_DEV_MODE_DEVDAX;
++
++	free(mod_path);
++	return rc;
++}
++
+ DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
+ {
+ 	return dev->region->ctx;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index cc47ed6..d53976d 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -62,4 +62,5 @@ global:
+ 	daxctl_dev_online_node;
+ 	daxctl_dev_offline_node;
+ 	daxctl_dev_node_is_online;
++	daxctl_dev_get_mode;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index db0d4ea..4f9088f 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -76,6 +76,7 @@ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
+ int daxctl_dev_online_node(struct daxctl_dev *dev);
+ int daxctl_dev_offline_node(struct daxctl_dev *dev);
+ int daxctl_dev_node_is_online(struct daxctl_dev *dev);
++enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+diff --git a/util/json.c b/util/json.c
+index b7ce719..4f13222 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ {
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
++	enum daxctl_dev_mode mode;
+ 	int node;
+ 
+ 	jdev = json_object_new_object();
+@@ -292,6 +293,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "numa_node", jobj);
+ 	}
+ 
++	mode = daxctl_dev_get_mode(dev);
++	if (mode > 0) {
++		jobj = NULL;
++		if (mode == DAXCTL_DEV_MODE_RAM)
++			jobj = json_object_new_string("system-ram");
++		else if (mode == DAXCTL_DEV_MODE_DEVDAX)
++			jobj = json_object_new_string("devdax");
++		else
++			jobj = json_object_new_string("unknown");
++		if (jobj)
++			json_object_object_add(jdev, "mode", jobj);
++	}
++
+ 	return jdev;
+ }
+ 
+-- 
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
