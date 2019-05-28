@@ -1,102 +1,336 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [RFC PATCH V2 2/3] mm/nvdimm: Add page size and struct page size to pfn superblock
-Date: Wed, 22 May 2019 13:57:00 +0530
-In-Reply-To: <20190522082701.6817-1-aneesh.kumar@linux.ibm.com>
-References: <20190522082701.6817-1-aneesh.kumar@linux.ibm.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 60EAD2128D898
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 15:24:48 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 07/10] daxctl: add a new reconfigure-device command
+Date: Tue, 28 May 2019 16:24:37 -0600
+Message-Id: <20190528222440.30392-8-vishal.l.verma@intel.com>
+In-Reply-To: <20190528222440.30392-1-vishal.l.verma@intel.com>
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Message-Id: <20190522082701.6817-2-aneesh.kumar@linux.ibm.com>
-Sender: owner-linux-mm@kvack.org
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is needed so that we don't wrongly initialize a namespace
-which doesn't have enough space reserved for holding struct pages
-with the current kernel.
+Add a new command 'daxctl-reconfigure-device'. This is used to switch
+the mode of a dax device between regular 'device_dax' and
+'system-memory'. The command also uses the memory hotplug sysfs
+interfaces to online the newly available memory when converting to
+'system-ram', and to attempt to offline the memory when converting back
+to a DAX device.
 
-We also increment PFN_MIN_VERSION to make sure that older kernel
-won't initialize namespace created with newer kernel.
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/pfn.h      |  7 +++++--
- drivers/nvdimm/pfn_devs.c | 19 ++++++++++++++++++-
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ daxctl/Makefile.am |   2 +
+ daxctl/builtin.h   |   1 +
+ daxctl/daxctl.c    |   1 +
+ daxctl/device.c    | 237 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 241 insertions(+)
+ create mode 100644 daxctl/device.c
 
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index 5fd29242745a..ba11738ca8a2 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -25,7 +25,7 @@
-  * kernel should fail to initialize that namespace.
-  */
+diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
+index 94f73f9..66dcc7f 100644
+--- a/daxctl/Makefile.am
++++ b/daxctl/Makefile.am
+@@ -15,10 +15,12 @@ daxctl_SOURCES =\
+ 		daxctl.c \
+ 		list.c \
+ 		migrate.c \
++		device.c \
+ 		../util/json.c
  
--#define PFN_MIN_VERSION 0
-+#define PFN_MIN_VERSION 1
- 
- struct nd_pfn_sb {
- 	u8 signature[PFN_SIG_LEN];
-@@ -43,7 +43,10 @@ struct nd_pfn_sb {
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
- 	__le16 min_version;
--	u8 padding[3998];
-+	/* minor-version-3 record the page size and struct page size */
-+	__le16 page_struct_size;
-+	__le32 page_size;
-+	u8 padding[3992];
- 	__le64 checksum;
+ daxctl_LDADD =\
+ 	lib/libdaxctl.la \
+ 	../libutil.a \
+ 	$(UUID_LIBS) \
++	$(KMOD_LIBS) \
+ 	$(JSON_LIBS)
+diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+index 00ef5e9..756ba2a 100644
+--- a/daxctl/builtin.h
++++ b/daxctl/builtin.h
+@@ -6,4 +6,5 @@
+ struct daxctl_ctx;
+ int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
+ #endif /* _DAXCTL_BUILTIN_H_ */
+diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+index 2e41747..e1ba7b8 100644
+--- a/daxctl/daxctl.c
++++ b/daxctl/daxctl.c
+@@ -71,6 +71,7 @@ static struct cmd_struct commands[] = {
+ 	{ "list", .d_fn = cmd_list },
+ 	{ "help", .d_fn = cmd_help },
+ 	{ "migrate-device-model", .d_fn = cmd_migrate },
++	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
  };
  
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index a2268cf262f5..39fa8cf8ef58 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -466,6 +466,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
- 		pfn_sb->align = 0;
- 
-+	if (__le16_to_cpu(pfn_sb->version_minor) < 3) {
-+		/*
-+		 * For a large part we use PAGE_SIZE. But we
-+		 * do have some accounting code using SZ_4K.
-+		 */
-+		pfn_sb->page_struct_size = cpu_to_le16(64);
-+		pfn_sb->page_size = cpu_to_le32(SZ_4K);
+ int main(int argc, const char **argv)
+diff --git a/daxctl/device.c b/daxctl/device.c
+new file mode 100644
+index 0000000..12644c5
+--- /dev/null
++++ b/daxctl/device.c
+@@ -0,0 +1,237 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++#include <stdio.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <limits.h>
++#include <util/json.h>
++#include <util/filter.h>
++#include <json-c/json.h>
++#include <daxctl/libdaxctl.h>
++#include <util/parse-options.h>
++#include <ccan/array_size/array_size.h>
++
++static struct {
++	const char *dev;
++	const char *mode;
++	int region_id;
++	bool no_online;
++	bool do_offline;
++	bool human;
++	bool verbose;
++} param = {
++	.region_id = -1,
++};
++
++static int dev_disable(struct daxctl_dev *dev)
++{
++	int rc;
++
++	if (!daxctl_dev_is_enabled(dev))
++		return 0;
++
++	rc = daxctl_dev_disable(dev);
++	if (rc)
++		fprintf(stderr, "%s: disable failed: %s\n",
++			daxctl_dev_get_devname(dev), strerror(-rc));
++
++	return rc;
++}
++
++static int reconfig_mode_ram(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	int rc;
++
++	rc = dev_disable(dev);
++	if (rc)
++		return rc;
++	rc = daxctl_dev_enable_ram(dev);
++	if (rc)
++		return rc;
++
++	if (param.no_online)
++		return 0;
++
++	rc = daxctl_dev_online_node(dev);
++	if (rc < 0) {
++		fprintf(stderr, "%s: unable to online memory: %s\n",
++			devname, strerror(-rc));
++		return rc;
++	}
++	if (param.verbose)
++		fprintf(stderr, "%s: onlined %d memory sections\n",
++			devname, rc);
++
++	return 0;
++}
++
++static int reconfig_mode_devdax(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	int rc;
++
++	if (param.do_offline) {
++		rc = daxctl_dev_offline_node(dev);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to offline memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		if (param.verbose)
++			fprintf(stderr, "%s: offlined %d memory sections\n",
++				devname, rc);
 +	}
 +
- 	switch (le32_to_cpu(pfn_sb->mode)) {
- 	case PFN_MODE_RAM:
- 	case PFN_MODE_PMEM:
-@@ -481,6 +490,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		align = 1UL << ilog2(offset);
- 	mode = le32_to_cpu(pfn_sb->mode);
- 
-+	if (le32_to_cpu(pfn_sb->page_size) != PAGE_SIZE)
-+		return -EOPNOTSUPP;
++	rc = daxctl_dev_node_is_online(dev);
++	if (rc < 0) {
++		fprintf(stderr, "%s: unable to determine node state: %s\n",
++			devname, strerror(-rc));
++		return rc;
++	}
++	if (rc > 0) {
++		if (param.verbose) {
++			fprintf(stderr, "%s: found %d memory sections online\n",
++				devname, rc);
++			fprintf(stderr, "%s: refusing to change modes\n",
++				devname);
++		}
++		return -EBUSY;
++	}
 +
-+	if (le16_to_cpu(pfn_sb->page_struct_size) != sizeof(struct page))
-+		return -EOPNOTSUPP;
++	rc = dev_disable(dev);
++	if (rc)
++		return rc;
 +
- 	if (!nd_pfn->uuid) {
- 		/*
- 		 * When probing a namepace via nd_pfn_probe() the uuid
-@@ -775,11 +790,13 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(2);
-+	pfn_sb->version_minor = cpu_to_le16(3);
- 	pfn_sb->min_version = cpu_to_le16(PFN_MIN_VERSION);
- 	pfn_sb->start_pad = cpu_to_le32(start_pad);
- 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
-+	pfn_sb->page_struct_size = cpu_to_le16(sizeof(struct page));
-+	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
++	rc = daxctl_dev_enable_devdax(dev);
++	if (rc)
++		return rc;
++
++	return 0;
++}
++
++static int do_reconfig(struct daxctl_dev *dev, enum daxctl_dev_mode mode)
++{
++	int rc = 0;
++
++	switch (mode) {
++	case DAXCTL_DEV_MODE_RAM:
++		rc = reconfig_mode_ram(dev);
++		break;
++	case DAXCTL_DEV_MODE_DEVDAX:
++		rc = reconfig_mode_devdax(dev);
++		break;
++	default:
++		fprintf(stderr, "%s: unknown mode: %d\n",
++			daxctl_dev_get_devname(dev), mode);
++		rc = -EINVAL;
++	}
++
++	return rc;
++}
++
++int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	const struct option options[] = {
++		OPT_INTEGER('r', "region", &param.region_id,
++				"restrict to the given region"),
++		OPT_STRING('m', "mode", &param.mode, "mode",
++				"mode to switch the device to"),
++		OPT_BOOLEAN('N', "no-online", &param.no_online,
++				"don't auto-online memory sections"),
++		OPT_BOOLEAN('O', "attempt-offline", &param.do_offline,
++				"attempt to offline memory sections"),
++		OPT_BOOLEAN('u', "human", &param.human,
++				"use human friendly number formats"),
++		OPT_BOOLEAN('v', "verbose", &param.verbose,
++				"emit more debug messages"),
++		OPT_END(),
++	};
++	const char * const u[] = {
++		"daxctl reconfigure-device [<options>] <device> ...",
++		NULL
++	};
++	enum daxctl_dev_mode mode = DAXCTL_DEV_MODE_UNKNOWN;
++	struct json_object *jdevs = json_object_new_array();
++	struct daxctl_region *region;
++	struct json_object *jdev;
++	int i, rc = 0, done = 0;
++	unsigned long flags = 0;
++	struct daxctl_dev *dev;
++
++        argc = parse_options(argc, argv, options, u, 0);
++	if (argc == 0)
++		usage_with_options(u, options);
++	for (i = 0; i < argc; i++) {
++		if (strcmp(argv[i], "all") == 0) {
++			argv[0] = "all";
++			argc = 1;
++			break;
++		}
++	}
++
++	if (param.human)
++		flags |= UTIL_JSON_HUMAN;
++
++	if (!param.mode) {
++		fprintf(stderr, "error: a 'mode' option is required\n");
++		usage_with_options(u, options);
++	}
++	if (strcmp(param.mode, "system-ram") == 0) {
++		mode = DAXCTL_DEV_MODE_RAM;
++		if (param.do_offline) {
++			fprintf(stderr,
++				"can't --attempt-offline for system-ram mode\n");
++			return -EINVAL;
++		}
++	} else if (strcmp(param.mode, "devdax") == 0) {
++		mode = DAXCTL_DEV_MODE_DEVDAX;
++		if (param.no_online) {
++			fprintf(stderr,
++				"can't --no-online for devdax mode\n");
++			return -EINVAL;
++		}
++	}
++
++	daxctl_region_foreach(ctx, region) {
++		if (param.region_id >= 0 && param.region_id
++				!= daxctl_region_get_id(region))
++			continue;
++
++		daxctl_dev_foreach(region, dev) {
++			bool dev_requested = false;
++
++			for (i = 0; i < argc; i++) {
++				if ((strcmp(daxctl_dev_get_devname(dev),
++						argv[i]) == 0) ||
++						(strcmp(argv[i], "all") == 0)) {
++					dev_requested = true;
++					break;
++				}
++			}
++			if (dev_requested) {
++				rc = do_reconfig(dev, mode);
++				if (rc < 0)
++					goto out_err;
++				done++;
++				if (!jdevs)
++					continue;
++				jdev = util_daxctl_dev_to_json(dev, flags);
++				if (jdev)
++					json_object_array_add(jdevs, jdev);
++			}
++		}
++	}
++	if (jdevs)
++		util_display_json_array(stdout, jdevs, flags);
++
++	fprintf(stderr, "reconfigured %d device%s\n", done,
++		done == 1 ? "" : "s");
++	return 0;
++
++out_err:
++	fprintf(stderr, "error reconfiguring %s: %s\n",
++		daxctl_dev_get_devname(dev), strerror(-rc));
++	return rc;
++}
 -- 
-2.21.0
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
