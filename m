@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E1AE821253306
- for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:32:43 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 04/99] acpi/nfit: Always dump _DSM output payload
-Date: Tue,  7 May 2019 01:30:58 -0400
-Message-Id: <20190507053235.29900-4-sashal@kernel.org>
-In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 2DFBC2128DD37
+ for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 11:04:11 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v4 08/10] Documentation/daxctl: add a man page for
+ daxctl-reconfigure-device
+Date: Wed, 29 May 2019 18:04:08 +0000
+Message-ID: <6289acafe92b505cc49590bb789a93c51c081f99.camel@intel.com>
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
+ <20190528222440.30392-9-vishal.l.verma@intel.com>
+ <CAPcyv4iKz-x4oLjW1=TDByfw9_ergexAGNDpPuTwP-88P_v4=A@mail.gmail.com>
+In-Reply-To: <CAPcyv4iKz-x4oLjW1=TDByfw9_ergexAGNDpPuTwP-88P_v4=A@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <D62E7676619A48458C6AF4DF0FCDDEC1@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,59 +27,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Dan Williams <dan.j.williams@intel.com>
 
-[ Upstream commit 351f339faa308c1c1461314a18c832239a841ca0 ]
+On Wed, 2019-05-29 at 10:49 -0700, Dan Williams wrote:
+> On Tue, May 28, 2019 at 3:24 PM Vishal Verma <vishal.l.verma@intel.com
+> > wrote:
+> > Add a man page describing the new daxctl-reconfigure-device command.
+> > 
+> > Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > ---
+> >  Documentation/daxctl/Makefile.am              |   3 +-
+> >  .../daxctl/daxctl-reconfigure-device.txt      | 118
+> > ++++++++++++++++++
+> >  2 files changed, 120 insertions(+), 1 deletion(-)
+> >  create mode 100644 Documentation/daxctl/daxctl-reconfigure-
+> > device.txt
+> [..]
+> > +-N::
+> > +--no-online::
+> > +       By default, memory sections provided by system-ram devices
+> > will be
+> > +       brought online automatically and immediately. Use this
+> > option to
+> > +       disable the automatic onlining behavior.
+> 
+> With a --no-online option it feels like we also need a "daxctl
+> online-memory" command to hot-add the memory range associated with the
+> given dax device. Otherwise, this looks good to me.
 
-The dynamic-debug statements for command payload output only get emitted
-when the command is not ND_CMD_CALL. Move the output payload dumping
-ahead of the early return path for ND_CMD_CALL.
-
-Fixes: 31eca76ba2fc9 ("...whitelisted dimm command marshaling mechanism")
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/acpi/nfit/core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 4be4dc3e8aa6..38ec79bb3edd 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -563,6 +563,12 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		goto out;
- 	}
- 
-+	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
-+			cmd_name, out_obj->buffer.length);
-+	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
-+			out_obj->buffer.pointer,
-+			min_t(u32, 128, out_obj->buffer.length), true);
-+
- 	if (call_pkg) {
- 		call_pkg->nd_fw_size = out_obj->buffer.length;
- 		memcpy(call_pkg->nd_payload + call_pkg->nd_size_in,
-@@ -581,12 +587,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		return 0;
- 	}
- 
--	dev_dbg(dev, "%s cmd: %s output length: %d\n", dimm_name,
--			cmd_name, out_obj->buffer.length);
--	print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4, 4,
--			out_obj->buffer.pointer,
--			min_t(u32, 128, out_obj->buffer.length), true);
--
- 	for (i = 0, offset = 0; i < desc->out_num; i++) {
- 		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
- 				(u32 *) out_obj->buffer.pointer,
--- 
-2.20.1
-
+Yes good idea, I'll add a command for that. Would we also then need a
+complementary offline-memory command? For someone that might want to
+split the offlining step from the mode change? I can't imagine a use
+case for it..
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
