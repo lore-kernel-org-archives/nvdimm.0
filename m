@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E983D2125ADD3
- for <linux-nvdimm@lists.01.org>; Fri, 10 May 2019 17:13:36 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: [ANNOUNCE] ndctl v65
-Date: Sat, 11 May 2019 00:13:33 +0000
-Message-ID: <0a3d425cd6c4e19c5f877dfbee2d55556744f3c0.camel@intel.com>
-Content-Language: en-US
-Content-ID: <EDB35B58C469D648971FDBA86F96296A@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9BA2A2128D6AB
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 20:22:36 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id i4so476349oih.4
+ for <linux-nvdimm@lists.01.org>; Tue, 28 May 2019 20:22:36 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
+ <20190528222440.30392-6-vishal.l.verma@intel.com>
+In-Reply-To: <20190528222440.30392-6-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 28 May 2019 20:22:24 -0700
+Message-ID: <CAPcyv4hW-Gj5y+btKEsb1wOsKxd64hWY00NRDmeis3ZrkRo_pA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 05/10] daxctl/list: add numa_node for device
+ listings
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,62 +23,77 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhpcyByZWxlYXNlIGluY29ycG9yYXRlcyBmdW5jdGlvbmFsaXR5IHVwIHRvIHRoZSA1LjEga2Vy
-bmVsLCBhbmQgYWRkcyBhDQpudW1iZXIgb2YgYnVnIGZpeGVzIGFuZCBpbXByb3ZlbWVudHMuDQoN
-CkhpZ2hsaWdodHMgaW5jbHVkZSBhIG5ldyBjb21tYW5kIHRvIGNsZWFyIGVycm9ycyBvbiBhIGdp
-dmVuIG5hbWVzcGFjZSwgYQ0KbmV3IHRyYXZpcyBZQU1MIGNvbmZpZ3VyYXRpb24gdG8gZW5hYmxl
-IHRyYXZpcyBidWlsZHMgZm9yIFVidW50dSwgYW4NCmV4YW1wbGUgUUVNVSBzY3JpcHQgaW4gY29u
-dHJpYi8gZm9yIEhNQVQgZW11bGF0aW9uLCBhbiBvcHRpb25hbCBwb2xsDQppbnRlcnZhbCBmb3Ig
-d2FpdC1zY3J1Yiwgc2V2ZXJhbCBmaXhlcyByZWxhdGVkIHRvIHRoZSBzZWN1cml0eSBjb21tYW5k
-cywNCnN1cHBvcnQgZm9yIHRoZSBIWVBFUi1WIGZhbWlseSBvZiBEU00gY29tbWFuZHMsIGFuZCBz
-ZXZlcmFsIGZpeGVzIHRvDQp0ZXN0cywgZG9jdW1lbnRhdGlvbiwgYW5kIHJlbGF0ZWQgdG8gYnVp
-bGRpbmcuDQoNCg0KU2hvcnRsb2cgZm9yIHRoaXMgcmVsZWFzZToNCg0KRGFuIFdpbGxpYW1zICgy
-KToNCiAgICAgIG5kY3RsL2J1czogQWRkIHBvbGwgaW50ZXJ2YWwgdG8gd2FpdC1zY3J1Yg0KICAg
-ICAgbmRjdGwvbGlzdDogSW50cm9kdWNlIHJlZ2lvbiBjYXBhYmlsaXR5IG9iamVjdHMNCg0KRGF2
-ZSBKaWFuZyAoNyk6DQogICAgICBuZGN0bDogcHJlc2VydmUga2V5cyBhZnRlciBhbiBvdmVyd3Jp
-dGUgY29tbWFuZA0KICAgICAgbmRjdGw6IGFsbG93IGEgInplcm8ta2V5IiBmb3Igc2VjdXJlIGVy
-YXNlDQogICAgICBuZGN0bDogYWRkIGEgd2FybmluZyBhYm91dCBvdmVyd3JpdGUgdGFraW5nIGEg
-bG9uZyB0aW1lDQogICAgICBuZGN0bDogZml4IGEgdHlwbyBpbiB0aGUgbmRjdGwtc2FuaXRpemUt
-ZGltbSBtYW4gcGFnZQ0KICAgICAgbmRjdGw6IGZpeCBsb2FkLWtleXMgZm9yIG5vbi1UUE0gbWFz
-dGVyLWtleXMNCiAgICAgIG5kY3RsOiBmaXgga2V5IGJsb2IgbG9hZGluZyBmb3Igbm9uLVRQTSBr
-ZXlzDQogICAgICBuZGN0bDogYWRkIGEgbG9hZC1rZXlzIHRlc3QgaW4gdGhlIHNlY3VyaXR5IHVu
-aXQgdGVzdA0KDQpEZXh1YW4gQ3VpICg1KToNCiAgICAgIGxpYm5kY3RsOiBJbXBsZW1lbnQgdGhl
-ICJzbWFydF9nZXRfaGVhbHRoIiBkaW1tLW9wIGZvciBIeXBlci1WDQogICAgICBsaWJuZGN0bDog
-SW1wbGVtZW50IHRoZSBzbWFydF9nZXRfc2h1dGRvd25fY291bnQgZGltbS1vcCBmb3INCkh5cGVy
-LVYNCiAgICAgIG5kY3RsLCBtb25pdG9yOiBEb24ndCByZXF1aXJlIHRoZSBzdXBwb3J0IG9mDQpO
-RF9DTURfU01BUlRfVEhSRVNIT0xEDQogICAgICBsaWJuZGN0bDogQWRkIGEgbmV3IGRpbW0tb3Ag
-Y21kX2lzX3N1cHBvcnRlZCgpDQogICAgICBsaWJuZGN0bDogSW1wbGVtZW50IHRoZSAiY21kX2lz
-X3N1cHBvcnRlZCIgZGltbS1vcCBmb3IgSHlwZXItVg0KDQpJcmEgV2VpbnkgKDEpOg0KICAgICAg
-bmRjdGw6IGdlbmVyYWxpemUgbWFrZS1naXQtc25hcHNob3Quc2gNCg0KUUkgRnVsaSAoMSk6DQog
-ICAgICBtb25pdG9yOiByZW1vdmUgdGhlIHJlcXVpcmVtZW50IG9mIGEgZGVmYXVsdCBjb25maWcN
-Cg0KUm9iZXJ0IEVsbGlvdHQgKDMpOg0KICAgICAgYXV0b2NvbmY6IHByaW50IG1vcmUgcG9zc2li
-bGUgcGFja2FnZSBuYW1lcyBmb3IgPGtleXV0aWxzLmg+DQogICAgICBhdXRvY29uZjogQ2hlY2sg
-Zm9yIE1BUF9TSEFSRURfVkFMSURBVEUgYW5kIGtlcm5lbC9nbGliYyBjb25mbGljdHMNCiAgICAg
-IG5kY3RsLCB0ZXN0OiBNYWtlIHRlc3RzIHVzaW5nIE1BUF9TWU5DIG9ubHkgaW5jbHVkZSA8c3lz
-L21tYW4uaD4NCg0KU3RldmUgU2NhcmdhbGwgKDIpOg0KICAgICAgbmRjdGwvRG9jdW1lbnRhdGlv
-bjogRml4IHR5cG8gaW4gc2VjdXJpdHkgbWFuIHBhZ2VzDQogICAgICBuZGN0bC9Eb2N1bWVudGF0
-aW9uOiBjaGFuZ2UgZGlzYWJsZS1wYXNzcGhyYXNlIHRvIHJlbW92ZS0NCnBhc3NwaHJhc2UNCg0K
-VmlzaGFsIFZlcm1hICgxMSk6DQogICAgICBuZGN0bCwgdGVzdDogZml4IGluY29ycmVjdCAnbmRj
-dGwnIHVzYWdlIGluIHNlY3VyaXR5LnNoDQogICAgICBuZGN0bDogdXBkYXRlIFJFQURNRSBmb3Ig
-ZGVwbW9kIG92ZXJyaWRlcywgc2hpcCBhIHNhbXBsZSBjb25maWcNCiAgICAgIG5kY3RsL3Rlc3Q6
-IGFkZCBkYXhfcG1lbSogbW9kdWxlcyB0byB0aGUgdGVzdC1jb3JlDQogICAgICBuZGN0bDogZW5h
-YmxlICd0cmF2aXMtY2knDQogICAgICBjb250cmliOiBhZGQgYW4gZXhhbXBsZSBxZW11IHNldHVw
-IHNjcmlwdCBmb3IgSE1BVCBlbXVsYXRpb24NCiAgICAgIG5kY3RsOiBhZGQgYSAnY2xlYXItZXJy
-b3JzJyBjb21tYW5kDQogICAgICBuZGN0bC9uYW1lc3BhY2UuYzogZml4IGEgcmVzb3VyY2UgbGVh
-ayBpbiBidXNfc2VuZF9jbGVhcigpDQogICAgICBuZGN0bC9uYW1lc3BhY2UuYzogZml4IGFuIHVu
-Y2hlY2tlZCByZXR1cm4gdmFsdWUNCiAgICAgIGxpYm5kY3RsOiBmaXggYW4gdW5oYW5kbGVkIHJl
-dHVybiBpbg0KbmRjdGxfYnVzX3BvbGxfc2NydWJfY29tcGxldGlvbigpDQogICAgICBuZGN0bC9u
-YW1lc3BhY2UuYzogZml4IGEgcG90ZW50aWFsIGludGVnZXIgb3ZlcmZsb3cNCiAgICAgIG5kY3Rs
-OiByZWxlYXNlIHY2NQ0KDQpZaSBaaGFuZyAoMSk6DQogICAgICBuZGN0bC9yZWdpb246IGZpeCBl
-cnJvciBwcm9wYWdhdGlvbiBpbiByZWdpb25fYWN0aW9uKCkNCg0KxYF1a2FzeiBQbGV3YSAoMSk6
-DQogICAgICBuZGN0bDogZml4IGEgbWVtb3J5IGxlYWsgaW4gbGlibmRjdGwNCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On Tue, May 28, 2019 at 3:24 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> The kernel provides a 'target_node' attribute for dax devices. When
+> converting a dax device to the system-ram mode, the memory is hotplugged
+> into this numa node. It would be helpful to print this in device
+> listings so that it is easy for applications to detect the numa node to
+> which the new memory belongs.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  util/json.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/util/json.c b/util/json.c
+> index babdc8c..b7ce719 100644
+> --- a/util/json.c
+> +++ b/util/json.c
+> @@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+>  {
+>         const char *devname = daxctl_dev_get_devname(dev);
+>         struct json_object *jdev, *jobj;
+> +       int node;
+>
+>         jdev = json_object_new_object();
+>         if (!devname || !jdev)
+> @@ -284,6 +285,13 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+>         if (jobj)
+>                 json_object_object_add(jdev, "size", jobj);
+>
+> +       node = daxctl_dev_get_target_node(dev);
+> +       if (node >= 0) {
+> +               jobj = json_object_new_int(node);
+> +               if (jobj)
+> +                       json_object_object_add(jdev, "numa_node", jobj);
+
+I think this should be named 'target_node' to not be confused with the
+typical 'numa_node' attribute of a device that indicates closest cpu
+node. This also collides with the 'numa_node' attribute that is
+already emitted at the namespace level.
+
+  {
+    "dev":"namespace1.0",
+    "mode":"devdax",
+    "map":"dev",
+    "size":134232408064,
+    "uuid":"e6613922-80e9-49f9-ace8-961def867d32",
+    "raw_uuid":"b79ce059-e33d-4a90-90ec-06d6786b3644",
+    "daxregion":{
+      "id":1,
+      "size":134232408064,
+      "align":2097152,
+      "devices":[
+        {
+          "chardev":"dax1.0",
+          "size":134232408064
+        }
+      ]
+    },
+    "align":2097152,
+    "numa_node":0
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
