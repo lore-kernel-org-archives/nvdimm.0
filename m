@@ -1,16 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B8FE21244A76
- for <linux-nvdimm@lists.01.org>; Fri,  3 May 2019 14:32:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/8] libdaxctl: add interfaces in support of device modes
-Date: Fri,  3 May 2019 15:32:24 -0600
-Message-Id: <20190503213231.12280-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190503213231.12280-1-vishal.l.verma@intel.com>
-References: <20190503213231.12280-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1F6C421275441
+ for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 10:44:05 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id l17so2924309otq.1
+ for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 10:44:05 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
+ <20190528222440.30392-7-vishal.l.verma@intel.com>
+In-Reply-To: <20190528222440.30392-7-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 29 May 2019 10:43:53 -0700
+Message-ID: <CAPcyv4izGNU8iDmnqH1k7CU0iHXqVUpd5YjXGAL4a9UM65geow@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 06/10] libdaxctl: add an interface to get the
+ mode for a dax device
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,95 +27,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libdaxctl and daxctl to grow operational modes for
-DAX devices, add the following supporting APIs:
+On Tue, May 28, 2019 at 3:24 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> In preparation for a reconfigure-device command, add an interface to
+> retrieve the 'mode' of a dax device. This will allow the
+> reconfigure-device command (and via daxctl_dev_to_json()), also
+> daxctl-list) to print the mode on device listings via a list command or
+> immediately after a mode change.
+>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-  daxctl_dev_get_ctx
-  daxctl_dev_is_enabled
+Hmm, if we add a daxctl_dev_get_memory() helper to retrieve a context
+for doing kmem-related operations could that be a stand-in for
+daxctl_dev_get_mode()? I.e. "if (!daxctl_dev_get_memory())
+is_devdax..."
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  6 ++++++
- daxctl/libdaxctl.h       |  2 ++
- 3 files changed, 38 insertions(+)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c2e3a52..70f896b 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	}
- }
- 
-+static int is_enabled(const char *drvpath)
-+{
-+	struct stat st;
-+
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
-+{
-+	return dev->region->ctx;
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 84d3a69..c4af9a7 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
- global:
- 	daxctl_region_get_path;
- } LIBDAXCTL_4;
-+
-+LIBDAXCTL_6 {
-+global:
-+	daxctl_dev_get_ctx;
-+	daxctl_dev_is_enabled;
-+} LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 1d13ea2..e20ccb4 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
-+struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
--- 
-2.20.1
-
+I also think it's ok to treat disabled device instances as devdax mode
+as "unknown" will just increase user anxiety.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
