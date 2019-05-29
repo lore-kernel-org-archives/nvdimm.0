@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0599F212532F5
- for <linux-nvdimm@lists.01.org>; Thu, 16 May 2019 15:40:56 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 00/10] daxctl: add a new reconfigure-device command
-Date: Thu, 16 May 2019 16:40:43 -0600
-Message-Id: <20190516224053.3655-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id B4F2E2125ADF6
+ for <linux-nvdimm@lists.01.org>; Wed, 29 May 2019 09:55:50 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v4 03/10] libdaxctl: add interfaces to
+ enable/disable devices
+Date: Wed, 29 May 2019 16:55:47 +0000
+Message-ID: <b3bd78d1e81521056b8e74679d7cc68a7d14a70a.camel@intel.com>
+References: <20190528222440.30392-1-vishal.l.verma@intel.com>
+ <20190528222440.30392-4-vishal.l.verma@intel.com>
+ <CAPcyv4hsk66TBg-6V_quSHpZ7fx8S3tu8i4-30nwHoGvSMsZZw@mail.gmail.com>
+In-Reply-To: <CAPcyv4hsk66TBg-6V_quSHpZ7fx8S3tu8i4-30nwHoGvSMsZZw@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <AD471FCA655DD74FB231897E5B51EB74@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,84 +23,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Q2hhbmdlcyBpbiB2MzoKIC0gSW4gZGF4Y3RsX2Rldl9nZXRfbW9kZSgpLCByZW1vdmUgdGhlIHN1
-YnN5c3RlbSB3YXJuaW5nLCBkZXRlY3QgZGF4LWNsYXNzCiAgIGFuZCBzaW1wbHkgbWFrZSBpdCBy
-ZXR1cm4gZGV2ZGF4CgpDaGFuZ2VzIGluIHYyOgogLSBBZGQgZXhhbXBsZXMgdG8gdGhlIGRvY3Vt
-ZW50YXRpb24gcGFnZSAoRGF2ZSBIYW5zZW4pCiAtIENsYXJpZnkgZG9jdW1lbnRhdGlvbiByZWdh
-cmRpbmcgdGhlIGNvbnZlcnNpb24gZnJvbSBzeXN0ZW0tcmFtIHRvIGRldmRheAogLSBSZW1vdmUg
-YW55IHJlZmVyZW5jZXMgdG8gYSBwZXJzaXN0ZW50IGNvbmZpZyBmcm9tIHRoZSBkb2N1bWVudGF0
-aW9uIC0KICAgdGhvc2UgY2FuIGJlIGFkZGVkIHdoZW4gdGhlIGZlYXR1cmUgaXMgYWRkZWQuCiAt
-IGRldmljZS5jOiB2YWxpZGF0ZSBvcHRpb24gY29tcGF0aWJpbGl0eQogLSBkYXhjdGwtbGlzdDog
-ZGlzcGxheSBudW1hX25vZGUgZm9yIGRldmljZSBsaXN0aW5ncwogLSBkYXhjdGwtbGlzdDogZGlz
-cGxheSBtb2RlIGZvciBkZXZpY2UgbGlzdGluZ3MKIC0gbWFrZSB0aGUgb3B0aW9ucyBtb3JlIGNv
-bnNpc3RlbnQgYnkgYWRkaW5nIGEgJy1PJyBzaG9ydCBvcHRpb24KICAgZm9yIC0tYXR0ZW1wdC1v
-ZmZsaW5lCgpBZGQgYSBuZXcgZGF4Y3RsLXJlY29uZmlndXJlLWRldmljZSBjb21tYW5kIHRoYXQg
-bGV0cyB1cyByZWNvbmZpZ3VyZSBEQVgKZGV2aWNlcyBiYWNrIGFuZCBmb3J0aCBiZXR3ZWVuICdz
-eXN0ZW0tcmFtJyBhbmQgJ2RldmljZS1kYXgnIG1vZGVzLiBJdAphbHNvIGluY2x1ZGVzIGZhY2ls
-aXRpZXMgdG8gb25saW5lIGFueSBuZXdseSBob3QtcGx1Z2dlZCBtZW1vcnkKKGRlZmF1bHQpLCBh
-bmQgYXR0ZW1wdCB0byBvZmZsaW5lIG1lbW9yeSBiZWZvcmUgY29udmVydGluZyBhd2F5IGZyb20g
-dGhlCnN5c3RlbS1yYW0gbW9kZSAobm90IGRlZmF1bHQsIHJlcXVpcmVzIGEgLS1hdHRlbXB0LW9m
-ZmxpbmUgb3B0aW9uKS4KCkN1cnJlbnRseSBtaXNzaW5nIGZyb20gdGhpcyBzZXJpZXMgaXMgYSB3
-YXkgdG8gcGVyc2lzdGVudGx5IHN0b3JlIHdoaWNoCmRldmljZXMgaGF2ZSBiZWVuICdtYXJrZWQn
-IGZvciB1c2UgYXMgc3lzdGVtLXJhbS4gVGhpcyBkZXBlbmRzIG9uIGEKY29uZmlnIHN5c3RlbSBv
-dmVyaGF1bCBpbiBuZGN0bCwgYW5kIHBhdGNoZXMgZm9yIHRob3NlIHdpbGwgZm9sbG93CnNlcGFy
-YXRlbHkgYW5kIGFyZSBpbmRlcGVuZGVudCBvZiB0aGlzIHdvcmsuCgpFeGFtcGxlIGludm9jYXRp
-b25zOgoKMS4gUmVjb25maWd1cmUgZGF4MC4wIHRvIHN5c3RlbS1yYW0gbW9kZSwgZG9u4oCZdCBv
-bmxpbmUgdGhlIG1lbW9yeQogICAgIyBkYXhjdGwgcmVjb25maWd1cmUtZGV2aWNlIC0tbW9kZT1z
-eXN0ZW0tcmFtIC0tbm8tb25saW5lIGRheDAuMAogICAgWwogICAgICB7CiAgICAgICAgImNoYXJk
-ZXYiOiJkYXgwLjAiLAogICAgICAgICJzaXplIjoxNjc3NzIxNjAwMCwKICAgICAgICAibnVtYV9u
-b2RlIjoyLAogICAgICAgICJtb2RlIjoic3lzdGVtLXJhbSIKICAgICAgfQogICAgXQoKMi4gUmVj
-b25maWd1cmUgZGF4MC4wIHRvIGRldmRheCBtb2RlLCBhdHRlbXB0IHRvIG9mZmxpbmUgdGhlIG1l
-bW9yeQogICAgIyBkYXhjdGwgcmVjb25maWd1cmUtZGV2aWNlIC0taHVtYW4gLS1tb2RlPWRldmRh
-eCAtLWF0dGVtcHQtb2ZmbGluZSBkYXgwLjAKICAgIHsKICAgICAgImNoYXJkZXYiOiJkYXgwLjAi
-LAogICAgICAic2l6ZSI6IjE1LjYzIEdpQiAoMTYuNzggR0IpIiwKICAgICAgIm51bWFfbm9kZSI6
-MiwKICAgICAgIm1vZGUiOiJkZXZkYXgiCiAgICB9CgozLiBSZWNvbmZpZ3VyZSBhbGwgZGF4IGRl
-dmljZXMgb24gcmVnaW9uMCB0byBzeXN0ZW0tcmFtIG1vZGUKICAgICMgZGF4Y3RsIHJlY29uZmln
-dXJlLWRldmljZSAtLW1vZGU9c3lzdGVtLXJhbSAtLXJlZ2lvbj0wIGFsbAogICAgWwogICAgICB7
-CiAgICAgICAgImNoYXJkZXYiOiJkYXgwLjAiLAogICAgICAgICJzaXplIjoxNjc3NzIxNjAwMCwK
-ICAgICAgICAibnVtYV9ub2RlIjoyLAogICAgICAgICJtb2RlIjoic3lzdGVtLXJhbSIKICAgICAg
-fSwKICAgICAgewogICAgICAgICJjaGFyZGV2IjoiZGF4MC4xIiwKICAgICAgICAic2l6ZSI6MTY3
-NzcyMTYwMDAsCiAgICAgICAgIm51bWFfbm9kZSI6MywKICAgICAgICAibW9kZSI6InN5c3RlbS1y
-YW0iCiAgICAgIH0KICAgIF0KClRoZXNlIHBhdGNoZXMgY2FuIGFsc28gYmUgZm91bmQgaW4gdGhl
-ICdrbWVtLXBlbmRpbmcnIGJyYW5jaCBvbiBnaXRodWI6Cmh0dHBzOi8vZ2l0aHViLmNvbS9wbWVt
-L25kY3RsL3RyZWUva21lbS1wZW5kaW5nCgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+CkNjOiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AbGludXguaW50ZWwuY29t
-PgpDYzogUGF2ZWwgVGF0YXNoaW4gPHBhc2hhLnRhdGFzaGluQHNvbGVlbi5jb20+CgoKVmlzaGFs
-IFZlcm1hICgxMCk6CiAgbGliZGF4Y3RsOiBhZGQgaW50ZXJmYWNlcyBpbiBzdXBwb3J0IG9mIGRl
-dmljZSBtb2RlcwogIGxpYmRheGN0bDogY2FjaGUgJ3N1YnN5c3RlbScgaW4gZGF4Y3RsX2N0eAog
-IGxpYmRheGN0bDogYWRkIGludGVyZmFjZXMgdG8gZW5hYmxlL2Rpc2FibGUgZGV2aWNlcwogIGxp
-YmRheGN0bDogYWRkIGludGVyZmFjZXMgdG8gZ2V0L3NldCB0aGUgb25saW5lIHN0YXRlIGZvciBh
-IG5vZGUKICBkYXhjdGwvbGlzdDogYWRkIG51bWFfbm9kZSBmb3IgZGV2aWNlIGxpc3RpbmdzCiAg
-bGliZGF4Y3RsOiBhZGQgYW4gaW50ZXJmYWNlIHRvIGdldCB0aGUgbW9kZSBmb3IgYSBkYXggZGV2
-aWNlCiAgZGF4Y3RsOiBhZGQgYSBuZXcgcmVjb25maWd1cmUtZGV2aWNlIGNvbW1hbmQKICBEb2N1
-bWVudGF0aW9uL2RheGN0bDogYWRkIGEgbWFuIHBhZ2UgZm9yIGRheGN0bC1yZWNvbmZpZ3VyZS1k
-ZXZpY2UKICBjb250cmliL25kY3RsOiBmaXggcmVnaW9uLWlkIGNvbXBsZXRpb25zIGZvciBkYXhj
-dGwKICBjb250cmliL25kY3RsOiBhZGQgYmFzaC1jb21wbGV0aW9uIGZvciBkYXhjdGwtcmVjb25m
-aWd1cmUtZGV2aWNlCgogRG9jdW1lbnRhdGlvbi9kYXhjdGwvTWFrZWZpbGUuYW0gICAgICAgICAg
-ICAgIHwgICAzICstCiAuLi4vZGF4Y3RsL2RheGN0bC1yZWNvbmZpZ3VyZS1kZXZpY2UudHh0ICAg
-ICAgfCAxMTggKysrKwogY29udHJpYi9uZGN0bCAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHwgIDM0ICstCiBkYXhjdGwvTWFrZWZpbGUuYW0gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgfCAgIDIgKwogZGF4Y3RsL2J1aWx0aW4uaCAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAxICsKIGRheGN0bC9kYXhjdGwuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgMSArCiBkYXhjdGwvZGV2aWNlLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAy
-MzcgKysrKysrKysKIGRheGN0bC9saWIvTWFrZWZpbGUuYW0gICAgICAgICAgICAgICAgICAgICAg
-ICB8ICAgMyArLQogZGF4Y3RsL2xpYi9saWJkYXhjdGwtcHJpdmF0ZS5oICAgICAgICAgICAgICAg
-IHwgIDIxICsKIGRheGN0bC9saWIvbGliZGF4Y3RsLmMgICAgICAgICAgICAgICAgICAgICAgICB8
-IDU1MiArKysrKysrKysrKysrKysrKy0KIGRheGN0bC9saWIvbGliZGF4Y3RsLnN5bSAgICAgICAg
-ICAgICAgICAgICAgICB8ICAxNCArCiBkYXhjdGwvbGliZGF4Y3RsLmggICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgfCAgMTYgKwogdXRpbC9qc29uLmMgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHwgIDIyICsKIDEzIGZpbGVzIGNoYW5nZWQsIDEwMTMgaW5zZXJ0aW9ucygrKSwg
-MTEgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9kYXhjdGwv
-ZGF4Y3RsLXJlY29uZmlndXJlLWRldmljZS50eHQKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkYXhjdGwv
-ZGV2aWNlLmMKCi0tIAoyLjIwLjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+
+On Tue, 2019-05-28 at 19:13 -0700, Dan Williams wrote:
+> On Tue, May 28, 2019 at 3:24 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+> > Add new libdaxctl interfaces to disable a device_dax based devices, and
+> > to enable it into a given mode. The modes available are 'device_dax',
+> 
+> Does this mode name get exposed to the command line interface? If
+> "yes", I think this should be 'devdax' to match the ndctl namespace
+> mode, or just 'device', but otherwise no "_" in any command-line
+> interfaces. Otherwise I think the module names are an internal
+> implementation detail of the kernel ABI and need not leak further than
+> the libdaxctl to kernel interface.
+
+The command line option is just 'devdax', but good catch in that I will
+fix up this commit message.
+
+> 
+> > and 'system-ram', where device_dax is the normal device DAX mode used
+> > via a character device, and 'system-ram' uses the kernel's 'kmem'
+> > facility to hotplug the device into the system's memory space, and can
+> > be used as normal system memory.
+> > 
+> > This adds the following new interfaces:
+> > 
+> >   daxctl_dev_disable;
+> >   daxctl_dev_enable_devdax;
+> >   daxctl_dev_enable_ram;
+> > 
+> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
