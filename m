@@ -1,17 +1,30 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DDD9521253312
- for <linux-nvdimm@lists.01.org>; Mon,  6 May 2019 22:33:01 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 18/99] libnvdimm/pmem: fix a possible OOB access
- when read and write pmem
-Date: Tue,  7 May 2019 01:31:12 -0400
-Message-Id: <20190507053235.29900-18-sashal@kernel.org>
-In-Reply-To: <20190507053235.29900-1-sashal@kernel.org>
-References: <20190507053235.29900-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 119A421276B8F
+ for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 01:20:44 -0700 (PDT)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x4U8IXZC078522
+ for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 04:20:43 -0400
+Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2sta87kxpb-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 04:20:43 -0400
+Received: from localhost
+ by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Thu, 30 May 2019 09:20:40 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: Picking 0th namespace if it is idle
+In-Reply-To: <87a7f45qik.fsf@linux.ibm.com>
+References: <87a7f45qik.fsf@linux.ibm.com>
+Date: Thu, 30 May 2019 13:50:35 +0530
 MIME-Version: 1.0
+Message-Id: <877ea85p64.fsf@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,69 +36,147 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, Liang ZhiCheng <liangzhicheng@baidu.com>
+To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Li RongQing <lirongqing@baidu.com>
+aneesh.kumar@linux.ibm.com (Aneesh Kumar K.V) writes:
 
-[ Upstream commit 9dc6488e84b0f64df17672271664752488cd6a25 ]
+> Hi Dan,
+>
+> With the patch series to mark the namespace disabled if we have mismatch
+> in pfn superblock, we can endup with namespace0 marked idle/disabled.
+>
+> I am wondering why do do the below in ndctl.
+>
+>
+> static struct ndctl_namespace *region_get_namespace(struct ndctl_region *region)
+> {
+> 	struct ndctl_namespace *ndns;
+>
+> 	/* prefer the 0th namespace if it is idle */
+> 	ndctl_namespace_foreach(region, ndns)
+> 		if (ndctl_namespace_get_id(ndns) == 0
+> 				&& !is_namespace_active(ndns))
+> 			return ndns;
+> 	return ndctl_region_get_namespace_seed(region);
+> }
+>
+> I have a kernel patch that will create a namespace_seed even if we fail
+> to ename a pfn backing device. Something like below
+>  
+> @@ -747,12 +752,23 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
+>  		}
+>  	}
+>  	if (dev->parent && is_nd_region(dev->parent) && probe) {
+>  		nd_region = to_nd_region(dev->parent);
+>  		nvdimm_bus_lock(dev);
+>  		if (nd_region->ns_seed == dev)
+>  			nd_region_create_ns_seed(nd_region);
+>  		nvdimm_bus_unlock(dev);
+>  	}
+> +
+> +	if (dev->parent && is_nd_region(dev->parent) && !probe && (ret == -EOPNOTSUPP)) {
+> +		nd_region = to_nd_region(dev->parent);
+> +		nvdimm_bus_lock(dev);
+> +		if (nd_region->ns_seed == dev)
+> +			nd_region_create_ns_seed(nd_region);
+> +		nvdimm_bus_unlock(dev);
+> +	}
+> +
+>
+> With that we can end up with something like the below after boot.
+> :/sys/bus/nd/devices/region0$ sudo ndctl list -Ni        
+> [                                                                          
+>   {                                                                                                                                                    
+>     "dev":"namespace0.1",                                                  
+>     "mode":"fsdax",                                                        
+>     "map":"mem",                                                           
+>     "size":0,                                                              
+>     "uuid":"00000000-0000-0000-0000-000000000000",                                                                                                     
+>     "state":"disabled"                                                     
+>   },                                                                       
+>   {                                                                        
+>     "dev":"namespace0.0",                                                  
+>     "mode":"fsdax",                  
+>     "map":"mem",                                                           
+>     "size":2147483648,               
+>     "uuid":"094e703b-4bf8-4078-ad42-50bebc03e538",                                                                                                     
+>     "state":"disabled"                                                                                                                                 
+>   }                                                                        
+> ]                                             
+>
+> namespace0.0 is the one we failed to initialize due to PAGE_SIZE
+> mismatch. 
+>
+> We do have namespace_seed pointing to namespacece0.1 correct. But a ndtl
+> create-namespace will pick namespace0.0 even if we have seed file
+> pointing to namespacec0.1.
+>
+>
+> I am trying to resolve the issues related to creation of new namespaces
+> when we have some namespace marked disabled due to pfn_sb setting
+> mismatch.
+>
+> -aneesh
 
-If offset is not zero and length is bigger than PAGE_SIZE,
-this will cause to out of boundary access to a page memory
+With that ndctl namespace0.0 selection commented out, we do get pick the
+right idle namespace.
 
-Fixes: 98cc093cba1e ("block, THP: make block_device_operations.rw_page support THP")
-Co-developed-by: Liang ZhiCheng <liangzhicheng@baidu.com>
-Signed-off-by: Liang ZhiCheng <liangzhicheng@baidu.com>
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/nvdimm/pmem.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+#ndctl list -Ni
+[                         
+  {                
+    "dev":"namespace0.1",
+    "mode":"fsdax",                                                        
+    "map":"mem",      
+    "size":0,
+    "uuid":"00000000-0000-0000-0000-000000000000",
+    "state":"disabled"   
+  },               
+  {             
+    "dev":"namespace0.0",
+    "mode":"fsdax",                                                        
+    "map":"mem",  
+    "size":2147483648,   
+    "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
+    "state":"disabled"
+  }  
+]   
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index bc2f700feef8..0279eb1da3ef 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -113,13 +113,13 @@ static void write_pmem(void *pmem_addr, struct page *page,
- 
- 	while (len) {
- 		mem = kmap_atomic(page);
--		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
- 		memcpy_flushcache(pmem_addr, mem + off, chunk);
- 		kunmap_atomic(mem);
- 		len -= chunk;
- 		off = 0;
- 		page++;
--		pmem_addr += PAGE_SIZE;
-+		pmem_addr += chunk;
- 	}
- }
- 
-@@ -132,7 +132,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 
- 	while (len) {
- 		mem = kmap_atomic(page);
--		chunk = min_t(unsigned int, len, PAGE_SIZE);
-+		chunk = min_t(unsigned int, len, PAGE_SIZE - off);
- 		rem = memcpy_mcsafe(mem + off, pmem_addr, chunk);
- 		kunmap_atomic(mem);
- 		if (rem)
-@@ -140,7 +140,7 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 		len -= chunk;
- 		off = 0;
- 		page++;
--		pmem_addr += PAGE_SIZE;
-+		pmem_addr += chunk;
- 	}
- 	return BLK_STS_OK;
- }
--- 
-2.20.1
+after ndctl create-namespace -s 2G -r region0                   
+
+
+# ndctl list -Ni                                           
+[                     
+  {                    
+    "dev":"namespace0.2",
+    "mode":"fsdax",       
+    "map":"mem",   
+    "size":0,   
+    "uuid":"00000000-0000-0000-0000-000000000000",
+    "state":"disabled"
+  },
+  {
+    "dev":"namespace0.1",
+    "mode":"fsdax",
+    "map":"dev",
+    "size":2130706432,
+    "uuid":"60970059-9412-4eeb-9e7a-b314585a4da3",
+    "align":65536,
+    "blockdev":"pmem0.1",
+    "supported_alignments":[
+      65536
+    ]
+  },
+  {
+    "dev":"namespace0.0",
+    "mode":"fsdax",
+    "map":"mem",
+    "size":2147483648,
+    "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
+    "state":"disabled"
+  }
+]
 
 _______________________________________________
 Linux-nvdimm mailing list
