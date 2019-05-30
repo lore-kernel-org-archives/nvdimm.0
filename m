@@ -1,23 +1,98 @@
 Return-Path: <owner-linux-mm@kvack.org>
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/8] acpi: Drop drivers/acpi/hmat/ directory
-Date: Fri, 31 May 2019 10:23:55 +0200
-Message-ID: <4965161.Uu1Nigf0I0@kreacher>
-In-Reply-To: <155925716783.3775979.13301455166290564145.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com> <155925716783.3775979.13301455166290564145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 1/8] acpi: Drop drivers/acpi/hmat/ directory
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 30 May 2019 15:59:27 -0700
+Message-ID: <155925716783.3775979.13301455166290564145.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-efi@vger.kernel.org, Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, vishal.l.verma@intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org
+To: linux-efi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, vishal.l.verma@intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Friday, May 31, 2019 12:59:27 AM CEST Dan Williams wrote:
-> As a single source file object there is no need for the hmat enabling to
-> have its own directory.
+As a single source file object there is no need for the hmat enabling to
+have its own directory.
 
-Well, I asked Keith to add that directory as the code in hmat.c is more related to mm than to
-the rest of the ACPI subsystem.
+Cc: Len Brown <lenb@kernel.org>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/Kconfig       |   12 +++++++++++-
+ drivers/acpi/Makefile      |    2 +-
+ drivers/acpi/hmat.c        |    0 
+ drivers/acpi/hmat/Kconfig  |   11 -----------
+ drivers/acpi/hmat/Makefile |    2 --
+ 5 files changed, 12 insertions(+), 15 deletions(-)
+ rename drivers/acpi/{hmat/hmat.c => hmat.c} (100%)
+ delete mode 100644 drivers/acpi/hmat/Kconfig
+ delete mode 100644 drivers/acpi/hmat/Makefile
 
-Is there any problem with retaining it?
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 283ee94224c6..ec8691e4152f 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -475,7 +475,17 @@ config ACPI_REDUCED_HARDWARE_ONLY
+ 	  If you are unsure what to do, do not enable this option.
+ 
+ source "drivers/acpi/nfit/Kconfig"
+-source "drivers/acpi/hmat/Kconfig"
++
++config ACPI_HMAT
++	bool "ACPI Heterogeneous Memory Attribute Table Support"
++	depends on ACPI_NUMA
++	select HMEM_REPORTING
++	help
++	 If set, this option has the kernel parse and report the
++	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
++	 register memory initiators with their targets, and export
++	 performance attributes through the node's sysfs device if
++	 provided.
+ 
+ source "drivers/acpi/apei/Kconfig"
+ source "drivers/acpi/dptf/Kconfig"
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 5d361e4e3405..fc89686498dd 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -80,7 +80,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+ obj-$(CONFIG_ACPI)		+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+ obj-$(CONFIG_ACPI_NFIT)		+= nfit/
+-obj-$(CONFIG_ACPI_HMAT)		+= hmat/
++obj-$(CONFIG_ACPI_HMAT)		+= hmat.o
+ obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/hmat.c
+similarity index 100%
+rename from drivers/acpi/hmat/hmat.c
+rename to drivers/acpi/hmat.c
+diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/hmat/Kconfig
+deleted file mode 100644
+index 95a29964dbea..000000000000
+--- a/drivers/acpi/hmat/Kconfig
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0
+-config ACPI_HMAT
+-	bool "ACPI Heterogeneous Memory Attribute Table Support"
+-	depends on ACPI_NUMA
+-	select HMEM_REPORTING
+-	help
+-	 If set, this option has the kernel parse and report the
+-	 platform's ACPI HMAT (Heterogeneous Memory Attributes Table),
+-	 register memory initiators with their targets, and export
+-	 performance attributes through the node's sysfs device if
+-	 provided.
+diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
+deleted file mode 100644
+index 1c20ef36a385..000000000000
+--- a/drivers/acpi/hmat/Makefile
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0-only
+-obj-$(CONFIG_ACPI_HMAT) := hmat.o
