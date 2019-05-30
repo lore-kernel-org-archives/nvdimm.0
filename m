@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail106.syd.optusnet.com.au (mail106.syd.optusnet.com.au
- [211.29.132.42]) by ml01.01.org (Postfix) with ESMTP id 9B7EA21281EE5
- for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 15:59:32 -0700 (PDT)
-Date: Fri, 31 May 2019 08:59:25 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 980DA2121C12A
+ for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 04:16:11 -0700 (PDT)
+Date: Thu, 30 May 2019 13:16:05 +0200
+From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 04/18] dax: Introduce IOMAP_DAX_COW to CoW edges during
  writes
-Message-ID: <20190530225925.GG16786@dread.disaster.area>
-References: <1620c513-4ce2-84b0-33dc-2675246183ea@cn.fujitsu.com>
+Message-ID: <20190530111605.GC29237@quack2.suse.cz>
+References: <20190523115109.2o4txdjq2ft7fzzc@fiona>
+ <1620c513-4ce2-84b0-33dc-2675246183ea@cn.fujitsu.com>
  <20190528091729.GD9607@quack2.suse.cz>
  <a3a919e6-ecad-bdf6-423c-fc01f9cfa661@cn.fujitsu.com>
  <20190529024749.GC16786@dread.disaster.area>
@@ -16,10 +19,9 @@ References: <1620c513-4ce2-84b0-33dc-2675246183ea@cn.fujitsu.com>
  <20190529044658.GD16786@dread.disaster.area>
  <20190529134629.GA32147@quack2.suse.cz>
  <20190529221445.GE16786@dread.disaster.area>
- <20190530111605.GC29237@quack2.suse.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190530111605.GC29237@quack2.suse.cz>
+In-Reply-To: <20190529221445.GE16786@dread.disaster.area>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,93 +33,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jan Kara <jack@suse.cz>
-Cc: kilobyte@angband.pl, "Darrick J. Wong" <darrick.wong@oracle.com>, nborisov@suse.com, Goldwyn Rodrigues <rgoldwyn@suse.de>, linux-nvdimm@lists.01.org, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: kilobyte@angband.pl, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, nborisov@suse.com, Goldwyn Rodrigues <rgoldwyn@suse.de>, linux-nvdimm@lists.01.org, dsterba@suse.cz, willy@infradead.org, linux-fsdevel@vger.kernel.org, hch@lst.de, linux-btrfs@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, May 30, 2019 at 01:16:05PM +0200, Jan Kara wrote:
-> On Thu 30-05-19 08:14:45, Dave Chinner wrote:
-> > On Wed, May 29, 2019 at 03:46:29PM +0200, Jan Kara wrote:
-> > > On Wed 29-05-19 14:46:58, Dave Chinner wrote:
-> > > >  iomap_apply()
-> > > > 
-> > > >  	->iomap_begin()
-> > > > 		map old data extent that we copy from
-> > > > 
-> > > > 		allocate new data extent we copy to in data fork,
-> > > > 		immediately replacing old data extent
-> > > > 
-> > > > 		return transaction handle as private data
-> > 
-> > This holds the inode block map locked exclusively across the IO,
-> > so....
+On Thu 30-05-19 08:14:45, Dave Chinner wrote:
+> On Wed, May 29, 2019 at 03:46:29PM +0200, Jan Kara wrote:
+> > On Wed 29-05-19 14:46:58, Dave Chinner wrote:
+> > >  iomap_apply()
+> > > 
+> > >  	->iomap_begin()
+> > > 		map old data extent that we copy from
+> > > 
+> > > 		allocate new data extent we copy to in data fork,
+> > > 		immediately replacing old data extent
+> > > 
+> > > 		return transaction handle as private data
 > 
-> Does it? We do hold XFS_IOLOCK_EXCL during the whole dax write.
+> This holds the inode block map locked exclusively across the IO,
+> so....
 
-I forgot about that, I keep thinking that we use shared locking for
-DAX like we do for direct IO. There's another reason for range
-locks - allowing concurrent DAX read/write IO - but that's
-orthogonal to the issue here.
+Does it? We do hold XFS_IOLOCK_EXCL during the whole dax write. But
+xfs_file_iomap_begin() does release XFS_ILOCK_* on exit AFAICS. So I don't
+see anything that would prevent page fault from mapping blocks into page
+tables just after xfs_file_iomap_begin() returns.
 
-> But
-> xfs_file_iomap_begin() does release XFS_ILOCK_* on exit AFAICS. So I don't
-> see anything that would prevent page fault from mapping blocks into page
-> tables just after xfs_file_iomap_begin() returns.
-
-Right, holding the IOLOCK doesn't stop concurrent page faults from
-mapping the page we are trying to write, and that leaves a window
-where stale data can be exposed if we don't initialise the newly
-allocated range whilst in the allocation transaction holding the
-ILOCK. That's what the XFS_BMAPI_ZERO flag does in the DAX block
-allocation path.
-
-So the idea of holding the allocation transaction across the data
-copy means that ILOCK is then held until the data blocks are fully
-initialised with valid data, meaning we can greatly reduce the scope
-of the XFS_BMAPI_ZERO flag and possible get rid of it altogether.
-
-> > > This race was actually the strongest
-> > > motivation for pre-zeroing of blocks. OTOH copy_from_iter() in
-> > > dax_iomap_actor() needs to be able to fault pages to copy from (and these
-> > > pages may be from the same file you're writing to) so you cannot just block
-> > > faulting for the file through I_MMAP_LOCK.
+> > > 	dax_iomap_actor()
+> > > 		copies data from old extent to new extent
+> > > 
+> > > 	->iomap_end
+> > > 		commits transaction now data has been copied, making
+> > > 		the COW operation atomic with the data copy.
+> > > 
+> > > 
+> > > This, in fact, should be how we do all DAX writes that require
+> > > allocation, because then we get rid of the need to zero newly
+> > > allocated or unwritten extents before we copy the data into it. i.e.
+> > > we only need to write once to newly allocated storage rather than
+> > > twice.
 > > 
-> > Right, it doesn't take the I_MMAP_LOCK, but it would block further
-> > in. And, really, I'm not caring all this much about this corner
-> > case. i.e.  anyone using a "mmap()+write() zero copy" pattern on DAX
-> > within a file is unbeleivably naive - the data still gets copied by
-> > the CPU in the write() call. It's far simpler and more effcient to
-> > just mmap() both ranges of the file(s) and memcpy() in userspace....
-> > 
-> > FWIW, it's to avoid problems with stupid userspace stuff that nobody
-> > really should be doing that I want range locks for the XFS inode
-> > locks.  If userspace overlaps the ranges and deadlocks in that case,
-> > they they get to keep all the broken bits because, IMO, they are
-> > doing something monumentally stupid. I'd probably be making it
-> > return EDEADLOCK back out to userspace in the case rather than
-> > deadlocking but, fundamentally, I think it's broken behaviour that
-> > we should be rejecting with an error rather than adding complexity
-> > trying to handle it.
+> > You need to be careful though. You need to synchronize with page faults so
+> > that they cannot see and expose in page tables blocks you've allocated
+> > before their contents is filled.
 > 
-> I agree with this. We must just prevent user from taking the kernel down
-> with maliciously created IOs...
+> ... so the page fault will block trying to map the blocks because
+> it can't get the xfs_inode->i_ilock until the allocation transaciton
+> commits....
+> 
+> > This race was actually the strongest
+> > motivation for pre-zeroing of blocks. OTOH copy_from_iter() in
+> > dax_iomap_actor() needs to be able to fault pages to copy from (and these
+> > pages may be from the same file you're writing to) so you cannot just block
+> > faulting for the file through I_MMAP_LOCK.
+> 
+> Right, it doesn't take the I_MMAP_LOCK, but it would block further
+> in. And, really, I'm not caring all this much about this corner
+> case. i.e.  anyone using a "mmap()+write() zero copy" pattern on DAX
+> within a file is unbeleivably naive - the data still gets copied by
+> the CPU in the write() call. It's far simpler and more effcient to
+> just mmap() both ranges of the file(s) and memcpy() in userspace....
+> 
+> FWIW, it's to avoid problems with stupid userspace stuff that nobody
+> really should be doing that I want range locks for the XFS inode
+> locks.  If userspace overlaps the ranges and deadlocks in that case,
+> they they get to keep all the broken bits because, IMO, they are
+> doing something monumentally stupid. I'd probably be making it
+> return EDEADLOCK back out to userspace in the case rather than
+> deadlocking but, fundamentally, I think it's broken behaviour that
+> we should be rejecting with an error rather than adding complexity
+> trying to handle it.
 
-Noted. :)
+I agree with this. We must just prevent user from taking the kernel down
+with maliciously created IOs...
 
-I'm still working to scale the range locks effectively for direct
-IO; I've got to work out why sometimes they give identical
-performance to rwsems out to 16 threads, and other times they run
-20% slower or worse at 8+ threads. I'm way ahead of the original
-mutex protected tree implementation that I have, but still got work
-to do to get consistently close to rwsem performance for pure shared
-locking workloads like direct IO.
-
-Cheers,
-
-Dave.
+								Honza
 -- 
-Dave Chinner
-david@fromorbit.com
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
