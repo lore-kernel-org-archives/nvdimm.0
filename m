@@ -1,10 +1,11 @@
-From: TRENDY FOODS BELGIUM S.A. <achats-XmMC0KZZWblRlArc6DlCIQ@public.gmane.org>
-Subject: Supply Demands / Demande d'approvisionnement
-Date: Fri, 31 May 2019 15:56:58 +0200
-Message-ID: <EXY5JYH-O2UN-H3CX-48XW-TG73XOF1OMDS@trendy-foods.net>
+From: "Qtrans Language Solutions " <info-LIg7FeCA4LP6V6G2DxALlg@public.gmane.org>
+Subject: Are you in a hurry?
+Date: Thu, 30 May 2019 14:32:43 +0000
+Message-ID: <ca2c6cf4f6f8026bd182d1688d17431f@qtranslsg.com>
+Reply-To: sales-QgeUVmcqwmSsTnJN9+BGXg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -18,29 +19,10 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-SGVsbG8KClRSRU5EWSBGT09EUyBpcyBvbmUgb2YgdGhlIGZpcnN0IGxhcmdlc3Qgc3VwZXJtYXJr
-ZXQgY2hhaW4gaW4gQmVsZ2l1bS4gQmVpbmcgZXhwYW5kaW5nIHRoZW4gb3BlbmluZyBuZXcgc3Rv
-cmVzIGluIEVVIGNvdW50cmllcy4gV2UgYXJlIHRoZXJlZm9yZSBsb29raW5nIGZvciBuZXcgc3Vw
-cGxpZXJzIGFuZCBwcm9kdWN0cyBpbiBzZXZlcmFsIHNlY3RvcnMgaW5jbHVkaW5nIHlvdXJzLiBJ
-bmRlZWQgd2UgY29tZSB0byBwcmVzZW50IHlvdSBvdXIgaW50ZXJlc3QgdG8gYWNxdWlyZSBzb21l
-IG9mIHlvdXIgcHJvZHVjdHMgb2Ygd2hpY2ggd2Ugd2lsbCBnaXZlIHlvdSB0aGUgZGV0YWlscyBp
-biBvdXIgbmV4dCBtYWlsLiBUaGUgb2J0YWluaW5nIG9mIGEgbGluZSBvZiBjcmVkaXQgYW5kIHdo
-ZXJlIGEgcGF5bWVudCBhdCAxNSBkYXlzIG1heGltdW0gYWZ0ZXIgaW52b2ljZSBpcyBpdCBwb3Nz
-aWJsZT8KWW91cnMgZmFpdGhmdWxseSwKCgpCb25qb3VyCgpUUkVORFkgRk9PRFMgZXN0IGwndW5l
-IGRlcyBwcmVtacOocmVzIHBsdXMgZ3JhbmRlIGNoYcOubmUgZGUgc3VwZXJtYXJjaMOpcyBkZSBC
-ZWxnaXF1ZS4gRXRhbnQgZW4gZXhwYW5zaW9uIHB1aXMgb3V2ZXJ0dXJlIGRlIG5vdXZlbGxlcyBl
-bnNlaWduZXMgZGFucyBwYXlzIGRlIGwnVUUuIE5vdXMgc29tbWVzIGRvbmMgw6AgbGEgcmVjaGVy
-Y2hlIGRlIG5vdXZlYXV4IGZvdXJuaXNzZXVycyBldCBwcm9kdWl0cyBkYW5zIHBsdXNpZXVycyBz
-ZWN0ZXVycyBkIGFjdGl2aXTDqSBkb250IGxlIHZvdHJlLiBFbiBlZmZldCBub3VzIHZlbm9ucyB2
-b3VzIHByw6lzZW50ZXIgbm90cmUgaW50w6lydCBkJ2FjcXXDqXJpciBjZXJ0YWlucyBkZSB2b3Mg
-cHJvZHVpdHMgZG9udCBub3VzIHZvdXMgZG9ubmVyb25zIGxlcyBkw6l0YWlscyBkYW5zIG5vdHJl
-IHByb2NoYWluIG1haWwuTCdvYnRlbnRpb24gZCd1bmUgbGlnbmUgZGUgY3LDqWRpdCBldCBvw7kg
-ZCd1biBwYWllbWVudCBjb21wcmlzIGEgMTUgam91cnMgbWF4aW11bSBhcHLDqHMgZmFjdHVyZSBl
-c3QtaWwgcG9zc2libGU/CkNvcmRpYWxlbWVudCB2b3RyZSwKCk1yIFJvYmVydCBHdXN0aW4KU2Fs
-ZXMgZGlyZWN0b3IKVFJFTkRZIEZPT0RTIEJFTEdJVU0gUy5BLgpBdmVudWUgZHUgUGFyYywgMzcg
-Qgo0ODAwIFBldGl0LVJlY2hhaW4KQmVsZ2lxdWUgLSBCZWxnaXVtCk7CsCA6IDA0MDcwOTU4MzUK
-VFZBIG9yIFZBVDogQkUwNDA3MDk1ODM1ClRlbDogKzMyNjk0ODAxODYKQ2VsOiArMzI0NjAyNDE2
-MDIKRW1haWwgOiBhY2hhdHNAdHJlbmR5LWZvb2RzLm5ldApfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4
-LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5m
-by9saW51eC1udmRpbW0K
+Your email client cannot read this email.
+To view it online, please go here:
+http://qtranslsg.com/display.php?M=2105055&C=ea945f19413ffa2352e623b6755e0633&S=39&L=27&N=31
+
+
+To stop receiving these
+emails:http://qtranslsg.com/unsubscribe.php?M=2105055&C=ea945f19413ffa2352e623b6755e0633&L=27&N=39
