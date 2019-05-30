@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4B410212377FF
- for <linux-nvdimm@lists.01.org>; Wed,  1 May 2019 23:09:46 -0700 (PDT)
-Subject: [PATCH v7 07/12] mm: Kill is_dev_zone() helper
+ by ml01.01.org (Postfix) with ESMTPS id 1F7612128A638
+ for <linux-nvdimm@lists.01.org>; Thu, 30 May 2019 16:13:42 -0700 (PDT)
+Subject: [PATCH v2 6/8] device-dax: Add a driver for "hmem" devices
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 01 May 2019 22:55:59 -0700
-Message-ID: <155677655941.2336373.17601391574483353034.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 30 May 2019 15:59:53 -0700
+Message-ID: <155925719374.3775979.16707226817593415735.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,59 +22,176 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
+To: linux-efi@vger.kernel.org
+Cc: kbuild test robot <lkp@intel.com>, ard.biesheuvel@linaro.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given there are no more usages of is_dev_zone() outside of 'ifdef
-CONFIG_ZONE_DEVICE' protection, kill off the compilation helper.
+Platform firmware like EFI/ACPI may publish "hmem" platform devices.
+Such a device is a performance differentiated memory range likely
+reserved for an application specific use case. The driver gives access
+to 100% of the capacity via a device-dax mmap instance by default.
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+However, if over-subscription and other kernel memory management is
+desired the resulting dax device can be assigned to the core-mm via the
+kmem driver.
+
+This consumes "hmem" devices the producer of "hmem" devices is saved for
+a follow-on patch so that it can reference the new CONFIG_DEV_DAX_HMEM
+symbol to gate performing the enumeration work.
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Reported-by: kbuild test robot <lkp@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/mmzone.h |   12 ------------
- mm/page_alloc.c        |    2 +-
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ drivers/dax/Kconfig       |   27 +++++++++++++++++----
+ drivers/dax/Makefile      |    2 ++
+ drivers/dax/hmem.c        |   58 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/memregion.h |    3 ++
+ 4 files changed, 85 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/dax/hmem.c
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index b13f0cddf75e..3237c5e456df 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -855,18 +855,6 @@ static inline int local_memory_node(int node_id) { return node_id; };
-  */
- #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index f33c73e4af41..9d653dfcd425 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -32,19 +32,36 @@ config DEV_DAX_PMEM
  
--#ifdef CONFIG_ZONE_DEVICE
--static inline bool is_dev_zone(const struct zone *zone)
--{
--	return zone_idx(zone) == ZONE_DEVICE;
--}
--#else
--static inline bool is_dev_zone(const struct zone *zone)
--{
--	return false;
--}
--#endif
--
- /*
-  * Returns true if a zone has pages managed by the buddy allocator.
-  * All the reclaim decisions have to use this function rather than
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index a68735c79609..be309d6a79de 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5864,7 +5864,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 	unsigned long start = jiffies;
- 	int nid = pgdat->node_id;
+ 	  Say M if unsure
  
--	if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
-+	if (WARN_ON_ONCE(!pgmap || zone_idx(zone) != ZONE_DEVICE))
- 		return;
++config DEV_DAX_HMEM
++	tristate "HMEM DAX: direct access to 'specific purpose' memory"
++	depends on EFI_SPECIFIC_DAX
++	default DEV_DAX
++	help
++	  EFI 2.8 platforms, and others, may advertise 'specific purpose'
++	  memory.  For example, a high bandwidth memory pool. The
++	  indication from platform firmware is meant to reserve the
++	  memory from typical usage by default.  This driver creates
++	  device-dax instances for these memory ranges, and that also
++	  enables the possibility to assign them to the DEV_DAX_KMEM
++	  driver to override the reservation and add them to kernel
++	  "System RAM" pool.
++
++	  Say M if unsure.
++
+ config DEV_DAX_KMEM
+ 	tristate "KMEM DAX: volatile-use of persistent memory"
+ 	default DEV_DAX
+ 	depends on DEV_DAX
+ 	depends on MEMORY_HOTPLUG # for add_memory() and friends
+ 	help
+-	  Support access to persistent memory as if it were RAM.  This
+-	  allows easier use of persistent memory by unmodified
+-	  applications.
++	  Support access to persistent, or other performance
++	  differentiated memory as if it were System RAM. This allows
++	  easier use of persistent memory by unmodified applications, or
++	  adds core kernel memory services to heterogeneous memory types
++	  (HMEM) marked "reserved" by platform firmware.
  
- 	/*
+ 	  To use this feature, a DAX device must be unbound from the
+-	  device_dax driver (PMEM DAX) and bound to this kmem driver
+-	  on each boot.
++	  device_dax driver and bound to this kmem driver on each boot.
+ 
+ 	  Say N if unsure.
+ 
+diff --git a/drivers/dax/Makefile b/drivers/dax/Makefile
+index 81f7d54dadfb..80065b38b3c4 100644
+--- a/drivers/dax/Makefile
++++ b/drivers/dax/Makefile
+@@ -2,9 +2,11 @@
+ obj-$(CONFIG_DAX) += dax.o
+ obj-$(CONFIG_DEV_DAX) += device_dax.o
+ obj-$(CONFIG_DEV_DAX_KMEM) += kmem.o
++obj-$(CONFIG_DEV_DAX_HMEM) += dax_hmem.o
+ 
+ dax-y := super.o
+ dax-y += bus.o
+ device_dax-y := device.o
++dax_hmem-y := hmem.o
+ 
+ obj-y += pmem/
+diff --git a/drivers/dax/hmem.c b/drivers/dax/hmem.c
+new file mode 100644
+index 000000000000..741f2c222271
+--- /dev/null
++++ b/drivers/dax/hmem.c
+@@ -0,0 +1,58 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/platform_device.h>
++#include <linux/memregion.h>
++#include <linux/memremap.h>
++#include <linux/module.h>
++#include <linux/pfn_t.h>
++#include "bus.h"
++
++static int dax_hmem_probe(struct platform_device *pdev)
++{
++	struct dev_pagemap pgmap = { NULL };
++	struct device *dev = &pdev->dev;
++	struct dax_region *dax_region;
++	struct memregion_info *mri;
++	struct dev_dax *dev_dax;
++	struct resource *res;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENOMEM;
++
++	mri = dev->platform_data;
++	pgmap.dev = dev;
++	memcpy(&pgmap.res, res, sizeof(*res));
++
++	dax_region = alloc_dax_region(dev, pdev->id, res, mri->target_node,
++			PMD_SIZE, PFN_DEV|PFN_MAP);
++	if (!dax_region)
++		return -ENOMEM;
++
++	dev_dax = devm_create_dev_dax(dax_region, 0, &pgmap);
++	if (IS_ERR(dev_dax))
++		return PTR_ERR(dev_dax);
++
++	/* child dev_dax instances now own the lifetime of the dax_region */
++	dax_region_put(dax_region);
++	return 0;
++}
++
++static int dax_hmem_remove(struct platform_device *pdev)
++{
++	/* devm handles teardown */
++	return 0;
++}
++
++static struct platform_driver dax_hmem_driver = {
++	.probe = dax_hmem_probe,
++	.remove = dax_hmem_remove,
++	.driver = {
++		.name = "hmem",
++	},
++};
++
++module_platform_driver(dax_hmem_driver);
++
++MODULE_ALIAS("platform:hmem*");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Intel Corporation");
+diff --git a/include/linux/memregion.h b/include/linux/memregion.h
+index ba03c70f98d2..920fb300a98b 100644
+--- a/include/linux/memregion.h
++++ b/include/linux/memregion.h
+@@ -3,6 +3,9 @@
+ #define _MEMREGION_H_
+ #include <linux/types.h>
+ 
++struct memregion_info {
++	int target_node;
++};
+ int memregion_alloc(gfp_t gfp);
+ void memregion_free(int id);
+ #endif /* _MEMREGION_H_ */
 
 _______________________________________________
 Linux-nvdimm mailing list
