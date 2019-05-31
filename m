@@ -1,23 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com
+ [IPv6:2607:f8b0:4864:20::d44])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C35321243BC2
- for <linux-nvdimm@lists.01.org>; Sat,  4 May 2019 12:42:12 -0700 (PDT)
-Date: Sat, 4 May 2019 12:42:09 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: Hang / zombie process from Xarray page-fault conversion (bisected)
-Message-ID: <20190504194209.GB16963@bombadil.infradead.org>
-References: <CAPcyv4hwHpX-MkUEqxwdTj7wCCZCN4RV-L4jsnuwLGyL_UEG4A@mail.gmail.com>
- <20190311150947.GD19508@bombadil.infradead.org>
- <CAPcyv4jG5r2LOesxSx+Mdf+L_gQWqnhk+gKZyKAAPTHy1Drvqw@mail.gmail.com>
- <20190312043754.GD23020@dastard>
- <CAPcyv4i+z0RT7rTw+4w-h8dOyscVk1g3F+cu2pKHqqJjTgU++A@mail.gmail.com>
- <20190315022604.GO26298@dastard>
+ by ml01.01.org (Postfix) with ESMTPS id DC7B22125584A
+ for <linux-nvdimm@lists.01.org>; Fri, 31 May 2019 01:16:55 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id e5so7477850iok.4
+ for <linux-nvdimm@lists.01.org>; Fri, 31 May 2019 01:16:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190315022604.GO26298@dastard>
+References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155925717803.3775979.14412010256191901040.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155925717803.3775979.14412010256191901040.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Fri, 31 May 2019 10:16:39 +0200
+Message-ID: <CAKv+Gu8S8DaywCdEzQoZvSoE5by87+tBPPDeiVOVzr8naRstyA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/8] efi: Enumerate EFI_MEMORY_SP
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,90 +26,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, "Barror, Robert" <robert.barror@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-efi <linux-efi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Mar 15, 2019 at 01:26:04PM +1100, Dave Chinner wrote:
-> On Thu, Mar 14, 2019 at 12:34:51AM -0700, Dan Williams wrote:
-> > On Mon, Mar 11, 2019 at 9:38 PM Dave Chinner <david@fromorbit.com> wrote:
-> > >
-> > > On Mon, Mar 11, 2019 at 08:35:05PM -0700, Dan Williams wrote:
-> > > > On Mon, Mar 11, 2019 at 8:10 AM Matthew Wilcox <willy@infradead.org> wrote:
-> > > > >
-> > > > > On Thu, Mar 07, 2019 at 10:16:17PM -0800, Dan Williams wrote:
-> > > > > > Hi Willy,
-> > > > > >
-> > > > > > We're seeing a case where RocksDB hangs and becomes defunct when
-> > > > > > trying to kill the process. v4.19 succeeds and v4.20 fails. Robert was
-> > > > > > able to bisect this to commit b15cd800682f "dax: Convert page fault
-> > > > > > handlers to XArray".
-> > > > > >
-> > > > > > I see some direct usage of xa_index and wonder if there are some more
-> > > > > > pmd fixups to do?
-> > > > > >
-> > > > > > Other thoughts?
-> > > > >
-> > > > > I don't see why killing a process would have much to do with PMD
-> > > > > misalignment.  The symptoms (hanging on a signal) smell much more like
-> > > > > leaving a locked entry in the tree.  Is this easy to reproduce?  Can you
-> > > > > get /proc/$pid/stack for a hung task?
-> > > >
-> > > > It's fairly easy to reproduce, I'll see if I can package up all the
-> > > > dependencies into something that fails in a VM.
-> > > >
-> > > > It's limited to xfs, no failure on ext4 to date.
-> > > >
-> > > > The hung process appears to be:
-> > > >
-> > > >      kworker/53:1-xfs-sync/pmem0
-> > >
-> > > That's completely internal to XFS. Every 30s the work is triggered
-> > > and it either does a log flush (if the fs is active) or it syncs the
-> > > superblock to clean the log and idle the filesystem. It has nothing
-> > > to do with user processes, and I don't see why killing a process has
-> > > any effect on what it does...
-> > >
-> > > > ...and then the rest of the database processes grind to a halt from there.
-> > > >
-> > > > Robert was kind enough to capture /proc/$pid/stack, but nothing interesting:
-> > > >
-> > > > [<0>] worker_thread+0xb2/0x380
-> > > > [<0>] kthread+0x112/0x130
-> > > > [<0>] ret_from_fork+0x1f/0x40
-> > > > [<0>] 0xffffffffffffffff
-> > >
-> > > Much more useful would be:
-> > >
-> > > # echo w > /proc/sysrq-trigger
-> > >
-> > > And post the entire output of dmesg.
-> > 
-> > Here it is:
-> > 
-> > https://gist.github.com/djbw/ca7117023305f325aca6f8ef30e11556
-> 
-> Which tells us nothing. :(
+On Fri, 31 May 2019 at 01:13, Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
+> interpretation of the EFI Memory Types as "reserved for a specific
+> purpose". The intent of this bit is to allow the OS to identify precious
+> or scarce memory resources and optionally manage it separately from
+> EfiConventionalMemory. As defined older OSes that do not know about this
+> attribute are permitted to ignore it and the memory will be handled
+> according to the OS default policy for the given memory type.
+>
+> In other words, this "specific purpose" hint is deliberately weaker than
+> EfiReservedMemoryType in that the system continues to operate if the OS
+> takes no action on the attribute. The risk of taking no action is
+> potentially unwanted / unmovable kernel allocations from the designated
+> resource that prevent the full realization of the "specific purpose".
+> For example, consider a system with a high-bandwidth memory pool. Older
+> kernels are permitted to boot and consume that memory as conventional
+> "System-RAM" newer kernels may arrange for that memory to be set aside
+> by the system administrator for a dedicated high-bandwidth memory aware
+> application to consume.
+>
+> Specifically, this mechanism allows for the elimination of scenarios
+> where platform firmware tries to game OS policy by lying about ACPI SLIT
+> values, i.e. claiming that a precious memory resource has a high
+> distance to trigger the OS to avoid it by default.
+>
+> Implement simple detection of the bit for EFI memory table dumps and
+> save the kernel policy for a follow-on change.
+>
+> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Nothing from a filesystem side, perhaps, but I find it quite interesting.
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-We have a number of threads blocking in down_read() on mmap_sem.  That
-means a task is holding the mmap_sem for write, or is blocked trying
-to take the mmap_sem for write.  I think it's the latter; pid 4650
-is blocked in munmap().  pid 4673 is blocking in get_unlocked_entry()
-and will be holding the mmap_sem for read while doing so.
-
-Since this is provoked by a fatal signal, it must have something to do
-with a killable or interruptible sleep.  There's only one of those in the
-DAX code; fatal_signal_pending() in dax_iomap_actor().  Does rocksdb do
-I/O with write() or through a writable mmap()?  I'd like to know before
-I chase too far down this fault tree analysis.
-
-My current suspicion is that we have a PMD fault being not-woken by a PTE
-modification, and the evidence seems to fit, but I don't quite see it yet.
-
-(I meant to ask Dan about this while we were in San Juan, but with all
-the other excitement, it slipped my mind).
+> ---
+>  drivers/firmware/efi/efi.c |    5 +++--
+>  include/linux/efi.h        |    1 +
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
+> index 55b77c576c42..81db09485881 100644
+> --- a/drivers/firmware/efi/efi.c
+> +++ b/drivers/firmware/efi/efi.c
+> @@ -848,15 +848,16 @@ char * __init efi_md_typeattr_format(char *buf, size_t size,
+>         if (attr & ~(EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT |
+>                      EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
+>                      EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
+> -                    EFI_MEMORY_NV |
+> +                    EFI_MEMORY_NV | EFI_MEMORY_SP |
+>                      EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
+>                 snprintf(pos, size, "|attr=0x%016llx]",
+>                          (unsigned long long)attr);
+>         else
+>                 snprintf(pos, size,
+> -                        "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
+> +                        "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
+>                          attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
+>                          attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
+> +                        attr & EFI_MEMORY_SP      ? "SP"  : "",
+>                          attr & EFI_MEMORY_NV      ? "NV"  : "",
+>                          attr & EFI_MEMORY_XP      ? "XP"  : "",
+>                          attr & EFI_MEMORY_RP      ? "RP"  : "",
+> diff --git a/include/linux/efi.h b/include/linux/efi.h
+> index 6ebc2098cfe1..91368f5ce114 100644
+> --- a/include/linux/efi.h
+> +++ b/include/linux/efi.h
+> @@ -112,6 +112,7 @@ typedef     struct {
+>  #define EFI_MEMORY_MORE_RELIABLE \
+>                                 ((u64)0x0000000000010000ULL)    /* higher reliability */
+>  #define EFI_MEMORY_RO          ((u64)0x0000000000020000ULL)    /* read-only */
+> +#define EFI_MEMORY_SP          ((u64)0x0000000000040000ULL)    /* special purpose */
+>  #define EFI_MEMORY_RUNTIME     ((u64)0x8000000000000000ULL)    /* range requires runtime mapping */
+>  #define EFI_MEMORY_DESCRIPTOR_VERSION  1
+>
+>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
