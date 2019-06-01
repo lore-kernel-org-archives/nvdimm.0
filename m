@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2BE2621959CB2
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:18 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v5 03/13] libdaxctl: add an interface to retrieve the
- device resource
-Date: Fri, 28 Jun 2019 13:11:00 -0600
-Message-Id: <20190628191110.21428-4-vishal.l.verma@intel.com>
-In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
-References: <20190628191110.21428-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1E66C21276769
+ for <linux-nvdimm@lists.01.org>; Sat,  1 Jun 2019 06:17:55 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 020/186] mm: page_mkclean vs MADV_DONTNEED race
+Date: Sat,  1 Jun 2019 09:13:56 -0400
+Message-Id: <20190601131653.24205-20-sashal@kernel.org>
+In-Reply-To: <20190601131653.24205-1-sashal@kernel.org>
+References: <20190601131653.24205-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,191 +22,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an interface to retrieve the 'resource' attribute for a dax device.
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 
-Attempt to retrieve it as usual via sysfs, but since older kernels may
-be missing this attribute, as a fallback, attempt to retrieve it from
-/proc/iomem
+[ Upstream commit 024eee0e83f0df52317be607ca521e0fc572aa07 ]
 
+MADV_DONTNEED is handled with mmap_sem taken in read mode.  We call
+page_mkclean without holding mmap_sem.
+
+MADV_DONTNEED implies that pages in the region are unmapped and subsequent
+access to the pages in that range is handled as a new page fault.  This
+implies that if we don't have parallel access to the region when
+MADV_DONTNEED is run we expect those range to be unallocated.
+
+w.r.t page_mkclean() we need to make sure that we don't break the
+MADV_DONTNEED semantics.  MADV_DONTNEED check for pmd_none without holding
+pmd_lock.  This implies we skip the pmd if we temporarily mark pmd none.
+Avoid doing that while marking the page clean.
+
+Keep the sequence same for dax too even though we don't support
+MADV_DONTNEED for dax mapping
+
+The bug was noticed by code review and I didn't observe any failures w.r.t
+test run.  This is similar to
+
+commit 58ceeb6bec86d9140f9d91d71a710e963523d063
+Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Date:   Thu Apr 13 14:56:26 2017 -0700
+
+    thp: fix MADV_DONTNEED vs. MADV_FREE race
+
+commit ced108037c2aa542b3ed8b7afd1576064ad1362a
+Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Date:   Thu Apr 13 14:56:20 2017 -0700
+
+    thp: fix MADV_DONTNEED vs. numa balancing race
+
+Link: http://lkml.kernel.org/r/20190321040610.14226-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
-[fscanf format string problem and diagnosis]
-Reported-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Cc:"Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- Makefile.am                    |  3 ++-
- daxctl/lib/Makefile.am         |  2 ++
- daxctl/lib/libdaxctl-private.h |  1 +
- daxctl/lib/libdaxctl.c         | 12 +++++++++++
- daxctl/lib/libdaxctl.sym       |  1 +
- daxctl/libdaxctl.h             |  1 +
- util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
- util/iomem.h                   | 12 +++++++++++
- 8 files changed, 68 insertions(+), 1 deletion(-)
- create mode 100644 util/iomem.c
- create mode 100644 util/iomem.h
+ fs/dax.c  | 2 +-
+ mm/rmap.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index df8797e..8d10a10 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
- 	util/wrapper.c \
- 	util/filter.c \
- 	util/bitmap.c \
--	util/abspath.c
-+	util/abspath.c \
-+	util/iomem.c
+diff --git a/fs/dax.c b/fs/dax.c
+index 83009875308c5..f74386293632d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -814,7 +814,7 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+ 				goto unlock_pmd;
  
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 9f0e444..7704b1b 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
- libdaxctl_la_SOURCES =\
- 	../libdaxctl.h \
- 	libdaxctl-private.h \
-+	../../util/iomem.c \
-+	../../util/iomem.h \
- 	../../util/sysfs.c \
- 	../../util/sysfs.h \
- 	../../util/log.c \
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index e64d0a7..eb7c1ec 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -59,6 +59,7 @@ struct daxctl_dev {
- 	size_t buf_len;
- 	char *dev_path;
- 	struct list_node list;
-+	unsigned long long resource;
- 	unsigned long long size;
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 05f013b..5431063 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -24,6 +24,7 @@
+ 			flush_cache_page(vma, address, pfn);
+-			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
++			pmd = pmdp_invalidate(vma, address, pmdp);
+ 			pmd = pmd_wrprotect(pmd);
+ 			pmd = pmd_mkclean(pmd);
+ 			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+diff --git a/mm/rmap.c b/mm/rmap.c
+index b30c7c71d1d92..76c8dfd3ae1cd 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -928,7 +928,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 				continue;
  
- #include <util/log.h>
- #include <util/sysfs.h>
-+#include <util/iomem.h>
- #include <daxctl/libdaxctl.h>
- #include "libdaxctl-private.h"
- 
-@@ -369,6 +370,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	dev->major = major(st.st_rdev);
- 	dev->minor = minor(st.st_rdev);
- 
-+	sprintf(path, "%s/resource", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->resource = strtoull(buf, NULL, 0);
-+	else
-+		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
-+
- 	sprintf(path, "%s/size", daxdev_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -878,6 +885,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
- 	return dev->minor;
- }
- 
-+DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
-+{
-+	return dev->resource;
-+}
-+
- DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
- {
- 	return dev->size;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..1692624 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -58,4 +58,5 @@ global:
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_get_resource;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index b80488e..7214cd3 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
- const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
-+unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
-diff --git a/util/iomem.c b/util/iomem.c
-new file mode 100644
-index 0000000..a3c23f5
---- /dev/null
-+++ b/util/iomem.c
-@@ -0,0 +1,37 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+#include <util/log.h>
-+#include <util/iomem.h>
-+#include <util/sysfs.h>
-+
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *devpath)
-+{
-+	const char *devname = devpath_to_devname(devpath);
-+	FILE *fp = fopen("/proc/iomem", "r");
-+	unsigned long long res;
-+	char name[256];
-+
-+	if (fp == NULL) {
-+		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
-+				strerror(errno));
-+		return 0;
-+	}
-+
-+	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
-+		if (strcmp(name, devname) == 0) {
-+			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
-+					devname, res);
-+			fclose(fp);
-+			return res;
-+		}
-+	}
-+
-+	log_dbg(ctx, "%s: not found in iomem\n", devname);
-+	fclose(fp);
-+	return 0;
-+}
-diff --git a/util/iomem.h b/util/iomem.h
-new file mode 100644
-index 0000000..aaaf6a7
---- /dev/null
-+++ b/util/iomem.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#ifndef _NDCTL_IOMEM_H_
-+#define _NDCTL_IOMEM_H_
-+
-+struct log_ctx;
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *path);
-+
-+#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
-+
-+#endif /* _NDCTL_IOMEM_H_ */
+ 			flush_cache_page(vma, address, page_to_pfn(page));
+-			entry = pmdp_huge_clear_flush(vma, address, pmd);
++			entry = pmdp_invalidate(vma, address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
+ 			set_pmd_at(vma->vm_mm, address, pmd, entry);
 -- 
 2.20.1
 
