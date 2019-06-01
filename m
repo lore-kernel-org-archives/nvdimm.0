@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5862D212AAB9F
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:06 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 13/25] memremap: remove the data field in struct dev_pagemap
-Date: Wed, 26 Jun 2019 14:27:12 +0200
-Message-Id: <20190626122724.13313-14-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 2E44C212794AB
+ for <linux-nvdimm@lists.01.org>; Sat,  1 Jun 2019 06:22:35 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 013/141] mm: page_mkclean vs MADV_DONTNEED race
+Date: Sat,  1 Jun 2019 09:19:49 -0400
+Message-Id: <20190601132158.25821-13-sashal@kernel.org>
+In-Reply-To: <20190601132158.25821-1-sashal@kernel.org>
+References: <20190601132158.25821-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,102 +22,85 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-struct dev_pagemap is always embedded into a containing structure, so
-there is no need to an additional private data field.
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+[ Upstream commit 024eee0e83f0df52317be607ca521e0fc572aa07 ]
+
+MADV_DONTNEED is handled with mmap_sem taken in read mode.  We call
+page_mkclean without holding mmap_sem.
+
+MADV_DONTNEED implies that pages in the region are unmapped and subsequent
+access to the pages in that range is handled as a new page fault.  This
+implies that if we don't have parallel access to the region when
+MADV_DONTNEED is run we expect those range to be unallocated.
+
+w.r.t page_mkclean() we need to make sure that we don't break the
+MADV_DONTNEED semantics.  MADV_DONTNEED check for pmd_none without holding
+pmd_lock.  This implies we skip the pmd if we temporarily mark pmd none.
+Avoid doing that while marking the page clean.
+
+Keep the sequence same for dax too even though we don't support
+MADV_DONTNEED for dax mapping
+
+The bug was noticed by code review and I didn't observe any failures w.r.t
+test run.  This is similar to
+
+commit 58ceeb6bec86d9140f9d91d71a710e963523d063
+Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Date:   Thu Apr 13 14:56:26 2017 -0700
+
+    thp: fix MADV_DONTNEED vs. MADV_FREE race
+
+commit ced108037c2aa542b3ed8b7afd1576064ad1362a
+Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Date:   Thu Apr 13 14:56:20 2017 -0700
+
+    thp: fix MADV_DONTNEED vs. numa balancing race
+
+Link: http://lkml.kernel.org/r/20190321040610.14226-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc:"Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/nvdimm/pmem.c    | 2 +-
- include/linux/memremap.h | 3 +--
- kernel/memremap.c        | 2 +-
- mm/hmm.c                 | 9 +++++----
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ fs/dax.c  | 2 +-
+ mm/rmap.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 48767171a4df..093408ce40ad 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -334,7 +334,7 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index 004c8ac1117c4..75a289c31c7e5 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -908,7 +908,7 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
+ 				goto unlock_pmd;
  
--static void pmem_pagemap_page_free(struct page *page, void *data)
-+static void pmem_pagemap_page_free(struct page *page)
- {
- 	wake_up_var(&page->_refcount);
- }
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index ac985bd03a7f..336eca601dad 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -69,7 +69,7 @@ struct dev_pagemap_ops {
- 	 * reach 0 refcount unless there is a refcount bug. This allows the
- 	 * device driver to implement its own memory management.)
- 	 */
--	void (*page_free)(struct page *page, void *data);
-+	void (*page_free)(struct page *page);
+ 			flush_cache_page(vma, address, pfn);
+-			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
++			pmd = pmdp_invalidate(vma, address, pmdp);
+ 			pmd = pmd_wrprotect(pmd);
+ 			pmd = pmd_mkclean(pmd);
+ 			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 85b7f94233526..f048c2651954b 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -926,7 +926,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 				continue;
  
- 	/*
- 	 * Transition the refcount in struct dev_pagemap to the dead state.
-@@ -104,7 +104,6 @@ struct dev_pagemap {
- 	struct resource res;
- 	struct percpu_ref *ref;
- 	struct device *dev;
--	void *data;
- 	enum memory_type type;
- 	u64 pci_p2pdma_bus_offset;
- 	const struct dev_pagemap_ops *ops;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index c06a5487dda7..6c3dbb692037 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -376,7 +376,7 @@ void __put_devmap_managed_page(struct page *page)
- 
- 		mem_cgroup_uncharge(page);
- 
--		page->pgmap->ops->page_free(page, page->pgmap->data);
-+		page->pgmap->ops->page_free(page);
- 	} else if (!count)
- 		__put_page(page);
- }
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 96633ee066d8..36e25cdbdac1 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1368,15 +1368,17 @@ static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
- 
- static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
- {
--	struct hmm_devmem *devmem = vmf->page->pgmap->data;
-+	struct hmm_devmem *devmem =
-+		container_of(vmf->page->pgmap, struct hmm_devmem, pagemap);
- 
- 	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
- 			vmf->flags, vmf->pmd);
- }
- 
--static void hmm_devmem_free(struct page *page, void *data)
-+static void hmm_devmem_free(struct page *page)
- {
--	struct hmm_devmem *devmem = data;
-+	struct hmm_devmem *devmem =
-+		container_of(page->pgmap, struct hmm_devmem, pagemap);
- 
- 	devmem->ops->free(devmem, page);
- }
-@@ -1442,7 +1444,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	devmem->pagemap.ops = &hmm_pagemap_ops;
- 	devmem->pagemap.altmap_valid = false;
- 	devmem->pagemap.ref = &devmem->ref;
--	devmem->pagemap.data = devmem;
- 
- 	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
- 	if (IS_ERR(result))
+ 			flush_cache_page(vma, address, page_to_pfn(page));
+-			entry = pmdp_huge_clear_flush(vma, address, pmd);
++			entry = pmdp_invalidate(vma, address, pmd);
+ 			entry = pmd_wrprotect(entry);
+ 			entry = pmd_mkclean(entry);
+ 			set_pmd_at(vma->vm_mm, address, pmd, entry);
 -- 
 2.20.1
 
