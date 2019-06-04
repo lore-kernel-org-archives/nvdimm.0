@@ -1,59 +1,144 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 11 Jun 2019 12:37:29 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3 3/6] mm/nvdimm: Add page size and struct page size to
- pfn superblock
-Message-ID: <20190611103729.GA27635@quack2.suse.cz>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F3C3121283A71
+ for <linux-nvdimm@lists.01.org>; Tue,  4 Jun 2019 02:15:36 -0700 (PDT)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x5497WV2004682
+ for <linux-nvdimm@lists.01.org>; Tue, 4 Jun 2019 05:15:36 -0400
+Received: from e12.ny.us.ibm.com (e12.ny.us.ibm.com [129.33.205.202])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2swnd5s8a2-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Tue, 04 Jun 2019 05:15:35 -0400
+Received: from localhost
+ by e12.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Tue, 4 Jun 2019 10:15:34 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v3 3/6] mm/nvdimm: Add page size and struct page size to pfn
+ superblock
+Date: Tue,  4 Jun 2019 14:43:54 +0530
+In-Reply-To: <20190604091357.32213-1-aneesh.kumar@linux.ibm.com>
 References: <20190604091357.32213-1-aneesh.kumar@linux.ibm.com>
- <20190604091357.32213-3-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20190604091357.32213-3-aneesh.kumar@linux.ibm.com>
-Sender: owner-linux-mm@kvack.org
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: dan.j.williams@intel.com, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org
+Message-Id: <20190604091357.32213-3-aneesh.kumar@linux.ibm.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue 04-06-19 14:43:54, Aneesh Kumar K.V wrote:
-> This is needed so that we don't wrongly initialize a namespace
-> which doesn't have enough space reserved for holding struct pages
-> with the current kernel.
-> 
-> We also increment PFN_MIN_VERSION to make sure that older kernel
-> won't initialize namespace created with newer kernel.
-> 
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-...
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index 00c57805cad3..e01eee9efafe 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -467,6 +467,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->  	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
->  		pfn_sb->align = 0;
->  
-> +	if (__le16_to_cpu(pfn_sb->version_minor) < 3) {
-> +		/*
-> +		 * For a large part we use PAGE_SIZE. But we
-> +		 * do have some accounting code using SZ_4K.
-> +		 */
-> +		pfn_sb->page_struct_size = cpu_to_le16(64);
-> +		pfn_sb->page_size = cpu_to_le32(SZ_4K);
-> +	}
-> +
->  	switch (le32_to_cpu(pfn_sb->mode)) {
->  	case PFN_MODE_RAM:
->  	case PFN_MODE_PMEM:
+This is needed so that we don't wrongly initialize a namespace
+which doesn't have enough space reserved for holding struct pages
+with the current kernel.
 
-As we discussed with Aneesh privately, this actually means that existing
-NVDIMM namespaces on PPC64 will stop working due to these defaults for old
-superblocks. I don't think that's a good thing as upgrading kernels is
-going to be nightmare due to this on PPC64. So I believe we should make
-defaults for old superblocks such that working setups keep working without
-sysadmin having to touch anything.
+We also increment PFN_MIN_VERSION to make sure that older kernel
+won't initialize namespace created with newer kernel.
 
-								Honza
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/pfn.h      |  7 +++++--
+ drivers/nvdimm/pfn_devs.c | 27 ++++++++++++++++++++++++++-
+ 2 files changed, 31 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index 5fd29242745a..ba11738ca8a2 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -25,7 +25,7 @@
+  * kernel should fail to initialize that namespace.
+  */
+ 
+-#define PFN_MIN_VERSION 0
++#define PFN_MIN_VERSION 1
+ 
+ struct nd_pfn_sb {
+ 	u8 signature[PFN_SIG_LEN];
+@@ -43,7 +43,10 @@ struct nd_pfn_sb {
+ 	/* minor-version-2 record the base alignment of the mapping */
+ 	__le32 align;
+ 	__le16 min_version;
+-	u8 padding[3998];
++	/* minor-version-3 record the page size and struct page size */
++	__le16 page_struct_size;
++	__le32 page_size;
++	u8 padding[3992];
+ 	__le64 checksum;
+ };
+ 
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 00c57805cad3..e01eee9efafe 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -467,6 +467,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
+ 		pfn_sb->align = 0;
+ 
++	if (__le16_to_cpu(pfn_sb->version_minor) < 3) {
++		/*
++		 * For a large part we use PAGE_SIZE. But we
++		 * do have some accounting code using SZ_4K.
++		 */
++		pfn_sb->page_struct_size = cpu_to_le16(64);
++		pfn_sb->page_size = cpu_to_le32(SZ_4K);
++	}
++
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -482,6 +491,20 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+ 
++	if (le32_to_cpu(pfn_sb->page_size) != PAGE_SIZE) {
++		dev_err(&nd_pfn->dev,
++			"init failed, page size mismatch %d\n",
++			le32_to_cpu(pfn_sb->page_size));
++		return -EOPNOTSUPP;
++	}
++
++	if (le16_to_cpu(pfn_sb->page_struct_size) != sizeof(struct page)) {
++		dev_err(&nd_pfn->dev,
++			"init failed, struct page size mismatch %d\n",
++			le16_to_cpu(pfn_sb->page_struct_size));
++		return -EOPNOTSUPP;
++	}
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+@@ -776,11 +799,13 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+-	pfn_sb->version_minor = cpu_to_le16(2);
++	pfn_sb->version_minor = cpu_to_le16(3);
+ 	pfn_sb->min_version = cpu_to_le16(PFN_MIN_VERSION);
+ 	pfn_sb->start_pad = cpu_to_le32(start_pad);
+ 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
++	pfn_sb->page_struct_size = cpu_to_le16(sizeof(struct page));
++	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+ 
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.21.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
