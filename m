@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A6402129EB8E
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:22 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v5 11/13] contrib/ndctl: fix region-id completions for
- daxctl
-Date: Fri, 28 Jun 2019 13:11:08 -0600
-Message-Id: <20190628191110.21428-12-vishal.l.verma@intel.com>
-In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
-References: <20190628191110.21428-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F17202128A62D
+ for <linux-nvdimm@lists.01.org>; Tue,  4 Jun 2019 16:23:12 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 39/60] libnvdimm: Fix compilation warnings with W=1
+Date: Tue,  4 Jun 2019 19:21:49 -0400
+Message-Id: <20190604232212.6753-39-sashal@kernel.org>
+In-Reply-To: <20190604232212.6753-1-sashal@kernel.org>
+References: <20190604232212.6753-1-sashal@kernel.org>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,61 +22,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, Qian Cai <cai@lca.pw>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The completion helpers for daxctl assumed the region arguments for
-specifying daxctl regions were the same as ndctl regions, i.e.
-"regionX". This is not true - daxctl region arguments are a simple
-numeric 'id'.
+From: Qian Cai <cai@lca.pw>
 
-Add a new helper __daxctl_get_regions() to complete daxctl region IDs
-properly.
+[ Upstream commit c01dafad77fea8d64c4fdca0a6031c980842ad65 ]
 
-While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
-quoting in __daxctl_comp_options()
+Several places (dimm_devs.c, core.c etc) include label.h but only
+label.c uses NSINDEX_SIGNATURE, so move its definition to label.c
+instead.
 
-Fixes: d6790a32f32c ("daxctl: Add bash-completion")
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+In file included from drivers/nvdimm/dimm_devs.c:23:
+drivers/nvdimm/label.h:41:19: warning: 'NSINDEX_SIGNATURE' defined but
+not used [-Wunused-const-variable=]
+
+Also, some places abuse "/**" which is only reserved for the kernel-doc.
+
+drivers/nvdimm/bus.c:648: warning: cannot understand function prototype:
+'struct attribute_group nd_device_attribute_group = '
+drivers/nvdimm/bus.c:677: warning: cannot understand function prototype:
+'struct attribute_group nd_numa_attribute_group = '
+
+Those are just some member assignments for the "struct attribute_group"
+instances and it can't be expressed in the kernel-doc.
+
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Qian Cai <cai@lca.pw>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- contrib/ndctl | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/nvdimm/bus.c   | 4 ++--
+ drivers/nvdimm/label.c | 2 ++
+ drivers/nvdimm/label.h | 2 --
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index 396a344..cacee2d 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -531,8 +531,14 @@ _ndctl()
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7bbff0af29b2..99d5892ea98a 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -642,7 +642,7 @@ static struct attribute *nd_device_attributes[] = {
+ 	NULL,
+ };
  
- __daxctl_get_devs()
- {
--	local opts="--devices $*"
--	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
-+	local opts=("--devices" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
-+}
-+
-+__daxctl_get_regions()
-+{
-+	local opts=("--regions" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+-/**
++/*
+  * nd_device_attribute_group - generic attributes for all devices on an nd bus
+  */
+ struct attribute_group nd_device_attribute_group = {
+@@ -671,7 +671,7 @@ static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
+ 	return a->mode;
  }
  
- __daxctlcomp()
-@@ -561,10 +567,10 @@ __daxctl_comp_options()
- 		local cur_arg=${cur##*=}
- 		case $cur_subopt in
- 		--region)
--			opts=$(__ndctl_get_regions -i)
-+			opts="$(__daxctl_get_regions -i)"
- 			;;
- 		--dev)
--			opts=$(__daxctl_get_devs -i)
-+			opts="$(__daxctl_get_devs -i)"
- 			;;
- 		*)
- 			return
+-/**
++/*
+  * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
+  */
+ struct attribute_group nd_numa_attribute_group = {
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 2030805aa216..edf278067e72 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -25,6 +25,8 @@ static guid_t nvdimm_btt2_guid;
+ static guid_t nvdimm_pfn_guid;
+ static guid_t nvdimm_dax_guid;
+ 
++static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
++
+ static u32 best_seq(u32 a, u32 b)
+ {
+ 	a &= NSINDEX_SEQ_MASK;
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index e9a2ad3c2150..4bb7add39580 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -38,8 +38,6 @@ enum {
+ 	ND_NSINDEX_INIT = 0x1,
+ };
+ 
+-static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
+-
+ /**
+  * struct nd_namespace_index - label set superblock
+  * @sig: NAMESPACE_INDEX\0
 -- 
 2.20.1
 
