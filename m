@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ADBA321290DE3
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:52:45 -0700 (PDT)
-From: Larry Bassel <larry.bassel@oracle.com>
-Subject: [RFC PATCH v2 1/2] Rename CONFIG_ARCH_WANT_HUGE_PMD_SHARE to
- CONFIG_ARCH_HAS_HUGE_PMD_SHARE
-Date: Fri,  7 Jun 2019 12:51:02 -0700
-Message-Id: <1559937063-8323-2-git-send-email-larry.bassel@oracle.com>
-In-Reply-To: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
-References: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
+ by ml01.01.org (Postfix) with ESMTPS id C74CB2128A62D
+ for <linux-nvdimm@lists.01.org>; Tue,  4 Jun 2019 16:24:50 -0700 (PDT)
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 19/24] libnvdimm: Fix compilation warnings with
+ W=1
+Date: Tue,  4 Jun 2019 19:24:10 -0400
+Message-Id: <20190604232416.7479-19-sashal@kernel.org>
+In-Reply-To: <20190604232416.7479-1-sashal@kernel.org>
+References: <20190604232416.7479-1-sashal@kernel.org>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,94 +19,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mike.kravetz@oracle.com, willy@infradead.org, dan.j.williams@intel.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, Qian Cai <cai@lca.pw>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
----
- arch/arm64/Kconfig          | 2 +-
- arch/arm64/mm/hugetlbpage.c | 2 +-
- arch/x86/Kconfig            | 2 +-
- mm/hugetlb.c                | 6 +++---
- 4 files changed, 6 insertions(+), 6 deletions(-)
+From: Qian Cai <cai@lca.pw>
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 697ea05..36d6189 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -901,7 +901,7 @@ config HW_PERF_EVENTS
- config SYS_SUPPORTS_HUGETLBFS
- 	def_bool y
+[ Upstream commit c01dafad77fea8d64c4fdca0a6031c980842ad65 ]
+
+Several places (dimm_devs.c, core.c etc) include label.h but only
+label.c uses NSINDEX_SIGNATURE, so move its definition to label.c
+instead.
+
+In file included from drivers/nvdimm/dimm_devs.c:23:
+drivers/nvdimm/label.h:41:19: warning: 'NSINDEX_SIGNATURE' defined but
+not used [-Wunused-const-variable=]
+
+Also, some places abuse "/**" which is only reserved for the kernel-doc.
+
+drivers/nvdimm/bus.c:648: warning: cannot understand function prototype:
+'struct attribute_group nd_device_attribute_group = '
+drivers/nvdimm/bus.c:677: warning: cannot understand function prototype:
+'struct attribute_group nd_numa_attribute_group = '
+
+Those are just some member assignments for the "struct attribute_group"
+instances and it can't be expressed in the kernel-doc.
+
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Qian Cai <cai@lca.pw>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/nvdimm/bus.c   | 4 ++--
+ drivers/nvdimm/label.c | 2 ++
+ drivers/nvdimm/label.h | 2 --
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index a6746a1f20ae..2f1b54fab399 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -608,7 +608,7 @@ static struct attribute *nd_device_attributes[] = {
+ 	NULL,
+ };
  
--config ARCH_WANT_HUGE_PMD_SHARE
-+config ARCH_HAS_HUGE_PMD_SHARE
- 	def_bool y if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
- 
- config ARCH_HAS_CACHE_LINE_SIZE
-diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
-index f475e54..4f3cb3f 100644
---- a/arch/arm64/mm/hugetlbpage.c
-+++ b/arch/arm64/mm/hugetlbpage.c
-@@ -241,7 +241,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
- 		 */
- 		ptep = pte_alloc_map(mm, pmdp, addr);
- 	} else if (sz == PMD_SIZE) {
--		if (IS_ENABLED(CONFIG_ARCH_WANT_HUGE_PMD_SHARE) &&
-+		if (IS_ENABLED(CONFIG_ARCH_HAS_HUGE_PMD_SHARE) &&
- 		    pud_none(READ_ONCE(*pudp)))
- 			ptep = huge_pmd_share(mm, addr, pudp);
- 		else
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 2bbbd4d..fdbddb9 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -301,7 +301,7 @@ config ARCH_HIBERNATION_POSSIBLE
- config ARCH_SUSPEND_POSSIBLE
- 	def_bool y
- 
--config ARCH_WANT_HUGE_PMD_SHARE
-+config ARCH_HAS_HUGE_PMD_SHARE
- 	def_bool y
- 
- config ARCH_WANT_GENERAL_HUGETLB
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index ac843d3..3a54c9d 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -4652,7 +4652,7 @@ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
- 	return 0;
+-/**
++/*
+  * nd_device_attribute_group - generic attributes for all devices on an nd bus
+  */
+ struct attribute_group nd_device_attribute_group = {
+@@ -637,7 +637,7 @@ static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
+ 	return a->mode;
  }
  
--#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
-+#ifdef CONFIG_ARCH_HAS_HUGE_PMD_SHARE
- static unsigned long page_table_shareable(struct vm_area_struct *svma,
- 				struct vm_area_struct *vma,
- 				unsigned long addr, pgoff_t idx)
-@@ -4807,7 +4807,7 @@ int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
- 	return 1;
- }
- #define want_pmd_share()	(1)
--#else /* !CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
-+#else /* !CONFIG_ARCH_HAS_HUGE_PMD_SHARE */
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
+-/**
++/*
+  * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
+  */
+ struct attribute_group nd_numa_attribute_group = {
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 6a16017cc0d9..1fb3a2491131 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -25,6 +25,8 @@ static guid_t nvdimm_btt2_guid;
+ static guid_t nvdimm_pfn_guid;
+ static guid_t nvdimm_dax_guid;
+ 
++static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
++
+ static u32 best_seq(u32 a, u32 b)
  {
- 	return NULL;
-@@ -4823,7 +4823,7 @@ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
- {
- }
- #define want_pmd_share()	(0)
--#endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
-+#endif /* CONFIG_ARCH_HAS_HUGE_PMD_SHARE */
+ 	a &= NSINDEX_SEQ_MASK;
+diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+index 1ebf4d3d01ba..9ed772db6900 100644
+--- a/drivers/nvdimm/label.h
++++ b/drivers/nvdimm/label.h
+@@ -38,8 +38,6 @@ enum {
+ 	ND_NSINDEX_INIT = 0x1,
+ };
  
- #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
- pte_t *huge_pte_alloc(struct mm_struct *mm,
+-static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
+-
+ /**
+  * struct nd_namespace_index - label set superblock
+  * @sig: NAMESPACE_INDEX\0
 -- 
-1.8.3.1
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
