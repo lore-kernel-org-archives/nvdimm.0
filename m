@@ -1,94 +1,89 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AB5FA21290DE1
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:52:45 -0700 (PDT)
-From: Larry Bassel <larry.bassel@oracle.com>
-Subject: [RFC PATCH v2 0/2] Share PMDs for FS/DAX on x86
-Date: Fri,  7 Jun 2019 12:51:01 -0700
-Message-Id: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: mike.kravetz@oracle.com, willy@infradead.org, dan.j.williams@intel.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [PATCH v3 15/18] Documentation: kunit: add documentation for KUnit
+Date: Tue, 4 Jun 2019 14:56:57 -0700
+Message-ID: <CAFd5g44XatHJnNvRdqBGLnwcvOxTUAKM-tjKH94NGbyXGVVatQ@mail.gmail.com>
+References: <20190514054251.186196-1-brendanhiggins@google.com>
+ <20190514054251.186196-16-brendanhiggins@google.com>
+ <20190514073422.4287267c@lwn.net>
+ <20190514180810.GA109557@google.com> <20190514121623.0314bf07@lwn.net>
+ <20190514231902.GA12893@google.com> <20190515074546.07700142@lwn.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190515074546.07700142@lwn.net>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: songliubraving@fb.com, Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, catalin.marinas@arm.com, Amir Goldstein <amir73il@gmail.com>, ast@kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, oberpar@linux.ibm.com, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, netdev@vger.kernel.org, glider@google.com, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, kgdb-bugreport@lists.sourceforge.net, shuah <shuah@kernel.org>, cocci@systeme.lip6.fr, daniel.thompson@linaro.org, daniel@iogearbox.net, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Gilles.Muller@lip6.fr, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, kasan-dev@googlegroups.com, Felix Guo <felixguoxiu>
+List-Id: linux-nvdimm@lists.01.org
 
-Changes from v1 to v2:
-
-* Rebased on v5.2-rc3
-
-* An incorrect reference to "page table entries" was fixed (pointed
-out by Kirill Shutemov)
-
-* Renamed CONFIG_ARCH_WANT_HUGE_PMD_SHARE
-to CONFIG_ARCH_HAS_HUGE_PMD_SHARE instead of introducing
-a new config option (suggested by Dan Williams)
-
-* Removed some unnecessary #ifdef stubs (suggested by Matt Wilcox)
-
-* A previously overlooked case involving mprotect() is now handled
-properly (pointed out by Mike Kravetz)
-
----
-
-This patchset implements sharing of page tables pointing
-to 2MiB pages (PMDs) for FS/DAX on x86.
-
-Only shared mmapings of files (i.e. neither private mmapings nor
-anonymous pages) are eligible for PMD sharing.
-
-Due to the characteristics of DAX, this code is simpler and
-less intrusive than the general case would be.
-
-In our use case (high end Oracle database using DAX/XFS/PMEM/2MiB
-pages) there would be significant memory savings.
-
-A future system might have 6 TiB of PMEM on it and
-there might be 10000 processes each mapping all of this 6 TiB.
-Here the savings would be approximately
-(6 TiB / 2 MiB) * 8 bytes (page table size) * 10000 = 240 GiB
-(and these page tables themselves would probably be in
-non-PMEM (ordinary RAM)).
-
-There would also be a reduction in page faults because in
-some cases the page fault has already been satisfied and
-the page table entry has been filled in (and so the processes
-after the first would not take a fault).
-
-The code for detecting whether PMDs can be shared and
-the implementation of sharing and unsharing is based
-on, but somewhat different than that in mm/hugetlb.c,
-though some of the code from this file could be reused and
-thus was made non-static.
-
-Larry Bassel (2):
-  Rename CONFIG_ARCH_WANT_HUGE_PMD_SHARE to
-    CONFIG_ARCH_HAS_HUGE_PMD_SHARE
-  Implement sharing/unsharing of PMDs for FS/DAX
-
- arch/arm64/Kconfig          |   2 +-
- arch/arm64/mm/hugetlbpage.c |   2 +-
- arch/x86/Kconfig            |   2 +-
- include/linux/hugetlb.h     |   4 ++
- mm/huge_memory.c            |  37 +++++++++++++++
- mm/hugetlb.c                |  14 +++---
- mm/memory.c                 | 108 +++++++++++++++++++++++++++++++++++++++++++-
- 7 files changed, 158 insertions(+), 11 deletions(-)
-
--- 
-1.8.3.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+U29ycnksIHRvIGVtYWlsIHNvIG1hbnkgcGVvcGxlLCBidXQgdGhlcmUgYXJlIGEgbG90IG9mIG1h
+aW50YWluZXJzIGluCnRoaXMgZGlyZWN0b3J5LgoKT24gV2VkLCBNYXkgMTUsIDIwMTkgYXQgNjo0
+NSBBTSBKb25hdGhhbiBDb3JiZXQgPGNvcmJldEBsd24ubmV0PiB3cm90ZToKPgo+IE9uIFR1ZSwg
+MTQgTWF5IDIwMTkgMTY6MTk6MDIgLTA3MDAKPiBCcmVuZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdn
+aW5zQGdvb2dsZS5jb20+IHdyb3RlOgo+Cj4gPiBIbW1tLi4ucHJvYmFibHkgcHJlbWF0dXJlIHRv
+IGJyaW5nIHRoaXMgdXAsIGJ1dCBEb2N1bWVudGF0aW9uL2Rldi10b29scy8KPiA+IGlzIGtpbmQg
+b2YgdGhyb3duIHRvZ2V0aGVyLgo+Cj4gV2FpdCBhIG1pbnV0ZSwgbWFuLi4uICpJKiBjcmVhdGVk
+IHRoYXQgZGlyZWN0b3J5LCBhcmUgeW91IGltcHVnbmluZyBteQo+IHdvcms/IDopCgpXaGF0PyEg
+SSB3b3VsZCBuZXZlciEgOy0pCgpDb250ZXh0IGZvciB0aGUgcGVvcGxlIEkganVzdCBhZGRlZDog
+SSBwcm9wb3NlZCBkb2N1bWVudGF0aW9uIGZvciBhCm5ldyBkZXZlbG9wbWVudCB0b29sLiBKb24g
+dmVyeSByZWFzb25hYmx5IHN1Z2dlc3RlZCBpdCBzaG91bGQgZ28gaW4KRG9jdW1lbnRhdGlvbi9k
+ZXYtdG9vbHMvLCB3aGljaCBpcyBub3QgdmVyeSB3ZWxsIG9yZ2FuaXplZC4gVGhpcyBpbgp0dXJu
+IHByb21wdGVkIGEgZGlzY3Vzc2lvbiBhYm91dCBjbGVhbmluZyBpdCB1cC4KCj4gQnV0IHllcywg
+ImtpbmQgb2YgdGhyb3duIHRvZ2V0aGVyIiBpcyBhIGdvb2QgZGVzY3JpcHRpb24gb2YgbXVjaCBv
+Zgo+IERvY3VtZW50YXRpb24vLiAgQSBudW1iZXIgb2YgcGVvcGxlIGhhdmUgYmVlbiB3b3JraW5n
+IGZvciB5ZWFycyB0byBtYWtlCj4gdGhhdCBiZXR0ZXIsIHdpdGggc29tZSBzdWNjZXNzLCBidXQg
+dGhlcmUgaXMgYSBsb25nIHdheSB0byBnbyB5ZXQuICBUaGUKPiBkZXYtdG9vbHMgZGlyZWN0b3J5
+IGlzIGFuIGltcHJvdmVtZW50IG92ZXIgaGF2aW5nIHRoYXQgc3R1ZmYgc2NhdHRlcmVkIGFsbAo+
+IG92ZXIgdGhlIHBsYWNlIOKAlCBhdCBsZWFzdCBpdCdzIGFjdHVhbGx5IHRocm93biB0b2dldGhl
+ciDigJQgYnV0IGl0J3Mgbm90IHRoZQo+IGVuZCBwb2ludC4KPgo+ID4gSXQgd291bGQgYmUgbmlj
+ZSB0byBwcm92aWRlIGEgY29oZXJlbnQgb3ZlcnZpZXcsIG1heWJlIHByb3ZpZGUgc29tZQo+ID4g
+YmFzaWMgZ3JvdXBpbmcgYXMgd2VsbC4KPiA+Cj4gPiBJdCB3b3VsZCBiZSBuaWNlIGlmIHRoZXJl
+IHdhcyBraW5kIG9mIGEgZ2VudGxlIGludHJvZHVjdGlvbiB0byB0aGUKPiA+IHRvb2xzLCB3aGlj
+aCBvbmVzIHlvdSBzaG91bGQgYmUgbG9va2luZyBhdCwgd2hlbiwgd2h5LCBldGMuCj4KPiBUb3Rh
+bCBhZ3JlZW1lbnQuICBBbGwgd2UgbmVlZCBpcyBzb21lYm9keSB0byB3cml0ZSBpdCEgIDopCgpJ
+IHdvdWxkbid0IG1pbmQgdGFraW5nIGEgc3RhYiBhdCBpdCBpbiBhIGxhdGVyIHBhdGNoc2V0LgoK
+TXkgaW5pdGlhbCBpZGVhOiB0aGVyZSBpcyBhIGJ1bmNoIG1vcmUgc3R1ZmYgdGhhdCBuZWVkcyB0
+byBiZSBhZGRlZApoZXJlLCBzbyBwcm9iYWJseSBkb24ndCB3YW50IHRvIGRvIGl0IGFsbCBhdCBv
+bmNlLgoKSSBhbSB0aGlua2luZyB0aGUgZmlyc3Qgc3RlcCBpcyBqdXN0IHRvIGNhdGVnb3JpemUg
+dGhpbmdzIGluIGEKc2Vuc2libGUgbWFubmVyIHNvIHNvbWVib2R5IGRvZXNuJ3QgbG9vayBhdCB0
+aGUgaW5kZXggYW5kIHNlZSAqYWxsIHRoZQp0b29scyogaW1tZWRpYXRlbHkgY2F1c2luZyB0aGVp
+ciBleWVzIHRvIGdsYXplIG92ZXIuIEZyb20gZmlyc3QKZ2xhbmNlcyBpdCBsb29rcyBsaWtlIHRo
+ZSB1c2VycyBvZiB0aGVzZSB0b29scyBpcyBnb2luZyB0byBiZSBzb21ld2hhdApkaXNqb2ludC4K
+Ck1heWJlIGJyZWFrIHRoaW5ncyBhcGFydCBieSB3aG8gYW5kIGhvdyBzb21lb25lIHdvdWxkIHVz
+ZSB0aGUgdG9vbC4gRm9yIGV4YW1wbGUsCgpJdCBsb29rcyBsaWtlIENvY2NpbmVsbGUgaXMgZ29p
+bmcgdG8gYmUgdXNlZCBwcmltYXJpbHkgYnkgcGVvcGxlIGRvaW5nCmNvZGUgamFuaXRvciB3b3Jr
+IGFuZCBsYXJnZSBzY2FsZSBjaGFuZ2VzLgoKU3BhcnNlIHNlZW1zIGxpa2UgYSBwcmVzdWJtaXQg
+dG9vbC4KCmdkYiBhbmQga2RiIGFyZSBsaWtlbHkgdXNlZCBieSBldmVyeW9uZSBmb3IgZGVidWdn
+aW5nLgoKa3NlbGZ0ZXN0IChhbmQsIGlmIEkgZ2V0IG15IHdheSwgS1VuaXQpIGFyZSB1c2VkIHBy
+aW1hcmlseSBwZW9wbGUKY29udHJpYnV0aW5nIG5ldyBmZWF0dXJlcyAodGhpcyBpcyBvbmUgSSBo
+YXZlIG1vcmUgb2YgYSB2ZXN0ZWQKaW50ZXJlc3QgaW4sIHNvIEkgd2lsbCBsZWF2ZSBpdCBhdCB0
+aGF0LCBidXQgdGhlIHBvaW50IGlzOiBJIHRoaW5rCnRoZXkgd291bGQgZ28gdG9nZXRoZXIpLgoK
+TW9zdCBvZiB0aGUgcmVtYWluaW5nIHRvb2xzIChleGNlcHQgZ2NvdikgbG9vayBsaWtlIHRoZSBr
+aW5kIG9mIGxvbmcKcnVubmluZyB0ZXN0cyB0aGF0IHlvdSBwb2ludCBhdCBhIHN0YWJsZSB0cmVl
+IGFuZCBsZXQgaXQgc2l0IGFuZCBjYXRjaApidWdzLiBTdXBlciB1c2VmdWwsIGJ1dCBJIGRvbid0
+IHRoaW5rIHlvdXIgYXZlcmFnZSBrZXJuZWwgZGV2IGlzIGdvaW5nCnRvIGJlIHRyeWluZyB0byBz
+ZXQgaXQgdXAgb3IgcnVuIGl0LiBQbGVhc2UgY29ycmVjdCBtZSBpZiBJIGFtIHdyb25nLgoKU28g
+dGhhdCBsZWF2ZXMgZ2Nvdi4gSSB0aGluayBpdCBpcyBhd2Vzb21lLCBidXQgSSBhbSBub3Qgc3Vy
+ZSBob3cgdG8KY2F0ZWdvcml6ZSBpdC4gRGVmaW5pdGVseSB3YW50IHNvbWUgYWR2aWNlIGhlcmUu
+CgpPbmNlIGV2ZXJ5dGhpbmcgaXMgYXBwcm9wcmlhdGVseSBjYXRlZ29yaXplZCBieSBzaGFwZSwg
+aW4gKGEpCnN1YnNlcXVlbnQgcGF0Y2hzZXQocykgd2UgY2FuIHRpZSBlYWNoIG9uZSBpbiB3aXRo
+IGEgZ3VpZGUsIG5vdCBqdXN0Cm9uIGhvdyB0byB1c2UgdGhlIHRvb2wsIGJ1dCBob3cgdGhlIHdv
+cmtmbG93IGxvb2tzIGZvciBzb21lb25lIHdobwp1c2VzIHRoYXQgdG9vbC4gRm9yIGV4YW1wbGUs
+IHdlIG1pZ2h0IHdhbnQgdG8gYSBndWlkZSBvbiBob3cgdG8gZG8KbGFyZ2Ugc2NhbGUgY2hhbmdl
+cyBpbiB0aGUgTGludXgga2VybmVsIGFuZCBoYXZlIHRoYXQgdGllIGluIHdpdGgKQ29jY2luZWxs
+ZS4gRm9yIGtzZWxmdGVzdCBhbmQgS1VuaXQsIHdlIG1pZ2h0IHdhbnQgdG8gcHJvdmlkZSBhIGd1
+aWRlCm9uIGhvdyB0byB0ZXN0IExpbnV4IGtlcm5lbCBjb2RlLCB3aGljaCB3b3VsZCBjb3ZlciB3
+aGVuIGFuZCBob3cgdG8KdXNlIGVhY2guCgpBbnl3YXksIGp1c3QgYSB2YWd1ZSBza2V0Y2guIExv
+b2tpbmcgZm9yd2FyZCB0byBoZWFyIHdoYXQgZXZlcnlvbmUgdGhpbmtzIQpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0
+CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3Rv
+cC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
