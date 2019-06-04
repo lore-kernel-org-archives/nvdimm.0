@@ -1,83 +1,62 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0B549212909D6
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:12:49 -0700 (PDT)
-Subject: [PATCH v9 06/12] mm: Kill is_dev_zone() helper
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jun 2019 14:58:32 -0700
-Message-ID: <155977191260.2443951.15908146523735681570.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Tue, 4 Jun 2019 09:41:00 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: Re: [PATCH v8 00/12] mm: Sub-section memory hotplug support
+Message-ID: <20190604074056.GA2853@linux>
+References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, David Hildenbrand <david@redhat.com>, Jane Chu <jane.chu@oracle.com>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@soleen.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Robin Murphy <robin.murphy@arm.com>, Anshuman Khandual <anshuman.khandual@arm.com>, Logan Gunthorpe <logang@deltatee.com>, Paul Mackerras <paulus@samba.org>, Toshi Kani <toshi.kani@hpe.com>, Jeff Moyer <jmoyer@redhat.com>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, stable@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given there are no more usages of is_dev_zone() outside of 'ifdef
-CONFIG_ZONE_DEVICE' protection, kill off the compilation helper.
+On Mon, May 06, 2019 at 04:39:26PM -0700, Dan Williams wrote:
+> Changes since v7 [1]:
+> 
+> - Make subsection helpers pfn based rather than physical-address based
+>   (Oscar and Pavel)
+> 
+> - Make subsection bitmap definition scalable for different section and
+>   sub-section sizes across architectures. As a result:
+> 
+>       unsigned long map_active
+> 
+>   ...is converted to:
+> 
+>       DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION)
+> 
+>   ...and the helpers are renamed with a 'subsection' prefix. (Pavel)
+> 
+> - New in this version is a touch of arch/powerpc/include/asm/sparsemem.h
+>   in "[PATCH v8 01/12] mm/sparsemem: Introduce struct mem_section_usage"
+>   to define ARCH_SUBSECTION_SHIFT.
+> 
+> - Drop "mm/sparsemem: Introduce common definitions for the size and mask
+>   of a section" in favor of Robin's "mm/memremap: Rename and consolidate
+>   SECTION_SIZE" (Pavel)
+> 
+> - Collect some more Reviewed-by tags. Patches that still lack review
+>   tags: 1, 3, 9 - 12
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/mmzone.h |   12 ------------
- mm/page_alloc.c        |    2 +-
- 2 files changed, 1 insertion(+), 13 deletions(-)
+Hi Dan,
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 6dd52d544857..49e7fb452dfd 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -855,18 +855,6 @@ static inline int local_memory_node(int node_id) { return node_id; };
-  */
- #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
- 
--#ifdef CONFIG_ZONE_DEVICE
--static inline bool is_dev_zone(const struct zone *zone)
--{
--	return zone_idx(zone) == ZONE_DEVICE;
--}
--#else
--static inline bool is_dev_zone(const struct zone *zone)
--{
--	return false;
--}
--#endif
--
- /*
-  * Returns true if a zone has pages managed by the buddy allocator.
-  * All the reclaim decisions have to use this function rather than
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index bd773efe5b82..5dff3f49a372 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5865,7 +5865,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 	unsigned long start = jiffies;
- 	int nid = pgdat->node_id;
- 
--	if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
-+	if (WARN_ON_ONCE(!pgmap || zone_idx(zone) != ZONE_DEVICE))
- 		return;
- 
- 	/*
+are you planning to send V10 anytime soon?
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+After you addressed comments from Patch#9, the general implementation looks
+fine to me and nothing sticked out from the other patches.
+But I would rather wait to see v10 with the comments addressed before stamping
+my Reviewed-by.
+
+I am planning to fire my vmemmap patchset again [1], and I would like to re-base
+it on top of this work, otherwise we will face many unnecessary collisions.
+
+Thanks
+
+[1] https://patchwork.kernel.org/patch/10875025/
+
+-- 
+Oscar Salvador
+SUSE L3
