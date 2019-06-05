@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 27CF621296B01
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:12 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 14/25] memremap: provide an optional internal refcount in
- struct dev_pagemap
-Date: Mon, 17 Jun 2019 14:27:22 +0200
-Message-Id: <20190617122733.22432-15-hch@lst.de>
-In-Reply-To: <20190617122733.22432-1-hch@lst.de>
-References: <20190617122733.22432-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 811712128DD59
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:13:21 -0700 (PDT)
+Subject: [PATCH v9 12/12] libnvdimm/pfn: Stop padding pmem namespaces to
+ section alignment
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 05 Jun 2019 14:59:04 -0700
+Message-ID: <155977194407.2443951.14077225226024648760.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,195 +23,216 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: akpm@linux-foundation.org
+Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide an internal refcounting logic if no ->ref field is provided
-in the pagemap passed into devm_memremap_pages so that callers don't
-have to reinvent it poorly.
+Now that the mm core supports section-unaligned hotplug of ZONE_DEVICE
+memory, we no longer need to add padding at pfn/dax device creation
+time. The kernel will still honor padding established by older kernels.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/memremap.h          |  4 ++
- kernel/memremap.c                 | 64 ++++++++++++++++++++++++-------
- tools/testing/nvdimm/test/iomap.c | 17 ++++++--
- 3 files changed, 68 insertions(+), 17 deletions(-)
+ drivers/nvdimm/pfn.h      |   14 --------
+ drivers/nvdimm/pfn_devs.c |   77 ++++++++-------------------------------------
+ include/linux/mmzone.h    |    3 ++
+ 3 files changed, 16 insertions(+), 78 deletions(-)
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 7289eb091b04..7e0f072ddce7 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -95,6 +95,8 @@ struct dev_pagemap_ops {
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @res: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-+ * @internal_ref: internal reference if @ref is not provided by the caller
-+ * @done: completion for @internal_ref
-  * @dev: host device of the mapping for debug
-  * @data: private data pointer for page_free()
-  * @type: memory type: see MEMORY_* in memory_hotplug.h
-@@ -105,6 +107,8 @@ struct dev_pagemap {
- 	struct vmem_altmap altmap;
- 	struct resource res;
- 	struct percpu_ref *ref;
-+	struct percpu_ref internal_ref;
-+	struct completion done;
- 	struct device *dev;
- 	enum memory_type type;
- 	unsigned int flags;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index b41d98a64ebf..60693a1e8e92 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -29,7 +29,7 @@ static void dev_pagemap_put_ops(void *data)
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index e901e3a3b04c..cc042a98758f 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -41,18 +41,4 @@ struct nd_pfn_sb {
+ 	__le64 checksum;
+ };
  
- static int dev_pagemap_get_ops(struct device *dev, struct dev_pagemap *pgmap)
- {
--	if (!pgmap->ops->page_free) {
-+	if (!pgmap->ops || !pgmap->ops->page_free) {
- 		WARN(1, "Missing page_free method\n");
- 		return -EINVAL;
- 	}
-@@ -75,6 +75,24 @@ static unsigned long pfn_next(unsigned long pfn)
- #define for_each_device_pfn(pfn, map) \
- 	for (pfn = pfn_first(map); pfn < pfn_end(map); pfn = pfn_next(pfn))
- 
-+static void dev_pagemap_kill(struct dev_pagemap *pgmap)
-+{
-+	if (pgmap->ops && pgmap->ops->kill)
-+		pgmap->ops->kill(pgmap);
-+	else
-+		percpu_ref_kill(pgmap->ref);
-+}
-+
-+static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
-+{
-+	if (pgmap->ops && pgmap->ops->cleanup) {
-+		pgmap->ops->cleanup(pgmap);
-+	} else {
-+		wait_for_completion(&pgmap->done);
-+		percpu_ref_exit(pgmap->ref);
-+	}
-+}
-+
- static void devm_memremap_pages_release(void *data)
- {
- 	struct dev_pagemap *pgmap = data;
-@@ -84,10 +102,10 @@ static void devm_memremap_pages_release(void *data)
- 	unsigned long pfn;
- 	int nid;
- 
--	pgmap->ops->kill(pgmap);
-+	dev_pagemap_kill(pgmap);
- 	for_each_device_pfn(pfn, pgmap)
- 		put_page(pfn_to_page(pfn));
--	pgmap->ops->cleanup(pgmap);
-+	dev_pagemap_cleanup(pgmap);
- 
- 	/* pages are dead and unused, undo the arch mapping */
- 	align_start = res->start & ~(SECTION_SIZE - 1);
-@@ -114,20 +132,29 @@ static void devm_memremap_pages_release(void *data)
- 		      "%s: failed to free all reserved pages\n", __func__);
+-#ifdef CONFIG_SPARSEMEM
+-#define PFN_SECTION_ALIGN_DOWN(x) SECTION_ALIGN_DOWN(x)
+-#define PFN_SECTION_ALIGN_UP(x) SECTION_ALIGN_UP(x)
+-#else
+-/*
+- * In this case ZONE_DEVICE=n and we will disable 'pfn' device support,
+- * but we still want pmem to compile.
+- */
+-#define PFN_SECTION_ALIGN_DOWN(x) (x)
+-#define PFN_SECTION_ALIGN_UP(x) (x)
+-#endif
+-
+-#define PHYS_SECTION_ALIGN_DOWN(x) PFN_PHYS(PFN_SECTION_ALIGN_DOWN(PHYS_PFN(x)))
+-#define PHYS_SECTION_ALIGN_UP(x) PFN_PHYS(PFN_SECTION_ALIGN_UP(PHYS_PFN(x)))
+ #endif /* __NVDIMM_PFN_H */
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index a2406253eb70..7f54374b082f 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -595,14 +595,14 @@ static u32 info_block_reserve(void)
  }
  
-+static void dev_pagemap_percpu_release(struct percpu_ref *ref)
-+{
-+	struct dev_pagemap *pgmap =
-+		container_of(ref, struct dev_pagemap, internal_ref);
-+
-+	complete(&pgmap->done);
-+}
-+
- /**
-  * devm_memremap_pages - remap and provide memmap backing for the given resource
-  * @dev: hosting device for @res
-  * @pgmap: pointer to a struct dev_pagemap
-  *
-  * Notes:
-- * 1/ At a minimum the res, ref and type and ops members of @pgmap must be
-- *    initialized by the caller before passing it to this function
-+ * 1/ At a minimum the res and type members of @pgmap must be initialized
-+ *    by the caller before passing it to this function
-  *
-  * 2/ The altmap field may optionally be initialized, in which case
-  *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
-  *
-- * 3/ pgmap->ref must be 'live' on entry and will be killed and reaped
-- *    at devm_memremap_pages_release() time, or if this routine fails.
-+ * 3/ The ref field may optionally be provided, in which pgmap->ref must be
-+ *    'live' on entry and will be killed and reaped at
-+ *    devm_memremap_pages_release() time, or if this routine fails.
-  *
-  * 4/ res is expected to be a host memory range that could feasibly be
-  *    treated as a "System RAM" range, i.e. not a device mmio range, but
-@@ -178,10 +205,21 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		break;
- 	}
- 
--	if (!pgmap->ref || !pgmap->ops || !pgmap->ops->kill ||
--	    !pgmap->ops->cleanup) {
--		WARN(1, "Missing reference count teardown definition\n");
--		return ERR_PTR(-EINVAL);
-+	if (!pgmap->ref) {
-+		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
-+			return ERR_PTR(-EINVAL);
-+
-+		init_completion(&pgmap->done);
-+		error = percpu_ref_init(&pgmap->internal_ref,
-+				dev_pagemap_percpu_release, 0, GFP_KERNEL);
-+		if (error)
-+			return ERR_PTR(error);
-+		pgmap->ref = &pgmap->internal_ref;
-+	} else {
-+		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
-+			WARN(1, "Missing reference count teardown definition\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 	}
- 
- 	if (pgmap->type != MEMORY_DEVICE_PCI_P2PDMA) {
-@@ -299,8 +337,8 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-  err_pfn_remap:
- 	pgmap_array_delete(res);
-  err_array:
--	pgmap->ops->kill(pgmap);
--	pgmap->ops->cleanup(pgmap);
-+	dev_pagemap_kill(pgmap);
-+	dev_pagemap_cleanup(pgmap);
- 	return ERR_PTR(error);
- }
- EXPORT_SYMBOL_GPL(devm_memremap_pages);
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index 3a1fa7735f47..8cd9b9873a7f 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -106,10 +106,19 @@ EXPORT_SYMBOL(__wrap_devm_memremap);
- 
- static void nfit_test_kill(void *_pgmap)
+ /*
+- * We hotplug memory at section granularity, pad the reserved area from
+- * the previous section base to the namespace base address.
++ * We hotplug memory at sub-section granularity, pad the reserved area
++ * from the previous section base to the namespace base address.
+  */
+ static unsigned long init_altmap_base(resource_size_t base)
  {
--	WARN_ON(!pgmap || !pgmap->ref || !pgmap->ops->kill ||
--		!pgmap->ops->cleanup);
--	pgmap->ops->kill(pgmap);
--	pgmap->ops->cleanup(pgmap);
-+	WARN_ON(!pgmap || !pgmap->ref)
-+
-+	if (pgmap->ops && pgmap->ops->kill)
-+		pgmap->ops->kill(pgmap);
-+	else
-+		percpu_ref_kill(pgmap->ref);
-+
-+	if (pgmap->ops && pgmap->ops->cleanup) {
-+		pgmap->ops->cleanup(pgmap);
-+	} else {
-+		wait_for_completion(&pgmap->done);
-+		percpu_ref_exit(pgmap->ref);
-+	}
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	return PFN_SECTION_ALIGN_DOWN(base_pfn);
++	return SUBSECTION_ALIGN_DOWN(base_pfn);
  }
  
- void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
--- 
-2.20.1
+ static unsigned long init_altmap_reserve(resource_size_t base)
+@@ -610,7 +610,7 @@ static unsigned long init_altmap_reserve(resource_size_t base)
+ 	unsigned long reserve = info_block_reserve() >> PAGE_SHIFT;
+ 	unsigned long base_pfn = PHYS_PFN(base);
+ 
+-	reserve += base_pfn - PFN_SECTION_ALIGN_DOWN(base_pfn);
++	reserve += base_pfn - SUBSECTION_ALIGN_DOWN(base_pfn);
+ 	return reserve;
+ }
+ 
+@@ -641,8 +641,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		pgmap->altmap_valid = false;
+ 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+-		nd_pfn->npfns = PFN_SECTION_ALIGN_UP((resource_size(res)
+-					- offset) / PAGE_SIZE);
++		nd_pfn->npfns = PHYS_PFN((resource_size(res) - offset));
+ 		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
+ 			dev_info(&nd_pfn->dev,
+ 					"number of pfns truncated from %lld to %ld\n",
+@@ -658,54 +657,14 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 	return 0;
+ }
+ 
+-static u64 phys_pmem_align_down(struct nd_pfn *nd_pfn, u64 phys)
+-{
+-	return min_t(u64, PHYS_SECTION_ALIGN_DOWN(phys),
+-			ALIGN_DOWN(phys, nd_pfn->align));
+-}
+-
+-/*
+- * Check if pmem collides with 'System RAM', or other regions when
+- * section aligned.  Trim it accordingly.
+- */
+-static void trim_pfn_device(struct nd_pfn *nd_pfn, u32 *start_pad, u32 *end_trunc)
+-{
+-	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	struct nd_region *nd_region = to_nd_region(nd_pfn->dev.parent);
+-	const resource_size_t start = nsio->res.start;
+-	const resource_size_t end = start + resource_size(&nsio->res);
+-	resource_size_t adjust, size;
+-
+-	*start_pad = 0;
+-	*end_trunc = 0;
+-
+-	adjust = start - PHYS_SECTION_ALIGN_DOWN(start);
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start - adjust, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| nd_region_conflict(nd_region, start - adjust, size))
+-		*start_pad = PHYS_SECTION_ALIGN_UP(start) - start;
+-
+-	/* Now check that end of the range does not collide. */
+-	adjust = PHYS_SECTION_ALIGN_UP(end) - end;
+-	size = resource_size(&nsio->res) + adjust;
+-	if (region_intersects(start, size, IORESOURCE_SYSTEM_RAM,
+-				IORES_DESC_NONE) == REGION_MIXED
+-			|| !IS_ALIGNED(end, nd_pfn->align)
+-			|| nd_region_conflict(nd_region, start, size))
+-		*end_trunc = end - phys_pmem_align_down(nd_pfn, end);
+-}
+-
+ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ {
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+-	u32 start_pad, end_trunc, reserve = info_block_reserve();
+ 	resource_size_t start, size;
+ 	struct nd_region *nd_region;
++	unsigned long npfns, align;
+ 	struct nd_pfn_sb *pfn_sb;
+-	unsigned long npfns;
+ 	phys_addr_t offset;
+ 	const char *sig;
+ 	u64 checksum;
+@@ -736,43 +695,35 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		return -ENXIO;
+ 	}
+ 
+-	memset(pfn_sb, 0, sizeof(*pfn_sb));
+-
+-	trim_pfn_device(nd_pfn, &start_pad, &end_trunc);
+-	if (start_pad + end_trunc)
+-		dev_info(&nd_pfn->dev, "%s alignment collision, truncate %d bytes\n",
+-				dev_name(&ndns->dev), start_pad + end_trunc);
+-
+ 	/*
+ 	 * Note, we use 64 here for the standard size of struct page,
+ 	 * debugging options may cause it to be larger in which case the
+ 	 * implementation will limit the pfns advertised through
+ 	 * ->direct_access() to those that are included in the memmap.
+ 	 */
+-	start = nsio->res.start + start_pad;
++	start = nsio->res.start;
+ 	size = resource_size(&nsio->res);
+-	npfns = PFN_SECTION_ALIGN_UP((size - start_pad - end_trunc - reserve)
+-			/ PAGE_SIZE);
++	npfns = PHYS_PFN(size - SZ_8K);
++	align = max(nd_pfn->align, (1UL << SUBSECTION_SHIFT));
+ 	if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		/*
+ 		 * The altmap should be padded out to the block size used
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + reserve + 64 * npfns,
+-				max(nd_pfn->align, PMD_SIZE)) - start;
++		offset = ALIGN(start + SZ_8K + 64 * npfns, align) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+-		offset = ALIGN(start + reserve, nd_pfn->align) - start;
++		offset = ALIGN(start + SZ_8K, align) - start;
+ 	else
+ 		return -ENXIO;
+ 
+-	if (offset + start_pad + end_trunc >= size) {
++	if (offset >= size) {
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
+ 	}
+ 
+-	npfns = (size - offset - start_pad - end_trunc) / SZ_4K;
++	npfns = PHYS_PFN(size - offset);
+ 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
+ 	pfn_sb->dataoff = cpu_to_le64(offset);
+ 	pfn_sb->npfns = cpu_to_le64(npfns);
+@@ -781,8 +732,6 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+ 	pfn_sb->version_minor = cpu_to_le16(3);
+-	pfn_sb->start_pad = cpu_to_le32(start_pad);
+-	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 49e7fb452dfd..15e07f007ba2 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -1181,6 +1181,9 @@ static inline unsigned long section_nr_to_pfn(unsigned long sec)
+ #define SUBSECTIONS_PER_SECTION (1UL << (SECTION_SIZE_BITS - SUBSECTION_SHIFT))
+ #endif
+ 
++#define SUBSECTION_ALIGN_UP(pfn) ALIGN((pfn), PAGES_PER_SUBSECTION)
++#define SUBSECTION_ALIGN_DOWN(pfn) ((pfn) & PAGE_SUBSECTION_MASK)
++
+ struct mem_section_usage {
+ 	DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION);
+ 	/* See declaration of similar field in struct zone */
 
 _______________________________________________
 Linux-nvdimm mailing list
