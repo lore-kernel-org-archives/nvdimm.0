@@ -1,62 +1,53 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v4 02/18] kunit: test: add test resource management API
-Date: Tue, 4 Jun 2019 16:34:58 -0700
-Message-ID: <CAFd5g45taSVNXSQJrXnHLG_Rtum650vFw1zccqv1Tyru5A5d8w@mail.gmail.com>
+Subject: Re: [PATCH v4 03/18] kunit: test: add string_stream a std::stream
+ like string builder
+Date: Tue, 4 Jun 2019 17:19:28 -0700
+Message-ID: <CAFd5g45WrARi7eXsVKyq2eJH5j+wSrCCaHHSHrMptG7+MnNiTg@mail.gmail.com>
 References: <20190514221711.248228-1-brendanhiggins@google.com>
- <20190514221711.248228-3-brendanhiggins@google.com>
- <20190517003847.0962F2082E@mail.kernel.org>
+ <20190514221711.248228-4-brendanhiggins@google.com> <20190517174300.7949F20848@mail.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190517003847.0962F2082E@mail.kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190517174300.7949F20848@mail.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Stephen Boyd <sboyd@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird,
- Timothy" <Tim.Bird>
+Cc: Frank Rowand <frowand.list@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, shuah <shuah@kernel.org>, Theodore Ts'o <tytso@mit.edu>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kbuild <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, open list:KERNEL SELFTEST FRAMEWORK
 List-Id: linux-nvdimm@lists.01.org
 
-T24gVGh1LCBNYXkgMTYsIDIwMTkgYXQgNTozOCBQTSBTdGVwaGVuIEJveWQgPHNib3lkQGtlcm5l
-bC5vcmc+IHdyb3RlOgo+Cj4gUXVvdGluZyBCcmVuZGFuIEhpZ2dpbnMgKDIwMTktMDUtMTQgMTU6
-MTY6NTUpCj4gPiBkaWZmIC0tZ2l0IGEva3VuaXQvdGVzdC5jIGIva3VuaXQvdGVzdC5jCj4gPiBp
-bmRleCA4NmY2NWJhMmJjZjkyLi5hMTVlNmY4YzQxNTgyIDEwMDY0NAo+ID4gLS0tIGEva3VuaXQv
-dGVzdC5jCj4gPiArKysgYi9rdW5pdC90ZXN0LmMKPiBbLi5dCj4gPiArCj4gPiArdm9pZCAqa3Vu
-aXRfa21hbGxvYyhzdHJ1Y3Qga3VuaXQgKnRlc3QsIHNpemVfdCBzaXplLCBnZnBfdCBnZnApCj4g
-PiArewo+ID4gKyAgICAgICBzdHJ1Y3Qga3VuaXRfa21hbGxvY19wYXJhbXMgcGFyYW1zOwo+ID4g
-KyAgICAgICBzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlczsKPiA+ICsKPiA+ICsgICAgICAgcGFy
-YW1zLnNpemUgPSBzaXplOwo+ID4gKyAgICAgICBwYXJhbXMuZ2ZwID0gZ2ZwOwo+ID4gKwo+ID4g
-KyAgICAgICByZXMgPSBrdW5pdF9hbGxvY19yZXNvdXJjZSh0ZXN0LAo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBrdW5pdF9rbWFsbG9jX2luaXQsCj4gPiArICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGt1bml0X2ttYWxsb2NfZnJlZSwKPiA+ICsgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgJnBhcmFtcyk7Cj4gPiArCj4gPiArICAgICAgIGlm
-IChyZXMpCj4gPiArICAgICAgICAgICAgICAgcmV0dXJuIHJlcy0+YWxsb2NhdGlvbjsKPiA+ICsg
-ICAgICAgZWxzZQo+ID4gKyAgICAgICAgICAgICAgIHJldHVybiBOVUxMOwo+Cj4gQ2FuIGJlIHdy
-aXR0ZW4gYXMKPgo+ICAgICAgICAgaWYgKHJlcykKPiAgICAgICAgICAgICAgICAgcmV0dXJuIC4u
-Li4KPiAgICAgICAgIHJldHVybgo+Cj4gYW5kIHNvbWUgc3RhdGljIGFuYWx5c2lzIHRvb2xzIHBy
-ZWZlciB0aGlzLgoKU291bmRzIHJlYXNvbmFibGUsIHdpbGwgZml4IGluIG5leHQgcmV2aXNpb24u
-Cgo+ID4gK30KPiA+ICsKPiA+ICt2b2lkIGt1bml0X2NsZWFudXAoc3RydWN0IGt1bml0ICp0ZXN0
-KQo+ID4gK3sKPiA+ICsgICAgICAgc3RydWN0IGt1bml0X3Jlc291cmNlICpyZXNvdXJjZSwgKnJl
-c291cmNlX3NhZmU7Cj4gPiArICAgICAgIHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4gPiArCj4gPiAr
-ICAgICAgIHNwaW5fbG9ja19pcnFzYXZlKCZ0ZXN0LT5sb2NrLCBmbGFncyk7Cj4KPiBBaCBvaywg
-dGVzdC0+bG9jayBpcyBwcm90ZWN0aW5nIGV2ZXJ5dGhpbmcgbm93PyBEb2VzIGl0IG5lZWQgdG8g
-YmUgYQo+IHNwaW5sb2NrLCBvciBjYW4gaXQgYmUgYSBtdXRleD8KCk5vIGl0IG5lZWRzIHRvIGJl
-IGEgc3BpbiBsb2NrLiBUaGVyZSBhcmUgc29tZSBjb25jZWl2YWJsZQpjaXJjdW1zdGFuY2VzIHdo
-ZXJlIHRoZSB0ZXN0IG9iamVjdCBjYW4gYmUgYWNjZXNzZWQgYnkgY29kZSBpbiB3aGljaAppdCBp
-c24ndCBzYWZlIHRvIHNsZWVwLgoKPiA+ICsgICAgICAgbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZl
-KHJlc291cmNlLAo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVzb3VyY2Vf
-c2FmZSwKPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZ0ZXN0LT5yZXNvdXJj
-ZXMsCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBub2RlKSB7Cj4gPiArICAg
-ICAgICAgICAgICAga3VuaXRfZnJlZV9yZXNvdXJjZSh0ZXN0LCByZXNvdXJjZSk7Cj4gPiArICAg
-ICAgIH0KPiA+ICsgICAgICAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmdGVzdC0+bG9jaywgZmxh
-Z3MpOwo+ID4gK30KPiA+ICsKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVs
+On Fri, May 17, 2019 at 10:43 AM Stephen Boyd <sboyd@kernel.org> wrote:
+>
+> Quoting Brendan Higgins (2019-05-14 15:16:56)
+> > A number of test features need to do pretty complicated string printing
+> > where it may not be possible to rely on a single preallocated string
+> > with parameters.
+> >
+> > So provide a library for constructing the string as you go similar to
+> > C++'s std::string.
+> >
+> > Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> > Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+>
+> Is there any reason why we can't use the seqfile API for this? These
+> both share a similar goal, formatting strings into a buffer to be read
+> later. Maybe some new APIs would be needed to extract the buffer
+> differently, but I hope we could share the code.
+
+I can see why you are asking. It seems as though they are trying to do
+*similar* things, and it seems possible that we might be able to
+extract some common functionality out of seq_file that could replace
+this; however, it looks like it would be require a significant
+refactoring of seq_file to separate out the file system specific bits
+from the more general stringbuilder functionality.
+
+In my opinion, a refactoring like this makes no sense in this
+patchset; it probably belongs in its own patchset (preferably as a
+follow on). I also am not sure if the FS people would appreciate
+indirection that serves them no benefit, but I can ask if you like.
+
+> If it can't be used, can you please add the reasoning to the commit text
+> here?
+
+Will do.
+
+Thanks!
