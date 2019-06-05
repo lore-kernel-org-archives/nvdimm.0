@@ -1,23 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com
- [IPv6:2607:f8b0:4864:20::d44])
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id ACE1821290DD0
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 05:29:26 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id n5so1251156ioc.7
- for <linux-nvdimm@lists.01.org>; Fri, 07 Jun 2019 05:29:26 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B9147212735DE
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 12:07:01 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id d17so1768022oth.5
+ for <linux-nvdimm@lists.01.org>; Wed, 05 Jun 2019 12:07:01 -0700 (PDT)
 MIME-Version: 1.0
 References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
  <155925718351.3775979.13546720620952434175.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAKv+Gu-J3-66V7UhH3=AjN4sX7iydHNF7Fd+SMbezaVNrZQmGQ@mail.gmail.com>
- <CAPcyv4g-GNe2vSYTn0a6ivQYxJdS5khE4AJbcxysoGPsTZwswg@mail.gmail.com>
- <CAKv+Gu83QB6x8=LCaAcR0S65WELC-Y+Voxw6LzaVh4FSV3bxYA@mail.gmail.com>
- <CAPcyv4hXBJBMrqoUr4qG5A3CUVgWzWK6bfBX29JnLCKDC7CiGA@mail.gmail.com>
-In-Reply-To: <CAPcyv4hXBJBMrqoUr4qG5A3CUVgWzWK6bfBX29JnLCKDC7CiGA@mail.gmail.com>
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Fri, 7 Jun 2019 14:29:12 +0200
-Message-ID: <CAKv+Gu_ZYpey0dWYebFgCaziyJ-_x+KbCmOegWqFjwC0U-5QaA@mail.gmail.com>
+ <20190603054159.GA5747@rapoport-lnx>
+In-Reply-To: <20190603054159.GA5747@rapoport-lnx>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 5 Jun 2019 12:06:49 -0700
+Message-ID: <CAPcyv4gAWUPoRK2o-FkpqMbB4559q4O-Fx7niT1vppoRC1VyWA@mail.gmail.com>
 Subject: Re: [PATCH v2 4/8] x86, efi: Reserve UEFI 2.8 Specific Purpose Memory
  for dax
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -31,143 +28,172 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-efi <linux-efi@vger.kernel.org>, kbuild test robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Linux-MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy@infradead.org>
+To: Mike Rapoport <rppt@linux.ibm.com>
+Cc: linux-efi <linux-efi@vger.kernel.org>, kbuild test robot <lkp@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, X86 ML <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy@infradead.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sat, 1 Jun 2019 at 06:26, Dan Williams <dan.j.williams@intel.com> wrote:
+On Sun, Jun 2, 2019 at 10:42 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
 >
-> On Fri, May 31, 2019 at 8:30 AM Ard Biesheuvel
-> <ard.biesheuvel@linaro.org> wrote:
+> Hi Dan,
+>
+> On Thu, May 30, 2019 at 03:59:43PM -0700, Dan Williams wrote:
+> > UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
+> > interpretation of the EFI Memory Types as "reserved for a special
+> > purpose".
 > >
-> > On Fri, 31 May 2019 at 17:28, Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > On Fri, May 31, 2019 at 1:30 AM Ard Biesheuvel
-> > > <ard.biesheuvel@linaro.org> wrote:
-> > > >
-> > > > (cc Mike for memblock)
-> > > >
-> > > > On Fri, 31 May 2019 at 01:13, Dan Williams <dan.j.williams@intel.com> wrote:
-> > > > >
-> > > > > UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
-> > > > > interpretation of the EFI Memory Types as "reserved for a special
-> > > > > purpose".
-> > > > >
-> > > > > The proposed Linux behavior for specific purpose memory is that it is
-> > > > > reserved for direct-access (device-dax) by default and not available for
-> > > > > any kernel usage, not even as an OOM fallback. Later, through udev
-> > > > > scripts or another init mechanism, these device-dax claimed ranges can
-> > > > > be reconfigured and hot-added to the available System-RAM with a unique
-> > > > > node identifier.
-> > > > >
-> > > > > This patch introduces 3 new concepts at once given the entanglement
-> > > > > between early boot enumeration relative to memory that can optionally be
-> > > > > reserved from the kernel page allocator by default. The new concepts
-> > > > > are:
-> > > > >
-> > > > > - E820_TYPE_SPECIFIC: Upon detecting the EFI_MEMORY_SP attribute on
-> > > > >   EFI_CONVENTIONAL memory, update the E820 map with this new type. Only
-> > > > >   perform this classification if the CONFIG_EFI_SPECIFIC_DAX=y policy is
-> > > > >   enabled, otherwise treat it as typical ram.
-> > > > >
-> > > >
-> > > > OK, so now we have 'special purpose', 'specific' and 'app specific'
-> > > > [below]. Do they all mean the same thing?
-> > >
-> > > I struggled with separating the raw-EFI-type name from the name of the
-> > > Linux specific policy. Since the reservation behavior is optional I
-> > > was thinking there should be a distinct Linux kernel name for that
-> > > policy. I did try to go back and change all occurrences of "special"
-> > > to "specific" from the RFC to this v2, but seems I missed one.
-> > >
+> > The proposed Linux behavior for specific purpose memory is that it is
+> > reserved for direct-access (device-dax) by default and not available for
+> > any kernel usage, not even as an OOM fallback. Later, through udev
+> > scripts or another init mechanism, these device-dax claimed ranges can
+> > be reconfigured and hot-added to the available System-RAM with a unique
+> > node identifier.
 > >
-> > OK
+> > This patch introduces 3 new concepts at once given the entanglement
+> > between early boot enumeration relative to memory that can optionally be
+> > reserved from the kernel page allocator by default. The new concepts
+> > are:
+> >
+> > - E820_TYPE_SPECIFIC: Upon detecting the EFI_MEMORY_SP attribute on
+> >   EFI_CONVENTIONAL memory, update the E820 map with this new type. Only
+> >   perform this classification if the CONFIG_EFI_SPECIFIC_DAX=y policy is
+> >   enabled, otherwise treat it as typical ram.
+> >
+> > - IORES_DESC_APPLICATION_RESERVED: Add a new I/O resource descriptor for
+> >   a device driver to search iomem resources for application specific
+> >   memory. Teach the iomem code to identify such ranges as "Application
+> >   Reserved".
+> >
+> > - MEMBLOCK_APP_SPECIFIC: Given the memory ranges can fallback to the
+> >   traditional System RAM pool the expectation is that they will have
+> >   typical SRAT entries. In order to support a policy of device-dax by
+> >   default with the option to hotplug later, the numa initialization code
+> >   is taught to avoid marking online MEMBLOCK_APP_SPECIFIC regions.
 >
-> I'll go ahead and use "application reserved" terminology consistently
-> throughout the code to distinguish that Linux translation from the raw
-> "EFI specific purpose" attribute.
->
+> I'd appreciate a more elaborate description how this flag is going to be
+> used.
 
-OK
+This flag is only there to communicate to the numa code what ranges of
+"conventional memory" should be skipped for onlining and reserved for
+device-dax to consume. However, now that I say that out loud I realize
+I might be able to get away with just using a plain entry
+memblock.reserved. I'll take a look.
 
-> >
-> > > >
-> > > > > - IORES_DESC_APPLICATION_RESERVED: Add a new I/O resource descriptor for
-> > > > >   a device driver to search iomem resources for application specific
-> > > > >   memory. Teach the iomem code to identify such ranges as "Application
-> > > > >   Reserved".
-> > > > >
-> > > > > - MEMBLOCK_APP_SPECIFIC: Given the memory ranges can fallback to the
-> > > > >   traditional System RAM pool the expectation is that they will have
-> > > > >   typical SRAT entries. In order to support a policy of device-dax by
-> > > > >   default with the option to hotplug later, the numa initialization code
-> > > > >   is taught to avoid marking online MEMBLOCK_APP_SPECIFIC regions.
-> > > > >
-> > > >
-> > > > Can we move the generic memblock changes into a separate patch please?
-> > >
-> > > Yeah, that can move to a lead-in patch.
-> > >
-> > > [..]
-> > > > > diff --git a/include/linux/efi.h b/include/linux/efi.h
-> > > > > index 91368f5ce114..b57b123cbdf9 100644
-> > > > > --- a/include/linux/efi.h
-> > > > > +++ b/include/linux/efi.h
-> > > > > @@ -129,6 +129,19 @@ typedef struct {
-> > > > >         u64 attribute;
-> > > > >  } efi_memory_desc_t;
-> > > > >
-> > > > > +#ifdef CONFIG_EFI_SPECIFIC_DAX
-> > > > > +static inline bool is_efi_dax(efi_memory_desc_t *md)
-> > > > > +{
-> > > > > +       return md->type == EFI_CONVENTIONAL_MEMORY
-> > > > > +               && (md->attribute & EFI_MEMORY_SP);
-> > > > > +}
-> > > > > +#else
-> > > > > +static inline bool is_efi_dax(efi_memory_desc_t *md)
-> > > > > +{
-> > > > > +       return false;
-> > > > > +}
-> > > > > +#endif
-> > > > > +
-> > > > >  typedef struct {
-> > > > >         efi_guid_t guid;
-> > > > >         u32 headersize;
-> > > >
-> > > > I'd prefer it if we could avoid this DAX policy distinction leaking
-> > > > into the EFI layer.
-> > > >
-> > > > IOW, I am fine with having a 'is_efi_sp_memory()' helper here, but
-> > > > whether that is DAX memory or not should be decided in the DAX layer.
-> > >
-> > > Ok, how about is_efi_sp_ram()? Since EFI_MEMORY_SP might be applied to
-> > > things that aren't EFI_CONVENTIONAL_MEMORY.
-> >
-> > Yes, that is fine. As long as the #ifdef lives in the DAX code and not here.
 >
-> We still need some ifdef in the efi core because that is the central
-> location to make the policy distinction to identify identify
-> EFI_CONVENTIONAL_MEMORY differently depending on whether EFI_MEMORY_SP
-> is present. I agree with you that "dax" should be dropped from the
-> naming. So how about:
+> > A follow-on change integrates parsing of the ACPI HMAT to identify the
+> > node and sub-range boundaries of EFI_MEMORY_SP designated memory. For
+> > now, just identify and reserve memory of this type.
+> >
+> > Cc: <x86@kernel.org>
+> > Cc: Borislav Petkov <bp@alien8.de>
+> > Cc: Ingo Molnar <mingo@redhat.com>
+> > Cc: "H. Peter Anvin" <hpa@zytor.com>
+> > Cc: Darren Hart <dvhart@infradead.org>
+> > Cc: Andy Shevchenko <andy@infradead.org>
+> > Cc: Thomas Gleixner <tglx@linutronix.de>
+> > Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> > Reported-by: kbuild test robot <lkp@intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  arch/x86/Kconfig                  |   20 ++++++++++++++++++++
+> >  arch/x86/boot/compressed/eboot.c  |    5 ++++-
+> >  arch/x86/boot/compressed/kaslr.c  |    2 +-
+> >  arch/x86/include/asm/e820/types.h |    9 +++++++++
+> >  arch/x86/kernel/e820.c            |    9 +++++++--
+> >  arch/x86/kernel/setup.c           |    1 +
+> >  arch/x86/platform/efi/efi.c       |   37 +++++++++++++++++++++++++++++++++----
+> >  drivers/acpi/numa.c               |   15 ++++++++++++++-
+> >  include/linux/efi.h               |   14 ++++++++++++++
+> >  include/linux/ioport.h            |    1 +
+> >  include/linux/memblock.h          |    7 +++++++
+> >  mm/memblock.c                     |    4 ++++
+> >  12 files changed, 115 insertions(+), 9 deletions(-)
 >
-> #ifdef CONFIG_EFI_APPLICATION_RESERVED
-> static inline bool is_efi_application_reserved(efi_memory_desc_t *md)
-> {
->         return md->type == EFI_CONVENTIONAL_MEMORY
->                 && (md->attribute & EFI_MEMORY_SP);
-> }
-> #else
-> static inline bool is_efi_application_reserved(efi_memory_desc_t *md)
-> {
->         return false;
-> }
-> #endif
+> ...
+>
+> > diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> > index 08a5f4a131f5..ddde1c7b1f9a 100644
+> > --- a/arch/x86/kernel/setup.c
+> > +++ b/arch/x86/kernel/setup.c
+> > @@ -1109,6 +1109,7 @@ void __init setup_arch(char **cmdline_p)
+> >
+> >       if (efi_enabled(EFI_MEMMAP)) {
+> >               efi_fake_memmap();
+> > +             efi_find_app_specific();
+> >               efi_find_mirror();
+> >               efi_esrt_init();
+> >
+> > diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+> > index e1cb01a22fa8..899f1305c77a 100644
+> > --- a/arch/x86/platform/efi/efi.c
+> > +++ b/arch/x86/platform/efi/efi.c
+> > @@ -123,10 +123,15 @@ void __init efi_find_mirror(void)
+> >   * more than the max 128 entries that can fit in the e820 legacy
+> >   * (zeropage) memory map.
+> >   */
+> > +enum add_efi_mode {
+> > +     ADD_EFI_ALL,
+> > +     ADD_EFI_APP_SPECIFIC,
+> > +};
+> >
+> > -static void __init do_add_efi_memmap(void)
+> > +static void __init do_add_efi_memmap(enum add_efi_mode mode)
+> >  {
+> >       efi_memory_desc_t *md;
+> > +     int add = 0;
+> >
+> >       for_each_efi_memory_desc(md) {
+> >               unsigned long long start = md->phys_addr;
+> > @@ -139,7 +144,9 @@ static void __init do_add_efi_memmap(void)
+> >               case EFI_BOOT_SERVICES_CODE:
+> >               case EFI_BOOT_SERVICES_DATA:
+> >               case EFI_CONVENTIONAL_MEMORY:
+> > -                     if (md->attribute & EFI_MEMORY_WB)
+> > +                     if (is_efi_dax(md))
+> > +                             e820_type = E820_TYPE_SPECIFIC;
+> > +                     else if (md->attribute & EFI_MEMORY_WB)
+> >                               e820_type = E820_TYPE_RAM;
+> >                       else
+> >                               e820_type = E820_TYPE_RESERVED;
+> > @@ -165,9 +172,24 @@ static void __init do_add_efi_memmap(void)
+> >                       e820_type = E820_TYPE_RESERVED;
+> >                       break;
+> >               }
+> > +
+> > +             if (e820_type == E820_TYPE_SPECIFIC) {
+> > +                     memblock_remove(start, size);
+> > +                     memblock_add_range(&memblock.reserved, start, size,
+> > +                                     MAX_NUMNODES, MEMBLOCK_APP_SPECIFIC);
+>
+> Why cannot this happen at e820__memblock_setup()?
+> Then memblock_remove() call should not be required as nothing will
+> memblock_add() the region.
 
-I think this policy decision should not live inside the EFI subsystem.
-EFI just gives you the memory map, and mangling that information
-depending on whether you think a certain memory attribute should be
-ignored is the job of the MM subsystem.
+It's only required given the relative call order of efi_fake_memmap()
+and the desire to be able to specify EFI_MEMORY_SP on the kernel
+command line if the platform BIOS neglects to do it. efi_fake_memmap()
+currently occurs after e820__memblock_setup() and my initial attempts
+to flip the order resulted in boot failures so there is a subtle
+dependency on that order I have not identified.
+
+[..]
+> > diff --git a/mm/memblock.c b/mm/memblock.c
+> > index 6bbad46f4d2c..654fecb52ba5 100644
+> > --- a/mm/memblock.c
+> > +++ b/mm/memblock.c
+> > @@ -982,6 +982,10 @@ static bool should_skip_region(struct memblock_region *m, int nid, int flags)
+> >       if ((flags & MEMBLOCK_MIRROR) && !memblock_is_mirror(m))
+> >               return true;
+> >
+> > +     /* if we want specific memory skip non-specific memory regions */
+> > +     if ((flags & MEMBLOCK_APP_SPECIFIC) && !memblock_is_app_specific(m))
+> > +             return true;
+> > +
+>
+> With this the MEMBLOCK_APP_SPECIFIC won't be skipped for traversals that
+> don't set memblock_flags explicitly. Is this the intention?
+
+Yeah as per above it turns out the only real need is to identify it as
+reserved, so the flag can likely go away altogether.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
