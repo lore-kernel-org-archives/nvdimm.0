@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B3835212966E4
- for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:23 -0700 (PDT)
-Subject: [PATCH v10 06/13] mm/hotplug: Kill is_dev_zone() usage in
+ by ml01.01.org (Postfix) with ESMTPS id 77E232128DD56
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:12:44 -0700 (PDT)
+Subject: [PATCH v9 05/12] mm/hotplug: Kill is_dev_zone() usage in
  __remove_pages()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 22:52:06 -0700
-Message-ID: <156092352642.979959.6664333788149363039.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 05 Jun 2019 14:58:27 -0700
+Message-ID: <155977190749.2443951.1028412998584791672.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,7 +24,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Oscar Salvador <osalvador@suse.de>
+Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, osalvador@suse.de
 List-ID: <linux-nvdimm@lists.01.org>
 
 The zone type check was a leftover from the cleanup that plumbed altmap
