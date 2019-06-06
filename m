@@ -1,104 +1,230 @@
-From: Veronica <info-U6GZlkCLGNS4OEkr4YyIVA@public.gmane.org>
-Subject: =?utf-8?Q?=D0=9E=D1=80=D0=B3=D0=B0=D0=BD=D0=B8=D0=B7=D0=B0?=
- =?utf-8?Q?=D1=86=D0=B8=D1=8F_=D0=B7=D0=B0=D0=BA=D1=83?=
- =?utf-8?Q?=D0=BF=D0=BE=D1=87=D0=BD=D0=BE=D0=B9_=D0=B4?=
- =?utf-8?Q?=D0=B5=D1=8F=D1=82=D0=B5=D0=BB=D1=8C=D0=BD=D0=BE?=
- =?utf-8?Q?=D1=81=D1=82=D0=B8?=
-Date: Wed, 05 Jun 2019 10:36:38 +0000
-Message-ID: <d8011cceaddb71ffaf19781793c83c2d@sendnbc.kiev.ua>
-Reply-To: Veronica <info-U6GZlkCLGNS4OEkr4YyIVA@public.gmane.org>
+From: Iurii Zaikin <yzaikin@google.com>
+Subject: Re: [PATCH v4 17/18] kernel/sysctl-test: Add null pointer test for sysctl.c:proc_dointvec()
+Date: Wed, 5 Jun 2019 18:29:42 -0700
+Message-ID: <CAAXuY3p4qhKVsSpQ44_kQeGDMfg7OuFLgFyxhcFWS3yf-5A_7g@mail.gmail.com>
+References: <20190514221711.248228-1-brendanhiggins@google.com>
+ <20190514221711.248228-18-brendanhiggins@google.com> <20190517182254.548EA20815@mail.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190517182254.548EA20815@mail.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.comk
 List-Id: linux-nvdimm@lists.01.org
 
-0KbQtdC70Ywg0L/RgNC+0LPRgNCw0LzQvNGLOiDCoMKgwqAKKiDQn9C+0LLRi9GB0LjRgtGMINGN
-0YTRhNC10LrRgtC40LLQvdC+0YHRgtGMINGA0LDQsdC+0YLRiwrQvtGC0LTQtdC70LAg0LfQsNC6
-0YPQv9C+0Log0YfQtdGA0LXQtyDRhNC+0YDQvNC40YDQvtCy0LDQvdC40LUK0LjQtNC10L7Qu9C+
-0LPQuNC4INCb0JjQlNCV0KDQkCDQuCDQvtGB0LLQvtC10L3QuNGPCtC40L3RgdGC0YDRg9C80LXQ
-vdGC0L7QsiDRjdGE0YTQtdC60YLQuNCy0L3Ri9GFCtC/0LXRgNC10LPQvtCy0L7RgNC+0LIuCiog
-0J/QvtC90Y/RgtGMINCy0L3Rg9GC0YDQtdC90L3QuNC1INC/0YDQuNGH0LjQvdGLCtC90LXRhNGD
-0L3QutGG0LjQvtC90LDQu9GM0L3QvtCz0L4g0L/QvtCy0LXQtNC10L3QuNGPCijRgdCw0LzQvtGB
-0LDQsdC+0YLQsNC2KS4g0JTQsNGC0Ywg0L/QvtC90LjQvNCw0L3QuNC1INCy0LvQuNGP0L3QuNGP
-CtC90LXRhNGD0L3QutGG0LjQvtC90LDQu9GM0L3Ri9GFINGB0YLQtdGA0LXQvtGC0LjQv9C+0LIg
-0LgK0LvQuNGH0L3Ri9GFINGD0YHRgtCw0L3QvtCy0L7QuiDQvdCwINC60LDRh9C10YHRgtCy0L4g
-0YDQsNCx0L7RgtGLLArQvdCw0YPRh9C40YLRjNGB0Y8g0LLRi9GF0L7QtNC40YLRjCAi0LfQsCDR
-gNCw0LzQutC4IiwK0L/RgNC10L7QtNC+0LvQtdCy0LDRgtGMINCy0L3Rg9GC0YDQtdC90L3QtdC1
-CtGB0L7Qv9GA0L7RgtC40LLQu9C10L3QuNC1LgoqINCg0LDRgdGB0LzQvtGC0YDQtdGC0Ywg0YDQ
-sNC30LvQuNGH0L3Ri9C1INCy0LDRgNC40LDQvdGC0YsK0L7RgNCz0LDQvdC40LfQsNGG0LjQuCDQ
-uCDQstC10LTQtdC90LjRjyDQv9GA0L7RhtC10YHRgdCwCtC30LDQutGD0L/QvtC6LCDQsCDRgtCw
-0LrQttC1INC+0YHQvdC+0LLQvdGL0YUg0L/RgNC40L3RhtC40L/QvtCyCtGA0LDQsdC+0YLRiyDQ
-vtGC0LTQtdC70LAg0LfQsNC60YPQv9C+0LouCiog0JLRi9GA0LDQsdC+0YLQsNGC0Ywg0YHRgtGA
-0LDRgtC10LPQuNGOINC+0L/RgtC40LzQsNC70YzQvdC+0LPQvgrRgtC+0LLQsNGA0L3QvtCz0L4g
-0LfQsNC/0LDRgdCwICjQsNGB0YHQvtGA0YLQuNC80LXQvdGC0LAK0YDQtdGB0YPRgNGB0L7Qsikg
-0LTQu9GPINC/0YDQvtC00YPQutGC0LjQstC90L7Qs9C+CtC/0YDQvtC40LfQstC+0LTRgdGC0LLQ
-sCDQuCDRgNC10LDQu9C40LfQsNGG0LjQuCDQs9C+0YLQvtCy0L7QuQrQv9GA0L7QtNGD0LrRhtC4
-0LguCiog0JLRi9Cx0L7RgCDRgdGC0YDQsNGC0LXQs9C40Lgg0L/RgNC40LHRi9C70YzQvdC+0LPQ
-viDRgNC+0YHRgtCwCuKAkyDQutCw0Log0L7RgdC90L7QstC90L7QuSDQstC10LrRgtC+0YAg0YbQ
-tdC90L7QstC+0LkK0L/QvtC70LjRgtC40LrQuC4g0KDQsNC30YDQsNCx0L7RgtCw0YLRjCDRgdGC
-0YDQsNGC0LXQs9C40Y4K0LLQt9Cw0LjQvNC+0L7RgtC90L7RiNC10L3QuNC5INGBINC/0L7RgdGC
-0LDQstGJ0LjQutCw0LzQuCDQuArQvdCw0YPRh9C40YLRjNGB0Y8g0YDQsNC90LbQuNGA0L7QstCw
-0YLRjCDQuNGFINC/0L4g0YbQtdC90L3QvtGB0YLQuArQtNC70Y8g0LLQsNGI0LXQuSDQutC+0LzQ
-v9Cw0L3QuNC4LgoqINCe0LLQu9Cw0LTQtdC90LjQtSDRgtC10YXQvdC+0LvQvtCz0LjRj9C80LgK
-0LrQvtC90YHRgtGA0YPQutGC0LjQstC90YvRhSDQv9C10YDQtdCz0L7QstC+0YDQvtCyINC4CtC4
-0L3RgdGC0YDRg9C80LXQvdGC0LDQvNC4INGN0LrRgdC/0YDQtdGB0YEg4oCTINCw0L3QsNC70LjQ
-t9CwCtGB0LjRgtGD0LDRhtC40LgsINC70LjRh9C90L7RgdGC0Lgg0L7Qv9C/0L7QvdC10L3RgtCw
-LArRhtC10L3QvdC+0YHRgtC4INC/0YDQtdC00LvQvtC20LXQvdC40Y8g0LTQu9GPINC60L7QvNC/
-0LDQvdC40LguCiog0J/QvtC70YPRh9C10L3QuNC1INC40L3RgdGC0YDRg9C80LXQvdGC0L7QsiDQ
-tNC70Y8K0YPQu9GD0YfRiNC10L3QuNGPINC00LjQvdCw0LzQuNC60Lgg0YHQvdC40LbQtdC90LjR
-jyDRhtC10L0K0L/QvtGB0YLQsNCy0YnQuNC60LDQvNC4INC90LAg0YPRgdC70L7QstC40Y/RhQrQ
-tNC+0LvQs9C+0YHRgNC+0YfQvdC+0LPQviDRgdC+0YLRgNGD0LTQvdC40YfQtdGB0YLQstCwLgoq
-INCe0YLRgNCw0LHQvtGC0LDRgtGMINC00LDQvdC90YvQtSDQvdCw0LLRi9C60Lgg0LIg0YDQsNC8
-0LrQsNGFCtC/0YDQvtCy0LXQtNC10L3QuNGPINGA0L7Qu9C10LLRi9GFINC40LPRgCDQuCDQutC+
-0LzQsNC90LTQvdGL0YUK0YPQv9GA0LDQttC90LXQvdC40LkuCtCf0L7QstC10YHRgtC60LAg0LTQ
-vdGPOiDCoMKgwqAKKiDQn9GB0LjRhdC+0LvQvtCz0LjRh9C10YHQutC40LUg0YXQsNGA0LDQutGC
-0LXRgNC40YHRgtC40LrQuArQu9C40YfQvdC+0YHRgtC4INCc0LXQvdC10LTQttC10YDQsCDQv9C+
-INC30LDQutGD0L/QutCw0Lwg0YEK0YPRh9C10YLQvtC8INGB0L/QtdGG0LjRhNC40LrQuCDQt9Cw
-0LrRg9C/0L7Rh9C90L7QuQrQtNC10Y/RgtC10LvRjNC90L7RgdGC0LgKKiDQntGA0LPQsNC90LjQ
-t9Cw0YbQuNGPINC4INC60L7QvtGA0LTQuNC90LDRhtC40Y8K0LfQsNC60YPQv9C+0YfQvdC+0Lkg
-0LTQtdGP0YLQtdC70YzQvdC+0YHRgtGM0Y4KKiDQoNCw0LHQvtGC0LAg0YEg0L/QvtGB0YLQsNCy
-0YnQuNC60LDQvNC4Ciog0KHRgtGA0LDRgtC10LPQuNGH0LXRgdC60LjQtSDQv9C10YDQtdCz0L7Q
-stC+0YDRiyDRgQrQv9C+0YHRgtCw0LLRidC40LrQsNC80LgKLSDQn9C+0LTQs9C+0YLQvtCy0LrQ
-sCDQuiDQv9C10YDQtdCz0L7QstC+0YDQsNC8LiDQodGC0YDQsNGC0LXQs9C40LgK0L/QtdGA0LXQ
-s9C+0LLQvtGA0L7QsiDRgSDQv9C+0YHRgtCw0LLRidC40LrQvtC8Ci0g0J/QtdGA0LXQs9C+0LLQ
-vtGA0Ysg0YEg0L/QvtGB0YLQsNCy0YnQuNC60L7QvCDQv9C+CtGC0LXQu9C10YTQvtC90YMKKiDQ
-odGC0YDRg9C60YLRg9GA0LAg0L/RgNC+0LLQtdC00LXQvdC40LUg0L/QtdGA0LXQs9C+0LLQvtGA
-0L7Qsi4KLSDQo9GB0YLQsNC90L7QstC70LXQvdC40LUg0JrQvtC90YLQsNC60YLQsAotINCS0LXQ
-tNC10L3QuNC1INC4INGD0L/RgNCw0LLQu9C10L3QuNC1INC/0LXRgNC10LPQvtCy0L7RgNC90YvQ
-vArQv9GA0L7RhtC10YHRgdC+0LwKLSDQnNCw0L3QuNC/0YPQu9GP0YbQuNGPINC4INC00LDQstC7
-0LXQvdC40LUg4oCTINC30LDRiNC40YLQsCDQuArQv9GA0L7RgtC40LLQvtC00LXQudGB0YLQstC4
-0LUKLSDQn9C10YDQtdCz0L7QstC+0YDRiyDQvtCxINGD0YHQu9C+0LLQuNGP0YUK0YHQvtGC0YDR
-g9C00L3QuNGH0LXRgdGC0LLQsCDigJMg0LrQu9GO0YfQtdCy0L7QuSDRjdGC0LDQvwrQv9C10YDQ
-tdCz0L7QstC+0YDQvtCyCi0g0JfQsNCy0LXRgNGI0LXQvdC40LUg0L/QtdGA0LXQs9C+0LLQvtGA
-0L7QsgrQl9CwINC40L3RhNC+0YDQvNCw0YbQuNC10Lkg0L7QsdGA0LDRidCw0YLRjNGB0Y8KaHR0
-cDovL3NlbmQuc2VuZG5iYy5raWV2LnVhL2NhbXBhaWducy9jZTAzMDF5ZGJvMWI1L3RyYWNrLXVy
-bC95cTI5MW9temEwNDE2LzdhOGRmM2MwODE4YTk1YWFmMjgxYTRkYWQyN2EwMWFmODFhNWViZGMK
-wqDCoMKgCtCV0YHQu9C4INGDINCS0LDRgSDQstC+0LfQvdC40LrQvdGD0YIg0LTQvtC/0L7Qu9C9
-0LjRgtC10LvRjNC90YvQtQrQstC+0L/RgNC+0YHRiyAtINC+0LHRgNCw0YnQsNC50YLQtdGB0Yws
-INC80Ysg0LLRgdC10LPQtNCwINGA0LDQtNGLCtCS0LDQvCDQv9C+0LzQvtGH0YwhIMKgwqDCoArC
-oMKgwqAK0J3QsNGI0Lgg0LrQvtC90YLQsNC60YLRizogKDA0NCkgMjMz4parNDbilqs2OQrCoMKg
-wqAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQrQo9Cy0LDQttCw0LXQvNGL0Lkg0L/QvtC00L/Q
-uNGB0YfQuNC6LiDQlNCw0L3QvdC+0LUg0L/QuNGB0YzQvNC+INC90LUK0YLRgNC10LHRg9C10YIg
-0L7RgtCy0LXRgtCwLgrQoW9v0LHRidC10L3QuNC1INC/b9C00LNv0YJv0LLQu9C10L1vINC4IGHQ
-tNGA0LXRgW/QsmHQvW8g0L1hCtGN0LvQtdC60YLRgG/QvdC90YvQuSBh0LTRgNC10YEgbGludXgt
-bnZkaW1tQGxpc3RzLjAxLm9yZy4K0J3QsNC20LzQuNGC0LUg0L7RgtC60LDQtyDQvtGCINC/0L7Q
-tNC/0LjRgdC60LggTGlzdC1VbnN1YnNjcmliZQpodHRwOi8vc2VuZC5zZW5kbmJjLmtpZXYudWEv
-bGlzdHMvZmQ2MjR2OHBieGQ3OC91bnN1YnNjcmliZS95cTI5MW9temEwNDE2L2NlMDMwMXlkYm8x
-YjUK0LjQu9C4INC/0L7QttCw0LvQvtCy0LDRgtGM0YHRjyDQvdCwINCh0L/QsNC8Cmh0dHA6Ly9z
-ZW5kLnNlbmRuYmMua2lldi51YS9saXN0cy9mZDYyNHY4cGJ4ZDc4L3Vuc3Vic2NyaWJlL3lxMjkx
-b216YTA0MTYvY2UwMzAxeWRibzFiNSwK0LXRgdC70Lgg0L3QtSDRhdC+0YLQuNGC0LUg0L/QvtC7
-0YPRh9Cw0YLRjCDQvtGCINC90LDRgSDQv9C40YHRjNC80LAuCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LW52ZGltbQo=
+On Fri, May 17, 2019 at 11:22 AM Stephen Boyd <sboyd@kernel.org> wrote:
+>
+> Quoting Brendan Higgins (2019-05-14 15:17:10)
+> > diff --git a/kernel/sysctl-test.c b/kernel/sysctl-test.c
+> > new file mode 100644
+> > index 0000000000000..fe0f2bae66085
+> > --- /dev/null
+> > +++ b/kernel/sysctl-test.c
+> > @@ -0,0 +1,293 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * KUnit test of proc sysctl.
+> > + */
+> > +
+> > +#include <kunit/test.h>
+> > +#include <linux/printk.h>
+>
+> Is this include used?
+  Deleted.
+>
+> > +#include <linux/sysctl.h>
+> > +#include <linux/uaccess.h>
+>
+> Is this include used?
+Deleted.
+>
+> > +
+> > +
+> > +static void sysctl_test_dointvec_happy_single_negative(struct kunit *test)
+> > +{
+> > +       struct ctl_table table = {
+> > +               .procname = "foo",
+> > +               .data           = &test_data.int_0001,
+> > +               .maxlen         = sizeof(int),
+> > +               .mode           = 0644,
+> > +               .proc_handler   = proc_dointvec,
+> > +               .extra1         = &i_zero,
+> > +               .extra2         = &i_one_hundred,
+> > +       };
+> > +       char input[] = "-9";
+> > +       size_t len = sizeof(input) - 1;
+> > +       loff_t pos = 0;
+> > +
+> > +       table.data = kunit_kzalloc(test, sizeof(int), GFP_USER);
+> > +       KUNIT_EXPECT_EQ(test, 0, proc_dointvec(&table, 1, input, &len, &pos));
+> > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, len);
+> > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, pos);
+> > +       KUNIT_EXPECT_EQ(test, -9, *(int *)table.data);
+>
+> Is the casting necessary? Or can the macro do a type coercion of the
+> second parameter based on the first type?
+ Data field is defined as void* so I believe casting is necessary to
+dereference it as a pointer to an array of ints. I don't think the
+macro should do any type coercion that == operator wouldn't do.
+ I did change the cast to make it more clear that it's a pointer to an
+array of ints being dereferenced.
+>
+> > +}
+> > +
+> > +static void sysctl_test_dointvec_single_less_int_min(struct kunit *test)
+> > +{
+> > +       struct ctl_table table = {
+> > +               .procname = "foo",
+> > +               .data           = &test_data.int_0001,
+> > +               .maxlen         = sizeof(int),
+> > +               .mode           = 0644,
+> > +               .proc_handler   = proc_dointvec,
+> > +               .extra1         = &i_zero,
+> > +               .extra2         = &i_one_hundred,
+> > +       };
+> > +       char input[32];
+> > +       size_t len = sizeof(input) - 1;
+> > +       loff_t pos = 0;
+> > +       unsigned long abs_of_less_than_min = (unsigned long)INT_MAX
+> > +                                            - (INT_MAX + INT_MIN) + 1;
+> > +
+> > +       KUNIT_EXPECT_LT(test,
+> > +                       snprintf(input, sizeof(input), "-%lu",
+> > +                                abs_of_less_than_min),
+> > +                       sizeof(input));
+> > +
+> > +       table.data = kunit_kzalloc(test, sizeof(int), GFP_USER);
+> > +       KUNIT_EXPECT_EQ(test, -EINVAL,
+> > +                       proc_dointvec(&table, 1, input, &len, &pos));
+> > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, len);
+> > +       KUNIT_EXPECT_EQ(test, 0, *(int *)table.data);
+> > +}
+> > +
+> > +static void sysctl_test_dointvec_single_greater_int_max(struct kunit *test)
+> > +{
+> > +       struct ctl_table table = {
+> > +               .procname = "foo",
+> > +               .data           = &test_data.int_0001,
+> > +               .maxlen         = sizeof(int),
+> > +               .mode           = 0644,
+> > +               .proc_handler   = proc_dointvec,
+> > +               .extra1         = &i_zero,
+> > +               .extra2         = &i_one_hundred,
+> > +       };
+> > +       char input[32];
+> > +       size_t len = sizeof(input) - 1;
+> > +       loff_t pos = 0;
+> > +       unsigned long greater_than_max = (unsigned long)INT_MAX + 1;
+> > +
+> > +       KUNIT_EXPECT_GT(test, greater_than_max, INT_MAX);
+> > +       KUNIT_EXPECT_LT(test, snprintf(input, sizeof(input), "%lu",
+> > +                                      greater_than_max),
+> > +                       sizeof(input));
+> > +       table.data = kunit_kzalloc(test, sizeof(int), GFP_USER);
+> > +       KUNIT_EXPECT_EQ(test, -EINVAL,
+> > +                       proc_dointvec(&table, 1, input, &len, &pos));
+> > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, len);
+> > +       KUNIT_EXPECT_EQ(test, 0, *(int *)table.data);
+> > +}
+> > +
+> > +static int sysctl_test_init(struct kunit *test)
+> > +{
+> > +       return 0;
+> > +}
+> > +
+> > +/*
+> > + * This is run once after each test case, see the comment on example_test_module
+> > + * for more information.
+> > + */
+> > +static void sysctl_test_exit(struct kunit *test)
+> > +{
+> > +}
+> Can the above two be omitted? If they can be empty sometimes it would be
+> nice to avoid the extra symbols and code by letting them be assigned to
+> NULL in the kunit_module.
+ Deleted.
+>
+> > +
+> > +/*
+> > + * Here we make a list of all the test cases we want to add to the test module
+> > + * below.
+> > + */
+> > +static struct kunit_case sysctl_test_cases[] = {
+> > +       /*
+> > +        * This is a helper to create a test case object from a test case
+> > +        * function; its exact function is not important to understand how to
+> > +        * use KUnit, just know that this is how you associate test cases with a
+> > +        * test module.
+> > +        */
+> > +       KUNIT_CASE(sysctl_test_dointvec_null_tbl_data),
+> > +       KUNIT_CASE(sysctl_test_dointvec_table_maxlen_unset),
+> > +       KUNIT_CASE(sysctl_test_dointvec_table_len_is_zero),
+> > +       KUNIT_CASE(sysctl_test_dointvec_table_read_but_position_set),
+> > +       KUNIT_CASE(sysctl_test_dointvec_happy_single_positive),
+> > +       KUNIT_CASE(sysctl_test_dointvec_happy_single_negative),
+> > +       KUNIT_CASE(sysctl_test_dointvec_single_less_int_min),
+> > +       KUNIT_CASE(sysctl_test_dointvec_single_greater_int_max),
+> > +       {},
+> > +};
+> > +
+> > +/*
+> > + * This defines a suite or grouping of tests.
+> > + *
+> > + * Test cases are defined as belonging to the suite by adding them to
+> > + * `test_cases`.
+> > + *
+> > + * Often it is desirable to run some function which will set up things which
+> > + * will be used by every test; this is accomplished with an `init` function
+> > + * which runs before each test case is invoked. Similarly, an `exit` function
+> > + * may be specified which runs after every test case and can be used to for
+> > + * cleanup. For clarity, running tests in a test module would behave as follows:
+> > + *
+> > + * module.init(test);
+> > + * module.test_case[0](test);
+> > + * module.exit(test);
+> > + * module.init(test);
+> > + * module.test_case[1](test);
+> > + * module.exit(test);
+> > + * ...;
+>
+> This comment (and the one above for "this is a helper") looks generic
+> and should probably only be in some documentation somewhere and not for
+> a sysctl test?
+>
+Deleted.
+> > + */
+> > +static struct kunit_module sysctl_test_module = {
+> > +       .name = "sysctl_test",
+> > +       .init = sysctl_test_init,
+> > +       .exit = sysctl_test_exit,
+> > +       .test_cases = sysctl_test_cases,
+> > +};
+> > +
+> > +/*
+> > + * This registers the above test module telling KUnit that this is a suite of
+> > + * tests that need to be run.
+> > + */
+>
+> Same comment about generic comment.
+>
+Deleted.
+> > +module_test(sysctl_test_module);
+> > diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+> > index d5a4a4036d2f8..772af4ec70111 100644
+> > --- a/lib/Kconfig.debug
+> > +++ b/lib/Kconfig.debug
+> > @@ -1908,6 +1908,12 @@ config TEST_SYSCTL
+> >
+> >           If unsure, say N.
+> >
+> > +config SYSCTL_KUNIT_TEST
+> > +       bool "KUnit test for sysctl"
+>
+> Why not tristate?
+>
+I don't believe KUnit as a module is currently supported.
+> > +       depends on KUNIT
+> > +       help
+> > +         Enables KUnit sysctl test.
+> > +
