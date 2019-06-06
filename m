@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9B84E21A09130
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 02:49:22 -0700 (PDT)
-Date: Thu, 20 Jun 2019 17:48:42 +0800
-From: kbuild test robot <lkp@intel.com>
-Subject: [linux-nvdimm:libnvdimm-for-next 4/15]
- drivers/nvdimm/virtio_pmem.c:61:9: sparse: sparse: incompatible types in
- comparison expression (different base types):
-Message-ID: <201906201741.FD4FeYGb%lkp@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 85B35212733F9
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jun 2019 14:28:06 -0700 (PDT)
+Date: Thu, 6 Jun 2019 23:28:04 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH] dax: Fix xarray entry association for mixed mappings
+Message-ID: <20190606212804.GA10674@quack2.suse.cz>
+References: <20190606091028.31715-1-jack@suse.cz>
+ <CAPcyv4jxBoDUyuEFjY=1TcN_8ufjM8tqF1Yj0AN=xHfQ0NpdDQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
+In-Reply-To: <CAPcyv4jxBoDUyuEFjY=1TcN_8ufjM8tqF1Yj0AN=xHfQ0NpdDQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,110 +24,77 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Pankaj Gupta <pagupta@redhat.com>
-Cc: Cornelia Huck <cohuck@redhat.com>, kbuild-all@01.org, Yuval Shaia <yuval.shaia@oracle.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>, Goldwyn Rodrigues <rgoldwyn@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-head:   3b6047778c09037615e7b919c922081ef1a37a7f
-commit: 5990fce9c50eae1261a52df1488d04a47f4cfca7 [4/15] virtio-pmem: Add virtio pmem driver
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.1-rc1-7-g2b96cd8-dirty
-        git checkout 5990fce9c50eae1261a52df1488d04a47f4cfca7
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__'
+On Thu 06-06-19 10:00:01, Dan Williams wrote:
+> On Thu, Jun 6, 2019 at 2:10 AM Jan Kara <jack@suse.cz> wrote:
+> >
+> > When inserting entry into xarray, we store mapping and index in
+> > corresponding struct pages for memory error handling. When it happened
+> > that one process was mapping file at PMD granularity while another
+> > process at PTE granularity, we could wrongly deassociate PMD range and
+> > then reassociate PTE range leaving the rest of struct pages in PMD range
+> > without mapping information which could later cause missed notifications
+> > about memory errors. Fix the problem by calling the association /
+> > deassociation code if and only if we are really going to update the
+> > xarray (deassociating and associating zero or empty entries is just
+> > no-op so there's no reason to complicate the code with trying to avoid
+> > the calls for these cases).
+> 
+> Looks good to me, I assume this also needs:
+> 
+> Cc: <stable@vger.kernel.org>
+> Fixes: d2c997c0f145 ("fs, dax: use page->mapping to warn if truncate
+> collides with a busy page")
 
-If you fix the issue, kindly add following tag
-Reported-by: kbuild test robot <lkp@intel.com>
+Yes, thanks for that.
 
+								Honza
 
-sparse warnings: (new ones prefixed by >>)
-
->> drivers/nvdimm/virtio_pmem.c:61:9: sparse: sparse: incompatible types in comparison expression (different base types):
->> drivers/nvdimm/virtio_pmem.c:61:9: sparse:    restricted __le64 *
->> drivers/nvdimm/virtio_pmem.c:61:9: sparse:    unsigned long long *
-   drivers/nvdimm/virtio_pmem.c:63:9: sparse: sparse: incompatible types in comparison expression (different base types):
-   drivers/nvdimm/virtio_pmem.c:63:9: sparse:    restricted __le64 *
-   drivers/nvdimm/virtio_pmem.c:63:9: sparse:    unsigned long long *
-
-vim +61 drivers/nvdimm/virtio_pmem.c
-
-    31	
-    32	static int virtio_pmem_probe(struct virtio_device *vdev)
-    33	{
-    34		struct nd_region_desc ndr_desc = {};
-    35		int nid = dev_to_node(&vdev->dev);
-    36		struct nd_region *nd_region;
-    37		struct virtio_pmem *vpmem;
-    38		struct resource res;
-    39		int err = 0;
-    40	
-    41		if (!vdev->config->get) {
-    42			dev_err(&vdev->dev, "%s failure: config access disabled\n",
-    43				__func__);
-    44			return -EINVAL;
-    45		}
-    46	
-    47		vpmem = devm_kzalloc(&vdev->dev, sizeof(*vpmem), GFP_KERNEL);
-    48		if (!vpmem) {
-    49			err = -ENOMEM;
-    50			goto out_err;
-    51		}
-    52	
-    53		vpmem->vdev = vdev;
-    54		vdev->priv = vpmem;
-    55		err = init_vq(vpmem);
-    56		if (err) {
-    57			dev_err(&vdev->dev, "failed to initialize virtio pmem vq's\n");
-    58			goto out_err;
-    59		}
-    60	
-  > 61		virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-    62				start, &vpmem->start);
-    63		virtio_cread(vpmem->vdev, struct virtio_pmem_config,
-    64				size, &vpmem->size);
-    65	
-    66		res.start = vpmem->start;
-    67		res.end   = vpmem->start + vpmem->size - 1;
-    68		vpmem->nd_desc.provider_name = "virtio-pmem";
-    69		vpmem->nd_desc.module = THIS_MODULE;
-    70	
-    71		vpmem->nvdimm_bus = nvdimm_bus_register(&vdev->dev,
-    72							&vpmem->nd_desc);
-    73		if (!vpmem->nvdimm_bus) {
-    74			dev_err(&vdev->dev, "failed to register device with nvdimm_bus\n");
-    75			err = -ENXIO;
-    76			goto out_vq;
-    77		}
-    78	
-    79		dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
-    80	
-    81		ndr_desc.res = &res;
-    82		ndr_desc.numa_node = nid;
-    83		ndr_desc.flush = async_pmem_flush;
-    84		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-    85		set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-    86		nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-    87		if (!nd_region) {
-    88			dev_err(&vdev->dev, "failed to create nvdimm region\n");
-    89			err = -ENXIO;
-    90			goto out_nd;
-    91		}
-    92		nd_region->provider_data = dev_to_virtio(nd_region->dev.parent->parent);
-    93		return 0;
-    94	out_nd:
-    95		nvdimm_bus_unregister(vpmem->nvdimm_bus);
-    96	out_vq:
-    97		vdev->config->del_vqs(vdev);
-    98	out_err:
-    99		return err;
-   100	}
-   101	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> 
+> >
+> > Signed-off-by: Jan Kara <jack@suse.cz>
+> > ---
+> >  fs/dax.c | 9 ++++-----
+> >  1 file changed, 4 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index f74386293632..9fd908f3df32 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -728,12 +728,11 @@ static void *dax_insert_entry(struct xa_state *xas,
+> >
+> >         xas_reset(xas);
+> >         xas_lock_irq(xas);
+> > -       if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
+> > +       if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+> > +               void *old;
+> > +
+> >                 dax_disassociate_entry(entry, mapping, false);
+> >                 dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+> > -       }
+> > -
+> > -       if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+> >                 /*
+> >                  * Only swap our new entry into the page cache if the current
+> >                  * entry is a zero page or an empty entry.  If a normal PTE or
+> > @@ -742,7 +741,7 @@ static void *dax_insert_entry(struct xa_state *xas,
+> >                  * existing entry is a PMD, we will just leave the PMD in the
+> >                  * tree and dirty it if necessary.
+> >                  */
+> > -               void *old = dax_lock_entry(xas, new_entry);
+> > +               old = dax_lock_entry(xas, new_entry);
+> >                 WARN_ON_ONCE(old != xa_mk_value(xa_to_value(entry) |
+> >                                         DAX_LOCKED));
+> >                 entry = new_entry;
+> > --
+> > 2.16.4
+> >
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
