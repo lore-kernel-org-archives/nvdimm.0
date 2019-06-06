@@ -1,90 +1,40 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EF85D2128DD59
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:13:04 -0700 (PDT)
-Subject: [PATCH v9 09/12] mm: Document ZONE_DEVICE memory-model implications
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jun 2019 14:58:47 -0700
-Message-ID: <155977192794.2443951.16177998596403034849.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 6 Jun 2019 09:10:46 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH RFC 03/10] mm/gup: Pass flags down to __gup_device_huge*
+ calls
+Message-ID: <20190606161045.GA11331@iweiny-DESK2.sc.intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606014544.8339-4-ira.weiny@intel.com>
+ <20190606061819.GA20520@infradead.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-nvdimm@lists.01.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>, linux-mm@kvack.org, osalvador@suse.de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190606061819.GA20520@infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Explain the general mechanisms of 'ZONE_DEVICE' pages and list the users
-of 'devm_memremap_pages()'.
+On Wed, Jun 05, 2019 at 11:18:19PM -0700, Christoph Hellwig wrote:
+> On Wed, Jun 05, 2019 at 06:45:36PM -0700, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > In order to support checking for a layout lease on a FS DAX inode these
+> > calls need to know if FOLL_LONGTERM was specified.
+> > 
+> > Prepare for this with this patch.
+> 
+> The GUP fast argument passing is a mess.  That is why I've come up
+> with this as part of the (not ready) get_user_pages_fast_bvec
+> implementation:
+> 
+> http://git.infradead.org/users/hch/misc.git/commitdiff/c3d019802dbde5a4cc4160e7ec8ccba479b19f97
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Reported-by: Mike Rapoport <rppt@linux.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/vm/memory-model.rst |   39 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+Agreed that looks better.
 
-diff --git a/Documentation/vm/memory-model.rst b/Documentation/vm/memory-model.rst
-index 382f72ace1fc..e0af47e02e78 100644
---- a/Documentation/vm/memory-model.rst
-+++ b/Documentation/vm/memory-model.rst
-@@ -181,3 +181,42 @@ that is eventually passed to vmemmap_populate() through a long chain
- of function calls. The vmemmap_populate() implementation may use the
- `vmem_altmap` along with :c:func:`altmap_alloc_block_buf` helper to
- allocate memory map on the persistent memory device.
-+
-+ZONE_DEVICE
-+===========
-+The `ZONE_DEVICE` facility builds upon `SPARSEMEM_VMEMMAP` to offer
-+`struct page` `mem_map` services for device driver identified physical
-+address ranges. The "device" aspect of `ZONE_DEVICE` relates to the fact
-+that the page objects for these address ranges are never marked online,
-+and that a reference must be taken against the device, not just the page
-+to keep the memory pinned for active use. `ZONE_DEVICE`, via
-+:c:func:`devm_memremap_pages`, performs just enough memory hotplug to
-+turn on :c:func:`pfn_to_page`, :c:func:`page_to_pfn`, and
-+:c:func:`get_user_pages` service for the given range of pfns. Since the
-+page reference count never drops below 1 the page is never tracked as
-+free memory and the page's `struct list_head lru` space is repurposed
-+for back referencing to the host device / driver that mapped the memory.
-+
-+While `SPARSEMEM` presents memory as a collection of sections,
-+optionally collected into memory blocks, `ZONE_DEVICE` users have a need
-+for smaller granularity of populating the `mem_map`. Given that
-+`ZONE_DEVICE` memory is never marked online it is subsequently never
-+subject to its memory ranges being exposed through the sysfs memory
-+hotplug api on memory block boundaries. The implementation relies on
-+this lack of user-api constraint to allow sub-section sized memory
-+ranges to be specified to :c:func:`arch_add_memory`, the top-half of
-+memory hotplug. Sub-section support allows for `PMD_SIZE` as the minimum
-+alignment granularity for :c:func:`devm_memremap_pages`.
-+
-+The users of `ZONE_DEVICE` are:
-+* pmem: Map platform persistent memory to be used as a direct-I/O target
-+  via DAX mappings.
-+
-+* hmm: Extend `ZONE_DEVICE` with `->page_fault()` and `->page_free()`
-+  event callbacks to allow a device-driver to coordinate memory management
-+  events related to device-memory, typically GPU memory. See
-+  Documentation/vm/hmm.rst.
-+
-+* p2pdma: Create `struct page` objects to allow peer devices in a
-+  PCI/-E topology to coordinate direct-DMA operations between themselves,
-+  i.e. bypass host memory.
+And I'm sure I will have to re-roll this to deal with conflicts with this set.
+But for now I needed this for the follow ons and having a nice separate little
+patch like this means I can just drop it after I get your clean up!  :-D
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Ira
