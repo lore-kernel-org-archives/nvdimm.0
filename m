@@ -1,61 +1,46 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D35472127675B
- for <linux-nvdimm@lists.01.org>; Thu,  6 Jun 2019 10:10:47 -0700 (PDT)
-Date: Thu, 6 Jun 2019 10:11:58 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Message-ID: <20190606171158.GB11374@iweiny-DESK2.sc.intel.com>
-References: <20190606014544.8339-1-ira.weiny@intel.com>
- <c559c2ce-50dc-d143-5741-fe3d21d0305c@nvidia.com>
+Return-Path: <owner-linux-mm@kvack.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <c559c2ce-50dc-d143-5741-fe3d21d0305c@nvidia.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+References: <20190606014544.8339-1-ira.weiny@intel.com> <20190606104203.GF7433@quack2.suse.cz>
+In-Reply-To: <20190606104203.GF7433@quack2.suse.cz>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 6 Jun 2019 08:35:42 -0700
+Message-ID: <CAPcyv4h-k_5T39fDY+SVrLXG_XETmgz-6N3NjQUteYG7g9NdDQ@mail.gmail.com>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Content-Type: text/plain; charset="UTF-8"
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: "Weiny, Ira" <ira.weiny@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs <linux-xfs@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-ext4 <linux-ext4@vger.kernel.org>, Linux MM <linux-mm@kvack.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jun 05, 2019 at 10:52:12PM -0700, John Hubbard wrote:
-> On 6/5/19 6:45 PM, ira.weiny@intel.com wrote:
+On Thu, Jun 6, 2019 at 3:42 AM Jan Kara <jack@suse.cz> wrote:
+>
+> On Wed 05-06-19 18:45:33, ira.weiny@intel.com wrote:
 > > From: Ira Weiny <ira.weiny@intel.com>
-> > 
+> >
 > > ... V1,000,000   ;-)
-> > 
+> >
 > > Pre-requisites:
-> > 	John Hubbard's put_user_pages() patch series.[1]
-> > 	Jan Kara's ext4_break_layouts() fixes[2]
-> > 
+> >       John Hubbard's put_user_pages() patch series.[1]
+> >       Jan Kara's ext4_break_layouts() fixes[2]
+> >
 > > Based on the feedback from LSFmm and the LWN article which resulted.  I've
 > > decided to take a slightly different tack on this problem.
-> > 
+> >
 > > The real issue is that there is no use case for a user to have RDMA pinn'ed
 > > memory which is then truncated.  So really any solution we present which:
-> > 
+> >
 > > A) Prevents file system corruption or data leaks
 > > ...and...
 > > B) Informs the user that they did something wrong
-> > 
+> >
 > > Should be an acceptable solution.
-> > 
+> >
 > > Because this is slightly new behavior.  And because this is gonig to be
 > > specific to DAX (because of the lack of a page cache) we have made the user
 > > "opt in" to this behavior.
-> > 
+> >
 > > The following patches implement the following solution.
-> > 
+> >
 > > 1) The user has to opt in to allowing GUP pins on a file with a layout lease
 > >    (now made visible).
 > > 2) GUP will fail (EPERM) if a layout lease is not taken
@@ -64,98 +49,63 @@ On Wed, Jun 05, 2019 at 10:52:12PM -0700, John Hubbard wrote:
 > >    notification to the original thread that another thread has tried to delete
 > >    their data.  Furthermore this indicates that if the user needs to GUP the
 > >    file again they will need to retake the Layout lease before doing so.
-> > 
-> > 
-> > NOTE: If the user releases the layout lease or if it has been broken by another
-> > operation further GUP operations on the file will fail without re-taking the
-> > lease.  This means that if a user would like to register pieces of a file and
-> > continue to register other pieces later they would be advised to keep the
-> > layout lease, get a SIGIO notification, and retake the lease.
-> > 
-> > NOTE2: Truncation of pages which are not actively pinned will succeed.  Similar
-> > to accessing an mmap to this area GUP pins of that memory may fail.
-> > 
-> 
-> Hi Ira,
-> 
-> Wow, great to see this. This looks like basically the right behavior, IMHO.
-> 
-> 1. We'll need man page additions, to explain it. In fact, even after a quick first
-> pass through, I'm vague on two points:
+> >
+> >
+> > NOTE: If the user releases the layout lease or if it has been broken by
+> > another operation further GUP operations on the file will fail without
+> > re-taking the lease.  This means that if a user would like to register
+> > pieces of a file and continue to register other pieces later they would
+> > be advised to keep the layout lease, get a SIGIO notification, and retake
+> > the lease.
+> >
+> > NOTE2: Truncation of pages which are not actively pinned will succeed.
+> > Similar to accessing an mmap to this area GUP pins of that memory may
+> > fail.
+>
+> So after some through I'm willing accept the fact that pinned DAX pages
+> will just make truncate / hole punch fail and shove it into a same bucket
+> of situations like "user can open a file and unlink won't delete it" or
+> "ETXTBUSY when user is executing a file being truncated".  The problem I
+> have with this proposal is a lack of visibility from sysadmin POV. For
+> ETXTBUSY or "unlinked but open file" sysadmin can just do lsof, find the
+> problematic process and kill it. There's nothing like that with your
+> proposal since currently once you hold page reference, you can unmap the
+> file, drop layout lease, close the file, and there's no trace that you're
+> responsible for the pinned page anymore.
+>
+> So I'd like to actually mandate that you *must* hold the file lease until
+> you unpin all pages in the given range (not just that you have an option to
+> hold a lease). And I believe the kernel should actually enforce this. That
+> way we maintain a sane state that if someone uses a physical location of
+> logical file offset on disk, he has a layout lease. Also once this is done,
+> sysadmin has a reasonably easy way to discover run-away RDMA application
+> and kill it if he wishes so.
 
-Of course.  But I was not going to go through and attempt to write man pages
-and other docs without some agreement on the final mechanisms.  This works
-which was the basic requirement I had to send an RFC.  :-D  But yes man pages
-and updates to headers etc all have to be done.
+Yes, this satisfies the primary concern that made me oppose failing
+truncate. If the administrator determines that reclaiming capacity is
+more important than maintaining active RDMA mappings "lsof + kill" is
+a reasonable way to recover. I'd go so far as to say that anything
+less is an abdication of the kernel's responsibility as an arbiter of
+platform resources.
 
-> 
-> a) I'm not sure how this actually provides "opt-in to new behavior", because I 
-> don't see any CONFIG_* or boot time choices, and it looks like the new behavior 
-> just is there. That is, if user space doesn't set F_LAYOUT on a range, 
-> GUP FOLL_LONGTERM will now fail, which is new behavior. (Did I get that right?)
+> The question is on how to exactly enforce that lease is taken until all
+> pages are unpinned. I belive it could be done by tracking number of
+> long-term pinned pages within a lease. Gup_longterm could easily increment
+> the count when verifying the lease exists, gup_longterm users will somehow
+> need to propagate corresponding 'filp' (struct file pointer) to
+> put_user_pages_longterm() callsites so that they can look up appropriate
+> lease to drop reference - probably I'd just transition all gup_longterm()
+> users to a saner API similar to the one we have in mm/frame_vector.c where
+> we don't hand out page pointers but an encapsulating structure that does
+> all the necessary tracking. Removing a lease would need to block until all
+> pins are released - this is probably the most hairy part since we need to
+> handle a case if application just closes the file descriptor which would
+> release the lease but OTOH we need to make sure task exit does not deadlock.
+> Maybe we could block only on explicit lease unlock and just drop the layout
+> lease on file close and if there are still pinned pages, send SIGKILL to an
+> application as a reminder it did something stupid...
+>
+> What do people think about this?
 
-The opt in is at run time.  Currently GUP FOLL_LONGTERM is _not_ _allowed_ on
-the FS DAX pages at all.  So the default behavior is the same, GUP fails.  (Or
-specifically ibv_reg_mr() fails.  This fails as before, not change there.
-
-The Opt in is that if a user knows what is involved they can take the lease and
-the GUP will not fail.  This comes with the price of knowing that other
-processes can't truncate those pages in use.
-
-> 
-> b) Truncate and hole punch behavior, with and without user space having a SIGIO
-> handler. (I'm sure this is obvious after another look through, but it might go
-> nicely in a man page.)
-
-Sorry this was not clear.  There are 2 points for this patch set which requires
-the use of catching SIGIO.
-
-1) If an application _actually_ does (somehow, somewhere, in some unforseen use
-   case) want to allow a truncate to happen.  They can catch the SIGIO, finish
-   their use of the pages, and release them.  As long as they can do this within
-   the <sysfs>/lease-time-break time they are ok and the truncate can proceed.
-
-2) This is a bit more subtle and something I almost delayed sending these out
-   for.  Currently the implementation of a lease break actually removes the
-   lease from the file.  I did not want this to happen and I was thinking of
-   delaying this patch set to implement something which keeps the lease around
-   but I figured I should get something out for comments.  Jan has proposed
-   something along these lines and I agree with him so I'm going to ask you to
-   read my response to him about the details.
-
-   Anyway so the key here is that currently an app needs the SIGIO to retake
-   the lease if they want to map the file again or in parts based on usage.
-   For example, they may only want to map some of the file for when they are
-   using it and then map another part later.  Without the SIGIO they would lose
-   their lease or would have to just take the lease for each GUP pin (which
-   adds overhead).  Like I said I did not like this but I left it to get
-   something which works out.
-
-> 
-> 2. It *seems* like ext4, xfs are taken care of here, not just for the DAX case,
-> but for general RDMA on them? Or is there more that must be done?
-
-This is limited to DAX.  All the functionality is limited to *_devmap or "is
-DAX" cases.  I'm still thinking that page cache backed files can have a better
-solution for the user.
-
-> 
-> 3. Christophe Hellwig's unified gup patchset wreaks havoc in gup.c, and will
-> conflict violently, as I'm sure you noticed. :)
-
-Yep...  But I needed to get the conversation started on this idea.
-
-Thanks for the feedback!
-Ira
-
-> 
-> 
-> thanks,
-> -- 
-> John Hubbard
-> NVIDIA
-> 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SIGKILL on close() without explicit unlock and wait-on-last-pin with
+explicit unlock sounds reasonable to me.
