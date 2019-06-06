@@ -1,61 +1,74 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D7227212AAB7F
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:27:49 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 05/25] mm: don't clear ->mapping in hmm_devmem_free
-Date: Wed, 26 Jun 2019 14:27:04 +0200
-Message-Id: <20190626122724.13313-6-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 6 Jun 2019 09:17:02 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH RFC 07/10] fs/ext4: Fail truncate if pages are GUP pinned
+Message-ID: <20190606161702.GA11374@iweiny-DESK2.sc.intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606014544.8339-8-ira.weiny@intel.com>
+ <20190606105855.GG7433@quack2.suse.cz>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190606105855.GG7433@quack2.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: Jan Kara <jack@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-->mapping isn't even used by HMM users, and the field at the same offset
-in the zone_device part of the union is declared as pad.  (Which btw is
-rather confusing, as DAX uses ->pgmap and ->mapping from two different
-sides of the union, but DAX doesn't use hmm_devmem_free).
+On Thu, Jun 06, 2019 at 12:58:55PM +0200, Jan Kara wrote:
+> On Wed 05-06-19 18:45:40, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > If pages are actively gup pinned fail the truncate operation.
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > ---
+> >  fs/ext4/inode.c | 3 +++
+> >  1 file changed, 3 insertions(+)
+> > 
+> > diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> > index 75f543f384e4..1ded83ec08c0 100644
+> > --- a/fs/ext4/inode.c
+> > +++ b/fs/ext4/inode.c
+> > @@ -4250,6 +4250,9 @@ int ext4_break_layouts(struct inode *inode, loff_t offset, loff_t len)
+> >  		if (!page)
+> >  			return 0;
+> >  
+> > +		if (page_gup_pinned(page))
+> > +			return -ETXTBSY;
+> > +
+> >  		error = ___wait_var_event(&page->_refcount,
+> >  				atomic_read(&page->_refcount) == 1,
+> >  				TASK_INTERRUPTIBLE, 0, 0,
+> 
+> This caught my eye. Does this mean that now truncate for a file which has
+> temporary gup users (such buffers for DIO) can fail with ETXTBUSY?
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
----
- mm/hmm.c | 2 --
- 1 file changed, 2 deletions(-)
+I thought about that before and I _thought_ I had accounted for it.  But I
+think you are right...
 
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 376159a769fb..e7dd2ab8f9ab 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1383,8 +1383,6 @@ static void hmm_devmem_free(struct page *page, void *data)
- {
- 	struct hmm_devmem *devmem = data;
- 
--	page->mapping = NULL;
--
- 	devmem->ops->free(devmem, page);
- }
- 
--- 
-2.20.1
+>
+> That
+> doesn't look desirable.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+No not desirable at all...  Ah it just dawned on my why I thought it was ok...
+I was wrong.  :-/
+
+> If we would mandate layout lease while pages are
+> pinned as I suggested, this could be dealt with by checking for leases with
+> pins (breaking such lease would return error and not break it) and if
+> breaking leases succeeds (i.e., there are no long-term pinned pages), we'd
+> just wait for the remaining references as we do now.
+
+Agreed.
+
+But I'm going to respond with some of the challenges of this (and ideas I had)
+when replying to your other email.
+
+Ira
+
+> 
+> 								Honza
+> -- 
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
