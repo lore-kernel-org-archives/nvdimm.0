@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD3702129DBA5
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:08 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/25] memremap: remove the data field in struct dev_pagemap
-Date: Mon, 17 Jun 2019 14:27:20 +0200
-Message-Id: <20190617122733.22432-13-hch@lst.de>
-In-Reply-To: <20190617122733.22432-1-hch@lst.de>
-References: <20190617122733.22432-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id C405E21290D2B
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:17 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [PATCH RFC 05/10] fs/ext4: Teach ext4 to break layout leases
+Date: Wed,  5 Jun 2019 18:45:38 -0700
+Message-Id: <20190606014544.8339-6-ira.weiny@intel.com>
+In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,102 +22,107 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
+Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-struct dev_pagemap is always embedded into a containing structure, so
-there is no need to an additional private data field.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+ext4 needs to break a layout lease if it is held to inform a user
+holding a layout lease that a truncate is about to happen.  This allows
+the user knowledge of, and choice in how to handle, some other thread
+attempting to modify a file they are actively using.
+
+Split out the logic to determine if a mapping is DAX, export it, and then
+break layout leases if a mapping is DAX.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/nvdimm/pmem.c    | 2 +-
- include/linux/memremap.h | 3 +--
- kernel/memremap.c        | 2 +-
- mm/hmm.c                 | 9 +++++----
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ fs/dax.c            | 23 ++++++++++++++++-------
+ fs/ext4/inode.c     |  4 ++++
+ include/linux/dax.h |  6 ++++++
+ 3 files changed, 26 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 85364c59c607..1ff4b1c4c7c3 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -342,7 +342,7 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
+diff --git a/fs/dax.c b/fs/dax.c
+index f74386293632..29ff3b683657 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -552,6 +552,21 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 	return xa_mk_internal(VM_FAULT_FALLBACK);
  }
  
--static void pmem_pagemap_page_free(struct page *page, void *data)
-+static void pmem_pagemap_page_free(struct page *page)
- {
- 	wake_up_var(&page->_refcount);
- }
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 72a8a1a9303b..036c637f0150 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -69,7 +69,7 @@ struct dev_pagemap_ops {
- 	 * reach 0 refcount unless there is a refcount bug. This allows the
- 	 * device driver to implement its own memory management.)
- 	 */
--	void (*page_free)(struct page *page, void *data);
-+	void (*page_free)(struct page *page);
++bool dax_mapping_is_dax(struct address_space *mapping)
++{
++	/*
++	 * In the 'limited' case get_user_pages() for dax is disabled.
++	 */
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
++		return false;
++
++	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++		return false;
++
++	return true;
++}
++EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
++
+ /**
+  * dax_layout_busy_page - find first pinned page in @mapping
+  * @mapping: address space to scan for a page with ref count > 1
+@@ -574,13 +589,7 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	unsigned int scanned = 0;
+ 	struct page *page = NULL;
+ 
+-	/*
+-	 * In the 'limited' case get_user_pages() for dax is disabled.
+-	 */
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return NULL;
+-
+-	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++	if (!dax_mapping_is_dax(mapping))
+ 		return NULL;
  
  	/*
- 	 * Transition the refcount in struct dev_pagemap to the dead state.
-@@ -104,7 +104,6 @@ struct dev_pagemap {
- 	struct resource res;
- 	struct percpu_ref *ref;
- 	struct device *dev;
--	void *data;
- 	enum memory_type type;
- 	u64 pci_p2pdma_bus_offset;
- 	const struct dev_pagemap_ops *ops;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 5245c25b10e3..9dd5ccdb1adb 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -379,7 +379,7 @@ void __put_devmap_managed_page(struct page *page)
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index c16071547c9c..c7c99f51961f 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4241,6 +4241,10 @@ int ext4_break_layouts(struct inode *inode)
+ 	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
+ 		return -EINVAL;
  
- 		mem_cgroup_uncharge(page);
++	/* Break layout leases if active */
++	if (dax_mapping_is_dax(inode->i_mapping))
++		break_layout(inode, true);
++
+ 	do {
+ 		page = dax_layout_busy_page(inode->i_mapping);
+ 		if (!page)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index becaea5f4488..ee6cbd56ddc4 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -106,6 +106,7 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
  
--		page->pgmap->ops->page_free(page, page->pgmap->data);
-+		page->pgmap->ops->page_free(page);
- 	} else if (!count)
- 		__put_page(page);
++bool dax_mapping_is_dax(struct address_space *mapping);
+ struct page *dax_layout_busy_page(struct address_space *mapping);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
+@@ -137,6 +138,11 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+ 	return NULL;
  }
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 2e5642dc6b04..8a0e04bbeee6 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1365,15 +1365,17 @@ static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
  
- static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
++bool dax_mapping_is_dax(struct address_space *mapping)
++{
++	return false;
++}
++
+ static inline struct page *dax_layout_busy_page(struct address_space *mapping)
  {
--	struct hmm_devmem *devmem = vmf->page->pgmap->data;
-+	struct hmm_devmem *devmem =
-+		container_of(vmf->page->pgmap, struct hmm_devmem, pagemap);
- 
- 	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
- 			vmf->flags, vmf->pmd);
- }
- 
--static void hmm_devmem_free(struct page *page, void *data)
-+static void hmm_devmem_free(struct page *page)
- {
--	struct hmm_devmem *devmem = data;
-+	struct hmm_devmem *devmem =
-+		container_of(page->pgmap, struct hmm_devmem, pagemap);
- 
- 	devmem->ops->free(devmem, page);
- }
-@@ -1439,7 +1441,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	devmem->pagemap.ops = &hmm_pagemap_ops;
- 	devmem->pagemap.altmap_valid = false;
- 	devmem->pagemap.ref = &devmem->ref;
--	devmem->pagemap.data = devmem;
- 
- 	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
- 	if (IS_ERR(result))
+ 	return NULL;
 -- 
 2.20.1
 
