@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 32CC3212A36F7
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:02 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 16/22] mm/hmm: Remove confusing comment and logic from
- hmm_release
-Date: Mon,  1 Jul 2019 08:20:14 +0200
-Message-Id: <20190701062020.19239-17-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id CF4F421290D2B
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:27 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [PATCH RFC 10/10] mm/gup: Remove FOLL_LONGTERM DAX exclusion
+Date: Wed,  5 Jun 2019 18:45:43 -0700
+Message-Id: <20190606014544.8339-11-ira.weiny@intel.com>
+In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,88 +22,174 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Philip Yang <Philip.Yang@amd.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
+Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Ira Weiny <ira.weiny@intel.com>
 
-hmm_release() is called exactly once per hmm. ops->release() cannot
-accidentally trigger any action that would recurse back onto
-hmm->mirrors_sem.
+Now that there is a mechanism for users to safely take LONGTERM pins on
+FS DAX pages, remove the FS DAX exclusion from GUP with FOLL_LONGTERM.
 
-This fixes a use after-free race of the form:
+Special processing remains in effect for CONFIG_CMA
 
-       CPU0                                   CPU1
-                                           hmm_release()
-                                             up_write(&hmm->mirrors_sem);
- hmm_mirror_unregister(mirror)
-  down_write(&hmm->mirrors_sem);
-  up_write(&hmm->mirrors_sem);
-  kfree(mirror)
-                                             mirror->ops->release(mirror)
-
-The only user we have today for ops->release is an empty function, so this
-is unambiguously safe.
-
-As a consequence of plugging this race drivers are not allowed to
-register/unregister mirrors from within a release op.
-
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- mm/hmm.c | 28 +++++++++-------------------
- 1 file changed, 9 insertions(+), 19 deletions(-)
+ mm/gup.c | 78 ++++++--------------------------------------------------
+ 1 file changed, 8 insertions(+), 70 deletions(-)
 
-diff --git a/mm/hmm.c b/mm/hmm.c
-index c30aa9403dbe..b224ea635a77 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -130,26 +130,16 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
- 	 */
- 	WARN_ON(!list_empty_careful(&hmm->ranges));
+diff --git a/mm/gup.c b/mm/gup.c
+index d06cc5b14c0b..4f6e5606b81e 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1392,26 +1392,6 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ }
+ EXPORT_SYMBOL(get_user_pages_remote);
  
--	down_write(&hmm->mirrors_sem);
--	mirror = list_first_entry_or_null(&hmm->mirrors, struct hmm_mirror,
--					  list);
--	while (mirror) {
--		list_del_init(&mirror->list);
--		if (mirror->ops->release) {
--			/*
--			 * Drop mirrors_sem so the release callback can wait
--			 * on any pending work that might itself trigger a
--			 * mmu_notifier callback and thus would deadlock with
--			 * us.
--			 */
--			up_write(&hmm->mirrors_sem);
-+	down_read(&hmm->mirrors_sem);
-+	list_for_each_entry(mirror, &hmm->mirrors, list) {
-+		/*
-+		 * Note: The driver is not allowed to trigger
-+		 * hmm_mirror_unregister() from this thread.
-+		 */
-+		if (mirror->ops->release)
- 			mirror->ops->release(mirror);
--			down_write(&hmm->mirrors_sem);
+-#if defined(CONFIG_FS_DAX) || defined (CONFIG_CMA)
+-static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
+-{
+-	long i;
+-	struct vm_area_struct *vma_prev = NULL;
+-
+-	for (i = 0; i < nr_pages; i++) {
+-		struct vm_area_struct *vma = vmas[i];
+-
+-		if (vma == vma_prev)
+-			continue;
+-
+-		vma_prev = vma;
+-
+-		if (vma_is_fsdax(vma))
+-			return true;
+-	}
+-	return false;
+-}
+-
+ #ifdef CONFIG_CMA
+ static struct page *new_non_cma_page(struct page *page, unsigned long private)
+ {
+@@ -1542,18 +1522,6 @@ static long check_and_migrate_cma_pages(struct task_struct *tsk,
+ 
+ 	return nr_pages;
+ }
+-#else
+-static long check_and_migrate_cma_pages(struct task_struct *tsk,
+-					struct mm_struct *mm,
+-					unsigned long start,
+-					unsigned long nr_pages,
+-					struct page **pages,
+-					struct vm_area_struct **vmas,
+-					unsigned int gup_flags)
+-{
+-	return nr_pages;
+-}
+-#endif
+ 
+ /*
+  * __gup_longterm_locked() is a wrapper for __get_user_pages_locked which
+@@ -1567,49 +1535,28 @@ static long __gup_longterm_locked(struct task_struct *tsk,
+ 				  struct vm_area_struct **vmas,
+ 				  unsigned int gup_flags)
+ {
+-	struct vm_area_struct **vmas_tmp = vmas;
+ 	unsigned long flags = 0;
+-	long rc, i;
++	long rc;
+ 
+-	if (gup_flags & FOLL_LONGTERM) {
+-		if (!pages)
+-			return -EINVAL;
+-
+-		if (!vmas_tmp) {
+-			vmas_tmp = kcalloc(nr_pages,
+-					   sizeof(struct vm_area_struct *),
+-					   GFP_KERNEL);
+-			if (!vmas_tmp)
+-				return -ENOMEM;
 -		}
--		mirror = list_first_entry_or_null(&hmm->mirrors,
--						  struct hmm_mirror, list);
++	if (flags & FOLL_LONGTERM)
+ 		flags = memalloc_nocma_save();
+-	}
+ 
+ 	rc = __get_user_pages_locked(tsk, mm, start, nr_pages, pages,
+-				     vmas_tmp, NULL, gup_flags);
++				     vmas, NULL, gup_flags);
+ 
+ 	if (gup_flags & FOLL_LONGTERM) {
+ 		memalloc_nocma_restore(flags);
+ 		if (rc < 0)
+ 			goto out;
+ 
+-		if (check_dax_vmas(vmas_tmp, rc)) {
+-			for (i = 0; i < rc; i++)
+-				put_page(pages[i]);
+-			rc = -EOPNOTSUPP;
+-			goto out;
+-		}
+-
+ 		rc = check_and_migrate_cma_pages(tsk, mm, start, rc, pages,
+-						 vmas_tmp, gup_flags);
++						 vmas, gup_flags);
  	}
--	up_write(&hmm->mirrors_sem);
-+	up_read(&hmm->mirrors_sem);
  
- 	hmm_put(hmm);
+ out:
+-	if (vmas_tmp != vmas)
+-		kfree(vmas_tmp);
+ 	return rc;
  }
-@@ -279,7 +269,7 @@ void hmm_mirror_unregister(struct hmm_mirror *mirror)
- 	struct hmm *hmm = mirror->hmm;
+-#else /* !CONFIG_FS_DAX && !CONFIG_CMA */
++#else /* !CONFIG_CMA */
+ static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
+ 						  struct mm_struct *mm,
+ 						  unsigned long start,
+@@ -1621,7 +1568,7 @@ static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
+ 	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
+ 				       NULL, flags);
+ }
+-#endif /* CONFIG_FS_DAX || CONFIG_CMA */
++#endif /* CONFIG_CMA */
  
- 	down_write(&hmm->mirrors_sem);
--	list_del_init(&mirror->list);
-+	list_del(&mirror->list);
- 	up_write(&hmm->mirrors_sem);
- 	hmm_put(hmm);
- }
+ /*
+  * This is the same as get_user_pages_remote(), just with a
+@@ -1882,9 +1829,6 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 			goto pte_unmap;
+ 
+ 		if (pte_devmap(pte)) {
+-			if (unlikely(flags & FOLL_LONGTERM))
+-				goto pte_unmap;
+-
+ 			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
+ 			if (unlikely(!pgmap)) {
+ 				undo_dev_pagemap(nr, nr_start, pages);
+@@ -2057,12 +2001,9 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
+ 		return 0;
+ 
+-	if (pmd_devmap(orig)) {
+-		if (unlikely(flags & FOLL_LONGTERM))
+-			return 0;
++	if (pmd_devmap(orig))
+ 		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr,
+ 					     flags);
+-	}
+ 
+ 	refs = 0;
+ 	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+@@ -2101,12 +2042,9 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+ 	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
+ 		return 0;
+ 
+-	if (pud_devmap(orig)) {
+-		if (unlikely(flags & FOLL_LONGTERM))
+-			return 0;
++	if (pud_devmap(orig))
+ 		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr,
+ 					     flags);
+-	}
+ 
+ 	refs = 0;
+ 	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
 -- 
 2.20.1
 
