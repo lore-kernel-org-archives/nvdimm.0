@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f195.google.com (mail-pf1-f195.google.com
- [209.85.210.195])
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com
+ [IPv6:2a00:1450:4864:20::22a])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C7004211F35FF
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 16:22:52 -0700 (PDT)
-Received: by mail-pf1-f195.google.com with SMTP id d126so220107pfd.2
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 16:22:52 -0700 (PDT)
-Date: Tue, 25 Jun 2019 23:22:49 +0000
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH v5 07/18] kunit: test: add initial tests
-Message-ID: <20190625232249.GS19023@42.do-not-panic.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com>
- <20190617082613.109131-8-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7E07A212909FF
+ for <linux-nvdimm@lists.01.org>; Thu,  6 Jun 2019 15:29:36 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id k18so10052ljc.11
+ for <linux-nvdimm@lists.01.org>; Thu, 06 Jun 2019 15:29:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190617082613.109131-8-brendanhiggins@google.com>
+From: Steven Swanson <swanson@eng.ucsd.edu>
+Date: Thu, 6 Jun 2019 15:29:23 -0700
+Message-ID: <CABjYnA6fxLO1HnLgV17TJAYADNamJ729BS=6CsxoU2kCiJ-RVQ@mail.gmail.com>
+Subject: Persistent Programming in Real Life (PIRL) Call for Presentations
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,50 +19,56 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 17, 2019 at 01:26:02AM -0700, Brendan Higgins wrote:
-> diff --git a/kunit/example-test.c b/kunit/example-test.c
-> new file mode 100644
-> index 0000000000000..f44b8ece488bb
-> --- /dev/null
-> +++ b/kunit/example-test.c
-
-<-- snip -->
-
-> +/*
-> + * This defines a suite or grouping of tests.
-> + *
-> + * Test cases are defined as belonging to the suite by adding them to
-> + * `kunit_cases`.
-> + *
-> + * Often it is desirable to run some function which will set up things which
-> + * will be used by every test; this is accomplished with an `init` function
-> + * which runs before each test case is invoked. Similarly, an `exit` function
-> + * may be specified which runs after every test case and can be used to for
-> + * cleanup. For clarity, running tests in a test module would behave as follows:
-> + *
-
-To be clear this is not the kernel module init, but rather the kunit
-module init. I think using kmodule would make this clearer to a reader.
-
-> + * module.init(test);
-> + * module.test_case[0](test);
-> + * module.exit(test);
-> + * module.init(test);
-> + * module.test_case[1](test);
-> + * module.exit(test);
-> + * ...;
-> + */
-
-  Luis
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+WW91IGFyZSBpbnZpdGVkIHRvIHByb3Bvc2UgYSBwcmVzZW50YXRpb24gYXQgdGhlIGZpcnN0IGFu
+bnVhbCBQZXJzaXN0ZW50ClByb2dyYW1taW5nIGluIFJlYWwgTGlmZSAoUElSTCkgKGh0dHBzOi8v
+cGlybC5udnNsLmlvLykuICBQSVJMIGJyaW5ncwp0b2dldGhlciBzb2Z0d2FyZSBkZXZlbG9wbWVu
+dCBsZWFkZXJzIGludGVyZXN0ZWQgaW4gbGVhcm5pbmcgYWJvdXQKcHJvZ3JhbW1pbmcgbWV0aG9k
+b2xvZ2llcyBmb3IgcGVyc2lzdGVudCBtZW1vcmllcyAoZS5nLiBOVkRJTU1zLCBPcHRhbmUgREMp
+CmFuZCBzaGFyaW5nIHRoZWlyIGV4cGVyaWVuY2VzIHdpdGggb3RoZXJzLgoKVGVsbCB1cyBhYm91
+dCB3aGF0IHlvdSBoYXZlIGRvbmUgKGFuZCB3YW50IHRvIGRvKSB3aXRoIHBlcnNpc3RlbnQgbWVt
+b3J5LAp3aGF0IHdvcmtlZCwgd2hhdCBkaWRu4oCZdCwgd2hhdCB3YXMgaGFyZCwgd2hhdCB3YXMg
+ZWFzeSwgd2hhdCB3YXMKc3VycHJpc2luZywgYW5kIHdoYXQgZGlkIHlvdSBsZWFybj8gSG93IGNh
+biBvdGhlcnMgbGVhcm4gZnJvbSB5b3VyCmV4cGVyaWVuY2U/CgpQSVJMIGlzIHNtYWxsLiAgV2Ug
+YXJlIGxpbWl0aW5nIGF0dGVuZGFuY2UgdGhpcyB5ZWFyIHRvIHVuZGVyIDEwMCBwZW9wbGUsCmlu
+Y2x1ZGluZyBzcGVha2Vycy4gIFRoZXJlIHdpbGwgYmUgbG90cyBvZiB0aW1lIGZvciBpbmZvcm1h
+bCBkaXNjdXNzaW9uIGFuZApuZXR3b3JraW5nLgoKV2UgaGF2ZSBhbiBleGNpdGluZyBzbGF0ZSBv
+ZiBrZXlub3RlIHNwZWFrZXJzIGxpbmVkIHVwOgoKUHJhdGFwIFN1YnJhaG1hbnlhbSAoVk13YXJl
+KQpKaWEgU2hpIChPcmFjbGUpCkRhbiBXaWxsaWFtcyAoSW50ZWwgQ29ycG9yYXRpb24pClNjb3R0
+IE1pbGxlciAoRHJlYW13b3JrcykKU3RlcGhlbiBCYXRlcyAoRWlkZXRpY29tKQoKSWYgeW91IHdv
+dWxkIGxpa2UgdG8gcHJlc2VudCBhdCBQSVJMLCBmaWxsIG91dCB0aGlzIGZvcm0gKApodHRwczov
+L2RvY3MuZ29vZ2xlLmNvbS9mb3Jtcy9kL2UvMUZBSXBRTFNmS3dLem5hT1VrS2h3dmJTbGhUU1dN
+Q3lPLVJYUnkyUVZoZVV3QVR6QTdudnpRelEvdmlld2Zvcm0pLgpGb3IgaW5zdGFuY2UsICBhIHBy
+b3Bvc2FsIG1pZ2h0IGluY2x1ZGU6CjEuIFdoYXQgeW91IGRpZCBvciBhcmUgdHJ5aW5nIHRvIGRv
+LgoyLiBZb3VyIGV4cGVyaWVuY2UsIGFuZCB0aGUgbGVzc29ucyBvdGhlcnMgY2FuIGxlYXJuIGZy
+b20gaXQuCjMuIFdlIGV4cGVjdCB0byBzZWUgY29kZSEKCldlIHdlbGNvbWUgdGFsa3MgdGhhdCBk
+ZXNjcmliZSBuZXcgdG9vbHMsIGJ1dCB3ZSBhcmUgbm90IGludGVyZXN0ZWQgaW4Kc2FsZXMgcGl0
+Y2hlcy4gIEF0dGVuZGVlcyBzaG91bGQgY29tZSBhd2F5IGZyb20gZXZlcnkgc2Vzc2lvbiB3aXRo
+CmFjdGlvbmFibGUgaW5mb3JtYXRpb24gdGhhdCBjYW4gYmUgdXRpbGl6ZWQgdG8gdXNlIHBlcnNp
+c3RlbnQgbWVtb3J5IG1vcmUKZWZmZWN0aXZlbHkuClByZXNlbnRhdGlvbiBGb3JtYXQKCldlIGFy
+ZSBvcGVuIHRvIG1hbnkgZGlmZmVyZW50IGtpbmRzIG9mIHRhbGtzLiAgUG9zc2liaWxpdGllcyBp
+bmNsdWRlOgoxLiBUYWxrcyBhYm91dCBleHBlcmllbmNlcyBvbiBhIHBhcnRpY3VsYXIgcHJvamVj
+dC4KMi4gUG90ZW50aWFsbHkgZGV2ZWxvcCBvciB3cml0ZSBjb2RlIGxpdmUgb3IgcHJvdmlkZSBz
+YW1wbGVzIGR1cmluZyB0aGUKcHJlc2VudGF0aW9uLgozLiBEbyB5b3UgaGF2ZSBhIGZ1biBjaGFs
+bGVuZ2UgZm9yIHBlcnNpc3RlbnQgY29kaW5nPyAgV2XigJlyZSBhY2NlcHRpbmcgY29kZQpjaGFs
+bGVuZ2VzLCBhbmQgd2XigJlsbCBiZSBvZmZlcmluZyB0d28gb3IgdGhyZWUgb2YgdGhlbSBzbyB5
+b3UgY2FuIHNob3cKb3RoZXJzIHlvdXIgc2tpbGxzLgoKUElSTCB3aWxsIGJlIGhvc3RlZCBieSB0
+aGUgTm9uLVZvbGF0aWxlIFN5c3RlbXMgTGFib3JhdG9yeSBhdCB0aGUKVW5pdmVyc2l0eSBvZiBD
+YWxpZm9ybmlhLCBTYW4gRGllZ28uICBJdCB3aWxsIGJlIGhlbGQgYXQgU2NyaXBwcyBGb3J1bSAo
+Cmh0dHBzOi8vc2NyaXBwcy51Y3NkLmVkdS9hYm91dC92ZW51ZXMvc2Vhc2lkZS1mb3J1bSkgb24g
+SnVseSAyMm5kIHRvIDIzcmQsCjIwMTksIHdpdGggYSBzb2NpYWwgZXZlbnQgdGhlIGV2ZW5pbmcg
+b2YgSnVseSAyMXN0LgoKUHJlLXJlZ2lzdHJhdGlvbiBpcyBvcGVuICgKaHR0cHM6Ly93d3cuZXZl
+bnRicml0ZS5jb20vZS9waXJsLXJlZ2lzdHJhdGlvbi02MjIxOTQ5ODE5NCkgYW5kIHdpbGwgYmUK
+JDQwMC4gU3BhY2UgaXMgbGltaXRlZC4KCklmIHlvdSBoYXZlIGFueSBxdWVzdGlvbnMsIHBsZWFz
+ZSBjb250YWN0IFN0ZXZlbiBTd2Fuc29uICgKc3dhbnNvbkBjcy51Y3NkLmVkdSkuCk9yZ2FuaXpp
+bmcgQ29tbWl0dGVlCgpTdGV2ZW4gU3dhbnNvbiAoVUNTRCkgSmltIEZpc3RlciAoU05JQSkgQW5k
+eSBSdWRvZmYgKEludGVsKQoKSmlzaGVuIFpoYW8gKFVDU0QpIEpvZSBJenJhZWxldml0eiAoVUNT
+RCkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
+bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
+dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
