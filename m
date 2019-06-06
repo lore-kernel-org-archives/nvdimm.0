@@ -1,19 +1,20 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 6 Jun 2019 12:42:03 +0200
-From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Message-ID: <20190606104203.GF7433@quack2.suse.cz>
 References: <20190606014544.8339-1-ira.weiny@intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Message-ID: <c559c2ce-50dc-d143-5741-fe3d21d0305c@nvidia.com>
+Date: Wed, 5 Jun 2019 22:52:12 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: owner-linux-mm@kvack.org
-To: ira.weiny@intel.com
-Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+To: ira.weiny@intel.com, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
+Cc: Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed 05-06-19 18:45:33, ira.weiny@intel.com wrote:
+On 6/5/19 6:45 PM, ira.weiny@intel.com wrote:
 > From: Ira Weiny <ira.weiny@intel.com>
 > 
 > ... V1,000,000   ;-)
@@ -50,57 +51,44 @@ On Wed 05-06-19 18:45:33, ira.weiny@intel.com wrote:
 >    file again they will need to retake the Layout lease before doing so.
 > 
 > 
-> NOTE: If the user releases the layout lease or if it has been broken by
-> another operation further GUP operations on the file will fail without
-> re-taking the lease.  This means that if a user would like to register
-> pieces of a file and continue to register other pieces later they would
-> be advised to keep the layout lease, get a SIGIO notification, and retake
-> the lease.
+> NOTE: If the user releases the layout lease or if it has been broken by another
+> operation further GUP operations on the file will fail without re-taking the
+> lease.  This means that if a user would like to register pieces of a file and
+> continue to register other pieces later they would be advised to keep the
+> layout lease, get a SIGIO notification, and retake the lease.
 > 
-> NOTE2: Truncation of pages which are not actively pinned will succeed.
-> Similar to accessing an mmap to this area GUP pins of that memory may
-> fail.
-
-So after some through I'm willing accept the fact that pinned DAX pages
-will just make truncate / hole punch fail and shove it into a same bucket
-of situations like "user can open a file and unlink won't delete it" or
-"ETXTBUSY when user is executing a file being truncated".  The problem I
-have with this proposal is a lack of visibility from sysadmin POV. For
-ETXTBUSY or "unlinked but open file" sysadmin can just do lsof, find the
-problematic process and kill it. There's nothing like that with your
-proposal since currently once you hold page reference, you can unmap the
-file, drop layout lease, close the file, and there's no trace that you're
-responsible for the pinned page anymore.
-
-So I'd like to actually mandate that you *must* hold the file lease until
-you unpin all pages in the given range (not just that you have an option to
-hold a lease). And I believe the kernel should actually enforce this. That
-way we maintain a sane state that if someone uses a physical location of
-logical file offset on disk, he has a layout lease. Also once this is done,
-sysadmin has a reasonably easy way to discover run-away RDMA application
-and kill it if he wishes so.
-
-The question is on how to exactly enforce that lease is taken until all
-pages are unpinned. I belive it could be done by tracking number of
-long-term pinned pages within a lease. Gup_longterm could easily increment
-the count when verifying the lease exists, gup_longterm users will somehow
-need to propagate corresponding 'filp' (struct file pointer) to
-put_user_pages_longterm() callsites so that they can look up appropriate
-lease to drop reference - probably I'd just transition all gup_longterm()
-users to a saner API similar to the one we have in mm/frame_vector.c where
-we don't hand out page pointers but an encapsulating structure that does
-all the necessary tracking. Removing a lease would need to block until all
-pins are released - this is probably the most hairy part since we need to
-handle a case if application just closes the file descriptor which would
-release the lease but OTOH we need to make sure task exit does not deadlock.
-Maybe we could block only on explicit lease unlock and just drop the layout
-lease on file close and if there are still pinned pages, send SIGKILL to an
-application as a reminder it did something stupid...
-
-What do people think about this?
-
-								Honza
+> NOTE2: Truncation of pages which are not actively pinned will succeed.  Similar
+> to accessing an mmap to this area GUP pins of that memory may fail.
 > 
+
+Hi Ira,
+
+Wow, great to see this. This looks like basically the right behavior, IMHO.
+
+1. We'll need man page additions, to explain it. In fact, even after a quick first
+pass through, I'm vague on two points:
+
+a) I'm not sure how this actually provides "opt-in to new behavior", because I 
+don't see any CONFIG_* or boot time choices, and it looks like the new behavior 
+just is there. That is, if user space doesn't set F_LAYOUT on a range, 
+GUP FOLL_LONGTERM will now fail, which is new behavior. (Did I get that right?)
+
+b) Truncate and hole punch behavior, with and without user space having a SIGIO
+handler. (I'm sure this is obvious after another look through, but it might go
+nicely in a man page.)
+
+2. It *seems* like ext4, xfs are taken care of here, not just for the DAX case,
+but for general RDMA on them? Or is there more that must be done?
+
+3. Christophe Hellwig's unified gup patchset wreaks havoc in gup.c, and will
+conflict violently, as I'm sure you noticed. :)
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
+
 > 
 > A general overview follows for background.
 > 
@@ -203,9 +191,3 @@ What do people think about this?
 >  mm/huge_memory.c                 |  12 +++
 >  18 files changed, 299 insertions(+), 135 deletions(-)
 > 
-> -- 
-> 2.20.1
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
