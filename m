@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CC5F22194EB76
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:21 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v5 10/13] Documentation: Add man pages for daxctl-{on,
- off}line-memory
-Date: Fri, 28 Jun 2019 13:11:07 -0600
-Message-Id: <20190628191110.21428-11-vishal.l.verma@intel.com>
-In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
-References: <20190628191110.21428-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E2A6821290D30
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:19 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [PATCH RFC 06/10] fs/ext4: Teach dax_layout_busy_page() to operate on
+ a sub-range
+Date: Wed,  5 Jun 2019 18:45:39 -0700
+Message-Id: <20190606014544.8339-7-ira.weiny@intel.com>
+In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,203 +23,197 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
+Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add man pages for the two new commands: daxctl-online-memory, and
-daxctl-offline-memory.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Callers of dax_layout_busy_page() are only rarely operating on the
+entire file of concern.
+
+Teach dax_layout_busy_page() to operate on a sub-range of the
+address_space provided.  Specifying 0 - ULONG_MAX however, will continue
+to operate on the "entire file" and XFS is split out to a separate patch
+by this method.
+
+This could potentially speed up dax_layout_busy_page() as well.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- Documentation/daxctl/Makefile.am              |  4 +-
- .../daxctl/daxctl-offline-memory.txt          | 72 +++++++++++++++++
- Documentation/daxctl/daxctl-online-memory.txt | 80 +++++++++++++++++++
- 3 files changed, 155 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl/daxctl-offline-memory.txt
- create mode 100644 Documentation/daxctl/daxctl-online-memory.txt
+ fs/dax.c            | 15 +++++++++++----
+ fs/ext4/ext4.h      |  2 +-
+ fs/ext4/extents.c   |  6 +++---
+ fs/ext4/inode.c     | 19 ++++++++++++-------
+ fs/xfs/xfs_file.c   |  3 ++-
+ include/linux/dax.h |  3 ++-
+ 6 files changed, 31 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 715fbad..37c3bde 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -29,7 +29,9 @@ man1_MANS = \
- 	daxctl.1 \
- 	daxctl-list.1 \
- 	daxctl-migrate-device-model.1 \
--	daxctl-reconfigure-device.1
-+	daxctl-reconfigure-device.1 \
-+	daxctl-online-memory.1 \
-+	daxctl-offline-memory.1
+diff --git a/fs/dax.c b/fs/dax.c
+index 29ff3b683657..abd77b184879 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -568,8 +568,11 @@ bool dax_mapping_is_dax(struct address_space *mapping)
+ EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
  
- CLEANFILES = $(man1_MANS)
+ /**
+- * dax_layout_busy_page - find first pinned page in @mapping
++ * dax_layout_busy_page - find first pinned page in @mapping within
++ *                        the range @off - @off + @len
+  * @mapping: address space to scan for a page with ref count > 1
++ * @off: offset to start at
++ * @len: length to scan through
+  *
+  * DAX requires ZONE_DEVICE mapped pages. These pages are never
+  * 'onlined' to the page allocator so they are considered idle when
+@@ -582,9 +585,13 @@ EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
+  * to be able to run unmap_mapping_range() and subsequently not race
+  * mapping_mapped() becoming true.
+  */
+-struct page *dax_layout_busy_page(struct address_space *mapping)
++struct page *dax_layout_busy_page(struct address_space *mapping,
++				  loff_t off, loff_t len)
+ {
+-	XA_STATE(xas, &mapping->i_pages, 0);
++	unsigned long start_idx = off >> PAGE_SHIFT;
++	unsigned long end_idx = (len == ULONG_MAX) ? ULONG_MAX
++				: start_idx + (len >> PAGE_SHIFT);
++	XA_STATE(xas, &mapping->i_pages, start_idx);
+ 	void *entry;
+ 	unsigned int scanned = 0;
+ 	struct page *page = NULL;
+@@ -607,7 +614,7 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	unmap_mapping_range(mapping, 0, 0, 1);
  
-diff --git a/Documentation/daxctl/daxctl-offline-memory.txt b/Documentation/daxctl/daxctl-offline-memory.txt
-new file mode 100644
-index 0000000..ba06287
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-offline-memory.txt
-@@ -0,0 +1,72 @@
-+// SPDX-License-Identifier: GPL-2.0
+ 	xas_lock_irq(&xas);
+-	xas_for_each(&xas, entry, ULONG_MAX) {
++	xas_for_each(&xas, entry, end_idx) {
+ 		if (WARN_ON_ONCE(!xa_is_value(entry)))
+ 			continue;
+ 		if (unlikely(dax_is_locked(entry)))
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 1cb67859e051..ba5920c21023 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -2530,7 +2530,7 @@ extern int ext4_get_inode_loc(struct inode *, struct ext4_iloc *);
+ extern int ext4_inode_attach_jinode(struct inode *inode);
+ extern int ext4_can_truncate(struct inode *inode);
+ extern int ext4_truncate(struct inode *);
+-extern int ext4_break_layouts(struct inode *);
++extern int ext4_break_layouts(struct inode *inode, loff_t offset, loff_t len);
+ extern int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length);
+ extern int ext4_truncate_restart_trans(handle_t *, struct inode *, int nblocks);
+ extern void ext4_set_inode_flags(struct inode *);
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index d40ed940001e..9ddb117d8beb 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -4736,7 +4736,7 @@ static long ext4_zero_range(struct file *file, loff_t offset,
+ 		 */
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
+ 
+-		ret = ext4_break_layouts(inode);
++		ret = ext4_break_layouts(inode, offset, len);
+ 		if (ret) {
+ 			up_write(&EXT4_I(inode)->i_mmap_sem);
+ 			goto out_mutex;
+@@ -5419,7 +5419,7 @@ int ext4_collapse_range(struct inode *inode, loff_t offset, loff_t len)
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
+ 
+-	ret = ext4_break_layouts(inode);
++	ret = ext4_break_layouts(inode, offset, len);
+ 	if (ret)
+ 		goto out_mmap;
+ 
+@@ -5572,7 +5572,7 @@ int ext4_insert_range(struct inode *inode, loff_t offset, loff_t len)
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
+ 
+-	ret = ext4_break_layouts(inode);
++	ret = ext4_break_layouts(inode, offset, len);
+ 	if (ret)
+ 		goto out_mmap;
+ 
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index c7c99f51961f..75f543f384e4 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4232,7 +4232,7 @@ static void ext4_wait_dax_page(struct ext4_inode_info *ei)
+ 	down_write(&ei->i_mmap_sem);
+ }
+ 
+-int ext4_break_layouts(struct inode *inode)
++int ext4_break_layouts(struct inode *inode, loff_t offset, loff_t len)
+ {
+ 	struct ext4_inode_info *ei = EXT4_I(inode);
+ 	struct page *page;
+@@ -4246,7 +4246,7 @@ int ext4_break_layouts(struct inode *inode)
+ 		break_layout(inode, true);
+ 
+ 	do {
+-		page = dax_layout_busy_page(inode->i_mapping);
++		page = dax_layout_busy_page(inode->i_mapping, offset, len);
+ 		if (!page)
+ 			return 0;
+ 
+@@ -4333,7 +4333,7 @@ int ext4_punch_hole(struct inode *inode, loff_t offset, loff_t length)
+ 	 */
+ 	down_write(&EXT4_I(inode)->i_mmap_sem);
+ 
+-	ret = ext4_break_layouts(inode);
++	ret = ext4_break_layouts(inode, offset, length);
+ 	if (ret)
+ 		goto out_dio;
+ 
+@@ -5605,10 +5605,15 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
+ 
+ 		down_write(&EXT4_I(inode)->i_mmap_sem);
+ 
+-		rc = ext4_break_layouts(inode);
+-		if (rc) {
+-			up_write(&EXT4_I(inode)->i_mmap_sem);
+-			return rc;
++		if (shrink) {
++			loff_t off = attr->ia_size;
++			loff_t len = inode->i_size - attr->ia_size;
 +
-+daxctl-offline-memory(1)
-+========================
-+
-+NAME
-+----
-+daxctl-offline-memory - Offline the memory for a device that is in system-ram mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl offline-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode
-+----
-+# daxctl reconfigure-device --mode=system-ram --human dax0.0
-+{
-+  "chardev":"dax0.0",
-+  "size":"7.87 GiB (8.45 GB)",
-+  "target_node":2,
-+  "mode":"system-ram"
-+}
-+----
-+
-+* Offline the memory
-+----
-+# daxctl offline-memory dax0.0
-+dax0.0: 62 sections offlined
-+offlined memory for 1 device
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Offline the memory sections associated with a device that has been converted
-+to the system-ram mode. If one or more blocks are already offline, attempt to
-+offline the remaining blocks. If all blocks were already offline, print a
-+message and return success without actually doing anything.
-+
-+This is complementary to the 'daxctl-online-memory' command, and may be used
-+when it is wished to offline the memory sections, but not convert the device
-+back to 'devdax' mode.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-reconfigure-device[1],daxctl-online-memory[1]
-diff --git a/Documentation/daxctl/daxctl-online-memory.txt b/Documentation/daxctl/daxctl-online-memory.txt
-new file mode 100644
-index 0000000..5ac1cbf
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-online-memory.txt
-@@ -0,0 +1,80 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-online-memory(1)
-+=======================
-+
-+NAME
-+----
-+daxctl-online-memory - Online the memory for a device that is in system-ram mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl online-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode, don't online the memory
-+----
-+# daxctl reconfigure-device --mode=system-ram --no-online --human dax0.0
-+{
-+  "chardev":"dax0.0",
-+  "size":"7.87 GiB (8.45 GB)",
-+  "target_node":2,
-+  "mode":"system-ram"
-+}
-+----
-+
-+* Online the memory separately
-+----
-+# daxctl online-memory dax0.0
-+dax0.0: 62 new sections onlined
-+onlined memory for 1 device
-+----
-+
-+* Onlining memory when some sections were already online
-+----
-+# daxctl online-memory dax0.0
-+dax0.0: 1 section already online
-+dax0.0: 61 new sections onlined
-+onlined memory for 1 device
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Online the memory sections associated with a device that has been converted
-+to the system-ram mode. If one or more blocks are already online, print a
-+message about them, and attempt to online the remaining blocks.
-+
-+This is complementary to the 'daxctl-reconfigure-device' command, when used with
-+the '--no-online' option to skip onlining memory sections immediately after the
-+reconfigure. In these scenarios, the memory can be onlined at a later time using
-+'daxctl-online-memory'.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-reconfigure-device[1],daxctl-offline-memory[1]
++			rc = ext4_break_layouts(inode, off, len);
++			if (rc) {
++				up_write(&EXT4_I(inode)->i_mmap_sem);
++				return rc;
++			}
+ 		}
+ 
+ 		if (attr->ia_size != inode->i_size) {
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 76748255f843..ebddf911644c 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -746,7 +746,8 @@ xfs_break_dax_layouts(
+ 
+ 	ASSERT(xfs_isilocked(XFS_I(inode), XFS_MMAPLOCK_EXCL));
+ 
+-	page = dax_layout_busy_page(inode->i_mapping);
++	/* We default to the "whole file" */
++	page = dax_layout_busy_page(inode->i_mapping, 0, ULONG_MAX);
+ 	if (!page)
+ 		return 0;
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index ee6cbd56ddc4..3c3ab8dd76c6 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -107,7 +107,8 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
+ 
+ bool dax_mapping_is_dax(struct address_space *mapping);
+-struct page *dax_layout_busy_page(struct address_space *mapping);
++struct page *dax_layout_busy_page(struct address_space *mapping,
++				  loff_t off, loff_t len);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
+ #else
 -- 
 2.20.1
 
