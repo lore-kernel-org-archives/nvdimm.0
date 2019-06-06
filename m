@@ -1,60 +1,44 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 6 Jun 2019 16:51:15 -0300
+Date: Thu, 6 Jun 2019 16:46:52 -0300
 From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Message-ID: <20190606195114.GA30714@ziepe.ca>
+Message-ID: <20190606194652.GI17373@ziepe.ca>
 References: <20190606014544.8339-1-ira.weiny@intel.com>
- <20190606104203.GF7433@quack2.suse.cz>
+ <c559c2ce-50dc-d143-5741-fe3d21d0305c@nvidia.com>
+ <20190606171158.GB11374@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190606104203.GF7433@quack2.suse.cz>
+In-Reply-To: <20190606171158.GB11374@iweiny-DESK2.sc.intel.com>
 Sender: owner-linux-mm@kvack.org
-To: Jan Kara <jack@suse.cz>
-Cc: ira.weiny@intel.com, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
+On Thu, Jun 06, 2019 at 10:11:58AM -0700, Ira Weiny wrote:
 
-> So I'd like to actually mandate that you *must* hold the file lease until
-> you unpin all pages in the given range (not just that you have an option to
-> hold a lease). And I believe the kernel should actually enforce this. That
-> way we maintain a sane state that if someone uses a physical location of
-> logical file offset on disk, he has a layout lease. Also once this is done,
-> sysadmin has a reasonably easy way to discover run-away RDMA application
-> and kill it if he wishes so.
+> 2) This is a bit more subtle and something I almost delayed sending these out
+>    for.  Currently the implementation of a lease break actually removes the
+>    lease from the file.  I did not want this to happen and I was thinking of
+>    delaying this patch set to implement something which keeps the lease around
+>    but I figured I should get something out for comments.  Jan has proposed
+>    something along these lines and I agree with him so I'm going to ask you to
+>    read my response to him about the details.
+>
 > 
-> The question is on how to exactly enforce that lease is taken until all
-> pages are unpinned. I belive it could be done by tracking number of
-> long-term pinned pages within a lease. Gup_longterm could easily increment
-> the count when verifying the lease exists, gup_longterm users will somehow
-> need to propagate corresponding 'filp' (struct file pointer) to
-> put_user_pages_longterm() callsites so that they can look up appropriate
-> lease to drop reference - probably I'd just transition all gup_longterm()
-> users to a saner API similar to the one we have in mm/frame_vector.c where
-> we don't hand out page pointers but an encapsulating structure that does
-> all the necessary tracking. Removing a lease would need to block until all
-> pins are released - this is probably the most hairy part since we need to
-> handle a case if application just closes the file descriptor which
-> would
+>    Anyway so the key here is that currently an app needs the SIGIO to retake
+>    the lease if they want to map the file again or in parts based on usage.
+>    For example, they may only want to map some of the file for when they are
+>    using it and then map another part later.  Without the SIGIO they would lose
+>    their lease or would have to just take the lease for each GUP pin (which
+>    adds overhead).  Like I said I did not like this but I left it to get
+>    something which works out.
 
-I think if you are going to do this then the 'struct filp' that
-represents the lease should be held in the kernel (ie inside the RDMA
-umem) until the kernel is done with it.
+So to be clear.. 
 
-Actually does someone have a pointer to this userspace lease API, I'm
-not at all familiar with it, thanks
+Even though the lease is broken the GUP remains, the pages remain
+pined, and truncate/etc continues to fail? 
 
-And yes, a better output format from GUP would be great..
+I like Jan's take on this actually.. see other email.
 
-> Maybe we could block only on explicit lease unlock and just drop the layout
-> lease on file close and if there are still pinned pages, send SIGKILL to an
-> application as a reminder it did something stupid...
-
-Which process would you SIGKILL? At least for the rdma case a FD is
-holding the GUP, so to do the put_user_pages() the kernel needs to
-close the FD. I guess it would have to kill every process that has the
-FD open? Seems complicated...
-
-Regards,
 Jason
