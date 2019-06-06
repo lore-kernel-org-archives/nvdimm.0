@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1DA1F2129EBB8
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jun 2019 11:52:33 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] libndctl/inject: Refuse error injection for BTT
- namespaces
-Date: Fri, 14 Jun 2019 12:52:22 -0600
-Message-Id: <20190614185222.30068-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F190E21290D2B
+ for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:25 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [PATCH RFC 09/10] fs/xfs: Fail truncate if pages are GUP pinned
+Date: Wed,  5 Jun 2019 18:45:42 -0700
+Message-Id: <20190606014544.8339-10-ira.weiny@intel.com>
+In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,112 +22,100 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Marek de Rosier <marekx.de.rosier@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
+Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Error injection on a BTT namespace would treat the namespace as 'raw'
-for the purposes of the injection. This can be useful for development,
-but to a user this can be surprising, as injecting with --block=1 would
-corrupt the BTT info block, and the BTT would be lost.
+From: Ira Weiny <ira.weiny@intel.com>
 
-The unit tests do not rely on injecting errors directly into a BTT
-namespace - they convert the namespace to 'raw' mode before performing
-such an injection. For development and testing purposes, we will still
-retain this ability by enforcing that the BTT namespace be explicitly
-forced into raw mode before injection.
+If pages are actively gup pinned fail the truncate operation.  To
+support an application who wishes to removing a pin upon SIGIO reception
+we must change the order of breaking layout leases with respect to DAX
+layout leases.
 
-Reported-by: Marek de Rosier <marekx.de.rosier@intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Check for a GUP pin on the page being truncated and return ETXTBSY if it
+is GUP pinned.
+
+Change the order of XFS break leased layouts and break DAX layouts.
+
+Select EXPORT_BLOCK_OPS for FS_DAX to ensure that
+xfs_break_lease_layouts() is defined for FS_DAX as well as pNFS.
+
+Update comment for xfs_break_lease_layouts()
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- ndctl/lib/inject.c | 33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ fs/Kconfig        |  1 +
+ fs/xfs/xfs_file.c |  8 ++++++--
+ fs/xfs/xfs_pnfs.c | 14 +++++++-------
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
-diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
-index c35d0f3..815f254 100644
---- a/ndctl/lib/inject.c
-+++ b/ndctl/lib/inject.c
-@@ -34,28 +34,36 @@ NDCTL_EXPORT int ndctl_bus_has_error_injection(struct ndctl_bus *bus)
- 	return 0;
- }
+diff --git a/fs/Kconfig b/fs/Kconfig
+index f1046cf6ad85..c54b0b88abbf 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -49,6 +49,7 @@ config FS_DAX
+ 	select DEV_PAGEMAP_OPS if (ZONE_DEVICE && !FS_DAX_LIMITED)
+ 	select FS_IOMAP
+ 	select DAX
++	select EXPORTFS_BLOCK_OPS
+ 	help
+ 	  Direct Access (DAX) can be used on memory-backed block devices.
+ 	  If the block device supports DAX and the filesystem supports DAX,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 350eb5546d36..1dc61c98f7cd 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -756,6 +756,9 @@ xfs_break_dax_layouts(
+ 	if (!page)
+ 		return 0;
  
--static void ndctl_namespace_get_injection_bounds(
-+static int ndctl_namespace_get_injection_bounds(
- 		struct ndctl_namespace *ndns, unsigned long long *ns_offset,
- 		unsigned long long *ns_size)
- {
- 	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
- 	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
-+	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
- 
- 	if (!ns_offset || !ns_size)
--		return;
-+		return -ENXIO;
- 
- 	if (pfn) {
- 		*ns_offset = ndctl_pfn_get_resource(pfn);
- 		*ns_size = ndctl_pfn_get_size(pfn);
--		return;
--	} else if (dax) {
-+		return 0;
-+	}
++	if (page_gup_pinned(page))
++		return -ETXTBSY;
 +
-+	if (dax) {
- 		*ns_offset = ndctl_dax_get_resource(dax);
- 		*ns_size = ndctl_dax_get_size(dax);
--		return;
-+		return 0;
- 	}
--	/* raw or btt */
-+
-+	if (btt)
-+		return -EOPNOTSUPP;
-+
-+	/* raw */
- 	*ns_offset = ndctl_namespace_get_resource(ndns);
- 	*ns_size = ndctl_namespace_get_size(ndns);
-+	return 0;
- }
+ 	*retry = true;
+ 	return ___wait_var_event(&page->_refcount,
+ 			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+@@ -779,10 +782,11 @@ xfs_break_layouts(
+ 		retry = false;
+ 		switch (reason) {
+ 		case BREAK_UNMAP:
+-			error = xfs_break_dax_layouts(inode, &retry, off, len);
++			error = xfs_break_leased_layouts(inode, iolock, &retry);
+ 			if (error || retry)
+ 				break;
+-			/* fall through */
++			error = xfs_break_dax_layouts(inode, &retry, off, len);
++			break;
+ 		case BREAK_WRITE:
+ 			error = xfs_break_leased_layouts(inode, iolock, &retry);
+ 			break;
+diff --git a/fs/xfs/xfs_pnfs.c b/fs/xfs/xfs_pnfs.c
+index bde2c9f56a46..e70d24d12cbf 100644
+--- a/fs/xfs/xfs_pnfs.c
++++ b/fs/xfs/xfs_pnfs.c
+@@ -21,14 +21,14 @@
+ #include "xfs_pnfs.h"
  
- static int block_to_spa_offset(struct ndctl_namespace *ndns,
-@@ -64,8 +72,11 @@ static int block_to_spa_offset(struct ndctl_namespace *ndns,
- {
- 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
- 	unsigned long long ns_offset, ns_size;
-+	int rc;
- 
--	ndctl_namespace_get_injection_bounds(ndns, &ns_offset, &ns_size);
-+	rc = ndctl_namespace_get_injection_bounds(ndns, &ns_offset, &ns_size);
-+	if (rc)
-+		return rc;
- 	*offset = ns_offset + block * 512;
- 	*length = count * 512;
- 
-@@ -98,8 +109,10 @@ static int ndctl_namespace_get_clear_unit(struct ndctl_namespace *ndns)
- 	struct ndctl_cmd *cmd;
- 	int rc;
- 
--	ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
-+	rc = ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
- 		&ns_size);
-+	if (rc)
-+		return rc;
- 	cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
- 	rc = ndctl_cmd_submit(cmd);
- 	if (rc < 0) {
-@@ -438,8 +451,10 @@ NDCTL_EXPORT int ndctl_namespace_injection_status(struct ndctl_namespace *ndns)
- 		return -EOPNOTSUPP;
- 
- 	if (ndctl_bus_has_nfit(bus)) {
--		ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
-+		rc = ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
- 			&ns_size);
-+		if (rc)
-+			return rc;
- 
- 		cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
- 		rc = ndctl_cmd_submit(cmd);
+ /*
+- * Ensure that we do not have any outstanding pNFS layouts that can be used by
+- * clients to directly read from or write to this inode.  This must be called
+- * before every operation that can remove blocks from the extent map.
+- * Additionally we call it during the write operation, where aren't concerned
+- * about exposing unallocated blocks but just want to provide basic
++ * Ensure that we do not have any outstanding pNFS or longterm GUP layouts that
++ * can be used by clients to directly read from or write to this inode.  This
++ * must be called before every operation that can remove blocks from the extent
++ * map.  Additionally we call it during the write operation, where aren't
++ * concerned about exposing unallocated blocks but just want to provide basic
+  * synchronization between a local writer and pNFS clients.  mmap writes would
+- * also benefit from this sort of synchronization, but due to the tricky locking
+- * rules in the page fault path we don't bother.
++ * also benefit from this sort of synchronization, but due to the tricky
++ * locking rules in the page fault path we don't bother.
+  */
+ int
+ xfs_break_leased_layouts(
 -- 
 2.20.1
 
