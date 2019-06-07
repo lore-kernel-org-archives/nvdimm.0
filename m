@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C8FA121296407
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 02:44:09 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 13/22] device-dax: use the dev_pagemap internal refcount
-Date: Thu, 13 Jun 2019 11:43:16 +0200
-Message-Id: <20190613094326.24093-14-hch@lst.de>
-In-Reply-To: <20190613094326.24093-1-hch@lst.de>
-References: <20190613094326.24093-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 48A202128DD57
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 13:37:19 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id z24so3080869oto.1
+ for <linux-nvdimm@lists.01.org>; Fri, 07 Jun 2019 13:37:19 -0700 (PDT)
 MIME-Version: 1.0
+References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <86a49d1a-678e-5e86-180b-e48326d1bdb5@intel.com>
+In-Reply-To: <86a49d1a-678e-5e86-180b-e48326d1bdb5@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 7 Jun 2019 13:37:08 -0700
+Message-ID: <CAPcyv4gvToqPXSy5MKXOX=HvFP2R0F_6DY3qUiagQEKk84BKpg@mail.gmail.com>
+Subject: Re: [PATCH v3 00/10] EFI Specific Purpose Memory Support
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,123 +26,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: linux-efi <linux-efi@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, kbuild test robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ingo Molnar <mingo@redhat.com>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andy@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The functionality is identical to the one currently open coded in
-device-dax.
+On Fri, Jun 7, 2019 at 12:57 PM Dave Hansen <dave.hansen@intel.com> wrote:
+>
+> On 6/7/19 12:27 PM, Dan Williams wrote:
+> > In support of optionally allowing either application-exclusive and
+> > core-kernel-mm managed access to differentiated memory, claim
+> > EFI_MEMORY_SP ranges for exposure as device-dax instances by default.
+> > Such instances can be directly owned / mapped by a
+> > platform-topology-aware application. Alternatively, with the new kmem
+> > facility [4], the administrator has the option to instead designate that
+> > those memory ranges be hot-added to the core-kernel-mm as a unique
+> > memory numa-node. In short, allow for the decision about what software
+> > agent manages specific-purpose memory to be made at runtime.
+>
+> It's probably worth noting that the reason the memory lands into the
+> state of being controlled by device-dax by default is that device-dax is
+> nice.  It's actually willing and able to give up ownership of the memory
+> when we ask.  If we added to the core-mm, we'd almost certainly not be
+> able to get it back reliably.
+>
+> Anyway, thanks for doing these, and I really hope that the world's
+> BIOSes actually use this flag.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/dax/dax-private.h |  4 ---
- drivers/dax/device.c      | 52 +--------------------------------------
- 2 files changed, 1 insertion(+), 55 deletions(-)
+It should be noted that the flag is necessary, but not sufficient to
+route this memory range to device-dax. The BIOS must also publish ACPI
+HMAT performance data for the range so the OS has a chance of knowing
+*why* the memory is "reserved for a specific purpose", and delineate
+the boundaries of multiple performance differentiated memory ranges
+that might be combined into one shared / contiguous EFI memory
+descriptor.
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a45612148ca0..ed04a18a35be 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -51,8 +51,6 @@ struct dax_region {
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-- * @ref: pgmap reference count (driver owned)
-- * @cmp: @ref final put completion (driver owned)
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -60,8 +58,6 @@ struct dev_dax {
- 	int target_node;
- 	struct device dev;
- 	struct dev_pagemap pgmap;
--	struct percpu_ref ref;
--	struct completion cmp;
- };
- 
- static inline struct dev_dax *to_dev_dax(struct device *dev)
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index e23fa1bd8c97..a9d7c90ecf1e 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -14,37 +14,6 @@
- #include "dax-private.h"
- #include "bus.h"
- 
--static struct dev_dax *ref_to_dev_dax(struct percpu_ref *ref)
--{
--	return container_of(ref, struct dev_dax, ref);
--}
--
--static void dev_dax_percpu_release(struct percpu_ref *ref)
--{
--	struct dev_dax *dev_dax = ref_to_dev_dax(ref);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	complete(&dev_dax->cmp);
--}
--
--static void dev_dax_percpu_exit(void *data)
--{
--	struct percpu_ref *ref = data;
--	struct dev_dax *dev_dax = ref_to_dev_dax(ref);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	wait_for_completion(&dev_dax->cmp);
--	percpu_ref_exit(ref);
--}
--
--static void dev_dax_percpu_kill(struct dev_pagemap *pgmap)
--{
--	struct dev_dax *dev_dax = container_of(pgmap, struct dev_dax, pgmap);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	percpu_ref_kill(pgmap->ref);
--}
--
- static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		const char *func)
- {
-@@ -442,10 +411,6 @@ static void dev_dax_kill(void *dev_dax)
- 	kill_dev_dax(dev_dax);
- }
- 
--static const struct dev_pagemap_ops dev_dax_pagemap_ops = {
--	.kill		= dev_dax_percpu_kill,
--};
--
- int dev_dax_probe(struct device *dev)
- {
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
-@@ -463,24 +428,9 @@ int dev_dax_probe(struct device *dev)
- 		return -EBUSY;
- 	}
- 
--	init_completion(&dev_dax->cmp);
--	rc = percpu_ref_init(&dev_dax->ref, dev_dax_percpu_release, 0,
--			GFP_KERNEL);
--	if (rc)
--		return rc;
--
--	rc = devm_add_action_or_reset(dev, dev_dax_percpu_exit, &dev_dax->ref);
--	if (rc)
--		return rc;
--
--	dev_dax->pgmap.ref = &dev_dax->ref;
--	dev_dax->pgmap.ops = &dev_dax_pagemap_ops;
- 	addr = devm_memremap_pages(dev, &dev_dax->pgmap);
--	if (IS_ERR(addr)) {
--		devm_remove_action(dev, dev_dax_percpu_exit, &dev_dax->ref);
--		percpu_ref_exit(&dev_dax->ref);
-+	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
--	}
- 
- 	inode = dax_inode(dax_dev);
- 	cdev = inode->i_cdev;
--- 
-2.20.1
-
+With no HMAT the memory will be reserved, but no dax-device will be
+surfaced. Perhaps this implementation also needs a WARN_TAINT(...,
+TAINT_FIRMWARE_WORKAROUND...) to scream about a BIOS that fails to
+publish the required HMAT entries, or perhaps even better a command
+line option to ignore the flag so that the core-mm can pick up the
+memory by default?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
