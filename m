@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DCFC5212909DB
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:12:54 -0700 (PDT)
-Subject: [PATCH v9 07/12] mm/sparsemem: Prepare for sub-section ranges
+ by ml01.01.org (Postfix) with ESMTPS id B8D8F21290DEA
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:41:50 -0700 (PDT)
+Subject: [PATCH v3 04/10] x86, efi: Push EFI_MEMMAP check into leaf routines
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jun 2019 14:58:37 -0700
-Message-ID: <155977191770.2443951.1506588644989416699.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 07 Jun 2019 12:27:33 -0700
+Message-ID: <155993565364.3036719.13348818856010715122.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,292 +22,121 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
+To: linux-kernel@vger.kernel.org
+Cc: linux-efi@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, ard.biesheuvel@linaro.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare the memory hot-{add,remove} paths for handling sub-section
-ranges by plumbing the starting page frame and number of pages being
-handled through arch_{add,remove}_memory() to
-sparse_{add,remove}_one_section().
+In preparation for adding another EFI_MEMMAP dependent call that needs
+to occur before e820__memblock_setup() fixup the existing efi calls to
+check for EFI_MEMMAP internally. This is cleaner than checking
+EFI_MEMMAP multiple times in setup_arch().
 
-This is simply plumbing, small cleanups, and some identifier renames. No
-intended functional changes.
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: <x86@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/memory_hotplug.h |    5 +-
- mm/memory_hotplug.c            |  114 +++++++++++++++++++++++++---------------
- mm/sparse.c                    |   15 ++---
- 3 files changed, 81 insertions(+), 53 deletions(-)
+ arch/x86/kernel/setup.c         |   19 +++++++++----------
+ arch/x86/platform/efi/efi.c     |    3 +++
+ arch/x86/platform/efi/quirks.c  |    3 +++
+ drivers/firmware/efi/esrt.c     |    3 +++
+ drivers/firmware/efi/fake_mem.c |    2 +-
+ 5 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 79e0add6a597..3ab0282b4fe5 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -348,9 +348,10 @@ extern int add_memory_resource(int nid, struct resource *resource);
- extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
- 		unsigned long nr_pages, struct vmem_altmap *altmap);
- extern bool is_memblock_offlined(struct memory_block *mem);
--extern int sparse_add_one_section(int nid, unsigned long start_pfn,
--				  struct vmem_altmap *altmap);
-+extern int sparse_add_section(int nid, unsigned long pfn,
-+		unsigned long nr_pages, struct vmem_altmap *altmap);
- extern void sparse_remove_one_section(struct mem_section *ms,
-+		unsigned long pfn, unsigned long nr_pages,
- 		unsigned long map_offset, struct vmem_altmap *altmap);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 4b882c57781a..399bf78bccc5 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -252,51 +252,84 @@ void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
- }
- #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 08a5f4a131f5..b68fd57a8d26 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1103,21 +1103,20 @@ void __init setup_arch(char **cmdline_p)
+ 	cleanup_highmap();
  
--static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
--				   struct vmem_altmap *altmap)
-+static int __meminit __add_section(int nid, unsigned long pfn,
-+		unsigned long nr_pages,	struct vmem_altmap *altmap)
- {
- 	int ret;
+ 	memblock_set_current_limit(ISA_END_ADDRESS);
++
+ 	e820__memblock_setup();
  
--	if (pfn_valid(phys_start_pfn))
-+	if (pfn_valid(pfn))
- 		return -EEXIST;
+ 	reserve_bios_regions();
  
--	ret = sparse_add_one_section(nid, phys_start_pfn, altmap);
-+	ret = sparse_add_section(nid, pfn, nr_pages, altmap);
- 	return ret < 0 ? ret : 0;
- }
+-	if (efi_enabled(EFI_MEMMAP)) {
+-		efi_fake_memmap();
+-		efi_find_mirror();
+-		efi_esrt_init();
++	efi_fake_memmap();
++	efi_find_mirror();
++	efi_esrt_init();
  
-+static int check_pfn_span(unsigned long pfn, unsigned long nr_pages,
-+		const char *reason)
-+{
+-		/*
+-		 * The EFI specification says that boot service code won't be
+-		 * called after ExitBootServices(). This is, in fact, a lie.
+-		 */
+-		efi_reserve_boot_services();
+-	}
 +	/*
-+	 * Disallow all operations smaller than a sub-section and only
-+	 * allow operations smaller than a section for
-+	 * SPARSEMEM_VMEMMAP. Note that check_hotplug_memory_range()
-+	 * enforces a larger memory_block_size_bytes() granularity for
-+	 * memory that will be marked online, so this check should only
-+	 * fire for direct arch_{add,remove}_memory() users outside of
-+	 * add_memory_resource().
++	 * The EFI specification says that boot service code won't be
++	 * called after ExitBootServices(). This is, in fact, a lie.
 +	 */
-+	unsigned long min_align;
++	efi_reserve_boot_services();
+ 
+ 	/* preallocate 4k for mptable mpc */
+ 	e820__memblock_alloc_reserved_mpc_new();
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index e1cb01a22fa8..4e8458b1ca30 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -103,6 +103,9 @@ void __init efi_find_mirror(void)
+ 	efi_memory_desc_t *md;
+ 	u64 mirror_size = 0, total_size = 0;
+ 
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
 +
-+	if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
-+		min_align = PAGES_PER_SUBSECTION;
-+	else
-+		min_align = PAGES_PER_SECTION;
-+	if (!IS_ALIGNED(pfn, min_align)
-+			|| !IS_ALIGNED(nr_pages, min_align)) {
-+		WARN(1, "Misaligned __%s_pages start: %#lx end: #%lx\n",
-+				reason, pfn, pfn + nr_pages - 1);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
- /*
-  * Reasonably generic function for adding memory.  It is
-  * expected that archs that support memory hotplug will
-  * call this function after deciding the zone to which to
-  * add the new pages.
-  */
--int __ref __add_pages(int nid, unsigned long phys_start_pfn,
--		unsigned long nr_pages, struct mhp_restrictions *restrictions)
-+int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
-+		struct mhp_restrictions *restrictions)
+ 	for_each_efi_memory_desc(md) {
+ 		unsigned long long start = md->phys_addr;
+ 		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
+diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
+index feb77777c8b8..50f7303da7be 100644
+--- a/arch/x86/platform/efi/quirks.c
++++ b/arch/x86/platform/efi/quirks.c
+@@ -320,6 +320,9 @@ void __init efi_reserve_boot_services(void)
  {
- 	unsigned long i;
--	int err = 0;
--	int start_sec, end_sec;
-+	int start_sec, end_sec, err;
- 	struct vmem_altmap *altmap = restrictions->altmap;
+ 	efi_memory_desc_t *md;
  
--	/* during initialize mem_map, align hot-added range to section */
--	start_sec = pfn_to_section_nr(phys_start_pfn);
--	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
--
- 	if (altmap) {
- 		/*
- 		 * Validate altmap is within bounds of the total request
- 		 */
--		if (altmap->base_pfn != phys_start_pfn
-+		if (altmap->base_pfn != pfn
- 				|| vmem_altmap_offset(altmap) > nr_pages) {
- 			pr_warn_once("memory add fail, invalid altmap\n");
--			err = -EINVAL;
--			goto out;
-+			return -EINVAL;
- 		}
- 		altmap->alloc = 0;
- 	}
- 
-+	err = check_pfn_span(pfn, nr_pages, "add");
-+	if (err)
-+		return err;
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
 +
-+	start_sec = pfn_to_section_nr(pfn);
-+	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
- 	for (i = start_sec; i <= end_sec; i++) {
--		err = __add_section(nid, section_nr_to_pfn(i), altmap);
-+		unsigned long pfns;
+ 	for_each_efi_memory_desc(md) {
+ 		u64 start = md->phys_addr;
+ 		u64 size = md->num_pages << EFI_PAGE_SHIFT;
+diff --git a/drivers/firmware/efi/esrt.c b/drivers/firmware/efi/esrt.c
+index d6dd5f503fa2..2762e0662bf4 100644
+--- a/drivers/firmware/efi/esrt.c
++++ b/drivers/firmware/efi/esrt.c
+@@ -246,6 +246,9 @@ void __init efi_esrt_init(void)
+ 	int rc;
+ 	phys_addr_t end;
+ 
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
 +
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		err = __add_section(nid, pfn, pfns, altmap);
-+		pfn += pfns;
-+		nr_pages -= pfns;
+ 	pr_debug("esrt-init: loading.\n");
+ 	if (!esrt_table_exists())
+ 		return;
+diff --git a/drivers/firmware/efi/fake_mem.c b/drivers/firmware/efi/fake_mem.c
+index 9501edc0fcfb..526b45331d96 100644
+--- a/drivers/firmware/efi/fake_mem.c
++++ b/drivers/firmware/efi/fake_mem.c
+@@ -44,7 +44,7 @@ void __init efi_fake_memmap(void)
+ 	void *new_memmap;
+ 	int i;
  
- 		/*
- 		 * EEXIST is finally dealt with by ioresource collision
-@@ -309,7 +342,6 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
- 		cond_resched();
- 	}
- 	vmemmap_populate_print_last();
--out:
- 	return err;
- }
- 
-@@ -487,10 +519,10 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	pgdat->node_spanned_pages = 0;
- }
- 
--static void __remove_zone(struct zone *zone, unsigned long start_pfn)
-+static void __remove_zone(struct zone *zone, unsigned long start_pfn,
-+		unsigned long nr_pages)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
--	int nr_pages = PAGES_PER_SECTION;
- 	unsigned long flags;
- 
- 	pgdat_resize_lock(zone->zone_pgdat, &flags);
-@@ -499,27 +531,23 @@ static void __remove_zone(struct zone *zone, unsigned long start_pfn)
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- }
- 
--static void __remove_section(struct zone *zone, struct mem_section *ms,
--			     unsigned long map_offset,
--			     struct vmem_altmap *altmap)
-+static void __remove_section(struct zone *zone, unsigned long pfn,
-+		unsigned long nr_pages, unsigned long map_offset,
-+		struct vmem_altmap *altmap)
- {
--	unsigned long start_pfn;
--	int scn_nr;
-+	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
- 
- 	if (WARN_ON_ONCE(!valid_section(ms)))
+-	if (!nr_fake_mem)
++	if (!efi_enabled(EFI_MEMMAP) || !nr_fake_mem)
  		return;
  
--	scn_nr = __section_nr(ms);
--	start_pfn = section_nr_to_pfn((unsigned long)scn_nr);
--	__remove_zone(zone, start_pfn);
--
--	sparse_remove_one_section(ms, map_offset, altmap);
-+	__remove_zone(zone, pfn, nr_pages);
-+	sparse_remove_one_section(ms, pfn, nr_pages, map_offset, altmap);
- }
- 
- /**
-  * __remove_pages() - remove sections of pages from a zone
-  * @zone: zone from which pages need to be removed
-- * @phys_start_pfn: starting pageframe (must be aligned to start of a section)
-+ * @pfn: starting pageframe (must be aligned to start of a section)
-  * @nr_pages: number of pages to remove (must be multiple of section size)
-  * @altmap: alternative device page map or %NULL if default memmap is used
-  *
-@@ -528,31 +556,31 @@ static void __remove_section(struct zone *zone, struct mem_section *ms,
-  * sure that pages are marked reserved and zones are adjust properly by
-  * calling offline_pages().
-  */
--void __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
-+void __remove_pages(struct zone *zone, unsigned long pfn,
- 		    unsigned long nr_pages, struct vmem_altmap *altmap)
- {
--	unsigned long i;
- 	unsigned long map_offset = 0;
--	int sections_to_remove;
-+	int i, start_sec, end_sec;
- 
- 	if (altmap)
- 		map_offset = vmem_altmap_offset(altmap);
- 
- 	clear_zone_contiguous(zone);
- 
--	/*
--	 * We can only remove entire sections
--	 */
--	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
--	BUG_ON(nr_pages % PAGES_PER_SECTION);
-+	if (check_pfn_span(pfn, nr_pages, "remove"))
-+		return;
- 
--	sections_to_remove = nr_pages / PAGES_PER_SECTION;
--	for (i = 0; i < sections_to_remove; i++) {
--		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
-+	start_sec = pfn_to_section_nr(pfn);
-+	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	for (i = start_sec; i <= end_sec; i++) {
-+		unsigned long pfns;
- 
- 		cond_resched();
--		__remove_section(zone, __pfn_to_section(pfn), map_offset,
--				 altmap);
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		__remove_section(zone, pfn, pfns, map_offset, altmap);
-+		pfn += pfns;
-+		nr_pages -= pfns;
- 		map_offset = 0;
- 	}
- 
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 2093c662a5f7..f65206deaf49 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -739,8 +739,8 @@ static void free_map_bootmem(struct page *memmap)
-  * * -EEXIST	- Section has been present.
-  * * -ENOMEM	- Out of memory.
-  */
--int __meminit sparse_add_one_section(int nid, unsigned long start_pfn,
--				     struct vmem_altmap *altmap)
-+int __meminit sparse_add_section(int nid, unsigned long start_pfn,
-+		unsigned long nr_pages, struct vmem_altmap *altmap)
- {
- 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
- 	struct mem_section_usage *usage;
-@@ -848,8 +848,9 @@ static void free_section_usage(struct page *memmap,
- 		free_map_bootmem(memmap);
- }
- 
--void sparse_remove_one_section(struct mem_section *ms, unsigned long map_offset,
--			       struct vmem_altmap *altmap)
-+void sparse_remove_one_section(struct mem_section *ms, unsigned long pfn,
-+		unsigned long nr_pages, unsigned long map_offset,
-+		struct vmem_altmap *altmap)
- {
- 	struct page *memmap = NULL;
- 	struct mem_section_usage *usage = NULL;
-@@ -862,9 +863,7 @@ void sparse_remove_one_section(struct mem_section *ms, unsigned long map_offset,
- 		ms->usage = NULL;
- 	}
- 
--	clear_hwpoisoned_pages(memmap + map_offset,
--			PAGES_PER_SECTION - map_offset);
--	free_section_usage(memmap, usage, section_nr_to_pfn(__section_nr(ms)),
--			PAGES_PER_SECTION, altmap);
-+	clear_hwpoisoned_pages(memmap + map_offset, nr_pages - map_offset);
-+	free_section_usage(memmap, usage, pfn, nr_pages, altmap);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 	/* count up the number of EFI memory descriptor */
 
 _______________________________________________
 Linux-nvdimm mailing list
