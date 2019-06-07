@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E386321295CB0
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 05:49:45 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v13 6/7] ext4: disable map_sync for async flush
-Date: Wed, 12 Jun 2019 18:15:26 +0530
-Message-Id: <20190612124527.3763-7-pagupta@redhat.com>
-In-Reply-To: <20190612124527.3763-1-pagupta@redhat.com>
-References: <20190612124527.3763-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7E6F32128A630
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:00:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAXuY3p4qhKVsSpQ44_kQeGDMfg7OuFLgFyxhcFWS3yf-5A_7g@mail.gmail.com>
+References: <20190514221711.248228-1-brendanhiggins@google.com>
+ <20190514221711.248228-18-brendanhiggins@google.com>
+ <20190517182254.548EA20815@mail.kernel.org>
+ <CAAXuY3p4qhKVsSpQ44_kQeGDMfg7OuFLgFyxhcFWS3yf-5A_7g@mail.gmail.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v4 17/18] kernel/sysctl-test: Add null pointer test for
+ sysctl.c:proc_dointvec()
+Date: Fri, 07 Jun 2019 12:00:47 -0700
+Message-Id: <20190607190047.C3E7A20868@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,54 +22,61 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Iurii Zaikin <yzaikin@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dont support 'MAP_SYNC' with non-DAX files and DAX files
-with asynchronous dax_device. Virtio pmem provides
-asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and ext4.
+Quoting Iurii Zaikin (2019-06-05 18:29:42)
+> On Fri, May 17, 2019 at 11:22 AM Stephen Boyd <sboyd@kernel.org> wrote:
+> >
+> > Quoting Brendan Higgins (2019-05-14 15:17:10)
+> > > diff --git a/kernel/sysctl-test.c b/kernel/sysctl-test.c
+> > > new file mode 100644
+> > > index 0000000000000..fe0f2bae66085
+> > > --- /dev/null
+> > > +++ b/kernel/sysctl-test.c
+> > > +
+> > > +
+> > > +static void sysctl_test_dointvec_happy_single_negative(struct kunit *test)
+> > > +{
+> > > +       struct ctl_table table = {
+> > > +               .procname = "foo",
+> > > +               .data           = &test_data.int_0001,
+> > > +               .maxlen         = sizeof(int),
+> > > +               .mode           = 0644,
+> > > +               .proc_handler   = proc_dointvec,
+> > > +               .extra1         = &i_zero,
+> > > +               .extra2         = &i_one_hundred,
+> > > +       };
+> > > +       char input[] = "-9";
+> > > +       size_t len = sizeof(input) - 1;
+> > > +       loff_t pos = 0;
+> > > +
+> > > +       table.data = kunit_kzalloc(test, sizeof(int), GFP_USER);
+> > > +       KUNIT_EXPECT_EQ(test, 0, proc_dointvec(&table, 1, input, &len, &pos));
+> > > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, len);
+> > > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, pos);
+> > > +       KUNIT_EXPECT_EQ(test, -9, *(int *)table.data);
+> >
+> > Is the casting necessary? Or can the macro do a type coercion of the
+> > second parameter based on the first type?
+>  Data field is defined as void* so I believe casting is necessary to
+> dereference it as a pointer to an array of ints. I don't think the
+> macro should do any type coercion that == operator wouldn't do.
+>  I did change the cast to make it more clear that it's a pointer to an
+> array of ints being dereferenced.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
----
- fs/ext4/file.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 98ec11f69cd4..dee549339e13 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
- static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct inode *inode = file->f_mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-+	struct dax_device *dax_dev = sbi->s_daxdev;
- 
--	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+	if (unlikely(ext4_forced_shutdown(sbi)))
- 		return -EIO;
- 
- 	/*
--	 * We don't support synchronous mappings for non-DAX files. At least
--	 * until someone comes with a sensible use case.
-+	 * We don't support synchronous mappings for non-DAX files and
-+	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+	if (!daxdev_mapping_supported(vma, dax_dev))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(file);
--- 
-2.20.1
+Ok, I still wonder if we should make KUNIT_EXPECT_EQ check the types on
+both sides and cause a build warning/error if the types aren't the same.
+This would be similar to our min/max macros that complain about
+mismatched types in the comparisons. Then if a test developer needs to
+convert one type or the other they could do so with a
+KUNIT_EXPECT_EQ_T() macro that lists the types to coerce both sides to
+explicitly.
 
 _______________________________________________
 Linux-nvdimm mailing list
