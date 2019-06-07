@@ -1,26 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
- [IPv6:2607:f8b0:4864:20::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 74BC22129DB89
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jun 2019 09:36:45 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id j184so2432845oih.1
- for <linux-nvdimm@lists.01.org>; Fri, 14 Jun 2019 09:36:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <1560366952-10660-1-git-send-email-cai@lca.pw>
- <CAPcyv4hn0Vz24s5EWKr39roXORtBTevZf7dDutH+jwapgV3oSw@mail.gmail.com>
- <CAPcyv4iuNYXmF0-EMP8GF5aiPsWF+pOFMYKCnr509WoAQ0VNUA@mail.gmail.com>
- <1560376072.5154.6.camel@lca.pw> <87lfy4ilvj.fsf@linux.ibm.com>
- <20190614153535.GA9900@linux>
- <c3f2c05d-e42f-c942-1385-664f646ddd33@linux.ibm.com>
- <CAPcyv4j_QQB8SrhTqL2mnEEHGYCg4H7kYanChiww35k0fwNv8Q@mail.gmail.com>
- <24fcb721-5d50-2c34-f44b-69281c8dd760@linux.ibm.com>
-In-Reply-To: <24fcb721-5d50-2c34-f44b-69281c8dd760@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Jun 2019 09:36:33 -0700
-Message-ID: <CAPcyv4ixq6aRQLdiMAUzQ-eDoA-hGbJQ6+_-K-nZzhXX70m1+g@mail.gmail.com>
-Subject: Re: [PATCH -next] mm/hotplug: skip bad PFNs from pfn_to_online_page()
+ by ml01.01.org (Postfix) with ESMTPS id AB5FA21290DE1
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:52:45 -0700 (PDT)
+From: Larry Bassel <larry.bassel@oracle.com>
+Subject: [RFC PATCH v2 0/2] Share PMDs for FS/DAX on x86
+Date: Fri,  7 Jun 2019 12:51:01 -0700
+Message-Id: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,131 +15,79 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Qian Cai <cai@lca.pw>, Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador <osalvador@suse.de>
+To: mike.kravetz@oracle.com, willy@infradead.org, dan.j.williams@intel.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jun 14, 2019 at 9:26 AM Aneesh Kumar K.V
-<aneesh.kumar@linux.ibm.com> wrote:
->
-> On 6/14/19 9:52 PM, Dan Williams wrote:
-> > On Fri, Jun 14, 2019 at 9:18 AM Aneesh Kumar K.V
-> > <aneesh.kumar@linux.ibm.com> wrote:
-> >>
-> >> On 6/14/19 9:05 PM, Oscar Salvador wrote:
-> >>> On Fri, Jun 14, 2019 at 02:28:40PM +0530, Aneesh Kumar K.V wrote:
-> >>>> Can you check with this change on ppc64.  I haven't reviewed this series yet.
-> >>>> I did limited testing with change . Before merging this I need to go
-> >>>> through the full series again. The vmemmap poplulate on ppc64 needs to
-> >>>> handle two translation mode (hash and radix). With respect to vmemap
-> >>>> hash doesn't setup a translation in the linux page table. Hence we need
-> >>>> to make sure we don't try to setup a mapping for a range which is
-> >>>> arleady convered by an existing mapping.
-> >>>>
-> >>>> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
-> >>>> index a4e17a979e45..15c342f0a543 100644
-> >>>> --- a/arch/powerpc/mm/init_64.c
-> >>>> +++ b/arch/powerpc/mm/init_64.c
-> >>>> @@ -88,16 +88,23 @@ static unsigned long __meminit vmemmap_section_start(unsigned long page)
-> >>>>     * which overlaps this vmemmap page is initialised then this page is
-> >>>>     * initialised already.
-> >>>>     */
-> >>>> -static int __meminit vmemmap_populated(unsigned long start, int page_size)
-> >>>> +static bool __meminit vmemmap_populated(unsigned long start, int page_size)
-> >>>>    {
-> >>>>       unsigned long end = start + page_size;
-> >>>>       start = (unsigned long)(pfn_to_page(vmemmap_section_start(start)));
-> >>>>
-> >>>> -    for (; start < end; start += (PAGES_PER_SECTION * sizeof(struct page)))
-> >>>> -            if (pfn_valid(page_to_pfn((struct page *)start)))
-> >>>> -                    return 1;
-> >>>> +    for (; start < end; start += (PAGES_PER_SECTION * sizeof(struct page))) {
-> >>>>
-> >>>> -    return 0;
-> >>>> +            struct mem_section *ms;
-> >>>> +            unsigned long pfn = page_to_pfn((struct page *)start);
-> >>>> +
-> >>>> +            if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
-> >>>> +                    return 0;
-> >>>
-> >>> I might be missing something, but is this right?
-> >>> Having a section_nr above NR_MEM_SECTIONS is invalid, but if we return 0 here,
-> >>> vmemmap_populate will go on and populate it.
-> >>
-> >> I should drop that completely. We should not hit that condition at all.
-> >> I will send a final patch once I go through the full patch series making
-> >> sure we are not breaking any ppc64 details.
-> >>
-> >> Wondering why we did the below
-> >>
-> >> #if defined(ARCH_SUBSECTION_SHIFT)
-> >> #define SUBSECTION_SHIFT (ARCH_SUBSECTION_SHIFT)
-> >> #elif defined(PMD_SHIFT)
-> >> #define SUBSECTION_SHIFT (PMD_SHIFT)
-> >> #else
-> >> /*
-> >>    * Memory hotplug enabled platforms avoid this default because they
-> >>    * either define ARCH_SUBSECTION_SHIFT, or PMD_SHIFT is a constant, but
-> >>    * this is kept as a backstop to allow compilation on
-> >>    * !ARCH_ENABLE_MEMORY_HOTPLUG archs.
-> >>    */
-> >> #define SUBSECTION_SHIFT 21
-> >> #endif
-> >>
-> >> why not
-> >>
-> >> #if defined(ARCH_SUBSECTION_SHIFT)
-> >> #define SUBSECTION_SHIFT (ARCH_SUBSECTION_SHIFT)
-> >> #else
-> >> #define SUBSECTION_SHIFT  SECTION_SHIFT
->
-> That should be SECTION_SIZE_SHIFT
->
-> >> #endif
-> >>
-> >> ie, if SUBSECTION is not supported by arch we have one sub-section per
-> >> section?
-> >
-> > A couple comments:
-> >
-> > The only reason ARCH_SUBSECTION_SHIFT exists is because PMD_SHIFT on
-> > PowerPC was a non-constant value. However, I'm planning to remove the
-> > distinction in the next rev of the patches. Jeff rightly points out
-> > that having a variable subsection size per arch will lead to
-> > situations where persistent memory namespaces are not portable across
-> > archs. So I plan to just make SUBSECTION_SHIFT 21 everywhere.
-> >
->
->
-> persistent memory namespaces are not portable across archs because they
-> have PAGE_SIZE dependency.
+Changes from v1 to v2:
 
-We can fix that by reserving mem_map capacity assuming the smallest
-PAGE_SIZE across archs.
+* Rebased on v5.2-rc3
 
-> Then we have dependencies like the page size
-> with which we map the vmemmap area.
+* An incorrect reference to "page table entries" was fixed (pointed
+out by Kirill Shutemov)
 
-How does that lead to cross-arch incompatibility? Even on a single
-arch the vmemmap area will be mapped with 2MB pages for 128MB aligned
-spans of pmem address space and 4K pages for subsections.
+* Renamed CONFIG_ARCH_WANT_HUGE_PMD_SHARE
+to CONFIG_ARCH_HAS_HUGE_PMD_SHARE instead of introducing
+a new config option (suggested by Dan Williams)
 
-> Why not let the arch
-> arch decide the SUBSECTION_SHIFT and default to one subsection per
-> section if arch is not enabled to work with subsection.
+* Removed some unnecessary #ifdef stubs (suggested by Matt Wilcox)
 
-Because that keeps the implementation from ever reaching a point where
-a namespace might be able to be moved from one arch to another. If we
-can squash these arch differences then we can have a common tool to
-initialize namespaces outside of the kernel. The one wrinkle is
-device-dax that wants to enforce the mapping size, but I think we can
-have a module-option compatibility override for that case for the
-admin to say "yes, I know this namespace is defined for 2MB x86 pages,
-but I want to force enable it with 64K pages on PowerPC"
+* A previously overlooked case involving mprotect() is now handled
+properly (pointed out by Mike Kravetz)
+
+---
+
+This patchset implements sharing of page tables pointing
+to 2MiB pages (PMDs) for FS/DAX on x86.
+
+Only shared mmapings of files (i.e. neither private mmapings nor
+anonymous pages) are eligible for PMD sharing.
+
+Due to the characteristics of DAX, this code is simpler and
+less intrusive than the general case would be.
+
+In our use case (high end Oracle database using DAX/XFS/PMEM/2MiB
+pages) there would be significant memory savings.
+
+A future system might have 6 TiB of PMEM on it and
+there might be 10000 processes each mapping all of this 6 TiB.
+Here the savings would be approximately
+(6 TiB / 2 MiB) * 8 bytes (page table size) * 10000 = 240 GiB
+(and these page tables themselves would probably be in
+non-PMEM (ordinary RAM)).
+
+There would also be a reduction in page faults because in
+some cases the page fault has already been satisfied and
+the page table entry has been filled in (and so the processes
+after the first would not take a fault).
+
+The code for detecting whether PMDs can be shared and
+the implementation of sharing and unsharing is based
+on, but somewhat different than that in mm/hugetlb.c,
+though some of the code from this file could be reused and
+thus was made non-static.
+
+Larry Bassel (2):
+  Rename CONFIG_ARCH_WANT_HUGE_PMD_SHARE to
+    CONFIG_ARCH_HAS_HUGE_PMD_SHARE
+  Implement sharing/unsharing of PMDs for FS/DAX
+
+ arch/arm64/Kconfig          |   2 +-
+ arch/arm64/mm/hugetlbpage.c |   2 +-
+ arch/x86/Kconfig            |   2 +-
+ include/linux/hugetlb.h     |   4 ++
+ mm/huge_memory.c            |  37 +++++++++++++++
+ mm/hugetlb.c                |  14 +++---
+ mm/memory.c                 | 108 +++++++++++++++++++++++++++++++++++++++++++-
+ 7 files changed, 158 insertions(+), 11 deletions(-)
+
+-- 
+1.8.3.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
