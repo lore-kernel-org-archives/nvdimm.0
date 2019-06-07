@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D3BD021296400
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:33 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 03/22] mm/hmm: clean up some coding style and comments
-Date: Mon,  1 Jul 2019 08:20:01 +0200
-Message-Id: <20190701062020.19239-4-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id BF79021290DE1
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:41:56 -0700 (PDT)
+Subject: [PATCH v3 05/10] x86,
+ efi: Reserve UEFI 2.8 Specific Purpose Memory for dax
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 07 Jun 2019 12:27:39 -0700
+Message-ID: <155993565921.3036719.12760483444400102911.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,346 +19,354 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Matthew Wilcox <willy@infradead.org>, nouveau@lists.freedesktop.org, Andrew Morton <akpm@linux-foundation.org>, Dan Carpenter <dan.carpenter@oracle.com>, Souptick Joarder <jrdr.linux@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-efi@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, kbuild test robot <lkp@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-RnJvbTogUmFscGggQ2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPgoKVGhlcmUgYXJlIG5v
-IGZ1bmN0aW9uYWwgY2hhbmdlcywganVzdCBzb21lIGNvZGluZyBzdHlsZSBjbGVhbiB1cHMgYW5k
-Cm1pbm9yIGNvbW1lbnQgY2hhbmdlcy4KCkNjOiBKb2huIEh1YmJhcmQgPGpodWJiYXJkQG52aWRp
-YS5jb20+CkNjOiBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+CkNjOiBEYW4gV2lsbGlh
-bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KQ2M6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJu
-ZGIuZGU+CkNjOiBCYWxiaXIgU2luZ2ggPGJzaW5naGFyb3JhQGdtYWlsLmNvbT4KQ2M6IERhbiBD
-YXJwZW50ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4KQ2M6IE1hdHRoZXcgV2lsY294IDx3
-aWxseUBpbmZyYWRlYWQub3JnPgpDYzogU291cHRpY2sgSm9hcmRlciA8anJkci5saW51eEBnbWFp
-bC5jb20+CkNjOiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpTaWdu
-ZWQtb2ZmLWJ5OiBSYWxwaCBDYW1wYmVsbCA8cmNhbXBiZWxsQG52aWRpYS5jb20+ClJldmlld2Vk
-LWJ5OiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KU2lnbmVkLW9mZi1ieTog
-SmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgotLS0KIGluY2x1ZGUvbGludXgvaG1t
-LmggfCA3MSArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIG1t
-L2htbS5jICAgICAgICAgICAgfCA2MiArKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0t
-LS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgNjggaW5zZXJ0aW9ucygrKSwgNjUgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9obW0uaCBiL2luY2x1ZGUvbGludXgvaG1tLmgK
-aW5kZXggNzQwYmIwMDg1M2Y1Li43MDA3MTIzODQyYmEgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGlu
-dXgvaG1tLmgKKysrIGIvaW5jbHVkZS9saW51eC9obW0uaApAQCAtMjEsOCArMjEsOCBAQAogICoK
-ICAqIEhNTSBhZGRyZXNzIHNwYWNlIG1pcnJvcmluZyBBUEk6CiAgKgotICogVXNlIEhNTSBhZGRy
-ZXNzIHNwYWNlIG1pcnJvcmluZyBpZiB5b3Ugd2FudCB0byBtaXJyb3IgcmFuZ2Ugb2YgdGhlIENQ
-VSBwYWdlCi0gKiB0YWJsZSBvZiBhIHByb2Nlc3MgaW50byBhIGRldmljZSBwYWdlIHRhYmxlLiBI
-ZXJlLCAibWlycm9yIiBtZWFucyAia2VlcAorICogVXNlIEhNTSBhZGRyZXNzIHNwYWNlIG1pcnJv
-cmluZyBpZiB5b3Ugd2FudCB0byBtaXJyb3IgYSByYW5nZSBvZiB0aGUgQ1BVCisgKiBwYWdlIHRh
-YmxlcyBvZiBhIHByb2Nlc3MgaW50byBhIGRldmljZSBwYWdlIHRhYmxlLiBIZXJlLCAibWlycm9y
-IiBtZWFucyAia2VlcAogICogc3luY2hyb25pemVkIi4gUHJlcmVxdWlzaXRlczogdGhlIGRldmlj
-ZSBtdXN0IHByb3ZpZGUgdGhlIGFiaWxpdHkgdG8gd3JpdGUtCiAgKiBwcm90ZWN0IGl0cyBwYWdl
-IHRhYmxlcyAoYXQgUEFHRV9TSVpFIGdyYW51bGFyaXR5KSwgYW5kIG11c3QgYmUgYWJsZSB0bwog
-ICogcmVjb3ZlciBmcm9tIHRoZSByZXN1bHRpbmcgcG90ZW50aWFsIHBhZ2UgZmF1bHRzLgpAQCAt
-MTA1LDEwICsxMDUsMTEgQEAgc3RydWN0IGhtbSB7CiAgKiBITU1fUEZOX1dSSVRFOiBDUFUgcGFn
-ZSB0YWJsZSBoYXMgd3JpdGUgcGVybWlzc2lvbiBzZXQKICAqIEhNTV9QRk5fREVWSUNFX1BSSVZB
-VEU6IHByaXZhdGUgZGV2aWNlIG1lbW9yeSAoWk9ORV9ERVZJQ0UpCiAgKgotICogVGhlIGRyaXZl
-ciBwcm92aWRlIGEgZmxhZ3MgYXJyYXksIGlmIGRyaXZlciB2YWxpZCBiaXQgZm9yIGFuIGVudHJ5
-IGlzIGJpdAotICogMyBpZSAoZW50cnkgJiAoMSA8PCAzKSkgaXMgdHJ1ZSBpZiBlbnRyeSBpcyB2
-YWxpZCB0aGVuIGRyaXZlciBtdXN0IHByb3ZpZGUKKyAqIFRoZSBkcml2ZXIgcHJvdmlkZXMgYSBm
-bGFncyBhcnJheSBmb3IgbWFwcGluZyBwYWdlIHByb3RlY3Rpb25zIHRvIGRldmljZQorICogUFRF
-IGJpdHMuIElmIHRoZSBkcml2ZXIgdmFsaWQgYml0IGZvciBhbiBlbnRyeSBpcyBiaXQgMywKKyAq
-IGkuZS4sIChlbnRyeSAmICgxIDw8IDMpKSwgdGhlbiB0aGUgZHJpdmVyIG11c3QgcHJvdmlkZQog
-ICogYW4gYXJyYXkgaW4gaG1tX3JhbmdlLmZsYWdzIHdpdGggaG1tX3JhbmdlLmZsYWdzW0hNTV9Q
-Rk5fVkFMSURdID09IDEgPDwgMy4KLSAqIFNhbWUgbG9naWMgYXBwbHkgdG8gYWxsIGZsYWdzLiBU
-aGlzIGlzIHNhbWUgaWRlYSBhcyB2bV9wYWdlX3Byb3QgaW4gdm1hCisgKiBTYW1lIGxvZ2ljIGFw
-cGx5IHRvIGFsbCBmbGFncy4gVGhpcyBpcyB0aGUgc2FtZSBpZGVhIGFzIHZtX3BhZ2VfcHJvdCBp
-biB2bWEKICAqIGV4Y2VwdCB0aGF0IHRoaXMgaXMgcGVyIGRldmljZSBkcml2ZXIgcmF0aGVyIHRo
-YW4gcGVyIGFyY2hpdGVjdHVyZS4KICAqLwogZW51bSBobW1fcGZuX2ZsYWdfZSB7CkBAIC0xMjks
-MTMgKzEzMCwxMyBAQCBlbnVtIGhtbV9wZm5fZmxhZ19lIHsKICAqICAgICAgYmUgbWlycm9yZWQg
-YnkgYSBkZXZpY2UsIGJlY2F1c2UgdGhlIGVudHJ5IHdpbGwgbmV2ZXIgaGF2ZSBITU1fUEZOX1ZB
-TElECiAgKiAgICAgIHNldCBhbmQgdGhlIHBmbiB2YWx1ZSBpcyB1bmRlZmluZWQuCiAgKgotICog
-RHJpdmVyIHByb3ZpZGUgZW50cnkgdmFsdWUgZm9yIG5vbmUgZW50cnksIGVycm9yIGVudHJ5IGFu
-ZCBzcGVjaWFsIGVudHJ5LAotICogZHJpdmVyIGNhbiBhbGlhcyAoaWUgdXNlIHNhbWUgdmFsdWUg
-Zm9yIGVycm9yIGFuZCBzcGVjaWFsIGZvciBpbnN0YW5jZSkuIEl0Ci0gKiBzaG91bGQgbm90IGFs
-aWFzIG5vbmUgYW5kIGVycm9yIG9yIHNwZWNpYWwuCisgKiBEcml2ZXIgcHJvdmlkZXMgdmFsdWVz
-IGZvciBub25lIGVudHJ5LCBlcnJvciBlbnRyeSwgYW5kIHNwZWNpYWwgZW50cnkuCisgKiBEcml2
-ZXIgY2FuIGFsaWFzIChpLmUuLCB1c2Ugc2FtZSB2YWx1ZSkgZXJyb3IgYW5kIHNwZWNpYWwsIGJ1
-dAorICogaXQgc2hvdWxkIG5vdCBhbGlhcyBub25lIHdpdGggZXJyb3Igb3Igc3BlY2lhbC4KICAq
-CiAgKiBITU0gcGZuIHZhbHVlIHJldHVybmVkIGJ5IGhtbV92bWFfZ2V0X3BmbnMoKSBvciBobW1f
-dm1hX2ZhdWx0KCkgd2lsbCBiZToKICAqIGhtbV9yYW5nZS52YWx1ZXNbSE1NX1BGTl9FUlJPUl0g
-aWYgQ1BVIHBhZ2UgdGFibGUgZW50cnkgaXMgcG9pc29ub3VzLAotICogaG1tX3JhbmdlLnZhbHVl
-c1tITU1fUEZOX05PTkVdIGlmIHRoZXJlIGlzIG5vIENQVSBwYWdlIHRhYmxlCisgKiBobW1fcmFu
-Z2UudmFsdWVzW0hNTV9QRk5fTk9ORV0gaWYgdGhlcmUgaXMgbm8gQ1BVIHBhZ2UgdGFibGUgZW50
-cnksCiAgKiBobW1fcmFuZ2UudmFsdWVzW0hNTV9QRk5fU1BFQ0lBTF0gaWYgQ1BVIHBhZ2UgdGFi
-bGUgZW50cnkgaXMgYSBzcGVjaWFsIG9uZQogICovCiBlbnVtIGhtbV9wZm5fdmFsdWVfZSB7CkBA
-IC0xNTgsNiArMTU5LDcgQEAgZW51bSBobW1fcGZuX3ZhbHVlX2UgewogICogQHZhbHVlczogcGZu
-IHZhbHVlIGZvciBzb21lIHNwZWNpYWwgY2FzZSAobm9uZSwgc3BlY2lhbCwgZXJyb3IsIC4uLikK
-ICAqIEBkZWZhdWx0X2ZsYWdzOiBkZWZhdWx0IGZsYWdzIGZvciB0aGUgcmFuZ2UgKHdyaXRlLCBy
-ZWFkLCAuLi4gc2VlIGhtbSBkb2MpCiAgKiBAcGZuX2ZsYWdzX21hc2s6IGFsbG93cyB0byBtYXNr
-IHBmbiBmbGFncyBzbyB0aGF0IG9ubHkgZGVmYXVsdF9mbGFncyBtYXR0ZXIKKyAqIEBwYWdlX3No
-aWZ0OiBkZXZpY2UgdmlydHVhbCBhZGRyZXNzIHNoaWZ0IHZhbHVlIChzaG91bGQgYmUgPj0gUEFH
-RV9TSElGVCkKICAqIEBwZm5fc2hpZnRzOiBwZm4gc2hpZnQgdmFsdWUgKHNob3VsZCBiZSA8PSBQ
-QUdFX1NISUZUKQogICogQHZhbGlkOiBwZm5zIGFycmF5IGRpZCBub3QgY2hhbmdlIHNpbmNlIGl0
-IGhhcyBiZWVuIGZpbGwgYnkgYW4gSE1NIGZ1bmN0aW9uCiAgKi8KQEAgLTE4MCw3ICsxODIsNyBA
-QCBzdHJ1Y3QgaG1tX3JhbmdlIHsKIC8qCiAgKiBobW1fcmFuZ2VfcGFnZV9zaGlmdCgpIC0gcmV0
-dXJuIHRoZSBwYWdlIHNoaWZ0IGZvciB0aGUgcmFuZ2UKICAqIEByYW5nZTogcmFuZ2UgYmVpbmcg
-cXVlcmllZAotICogUmV0dXJuczogcGFnZSBzaGlmdCAocGFnZSBzaXplID0gMSA8PCBwYWdlIHNo
-aWZ0KSBmb3IgdGhlIHJhbmdlCisgKiBSZXR1cm46IHBhZ2Ugc2hpZnQgKHBhZ2Ugc2l6ZSA9IDEg
-PDwgcGFnZSBzaGlmdCkgZm9yIHRoZSByYW5nZQogICovCiBzdGF0aWMgaW5saW5lIHVuc2lnbmVk
-IGhtbV9yYW5nZV9wYWdlX3NoaWZ0KGNvbnN0IHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQogewpA
-QCAtMTkwLDcgKzE5Miw3IEBAIHN0YXRpYyBpbmxpbmUgdW5zaWduZWQgaG1tX3JhbmdlX3BhZ2Vf
-c2hpZnQoY29uc3Qgc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UpCiAvKgogICogaG1tX3JhbmdlX3Bh
-Z2Vfc2l6ZSgpIC0gcmV0dXJuIHRoZSBwYWdlIHNpemUgZm9yIHRoZSByYW5nZQogICogQHJhbmdl
-OiByYW5nZSBiZWluZyBxdWVyaWVkCi0gKiBSZXR1cm5zOiBwYWdlIHNpemUgZm9yIHRoZSByYW5n
-ZSBpbiBieXRlcworICogUmV0dXJuOiBwYWdlIHNpemUgZm9yIHRoZSByYW5nZSBpbiBieXRlcwog
-ICovCiBzdGF0aWMgaW5saW5lIHVuc2lnbmVkIGxvbmcgaG1tX3JhbmdlX3BhZ2Vfc2l6ZShjb25z
-dCBzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSkKIHsKQEAgLTIwMSw3ICsyMDMsNyBAQCBzdGF0aWMg
-aW5saW5lIHVuc2lnbmVkIGxvbmcgaG1tX3JhbmdlX3BhZ2Vfc2l6ZShjb25zdCBzdHJ1Y3QgaG1t
-X3JhbmdlICpyYW5nZSkKICAqIGhtbV9yYW5nZV93YWl0X3VudGlsX3ZhbGlkKCkgLSB3YWl0IGZv
-ciByYW5nZSB0byBiZSB2YWxpZAogICogQHJhbmdlOiByYW5nZSBhZmZlY3RlZCBieSBpbnZhbGlk
-YXRpb24gdG8gd2FpdCBvbgogICogQHRpbWVvdXQ6IHRpbWUgb3V0IGZvciB3YWl0IGluIG1zIChp
-ZSBhYm9ydCB3YWl0IGFmdGVyIHRoYXQgcGVyaW9kIG9mIHRpbWUpCi0gKiBSZXR1cm5zOiB0cnVl
-IGlmIHRoZSByYW5nZSBpcyB2YWxpZCwgZmFsc2Ugb3RoZXJ3aXNlLgorICogUmV0dXJuOiB0cnVl
-IGlmIHRoZSByYW5nZSBpcyB2YWxpZCwgZmFsc2Ugb3RoZXJ3aXNlLgogICovCiBzdGF0aWMgaW5s
-aW5lIGJvb2wgaG1tX3JhbmdlX3dhaXRfdW50aWxfdmFsaWQoc3RydWN0IGhtbV9yYW5nZSAqcmFu
-Z2UsCiAJCQkJCSAgICAgIHVuc2lnbmVkIGxvbmcgdGltZW91dCkKQEAgLTIyMiw3ICsyMjQsNyBA
-QCBzdGF0aWMgaW5saW5lIGJvb2wgaG1tX3JhbmdlX3dhaXRfdW50aWxfdmFsaWQoc3RydWN0IGht
-bV9yYW5nZSAqcmFuZ2UsCiAvKgogICogaG1tX3JhbmdlX3ZhbGlkKCkgLSB0ZXN0IGlmIGEgcmFu
-Z2UgaXMgdmFsaWQgb3Igbm90CiAgKiBAcmFuZ2U6IHJhbmdlCi0gKiBSZXR1cm5zOiB0cnVlIGlm
-IHRoZSByYW5nZSBpcyB2YWxpZCwgZmFsc2Ugb3RoZXJ3aXNlLgorICogUmV0dXJuOiB0cnVlIGlm
-IHRoZSByYW5nZSBpcyB2YWxpZCwgZmFsc2Ugb3RoZXJ3aXNlLgogICovCiBzdGF0aWMgaW5saW5l
-IGJvb2wgaG1tX3JhbmdlX3ZhbGlkKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQogewpAQCAtMjMz
-LDcgKzIzNSw3IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBobW1fcmFuZ2VfdmFsaWQoc3RydWN0IGht
-bV9yYW5nZSAqcmFuZ2UpCiAgKiBobW1fZGV2aWNlX2VudHJ5X3RvX3BhZ2UoKSAtIHJldHVybiBz
-dHJ1Y3QgcGFnZSBwb2ludGVkIHRvIGJ5IGEgZGV2aWNlIGVudHJ5CiAgKiBAcmFuZ2U6IHJhbmdl
-IHVzZSB0byBkZWNvZGUgZGV2aWNlIGVudHJ5IHZhbHVlCiAgKiBAZW50cnk6IGRldmljZSBlbnRy
-eSB2YWx1ZSB0byBnZXQgY29ycmVzcG9uZGluZyBzdHJ1Y3QgcGFnZSBmcm9tCi0gKiBSZXR1cm5z
-OiBzdHJ1Y3QgcGFnZSBwb2ludGVyIGlmIGVudHJ5IGlzIGEgdmFsaWQsIE5VTEwgb3RoZXJ3aXNl
-CisgKiBSZXR1cm46IHN0cnVjdCBwYWdlIHBvaW50ZXIgaWYgZW50cnkgaXMgYSB2YWxpZCwgTlVM
-TCBvdGhlcndpc2UKICAqCiAgKiBJZiB0aGUgZGV2aWNlIGVudHJ5IGlzIHZhbGlkIChpZSB2YWxp
-ZCBmbGFnIHNldCkgdGhlbiByZXR1cm4gdGhlIHN0cnVjdCBwYWdlCiAgKiBtYXRjaGluZyB0aGUg
-ZW50cnkgdmFsdWUuIE90aGVyd2lzZSByZXR1cm4gTlVMTC4KQEAgLTI1Niw3ICsyNTgsNyBAQCBz
-dGF0aWMgaW5saW5lIHN0cnVjdCBwYWdlICpobW1fZGV2aWNlX2VudHJ5X3RvX3BhZ2UoY29uc3Qg
-c3RydWN0IGhtbV9yYW5nZSAqcmFuZwogICogaG1tX2RldmljZV9lbnRyeV90b19wZm4oKSAtIHJl
-dHVybiBwZm4gdmFsdWUgc3RvcmUgaW4gYSBkZXZpY2UgZW50cnkKICAqIEByYW5nZTogcmFuZ2Ug
-dXNlIHRvIGRlY29kZSBkZXZpY2UgZW50cnkgdmFsdWUKICAqIEBlbnRyeTogZGV2aWNlIGVudHJ5
-IHRvIGV4dHJhY3QgcGZuIGZyb20KLSAqIFJldHVybnM6IHBmbiB2YWx1ZSBpZiBkZXZpY2UgZW50
-cnkgaXMgdmFsaWQsIC0xVUwgb3RoZXJ3aXNlCisgKiBSZXR1cm46IHBmbiB2YWx1ZSBpZiBkZXZp
-Y2UgZW50cnkgaXMgdmFsaWQsIC0xVUwgb3RoZXJ3aXNlCiAgKi8KIHN0YXRpYyBpbmxpbmUgdW5z
-aWduZWQgbG9uZwogaG1tX2RldmljZV9lbnRyeV90b19wZm4oY29uc3Qgc3RydWN0IGhtbV9yYW5n
-ZSAqcmFuZ2UsIHVpbnQ2NF90IHBmbikKQEAgLTI3Niw3ICsyNzgsNyBAQCBobW1fZGV2aWNlX2Vu
-dHJ5X3RvX3Bmbihjb25zdCBzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSwgdWludDY0X3QgcGZuKQog
-ICogaG1tX2RldmljZV9lbnRyeV9mcm9tX3BhZ2UoKSAtIGNyZWF0ZSBhIHZhbGlkIGRldmljZSBl
-bnRyeSBmb3IgYSBwYWdlCiAgKiBAcmFuZ2U6IHJhbmdlIHVzZSB0byBlbmNvZGUgSE1NIHBmbiB2
-YWx1ZQogICogQHBhZ2U6IHBhZ2UgZm9yIHdoaWNoIHRvIGNyZWF0ZSB0aGUgZGV2aWNlIGVudHJ5
-Ci0gKiBSZXR1cm5zOiB2YWxpZCBkZXZpY2UgZW50cnkgZm9yIHRoZSBwYWdlCisgKiBSZXR1cm46
-IHZhbGlkIGRldmljZSBlbnRyeSBmb3IgdGhlIHBhZ2UKICAqLwogc3RhdGljIGlubGluZSB1aW50
-NjRfdCBobW1fZGV2aWNlX2VudHJ5X2Zyb21fcGFnZShjb25zdCBzdHJ1Y3QgaG1tX3JhbmdlICpy
-YW5nZSwKIAkJCQkJCSAgc3RydWN0IHBhZ2UgKnBhZ2UpCkBAIC0yODksNyArMjkxLDcgQEAgc3Rh
-dGljIGlubGluZSB1aW50NjRfdCBobW1fZGV2aWNlX2VudHJ5X2Zyb21fcGFnZShjb25zdCBzdHJ1
-Y3QgaG1tX3JhbmdlICpyYW5nZSwKICAqIGhtbV9kZXZpY2VfZW50cnlfZnJvbV9wZm4oKSAtIGNy
-ZWF0ZSBhIHZhbGlkIGRldmljZSBlbnRyeSB2YWx1ZSBmcm9tIHBmbgogICogQHJhbmdlOiByYW5n
-ZSB1c2UgdG8gZW5jb2RlIEhNTSBwZm4gdmFsdWUKICAqIEBwZm46IHBmbiB2YWx1ZSBmb3Igd2hp
-Y2ggdG8gY3JlYXRlIHRoZSBkZXZpY2UgZW50cnkKLSAqIFJldHVybnM6IHZhbGlkIGRldmljZSBl
-bnRyeSBmb3IgdGhlIHBmbgorICogUmV0dXJuOiB2YWxpZCBkZXZpY2UgZW50cnkgZm9yIHRoZSBw
-Zm4KICAqLwogc3RhdGljIGlubGluZSB1aW50NjRfdCBobW1fZGV2aWNlX2VudHJ5X2Zyb21fcGZu
-KGNvbnN0IHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlLAogCQkJCQkJIHVuc2lnbmVkIGxvbmcgcGZu
-KQpAQCAtMzk0LDcgKzM5Niw3IEBAIGVudW0gaG1tX3VwZGF0ZV9ldmVudCB7CiB9OwogCiAvKgot
-ICogc3RydWN0IGhtbV91cGRhdGUgLSBITU0gdXBkYXRlIGluZm9ybWF0aW9ucyBmb3IgY2FsbGJh
-Y2sKKyAqIHN0cnVjdCBobW1fdXBkYXRlIC0gSE1NIHVwZGF0ZSBpbmZvcm1hdGlvbiBmb3IgY2Fs
-bGJhY2sKICAqCiAgKiBAc3RhcnQ6IHZpcnR1YWwgc3RhcnQgYWRkcmVzcyBvZiB0aGUgcmFuZ2Ug
-dG8gdXBkYXRlCiAgKiBAZW5kOiB2aXJ0dWFsIGVuZCBhZGRyZXNzIG9mIHRoZSByYW5nZSB0byB1
-cGRhdGUKQEAgLTQyOCw4ICs0MzAsOCBAQCBzdHJ1Y3QgaG1tX21pcnJvcl9vcHMgewogCS8qIHN5
-bmNfY3B1X2RldmljZV9wYWdldGFibGVzKCkgLSBzeW5jaHJvbml6ZSBwYWdlIHRhYmxlcwogCSAq
-CiAJICogQG1pcnJvcjogcG9pbnRlciB0byBzdHJ1Y3QgaG1tX21pcnJvcgotCSAqIEB1cGRhdGU6
-IHVwZGF0ZSBpbmZvcm1hdGlvbnMgKHNlZSBzdHJ1Y3QgaG1tX3VwZGF0ZSkKLQkgKiBSZXR1cm5z
-OiAtRUFHQUlOIGlmIHVwZGF0ZS5ibG9ja2FibGUgZmFsc2UgYW5kIGNhbGxiYWNrIG5lZWQgdG8K
-KwkgKiBAdXBkYXRlOiB1cGRhdGUgaW5mb3JtYXRpb24gKHNlZSBzdHJ1Y3QgaG1tX3VwZGF0ZSkK
-KwkgKiBSZXR1cm46IC1FQUdBSU4gaWYgdXBkYXRlLmJsb2NrYWJsZSBmYWxzZSBhbmQgY2FsbGJh
-Y2sgbmVlZCB0bwogCSAqICAgICAgICAgIGJsb2NrLCAwIG90aGVyd2lzZS4KIAkgKgogCSAqIFRo
-aXMgY2FsbGJhY2sgdWx0aW1hdGVseSBvcmlnaW5hdGVzIGZyb20gbW11X25vdGlmaWVycyB3aGVu
-IHRoZSBDUFUKQEAgLTQ2OCwxMyArNDcwLDEzIEBAIHZvaWQgaG1tX21pcnJvcl91bnJlZ2lzdGVy
-KHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IpOwogLyoKICAqIGhtbV9taXJyb3JfbW1faXNfYWxp
-dmUoKSAtIHRlc3QgaWYgbW0gaXMgc3RpbGwgYWxpdmUKICAqIEBtaXJyb3I6IHRoZSBITU0gbW0g
-bWlycm9yIGZvciB3aGljaCB3ZSB3YW50IHRvIGxvY2sgdGhlIG1tYXBfc2VtCi0gKiBSZXR1cm5z
-OiBmYWxzZSBpZiB0aGUgbW0gaXMgZGVhZCwgdHJ1ZSBvdGhlcndpc2UKKyAqIFJldHVybjogZmFs
-c2UgaWYgdGhlIG1tIGlzIGRlYWQsIHRydWUgb3RoZXJ3aXNlCiAgKgotICogVGhpcyBpcyBhbiBv
-cHRpbWl6YXRpb24gaXQgd2lsbCBub3QgYWNjdXJhdGVseSBhbHdheXMgcmV0dXJuIC1FSU5WQUwg
-aWYgdGhlCi0gKiBtbSBpcyBkZWFkIGllIHRoZXJlIGNhbiBiZSBmYWxzZSBuZWdhdGl2ZSAocHJv
-Y2VzcyBpcyBiZWluZyBraWxsIGJ1dCBITU0gaXMKLSAqIG5vdCB5ZXQgaW5mb3JtIG9mIHRoYXQp
-LiBJdCBpcyBvbmx5IGludGVudGVkIHRvIGJlIHVzZSB0byBvcHRpbWl6ZSBvdXQgY2FzZQotICog
-d2hlcmUgZHJpdmVyIGlzIGFib3V0IHRvIGRvIHNvbWV0aGluZyB0aW1lIGNvbnN1bWluZyBhbmQg
-aXQgd291bGQgYmUgYmV0dGVyCi0gKiB0byBza2lwIGl0IGlmIHRoZSBtbSBpcyBkZWFkLgorICog
-VGhpcyBpcyBhbiBvcHRpbWl6YXRpb24sIGl0IHdpbGwgbm90IGFsd2F5cyBhY2N1cmF0ZWx5IHJl
-dHVybiBmYWxzZSBpZiB0aGUKKyAqIG1tIGlzIGRlYWQ7IGkuZS4sIHRoZXJlIGNhbiBiZSBmYWxz
-ZSBuZWdhdGl2ZXMgKHByb2Nlc3MgaXMgYmVpbmcga2lsbGVkIGJ1dAorICogSE1NIGlzIG5vdCB5
-ZXQgaW5mb3JtZWQgb2YgdGhhdCkuIEl0IGlzIG9ubHkgaW50ZW5kZWQgdG8gYmUgdXNlZCB0byBv
-cHRpbWl6ZQorICogb3V0IGNhc2VzIHdoZXJlIHRoZSBkcml2ZXIgaXMgYWJvdXQgdG8gZG8gc29t
-ZXRoaW5nIHRpbWUgY29uc3VtaW5nIGFuZCBpdAorICogd291bGQgYmUgYmV0dGVyIHRvIHNraXAg
-aXQgaWYgdGhlIG1tIGlzIGRlYWQuCiAgKi8KIHN0YXRpYyBpbmxpbmUgYm9vbCBobW1fbWlycm9y
-X21tX2lzX2FsaXZlKHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IpCiB7CkBAIC00ODksNyArNDkx
-LDYgQEAgc3RhdGljIGlubGluZSBib29sIGhtbV9taXJyb3JfbW1faXNfYWxpdmUoc3RydWN0IGht
-bV9taXJyb3IgKm1pcnJvcikKIAlyZXR1cm4gdHJ1ZTsKIH0KIAotCiAvKgogICogUGxlYXNlIHNl
-ZSBEb2N1bWVudGF0aW9uL3ZtL2htbS5yc3QgZm9yIGhvdyB0byB1c2UgdGhlIHJhbmdlIEFQSS4K
-ICAqLwpAQCAtNTYyLDcgKzU2Myw3IEBAIHN0YXRpYyBpbmxpbmUgaW50IGhtbV92bWFfZmF1bHQo
-c3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UsIGJvb2wgYmxvY2spCiAJcmV0ID0gaG1tX3JhbmdlX2Zh
-dWx0KHJhbmdlLCBibG9jayk7CiAJaWYgKHJldCA8PSAwKSB7CiAJCWlmIChyZXQgPT0gLUVCVVNZ
-IHx8ICFyZXQpIHsKLQkJCS8qIFNhbWUgYXMgYWJvdmUgIGRyb3AgbW1hcF9zZW0gdG8gbWF0Y2gg
-b2xkIEFQSS4gKi8KKwkJCS8qIFNhbWUgYXMgYWJvdmUsIGRyb3AgbW1hcF9zZW0gdG8gbWF0Y2gg
-b2xkIEFQSS4gKi8KIAkJCXVwX3JlYWQoJnJhbmdlLT52bWEtPnZtX21tLT5tbWFwX3NlbSk7CiAJ
-CQlyZXQgPSAtRUJVU1k7CiAJCX0gZWxzZSBpZiAocmV0ID09IC1FQUdBSU4pCkBAIC02MjksNyAr
-NjMwLDcgQEAgc3RydWN0IGhtbV9kZXZtZW1fb3BzIHsKIAkgKiBAcGFnZTogcG9pbnRlciB0byBz
-dHJ1Y3QgcGFnZSBiYWNraW5nIHZpcnR1YWwgYWRkcmVzcyAodW5yZWxpYWJsZSkKIAkgKiBAZmxh
-Z3M6IEZBVUxUX0ZMQUdfKiAoc2VlIGluY2x1ZGUvbGludXgvbW0uaCkKIAkgKiBAcG1kcDogcGFn
-ZSBtaWRkbGUgZGlyZWN0b3J5Ci0JICogUmV0dXJuczogVk1fRkFVTFRfTUlOT1IvTUFKT1Igb24g
-c3VjY2VzcyBvciBvbmUgb2YgVk1fRkFVTFRfRVJST1IKKwkgKiBSZXR1cm46IFZNX0ZBVUxUX01J
-Tk9SL01BSk9SIG9uIHN1Y2Nlc3Mgb3Igb25lIG9mIFZNX0ZBVUxUX0VSUk9SCiAJICogICBvbiBl
-cnJvcgogCSAqCiAJICogVGhlIGNhbGxiYWNrIG9jY3VycyB3aGVuZXZlciB0aGVyZSBpcyBhIENQ
-VSBwYWdlIGZhdWx0IG9yIEdVUCBvbiBhCkBAIC02MzcsMTQgKzYzOCwxNCBAQCBzdHJ1Y3QgaG1t
-X2Rldm1lbV9vcHMgewogCSAqIHBhZ2UgYmFjayB0byByZWd1bGFyIG1lbW9yeSAoQ1BVIGFjY2Vz
-c2libGUpLgogCSAqCiAJICogVGhlIGRldmljZSBkcml2ZXIgaXMgZnJlZSB0byBtaWdyYXRlIG1v
-cmUgdGhhbiBvbmUgcGFnZSBmcm9tIHRoZQotCSAqIGZhdWx0KCkgY2FsbGJhY2sgYXMgYW4gb3B0
-aW1pemF0aW9uLiBIb3dldmVyIGlmIGRldmljZSBkZWNpZGUgdG8KLQkgKiBtaWdyYXRlIG1vcmUg
-dGhhbiBvbmUgcGFnZSBpdCBtdXN0IGFsd2F5cyBwcmlvdGlyaXplIHRoZSBmYXVsdGluZworCSAq
-IGZhdWx0KCkgY2FsbGJhY2sgYXMgYW4gb3B0aW1pemF0aW9uLiBIb3dldmVyIGlmIHRoZSBkZXZp
-Y2UgZGVjaWRlcworCSAqIHRvIG1pZ3JhdGUgbW9yZSB0aGFuIG9uZSBwYWdlIGl0IG11c3QgYWx3
-YXlzIHByaW90aXJpemUgdGhlIGZhdWx0aW5nCiAJICogYWRkcmVzcyBvdmVyIHRoZSBvdGhlcnMu
-CiAJICoKLQkgKiBUaGUgc3RydWN0IHBhZ2UgcG9pbnRlciBpcyBvbmx5IGdpdmVuIGFzIGFuIGhp
-bnQgdG8gYWxsb3cgcXVpY2sKKwkgKiBUaGUgc3RydWN0IHBhZ2UgcG9pbnRlciBpcyBvbmx5IGdp
-dmVuIGFzIGEgaGludCB0byBhbGxvdyBxdWljawogCSAqIGxvb2t1cCBvZiBpbnRlcm5hbCBkZXZp
-Y2UgZHJpdmVyIGRhdGEuIEEgY29uY3VycmVudCBtaWdyYXRpb24KLQkgKiBtaWdodCBoYXZlIGFs
-cmVhZHkgZnJlZSB0aGF0IHBhZ2UgYW5kIHRoZSB2aXJ0dWFsIGFkZHJlc3MgbWlnaHQKLQkgKiBu
-b3QgbG9uZ2VyIGJlIGJhY2sgYnkgaXQuIFNvIGl0IHNob3VsZCBub3QgYmUgbW9kaWZpZWQgYnkg
-dGhlCisJICogbWlnaHQgaGF2ZSBhbHJlYWR5IGZyZWVkIHRoYXQgcGFnZSBhbmQgdGhlIHZpcnR1
-YWwgYWRkcmVzcyBtaWdodAorCSAqIG5vIGxvbmdlciBiZSBiYWNrZWQgYnkgaXQuIFNvIGl0IHNo
-b3VsZCBub3QgYmUgbW9kaWZpZWQgYnkgdGhlCiAJICogY2FsbGJhY2suCiAJICoKIAkgKiBOb3Rl
-IHRoYXQgbW1hcCBzZW1hcGhvcmUgaXMgaGVsZCBpbiByZWFkIG1vZGUgYXQgbGVhc3Qgd2hlbiB0
-aGlzCkBAIC02NzEsNyArNjcyLDcgQEAgc3RydWN0IGhtbV9kZXZtZW1fb3BzIHsKICAqIEByZWY6
-IHBlciBDUFUgcmVmY291bnQKICAqIEBwYWdlX2ZhdWx0OiBjYWxsYmFjayB3aGVuIENQVSBmYXVs
-dCBvbiBhbiB1bmFkZHJlc3NhYmxlIGRldmljZSBwYWdlCiAgKgotICogVGhpcyBhbiBoZWxwZXIg
-c3RydWN0dXJlIGZvciBkZXZpY2UgZHJpdmVycyB0aGF0IGRvIG5vdCB3aXNoIHRvIGltcGxlbWVu
-dAorICogVGhpcyBpcyBhIGhlbHBlciBzdHJ1Y3R1cmUgZm9yIGRldmljZSBkcml2ZXJzIHRoYXQg
-ZG8gbm90IHdpc2ggdG8gaW1wbGVtZW50CiAgKiB0aGUgZ29yeSBkZXRhaWxzIHJlbGF0ZWQgdG8g
-aG90cGx1Z2dpbmcgbmV3IG1lbW95IGFuZCBhbGxvY2F0aW5nIHN0cnVjdAogICogcGFnZXMuCiAg
-KgpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCBjNjJhZTQxNGEzYTIuLjRk
-YjVkY2YxMTBiYSAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTE1Myw5
-ICsxNTMsOCBAQCBzdGF0aWMgdm9pZCBobW1fcmVsZWFzZShzdHJ1Y3QgbW11X25vdGlmaWVyICpt
-biwgc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAKIAkvKiBXYWtlLXVwIGV2ZXJ5b25lIHdhaXRpbmcg
-b24gYW55IHJhbmdlLiAqLwogCW11dGV4X2xvY2soJmhtbS0+bG9jayk7Ci0JbGlzdF9mb3JfZWFj
-aF9lbnRyeShyYW5nZSwgJmhtbS0+cmFuZ2VzLCBsaXN0KSB7CisJbGlzdF9mb3JfZWFjaF9lbnRy
-eShyYW5nZSwgJmhtbS0+cmFuZ2VzLCBsaXN0KQogCQlyYW5nZS0+dmFsaWQgPSBmYWxzZTsKLQl9
-CiAJd2FrZV91cF9hbGwoJmhtbS0+d3EpOwogCW11dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKIApA
-QCAtMTY2LDkgKzE2NSwxMCBAQCBzdGF0aWMgdm9pZCBobW1fcmVsZWFzZShzdHJ1Y3QgbW11X25v
-dGlmaWVyICptbiwgc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJCWxpc3RfZGVsX2luaXQoJm1pcnJv
-ci0+bGlzdCk7CiAJCWlmIChtaXJyb3ItPm9wcy0+cmVsZWFzZSkgewogCQkJLyoKLQkJCSAqIERy
-b3AgbWlycm9yc19zZW0gc28gY2FsbGJhY2sgY2FuIHdhaXQgb24gYW55IHBlbmRpbmcKLQkJCSAq
-IHdvcmsgdGhhdCBtaWdodCBpdHNlbGYgdHJpZ2dlciBtbXVfbm90aWZpZXIgY2FsbGJhY2sKLQkJ
-CSAqIGFuZCB0aHVzIHdvdWxkIGRlYWRsb2NrIHdpdGggdXMuCisJCQkgKiBEcm9wIG1pcnJvcnNf
-c2VtIHNvIHRoZSByZWxlYXNlIGNhbGxiYWNrIGNhbiB3YWl0CisJCQkgKiBvbiBhbnkgcGVuZGlu
-ZyB3b3JrIHRoYXQgbWlnaHQgaXRzZWxmIHRyaWdnZXIgYQorCQkJICogbW11X25vdGlmaWVyIGNh
-bGxiYWNrIGFuZCB0aHVzIHdvdWxkIGRlYWRsb2NrIHdpdGgKKwkJCSAqIHVzLgogCQkJICovCiAJ
-CQl1cF93cml0ZSgmaG1tLT5taXJyb3JzX3NlbSk7CiAJCQltaXJyb3ItPm9wcy0+cmVsZWFzZSht
-aXJyb3IpOwpAQCAtMjIzLDExICsyMjMsOCBAQCBzdGF0aWMgaW50IGhtbV9pbnZhbGlkYXRlX3Jh
-bmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAogCQlpbnQgcmV0OwogCiAJCXJldCA9
-IG1pcnJvci0+b3BzLT5zeW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcyhtaXJyb3IsICZ1cGRhdGUp
-OwotCQlpZiAoIXVwZGF0ZS5ibG9ja2FibGUgJiYgcmV0ID09IC1FQUdBSU4pIHsKLQkJCXVwX3Jl
-YWQoJmhtbS0+bWlycm9yc19zZW0pOwotCQkJcmV0ID0gLUVBR0FJTjsKLQkJCWdvdG8gb3V0Owot
-CQl9CisJCWlmICghdXBkYXRlLmJsb2NrYWJsZSAmJiByZXQgPT0gLUVBR0FJTikKKwkJCWJyZWFr
-OwogCX0KIAl1cF9yZWFkKCZobW0tPm1pcnJvcnNfc2VtKTsKIApAQCAtMjcxLDYgKzI2OCw3IEBA
-IHN0YXRpYyBjb25zdCBzdHJ1Y3QgbW11X25vdGlmaWVyX29wcyBobW1fbW11X25vdGlmaWVyX29w
-cyA9IHsKICAqCiAgKiBAbWlycm9yOiBuZXcgbWlycm9yIHN0cnVjdCB0byByZWdpc3RlcgogICog
-QG1tOiBtbSB0byByZWdpc3RlciBhZ2FpbnN0CisgKiBSZXR1cm46IDAgb24gc3VjY2VzcywgLUVO
-T01FTSBpZiBubyBtZW1vcnksIC1FSU5WQUwgaWYgaW52YWxpZCBhcmd1bWVudHMKICAqCiAgKiBU
-byBzdGFydCBtaXJyb3JpbmcgYSBwcm9jZXNzIGFkZHJlc3Mgc3BhY2UsIHRoZSBkZXZpY2UgZHJp
-dmVyIG11c3QgcmVnaXN0ZXIKICAqIGFuIEhNTSBtaXJyb3Igc3RydWN0LgpAQCAtMjk4LDcgKzI5
-Niw3IEBAIEVYUE9SVF9TWU1CT0woaG1tX21pcnJvcl9yZWdpc3Rlcik7CiAvKgogICogaG1tX21p
-cnJvcl91bnJlZ2lzdGVyKCkgLSB1bnJlZ2lzdGVyIGEgbWlycm9yCiAgKgotICogQG1pcnJvcjog
-bmV3IG1pcnJvciBzdHJ1Y3QgdG8gcmVnaXN0ZXIKKyAqIEBtaXJyb3I6IG1pcnJvciBzdHJ1Y3Qg
-dG8gdW5yZWdpc3RlcgogICoKICAqIFN0b3AgbWlycm9yaW5nIGEgcHJvY2VzcyBhZGRyZXNzIHNw
-YWNlLCBhbmQgY2xlYW51cC4KICAqLwpAQCAtMzcyLDcgKzM3MCw3IEBAIHN0YXRpYyBpbnQgaG1t
-X3BmbnNfYmFkKHVuc2lnbmVkIGxvbmcgYWRkciwKICAqIEBmYXVsdDogc2hvdWxkIHdlIGZhdWx0
-IG9yIG5vdCA/CiAgKiBAd3JpdGVfZmF1bHQ6IHdyaXRlIGZhdWx0ID8KICAqIEB3YWxrOiBtbV93
-YWxrIHN0cnVjdHVyZQotICogUmV0dXJuczogMCBvbiBzdWNjZXNzLCAtRUJVU1kgYWZ0ZXIgcGFn
-ZSBmYXVsdCwgb3IgcGFnZSBmYXVsdCBlcnJvcgorICogUmV0dXJuOiAwIG9uIHN1Y2Nlc3MsIC1F
-QlVTWSBhZnRlciBwYWdlIGZhdWx0LCBvciBwYWdlIGZhdWx0IGVycm9yCiAgKgogICogVGhpcyBm
-dW5jdGlvbiB3aWxsIGJlIGNhbGxlZCB3aGVuZXZlciBwbWRfbm9uZSgpIG9yIHB0ZV9ub25lKCkg
-cmV0dXJucyB0cnVlLAogICogb3Igd2hlbmV2ZXIgdGhlcmUgaXMgbm8gcGFnZSBkaXJlY3Rvcnkg
-Y292ZXJpbmcgdGhlIHZpcnR1YWwgYWRkcmVzcyByYW5nZS4KQEAgLTkxMSw2ICs5MDksNyBAQCBp
-bnQgaG1tX3JhbmdlX3JlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlLAogCQkgICAgICAg
-dW5zaWduZWQgcGFnZV9zaGlmdCkKIHsKIAl1bnNpZ25lZCBsb25nIG1hc2sgPSAoKDFVTCA8PCBw
-YWdlX3NoaWZ0KSAtIDFVTCk7CisJc3RydWN0IGhtbSAqaG1tOwogCiAJcmFuZ2UtPnZhbGlkID0g
-ZmFsc2U7CiAJcmFuZ2UtPmhtbSA9IE5VTEw7CkBAIC05MjQsMjggKzkyMywyOSBAQCBpbnQgaG1t
-X3JhbmdlX3JlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlLAogCXJhbmdlLT5zdGFydCA9
-IHN0YXJ0OwogCXJhbmdlLT5lbmQgPSBlbmQ7CiAKLQlyYW5nZS0+aG1tID0gaG1tX2dldF9vcl9j
-cmVhdGUobW0pOwotCWlmICghcmFuZ2UtPmhtbSkKKwlobW0gPSBobW1fZ2V0X29yX2NyZWF0ZSht
-bSk7CisJaWYgKCFobW0pCiAJCXJldHVybiAtRUZBVUxUOwogCiAJLyogQ2hlY2sgaWYgaG1tX21t
-X2Rlc3Ryb3koKSB3YXMgY2FsbC4gKi8KLQlpZiAocmFuZ2UtPmhtbS0+bW0gPT0gTlVMTCB8fCBy
-YW5nZS0+aG1tLT5kZWFkKSB7Ci0JCWhtbV9wdXQocmFuZ2UtPmhtbSk7CisJaWYgKGhtbS0+bW0g
-PT0gTlVMTCB8fCBobW0tPmRlYWQpIHsKKwkJaG1tX3B1dChobW0pOwogCQlyZXR1cm4gLUVGQVVM
-VDsKIAl9CiAKLQkvKiBJbml0aWFsaXplIHJhbmdlIHRvIHRyYWNrIENQVSBwYWdlIHRhYmxlIHVw
-ZGF0ZSAqLwotCW11dGV4X2xvY2soJnJhbmdlLT5obW0tPmxvY2spOworCS8qIEluaXRpYWxpemUg
-cmFuZ2UgdG8gdHJhY2sgQ1BVIHBhZ2UgdGFibGUgdXBkYXRlcy4gKi8KKwltdXRleF9sb2NrKCZo
-bW0tPmxvY2spOwogCi0JbGlzdF9hZGRfcmN1KCZyYW5nZS0+bGlzdCwgJnJhbmdlLT5obW0tPnJh
-bmdlcyk7CisJcmFuZ2UtPmhtbSA9IGhtbTsKKwlsaXN0X2FkZF9yY3UoJnJhbmdlLT5saXN0LCAm
-aG1tLT5yYW5nZXMpOwogCiAJLyoKIAkgKiBJZiB0aGVyZSBhcmUgYW55IGNvbmN1cnJlbnQgbm90
-aWZpZXJzIHdlIGhhdmUgdG8gd2FpdCBmb3IgdGhlbSBmb3IKIAkgKiB0aGUgcmFuZ2UgdG8gYmUg
-dmFsaWQgKHNlZSBobW1fcmFuZ2Vfd2FpdF91bnRpbF92YWxpZCgpKS4KIAkgKi8KLQlpZiAoIXJh
-bmdlLT5obW0tPm5vdGlmaWVycykKKwlpZiAoIWhtbS0+bm90aWZpZXJzKQogCQlyYW5nZS0+dmFs
-aWQgPSB0cnVlOwotCW11dGV4X3VubG9jaygmcmFuZ2UtPmhtbS0+bG9jayk7CisJbXV0ZXhfdW5s
-b2NrKCZobW0tPmxvY2spOwogCiAJcmV0dXJuIDA7CiB9CkBAIC05NjAsMTcgKzk2MCwxOSBAQCBF
-WFBPUlRfU1lNQk9MKGhtbV9yYW5nZV9yZWdpc3Rlcik7CiAgKi8KIHZvaWQgaG1tX3JhbmdlX3Vu
-cmVnaXN0ZXIoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UpCiB7CisJc3RydWN0IGhtbSAqaG1tID0g
-cmFuZ2UtPmhtbTsKKwogCS8qIFNhbml0eSBjaGVjayB0aGlzIHJlYWxseSBzaG91bGQgbm90IGhh
-cHBlbi4gKi8KLQlpZiAocmFuZ2UtPmhtbSA9PSBOVUxMIHx8IHJhbmdlLT5lbmQgPD0gcmFuZ2Ut
-PnN0YXJ0KQorCWlmIChobW0gPT0gTlVMTCB8fCByYW5nZS0+ZW5kIDw9IHJhbmdlLT5zdGFydCkK
-IAkJcmV0dXJuOwogCi0JbXV0ZXhfbG9jaygmcmFuZ2UtPmhtbS0+bG9jayk7CisJbXV0ZXhfbG9j
-aygmaG1tLT5sb2NrKTsKIAlsaXN0X2RlbF9yY3UoJnJhbmdlLT5saXN0KTsKLQltdXRleF91bmxv
-Y2soJnJhbmdlLT5obW0tPmxvY2spOworCW11dGV4X3VubG9jaygmaG1tLT5sb2NrKTsKIAogCS8q
-IERyb3AgcmVmZXJlbmNlIHRha2VuIGJ5IGhtbV9yYW5nZV9yZWdpc3RlcigpICovCiAJcmFuZ2Ut
-PnZhbGlkID0gZmFsc2U7Ci0JaG1tX3B1dChyYW5nZS0+aG1tKTsKKwlobW1fcHV0KGhtbSk7CiAJ
-cmFuZ2UtPmhtbSA9IE5VTEw7CiB9CiBFWFBPUlRfU1lNQk9MKGhtbV9yYW5nZV91bnJlZ2lzdGVy
-KTsKQEAgLTk3OCw3ICs5ODAsNyBAQCBFWFBPUlRfU1lNQk9MKGhtbV9yYW5nZV91bnJlZ2lzdGVy
-KTsKIC8qCiAgKiBobW1fcmFuZ2Vfc25hcHNob3QoKSAtIHNuYXBzaG90IENQVSBwYWdlIHRhYmxl
-IGZvciBhIHJhbmdlCiAgKiBAcmFuZ2U6IHJhbmdlCi0gKiBSZXR1cm5zOiAtRUlOVkFMIGlmIGlu
-dmFsaWQgYXJndW1lbnQsIC1FTk9NRU0gb3V0IG9mIG1lbW9yeSwgLUVQRVJNIGludmFsaWQKKyAq
-IFJldHVybjogLUVJTlZBTCBpZiBpbnZhbGlkIGFyZ3VtZW50LCAtRU5PTUVNIG91dCBvZiBtZW1v
-cnksIC1FUEVSTSBpbnZhbGlkCiAgKiAgICAgICAgICBwZXJtaXNzaW9uIChmb3IgaW5zdGFuY2Ug
-YXNraW5nIGZvciB3cml0ZSBhbmQgcmFuZ2UgaXMgcmVhZCBvbmx5KSwKICAqICAgICAgICAgIC1F
-QUdBSU4gaWYgeW91IG5lZWQgdG8gcmV0cnksIC1FRkFVTFQgaW52YWxpZCAoaWUgZWl0aGVyIG5v
-IHZhbGlkCiAgKiAgICAgICAgICB2bWEgb3IgaXQgaXMgaWxsZWdhbCB0byBhY2Nlc3MgdGhhdCBy
-YW5nZSksIG51bWJlciBvZiB2YWxpZCBwYWdlcwpAQCAtMTA2MSw3ICsxMDYzLDcgQEAgRVhQT1JU
-X1NZTUJPTChobW1fcmFuZ2Vfc25hcHNob3QpOwogICogaG1tX3JhbmdlX2ZhdWx0KCkgLSB0cnkg
-dG8gZmF1bHQgc29tZSBhZGRyZXNzIGluIGEgdmlydHVhbCBhZGRyZXNzIHJhbmdlCiAgKiBAcmFu
-Z2U6IHJhbmdlIGJlaW5nIGZhdWx0ZWQKICAqIEBibG9jazogYWxsb3cgYmxvY2tpbmcgb24gZmF1
-bHQgKGlmIHRydWUgaXQgc2xlZXBzIGFuZCBkbyBub3QgZHJvcCBtbWFwX3NlbSkKLSAqIFJldHVy
-bnM6IG51bWJlciBvZiB2YWxpZCBwYWdlcyBpbiByYW5nZS0+cGZuc1tdIChmcm9tIHJhbmdlIHN0
-YXJ0CisgKiBSZXR1cm46IG51bWJlciBvZiB2YWxpZCBwYWdlcyBpbiByYW5nZS0+cGZuc1tdIChm
-cm9tIHJhbmdlIHN0YXJ0CiAgKiAgICAgICAgICBhZGRyZXNzKS4gVGhpcyBtYXkgYmUgemVyby4g
-SWYgdGhlIHJldHVybiB2YWx1ZSBpcyBuZWdhdGl2ZSwKICAqICAgICAgICAgIHRoZW4gb25lIG9m
-IHRoZSBmb2xsb3dpbmcgdmFsdWVzIG1heSBiZSByZXR1cm5lZDoKICAqCkBAIC0xMTc5LDcgKzEx
-ODEsNyBAQCBFWFBPUlRfU1lNQk9MKGhtbV9yYW5nZV9mYXVsdCk7CiAgKiBAZGV2aWNlOiBkZXZp
-Y2UgYWdhaW5zdCB0byBkbWEgbWFwIHBhZ2UgdG8KICAqIEBkYWRkcnM6IGRtYSBhZGRyZXNzIG9m
-IG1hcHBlZCBwYWdlcwogICogQGJsb2NrOiBhbGxvdyBibG9ja2luZyBvbiBmYXVsdCAoaWYgdHJ1
-ZSBpdCBzbGVlcHMgYW5kIGRvIG5vdCBkcm9wIG1tYXBfc2VtKQotICogUmV0dXJuczogbnVtYmVy
-IG9mIHBhZ2VzIG1hcHBlZCBvbiBzdWNjZXNzLCAtRUFHQUlOIGlmIG1tYXBfc2VtIGhhdmUgYmVl
-bgorICogUmV0dXJuOiBudW1iZXIgb2YgcGFnZXMgbWFwcGVkIG9uIHN1Y2Nlc3MsIC1FQUdBSU4g
-aWYgbW1hcF9zZW0gaGF2ZSBiZWVuCiAgKiAgICAgICAgICBkcm9wIGFuZCB5b3UgbmVlZCB0byB0
-cnkgYWdhaW4sIHNvbWUgb3RoZXIgZXJyb3IgdmFsdWUgb3RoZXJ3aXNlCiAgKgogICogTm90ZSBz
-YW1lIHVzYWdlIHBhdHRlcm4gYXMgaG1tX3JhbmdlX2ZhdWx0KCkuCkBAIC0xMjY3LDcgKzEyNjks
-NyBAQCBFWFBPUlRfU1lNQk9MKGhtbV9yYW5nZV9kbWFfbWFwKTsKICAqIEBkZXZpY2U6IGRldmlj
-ZSBhZ2FpbnN0IHdoaWNoIGRtYSBtYXAgd2FzIGRvbmUKICAqIEBkYWRkcnM6IGRtYSBhZGRyZXNz
-IG9mIG1hcHBlZCBwYWdlcwogICogQGRpcnR5OiBkaXJ0eSBwYWdlIGlmIGl0IGhhZCB0aGUgd3Jp
-dGUgZmxhZyBzZXQKLSAqIFJldHVybnM6IG51bWJlciBvZiBwYWdlIHVubWFwcGVkIG9uIHN1Y2Nl
-c3MsIC1FSU5WQUwgb3RoZXJ3aXNlCisgKiBSZXR1cm46IG51bWJlciBvZiBwYWdlIHVubWFwcGVk
-IG9uIHN1Y2Nlc3MsIC1FSU5WQUwgb3RoZXJ3aXNlCiAgKgogICogTm90ZSB0aGF0IGNhbGxlciBN
-VVNUIGFiaWRlIGJ5IG1tdSBub3RpZmllciBvciB1c2UgSE1NIG1pcnJvciBhbmQgYWJpZGUKICAq
-IHRvIHRoZSBzeW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcygpIGNhbGxiYWNrIHNvIHRoYXQgaXQg
-aXMgc2FmZSBoZXJlIHRvCkBAIC0xMzkwLDcgKzEzOTIsNyBAQCBzdGF0aWMgdm9pZCBobW1fZGV2
-bWVtX2ZyZWUoc3RydWN0IHBhZ2UgKnBhZ2UsIHZvaWQgKmRhdGEpCiAgKiBAb3BzOiBtZW1vcnkg
-ZXZlbnQgZGV2aWNlIGRyaXZlciBjYWxsYmFjayAoc2VlIHN0cnVjdCBobW1fZGV2bWVtX29wcykK
-ICAqIEBkZXZpY2U6IGRldmljZSBzdHJ1Y3QgdG8gYmluZCB0aGUgcmVzb3VyY2UgdG9vCiAgKiBA
-c2l6ZTogc2l6ZSBpbiBieXRlcyBvZiB0aGUgZGV2aWNlIG1lbW9yeSB0byBhZGQKLSAqIFJldHVy
-bnM6IHBvaW50ZXIgdG8gbmV3IGhtbV9kZXZtZW0gc3RydWN0IEVSUl9QVFIgb3RoZXJ3aXNlCisg
-KiBSZXR1cm46IHBvaW50ZXIgdG8gbmV3IGhtbV9kZXZtZW0gc3RydWN0IEVSUl9QVFIgb3RoZXJ3
-aXNlCiAgKgogICogVGhpcyBmdW5jdGlvbiBmaXJzdCBmaW5kcyBhbiBlbXB0eSByYW5nZSBvZiBw
-aHlzaWNhbCBhZGRyZXNzIGJpZyBlbm91Z2ggdG8KICAqIGNvbnRhaW4gdGhlIG5ldyByZXNvdXJj
-ZSwgYW5kIHRoZW4gaG90cGx1Z3MgaXQgYXMgWk9ORV9ERVZJQ0UgbWVtb3J5LCB3aGljaAotLSAK
-Mi4yMC4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
-aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
-Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
+interpretation of the EFI Memory Types as "reserved for a specific
+purpose".
+
+The proposed Linux behavior for specific purpose memory is that it is
+reserved for direct-access (device-dax) by default and not available for
+any kernel usage, not even as an OOM fallback. Later, through udev
+scripts or another init mechanism, these device-dax claimed ranges can
+be reconfigured and hot-added to the available System-RAM with a unique
+node identifier.
+
+This patch introduces 2 new concepts at once given the entanglement
+between early boot enumeration relative to memory that can optionally be
+reserved from the kernel page allocator by default. The new concepts
+are:
+
+- E820_TYPE_APPLICATION_RESERVED: Upon detecting the EFI_MEMORY_SP
+  attribute on EFI_CONVENTIONAL memory, update the E820 map with this
+  new type. Only perform this classification if the
+  CONFIG_EFI_SPECIFIC_DAX=y policy is enabled, otherwise treat it as
+  typical ram.
+
+- IORES_DESC_APPLICATION_RESERVED: Add a new I/O resource descriptor for
+  a device driver to search iomem resources for application specific
+  memory. Teach the iomem code to identify such ranges as "Application
+  Reserved".
+
+A follow-on change integrates parsing of the ACPI HMAT to identify the
+node and sub-range boundaries of EFI_MEMORY_SP designated memory. For
+now, just identify and reserve memory of this type.
+
+Cc: <x86@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Andy Shevchenko <andy@infradead.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Reported-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/x86/Kconfig                  |   21 +++++++++++++++++++++
+ arch/x86/boot/compressed/eboot.c  |    5 ++++-
+ arch/x86/boot/compressed/kaslr.c  |    3 ++-
+ arch/x86/include/asm/e820/types.h |    9 +++++++++
+ arch/x86/include/asm/efi.h        |   14 ++++++++++++++
+ arch/x86/kernel/e820.c            |   12 ++++++++++--
+ arch/x86/kernel/setup.c           |    1 +
+ arch/x86/platform/efi/efi.c       |   37 +++++++++++++++++++++++++++++++++----
+ include/linux/ioport.h            |    1 +
+ 9 files changed, 95 insertions(+), 8 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 2bbbd4d1ba31..a786f72905e5 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1955,6 +1955,27 @@ config EFI_MIXED
+ 
+ 	   If unsure, say N.
+ 
++config EFI_APPLICATION_RESERVED
++	bool "Reserve EFI Specific Purpose Memory"
++	depends on EFI
++	---help---
++	  On systems that have mixed performance classes of memory EFI
++	  may indicate specific purpose memory with an attribute (See
++	  EFI_MEMORY_SP in UEFI 2.8). A memory range tagged with this
++	  attribute may have unique performance characteristics compared
++	  to the system's general purpose "System RAM" pool. On the
++	  expectation that such memory has application specific usage,
++	  and its base EFI memory type is "conventional" answer Y to
++	  arrange for the kernel to reserve it as an "Application
++	  Reserved" resource, and set aside for direct-access
++	  (device-dax) by default. The memory range can later be
++	  optionally assigned to the page allocator by system
++	  administrator policy via the device-dax kmem facility. Say N
++	  to have the kernel treat this memory as "System RAM" by
++	  default.
++
++	  If unsure, say Y.
++
+ config SECCOMP
+ 	def_bool y
+ 	prompt "Enable seccomp to safely compute untrusted bytecode"
+diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
+index 544ac4fafd11..a6c96eb6e633 100644
+--- a/arch/x86/boot/compressed/eboot.c
++++ b/arch/x86/boot/compressed/eboot.c
+@@ -560,7 +560,10 @@ setup_e820(struct boot_params *params, struct setup_data *e820ext, u32 e820ext_s
+ 		case EFI_BOOT_SERVICES_CODE:
+ 		case EFI_BOOT_SERVICES_DATA:
+ 		case EFI_CONVENTIONAL_MEMORY:
+-			e820_type = E820_TYPE_RAM;
++			if (is_efi_application_reserved(d))
++				e820_type = E820_TYPE_APPLICATION_RESERVED;
++			else
++				e820_type = E820_TYPE_RAM;
+ 			break;
+ 
+ 		case EFI_ACPI_MEMORY_NVS:
+diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+index 2e53c056ba20..e8306f452182 100644
+--- a/arch/x86/boot/compressed/kaslr.c
++++ b/arch/x86/boot/compressed/kaslr.c
+@@ -757,7 +757,8 @@ process_efi_entries(unsigned long minimum, unsigned long image_size)
+ 		 *
+ 		 * Only EFI_CONVENTIONAL_MEMORY is guaranteed to be free.
+ 		 */
+-		if (md->type != EFI_CONVENTIONAL_MEMORY)
++		if (md->type != EFI_CONVENTIONAL_MEMORY
++				|| is_efi_application_reserved(md))
+ 			continue;
+ 
+ 		if (efi_mirror_found &&
+diff --git a/arch/x86/include/asm/e820/types.h b/arch/x86/include/asm/e820/types.h
+index c3aa4b5e49e2..41193c116a1f 100644
+--- a/arch/x86/include/asm/e820/types.h
++++ b/arch/x86/include/asm/e820/types.h
+@@ -28,6 +28,15 @@ enum e820_type {
+ 	 */
+ 	E820_TYPE_PRAM		= 12,
+ 
++	/*
++	 * Special-purpose / application-specific memory is indicated to
++	 * the system via the EFI_MEMORY_SP attribute. Define an e820
++	 * translation of this memory type for the purpose of
++	 * reserving this range and marking it with the
++	 * IORES_DESC_APPLICATION_RESERVED designation.
++	 */
++	E820_TYPE_APPLICATION_RESERVED	= 0xefffffff,
++
+ 	/*
+ 	 * Reserved RAM used by the kernel itself if
+ 	 * CONFIG_INTEL_TXT=y is enabled, memory of this type
+diff --git a/arch/x86/include/asm/efi.h b/arch/x86/include/asm/efi.h
+index 606a4b6a9812..a8a3be68cd61 100644
+--- a/arch/x86/include/asm/efi.h
++++ b/arch/x86/include/asm/efi.h
+@@ -121,6 +121,7 @@ extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
+ extern struct efi_scratch efi_scratch;
+ extern void __init efi_set_executable(efi_memory_desc_t *md, bool executable);
+ extern int __init efi_memblock_x86_reserve_range(void);
++extern void __init efi_find_application_reserved(void);
+ extern pgd_t * __init efi_call_phys_prolog(void);
+ extern void __init efi_call_phys_epilog(pgd_t *save_pgd);
+ extern void __init efi_print_memmap(void);
+@@ -142,6 +143,19 @@ extern void efi_recover_from_page_fault(unsigned long phys_addr);
+ extern void efi_free_boot_services(void);
+ extern void efi_reserve_boot_services(void);
+ 
++#ifdef CONFIG_EFI_APPLICATION_RESERVED
++static inline bool is_efi_application_reserved(efi_memory_desc_t *md)
++{
++	return md->type == EFI_CONVENTIONAL_MEMORY
++		&& (md->attribute & EFI_MEMORY_SP);
++}
++#else
++static inline bool is_efi_application_reserved(efi_memory_desc_t *md)
++{
++	return false;
++}
++#endif
++
+ struct efi_setup_data {
+ 	u64 fw_vendor;
+ 	u64 runtime;
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 8f32e705a980..c5b91c2d0661 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -189,6 +189,7 @@ static void __init e820_print_type(enum e820_type type)
+ 	switch (type) {
+ 	case E820_TYPE_RAM:		/* Fall through: */
+ 	case E820_TYPE_RESERVED_KERN:	pr_cont("usable");			break;
++	case E820_TYPE_APPLICATION_RESERVED: pr_cont("application reserved");	break;
+ 	case E820_TYPE_RESERVED:	pr_cont("reserved");			break;
+ 	case E820_TYPE_ACPI:		pr_cont("ACPI data");			break;
+ 	case E820_TYPE_NVS:		pr_cont("ACPI NVS");			break;
+@@ -1036,6 +1037,7 @@ static const char *__init e820_type_to_string(struct e820_entry *entry)
+ 	case E820_TYPE_UNUSABLE:	return "Unusable memory";
+ 	case E820_TYPE_PRAM:		return "Persistent Memory (legacy)";
+ 	case E820_TYPE_PMEM:		return "Persistent Memory";
++	case E820_TYPE_APPLICATION_RESERVED: return "Application Reserved";
+ 	case E820_TYPE_RESERVED:	return "Reserved";
+ 	default:			return "Unknown E820 type";
+ 	}
+@@ -1051,6 +1053,7 @@ static unsigned long __init e820_type_to_iomem_type(struct e820_entry *entry)
+ 	case E820_TYPE_UNUSABLE:	/* Fall-through: */
+ 	case E820_TYPE_PRAM:		/* Fall-through: */
+ 	case E820_TYPE_PMEM:		/* Fall-through: */
++	case E820_TYPE_APPLICATION_RESERVED: /* Fall-through: */
+ 	case E820_TYPE_RESERVED:	/* Fall-through: */
+ 	default:			return IORESOURCE_MEM;
+ 	}
+@@ -1063,6 +1066,7 @@ static unsigned long __init e820_type_to_iores_desc(struct e820_entry *entry)
+ 	case E820_TYPE_NVS:		return IORES_DESC_ACPI_NV_STORAGE;
+ 	case E820_TYPE_PMEM:		return IORES_DESC_PERSISTENT_MEMORY;
+ 	case E820_TYPE_PRAM:		return IORES_DESC_PERSISTENT_MEMORY_LEGACY;
++	case E820_TYPE_APPLICATION_RESERVED: return IORES_DESC_APPLICATION_RESERVED;
+ 	case E820_TYPE_RESERVED_KERN:	/* Fall-through: */
+ 	case E820_TYPE_RAM:		/* Fall-through: */
+ 	case E820_TYPE_UNUSABLE:	/* Fall-through: */
+@@ -1078,13 +1082,14 @@ static bool __init do_mark_busy(enum e820_type type, struct resource *res)
+ 		return true;
+ 
+ 	/*
+-	 * Treat persistent memory like device memory, i.e. reserve it
+-	 * for exclusive use of a driver
++	 * Treat persistent memory and other special memory ranges like
++	 * device memory, i.e. reserve it for exclusive use of a driver
+ 	 */
+ 	switch (type) {
+ 	case E820_TYPE_RESERVED:
+ 	case E820_TYPE_PRAM:
+ 	case E820_TYPE_PMEM:
++	case E820_TYPE_APPLICATION_RESERVED:
+ 		return false;
+ 	case E820_TYPE_RESERVED_KERN:
+ 	case E820_TYPE_RAM:
+@@ -1285,6 +1290,9 @@ void __init e820__memblock_setup(void)
+ 		if (end != (resource_size_t)end)
+ 			continue;
+ 
++		if (entry->type == E820_TYPE_APPLICATION_RESERVED)
++			memblock_reserve(entry->addr, entry->size);
++
+ 		if (entry->type != E820_TYPE_RAM && entry->type != E820_TYPE_RESERVED_KERN)
+ 			continue;
+ 
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index b68fd57a8d26..3b9001b7c951 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -1104,6 +1104,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	memblock_set_current_limit(ISA_END_ADDRESS);
+ 
++	efi_find_application_reserved();
+ 	e820__memblock_setup();
+ 
+ 	reserve_bios_regions();
+diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
+index 4e8458b1ca30..4b4a9eb6d2c9 100644
+--- a/arch/x86/platform/efi/efi.c
++++ b/arch/x86/platform/efi/efi.c
+@@ -126,10 +126,18 @@ void __init efi_find_mirror(void)
+  * more than the max 128 entries that can fit in the e820 legacy
+  * (zeropage) memory map.
+  */
++enum add_efi_mode {
++	ADD_EFI_ALL,
++	ADD_EFI_APPLICATION_RESERVED,
++};
+ 
+-static void __init do_add_efi_memmap(void)
++static void __init do_add_efi_memmap(enum add_efi_mode mode)
+ {
+ 	efi_memory_desc_t *md;
++	int add = 0;
++
++	if (!efi_enabled(EFI_MEMMAP))
++		return;
+ 
+ 	for_each_efi_memory_desc(md) {
+ 		unsigned long long start = md->phys_addr;
+@@ -142,7 +150,9 @@ static void __init do_add_efi_memmap(void)
+ 		case EFI_BOOT_SERVICES_CODE:
+ 		case EFI_BOOT_SERVICES_DATA:
+ 		case EFI_CONVENTIONAL_MEMORY:
+-			if (md->attribute & EFI_MEMORY_WB)
++			if (is_efi_application_reserved(md))
++				e820_type = E820_TYPE_APPLICATION_RESERVED;
++			else if (md->attribute & EFI_MEMORY_WB)
+ 				e820_type = E820_TYPE_RAM;
+ 			else
+ 				e820_type = E820_TYPE_RESERVED;
+@@ -168,9 +178,22 @@ static void __init do_add_efi_memmap(void)
+ 			e820_type = E820_TYPE_RESERVED;
+ 			break;
+ 		}
++
++		if (e820_type == E820_TYPE_APPLICATION_RESERVED)
++			/* always add E820_TYPE_APPLICATION_RESERVED */;
++		else if (mode != ADD_EFI_APPLICATION_RESERVED)
++			continue;
++
++		add++;
+ 		e820__range_add(start, size, e820_type);
+ 	}
+-	e820__update_table(e820_table);
++	if (add)
++		e820__update_table(e820_table);
++}
++
++void __init efi_find_application_reserved(void)
++{
++	do_add_efi_memmap(ADD_EFI_APPLICATION_RESERVED);
+ }
+ 
+ int __init efi_memblock_x86_reserve_range(void)
+@@ -203,7 +226,7 @@ int __init efi_memblock_x86_reserve_range(void)
+ 		return rv;
+ 
+ 	if (add_efi_memmap)
+-		do_add_efi_memmap();
++		do_add_efi_memmap(ADD_EFI_ALL);
+ 
+ 	WARN(efi.memmap.desc_version != 1,
+ 	     "Unexpected EFI_MEMORY_DESCRIPTOR version %ld",
+@@ -756,6 +779,12 @@ static bool should_map_region(efi_memory_desc_t *md)
+ 	if (IS_ENABLED(CONFIG_X86_32))
+ 		return false;
+ 
++	/*
++	 * Specific purpose memory is reserved by default.
++	 */
++	if (is_efi_application_reserved(md))
++		return false;
++
+ 	/*
+ 	 * Map all of RAM so that we can access arguments in the 1:1
+ 	 * mapping when making EFI runtime calls.
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index da0ebaec25f0..2d79841ee9b9 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -133,6 +133,7 @@ enum {
+ 	IORES_DESC_PERSISTENT_MEMORY_LEGACY	= 5,
+ 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
+ 	IORES_DESC_DEVICE_PUBLIC_MEMORY		= 7,
++	IORES_DESC_APPLICATION_RESERVED		= 8,
+ };
+ 
+ /* helpers to define resources */
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
