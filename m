@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 63D6421296B01
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:30 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 22/25] mm: simplify ZONE_DEVICE page private data
-Date: Mon, 17 Jun 2019 14:27:30 +0200
-Message-Id: <20190617122733.22432-23-hch@lst.de>
-In-Reply-To: <20190617122733.22432-1-hch@lst.de>
-References: <20190617122733.22432-1-hch@lst.de>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id ADBA321290DE3
+ for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:52:45 -0700 (PDT)
+From: Larry Bassel <larry.bassel@oracle.com>
+Subject: [RFC PATCH v2 1/2] Rename CONFIG_ARCH_WANT_HUGE_PMD_SHARE to
+ CONFIG_ARCH_HAS_HUGE_PMD_SHARE
+Date: Fri,  7 Jun 2019 12:51:02 -0700
+Message-Id: <1559937063-8323-2-git-send-email-larry.bassel@oracle.com>
+In-Reply-To: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
+References: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,157 +18,94 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: mike.kravetz@oracle.com, willy@infradead.org, dan.j.williams@intel.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the clumsy hmm_devmem_page_{get,set}_drvdata helpers, and
-instead just access the page directly.  Also make the page data
-a void pointer, and thus much easier to use.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_dmem.c | 18 +++++++----------
- include/linux/hmm.h                    | 27 --------------------------
- include/linux/mm_types.h               |  2 +-
- mm/page_alloc.c                        |  8 ++++----
- 4 files changed, 12 insertions(+), 43 deletions(-)
+ arch/arm64/Kconfig          | 2 +-
+ arch/arm64/mm/hugetlbpage.c | 2 +-
+ arch/x86/Kconfig            | 2 +-
+ mm/hugetlb.c                | 6 +++---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-index 0fb7a44b8bc4..42c026010938 100644
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -104,11 +104,8 @@ struct nouveau_migrate {
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 697ea05..36d6189 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -901,7 +901,7 @@ config HW_PERF_EVENTS
+ config SYS_SUPPORTS_HUGETLBFS
+ 	def_bool y
  
- static void nouveau_dmem_page_free(struct page *page)
- {
--	struct nouveau_dmem_chunk *chunk;
--	unsigned long idx;
--
--	chunk = (void *)hmm_devmem_page_get_drvdata(page);
--	idx = page_to_pfn(page) - chunk->pfn_first;
-+	struct nouveau_dmem_chunk *chunk = page->zone_device_data;
-+	unsigned long idx = page_to_pfn(page) - chunk->pfn_first;
+-config ARCH_WANT_HUGE_PMD_SHARE
++config ARCH_HAS_HUGE_PMD_SHARE
+ 	def_bool y if ARM64_4K_PAGES || (ARM64_16K_PAGES && !ARM64_VA_BITS_36)
  
- 	/*
- 	 * FIXME:
-@@ -200,7 +197,7 @@ nouveau_dmem_fault_alloc_and_copy(struct vm_area_struct *vma,
- 
- 		dst_addr = fault->dma[fault->npages++];
- 
--		chunk = (void *)hmm_devmem_page_get_drvdata(spage);
-+		chunk = spage->zone_device_data;
- 		src_addr = page_to_pfn(spage) - chunk->pfn_first;
- 		src_addr = (src_addr << PAGE_SHIFT) + chunk->bo->bo.offset;
- 
-@@ -633,9 +630,8 @@ nouveau_dmem_init(struct nouveau_drm *drm)
- 		list_add_tail(&chunk->list, &drm->dmem->chunk_empty);
- 
- 		page = pfn_to_page(chunk->pfn_first);
--		for (j = 0; j < DMEM_CHUNK_NPAGES; ++j, ++page) {
--			hmm_devmem_page_set_drvdata(page, (long)chunk);
--		}
-+		for (j = 0; j < DMEM_CHUNK_NPAGES; ++j, ++page)
-+			page->zone_device_data = chunk;
- 	}
- 
- 	NV_INFO(drm, "DMEM: registered %ldMB of device memory\n", size >> 20);
-@@ -698,7 +694,7 @@ nouveau_dmem_migrate_alloc_and_copy(struct vm_area_struct *vma,
- 		if (!dpage || dst_pfns[i] == MIGRATE_PFN_ERROR)
- 			continue;
- 
--		chunk = (void *)hmm_devmem_page_get_drvdata(dpage);
-+		chunk = dpage->zone_device_data;
- 		dst_addr = page_to_pfn(dpage) - chunk->pfn_first;
- 		dst_addr = (dst_addr << PAGE_SHIFT) + chunk->bo->bo.offset;
- 
-@@ -862,7 +858,7 @@ nouveau_dmem_convert_pfn(struct nouveau_drm *drm,
- 			continue;
- 		}
- 
--		chunk = (void *)hmm_devmem_page_get_drvdata(page);
-+		chunk = page->zone_device_data;
- 		addr = page_to_pfn(page) - chunk->pfn_first;
- 		addr = (addr + chunk->bo->bo.mem.start) << PAGE_SHIFT;
- 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 50ef29958604..454be41f2eaf 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -586,33 +586,6 @@ static inline void hmm_mm_destroy(struct mm_struct *mm) {}
- static inline void hmm_mm_init(struct mm_struct *mm) {}
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
--/*
-- * hmm_devmem_page_set_drvdata - set per-page driver data field
-- *
-- * @page: pointer to struct page
-- * @data: driver data value to set
-- *
-- * Because page can not be on lru we have an unsigned long that driver can use
-- * to store a per page field. This just a simple helper to do that.
-- */
--static inline void hmm_devmem_page_set_drvdata(struct page *page,
--					       unsigned long data)
--{
--	page->hmm_data = data;
--}
--
--/*
-- * hmm_devmem_page_get_drvdata - get per page driver data field
-- *
-- * @page: pointer to struct page
-- * Return: driver data value
-- */
--static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
--{
--	return page->hmm_data;
--}
--#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- #else /* IS_ENABLED(CONFIG_HMM) */
- static inline void hmm_mm_destroy(struct mm_struct *mm) {}
- static inline void hmm_mm_init(struct mm_struct *mm) {}
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 8ec38b11b361..f33a1289c101 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -158,7 +158,7 @@ struct page {
- 		struct {	/* ZONE_DEVICE pages */
- 			/** @pgmap: Points to the hosting device page map. */
- 			struct dev_pagemap *pgmap;
--			unsigned long hmm_data;
-+			void *zone_device_data;
- 			unsigned long _zd_pad_1;	/* uses mapping */
- 		};
- 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 17a39d40a556..c0e031c52db5 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5886,12 +5886,12 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 		__SetPageReserved(page);
- 
- 		/*
--		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
--		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
--		 * page is ever freed or placed on a driver-private list.
-+		 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
-+		 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
-+		 * ever freed or placed on a driver-private list.
+ config ARCH_HAS_CACHE_LINE_SIZE
+diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+index f475e54..4f3cb3f 100644
+--- a/arch/arm64/mm/hugetlbpage.c
++++ b/arch/arm64/mm/hugetlbpage.c
+@@ -241,7 +241,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
  		 */
- 		page->pgmap = pgmap;
--		page->hmm_data = 0;
-+		page->zone_device_data = NULL;
+ 		ptep = pte_alloc_map(mm, pmdp, addr);
+ 	} else if (sz == PMD_SIZE) {
+-		if (IS_ENABLED(CONFIG_ARCH_WANT_HUGE_PMD_SHARE) &&
++		if (IS_ENABLED(CONFIG_ARCH_HAS_HUGE_PMD_SHARE) &&
+ 		    pud_none(READ_ONCE(*pudp)))
+ 			ptep = huge_pmd_share(mm, addr, pudp);
+ 		else
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 2bbbd4d..fdbddb9 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -301,7 +301,7 @@ config ARCH_HIBERNATION_POSSIBLE
+ config ARCH_SUSPEND_POSSIBLE
+ 	def_bool y
  
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
+-config ARCH_WANT_HUGE_PMD_SHARE
++config ARCH_HAS_HUGE_PMD_SHARE
+ 	def_bool y
+ 
+ config ARCH_WANT_GENERAL_HUGETLB
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index ac843d3..3a54c9d 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -4652,7 +4652,7 @@ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
++#ifdef CONFIG_ARCH_HAS_HUGE_PMD_SHARE
+ static unsigned long page_table_shareable(struct vm_area_struct *svma,
+ 				struct vm_area_struct *vma,
+ 				unsigned long addr, pgoff_t idx)
+@@ -4807,7 +4807,7 @@ int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+ 	return 1;
+ }
+ #define want_pmd_share()	(1)
+-#else /* !CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
++#else /* !CONFIG_ARCH_HAS_HUGE_PMD_SHARE */
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
+ {
+ 	return NULL;
+@@ -4823,7 +4823,7 @@ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ {
+ }
+ #define want_pmd_share()	(0)
+-#endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
++#endif /* CONFIG_ARCH_HAS_HUGE_PMD_SHARE */
+ 
+ #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
+ pte_t *huge_pte_alloc(struct mm_struct *mm,
 -- 
-2.20.1
+1.8.3.1
 
 _______________________________________________
 Linux-nvdimm mailing list
