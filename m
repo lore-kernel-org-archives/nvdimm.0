@@ -1,4 +1,12 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 7EA1121295B11
+ for <linux-nvdimm@lists.01.org>; Sat,  8 Jun 2019 07:54:00 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id p4so1332181oti.0
+ for <linux-nvdimm@lists.01.org>; Sat, 08 Jun 2019 07:54:00 -0700 (PDT)
 MIME-Version: 1.0
 References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.corp.intel.com>
  <155925718351.3775979.13546720620952434175.stgit@dwillia2-desk3.amr.corp.intel.com>
@@ -8,17 +16,27 @@ References: <155925716254.3775979.16716824941364738117.stgit@dwillia2-desk3.amr.
  <CAPcyv4hXBJBMrqoUr4qG5A3CUVgWzWK6bfBX29JnLCKDC7CiGA@mail.gmail.com>
  <CAKv+Gu_ZYpey0dWYebFgCaziyJ-_x+KbCmOegWqFjwC0U-5QaA@mail.gmail.com>
  <CAPcyv4jO5WhRJ-=Nz70Jc0mCHYBJ6NsHjJNk6AerwQXH43oemw@mail.gmail.com>
- <CAPcyv4gzhr57xa2MbR1Jk8EDFw-WLdcw3mJnEX9PeAFwVEZbDA@mail.gmail.com> <CAKv+Gu_OcsWi5DqxOk-j6ovc0CMAZV37Od7zA5Bs4Ng5ATQxAA@mail.gmail.com>
+ <CAPcyv4gzhr57xa2MbR1Jk8EDFw-WLdcw3mJnEX9PeAFwVEZbDA@mail.gmail.com>
+ <CAKv+Gu_OcsWi5DqxOk-j6ovc0CMAZV37Od7zA5Bs4Ng5ATQxAA@mail.gmail.com>
 In-Reply-To: <CAKv+Gu_OcsWi5DqxOk-j6ovc0CMAZV37Od7zA5Bs4Ng5ATQxAA@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 21 Jun 2019 13:06:38 -0700
-Message-ID: <CAPcyv4hB7EbxkcDGc1j2vXwFcX5rHOYtRZcRa7Q36CVrAk1w+g@mail.gmail.com>
+Date: Sat, 8 Jun 2019 07:53:49 -0700
+Message-ID: <CAPcyv4i_ZaKKT2dHQTuHCWT9HhqCOm4kpy2YdK952GubwqbJDQ@mail.gmail.com>
 Subject: Re: [PATCH v2 4/8] x86, efi: Reserve UEFI 2.8 Specific Purpose Memory
  for dax
-Content-Type: text/plain; charset="UTF-8"
-Sender: owner-linux-mm@kvack.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>, linux-efi <linux-efi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kbuild test robot <lkp@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Linux-MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: linux-efi <linux-efi@vger.kernel.org>, kbuild test robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Linux-MM <linux-mm@kvack.org>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Darren Hart <dvhart@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andy@infradead.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Sat, Jun 8, 2019 at 12:20 AM Ard Biesheuvel
@@ -64,15 +82,19 @@ On Sat, Jun 8, 2019 at 12:20 AM Ard Biesheuvel
 > subsystem, I'd prefer it to be in the core code, not in x86 specific
 > code, since there is nothing x86 specific about it.
 
-The decision on whether / if to take any action on this hint is
-implementation specific, so I argue it does not belong in the EFI
-core. The spec does not mandate any action as it's just a hint.
-Instead x86 is making a policy decision in how it translates it to the
-x86-specific E820 representation. So, I as I go to release v3 of this
-patch set I do not see an argument to move the
-is_efi_application_reserved() definition out of
-arch/x86/include/asm/efi.h it's 100% tied to the e820 translation.
+Ok, but it's still not clear to me where you would accept an early
+detection of EFI_CONVENTIONAL_MEMORY + EFI_MEMORY_SP and route it away
+from the "System RAM" default. Please just recommend a place to land a
+conditional branch that translates between the base EFI type +
+attribute and E820_RAM and E820_APPLICATION_RESERVED.
 
-Now, if some other EFI supporting architecture wanted to follow the
-x86 policy we could move it it to a shared location, but that's
-something for a follow-on patch set.
+> Perhaps a efi=xxx command line option would be in order to influence
+> the builtin default, but it can be a followup patch independent of
+> this series.
+
+Sure, but I expect the default polarity of the branch is a compile
+time option with an efi= override.
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
