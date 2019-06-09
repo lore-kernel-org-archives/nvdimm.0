@@ -1,23 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E130021295CAC
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 03:29:20 -0700 (PDT)
-Date: Wed, 12 Jun 2019 12:29:17 +0200
-From: Jan Kara <jack@suse.cz>
+ by ml01.01.org (Postfix) with ESMTPS id 69CE421295B29
+ for <linux-nvdimm@lists.01.org>; Sat,  8 Jun 2019 18:28:17 -0700 (PDT)
+Date: Sat, 8 Jun 2019 18:29:32 -0700
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Message-ID: <20190612102917.GB14578@quack2.suse.cz>
+Message-ID: <20190609012931.GA19825@iweiny-DESK2.sc.intel.com>
 References: <20190606014544.8339-1-ira.weiny@intel.com>
  <20190606104203.GF7433@quack2.suse.cz>
- <20190606195114.GA30714@ziepe.ca>
- <20190606222228.GB11698@iweiny-DESK2.sc.intel.com>
- <20190607103636.GA12765@quack2.suse.cz>
- <20190607121729.GA14802@ziepe.ca>
- <20190607145213.GB14559@iweiny-DESK2.sc.intel.com>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+ <20190608001036.GF14308@dread.disaster.area>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190607145213.GB14559@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <20190608001036.GF14308@dread.disaster.area>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,82 +28,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, Dave Chinner <david@fromorbit.com>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-mm@kvack.org, John Hubbard <jhubbard@nvidia.com>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri 07-06-19 07:52:13, Ira Weiny wrote:
-> On Fri, Jun 07, 2019 at 09:17:29AM -0300, Jason Gunthorpe wrote:
-> > On Fri, Jun 07, 2019 at 12:36:36PM +0200, Jan Kara wrote:
+On Sat, Jun 08, 2019 at 10:10:36AM +1000, Dave Chinner wrote:
+> On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
+> > On Fri, Jun 07, 2019 at 01:04:26PM +0200, Jan Kara wrote:
+> > > On Thu 06-06-19 15:03:30, Ira Weiny wrote:
+> > > > On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
+> > > > > On Wed 05-06-19 18:45:33, ira.weiny@intel.com wrote:
+> > > > > > From: Ira Weiny <ira.weiny@intel.com>
+> > > > > 
+> > > > > So I'd like to actually mandate that you *must* hold the file lease until
+> > > > > you unpin all pages in the given range (not just that you have an option to
+> > > > > hold a lease). And I believe the kernel should actually enforce this. That
+> > > > > way we maintain a sane state that if someone uses a physical location of
+> > > > > logical file offset on disk, he has a layout lease. Also once this is done,
+> > > > > sysadmin has a reasonably easy way to discover run-away RDMA application
+> > > > > and kill it if he wishes so.
+> > > > 
+> > > > Fair enough.
+> > > > 
+> > > > I was kind of heading that direction but had not thought this far forward.  I
+> > > > was exploring how to have a lease remain on the file even after a "lease
+> > > > break".  But that is incompatible with the current semantics of a "layout"
+> > > > lease (as currently defined in the kernel).  [In the end I wanted to get an RFC
+> > > > out to see what people think of this idea so I did not look at keeping the
+> > > > lease.]
+> > > > 
+> > > > Also hitch is that currently a lease is forcefully broken after
+> > > > <sysfs>/lease-break-time.  To do what you suggest I think we would need a new
+> > > > lease type with the semantics you describe.
+> > > 
+> > > I'd do what Dave suggested - add flag to mark lease as unbreakable by
+> > > truncate and teach file locking core to handle that. There actually is
+> > > support for locks that are not broken after given timeout so there
+> > > shouldn't be too many changes need.
+> > >  
+> > > > Previously I had thought this would be a good idea (for other reasons).  But
+> > > > what does everyone think about using a "longterm lease" similar to [1] which
+> > > > has the semantics you proppose?  In [1] I was not sure "longterm" was a good
+> > > > name but with your proposal I think it makes more sense.
+> > > 
+> > > As I wrote elsewhere in this thread I think FL_LAYOUT name still makes
+> > > sense and I'd add there FL_UNBREAKABLE to mark unusal behavior with
+> > > truncate.
 > > 
-> > > Because the pins would be invisible to sysadmin from that point on. 
+> > Ok I want to make sure I understand what you and Dave are suggesting.
 > > 
-> > It is not invisible, it just shows up in a rdma specific kernel
-> > interface. You have to use rdma netlink to see the kernel object
-> > holding this pin.
+> > Are you suggesting that we have something like this from user space?
 > > 
-> > If this visibility is the main sticking point I suggest just enhancing
-> > the existing MR reporting to include the file info for current GUP
-> > pins and teaching lsof to collect information from there as well so it
-> > is easy to use.
-> > 
-> > If the ownership of the lease transfers to the MR, and we report that
-> > ownership to userspace in a way lsof can find, then I think all the
-> > concerns that have been raised are met, right?
+> > 	fcntl(fd, F_SETLEASE, F_LAYOUT | F_UNBREAKABLE);
 > 
-> I was contemplating some new lsof feature yesterday.  But what I don't
-> think we want is sysadmins to have multiple tools for multiple
-> subsystems.  Or even have to teach lsof something new for every potential
-> new subsystem user of GUP pins.
-
-Agreed.
-
-> I was thinking more along the lines of reporting files which have GUP
-> pins on them directly somewhere (dare I say procfs?) and teaching lsof to
-> report that information.  That would cover any subsystem which does a
-> longterm pin.
-
-So lsof already parses /proc/<pid>/maps to learn about files held open by
-memory mappings. It could parse some other file as well I guess. The good
-thing about that would be that then "longterm pin" structure would just hold
-struct file reference. That would avoid any needs of special behavior on
-file close (the file reference in the "longterm pin" structure would make
-sure struct file and thus the lease stays around, we'd just need to make
-explicit lease unlock block until the "longterm pin" structure is freed).
-The bad thing is that it requires us to come up with a sane new proc
-interface for reporting "longterm pins" and associated struct file. Also we
-need to define what this interface shows if the pinned pages are in DRAM
-(either page cache or anon) and not on NVDIMM.
-
-> > > ugly to live so we have to come up with something better. The best I can
-> > > currently come up with is to have a method associated with the lease that
-> > > would invalidate the RDMA context that holds the pins in the same way that
-> > > a file close would do it.
-> > 
-> > This is back to requiring all RDMA HW to have some new behavior they
-> > currently don't have..
-> > 
-> > The main objection to the current ODP & DAX solution is that very
-> > little HW can actually implement it, having the alternative still
-> > require HW support doesn't seem like progress.
-> > 
-> > I think we will eventually start seein some HW be able to do this
-> > invalidation, but it won't be universal, and I'd rather leave it
-> > optional, for recovery from truely catastrophic errors (ie my DAX is
-> > on fire, I need to unplug it).
+> Rather than "unbreakable", perhaps a clearer description of the
+> policy it entails is "exclusive"?
 > 
-> Agreed.  I think software wise there is not much some of the devices can do
-> with such an "invalidate".
+> i.e. what we are talking about here is an exclusive lease that
+> prevents other processes from changing the layout. i.e. the
+> mechanism used to guarantee a lease is exclusive is that the layout
+> becomes "unbreakable" at the filesystem level, but the policy we are
+> actually presenting to uses is "exclusive access"...
 
-So out of curiosity: What does RDMA driver do when userspace just closes
-the file pointing to RDMA object? It has to handle that somehow by aborting
-everything that's going on... And I wanted similar behavior here.
+That sounds good.
 
-								Honza
+Ira
 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
