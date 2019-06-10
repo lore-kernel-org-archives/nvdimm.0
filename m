@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl
+ [79.96.170.134])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8C228212AAB70
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:00 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 11/25] memremap: lift the devmap_enable manipulation into
- devm_memremap_pages
-Date: Wed, 26 Jun 2019 14:27:10 +0200
-Message-Id: <20190626122724.13313-12-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id E5C0521A143EF
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 04:02:11 -0700 (PDT)
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 01/10] acpi/numa: Establish a new drivers/acpi/numa/
+ directory
+Date: Mon, 10 Jun 2019 13:02:07 +0200
+Message-ID: <2852346.FjP3BEmj8C@kreacher>
+In-Reply-To: <155993563815.3036719.5542204455414415743.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155993563815.3036719.5542204455414415743.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,223 +25,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: x86@kernel.org, ard.biesheuvel@linaro.org, peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-efi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Just check if there is a ->page_free operation set and take care of the
-static key enable, as well as the put using device managed resources.
-Also check that a ->page_free is provided for the pgmaps types that
-require it, and check for a valid type as well while we are at it.
+On Friday, June 7, 2019 9:27:18 PM CEST Dan Williams wrote:
+> Currently hmat.c lives under an "hmat" directory which does not enhance
+> the description of the file. The initial motivation for giving hmat.c
+> its own directory was to delineate it as mm functionality in contrast to
+> ACPI device driver functionality.
+> 
+> As ACPI continues to play an increasing role in conveying
+> memory location and performance topology information to the OS take the
+> opportunity to co-locate these NUMA relevant tables in a combined
+> directory.
+> 
+> numa.c is renamed to srat.c and moved to drivers/acpi/numa/ along with
+> hmat.c.
+> 
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Note that this also fixes the fact that hmm never called
-dev_pagemap_put_ops and thus would leave the slow path enabled forever,
-even after a device driver unload or disable.
+A CC to linux-acpi is missing from this series.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/nvdimm/pmem.c | 23 +++--------------
- include/linux/mm.h    | 10 --------
- kernel/memremap.c     | 59 +++++++++++++++++++++++++++----------------
- mm/hmm.c              |  2 --
- 4 files changed, 41 insertions(+), 53 deletions(-)
+> ---
+>  drivers/acpi/Kconfig       |    9 +--------
+>  drivers/acpi/Makefile      |    3 +--
+>  drivers/acpi/hmat/Makefile |    2 --
+>  drivers/acpi/numa/Kconfig  |    7 ++++++-
+>  drivers/acpi/numa/Makefile |    3 +++
+>  drivers/acpi/numa/hmat.c   |    0 
+>  drivers/acpi/numa/srat.c   |    0 
+>  7 files changed, 11 insertions(+), 13 deletions(-)
+>  delete mode 100644 drivers/acpi/hmat/Makefile
+>  rename drivers/acpi/{hmat/Kconfig => numa/Kconfig} (72%)
+>  create mode 100644 drivers/acpi/numa/Makefile
+>  rename drivers/acpi/{hmat/hmat.c => numa/hmat.c} (100%)
+>  rename drivers/acpi/{numa.c => numa/srat.c} (100%)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 283ee94224c6..82c4a31c8701 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -321,12 +321,6 @@ config ACPI_THERMAL
+>  	  To compile this driver as a module, choose M here:
+>  	  the module will be called thermal.
+>  
+> -config ACPI_NUMA
+> -	bool "NUMA support"
+> -	depends on NUMA
+> -	depends on (X86 || IA64 || ARM64)
+> -	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
+> -
+>  config ACPI_CUSTOM_DSDT_FILE
+>  	string "Custom DSDT Table file to include"
+>  	default ""
+> @@ -475,8 +469,7 @@ config ACPI_REDUCED_HARDWARE_ONLY
+>  	  If you are unsure what to do, do not enable this option.
+>  
+>  source "drivers/acpi/nfit/Kconfig"
+> -source "drivers/acpi/hmat/Kconfig"
+> -
+> +source "drivers/acpi/numa/Kconfig"
+>  source "drivers/acpi/apei/Kconfig"
+>  source "drivers/acpi/dptf/Kconfig"
+>  
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 5d361e4e3405..f08a661274e8 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,7 +55,6 @@ acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
+>  acpi-$(CONFIG_X86)		+= x86/apple.o
+>  acpi-$(CONFIG_X86)		+= x86/utils.o
+>  acpi-$(CONFIG_DEBUG_FS)		+= debugfs.o
+> -acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+>  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y				+= acpi_lpat.o
+>  acpi-$(CONFIG_ACPI_LPIT)	+= acpi_lpit.o
+> @@ -80,7 +79,7 @@ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+>  obj-$(CONFIG_ACPI)		+= container.o
+>  obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+>  obj-$(CONFIG_ACPI_NFIT)		+= nfit/
+> -obj-$(CONFIG_ACPI_HMAT)		+= hmat/
+> +obj-$(CONFIG_ACPI_NUMA)		+= numa/
+>  obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+>  obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
+>  obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+> diff --git a/drivers/acpi/hmat/Makefile b/drivers/acpi/hmat/Makefile
+> deleted file mode 100644
+> index 1c20ef36a385..000000000000
+> --- a/drivers/acpi/hmat/Makefile
+> +++ /dev/null
+> @@ -1,2 +0,0 @@
+> -# SPDX-License-Identifier: GPL-2.0-only
+> -obj-$(CONFIG_ACPI_HMAT) := hmat.o
+> diff --git a/drivers/acpi/hmat/Kconfig b/drivers/acpi/numa/Kconfig
+> similarity index 72%
+> rename from drivers/acpi/hmat/Kconfig
+> rename to drivers/acpi/numa/Kconfig
+> index 95a29964dbea..d14582387ed0 100644
+> --- a/drivers/acpi/hmat/Kconfig
+> +++ b/drivers/acpi/numa/Kconfig
+> @@ -1,4 +1,9 @@
+> -# SPDX-License-Identifier: GPL-2.0
+> +config ACPI_NUMA
+> +	bool "NUMA support"
+> +	depends on NUMA
+> +	depends on (X86 || IA64 || ARM64)
+> +	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
+> +
+>  config ACPI_HMAT
+>  	bool "ACPI Heterogeneous Memory Attribute Table Support"
+>  	depends on ACPI_NUMA
+> diff --git a/drivers/acpi/numa/Makefile b/drivers/acpi/numa/Makefile
+> new file mode 100644
+> index 000000000000..517a6c689a94
+> --- /dev/null
+> +++ b/drivers/acpi/numa/Makefile
+> @@ -0,0 +1,3 @@
+> +# SPDX-License-Identifier: GPL-2.0-only
+> +obj-$(CONFIG_ACPI_NUMA) += srat.o
+> +obj-$(CONFIG_ACPI_HMAT) += hmat.o
+> diff --git a/drivers/acpi/hmat/hmat.c b/drivers/acpi/numa/hmat.c
+> similarity index 100%
+> rename from drivers/acpi/hmat/hmat.c
+> rename to drivers/acpi/numa/hmat.c
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa/srat.c
+> similarity index 100%
+> rename from drivers/acpi/numa.c
+> rename to drivers/acpi/numa/srat.c
+> 
+> 
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 9dac48359353..48767171a4df 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -334,11 +334,6 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
- }
- 
--static void pmem_release_pgmap_ops(void *__pgmap)
--{
--	dev_pagemap_put_ops();
--}
--
- static void pmem_pagemap_page_free(struct page *page, void *data)
- {
- 	wake_up_var(&page->_refcount);
-@@ -350,16 +345,6 @@ static const struct dev_pagemap_ops fsdax_pagemap_ops = {
- 	.cleanup		= pmem_pagemap_cleanup,
- };
- 
--static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap)
--{
--	dev_pagemap_get_ops();
--	if (devm_add_action_or_reset(dev, pmem_release_pgmap_ops, pgmap))
--		return -ENOMEM;
--	pgmap->type = MEMORY_DEVICE_FS_DAX;
--	pgmap->ops = &fsdax_pagemap_ops;
--	return 0;
--}
--
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns)
- {
-@@ -415,8 +400,8 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->pfn_flags = PFN_DEV;
- 	pmem->pgmap.ref = &q->q_usage_counter;
- 	if (is_nd_pfn(dev)) {
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
--			return -ENOMEM;
-+		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-+		pmem->pgmap.ops = &fsdax_pagemap_ops;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
-@@ -428,8 +413,8 @@ static int pmem_attach_disk(struct device *dev,
- 	} else if (pmem_should_map_pages(dev)) {
- 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
- 		pmem->pgmap.altmap_valid = false;
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
--			return -ENOMEM;
-+		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-+		pmem->pgmap.ops = &fsdax_pagemap_ops;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pmem->pfn_flags |= PFN_MAP;
- 		memcpy(&bb_res, &pmem->pgmap.res, sizeof(bb_res));
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 6e4b9be08b13..aa3970291cdf 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -932,8 +932,6 @@ static inline bool is_zone_device_page(const struct page *page)
- #endif
- 
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void dev_pagemap_get_ops(void);
--void dev_pagemap_put_ops(void);
- void __put_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
- static inline bool put_devmap_managed_page(struct page *page)
-@@ -973,14 +971,6 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
- #endif /* CONFIG_PCI_P2PDMA */
- 
- #else /* CONFIG_DEV_PAGEMAP_OPS */
--static inline void dev_pagemap_get_ops(void)
--{
--}
--
--static inline void dev_pagemap_put_ops(void)
--{
--}
--
- static inline bool put_devmap_managed_page(struct page *page)
- {
- 	return false;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 00c1ceb60c19..3219a4c91d07 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -17,6 +17,35 @@ static DEFINE_XARRAY(pgmap_array);
- #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
- #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
- 
-+#ifdef CONFIG_DEV_PAGEMAP_OPS
-+DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
-+EXPORT_SYMBOL(devmap_managed_key);
-+static atomic_t devmap_managed_enable;
-+
-+static void devmap_managed_enable_put(void *data)
-+{
-+	if (atomic_dec_and_test(&devmap_managed_enable))
-+		static_branch_disable(&devmap_managed_key);
-+}
-+
-+static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	if (!pgmap->ops->page_free) {
-+		WARN(1, "Missing page_free method\n");
-+		return -EINVAL;
-+	}
-+
-+	if (atomic_inc_return(&devmap_managed_enable) == 1)
-+		static_branch_enable(&devmap_managed_key);
-+	return devm_add_action_or_reset(dev, devmap_managed_enable_put, NULL);
-+}
-+#else
-+static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	return -EINVAL;
-+}
-+#endif /* CONFIG_DEV_PAGEMAP_OPS */
-+
- #if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
- vm_fault_t device_private_entry_fault(struct vm_area_struct *vma,
- 		       unsigned long addr,
-@@ -156,6 +185,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	};
- 	pgprot_t pgprot = PAGE_KERNEL;
- 	int error, nid, is_ram;
-+	bool need_devmap_managed = true;
- 
- 	switch (pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
-@@ -173,6 +203,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		break;
- 	case MEMORY_DEVICE_DEVDAX:
- 	case MEMORY_DEVICE_PCI_P2PDMA:
-+		need_devmap_managed = false;
- 		break;
- 	default:
- 		WARN(1, "Invalid pgmap type %d\n", pgmap->type);
-@@ -185,6 +216,12 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		return ERR_PTR(-EINVAL);
- 	}
- 
-+	if (need_devmap_managed) {
-+		error = devmap_managed_enable_get(dev, pgmap);
-+		if (error)
-+			return ERR_PTR(error);
-+	}
-+
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
- 		- align_start;
-@@ -351,28 +388,6 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
- 
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
--EXPORT_SYMBOL(devmap_managed_key);
--static atomic_t devmap_enable;
--
--/*
-- * Toggle the static key for ->page_free() callbacks when dev_pagemap
-- * pages go idle.
-- */
--void dev_pagemap_get_ops(void)
--{
--	if (atomic_inc_return(&devmap_enable) == 1)
--		static_branch_enable(&devmap_managed_key);
--}
--EXPORT_SYMBOL_GPL(dev_pagemap_get_ops);
--
--void dev_pagemap_put_ops(void)
--{
--	if (atomic_dec_and_test(&devmap_enable))
--		static_branch_disable(&devmap_managed_key);
--}
--EXPORT_SYMBOL_GPL(dev_pagemap_put_ops);
--
- void __put_devmap_managed_page(struct page *page)
- {
- 	int count = page_ref_dec_return(page);
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 987793fba923..5b0bd5f6a74f 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1415,8 +1415,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	void *result;
- 	int ret;
- 
--	dev_pagemap_get_ops();
--
- 	devmem = devm_kzalloc(device, sizeof(*devmem), GFP_KERNEL);
- 	if (!devmem)
- 		return ERR_PTR(-ENOMEM);
--- 
-2.20.1
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
