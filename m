@@ -1,17 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 10385212AB4FC
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:40 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 06/22] mm/hmm: fix use after free with struct hmm in the mmu
- notifiers
-Date: Mon,  1 Jul 2019 08:20:04 +0200
-Message-Id: <20190701062020.19239-7-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id E36992194EB70
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 02:08:22 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v11 0/7] virtio pmem driver 
+Date: Mon, 10 Jun 2019 14:37:23 +0530
+Message-Id: <20190610090730.8589-1-pagupta@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,140 +16,173 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgg@mellanox.com>
-
-mmu_notifier_unregister_no_release() is not a fence and the mmu_notifier
-system will continue to reference hmm->mn until the srcu grace period
-expires.
-
-Resulting in use after free races like this:
-
-         CPU0                                     CPU1
-                                               __mmu_notifier_invalidate_range_start()
-                                                 srcu_read_lock
-                                                 hlist_for_each ()
-                                                   // mn == hmm->mn
-hmm_mirror_unregister()
-  hmm_put()
-    hmm_free()
-      mmu_notifier_unregister_no_release()
-         hlist_del_init_rcu(hmm-mn->list)
-			                           mn->ops->invalidate_range_start(mn, range);
-					             mm_get_hmm()
-      mm->hmm = NULL;
-      kfree(hmm)
-                                                     mutex_lock(&hmm->lock);
-
-Use SRCU to kfree the hmm memory so that the notifiers can rely on hmm
-existing. Get the now-safe hmm struct through container_of and directly
-check kref_get_unless_zero to lock it against free.
-
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
----
- include/linux/hmm.h |  1 +
- mm/hmm.c            | 23 +++++++++++++++++------
- 2 files changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 7007123842ba..cb01cf1fa3c0 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -93,6 +93,7 @@ struct hmm {
- 	struct mmu_notifier	mmu_notifier;
- 	struct rw_semaphore	mirrors_sem;
- 	wait_queue_head_t	wq;
-+	struct rcu_head		rcu;
- 	long			notifiers;
- 	bool			dead;
- };
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 826816ab2377..f6956d78e3cb 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -104,6 +104,11 @@ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
- 	return NULL;
- }
- 
-+static void hmm_free_rcu(struct rcu_head *rcu)
-+{
-+	kfree(container_of(rcu, struct hmm, rcu));
-+}
-+
- static void hmm_free(struct kref *kref)
- {
- 	struct hmm *hmm = container_of(kref, struct hmm, kref);
-@@ -116,7 +121,7 @@ static void hmm_free(struct kref *kref)
- 		mm->hmm = NULL;
- 	spin_unlock(&mm->page_table_lock);
- 
--	kfree(hmm);
-+	mmu_notifier_call_srcu(&hmm->rcu, hmm_free_rcu);
- }
- 
- static inline void hmm_put(struct hmm *hmm)
-@@ -144,10 +149,14 @@ void hmm_mm_destroy(struct mm_struct *mm)
- 
- static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
- {
--	struct hmm *hmm = mm_get_hmm(mm);
-+	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
- 	struct hmm_mirror *mirror;
- 	struct hmm_range *range;
- 
-+	/* Bail out if hmm is in the process of being freed */
-+	if (!kref_get_unless_zero(&hmm->kref))
-+		return;
-+
- 	/* Report this HMM as dying. */
- 	hmm->dead = true;
- 
-@@ -185,13 +194,14 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
- static int hmm_invalidate_range_start(struct mmu_notifier *mn,
- 			const struct mmu_notifier_range *nrange)
- {
--	struct hmm *hmm = mm_get_hmm(nrange->mm);
-+	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
- 	struct hmm_mirror *mirror;
- 	struct hmm_update update;
- 	struct hmm_range *range;
- 	int ret = 0;
- 
--	VM_BUG_ON(!hmm);
-+	if (!kref_get_unless_zero(&hmm->kref))
-+		return 0;
- 
- 	update.start = nrange->start;
- 	update.end = nrange->end;
-@@ -236,9 +246,10 @@ static int hmm_invalidate_range_start(struct mmu_notifier *mn,
- static void hmm_invalidate_range_end(struct mmu_notifier *mn,
- 			const struct mmu_notifier_range *nrange)
- {
--	struct hmm *hmm = mm_get_hmm(nrange->mm);
-+	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
- 
--	VM_BUG_ON(!hmm);
-+	if (!kref_get_unless_zero(&hmm->kref))
-+		return;
- 
- 	mutex_lock(&hmm->lock);
- 	hmm->notifiers--;
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+IFRoaXMgcGF0Y2ggc2VyaWVzIGlzIHJlYWR5IHRvIGJlIG1lcmdlZCB2aWEgbnZkaW1tIHRyZWUK
+IGFzIGRpc2N1c3NlZCB3aXRoIERhbi4gV2UgaGF2ZSBhY2svcmV2aWV3IG9uIFhGUywgRVhUNCAm
+CiBWSVJUSU8gcGF0Y2hlcy4gTmVlZCBhbiBhY2sgb24gZGV2aWNlIG1hcHBlciBjaGFuZ2UgaW4K
+IHBhdGNoIDQuCgogTWlrZSwgQ2FuIHlvdSBwbGVhc2UgcmV2aWV3IGFuZCBhY2sgcGF0Y2g0LgoK
+IFRoaXMgdmVyc2lvbiBkb2VzIG5vdCBoYXMgYW55IGFkZGl0b25hbCBjb2RlIGNoYW5nZSBmcm9t
+IHYxMCAKIGFuZCBpcyBvbmx5IHJlYmFzZSBvZiB2MTAgb24gTGludXggNS4yLXJjNCB3aGljaCBp
+cyByZXF1aXJlZCAKIGZvciBwYXRjaDQuIEtlZXBpbmcgYWxsIHRoZSBleGlzdGluZyByLW8tYnMu
+IEpha29iIENDZWQgYWxzbwogdGVzdGVkIHRoZSBwYXRjaCBzZXJpZXMgYW5kIGNvbmZpcm1lZCB0
+aGUgd29ya2luZyBvZiB2OS4KIC0tLQoKIFRoaXMgcGF0Y2ggc2VyaWVzIGhhcyBpbXBsZW1lbnRh
+dGlvbiBmb3IgInZpcnRpbyBwbWVtIi4gCiAidmlydGlvIHBtZW0iIGlzIGZha2UgcGVyc2lzdGVu
+dCBtZW1vcnkobnZkaW1tKSBpbiBndWVzdCAKIHdoaWNoIGFsbG93cyB0byBieXBhc3MgdGhlIGd1
+ZXN0IHBhZ2UgY2FjaGUuIFRoaXMgYWxzbwogaW1wbGVtZW50cyBhIFZJUlRJTyBiYXNlZCBhc3lu
+Y2hyb25vdXMgZmx1c2ggbWVjaGFuaXNtLiAgCiAKIFNoYXJpbmcgZ3Vlc3Qga2VybmVsIGRyaXZl
+ciBpbiB0aGlzIHBhdGNoc2V0IHdpdGggdGhlIAogY2hhbmdlcyBzdWdnZXN0ZWQgaW4gdjQuIFRl
+c3RlZCB3aXRoIFFlbXUgc2lkZSBkZXZpY2UgCiBlbXVsYXRpb24gWzVdIGZvciB2aXJ0aW8tcG1l
+bS4gRG9jdW1lbnRlZCB0aGUgaW1wYWN0IG9mCiBwb3NzaWJsZSBwYWdlIGNhY2hlIHNpZGUgY2hh
+bm5lbCBhdHRhY2tzIHdpdGggc3VnZ2VzdGVkCiBjb3VudGVybWVhc3VyZXMuCgogRGV0YWlscyBv
+ZiBwcm9qZWN0IGlkZWEgZm9yICd2aXJ0aW8gcG1lbScgZmx1c2hpbmcgaW50ZXJmYWNlIAogaXMg
+c2hhcmVkIFszXSAmIFs0XS4KCiBJbXBsZW1lbnRhdGlvbiBpcyBkaXZpZGVkIGludG8gdHdvIHBh
+cnRzOgogTmV3IHZpcnRpbyBwbWVtIGd1ZXN0IGRyaXZlciBhbmQgcWVtdSBjb2RlIGNoYW5nZXMg
+Zm9yIG5ldyAKIHZpcnRpbyBwbWVtIHBhcmF2aXJ0dWFsaXplZCBkZXZpY2UuCgoxLiBHdWVzdCB2
+aXJ0aW8tcG1lbSBrZXJuZWwgZHJpdmVyCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQogICAtIFJlYWRzIHBlcnNpc3RlbnQgbWVtb3J5IHJhbmdlIGZyb20gcGFyYXZpcnQgZGV2aWNl
+IGFuZCAKICAgICByZWdpc3RlcnMgd2l0aCAnbnZkaW1tX2J1cycuICAKICAgLSAnbnZkaW1tL3Bt
+ZW0nIGRyaXZlciB1c2VzIHRoaXMgaW5mb3JtYXRpb24gdG8gYWxsb2NhdGUgCiAgICAgcGVyc2lz
+dGVudCBtZW1vcnkgcmVnaW9uIGFuZCBzZXR1cCBmaWxlc3lzdGVtIG9wZXJhdGlvbnMgCiAgICAg
+dG8gdGhlIGFsbG9jYXRlZCBtZW1vcnkuIAogICAtIHZpcnRpbyBwbWVtIGRyaXZlciBpbXBsZW1l
+bnRzIGFzeW5jaHJvbm91cyBmbHVzaGluZyAKICAgICBpbnRlcmZhY2UgdG8gZmx1c2ggZnJvbSBn
+dWVzdCB0byBob3N0LgoKMi4gUWVtdSB2aXJ0aW8tcG1lbSBkZXZpY2UKLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tCiAgIC0gQ3JlYXRlcyB2aXJ0aW8gcG1lbSBkZXZpY2UgYW5kIGV4
+cG9zZXMgYSBtZW1vcnkgcmFuZ2UgdG8gCiAgICAgS1ZNIGd1ZXN0LiAKICAgLSBBdCBob3N0IHNp
+ZGUgdGhpcyBpcyBmaWxlIGJhY2tlZCBtZW1vcnkgd2hpY2ggYWN0cyBhcyAKICAgICBwZXJzaXN0
+ZW50IG1lbW9yeS4gCiAgIC0gUWVtdSBzaWRlIGZsdXNoIHVzZXMgYWlvIHRocmVhZCBwb29sIEFQ
+SSdzIGFuZCB2aXJ0aW8gCiAgICAgZm9yIGFzeW5jaHJvbm91cyBndWVzdCBtdWx0aSByZXF1ZXN0
+IGhhbmRsaW5nLiAKCiBWaXJ0aW8tcG1lbSBzZWN1cml0eSBpbXBsaWNhdGlvbnMgYW5kIGNvdW50
+ZXJtZWFzdXJlczoKIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tCgogSW4gcHJldmlvdXMgcG9zdGluZyBvZiBrZXJuZWwgZHJpdmVyLCB0aGVyZSB3
+YXMgZGlzY3Vzc2lvbiBbN10KIG9uIHBvc3NpYmxlIGltcGxpY2F0aW9ucyBvZiBwYWdlIGNhY2hl
+IHNpZGUgY2hhbm5lbCBhdHRhY2tzIHdpdGggCiB2aXJ0aW8gcG1lbS4gQWZ0ZXIgdGhvcm91Z2gg
+YW5hbHlzaXMgb2YgZGV0YWlscyBvZiBrbm93biBzaWRlIAogY2hhbm5lbCBhdHRhY2tzLCBiZWxv
+dyBhcmUgdGhlIHN1Z2dlc3Rpb25zOgoKIC0gRGVwZW5kcyBlbnRpcmVseSBvbiBob3cgaG9zdCBi
+YWNraW5nIGltYWdlIGZpbGUgaXMgbWFwcGVkIAogICBpbnRvIGd1ZXN0IGFkZHJlc3Mgc3BhY2Uu
+IAoKIC0gdmlydGlvLXBtZW0gZGV2aWNlIGVtdWxhdGlvbiwgYnkgZGVmYXVsdCBzaGFyZWQgbWFw
+cGluZyBpcyB1c2VkCiAgIHRvIG1hcCBob3N0IGJhY2tpbmcgZmlsZS4gSXQgaXMgcmVjb21tZW5k
+ZWQgdG8gdXNlIHNlcGFyYXRlCiAgIGJhY2tpbmcgZmlsZSBhdCBob3N0IHNpZGUgZm9yIGV2ZXJ5
+IGd1ZXN0LiBUaGlzIHdpbGwgcHJldmVudAogICBhbnkgcG9zc2liaWxpdHkgb2YgZXhlY3V0aW5n
+IGNvbW1vbiBjb2RlIGZyb20gbXVsdGlwbGUgZ3Vlc3RzCiAgIGFuZCBhbnkgY2hhbmNlIG9mIGlu
+ZmVycmluZyBndWVzdCBsb2NhbCBkYXRhIGJhc2VkIGJhc2VkIG9uIAogICBleGVjdXRpb24gdGlt
+ZS4KCiAtIElmIGJhY2tpbmcgZmlsZSBpcyByZXF1aXJlZCB0byBiZSBzaGFyZWQgYW1vbmcgbXVs
+dGlwbGUgZ3Vlc3RzIAogICBpdCBpcyByZWNvbW1lbmRlZCB0byBkb24ndCBzdXBwb3J0IGhvc3Qg
+cGFnZSBjYWNoZSBldmljdGlvbiAKICAgY29tbWFuZHMgZnJvbSB0aGUgZ3Vlc3QgZHJpdmVyLiBU
+aGlzIHdpbGwgYXZvaWQgYW55IHBvc3NpYmlsaXR5CiAgIG9mIGluZmVycmluZyBndWVzdCBsb2Nh
+bCBkYXRhIG9yIGhvc3QgZGF0YSBmcm9tIGFub3RoZXIgZ3Vlc3QuIAoKIC0gUHJvcG9zZWQgZGV2
+aWNlIHNwZWNpZmljYXRpb24gWzZdIGZvciB2aXJ0aW8tcG1lbSBkZXZpY2Ugd2l0aCAKICAgZGV0
+YWlscyBvZiBwb3NzaWJsZSBzZWN1cml0eSBpbXBsaWNhdGlvbnMgYW5kIHN1Z2dlc3RlZCAKICAg
+Y291bnRlcm1lYXN1cmVzIGZvciBkZXZpY2UgZW11bGF0aW9uLgoKIFZpcnRpby1wbWVtIGVycm9y
+cyBoYW5kbGluZzoKIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICBD
+aGVja2VkIGJlaGF2aW91ciBvZiB2aXJ0aW8tcG1lbSBmb3IgYmVsb3cgdHlwZXMgb2YgZXJyb3Jz
+CiAgTmVlZCBzdWdnZXN0aW9ucyBvbiBleHBlY3RlZCBiZWhhdmlvdXIgZm9yIGhhbmRsaW5nIHRo
+ZXNlIGVycm9ycz8KCiAgLSBIYXJkd2FyZSBFcnJvcnM6IFVuY29ycmVjdGFibGUgcmVjb3ZlcmFi
+bGUgRXJyb3JzOiAKICBhXSB2aXJ0aW8tcG1lbTogCiAgICAtIEFzIHBlciBjdXJyZW50IGxvZ2lj
+IGlmIGVycm9yIHBhZ2UgYmVsb25ncyB0byBRZW11IHByb2Nlc3MsIAogICAgICBob3N0IE1DRSBo
+YW5kbGVyIGlzb2xhdGVzKGh3cG9pc29uKSB0aGF0IHBhZ2UgYW5kIHNlbmQgU0lHQlVTLiAKICAg
+ICAgUWVtdSBTSUdCVVMgaGFuZGxlciBpbmplY3RzIGV4Y2VwdGlvbiB0byBLVk0gZ3Vlc3QuIAog
+ICAgLSBLVk0gZ3Vlc3QgdGhlbiBpc29sYXRlcyB0aGUgcGFnZSBhbmQgc2VuZCBTSUdCVVMgdG8g
+Z3Vlc3QgCiAgICAgIHVzZXJzcGFjZSBwcm9jZXNzIHdoaWNoIGhhcyBtYXBwZWQgdGhlIHBhZ2Uu
+IAogIAogIGJdIEV4aXN0aW5nIGltcGxlbWVudGF0aW9uIGZvciBBQ1BJIHBtZW0gZHJpdmVyOiAK
+ICAgIC0gSGFuZGxlcyBzdWNoIGVycm9ycyB3aXRoIE1DRSBub3RpZmllciBhbmQgY3JlYXRlcyBh
+IGxpc3QgCiAgICAgIG9mIGJhZCBibG9ja3MuIFJlYWQvZGlyZWN0IGFjY2VzcyBEQVggb3BlcmF0
+aW9uIHJldHVybiBFSU8gCiAgICAgIGlmIGFjY2Vzc2VkIG1lbW9yeSBwYWdlIGZhbGwgaW4gYmFk
+IGJsb2NrIGxpc3QuCiAgICAtIEl0IGFsc28gc3RhcnRzIGJhY2tnb3VuZCBzY3J1YmJpbmcuICAK
+ICAgIC0gU2ltaWxhciBmdW5jdGlvbmFsaXR5IGNhbiBiZSByZXVzZWQgaW4gdmlydGlvLXBtZW0g
+d2l0aCBNQ0UgCiAgICAgIG5vdGlmaWVyIGJ1dCB3aXRob3V0IHNjcnViYmluZyhubyBBQ1BJL0FS
+Uyk/IE5lZWQgaW5wdXRzIHRvIAogICAgICBjb25maXJtIGlmIHRoaXMgYmVoYXZpb3VyIGlzIG9r
+IG9yIG5lZWRzIGFueSBjaGFuZ2U/CgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjEwOiBbMV0gCiAtIFJl
+YmFzZWQgb24gTGludXgtNS4yLXJjNAoKQ2hhbmdlcyBmcm9tIFBBVENIIHY5OiBbMl0gCiAtIEtj
+b25maWcgaGVscCB0ZXh0IGFkZCB0d28gc3BhY2VzIC0gUmFuZHkKIC0gRml4ZWQgbGlibnZkaW1t
+ICdiaW8nIGluY2x1ZGUgd2FybmluZyAtIERhbgogLSB2aXJ0aW8tcG1lbSwgc2VwYXJhdGUgcmVx
+dWVzdC9yZXNwIHN0cnVjdCBhbmQgCiAgIG1vdmUgdG8gdWFwaSBmaWxlIHdpdGggdXBkYXRlZCBs
+aWNlbnNlIC0gRGF2aWRICiAtIFVzZSB2aXJ0aW8zMiogdHlwZSBmb3IgcmVxL3Jlc3AgZW5kaWFu
+ZXNzIC0gRGF2aWRICiAtIEFkZGVkIHRlc3RlZC1ieSAmIGFjay1ieSBvZiBKYWtvYgogLSBSZWJh
+c2VkIHRvIDUuMi1yYzEKCkNoYW5nZXMgZnJvbSBQQVRDSCB2ODoKIC0gU2V0IGRldmljZSBtYXBw
+ZXIgc3luY2hyb25vdXMgaWYgYWxsIHRhcmdldCBkZXZpY2VzIHN1cHBvcnQgLSBEYW4KIC0gTW92
+ZSB2aXJ0aW9fcG1lbS5oIHRvIG52ZGltbSBkaXJlY3RvcnkgIC0gRGFuCiAtIFN0eWxlLCBpbmRl
+bnRhdGlvbiAmIGJldHRlciBlcnJvciBtZXNzYWdlcyBpbiBwYXRjaCAyIC0gRGF2aWRICiAtIEFk
+ZGVkIE1TVCdzIGFjayBpbiBwYXRjaCAyLgoKQ2hhbmdlcyBmcm9tIFBBVENIIHY3OgogLSBDb3Jy
+ZWN0ZWQgcGVuZGluZyByZXF1ZXN0IHF1ZXVlIGxvZ2ljIChwYXRjaCAyKSAtIEpha3ViIFN0YXJv
+xYQKIC0gVXNlZCB1bnNpZ25lZCBsb25nIGZsYWdzIGZvciBwYXNzaW5nIERBWERFVl9GX1NZTkMg
+KHBhdGNoIDMpIC0gRGFuCiAtIEZpeGVkIHR5cG8gPT4gIHZtYSAnZmxhZycgdG8gJ3ZtX2ZsYWcn
+IChwYXRjaCA0KQogLSBBZGRlZCByb2IgaW4gcGF0Y2ggNiAmIHBhdGNoIDIKCkNoYW5nZXMgZnJv
+bSBQQVRDSCB2NjogCiAtIENvcnJlY3RlZCBjb21tZW50IGZvcm1hdCBpbiBwYXRjaCA1ICYgcGF0
+Y2ggNi4gW0RhdmVdCiAtIENoYW5nZWQgdmFyaWFibGUgZGVjbGFyYXRpb24gaW5kZW50YXRpb24g
+aW4gcGF0Y2ggNiBbRGFycmlja10KIC0gQWRkIFJldmlld2VkLWJ5IHRhZyBieSAnSmFuIEthcmEn
+IGluIHBhdGNoIDQgJiBwYXRjaCA1CgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjU6IAogIENoYW5nZXMg
+c3VnZ2VzdGVkIGluIGJ5IC0gW0Nvcm5lbGlhLCBZdXZhbF0KLSBSZW1vdmUgYXNzaWdubWVudCBj
+aGFpbmluZyBpbiB2aXJ0aW8gZHJpdmVyCi0gQmV0dGVyIGVycm9yIG1lc3NhZ2UgYW5kIHJlbW92
+ZSBub3QgcmVxdWlyZWQgZnJlZQotIENoZWNrIG5kX3JlZ2lvbiBiZWZvcmUgdXNlCgogIENoYW5n
+ZXMgc3VnZ2VzdGVkIGJ5IC0gW0phbiBLYXJhXQotIGRheF9zeW5jaHJvbm91cygpIGZvciAhQ09O
+RklHX0RBWAotIENvcnJlY3QgJ2RheGRldl9tYXBwaW5nX3N1cHBvcnRlZCcgY29tbWVudCBhbmQg
+bm9uLWRheCBpbXBsZW1lbnRhdGlvbgoKICBDaGFuZ2VzIHN1Z2dlc3RlZCBieSAtIFtEYW4gV2ls
+bGlhbXNdCi0gUGFzcyBtZWFuaW5nZnVsIGZsYWcgJ0RBWERFVl9GX1NZTkMnIHRvIGFsbG9jX2Rh
+eAotIEdhdGUgbnZkaW1tX2ZsdXNoIGluc3RlYWQgb2YgYWRkaXRpb25hbCBhc3luYyBwYXJhbWV0
+ZXIKLSBNb3ZlIGJsb2NrIGNoYWluaW5nIGxvZ2ljIHRvIGZsdXNoIGNhbGxiYWNrIHRoYW4gY29t
+bW9uIG52ZGltbV9mbHVzaAotIFVzZSBOVUxMIGZsdXNoIGNhbGxiYWNrIGZvciBnZW5lcmljIGZs
+dXNoIGZvciBiZXR0ZXIgcmVhZGFiaWxpdHkgW0RhbiwgSmFuXQoKLSBVc2UgdmlydGlvIGRldmlj
+ZSBpZCAyNyBmcm9tIDI1KGFscmVhZHkgdXNlZCkgLSBbTVNUXQoKQ2hhbmdlcyBmcm9tIFBBVENI
+IHY0OgotIEZhY3RvciBvdXQgTUFQX1NZTkMgc3VwcG9ydGVkIGZ1bmN0aW9uYWxpdHkgdG8gYSBj
+b21tb24gaGVscGVyCgkJCQlbRGF2ZSwgRGFycmljaywgSmFuXQotIENvbW1lbnQsIGluZGVudGF0
+aW9uIGFuZCB2aXJ0cXVldWVfa2ljayBmYWlsdXJlIGhhbmRsZSAtIFl1dmFsIFNoYWlhCgpDaGFu
+Z2VzIGZyb20gUEFUQ0ggdjM6IAotIFVzZSBnZW5lcmljIGRheF9zeW5jaHJvbm91cygpIGhlbHBl
+ciB0byBjaGVjayBmb3IgREFYREVWX1NZTkMgCiAgZmxhZyAtIFtEYW4sIERhcnJpY2ssIEphbl0K
+LSBBZGQgJ2lzX252ZGltbV9hc3luYycgZnVuY3Rpb24KLSBEb2N1bWVudCBwYWdlIGNhY2hlIHNp
+ZGUgY2hhbm5lbCBhdHRhY2tzIGltcGxpY2F0aW9ucyAmIAogIGNvdW50ZXJtZWFzdXJlcyAtIFtE
+YXZlIENoaW5uZXIsIE1pY2hhZWxdCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjI6IAotIERpc2FibGUg
+TUFQX1NZTkMgZm9yIGV4dDQgJiBYRlMgZmlsZXN5c3RlbXMgLSBbRGFuXSAKLSBVc2UgbmFtZSAn
+dmlydGlvIHBtZW0nIGluIHBsYWNlIG9mICdmYWtlIGRheCcgCgpDaGFuZ2VzIGZyb20gUEFUQ0gg
+djE6IAotIDAtZGF5IGJ1aWxkIHRlc3QgZm9yIGJ1aWxkIGRlcGVuZGVuY3kgb24gbGlibnZkaW1t
+IAoKIENoYW5nZXMgc3VnZ2VzdGVkIGJ5IC0gW0RhbiBXaWxsaWFtc10KLSBTcGxpdCB0aGUgZHJp
+dmVyIGludG8gdHdvIHBhcnRzIHZpcnRpbyAmIHBtZW0gIAotIE1vdmUgcXVldWluZyBvZiBhc3lu
+YyBibG9jayByZXF1ZXN0IHRvIGJsb2NrIGxheWVyCi0gQWRkICJzeW5jIiBwYXJhbWV0ZXIgaW4g
+bnZkaW1tX2ZsdXNoIGZ1bmN0aW9uCi0gVXNlIGluZGlyZWN0IGNhbGwgZm9yIG52ZGltbV9mbHVz
+aAotIERvbuKAmXQgbW92ZSBkZWNsYXJhdGlvbnMgdG8gY29tbW9uIGdsb2JhbCBoZWFkZXIgZS5n
+IG5kLmgKLSBudmRpbW1fZmx1c2goKSByZXR1cm4gMCBvciAtRUlPIGlmIGl0IGZhaWxzCi0gVGVh
+Y2ggbnNpb19yd19ieXRlcygpIHRoYXQgdGhlIGZsdXNoIGNhbiBmYWlsCi0gUmVuYW1lIG52ZGlt
+bV9mbHVzaCgpIHRvIGdlbmVyaWNfbnZkaW1tX2ZsdXNoKCkKLSBVc2UgJ25kX3JlZ2lvbi0+cHJv
+dmlkZXJfZGF0YScgZm9yIGxvbmcgZGVyZWZlcmVuY2luZwotIFJlbW92ZSB2aXJ0aW9fcG1lbV9m
+cmVlemUvcmVzdG9yZSBmdW5jdGlvbnMKLSBSZW1vdmUgQlNEIGxpY2Vuc2UgdGV4dCB3aXRoIFNQ
+RFggbGljZW5zZSB0ZXh0CgotIEFkZCBtaWdodF9zbGVlcCgpIGluIHZpcnRpb19wbWVtX2ZsdXNo
+IC0gW0x1aXpdCi0gTWFrZSBzcGluX2xvY2tfaXJxc2F2ZSgpIG5hcnJvdwoKUGFua2FqIEd1cHRh
+ICg3KToKICAgbGlibnZkaW1tOiBuZF9yZWdpb24gZmx1c2ggY2FsbGJhY2sgc3VwcG9ydAogICB2
+aXJ0aW8tcG1lbTogQWRkIHZpcnRpby1wbWVtIGd1ZXN0IGRyaXZlcgogICBsaWJudmRpbW06IGFk
+ZCBuZF9yZWdpb24gYnVmZmVyZWQgZGF4X2RldiBmbGFnCiAgIGRheDogY2hlY2sgc3luY2hyb25v
+dXMgbWFwcGluZyBpcyBzdXBwb3J0ZWQKICAgZG06IGRtOiBFbmFibGUgc3luY2hyb25vdXMgZGF4
+CiAgIGV4dDQ6IGRpc2FibGUgbWFwX3N5bmMgZm9yIHZpcnRpbyBwbWVtCiAgIHhmczogZGlzYWJs
+ZSBtYXBfc3luYyBmb3IgdmlydGlvIHBtZW0KClsxXSBodHRwczovL2xrbWwub3JnL2xrbWwvMjAx
+OS81LzIxLzU2OQpbMl0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkvNS8xNC80NjUKWzNdIGh0
+dHBzOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2t2bS9tc2cxNDk3NjEuaHRtbApbNF0gaHR0cHM6
+Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva3ZtL21zZzE1MzA5NS5odG1sICAKWzVdIGh0dHBzOi8v
+bWFyYy5pbmZvLz9sPXFlbXUtZGV2ZWwmbT0xNTU4NjA3NTEyMDIyMDImdz0yCls2XSBodHRwczov
+L2xpc3RzLm9hc2lzLW9wZW4ub3JnL2FyY2hpdmVzL3ZpcnRpby1kZXYvMjAxOTAzL21zZzAwMDgz
+Lmh0bWwKWzddIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE5LzEvOS8xMTkxCgogZHJpdmVycy9h
+Y3BpL25maXQvY29yZS5jICAgICAgICAgfCAgICA0IC0KIGRyaXZlcnMvZGF4L2J1cy5jICAgICAg
+ICAgICAgICAgIHwgICAgMiAKIGRyaXZlcnMvZGF4L3N1cGVyLmMgICAgICAgICAgICAgIHwgICAx
+OSArKysrKwogZHJpdmVycy9tZC9kbS10YWJsZS5jICAgICAgICAgICAgfCAgIDE0ICsrKysKIGRy
+aXZlcnMvbWQvZG0uYyAgICAgICAgICAgICAgICAgIHwgICAgMyAKIGRyaXZlcnMvbnZkaW1tL01h
+a2VmaWxlICAgICAgICAgIHwgICAgMSAKIGRyaXZlcnMvbnZkaW1tL2NsYWltLmMgICAgICAgICAg
+IHwgICAgNiArCiBkcml2ZXJzL252ZGltbS9uZC5oICAgICAgICAgICAgICB8ICAgIDEgCiBkcml2
+ZXJzL252ZGltbS9uZF92aXJ0aW8uYyAgICAgICB8ICAxMjQgKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrCiBkcml2ZXJzL252ZGltbS9wbWVtLmMgICAgICAgICAgICB8ICAg
+MTggKysrLS0KIGRyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMgICAgIHwgICAzMyArKysrKysr
+KystCiBkcml2ZXJzL252ZGltbS92aXJ0aW9fcG1lbS5jICAgICB8ICAxMjIgKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvbnZkaW1tL3ZpcnRpb19wbWVtLmgg
+ICAgIHwgICA1NSArKysrKysrKysrKysrKysrKwogZHJpdmVycy92aXJ0aW8vS2NvbmZpZyAgICAg
+ICAgICAgfCAgIDExICsrKwogZnMvZXh0NC9maWxlLmMgICAgICAgICAgICAgICAgICAgfCAgIDEw
+ICstLQogZnMveGZzL3hmc19maWxlLmMgICAgICAgICAgICAgICAgfCAgICA5ICstCiBpbmNsdWRl
+L2xpbnV4L2RheC5oICAgICAgICAgICAgICB8ICAgMjYgKysrKysrKy0KIGluY2x1ZGUvbGludXgv
+bGlibnZkaW1tLmggICAgICAgIHwgICAxMCArKy0KIGluY2x1ZGUvdWFwaS9saW51eC92aXJ0aW9f
+aWRzLmggIHwgICAgMSAKIGluY2x1ZGUvdWFwaS9saW51eC92aXJ0aW9fcG1lbS5oIHwgICAzNSAr
+KysrKysrKysrKwogMjAgZmlsZXMgY2hhbmdlZCwgNDc5IGluc2VydGlvbnMoKyksIDI1IGRlbGV0
+aW9ucygtKQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
+Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
