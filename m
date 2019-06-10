@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 427FE21296419
- for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:07 -0700 (PDT)
-Subject: [PATCH v10 03/13] mm/sparsemem: Add helpers track active portions
- of a section at boot
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 22:51:48 -0700
-Message-ID: <156092350874.979959.18185938451405518285.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 66B7F2128A65F
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 02:11:48 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v11 5/7] dax: check synchronous mapping is supported
+Date: Mon, 10 Jun 2019 14:37:28 +0530
+Message-Id: <20190610090730.8589-6-pagupta@redhat.com>
+In-Reply-To: <20190610090730.8589-1-pagupta@redhat.com>
+References: <20190610090730.8589-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,182 +17,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Qian Cai <cai@lca.pw>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
-sub-section active bitmask, each bit representing a PMD_SIZE span of the
-architecture's memory hotplug section size.
+This patch introduces 'daxdev_mapping_supported' helper
+which checks if 'MAP_SYNC' is supported with filesystem
+mapping. It also checks if corresponding dax_device is
+synchronous. Virtio pmem device is asynchronous and
+does not not support VM_SYNC.
 
-The implications of a partially populated section is that pfn_valid()
-needs to go beyond a valid_section() check and either determine that the
-section is an "early section", or read the sub-section active ranges
-from the bitmask. The expectation is that the bitmask (subsection_map)
-fits in the same cacheline as the valid_section() / early_section()
-data, so the incremental performance overhead to pfn_valid() should be
-negligible.
-
-The rationale for using early_section() to short-ciruit the
-subsection_map check is that there are legacy code paths that use
-pfn_valid() at section granularity before validating the pfn against
-pgdat data. So, the early_section() check allows those traditional
-assumptions to persist while also permitting subsection_map to tell the
-truth for purposes of populating the unused portions of early sections
-with PMEM and other ZONE_DEVICE mappings.
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Tested-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- include/linux/mmzone.h |   33 ++++++++++++++++++++++++++++++++-
- mm/page_alloc.c        |   10 ++++++++--
- mm/sparse.c            |   35 +++++++++++++++++++++++++++++++++++
- 3 files changed, 75 insertions(+), 3 deletions(-)
+ include/linux/dax.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index d081c9a1d25d..c4e8843e283c 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1179,6 +1179,8 @@ struct mem_section_usage {
- 	unsigned long pageblock_flags[0];
- };
- 
-+void subsection_map_init(unsigned long pfn, unsigned long nr_pages);
-+
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1322,12 +1324,40 @@ static inline struct mem_section *__pfn_to_section(unsigned long pfn)
- 
- extern int __highest_present_section_nr;
- 
-+static inline int subsection_map_index(unsigned long pfn)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 2b106752b1b8..267251a394fa 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -42,6 +42,18 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+ void set_dax_synchronous(struct dax_device *dax_dev);
++/*
++ * Check if given mapping is supported by the file / underlying device.
++ */
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++					    struct dax_device *dax_dev)
 +{
-+	return (pfn & ~(PAGE_SECTION_MASK)) / PAGES_PER_SUBSECTION;
++	if (!(vma->vm_flags & VM_SYNC))
++		return true;
++	if (!IS_DAX(file_inode(vma->vm_file)))
++		return false;
++	return dax_synchronous(dax_dev);
 +}
-+
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	int idx = subsection_map_index(pfn);
-+
-+	return test_bit(idx, ms->usage->subsection_map);
-+}
-+#else
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	return 1;
-+}
-+#endif
-+
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- static inline int pfn_valid(unsigned long pfn)
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
  {
-+	struct mem_section *ms;
-+
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
--	return valid_section(__nr_to_section(pfn_to_section_nr(pfn)));
-+	ms = __nr_to_section(pfn_to_section_nr(pfn));
-+	if (!valid_section(ms))
-+		return 0;
-+	/*
-+	 * Traditionally early sections always returned pfn_valid() for
-+	 * the entire section-sized span.
-+	 */
-+	return early_section(ms) || pfn_section_valid(ms, pfn);
+@@ -69,6 +81,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
  }
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
++{
++	return !(vma->vm_flags & VM_SYNC);
++}
  #endif
  
-@@ -1359,6 +1389,7 @@ void sparse_init(void);
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #define pfn_present pfn_valid
-+#define subsection_map_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 8cc091e87200..8e7215fb6976 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7306,12 +7306,18 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 			       (u64)zone_movable_pfn[i] << PAGE_SHIFT);
- 	}
- 
--	/* Print out the early node map */
-+	/*
-+	 * Print out the early node map, and initialize the
-+	 * subsection-map relative to active online memory ranges to
-+	 * enable future "sub-section" extensions of the memory map.
-+	 */
- 	pr_info("Early memory node ranges\n");
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
- 			(u64)start_pfn << PAGE_SHIFT,
- 			((u64)end_pfn << PAGE_SHIFT) - 1);
-+		subsection_map_init(start_pfn, end_pfn - start_pfn);
-+	}
- 
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 2031a0694f35..e9fec3c2f7ec 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -210,6 +210,41 @@ static inline unsigned long first_present_section_nr(void)
- 	return next_present_section_nr(-1);
- }
- 
-+void subsection_mask_set(unsigned long *map, unsigned long pfn,
-+		unsigned long nr_pages)
-+{
-+	int idx = subsection_map_index(pfn);
-+	int end = subsection_map_index(pfn + nr_pages - 1);
-+
-+	bitmap_set(map, idx, end - idx + 1);
-+}
-+
-+void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
-+{
-+	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	int i, start_sec = pfn_to_section_nr(pfn);
-+
-+	if (!nr_pages)
-+		return;
-+
-+	for (i = start_sec; i <= end_sec; i++) {
-+		struct mem_section *ms;
-+		unsigned long pfns;
-+
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		ms = __nr_to_section(i);
-+		subsection_mask_set(ms->usage->subsection_map, pfn, pfns);
-+
-+		pr_debug("%s: sec: %d pfns: %ld set(%d, %d)\n", __func__, i,
-+				pfns, subsection_map_index(pfn),
-+				subsection_map_index(pfn + pfns - 1));
-+
-+		pfn += pfns;
-+		nr_pages -= pfns;
-+	}
-+}
-+
- /* Record a memory area against a node. */
- void __init memory_present(int nid, unsigned long start, unsigned long end)
- {
+ struct writeback_control;
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
