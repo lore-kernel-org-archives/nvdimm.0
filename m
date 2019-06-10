@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from gateway31.websitewelcome.com (gateway31.websitewelcome.com
+ [192.185.144.91])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5059D212AAB70
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:27:48 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 06/25] mm: export alloc_pages_vma
-Date: Wed, 26 Jun 2019 14:27:05 +0200
-Message-Id: <20190626122724.13313-7-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 6F4582127420E
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 14:06:36 -0700 (PDT)
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+ by gateway31.websitewelcome.com (Postfix) with ESMTP id 02F782176
+ for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 16:06:35 -0500 (CDT)
+Date: Mon, 10 Jun 2019 16:06:13 -0500
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] libnvdimm, region: Use struct_size() in kzalloc()
+Message-ID: <20190610210613.GA21989@embeddedor>
 MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,33 +25,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Keith Busch <keith.busch@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-nouveau is currently using this through an odd hmm wrapper, and I plan
-to switch it to the real thing later in this series.
+One of the more common cases of allocation size calculations is finding
+the size of a structure that has a zero-sized array at the end, along
+with memory for some number of elements for that array. For example:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+struct nd_region {
+	...
+        struct nd_mapping mapping[0];
+};
+
+instance = kzalloc(sizeof(struct nd_region) + sizeof(struct nd_mapping) *
+                          count, GFP_KERNEL);
+
+Instead of leaving these open-coded and prone to type mistakes, we can
+now use the new struct_size() helper:
+
+instance = kzalloc(struct_size(instance, mapping, count), GFP_KERNEL);
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- mm/mempolicy.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/nvdimm/region_devs.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-index 01600d80ae01..f48569aa1863 100644
---- a/mm/mempolicy.c
-+++ b/mm/mempolicy.c
-@@ -2098,6 +2098,7 @@ alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
- out:
- 	return page;
- }
-+EXPORT_SYMBOL(alloc_pages_vma);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b4ef7d9ff22e..88becc87e234 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1027,10 +1027,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		}
+ 		region_buf = ndbr;
+ 	} else {
+-		nd_region = kzalloc(sizeof(struct nd_region)
+-				+ sizeof(struct nd_mapping)
+-				* ndr_desc->num_mappings,
+-				GFP_KERNEL);
++		nd_region = kzalloc(struct_size(nd_region, mapping,
++						ndr_desc->num_mappings),
++				    GFP_KERNEL);
+ 		region_buf = nd_region;
+ 	}
  
- /**
-  * 	alloc_pages_current - Allocate pages.
 -- 
-2.20.1
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
