@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B48DE21290DE1
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 10:39:49 -0700 (PDT)
-Date: Fri, 7 Jun 2019 11:39:47 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2] Documentation: nvdimm: Fix typo
-Message-ID: <20190607113947.604b5ba0@lwn.net>
-In-Reply-To: <20190509074049.12192-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190509023744.4936-1-ruansy.fnst@cn.fujitsu.com>
- <20190509074049.12192-1-ruansy.fnst@cn.fujitsu.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 367602128D885
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 09:42:55 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v12 6/7] ext4: disable map_sync for async flush
+Date: Tue, 11 Jun 2019 22:08:01 +0530
+Message-Id: <20190611163802.25352-7-pagupta@redhat.com>
+In-Reply-To: <20190611163802.25352-1-pagupta@redhat.com>
+References: <20190611163802.25352-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,43 +17,55 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 9 May 2019 15:40:49 +0800
-Shiyang Ruan <ruansy.fnst@cn.fujitsu.com> wrote:
+Dont support 'MAP_SYNC' with non-DAX files and DAX files
+with asynchronous dax_device. Virtio pmem provides
+asynchronous host page cache flush mechanism. We don't
+support 'MAP_SYNC' with virtio pmem and ext4.
 
-> Remove the extra 'we '.
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-> ---
->  Documentation/nvdimm/nvdimm.txt | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/nvdimm/nvdimm.txt b/Documentation/nvdimm/nvdimm.txt
-> index e894de69915a..1669f626b037 100644
-> --- a/Documentation/nvdimm/nvdimm.txt
-> +++ b/Documentation/nvdimm/nvdimm.txt
-> @@ -284,8 +284,8 @@ A bus has a 1:1 relationship with an NFIT.  The current expectation for
->  ACPI based systems is that there is only ever one platform-global NFIT.
->  That said, it is trivial to register multiple NFITs, the specification
->  does not preclude it.  The infrastructure supports multiple busses and
-> -we we use this capability to test multiple NFIT configurations in the
-> -unit test.
-> +we use this capability to test multiple NFIT configurations in the unit
-> +test.
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Applied, thanks.
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 98ec11f69cd4..dee549339e13 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
+ 	/*
+-	 * We don't support synchronous mappings for non-DAX files. At least
+-	 * until someone comes with a sensible use case.
++	 * We don't support synchronous mappings for non-DAX files and
++	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++	if (!daxdev_mapping_supported(vma, dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+-- 
+2.20.1
 
-I note this has languished for a bit; please don't hesitate to ping after
-a week or so if you don't get a response on a patch posting.
-
-jon
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
