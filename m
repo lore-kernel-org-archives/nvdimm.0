@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 14226212909E0
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:33:43 -0700 (PDT)
-Subject: [PATCH v4 00/10] EFI Specific Purpose Memory Support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 24 Jun 2019 11:19:25 -0700
-Message-ID: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 9BC722128D885
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 09:42:23 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v12 5/7] dax: check synchronous mapping is supported
+Date: Tue, 11 Jun 2019 22:08:00 +0530
+Message-Id: <20190611163802.25352-6-pagupta@redhat.com>
+In-Reply-To: <20190611163802.25352-1-pagupta@redhat.com>
+References: <20190611163802.25352-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,133 +17,66 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: x86@kernel.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, kbuild test robot <lkp@intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Darren Hart <dvhart@infradead.org>, tglx@linutronix.de, Andy Shevchenko <andy@infradead.org>, Len Brown <lenb@kernel.org>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3 [1]:
-- Clarify in the changelog that the policy decision of how to treat
-  specific-purpose memory is x86 only until other archs grow a
-  translation to IORES_DESC_APPLICATION_RESERVED. The EFI spec does not
-  mandate a behavior for the EFI_MEMORY_SP attribute so the decision is
-  kept out of the core EFI implementation. (prompted by Ard)
+This patch introduces 'daxdev_mapping_supported' helper
+which checks if 'MAP_SYNC' is supported with filesystem
+mapping. It also checks if corresponding dax_device is
+synchronous. Virtio pmem device is asynchronous and
+does not not support VM_SYNC.
 
-- Merge the memregion ida into kernel/resource.c and provide a static
-  inline wrappers around an exported  'struct ida memregion_ids'
-  instance. (Willy)
-
-- Fix a set of compile errors in the CONFIG_EFI_FAKE_MEMMAP=n case.
-  (0day)
-
-- Collect Dave's reviewed-by on the series.
-
-[1]: https://lore.kernel.org/lkml/155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com/
-
+Suggested-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
+ include/linux/dax.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-Merge logistics: These patches touch core-efi, acpi, device-dax, and
-x86. Given the regression risk is highest for the x86 changes it seems
-tip.git is the best tree to host the series.
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 2b106752b1b8..267251a394fa 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -42,6 +42,18 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+ void set_dax_synchronous(struct dax_device *dax_dev);
++/*
++ * Check if given mapping is supported by the file / underlying device.
++ */
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++					    struct dax_device *dax_dev)
++{
++	if (!(vma->vm_flags & VM_SYNC))
++		return true;
++	if (!IS_DAX(file_inode(vma->vm_file)))
++		return false;
++	return dax_synchronous(dax_dev);
++}
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+@@ -69,6 +81,11 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
+ }
++static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
++				struct dax_device *dax_dev)
++{
++	return !(vma->vm_flags & VM_SYNC);
++}
+ #endif
+ 
+ struct writeback_control;
+-- 
+2.20.1
 
----
-
-The EFI 2.8 Specification [2] introduces the EFI_MEMORY_SP ("specific
-purpose") memory attribute. This attribute bit replaces the deprecated
-ACPI HMAT "reservation hint" that was introduced in ACPI 6.2 and removed
-in ACPI 6.3.
-
-Given the increasing diversity of memory types that might be advertised
-to the operating system, there is a need for platform firmware to hint
-which memory ranges are free for the OS to use as general purpose memory
-and which ranges are intended for application specific usage. For
-example, an application with prior knowledge of the platform may expect
-to be able to exclusively allocate a precious / limited pool of high
-bandwidth memory. Alternatively, for the general purpose case, the
-operating system may want to make the memory available on a best effort
-basis as a unique numa-node with performance properties by the new
-CONFIG_HMEM_REPORTING [3] facility.
-
-In support of optionally allowing either application-exclusive and
-core-kernel-mm managed access to differentiated memory, claim
-EFI_MEMORY_SP ranges for exposure as device-dax instances by default.
-Such instances can be directly owned / mapped by a
-platform-topology-aware application. Alternatively, with the new kmem
-facility [4], the administrator has the option to instead designate that
-those memory ranges be hot-added to the core-kernel-mm as a unique
-memory numa-node. In short, allow for the decision about what software
-agent manages specific-purpose memory to be made at runtime.
-
-The patches build on the new HMAT+HMEM_REPORTING facilities merged
-for v5.2-rc1. The implementation is tested with qemu emulation of HMAT
-[5] plus the efi_fake_mem facility for applying the EFI_MEMORY_SP
-attribute.
-
-[2]: https://uefi.org/sites/default/files/resources/UEFI_Spec_2_8_final.pdf
-[3]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e1cf33aafb84
-[4]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c221c0b0308f
-[5]: http://patchwork.ozlabs.org/cover/1096737/
-
----
-
-Dan Williams (10):
-      acpi/numa: Establish a new drivers/acpi/numa/ directory
-      acpi/numa/hmat: Skip publishing target info for nodes with no online memory
-      efi: Enumerate EFI_MEMORY_SP
-      x86, efi: Push EFI_MEMMAP check into leaf routines
-      x86, efi: Reserve UEFI 2.8 Specific Purpose Memory for dax
-      x86, efi: Add efi_fake_mem support for EFI_MEMORY_SP
-      resource: Uplevel the pmem "region" ida to a global allocator
-      device-dax: Add a driver for "hmem" devices
-      acpi/numa/hmat: Register HMAT at device_initcall level
-      acpi/numa/hmat: Register "specific purpose" memory as an "hmem" device
-
-
- arch/x86/Kconfig                    |   23 +++++
- arch/x86/boot/compressed/eboot.c    |    5 +
- arch/x86/boot/compressed/kaslr.c    |    3 -
- arch/x86/include/asm/e820/types.h   |    9 ++
- arch/x86/include/asm/efi.h          |   34 ++++++++
- arch/x86/kernel/e820.c              |   12 ++-
- arch/x86/kernel/setup.c             |   21 +++--
- arch/x86/platform/efi/efi.c         |   40 +++++++++
- arch/x86/platform/efi/quirks.c      |    3 +
- drivers/acpi/Kconfig                |    9 --
- drivers/acpi/Makefile               |    3 -
- drivers/acpi/hmat/Makefile          |    2 
- drivers/acpi/numa/Kconfig           |    8 ++
- drivers/acpi/numa/Makefile          |    3 +
- drivers/acpi/numa/hmat.c            |  148 +++++++++++++++++++++++++++++++----
- drivers/acpi/numa/srat.c            |    0 
- drivers/dax/Kconfig                 |   27 +++++-
- drivers/dax/Makefile                |    2 
- drivers/dax/hmem.c                  |   57 +++++++++++++
- drivers/firmware/efi/Makefile       |    5 +
- drivers/firmware/efi/efi.c          |    5 +
- drivers/firmware/efi/esrt.c         |    3 +
- drivers/firmware/efi/fake_mem.c     |   26 +++---
- drivers/firmware/efi/fake_mem.h     |   10 ++
- drivers/firmware/efi/x86-fake_mem.c |   69 ++++++++++++++++
- drivers/nvdimm/Kconfig              |    1 
- drivers/nvdimm/core.c               |    1 
- drivers/nvdimm/nd-core.h            |    1 
- drivers/nvdimm/region_devs.c        |   12 +--
- include/linux/efi.h                 |    3 -
- include/linux/ioport.h              |   32 ++++++++
- kernel/resource.c                   |    6 +
- lib/Kconfig                         |    3 +
- 33 files changed, 504 insertions(+), 82 deletions(-)
- delete mode 100644 drivers/acpi/hmat/Makefile
- rename drivers/acpi/{hmat/Kconfig => numa/Kconfig} (70%)
- create mode 100644 drivers/acpi/numa/Makefile
- rename drivers/acpi/{hmat/hmat.c => numa/hmat.c} (81%)
- rename drivers/acpi/{numa.c => numa/srat.c} (100%)
- create mode 100644 drivers/dax/hmem.c
- create mode 100644 drivers/firmware/efi/fake_mem.h
- create mode 100644 drivers/firmware/efi/x86-fake_mem.c
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
