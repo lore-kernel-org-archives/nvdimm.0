@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A4CA21296419
- for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:58 -0700 (PDT)
-Subject: [PATCH v10 12/13] libnvdimm/pfn: Fix fsdax-mode namespace
- info-block zero-fields
+ by ml01.01.org (Postfix) with ESMTPS id 265BF21290DEC
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 16:40:11 -0700 (PDT)
+Subject: [PATCH 2/6] libnvdimm/bus: Prevent duplicate device_unregister() calls
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 22:52:40 -0700
-Message-ID: <156092356065.979959.6681003754765958296.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 11 Jun 2019 16:25:54 -0700
+Message-ID: <156029555412.419799.17084493871021141653.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,129 +22,92 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: peterz@infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Erwin Tsaur <erwin.tsaur@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-At namespace creation time there is the potential for the "expected to
-be zero" fields of a 'pfn' info-block to be filled with indeterminate
-data. While the kernel buffer is zeroed on allocation it is immediately
-overwritten by nd_pfn_validate() filling it with the current contents of
-the on-media info-block location. For fields like, 'flags' and the
-'padding' it potentially means that future implementations can not rely
-on those fields being zero.
+A multithreaded namespace creation/destruction stress test currently
+fails with signatures like the following:
 
-In preparation to stop using the 'start_pad' and 'end_trunc' fields for
-section alignment, arrange for fields that are not explicitly
-initialized to be guaranteed zero. Bump the minor version to indicate it
-is safe to assume the 'padding' and 'flags' are zero. Otherwise, this
-corruption is expected to benign since all other critical fields are
-explicitly initialized.
+    sysfs group 'power' not found for kobject 'dax1.1'
+    RIP: 0010:sysfs_remove_group+0x76/0x80
+    Call Trace:
+     device_del+0x73/0x370
+     device_unregister+0x16/0x50
+     nd_async_device_unregister+0x1e/0x30 [libnvdimm]
+     async_run_entry_fn+0x39/0x160
+     process_one_work+0x23c/0x5e0
+     worker_thread+0x3c/0x390
 
-Note The cc: stable is about spreading this new policy to as many
-kernels as possible not fixing an issue in those kernels. It is not
-until the change titled "libnvdimm/pfn: Stop padding pmem namespaces to
-section alignment" where this improper initialization becomes a problem.
-So if someone decides to backport "libnvdimm/pfn: Stop padding pmem
-namespaces to section alignment" (which is not tagged for stable), make
-sure this pre-requisite is flagged.
+    BUG: kernel NULL pointer dereference, address: 0000000000000020
+    RIP: 0010:klist_put+0x1b/0x6c
+    Call Trace:
+     klist_del+0xe/0x10
+     device_del+0x8a/0x2c9
+     ? __switch_to_asm+0x34/0x70
+     ? __switch_to_asm+0x40/0x70
+     device_unregister+0x44/0x4f
+     nd_async_device_unregister+0x22/0x2d [libnvdimm]
+     async_run_entry_fn+0x47/0x15a
+     process_one_work+0x1a2/0x2eb
+     worker_thread+0x1b8/0x26e
 
-Fixes: 32ab0a3f5170 ("libnvdimm, pmem: 'struct page' for pmem")
+Use the kill_device() helper to atomically resolve the race of multiple
+threads issuing kill, device_unregister(), requests.
+
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
+Fixes: 4d88a97aa9e8 ("libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver...")
 Cc: <stable@vger.kernel.org>
+Link: https://github.com/pmem/ndctl/issues/96
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/dax_devs.c |    2 +-
- drivers/nvdimm/pfn.h      |    1 +
- drivers/nvdimm/pfn_devs.c |   18 +++++++++++++++---
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/nvdimm/bus.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 49fc18ee0565..6d22b0f83b3b 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -118,7 +118,7 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	nvdimm_bus_unlock(&ndns->dev);
- 	if (!dax_dev)
- 		return -ENOMEM;
--	pfn_sb = devm_kzalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, DAX_SIG);
- 	dev_dbg(dev, "dax: %s\n", rc == 0 ? dev_name(dax_dev) : "<none>");
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index f58b849e455b..dfb2bcda8f5a 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -28,6 +28,7 @@ struct nd_pfn_sb {
- 	__le32 end_trunc;
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
-+	/* minor-version-3 guarantee the padding and flags are zero */
- 	u8 padding[4000];
- 	__le64 checksum;
- };
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 0f81fc56bbfd..4977424693b0 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -412,6 +412,15 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
- 	return 0;
- }
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 2dca3034fee0..42713b210f51 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -547,13 +547,38 @@ EXPORT_SYMBOL(nd_device_register);
  
-+/**
-+ * nd_pfn_validate - read and validate info-block
-+ * @nd_pfn: fsdax namespace runtime state / properties
-+ * @sig: 'devdax' or 'fsdax' signature
-+ *
-+ * Upon return the info-block buffer contents (->pfn_sb) are
-+ * indeterminate when validation fails, and a coherent info-block
-+ * otherwise.
-+ */
- int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ void nd_device_unregister(struct device *dev, enum nd_async_mode mode)
  {
- 	u64 checksum, offset;
-@@ -557,7 +566,7 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	nvdimm_bus_unlock(&ndns->dev);
- 	if (!pfn_dev)
- 		return -ENOMEM;
--	pfn_sb = devm_kzalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	nd_pfn = to_nd_pfn(pfn_dev);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
-@@ -694,7 +703,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	u64 checksum;
- 	int rc;
- 
--	pfn_sb = devm_kzalloc(&nd_pfn->dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	pfn_sb = devm_kmalloc(&nd_pfn->dev, sizeof(*pfn_sb), GFP_KERNEL);
- 	if (!pfn_sb)
- 		return -ENOMEM;
- 
-@@ -703,11 +712,14 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		sig = DAX_SIG;
- 	else
- 		sig = PFN_SIG;
++	bool killed;
 +
- 	rc = nd_pfn_validate(nd_pfn, sig);
- 	if (rc != -ENODEV)
- 		return rc;
- 
- 	/* no info block, do init */;
-+	memset(pfn_sb, 0, sizeof(*pfn_sb));
+ 	switch (mode) {
+ 	case ND_ASYNC:
++		/*
++		 * In the async case this is being triggered with the
++		 * device lock held and the unregistration work needs to
++		 * be moved out of line iff this is thread has won the
++		 * race to schedule the deletion.
++		 */
++		if (!kill_device(dev))
++			return;
 +
- 	nd_region = to_nd_region(nd_pfn->dev.parent);
- 	if (nd_region->ro) {
- 		dev_info(&nd_pfn->dev,
-@@ -760,7 +772,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(2);
-+	pfn_sb->version_minor = cpu_to_le16(3);
- 	pfn_sb->start_pad = cpu_to_le32(start_pad);
- 	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
+ 		get_device(dev);
+ 		async_schedule_domain(nd_async_device_unregister, dev,
+ 				&nd_async_domain);
+ 		break;
+ 	case ND_SYNC:
++		/*
++		 * In the sync case the device is being unregistered due
++		 * to a state change of the parent. Claim the kill state
++		 * to synchronize against other unregistration requests,
++		 * or otherwise let the async path handle it if the
++		 * unregistration was already queued.
++		 */
++		device_lock(dev);
++		killed = kill_device(dev);
++		device_unlock(dev);
++
++		if (!killed)
++			return;
++
+ 		nd_synchronize();
+ 		device_unregister(dev);
+ 		break;
 
 _______________________________________________
 Linux-nvdimm mailing list
