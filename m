@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B8D8F21290DEA
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:41:50 -0700 (PDT)
-Subject: [PATCH v3 04/10] x86, efi: Push EFI_MEMMAP check into leaf routines
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jun 2019 12:27:33 -0700
-Message-ID: <155993565364.3036719.13348818856010715122.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id D23C521295CB0
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 05:48:35 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v13 4/7] dm: enable synchronous dax
+Date: Wed, 12 Jun 2019 18:15:24 +0530
+Message-Id: <20190612124527.3763-5-pagupta@redhat.com>
+In-Reply-To: <20190612124527.3763-1-pagupta@redhat.com>
+References: <20190612124527.3763-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,125 +17,141 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: linux-efi@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, ard.biesheuvel@linaro.org, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, linux-nvdimm@lists.01.org, Ingo Molnar <mingo@redhat.com>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for adding another EFI_MEMMAP dependent call that needs
-to occur before e820__memblock_setup() fixup the existing efi calls to
-check for EFI_MEMMAP internally. This is cleaner than checking
-EFI_MEMMAP multiple times in setup_arch().
+This patch sets dax device 'DAXDEV_SYNC' flag if all the target
+devices of device mapper support synchrononous DAX. If device
+mapper consists of both synchronous and asynchronous dax devices,
+we don't set 'DAXDEV_SYNC' flag.
 
-Cc: <x86@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+'dm_table_supports_dax' is refactored to pass 'iterate_devices_fn'
+as argument so that the callers can pass the appropriate functions.
+
+Suggested-by: Mike Snitzer <snitzer@redhat.com>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Mike Snitzer <snitzer@redhat.com>
 ---
- arch/x86/kernel/setup.c         |   19 +++++++++----------
- arch/x86/platform/efi/efi.c     |    3 +++
- arch/x86/platform/efi/quirks.c  |    3 +++
- drivers/firmware/efi/esrt.c     |    3 +++
- drivers/firmware/efi/fake_mem.c |    2 +-
- 5 files changed, 19 insertions(+), 11 deletions(-)
+ drivers/md/dm-table.c | 24 ++++++++++++++++++------
+ drivers/md/dm.c       |  2 +-
+ drivers/md/dm.h       |  5 ++++-
+ 3 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 08a5f4a131f5..b68fd57a8d26 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1103,21 +1103,20 @@ void __init setup_arch(char **cmdline_p)
- 	cleanup_highmap();
+diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
+index 350cf0451456..81c55304c4fa 100644
+--- a/drivers/md/dm-table.c
++++ b/drivers/md/dm-table.c
+@@ -881,7 +881,7 @@ void dm_table_set_type(struct dm_table *t, enum dm_queue_mode type)
+ EXPORT_SYMBOL_GPL(dm_table_set_type);
  
- 	memblock_set_current_limit(ISA_END_ADDRESS);
-+
- 	e820__memblock_setup();
- 
- 	reserve_bios_regions();
- 
--	if (efi_enabled(EFI_MEMMAP)) {
--		efi_fake_memmap();
--		efi_find_mirror();
--		efi_esrt_init();
-+	efi_fake_memmap();
-+	efi_find_mirror();
-+	efi_esrt_init();
- 
--		/*
--		 * The EFI specification says that boot service code won't be
--		 * called after ExitBootServices(). This is, in fact, a lie.
--		 */
--		efi_reserve_boot_services();
--	}
-+	/*
-+	 * The EFI specification says that boot service code won't be
-+	 * called after ExitBootServices(). This is, in fact, a lie.
-+	 */
-+	efi_reserve_boot_services();
- 
- 	/* preallocate 4k for mptable mpc */
- 	e820__memblock_alloc_reserved_mpc_new();
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index e1cb01a22fa8..4e8458b1ca30 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -103,6 +103,9 @@ void __init efi_find_mirror(void)
- 	efi_memory_desc_t *md;
- 	u64 mirror_size = 0, total_size = 0;
- 
-+	if (!efi_enabled(EFI_MEMMAP))
-+		return;
-+
- 	for_each_efi_memory_desc(md) {
- 		unsigned long long start = md->phys_addr;
- 		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
-diff --git a/arch/x86/platform/efi/quirks.c b/arch/x86/platform/efi/quirks.c
-index feb77777c8b8..50f7303da7be 100644
---- a/arch/x86/platform/efi/quirks.c
-+++ b/arch/x86/platform/efi/quirks.c
-@@ -320,6 +320,9 @@ void __init efi_reserve_boot_services(void)
+ /* validate the dax capability of the target device span */
+-static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
++int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
+ 				       sector_t start, sector_t len, void *data)
  {
- 	efi_memory_desc_t *md;
+ 	int blocksize = *(int *) data;
+@@ -890,7 +890,15 @@ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
+ 			start, len);
+ }
  
-+	if (!efi_enabled(EFI_MEMMAP))
-+		return;
+-bool dm_table_supports_dax(struct dm_table *t, int blocksize)
++/* Check devices support synchronous DAX */
++static int device_synchronous(struct dm_target *ti, struct dm_dev *dev,
++				       sector_t start, sector_t len, void *data)
++{
++	return dax_synchronous(dev->dax_dev);
++}
 +
- 	for_each_efi_memory_desc(md) {
- 		u64 start = md->phys_addr;
- 		u64 size = md->num_pages << EFI_PAGE_SHIFT;
-diff --git a/drivers/firmware/efi/esrt.c b/drivers/firmware/efi/esrt.c
-index d6dd5f503fa2..2762e0662bf4 100644
---- a/drivers/firmware/efi/esrt.c
-+++ b/drivers/firmware/efi/esrt.c
-@@ -246,6 +246,9 @@ void __init efi_esrt_init(void)
- 	int rc;
- 	phys_addr_t end;
++bool dm_table_supports_dax(struct dm_table *t,
++			  iterate_devices_callout_fn iterate_fn, int *blocksize)
+ {
+ 	struct dm_target *ti;
+ 	unsigned i;
+@@ -903,8 +911,7 @@ bool dm_table_supports_dax(struct dm_table *t, int blocksize)
+ 			return false;
  
-+	if (!efi_enabled(EFI_MEMMAP))
-+		return;
-+
- 	pr_debug("esrt-init: loading.\n");
- 	if (!esrt_table_exists())
- 		return;
-diff --git a/drivers/firmware/efi/fake_mem.c b/drivers/firmware/efi/fake_mem.c
-index 9501edc0fcfb..526b45331d96 100644
---- a/drivers/firmware/efi/fake_mem.c
-+++ b/drivers/firmware/efi/fake_mem.c
-@@ -44,7 +44,7 @@ void __init efi_fake_memmap(void)
- 	void *new_memmap;
- 	int i;
+ 		if (!ti->type->iterate_devices ||
+-		    !ti->type->iterate_devices(ti, device_supports_dax,
+-			    &blocksize))
++			!ti->type->iterate_devices(ti, iterate_fn, blocksize))
+ 			return false;
+ 	}
  
--	if (!nr_fake_mem)
-+	if (!efi_enabled(EFI_MEMMAP) || !nr_fake_mem)
- 		return;
+@@ -940,6 +947,7 @@ static int dm_table_determine_type(struct dm_table *t)
+ 	struct dm_target *tgt;
+ 	struct list_head *devices = dm_table_get_devices(t);
+ 	enum dm_queue_mode live_md_type = dm_get_md_type(t->md);
++	int page_size = PAGE_SIZE;
  
- 	/* count up the number of EFI memory descriptor */
+ 	if (t->type != DM_TYPE_NONE) {
+ 		/* target already set the table's type */
+@@ -984,7 +992,7 @@ static int dm_table_determine_type(struct dm_table *t)
+ verify_bio_based:
+ 		/* We must use this table as bio-based */
+ 		t->type = DM_TYPE_BIO_BASED;
+-		if (dm_table_supports_dax(t, PAGE_SIZE) ||
++		if (dm_table_supports_dax(t, device_supports_dax, &page_size) ||
+ 		    (list_empty(devices) && live_md_type == DM_TYPE_DAX_BIO_BASED)) {
+ 			t->type = DM_TYPE_DAX_BIO_BASED;
+ 		} else {
+@@ -1883,6 +1891,7 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
+ 			       struct queue_limits *limits)
+ {
+ 	bool wc = false, fua = false;
++	int page_size = PAGE_SIZE;
+ 
+ 	/*
+ 	 * Copy table's limits to the DM device's request_queue
+@@ -1910,8 +1919,11 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
+ 	}
+ 	blk_queue_write_cache(q, wc, fua);
+ 
+-	if (dm_table_supports_dax(t, PAGE_SIZE))
++	if (dm_table_supports_dax(t, device_supports_dax, &page_size)) {
+ 		blk_queue_flag_set(QUEUE_FLAG_DAX, q);
++		if (dm_table_supports_dax(t, device_synchronous, NULL))
++			set_dax_synchronous(t->md->dax_dev);
++	}
+ 	else
+ 		blk_queue_flag_clear(QUEUE_FLAG_DAX, q);
+ 
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index b1caa7188209..b92c42a72ad4 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1119,7 +1119,7 @@ static bool dm_dax_supported(struct dax_device *dax_dev, struct block_device *bd
+ 	if (!map)
+ 		return false;
+ 
+-	ret = dm_table_supports_dax(map, blocksize);
++	ret = dm_table_supports_dax(map, device_supports_dax, &blocksize);
+ 
+ 	dm_put_live_table(md, srcu_idx);
+ 
+diff --git a/drivers/md/dm.h b/drivers/md/dm.h
+index 17e3db54404c..0475673337f3 100644
+--- a/drivers/md/dm.h
++++ b/drivers/md/dm.h
+@@ -72,7 +72,10 @@ bool dm_table_bio_based(struct dm_table *t);
+ bool dm_table_request_based(struct dm_table *t);
+ void dm_table_free_md_mempools(struct dm_table *t);
+ struct dm_md_mempools *dm_table_get_md_mempools(struct dm_table *t);
+-bool dm_table_supports_dax(struct dm_table *t, int blocksize);
++bool dm_table_supports_dax(struct dm_table *t, iterate_devices_callout_fn fn,
++			   int *blocksize);
++int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
++			   sector_t start, sector_t len, void *data);
+ 
+ void dm_lock_md_type(struct mapped_device *md);
+ void dm_unlock_md_type(struct mapped_device *md);
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
