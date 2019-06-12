@@ -1,19 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from NAM05-DM3-obe.outbound.protection.outlook.com
- (mail-eopbgr730047.outbound.protection.outlook.com [40.107.73.47])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from casper.infradead.org (casper.infradead.org
+ [IPv6:2001:8b0:10b:1236::1])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F051F21296705
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 16:10:29 -0700 (PDT)
-From: Yue Li <yue.li@memverge.com>
-Subject: Re: ndctl hangs after memory deregistration
-Date: Thu, 13 Jun 2019 23:10:26 +0000
-Message-ID: <4C50C748-FD16-4AC8-A870-1E47ADB4CAF7@memverge.com>
-References: <41115947-1EBD-4686-8196-C06BD23CECE6@memverge.com>
- <CAA9_cmcNNN6fUQmKU_9Rw-6H84p-=e1DZiAcra+H1Ed=T_CALg@mail.gmail.com>
-In-Reply-To: <CAA9_cmcNNN6fUQmKU_9Rw-6H84p-=e1DZiAcra+H1Ed=T_CALg@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <69D0145372BE524B8F827F7A2257458C@namprd17.prod.outlook.com>
+ by ml01.01.org (Postfix) with ESMTPS id DB8AE21290DD2
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 13:41:32 -0700 (PDT)
+Date: Wed, 12 Jun 2019 17:41:19 -0300
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: Re: [PATCH v1 29/31] docs: nvdimm: convert to ReST
+Message-ID: <20190612174119.7c0d94bd@coco.lan>
+In-Reply-To: <CAPcyv4g08r6bK_SyTjzKFRM7=wpTQLdmHqRSGh7r-e9YD4tq5Q@mail.gmail.com>
+References: <cover.1560364493.git.mchehab+samsung@kernel.org>
+ <075d5879142ff1b7ad16f5eccf4759d35ca02fd4.1560364494.git.mchehab+samsung@kernel.org>
+ <CAPcyv4g08r6bK_SyTjzKFRM7=wpTQLdmHqRSGh7r-e9YD4tq5Q@mail.gmail.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,54 +21,65 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Scargall, Steve" <steve.scargall@intel.com>, Jacky Wu <jacky.wu@memverge.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhhbmtzIERhbiBmb3IgdGhlIHJlcGx5IQ0KDQrvu79PbiA2LzE0LzE5LCAzOjA2IEFNLCAiRGFu
-IFdpbGxpYW1zIiA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPiB3cm90ZToNCg0KICAgIE9uIFdl
-ZCwgSnVuIDEyLCAyMDE5IGF0IDk6MDggUE0gWXVlIExpIDx5dWUubGlAbWVtdmVyZ2UuY29tPiB3
-cm90ZToNCiAgICA+DQogICAgPiBoaSBEYW4gYW5kIFN0ZXZlLA0KICAgID4NCiAgICA+DQogICAg
-DQogICAgSGksDQogICAgDQogICAgSSBqdXN0IGhhcHBlbmVkIHRvIHNlZSB0aGlzIGJ5IGx1Y2ss
-IHBsZWFzZSB1c2UgbXkgSW50ZWwgYWRkcmVzcywgYW5kDQogICAgY29weSB0aGUgbGlibnZkaW1t
-IG1haWxpbmcgbGlzdCBvbiBpc3N1ZXMgbGlrZSB0aGlzDQogICAgKGxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcpLg0KDQpPSy4NCiAgICANCiAgICA+IFdlIHJlY2VudGx5IHJhbiBpbnRvIGEgc3Ry
-YW5nZSBpc3N1ZSB3aGVyZSBuZGN0bCBjb21tYW5kIGhhbmdzIG9uIGRldiBkYXggYWZ0ZXIgb3Vy
-IHNvZnR3YXJlIHVzZXMgaXQuDQogICAgDQogICAgVGhlIGxhc3QgdGhpbmcgdGhhdCBkZXZpY2Ut
-ZGF4IHRlYXJkb3duIGRvZXMgaXMgd2FpdCBmb3IgYW55IHBpbm5lZA0KICAgIHBhZ2VzIHRvIGJl
-IHJlbGVhc2VkIGJlZm9yZSBhbGxvd2luZyB0aGUgZXhpdCB0byBwcm9jZWVkLg0KICAgIA0KT0su
-DQoNCiAgICA+IEluc2lkZSBvdXIgYXBwbGljYXRpb24sIHdlIGJhc2ljYWxseSB3aWxsIGZpcnN0
-IFJETUEgcmVnaXN0ZXIgdGhlIHdob2xlIGRldmljZSwgdGhlbiBkZXJlZ2lzdGVyLCBhbmQgZXhp
-dC4NCiAgICANCiAgICBJcyB0aGlzIGp1c3QgdXNpbmcgc2ltcGxlIGlidmVyYnMgdG8gdW5yZWdp
-c3RlciBvciBzb21ldGhpbmcgc3BlY2lmaWMNCiAgICB0byB0aGlzIGRyaXZlci4NCiAgICANCiAg
-ICBUaGVyZSB3YXMgYSBidWcgdXBzdHJlYW0gdGhhdCBhZGRyZXNzZWQgY2FzZXMgd2hlcmUgZGV2
-aWNlIHRlYXJkb3duDQogICAgcHJvY2VlZGVkIHdoZW4gaXQgc2hvdWxkbid0LCBidXQgdGhlIHNl
-cXVlbmNlIHlvdSBkZXNjcmliZSBpcyB0aGUNCiAgICBvcHBvc2l0ZSB0aGUgcGFnZXMgcGlucyBz
-aG91bGQgYmUgdG9ybiBkb3duIGJlZm9yZSB0aGUgZGV2aWNlDQogICAgcmVjb25maWd1cmF0aW9u
-Lg0KDQogICAgPiBIb3dldmVyLCBpZiB3ZSByZW1vdmUgdGhlIHJlZ2lzdHJhdGlvbiBhbmQgZGVy
-ZWdpc3RyYXRpb24gY29kZSwgbmRjdGwgd29ya3MgY29ycmVjdGx5IHdpdGhvdXQgaGFuZ2luZy4g
-VGhlIHByb2JsZW0gb2NjdXJzIGJvdGggb24gRFJBTSBlbXVsYXRlZCBkYXggYXMgd2VsbCBhcyBy
-ZWFsIFBNRU0gYmFja2VkIGRheC4NCiAgICA+DQogICAgPiBIZXJlIGlzIG91ciBzeXN0ZW0gaW5m
-b3JtYXRpb246DQogICAgPg0KICAgID4NCiAgICA+DQogICAgPiBDZW50T1MgNy42DQogICAgPg0K
-ICAgID4gVmFuaWxsYSBrZXJuZWwgMy4xMC4wLTk1Ny5lbDcueDg2XzY0DQogICAgDQogICAgQXJl
-IHlvdSBmYW1pbGlhciB3aXRoIHJlYnVpbGRpbmcgdGhlIGtlcm5lbD8gSSdkIGFzayB5b3UgdG8g
-dHJ5IHRvDQogICAgcmVwcm9kdWNlIHdpdGggdGhlIGxhdGVzdCBkZXZlbG9wbWVudCBrZXJuZWwg
-dGhhdCBpbmNsdWRlcyB0aGVzZQ0KICAgIGZpeGVzOg0KICAgIA0KICAgIDQ0MjJlZTg0NzZmMCBt
-bS9kZXZtX21lbXJlbWFwX3BhZ2VzOiBmaXggZmluYWwgcGFnZSBwdXQgcmFjZQ0KICAgIDc3MWYw
-NzE0ZDBkYyBQQ0kvUDJQRE1BOiB0cmFjayBwZ21hcCByZWZlcmVuY2VzIHBlciByZXNvdXJjZSwg
-bm90IGdsb2JhbGx5DQogICAgYWYzNzA4NWRlOTA2IGxpYi9nZW5hbGxvYzogaW50cm9kdWNlIGNo
-dW5rIG93bmVycw0KICAgIGUwMDQ3ZmY4YWE3NyBQQ0kvUDJQRE1BOiBmaXggdGhlIGdlbl9wb29s
-X2FkZF92aXJ0KCkgZmFpbHVyZSBwYXRoDQogICAgMDMxNWQ0N2Q2YWU5IG1tL2Rldm1fbWVtcmVt
-YXBfcGFnZXM6IGludHJvZHVjZSBkZXZtX21lbXVubWFwX3BhZ2VzDQogICAgMjE2NDc1YzdlYWE4
-IGRyaXZlcnMvYmFzZS9kZXZyZXM6IGludHJvZHVjZSBkZXZtX3JlbGVhc2VfYWN0aW9uKCkNCiAg
-ICANCiAgICAuLi5idXQgaXQgc291bmRzIGxpa2UgeW91IG1heSBiZSBoaXR0aW5nIGEgZGlmZmVy
-ZW50IGlzc3VlLg0KICAgIA0KVGhhbmtzIGZvciB0aGUgc3VnZ2VzdGlvbiwgd2Ugd2lsbCBkb3du
-bG9hZCB0aGUgdXBzdHJlYW0ga2VybmVsIGFuZCB0cnkgaXQgYWdhaW4uIFdpbGwgcG9zdCB0aGUg
-cmVzdWx0cyBzb29uLiANCg0KQmVzdCwgDQoNCll1ZQ0KDQoNCg0KDQpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+Em Wed, 12 Jun 2019 12:04:12 -0700
+Dan Williams <dan.j.williams@intel.com> escreveu:
+
+> Hi Mauro,
+> 
+> On Wed, Jun 12, 2019 at 11:38 AM Mauro Carvalho Chehab
+> <mchehab+samsung@kernel.org> wrote:
+> >
+> > Rename the mtd documentation files to ReST, add an  
+> 
+> s/mtd/nvdimm/
+
+Sorry, cut and paste issue :-)
+
+> 
+> > index for them and adjust in order to produce a nice html
+> > output via the Sphinx build system.
+> >
+> > At its new index.rst, let's add a :orphan: while this is not linked to
+> > the main index.rst file, in order to avoid build warnings.  
+> 
+> Looks ok, but I was not able to apply this one in isolation to give it
+> a try. Am I missing some pre-reqs compared to v5.2-rc4?
+
+I wrote the patch before v5.2-rc1, but, as this series touches a lot
+of stuff, it was rebased against today's linux-next (next-20190612).
+
+I didn't notice an conflict on this specific file during the rebases
+though. 
+
+There is a simple patch applied on linux-next after v5.2-rc4:
+
+commit 3d9cf48b2ca257f1a249b347236098c3cf9d54f1
+Author: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Date:   Thu May 9 15:40:49 2019 +0800
+
+    Documentation: nvdimm: Fix typo
+    
+    Remove the extra 'we '.
+    
+    Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+    Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+
+Could this be the cause of the issue you're noticing when
+trying to apply it?
+
+As this is signed-off by Jon, I suspect it went via docs-next.
+
+Thanks,
+Mauro
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
