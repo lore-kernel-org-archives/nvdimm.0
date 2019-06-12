@@ -1,31 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com
+ [IPv6:2a00:1450:4864:20::543])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD21E2125ADEF
- for <linux-nvdimm@lists.01.org>; Tue,  4 Jun 2019 02:14:25 -0700 (PDT)
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
- by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x5497cis072195
- for <linux-nvdimm@lists.01.org>; Tue, 4 Jun 2019 05:14:25 -0400
-Received: from e12.ny.us.ibm.com (e12.ny.us.ibm.com [129.33.205.202])
- by mx0b-001b2d01.pphosted.com with ESMTP id 2swjgp0w2b-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 04 Jun 2019 05:14:24 -0400
-Received: from localhost
- by e12.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Tue, 4 Jun 2019 10:14:24 +0100
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v3 6/6] mm/nvdimm: Use correct alignment when looking at first
- pfn from a region
-Date: Tue,  4 Jun 2019 14:43:57 +0530
-In-Reply-To: <20190604091357.32213-1-aneesh.kumar@linux.ibm.com>
-References: <20190604091357.32213-1-aneesh.kumar@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id D37E321290D20
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 19:33:38 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id w13so23198935eds.4
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 19:33:38 -0700 (PDT)
+Date: Wed, 12 Jun 2019 05:33:36 +0300
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: Re: [RFC PATCH v2 2/2] Implement sharing/unsharing of PMDs for FS/DAX
+Message-ID: <20190612023336.hbqs2ag4bv2qv2eh@box>
+References: <1559937063-8323-1-git-send-email-larry.bassel@oracle.com>
+ <1559937063-8323-3-git-send-email-larry.bassel@oracle.com>
 MIME-Version: 1.0
-Message-Id: <20190604091357.32213-6-aneesh.kumar@linux.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <1559937063-8323-3-git-send-email-larry.bassel@oracle.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -37,48 +27,99 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: Larry Bassel <larry.bassel@oracle.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, willy@infradead.org, linux-mm@kvack.org, mike.kravetz@oracle.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-We already add the start_pad to the resource->start but fails to section
-align the start. This make sure with altmap we compute the right first
-pfn when start_pad is zero and we are doing an align down of start address.
+On Fri, Jun 07, 2019 at 12:51:03PM -0700, Larry Bassel wrote:
+> diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+> index 3a54c9d..1c1ed4e 100644
+> --- a/mm/hugetlb.c
+> +++ b/mm/hugetlb.c
+> @@ -4653,9 +4653,9 @@ long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
+>  }
+>  
+>  #ifdef CONFIG_ARCH_HAS_HUGE_PMD_SHARE
+> -static unsigned long page_table_shareable(struct vm_area_struct *svma,
+> -				struct vm_area_struct *vma,
+> -				unsigned long addr, pgoff_t idx)
+> +unsigned long page_table_shareable(struct vm_area_struct *svma,
+> +				   struct vm_area_struct *vma,
+> +				   unsigned long addr, pgoff_t idx)
+>  {
+>  	unsigned long saddr = ((idx - svma->vm_pgoff) << PAGE_SHIFT) +
+>  				svma->vm_start;
+> @@ -4678,7 +4678,7 @@ static unsigned long page_table_shareable(struct vm_area_struct *svma,
+>  	return saddr;
+>  }
+>  
+> -static bool vma_shareable(struct vm_area_struct *vma, unsigned long addr)
+> +bool vma_shareable(struct vm_area_struct *vma, unsigned long addr)
+>  {
+>  	unsigned long base = addr & PUD_MASK;
+>  	unsigned long end = base + PUD_SIZE;
 
-vmem_altmap_offset() adjust the section aligned base_pfn offset.
-So we need to make sure we account for the same when computing base_pfn.
+This is going to be build error. mm/hugetlb.o doesn't build unlessp CONFIG_HUGETLBFS=y.
 
-ie, for altmap_valid case, our pfn_first should be:
+And I think both functions doesn't cover all DAX cases: VMA can be not
+aligned (due to vm_start and/or vm_pgoff) to 2M even if the file has 2M
+ranges allocated. See transhuge_vma_suitable().
 
-pfn_first = altmap->base_pfn + vmem_altmap_offset(altmap);
+And as I said before, nothing guarantees contiguous 2M ranges on backing
+storage.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- kernel/memremap.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+And in general I found piggybacking on hugetlb hacky.
 
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 1490e63f69a9..bf488b8658e7 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -60,9 +60,11 @@ static unsigned long pfn_first(struct dev_pagemap *pgmap)
- 	struct vmem_altmap *altmap = &pgmap->altmap;
- 	unsigned long pfn;
- 
--	pfn = res->start >> PAGE_SHIFT;
--	if (pgmap->altmap_valid)
--		pfn += vmem_altmap_offset(altmap);
-+	if (pgmap->altmap_valid) {
-+		pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
-+	} else
-+		pfn = PHYS_PFN(res->start);
-+
- 	return pfn;
- }
- 
+The solution has to stand on its own with own justification. Saying it
+worked for hugetlb and it has to work here would not fly. hugetlb is much
+more restrictive on use cases. THP has more corner cases.
+
+> diff --git a/mm/memory.c b/mm/memory.c
+> index ddf20bd..1ca8f75 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -3932,6 +3932,109 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
+>  	return 0;
+>  }
+>  
+> +#ifdef CONFIG_ARCH_HAS_HUGE_PMD_SHARE
+> +static pmd_t *huge_pmd_offset(struct mm_struct *mm,
+> +			      unsigned long addr, unsigned long sz)
+> +{
+> +	pgd_t *pgd;
+> +	p4d_t *p4d;
+> +	pud_t *pud;
+> +	pmd_t *pmd;
+> +
+> +	pgd = pgd_offset(mm, addr);
+> +	if (!pgd_present(*pgd))
+> +		return NULL;
+> +	p4d = p4d_offset(pgd, addr);
+> +	if (!p4d_present(*p4d))
+> +		return NULL;
+> +
+> +	pud = pud_offset(p4d, addr);
+> +	if (sz != PUD_SIZE && pud_none(*pud))
+> +		return NULL;
+> +	/* hugepage or swap? */
+> +	if (pud_huge(*pud) || !pud_present(*pud))
+> +		return (pmd_t *)pud;
+
+So do we or do we not support PUD pages? This is just broken.
+> +
+> +	pmd = pmd_offset(pud, addr);
+> +	if (sz != PMD_SIZE && pmd_none(*pmd))
+> +		return NULL;
+> +	/* hugepage or swap? */
+> +	if (pmd_huge(*pmd) || !pmd_present(*pmd))
+> +		return pmd;
+> +
+> +	return NULL;
+> +}
+> +
+
 -- 
-2.21.0
-
+ Kirill A. Shutemov
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
