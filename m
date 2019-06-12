@@ -1,22 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f196.google.com (mail-pf1-f196.google.com
- [209.85.210.196])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 26D9E21962301
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 19:19:55 -0700 (PDT)
-Received: by mail-pf1-f196.google.com with SMTP id y15so430783pfn.5
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 19:19:55 -0700 (PDT)
-Date: Wed, 26 Jun 2019 02:19:52 +0000
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH v5 18/18] MAINTAINERS: add proc sysctl KUnit test to PROC
- SYSCTL section
-Message-ID: <20190626021952.GV19023@42.do-not-panic.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com>
- <20190617082613.109131-19-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id A96CC21290D20
+ for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 19:23:13 -0700 (PDT)
+Date: Tue, 11 Jun 2019 22:23:09 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <332155967.34508010.1560306189624.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190611171416.GA1248@redhat.com>
+References: <20190611163802.25352-1-pagupta@redhat.com>
+ <20190611163802.25352-5-pagupta@redhat.com>
+ <20190611171416.GA1248@redhat.com>
+Subject: Re: [Qemu-devel] [PATCH v12 4/7] dm: enable synchronous dax
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190617082613.109131-19-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,20 +24,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: rdunlap@infradead.org, jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, dm-devel@redhat.com, adilger kernel <adilger.kernel@dilger.ca>, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, linux-nvdimm@lists.01.org, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval shaia <yuval.shaia@oracle.com>, stefanha@redhat.com, imammedo@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, tytso@mit.edu, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, cohuck@redhat.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, pbonzini@redhat.com, darrick wong <darrick.wong@oracle.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 17, 2019 at 01:26:13AM -0700, Brendan Higgins wrote:
-> Add entry for the new proc sysctl KUnit test to the PROC SYSCTL section.
+
+> On Tue, Jun 11 2019 at 12:37pm -0400,
+> Pankaj Gupta <pagupta@redhat.com> wrote:
 > 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> > This patch sets dax device 'DAXDEV_SYNC' flag if all the target
+> > devices of device mapper support synchrononous DAX. If device
+> > mapper consists of both synchronous and asynchronous dax devices,
+> > we don't set 'DAXDEV_SYNC' flag.
+> > 
+> > 'dm_table_supports_dax' is refactored to pass 'iterate_devices_fn'
+> > as argument so that the callers can pass the appropriate functions.
+> > 
+> > Suggested-by: Mike Snitzer <snitzer@redhat.com>
+> > Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+> 
+> Thanks, and for the benefit of others, passing function pointers like
+> this is perfectly fine IMHO because this code is _not_ in the fast
+> path.  These methods are only for device creation.
+> 
+> Reviewed-by: Mike Snitzer <snitzer@redhat.com>
 
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Thank you, Mike
 
-  Luis
+Best regards,
+Pankaj
+
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
