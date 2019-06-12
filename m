@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 265BF21290DEC
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 16:40:11 -0700 (PDT)
-Subject: [PATCH 2/6] libnvdimm/bus: Prevent duplicate device_unregister() calls
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Jun 2019 16:25:54 -0700
-Message-ID: <156029555412.419799.17084493871021141653.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id E386321295CB0
+ for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 05:49:45 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v13 6/7] ext4: disable map_sync for async flush
+Date: Wed, 12 Jun 2019 18:15:26 +0530
+Message-Id: <20190612124527.3763-7-pagupta@redhat.com>
+In-Reply-To: <20190612124527.3763-1-pagupta@redhat.com>
+References: <20190612124527.3763-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,96 +17,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: peterz@infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Erwin Tsaur <erwin.tsaur@oracle.com>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-A multithreaded namespace creation/destruction stress test currently
-fails with signatures like the following:
+Dont support 'MAP_SYNC' with non-DAX files and DAX files
+with asynchronous dax_device. Virtio pmem provides
+asynchronous host page cache flush mechanism. We don't
+support 'MAP_SYNC' with virtio pmem and ext4.
 
-    sysfs group 'power' not found for kobject 'dax1.1'
-    RIP: 0010:sysfs_remove_group+0x76/0x80
-    Call Trace:
-     device_del+0x73/0x370
-     device_unregister+0x16/0x50
-     nd_async_device_unregister+0x1e/0x30 [libnvdimm]
-     async_run_entry_fn+0x39/0x160
-     process_one_work+0x23c/0x5e0
-     worker_thread+0x3c/0x390
-
-    BUG: kernel NULL pointer dereference, address: 0000000000000020
-    RIP: 0010:klist_put+0x1b/0x6c
-    Call Trace:
-     klist_del+0xe/0x10
-     device_del+0x8a/0x2c9
-     ? __switch_to_asm+0x34/0x70
-     ? __switch_to_asm+0x40/0x70
-     device_unregister+0x44/0x4f
-     nd_async_device_unregister+0x22/0x2d [libnvdimm]
-     async_run_entry_fn+0x47/0x15a
-     process_one_work+0x1a2/0x2eb
-     worker_thread+0x1b8/0x26e
-
-Use the kill_device() helper to atomically resolve the race of multiple
-threads issuing kill, device_unregister(), requests.
-
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Reported-by: Erwin Tsaur <erwin.tsaur@oracle.com>
-Fixes: 4d88a97aa9e8 ("libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver...")
-Cc: <stable@vger.kernel.org>
-Link: https://github.com/pmem/ndctl/issues/96
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 ---
- drivers/nvdimm/bus.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ fs/ext4/file.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 2dca3034fee0..42713b210f51 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -547,13 +547,38 @@ EXPORT_SYMBOL(nd_device_register);
- 
- void nd_device_unregister(struct device *dev, enum nd_async_mode mode)
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 98ec11f69cd4..dee549339e13 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
  {
-+	bool killed;
-+
- 	switch (mode) {
- 	case ND_ASYNC:
-+		/*
-+		 * In the async case this is being triggered with the
-+		 * device lock held and the unregistration work needs to
-+		 * be moved out of line iff this is thread has won the
-+		 * race to schedule the deletion.
-+		 */
-+		if (!kill_device(dev))
-+			return;
-+
- 		get_device(dev);
- 		async_schedule_domain(nd_async_device_unregister, dev,
- 				&nd_async_domain);
- 		break;
- 	case ND_SYNC:
-+		/*
-+		 * In the sync case the device is being unregistered due
-+		 * to a state change of the parent. Claim the kill state
-+		 * to synchronize against other unregistration requests,
-+		 * or otherwise let the async path handle it if the
-+		 * unregistration was already queued.
-+		 */
-+		device_lock(dev);
-+		killed = kill_device(dev);
-+		device_unlock(dev);
-+
-+		if (!killed)
-+			return;
-+
- 		nd_synchronize();
- 		device_unregister(dev);
- 		break;
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
+ 	/*
+-	 * We don't support synchronous mappings for non-DAX files. At least
+-	 * until someone comes with a sensible use case.
++	 * We don't support synchronous mappings for non-DAX files and
++	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++	if (!daxdev_mapping_supported(vma, dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
