@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from EUR03-VE1-obe.outbound.protection.outlook.com
- (mail-eopbgr50076.outbound.protection.outlook.com [40.107.5.76])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 768492129641B
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 11:30:31 -0700 (PDT)
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH 01/22] mm: remove the unused ARCH_HAS_HMM_DEVICE Kconfig
- option
-Date: Thu, 13 Jun 2019 18:30:28 +0000
-Message-ID: <20190613183024.GN22062@mellanox.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2C515212963E0
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 02:43:37 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 01/22] mm: remove the unused ARCH_HAS_HMM_DEVICE Kconfig option
+Date: Thu, 13 Jun 2019 11:43:04 +0200
+Message-Id: <20190613094326.24093-2-hch@lst.de>
+In-Reply-To: <20190613094326.24093-1-hch@lst.de>
 References: <20190613094326.24093-1-hch@lst.de>
- <20190613094326.24093-2-hch@lst.de>
-In-Reply-To: <20190613094326.24093-2-hch@lst.de>
-Content-Language: en-US
-Content-ID: <1C3FD7879859344FA6C6020F72EC479A@eurprd05.prod.outlook.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,28 +23,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, =?iso-8859-1?Q?J=E9r=F4me_Glisse?= <jglisse@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, Jun 13, 2019 at 11:43:04AM +0200, Christoph Hellwig wrote:
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  mm/Kconfig | 10 ----------
->  1 file changed, 10 deletions(-)
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ mm/Kconfig | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-So long as we are willing to run a hmm.git we can merge only complete
-features going forward.
+diff --git a/mm/Kconfig b/mm/Kconfig
+index f0c76ba47695..0d2ba7e1f43e 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -675,16 +675,6 @@ config ARCH_HAS_HMM_MIRROR
+ 	depends on (X86_64 || PPC64)
+ 	depends on MMU && 64BIT
+ 
+-config ARCH_HAS_HMM_DEVICE
+-	bool
+-	default y
+-	depends on (X86_64 || PPC64)
+-	depends on MEMORY_HOTPLUG
+-	depends on MEMORY_HOTREMOVE
+-	depends on SPARSEMEM_VMEMMAP
+-	depends on ARCH_HAS_ZONE_DEVICE
+-	select XARRAY_MULTI
+-
+ config ARCH_HAS_HMM
+ 	bool
+ 	default y
+-- 
+2.20.1
 
-Thus we don't need the crazy process described in the commit message
-that (deliberately) introduced this unused kconfig.
-
-I also tried to find something in-flight for 5.3 that would need this
-and found nothing
-
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-
-Jason
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
