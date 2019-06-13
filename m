@@ -1,50 +1,49 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from ale.deltatee.com (ale.deltatee.com [207.54.116.67])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3805F21281EDF
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 13:12:33 -0700 (PDT)
+Return-Path: <owner-linux-mm@kvack.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH 08/22] memremap: pass a struct dev_pagemap to ->kill
+Date: Thu, 13 Jun 2019 19:26:20 +0000
+Message-ID: <20190613192615.GT22062@mellanox.com>
 References: <20190613094326.24093-1-hch@lst.de>
  <20190613094326.24093-9-hch@lst.de>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <d9e24f8e-986d-e7b8-cf1d-9344ba51719e@deltatee.com>
-Date: Thu, 13 Jun 2019 14:12:26 -0600
-MIME-Version: 1.0
 In-Reply-To: <20190613094326.24093-9-hch@lst.de>
 Content-Language: en-US
-Subject: Re: [PATCH 08/22] memremap: pass a struct dev_pagemap to ->kill
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-ID: <6555DEAFF3F4AF4A941D63DB429D69BC@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?Q?J=E9r=F4me_Glisse?= <jglisse@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 2019-06-13 3:43 a.m., Christoph Hellwig wrote:
+On Thu, Jun 13, 2019 at 11:43:11AM +0200, Christoph Hellwig wrote:
 > Passing the actual typed structure leads to more understandable code
 > vs the actual references.
+>=20
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+>  drivers/dax/device.c              | 7 +++----
+>  drivers/nvdimm/pmem.c             | 6 +++---
+>  drivers/pci/p2pdma.c              | 6 +++---
+>  include/linux/memremap.h          | 2 +-
+>  kernel/memremap.c                 | 4 ++--
+>  mm/hmm.c                          | 4 ++--
+>  tools/testing/nvdimm/test/iomap.c | 6 ++----
+>  7 files changed, 16 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index 4adab774dade..e23fa1bd8c97 100644
+> +++ b/drivers/dax/device.c
+> @@ -37,13 +37,12 @@ static void dev_dax_percpu_exit(void *data)
+>  	percpu_ref_exit(ref);
+>  }
+> =20
+> -static void dev_dax_percpu_kill(struct percpu_ref *data)
+> +static void dev_dax_percpu_kill(struct dev_pagemap *pgmap)
+>  {
 
-Ha, ok, I originally suggested this to Dan when he introduced the
-callback[1].
+Looks like it was always like this, but I also can't see a reason to
+use the percpu as a handle for a dev_pagemap callback.
 
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 
-Logan
-
-[1]
-https://lore.kernel.org/lkml/8f0cae82-130f-8a64-cfbd-fda5fd76bb79@deltatee.com/T/#u
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Jason
