@@ -1,9 +1,9 @@
-From: =?GB2312?B?sNeLbLO/?= <rlnnzhui-lmeDogO04HBWk0Htik3J/w@public.gmane.org>
-Subject: =?GB2312?B?16q3oqO6yOe6zr21tc2yybm6vNu48brNueax3LrPzay358/V?=
-Date: Thu, 13 Jun 2019 01:33:27 +0800
-Message-ID: <20190612173333.5834C21295CB4@ml01.01.org>
+From: =?GB2312?B?tq2bVs2i?= <dzquolun-Wt5stVhkcRzqlBn2x/YWAg@public.gmane.org>
+Subject: =?GB2312?B?o6hBRKOpveK+9rjfsuPB7LW8LtHQt6K+rcDt1+7Oqs23zNu1xM7KzOI=?=
+Date: Thu, 13 Jun 2019 13:37:48 +0800
+Message-ID: <20190613053749.528192129607E@ml01.01.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1477774746364419608=="
+Content-Type: multipart/mixed; boundary="===============3769431472858717259=="
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,17 +19,17 @@ List-Id: linux-nvdimm@lists.01.org
 
 This is a multi-part message in MIME format
 
---===============1477774746364419608==
+--===============3769431472858717259==
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Message-ID: <114499114499114499114499114499114499114499114499>
-From: =linux-nvdimm= <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: <rlnnzhui-lmeDogO04HBWk0Htik3J/w@public.gmane.org>
+Message-ID: <114496114496114496114496114496114496114496114496114496114496>
+From: =  linux-nvdimm =  <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: <dzquolun-Wt5stVhkcRzqlBn2x/YWAg@public.gmane.org>
 
-发送时间:2019-06-13  01:33:25
+发送时间:2019-06-13  13:37:46
 
---===============1477774746364419608==
+--===============3769431472858717259==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -40,4 +40,4 @@ Linux-nvdimm mailing list
 Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 https://lists.01.org/mailman/listinfo/linux-nvdimm
 
---===============1477774746364419608==--
+--===============3769431472858717259==--
