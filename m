@@ -1,114 +1,39 @@
 Return-Path: <owner-linux-mm@kvack.org>
-Date: Thu, 20 Jun 2019 21:32:41 +0200
-From: Michal Hocko <mhocko@kernel.org>
+Date: Fri, 14 Jun 2019 08:19:46 +0200
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH 03/22] mm: remove hmm_devmem_add_resource
-Message-ID: <20190620193241.GJ12083@dhcp22.suse.cz>
-References: <20190613094326.24093-1-hch@lst.de>
- <20190613094326.24093-4-hch@lst.de>
+Message-ID: <20190614061946.GE7246@lst.de>
+References: <20190613094326.24093-1-hch@lst.de> <20190613094326.24093-4-hch@lst.de> <20190613185239.GP22062@mellanox.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190613094326.24093-4-hch@lst.de>
+In-Reply-To: <20190613185239.GP22062@mellanox.com>
 Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, linux-mm@kvack.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu 13-06-19 11:43:06, Christoph Hellwig wrote:
-> This function has never been used since it was first added to the kernel
-> more than a year and a half ago, and if we ever grow a consumer of the
-> MEMORY_DEVICE_PUBLIC infrastructure it can easily use devm_memremap_pages
-> directly now that we've simplified the API for it.
+On Thu, Jun 13, 2019 at 06:52:44PM +0000, Jason Gunthorpe wrote:
+> On Thu, Jun 13, 2019 at 11:43:06AM +0200, Christoph Hellwig wrote:
+> > This function has never been used since it was first added to the kernel
+> > more than a year and a half ago, and if we ever grow a consumer of the
+> > MEMORY_DEVICE_PUBLIC infrastructure it can easily use devm_memremap_pages
+> > directly now that we've simplified the API for it.
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> nit: Have we simplified the interface for devm_memremap_pages() at
+> this point, or are you talking about later patches in this series.
 
-Acked-by: Michal Hocko <mhocko@suse.com>
+After this series.  I've just droped that part of the sentence to
+avoid confusion.
 
-> ---
->  include/linux/hmm.h |  3 ---
->  mm/hmm.c            | 54 ---------------------------------------------
->  2 files changed, 57 deletions(-)
+> I checked this and all the called functions are exported symbols, so
+> there is no blocker for a future driver to call devm_memremap_pages(),
+> maybe even with all this boiler plate, in future.
 > 
-> diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-> index 4867b9da1b6c..5761a39221a6 100644
-> --- a/include/linux/hmm.h
-> +++ b/include/linux/hmm.h
-> @@ -688,9 +688,6 @@ struct hmm_devmem {
->  struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
->  				  struct device *device,
->  				  unsigned long size);
-> -struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
-> -					   struct device *device,
-> -					   struct resource *res);
->  
->  /*
->   * hmm_devmem_page_set_drvdata - set per-page driver data field
-> diff --git a/mm/hmm.c b/mm/hmm.c
-> index ff2598eb7377..0c62426d1257 100644
-> --- a/mm/hmm.c
-> +++ b/mm/hmm.c
-> @@ -1445,58 +1445,4 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
->  	return devmem;
->  }
->  EXPORT_SYMBOL_GPL(hmm_devmem_add);
-> -
-> -struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
-> -					   struct device *device,
-> -					   struct resource *res)
-> -{
-> -	struct hmm_devmem *devmem;
-> -	void *result;
-> -	int ret;
-> -
-> -	if (res->desc != IORES_DESC_DEVICE_PUBLIC_MEMORY)
-> -		return ERR_PTR(-EINVAL);
-> -
-> -	dev_pagemap_get_ops();
-> -
-> -	devmem = devm_kzalloc(device, sizeof(*devmem), GFP_KERNEL);
-> -	if (!devmem)
-> -		return ERR_PTR(-ENOMEM);
-> -
-> -	init_completion(&devmem->completion);
-> -	devmem->pfn_first = -1UL;
-> -	devmem->pfn_last = -1UL;
-> -	devmem->resource = res;
-> -	devmem->device = device;
-> -	devmem->ops = ops;
-> -
-> -	ret = percpu_ref_init(&devmem->ref, &hmm_devmem_ref_release,
-> -			      0, GFP_KERNEL);
-> -	if (ret)
-> -		return ERR_PTR(ret);
-> -
-> -	ret = devm_add_action_or_reset(device, hmm_devmem_ref_exit,
-> -			&devmem->ref);
-> -	if (ret)
-> -		return ERR_PTR(ret);
-> -
-> -	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
-> -	devmem->pfn_last = devmem->pfn_first +
-> -			   (resource_size(devmem->resource) >> PAGE_SHIFT);
-> -	devmem->page_fault = hmm_devmem_fault;
-> -
-> -	devmem->pagemap.type = MEMORY_DEVICE_PUBLIC;
-> -	devmem->pagemap.res = *devmem->resource;
-> -	devmem->pagemap.page_free = hmm_devmem_free;
-> -	devmem->pagemap.altmap_valid = false;
-> -	devmem->pagemap.ref = &devmem->ref;
-> -	devmem->pagemap.data = devmem;
-> -	devmem->pagemap.kill = hmm_devmem_ref_kill;
-> -
-> -	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
-> -	if (IS_ERR(result))
-> -		return result;
-> -	return devmem;
-> -}
-> -EXPORT_SYMBOL_GPL(hmm_devmem_add_resource);
->  #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
-> -- 
-> 2.20.1
+> If we eventually get many users that need some simplified registration
+> then we should add a devm_memremap_pages_simplified() interface and
+> factor out that code when we can see the pattern.
 
--- 
-Michal Hocko
-SUSE Labs
+After this series devm_memremap_pages already is simpler to use than
+hmm_device_add_resource was before, so I'm not worried at all.  The
+series actually net removes lines from noveau (if only a few).
