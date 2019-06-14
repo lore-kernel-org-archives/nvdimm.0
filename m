@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C766421296070
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 02:43:38 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 02/22] mm: remove the struct hmm_device infrastructure
-Date: Thu, 13 Jun 2019 11:43:05 +0200
-Message-Id: <20190613094326.24093-3-hch@lst.de>
-In-Reply-To: <20190613094326.24093-1-hch@lst.de>
-References: <20190613094326.24093-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 4107821295B25
+ for <linux-nvdimm@lists.01.org>; Fri, 14 Jun 2019 01:39:50 -0700 (PDT)
+Subject: Re: [PATCH v9 07/12] mm/sparsemem: Prepare for sub-section ranges
+References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155977191770.2443951.1506588644989416699.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Message-ID: <cb4b20ce-cd07-b274-7033-b2b7ca6df1dd@redhat.com>
+Date: Fri, 14 Jun 2019 10:39:40 +0200
 MIME-Version: 1.0
+In-Reply-To: <155977191770.2443951.1506588644989416699.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,144 +24,231 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This code is a trivial wrapper around device model helpers, which
-should have been integrated into the driver device model usage from
-the start.  Assuming it actually had users, which it never had since
-the code was added more than 1 1/2 years ago.
+On 05.06.19 23:58, Dan Williams wrote:
+> Prepare the memory hot-{add,remove} paths for handling sub-section
+> ranges by plumbing the starting page frame and number of pages being
+> handled through arch_{add,remove}_memory() to
+> sparse_{add,remove}_one_section().
+> 
+> This is simply plumbing, small cleanups, and some identifier renames. No
+> intended functional changes.
+> 
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Logan Gunthorpe <logang@deltatee.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  include/linux/memory_hotplug.h |    5 +-
+>  mm/memory_hotplug.c            |  114 +++++++++++++++++++++++++---------------
+>  mm/sparse.c                    |   15 ++---
+>  3 files changed, 81 insertions(+), 53 deletions(-)
+> 
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index 79e0add6a597..3ab0282b4fe5 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -348,9 +348,10 @@ extern int add_memory_resource(int nid, struct resource *resource);
+>  extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>  		unsigned long nr_pages, struct vmem_altmap *altmap);
+>  extern bool is_memblock_offlined(struct memory_block *mem);
+> -extern int sparse_add_one_section(int nid, unsigned long start_pfn,
+> -				  struct vmem_altmap *altmap);
+> +extern int sparse_add_section(int nid, unsigned long pfn,
+> +		unsigned long nr_pages, struct vmem_altmap *altmap);
+>  extern void sparse_remove_one_section(struct mem_section *ms,
+> +		unsigned long pfn, unsigned long nr_pages,
+>  		unsigned long map_offset, struct vmem_altmap *altmap);
+>  extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+>  					  unsigned long pnum);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 4b882c57781a..399bf78bccc5 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -252,51 +252,84 @@ void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
+>  }
+>  #endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
+>  
+> -static int __meminit __add_section(int nid, unsigned long phys_start_pfn,
+> -				   struct vmem_altmap *altmap)
+> +static int __meminit __add_section(int nid, unsigned long pfn,
+> +		unsigned long nr_pages,	struct vmem_altmap *altmap)
+>  {
+>  	int ret;
+>  
+> -	if (pfn_valid(phys_start_pfn))
+> +	if (pfn_valid(pfn))
+>  		return -EEXIST;
+>  
+> -	ret = sparse_add_one_section(nid, phys_start_pfn, altmap);
+> +	ret = sparse_add_section(nid, pfn, nr_pages, altmap);
+>  	return ret < 0 ? ret : 0;
+>  }
+>  
+> +static int check_pfn_span(unsigned long pfn, unsigned long nr_pages,
+> +		const char *reason)
+> +{
+> +	/*
+> +	 * Disallow all operations smaller than a sub-section and only
+> +	 * allow operations smaller than a section for
+> +	 * SPARSEMEM_VMEMMAP. Note that check_hotplug_memory_range()
+> +	 * enforces a larger memory_block_size_bytes() granularity for
+> +	 * memory that will be marked online, so this check should only
+> +	 * fire for direct arch_{add,remove}_memory() users outside of
+> +	 * add_memory_resource().
+> +	 */
+> +	unsigned long min_align;
+> +
+> +	if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
+> +		min_align = PAGES_PER_SUBSECTION;
+> +	else
+> +		min_align = PAGES_PER_SECTION;
+> +	if (!IS_ALIGNED(pfn, min_align)
+> +			|| !IS_ALIGNED(nr_pages, min_align)) {
+> +		WARN(1, "Misaligned __%s_pages start: %#lx end: #%lx\n",
+> +				reason, pfn, pfn + nr_pages - 1);
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+>  /*
+>   * Reasonably generic function for adding memory.  It is
+>   * expected that archs that support memory hotplug will
+>   * call this function after deciding the zone to which to
+>   * add the new pages.
+>   */
+> -int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+> -		unsigned long nr_pages, struct mhp_restrictions *restrictions)
+> +int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
+> +		struct mhp_restrictions *restrictions)
+>  {
+>  	unsigned long i;
+> -	int err = 0;
+> -	int start_sec, end_sec;
+> +	int start_sec, end_sec, err;
+>  	struct vmem_altmap *altmap = restrictions->altmap;
+>  
+> -	/* during initialize mem_map, align hot-added range to section */
+> -	start_sec = pfn_to_section_nr(phys_start_pfn);
+> -	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
+> -
+>  	if (altmap) {
+>  		/*
+>  		 * Validate altmap is within bounds of the total request
+>  		 */
+> -		if (altmap->base_pfn != phys_start_pfn
+> +		if (altmap->base_pfn != pfn
+>  				|| vmem_altmap_offset(altmap) > nr_pages) {
+>  			pr_warn_once("memory add fail, invalid altmap\n");
+> -			err = -EINVAL;
+> -			goto out;
+> +			return -EINVAL;
+>  		}
+>  		altmap->alloc = 0;
+>  	}
+>  
+> +	err = check_pfn_span(pfn, nr_pages, "add");
+> +	if (err)
+> +		return err;
+> +
+> +	start_sec = pfn_to_section_nr(pfn);
+> +	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
+>  	for (i = start_sec; i <= end_sec; i++) {
+> -		err = __add_section(nid, section_nr_to_pfn(i), altmap);
+> +		unsigned long pfns;
+> +
+> +		pfns = min(nr_pages, PAGES_PER_SECTION
+> +				- (pfn & ~PAGE_SECTION_MASK));
+> +		err = __add_section(nid, pfn, pfns, altmap);
+> +		pfn += pfns;
+> +		nr_pages -= pfns;
+>  
+>  		/*
+>  		 * EEXIST is finally dealt with by ioresource collision
+> @@ -309,7 +342,6 @@ int __ref __add_pages(int nid, unsigned long phys_start_pfn,
+>  		cond_resched();
+>  	}
+>  	vmemmap_populate_print_last();
+> -out:
+>  	return err;
+>  }
+>  
+> @@ -487,10 +519,10 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
+>  	pgdat->node_spanned_pages = 0;
+>  }
+>  
+> -static void __remove_zone(struct zone *zone, unsigned long start_pfn)
+> +static void __remove_zone(struct zone *zone, unsigned long start_pfn,
+> +		unsigned long nr_pages)
+>  {
+>  	struct pglist_data *pgdat = zone->zone_pgdat;
+> -	int nr_pages = PAGES_PER_SECTION;
+>  	unsigned long flags;
+>  
+>  	pgdat_resize_lock(zone->zone_pgdat, &flags);
+> @@ -499,27 +531,23 @@ static void __remove_zone(struct zone *zone, unsigned long start_pfn)
+>  	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+>  }
+>  
+> -static void __remove_section(struct zone *zone, struct mem_section *ms,
+> -			     unsigned long map_offset,
+> -			     struct vmem_altmap *altmap)
+> +static void __remove_section(struct zone *zone, unsigned long pfn,
+> +		unsigned long nr_pages, unsigned long map_offset,
+> +		struct vmem_altmap *altmap)
+>  {
+> -	unsigned long start_pfn;
+> -	int scn_nr;
+> +	struct mem_section *ms = __nr_to_section(pfn_to_section_nr(pfn));
+>  
+>  	if (WARN_ON_ONCE(!valid_section(ms)))
+>  		return;
+>  
+> -	scn_nr = __section_nr(ms);
+> -	start_pfn = section_nr_to_pfn((unsigned long)scn_nr);
+> -	__remove_zone(zone, start_pfn);
+> -
+> -	sparse_remove_one_section(ms, map_offset, altmap);
+> +	__remove_zone(zone, pfn, nr_pages);
+> +	sparse_remove_one_section(ms, pfn, nr_pages, map_offset, altmap);
+>  }
+>  
+>  /**
+>   * __remove_pages() - remove sections of pages from a zone
+>   * @zone: zone from which pages need to be removed
+> - * @phys_start_pfn: starting pageframe (must be aligned to start of a section)
+> + * @pfn: starting pageframe (must be aligned to start of a section)
+>   * @nr_pages: number of pages to remove (must be multiple of section size)
+>   * @altmap: alternative device page map or %NULL if default memmap is used
+>   *
+> @@ -528,31 +556,31 @@ static void __remove_section(struct zone *zone, struct mem_section *ms,
+>   * sure that pages are marked reserved and zones are adjust properly by
+>   * calling offline_pages().
+>   */
+> -void __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+> +void __remove_pages(struct zone *zone, unsigned long pfn,
+>  		    unsigned long nr_pages, struct vmem_altmap *altmap)
+>  {
+> -	unsigned long i;
+>  	unsigned long map_offset = 0;
+> -	int sections_to_remove;
+> +	int i, start_sec, end_sec;
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/hmm.h | 20 ------------
- mm/hmm.c            | 80 ---------------------------------------------
- 2 files changed, 100 deletions(-)
+Can you convert these to unsigned longs? I'll be sending a clenup that
+will make this consistent tree-wide soon. Just making sure we won't miss
+this.
 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 0fa8ea34ccef..4867b9da1b6c 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -717,26 +717,6 @@ static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
- {
- 	return page->hmm_data;
- }
--
--
--/*
-- * struct hmm_device - fake device to hang device memory onto
-- *
-- * @device: device struct
-- * @minor: device minor number
-- */
--struct hmm_device {
--	struct device		device;
--	unsigned int		minor;
--};
--
--/*
-- * A device driver that wants to handle multiple devices memory through a
-- * single fake device can use hmm_device to do so. This is purely a helper and
-- * it is not strictly needed, in order to make use of any HMM functionality.
-- */
--struct hmm_device *hmm_device_new(void *drvdata);
--void hmm_device_put(struct hmm_device *hmm_device);
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- #else /* IS_ENABLED(CONFIG_HMM) */
- static inline void hmm_mm_destroy(struct mm_struct *mm) {}
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 886b18695b97..ff2598eb7377 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1499,84 +1499,4 @@ struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
- 	return devmem;
- }
- EXPORT_SYMBOL_GPL(hmm_devmem_add_resource);
--
--/*
-- * A device driver that wants to handle multiple devices memory through a
-- * single fake device can use hmm_device to do so. This is purely a helper
-- * and it is not needed to make use of any HMM functionality.
-- */
--#define HMM_DEVICE_MAX 256
--
--static DECLARE_BITMAP(hmm_device_mask, HMM_DEVICE_MAX);
--static DEFINE_SPINLOCK(hmm_device_lock);
--static struct class *hmm_device_class;
--static dev_t hmm_device_devt;
--
--static void hmm_device_release(struct device *device)
--{
--	struct hmm_device *hmm_device;
--
--	hmm_device = container_of(device, struct hmm_device, device);
--	spin_lock(&hmm_device_lock);
--	clear_bit(hmm_device->minor, hmm_device_mask);
--	spin_unlock(&hmm_device_lock);
--
--	kfree(hmm_device);
--}
--
--struct hmm_device *hmm_device_new(void *drvdata)
--{
--	struct hmm_device *hmm_device;
--
--	hmm_device = kzalloc(sizeof(*hmm_device), GFP_KERNEL);
--	if (!hmm_device)
--		return ERR_PTR(-ENOMEM);
--
--	spin_lock(&hmm_device_lock);
--	hmm_device->minor = find_first_zero_bit(hmm_device_mask, HMM_DEVICE_MAX);
--	if (hmm_device->minor >= HMM_DEVICE_MAX) {
--		spin_unlock(&hmm_device_lock);
--		kfree(hmm_device);
--		return ERR_PTR(-EBUSY);
--	}
--	set_bit(hmm_device->minor, hmm_device_mask);
--	spin_unlock(&hmm_device_lock);
--
--	dev_set_name(&hmm_device->device, "hmm_device%d", hmm_device->minor);
--	hmm_device->device.devt = MKDEV(MAJOR(hmm_device_devt),
--					hmm_device->minor);
--	hmm_device->device.release = hmm_device_release;
--	dev_set_drvdata(&hmm_device->device, drvdata);
--	hmm_device->device.class = hmm_device_class;
--	device_initialize(&hmm_device->device);
--
--	return hmm_device;
--}
--EXPORT_SYMBOL(hmm_device_new);
--
--void hmm_device_put(struct hmm_device *hmm_device)
--{
--	put_device(&hmm_device->device);
--}
--EXPORT_SYMBOL(hmm_device_put);
--
--static int __init hmm_init(void)
--{
--	int ret;
--
--	ret = alloc_chrdev_region(&hmm_device_devt, 0,
--				  HMM_DEVICE_MAX,
--				  "hmm_device");
--	if (ret)
--		return ret;
--
--	hmm_device_class = class_create(THIS_MODULE, "hmm_device");
--	if (IS_ERR(hmm_device_class)) {
--		unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
--		return PTR_ERR(hmm_device_class);
--	}
--	return 0;
--}
--
--device_initcall(hmm_init);
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
 -- 
-2.20.1
 
+Thanks,
+
+David / dhildenb
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
