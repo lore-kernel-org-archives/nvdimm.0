@@ -1,11 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail106.syd.optusnet.com.au (mail106.syd.optusnet.com.au
- [211.29.132.42]) by ml01.01.org (Postfix) with ESMTP id 0689821250CAE
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 19:10:24 -0700 (PDT)
-Date: Fri, 14 Jun 2019 12:09:21 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3C6B921290D22
+ for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 16:58:50 -0700 (PDT)
+Date: Thu, 13 Jun 2019 17:00:11 -0700
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Message-ID: <20190614020921.GM14363@dread.disaster.area>
+Message-ID: <20190614000010.GA783@iweiny-DESK2.sc.intel.com>
 References: <20190606104203.GF7433@quack2.suse.cz>
  <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
  <20190607110426.GB12765@quack2.suse.cz>
@@ -31,7 +33,7 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Dave Chinner <david@fromorbit.com>, Jeff Layton <jlayton@kernel.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, John Hubbard <jhubbard@nvidia.com>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Thu, Jun 13, 2019 at 08:45:30PM -0300, Jason Gunthorpe wrote:
@@ -64,23 +66,14 @@ On Thu, Jun 13, 2019 at 08:45:30PM -0300, Jason Gunthorpe wrote:
 > Because process A had a layout lease (and presumably a MR) and the
 > layout was still modified in way that invalidates the RDMA MR.
 
-The lease holder is allowed to modify the mapping it has a lease
-over. That's necessary so lease holders can write data into
-unallocated space in the file. The lease is there to prevent third
-parties from modifying the layout without the lease holder being
-informed and taking appropriate action to allow that 3rd party
-modification to occur.
+Oh sorry I miss read the above...  (got Process A and  B mixed up...)
 
-If the lease holder modifies the mapping in a way that causes it's
-own internal state to screw up, then that's a bug in the lease
-holder application.
+Right, but Process A still can't free those blocks because the gup pin exists
+on them...  So yea it can't _just_ be a layout lease which controls this on the
+"file fd".
 
-Cheers,
+Ira
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
