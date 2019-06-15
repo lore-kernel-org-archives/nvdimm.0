@@ -1,80 +1,35 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from gateway31.websitewelcome.com (gateway31.websitewelcome.com
- [192.185.144.91])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6F4582127420E
- for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 14:06:36 -0700 (PDT)
-Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
- by gateway31.websitewelcome.com (Postfix) with ESMTP id 02F782176
- for <linux-nvdimm@lists.01.org>; Mon, 10 Jun 2019 16:06:35 -0500 (CDT)
-Date: Mon, 10 Jun 2019 16:06:13 -0500
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] libnvdimm, region: Use struct_size() in kzalloc()
-Message-ID: <20190610210613.GA21989@embeddedor>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Sat, 15 Jun 2019 16:30:43 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 06/22] mm: factor out a devm_request_free_mem_region
+ helper
+Message-ID: <20190615143043.GA27825@lst.de>
+References: <20190613094326.24093-1-hch@lst.de> <20190613094326.24093-7-hch@lst.de> <56c130b1-5ed9-7e75-41d9-c61e73874cb8@nvidia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Keith Busch <keith.busch@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+In-Reply-To: <56c130b1-5ed9-7e75-41d9-c61e73874cb8@nvidia.com>
+Sender: owner-linux-mm@kvack.org
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, linux-mm@kvack.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-One of the more common cases of allocation size calculations is finding
-the size of a structure that has a zero-sized array at the end, along
-with memory for some number of elements for that array. For example:
+On Fri, Jun 14, 2019 at 07:21:54PM -0700, John Hubbard wrote:
+> On 6/13/19 2:43 AM, Christoph Hellwig wrote:
+> > Keep the physical address allocation that hmm_add_device does with the
+> > rest of the resource code, and allow future reuse of it without the hmm
+> > wrapper.
+> > 
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > ---
+> >  include/linux/ioport.h |  2 ++
+> >  kernel/resource.c      | 39 +++++++++++++++++++++++++++++++++++++++
+> >  mm/hmm.c               | 33 ++++-----------------------------
+> >  3 files changed, 45 insertions(+), 29 deletions(-)
+> 
+> Some trivial typos noted below, but this accurately moves the code
+> into a helper routine, looks good.
 
-struct nd_region {
-	...
-        struct nd_mapping mapping[0];
-};
-
-instance = kzalloc(sizeof(struct nd_region) + sizeof(struct nd_mapping) *
-                          count, GFP_KERNEL);
-
-Instead of leaving these open-coded and prone to type mistakes, we can
-now use the new struct_size() helper:
-
-instance = kzalloc(struct_size(instance, mapping, count), GFP_KERNEL);
-
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/nvdimm/region_devs.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..88becc87e234 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1027,10 +1027,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 		}
- 		region_buf = ndbr;
- 	} else {
--		nd_region = kzalloc(sizeof(struct nd_region)
--				+ sizeof(struct nd_mapping)
--				* ndr_desc->num_mappings,
--				GFP_KERNEL);
-+		nd_region = kzalloc(struct_size(nd_region, mapping,
-+						ndr_desc->num_mappings),
-+				    GFP_KERNEL);
- 		region_buf = nd_region;
- 	}
- 
--- 
-2.21.0
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Thanks for the typo spotting.  These two actually were copy and pasted
+from the original hmm code, but I'll gladly fix them for the next
+iteration.
