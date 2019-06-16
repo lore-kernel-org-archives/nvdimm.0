@@ -1,129 +1,57 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9F8C21296419
- for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:12 -0700 (PDT)
-Subject: [PATCH v10 04/13] mm/hotplug: Prepare shrink_{zone,
- pgdat}_span for sub-section removal
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 22:51:55 -0700
-Message-ID: <156092351496.979959.12703722803097017492.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [PATCH v9 04/12] mm/sparsemem: Convert kmalloc_section_memmap() to populate_section_memmap()
+In-Reply-To: <155977189139.2443951.460884430946346998.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com> <155977189139.2443951.460884430946346998.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sun, 16 Jun 2019 11:36:47 +0530
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>
+Content-Type: text/plain
+Message-Id: <8736kahxmw.fsf@linux.ibm.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, David Hildenbrand <david@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.orgosalvador@suse.demhocko@suse.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Sub-section hotplug support reduces the unit of operation of hotplug
-from section-sized-units (PAGES_PER_SECTION) to sub-section-sized units
-(PAGES_PER_SUBSECTION). Teach shrink_{zone,pgdat}_span() to consider
-PAGES_PER_SUBSECTION boundaries as the points where pfn_valid(), not
-valid_section(), can toggle.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/memory_hotplug.c |   29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+> Allow sub-section sized ranges to be added to the memmap.
+> populate_section_memmap() takes an explict pfn range rather than
+> assuming a full section, and those parameters are plumbed all the way
+> through to vmmemap_populate(). There should be no sub-section usage in
+> current deployments. New warnings are added to clarify which memmap
+> allocation paths are sub-section capable.
+>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Logan Gunthorpe <logang@deltatee.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  arch/x86/mm/init_64.c |    4 ++-
+>  include/linux/mm.h    |    4 ++-
+>  mm/sparse-vmemmap.c   |   21 +++++++++++------
+>  mm/sparse.c           |   61 +++++++++++++++++++++++++++++++------------------
+>  4 files changed, 57 insertions(+), 33 deletions(-)
+>
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index 8335ac6e1112..688fb0687e55 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -1520,7 +1520,9 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+>  {
+>  	int err;
+>  
+> -	if (boot_cpu_has(X86_FEATURE_PSE))
+> +	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
+> +		err = vmemmap_populate_basepages(start, end, node);
+> +	else if (boot_cpu_has(X86_FEATURE_PSE))
+>  		err = vmemmap_populate_hugepages(start, end, node, altmap);
+>  	else if (altmap) {
+>  		pr_err_once("%s: no cpu support for altmap allocations\n",
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 7b963c2d3a0d..647859a1d119 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -318,12 +318,8 @@ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
- 				     unsigned long start_pfn,
- 				     unsigned long end_pfn)
- {
--	struct mem_section *ms;
--
--	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(start_pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; start_pfn < end_pfn; start_pfn += PAGES_PER_SUBSECTION) {
-+		if (unlikely(!pfn_valid(start_pfn)))
- 			continue;
- 
- 		if (unlikely(pfn_to_nid(start_pfn) != nid))
-@@ -343,15 +339,12 @@ static unsigned long find_biggest_section_pfn(int nid, struct zone *zone,
- 				    unsigned long start_pfn,
- 				    unsigned long end_pfn)
- {
--	struct mem_section *ms;
- 	unsigned long pfn;
- 
- 	/* pfn is the end pfn of a memory section. */
- 	pfn = end_pfn - 1;
--	for (; pfn >= start_pfn; pfn -= PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn >= start_pfn; pfn -= PAGES_PER_SUBSECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (unlikely(pfn_to_nid(pfn) != nid))
-@@ -373,7 +366,6 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
- 	unsigned long zone_end_pfn = z;
- 	unsigned long pfn;
--	struct mem_section *ms;
- 	int nid = zone_to_nid(zone);
- 
- 	zone_span_writelock(zone);
-@@ -410,10 +402,8 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 	 * it check the zone has only hole or not.
- 	 */
- 	pfn = zone_start_pfn;
--	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn < zone_end_pfn; pfn += PAGES_PER_SUBSECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (page_zone(pfn_to_page(pfn)) != zone)
-@@ -441,7 +431,6 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	unsigned long p = pgdat_end_pfn(pgdat); /* pgdat_end_pfn namespace clash */
- 	unsigned long pgdat_end_pfn = p;
- 	unsigned long pfn;
--	struct mem_section *ms;
- 	int nid = pgdat->node_id;
- 
- 	if (pgdat_start_pfn == start_pfn) {
-@@ -478,10 +467,8 @@ static void shrink_pgdat_span(struct pglist_data *pgdat,
- 	 * has only hole or not.
- 	 */
- 	pfn = pgdat_start_pfn;
--	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SECTION) {
--		ms = __pfn_to_section(pfn);
--
--		if (unlikely(!valid_section(ms)))
-+	for (; pfn < pgdat_end_pfn; pfn += PAGES_PER_SUBSECTION) {
-+		if (unlikely(!pfn_valid(pfn)))
- 			continue;
- 
- 		if (pfn_to_nid(pfn) != nid)
+Can we move this to another patch? I am wondering what the x86 behaviour
+here is? If the range is less that PAGES_PER_SECTION we don't allow to
+use pmem as the map device? We sliently use memory range?
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+-aneesh
