@@ -1,187 +1,169 @@
-Return-Path: <linux-kernel-owner@vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B298B2128A65C
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:27:45 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 02/25] mm: remove the struct hmm_device infrastructure
+Date: Mon, 17 Jun 2019 14:27:10 +0200
+Message-Id: <20190617122733.22432-3-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20190617082613.109131-2-brendanhiggins@google.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com> <20190617082613.109131-2-brendanhiggins@google.com>
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v5 01/18] kunit: test: add KUnit test runner core
-Date: Wed, 19 Jun 2019 17:15:25 -0700
-Message-Id: <20190620001526.93426218BE@mail.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Brendan Higgins (2019-06-17 01:25:56)
-> diff --git a/kunit/test.c b/kunit/test.c
-> new file mode 100644
-> index 0000000000000..d05d254f1521f
-> --- /dev/null
-> +++ b/kunit/test.c
-> @@ -0,0 +1,210 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * Base unit test (KUnit) API.
-> + *
-> + * Copyright (C) 2019, Google LLC.
-> + * Author: Brendan Higgins <brendanhiggins@google.com>
-> + */
-> +
-> +#include <linux/sched/debug.h>
-> +#include <kunit/test.h>
-> +
-> +static bool kunit_get_success(struct kunit *test)
-> +{
-> +       unsigned long flags;
-> +       bool success;
-> +
-> +       spin_lock_irqsave(&test->lock, flags);
-> +       success =3D test->success;
-> +       spin_unlock_irqrestore(&test->lock, flags);
+This code is a trivial wrapper around device model helpers, which
+should have been integrated into the driver device model usage from
+the start.  Assuming it actually had users, which it never had since
+the code was added more than 1 1/2 years ago.
 
-I still don't understand the locking scheme in this code. Is the
-intention to make getter and setter APIs that are "safe" by adding in a
-spinlock that is held around getting and setting various members in the
-kunit structure?
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+---
+ include/linux/hmm.h | 20 ------------
+ mm/hmm.c            | 80 ---------------------------------------------
+ 2 files changed, 100 deletions(-)
 
-In what situation is there more than one thread reading or writing the
-kunit struct? Isn't it only a single process that is going to be
-operating on this structure? And why do we need to disable irqs? Are we
-expecting to be modifying the unit tests from irq contexts?
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 7007123842ba..c92f353d701a 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -753,26 +753,6 @@ static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
+ {
+ 	return page->hmm_data;
+ }
+-
+-
+-/*
+- * struct hmm_device - fake device to hang device memory onto
+- *
+- * @device: device struct
+- * @minor: device minor number
+- */
+-struct hmm_device {
+-	struct device		device;
+-	unsigned int		minor;
+-};
+-
+-/*
+- * A device driver that wants to handle multiple devices memory through a
+- * single fake device can use hmm_device to do so. This is purely a helper and
+- * it is not strictly needed, in order to make use of any HMM functionality.
+- */
+-struct hmm_device *hmm_device_new(void *drvdata);
+-void hmm_device_put(struct hmm_device *hmm_device);
+ #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+ #else /* IS_ENABLED(CONFIG_HMM) */
+ static inline void hmm_mm_destroy(struct mm_struct *mm) {}
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 4c770a734c0d..f3350fc567ab 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1525,84 +1525,4 @@ struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
+ 	return devmem;
+ }
+ EXPORT_SYMBOL_GPL(hmm_devmem_add_resource);
+-
+-/*
+- * A device driver that wants to handle multiple devices memory through a
+- * single fake device can use hmm_device to do so. This is purely a helper
+- * and it is not needed to make use of any HMM functionality.
+- */
+-#define HMM_DEVICE_MAX 256
+-
+-static DECLARE_BITMAP(hmm_device_mask, HMM_DEVICE_MAX);
+-static DEFINE_SPINLOCK(hmm_device_lock);
+-static struct class *hmm_device_class;
+-static dev_t hmm_device_devt;
+-
+-static void hmm_device_release(struct device *device)
+-{
+-	struct hmm_device *hmm_device;
+-
+-	hmm_device = container_of(device, struct hmm_device, device);
+-	spin_lock(&hmm_device_lock);
+-	clear_bit(hmm_device->minor, hmm_device_mask);
+-	spin_unlock(&hmm_device_lock);
+-
+-	kfree(hmm_device);
+-}
+-
+-struct hmm_device *hmm_device_new(void *drvdata)
+-{
+-	struct hmm_device *hmm_device;
+-
+-	hmm_device = kzalloc(sizeof(*hmm_device), GFP_KERNEL);
+-	if (!hmm_device)
+-		return ERR_PTR(-ENOMEM);
+-
+-	spin_lock(&hmm_device_lock);
+-	hmm_device->minor = find_first_zero_bit(hmm_device_mask, HMM_DEVICE_MAX);
+-	if (hmm_device->minor >= HMM_DEVICE_MAX) {
+-		spin_unlock(&hmm_device_lock);
+-		kfree(hmm_device);
+-		return ERR_PTR(-EBUSY);
+-	}
+-	set_bit(hmm_device->minor, hmm_device_mask);
+-	spin_unlock(&hmm_device_lock);
+-
+-	dev_set_name(&hmm_device->device, "hmm_device%d", hmm_device->minor);
+-	hmm_device->device.devt = MKDEV(MAJOR(hmm_device_devt),
+-					hmm_device->minor);
+-	hmm_device->device.release = hmm_device_release;
+-	dev_set_drvdata(&hmm_device->device, drvdata);
+-	hmm_device->device.class = hmm_device_class;
+-	device_initialize(&hmm_device->device);
+-
+-	return hmm_device;
+-}
+-EXPORT_SYMBOL(hmm_device_new);
+-
+-void hmm_device_put(struct hmm_device *hmm_device)
+-{
+-	put_device(&hmm_device->device);
+-}
+-EXPORT_SYMBOL(hmm_device_put);
+-
+-static int __init hmm_init(void)
+-{
+-	int ret;
+-
+-	ret = alloc_chrdev_region(&hmm_device_devt, 0,
+-				  HMM_DEVICE_MAX,
+-				  "hmm_device");
+-	if (ret)
+-		return ret;
+-
+-	hmm_device_class = class_create(THIS_MODULE, "hmm_device");
+-	if (IS_ERR(hmm_device_class)) {
+-		unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
+-		return PTR_ERR(hmm_device_class);
+-	}
+-	return 0;
+-}
+-
+-device_initcall(hmm_init);
+ #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+-- 
+2.20.1
 
-> +
-> +       return success;
-> +}
-> +
-> +static void kunit_set_success(struct kunit *test, bool success)
-> +{
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&test->lock, flags);
-> +       test->success =3D success;
-> +       spin_unlock_irqrestore(&test->lock, flags);
-> +}
-> +
-> +static int kunit_vprintk_emit(int level, const char *fmt, va_list args)
-> +{
-> +       return vprintk_emit(0, level, NULL, 0, fmt, args);
-> +}
-> +
-> +static int kunit_printk_emit(int level, const char *fmt, ...)
-> +{
-> +       va_list args;
-> +       int ret;
-> +
-> +       va_start(args, fmt);
-> +       ret =3D kunit_vprintk_emit(level, fmt, args);
-> +       va_end(args);
-> +
-> +       return ret;
-> +}
-> +
-> +static void kunit_vprintk(const struct kunit *test,
-> +                         const char *level,
-> +                         struct va_format *vaf)
-> +{
-> +       kunit_printk_emit(level[1] - '0', "\t# %s: %pV", test->name, vaf);
-> +}
-> +
-> +static bool kunit_has_printed_tap_version;
-
-Can you please move this into function local scope in the function
-below?
-
-> +
-> +static void kunit_print_tap_version(void)
-> +{
-> +       if (!kunit_has_printed_tap_version) {
-> +               kunit_printk_emit(LOGLEVEL_INFO, "TAP version 14\n");
-> +               kunit_has_printed_tap_version =3D true;
-> +       }
-> +}
-> +
-[...]
-> +
-> +static bool kunit_module_has_succeeded(struct kunit_module *module)
-> +{
-> +       const struct kunit_case *test_case;
-> +       bool success =3D true;
-> +
-> +       for (test_case =3D module->test_cases; test_case->run_case; test_=
-case++)
-> +               if (!test_case->success) {
-> +                       success =3D false;
-> +                       break;
-
-Why not 'return false'?
-
-> +               }
-> +
-> +       return success;
-
-And 'return true'?
-
-> +}
-> +
-> +static size_t kunit_module_counter =3D 1;
-> +
-> +static void kunit_print_subtest_end(struct kunit_module *module)
-> +{
-> +       kunit_print_ok_not_ok(false,
-> +                             kunit_module_has_succeeded(module),
-> +                             kunit_module_counter++,
-> +                             module->name);
-> +}
-> +
-> +static void kunit_print_test_case_ok_not_ok(struct kunit_case *test_case,
-> +                                           size_t test_number)
-> +{
-> +       kunit_print_ok_not_ok(true,
-> +                             test_case->success,
-> +                             test_number,
-> +                             test_case->name);
-> +}
-> +
-> +void kunit_init_test(struct kunit *test, const char *name)
-> +{
-> +       spin_lock_init(&test->lock);
-> +       test->name =3D name;
-> +       test->success =3D true;
-> +}
-> +
-> +/*
-> + * Performs all logic to run a test case.
-> + */
-> +static void kunit_run_case(struct kunit_module *module,
-> +                          struct kunit_case *test_case)
-> +{
-> +       struct kunit test;
-> +       int ret =3D 0;
-> +
-> +       kunit_init_test(&test, test_case->name);
-> +
-> +       if (module->init) {
-> +               ret =3D module->init(&test);
-> +               if (ret) {
-> +                       kunit_err(&test, "failed to initialize: %d\n", re=
-t);
-> +                       kunit_set_success(&test, false);
-> +                       return;
-> +               }
-> +       }
-> +
-> +       if (!ret)
-> +               test_case->run_case(&test);
-
-Do we need this if condition? ret can only be set to non-zero above but
-then we'll exit the function early so it seems unnecessary. Given that,
-ret should probably be moved into the module->init path.
-
-> +
-> +       if (module->exit)
-> +               module->exit(&test);
-> +
-> +       test_case->success =3D kunit_get_success(&test);
-> +}
-> +
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
