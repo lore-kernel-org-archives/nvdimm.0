@@ -1,46 +1,60 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A36821962301
- for <linux-nvdimm@lists.01.org>; Wed, 19 Jun 2019 04:23:33 -0700 (PDT)
-Date: Wed, 19 Jun 2019 13:23:02 +0200
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH] libnvdimm: Enable unit test infrastructure compile checks
-Message-ID: <20190619112302.GA10534@lst.de>
-References: <156080474760.3765313.13075804303259765566.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Subject: [PATCH] libnvdimm: Enable unit test infrastructure compile checks
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 17 Jun 2019 13:52:27 -0700
+Message-ID: <156080474760.3765313.13075804303259765566.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <156080474760.3765313.13075804303259765566.stgit@dwillia2-desk3.amr.corp.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 17, 2019 at 01:52:27PM -0700, Dan Williams wrote:
-> The infrastructure to mock core libnvdimm routines for unit testing
-> purposes is prone to bitrot relative to refactoring of that core.
-> Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
-> This does not result in a functional unit test environment, it is only a
-> helper for 0day to catch unit test build regressions.
+The infrastructure to mock core libnvdimm routines for unit testing
+purposes is prone to bitrot relative to refactoring of that core.
+Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
+This does not result in a functional unit test environment, it is only a
+helper for 0day to catch unit test build regressions.
 
-Looks fine:
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/Kconfig  |   11 +++++++++++
+ drivers/nvdimm/Makefile |    4 ++++
+ 2 files changed, 15 insertions(+)
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-
-I'm still curious what the point of hiding kernel code in tools/
-is vs fully integrating it with the build system.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 54500798f23a..57d3a6c3ac70 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -118,4 +118,15 @@ config NVDIMM_KEYS
+ 	depends on ENCRYPTED_KEYS
+ 	depends on (LIBNVDIMM=ENCRYPTED_KEYS) || LIBNVDIMM=m
+ 
++config NVDIMM_TEST_BUILD
++	bool "Build the unit test core"
++	depends on COMPILE_TEST
++	default COMPILE_TEST
++	help
++	  Build the core of the unit test infrastructure.  The result of
++	  this build is non-functional for unit test execution, but it
++	  otherwise helps catch build errors induced by changes to the
++	  core devm_memremap_pages() implementation and other
++	  infrastructure.
++
+ endif
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index 6f2a088afad6..40080c120363 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -28,3 +28,7 @@ libnvdimm-$(CONFIG_BTT) += btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_KEYS) += security.o
++
++TOOLS := ../../tools
++TEST_SRC := $(TOOLS)/testing/nvdimm/test
++obj-$(CONFIG_NVDIMM_TEST_BUILD) := $(TEST_SRC)/iomap.o
