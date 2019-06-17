@@ -3,14 +3,14 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C3098212963E0
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 02:44:27 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 63D6421296B01
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:30 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 19/22] mm: simplify ZONE_DEVICE page private data
-Date: Thu, 13 Jun 2019 11:43:22 +0200
-Message-Id: <20190613094326.24093-20-hch@lst.de>
-In-Reply-To: <20190613094326.24093-1-hch@lst.de>
-References: <20190613094326.24093-1-hch@lst.de>
+Subject: [PATCH 22/25] mm: simplify ZONE_DEVICE page private data
+Date: Mon, 17 Jun 2019 14:27:30 +0200
+Message-Id: <20190617122733.22432-23-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -40,7 +40,7 @@ Signed-off-by: Christoph Hellwig <hch@lst.de>
  4 files changed, 12 insertions(+), 43 deletions(-)
 
 diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-index 9e32bc8ecbc7..27aa4e72abe9 100644
+index 0fb7a44b8bc4..42c026010938 100644
 --- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
 +++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
 @@ -104,11 +104,8 @@ struct nouveau_migrate {
@@ -87,7 +87,7 @@ index 9e32bc8ecbc7..27aa4e72abe9 100644
  		dst_addr = page_to_pfn(dpage) - chunk->pfn_first;
  		dst_addr = (dst_addr << PAGE_SHIFT) + chunk->bo->bo.offset;
  
-@@ -864,7 +860,7 @@ nouveau_dmem_convert_pfn(struct nouveau_drm *drm,
+@@ -862,7 +858,7 @@ nouveau_dmem_convert_pfn(struct nouveau_drm *drm,
  			continue;
  		}
  
@@ -97,10 +97,10 @@ index 9e32bc8ecbc7..27aa4e72abe9 100644
  		addr = (addr + chunk->bo->bo.mem.start) << PAGE_SHIFT;
  
 diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 13152ab504ec..e095a8b55dfa 100644
+index 50ef29958604..454be41f2eaf 100644
 --- a/include/linux/hmm.h
 +++ b/include/linux/hmm.h
-@@ -550,33 +550,6 @@ static inline void hmm_mm_init(struct mm_struct *mm)
+@@ -586,33 +586,6 @@ static inline void hmm_mm_destroy(struct mm_struct *mm) {}
  static inline void hmm_mm_init(struct mm_struct *mm) {}
  #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
  
@@ -148,10 +148,10 @@ index 8ec38b11b361..f33a1289c101 100644
  		};
  
 diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d66bc8abe0af..d069ee1f4c2e 100644
+index 17a39d40a556..c0e031c52db5 100644
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
-@@ -5887,12 +5887,12 @@ void __ref memmap_init_zone_device(struct zone *zone,
+@@ -5886,12 +5886,12 @@ void __ref memmap_init_zone_device(struct zone *zone,
  		__SetPageReserved(page);
  
  		/*
@@ -164,7 +164,7 @@ index d66bc8abe0af..d069ee1f4c2e 100644
  		 */
  		page->pgmap = pgmap;
 -		page->hmm_data = 0;
-+		page->zone_device_data = 0;
++		page->zone_device_data = NULL;
  
  		/*
  		 * Mark the block movable so that blocks are reserved for
