@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7C73B2128DD56
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:12:06 -0700 (PDT)
-Subject: [PATCH v9 00/12] mm: Sub-section memory hotplug support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jun 2019 14:57:49 -0700
-Message-ID: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 206342129DBAD
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:29 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 20/25] mm: remove hmm_devmem_add
+Date: Mon, 17 Jun 2019 14:27:28 +0200
+Message-Id: <20190617122733.22432-21-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,153 +23,319 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, linux-kernel@vger.kernel.org, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Jonathan Corbet <corbet@lwn.net>, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, stable@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-nvdimm@lists.01.org, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v8 [1]:
-- Rebase on next-20190604 to incorporate the removal of the
-  MHP_MEMBLOCK_API flag and other cleanups from David.
+There isn't really much value add in the hmm_devmem_add wrapper and
+more, as using devm_memremap_pages directly now is just as simple.
 
-- Move definition of subsection_mask_set() earlier into "mm/sparsemem:
-  Add helpers track active portions of a section at boot" (Oscar)
-
-- Cleanup unnecessary IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP) in
-  section_deactivate() in response to a request (declined) to split the
-  pure CONFIG_SPARSEMEM bits from section_{de,}activate(). I submit that
-  the maintenance is less error prone, especially when modifying common
-  logic, if the implementations remain unified. (Oscar)
-
-- Cleanup sparse_add_section() vs sparse_index_init() return code.
-  (Oscar)
-
-- Document ZONE_DEVICE and subsection semantics relative to
-  CONFIG_SPARSEMEM_VMEMMAP in Documentation/vm/memory-model.rst. (Mike)
-
-[1]: https://lore.kernel.org/lkml/155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com/
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
+ Documentation/vm/hmm.rst |  26 --------
+ include/linux/hmm.h      | 129 ---------------------------------------
+ mm/hmm.c                 | 110 ---------------------------------
+ 3 files changed, 265 deletions(-)
 
-The memory hotplug section is an arbitrary / convenient unit for memory
-hotplug. 'Section-size' units have bled into the user interface
-('memblock' sysfs) and can not be changed without breaking existing
-userspace. The section-size constraint, while mostly benign for typical
-memory hotplug, has and continues to wreak havoc with 'device-memory'
-use cases, persistent memory (pmem) in particular. Recall that pmem uses
-devm_memremap_pages(), and subsequently arch_add_memory(), to allocate a
-'struct page' memmap for pmem. However, it does not use the 'bottom
-half' of memory hotplug, i.e. never marks pmem pages online and never
-exposes the userspace memblock interface for pmem. This leaves an
-opening to redress the section-size constraint.
+diff --git a/Documentation/vm/hmm.rst b/Documentation/vm/hmm.rst
+index 7b6eeda5a7c0..b1c960fe246d 100644
+--- a/Documentation/vm/hmm.rst
++++ b/Documentation/vm/hmm.rst
+@@ -336,32 +336,6 @@ directly using struct page for device memory which left most kernel code paths
+ unaware of the difference. We only need to make sure that no one ever tries to
+ map those pages from the CPU side.
+ 
+-HMM provides a set of helpers to register and hotplug device memory as a new
+-region needing a struct page. This is offered through a very simple API::
+-
+- struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+-                                   struct device *device,
+-                                   unsigned long size);
+- void hmm_devmem_remove(struct hmm_devmem *devmem);
+-
+-The hmm_devmem_ops is where most of the important things are::
+-
+- struct hmm_devmem_ops {
+-     void (*free)(struct hmm_devmem *devmem, struct page *page);
+-     vm_fault_t (*fault)(struct hmm_devmem *devmem,
+-                  struct vm_area_struct *vma,
+-                  unsigned long addr,
+-                  struct page *page,
+-                  unsigned flags,
+-                  pmd_t *pmdp);
+- };
+-
+-The first callback (free()) happens when the last reference on a device page is
+-dropped. This means the device page is now free and no longer used by anyone.
+-The second callback happens whenever the CPU tries to access a device page
+-which it cannot do. This second callback must trigger a migration back to
+-system memory.
+-
+ 
+ Migration to and from device memory
+ ===================================
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 89571e8d9c63..50ef29958604 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -587,135 +587,6 @@ static inline void hmm_mm_init(struct mm_struct *mm) {}
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+ 
+ #if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
+-struct hmm_devmem;
+-
+-/*
+- * struct hmm_devmem_ops - callback for ZONE_DEVICE memory events
+- *
+- * @free: call when refcount on page reach 1 and thus is no longer use
+- * @fault: call when there is a page fault to unaddressable memory
+- *
+- * Both callback happens from page_free() and page_fault() callback of struct
+- * dev_pagemap respectively. See include/linux/memremap.h for more details on
+- * those.
+- *
+- * The hmm_devmem_ops callback are just here to provide a coherent and
+- * uniq API to device driver and device driver should not register their
+- * own page_free() or page_fault() but rely on the hmm_devmem_ops call-
+- * back.
+- */
+-struct hmm_devmem_ops {
+-	/*
+-	 * free() - free a device page
+-	 * @devmem: device memory structure (see struct hmm_devmem)
+-	 * @page: pointer to struct page being freed
+-	 *
+-	 * Call back occurs whenever a device page refcount reach 1 which
+-	 * means that no one is holding any reference on the page anymore
+-	 * (ZONE_DEVICE page have an elevated refcount of 1 as default so
+-	 * that they are not release to the general page allocator).
+-	 *
+-	 * Note that callback has exclusive ownership of the page (as no
+-	 * one is holding any reference).
+-	 */
+-	void (*free)(struct hmm_devmem *devmem, struct page *page);
+-	/*
+-	 * fault() - CPU page fault or get user page (GUP)
+-	 * @devmem: device memory structure (see struct hmm_devmem)
+-	 * @vma: virtual memory area containing the virtual address
+-	 * @addr: virtual address that faulted or for which there is a GUP
+-	 * @page: pointer to struct page backing virtual address (unreliable)
+-	 * @flags: FAULT_FLAG_* (see include/linux/mm.h)
+-	 * @pmdp: page middle directory
+-	 * Return: VM_FAULT_MINOR/MAJOR on success or one of VM_FAULT_ERROR
+-	 *   on error
+-	 *
+-	 * The callback occurs whenever there is a CPU page fault or GUP on a
+-	 * virtual address. This means that the device driver must migrate the
+-	 * page back to regular memory (CPU accessible).
+-	 *
+-	 * The device driver is free to migrate more than one page from the
+-	 * fault() callback as an optimization. However if the device decides
+-	 * to migrate more than one page it must always priotirize the faulting
+-	 * address over the others.
+-	 *
+-	 * The struct page pointer is only given as a hint to allow quick
+-	 * lookup of internal device driver data. A concurrent migration
+-	 * might have already freed that page and the virtual address might
+-	 * no longer be backed by it. So it should not be modified by the
+-	 * callback.
+-	 *
+-	 * Note that mmap semaphore is held in read mode at least when this
+-	 * callback occurs, hence the vma is valid upon callback entry.
+-	 */
+-	vm_fault_t (*fault)(struct hmm_devmem *devmem,
+-		     struct vm_area_struct *vma,
+-		     unsigned long addr,
+-		     const struct page *page,
+-		     unsigned int flags,
+-		     pmd_t *pmdp);
+-};
+-
+-/*
+- * struct hmm_devmem - track device memory
+- *
+- * @completion: completion object for device memory
+- * @pfn_first: first pfn for this resource (set by hmm_devmem_add())
+- * @pfn_last: last pfn for this resource (set by hmm_devmem_add())
+- * @resource: IO resource reserved for this chunk of memory
+- * @pagemap: device page map for that chunk
+- * @device: device to bind resource to
+- * @ops: memory operations callback
+- * @ref: per CPU refcount
+- * @page_fault: callback when CPU fault on an unaddressable device page
+- *
+- * This is a helper structure for device drivers that do not wish to implement
+- * the gory details related to hotplugging new memoy and allocating struct
+- * pages.
+- *
+- * Device drivers can directly use ZONE_DEVICE memory on their own if they
+- * wish to do so.
+- *
+- * The page_fault() callback must migrate page back, from device memory to
+- * system memory, so that the CPU can access it. This might fail for various
+- * reasons (device issues,  device have been unplugged, ...). When such error
+- * conditions happen, the page_fault() callback must return VM_FAULT_SIGBUS and
+- * set the CPU page table entry to "poisoned".
+- *
+- * Note that because memory cgroup charges are transferred to the device memory,
+- * this should never fail due to memory restrictions. However, allocation
+- * of a regular system page might still fail because we are out of memory. If
+- * that happens, the page_fault() callback must return VM_FAULT_OOM.
+- *
+- * The page_fault() callback can also try to migrate back multiple pages in one
+- * chunk, as an optimization. It must, however, prioritize the faulting address
+- * over all the others.
+- */
+-
+-struct hmm_devmem {
+-	struct completion		completion;
+-	unsigned long			pfn_first;
+-	unsigned long			pfn_last;
+-	struct resource			*resource;
+-	struct device			*device;
+-	struct dev_pagemap		pagemap;
+-	const struct hmm_devmem_ops	*ops;
+-	struct percpu_ref		ref;
+-};
+-
+-/*
+- * To add (hotplug) device memory, HMM assumes that there is no real resource
+- * that reserves a range in the physical address space (this is intended to be
+- * use by unaddressable device memory). It will reserve a physical range big
+- * enough and allocate struct page for it.
+- *
+- * The device driver can wrap the hmm_devmem struct inside a private device
+- * driver struct.
+- */
+-struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+-				  struct device *device,
+-				  unsigned long size);
+-
+ /*
+  * hmm_devmem_page_set_drvdata - set per-page driver data field
+  *
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 0ef1a1921afb..17ed080d9c32 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1324,113 +1324,3 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+ }
+ EXPORT_SYMBOL(hmm_range_dma_unmap);
+ #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
+-
+-
+-#if IS_ENABLED(CONFIG_DEVICE_PRIVATE) ||  IS_ENABLED(CONFIG_DEVICE_PUBLIC)
+-static void hmm_devmem_ref_release(struct percpu_ref *ref)
+-{
+-	struct hmm_devmem *devmem;
+-
+-	devmem = container_of(ref, struct hmm_devmem, ref);
+-	complete(&devmem->completion);
+-}
+-
+-static void hmm_devmem_ref_exit(struct dev_pagemap *pgmap)
+-{
+-	struct hmm_devmem *devmem;
+-
+-	devmem = container_of(pgmap, struct hmm_devmem, pagemap);
+-	wait_for_completion(&devmem->completion);
+-	percpu_ref_exit(pgmap->ref);
+-}
+-
+-static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
+-{
+-	percpu_ref_kill(pgmap->ref);
+-}
+-
+-static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
+-{
+-	struct hmm_devmem *devmem =
+-		container_of(vmf->page->pgmap, struct hmm_devmem, pagemap);
+-
+-	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
+-			vmf->flags, vmf->pmd);
+-}
+-
+-static void hmm_devmem_free(struct page *page)
+-{
+-	struct hmm_devmem *devmem =
+-		container_of(page->pgmap, struct hmm_devmem, pagemap);
+-
+-	devmem->ops->free(devmem, page);
+-}
+-
+-static const struct dev_pagemap_ops hmm_pagemap_ops = {
+-	.page_free		= hmm_devmem_free,
+-	.kill			= hmm_devmem_ref_kill,
+-	.cleanup		= hmm_devmem_ref_exit,
+-	.migrate_to_ram		= hmm_devmem_migrate_to_ram,
+-};
+-
+-/*
+- * hmm_devmem_add() - hotplug ZONE_DEVICE memory for device memory
+- *
+- * @ops: memory event device driver callback (see struct hmm_devmem_ops)
+- * @device: device struct to bind the resource too
+- * @size: size in bytes of the device memory to add
+- * Return: pointer to new hmm_devmem struct ERR_PTR otherwise
+- *
+- * This function first finds an empty range of physical address big enough to
+- * contain the new resource, and then hotplugs it as ZONE_DEVICE memory, which
+- * in turn allocates struct pages. It does not do anything beyond that; all
+- * events affecting the memory will go through the various callbacks provided
+- * by hmm_devmem_ops struct.
+- *
+- * Device driver should call this function during device initialization and
+- * is then responsible of memory management. HMM only provides helpers.
+- */
+-struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+-				  struct device *device,
+-				  unsigned long size)
+-{
+-	struct hmm_devmem *devmem;
+-	void *result;
+-	int ret;
+-
+-	devmem = devm_kzalloc(device, sizeof(*devmem), GFP_KERNEL);
+-	if (!devmem)
+-		return ERR_PTR(-ENOMEM);
+-
+-	init_completion(&devmem->completion);
+-	devmem->pfn_first = -1UL;
+-	devmem->pfn_last = -1UL;
+-	devmem->resource = NULL;
+-	devmem->device = device;
+-	devmem->ops = ops;
+-
+-	ret = percpu_ref_init(&devmem->ref, &hmm_devmem_ref_release,
+-			      0, GFP_KERNEL);
+-	if (ret)
+-		return ERR_PTR(ret);
+-
+-	devmem->resource = devm_request_free_mem_region(device, &iomem_resource,
+-			size);
+-	if (IS_ERR(devmem->resource))
+-		return ERR_CAST(devmem->resource);
+-	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
+-	devmem->pfn_last = devmem->pfn_first +
+-			   (resource_size(devmem->resource) >> PAGE_SHIFT);
+-
+-	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+-	devmem->pagemap.res = *devmem->resource;
+-	devmem->pagemap.ops = &hmm_pagemap_ops;
+-	devmem->pagemap.ref = &devmem->ref;
+-
+-	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
+-	if (IS_ERR(result))
+-		return result;
+-	return devmem;
+-}
+-EXPORT_SYMBOL_GPL(hmm_devmem_add);
+-#endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+-- 
+2.20.1
 
-To date, the libnvdimm subsystem has attempted to inject padding to
-satisfy the internal constraints of arch_add_memory(). Beyond
-complicating the code, leading to bugs [2], wasting memory, and limiting
-configuration flexibility, the padding hack is broken when the platform
-changes this physical memory alignment of pmem from one boot to the
-next. Device failure (intermittent or permanent) and physical
-reconfiguration are events that can cause the platform firmware to
-change the physical placement of pmem on a subsequent boot, and device
-failure is an everyday event in a data-center.
-
-It turns out that sections are only a hard requirement of the
-user-facing interface for memory hotplug and with a bit more
-infrastructure sub-section arch_add_memory() support can be added for
-kernel internal usages like devm_memremap_pages(). Here is an analysis
-of the current design assumptions in the current code and how they are
-addressed in the new implementation:
-
-Current design assumptions:
-
-- Sections that describe boot memory (early sections) are never
-  unplugged / removed.
-
-- pfn_valid(), in the CONFIG_SPARSEMEM_VMEMMAP=y, case devolves to a
-  valid_section() check
-
-- __add_pages() and helper routines assume all operations occur in
-  PAGES_PER_SECTION units.
-
-- The memblock sysfs interface only comprehends full sections
-
-New design assumptions:
-
-- Sections are instrumented with a sub-section bitmask to track (on x86)
-  individual 2MB sub-divisions of a 128MB section.
-
-- Partially populated early sections can be extended with additional
-  sub-sections, and those sub-sections can be removed with
-  arch_remove_memory(). With this in place we no longer lose usable memory
-  capacity to padding.
-
-- pfn_valid() is updated to look deeper than valid_section() to also check the
-  active-sub-section mask. This indication is in the same cacheline as
-  the valid_section() so the performance impact is expected to be
-  negligible. So far the lkp robot has not reported any regressions.
-
-- Outside of the core vmemmap population routines which are replaced,
-  other helper routines like shrink_{zone,pgdat}_span() are updated to
-  handle the smaller granularity. Core memory hotplug routines that deal
-  with online memory are not touched.
-
-- The existing memblock sysfs user api guarantees / assumptions are
-  not touched since this capability is limited to !online
-  !memblock-sysfs-accessible sections.
-
-Meanwhile the issue reports continue to roll in from users that do not
-understand when and how the 128MB constraint will bite them. The current
-implementation relied on being able to support at least one misaligned
-namespace, but that immediately falls over on any moderately complex
-namespace creation attempt. Beyond the initial problem of 'System RAM'
-colliding with pmem, and the unsolvable problem of physical alignment
-changes, Linux is now being exposed to platforms that collide pmem
-ranges with other pmem ranges by default [3]. In short,
-devm_memremap_pages() has pushed the venerable section-size constraint
-past the breaking point, and the simplicity of section-aligned
-arch_add_memory() is no longer tenable.
-
-These patches are exposed to the kbuild robot on my libnvdimm-pending
-branch [4], and a preview of the unit test for this functionality is
-available on the 'subsection-pending' branch of ndctl [5].
-
-[2]: https://lore.kernel.org/r/155000671719.348031.2347363160141119237.stgit@dwillia2-desk3.amr.corp.intel.com
-[3]: https://github.com/pmem/ndctl/issues/76
-[4]: https://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git/log/?h=libnvdimm-pending
-[5]: https://github.com/pmem/ndctl/commit/7c59b4867e1c
-
-
----
-
-Dan Williams (12):
-      mm/sparsemem: Introduce struct mem_section_usage
-      mm/sparsemem: Add helpers track active portions of a section at boot
-      mm/hotplug: Prepare shrink_{zone,pgdat}_span for sub-section removal
-      mm/sparsemem: Convert kmalloc_section_memmap() to populate_section_memmap()
-      mm/hotplug: Kill is_dev_zone() usage in __remove_pages()
-      mm: Kill is_dev_zone() helper
-      mm/sparsemem: Prepare for sub-section ranges
-      mm/sparsemem: Support sub-section hotplug
-      mm: Document ZONE_DEVICE memory-model implications
-      mm/devm_memremap_pages: Enable sub-section remap
-      libnvdimm/pfn: Fix fsdax-mode namespace info-block zero-fields
-      libnvdimm/pfn: Stop padding pmem namespaces to section alignment
-
-
- Documentation/vm/memory-model.rst    |   39 ++++
- arch/powerpc/include/asm/sparsemem.h |    3 
- arch/x86/mm/init_64.c                |    4 
- drivers/nvdimm/dax_devs.c            |    2 
- drivers/nvdimm/pfn.h                 |   15 -
- drivers/nvdimm/pfn_devs.c            |   95 +++------
- include/linux/memory_hotplug.h       |    7 -
- include/linux/mm.h                   |    4 
- include/linux/mmzone.h               |   92 +++++++--
- kernel/memremap.c                    |   61 ++----
- mm/memory_hotplug.c                  |  171 +++++++++-------
- mm/page_alloc.c                      |   10 +
- mm/sparse-vmemmap.c                  |   21 +-
- mm/sparse.c                          |  359 +++++++++++++++++++++++-----------
- 14 files changed, 534 insertions(+), 349 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
