@@ -1,148 +1,457 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v5 00/18] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Date: Mon, 17 Jun 2019 01:25:55 -0700
-Message-ID: <20190617082613.109131-1-brendanhiggins@google.com>
+Subject: [PATCH v5 01/18] kunit: test: add KUnit test runner core
+Date: Mon, 17 Jun 2019 01:25:56 -0700
+Message-ID: <20190617082613.109131-2-brendanhiggins@google.com>
+References: <20190617082613.109131-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190617082613.109131-1-brendanhiggins@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>
 List-Id: linux-nvdimm@lists.01.org
 
-IyMgVEw7RFIKCkEgbm90IHNvIHF1aWNrIGZvbGxvdy11cCB0byBTdGVwaGVuJ3Mgc3VnZ2VzdGlv
-bnMgb24gUEFUQ0ggdjQuIE5vdGhpbmcKdGhhdCByZWFsbHkgY2hhbmdlcyBhbnkgZnVuY3Rpb25h
-bGl0eSBvciB1c2FnZSB3aXRoIHRoZSBtaW5vciBleGNlcHRpb24Kb2YgYSBjb3VwbGUgcHVibGlj
-IGZ1bmN0aW9ucyB0aGF0IFN0ZXBoZW4gYXNrZWQgbWUgdG8gcmVuYW1lLgpOZXZlcnRoZWxlc3Ms
-IGEgZ29vZCBkZWFsIG9mIGNsZWFuIHVwIGFuZCBmaXhlcy4gU2VlIGNoYW5nZXMgYmVsb3cuCgpB
-cyBmb3Igb3VyIGN1cnJlbnQgc3RhdHVzLCByaWdodCBub3cgd2UgZ290IFJldmlld2VkLWJ5cyBv
-biBhbGwgcGF0Y2hlcwpleGNlcHQ6CgotIFtQQVRDSCB2NSAwOC8xOF0gb2JqdG9vbDogYWRkIGt1
-bml0X3RyeV9jYXRjaF90aHJvdyB0byB0aGUgbm9yZXR1cm4KICBsaXN0CgpIb3dldmVyLCBpdCB3
-b3VsZCBwcm9iYWJseSBiZSBnb29kIHRvIGdldCByZXZpZXdzL2Fja3MgZnJvbSB0aGUKc3Vic3lz
-dGVtIG1haW50YWluZXJzIG9uOgoKLSBbUEFUQ0ggdjUgMDYvMThdIGtidWlsZDogZW5hYmxlIGJ1
-aWxkaW5nIEtVbml0Ci0gW1BBVENIIHY1IDA4LzE4XSBvYmp0b29sOiBhZGQga3VuaXRfdHJ5X2Nh
-dGNoX3Rocm93IHRvIHRoZSBub3JldHVybgogIGxpc3QKLSBbUEFUQ0ggdjUgMTUvMThdIERvY3Vt
-ZW50YXRpb246IGt1bml0OiBhZGQgZG9jdW1lbnRhdGlvbiBmb3IgS1VuaXQKLSBbUEFUQ0ggdjUg
-MTcvMThdIGtlcm5lbC9zeXNjdGwtdGVzdDogQWRkIG51bGwgcG9pbnRlciB0ZXN0IGZvcgogIHN5
-c2N0bC5jOnByb2NfZG9pbnR2ZWMoKQotIFtQQVRDSCB2NSAxOC8xOF0gTUFJTlRBSU5FUlM6IGFk
-ZCBwcm9jIHN5c2N0bCBLVW5pdCB0ZXN0IHRvIFBST0MKICBTWVNDVEwgc2VjdGlvbgoKT3RoZXIg
-dGhhbiB0aGF0LCBJIHRoaW5rIHdlIHNob3VsZCBiZSBnb29kIHRvIGdvLgoKT25lIGxhc3QgdGhp
-bmcsIEkgdXBkYXRlZCB0aGUgYmFja2dyb3VuZCB0byBpbmNsdWRlIG15IHRob3VnaHRzIG9uIEtV
-bml0CnZzLiBpbiBrZXJuZWwgdGVzdGluZyB3aXRoIGtzZWxmdGVzdCBpbiB0aGUgYmFja2dyb3Vu
-ZCBzZWN0aW9ucyBhcwpzdWdnZXN0ZWQgYnkgRnJhbmsgaW4gdGhlIGRpc2N1c3Npb24gb24gUEFU
-Q0ggdjIuCgojIyBCYWNrZ3JvdW5kCgpUaGlzIHBhdGNoIHNldCBwcm9wb3NlcyBLVW5pdCwgYSBs
-aWdodHdlaWdodCB1bml0IHRlc3RpbmcgYW5kIG1vY2tpbmcKZnJhbWV3b3JrIGZvciB0aGUgTGlu
-dXgga2VybmVsLgoKVW5saWtlIEF1dG90ZXN0IGFuZCBrc2VsZnRlc3QsIEtVbml0IGlzIGEgdHJ1
-ZSB1bml0IHRlc3RpbmcgZnJhbWV3b3JrOwppdCBkb2VzIG5vdCByZXF1aXJlIGluc3RhbGxpbmcg
-dGhlIGtlcm5lbCBvbiBhIHRlc3QgbWFjaGluZSBvciBpbiBhIFZNCihob3dldmVyLCBLVW5pdCBz
-dGlsbCBhbGxvd3MgeW91IHRvIHJ1biB0ZXN0cyBvbiB0ZXN0IG1hY2hpbmVzIG9yIGluIFZNcwpp
-ZiB5b3Ugd2FudFsxXSkgYW5kIGRvZXMgbm90IHJlcXVpcmUgdGVzdHMgdG8gYmUgd3JpdHRlbiBp
-biB1c2Vyc3BhY2UKcnVubmluZyBvbiBhIGhvc3Qga2VybmVsLiBBZGRpdGlvbmFsbHksIEtVbml0
-IGlzIGZhc3Q6IEZyb20gaW52b2NhdGlvbgp0byBjb21wbGV0aW9uIEtVbml0IGNhbiBydW4gc2V2
-ZXJhbCBkb3plbiB0ZXN0cyBpbiB1bmRlciBhIHNlY29uZC4KQ3VycmVudGx5LCB0aGUgZW50aXJl
-IEtVbml0IHRlc3Qgc3VpdGUgZm9yIEtVbml0IHJ1bnMgaW4gdW5kZXIgYSBzZWNvbmQKZnJvbSB0
-aGUgaW5pdGlhbCBpbnZvY2F0aW9uIChidWlsZCB0aW1lIGV4Y2x1ZGVkKS4KCktVbml0IGlzIGhl
-YXZpbHkgaW5zcGlyZWQgYnkgSlVuaXQsIFB5dGhvbidzIHVuaXR0ZXN0Lm1vY2ssIGFuZApHb29n
-bGV0ZXN0L0dvb2dsZW1vY2sgZm9yIEMrKy4gS1VuaXQgcHJvdmlkZXMgZmFjaWxpdGllcyBmb3Ig
-ZGVmaW5pbmcKdW5pdCB0ZXN0IGNhc2VzLCBncm91cGluZyByZWxhdGVkIHRlc3QgY2FzZXMgaW50
-byB0ZXN0IHN1aXRlcywgcHJvdmlkaW5nCmNvbW1vbiBpbmZyYXN0cnVjdHVyZSBmb3IgcnVubmlu
-ZyB0ZXN0cywgbW9ja2luZywgc3B5aW5nLCBhbmQgbXVjaCBtb3JlLgoKIyMjIEJ1dCB3YWl0ISBE
-b2Vzbid0IGtzZWxmdGVzdCBzdXBwb3J0IGluIGtlcm5lbCB0ZXN0aW5nPyEKCkluIGEgcHJldmlv
-dXMgdmVyc2lvbiBvZiB0aGlzIHBhdGNoc2V0IEZyYW5rIHBvaW50ZWQgb3V0IHRoYXQga3NlbGZ0
-ZXN0CmFscmVhZHkgc3VwcG9ydHMgd3JpdGluZyBhIHRlc3QgdGhhdCByZXNpZGVzIGluIHRoZSBr
-ZXJuZWwgdXNpbmcgdGhlCnRlc3QgbW9kdWxlIGZlYXR1cmVbMl0uIExXTiBkaWQgYSByZWFsbHkg
-Z3JlYXQgc3VtbWFyeSBvbiB0aGlzCmRpc2N1c3Npb24gaGVyZVszXS4KCktzZWxmdGVzdCBoYXMg
-YSBmZWF0dXJlIHRoYXQgYWxsb3dzIGEgdGVzdCBtb2R1bGUgdG8gYmUgbG9hZGVkIGludG8gYQpr
-ZXJuZWwgdXNpbmcgdGhlIGtzZWxmdGVzdCBmcmFtZXdvcms7IHRoaXMgZG9lcyBhbGxvdyBzb21l
-b25lIHRvIHdyaXRlCnRlc3RzIGFnYWluc3Qga2VybmVsIGNvZGUgbm90IGRpcmVjdGx5IGV4cG9z
-ZWQgdG8gdXNlcmxhbmQ7IGhvd2V2ZXIsIGl0CmRvZXMgbm90IHByb3ZpZGUgbXVjaCBvZiBhIGZy
-YW1ld29yayBhcm91bmQgaG93IHRvIHN0cnVjdHVyZSB0aGUgdGVzdHMuClRoZSBrc2VsZnRlc3Qg
-dGVzdCBtb2R1bGUgZmVhdHVyZSBqdXN0IHByb3ZpZGVzIGEgaGVhZGVyIHdoaWNoIGhhcyBhCnN0
-YW5kYXJkaXplZCB3YXkgb2YgcmVwb3J0aW5nIHRlc3QgZmFpbHVyZXMsIGFuZCB0aGVuIHByb3Zp
-ZGVzCmluZnJhc3RydWN0dXJlIHRvIGxvYWQgYW5kIHJ1biB0aGUgdGVzdHMgdXNpbmcgdGhlIGtz
-ZWxmdGVzdCB0ZXN0Cmhhcm5lc3MuCgpUaGUga3NlbGZ0ZXN0IHRlc3QgbW9kdWxlIGRvZXMgbm90
-IHNlZW0gdG8gYmUgb3BpbmlvbmF0ZWQgYXQgYWxsIGluCnJlZ2FyZHMgdG8gaG93IHRlc3RzIGFy
-ZSBzdHJ1Y3R1cmVkLCBob3cgdGhleSBjaGVjayBmb3IgZmFpbHVyZXMsIGhvdwp0ZXN0cyBhcmUg
-b3JnYW5pemVkLiBFdmVuIGluIHRoZSBtZXRob2QgaXQgcHJvdmlkZXMgZm9yIHJlcG9ydGluZwpm
-YWlsdXJlcyBpcyBwcmV0dHkgc2ltcGxlOyBpdCBkb2Vzbid0IGhhdmUgYW55IG1vcmUgYWR2YW5j
-ZWQgZmFpbHVyZQpyZXBvcnRpbmcgb3IgbG9nZ2luZyBmZWF0dXJlcy4gR2l2ZW4gd2hhdCdzIHRo
-ZXJlLCBJIHRoaW5rIGl0IGlzIGZhaXIgdG8Kc2F5IHRoYXQgaXQgaXMgbm90IGFjdHVhbGx5IGEg
-ZnJhbWV3b3JrLCBidXQgYSBmZWF0dXJlIHRoYXQgbWFrZXMgaXQKcG9zc2libGUgZm9yIHNvbWVv
-bmUgdG8gZG8gc29tZSBjaGVja3MgaW4ga2VybmVsIHNwYWNlLgoKRnVydGhlcm1vcmUsIGtzZWxm
-dGVzdCB0ZXN0IG1vZHVsZSBoYXMgdmVyeSBmZXcgdXNlcnMuIEkgY2hlY2tlZCBmb3IgYWxsCnRo
-ZSB0ZXN0cyB0aGF0IHVzZSBpdCB1c2luZyB0aGUgZm9sbG93aW5nIGdyZXAgY29tbWFuZDoKCmdy
-ZXAgLUhybiAtZSAna3NlbGZ0ZXN0X21vZHVsZVwuaCcKCmFuZCBvbmx5IGdvdCB0aHJlZSByZXN1
-bHRzOiBsaWIvdGVzdF9zdHJzY3B5LmMsIGxpYi90ZXN0X3ByaW50Zi5jLCBhbmQKbGliL3Rlc3Rf
-Yml0bWFwLmMuCgpTbyBkZXNwaXRlIGtzZWxmdGVzdCB0ZXN0IG1vZHVsZSdzIGV4aXN0ZW5jZSwg
-dGhlcmUgcmVhbGx5IGlzIG5vIGZlYXR1cmUKb3ZlcmxhcCBiZXR3ZWVuIGtzZWxmdGVzdCBhbmQg
-S1VuaXQsIHNhdmUgb25lOiB0aGF0IHlvdSBjYW4gdXNlIGVpdGhlcgp0byB3cml0ZSBhbiBpbi1r
-ZXJuZWwgdGVzdCwgYnV0IHRoaXMgaXMgYSB2ZXJ5IHNtYWxsIGZlYXR1cmUgaW4KY29tcGFyaXNv
-biB0byBldmVyeXRoaW5nIHRoYXQgS1VuaXQgYWxsb3dzIHlvdSB0byBkby4gS1VuaXQgaXMgYSBm
-dWxsCngtdW5pdCBzdHlsZSB1bml0IHRlc3RpbmcgZnJhbWV3b3JrLCB3aGVyZWFzIGtzZWxmdGVz
-dCBsb29rcyBhIGxvdCBtb3JlCmxpa2UgYW4gZW5kLXRvLWVuZC9mdW5jdGlvbmFsIHRlc3Rpbmcg
-ZnJhbWV3b3JrLCB3aXRoIGEgZmVhdHVyZSB0aGF0Cm1ha2VzIGl0IHBvc3NpYmxlIHRvIHdyaXRl
-IGluLWtlcm5lbCB0ZXN0cy4KCiMjIyBXaGF0J3Mgc28gc3BlY2lhbCBhYm91dCB1bml0IHRlc3Rp
-bmc/CgpBIHVuaXQgdGVzdCBpcyBzdXBwb3NlZCB0byB0ZXN0IGEgc2luZ2xlIHVuaXQgb2YgY29k
-ZSBpbiBpc29sYXRpb24sCmhlbmNlIHRoZSBuYW1lLiBUaGVyZSBzaG91bGQgYmUgbm8gZGVwZW5k
-ZW5jaWVzIG91dHNpZGUgdGhlIGNvbnRyb2wgb2YKdGhlIHRlc3Q7IHRoaXMgbWVhbnMgbm8gZXh0
-ZXJuYWwgZGVwZW5kZW5jaWVzLCB3aGljaCBtYWtlcyB0ZXN0cyBvcmRlcnMKb2YgbWFnbml0dWRl
-cyBmYXN0ZXIuIExpa2V3aXNlLCBzaW5jZSB0aGVyZSBhcmUgbm8gZXh0ZXJuYWwgZGVwZW5kZW5j
-aWVzLAp0aGVyZSBhcmUgbm8gaG9vcHMgdG8ganVtcCB0aHJvdWdoIHRvIHJ1biB0aGUgdGVzdHMu
-IEFkZGl0aW9uYWxseSwgdGhpcwptYWtlcyB1bml0IHRlc3RzIGRldGVybWluaXN0aWM6IGEgZmFp
-bGluZyB1bml0IHRlc3QgYWx3YXlzIGluZGljYXRlcyBhCnByb2JsZW0uIEZpbmFsbHksIGJlY2F1
-c2UgdW5pdCB0ZXN0cyBuZWNlc3NhcmlseSBoYXZlIGZpbmVyIGdyYW51bGFyaXR5LAp0aGV5IGFy
-ZSBhYmxlIHRvIHRlc3QgYWxsIGNvZGUgcGF0aHMgZWFzaWx5IHNvbHZpbmcgdGhlIGNsYXNzaWMg
-cHJvYmxlbQpvZiBkaWZmaWN1bHR5IGluIGV4ZXJjaXNpbmcgZXJyb3IgaGFuZGxpbmcgY29kZS4K
-CiMjIyBJcyBLVW5pdCB0cnlpbmcgdG8gcmVwbGFjZSBvdGhlciB0ZXN0aW5nIGZyYW1ld29ya3Mg
-Zm9yIHRoZSBrZXJuZWw/CgpOby4gTW9zdCBleGlzdGluZyB0ZXN0cyBmb3IgdGhlIExpbnV4IGtl
-cm5lbCBhcmUgZW5kLXRvLWVuZCB0ZXN0cywgd2hpY2gKaGF2ZSB0aGVpciBwbGFjZS4gQSB3ZWxs
-IHRlc3RlZCBzeXN0ZW0gaGFzIGxvdHMgb2YgdW5pdCB0ZXN0cywgYQpyZWFzb25hYmxlIG51bWJl
-ciBvZiBpbnRlZ3JhdGlvbiB0ZXN0cywgYW5kIHNvbWUgZW5kLXRvLWVuZCB0ZXN0cy4gS1VuaXQK
-aXMganVzdCB0cnlpbmcgdG8gYWRkcmVzcyB0aGUgdW5pdCB0ZXN0IHNwYWNlIHdoaWNoIGlzIGN1
-cnJlbnRseSBub3QKYmVpbmcgYWRkcmVzc2VkLgoKIyMjIE1vcmUgaW5mb3JtYXRpb24gb24gS1Vu
-aXQKClRoZXJlIGlzIGEgYnVuY2ggb2YgZG9jdW1lbnRhdGlvbiBuZWFyIHRoZSBlbmQgb2YgdGhp
-cyBwYXRjaCBzZXQgdGhhdApkZXNjcmliZXMgaG93IHRvIHVzZSBLVW5pdCBhbmQgYmVzdCBwcmFj
-dGljZXMgZm9yIHdyaXRpbmcgdW5pdCB0ZXN0cy4KRm9yIGNvbnZlbmllbmNlIEkgYW0gaG9zdGlu
-ZyB0aGUgY29tcGlsZWQgZG9jcyBoZXJlWzRdLgoKQWRkaXRpb25hbGx5IGZvciBjb252ZW5pZW5j
-ZSwgSSBoYXZlIGFwcGxpZWQgdGhlc2UgcGF0Y2hlcyB0byBhCmJyYW5jaFs1XS4gVGhlIHJlcG8g
-bWF5IGJlIGNsb25lZCB3aXRoOgpnaXQgY2xvbmUgaHR0cHM6Ly9rdW5pdC5nb29nbGVzb3VyY2Uu
-Y29tL2xpbnV4ClRoaXMgcGF0Y2hzZXQgaXMgb24gdGhlIGt1bml0L3JmYy92NS4yLXJjNC92NSBi
-cmFuY2guCgojIyBDaGFuZ2VzIFNpbmNlIExhc3QgVmVyc2lvbgoKQXNpZGUgZnJvbSBhIGNvdXBs
-ZSBwdWJsaWMgZnVuY3Rpb24gcmVuYW1lcywgdGhlcmUgaXNuJ3QgcmVhbGx5IGFueXRoaW5nCmlu
-IGhlcmUgdGhhdCBjaGFuZ2VzIGFueSBmdW5jdGlvbmFsaXR5LgoKLSBXZW50IHRocm91Z2ggYW5k
-IGZpeGVkIGEgY291cGxlIG9mIGFudGktcGF0dGVybnMgc3VnZ2VzdGVkIGJ5IFN0ZXBoZW4KICBC
-b3lkLiBUaGluZ3MgbGlrZToKICAtIERyb3BwaW5nIGFuIGVsc2UgY2xhdXNlIGF0IHRoZSBlbmQg
-b2YgYSBmdW5jdGlvbi4KICAtIERyb3BwaW5nIHRoZSBjb21tYSBvbiB0aGUgY2xvc2luZyBzZW50
-aW5lbCwgYHt9YCwgb2YgYSBsaXN0LgotIElubGluZXMgYSBidW5jaCBvZiBmdW5jdGlvbnMgaW4g
-dGhlIHRlc3QgY2FzZSBydW5uaW5nIGxvZ2ljIGluIHBhdGNoCiAgMDEvMTggdG8gbWFrZSBpdCBt
-b3JlIHJlYWRhYmxlIGFzIHN1Z2dlc3RlZCBieSBTdGVwaGVuIEJveWQKLSBGb3VuZCBhbmQgZml4
-ZWQgYnVnIGluIHJlc291cmNlIGRlYWxsb2NhdGlvbiBsb2dpYyBpbiBwYXRjaCAwMi8xOC4gQnVn
-CiAgd2FzIGRpc2NvdmVyZWQgYXMgYSByZXN1bHQgb2YgbWFraW5nIGEgY2hhbmdlIHN1Z2dlc3Rl
-ZCBieSBTdGVwaGVuCiAgQm95ZC4gVGhpcyBkb2VzIG5vdCBzdWJzdGFudGlhbGx5IGNoYW5nZSBo
-b3cgYW55IG9mIHRoZSBjb2RlIHdvcmtzCiAgY29uY2VwdHVhbGx5LgotIFJlbmFtZWQgbmV3X3N0
-cmluZ19zdHJlYW0oKSB0byBhbGxvY19zdHJpbmdfc3RyZWFtKCkgYXMgc3VnZ2VzdGVkIGJ5CiAg
-U3RlcGhlbiBCb3lkLgotIE1hZGUgc3RyaW5nLXN0cmVhbSBhIEtVbml0IG1hbmFnZWQgb2JqZWN0
-IC0gYmFzZWQgb24gYSBzdWdnZXN0aW9uIG1hZGUKICBieSBTdGVwaGVuIEJveWQuCi0gUmVuYW1l
-ZCBrdW5pdF9uZXdfc3RyZWFtKCkgdG8gYWxsb2Nfa3VuaXRfc3RyZWFtKCkgYXMgc3VnZ2VzdGVk
-IGJ5CiAgU3RlcGhlbiBCb3lkLgotIFJlbW92ZWQgdGhlIGFiaWxpdHkgdG8gc2V0IGxvZyBsZXZl
-bCBhZnRlciBhbGxvY2F0aW5nIGEga3VuaXRfc3RyZWFtLAogIGFzIHN1Z2dlc3RlZCBieSBTdGVw
-aGVuIEJveWQuCgpbMV0gaHR0cHM6Ly9nb29nbGUuZ2l0aHViLmlvL2t1bml0LWRvY3MvdGhpcmRf
-cGFydHkva2VybmVsL2RvY3MvdXNhZ2UuaHRtbCNrdW5pdC1vbi1ub24tdW1sLWFyY2hpdGVjdHVy
-ZXMKWzJdIGh0dHBzOi8vd3d3Lmtlcm5lbC5vcmcvZG9jL2h0bWwvbGF0ZXN0L2Rldi10b29scy9r
-c2VsZnRlc3QuaHRtbCN0ZXN0LW1vZHVsZQpbM10gaHR0cHM6Ly9sd24ubmV0L0FydGljbGVzLzc5
-MDIzNS8KWzRdIGh0dHBzOi8vZ29vZ2xlLmdpdGh1Yi5pby9rdW5pdC1kb2NzL3RoaXJkX3BhcnR5
-L2tlcm5lbC9kb2NzLwpbNV0gaHR0cHM6Ly9rdW5pdC5nb29nbGVzb3VyY2UuY29tL2xpbnV4Lysv
-a3VuaXQvcmZjL3Y1LjItcmM0L3Y1CgotLSAKMi4yMi4wLjQxMC5nZDhmZGJlMjFiNS1nb29nCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwg
-bWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+Add core facilities for defining unit tests; this provides a common way
+to define test cases, functions that execute code which is under test
+and determine whether the code under test behaves as expected; this also
+provides a way to group together related test cases in test suites (here
+we call them test_modules).
+
+Just define test cases and how to execute them for now; setting
+expectations on code will be defined later.
+
+Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+---
+Changes Since Last Revision:
+ - Mostly minor fixes suggested by Stephen Boyd
+ - Biggest change inlines a bunch of functions in the test case running
+   logic to make it more readable as suggested by Stephen Boyd
+---
+ include/kunit/test.h | 161 +++++++++++++++++++++++++++++++++
+ kunit/Kconfig        |  17 ++++
+ kunit/Makefile       |   1 +
+ kunit/test.c         | 210 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 389 insertions(+)
+ create mode 100644 include/kunit/test.h
+ create mode 100644 kunit/Kconfig
+ create mode 100644 kunit/Makefile
+ create mode 100644 kunit/test.c
+
+diff --git a/include/kunit/test.h b/include/kunit/test.h
+new file mode 100644
+index 0000000000000..8476b3d371cb9
+--- /dev/null
++++ b/include/kunit/test.h
+@@ -0,0 +1,161 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Base unit test (KUnit) API.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
++ */
++
++#ifndef _KUNIT_TEST_H
++#define _KUNIT_TEST_H
++
++#include <linux/types.h>
++
++struct kunit;
++
++/**
++ * struct kunit_case - represents an individual test case.
++ * @run_case: the function representing the actual test case.
++ * @name: the name of the test case.
++ *
++ * A test case is a function with the signature, ``void (*)(struct kunit *)``
++ * that makes expectations (see KUNIT_EXPECT_TRUE()) about code under test. Each
++ * test case is associated with a &struct kunit_module and will be run after the
++ * module's init function and followed by the module's exit function.
++ *
++ * A test case should be static and should only be created with the KUNIT_CASE()
++ * macro; additionally, every array of test cases should be terminated with an
++ * empty test case.
++ *
++ * Example:
++ *
++ * .. code-block:: c
++ *
++ *	void add_test_basic(struct kunit *test)
++ *	{
++ *		KUNIT_EXPECT_EQ(test, 1, add(1, 0));
++ *		KUNIT_EXPECT_EQ(test, 2, add(1, 1));
++ *		KUNIT_EXPECT_EQ(test, 0, add(-1, 1));
++ *		KUNIT_EXPECT_EQ(test, INT_MAX, add(0, INT_MAX));
++ *		KUNIT_EXPECT_EQ(test, -1, add(INT_MAX, INT_MIN));
++ *	}
++ *
++ *	static struct kunit_case example_test_cases[] = {
++ *		KUNIT_CASE(add_test_basic),
++ *		{}
++ *	};
++ *
++ */
++struct kunit_case {
++	void (*run_case)(struct kunit *test);
++	const char *name;
++
++	/* private: internal use only. */
++	bool success;
++};
++
++/**
++ * KUNIT_CASE - A helper for creating a &struct kunit_case
++ * @test_name: a reference to a test case function.
++ *
++ * Takes a symbol for a function representing a test case and creates a
++ * &struct kunit_case object from it. See the documentation for
++ * &struct kunit_case for an example on how to use it.
++ */
++#define KUNIT_CASE(test_name) { .run_case = test_name, .name = #test_name }
++
++/**
++ * struct kunit_module - describes a related collection of &struct kunit_case s.
++ * @name: the name of the test. Purely informational.
++ * @init: called before every test case.
++ * @exit: called after every test case.
++ * @test_cases: a null terminated array of test cases.
++ *
++ * A kunit_module is a collection of related &struct kunit_case s, such that
++ * @init is called before every test case and @exit is called after every test
++ * case, similar to the notion of a *test fixture* or a *test class* in other
++ * unit testing frameworks like JUnit or Googletest.
++ *
++ * Every &struct kunit_case must be associated with a kunit_module for KUnit to
++ * run it.
++ */
++struct kunit_module {
++	const char name[256];
++	int (*init)(struct kunit *test);
++	void (*exit)(struct kunit *test);
++	struct kunit_case *test_cases;
++};
++
++/**
++ * struct kunit - represents a running instance of a test.
++ * @priv: for user to store arbitrary data. Commonly used to pass data created
++ * in the init function (see &struct kunit_module).
++ *
++ * Used to store information about the current context under which the test is
++ * running. Most of this data is private and should only be accessed indirectly
++ * via public functions; the one exception is @priv which can be used by the
++ * test writer to store arbitrary data.
++ */
++struct kunit {
++	void *priv;
++
++	/* private: internal use only. */
++	const char *name; /* Read only after initialization! */
++	spinlock_t lock; /* Gaurds all mutable test state. */
++	bool success; /* Protected by lock. */
++};
++
++void kunit_init_test(struct kunit *test, const char *name);
++
++int kunit_run_tests(struct kunit_module *module);
++
++/**
++ * module_test() - used to register a &struct kunit_module with KUnit.
++ * @module: a statically allocated &struct kunit_module.
++ *
++ * Registers @module with the test framework. See &struct kunit_module for more
++ * information.
++ */
++#define module_test(module) \
++		static int module_kunit_init##module(void) \
++		{ \
++			return kunit_run_tests(&module); \
++		} \
++		late_initcall(module_kunit_init##module)
++
++void __printf(3, 4) kunit_printk(const char *level,
++				 const struct kunit *test,
++				 const char *fmt, ...);
++
++/**
++ * kunit_info() - Prints an INFO level message associated with the current test.
++ * @test: The test context object.
++ * @fmt: A printk() style format string.
++ *
++ * Prints an info level message associated with the test module being run. Takes
++ * a variable number of format parameters just like printk().
++ */
++#define kunit_info(test, fmt, ...) \
++		kunit_printk(KERN_INFO, test, fmt, ##__VA_ARGS__)
++
++/**
++ * kunit_warn() - Prints a WARN level message associated with the current test.
++ * @test: The test context object.
++ * @fmt: A printk() style format string.
++ *
++ * Prints a warning level message.
++ */
++#define kunit_warn(test, fmt, ...) \
++		kunit_printk(KERN_WARNING, test, fmt, ##__VA_ARGS__)
++
++/**
++ * kunit_err() - Prints an ERROR level message associated with the current test.
++ * @test: The test context object.
++ * @fmt: A printk() style format string.
++ *
++ * Prints an error level message.
++ */
++#define kunit_err(test, fmt, ...) \
++		kunit_printk(KERN_ERR, test, fmt, ##__VA_ARGS__)
++
++#endif /* _KUNIT_TEST_H */
+diff --git a/kunit/Kconfig b/kunit/Kconfig
+new file mode 100644
+index 0000000000000..330ae83527c23
+--- /dev/null
++++ b/kunit/Kconfig
+@@ -0,0 +1,17 @@
++#
++# KUnit base configuration
++#
++
++menu "KUnit support"
++
++config KUNIT
++	bool "Enable support for unit tests (KUnit)"
++	help
++	  Enables support for kernel unit tests (KUnit), a lightweight unit
++	  testing and mocking framework for the Linux kernel. These tests are
++	  able to be run locally on a developer's workstation without a VM or
++	  special hardware when using UML. Can also be used on most other
++	  architectures. For more information, please see
++	  Documentation/dev-tools/kunit/.
++
++endmenu
+diff --git a/kunit/Makefile b/kunit/Makefile
+new file mode 100644
+index 0000000000000..5efdc4dea2c08
+--- /dev/null
++++ b/kunit/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_KUNIT) +=			test.o
+diff --git a/kunit/test.c b/kunit/test.c
+new file mode 100644
+index 0000000000000..d05d254f1521f
+--- /dev/null
++++ b/kunit/test.c
+@@ -0,0 +1,210 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Base unit test (KUnit) API.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
++ */
++
++#include <linux/sched/debug.h>
++#include <kunit/test.h>
++
++static bool kunit_get_success(struct kunit *test)
++{
++	unsigned long flags;
++	bool success;
++
++	spin_lock_irqsave(&test->lock, flags);
++	success = test->success;
++	spin_unlock_irqrestore(&test->lock, flags);
++
++	return success;
++}
++
++static void kunit_set_success(struct kunit *test, bool success)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&test->lock, flags);
++	test->success = success;
++	spin_unlock_irqrestore(&test->lock, flags);
++}
++
++static int kunit_vprintk_emit(int level, const char *fmt, va_list args)
++{
++	return vprintk_emit(0, level, NULL, 0, fmt, args);
++}
++
++static int kunit_printk_emit(int level, const char *fmt, ...)
++{
++	va_list args;
++	int ret;
++
++	va_start(args, fmt);
++	ret = kunit_vprintk_emit(level, fmt, args);
++	va_end(args);
++
++	return ret;
++}
++
++static void kunit_vprintk(const struct kunit *test,
++			  const char *level,
++			  struct va_format *vaf)
++{
++	kunit_printk_emit(level[1] - '0', "\t# %s: %pV", test->name, vaf);
++}
++
++static bool kunit_has_printed_tap_version;
++
++static void kunit_print_tap_version(void)
++{
++	if (!kunit_has_printed_tap_version) {
++		kunit_printk_emit(LOGLEVEL_INFO, "TAP version 14\n");
++		kunit_has_printed_tap_version = true;
++	}
++}
++
++static size_t kunit_test_cases_len(struct kunit_case *test_cases)
++{
++	struct kunit_case *test_case;
++	size_t len = 0;
++
++	for (test_case = test_cases; test_case->run_case; test_case++)
++		len++;
++
++	return len;
++}
++
++static void kunit_print_subtest_start(struct kunit_module *module)
++{
++	kunit_print_tap_version();
++	kunit_printk_emit(LOGLEVEL_INFO, "\t# Subtest: %s\n", module->name);
++	kunit_printk_emit(LOGLEVEL_INFO,
++			  "\t1..%zd\n",
++			  kunit_test_cases_len(module->test_cases));
++}
++
++static void kunit_print_ok_not_ok(bool should_indent,
++				  bool is_ok,
++				  size_t test_number,
++				  const char *description)
++{
++	const char *indent, *ok_not_ok;
++
++	if (should_indent)
++		indent = "\t";
++	else
++		indent = "";
++
++	if (is_ok)
++		ok_not_ok = "ok";
++	else
++		ok_not_ok = "not ok";
++
++	kunit_printk_emit(LOGLEVEL_INFO,
++			  "%s%s %zd - %s\n",
++			  indent, ok_not_ok, test_number, description);
++}
++
++static bool kunit_module_has_succeeded(struct kunit_module *module)
++{
++	const struct kunit_case *test_case;
++	bool success = true;
++
++	for (test_case = module->test_cases; test_case->run_case; test_case++)
++		if (!test_case->success) {
++			success = false;
++			break;
++		}
++
++	return success;
++}
++
++static size_t kunit_module_counter = 1;
++
++static void kunit_print_subtest_end(struct kunit_module *module)
++{
++	kunit_print_ok_not_ok(false,
++			      kunit_module_has_succeeded(module),
++			      kunit_module_counter++,
++			      module->name);
++}
++
++static void kunit_print_test_case_ok_not_ok(struct kunit_case *test_case,
++					    size_t test_number)
++{
++	kunit_print_ok_not_ok(true,
++			      test_case->success,
++			      test_number,
++			      test_case->name);
++}
++
++void kunit_init_test(struct kunit *test, const char *name)
++{
++	spin_lock_init(&test->lock);
++	test->name = name;
++	test->success = true;
++}
++
++/*
++ * Performs all logic to run a test case.
++ */
++static void kunit_run_case(struct kunit_module *module,
++			   struct kunit_case *test_case)
++{
++	struct kunit test;
++	int ret = 0;
++
++	kunit_init_test(&test, test_case->name);
++
++	if (module->init) {
++		ret = module->init(&test);
++		if (ret) {
++			kunit_err(&test, "failed to initialize: %d\n", ret);
++			kunit_set_success(&test, false);
++			return;
++		}
++	}
++
++	if (!ret)
++		test_case->run_case(&test);
++
++	if (module->exit)
++		module->exit(&test);
++
++	test_case->success = kunit_get_success(&test);
++}
++
++int kunit_run_tests(struct kunit_module *module)
++{
++	struct kunit_case *test_case;
++	size_t test_case_count = 1;
++
++	kunit_print_subtest_start(module);
++
++	for (test_case = module->test_cases; test_case->run_case; test_case++) {
++		kunit_run_case(module, test_case);
++		kunit_print_test_case_ok_not_ok(test_case, test_case_count++);
++	}
++
++	kunit_print_subtest_end(module);
++
++	return 0;
++}
++
++void kunit_printk(const char *level,
++		  const struct kunit *test,
++		  const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	kunit_vprintk(test, level, &vaf);
++
++	va_end(args);
++}
+-- 
+2.22.0.410.gd8fdbe21b5-goog
