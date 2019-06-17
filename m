@@ -3,14 +3,14 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 68AFE212A36E9
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:06 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 204302129DBA3
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:22 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 18/22] mm: return valid info from hmm_range_unregister
-Date: Mon,  1 Jul 2019 08:20:16 +0200
-Message-Id: <20190701062020.19239-19-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+Subject: [PATCH 18/25] nouveau: use devm_memremap_pages directly
+Date: Mon, 17 Jun 2019 14:27:26 +0200
+Message-Id: <20190617122733.22432-19-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,88 +27,193 @@ To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse
 Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Checking range->valid is trivial and has no meaningful cost, but
-nicely simplifies the fastpath in typical callers.  Also remove the
-hmm_vma_range_done function, which now is a trivial wrapper around
-hmm_range_unregister.
+Just use devm_memremap_pages instead of hmm_devmem_add pages to allow
+killing that wrapper which doesn't provide a whole lot of benefits.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/gpu/drm/nouveau/nouveau_svm.c |  2 +-
- include/linux/hmm.h                   | 11 +----------
- mm/hmm.c                              |  6 +++++-
- 3 files changed, 7 insertions(+), 12 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_dmem.c | 82 ++++++++++++--------------
+ 1 file changed, 38 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
-index 8c92374afcf2..9d40114d7949 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -652,7 +652,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		ret = hmm_vma_fault(&svmm->mirror, &range, true);
- 		if (ret == 0) {
- 			mutex_lock(&svmm->mutex);
--			if (!hmm_vma_range_done(&range)) {
-+			if (!hmm_range_unregister(&range)) {
- 				mutex_unlock(&svmm->mutex);
- 				goto again;
- 			}
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 0fa8ea34ccef..4b185d286c3b 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -465,7 +465,7 @@ int hmm_range_register(struct hmm_range *range,
- 		       unsigned long start,
- 		       unsigned long end,
- 		       unsigned page_shift);
--void hmm_range_unregister(struct hmm_range *range);
-+bool hmm_range_unregister(struct hmm_range *range);
- long hmm_range_snapshot(struct hmm_range *range);
- long hmm_range_fault(struct hmm_range *range, bool block);
- long hmm_range_dma_map(struct hmm_range *range,
-@@ -487,15 +487,6 @@ long hmm_range_dma_unmap(struct hmm_range *range,
-  */
- #define HMM_RANGE_DEFAULT_TIMEOUT 1000
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+index a50f6fd2fe24..0fb7a44b8bc4 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -72,7 +72,8 @@ struct nouveau_dmem_migrate {
+ };
  
--/* This is a temporary helper to avoid merge conflict between trees. */
--static inline bool hmm_vma_range_done(struct hmm_range *range)
--{
--	bool ret = hmm_range_valid(range);
--
--	hmm_range_unregister(range);
--	return ret;
--}
--
- /* This is a temporary helper to avoid merge conflict between trees. */
- static inline int hmm_vma_fault(struct hmm_mirror *mirror,
- 				struct hmm_range *range, bool block)
-diff --git a/mm/hmm.c b/mm/hmm.c
-index de35289df20d..c85ed7d4e2ce 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -920,11 +920,14 @@ EXPORT_SYMBOL(hmm_range_register);
-  *
-  * Range struct is used to track updates to the CPU page table after a call to
-  * hmm_range_register(). See include/linux/hmm.h for how to use it.
-+ *
-+ * Returns if the range was still valid at the time of unregistering.
-  */
--void hmm_range_unregister(struct hmm_range *range)
-+bool hmm_range_unregister(struct hmm_range *range)
+ struct nouveau_dmem {
+-	struct hmm_devmem *devmem;
++	struct nouveau_drm *drm;
++	struct dev_pagemap pagemap;
+ 	struct nouveau_dmem_migrate migrate;
+ 	struct list_head chunk_free;
+ 	struct list_head chunk_full;
+@@ -80,6 +81,11 @@ struct nouveau_dmem {
+ 	struct mutex mutex;
+ };
+ 
++static inline struct nouveau_dmem *page_to_dmem(struct page *page)
++{
++	return container_of(page->pgmap, struct nouveau_dmem, pagemap);
++}
++
+ struct nouveau_dmem_fault {
+ 	struct nouveau_drm *drm;
+ 	struct nouveau_fence *fence;
+@@ -96,8 +102,7 @@ struct nouveau_migrate {
+ 	unsigned long dma_nr;
+ };
+ 
+-static void
+-nouveau_dmem_free(struct hmm_devmem *devmem, struct page *page)
++static void nouveau_dmem_page_free(struct page *page)
  {
- 	struct hmm *hmm = range->hmm;
- 	unsigned long flags;
-+	bool ret = range->valid;
+ 	struct nouveau_dmem_chunk *chunk;
+ 	unsigned long idx;
+@@ -260,29 +265,21 @@ static const struct migrate_vma_ops nouveau_dmem_fault_migrate_ops = {
+ 	.finalize_and_map	= nouveau_dmem_fault_finalize_and_map,
+ };
  
- 	spin_lock_irqsave(&hmm->ranges_lock, flags);
- 	list_del_init(&range->list);
-@@ -941,6 +944,7 @@ void hmm_range_unregister(struct hmm_range *range)
+-static vm_fault_t
+-nouveau_dmem_fault(struct hmm_devmem *devmem,
+-		   struct vm_area_struct *vma,
+-		   unsigned long addr,
+-		   const struct page *page,
+-		   unsigned int flags,
+-		   pmd_t *pmdp)
++static vm_fault_t nouveau_dmem_migrate_to_ram(struct vm_fault *vmf)
+ {
+-	struct drm_device *drm_dev = dev_get_drvdata(devmem->device);
++	struct nouveau_dmem *dmem = page_to_dmem(vmf->page);
+ 	unsigned long src[1] = {0}, dst[1] = {0};
+-	struct nouveau_dmem_fault fault = {0};
++	struct nouveau_dmem_fault fault = { .drm = dmem->drm };
+ 	int ret;
+ 
+-
+-
+ 	/*
+ 	 * FIXME what we really want is to find some heuristic to migrate more
+ 	 * than just one page on CPU fault. When such fault happens it is very
+ 	 * likely that more surrounding page will CPU fault too.
  	 */
- 	range->valid = false;
- 	memset(&range->hmm, POISON_INUSE, sizeof(range->hmm));
-+	return ret;
- }
- EXPORT_SYMBOL(hmm_range_unregister);
+-	fault.drm = nouveau_drm(drm_dev);
+-	ret = migrate_vma(&nouveau_dmem_fault_migrate_ops, vma, addr,
+-			  addr + PAGE_SIZE, src, dst, &fault);
++	ret = migrate_vma(&nouveau_dmem_fault_migrate_ops, vmf->vma,
++			vmf->address, vmf->address + PAGE_SIZE,
++			src, dst, &fault);
+ 	if (ret)
+ 		return VM_FAULT_SIGBUS;
  
+@@ -292,10 +289,9 @@ nouveau_dmem_fault(struct hmm_devmem *devmem,
+ 	return 0;
+ }
+ 
+-static const struct hmm_devmem_ops
+-nouveau_dmem_devmem_ops = {
+-	.free = nouveau_dmem_free,
+-	.fault = nouveau_dmem_fault,
++static const struct dev_pagemap_ops nouveau_dmem_pagemap_ops = {
++	.page_free		= nouveau_dmem_page_free,
++	.migrate_to_ram		= nouveau_dmem_migrate_to_ram,
+ };
+ 
+ static int
+@@ -581,7 +577,8 @@ void
+ nouveau_dmem_init(struct nouveau_drm *drm)
+ {
+ 	struct device *device = drm->dev->dev;
+-	unsigned long i, size;
++	struct resource *res;
++	unsigned long i, size, pfn_first;
+ 	int ret;
+ 
+ 	/* This only make sense on PASCAL or newer */
+@@ -591,6 +588,7 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 	if (!(drm->dmem = kzalloc(sizeof(*drm->dmem), GFP_KERNEL)))
+ 		return;
+ 
++	drm->dmem->drm = drm;
+ 	mutex_init(&drm->dmem->mutex);
+ 	INIT_LIST_HEAD(&drm->dmem->chunk_free);
+ 	INIT_LIST_HEAD(&drm->dmem->chunk_full);
+@@ -600,11 +598,8 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 
+ 	/* Initialize migration dma helpers before registering memory */
+ 	ret = nouveau_dmem_migrate_init(drm);
+-	if (ret) {
+-		kfree(drm->dmem);
+-		drm->dmem = NULL;
+-		return;
+-	}
++	if (ret)
++		goto out_free;
+ 
+ 	/*
+ 	 * FIXME we need some kind of policy to decide how much VRAM we
+@@ -612,14 +607,16 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 	 * and latter if we want to do thing like over commit then we
+ 	 * could revisit this.
+ 	 */
+-	drm->dmem->devmem = hmm_devmem_add(&nouveau_dmem_devmem_ops,
+-					   device, size);
+-	if (IS_ERR(drm->dmem->devmem)) {
+-		kfree(drm->dmem);
+-		drm->dmem = NULL;
+-		return;
+-	}
+-
++	res = devm_request_free_mem_region(device, &iomem_resource, size);
++	if (IS_ERR(res))
++		goto out_free;
++	drm->dmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
++	drm->dmem->pagemap.res = *res;
++	drm->dmem->pagemap.ops = &nouveau_dmem_pagemap_ops;
++	if (IS_ERR(devm_memremap_pages(device, &drm->dmem->pagemap)))
++		goto out_free;
++
++	pfn_first = res->start >> PAGE_SHIFT;
+ 	for (i = 0; i < (size / DMEM_CHUNK_SIZE); ++i) {
+ 		struct nouveau_dmem_chunk *chunk;
+ 		struct page *page;
+@@ -632,8 +629,7 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 		}
+ 
+ 		chunk->drm = drm;
+-		chunk->pfn_first = drm->dmem->devmem->pfn_first;
+-		chunk->pfn_first += (i * DMEM_CHUNK_NPAGES);
++		chunk->pfn_first = pfn_first + (i * DMEM_CHUNK_NPAGES);
+ 		list_add_tail(&chunk->list, &drm->dmem->chunk_empty);
+ 
+ 		page = pfn_to_page(chunk->pfn_first);
+@@ -643,6 +639,10 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 	}
+ 
+ 	NV_INFO(drm, "DMEM: registered %ldMB of device memory\n", size >> 20);
++	return;
++out_free:
++	kfree(drm->dmem);
++	drm->dmem = NULL;
+ }
+ 
+ static void
+@@ -833,13 +833,7 @@ nouveau_dmem_migrate_vma(struct nouveau_drm *drm,
+ static inline bool
+ nouveau_dmem_page(struct nouveau_drm *drm, struct page *page)
+ {
+-	if (!is_device_private_page(page))
+-		return false;
+-
+-	if (drm->dmem->devmem != page->pgmap->data)
+-		return false;
+-
+-	return true;
++	return is_device_private_page(page) && drm->dmem == page_to_dmem(page);
+ }
+ 
+ void
 -- 
 2.20.1
 
