@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A61232129EB8D
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 02:17:22 -0700 (PDT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v4 3/6] mm/nvdimm: Use correct #defines instead of open coding
-Date: Thu, 20 Jun 2019 14:46:23 +0530
-Message-Id: <20190620091626.31824-4-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
-References: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0D09E2128A65C
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:27:52 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 05/25] mm: export alloc_pages_vma
+Date: Mon, 17 Jun 2019 14:27:13 +0200
+Message-Id: <20190617122733.22432-6-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,88 +23,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use PAGE_SIZE instead of SZ_4K and sizeof(struct page) instead of 64.
-If we have a kernel built with different struct page size the previous
-patch should handle marking the namespace disabled.
+nouveau is currently using this through an odd hmm wrapper, and I plan
+to switch it to the real thing later in this series.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/nvdimm/label.c          | 2 +-
- drivers/nvdimm/namespace_devs.c | 6 +++---
- drivers/nvdimm/pfn_devs.c       | 3 ++-
- drivers/nvdimm/region_devs.c    | 8 ++++----
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ mm/mempolicy.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 73e197babc2f..7ee037063be7 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -355,7 +355,7 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
+diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+index 01600d80ae01..f9023b5fba37 100644
+--- a/mm/mempolicy.c
++++ b/mm/mempolicy.c
+@@ -2098,6 +2098,7 @@ alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
+ out:
+ 	return page;
+ }
++EXPORT_SYMBOL_GPL(alloc_pages_vma);
  
- 	/* check that DPA allocations are page aligned */
- 	if ((__le64_to_cpu(nd_label->dpa)
--				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
-+				| __le64_to_cpu(nd_label->rawsize)) % PAGE_SIZE)
- 		return false;
- 
- 	/* check checksum */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index a434a5964cb9..007027202542 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1006,10 +1006,10 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
- 		return -ENXIO;
- 	}
- 
--	div_u64_rem(val, SZ_4K * nd_region->ndr_mappings, &remainder);
-+	div_u64_rem(val, PAGE_SIZE * nd_region->ndr_mappings, &remainder);
- 	if (remainder) {
--		dev_dbg(dev, "%llu is not %dK aligned\n", val,
--				(SZ_4K * nd_region->ndr_mappings) / SZ_1K);
-+		dev_dbg(dev, "%llu is not %ldK aligned\n", val,
-+				(PAGE_SIZE * nd_region->ndr_mappings) / SZ_1K);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index cd722de0ae03..9410d2692913 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -726,7 +726,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		 * when populating the vmemmap. This *should* be equal to
- 		 * PMD_SIZE for most architectures.
- 		 */
--		offset = ALIGN(start + SZ_8K + 64 * npfns, align) - start;
-+		offset = ALIGN(start + SZ_8K + sizeof(struct page) * npfns,
-+			       align) - start;
- 	} else if (nd_pfn->mode == PFN_MODE_RAM)
- 		offset = ALIGN(start + SZ_8K, align) - start;
- 	else
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 1e74a1c9fdac..b9992499a035 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -997,10 +997,10 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
- 		struct nvdimm *nvdimm = mapping->nvdimm;
- 
--		if ((mapping->start | mapping->size) % SZ_4K) {
--			dev_err(&nvdimm_bus->dev, "%s: %s mapping%d is not 4K aligned\n",
--					caller, dev_name(&nvdimm->dev), i);
--
-+		if ((mapping->start | mapping->size) % PAGE_SIZE) {
-+			dev_err(&nvdimm_bus->dev,
-+				"%s: %s mapping%d is not %ld aligned\n",
-+				caller, dev_name(&nvdimm->dev), i, PAGE_SIZE);
- 			return NULL;
- 		}
- 
+ /**
+  * 	alloc_pages_current - Allocate pages.
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
