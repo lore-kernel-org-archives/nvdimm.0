@@ -1,85 +1,135 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id DD33E2129DBAD
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:13 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 15/25] device-dax: use the dev_pagemap internal refcount
+Date: Mon, 17 Jun 2019 14:27:23 +0200
+Message-Id: <20190617122733.22432-16-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
-References: <20190617122733.22432-1-hch@lst.de> <20190617122733.22432-16-hch@lst.de>
-In-Reply-To: <20190617122733.22432-16-hch@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 12:43:59 -0700
-Message-ID: <CAPcyv4iwawKnG4jQtcNWNtXQeH3PYG6iWc6JV59DnyixmwDEcg@mail.gmail.com>
-Subject: Re: [PATCH 15/25] device-dax: use the dev_pagemap internal refcount
-Content-Type: multipart/mixed; boundary="0000000000003f3c23058b9e5615"
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, Linux MM <linux-mm@kvack.org>, nouveau@lists.freedesktop.org, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-pci@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
---0000000000003f3c23058b9e5615
-Content-Type: text/plain; charset="UTF-8"
+The functionality is identical to the one currently open coded in
+device-dax.
 
-On Mon, Jun 17, 2019 at 5:28 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> The functionality is identical to the one currently open coded in
-> device-dax.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/dax/dax-private.h |  4 ----
->  drivers/dax/device.c      | 43 ---------------------------------------
->  2 files changed, 47 deletions(-)
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/dax/dax-private.h |  4 ----
+ drivers/dax/device.c      | 43 ---------------------------------------
+ 2 files changed, 47 deletions(-)
 
-This needs the mock devm_memremap_pages() to setup the common
-percpu_ref. Incremental patch attached:
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index a45612148ca0..ed04a18a35be 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -51,8 +51,6 @@ struct dax_region {
+  * @target_node: effective numa node if dev_dax memory range is onlined
+  * @dev - device core
+  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+- * @ref: pgmap reference count (driver owned)
+- * @cmp: @ref final put completion (driver owned)
+  */
+ struct dev_dax {
+ 	struct dax_region *region;
+@@ -60,8 +58,6 @@ struct dev_dax {
+ 	int target_node;
+ 	struct device dev;
+ 	struct dev_pagemap pgmap;
+-	struct percpu_ref ref;
+-	struct completion cmp;
+ };
+ 
+ static inline struct dev_dax *to_dev_dax(struct device *dev)
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 17b46c1a76b4..a9d7c90ecf1e 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -14,36 +14,6 @@
+ #include "dax-private.h"
+ #include "bus.h"
+ 
+-static struct dev_dax *ref_to_dev_dax(struct percpu_ref *ref)
+-{
+-	return container_of(ref, struct dev_dax, ref);
+-}
+-
+-static void dev_dax_percpu_release(struct percpu_ref *ref)
+-{
+-	struct dev_dax *dev_dax = ref_to_dev_dax(ref);
+-
+-	dev_dbg(&dev_dax->dev, "%s\n", __func__);
+-	complete(&dev_dax->cmp);
+-}
+-
+-static void dev_dax_percpu_exit(struct dev_pagemap *pgmap)
+-{
+-	struct dev_dax *dev_dax = container_of(pgmap, struct dev_dax, pgmap);
+-
+-	dev_dbg(&dev_dax->dev, "%s\n", __func__);
+-	wait_for_completion(&dev_dax->cmp);
+-	percpu_ref_exit(pgmap->ref);
+-}
+-
+-static void dev_dax_percpu_kill(struct dev_pagemap *pgmap)
+-{
+-	struct dev_dax *dev_dax = container_of(pgmap, struct dev_dax, pgmap);
+-
+-	dev_dbg(&dev_dax->dev, "%s\n", __func__);
+-	percpu_ref_kill(pgmap->ref);
+-}
+-
+ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 		const char *func)
+ {
+@@ -441,11 +411,6 @@ static void dev_dax_kill(void *dev_dax)
+ 	kill_dev_dax(dev_dax);
+ }
+ 
+-static const struct dev_pagemap_ops dev_dax_pagemap_ops = {
+-	.kill		= dev_dax_percpu_kill,
+-	.cleanup	= dev_dax_percpu_exit,
+-};
+-
+ int dev_dax_probe(struct device *dev)
+ {
+ 	struct dev_dax *dev_dax = to_dev_dax(dev);
+@@ -463,14 +428,6 @@ int dev_dax_probe(struct device *dev)
+ 		return -EBUSY;
+ 	}
+ 
+-	init_completion(&dev_dax->cmp);
+-	rc = percpu_ref_init(&dev_dax->ref, dev_dax_percpu_release, 0,
+-			GFP_KERNEL);
+-	if (rc)
+-		return rc;
+-
+-	dev_dax->pgmap.ref = &dev_dax->ref;
+-	dev_dax->pgmap.ops = &dev_dax_pagemap_ops;
+ 	addr = devm_memremap_pages(dev, &dev_dax->pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+-- 
+2.20.1
 
---0000000000003f3c23058b9e5615
-Content-Type: text/x-patch; charset="US-ASCII";
-	name="0001-tools-testing-nvdimm-Support-the-internal-ref-of-dev.patch"
-Content-Disposition: attachment;
-	filename="0001-tools-testing-nvdimm-Support-the-internal-ref-of-dev.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_jx27u7050>
-X-Attachment-Id: f_jx27u7050
-
-RnJvbSA4NzVlNzE0ODljODQ4NTQ0OGE1YjdkZjJkOGE4YjJlZDc3ZDJiNTU1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
-bT4KRGF0ZTogVHVlLCAxOCBKdW4gMjAxOSAxMTo1ODoyNCAtMDcwMApTdWJqZWN0OiBbUEFUQ0hd
-IHRvb2xzL3Rlc3RpbmcvbnZkaW1tOiBTdXBwb3J0IHRoZSAnaW50ZXJuYWwnIHJlZiBvZgogZGV2
-X3BhZ2VtYXAKCkZvciB1c2VycyBvZiB0aGUgY29tbW9uIHBlcmNwdS1yZWYgaW1wbGVtZW50YXRp
-b24sIGxpa2UgZGV2aWNlLWRheCwKYXJyYW5nZSBmb3IgbmZpdF90ZXN0IHRvIGluaXRpYWxpemUg
-dGhlIGNvbW1vbiBwYXJhbWV0ZXJzLgoKU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4u
-ai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9pb21h
-cC5jIHwgNDEgKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLQogMSBmaWxlIGNoYW5nZWQs
-IDMyIGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvdG9vbHMvdGVz
-dGluZy9udmRpbW0vdGVzdC9pb21hcC5jIGIvdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9pb21h
-cC5jCmluZGV4IDNiYzFjMTZjNGVmOS4uOTAxOWRkOGFmYmMxIDEwMDY0NAotLS0gYS90b29scy90
-ZXN0aW5nL252ZGltbS90ZXN0L2lvbWFwLmMKKysrIGIvdG9vbHMvdGVzdGluZy9udmRpbW0vdGVz
-dC9pb21hcC5jCkBAIC0xMDgsOCArMTA4LDYgQEAgc3RhdGljIHZvaWQgbmZpdF90ZXN0X2tpbGwo
-dm9pZCAqX3BnbWFwKQogewogCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPSBfcGdtYXA7CiAK
-LQlXQVJOX09OKCFwZ21hcCB8fCAhcGdtYXAtPnJlZik7Ci0KIAlpZiAocGdtYXAtPm9wcyAmJiBw
-Z21hcC0+b3BzLT5raWxsKQogCQlwZ21hcC0+b3BzLT5raWxsKHBnbWFwKTsKIAllbHNlCkBAIC0x
-MjMsMjAgKzEyMSw0NSBAQCBzdGF0aWMgdm9pZCBuZml0X3Rlc3Rfa2lsbCh2b2lkICpfcGdtYXAp
-CiAJfQogfQogCitzdGF0aWMgdm9pZCBkZXZfcGFnZW1hcF9wZXJjcHVfcmVsZWFzZShzdHJ1Y3Qg
-cGVyY3B1X3JlZiAqcmVmKQoreworCXN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAgPQorCQljb250
-YWluZXJfb2YocmVmLCBzdHJ1Y3QgZGV2X3BhZ2VtYXAsIGludGVybmFsX3JlZik7CisKKwljb21w
-bGV0ZSgmcGdtYXAtPmRvbmUpOworfQorCiB2b2lkICpfX3dyYXBfZGV2bV9tZW1yZW1hcF9wYWdl
-cyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiB7CisJaW50
-IGVycm9yOwogCXJlc291cmNlX3NpemVfdCBvZmZzZXQgPSBwZ21hcC0+cmVzLnN0YXJ0OwogCXN0
-cnVjdCBuZml0X3Rlc3RfcmVzb3VyY2UgKm5maXRfcmVzID0gZ2V0X25maXRfcmVzKG9mZnNldCk7
-CiAKLQlpZiAobmZpdF9yZXMpIHsKLQkJaW50IHJjOworCWlmICghbmZpdF9yZXMpCisJCXJldHVy
-biBkZXZtX21lbXJlbWFwX3BhZ2VzKGRldiwgcGdtYXApOwogCi0JCXJjID0gZGV2bV9hZGRfYWN0
-aW9uX29yX3Jlc2V0KGRldiwgbmZpdF90ZXN0X2tpbGwsIHBnbWFwKTsKLQkJaWYgKHJjKQotCQkJ
-cmV0dXJuIEVSUl9QVFIocmMpOwotCQlyZXR1cm4gbmZpdF9yZXMtPmJ1ZiArIG9mZnNldCAtIG5m
-aXRfcmVzLT5yZXMuc3RhcnQ7CisJcGdtYXAtPmRldiA9IGRldjsKKwlpZiAoIXBnbWFwLT5yZWYp
-IHsKKwkJaWYgKHBnbWFwLT5vcHMgJiYgKHBnbWFwLT5vcHMtPmtpbGwgfHwgcGdtYXAtPm9wcy0+
-Y2xlYW51cCkpCisJCQlyZXR1cm4gRVJSX1BUUigtRUlOVkFMKTsKKworCQlpbml0X2NvbXBsZXRp
-b24oJnBnbWFwLT5kb25lKTsKKwkJZXJyb3IgPSBwZXJjcHVfcmVmX2luaXQoJnBnbWFwLT5pbnRl
-cm5hbF9yZWYsCisJCQkJZGV2X3BhZ2VtYXBfcGVyY3B1X3JlbGVhc2UsIDAsIEdGUF9LRVJORUwp
-OworCQlpZiAoZXJyb3IpCisJCQlyZXR1cm4gRVJSX1BUUihlcnJvcik7CisJCXBnbWFwLT5yZWYg
-PSAmcGdtYXAtPmludGVybmFsX3JlZjsKKwl9IGVsc2UgeworCQlpZiAoIXBnbWFwLT5vcHMgfHwg
-IXBnbWFwLT5vcHMtPmtpbGwgfHwgIXBnbWFwLT5vcHMtPmNsZWFudXApIHsKKwkJCVdBUk4oMSwg
-Ik1pc3NpbmcgcmVmZXJlbmNlIGNvdW50IHRlYXJkb3duIGRlZmluaXRpb25cbiIpOworCQkJcmV0
-dXJuIEVSUl9QVFIoLUVJTlZBTCk7CisJCX0KIAl9Ci0JcmV0dXJuIGRldm1fbWVtcmVtYXBfcGFn
-ZXMoZGV2LCBwZ21hcCk7CisKKwllcnJvciA9IGRldm1fYWRkX2FjdGlvbl9vcl9yZXNldChkZXYs
-IG5maXRfdGVzdF9raWxsLCBwZ21hcCk7CisJaWYgKGVycm9yKQorCQlyZXR1cm4gRVJSX1BUUihl
-cnJvcik7CisJcmV0dXJuIG5maXRfcmVzLT5idWYgKyBvZmZzZXQgLSBuZml0X3Jlcy0+cmVzLnN0
-YXJ0OwogfQogRVhQT1JUX1NZTUJPTF9HUEwoX193cmFwX2Rldm1fbWVtcmVtYXBfcGFnZXMpOwog
-Ci0tIAoyLjIwLjEKCg==
---0000000000003f3c23058b9e5615--
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
