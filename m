@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0BD412129EB9A
- for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 02:17:34 -0700 (PDT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v4 6/6] =?UTF-8?q?mm/nvdimm:=20Fix=20endian=20conversion?=
- =?UTF-8?q?=20issues=C2=A0?=
-Date: Thu, 20 Jun 2019 14:46:26 +0530
-Message-Id: <20190620091626.31824-7-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
-References: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id DD3702129DBA5
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:08 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 12/25] memremap: remove the data field in struct dev_pagemap
+Date: Mon, 17 Jun 2019 14:27:20 +0200
+Message-Id: <20190617122733.22432-13-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,78 +23,104 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-nd_label->dpa issue was observed when trying to enable the namespace created
-with little-endian kernel on a big-endian kernel. That made me run
-`sparse` on the rest of the code and other changes are the result of that.
+struct dev_pagemap is always embedded into a containing structure, so
+there is no need to an additional private data field.
 
-Fixes: d9b83c756953 ("libnvdimm, btt: rework error clearing")
-Fixes: 9dedc73a4658 ("libnvdimm/btt: Fix LBA masking during 'free list' population")
-
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/nvdimm/btt.c            | 8 ++++----
- drivers/nvdimm/namespace_devs.c | 7 ++++---
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/nvdimm/pmem.c    | 2 +-
+ include/linux/memremap.h | 3 +--
+ kernel/memremap.c        | 2 +-
+ mm/hmm.c                 | 9 +++++----
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index a8d56887ec88..3e9f45aec8d1 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -392,9 +392,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
- 	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
- 	if (++(arena->freelist[lane].seq) == 4)
- 		arena->freelist[lane].seq = 1;
--	if (ent_e_flag(ent->old_map))
-+	if (ent_e_flag(le32_to_cpu(ent->old_map)))
- 		arena->freelist[lane].has_err = 1;
--	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
-+	arena->freelist[lane].block = ent_lba(le32_to_cpu(ent->old_map));
- 
- 	return ret;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 85364c59c607..1ff4b1c4c7c3 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -342,7 +342,7 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
  }
-@@ -560,8 +560,8 @@ static int btt_freelist_init(struct arena_info *arena)
- 		 * FIXME: if error clearing fails during init, we want to make
- 		 * the BTT read-only
- 		 */
--		if (ent_e_flag(log_new.old_map) &&
--				!ent_normal(log_new.old_map)) {
-+		if (ent_e_flag(le32_to_cpu(log_new.old_map)) &&
-+		    !ent_normal(le32_to_cpu(log_new.old_map))) {
- 			arena->freelist[i].has_err = 1;
- 			ret = arena_clear_freelist_error(arena, i);
- 			if (ret)
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 007027202542..839da9e43572 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1987,7 +1987,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
- 		nd_mapping = &nd_region->mapping[i];
- 		label_ent = list_first_entry_or_null(&nd_mapping->labels,
- 				typeof(*label_ent), list);
--		label0 = label_ent ? label_ent->label : 0;
-+		label0 = label_ent ? label_ent->label : NULL;
  
- 		if (!label0) {
- 			WARN_ON(1);
-@@ -2322,8 +2322,9 @@ static struct device **scan_labels(struct nd_region *nd_region)
- 			continue;
+-static void pmem_pagemap_page_free(struct page *page, void *data)
++static void pmem_pagemap_page_free(struct page *page)
+ {
+ 	wake_up_var(&page->_refcount);
+ }
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 72a8a1a9303b..036c637f0150 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -69,7 +69,7 @@ struct dev_pagemap_ops {
+ 	 * reach 0 refcount unless there is a refcount bug. This allows the
+ 	 * device driver to implement its own memory management.)
+ 	 */
+-	void (*page_free)(struct page *page, void *data);
++	void (*page_free)(struct page *page);
  
- 		/* skip labels that describe extents outside of the region */
--		if (nd_label->dpa < nd_mapping->start || nd_label->dpa > map_end)
--			continue;
-+		if (__le64_to_cpu(nd_label->dpa) < nd_mapping->start ||
-+		    __le64_to_cpu(nd_label->dpa) > map_end)
-+				continue;
+ 	/*
+ 	 * Transition the refcount in struct dev_pagemap to the dead state.
+@@ -104,7 +104,6 @@ struct dev_pagemap {
+ 	struct resource res;
+ 	struct percpu_ref *ref;
+ 	struct device *dev;
+-	void *data;
+ 	enum memory_type type;
+ 	u64 pci_p2pdma_bus_offset;
+ 	const struct dev_pagemap_ops *ops;
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 5245c25b10e3..9dd5ccdb1adb 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -379,7 +379,7 @@ void __put_devmap_managed_page(struct page *page)
  
- 		i = add_namespace_resource(nd_region, nd_label, devs, count);
- 		if (i < 0)
+ 		mem_cgroup_uncharge(page);
+ 
+-		page->pgmap->ops->page_free(page, page->pgmap->data);
++		page->pgmap->ops->page_free(page);
+ 	} else if (!count)
+ 		__put_page(page);
+ }
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 2e5642dc6b04..8a0e04bbeee6 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1365,15 +1365,17 @@ static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
+ 
+ static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
+ {
+-	struct hmm_devmem *devmem = vmf->page->pgmap->data;
++	struct hmm_devmem *devmem =
++		container_of(vmf->page->pgmap, struct hmm_devmem, pagemap);
+ 
+ 	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
+ 			vmf->flags, vmf->pmd);
+ }
+ 
+-static void hmm_devmem_free(struct page *page, void *data)
++static void hmm_devmem_free(struct page *page)
+ {
+-	struct hmm_devmem *devmem = data;
++	struct hmm_devmem *devmem =
++		container_of(page->pgmap, struct hmm_devmem, pagemap);
+ 
+ 	devmem->ops->free(devmem, page);
+ }
+@@ -1439,7 +1441,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+ 	devmem->pagemap.ops = &hmm_pagemap_ops;
+ 	devmem->pagemap.altmap_valid = false;
+ 	devmem->pagemap.ref = &devmem->ref;
+-	devmem->pagemap.data = devmem;
+ 
+ 	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
+ 	if (IS_ERR(result))
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
