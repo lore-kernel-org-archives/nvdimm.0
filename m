@@ -1,62 +1,220 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Tue, 4 Jun 2019 09:41:00 +0200
-From: Oscar Salvador <osalvador@suse.de>
-Subject: Re: [PATCH v8 00/12] mm: Sub-section memory hotplug support
-Message-ID: <20190604074056.GA2853@linux>
-References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 27CF621296B01
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:12 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 14/25] memremap: provide an optional internal refcount in
+ struct dev_pagemap
+Date: Mon, 17 Jun 2019 14:27:22 +0200
+Message-Id: <20190617122733.22432-15-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, David Hildenbrand <david@redhat.com>, Jane Chu <jane.chu@oracle.com>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@soleen.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Robin Murphy <robin.murphy@arm.com>, Anshuman Khandual <anshuman.khandual@arm.com>, Logan Gunthorpe <logang@deltatee.com>, Paul Mackerras <paulus@samba.org>, Toshi Kani <toshi.kani@hpe.com>, Jeff Moyer <jmoyer@redhat.com>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, stable@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 06, 2019 at 04:39:26PM -0700, Dan Williams wrote:
-> Changes since v7 [1]:
-> 
-> - Make subsection helpers pfn based rather than physical-address based
->   (Oscar and Pavel)
-> 
-> - Make subsection bitmap definition scalable for different section and
->   sub-section sizes across architectures. As a result:
-> 
->       unsigned long map_active
-> 
->   ...is converted to:
-> 
->       DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION)
-> 
->   ...and the helpers are renamed with a 'subsection' prefix. (Pavel)
-> 
-> - New in this version is a touch of arch/powerpc/include/asm/sparsemem.h
->   in "[PATCH v8 01/12] mm/sparsemem: Introduce struct mem_section_usage"
->   to define ARCH_SUBSECTION_SHIFT.
-> 
-> - Drop "mm/sparsemem: Introduce common definitions for the size and mask
->   of a section" in favor of Robin's "mm/memremap: Rename and consolidate
->   SECTION_SIZE" (Pavel)
-> 
-> - Collect some more Reviewed-by tags. Patches that still lack review
->   tags: 1, 3, 9 - 12
+Provide an internal refcounting logic if no ->ref field is provided
+in the pagemap passed into devm_memremap_pages so that callers don't
+have to reinvent it poorly.
 
-Hi Dan,
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/memremap.h          |  4 ++
+ kernel/memremap.c                 | 64 ++++++++++++++++++++++++-------
+ tools/testing/nvdimm/test/iomap.c | 17 ++++++--
+ 3 files changed, 68 insertions(+), 17 deletions(-)
 
-are you planning to send V10 anytime soon?
-
-After you addressed comments from Patch#9, the general implementation looks
-fine to me and nothing sticked out from the other patches.
-But I would rather wait to see v10 with the comments addressed before stamping
-my Reviewed-by.
-
-I am planning to fire my vmemmap patchset again [1], and I would like to re-base
-it on top of this work, otherwise we will face many unnecessary collisions.
-
-Thanks
-
-[1] https://patchwork.kernel.org/patch/10875025/
-
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 7289eb091b04..7e0f072ddce7 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -95,6 +95,8 @@ struct dev_pagemap_ops {
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
+  * @res: physical address range covered by @ref
+  * @ref: reference count that pins the devm_memremap_pages() mapping
++ * @internal_ref: internal reference if @ref is not provided by the caller
++ * @done: completion for @internal_ref
+  * @dev: host device of the mapping for debug
+  * @data: private data pointer for page_free()
+  * @type: memory type: see MEMORY_* in memory_hotplug.h
+@@ -105,6 +107,8 @@ struct dev_pagemap {
+ 	struct vmem_altmap altmap;
+ 	struct resource res;
+ 	struct percpu_ref *ref;
++	struct percpu_ref internal_ref;
++	struct completion done;
+ 	struct device *dev;
+ 	enum memory_type type;
+ 	unsigned int flags;
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index b41d98a64ebf..60693a1e8e92 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -29,7 +29,7 @@ static void dev_pagemap_put_ops(void *data)
+ 
+ static int dev_pagemap_get_ops(struct device *dev, struct dev_pagemap *pgmap)
+ {
+-	if (!pgmap->ops->page_free) {
++	if (!pgmap->ops || !pgmap->ops->page_free) {
+ 		WARN(1, "Missing page_free method\n");
+ 		return -EINVAL;
+ 	}
+@@ -75,6 +75,24 @@ static unsigned long pfn_next(unsigned long pfn)
+ #define for_each_device_pfn(pfn, map) \
+ 	for (pfn = pfn_first(map); pfn < pfn_end(map); pfn = pfn_next(pfn))
+ 
++static void dev_pagemap_kill(struct dev_pagemap *pgmap)
++{
++	if (pgmap->ops && pgmap->ops->kill)
++		pgmap->ops->kill(pgmap);
++	else
++		percpu_ref_kill(pgmap->ref);
++}
++
++static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
++{
++	if (pgmap->ops && pgmap->ops->cleanup) {
++		pgmap->ops->cleanup(pgmap);
++	} else {
++		wait_for_completion(&pgmap->done);
++		percpu_ref_exit(pgmap->ref);
++	}
++}
++
+ static void devm_memremap_pages_release(void *data)
+ {
+ 	struct dev_pagemap *pgmap = data;
+@@ -84,10 +102,10 @@ static void devm_memremap_pages_release(void *data)
+ 	unsigned long pfn;
+ 	int nid;
+ 
+-	pgmap->ops->kill(pgmap);
++	dev_pagemap_kill(pgmap);
+ 	for_each_device_pfn(pfn, pgmap)
+ 		put_page(pfn_to_page(pfn));
+-	pgmap->ops->cleanup(pgmap);
++	dev_pagemap_cleanup(pgmap);
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
+ 	align_start = res->start & ~(SECTION_SIZE - 1);
+@@ -114,20 +132,29 @@ static void devm_memremap_pages_release(void *data)
+ 		      "%s: failed to free all reserved pages\n", __func__);
+ }
+ 
++static void dev_pagemap_percpu_release(struct percpu_ref *ref)
++{
++	struct dev_pagemap *pgmap =
++		container_of(ref, struct dev_pagemap, internal_ref);
++
++	complete(&pgmap->done);
++}
++
+ /**
+  * devm_memremap_pages - remap and provide memmap backing for the given resource
+  * @dev: hosting device for @res
+  * @pgmap: pointer to a struct dev_pagemap
+  *
+  * Notes:
+- * 1/ At a minimum the res, ref and type and ops members of @pgmap must be
+- *    initialized by the caller before passing it to this function
++ * 1/ At a minimum the res and type members of @pgmap must be initialized
++ *    by the caller before passing it to this function
+  *
+  * 2/ The altmap field may optionally be initialized, in which case
+  *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
+  *
+- * 3/ pgmap->ref must be 'live' on entry and will be killed and reaped
+- *    at devm_memremap_pages_release() time, or if this routine fails.
++ * 3/ The ref field may optionally be provided, in which pgmap->ref must be
++ *    'live' on entry and will be killed and reaped at
++ *    devm_memremap_pages_release() time, or if this routine fails.
+  *
+  * 4/ res is expected to be a host memory range that could feasibly be
+  *    treated as a "System RAM" range, i.e. not a device mmio range, but
+@@ -178,10 +205,21 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 		break;
+ 	}
+ 
+-	if (!pgmap->ref || !pgmap->ops || !pgmap->ops->kill ||
+-	    !pgmap->ops->cleanup) {
+-		WARN(1, "Missing reference count teardown definition\n");
+-		return ERR_PTR(-EINVAL);
++	if (!pgmap->ref) {
++		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
++			return ERR_PTR(-EINVAL);
++
++		init_completion(&pgmap->done);
++		error = percpu_ref_init(&pgmap->internal_ref,
++				dev_pagemap_percpu_release, 0, GFP_KERNEL);
++		if (error)
++			return ERR_PTR(error);
++		pgmap->ref = &pgmap->internal_ref;
++	} else {
++		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
++			WARN(1, "Missing reference count teardown definition\n");
++			return ERR_PTR(-EINVAL);
++		}
+ 	}
+ 
+ 	if (pgmap->type != MEMORY_DEVICE_PCI_P2PDMA) {
+@@ -299,8 +337,8 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+  err_pfn_remap:
+ 	pgmap_array_delete(res);
+  err_array:
+-	pgmap->ops->kill(pgmap);
+-	pgmap->ops->cleanup(pgmap);
++	dev_pagemap_kill(pgmap);
++	dev_pagemap_cleanup(pgmap);
+ 	return ERR_PTR(error);
+ }
+ EXPORT_SYMBOL_GPL(devm_memremap_pages);
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index 3a1fa7735f47..8cd9b9873a7f 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -106,10 +106,19 @@ EXPORT_SYMBOL(__wrap_devm_memremap);
+ 
+ static void nfit_test_kill(void *_pgmap)
+ {
+-	WARN_ON(!pgmap || !pgmap->ref || !pgmap->ops->kill ||
+-		!pgmap->ops->cleanup);
+-	pgmap->ops->kill(pgmap);
+-	pgmap->ops->cleanup(pgmap);
++	WARN_ON(!pgmap || !pgmap->ref)
++
++	if (pgmap->ops && pgmap->ops->kill)
++		pgmap->ops->kill(pgmap);
++	else
++		percpu_ref_kill(pgmap->ref);
++
++	if (pgmap->ops && pgmap->ops->cleanup) {
++		pgmap->ops->cleanup(pgmap);
++	} else {
++		wait_for_completion(&pgmap->done);
++		percpu_ref_exit(pgmap->ref);
++	}
+ }
+ 
+ void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
 -- 
-Oscar Salvador
-SUSE L3
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
