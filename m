@@ -3,14 +3,14 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7EEFF212AB4DD
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:11 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id EA3D72129EB98
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:36 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 20/22] mm: move hmm_vma_fault to nouveau
-Date: Mon,  1 Jul 2019 08:20:18 +0200
-Message-Id: <20190701062020.19239-21-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+Subject: [PATCH 25/25] mm: don't select MIGRATE_VMA_HELPER from HMM_MIRROR
+Date: Mon, 17 Jun 2019 14:27:33 +0200
+Message-Id: <20190617122733.22432-26-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,160 +27,41 @@ To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse
 Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-hmm_vma_fault is marked as a legacy API to get rid of, but quite suites
-the current nouvea flow.  Move it to the only user in preparation for
-fixing a locking bug involving caller and callee.
+The migrate_vma helper is only used by noveau to migrate device private
+pages around.  Other HMM_MIRROR users like amdgpu or infiniband don't
+need it.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_svm.c | 54 ++++++++++++++++++++++++++-
- include/linux/hmm.h                   | 54 ---------------------------
- 2 files changed, 53 insertions(+), 55 deletions(-)
+ drivers/gpu/drm/nouveau/Kconfig | 1 +
+ mm/Kconfig                      | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
-index 9d40114d7949..e831f4184a17 100644
---- a/drivers/gpu/drm/nouveau/nouveau_svm.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
-@@ -36,6 +36,13 @@
- #include <linux/sort.h>
- #include <linux/hmm.h>
- 
-+/*
-+ * When waiting for mmu notifiers we need some kind of time out otherwise we
-+ * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
-+ * wait already.
-+ */
-+#define NOUVEAU_RANGE_FAULT_TIMEOUT 1000
-+
- struct nouveau_svm {
- 	struct nouveau_drm *drm;
- 	struct mutex mutex;
-@@ -475,6 +482,51 @@ nouveau_svm_fault_cache(struct nouveau_svm *svm,
- 		fault->inst, fault->addr, fault->access);
- }
- 
-+static int
-+nouveau_range_fault(struct hmm_mirror *mirror, struct hmm_range *range,
-+		    bool block)
-+{
-+	long ret;
-+
-+	/*
-+	 * With the old API the driver must set each individual entries with
-+	 * the requested flags (valid, write, ...). So here we set the mask to
-+	 * keep intact the entries provided by the driver and zero out the
-+	 * default_flags.
-+	 */
-+	range->default_flags = 0;
-+	range->pfn_flags_mask = -1UL;
-+
-+	ret = hmm_range_register(range, mirror,
-+				 range->start, range->end,
-+				 PAGE_SHIFT);
-+	if (ret)
-+		return (int)ret;
-+
-+	if (!hmm_range_wait_until_valid(range, NOUVEAU_RANGE_FAULT_TIMEOUT)) {
-+		/*
-+		 * The mmap_sem was taken by driver we release it here and
-+		 * returns -EAGAIN which correspond to mmap_sem have been
-+		 * drop in the old API.
-+		 */
-+		up_read(&range->vma->vm_mm->mmap_sem);
-+		return -EAGAIN;
-+	}
-+
-+	ret = hmm_range_fault(range, block);
-+	if (ret <= 0) {
-+		if (ret == -EBUSY || !ret) {
-+			/* Same as above, drop mmap_sem to match old API. */
-+			up_read(&range->vma->vm_mm->mmap_sem);
-+			ret = -EBUSY;
-+		} else if (ret == -EAGAIN)
-+			ret = -EBUSY;
-+		hmm_range_unregister(range);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
- static int
- nouveau_svm_fault(struct nvif_notify *notify)
- {
-@@ -649,7 +701,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
- 		range.values = nouveau_svm_pfn_values;
- 		range.pfn_shift = NVIF_VMM_PFNMAP_V0_ADDR_SHIFT;
- again:
--		ret = hmm_vma_fault(&svmm->mirror, &range, true);
-+		ret = nouveau_range_fault(&svmm->mirror, &range, true);
- 		if (ret == 0) {
- 			mutex_lock(&svmm->mutex);
- 			if (!hmm_range_unregister(&range)) {
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 4b185d286c3b..3457cf9182e5 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -478,60 +478,6 @@ long hmm_range_dma_unmap(struct hmm_range *range,
- 			 dma_addr_t *daddrs,
- 			 bool dirty);
- 
--/*
-- * HMM_RANGE_DEFAULT_TIMEOUT - default timeout (ms) when waiting for a range
-- *
-- * When waiting for mmu notifiers we need some kind of time out otherwise we
-- * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
-- * wait already.
-- */
--#define HMM_RANGE_DEFAULT_TIMEOUT 1000
--
--/* This is a temporary helper to avoid merge conflict between trees. */
--static inline int hmm_vma_fault(struct hmm_mirror *mirror,
--				struct hmm_range *range, bool block)
--{
--	long ret;
--
--	/*
--	 * With the old API the driver must set each individual entries with
--	 * the requested flags (valid, write, ...). So here we set the mask to
--	 * keep intact the entries provided by the driver and zero out the
--	 * default_flags.
--	 */
--	range->default_flags = 0;
--	range->pfn_flags_mask = -1UL;
--
--	ret = hmm_range_register(range, mirror,
--				 range->start, range->end,
--				 PAGE_SHIFT);
--	if (ret)
--		return (int)ret;
--
--	if (!hmm_range_wait_until_valid(range, HMM_RANGE_DEFAULT_TIMEOUT)) {
--		/*
--		 * The mmap_sem was taken by driver we release it here and
--		 * returns -EAGAIN which correspond to mmap_sem have been
--		 * drop in the old API.
--		 */
--		up_read(&range->vma->vm_mm->mmap_sem);
--		return -EAGAIN;
--	}
--
--	ret = hmm_range_fault(range, block);
--	if (ret <= 0) {
--		if (ret == -EBUSY || !ret) {
--			/* Same as above, drop mmap_sem to match old API. */
--			up_read(&range->vma->vm_mm->mmap_sem);
--			ret = -EBUSY;
--		} else if (ret == -EAGAIN)
--			ret = -EBUSY;
--		hmm_range_unregister(range);
--		return ret;
--	}
--	return 0;
--}
--
- /* Below are for HMM internal use only! Not to be used by device driver! */
- static inline void hmm_mm_init(struct mm_struct *mm)
- {
+diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
+index 66c839d8e9d1..96b9814e6d06 100644
+--- a/drivers/gpu/drm/nouveau/Kconfig
++++ b/drivers/gpu/drm/nouveau/Kconfig
+@@ -88,6 +88,7 @@ config DRM_NOUVEAU_SVM
+ 	depends on DRM_NOUVEAU
+ 	depends on HMM_MIRROR
+ 	depends on STAGING
++	select MIGRATE_VMA_HELPER
+ 	default n
+ 	help
+ 	  Say Y here if you want to enable experimental support for
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 7fa785551f96..55c9c661e2ee 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -680,7 +680,6 @@ config HMM_MIRROR
+ 	depends on (X86_64 || PPC64)
+ 	depends on MMU && 64BIT
+ 	select MMU_NOTIFIER
+-	select MIGRATE_VMA_HELPER
+ 	help
+ 	  Select HMM_MIRROR if you want to mirror range of the CPU page table of a
+ 	  process into a device page table. Here, mirror means "keep synchronized".
 -- 
 2.20.1
 
