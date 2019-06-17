@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com
- [IPv6:2a00:1450:4864:20::22a])
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E07A212909FF
- for <linux-nvdimm@lists.01.org>; Thu,  6 Jun 2019 15:29:36 -0700 (PDT)
-Received: by mail-lj1-x22a.google.com with SMTP id k18so10052ljc.11
- for <linux-nvdimm@lists.01.org>; Thu, 06 Jun 2019 15:29:36 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 144D621295CA6
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 12:25:29 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id i8so10667107oth.10
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 12:25:29 -0700 (PDT)
 MIME-Version: 1.0
-From: Steven Swanson <swanson@eng.ucsd.edu>
-Date: Thu, 6 Jun 2019 15:29:23 -0700
-Message-ID: <CABjYnA6fxLO1HnLgV17TJAYADNamJ729BS=6CsxoU2kCiJ-RVQ@mail.gmail.com>
-Subject: Persistent Programming in Real Life (PIRL) Call for Presentations
+References: <20190617122733.22432-1-hch@lst.de>
+ <20190617122733.22432-11-hch@lst.de>
+In-Reply-To: <20190617122733.22432-11-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 17 Jun 2019 12:25:17 -0700
+Message-ID: <CAPcyv4jtZSK7bgQX_Sm1E-Thqmyhs30SrZKoSApjghRLL12Ngg@mail.gmail.com>
+Subject: Re: [PATCH 10/25] memremap: lift the devmap_enable manipulation into
+ devm_memremap_pages
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,56 +23,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, nouveau@lists.freedesktop.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Linux MM <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, linux-pci@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-WW91IGFyZSBpbnZpdGVkIHRvIHByb3Bvc2UgYSBwcmVzZW50YXRpb24gYXQgdGhlIGZpcnN0IGFu
-bnVhbCBQZXJzaXN0ZW50ClByb2dyYW1taW5nIGluIFJlYWwgTGlmZSAoUElSTCkgKGh0dHBzOi8v
-cGlybC5udnNsLmlvLykuICBQSVJMIGJyaW5ncwp0b2dldGhlciBzb2Z0d2FyZSBkZXZlbG9wbWVu
-dCBsZWFkZXJzIGludGVyZXN0ZWQgaW4gbGVhcm5pbmcgYWJvdXQKcHJvZ3JhbW1pbmcgbWV0aG9k
-b2xvZ2llcyBmb3IgcGVyc2lzdGVudCBtZW1vcmllcyAoZS5nLiBOVkRJTU1zLCBPcHRhbmUgREMp
-CmFuZCBzaGFyaW5nIHRoZWlyIGV4cGVyaWVuY2VzIHdpdGggb3RoZXJzLgoKVGVsbCB1cyBhYm91
-dCB3aGF0IHlvdSBoYXZlIGRvbmUgKGFuZCB3YW50IHRvIGRvKSB3aXRoIHBlcnNpc3RlbnQgbWVt
-b3J5LAp3aGF0IHdvcmtlZCwgd2hhdCBkaWRu4oCZdCwgd2hhdCB3YXMgaGFyZCwgd2hhdCB3YXMg
-ZWFzeSwgd2hhdCB3YXMKc3VycHJpc2luZywgYW5kIHdoYXQgZGlkIHlvdSBsZWFybj8gSG93IGNh
-biBvdGhlcnMgbGVhcm4gZnJvbSB5b3VyCmV4cGVyaWVuY2U/CgpQSVJMIGlzIHNtYWxsLiAgV2Ug
-YXJlIGxpbWl0aW5nIGF0dGVuZGFuY2UgdGhpcyB5ZWFyIHRvIHVuZGVyIDEwMCBwZW9wbGUsCmlu
-Y2x1ZGluZyBzcGVha2Vycy4gIFRoZXJlIHdpbGwgYmUgbG90cyBvZiB0aW1lIGZvciBpbmZvcm1h
-bCBkaXNjdXNzaW9uIGFuZApuZXR3b3JraW5nLgoKV2UgaGF2ZSBhbiBleGNpdGluZyBzbGF0ZSBv
-ZiBrZXlub3RlIHNwZWFrZXJzIGxpbmVkIHVwOgoKUHJhdGFwIFN1YnJhaG1hbnlhbSAoVk13YXJl
-KQpKaWEgU2hpIChPcmFjbGUpCkRhbiBXaWxsaWFtcyAoSW50ZWwgQ29ycG9yYXRpb24pClNjb3R0
-IE1pbGxlciAoRHJlYW13b3JrcykKU3RlcGhlbiBCYXRlcyAoRWlkZXRpY29tKQoKSWYgeW91IHdv
-dWxkIGxpa2UgdG8gcHJlc2VudCBhdCBQSVJMLCBmaWxsIG91dCB0aGlzIGZvcm0gKApodHRwczov
-L2RvY3MuZ29vZ2xlLmNvbS9mb3Jtcy9kL2UvMUZBSXBRTFNmS3dLem5hT1VrS2h3dmJTbGhUU1dN
-Q3lPLVJYUnkyUVZoZVV3QVR6QTdudnpRelEvdmlld2Zvcm0pLgpGb3IgaW5zdGFuY2UsICBhIHBy
-b3Bvc2FsIG1pZ2h0IGluY2x1ZGU6CjEuIFdoYXQgeW91IGRpZCBvciBhcmUgdHJ5aW5nIHRvIGRv
-LgoyLiBZb3VyIGV4cGVyaWVuY2UsIGFuZCB0aGUgbGVzc29ucyBvdGhlcnMgY2FuIGxlYXJuIGZy
-b20gaXQuCjMuIFdlIGV4cGVjdCB0byBzZWUgY29kZSEKCldlIHdlbGNvbWUgdGFsa3MgdGhhdCBk
-ZXNjcmliZSBuZXcgdG9vbHMsIGJ1dCB3ZSBhcmUgbm90IGludGVyZXN0ZWQgaW4Kc2FsZXMgcGl0
-Y2hlcy4gIEF0dGVuZGVlcyBzaG91bGQgY29tZSBhd2F5IGZyb20gZXZlcnkgc2Vzc2lvbiB3aXRo
-CmFjdGlvbmFibGUgaW5mb3JtYXRpb24gdGhhdCBjYW4gYmUgdXRpbGl6ZWQgdG8gdXNlIHBlcnNp
-c3RlbnQgbWVtb3J5IG1vcmUKZWZmZWN0aXZlbHkuClByZXNlbnRhdGlvbiBGb3JtYXQKCldlIGFy
-ZSBvcGVuIHRvIG1hbnkgZGlmZmVyZW50IGtpbmRzIG9mIHRhbGtzLiAgUG9zc2liaWxpdGllcyBp
-bmNsdWRlOgoxLiBUYWxrcyBhYm91dCBleHBlcmllbmNlcyBvbiBhIHBhcnRpY3VsYXIgcHJvamVj
-dC4KMi4gUG90ZW50aWFsbHkgZGV2ZWxvcCBvciB3cml0ZSBjb2RlIGxpdmUgb3IgcHJvdmlkZSBz
-YW1wbGVzIGR1cmluZyB0aGUKcHJlc2VudGF0aW9uLgozLiBEbyB5b3UgaGF2ZSBhIGZ1biBjaGFs
-bGVuZ2UgZm9yIHBlcnNpc3RlbnQgY29kaW5nPyAgV2XigJlyZSBhY2NlcHRpbmcgY29kZQpjaGFs
-bGVuZ2VzLCBhbmQgd2XigJlsbCBiZSBvZmZlcmluZyB0d28gb3IgdGhyZWUgb2YgdGhlbSBzbyB5
-b3UgY2FuIHNob3cKb3RoZXJzIHlvdXIgc2tpbGxzLgoKUElSTCB3aWxsIGJlIGhvc3RlZCBieSB0
-aGUgTm9uLVZvbGF0aWxlIFN5c3RlbXMgTGFib3JhdG9yeSBhdCB0aGUKVW5pdmVyc2l0eSBvZiBD
-YWxpZm9ybmlhLCBTYW4gRGllZ28uICBJdCB3aWxsIGJlIGhlbGQgYXQgU2NyaXBwcyBGb3J1bSAo
-Cmh0dHBzOi8vc2NyaXBwcy51Y3NkLmVkdS9hYm91dC92ZW51ZXMvc2Vhc2lkZS1mb3J1bSkgb24g
-SnVseSAyMm5kIHRvIDIzcmQsCjIwMTksIHdpdGggYSBzb2NpYWwgZXZlbnQgdGhlIGV2ZW5pbmcg
-b2YgSnVseSAyMXN0LgoKUHJlLXJlZ2lzdHJhdGlvbiBpcyBvcGVuICgKaHR0cHM6Ly93d3cuZXZl
-bnRicml0ZS5jb20vZS9waXJsLXJlZ2lzdHJhdGlvbi02MjIxOTQ5ODE5NCkgYW5kIHdpbGwgYmUK
-JDQwMC4gU3BhY2UgaXMgbGltaXRlZC4KCklmIHlvdSBoYXZlIGFueSBxdWVzdGlvbnMsIHBsZWFz
-ZSBjb250YWN0IFN0ZXZlbiBTd2Fuc29uICgKc3dhbnNvbkBjcy51Y3NkLmVkdSkuCk9yZ2FuaXpp
-bmcgQ29tbWl0dGVlCgpTdGV2ZW4gU3dhbnNvbiAoVUNTRCkgSmltIEZpc3RlciAoU05JQSkgQW5k
-eSBSdWRvZmYgKEludGVsKQoKSmlzaGVuIFpoYW8gKFVDU0QpIEpvZSBJenJhZWxldml0eiAoVUNT
-RCkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlz
-dHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Mon, Jun 17, 2019 at 5:28 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Just check if there is a ->page_free operation set and take care of the
+> static key enable, as well as the put using device managed resources.
+> Also check that a ->page_free is provided for the pgmaps types that
+> require it, and check for a valid type as well while we are at it.
+>
+> Note that this also fixes the fact that hmm never called
+> dev_pagemap_put_ops and thus would leave the slow path enabled forever,
+> even after a device driver unload or disable.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/nvdimm/pmem.c | 23 +++--------------
+>  include/linux/mm.h    | 10 --------
+>  kernel/memremap.c     | 57 ++++++++++++++++++++++++++-----------------
+>  mm/hmm.c              |  2 --
+>  4 files changed, 39 insertions(+), 53 deletions(-)
+>
+[..]
+> diff --git a/kernel/memremap.c b/kernel/memremap.c
+> index ba7156bd52d1..7272027fbdd7 100644
+> --- a/kernel/memremap.c
+> +++ b/kernel/memremap.c
+[..]
+> @@ -190,6 +219,12 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+>                 return ERR_PTR(-EINVAL);
+>         }
+>
+> +       if (pgmap->type != MEMORY_DEVICE_PCI_P2PDMA) {
+
+Once we have MEMORY_DEVICE_DEVDAX then this check needs to be fixed up
+to skip that case as well, otherwise:
+
+ Missing page_free method
+ WARNING: CPU: 19 PID: 1518 at kernel/memremap.c:33
+devm_memremap_pages+0x745/0x7d0
+ RIP: 0010:devm_memremap_pages+0x745/0x7d0
+ Call Trace:
+  dev_dax_probe+0xc6/0x1e0 [device_dax]
+  really_probe+0xef/0x390
+  ? driver_allows_async_probing+0x50/0x50
+  driver_probe_device+0xb4/0x100
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
