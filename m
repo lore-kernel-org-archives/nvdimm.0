@@ -1,77 +1,40 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 69D0821A07093
- for <linux-nvdimm@lists.01.org>; Mon,  3 Jun 2019 20:11:12 -0700 (PDT)
-Date: Tue, 4 Jun 2019 11:10:41 +0800
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: Re: [PATCH] libnvdimm, namespace: check nsblk->uuid immediately
- after its allocation
-Message-ID: <20190604031041.GA27794@richard>
-References: <20190116065144.3499-1-richardw.yang@linux.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Mon, 17 Jun 2019 19:42:51 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 06/25] mm: factor out a devm_request_free_mem_region
+ helper
+Message-ID: <20190617174251.GA18249@lst.de>
+References: <20190617122733.22432-1-hch@lst.de> <20190617122733.22432-7-hch@lst.de> <CAPcyv4hoRR6gzTSkWnwMiUtX6jCKz2NMOhCUfXTji8f2H1v+rg@mail.gmail.com> <20190617174018.GA18185@lst.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190116065144.3499-1-richardw.yang@linux.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: Wei Yang <richardw.yang@linux.intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Wei Yang <richardw.yang@linux.intel.com>
-Cc: zwisler@kernel.org, linux-nvdimm@lists.01.org
+In-Reply-To: <20190617174018.GA18185@lst.de>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, Linux MM <linux-mm@kvack.org>, nouveau@lists.freedesktop.org, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-pci@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Dan
+On Mon, Jun 17, 2019 at 07:40:18PM +0200, Christoph Hellwig wrote:
+> On Mon, Jun 17, 2019 at 10:37:12AM -0700, Dan Williams wrote:
+> > > +struct resource *devm_request_free_mem_region(struct device *dev,
+> > > +               struct resource *base, unsigned long size);
+> > 
+> > This appears to need a 'static inline' helper stub in the
+> > CONFIG_DEVICE_PRIVATE=n case, otherwise this compile error triggers:
+> > 
+> > ld: mm/hmm.o: in function `hmm_devmem_add':
+> > /home/dwillia2/git/linux/mm/hmm.c:1427: undefined reference to
+> > `devm_request_free_mem_region'
+> 
+> *sigh* - hmm_devmem_add already only works for device private memory,
+> so it shouldn't be built if that option is not enabled, but in the
+> current code it is.  And a few patches later in the series we just
+> kill it off entirely, and the only real caller of this function
+> already depends on CONFIG_DEVICE_PRIVATE.  So I'm tempted to just
+> ignore the strict bisectability requirement here instead of making
+> things messy by either adding the proper ifdefs in hmm.c or providing
+> a stub we don't really need.
 
-Do you have some time on this?
-
-On Wed, Jan 16, 2019 at 02:51:44PM +0800, Wei Yang wrote:
->When creating nd_namespace_blk, its uuid is copied from nd_label->uuid.
->In case the memory allocation fails, it goes to the error branch.
->
->This check is better to be done immediately after memory allocation,
->while current implementation does this after assigning claim_class.
->
->This patch moves the check immediately after uuid allocation.
->
->Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
->---
-> drivers/nvdimm/namespace_devs.c | 4 ++--
-> 1 file changed, 2 insertions(+), 2 deletions(-)
->
->diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
->index 681af3a8fd62..9471b9ca04f5 100644
->--- a/drivers/nvdimm/namespace_devs.c
->+++ b/drivers/nvdimm/namespace_devs.c
->@@ -2240,11 +2240,11 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
-> 	nsblk->lbasize = __le64_to_cpu(nd_label->lbasize);
-> 	nsblk->uuid = kmemdup(nd_label->uuid, NSLABEL_UUID_LEN,
-> 			GFP_KERNEL);
->+	if (!nsblk->uuid)
->+		goto blk_err;
-> 	if (namespace_label_has(ndd, abstraction_guid))
-> 		nsblk->common.claim_class
-> 			= to_nvdimm_cclass(&nd_label->abstraction_guid);
->-	if (!nsblk->uuid)
->-		goto blk_err;
-> 	memcpy(name, nd_label->name, NSLABEL_NAME_LEN);
-> 	if (name[0])
-> 		nsblk->alt_name = kmemdup(name, NSLABEL_NAME_LEN,
->-- 
->2.19.1
-
--- 
-Wei Yang
-Help you, Help me
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Actually, I could just move the patch to mark CONFIG_DEVICE_PUBLIC
+broken earlier, which would force hmm_devmem_add to only be built
+when CONFIG_DEVICE_PRIVATE ist set.
