@@ -3,14 +3,15 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 10802212AB4C4
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 05:30:43 -0700 (PDT)
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: [PATCH 04/39] docs: nvdimm: add it to the driver-api book
-Date: Fri, 28 Jun 2019 09:29:57 -0300
-Message-Id: <bd756f3565213887a1fe82a382f7dfe7f9119f1f.1561724493.git.mchehab+samsung@kernel.org>
-In-Reply-To: <cover.1561724493.git.mchehab+samsung@kernel.org>
-References: <cover.1561724493.git.mchehab+samsung@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id D4EF82129DBAA
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:09 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 13/25] memremap: replace the altmap_valid field with a
+ PGMAP_ALTMAP_VALID flag
+Date: Mon, 17 Jun 2019 14:27:21 +0200
+Message-Id: <20190617122733.22432-14-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,78 +24,278 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The descriptions here are from Kernel driver's PoV.
+Add a flags field to struct dev_pagemap to replace the altmap_valid
+boolean to be a little more extensible.  Also add a pgmap_altmap() helper
+to find the optional altmap and clean up the code using the altmap using
+it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- Documentation/driver-api/index.rst                 | 1 +
- Documentation/{ => driver-api}/nvdimm/btt.rst      | 0
- Documentation/{ => driver-api}/nvdimm/index.rst    | 2 --
- Documentation/{ => driver-api}/nvdimm/nvdimm.rst   | 0
- Documentation/{ => driver-api}/nvdimm/security.rst | 0
- drivers/nvdimm/Kconfig                             | 2 +-
- 6 files changed, 2 insertions(+), 3 deletions(-)
- rename Documentation/{ => driver-api}/nvdimm/btt.rst (100%)
- rename Documentation/{ => driver-api}/nvdimm/index.rst (94%)
- rename Documentation/{ => driver-api}/nvdimm/nvdimm.rst (100%)
- rename Documentation/{ => driver-api}/nvdimm/security.rst (100%)
+ arch/powerpc/mm/mem.c     | 10 +---------
+ arch/x86/mm/init_64.c     |  8 ++------
+ drivers/nvdimm/pfn_devs.c |  3 +--
+ drivers/nvdimm/pmem.c     |  1 -
+ include/linux/memremap.h  | 12 +++++++++++-
+ kernel/memremap.c         | 26 ++++++++++----------------
+ mm/hmm.c                  |  1 -
+ mm/memory_hotplug.c       |  6 ++----
+ mm/page_alloc.c           |  5 ++---
+ 9 files changed, 29 insertions(+), 43 deletions(-)
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 93c6c9a98c41..41f5ce7dc34c 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -43,6 +43,7 @@ available subsections can be seen below.
-    mtdnand
-    miscellaneous
-    mei/index
-+   nvdimm/index
-    w1
-    rapidio/index
-    s390-drivers
-diff --git a/Documentation/nvdimm/btt.rst b/Documentation/driver-api/nvdimm/btt.rst
-similarity index 100%
-rename from Documentation/nvdimm/btt.rst
-rename to Documentation/driver-api/nvdimm/btt.rst
-diff --git a/Documentation/nvdimm/index.rst b/Documentation/driver-api/nvdimm/index.rst
-similarity index 94%
-rename from Documentation/nvdimm/index.rst
-rename to Documentation/driver-api/nvdimm/index.rst
-index 1a3402d3775e..19dc8ee371dc 100644
---- a/Documentation/nvdimm/index.rst
-+++ b/Documentation/driver-api/nvdimm/index.rst
-@@ -1,5 +1,3 @@
--:orphan:
+diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+index cba29131bccc..f774d80df025 100644
+--- a/arch/powerpc/mm/mem.c
++++ b/arch/powerpc/mm/mem.c
+@@ -131,17 +131,9 @@ void __ref arch_remove_memory(int nid, u64 start, u64 size,
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+-	struct page *page;
++	struct page *page = pfn_to_page(start_pfn) + vmem_altmap_offset(altmap);
+ 	int ret;
+ 
+-	/*
+-	 * If we have an altmap then we need to skip over any reserved PFNs
+-	 * when querying the zone.
+-	 */
+-	page = pfn_to_page(start_pfn);
+-	if (altmap)
+-		page += vmem_altmap_offset(altmap);
 -
- ===================================
- Non-Volatile Memory Device (NVDIMM)
- ===================================
-diff --git a/Documentation/nvdimm/nvdimm.rst b/Documentation/driver-api/nvdimm/nvdimm.rst
-similarity index 100%
-rename from Documentation/nvdimm/nvdimm.rst
-rename to Documentation/driver-api/nvdimm/nvdimm.rst
-diff --git a/Documentation/nvdimm/security.rst b/Documentation/driver-api/nvdimm/security.rst
-similarity index 100%
-rename from Documentation/nvdimm/security.rst
-rename to Documentation/driver-api/nvdimm/security.rst
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index e89c1c332407..a5fde15e91d3 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -33,7 +33,7 @@ config BLK_DEV_PMEM
- 	  Documentation/admin-guide/kernel-parameters.rst).  This driver converts
- 	  these persistent memory ranges into block devices that are
- 	  capable of DAX (direct-access) file system mappings.  See
--	  Documentation/nvdimm/nvdimm.rst for more details.
-+	  Documentation/driver-api/nvdimm/nvdimm.rst for more details.
+ 	__remove_pages(page_zone(page), start_pfn, nr_pages, altmap);
  
- 	  Say Y if you want to use an NVDIMM
+ 	/* Remove htab bolted mappings for this section of memory */
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 693aaf28d5fe..3139e992ef9d 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1211,13 +1211,9 @@ void __ref arch_remove_memory(int nid, u64 start, u64 size,
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+-	struct page *page = pfn_to_page(start_pfn);
+-	struct zone *zone;
++	struct page *page = pfn_to_page(start_pfn) + vmem_altmap_offset(altmap);
++	struct zone *zone = page_zone(page);
  
+-	/* With altmap the first mapped page is offset from @start */
+-	if (altmap)
+-		page += vmem_altmap_offset(altmap);
+-	zone = page_zone(page);
+ 	__remove_pages(zone, start_pfn, nr_pages, altmap);
+ 	kernel_physical_mapping_remove(start, start + size);
+ }
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 01f40672507f..24924a442129 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -630,7 +630,6 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 		if (offset < reserve)
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+-		pgmap->altmap_valid = false;
+ 	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+ 		nd_pfn->npfns = PFN_SECTION_ALIGN_UP((resource_size(res)
+ 					- offset) / PAGE_SIZE);
+@@ -642,7 +641,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+ 		memcpy(altmap, &__altmap, sizeof(*altmap));
+ 		altmap->free = PHYS_PFN(offset - reserve);
+ 		altmap->alloc = 0;
+-		pgmap->altmap_valid = true;
++		pgmap->flags |= PGMAP_ALTMAP_VALID;
+ 	} else
+ 		return -ENXIO;
+ 
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 1ff4b1c4c7c3..7c3d388cf2f7 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -420,7 +420,6 @@ static int pmem_attach_disk(struct device *dev,
+ 		bb_res.start += pmem->data_offset;
+ 	} else if (pmem_should_map_pages(dev)) {
+ 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
+-		pmem->pgmap.altmap_valid = false;
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
+ 		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 036c637f0150..7289eb091b04 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -88,6 +88,8 @@ struct dev_pagemap_ops {
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
+ };
+ 
++#define PGMAP_ALTMAP_VALID	(1 << 0)
++
+ /**
+  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
+@@ -96,19 +98,27 @@ struct dev_pagemap_ops {
+  * @dev: host device of the mapping for debug
+  * @data: private data pointer for page_free()
+  * @type: memory type: see MEMORY_* in memory_hotplug.h
++ * @flags: PGMAP_* flags to specify defailed behavior
+  * @ops: method table
+  */
+ struct dev_pagemap {
+ 	struct vmem_altmap altmap;
+-	bool altmap_valid;
+ 	struct resource res;
+ 	struct percpu_ref *ref;
+ 	struct device *dev;
+ 	enum memory_type type;
++	unsigned int flags;
+ 	u64 pci_p2pdma_bus_offset;
+ 	const struct dev_pagemap_ops *ops;
+ };
+ 
++static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
++{
++	if (pgmap->flags & PGMAP_ALTMAP_VALID)
++		return &pgmap->altmap;
++	return NULL;
++}
++
+ #ifdef CONFIG_ZONE_DEVICE
+ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
+ void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 9dd5ccdb1adb..b41d98a64ebf 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -54,14 +54,8 @@ static void pgmap_array_delete(struct resource *res)
+ 
+ static unsigned long pfn_first(struct dev_pagemap *pgmap)
+ {
+-	const struct resource *res = &pgmap->res;
+-	struct vmem_altmap *altmap = &pgmap->altmap;
+-	unsigned long pfn;
+-
+-	pfn = res->start >> PAGE_SHIFT;
+-	if (pgmap->altmap_valid)
+-		pfn += vmem_altmap_offset(altmap);
+-	return pfn;
++	return (pgmap->res.start >> PAGE_SHIFT) +
++		vmem_altmap_offset(pgmap_altmap(pgmap));
+ }
+ 
+ static unsigned long pfn_end(struct dev_pagemap *pgmap)
+@@ -109,7 +103,7 @@ static void devm_memremap_pages_release(void *data)
+ 				align_size >> PAGE_SHIFT, NULL);
+ 	} else {
+ 		arch_remove_memory(nid, align_start, align_size,
+-				pgmap->altmap_valid ? &pgmap->altmap : NULL);
++				pgmap_altmap(pgmap));
+ 		kasan_remove_zero_shadow(__va(align_start), align_size);
+ 	}
+ 	mem_hotplug_done();
+@@ -129,8 +123,8 @@ static void devm_memremap_pages_release(void *data)
+  * 1/ At a minimum the res, ref and type and ops members of @pgmap must be
+  *    initialized by the caller before passing it to this function
+  *
+- * 2/ The altmap field may optionally be initialized, in which case altmap_valid
+- *    must be set to true
++ * 2/ The altmap field may optionally be initialized, in which case
++ *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
+  *
+  * 3/ pgmap->ref must be 'live' on entry and will be killed and reaped
+  *    at devm_memremap_pages_release() time, or if this routine fails.
+@@ -142,15 +136,13 @@ static void devm_memremap_pages_release(void *data)
+ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ {
+ 	resource_size_t align_start, align_size, align_end;
+-	struct vmem_altmap *altmap = pgmap->altmap_valid ?
+-			&pgmap->altmap : NULL;
+ 	struct resource *res = &pgmap->res;
+ 	struct dev_pagemap *conflict_pgmap;
+ 	struct mhp_restrictions restrictions = {
+ 		/*
+ 		 * We do not want any optional features only our own memmap
+ 		*/
+-		.altmap = altmap,
++		.altmap = pgmap_altmap(pgmap),
+ 	};
+ 	pgprot_t pgprot = PAGE_KERNEL;
+ 	int error, nid, is_ram;
+@@ -277,7 +269,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 
+ 		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
+ 		move_pfn_range_to_zone(zone, align_start >> PAGE_SHIFT,
+-				align_size >> PAGE_SHIFT, altmap);
++				align_size >> PAGE_SHIFT, pgmap_altmap(pgmap));
+ 	}
+ 
+ 	mem_hotplug_done();
+@@ -322,7 +314,9 @@ EXPORT_SYMBOL_GPL(devm_memunmap_pages);
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+ {
+ 	/* number of pfns from base where pfn_to_page() is valid */
+-	return altmap->reserve + altmap->free;
++	if (altmap)
++		return altmap->reserve + altmap->free;
++	return 0;
+ }
+ 
+ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns)
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 8a0e04bbeee6..307c12d7531c 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1439,7 +1439,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+ 	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+ 	devmem->pagemap.res = *devmem->resource;
+ 	devmem->pagemap.ops = &hmm_pagemap_ops;
+-	devmem->pagemap.altmap_valid = false;
+ 	devmem->pagemap.ref = &devmem->ref;
+ 
+ 	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index e096c987d261..6166ba5a15f3 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -557,10 +557,8 @@ void __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+ 	int sections_to_remove;
+ 
+ 	/* In the ZONE_DEVICE case device driver owns the memory region */
+-	if (is_dev_zone(zone)) {
+-		if (altmap)
+-			map_offset = vmem_altmap_offset(altmap);
+-	}
++	if (is_dev_zone(zone))
++		map_offset = vmem_altmap_offset(altmap);
+ 
+ 	clear_zone_contiguous(zone);
+ 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index d66bc8abe0af..17a39d40a556 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5853,6 +5853,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+ {
+ 	unsigned long pfn, end_pfn = start_pfn + size;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
++	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
+ 	unsigned long zone_idx = zone_idx(zone);
+ 	unsigned long start = jiffies;
+ 	int nid = pgdat->node_id;
+@@ -5865,9 +5866,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+ 	 * of the pages reserved for the memmap, so we can just jump to
+ 	 * the end of that region and start processing the device pages.
+ 	 */
+-	if (pgmap->altmap_valid) {
+-		struct vmem_altmap *altmap = &pgmap->altmap;
+-
++	if (altmap) {
+ 		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
+ 		size = end_pfn - start_pfn;
+ 	}
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
