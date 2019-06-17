@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2AB05212AAB65
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 17:30:02 -0700 (PDT)
-Subject: [PATCH] filesystem-dax: Disable PMD support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Jun 2019 17:15:45 -0700
-Message-ID: <156159454541.2964018.7466991316059381921.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 72FBE21296B01
+ for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:33 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 23/25] mm: sort out the DEVICE_PRIVATE Kconfig mess
+Date: Mon, 17 Jun 2019 14:27:31 +0200
+Message-Id: <20190617122733.22432-24-hch@lst.de>
+In-Reply-To: <20190617122733.22432-1-hch@lst.de>
+References: <20190617122733.22432-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,49 +23,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, Robert Barror <robert.barror@intel.com>, Matthew Wilcox <willy@infradead.org>, linux-fsdevel@vger.kernel.org, Seema Pandit <seema.pandit@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Ever since the conversion of DAX to the Xarray a RocksDB benchmark has
-been encountering intermittent lockups. The backtraces always include
-the filesystem-DAX PMD path, multi-order entries have been a source of
-bugs in the past, and disabling the PMD path allows a test that fails in
-minutes to run for an hour.
+The ZONE_DEVICE support doesn't depend on anything HMM related, just on
+various bits of arch support as indicated by the architecture.  Also
+don't select the option from nouveau as it isn't present in many setups,
+and depend on it instead.
 
-The regression has been bisected to "dax: Convert page fault handlers to
-XArray", but little progress has been made on the root cause debug.
-Unless / until root cause can be identified mark CONFIG_FS_DAX_PMD
-broken to preclude intermittent lockups. Reverting the Xarray conversion
-also works, but that change is too big to backport. The implementation
-is committed to Xarray at this point.
-
-Link: https://lore.kernel.org/linux-fsdevel/CAPcyv4hwHpX-MkUEqxwdTj7wCCZCN4RV-L4jsnuwLGyL_UEG4A@mail.gmail.com/
-Fixes: b15cd800682f ("dax: Convert page fault handlers to XArray")
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: <stable@vger.kernel.org>
-Reported-by: Robert Barror <robert.barror@intel.com>
-Reported-by: Seema Pandit <seema.pandit@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/gpu/drm/nouveau/Kconfig | 2 +-
+ mm/Kconfig                      | 5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index f1046cf6ad85..85eecd0d4c5d 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -66,6 +66,9 @@ config FS_DAX_PMD
- 	depends on FS_DAX
- 	depends on ZONE_DEVICE
- 	depends on TRANSPARENT_HUGEPAGE
-+	# intermittent lockups since commit b15cd800682f "dax: Convert
-+	# page fault handlers to XArray"
-+	depends on BROKEN
+diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
+index dba2613f7180..6303d203ab1d 100644
+--- a/drivers/gpu/drm/nouveau/Kconfig
++++ b/drivers/gpu/drm/nouveau/Kconfig
+@@ -85,10 +85,10 @@ config DRM_NOUVEAU_BACKLIGHT
+ config DRM_NOUVEAU_SVM
+ 	bool "(EXPERIMENTAL) Enable SVM (Shared Virtual Memory) support"
+ 	depends on ARCH_HAS_HMM
++	depends on DEVICE_PRIVATE
+ 	depends on DRM_NOUVEAU
+ 	depends on STAGING
+ 	select HMM_MIRROR
+-	select DEVICE_PRIVATE
+ 	default n
+ 	help
+ 	  Say Y here if you want to enable experimental support for
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 406fa45e9ecc..4dbd718c8cf4 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -677,13 +677,13 @@ config ARCH_HAS_HMM_MIRROR
  
- # Selected by DAX drivers that do not expect filesystem DAX to support
- # get_user_pages() of DAX mappings. I.e. "limited" indicates no support
+ config ARCH_HAS_HMM
+ 	bool
+-	default y
+ 	depends on (X86_64 || PPC64)
+ 	depends on ZONE_DEVICE
+ 	depends on MMU && 64BIT
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
++	default y
+ 
+ config MIGRATE_VMA_HELPER
+ 	bool
+@@ -709,8 +709,7 @@ config HMM_MIRROR
+ 
+ config DEVICE_PRIVATE
+ 	bool "Unaddressable device memory (GPU memory, ...)"
+-	depends on ARCH_HAS_HMM
+-	select HMM
++	depends on ZONE_DEVICE
+ 	select DEV_PAGEMAP_OPS
+ 
+ 	help
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
