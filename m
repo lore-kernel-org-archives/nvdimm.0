@@ -1,9 +1,10 @@
-From: annwang-HzDRG5vm+LasTnJN9+BGXg@public.gmane.org
-Subject: Security Alert. Your accounts was hacked by criminal group.
-Date: Tue, 18 Jun 2019 14:25:08 +0300
-Message-ID: <6CD92165-6589-C6F6-2D18-1B67B4B09BCE@sunvim.net>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain; charset="us-ascii"
+From: "Qtrans Language Solutions " <info-LIg7FeCA4LP6V6G2DxALlg@public.gmane.org>
+Subject: Looking for website translation?
+Date: Tue, 18 Jun 2019 04:17:44 +0000
+Message-ID: <b78cc49e89da12e747cf65350421af47@qtranslsg.com>
+Reply-To: sales-QgeUVmcqwmSsTnJN9+BGXg@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -18,39 +19,10 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello!
+Your email client cannot read this email.
+To view it online, please go here:
+http://qtranslsg.com/display.php?M=1112213&C=9f1db85afa8263f39b92b4491e8f0a9f&S=4&L=3&N=6
 
-I am a hacker who has access to your operating system.
-I also have full access to your account.
 
-I've been watching you for a few months now.
-The fact is that you were infected with malware through an adult site that you visited.
-
-If you are not familiar with this, I will explain.
-Trojan Virus gives me full access and control over a computer or other device.
-This means that I can see everything on your screen, turn on the camera and microphone, but you do not know about it.
-
-I also have access to all your contacts and all your correspondence.
-
-Why your antivirus did not detect malware?
-Answer: My malware uses the driver, I update its signatures every 4 hours so that your antivirus is silent.
-
-I made a video showing how you satisfy yourself in the left half of the screen, and in the right half you see the video that you watched.
-With one click of the mouse, I can send this video to all your emails and contacts on social networks.
-I can also post access to all your e-mail correspondence and messengers that you use.
-
-If you want to prevent this,
-transfer the amount of $600 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
-
-My bitcoin address (BTC Wallet) is:  3BYMaPAJenDRjGmNye19XXDts4DcZYCr8a
-
-After receiving the payment, I will delete the video and you will never hear me again.
-I give you 50 hours (more than 2 days) to pay.
-I have a notice reading this letter, and the timer will work when you see this letter.
-
-Filing a complaint somewhere does not make sense because this email cannot be tracked like my bitcoin address.
-I do not make any mistakes.
-
-If I find that you have shared this message with someone else, the video will be immediately distributed.
-
-Best regards!
+To stop receiving these
+emails:http://qtranslsg.com/unsubscribe.php?M=1112213&C=9f1db85afa8263f39b92b4491e8f0a9f&L=3&N=4
