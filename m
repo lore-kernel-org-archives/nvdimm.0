@@ -1,7 +1,7 @@
-From: oroszi.gabor-lSt/Hw2hLMD6W2JKM0XF0g@public.gmane.org
-Subject: Your account has been hacked! You need to unlock.
-Date: Wed, 12 Jun 2019 02:18:52 +0300
-Message-ID: <01C5BD29-9327-3F81-2E91-6F6FF8D0ED25@kamionbonto.eu>
+From: annwang-HzDRG5vm+LasTnJN9+BGXg@public.gmane.org
+Subject: Security Alert. Your accounts was hacked by criminal group.
+Date: Tue, 18 Jun 2019 14:25:08 +0300
+Message-ID: <6CD92165-6589-C6F6-2D18-1B67B4B09BCE@sunvim.net>
 Mime-Version: 1.0 (1.0)
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -40,9 +40,9 @@ With one click of the mouse, I can send this video to all your emails and contac
 I can also post access to all your e-mail correspondence and messengers that you use.
 
 If you want to prevent this,
-transfer the amount of $500 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
+transfer the amount of $600 to my bitcoin address (if you do not know how to do this, write to Google: "Buy Bitcoin").
 
-My bitcoin address (BTC Wallet) is:  3M949U9WpDBwytGoMoGv3Fss9uqrFPXdkZ
+My bitcoin address (BTC Wallet) is:  3BYMaPAJenDRjGmNye19XXDts4DcZYCr8a
 
 After receiving the payment, I will delete the video and you will never hear me again.
 I give you 50 hours (more than 2 days) to pay.
