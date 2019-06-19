@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B5A0D2194EB77
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:19 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v5 06/13] libdaxctl: add an interface to get the mode
- for a dax device
-Date: Fri, 28 Jun 2019 13:11:03 -0600
-Message-Id: <20190628191110.21428-7-vishal.l.verma@intel.com>
-In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
-References: <20190628191110.21428-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 78BB921296419
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:52 -0700 (PDT)
+Subject: [PATCH v10 11/13] mm/devm_memremap_pages: Enable sub-section remap
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Jun 2019 22:52:35 -0700
+Message-ID: <156092355542.979959.10060071713397030576.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -19,150 +18,137 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Oscar Salvador <osalvador@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for a reconfigure-device command, add an interface to
-retrieve the 'mode' of a dax device. This will allow the
-reconfigure-device command (and via daxctl_dev_to_json(), also
-daxctl-list) to print the mode in device listings via a 'daxctl-list'
-command or immediately after a mode change.
-
-Add a 'state' attribute to the json listings for devices, since a device
-could end up in a state where it is not bound to any driver, and hence,
-'disabled'. The state attribute is only displayed for disabled devices.
-
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c   | 37 +++++++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  1 +
- daxctl/libdaxctl.h       |  1 +
- util/json.c              | 17 +++++++++++++++++
- 4 files changed, 56 insertions(+)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index b22df50..9ff6235 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -12,6 +12,8 @@
-  */
- #include <stdio.h>
- #include <errno.h>
-+#include <limits.h>
-+#include <libgen.h>
- #include <stdlib.h>
- #include <dirent.h>
- #include <unistd.h>
-@@ -880,6 +882,41 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
- 	return 0;
- }
- 
-+DAXCTL_EXPORT enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int rc = DAXCTL_DEV_MODE_UNKNOWN;
-+	char path[200];
-+	const int len = sizeof(path);
-+	char *mod_path, *mod_base;
-+
-+	if (!daxctl_dev_is_enabled(dev))
-+		return rc;
-+
-+	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	mod_path = realpath(path, NULL);
-+	if (!mod_path) {
-+		rc = -errno;
-+		err(ctx, "%s:  unable to determine module: %s\n", devname,
-+			strerror(errno));
-+		return rc;
-+	}
-+
-+	mod_base = basename(mod_path);
-+	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
-+		rc = DAXCTL_DEV_MODE_RAM;
-+	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
-+		rc = DAXCTL_DEV_MODE_DEVDAX;
-+
-+	free(mod_path);
-+	return rc;
-+}
-+
- DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
- {
- 	return dev->region->ctx;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 53eb700..9ce5096 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -67,4 +67,5 @@ global:
- 	daxctl_memory_set_online;
- 	daxctl_memory_set_offline;
- 	daxctl_memory_is_online;
-+	daxctl_dev_get_mode;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index a5a2bab..6d1c17d 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -74,6 +74,7 @@ int daxctl_dev_disable(struct daxctl_dev *dev);
- int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
- int daxctl_dev_enable_ram(struct daxctl_dev *dev);
- int daxctl_dev_get_target_node(struct daxctl_dev *dev);
-+enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev);
- 
- struct daxctl_memory;
- struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
-diff --git a/util/json.c b/util/json.c
-index f521337..1673f1d 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- {
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct json_object *jdev, *jobj;
-+	enum daxctl_dev_mode mode;
- 	int node;
- 
- 	jdev = json_object_new_object();
-@@ -292,6 +293,22 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- 			json_object_object_add(jdev, "target_node", jobj);
- 	}
- 
-+	mode = daxctl_dev_get_mode(dev);
-+	if (mode >= 0) {
-+		if (mode == DAXCTL_DEV_MODE_RAM)
-+			jobj = json_object_new_string("system-ram");
-+		else
-+			jobj = json_object_new_string("devdax");
-+		if (jobj)
-+			json_object_object_add(jdev, "mode", jobj);
-+	}
-+
-+	if (!daxctl_dev_is_enabled(dev)) {
-+		jobj = json_object_new_string("disabled");
-+		if (jobj)
-+			json_object_object_add(jdev, "state", jobj);
-+	}
-+
- 	return jdev;
- }
- 
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+VGVhY2ggZGV2bV9tZW1yZW1hcF9wYWdlcygpIGFib3V0IHRoZSBuZXcgc3ViLXNlY3Rpb24gY2Fw
+YWJpbGl0aWVzIG9mCmFyY2hfe2FkZCxyZW1vdmV9X21lbW9yeSgpLiBFZmZlY3RpdmVseSwganVz
+dCByZXBsYWNlIGFsbCB1c2FnZSBvZgphbGlnbl9zdGFydCwgYWxpZ25fZW5kLCBhbmQgYWxpZ25f
+c2l6ZSB3aXRoIHJlcy0+c3RhcnQsIHJlcy0+ZW5kLCBhbmQKcmVzb3VyY2Vfc2l6ZShyZXMpLiBU
+aGUgZXhpc3Rpbmcgc2FuaXR5IGNoZWNrIHdpbGwgc3RpbGwgbWFrZSBzdXJlIHRoYXQKdGhlIHR3
+byBzZXBhcmF0ZSByZW1hcCBhdHRlbXB0cyBkbyBub3QgY29sbGlkZSB3aXRoaW4gYSBzdWItc2Vj
+dGlvbiAoMk1CCm9uIHg4NikuCgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+CkNj
+OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+CkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpn
+bGlzc2VAcmVkaGF0LmNvbT4KQ2M6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNv
+bT4KQ2M6IE9zY2FyIFNhbHZhZG9yIDxvc2FsdmFkb3JAc3VzZS5kZT4KQ2M6IFBhdmVsIFRhdGFz
+aGluIDxwYXNoYS50YXRhc2hpbkBzb2xlZW4uY29tPgpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlh
+bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KLS0tCiBrZXJuZWwvbWVtcmVtYXAuYyB8ICAg
+NjEgKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0K
+IDEgZmlsZSBjaGFuZ2VkLCAyNCBpbnNlcnRpb25zKCspLCAzNyBkZWxldGlvbnMoLSkKCmRpZmYg
+LS1naXQgYS9rZXJuZWwvbWVtcmVtYXAuYyBiL2tlcm5lbC9tZW1yZW1hcC5jCmluZGV4IDU3OTgw
+ZWQ0ZTU3MS4uYTBlNWY2YjkxYjA0IDEwMDY0NAotLS0gYS9rZXJuZWwvbWVtcmVtYXAuYworKysg
+Yi9rZXJuZWwvbWVtcmVtYXAuYwpAQCAtNTgsNyArNTgsNyBAQCBzdGF0aWMgdW5zaWduZWQgbG9u
+ZyBwZm5fZmlyc3Qoc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlzdHJ1Y3Qgdm1lbV9hbHRt
+YXAgKmFsdG1hcCA9ICZwZ21hcC0+YWx0bWFwOwogCXVuc2lnbmVkIGxvbmcgcGZuOwogCi0JcGZu
+ID0gcmVzLT5zdGFydCA+PiBQQUdFX1NISUZUOworCXBmbiA9IFBIWVNfUEZOKHJlcy0+c3RhcnQp
+OwogCWlmIChwZ21hcC0+YWx0bWFwX3ZhbGlkKQogCQlwZm4gKz0gdm1lbV9hbHRtYXBfb2Zmc2V0
+KGFsdG1hcCk7CiAJcmV0dXJuIHBmbjsKQEAgLTg2LDcgKzg2LDYgQEAgc3RhdGljIHZvaWQgZGV2
+bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZvaWQgKmRhdGEpCiAJc3RydWN0IGRldl9wYWdlbWFw
+ICpwZ21hcCA9IGRhdGE7CiAJc3RydWN0IGRldmljZSAqZGV2ID0gcGdtYXAtPmRldjsKIAlzdHJ1
+Y3QgcmVzb3VyY2UgKnJlcyA9ICZwZ21hcC0+cmVzOwotCXJlc291cmNlX3NpemVfdCBhbGlnbl9z
+dGFydCwgYWxpZ25fc2l6ZTsKIAl1bnNpZ25lZCBsb25nIHBmbjsKIAlpbnQgbmlkOwogCkBAIC05
+NiwyNSArOTUsMjEgQEAgc3RhdGljIHZvaWQgZGV2bV9tZW1yZW1hcF9wYWdlc19yZWxlYXNlKHZv
+aWQgKmRhdGEpCiAJcGdtYXAtPmNsZWFudXAocGdtYXAtPnJlZik7CiAKIAkvKiBwYWdlcyBhcmUg
+ZGVhZCBhbmQgdW51c2VkLCB1bmRvIHRoZSBhcmNoIG1hcHBpbmcgKi8KLQlhbGlnbl9zdGFydCA9
+IHJlcy0+c3RhcnQgJiB+KFBBX1NFQ1RJT05fU0laRSAtIDEpOwotCWFsaWduX3NpemUgPSBBTElH
+TihyZXMtPnN0YXJ0ICsgcmVzb3VyY2Vfc2l6ZShyZXMpLCBQQV9TRUNUSU9OX1NJWkUpCi0JCS0g
+YWxpZ25fc3RhcnQ7Ci0KLQluaWQgPSBwYWdlX3RvX25pZChwZm5fdG9fcGFnZShhbGlnbl9zdGFy
+dCA+PiBQQUdFX1NISUZUKSk7CisJbmlkID0gcGFnZV90b19uaWQocGZuX3RvX3BhZ2UoUEhZU19Q
+Rk4ocmVzLT5zdGFydCkpKTsKIAogCW1lbV9ob3RwbHVnX2JlZ2luKCk7CiAJaWYgKHBnbWFwLT50
+eXBlID09IE1FTU9SWV9ERVZJQ0VfUFJJVkFURSkgewotCQlwZm4gPSBhbGlnbl9zdGFydCA+PiBQ
+QUdFX1NISUZUOworCQlwZm4gPSBQSFlTX1BGTihyZXMtPnN0YXJ0KTsKIAkJX19yZW1vdmVfcGFn
+ZXMocGFnZV96b25lKHBmbl90b19wYWdlKHBmbikpLCBwZm4sCi0JCQkJYWxpZ25fc2l6ZSA+PiBQ
+QUdFX1NISUZULCBOVUxMKTsKKwkJCQlQSFlTX1BGTihyZXNvdXJjZV9zaXplKHJlcykpLCBOVUxM
+KTsKIAl9IGVsc2UgewotCQlhcmNoX3JlbW92ZV9tZW1vcnkobmlkLCBhbGlnbl9zdGFydCwgYWxp
+Z25fc2l6ZSwKKwkJYXJjaF9yZW1vdmVfbWVtb3J5KG5pZCwgcmVzLT5zdGFydCwgcmVzb3VyY2Vf
+c2l6ZShyZXMpLAogCQkJCXBnbWFwLT5hbHRtYXBfdmFsaWQgPyAmcGdtYXAtPmFsdG1hcCA6IE5V
+TEwpOwotCQlrYXNhbl9yZW1vdmVfemVyb19zaGFkb3coX192YShhbGlnbl9zdGFydCksIGFsaWdu
+X3NpemUpOworCQlrYXNhbl9yZW1vdmVfemVyb19zaGFkb3coX192YShyZXMtPnN0YXJ0KSwgcmVz
+b3VyY2Vfc2l6ZShyZXMpKTsKIAl9CiAJbWVtX2hvdHBsdWdfZG9uZSgpOwogCi0JdW50cmFja19w
+Zm4oTlVMTCwgUEhZU19QRk4oYWxpZ25fc3RhcnQpLCBhbGlnbl9zaXplKTsKKwl1bnRyYWNrX3Bm
+bihOVUxMLCBQSFlTX1BGTihyZXMtPnN0YXJ0KSwgcmVzb3VyY2Vfc2l6ZShyZXMpKTsKIAlwZ21h
+cF9hcnJheV9kZWxldGUocmVzKTsKIAlkZXZfV0FSTl9PTkNFKGRldiwgcGdtYXAtPmFsdG1hcC5h
+bGxvYywKIAkJICAgICAgIiVzOiBmYWlsZWQgdG8gZnJlZSBhbGwgcmVzZXJ2ZWQgcGFnZXNcbiIs
+IF9fZnVuY19fKTsKQEAgLTE0MSwxNiArMTM2LDEzIEBAIHN0YXRpYyB2b2lkIGRldm1fbWVtcmVt
+YXBfcGFnZXNfcmVsZWFzZSh2b2lkICpkYXRhKQogICovCiB2b2lkICpkZXZtX21lbXJlbWFwX3Bh
+Z2VzKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIHsKLQly
+ZXNvdXJjZV9zaXplX3QgYWxpZ25fc3RhcnQsIGFsaWduX3NpemUsIGFsaWduX2VuZDsKLQlzdHJ1
+Y3Qgdm1lbV9hbHRtYXAgKmFsdG1hcCA9IHBnbWFwLT5hbHRtYXBfdmFsaWQgPwotCQkJJnBnbWFw
+LT5hbHRtYXAgOiBOVUxMOwogCXN0cnVjdCByZXNvdXJjZSAqcmVzID0gJnBnbWFwLT5yZXM7CiAJ
+c3RydWN0IGRldl9wYWdlbWFwICpjb25mbGljdF9wZ21hcDsKIAlzdHJ1Y3QgbWhwX3Jlc3RyaWN0
+aW9ucyByZXN0cmljdGlvbnMgPSB7CiAJCS8qCiAJCSAqIFdlIGRvIG5vdCB3YW50IGFueSBvcHRp
+b25hbCBmZWF0dXJlcyBvbmx5IG91ciBvd24gbWVtbWFwCiAJCSovCi0JCS5hbHRtYXAgPSBhbHRt
+YXAsCisJCS5hbHRtYXAgPSBwZ21hcC0+YWx0bWFwX3ZhbGlkID8gJnBnbWFwLT5hbHRtYXAgOiBO
+VUxMLAogCX07CiAJcGdwcm90X3QgcGdwcm90ID0gUEFHRV9LRVJORUw7CiAJaW50IGVycm9yLCBu
+aWQsIGlzX3JhbTsKQEAgLTE2MCwxMiArMTUyLDcgQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdl
+cyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJCXJldHVy
+biBFUlJfUFRSKC1FSU5WQUwpOwogCX0KIAotCWFsaWduX3N0YXJ0ID0gcmVzLT5zdGFydCAmIH4o
+UEFfU0VDVElPTl9TSVpFIC0gMSk7Ci0JYWxpZ25fc2l6ZSA9IEFMSUdOKHJlcy0+c3RhcnQgKyBy
+ZXNvdXJjZV9zaXplKHJlcyksIFBBX1NFQ1RJT05fU0laRSkKLQkJLSBhbGlnbl9zdGFydDsKLQlh
+bGlnbl9lbmQgPSBhbGlnbl9zdGFydCArIGFsaWduX3NpemUgLSAxOwotCi0JY29uZmxpY3RfcGdt
+YXAgPSBnZXRfZGV2X3BhZ2VtYXAoUEhZU19QRk4oYWxpZ25fc3RhcnQpLCBOVUxMKTsKKwljb25m
+bGljdF9wZ21hcCA9IGdldF9kZXZfcGFnZW1hcChQSFlTX1BGTihyZXMtPnN0YXJ0KSwgTlVMTCk7
+CiAJaWYgKGNvbmZsaWN0X3BnbWFwKSB7CiAJCWRldl9XQVJOKGRldiwgIkNvbmZsaWN0aW5nIG1h
+cHBpbmcgaW4gc2FtZSBzZWN0aW9uXG4iKTsKIAkJcHV0X2Rldl9wYWdlbWFwKGNvbmZsaWN0X3Bn
+bWFwKTsKQEAgLTE3Myw3ICsxNjAsNyBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0cnVj
+dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAkJZ290byBlcnJfYXJy
+YXk7CiAJfQogCi0JY29uZmxpY3RfcGdtYXAgPSBnZXRfZGV2X3BhZ2VtYXAoUEhZU19QRk4oYWxp
+Z25fZW5kKSwgTlVMTCk7CisJY29uZmxpY3RfcGdtYXAgPSBnZXRfZGV2X3BhZ2VtYXAoUEhZU19Q
+Rk4ocmVzLT5lbmQpLCBOVUxMKTsKIAlpZiAoY29uZmxpY3RfcGdtYXApIHsKIAkJZGV2X1dBUk4o
+ZGV2LCAiQ29uZmxpY3RpbmcgbWFwcGluZyBpbiBzYW1lIHNlY3Rpb25cbiIpOwogCQlwdXRfZGV2
+X3BhZ2VtYXAoY29uZmxpY3RfcGdtYXApOwpAQCAtMTgxLDcgKzE2OCw3IEBAIHZvaWQgKmRldm1f
+bWVtcmVtYXBfcGFnZXMoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBn
+bWFwKQogCQlnb3RvIGVycl9hcnJheTsKIAl9CiAKLQlpc19yYW0gPSByZWdpb25faW50ZXJzZWN0
+cyhhbGlnbl9zdGFydCwgYWxpZ25fc2l6ZSwKKwlpc19yYW0gPSByZWdpb25faW50ZXJzZWN0cyhy
+ZXMtPnN0YXJ0LCByZXNvdXJjZV9zaXplKHJlcyksCiAJCUlPUkVTT1VSQ0VfU1lTVEVNX1JBTSwg
+SU9SRVNfREVTQ19OT05FKTsKIAogCWlmIChpc19yYW0gIT0gUkVHSU9OX0RJU0pPSU5UKSB7CkBA
+IC0yMDIsOCArMTg5LDggQEAgdm9pZCAqZGV2bV9tZW1yZW1hcF9wYWdlcyhzdHJ1Y3QgZGV2aWNl
+ICpkZXYsIHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXApCiAJaWYgKG5pZCA8IDApCiAJCW5pZCA9
+IG51bWFfbWVtX2lkKCk7CiAKLQllcnJvciA9IHRyYWNrX3Bmbl9yZW1hcChOVUxMLCAmcGdwcm90
+LCBQSFlTX1BGTihhbGlnbl9zdGFydCksIDAsCi0JCQlhbGlnbl9zaXplKTsKKwllcnJvciA9IHRy
+YWNrX3Bmbl9yZW1hcChOVUxMLCAmcGdwcm90LCBQSFlTX1BGTihyZXMtPnN0YXJ0KSwgMCwKKwkJ
+CXJlc291cmNlX3NpemUocmVzKSk7CiAJaWYgKGVycm9yKQogCQlnb3RvIGVycl9wZm5fcmVtYXA7
+CiAKQEAgLTIyMSwyNSArMjA4LDI1IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0
+IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCSAqIGFyY2hfYWRkX21l
+bW9yeSgpLgogCSAqLwogCWlmIChwZ21hcC0+dHlwZSA9PSBNRU1PUllfREVWSUNFX1BSSVZBVEUp
+IHsKLQkJZXJyb3IgPSBhZGRfcGFnZXMobmlkLCBhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAot
+CQkJCWFsaWduX3NpemUgPj4gUEFHRV9TSElGVCwgJnJlc3RyaWN0aW9ucyk7CisJCWVycm9yID0g
+YWRkX3BhZ2VzKG5pZCwgUEhZU19QRk4ocmVzLT5zdGFydCksCisJCQkJUEhZU19QRk4ocmVzb3Vy
+Y2Vfc2l6ZShyZXMpKSwgJnJlc3RyaWN0aW9ucyk7CiAJfSBlbHNlIHsKLQkJZXJyb3IgPSBrYXNh
+bl9hZGRfemVyb19zaGFkb3coX192YShhbGlnbl9zdGFydCksIGFsaWduX3NpemUpOworCQllcnJv
+ciA9IGthc2FuX2FkZF96ZXJvX3NoYWRvdyhfX3ZhKHJlcy0+c3RhcnQpLCByZXNvdXJjZV9zaXpl
+KHJlcykpOwogCQlpZiAoZXJyb3IpIHsKIAkJCW1lbV9ob3RwbHVnX2RvbmUoKTsKIAkJCWdvdG8g
+ZXJyX2thc2FuOwogCQl9CiAKLQkJZXJyb3IgPSBhcmNoX2FkZF9tZW1vcnkobmlkLCBhbGlnbl9z
+dGFydCwgYWxpZ25fc2l6ZSwKLQkJCQkJJnJlc3RyaWN0aW9ucyk7CisJCWVycm9yID0gYXJjaF9h
+ZGRfbWVtb3J5KG5pZCwgcmVzLT5zdGFydCwgcmVzb3VyY2Vfc2l6ZShyZXMpLAorCQkJCSZyZXN0
+cmljdGlvbnMpOwogCX0KIAogCWlmICghZXJyb3IpIHsKIAkJc3RydWN0IHpvbmUgKnpvbmU7CiAK
+IAkJem9uZSA9ICZOT0RFX0RBVEEobmlkKS0+bm9kZV96b25lc1taT05FX0RFVklDRV07Ci0JCW1v
+dmVfcGZuX3JhbmdlX3RvX3pvbmUoem9uZSwgYWxpZ25fc3RhcnQgPj4gUEFHRV9TSElGVCwKLQkJ
+CQlhbGlnbl9zaXplID4+IFBBR0VfU0hJRlQsIGFsdG1hcCk7CisJCW1vdmVfcGZuX3JhbmdlX3Rv
+X3pvbmUoem9uZSwgUEhZU19QRk4ocmVzLT5zdGFydCksCisJCQkJUEhZU19QRk4ocmVzb3VyY2Vf
+c2l6ZShyZXMpKSwgcmVzdHJpY3Rpb25zLmFsdG1hcCk7CiAJfQogCiAJbWVtX2hvdHBsdWdfZG9u
+ZSgpOwpAQCAtMjUxLDggKzIzOCw4IEBAIHZvaWQgKmRldm1fbWVtcmVtYXBfcGFnZXMoc3RydWN0
+IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQogCSAqIHRvIGFsbG93IHVz
+IHRvIGRvIHRoZSB3b3JrIHdoaWxlIG5vdCBob2xkaW5nIHRoZSBob3RwbHVnIGxvY2suCiAJICov
+CiAJbWVtbWFwX2luaXRfem9uZV9kZXZpY2UoJk5PREVfREFUQShuaWQpLT5ub2RlX3pvbmVzW1pP
+TkVfREVWSUNFXSwKLQkJCQlhbGlnbl9zdGFydCA+PiBQQUdFX1NISUZULAotCQkJCWFsaWduX3Np
+emUgPj4gUEFHRV9TSElGVCwgcGdtYXApOworCQkJCVBIWVNfUEZOKHJlcy0+c3RhcnQpLAorCQkJ
+CVBIWVNfUEZOKHJlc291cmNlX3NpemUocmVzKSksIHBnbWFwKTsKIAlwZXJjcHVfcmVmX2dldF9t
+YW55KHBnbWFwLT5yZWYsIHBmbl9lbmQocGdtYXApIC0gcGZuX2ZpcnN0KHBnbWFwKSk7CiAKIAll
+cnJvciA9IGRldm1fYWRkX2FjdGlvbl9vcl9yZXNldChkZXYsIGRldm1fbWVtcmVtYXBfcGFnZXNf
+cmVsZWFzZSwKQEAgLTI2Myw5ICsyNTAsOSBAQCB2b2lkICpkZXZtX21lbXJlbWFwX3BhZ2VzKHN0
+cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldl9wYWdlbWFwICpwZ21hcCkKIAlyZXR1cm4gX192
+YShyZXMtPnN0YXJ0KTsKIAogIGVycl9hZGRfbWVtb3J5OgotCWthc2FuX3JlbW92ZV96ZXJvX3No
+YWRvdyhfX3ZhKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7CisJa2FzYW5fcmVtb3ZlX3plcm9f
+c2hhZG93KF9fdmEocmVzLT5zdGFydCksIHJlc291cmNlX3NpemUocmVzKSk7CiAgZXJyX2thc2Fu
+OgotCXVudHJhY2tfcGZuKE5VTEwsIFBIWVNfUEZOKGFsaWduX3N0YXJ0KSwgYWxpZ25fc2l6ZSk7
+CisJdW50cmFja19wZm4oTlVMTCwgUEhZU19QRk4ocmVzLT5zdGFydCksIHJlc291cmNlX3NpemUo
+cmVzKSk7CiAgZXJyX3Bmbl9yZW1hcDoKIAlwZ21hcF9hcnJheV9kZWxldGUocmVzKTsKICBlcnJf
+YXJyYXk6CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpM
+aW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6
+Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
