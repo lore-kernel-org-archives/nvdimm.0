@@ -1,11 +1,13 @@
-From: "Qtrans Language Solutions " <info-LIg7FeCA4LP6V6G2DxALlg@public.gmane.org>
-Subject: Looking for website translation?
-Date: Tue, 18 Jun 2019 04:17:44 +0000
-Message-ID: <b78cc49e89da12e747cf65350421af47@qtranslsg.com>
-Reply-To: sales-QgeUVmcqwmSsTnJN9+BGXg@public.gmane.org
+From: =?utf-8?Q?=E4=B8=BB=E7=87=9F=E9=A6=99=E6=B8=AF=E6=90=AC?=
+ =?utf-8?Q?=E5=AE=B6?= <hk13642980935-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: =?utf-8?B?5Li754ef6aaZ5riv5pCs5a625Yiw5YWn5ZywLS0t6ZW/5pyf?=
+ =?utf-8?B?5pyJ5pWI77yM6K+35oOg5a2YIO+8jGxpbnV4LW52ZGltbUBsaXN0cy4w?=
+ =?utf-8?B?MS5vcmcgMjAxOeW5tDA25pyIMTnml6U=?=
+Date: 19 Jun 2019 14:53:42 +0800
+Message-ID: <14677.1288289287$1560927303@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,10 +21,23 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Your email client cannot read this email.
-To view it online, please go here:
-http://qtranslsg.com/display.php?M=1112213&C=9f1db85afa8263f39b92b4491e8f0a9f&S=4&L=3&N=6
-
-
-To stop receiving these
-emails:http://qtranslsg.com/unsubscribe.php?M=1112213&C=9f1db85afa8263f39b92b4491e8f0a9f&L=3&N=4
+Jm5ic3A7DQombmJzcDsNCg0KRGVhciBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnDQombmJzcDsN
+Cg0KDQrkuLvnh5/pppnmuK/mkKzlrrbosqjpgYvlsIjnt5rvvIzmj5DkvpvpppnmuK/mkKzlrrbl
+iLDmt7HlnLPvvIzkuK3muK/mkKzlrrbvvIzmt7HlnLPliLDpppnmuK/lvoDov5TpgYvovLjvvIzp
+ppnmuK/mkKzlrrbliLDlhaflnLDnrYnkuIDmop3pvo3kuK3muK/osqjpgYvpppnmuK/pgYvovLjm
+nI3li5njgILmoLnmk5rlrqLmiLbnmoTpgYvovLjmgKfos6rvvIzmjInlnIvlrrbopo/lrprngrrl
+rqLmiLblkIjnkIblkIjms5XnmoTopo/lioPpgYvovLjmtYHnqIvvvIzmj5DkvpvpppnmuK/liLDl
+hajlnIvpgYvovLjjgIHlgInlhLLjgIHpgLLlh7rlj6PpgJrpl5zkuIDnq5nlvI/mnI3li5njgIIN
+Cg0K5oiR5Y+45pON5L2c5rWB56iL77ya5LiA44CB5o6l5Zau5YWs5Y+45a6i5pyN5o6l5b6F5a6i
+5oi26Zu76Kmx5ZKo6Kmi77yM5LqG6Kej5a6i5oi255qE6ZyA5rGCIQ0K5LqM44CB5aCx5YO557aT
+5a6i5oi25LuL57S55b6M77yM6Iul5omA6ZyA5pCs6YG35a625YW35ZOB56iu5LiN5aSa77yM5bGs
+5pa85bCP5Z6L5pCs5a6277yM5a6i5oi26IO95Y+j6aCt6KGo6YGU5riF5pmw55qE77yM5o6l5Zau
+5Lq65ZOh5Y+v5L6d5pOa5YWs5Y+45YO555uu5qiZ5rqW5bCN6aGn5a6i6Zu76Kmx5aCx5YO577yM
+6ZuZ5pa557aT5Y2U5ZWG5Y+v5a6a5LiL5Y+j6aCt5Y2U6K2w44CCDQrlprPouqvpgornmoTnianm
+tYHlsIjlrrblpKfpmbjmiYvmqZ/vvJorODYtMTM2NDI5ODA5MzUg5qWK55SfIO+8iDI05bCP5pmC
+54ax57ea77yJUSBR77yaMjkwNTY1MDc3OSDlvq7kv6HomZ/vvJoxMzY0Mjk4MDkzNUUtTWFpbO+8
+mmhrMTM2NDI5ODA5MzVAaG90bWFpbC5jb20NCiZuYnNwOw0KJm5ic3A7DQoNCg0KDQoNCg0KDQoN
+CjIwMTnlubQwNuaciDE55pelDQombmJzcDsNCg0KbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRp
+bW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4w
+MS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
