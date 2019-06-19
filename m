@@ -1,21 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pg1-f193.google.com (mail-pg1-f193.google.com
- [209.85.215.193])
+Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
+ [IPv6:2607:f8b0:4864:20::242])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D14F72129DB92
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 15:13:21 -0700 (PDT)
-Received: by mail-pg1-f193.google.com with SMTP id z19so108559pgl.12
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 15:13:21 -0700 (PDT)
-Date: Tue, 25 Jun 2019 22:13:18 +0000
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH v5 06/18] kbuild: enable building KUnit
-Message-ID: <20190625221318.GO19023@42.do-not-panic.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com>
- <20190617082613.109131-7-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id A71BC2128D885
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Jun 2019 10:06:55 -0700 (PDT)
+Received: by mail-oi1-x242.google.com with SMTP id a127so10465405oii.2
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Jun 2019 10:06:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190617082613.109131-7-brendanhiggins@google.com>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156092356065.979959.6681003754765958296.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <877e9hk06d.fsf@linux.ibm.com>
+In-Reply-To: <877e9hk06d.fsf@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 19 Jun 2019 10:06:43 -0700
+Message-ID: <CAPcyv4gZfLoG2tOGFWK56rr1vadF71+ny951brtunbPUNW-W1w@mail.gmail.com>
+Subject: Re: [PATCH v10 12/13] libnvdimm/pfn: Fix fsdax-mode namespace
+ info-block zero-fields
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,28 +28,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 17, 2019 at 01:26:01AM -0700, Brendan Higgins wrote:
-> diff --git a/Kconfig b/Kconfig
-> index 48a80beab6853..10428501edb78 100644
-> --- a/Kconfig
-> +++ b/Kconfig
-> @@ -30,3 +30,5 @@ source "crypto/Kconfig"
->  source "lib/Kconfig"
->  
->  source "lib/Kconfig.debug"
-> +
-> +source "kunit/Kconfig"
+On Wed, Jun 19, 2019 at 9:30 AM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
+>
+> Dan Williams <dan.j.williams@intel.com> writes:
+>
+> > At namespace creation time there is the potential for the "expected to
+> > be zero" fields of a 'pfn' info-block to be filled with indeterminate
+> > data. While the kernel buffer is zeroed on allocation it is immediately
+> > overwritten by nd_pfn_validate() filling it with the current contents of
+> > the on-media info-block location. For fields like, 'flags' and the
+> > 'padding' it potentially means that future implementations can not rely
+> > on those fields being zero.
+> >
+> > In preparation to stop using the 'start_pad' and 'end_trunc' fields for
+> > section alignment, arrange for fields that are not explicitly
+> > initialized to be guaranteed zero. Bump the minor version to indicate it
+> > is safe to assume the 'padding' and 'flags' are zero. Otherwise, this
+> > corruption is expected to benign since all other critical fields are
+> > explicitly initialized.
+> >
+> > Note The cc: stable is about spreading this new policy to as many
+> > kernels as possible not fixing an issue in those kernels. It is not
+> > until the change titled "libnvdimm/pfn: Stop padding pmem namespaces to
+> > section alignment" where this improper initialization becomes a problem.
+> > So if someone decides to backport "libnvdimm/pfn: Stop padding pmem
+> > namespaces to section alignment" (which is not tagged for stable), make
+> > sure this pre-requisite is flagged.
+>
+> Don't we need a change like below in this patch?
+>
+> modified   drivers/nvdimm/pfn_devs.c
+> @@ -452,10 +452,11 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+>         if (memcmp(pfn_sb->parent_uuid, parent_uuid, 16) != 0)
+>                 return -ENODEV;
+>
+> -       if (__le16_to_cpu(pfn_sb->version_minor) < 1) {
+> -               pfn_sb->start_pad = 0;
+> -               pfn_sb->end_trunc = 0;
+> -       }
+> +       if ((__le16_to_cpu(pfn_sb->version_minor) < 1) ||
+> +           (__le16_to_cpu(pfn_sb->version_minor) >= 3)) {
+> +                       pfn_sb->start_pad = 0;
+> +                       pfn_sb->end_trunc = 0;
+> +               }
 
-This patch would break compilation as kunit/Kconfig is not introduced. This
-would would also break bisectability on this commit. This change should
-either be folded in to the next patch, or just be a separate patch after
-the next one.
+No, this kills off start_pad and end_trunc permanently.
 
-  Luis
+> IIUC we want to force the start_pad and end_truc to zero if the pfn_sb
+> minor version number >= 3. So once we have this patch backported and
+> older kernel finds a pfn_sb with minor version 3, it will ignore the
+> start_pad read from the nvdimm and overwrite that with zero here.
+> This patch doesn't enforce that right? After the next patch we can have
+> values other than 0 in pfn_sb->start_pad?
+
+The reason for the version bump is for the kernel to safely assume
+that uninitialized fields default to zero, but it's otherwise a nop
+when the implementation is explicitly initializing every field by
+default.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
