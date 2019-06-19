@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B081A2128A631
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 16:40:06 -0700 (PDT)
-Subject: [PATCH 1/6] drivers/base: Introduce kill_device()
+ by ml01.01.org (Postfix) with ESMTPS id D413B21296419
+ for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:06:29 -0700 (PDT)
+Subject: [PATCH v10 07/13] mm: Kill is_dev_zone() helper
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Jun 2019 16:25:49 -0700
-Message-ID: <156029554901.419799.10072666658870843929.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 18 Jun 2019 22:52:12 -0700
+Message-ID: <156092353211.979959.1489004866360828964.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,98 +22,61 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, peterz@infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Oscar Salvador <osalvador@suse.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The libnvdimm subsystem arranges for devices to be destroyed as a result
-of a sysfs operation. Since device_unregister() cannot be called from
-an actively running sysfs attribute of the same device libnvdimm
-arranges for device_unregister() to be performed in an out-of-line async
-context.
+Given there are no more usages of is_dev_zone() outside of 'ifdef
+CONFIG_ZONE_DEVICE' protection, kill off the compilation helper.
 
-The driver core maintains a 'dead' state for coordinating its own racing
-async registration / de-registration requests. Rather than add local
-'dead' state tracking infrastructure to libnvdimm device objects, export
-the existing state tracking via a new kill_device() helper.
-
-The kill_device() helper simply marks the device as dead, i.e. that it
-is on its way to device_del(), or returns that the device was already
-dead. This can be used in advance of calling device_unregister() for
-subsystems like libnvdimm that might need to handle multiple user
-threads racing to delete a device.
-
-This refactoring does not change any behavior, but it is a pre-requisite
-for follow-on fixes and therefore marked for -stable.
-
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Fixes: 4d88a97aa9e8 ("libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver...")
-Cc: <stable@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Wei Yang <richardw.yang@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/base/core.c    |   27 +++++++++++++++++++--------
- include/linux/device.h |    1 +
- 2 files changed, 20 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |   12 ------------
+ mm/page_alloc.c        |    2 +-
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index fd7511e04e62..eaf3aa0cb803 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2211,6 +2211,24 @@ void put_device(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(put_device);
- 
-+bool kill_device(struct device *dev)
-+{
-+	/*
-+	 * Require the device lock and set the "dead" flag to guarantee that
-+	 * the update behavior is consistent with the other bitfields near
-+	 * it and that we cannot have an asynchronous probe routine trying
-+	 * to run while we are tearing out the bus/class/sysfs from
-+	 * underneath the device.
-+	 */
-+	lockdep_assert_held(&dev->mutex);
-+
-+	if (dev->p->dead)
-+		return false;
-+	dev->p->dead = true;
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(kill_device);
-+
- /**
-  * device_del - delete device from system.
-  * @dev: device.
-@@ -2230,15 +2248,8 @@ void device_del(struct device *dev)
- 	struct kobject *glue_dir = NULL;
- 	struct class_interface *class_intf;
- 
--	/*
--	 * Hold the device lock and set the "dead" flag to guarantee that
--	 * the update behavior is consistent with the other bitfields near
--	 * it and that we cannot have an asynchronous probe routine trying
--	 * to run while we are tearing out the bus/class/sysfs from
--	 * underneath the device.
--	 */
- 	device_lock(dev);
--	dev->p->dead = true;
-+	kill_device(dev);
- 	device_unlock(dev);
- 
- 	/* Notify clients of device removal.  This call must come
-diff --git a/include/linux/device.h b/include/linux/device.h
-index e85264fb6616..0da5c67f6be1 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -1373,6 +1373,7 @@ extern int (*platform_notify_remove)(struct device *dev);
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index c4e8843e283c..e976faf57292 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -855,18 +855,6 @@ static inline int local_memory_node(int node_id) { return node_id; };
   */
- extern struct device *get_device(struct device *dev);
- extern void put_device(struct device *dev);
-+extern bool kill_device(struct device *dev);
+ #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
  
- #ifdef CONFIG_DEVTMPFS
- extern int devtmpfs_create_node(struct device *dev);
+-#ifdef CONFIG_ZONE_DEVICE
+-static inline bool is_dev_zone(const struct zone *zone)
+-{
+-	return zone_idx(zone) == ZONE_DEVICE;
+-}
+-#else
+-static inline bool is_dev_zone(const struct zone *zone)
+-{
+-	return false;
+-}
+-#endif
+-
+ /*
+  * Returns true if a zone has pages managed by the buddy allocator.
+  * All the reclaim decisions have to use this function rather than
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 8e7215fb6976..12b2afd3a529 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5881,7 +5881,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+ 	unsigned long start = jiffies;
+ 	int nid = pgdat->node_id;
+ 
+-	if (WARN_ON_ONCE(!pgmap || !is_dev_zone(zone)))
++	if (WARN_ON_ONCE(!pgmap || zone_idx(zone) != ZONE_DEVICE))
+ 		return;
+ 
+ 	/*
 
 _______________________________________________
 Linux-nvdimm mailing list
