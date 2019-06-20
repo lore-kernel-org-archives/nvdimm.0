@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 06FFC212A36ED
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:48 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/22] mm/hmm: Remove duplicate condition test before
- wait_event_timeout
-Date: Mon,  1 Jul 2019 08:20:08 +0200
-Message-Id: <20190701062020.19239-11-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 1FD8F212963F0
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Jun 2019 23:38:12 -0700 (PDT)
+Date: Thu, 20 Jun 2019 14:37:29 +0800
+From: kbuild test robot <lkp@intel.com>
+Subject: [linux-nvdimm:libnvdimm-for-next 6/15] drivers/md/dm-table.c:897:9:
+ error: implicit declaration of function 'dax_synchronous'; did you mean
+ 'device_synchronous'?
+Message-ID: <201906201425.V6gEPOVJ%lkp@intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,64 +23,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Pankaj Gupta <pagupta@redhat.com>
+Cc: kbuild-all@01.org, Mike Snitzer <snitzer@redhat.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+head:   3b6047778c09037615e7b919c922081ef1a37a7f
+commit: 38887edec2472179cc79bb45034731f5f816f064 [6/15] dm: enable synchronous dax
+config: parisc-c3000_defconfig (attached as .config)
+compiler: hppa-linux-gcc (GCC) 7.4.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        git checkout 38887edec2472179cc79bb45034731f5f816f064
+        # save the attached .config to linux build tree
+        GCC_VERSION=7.4.0 make.cross ARCH=parisc 
 
-The wait_event_timeout macro already tests the condition as its first
-action, so there is no reason to open code another version of this, all
-that does is skip the might_sleep() debugging in common cases, which is
-not helpful.
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
 
-Further, based on prior patches, we can now simplify the required condition
-test:
- - If range is valid memory then so is range->hmm
- - If hmm_release() has run then range->valid is set to false
-   at the same time as dead, so no reason to check both.
- - A valid hmm has a valid hmm->mm.
+All errors (new ones prefixed by >>):
 
-Allowing the return value of wait_event_timeout() (along with its internal
-barriers) to compute the result of the function.
+   drivers/md/dm-table.c: In function 'device_synchronous':
+>> drivers/md/dm-table.c:897:9: error: implicit declaration of function 'dax_synchronous'; did you mean 'device_synchronous'? [-Werror=implicit-function-declaration]
+     return dax_synchronous(dev->dax_dev);
+            ^~~~~~~~~~~~~~~
+            device_synchronous
+   drivers/md/dm-table.c: In function 'dm_table_set_restrictions':
+>> drivers/md/dm-table.c:1925:4: error: implicit declaration of function 'set_dax_synchronous'; did you mean 'device_synchronous'? [-Werror=implicit-function-declaration]
+       set_dax_synchronous(t->md->dax_dev);
+       ^~~~~~~~~~~~~~~~~~~
+       device_synchronous
+   cc1: some warnings being treated as errors
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
+vim +897 drivers/md/dm-table.c
+
+   892	
+   893	/* Check devices support synchronous DAX */
+   894	static int device_synchronous(struct dm_target *ti, struct dm_dev *dev,
+   895					       sector_t start, sector_t len, void *data)
+   896	{
+ > 897		return dax_synchronous(dev->dax_dev);
+   898	}
+   899	
+
 ---
- include/linux/hmm.h | 13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
-
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 1d97b6d62c5b..26e7c477490c 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -209,17 +209,8 @@ static inline unsigned long hmm_range_page_size(const struct hmm_range *range)
- static inline bool hmm_range_wait_until_valid(struct hmm_range *range,
- 					      unsigned long timeout)
- {
--	/* Check if mm is dead ? */
--	if (range->hmm == NULL || range->hmm->dead || range->hmm->mm == NULL) {
--		range->valid = false;
--		return false;
--	}
--	if (range->valid)
--		return true;
--	wait_event_timeout(range->hmm->wq, range->valid || range->hmm->dead,
--			   msecs_to_jiffies(timeout));
--	/* Return current valid status just in case we get lucky */
--	return range->valid;
-+	return wait_event_timeout(range->hmm->wq, range->valid,
-+				  msecs_to_jiffies(timeout)) != 0;
- }
- 
- /*
--- 
-2.20.1
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
