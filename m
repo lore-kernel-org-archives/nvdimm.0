@@ -1,14 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A9EB02129F0FA
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 04:45:22 -0700 (PDT)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] libnvdimm, namespace: Drop uuid_t implementation detail
-Date: Fri, 21 Jun 2019 14:45:18 +0300
-Message-Id: <20190621114518.56321-1-andriy.shevchenko@linux.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 284A22129DB83
+ for <linux-nvdimm@lists.01.org>; Wed, 19 Jun 2019 23:34:10 -0700 (PDT)
+Date: Thu, 20 Jun 2019 08:34:08 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 6/6] driver-core, libnvdimm: Let device subsystems add
+ local lockdep coverage
+Message-ID: <20190620063408.GA4768@kroah.com>
+References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156029557585.419799.11741877483838451695.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAPcyv4h8QZBAC4kY3=mJVq0J8-W3aTLoT6h2b0WXFtymzToH-Q@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4h8QZBAC4kY3=mJVq0J8-W3aTLoT6h2b0WXFtymzToH-Q@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,47 +26,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Keith Busch <keith.busch@intel.com>, Ira Weiny <ira.weiny@intel.com>, linux-nvdimm@lists.01.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-nvdimm <linux-nvdimm@lists.01.org>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-There is no need for caller to know how uuid_t type is constructed. Thus,
-whenever we use it the implementation details are not needed. Drop it for good.
+On Wed, Jun 19, 2019 at 03:21:58PM -0700, Dan Williams wrote:
+> On Tue, Jun 11, 2019 at 4:40 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
+> > For good reason, the standard device_lock() is marked
+> > lockdep_set_novalidate_class() because there is simply no sane way to
+> > describe the myriad ways the device_lock() ordered with other locks.
+> > However, that leaves subsystems that know their own local device_lock()
+> > ordering rules to find lock ordering mistakes manually. Instead,
+> > introduce an optional / additional lockdep-enabled lock that a subsystem
+> > can acquire in all the same paths that the device_lock() is acquired.
+> >
+> > A conversion of the NFIT driver and NVDIMM subsystem to a
+> > lockdep-validate device_lock() scheme is included. The
+> > debug_nvdimm_lock() implementation implements the correct lock-class and
+> > stacking order for the libnvdimm device topology hierarchy.
+> 
+> Greg, Peter,
+> 
+> Any thoughts on carrying this debug hack upstream? The idea being that
+> it's impossible to enable lockdep for the device_lock() globally, but
+> a constrained usage of the proposed lockdep_mutex has proven enough to
+> flush out device_lock deadlocks from libnvdimm.
+> 
+> It appears one aspect that is missing from this patch proposal is a
+> mechanism / convention to make sure that lockdep_mutex has constrained
+> usage for a given kernel build, otherwise it's obviously just as
+> problematic as device_lock(). Other concerns?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/nvdimm/namespace_devs.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Yeah, it feels a bit hacky but it's really up to a subsystem to mess up
+using it as much as anything else, so user beware :)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index a434a5964cb9..2d8d7e554877 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1822,8 +1822,8 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
- 					&& !guid_equal(&nd_set->type_guid,
- 						&nd_label->type_guid)) {
- 				dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
--						nd_set->type_guid.b,
--						nd_label->type_guid.b);
-+						&nd_set->type_guid,
-+						&nd_label->type_guid);
- 				continue;
- 			}
- 
-@@ -2227,8 +2227,8 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
- 	if (namespace_label_has(ndd, type_guid)) {
- 		if (!guid_equal(&nd_set->type_guid, &nd_label->type_guid)) {
- 			dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
--					nd_set->type_guid.b,
--					nd_label->type_guid.b);
-+					&nd_set->type_guid,
-+					&nd_label->type_guid);
- 			return ERR_PTR(-EAGAIN);
- 		}
- 
--- 
-2.20.1
+I don't object to it if it makes things easier for you to debug.
 
+thanks,
+
+greg k-h
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
