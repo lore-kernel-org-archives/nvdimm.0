@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 31CE22128A65C
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:03 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 10/25] memremap: lift the devmap_enable manipulation into
- devm_memremap_pages
-Date: Mon, 17 Jun 2019 14:27:18 +0200
-Message-Id: <20190617122733.22432-11-hch@lst.de>
-In-Reply-To: <20190617122733.22432-1-hch@lst.de>
-References: <20190617122733.22432-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id A61232129EB8D
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 02:17:22 -0700 (PDT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v4 3/6] mm/nvdimm: Use correct #defines instead of open coding
+Date: Thu, 20 Jun 2019 14:46:23 +0530
+Message-Id: <20190620091626.31824-4-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
+References: <20190620091626.31824-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,207 +23,88 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Just check if there is a ->page_free operation set and take care of the
-static key enable, as well as the put using device managed resources.
-Also check that a ->page_free is provided for the pgmaps types that
-require it, and check for a valid type as well while we are at it.
+Use PAGE_SIZE instead of SZ_4K and sizeof(struct page) instead of 64.
+If we have a kernel built with different struct page size the previous
+patch should handle marking the namespace disabled.
 
-Note that this also fixes the fact that hmm never called
-dev_pagemap_put_ops and thus would leave the slow path enabled forever,
-even after a device driver unload or disable.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- drivers/nvdimm/pmem.c | 23 +++--------------
- include/linux/mm.h    | 10 --------
- kernel/memremap.c     | 57 ++++++++++++++++++++++++++-----------------
- mm/hmm.c              |  2 --
- 4 files changed, 39 insertions(+), 53 deletions(-)
+ drivers/nvdimm/label.c          | 2 +-
+ drivers/nvdimm/namespace_devs.c | 6 +++---
+ drivers/nvdimm/pfn_devs.c       | 3 ++-
+ drivers/nvdimm/region_devs.c    | 8 ++++----
+ 4 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 469a0f5b3380..85364c59c607 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -342,11 +342,6 @@ static void pmem_release_disk(void *__pmem)
- 	put_disk(pmem->disk);
- }
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 73e197babc2f..7ee037063be7 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -355,7 +355,7 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
  
--static void pmem_release_pgmap_ops(void *__pgmap)
--{
--	dev_pagemap_put_ops();
--}
--
- static void pmem_pagemap_page_free(struct page *page, void *data)
- {
- 	wake_up_var(&page->_refcount);
-@@ -358,16 +353,6 @@ static const struct dev_pagemap_ops fsdax_pagemap_ops = {
- 	.cleanup		= pmem_pagemap_cleanup,
- };
+ 	/* check that DPA allocations are page aligned */
+ 	if ((__le64_to_cpu(nd_label->dpa)
+-				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
++				| __le64_to_cpu(nd_label->rawsize)) % PAGE_SIZE)
+ 		return false;
  
--static int setup_pagemap_fsdax(struct device *dev, struct dev_pagemap *pgmap)
--{
--	dev_pagemap_get_ops();
--	if (devm_add_action_or_reset(dev, pmem_release_pgmap_ops, pgmap))
--		return -ENOMEM;
--	pgmap->type = MEMORY_DEVICE_FS_DAX;
--	pgmap->ops = &fsdax_pagemap_ops;
--	return 0;
--}
--
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns)
- {
-@@ -423,8 +408,8 @@ static int pmem_attach_disk(struct device *dev,
- 	pmem->pfn_flags = PFN_DEV;
- 	pmem->pgmap.ref = &q->q_usage_counter;
- 	if (is_nd_pfn(dev)) {
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
--			return -ENOMEM;
-+		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-+		pmem->pgmap.ops = &fsdax_pagemap_ops;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
-@@ -436,8 +421,8 @@ static int pmem_attach_disk(struct device *dev,
- 	} else if (pmem_should_map_pages(dev)) {
- 		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
- 		pmem->pgmap.altmap_valid = false;
--		if (setup_pagemap_fsdax(dev, &pmem->pgmap))
--			return -ENOMEM;
-+		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-+		pmem->pgmap.ops = &fsdax_pagemap_ops;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pmem->pfn_flags |= PFN_MAP;
- 		memcpy(&bb_res, &pmem->pgmap.res, sizeof(bb_res));
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 0e8834ac32b7..edcf2b821647 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -921,8 +921,6 @@ static inline bool is_zone_device_page(const struct page *page)
- #endif
- 
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void dev_pagemap_get_ops(void);
--void dev_pagemap_put_ops(void);
- void __put_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
- static inline bool put_devmap_managed_page(struct page *page)
-@@ -969,14 +967,6 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
- #endif /* CONFIG_PCI_P2PDMA */
- 
- #else /* CONFIG_DEV_PAGEMAP_OPS */
--static inline void dev_pagemap_get_ops(void)
--{
--}
--
--static inline void dev_pagemap_put_ops(void)
--{
--}
--
- static inline bool put_devmap_managed_page(struct page *page)
- {
- 	return false;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index ba7156bd52d1..7272027fbdd7 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -17,6 +17,35 @@ static DEFINE_XARRAY(pgmap_array);
- #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
- #define SECTION_SIZE (1UL << PA_SECTION_SHIFT)
- 
-+#ifdef CONFIG_DEV_PAGEMAP_OPS
-+DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
-+EXPORT_SYMBOL(devmap_managed_key);
-+static atomic_t devmap_enable;
-+
-+static void dev_pagemap_put_ops(void *data)
-+{
-+	if (atomic_dec_and_test(&devmap_enable))
-+		static_branch_disable(&devmap_managed_key);
-+}
-+
-+static int dev_pagemap_get_ops(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	if (!pgmap->ops->page_free) {
-+		WARN(1, "Missing page_free method\n");
-+		return -EINVAL;
-+	}
-+
-+	if (atomic_inc_return(&devmap_enable) == 1)
-+		static_branch_enable(&devmap_managed_key);
-+	return devm_add_action_or_reset(dev, dev_pagemap_put_ops, NULL);
-+}
-+#else
-+static int dev_pagemap_get_ops(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	return -EINVAL;
-+}
-+#endif /* CONFIG_DEV_PAGEMAP_OPS */
-+
- #if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
- vm_fault_t device_private_entry_fault(struct vm_area_struct *vma,
- 		       unsigned long addr,
-@@ -190,6 +219,12 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		return ERR_PTR(-EINVAL);
+ 	/* check checksum */
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index a434a5964cb9..007027202542 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1006,10 +1006,10 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
+ 		return -ENXIO;
  	}
  
-+	if (pgmap->type != MEMORY_DEVICE_PCI_P2PDMA) {
-+		error = dev_pagemap_get_ops(dev, pgmap);
-+		if (error)
-+			return ERR_PTR(error);
-+	}
-+
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
- 		- align_start;
-@@ -356,28 +391,6 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
+-	div_u64_rem(val, SZ_4K * nd_region->ndr_mappings, &remainder);
++	div_u64_rem(val, PAGE_SIZE * nd_region->ndr_mappings, &remainder);
+ 	if (remainder) {
+-		dev_dbg(dev, "%llu is not %dK aligned\n", val,
+-				(SZ_4K * nd_region->ndr_mappings) / SZ_1K);
++		dev_dbg(dev, "%llu is not %ldK aligned\n", val,
++				(PAGE_SIZE * nd_region->ndr_mappings) / SZ_1K);
+ 		return -EINVAL;
+ 	}
  
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
--EXPORT_SYMBOL(devmap_managed_key);
--static atomic_t devmap_enable;
--
--/*
-- * Toggle the static key for ->page_free() callbacks when dev_pagemap
-- * pages go idle.
-- */
--void dev_pagemap_get_ops(void)
--{
--	if (atomic_inc_return(&devmap_enable) == 1)
--		static_branch_enable(&devmap_managed_key);
--}
--EXPORT_SYMBOL_GPL(dev_pagemap_get_ops);
--
--void dev_pagemap_put_ops(void)
--{
--	if (atomic_dec_and_test(&devmap_enable))
--		static_branch_disable(&devmap_managed_key);
--}
--EXPORT_SYMBOL_GPL(dev_pagemap_put_ops);
--
- void __put_devmap_managed_page(struct page *page)
- {
- 	int count = page_ref_dec_return(page);
-diff --git a/mm/hmm.c b/mm/hmm.c
-index ec3bf2c5c699..0add50944d64 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1412,8 +1412,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	void *result;
- 	int ret;
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index cd722de0ae03..9410d2692913 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -726,7 +726,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
+ 		 */
+-		offset = ALIGN(start + SZ_8K + 64 * npfns, align) - start;
++		offset = ALIGN(start + SZ_8K + sizeof(struct page) * npfns,
++			       align) - start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+ 		offset = ALIGN(start + SZ_8K, align) - start;
+ 	else
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 1e74a1c9fdac..b9992499a035 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -997,10 +997,10 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
+ 		struct nvdimm *nvdimm = mapping->nvdimm;
  
--	dev_pagemap_get_ops();
+-		if ((mapping->start | mapping->size) % SZ_4K) {
+-			dev_err(&nvdimm_bus->dev, "%s: %s mapping%d is not 4K aligned\n",
+-					caller, dev_name(&nvdimm->dev), i);
 -
- 	devmem = devm_kzalloc(device, sizeof(*devmem), GFP_KERNEL);
- 	if (!devmem)
- 		return ERR_PTR(-ENOMEM);
++		if ((mapping->start | mapping->size) % PAGE_SIZE) {
++			dev_err(&nvdimm_bus->dev,
++				"%s: %s mapping%d is not %ld aligned\n",
++				caller, dev_name(&nvdimm->dev), i, PAGE_SIZE);
+ 			return NULL;
+ 		}
+ 
 -- 
-2.20.1
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
