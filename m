@@ -1,11 +1,11 @@
-From: =?utf-8?B?6Ie05LyB5Lia55qE5LiA5bCB5L+h?= <vcr-AekZ1xKJK4E@public.gmane.org>
-Subject: =?utf-8?B?OTkyMTEzKOS4muWKoeWRmOWmguS9leS4mue7qeaPkOWNhynlj4oo56CU?=
- =?utf-8?B?5Y+R5Lq65ZGY55qE6ICD5qC45LiO5r+A5YqxKQ==?=
-Date: Thu, 20 Jun 2019 10:06:46 +0800
-Message-ID: <429F6A91C5301EE689150B2E32D75BA4@fme.com>
+From: John M.<mjohn-xBgbkoGEt9k@public.gmane.org>
+Subject: Hello
+Date: 20 Jun 2019 11:30:16 -0300
+Message-ID: <20190620113016.76F1E4E155EF4EE2@mbi.co>
+Reply-To: "Mr. John Mobutu" <mrjohnmobutu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -19,9 +19,37 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-IDEwOjA2OjU2IA0KDQoNCi0tLS0g5Y6f6YKu5Lu25L+h5oGvIC0tLS0tDQrlj5Hku7bkuro66Ie0
-5LyB5Lia55qE5LiA5bCB5L+hPHZjckBmbWUuY29tPg0K5pS25Lu25Lq6OmxpbnV4LW52ZGltbSA8
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZz4NCuWPkemAgeaXtumXtDoyMDE5LTYtMjAgIDEwOjA2
-OjU2Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4
-LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xp
-c3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+Good Day.
+
+I know reading my email, will be surprising to you and your 
+entire family, but please take whatever I am about to share with 
+you today seriously. 
+
+My name is John Mobutu, I am 22 years old, from Congo, my parents 
+were assassinated by opposition leaders many years ago, but thank 
+God the United Nations Peace Keeping, who came to rescue me and 
+my younger sister to Kenya, where we have been living presently. 
+
+My late father was into Gold and Diamond mining, while my late 
+mother was a Government worker. 
+
+My four consignment boxes containing 182 Million USD and 2,300 
+kilogram of gold was ship to the United Sates of America, three 
+weeks ago for delivery to Mr. Barry  Miller, in Atlanta Ga, by 
+the United Nations Head Office in Africa, which is in Kenya, but 
+up till now the agents haven't been able to reach my beneficiary 
+and they are threatening to return my money and gold back to 
+Kenya, I am very disappointed and confuse right now, this is pure 
+evil.
+
+Please I really need your assistance right now, if you are 
+willing to help us, kindly get back to us immediately for more 
+discussion.
+
+Please kindly tell us more about yourself when replying to our 
+email. Thanks
+
+God bless you
+
+Sincerely 
+John
