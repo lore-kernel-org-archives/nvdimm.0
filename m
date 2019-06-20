@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3A4872128D885
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 09:41:46 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v12 4/7] dm: enable synchronous dax
-Date: Tue, 11 Jun 2019 22:07:59 +0530
-Message-Id: <20190611163802.25352-5-pagupta@redhat.com>
-In-Reply-To: <20190611163802.25352-1-pagupta@redhat.com>
-References: <20190611163802.25352-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id AF6A62129EB9A
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 10:00:42 -0700 (PDT)
+Date: Thu, 20 Jun 2019 19:00:35 +0200
+From: Oscar Salvador <osalvador@suse.de>
+Subject: Re: [PATCH v10 00/13] mm: Sub-section memory hotplug support
+Message-ID: <20190620170027.GA7126@linux>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,141 +19,62 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, stable@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Qian Cai <cai@lca.pw>, akpm@linux-foundation.org, Vlastimil Babka <vbabka@suse.cz>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch sets dax device 'DAXDEV_SYNC' flag if all the target
-devices of device mapper support synchrononous DAX. If device
-mapper consists of both synchronous and asynchronous dax devices,
-we don't set 'DAXDEV_SYNC' flag.
+On Tue, Jun 18, 2019 at 10:51:33PM -0700, Dan Williams wrote:
+> Changes since v9 [1]:
+> - Fix multiple issues related to the fact that pfn_valid() has
+>   traditionally returned true for any pfn in an 'early' (onlined at
+>   boot) section regardless of whether that pfn represented 'System RAM'.
+>   Teach pfn_valid() to maintain its traditional behavior in the presence
+>   of subsections. Specifically, subsection precision for pfn_valid() is
+>   only considered for non-early / hot-plugged sections. (Qian)
+> 
+> - Related to the first item introduce a SECTION_IS_EARLY
+>   (->section_mem_map flag) to remove the existing hacks for determining
+>   an early section by looking at whether the usemap was allocated from the
+>   slab.
+> 
+> - Kill off the EEXIST hackery in __add_pages(). It breaks
+>   (arch_add_memory() false-positive) the detection of subsection
+>   collisions reported by section_activate(). It is also obviated by
+>   David's recent reworks to move the 'System RAM' request_region() earlier
+>   in the add_memory() sequence().
+> 
+> - Switch to an arch-independent / static subsection-size of 2MB.
+>   Otherwise, a per-arch subsection-size is a roadblock on the path to
+>   persistent memory namespace compatibility across archs. (Jeff)
+> 
+> - Update the changelog for "libnvdimm/pfn: Fix fsdax-mode namespace
+>   info-block zero-fields" to clarify that the "Cc: stable" is only there
+>   as safety measure for a distro that decides to backport "libnvdimm/pfn:
+>   Stop padding pmem namespaces to section alignment", otherwise there is
+>   no known bug exposure in older kernels. (Andrew)
+>   
+> - Drop some redundant subsection checks (Oscar)
+> 
+> - Collect some reviewed-bys
+> 
+> [1]: https://lore.kernel.org/lkml/155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com/
 
-'dm_table_supports_dax' is refactored to pass 'iterate_devices_fn'
-as argument so that the callers can pass the appropriate functions.
+Hi Dan,
 
-Suggested-by: Mike Snitzer <snitzer@redhat.com>
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
----
- drivers/md/dm-table.c | 24 ++++++++++++++++++------
- drivers/md/dm.c       |  2 +-
- drivers/md/dm.h       |  5 ++++-
- 3 files changed, 23 insertions(+), 8 deletions(-)
+I am planning to give it a final review later tomorrow.
+Now that this work is settled, I took the chance to dust off and push my
+vmemmap-hotplug, and I am working on that right now.
+But I would definetely come back to this tomorrow.
 
-diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index 350cf0451456..81c55304c4fa 100644
---- a/drivers/md/dm-table.c
-+++ b/drivers/md/dm-table.c
-@@ -881,7 +881,7 @@ void dm_table_set_type(struct dm_table *t, enum dm_queue_mode type)
- EXPORT_SYMBOL_GPL(dm_table_set_type);
- 
- /* validate the dax capability of the target device span */
--static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
-+int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 				       sector_t start, sector_t len, void *data)
- {
- 	int blocksize = *(int *) data;
-@@ -890,7 +890,15 @@ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 			start, len);
- }
- 
--bool dm_table_supports_dax(struct dm_table *t, int blocksize)
-+/* Check devices support synchronous DAX */
-+static int device_synchronous(struct dm_target *ti, struct dm_dev *dev,
-+				       sector_t start, sector_t len, void *data)
-+{
-+	return dax_synchronous(dev->dax_dev);
-+}
-+
-+bool dm_table_supports_dax(struct dm_table *t,
-+			  iterate_devices_callout_fn iterate_fn, int *blocksize)
- {
- 	struct dm_target *ti;
- 	unsigned i;
-@@ -903,8 +911,7 @@ bool dm_table_supports_dax(struct dm_table *t, int blocksize)
- 			return false;
- 
- 		if (!ti->type->iterate_devices ||
--		    !ti->type->iterate_devices(ti, device_supports_dax,
--			    &blocksize))
-+			!ti->type->iterate_devices(ti, iterate_fn, blocksize))
- 			return false;
- 	}
- 
-@@ -940,6 +947,7 @@ static int dm_table_determine_type(struct dm_table *t)
- 	struct dm_target *tgt;
- 	struct list_head *devices = dm_table_get_devices(t);
- 	enum dm_queue_mode live_md_type = dm_get_md_type(t->md);
-+	int page_size = PAGE_SIZE;
- 
- 	if (t->type != DM_TYPE_NONE) {
- 		/* target already set the table's type */
-@@ -984,7 +992,7 @@ static int dm_table_determine_type(struct dm_table *t)
- verify_bio_based:
- 		/* We must use this table as bio-based */
- 		t->type = DM_TYPE_BIO_BASED;
--		if (dm_table_supports_dax(t, PAGE_SIZE) ||
-+		if (dm_table_supports_dax(t, device_supports_dax, &page_size) ||
- 		    (list_empty(devices) && live_md_type == DM_TYPE_DAX_BIO_BASED)) {
- 			t->type = DM_TYPE_DAX_BIO_BASED;
- 		} else {
-@@ -1883,6 +1891,7 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
- 			       struct queue_limits *limits)
- {
- 	bool wc = false, fua = false;
-+	int page_size = PAGE_SIZE;
- 
- 	/*
- 	 * Copy table's limits to the DM device's request_queue
-@@ -1910,8 +1919,11 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
- 	}
- 	blk_queue_write_cache(q, wc, fua);
- 
--	if (dm_table_supports_dax(t, PAGE_SIZE))
-+	if (dm_table_supports_dax(t, device_supports_dax, &page_size)) {
- 		blk_queue_flag_set(QUEUE_FLAG_DAX, q);
-+		if (dm_table_supports_dax(t, device_synchronous, NULL))
-+			set_dax_synchronous(t->md->dax_dev);
-+	}
- 	else
- 		blk_queue_flag_clear(QUEUE_FLAG_DAX, q);
- 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index b1caa7188209..b92c42a72ad4 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1119,7 +1119,7 @@ static bool dm_dax_supported(struct dax_device *dax_dev, struct block_device *bd
- 	if (!map)
- 		return false;
- 
--	ret = dm_table_supports_dax(map, blocksize);
-+	ret = dm_table_supports_dax(map, device_supports_dax, &blocksize);
- 
- 	dm_put_live_table(md, srcu_idx);
- 
-diff --git a/drivers/md/dm.h b/drivers/md/dm.h
-index 17e3db54404c..0475673337f3 100644
---- a/drivers/md/dm.h
-+++ b/drivers/md/dm.h
-@@ -72,7 +72,10 @@ bool dm_table_bio_based(struct dm_table *t);
- bool dm_table_request_based(struct dm_table *t);
- void dm_table_free_md_mempools(struct dm_table *t);
- struct dm_md_mempools *dm_table_get_md_mempools(struct dm_table *t);
--bool dm_table_supports_dax(struct dm_table *t, int blocksize);
-+bool dm_table_supports_dax(struct dm_table *t, iterate_devices_callout_fn fn,
-+			   int *blocksize);
-+int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
-+			   sector_t start, sector_t len, void *data);
- 
- void dm_lock_md_type(struct mapped_device *md);
- void dm_unlock_md_type(struct mapped_device *md);
+Thanks for the work
+
 -- 
-2.20.1
-
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
