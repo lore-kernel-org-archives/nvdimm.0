@@ -1,110 +1,57 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2E44C212794AB
- for <linux-nvdimm@lists.01.org>; Sat,  1 Jun 2019 06:22:35 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 013/141] mm: page_mkclean vs MADV_DONTNEED race
-Date: Sat,  1 Jun 2019 09:19:49 -0400
-Message-Id: <20190601132158.25821-13-sashal@kernel.org>
-In-Reply-To: <20190601132158.25821-1-sashal@kernel.org>
-References: <20190601132158.25821-1-sashal@kernel.org>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 20 Jun 2019 16:52:54 +0200
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Message-ID: <20190620145254.GJ30243@quack2.suse.cz>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+ <20190608001036.GF14308@dread.disaster.area>
+ <20190612123751.GD32656@bombadil.infradead.org>
+ <20190613002555.GH14363@dread.disaster.area>
+ <20190613152755.GI32656@bombadil.infradead.org>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20190613152755.GI32656@bombadil.infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+On Thu 13-06-19 08:27:55, Matthew Wilcox wrote:
+> On Thu, Jun 13, 2019 at 10:25:55AM +1000, Dave Chinner wrote:
+> > e.g. Process A has an exclusive layout lease on file F. It does an
+> > IO to file F. The filesystem IO path checks that Process A owns the
+> > lease on the file and so skips straight through layout breaking
+> > because it owns the lease and is allowed to modify the layout. It
+> > then takes the inode metadata locks to allocate new space and write
+> > new data.
+> > 
+> > Process B now tries to write to file F. The FS checks whether
+> > Process B owns a layout lease on file F. It doesn't, so then it
+> > tries to break the layout lease so the IO can proceed. The layout
+> > breaking code sees that process A has an exclusive layout lease
+> > granted, and so returns -ETXTBSY to process B - it is not allowed to
+> > break the lease and so the IO fails with -ETXTBSY.
+> 
+> This description doesn't match the behaviour that RDMA wants either.
+> Even if Process A has a lease on the file, an IO from Process A which
+> results in blocks being freed from the file is going to result in the
+> RDMA device being able to write to blocks which are now freed (and
+> potentially reallocated to another file).
 
-[ Upstream commit 024eee0e83f0df52317be607ca521e0fc572aa07 ]
+I think you're partially wrong here. You are correct that the lease won't
+stop process A from doing truncate on the file. *But* there are still page
+pins in existence so truncate will block on waiting for these pins to go
+away (after all this is a protection that guards all short-term page pin
+users). So there is no problem with blocks being freed under the RDMA app.
+Yes, the app will effectively deadlock and sysadmin has to kill it. IMO an
+acceptable answer for doing something stupid and unsupportable...
 
-MADV_DONTNEED is handled with mmap_sem taken in read mode.  We call
-page_mkclean without holding mmap_sem.
-
-MADV_DONTNEED implies that pages in the region are unmapped and subsequent
-access to the pages in that range is handled as a new page fault.  This
-implies that if we don't have parallel access to the region when
-MADV_DONTNEED is run we expect those range to be unallocated.
-
-w.r.t page_mkclean() we need to make sure that we don't break the
-MADV_DONTNEED semantics.  MADV_DONTNEED check for pmd_none without holding
-pmd_lock.  This implies we skip the pmd if we temporarily mark pmd none.
-Avoid doing that while marking the page clean.
-
-Keep the sequence same for dax too even though we don't support
-MADV_DONTNEED for dax mapping
-
-The bug was noticed by code review and I didn't observe any failures w.r.t
-test run.  This is similar to
-
-commit 58ceeb6bec86d9140f9d91d71a710e963523d063
-Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Date:   Thu Apr 13 14:56:26 2017 -0700
-
-    thp: fix MADV_DONTNEED vs. MADV_FREE race
-
-commit ced108037c2aa542b3ed8b7afd1576064ad1362a
-Author: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Date:   Thu Apr 13 14:56:20 2017 -0700
-
-    thp: fix MADV_DONTNEED vs. numa balancing race
-
-Link: http://lkml.kernel.org/r/20190321040610.14226-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc:"Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/dax.c  | 2 +-
- mm/rmap.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 004c8ac1117c4..75a289c31c7e5 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -908,7 +908,7 @@ static void dax_mapping_entry_mkclean(struct address_space *mapping,
- 				goto unlock_pmd;
- 
- 			flush_cache_page(vma, address, pfn);
--			pmd = pmdp_huge_clear_flush(vma, address, pmdp);
-+			pmd = pmdp_invalidate(vma, address, pmdp);
- 			pmd = pmd_wrprotect(pmd);
- 			pmd = pmd_mkclean(pmd);
- 			set_pmd_at(vma->vm_mm, address, pmdp, pmd);
-diff --git a/mm/rmap.c b/mm/rmap.c
-index 85b7f94233526..f048c2651954b 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -926,7 +926,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
- 				continue;
- 
- 			flush_cache_page(vma, address, page_to_pfn(page));
--			entry = pmdp_huge_clear_flush(vma, address, pmd);
-+			entry = pmdp_invalidate(vma, address, pmd);
- 			entry = pmd_wrprotect(entry);
- 			entry = pmd_mkclean(entry);
- 			set_pmd_at(vma->vm_mm, address, pmd, entry);
+								Honza
 -- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
