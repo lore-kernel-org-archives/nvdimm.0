@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C74CB2128A62D
- for <linux-nvdimm@lists.01.org>; Tue,  4 Jun 2019 16:24:50 -0700 (PDT)
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 19/24] libnvdimm: Fix compilation warnings with
- W=1
-Date: Tue,  4 Jun 2019 19:24:10 -0400
-Message-Id: <20190604232416.7479-19-sashal@kernel.org>
-In-Reply-To: <20190604232416.7479-1-sashal@kernel.org>
-References: <20190604232416.7479-1-sashal@kernel.org>
+ by ml01.01.org (Postfix) with ESMTPS id 2A9DC2129F10F
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 13:35:53 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id x21so7497858otq.12
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 13:35:53 -0700 (PDT)
 MIME-Version: 1.0
+References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <155993567002.3036719.5748845658364934737.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20190607202332.GB32656@bombadil.infradead.org>
+In-Reply-To: <20190607202332.GB32656@bombadil.infradead.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 21 Jun 2019 13:35:42 -0700
+Message-ID: <CAPcyv4iOKJEJu_dY3ZVmLou-GAxc1=RkhToyodR16LPvLQ3jfA@mail.gmail.com>
+Subject: Re: [PATCH v3 07/10] lib/memregion: Uplevel the pmem "region" ida to
+ a global allocator
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,93 +28,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, Qian Cai <cai@lca.pw>, linux-nvdimm@lists.01.org
+To: Matthew Wilcox <willy@infradead.org>
+Cc: X86 ML <x86@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-efi <linux-efi@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Qian Cai <cai@lca.pw>
+On Fri, Jun 7, 2019 at 1:23 PM Matthew Wilcox <willy@infradead.org> wrote:
+>
+> On Fri, Jun 07, 2019 at 12:27:50PM -0700, Dan Williams wrote:
+> > diff --git a/lib/memregion.c b/lib/memregion.c
+> > new file mode 100644
+> > index 000000000000..f6c6a94c7921
+> > --- /dev/null
+> > +++ b/lib/memregion.c
+> > @@ -0,0 +1,15 @@
+> > +#include <linux/idr.h>
+> > +
+> > +static DEFINE_IDA(region_ids);
+> > +
+> > +int memregion_alloc(gfp_t gfp)
+> > +{
+> > +     return ida_alloc(&region_ids, gfp);
+> > +}
+> > +EXPORT_SYMBOL(memregion_alloc);
+> > +
+> > +void memregion_free(int id)
+> > +{
+> > +     ida_free(&region_ids, id);
+> > +}
+> > +EXPORT_SYMBOL(memregion_free);
+>
+> Does this trivial abstraction have to live in its own file?  I'd make
+> memregion_alloc/free static inlines that live in a header file, then
+> all you need do is find a suitable .c file to store memregion_ids in,
+> and export that one symbol instead of two.
 
-[ Upstream commit c01dafad77fea8d64c4fdca0a6031c980842ad65 ]
-
-Several places (dimm_devs.c, core.c etc) include label.h but only
-label.c uses NSINDEX_SIGNATURE, so move its definition to label.c
-instead.
-
-In file included from drivers/nvdimm/dimm_devs.c:23:
-drivers/nvdimm/label.h:41:19: warning: 'NSINDEX_SIGNATURE' defined but
-not used [-Wunused-const-variable=]
-
-Also, some places abuse "/**" which is only reserved for the kernel-doc.
-
-drivers/nvdimm/bus.c:648: warning: cannot understand function prototype:
-'struct attribute_group nd_device_attribute_group = '
-drivers/nvdimm/bus.c:677: warning: cannot understand function prototype:
-'struct attribute_group nd_numa_attribute_group = '
-
-Those are just some member assignments for the "struct attribute_group"
-instances and it can't be expressed in the kernel-doc.
-
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Qian Cai <cai@lca.pw>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/nvdimm/bus.c   | 4 ++--
- drivers/nvdimm/label.c | 2 ++
- drivers/nvdimm/label.h | 2 --
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index a6746a1f20ae..2f1b54fab399 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -608,7 +608,7 @@ static struct attribute *nd_device_attributes[] = {
- 	NULL,
- };
- 
--/**
-+/*
-  * nd_device_attribute_group - generic attributes for all devices on an nd bus
-  */
- struct attribute_group nd_device_attribute_group = {
-@@ -637,7 +637,7 @@ static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
- 	return a->mode;
- }
- 
--/**
-+/*
-  * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
-  */
- struct attribute_group nd_numa_attribute_group = {
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 6a16017cc0d9..1fb3a2491131 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -25,6 +25,8 @@ static guid_t nvdimm_btt2_guid;
- static guid_t nvdimm_pfn_guid;
- static guid_t nvdimm_dax_guid;
- 
-+static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
-+
- static u32 best_seq(u32 a, u32 b)
- {
- 	a &= NSINDEX_SEQ_MASK;
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index 1ebf4d3d01ba..9ed772db6900 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -38,8 +38,6 @@ enum {
- 	ND_NSINDEX_INIT = 0x1,
- };
- 
--static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
--
- /**
-  * struct nd_namespace_index - label set superblock
-  * @sig: NAMESPACE_INDEX\0
--- 
-2.20.1
-
+Ok, I think since these "memregion" objects tend to be closely related
+to "device memory" I'll stash this in kernel/memremap.c with the rest
+of the "ZONE_DEVICE" apis.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
