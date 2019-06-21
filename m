@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3AF2E2129641A
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:15 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 22/22] mm: remove the legacy hmm_pfn_* APIs
-Date: Mon,  1 Jul 2019 08:20:20 +0200
-Message-Id: <20190701062020.19239-23-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id BAF6C2129F0EC
+ for <linux-nvdimm@lists.01.org>; Thu, 20 Jun 2019 17:56:25 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 3/6] libnvdimm/region: Register badblocks before namespaces
+Date: Fri, 21 Jun 2019 00:56:24 +0000
+Message-ID: <76314eeafb50c74afbc77156f65cee2c0949478b.camel@intel.com>
+References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156029555941.419799.6074744061405561526.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156029555941.419799.6074744061405561526.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <DA82E2E746DC7A479D2937AC738F90FA@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,81 +25,99 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "peterz@infradead.org" <peterz@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Switch the one remaining user in nouveau over to its replacement,
-and remove all the wrappers.
+On Tue, 2019-06-11 at 16:25 -0700, Dan Williams wrote:
+> Namespace activation expects to be able to reference region badblocks.
+> The following warning sometimes triggers when asynchronous namespace
+> activation races in front of the completion of namespace probing. Move
+> all possible namespace probing after region badblocks initialization.
+> 
+> Otherwise, lockdep sometimes catches the uninitialized state of the
+> badblocks seqlock with stack trace signatures like:
+> 
+>     INFO: trying to register non-static key.
+>     pmem2: detected capacity change from 0 to 136365211648
+>     the code is fine but needs lockdep annotation.
+>     turning off the locking correctness validator.
+>     CPU: 9 PID: 358 Comm: kworker/u80:5 Tainted:
+> G           OE     5.2.0-rc4+ #3382
+>     Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0
+> 02/06/2015
+>     Workqueue: events_unbound async_run_entry_fn
+>     Call Trace:
+>      dump_stack+0x85/0xc0
+>     pmem1.12: detected capacity change from 0 to 8589934592
+>      register_lock_class+0x56a/0x570
+>      ? check_object+0x140/0x270
+>      __lock_acquire+0x80/0x1710
+>      ? __mutex_lock+0x39d/0x910
+>      lock_acquire+0x9e/0x180
+>      ? nd_pfn_validate+0x28f/0x440 [libnvdimm]
+>      badblocks_check+0x93/0x1f0
+>      ? nd_pfn_validate+0x28f/0x440 [libnvdimm]
+>      nd_pfn_validate+0x28f/0x440 [libnvdimm]
+>      ? lockdep_hardirqs_on+0xf0/0x180
+>      nd_dax_probe+0x9a/0x120 [libnvdimm]
+>      nd_pmem_probe+0x6d/0x180 [nd_pmem]
+>      nvdimm_bus_probe+0x90/0x2c0 [libnvdimm]
+> 
+> Fixes: 48af2f7e52f4 ("libnvdimm, pfn: during init, clear errors...")
+> Cc: <stable@vger.kernel.org>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/nvdimm/region.c |   22 +++++++++++-----------
+>  1 file changed, 11 insertions(+), 11 deletions(-)
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/gpu/drm/nouveau/nouveau_dmem.c |  2 +-
- include/linux/hmm.h                    | 36 --------------------------
- 2 files changed, 1 insertion(+), 37 deletions(-)
+This looks good to me,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-index 40c47d6a7d78..534069ffe20a 100644
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -853,7 +853,7 @@ nouveau_dmem_convert_pfn(struct nouveau_drm *drm,
- 		struct page *page;
- 		uint64_t addr;
- 
--		page = hmm_pfn_to_page(range, range->pfns[i]);
-+		page = hmm_device_entry_to_page(range, range->pfns[i]);
- 		if (page == NULL)
- 			continue;
- 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 3457cf9182e5..9799fde71f2e 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -290,42 +290,6 @@ static inline uint64_t hmm_device_entry_from_pfn(const struct hmm_range *range,
- 		range->flags[HMM_PFN_VALID];
- }
- 
--/*
-- * Old API:
-- * hmm_pfn_to_page()
-- * hmm_pfn_to_pfn()
-- * hmm_pfn_from_page()
-- * hmm_pfn_from_pfn()
-- *
-- * This are the OLD API please use new API, it is here to avoid cross-tree
-- * merge painfullness ie we convert things to new API in stages.
-- */
--static inline struct page *hmm_pfn_to_page(const struct hmm_range *range,
--					   uint64_t pfn)
--{
--	return hmm_device_entry_to_page(range, pfn);
--}
--
--static inline unsigned long hmm_pfn_to_pfn(const struct hmm_range *range,
--					   uint64_t pfn)
--{
--	return hmm_device_entry_to_pfn(range, pfn);
--}
--
--static inline uint64_t hmm_pfn_from_page(const struct hmm_range *range,
--					 struct page *page)
--{
--	return hmm_device_entry_from_page(range, page);
--}
--
--static inline uint64_t hmm_pfn_from_pfn(const struct hmm_range *range,
--					unsigned long pfn)
--{
--	return hmm_device_entry_from_pfn(range, pfn);
--}
--
--
--
- #if IS_ENABLED(CONFIG_HMM_MIRROR)
- /*
-  * Mirroring: how to synchronize device page table with CPU page table.
--- 
-2.20.1
+> 
+> diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+> index ef46cc3a71ae..488c47ac4c4a 100644
+> --- a/drivers/nvdimm/region.c
+> +++ b/drivers/nvdimm/region.c
+> @@ -34,17 +34,6 @@ static int nd_region_probe(struct device *dev)
+>  	if (rc)
+>  		return rc;
+>  
+> -	rc = nd_region_register_namespaces(nd_region, &err);
+> -	if (rc < 0)
+> -		return rc;
+> -
+> -	ndrd = dev_get_drvdata(dev);
+> -	ndrd->ns_active = rc;
+> -	ndrd->ns_count = rc + err;
+> -
+> -	if (rc && err && rc == err)
+> -		return -ENODEV;
+> -
+>  	if (is_nd_pmem(&nd_region->dev)) {
+>  		struct resource ndr_res;
+>  
+> @@ -60,6 +49,17 @@ static int nd_region_probe(struct device *dev)
+>  		nvdimm_badblocks_populate(nd_region, &nd_region->bb,
+> &ndr_res);
+>  	}
+>  
+> +	rc = nd_region_register_namespaces(nd_region, &err);
+> +	if (rc < 0)
+> +		return rc;
+> +
+> +	ndrd = dev_get_drvdata(dev);
+> +	ndrd->ns_active = rc;
+> +	ndrd->ns_count = rc + err;
+> +
+> +	if (rc && err && rc == err)
+> +		return -ENODEV;
+> +
+>  	nd_region->btt_seed = nd_btt_create(nd_region);
+>  	nd_region->pfn_seed = nd_pfn_create(nd_region);
+>  	nd_region->dax_seed = nd_dax_create(nd_region);
+> 
 
 _______________________________________________
 Linux-nvdimm mailing list
