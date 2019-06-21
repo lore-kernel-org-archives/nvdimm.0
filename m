@@ -1,21 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com
- [IPv6:2607:f8b0:4864:20::241])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF98221A070B8
- for <linux-nvdimm@lists.01.org>; Mon,  3 Jun 2019 21:47:38 -0700 (PDT)
-Received: by mail-oi1-x241.google.com with SMTP id e189so7867682oib.11
- for <linux-nvdimm@lists.01.org>; Mon, 03 Jun 2019 21:47:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <155718596657.130019.17139634728875079809.stgit@dwillia2-desk3.amr.corp.intel.com>
- <155718601407.130019.14248061058774128227.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20190513135317.GA31168@linux>
-In-Reply-To: <20190513135317.GA31168@linux>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 3 Jun 2019 21:47:25 -0700
-Message-ID: <CAPcyv4hq2yp0d3Tx8HUWJwLhXw2y=0sTRpd8EQhZ+8ffjQgnDg@mail.gmail.com>
-Subject: Re: [PATCH v8 09/12] mm/sparsemem: Support sub-section hotplug
+ by ml01.01.org (Postfix) with ESMTPS id 7EF412129F0F1
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 06:37:06 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v14 1/7] libnvdimm: nd_region flush callback support
+Date: Fri, 21 Jun 2019 19:04:49 +0530
+Message-Id: <20190621133455.3303-2-pagupta@redhat.com>
+In-Reply-To: <20190621133455.3303-1-pagupta@redhat.com>
+References: <20190621133455.3303-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,318 +17,261 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, May 13, 2019 at 6:55 AM Oscar Salvador <osalvador@suse.de> wrote:
->
-> On Mon, May 06, 2019 at 04:40:14PM -0700, Dan Williams wrote:
-> >
-> > +void subsection_mask_set(unsigned long *map, unsigned long pfn,
-> > +             unsigned long nr_pages)
-> > +{
-> > +     int idx = subsection_map_index(pfn);
-> > +     int end = subsection_map_index(pfn + nr_pages - 1);
-> > +
-> > +     bitmap_set(map, idx, end - idx + 1);
-> > +}
-> > +
-> >  void subsection_map_init(unsigned long pfn, unsigned long nr_pages)
-> >  {
-> >       int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-> > @@ -219,20 +235,17 @@ void subsection_map_init(unsigned long pfn, unsigned long nr_pages)
-> >               return;
-> >
-> >       for (i = start_sec; i <= end_sec; i++) {
-> > -             int idx, end;
-> > -             unsigned long pfns;
-> >               struct mem_section *ms;
-> > +             unsigned long pfns;
-> >
-> > -             idx = subsection_map_index(pfn);
-> >               pfns = min(nr_pages, PAGES_PER_SECTION
-> >                               - (pfn & ~PAGE_SECTION_MASK));
-> > -             end = subsection_map_index(pfn + pfns - 1);
-> > -
-> >               ms = __nr_to_section(i);
-> > -             bitmap_set(ms->usage->subsection_map, idx, end - idx + 1);
-> > +             subsection_mask_set(ms->usage->subsection_map, pfn, pfns);
-> >
-> >               pr_debug("%s: sec: %d pfns: %ld set(%d, %d)\n", __func__, i,
-> > -                             pfns, idx, end - idx + 1);
-> > +                             pfns, subsection_map_index(pfn),
-> > +                             subsection_map_index(pfn + pfns - 1));
->
-> I would definetely add subsection_mask_set() and above change to Patch#3.
-> I think it suits there better than here.
+This patch adds functionality to perform flush from guest
+to host over VIRTIO. We are registering a callback based
+on 'nd_region' type. virtio_pmem driver requires this special
+flush function. For rest of the region types we are registering
+existing flush function. Report error returned by host fsync
+failure to userspace.
 
-Yes, done.
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+---
+ drivers/acpi/nfit/core.c     |  4 ++--
+ drivers/nvdimm/claim.c       |  6 ++++--
+ drivers/nvdimm/nd.h          |  1 +
+ drivers/nvdimm/pmem.c        | 13 ++++++++-----
+ drivers/nvdimm/region_devs.c | 26 ++++++++++++++++++++++++--
+ include/linux/libnvdimm.h    |  9 ++++++++-
+ 6 files changed, 47 insertions(+), 12 deletions(-)
 
->
-> >
-> >               pfn += pfns;
-> >               nr_pages -= pfns;
-> > @@ -319,6 +332,15 @@ static void __meminit sparse_init_one_section(struct mem_section *ms,
-> >               unsigned long pnum, struct page *mem_map,
-> >               struct mem_section_usage *usage)
-> >  {
-> > +     /*
-> > +      * Given that SPARSEMEM_VMEMMAP=y supports sub-section hotplug,
-> > +      * ->section_mem_map can not be guaranteed to point to a full
-> > +      *  section's worth of memory.  The field is only valid / used
-> > +      *  in the SPARSEMEM_VMEMMAP=n case.
-> > +      */
-> > +     if (IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP))
-> > +             mem_map = NULL;
-> > +
-> >       ms->section_mem_map &= ~SECTION_MAP_MASK;
-> >       ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
-> >                                                       SECTION_HAS_MEM_MAP;
-> > @@ -724,10 +746,142 @@ static void free_map_bootmem(struct page *memmap)
-> >  #endif /* CONFIG_MEMORY_HOTREMOVE */
-> >  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
-> >
-> > +#ifndef CONFIG_MEMORY_HOTREMOVE
-> > +static void free_map_bootmem(struct page *memmap)
-> > +{
-> > +}
-> > +#endif
-> > +
-> > +static bool is_early_section(struct mem_section *ms)
-> > +{
-> > +     struct page *usage_page;
-> > +
-> > +     usage_page = virt_to_page(ms->usage);
-> > +     if (PageSlab(usage_page) || PageCompound(usage_page))
-> > +             return false;
-> > +     else
-> > +             return true;
-> > +}
-> > +
-> > +static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
-> > +             int nid, struct vmem_altmap *altmap)
-> > +{
-> > +     DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
-> > +     DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
-> > +     struct mem_section *ms = __pfn_to_section(pfn);
-> > +     bool early_section = is_early_section(ms);
-> > +     struct page *memmap = NULL;
-> > +     unsigned long *subsection_map = ms->usage
-> > +             ? &ms->usage->subsection_map[0] : NULL;
-> > +
-> > +     subsection_mask_set(map, pfn, nr_pages);
-> > +     if (subsection_map)
-> > +             bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
-> > +
-> > +     if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
-> > +                             "section already deactivated (%#lx + %ld)\n",
-> > +                             pfn, nr_pages))
-> > +             return;
-> > +
-> > +     if (WARN(!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)
-> > +                             && nr_pages < PAGES_PER_SECTION,
-> > +                             "partial memory section removal not supported\n"))
-> > +             return;
-> > +
-> > +     /*
-> > +      * There are 3 cases to handle across two configurations
-> > +      * (SPARSEMEM_VMEMMAP={y,n}):
-> > +      *
-> > +      * 1/ deactivation of a partial hot-added section (only possible
-> > +      * in the SPARSEMEM_VMEMMAP=y case).
-> > +      *    a/ section was present at memory init
-> > +      *    b/ section was hot-added post memory init
-> > +      * 2/ deactivation of a complete hot-added section
-> > +      * 3/ deactivation of a complete section from memory init
-> > +      *
-> > +      * For 1/, when subsection_map does not empty we will not be
-> > +      * freeing the usage map, but still need to free the vmemmap
-> > +      * range.
-> > +      *
-> > +      * For 2/ and 3/ the SPARSEMEM_VMEMMAP={y,n} cases are unified
-> > +      */
-> > +     bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
-> > +     if (bitmap_empty(subsection_map, SUBSECTIONS_PER_SECTION)) {
-> > +             unsigned long section_nr = pfn_to_section_nr(pfn);
-> > +
-> > +             if (!early_section) {
-> > +                     kfree(ms->usage);
-> > +                     ms->usage = NULL;
-> > +             }
-> > +             memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
-> > +             ms->section_mem_map = sparse_encode_mem_map(NULL, section_nr);
-> > +     }
-> > +
-> > +     if (early_section && memmap)
-> > +             free_map_bootmem(memmap);
-> > +     else
-> > +             depopulate_section_memmap(pfn, nr_pages, altmap);
-> > +}
-> > +
-> > +static struct page * __meminit section_activate(int nid, unsigned long pfn,
-> > +             unsigned long nr_pages, struct vmem_altmap *altmap)
-> > +{
-> > +     DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
-> > +     struct mem_section *ms = __pfn_to_section(pfn);
-> > +     struct mem_section_usage *usage = NULL;
-> > +     unsigned long *subsection_map;
-> > +     struct page *memmap;
-> > +     int rc = 0;
-> > +
-> > +     subsection_mask_set(map, pfn, nr_pages);
-> > +
-> > +     if (!ms->usage) {
-> > +             usage = kzalloc(mem_section_usage_size(), GFP_KERNEL);
-> > +             if (!usage)
-> > +                     return ERR_PTR(-ENOMEM);
-> > +             ms->usage = usage;
-> > +     }
-> > +     subsection_map = &ms->usage->subsection_map[0];
-> > +
-> > +     if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
-> > +             rc = -EINVAL;
-> > +     else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
-> > +             rc = -EEXIST;
-> > +     else
-> > +             bitmap_or(subsection_map, map, subsection_map,
-> > +                             SUBSECTIONS_PER_SECTION);
-> > +
-> > +     if (rc) {
-> > +             if (usage)
-> > +                     ms->usage = NULL;
-> > +             kfree(usage);
-> > +             return ERR_PTR(rc);
-> > +     }
-> > +
-> > +     /*
-> > +      * The early init code does not consider partially populated
-> > +      * initial sections, it simply assumes that memory will never be
-> > +      * referenced.  If we hot-add memory into such a section then we
-> > +      * do not need to populate the memmap and can simply reuse what
-> > +      * is already there.
-> > +      */
-> > +     if (nr_pages < PAGES_PER_SECTION && is_early_section(ms))
-> > +             return pfn_to_page(pfn);
-> > +
-> > +     memmap = populate_section_memmap(pfn, nr_pages, nid, altmap);
-> > +     if (!memmap) {
-> > +             section_deactivate(pfn, nr_pages, nid, altmap);
-> > +             return ERR_PTR(-ENOMEM);
-> > +     }
-> > +
-> > +     return memmap;
-> > +}
->
-> I do not really like this.
-> Sub-section scheme is only available on CONFIG_SPARSE_VMEMMAP, so I would rather
-> have two internal __section_{activate,deactivate} functions for sparse-vmemmap and
-> sparse-non-vmemmap.
-> That way, we can hide all detail implementation and sub-section dance behind
-> the __section_{activate,deactivate} functions.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index f1ed0befe303..9ddd8667153e 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2434,7 +2434,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+ 	writeq(cmd, mmio->addr.base + offset);
+-	nvdimm_flush(nfit_blk->nd_region);
++	nvdimm_flush(nfit_blk->nd_region, NULL);
+ 
+ 	if (nfit_blk->dimm_flags & NFIT_BLK_DCR_LATCH)
+ 		readq(mmio->addr.base + offset);
+@@ -2483,7 +2483,7 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 	}
+ 
+ 	if (rw)
+-		nvdimm_flush(nfit_blk->nd_region);
++		nvdimm_flush(nfit_blk->nd_region, NULL);
+ 
+ 	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
+ 	return rc;
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index fb667bf469c7..13510bae1e6f 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -263,7 +263,7 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+ 	sector_t sector = offset >> 9;
+-	int rc = 0;
++	int rc = 0, ret = 0;
+ 
+ 	if (unlikely(!size))
+ 		return 0;
+@@ -301,7 +301,9 @@ static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+ 	}
+ 
+ 	memcpy_flushcache(nsio->addr + offset, buf, size);
+-	nvdimm_flush(to_nd_region(ndns->dev.parent));
++	ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
++	if (ret)
++		rc = ret;
+ 
+ 	return rc;
+ }
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index a5ac3b240293..0c74d2428bd7 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -159,6 +159,7 @@ struct nd_region {
+ 	struct badblocks bb;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_percpu_lane __percpu *lane;
++	int (*flush)(struct nd_region *nd_region, struct bio *bio);
+ 	struct nd_mapping mapping[0];
+ };
+ 
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 0279eb1da3ef..c757a47183b8 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -192,6 +192,7 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 
+ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ {
++	int ret = 0;
+ 	blk_status_t rc = 0;
+ 	bool do_acct;
+ 	unsigned long start;
+@@ -201,7 +202,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ 	struct nd_region *nd_region = to_region(pmem);
+ 
+ 	if (bio->bi_opf & REQ_PREFLUSH)
+-		nvdimm_flush(nd_region);
++		ret = nvdimm_flush(nd_region, bio);
+ 
+ 	do_acct = nd_iostat_start(bio, &start);
+ 	bio_for_each_segment(bvec, bio, iter) {
+@@ -216,7 +217,10 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+ 		nd_iostat_end(bio, start);
+ 
+ 	if (bio->bi_opf & REQ_FUA)
+-		nvdimm_flush(nd_region);
++		ret = nvdimm_flush(nd_region, bio);
++
++	if (ret)
++		bio->bi_status = errno_to_blk_status(ret);
+ 
+ 	bio_endio(bio);
+ 	return BLK_QC_T_NONE;
+@@ -469,7 +473,6 @@ static int pmem_attach_disk(struct device *dev,
+ 	}
+ 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+ 	pmem->dax_dev = dax_dev;
+-
+ 	gendev = disk_to_dev(disk);
+ 	gendev->groups = pmem_attribute_groups;
+ 
+@@ -527,14 +530,14 @@ static int nd_pmem_remove(struct device *dev)
+ 		sysfs_put(pmem->bb_state);
+ 		pmem->bb_state = NULL;
+ 	}
+-	nvdimm_flush(to_nd_region(dev->parent));
++	nvdimm_flush(to_nd_region(dev->parent), NULL);
+ 
+ 	return 0;
+ }
+ 
+ static void nd_pmem_shutdown(struct device *dev)
+ {
+-	nvdimm_flush(to_nd_region(dev->parent));
++	nvdimm_flush(to_nd_region(dev->parent), NULL);
+ }
+ 
+ static void nd_pmem_notify(struct device *dev, enum nvdimm_event event)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b4ef7d9ff22e..e5b59708865e 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -295,7 +295,9 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
+ 		return rc;
+ 	if (!flush)
+ 		return -EINVAL;
+-	nvdimm_flush(nd_region);
++	rc = nvdimm_flush(nd_region, NULL);
++	if (rc)
++		return rc;
+ 
+ 	return len;
+ }
+@@ -1085,6 +1087,11 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	dev->of_node = ndr_desc->of_node;
+ 	nd_region->ndr_size = resource_size(ndr_desc->res);
+ 	nd_region->ndr_start = ndr_desc->res->start;
++	if (ndr_desc->flush)
++		nd_region->flush = ndr_desc->flush;
++	else
++		nd_region->flush = NULL;
++
+ 	nd_device_register(dev);
+ 
+ 	return nd_region;
+@@ -1125,11 +1132,24 @@ struct nd_region *nvdimm_volatile_region_create(struct nvdimm_bus *nvdimm_bus,
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_volatile_region_create);
+ 
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
++{
++	int rc = 0;
++
++	if (!nd_region->flush)
++		rc = generic_nvdimm_flush(nd_region);
++	else {
++		if (nd_region->flush(nd_region, bio))
++			rc = -EIO;
++	}
++
++	return rc;
++}
+ /**
+  * nvdimm_flush - flush any posted write queues between the cpu and pmem media
+  * @nd_region: blk or interleaved pmem region
+  */
+-void nvdimm_flush(struct nd_region *nd_region)
++int generic_nvdimm_flush(struct nd_region *nd_region)
+ {
+ 	struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
+ 	int i, idx;
+@@ -1153,6 +1173,8 @@ void nvdimm_flush(struct nd_region *nd_region)
+ 		if (ndrd_get_flush_wpq(ndrd, i, 0))
+ 			writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
+ 	wmb();
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_flush);
+ 
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index feb342d026f2..5a4f7b13574d 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -19,6 +19,7 @@
+ #include <linux/types.h>
+ #include <linux/uuid.h>
+ #include <linux/spinlock.h>
++#include <linux/bio.h>
+ 
+ struct badrange_entry {
+ 	u64 start;
+@@ -65,6 +66,9 @@ enum {
+ 	 */
+ 	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
++	/* Platform provides asynchronous flush mechanism */
++	ND_REGION_ASYNC = 3,
++
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
+ };
+@@ -121,6 +125,7 @@ struct nd_mapping_desc {
+ 	int position;
+ };
+ 
++struct nd_region;
+ struct nd_region_desc {
+ 	struct resource *res;
+ 	struct nd_mapping_desc *mapping;
+@@ -133,6 +138,7 @@ struct nd_region_desc {
+ 	int target_node;
+ 	unsigned long flags;
+ 	struct device_node *of_node;
++	int (*flush)(struct nd_region *nd_region, struct bio *bio);
+ };
+ 
+ struct device;
+@@ -260,7 +266,8 @@ unsigned long nd_blk_memremap_flags(struct nd_blk_region *ndbr);
+ unsigned int nd_region_acquire_lane(struct nd_region *nd_region);
+ void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane);
+ u64 nd_fletcher64(void *addr, size_t len, bool le);
+-void nvdimm_flush(struct nd_region *nd_region);
++int nvdimm_flush(struct nd_region *nd_region, struct bio *bio);
++int generic_nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
+ int nvdimm_in_overwrite(struct nvdimm *nvdimm);
+-- 
+2.20.1
 
-I don't see the win for doing that. The code would have 2 places to
-check when making a change that might apply to both cases. If one
-function can handle both configurations then it makes sense to keep
-them unified. However, this did prompt me to go kill the unnecessary
-WARN(!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP...) in section_deactivate()
-since that is already covered by check_pfn_span() (formerly
-subsection_check()).
-
->
-> > +
-> > @@ -741,49 +895,31 @@ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
-> >               unsigned long nr_pages, struct vmem_altmap *altmap)
-> >  {
-> >       unsigned long section_nr = pfn_to_section_nr(start_pfn);
-> > -     struct mem_section_usage *usage;
-> >       struct mem_section *ms;
-> >       struct page *memmap;
-> >       int ret;
-> >
-> > -     /*
-> > -      * no locking for this, because it does its own
-> > -      * plus, it does a kmalloc
-> > -      */
-> >       ret = sparse_index_init(section_nr, nid);
-> >       if (ret < 0 && ret != -EEXIST)
-> >               return ret;
-> > -     ret = 0;
-> > -     memmap = populate_section_memmap(start_pfn, PAGES_PER_SECTION, nid,
-> > -                     altmap);
-> > -     if (!memmap)
-> > -             return -ENOMEM;
-> > -     usage = kzalloc(mem_section_usage_size(), GFP_KERNEL);
-> > -     if (!usage) {
-> > -             depopulate_section_memmap(start_pfn, PAGES_PER_SECTION, altmap);
-> > -             return -ENOMEM;
-> > -     }
-> >
-> > -     ms = __pfn_to_section(start_pfn);
-> > -     if (ms->section_mem_map & SECTION_MARKED_PRESENT) {
-> > -             ret = -EEXIST;
-> > -             goto out;
-> > -     }
-> > +     memmap = section_activate(nid, start_pfn, nr_pages, altmap);
-> > +     if (IS_ERR(memmap))
-> > +             return PTR_ERR(memmap);
-> > +     ret = 0;
-> >
-> >       /*
-> >        * Poison uninitialized struct pages in order to catch invalid flags
-> >        * combinations.
-> >        */
-> > -     page_init_poison(memmap, sizeof(struct page) * PAGES_PER_SECTION);
-> > +     page_init_poison(pfn_to_page(start_pfn), sizeof(struct page) * nr_pages);
-> >
-> > +     ms = __pfn_to_section(start_pfn);
-> >       section_mark_present(ms);
-> > -     sparse_init_one_section(ms, section_nr, memmap, usage);
-> > +     sparse_init_one_section(ms, section_nr, memmap, ms->usage);
-> >
-> > -out:
-> > -     if (ret < 0) {
-> > -             kfree(usage);
-> > -             depopulate_section_memmap(start_pfn, PAGES_PER_SECTION, altmap);
-> > -     }
-> > +     if (ret < 0)
-> > +             section_deactivate(start_pfn, nr_pages, nid, altmap);
-> >       return ret;
-> >  }
->
-> diff --git a/mm/sparse.c b/mm/sparse.c
-> index 34f322d14e62..daeb2d7d8dd0 100644
-> --- a/mm/sparse.c
-> +++ b/mm/sparse.c
-> @@ -900,13 +900,12 @@ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
->         int ret;
->
->         ret = sparse_index_init(section_nr, nid);
-> -       if (ret < 0 && ret != -EEXIST)
-> +       if (ret < 0)
->                 return ret;
->
->         memmap = section_activate(nid, start_pfn, nr_pages, altmap);
->         if (IS_ERR(memmap))
->                 return PTR_ERR(memmap);
-> -       ret = 0;
->
->         /*
->          * Poison uninitialized struct pages in order to catch invalid flags
-> @@ -918,8 +917,6 @@ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
->         section_mark_present(ms);
->         sparse_init_one_section(ms, section_nr, memmap, ms->usage);
->
-> -       if (ret < 0)
-> -               section_deactivate(start_pfn, nr_pages, nid, altmap);
->         return ret;
->  }
-
-Done.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
