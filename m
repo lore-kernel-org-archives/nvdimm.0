@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 743AF21296419
- for <linux-nvdimm@lists.01.org>; Tue, 18 Jun 2019 23:05:50 -0700 (PDT)
-Subject: [PATCH v10 00/13] mm: Sub-section memory hotplug support
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 Jun 2019 22:51:33 -0700
-Message-ID: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 3B13D2122DDCB
+ for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 06:38:14 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v14 3/7] libnvdimm: add dax_dev sync flag
+Date: Fri, 21 Jun 2019 19:04:51 +0530
+Message-Id: <20190621133455.3303-4-pagupta@redhat.com>
+In-Reply-To: <20190621133455.3303-1-pagupta@redhat.com>
+References: <20190621133455.3303-1-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,170 +17,239 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org, David Hildenbrand <david@redhat.com>, stable@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>, linux-mm@kvack.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Qian Cai <cai@lca.pw>, linux-nvdimm@lists.01.org, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v9 [1]:
-- Fix multiple issues related to the fact that pfn_valid() has
-  traditionally returned true for any pfn in an 'early' (onlined at
-  boot) section regardless of whether that pfn represented 'System RAM'.
-  Teach pfn_valid() to maintain its traditional behavior in the presence
-  of subsections. Specifically, subsection precision for pfn_valid() is
-  only considered for non-early / hot-plugged sections. (Qian)
+This patch adds 'DAXDEV_SYNC' flag which is set
+for nd_region doing synchronous flush. This later
+is used to disable MAP_SYNC functionality for
+ext4 & xfs filesystem for devices don't support
+synchronous flush.
 
-- Related to the first item introduce a SECTION_IS_EARLY
-  (->section_mem_map flag) to remove the existing hacks for determining
-  an early section by looking at whether the usemap was allocated from the
-  slab.
-
-- Kill off the EEXIST hackery in __add_pages(). It breaks
-  (arch_add_memory() false-positive) the detection of subsection
-  collisions reported by section_activate(). It is also obviated by
-  David's recent reworks to move the 'System RAM' request_region() earlier
-  in the add_memory() sequence().
-
-- Switch to an arch-independent / static subsection-size of 2MB.
-  Otherwise, a per-arch subsection-size is a roadblock on the path to
-  persistent memory namespace compatibility across archs. (Jeff)
-
-- Update the changelog for "libnvdimm/pfn: Fix fsdax-mode namespace
-  info-block zero-fields" to clarify that the "Cc: stable" is only there
-  as safety measure for a distro that decides to backport "libnvdimm/pfn:
-  Stop padding pmem namespaces to section alignment", otherwise there is
-  no known bug exposure in older kernels. (Andrew)
-  
-- Drop some redundant subsection checks (Oscar)
-
-- Collect some reviewed-bys
-
-[1]: https://lore.kernel.org/lkml/155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com/
-
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
 ---
+ drivers/dax/bus.c            |  2 +-
+ drivers/dax/super.c          | 19 ++++++++++++++++++-
+ drivers/md/dm.c              |  3 ++-
+ drivers/nvdimm/pmem.c        |  5 ++++-
+ drivers/nvdimm/region_devs.c |  7 +++++++
+ drivers/s390/block/dcssblk.c |  2 +-
+ include/linux/dax.h          | 24 ++++++++++++++++++++++--
+ include/linux/libnvdimm.h    |  1 +
+ 8 files changed, 56 insertions(+), 7 deletions(-)
 
-The memory hotplug section is an arbitrary / convenient unit for memory
-hotplug. 'Section-size' units have bled into the user interface
-('memblock' sysfs) and can not be changed without breaking existing
-userspace. The section-size constraint, while mostly benign for typical
-memory hotplug, has and continues to wreak havoc with 'device-memory'
-use cases, persistent memory (pmem) in particular. Recall that pmem uses
-devm_memremap_pages(), and subsequently arch_add_memory(), to allocate a
-'struct page' memmap for pmem. However, it does not use the 'bottom
-half' of memory hotplug, i.e. never marks pmem pages online and never
-exposes the userspace memblock interface for pmem. This leaves an
-opening to redress the section-size constraint.
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 2109cfe80219..5f184e751c82 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 	 * No 'host' or dax_operations since there is no access to this
+ 	 * device outside of mmap of the resulting character device.
+ 	 */
+-	dax_dev = alloc_dax(dev_dax, NULL, NULL);
++	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
+ 	if (!dax_dev)
+ 		goto err;
+ 
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 4e5ae7e8b557..8ab12068eea3 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -195,6 +195,8 @@ enum dax_device_flags {
+ 	DAXDEV_ALIVE,
+ 	/* gate whether dax_flush() calls the low level flush routine */
+ 	DAXDEV_WRITE_CACHE,
++	/* flag to check if device supports synchronous flush */
++	DAXDEV_SYNC,
+ };
+ 
+ /**
+@@ -372,6 +374,18 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ }
+ EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+ 
++bool __dax_synchronous(struct dax_device *dax_dev)
++{
++	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
++}
++EXPORT_SYMBOL_GPL(__dax_synchronous);
++
++void __set_dax_synchronous(struct dax_device *dax_dev)
++{
++	set_bit(DAXDEV_SYNC, &dax_dev->flags);
++}
++EXPORT_SYMBOL_GPL(__set_dax_synchronous);
++
+ bool dax_alive(struct dax_device *dax_dev)
+ {
+ 	lockdep_assert_held(&dax_srcu);
+@@ -526,7 +540,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
+ }
+ 
+ struct dax_device *alloc_dax(void *private, const char *__host,
+-		const struct dax_operations *ops)
++		const struct dax_operations *ops, unsigned long flags)
+ {
+ 	struct dax_device *dax_dev;
+ 	const char *host;
+@@ -549,6 +563,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
+ 	dax_add_host(dax_dev, host);
+ 	dax_dev->ops = ops;
+ 	dax_dev->private = private;
++	if (flags & DAXDEV_F_SYNC)
++		set_dax_synchronous(dax_dev);
++
+ 	return dax_dev;
+ 
+  err_dev:
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 5475081dcbd6..b1caa7188209 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1991,7 +1991,8 @@ static struct mapped_device *alloc_dev(int minor)
+ 	sprintf(md->disk->disk_name, "dm-%d", minor);
+ 
+ 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
+-		md->dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
++		md->dax_dev = alloc_dax(md, md->disk->disk_name,
++					&dm_dax_ops, 0);
+ 		if (!md->dax_dev)
+ 			goto bad;
+ 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 223da63d1bd7..8be868e2a18b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -376,6 +376,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	struct gendisk *disk;
+ 	void *addr;
+ 	int rc;
++	unsigned long flags = 0UL;
+ 
+ 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+@@ -474,7 +475,9 @@ static int pmem_attach_disk(struct device *dev,
+ 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
+ 	disk->bb = &pmem->bb;
+ 
+-	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
++	if (is_nvdimm_sync(nd_region))
++		flags = DAXDEV_F_SYNC;
++	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
+ 	if (!dax_dev) {
+ 		put_disk(disk);
+ 		return -ENOMEM;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index eca2e62af134..56f2227f192a 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1211,6 +1211,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
+ }
+ EXPORT_SYMBOL_GPL(nvdimm_has_cache);
+ 
++bool is_nvdimm_sync(struct nd_region *nd_region)
++{
++	return is_nd_pmem(&nd_region->dev) &&
++		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
++}
++EXPORT_SYMBOL_GPL(is_nvdimm_sync);
++
+ struct conflict_context {
+ 	struct nd_region *nd_region;
+ 	resource_size_t start, size;
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index d04d4378ca50..63502ca537eb 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -679,7 +679,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 		goto put_dev;
+ 
+ 	dev_info->dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
+-			&dcssblk_dax_ops);
++			&dcssblk_dax_ops, DAXDEV_F_SYNC);
+ 	if (!dev_info->dax_dev) {
+ 		rc = -ENOMEM;
+ 		goto put_dev;
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index becaea5f4488..8b535bc4526f 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -7,6 +7,9 @@
+ #include <linux/radix-tree.h>
+ #include <asm/pgtable.h>
+ 
++/* Flag for synchronous flush */
++#define DAXDEV_F_SYNC (1UL << 0)
++
+ typedef unsigned long dax_entry_t;
+ 
+ struct iomap_ops;
+@@ -38,18 +41,28 @@ extern struct attribute_group dax_attribute_group;
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *dax_get_by_host(const char *host);
+ struct dax_device *alloc_dax(void *private, const char *host,
+-		const struct dax_operations *ops);
++		const struct dax_operations *ops, unsigned long flags);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
++bool __dax_synchronous(struct dax_device *dax_dev);
++static inline bool dax_synchronous(struct dax_device *dax_dev)
++{
++	return  __dax_synchronous(dax_dev);
++}
++void __set_dax_synchronous(struct dax_device *dax_dev);
++static inline void set_dax_synchronous(struct dax_device *dax_dev)
++{
++	__set_dax_synchronous(dax_dev);
++}
+ #else
+ static inline struct dax_device *dax_get_by_host(const char *host)
+ {
+ 	return NULL;
+ }
+ static inline struct dax_device *alloc_dax(void *private, const char *host,
+-		const struct dax_operations *ops)
++		const struct dax_operations *ops, unsigned long flags)
+ {
+ 	/*
+ 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+@@ -70,6 +83,13 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+ {
+ 	return false;
+ }
++static inline bool dax_synchronous(struct dax_device *dax_dev)
++{
++	return true;
++}
++static inline void set_dax_synchronous(struct dax_device *dax_dev)
++{
++}
+ #endif
+ 
+ struct writeback_control;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index e13100f424c8..7a64b3ddb408 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -263,6 +263,7 @@ int generic_nvdimm_flush(struct nd_region *nd_region);
+ int nvdimm_has_flush(struct nd_region *nd_region);
+ int nvdimm_has_cache(struct nd_region *nd_region);
+ int nvdimm_in_overwrite(struct nvdimm *nvdimm);
++bool is_nvdimm_sync(struct nd_region *nd_region);
+ 
+ static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
+ 		unsigned int buf_len, int *cmd_rc)
+-- 
+2.20.1
 
-To date, the libnvdimm subsystem has attempted to inject padding to
-satisfy the internal constraints of arch_add_memory(). Beyond
-complicating the code, leading to bugs [2], wasting memory, and limiting
-configuration flexibility, the padding hack is broken when the platform
-changes this physical memory alignment of pmem from one boot to the
-next. Device failure (intermittent or permanent) and physical
-reconfiguration are events that can cause the platform firmware to
-change the physical placement of pmem on a subsequent boot, and device
-failure is an everyday event in a data-center.
-
-It turns out that sections are only a hard requirement of the
-user-facing interface for memory hotplug and with a bit more
-infrastructure sub-section arch_add_memory() support can be added for
-kernel internal usages like devm_memremap_pages(). Here is an analysis
-of the current design assumptions in the current code and how they are
-addressed in the new implementation:
-
-Current design assumptions:
-
-- Sections that describe boot memory (early sections) are never
-  unplugged / removed.
-
-- pfn_valid(), in the CONFIG_SPARSEMEM_VMEMMAP=y, case devolves to a
-  valid_section() check
-
-- __add_pages() and helper routines assume all operations occur in
-  PAGES_PER_SECTION units.
-
-- The memblock sysfs interface only comprehends full sections
-
-New design assumptions:
-
-- Sections are instrumented with a sub-section bitmask to track (on x86)
-  individual 2MB sub-divisions of a 128MB section.
-
-- Partially populated early sections can be extended with additional
-  sub-sections, and those sub-sections can be removed with
-  arch_remove_memory(). With this in place we no longer lose usable memory
-  capacity to padding.
-
-- pfn_valid() is updated to look deeper than valid_section() to also check the
-  active-sub-section mask. This indication is in the same cacheline as
-  the valid_section() so the performance impact is expected to be
-  negligible. So far the lkp robot has not reported any regressions.
-
-- Outside of the core vmemmap population routines which are replaced,
-  other helper routines like shrink_{zone,pgdat}_span() are updated to
-  handle the smaller granularity. Core memory hotplug routines that deal
-  with online memory are not touched.
-
-- The existing memblock sysfs user api guarantees / assumptions are
-  not touched since this capability is limited to !online
-  !memblock-sysfs-accessible sections.
-
-Meanwhile the issue reports continue to roll in from users that do not
-understand when and how the 128MB constraint will bite them. The current
-implementation relied on being able to support at least one misaligned
-namespace, but that immediately falls over on any moderately complex
-namespace creation attempt. Beyond the initial problem of 'System RAM'
-colliding with pmem, and the unsolvable problem of physical alignment
-changes, Linux is now being exposed to platforms that collide pmem
-ranges with other pmem ranges by default [3]. In short,
-devm_memremap_pages() has pushed the venerable section-size constraint
-past the breaking point, and the simplicity of section-aligned
-arch_add_memory() is no longer tenable.
-
-These patches are exposed to the kbuild robot on a subsection-v10 branch
-[4], and a preview of the unit test for this functionality is available
-on the 'subsection-pending' branch of ndctl [5].
-
-[2]: https://lore.kernel.org/r/155000671719.348031.2347363160141119237.stgit@dwillia2-desk3.amr.corp.intel.com
-[3]: https://github.com/pmem/ndctl/issues/76
-[4]: https://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm.git/log/?h=subsection-v10
-[5]: https://github.com/pmem/ndctl/commit/7c59b4867e1c
-
----
-
-Dan Williams (13):
-      mm/sparsemem: Introduce struct mem_section_usage
-      mm/sparsemem: Introduce a SECTION_IS_EARLY flag
-      mm/sparsemem: Add helpers track active portions of a section at boot
-      mm/hotplug: Prepare shrink_{zone,pgdat}_span for sub-section removal
-      mm/sparsemem: Convert kmalloc_section_memmap() to populate_section_memmap()
-      mm/hotplug: Kill is_dev_zone() usage in __remove_pages()
-      mm: Kill is_dev_zone() helper
-      mm/sparsemem: Prepare for sub-section ranges
-      mm/sparsemem: Support sub-section hotplug
-      mm: Document ZONE_DEVICE memory-model implications
-      mm/devm_memremap_pages: Enable sub-section remap
-      libnvdimm/pfn: Fix fsdax-mode namespace info-block zero-fields
-      libnvdimm/pfn: Stop padding pmem namespaces to section alignment
-
-
- Documentation/vm/memory-model.rst |   39 ++++
- arch/x86/mm/init_64.c             |    4 
- drivers/nvdimm/dax_devs.c         |    2 
- drivers/nvdimm/pfn.h              |   15 --
- drivers/nvdimm/pfn_devs.c         |   95 +++-------
- include/linux/memory_hotplug.h    |    7 -
- include/linux/mm.h                |    4 
- include/linux/mmzone.h            |   84 +++++++--
- kernel/memremap.c                 |   61 +++----
- mm/memory_hotplug.c               |  173 +++++++++----------
- mm/page_alloc.c                   |   16 +-
- mm/sparse-vmemmap.c               |   21 ++
- mm/sparse.c                       |  335 ++++++++++++++++++++++++-------------
- 13 files changed, 494 insertions(+), 362 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
