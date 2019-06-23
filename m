@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-x12e.google.com (mail-lf1-x12e.google.com
+ [IPv6:2a00:1450:4864:20::12e])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2453E21290DE3
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:42:07 -0700 (PDT)
-Subject: [PATCH v3 07/10] lib/memregion: Uplevel the pmem "region" ida to a
- global allocator
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jun 2019 12:27:50 -0700
-Message-ID: <155993567002.3036719.5748845658364934737.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5237421281EE5
+ for <linux-nvdimm@lists.01.org>; Sun, 23 Jun 2019 15:09:40 -0700 (PDT)
+Received: by mail-lf1-x12e.google.com with SMTP id a25so8577629lfg.2
+ for <linux-nvdimm@lists.01.org>; Sun, 23 Jun 2019 15:09:40 -0700 (PDT)
 MIME-Version: 1.0
+From: Steven Swanson <swanson@eng.ucsd.edu>
+Date: Sun, 23 Jun 2019 15:09:27 -0700
+Message-ID: <CABjYnA7JXEwoxyE+2QisupAQuG0YJ3GUY24QooqY3vAZoFZOLg@mail.gmail.com>
+Subject: Call for participation: Persistent Programming In Real Life
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,194 +19,50 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: x86@kernel.org, ard.biesheuvel@linaro.org, peterz@infradead.org, dave.hansen@linux.intel.com, Matthew Wilcox <willy@infradead.org>, linux-nvdimm@lists.01.org, linux-efi@vger.kernel.org
+To: linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for handling platform differentiated memory types beyond
-persistent memory, uplevel the "region" identifier to a global number
-space. This enables a device-dax instance to be registered to any memory
-type with guaranteed unique names.
-
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/Kconfig       |    1 +
- drivers/nvdimm/core.c        |    1 -
- drivers/nvdimm/nd-core.h     |    1 -
- drivers/nvdimm/region_devs.c |   13 ++++---------
- include/linux/memregion.h    |    8 ++++++++
- lib/Kconfig                  |    7 +++++++
- lib/Makefile                 |    1 +
- lib/memregion.c              |   15 +++++++++++++++
- 8 files changed, 36 insertions(+), 11 deletions(-)
- create mode 100644 include/linux/memregion.h
- create mode 100644 lib/memregion.c
-
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 54500798f23a..4b3e66fe61c1 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -4,6 +4,7 @@ menuconfig LIBNVDIMM
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on HAS_IOMEM
- 	depends on BLK_DEV
-+	select MEMREGION
- 	help
- 	  Generic support for non-volatile memory devices including
- 	  ACPI-6-NFIT defined resources.  On platforms that define an
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index acce050856a8..75fe651d327d 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -463,7 +463,6 @@ static __exit void libnvdimm_exit(void)
- 	nd_region_exit();
- 	nvdimm_exit();
- 	nvdimm_bus_exit();
--	nd_region_devs_exit();
- 	nvdimm_devs_exit();
- }
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index e5ffd5733540..17561302dfec 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -133,7 +133,6 @@ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
- int __init nvdimm_bus_init(void);
- void nvdimm_bus_exit(void);
- void nvdimm_devs_exit(void);
--void nd_region_devs_exit(void);
- void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- struct nd_region;
- void nd_region_create_ns_seed(struct nd_region *nd_region);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index b4ef7d9ff22e..9e070363ff70 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -11,6 +11,7 @@
-  * General Public License for more details.
-  */
- #include <linux/scatterlist.h>
-+#include <linux/memregion.h>
- #include <linux/highmem.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -27,7 +28,6 @@
-  */
- #include <linux/io-64-nonatomic-hi-lo.h>
- 
--static DEFINE_IDA(region_ida);
- static DEFINE_PER_CPU(int, flush_idx);
- 
- static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
-@@ -141,7 +141,7 @@ static void nd_region_release(struct device *dev)
- 		put_device(&nvdimm->dev);
- 	}
- 	free_percpu(nd_region->lane);
--	ida_simple_remove(&region_ida, nd_region->id);
-+	memregion_free(nd_region->id);
- 	if (is_nd_blk(dev))
- 		kfree(to_nd_blk_region(dev));
- 	else
-@@ -1036,7 +1036,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 
- 	if (!region_buf)
- 		return NULL;
--	nd_region->id = ida_simple_get(&region_ida, 0, 0, GFP_KERNEL);
-+	nd_region->id = memregion_alloc(GFP_KERNEL);
- 	if (nd_region->id < 0)
- 		goto err_id;
- 
-@@ -1090,7 +1090,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	return nd_region;
- 
-  err_percpu:
--	ida_simple_remove(&region_ida, nd_region->id);
-+	memregion_free(nd_region->id);
-  err_id:
- 	kfree(region_buf);
- 	return NULL;
-@@ -1237,8 +1237,3 @@ int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
- 
- 	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
- }
--
--void __exit nd_region_devs_exit(void)
--{
--	ida_destroy(&region_ida);
--}
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-new file mode 100644
-index 000000000000..ba03c70f98d2
---- /dev/null
-+++ b/include/linux/memregion.h
-@@ -0,0 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#ifndef _MEMREGION_H_
-+#define _MEMREGION_H_
-+#include <linux/types.h>
-+
-+int memregion_alloc(gfp_t gfp);
-+void memregion_free(int id);
-+#endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 90623a0e1942..68621a0505a6 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -335,6 +335,13 @@ config DECOMPRESS_LZ4
- config GENERIC_ALLOCATOR
- 	bool
- 
-+#
-+# Memory Region ID allocation for persistent memory and "specific
-+# purpose" / performance differentiated memory ranges.
-+#
-+config MEMREGION
-+	bool
-+
- #
- # reed solomon support is select'ed if needed
- #
-diff --git a/lib/Makefile b/lib/Makefile
-index fb7697031a79..58cf99f68f36 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -136,6 +136,7 @@ obj-$(CONFIG_LIBCRC32C)	+= libcrc32c.o
- obj-$(CONFIG_CRC8)	+= crc8.o
- obj-$(CONFIG_XXHASH)	+= xxhash.o
- obj-$(CONFIG_GENERIC_ALLOCATOR) += genalloc.o
-+obj-$(CONFIG_MEMREGION) += memregion.o
- 
- obj-$(CONFIG_842_COMPRESS) += 842/
- obj-$(CONFIG_842_DECOMPRESS) += 842/
-diff --git a/lib/memregion.c b/lib/memregion.c
-new file mode 100644
-index 000000000000..f6c6a94c7921
---- /dev/null
-+++ b/lib/memregion.c
-@@ -0,0 +1,15 @@
-+#include <linux/idr.h>
-+
-+static DEFINE_IDA(region_ids);
-+
-+int memregion_alloc(gfp_t gfp)
-+{
-+	return ida_alloc(&region_ids, gfp);
-+}
-+EXPORT_SYMBOL(memregion_alloc);
-+
-+void memregion_free(int id)
-+{
-+	ida_free(&region_ids, id);
-+}
-+EXPORT_SYMBOL(memregion_free);
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+WW91IGFyZSBpbnZpdGVkIHRvIGF0dGVuZCB0aGUgZmlyc3QgYW5udWFsIFBlcnNpc3RlbnQgUHJv
+Z3JhbW1pbmcgaW4KUmVhbCBMaWZlIChQSVJMKSBtZWV0aW5nIChodHRwczovL3BpcmwubnZzbC5p
+by8pLiAgUElSTCBicmluZ3MKdG9nZXRoZXIgc29mdHdhcmUgZGV2ZWxvcG1lbnQgbGVhZGVycyBp
+bnRlcmVzdGVkIGluIGxlYXJuaW5nIGFib3V0CnByb2dyYW1taW5nIG1ldGhvZG9sb2dpZXMgZm9y
+IHBlcnNpc3RlbnQgbWVtb3JpZXMgKGUuZy4gTlZESU1NcywKT3B0YW5lIERDKSBhbmQgc2hhcmlu
+ZyB0aGVpciBleHBlcmllbmNlcyB3aXRoIG90aGVycy4gIFRoaXMgaXMgYQptZWV0aW5nIGZvciBk
+ZXZlbG9wZXIgcHJvamVjdCBsZWFkcyBvbiB0aGUgZnJvbnQgbGluZXMgb2YgcGVyc2lzdGVudApw
+cm9ncmFtbWluZywgbm90IHNhbGVzLCBtYXJrZXRpbmcsIG9yIG5vbi10ZWNobmljYWwgbWFuYWdl
+bWVudC4KClBJUkwgZmVhdHVyZXMgYSBwcm9ncmFtIG9mIDE4IHByZXNlbnRhdGlvbnMgYW5kIDUg
+a2V5bm90ZXMgZnJvbQppbmR1c3RyeS1sZWFkaW5nIGRldmVsb3BlcnMgd2hvIGhhdmUgYnVpbHQg
+cmVhbCBzeXN0ZW1zIHVzaW5nCnBlcnNpc3RlbnQgbWVtb3J5LiAgVGhleSB3aWxsIHNoYXJlIHdo
+YXQgdGhleSBoYXZlIGRvbmUgKGFuZCB3YW50IHRvCmRvKSB3aXRoIHBlcnNpc3RlbnQgbWVtb3J5
+LCB3aGF0IHdvcmtlZCwgd2hhdCBkaWRu4oCZdCwgd2hhdCB3YXMgaGFyZCwKd2hhdCB3YXMgZWFz
+eSwgd2hhdCB3YXMgc3VycHJpc2luZywgYW5kIHdoYXQgdGhleSBsZWFybmVkLgoKVGhpcyB5ZWFy
+4oCZcyBrZXlub3RlIHByZXNlbnRhdGlvbnMgd2lsbCBiZToKCiogUHJhdGFwIFN1YnJhaG1hbnlh
+bSAoVm13YXJlKTogUHJvZ3JhbW1pbmcgUGVyc2lzdGVudCBNZW1vcnkgSW4gQQpWaXJ0dWFsaXpl
+ZCBFbnZpcm9ubWVudCBVc2luZyBHb2xhbmcKKiBadW95dSBUYW8gKE9yYWNsZSk6IEV4YWRhdGEg
+V2l0aCBQZXJzaXN0ZW50IE1lbW9yeSDigJMgQW4gRXBpYyBKb3VybmV5CiogRGFuIFdpbGxpYW1z
+IChJbnRlbCBDb3Jwb3JhdGlvbik6IFRoZSAzcmQgUmFpbCBPZiBMaW51eCBGaWxlc3lzdGVtczoK
+QSBTdXJ2aXZhbCBTdG9yeQoqIFN0ZXBoZW4gQmF0ZXMgKEVpZGV0aWNvbSk6IFN1Y2Nlc3NmdWxs
+eSBEZXBsb3lpbmcgUGVyc2lzdGVudCBNZW1vcnkKQW5kIEFjY2VsZXJhdGlvbiBWaWEgQ29tcHV0
+ZSBFeHByZXNzIExpbmsKKiBTY290dCBNaWxsZXIgKERyZWFtd29ya3MpOiBQZXJzaXN0ZW50IE1l
+bW9yeSBJbiBGZWF0dXJlIEFuaW1hdGlvbiBQcm9kdWN0aW9uCgpPdGhlciBzcGVha2VycyBpbmNs
+dWRlIGVuZ2luZWVycyBmcm9tIE5ldEFwcCwgTGF3cmVuY2UgTGl2ZXJtb3JlCk5hdGlvbmFsIExh
+Ym9yYXRvcnksIE9yYWNsZSwgU2FuZGlhIE5hdGlvbmFsIExhYnMsIEludGVsLCBTQVAsIFJlZGhh
+dCwKYW5kIHVuaXZlcnNpdGllcyBmcm9tIGFyb3VuZCB0aGUgd29ybGQuICBGdWxsIERldGFpbHMg
+YXJlIGF2YWlsYWJsZSBhdAp0aGUgUElSTCBXZWJzaXRlOiBodHRwczovL3BpcmwubnZzbC5pby8u
+CgpQSVJMIHdpbGwgYmUgaGVsZCBvbiB0aGUgVW5pdmVyc2l0eSBvZiBDYWxpZm9ybmlhLCBTYW4g
+RGllZ28gY2FtcHVzIGF0ClNjcmlwcHMgRm9ydW0sIGEgc3RhdGUtb2YtdGhlLWFydCBjb25mZXJl
+bmNlIGZhY2lsaXR5IGp1c3QgYSBmZXcKbWV0ZXJzIGZyb20gdGhlIGJlYWNoLgoKUElSTCBpcyBz
+bWFsbC4gIFdlIGFyZSBsaW1pdGluZyBhdHRlbmRhbmNlIHRoaXMgeWVhciB0byB1bmRlciAxMDAK
+cGVvcGxlLCBpbmNsdWRpbmcgc3BlYWtlcnMuICBUaGVyZSB3aWxsIGJlIGxvdHMgb2YgdGltZSBm
+b3IgaW5mb3JtYWwKZGlzY3Vzc2lvbiBhbmQgbmV0d29ya2luZy4gRWFybHkgcmVnaXN0cmF0aW9u
+IGVuZHMgSnVseSAxMHRoLgoKSWYgeW91IGhhdmUgYW55IHF1ZXN0aW9ucywgcGxlYXNlIGNvbnRh
+Y3QgU3RldmVuIFN3YW5zb24gKHN3YW5zb25AY3MudWNzZC5lZHUpLgoKT3JnYW5pemluZyBDb21t
+aXR0ZWUKClN0ZXZlbiBTd2Fuc29uIChVQ1NEKSBKaW0gRmlzdGVyIChTTklBKSBBbmR5IFJ1ZG9m
+ZiAoSW50ZWwpIEppc2hlbgpaaGFvIChVQ1NEKSBKb2UgSXpyYWVsZXZpdHogKFVDU0QpCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
+YWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
