@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D4D9B21290DEA
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:41:45 -0700 (PDT)
-Subject: [PATCH v3 03/10] efi: Enumerate EFI_MEMORY_SP
+ by ml01.01.org (Postfix) with ESMTPS id DBCB32129EB96
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:34:23 -0700 (PDT)
+Subject: [PATCH v4 07/10] resource: Uplevel the pmem "region" ida to a
+ global allocator
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jun 2019 12:27:28 -0700
-Message-ID: <155993564854.3036719.3692507629721494555.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 24 Jun 2019 11:20:06 -0700
+Message-ID: <156140040657.2951909.15384446634808002027.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,79 +23,191 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: x86@kernel.org, linux-nvdimm@lists.01.org, peterz@infradead.org, dave.hansen@linux.intel.com, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org
+To: x86@kernel.org
+Cc: ard.biesheuvel@linaro.org, peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-acpi@vger.kernel.org, tglx@linutronix.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
-interpretation of the EFI Memory Types as "reserved for a specific
-purpose". The intent of this bit is to allow the OS to identify precious
-or scarce memory resources and optionally manage it separately from
-EfiConventionalMemory. As defined older OSes that do not know about this
-attribute are permitted to ignore it and the memory will be handled
-according to the OS default policy for the given memory type.
+In preparation for handling platform differentiated memory types beyond
+persistent memory, uplevel the "region" identifier to a global number
+space. This enables a device-dax instance to be registered to any memory
+type with guaranteed unique names.
 
-In other words, this "specific purpose" hint is deliberately weaker than
-EfiReservedMemoryType in that the system continues to operate if the OS
-takes no action on the attribute. The risk of taking no action is
-potentially unwanted / unmovable kernel allocations from the designated
-resource that prevent the full realization of the "specific purpose".
-For example, consider a system with a high-bandwidth memory pool. Older
-kernels are permitted to boot and consume that memory as conventional
-"System-RAM" newer kernels may arrange for that memory to be set aside
-by the system administrator for a dedicated high-bandwidth memory aware
-application to consume.
+Given this is a general identifier for persistent and
+performance-differentiated memory, and a standalone header / source file
+was NAK'd, house it with the rest of the general resource enumeration
+implementation.
 
-Specifically, this mechanism allows for the elimination of scenarios
-where platform firmware tries to game OS policy by lying about ACPI SLIT
-values, i.e. claiming that a precious memory resource has a high
-distance to trigger the OS to avoid it by default.
-
-Implement simple detection of the bit for EFI memory table dumps and
-save the kernel policy for a follow-on change.
-
-Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Keith Busch <keith.busch@intel.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/firmware/efi/efi.c |    5 +++--
- include/linux/efi.h        |    1 +
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/nvdimm/Kconfig       |    1 +
+ drivers/nvdimm/core.c        |    1 -
+ drivers/nvdimm/nd-core.h     |    1 -
+ drivers/nvdimm/region_devs.c |   12 +++---------
+ include/linux/ioport.h       |   27 +++++++++++++++++++++++++++
+ kernel/resource.c            |    6 ++++++
+ lib/Kconfig                  |    3 +++
+ 7 files changed, 40 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
-index 55b77c576c42..81db09485881 100644
---- a/drivers/firmware/efi/efi.c
-+++ b/drivers/firmware/efi/efi.c
-@@ -848,15 +848,16 @@ char * __init efi_md_typeattr_format(char *buf, size_t size,
- 	if (attr & ~(EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT |
- 		     EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
- 		     EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
--		     EFI_MEMORY_NV |
-+		     EFI_MEMORY_NV | EFI_MEMORY_SP |
- 		     EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
- 		snprintf(pos, size, "|attr=0x%016llx]",
- 			 (unsigned long long)attr);
- 	else
- 		snprintf(pos, size,
--			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
-+			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
- 			 attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
- 			 attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
-+			 attr & EFI_MEMORY_SP      ? "SP"  : "",
- 			 attr & EFI_MEMORY_NV      ? "NV"  : "",
- 			 attr & EFI_MEMORY_XP      ? "XP"  : "",
- 			 attr & EFI_MEMORY_RP      ? "RP"  : "",
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 6ebc2098cfe1..91368f5ce114 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -112,6 +112,7 @@ typedef	struct {
- #define EFI_MEMORY_MORE_RELIABLE \
- 				((u64)0x0000000000010000ULL)	/* higher reliability */
- #define EFI_MEMORY_RO		((u64)0x0000000000020000ULL)	/* read-only */
-+#define EFI_MEMORY_SP		((u64)0x0000000000040000ULL)	/* special purpose */
- #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
- #define EFI_MEMORY_DESCRIPTOR_VERSION	1
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 54500798f23a..4b3e66fe61c1 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -4,6 +4,7 @@ menuconfig LIBNVDIMM
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on HAS_IOMEM
+ 	depends on BLK_DEV
++	select MEMREGION
+ 	help
+ 	  Generic support for non-volatile memory devices including
+ 	  ACPI-6-NFIT defined resources.  On platforms that define an
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index acce050856a8..75fe651d327d 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -463,7 +463,6 @@ static __exit void libnvdimm_exit(void)
+ 	nd_region_exit();
+ 	nvdimm_exit();
+ 	nvdimm_bus_exit();
+-	nd_region_devs_exit();
+ 	nvdimm_devs_exit();
+ }
  
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index e5ffd5733540..17561302dfec 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -133,7 +133,6 @@ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
+ int __init nvdimm_bus_init(void);
+ void nvdimm_bus_exit(void);
+ void nvdimm_devs_exit(void);
+-void nd_region_devs_exit(void);
+ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ struct nd_region;
+ void nd_region_create_ns_seed(struct nd_region *nd_region);
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index b4ef7d9ff22e..576c390dabd6 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -27,7 +27,6 @@
+  */
+ #include <linux/io-64-nonatomic-hi-lo.h>
+ 
+-static DEFINE_IDA(region_ida);
+ static DEFINE_PER_CPU(int, flush_idx);
+ 
+ static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
+@@ -141,7 +140,7 @@ static void nd_region_release(struct device *dev)
+ 		put_device(&nvdimm->dev);
+ 	}
+ 	free_percpu(nd_region->lane);
+-	ida_simple_remove(&region_ida, nd_region->id);
++	memregion_free(nd_region->id);
+ 	if (is_nd_blk(dev))
+ 		kfree(to_nd_blk_region(dev));
+ 	else
+@@ -1036,7 +1035,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 
+ 	if (!region_buf)
+ 		return NULL;
+-	nd_region->id = ida_simple_get(&region_ida, 0, 0, GFP_KERNEL);
++	nd_region->id = memregion_alloc(GFP_KERNEL);
+ 	if (nd_region->id < 0)
+ 		goto err_id;
+ 
+@@ -1090,7 +1089,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	return nd_region;
+ 
+  err_percpu:
+-	ida_simple_remove(&region_ida, nd_region->id);
++	memregion_free(nd_region->id);
+  err_id:
+ 	kfree(region_buf);
+ 	return NULL;
+@@ -1237,8 +1236,3 @@ int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
+ 
+ 	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
+ }
+-
+-void __exit nd_region_devs_exit(void)
+-{
+-	ida_destroy(&region_ida);
+-}
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 2d79841ee9b9..72ea690b35a4 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -12,6 +12,12 @@
+ #ifndef __ASSEMBLY__
+ #include <linux/compiler.h>
+ #include <linux/types.h>
++#ifdef CONFIG_MEMREGION
++#include <linux/idr.h>
++#else
++#include <linux/errno.h>
++#endif
++
+ /*
+  * Resources are tree-like, allowing
+  * nesting etc..
+@@ -287,6 +293,27 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
+        return (r1->start <= r2->end && r1->end >= r2->start);
+ }
+ 
++#ifdef CONFIG_MEMREGION
++extern struct ida memregion_ids;
++static inline int memregion_alloc(gfp_t gfp)
++{
++	return ida_alloc(&memregion_ids, gfp);
++}
++
++static inline void memregion_free(int id)
++{
++	ida_free(&memregion_ids, id);
++}
++#else /* CONFIG_MEMREGION */
++static inline int memregion_alloc(gfp_t gfp)
++{
++	return -ENOMEM;
++}
++
++static inline void memregion_free(int id)
++{
++}
++#endif
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif	/* _LINUX_IOPORT_H */
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 158f04ec1d4f..82dbd9f28e91 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -1637,4 +1637,10 @@ static int __init strict_iomem(char *str)
+ 	return 1;
+ }
+ 
++#ifdef CONFIG_MEMREGION
++/* identifiers for device memory regions */
++DEFINE_IDA(memregion_ids);
++EXPORT_SYMBOL(memregion_ids);
++#endif
++
+ __setup("iomem=", strict_iomem);
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 90623a0e1942..89f7e4523799 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -602,6 +602,9 @@ config ARCH_NO_SG_CHAIN
+ config ARCH_HAS_PMEM_API
+ 	bool
+ 
++config MEMREGION
++	bool
++
+ # use memcpy to implement user copies for nommu architectures
+ config UACCESS_MEMCPY
+ 	bool
 
 _______________________________________________
 Linux-nvdimm mailing list
