@@ -1,20 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7E6F32128A630
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:00:48 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 79F6B212909E0
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:34:02 -0700 (PDT)
+Subject: [PATCH v4 03/10] efi: Enumerate EFI_MEMORY_SP
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 24 Jun 2019 11:19:43 -0700
+Message-ID: <156140038345.2951909.2744090763307487180.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAXuY3p4qhKVsSpQ44_kQeGDMfg7OuFLgFyxhcFWS3yf-5A_7g@mail.gmail.com>
-References: <20190514221711.248228-1-brendanhiggins@google.com>
- <20190514221711.248228-18-brendanhiggins@google.com>
- <20190517182254.548EA20815@mail.kernel.org>
- <CAAXuY3p4qhKVsSpQ44_kQeGDMfg7OuFLgFyxhcFWS3yf-5A_7g@mail.gmail.com>
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v4 17/18] kernel/sysctl-test: Add null pointer test for
- sysctl.c:proc_dointvec()
-Date: Fri, 07 Jun 2019 12:00:47 -0700
-Message-Id: <20190607190047.C3E7A20868@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,57 +22,80 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Iurii Zaikin <yzaikin@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mcgrof@kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: x86@kernel.org
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, peterz@infradead.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Iurii Zaikin (2019-06-05 18:29:42)
-> On Fri, May 17, 2019 at 11:22 AM Stephen Boyd <sboyd@kernel.org> wrote:
-> >
-> > Quoting Brendan Higgins (2019-05-14 15:17:10)
-> > > diff --git a/kernel/sysctl-test.c b/kernel/sysctl-test.c
-> > > new file mode 100644
-> > > index 0000000000000..fe0f2bae66085
-> > > --- /dev/null
-> > > +++ b/kernel/sysctl-test.c
-> > > +
-> > > +
-> > > +static void sysctl_test_dointvec_happy_single_negative(struct kunit *test)
-> > > +{
-> > > +       struct ctl_table table = {
-> > > +               .procname = "foo",
-> > > +               .data           = &test_data.int_0001,
-> > > +               .maxlen         = sizeof(int),
-> > > +               .mode           = 0644,
-> > > +               .proc_handler   = proc_dointvec,
-> > > +               .extra1         = &i_zero,
-> > > +               .extra2         = &i_one_hundred,
-> > > +       };
-> > > +       char input[] = "-9";
-> > > +       size_t len = sizeof(input) - 1;
-> > > +       loff_t pos = 0;
-> > > +
-> > > +       table.data = kunit_kzalloc(test, sizeof(int), GFP_USER);
-> > > +       KUNIT_EXPECT_EQ(test, 0, proc_dointvec(&table, 1, input, &len, &pos));
-> > > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, len);
-> > > +       KUNIT_EXPECT_EQ(test, sizeof(input) - 1, pos);
-> > > +       KUNIT_EXPECT_EQ(test, -9, *(int *)table.data);
-> >
-> > Is the casting necessary? Or can the macro do a type coercion of the
-> > second parameter based on the first type?
->  Data field is defined as void* so I believe casting is necessary to
-> dereference it as a pointer to an array of ints. I don't think the
-> macro should do any type coercion that == operator wouldn't do.
->  I did change the cast to make it more clear that it's a pointer to an
-> array of ints being dereferenced.
+UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
+interpretation of the EFI Memory Types as "reserved for a specific
+purpose". The intent of this bit is to allow the OS to identify precious
+or scarce memory resources and optionally manage it separately from
+EfiConventionalMemory. As defined older OSes that do not know about this
+attribute are permitted to ignore it and the memory will be handled
+according to the OS default policy for the given memory type.
 
-Ok, I still wonder if we should make KUNIT_EXPECT_EQ check the types on
-both sides and cause a build warning/error if the types aren't the same.
-This would be similar to our min/max macros that complain about
-mismatched types in the comparisons. Then if a test developer needs to
-convert one type or the other they could do so with a
-KUNIT_EXPECT_EQ_T() macro that lists the types to coerce both sides to
-explicitly.
+In other words, this "specific purpose" hint is deliberately weaker than
+EfiReservedMemoryType in that the system continues to operate if the OS
+takes no action on the attribute. The risk of taking no action is
+potentially unwanted / unmovable kernel allocations from the designated
+resource that prevent the full realization of the "specific purpose".
+For example, consider a system with a high-bandwidth memory pool. Older
+kernels are permitted to boot and consume that memory as conventional
+"System-RAM" newer kernels may arrange for that memory to be set aside
+by the system administrator for a dedicated high-bandwidth memory aware
+application to consume.
+
+Specifically, this mechanism allows for the elimination of scenarios
+where platform firmware tries to game OS policy by lying about ACPI SLIT
+values, i.e. claiming that a precious memory resource has a high
+distance to trigger the OS to avoid it by default.
+
+Implement simple detection of the bit for EFI memory table dumps and
+save the kernel policy for a follow-on change.
+
+Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/firmware/efi/efi.c |    5 +++--
+ include/linux/efi.h        |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
+index 55b77c576c42..81db09485881 100644
+--- a/drivers/firmware/efi/efi.c
++++ b/drivers/firmware/efi/efi.c
+@@ -848,15 +848,16 @@ char * __init efi_md_typeattr_format(char *buf, size_t size,
+ 	if (attr & ~(EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT |
+ 		     EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
+ 		     EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
+-		     EFI_MEMORY_NV |
++		     EFI_MEMORY_NV | EFI_MEMORY_SP |
+ 		     EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
+ 		snprintf(pos, size, "|attr=0x%016llx]",
+ 			 (unsigned long long)attr);
+ 	else
+ 		snprintf(pos, size,
+-			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
++			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
+ 			 attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
+ 			 attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
++			 attr & EFI_MEMORY_SP      ? "SP"  : "",
+ 			 attr & EFI_MEMORY_NV      ? "NV"  : "",
+ 			 attr & EFI_MEMORY_XP      ? "XP"  : "",
+ 			 attr & EFI_MEMORY_RP      ? "RP"  : "",
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 6ebc2098cfe1..91368f5ce114 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -112,6 +112,7 @@ typedef	struct {
+ #define EFI_MEMORY_MORE_RELIABLE \
+ 				((u64)0x0000000000010000ULL)	/* higher reliability */
+ #define EFI_MEMORY_RO		((u64)0x0000000000020000ULL)	/* read-only */
++#define EFI_MEMORY_SP		((u64)0x0000000000040000ULL)	/* special purpose */
+ #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
+ #define EFI_MEMORY_DESCRIPTOR_VERSION	1
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
