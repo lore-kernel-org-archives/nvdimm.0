@@ -1,18 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-x842.google.com (mail-qt1-x842.google.com
+ [IPv6:2607:f8b0:4864:20::842])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A260F212AAB82
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:11 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 15/25] memremap: provide an optional internal refcount in
- struct dev_pagemap
-Date: Wed, 26 Jun 2019 14:27:14 +0200
-Message-Id: <20190626122724.13313-16-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 9B584212741EC
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 10:14:07 -0700 (PDT)
+Received: by mail-qt1-x842.google.com with SMTP id d17so15249126qtj.8
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 10:14:07 -0700 (PDT)
 MIME-Version: 1.0
+References: <CANQeFDCCGED3BR0oTpzQ75gtGpdGCw8FLf+kspBYytw3YteXAw@mail.gmail.com>
+ <20190620083628.GH13630@quack2.suse.cz>
+ <CANQeFDB_oSkb_0tBbqoL88UzGf6+FYqjZ3oOo1puSyR7aKtYOA@mail.gmail.com>
+ <CAJfpeguGr66Oox27ThPUedDa+rDofehNC1f2gsb_C+eHay1kmg@mail.gmail.com>
+ <20190624104106.GC32376@quack2.suse.cz>
+In-Reply-To: <20190624104106.GC32376@quack2.suse.cz>
+From: Liu Bo <obuil.liubo@gmail.com>
+Date: Mon, 24 Jun 2019 10:13:55 -0700
+Message-ID: <CANQeFDBYQH5Pxwk17rey6VsCDLV9_g0YX5u=OzcnpoojPveO+w@mail.gmail.com>
+Subject: Re: a few questions about pagevc_lookup_entries
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,245 +29,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Jan Kara <jack@suse.cz>
+Cc: linux-nvdimm@lists.01.org, Miklos Szeredi <miklos@szeredi.hu>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Matthew Wilcox <willy@infradead.org>, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide an internal refcounting logic if no ->ref field is provided
-in the pagemap passed into devm_memremap_pages so that callers don't
-have to reinvent it poorly.
+On Mon, Jun 24, 2019 at 3:41 AM Jan Kara <jack@suse.cz> wrote:
+>
+> On Mon 24-06-19 09:25:00, Miklos Szeredi wrote:
+> > [cc: vivek, stefan, dgilbert]
+> >
+> > On Fri, Jun 21, 2019 at 12:04 AM Liu Bo <obuil.liubo@gmail.com> wrote:
+> > >
+> > > On Thu, Jun 20, 2019 at 1:36 AM Jan Kara <jack@suse.cz> wrote:
+> > > >
+> > > > [added some relevant lists to CC - this can safe some people debugging by
+> > > > being able to google this discussion]
+> > > >
+> > > > On Wed 19-06-19 15:57:38, Liu Bo wrote:
+> > > > > I found a weird dead loop within invalidate_inode_pages2_range, the
+> > > > > reason being that  pagevec_lookup_entries(index=1) returns an indices
+> > > > > array which has only one entry storing value 0, and this has led
+> > > > > invalidate_inode_pages2_range() to a dead loop, something like,
+> > > > >
+> > > > > invalidate_inode_pages2_range()
+> > > > >   -> while (pagevec_lookup_entries(index=1, indices))
+> > > > >     ->  for (i = 0; i < pagevec_count(&pvec); i++) {
+> > > > >       -> index = indices[0]; // index is set to 0
+> > > > >       -> if (radix_tree_exceptional_entry(page)) {
+> > > > >           -> if (!invalidate_exceptional_entry2()) //
+> > > > >                   ->__dax_invalidate_mapping_entry // return 0
+> > > > >                      -> // entry marked as PAGECACHE_TAG_DIRTY/TOWRITE
+> > > > >                  ret = -EBUSY;
+> > > > >           ->continue;
+> > > > >           } // end of if (radix_tree_exceptional_entry(page))
+> > > > >     -> index++; // index is set to 1
+> > > > >
+> > > > > The following debug[1] proved the above analysis,  I was wondering if
+> > > > > this was a corner case that  pagevec_lookup_entries() allows or a
+> > > > > known bug that has been fixed upstream?
+> > > > >
+> > > > > ps: the kernel in use is 4.19.30 (LTS).
+> > > >
+> > > > Hum, the above trace suggests you are using DAX. Are you really? Because the
+> > > > stacktrace below shows we are working on fuse inode so that shouldn't
+> > > > really be DAX inode...
+> > > >
+> > >
+> > > So I was running tests against virtiofs[1] which adds dax support to
+> > > fuse, with dax, fuse provides posix stuff while dax provides data
+> > > channel.
+> > >
+> > > [1]: https://virtio-fs.gitlab.io/
+> > > https://gitlab.com/virtio-fs/linux
+>
+> OK, thanks for the explanation and the pointer. So if I should guess, I'd
+> say that there's some problem with multiorder entries (for PMD pages) in
+> the radix tree. In particular if you lookup index 1 and there's
+> multiorder entry for indices 0-511, radix_tree_next_chunk() is updating
+> iter->index like:
+>
+> iter->index = (index &~ node_maxindex(node)) | (offset << node->shift);
+>
+> and offset is computed by radix_tree_descend() as:
+>
+> offset = (index >> parent->shift) & RADIX_TREE_MAP_MASK;
+>
+> So this all results in iter->index being set to 0 and thus confusing the
+> iteration in invalidate_inode_pages2_range(). Current kernel has xarray
+> code from Matthew which maintains originally passed index in xas.xa_index
+> and thus the problem isn't there.
+>
+> So to sum up: Seems like a DAX-specific bug with PMD entries in older
+> kernels fixed by xarray rewrite.
+>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/memremap.h          |  4 ++
- kernel/memremap.c                 | 64 ++++++++++++++++++++++++-------
- tools/testing/nvdimm/test/iomap.c | 58 ++++++++++++++++++++++------
- 3 files changed, 101 insertions(+), 25 deletions(-)
+Thank you so much for the information, Jan.
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index e25685b878e9..f8a5b2a19945 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -95,6 +95,8 @@ struct dev_pagemap_ops {
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @res: physical address range covered by @ref
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-+ * @internal_ref: internal reference if @ref is not provided by the caller
-+ * @done: completion for @internal_ref
-  * @dev: host device of the mapping for debug
-  * @data: private data pointer for page_free()
-  * @type: memory type: see MEMORY_* in memory_hotplug.h
-@@ -105,6 +107,8 @@ struct dev_pagemap {
- 	struct vmem_altmap altmap;
- 	struct resource res;
- 	struct percpu_ref *ref;
-+	struct percpu_ref internal_ref;
-+	struct completion done;
- 	struct device *dev;
- 	enum memory_type type;
- 	unsigned int flags;
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index eee490e7d7e1..bea6f887adad 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -29,7 +29,7 @@ static void devmap_managed_enable_put(void *data)
- 
- static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
- {
--	if (!pgmap->ops->page_free) {
-+	if (!pgmap->ops || !pgmap->ops->page_free) {
- 		WARN(1, "Missing page_free method\n");
- 		return -EINVAL;
- 	}
-@@ -75,6 +75,24 @@ static unsigned long pfn_next(unsigned long pfn)
- #define for_each_device_pfn(pfn, map) \
- 	for (pfn = pfn_first(map); pfn < pfn_end(map); pfn = pfn_next(pfn))
- 
-+static void dev_pagemap_kill(struct dev_pagemap *pgmap)
-+{
-+	if (pgmap->ops && pgmap->ops->kill)
-+		pgmap->ops->kill(pgmap);
-+	else
-+		percpu_ref_kill(pgmap->ref);
-+}
-+
-+static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
-+{
-+	if (pgmap->ops && pgmap->ops->cleanup) {
-+		pgmap->ops->cleanup(pgmap);
-+	} else {
-+		wait_for_completion(&pgmap->done);
-+		percpu_ref_exit(pgmap->ref);
-+	}
-+}
-+
- static void devm_memremap_pages_release(void *data)
- {
- 	struct dev_pagemap *pgmap = data;
-@@ -84,10 +102,10 @@ static void devm_memremap_pages_release(void *data)
- 	unsigned long pfn;
- 	int nid;
- 
--	pgmap->ops->kill(pgmap);
-+	dev_pagemap_kill(pgmap);
- 	for_each_device_pfn(pfn, pgmap)
- 		put_page(pfn_to_page(pfn));
--	pgmap->ops->cleanup(pgmap);
-+	dev_pagemap_cleanup(pgmap);
- 
- 	/* pages are dead and unused, undo the arch mapping */
- 	align_start = res->start & ~(SECTION_SIZE - 1);
-@@ -114,20 +132,29 @@ static void devm_memremap_pages_release(void *data)
- 		      "%s: failed to free all reserved pages\n", __func__);
- }
- 
-+static void dev_pagemap_percpu_release(struct percpu_ref *ref)
-+{
-+	struct dev_pagemap *pgmap =
-+		container_of(ref, struct dev_pagemap, internal_ref);
-+
-+	complete(&pgmap->done);
-+}
-+
- /**
-  * devm_memremap_pages - remap and provide memmap backing for the given resource
-  * @dev: hosting device for @res
-  * @pgmap: pointer to a struct dev_pagemap
-  *
-  * Notes:
-- * 1/ At a minimum the res, ref and type and ops members of @pgmap must be
-- *    initialized by the caller before passing it to this function
-+ * 1/ At a minimum the res and type members of @pgmap must be initialized
-+ *    by the caller before passing it to this function
-  *
-  * 2/ The altmap field may optionally be initialized, in which case
-  *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
-  *
-- * 3/ pgmap->ref must be 'live' on entry and will be killed and reaped
-- *    at devm_memremap_pages_release() time, or if this routine fails.
-+ * 3/ The ref field may optionally be provided, in which pgmap->ref must be
-+ *    'live' on entry and will be killed and reaped at
-+ *    devm_memremap_pages_release() time, or if this routine fails.
-  *
-  * 4/ res is expected to be a host memory range that could feasibly be
-  *    treated as a "System RAM" range, i.e. not a device mmio range, but
-@@ -175,10 +202,21 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		break;
- 	}
- 
--	if (!pgmap->ref || !pgmap->ops || !pgmap->ops->kill ||
--	    !pgmap->ops->cleanup) {
--		WARN(1, "Missing reference count teardown definition\n");
--		return ERR_PTR(-EINVAL);
-+	if (!pgmap->ref) {
-+		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
-+			return ERR_PTR(-EINVAL);
-+
-+		init_completion(&pgmap->done);
-+		error = percpu_ref_init(&pgmap->internal_ref,
-+				dev_pagemap_percpu_release, 0, GFP_KERNEL);
-+		if (error)
-+			return ERR_PTR(error);
-+		pgmap->ref = &pgmap->internal_ref;
-+	} else {
-+		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
-+			WARN(1, "Missing reference count teardown definition\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 	}
- 
- 	if (need_devmap_managed) {
-@@ -296,8 +334,8 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-  err_pfn_remap:
- 	pgmap_array_delete(res);
-  err_array:
--	pgmap->ops->kill(pgmap);
--	pgmap->ops->cleanup(pgmap);
-+	dev_pagemap_kill(pgmap);
-+	dev_pagemap_cleanup(pgmap);
- 	return ERR_PTR(error);
- }
- EXPORT_SYMBOL_GPL(devm_memremap_pages);
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index 82f901569e06..cd040b5abffe 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -100,26 +100,60 @@ static void nfit_test_kill(void *_pgmap)
- {
- 	struct dev_pagemap *pgmap = _pgmap;
- 
--	WARN_ON(!pgmap || !pgmap->ref || !pgmap->ops || !pgmap->ops->kill ||
--		!pgmap->ops->cleanup);
--	pgmap->ops->kill(pgmap);
--	pgmap->ops->cleanup(pgmap);
-+	WARN_ON(!pgmap || !pgmap->ref);
-+
-+	if (pgmap->ops && pgmap->ops->kill)
-+		pgmap->ops->kill(pgmap);
-+	else
-+		percpu_ref_kill(pgmap->ref);
-+
-+	if (pgmap->ops && pgmap->ops->cleanup) {
-+		pgmap->ops->cleanup(pgmap);
-+	} else {
-+		wait_for_completion(&pgmap->done);
-+		percpu_ref_exit(pgmap->ref);
-+	}
-+}
-+
-+static void dev_pagemap_percpu_release(struct percpu_ref *ref)
-+{
-+	struct dev_pagemap *pgmap =
-+		container_of(ref, struct dev_pagemap, internal_ref);
-+
-+	complete(&pgmap->done);
- }
- 
- void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- {
-+	int error;
- 	resource_size_t offset = pgmap->res.start;
- 	struct nfit_test_resource *nfit_res = get_nfit_res(offset);
- 
--	if (nfit_res) {
--		int rc;
--
--		rc = devm_add_action_or_reset(dev, nfit_test_kill, pgmap);
--		if (rc)
--			return ERR_PTR(rc);
--		return nfit_res->buf + offset - nfit_res->res.start;
-+	if (!nfit_res)
-+		return devm_memremap_pages(dev, pgmap);
-+
-+	pgmap->dev = dev;
-+	if (!pgmap->ref) {
-+		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
-+			return ERR_PTR(-EINVAL);
-+
-+		init_completion(&pgmap->done);
-+		error = percpu_ref_init(&pgmap->internal_ref,
-+				dev_pagemap_percpu_release, 0, GFP_KERNEL);
-+		if (error)
-+			return ERR_PTR(error);
-+		pgmap->ref = &pgmap->internal_ref;
-+	} else {
-+		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
-+			WARN(1, "Missing reference count teardown definition\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 	}
--	return devm_memremap_pages(dev, pgmap);
-+
-+	error = devm_add_action_or_reset(dev, nfit_test_kill, pgmap);
-+	if (error)
-+		return ERR_PTR(error);
-+	return nfit_res->buf + offset - nfit_res->res.start;
- }
- EXPORT_SYMBOL_GPL(__wrap_devm_memremap_pages);
- 
--- 
-2.20.1
+I'll double check if that's the root cause and report back, if yes,
+guess then we have to fix 4.19's radix tree in place to do the right
+thing instead of porting back xarray rewrite..
 
+thanks,
+liubo
+
+>                                                                 Honza
+> --
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
