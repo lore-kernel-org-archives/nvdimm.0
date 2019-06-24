@@ -1,17 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6EC9D2128DD5C
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:16 -0700 (PDT)
-From: ira.weiny@intel.com
-Subject: [PATCH RFC 04/10] mm/gup: Ensure F_LAYOUT lease is held prior to
- GUP'ing pages
-Date: Wed,  5 Jun 2019 18:45:37 -0700
-Message-Id: <20190606014544.8339-5-ira.weiny@intel.com>
-In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
-References: <20190606014544.8339-1-ira.weiny@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 73DF72126D808
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 13:45:33 -0700 (PDT)
+Message-ID: <1561409129.3058.1.camel@suse.de>
+Subject: Re: [PATCH v10 09/13] mm/sparsemem: Support sub-section hotplug
+From: Oscar Salvador <osalvador@suse.de>
+Date: Mon, 24 Jun 2019 22:45:29 +0200
+In-Reply-To: <156092354368.979959.6232443923440952359.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156092354368.979959.6232443923440952359.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,172 +23,72 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
-Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Tue, 2019-06-18 at 22:52 -0700, Dan Williams wrote:
+> The libnvdimm sub-system has suffered a series of hacks and broken
+> workarounds for the memory-hotplug implementation's awkward
+> section-aligned (128MB) granularity. For example the following
+> backtrace
+> is emitted when attempting arch_add_memory() with physical address
+> ranges that intersect 'System RAM' (RAM) with 'Persistent Memory'
+> (PMEM)
+> within a given section:
+> 
+>     # cat /proc/iomem | grep -A1 -B1 Persistent\ Memory
+>     100000000-1ffffffff : System RAM
+>     200000000-303ffffff : Persistent Memory (legacy)
+>     304000000-43fffffff : System RAM
+>     440000000-23ffffffff : Persistent Memory
+>     2400000000-43bfffffff : Persistent Memory
+>       2400000000-43bfffffff : namespace2.0
+> 
+>     WARNING: CPU: 38 PID: 928 at arch/x86/mm/init_64.c:850
+> add_pages+0x5c/0x60
+>     [..]
+>     RIP: 0010:add_pages+0x5c/0x60
+>     [..]
+>     Call Trace:
+>      devm_memremap_pages+0x460/0x6e0
+>      pmem_attach_disk+0x29e/0x680 [nd_pmem]
+>      ? nd_dax_probe+0xfc/0x120 [libnvdimm]
+>      nvdimm_bus_probe+0x66/0x160 [libnvdimm]
+> 
+> It was discovered that the problem goes beyond RAM vs PMEM collisions
+> as
+> some platform produce PMEM vs PMEM collisions within a given section.
+> The libnvdimm workaround for that case revealed that the libnvdimm
+> section-alignment-padding implementation has been broken for a long
+> while. A fix for that long-standing breakage introduces as many
+> problems
+> as it solves as it would require a backward-incompatible change to
+> the
+> namespace metadata interpretation. Instead of that dubious route [1],
+> address the root problem in the memory-hotplug implementation.
+> 
+> Note that EEXIST is no longer treated as success as that is how
+> sparse_add_section() reports subsection collisions, it was also
+> obviated
+> by recent changes to perform the request_region() for 'System RAM'
+> before arch_add_memory() in the add_memory() sequence.
+> 
+> [1]: https://lore.kernel.org/r/155000671719.348031.234736316014111923
+> 7.stgit@dwillia2-desk3.amr.corp.intel.com
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Logan Gunthorpe <logang@deltatee.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-On FS DAX files users must inform the file system they intend to take
-long term GUP pins on the file pages.  Failure to do so should result in
-an error.
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
-Ensure that a F_LAYOUT lease exists at the time the GUP call is made.
-If not return EPERM.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- fs/locks.c         | 41 +++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h |  2 ++
- mm/gup.c           | 25 +++++++++++++++++++++++++
- mm/huge_memory.c   | 12 ++++++++++++
- 4 files changed, 80 insertions(+)
-
-diff --git a/fs/locks.c b/fs/locks.c
-index de9761c068de..43f5dc97652c 100644
---- a/fs/locks.c
-+++ b/fs/locks.c
-@@ -2945,3 +2945,44 @@ static int __init filelock_init(void)
- 	return 0;
- }
- core_initcall(filelock_init);
-+
-+/**
-+ * mapping_inode_has_layout()
-+ * @page page we are trying to GUP
-+ *
-+ * This should only be called on DAX pages.  DAX pages which are mapped through
-+ * FS DAX do not use the page cache.  As a result they require the user to take
-+ * a LAYOUT lease on them prior to be able to pin them for longterm use.
-+ * This allows the user to opt-into the fact that truncation operations will
-+ * fail for the duration of the pin.
-+ *
-+ * @Return true if the page has a LAYOUT lease associated with it's file.
-+ */
-+bool mapping_inode_has_layout(struct page *page)
-+{
-+	bool ret = false;
-+	struct inode *inode;
-+	struct file_lock *fl;
-+	struct file_lock_context *ctx;
-+
-+	if (WARN_ON(PageAnon(page)) ||
-+	    WARN_ON(!page) ||
-+	    WARN_ON(!page->mapping) ||
-+	    WARN_ON(!page->mapping->host))
-+		return false;
-+
-+	inode = page->mapping->host;
-+
-+	ctx = locks_get_lock_context(inode, F_RDLCK);
-+	spin_lock(&ctx->flc_lock);
-+	list_for_each_entry(fl, &ctx->flc_lease, fl_list) {
-+		if (fl->fl_flags & FL_LAYOUT) {
-+			ret = true;
-+			break;
-+		}
-+	}
-+	spin_unlock(&ctx->flc_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(mapping_inode_has_layout);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index bc373a9b69fc..432b004b920c 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1630,6 +1630,8 @@ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- int get_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages);
- 
-+bool mapping_inode_has_layout(struct page *page);
-+
- /* Container for pinned pfns / pages */
- struct frame_vector {
- 	unsigned int nr_allocated;	/* Number of frames we have space for */
-diff --git a/mm/gup.c b/mm/gup.c
-index 26a7a3a3a657..d06cc5b14c0b 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -361,6 +361,13 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
- 			page = pte_page(pte);
- 		else
- 			goto no_page;
-+
-+		if (unlikely(flags & FOLL_LONGTERM) &&
-+		    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
-+		    !mapping_inode_has_layout(page)) {
-+			page = ERR_PTR(-EPERM);
-+			goto out;
-+		}
- 	} else if (unlikely(!page)) {
- 		if (flags & FOLL_DUMP) {
- 			/* Avoid special (like zero) pages in core dumps */
-@@ -1905,6 +1912,16 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
- 
- 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
- 
-+		if (pte_devmap(pte) &&
-+		    unlikely(flags & FOLL_LONGTERM) &&
-+		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
-+		    !mapping_inode_has_layout(head)) {
-+			mod_node_page_state(page_pgdat(head),
-+					    NR_GUP_FAST_PAGE_BACKOFFS, 1);
-+			put_user_page(head);
-+			goto pte_unmap;
-+		}
-+
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
- 		(*nr)++;
-@@ -1955,6 +1972,14 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- 		}
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
-+
-+		if (unlikely(flags & FOLL_LONGTERM) &&
-+		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
-+		    !mapping_inode_has_layout(page)) {
-+			undo_dev_pagemap(nr, nr_start, pages);
-+			return 0;
-+		}
-+
- 		if (try_get_gup_pin_page(page, NR_GUP_FAST_PAGES_REQUESTED)) {
- 			undo_dev_pagemap(nr, nr_start, pages);
- 			return 0;
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index bb7fd7fa6f77..cdc213e50902 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -950,6 +950,12 @@ struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	if (!*pgmap)
- 		return ERR_PTR(-EFAULT);
- 	page = pfn_to_page(pfn);
-+
-+	if (unlikely(flags & FOLL_LONGTERM) &&
-+	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
-+	    !mapping_inode_has_layout(page))
-+		return ERR_PTR(-EPERM);
-+
- 	if (unlikely(!try_get_gup_pin_page(page,
- 					   NR_GUP_SLOW_PAGES_REQUESTED)))
- 		page = ERR_PTR(-ENOMEM);
-@@ -1092,6 +1098,12 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
- 	if (!*pgmap)
- 		return ERR_PTR(-EFAULT);
- 	page = pfn_to_page(pfn);
-+
-+	if (unlikely(flags & FOLL_LONGTERM) &&
-+	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
-+	    !mapping_inode_has_layout(page))
-+		return ERR_PTR(-EPERM);
-+
- 	if (unlikely(!try_get_gup_pin_page(page,
- 					   NR_GUP_SLOW_PAGES_REQUESTED)))
- 		page = ERR_PTR(-ENOMEM);
 -- 
-2.20.1
-
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
