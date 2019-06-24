@@ -1,28 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CF7E92128D6B8
- for <linux-nvdimm@lists.01.org>; Sun, 16 Jun 2019 21:47:41 -0700 (PDT)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x5H4lO47001388
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 00:47:40 -0400
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2t63wxgcb6-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 00:47:40 -0400
-Received: from localhost
- by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
- Mon, 17 Jun 2019 05:47:37 +0100
-From: "Alastair D'Silva" <alastair@au1.ibm.com>
-Subject: [PATCH] nvdimm: remove prototypes for nonexistent functions
-Date: Mon, 17 Jun 2019 14:47:12 +1000
-MIME-Version: 1.0
-Message-Id: <20190617044712.14231-1-alastair@au1.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id F0F7E212966ED
+ for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:05:56 -0700 (PDT)
+Message-ID: <1561399554.3073.10.camel@suse.de>
+Subject: Re: [PATCH v10 08/13] mm/sparsemem: Prepare for sub-section ranges
+From: Oscar Salvador <osalvador@suse.de>
+Date: Mon, 24 Jun 2019 20:05:54 +0200
+In-Reply-To: <156092353780.979959.9713046515562743194.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156092349300.979959.17603710711957735135.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156092353780.979959.9713046515562743194.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -34,38 +23,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: alastair@d-silva.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+Cc: Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alastair D'Silva <alastair@d-silva.org>
+On Tue, 2019-06-18 at 22:52 -0700, Dan Williams wrote:
+> Prepare the memory hot-{add,remove} paths for handling sub-section
+> ranges by plumbing the starting page frame and number of pages being
+> handled through arch_{add,remove}_memory() to
+> sparse_{add,remove}_one_section().
+> 
+> This is simply plumbing, small cleanups, and some identifier renames.
+> No
+> intended functional changes.
+> 
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Logan Gunthorpe <logang@deltatee.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-These functions don't exist, so remove the prototypes for them.
+I already gave my Reviewed-by in the previous version:
 
-Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
----
- drivers/nvdimm/nd-core.h | 4 ----
- 1 file changed, 4 deletions(-)
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 391e88de3a29..57d162dbefaa 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -136,11 +136,7 @@ void nd_region_disable(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nd_synchronize(void);
--int nvdimm_bus_register_dimms(struct nvdimm_bus *nvdimm_bus);
--int nvdimm_bus_register_regions(struct nvdimm_bus *nvdimm_bus);
--int nvdimm_bus_init_interleave_sets(struct nvdimm_bus *nvdimm_bus);
- void __nd_device_register(struct device *dev);
--int nd_match_dimm(struct device *dev, void *data);
- struct nd_label_id;
- char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
- bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
 -- 
-2.21.0
-
+Oscar Salvador
+SUSE L3
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
