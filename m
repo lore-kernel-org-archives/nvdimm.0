@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 31C512128DD59
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 18:45:14 -0700 (PDT)
-From: ira.weiny@intel.com
-Subject: [PATCH RFC 03/10] mm/gup: Pass flags down to __gup_device_huge* calls
-Date: Wed,  5 Jun 2019 18:45:36 -0700
-Message-Id: <20190606014544.8339-4-ira.weiny@intel.com>
-In-Reply-To: <20190606014544.8339-1-ira.weiny@intel.com>
-References: <20190606014544.8339-1-ira.weiny@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CD32F21295CA4
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 09:02:59 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id t76so12956146oih.4
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 09:02:59 -0700 (PDT)
 MIME-Version: 1.0
+References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156140037171.2951909.7432584124511649643.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20190625155956.00002dc4@huawei.com>
+In-Reply-To: <20190625155956.00002dc4@huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 25 Jun 2019 09:02:46 -0700
+Message-ID: <CAPcyv4haG=Pu_-Se+CiGOXHuM1qZH8uLP-Pbr_KgDmL3GOf25g@mail.gmail.com>
+Subject: Re: [PATCH v4 01/10] acpi/numa: Establish a new drivers/acpi/numa/
+ directory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,116 +28,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>
-Cc: linux-nvdimm@lists.01.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: X86 ML <x86@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Tue, Jun 25, 2019 at 8:01 AM Jonathan Cameron
+<jonathan.cameron@huawei.com> wrote:
+>
+> On Mon, 24 Jun 2019 11:19:32 -0700
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > Currently hmat.c lives under an "hmat" directory which does not enhance
+> > the description of the file. The initial motivation for giving hmat.c
+> > its own directory was to delineate it as mm functionality in contrast to
+> > ACPI device driver functionality.
+> >
+> > As ACPI continues to play an increasing role in conveying
+> > memory location and performance topology information to the OS take the
+> > opportunity to co-locate these NUMA relevant tables in a combined
+> > directory.
+> >
+> > numa.c is renamed to srat.c and moved to drivers/acpi/numa/ along with
+> > hmat.c.
+>
+> Hi Dan,
+>
+> srat.c now includes processing for the slit table which is a bit odd.
+>
+> Now we could split this up in to a top level numa.c and then
+> srat.c, slit.c and hmat.c....
+>
+> Does feel rather silly though.  Perhaps better to just leave it as
+> numa.c?
 
-In order to support checking for a layout lease on a FS DAX inode these
-calls need to know if FOLL_LONGTERM was specified.
+The srat and slit tables go hand in hand, I'm not too bothered by the
+fact that the slit table does not get top billing with its own source
+file name.
 
-Prepare for this with this patch.
+The "numa" term is already in the path name, and calling numa.c leaves
+out hmat details which are also "numa".
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- mm/gup.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+> I don't really feel strongly about this though.
 
-diff --git a/mm/gup.c b/mm/gup.c
-index a3fb48605836..26a7a3a3a657 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1939,7 +1939,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
- 
- #if defined(__HAVE_ARCH_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
- static int __gup_device_huge(unsigned long pfn, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+		unsigned long end, struct page **pages, int *nr,
-+		unsigned int flags)
- {
- 	int nr_start = *nr;
- 	struct dev_pagemap *pgmap = NULL;
-@@ -1969,30 +1970,33 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
- }
- 
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+		unsigned long end, struct page **pages, int *nr,
-+		unsigned int flags)
- {
- 	unsigned long fault_pfn;
- 	int nr_start = *nr;
- 
- 	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
- 		return 0;
- 
- 	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
- 		undo_dev_pagemap(nr, nr_start, pages);
- 		return 0;
- 	}
-+
- 	return 1;
- }
- 
- static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+		unsigned long end, struct page **pages, int *nr,
-+		unsigned int flags)
- {
- 	unsigned long fault_pfn;
- 	int nr_start = *nr;
- 
- 	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
- 		return 0;
- 
- 	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
-@@ -2003,14 +2007,16 @@ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
- }
- #else
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+		unsigned long end, struct page **pages, int *nr,
-+		unsigned int flags)
- {
- 	BUILD_BUG();
- 	return 0;
- }
- 
- static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+		unsigned long end, struct page **pages, int *nr,
-+		unsigned int flags)
- {
- 	BUILD_BUG();
- 	return 0;
-@@ -2029,7 +2035,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
- 	if (pmd_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
-+		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr,
-+					     flags);
- 	}
- 
- 	refs = 0;
-@@ -2072,7 +2079,8 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
- 	if (pud_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
-+		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr,
-+					     flags);
- 	}
- 
- 	refs = 0;
--- 
-2.20.1
-
+Understood, I just did not see the justification for HMAT being off in
+its own directory when it is a direct extension of the existing
+ACPI_NUMA functionality, the other renames were my best effort to
+rationalize the code organization.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
