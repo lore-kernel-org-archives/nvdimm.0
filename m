@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C7D712129EB9B
- for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:22 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v5 12/13] contrib/ndctl: add bash-completion for the new
- daxctl commands
-Date: Fri, 28 Jun 2019 13:11:09 -0600
-Message-Id: <20190628191110.21428-13-vishal.l.verma@intel.com>
-In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
-References: <20190628191110.21428-1-vishal.l.verma@intel.com>
+Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com
+ [66.55.73.32]) by ml01.01.org (Postfix) with ESMTP id 181EE212A36DD
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 23:07:51 -0700 (PDT)
+Message-ID: <214e5c621bf101a92c7abdf815a7300f0dacf496.camel@d-silva.org>
+Subject: Re: [PATCH] nvdimm: remove prototypes for nonexistent functions
+From: "Alastair D'Silva" <alastair@d-silva.org>
+Date: Wed, 26 Jun 2019 16:07:29 +1000
+In-Reply-To: <20190626060350.15715-1-alastair@au1.ibm.com>
+References: <20190626060350.15715-1-alastair@au1.ibm.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,70 +20,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add bash completion helpers for the new daxctl-reconfigure-device,
-daxctl-online-memory, and daxctl-offline-memory commands.
+On Wed, 2019-06-26 at 16:03 +1000, Alastair D'Silva wrote:
+> From: Alastair D'Silva <alastair@d-silva.org>
+> 
+> These functions don't exist, so remove the prototypes for them.
+> 
+> Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+> ---
+>  drivers/nvdimm/nd-core.h | 4 ----
+>  1 file changed, 4 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+> index 391e88de3a29..57d162dbefaa 100644
+> --- a/drivers/nvdimm/nd-core.h
+> +++ b/drivers/nvdimm/nd-core.h
+> @@ -136,11 +136,7 @@ void nd_region_disable(struct nvdimm_bus
+> *nvdimm_bus, struct device *dev);
+>  int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
+>  void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
+>  void nd_synchronize(void);
+> -int nvdimm_bus_register_dimms(struct nvdimm_bus *nvdimm_bus);
+> -int nvdimm_bus_register_regions(struct nvdimm_bus *nvdimm_bus);
+> -int nvdimm_bus_init_interleave_sets(struct nvdimm_bus *nvdimm_bus);
+>  void __nd_device_register(struct device *dev);
+> -int nd_match_dimm(struct device *dev, void *data);
+>  struct nd_label_id;
+>  char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32
+> flags);
+>  bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- contrib/ndctl | 24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index cacee2d..680fe6a 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -547,7 +547,7 @@ __daxctlcomp()
- 
- 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
- 	for cword in "${COMPREPLY[@]}"; do
--		if [[ "$cword" == @(--region|--dev) ]]; then
-+		if [[ "$cword" == @(--region|--dev|--mode) ]]; then
- 			COMPREPLY[$i]="${cword}="
- 		else
- 			COMPREPLY[$i]="${cword} "
-@@ -572,6 +572,9 @@ __daxctl_comp_options()
- 		--dev)
- 			opts="$(__daxctl_get_devs -i)"
- 			;;
-+		--mode)
-+			opts="system-ram devdax"
-+			;;
- 		*)
- 			return
- 			;;
-@@ -582,8 +585,23 @@ __daxctl_comp_options()
- 
- __daxctl_comp_non_option_args()
- {
--	# there aren't any commands that accept non option arguments yet
--	return
-+	local subcmd=$1
-+	local cur=$2
-+	local opts
-+
-+	case $subcmd in
-+	reconfigure-device)
-+		;&
-+	online-memory)
-+		;&
-+	offline-memory)
-+		opts="$(__daxctl_get_devs -i) all"
-+		;;
-+	*)
-+		return
-+		;;
-+	esac
-+	__daxctlcomp "$opts" "$cur"
- }
- 
- __daxctl_main()
+Whoops, fat-fingered this, nothing has changed.
+
 -- 
-2.20.1
+Alastair D'Silva           mob: 0423 762 819
+skype: alastair_dsilva    
+Twitter: @EvilDeece
+blog: http://alastair.d-silva.org
+
 
 _______________________________________________
 Linux-nvdimm mailing list
