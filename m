@@ -1,118 +1,130 @@
 From: Brendan Higgins <brendanhiggins@google.com>
 Subject: Re: [PATCH v5 01/18] kunit: test: add KUnit test runner core
-Date: Tue, 25 Jun 2019 17:07:32 -0700
-Message-ID: <CAFd5g46TLAONgXiZkFM98BPd-sariMTwhmYG9hSJ+M9=r-ixeg@mail.gmail.com>
+Date: Tue, 25 Jun 2019 23:41:47 -0700
+Message-ID: <CAFd5g45fSdpytudDyD3Yo1ti=kU_JJ6S9yz53_L=pnZTjQFU9A@mail.gmail.com>
 References: <20190617082613.109131-1-brendanhiggins@google.com>
- <20190617082613.109131-2-brendanhiggins@google.com> <20190625223312.GP19023@42.do-not-panic.com>
+ <20190617082613.109131-2-brendanhiggins@google.com>
+ <20190620001526.93426218BE@mail.kernel.org>
+ <CAFd5g46Jhxsz6_VXHEVYvTeDRwwzgKpr=aUWLL5b3S4kUukb8g@mail.gmail.com>
+ <20190625214427.GN19023@42.do-not-panic.com>
+ <CAFd5g47OABqN127cPKqoCOA_Wr9w=LFh_0XkF7LXu2iY9sFkSw@mail.gmail.com>
+ <20190625230253.GQ19023@42.do-not-panic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190625223312.GP19023@42.do-not-panic.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190625230253.GQ19023@42.do-not-panic.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah <shuah@kernel.org>, Theodore Ts'o <tytso@mit.edu>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kbuild <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-ks>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird,
+ Timothy" <Tim.Bird>
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jun 25, 2019 at 3:33 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
->
-> On Mon, Jun 17, 2019 at 01:25:56AM -0700, Brendan Higgins wrote:
-> > +/**
-> > + * module_test() - used to register a &struct kunit_module with KUnit.
-> > + * @module: a statically allocated &struct kunit_module.
-> > + *
-> > + * Registers @module with the test framework. See &struct kunit_module for more
-> > + * information.
-> > + */
-> > +#define module_test(module) \
-> > +             static int module_kunit_init##module(void) \
-> > +             { \
-> > +                     return kunit_run_tests(&module); \
-> > +             } \
-> > +             late_initcall(module_kunit_init##module)
->
-> Becuase late_initcall() is used, if these modules are built-in, this
-> would preclude the ability to test things prior to this part of the
-> kernel under UML or whatever architecture runs the tests. So, this
-> limits the scope of testing. Small detail but the scope whould be
-> documented.
-
-You aren't the first person to complain about this (and I am not sure
-it is the first time you have complained about it). Anyway, I have
-some follow on patches that will improve the late_initcall thing, and
-people seemed okay with discussing the follow on patches as part of a
-subsequent patchset after this gets merged.
-
-I will nevertheless document the restriction until then.
-
-> > +static void kunit_print_tap_version(void)
-> > +{
-> > +     if (!kunit_has_printed_tap_version) {
-> > +             kunit_printk_emit(LOGLEVEL_INFO, "TAP version 14\n");
->
-> What is this TAP thing? Why should we care what version it is on?
-> Why are we printing this?
-
-It's part of the TAP specification[1]. Greg and Frank asked me to make
-the intermediate format conform to TAP. Seems like something else I
-should probable document...
-
-> > +             kunit_has_printed_tap_version = true;
-> > +     }
-> > +}
-> > +
-> > +static size_t kunit_test_cases_len(struct kunit_case *test_cases)
-> > +{
-> > +     struct kunit_case *test_case;
-> > +     size_t len = 0;
-> > +
-> > +     for (test_case = test_cases; test_case->run_case; test_case++)
->
-> If we make the last test case NULL, we'd just check for test_case here,
-> and save ourselves an extra few bytes per test module. Any reason why
-> the last test case cannot be NULL?
-
-Is there anyway to make that work with a statically defined array?
-
-Basically, I want to be able to do something like:
-
-static struct kunit_case example_test_cases[] = {
-        KUNIT_CASE(example_simple_test),
-        KUNIT_CASE(example_mock_test),
-        {}
-};
-
-FYI,
-#define KUNIT_CASE(test_name) { .run_case = test_name, .name = #test_name }
-
-In order to do what you are proposing, I think I need an array of
-pointers to test cases, which is not ideal.
-
-> > +void kunit_init_test(struct kunit *test, const char *name)
-> > +{
-> > +     spin_lock_init(&test->lock);
-> > +     test->name = name;
-> > +     test->success = true;
-> > +}
-> > +
-> > +/*
-> > + * Performs all logic to run a test case.
-> > + */
-> > +static void kunit_run_case(struct kunit_module *module,
-> > +                        struct kunit_case *test_case)
-> > +{
-> > +     struct kunit test;
-> > +     int ret = 0;
-> > +
-> > +     kunit_init_test(&test, test_case->name);
-> > +
-> > +     if (module->init) {
-> > +             ret = module->init(&test);
->
-> I believe if we used struct kunit_module *kmodule it would be much
-> clearer who's init this is.
-
-That's reasonable. I will fix in next revision.
-
-Cheers!
-
-[1] https://github.com/TestAnything/Specification/blob/tap-14-specification/specification.md
+T24gVHVlLCBKdW4gMjUsIDIwMTkgYXQgNDowMiBQTSBMdWlzIENoYW1iZXJsYWluIDxtY2dyb2ZA
+a2VybmVsLm9yZz4gd3JvdGU6Cj4KPiBPbiBUdWUsIEp1biAyNSwgMjAxOSBhdCAwMzoxNDo0NVBN
+IC0wNzAwLCBCcmVuZGFuIEhpZ2dpbnMgd3JvdGU6Cj4gPiBPbiBUdWUsIEp1biAyNSwgMjAxOSBh
+dCAyOjQ0IFBNIEx1aXMgQ2hhbWJlcmxhaW4gPG1jZ3JvZkBrZXJuZWwub3JnPiB3cm90ZToKPiA+
+ID4gU2luY2UgaXRzIGEgbmV3IGFyY2hpdGVjdHVyZSBhbmQgc2luY2UgeW91IHNlZW0gdG8gaW1w
+bHkgbW9zdCB0ZXN0cwo+ID4gPiBkb24ndCByZXF1aXJlIGxvY2tpbmcgb3IgZXZlbiBJUlFzIGRp
+c2FibGVkLCBJIHRoaW5rIGl0cyB3b3J0aCB0bwo+ID4gPiBjb25zaWRlciB0aGUgaW1wYWN0IG9m
+IGFkZGluZyBzdWNoIGV4dHJlbWUgbG9ja2luZyByZXF1aXJlbWVudHMgZm9yCj4gPiA+IGFuIGlu
+aXRpYWwgcmFtcCB1cC4KPiA+Cj4gPiBGYWlyIGVub3VnaCwgSSBjYW4gc2VlIHRoZSBwb2ludCBv
+ZiBub3Qgd2FudGluZyB0byB1c2UgaXJxIGRpc2FibGVkCj4gPiB1bnRpbCB3ZSBnZXQgc29tZW9u
+ZSBjb21wbGFpbmluZyBhYm91dCBpdCwgYnV0IEkgdGhpbmsgbWFraW5nIGl0Cj4gPiB0aHJlYWQg
+c2FmZSBpcyByZWFzb25hYmxlLiBJdCBtZWFucyB0aGVyZSBpcyBvbmUgbGVzcyB0aGluZyB0byBj
+b25mdXNlCj4gPiBhIEtVbml0IHVzZXIgYW5kIHRoZSBvbmx5IHBlbmFsdHkgcGFpZCBpcyBzb21l
+IHZlcnkgbWlub3IgcGVyZm9ybWFuY2UuCj4KPiBPbmUgcmVhc29uIEknbSByZWFsbHkgZXhjaXRl
+ZCBhYm91dCBrdW5pdCBpcyBzcGVlZC4uLiBzbyBieSBhbGwgbWVhbnMgSQo+IHRoaW5rIHdlJ3Jl
+IGF0IGEgZ29vZCBwb2ludCB0byBhbmFseXplIHBlcmZvcm1hbmNlIG9wdGltaXphdGlvbnNtIGlm
+Cj4gdGhleSBkbyBtYWtlIHNlbnNlLgoKWWVhaCwgYnV0IEkgdGhpbmsgdGhlcmUgYXJlIG11Y2gg
+bG93ZXIgaGFuZ2luZyBmcnVpdCB0aGFuIHRoaXMgKGFzIHlvdQpwb2ludCBvdXQgYmVsb3cpLiBJ
+IGFtIGFsbCBmb3IgbWFraW5nL2tlZXBpbmcgS1VuaXQgc3VwZXIgZmFzdCwgYnV0IEkKYWxzbyBk
+b24ndCB3YW50IHRvIHdhc3RlIHRpbWUgd2l0aCBwcmVtYXR1cmUgb3B0aW1pemF0aW9ucyBhbmQg
+SSB0aGluawpoYXZpbmcgdGhyZWFkIHNhZmUgZXhwZWN0YXRpb25zIGFuZCBub24tdGhyZWFkIHNh
+ZmUgZXhwZWN0YXRpb25zIGh1cnRzCnVzYWJpbGl0eS4KClN0aWxsLCBJIGFtIG9uIGJvYXJkIHdp
+dGggbWFraW5nIHRoaXMgYSBtdXRleCBpbnN0ZWFkIG9mIGEgc3BpbmxvY2sgZm9yIG5vdy4KCj4g
+V2hpbGUgb24gdGhlIHRvcGljIG9mIHBhcmFsbGl6YXRpb24sIHdoYXQgYWJvdXQgc3VwcG9ydCBm
+b3IgcnVubmluZwo+IGRpZmZlcmVudCB0ZXN0IGNhc2VzIGluIHBhcmFsbGVsPyBPciBhdCB0aGUg
+dmVyeSBsZWFzdCBkaWZmZXJlbnQga3VuaXQKPiBtb2R1bGVzIGluIHBhcmFsbGVsLiAgRmV3IHF1
+ZXN0aW9ucyBjb21lIHVwIGJhc2VkIG9uIHRoaXMgcHJvc3BlY3Q6Cj4KPiAgICogV2h5IG5vdCBz
+dXBwb3J0IHBhcmFsbGVsaXNtIGZyb20gdGhlIHN0YXJ0PwoKSnVzdCBiZWNhdXNlIGl0IGlzIG1v
+cmUgd29yayBhbmQgdGhlcmUgaXNuJ3QgbXVjaCB0byBnYWluIGZyb20gaXQgcmlnaHQgbm93LgoK
+U29tZSBudW1iZXJzOgpJIGN1cnJlbnRseSBoYXZlIGEgY29sbGVjdGlvbiBvZiA4NiB0ZXN0IGNh
+c2VzIGluIHRoZSBicmFuY2ggdGhhdCB0aGlzCnBhdGNoc2V0IGlzIGZyb20uIEkgdHVybmVkIG9u
+IFBSSU5US19USU1FIGFuZCBsb29rZWQgYXQgdGhlIGZpcnN0CktVbml0IG91dHB1dCBhbmQgdGhl
+IGxhc3QuIE9uIFVNTCwgc3RhcnQgdGltZSB3YXMgMC4wOTAwMDAsIGFuZCBlbmQKdGltZSB3YXMg
+MC4wOTAwMDAuIExvb2tzIGxpa2Ugc2NoZWRfY2xvY2sgaXMgbm90IHZlcnkgZ29vZCBvbiBVTUwu
+CgpTdGlsbCBpdCBzZWVtcyBxdWl0ZSBsaWtlbHkgdGhhdCBhbGwgb2YgdGhlc2UgdGVzdHMgcnVu
+IGFyb3VuZCAwLjAxCnNlY29uZHMgb3IgbGVzcyBvbiBVTUw6IEkgcmFuIEtVbml0IHdpdGggb25s
+eSAyIHRlc3QgY2FzZXMgZW5hYmxlZAp0aHJlZSB0aW1lcyBhbmQgZ290IGFuIGF2ZXJhZ2UgcnVu
+dGltZSBvZiAxLjU1ODY3IHNlY29uZHMgd2l0aCBhCnN0YW5kYXJkIGRldmlhdGlvbiBvZiAwLjAz
+NDY3NDcuIEkgdGhlbiByYW4gaXQgYW5vdGhlciB0aHJlZSB0aW1lcwp3aXRoIGFsbCB0ZXN0IGNh
+c2VzIGVuYWJsZWQgYW5kIGdvdCBhbiBhdmVyYWdlIHJ1bnRpbWUgb2YgMS41MzUKc2Vjb25kcyB3
+aXRoIGEgc3RhbmRhcmQgZGV2aWF0aW9uIG9mIDAuMDE1MDk5Ny4gVGhlIHNlY29uZCBhdmVyYWdl
+IGlzCmxlc3MsIGJ1dCB0aGF0IGRvZXNuJ3QgcmVhbGx5IG1lYW4gYW55dGhpbmcgYmVjYXVzZSBp
+dCBpcyB3ZWxsIHdpdGhpbgpvbmUgc3RhbmRhcmQgZGV2aWF0aW9uIHdpdGggYSB2ZXJ5IHNtYWxs
+IHNhbXBsZSBzaXplLiBOZXZlcnRoZWxlc3MsIHdlCmNhbiBjb25jbHVkZSB0aGF0IHRoZSBhY3R1
+YWwgcnVudGltZSBvZiB0aG9zZSA4NCB0ZXN0IGNhc2VzIGlzIG1vc3QKbGlrZWx5IHdpdGhpbiBv
+bmUgc3RhbmRhcmQgZGV2aWF0aW9uLCBzbyBvbiB0aGUgb3JkZXIgb2YgMC4wMSBzZWNvbmRzLgoK
+T24geDg2IHJ1bm5pbmcgb24gUUVNVSwgZmlyc3QgbWVzc2FnZSBmcm9tIEtVbml0IHdhcyBwcmlu
+dGVkIGF0CjAuMTk0MjUxIGFuZCB0aGUgbGFzdCBLVW5pdCBtZXNzYWdlIHdhcyBwcmludGVkIGF0
+IDAuMzQwOTE1LCBtZWFuaW5nCnRoYXQgYWxsIDg2IHRlc3QgY2FzZXMgcmFuIGluIGFib3V0IDAu
+MTQ2NjY0IHNlY29uZHMuCgpJbiBhbnkgY2FzZSwgcnVubmluZyBLVW5pdCB0ZXN0cyBpbiBwYXJh
+bGxlbCBpcyBkZWZpbml0ZWx5IHNvbWV0aGluZyBJCnBsYW4gb24gYWRkaW5nIGl0IGV2ZW50dWFs
+bHksIGJ1dCBpdCBqdXN0IGRvZXNuJ3QgcmVhbGx5IHNlZW0gd29ydGggaXQKcmlnaHQgbm93LiBJ
+IGZpbmQgdGhlIGluY3JlbWVudGFsIGJ1aWxkIHRpbWUgb2YgdGhlIGtlcm5lbCB0bwp0eXBpY2Fs
+bHkgYmUgYmV0d2VlbiAzIGFuZCAzMCBzZWNvbmRzLCBhbmQgYSBjbGVhbiBidWlsZCB0byBiZSBi
+ZXR3ZWVuCjMwIHNlY29uZHMgdG8gc2V2ZXJhbCBtaW51dGVzLCBkZXBlbmRpbmcgb24gdGhlIG51
+bWJlciBvZiBhdmFpbGFibGUKY29yZXMsIHNvIEkgZG9uJ3QgdGhpbmsgbW9zdCB1c2VycyB3b3Vs
+ZCBldmVuIG5vdGljZSB0aGUgYW1vdW50IG9mCnJ1bnRpbWUgY29udHJpYnV0ZWQgYnkgdGhlIGFj
+dHVhbCB1bml0IHRlc3RzIHVudGlsIHdlIHN0YXJ0IGdldHRpbmcKaW50byB0aGUgMTAwMHMgb2Yg
+dGVzdCBjYXNlcy4gSSBkb24ndCBzdXNwZWN0IGl0IHdpbGwgYmVjb21lIGFuIGlzc3VlCnVudGls
+IHdlIGdldCBpbnRvIHRoZSAxMCwwMDBzIG9mIHRlc3QgY2FzZXMuIEkgdGhpbmsgd2UgYXJlIGEg
+cHJldHR5Cmxvbmcgd2F5IG9mZiBmcm9tIHRoYXQuCgo+ICAgKiBBcmUgeW91IG9wcG9zZWQgdG8g
+ZXZlbnR1YWxseSBoYXZpbmcgdGhpcyBhZGRlZD8gRm9yIGluc3RhbmNlLCB0aGVyZSBpcwo+ICAg
+ICBlbm91Z2ggY29kZSBvbiBsaWIvdGVzdF9rbW9kLmMgZm9yIGJhdGNoaW5nIHRvbnMgb2Yga3Ro
+cmVhZHMgZWFjaAo+ICAgICBvbmUgcnVubmluZyBpdHMgb3duIHRoaW5nIGZvciB0ZXN0aW5nIHB1
+cnBvc2VzIHdoaWNoIGNvdWxkIGJlIHVzZWQKPiAgICAgYXMgdGVtcGxhdGUuCgpJIGFtIG5vdCBv
+cHBvc2VkIHRvIGFkZGluZyBpdCBldmVudHVhbGx5IGF0IGFsbC4gSSBhY3R1YWxseSBwbGFuIG9u
+CmRvaW5nIHNvLCBqdXN0IG5vdCBpbiB0aGlzIHBhdGNoc2V0LiBUaGVyZSBhcmUgYSBsb3Qgb2Yg
+YWRkaXRpb25hbApmZWF0dXJlcywgaW1wcm92ZW1lbnRzLCBhbmQgc3VnYXIgdGhhdCBJIHJlYWxs
+eSB3YW50IHRvIGFkZCwgc28gbXVjaApzbyB0aGF0IG1vc3Qgb2YgaXQgZG9lc24ndCBiZWxvbmcg
+aW4gdGhpcyBwYXRjaHNldDsgSSBqdXN0IHRoaW5rIHRoaXMKaXMgb25lIG9mIHRob3NlIHRoaW5n
+cyB0aGF0IGJlbG9uZ3MgaW4gYSBmb2xsb3cgdXAuIEkgdHJpZWQgdG8gYm9pbApkb3duIHRoaXMg
+cGF0Y2hzZXQgdG8gYXMgc21hbGwgYXMgSSBjb3VsZCB3aGlsZSBzdGlsbCBiZWluZyB1c2VmdWw7
+CnRoaXMgaXMgYmFzaWNhbGx5IGFuIE1WUC4gTWF5YmUgYWZ0ZXIgdGhpcyBwYXRjaHNldCBnZXRz
+IG1lcmdlZCBJCnNob3VsZCBwb3N0IGEgbGlzdCBvZiB0aGluZ3MgSSBoYXZlIHJlYWR5IGZvciBy
+ZXZpZXcsIG9yIHdvdWxkIGxpa2UgdG8Kd29yayBvbiwgYW5kIHBlb3BsZSBjYW4gY29tbWVudCBv
+biB3aGF0IHRoaW5ncyB0aGV5IHdhbnQgdG8gc2VlIG5leHQuCgo+ICAgKiBJZiB3ZSBldmVudHVh
+bGx5ICpkaWQqIHN1cHBvcnQgaXQ6Cj4gICAgIC0gV291bGQgbG9ncyBiZSBza2V3ZWQ/CgpQcm9i
+YWJseSwgYmVmb3JlIEkgd2VudCB3aXRoIHRoZSBUQVAgYXBwcm9hY2gsIEkgd2FzIHRhZ2dpbmcg
+ZWFjaAptZXNzYWdlIHdpdGggdGhlIHRlc3QgY2FzZSBpdCBjYW1lIGZyb20gYW5kIEkgY291bGQg
+aGF2ZSBwYXJzZWQgaXQgYW5kCmFzc2VtYmxlZCBhIGNvaGVyZW50IHZpZXcgb2YgdGhlIGxvZ3Mg
+dXNpbmcgdGhhdDsgbm93IHRoYXQgSSBhbSB1c2luZwpUQVAgY29uZm9ybWluZyBvdXRwdXQsIHRo
+YXQgd29uJ3Qgd29yay4gSSBoYXZlbid0IHJlYWxseSB0aG91Z2h0IHRvbwpoYXJkIGFib3V0IGhv
+dyB0byBhZGRyZXNzIGl0LCBidXQgdGhlcmUgYXJlIHdheXMuIEZvciB0aGUgVU1MIHVzZXJzLCBJ
+CmFtIHBsYW5uaW5nIG9uIGFkZGluZyBhIGZlYXR1cmUgdG8gZ3VhcmFudGVlIGhlcm1ldGljaXR5
+IGJldHdlZW4gdGVzdHMKcnVubmluZyBpbiBkaWZmZXJlbnQgbW9kdWxlcyBieSBhZGRpbmcgYSBm
+ZWF0dXJlIHRoYXQgYWxsb3dzIGEgc2luZ2xlCmtlcm5lbCB0byBiZSBidWlsdCB3aXRoIGFsbCB0
+ZXN0cyBpbmNsdWRlZCwgYW5kIHRoZW4gZGV0ZXJtaW5lIHdoaWNoCnRlc3RzIGdldCBydW4gYnkg
+cGFzc2luZyBpbiBjb21tYW5kIGxpbmUgYXJndW1lbnRzIG9yIHNvbWV0aGluZy4gVGhpcwp3YXkg
+eW91IGNhbiBnZXQgdGhlIGlzb2xhdGlvbiBmcm9tIHJ1bm5pbmcgdGVzdHMgaW4gc2VwYXJhdGUK
+ZW52aXJvbm1lbnRzIHdpdGhvdXQgaW5jcmVhc2luZyB0aGUgYnVpbGQgY29zdC4gV2UgY291bGQg
+YWxzbyB1c2UgdGhpcwptZXRob2QgdG8gYWNoaWV2ZSBwYXJhbGxlbGlzbSBieSBkaXNwYXRjaGlu
+ZyBtdWx0aXBsZSBrZXJuZWxzIGF0IG9uY2UuClRoYXQgb25seSB3b3JrcyBmb3IgVU1MLCBidXQg
+SSBpbWFnaW5lIHlvdSBjb3VsZCBkbyBzb21ldGhpbmcgc2ltaWxhcgpmb3IgdXNlcnMgcnVubmlu
+ZyB0ZXN0cyB1bmRlciBxZW11LgoKPiAgICAgLSBDb3VsZCB3ZSBoYXZlIGEgd2F5IHRvIHF1ZXJ5
+OiBnaXZlIG1lIGxvZyBmb3Igb25seSBrdW5pdCBtb2R1bGUKPiAgICAgICBuYW1lZCAiZm9vIj8K
+ClllYWgsIEkgdGhpbmsgdGhhdCB3b3VsZCBtYWtlIHNlbnNlIGFzIHBhcnQgb2YgdGhlIGhlcm1l
+dGljaXR5IHRoaW5nIEkKbWVudGlvbmVkIGFib3ZlLgoKSG9wZSB0aGF0IHNlZW1zIHJlYXNvbmFi
+bGUhCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
