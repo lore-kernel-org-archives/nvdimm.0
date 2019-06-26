@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 900B3212909C9
- for <linux-nvdimm@lists.01.org>; Wed,  5 Jun 2019 15:12:16 -0700 (PDT)
-Subject: [PATCH v9 02/12] mm/sparsemem: Add helpers track active portions of
- a section at boot
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 05 Jun 2019 14:57:59 -0700
-Message-ID: <155977187919.2443951.8925592545929008845.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155977186863.2443951.9036044808311959913.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D31302129F038
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 14:13:02 -0700 (PDT)
+Date: Wed, 26 Jun 2019 14:13:00 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH 14/25] memremap: replace the altmap_valid field with a
+ PGMAP_ALTMAP_VALID flag
+Message-ID: <20190626211300.GF4605@iweiny-DESK2.sc.intel.com>
+References: <20190626122724.13313-1-hch@lst.de>
+ <20190626122724.13313-15-hch@lst.de>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190626122724.13313-15-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,158 +25,287 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: akpm@linux-foundation.org
-Cc: mhocko@suse.com, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Prepare for hot{plug,remove} of sub-ranges of a section by tracking a
-sub-section active bitmask, each bit representing a PMD_SIZE span of the
-architecture's memory hotplug section size.
+On Wed, Jun 26, 2019 at 02:27:13PM +0200, Christoph Hellwig wrote:
+> Add a flags field to struct dev_pagemap to replace the altmap_valid
+> boolean to be a little more extensible.  Also add a pgmap_altmap() helper
+> to find the optional altmap and clean up the code using the altmap using
+> it.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-The implications of a partially populated section is that pfn_valid()
-needs to go beyond a valid_section() check and read the sub-section
-active ranges from the bitmask. The expectation is that the bitmask
-(subsection_map) fits in the same cacheline as the valid_section() data,
-so the incremental performance overhead to pfn_valid() should be
-negligible.
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Tested-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- include/linux/mmzone.h |   29 ++++++++++++++++++++++++++++-
- mm/page_alloc.c        |    4 +++-
- mm/sparse.c            |   35 +++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index ac163f2f274f..6dd52d544857 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1199,6 +1199,8 @@ struct mem_section_usage {
- 	unsigned long pageblock_flags[0];
- };
- 
-+void subsection_map_init(unsigned long pfn, unsigned long nr_pages);
-+
- struct page;
- struct page_ext;
- struct mem_section {
-@@ -1336,12 +1338,36 @@ static inline struct mem_section *__pfn_to_section(unsigned long pfn)
- 
- extern int __highest_present_section_nr;
- 
-+static inline int subsection_map_index(unsigned long pfn)
-+{
-+	return (pfn & ~(PAGE_SECTION_MASK)) / PAGES_PER_SUBSECTION;
-+}
-+
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	int idx = subsection_map_index(pfn);
-+
-+	return test_bit(idx, ms->usage->subsection_map);
-+}
-+#else
-+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-+{
-+	return 1;
-+}
-+#endif
-+
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- static inline int pfn_valid(unsigned long pfn)
- {
-+	struct mem_section *ms;
-+
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
--	return valid_section(__nr_to_section(pfn_to_section_nr(pfn)));
-+	ms = __nr_to_section(pfn_to_section_nr(pfn));
-+	if (!valid_section(ms))
-+		return 0;
-+	return pfn_section_valid(ms, pfn);
- }
- #endif
- 
-@@ -1373,6 +1399,7 @@ void sparse_init(void);
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #define pfn_present pfn_valid
-+#define subsection_map_init(_pfn, _nr_pages) do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index c6d8224d792e..bd773efe5b82 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7292,10 +7292,12 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 
- 	/* Print out the early node map */
- 	pr_info("Early memory node ranges\n");
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
- 			(u64)start_pfn << PAGE_SHIFT,
- 			((u64)end_pfn << PAGE_SHIFT) - 1);
-+		subsection_map_init(start_pfn, end_pfn - start_pfn);
-+	}
- 
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 71da15cc7432..0baa2e55cfdd 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -210,6 +210,41 @@ static inline unsigned long first_present_section_nr(void)
- 	return next_present_section_nr(-1);
- }
- 
-+void subsection_mask_set(unsigned long *map, unsigned long pfn,
-+		unsigned long nr_pages)
-+{
-+	int idx = subsection_map_index(pfn);
-+	int end = subsection_map_index(pfn + nr_pages - 1);
-+
-+	bitmap_set(map, idx, end - idx + 1);
-+}
-+
-+void subsection_map_init(unsigned long pfn, unsigned long nr_pages)
-+{
-+	int end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
-+	int i, start_sec = pfn_to_section_nr(pfn);
-+
-+	if (!nr_pages)
-+		return;
-+
-+	for (i = start_sec; i <= end_sec; i++) {
-+		struct mem_section *ms;
-+		unsigned long pfns;
-+
-+		pfns = min(nr_pages, PAGES_PER_SECTION
-+				- (pfn & ~PAGE_SECTION_MASK));
-+		ms = __nr_to_section(i);
-+		subsection_mask_set(ms->usage->subsection_map, pfn, pfns);
-+
-+		pr_debug("%s: sec: %d pfns: %ld set(%d, %d)\n", __func__, i,
-+				pfns, subsection_map_index(pfn),
-+				subsection_map_index(pfn + pfns - 1));
-+
-+		pfn += pfns;
-+		nr_pages -= pfns;
-+	}
-+}
-+
- /* Record a memory area against a node. */
- void __init memory_present(int nid, unsigned long start, unsigned long end)
- {
-
+> ---
+>  arch/powerpc/mm/mem.c     | 10 +---------
+>  arch/x86/mm/init_64.c     |  8 ++------
+>  drivers/nvdimm/pfn_devs.c |  3 +--
+>  drivers/nvdimm/pmem.c     |  1 -
+>  include/linux/memremap.h  | 12 +++++++++++-
+>  kernel/memremap.c         | 26 ++++++++++----------------
+>  mm/hmm.c                  |  1 -
+>  mm/memory_hotplug.c       |  6 ++----
+>  mm/page_alloc.c           |  5 ++---
+>  9 files changed, 29 insertions(+), 43 deletions(-)
+> 
+> diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+> index cba29131bccc..f774d80df025 100644
+> --- a/arch/powerpc/mm/mem.c
+> +++ b/arch/powerpc/mm/mem.c
+> @@ -131,17 +131,9 @@ void __ref arch_remove_memory(int nid, u64 start, u64 size,
+>  {
+>  	unsigned long start_pfn = start >> PAGE_SHIFT;
+>  	unsigned long nr_pages = size >> PAGE_SHIFT;
+> -	struct page *page;
+> +	struct page *page = pfn_to_page(start_pfn) + vmem_altmap_offset(altmap);
+>  	int ret;
+>  
+> -	/*
+> -	 * If we have an altmap then we need to skip over any reserved PFNs
+> -	 * when querying the zone.
+> -	 */
+> -	page = pfn_to_page(start_pfn);
+> -	if (altmap)
+> -		page += vmem_altmap_offset(altmap);
+> -
+>  	__remove_pages(page_zone(page), start_pfn, nr_pages, altmap);
+>  
+>  	/* Remove htab bolted mappings for this section of memory */
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index 693aaf28d5fe..3139e992ef9d 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -1211,13 +1211,9 @@ void __ref arch_remove_memory(int nid, u64 start, u64 size,
+>  {
+>  	unsigned long start_pfn = start >> PAGE_SHIFT;
+>  	unsigned long nr_pages = size >> PAGE_SHIFT;
+> -	struct page *page = pfn_to_page(start_pfn);
+> -	struct zone *zone;
+> +	struct page *page = pfn_to_page(start_pfn) + vmem_altmap_offset(altmap);
+> +	struct zone *zone = page_zone(page);
+>  
+> -	/* With altmap the first mapped page is offset from @start */
+> -	if (altmap)
+> -		page += vmem_altmap_offset(altmap);
+> -	zone = page_zone(page);
+>  	__remove_pages(zone, start_pfn, nr_pages, altmap);
+>  	kernel_physical_mapping_remove(start, start + size);
+>  }
+> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+> index 0f81fc56bbfd..55fb6b7433ed 100644
+> --- a/drivers/nvdimm/pfn_devs.c
+> +++ b/drivers/nvdimm/pfn_devs.c
+> @@ -622,7 +622,6 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+>  		if (offset < reserve)
+>  			return -EINVAL;
+>  		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+> -		pgmap->altmap_valid = false;
+>  	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
+>  		nd_pfn->npfns = PFN_SECTION_ALIGN_UP((resource_size(res)
+>  					- offset) / PAGE_SIZE);
+> @@ -634,7 +633,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap)
+>  		memcpy(altmap, &__altmap, sizeof(*altmap));
+>  		altmap->free = PHYS_PFN(offset - reserve);
+>  		altmap->alloc = 0;
+> -		pgmap->altmap_valid = true;
+> +		pgmap->flags |= PGMAP_ALTMAP_VALID;
+>  	} else
+>  		return -ENXIO;
+>  
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 093408ce40ad..e7d8cc9f41e8 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -412,7 +412,6 @@ static int pmem_attach_disk(struct device *dev,
+>  		bb_res.start += pmem->data_offset;
+>  	} else if (pmem_should_map_pages(dev)) {
+>  		memcpy(&pmem->pgmap.res, &nsio->res, sizeof(pmem->pgmap.res));
+> -		pmem->pgmap.altmap_valid = false;
+>  		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
+>  		pmem->pgmap.ops = &fsdax_pagemap_ops;
+>  		addr = devm_memremap_pages(dev, &pmem->pgmap);
+> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+> index 336eca601dad..e25685b878e9 100644
+> --- a/include/linux/memremap.h
+> +++ b/include/linux/memremap.h
+> @@ -88,6 +88,8 @@ struct dev_pagemap_ops {
+>  	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
+>  };
+>  
+> +#define PGMAP_ALTMAP_VALID	(1 << 0)
+> +
+>  /**
+>   * struct dev_pagemap - metadata for ZONE_DEVICE mappings
+>   * @altmap: pre-allocated/reserved memory for vmemmap allocations
+> @@ -96,19 +98,27 @@ struct dev_pagemap_ops {
+>   * @dev: host device of the mapping for debug
+>   * @data: private data pointer for page_free()
+>   * @type: memory type: see MEMORY_* in memory_hotplug.h
+> + * @flags: PGMAP_* flags to specify defailed behavior
+>   * @ops: method table
+>   */
+>  struct dev_pagemap {
+>  	struct vmem_altmap altmap;
+> -	bool altmap_valid;
+>  	struct resource res;
+>  	struct percpu_ref *ref;
+>  	struct device *dev;
+>  	enum memory_type type;
+> +	unsigned int flags;
+>  	u64 pci_p2pdma_bus_offset;
+>  	const struct dev_pagemap_ops *ops;
+>  };
+>  
+> +static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
+> +{
+> +	if (pgmap->flags & PGMAP_ALTMAP_VALID)
+> +		return &pgmap->altmap;
+> +	return NULL;
+> +}
+> +
+>  #ifdef CONFIG_ZONE_DEVICE
+>  void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
+>  void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
+> diff --git a/kernel/memremap.c b/kernel/memremap.c
+> index 6c3dbb692037..eee490e7d7e1 100644
+> --- a/kernel/memremap.c
+> +++ b/kernel/memremap.c
+> @@ -54,14 +54,8 @@ static void pgmap_array_delete(struct resource *res)
+>  
+>  static unsigned long pfn_first(struct dev_pagemap *pgmap)
+>  {
+> -	const struct resource *res = &pgmap->res;
+> -	struct vmem_altmap *altmap = &pgmap->altmap;
+> -	unsigned long pfn;
+> -
+> -	pfn = res->start >> PAGE_SHIFT;
+> -	if (pgmap->altmap_valid)
+> -		pfn += vmem_altmap_offset(altmap);
+> -	return pfn;
+> +	return (pgmap->res.start >> PAGE_SHIFT) +
+> +		vmem_altmap_offset(pgmap_altmap(pgmap));
+>  }
+>  
+>  static unsigned long pfn_end(struct dev_pagemap *pgmap)
+> @@ -109,7 +103,7 @@ static void devm_memremap_pages_release(void *data)
+>  				align_size >> PAGE_SHIFT, NULL);
+>  	} else {
+>  		arch_remove_memory(nid, align_start, align_size,
+> -				pgmap->altmap_valid ? &pgmap->altmap : NULL);
+> +				pgmap_altmap(pgmap));
+>  		kasan_remove_zero_shadow(__va(align_start), align_size);
+>  	}
+>  	mem_hotplug_done();
+> @@ -129,8 +123,8 @@ static void devm_memremap_pages_release(void *data)
+>   * 1/ At a minimum the res, ref and type and ops members of @pgmap must be
+>   *    initialized by the caller before passing it to this function
+>   *
+> - * 2/ The altmap field may optionally be initialized, in which case altmap_valid
+> - *    must be set to true
+> + * 2/ The altmap field may optionally be initialized, in which case
+> + *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
+>   *
+>   * 3/ pgmap->ref must be 'live' on entry and will be killed and reaped
+>   *    at devm_memremap_pages_release() time, or if this routine fails.
+> @@ -142,15 +136,13 @@ static void devm_memremap_pages_release(void *data)
+>  void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+>  {
+>  	resource_size_t align_start, align_size, align_end;
+> -	struct vmem_altmap *altmap = pgmap->altmap_valid ?
+> -			&pgmap->altmap : NULL;
+>  	struct resource *res = &pgmap->res;
+>  	struct dev_pagemap *conflict_pgmap;
+>  	struct mhp_restrictions restrictions = {
+>  		/*
+>  		 * We do not want any optional features only our own memmap
+>  		*/
+> -		.altmap = altmap,
+> +		.altmap = pgmap_altmap(pgmap),
+>  	};
+>  	pgprot_t pgprot = PAGE_KERNEL;
+>  	int error, nid, is_ram;
+> @@ -274,7 +266,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+>  
+>  		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
+>  		move_pfn_range_to_zone(zone, align_start >> PAGE_SHIFT,
+> -				align_size >> PAGE_SHIFT, altmap);
+> +				align_size >> PAGE_SHIFT, pgmap_altmap(pgmap));
+>  	}
+>  
+>  	mem_hotplug_done();
+> @@ -319,7 +311,9 @@ EXPORT_SYMBOL_GPL(devm_memunmap_pages);
+>  unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
+>  {
+>  	/* number of pfns from base where pfn_to_page() is valid */
+> -	return altmap->reserve + altmap->free;
+> +	if (altmap)
+> +		return altmap->reserve + altmap->free;
+> +	return 0;
+>  }
+>  
+>  void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns)
+> diff --git a/mm/hmm.c b/mm/hmm.c
+> index 36e25cdbdac1..e4470462298f 100644
+> --- a/mm/hmm.c
+> +++ b/mm/hmm.c
+> @@ -1442,7 +1442,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+>  	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+>  	devmem->pagemap.res = *devmem->resource;
+>  	devmem->pagemap.ops = &hmm_pagemap_ops;
+> -	devmem->pagemap.altmap_valid = false;
+>  	devmem->pagemap.ref = &devmem->ref;
+>  
+>  	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index e096c987d261..6166ba5a15f3 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -557,10 +557,8 @@ void __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
+>  	int sections_to_remove;
+>  
+>  	/* In the ZONE_DEVICE case device driver owns the memory region */
+> -	if (is_dev_zone(zone)) {
+> -		if (altmap)
+> -			map_offset = vmem_altmap_offset(altmap);
+> -	}
+> +	if (is_dev_zone(zone))
+> +		map_offset = vmem_altmap_offset(altmap);
+>  
+>  	clear_zone_contiguous(zone);
+>  
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index d66bc8abe0af..17a39d40a556 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -5853,6 +5853,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+>  {
+>  	unsigned long pfn, end_pfn = start_pfn + size;
+>  	struct pglist_data *pgdat = zone->zone_pgdat;
+> +	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
+>  	unsigned long zone_idx = zone_idx(zone);
+>  	unsigned long start = jiffies;
+>  	int nid = pgdat->node_id;
+> @@ -5865,9 +5866,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+>  	 * of the pages reserved for the memmap, so we can just jump to
+>  	 * the end of that region and start processing the device pages.
+>  	 */
+> -	if (pgmap->altmap_valid) {
+> -		struct vmem_altmap *altmap = &pgmap->altmap;
+> -
+> +	if (altmap) {
+>  		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
+>  		size = end_pfn - start_pfn;
+>  	}
+> -- 
+> 2.20.1
+> 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
