@@ -1,17 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CDD98212963E0
- for <linux-nvdimm@lists.01.org>; Thu, 13 Jun 2019 02:43:41 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 03/22] mm: remove hmm_devmem_add_resource
-Date: Thu, 13 Jun 2019 11:43:06 +0200
-Message-Id: <20190613094326.24093-4-hch@lst.de>
-In-Reply-To: <20190613094326.24093-1-hch@lst.de>
-References: <20190613094326.24093-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 5C1E421962301
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 14:36:21 -0700 (PDT)
+Date: Wed, 26 Jun 2019 14:36:21 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH 23/25] mm: sort out the DEVICE_PRIVATE Kconfig mess
+Message-ID: <20190626213620.GA8399@iweiny-DESK2.sc.intel.com>
+References: <20190626122724.13313-1-hch@lst.de>
+ <20190626122724.13313-24-hch@lst.de>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190626122724.13313-24-hch@lst.de>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,101 +24,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-nvdimm@lists.01.org, nouveau@lists.freedesktop.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, linux-pci@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This function has never been used since it was first added to the kernel
-more than a year and a half ago, and if we ever grow a consumer of the
-MEMORY_DEVICE_PUBLIC infrastructure it can easily use devm_memremap_pages
-directly now that we've simplified the API for it.
+On Wed, Jun 26, 2019 at 02:27:22PM +0200, Christoph Hellwig wrote:
+> The ZONE_DEVICE support doesn't depend on anything HMM related, just on
+> various bits of arch support as indicated by the architecture.  Also
+> don't select the option from nouveau as it isn't present in many setups,
+> and depend on it instead.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/hmm.h |  3 ---
- mm/hmm.c            | 54 ---------------------------------------------
- 2 files changed, 57 deletions(-)
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 4867b9da1b6c..5761a39221a6 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -688,9 +688,6 @@ struct hmm_devmem {
- struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 				  struct device *device,
- 				  unsigned long size);
--struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
--					   struct device *device,
--					   struct resource *res);
- 
- /*
-  * hmm_devmem_page_set_drvdata - set per-page driver data field
-diff --git a/mm/hmm.c b/mm/hmm.c
-index ff2598eb7377..0c62426d1257 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1445,58 +1445,4 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	return devmem;
- }
- EXPORT_SYMBOL_GPL(hmm_devmem_add);
--
--struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
--					   struct device *device,
--					   struct resource *res)
--{
--	struct hmm_devmem *devmem;
--	void *result;
--	int ret;
--
--	if (res->desc != IORES_DESC_DEVICE_PUBLIC_MEMORY)
--		return ERR_PTR(-EINVAL);
--
--	dev_pagemap_get_ops();
--
--	devmem = devm_kzalloc(device, sizeof(*devmem), GFP_KERNEL);
--	if (!devmem)
--		return ERR_PTR(-ENOMEM);
--
--	init_completion(&devmem->completion);
--	devmem->pfn_first = -1UL;
--	devmem->pfn_last = -1UL;
--	devmem->resource = res;
--	devmem->device = device;
--	devmem->ops = ops;
--
--	ret = percpu_ref_init(&devmem->ref, &hmm_devmem_ref_release,
--			      0, GFP_KERNEL);
--	if (ret)
--		return ERR_PTR(ret);
--
--	ret = devm_add_action_or_reset(device, hmm_devmem_ref_exit,
--			&devmem->ref);
--	if (ret)
--		return ERR_PTR(ret);
--
--	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
--	devmem->pfn_last = devmem->pfn_first +
--			   (resource_size(devmem->resource) >> PAGE_SHIFT);
--	devmem->page_fault = hmm_devmem_fault;
--
--	devmem->pagemap.type = MEMORY_DEVICE_PUBLIC;
--	devmem->pagemap.res = *devmem->resource;
--	devmem->pagemap.page_free = hmm_devmem_free;
--	devmem->pagemap.altmap_valid = false;
--	devmem->pagemap.ref = &devmem->ref;
--	devmem->pagemap.data = devmem;
--	devmem->pagemap.kill = hmm_devmem_ref_kill;
--
--	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
--	if (IS_ERR(result))
--		return result;
--	return devmem;
--}
--EXPORT_SYMBOL_GPL(hmm_devmem_add_resource);
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
--- 
-2.20.1
-
+> ---
+>  drivers/gpu/drm/nouveau/Kconfig | 2 +-
+>  mm/Kconfig                      | 5 ++---
+>  2 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/nouveau/Kconfig b/drivers/gpu/drm/nouveau/Kconfig
+> index dba2613f7180..6303d203ab1d 100644
+> --- a/drivers/gpu/drm/nouveau/Kconfig
+> +++ b/drivers/gpu/drm/nouveau/Kconfig
+> @@ -85,10 +85,10 @@ config DRM_NOUVEAU_BACKLIGHT
+>  config DRM_NOUVEAU_SVM
+>  	bool "(EXPERIMENTAL) Enable SVM (Shared Virtual Memory) support"
+>  	depends on ARCH_HAS_HMM
+> +	depends on DEVICE_PRIVATE
+>  	depends on DRM_NOUVEAU
+>  	depends on STAGING
+>  	select HMM_MIRROR
+> -	select DEVICE_PRIVATE
+>  	default n
+>  	help
+>  	  Say Y here if you want to enable experimental support for
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 6f35b85b3052..eecf037a54b3 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -677,13 +677,13 @@ config ARCH_HAS_HMM_MIRROR
+>  
+>  config ARCH_HAS_HMM
+>  	bool
+> -	default y
+>  	depends on (X86_64 || PPC64)
+>  	depends on ZONE_DEVICE
+>  	depends on MMU && 64BIT
+>  	depends on MEMORY_HOTPLUG
+>  	depends on MEMORY_HOTREMOVE
+>  	depends on SPARSEMEM_VMEMMAP
+> +	default y
+>  
+>  config MIGRATE_VMA_HELPER
+>  	bool
+> @@ -709,8 +709,7 @@ config HMM_MIRROR
+>  
+>  config DEVICE_PRIVATE
+>  	bool "Unaddressable device memory (GPU memory, ...)"
+> -	depends on ARCH_HAS_HMM
+> -	select HMM
+> +	depends on ZONE_DEVICE
+>  	select DEV_PAGEMAP_OPS
+>  
+>  	help
+> -- 
+> 2.20.1
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
