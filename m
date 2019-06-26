@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5EC2821290D20
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 16:40:16 -0700 (PDT)
-Subject: [PATCH 3/6] libnvdimm/region: Register badblocks before namespaces
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Jun 2019 16:25:59 -0700
-Message-ID: <156029555941.419799.6074744061405561526.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5862D212AAB9F
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:06 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 13/25] memremap: remove the data field in struct dev_pagemap
+Date: Wed, 26 Jun 2019 14:27:12 +0200
+Message-Id: <20190626122724.13313-14-hch@lst.de>
+In-Reply-To: <20190626122724.13313-1-hch@lst.de>
+References: <20190626122724.13313-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,90 +23,104 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: peterz@infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Namespace activation expects to be able to reference region badblocks.
-The following warning sometimes triggers when asynchronous namespace
-activation races in front of the completion of namespace probing. Move
-all possible namespace probing after region badblocks initialization.
+struct dev_pagemap is always embedded into a containing structure, so
+there is no need to an additional private data field.
 
-Otherwise, lockdep sometimes catches the uninitialized state of the
-badblocks seqlock with stack trace signatures like:
-
-    INFO: trying to register non-static key.
-    pmem2: detected capacity change from 0 to 136365211648
-    the code is fine but needs lockdep annotation.
-    turning off the locking correctness validator.
-    CPU: 9 PID: 358 Comm: kworker/u80:5 Tainted: G           OE     5.2.0-rc4+ #3382
-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
-    Workqueue: events_unbound async_run_entry_fn
-    Call Trace:
-     dump_stack+0x85/0xc0
-    pmem1.12: detected capacity change from 0 to 8589934592
-     register_lock_class+0x56a/0x570
-     ? check_object+0x140/0x270
-     __lock_acquire+0x80/0x1710
-     ? __mutex_lock+0x39d/0x910
-     lock_acquire+0x9e/0x180
-     ? nd_pfn_validate+0x28f/0x440 [libnvdimm]
-     badblocks_check+0x93/0x1f0
-     ? nd_pfn_validate+0x28f/0x440 [libnvdimm]
-     nd_pfn_validate+0x28f/0x440 [libnvdimm]
-     ? lockdep_hardirqs_on+0xf0/0x180
-     nd_dax_probe+0x9a/0x120 [libnvdimm]
-     nd_pmem_probe+0x6d/0x180 [nd_pmem]
-     nvdimm_bus_probe+0x90/0x2c0 [libnvdimm]
-
-Fixes: 48af2f7e52f4 ("libnvdimm, pfn: during init, clear errors...")
-Cc: <stable@vger.kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/nvdimm/region.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/nvdimm/pmem.c    | 2 +-
+ include/linux/memremap.h | 3 +--
+ kernel/memremap.c        | 2 +-
+ mm/hmm.c                 | 9 +++++----
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-index ef46cc3a71ae..488c47ac4c4a 100644
---- a/drivers/nvdimm/region.c
-+++ b/drivers/nvdimm/region.c
-@@ -34,17 +34,6 @@ static int nd_region_probe(struct device *dev)
- 	if (rc)
- 		return rc;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 48767171a4df..093408ce40ad 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -334,7 +334,7 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
+ }
  
--	rc = nd_region_register_namespaces(nd_region, &err);
--	if (rc < 0)
--		return rc;
--
--	ndrd = dev_get_drvdata(dev);
--	ndrd->ns_active = rc;
--	ndrd->ns_count = rc + err;
--
--	if (rc && err && rc == err)
--		return -ENODEV;
--
- 	if (is_nd_pmem(&nd_region->dev)) {
- 		struct resource ndr_res;
+-static void pmem_pagemap_page_free(struct page *page, void *data)
++static void pmem_pagemap_page_free(struct page *page)
+ {
+ 	wake_up_var(&page->_refcount);
+ }
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index ac985bd03a7f..336eca601dad 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -69,7 +69,7 @@ struct dev_pagemap_ops {
+ 	 * reach 0 refcount unless there is a refcount bug. This allows the
+ 	 * device driver to implement its own memory management.)
+ 	 */
+-	void (*page_free)(struct page *page, void *data);
++	void (*page_free)(struct page *page);
  
-@@ -60,6 +49,17 @@ static int nd_region_probe(struct device *dev)
- 		nvdimm_badblocks_populate(nd_region, &nd_region->bb, &ndr_res);
- 	}
+ 	/*
+ 	 * Transition the refcount in struct dev_pagemap to the dead state.
+@@ -104,7 +104,6 @@ struct dev_pagemap {
+ 	struct resource res;
+ 	struct percpu_ref *ref;
+ 	struct device *dev;
+-	void *data;
+ 	enum memory_type type;
+ 	u64 pci_p2pdma_bus_offset;
+ 	const struct dev_pagemap_ops *ops;
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index c06a5487dda7..6c3dbb692037 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -376,7 +376,7 @@ void __put_devmap_managed_page(struct page *page)
  
-+	rc = nd_region_register_namespaces(nd_region, &err);
-+	if (rc < 0)
-+		return rc;
-+
-+	ndrd = dev_get_drvdata(dev);
-+	ndrd->ns_active = rc;
-+	ndrd->ns_count = rc + err;
-+
-+	if (rc && err && rc == err)
-+		return -ENODEV;
-+
- 	nd_region->btt_seed = nd_btt_create(nd_region);
- 	nd_region->pfn_seed = nd_pfn_create(nd_region);
- 	nd_region->dax_seed = nd_dax_create(nd_region);
+ 		mem_cgroup_uncharge(page);
+ 
+-		page->pgmap->ops->page_free(page, page->pgmap->data);
++		page->pgmap->ops->page_free(page);
+ 	} else if (!count)
+ 		__put_page(page);
+ }
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 96633ee066d8..36e25cdbdac1 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -1368,15 +1368,17 @@ static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
+ 
+ static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
+ {
+-	struct hmm_devmem *devmem = vmf->page->pgmap->data;
++	struct hmm_devmem *devmem =
++		container_of(vmf->page->pgmap, struct hmm_devmem, pagemap);
+ 
+ 	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
+ 			vmf->flags, vmf->pmd);
+ }
+ 
+-static void hmm_devmem_free(struct page *page, void *data)
++static void hmm_devmem_free(struct page *page)
+ {
+-	struct hmm_devmem *devmem = data;
++	struct hmm_devmem *devmem =
++		container_of(page->pgmap, struct hmm_devmem, pagemap);
+ 
+ 	devmem->ops->free(devmem, page);
+ }
+@@ -1442,7 +1444,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
+ 	devmem->pagemap.ops = &hmm_pagemap_ops;
+ 	devmem->pagemap.altmap_valid = false;
+ 	devmem->pagemap.ref = &devmem->ref;
+-	devmem->pagemap.data = devmem;
+ 
+ 	result = devm_memremap_pages(devmem->device, &devmem->pagemap);
+ 	if (IS_ERR(result))
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
