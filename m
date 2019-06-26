@@ -1,15 +1,25 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D23C521295CB0
- for <linux-nvdimm@lists.01.org>; Wed, 12 Jun 2019 05:48:35 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v13 4/7] dm: enable synchronous dax
-Date: Wed, 12 Jun 2019 18:15:24 +0530
-Message-Id: <20190612124527.3763-5-pagupta@redhat.com>
-In-Reply-To: <20190612124527.3763-1-pagupta@redhat.com>
-References: <20190612124527.3763-1-pagupta@redhat.com>
+Received: from hqemgate14.nvidia.com (hqemgate14.nvidia.com [216.228.121.143])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C2150212A36DD
+ for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 23:07:18 -0700 (PDT)
+Subject: Re: [PATCH 18/22] mm: mark DEVICE_PUBLIC as broken
+References: <20190613094326.24093-1-hch@lst.de>
+ <20190613094326.24093-19-hch@lst.de> <20190613194430.GY22062@mellanox.com>
+ <a27251ad-a152-f84d-139d-e1a3bf01c153@nvidia.com>
+ <20190613195819.GA22062@mellanox.com>
+ <20190614004314.GD783@iweiny-DESK2.sc.intel.com>
+ <d2b77ea1-7b27-e37d-c248-267a57441374@nvidia.com>
+ <20190619192719.GO9374@mellanox.com>
+ <29f43c79-b454-0477-a799-7850e6571bd3@nvidia.com>
+ <20190626054554.GA17798@dhcp22.suse.cz>
+From: John Hubbard <jhubbard@nvidia.com>
+Message-ID: <f71f16a4-d411-a540-fc71-34d15f4f02d6@nvidia.com>
+Date: Tue, 25 Jun 2019 23:07:13 -0700
+MIME-Version: 1.0
+In-Reply-To: <20190626054554.GA17798@dhcp22.suse.cz>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,142 +27,80 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch sets dax device 'DAXDEV_SYNC' flag if all the target
-devices of device mapper support synchrononous DAX. If device
-mapper consists of both synchronous and asynchronous dax devices,
-we don't set 'DAXDEV_SYNC' flag.
+On 6/25/19 10:45 PM, Michal Hocko wrote:
+> On Tue 25-06-19 20:15:28, John Hubbard wrote:
+>> On 6/19/19 12:27 PM, Jason Gunthorpe wrote:
+>>> On Thu, Jun 13, 2019 at 06:23:04PM -0700, John Hubbard wrote:
+>>>> On 6/13/19 5:43 PM, Ira Weiny wrote:
+>>>>> On Thu, Jun 13, 2019 at 07:58:29PM +0000, Jason Gunthorpe wrote:
+>>>>>> On Thu, Jun 13, 2019 at 12:53:02PM -0700, Ralph Campbell wrote:
+>>>>>>>
+>>>> ...
+>>>>> So I think it is ok.  Frankly I was wondering if we should remove the public
+>>>>> type altogether but conceptually it seems ok.  But I don't see any users of it
+>>>>> so...  should we get rid of it in the code rather than turning the config off?
+>>>>>
+>>>>> Ira
+>>>>
+>>>> That seems reasonable. I recall that the hope was for those IBM Power 9
+>>>> systems to use _PUBLIC, as they have hardware-based coherent device (GPU)
+>>>> memory, and so the memory really is visible to the CPU. And the IBM team
+>>>> was thinking of taking advantage of it. But I haven't seen anything on
+>>>> that front for a while.
+>>>
+>>> Does anyone know who those people are and can we encourage them to
+>>> send some patches? :)
+>>>
+>>
+>> I asked about this, and it seems that the idea was: DEVICE_PUBLIC was there
+>> in order to provide an alternative way to do things (such as migrate memory
+>> to and from a device), in case the combination of existing and near-future
+>> NUMA APIs was insufficient. This probably came as a follow-up to the early
+>> 2017-ish conversations about NUMA, in which the linux-mm recommendation was
+>> "try using HMM mechanisms, and if those are inadequate, then maybe we can
+>> look at enhancing NUMA so that it has better handling of advanced (GPU-like)
+>> devices".
+> 
+> Yes that was the original idea. It sounds so much better to use a common
+> framework rather than awkward special cased cpuless NUMA nodes with
+> a weird semantic. User of the neither of the two has shown up so I guess
+> that the envisioned HW just didn't materialized. Or has there been a
+> completely different approach chosen?
 
-'dm_table_supports_dax' is refactored to pass 'iterate_devices_fn'
-as argument so that the callers can pass the appropriate functions.
+The HW showed up, alright: it's the IBM Power 9, which provides HW-based
+memory coherency between its CPUs and GPUs. So on this system, the CPU is
+allowed to access GPU memory, which *could* be modeled as DEVICE_PUBLIC.
 
-Suggested-by: Mike Snitzer <snitzer@redhat.com>
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Mike Snitzer <snitzer@redhat.com>
----
- drivers/md/dm-table.c | 24 ++++++++++++++++++------
- drivers/md/dm.c       |  2 +-
- drivers/md/dm.h       |  5 ++++-
- 3 files changed, 23 insertions(+), 8 deletions(-)
+However, what happened was that the system worked well enough with a combination
+of the device driver, plus NUMA APIs, plus heaven knows what sort of /proc tuning
+might have also gone on. :) No one saw the need to reach for the DEVICE_PUBLIC
+functionality.
 
-diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-index 350cf0451456..81c55304c4fa 100644
---- a/drivers/md/dm-table.c
-+++ b/drivers/md/dm-table.c
-@@ -881,7 +881,7 @@ void dm_table_set_type(struct dm_table *t, enum dm_queue_mode type)
- EXPORT_SYMBOL_GPL(dm_table_set_type);
- 
- /* validate the dax capability of the target device span */
--static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
-+int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 				       sector_t start, sector_t len, void *data)
- {
- 	int blocksize = *(int *) data;
-@@ -890,7 +890,15 @@ static int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
- 			start, len);
- }
- 
--bool dm_table_supports_dax(struct dm_table *t, int blocksize)
-+/* Check devices support synchronous DAX */
-+static int device_synchronous(struct dm_target *ti, struct dm_dev *dev,
-+				       sector_t start, sector_t len, void *data)
-+{
-+	return dax_synchronous(dev->dax_dev);
-+}
-+
-+bool dm_table_supports_dax(struct dm_table *t,
-+			  iterate_devices_callout_fn iterate_fn, int *blocksize)
- {
- 	struct dm_target *ti;
- 	unsigned i;
-@@ -903,8 +911,7 @@ bool dm_table_supports_dax(struct dm_table *t, int blocksize)
- 			return false;
- 
- 		if (!ti->type->iterate_devices ||
--		    !ti->type->iterate_devices(ti, device_supports_dax,
--			    &blocksize))
-+			!ti->type->iterate_devices(ti, iterate_fn, blocksize))
- 			return false;
- 	}
- 
-@@ -940,6 +947,7 @@ static int dm_table_determine_type(struct dm_table *t)
- 	struct dm_target *tgt;
- 	struct list_head *devices = dm_table_get_devices(t);
- 	enum dm_queue_mode live_md_type = dm_get_md_type(t->md);
-+	int page_size = PAGE_SIZE;
- 
- 	if (t->type != DM_TYPE_NONE) {
- 		/* target already set the table's type */
-@@ -984,7 +992,7 @@ static int dm_table_determine_type(struct dm_table *t)
- verify_bio_based:
- 		/* We must use this table as bio-based */
- 		t->type = DM_TYPE_BIO_BASED;
--		if (dm_table_supports_dax(t, PAGE_SIZE) ||
-+		if (dm_table_supports_dax(t, device_supports_dax, &page_size) ||
- 		    (list_empty(devices) && live_md_type == DM_TYPE_DAX_BIO_BASED)) {
- 			t->type = DM_TYPE_DAX_BIO_BASED;
- 		} else {
-@@ -1883,6 +1891,7 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
- 			       struct queue_limits *limits)
- {
- 	bool wc = false, fua = false;
-+	int page_size = PAGE_SIZE;
- 
- 	/*
- 	 * Copy table's limits to the DM device's request_queue
-@@ -1910,8 +1919,11 @@ void dm_table_set_restrictions(struct dm_table *t, struct request_queue *q,
- 	}
- 	blk_queue_write_cache(q, wc, fua);
- 
--	if (dm_table_supports_dax(t, PAGE_SIZE))
-+	if (dm_table_supports_dax(t, device_supports_dax, &page_size)) {
- 		blk_queue_flag_set(QUEUE_FLAG_DAX, q);
-+		if (dm_table_supports_dax(t, device_synchronous, NULL))
-+			set_dax_synchronous(t->md->dax_dev);
-+	}
- 	else
- 		blk_queue_flag_clear(QUEUE_FLAG_DAX, q);
- 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index b1caa7188209..b92c42a72ad4 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1119,7 +1119,7 @@ static bool dm_dax_supported(struct dax_device *dax_dev, struct block_device *bd
- 	if (!map)
- 		return false;
- 
--	ret = dm_table_supports_dax(map, blocksize);
-+	ret = dm_table_supports_dax(map, device_supports_dax, &blocksize);
- 
- 	dm_put_live_table(md, srcu_idx);
- 
-diff --git a/drivers/md/dm.h b/drivers/md/dm.h
-index 17e3db54404c..0475673337f3 100644
---- a/drivers/md/dm.h
-+++ b/drivers/md/dm.h
-@@ -72,7 +72,10 @@ bool dm_table_bio_based(struct dm_table *t);
- bool dm_table_request_based(struct dm_table *t);
- void dm_table_free_md_mempools(struct dm_table *t);
- struct dm_md_mempools *dm_table_get_md_mempools(struct dm_table *t);
--bool dm_table_supports_dax(struct dm_table *t, int blocksize);
-+bool dm_table_supports_dax(struct dm_table *t, iterate_devices_callout_fn fn,
-+			   int *blocksize);
-+int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
-+			   sector_t start, sector_t len, void *data);
- 
- void dm_lock_md_type(struct mapped_device *md);
- void dm_unlock_md_type(struct mapped_device *md);
+> 
+>> In the end, however, _PUBLIC was never used, nor does anyone in the local
+>> (NVIDIA + IBM) kernel vicinity seem to have plans to use it.  So it really
+>> does seem safe to remove, although of course it's good to start with 
+>> BROKEN and see if anyone pops up and complains.
+> 
+> Well, I do not really see much of a difference. Preserving an unused
+> code which doesn't have any user in sight just adds a maintenance burden
+> whether the code depends on BROKEN or not. We can always revert patches
+> which remove the code once a real user shows up.
+
+Sure, I don't see much difference either. Either way seems fine.
+
+thanks,
 -- 
-2.20.1
-
+John Hubbard
+NVIDIA
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
