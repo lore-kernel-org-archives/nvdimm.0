@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f195.google.com (mail-pg1-f195.google.com
+ [209.85.215.195])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 79F6B212909E0
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:34:02 -0700 (PDT)
-Subject: [PATCH v4 03/10] efi: Enumerate EFI_MEMORY_SP
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 24 Jun 2019 11:19:43 -0700
-Message-ID: <156140038345.2951909.2744090763307487180.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5F4E02129F0EC
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 15:03:53 -0700 (PDT)
+Received: by mail-pg1-f195.google.com with SMTP id v9so46pgr.13
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 15:03:53 -0700 (PDT)
+Date: Wed, 26 Jun 2019 22:03:50 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [PATCH v5 13/18] kunit: tool: add Python wrappers for running
+ KUnit tests
+Message-ID: <20190626220350.GA19023@42.do-not-panic.com>
+References: <20190617082613.109131-1-brendanhiggins@google.com>
+ <20190617082613.109131-14-brendanhiggins@google.com>
+ <20190626000150.GT19023@42.do-not-panic.com>
+ <CAFd5g44kkepB2hZcpYL-NB5ZHYE5tP7W-0yducGCX7Khd9gd9w@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAFd5g44kkepB2hZcpYL-NB5ZHYE5tP7W-0yducGCX7Khd9gd9w@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,81 +30,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: x86@kernel.org
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, peterz@infradead.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Felix Guo <felixguoxiuping@gmail.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Stephen Boyd <sboyd@kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-UEFI 2.8 defines an EFI_MEMORY_SP attribute bit to augment the
-interpretation of the EFI Memory Types as "reserved for a specific
-purpose". The intent of this bit is to allow the OS to identify precious
-or scarce memory resources and optionally manage it separately from
-EfiConventionalMemory. As defined older OSes that do not know about this
-attribute are permitted to ignore it and the memory will be handled
-according to the OS default policy for the given memory type.
+On Wed, Jun 26, 2019 at 01:02:55AM -0700, Brendan Higgins wrote:
+> On Tue, Jun 25, 2019 at 5:01 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+> >
+> > On Mon, Jun 17, 2019 at 01:26:08AM -0700, Brendan Higgins wrote:
+> > >  create mode 100644 tools/testing/kunit/test_data/test_is_test_passed-all_passed.log
+> > >  create mode 100644 tools/testing/kunit/test_data/test_is_test_passed-crash.log
+> > >  create mode 100644 tools/testing/kunit/test_data/test_is_test_passed-failure.log
+> > >  create mode 100644 tools/testing/kunit/test_data/test_is_test_passed-no_tests_run.log
+> > >  create mode 100644 tools/testing/kunit/test_data/test_output_isolated_correctly.log
+> > >  create mode 100644 tools/testing/kunit/test_data/test_read_from_file.kconfig
+> >
+> > Why are these being added upstream? The commit log does not explain
+> > this.
+> 
+> Oh sorry, those are for testing purposes. I thought that was clear
+> from being in the test_data directory. I will reference it in the
+> commit log in the next revision.
 
-In other words, this "specific purpose" hint is deliberately weaker than
-EfiReservedMemoryType in that the system continues to operate if the OS
-takes no action on the attribute. The risk of taking no action is
-potentially unwanted / unmovable kernel allocations from the designated
-resource that prevent the full realization of the "specific purpose".
-For example, consider a system with a high-bandwidth memory pool. Older
-kernels are permitted to boot and consume that memory as conventional
-"System-RAM" newer kernels may arrange for that memory to be set aside
-by the system administrator for a dedicated high-bandwidth memory aware
-application to consume.
+Still, I don't get it. They seem to be results from a prior run. Why do
+we need them for testing purposes?
 
-Specifically, this mechanism allows for the elimination of scenarios
-where platform firmware tries to game OS policy by lying about ACPI SLIT
-values, i.e. claiming that a precious memory resource has a high
-distance to trigger the OS to avoid it by default.
-
-Implement simple detection of the bit for EFI memory table dumps and
-save the kernel policy for a follow-on change.
-
-Reviewed-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/firmware/efi/efi.c |    5 +++--
- include/linux/efi.h        |    1 +
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/firmware/efi/efi.c b/drivers/firmware/efi/efi.c
-index 55b77c576c42..81db09485881 100644
---- a/drivers/firmware/efi/efi.c
-+++ b/drivers/firmware/efi/efi.c
-@@ -848,15 +848,16 @@ char * __init efi_md_typeattr_format(char *buf, size_t size,
- 	if (attr & ~(EFI_MEMORY_UC | EFI_MEMORY_WC | EFI_MEMORY_WT |
- 		     EFI_MEMORY_WB | EFI_MEMORY_UCE | EFI_MEMORY_RO |
- 		     EFI_MEMORY_WP | EFI_MEMORY_RP | EFI_MEMORY_XP |
--		     EFI_MEMORY_NV |
-+		     EFI_MEMORY_NV | EFI_MEMORY_SP |
- 		     EFI_MEMORY_RUNTIME | EFI_MEMORY_MORE_RELIABLE))
- 		snprintf(pos, size, "|attr=0x%016llx]",
- 			 (unsigned long long)attr);
- 	else
- 		snprintf(pos, size,
--			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
-+			 "|%3s|%2s|%2s|%2s|%2s|%2s|%2s|%2s|%3s|%2s|%2s|%2s|%2s]",
- 			 attr & EFI_MEMORY_RUNTIME ? "RUN" : "",
- 			 attr & EFI_MEMORY_MORE_RELIABLE ? "MR" : "",
-+			 attr & EFI_MEMORY_SP      ? "SP"  : "",
- 			 attr & EFI_MEMORY_NV      ? "NV"  : "",
- 			 attr & EFI_MEMORY_XP      ? "XP"  : "",
- 			 attr & EFI_MEMORY_RP      ? "RP"  : "",
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index 6ebc2098cfe1..91368f5ce114 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -112,6 +112,7 @@ typedef	struct {
- #define EFI_MEMORY_MORE_RELIABLE \
- 				((u64)0x0000000000010000ULL)	/* higher reliability */
- #define EFI_MEMORY_RO		((u64)0x0000000000020000ULL)	/* read-only */
-+#define EFI_MEMORY_SP		((u64)0x0000000000040000ULL)	/* special purpose */
- #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
- #define EFI_MEMORY_DESCRIPTOR_VERSION	1
- 
-
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
