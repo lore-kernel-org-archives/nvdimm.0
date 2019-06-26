@@ -1,37 +1,40 @@
-Return-Path: <owner-linux-mm@kvack.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 82760212AAB85
+ for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 14:49:05 -0700 (PDT)
+Date: Wed, 26 Jun 2019 14:49:04 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH 17/25] PCI/P2PDMA: use the dev_pagemap internal refcount
+Message-ID: <20190626214903.GE8399@iweiny-DESK2.sc.intel.com>
 References: <20190626122724.13313-1-hch@lst.de>
  <20190626122724.13313-18-hch@lst.de>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <580609fd-5ef2-bae4-e8f8-adc1eb0314a1@deltatee.com>
-Date: Thu, 27 Jun 2019 12:49:47 -0600
 MIME-Version: 1.0
+Content-Disposition: inline
 In-Reply-To: <20190626122724.13313-18-hch@lst.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 17/25] PCI/P2PDMA: use the dev_pagemap internal refcount
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-On 2019-06-26 6:27 a.m., Christoph Hellwig wrote:
+On Wed, Jun 26, 2019 at 02:27:16PM +0200, Christoph Hellwig wrote:
 > The functionality is identical to the one currently open coded in
 > p2pdma.c.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-
-Also, for the P2PDMA changes in this series:
-
-Tested-by: Logan Gunthorpe <logang@deltatee.com>
-
-I've ran this series through my simple P2PDMA tests.
-
-Logan
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
 > ---
 >  drivers/pci/p2pdma.c | 57 ++++----------------------------------------
@@ -154,4 +157,14 @@ Logan
 >  	return error;
 >  }
 >  EXPORT_SYMBOL_GPL(pci_p2pdma_add_resource);
+> -- 
+> 2.20.1
 > 
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
