@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2B22F21945DC7
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:27:55 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 07/25] mm: factor out a devm_request_free_mem_region helper
-Date: Wed, 26 Jun 2019 14:27:06 +0200
-Message-Id: <20190626122724.13313-8-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id CBC0621295B01
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Jun 2019 11:16:36 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAFd5g46zHAupdUh3wDuqPJti2M+_=oje_5weFe7AVLQfkDDM6A@mail.gmail.com>
+References: <20190617082613.109131-1-brendanhiggins@google.com>
+ <20190617082613.109131-2-brendanhiggins@google.com>
+ <20190620001526.93426218BE@mail.kernel.org>
+ <CAFd5g46Jhxsz6_VXHEVYvTeDRwwzgKpr=aUWLL5b3S4kUukb8g@mail.gmail.com>
+ <20190626034100.B238520883@mail.kernel.org>
+ <CAFd5g46zHAupdUh3wDuqPJti2M+_=oje_5weFe7AVLQfkDDM6A@mail.gmail.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v5 01/18] kunit: test: add KUnit test runner core
+Date: Thu, 27 Jun 2019 11:16:35 -0700
+Message-Id: <20190627181636.5EA752064A@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,146 +27,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Keep the physical address allocation that hmm_add_device does with the
-rest of the resource code, and allow future reuse of it without the hmm
-wrapper.
+Quoting Brendan Higgins (2019-06-26 16:00:40)
+> On Tue, Jun 25, 2019 at 8:41 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> 
+> > scenario like below, but where it is a problem. There could be three
+> > CPUs, or even one CPU and three threads if you want to describe the
+> > extra thread scenario.
+> >
+> > Here's my scenario where it isn't needed:
+> >
+> >     CPU0                                      CPU1
+> >     ----                                      ----
+> >     kunit_run_test(&test)
+> >                                               test_case_func()
+> >                                                 ....
+> >                                               [mock hardirq]
+> >                                                 kunit_set_success(&test)
+> >                                               [hardirq ends]
+> >                                                 ...
+> >                                                 complete(&test_done)
+> >       wait_for_completion(&test_done)
+> >       kunit_get_success(&test)
+> >
+> > We don't need to care about having locking here because success or
+> > failure only happens in one place and it's synchronized with the
+> > completion.
+> 
+> Here is the scenario I am concerned about:
+> 
+> CPU0                      CPU1                       CPU2
+> ----                      ----                       ----
+> kunit_run_test(&test)
+>                           test_case_func()
+>                             ....
+>                             schedule_work(foo_func)
+>                           [mock hardirq]             foo_func()
+>                             ...                        ...
+>                             kunit_set_success(false)   kunit_set_success(false)
+>                           [hardirq ends]               ...
+>                             ...
+>                             complete(&test_done)
+>   wait_for_completion(...)
+>   kunit_get_success(&test)
+> 
+> In my scenario, since both CPU1 and CPU2 update the success status of
+> the test simultaneously, even though they are setting it to the same
+> value. If my understanding is correct, this could result in a
+> write-tear on some architectures in some circumstances. I suppose we
+> could just make it an atomic boolean, but I figured locking is also
+> fine, and generally preferred.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
----
- include/linux/ioport.h |  2 ++
- kernel/resource.c      | 39 +++++++++++++++++++++++++++++++++++++++
- mm/hmm.c               | 33 ++++-----------------------------
- 3 files changed, 45 insertions(+), 29 deletions(-)
+This is what we have WRITE_ONCE() and READ_ONCE() for. Maybe you could
+just use that in the getter and setters and remove the lock if it isn't
+used for anything else.
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index dd961882bc74..a02b290ca08a 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -285,6 +285,8 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
-        return (r1->start <= r2->end && r1->end >= r2->start);
- }
- 
-+struct resource *devm_request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size);
- 
- #endif /* __ASSEMBLY__ */
- #endif	/* _LINUX_IOPORT_H */
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 158f04ec1d4f..d22423e85cf8 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1628,6 +1628,45 @@ void resource_list_free(struct list_head *head)
- }
- EXPORT_SYMBOL(resource_list_free);
- 
-+#ifdef CONFIG_DEVICE_PRIVATE
-+/**
-+ * devm_request_free_mem_region - find free region for device private memory
-+ *
-+ * @dev: device struct to bind the resource to
-+ * @size: size in bytes of the device memory to add
-+ * @base: resource tree to look in
-+ *
-+ * This function tries to find an empty range of physical address big enough to
-+ * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
-+ * memory, which in turn allocates struct pages.
-+ */
-+struct resource *devm_request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size)
-+{
-+	resource_size_t end, addr;
-+	struct resource *res;
-+
-+	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
-+	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
-+	addr = end - size + 1UL;
-+
-+	for (; addr > size && addr >= base->start; addr -= size) {
-+		if (region_intersects(addr, size, 0, IORES_DESC_NONE) !=
-+				REGION_DISJOINT)
-+			continue;
-+
-+		res = devm_request_mem_region(dev, addr, size, dev_name(dev));
-+		if (!res)
-+			return ERR_PTR(-ENOMEM);
-+		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
-+		return res;
-+	}
-+
-+	return ERR_PTR(-ERANGE);
-+}
-+EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
-+#endif /* CONFIG_DEVICE_PRIVATE */
-+
- static int __init strict_iomem(char *str)
- {
- 	if (strstr(str, "relaxed"))
-diff --git a/mm/hmm.c b/mm/hmm.c
-index e7dd2ab8f9ab..48574f8485bb 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -25,8 +25,6 @@
- #include <linux/mmu_notifier.h>
- #include <linux/memory_hotplug.h>
- 
--#define PA_SECTION_SIZE (1UL << PA_SECTION_SHIFT)
--
- #if IS_ENABLED(CONFIG_HMM_MIRROR)
- static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
- 
-@@ -1408,7 +1406,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 				  unsigned long size)
- {
- 	struct hmm_devmem *devmem;
--	resource_size_t addr;
- 	void *result;
- 	int ret;
- 
-@@ -1430,32 +1427,10 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	if (ret)
- 		return ERR_PTR(ret);
- 
--	size = ALIGN(size, PA_SECTION_SIZE);
--	addr = min((unsigned long)iomem_resource.end,
--		   (1UL << MAX_PHYSMEM_BITS) - 1);
--	addr = addr - size + 1UL;
--
--	/*
--	 * FIXME add a new helper to quickly walk resource tree and find free
--	 * range
--	 *
--	 * FIXME what about ioport_resource resource ?
--	 */
--	for (; addr > size && addr >= iomem_resource.start; addr -= size) {
--		ret = region_intersects(addr, size, 0, IORES_DESC_NONE);
--		if (ret != REGION_DISJOINT)
--			continue;
--
--		devmem->resource = devm_request_mem_region(device, addr, size,
--							   dev_name(device));
--		if (!devmem->resource)
--			return ERR_PTR(-ENOMEM);
--		break;
--	}
--	if (!devmem->resource)
--		return ERR_PTR(-ERANGE);
--
--	devmem->resource->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
-+	devmem->resource = devm_request_free_mem_region(device, &iomem_resource,
-+			size);
-+	if (IS_ERR(devmem->resource))
-+		return ERR_CAST(devmem->resource);
- 	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
- 	devmem->pfn_last = devmem->pfn_first +
- 			   (resource_size(devmem->resource) >> PAGE_SHIFT);
--- 
-2.20.1
+It may also be a good idea to have a kunit_fail_test() API that fails
+the test passed in with a WRITE_ONCE(false). Otherwise, the test is
+assumed successful and it isn't even possible for a test to change the
+state from failure to success due to a logical error because the API
+isn't available. Then we don't really need to have a generic
+kunit_set_success() function at all. We could have a kunit_test_failed()
+function too that replaces the kunit_get_success() function. That would
+read better in an if condition.
+
+> 
+> Also, to be clear, I am onboard with dropping then IRQ stuff for now.
+> I am fine moving to a mutex for the time being.
+> 
+
+Ok.
 
 _______________________________________________
 Linux-nvdimm mailing list
