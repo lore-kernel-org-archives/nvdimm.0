@@ -1,199 +1,72 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9DBCB21296400
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:53 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/22] mm/hmm: Hold on to the mmget for the lifetime of the
- range
-Date: Mon,  1 Jul 2019 08:20:10 +0200
-Message-Id: <20190701062020.19239-13-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Thu, 27 Jun 2019 08:41:06 +0200
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH 05/22] mm: export alloc_pages_vma
+Message-ID: <20190627064106.GC17798@dhcp22.suse.cz>
+References: <20190613094326.24093-6-hch@lst.de>
+ <20190620191733.GH12083@dhcp22.suse.cz>
+ <CAPcyv4h9+Ha4FVrvDAe-YAr1wBOjc4yi7CAzVuASv=JCxPcFaw@mail.gmail.com>
+ <20190625072317.GC30350@lst.de>
+ <20190625150053.GJ11400@dhcp22.suse.cz>
+ <CAPcyv4j1e5dbBHnc+wmtsNUyFbMK_98WxHNwuD_Vxo4dX9Ce=Q@mail.gmail.com>
+ <20190625190038.GK11400@dhcp22.suse.cz>
+ <CAPcyv4hU13v7dSQpF0WTQTxQM3L3UsHMUhsFMVz7i4UGLoM89g@mail.gmail.com>
+ <20190626054645.GB17798@dhcp22.suse.cz>
+ <CAPcyv4jLK2F2UHqbwp4bCEiB7tL8sVsr775egKMmJvfZG+W+NQ@mail.gmail.com>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPcyv4jLK2F2UHqbwp4bCEiB7tL8sVsr775egKMmJvfZG+W+NQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, Linux MM <linux-mm@kvack.org>, nouveau@lists.freedesktop.org, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-pci@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+On Wed 26-06-19 09:14:32, Dan Williams wrote:
+> On Tue, Jun 25, 2019 at 10:46 PM Michal Hocko <mhocko@kernel.org> wrote:
+> >
+> > On Tue 25-06-19 12:52:18, Dan Williams wrote:
+> > [...]
+> > > > Documentation/process/stable-api-nonsense.rst
+> > >
+> > > That document has failed to preclude symbol export fights in the past
+> > > and there is a reasonable argument to try not to retract functionality
+> > > that had been previously exported regardless of that document.
+> >
+> > Can you point me to any specific example where this would be the case
+> > for the core kernel symbols please?
+> 
+> The most recent example that comes to mind was the thrash around
+> __kernel_fpu_{begin,end} [1].
 
-Range functions like hmm_range_snapshot() and hmm_range_fault() call
-find_vma, which requires hodling the mmget() and the mmap_sem for the mm.
+Well, this seems more like a disagreement over a functionality that has
+reduced its visibility rather than enforcement of a specific API. And I
+do agree that the above document states that this is perfectly
+legitimate and no out-of-tree code can rely on _any_ functionality to be
+preserved.
 
-Make this simpler for the callers by holding the mmget() inside the range
-for the lifetime of the range. Other functions that accept a range should
-only be called if the range is registered.
+On the other hand, I am not really surprised about the discussion
+because d63e79b114c02 is a mere clean up not explaining why the
+functionality should be restricted to GPL only code. So there certainly
+is a room for clarification. Especially when the code has been exported
+without this restriction in the past (see 8546c008924d5). So to me this
+sounds more like a usual EXPORT_SYMBOL{_GPL} mess.
 
-This has the side effect of directly preventing hmm_release() from
-happening while a range is registered. That means range->dead cannot be
-false during the lifetime of the range, so remove dead and
-hmm_mirror_mm_is_alive() entirely.
+In any case I really do not see any relation to the maintenance cost
+here. GPL symbols are not in any sense more stable than any other
+exported symbol. They can change at any time. The only maintenance
+burden is to update all _in_kernel_ users of the said symbol. Any
+out-of-tree code is on its own to deal with this. Full stop.
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Tested-by: Philip Yang <Philip.Yang@amd.com>
----
- include/linux/hmm.h | 26 --------------------------
- mm/hmm.c            | 32 +++++++++++---------------------
- 2 files changed, 11 insertions(+), 47 deletions(-)
+GPL or non-GPL symbols are solely to define a scope of the usage.
+Nothing less and nothing more.
 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 26e7c477490c..bf013e965257 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -82,7 +82,6 @@
-  * @mirrors_sem: read/write semaphore protecting the mirrors list
-  * @wq: wait queue for user waiting on a range invalidation
-  * @notifiers: count of active mmu notifiers
-- * @dead: is the mm dead ?
-  */
- struct hmm {
- 	struct mm_struct	*mm;
-@@ -95,7 +94,6 @@ struct hmm {
- 	wait_queue_head_t	wq;
- 	struct rcu_head		rcu;
- 	long			notifiers;
--	bool			dead;
- };
- 
- /*
-@@ -459,30 +457,6 @@ struct hmm_mirror {
- int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
- void hmm_mirror_unregister(struct hmm_mirror *mirror);
- 
--/*
-- * hmm_mirror_mm_is_alive() - test if mm is still alive
-- * @mirror: the HMM mm mirror for which we want to lock the mmap_sem
-- * Return: false if the mm is dead, true otherwise
-- *
-- * This is an optimization, it will not always accurately return false if the
-- * mm is dead; i.e., there can be false negatives (process is being killed but
-- * HMM is not yet informed of that). It is only intended to be used to optimize
-- * out cases where the driver is about to do something time consuming and it
-- * would be better to skip it if the mm is dead.
-- */
--static inline bool hmm_mirror_mm_is_alive(struct hmm_mirror *mirror)
--{
--	struct mm_struct *mm;
--
--	if (!mirror || !mirror->hmm)
--		return false;
--	mm = READ_ONCE(mirror->hmm->mm);
--	if (mirror->hmm->dead || !mm)
--		return false;
--
--	return true;
--}
--
- /*
-  * Please see Documentation/vm/hmm.rst for how to use the range API.
-  */
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 73c8af4827fe..1eddda45cefa 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -67,7 +67,6 @@ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
- 	mutex_init(&hmm->lock);
- 	kref_init(&hmm->kref);
- 	hmm->notifiers = 0;
--	hmm->dead = false;
- 	hmm->mm = mm;
- 
- 	hmm->mmu_notifier.ops = &hmm_mmu_notifier_ops;
-@@ -120,21 +119,16 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
- {
- 	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
- 	struct hmm_mirror *mirror;
--	struct hmm_range *range;
- 
- 	/* Bail out if hmm is in the process of being freed */
- 	if (!kref_get_unless_zero(&hmm->kref))
- 		return;
- 
--	/* Report this HMM as dying. */
--	hmm->dead = true;
--
--	/* Wake-up everyone waiting on any range. */
--	mutex_lock(&hmm->lock);
--	list_for_each_entry(range, &hmm->ranges, list)
--		range->valid = false;
--	wake_up_all(&hmm->wq);
--	mutex_unlock(&hmm->lock);
-+	/*
-+	 * Since hmm_range_register() holds the mmget() lock hmm_release() is
-+	 * prevented as long as a range exists.
-+	 */
-+	WARN_ON(!list_empty_careful(&hmm->ranges));
- 
- 	down_write(&hmm->mirrors_sem);
- 	mirror = list_first_entry_or_null(&hmm->mirrors, struct hmm_mirror,
-@@ -903,8 +897,8 @@ int hmm_range_register(struct hmm_range *range,
- 	range->start = start;
- 	range->end = end;
- 
--	/* Check if hmm_mm_destroy() was call. */
--	if (hmm->mm == NULL || hmm->dead)
-+	/* Prevent hmm_release() from running while the range is valid */
-+	if (!mmget_not_zero(hmm->mm))
- 		return -EFAULT;
- 
- 	/* Initialize range to track CPU page table updates. */
-@@ -942,11 +936,12 @@ void hmm_range_unregister(struct hmm_range *range)
- 		return;
- 
- 	mutex_lock(&hmm->lock);
--	list_del(&range->list);
-+	list_del_init(&range->list);
- 	mutex_unlock(&hmm->lock);
- 
- 	/* Drop reference taken by hmm_range_register() */
- 	range->valid = false;
-+	mmput(hmm->mm);
- 	hmm_put(hmm);
- 	range->hmm = NULL;
- }
-@@ -974,10 +969,7 @@ long hmm_range_snapshot(struct hmm_range *range)
- 	struct vm_area_struct *vma;
- 	struct mm_walk mm_walk;
- 
--	/* Check if hmm_mm_destroy() was call. */
--	if (hmm->mm == NULL || hmm->dead)
--		return -EFAULT;
--
-+	lockdep_assert_held(&hmm->mm->mmap_sem);
- 	do {
- 		/* If range is no longer valid force retry. */
- 		if (!range->valid)
-@@ -1072,9 +1064,7 @@ long hmm_range_fault(struct hmm_range *range, bool block)
- 	struct mm_walk mm_walk;
- 	int ret;
- 
--	/* Check if hmm_mm_destroy() was call. */
--	if (hmm->mm == NULL || hmm->dead)
--		return -EFAULT;
-+	lockdep_assert_held(&hmm->mm->mmap_sem);
- 
- 	do {
- 		/* If range is no longer valid force retry. */
+> I referenced that when debating _GPL symbol policy with J�r�me [2].
+> 
+> [1]: https://lore.kernel.org/lkml/20190522100959.GA15390@kroah.com/
+> [2]: https://lore.kernel.org/lkml/CAPcyv4gb+r==riKFXkVZ7gGdnKe62yBmZ7xOa4uBBByhnK9Tzg@mail.gmail.com/
+
 -- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Michal Hocko
+SUSE Labs
