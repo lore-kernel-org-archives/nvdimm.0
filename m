@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from newverein.lst.de (verein.lst.de [213.95.11.211])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 410A821290D20
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 16:40:22 -0700 (PDT)
-Subject: [PATCH 4/6] libnvdimm/bus: Stop holding nvdimm_bus_list_mutex over
- __nd_ioctl()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Jun 2019 16:26:04 -0700
-Message-ID: <156029556467.419799.3133315211346023544.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156029554317.419799.1324389595953183385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8DAB82129F0E1
+ for <linux-nvdimm@lists.01.org>; Thu, 27 Jun 2019 01:51:20 -0700 (PDT)
+Date: Thu, 27 Jun 2019 10:50:47 +0200
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 11/25] memremap: lift the devmap_enable manipulation
+ into devm_memremap_pages
+Message-ID: <20190627085047.GA11420@lst.de>
+References: <20190626122724.13313-1-hch@lst.de>
+ <20190626122724.13313-12-hch@lst.de>
+ <20190626190445.GE4605@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190626190445.GE4605@iweiny-DESK2.sc.intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,211 +26,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: peterz@infradead.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, nouveau@lists.freedesktop.org, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for fixing a deadlock between wait_for_bus_probe_idle()
-and the nvdimm_bus_list_mutex arrange for __nd_ioctl() without
-nvdimm_bus_list_mutex held. This also unifies the 'dimm' and 'bus' level
-ioctls into a common nd_ioctl() preamble implementation.
+On Wed, Jun 26, 2019 at 12:04:46PM -0700, Ira Weiny wrote:
+> > +static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
+> > +{
+> > +	if (!pgmap->ops->page_free) {
+> 
+> NIT: later on you add the check for pgmap->ops...  it should probably be here.
+> 
+> But not sure that bisection will be an issue here.
 
-Marked for -stable as it is a pre-requisite for a follow-on fix.
-
-Cc: <stable@vger.kernel.org>
-Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace instantiation")
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/bus.c     |   96 ++++++++++++++++++++++++++++------------------
- drivers/nvdimm/nd-core.h |    3 +
- 2 files changed, 60 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 42713b210f51..dfb93228d6a7 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -73,7 +73,7 @@ static void nvdimm_bus_probe_end(struct nvdimm_bus *nvdimm_bus)
- {
- 	nvdimm_bus_lock(&nvdimm_bus->dev);
- 	if (--nvdimm_bus->probe_active == 0)
--		wake_up(&nvdimm_bus->probe_wait);
-+		wake_up(&nvdimm_bus->wait);
- 	nvdimm_bus_unlock(&nvdimm_bus->dev);
- }
- 
-@@ -341,7 +341,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 		return NULL;
- 	INIT_LIST_HEAD(&nvdimm_bus->list);
- 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
--	init_waitqueue_head(&nvdimm_bus->probe_wait);
-+	init_waitqueue_head(&nvdimm_bus->wait);
- 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
-@@ -426,6 +426,9 @@ static int nd_bus_remove(struct device *dev)
- 	list_del_init(&nvdimm_bus->list);
- 	mutex_unlock(&nvdimm_bus_list_mutex);
- 
-+	wait_event(nvdimm_bus->wait,
-+			atomic_read(&nvdimm_bus->ioctl_active) == 0);
-+
- 	nd_synchronize();
- 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
- 
-@@ -885,7 +888,7 @@ void wait_nvdimm_bus_probe_idle(struct device *dev)
- 		if (nvdimm_bus->probe_active == 0)
- 			break;
- 		nvdimm_bus_unlock(&nvdimm_bus->dev);
--		wait_event(nvdimm_bus->probe_wait,
-+		wait_event(nvdimm_bus->wait,
- 				nvdimm_bus->probe_active == 0);
- 		nvdimm_bus_lock(&nvdimm_bus->dev);
- 	} while (true);
-@@ -1115,24 +1118,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	return rc;
- }
- 
--static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
--{
--	long id = (long) file->private_data;
--	int rc = -ENXIO, ro;
--	struct nvdimm_bus *nvdimm_bus;
--
--	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
--	mutex_lock(&nvdimm_bus_list_mutex);
--	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
--		if (nvdimm_bus->id == id) {
--			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
--			break;
--		}
--	}
--	mutex_unlock(&nvdimm_bus_list_mutex);
--
--	return rc;
--}
-+enum nd_ioctl_mode {
-+	BUS_IOCTL,
-+	DIMM_IOCTL,
-+};
- 
- static int match_dimm(struct device *dev, void *data)
- {
-@@ -1147,31 +1136,62 @@ static int match_dimm(struct device *dev, void *data)
- 	return 0;
- }
- 
--static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg,
-+		enum nd_ioctl_mode mode)
-+
- {
--	int rc = -ENXIO, ro;
--	struct nvdimm_bus *nvdimm_bus;
-+	struct nvdimm_bus *nvdimm_bus, *found = NULL;
-+	long id = (long) file->private_data;
-+	struct nvdimm *nvdimm = NULL;
-+	int rc, ro;
- 
- 	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
--		struct device *dev = device_find_child(&nvdimm_bus->dev,
--				file->private_data, match_dimm);
--		struct nvdimm *nvdimm;
--
--		if (!dev)
--			continue;
-+		if (mode == DIMM_IOCTL) {
-+			struct device *dev;
-+
-+			dev = device_find_child(&nvdimm_bus->dev,
-+					file->private_data, match_dimm);
-+			if (!dev)
-+				continue;
-+			nvdimm = to_nvdimm(dev);
-+			found = nvdimm_bus;
-+		} else if (nvdimm_bus->id == id) {
-+			found = nvdimm_bus;
-+		}
- 
--		nvdimm = to_nvdimm(dev);
--		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
--		put_device(dev);
--		break;
-+		if (found) {
-+			atomic_inc(&nvdimm_bus->ioctl_active);
-+			break;
-+		}
- 	}
- 	mutex_unlock(&nvdimm_bus_list_mutex);
- 
-+	if (!found)
-+		return -ENXIO;
-+
-+	nvdimm_bus = found;
-+	rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
-+
-+	if (nvdimm)
-+		put_device(&nvdimm->dev);
-+	if (atomic_dec_and_test(&nvdimm_bus->ioctl_active))
-+		wake_up(&nvdimm_bus->wait);
-+
- 	return rc;
- }
- 
-+static long bus_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	return nd_ioctl(file, cmd, arg, BUS_IOCTL);
-+}
-+
-+static long dimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	return nd_ioctl(file, cmd, arg, DIMM_IOCTL);
-+}
-+
- static int nd_open(struct inode *inode, struct file *file)
- {
- 	long minor = iminor(inode);
-@@ -1183,16 +1203,16 @@ static int nd_open(struct inode *inode, struct file *file)
- static const struct file_operations nvdimm_bus_fops = {
- 	.owner = THIS_MODULE,
- 	.open = nd_open,
--	.unlocked_ioctl = nd_ioctl,
--	.compat_ioctl = nd_ioctl,
-+	.unlocked_ioctl = bus_ioctl,
-+	.compat_ioctl = bus_ioctl,
- 	.llseek = noop_llseek,
- };
- 
- static const struct file_operations nvdimm_fops = {
- 	.owner = THIS_MODULE,
- 	.open = nd_open,
--	.unlocked_ioctl = nvdimm_ioctl,
--	.compat_ioctl = nvdimm_ioctl,
-+	.unlocked_ioctl = dimm_ioctl,
-+	.compat_ioctl = dimm_ioctl,
- 	.llseek = noop_llseek,
- };
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 391e88de3a29..6cd470547106 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -17,10 +17,11 @@ extern struct workqueue_struct *nvdimm_wq;
- 
- struct nvdimm_bus {
- 	struct nvdimm_bus_descriptor *nd_desc;
--	wait_queue_head_t probe_wait;
-+	wait_queue_head_t wait;
- 	struct list_head list;
- 	struct device dev;
- 	int id, probe_active;
-+	atomic_t ioctl_active;
- 	struct list_head mapping_list;
- 	struct mutex reconfig_mutex;
- 	struct badrange badrange;
-
+At this point we do not allow a NULL ops pointer.  That only becomes
+a valid option one the internal refcount is added.  Until then a NULL
+->ops pointer leads to an error return from devm_memremap_pages.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
