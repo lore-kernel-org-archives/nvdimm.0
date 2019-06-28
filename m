@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7CF0921283A5A
- for <linux-nvdimm@lists.01.org>; Mon,  3 Jun 2019 21:17:56 -0700 (PDT)
-Received: by mail-ot1-x344.google.com with SMTP id c3so18281890otr.3
- for <linux-nvdimm@lists.01.org>; Mon, 03 Jun 2019 21:17:56 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2BE2621959CB2
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:18 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v5 03/13] libdaxctl: add an interface to retrieve the
+ device resource
+Date: Fri, 28 Jun 2019 13:11:00 -0600
+Message-Id: <20190628191110.21428-4-vishal.l.verma@intel.com>
+In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
+References: <20190628191110.21428-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-References: <155677652226.2336373.8700273400832001094.stgit@dwillia2-desk3.amr.corp.intel.com>
- <155677657023.2336373.4452495266651002382.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20190503125634.GH15740@linux>
-In-Reply-To: <20190503125634.GH15740@linux>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 3 Jun 2019 21:17:44 -0700
-Message-ID: <CAPcyv4jx-+QJC3Aw-wY9PWshCWpu2VZKZz=PjTO7jN5Ojxz+pg@mail.gmail.com>
-Subject: Re: [PATCH v7 09/12] mm/sparsemem: Support sub-section hotplug
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,151 +23,194 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, May 3, 2019 at 5:56 AM Oscar Salvador <osalvador@suse.de> wrote:
->
-> On Wed, May 01, 2019 at 10:56:10PM -0700, Dan Williams wrote:
-> > The libnvdimm sub-system has suffered a series of hacks and broken
-> > workarounds for the memory-hotplug implementation's awkward
-> > section-aligned (128MB) granularity. For example the following backtrace
-> > is emitted when attempting arch_add_memory() with physical address
-> > ranges that intersect 'System RAM' (RAM) with 'Persistent Memory' (PMEM)
-> > within a given section:
-> >
-> >  WARNING: CPU: 0 PID: 558 at kernel/memremap.c:300 devm_memremap_pages+0x3b5/0x4c0
-> >  devm_memremap_pages attempted on mixed region [mem 0x200000000-0x2fbffffff flags 0x200]
-> >  [..]
-> >  Call Trace:
-> >    dump_stack+0x86/0xc3
-> >    __warn+0xcb/0xf0
-> >    warn_slowpath_fmt+0x5f/0x80
-> >    devm_memremap_pages+0x3b5/0x4c0
-> >    __wrap_devm_memremap_pages+0x58/0x70 [nfit_test_iomap]
-> >    pmem_attach_disk+0x19a/0x440 [nd_pmem]
-> >
-> > Recently it was discovered that the problem goes beyond RAM vs PMEM
-> > collisions as some platform produce PMEM vs PMEM collisions within a
-> > given section. The libnvdimm workaround for that case revealed that the
-> > libnvdimm section-alignment-padding implementation has been broken for a
-> > long while. A fix for that long-standing breakage introduces as many
-> > problems as it solves as it would require a backward-incompatible change
-> > to the namespace metadata interpretation. Instead of that dubious route
-> > [1], address the root problem in the memory-hotplug implementation.
-> >
-> > [1]: https://lore.kernel.org/r/155000671719.348031.2347363160141119237.stgit@dwillia2-desk3.amr.corp.intel.com
-> > Cc: Michal Hocko <mhocko@suse.com>
-> > Cc: Vlastimil Babka <vbabka@suse.cz>
-> > Cc: Logan Gunthorpe <logang@deltatee.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
-> >  mm/sparse.c |  223 ++++++++++++++++++++++++++++++++++++++++-------------------
-> >  1 file changed, 150 insertions(+), 73 deletions(-)
-> >
-> > diff --git a/mm/sparse.c b/mm/sparse.c
-> > index 198371e5fc87..419a3620af6e 100644
-> > --- a/mm/sparse.c
-> > +++ b/mm/sparse.c
-> > @@ -83,8 +83,15 @@ static int __meminit sparse_index_init(unsigned long section_nr, int nid)
-> >       unsigned long root = SECTION_NR_TO_ROOT(section_nr);
-> >       struct mem_section *section;
-> >
-> > +     /*
-> > +      * An existing section is possible in the sub-section hotplug
-> > +      * case. First hot-add instantiates, follow-on hot-add reuses
-> > +      * the existing section.
-> > +      *
-> > +      * The mem_hotplug_lock resolves the apparent race below.
-> > +      */
-> >       if (mem_section[root])
-> > -             return -EEXIST;
-> > +             return 0;
->
-> Just a sidenote: we do not bail out on -EEXIST, so it should be fine if we
-> stick with it.
-> But if not, I would then clean up sparse_add_section:
->
-> --- a/mm/sparse.c
-> +++ b/mm/sparse.c
-> @@ -901,13 +901,12 @@ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
->         int ret;
->
->         ret = sparse_index_init(section_nr, nid);
-> -       if (ret < 0 && ret != -EEXIST)
-> +       if (ret < 0)
->                 return ret;
->
->         memmap = section_activate(nid, start_pfn, nr_pages, altmap);
->         if (IS_ERR(memmap))
->                 return PTR_ERR(memmap);
-> -       ret = 0;
+Add an interface to retrieve the 'resource' attribute for a dax device.
 
-Good catch, folded the cleanup.
+Attempt to retrieve it as usual via sysfs, but since older kernels may
+be missing this attribute, as a fallback, attempt to retrieve it from
+/proc/iomem
 
->
->
-> > +
-> > +     if (!mask)
-> > +             rc = -EINVAL;
-> > +     else if (mask & ms->usage->map_active)
->
->         else if (ms->usage->map_active) should be enough?
->
-> > +             rc = -EEXIST;
-> > +     else
-> > +             ms->usage->map_active |= mask;
-> > +
-> > +     if (rc) {
-> > +             if (usage)
-> > +                     ms->usage = NULL;
-> > +             kfree(usage);
-> > +             return ERR_PTR(rc);
-> > +     }
-> > +
-> > +     /*
-> > +      * The early init code does not consider partially populated
-> > +      * initial sections, it simply assumes that memory will never be
-> > +      * referenced.  If we hot-add memory into such a section then we
-> > +      * do not need to populate the memmap and can simply reuse what
-> > +      * is already there.
-> > +      */
->
-> This puzzles me a bit.
-> I think we cannot have partially populated early sections, can we?
+Cc: Dan Williams <dan.j.williams@intel.com>
+[fscanf format string problem and diagnosis]
+Reported-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ Makefile.am                    |  3 ++-
+ daxctl/lib/Makefile.am         |  2 ++
+ daxctl/lib/libdaxctl-private.h |  1 +
+ daxctl/lib/libdaxctl.c         | 12 +++++++++++
+ daxctl/lib/libdaxctl.sym       |  1 +
+ daxctl/libdaxctl.h             |  1 +
+ util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
+ util/iomem.h                   | 12 +++++++++++
+ 8 files changed, 68 insertions(+), 1 deletion(-)
+ create mode 100644 util/iomem.c
+ create mode 100644 util/iomem.h
 
-Yes, at boot memory need not be section aligned it has historically
-been handled as a un-removable section of memory with holes.
+diff --git a/Makefile.am b/Makefile.am
+index df8797e..8d10a10 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
+ 	util/wrapper.c \
+ 	util/filter.c \
+ 	util/bitmap.c \
+-	util/abspath.c
++	util/abspath.c \
++	util/iomem.c
+ 
+ nobase_include_HEADERS = daxctl/libdaxctl.h
+diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
+index 9f0e444..7704b1b 100644
+--- a/daxctl/lib/Makefile.am
++++ b/daxctl/lib/Makefile.am
+@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
+ libdaxctl_la_SOURCES =\
+ 	../libdaxctl.h \
+ 	libdaxctl-private.h \
++	../../util/iomem.c \
++	../../util/iomem.h \
+ 	../../util/sysfs.c \
+ 	../../util/sysfs.h \
+ 	../../util/log.c \
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index e64d0a7..eb7c1ec 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -59,6 +59,7 @@ struct daxctl_dev {
+ 	size_t buf_len;
+ 	char *dev_path;
+ 	struct list_node list;
++	unsigned long long resource;
+ 	unsigned long long size;
+ 	struct kmod_module *module;
+ 	struct kmod_list *kmod_list;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 05f013b..5431063 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -24,6 +24,7 @@
+ 
+ #include <util/log.h>
+ #include <util/sysfs.h>
++#include <util/iomem.h>
+ #include <daxctl/libdaxctl.h>
+ #include "libdaxctl-private.h"
+ 
+@@ -369,6 +370,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	dev->major = major(st.st_rdev);
+ 	dev->minor = minor(st.st_rdev);
+ 
++	sprintf(path, "%s/resource", daxdev_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dev->resource = strtoull(buf, NULL, 0);
++	else
++		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
++
+ 	sprintf(path, "%s/size", daxdev_base);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+ 		goto err_read;
+@@ -878,6 +885,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
+ 	return dev->minor;
+ }
+ 
++DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
++{
++	return dev->resource;
++}
++
+ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+ {
+ 	return dev->size;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 19904a2..1692624 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -58,4 +58,5 @@ global:
+ 	daxctl_dev_disable;
+ 	daxctl_dev_enable_devdax;
+ 	daxctl_dev_enable_ram;
++	daxctl_dev_get_resource;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index b80488e..7214cd3 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
+ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
++unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+ struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
+ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+diff --git a/util/iomem.c b/util/iomem.c
+new file mode 100644
+index 0000000..a3c23f5
+--- /dev/null
++++ b/util/iomem.c
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <util/log.h>
++#include <util/iomem.h>
++#include <util/sysfs.h>
++
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *devpath)
++{
++	const char *devname = devpath_to_devname(devpath);
++	FILE *fp = fopen("/proc/iomem", "r");
++	unsigned long long res;
++	char name[256];
++
++	if (fp == NULL) {
++		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
++				strerror(errno));
++		return 0;
++	}
++
++	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
++		if (strcmp(name, devname) == 0) {
++			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
++					devname, res);
++			fclose(fp);
++			return res;
++		}
++	}
++
++	log_dbg(ctx, "%s: not found in iomem\n", devname);
++	fclose(fp);
++	return 0;
++}
+diff --git a/util/iomem.h b/util/iomem.h
+new file mode 100644
+index 0000000..aaaf6a7
+--- /dev/null
++++ b/util/iomem.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++#ifndef _NDCTL_IOMEM_H_
++#define _NDCTL_IOMEM_H_
++
++struct log_ctx;
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *path);
++
++#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
++
++#endif /* _NDCTL_IOMEM_H_ */
+-- 
+2.20.1
 
-> And how we even come to hot-add memory into those?
->
-> Could you please elaborate a bit here?
-
-Those sections are excluded from add_memory_resource() adding more
-memory, but arch_add_memory() with sub-section support can fill in the
-subsection holes in mem_map.
-
->
-> > +     ms = __pfn_to_section(start_pfn);
-> >       section_mark_present(ms);
-> > -     sparse_init_one_section(ms, section_nr, memmap, usage);
-> > +     sparse_init_one_section(ms, section_nr, memmap, ms->usage);
-> >
-> > -out:
-> > -     if (ret < 0) {
-> > -             kfree(usage);
-> > -             depopulate_section_memmap(start_pfn, PAGES_PER_SECTION, altmap);
-> > -     }
-> > +     if (ret < 0)
-> > +             section_deactivate(start_pfn, nr_pages, nid, altmap);
->
-> Uhm, if my eyes do not trick me, ret is only used for the return value from
-> sparse_index_init(), so this is not needed. Can we get rid of it?
-
-Yes, these can go.
-
-Apologies for the delay and missing these comments in the v8 posting.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
