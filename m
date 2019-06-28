@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9A8F22129641A
- for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:30 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 01/22] mm/hmm.c: suppress compilation warnings when
- CONFIG_HUGETLB_PAGE is not set
-Date: Mon,  1 Jul 2019 08:19:59 +0200
-Message-Id: <20190701062020.19239-2-hch@lst.de>
-In-Reply-To: <20190701062020.19239-1-hch@lst.de>
-References: <20190701062020.19239-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 4A2742129EBB7
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:21 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v5 09/13] daxctl: add commands to online and offline
+ memory
+Date: Fri, 28 Jun 2019 13:11:06 -0600
+Message-Id: <20190628191110.21428-10-vishal.l.verma@intel.com>
+In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
+References: <20190628191110.21428-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,65 +23,250 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org, Andrew Morton <akpm@linux-foundation.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+Add two new commands:
 
-gcc reports that several variables are defined but not used.
+  daxctl-online-memory
+  daxctl-offline-memory
 
-For the first hunk CONFIG_HUGETLB_PAGE the entire if block is already
-protected by pud_huge() which is forced to 0.  None of the stuff under the
-ifdef causes compilation problems as it is already stubbed out in the
-header files.
+to manage the state of hot-plugged memory from the system-ram mode for
+dax devices. This provides a way for the user to online/offline the
+memory as a separate step from the reconfiguration. Without this, a user
+that reconfigures a device into the system-ram mode with the --no-online
+option, would have no way to later online the memory, and would have to
+resort to shell scripting to online them manually via sysfs.
 
-For the second hunk the dummy huge_page_shift macro doesn't touch the
-argument, so just inline the argument.
-
-Link: http://lkml.kernel.org/r/20190522195151.GA23955@ziepe.ca
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- mm/hmm.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ daxctl/builtin.h |   2 +
+ daxctl/daxctl.c  |   2 +
+ daxctl/device.c  | 138 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 141 insertions(+), 1 deletion(-)
 
-diff --git a/mm/hmm.c b/mm/hmm.c
-index c5d840e34b28..c62ae414a3a2 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -788,7 +788,6 @@ static int hmm_vma_walk_pud(pud_t *pudp,
- 			return hmm_vma_walk_hole_(addr, end, fault,
- 						write_fault, walk);
+diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+index 756ba2a..f5a0147 100644
+--- a/daxctl/builtin.h
++++ b/daxctl/builtin.h
+@@ -7,4 +7,6 @@ struct daxctl_ctx;
+ int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
+ #endif /* _DAXCTL_BUILTIN_H_ */
+diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+index e1ba7b8..1ab0732 100644
+--- a/daxctl/daxctl.c
++++ b/daxctl/daxctl.c
+@@ -72,6 +72,8 @@ static struct cmd_struct commands[] = {
+ 	{ "help", .d_fn = cmd_help },
+ 	{ "migrate-device-model", .d_fn = cmd_migrate },
+ 	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
++	{ "online-memory", .d_fn = cmd_online_memory },
++	{ "offline-memory", .d_fn = cmd_offline_memory },
+ };
  
--#ifdef CONFIG_HUGETLB_PAGE
- 		pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
- 		for (i = 0; i < npages; ++i, ++pfn) {
- 			hmm_vma_walk->pgmap = get_dev_pagemap(pfn,
-@@ -804,9 +803,6 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ int main(int argc, const char **argv)
+diff --git a/daxctl/device.c b/daxctl/device.c
+index a1fb698..22cf0c8 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -30,6 +30,8 @@ static unsigned long flags;
+ 
+ enum device_action {
+ 	ACTION_RECONFIG,
++	ACTION_ONLINE,
++	ACTION_OFFLINE,
+ };
+ 
+ #define BASE_OPTIONS() \
+@@ -50,6 +52,11 @@ static const struct option reconfig_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option memory_options[] = {
++	BASE_OPTIONS(),
++	OPT_END(),
++};
++
+ static const char *parse_device_options(int argc, const char **argv,
+ 		enum device_action action, const struct option *options,
+ 		const char *usage, struct daxctl_ctx *ctx)
+@@ -70,6 +77,12 @@ static const char *parse_device_options(int argc, const char **argv,
+ 		case ACTION_RECONFIG:
+ 			action_string = "reconfigure";
+ 			break;
++		case ACTION_ONLINE:
++			action_string = "online memory for";
++			break;
++		case ACTION_OFFLINE:
++			action_string = "offline memory for";
++			break;
+ 		default:
+ 			action_string = "<>";
+ 			break;
+@@ -118,6 +131,10 @@ static const char *parse_device_options(int argc, const char **argv,
+ 			}
  		}
- 		hmm_vma_walk->last = end;
- 		return 0;
--#else
--		return -EINVAL;
--#endif
+ 		break;
++	case ACTION_ONLINE:
++	case ACTION_OFFLINE:
++		/* nothing special */
++		break;
  	}
+ 	if (rc) {
+ 		usage_with_options(u, options);
+@@ -287,10 +304,82 @@ static int do_reconfig(struct daxctl_dev *dev, enum daxctl_dev_mode mode,
+ 	return rc;
+ }
  
- 	split_huge_pud(walk->vma, pudp, addr);
-@@ -1015,9 +1011,8 @@ long hmm_range_snapshot(struct hmm_range *range)
- 			return -EFAULT;
++static int do_xline(struct daxctl_dev *dev, enum device_action action)
++{
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *devname = daxctl_dev_get_devname(dev);
++	enum daxctl_dev_mode mode;
++	int rc, num_online;
++
++	if (!daxctl_dev_is_enabled(dev)) {
++		fprintf(stderr,
++			"%s: memory operations not possible when disabled\n",
++			devname);
++		return -ENXIO;
++	}
++
++	mode = daxctl_dev_get_mode(dev);
++	if (mode < 0) {
++		fprintf(stderr, "%s: unable to determine current mode: %s\n",
++			devname, strerror(-mode));
++		return rc;
++	}
++	if (mode == DAXCTL_DEV_MODE_DEVDAX) {
++		fprintf(stderr,
++			"%s: memory operations are not applicable in devdax mode\n",
++			devname);
++		return -ENXIO;
++	}
++
++	/* We are enabled, and in the correct mode. Proceed. */
++	num_online = daxctl_memory_is_online(mem);
++	if (num_online < 0) {
++		fprintf(stderr, "%s: unable to determine online state: %s\n",
++			devname, strerror(-num_online));
++		return num_online;
++	}
++
++	switch (action) {
++	case ACTION_ONLINE:
++		if (num_online > 0)
++			fprintf(stderr, "%s: %d section%s already online\n",
++				devname, num_online,
++				num_online == 1 ? "" : "s");
++		rc = daxctl_memory_set_online(mem);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to online memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		fprintf(stderr, "%s: %d new section%s onlined\n", devname, rc,
++				rc == 1 ? "" : "s");
++		break;
++	case ACTION_OFFLINE:
++		if (num_online == 0) {
++			fprintf(stderr, "%s: all sections already offline\n",
++				devname);
++			return 0;
++		}
++		rc = daxctl_memory_set_offline(mem);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to offline memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		fprintf(stderr, "%s: %d section%s offlined\n", devname, rc,
++				rc == 1 ? "" : "s");
++		break;
++	default:
++		fprintf(stderr, "%s: invalid action: %d\n", devname, action);
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static int do_xaction_device(const char *device, enum device_action action,
+ 		struct daxctl_ctx *ctx, int *processed)
+ {
+-	struct json_object *jdevs = json_object_new_array();
++	struct json_object *jdevs = NULL;
+ 	struct daxctl_region *region;
+ 	struct daxctl_dev *dev;
+ 	int rc = -ENXIO;
+@@ -308,10 +397,23 @@ static int do_xaction_device(const char *device, enum device_action action,
  
- 		if (is_vm_hugetlb_page(vma)) {
--			struct hstate *h = hstate_vma(vma);
--
--			if (huge_page_shift(h) != range->page_shift &&
-+			if (huge_page_shift(hstate_vma(vma)) !=
-+				    range->page_shift &&
- 			    range->page_shift != PAGE_SHIFT)
- 				return -EINVAL;
- 		} else {
+ 			switch (action) {
+ 			case ACTION_RECONFIG:
++				/* reconfig needs jdevs, initialize it once */
++				if (!jdevs)
++					jdevs = json_object_new_array();
+ 				rc = do_reconfig(dev, reconfig_mode, jdevs);
+ 				if (rc == 0)
+ 					(*processed)++;
+ 				break;
++			case ACTION_ONLINE:
++				rc = do_xline(dev, action);
++				if (rc == 0)
++					(*processed)++;
++				break;
++			case ACTION_OFFLINE:
++				rc = do_xline(dev, action);
++				if (rc == 0)
++					(*processed)++;
++				break;
+ 			default:
+ 				rc = -EINVAL;
+ 				break;
+@@ -346,3 +448,37 @@ int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
+ 			processed == 1 ? "" : "s");
+ 	return rc;
+ }
++
++int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	char *usage = "daxctl online-memory <device> [<options>]";
++	const char *device = parse_device_options(argc, argv, ACTION_ONLINE,
++			memory_options, usage, ctx);
++	int processed, rc;
++
++	rc = do_xaction_device(device, ACTION_ONLINE, ctx, &processed);
++	if (rc < 0)
++		fprintf(stderr, "error onlining memory: %s\n",
++				strerror(-rc));
++
++	fprintf(stderr, "onlined memory for %d device%s\n", processed,
++			processed == 1 ? "" : "s");
++	return rc;
++}
++
++int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	char *usage = "daxctl offline-memory <device> [<options>]";
++	const char *device = parse_device_options(argc, argv, ACTION_OFFLINE,
++			memory_options, usage, ctx);
++	int processed, rc;
++
++	rc = do_xaction_device(device, ACTION_OFFLINE, ctx, &processed);
++	if (rc < 0)
++		fprintf(stderr, "error offlining memory: %s\n",
++				strerror(-rc));
++
++	fprintf(stderr, "offlined memory for %d device%s\n", processed,
++			processed == 1 ? "" : "s");
++	return rc;
++}
 -- 
 2.20.1
 
