@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2B526212AAB84
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:29 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 22/25] mm: simplify ZONE_DEVICE page private data
-Date: Wed, 26 Jun 2019 14:27:21 +0200
-Message-Id: <20190626122724.13313-23-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id D65412129EBB7
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:18 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v5 04/13] libdaxctl: add a 'daxctl_memory' object for
+ memory based operations
+Date: Fri, 28 Jun 2019 13:11:01 -0600
+Message-Id: <20190628191110.21428-5-vishal.l.verma@intel.com>
+In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
+References: <20190628191110.21428-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,154 +23,480 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Remove the clumsy hmm_devmem_page_{get,set}_drvdata helpers, and
-instead just access the page directly.  Also make the page data
-a void pointer, and thus much easier to use.
+Introduce a new 'daxctl_memory' object, which will be used for
+operations related to managing dax devices in 'system-memory' modes.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Add libdaxctl APIs to get the target_node of a DAX device, and to
+online, offline, and query the state of hotplugged memory sections
+associated with a given device.
+
+This adds the following new interfaces:
+
+  daxctl_dev_get_target_node
+  daxctl_dev_get_memory;
+  daxctl_memory_get_dev;
+  daxctl_memory_get_node_path;
+  daxctl_memory_get_block_size;
+  daxctl_memory_set_online
+  daxctl_memory_set_offline
+  daxctl_memory_is_online
+
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/gpu/drm/nouveau/nouveau_dmem.c | 18 ++++++---------
- include/linux/hmm.h                    | 32 --------------------------
- include/linux/mm_types.h               |  2 +-
- mm/page_alloc.c                        |  8 +++----
- 4 files changed, 12 insertions(+), 48 deletions(-)
+ daxctl/lib/libdaxctl-private.h |  14 ++
+ daxctl/lib/libdaxctl.c         | 333 +++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym       |   8 +
+ daxctl/libdaxctl.h             |  10 +
+ 4 files changed, 365 insertions(+)
 
-diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-index 0fb7a44b8bc4..42c026010938 100644
---- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
-@@ -104,11 +104,8 @@ struct nouveau_migrate {
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index eb7c1ec..673be0f 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -33,6 +33,11 @@ static const char *dax_modules[] = {
+ 	[DAXCTL_DEV_MODE_RAM] = "kmem",
+ };
  
- static void nouveau_dmem_page_free(struct page *page)
++enum memory_state {
++	MEM_OFFLINE,
++	MEM_ONLINE,
++};
++
+ /**
+  * struct daxctl_region - container for dax_devices
+  */
+@@ -64,8 +69,17 @@ struct daxctl_dev {
+ 	struct kmod_module *module;
+ 	struct kmod_list *kmod_list;
+ 	struct daxctl_region *region;
++	struct daxctl_memory *mem;
++	int target_node;
+ };
+ 
++struct daxctl_memory {
++struct daxctl_dev *dev;
++	char *node_path;
++	unsigned long block_size;
++};
++
++
+ static inline int check_kmod(struct kmod_ctx *kmod_ctx)
  {
--	struct nouveau_dmem_chunk *chunk;
--	unsigned long idx;
--
--	chunk = (void *)hmm_devmem_page_get_drvdata(page);
--	idx = page_to_pfn(page) - chunk->pfn_first;
-+	struct nouveau_dmem_chunk *chunk = page->zone_device_data;
-+	unsigned long idx = page_to_pfn(page) - chunk->pfn_first;
+ 	return kmod_ctx ? 0 : -ENXIO;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 5431063..b22df50 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -200,6 +200,12 @@ DAXCTL_EXPORT void daxctl_region_get_uuid(struct daxctl_region *region, uuid_t u
+ 	uuid_copy(uu, region->uuid);
+ }
  
- 	/*
- 	 * FIXME:
-@@ -200,7 +197,7 @@ nouveau_dmem_fault_alloc_and_copy(struct vm_area_struct *vma,
++static void free_mem(struct daxctl_memory *mem)
++{
++	free(mem->node_path);
++	free(mem);
++}
++
+ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ {
+ 	if (head)
+@@ -207,6 +213,7 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ 	kmod_module_unref_list(dev->kmod_list);
+ 	free(dev->dev_buf);
+ 	free(dev->dev_path);
++	free_mem(dev->mem);
+ 	free(dev);
+ }
  
- 		dst_addr = fault->dma[fault->npages++];
+@@ -343,6 +350,44 @@ static struct kmod_list *to_module_list(struct daxctl_ctx *ctx,
+ 	return list;
+ }
  
--		chunk = (void *)hmm_devmem_page_get_drvdata(spage);
-+		chunk = spage->zone_device_data;
- 		src_addr = page_to_pfn(spage) - chunk->pfn_first;
- 		src_addr = (src_addr << PAGE_SHIFT) + chunk->bo->bo.offset;
++static struct daxctl_memory *daxctl_dev_init_mem(struct daxctl_dev *dev)
++{
++	const char *size_path = "/sys/devices/system/memory/block_size_bytes";
++	const char *node_base = "/sys/devices/system/node/node";
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	struct daxctl_memory *mem;
++	char buf[SYSFS_ATTR_SIZE];
++	int node_num;
++
++	mem = calloc(1, sizeof(*mem));
++	if (!mem)
++		return NULL;
++
++	mem->dev = dev;
++
++	/*
++	 * Everything here is best-effort, we won't fail the device add
++	 * for anything other than the ENOMEM case above.
++	 */
++	if (sysfs_read_attr(ctx, size_path, buf) == 0) {
++		mem->block_size = strtoul(buf, NULL, 16);
++		if (mem->block_size == 0 || mem->block_size == ULONG_MAX) {
++			err(ctx, "%s: Unable to determine memblock size: %s\n",
++				devname, strerror(errno));
++			mem->block_size = 0;
++		}
++	}
++
++	node_num = daxctl_dev_get_target_node(dev);
++	if (node_num >= 0) {
++		if (asprintf(&mem->node_path, "%s%d", node_base, node_num) < 0)
++			err(ctx, "%s: Unable to set node_path\n", devname);
++	}
++
++	return mem;
++}
++
+ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ {
+ 	const char *devname = devpath_to_devname(daxdev_base);
+@@ -398,6 +443,16 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	if (rc == 0)
+ 		dev->kmod_list = to_module_list(ctx, buf);
  
-@@ -633,9 +630,8 @@ nouveau_dmem_init(struct nouveau_drm *drm)
- 		list_add_tail(&chunk->list, &drm->dmem->chunk_empty);
++	sprintf(path, "%s/target_node", daxdev_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dev->target_node = strtol(buf, NULL, 0);
++	else
++		dev->target_node = -1;
++
++	dev->mem = daxctl_dev_init_mem(dev);
++	if (!dev->mem)
++		goto err_read;
++
+ 	daxctl_dev_foreach(region, dev_dup)
+ 		if (dev_dup->id == dev->id) {
+ 			free_dev(dev, NULL);
+@@ -894,3 +949,281 @@ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+ {
+ 	return dev->size;
+ }
++
++DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
++{
++	return dev->target_node;
++}
++
++DAXCTL_EXPORT struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev)
++{
++	return dev->mem;
++}
++
++DAXCTL_EXPORT struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem)
++{
++	return mem->dev;
++}
++
++DAXCTL_EXPORT const char *daxctl_memory_get_node_path(struct daxctl_memory *mem)
++{
++	return mem->node_path;
++}
++
++DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct daxctl_memory *mem)
++{
++	return mem->block_size;
++}
++
++static int online_one_memblock(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *mode = "online_movable";
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	/*
++	 * if already online, possibly due to kernel config or a udev rule,
++	 * there is nothing to do and we can skip over the memblock
++	 */
++	if (strncmp(buf, "online", 6) == 0)
++		return 1;
++
++	rc = sysfs_write_attr_quiet(ctx, path, mode);
++	if (rc)
++		err(ctx, "%s: Failed to online %s: %s\n",
++			devname, path, strerror(-rc));
++	return rc;
++}
++
++static int offline_one_memblock(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *mode = "offline";
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	/* if already offline, there is nothing to do */
++	if (strncmp(buf, "offline", 6) == 0)
++		return 1;
++
++	rc = sysfs_write_attr_quiet(ctx, path, mode);
++	if (rc)
++		err(ctx, "%s: Failed to offline %s: %s\n",
++			devname, path, strerror(-rc));
++	return rc;
++}
++
++static bool memblock_in_dev(struct daxctl_dev *dev, const char *memblock)
++{
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *mem_base = "/sys/devices/system/memory/";
++	unsigned long long memblock_res, dev_start, dev_end;
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	unsigned long memblock_size;
++	char buf[SYSFS_ATTR_SIZE];
++	unsigned long phys_index;
++	char *index_path;
++
++	if (asprintf(&index_path, "%s/%s/phys_index", mem_base, memblock) < 0)
++		return false;
++
++	if (sysfs_read_attr(ctx, index_path, buf) == 0) {
++		phys_index = strtoul(buf, NULL, 16);
++		if (phys_index == 0 || phys_index == ULONG_MAX) {
++			err(ctx, "%s: %s: Unable to determine phys_index: %s\n",
++				devname, memblock, strerror(errno));
++			goto out_err;
++		}
++	} else {
++		err(ctx, "%s: %s: Unable to determine phys_index: %s\n",
++			devname, memblock, strerror(errno));
++		goto out_err;
++	}
++
++	dev_start = daxctl_dev_get_resource(dev);
++	if (!dev_start) {
++		err(ctx, "%s: Unable to determine resource\n", devname);
++		goto out_err;
++	}
++	dev_end = dev_start + daxctl_dev_get_size(dev);
++
++	memblock_size = daxctl_memory_get_block_size(mem);
++	if (!memblock_size) {
++		err(ctx, "%s: Unable to determine memory block size\n",
++			devname);
++		goto out_err;
++	}
++	memblock_res = phys_index * memblock_size;
++
++	if (memblock_res >= dev_start && memblock_res <= dev_end) {
++		free(index_path);
++		return true;
++	}
++
++out_err:
++	free(index_path);
++	return false;
++}
++
++static int daxctl_memory_set_state(struct daxctl_memory *mem,
++		enum memory_state state)
++{
++	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *node_path;
++	int rc, changed = 0;
++	struct dirent *de;
++	DIR *node_dir;
++
++	node_path = daxctl_memory_get_node_path(mem);
++	if (!node_path) {
++		err(ctx, "%s: Failed to get node_path\n", devname);
++		return -ENXIO;
++	}
++
++	node_dir = opendir(node_path);
++	if (!node_dir)
++		return -errno;
++
++	errno = 0;
++	while ((de = readdir(node_dir)) != NULL) {
++		char *mem_path;
++
++		if (strncmp(de->d_name, "memory", 6) == 0) {
++			if (!memblock_in_dev(dev, de->d_name))
++				continue;
++			rc = asprintf(&mem_path, "%s/%s/state",
++				node_path, de->d_name);
++			if (rc < 0) {
++				rc = -ENOMEM;
++				goto out_dir;
++			}
++			if (state == MEM_ONLINE)
++				rc = online_one_memblock(dev, mem_path);
++			else if (state == MEM_OFFLINE)
++				rc = offline_one_memblock(dev, mem_path);
++			else
++				rc = -EINVAL;
++			free(mem_path);
++			if (rc < 0)
++				goto out_dir;
++			if (rc == 0)
++				changed++;
++		}
++		errno = 0;
++	}
++	if (errno) {
++		rc = -errno;
++		goto out_dir;
++	}
++	rc = changed;
++
++out_dir:
++	closedir(node_dir);
++	return rc;
++}
++
++DAXCTL_EXPORT int daxctl_memory_set_online(struct daxctl_memory *mem)
++{
++	return daxctl_memory_set_state(mem, MEM_ONLINE);
++}
++
++DAXCTL_EXPORT int daxctl_memory_set_offline(struct daxctl_memory *mem)
++{
++	return daxctl_memory_set_state(mem, MEM_OFFLINE);
++}
++
++static int memblock_is_online(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	if (strncmp(buf, "online", 6) == 0)
++		return 1;
++
++	return 0;
++}
++
++DAXCTL_EXPORT int daxctl_memory_is_online(struct daxctl_memory *mem)
++{
++	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	int rc, num_online = 0;
++	const char *node_path;
++	struct dirent *de;
++	DIR *node_dir;
++
++	node_path = daxctl_memory_get_node_path(mem);
++	if (!node_path) {
++		err(ctx, "%s: Failed to get node_path\n", devname);
++		return -ENXIO;
++	}
++
++	node_dir = opendir(node_path);
++	if (!node_dir)
++		return -errno;
++
++	errno = 0;
++	while ((de = readdir(node_dir)) != NULL) {
++		char *mem_path;
++
++		if (strncmp(de->d_name, "memory", 6) == 0) {
++			if (!memblock_in_dev(dev, de->d_name))
++				continue;
++			rc = asprintf(&mem_path, "%s/%s/state",
++				node_path, de->d_name);
++			if (rc < 0) {
++				rc = -ENOMEM;
++				goto out_dir;
++			}
++			rc = memblock_is_online(dev, mem_path);
++			if (rc < 0) {
++				err(ctx, "%s: Unable to determine state: %s\n",
++					devname, mem_path);
++				goto out_dir;
++			}
++			if (rc > 0)
++				num_online++;
++			free(mem_path);
++		}
++		errno = 0;
++	}
++	if (errno) {
++		rc = -errno;
++		goto out_dir;
++	}
++	rc = num_online;
++
++out_dir:
++	closedir(node_dir);
++	return rc;
++}
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 1692624..53eb700 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -59,4 +59,12 @@ global:
+ 	daxctl_dev_enable_devdax;
+ 	daxctl_dev_enable_ram;
+ 	daxctl_dev_get_resource;
++	daxctl_dev_get_target_node;
++	daxctl_dev_get_memory;
++	daxctl_memory_get_dev;
++	daxctl_memory_get_node_path;
++	daxctl_memory_get_block_size;
++	daxctl_memory_set_online;
++	daxctl_memory_set_offline;
++	daxctl_memory_is_online;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 7214cd3..a5a2bab 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -73,6 +73,16 @@ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ int daxctl_dev_disable(struct daxctl_dev *dev);
+ int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
+ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
++int daxctl_dev_get_target_node(struct daxctl_dev *dev);
++
++struct daxctl_memory;
++struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
++struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem);
++const char *daxctl_memory_get_node_path(struct daxctl_memory *mem);
++unsigned long daxctl_memory_get_block_size(struct daxctl_memory *mem);
++int daxctl_memory_set_online(struct daxctl_memory *mem);
++int daxctl_memory_set_offline(struct daxctl_memory *mem);
++int daxctl_memory_is_online(struct daxctl_memory *mem);
  
- 		page = pfn_to_page(chunk->pfn_first);
--		for (j = 0; j < DMEM_CHUNK_NPAGES; ++j, ++page) {
--			hmm_devmem_page_set_drvdata(page, (long)chunk);
--		}
-+		for (j = 0; j < DMEM_CHUNK_NPAGES; ++j, ++page)
-+			page->zone_device_data = chunk;
- 	}
- 
- 	NV_INFO(drm, "DMEM: registered %ldMB of device memory\n", size >> 20);
-@@ -698,7 +694,7 @@ nouveau_dmem_migrate_alloc_and_copy(struct vm_area_struct *vma,
- 		if (!dpage || dst_pfns[i] == MIGRATE_PFN_ERROR)
- 			continue;
- 
--		chunk = (void *)hmm_devmem_page_get_drvdata(dpage);
-+		chunk = dpage->zone_device_data;
- 		dst_addr = page_to_pfn(dpage) - chunk->pfn_first;
- 		dst_addr = (dst_addr << PAGE_SHIFT) + chunk->bo->bo.offset;
- 
-@@ -862,7 +858,7 @@ nouveau_dmem_convert_pfn(struct nouveau_drm *drm,
- 			continue;
- 		}
- 
--		chunk = (void *)hmm_devmem_page_get_drvdata(page);
-+		chunk = page->zone_device_data;
- 		addr = page_to_pfn(page) - chunk->pfn_first;
- 		addr = (addr + chunk->bo->bo.mem.start) << PAGE_SHIFT;
- 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 86aa4ec3404c..3d00e9550e77 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -584,36 +584,4 @@ static inline void hmm_mm_destroy(struct mm_struct *mm) {}
- static inline void hmm_mm_init(struct mm_struct *mm) {}
- #endif /* IS_ENABLED(CONFIG_HMM_MIRROR) */
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
--/*
-- * hmm_devmem_page_set_drvdata - set per-page driver data field
-- *
-- * @page: pointer to struct page
-- * @data: driver data value to set
-- *
-- * Because page can not be on lru we have an unsigned long that driver can use
-- * to store a per page field. This just a simple helper to do that.
-- */
--static inline void hmm_devmem_page_set_drvdata(struct page *page,
--					       unsigned long data)
--{
--	page->hmm_data = data;
--}
--
--/*
-- * hmm_devmem_page_get_drvdata - get per page driver data field
-- *
-- * @page: pointer to struct page
-- * Return: driver data value
-- */
--static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
--{
--	return page->hmm_data;
--}
--#endif /* CONFIG_DEVICE_PRIVATE */
--#else /* IS_ENABLED(CONFIG_HMM) */
--static inline void hmm_mm_destroy(struct mm_struct *mm) {}
--static inline void hmm_mm_init(struct mm_struct *mm) {}
--#endif /* IS_ENABLED(CONFIG_HMM) */
--
- #endif /* LINUX_HMM_H */
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 8ec38b11b361..f33a1289c101 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -158,7 +158,7 @@ struct page {
- 		struct {	/* ZONE_DEVICE pages */
- 			/** @pgmap: Points to the hosting device page map. */
- 			struct dev_pagemap *pgmap;
--			unsigned long hmm_data;
-+			void *zone_device_data;
- 			unsigned long _zd_pad_1;	/* uses mapping */
- 		};
- 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 17a39d40a556..c0e031c52db5 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5886,12 +5886,12 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 		__SetPageReserved(page);
- 
- 		/*
--		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
--		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
--		 * page is ever freed or placed on a driver-private list.
-+		 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
-+		 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
-+		 * ever freed or placed on a driver-private list.
- 		 */
- 		page->pgmap = pgmap;
--		page->hmm_data = 0;
-+		page->zone_device_data = NULL;
- 
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
 -- 
 2.20.1
 
