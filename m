@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 99272212AAB70
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:27:39 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 02/25] mm: remove the struct hmm_device infrastructure
-Date: Wed, 26 Jun 2019 14:27:01 +0200
-Message-Id: <20190626122724.13313-3-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id CC5F22194EB76
+ for <linux-nvdimm@lists.01.org>; Fri, 28 Jun 2019 12:11:21 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v5 10/13] Documentation: Add man pages for daxctl-{on,
+ off}line-memory
+Date: Fri, 28 Jun 2019 13:11:07 -0600
+Message-Id: <20190628191110.21428-11-vishal.l.verma@intel.com>
+In-Reply-To: <20190628191110.21428-1-vishal.l.verma@intel.com>
+References: <20190628191110.21428-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,143 +23,203 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This code is a trivial wrapper around device model helpers, which
-should have been integrated into the driver device model usage from
-the start.  Assuming it actually had users, which it never had since
-the code was added more than 1 1/2 years ago.
+Add man pages for the two new commands: daxctl-online-memory, and
+daxctl-offline-memory.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- include/linux/hmm.h | 20 ------------
- mm/hmm.c            | 80 ---------------------------------------------
- 2 files changed, 100 deletions(-)
+ Documentation/daxctl/Makefile.am              |  4 +-
+ .../daxctl/daxctl-offline-memory.txt          | 72 +++++++++++++++++
+ Documentation/daxctl/daxctl-online-memory.txt | 80 +++++++++++++++++++
+ 3 files changed, 155 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/daxctl/daxctl-offline-memory.txt
+ create mode 100644 Documentation/daxctl/daxctl-online-memory.txt
 
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 044a36d7c3f8..99765be3284d 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -751,26 +751,6 @@ static inline unsigned long hmm_devmem_page_get_drvdata(const struct page *page)
- {
- 	return page->hmm_data;
- }
--
--
--/*
-- * struct hmm_device - fake device to hang device memory onto
-- *
-- * @device: device struct
-- * @minor: device minor number
-- */
--struct hmm_device {
--	struct device		device;
--	unsigned int		minor;
--};
--
--/*
-- * A device driver that wants to handle multiple devices memory through a
-- * single fake device can use hmm_device to do so. This is purely a helper and
-- * it is not strictly needed, in order to make use of any HMM functionality.
-- */
--struct hmm_device *hmm_device_new(void *drvdata);
--void hmm_device_put(struct hmm_device *hmm_device);
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
- #else /* IS_ENABLED(CONFIG_HMM) */
- static inline void hmm_mm_destroy(struct mm_struct *mm) {}
-diff --git a/mm/hmm.c b/mm/hmm.c
-index f702a3895d05..00cc642b3d7e 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1528,84 +1528,4 @@ struct hmm_devmem *hmm_devmem_add_resource(const struct hmm_devmem_ops *ops,
- 	return devmem;
- }
- EXPORT_SYMBOL_GPL(hmm_devmem_add_resource);
--
--/*
-- * A device driver that wants to handle multiple devices memory through a
-- * single fake device can use hmm_device to do so. This is purely a helper
-- * and it is not needed to make use of any HMM functionality.
-- */
--#define HMM_DEVICE_MAX 256
--
--static DECLARE_BITMAP(hmm_device_mask, HMM_DEVICE_MAX);
--static DEFINE_SPINLOCK(hmm_device_lock);
--static struct class *hmm_device_class;
--static dev_t hmm_device_devt;
--
--static void hmm_device_release(struct device *device)
--{
--	struct hmm_device *hmm_device;
--
--	hmm_device = container_of(device, struct hmm_device, device);
--	spin_lock(&hmm_device_lock);
--	clear_bit(hmm_device->minor, hmm_device_mask);
--	spin_unlock(&hmm_device_lock);
--
--	kfree(hmm_device);
--}
--
--struct hmm_device *hmm_device_new(void *drvdata)
--{
--	struct hmm_device *hmm_device;
--
--	hmm_device = kzalloc(sizeof(*hmm_device), GFP_KERNEL);
--	if (!hmm_device)
--		return ERR_PTR(-ENOMEM);
--
--	spin_lock(&hmm_device_lock);
--	hmm_device->minor = find_first_zero_bit(hmm_device_mask, HMM_DEVICE_MAX);
--	if (hmm_device->minor >= HMM_DEVICE_MAX) {
--		spin_unlock(&hmm_device_lock);
--		kfree(hmm_device);
--		return ERR_PTR(-EBUSY);
--	}
--	set_bit(hmm_device->minor, hmm_device_mask);
--	spin_unlock(&hmm_device_lock);
--
--	dev_set_name(&hmm_device->device, "hmm_device%d", hmm_device->minor);
--	hmm_device->device.devt = MKDEV(MAJOR(hmm_device_devt),
--					hmm_device->minor);
--	hmm_device->device.release = hmm_device_release;
--	dev_set_drvdata(&hmm_device->device, drvdata);
--	hmm_device->device.class = hmm_device_class;
--	device_initialize(&hmm_device->device);
--
--	return hmm_device;
--}
--EXPORT_SYMBOL(hmm_device_new);
--
--void hmm_device_put(struct hmm_device *hmm_device)
--{
--	put_device(&hmm_device->device);
--}
--EXPORT_SYMBOL(hmm_device_put);
--
--static int __init hmm_init(void)
--{
--	int ret;
--
--	ret = alloc_chrdev_region(&hmm_device_devt, 0,
--				  HMM_DEVICE_MAX,
--				  "hmm_device");
--	if (ret)
--		return ret;
--
--	hmm_device_class = class_create(THIS_MODULE, "hmm_device");
--	if (IS_ERR(hmm_device_class)) {
--		unregister_chrdev_region(hmm_device_devt, HMM_DEVICE_MAX);
--		return PTR_ERR(hmm_device_class);
--	}
--	return 0;
--}
--
--device_initcall(hmm_init);
- #endif /* CONFIG_DEVICE_PRIVATE || CONFIG_DEVICE_PUBLIC */
+diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
+index 715fbad..37c3bde 100644
+--- a/Documentation/daxctl/Makefile.am
++++ b/Documentation/daxctl/Makefile.am
+@@ -29,7 +29,9 @@ man1_MANS = \
+ 	daxctl.1 \
+ 	daxctl-list.1 \
+ 	daxctl-migrate-device-model.1 \
+-	daxctl-reconfigure-device.1
++	daxctl-reconfigure-device.1 \
++	daxctl-online-memory.1 \
++	daxctl-offline-memory.1
+ 
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/daxctl/daxctl-offline-memory.txt b/Documentation/daxctl/daxctl-offline-memory.txt
+new file mode 100644
+index 0000000..ba06287
+--- /dev/null
++++ b/Documentation/daxctl/daxctl-offline-memory.txt
+@@ -0,0 +1,72 @@
++// SPDX-License-Identifier: GPL-2.0
++
++daxctl-offline-memory(1)
++========================
++
++NAME
++----
++daxctl-offline-memory - Offline the memory for a device that is in system-ram mode
++
++SYNOPSIS
++--------
++[verse]
++'daxctl offline-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
++
++EXAMPLES
++--------
++
++* Reconfigure dax0.0 to system-ram mode
++----
++# daxctl reconfigure-device --mode=system-ram --human dax0.0
++{
++  "chardev":"dax0.0",
++  "size":"7.87 GiB (8.45 GB)",
++  "target_node":2,
++  "mode":"system-ram"
++}
++----
++
++* Offline the memory
++----
++# daxctl offline-memory dax0.0
++dax0.0: 62 sections offlined
++offlined memory for 1 device
++----
++
++DESCRIPTION
++-----------
++
++Offline the memory sections associated with a device that has been converted
++to the system-ram mode. If one or more blocks are already offline, attempt to
++offline the remaining blocks. If all blocks were already offline, print a
++message and return success without actually doing anything.
++
++This is complementary to the 'daxctl-online-memory' command, and may be used
++when it is wished to offline the memory sections, but not convert the device
++back to 'devdax' mode.
++
++OPTIONS
++-------
++-r::
++--region=::
++	Restrict the operation to devices belonging to the specified region(s).
++	A device-dax region is a contiguous range of memory that hosts one or
++	more /dev/daxX.Y devices, where X is the region id and Y is the device
++	instance id.
++
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
++
++-v::
++--verbose::
++	Emit more debug messages
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkdaxctl:daxctl-reconfigure-device[1],daxctl-online-memory[1]
+diff --git a/Documentation/daxctl/daxctl-online-memory.txt b/Documentation/daxctl/daxctl-online-memory.txt
+new file mode 100644
+index 0000000..5ac1cbf
+--- /dev/null
++++ b/Documentation/daxctl/daxctl-online-memory.txt
+@@ -0,0 +1,80 @@
++// SPDX-License-Identifier: GPL-2.0
++
++daxctl-online-memory(1)
++=======================
++
++NAME
++----
++daxctl-online-memory - Online the memory for a device that is in system-ram mode
++
++SYNOPSIS
++--------
++[verse]
++'daxctl online-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
++
++EXAMPLES
++--------
++
++* Reconfigure dax0.0 to system-ram mode, don't online the memory
++----
++# daxctl reconfigure-device --mode=system-ram --no-online --human dax0.0
++{
++  "chardev":"dax0.0",
++  "size":"7.87 GiB (8.45 GB)",
++  "target_node":2,
++  "mode":"system-ram"
++}
++----
++
++* Online the memory separately
++----
++# daxctl online-memory dax0.0
++dax0.0: 62 new sections onlined
++onlined memory for 1 device
++----
++
++* Onlining memory when some sections were already online
++----
++# daxctl online-memory dax0.0
++dax0.0: 1 section already online
++dax0.0: 61 new sections onlined
++onlined memory for 1 device
++----
++
++DESCRIPTION
++-----------
++
++Online the memory sections associated with a device that has been converted
++to the system-ram mode. If one or more blocks are already online, print a
++message about them, and attempt to online the remaining blocks.
++
++This is complementary to the 'daxctl-reconfigure-device' command, when used with
++the '--no-online' option to skip onlining memory sections immediately after the
++reconfigure. In these scenarios, the memory can be onlined at a later time using
++'daxctl-online-memory'.
++
++OPTIONS
++-------
++-r::
++--region=::
++	Restrict the operation to devices belonging to the specified region(s).
++	A device-dax region is a contiguous range of memory that hosts one or
++	more /dev/daxX.Y devices, where X is the region id and Y is the device
++	instance id.
++
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
++
++-v::
++--verbose::
++	Emit more debug messages
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkdaxctl:daxctl-reconfigure-device[1],daxctl-offline-memory[1]
 -- 
 2.20.1
 
