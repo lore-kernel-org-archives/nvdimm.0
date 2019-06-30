@@ -1,217 +1,170 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C88BB212ABA55
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:35 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 03/13] libdaxctl: add an interface to retrieve the
- device resource
-Date: Wed, 17 Jul 2019 16:53:50 -0600
-Message-Id: <20190717225400.9494-4-vishal.l.verma@intel.com>
-In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
-References: <20190717225400.9494-1-vishal.l.verma@intel.com>
-MIME-Version: 1.0
+From: Olga <anna-Lt++JdlgpwYOB0vtbNflIA@public.gmane.org>
+Subject: =?utf-8?Q?=F0=9F=92=B2_=D0=A1=D1=82=D1=80=D1=83=D0=BA=D1=82?=
+ =?utf-8?Q?=D1=83=D1=80=D0=B0_=D0=BF=D0=B5=D1=80=D0=B5?=
+ =?utf-8?Q?=D0=B3=D0=BE=D0=B2=D0=BE=D1=80=D0=BE=D0=B2_=D0=BE_=D0=B7=D0=B0?=
+ =?utf-8?Q?=D0=BA=D1=83=D0=BF=D0=BA=D0=B0=D1=85?=
+Date: Sun, 30 Jun 2019 22:17:10 +0000
+Message-ID: <59c14ec0c1f74e6488394429683ccd41@jaycutler.com.ua>
+Reply-To: Olga <anna-Lt++JdlgpwYOB0vtbNflIA@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
-List-ID: <linux-nvdimm@lists.01.org>
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Id: linux-nvdimm@lists.01.org
 
-Add an interface to retrieve the 'resource' attribute for a dax device.
-
-Attempt to retrieve it as usual via sysfs, but since older kernels may
-be missing this attribute, as a fallback, attempt to retrieve it from
-/proc/iomem
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-[fscanf format string problem and diagnosis]
-Reported-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Makefile.am                    |  3 ++-
- daxctl/lib/Makefile.am         |  2 ++
- daxctl/lib/libdaxctl-private.h |  1 +
- daxctl/lib/libdaxctl.c         | 12 +++++++++++
- daxctl/lib/libdaxctl.sym       |  1 +
- daxctl/libdaxctl.h             |  1 +
- util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
- util/iomem.h                   | 12 +++++++++++
- 8 files changed, 68 insertions(+), 1 deletion(-)
- create mode 100644 util/iomem.c
- create mode 100644 util/iomem.h
-
-diff --git a/Makefile.am b/Makefile.am
-index df8797e..8d10a10 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
- 	util/wrapper.c \
- 	util/filter.c \
- 	util/bitmap.c \
--	util/abspath.c
-+	util/abspath.c \
-+	util/iomem.c
- 
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 9f0e444..7704b1b 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
- libdaxctl_la_SOURCES =\
- 	../libdaxctl.h \
- 	libdaxctl-private.h \
-+	../../util/iomem.c \
-+	../../util/iomem.h \
- 	../../util/sysfs.c \
- 	../../util/sysfs.h \
- 	../../util/log.c \
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index e64d0a7..eb7c1ec 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -59,6 +59,7 @@ struct daxctl_dev {
- 	size_t buf_len;
- 	char *dev_path;
- 	struct list_node list;
-+	unsigned long long resource;
- 	unsigned long long size;
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 05f013b..5431063 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -24,6 +24,7 @@
- 
- #include <util/log.h>
- #include <util/sysfs.h>
-+#include <util/iomem.h>
- #include <daxctl/libdaxctl.h>
- #include "libdaxctl-private.h"
- 
-@@ -369,6 +370,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	dev->major = major(st.st_rdev);
- 	dev->minor = minor(st.st_rdev);
- 
-+	sprintf(path, "%s/resource", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->resource = strtoull(buf, NULL, 0);
-+	else
-+		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
-+
- 	sprintf(path, "%s/size", daxdev_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -878,6 +885,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
- 	return dev->minor;
- }
- 
-+DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
-+{
-+	return dev->resource;
-+}
-+
- DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
- {
- 	return dev->size;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..1692624 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -58,4 +58,5 @@ global:
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_get_resource;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index b80488e..7214cd3 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
- const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
-+unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
-diff --git a/util/iomem.c b/util/iomem.c
-new file mode 100644
-index 0000000..a3c23f5
---- /dev/null
-+++ b/util/iomem.c
-@@ -0,0 +1,37 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+#include <util/log.h>
-+#include <util/iomem.h>
-+#include <util/sysfs.h>
-+
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *devpath)
-+{
-+	const char *devname = devpath_to_devname(devpath);
-+	FILE *fp = fopen("/proc/iomem", "r");
-+	unsigned long long res;
-+	char name[256];
-+
-+	if (fp == NULL) {
-+		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
-+				strerror(errno));
-+		return 0;
-+	}
-+
-+	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
-+		if (strcmp(name, devname) == 0) {
-+			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
-+					devname, res);
-+			fclose(fp);
-+			return res;
-+		}
-+	}
-+
-+	log_dbg(ctx, "%s: not found in iomem\n", devname);
-+	fclose(fp);
-+	return 0;
-+}
-diff --git a/util/iomem.h b/util/iomem.h
-new file mode 100644
-index 0000000..aaaf6a7
---- /dev/null
-+++ b/util/iomem.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#ifndef _NDCTL_IOMEM_H_
-+#define _NDCTL_IOMEM_H_
-+
-+struct log_ctx;
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *path);
-+
-+#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
-+
-+#endif /* _NDCTL_IOMEM_H_ */
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+0J/RgNC+0YTQtdGB0YHQuNC+0L3QsNC70YzQvdCw0Y8g0L/RgNC+0LPRgNCw0LzQvNCwINC00LvR
+jwrRgdC/0LXRhtC40LDQu9C40YHRgtC+0LIg0L/QviDQt9Cw0LrRg9C/0LrQsNC8Ci0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KwqDCoMKgwqAK0J/RgNC+0LPRgNCw0LzQvNCwINC90LDRg9GH0LjR
+gjogwqDCoMKgwqAK0J/QvtCy0YvRgdC40YLRjCDRjdGE0YTQtdC60YLQuNCy0L3QvtGB0YLRjCDQ
+uCDQvtGC0LTQsNGH0YMg0L7RggrRgNCw0LHQvtGC0Ysg0L7RgtC00LXQu9CwINC30LDQutGD0L/Q
+vtC6INCx0LvQsNCz0L7QtNCw0YDRjwrQv9C+0LLRi9GI0LXQvdC40Y4g0L/QtdGA0LXQs9C+0LLQ
+vtGA0L3Ri9GFINC60L7QvNC/0LXRgtC10L3RhtC40LkK0YHQv9C10YbQuNCw0LvQuNGB0YLQsCDQ
+v9C+INC30LDQutGD0L/QutCw0LwsINGA0LDQt9Cy0LjRgtC40Y4g0LXQs9C+CiLQu9C40YfQvdC+
+0YHRgtC90L7QuSDQt9GA0LXQu9C+0YHRgtC4Iiwg0YTQvtGA0LzQuNGA0L7QstCw0L3QuNGOCtGD
+0LLQtdGA0LXQvdC90L7QuSDQuCDQv9GA0L7QsNC60YLQuNCy0L3QvtC5ICLQry3Qv9C+0LfQuNGG
+0LjQuCIsCtC60L7RgtC+0YDQsNGPINC/0L7Qt9Cy0L7Qu9GP0LXRgiDQsdC10YHQutC+0L3RhNC7
+0LjQutGC0L3QvgrQstC10YHRgtC4INC/0LXRgNC10LPQvtCy0L7RgNGLINC60LDQuiDRgSAi0LLQ
+vdC10YjQvdC40LzQuArQv9C+0YHRgtCw0LLRidC40LrQsNC80LgiLCDRgtCw0Log0Lgg0YEgItCy
+0L3Rg9GC0YDQtdC90L3QuNC80LgK0LrQu9C40LXQvdGC0LDQvNC4IiDQtNC+0LHQuNCy0LDRj9GB
+0Ywg0L3QsNC40LvRg9GH0YjQuNGFCtGD0YHQu9C+0LLQuNC5INC4INCy0YvRgdGC0YDQsNC40LLQ
+sNGPINC00L7Qu9Cz0L7RgdGA0L7Rh9C90YvQtQrQvtGC0L3QvtGI0LXQvdC40Y8uINCg0LDQt9GA
+0LDQsdC+0YLQsNGO0YIg0LzQsNGC0YDQuNGG0YMK0YHRgtGA0LDRgtC10LPQuNC5INCy0LfQsNC4
+0LzQvtC+0YLQvdC+0YjQtdC90LjQuSDRgQrQv9C+0YHRgtCw0LLRidC40LrQsNC80Lgg0L/QviDQ
+uNGFINGG0LXQvdC90L7RgdGC0Lgg0LTQu9GPCtC60L7QvNC/0LDQvdC40LguINCe0LLQu9Cw0LTQ
+tdGO0YIg0YLQtdGF0L3QvtC70L7Qs9C40Y/QvNC4CtGA0LXQt9GD0LvRjNGC0LDRgtC40LLQvdGL
+0YUg0L/QtdGA0LXQs9C+0LLQvtGA0L7QsiDQuArQvNC10YLQvtC00LDQvNC4INGN0LrRgdC/0YDQ
+tdGB0YEg4oCTINCw0L3QsNC70LjQt9CwINGB0LjRgtGD0LDRhtC40LgK0Lgg0L/RgdC40YXQvtGC
+0LjQv9CwINC+0L/Qv9C+0L3QtdC90YLQsCwg0YbQtdC90L3QvtGB0YLQuArQv9GA0LXQtNC70L7Q
+ttC10L3QuNGPINC00LvRjyDQutC+0LzQv9Cw0L3QuNC4LiDQo9GH0LDRgdGC0L3QuNC60LgK0L7R
+gtC60YDQvtGO0YIg0LTQu9GPINGB0LXQsdGPINC90L7QstGL0LUg0LfQvtC90Ysg0LTQu9GPINGA
+0L7RgdGC0LAK0Lgg0YDQsNC30LLQuNGC0LjRjy4g0J/QvtC70YPRh9Cw0YIg0L/RgNCw0LrRgtC4
+0YfQvdGL0LUK0LjQvdGB0YLRgNGD0LzQtdC90YLRiyDQtNC70Y8g0L/QvtCy0YvRiNC10L3QuNGP
+CtGN0YTRhNC10LrRgtC40LLQvdC+0YHRgtC4INGA0LDQsdC+0YLRiyDRgSDQv9C+0YHRgtCw0LLR
+idC40LrQsNC80LguCsKgwqDCoMKgCsKgwqDCoMKgCtCg0LXQt9GD0LvRjNGC0LDRgtGLOiDCoMKg
+wqDCoAotINCj0YfQsNGB0YLQvdC40LrQuCDQv9C+0LvRg9GH0LDRgiDQvNC10YLQvtC00LjQutC4
+INC4CtGC0LXRhdC90LjQutC4INC/0YDQvtCy0LXQtNC10L3QuNGPINC/0LXRgNC10LPQvtCy0L7R
+gNC+0LIg0YHQvgrRgdC70L7QttC90YvQvNC4LCDQvdC10YHQs9C+0LLQvtGA0YfQuNCy0YvQvNC4
+CtC/0L7RgdGC0LDQstGJ0LjQutCw0LzQuCwg0LIg0YLQvtC8INGH0LjRgdC70LUg0LgK0LzQvtC9
+0L7Qv9C+0LvQuNGB0YLQsNC80LguCi0g0J3QsNGD0YfQsNGC0YzRgdGPINC90LDRidGD0L/Ri9Cy
+0LDRgtGMICLQtNC90L4g0YbQtdC90YsiINC4CiLRgNCw0LHQvtGC0LDRgtGMINGBICLQv9C+0LLR
+i9GI0LXQvdC40LXQvCDRhtC10L0iINC4INGD0YHQv9C10YjQvdC+CtC/0YDQvtGC0LjQstC+0YHR
+gtC+0Y/RgtGMINGN0YLQvtC80YMuCi0g0JHRg9C00YPRgiDRg9GB0L/QtdGI0L3QviDQv9GA0LjQ
+vNC10L3Rj9GC0YwKItC90LXRhNC40L3QsNC90YHQvtCy0YvQtSDRhNCw0LrRgtC+0YDRiyIg0LIg
+0L/RgNC+0YbQtdGB0YHQtQrRgtC+0YDQs9C+0LIg0LggItGB0YLQvtGP0YLRjCIg0L3QsCDRgdCy
+0L7QuNGFINGD0YHQu9C+0LLQuNGPLgotINCR0YPQtNGD0YIg0LfQvdCw0YLRjCwg0YPQvNC10YLR
+jCDQuNC00LXQvdGC0LjRhNC40YbQuNGA0L7QstCw0YLRjArQuCDQv9GA0L7RgtC40LLQvtGB0YLQ
+vtGP0YLRjCDRgdC/0L7RgdC+0LHQsNC8LCDQutC+0YLQvtGA0YvQtQrQuNGB0L/QvtC70YzQt9GD
+0Y7RgiDQv9C+0YHRgtCw0LLRidC40LrQuCwg0YfRgtC+0LHRiyDQstCy0LXRgdGC0Lgg0LIK0LfQ
+sNCx0LvRg9C20LTQtdC90LjQtSDQv9C+INGG0LXQvdC1LCDQutCw0YfQtdGB0YLQstGDINC4INGB
+0YDQvtC60LDQvArQv9C+0YHRgtCw0LLQutC4LgotINCj0LvRg9GH0YjQsNGC0YHRjyDQutC+0LzQ
+vNGD0L3QuNC60LDRhtC40Lgg0LzQtdC20LTRgwrQvtGC0LTQtdC70L7QvCDQt9Cw0LrRg9C/0L7Q
+uiDQuCDQtNGA0YPQs9C40LzQuCDQvtGC0LTQtdC70LDQvNC4CtC60L7QvNC/0LDQvdC40LguCi0g
+0J/QviDQvtGC0LfRi9Cy0LDQvCDRg9GH0LDRgdGC0L3QuNC60L7Qsiwg0Y3RhNGE0LXQutGCCtC+
+0YnRg9GJ0LDQtdGC0YHRjyDRg9C20LUg0LIg0L/QtdGA0LLRi9C1INC90LXQtNC10LvQuCDRgNCw
+0LHQvtGC0YsK0LLQvtC30LLRgNCw0YnQsNGPINC40L3QstC10YHRgtC40YbQuNC4INCy0LvQvtC2
+0LXQvdC90YvQtSDQsgrRg9GH0LDRgdGC0LjQtS4KLSDQl9Cw0LrRg9C/0YnQuNC60Lgg0L7RgtGA
+0LDQsdC+0YLQsNGO0YIg0L3QsCDQv9GA0LDQutGC0LjQutC1CtC80LXRgtC+0LTQuNC60Lgg0Lgg
+0YLQtdGF0L3QuNC60Lg6INC/0L7QtNCz0L7RgtC+0LLQutC4INC4CtC/0YDQvtCy0LXQtNC10L3Q
+uNGPINC/0LXRgNC10LPQvtCy0L7RgNC+0LIK0L7RgNC40LXQvdGC0LjRgNC+0LLQsNC90L3Ri9GF
+INC90LAg0LrQvtC90LrRgNC10YLQvdGL0LkK0YDQtdC30YPQu9GM0YLQsNGCINGBINC/0L7RgdGC
+0LDQstGJ0LjQutCw0LzQuCDQutCw0Log0L/QvgrRgtC10LvQtdGE0L7QvdGDLCDRgtCw0Log0Lgg
+0L/RgNC4INCy0YHRgtGA0LXRh9C1OwrQvNC+0YLQuNCy0LjRgNC+0LLQsNC90LjRjyDQvtC/0L/Q
+vtC90LXQvdGC0LAg0L3QsCDQsdC+0LvQtdC1CtCy0YvQs9C+0LTQvdGL0LUg0LTQu9GPINGB0LXQ
+sdGPINGD0YHQu9C+0LLQuNGPLCDQuNGB0L/QvtC70YzQt9GD0Y8K0YDQsNC30LvQuNGH0L3Ri9C1
+INGC0LXRhdC90LjQutC4INCy0LvQuNGP0L3QuNGPOyDQuNC30LHQtdCz0LDQvdC40Y8K0YLRg9C/
+0LjQutC+0LLRi9GFINC40LvQuCDQvdC10LbQtdC70LDRgtC10LvRjNC90YvRhSDRgdC40YLRg9Cw
+0YbQuNC5LArQtNC+0LHQuNCy0LDRj9GB0Ywg0L/QvtC90LjQvNCw0L3QuNGPINC+0YIg0YPRh9Cw
+0YHRgtC90LjQutC+0LIK0L/QtdGA0LXQs9C+0LLQvtGA0L7Qsjsg0LrQvtC90YLRgNC+0LvRjyDR
+gdGC0YDQtdGB0YHQsCDQtNC+INC4INCy0L4K0LLRgNC10LzRjyDQv9C10YDQtdCz0L7QstC+0YDQ
+vtCyLCDQsCDRgtCw0LrQttC1INGC0LXRhdC90LjQutCw0LwK0LHRi9GB0YLRgNC+0LPQviDQstC+
+0YHRgdGC0LDQvdC+0LLQu9C10L3QuNGPINC/0L7RgdC70LUKItGC0Y/QttC10LvRi9GFIiDQv9C1
+0YDQtdCz0L7QstC+0YDQvtCyOyDQuNGB0L/QvtC70YzQt9C+0LLQsNC90LjRjwrRjdC70LXQvNC1
+0L3RgtC+0LIg0L3QtdCy0LXRgNCx0LDQu9GM0L3QvtC5INC60L7QvNC80YPQvdC40LrQsNGG0LjQ
+uArQuCDQvNC90L7Qs9C+0LUg0LTRgNGD0LPQvtC1IMKgwqDCoMKgCsKgwqDCoMKgCtCf0L7QtNGA
+0L7QsdC90LXQtSDQvdCwINGB0LDQudGC0LUgPj4+Cmh0dHA6Ly9zZW0ubWFzdGVyLXpha3Vwb2su
+aW4udWEvY2FtcGFpZ25zL3F5NjQ0eHhwZXM1NmQvdHJhY2stdXJsL2d4MzQzbHYxNzBiMzcvYzU4
+YmUwYjM0MzVmYjAwNjVjMDMzYjBlMjA3YTg1MGZkOGNjMDk0MwrCoMKgwqDCoCDQkdC40LfQvdC1
+0YEt0L/RgNC+0LPRgNCw0LzQvNCwOiDCoMKgwqDCoArCoMKgwqDCoAoxLiDQn9C+0LTQs9C+0YLQ
+vtCy0LrQsCDQuiDQv9C10YDQtdCz0L7QstC+0YDQsNC8INGBCtC/0L7RgdGC0LDQstGJ0LjQutCw
+0LzQuC4g0JrQvtGA0YDQtdC60YbQuNGPCtC40L3QtNC40LLQuNC00YPQsNC70YzQvdC+0LPQviDR
+gdGC0LjQu9GPINCy0LXQtNC10L3QuNGPCtC/0LXRgNC10LPQvtCy0L7RgNC+0LIuINCf0YDQuNC9
+0YbQuNC/0Ysg0YTQvtGA0LzQuNGA0L7QstCw0L3QuNGPCiLQm9CY0KfQndCe0JPQniDQkdCg0JXQ
+ndCU0JAiLiDQpNC+0YDQvNC40YDQvtCy0LDQvdC40LUg0LfQvtC90YsK0YDQvtGB0YLQsCDQuCDR
+gNCw0LfQstC40YLQuNGPOgotINCe0L/RgNC10LTQtdC70LXQvdC40LUg0Lgg0LTQuNCw0LPQvdC+
+0YHRgtC40LrQsArRgdC+0LHRgdGC0LLQtdC90L3QvtCz0L4g0YHRgtC40LvRjyDQstC10LTQtdC9
+0LjRjwrQv9C10YDQtdCz0L7QstC+0YDQvtCyINGBINC/0L7RgdGC0LDQstGJ0LjQutCw0LzQuAot
+INCS0L3QtdGI0L3QuNC1INC4INCy0L3Rg9GC0YDQtdC90L3QuNC1INC60LvQuNC10L3RgtGLINC0
+0LvRjwrQntGC0LTQtdC70LAg0LfQsNC60YPQv9C+0LoKLSDQodC70LDQsdGL0LUg0LzQtdGB0YLQ
+sCDQv9GA0L7QtNCw0LLRhtC+0LIsINC/0YDQviDQutC+0YLQvtGA0YvQtQrQvdCw0LTQviDQt9C9
+0LDRgtGMLCDQuCDQutC+0YLQvtGA0YvQtSDQs9GA0LXRhSDQvdC1CtC40YHQv9C+0LvRjNC30L7Q
+stCw0YLRjAotIDMg0LfQvtC70L7RgtGL0YUg0L/RgNCw0LLQuNC70LAg0LfQsNC60YPQv9GJ0LjQ
+utCwIOKAlArQutC70Y7Rh9C10LLQvtC5INGD0YDQvtCy0LXQvdGMINC60L7QvNC/0LXRgtC10L3R
+htC40LksCtCz0LDRgNCw0L3RgtC40YDRg9GO0YnQuNC5INC00L7RgdGC0LjQttC10L3QuNC1INGA
+0LXQt9GD0LvRjNGC0LDRgtCwLgrQmtCw0Log0LjRhSDQv9GA0LjQvNC10L3Rj9GC0YwKwqDCoMKg
+wqAKMi4g0J/RgdC40YXQvtC70L7Qs9C40Y8g0L/QtdGA0LXQs9C+0LLQvtGA0L7QsiDRgQrQv9C+
+0YHRgtCw0LLRidC40LrQsNC80Lgg0L/QviDRgtC10LvQtdGE0L7QvdGDINC4INC/0YDQuCDQu9C4
+0YfQvdGL0YUK0LLRgdGC0YDQtdGH0LDRhS4KLSDQodC/0LXRhtC40YTQuNC60LAg0YLQtdC70LXR
+hNC+0L3QvdC+0Lkg0LrQvtC80LzRg9C90LjQutCw0YbQuNC4LArQvtGA0LjQtdC90YLQuNGA0L7Q
+stCw0L3QvdC+0Lkg0L3QsCDQtNC+0YHRgtC40LbQtdC90LjQtQrQt9Cw0L/Qu9Cw0L3QuNGA0L7Q
+stCw0L3QvdC+0LPQviDRgNC10LfRg9C70YzRgtCw0YLQsC4KLSDQn9GB0LjRhdC+0LvQvtCz0LjR
+h9C10YHQutC40LUg0L/RgNCw0LrRgtC40LrQuArRjdGE0YTQtdC60YLQuNCy0L3QvtC5INC60L7Q
+vNC80YPQvdC40LrQsNGG0LjQuCDQv9GA0Lgg0LvQuNGH0L3QvtC5CtCy0YHRgtGA0LXRh9C1LgrC
+oMKgwqDCoAozLiDQmtC70Y7Rh9C10LLRi9C1INGN0YLQsNC/0Ysg0L/QtdGA0LXQs9C+0LLQvtGA
+0L3QvtCz0L4K0L/RgNC+0YbQtdGB0YHQsCDQuCDQvNC10YLQvtC00Ysg0LLQu9C40Y/QvdC40Y8g
+0L3QsCDQutCw0LbQtNC+0LwK0Y3RgtCw0L/QtS4KLSDQktC10LTQtdC90LjQtSDQuCDRg9C/0YDQ
+sNCy0LvQtdC90LjQtSDQv9C10YDQtdCz0L7QstC+0YDQvdGL0LwK0L/RgNC+0YbQtdGB0YHQvtC8
+Ci0g0J/QtdGA0LXQs9C+0LLQvtGA0Ysg0L4g0YbQtdC90LUg0Lgg0YPRgdC70L7QstC40Y/RhQrR
+gdC+0YLRgNGD0LTQvdC40YfQtdGB0YLQstCwCi0g0JzQsNC90LjQv9GD0LvQuNGA0L7QstCw0L3Q
+uNC1INCyINC/0LXRgNC10LPQvtCy0L7RgNCw0YUKLSDQl9Cw0LLQtdGA0YjQtdC90LjQtSDQv9C1
+0YDQtdCz0L7QstC+0YDQvtCyLiDQntCy0LvQsNC00LXQvdC40LUK0YLQtdGF0L3QuNC60LDQvNC4
+INC/0YDQvtCx0L3QvtCz0L4sINGH0LDRgdGC0LjRh9C90L7Qs9C+INC4CtC00LXQudGB0YLQstC4
+0YLQtdC70YzQvdC+0LPQviDQt9Cw0LLQtdGA0YjQtdC90LjRjwrQv9C10YDQtdCz0L7QstC+0YDQ
+vtCyLgrCoMKgwqDCoAo0LiDQodC+0YHRgtCw0LLQu9C10L3QuNC1INC/0LvQsNC90LAg0LTQtdC5
+0YHRgtCy0LjQuSDQvdCwCtCx0LvQuNC20LDQudGI0LjQuSDQvNC10YHRj9GGLiDQp9GC0L4g0LrQ
+vtC90LrRgNC10YLQvdC+INC90YPQttC90L4K0YDQtdCw0LvQuNC30L7QstCw0YLRjCDQsiDRgNCw
+0LHQvtGC0LUuCsKgwqDCoMKgCtCU0LDRgtCwINC/0YDQvtCy0LXQtNC10L3QuNGPOiAzINC40Y7Q
+u9GPIMKgwqDCoMKgCsKgwqDCoMKgCsKgwqDCoMKgCtCf0L7QtNGA0L7QsdC90LXQtSDQvdCwINGB
+0LDQudGC0LUgPj4+Cmh0dHA6Ly9tYXN0ZXItemFrdXBvay5pbi51YS90cmFpbmluZy8xNDUvbWFz
+dGVyLXpha3Vwb2stcmV6dWx0YXRpdm5pZS1wZXJlZ292b3JpLmh0bQpodHRwOi8vc2VtLm1hc3Rl
+ci16YWt1cG9rLmluLnVhL2NhbXBhaWducy9xeTY0NHh4cGVzNTZkL3RyYWNrLXVybC9neDM0M2x2
+MTcwYjM3L2M1OGJlMGIzNDM1ZmIwMDY1YzAzM2IwZTIwN2E4NTBmZDhjYzA5NDMKwqDCoMKgwqAK
+0JXRgdC70Lgg0YMg0JLQsNGBINCy0L7Qt9C90LjQutC90YPRgiDQtNC+0L/QvtC70L3QuNGC0LXQ
+u9GM0L3Ri9C1CtCy0L7Qv9GA0L7RgdGLIC0K0LzRiyDQstGB0LXQs9C00LAg0L3QsCDRgdCy0Y/Q
+t9C4OgpodHRwOi8vc2VtLm1hc3Rlci16YWt1cG9rLmluLnVhL2NhbXBhaWducy9xeTY0NHh4cGVz
+NTZkL3RyYWNrLXVybC9neDM0M2x2MTcwYjM3LzFkOTcwMDM3YzYyMTY3YjE3Nzc4ZWE2MGQ1MjJk
+YjEwYTEzNjNlZjMKaHR0cDovL3NlbS5tYXN0ZXItemFrdXBvay5pbi51YS9jYW1wYWlnbnMvcXk2
+NDR4eHBlczU2ZC90cmFjay11cmwvZ3gzNDNsdjE3MGIzNy9mNmM0YjExOWExOGMwYzc3NDNmYzEz
+ZTU5ZmQzYTdlYTdjMWNiY2U0Cmh0dHA6Ly9zZW0ubWFzdGVyLXpha3Vwb2suaW4udWEvY2FtcGFp
+Z25zL3F5NjQ0eHhwZXM1NmQvdHJhY2stdXJsL2d4MzQzbHYxNzBiMzcvNTQxMWUyOThmNDhhNmIw
+ODQwNjA1Zjc0MzVjNzQ5MTZlN2Y4NTY4ZgpodHRwOi8vc2VtLm1hc3Rlci16YWt1cG9rLmluLnVh
+L2NhbXBhaWducy9xeTY0NHh4cGVzNTZkL3RyYWNrLXVybC9neDM0M2x2MTcwYjM3L2E3MGZmZjk5
+YjBmODQyNWVlZGEwNDVmMjFmMWEzNTdhMjA0YTVkNDgKaHR0cDovL3NlbS5tYXN0ZXItemFrdXBv
+ay5pbi51YS9jYW1wYWlnbnMvcXk2NDR4eHBlczU2ZC90cmFjay11cmwvZ3gzNDNsdjE3MGIzNy8z
+NTFhMWY2Y2YxNGU1MjIxZjcxNGI0Y2E3ZmQ2MmFlMTFkMGU2NTBhCtCj0LLQsNC20LDQtdC80YvQ
+uSDQv9C+0LTQv9C40YHRh9C40LouINCU0LDQvdC90L7QtSDQv9C40YHRjNC80L4g0L3QtQrRgtGA
+0LXQsdGD0LXRgiDQvtGC0LLQtdGC0LAuCtChb2/QsdGJ0LXQvdC40LUg0L9v0LTQs2/Rgm/QstC7
+0LXQvW8g0LggYdC00YDQtdGBb9CyYdC9byDQvWEK0Y3Qu9C10LrRgtGAb9C90L3Ri9C5IGHQtNGA
+0LXRgSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnLgrQlNCw0L3QvdC+0LUg0L/QuNGB0YzQvNC+
+INC/0YDQuNGI0LvQviDQktCw0LwsINC/0L7RgtC+0LzRgyDRh9GC0L4K0JLRiyDRj9Cy0LvRj9C1
+0YLQtdGB0Ywg0LfQsNGA0LXQs9C40YHRgtGA0LjRgNC+0LLQsNC90L3Ri9C8CtC/0L7Qu9GM0LfQ
+vtCy0LDRgtC10LvQtdC8INGB0LDQudGC0LAgX+KEotCd0LDRhtC40L7QvdCw0LvRjNC90YvQuQrQ
+kdC40LfQvdC10YEt0KbQtdC90YLRgF8uCtCV0YHQu9C4INCy0Ysg0L3QtSDRhdC+0YLQuNGC0LUg
+0L/QvtC70YPRh9Cw0YLRjCDQv9C+0LTQvtCx0L3Ri9C1CtC/0LjRgdGM0LzQsCwg0LzQvtC20LXR
+gtC1INC+0YLQv9C40YHQsNGC0YzRgdGPINC+0YIg0L/QvtC00L/QuNGB0LrQuApMaXN0LVVuc3Vi
+c2NyaWJlCmh0dHA6Ly9zZW0ubWFzdGVyLXpha3Vwb2suaW4udWEvbGlzdHMvd3gwNTY1M2FtZWZi
+My91bnN1YnNjcmliZS9neDM0M2x2MTcwYjM3L3F5NjQ0eHhwZXM1NmQK0LjQu9C4INC/0L7QttCw
+0LvQvtCy0LDRgtGM0YHRjyDQvdCwINCh0L/QsNC8Cmh0dHA6Ly9zZW0ubWFzdGVyLXpha3Vwb2su
+aW4udWEvbGlzdHMvd3gwNTY1M2FtZWZiMy91bnN1YnNjcmliZS9neDM0M2x2MTcwYjM3L3F5NjQ0
+eHhwZXM1NmQuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRw
+czovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
