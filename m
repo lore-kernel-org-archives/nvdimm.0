@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B13D2122DDCB
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 06:38:14 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v14 3/7] libnvdimm: add dax_dev sync flag
-Date: Fri, 21 Jun 2019 19:04:51 +0530
-Message-Id: <20190621133455.3303-4-pagupta@redhat.com>
-In-Reply-To: <20190621133455.3303-1-pagupta@redhat.com>
-References: <20190621133455.3303-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9DBCB21296400
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:53 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 12/22] mm/hmm: Hold on to the mmget for the lifetime of the
+ range
+Date: Mon,  1 Jul 2019 08:20:10 +0200
+Message-Id: <20190701062020.19239-13-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,236 +20,176 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds 'DAXDEV_SYNC' flag which is set
-for nd_region doing synchronous flush. This later
-is used to disable MAP_SYNC functionality for
-ext4 & xfs filesystem for devices don't support
-synchronous flush.
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Range functions like hmm_range_snapshot() and hmm_range_fault() call
+find_vma, which requires hodling the mmget() and the mmap_sem for the mm.
+
+Make this simpler for the callers by holding the mmget() inside the range
+for the lifetime of the range. Other functions that accept a range should
+only be called if the range is registered.
+
+This has the side effect of directly preventing hmm_release() from
+happening while a range is registered. That means range->dead cannot be
+false during the lifetime of the range, so remove dead and
+hmm_mirror_mm_is_alive() entirely.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
 ---
- drivers/dax/bus.c            |  2 +-
- drivers/dax/super.c          | 19 ++++++++++++++++++-
- drivers/md/dm.c              |  3 ++-
- drivers/nvdimm/pmem.c        |  5 ++++-
- drivers/nvdimm/region_devs.c |  7 +++++++
- drivers/s390/block/dcssblk.c |  2 +-
- include/linux/dax.h          | 24 ++++++++++++++++++++++--
- include/linux/libnvdimm.h    |  1 +
- 8 files changed, 56 insertions(+), 7 deletions(-)
+ include/linux/hmm.h | 26 --------------------------
+ mm/hmm.c            | 32 +++++++++++---------------------
+ 2 files changed, 11 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 2109cfe80219..5f184e751c82 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
- 	 * No 'host' or dax_operations since there is no access to this
- 	 * device outside of mmap of the resulting character device.
- 	 */
--	dax_dev = alloc_dax(dev_dax, NULL, NULL);
-+	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
- 	if (!dax_dev)
- 		goto err;
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 4e5ae7e8b557..8ab12068eea3 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -195,6 +195,8 @@ enum dax_device_flags {
- 	DAXDEV_ALIVE,
- 	/* gate whether dax_flush() calls the low level flush routine */
- 	DAXDEV_WRITE_CACHE,
-+	/* flag to check if device supports synchronous flush */
-+	DAXDEV_SYNC,
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 26e7c477490c..bf013e965257 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -82,7 +82,6 @@
+  * @mirrors_sem: read/write semaphore protecting the mirrors list
+  * @wq: wait queue for user waiting on a range invalidation
+  * @notifiers: count of active mmu notifiers
+- * @dead: is the mm dead ?
+  */
+ struct hmm {
+ 	struct mm_struct	*mm;
+@@ -95,7 +94,6 @@ struct hmm {
+ 	wait_queue_head_t	wq;
+ 	struct rcu_head		rcu;
+ 	long			notifiers;
+-	bool			dead;
  };
  
- /**
-@@ -372,6 +374,18 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+ /*
+@@ -459,30 +457,6 @@ struct hmm_mirror {
+ int hmm_mirror_register(struct hmm_mirror *mirror, struct mm_struct *mm);
+ void hmm_mirror_unregister(struct hmm_mirror *mirror);
  
-+bool __dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(__dax_synchronous);
-+
-+void __set_dax_synchronous(struct dax_device *dax_dev)
-+{
-+	set_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(__set_dax_synchronous);
-+
- bool dax_alive(struct dax_device *dax_dev)
+-/*
+- * hmm_mirror_mm_is_alive() - test if mm is still alive
+- * @mirror: the HMM mm mirror for which we want to lock the mmap_sem
+- * Return: false if the mm is dead, true otherwise
+- *
+- * This is an optimization, it will not always accurately return false if the
+- * mm is dead; i.e., there can be false negatives (process is being killed but
+- * HMM is not yet informed of that). It is only intended to be used to optimize
+- * out cases where the driver is about to do something time consuming and it
+- * would be better to skip it if the mm is dead.
+- */
+-static inline bool hmm_mirror_mm_is_alive(struct hmm_mirror *mirror)
+-{
+-	struct mm_struct *mm;
+-
+-	if (!mirror || !mirror->hmm)
+-		return false;
+-	mm = READ_ONCE(mirror->hmm->mm);
+-	if (mirror->hmm->dead || !mm)
+-		return false;
+-
+-	return true;
+-}
+-
+ /*
+  * Please see Documentation/vm/hmm.rst for how to use the range API.
+  */
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 73c8af4827fe..1eddda45cefa 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -67,7 +67,6 @@ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
+ 	mutex_init(&hmm->lock);
+ 	kref_init(&hmm->kref);
+ 	hmm->notifiers = 0;
+-	hmm->dead = false;
+ 	hmm->mm = mm;
+ 
+ 	hmm->mmu_notifier.ops = &hmm_mmu_notifier_ops;
+@@ -120,21 +119,16 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
  {
- 	lockdep_assert_held(&dax_srcu);
-@@ -526,7 +540,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
+ 	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+ 	struct hmm_mirror *mirror;
+-	struct hmm_range *range;
+ 
+ 	/* Bail out if hmm is in the process of being freed */
+ 	if (!kref_get_unless_zero(&hmm->kref))
+ 		return;
+ 
+-	/* Report this HMM as dying. */
+-	hmm->dead = true;
+-
+-	/* Wake-up everyone waiting on any range. */
+-	mutex_lock(&hmm->lock);
+-	list_for_each_entry(range, &hmm->ranges, list)
+-		range->valid = false;
+-	wake_up_all(&hmm->wq);
+-	mutex_unlock(&hmm->lock);
++	/*
++	 * Since hmm_range_register() holds the mmget() lock hmm_release() is
++	 * prevented as long as a range exists.
++	 */
++	WARN_ON(!list_empty_careful(&hmm->ranges));
+ 
+ 	down_write(&hmm->mirrors_sem);
+ 	mirror = list_first_entry_or_null(&hmm->mirrors, struct hmm_mirror,
+@@ -903,8 +897,8 @@ int hmm_range_register(struct hmm_range *range,
+ 	range->start = start;
+ 	range->end = end;
+ 
+-	/* Check if hmm_mm_destroy() was call. */
+-	if (hmm->mm == NULL || hmm->dead)
++	/* Prevent hmm_release() from running while the range is valid */
++	if (!mmget_not_zero(hmm->mm))
+ 		return -EFAULT;
+ 
+ 	/* Initialize range to track CPU page table updates. */
+@@ -942,11 +936,12 @@ void hmm_range_unregister(struct hmm_range *range)
+ 		return;
+ 
+ 	mutex_lock(&hmm->lock);
+-	list_del(&range->list);
++	list_del_init(&range->list);
+ 	mutex_unlock(&hmm->lock);
+ 
+ 	/* Drop reference taken by hmm_range_register() */
+ 	range->valid = false;
++	mmput(hmm->mm);
+ 	hmm_put(hmm);
+ 	range->hmm = NULL;
  }
+@@ -974,10 +969,7 @@ long hmm_range_snapshot(struct hmm_range *range)
+ 	struct vm_area_struct *vma;
+ 	struct mm_walk mm_walk;
  
- struct dax_device *alloc_dax(void *private, const char *__host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
- {
- 	struct dax_device *dax_dev;
- 	const char *host;
-@@ -549,6 +563,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
- 	dax_add_host(dax_dev, host);
- 	dax_dev->ops = ops;
- 	dax_dev->private = private;
-+	if (flags & DAXDEV_F_SYNC)
-+		set_dax_synchronous(dax_dev);
-+
- 	return dax_dev;
+-	/* Check if hmm_mm_destroy() was call. */
+-	if (hmm->mm == NULL || hmm->dead)
+-		return -EFAULT;
+-
++	lockdep_assert_held(&hmm->mm->mmap_sem);
+ 	do {
+ 		/* If range is no longer valid force retry. */
+ 		if (!range->valid)
+@@ -1072,9 +1064,7 @@ long hmm_range_fault(struct hmm_range *range, bool block)
+ 	struct mm_walk mm_walk;
+ 	int ret;
  
-  err_dev:
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 5475081dcbd6..b1caa7188209 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1991,7 +1991,8 @@ static struct mapped_device *alloc_dev(int minor)
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
+-	/* Check if hmm_mm_destroy() was call. */
+-	if (hmm->mm == NULL || hmm->dead)
+-		return -EFAULT;
++	lockdep_assert_held(&hmm->mm->mmap_sem);
  
- 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
--		md->dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		md->dax_dev = alloc_dax(md, md->disk->disk_name,
-+					&dm_dax_ops, 0);
- 		if (!md->dax_dev)
- 			goto bad;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 223da63d1bd7..8be868e2a18b 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -376,6 +376,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct gendisk *disk;
- 	void *addr;
- 	int rc;
-+	unsigned long flags = 0UL;
- 
- 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
- 	if (!pmem)
-@@ -474,7 +475,9 @@ static int pmem_attach_disk(struct device *dev,
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
- 	disk->bb = &pmem->bb;
- 
--	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-+	if (is_nvdimm_sync(nd_region))
-+		flags = DAXDEV_F_SYNC;
-+	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
- 	if (!dax_dev) {
- 		put_disk(disk);
- 		return -ENOMEM;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index eca2e62af134..56f2227f192a 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1211,6 +1211,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_cache);
- 
-+bool is_nvdimm_sync(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev) &&
-+		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
-+}
-+EXPORT_SYMBOL_GPL(is_nvdimm_sync);
-+
- struct conflict_context {
- 	struct nd_region *nd_region;
- 	resource_size_t start, size;
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index d04d4378ca50..63502ca537eb 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -679,7 +679,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 		goto put_dev;
- 
- 	dev_info->dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
--			&dcssblk_dax_ops);
-+			&dcssblk_dax_ops, DAXDEV_F_SYNC);
- 	if (!dev_info->dax_dev) {
- 		rc = -ENOMEM;
- 		goto put_dev;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index becaea5f4488..8b535bc4526f 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,6 +7,9 @@
- #include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
-+/* Flag for synchronous flush */
-+#define DAXDEV_F_SYNC (1UL << 0)
-+
- typedef unsigned long dax_entry_t;
- 
- struct iomap_ops;
-@@ -38,18 +41,28 @@ extern struct attribute_group dax_attribute_group;
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
- struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
-+		const struct dax_operations *ops, unsigned long flags);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
-+bool __dax_synchronous(struct dax_device *dax_dev);
-+static inline bool dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return  __dax_synchronous(dax_dev);
-+}
-+void __set_dax_synchronous(struct dax_device *dax_dev);
-+static inline void set_dax_synchronous(struct dax_device *dax_dev)
-+{
-+	__set_dax_synchronous(dax_dev);
-+}
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
- }
- static inline struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
- {
- 	/*
- 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-@@ -70,6 +83,13 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- {
- 	return false;
- }
-+static inline bool dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return true;
-+}
-+static inline void set_dax_synchronous(struct dax_device *dax_dev)
-+{
-+}
- #endif
- 
- struct writeback_control;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index e13100f424c8..7a64b3ddb408 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -263,6 +263,7 @@ int generic_nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
-+bool is_nvdimm_sync(struct nd_region *nd_region);
- 
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
+ 	do {
+ 		/* If range is no longer valid force retry. */
 -- 
 2.20.1
 
