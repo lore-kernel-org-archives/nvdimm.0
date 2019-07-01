@@ -3,14 +3,15 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DD33E2129DBAD
- for <linux-nvdimm@lists.01.org>; Mon, 17 Jun 2019 05:28:13 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 06FFC212A36ED
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:48 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 15/25] device-dax: use the dev_pagemap internal refcount
-Date: Mon, 17 Jun 2019 14:27:23 +0200
-Message-Id: <20190617122733.22432-16-hch@lst.de>
-In-Reply-To: <20190617122733.22432-1-hch@lst.de>
-References: <20190617122733.22432-1-hch@lst.de>
+Subject: [PATCH 10/22] mm/hmm: Remove duplicate condition test before
+ wait_event_timeout
+Date: Mon,  1 Jul 2019 08:20:08 +0200
+Message-Id: <20190701062020.19239-11-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,108 +25,60 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The functionality is identical to the one currently open coded in
-device-dax.
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+The wait_event_timeout macro already tests the condition as its first
+action, so there is no reason to open code another version of this, all
+that does is skip the might_sleep() debugging in common cases, which is
+not helpful.
+
+Further, based on prior patches, we can now simplify the required condition
+test:
+ - If range is valid memory then so is range->hmm
+ - If hmm_release() has run then range->valid is set to false
+   at the same time as dead, so no reason to check both.
+ - A valid hmm has a valid hmm->mm.
+
+Allowing the return value of wait_event_timeout() (along with its internal
+barriers) to compute the result of the function.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
 ---
- drivers/dax/dax-private.h |  4 ----
- drivers/dax/device.c      | 43 ---------------------------------------
- 2 files changed, 47 deletions(-)
+ include/linux/hmm.h | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index a45612148ca0..ed04a18a35be 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -51,8 +51,6 @@ struct dax_region {
-  * @target_node: effective numa node if dev_dax memory range is onlined
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-- * @ref: pgmap reference count (driver owned)
-- * @cmp: @ref final put completion (driver owned)
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -60,8 +58,6 @@ struct dev_dax {
- 	int target_node;
- 	struct device dev;
- 	struct dev_pagemap pgmap;
--	struct percpu_ref ref;
--	struct completion cmp;
- };
- 
- static inline struct dev_dax *to_dev_dax(struct device *dev)
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 17b46c1a76b4..a9d7c90ecf1e 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -14,36 +14,6 @@
- #include "dax-private.h"
- #include "bus.h"
- 
--static struct dev_dax *ref_to_dev_dax(struct percpu_ref *ref)
--{
--	return container_of(ref, struct dev_dax, ref);
--}
--
--static void dev_dax_percpu_release(struct percpu_ref *ref)
--{
--	struct dev_dax *dev_dax = ref_to_dev_dax(ref);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	complete(&dev_dax->cmp);
--}
--
--static void dev_dax_percpu_exit(struct dev_pagemap *pgmap)
--{
--	struct dev_dax *dev_dax = container_of(pgmap, struct dev_dax, pgmap);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	wait_for_completion(&dev_dax->cmp);
--	percpu_ref_exit(pgmap->ref);
--}
--
--static void dev_dax_percpu_kill(struct dev_pagemap *pgmap)
--{
--	struct dev_dax *dev_dax = container_of(pgmap, struct dev_dax, pgmap);
--
--	dev_dbg(&dev_dax->dev, "%s\n", __func__);
--	percpu_ref_kill(pgmap->ref);
--}
--
- static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		const char *func)
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 1d97b6d62c5b..26e7c477490c 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -209,17 +209,8 @@ static inline unsigned long hmm_range_page_size(const struct hmm_range *range)
+ static inline bool hmm_range_wait_until_valid(struct hmm_range *range,
+ 					      unsigned long timeout)
  {
-@@ -441,11 +411,6 @@ static void dev_dax_kill(void *dev_dax)
- 	kill_dev_dax(dev_dax);
+-	/* Check if mm is dead ? */
+-	if (range->hmm == NULL || range->hmm->dead || range->hmm->mm == NULL) {
+-		range->valid = false;
+-		return false;
+-	}
+-	if (range->valid)
+-		return true;
+-	wait_event_timeout(range->hmm->wq, range->valid || range->hmm->dead,
+-			   msecs_to_jiffies(timeout));
+-	/* Return current valid status just in case we get lucky */
+-	return range->valid;
++	return wait_event_timeout(range->hmm->wq, range->valid,
++				  msecs_to_jiffies(timeout)) != 0;
  }
  
--static const struct dev_pagemap_ops dev_dax_pagemap_ops = {
--	.kill		= dev_dax_percpu_kill,
--	.cleanup	= dev_dax_percpu_exit,
--};
--
- int dev_dax_probe(struct device *dev)
- {
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
-@@ -463,14 +428,6 @@ int dev_dax_probe(struct device *dev)
- 		return -EBUSY;
- 	}
- 
--	init_completion(&dev_dax->cmp);
--	rc = percpu_ref_init(&dev_dax->ref, dev_dax_percpu_release, 0,
--			GFP_KERNEL);
--	if (rc)
--		return rc;
--
--	dev_dax->pgmap.ref = &dev_dax->ref;
--	dev_dax->pgmap.ops = &dev_dax_pagemap_ops;
- 	addr = devm_memremap_pages(dev, &dev_dax->pgmap);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
+ /*
 -- 
 2.20.1
 
