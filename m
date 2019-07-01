@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com
- [IPv6:2607:f8b0:4864:20::444])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9E8CA2125F1E7
- for <linux-nvdimm@lists.01.org>; Thu,  6 Jun 2019 22:26:15 -0700 (PDT)
-Received: by mail-pf1-x444.google.com with SMTP id a186so511720pfa.5
- for <linux-nvdimm@lists.01.org>; Thu, 06 Jun 2019 22:26:15 -0700 (PDT)
-From: Santosh Sivaraj <santosh@fossix.org>
-Subject: [ndctl PATCH] Enable ndctl tests for emulated pmem devices
-Date: Fri,  7 Jun 2019 10:55:58 +0530
-Message-Id: <20190607052558.15037-1-santosh@fossix.org>
+ by ml01.01.org (Postfix) with ESMTPS id CEDFC212ABA3A
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:13 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 21/22] nouveau: unlock mmap_sem on all errors from
+ nouveau_range_fault
+Date: Mon,  1 Jul 2019 08:20:19 +0200
+Message-Id: <20190701062020.19239-22-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,190 +24,67 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: harish@linux.ibm.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-For QEMU emulated devices, nfit drivers need not be loaded, also the
-nfit_test, libnvdimm_test modules are not required. This patch adds a
-configure option to enable testing on qemu without nfit dependencies.
+Currently nouveau_svm_fault expects nouveau_range_fault to never unlock
+mmap_sem, but the latter unlocks it for a random selection of error
+codes. Fix this up by always unlocking mmap_sem for non-zero return
+values in nouveau_range_fault, and only unlocking it in the caller
+for successful returns.
 
-Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- configure.ac         | 30 ++++++++++++++++++++++++++++++
- test/common          | 14 +++++++++++---
- test/core.c          |  7 ++++++-
- test/create.sh       |  6 +++++-
- test/daxdev-errors.c |  1 -
- test/dpa-alloc.c     |  2 --
- test/libndctl.c      |  2 --
- 7 files changed, 52 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 6dca96e..115f59e 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -148,6 +148,36 @@ fi
- AC_SUBST([BASH_COMPLETION_DIR])
- AM_CONDITIONAL([ENABLE_BASH_COMPLETION], [test "x$with_bash" = "xyes"])
+diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
+index e831f4184a17..c0cf7aeaefb3 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -500,8 +500,10 @@ nouveau_range_fault(struct hmm_mirror *mirror, struct hmm_range *range,
+ 	ret = hmm_range_register(range, mirror,
+ 				 range->start, range->end,
+ 				 PAGE_SHIFT);
+-	if (ret)
++	if (ret) {
++		up_read(&range->vma->vm_mm->mmap_sem);
+ 		return (int)ret;
++	}
  
-+AC_CANONICAL_HOST
-+AS_CASE([$host_cpu],
-+  [x86_64|arm*],
-+  [
-+	AC_DEFINE([ACPI], [1], ["Build for ACPI NFIT"])
-+  ]
-+)
-+
-+# Build on a qemu
-+AC_ARG_ENABLE(qemu-test,
-+  [ --enable-qemu-test   Enable compilation for testing on qemu],
-+  [case "${enableval}" in
-+     yes | no ) QEMU_PMEM_TEST="${enableval}" ;;
-+     *) AC_MSG_ERROR(bad value ${enableval} for --enable-qemu-test) ;;
-+   esac],
-+  [QEMU_PMEM_TEST="yes"]
-+)
-+
-+AM_CONDITIONAL([QEMU_PMEM_TEST], [test "x$QEMU_PMEM_TEST" = "xyes"])
-+
-+if test "x$QEMU_PMEM_TEST" = "xyes"; then
-+    AC_DEFINE([QEMU_PMEM_TEST], [1], ["build for qemu pmem testing"])
-+    AC_DEFINE_UNQUOTED([NFIT_PROVIDER0], [["$BUS_PROVIDER0"]], ["pmem device"])
-+    AC_DEFINE_UNQUOTED([NFIT_PROVIDER1], [["$BUS_PROVIDER1"]], ["pmem device"])
-+    AC_MSG_NOTICE([building for pmem testing on qemu])
-+else
-+    AC_DEFINE_UNQUOTED([NFIT_PROVIDER0], [["nfit_test.0"]], ["nfit device"])
-+    AC_DEFINE_UNQUOTED([NFIT_PROVIDER1], [["nfit_test.1"]], ["nfit device"])
-+fi
-+
- AC_ARG_ENABLE([local],
-         AS_HELP_STRING([--disable-local], [build against kernel ndctl.h @<:@default=system@:>@]),
-         [], [enable_local=yes])
-diff --git a/test/common b/test/common
-index 1b9d3da..5a75e22 100644
---- a/test/common
-+++ b/test/common
-@@ -17,8 +17,14 @@ fi
+ 	if (!hmm_range_wait_until_valid(range, NOUVEAU_RANGE_FAULT_TIMEOUT)) {
+ 		/*
+@@ -515,15 +517,14 @@ nouveau_range_fault(struct hmm_mirror *mirror, struct hmm_range *range,
  
- # NFIT_TEST_BUS[01]
- #
--NFIT_TEST_BUS0=nfit_test.0
--NFIT_TEST_BUS1=nfit_test.1
-+if [ -z $BUS_PROVIDER0]; then
-+    NFIT_TEST_BUS0=nfit_test.0
-+    NFIT_TEST_BUS1=nfit_test.1
-+else
-+    NFIT_TEST_BUS0=$BUS_PROVIDER0
-+    NFIT_TEST_BUS1=$BUS_PROVIDER1
-+    QEMU_PMEM_TEST=yes
-+fi
- 
- 
- # Functions
-@@ -71,7 +77,9 @@ _cleanup()
- {
- 	$NDCTL disable-region -b $NFIT_TEST_BUS0 all
- 	$NDCTL disable-region -b $NFIT_TEST_BUS1 all
--	modprobe -r nfit_test
-+	if [ "x$QEMU_PMEM_TEST" = "x" ]; then
-+		modprobe -r nfit_test
-+	fi
+ 	ret = hmm_range_fault(range, block);
+ 	if (ret <= 0) {
+-		if (ret == -EBUSY || !ret) {
+-			/* Same as above, drop mmap_sem to match old API. */
+-			up_read(&range->vma->vm_mm->mmap_sem);
+-			ret = -EBUSY;
+-		} else if (ret == -EAGAIN)
++		if (ret == 0)
+ 			ret = -EBUSY;
++		if (ret != -EAGAIN)
++			up_read(&range->vma->vm_mm->mmap_sem);
+ 		hmm_range_unregister(range);
+ 		return ret;
+ 	}
++
+ 	return 0;
  }
  
- # json2var
-diff --git a/test/core.c b/test/core.c
-index b9e3bbf..4f5123f 100644
---- a/test/core.c
-+++ b/test/core.c
-@@ -126,7 +126,9 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
- 	struct ndctl_bus *bus;
- 	struct log_ctx log_ctx;
- 	const char *list[] = {
-+#ifdef ACPI
- 		"nfit",
-+#endif
- 		"device_dax",
- 		"dax_pmem",
- 		"dax_pmem_core",
-@@ -134,7 +136,9 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
- 		"libnvdimm",
- 		"nd_blk",
- 		"nd_btt",
-+#ifdef ACPI
- 		"nd_e820",
-+#endif
- 		"nd_pmem",
- 	};
- 
-@@ -228,10 +232,11 @@ retry:
- 		/* caller wants a full nfit_test reset */
- 		ndctl_bus_foreach(nd_ctx, bus) {
- 			struct ndctl_region *region;
--
-+#ifdef ACPI
- 			if (strncmp(ndctl_bus_get_provider(bus),
- 						"nfit_test", 9) != 0)
- 				continue;
-+#endif
- 			ndctl_region_foreach(bus, region)
- 				ndctl_region_disable_invalidate(region);
+@@ -718,8 +719,8 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 						NULL);
+ 			svmm->vmm->vmm.object.client->super = false;
+ 			mutex_unlock(&svmm->mutex);
++			up_read(&svmm->mm->mmap_sem);
  		}
-diff --git a/test/create.sh b/test/create.sh
-index 8d78797..7fdf696 100755
---- a/test/create.sh
-+++ b/test/create.sh
-@@ -23,7 +23,11 @@ check_min_kver "4.5" || do_skip "may lack namespace mode attribute"
- trap 'err $LINENO' ERR
+-		up_read(&svmm->mm->mmap_sem);
  
- # setup (reset nfit_test dimms)
--modprobe nfit_test
-+if [ -z $QEMU_PMEM_TEST ]; then
-+    # setup (reset nfit_test dimms)
-+    modprobe nfit_test
-+fi
-+
- $NDCTL disable-region -b $NFIT_TEST_BUS0 all
- $NDCTL zero-labels -b $NFIT_TEST_BUS0 all
- $NDCTL enable-region -b $NFIT_TEST_BUS0 all
-diff --git a/test/daxdev-errors.c b/test/daxdev-errors.c
-index 29de16b..c17e42a 100644
---- a/test/daxdev-errors.c
-+++ b/test/daxdev-errors.c
-@@ -45,7 +45,6 @@ struct check_cmd {
- static sigjmp_buf sj_env;
- static int sig_count;
- 
--static const char *NFIT_PROVIDER0 = "nfit_test.0";
- static struct check_cmd *check_cmds;
- 
- static void sigbus_hdl(int sig, siginfo_t *siginfo, void *ptr)
-diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
-index 9a9c6b6..2f100b1 100644
---- a/test/dpa-alloc.c
-+++ b/test/dpa-alloc.c
-@@ -30,8 +30,6 @@
- #include <ndctl/libndctl.h>
- #include <ccan/array_size/array_size.h>
- 
--static const char *NFIT_PROVIDER0 = "nfit_test.0";
--static const char *NFIT_PROVIDER1 = "nfit_test.1";
- #define NUM_NAMESPACES 4
- 
- struct test_dpa_namespace {
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 02bb9cc..6c123f8 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -94,8 +94,6 @@
-  *    dimm.
-  */
- 
--static const char *NFIT_PROVIDER0 = "nfit_test.0";
--static const char *NFIT_PROVIDER1 = "nfit_test.1";
- #define SZ_4K   0x00001000
- #define SZ_128K 0x00020000
- #define SZ_7M   0x00700000
+ 		/* Cancel any faults in the window whose pages didn't manage
+ 		 * to keep their valid bit, or stay writeable when required.
 -- 
 2.20.1
 
