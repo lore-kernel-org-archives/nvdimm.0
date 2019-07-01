@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0255521296704
- for <linux-nvdimm@lists.01.org>; Mon, 24 Jun 2019 11:34:18 -0700 (PDT)
-Subject: [PATCH v4 06/10] x86, efi: Add efi_fake_mem support for EFI_MEMORY_SP
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 24 Jun 2019 11:20:01 -0700
-Message-ID: <156140040143.2951909.16322818756106417668.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 60464212A36ED
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:44 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 08/22] mm/hmm: Hold a mmgrab from hmm to mm
+Date: Mon,  1 Jul 2019 08:20:06 +0200
+Message-Id: <20190701062020.19239-9-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,256 +19,72 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: x86@kernel.org
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, peterz@infradead.org, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, tglx@linutronix.de, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given that EFI_MEMORY_SP is platform BIOS policy descision for marking
-memory ranges as "reserved for a specific purpose" there will inevitably
-be scenarios where the BIOS omits the attribute in situations where it
-is desired. Unlike other attributes if the OS wants to reserve this
-memory from the kernel the reservation needs to happen early in init. So
-early, in fact, that it needs to happen before e820__memblock_setup()
-which is a pre-requisite for efi_fake_memmap() that wants to allocate
-memory for the updated table.
-
-Introduce an x86 specific efi_fake_memmap_early() that can search for
-attempts to set EFI_MEMORY_SP via efi_fake_mem and update the e820 table
-accordingly.
-
-Cc: <x86@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/include/asm/efi.h          |    8 ++++
- arch/x86/kernel/setup.c             |    1 +
- drivers/firmware/efi/Makefile       |    5 ++-
- drivers/firmware/efi/fake_mem.c     |   24 ++++++------
- drivers/firmware/efi/fake_mem.h     |   10 +++++
- drivers/firmware/efi/x86-fake_mem.c |   69 +++++++++++++++++++++++++++++++++++
- 6 files changed, 103 insertions(+), 14 deletions(-)
- create mode 100644 drivers/firmware/efi/fake_mem.h
- create mode 100644 drivers/firmware/efi/x86-fake_mem.c
-
-diff --git a/arch/x86/include/asm/efi.h b/arch/x86/include/asm/efi.h
-index 4f80254e0541..d6b18cedf0a8 100644
---- a/arch/x86/include/asm/efi.h
-+++ b/arch/x86/include/asm/efi.h
-@@ -275,4 +275,12 @@ static inline void __init efi_find_application_reserved(void)
- }
- #endif /* CONFIG_EFI */
- 
-+#ifdef CONFIG_EFI_FAKE_MEMMAP
-+extern void __init efi_fake_memmap_early(void);
-+#else
-+static inline void efi_fake_memmap_early(void)
-+{
-+}
-+#endif
-+
- #endif /* _ASM_X86_EFI_H */
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 3b9001b7c951..3a7de6d6f106 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1105,6 +1105,7 @@ void __init setup_arch(char **cmdline_p)
- 	memblock_set_current_limit(ISA_END_ADDRESS);
- 
- 	efi_find_application_reserved();
-+	efi_fake_memmap_early();
- 	e820__memblock_setup();
- 
- 	reserve_bios_regions();
-diff --git a/drivers/firmware/efi/Makefile b/drivers/firmware/efi/Makefile
-index d2d0d2030620..b06a9df6094c 100644
---- a/drivers/firmware/efi/Makefile
-+++ b/drivers/firmware/efi/Makefile
-@@ -20,12 +20,15 @@ obj-$(CONFIG_UEFI_CPER)			+= cper.o
- obj-$(CONFIG_EFI_RUNTIME_MAP)		+= runtime-map.o
- obj-$(CONFIG_EFI_RUNTIME_WRAPPERS)	+= runtime-wrappers.o
- obj-$(CONFIG_EFI_STUB)			+= libstub/
--obj-$(CONFIG_EFI_FAKE_MEMMAP)		+= fake_mem.o
-+obj-$(CONFIG_EFI_FAKE_MEMMAP)		+= fake_map.o
- obj-$(CONFIG_EFI_BOOTLOADER_CONTROL)	+= efibc.o
- obj-$(CONFIG_EFI_TEST)			+= test/
- obj-$(CONFIG_EFI_DEV_PATH_PARSER)	+= dev-path-parser.o
- obj-$(CONFIG_APPLE_PROPERTIES)		+= apple-properties.o
- 
-+fake_map-y				+= fake_mem.o
-+fake_map-$(CONFIG_X86)			+= x86-fake_mem.o
-+
- arm-obj-$(CONFIG_EFI)			:= arm-init.o arm-runtime.o
- obj-$(CONFIG_ARM)			+= $(arm-obj-y)
- obj-$(CONFIG_ARM64)			+= $(arm-obj-y)
-diff --git a/drivers/firmware/efi/fake_mem.c b/drivers/firmware/efi/fake_mem.c
-index 526b45331d96..bb9fc70d0cfa 100644
---- a/drivers/firmware/efi/fake_mem.c
-+++ b/drivers/firmware/efi/fake_mem.c
-@@ -17,12 +17,10 @@
- #include <linux/memblock.h>
- #include <linux/types.h>
- #include <linux/sort.h>
--#include <asm/efi.h>
-+#include "fake_mem.h"
- 
--#define EFI_MAX_FAKEMEM CONFIG_EFI_MAX_FAKE_MEM
--
--static struct efi_mem_range fake_mems[EFI_MAX_FAKEMEM];
--static int nr_fake_mem;
-+struct efi_mem_range efi_fake_mems[EFI_MAX_FAKEMEM];
-+int nr_fake_mem;
- 
- static int __init cmp_fake_mem(const void *x1, const void *x2)
- {
-@@ -50,7 +48,7 @@ void __init efi_fake_memmap(void)
- 	/* count up the number of EFI memory descriptor */
- 	for (i = 0; i < nr_fake_mem; i++) {
- 		for_each_efi_memory_desc(md) {
--			struct range *r = &fake_mems[i].range;
-+			struct range *r = &efi_fake_mems[i].range;
- 
- 			new_nr_map += efi_memmap_split_count(md, r);
- 		}
-@@ -70,7 +68,7 @@ void __init efi_fake_memmap(void)
- 	}
- 
- 	for (i = 0; i < nr_fake_mem; i++)
--		efi_memmap_insert(&efi.memmap, new_memmap, &fake_mems[i]);
-+		efi_memmap_insert(&efi.memmap, new_memmap, &efi_fake_mems[i]);
- 
- 	/* swap into new EFI memmap */
- 	early_memunmap(new_memmap, efi.memmap.desc_size * new_nr_map);
-@@ -104,22 +102,22 @@ static int __init setup_fake_mem(char *p)
- 		if (nr_fake_mem >= EFI_MAX_FAKEMEM)
- 			break;
- 
--		fake_mems[nr_fake_mem].range.start = start;
--		fake_mems[nr_fake_mem].range.end = start + mem_size - 1;
--		fake_mems[nr_fake_mem].attribute = attribute;
-+		efi_fake_mems[nr_fake_mem].range.start = start;
-+		efi_fake_mems[nr_fake_mem].range.end = start + mem_size - 1;
-+		efi_fake_mems[nr_fake_mem].attribute = attribute;
- 		nr_fake_mem++;
- 
- 		if (*p == ',')
- 			p++;
- 	}
- 
--	sort(fake_mems, nr_fake_mem, sizeof(struct efi_mem_range),
-+	sort(efi_fake_mems, nr_fake_mem, sizeof(struct efi_mem_range),
- 	     cmp_fake_mem, NULL);
- 
- 	for (i = 0; i < nr_fake_mem; i++)
- 		pr_info("efi_fake_mem: add attr=0x%016llx to [mem 0x%016llx-0x%016llx]",
--			fake_mems[i].attribute, fake_mems[i].range.start,
--			fake_mems[i].range.end);
-+			efi_fake_mems[i].attribute, efi_fake_mems[i].range.start,
-+			efi_fake_mems[i].range.end);
- 
- 	return *p == '\0' ? 0 : -EINVAL;
- }
-diff --git a/drivers/firmware/efi/fake_mem.h b/drivers/firmware/efi/fake_mem.h
-new file mode 100644
-index 000000000000..0390be13df96
---- /dev/null
-+++ b/drivers/firmware/efi/fake_mem.h
-@@ -0,0 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#ifndef __EFI_FAKE_MEM_H__
-+#define __EFI_FAKE_MEM_H__
-+#include <asm/efi.h>
-+
-+#define EFI_MAX_FAKEMEM CONFIG_EFI_MAX_FAKE_MEM
-+
-+extern struct efi_mem_range efi_fake_mems[EFI_MAX_FAKEMEM];
-+extern int nr_fake_mem;
-+#endif /* __EFI_FAKE_MEM_H__ */
-diff --git a/drivers/firmware/efi/x86-fake_mem.c b/drivers/firmware/efi/x86-fake_mem.c
-new file mode 100644
-index 000000000000..3e9a80127562
---- /dev/null
-+++ b/drivers/firmware/efi/x86-fake_mem.c
-@@ -0,0 +1,69 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#include <linux/efi.h>
-+#include <asm/e820/api.h>
-+#include "fake_mem.h"
-+
-+void __init efi_fake_memmap_early(void)
-+{
-+	int i;
-+
-+	/*
-+	 * efi_fake_mem() can handle all possibilities if EFI_MEMORY_SP
-+	 * is ignored.
-+	 */
-+	if (!IS_ENABLED(CONFIG_EFI_APPLICATION_RESERVED))
-+		return;
-+
-+	if (!efi_enabled(EFI_MEMMAP) || !nr_fake_mem)
-+		return;
-+
-+	/*
-+	 * Given that efi_fake_memmap() needs to perform memblock
-+	 * allocations it needs to run after e820__memblock_setup().
-+	 * However, if efi_fake_mem specifies EFI_MEMORY_SP for a given
-+	 * address range that potentially needs to mark the memory as
-+	 * reserved prior to e820__memblock_setup(). Update e820
-+	 * directly if EFI_MEMORY_SP is specified for an
-+	 * EFI_CONVENTIONAL_MEMORY descriptor.
-+	 */
-+	for (i = 0; i < nr_fake_mem; i++) {
-+		struct efi_mem_range *mem = &efi_fake_mems[i];
-+		efi_memory_desc_t *md;
-+		u64 m_start, m_end;
-+
-+		if ((mem->attribute & EFI_MEMORY_SP) == 0)
-+			continue;
-+
-+		m_start = mem->range.start;
-+		m_end = mem->range.end;
-+		for_each_efi_memory_desc(md) {
-+			u64 start, end;
-+
-+			if (md->type != EFI_CONVENTIONAL_MEMORY)
-+				continue;
-+
-+			start = md->phys_addr;
-+			end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT) - 1;
-+
-+			if (m_start <= end && m_end >= start)
-+				/* fake range overlaps descriptor */;
-+			else
-+				continue;
-+
-+			/*
-+			 * Trim the boundary of the e820 update to the
-+			 * descriptor in case the fake range overlaps
-+			 * !EFI_CONVENTIONAL_MEMORY
-+			 */
-+			start = max(start, m_start);
-+			end = min(end, m_end);
-+
-+			if (end <= start)
-+				continue;
-+			e820__range_update(start, end - start + 1, E820_TYPE_RAM,
-+					E820_TYPE_APPLICATION_RESERVED);
-+			e820__update_table(e820_table);
-+		}
-+	}
-+}
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKU28gbG9uZyBhcyBhIHN0
+cnVjdCBobW0gcG9pbnRlciBleGlzdHMsIHNvIHNob3VsZCB0aGUgc3RydWN0IG1tIGl0IGlzCmxp
+bmtlZCB0b28uIEhvbGQgdGhlIG1tZ3JhYigpIGFzIHNvb24gYXMgYSBobW0gaXMgY3JlYXRlZCwg
+YW5kIG1tZHJvcCgpIGl0Cm9uY2UgdGhlIGhtbSByZWZjb3VudCBnb2VzIHRvIHplcm8uCgpTaW5j
+ZSBtbWRyb3AoKSAoaWUgYSAwIGtyZWYgb24gc3RydWN0IG1tKSBpcyBub3cgaW1wb3NzaWJsZSB3
+aXRoIGEgIU5VTEwKbW0tPmhtbSBkZWxldGUgdGhlIGhtbV9obW1fZGVzdHJveSgpLgoKU2lnbmVk
+LW9mZi1ieTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgpSZXZpZXdlZC1ieTog
+SsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+ClJldmlld2VkLWJ5OiBKb2huIEh1
+YmJhcmQgPGpodWJiYXJkQG52aWRpYS5jb20+ClJldmlld2VkLWJ5OiBSYWxwaCBDYW1wYmVsbCA8
+cmNhbXBiZWxsQG52aWRpYS5jb20+ClJldmlld2VkLWJ5OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBp
+bnRlbC5jb20+ClJldmlld2VkLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KVGVz
+dGVkLWJ5OiBQaGlsaXAgWWFuZyA8UGhpbGlwLllhbmdAYW1kLmNvbT4KLS0tCiBpbmNsdWRlL2xp
+bnV4L2htbS5oIHwgIDMgLS0tCiBrZXJuZWwvZm9yay5jICAgICAgIHwgIDEgLQogbW0vaG1tLmMg
+ICAgICAgICAgICB8IDIyICsrKystLS0tLS0tLS0tLS0tLS0tLS0KIDMgZmlsZXMgY2hhbmdlZCwg
+NCBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
+bnV4L2htbS5oIGIvaW5jbHVkZS9saW51eC9obW0uaAppbmRleCAxZmJhNjk3OWFkZjQuLjFkOTdi
+NmQ2MmM1YiAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9obW0uaAorKysgYi9pbmNsdWRlL2xp
+bnV4L2htbS5oCkBAIC01NzcsMTQgKzU3NywxMSBAQCBzdGF0aWMgaW5saW5lIGludCBobW1fdm1h
+X2ZhdWx0KHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IsCiB9CiAKIC8qIEJlbG93IGFyZSBmb3Ig
+SE1NIGludGVybmFsIHVzZSBvbmx5ISBOb3QgdG8gYmUgdXNlZCBieSBkZXZpY2UgZHJpdmVyISAq
+Lwotdm9pZCBobW1fbW1fZGVzdHJveShzdHJ1Y3QgbW1fc3RydWN0ICptbSk7Ci0KIHN0YXRpYyBp
+bmxpbmUgdm9pZCBobW1fbW1faW5pdChzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIHsKIAltbS0+aG1t
+ID0gTlVMTDsKIH0KICNlbHNlIC8qIElTX0VOQUJMRUQoQ09ORklHX0hNTV9NSVJST1IpICovCi1z
+dGF0aWMgaW5saW5lIHZvaWQgaG1tX21tX2Rlc3Ryb3koc3RydWN0IG1tX3N0cnVjdCAqbW0pIHt9
+CiBzdGF0aWMgaW5saW5lIHZvaWQgaG1tX21tX2luaXQoc3RydWN0IG1tX3N0cnVjdCAqbW0pIHt9
+CiAjZW5kaWYgLyogSVNfRU5BQkxFRChDT05GSUdfSE1NX01JUlJPUikgKi8KIApkaWZmIC0tZ2l0
+IGEva2VybmVsL2ZvcmsuYyBiL2tlcm5lbC9mb3JrLmMKaW5kZXggNzU2NzViOWJmNmRmLi5jNzA0
+YzNjZWRlZTcgMTAwNjQ0Ci0tLSBhL2tlcm5lbC9mb3JrLmMKKysrIGIva2VybmVsL2ZvcmsuYwpA
+QCAtNjczLDcgKzY3Myw2IEBAIHZvaWQgX19tbWRyb3Aoc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJ
+V0FSTl9PTl9PTkNFKG1tID09IGN1cnJlbnQtPmFjdGl2ZV9tbSk7CiAJbW1fZnJlZV9wZ2QobW0p
+OwogCWRlc3Ryb3lfY29udGV4dChtbSk7Ci0JaG1tX21tX2Rlc3Ryb3kobW0pOwogCW1tdV9ub3Rp
+Zmllcl9tbV9kZXN0cm95KG1tKTsKIAljaGVja19tbShtbSk7CiAJcHV0X3VzZXJfbnMobW0tPnVz
+ZXJfbnMpOwpkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCAyMmE5N2FkYTEw
+OGIuLjA4MGIxN2EyZTg3ZSAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAg
+LTIwLDYgKzIwLDcgQEAKICNpbmNsdWRlIDxsaW51eC9zd2Fwb3BzLmg+CiAjaW5jbHVkZSA8bGlu
+dXgvaHVnZXRsYi5oPgogI2luY2x1ZGUgPGxpbnV4L21lbXJlbWFwLmg+CisjaW5jbHVkZSA8bGlu
+dXgvc2NoZWQvbW0uaD4KICNpbmNsdWRlIDxsaW51eC9qdW1wX2xhYmVsLmg+CiAjaW5jbHVkZSA8
+bGludXgvZG1hLW1hcHBpbmcuaD4KICNpbmNsdWRlIDxsaW51eC9tbXVfbm90aWZpZXIuaD4KQEAg
+LTczLDYgKzc0LDcgQEAgc3RhdGljIHN0cnVjdCBobW0gKmhtbV9nZXRfb3JfY3JlYXRlKHN0cnVj
+dCBtbV9zdHJ1Y3QgKm1tKQogCWhtbS0+bm90aWZpZXJzID0gMDsKIAlobW0tPmRlYWQgPSBmYWxz
+ZTsKIAlobW0tPm1tID0gbW07CisJbW1ncmFiKGhtbS0+bW0pOwogCiAJc3Bpbl9sb2NrKCZtbS0+
+cGFnZV90YWJsZV9sb2NrKTsKIAlpZiAoIW1tLT5obW0pCkBAIC0xMDAsNiArMTAyLDcgQEAgc3Rh
+dGljIHN0cnVjdCBobW0gKmhtbV9nZXRfb3JfY3JlYXRlKHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQog
+CQltbS0+aG1tID0gTlVMTDsKIAlzcGluX3VubG9jaygmbW0tPnBhZ2VfdGFibGVfbG9jayk7CiBl
+cnJvcjoKKwltbWRyb3AoaG1tLT5tbSk7CiAJa2ZyZWUoaG1tKTsKIAlyZXR1cm4gTlVMTDsKIH0K
+QEAgLTEyMSw2ICsxMjQsNyBAQCBzdGF0aWMgdm9pZCBobW1fZnJlZShzdHJ1Y3Qga3JlZiAqa3Jl
+ZikKIAkJbW0tPmhtbSA9IE5VTEw7CiAJc3Bpbl91bmxvY2soJm1tLT5wYWdlX3RhYmxlX2xvY2sp
+OwogCisJbW1kcm9wKGhtbS0+bW0pOwogCW1tdV9ub3RpZmllcl9jYWxsX3NyY3UoJmhtbS0+cmN1
+LCBobW1fZnJlZV9yY3UpOwogfQogCkBAIC0xMjksMjQgKzEzMyw2IEBAIHN0YXRpYyBpbmxpbmUg
+dm9pZCBobW1fcHV0KHN0cnVjdCBobW0gKmhtbSkKIAlrcmVmX3B1dCgmaG1tLT5rcmVmLCBobW1f
+ZnJlZSk7CiB9CiAKLXZvaWQgaG1tX21tX2Rlc3Ryb3koc3RydWN0IG1tX3N0cnVjdCAqbW0pCi17
+Ci0Jc3RydWN0IGhtbSAqaG1tOwotCi0Jc3Bpbl9sb2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsK
+LQlobW0gPSBtbV9nZXRfaG1tKG1tKTsKLQltbS0+aG1tID0gTlVMTDsKLQlpZiAoaG1tKSB7Ci0J
+CWhtbS0+bW0gPSBOVUxMOwotCQlobW0tPmRlYWQgPSB0cnVlOwotCQlzcGluX3VubG9jaygmbW0t
+PnBhZ2VfdGFibGVfbG9jayk7Ci0JCWhtbV9wdXQoaG1tKTsKLQkJcmV0dXJuOwotCX0KLQotCXNw
+aW5fdW5sb2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKLX0KLQogc3RhdGljIHZvaWQgaG1tX3Jl
+bGVhc2Uoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQogewog
+CXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9vZihtbiwgc3RydWN0IGhtbSwgbW11X25vdGlm
+aWVyKTsKLS0gCjIuMjAuMQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
