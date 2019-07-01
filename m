@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 73B2D2129F103
- for <linux-nvdimm@lists.01.org>; Fri, 21 Jun 2019 06:40:32 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v14 6/7] ext4: disable map_sync for async flush
-Date: Fri, 21 Jun 2019 19:04:54 +0530
-Message-Id: <20190621133455.3303-7-pagupta@redhat.com>
-In-Reply-To: <20190621133455.3303-1-pagupta@redhat.com>
-References: <20190621133455.3303-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 10385212AB4FC
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:40 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 06/22] mm/hmm: fix use after free with struct hmm in the mmu
+ notifiers
+Date: Mon,  1 Jul 2019 08:20:04 +0200
+Message-Id: <20190701062020.19239-7-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,52 +20,136 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Dont support 'MAP_SYNC' with non-DAX files and DAX files
-with asynchronous dax_device. Virtio pmem provides
-asynchronous host page cache flush mechanism. We don't
-support 'MAP_SYNC' with virtio pmem and ext4.
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+mmu_notifier_unregister_no_release() is not a fence and the mmu_notifier
+system will continue to reference hmm->mn until the srcu grace period
+expires.
+
+Resulting in use after free races like this:
+
+         CPU0                                     CPU1
+                                               __mmu_notifier_invalidate_range_start()
+                                                 srcu_read_lock
+                                                 hlist_for_each ()
+                                                   // mn == hmm->mn
+hmm_mirror_unregister()
+  hmm_put()
+    hmm_free()
+      mmu_notifier_unregister_no_release()
+         hlist_del_init_rcu(hmm-mn->list)
+			                           mn->ops->invalidate_range_start(mn, range);
+					             mm_get_hmm()
+      mm->hmm = NULL;
+      kfree(hmm)
+                                                     mutex_lock(&hmm->lock);
+
+Use SRCU to kfree the hmm memory so that the notifiers can rely on hmm
+existing. Get the now-safe hmm struct through container_of and directly
+check kref_get_unless_zero to lock it against free.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
 ---
- fs/ext4/file.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/hmm.h |  1 +
+ mm/hmm.c            | 23 +++++++++++++++++------
+ 2 files changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/fs/ext4/file.c b/fs/ext4/file.c
-index 98ec11f69cd4..dee549339e13 100644
---- a/fs/ext4/file.c
-+++ b/fs/ext4/file.c
-@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
- static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 7007123842ba..cb01cf1fa3c0 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -93,6 +93,7 @@ struct hmm {
+ 	struct mmu_notifier	mmu_notifier;
+ 	struct rw_semaphore	mirrors_sem;
+ 	wait_queue_head_t	wq;
++	struct rcu_head		rcu;
+ 	long			notifiers;
+ 	bool			dead;
+ };
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 826816ab2377..f6956d78e3cb 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -104,6 +104,11 @@ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
+ 	return NULL;
+ }
+ 
++static void hmm_free_rcu(struct rcu_head *rcu)
++{
++	kfree(container_of(rcu, struct hmm, rcu));
++}
++
+ static void hmm_free(struct kref *kref)
  {
- 	struct inode *inode = file->f_mapping->host;
-+	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
-+	struct dax_device *dax_dev = sbi->s_daxdev;
+ 	struct hmm *hmm = container_of(kref, struct hmm, kref);
+@@ -116,7 +121,7 @@ static void hmm_free(struct kref *kref)
+ 		mm->hmm = NULL;
+ 	spin_unlock(&mm->page_table_lock);
  
--	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
-+	if (unlikely(ext4_forced_shutdown(sbi)))
- 		return -EIO;
+-	kfree(hmm);
++	mmu_notifier_call_srcu(&hmm->rcu, hmm_free_rcu);
+ }
  
- 	/*
--	 * We don't support synchronous mappings for non-DAX files. At least
--	 * until someone comes with a sensible use case.
-+	 * We don't support synchronous mappings for non-DAX files and
-+	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
-+	if (!daxdev_mapping_supported(vma, dax_dev))
- 		return -EOPNOTSUPP;
+ static inline void hmm_put(struct hmm *hmm)
+@@ -144,10 +149,14 @@ void hmm_mm_destroy(struct mm_struct *mm)
  
- 	file_accessed(file);
+ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
+ {
+-	struct hmm *hmm = mm_get_hmm(mm);
++	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+ 	struct hmm_mirror *mirror;
+ 	struct hmm_range *range;
+ 
++	/* Bail out if hmm is in the process of being freed */
++	if (!kref_get_unless_zero(&hmm->kref))
++		return;
++
+ 	/* Report this HMM as dying. */
+ 	hmm->dead = true;
+ 
+@@ -185,13 +194,14 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
+ static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+ 			const struct mmu_notifier_range *nrange)
+ {
+-	struct hmm *hmm = mm_get_hmm(nrange->mm);
++	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+ 	struct hmm_mirror *mirror;
+ 	struct hmm_update update;
+ 	struct hmm_range *range;
+ 	int ret = 0;
+ 
+-	VM_BUG_ON(!hmm);
++	if (!kref_get_unless_zero(&hmm->kref))
++		return 0;
+ 
+ 	update.start = nrange->start;
+ 	update.end = nrange->end;
+@@ -236,9 +246,10 @@ static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+ static void hmm_invalidate_range_end(struct mmu_notifier *mn,
+ 			const struct mmu_notifier_range *nrange)
+ {
+-	struct hmm *hmm = mm_get_hmm(nrange->mm);
++	struct hmm *hmm = container_of(mn, struct hmm, mmu_notifier);
+ 
+-	VM_BUG_ON(!hmm);
++	if (!kref_get_unless_zero(&hmm->kref))
++		return;
+ 
+ 	mutex_lock(&hmm->lock);
+ 	hmm->notifiers--;
 -- 
 2.20.1
 
