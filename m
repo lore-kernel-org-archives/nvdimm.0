@@ -3,15 +3,15 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F3927212AAB86
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 05:28:02 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 597672194EB7A
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:58 -0700 (PDT)
 From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 12/25] memremap: add a migrate_to_ram method to struct
- dev_pagemap_ops
-Date: Wed, 26 Jun 2019 14:27:11 +0200
-Message-Id: <20190626122724.13313-13-hch@lst.de>
-In-Reply-To: <20190626122724.13313-1-hch@lst.de>
-References: <20190626122724.13313-1-hch@lst.de>
+Subject: [PATCH 14/22] mm/hmm: Remove racy protection against
+ double-unregistration
+Date: Mon,  1 Jul 2019 08:20:12 +0200
+Message-Id: <20190701062020.19239-15-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,227 +20,35 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This replaces the hacky ->fault callback, which is currently directly
-called from common code through a hmm specific data structure as an
-exercise in layering violations.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
----
- include/linux/hmm.h      |  6 ------
- include/linux/memremap.h |  6 ++++++
- include/linux/swapops.h  | 15 ---------------
- kernel/memremap.c        | 35 ++++-------------------------------
- mm/hmm.c                 | 13 +++++--------
- mm/memory.c              |  9 ++-------
- 6 files changed, 17 insertions(+), 67 deletions(-)
-
-diff --git a/include/linux/hmm.h b/include/linux/hmm.h
-index 44a5ac738bb5..ba19c19e24ed 100644
---- a/include/linux/hmm.h
-+++ b/include/linux/hmm.h
-@@ -692,11 +692,6 @@ struct hmm_devmem_ops {
-  * chunk, as an optimization. It must, however, prioritize the faulting address
-  * over all the others.
-  */
--typedef vm_fault_t (*dev_page_fault_t)(struct vm_area_struct *vma,
--				unsigned long addr,
--				const struct page *page,
--				unsigned int flags,
--				pmd_t *pmdp);
- 
- struct hmm_devmem {
- 	struct completion		completion;
-@@ -707,7 +702,6 @@ struct hmm_devmem {
- 	struct dev_pagemap		pagemap;
- 	const struct hmm_devmem_ops	*ops;
- 	struct percpu_ref		ref;
--	dev_page_fault_t		page_fault;
- };
- 
- /*
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index b8666a0d8665..ac985bd03a7f 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -80,6 +80,12 @@ struct dev_pagemap_ops {
- 	 * Wait for refcount in struct dev_pagemap to be idle and reap it.
- 	 */
- 	void (*cleanup)(struct dev_pagemap *pgmap);
-+
-+	/*
-+	 * Used for private (un-addressable) device memory only.  Must migrate
-+	 * the page back to a CPU accessible page.
-+	 */
-+	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
- };
- 
- /**
-diff --git a/include/linux/swapops.h b/include/linux/swapops.h
-index 4d961668e5fc..15bdb6fe71e5 100644
---- a/include/linux/swapops.h
-+++ b/include/linux/swapops.h
-@@ -129,12 +129,6 @@ static inline struct page *device_private_entry_to_page(swp_entry_t entry)
- {
- 	return pfn_to_page(swp_offset(entry));
- }
--
--vm_fault_t device_private_entry_fault(struct vm_area_struct *vma,
--		       unsigned long addr,
--		       swp_entry_t entry,
--		       unsigned int flags,
--		       pmd_t *pmdp);
- #else /* CONFIG_DEVICE_PRIVATE */
- static inline swp_entry_t make_device_private_entry(struct page *page, bool write)
- {
-@@ -164,15 +158,6 @@ static inline struct page *device_private_entry_to_page(swp_entry_t entry)
- {
- 	return NULL;
- }
--
--static inline vm_fault_t device_private_entry_fault(struct vm_area_struct *vma,
--				     unsigned long addr,
--				     swp_entry_t entry,
--				     unsigned int flags,
--				     pmd_t *pmdp)
--{
--	return VM_FAULT_SIGBUS;
--}
- #endif /* CONFIG_DEVICE_PRIVATE */
- 
- #ifdef CONFIG_MIGRATION
-diff --git a/kernel/memremap.c b/kernel/memremap.c
-index 3219a4c91d07..c06a5487dda7 100644
---- a/kernel/memremap.c
-+++ b/kernel/memremap.c
-@@ -11,7 +11,6 @@
- #include <linux/types.h>
- #include <linux/wait_bit.h>
- #include <linux/xarray.h>
--#include <linux/hmm.h>
- 
- static DEFINE_XARRAY(pgmap_array);
- #define SECTION_MASK ~((1UL << PA_SECTION_SHIFT) - 1)
-@@ -46,36 +45,6 @@ static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgm
- }
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
- 
--#if IS_ENABLED(CONFIG_DEVICE_PRIVATE)
--vm_fault_t device_private_entry_fault(struct vm_area_struct *vma,
--		       unsigned long addr,
--		       swp_entry_t entry,
--		       unsigned int flags,
--		       pmd_t *pmdp)
--{
--	struct page *page = device_private_entry_to_page(entry);
--	struct hmm_devmem *devmem;
--
--	devmem = container_of(page->pgmap, typeof(*devmem), pagemap);
--
--	/*
--	 * The page_fault() callback must migrate page back to system memory
--	 * so that CPU can access it. This might fail for various reasons
--	 * (device issue, device was unsafely unplugged, ...). When such
--	 * error conditions happen, the callback must return VM_FAULT_SIGBUS.
--	 *
--	 * Note that because memory cgroup charges are accounted to the device
--	 * memory, this should never fail because of memory restrictions (but
--	 * allocation of regular system page might still fail because we are
--	 * out of memory).
--	 *
--	 * There is a more in-depth description of what that callback can and
--	 * cannot do, in include/linux/memremap.h
--	 */
--	return devmem->page_fault(vma, addr, page, flags, pmdp);
--}
--#endif /* CONFIG_DEVICE_PRIVATE */
--
- static void pgmap_array_delete(struct resource *res)
- {
- 	xa_store_range(&pgmap_array, PHYS_PFN(res->start), PHYS_PFN(res->end),
-@@ -193,6 +162,10 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 			WARN(1, "Device private memory not supported\n");
- 			return ERR_PTR(-EINVAL);
- 		}
-+		if (!pgmap->ops || !pgmap->ops->migrate_to_ram) {
-+			WARN(1, "Missing migrate_to_ram method\n");
-+			return ERR_PTR(-EINVAL);
-+		}
- 		break;
- 	case MEMORY_DEVICE_FS_DAX:
- 		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
-diff --git a/mm/hmm.c b/mm/hmm.c
-index 5b0bd5f6a74f..96633ee066d8 100644
---- a/mm/hmm.c
-+++ b/mm/hmm.c
-@@ -1366,15 +1366,12 @@ static void hmm_devmem_ref_kill(struct dev_pagemap *pgmap)
- 	percpu_ref_kill(pgmap->ref);
- }
- 
--static vm_fault_t hmm_devmem_fault(struct vm_area_struct *vma,
--			    unsigned long addr,
--			    const struct page *page,
--			    unsigned int flags,
--			    pmd_t *pmdp)
-+static vm_fault_t hmm_devmem_migrate_to_ram(struct vm_fault *vmf)
- {
--	struct hmm_devmem *devmem = page->pgmap->data;
-+	struct hmm_devmem *devmem = vmf->page->pgmap->data;
- 
--	return devmem->ops->fault(devmem, vma, addr, page, flags, pmdp);
-+	return devmem->ops->fault(devmem, vmf->vma, vmf->address, vmf->page,
-+			vmf->flags, vmf->pmd);
- }
- 
- static void hmm_devmem_free(struct page *page, void *data)
-@@ -1388,6 +1385,7 @@ static const struct dev_pagemap_ops hmm_pagemap_ops = {
- 	.page_free		= hmm_devmem_free,
- 	.kill			= hmm_devmem_ref_kill,
- 	.cleanup		= hmm_devmem_ref_exit,
-+	.migrate_to_ram		= hmm_devmem_migrate_to_ram,
- };
- 
- /*
-@@ -1438,7 +1436,6 @@ struct hmm_devmem *hmm_devmem_add(const struct hmm_devmem_ops *ops,
- 	devmem->pfn_first = devmem->resource->start >> PAGE_SHIFT;
- 	devmem->pfn_last = devmem->pfn_first +
- 			   (resource_size(devmem->resource) >> PAGE_SHIFT);
--	devmem->page_fault = hmm_devmem_fault;
- 
- 	devmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
- 	devmem->pagemap.res = *devmem->resource;
-diff --git a/mm/memory.c b/mm/memory.c
-index bd21e7063bf0..293d2936fd6c 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2748,13 +2748,8 @@ vm_fault_t do_swap_page(struct vm_fault *vmf)
- 			migration_entry_wait(vma->vm_mm, vmf->pmd,
- 					     vmf->address);
- 		} else if (is_device_private_entry(entry)) {
--			/*
--			 * For un-addressable device memory we call the pgmap
--			 * fault handler callback. The callback must migrate
--			 * the page back to some CPU accessible page.
--			 */
--			ret = device_private_entry_fault(vma, vmf->address, entry,
--						 vmf->flags, vmf->pmd);
-+			vmf->page = device_private_entry_to_page(entry);
-+			ret = vmf->page->pgmap->ops->migrate_to_ram(vmf);
- 		} else if (is_hwpoison_entry(entry)) {
- 			ret = VM_FAULT_HWPOISON;
- 		} else {
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKTm8gb3RoZXIgcmVnaXN0
+ZXIvdW5yZWdpc3RlciBrZXJuZWwgQVBJIGF0dGVtcHRzIHRvIHByb3ZpZGUgdGhpcyBraW5kIG9m
+CnByb3RlY3Rpb24gYXMgaXQgaXMgaW5oZXJlbnRseSByYWN5LCBzbyBqdXN0IGRyb3AgaXQuCgpD
+YWxsZXJzIHNob3VsZCBwcm92aWRlIHRoZWlyIG93biBwcm90ZWN0aW9uLCBhbmQgaXQgYXBwZWFy
+cyBub3V2ZWF1CmFscmVhZHkgZG9lcy4KClNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8
+amdnQG1lbGxhbm94LmNvbT4KUmV2aWV3ZWQtYnk6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUBy
+ZWRoYXQuY29tPgpSZXZpZXdlZC1ieTogSm9obiBIdWJiYXJkIDxqaHViYmFyZEBudmlkaWEuY29t
+PgpSZXZpZXdlZC1ieTogUmFscGggQ2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPgpSZXZp
+ZXdlZC1ieTogQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+ClRlc3RlZC1ieTogUGhpbGlw
+IFlhbmcgPFBoaWxpcC5ZYW5nQGFtZC5jb20+Ci0tLQogbW0vaG1tLmMgfCA4ICstLS0tLS0tCiAx
+IGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDcgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvbW0vaG1tLmMgYi9tbS9obW0uYwppbmRleCA2ZjVkYzZkNTY4ZmUuLjJlZjE0YjJiNTUwNSAx
+MDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTI3NiwxNyArMjc2LDExIEBA
+IEVYUE9SVF9TWU1CT0woaG1tX21pcnJvcl9yZWdpc3Rlcik7CiAgKi8KIHZvaWQgaG1tX21pcnJv
+cl91bnJlZ2lzdGVyKHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IpCiB7Ci0Jc3RydWN0IGhtbSAq
+aG1tID0gUkVBRF9PTkNFKG1pcnJvci0+aG1tKTsKLQotCWlmIChobW0gPT0gTlVMTCkKLQkJcmV0
+dXJuOworCXN0cnVjdCBobW0gKmhtbSA9IG1pcnJvci0+aG1tOwogCiAJZG93bl93cml0ZSgmaG1t
+LT5taXJyb3JzX3NlbSk7CiAJbGlzdF9kZWxfaW5pdCgmbWlycm9yLT5saXN0KTsKLQkvKiBUbyBw
+cm90ZWN0IHVzIGFnYWluc3QgZG91YmxlIHVucmVnaXN0ZXIgLi4uICovCi0JbWlycm9yLT5obW0g
+PSBOVUxMOwogCXVwX3dyaXRlKCZobW0tPm1pcnJvcnNfc2VtKTsKLQogCWhtbV9wdXQoaG1tKTsK
+IH0KIEVYUE9SVF9TWU1CT0woaG1tX21pcnJvcl91bnJlZ2lzdGVyKTsKLS0gCjIuMjAuMQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
+IG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEu
+b3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
