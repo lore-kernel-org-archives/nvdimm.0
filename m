@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 89DD02194EB75
- for <linux-nvdimm@lists.01.org>; Tue, 11 Jun 2019 09:38:58 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v12 0/7] virtio pmem driver 
-Date: Tue, 11 Jun 2019 22:07:55 +0530
-Message-Id: <20190611163802.25352-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 7EEFF212AB4DD
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:11 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 20/22] mm: move hmm_vma_fault to nouveau
+Date: Mon,  1 Jul 2019 08:20:18 +0200
+Message-Id: <20190701062020.19239-21-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -16,175 +19,172 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-IFRoaXMgcGF0Y2ggc2VyaWVzIGlzIHJlYWR5IHRvIGJlIG1lcmdlZCB2aWEgbnZkaW1tIHRyZWUK
-IGFzIGRpc2N1c3NlZCB3aXRoIERhbi4gV2UgaGF2ZSBhY2svcmV2aWV3IG9uIFhGUywgRVhUNAog
-JiBWSVJUSU8gcGF0Y2hlcy4gRGV2aWNlIG1hcHBlciBjaGFuZ2UgaXMgYWxzbyByZXZpZXdlZC4g
-CgogTWlrZSwgQ2FuIHlvdSBwbGVhc2UgcHJvdmlkZSBhY2sgZm9yIGRldmljZSBtYXBwZXIgY2hh
-bmdlCiBpLmUgcGF0Y2g0LiAKCiBUaGlzIHZlcnNpb24gaGFzIGNoYW5nZWQgaW1wbGVtZW50YXRp
-b24gZm9yIHBhdGNoIDQgYXMKIHN1Z2dlc3RlZCBieSAnTWlrZScuIEtlZXBpbmcgYWxsIHRoZSBl
-eGlzdGluZyByLW8tYnMuIEpha29iCiBDQ2VkIGFsc28gdGVzdGVkIHRoZSBwYXRjaCBzZXJpZXMg
-YW5kIGNvbmZpcm1lZCB0aGUgd29ya2luZwogb2YgdjkuCiAtLS0KCiBUaGlzIHBhdGNoIHNlcmll
-cyBoYXMgaW1wbGVtZW50YXRpb24gZm9yICJ2aXJ0aW8gcG1lbSIuIAogInZpcnRpbyBwbWVtIiBp
-cyBmYWtlIHBlcnNpc3RlbnQgbWVtb3J5KG52ZGltbSkgaW4gZ3Vlc3QgCiB3aGljaCBhbGxvd3Mg
-dG8gYnlwYXNzIHRoZSBndWVzdCBwYWdlIGNhY2hlLiBUaGlzIGFsc28KIGltcGxlbWVudHMgYSBW
-SVJUSU8gYmFzZWQgYXN5bmNocm9ub3VzIGZsdXNoIG1lY2hhbmlzbS4gIAogCiBTaGFyaW5nIGd1
-ZXN0IGtlcm5lbCBkcml2ZXIgaW4gdGhpcyBwYXRjaHNldCB3aXRoIHRoZSAKIGNoYW5nZXMgc3Vn
-Z2VzdGVkIGluIHY0LiBUZXN0ZWQgd2l0aCBRZW11IHNpZGUgZGV2aWNlIAogZW11bGF0aW9uIFs1
-XSBmb3IgdmlydGlvLXBtZW0uIERvY3VtZW50ZWQgdGhlIGltcGFjdCBvZgogcG9zc2libGUgcGFn
-ZSBjYWNoZSBzaWRlIGNoYW5uZWwgYXR0YWNrcyB3aXRoIHN1Z2dlc3RlZAogY291bnRlcm1lYXN1
-cmVzLgoKIERldGFpbHMgb2YgcHJvamVjdCBpZGVhIGZvciAndmlydGlvIHBtZW0nIGZsdXNoaW5n
-IGludGVyZmFjZSAKIGlzIHNoYXJlZCBbM10gJiBbNF0uCgogSW1wbGVtZW50YXRpb24gaXMgZGl2
-aWRlZCBpbnRvIHR3byBwYXJ0czoKIE5ldyB2aXJ0aW8gcG1lbSBndWVzdCBkcml2ZXIgYW5kIHFl
-bXUgY29kZSBjaGFuZ2VzIGZvciBuZXcgCiB2aXJ0aW8gcG1lbSBwYXJhdmlydHVhbGl6ZWQgZGV2
-aWNlLgoKMS4gR3Vlc3QgdmlydGlvLXBtZW0ga2VybmVsIGRyaXZlcgotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KICAgLSBSZWFkcyBwZXJzaXN0ZW50IG1lbW9yeSByYW5nZSBmcm9t
-IHBhcmF2aXJ0IGRldmljZSBhbmQgCiAgICAgcmVnaXN0ZXJzIHdpdGggJ252ZGltbV9idXMnLiAg
-CiAgIC0gJ252ZGltbS9wbWVtJyBkcml2ZXIgdXNlcyB0aGlzIGluZm9ybWF0aW9uIHRvIGFsbG9j
-YXRlIAogICAgIHBlcnNpc3RlbnQgbWVtb3J5IHJlZ2lvbiBhbmQgc2V0dXAgZmlsZXN5c3RlbSBv
-cGVyYXRpb25zIAogICAgIHRvIHRoZSBhbGxvY2F0ZWQgbWVtb3J5LiAKICAgLSB2aXJ0aW8gcG1l
-bSBkcml2ZXIgaW1wbGVtZW50cyBhc3luY2hyb25vdXMgZmx1c2hpbmcgCiAgICAgaW50ZXJmYWNl
-IHRvIGZsdXNoIGZyb20gZ3Vlc3QgdG8gaG9zdC4KCjIuIFFlbXUgdmlydGlvLXBtZW0gZGV2aWNl
-Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICAtIENyZWF0ZXMgdmlydGlvIHBt
-ZW0gZGV2aWNlIGFuZCBleHBvc2VzIGEgbWVtb3J5IHJhbmdlIHRvIAogICAgIEtWTSBndWVzdC4g
-CiAgIC0gQXQgaG9zdCBzaWRlIHRoaXMgaXMgZmlsZSBiYWNrZWQgbWVtb3J5IHdoaWNoIGFjdHMg
-YXMgCiAgICAgcGVyc2lzdGVudCBtZW1vcnkuIAogICAtIFFlbXUgc2lkZSBmbHVzaCB1c2VzIGFp
-byB0aHJlYWQgcG9vbCBBUEkncyBhbmQgdmlydGlvIAogICAgIGZvciBhc3luY2hyb25vdXMgZ3Vl
-c3QgbXVsdGkgcmVxdWVzdCBoYW5kbGluZy4gCgogVmlydGlvLXBtZW0gc2VjdXJpdHkgaW1wbGlj
-YXRpb25zIGFuZCBjb3VudGVybWVhc3VyZXM6CiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKIEluIHByZXZpb3VzIHBvc3Rpbmcgb2Yga2VybmVs
-IGRyaXZlciwgdGhlcmUgd2FzIGRpc2N1c3Npb24gWzddCiBvbiBwb3NzaWJsZSBpbXBsaWNhdGlv
-bnMgb2YgcGFnZSBjYWNoZSBzaWRlIGNoYW5uZWwgYXR0YWNrcyB3aXRoIAogdmlydGlvIHBtZW0u
-IEFmdGVyIHRob3JvdWdoIGFuYWx5c2lzIG9mIGRldGFpbHMgb2Yga25vd24gc2lkZSAKIGNoYW5u
-ZWwgYXR0YWNrcywgYmVsb3cgYXJlIHRoZSBzdWdnZXN0aW9uczoKCiAtIERlcGVuZHMgZW50aXJl
-bHkgb24gaG93IGhvc3QgYmFja2luZyBpbWFnZSBmaWxlIGlzIG1hcHBlZCAKICAgaW50byBndWVz
-dCBhZGRyZXNzIHNwYWNlLiAKCiAtIHZpcnRpby1wbWVtIGRldmljZSBlbXVsYXRpb24sIGJ5IGRl
-ZmF1bHQgc2hhcmVkIG1hcHBpbmcgaXMgdXNlZAogICB0byBtYXAgaG9zdCBiYWNraW5nIGZpbGUu
-IEl0IGlzIHJlY29tbWVuZGVkIHRvIHVzZSBzZXBhcmF0ZQogICBiYWNraW5nIGZpbGUgYXQgaG9z
-dCBzaWRlIGZvciBldmVyeSBndWVzdC4gVGhpcyB3aWxsIHByZXZlbnQKICAgYW55IHBvc3NpYmls
-aXR5IG9mIGV4ZWN1dGluZyBjb21tb24gY29kZSBmcm9tIG11bHRpcGxlIGd1ZXN0cwogICBhbmQg
-YW55IGNoYW5jZSBvZiBpbmZlcnJpbmcgZ3Vlc3QgbG9jYWwgZGF0YSBiYXNlZCBiYXNlZCBvbiAK
-ICAgZXhlY3V0aW9uIHRpbWUuCgogLSBJZiBiYWNraW5nIGZpbGUgaXMgcmVxdWlyZWQgdG8gYmUg
-c2hhcmVkIGFtb25nIG11bHRpcGxlIGd1ZXN0cyAKICAgaXQgaXMgcmVjb21tZW5kZWQgdG8gZG9u
-J3Qgc3VwcG9ydCBob3N0IHBhZ2UgY2FjaGUgZXZpY3Rpb24gCiAgIGNvbW1hbmRzIGZyb20gdGhl
-IGd1ZXN0IGRyaXZlci4gVGhpcyB3aWxsIGF2b2lkIGFueSBwb3NzaWJpbGl0eQogICBvZiBpbmZl
-cnJpbmcgZ3Vlc3QgbG9jYWwgZGF0YSBvciBob3N0IGRhdGEgZnJvbSBhbm90aGVyIGd1ZXN0LiAK
-CiAtIFByb3Bvc2VkIGRldmljZSBzcGVjaWZpY2F0aW9uIFs2XSBmb3IgdmlydGlvLXBtZW0gZGV2
-aWNlIHdpdGggCiAgIGRldGFpbHMgb2YgcG9zc2libGUgc2VjdXJpdHkgaW1wbGljYXRpb25zIGFu
-ZCBzdWdnZXN0ZWQgCiAgIGNvdW50ZXJtZWFzdXJlcyBmb3IgZGV2aWNlIGVtdWxhdGlvbi4KCiBW
-aXJ0aW8tcG1lbSBlcnJvcnMgaGFuZGxpbmc6CiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCiAgQ2hlY2tlZCBiZWhhdmlvdXIgb2YgdmlydGlvLXBtZW0gZm9yIGJlbG93
-IHR5cGVzIG9mIGVycm9ycwogIE5lZWQgc3VnZ2VzdGlvbnMgb24gZXhwZWN0ZWQgYmVoYXZpb3Vy
-IGZvciBoYW5kbGluZyB0aGVzZSBlcnJvcnM/CgogIC0gSGFyZHdhcmUgRXJyb3JzOiBVbmNvcnJl
-Y3RhYmxlIHJlY292ZXJhYmxlIEVycm9yczogCiAgYV0gdmlydGlvLXBtZW06IAogICAgLSBBcyBw
-ZXIgY3VycmVudCBsb2dpYyBpZiBlcnJvciBwYWdlIGJlbG9uZ3MgdG8gUWVtdSBwcm9jZXNzLCAK
-ICAgICAgaG9zdCBNQ0UgaGFuZGxlciBpc29sYXRlcyhod3BvaXNvbikgdGhhdCBwYWdlIGFuZCBz
-ZW5kIFNJR0JVUy4gCiAgICAgIFFlbXUgU0lHQlVTIGhhbmRsZXIgaW5qZWN0cyBleGNlcHRpb24g
-dG8gS1ZNIGd1ZXN0LiAKICAgIC0gS1ZNIGd1ZXN0IHRoZW4gaXNvbGF0ZXMgdGhlIHBhZ2UgYW5k
-IHNlbmQgU0lHQlVTIHRvIGd1ZXN0IAogICAgICB1c2Vyc3BhY2UgcHJvY2VzcyB3aGljaCBoYXMg
-bWFwcGVkIHRoZSBwYWdlLiAKICAKICBiXSBFeGlzdGluZyBpbXBsZW1lbnRhdGlvbiBmb3IgQUNQ
-SSBwbWVtIGRyaXZlcjogCiAgICAtIEhhbmRsZXMgc3VjaCBlcnJvcnMgd2l0aCBNQ0Ugbm90aWZp
-ZXIgYW5kIGNyZWF0ZXMgYSBsaXN0IAogICAgICBvZiBiYWQgYmxvY2tzLiBSZWFkL2RpcmVjdCBh
-Y2Nlc3MgREFYIG9wZXJhdGlvbiByZXR1cm4gRUlPIAogICAgICBpZiBhY2Nlc3NlZCBtZW1vcnkg
-cGFnZSBmYWxsIGluIGJhZCBibG9jayBsaXN0LgogICAgLSBJdCBhbHNvIHN0YXJ0cyBiYWNrZ291
-bmQgc2NydWJiaW5nLiAgCiAgICAtIFNpbWlsYXIgZnVuY3Rpb25hbGl0eSBjYW4gYmUgcmV1c2Vk
-IGluIHZpcnRpby1wbWVtIHdpdGggTUNFIAogICAgICBub3RpZmllciBidXQgd2l0aG91dCBzY3J1
-YmJpbmcobm8gQUNQSS9BUlMpPyBOZWVkIGlucHV0cyB0byAKICAgICAgY29uZmlybSBpZiB0aGlz
-IGJlaGF2aW91ciBpcyBvayBvciBuZWVkcyBhbnkgY2hhbmdlPwoKQ2hhbmdlcyBmcm9tIFBBVENI
-IHYxMTogWzFdIAogLSBDaGFuZ2UgaW1wbG1lbnRhdGlvbiBmb3Igc2V0dGluZyBvZiBzeW5jaHJv
-bm91cyBEQVggdHlwZQogICBmb3IgZGV2aWNlIG1hcHBlciAtIE1pa2UgCgpDaGFuZ2VzIGZyb20g
-UEFUQ0ggdjEwOiBbMl0gCiAtIFJlYmFzZWQgb24gTGludXgtNS4yLXJjNAoKQ2hhbmdlcyBmcm9t
-IFBBVENIIHY5OgogLSBLY29uZmlnIGhlbHAgdGV4dCBhZGQgdHdvIHNwYWNlcyAtIFJhbmR5CiAt
-IEZpeGVkIGxpYm52ZGltbSAnYmlvJyBpbmNsdWRlIHdhcm5pbmcgLSBEYW4KIC0gdmlydGlvLXBt
-ZW0sIHNlcGFyYXRlIHJlcXVlc3QvcmVzcCBzdHJ1Y3QgYW5kIAogICBtb3ZlIHRvIHVhcGkgZmls
-ZSB3aXRoIHVwZGF0ZWQgbGljZW5zZSAtIERhdmlkSAogLSBVc2UgdmlydGlvMzIqIHR5cGUgZm9y
-IHJlcS9yZXNwIGVuZGlhbmVzcyAtIERhdmlkSAogLSBBZGRlZCB0ZXN0ZWQtYnkgJiBhY2stYnkg
-b2YgSmFrb2IKIC0gUmViYXNlZCB0byA1LjItcmMxCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjg6CiAt
-IFNldCBkZXZpY2UgbWFwcGVyIHN5bmNocm9ub3VzIGlmIGFsbCB0YXJnZXQgZGV2aWNlcyBzdXBw
-b3J0IC0gRGFuCiAtIE1vdmUgdmlydGlvX3BtZW0uaCB0byBudmRpbW0gZGlyZWN0b3J5ICAtIERh
-bgogLSBTdHlsZSwgaW5kZW50YXRpb24gJiBiZXR0ZXIgZXJyb3IgbWVzc2FnZXMgaW4gcGF0Y2gg
-MiAtIERhdmlkSAogLSBBZGRlZCBNU1QncyBhY2sgaW4gcGF0Y2ggMi4KCkNoYW5nZXMgZnJvbSBQ
-QVRDSCB2NzoKIC0gQ29ycmVjdGVkIHBlbmRpbmcgcmVxdWVzdCBxdWV1ZSBsb2dpYyAocGF0Y2gg
-MikgLSBKYWt1YiBTdGFyb8WECiAtIFVzZWQgdW5zaWduZWQgbG9uZyBmbGFncyBmb3IgcGFzc2lu
-ZyBEQVhERVZfRl9TWU5DIChwYXRjaCAzKSAtIERhbgogLSBGaXhlZCB0eXBvID0+ICB2bWEgJ2Zs
-YWcnIHRvICd2bV9mbGFnJyAocGF0Y2ggNCkKIC0gQWRkZWQgcm9iIGluIHBhdGNoIDYgJiBwYXRj
-aCAyCgpDaGFuZ2VzIGZyb20gUEFUQ0ggdjY6IAogLSBDb3JyZWN0ZWQgY29tbWVudCBmb3JtYXQg
-aW4gcGF0Y2ggNSAmIHBhdGNoIDYuIFtEYXZlXQogLSBDaGFuZ2VkIHZhcmlhYmxlIGRlY2xhcmF0
-aW9uIGluZGVudGF0aW9uIGluIHBhdGNoIDYgW0RhcnJpY2tdCiAtIEFkZCBSZXZpZXdlZC1ieSB0
-YWcgYnkgJ0phbiBLYXJhJyBpbiBwYXRjaCA0ICYgcGF0Y2ggNQoKQ2hhbmdlcyBmcm9tIFBBVENI
-IHY1OiAKICBDaGFuZ2VzIHN1Z2dlc3RlZCBpbiBieSAtIFtDb3JuZWxpYSwgWXV2YWxdCi0gUmVt
-b3ZlIGFzc2lnbm1lbnQgY2hhaW5pbmcgaW4gdmlydGlvIGRyaXZlcgotIEJldHRlciBlcnJvciBt
-ZXNzYWdlIGFuZCByZW1vdmUgbm90IHJlcXVpcmVkIGZyZWUKLSBDaGVjayBuZF9yZWdpb24gYmVm
-b3JlIHVzZQoKICBDaGFuZ2VzIHN1Z2dlc3RlZCBieSAtIFtKYW4gS2FyYV0KLSBkYXhfc3luY2hy
-b25vdXMoKSBmb3IgIUNPTkZJR19EQVgKLSBDb3JyZWN0ICdkYXhkZXZfbWFwcGluZ19zdXBwb3J0
-ZWQnIGNvbW1lbnQgYW5kIG5vbi1kYXggaW1wbGVtZW50YXRpb24KCiAgQ2hhbmdlcyBzdWdnZXN0
-ZWQgYnkgLSBbRGFuIFdpbGxpYW1zXQotIFBhc3MgbWVhbmluZ2Z1bCBmbGFnICdEQVhERVZfRl9T
-WU5DJyB0byBhbGxvY19kYXgKLSBHYXRlIG52ZGltbV9mbHVzaCBpbnN0ZWFkIG9mIGFkZGl0aW9u
-YWwgYXN5bmMgcGFyYW1ldGVyCi0gTW92ZSBibG9jayBjaGFpbmluZyBsb2dpYyB0byBmbHVzaCBj
-YWxsYmFjayB0aGFuIGNvbW1vbiBudmRpbW1fZmx1c2gKLSBVc2UgTlVMTCBmbHVzaCBjYWxsYmFj
-ayBmb3IgZ2VuZXJpYyBmbHVzaCBmb3IgYmV0dGVyIHJlYWRhYmlsaXR5IFtEYW4sIEphbl0KCi0g
-VXNlIHZpcnRpbyBkZXZpY2UgaWQgMjcgZnJvbSAyNShhbHJlYWR5IHVzZWQpIC0gW01TVF0KCkNo
-YW5nZXMgZnJvbSBQQVRDSCB2NDoKLSBGYWN0b3Igb3V0IE1BUF9TWU5DIHN1cHBvcnRlZCBmdW5j
-dGlvbmFsaXR5IHRvIGEgY29tbW9uIGhlbHBlcgoJCQkJW0RhdmUsIERhcnJpY2ssIEphbl0KLSBD
-b21tZW50LCBpbmRlbnRhdGlvbiBhbmQgdmlydHF1ZXVlX2tpY2sgZmFpbHVyZSBoYW5kbGUgLSBZ
-dXZhbCBTaGFpYQoKQ2hhbmdlcyBmcm9tIFBBVENIIHYzOiAKLSBVc2UgZ2VuZXJpYyBkYXhfc3lu
-Y2hyb25vdXMoKSBoZWxwZXIgdG8gY2hlY2sgZm9yIERBWERFVl9TWU5DIAogIGZsYWcgLSBbRGFu
-LCBEYXJyaWNrLCBKYW5dCi0gQWRkICdpc19udmRpbW1fYXN5bmMnIGZ1bmN0aW9uCi0gRG9jdW1l
-bnQgcGFnZSBjYWNoZSBzaWRlIGNoYW5uZWwgYXR0YWNrcyBpbXBsaWNhdGlvbnMgJiAKICBjb3Vu
-dGVybWVhc3VyZXMgLSBbRGF2ZSBDaGlubmVyLCBNaWNoYWVsXQoKQ2hhbmdlcyBmcm9tIFBBVENI
-IHYyOiAKLSBEaXNhYmxlIE1BUF9TWU5DIGZvciBleHQ0ICYgWEZTIGZpbGVzeXN0ZW1zIC0gW0Rh
-bl0gCi0gVXNlIG5hbWUgJ3ZpcnRpbyBwbWVtJyBpbiBwbGFjZSBvZiAnZmFrZSBkYXgnIAoKQ2hh
-bmdlcyBmcm9tIFBBVENIIHYxOiAKLSAwLWRheSBidWlsZCB0ZXN0IGZvciBidWlsZCBkZXBlbmRl
-bmN5IG9uIGxpYm52ZGltbSAKCiBDaGFuZ2VzIHN1Z2dlc3RlZCBieSAtIFtEYW4gV2lsbGlhbXNd
-Ci0gU3BsaXQgdGhlIGRyaXZlciBpbnRvIHR3byBwYXJ0cyB2aXJ0aW8gJiBwbWVtICAKLSBNb3Zl
-IHF1ZXVpbmcgb2YgYXN5bmMgYmxvY2sgcmVxdWVzdCB0byBibG9jayBsYXllcgotIEFkZCAic3lu
-YyIgcGFyYW1ldGVyIGluIG52ZGltbV9mbHVzaCBmdW5jdGlvbgotIFVzZSBpbmRpcmVjdCBjYWxs
-IGZvciBudmRpbW1fZmx1c2gKLSBEb27igJl0IG1vdmUgZGVjbGFyYXRpb25zIHRvIGNvbW1vbiBn
-bG9iYWwgaGVhZGVyIGUuZyBuZC5oCi0gbnZkaW1tX2ZsdXNoKCkgcmV0dXJuIDAgb3IgLUVJTyBp
-ZiBpdCBmYWlscwotIFRlYWNoIG5zaW9fcndfYnl0ZXMoKSB0aGF0IHRoZSBmbHVzaCBjYW4gZmFp
-bAotIFJlbmFtZSBudmRpbW1fZmx1c2goKSB0byBnZW5lcmljX252ZGltbV9mbHVzaCgpCi0gVXNl
-ICduZF9yZWdpb24tPnByb3ZpZGVyX2RhdGEnIGZvciBsb25nIGRlcmVmZXJlbmNpbmcKLSBSZW1v
-dmUgdmlydGlvX3BtZW1fZnJlZXplL3Jlc3RvcmUgZnVuY3Rpb25zCi0gUmVtb3ZlIEJTRCBsaWNl
-bnNlIHRleHQgd2l0aCBTUERYIGxpY2Vuc2UgdGV4dAoKLSBBZGQgbWlnaHRfc2xlZXAoKSBpbiB2
-aXJ0aW9fcG1lbV9mbHVzaCAtIFtMdWl6XQotIE1ha2Ugc3Bpbl9sb2NrX2lycXNhdmUoKSBuYXJy
-b3cKClBhbmthaiBHdXB0YSAoNyk6CiAgIGxpYm52ZGltbTogbmRfcmVnaW9uIGZsdXNoIGNhbGxi
-YWNrIHN1cHBvcnQKICAgdmlydGlvLXBtZW06IEFkZCB2aXJ0aW8tcG1lbSBndWVzdCBkcml2ZXIK
-ICAgbGlibnZkaW1tOiBhZGQgbmRfcmVnaW9uIGJ1ZmZlcmVkIGRheF9kZXYgZmxhZwogICBkYXg6
-IGNoZWNrIHN5bmNocm9ub3VzIG1hcHBpbmcgaXMgc3VwcG9ydGVkCiAgIGRtOiBkbTogRW5hYmxl
-IHN5bmNocm9ub3VzIGRheAogICBleHQ0OiBkaXNhYmxlIG1hcF9zeW5jIGZvciB2aXJ0aW8gcG1l
-bQogICB4ZnM6IGRpc2FibGUgbWFwX3N5bmMgZm9yIHZpcnRpbyBwbWVtCgpbMV0gaHR0cHM6Ly9s
-a21sLm9yZy9sa21sLzIwMTkvNi8xMC8yMDkKWzJdIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE5
-LzUvMjEvNTY5ClszXSBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9rdm0vbXNnMTQ5NzYx
-Lmh0bWwKWzRdIGh0dHBzOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2t2bS9tc2cxNTMwOTUuaHRt
-bCAgCls1XSBodHRwczovL21hcmMuaW5mby8/bD1xZW11LWRldmVsJm09MTU1ODYwNzUxMjAyMjAy
-Jnc9MgpbNl0gaHR0cHM6Ly9saXN0cy5vYXNpcy1vcGVuLm9yZy9hcmNoaXZlcy92aXJ0aW8tZGV2
-LzIwMTkwMy9tc2cwMDA4My5odG1sCls3XSBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzkv
-MTE5MQoKIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyAgICAgICAgIHwgICAgNCAtCiBkcml2ZXJz
-L2RheC9idXMuYyAgICAgICAgICAgICAgICB8ICAgIDIgCiBkcml2ZXJzL2RheC9zdXBlci5jICAg
-ICAgICAgICAgICB8ICAgMTkgKysrKysKIGRyaXZlcnMvbWQvZG0tdGFibGUuYyAgICAgICAgICAg
-IHwgICAyNCArKysrKy0tCiBkcml2ZXJzL21kL2RtLmMgICAgICAgICAgICAgICAgICB8ICAgIDUg
-LQogZHJpdmVycy9tZC9kbS5oICAgICAgICAgICAgICAgICAgfCAgICA1ICsKIGRyaXZlcnMvbnZk
-aW1tL01ha2VmaWxlICAgICAgICAgIHwgICAgMSAKIGRyaXZlcnMvbnZkaW1tL2NsYWltLmMgICAg
-ICAgICAgIHwgICAgNiArCiBkcml2ZXJzL252ZGltbS9uZC5oICAgICAgICAgICAgICB8ICAgIDEg
-CiBkcml2ZXJzL252ZGltbS9uZF92aXJ0aW8uYyAgICAgICB8ICAxMjQgKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrCiBkcml2ZXJzL252ZGltbS9wbWVtLmMgICAgICAgICAg
-ICB8ICAgMTggKysrLS0KIGRyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMgICAgIHwgICAzMyAr
-KysrKysrKystCiBkcml2ZXJzL252ZGltbS92aXJ0aW9fcG1lbS5jICAgICB8ICAxMjIgKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvbnZkaW1tL3ZpcnRpb19w
-bWVtLmggICAgIHwgICA1NSArKysrKysrKysrKysrKysrKwogZHJpdmVycy92aXJ0aW8vS2NvbmZp
-ZyAgICAgICAgICAgfCAgIDExICsrKwogZnMvZXh0NC9maWxlLmMgICAgICAgICAgICAgICAgICAg
-fCAgIDEwICstLQogZnMveGZzL3hmc19maWxlLmMgICAgICAgICAgICAgICAgfCAgICA5ICstCiBp
-bmNsdWRlL2xpbnV4L2RheC5oICAgICAgICAgICAgICB8ICAgMjYgKysrKysrKy0KIGluY2x1ZGUv
-bGludXgvbGlibnZkaW1tLmggICAgICAgIHwgICAxMCArKy0KIGluY2x1ZGUvdWFwaS9saW51eC92
-aXJ0aW9faWRzLmggIHwgICAgMSAKIGluY2x1ZGUvdWFwaS9saW51eC92aXJ0aW9fcG1lbS5oIHwg
-ICAzNSArKysrKysrKysrKwogMjEgZmlsZXMgY2hhbmdlZCwgNDg4IGluc2VydGlvbnMoKyksIDMz
-IGRlbGV0aW9ucygtKQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+hmm_vma_fault is marked as a legacy API to get rid of, but quite suites
+the current nouvea flow.  Move it to the only user in preparation for
+fixing a locking bug involving caller and callee.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/gpu/drm/nouveau/nouveau_svm.c | 54 ++++++++++++++++++++++++++-
+ include/linux/hmm.h                   | 54 ---------------------------
+ 2 files changed, 53 insertions(+), 55 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
+index 9d40114d7949..e831f4184a17 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -36,6 +36,13 @@
+ #include <linux/sort.h>
+ #include <linux/hmm.h>
+ 
++/*
++ * When waiting for mmu notifiers we need some kind of time out otherwise we
++ * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
++ * wait already.
++ */
++#define NOUVEAU_RANGE_FAULT_TIMEOUT 1000
++
+ struct nouveau_svm {
+ 	struct nouveau_drm *drm;
+ 	struct mutex mutex;
+@@ -475,6 +482,51 @@ nouveau_svm_fault_cache(struct nouveau_svm *svm,
+ 		fault->inst, fault->addr, fault->access);
+ }
+ 
++static int
++nouveau_range_fault(struct hmm_mirror *mirror, struct hmm_range *range,
++		    bool block)
++{
++	long ret;
++
++	/*
++	 * With the old API the driver must set each individual entries with
++	 * the requested flags (valid, write, ...). So here we set the mask to
++	 * keep intact the entries provided by the driver and zero out the
++	 * default_flags.
++	 */
++	range->default_flags = 0;
++	range->pfn_flags_mask = -1UL;
++
++	ret = hmm_range_register(range, mirror,
++				 range->start, range->end,
++				 PAGE_SHIFT);
++	if (ret)
++		return (int)ret;
++
++	if (!hmm_range_wait_until_valid(range, NOUVEAU_RANGE_FAULT_TIMEOUT)) {
++		/*
++		 * The mmap_sem was taken by driver we release it here and
++		 * returns -EAGAIN which correspond to mmap_sem have been
++		 * drop in the old API.
++		 */
++		up_read(&range->vma->vm_mm->mmap_sem);
++		return -EAGAIN;
++	}
++
++	ret = hmm_range_fault(range, block);
++	if (ret <= 0) {
++		if (ret == -EBUSY || !ret) {
++			/* Same as above, drop mmap_sem to match old API. */
++			up_read(&range->vma->vm_mm->mmap_sem);
++			ret = -EBUSY;
++		} else if (ret == -EAGAIN)
++			ret = -EBUSY;
++		hmm_range_unregister(range);
++		return ret;
++	}
++	return 0;
++}
++
+ static int
+ nouveau_svm_fault(struct nvif_notify *notify)
+ {
+@@ -649,7 +701,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 		range.values = nouveau_svm_pfn_values;
+ 		range.pfn_shift = NVIF_VMM_PFNMAP_V0_ADDR_SHIFT;
+ again:
+-		ret = hmm_vma_fault(&svmm->mirror, &range, true);
++		ret = nouveau_range_fault(&svmm->mirror, &range, true);
+ 		if (ret == 0) {
+ 			mutex_lock(&svmm->mutex);
+ 			if (!hmm_range_unregister(&range)) {
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 4b185d286c3b..3457cf9182e5 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -478,60 +478,6 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+ 			 dma_addr_t *daddrs,
+ 			 bool dirty);
+ 
+-/*
+- * HMM_RANGE_DEFAULT_TIMEOUT - default timeout (ms) when waiting for a range
+- *
+- * When waiting for mmu notifiers we need some kind of time out otherwise we
+- * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
+- * wait already.
+- */
+-#define HMM_RANGE_DEFAULT_TIMEOUT 1000
+-
+-/* This is a temporary helper to avoid merge conflict between trees. */
+-static inline int hmm_vma_fault(struct hmm_mirror *mirror,
+-				struct hmm_range *range, bool block)
+-{
+-	long ret;
+-
+-	/*
+-	 * With the old API the driver must set each individual entries with
+-	 * the requested flags (valid, write, ...). So here we set the mask to
+-	 * keep intact the entries provided by the driver and zero out the
+-	 * default_flags.
+-	 */
+-	range->default_flags = 0;
+-	range->pfn_flags_mask = -1UL;
+-
+-	ret = hmm_range_register(range, mirror,
+-				 range->start, range->end,
+-				 PAGE_SHIFT);
+-	if (ret)
+-		return (int)ret;
+-
+-	if (!hmm_range_wait_until_valid(range, HMM_RANGE_DEFAULT_TIMEOUT)) {
+-		/*
+-		 * The mmap_sem was taken by driver we release it here and
+-		 * returns -EAGAIN which correspond to mmap_sem have been
+-		 * drop in the old API.
+-		 */
+-		up_read(&range->vma->vm_mm->mmap_sem);
+-		return -EAGAIN;
+-	}
+-
+-	ret = hmm_range_fault(range, block);
+-	if (ret <= 0) {
+-		if (ret == -EBUSY || !ret) {
+-			/* Same as above, drop mmap_sem to match old API. */
+-			up_read(&range->vma->vm_mm->mmap_sem);
+-			ret = -EBUSY;
+-		} else if (ret == -EAGAIN)
+-			ret = -EBUSY;
+-		hmm_range_unregister(range);
+-		return ret;
+-	}
+-	return 0;
+-}
+-
+ /* Below are for HMM internal use only! Not to be used by device driver! */
+ static inline void hmm_mm_init(struct mm_struct *mm)
+ {
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
