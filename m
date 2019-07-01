@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8B7421290DF8
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:42:17 -0700 (PDT)
-Subject: [PATCH v3 09/10] acpi/numa/hmat: Register HMAT at device_initcall
- level
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jun 2019 12:28:01 -0700
-Message-ID: <155993568120.3036719.6635543389090509374.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 68AFE212A36E9
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:21:06 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 18/22] mm: return valid info from hmm_range_unregister
+Date: Mon,  1 Jul 2019 08:20:16 +0200
+Message-Id: <20190701062020.19239-19-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,37 +23,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: x86@kernel.org, ard.biesheuvel@linaro.org, peterz@infradead.org, dave.hansen@linux.intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-nvdimm@lists.01.org, linux-efi@vger.kernel.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Len Brown <lenb@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for registering device-dax instances for accessing EFI
-specific-purpose memory, arrange for the HMAT registration to occur
-later in the init process. Critically HMAT initialization needs to occur
-after e820__reserve_resources_late() which is the point at which the
-iomem resource tree is populated with "Application Reserved"
-(IORES_DESC_APPLICATION_RESERVED). e820__reserve_resources_late()
-happens at subsys_initcall time.
+Checking range->valid is trivial and has no meaningful cost, but
+nicely simplifies the fastpath in typical callers.  Also remove the
+hmm_vma_range_done function, which now is a trivial wrapper around
+hmm_range_unregister.
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/acpi/numa/hmat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c |  2 +-
+ include/linux/hmm.h                   | 11 +----------
+ mm/hmm.c                              |  6 +++++-
+ 3 files changed, 7 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-index 2c220cb7b620..1d329c4af3bf 100644
---- a/drivers/acpi/numa/hmat.c
-+++ b/drivers/acpi/numa/hmat.c
-@@ -671,4 +671,4 @@ static __init int hmat_init(void)
- 	acpi_put_table(tbl);
- 	return 0;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
+index 8c92374afcf2..9d40114d7949 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -652,7 +652,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 		ret = hmm_vma_fault(&svmm->mirror, &range, true);
+ 		if (ret == 0) {
+ 			mutex_lock(&svmm->mutex);
+-			if (!hmm_vma_range_done(&range)) {
++			if (!hmm_range_unregister(&range)) {
+ 				mutex_unlock(&svmm->mutex);
+ 				goto again;
+ 			}
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index 0fa8ea34ccef..4b185d286c3b 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -465,7 +465,7 @@ int hmm_range_register(struct hmm_range *range,
+ 		       unsigned long start,
+ 		       unsigned long end,
+ 		       unsigned page_shift);
+-void hmm_range_unregister(struct hmm_range *range);
++bool hmm_range_unregister(struct hmm_range *range);
+ long hmm_range_snapshot(struct hmm_range *range);
+ long hmm_range_fault(struct hmm_range *range, bool block);
+ long hmm_range_dma_map(struct hmm_range *range,
+@@ -487,15 +487,6 @@ long hmm_range_dma_unmap(struct hmm_range *range,
+  */
+ #define HMM_RANGE_DEFAULT_TIMEOUT 1000
+ 
+-/* This is a temporary helper to avoid merge conflict between trees. */
+-static inline bool hmm_vma_range_done(struct hmm_range *range)
+-{
+-	bool ret = hmm_range_valid(range);
+-
+-	hmm_range_unregister(range);
+-	return ret;
+-}
+-
+ /* This is a temporary helper to avoid merge conflict between trees. */
+ static inline int hmm_vma_fault(struct hmm_mirror *mirror,
+ 				struct hmm_range *range, bool block)
+diff --git a/mm/hmm.c b/mm/hmm.c
+index de35289df20d..c85ed7d4e2ce 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -920,11 +920,14 @@ EXPORT_SYMBOL(hmm_range_register);
+  *
+  * Range struct is used to track updates to the CPU page table after a call to
+  * hmm_range_register(). See include/linux/hmm.h for how to use it.
++ *
++ * Returns if the range was still valid at the time of unregistering.
+  */
+-void hmm_range_unregister(struct hmm_range *range)
++bool hmm_range_unregister(struct hmm_range *range)
+ {
+ 	struct hmm *hmm = range->hmm;
+ 	unsigned long flags;
++	bool ret = range->valid;
+ 
+ 	spin_lock_irqsave(&hmm->ranges_lock, flags);
+ 	list_del_init(&range->list);
+@@ -941,6 +944,7 @@ void hmm_range_unregister(struct hmm_range *range)
+ 	 */
+ 	range->valid = false;
+ 	memset(&range->hmm, POISON_INUSE, sizeof(range->hmm));
++	return ret;
  }
--subsys_initcall(hmat_init);
-+device_initcall(hmat_init);
+ EXPORT_SYMBOL(hmm_range_unregister);
+ 
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
