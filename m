@@ -1,28 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 04278212A36DD
- for <linux-nvdimm@lists.01.org>; Tue, 25 Jun 2019 23:05:32 -0700 (PDT)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x5Q63e7R058195
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 02:05:31 -0400
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2tc1gf35k5-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Wed, 26 Jun 2019 02:05:31 -0400
-Received: from localhost
- by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
- Wed, 26 Jun 2019 07:05:29 +0100
-From: "Alastair D'Silva" <alastair@au1.ibm.com>
-Subject: [PATCH] nvdimm: remove prototypes for nonexistent functions
-Date: Wed, 26 Jun 2019 16:03:50 +1000
+ by ml01.01.org (Postfix) with ESMTPS id 5E9AD212A36ED
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:46 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 09/22] mm/hmm: Simplify hmm_get_or_create and make it reliable
+Date: Mon,  1 Jul 2019 08:20:07 +0200
+Message-Id: <20190701062020.19239-10-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
-Message-Id: <20190626060350.15715-1-alastair@au1.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -34,37 +23,155 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: alastair@d-silva.org
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Alastair D'Silva <alastair@d-silva.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-These functions don't exist, so remove the prototypes for them.
+As coded this function can false-fail in various racy situations. Make it
+reliable and simpler by running under the write side of the mmap_sem and
+avoiding the false-failing compare/exchange pattern. Due to the mmap_sem
+this no longer has to avoid racing with a 2nd parallel
+hmm_get_or_create().
 
-Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+Unfortunately this still has to use the page_table_lock as the
+non-sleeping lock protecting mm->hmm, since the contexts where we free the
+hmm are incompatible with mmap_sem.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
 ---
- drivers/nvdimm/nd-core.h | 4 ----
- 1 file changed, 4 deletions(-)
+ mm/hmm.c | 77 ++++++++++++++++++++++----------------------------------
+ 1 file changed, 30 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index 391e88de3a29..57d162dbefaa 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -136,11 +136,7 @@ void nd_region_disable(struct nvdimm_bus *nvdimm_bus, struct device *dev);
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
- void nd_synchronize(void);
--int nvdimm_bus_register_dimms(struct nvdimm_bus *nvdimm_bus);
--int nvdimm_bus_register_regions(struct nvdimm_bus *nvdimm_bus);
--int nvdimm_bus_init_interleave_sets(struct nvdimm_bus *nvdimm_bus);
- void __nd_device_register(struct device *dev);
--int nd_match_dimm(struct device *dev, void *data);
- struct nd_label_id;
- char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
- bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
+diff --git a/mm/hmm.c b/mm/hmm.c
+index 080b17a2e87e..0423f4ca3a7e 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -31,16 +31,6 @@
+ #if IS_ENABLED(CONFIG_HMM_MIRROR)
+ static const struct mmu_notifier_ops hmm_mmu_notifier_ops;
+ 
+-static inline struct hmm *mm_get_hmm(struct mm_struct *mm)
+-{
+-	struct hmm *hmm = READ_ONCE(mm->hmm);
+-
+-	if (hmm && kref_get_unless_zero(&hmm->kref))
+-		return hmm;
+-
+-	return NULL;
+-}
+-
+ /**
+  * hmm_get_or_create - register HMM against an mm (HMM internal)
+  *
+@@ -55,11 +45,16 @@ static inline struct hmm *mm_get_hmm(struct mm_struct *mm)
+  */
+ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
+ {
+-	struct hmm *hmm = mm_get_hmm(mm);
+-	bool cleanup = false;
++	struct hmm *hmm;
++
++	lockdep_assert_held_exclusive(&mm->mmap_sem);
+ 
+-	if (hmm)
+-		return hmm;
++	/* Abuse the page_table_lock to also protect mm->hmm. */
++	spin_lock(&mm->page_table_lock);
++	hmm = mm->hmm;
++	if (mm->hmm && kref_get_unless_zero(&mm->hmm->kref))
++		goto out_unlock;
++	spin_unlock(&mm->page_table_lock);
+ 
+ 	hmm = kmalloc(sizeof(*hmm), GFP_KERNEL);
+ 	if (!hmm)
+@@ -74,57 +69,45 @@ static struct hmm *hmm_get_or_create(struct mm_struct *mm)
+ 	hmm->notifiers = 0;
+ 	hmm->dead = false;
+ 	hmm->mm = mm;
+-	mmgrab(hmm->mm);
+ 
+-	spin_lock(&mm->page_table_lock);
+-	if (!mm->hmm)
+-		mm->hmm = hmm;
+-	else
+-		cleanup = true;
+-	spin_unlock(&mm->page_table_lock);
++	hmm->mmu_notifier.ops = &hmm_mmu_notifier_ops;
++	if (__mmu_notifier_register(&hmm->mmu_notifier, mm)) {
++		kfree(hmm);
++		return NULL;
++	}
+ 
+-	if (cleanup)
+-		goto error;
++	mmgrab(hmm->mm);
+ 
+ 	/*
+-	 * We should only get here if hold the mmap_sem in write mode ie on
+-	 * registration of first mirror through hmm_mirror_register()
++	 * We hold the exclusive mmap_sem here so we know that mm->hmm is
++	 * still NULL or 0 kref, and is safe to update.
+ 	 */
+-	hmm->mmu_notifier.ops = &hmm_mmu_notifier_ops;
+-	if (__mmu_notifier_register(&hmm->mmu_notifier, mm))
+-		goto error_mm;
+-
+-	return hmm;
+-
+-error_mm:
+ 	spin_lock(&mm->page_table_lock);
+-	if (mm->hmm == hmm)
+-		mm->hmm = NULL;
++	mm->hmm = hmm;
++
++out_unlock:
+ 	spin_unlock(&mm->page_table_lock);
+-error:
+-	mmdrop(hmm->mm);
+-	kfree(hmm);
+-	return NULL;
++	return hmm;
+ }
+ 
+ static void hmm_free_rcu(struct rcu_head *rcu)
+ {
+-	kfree(container_of(rcu, struct hmm, rcu));
++	struct hmm *hmm = container_of(rcu, struct hmm, rcu);
++
++	mmdrop(hmm->mm);
++	kfree(hmm);
+ }
+ 
+ static void hmm_free(struct kref *kref)
+ {
+ 	struct hmm *hmm = container_of(kref, struct hmm, kref);
+-	struct mm_struct *mm = hmm->mm;
+ 
+-	mmu_notifier_unregister_no_release(&hmm->mmu_notifier, mm);
++	spin_lock(&hmm->mm->page_table_lock);
++	if (hmm->mm->hmm == hmm)
++		hmm->mm->hmm = NULL;
++	spin_unlock(&hmm->mm->page_table_lock);
+ 
+-	spin_lock(&mm->page_table_lock);
+-	if (mm->hmm == hmm)
+-		mm->hmm = NULL;
+-	spin_unlock(&mm->page_table_lock);
+-
+-	mmdrop(hmm->mm);
++	mmu_notifier_unregister_no_release(&hmm->mmu_notifier, hmm->mm);
+ 	mmu_notifier_call_srcu(&hmm->rcu, hmm_free_rcu);
+ }
+ 
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
