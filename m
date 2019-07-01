@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 84B7F21290DEC
- for <linux-nvdimm@lists.01.org>; Fri,  7 Jun 2019 12:41:40 -0700 (PDT)
-Subject: [PATCH v3 02/10] acpi/numa/hmat: Skip publishing target info for
- nodes with no online memory
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 07 Jun 2019 12:27:23 -0700
-Message-ID: <155993564325.3036719.4434467326728129836.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <155993563277.3036719.17400338098057706494.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 93D7021296400
+ for <linux-nvdimm@lists.01.org>; Sun, 30 Jun 2019 23:20:41 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 07/22] mm/hmm: Use hmm_mirror not mm as an argument for
+ hmm_range_register
+Date: Mon,  1 Jul 2019 08:20:05 +0200
+Message-Id: <20190701062020.19239-8-hch@lst.de>
+In-Reply-To: <20190701062020.19239-1-hch@lst.de>
+References: <20190701062020.19239-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,63 +24,123 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-kernel@vger.kernel.org
-Cc: x86@kernel.org, linux-nvdimm@lists.01.org, peterz@infradead.org, dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org, linux-efi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>
+Cc: Philip Yang <Philip.Yang@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, nouveau@lists.freedesktop.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There are multiple scenarios where the HMAT may contain information
-about proximity domains that are not currently online. Rather than fail
-to report any HMAT data just elide those offline domains.
+From: Jason Gunthorpe <jgg@mellanox.com>
 
-If and when those domains are later onlined they can be added to the
-HMEM reporting at that point.
+Ralph observes that hmm_range_register() can only be called by a driver
+while a mirror is registered. Make this clear in the API by passing in the
+mirror structure as a parameter.
 
-This was found while testing EFI_MEMORY_SP support which reserves
-"specific purpose" memory from the general allocation pool. If that
-reservation results in an empty numa-node then the node is not marked
-online leading a spurious:
+This also simplifies understanding the lifetime model for struct hmm, as
+the hmm pointer must be valid as part of a registered mirror so all we
+need in hmm_register_range() is a simple kref_get.
 
-    "acpi/hmat: Ignoring HMAT: Invalid table"
-
-...result for HMAT parsing.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Ralph Campbell <rcampbell@nvidia.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Tested-by: Philip Yang <Philip.Yang@amd.com>
 ---
- drivers/acpi/numa/hmat.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_svm.c |  2 +-
+ include/linux/hmm.h                   |  7 ++++---
+ mm/hmm.c                              | 13 ++++---------
+ 3 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-index 96b7d39a97c6..2c220cb7b620 100644
---- a/drivers/acpi/numa/hmat.c
-+++ b/drivers/acpi/numa/hmat.c
-@@ -96,9 +96,6 @@ static __init void alloc_memory_target(unsigned int mem_pxm)
+diff --git a/drivers/gpu/drm/nouveau/nouveau_svm.c b/drivers/gpu/drm/nouveau/nouveau_svm.c
+index 93ed43c413f0..8c92374afcf2 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_svm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_svm.c
+@@ -649,7 +649,7 @@ nouveau_svm_fault(struct nvif_notify *notify)
+ 		range.values = nouveau_svm_pfn_values;
+ 		range.pfn_shift = NVIF_VMM_PFNMAP_V0_ADDR_SHIFT;
+ again:
+-		ret = hmm_vma_fault(&range, true);
++		ret = hmm_vma_fault(&svmm->mirror, &range, true);
+ 		if (ret == 0) {
+ 			mutex_lock(&svmm->mutex);
+ 			if (!hmm_vma_range_done(&range)) {
+diff --git a/include/linux/hmm.h b/include/linux/hmm.h
+index cb01cf1fa3c0..1fba6979adf4 100644
+--- a/include/linux/hmm.h
++++ b/include/linux/hmm.h
+@@ -496,7 +496,7 @@ static inline bool hmm_mirror_mm_is_alive(struct hmm_mirror *mirror)
+  * Please see Documentation/vm/hmm.rst for how to use the range API.
+  */
+ int hmm_range_register(struct hmm_range *range,
+-		       struct mm_struct *mm,
++		       struct hmm_mirror *mirror,
+ 		       unsigned long start,
+ 		       unsigned long end,
+ 		       unsigned page_shift);
+@@ -532,7 +532,8 @@ static inline bool hmm_vma_range_done(struct hmm_range *range)
+ }
+ 
+ /* This is a temporary helper to avoid merge conflict between trees. */
+-static inline int hmm_vma_fault(struct hmm_range *range, bool block)
++static inline int hmm_vma_fault(struct hmm_mirror *mirror,
++				struct hmm_range *range, bool block)
  {
- 	struct memory_target *target;
+ 	long ret;
  
--	if (pxm_to_node(mem_pxm) == NUMA_NO_NODE)
--		return;
+@@ -545,7 +546,7 @@ static inline int hmm_vma_fault(struct hmm_range *range, bool block)
+ 	range->default_flags = 0;
+ 	range->pfn_flags_mask = -1UL;
+ 
+-	ret = hmm_range_register(range, range->vma->vm_mm,
++	ret = hmm_range_register(range, mirror,
+ 				 range->start, range->end,
+ 				 PAGE_SHIFT);
+ 	if (ret)
+diff --git a/mm/hmm.c b/mm/hmm.c
+index f6956d78e3cb..22a97ada108b 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -914,13 +914,13 @@ static void hmm_pfns_clear(struct hmm_range *range,
+  * Track updates to the CPU page table see include/linux/hmm.h
+  */
+ int hmm_range_register(struct hmm_range *range,
+-		       struct mm_struct *mm,
++		       struct hmm_mirror *mirror,
+ 		       unsigned long start,
+ 		       unsigned long end,
+ 		       unsigned page_shift)
+ {
+ 	unsigned long mask = ((1UL << page_shift) - 1UL);
+-	struct hmm *hmm;
++	struct hmm *hmm = mirror->hmm;
+ 
+ 	range->valid = false;
+ 	range->hmm = NULL;
+@@ -934,20 +934,15 @@ int hmm_range_register(struct hmm_range *range,
+ 	range->start = start;
+ 	range->end = end;
+ 
+-	hmm = hmm_get_or_create(mm);
+-	if (!hmm)
+-		return -EFAULT;
 -
- 	target = find_mem_target(mem_pxm);
- 	if (target)
- 		return;
-@@ -588,6 +585,17 @@ static __init void hmat_register_targets(void)
- 	struct memory_target *target;
+ 	/* Check if hmm_mm_destroy() was call. */
+-	if (hmm->mm == NULL || hmm->dead) {
+-		hmm_put(hmm);
++	if (hmm->mm == NULL || hmm->dead)
+ 		return -EFAULT;
+-	}
  
- 	list_for_each_entry(target, &targets, node) {
-+		int nid = pxm_to_node(target->memory_pxm);
-+
-+		/*
-+		 * Skip offline nodes. This can happen when memory
-+		 * marked EFI_MEMORY_SP, "specific purpose", is applied
-+		 * to all the memory in a promixity domain leading to
-+		 * the node being marked offline / unplugged, or if
-+		 * memory-only "hotplug" node is offline.
-+		 */
-+		if (nid == NUMA_NO_NODE || !node_online(nid))
-+			continue;
- 		hmat_register_target_initiators(target);
- 		hmat_register_target_perf(target);
- 	}
+ 	/* Initialize range to track CPU page table updates. */
+ 	mutex_lock(&hmm->lock);
+ 
+ 	range->hmm = hmm;
++	kref_get(&hmm->kref);
+ 	list_add_rcu(&range->list, &hmm->ranges);
+ 
+ 	/*
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
