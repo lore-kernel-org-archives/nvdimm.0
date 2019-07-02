@@ -1,16 +1,24 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f194.google.com (mail-pf1-f194.google.com
+ [209.85.210.194])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AFB24212FD41D
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:12 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 06/13] daxctl/list: display the mode for a dax device
-Date: Wed, 31 Jul 2019 18:29:25 -0600
-Message-Id: <20190801002932.26430-7-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 41657211A2DB2
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Jul 2019 13:57:16 -0700 (PDT)
+Received: by mail-pf1-f194.google.com with SMTP id d126so45374pfd.2
+ for <linux-nvdimm@lists.01.org>; Tue, 02 Jul 2019 13:57:16 -0700 (PDT)
+Date: Tue, 2 Jul 2019 20:57:12 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [PATCH v5 07/18] kunit: test: add initial tests
+Message-ID: <20190702205712.GS19023@42.do-not-panic.com>
+References: <20190617082613.109131-1-brendanhiggins@google.com>
+ <20190617082613.109131-8-brendanhiggins@google.com>
+ <20190625232249.GS19023@42.do-not-panic.com>
+ <CAFd5g46mnd=a0OqFCx0hOHX+DxW+5yA2LXH5Q0gEg8yUZK=4FA@mail.gmail.com>
+ <CAFd5g46=7OQDREdLDTiMgVWq-Xj2zfOw8cRhPJEihSbO89MDyA@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAFd5g46=7OQDREdLDTiMgVWq-Xj2zfOw8cRhPJEihSbO89MDyA@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,76 +30,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Stephen Boyd <sboyd@kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for a reconfigure-device command, allow JSON listings to
-display the 'mode' of a dax device. This will allow the
-reconfigure-device command (and via daxctl_dev_to_json(), also
-daxctl-list) to print the mode in device listings via a 'daxctl-list'
-command or immediately after a mode change.
+On Tue, Jul 02, 2019 at 10:52:50AM -0700, Brendan Higgins wrote:
+> On Wed, Jun 26, 2019 at 12:53 AM Brendan Higgins
+> <brendanhiggins@google.com> wrote:
+> >
+> > On Tue, Jun 25, 2019 at 4:22 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+> > >
+> > > On Mon, Jun 17, 2019 at 01:26:02AM -0700, Brendan Higgins wrote:
+> > > > diff --git a/kunit/example-test.c b/kunit/example-test.c
+> > > > new file mode 100644
+> > > > index 0000000000000..f44b8ece488bb
+> > > > --- /dev/null
+> > > > +++ b/kunit/example-test.c
+> > >
+> > > <-- snip -->
+> > >
+> > > > +/*
+> > > > + * This defines a suite or grouping of tests.
+> > > > + *
+> > > > + * Test cases are defined as belonging to the suite by adding them to
+> > > > + * `kunit_cases`.
+> > > > + *
+> > > > + * Often it is desirable to run some function which will set up things which
+> > > > + * will be used by every test; this is accomplished with an `init` function
+> > > > + * which runs before each test case is invoked. Similarly, an `exit` function
+> > > > + * may be specified which runs after every test case and can be used to for
+> > > > + * cleanup. For clarity, running tests in a test module would behave as follows:
+> > > > + *
+> > >
+> > > To be clear this is not the kernel module init, but rather the kunit
+> > > module init. I think using kmodule would make this clearer to a reader.
+> >
+> > Seems reasonable. Will fix in next revision.
+> >
+> > > > + * module.init(test);
+> > > > + * module.test_case[0](test);
+> > > > + * module.exit(test);
+> > > > + * module.init(test);
+> > > > + * module.test_case[1](test);
+> > > > + * module.exit(test);
+> > > > + * ...;
+> > > > + */
+> 
+> Do you think it might be clearer yet to rename `struct kunit_module
+> *module;` to `struct kunit_suite *suite;`?
 
-Add a 'state' attribute to the json listings for devices, since a device
-could end up in a state where it is not bound to any driver, and hence,
-'disabled'. The state attribute is only displayed for disabled devices.
+Yes. Definitely. Or struct kunit_test. Up to you.
 
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c |  2 ++
- util/json.c            | 14 ++++++++++++++
- 2 files changed, 16 insertions(+)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 949c56f..edb8257 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -12,6 +12,8 @@
-  */
- #include <stdio.h>
- #include <errno.h>
-+#include <limits.h>
-+#include <libgen.h>
- #include <stdlib.h>
- #include <dirent.h>
- #include <unistd.h>
-diff --git a/util/json.c b/util/json.c
-index f521337..9f80b5b 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -269,6 +269,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
- struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- 		unsigned long flags)
- {
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct json_object *jdev, *jobj;
- 	int node;
-@@ -292,6 +293,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- 			json_object_object_add(jdev, "target_node", jobj);
- 	}
- 
-+	if (mem)
-+		jobj = json_object_new_string("system-ram");
-+	else
-+		jobj = json_object_new_string("devdax");
-+	if (jobj)
-+		json_object_object_add(jdev, "mode", jobj);
-+
-+	if (!daxctl_dev_is_enabled(dev)) {
-+		jobj = json_object_new_string("disabled");
-+		if (jobj)
-+			json_object_object_add(jdev, "state", jobj);
-+	}
-+
- 	return jdev;
- }
- 
--- 
-2.20.1
-
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
