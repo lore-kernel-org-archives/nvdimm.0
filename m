@@ -1,59 +1,80 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: Re: [PATCH v5 07/18] kunit: test: add initial tests
-Date: Tue, 2 Jul 2019 10:52:50 -0700
-Message-ID: <CAFd5g46=7OQDREdLDTiMgVWq-Xj2zfOw8cRhPJEihSbO89MDyA@mail.gmail.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com>
- <20190617082613.109131-8-brendanhiggins@google.com> <20190625232249.GS19023@42.do-not-panic.com>
- <CAFd5g46mnd=a0OqFCx0hOHX+DxW+5yA2LXH5Q0gEg8yUZK=4FA@mail.gmail.com>
+From: Tran Thi Thanh Tra <sales10-W3wXZd6VRcb50L2fO0tYXQ@public.gmane.org>
+Subject: inquiry for quote
+Date: 02 Jul 2019 17:00:27 -0700
+Message-ID: <20190702170027.BF5E2997B194E046@dongtaycorp.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFd5g46mnd=a0OqFCx0hOHX+DxW+5yA2LXH5Q0gEg8yUZK=4FA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah <shuah@kernel.org>, Theodore Ts'o <tytso@mit.edu>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kbuild <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-ks>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Jun 26, 2019 at 12:53 AM Brendan Higgins
-<brendanhiggins@google.com> wrote:
->
-> On Tue, Jun 25, 2019 at 4:22 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
-> >
-> > On Mon, Jun 17, 2019 at 01:26:02AM -0700, Brendan Higgins wrote:
-> > > diff --git a/kunit/example-test.c b/kunit/example-test.c
-> > > new file mode 100644
-> > > index 0000000000000..f44b8ece488bb
-> > > --- /dev/null
-> > > +++ b/kunit/example-test.c
-> >
-> > <-- snip -->
-> >
-> > > +/*
-> > > + * This defines a suite or grouping of tests.
-> > > + *
-> > > + * Test cases are defined as belonging to the suite by adding them to
-> > > + * `kunit_cases`.
-> > > + *
-> > > + * Often it is desirable to run some function which will set up things which
-> > > + * will be used by every test; this is accomplished with an `init` function
-> > > + * which runs before each test case is invoked. Similarly, an `exit` function
-> > > + * may be specified which runs after every test case and can be used to for
-> > > + * cleanup. For clarity, running tests in a test module would behave as follows:
-> > > + *
-> >
-> > To be clear this is not the kernel module init, but rather the kunit
-> > module init. I think using kmodule would make this clearer to a reader.
->
-> Seems reasonable. Will fix in next revision.
->
-> > > + * module.init(test);
-> > > + * module.test_case[0](test);
-> > > + * module.exit(test);
-> > > + * module.init(test);
-> > > + * module.test_case[1](test);
-> > > + * module.exit(test);
-> > > + * ...;
-> > > + */
+Dear Sir/Madam!
 
-Do you think it might be clearer yet to rename `struct kunit_module
-*module;` to `struct kunit_suite *suite;`?
+I am Tra from Dong Tay Investment at Viet Nam.
+I want to buy your product .
+Please: check and send me a quote
+
+1
+
+PeakTech 5310, PH Meter
+
+PCS
+
+2
+
+We would highly appreciate it if you could send us your quotation 
+for the items stated below before 3 July, 2019: 
+
+- The Delivery Term: at Ho Chi Minh, Viet Nam.
+
+- Please also inform us the payment terms, delivery time, name of 
+original maker, country of origin (Made in where) and warranty 
+period of the goods you quote us
+- Document required: Technical Data Sheet; Drawing; (C/O; C/Q in 
+shipping documents)
+
+Should you have any questions, please feel free to contact us. We 
+look forwards to hearing from you.
+
+ 
+
+----------------------------------------------
+
+Thanks & Best regards
+
+Ms Thanh Tra
+
+Mobile: +84 983175450
+
+DONG TAY INVESTMENT
+Add:, No. 05, Road 518, Phu Huu Ward, District 9, Ho Chi Minh 
+City.
+
+Tel: + 028 3620 9395 -3620 9396  Fax: + 028 3620 9397 Hotline: 
++84 902 425 111
+
+Email: sales10-W3wXZd6VRcb50L2fO0tYXQ@public.gmane.org  
+
+Vung Tau Branch & Showroom:
+Add: 69 Nguyen An Ninh Str., Thanh Nhi Ward, Vung Tau City, 
+Vietnam.
+Tel:  + 84 643 626 632  Fax:  + 84 643 576 836  
+
+Quang Ngai Branch & Showroom:
+Add: Floor 1,2 Dong Tay Building 28 Tra Bong Khoi Nghia Str., 
+Nghia Chanh Ward, Quang Ngai City, Vietnam.
+Tel: +84 255 222 555 7           Fax: +84 255 222 555 8
+Website: www.Dongtaycorp.vn           www.dongtayinvestment.com 
+                   www.Dongtayco.com          
+www.thietbithuyluc.net 
+                   www.giangiaodongtay.vn    www.dongtaytools.com
