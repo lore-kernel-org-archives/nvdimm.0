@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from EUR02-AM5-obe.outbound.protection.outlook.com
+ (mail-eopbgr00084.outbound.protection.outlook.com [40.107.0.84])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 03AE4212BF9BE
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:37 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 09/13] daxctl: add commands to online and offline
- memory
-Date: Wed, 17 Jul 2019 16:53:56 -0600
-Message-Id: <20190717225400.9494-10-vishal.l.verma@intel.com>
-In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
-References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C73BF212AC487
+ for <linux-nvdimm@lists.01.org>; Tue,  2 Jul 2019 18:08:30 -0700 (PDT)
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: dev_pagemap related cleanups v4
+Date: Wed, 3 Jul 2019 01:08:27 +0000
+Message-ID: <20190703010823.GB11833@mellanox.com>
+References: <20190701062020.19239-1-hch@lst.de>
+ <20190701082517.GA22461@lst.de> <20190702184201.GO31718@mellanox.com>
+ <CAPcyv4iWXJ-c7LahPD=Qt4RuDNTU7w_8HjsitDuj3cxngzb56g@mail.gmail.com>
+In-Reply-To: <CAPcyv4iWXJ-c7LahPD=Qt4RuDNTU7w_8HjsitDuj3cxngzb56g@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <9433B9982DD5FE40BE697C702241BE2B@eurprd05.prod.outlook.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,253 +27,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, =?iso-8859-1?Q?J=E9r=F4me_Glisse?= <jglisse@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add two new commands:
+On Tue, Jul 02, 2019 at 04:17:48PM -0700, Dan Williams wrote:
+> On Tue, Jul 2, 2019 at 11:42 AM Jason Gunthorpe <jgg@mellanox.com> wrote:
+> >
+> > On Mon, Jul 01, 2019 at 10:25:17AM +0200, Christoph Hellwig wrote:
+> > > And I've demonstrated that I can't send patch series..  While this
+> > > has all the right patches, it also has the extra patches already
+> > > in the hmm tree, and four extra patches I wanted to send once
+> > > this series is merged.  I'll give up for now, please use the git
+> > > url for anything serious, as it contains the right thing.
+> >
+> > Okay, I sorted it all out and temporarily put it here:
+> >
+> > https://github.com/jgunthorpe/linux/commits/hmm
+> >
+> > Bit involved job:
+> > - Took Ira's v4 patch into hmm.git and confirmed it matches what
+> >   Andrew has in linux-next after all the fixups
+> > - Checked your github v4 and the v3 that hit the mailing list were
+> >   substantially similar (I never did get a clean v4) and largely
+> >   went with the github version
+> > - Based CH's v4 series on -rc7 and put back the removal hunk in swap.c
+> >   so it compiles
+> > - Merge'd CH's series to hmm.git and fixed all the conflicts with Ira
+> >   and Ralph's patches (such that swap.c remains unchanged)
+> > - Added Dan's ack's and tested-by's
+> 
+> Looks good. Test merge (with some collisions, see below) also passes
+> my test suite.
 
-  daxctl-online-memory
-  daxctl-offline-memory
+Okay, published toward linux-next now
 
-to manage the state of hot-plugged memory from the system-ram mode for
-dax devices. This provides a way for the user to online/offline the
-memory as a separate step from the reconfiguration. Without this, a user
-that reconfigures a device into the system-ram mode with the --no-online
-option, would have no way to later online the memory, and would have to
-resort to shell scripting to online them manually via sysfs.
+> >
+> > I think this fairly closely follows what was posted to the mailing
+> > list.
+> >
+> > As it was more than a simple 'git am', I'll let it sit on github until
+> > I hear OK's then I'll move it to kernel.org's hmm.git and it will hit
+> > linux-next. 0-day should also run on this whole thing from my github.
+> >
+> > What I know is outstanding:
+> >  - The conflicting ARM patches, I understand Andrew will handle these
+> >    post-linux-next
+> >  - The conflict with AMD GPU in -next, I am waiting to hear from AMD
+> 
+> Just a heads up that this also collides with the "sub-section" patches
+> in Andrew's tree. The resolution is straightforward, mostly just
+> colliding updates to arch_{add,remove}_memory() call sites in
+> kernel/memremap.c and collisions with pgmap_altmap() usage.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/builtin.h |   2 +
- daxctl/daxctl.c  |   2 +
- daxctl/device.c  | 138 ++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 141 insertions(+), 1 deletion(-)
+Okay, thanks
 
-diff --git a/daxctl/builtin.h b/daxctl/builtin.h
-index 756ba2a..f5a0147 100644
---- a/daxctl/builtin.h
-+++ b/daxctl/builtin.h
-@@ -7,4 +7,6 @@ struct daxctl_ctx;
- int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
-+int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
-+int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
- #endif /* _DAXCTL_BUILTIN_H_ */
-diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-index e1ba7b8..1ab0732 100644
---- a/daxctl/daxctl.c
-+++ b/daxctl/daxctl.c
-@@ -72,6 +72,8 @@ static struct cmd_struct commands[] = {
- 	{ "help", .d_fn = cmd_help },
- 	{ "migrate-device-model", .d_fn = cmd_migrate },
- 	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
-+	{ "online-memory", .d_fn = cmd_online_memory },
-+	{ "offline-memory", .d_fn = cmd_offline_memory },
- };
- 
- int main(int argc, const char **argv)
-diff --git a/daxctl/device.c b/daxctl/device.c
-index a1fb698..22cf0c8 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -30,6 +30,8 @@ static unsigned long flags;
- 
- enum device_action {
- 	ACTION_RECONFIG,
-+	ACTION_ONLINE,
-+	ACTION_OFFLINE,
- };
- 
- #define BASE_OPTIONS() \
-@@ -50,6 +52,11 @@ static const struct option reconfig_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option memory_options[] = {
-+	BASE_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static const char *parse_device_options(int argc, const char **argv,
- 		enum device_action action, const struct option *options,
- 		const char *usage, struct daxctl_ctx *ctx)
-@@ -70,6 +77,12 @@ static const char *parse_device_options(int argc, const char **argv,
- 		case ACTION_RECONFIG:
- 			action_string = "reconfigure";
- 			break;
-+		case ACTION_ONLINE:
-+			action_string = "online memory for";
-+			break;
-+		case ACTION_OFFLINE:
-+			action_string = "offline memory for";
-+			break;
- 		default:
- 			action_string = "<>";
- 			break;
-@@ -118,6 +131,10 @@ static const char *parse_device_options(int argc, const char **argv,
- 			}
- 		}
- 		break;
-+	case ACTION_ONLINE:
-+	case ACTION_OFFLINE:
-+		/* nothing special */
-+		break;
- 	}
- 	if (rc) {
- 		usage_with_options(u, options);
-@@ -287,10 +304,82 @@ static int do_reconfig(struct daxctl_dev *dev, enum daxctl_dev_mode mode,
- 	return rc;
- }
- 
-+static int do_xline(struct daxctl_dev *dev, enum device_action action)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	enum daxctl_dev_mode mode;
-+	int rc, num_online;
-+
-+	if (!daxctl_dev_is_enabled(dev)) {
-+		fprintf(stderr,
-+			"%s: memory operations not possible when disabled\n",
-+			devname);
-+		return -ENXIO;
-+	}
-+
-+	mode = daxctl_dev_get_mode(dev);
-+	if (mode < 0) {
-+		fprintf(stderr, "%s: unable to determine current mode: %s\n",
-+			devname, strerror(-mode));
-+		return rc;
-+	}
-+	if (mode == DAXCTL_DEV_MODE_DEVDAX) {
-+		fprintf(stderr,
-+			"%s: memory operations are not applicable in devdax mode\n",
-+			devname);
-+		return -ENXIO;
-+	}
-+
-+	/* We are enabled, and in the correct mode. Proceed. */
-+	num_online = daxctl_memory_is_online(mem);
-+	if (num_online < 0) {
-+		fprintf(stderr, "%s: unable to determine online state: %s\n",
-+			devname, strerror(-num_online));
-+		return num_online;
-+	}
-+
-+	switch (action) {
-+	case ACTION_ONLINE:
-+		if (num_online > 0)
-+			fprintf(stderr, "%s: %d section%s already online\n",
-+				devname, num_online,
-+				num_online == 1 ? "" : "s");
-+		rc = daxctl_memory_set_online(mem);
-+		if (rc < 0) {
-+			fprintf(stderr, "%s: unable to online memory: %s\n",
-+				devname, strerror(-rc));
-+			return rc;
-+		}
-+		fprintf(stderr, "%s: %d new section%s onlined\n", devname, rc,
-+				rc == 1 ? "" : "s");
-+		break;
-+	case ACTION_OFFLINE:
-+		if (num_online == 0) {
-+			fprintf(stderr, "%s: all sections already offline\n",
-+				devname);
-+			return 0;
-+		}
-+		rc = daxctl_memory_set_offline(mem);
-+		if (rc < 0) {
-+			fprintf(stderr, "%s: unable to offline memory: %s\n",
-+				devname, strerror(-rc));
-+			return rc;
-+		}
-+		fprintf(stderr, "%s: %d section%s offlined\n", devname, rc,
-+				rc == 1 ? "" : "s");
-+		break;
-+	default:
-+		fprintf(stderr, "%s: invalid action: %d\n", devname, action);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
- static int do_xaction_device(const char *device, enum device_action action,
- 		struct daxctl_ctx *ctx, int *processed)
- {
--	struct json_object *jdevs = json_object_new_array();
-+	struct json_object *jdevs = NULL;
- 	struct daxctl_region *region;
- 	struct daxctl_dev *dev;
- 	int rc = -ENXIO;
-@@ -308,10 +397,23 @@ static int do_xaction_device(const char *device, enum device_action action,
- 
- 			switch (action) {
- 			case ACTION_RECONFIG:
-+				/* reconfig needs jdevs, initialize it once */
-+				if (!jdevs)
-+					jdevs = json_object_new_array();
- 				rc = do_reconfig(dev, reconfig_mode, jdevs);
- 				if (rc == 0)
- 					(*processed)++;
- 				break;
-+			case ACTION_ONLINE:
-+				rc = do_xline(dev, action);
-+				if (rc == 0)
-+					(*processed)++;
-+				break;
-+			case ACTION_OFFLINE:
-+				rc = do_xline(dev, action);
-+				if (rc == 0)
-+					(*processed)++;
-+				break;
- 			default:
- 				rc = -EINVAL;
- 				break;
-@@ -346,3 +448,37 @@ int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
- 			processed == 1 ? "" : "s");
- 	return rc;
- }
-+
-+int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
-+{
-+	char *usage = "daxctl online-memory <device> [<options>]";
-+	const char *device = parse_device_options(argc, argv, ACTION_ONLINE,
-+			memory_options, usage, ctx);
-+	int processed, rc;
-+
-+	rc = do_xaction_device(device, ACTION_ONLINE, ctx, &processed);
-+	if (rc < 0)
-+		fprintf(stderr, "error onlining memory: %s\n",
-+				strerror(-rc));
-+
-+	fprintf(stderr, "onlined memory for %d device%s\n", processed,
-+			processed == 1 ? "" : "s");
-+	return rc;
-+}
-+
-+int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
-+{
-+	char *usage = "daxctl offline-memory <device> [<options>]";
-+	const char *device = parse_device_options(argc, argv, ACTION_OFFLINE,
-+			memory_options, usage, ctx);
-+	int processed, rc;
-+
-+	rc = do_xaction_device(device, ACTION_OFFLINE, ctx, &processed);
-+	if (rc < 0)
-+		fprintf(stderr, "error offlining memory: %s\n",
-+				strerror(-rc));
-+
-+	fprintf(stderr, "offlined memory for %d device%s\n", processed,
-+			processed == 1 ? "" : "s");
-+	return rc;
-+}
--- 
-2.20.1
-
+Jason
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
