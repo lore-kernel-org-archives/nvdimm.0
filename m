@@ -1,96 +1,97 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v7 0/3] "Hotremove" persistent memory
-Date: Tue,  9 Jul 2019 21:16:44 -0400
-Message-Id: <20190710011647.10944-1-pasha.tatashin@soleen.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-oi1-f196.google.com (mail-oi1-f196.google.com
+ [209.85.167.196])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id EC41B212ACEAC
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Jul 2019 04:11:10 -0700 (PDT)
+Received: by mail-oi1-f196.google.com with SMTP id g7so1708437oia.8
+ for <linux-nvdimm@lists.01.org>; Wed, 03 Jul 2019 04:11:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: owner-linux-mm@kvack.org
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156140037770.2951909.3387200938880485927.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156140037770.2951909.3387200938880485927.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 3 Jul 2019 13:10:58 +0200
+Message-ID: <CAJZ5v0gAVXxnu22it_YTTm1HQPiBj5DOuiC1YCg5Eem8RQW0Ww@mail.gmail.com>
+Subject: Re: [PATCH v4 02/10] acpi/numa/hmat: Skip publishing target info for
+ nodes with no online memory
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changelog:
-v7
-- Added Dan Williams Reviewed-by to the last patch, and small change to
-  dev_err() otput format as was suggested by Dan.
+On Mon, Jun 24, 2019 at 8:33 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> There are multiple scenarios where the HMAT may contain information
+> about proximity domains that are not currently online. Rather than fail
+> to report any HMAT data just elide those offline domains.
+>
+> If and when those domains are later onlined they can be added to the
+> HMEM reporting at that point.
+>
+> This was found while testing EFI_MEMORY_SP support which reserves
+> "specific purpose" memory from the general allocation pool. If that
+> reservation results in an empty numa-node then the node is not marked
+> online leading a spurious:
+>
+>     "acpi/hmat: Ignoring HMAT: Invalid table"
+>
+> ...result for HMAT parsing.
+>
+> Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-v6
-- A few minor changes and added reviewed-by's.
-- Spent time studying lock ordering issue that was reported by Vishal
-  Verma, but that issue already exists in Linux, and can be reproduced
-  with exactly the same steps with ACPI memory hotplugging.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-v5
-- Addressed comments from Dan Williams: made remove_memory() to return
-  an error code, and use this function from dax.
-
-v4
-- Addressed comments from Dave Hansen
-
-v3
-- Addressed comments from David Hildenbrand. Don't release
-  lock_device_hotplug after checking memory status, and rename
-  memblock_offlined_cb() to check_memblock_offlined_cb()
-
-v2
-- Dan Williams mentioned that drv->remove() return is ignored
-  by unbind. Unbind always succeeds. Because we cannot guarantee
-  that memory can be offlined from the driver, don't even
-  attempt to do so. Simply check that every section is offlined
-  beforehand and only then proceed with removing dax memory.
-
----
-
-Recently, adding a persistent memory to be used like a regular RAM was
-added to Linux. This work extends this functionality to also allow hot
-removing persistent memory.
-
-We (Microsoft) have an important use case for this functionality.
-
-The requirement is for physical machines with small amount of RAM (~8G)
-to be able to reboot in a very short period of time (<1s). Yet, there is
-a userland state that is expensive to recreate (~2G).
-
-The solution is to boot machines with 2G preserved for persistent
-memory.
-
-Copy the state, and hotadd the persistent memory so machine still has
-all 8G available for runtime. Before reboot, offline and hotremove
-device-dax 2G, copy the memory that is needed to be preserved to pmem0
-device, and reboot.
-
-The series of operations look like this:
-
-1. After boot restore /dev/pmem0 to ramdisk to be consumed by apps.
-   and free ramdisk.
-2. Convert raw pmem0 to devdax
-   ndctl create-namespace --mode devdax --map mem -e namespace0.0 -f
-3. Hotadd to System RAM
-   echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
-   echo online_movable > /sys/devices/system/memoryXXX/state
-4. Before reboot hotremove device-dax memory from System RAM
-   echo offline > /sys/devices/system/memoryXXX/state
-   echo dax0.0 > /sys/bus/dax/drivers/kmem/unbind
-5. Create raw pmem0 device
-   ndctl create-namespace --mode raw  -e namespace0.0 -f
-6. Copy the state that was stored by apps to ramdisk to pmem device
-7. Do kexec reboot or reboot through firmware if firmware does not
-   zero memory in pmem0 region (These machines have only regular
-   volatile memory). So to have pmem0 device either memmap kernel
-   parameter is used, or devices nodes in dtb are specified.
-
-
-Pavel Tatashin (3):
-  device-dax: fix memory and resource leak if hotplug fails
-  mm/hotplug: make remove_memory() interface useable
-  device-dax: "Hotremove" persistent memory that is used like normal RAM
-
- drivers/dax/dax-private.h      |  2 ++
- drivers/dax/kmem.c             | 46 +++++++++++++++++++++---
- include/linux/memory_hotplug.h |  8 +++--
- mm/memory_hotplug.c            | 64 +++++++++++++++++++++++-----------
- 4 files changed, 92 insertions(+), 28 deletions(-)
-
--- 
-2.22.0
+> ---
+>  drivers/acpi/numa/hmat.c |   14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
+> index 96b7d39a97c6..2c220cb7b620 100644
+> --- a/drivers/acpi/numa/hmat.c
+> +++ b/drivers/acpi/numa/hmat.c
+> @@ -96,9 +96,6 @@ static __init void alloc_memory_target(unsigned int mem_pxm)
+>  {
+>         struct memory_target *target;
+>
+> -       if (pxm_to_node(mem_pxm) == NUMA_NO_NODE)
+> -               return;
+> -
+>         target = find_mem_target(mem_pxm);
+>         if (target)
+>                 return;
+> @@ -588,6 +585,17 @@ static __init void hmat_register_targets(void)
+>         struct memory_target *target;
+>
+>         list_for_each_entry(target, &targets, node) {
+> +               int nid = pxm_to_node(target->memory_pxm);
+> +
+> +               /*
+> +                * Skip offline nodes. This can happen when memory
+> +                * marked EFI_MEMORY_SP, "specific purpose", is applied
+> +                * to all the memory in a promixity domain leading to
+> +                * the node being marked offline / unplugged, or if
+> +                * memory-only "hotplug" node is offline.
+> +                */
+> +               if (nid == NUMA_NO_NODE || !node_online(nid))
+> +                       continue;
+>                 hmat_register_target_initiators(target);
+>                 hmat_register_target_perf(target);
+>         }
+>
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
