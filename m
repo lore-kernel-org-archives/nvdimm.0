@@ -1,175 +1,250 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 00/18] kunit: introduce KUnit, the Linux kernel unit
- testing framework
-Date: Wed, 3 Jul 2019 16:40:50 -0700
-Message-ID: <CAFd5g4515jAOzEtiZfXP0d6YUgOxOZCknw0Nd-2wsY=mPFdGqg@mail.gmail.com>
-References: <20190617082613.109131-1-brendanhiggins@google.com>
- <10feac3e-7621-65e5-fbf0-9c63fcbe09c9@gmail.com>
- <69809117-dcda-160a-ee0a-d1d3b4c5cd8a@kernel.org>
- <20190621181342.GA17166@mit.edu>
- <6f3f5184-d14e-1b46-17f1-391ee67e699c@kernel.org>
- <CAFd5g46W1u+6JKLW0WX9uicK5utvJe9tvq4YBsCkghuo0rCmng@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: [PATCH v6 01/18] kunit: test: add KUnit test runner core
+Date: Wed,  3 Jul 2019 17:35:58 -0700
+Message-ID: <20190704003615.204860-2-brendanhiggins@google.com>
+References: <20190704003615.204860-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAFd5g46W1u+6JKLW0WX9uicK5utvJe9tvq4YBsCkghuo0rCmng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild <linux-kbuild@v>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190704003615.204860-1-brendanhiggins@google.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
 List-Id: linux-nvdimm@lists.01.org
 
-On Fri, Jun 21, 2019 at 5:54 PM Brendan Higgins
-<brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
->
-> On Fri, Jun 21, 2019 at 12:21 PM shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >
-> > On 6/21/19 12:13 PM, Theodore Ts'o wrote:
-> > > On Fri, Jun 21, 2019 at 08:59:48AM -0600, shuah wrote:
-> > >>>> ### But wait! Doesn't kselftest support in kernel testing?!
-> > >>>>
-> > >>>> ....
-> > >>
-> > >> I think I commented on this before. I agree with the statement that
-> > >> there is no overlap between Kselftest and KUnit. I would like see this
-> > >> removed. Kselftest module support supports use-cases KUnit won't be able
-> > >> to. I can build an kernel with Kselftest test modules and use it in the
-> > >> filed to load and run tests if I need to debug a problem and get data
-> > >> from a system. I can't do that with KUnit.
->
-> Sure, I think this point has been brought up a number of times before.
-> Maybe I didn't write this section well because, like Frank said, it
-> comes across as being critical of the Kselftest module support; that
-> wasn't my intention. I was speaking from the perspective that
-> Kselftest module support is just a feature of Kselftest, and not a
-> full framework like KUnit is (obviously Kselftest itself *is* a
-> framework, but a very small part of it is not).
->
-> It was obvious to me what Kselftest module support was intended for,
-> and it is not intended to cover the use case that KUnit is targeting.
->
-> > >> In my mind, I am not viewing this as which is better. Kselftest and
-> > >> KUnit both have their place in the kernel development process. It isn't
-> > >> productive and/or necessary to comparing Kselftest and KUnit without a
-> > >> good understanding of the problem spaces for each of these.
->
-> Again, I didn't mean to draw a comparison of which is better than the
-> other. I was just trying to point out that Kselftest module support
-> doesn't make sense as a stand alone unit testing framework, or really
-> a framework of any kind, despite how it might actually be used.
->
-> > >> I would strongly recommend not making reference to Kselftest and talk
-> > >> about what KUnit offers.
->
-> I can see your point. It seems that both you and Frank seem to think
-> that I drew a comparison between Kselftest and KUnit, which was
-> unintended. I probably should have spent more time editing this
-> section, but I can see the point of drawing the comparison itself
-> might invite this confusion.
->
-> > > Shuah,
-> > >
-> > > Just to recall the history, this section of the FAQ was added to rebut
-> > > the ***very*** strong statements that Frank made that there was
-> > > overlap between Kselftest and Kunit, and that having too many ways for
-> > > kernel developers to do the identical thing was harmful (he said it
-> > > was too much of a burden on a kernel developer) --- and this was an
-> > > argument for not including Kunit in the upstream kernel.
->
-> I don't think he was actually advocating that we don't include KUnit,
-> maybe playing devil's advocate; nevertheless, at the end, Frank seemed
-> to agree that there were valuable things that KUnit offered. I thought
-> he just wanted to make the point that I hadn't made the distinction
-> sufficiently clear in the cover letter, and other reviewers might get
-> confused in the future as well.
->
-> Additionally, it does look like people were trying to use Kselftest
-> module support to cover some things which really were trying to be
-> unit tests. I know this isn't really intended - everything looks like
-> a nail when you only have a hammer, which I think Frank was pointing
-> out furthers the above confusion.
->
-> In anycase, it sounds like I have, if anything, only made the
-> discussion even more confusing by adding this section; sorry about
-> that.
->
-> > > If we're past that objection, then perhaps this section can be
-> > > dropped, but there's a very good reason why it was there.  I wouldn't
-> > > Brendan to be accused of ignoring feedback from those who reviewed his
-> > > patches.   :-)
-> > >
-> >
-> > Agreed. I understand that this FAQ probably was needed at one time and
-> > Brendan added it to address the concerns.
->
-> I don't want to speak for Frank, but I don't think it was an objection
-> to KUnit itself, but rather an objection to not sufficiently
-> addressing the point about how they differ.
->
-> > I think at some point we do need to have a document that outlines when
-> > to KUnit and when to use Kselftest modules. I think one concern people
-> > have is that if KUnit is perceived as a  replacement for Ksefltest
-> > module, Kselftest module will be ignored leaving users without the
-> > ability to build and run with Kselftest modules and load them on a need
-> > basis to gather data on a systems that aren't dedicated strictly for
-> > testing.
->
-> I absolutely agree! I posed a suggestion here[1], which after I just
-> now searched for a link, I realize for some reason it didn't seem like
-> it reached a number of the mailing lists that I sent it to, so I
-> should probably resend it.
->
-> Anyway, a summary of what I suggested: We should start off by better
-> organizing Documentation/dev-tools/ and create a landing page that
-> groups the dev-tools by function according to what person is likely to
-> use them and for what. Eventually and specifically for Kselftest and
-> KUnit, I would like to have a testing guide for the kernel that
-> explains what testing procedure should look like and what to use and
-> when.
->
-> > I am trying to move the conversation forward from KUnit vs. Kselftest
-> > modules discussion to which problem areas each one addresses keeping
-> > in mind that it is not about which is better. Kselftest and KUnit both
-> > have their place in the kernel development process. We just have to be
-> > clear on usage as we write tests for each.
->
-> I think that is the right long term approach. I think a good place to
-> start, like I suggested above, is cleaning up
-> Documentation/dev-tools/, but I think that belongs in a (probably
-> several) follow-up patchset.
->
-> Frank, I believe your objection was mostly related to how KUnit is
-> presented specifically in the cover letter, and doesn't necessarily
-> deal with the intended use case. So I don't think that doing this,
-> especially doing this later, really addresses your concern. I don't
-> want to belabor the issue, but I would also rather not put words in
-> your mouth, what are your thoughts on the above?
->
-> I think my main concern moving forward on this point is that I am not
-> sure that I can address the debate that this section covers in a way
-> that is both sufficiently concise for a cover letter, but also doesn't
-> invite more potential confusion. My inclination at this point is to
-> drop it since I think the set of reviewers for this patchset has at
-> this point become fixed, and it seems that it will likely cause more
-> confusion rather than reduce it; also, I don't really think this will
-
-Since no one has objected to dropping the "### But wait! Doesn't
-kselftest support in kernel testing?!" section in the past almost two
-weeks, I am just going to continue on without it.
-
-Cheers
-
-> be an issue for end users, especially once we have proper
-> documentation in place. Alternatively, I guess I could maybe address
-> the point elsewhere and refer to it in the cover letter? Or maybe just
-> put it at the end of the cover letter?
->
-> [1] https://www.mail-archive.com/kgdb-bugreport-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org/msg05059.html
+QWRkIGNvcmUgZmFjaWxpdGllcyBmb3IgZGVmaW5pbmcgdW5pdCB0ZXN0czsgdGhpcyBwcm92aWRl
+cyBhIGNvbW1vbiB3YXkKdG8gZGVmaW5lIHRlc3QgY2FzZXMsIGZ1bmN0aW9ucyB0aGF0IGV4ZWN1
+dGUgY29kZSB3aGljaCBpcyB1bmRlciB0ZXN0CmFuZCBkZXRlcm1pbmUgd2hldGhlciB0aGUgY29k
+ZSB1bmRlciB0ZXN0IGJlaGF2ZXMgYXMgZXhwZWN0ZWQ7IHRoaXMgYWxzbwpwcm92aWRlcyBhIHdh
+eSB0byBncm91cCB0b2dldGhlciByZWxhdGVkIHRlc3QgY2FzZXMgaW4gdGVzdCBzdWl0ZXMgKGhl
+cmUKd2UgY2FsbCB0aGVtIHRlc3RfbW9kdWxlcykuCgpKdXN0IGRlZmluZSB0ZXN0IGNhc2VzIGFu
+ZCBob3cgdG8gZXhlY3V0ZSB0aGVtIGZvciBub3c7IHNldHRpbmcKZXhwZWN0YXRpb25zIG9uIGNv
+ZGUgd2lsbCBiZSBkZWZpbmVkIGxhdGVyLgoKU2lnbmVkLW9mZi1ieTogQnJlbmRhbiBIaWdnaW5z
+IDxicmVuZGFuaGlnZ2luc0Bnb29nbGUuY29tPgpSZXZpZXdlZC1ieTogR3JlZyBLcm9haC1IYXJ0
+bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4KUmV2aWV3ZWQtYnk6IExvZ2FuIEd1bnRo
+b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCkNoYW5nZXMgU2luY2UgTGFzdCBSZXZpc2lv
+bjoKLSBSZW1vdmVkIHNwaW5sb2NrLiAtIFN1Z2dlc3RlZCBieSBMdWlzIGFuZCBTdGVwaGVuCi0g
+UmVuYW1lZCBgc3RydWN0IGt1bml0X21vZHVsZWAgdG8gYHN0cnVjdCBrdW5pdF9zdWl0ZWAuIC0g
+SW5zcGlyZWQgYnkKICBMdWlzLgotIE1hZGUgYSBudW1iZXIgb2YgbWlub3IgY2xlYW51cHMuIC0g
+U3VnZ2VzdGVkIGJ5IEx1aXMgYW5kIFN0ZXBoZW4uCi0tLQogaW5jbHVkZS9rdW5pdC90ZXN0Lmgg
+fCAxODIgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGt1bml0L0tj
+b25maWcgICAgICAgIHwgIDE3ICsrKysKIGt1bml0L01ha2VmaWxlICAgICAgIHwgICAxICsKIGt1
+bml0L3Rlc3QuYyAgICAgICAgIHwgMTkwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysKIDQgZmlsZXMgY2hhbmdlZCwgMzkwIGluc2VydGlvbnMoKykKIGNyZWF0ZSBt
+b2RlIDEwMDY0NCBpbmNsdWRlL2t1bml0L3Rlc3QuaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGt1bml0
+L0tjb25maWcKIGNyZWF0ZSBtb2RlIDEwMDY0NCBrdW5pdC9NYWtlZmlsZQogY3JlYXRlIG1vZGUg
+MTAwNjQ0IGt1bml0L3Rlc3QuYwoKZGlmZiAtLWdpdCBhL2luY2x1ZGUva3VuaXQvdGVzdC5oIGIv
+aW5jbHVkZS9rdW5pdC90ZXN0LmgKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMDAw
+MDAwMC4uYjM0ZDlmMmFjNmY5YwotLS0gL2Rldi9udWxsCisrKyBiL2luY2x1ZGUva3VuaXQvdGVz
+dC5oCkBAIC0wLDAgKzEsMTgyIEBACisvKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogR1BMLTIu
+MCAqLworLyoKKyAqIEJhc2UgdW5pdCB0ZXN0IChLVW5pdCkgQVBJLgorICoKKyAqIENvcHlyaWdo
+dCAoQykgMjAxOSwgR29vZ2xlIExMQy4KKyAqIEF1dGhvcjogQnJlbmRhbiBIaWdnaW5zIDxicmVu
+ZGFuaGlnZ2luc0Bnb29nbGUuY29tPgorICovCisKKyNpZm5kZWYgX0tVTklUX1RFU1RfSAorI2Rl
+ZmluZSBfS1VOSVRfVEVTVF9ICisKKyNpbmNsdWRlIDxsaW51eC90eXBlcy5oPgorCitzdHJ1Y3Qg
+a3VuaXQ7CisKKy8qKgorICogc3RydWN0IGt1bml0X2Nhc2UgLSByZXByZXNlbnRzIGFuIGluZGl2
+aWR1YWwgdGVzdCBjYXNlLgorICogQHJ1bl9jYXNlOiB0aGUgZnVuY3Rpb24gcmVwcmVzZW50aW5n
+IHRoZSBhY3R1YWwgdGVzdCBjYXNlLgorICogQG5hbWU6IHRoZSBuYW1lIG9mIHRoZSB0ZXN0IGNh
+c2UuCisgKgorICogQSB0ZXN0IGNhc2UgaXMgYSBmdW5jdGlvbiB3aXRoIHRoZSBzaWduYXR1cmUs
+IGBgdm9pZCAoKikoc3RydWN0IGt1bml0ICopYGAKKyAqIHRoYXQgbWFrZXMgZXhwZWN0YXRpb25z
+IChzZWUgS1VOSVRfRVhQRUNUX1RSVUUoKSkgYWJvdXQgY29kZSB1bmRlciB0ZXN0LiBFYWNoCisg
+KiB0ZXN0IGNhc2UgaXMgYXNzb2NpYXRlZCB3aXRoIGEgJnN0cnVjdCBrdW5pdF9zdWl0ZSBhbmQg
+d2lsbCBiZSBydW4gYWZ0ZXIgdGhlCisgKiBzdWl0ZSdzIGluaXQgZnVuY3Rpb24gYW5kIGZvbGxv
+d2VkIGJ5IHRoZSBzdWl0ZSdzIGV4aXQgZnVuY3Rpb24uCisgKgorICogQSB0ZXN0IGNhc2Ugc2hv
+dWxkIGJlIHN0YXRpYyBhbmQgc2hvdWxkIG9ubHkgYmUgY3JlYXRlZCB3aXRoIHRoZSBLVU5JVF9D
+QVNFKCkKKyAqIG1hY3JvOyBhZGRpdGlvbmFsbHksIGV2ZXJ5IGFycmF5IG9mIHRlc3QgY2FzZXMg
+c2hvdWxkIGJlIHRlcm1pbmF0ZWQgd2l0aCBhbgorICogZW1wdHkgdGVzdCBjYXNlLgorICoKKyAq
+IEV4YW1wbGU6CisgKgorICogLi4gY29kZS1ibG9jazo6IGMKKyAqCisgKgl2b2lkIGFkZF90ZXN0
+X2Jhc2ljKHN0cnVjdCBrdW5pdCAqdGVzdCkKKyAqCXsKKyAqCQlLVU5JVF9FWFBFQ1RfRVEodGVz
+dCwgMSwgYWRkKDEsIDApKTsKKyAqCQlLVU5JVF9FWFBFQ1RfRVEodGVzdCwgMiwgYWRkKDEsIDEp
+KTsKKyAqCQlLVU5JVF9FWFBFQ1RfRVEodGVzdCwgMCwgYWRkKC0xLCAxKSk7CisgKgkJS1VOSVRf
+RVhQRUNUX0VRKHRlc3QsIElOVF9NQVgsIGFkZCgwLCBJTlRfTUFYKSk7CisgKgkJS1VOSVRfRVhQ
+RUNUX0VRKHRlc3QsIC0xLCBhZGQoSU5UX01BWCwgSU5UX01JTikpOworICoJfQorICoKKyAqCXN0
+YXRpYyBzdHJ1Y3Qga3VuaXRfY2FzZSBleGFtcGxlX3Rlc3RfY2FzZXNbXSA9IHsKKyAqCQlLVU5J
+VF9DQVNFKGFkZF90ZXN0X2Jhc2ljKSwKKyAqCQl7fQorICoJfTsKKyAqCisgKi8KK3N0cnVjdCBr
+dW5pdF9jYXNlIHsKKwl2b2lkICgqcnVuX2Nhc2UpKHN0cnVjdCBrdW5pdCAqdGVzdCk7CisJY29u
+c3QgY2hhciAqbmFtZTsKKworCS8qIHByaXZhdGU6IGludGVybmFsIHVzZSBvbmx5LiAqLworCWJv
+b2wgc3VjY2VzczsKK307CisKKy8qKgorICogS1VOSVRfQ0FTRSAtIEEgaGVscGVyIGZvciBjcmVh
+dGluZyBhICZzdHJ1Y3Qga3VuaXRfY2FzZQorICogQHRlc3RfbmFtZTogYSByZWZlcmVuY2UgdG8g
+YSB0ZXN0IGNhc2UgZnVuY3Rpb24uCisgKgorICogVGFrZXMgYSBzeW1ib2wgZm9yIGEgZnVuY3Rp
+b24gcmVwcmVzZW50aW5nIGEgdGVzdCBjYXNlIGFuZCBjcmVhdGVzIGEKKyAqICZzdHJ1Y3Qga3Vu
+aXRfY2FzZSBvYmplY3QgZnJvbSBpdC4gU2VlIHRoZSBkb2N1bWVudGF0aW9uIGZvcgorICogJnN0
+cnVjdCBrdW5pdF9jYXNlIGZvciBhbiBleGFtcGxlIG9uIGhvdyB0byB1c2UgaXQuCisgKi8KKyNk
+ZWZpbmUgS1VOSVRfQ0FTRSh0ZXN0X25hbWUpIHsgLnJ1bl9jYXNlID0gdGVzdF9uYW1lLCAubmFt
+ZSA9ICN0ZXN0X25hbWUgfQorCisvKioKKyAqIHN0cnVjdCBrdW5pdF9zdWl0ZSAtIGRlc2NyaWJl
+cyBhIHJlbGF0ZWQgY29sbGVjdGlvbiBvZiAmc3RydWN0IGt1bml0X2Nhc2Ugcy4KKyAqIEBuYW1l
+OiB0aGUgbmFtZSBvZiB0aGUgdGVzdC4gUHVyZWx5IGluZm9ybWF0aW9uYWwuCisgKiBAaW5pdDog
+Y2FsbGVkIGJlZm9yZSBldmVyeSB0ZXN0IGNhc2UuCisgKiBAZXhpdDogY2FsbGVkIGFmdGVyIGV2
+ZXJ5IHRlc3QgY2FzZS4KKyAqIEB0ZXN0X2Nhc2VzOiBhIG51bGwgdGVybWluYXRlZCBhcnJheSBv
+ZiB0ZXN0IGNhc2VzLgorICoKKyAqIEEga3VuaXRfc3VpdGUgaXMgYSBjb2xsZWN0aW9uIG9mIHJl
+bGF0ZWQgJnN0cnVjdCBrdW5pdF9jYXNlIHMsIHN1Y2ggdGhhdAorICogQGluaXQgaXMgY2FsbGVk
+IGJlZm9yZSBldmVyeSB0ZXN0IGNhc2UgYW5kIEBleGl0IGlzIGNhbGxlZCBhZnRlciBldmVyeSB0
+ZXN0CisgKiBjYXNlLCBzaW1pbGFyIHRvIHRoZSBub3Rpb24gb2YgYSAqdGVzdCBmaXh0dXJlKiBv
+ciBhICp0ZXN0IGNsYXNzKiBpbiBvdGhlcgorICogdW5pdCB0ZXN0aW5nIGZyYW1ld29ya3MgbGlr
+ZSBKVW5pdCBvciBHb29nbGV0ZXN0LgorICoKKyAqIEV2ZXJ5ICZzdHJ1Y3Qga3VuaXRfY2FzZSBt
+dXN0IGJlIGFzc29jaWF0ZWQgd2l0aCBhIGt1bml0X3N1aXRlIGZvciBLVW5pdCB0bworICogcnVu
+IGl0LgorICovCitzdHJ1Y3Qga3VuaXRfc3VpdGUgeworCWNvbnN0IGNoYXIgbmFtZVsyNTZdOwor
+CWludCAoKmluaXQpKHN0cnVjdCBrdW5pdCAqdGVzdCk7CisJdm9pZCAoKmV4aXQpKHN0cnVjdCBr
+dW5pdCAqdGVzdCk7CisJc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZXM7Cit9OworCisvKioK
+KyAqIHN0cnVjdCBrdW5pdCAtIHJlcHJlc2VudHMgYSBydW5uaW5nIGluc3RhbmNlIG9mIGEgdGVz
+dC4KKyAqIEBwcml2OiBmb3IgdXNlciB0byBzdG9yZSBhcmJpdHJhcnkgZGF0YS4gQ29tbW9ubHkg
+dXNlZCB0byBwYXNzIGRhdGEgY3JlYXRlZAorICogaW4gdGhlIGluaXQgZnVuY3Rpb24gKHNlZSAm
+c3RydWN0IGt1bml0X3N1aXRlKS4KKyAqCisgKiBVc2VkIHRvIHN0b3JlIGluZm9ybWF0aW9uIGFi
+b3V0IHRoZSBjdXJyZW50IGNvbnRleHQgdW5kZXIgd2hpY2ggdGhlIHRlc3QgaXMKKyAqIHJ1bm5p
+bmcuIE1vc3Qgb2YgdGhpcyBkYXRhIGlzIHByaXZhdGUgYW5kIHNob3VsZCBvbmx5IGJlIGFjY2Vz
+c2VkIGluZGlyZWN0bHkKKyAqIHZpYSBwdWJsaWMgZnVuY3Rpb25zOyB0aGUgb25lIGV4Y2VwdGlv
+biBpcyBAcHJpdiB3aGljaCBjYW4gYmUgdXNlZCBieSB0aGUKKyAqIHRlc3Qgd3JpdGVyIHRvIHN0
+b3JlIGFyYml0cmFyeSBkYXRhLgorICoKKyAqIEEgYnJpZWYgbm90ZSBvbiBsb2NraW5nOgorICoK
+KyAqIEZpcnN0IG9mZiwgd2UgbmVlZCB0byBsb2NrIGJlY2F1c2UgaW4gY2VydGFpbiBjYXNlcyBh
+IHVzZXIgbWF5IHdhbnQgdG8gdXNlIGFuCisgKiBleHBlY3RhdGlvbiBpbiBhIHRocmVhZCBvdGhl
+ciB0aGFuIHRoZSB0aHJlYWQgdGhhdCB0aGUgdGVzdCBjYXNlIGlzIHJ1bm5pbmcKKyAqIGluLgor
+ICoKKyAqIFRoZSBuZXh0IHBvaW50IGlzIHRoYXQgdGhlIGxvY2tpbmcgc2hvdWxkIGJlIHNhZmUg
+aW4gYW4gaXJxIGNvbnRleHQuCisgKiBUZWNobmljYWxseSBzcGVha2luZyBhIHVzZXIgc2hvdWxk
+IHVzZSBhIG1vY2svZmFrZSBpcnFjaGlwIG9yIHNvbWUgb3RoZXIgZmFrZQorICogbWV0aG9kIHRv
+IHRyaWdnZXIgYW4gaXJxIGhhbmRsZXIgdW5kZXIgdGVzdDsgaG93ZXZlciwgdGhlIGlycSBoYW5k
+bGVyIHNob3VsZAorICogdGhpbmsgdGhhdCBpdCBpcyBpbiBhIHJlYWwgaXJxIGNvbnRleHQuIEdp
+dmVuIHRoYXQgdGhlIGNvZGUgYmVpbmcgcnVuIGV4cGVjdHMKKyAqIHRvIGJlIGluIGFuIGlycSBj
+b250ZXh0LCB3ZSBzaG91bGQgYWN0IGFzIHRob3VnaCBpdCBpcy4KKyAqLworc3RydWN0IGt1bml0
+IHsKKwl2b2lkICpwcml2OworCisJLyogcHJpdmF0ZTogaW50ZXJuYWwgdXNlIG9ubHkuICovCisJ
+Y29uc3QgY2hhciAqbmFtZTsgLyogUmVhZCBvbmx5IGFmdGVyIGluaXRpYWxpemF0aW9uISAqLwor
+CWJvb2wgc3VjY2VzczsgLyogUmVhZCBvbmx5IGFmdGVyIHRlc3RfY2FzZSBmaW5pc2hlcyEgKi8K
+K307CisKK3ZvaWQga3VuaXRfaW5pdF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgY29uc3QgY2hh
+ciAqbmFtZSk7CisKK2ludCBrdW5pdF9ydW5fdGVzdHMoc3RydWN0IGt1bml0X3N1aXRlICpzdWl0
+ZSk7CisKKy8qKgorICogc3VpdGVfdGVzdCgpIC0gdXNlZCB0byByZWdpc3RlciBhICZzdHJ1Y3Qg
+a3VuaXRfc3VpdGUgd2l0aCBLVW5pdC4KKyAqIEBzdWl0ZTogYSBzdGF0aWNhbGx5IGFsbG9jYXRl
+ZCAmc3RydWN0IGt1bml0X3N1aXRlLgorICoKKyAqIFJlZ2lzdGVycyBAc3VpdGUgd2l0aCB0aGUg
+dGVzdCBmcmFtZXdvcmsuIFNlZSAmc3RydWN0IGt1bml0X3N1aXRlIGZvciBtb3JlCisgKiBpbmZv
+cm1hdGlvbi4KKyAqCisgKiBOT1RFOiBDdXJyZW50bHkgS1VuaXQgdGVzdHMgYXJlIGFsbCBydW4g
+YXMgbGF0ZV9pbml0Y2FsbHM7IHRoaXMgbWVhbnMgdGhhdAorICogdGhleSBjYW5ub3QgdGVzdCBh
+bnl0aGluZyB3aGVyZSB0ZXN0cyBtdXN0IHJ1biBhdCBhIGRpZmZlcmVudCBpbml0IHBoYXNlLiBP
+bmUKKyAqIHNpZ25pZmljYW50IHJlc3RyaWN0aW9uIHJlc3VsdGluZyBmcm9tIHRoaXMgaXMgdGhh
+dCBLVW5pdCBjYW5ub3QgcmVsaWFibHkKKyAqIHRlc3QgYW55dGhpbmcgdGhhdCBpcyBpbml0aWFs
+aXplIGluIHRoZSBsYXRlX2luaXQgcGhhc2UuCisgKgorICogVE9ETyhicmVuZGFuaGlnZ2luc0Bn
+b29nbGUuY29tKTogRG9uJ3QgcnVuIGFsbCBLVW5pdCB0ZXN0cyBhcyBsYXRlX2luaXRjYWxscy4K
+KyAqIEkgaGF2ZSBzb21lIGZ1dHVyZSB3b3JrIHBsYW5uZWQgdG8gZGlzcGF0Y2ggYWxsIEtVbml0
+IHRlc3RzIGZyb20gdGhlIHNhbWUKKyAqIHBsYWNlLCBhbmQgYXQgdGhlIHZlcnkgbGVhc3QgdG8g
+ZG8gc28gYWZ0ZXIgZXZlcnl0aGluZyBlbHNlIGlzIGRlZmluaXRlbHkKKyAqIGluaXRpYWxpemVk
+LgorICovCisjZGVmaW5lIGt1bml0X3Rlc3Rfc3VpdGUoc3VpdGUpIFwKKwkJc3RhdGljIGludCBr
+dW5pdF9zdWl0ZV9pbml0IyNzdWl0ZSh2b2lkKSBcCisJCXsgXAorCQkJcmV0dXJuIGt1bml0X3J1
+bl90ZXN0cygmc3VpdGUpOyBcCisJCX0gXAorCQlsYXRlX2luaXRjYWxsKGt1bml0X3N1aXRlX2lu
+aXQjI3N1aXRlKQorCit2b2lkIF9fcHJpbnRmKDMsIDQpIGt1bml0X3ByaW50ayhjb25zdCBjaGFy
+ICpsZXZlbCwKKwkJCQkgY29uc3Qgc3RydWN0IGt1bml0ICp0ZXN0LAorCQkJCSBjb25zdCBjaGFy
+ICpmbXQsIC4uLik7CisKKy8qKgorICoga3VuaXRfaW5mbygpIC0gUHJpbnRzIGFuIElORk8gbGV2
+ZWwgbWVzc2FnZSBhc3NvY2lhdGVkIHdpdGggdGhlIGN1cnJlbnQgdGVzdC4KKyAqIEB0ZXN0OiBU
+aGUgdGVzdCBjb250ZXh0IG9iamVjdC4KKyAqIEBmbXQ6IEEgcHJpbnRrKCkgc3R5bGUgZm9ybWF0
+IHN0cmluZy4KKyAqCisgKiBQcmludHMgYW4gaW5mbyBsZXZlbCBtZXNzYWdlIGFzc29jaWF0ZWQg
+d2l0aCB0aGUgdGVzdCBzdWl0ZSBiZWluZyBydW4uIFRha2VzCisgKiBhIHZhcmlhYmxlIG51bWJl
+ciBvZiBmb3JtYXQgcGFyYW1ldGVycyBqdXN0IGxpa2UgcHJpbnRrKCkuCisgKi8KKyNkZWZpbmUg
+a3VuaXRfaW5mbyh0ZXN0LCBmbXQsIC4uLikgXAorCQlrdW5pdF9wcmludGsoS0VSTl9JTkZPLCB0
+ZXN0LCBmbXQsICMjX19WQV9BUkdTX18pCisKKy8qKgorICoga3VuaXRfd2FybigpIC0gUHJpbnRz
+IGEgV0FSTiBsZXZlbCBtZXNzYWdlIGFzc29jaWF0ZWQgd2l0aCB0aGUgY3VycmVudCB0ZXN0Lgor
+ICogQHRlc3Q6IFRoZSB0ZXN0IGNvbnRleHQgb2JqZWN0LgorICogQGZtdDogQSBwcmludGsoKSBz
+dHlsZSBmb3JtYXQgc3RyaW5nLgorICoKKyAqIFByaW50cyBhIHdhcm5pbmcgbGV2ZWwgbWVzc2Fn
+ZS4KKyAqLworI2RlZmluZSBrdW5pdF93YXJuKHRlc3QsIGZtdCwgLi4uKSBcCisJCWt1bml0X3By
+aW50ayhLRVJOX1dBUk5JTkcsIHRlc3QsIGZtdCwgIyNfX1ZBX0FSR1NfXykKKworLyoqCisgKiBr
+dW5pdF9lcnIoKSAtIFByaW50cyBhbiBFUlJPUiBsZXZlbCBtZXNzYWdlIGFzc29jaWF0ZWQgd2l0
+aCB0aGUgY3VycmVudCB0ZXN0LgorICogQHRlc3Q6IFRoZSB0ZXN0IGNvbnRleHQgb2JqZWN0Lgor
+ICogQGZtdDogQSBwcmludGsoKSBzdHlsZSBmb3JtYXQgc3RyaW5nLgorICoKKyAqIFByaW50cyBh
+biBlcnJvciBsZXZlbCBtZXNzYWdlLgorICovCisjZGVmaW5lIGt1bml0X2Vycih0ZXN0LCBmbXQs
+IC4uLikgXAorCQlrdW5pdF9wcmludGsoS0VSTl9FUlIsIHRlc3QsIGZtdCwgIyNfX1ZBX0FSR1Nf
+XykKKworI2VuZGlmIC8qIF9LVU5JVF9URVNUX0ggKi8KZGlmZiAtLWdpdCBhL2t1bml0L0tjb25m
+aWcgYi9rdW5pdC9LY29uZmlnCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAwMDAw
+MDAuLjMzMGFlODM1MjdjMjMKLS0tIC9kZXYvbnVsbAorKysgYi9rdW5pdC9LY29uZmlnCkBAIC0w
+LDAgKzEsMTcgQEAKKyMKKyMgS1VuaXQgYmFzZSBjb25maWd1cmF0aW9uCisjCisKK21lbnUgIktV
+bml0IHN1cHBvcnQiCisKK2NvbmZpZyBLVU5JVAorCWJvb2wgIkVuYWJsZSBzdXBwb3J0IGZvciB1
+bml0IHRlc3RzIChLVW5pdCkiCisJaGVscAorCSAgRW5hYmxlcyBzdXBwb3J0IGZvciBrZXJuZWwg
+dW5pdCB0ZXN0cyAoS1VuaXQpLCBhIGxpZ2h0d2VpZ2h0IHVuaXQKKwkgIHRlc3RpbmcgYW5kIG1v
+Y2tpbmcgZnJhbWV3b3JrIGZvciB0aGUgTGludXgga2VybmVsLiBUaGVzZSB0ZXN0cyBhcmUKKwkg
+IGFibGUgdG8gYmUgcnVuIGxvY2FsbHkgb24gYSBkZXZlbG9wZXIncyB3b3Jrc3RhdGlvbiB3aXRo
+b3V0IGEgVk0gb3IKKwkgIHNwZWNpYWwgaGFyZHdhcmUgd2hlbiB1c2luZyBVTUwuIENhbiBhbHNv
+IGJlIHVzZWQgb24gbW9zdCBvdGhlcgorCSAgYXJjaGl0ZWN0dXJlcy4gRm9yIG1vcmUgaW5mb3Jt
+YXRpb24sIHBsZWFzZSBzZWUKKwkgIERvY3VtZW50YXRpb24vZGV2LXRvb2xzL2t1bml0Ly4KKwor
+ZW5kbWVudQpkaWZmIC0tZ2l0IGEva3VuaXQvTWFrZWZpbGUgYi9rdW5pdC9NYWtlZmlsZQpuZXcg
+ZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwMDAwMDAwLi41ZWZkYzRkZWEyYzA4Ci0tLSAv
+ZGV2L251bGwKKysrIGIva3VuaXQvTWFrZWZpbGUKQEAgLTAsMCArMSBAQAorb2JqLSQoQ09ORklH
+X0tVTklUKSArPQkJCXRlc3QubwpkaWZmIC0tZ2l0IGEva3VuaXQvdGVzdC5jIGIva3VuaXQvdGVz
+dC5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAwMDAwMDAuLmMwMzBiYTVhNDNl
+NDAKLS0tIC9kZXYvbnVsbAorKysgYi9rdW5pdC90ZXN0LmMKQEAgLTAsMCArMSwxOTAgQEAKKy8v
+IFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wCisvKgorICogQmFzZSB1bml0IHRlc3Qg
+KEtVbml0KSBBUEkuCisgKgorICogQ29weXJpZ2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICog
+QXV0aG9yOiBCcmVuZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8K
+KworI2luY2x1ZGUgPGxpbnV4L3NjaGVkL2RlYnVnLmg+CisjaW5jbHVkZSA8a3VuaXQvdGVzdC5o
+PgorCitzdGF0aWMgdm9pZCBrdW5pdF9zZXRfZmFpbHVyZShzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7
+CisJV1JJVEVfT05DRSh0ZXN0LT5zdWNjZXNzLCBmYWxzZSk7Cit9CisKK3N0YXRpYyBpbnQga3Vu
+aXRfdnByaW50a19lbWl0KGludCBsZXZlbCwgY29uc3QgY2hhciAqZm10LCB2YV9saXN0IGFyZ3Mp
+Cit7CisJcmV0dXJuIHZwcmludGtfZW1pdCgwLCBsZXZlbCwgTlVMTCwgMCwgZm10LCBhcmdzKTsK
+K30KKworc3RhdGljIGludCBrdW5pdF9wcmludGtfZW1pdChpbnQgbGV2ZWwsIGNvbnN0IGNoYXIg
+KmZtdCwgLi4uKQoreworCXZhX2xpc3QgYXJnczsKKwlpbnQgcmV0OworCisJdmFfc3RhcnQoYXJn
+cywgZm10KTsKKwlyZXQgPSBrdW5pdF92cHJpbnRrX2VtaXQobGV2ZWwsIGZtdCwgYXJncyk7CisJ
+dmFfZW5kKGFyZ3MpOworCisJcmV0dXJuIHJldDsKK30KKworc3RhdGljIHZvaWQga3VuaXRfdnBy
+aW50ayhjb25zdCBzdHJ1Y3Qga3VuaXQgKnRlc3QsCisJCQkgIGNvbnN0IGNoYXIgKmxldmVsLAor
+CQkJICBzdHJ1Y3QgdmFfZm9ybWF0ICp2YWYpCit7CisJa3VuaXRfcHJpbnRrX2VtaXQobGV2ZWxb
+MV0gLSAnMCcsICJcdCMgJXM6ICVwViIsIHRlc3QtPm5hbWUsIHZhZik7Cit9CisKK3N0YXRpYyB2
+b2lkIGt1bml0X3ByaW50X3RhcF92ZXJzaW9uKHZvaWQpCit7CisJc3RhdGljIGJvb2wga3VuaXRf
+aGFzX3ByaW50ZWRfdGFwX3ZlcnNpb247CisKKwlpZiAoIWt1bml0X2hhc19wcmludGVkX3RhcF92
+ZXJzaW9uKSB7CisJCWt1bml0X3ByaW50a19lbWl0KExPR0xFVkVMX0lORk8sICJUQVAgdmVyc2lv
+biAxNFxuIik7CisJCWt1bml0X2hhc19wcmludGVkX3RhcF92ZXJzaW9uID0gdHJ1ZTsKKwl9Cit9
+CisKK3N0YXRpYyBzaXplX3Qga3VuaXRfdGVzdF9jYXNlc19sZW4oc3RydWN0IGt1bml0X2Nhc2Ug
+KnRlc3RfY2FzZXMpCit7CisJc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZTsKKwlzaXplX3Qg
+bGVuID0gMDsKKworCWZvciAodGVzdF9jYXNlID0gdGVzdF9jYXNlczsgdGVzdF9jYXNlLT5ydW5f
+Y2FzZTsgdGVzdF9jYXNlKyspCisJCWxlbisrOworCisJcmV0dXJuIGxlbjsKK30KKworc3RhdGlj
+IHZvaWQga3VuaXRfcHJpbnRfc3VidGVzdF9zdGFydChzdHJ1Y3Qga3VuaXRfc3VpdGUgKnN1aXRl
+KQoreworCWt1bml0X3ByaW50X3RhcF92ZXJzaW9uKCk7CisJa3VuaXRfcHJpbnRrX2VtaXQoTE9H
+TEVWRUxfSU5GTywgIlx0IyBTdWJ0ZXN0OiAlc1xuIiwgc3VpdGUtPm5hbWUpOworCWt1bml0X3By
+aW50a19lbWl0KExPR0xFVkVMX0lORk8sCisJCQkgICJcdDEuLiV6ZFxuIiwKKwkJCSAga3VuaXRf
+dGVzdF9jYXNlc19sZW4oc3VpdGUtPnRlc3RfY2FzZXMpKTsKK30KKworc3RhdGljIHZvaWQga3Vu
+aXRfcHJpbnRfb2tfbm90X29rKGJvb2wgc2hvdWxkX2luZGVudCwKKwkJCQkgIGJvb2wgaXNfb2ss
+CisJCQkJICBzaXplX3QgdGVzdF9udW1iZXIsCisJCQkJICBjb25zdCBjaGFyICpkZXNjcmlwdGlv
+bikKK3sKKwljb25zdCBjaGFyICppbmRlbnQsICpva19ub3Rfb2s7CisKKwlpZiAoc2hvdWxkX2lu
+ZGVudCkKKwkJaW5kZW50ID0gIlx0IjsKKwllbHNlCisJCWluZGVudCA9ICIiOworCisJaWYgKGlz
+X29rKQorCQlva19ub3Rfb2sgPSAib2siOworCWVsc2UKKwkJb2tfbm90X29rID0gIm5vdCBvayI7
+CisKKwlrdW5pdF9wcmludGtfZW1pdChMT0dMRVZFTF9JTkZPLAorCQkJICAiJXMlcyAlemQgLSAl
+c1xuIiwKKwkJCSAgaW5kZW50LCBva19ub3Rfb2ssIHRlc3RfbnVtYmVyLCBkZXNjcmlwdGlvbik7
+Cit9CisKK3N0YXRpYyBib29sIGt1bml0X3N1aXRlX2hhc19zdWNjZWVkZWQoc3RydWN0IGt1bml0
+X3N1aXRlICpzdWl0ZSkKK3sKKwljb25zdCBzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNlOwor
+CisJZm9yICh0ZXN0X2Nhc2UgPSBzdWl0ZS0+dGVzdF9jYXNlczsgdGVzdF9jYXNlLT5ydW5fY2Fz
+ZTsgdGVzdF9jYXNlKyspCisJCWlmICghdGVzdF9jYXNlLT5zdWNjZXNzKQorCQkJcmV0dXJuIGZh
+bHNlOworCisJcmV0dXJuIHRydWU7Cit9CisKK3N0YXRpYyB2b2lkIGt1bml0X3ByaW50X3N1YnRl
+c3RfZW5kKHN0cnVjdCBrdW5pdF9zdWl0ZSAqc3VpdGUpCit7CisJc3RhdGljIHNpemVfdCBrdW5p
+dF9zdWl0ZV9jb3VudGVyID0gMTsKKworCWt1bml0X3ByaW50X29rX25vdF9vayhmYWxzZSwKKwkJ
+CSAgICAgIGt1bml0X3N1aXRlX2hhc19zdWNjZWVkZWQoc3VpdGUpLAorCQkJICAgICAga3VuaXRf
+c3VpdGVfY291bnRlcisrLAorCQkJICAgICAgc3VpdGUtPm5hbWUpOworfQorCitzdGF0aWMgdm9p
+ZCBrdW5pdF9wcmludF90ZXN0X2Nhc2Vfb2tfbm90X29rKHN0cnVjdCBrdW5pdF9jYXNlICp0ZXN0
+X2Nhc2UsCisJCQkJCSAgICBzaXplX3QgdGVzdF9udW1iZXIpCit7CisJa3VuaXRfcHJpbnRfb2tf
+bm90X29rKHRydWUsCisJCQkgICAgICB0ZXN0X2Nhc2UtPnN1Y2Nlc3MsCisJCQkgICAgICB0ZXN0
+X251bWJlciwKKwkJCSAgICAgIHRlc3RfY2FzZS0+bmFtZSk7Cit9CisKK3ZvaWQga3VuaXRfaW5p
+dF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgY29uc3QgY2hhciAqbmFtZSkKK3sKKwlzcGluX2xv
+Y2tfaW5pdCgmdGVzdC0+bG9jayk7CisJdGVzdC0+bmFtZSA9IG5hbWU7CisJdGVzdC0+c3VjY2Vz
+cyA9IHRydWU7Cit9CisKKy8qCisgKiBQZXJmb3JtcyBhbGwgbG9naWMgdG8gcnVuIGEgdGVzdCBj
+YXNlLgorICovCitzdGF0aWMgdm9pZCBrdW5pdF9ydW5fY2FzZShzdHJ1Y3Qga3VuaXRfc3VpdGUg
+KnN1aXRlLAorCQkJICAgc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZSkKK3sKKwlzdHJ1Y3Qg
+a3VuaXQgdGVzdDsKKwlpbnQgcmV0ID0gMDsKKworCWt1bml0X2luaXRfdGVzdCgmdGVzdCwgdGVz
+dF9jYXNlLT5uYW1lKTsKKworCWlmIChzdWl0ZS0+aW5pdCkgeworCQlyZXQgPSBzdWl0ZS0+aW5p
+dCgmdGVzdCk7CisJCWlmIChyZXQpIHsKKwkJCWt1bml0X2VycigmdGVzdCwgImZhaWxlZCB0byBp
+bml0aWFsaXplOiAlZFxuIiwgcmV0KTsKKwkJCWt1bml0X3NldF9mYWlsdXJlKCZ0ZXN0KTsKKwkJ
+CXJldHVybjsKKwkJfQorCX0KKworCXRlc3RfY2FzZS0+cnVuX2Nhc2UoJnRlc3QpOworCisJaWYg
+KHN1aXRlLT5leGl0KQorCQlzdWl0ZS0+ZXhpdCgmdGVzdCk7CisKKwl0ZXN0X2Nhc2UtPnN1Y2Nl
+c3MgPSB0ZXN0LnN1Y2Nlc3M7Cit9CisKK2ludCBrdW5pdF9ydW5fdGVzdHMoc3RydWN0IGt1bml0
+X3N1aXRlICpzdWl0ZSkKK3sKKwlzdHJ1Y3Qga3VuaXRfY2FzZSAqdGVzdF9jYXNlOworCXNpemVf
+dCB0ZXN0X2Nhc2VfY291bnQgPSAxOworCisJa3VuaXRfcHJpbnRfc3VidGVzdF9zdGFydChzdWl0
+ZSk7CisKKwlmb3IgKHRlc3RfY2FzZSA9IHN1aXRlLT50ZXN0X2Nhc2VzOyB0ZXN0X2Nhc2UtPnJ1
+bl9jYXNlOyB0ZXN0X2Nhc2UrKykgeworCQlrdW5pdF9ydW5fY2FzZShzdWl0ZSwgdGVzdF9jYXNl
+KTsKKwkJa3VuaXRfcHJpbnRfdGVzdF9jYXNlX29rX25vdF9vayh0ZXN0X2Nhc2UsIHRlc3RfY2Fz
+ZV9jb3VudCsrKTsKKwl9CisKKwlrdW5pdF9wcmludF9zdWJ0ZXN0X2VuZChzdWl0ZSk7CisKKwly
+ZXR1cm4gMDsKK30KKwordm9pZCBrdW5pdF9wcmludGsoY29uc3QgY2hhciAqbGV2ZWwsCisJCSAg
+Y29uc3Qgc3RydWN0IGt1bml0ICp0ZXN0LAorCQkgIGNvbnN0IGNoYXIgKmZtdCwgLi4uKQorewor
+CXN0cnVjdCB2YV9mb3JtYXQgdmFmOworCXZhX2xpc3QgYXJnczsKKworCXZhX3N0YXJ0KGFyZ3Ms
+IGZtdCk7CisKKwl2YWYuZm10ID0gZm10OworCXZhZi52YSA9ICZhcmdzOworCisJa3VuaXRfdnBy
+aW50ayh0ZXN0LCBsZXZlbCwgJnZhZik7CisKKwl2YV9lbmQoYXJncyk7Cit9Ci0tIAoyLjIyLjAu
+NDEwLmdkOGZkYmUyMWI1LWdvb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
+ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2RyaS1kZXZlbA==
