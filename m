@@ -1,17 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 995AD212E15A5
- for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:44 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v8 02/13] libdaxctl: add interfaces to enable/disable
- devices
-Date: Fri, 26 Jul 2019 19:52:01 -0600
-Message-Id: <20190727015212.27092-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
-References: <20190727015212.27092-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C27BF212AD5B3
+ for <linux-nvdimm@lists.01.org>; Wed,  3 Jul 2019 19:52:00 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x642pgYF175198
+ for <linux-nvdimm@lists.01.org>; Wed, 3 Jul 2019 22:51:59 -0400
+Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2th8yfg5ef-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Wed, 03 Jul 2019 22:51:59 -0400
+Received: from localhost
+ by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+ Thu, 4 Jul 2019 03:51:57 +0100
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: [PATCH] ndctl,
+ check: Ensure mmap of BTT sections work with 64K page-size
+Date: Thu,  4 Jul 2019 08:21:43 +0530
 MIME-Version: 1.0
+Message-Id: <20190704025143.22856-1-vaibhav@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,437 +35,169 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-nvdimm@lists.01.org, Vishal Verma <vishal.l.verma@intel.com>
+Cc: harish@linux.ibm.com, Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add new libdaxctl interfaces to disable a device_dax based device, and
-to enable it into the given mode. The modes available are 'devdax',
-and 'system-ram', where devdax is the normal device DAX mode used
-via a character device, and 'system-ram' uses the kernel's 'kmem'
-facility to hotplug the device making it usable as normal memory.
+Presently on PPC64 which uses a 64K page-size, ndtl-check command
+fails on a BTT device with following error:
 
-This adds the following new interfaces:
+$sudo ndctl check-namespace namespace0.0 -vv
+namespace0.0: namespace_check: checking namespace0.0
+namespace0.0: btt_discover_arenas: found 1 BTT arena
+namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000, off = 0x1000] failed: Invalid argument
+error checking namespaces: Invalid argument
+checked 0 namespaces
 
-  daxctl_dev_disable;
-  daxctl_dev_enable_devdax;
-  daxctl_dev_enable_ram;
+Error happens when btt_create_mappings() tries to mmap the sections of
+the BTT device which are usually 4K offset aligned. However the mmap()
+syscall expects the 'offset' argument to be in multiples of page-size,
+hence it returns EINVAL causing the btt_create_mappings() to error
+out.
 
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+As a fix for the issue this patch proposes addition of two new
+functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
+map/unmap parts of BTT device to ndctl process address-space. The
+functions tweaks the requested 'offset' argument to mmap() ensuring
+that its page-size aligned and then fix-ups the returned pointer such
+that it points to the requested offset within m-mapped region.
+
+Reported-by: harish@linux.ibm.com
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 ---
- daxctl/lib/Makefile.am         |   3 +-
- daxctl/lib/libdaxctl-private.h |  21 +++
- daxctl/lib/libdaxctl.c         | 234 +++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |   3 +
- daxctl/libdaxctl.h             |   3 +
- 5 files changed, 263 insertions(+), 1 deletion(-)
+ ndctl/check.c | 71 ++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 56 insertions(+), 15 deletions(-)
 
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index d3d4852..9f0e444 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -16,7 +16,8 @@ libdaxctl_la_SOURCES =\
- 	libdaxctl.c
- 
- libdaxctl_la_LIBADD =\
--	$(UUID_LIBS)
-+	$(UUID_LIBS) \
-+	$(KMOD_LIBS)
- 
- daxctl_modprobe_data_DATA = daxctl.conf
- 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index 4a462e7..120137f 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -13,6 +13,8 @@
- #ifndef _LIBDAXCTL_PRIVATE_H_
- #define _LIBDAXCTL_PRIVATE_H_
- 
-+#include <libkmod.h>
-+
- #define DAXCTL_EXPORT __attribute__ ((visibility("default")))
- 
- enum dax_subsystem {
-@@ -26,6 +28,17 @@ static const char *dax_subsystems[] = {
- 	[DAX_BUS] = "/sys/bus/dax/devices",
- };
- 
-+enum daxctl_dev_mode {
-+	DAXCTL_DEV_MODE_DEVDAX = 0,
-+	DAXCTL_DEV_MODE_RAM,
-+	DAXCTL_DEV_MODE_END,
-+};
-+
-+static const char *dax_modules[] = {
-+	[DAXCTL_DEV_MODE_DEVDAX] = "device_dax",
-+	[DAXCTL_DEV_MODE_RAM] = "kmem",
-+};
-+
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-@@ -53,6 +66,14 @@ struct daxctl_dev {
- 	char *dev_path;
- 	struct list_node list;
- 	unsigned long long size;
-+	struct kmod_module *module;
-+	struct kmod_list *kmod_list;
- 	struct daxctl_region *region;
- };
-+
-+static inline int check_kmod(struct kmod_ctx *kmod_ctx)
-+{
-+	return kmod_ctx ? 0 : -ENXIO;
-+}
-+
- #endif /* _LIBDAXCTL_PRIVATE_H_ */
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 70f896b..85c4fbe 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -46,6 +46,7 @@ struct daxctl_ctx {
- 	void *userdata;
- 	int regions_init;
- 	struct list_head regions;
-+	struct kmod_ctx *kmod_ctx;
- };
- 
- /**
-@@ -84,20 +85,32 @@ DAXCTL_EXPORT void daxctl_set_userdata(struct daxctl_ctx *ctx, void *userdata)
-  */
- DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
- {
-+	struct kmod_ctx *kmod_ctx;
- 	struct daxctl_ctx *c;
-+	int rc = 0;
- 
- 	c = calloc(1, sizeof(struct daxctl_ctx));
- 	if (!c)
- 		return -ENOMEM;
- 
-+	kmod_ctx = kmod_new(NULL, NULL);
-+	if (check_kmod(kmod_ctx) != 0) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
- 	c->refcount = 1;
- 	log_init(&c->ctx, "libdaxctl", "DAXCTL_LOG");
- 	info(c, "ctx %p created\n", c);
- 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
- 	*ctx = c;
- 	list_head_init(&c->regions);
-+	c->kmod_ctx = kmod_ctx;
- 
- 	return 0;
-+out:
-+	free(c);
-+	return rc;
+diff --git a/ndctl/check.c b/ndctl/check.c
+index 8a7125053865..18d259048616 100644
+--- a/ndctl/check.c
++++ b/ndctl/check.c
+@@ -907,6 +907,47 @@ static int btt_discover_arenas(struct btt_chk *bttc)
+ 	return ret;
  }
  
- /**
-@@ -132,6 +145,7 @@ DAXCTL_EXPORT void daxctl_unref(struct daxctl_ctx *ctx)
- 	list_for_each_safe(&ctx->regions, region, _r, list)
- 		free_region(region, &ctx->regions);
- 
-+	kmod_unref(ctx->kmod_ctx);
- 	info(ctx, "context %p released\n", ctx);
- 	free(ctx);
- }
-@@ -189,6 +203,7 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
- {
- 	if (head)
- 		list_del_from(head, &dev->list);
-+	kmod_module_unref_list(dev->kmod_list);
- 	free(dev->dev_buf);
- 	free(dev->dev_path);
- 	free(dev);
-@@ -306,6 +321,27 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
- 	return region;
- }
- 
-+static struct kmod_list *to_module_list(struct daxctl_ctx *ctx,
-+		const char *alias)
++/* Mmap requested btt region so it works with non 4-K page sizes */
++static void *btt_mmap(struct btt_chk *bttc, void *addr, size_t length,
++		      int prot, int flags, off_t offset)
 +{
-+	struct kmod_list *list = NULL;
-+	int rc;
++	off_t shift;
 +
-+	if (!ctx->kmod_ctx || !alias)
-+		return NULL;
-+	if (alias[0] == 0)
-+		return NULL;
++	/* Calculate the shift back needed to make offset page aligned */
++	shift = offset - rounddown(offset, bttc->sys_page_size);
 +
-+	rc = kmod_module_new_from_lookup(ctx->kmod_ctx, alias, &list);
-+	if (rc < 0 || !list) {
-+		dbg(ctx, "failed to find modules for alias: %s %d list: %s\n",
-+				alias, rc, list ? "populated" : "empty");
-+		return NULL;
-+	}
++	/* Update the offset and length with the shift calculated above */
++	offset -= shift;
++	length += shift;
 +
-+	return list;
++	addr = mmap(addr, length, prot, flags, bttc->fd, offset);
++
++	/* If needed fixup the return pointer to correct offset request */
++	if (addr != MAP_FAILED)
++		addr = (void *) ((uintptr_t)addr + shift);
++
++	dbg(bttc, "mmap: addr=%p length=0x%lx offset=0x%lx shift=0x%lx\n",
++	    addr, length, offset, shift);
++
++	return addr;
 +}
 +
- static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- {
- 	const char *devname = devpath_to_devname(daxdev_base);
-@@ -315,6 +351,7 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	struct daxctl_dev *dev, *dev_dup;
- 	char buf[SYSFS_ATTR_SIZE];
- 	struct stat st;
-+	int rc;
- 
- 	if (!path)
- 		return NULL;
-@@ -346,6 +383,14 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 		goto err_read;
- 	dev->buf_len = strlen(daxdev_base) + 50;
- 
-+	sprintf(path, "%s/modalias", daxdev_base);
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	/* older kernels may be lack the modalias attribute */
-+	if (rc < 0 && rc != -ENOENT)
-+		goto err_read;
-+	if (rc == 0)
-+		dev->kmod_list = to_module_list(ctx, buf);
-+
- 	daxctl_dev_foreach(region, dev_dup)
- 		if (dev_dup->id == dev->id) {
- 			free_dev(dev, NULL);
-@@ -569,6 +614,92 @@ static int is_enabled(const char *drvpath)
- 		return 1;
- }
- 
-+static int daxctl_bind(struct daxctl_ctx *ctx, const char *devname,
-+		const char *mod_name)
++static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
 +{
-+	DIR *dir;
-+	int rc = 0;
-+	char path[200];
-+	struct dirent *de;
-+	const int len = sizeof(path);
++	uintptr_t addr = ptr;
++	off_t shift;
 +
-+	if (!devname) {
-+		err(ctx, "missing devname\n");
-+		return -EINVAL;
-+	}
++	/* Calculate the shift back needed to make offset page aligned */
++	shift = addr - rounddown(addr, bttc->sys_page_size);
 +
-+	if (snprintf(path, len, "/sys/bus/dax/drivers") >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
++	addr -= shift;
++	length += shift;
 +
-+	dir = opendir(path);
-+	if (!dir) {
-+		err(ctx, "%s: opendir(\"%s\") failed\n", devname, path);
-+		return -ENXIO;
-+	}
-+
-+	while ((de = readdir(dir)) != NULL) {
-+		char *drv_path;
-+
-+		if (de->d_ino == 0)
-+			continue;
-+		if (de->d_name[0] == '.')
-+			continue;
-+		if (strcmp(de->d_name, mod_name) != 0)
-+			continue;
-+
-+		if (asprintf(&drv_path, "%s/%s/new_id", path, de->d_name) < 0) {
-+			err(ctx, "%s: path allocation failure\n", devname);
-+			rc = -ENOMEM;
-+			break;
-+		}
-+		rc = sysfs_write_attr_quiet(ctx, drv_path, devname);
-+		free(drv_path);
-+
-+		if (asprintf(&drv_path, "%s/%s/bind", path, de->d_name) < 0) {
-+			err(ctx, "%s: path allocation failure\n", devname);
-+			rc = -ENOMEM;
-+			break;
-+		}
-+		rc = sysfs_write_attr_quiet(ctx, drv_path, devname);
-+		free(drv_path);
-+		break;
-+	}
-+	closedir(dir);
-+
-+	if (rc) {
-+		dbg(ctx, "%s: bind failed\n", devname);
-+		return rc;
-+	}
-+	return 0;
++	munmap((void *)addr, length);
++	dbg(bttc, "unmap: addr=%p length=0x%lx shift=0x%lx\n",
++	    addr, length, shift);
 +}
 +
-+static int daxctl_unbind(struct daxctl_ctx *ctx, const char *devpath)
-+{
-+	const char *devname = devpath_to_devname(devpath);
-+	char path[200];
-+	const int len = sizeof(path);
-+	int rc;
-+
-+	if (snprintf(path, len, "%s/driver/remove_id", devpath) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	rc = sysfs_write_attr(ctx, path, devname);
-+	if (rc)
-+		return rc;
-+
-+	if (snprintf(path, len, "%s/driver/unbind", devpath) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	return sysfs_write_attr(ctx, path, devname);
-+
-+}
-+
- DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
+ static int btt_create_mappings(struct btt_chk *bttc)
  {
- 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-@@ -584,6 +715,109 @@ DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
- 	return is_enabled(path);
+ 	struct arena_info *a;
+@@ -921,8 +962,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
+ 	for (i = 0; i < bttc->num_arenas; i++) {
+ 		a = &bttc->arena[i];
+ 		a->map.info_len = BTT_INFO_SIZE;
+-		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->infooff);
++		a->map.info = btt_mmap(bttc, NULL, a->map.info_len, mmap_flags,
++				       MAP_SHARED, a->infooff);
+ 		if (a->map.info == MAP_FAILED) {
+ 			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.info_len, a->infooff, strerror(errno));
+@@ -930,8 +971,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
+ 		}
+ 
+ 		a->map.data_len = a->mapoff - a->dataoff;
+-		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->dataoff);
++		a->map.data = btt_mmap(bttc, NULL, a->map.data_len, mmap_flags,
++				       MAP_SHARED, a->dataoff);
+ 		if (a->map.data == MAP_FAILED) {
+ 			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.data_len, a->dataoff, strerror(errno));
+@@ -939,8 +980,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
+ 		}
+ 
+ 		a->map.map_len = a->logoff - a->mapoff;
+-		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->mapoff);
++		a->map.map = btt_mmap(bttc, NULL, a->map.map_len, mmap_flags,
++				      MAP_SHARED, a->mapoff);
+ 		if (a->map.map == MAP_FAILED) {
+ 			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.map_len, a->mapoff, strerror(errno));
+@@ -948,8 +989,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
+ 		}
+ 
+ 		a->map.log_len = a->info2off - a->logoff;
+-		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->logoff);
++		a->map.log = btt_mmap(bttc, NULL, a->map.log_len, mmap_flags,
++				  MAP_SHARED, a->logoff);
+ 		if (a->map.log == MAP_FAILED) {
+ 			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.log_len, a->logoff, strerror(errno));
+@@ -957,8 +998,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
+ 		}
+ 
+ 		a->map.info2_len = BTT_INFO_SIZE;
+-		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->info2off);
++		a->map.info2 = btt_mmap(bttc, NULL, a->map.info2_len,
++					mmap_flags, MAP_SHARED, a->info2off);
+ 		if (a->map.info2 == MAP_FAILED) {
+ 			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.info2_len, a->info2off, strerror(errno));
+@@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
+ 	for (i = 0; i < bttc->num_arenas; i++) {
+ 		a = &bttc->arena[i];
+ 		if (a->map.info)
+-			munmap(a->map.info, a->map.info_len);
++			btt_unmap(bttc, a->map.info, a->map.info_len);
+ 		if (a->map.data)
+-			munmap(a->map.data, a->map.data_len);
++			btt_unmap(bttc, a->map.data, a->map.data_len);
+ 		if (a->map.map)
+-			munmap(a->map.map, a->map.map_len);
++			btt_unmap(bttc, a->map.map, a->map.map_len);
+ 		if (a->map.log)
+-			munmap(a->map.log, a->map.log_len);
++			btt_unmap(bttc, a->map.log, a->map.log_len);
+ 		if (a->map.info2)
+-			munmap(a->map.info2, a->map.info2_len);
++			btt_unmap(bttc, a->map.info2, a->map.info2_len);
+ 	}
  }
  
-+static int daxctl_insert_kmod_for_mode(struct daxctl_dev *dev,
-+		const char *mod_name)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	struct kmod_list *iter;
-+	int rc = -ENXIO;
-+
-+	if (dev->kmod_list == NULL) {
-+		err(ctx, "%s: a modalias lookup list was not created\n",
-+				devname);
-+		return rc;
-+	}
-+
-+	kmod_list_foreach(iter, dev->kmod_list) {
-+		struct kmod_module *mod = kmod_module_get_module(iter);
-+		const char *name = kmod_module_get_name(mod);
-+
-+		if (strcmp(name, mod_name) != 0) {
-+			kmod_module_unref(mod);
-+			continue;
-+		}
-+		dbg(ctx, "%s inserting module: %s\n", devname, name);
-+		rc = kmod_module_probe_insert_module(mod,
-+				KMOD_PROBE_APPLY_BLACKLIST, NULL, NULL, NULL,
-+				NULL);
-+		if (rc < 0) {
-+			err(ctx, "%s: insert failure: %d\n", devname, rc);
-+			return rc;
-+		}
-+		dev->module = mod;
-+	}
-+
-+	if (rc == -ENXIO)
-+		err(ctx, "%s: Unable to find module: %s in alias list\n",
-+				devname, mod_name);
-+	return rc;
-+}
-+
-+static int daxctl_dev_enable(struct daxctl_dev *dev, enum daxctl_dev_mode mode)
-+{
-+	struct daxctl_region *region = daxctl_dev_get_region(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mod_name = dax_modules[mode];
-+	int rc;
-+
-+	if (daxctl_dev_is_enabled(dev))
-+		return 0;
-+
-+	if (mode >= DAXCTL_DEV_MODE_END || mod_name == NULL) {
-+		err(ctx, "%s: Invalid mode: %d\n", devname, mode);
-+		return -EINVAL;
-+	}
-+
-+	rc = daxctl_insert_kmod_for_mode(dev, mod_name);
-+	if (rc)
-+		return rc;
-+
-+	rc = daxctl_bind(ctx, devname, mod_name);
-+	if (!daxctl_dev_is_enabled(dev)) {
-+		err(ctx, "%s: failed to enable\n", devname);
-+		return rc ? rc : -ENXIO;
-+	}
-+
-+	region->devices_init = 0;
-+	dax_devices_init(region);
-+	rc = 0;
-+	dbg(ctx, "%s: enabled\n", devname);
-+	return rc;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_enable_devdax(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_DEVDAX);
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_enable_ram(struct daxctl_dev *dev)
-+{
-+	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_RAM);
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+
-+	if (!daxctl_dev_is_enabled(dev))
-+		return 0;
-+
-+	daxctl_unbind(ctx, dev->dev_path);
-+
-+	if (daxctl_dev_is_enabled(dev)) {
-+		err(ctx, "%s: failed to disable\n", devname);
-+		return -EBUSY;
-+	}
-+
-+	kmod_module_unref(dev->module);
-+	dbg(ctx, "%s: disabled\n", devname);
-+
-+	return 0;
-+}
-+
- DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
- {
- 	return dev->region->ctx;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index c4af9a7..19904a2 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -55,4 +55,7 @@ LIBDAXCTL_6 {
- global:
- 	daxctl_dev_get_ctx;
- 	daxctl_dev_is_enabled;
-+	daxctl_dev_disable;
-+	daxctl_dev_enable_devdax;
-+	daxctl_dev_enable_ram;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index e20ccb4..407f459 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -69,6 +69,9 @@ int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
-+int daxctl_dev_disable(struct daxctl_dev *dev);
-+int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
-+int daxctl_dev_enable_ram(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
 -- 
-2.20.1
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
