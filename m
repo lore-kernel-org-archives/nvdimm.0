@@ -1,495 +1,92 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v6 09/18] kunit: test: add support for test abort
-Date: Wed,  3 Jul 2019 17:36:06 -0700
-Message-ID: <20190704003615.204860-10-brendanhiggins@google.com>
+Subject: [PATCH v6 10/18] kunit: test: add tests for kunit test abort
+Date: Wed,  3 Jul 2019 17:36:07 -0700
+Message-ID: <20190704003615.204860-11-brendanhiggins@google.com>
 References: <20190704003615.204860-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20190704003615.204860-1-brendanhiggins@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
 List-Id: linux-nvdimm@lists.01.org
 
-Add support for aborting/bailing out of test cases, which is needed for
-implementing assertions.
-
-An assertion is like an expectation, but bails out of the test case
-early if the assertion is not met. The idea with assertions is that you
-use them to state all the preconditions for your test. Logically
-speaking, these are the premises of the test case, so if a premise isn't
-true, there is no point in continuing the test case because there are no
-conclusions that can be drawn without the premises. Whereas, the
-expectation is the thing you are trying to prove.
-
-Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
----
- include/kunit/test.h      |  12 +++
- include/kunit/try-catch.h |  69 +++++++++++++++
- kunit/Makefile            |   3 +-
- kunit/test.c              | 175 +++++++++++++++++++++++++++++++++++---
- kunit/try-catch.c         |  95 +++++++++++++++++++++
- 5 files changed, 339 insertions(+), 15 deletions(-)
- create mode 100644 include/kunit/try-catch.h
- create mode 100644 kunit/try-catch.c
-
-diff --git a/include/kunit/test.h b/include/kunit/test.h
-index e1729f19174c1..f08efd16fa5f4 100644
---- a/include/kunit/test.h
-+++ b/include/kunit/test.h
-@@ -13,6 +13,7 @@
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <kunit/kunit-stream.h>
-+#include <kunit/try-catch.h>
- 
- struct kunit_resource;
- 
-@@ -179,15 +180,26 @@ struct kunit {
- 
- 	/* private: internal use only. */
- 	const char *name; /* Read only after initialization! */
-+	struct kunit_try_catch try_catch;
- 	bool success; /* Read only after test_case finishes! */
- 	struct mutex lock; /* Gaurds all mutable test state. */
-+	bool death_test; /* Protected by lock. */
- 	struct list_head resources; /* Protected by lock. */
- };
- 
-+static inline void kunit_set_death_test(struct kunit *test, bool death_test)
-+{
-+	mutex_lock(&test->lock);
-+	test->death_test = death_test;
-+	mutex_unlock(&test->lock);
-+}
-+
- void kunit_init_test(struct kunit *test, const char *name);
- 
- void kunit_fail(struct kunit *test, struct kunit_stream *stream);
- 
-+void kunit_abort(struct kunit *test);
-+
- int kunit_run_tests(struct kunit_suite *suite);
- 
- /**
-diff --git a/include/kunit/try-catch.h b/include/kunit/try-catch.h
-new file mode 100644
-index 0000000000000..8a414a9af0b64
---- /dev/null
-+++ b/include/kunit/try-catch.h
-@@ -0,0 +1,69 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * An API to allow a function, that may fail, to be executed, and recover in a
-+ * controlled manner.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#ifndef _KUNIT_TRY_CATCH_H
-+#define _KUNIT_TRY_CATCH_H
-+
-+#include <linux/types.h>
-+
-+typedef void (*kunit_try_catch_func_t)(void *);
-+
-+struct kunit;
-+
-+/*
-+ * struct kunit_try_catch - provides a generic way to run code which might fail.
-+ * @context: used to pass user data to the try and catch functions.
-+ *
-+ * kunit_try_catch provides a generic, architecture independent way to execute
-+ * an arbitrary function of type kunit_try_catch_func_t which may bail out by
-+ * calling kunit_try_catch_throw(). If kunit_try_catch_throw() is called, @try
-+ * is stopped at the site of invocation and @catch is catch is called.
-+ *
-+ * struct kunit_try_catch provides a generic interface for the functionality
-+ * needed to implement kunit->abort() which in turn is needed for implementing
-+ * assertions. Assertions allow stating a precondition for a test simplifying
-+ * how test cases are written and presented.
-+ *
-+ * Assertions are like expectations, except they abort (call
-+ * kunit_try_catch_throw()) when the specified condition is not met. This is
-+ * useful when you look at a test case as a logical statement about some piece
-+ * of code, where assertions are the premises for the test case, and the
-+ * conclusion is a set of predicates, rather expectations, that must all be
-+ * true. If your premises are violated, it does not makes sense to continue.
-+ */
-+struct kunit_try_catch {
-+	/* private: internal use only. */
-+	struct kunit *test;
-+	struct completion *try_completion;
-+	int try_result;
-+	kunit_try_catch_func_t try;
-+	kunit_try_catch_func_t catch;
-+	void *context;
-+};
-+
-+void kunit_try_catch_init(struct kunit_try_catch *try_catch,
-+			  struct kunit *test,
-+			  kunit_try_catch_func_t try,
-+			  kunit_try_catch_func_t catch);
-+
-+void kunit_try_catch_run(struct kunit_try_catch *try_catch, void *context);
-+
-+void __noreturn kunit_try_catch_throw(struct kunit_try_catch *try_catch);
-+
-+static inline int kunit_try_catch_get_result(struct kunit_try_catch *try_catch)
-+{
-+	return try_catch->try_result;
-+}
-+
-+/*
-+ * Exposed for testing only.
-+ */
-+void kunit_generic_try_catch_init(struct kunit_try_catch *try_catch);
-+
-+#endif /* _KUNIT_TRY_CATCH_H */
-diff --git a/kunit/Makefile b/kunit/Makefile
-index 60a9ea6cb4697..1f7680cfa11ad 100644
---- a/kunit/Makefile
-+++ b/kunit/Makefile
-@@ -1,6 +1,7 @@
- obj-$(CONFIG_KUNIT) +=			test.o \
- 					string-stream.o \
--					kunit-stream.o
-+					kunit-stream.o \
-+					try-catch.o
- 
- obj-$(CONFIG_KUNIT_TEST) +=		string-stream-test.o
- 
-diff --git a/kunit/test.c b/kunit/test.c
-index cd8ef5ce12e92..a7b45a15eb75d 100644
---- a/kunit/test.c
-+++ b/kunit/test.c
-@@ -8,12 +8,24 @@
- 
- #include <linux/sched/debug.h>
- #include <kunit/test.h>
-+#include <kunit/try-catch.h>
- 
- static void kunit_set_failure(struct kunit *test)
- {
- 	WRITE_ONCE(test->success, false);
- }
- 
-+static bool kunit_get_death_test(struct kunit *test)
-+{
-+	bool death_test;
-+
-+	mutex_lock(&test->lock);
-+	death_test = test->death_test;
-+	mutex_unlock(&test->lock);
-+
-+	return death_test;
-+}
-+
- static int kunit_vprintk_emit(int level, const char *fmt, va_list args)
- {
- 	return vprintk_emit(0, level, NULL, 0, fmt, args);
-@@ -126,40 +138,175 @@ void kunit_fail(struct kunit *test, struct kunit_stream *stream)
- 	kunit_stream_commit(stream);
- }
- 
-+void __noreturn kunit_abort(struct kunit *test)
-+{
-+	kunit_set_death_test(test, true);
-+
-+	kunit_try_catch_throw(&test->try_catch);
-+
-+	/*
-+	 * Throw could not abort from test.
-+	 *
-+	 * XXX: we should never reach this line! As kunit_try_catch_throw is
-+	 * marked __noreturn.
-+	 */
-+	WARN_ONCE(true, "Throw could not abort from test!\n");
-+}
-+
- void kunit_init_test(struct kunit *test, const char *name)
- {
- 	mutex_init(&test->lock);
- 	INIT_LIST_HEAD(&test->resources);
- 	test->name = name;
- 	test->success = true;
-+	test->death_test = false;
- }
- 
- /*
-- * Performs all logic to run a test case.
-+ * Initializes and runs test case. Does not clean up or do post validations.
-  */
--static void kunit_run_case(struct kunit_suite *suite,
--			   struct kunit_case *test_case)
-+static void kunit_run_case_internal(struct kunit *test,
-+				    struct kunit_suite *suite,
-+				    struct kunit_case *test_case)
- {
--	struct kunit test;
--	int ret = 0;
--
--	kunit_init_test(&test, test_case->name);
-+	int ret;
- 
- 	if (suite->init) {
--		ret = suite->init(&test);
-+		ret = suite->init(test);
- 		if (ret) {
--			kunit_err(&test, "failed to initialize: %d\n", ret);
--			kunit_set_failure(&test);
-+			kunit_err(test, "failed to initialize: %d\n", ret);
-+			kunit_set_failure(test);
- 			return;
- 		}
- 	}
- 
--	test_case->run_case(&test);
-+	test_case->run_case(test);
-+}
-+
-+static void kunit_case_internal_cleanup(struct kunit *test)
-+{
-+	kunit_cleanup(test);
-+}
- 
-+/*
-+ * Performs post validations and cleanup after a test case was run.
-+ * XXX: Should ONLY BE CALLED AFTER kunit_run_case_internal!
-+ */
-+static void kunit_run_case_cleanup(struct kunit *test,
-+				   struct kunit_suite *suite)
-+{
- 	if (suite->exit)
--		suite->exit(&test);
-+		suite->exit(test);
-+
-+	kunit_case_internal_cleanup(test);
-+}
-+
-+/*
-+ * Handles an unexpected crash in a test case.
-+ */
-+static void kunit_handle_test_crash(struct kunit *test,
-+				   struct kunit_suite *suite,
-+				   struct kunit_case *test_case)
-+{
-+	kunit_err(test, "kunit test case crashed!");
-+	/*
-+	 * TODO(brendanhiggins@google.com): This prints the stack trace up
-+	 * through this frame, not up to the frame that caused the crash.
-+	 */
-+	show_stack(NULL, NULL);
-+
-+	kunit_case_internal_cleanup(test);
-+}
-+
-+struct kunit_try_catch_context {
-+	struct kunit *test;
-+	struct kunit_suite *suite;
-+	struct kunit_case *test_case;
-+};
-+
-+static void kunit_try_run_case(void *data)
-+{
-+	struct kunit_try_catch_context *ctx = data;
-+	struct kunit *test = ctx->test;
-+	struct kunit_suite *suite = ctx->suite;
-+	struct kunit_case *test_case = ctx->test_case;
-+
-+	/*
-+	 * kunit_run_case_internal may encounter a fatal error; if it does,
-+	 * abort will be called, this thread will exit, and finally the parent
-+	 * thread will resume control and handle any necessary clean up.
-+	 */
-+	kunit_run_case_internal(test, suite, test_case);
-+	/* This line may never be reached. */
-+	kunit_run_case_cleanup(test, suite);
-+}
-+
-+static void kunit_catch_run_case(void *data)
-+{
-+	struct kunit_try_catch_context *ctx = data;
-+	struct kunit *test = ctx->test;
-+	struct kunit_suite *suite = ctx->suite;
-+	struct kunit_case *test_case = ctx->test_case;
-+	int try_exit_code = kunit_try_catch_get_result(&test->try_catch);
-+
-+	if (try_exit_code) {
-+		kunit_set_failure(test);
-+		/*
-+		 * Test case could not finish, we have no idea what state it is
-+		 * in, so don't do clean up.
-+		 */
-+		if (try_exit_code == -ETIMEDOUT)
-+			kunit_err(test, "test case timed out\n");
-+		/*
-+		 * Unknown internal error occurred preventing test case from
-+		 * running, so there is nothing to clean up.
-+		 */
-+		else
-+			kunit_err(test, "internal error occurred preventing test case from running: %d\n",
-+				  try_exit_code);
-+		return;
-+	}
-+
-+	if (kunit_get_death_test(test)) {
-+		/*
-+		 * EXPECTED DEATH: kunit_run_case_internal encountered
-+		 * anticipated fatal error. Everything should be in a safe
-+		 * state.
-+		 */
-+		kunit_run_case_cleanup(test, suite);
-+	} else {
-+		/*
-+		 * UNEXPECTED DEATH: kunit_run_case_internal encountered an
-+		 * unanticipated fatal error. We have no idea what the state of
-+		 * the test case is in.
-+		 */
-+		kunit_handle_test_crash(test, suite, test_case);
-+		kunit_set_failure(test);
-+	}
-+}
-+
-+/*
-+ * Performs all logic to run a test case. It also catches most errors that
-+ * occurs in a test case and reports them as failures.
-+ */
-+static void kunit_run_case_catch_errors(struct kunit_suite *suite,
-+					struct kunit_case *test_case)
-+{
-+	struct kunit_try_catch_context context;
-+	struct kunit_try_catch *try_catch;
-+	struct kunit test;
-+
-+	kunit_init_test(&test, test_case->name);
-+	try_catch = &test.try_catch;
- 
--	kunit_cleanup(&test);
-+	kunit_try_catch_init(try_catch,
-+			     &test,
-+			     kunit_try_run_case,
-+			     kunit_catch_run_case);
-+	context.test = &test;
-+	context.suite = suite;
-+	context.test_case = test_case;
-+	kunit_try_catch_run(try_catch, &context);
- 
- 	test_case->success = test.success;
- }
-@@ -172,7 +319,7 @@ int kunit_run_tests(struct kunit_suite *suite)
- 	kunit_print_subtest_start(suite);
- 
- 	for (test_case = suite->test_cases; test_case->run_case; test_case++) {
--		kunit_run_case(suite, test_case);
-+		kunit_run_case_catch_errors(suite, test_case);
- 		kunit_print_test_case_ok_not_ok(test_case, test_case_count++);
- 	}
- 
-diff --git a/kunit/try-catch.c b/kunit/try-catch.c
-new file mode 100644
-index 0000000000000..de580f074387b
---- /dev/null
-+++ b/kunit/try-catch.c
-@@ -0,0 +1,95 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * An API to allow a function, that may fail, to be executed, and recover in a
-+ * controlled manner.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#include <kunit/try-catch.h>
-+#include <kunit/test.h>
-+#include <linux/completion.h>
-+#include <linux/kthread.h>
-+
-+void __noreturn kunit_try_catch_throw(struct kunit_try_catch *try_catch)
-+{
-+	try_catch->try_result = -EFAULT;
-+	complete_and_exit(try_catch->try_completion, -EFAULT);
-+}
-+
-+static int kunit_generic_run_threadfn_adapter(void *data)
-+{
-+	struct kunit_try_catch *try_catch = data;
-+
-+	try_catch->try(try_catch->context);
-+
-+	complete_and_exit(try_catch->try_completion, 0);
-+}
-+
-+void kunit_try_catch_run(struct kunit_try_catch *try_catch, void *context)
-+{
-+	DECLARE_COMPLETION_ONSTACK(try_completion);
-+	struct kunit *test = try_catch->test;
-+	struct task_struct *task_struct;
-+	int exit_code, status;
-+
-+	try_catch->context = context;
-+	try_catch->try_completion = &try_completion;
-+	try_catch->try_result = 0;
-+	task_struct = kthread_run(kunit_generic_run_threadfn_adapter,
-+				  try_catch,
-+				  "kunit_try_catch_thread");
-+	if (IS_ERR(task_struct)) {
-+		try_catch->catch(try_catch->context);
-+		return;
-+	}
-+
-+	/*
-+	 * TODO(brendanhiggins@google.com): We should probably have some type of
-+	 * variable timeout here. The only question is what that timeout value
-+	 * should be.
-+	 *
-+	 * The intention has always been, at some point, to be able to label
-+	 * tests with some type of size bucket (unit/small, integration/medium,
-+	 * large/system/end-to-end, etc), where each size bucket would get a
-+	 * default timeout value kind of like what Bazel does:
-+	 * https://docs.bazel.build/versions/master/be/common-definitions.html#test.size
-+	 * There is still some debate to be had on exactly how we do this. (For
-+	 * one, we probably want to have some sort of test runner level
-+	 * timeout.)
-+	 *
-+	 * For more background on this topic, see:
-+	 * https://mike-bland.com/2011/11/01/small-medium-large.html
-+	 */
-+	status = wait_for_completion_timeout(&try_completion,
-+					     300 * MSEC_PER_SEC); /* 5 min */
-+	if (status < 0) {
-+		kunit_err(test, "try timed out\n");
-+		try_catch->try_result = -ETIMEDOUT;
-+	}
-+
-+	exit_code = try_catch->try_result;
-+
-+	if (!exit_code)
-+		return;
-+
-+	if (exit_code == -EFAULT)
-+		try_catch->try_result = 0;
-+	else if (exit_code == -EINTR)
-+		kunit_err(test, "wake_up_process() was never called\n");
-+	else if (exit_code)
-+		kunit_err(test, "Unknown error: %d\n", exit_code);
-+
-+	try_catch->catch(try_catch->context);
-+}
-+
-+void kunit_try_catch_init(struct kunit_try_catch *try_catch,
-+			  struct kunit *test,
-+			  kunit_try_catch_func_t try,
-+			  kunit_try_catch_func_t catch)
-+{
-+	try_catch->test = test;
-+	try_catch->try = try;
-+	try_catch->catch = catch;
-+}
--- 
-2.22.0.410.gd8fdbe21b5-goog
+QWRkIEtVbml0IHRlc3RzIGZvciB0aGUgS1VuaXQgdGVzdCBhYm9ydCBtZWNoYW5pc20gKHNlZSBw
+cmVjZWRpbmcKY29tbWl0KS4gQWRkIHRlc3RzIGJvdGggZm9yIGdlbmVyYWwgdHJ5IGNhdGNoIG1l
+Y2hhbmlzbSBhcyB3ZWxsIGFzCm5vbi1hcmNoaXRlY3R1cmUgc3BlY2lmaWMgbWVjaGFuaXNtLgoK
+U2lnbmVkLW9mZi1ieTogQnJlbmRhbiBIaWdnaW5zIDxicmVuZGFuaGlnZ2luc0Bnb29nbGUuY29t
+PgpSZXZpZXdlZC1ieTogR3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9u
+Lm9yZz4KUmV2aWV3ZWQtYnk6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4K
+LS0tCiBrdW5pdC9NYWtlZmlsZSAgICB8ICAgMyArLQoga3VuaXQvdGVzdC10ZXN0LmMgfCAxMDEg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMiBmaWxlcyBj
+aGFuZ2VkLCAxMDMgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQogY3JlYXRlIG1vZGUgMTAw
+NjQ0IGt1bml0L3Rlc3QtdGVzdC5jCgpkaWZmIC0tZ2l0IGEva3VuaXQvTWFrZWZpbGUgYi9rdW5p
+dC9NYWtlZmlsZQppbmRleCAxZjc2ODBjZmExMWFkLi41MzMzNTU4NjdhYmQyIDEwMDY0NAotLS0g
+YS9rdW5pdC9NYWtlZmlsZQorKysgYi9rdW5pdC9NYWtlZmlsZQpAQCAtMyw2ICszLDcgQEAgb2Jq
+LSQoQ09ORklHX0tVTklUKSArPQkJCXRlc3QubyBcCiAJCQkJCWt1bml0LXN0cmVhbS5vIFwKIAkJ
+CQkJdHJ5LWNhdGNoLm8KIAotb2JqLSQoQ09ORklHX0tVTklUX1RFU1QpICs9CQlzdHJpbmctc3Ry
+ZWFtLXRlc3Qubworb2JqLSQoQ09ORklHX0tVTklUX1RFU1QpICs9CQl0ZXN0LXRlc3QubyBcCisJ
+CQkJCXN0cmluZy1zdHJlYW0tdGVzdC5vCiAKIG9iai0kKENPTkZJR19LVU5JVF9FWEFNUExFX1RF
+U1QpICs9CWV4YW1wbGUtdGVzdC5vCmRpZmYgLS1naXQgYS9rdW5pdC90ZXN0LXRlc3QuYyBiL2t1
+bml0L3Rlc3QtdGVzdC5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAwMDAwMDAu
+Ljg4ZjRjZGYwM2RiMmEKLS0tIC9kZXYvbnVsbAorKysgYi9rdW5pdC90ZXN0LXRlc3QuYwpAQCAt
+MCwwICsxLDEwMSBAQAorLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAKKy8qCisg
+KiBLVW5pdCB0ZXN0IGZvciBjb3JlIHRlc3QgaW5mcmFzdHJ1Y3R1cmUuCisgKgorICogQ29weXJp
+Z2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICogQXV0aG9yOiBCcmVuZGFuIEhpZ2dpbnMgPGJy
+ZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8KKyNpbmNsdWRlIDxrdW5pdC90ZXN0Lmg+CisK
+K3N0cnVjdCBrdW5pdF90cnlfY2F0Y2hfdGVzdF9jb250ZXh0IHsKKwlzdHJ1Y3Qga3VuaXRfdHJ5
+X2NhdGNoICp0cnlfY2F0Y2g7CisJYm9vbCBmdW5jdGlvbl9jYWxsZWQ7Cit9OworCit2b2lkIGt1
+bml0X3Rlc3Rfc3VjY2Vzc2Z1bF90cnkodm9pZCAqZGF0YSkKK3sKKwlzdHJ1Y3Qga3VuaXQgKnRl
+c3QgPSBkYXRhOworCXN0cnVjdCBrdW5pdF90cnlfY2F0Y2hfdGVzdF9jb250ZXh0ICpjdHggPSB0
+ZXN0LT5wcml2OworCisJY3R4LT5mdW5jdGlvbl9jYWxsZWQgPSB0cnVlOworfQorCit2b2lkIGt1
+bml0X3Rlc3Rfbm9fY2F0Y2godm9pZCAqZGF0YSkKK3sKKwlzdHJ1Y3Qga3VuaXQgKnRlc3QgPSBk
+YXRhOworCisJS1VOSVRfRkFJTCh0ZXN0LCAiQ2F0Y2ggc2hvdWxkIG5vdCBiZSBjYWxsZWRcbiIp
+OworfQorCitzdGF0aWMgdm9pZCBrdW5pdF90ZXN0X3RyeV9jYXRjaF9zdWNjZXNzZnVsX3RyeV9u
+b19jYXRjaChzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJc3RydWN0IGt1bml0X3RyeV9jYXRjaF90
+ZXN0X2NvbnRleHQgKmN0eCA9IHRlc3QtPnByaXY7CisJc3RydWN0IGt1bml0X3RyeV9jYXRjaCAq
+dHJ5X2NhdGNoID0gY3R4LT50cnlfY2F0Y2g7CisKKwlrdW5pdF90cnlfY2F0Y2hfaW5pdCh0cnlf
+Y2F0Y2gsCisJCQkgICAgIHRlc3QsCisJCQkgICAgIGt1bml0X3Rlc3Rfc3VjY2Vzc2Z1bF90cnks
+CisJCQkgICAgIGt1bml0X3Rlc3Rfbm9fY2F0Y2gpOworCWt1bml0X3RyeV9jYXRjaF9ydW4odHJ5
+X2NhdGNoLCB0ZXN0KTsKKworCUtVTklUX0VYUEVDVF9UUlVFKHRlc3QsIGN0eC0+ZnVuY3Rpb25f
+Y2FsbGVkKTsKK30KKwordm9pZCBrdW5pdF90ZXN0X3Vuc3VjY2Vzc2Z1bF90cnkodm9pZCAqZGF0
+YSkKK3sKKwlzdHJ1Y3Qga3VuaXQgKnRlc3QgPSBkYXRhOworCXN0cnVjdCBrdW5pdF90cnlfY2F0
+Y2hfdGVzdF9jb250ZXh0ICpjdHggPSB0ZXN0LT5wcml2OworCXN0cnVjdCBrdW5pdF90cnlfY2F0
+Y2ggKnRyeV9jYXRjaCA9IGN0eC0+dHJ5X2NhdGNoOworCisJa3VuaXRfdHJ5X2NhdGNoX3Rocm93
+KHRyeV9jYXRjaCk7CisJS1VOSVRfRkFJTCh0ZXN0LCAiVGhpcyBsaW5lIHNob3VsZCBuZXZlciBi
+ZSByZWFjaGVkXG4iKTsKK30KKwordm9pZCBrdW5pdF90ZXN0X2NhdGNoKHZvaWQgKmRhdGEpCit7
+CisJc3RydWN0IGt1bml0ICp0ZXN0ID0gZGF0YTsKKwlzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoX3Rl
+c3RfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsKKworCWN0eC0+ZnVuY3Rpb25fY2FsbGVkID0g
+dHJ1ZTsKK30KKworc3RhdGljIHZvaWQga3VuaXRfdGVzdF90cnlfY2F0Y2hfdW5zdWNjZXNzZnVs
+X3RyeV9kb2VzX2NhdGNoKHN0cnVjdCBrdW5pdCAqdGVzdCkKK3sKKwlzdHJ1Y3Qga3VuaXRfdHJ5
+X2NhdGNoX3Rlc3RfY29udGV4dCAqY3R4ID0gdGVzdC0+cHJpdjsKKwlzdHJ1Y3Qga3VuaXRfdHJ5
+X2NhdGNoICp0cnlfY2F0Y2ggPSBjdHgtPnRyeV9jYXRjaDsKKworCWt1bml0X3RyeV9jYXRjaF9p
+bml0KHRyeV9jYXRjaCwKKwkJCSAgICAgdGVzdCwKKwkJCSAgICAga3VuaXRfdGVzdF91bnN1Y2Nl
+c3NmdWxfdHJ5LAorCQkJICAgICBrdW5pdF90ZXN0X2NhdGNoKTsKKwlrdW5pdF90cnlfY2F0Y2hf
+cnVuKHRyeV9jYXRjaCwgdGVzdCk7CisKKwlLVU5JVF9FWFBFQ1RfVFJVRSh0ZXN0LCBjdHgtPmZ1
+bmN0aW9uX2NhbGxlZCk7Cit9CisKK3N0YXRpYyBpbnQga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfaW5p
+dChzdHJ1Y3Qga3VuaXQgKnRlc3QpCit7CisJc3RydWN0IGt1bml0X3RyeV9jYXRjaF90ZXN0X2Nv
+bnRleHQgKmN0eDsKKworCWN0eCA9IGt1bml0X2t6YWxsb2ModGVzdCwgc2l6ZW9mKCpjdHgpLCBH
+RlBfS0VSTkVMKTsKKwl0ZXN0LT5wcml2ID0gY3R4OworCisJY3R4LT50cnlfY2F0Y2ggPSBrdW5p
+dF9rbWFsbG9jKHRlc3QsCisJCQkJICAgICAgIHNpemVvZigqY3R4LT50cnlfY2F0Y2gpLAorCQkJ
+CSAgICAgICBHRlBfS0VSTkVMKTsKKworCXJldHVybiAwOworfQorCitzdGF0aWMgc3RydWN0IGt1
+bml0X2Nhc2Uga3VuaXRfdHJ5X2NhdGNoX3Rlc3RfY2FzZXNbXSA9IHsKKwlLVU5JVF9DQVNFKGt1
+bml0X3Rlc3RfdHJ5X2NhdGNoX3N1Y2Nlc3NmdWxfdHJ5X25vX2NhdGNoKSwKKwlLVU5JVF9DQVNF
+KGt1bml0X3Rlc3RfdHJ5X2NhdGNoX3Vuc3VjY2Vzc2Z1bF90cnlfZG9lc19jYXRjaCksCisJe30K
+K307CisKK3N0YXRpYyBzdHJ1Y3Qga3VuaXRfc3VpdGUga3VuaXRfdHJ5X2NhdGNoX3Rlc3Rfc3Vp
+dGUgPSB7CisJLm5hbWUgPSAia3VuaXQtdHJ5LWNhdGNoLXRlc3QiLAorCS5pbml0ID0ga3VuaXRf
+dHJ5X2NhdGNoX3Rlc3RfaW5pdCwKKwkudGVzdF9jYXNlcyA9IGt1bml0X3RyeV9jYXRjaF90ZXN0
+X2Nhc2VzLAorfTsKK2t1bml0X3Rlc3Rfc3VpdGUoa3VuaXRfdHJ5X2NhdGNoX3Rlc3Rfc3VpdGUp
+OwotLSAKMi4yMi4wLjQxMC5nZDhmZGJlMjFiNS1nb29nCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
