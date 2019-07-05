@@ -1,27 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com
+ [209.85.210.193])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 006E12194EB7A
- for <linux-nvdimm@lists.01.org>; Tue,  2 Jul 2019 15:35:36 -0700 (PDT)
-Date: Tue, 2 Jul 2019 15:35:35 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 16/25] device-dax: use the dev_pagemap internal refcount
-Message-Id: <20190702153535.228365fea7f0063cceec96cd@linux-foundation.org>
-In-Reply-To: <CAPcyv4h90DAVHbZ4bgvJwpfB8wr2K28oEes6HcdQOpf02+NL=g@mail.gmail.com>
-References: <20190626122724.13313-17-hch@lst.de>
- <20190628153827.GA5373@mellanox.com>
- <CAPcyv4joSiFMeYq=D08C-QZSkHz0kRpvRfseNQWrN34Rrm+S7g@mail.gmail.com>
- <20190628170219.GA3608@mellanox.com>
- <CAPcyv4ja9DVL2zuxuSup8x3VOT_dKAOS8uBQweE9R81vnYRNWg@mail.gmail.com>
- <CAPcyv4iWTe=vOXUqkr_CguFrFRqgA7hJSt4J0B3RpuP-Okz0Vw@mail.gmail.com>
- <20190628182922.GA15242@mellanox.com>
- <CAPcyv4g+zk9pnLcj6Xvwh-svKM+w4hxfYGikcmuoBAFGCr-HAw@mail.gmail.com>
- <20190628185152.GA9117@lst.de>
- <CAPcyv4i+b6bKhSF2+z7Wcw4OUAvb1=m289u9QF8zPwLk402JVg@mail.gmail.com>
- <20190628190207.GA9317@lst.de>
- <CAPcyv4h90DAVHbZ4bgvJwpfB8wr2K28oEes6HcdQOpf02+NL=g@mail.gmail.com>
-Mime-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id F306F2194EB7A
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 13:45:39 -0700 (PDT)
+Received: by mail-pf1-f193.google.com with SMTP id c73so99581pfb.13
+ for <linux-nvdimm@lists.01.org>; Fri, 05 Jul 2019 13:45:39 -0700 (PDT)
+Date: Fri, 5 Jul 2019 20:45:37 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [PATCH v6 02/18] kunit: test: add test resource management API
+Message-ID: <20190705204537.GC19023@42.do-not-panic.com>
+References: <20190704003615.204860-1-brendanhiggins@google.com>
+ <20190704003615.204860-3-brendanhiggins@google.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190704003615.204860-3-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,20 +27,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "nouveau@lists.freedesktop.org" <nouveau@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, 28 Jun 2019 12:14:44 -0700 Dan Williams <dan.j.williams@intel.com> wrote:
+On Wed, Jul 03, 2019 at 05:35:59PM -0700, Brendan Higgins wrote:
+> diff --git a/kunit/test.c b/kunit/test.c
+> index c030ba5a43e40..a70fbe449e922 100644
+> --- a/kunit/test.c
+> +++ b/kunit/test.c
+> @@ -122,7 +122,8 @@ static void kunit_print_test_case_ok_not_ok(struct kunit_case *test_case,
+>  
+>  void kunit_init_test(struct kunit *test, const char *name)
+>  {
+> -	spin_lock_init(&test->lock);
 
-> I believe -mm auto drops patches when they appear in the -next
-> baseline. So it should "just work" to pull it into the series and send
-> it along for -next inclusion.
+Once you re-spin, this above line should be removed.
 
-Yup.  Although it isn't very "auto" - I manually check that the patch
-which turned up in -next was identical to the version which I had.  If
-not, I go find out why...
+> +	mutex_init(&test->lock);
+> +	INIT_LIST_HEAD(&test->resources);
+>  	test->name = name;
+>  	test->success = true;
+>  }
 
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
