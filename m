@@ -1,56 +1,59 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH] memremap: move from kernel/ to mm/
-Date: Mon, 22 Jul 2019 11:41:43 +0200
-Message-Id: <20190722094143.18387-1-hch@lst.de>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com
+ [209.85.210.193])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 25A57212ACEB2
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 13:20:54 -0700 (PDT)
+Received: by mail-pf1-f193.google.com with SMTP id y15so4747049pfn.5
+ for <linux-nvdimm@lists.01.org>; Fri, 05 Jul 2019 13:20:54 -0700 (PDT)
+Date: Fri, 5 Jul 2019 20:20:51 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [PATCH v6 01/18] kunit: test: add KUnit test runner core
+Message-ID: <20190705202051.GB19023@42.do-not-panic.com>
+References: <20190704003615.204860-1-brendanhiggins@google.com>
+ <20190704003615.204860-2-brendanhiggins@google.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: owner-linux-mm@kvack.org
-To: dan.j.williams@intel.com, akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Content-Disposition: inline
+In-Reply-To: <20190704003615.204860-2-brendanhiggins@google.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-memremap.c implements MM functionality for ZONE_DEVICE, so it really
-should be in the mm/ directory, not the kernel/ one.
+On Wed, Jul 03, 2019 at 05:35:58PM -0700, Brendan Higgins wrote:
+> +struct kunit {
+> +	void *priv;
+> +
+> +	/* private: internal use only. */
+> +	const char *name; /* Read only after initialization! */
+> +	bool success; /* Read only after test_case finishes! */
+> +};
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
+No lock attribute above.
 
-Sending for applying just after -rc1 preferably to avoid conflicts
-later in the merge window
+> +void kunit_init_test(struct kunit *test, const char *name)
+> +{
+> +	spin_lock_init(&test->lock);
+> +	test->name = name;
+> +	test->success = true;
+> +}
 
- kernel/Makefile           | 1 -
- mm/Makefile               | 1 +
- {kernel => mm}/memremap.c | 0
- 3 files changed, 1 insertion(+), 1 deletion(-)
- rename {kernel => mm}/memremap.c (100%)
+And yet here you initialize a spin lock... This won't compile. Seems
+you forgot to remove this line. So I guess a re-spin is better.
 
-diff --git a/kernel/Makefile b/kernel/Makefile
-index a8d923b5481b..ef0d95a190b4 100644
---- a/kernel/Makefile
-+++ b/kernel/Makefile
-@@ -111,7 +111,6 @@ obj-$(CONFIG_CONTEXT_TRACKING) += context_tracking.o
- obj-$(CONFIG_TORTURE_TEST) += torture.o
- 
- obj-$(CONFIG_HAS_IOMEM) += iomem.o
--obj-$(CONFIG_ZONE_DEVICE) += memremap.o
- obj-$(CONFIG_RSEQ) += rseq.o
- 
- obj-$(CONFIG_GCC_PLUGIN_STACKLEAK) += stackleak.o
-diff --git a/mm/Makefile b/mm/Makefile
-index 338e528ad436..d0b295c3b764 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -102,5 +102,6 @@ obj-$(CONFIG_FRAME_VECTOR) += frame_vector.o
- obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
- obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
- obj-$(CONFIG_PERCPU_STATS) += percpu-stats.o
-+obj-$(CONFIG_ZONE_DEVICE) += memremap.o
- obj-$(CONFIG_HMM_MIRROR) += hmm.o
- obj-$(CONFIG_MEMFD_CREATE) += memfd.o
-diff --git a/kernel/memremap.c b/mm/memremap.c
-similarity index 100%
-rename from kernel/memremap.c
-rename to mm/memremap.c
--- 
-2.20.1
+  Luis
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
