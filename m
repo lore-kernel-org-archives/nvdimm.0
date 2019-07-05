@@ -1,18 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from outgoing.mit.edu (outgoing-auth-1.mit.edu [18.9.28.11])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0EF81212A36D6
- for <linux-nvdimm@lists.01.org>; Sun,  7 Jul 2019 09:35:00 -0700 (PDT)
-Date: Sun, 7 Jul 2019 12:34:15 -0400
-From: "Theodore Ts'o" <tytso@mit.edu>
-Subject: Re: [PATCH v15 6/7] ext4: disable map_sync for async flush
-Message-ID: <20190707163415.GA19775@mit.edu>
+ by ml01.01.org (Postfix) with ESMTPS id 159B0212AD583
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 07:10:20 -0700 (PDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Subject: [PATCH v15 6/7] ext4: disable map_sync for async flush
+Date: Fri,  5 Jul 2019 19:33:27 +0530
+Message-Id: <20190705140328.20190-7-pagupta@redhat.com>
+In-Reply-To: <20190705140328.20190-1-pagupta@redhat.com>
 References: <20190705140328.20190-1-pagupta@redhat.com>
- <20190705140328.20190-7-pagupta@redhat.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190705140328.20190-7-pagupta@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,24 +17,54 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Pankaj Gupta <pagupta@redhat.com>
-Cc: cohuck@redhat.com, jack@suse.cz, kvm@vger.kernel.org, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, dm-devel@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, linux-nvdimm@lists.01.org, david@redhat.com, willy@infradead.org, hch@infradead.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, lenb@kernel.org, kilobyte@angband.pl, rdunlap@infradead.org, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, lcapitulino@redhat.com, kwolf@redhat.com, nilal@redhat.com, xiaoguangrong.eric@gmail.com, snitzer@redhat.com, darrick.wong@oracle.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, imammedo@redhat.com
+To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Jul 05, 2019 at 07:33:27PM +0530, Pankaj Gupta wrote:
-> Dont support 'MAP_SYNC' with non-DAX files and DAX files
-> with asynchronous dax_device. Virtio pmem provides
-> asynchronous host page cache flush mechanism. We don't
-> support 'MAP_SYNC' with virtio pmem and ext4.
-> 
-> Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
-> Reviewed-by: Jan Kara <jack@suse.cz>
+Dont support 'MAP_SYNC' with non-DAX files and DAX files
+with asynchronous dax_device. Virtio pmem provides
+asynchronous host page cache flush mechanism. We don't
+support 'MAP_SYNC' with virtio pmem and ext4.
 
-Acked-by: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+---
+ fs/ext4/file.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 98ec11f69cd4..dee549339e13 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -360,15 +360,17 @@ static const struct vm_operations_struct ext4_file_vm_ops = {
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct inode *inode = file->f_mapping->host;
++	struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
++	struct dax_device *dax_dev = sbi->s_daxdev;
+ 
+-	if (unlikely(ext4_forced_shutdown(EXT4_SB(inode->i_sb))))
++	if (unlikely(ext4_forced_shutdown(sbi)))
+ 		return -EIO;
+ 
+ 	/*
+-	 * We don't support synchronous mappings for non-DAX files. At least
+-	 * until someone comes with a sensible use case.
++	 * We don't support synchronous mappings for non-DAX files and
++	 * for DAX files if underneath dax_device is not synchronous.
+ 	 */
+-	if (!IS_DAX(file_inode(file)) && (vma->vm_flags & VM_SYNC))
++	if (!daxdev_mapping_supported(vma, dax_dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	file_accessed(file);
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
