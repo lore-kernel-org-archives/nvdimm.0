@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f196.google.com (mail-pf1-f196.google.com
+ [209.85.210.196])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B31CA212DA5FC
- for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:00:13 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v7 01/13] libdaxctl: add interfaces to get ctx and check
- device state
-Date: Wed, 24 Jul 2019 15:57:29 -0600
-Message-Id: <20190724215741.18556-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190724215741.18556-1-vishal.l.verma@intel.com>
-References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2ABE6212AAB92
+ for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 13:48:13 -0700 (PDT)
+Received: by mail-pf1-f196.google.com with SMTP id q10so4759093pff.9
+ for <linux-nvdimm@lists.01.org>; Fri, 05 Jul 2019 13:48:13 -0700 (PDT)
+Date: Fri, 5 Jul 2019 20:48:10 +0000
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: Re: [PATCH v6 18/18] MAINTAINERS: add proc sysctl KUnit test to PROC
+ SYSCTL section
+Message-ID: <20190705204810.GE19023@42.do-not-panic.com>
+References: <20190704003615.204860-1-brendanhiggins@google.com>
+ <20190704003615.204860-19-brendanhiggins@google.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190704003615.204860-19-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,96 +28,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libdaxctl and daxctl to grow operational modes for
-DAX devices, add the following supporting APIs:
+On Wed, Jul 03, 2019 at 05:36:15PM -0700, Brendan Higgins wrote:
+> Add entry for the new proc sysctl KUnit test to the PROC SYSCTL section.
+> 
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> Acked-by: Luis Chamberlain <mcgrof@kernel.org>
 
-  daxctl_dev_get_ctx
-  daxctl_dev_is_enabled
+Come to think of it, I'd welcome Iurii to be added as a maintainer,
+with the hope Iurii would be up to review only the kunit changes. Of
+course if Iurii would be up to also help review future proc changes,
+even better. 3 pair of eyeballs is better than 2 pairs.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  6 ++++++
- daxctl/libdaxctl.h       |  2 ++
- 3 files changed, 38 insertions(+)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c2e3a52..70f896b 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	}
- }
- 
-+static int is_enabled(const char *drvpath)
-+{
-+	struct stat st;
-+
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
-+{
-+	return dev->region->ctx;
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 84d3a69..c4af9a7 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
- global:
- 	daxctl_region_get_path;
- } LIBDAXCTL_4;
-+
-+LIBDAXCTL_6 {
-+global:
-+	daxctl_dev_get_ctx;
-+	daxctl_dev_is_enabled;
-+} LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 1d13ea2..e20ccb4 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
-+struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
--- 
-2.20.1
-
+  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
