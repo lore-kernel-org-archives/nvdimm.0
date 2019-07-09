@@ -1,50 +1,96 @@
-From: Iurii Zaikin <yzaikin-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v6 18/18] MAINTAINERS: add proc sysctl KUnit test to PROC
- SYSCTL section
-Date: Mon, 8 Jul 2019 16:34:20 -0700
-Message-ID: <CAAXuY3ov7s28BQ0VxzkfAHR6NZiBq-YfnJ_510VN22DMhEyCBg@mail.gmail.com>
-References: <20190704003615.204860-1-brendanhiggins@google.com>
- <20190704003615.204860-19-brendanhiggins@google.com>
- <20190705204810.GE19023@42.do-not-panic.com>
- <CAFd5g44j7ECQorYLnDQadAaj+yBki98kFjmjejn+3W4eHtqGDA@mail.gmail.com>
- <CAAXuY3q1==RvAiw+gw5kfFJmjdR9JEUnnxou4Sv0POd88aD41w@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: [PATCH v7 00/18] kunit: introduce KUnit, the Linux kernel unit
+ testing framework
+Date: Mon,  8 Jul 2019 23:30:05 -0700
+Message-ID: <20190709063023.251446-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAAXuY3q1==RvAiw+gw5kfFJmjdR9JEUnnxou4Sv0POd88aD41w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild <linux-kbuild-u79uwXL29TasMV2rI37PzA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>, Michal Marek <michal.lkml@markovi.net>, Jonathan Corbet <corbet@lwn.net>
 List-Id: linux-nvdimm@lists.01.org
 
-> On Mon, Jul 8, 2019 at 4:16 PM Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> CC'ing Iurii Zaikin
->>
->> On Fri, Jul 5, 2019 at 1:48 PM Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> >
->> > On Wed, Jul 03, 2019 at 05:36:15PM -0700, Brendan Higgins wrote:
->> > > Add entry for the new proc sysctl KUnit test to the PROC SYSCTL section.
->> > >
->> > > Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->> > > Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
->> > > Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
->> > > Acked-by: Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> >
->> > Come to think of it, I'd welcome Iurii to be added as a maintainer,
->> > with the hope Iurii would be up to review only the kunit changes. Of
->> > course if Iurii would be up to also help review future proc changes,
->> > even better. 3 pair of eyeballs is better than 2 pairs.
->>
->> What do you think, Iurii?
+## TL;DR
 
-I'm in.
+This is a pretty straightforward follow-up to Luis' comments on PATCH
+v6: There is nothing that changes any functionality or usage.
+
+As for our current status, we only need reviews/acks on the following
+patches:
+
+- [PATCH v7 06/18] kbuild: enable building KUnit
+  - Need a review or ack from Masahiro Yamada or Michal Marek
+- [PATCH v7 08/18] objtool: add kunit_try_catch_throw to the noreturn
+  list
+  - Need a review or ack from Josh Poimboeuf or Peter Zijlstra
+
+Other than that, I think we should be good to go.
+
+## Background
+
+This patch set proposes KUnit, a lightweight unit testing and mocking
+framework for the Linux kernel.
+
+Unlike Autotest and kselftest, KUnit is a true unit testing framework;
+it does not require installing the kernel on a test machine or in a VM
+(however, KUnit still allows you to run tests on test machines or in VMs
+if you want[1]) and does not require tests to be written in userspace
+running on a host kernel. Additionally, KUnit is fast: From invocation
+to completion KUnit can run several dozen tests in about a second.
+Currently, the entire KUnit test suite for KUnit runs in under a second
+from the initial invocation (build time excluded).
+
+KUnit is heavily inspired by JUnit, Python's unittest.mock, and
+Googletest/Googlemock for C++. KUnit provides facilities for defining
+unit test cases, grouping related test cases into test suites, providing
+common infrastructure for running tests, mocking, spying, and much more.
+
+### What's so special about unit testing?
+
+A unit test is supposed to test a single unit of code in isolation,
+hence the name. There should be no dependencies outside the control of
+the test; this means no external dependencies, which makes tests orders
+of magnitudes faster. Likewise, since there are no external dependencies,
+there are no hoops to jump through to run the tests. Additionally, this
+makes unit tests deterministic: a failing unit test always indicates a
+problem. Finally, because unit tests necessarily have finer granularity,
+they are able to test all code paths easily solving the classic problem
+of difficulty in exercising error handling code.
+
+### Is KUnit trying to replace other testing frameworks for the kernel?
+
+No. Most existing tests for the Linux kernel are end-to-end tests, which
+have their place. A well tested system has lots of unit tests, a
+reasonable number of integration tests, and some end-to-end tests. KUnit
+is just trying to address the unit test space which is currently not
+being addressed.
+
+### More information on KUnit
+
+There is a bunch of documentation near the end of this patch set that
+describes how to use KUnit and best practices for writing unit tests.
+For convenience I am hosting the compiled docs here[2].
+
+Additionally for convenience, I have applied these patches to a
+branch[3]. The repo may be cloned with:
+git clone https://kunit.googlesource.com/linux
+This patchset is on the kunit/rfc/v5.2/v7 branch.
+
+## Changes Since Last Version
+
+Aside from renaming `struct kunit_module` to `struct kunit_suite`, there
+isn't really anything in here that changes any functionality:
+
+- Rebased on v5.2
+- Added Iurii as a maintainer for PROC SYSCTL, as suggested by Luis.
+- Removed some references to spinlock that I failed to remove in the
+  previous version, as pointed out by Luis.
+- Cleaned up some comments, as suggested by Luis.
+
+[1] https://google.github.io/kunit-docs/third_party/kernel/docs/usage.html#kunit-on-non-uml-architectures
+[2] https://google.github.io/kunit-docs/third_party/kernel/docs/
+[3] https://kunit.googlesource.com/linux/+/kunit/rfc/v5.2/v7
+
+-- 
+2.22.0.410.gd8fdbe21b5-goog
