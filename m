@@ -3,12 +3,12 @@ Received: from bombadil.infradead.org (bombadil.infradead.org
  [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DBAD0212B7DA3
- for <linux-nvdimm@lists.01.org>; Wed, 10 Jul 2019 20:11:25 -0700 (PDT)
-Date: Wed, 10 Jul 2019 20:08:55 -0700
+ by ml01.01.org (Postfix) with ESMTPS id A2B40212B0FF5
+ for <linux-nvdimm@lists.01.org>; Wed, 10 Jul 2019 13:18:10 -0700 (PDT)
+Date: Wed, 10 Jul 2019 13:15:39 -0700
 From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [PATCH] dax: Fix missed PMD wakeups
-Message-ID: <20190711030855.GO32320@bombadil.infradead.org>
+Message-ID: <20190710201539.GN32320@bombadil.infradead.org>
 References: <CAPcyv4jgs5LTtTXR+2CyfbjJE85B_eoPFuXQsGBDnVMo41Jawg@mail.gmail.com>
  <20190703195302.GJ1729@bombadil.infradead.org>
  <CAPcyv4iPNz=oJyc_EoE-mC11=gyBzwMKbmj1ZY_Yna54=cC=Mg@mail.gmail.com>
@@ -38,20 +38,21 @@ Cc: Seema Pandit <seema.pandit@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.o
 List-ID: <linux-nvdimm@lists.01.org>
 
 On Wed, Jul 10, 2019 at 09:02:04PM +0200, Jan Kara wrote:
-> @@ -848,7 +853,7 @@ static int dax_writeback_one(struct xa_state *xas, struct dax_device *dax_dev,
->  	if (unlikely(dax_is_locked(entry))) {
->  		void *old_entry = entry;
->  
-> -		entry = get_unlocked_entry(xas);
-> +		entry = get_unlocked_entry(xas, 0);
->  
->  		/* Entry got punched out / reallocated? */
->  		if (!entry || WARN_ON_ONCE(!xa_is_value(entry)))
+> +#define DAX_ENTRY_CONFLICT dax_make_entry(pfn_to_pfn_t(1), DAX_EMPTY)
 
-I'm not sure about this one.  Are we sure there will never be a dirty
-PMD entry?  Even if we can't create one today, it feels like a bit of
-a landmine to leave for someone who creates one in the future.
+I was hoping to get rid of DAX_EMPTY ... it's almost unused now.  Once
+we switch to having a single DAX_LOCK value instead of a single bit,
+I think it can go away, freeing up two bits.
 
+If you really want a special DAX_ENTRY_CONFLICT, I think we can make
+one in the 2..4094 range.
+
+That aside, this looks pretty similar to the previous patch I sent, so
+if you're now happy with this, let's add
+
+#define XA_DAX_CONFLICT_ENTRY xa_mk_internal(258)
+
+to xarray.h and do it that way?
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
