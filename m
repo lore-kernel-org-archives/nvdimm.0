@@ -1,38 +1,78 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH v8 06/18] kbuild: enable building KUnit
-Date: Wed, 10 Jul 2019 16:49:31 +0900
-Message-ID: <CAK7LNASywq+RhEisuPbqOjFoBh7WNvMEgy55iacizrgNB-uBfA@mail.gmail.com>
-References: <20190710071508.173491-1-brendanhiggins@google.com> <20190710071508.173491-7-brendanhiggins@google.com>
+From: "Scarlett Thomas" <scarlett.thomas-bXRf4i9N8VT/4F74pgrvvpDhzZEx5Bl7@public.gmane.org>
+Subject: JIRA Agile and Clarizen -Vendors List
+Date: Wed, 10 Jul 2019 11:50:59 -0400
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAHFmpjQclDVAqyek0hCuVW3CgAAAEAAAAEdHlBvz0iBFoO85olI6xiwBAAAAAA==@technologyusersinfo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190710071508.173491-7-brendanhiggins@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: Frank Rowand <frowand.list@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, "Luis R. Rodriguez" <mcgrof@kernel.org>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, "Cc: Shuah Khan" <shuah@kernel.org>, Theodore Ts'o <tytso@mit.edu>, DTML <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, open list:KERNEL SELFTES
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-us
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Jul 10, 2019 at 4:16 PM Brendan Higgins
-<brendanhiggins@google.com> wrote:
->
-> KUnit is a new unit testing framework for the kernel and when used is
-> built into the kernel as a part of it. Add KUnit to the root Kconfig and
-> Makefile to allow it to be actually built.
->
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Hi,
 
-Please feel free to replace this with:
+ 
 
-Acked-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Hope today finds you well!
 
+ 
 
-> Cc: Michal Marek <michal.lkml@markovi.net>
-> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+We are a global database firm and we assist companies in providing business
+contacts based on their target segment/audience. We can provide you with a
+customized list based on your needs.
 
+ 
 
+I am writing to you in regards to our recent list release, and check if you
+would be interested in acquiring our recently verified Project Collaboration
+Software Users list and other Software's user's database. 
 
--- 
-Best Regards
-Masahiro Yamada
+ 
+
+We have user's information for below mentioned:              
+
+ 
+
+*	Basecamp  
+*	Atlassian Confluence
+*	Smartsheet 
+*	JIRA Agile 
+*	Redmine 
+*	FunctionFox  
+*	Clarizen  
+*	Wrike 
+*	ProjectManager.com and much more.
+
+ 
+
+This list comes with full contact details like: "Company name, contact first
+last name, title, verified email address, phone number, fax number, mailing
+address, city, state, zip code, country, revenue size, employee count,
+Industry specification and website URL".
+
+ 
+
+Kindly let me know the target geography and which software users list you
+wish to target. So that I can get back with counts and more information.
+
+ 
+
+Looking forward to your response.
+
+ 
+
+Warm Regards,
+
+Scarlett Thomas || Sr. Online Marketing Executive
+
+Dedicated to your success
