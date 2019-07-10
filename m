@@ -1,161 +1,260 @@
-From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v8 02/18] kunit: test: add test resource management API
-Date: Wed, 10 Jul 2019 00:14:52 -0700
-Message-ID: <20190710071508.173491-3-brendanhiggins@google.com>
+From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v8 03/18] kunit: test: add string_stream a std::stream like
+ string builder
+Date: Wed, 10 Jul 2019 00:14:53 -0700
+Message-ID: <20190710071508.173491-4-brendanhiggins@google.com>
 References: <20190710071508.173491-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190710071508.173491-1-brendanhiggins@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190710071508.173491-1-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Q3JlYXRlIGEgY29tbW9uIEFQSSBmb3IgdGVzdCBtYW5hZ2VkIHJlc291cmNlcyBsaWtlIG1lbW9y
-eSBhbmQgdGVzdApvYmplY3RzLiBBIGxvdCBvZiB0aW1lcyBhIHRlc3Qgd2lsbCB3YW50IHRvIHNl
-dCB1cCBpbmZyYXN0cnVjdHVyZSB0byBiZQp1c2VkIGluIHRlc3QgY2FzZXM7IHRoaXMgY291bGQg
-YmUgYW55dGhpbmcgZnJvbSBqdXN0IHdhbnRpbmcgdG8gYWxsb2NhdGUKc29tZSBtZW1vcnkgdG8g
-c2V0dGluZyB1cCBhIGRyaXZlciBzdGFjazsgdGhpcyBkZWZpbmVzIGZhY2lsaXRpZXMgZm9yCmNy
-ZWF0aW5nICJ0ZXN0IHJlc291cmNlcyIgd2hpY2ggYXJlIG1hbmFnZWQgYnkgdGhlIHRlc3QgaW5m
-cmFzdHJ1Y3R1cmUKYW5kIGFyZSBhdXRvbWF0aWNhbGx5IGNsZWFuZWQgdXAgYXQgdGhlIGNvbmNs
-dXNpb24gb2YgdGhlIHRlc3QuCgpTaWduZWQtb2ZmLWJ5OiBCcmVuZGFuIEhpZ2dpbnMgPGJyZW5k
-YW5oaWdnaW5zQGdvb2dsZS5jb20+ClJldmlld2VkLWJ5OiBHcmVnIEtyb2FoLUhhcnRtYW4gPGdy
-ZWdraEBsaW51eGZvdW5kYXRpb24ub3JnPgpSZXZpZXdlZC1ieTogTG9nYW4gR3VudGhvcnBlIDxs
-b2dhbmdAZGVsdGF0ZWUuY29tPgotLS0KIGluY2x1ZGUva3VuaXQvdGVzdC5oIHwgMTE2ICsrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGt1bml0L3Rlc3QuYyAgICAg
-ICAgIHwgIDk0ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiAyIGZpbGVzIGNo
-YW5nZWQsIDIxMCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9rdW5pdC90ZXN0
-LmggYi9pbmNsdWRlL2t1bml0L3Rlc3QuaAppbmRleCBlMGIzNGFjYjllZTRlLi5iZGY0MWQzMWMz
-NDNjIDEwMDY0NAotLS0gYS9pbmNsdWRlL2t1bml0L3Rlc3QuaAorKysgYi9pbmNsdWRlL2t1bml0
-L3Rlc3QuaApAQCAtMTAsNiArMTAsNzAgQEAKICNkZWZpbmUgX0tVTklUX1RFU1RfSAogCiAjaW5j
-bHVkZSA8bGludXgvdHlwZXMuaD4KKyNpbmNsdWRlIDxsaW51eC9zbGFiLmg+CisKK3N0cnVjdCBr
-dW5pdF9yZXNvdXJjZTsKKwordHlwZWRlZiBpbnQgKCprdW5pdF9yZXNvdXJjZV9pbml0X3QpKHN0
-cnVjdCBrdW5pdF9yZXNvdXJjZSAqLCB2b2lkICopOwordHlwZWRlZiB2b2lkICgqa3VuaXRfcmVz
-b3VyY2VfZnJlZV90KShzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKik7CisKKy8qKgorICogc3RydWN0
-IGt1bml0X3Jlc291cmNlIC0gcmVwcmVzZW50cyBhICp0ZXN0IG1hbmFnZWQgcmVzb3VyY2UqCisg
-KiBAYWxsb2NhdGlvbjogZm9yIHRoZSB1c2VyIHRvIHN0b3JlIGFyYml0cmFyeSBkYXRhLgorICog
-QGZyZWU6IGEgdXNlciBzdXBwbGllZCBmdW5jdGlvbiB0byBmcmVlIHRoZSByZXNvdXJjZS4gUG9w
-dWxhdGVkIGJ5CisgKiBrdW5pdF9hbGxvY19yZXNvdXJjZSgpLgorICoKKyAqIFJlcHJlc2VudHMg
-YSAqdGVzdCBtYW5hZ2VkIHJlc291cmNlKiwgYSByZXNvdXJjZSB3aGljaCB3aWxsIGF1dG9tYXRp
-Y2FsbHkgYmUKKyAqIGNsZWFuZWQgdXAgYXQgdGhlIGVuZCBvZiBhIHRlc3QgY2FzZS4KKyAqCisg
-KiBFeGFtcGxlOgorICoKKyAqIC4uIGNvZGUtYmxvY2s6OiBjCisgKgorICoJc3RydWN0IGt1bml0
-X2ttYWxsb2NfcGFyYW1zIHsKKyAqCQlzaXplX3Qgc2l6ZTsKKyAqCQlnZnBfdCBnZnA7CisgKgl9
-OworICoKKyAqCXN0YXRpYyBpbnQga3VuaXRfa21hbGxvY19pbml0KHN0cnVjdCBrdW5pdF9yZXNv
-dXJjZSAqcmVzLCB2b2lkICpjb250ZXh0KQorICoJeworICoJCXN0cnVjdCBrdW5pdF9rbWFsbG9j
-X3BhcmFtcyAqcGFyYW1zID0gY29udGV4dDsKKyAqCQlyZXMtPmFsbG9jYXRpb24gPSBrbWFsbG9j
-KHBhcmFtcy0+c2l6ZSwgcGFyYW1zLT5nZnApOworICoKKyAqCQlpZiAoIXJlcy0+YWxsb2NhdGlv
-bikKKyAqCQkJcmV0dXJuIC1FTk9NRU07CisgKgorICoJCXJldHVybiAwOworICoJfQorICoKKyAq
-CXN0YXRpYyB2b2lkIGt1bml0X2ttYWxsb2NfZnJlZShzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJl
-cykKKyAqCXsKKyAqCQlrZnJlZShyZXMtPmFsbG9jYXRpb24pOworICoJfQorICoKKyAqCXZvaWQg
-Kmt1bml0X2ttYWxsb2Moc3RydWN0IGt1bml0ICp0ZXN0LCBzaXplX3Qgc2l6ZSwgZ2ZwX3QgZ2Zw
-KQorICoJeworICoJCXN0cnVjdCBrdW5pdF9rbWFsbG9jX3BhcmFtcyBwYXJhbXM7CisgKgkJc3Ry
-dWN0IGt1bml0X3Jlc291cmNlICpyZXM7CisgKgorICoJCXBhcmFtcy5zaXplID0gc2l6ZTsKKyAq
-CQlwYXJhbXMuZ2ZwID0gZ2ZwOworICoKKyAqCQlyZXMgPSBrdW5pdF9hbGxvY19yZXNvdXJjZSh0
-ZXN0LCBrdW5pdF9rbWFsbG9jX2luaXQsCisgKgkJCWt1bml0X2ttYWxsb2NfZnJlZSwgJnBhcmFt
-cyk7CisgKgkJaWYgKHJlcykKKyAqCQkJcmV0dXJuIHJlcy0+YWxsb2NhdGlvbjsKKyAqCisgKgkJ
-cmV0dXJuIE5VTEw7CisgKgl9CisgKi8KK3N0cnVjdCBrdW5pdF9yZXNvdXJjZSB7CisJdm9pZCAq
-YWxsb2NhdGlvbjsKKwlrdW5pdF9yZXNvdXJjZV9mcmVlX3QgZnJlZTsKKworCS8qIHByaXZhdGU6
-IGludGVybmFsIHVzZSBvbmx5LiAqLworCXN0cnVjdCBsaXN0X2hlYWQgbm9kZTsKK307CiAKIHN0
-cnVjdCBrdW5pdDsKIApAQCAtMTA5LDYgKzE3MywxMyBAQCBzdHJ1Y3Qga3VuaXQgewogCSAqIGhh
-dmUgdGVybWluYXRlZC4KIAkgKi8KIAlib29sIHN1Y2Nlc3M7IC8qIFJlYWQgb25seSBhZnRlciB0
-ZXN0X2Nhc2UgZmluaXNoZXMhICovCisJc3RydWN0IG11dGV4IGxvY2s7IC8qIEdhdXJkcyBhbGwg
-bXV0YWJsZSB0ZXN0IHN0YXRlLiAqLworCS8qCisJICogQmVjYXVzZSByZXNvdXJjZXMgaXMgYSBs
-aXN0IHRoYXQgbWF5IGJlIHVwZGF0ZWQgbXVsdGlwbGUgdGltZXMgKHdpdGgKKwkgKiBuZXcgcmVz
-b3VyY2VzKSBmcm9tIGFueSB0aHJlYWQgYXNzb2NpYXRlZCB3aXRoIGEgdGVzdCBjYXNlLCB3ZSBt
-dXN0CisJICogcHJvdGVjdCBpdCB3aXRoIHNvbWUgdHlwZSBvZiBsb2NrLgorCSAqLworCXN0cnVj
-dCBsaXN0X2hlYWQgcmVzb3VyY2VzOyAvKiBQcm90ZWN0ZWQgYnkgbG9jay4gKi8KIH07CiAKIHZv
-aWQga3VuaXRfaW5pdF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgY29uc3QgY2hhciAqbmFtZSk7
-CkBAIC0xNDEsNiArMjEyLDUxIEBAIGludCBrdW5pdF9ydW5fdGVzdHMoc3RydWN0IGt1bml0X3N1
-aXRlICpzdWl0ZSk7CiAJCX0JCQkJCQkJICAgICAgIFwKIAkJbGF0ZV9pbml0Y2FsbChrdW5pdF9z
-dWl0ZV9pbml0IyNzdWl0ZSkKIAorLyoqCisgKiBrdW5pdF9hbGxvY19yZXNvdXJjZSgpIC0gQWxs
-b2NhdGVzIGEgKnRlc3QgbWFuYWdlZCByZXNvdXJjZSouCisgKiBAdGVzdDogVGhlIHRlc3QgY29u
-dGV4dCBvYmplY3QuCisgKiBAaW5pdDogYSB1c2VyIHN1cHBsaWVkIGZ1bmN0aW9uIHRvIGluaXRp
-YWxpemUgdGhlIHJlc291cmNlLgorICogQGZyZWU6IGEgdXNlciBzdXBwbGllZCBmdW5jdGlvbiB0
-byBmcmVlIHRoZSByZXNvdXJjZS4KKyAqIEBjb250ZXh0OiBmb3IgdGhlIHVzZXIgdG8gcGFzcyBp
-biBhcmJpdHJhcnkgZGF0YSB0byB0aGUgaW5pdCBmdW5jdGlvbi4KKyAqCisgKiBBbGxvY2F0ZXMg
-YSAqdGVzdCBtYW5hZ2VkIHJlc291cmNlKiwgYSByZXNvdXJjZSB3aGljaCB3aWxsIGF1dG9tYXRp
-Y2FsbHkgYmUKKyAqIGNsZWFuZWQgdXAgYXQgdGhlIGVuZCBvZiBhIHRlc3QgY2FzZS4gU2VlICZz
-dHJ1Y3Qga3VuaXRfcmVzb3VyY2UgZm9yIGFuCisgKiBleGFtcGxlLgorICovCitzdHJ1Y3Qga3Vu
-aXRfcmVzb3VyY2UgKmt1bml0X2FsbG9jX3Jlc291cmNlKHN0cnVjdCBrdW5pdCAqdGVzdCwKKwkJ
-CQkJICAgIGt1bml0X3Jlc291cmNlX2luaXRfdCBpbml0LAorCQkJCQkgICAga3VuaXRfcmVzb3Vy
-Y2VfZnJlZV90IGZyZWUsCisJCQkJCSAgICB2b2lkICpjb250ZXh0KTsKKwordm9pZCBrdW5pdF9m
-cmVlX3Jlc291cmNlKHN0cnVjdCBrdW5pdCAqdGVzdCwgc3RydWN0IGt1bml0X3Jlc291cmNlICpy
-ZXMpOworCisvKioKKyAqIGt1bml0X2ttYWxsb2MoKSAtIExpa2Uga21hbGxvYygpIGV4Y2VwdCB0
-aGUgYWxsb2NhdGlvbiBpcyAqdGVzdCBtYW5hZ2VkKi4KKyAqIEB0ZXN0OiBUaGUgdGVzdCBjb250
-ZXh0IG9iamVjdC4KKyAqIEBzaXplOiBUaGUgc2l6ZSBpbiBieXRlcyBvZiB0aGUgZGVzaXJlZCBt
-ZW1vcnkuCisgKiBAZ2ZwOiBmbGFncyBwYXNzZWQgdG8gdW5kZXJseWluZyBrbWFsbG9jKCkuCisg
-KgorICogSnVzdCBsaWtlIGBrbWFsbG9jKC4uLilgLCBleGNlcHQgdGhlIGFsbG9jYXRpb24gaXMg
-bWFuYWdlZCBieSB0aGUgdGVzdCBjYXNlCisgKiBhbmQgaXMgYXV0b21hdGljYWxseSBjbGVhbmVk
-IHVwIGFmdGVyIHRoZSB0ZXN0IGNhc2UgY29uY2x1ZGVzLiBTZWUgJnN0cnVjdAorICoga3VuaXRf
-cmVzb3VyY2UgZm9yIG1vcmUgaW5mb3JtYXRpb24uCisgKi8KK3ZvaWQgKmt1bml0X2ttYWxsb2Mo
-c3RydWN0IGt1bml0ICp0ZXN0LCBzaXplX3Qgc2l6ZSwgZ2ZwX3QgZ2ZwKTsKKworLyoqCisgKiBr
-dW5pdF9remFsbG9jKCkgLSBKdXN0IGxpa2Uga3VuaXRfa21hbGxvYygpLCBidXQgemVyb2VzIHRo
-ZSBhbGxvY2F0aW9uLgorICogQHRlc3Q6IFRoZSB0ZXN0IGNvbnRleHQgb2JqZWN0LgorICogQHNp
-emU6IFRoZSBzaXplIGluIGJ5dGVzIG9mIHRoZSBkZXNpcmVkIG1lbW9yeS4KKyAqIEBnZnA6IGZs
-YWdzIHBhc3NlZCB0byB1bmRlcmx5aW5nIGttYWxsb2MoKS4KKyAqCisgKiBTZWUga3phbGxvYygp
-IGFuZCBrdW5pdF9rbWFsbG9jKCkgZm9yIG1vcmUgaW5mb3JtYXRpb24uCisgKi8KK3N0YXRpYyBp
-bmxpbmUgdm9pZCAqa3VuaXRfa3phbGxvYyhzdHJ1Y3Qga3VuaXQgKnRlc3QsIHNpemVfdCBzaXpl
-LCBnZnBfdCBnZnApCit7CisJcmV0dXJuIGt1bml0X2ttYWxsb2ModGVzdCwgc2l6ZSwgZ2ZwIHwg
-X19HRlBfWkVSTyk7Cit9CisKK3ZvaWQga3VuaXRfY2xlYW51cChzdHJ1Y3Qga3VuaXQgKnRlc3Qp
-OworCiB2b2lkIF9fcHJpbnRmKDMsIDQpIGt1bml0X3ByaW50ayhjb25zdCBjaGFyICpsZXZlbCwK
-IAkJCQkgY29uc3Qgc3RydWN0IGt1bml0ICp0ZXN0LAogCQkJCSBjb25zdCBjaGFyICpmbXQsIC4u
-Lik7CmRpZmYgLS1naXQgYS9rdW5pdC90ZXN0LmMgYi9rdW5pdC90ZXN0LmMKaW5kZXggNTcxZTRj
-NjVkZWI1Yy4uZjE2NWM5ZDhlMTBiMCAxMDA2NDQKLS0tIGEva3VuaXQvdGVzdC5jCisrKyBiL2t1
-bml0L3Rlc3QuYwpAQCAtMTIyLDYgKzEyMiw4IEBAIHN0YXRpYyB2b2lkIGt1bml0X3ByaW50X3Rl
-c3RfY2FzZV9va19ub3Rfb2soc3RydWN0IGt1bml0X2Nhc2UgKnRlc3RfY2FzZSwKIAogdm9pZCBr
-dW5pdF9pbml0X3Rlc3Qoc3RydWN0IGt1bml0ICp0ZXN0LCBjb25zdCBjaGFyICpuYW1lKQogewor
-CW11dGV4X2luaXQoJnRlc3QtPmxvY2spOworCUlOSVRfTElTVF9IRUFEKCZ0ZXN0LT5yZXNvdXJj
-ZXMpOwogCXRlc3QtPm5hbWUgPSBuYW1lOwogCXRlc3QtPnN1Y2Nlc3MgPSB0cnVlOwogfQpAQCAt
-MTUxLDYgKzE1Myw4IEBAIHN0YXRpYyB2b2lkIGt1bml0X3J1bl9jYXNlKHN0cnVjdCBrdW5pdF9z
-dWl0ZSAqc3VpdGUsCiAJaWYgKHN1aXRlLT5leGl0KQogCQlzdWl0ZS0+ZXhpdCgmdGVzdCk7CiAK
-KwlrdW5pdF9jbGVhbnVwKCZ0ZXN0KTsKKwogCXRlc3RfY2FzZS0+c3VjY2VzcyA9IHRlc3Quc3Vj
-Y2VzczsKIH0KIApAQCAtMTcxLDYgKzE3NSw5NiBAQCBpbnQga3VuaXRfcnVuX3Rlc3RzKHN0cnVj
-dCBrdW5pdF9zdWl0ZSAqc3VpdGUpCiAJcmV0dXJuIDA7CiB9CiAKK3N0cnVjdCBrdW5pdF9yZXNv
-dXJjZSAqa3VuaXRfYWxsb2NfcmVzb3VyY2Uoc3RydWN0IGt1bml0ICp0ZXN0LAorCQkJCQkgICAg
-a3VuaXRfcmVzb3VyY2VfaW5pdF90IGluaXQsCisJCQkJCSAgICBrdW5pdF9yZXNvdXJjZV9mcmVl
-X3QgZnJlZSwKKwkJCQkJICAgIHZvaWQgKmNvbnRleHQpCit7CisJc3RydWN0IGt1bml0X3Jlc291
-cmNlICpyZXM7CisJaW50IHJldDsKKworCXJlcyA9IGt6YWxsb2Moc2l6ZW9mKCpyZXMpLCBHRlBf
-S0VSTkVMKTsKKwlpZiAoIXJlcykKKwkJcmV0dXJuIE5VTEw7CisKKwlyZXQgPSBpbml0KHJlcywg
-Y29udGV4dCk7CisJaWYgKHJldCkKKwkJcmV0dXJuIE5VTEw7CisKKwlyZXMtPmZyZWUgPSBmcmVl
-OworCW11dGV4X2xvY2soJnRlc3QtPmxvY2spOworCWxpc3RfYWRkX3RhaWwoJnJlcy0+bm9kZSwg
-JnRlc3QtPnJlc291cmNlcyk7CisJbXV0ZXhfdW5sb2NrKCZ0ZXN0LT5sb2NrKTsKKworCXJldHVy
-biByZXM7Cit9CisKK3ZvaWQga3VuaXRfZnJlZV9yZXNvdXJjZShzdHJ1Y3Qga3VuaXQgKnRlc3Qs
-IHN0cnVjdCBrdW5pdF9yZXNvdXJjZSAqcmVzKQoreworCXJlcy0+ZnJlZShyZXMpOworCWxpc3Rf
-ZGVsKCZyZXMtPm5vZGUpOworCWtmcmVlKHJlcyk7Cit9CisKK3N0cnVjdCBrdW5pdF9rbWFsbG9j
-X3BhcmFtcyB7CisJc2l6ZV90IHNpemU7CisJZ2ZwX3QgZ2ZwOworfTsKKworc3RhdGljIGludCBr
-dW5pdF9rbWFsbG9jX2luaXQoc3RydWN0IGt1bml0X3Jlc291cmNlICpyZXMsIHZvaWQgKmNvbnRl
-eHQpCit7CisJc3RydWN0IGt1bml0X2ttYWxsb2NfcGFyYW1zICpwYXJhbXMgPSBjb250ZXh0Owor
-CisJcmVzLT5hbGxvY2F0aW9uID0ga21hbGxvYyhwYXJhbXMtPnNpemUsIHBhcmFtcy0+Z2ZwKTsK
-KwlpZiAoIXJlcy0+YWxsb2NhdGlvbikKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlyZXR1cm4gMDsK
-K30KKworc3RhdGljIHZvaWQga3VuaXRfa21hbGxvY19mcmVlKHN0cnVjdCBrdW5pdF9yZXNvdXJj
-ZSAqcmVzKQoreworCWtmcmVlKHJlcy0+YWxsb2NhdGlvbik7Cit9CisKK3ZvaWQgKmt1bml0X2tt
-YWxsb2Moc3RydWN0IGt1bml0ICp0ZXN0LCBzaXplX3Qgc2l6ZSwgZ2ZwX3QgZ2ZwKQoreworCXN0
-cnVjdCBrdW5pdF9rbWFsbG9jX3BhcmFtcyBwYXJhbXM7CisJc3RydWN0IGt1bml0X3Jlc291cmNl
-ICpyZXM7CisKKwlwYXJhbXMuc2l6ZSA9IHNpemU7CisJcGFyYW1zLmdmcCA9IGdmcDsKKworCXJl
-cyA9IGt1bml0X2FsbG9jX3Jlc291cmNlKHRlc3QsCisJCQkJICAga3VuaXRfa21hbGxvY19pbml0
-LAorCQkJCSAgIGt1bml0X2ttYWxsb2NfZnJlZSwKKwkJCQkgICAmcGFyYW1zKTsKKworCWlmIChy
-ZXMpCisJCXJldHVybiByZXMtPmFsbG9jYXRpb247CisKKwlyZXR1cm4gTlVMTDsKK30KKwordm9p
-ZCBrdW5pdF9jbGVhbnVwKHN0cnVjdCBrdW5pdCAqdGVzdCkKK3sKKwlzdHJ1Y3Qga3VuaXRfcmVz
-b3VyY2UgKnJlc291cmNlLCAqcmVzb3VyY2Vfc2FmZTsKKworCW11dGV4X2xvY2soJnRlc3QtPmxv
-Y2spOworCS8qCisJICogdGVzdC0+cmVzb3VyY2VzIGlzIGEgc3RhY2sgLSBlYWNoIGFsbG9jYXRp
-b24gbXVzdCBiZSBmcmVlZCBpbiB0aGUKKwkgKiByZXZlcnNlIG9yZGVyIGZyb20gd2hpY2ggaXQg
-d2FzIGFkZGVkIHNpbmNlIG9uZSByZXNvdXJjZSBtYXkgZGVwZW5kCisJICogb24gYW5vdGhlciBm
-b3IgaXRzIGVudGlyZSBsaWZldGltZS4KKwkgKi8KKwlsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmVf
-cmV2ZXJzZShyZXNvdXJjZSwKKwkJCQkJIHJlc291cmNlX3NhZmUsCisJCQkJCSAmdGVzdC0+cmVz
-b3VyY2VzLAorCQkJCQkgbm9kZSkgeworCQlrdW5pdF9mcmVlX3Jlc291cmNlKHRlc3QsIHJlc291
-cmNlKTsKKwl9CisJbXV0ZXhfdW5sb2NrKCZ0ZXN0LT5sb2NrKTsKK30KKwogdm9pZCBrdW5pdF9w
-cmludGsoY29uc3QgY2hhciAqbGV2ZWwsCiAJCSAgY29uc3Qgc3RydWN0IGt1bml0ICp0ZXN0LAog
-CQkgIGNvbnN0IGNoYXIgKmZtdCwgLi4uKQotLSAKMi4yMi4wLjQxMC5nZDhmZGJlMjFiNS1nb29n
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2
-ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+A number of test features need to do pretty complicated string printing
+where it may not be possible to rely on a single preallocated string
+with parameters.
+
+So provide a library for constructing the string as you go similar to
+C++'s std::string.
+
+Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+---
+ include/kunit/string-stream.h |  49 ++++++++++++
+ kunit/Makefile                |   3 +-
+ kunit/string-stream.c         | 147 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 198 insertions(+), 1 deletion(-)
+ create mode 100644 include/kunit/string-stream.h
+ create mode 100644 kunit/string-stream.c
+
+diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
+new file mode 100644
+index 0000000000000..0552a05781afe
+--- /dev/null
++++ b/include/kunit/string-stream.h
+@@ -0,0 +1,49 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * C++ stream style string builder used in KUnit for building messages.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++ */
++
++#ifndef _KUNIT_STRING_STREAM_H
++#define _KUNIT_STRING_STREAM_H
++
++#include <linux/types.h>
++#include <linux/spinlock.h>
++#include <linux/kref.h>
++#include <stdarg.h>
++
++struct string_stream_fragment {
++	struct list_head node;
++	char *fragment;
++};
++
++struct string_stream {
++	size_t length;
++	struct list_head fragments;
++	/* length and fragments are protected by this lock */
++	spinlock_t lock;
++};
++
++struct kunit;
++
++struct string_stream *alloc_string_stream(struct kunit *test);
++
++void string_stream_get(struct string_stream *stream);
++
++int string_stream_put(struct string_stream *stream);
++
++int string_stream_add(struct string_stream *stream, const char *fmt, ...);
++
++int string_stream_vadd(struct string_stream *stream,
++		       const char *fmt,
++		       va_list args);
++
++char *string_stream_get_string(struct string_stream *stream);
++
++void string_stream_clear(struct string_stream *stream);
++
++bool string_stream_is_empty(struct string_stream *stream);
++
++#endif /* _KUNIT_STRING_STREAM_H */
+diff --git a/kunit/Makefile b/kunit/Makefile
+index 5efdc4dea2c08..275b565a0e81f 100644
+--- a/kunit/Makefile
++++ b/kunit/Makefile
+@@ -1 +1,2 @@
+-obj-$(CONFIG_KUNIT) +=			test.o
++obj-$(CONFIG_KUNIT) +=			test.o \
++					string-stream.o
+diff --git a/kunit/string-stream.c b/kunit/string-stream.c
+new file mode 100644
+index 0000000000000..0463a92dad74b
+--- /dev/null
++++ b/kunit/string-stream.c
+@@ -0,0 +1,147 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * C++ stream style string builder used in KUnit for building messages.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
++ */
++
++#include <linux/list.h>
++#include <linux/slab.h>
++#include <kunit/string-stream.h>
++#include <kunit/test.h>
++
++int string_stream_vadd(struct string_stream *stream,
++		       const char *fmt,
++		       va_list args)
++{
++	struct string_stream_fragment *frag_container;
++	int len;
++	va_list args_for_counting;
++	unsigned long flags;
++
++	/* Make a copy because `vsnprintf` could change it */
++	va_copy(args_for_counting, args);
++
++	/* Need space for null byte. */
++	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
++
++	va_end(args_for_counting);
++
++	frag_container = kmalloc(sizeof(*frag_container), GFP_KERNEL);
++	if (!frag_container)
++		return -ENOMEM;
++
++	frag_container->fragment = kmalloc(len, GFP_KERNEL);
++	if (!frag_container->fragment) {
++		kfree(frag_container);
++		return -ENOMEM;
++	}
++
++	len = vsnprintf(frag_container->fragment, len, fmt, args);
++	spin_lock_irqsave(&stream->lock, flags);
++	stream->length += len;
++	list_add_tail(&frag_container->node, &stream->fragments);
++	spin_unlock_irqrestore(&stream->lock, flags);
++
++	return 0;
++}
++
++int string_stream_add(struct string_stream *stream, const char *fmt, ...)
++{
++	va_list args;
++	int result;
++
++	va_start(args, fmt);
++	result = string_stream_vadd(stream, fmt, args);
++	va_end(args);
++
++	return result;
++}
++
++void string_stream_clear(struct string_stream *stream)
++{
++	struct string_stream_fragment *frag_container, *frag_container_safe;
++	unsigned long flags;
++
++	spin_lock_irqsave(&stream->lock, flags);
++	list_for_each_entry_safe(frag_container,
++				 frag_container_safe,
++				 &stream->fragments,
++				 node) {
++		list_del(&frag_container->node);
++		kfree(frag_container->fragment);
++		kfree(frag_container);
++	}
++	stream->length = 0;
++	spin_unlock_irqrestore(&stream->lock, flags);
++}
++
++char *string_stream_get_string(struct string_stream *stream)
++{
++	struct string_stream_fragment *frag_container;
++	size_t buf_len = stream->length + 1; /* +1 for null byte. */
++	char *buf;
++	unsigned long flags;
++
++	buf = kzalloc(buf_len, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	spin_lock_irqsave(&stream->lock, flags);
++	list_for_each_entry(frag_container, &stream->fragments, node)
++		strlcat(buf, frag_container->fragment, buf_len);
++	spin_unlock_irqrestore(&stream->lock, flags);
++
++	return buf;
++}
++
++bool string_stream_is_empty(struct string_stream *stream)
++{
++	bool is_empty;
++	unsigned long flags;
++
++	spin_lock_irqsave(&stream->lock, flags);
++	is_empty = list_empty(&stream->fragments);
++	spin_unlock_irqrestore(&stream->lock, flags);
++
++	return is_empty;
++}
++
++static int string_stream_init(struct kunit_resource *res, void *context)
++{
++	struct string_stream *stream;
++
++	stream = kzalloc(sizeof(*stream), GFP_KERNEL);
++	if (!stream)
++		return -ENOMEM;
++
++	res->allocation = stream;
++	INIT_LIST_HEAD(&stream->fragments);
++	spin_lock_init(&stream->lock);
++
++	return 0;
++}
++
++static void string_stream_free(struct kunit_resource *res)
++{
++	struct string_stream *stream = res->allocation;
++
++	string_stream_clear(stream);
++	kfree(stream);
++}
++
++struct string_stream *alloc_string_stream(struct kunit *test)
++{
++	struct kunit_resource *res;
++
++	res = kunit_alloc_resource(test,
++				   string_stream_init,
++				   string_stream_free,
++				   NULL);
++
++	if (!res)
++		return NULL;
++
++	return res->allocation;
++}
+-- 
+2.22.0.410.gd8fdbe21b5-goog
