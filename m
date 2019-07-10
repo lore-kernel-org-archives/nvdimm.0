@@ -1,21 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com
+ [IPv6:2607:f8b0:4864:20::743])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE0E721250474
- for <linux-nvdimm@lists.01.org>; Tue, 16 Jul 2019 08:32:30 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A55DD212B2044
+ for <linux-nvdimm@lists.01.org>; Tue,  9 Jul 2019 18:16:53 -0700 (PDT)
+Received: by mail-qk1-x743.google.com with SMTP id a27so645069qkk.5
+ for <linux-nvdimm@lists.01.org>; Tue, 09 Jul 2019 18:16:53 -0700 (PDT)
+From: Pavel Tatashin <pasha.tatashin@soleen.com>
+Subject: [v7 2/3] mm/hotplug: make remove_memory() interface useable
+Date: Tue,  9 Jul 2019 21:16:46 -0400
+Message-Id: <20190710011647.10944-3-pasha.tatashin@soleen.com>
+In-Reply-To: <20190710011647.10944-1-pasha.tatashin@soleen.com>
+References: <20190710011647.10944-1-pasha.tatashin@soleen.com>
 MIME-Version: 1.0
-In-Reply-To: <CAFd5g44_axVHNMBzxSURQB_-R+Rif7cZcg7PyZ_SS+5hcy5jZA@mail.gmail.com>
-References: <20190712081744.87097-1-brendanhiggins@google.com>
- <20190712081744.87097-5-brendanhiggins@google.com>
- <20190715221554.8417320665@mail.kernel.org>
- <CAFd5g47ikJmA0uGoavAFsh+hQvDmgsOi26tyii0612R=rt7iiw@mail.gmail.com>
- <CAFd5g44_axVHNMBzxSURQB_-R+Rif7cZcg7PyZ_SS+5hcy5jZA@mail.gmail.com>
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Tue, 16 Jul 2019 08:30:01 -0700
-Message-Id: <20190716153002.49E292054F@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,90 +25,165 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
+To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Quoting Brendan Higgins (2019-07-16 01:37:34)
-> On Tue, Jul 16, 2019 at 12:57 AM Brendan Higgins
-> <brendanhiggins@google.com> wrote:
-> >
-> > On Mon, Jul 15, 2019 at 3:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
-> > >
-> > > Quoting Brendan Higgins (2019-07-12 01:17:30)
-> > > > diff --git a/include/kunit/kunit-stream.h b/include/kunit/kunit-stream.h
-> > > > new file mode 100644
-> > > > index 0000000000000..a7b53eabf6be4
-> > > > --- /dev/null
-> > > > +++ b/include/kunit/kunit-stream.h
-> > > > +/**
-> > > > + * struct kunit_stream - a std::stream style string builder.
-> > > > + *
-> > > > + * A std::stream style string builder. Allows messages to be built up and
-> > > > + * printed all at once.
-> > > > + */
-> > > > +struct kunit_stream {
-> > > > +       /* private: internal use only. */
-> > > > +       struct kunit *test;
-> > > > +       const char *level;
-> > >
-> > > Is the level changed? See my comment below, but I wonder if this whole
-> > > struct can go away and the wrappers can just operate on 'struct
-> > > string_stream' instead.
-> >
-> > I was inclined to agree with you when I first read your comment, but
-> > then I thought about the case that someone wants to add in a debug
-> > message (of which I currently have none). I think under most
-> > circumstances a user of kunit_stream would likely want to pick a
-> > default verbosity that maybe I should provide, but may still want
-> > different verbosity levels.
-> >
-> > The main reason I want to keep the types separate, string_stream vs.
-> > kunit_stream, is that they are intended to be used differently.
-> > string_stream is just a generic string builder. If you are using that,
-> > you are expecting to see someone building the string at some point and
-> > then doing something interesting with it. kunit_stream really tells
-> > you specifically that KUnit is putting together a message to
-> > communicate something to a user of KUnit. It is really used in a very
-> > specific way, and I wouldn't want to generalize its usage beyond how
-> > it is currently used. I think in order to preserve the author's
-> > intention it adds clarity to keep the types separate regardless of how
-> > similar they might be in reality.
+As of right now remove_memory() interface is inherently broken. It tries
+to remove memory but panics if some memory is not offline. The problem
+is that it is impossible to ensure that all memory blocks are offline as
+this function also takes lock_device_hotplug that is required to
+change memory state via sysfs.
 
-You may want to add some of these reasons to the commit text.
+So, between calling this function and offlining all memory blocks there
+is always a window when lock_device_hotplug is released, and therefore,
+there is always a chance for a panic during this window.
 
-> > > > +
-> > > > +       if (!string_stream_is_empty(stream->internal_stream)) {
-> > > > +               kunit_err(stream->test,
-> > > > +                         "End of test case reached with uncommitted stream entries\n");
-> > > > +               kunit_stream_commit(stream);
-> > > > +       }
-> > > > +}
-> > > > +
-> > >
-> > > Nitpick: Drop this extra newline.
-> >
-> > Oops, nice catch.
-> 
-> Not super important, but I don't want you to think that I am ignoring
-> you. I think you must have unintentionally deleted the last function
-> in this file, or maybe you are referring to something that I am just
-> not seeing, but I don't see the extra newline here.
+Make this interface to return an error if memory removal fails. This way
+it is safe to call this function without panicking machine, and also
+makes it symmetric to add_memory() which already returns an error.
 
-No worries. Sorry for the noise.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+---
+ include/linux/memory_hotplug.h |  8 +++--
+ mm/memory_hotplug.c            | 64 +++++++++++++++++++++++-----------
+ 2 files changed, 49 insertions(+), 23 deletions(-)
 
-> > property of the input, it may or may not be enough information on its
-> > own for the expectation to fail, but we want to share the result of
-> > the property check with the user regardless, BUT only if the
-> > expectation as a whole fails.
-> >
-> > Hence, we can have multiple `struct kunit_stream`s associated with a
-> > `struct kunit` active at any given time.
-
-Makes sense. I wasn't sure if there were more than one stream associated
-with a test. Sounds like there are many to one so it can't just be a
-member of the test. This could be documented somewhere so this question
-doesn't come up again.
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index ae892eef8b82..988fde33cd7f 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -324,7 +324,7 @@ static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
+ extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+-extern void remove_memory(int nid, u64 start, u64 size);
++extern int remove_memory(int nid, u64 start, u64 size);
+ extern void __remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+@@ -341,7 +341,11 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ 	return -EINVAL;
+ }
+ 
+-static inline void remove_memory(int nid, u64 start, u64 size) {}
++static inline int remove_memory(int nid, u64 start, u64 size)
++{
++	return -EBUSY;
++}
++
+ static inline void __remove_memory(int nid, u64 start, u64 size) {}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index e096c987d261..77d1f69cdead 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1736,9 +1736,10 @@ static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
+ 		endpa = PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1;
+ 		pr_warn("removing memory fails, because memory [%pa-%pa] is onlined\n",
+ 			&beginpa, &endpa);
+-	}
+ 
+-	return ret;
++		return -EBUSY;
++	}
++	return 0;
+ }
+ 
+ static int check_cpu_on_node(pg_data_t *pgdat)
+@@ -1821,19 +1822,9 @@ static void __release_memory_resource(resource_size_t start,
+ 	}
+ }
+ 
+-/**
+- * remove_memory
+- * @nid: the node ID
+- * @start: physical address of the region to remove
+- * @size: size of the region to remove
+- *
+- * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+- * and online/offline operations before this call, as required by
+- * try_offline_node().
+- */
+-void __ref __remove_memory(int nid, u64 start, u64 size)
++static int __ref try_remove_memory(int nid, u64 start, u64 size)
+ {
+-	int ret;
++	int rc = 0;
+ 
+ 	BUG_ON(check_hotplug_memory_range(start, size));
+ 
+@@ -1841,13 +1832,13 @@ void __ref __remove_memory(int nid, u64 start, u64 size)
+ 
+ 	/*
+ 	 * All memory blocks must be offlined before removing memory.  Check
+-	 * whether all memory blocks in question are offline and trigger a BUG()
++	 * whether all memory blocks in question are offline and return error
+ 	 * if this is not the case.
+ 	 */
+-	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
+-				check_memblock_offlined_cb);
+-	if (ret)
+-		BUG();
++	rc = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
++			       check_memblock_offlined_cb);
++	if (rc)
++		goto done;
+ 
+ 	/* remove memmap entry */
+ 	firmware_map_remove(start, start + size, "System RAM");
+@@ -1859,14 +1850,45 @@ void __ref __remove_memory(int nid, u64 start, u64 size)
+ 
+ 	try_offline_node(nid);
+ 
++done:
+ 	mem_hotplug_done();
++	return rc;
+ }
+ 
+-void remove_memory(int nid, u64 start, u64 size)
++/**
++ * remove_memory
++ * @nid: the node ID
++ * @start: physical address of the region to remove
++ * @size: size of the region to remove
++ *
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations before this call, as required by
++ * try_offline_node().
++ */
++void __remove_memory(int nid, u64 start, u64 size)
++{
++
++	/*
++	 * trigger BUG() is some memory is not offlined prior to calling this
++	 * function
++	 */
++	if (try_remove_memory(nid, start, size))
++		BUG();
++}
++
++/*
++ * Remove memory if every memory block is offline, otherwise return -EBUSY is
++ * some memory is not offline
++ */
++int remove_memory(int nid, u64 start, u64 size)
+ {
++	int rc;
++
+ 	lock_device_hotplug();
+-	__remove_memory(nid, start, size);
++	rc  = try_remove_memory(nid, start, size);
+ 	unlock_device_hotplug();
++
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+-- 
+2.22.0
 
 _______________________________________________
 Linux-nvdimm mailing list
