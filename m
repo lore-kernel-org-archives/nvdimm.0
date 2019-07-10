@@ -1,165 +1,642 @@
 From: Brendan Higgins <brendanhiggins@google.com>
-Subject: [PATCH v8 04/18] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Wed, 10 Jul 2019 00:14:54 -0700
-Message-ID: <20190710071508.173491-5-brendanhiggins@google.com>
+Subject: [PATCH v8 05/18] kunit: test: add the concept of expectations
+Date: Wed, 10 Jul 2019 00:14:55 -0700
+Message-ID: <20190710071508.173491-6-brendanhiggins@google.com>
 References: <20190710071508.173491-1-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190710071508.173491-1-brendanhiggins@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org, logang@deltatee.com
+Cc: devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com, Brendan Higgins <brendanhiggins@google.com>
 List-Id: linux-nvdimm@lists.01.org
 
-QSBsb3Qgb2YgdGhlIGV4cGVjdGF0aW9uIGFuZCBhc3NlcnRpb24gaW5mcmFzdHJ1Y3R1cmUgcHJp
-bnRzIG91dCBmYWlybHkKY29tcGxpY2F0ZWQgdGVzdCBmYWlsdXJlIG1lc3NhZ2VzLCBzbyBhZGQg
-YSBDKysgc3R5bGUgbG9nIGxpYnJhcnkgZm9yCmZvciBsb2dnaW5nIHRlc3QgcmVzdWx0cy4KClNp
-Z25lZC1vZmYtYnk6IEJyZW5kYW4gSGlnZ2lucyA8YnJlbmRhbmhpZ2dpbnNAZ29vZ2xlLmNvbT4K
-UmV2aWV3ZWQtYnk6IEdyZWcgS3JvYWgtSGFydG1hbiA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5v
-cmc+ClJldmlld2VkLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5jb20+Ci0t
-LQogaW5jbHVkZS9rdW5pdC9rdW5pdC1zdHJlYW0uaCB8ICA4MSArKysrKysrKysrKysrKysrKysr
-KysrKwogaW5jbHVkZS9rdW5pdC90ZXN0LmggICAgICAgICB8ICAgMyArCiBrdW5pdC9NYWtlZmls
-ZSAgICAgICAgICAgICAgIHwgICAzICstCiBrdW5pdC9rdW5pdC1zdHJlYW0uYyAgICAgICAgIHwg
-MTIzICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrCiBrdW5pdC90ZXN0LmMgICAg
-ICAgICAgICAgICAgIHwgICA2ICsrCiA1IGZpbGVzIGNoYW5nZWQsIDIxNSBpbnNlcnRpb25zKCsp
-LCAxIGRlbGV0aW9uKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9rdW5pdC9rdW5pdC1z
-dHJlYW0uaAogY3JlYXRlIG1vZGUgMTAwNjQ0IGt1bml0L2t1bml0LXN0cmVhbS5jCgpkaWZmIC0t
-Z2l0IGEvaW5jbHVkZS9rdW5pdC9rdW5pdC1zdHJlYW0uaCBiL2luY2x1ZGUva3VuaXQva3VuaXQt
-c3RyZWFtLmgKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMDAwMDAwMC4uYTdiNTNl
-YWJmNmJlNAotLS0gL2Rldi9udWxsCisrKyBiL2luY2x1ZGUva3VuaXQva3VuaXQtc3RyZWFtLmgK
-QEAgLTAsMCArMSw4MSBAQAorLyogU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEdQTC0yLjAgKi8K
-Ky8qCisgKiBDKysgc3RyZWFtIHN0eWxlIHN0cmluZyBmb3JtYXR0ZXIgYW5kIHByaW50ZXIgdXNl
-ZCBpbiBLVW5pdCBmb3Igb3V0cHV0dGluZworICogS1VuaXQgbWVzc2FnZXMuCisgKgorICogQ29w
-eXJpZ2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICogQXV0aG9yOiBCcmVuZGFuIEhpZ2dpbnMg
-PGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8KKworI2lmbmRlZiBfS1VOSVRfS1VOSVRf
-U1RSRUFNX0gKKyNkZWZpbmUgX0tVTklUX0tVTklUX1NUUkVBTV9ICisKKyNpbmNsdWRlIDxsaW51
-eC90eXBlcy5oPgorI2luY2x1ZGUgPGt1bml0L3N0cmluZy1zdHJlYW0uaD4KKworc3RydWN0IGt1
-bml0OworCisvKioKKyAqIHN0cnVjdCBrdW5pdF9zdHJlYW0gLSBhIHN0ZDo6c3RyZWFtIHN0eWxl
-IHN0cmluZyBidWlsZGVyLgorICoKKyAqIEEgc3RkOjpzdHJlYW0gc3R5bGUgc3RyaW5nIGJ1aWxk
-ZXIuIEFsbG93cyBtZXNzYWdlcyB0byBiZSBidWlsdCB1cCBhbmQKKyAqIHByaW50ZWQgYWxsIGF0
-IG9uY2UuCisgKi8KK3N0cnVjdCBrdW5pdF9zdHJlYW0geworCS8qIHByaXZhdGU6IGludGVybmFs
-IHVzZSBvbmx5LiAqLworCXN0cnVjdCBrdW5pdCAqdGVzdDsKKwljb25zdCBjaGFyICpsZXZlbDsK
-KwlzdHJ1Y3Qgc3RyaW5nX3N0cmVhbSAqaW50ZXJuYWxfc3RyZWFtOworfTsKKworLyoqCisgKiBh
-bGxvY19rdW5pdF9zdHJlYW0oKSAtIGNvbnN0cnVjdHMgYSBuZXcgJnN0cnVjdCBrdW5pdF9zdHJl
-YW0uCisgKiBAdGVzdDogVGhlIHRlc3QgY29udGV4dCBvYmplY3QuCisgKiBAbGV2ZWw6IFRoZSBs
-b2cgbGV2ZWwgYXQgd2hpY2ggdG8gcHJpbnQgb3V0IHRoZSBtZXNzYWdlLgorICoKKyAqIENvbnN0
-cnVjdHMgYSBuZXcgdGVzdCBtYW5hZ2VkICZzdHJ1Y3Qga3VuaXRfc3RyZWFtLgorICovCitzdHJ1
-Y3Qga3VuaXRfc3RyZWFtICphbGxvY19rdW5pdF9zdHJlYW0oc3RydWN0IGt1bml0ICp0ZXN0LCBj
-b25zdCBjaGFyICpsZXZlbCk7CisKKy8qKgorICoga3VuaXRfc3RyZWFtX2FkZCgpOiBhZGRzIHRo
-ZSBmb3JtYXR0ZWQgaW5wdXQgdG8gdGhlIGludGVybmFsIGJ1ZmZlci4KKyAqIEBrc3RyZWFtOiB0
-aGUgc3RyZWFtIGJlaW5nIG9wZXJhdGVkIG9uLgorICogQGZtdDogcHJpbnRmIHN0eWxlIGZvcm1h
-dCBzdHJpbmcgdG8gYXBwZW5kIHRvIHN0cmVhbS4KKyAqCisgKiBBcHBlbmRzIHRoZSBmb3JtYXR0
-ZWQgc3RyaW5nLCBAZm10LCB0byB0aGUgaW50ZXJuYWwgYnVmZmVyLgorICovCit2b2lkIF9fcHJp
-bnRmKDIsIDMpIGt1bml0X3N0cmVhbV9hZGQoc3RydWN0IGt1bml0X3N0cmVhbSAqa3N0cmVhbSwK
-KwkJCQkgICAgIGNvbnN0IGNoYXIgKmZtdCwgLi4uKTsKKworLyoqCisgKiBrdW5pdF9zdHJlYW1f
-YXBwZW5kKCk6IGFwcGVuZHMgdGhlIGNvbnRlbnRzIG9mIEBvdGhlciB0byBAa3N0cmVhbS4KKyAq
-IEBrc3RyZWFtOiB0aGUgc3RyZWFtIHRvIHdoaWNoIEBvdGhlciBpcyBhcHBlbmRlZC4KKyAqIEBv
-dGhlcjogdGhlIHN0cmVhbSB3aG9zZSBjb250ZW50cyBhcmUgYXBwZW5kZWQgdG8gQGtzdHJlYW0u
-CisgKgorICogQXBwZW5kcyB0aGUgY29udGVudHMgb2YgQG90aGVyIHRvIEBrc3RyZWFtLgorICov
-Cit2b2lkIGt1bml0X3N0cmVhbV9hcHBlbmQoc3RydWN0IGt1bml0X3N0cmVhbSAqa3N0cmVhbSwK
-KwkJCSBzdHJ1Y3Qga3VuaXRfc3RyZWFtICpvdGhlcik7CisKKy8qKgorICoga3VuaXRfc3RyZWFt
-X2NvbW1pdCgpOiBwcmludHMgb3V0IHRoZSBpbnRlcm5hbCBidWZmZXIgdG8gdGhlIHVzZXIuCisg
-KiBAa3N0cmVhbTogdGhlIHN0cmVhbSBiZWluZyBvcGVyYXRlZCBvbi4KKyAqCisgKiBPdXRwdXRz
-IHRoZSBjb250ZW50cyBvZiB0aGUgaW50ZXJuYWwgYnVmZmVyIGFzIGEga3VuaXRfcHJpbnRrIGZv
-cm1hdHRlZAorICogb3V0cHV0LiBLVU5JVF9TVFJFQU0gT05MWSBPVVRQVVRTIElUUyBCVUZGRVIg
-VE8gVEhFIFVTRVIgSUYgQ09NTUlUIElTCisgKiBDQUxMRUQhISEgVGhlIHJlYXNvbiBmb3IgdGhp
-cyBpcyB0aGF0IGl0IGFsbG93cyB1cyB0byBjb25zdHJ1Y3QgYSBtZXNzYWdlCisgKiBiZWZvcmUg
-d2Uga25vdyB3aGV0aGVyIHdlIHdhbnQgdG8gcHJpbnQgaXQgb3V0OyB0aGlzIGNhbiBiZSBleHRy
-ZW1lbHkgaGFuZHkKKyAqIGlmIHRoZXJlIGlzIGluZm9ybWF0aW9uIHlvdSBtaWdodCBuZWVkIGZv
-ciBhIGZhaWx1cmUgbWVzc2FnZSB0aGF0IGlzIGVhc2llc3QKKyAqIHRvIGNvbGxlY3QgaW4gdGhl
-IHN0ZXBzIGxlYWRpbmcgdXAgdG8gdGhlIGFjdHVhbCBjaGVjay4KKyAqLwordm9pZCBrdW5pdF9z
-dHJlYW1fY29tbWl0KHN0cnVjdCBrdW5pdF9zdHJlYW0gKmtzdHJlYW0pOworCisvKioKKyAqIGt1
-bml0X3N0cmVhbV9jbGVhcigpOiBjbGVhcnMgdGhlIGludGVybmFsIGJ1ZmZlci4KKyAqIEBrc3Ry
-ZWFtOiB0aGUgc3RyZWFtIGJlaW5nIG9wZXJhdGVkIG9uLgorICoKKyAqIENsZWFycyB0aGUgY29u
-dGVudHMgb2YgdGhlIGludGVybmFsIGJ1ZmZlci4KKyAqLwordm9pZCBrdW5pdF9zdHJlYW1fY2xl
-YXIoc3RydWN0IGt1bml0X3N0cmVhbSAqa3N0cmVhbSk7CisKKyNlbmRpZiAvKiBfS1VOSVRfS1VO
-SVRfU1RSRUFNX0ggKi8KZGlmZiAtLWdpdCBhL2luY2x1ZGUva3VuaXQvdGVzdC5oIGIvaW5jbHVk
-ZS9rdW5pdC90ZXN0LmgKaW5kZXggYmRmNDFkMzFjMzQzYy4uYmM3ZGJkY2Y4YWJhYiAxMDA2NDQK
-LS0tIGEvaW5jbHVkZS9rdW5pdC90ZXN0LmgKKysrIGIvaW5jbHVkZS9rdW5pdC90ZXN0LmgKQEAg
-LTExLDYgKzExLDcgQEAKIAogI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+CiAjaW5jbHVkZSA8bGlu
-dXgvc2xhYi5oPgorI2luY2x1ZGUgPGt1bml0L2t1bml0LXN0cmVhbS5oPgogCiBzdHJ1Y3Qga3Vu
-aXRfcmVzb3VyY2U7CiAKQEAgLTE4NCw2ICsxODUsOCBAQCBzdHJ1Y3Qga3VuaXQgewogCiB2b2lk
-IGt1bml0X2luaXRfdGVzdChzdHJ1Y3Qga3VuaXQgKnRlc3QsIGNvbnN0IGNoYXIgKm5hbWUpOwog
-Cit2b2lkIGt1bml0X2ZhaWwoc3RydWN0IGt1bml0ICp0ZXN0LCBzdHJ1Y3Qga3VuaXRfc3RyZWFt
-ICpzdHJlYW0pOworCiBpbnQga3VuaXRfcnVuX3Rlc3RzKHN0cnVjdCBrdW5pdF9zdWl0ZSAqc3Vp
-dGUpOwogCiAvKioKZGlmZiAtLWdpdCBhL2t1bml0L01ha2VmaWxlIGIva3VuaXQvTWFrZWZpbGUK
-aW5kZXggMjc1YjU2NWEwZTgxZi4uNmRkYzYyMmVlNmIxYyAxMDA2NDQKLS0tIGEva3VuaXQvTWFr
-ZWZpbGUKKysrIGIva3VuaXQvTWFrZWZpbGUKQEAgLTEsMiArMSwzIEBACiBvYmotJChDT05GSUdf
-S1VOSVQpICs9CQkJdGVzdC5vIFwKLQkJCQkJc3RyaW5nLXN0cmVhbS5vCisJCQkJCXN0cmluZy1z
-dHJlYW0ubyBcCisJCQkJCWt1bml0LXN0cmVhbS5vCmRpZmYgLS1naXQgYS9rdW5pdC9rdW5pdC1z
-dHJlYW0uYyBiL2t1bml0L2t1bml0LXN0cmVhbS5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4
-IDAwMDAwMDAwMDAwMDAuLjhiZWExZjIyZWFmYjUKLS0tIC9kZXYvbnVsbAorKysgYi9rdW5pdC9r
-dW5pdC1zdHJlYW0uYwpAQCAtMCwwICsxLDEyMyBAQAorLy8gU1BEWC1MaWNlbnNlLUlkZW50aWZp
-ZXI6IEdQTC0yLjAKKy8qCisgKiBDKysgc3RyZWFtIHN0eWxlIHN0cmluZyBmb3JtYXR0ZXIgYW5k
-IHByaW50ZXIgdXNlZCBpbiBLVW5pdCBmb3Igb3V0cHV0dGluZworICogS1VuaXQgbWVzc2FnZXMu
-CisgKgorICogQ29weXJpZ2h0IChDKSAyMDE5LCBHb29nbGUgTExDLgorICogQXV0aG9yOiBCcmVu
-ZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+CisgKi8KKworI2luY2x1ZGUg
-PGt1bml0L3Rlc3QuaD4KKyNpbmNsdWRlIDxrdW5pdC9rdW5pdC1zdHJlYW0uaD4KKyNpbmNsdWRl
-IDxrdW5pdC9zdHJpbmctc3RyZWFtLmg+CisKK3ZvaWQga3VuaXRfc3RyZWFtX2FkZChzdHJ1Y3Qg
-a3VuaXRfc3RyZWFtICprc3RyZWFtLCBjb25zdCBjaGFyICpmbXQsIC4uLikKK3sKKwl2YV9saXN0
-IGFyZ3M7CisJc3RydWN0IHN0cmluZ19zdHJlYW0gKnN0cmVhbSA9IGtzdHJlYW0tPmludGVybmFs
-X3N0cmVhbTsKKworCXZhX3N0YXJ0KGFyZ3MsIGZtdCk7CisKKwlpZiAoc3RyaW5nX3N0cmVhbV92
-YWRkKHN0cmVhbSwgZm10LCBhcmdzKSA8IDApCisJCWt1bml0X2Vycihrc3RyZWFtLT50ZXN0LAor
-CQkJICAiRmFpbGVkIHRvIGFsbG9jYXRlIGZyYWdtZW50OiAlc1xuIiwKKwkJCSAgZm10KTsKKwor
-CXZhX2VuZChhcmdzKTsKK30KKwordm9pZCBrdW5pdF9zdHJlYW1fYXBwZW5kKHN0cnVjdCBrdW5p
-dF9zdHJlYW0gKmtzdHJlYW0sCisJCQkJc3RydWN0IGt1bml0X3N0cmVhbSAqb3RoZXIpCit7CisJ
-c3RydWN0IHN0cmluZ19zdHJlYW0gKm90aGVyX3N0cmVhbSA9IG90aGVyLT5pbnRlcm5hbF9zdHJl
-YW07CisJY29uc3QgY2hhciAqb3RoZXJfY29udGVudDsKKworCW90aGVyX2NvbnRlbnQgPSBzdHJp
-bmdfc3RyZWFtX2dldF9zdHJpbmcob3RoZXJfc3RyZWFtKTsKKworCWlmICghb3RoZXJfY29udGVu
-dCkgeworCQlrdW5pdF9lcnIoa3N0cmVhbS0+dGVzdCwKKwkJCSAgIkZhaWxlZCB0byBnZXQgc3Ry
-aW5nIGZyb20gc2Vjb25kIGFyZ3VtZW50IGZvciBhcHBlbmRpbmdcbiIpOworCQlyZXR1cm47CisJ
-fQorCisJa3VuaXRfc3RyZWFtX2FkZChrc3RyZWFtLCBvdGhlcl9jb250ZW50KTsKK30KKwordm9p
-ZCBrdW5pdF9zdHJlYW1fY2xlYXIoc3RydWN0IGt1bml0X3N0cmVhbSAqa3N0cmVhbSkKK3sKKwlz
-dHJpbmdfc3RyZWFtX2NsZWFyKGtzdHJlYW0tPmludGVybmFsX3N0cmVhbSk7Cit9CisKK3ZvaWQg
-a3VuaXRfc3RyZWFtX2NvbW1pdChzdHJ1Y3Qga3VuaXRfc3RyZWFtICprc3RyZWFtKQoreworCXN0
-cnVjdCBzdHJpbmdfc3RyZWFtICpzdHJlYW0gPSBrc3RyZWFtLT5pbnRlcm5hbF9zdHJlYW07CisJ
-c3RydWN0IHN0cmluZ19zdHJlYW1fZnJhZ21lbnQgKmZyYWdtZW50OworCXN0cnVjdCBrdW5pdCAq
-dGVzdCA9IGtzdHJlYW0tPnRlc3Q7CisJY2hhciAqYnVmOworCisJYnVmID0gc3RyaW5nX3N0cmVh
-bV9nZXRfc3RyaW5nKHN0cmVhbSk7CisJaWYgKCFidWYpIHsKKwkJa3VuaXRfZXJyKHRlc3QsCisJ
-CQkgICJDb3VsZCBub3QgYWxsb2NhdGUgYnVmZmVyLCBkdW1waW5nIHN0cmVhbTpcbiIpOworCQls
-aXN0X2Zvcl9lYWNoX2VudHJ5KGZyYWdtZW50LCAmc3RyZWFtLT5mcmFnbWVudHMsIG5vZGUpIHsK
-KwkJCWt1bml0X2Vycih0ZXN0LCBmcmFnbWVudC0+ZnJhZ21lbnQpOworCQl9CisJCWt1bml0X2Vy
-cih0ZXN0LCAiXG4iKTsKKwkJZ290byBjbGVhbnVwOworCX0KKworCWt1bml0X3ByaW50ayhrc3Ry
-ZWFtLT5sZXZlbCwgdGVzdCwgYnVmKTsKKwlrZnJlZShidWYpOworCitjbGVhbnVwOgorCWt1bml0
-X3N0cmVhbV9jbGVhcihrc3RyZWFtKTsKK30KKworc3RhdGljIGludCBrdW5pdF9zdHJlYW1faW5p
-dChzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlcywgdm9pZCAqY29udGV4dCkKK3sKKwlzdHJ1Y3Qg
-a3VuaXQgKnRlc3QgPSBjb250ZXh0OworCXN0cnVjdCBrdW5pdF9zdHJlYW0gKnN0cmVhbTsKKwor
-CXN0cmVhbSA9IGt6YWxsb2Moc2l6ZW9mKCpzdHJlYW0pLCBHRlBfS0VSTkVMKTsKKwlpZiAoIXN0
-cmVhbSkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlyZXMtPmFsbG9jYXRpb24gPSBzdHJlYW07CisJ
-c3RyZWFtLT50ZXN0ID0gdGVzdDsKKwlzdHJlYW0tPmludGVybmFsX3N0cmVhbSA9IGFsbG9jX3N0
-cmluZ19zdHJlYW0odGVzdCk7CisKKwlpZiAoIXN0cmVhbS0+aW50ZXJuYWxfc3RyZWFtKQorCQly
-ZXR1cm4gLUVOT01FTTsKKworCXJldHVybiAwOworfQorCitzdGF0aWMgdm9pZCBrdW5pdF9zdHJl
-YW1fZnJlZShzdHJ1Y3Qga3VuaXRfcmVzb3VyY2UgKnJlcykKK3sKKwlzdHJ1Y3Qga3VuaXRfc3Ry
-ZWFtICpzdHJlYW0gPSByZXMtPmFsbG9jYXRpb247CisKKwlpZiAoIXN0cmluZ19zdHJlYW1faXNf
-ZW1wdHkoc3RyZWFtLT5pbnRlcm5hbF9zdHJlYW0pKSB7CisJCWt1bml0X2VycihzdHJlYW0tPnRl
-c3QsCisJCQkgICJFbmQgb2YgdGVzdCBjYXNlIHJlYWNoZWQgd2l0aCB1bmNvbW1pdHRlZCBzdHJl
-YW0gZW50cmllc1xuIik7CisJCWt1bml0X3N0cmVhbV9jb21taXQoc3RyZWFtKTsKKwl9Cit9CisK
-K3N0cnVjdCBrdW5pdF9zdHJlYW0gKmFsbG9jX2t1bml0X3N0cmVhbShzdHJ1Y3Qga3VuaXQgKnRl
-c3QsIGNvbnN0IGNoYXIgKmxldmVsKQoreworCXN0cnVjdCBrdW5pdF9zdHJlYW0gKmtzdHJlYW07
-CisJc3RydWN0IGt1bml0X3Jlc291cmNlICpyZXM7CisKKwlyZXMgPSBrdW5pdF9hbGxvY19yZXNv
-dXJjZSh0ZXN0LAorCQkJCSAgIGt1bml0X3N0cmVhbV9pbml0LAorCQkJCSAgIGt1bml0X3N0cmVh
-bV9mcmVlLAorCQkJCSAgIHRlc3QpOworCisJaWYgKCFyZXMpCisJCXJldHVybiBOVUxMOworCisJ
-a3N0cmVhbSA9IHJlcy0+YWxsb2NhdGlvbjsKKwlrc3RyZWFtLT5sZXZlbCA9IGxldmVsOworCisJ
-cmV0dXJuIGtzdHJlYW07Cit9CmRpZmYgLS1naXQgYS9rdW5pdC90ZXN0LmMgYi9rdW5pdC90ZXN0
-LmMKaW5kZXggZjE2NWM5ZDhlMTBiMC4uMjllZGYzNGE4OWEzNyAxMDA2NDQKLS0tIGEva3VuaXQv
-dGVzdC5jCisrKyBiL2t1bml0L3Rlc3QuYwpAQCAtMTIwLDYgKzEyMCwxMiBAQCBzdGF0aWMgdm9p
-ZCBrdW5pdF9wcmludF90ZXN0X2Nhc2Vfb2tfbm90X29rKHN0cnVjdCBrdW5pdF9jYXNlICp0ZXN0
-X2Nhc2UsCiAJCQkgICAgICB0ZXN0X2Nhc2UtPm5hbWUpOwogfQogCit2b2lkIGt1bml0X2ZhaWwo
-c3RydWN0IGt1bml0ICp0ZXN0LCBzdHJ1Y3Qga3VuaXRfc3RyZWFtICpzdHJlYW0pCit7CisJa3Vu
-aXRfc2V0X2ZhaWx1cmUodGVzdCk7CisJa3VuaXRfc3RyZWFtX2NvbW1pdChzdHJlYW0pOworfQor
-CiB2b2lkIGt1bml0X2luaXRfdGVzdChzdHJ1Y3Qga3VuaXQgKnRlc3QsIGNvbnN0IGNoYXIgKm5h
-bWUpCiB7CiAJbXV0ZXhfaW5pdCgmdGVzdC0+bG9jayk7Ci0tIAoyLjIyLjAuNDEwLmdkOGZkYmUy
-MWI1LWdvb2cKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+Add support for expectations, which allow properties to be specified and
+then verified in tests.
+
+Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+---
+ include/kunit/test.h | 525 +++++++++++++++++++++++++++++++++++++++++++
+ kunit/test.c         |  66 ++++++
+ 2 files changed, 591 insertions(+)
+
+diff --git a/include/kunit/test.h b/include/kunit/test.h
+index bc7dbdcf8abab..df18765e6ea25 100644
+--- a/include/kunit/test.h
++++ b/include/kunit/test.h
+@@ -9,6 +9,7 @@
+ #ifndef _KUNIT_TEST_H
+ #define _KUNIT_TEST_H
+ 
++#include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ #include <kunit/kunit-stream.h>
+@@ -295,4 +296,528 @@ void __printf(3, 4) kunit_printk(const char *level,
+ #define kunit_err(test, fmt, ...) \
+ 		kunit_printk(KERN_ERR, test, fmt, ##__VA_ARGS__)
+ 
++/*
++ * Generates a compile-time warning in case of comparing incompatible types.
++ */
++#define __kunit_typecheck(lhs, rhs) \
++	((void) __typecheck(lhs, rhs))
++
++static inline struct kunit_stream *kunit_expect_start(struct kunit *test,
++						      const char *file,
++						      const char *line)
++{
++	struct kunit_stream *stream = alloc_kunit_stream(test, KERN_ERR);
++
++	kunit_stream_add(stream, "EXPECTATION FAILED at %s:%s\n\t", file, line);
++
++	return stream;
++}
++
++static inline void kunit_expect_end(struct kunit *test,
++				    bool success,
++				    struct kunit_stream *stream)
++{
++	if (!success)
++		kunit_fail(test, stream);
++	else
++		kunit_stream_clear(stream);
++}
++
++#define KUNIT_EXPECT_START(test) \
++		kunit_expect_start(test, __FILE__, __stringify(__LINE__))
++
++#define KUNIT_EXPECT_END(test, success, stream) \
++		kunit_expect_end(test, success, stream)
++
++#define KUNIT_EXPECT_MSG(test, success, message, fmt, ...) do {		       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++									       \
++	kunit_stream_add(__stream, message);				       \
++	kunit_stream_add(__stream, fmt, ##__VA_ARGS__);			       \
++	KUNIT_EXPECT_END(test, success, __stream);			       \
++} while (0)
++
++#define KUNIT_EXPECT(test, success, message) do {			       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++									       \
++	kunit_stream_add(__stream, message);				       \
++	KUNIT_EXPECT_END(test, success, __stream);			       \
++} while (0)
++
++/**
++ * KUNIT_SUCCEED() - A no-op expectation. Only exists for code clarity.
++ * @test: The test context object.
++ *
++ * The opposite of KUNIT_FAIL(), it is an expectation that cannot fail. In other
++ * words, it does nothing and only exists for code clarity. See
++ * KUNIT_EXPECT_TRUE() for more information.
++ */
++#define KUNIT_SUCCEED(test) do {} while (0)
++
++/**
++ * KUNIT_FAIL() - Always causes a test to fail when evaluated.
++ * @test: The test context object.
++ * @fmt: an informational message to be printed when the assertion is made.
++ * @...: string format arguments.
++ *
++ * The opposite of KUNIT_SUCCEED(), it is an expectation that always fails. In
++ * other words, it always results in a failed expectation, and consequently
++ * always causes the test case to fail when evaluated. See KUNIT_EXPECT_TRUE()
++ * for more information.
++ */
++#define KUNIT_FAIL(test, fmt, ...) do {					       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++									       \
++	kunit_stream_add(__stream, fmt, ##__VA_ARGS__);			       \
++	KUNIT_EXPECT_END(test, false, __stream);			       \
++} while (0)
++
++/**
++ * KUNIT_EXPECT_TRUE() - Causes a test failure when the expression is not true.
++ * @test: The test context object.
++ * @condition: an arbitrary boolean expression. The test fails when this does
++ * not evaluate to true.
++ *
++ * This and expectations of the form `KUNIT_EXPECT_*` will cause the test case
++ * to fail when the specified condition is not met; however, it will not prevent
++ * the test case from continuing to run; this is otherwise known as an
++ * *expectation failure*.
++ */
++#define KUNIT_EXPECT_TRUE(test, condition)				       \
++		KUNIT_EXPECT(test, (condition),				       \
++		       "Expected " #condition " is true, but is false\n")
++
++#define KUNIT_EXPECT_TRUE_MSG(test, condition, fmt, ...)		       \
++		KUNIT_EXPECT_MSG(test, (condition),			       \
++				"Expected " #condition " is true, but is false\n",\
++				fmt, ##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_FALSE() - Makes a test failure when the expression is not false.
++ * @test: The test context object.
++ * @condition: an arbitrary boolean expression. The test fails when this does
++ * not evaluate to false.
++ *
++ * Sets an expectation that @condition evaluates to false. See
++ * KUNIT_EXPECT_TRUE() for more information.
++ */
++#define KUNIT_EXPECT_FALSE(test, condition)				       \
++		KUNIT_EXPECT(test, !(condition),			       \
++		       "Expected " #condition " is false, but is true\n")
++
++#define KUNIT_EXPECT_FALSE_MSG(test, condition, fmt, ...)		       \
++		KUNIT_EXPECT_MSG(test, !(condition),			       \
++				"Expected " #condition " is false, but is true\n",\
++				fmt, ##__VA_ARGS__)
++
++void kunit_expect_binary_msg(struct kunit *test,
++			     long long left, const char *left_name,
++			     long long right, const char *right_name,
++			     bool compare_result,
++			     const char *compare_name,
++			     const char *file,
++			     const char *line,
++			     const char *fmt, ...);
++
++static inline void kunit_expect_binary(struct kunit *test,
++				       long long left, const char *left_name,
++				       long long right, const char *right_name,
++				       bool compare_result,
++				       const char *compare_name,
++				       const char *file,
++				       const char *line)
++{
++	kunit_expect_binary_msg(test,
++				left, left_name,
++				right, right_name,
++				compare_result,
++				compare_name,
++				file,
++				line,
++				NULL);
++}
++
++void kunit_expect_ptr_binary_msg(struct kunit *test,
++				 void *left, const char *left_name,
++				 void *right, const char *right_name,
++				 bool compare_result,
++				 const char *compare_name,
++				 const char *file,
++				 const char *line,
++				 const char *fmt, ...);
++
++static inline void kunit_expect_ptr_binary(struct kunit *test,
++					   void *left, const char *left_name,
++					   void *right, const char *right_name,
++					   bool compare_result,
++					   const char *compare_name,
++					   const char *file,
++					   const char *line)
++{
++	kunit_expect_ptr_binary_msg(test,
++				    left, left_name,
++				    right, right_name,
++				    compare_result,
++				    compare_name,
++				    file,
++				    line,
++				    NULL);
++}
++
++/*
++ * A factory macro for defining the expectations for the basic comparisons
++ * defined for the built in types.
++ *
++ * Unfortunately, there is no common type that all types can be promoted to for
++ * which all the binary operators behave the same way as for the actual types
++ * (for example, there is no type that long long and unsigned long long can
++ * both be cast to where the comparison result is preserved for all values). So
++ * the best we can do is do the comparison in the original types and then coerce
++ * everything to long long for printing; this way, the comparison behaves
++ * correctly and the printed out value usually makes sense without
++ * interpretation, but can always be interpretted to figure out the actual
++ * value.
++ */
++#define KUNIT_EXPECT_BINARY(test, left, condition, right) do {		       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++	__kunit_typecheck(__left, __right);				       \
++	kunit_expect_binary(test,					       \
++			    (long long) __left, #left,			       \
++			    (long long) __right, #right,		       \
++			    __left condition __right, #condition,	       \
++			    __FILE__, __stringify(__LINE__));		       \
++} while (0)
++
++#define KUNIT_EXPECT_BINARY_MSG(test, left, condition, right, fmt, ...) do {   \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++	__kunit_typecheck(__left, __right);				       \
++	kunit_expect_binary_msg(test,					       \
++				(long long) __left, #left,		       \
++				(long long) __right, #right,		       \
++				__left condition __right, #condition,	       \
++				__FILE__, __stringify(__LINE__),	       \
++				fmt, ##__VA_ARGS__);			       \
++} while (0)
++
++/*
++ * Just like KUNIT_EXPECT_BINARY, but for comparing pointer types.
++ */
++#define KUNIT_EXPECT_PTR_BINARY(test, left, condition, right) do {	       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++	__kunit_typecheck(__left, __right);				       \
++	kunit_expect_ptr_binary(test,					       \
++			    (void *) __left, #left,			       \
++			    (void *) __right, #right,			       \
++			    __left condition __right, #condition,	       \
++			    __FILE__, __stringify(__LINE__));		       \
++} while (0)
++
++#define KUNIT_EXPECT_PTR_BINARY_MSG(test, left, condition, right, fmt, ...)    \
++do {									       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++	__kunit_typecheck(__left, __right);				       \
++	kunit_expect_ptr_binary_msg(test,				       \
++				    (void *) __left, #left,		       \
++				    (void *) __right, #right,		       \
++				    __left condition __right, #condition,      \
++				    __FILE__, __stringify(__LINE__),	       \
++				    fmt, ##__VA_ARGS__);		       \
++} while (0)
++
++/**
++ * KUNIT_EXPECT_EQ() - Sets an expectation that @left and @right are equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are
++ * equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) == (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_EQ(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, ==, right)
++
++#define KUNIT_EXPECT_EQ_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					==,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_PTR_EQ() - Expects that pointers @left and @right are equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a pointer.
++ * @right: an arbitrary expression that evaluates to a pointer.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are
++ * equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) == (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_PTR_EQ(test, left, right) \
++		KUNIT_EXPECT_PTR_BINARY(test, left, ==, right)
++
++#define KUNIT_EXPECT_PTR_EQ_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_PTR_BINARY_MSG(test,			       \
++					    left,			       \
++					    ==,				       \
++					    right,			       \
++					    fmt,			       \
++					    ##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_NE() - An expectation that @left and @right are not equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are not
++ * equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) != (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_NE(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, !=, right)
++
++#define KUNIT_EXPECT_NE_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					!=,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_PTR_NE() - Expects that pointers @left and @right are not equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a pointer.
++ * @right: an arbitrary expression that evaluates to a pointer.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are not
++ * equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) != (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_PTR_NE(test, left, right) \
++		KUNIT_EXPECT_PTR_BINARY(test, left, !=, right)
++
++#define KUNIT_EXPECT_PTR_NE_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_PTR_BINARY_MSG(test,			       \
++					    left,			       \
++					    !=,				       \
++					    right,			       \
++					    fmt,			       \
++					    ##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_LT() - An expectation that @left is less than @right.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the value that @left evaluates to is less than the
++ * value that @right evaluates to. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) < (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_LT(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, <, right)
++
++#define KUNIT_EXPECT_LT_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					<,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_LE() - Expects that @left is less than or equal to @right.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the value that @left evaluates to is less than or
++ * equal to the value that @right evaluates to. Semantically this is equivalent
++ * to KUNIT_EXPECT_TRUE(@test, (@left) <= (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_LE(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, <=, right)
++
++#define KUNIT_EXPECT_LE_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					<=,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_GT() - An expectation that @left is greater than @right.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the value that @left evaluates to is greater than
++ * the value that @right evaluates to. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) > (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_GT(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, >, right)
++
++#define KUNIT_EXPECT_GT_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					>,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_GE() - Expects that @left is greater than or equal to @right.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a primitive C type.
++ * @right: an arbitrary expression that evaluates to a primitive C type.
++ *
++ * Sets an expectation that the value that @left evaluates to is greater than
++ * the value that @right evaluates to. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, (@left) >= (@right)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_GE(test, left, right) \
++		KUNIT_EXPECT_BINARY(test, left, >=, right)
++
++#define KUNIT_EXPECT_GE_MSG(test, left, right, fmt, ...)		       \
++		KUNIT_EXPECT_BINARY_MSG(test,				       \
++					left,				       \
++					>=,				       \
++					right,				       \
++					fmt,				       \
++					##__VA_ARGS__)
++
++/**
++ * KUNIT_EXPECT_STREQ() - Expects that strings @left and @right are equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a null terminated string.
++ * @right: an arbitrary expression that evaluates to a null terminated string.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are
++ * equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, !strcmp((@left), (@right))). See KUNIT_EXPECT_TRUE()
++ * for more information.
++ */
++#define KUNIT_EXPECT_STREQ(test, left, right) do {			       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++									       \
++	kunit_stream_add(__stream, "Expected " #left " == " #right ", but\n"); \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #left, __left);	       \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #right, __right);	       \
++									       \
++	KUNIT_EXPECT_END(test, !strcmp(left, right), __stream);		       \
++} while (0)
++
++#define KUNIT_EXPECT_STREQ_MSG(test, left, right, fmt, ...) do {	       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++									       \
++	kunit_stream_add(__stream, "Expected " #left " == " #right ", but\n"); \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #left, __left);	       \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #right, __right);	       \
++	kunit_stream_add(__stream, fmt, ##__VA_ARGS__);			       \
++									       \
++	KUNIT_EXPECT_END(test, !strcmp(left, right), __stream);		       \
++} while (0)
++
++/**
++ * KUNIT_EXPECT_STRNEQ() - Expects that strings @left and @right are not equal.
++ * @test: The test context object.
++ * @left: an arbitrary expression that evaluates to a null terminated string.
++ * @right: an arbitrary expression that evaluates to a null terminated string.
++ *
++ * Sets an expectation that the values that @left and @right evaluate to are
++ * not equal. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, strcmp((@left), (@right))). See KUNIT_EXPECT_TRUE()
++ * for more information.
++ */
++#define KUNIT_EXPECT_STRNEQ(test, left, right) do {			       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++									       \
++	kunit_stream_add(__stream, "Expected " #left " != " #right ", but\n"); \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #left, __left);	       \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #right, __right);	       \
++									       \
++	KUNIT_EXPECT_END(test, strcmp(left, right), __stream);		       \
++} while (0)
++
++#define KUNIT_EXPECT_STRNEQ_MSG(test, left, right, fmt, ...) do {	       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(left) __left = (left);					       \
++	typeof(right) __right = (right);				       \
++									       \
++	kunit_stream_add(__stream, "Expected " #left " != " #right ", but\n"); \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #left, __left);	       \
++	kunit_stream_add(__stream, "\t\t%s == %s\n", #right, __right);	       \
++	kunit_stream_add(__stream, fmt, ##__VA_ARGS__);			       \
++									       \
++	KUNIT_EXPECT_END(test, strcmp(left, right), __stream);		       \
++} while (0)
++
++/**
++ * KUNIT_EXPECT_NOT_ERR_OR_NULL() - Expects that @ptr is not null and not err.
++ * @test: The test context object.
++ * @ptr: an arbitrary pointer.
++ *
++ * Sets an expectation that the value that @ptr evaluates to is not null and not
++ * an errno stored in a pointer. This is semantically equivalent to
++ * KUNIT_EXPECT_TRUE(@test, !IS_ERR_OR_NULL(@ptr)). See KUNIT_EXPECT_TRUE() for
++ * more information.
++ */
++#define KUNIT_EXPECT_NOT_ERR_OR_NULL(test, ptr) do {			       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(ptr) __ptr = (ptr);					       \
++									       \
++	if (!__ptr)							       \
++		kunit_stream_add(__stream,				       \
++			      "Expected " #ptr " is not null, but is\n");      \
++	if (IS_ERR(__ptr))						       \
++		kunit_stream_add(__stream,				       \
++			      "Expected " #ptr " is not error, but is: %ld",   \
++			      PTR_ERR(__ptr));				       \
++									       \
++	KUNIT_EXPECT_END(test, !IS_ERR_OR_NULL(__ptr), __stream);	       \
++} while (0)
++
++#define KUNIT_EXPECT_NOT_ERR_OR_NULL_MSG(test, ptr, fmt, ...) do {	       \
++	struct kunit_stream *__stream = KUNIT_EXPECT_START(test);	       \
++	typeof(ptr) __ptr = (ptr);					       \
++									       \
++	if (!__ptr) {							       \
++		kunit_stream_add(__stream,				       \
++			      "Expected " #ptr " is not null, but is\n");      \
++		kunit_stream_add(__stream, fmt, ##__VA_ARGS__);		       \
++	}								       \
++	if (IS_ERR(__ptr)) {						       \
++		kunit_stream_add(__stream,				       \
++			      "Expected " #ptr " is not error, but is: %ld",   \
++			      PTR_ERR(__ptr));				       \
++									       \
++		kunit_stream_add(__stream, fmt, ##__VA_ARGS__);		       \
++	}								       \
++	KUNIT_EXPECT_END(test, !IS_ERR_OR_NULL(__ptr), __stream);	       \
++} while (0)
++
+ #endif /* _KUNIT_TEST_H */
+diff --git a/kunit/test.c b/kunit/test.c
+index 29edf34a89a37..8c745fd0c82d3 100644
+--- a/kunit/test.c
++++ b/kunit/test.c
+@@ -287,3 +287,69 @@ void kunit_printk(const char *level,
+ 
+ 	va_end(args);
+ }
++
++void kunit_expect_binary_msg(struct kunit *test,
++			     long long left, const char *left_name,
++			     long long right, const char *right_name,
++			     bool compare_result,
++			     const char *compare_name,
++			     const char *file,
++			     const char *line,
++			     const char *fmt, ...)
++{
++	struct kunit_stream *stream = kunit_expect_start(test, file, line);
++	struct va_format vaf;
++	va_list args;
++
++	kunit_stream_add(stream,
++			 "Expected %s %s %s, but\n",
++			 left_name, compare_name, right_name);
++	kunit_stream_add(stream, "\t\t%s == %lld\n", left_name, left);
++	kunit_stream_add(stream, "\t\t%s == %lld", right_name, right);
++
++	if (fmt) {
++		va_start(args, fmt);
++
++		vaf.fmt = fmt;
++		vaf.va = &args;
++
++		kunit_stream_add(stream, "\n%pV", &vaf);
++
++		va_end(args);
++	}
++
++	kunit_expect_end(test, compare_result, stream);
++}
++
++void kunit_expect_ptr_binary_msg(struct kunit *test,
++				 void *left, const char *left_name,
++				 void *right, const char *right_name,
++				 bool compare_result,
++				 const char *compare_name,
++				 const char *file,
++				 const char *line,
++				 const char *fmt, ...)
++{
++	struct kunit_stream *stream = kunit_expect_start(test, file, line);
++	struct va_format vaf;
++	va_list args;
++
++	kunit_stream_add(stream,
++			 "Expected %s %s %s, but\n",
++			 left_name, compare_name, right_name);
++	kunit_stream_add(stream, "\t\t%s == %pK\n", left_name, left);
++	kunit_stream_add(stream, "\t\t%s == %pK", right_name, right);
++
++	if (fmt) {
++		va_start(args, fmt);
++
++		vaf.fmt = fmt;
++		vaf.va = &args;
++
++		kunit_stream_add(stream, "\n%pV", &vaf);
++
++		va_end(args);
++	}
++
++	kunit_expect_end(test, compare_result, stream);
++}
+-- 
+2.22.0.410.gd8fdbe21b5-goog
