@@ -1,14 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 3E2D4212E8449
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:22 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 4/7] fs: dedup file range to use a compare function
-Date: Wed, 31 Jul 2019 19:49:32 +0800
-Message-ID: <20190731114935.11030-5-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 6535F212AB4CB
+ for <linux-nvdimm@lists.01.org>; Mon, 15 Jul 2019 13:13:23 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20190712081744.87097-2-brendanhiggins@google.com>
+References: <20190712081744.87097-1-brendanhiggins@google.com>
+ <20190712081744.87097-2-brendanhiggins@google.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v9 01/18] kunit: test: add KUnit test runner core
+Date: Mon, 15 Jul 2019 13:10:53 -0700
+Message-Id: <20190715201054.C69AA2086C@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,250 +23,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
-Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Quoting Brendan Higgins (2019-07-12 01:17:27)
+> Add core facilities for defining unit tests; this provides a common way
+> to define test cases, functions that execute code which is under test
+> and determine whether the code under test behaves as expected; this also
+> provides a way to group together related test cases in test suites (here
+> we call them test_modules).
+> 
+> Just define test cases and how to execute them for now; setting
+> expectations on code will be defined later.
+> 
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
 
-With dax we cannot deal with readpage() etc. So, we create a
-funciton callback to perform the file data comparison and pass
-it to generic_remap_file_range_prep() so it can use iomap-based
-functions.
+Reviewed-by: Stephen Boyd <sboyd@kernel.org>
 
-This may not be the best way to solve this. Suggestions welcome.
+Minor nits below.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- fs/btrfs/ioctl.c     | 11 ++++++--
- fs/dax.c             | 65 ++++++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/file.c      |  2 +-
- fs/read_write.c      | 11 ++++----
- fs/xfs/xfs_reflink.c |  2 +-
- include/linux/dax.h  |  4 +++
- include/linux/fs.h   |  8 +++++-
- 7 files changed, 93 insertions(+), 10 deletions(-)
+> diff --git a/kunit/test.c b/kunit/test.c
+> new file mode 100644
+> index 0000000000000..571e4c65deb5c
+> --- /dev/null
+> +++ b/kunit/test.c
+> @@ -0,0 +1,189 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Base unit test (KUnit) API.
+> + *
+> + * Copyright (C) 2019, Google LLC.
+> + * Author: Brendan Higgins <brendanhiggins@google.com>
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <kunit/test.h>
+> +
+> +static void kunit_set_failure(struct kunit *test)
+> +{
+> +       WRITE_ONCE(test->success, false);
+> +}
+> +
+[...]
+> +
+> +void kunit_init_test(struct kunit *test, const char *name)
+> +{
+> +       test->name = name;
+> +       test->success = true;
+> +}
+> +
+> +/*
+> + * Performs all logic to run a test case.
+> + */
+> +static void kunit_run_case(struct kunit_suite *suite,
+> +                          struct kunit_case *test_case)
+> +{
+> +       struct kunit test;
+> +       int ret = 0;
+> +
+> +       kunit_init_test(&test, test_case->name);
+> +
+> +       if (suite->init) {
+> +               ret = suite->init(&test);
 
-diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
-index cd4e693406a0..8f9c749c4aa6 100644
---- a/fs/btrfs/ioctl.c
-+++ b/fs/btrfs/ioctl.c
-@@ -3936,6 +3936,7 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	bool same_inode = inode_out == inode_in;
- 	u64 wb_len;
- 	int ret;
-+	compare_range_t cmp;
- 
- 	if (!(remap_flags & REMAP_FILE_DEDUP)) {
- 		struct btrfs_root *root_out = BTRFS_I(inode_out)->root;
-@@ -3997,8 +3998,14 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	if (ret < 0)
- 		goto out_unlock;
- 
--	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--					    len, remap_flags);
-+	if (IS_DAX(file_inode(file_in)) && IS_DAX(file_inode(file_out)))
-+		cmp = btrfs_dax_file_range_compare;
-+	else
-+		cmp = vfs_dedupe_file_range_compare;
-+
-+	ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
-+			pos_out, len, remap_flags, cmp);
-+
- 	if (ret < 0 || *len == 0)
- 		goto out_unlock;
- 
-diff --git a/fs/dax.c b/fs/dax.c
-index 8eb065a1ec51..8111ba93f4d3 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -39,6 +39,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/fs_dax.h>
- 
-+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-+
- static inline unsigned int pe_order(enum page_entry_size pe_size)
- {
- 	if (pe_size == PE_SIZE_PTE)
-@@ -1817,3 +1819,66 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- 	return dax_insert_pfn_mkwrite(vmf, pfn, order);
- }
- EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
-+
-+static inline void *iomap_address(struct iomap *iomap, loff_t off, loff_t len)
-+{
-+	loff_t start;
-+	void *addr;
-+	start = (get_start_sect(iomap->bdev) << 9) + iomap->addr +
-+		(off - iomap->offset);
-+	dax_direct_access(iomap->dax_dev, PHYS_PFN(start), PHYS_PFN(len),
-+			  &addr, NULL);
-+	return addr;
-+}
-+
-+int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
-+		loff_t destoff, loff_t len, bool *is_same, const struct iomap_ops *ops)
-+{
-+	void *saddr, *daddr;
-+	struct iomap s_iomap = {0};
-+	struct iomap d_iomap = {0};
-+	bool same = true;
-+	loff_t cmp_len;
-+	int id, ret = 0;
-+
-+	id = dax_read_lock();
-+	while (len) {
-+		ret = ops->iomap_begin(src, srcoff, len, 0, &s_iomap, NULL);
-+		if (ret < 0) {
-+			if (ops->iomap_end)
-+				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
-+			return ret;
-+		}
-+		cmp_len = len;
-+		cmp_len = MIN(len, s_iomap.offset + s_iomap.length - srcoff);
-+
-+		ret = ops->iomap_begin(dest, destoff, cmp_len, 0, &d_iomap, NULL);
-+		if (ret < 0) {
-+			if (ops->iomap_end) {
-+				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
-+				ops->iomap_end(dest, destoff, len, ret, 0, &d_iomap);
-+			}
-+			return ret;
-+		}
-+		cmp_len = MIN(cmp_len, d_iomap.offset + d_iomap.length - destoff);
-+
-+		saddr = iomap_address(&s_iomap, srcoff, cmp_len);
-+		daddr = iomap_address(&d_iomap, destoff, cmp_len);
-+
-+		same = !memcmp(saddr, daddr, cmp_len);
-+		if (!same)
-+			break;
-+		len -= cmp_len;
-+		srcoff += cmp_len;
-+		destoff += cmp_len;
-+
-+		if (ops->iomap_end) {
-+			ret = ops->iomap_end(src, srcoff, len, 0, 0, &s_iomap);
-+			ret = ops->iomap_end(dest, destoff, len, 0, 0, &d_iomap);
-+		}
-+	}
-+	dax_read_unlock(id);
-+	*is_same = same;
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(dax_file_range_compare);
-diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
-index d640c5f8a85d..9d470306cfc3 100644
---- a/fs/ocfs2/file.c
-+++ b/fs/ocfs2/file.c
-@@ -2558,7 +2558,7 @@ static loff_t ocfs2_remap_file_range(struct file *file_in, loff_t pos_in,
- 		goto out_unlock;
- 
- 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			&len, remap_flags);
-+			&len, remap_flags, vfs_dedupe_file_range_compare);
- 	if (ret < 0 || len == 0)
- 		goto out_unlock;
- 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 61b43ad7608e..c6283802ef1c 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1778,7 +1778,7 @@ static struct page *vfs_dedupe_get_page(struct inode *inode, loff_t offset)
-  * Compare extents of two files to see if they are the same.
-  * Caller must have locked both inodes to prevent write races.
-  */
--static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- 					 struct inode *dest, loff_t destoff,
- 					 loff_t len, bool *is_same)
- {
-@@ -1845,6 +1845,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- out_error:
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(vfs_dedupe_file_range_compare);
- 
- /*
-  * Check that the two inodes are eligible for cloning, the ranges make
-@@ -1856,7 +1857,8 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-  */
- int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 				  struct file *file_out, loff_t pos_out,
--				  loff_t *len, unsigned int remap_flags)
-+				  loff_t *len, unsigned int remap_flags,
-+				  compare_range_t compare)
- {
- 	struct inode *inode_in = file_inode(file_in);
- 	struct inode *inode_out = file_inode(file_out);
-@@ -1915,9 +1917,8 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	 */
- 	if (remap_flags & REMAP_FILE_DEDUP) {
- 		bool		is_same = false;
--
--		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
--				inode_out, pos_out, *len, &is_same);
-+		ret = (*compare)(inode_in, pos_in,
-+			inode_out, pos_out, *len, &is_same);
- 		if (ret)
- 			return ret;
- 		if (!is_same)
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 680ae7662a78..68e4257cebb0 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1350,7 +1350,7 @@ xfs_reflink_remap_prep(
- 		goto out_unlock;
- 
- 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			len, remap_flags);
-+			len, remap_flags, vfs_dedupe_file_range_compare);
- 	if (ret < 0 || *len == 0)
- 		goto out_unlock;
- 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 0dd316a74a29..1370d39c91b6 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -157,6 +157,10 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
-+int dax_file_range_compare(struct inode *src, loff_t srcoff,
-+			   struct inode *dest, loff_t destoff,
-+			   loff_t len, bool *is_same,
-+			   const struct iomap_ops *ops);
- 
- #ifdef CONFIG_FS_DAX
- int __dax_zero_page_range(struct block_device *bdev,
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index dd28e7679089..0224503e42ce 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1883,10 +1883,16 @@ extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
- 		unsigned long, loff_t *, rwf_t);
- extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
- 				   loff_t, size_t, unsigned int);
-+extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+					 struct inode *dest, loff_t destoff,
-+					 loff_t len, bool *is_same);
-+typedef int (*compare_range_t)(struct inode *src, loff_t srcpos,
-+			       struct inode *dest, loff_t destpos,
-+			       loff_t len, bool *is_same);
- extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 					 struct file *file_out, loff_t pos_out,
- 					 loff_t *count,
--					 unsigned int remap_flags);
-+					 unsigned int remap_flags, compare_range_t cmp);
- extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
- 				  struct file *file_out, loff_t pos_out,
- 				  loff_t len, unsigned int remap_flags);
--- 
-2.17.0
+Can you push the ret definition into this if scope? That way we can
+avoid default initialize to 0 for it.
 
+> +               if (ret) {
+> +                       kunit_err(&test, "failed to initialize: %d\n", ret);
+> +                       kunit_set_failure(&test);
 
+Do we need to 'test_case->success = test.success' here too? Or is the
+test failure extracted somewhere else?
 
+> +                       return;
+> +               }
+> +       }
+> +
+> +       test_case->run_case(&test);
+> +
+> +       if (suite->exit)
+> +               suite->exit(&test);
+> +
+> +       test_case->success = test.success;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
