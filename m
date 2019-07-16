@@ -2,8 +2,8 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8543E212B5EE0
- for <linux-nvdimm@lists.01.org>; Tue, 16 Jul 2019 10:52:50 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id EE0E721250474
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Jul 2019 08:32:30 -0700 (PDT)
 MIME-Version: 1.0
 In-Reply-To: <CAFd5g44_axVHNMBzxSURQB_-R+Rif7cZcg7PyZ_SS+5hcy5jZA@mail.gmail.com>
 References: <20190712081744.87097-1-brendanhiggins@google.com>
@@ -14,8 +14,8 @@ References: <20190712081744.87097-1-brendanhiggins@google.com>
 From: Stephen Boyd <sboyd@kernel.org>
 Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like
  logger
-Date: Tue, 16 Jul 2019 10:50:20 -0700
-Message-Id: <20190716175021.9CA412173C@mail.kernel.org>
+Date: Tue, 16 Jul 2019 08:30:01 -0700
+Message-Id: <20190716153002.49E292054F@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,25 +35,70 @@ Quoting Brendan Higgins (2019-07-16 01:37:34)
 > On Tue, Jul 16, 2019 at 12:57 AM Brendan Higgins
 > <brendanhiggins@google.com> wrote:
 > >
-> > A `struct kunit_stream` is usually associated with a message that is
-> > being built up over time like maybe an expectation; it is meant to
-> > capture the idea that we might want to send some information out to
-> > the user pertaining to some thing 'X', but we aren't sure that we
-> > actually want to send it until 'X' is complete, but do to the nature
-> > of 'X' it is easier to start constructing the message before 'X' is
-> > complete.
+> > On Mon, Jul 15, 2019 at 3:15 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> > >
+> > > Quoting Brendan Higgins (2019-07-12 01:17:30)
+> > > > diff --git a/include/kunit/kunit-stream.h b/include/kunit/kunit-stream.h
+> > > > new file mode 100644
+> > > > index 0000000000000..a7b53eabf6be4
+> > > > --- /dev/null
+> > > > +++ b/include/kunit/kunit-stream.h
+> > > > +/**
+> > > > + * struct kunit_stream - a std::stream style string builder.
+> > > > + *
+> > > > + * A std::stream style string builder. Allows messages to be built up and
+> > > > + * printed all at once.
+> > > > + */
+> > > > +struct kunit_stream {
+> > > > +       /* private: internal use only. */
+> > > > +       struct kunit *test;
+> > > > +       const char *level;
+> > >
+> > > Is the level changed? See my comment below, but I wonder if this whole
+> > > struct can go away and the wrappers can just operate on 'struct
+> > > string_stream' instead.
 > >
-> > Consider a complicated expectation, there might be multiple conditions
-> > that satisfy it and multiple conditions which could make it fail. As
-> > we start exploring the input to the expectation we gain information
-> > that we might want to share back with the user if the expectation were
-> > to fail and we might get that information before we are actually sure
-> > that the expectation does indeed fail.
+> > I was inclined to agree with you when I first read your comment, but
+> > then I thought about the case that someone wants to add in a debug
+> > message (of which I currently have none). I think under most
+> > circumstances a user of kunit_stream would likely want to pick a
+> > default verbosity that maybe I should provide, but may still want
+> > different verbosity levels.
 > >
-> > When we first step into the expectation we immediately know the
-> > function name, file name, and line number where we are called and
-> > would want to put that information into any message we would send to
-> > the user about this expectation. Next, we might want to check a
+> > The main reason I want to keep the types separate, string_stream vs.
+> > kunit_stream, is that they are intended to be used differently.
+> > string_stream is just a generic string builder. If you are using that,
+> > you are expecting to see someone building the string at some point and
+> > then doing something interesting with it. kunit_stream really tells
+> > you specifically that KUnit is putting together a message to
+> > communicate something to a user of KUnit. It is really used in a very
+> > specific way, and I wouldn't want to generalize its usage beyond how
+> > it is currently used. I think in order to preserve the author's
+> > intention it adds clarity to keep the types separate regardless of how
+> > similar they might be in reality.
+
+You may want to add some of these reasons to the commit text.
+
+> > > > +
+> > > > +       if (!string_stream_is_empty(stream->internal_stream)) {
+> > > > +               kunit_err(stream->test,
+> > > > +                         "End of test case reached with uncommitted stream entries\n");
+> > > > +               kunit_stream_commit(stream);
+> > > > +       }
+> > > > +}
+> > > > +
+> > >
+> > > Nitpick: Drop this extra newline.
+> >
+> > Oops, nice catch.
+> 
+> Not super important, but I don't want you to think that I am ignoring
+> you. I think you must have unintentionally deleted the last function
+> in this file, or maybe you are referring to something that I am just
+> not seeing, but I don't see the extra newline here.
+
+No worries. Sorry for the noise.
+
 > > property of the input, it may or may not be enough information on its
 > > own for the expectation to fail, but we want to share the result of
 > > the property check with the user regardless, BUT only if the
@@ -62,57 +107,10 @@ Quoting Brendan Higgins (2019-07-16 01:37:34)
 > > Hence, we can have multiple `struct kunit_stream`s associated with a
 > > `struct kunit` active at any given time.
 
-I'm coming back to this now after reading the rest of the patches that
-deal with assertions and expectations. It looks like the string stream
-is there to hold a few different pieces of information:
-
- - Line Number
- - File Name
- - Function Name
-
-The above items could be stored in a structure on the stack that then
-gets printed and formatted when the expectation or assertion fails. That
-would make the whole string stream structure and code unnecessary.
-
-The only hypothetical case where this can't be done is a complicated
-assertion or expectation that does more than one check and can't be
-written as a function that dumps out what went wrong. Is this a real
-problem? Maybe such an assertion should just open code that logic so we
-don't have to build up a string for all the other simple cases.
-
-It seems far simpler to get rid of the string stream API and just have a
-struct for this.
-
-	struct kunit_fail_msg {
-		const char *line;
-		const char *file;
-		const char *func;
-		const char *msg;
-	};
-
-Then you can have the assertion macros create this on the stack (with
-another macro?).
-
-	#define DEFINE_KUNIT_FAIL_MSG(name, _msg) \
-		struct kunit_fail_msg name = { \
-			.line =  __LINE__, \
-			.file = __FILE__, \
-			.func = __func__, \
-			.msg = _msg, \
-		}
-
-Note: I don't know if the __LINE__ above will use the macro location, so
-this probably needs another wrapper to put the right line number there.
-
-I don't want to derail this whole series on this topic, but it seems
-like a bunch of code is there to construct this same set of information
-over and over again into a buffer a little bit at a time and then throw
-it away when nothing fails just because we may want to support the case
-where we have some unstructured data to inform the user about.
-
-Why not build in the structured part into the framework (i.e. the struct
-above) so that it's always there and then add the string building part
-later when we have to?
+Makes sense. I wasn't sure if there were more than one stream associated
+with a test. Sounds like there are many to one so it can't just be a
+member of the test. This could be documented somewhere so this question
+doesn't come up again.
 
 _______________________________________________
 Linux-nvdimm mailing list
