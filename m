@@ -1,16 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0D503212E13A3
- for <linux-nvdimm@lists.01.org>; Thu, 25 Jul 2019 15:04:18 -0700 (PDT)
-From: Jane Chu <jane.chu@oracle.com>
-Subject: [PATCH v3 2/2] mm/memory-failure: Poison read receives SIGKILL
- instead of SIGBUS if mmaped more than once
-Date: Thu, 25 Jul 2019 16:01:41 -0600
-Message-Id: <1564092101-3865-3-git-send-email-jane.chu@oracle.com>
-In-Reply-To: <1564092101-3865-1-git-send-email-jane.chu@oracle.com>
-References: <1564092101-3865-1-git-send-email-jane.chu@oracle.com>
+ by ml01.01.org (Postfix) with ESMTPS id EE790212BC475
+ for <linux-nvdimm@lists.01.org>; Tue, 16 Jul 2019 08:36:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAFd5g47y4vDB2P=EsGN8305LGeQPCTveNs-Jd5-=6K-XKY==CA@mail.gmail.com>
+References: <20190712081744.87097-1-brendanhiggins@google.com>
+ <20190712081744.87097-4-brendanhiggins@google.com>
+ <20190715204356.4E3F92145D@mail.kernel.org>
+ <CAFd5g47481sRaez=yEJN4_ghiXZbxayk1Y04tAZpuzPLsmnhKg@mail.gmail.com>
+ <20190715220407.0030420665@mail.kernel.org>
+ <CAFd5g44bE0F=wq_fOAnxFTtoOyx1dUshhDAkKWr5hX9ipJ4Sxw@mail.gmail.com>
+ <CAFd5g47y4vDB2P=EsGN8305LGeQPCTveNs-Jd5-=6K-XKY==CA@mail.gmail.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v9 03/18] kunit: test: add string_stream a std::stream
+ like string builder
+Date: Tue, 16 Jul 2019 08:33:59 -0700
+Message-Id: <20190716153400.5CB182054F@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,114 +25,59 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Mmap /dev/dax more than once, then read the poison location using address
-from one of the mappings. The other mappings due to not having the page
-mapped in will cause SIGKILLs delivered to the process. SIGKILL succeeds
-over SIGBUS, so user process looses the opportunity to handle the UE.
+Quoting Brendan Higgins (2019-07-15 15:43:20)
+> On Mon, Jul 15, 2019 at 3:11 PM Brendan Higgins
+> <brendanhiggins@google.com> wrote:
+> >
+> > On Mon, Jul 15, 2019 at 3:04 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> > >
+> > > Quoting Brendan Higgins (2019-07-15 14:11:50)
+> > > > On Mon, Jul 15, 2019 at 1:43 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> > > > >
+> > > > > I also wonder if it would be better to just have a big slop buffer of a
+> > > > > 4K page or something so that we almost never have to allocate anything
+> > > > > with a string_stream and we can just rely on a reader consuming data
+> > > > > while writers are writing. That might work out better, but I don't quite
+> > > > > understand the use case for the string stream.
+> > > >
+> > > > That makes sense, but might that also waste memory since we will
+> > > > almost never need that much memory?
+> > >
+> > > Why do we care? These are unit tests.
+> >
+> > Agreed.
+> >
+> > > Having allocations in here makes
+> > > things more complicated, whereas it would be simpler to have a pointer
+> > > and a spinlock operating on a chunk of memory that gets flushed out
+> > > periodically.
+> >
+> > I am not so sure. I have to have the logic to allocate memory in some
+> > case no matter what (what if I need more memory that my preallocated
+> > chuck?). I think it is simpler to always request an allocation than to
+> > only sometimes request an allocation.
+> 
+> Another even simpler alternative might be to just allocate memory
+> using kunit_kmalloc as we need it and just let the kunit_resource code
+> handle cleaning it all up when the test case finishes.
 
-Although one may add MAP_POPULATE to mmap(2) to work around the issue,
-MAP_POPULATE makes mapping 128GB of pmem several magnitudes slower, so
-isn't always an option.
+Sure, sounds like a nice way to avoid duplicating similar logic to
+maintain a list of things to free later.
 
-Details -
+> 
+> What do you think?
 
-ndctl inject-error --block=10 --count=1 namespace6.0
-
-./read_poison -x dax6.0 -o 5120 -m 2
-mmaped address 0x7f5bb6600000
-mmaped address 0x7f3cf3600000
-doing local read at address 0x7f3cf3601400
-Killed
-
-Console messages in instrumented kernel -
-
-mce: Uncorrected hardware memory error in user-access at edbe201400
-Memory failure: tk->addr = 7f5bb6601000
-Memory failure: address edbe201: call dev_pagemap_mapping_shift
-dev_pagemap_mapping_shift: page edbe201: no PUD
-Memory failure: tk->size_shift == 0
-Memory failure: Unable to find user space address edbe201 in read_poison
-Memory failure: tk->addr = 7f3cf3601000
-Memory failure: address edbe201: call dev_pagemap_mapping_shift
-Memory failure: tk->size_shift = 21
-Memory failure: 0xedbe201: forcibly killing read_poison:22434 because of failure to unmap corrupted page
-  => to deliver SIGKILL
-Memory failure: 0xedbe201: Killing read_poison:22434 due to hardware memory corruption
-  => to deliver SIGBUS
-
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
----
- mm/memory-failure.c | 22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
-
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 51d5b20..f668c88 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -199,7 +199,6 @@ struct to_kill {
- 	struct task_struct *tsk;
- 	unsigned long addr;
- 	short size_shift;
--	char addr_valid;
- };
- 
- /*
-@@ -318,22 +317,27 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
- 	}
- 
- 	tk->addr = page_address_in_vma(p, vma);
--	tk->addr_valid = 1;
- 	if (is_zone_device_page(p))
- 		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
- 	else
- 		tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
- 
- 	/*
--	 * In theory we don't have to kill when the page was
--	 * munmaped. But it could be also a mremap. Since that's
--	 * likely very rare kill anyways just out of paranoia, but use
--	 * a SIGKILL because the error is not contained anymore.
-+	 * Send SIGKILL if "tk->addr == -EFAULT". Also, as
-+	 * "tk->size_shift" is always non-zero for !is_zone_device_page(),
-+	 * so "tk->size_shift == 0" effectively checks no mapping on
-+	 * ZONE_DEVICE. Indeed, when a devdax page is mmapped N times
-+	 * to a process' address space, it's possible not all N VMAs
-+	 * contain mappings for the page, but at least one VMA does.
-+	 * Only deliver SIGBUS with payload derived from the VMA that
-+	 * has a mapping for the page.
- 	 */
--	if (tk->addr == -EFAULT || tk->size_shift == 0) {
-+	if (tk->addr == -EFAULT) { 
- 		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
- 			page_to_pfn(p), tsk->comm);
--		tk->addr_valid = 0;
-+	} else if (tk->size_shift == 0) {
-+		kfree(tk);
-+		return;
- 	}
- 
- 	get_task_struct(tsk);
-@@ -361,7 +365,7 @@ static void kill_procs(struct list_head *to_kill, int forcekill, bool fail,
- 			 * make sure the process doesn't catch the
- 			 * signal and then access the memory. Just kill it.
- 			 */
--			if (fail || tk->addr_valid == 0) {
-+			if (fail || tk->addr == -EFAULT) {
- 				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
--- 
-1.8.3.1
+If you go the allocation route then you'll need to have the flags to
+know what context you're in to allocate appropriately. Does that mean
+all the string operations will now take GFP flags?
 
 _______________________________________________
 Linux-nvdimm mailing list
