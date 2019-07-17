@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B9B48212AD583
- for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 07:07:43 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH v15 3/7] libnvdimm: add dax_dev sync flag
-Date: Fri,  5 Jul 2019 19:33:24 +0530
-Message-Id: <20190705140328.20190-4-pagupta@redhat.com>
-In-Reply-To: <20190705140328.20190-1-pagupta@redhat.com>
-References: <20190705140328.20190-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5B9C1212BF9D8
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 13/13] test: Add a unit test for
+ daxctl-reconfigure-device and friends
+Date: Wed, 17 Jul 2019 16:54:00 -0600
+Message-Id: <20190717225400.9494-14-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,236 +19,162 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dm-devel@redhat.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, qemu-devel@nongnu.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: rdunlap@infradead.org, jack@suse.cz, snitzer@redhat.com, mst@redhat.com, jasowang@redhat.com, david@fromorbit.com, lcapitulino@redhat.com, adilger.kernel@dilger.ca, zwisler@kernel.org, aarcange@redhat.com, jstaron@google.com, darrick.wong@oracle.com, david@redhat.com, willy@infradead.org, hch@infradead.org, nilal@redhat.com, lenb@kernel.org, kilobyte@angband.pl, riel@surriel.com, yuval.shaia@oracle.com, stefanha@redhat.com, pbonzini@redhat.com, kwolf@redhat.com, tytso@mit.edu, xiaoguangrong.eric@gmail.com, cohuck@redhat.com, rjw@rjwysocki.net, imammedo@redhat.com
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds 'DAXDEV_SYNC' flag which is set
-for nd_region doing synchronous flush. This later
-is used to disable MAP_SYNC functionality for
-ext4 & xfs filesystem for devices don't support
-synchronous flush.
+Add a new unit test to test dax device reconfiguration and memory
+operations. This teaches test/common about daxctl, and adds an ACPI.NFIT
+bus variable. Since we have to operate on the ACPI.NFIT bus, the test is
+marked as destructive.
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/bus.c            |  2 +-
- drivers/dax/super.c          | 19 ++++++++++++++++++-
- drivers/md/dm.c              |  3 ++-
- drivers/nvdimm/pmem.c        |  5 ++++-
- drivers/nvdimm/region_devs.c |  7 +++++++
- drivers/s390/block/dcssblk.c |  2 +-
- include/linux/dax.h          | 24 ++++++++++++++++++++++--
- include/linux/libnvdimm.h    |  1 +
- 8 files changed, 56 insertions(+), 7 deletions(-)
+ test/Makefile.am       |  3 +-
+ test/common            | 19 ++++++++--
+ test/daxctl-devices.sh | 81 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 99 insertions(+), 4 deletions(-)
+ create mode 100755 test/daxctl-devices.sh
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 2109cfe80219..5f184e751c82 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -388,7 +388,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
- 	 * No 'host' or dax_operations since there is no access to this
- 	 * device outside of mmap of the resulting character device.
- 	 */
--	dax_dev = alloc_dax(dev_dax, NULL, NULL);
-+	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
- 	if (!dax_dev)
- 		goto err;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 874c4bb..84474d0 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -49,7 +49,8 @@ TESTS +=\
+ 	dax.sh \
+ 	device-dax \
+ 	device-dax-fio.sh \
+-	mmap.sh
++	mmap.sh \
++	daxctl-devices.sh
  
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 4e5ae7e8b557..8ab12068eea3 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -195,6 +195,8 @@ enum dax_device_flags {
- 	DAXDEV_ALIVE,
- 	/* gate whether dax_flush() calls the low level flush routine */
- 	DAXDEV_WRITE_CACHE,
-+	/* flag to check if device supports synchronous flush */
-+	DAXDEV_SYNC,
- };
+ if ENABLE_KEYUTILS
+ TESTS += security.sh
+diff --git a/test/common b/test/common
+index 1b9d3da..1814a0c 100644
+--- a/test/common
++++ b/test/common
+@@ -15,12 +15,25 @@ else
+ 	exit 1
+ fi
  
- /**
-@@ -372,6 +374,18 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+-# NFIT_TEST_BUS[01]
++# DAXCTL
+ #
+-NFIT_TEST_BUS0=nfit_test.0
+-NFIT_TEST_BUS1=nfit_test.1
++if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
++	export DAXCTL=../daxctl/daxctl
++elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
++	export DAXCTL=./daxctl/daxctl
++else
++	echo "Couldn't find an daxctl binary"
++	exit 1
++fi
  
-+bool __dax_synchronous(struct dax_device *dax_dev)
-+{
-+	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(__dax_synchronous);
+ 
++# NFIT_TEST_BUS[01]
++#
++NFIT_TEST_BUS0="nfit_test.0"
++NFIT_TEST_BUS1="nfit_test.1"
++ACPI_BUS="ACPI.NFIT"
++E820_BUS="e820"
 +
-+void __set_dax_synchronous(struct dax_device *dax_dev)
-+{
-+	set_bit(DAXDEV_SYNC, &dax_dev->flags);
-+}
-+EXPORT_SYMBOL_GPL(__set_dax_synchronous);
+ # Functions
+ 
+ # err
+diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
+new file mode 100755
+index 0000000..cfd9362
+--- /dev/null
++++ b/test/daxctl-devices.sh
+@@ -0,0 +1,81 @@
++#!/bin/bash -Ex
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2019 Intel Corporation. All rights reserved.
 +
- bool dax_alive(struct dax_device *dax_dev)
- {
- 	lockdep_assert_held(&dax_srcu);
-@@ -526,7 +540,7 @@ static void dax_add_host(struct dax_device *dax_dev, const char *host)
- }
- 
- struct dax_device *alloc_dax(void *private, const char *__host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
- {
- 	struct dax_device *dax_dev;
- 	const char *host;
-@@ -549,6 +563,9 @@ struct dax_device *alloc_dax(void *private, const char *__host,
- 	dax_add_host(dax_dev, host);
- 	dax_dev->ops = ops;
- 	dax_dev->private = private;
-+	if (flags & DAXDEV_F_SYNC)
-+		set_dax_synchronous(dax_dev);
++rc=77
++. ./common
 +
- 	return dax_dev;
- 
-  err_dev:
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 5475081dcbd6..b1caa7188209 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1991,7 +1991,8 @@ static struct mapped_device *alloc_dev(int minor)
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
- 	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
--		md->dax_dev = alloc_dax(md, md->disk->disk_name, &dm_dax_ops);
-+		md->dax_dev = alloc_dax(md, md->disk->disk_name,
-+					&dm_dax_ops, 0);
- 		if (!md->dax_dev)
- 			goto bad;
- 	}
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 223da63d1bd7..8be868e2a18b 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -376,6 +376,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct gendisk *disk;
- 	void *addr;
- 	int rc;
-+	unsigned long flags = 0UL;
- 
- 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
- 	if (!pmem)
-@@ -474,7 +475,9 @@ static int pmem_attach_disk(struct device *dev,
- 	nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_res);
- 	disk->bb = &pmem->bb;
- 
--	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops);
-+	if (is_nvdimm_sync(nd_region))
-+		flags = DAXDEV_F_SYNC;
-+	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
- 	if (!dax_dev) {
- 		put_disk(disk);
- 		return -ENOMEM;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index eca2e62af134..56f2227f192a 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1211,6 +1211,13 @@ int nvdimm_has_cache(struct nd_region *nd_region)
- }
- EXPORT_SYMBOL_GPL(nvdimm_has_cache);
- 
-+bool is_nvdimm_sync(struct nd_region *nd_region)
-+{
-+	return is_nd_pmem(&nd_region->dev) &&
-+		!test_bit(ND_REGION_ASYNC, &nd_region->flags);
-+}
-+EXPORT_SYMBOL_GPL(is_nvdimm_sync);
++trap 'cleanup $LINENO' ERR
 +
- struct conflict_context {
- 	struct nd_region *nd_region;
- 	resource_size_t start, size;
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index d04d4378ca50..63502ca537eb 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -679,7 +679,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 		goto put_dev;
- 
- 	dev_info->dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
--			&dcssblk_dax_ops);
-+			&dcssblk_dax_ops, DAXDEV_F_SYNC);
- 	if (!dev_info->dax_dev) {
- 		rc = -ENOMEM;
- 		goto put_dev;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index becaea5f4488..8b535bc4526f 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -7,6 +7,9 @@
- #include <linux/radix-tree.h>
- #include <asm/pgtable.h>
- 
-+/* Flag for synchronous flush */
-+#define DAXDEV_F_SYNC (1UL << 0)
++cleanup()
++{
++	printf "Error at line %d\n" "$1"
++	[[ $testdev ]] && reset_dev
++	exit $rc
++}
 +
- typedef unsigned long dax_entry_t;
- 
- struct iomap_ops;
-@@ -38,18 +41,28 @@ extern struct attribute_group dax_attribute_group;
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *dax_get_by_host(const char *host);
- struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops);
-+		const struct dax_operations *ops, unsigned long flags);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
-+bool __dax_synchronous(struct dax_device *dax_dev);
-+static inline bool dax_synchronous(struct dax_device *dax_dev)
++find_testdev()
 +{
-+	return  __dax_synchronous(dax_dev);
++	local rc=77
++
++	# find a victim device
++	testbus="$ACPI_BUS"
++	testdev=$("$NDCTL" list -b "$testbus" -Ni | jq -er '.[0].dev | .//""')
++	if [[ ! $testdev  ]]; then
++		printf "Unable to find a victim device\n"
++		exit "$rc"
++	fi
++	printf "Found victim dev: %s on bus: %s\n" "$testdev" "$testbus"
 +}
-+void __set_dax_synchronous(struct dax_device *dax_dev);
-+static inline void set_dax_synchronous(struct dax_device *dax_dev)
++
++setup_dev()
 +{
-+	__set_dax_synchronous(dax_dev);
++	test -n "$testbus"
++	test -n "$testdev"
++
++	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
++	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 256M | \
++		jq -er '.dev')
++	test -n "$testdev"
 +}
- #else
- static inline struct dax_device *dax_get_by_host(const char *host)
- {
- 	return NULL;
- }
- static inline struct dax_device *alloc_dax(void *private, const char *host,
--		const struct dax_operations *ops)
-+		const struct dax_operations *ops, unsigned long flags)
- {
- 	/*
- 	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-@@ -70,6 +83,13 @@ static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
- {
- 	return false;
- }
-+static inline bool dax_synchronous(struct dax_device *dax_dev)
++
++reset_dev()
 +{
-+	return true;
++	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
 +}
-+static inline void set_dax_synchronous(struct dax_device *dax_dev)
++
++daxctl_get_dev()
 +{
++	"$NDCTL" list -n "$1" -X | jq -er '.[].daxregion.devices[0].chardev'
 +}
- #endif
- 
- struct writeback_control;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index e13100f424c8..7a64b3ddb408 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -263,6 +263,7 @@ int generic_nvdimm_flush(struct nd_region *nd_region);
- int nvdimm_has_flush(struct nd_region *nd_region);
- int nvdimm_has_cache(struct nd_region *nd_region);
- int nvdimm_in_overwrite(struct nvdimm *nvdimm);
-+bool is_nvdimm_sync(struct nd_region *nd_region);
- 
- static inline int nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len, int *cmd_rc)
++
++daxctl_get_mode()
++{
++	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
++}
++
++daxctl_test()
++{
++	local daxdev
++
++	daxdev=$(daxctl_get_dev "$testdev")
++	test -n "$daxdev"
++
++	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"
++	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
++	"$DAXCTL" online-memory "$daxdev"
++	"$DAXCTL" offline-memory "$daxdev"
++	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++	"$DAXCTL" reconfigure-device -m system-ram "$daxdev"
++	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
++	"$DAXCTL" reconfigure-device -O -m devdax "$daxdev"
++	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
++}
++
++find_testdev
++setup_dev
++rc=1
++daxctl_test
++reset_dev
++exit 0
 -- 
 2.20.1
 
