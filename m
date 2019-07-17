@@ -1,18 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x743.google.com (mail-qk1-x743.google.com
- [IPv6:2607:f8b0:4864:20::743])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A55DD212B2044
- for <linux-nvdimm@lists.01.org>; Tue,  9 Jul 2019 18:16:53 -0700 (PDT)
-Received: by mail-qk1-x743.google.com with SMTP id a27so645069qkk.5
- for <linux-nvdimm@lists.01.org>; Tue, 09 Jul 2019 18:16:53 -0700 (PDT)
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: [v7 2/3] mm/hotplug: make remove_memory() interface useable
-Date: Tue,  9 Jul 2019 21:16:46 -0400
-Message-Id: <20190710011647.10944-3-pasha.tatashin@soleen.com>
-In-Reply-To: <20190710011647.10944-1-pasha.tatashin@soleen.com>
-References: <20190710011647.10944-1-pasha.tatashin@soleen.com>
+ by ml01.01.org (Postfix) with ESMTPS id 03AE4212BF9BE
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:37 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 09/13] daxctl: add commands to online and offline
+ memory
+Date: Wed, 17 Jul 2019 16:53:56 -0600
+Message-Id: <20190717225400.9494-10-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,165 +23,252 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: pasha.tatashin@soleen.com, jmorris@namei.org, sashal@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@linux.intel.com, dan.j.williams@intel.com, keith.busch@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, zwisler@kernel.org, thomas.lendacky@amd.com, ying.huang@intel.com, fengguang.wu@intel.com, bp@suse.de, bhelgaas@google.com, baiyaowei@cmss.chinamobile.com, tiwai@suse.de, jglisse@redhat.com, david@redhat.com
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-As of right now remove_memory() interface is inherently broken. It tries
-to remove memory but panics if some memory is not offline. The problem
-is that it is impossible to ensure that all memory blocks are offline as
-this function also takes lock_device_hotplug that is required to
-change memory state via sysfs.
+Add two new commands:
 
-So, between calling this function and offlining all memory blocks there
-is always a window when lock_device_hotplug is released, and therefore,
-there is always a chance for a panic during this window.
+  daxctl-online-memory
+  daxctl-offline-memory
 
-Make this interface to return an error if memory removal fails. This way
-it is safe to call this function without panicking machine, and also
-makes it symmetric to add_memory() which already returns an error.
+to manage the state of hot-plugged memory from the system-ram mode for
+dax devices. This provides a way for the user to online/offline the
+memory as a separate step from the reconfiguration. Without this, a user
+that reconfigures a device into the system-ram mode with the --no-online
+option, would have no way to later online the memory, and would have to
+resort to shell scripting to online them manually via sysfs.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- include/linux/memory_hotplug.h |  8 +++--
- mm/memory_hotplug.c            | 64 +++++++++++++++++++++++-----------
- 2 files changed, 49 insertions(+), 23 deletions(-)
+ daxctl/builtin.h |   2 +
+ daxctl/daxctl.c  |   2 +
+ daxctl/device.c  | 138 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 141 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index ae892eef8b82..988fde33cd7f 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -324,7 +324,7 @@ static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
- extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
- extern void try_offline_node(int nid);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
--extern void remove_memory(int nid, u64 start, u64 size);
-+extern int remove_memory(int nid, u64 start, u64 size);
- extern void __remove_memory(int nid, u64 start, u64 size);
+diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+index 756ba2a..f5a0147 100644
+--- a/daxctl/builtin.h
++++ b/daxctl/builtin.h
+@@ -7,4 +7,6 @@ struct daxctl_ctx;
+ int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx);
+ #endif /* _DAXCTL_BUILTIN_H_ */
+diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+index e1ba7b8..1ab0732 100644
+--- a/daxctl/daxctl.c
++++ b/daxctl/daxctl.c
+@@ -72,6 +72,8 @@ static struct cmd_struct commands[] = {
+ 	{ "help", .d_fn = cmd_help },
+ 	{ "migrate-device-model", .d_fn = cmd_migrate },
+ 	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
++	{ "online-memory", .d_fn = cmd_online_memory },
++	{ "offline-memory", .d_fn = cmd_offline_memory },
+ };
  
- #else
-@@ -341,7 +341,11 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- 	return -EINVAL;
+ int main(int argc, const char **argv)
+diff --git a/daxctl/device.c b/daxctl/device.c
+index a1fb698..22cf0c8 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -30,6 +30,8 @@ static unsigned long flags;
+ 
+ enum device_action {
+ 	ACTION_RECONFIG,
++	ACTION_ONLINE,
++	ACTION_OFFLINE,
+ };
+ 
+ #define BASE_OPTIONS() \
+@@ -50,6 +52,11 @@ static const struct option reconfig_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option memory_options[] = {
++	BASE_OPTIONS(),
++	OPT_END(),
++};
++
+ static const char *parse_device_options(int argc, const char **argv,
+ 		enum device_action action, const struct option *options,
+ 		const char *usage, struct daxctl_ctx *ctx)
+@@ -70,6 +77,12 @@ static const char *parse_device_options(int argc, const char **argv,
+ 		case ACTION_RECONFIG:
+ 			action_string = "reconfigure";
+ 			break;
++		case ACTION_ONLINE:
++			action_string = "online memory for";
++			break;
++		case ACTION_OFFLINE:
++			action_string = "offline memory for";
++			break;
+ 		default:
+ 			action_string = "<>";
+ 			break;
+@@ -118,6 +131,10 @@ static const char *parse_device_options(int argc, const char **argv,
+ 			}
+ 		}
+ 		break;
++	case ACTION_ONLINE:
++	case ACTION_OFFLINE:
++		/* nothing special */
++		break;
+ 	}
+ 	if (rc) {
+ 		usage_with_options(u, options);
+@@ -287,10 +304,82 @@ static int do_reconfig(struct daxctl_dev *dev, enum daxctl_dev_mode mode,
+ 	return rc;
  }
  
--static inline void remove_memory(int nid, u64 start, u64 size) {}
-+static inline int remove_memory(int nid, u64 start, u64 size)
++static int do_xline(struct daxctl_dev *dev, enum device_action action)
 +{
-+	return -EBUSY;
-+}
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *devname = daxctl_dev_get_devname(dev);
++	enum daxctl_dev_mode mode;
++	int rc, num_online;
 +
- static inline void __remove_memory(int nid, u64 start, u64 size) {}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index e096c987d261..77d1f69cdead 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1736,9 +1736,10 @@ static int check_memblock_offlined_cb(struct memory_block *mem, void *arg)
- 		endpa = PFN_PHYS(section_nr_to_pfn(mem->end_section_nr + 1))-1;
- 		pr_warn("removing memory fails, because memory [%pa-%pa] is onlined\n",
- 			&beginpa, &endpa);
--	}
- 
--	return ret;
-+		return -EBUSY;
++	if (!daxctl_dev_is_enabled(dev)) {
++		fprintf(stderr,
++			"%s: memory operations not possible when disabled\n",
++			devname);
++		return -ENXIO;
++	}
++
++	mode = daxctl_dev_get_mode(dev);
++	if (mode < 0) {
++		fprintf(stderr, "%s: unable to determine current mode: %s\n",
++			devname, strerror(-mode));
++		return rc;
++	}
++	if (mode == DAXCTL_DEV_MODE_DEVDAX) {
++		fprintf(stderr,
++			"%s: memory operations are not applicable in devdax mode\n",
++			devname);
++		return -ENXIO;
++	}
++
++	/* We are enabled, and in the correct mode. Proceed. */
++	num_online = daxctl_memory_is_online(mem);
++	if (num_online < 0) {
++		fprintf(stderr, "%s: unable to determine online state: %s\n",
++			devname, strerror(-num_online));
++		return num_online;
++	}
++
++	switch (action) {
++	case ACTION_ONLINE:
++		if (num_online > 0)
++			fprintf(stderr, "%s: %d section%s already online\n",
++				devname, num_online,
++				num_online == 1 ? "" : "s");
++		rc = daxctl_memory_set_online(mem);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to online memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		fprintf(stderr, "%s: %d new section%s onlined\n", devname, rc,
++				rc == 1 ? "" : "s");
++		break;
++	case ACTION_OFFLINE:
++		if (num_online == 0) {
++			fprintf(stderr, "%s: all sections already offline\n",
++				devname);
++			return 0;
++		}
++		rc = daxctl_memory_set_offline(mem);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to offline memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		fprintf(stderr, "%s: %d section%s offlined\n", devname, rc,
++				rc == 1 ? "" : "s");
++		break;
++	default:
++		fprintf(stderr, "%s: invalid action: %d\n", devname, action);
++		return -EINVAL;
 +	}
 +	return 0;
- }
- 
- static int check_cpu_on_node(pg_data_t *pgdat)
-@@ -1821,19 +1822,9 @@ static void __release_memory_resource(resource_size_t start,
- 	}
- }
- 
--/**
-- * remove_memory
-- * @nid: the node ID
-- * @start: physical address of the region to remove
-- * @size: size of the region to remove
-- *
-- * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-- * and online/offline operations before this call, as required by
-- * try_offline_node().
-- */
--void __ref __remove_memory(int nid, u64 start, u64 size)
-+static int __ref try_remove_memory(int nid, u64 start, u64 size)
- {
--	int ret;
-+	int rc = 0;
- 
- 	BUG_ON(check_hotplug_memory_range(start, size));
- 
-@@ -1841,13 +1832,13 @@ void __ref __remove_memory(int nid, u64 start, u64 size)
- 
- 	/*
- 	 * All memory blocks must be offlined before removing memory.  Check
--	 * whether all memory blocks in question are offline and trigger a BUG()
-+	 * whether all memory blocks in question are offline and return error
- 	 * if this is not the case.
- 	 */
--	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
--				check_memblock_offlined_cb);
--	if (ret)
--		BUG();
-+	rc = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
-+			       check_memblock_offlined_cb);
-+	if (rc)
-+		goto done;
- 
- 	/* remove memmap entry */
- 	firmware_map_remove(start, start + size, "System RAM");
-@@ -1859,14 +1850,45 @@ void __ref __remove_memory(int nid, u64 start, u64 size)
- 
- 	try_offline_node(nid);
- 
-+done:
- 	mem_hotplug_done();
-+	return rc;
- }
- 
--void remove_memory(int nid, u64 start, u64 size)
-+/**
-+ * remove_memory
-+ * @nid: the node ID
-+ * @start: physical address of the region to remove
-+ * @size: size of the region to remove
-+ *
-+ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-+ * and online/offline operations before this call, as required by
-+ * try_offline_node().
-+ */
-+void __remove_memory(int nid, u64 start, u64 size)
-+{
-+
-+	/*
-+	 * trigger BUG() is some memory is not offlined prior to calling this
-+	 * function
-+	 */
-+	if (try_remove_memory(nid, start, size))
-+		BUG();
 +}
 +
-+/*
-+ * Remove memory if every memory block is offline, otherwise return -EBUSY is
-+ * some memory is not offline
-+ */
-+int remove_memory(int nid, u64 start, u64 size)
+ static int do_xaction_device(const char *device, enum device_action action,
+ 		struct daxctl_ctx *ctx, int *processed)
  {
-+	int rc;
-+
- 	lock_device_hotplug();
--	__remove_memory(nid, start, size);
-+	rc  = try_remove_memory(nid, start, size);
- 	unlock_device_hotplug();
-+
-+	return rc;
+-	struct json_object *jdevs = json_object_new_array();
++	struct json_object *jdevs = NULL;
+ 	struct daxctl_region *region;
+ 	struct daxctl_dev *dev;
+ 	int rc = -ENXIO;
+@@ -308,10 +397,23 @@ static int do_xaction_device(const char *device, enum device_action action,
+ 
+ 			switch (action) {
+ 			case ACTION_RECONFIG:
++				/* reconfig needs jdevs, initialize it once */
++				if (!jdevs)
++					jdevs = json_object_new_array();
+ 				rc = do_reconfig(dev, reconfig_mode, jdevs);
+ 				if (rc == 0)
+ 					(*processed)++;
+ 				break;
++			case ACTION_ONLINE:
++				rc = do_xline(dev, action);
++				if (rc == 0)
++					(*processed)++;
++				break;
++			case ACTION_OFFLINE:
++				rc = do_xline(dev, action);
++				if (rc == 0)
++					(*processed)++;
++				break;
+ 			default:
+ 				rc = -EINVAL;
+ 				break;
+@@ -346,3 +448,37 @@ int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
+ 			processed == 1 ? "" : "s");
+ 	return rc;
  }
- EXPORT_SYMBOL_GPL(remove_memory);
- #endif /* CONFIG_MEMORY_HOTREMOVE */
++
++int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	char *usage = "daxctl online-memory <device> [<options>]";
++	const char *device = parse_device_options(argc, argv, ACTION_ONLINE,
++			memory_options, usage, ctx);
++	int processed, rc;
++
++	rc = do_xaction_device(device, ACTION_ONLINE, ctx, &processed);
++	if (rc < 0)
++		fprintf(stderr, "error onlining memory: %s\n",
++				strerror(-rc));
++
++	fprintf(stderr, "onlined memory for %d device%s\n", processed,
++			processed == 1 ? "" : "s");
++	return rc;
++}
++
++int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	char *usage = "daxctl offline-memory <device> [<options>]";
++	const char *device = parse_device_options(argc, argv, ACTION_OFFLINE,
++			memory_options, usage, ctx);
++	int processed, rc;
++
++	rc = do_xaction_device(device, ACTION_OFFLINE, ctx, &processed);
++	if (rc < 0)
++		fprintf(stderr, "error offlining memory: %s\n",
++				strerror(-rc));
++
++	fprintf(stderr, "offlined memory for %d device%s\n", processed,
++			processed == 1 ? "" : "s");
++	return rc;
++}
 -- 
-2.22.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
