@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1344F212B9A9D
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:10 -0700 (PDT)
-Subject: [ndctl PATCH v2 01/26] ndctl/dimm: Add 'flags' field to read-labels
- output
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:39:26 -0700
-Message-ID: <156426356654.531577.6142389862764297120.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 08158212BF9C2
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:39 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 12/13] contrib/ndctl: add bash-completion for the new
+ daxctl commands
+Date: Wed, 17 Jul 2019 16:53:59 -0600
+Message-Id: <20190717225400.9494-13-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,33 +24,69 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Recent discussions on some platform implementations setting the LOCAL
-bit in namespace labels makes it apparent that this field should be
-decoded in the json representation.
+Add bash completion helpers for the new daxctl-reconfigure-device,
+daxctl-online-memory, and daxctl-offline-memory commands.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/dimm.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ contrib/ndctl | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index b2b09b6aa9a2..8946dc74fe41 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -141,6 +141,11 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
- 			break;
- 		json_object_object_add(jlabel, "nlabel", jobj);
+diff --git a/contrib/ndctl b/contrib/ndctl
+index cacee2d..680fe6a 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -547,7 +547,7 @@ __daxctlcomp()
  
-+		jobj = json_object_new_int64(le64_to_cpu(nslabel.flags));
-+		if (!jobj)
-+			break;
-+		json_object_object_add(jlabel, "flags", jobj);
+ 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
+ 	for cword in "${COMPREPLY[@]}"; do
+-		if [[ "$cword" == @(--region|--dev) ]]; then
++		if [[ "$cword" == @(--region|--dev|--mode) ]]; then
+ 			COMPREPLY[$i]="${cword}="
+ 		else
+ 			COMPREPLY[$i]="${cword} "
+@@ -572,6 +572,9 @@ __daxctl_comp_options()
+ 		--dev)
+ 			opts="$(__daxctl_get_devs -i)"
+ 			;;
++		--mode)
++			opts="system-ram devdax"
++			;;
+ 		*)
+ 			return
+ 			;;
+@@ -582,8 +585,23 @@ __daxctl_comp_options()
+ 
+ __daxctl_comp_non_option_args()
+ {
+-	# there aren't any commands that accept non option arguments yet
+-	return
++	local subcmd=$1
++	local cur=$2
++	local opts
 +
- 		jobj = json_object_new_int64(le64_to_cpu(nslabel.isetcookie));
- 		if (!jobj)
- 			break;
++	case $subcmd in
++	reconfigure-device)
++		;&
++	online-memory)
++		;&
++	offline-memory)
++		opts="$(__daxctl_get_devs -i) all"
++		;;
++	*)
++		return
++		;;
++	esac
++	__daxctlcomp "$opts" "$cur"
+ }
+ 
+ __daxctl_main()
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
