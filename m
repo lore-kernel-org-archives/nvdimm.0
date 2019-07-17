@@ -1,27 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EBDF521290D37
- for <linux-nvdimm@lists.01.org>; Mon,  1 Jul 2019 20:34:11 -0700 (PDT)
-Date: Mon, 1 Jul 2019 20:34:10 -0700
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH] filesystem-dax: Disable PMD support
-Message-ID: <20190702033410.GB1729@bombadil.infradead.org>
-References: <CAPcyv4jjqooboxivY=AsfEPhCvxdwU66GpwE9vM+cqrZWvtX3g@mail.gmail.com>
- <CAPcyv4h6HgNE38RF5TxO3C268ZvrxgcPNrPWOt94MnO5gP_pjw@mail.gmail.com>
- <CAPcyv4gwd1_VHk_MfHeNSxyH+N1=aatj9WkKXqYNPkSXe4bFDg@mail.gmail.com>
- <20190627195948.GB4286@bombadil.infradead.org>
- <CAPcyv4iB3f1hDdCsw=Cy234dP-RXpxGyXDoTwEU8nt5qUDEVQg@mail.gmail.com>
- <20190629160336.GB1180@bombadil.infradead.org>
- <CAPcyv4ge3Ht1k_v=tSoVA6hCzKg1N3imhs_rTL3oTB+5_KC8_Q@mail.gmail.com>
- <CAA9_cmcb-Prn6CnOx-mJfb9CRdf0uG9u4M1Vq1B1rKVemCD-Vw@mail.gmail.com>
- <20190630152324.GA15900@bombadil.infradead.org>
- <CAPcyv4j2NBPBEUU3UW1Q5OyOEuo9R5e90HpkowpeEkMsAKiUyQ@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id EA68D212BF9BD
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:36 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 06/13] libdaxctl: add an interface to get the mode
+ for a dax device
+Date: Wed, 17 Jul 2019 16:53:53 -0600
+Message-Id: <20190717225400.9494-7-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4j2NBPBEUU3UW1Q5OyOEuo9R5e90HpkowpeEkMsAKiUyQ@mail.gmail.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -33,85 +23,145 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Seema Pandit <seema.pandit@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>, Robert Barror <robert.barror@intel.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jan Kara <jack@suse.cz>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Sun, Jun 30, 2019 at 02:37:32PM -0700, Dan Williams wrote:
-> On Sun, Jun 30, 2019 at 8:23 AM Matthew Wilcox <willy@infradead.org> wrote:
-> > I think my theory was slightly mistaken, but your fix has the effect of
-> > fixing the actual problem too.
-> >
-> > The xas->xa_index for a PMD is going to be PMD-aligned (ie a multiple of
-> > 512), but xas_find_conflict() does _not_ adjust xa_index (... which I
-> > really should have mentioned in the documentation).  So we go to sleep
-> > on the PMD-aligned index instead of the index of the PTE.  Your patch
-> > fixes this by using the PMD-aligned index for PTEs too.
-> >
-> > I'm trying to come up with a clean fix for this.  Clearly we
-> > shouldn't wait for a PTE entry if we're looking for a PMD entry.
-> > But what should get_unlocked_entry() return if it detects that case?
-> > We could have it return an error code encoded as an internal entry,
-> > like grab_mapping_entry() does.  Or we could have it return the _locked_
-> > PTE entry, and have callers interpret that.
-> >
-> > At least get_unlocked_entry() is static, but it's got quite a few callers.
-> > Trying to discern which ones might ask for a PMD entry is a bit tricky.
-> > So this seems like a large patch which might have bugs.
-> >
-> > Thoughts?
-> 
-> ...but if it was a problem of just mismatched waitqueue's I would have
-> expected it to trigger prior to commit b15cd800682f "dax: Convert page
-> fault handlers to XArray".
+In preparation for a reconfigure-device command, add an interface to
+retrieve the 'mode' of a dax device. This will allow the
+reconfigure-device command (and via daxctl_dev_to_json(), also
+daxctl-list) to print the mode in device listings via a 'daxctl-list'
+command or immediately after a mode change.
 
-That commit converts grab_mapping_entry() (called by dax_iomap_pmd_fault())
-from calling get_unlocked_mapping_entry() to calling get_unlocked_entry().
-get_unlocked_mapping_entry() (eventually) called __radix_tree_lookup()
-instead of dax_find_conflict().
+Add a 'state' attribute to the json listings for devices, since a device
+could end up in a state where it is not bound to any driver, and hence,
+'disabled'. The state attribute is only displayed for disabled devices.
 
-> This hunk, if I'm reading it correctly,
-> looks suspicious: @index in this case is coming directly from
-> vm->pgoff without pmd alignment adjustment whereas after the
-> conversion it's always pmd aligned from the xas->xa_index. So perhaps
-> the issue is that the lock happens at pte granularity. I expect it
-> would cause the old put_locked_mapping_entry() to WARN, but maybe that
-> avoids the lockup and was missed in the bisect.
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/libdaxctl.c   | 37 +++++++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  1 +
+ daxctl/libdaxctl.h       |  1 +
+ util/json.c              | 17 +++++++++++++++++
+ 4 files changed, 56 insertions(+)
 
-I don't think that hunk is the problem.  The __radix_tree_lookup()
-is going to return a 'slot' which points to the canonical slot, no
-matter which of the 512 indices corresponding to that slot is chosen.
-So I think it's going to do essentially the same thing.
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 4c1cbf3..8563e24 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -12,6 +12,8 @@
+  */
+ #include <stdio.h>
+ #include <errno.h>
++#include <limits.h>
++#include <libgen.h>
+ #include <stdlib.h>
+ #include <dirent.h>
+ #include <unistd.h>
+@@ -880,6 +882,41 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+ 	return 0;
+ }
+ 
++DAXCTL_EXPORT enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	int rc = DAXCTL_DEV_MODE_UNKNOWN;
++	char path[200];
++	const int len = sizeof(path);
++	char *mod_path, *mod_base;
++
++	if (!daxctl_dev_is_enabled(dev))
++		return rc;
++
++	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	mod_path = realpath(path, NULL);
++	if (!mod_path) {
++		rc = -errno;
++		err(ctx, "%s:  unable to determine module: %s\n", devname,
++			strerror(errno));
++		return rc;
++	}
++
++	mod_base = basename(mod_path);
++	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
++		rc = DAXCTL_DEV_MODE_RAM;
++	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
++		rc = DAXCTL_DEV_MODE_DEVDAX;
++
++	free(mod_path);
++	return rc;
++}
++
+ DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
+ {
+ 	return dev->region->ctx;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 53eb700..9ce5096 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -67,4 +67,5 @@ global:
+ 	daxctl_memory_set_online;
+ 	daxctl_memory_set_offline;
+ 	daxctl_memory_is_online;
++	daxctl_dev_get_mode;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index a5a2bab..6d1c17d 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -74,6 +74,7 @@ int daxctl_dev_disable(struct daxctl_dev *dev);
+ int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
+ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
+ int daxctl_dev_get_target_node(struct daxctl_dev *dev);
++enum daxctl_dev_mode daxctl_dev_get_mode(struct daxctl_dev *dev);
+ 
+ struct daxctl_memory;
+ struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
+diff --git a/util/json.c b/util/json.c
+index f521337..1673f1d 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ {
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
++	enum daxctl_dev_mode mode;
+ 	int node;
+ 
+ 	jdev = json_object_new_object();
+@@ -292,6 +293,22 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "target_node", jobj);
+ 	}
+ 
++	mode = daxctl_dev_get_mode(dev);
++	if (mode >= 0) {
++		if (mode == DAXCTL_DEV_MODE_RAM)
++			jobj = json_object_new_string("system-ram");
++		else
++			jobj = json_object_new_string("devdax");
++		if (jobj)
++			json_object_object_add(jdev, "mode", jobj);
++	}
++
++	if (!daxctl_dev_is_enabled(dev)) {
++		jobj = json_object_new_string("disabled");
++		if (jobj)
++			json_object_object_add(jdev, "state", jobj);
++	}
++
+ 	return jdev;
+ }
+ 
+-- 
+2.20.1
 
-> @@ -884,21 +711,18 @@ static void *dax_insert_entry(struct
-> address_space *mapping,
->                  * existing entry is a PMD, we will just leave the PMD in the
->                  * tree and dirty it if necessary.
->                  */
-> -               struct radix_tree_node *node;
-> -               void **slot;
-> -               void *ret;
-> -
-> -               ret = __radix_tree_lookup(pages, index, &node, &slot);
-> -               WARN_ON_ONCE(ret != entry);
-> -               __radix_tree_replace(pages, node, slot,
-> -                                    new_entry, NULL);
-> +               void *old = dax_lock_entry(xas, new_entry);
-> +               WARN_ON_ONCE(old != xa_mk_value(xa_to_value(entry) |
-> +                                       DAX_LOCKED));
->                 entry = new_entry;
-> +       } else {
-> +               xas_load(xas);  /* Walk the xa_state */
->         }
-> 
->         if (dirty)
-> -               radix_tree_tag_set(pages, index, PAGECACHE_TAG_DIRTY);
-> +               xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
-> 
-> -       xa_unlock_irq(pages);
-> +       xas_unlock_irq(xas);
->         return entry;
->  }
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
