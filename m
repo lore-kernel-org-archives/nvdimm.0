@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 2F2EA212E258A
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:09 -0700 (PDT)
-Subject: [ndctl PATCH v2 12/26] ndctl/namespace: Minimize label data
- transfer for autolabel
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:25 -0700
-Message-ID: <156426362517.531577.97948221719947571.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A5704212BF9BC
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:38 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 11/13] contrib/ndctl: fix region-id completions for
+ daxctl
+Date: Wed, 17 Jul 2019 16:53:58 -0600
+Message-Id: <20190717225400.9494-12-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,29 +24,62 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the new ndctl_dimm_read_label_index() helper to minimize the amount
-of label I/O needed to execute an autolabel event.
+The completion helpers for daxctl assumed the region arguments for
+specifying daxctl regions were the same as ndctl regions, i.e.
+"regionX". This is not true - daxctl region arguments are a simple
+numeric 'id'.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add a new helper __daxctl_get_regions() to complete daxctl region IDs
+properly.
+
+While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
+quoting in __daxctl_comp_options()
+
+Fixes: d6790a32f32c ("daxctl: Add bash-completion")
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ contrib/ndctl | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 645aa14882bb..a3963d79831a 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1029,7 +1029,7 @@ retry:
- 		int num_labels, avail;
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 396a344..cacee2d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -531,8 +531,14 @@ _ndctl()
  
- 		ndctl_cmd_unref(cmd_read);
--		cmd_read = ndctl_dimm_read_labels(dimm);
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
- 		if (!cmd_read)
- 			continue;
+ __daxctl_get_devs()
+ {
+-	local opts="--devices $*"
+-	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
++	local opts=("--devices" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
++}
++
++__daxctl_get_regions()
++{
++	local opts=("--regions" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+ }
  
+ __daxctlcomp()
+@@ -561,10 +567,10 @@ __daxctl_comp_options()
+ 		local cur_arg=${cur##*=}
+ 		case $cur_subopt in
+ 		--region)
+-			opts=$(__ndctl_get_regions -i)
++			opts="$(__daxctl_get_regions -i)"
+ 			;;
+ 		--dev)
+-			opts=$(__daxctl_get_devs -i)
++			opts="$(__daxctl_get_devs -i)"
+ 			;;
+ 		*)
+ 			return
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
