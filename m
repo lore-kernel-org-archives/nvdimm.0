@@ -1,16 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 007D9212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:26 -0700 (PDT)
-Subject: [ndctl PATCH v2 15/26] ndctl/dimm: Fix init-labels success reporting
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:42 -0700
-Message-ID: <156426364243.531577.13465180915476535003.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2BB53212C01DB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 23:42:27 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id j11so3593518otp.10
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 23:39:59 -0700 (PDT)
 MIME-Version: 1.0
+References: <156341206785.292348.1660822720191643298.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156341210094.292348.2384694131126767789.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20190718020448.GE3079@sasha-vm>
+In-Reply-To: <20190718020448.GE3079@sasha-vm>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 17 Jul 2019 23:39:47 -0700
+Message-ID: <CAPcyv4gMKqxQ0WNeJ3p5XW2cDkNs0+tsViS5MXB+eDXeGcHPjA@mail.gmail.com>
+Subject: Re: [PATCH v2 6/7] libnvdimm/bus: Fix wait_nvdimm_bus_probe_idle()
+ ABBA deadlock
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,61 +28,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Sasha Levin <sashal@kernel.org>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Peter Zijlstra <peterz@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a DIMM is disabled due to a label parsing issue "ndctl init-labels"
-mis-reports the status of the init-labels command:
+On Wed, Jul 17, 2019 at 7:05 PM Sasha Levin <sashal@kernel.org> wrote:
+>
+> On Wed, Jul 17, 2019 at 06:08:21PM -0700, Dan Williams wrote:
+> >A multithreaded namespace creation/destruction stress test currently
+> >deadlocks with the following lockup signature:
+> >
+> >    INFO: task ndctl:2924 blocked for more than 122 seconds.
+> >          Tainted: G           OE     5.2.0-rc4+ #3382
+> >    "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> >    ndctl           D    0  2924   1176 0x00000000
+> >    Call Trace:
+> >     ? __schedule+0x27e/0x780
+> >     schedule+0x30/0xb0
+> >     wait_nvdimm_bus_probe_idle+0x8a/0xd0 [libnvdimm]
+> >     ? finish_wait+0x80/0x80
+> >     uuid_store+0xe6/0x2e0 [libnvdimm]
+> >     kernfs_fop_write+0xf0/0x1a0
+> >     vfs_write+0xb7/0x1b0
+> >     ksys_write+0x5c/0xd0
+> >     do_syscall_64+0x60/0x240
+> >
+> >     INFO: task ndctl:2923 blocked for more than 122 seconds.
+> >           Tainted: G           OE     5.2.0-rc4+ #3382
+> >     "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> >     ndctl           D    0  2923   1175 0x00000000
+> >     Call Trace:
+> >      ? __schedule+0x27e/0x780
+> >      ? __mutex_lock+0x489/0x910
+> >      schedule+0x30/0xb0
+> >      schedule_preempt_disabled+0x11/0x20
+> >      __mutex_lock+0x48e/0x910
+> >      ? nvdimm_namespace_common_probe+0x95/0x4d0 [libnvdimm]
+> >      ? __lock_acquire+0x23f/0x1710
+> >      ? nvdimm_namespace_common_probe+0x95/0x4d0 [libnvdimm]
+> >      nvdimm_namespace_common_probe+0x95/0x4d0 [libnvdimm]
+> >      __dax_pmem_probe+0x5e/0x210 [dax_pmem_core]
+> >      ? nvdimm_bus_probe+0x1d0/0x2c0 [libnvdimm]
+> >      dax_pmem_probe+0xc/0x20 [dax_pmem]
+> >      nvdimm_bus_probe+0x90/0x2c0 [libnvdimm]
+> >      really_probe+0xef/0x390
+> >      driver_probe_device+0xb4/0x100
+> >
+> >In this sequence an 'nd_dax' device is being probed and trying to take
+> >the lock on its backing namespace to validate that the 'nd_dax' device
+> >indeed has exclusive access to the backing namespace. Meanwhile, another
+> >thread is trying to update the uuid property of that same backing
+> >namespace. So one thread is in the probe path trying to acquire the
+> >lock, and the other thread has acquired the lock and tries to flush the
+> >probe path.
+> >
+> >Fix this deadlock by not holding the namespace device_lock over the
+> >wait_nvdimm_bus_probe_idle() synchronization step. In turn this requires
+> >the device_lock to be held on entry to wait_nvdimm_bus_probe_idle() and
+> >subsequently dropped internally to wait_nvdimm_bus_probe_idle().
+> >
+> >Cc: <stable@vger.kernel.org>
+> >Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace instantiation")
+> >Cc: Vishal Verma <vishal.l.verma@intel.com>
+> >Tested-by: Jane Chu <jane.chu@oracle.com>
+> >Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Hi Dan,
+>
+> The way these patches are split, when we take them to stable this patch
+> won't apply because it wants "libnvdimm/bus: Prepare the nd_ioctl() path
+> to be re-entrant".
+>
+> If you were to send another iteration of this patchset, could you please
+> re-order the patches so they will apply cleanly to stable? this will
+> help with reducing mail exchanges later on and possibly a mis-merge into
+> stable.
+>
+> If not, this should serve as a reference for future us to double check
+> the backport.
 
-    # ndctl init-labels all -f
-    initialized 1 nmem
-    [root@dwillia2-dev ndctl]# ndctl list -Di
-    [
-      {
-        "dev":"nmem1",
-        "id":"8680-57341200",
-        "handle":2,
-        "phys_id":0,
-        "state":"disabled"
-      },
-      {
-        "dev":"nmem0",
-        "id":"8680-56341200",
-        "handle":1,
-        "phys_id":0
-      }
-    ]
-    # ndctl init-labels nmem1 -f
-    initialized 1020 nmems
-
-Catch any positive return from action_init() as success:
-
-    # ndctl init-labels all -f
-    initialized 2 nmems
-    # ndctl init-labels nmem1 -f
-    initialized 1 nmem
-
-Reported-by: Jane Chu <jane.chu@oracle.com>
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/dimm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index c7ad621367e9..5e6fa19bab15 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -1035,7 +1035,7 @@ static int __action_init(struct ndctl_dimm *dimm,
- 
-  out:
- 	ndctl_cmd_unref(cmd_read);
--	return rc;
-+	return rc >= 0 ? 0 : rc;
- }
- 
- static int action_init(struct ndctl_dimm *dimm, struct action_context *actx)
-
+Oh we should backport all of them. I'll tag that one for -stable as
+well. It's a hard pre-requisite for the fix.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
