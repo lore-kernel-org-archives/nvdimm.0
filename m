@@ -1,17 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DE7FB212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:41 -0700 (PDT)
-Subject: [ndctl PATCH v2 18/26] ndctl/test: Exercise sub-section sized
- namespace creation/deletion
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:58 -0700
-Message-ID: <156426365799.531577.4076109633772194960.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 393A8212D2747
+ for <linux-nvdimm@lists.01.org>; Thu, 18 Jul 2019 11:32:48 -0700 (PDT)
+Subject: Re: [GIT PULL] dax for 5.3
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAPcyv4jMjvPYTa00hbq=64LZ=Vcu-gi7hLcgDTnD9d4dF0t9ng@mail.gmail.com>
+References: <CAPcyv4jMjvPYTa00hbq=64LZ=Vcu-gi7hLcgDTnD9d4dF0t9ng@mail.gmail.com>
+Message-Id: <156347461988.12683.5649730008355419191.pr-tracker-bot@kernel.org>
+Date: Thu, 18 Jul 2019 18:30:19 +0000
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,125 +17,27 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-For kernels that have removed the section-aligned namespace constraint
-validate that multiple namespaces can be created / deleted that collide
-within a given section.
+The pull request you sent on Thu, 18 Jul 2019 07:37:07 -0700:
 
-While this test acts on the ACPI.NFIT bus it is not marked "destructive"
-because it only operates in available capacity and marks each namespace
-created with a unique volume name ("subsection-test").
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-for-5.3
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/Makefile.am    |    1 +
- test/sub-section.sh |   78 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 79 insertions(+)
- create mode 100755 test/sub-section.sh
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/0fe49f70a08d7d25acee3b066a88c654fea26121
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 2a1e03d26f6c..decc8377258a 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -45,6 +45,7 @@ if ENABLE_DESTRUCTIVE
- TESTS +=\
- 	blk-ns \
- 	pmem-ns \
-+	sub-section.sh \
- 	dax-dev \
- 	dax.sh \
- 	device-dax \
-diff --git a/test/sub-section.sh b/test/sub-section.sh
-new file mode 100755
-index 000000000000..c624fbdb2ce0
---- /dev/null
-+++ b/test/sub-section.sh
-@@ -0,0 +1,78 @@
-+#!/bin/bash -x
-+
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2015-2019 Intel Corporation. All rights reserved.
-+
-+set -e
-+
-+SKIP=77
-+FAIL=1
-+SUCCESS=0
-+
-+. ./common
-+
-+check_min_kver "5.3" || do_skip "may lack align sub-section hotplug support"
-+
-+MNT=test_dax_mnt
-+mkdir -p $MNT
-+
-+TEST_SIZE=$((16<<20))
-+MIN_AVAIL=$((TEST_SIZE*4))
-+MAX_NS=10
-+NAME="subsection-test"
-+
-+ndctl list -N | jq -r ".[] | select(.name==\"subsection-test\") | .dev"
-+
-+rc=$FAIL
-+cleanup() {
-+	if [ $rc -ne $SUCCESS ]; then
-+		echo "test/sub-section.sh: failed at line $1"
-+	fi
-+	if mountpoint -q $MNT; then
-+		umount $MNT
-+	fi
-+	rmdir $MNT
-+	# opportunistic cleanup, not fatal if these fail
-+	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
-+	for i in $namespaces
-+	do
-+		if ! $NDCTL destroy-namespace -f $i; then
-+			echo "test/sub-section.sh: cleanup() failed to destroy $i"
-+		fi
-+	done
-+	exit $rc
-+}
-+
-+trap 'err $LINENO cleanup' ERR
-+
-+json=$($NDCTL list -R -b ACPI.NFIT)
-+region=$(echo $json | jq -r "[.[] | select(.available_size >= $MIN_AVAIL)][0].dev")
-+avail=$(echo $json | jq -r "[.[] | select(.available_size >= $MIN_AVAIL)][0].available_size")
-+if [ -z $region ]; then
-+	exit $SKIP
-+fi
-+
-+iter=$((avail/TEST_SIZE))
-+if [ $iter -gt $MAX_NS ]; then
-+	iter=$MAX_NS;
-+fi
-+
-+for i in $(seq 1 $iter)
-+do
-+	json=$($NDCTL create-namespace -s $TEST_SIZE --no-autorecover -r $region -n "$NAME")
-+	dev=$(echo $json | jq -r ".blockdev")
-+	mkfs.ext4 -b 4096 /dev/$dev
-+	mount -o dax /dev/$dev $MNT
-+	umount $MNT
-+done
-+
-+namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
-+for i in $namespaces
-+do
-+	$NDCTL disable-namespace $i
-+	$NDCTL enable-namespace $i
-+	$NDCTL destroy-namespace $i -f
-+done
-+
-+rc=$SUCCESS
-+cleanup $LINENO
+Thank you!
 
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
