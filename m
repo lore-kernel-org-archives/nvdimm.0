@@ -1,17 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
+ [IPv6:2607:f8b0:4864:20::344])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 579D8212BF9BC
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:38 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 10/13] Documentation: Add man pages for daxctl-{on,
- off}line-memory
-Date: Wed, 17 Jul 2019 16:53:57 -0600
-Message-Id: <20190717225400.9494-11-vishal.l.verma@intel.com>
-In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
-References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 88B8B212C01DB
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 18:35:13 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id o101so27206537ota.8
+ for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 18:32:45 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+ <20190717225400.9494-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190717225400.9494-2-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 17 Jul 2019 18:32:32 -0700
+Message-ID: <CAPcyv4h333C36=G4F_yGwPi1mpvzH3rtwO15iffkWBr2yMNjVg@mail.gmail.com>
+Subject: Re: [ndctl PATCH v6 01/13] libdaxctl: add interfaces to get ctx and
+ check device state
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,206 +27,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add man pages for the two new commands: daxctl-online-memory, and
-daxctl-offline-memory.
+On Wed, Jul 17, 2019 at 3:54 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> In preparation for libdaxctl and daxctl to grow operational modes for
+> DAX devices, add the following supporting APIs:
+>
+>   daxctl_dev_get_ctx
+>   daxctl_dev_is_enabled
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Documentation/daxctl/Makefile.am              |  4 +-
- .../daxctl/daxctl-offline-memory.txt          | 72 +++++++++++++++++
- Documentation/daxctl/daxctl-online-memory.txt | 80 +++++++++++++++++++
- 3 files changed, 155 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl/daxctl-offline-memory.txt
- create mode 100644 Documentation/daxctl/daxctl-online-memory.txt
+Looks good,
 
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 715fbad..37c3bde 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -29,7 +29,9 @@ man1_MANS = \
- 	daxctl.1 \
- 	daxctl-list.1 \
- 	daxctl-migrate-device-model.1 \
--	daxctl-reconfigure-device.1
-+	daxctl-reconfigure-device.1 \
-+	daxctl-online-memory.1 \
-+	daxctl-offline-memory.1
- 
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/daxctl/daxctl-offline-memory.txt b/Documentation/daxctl/daxctl-offline-memory.txt
-new file mode 100644
-index 0000000..ba06287
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-offline-memory.txt
-@@ -0,0 +1,72 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-offline-memory(1)
-+========================
-+
-+NAME
-+----
-+daxctl-offline-memory - Offline the memory for a device that is in system-ram mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl offline-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode
-+----
-+# daxctl reconfigure-device --mode=system-ram --human dax0.0
-+{
-+  "chardev":"dax0.0",
-+  "size":"7.87 GiB (8.45 GB)",
-+  "target_node":2,
-+  "mode":"system-ram"
-+}
-+----
-+
-+* Offline the memory
-+----
-+# daxctl offline-memory dax0.0
-+dax0.0: 62 sections offlined
-+offlined memory for 1 device
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Offline the memory sections associated with a device that has been converted
-+to the system-ram mode. If one or more blocks are already offline, attempt to
-+offline the remaining blocks. If all blocks were already offline, print a
-+message and return success without actually doing anything.
-+
-+This is complementary to the 'daxctl-online-memory' command, and may be used
-+when it is wished to offline the memory sections, but not convert the device
-+back to 'devdax' mode.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-reconfigure-device[1],daxctl-online-memory[1]
-diff --git a/Documentation/daxctl/daxctl-online-memory.txt b/Documentation/daxctl/daxctl-online-memory.txt
-new file mode 100644
-index 0000000..5ac1cbf
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-online-memory.txt
-@@ -0,0 +1,80 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-online-memory(1)
-+=======================
-+
-+NAME
-+----
-+daxctl-online-memory - Online the memory for a device that is in system-ram mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl online-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode, don't online the memory
-+----
-+# daxctl reconfigure-device --mode=system-ram --no-online --human dax0.0
-+{
-+  "chardev":"dax0.0",
-+  "size":"7.87 GiB (8.45 GB)",
-+  "target_node":2,
-+  "mode":"system-ram"
-+}
-+----
-+
-+* Online the memory separately
-+----
-+# daxctl online-memory dax0.0
-+dax0.0: 62 new sections onlined
-+onlined memory for 1 device
-+----
-+
-+* Onlining memory when some sections were already online
-+----
-+# daxctl online-memory dax0.0
-+dax0.0: 1 section already online
-+dax0.0: 61 new sections onlined
-+onlined memory for 1 device
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Online the memory sections associated with a device that has been converted
-+to the system-ram mode. If one or more blocks are already online, print a
-+message about them, and attempt to online the remaining blocks.
-+
-+This is complementary to the 'daxctl-reconfigure-device' command, when used with
-+the '--no-online' option to skip onlining memory sections immediately after the
-+reconfigure. In these scenarios, the memory can be onlined at a later time using
-+'daxctl-online-memory'.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-reconfigure-device[1],daxctl-offline-memory[1]
--- 
-2.20.1
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
