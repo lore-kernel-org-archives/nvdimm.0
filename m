@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-f193.google.com (mail-pf1-f193.google.com
- [209.85.210.193])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F306F2194EB7A
- for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 13:45:39 -0700 (PDT)
-Received: by mail-pf1-f193.google.com with SMTP id c73so99581pfb.13
- for <linux-nvdimm@lists.01.org>; Fri, 05 Jul 2019 13:45:39 -0700 (PDT)
-Date: Fri, 5 Jul 2019 20:45:37 +0000
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH v6 02/18] kunit: test: add test resource management API
-Message-ID: <20190705204537.GC19023@42.do-not-panic.com>
-References: <20190704003615.204860-1-brendanhiggins@google.com>
- <20190704003615.204860-3-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 39B91212D2742
+ for <linux-nvdimm@lists.01.org>; Thu, 18 Jul 2019 11:23:51 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v2 4/7] libnvdimm/bus: Prepare the nd_ioctl() path to be
+ re-entrant
+Date: Thu, 18 Jul 2019 18:21:20 +0000
+Message-ID: <76c3363adaf3fe1a553876e3b3d5af4af1ab922a.camel@intel.com>
+References: <156341206785.292348.1660822720191643298.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156341208947.292348.10560140326807607481.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156341208947.292348.10560140326807607481.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <B3DC67D4B907294FA63B4BFE6BBD8E9C@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190704003615.204860-3-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,30 +26,193 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "peterz@infradead.org" <peterz@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jul 03, 2019 at 05:35:59PM -0700, Brendan Higgins wrote:
-> diff --git a/kunit/test.c b/kunit/test.c
-> index c030ba5a43e40..a70fbe449e922 100644
-> --- a/kunit/test.c
-> +++ b/kunit/test.c
-> @@ -122,7 +122,8 @@ static void kunit_print_test_case_ok_not_ok(struct kunit_case *test_case,
->  
->  void kunit_init_test(struct kunit *test, const char *name)
+
+On Wed, 2019-07-17 at 18:08 -0700, Dan Williams wrote:
+> In preparation for not holding a lock over the execution of
+> nd_ioctl(),
+> update the implementation to allow multiple threads to be attempting
+> ioctls at the same time. The bus lock still prevents multiple in-
+> flight
+> ->ndctl() invocations from corrupting each other's state, but static
+> global staging buffers are moved to the heap.
+> 
+> Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/nvdimm/bus.c |   59 +++++++++++++++++++++++++++++++--------
+> -----------
+>  1 file changed, 37 insertions(+), 22 deletions(-)
+
+Ran tens of iterations of the unit tests with this, and couldn't
+reproduce the failure.
+
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+Tested-by: Vishal Verma <vishal.l.verma@intel.com>
+
+> 
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 42713b210f51..a3180c28fb2b 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -970,20 +970,19 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  		int read_only, unsigned int ioctl_cmd, unsigned long
+> arg)
 >  {
-> -	spin_lock_init(&test->lock);
-
-Once you re-spin, this above line should be removed.
-
-> +	mutex_init(&test->lock);
-> +	INIT_LIST_HEAD(&test->resources);
->  	test->name = name;
->  	test->success = true;
+>  	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+> -	static char out_env[ND_CMD_MAX_ENVELOPE];
+> -	static char in_env[ND_CMD_MAX_ENVELOPE];
+>  	const struct nd_cmd_desc *desc = NULL;
+>  	unsigned int cmd = _IOC_NR(ioctl_cmd);
+>  	struct device *dev = &nvdimm_bus->dev;
+>  	void __user *p = (void __user *) arg;
+> +	char *out_env = NULL, *in_env = NULL;
+>  	const char *cmd_name, *dimm_name;
+>  	u32 in_len = 0, out_len = 0;
+>  	unsigned int func = cmd;
+>  	unsigned long cmd_mask;
+>  	struct nd_cmd_pkg pkg;
+>  	int rc, i, cmd_rc;
+> +	void *buf = NULL;
+>  	u64 buf_len = 0;
+> -	void *buf;
+>  
+>  	if (nvdimm) {
+>  		desc = nd_cmd_dimm_desc(cmd);
+> @@ -1023,6 +1022,9 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  		}
+>  
+>  	/* process an input envelope */
+> +	in_env = kzalloc(ND_CMD_MAX_ENVELOPE, GFP_KERNEL);
+> +	if (!in_env)
+> +		return -ENOMEM;
+>  	for (i = 0; i < desc->in_num; i++) {
+>  		u32 in_size, copy;
+>  
+> @@ -1030,14 +1032,17 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  		if (in_size == UINT_MAX) {
+>  			dev_err(dev, "%s:%s unknown input size cmd: %s
+> field: %d\n",
+>  					__func__, dimm_name, cmd_name,
+> i);
+> -			return -ENXIO;
+> +			rc = -ENXIO;
+> +			goto out;
+>  		}
+> -		if (in_len < sizeof(in_env))
+> -			copy = min_t(u32, sizeof(in_env) - in_len,
+> in_size);
+> +		if (in_len < ND_CMD_MAX_ENVELOPE)
+> +			copy = min_t(u32, ND_CMD_MAX_ENVELOPE - in_len,
+> in_size);
+>  		else
+>  			copy = 0;
+> -		if (copy && copy_from_user(&in_env[in_len], p + in_len,
+> copy))
+> -			return -EFAULT;
+> +		if (copy && copy_from_user(&in_env[in_len], p + in_len,
+> copy)) {
+> +			rc = -EFAULT;
+> +			goto out;
+> +		}
+>  		in_len += in_size;
+>  	}
+>  
+> @@ -1049,6 +1054,12 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  	}
+>  
+>  	/* process an output envelope */
+> +	out_env = kzalloc(ND_CMD_MAX_ENVELOPE, GFP_KERNEL);
+> +	if (!out_env) {
+> +		rc = -ENOMEM;
+> +		goto out;
+> +	}
+> +
+>  	for (i = 0; i < desc->out_num; i++) {
+>  		u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i,
+>  				(u32 *) in_env, (u32 *) out_env, 0);
+> @@ -1057,15 +1068,18 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  		if (out_size == UINT_MAX) {
+>  			dev_dbg(dev, "%s unknown output size cmd: %s
+> field: %d\n",
+>  					dimm_name, cmd_name, i);
+> -			return -EFAULT;
+> +			rc = -EFAULT;
+> +			goto out;
+>  		}
+> -		if (out_len < sizeof(out_env))
+> -			copy = min_t(u32, sizeof(out_env) - out_len,
+> out_size);
+> +		if (out_len < ND_CMD_MAX_ENVELOPE)
+> +			copy = min_t(u32, ND_CMD_MAX_ENVELOPE - out_len,
+> out_size);
+>  		else
+>  			copy = 0;
+>  		if (copy && copy_from_user(&out_env[out_len],
+> -					p + in_len + out_len, copy))
+> -			return -EFAULT;
+> +					p + in_len + out_len, copy)) {
+> +			rc = -EFAULT;
+> +			goto out;
+> +		}
+>  		out_len += out_size;
+>  	}
+>  
+> @@ -1073,12 +1087,15 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
+>  		dev_dbg(dev, "%s cmd: %s buf_len: %llu > %d\n",
+> dimm_name,
+>  				cmd_name, buf_len, ND_IOCTL_MAX_BUFLEN);
+> -		return -EINVAL;
+> +		rc = -EINVAL;
+> +		goto out;
+>  	}
+>  
+>  	buf = vmalloc(buf_len);
+> -	if (!buf)
+> -		return -ENOMEM;
+> +	if (!buf) {
+> +		rc = -ENOMEM;
+> +		goto out;
+> +	}
+>  
+>  	if (copy_from_user(buf, p, buf_len)) {
+>  		rc = -EFAULT;
+> @@ -1100,17 +1117,15 @@ static int __nd_ioctl(struct nvdimm_bus
+> *nvdimm_bus, struct nvdimm *nvdimm,
+>  		nvdimm_account_cleared_poison(nvdimm_bus, clear_err-
+> >address,
+>  				clear_err->cleared);
+>  	}
+> -	nvdimm_bus_unlock(&nvdimm_bus->dev);
+>  
+>  	if (copy_to_user(p, buf, buf_len))
+>  		rc = -EFAULT;
+>  
+> -	vfree(buf);
+> -	return rc;
+> -
+> - out_unlock:
+> +out_unlock:
+>  	nvdimm_bus_unlock(&nvdimm_bus->dev);
+> - out:
+> +out:
+> +	kfree(in_env);
+> +	kfree(out_env);
+>  	vfree(buf);
+>  	return rc;
 >  }
+> 
 
-  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
