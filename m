@@ -1,8 +1,8 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Thu, 18 Jul 2019 12:22:33 -0700
-Message-ID: <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream
+ like logger
+Date: Thu, 18 Jul 2019 17:08:34 -0700
+Message-ID: <20190719000834.GA3228@google.com>
 References: <20190712081744.87097-1-brendanhiggins@google.com>
  <20190712081744.87097-5-brendanhiggins@google.com>
  <20190715221554.8417320665@mail.kernel.org>
@@ -11,260 +11,612 @@ References: <20190712081744.87097-1-brendanhiggins@google.com>
  <20190716175021.9CA412173C@mail.kernel.org>
  <CAFd5g453vXeSUCZenCk_CzJ-8a1ym9RaPo0NVF=FujF9ac-5Ag@mail.gmail.com>
  <20190718175024.C3EC421019@mail.kernel.org>
+ <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190718175024.C3EC421019-+nuXSHJNwjE76Z2rM5mHXA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild <linux-kbuild-u79uwXL29TasMV2rI37PzA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>, Greg KH <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, shuah <shuah@kernel.org>, Theodore Ts'o <tytso@mit.edu>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-kbuild <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, open list:KERNEL SELFTEST FRAMEWORK
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Jul 18, 2019 at 10:50 AM Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> Quoting Brendan Higgins (2019-07-16 11:52:01)
-> > On Tue, Jul 16, 2019 at 10:50 AM Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > >
+On Thu, Jul 18, 2019 at 12:22:33PM -0700, Brendan Higgins wrote:
+> On Thu, Jul 18, 2019 at 10:50 AM Stephen Boyd <sboyd@kernel.org> wrote:
 > >
-> > > The only hypothetical case where this can't be done is a complicated
-> > > assertion or expectation that does more than one check and can't be
-> > > written as a function that dumps out what went wrong. Is this a real
-> > > problem? Maybe such an assertion should just open code that logic so we
-> > > don't have to build up a string for all the other simple cases.
+> > Quoting Brendan Higgins (2019-07-16 11:52:01)
+> > > On Tue, Jul 16, 2019 at 10:50 AM Stephen Boyd <sboyd@kernel.org> wrote:
+[...]
+> > Do you have a link to those earlier patches?
+> 
+> This is the first patchset:
+> 
+> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1788057.html
+> 
+> In particular you can see the code for matching functions here:
+> 
+> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1788073.html
+> 
+> And parameter matching code here:
+> 
+> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1788072.html
+> 
+> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1788086.html
+> 
+> My apologies in advance, but the code at this early stage had not
+> adopted the kunit_* prefix and was still using the test_* and mock_*
+> prefix. (Hence, struct kunit_stream was known as struct test_stream).
+[...]
+> > The crux of my complaint is that the string stream API is too loosely
+> > defined to be usable. It allows tests to build up a string of
+> > unstructured information, but with certain calling constraints so we
+> > have to tread carefully. If there was more structure to the data that's
+> > being recorded then the test case runner could operate on the data
+> > without having to do string/stream operations, allocations, etc. This
+> > would make the assertion logic much more concrete and specific to kunit,
+> > instead of this small kunit wrapper that's been placed on top of string
+> > stream.
+> 
+> Yeah, I can see the point of wanting something that provides more
+> structure than the raw `struct kunit_stream` interface. In fact, it is
+> something I had already started working on, when I had determined it
+> would be a large effort to capture all the variations. I was further
+> put off from the idea when I had been asked to convert the KUnit
+> intermediate format from what I was using to TAP, because, as it is,
+> the current data printed out by KUnit doesn't contain all the data I
+> would like to put in it in a way that best takes advantage of the TAP
+> specification. One problematic area in particular: TAP already
+> provides a way to present a lot of the data I would like to export,
+> but it involves JSON serialization which was an idea that some of the
+> other reviewers understandably weren't too keen on. TAP also wants to
+> report data some time after it is available, which is generally not a
+> good idea for test debug information; you want to make it available as
+> soon as you can or you risk crashing with the data still inside.
+> 
+> Hence, I decided we could probably spend a good long while debating
+> how I present the information. So the idea of having a loose
+> definition seemed attractive to me in its own right since it would
+> likely conform to whatever we ended up deciding in the long run. Also,
+> all the better that it was what I already had and no one seemed to
+> mind too much.
+> 
+> The only constant I expect is that `struct kunit` will likely need to
+> take an abstract object with a `commit` method, or a `format` method
+> or whatever so it could control when data was going to be printed out
+> to the user. We will probably also use a string builder in there
+> somewhere.
+> 
+> > TL;DR: If we can get rid of the string stream API I'd view that as an
+> > improvement because building arbitrary strings in the kernel is complex,
+> > error prone and has calling context concerns.
+> 
+> True. No argument there.
+> 
+> > Is the intention that other code besides unit tests will use this string
+> > stream API to build up strings? Any targets in mind? This would be a
+> > good way to get the API merged upstream given that its 2019 and we
+> > haven't had such an API in the kernel so far.
+> 
+> Someone, (was it you?) asked about code sharing with a string builder
+> thingy that was used for creating structured human readable files, but
+> that seemed like a pretty massive undertaking.
+> 
+> Aside from that, no. I would kind of prefered that nobody used it for
+> anything else because I the issues you described.
+> 
+> Nevertheless, I think the debate over the usefulness of the
+> string_stream and kunit_stream are separate topics. Even if we made
+> kunit_stream more structured, I am pretty sure I would want to use
+> string_stream or some variation for constructing the message.
+> 
+> > An "object oriented" (strong quotes!) approach where kunit_fail_msg is
+> > the innermost struct in some assertion specific structure might work
+> > nicely and allow the test runner to call a generic 'format' function to
+> > print out the message based on the type of assertion/expectation it is.
+> > It probably would mean less code size too because the strings that are
+> > common will be in the common printing function instead of created twice,
+> > in the macros/code and then copied to the heap for the string stream.
 > >
-> > I have some expectations in follow up patchsets for which I created a
-> > set of composable matchers for matching structures and function calls
-> > that by their nature cannot be written as a single function. The
-> > matcher thing is a bit speculative, I know, but for any kind of
-> > function call matching, you need to store a record of functions you
-> > are expecting to have called and then each one needs to have a set of
-> > expectations defined by the user; I don't think there is a way to do
-> > that that doesn't involve having multiple separate functions each
-> > having some information useful to constructing the message.
+> >         struct kunit_assert {
+> >                 const char *line;
+> >                 const char *file;
+> >                 const char *func;
+> >                 void (*format)(struct kunit_assert *assert);
+> >         };
 > >
-> > I know the code in question isn't in this patchset; the function
-> > matching code was in one of the earlier versions of the RFC, but I
-> > dropped it to make this patchset smaller and more manageable. So I get
-> > it if you would like me to drop it and add it back in when I try to
-> > get the function and structure matching stuff in, but I would really
-> > prefer to keep it as is if you don't care too much.
->
-> Do you have a link to those earlier patches?
-
-This is the first patchset:
-
-https://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1788057.html
-
-In particular you can see the code for matching functions here:
-
-https://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1788073.html
-
-And parameter matching code here:
-
-https://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1788072.html
-
-https://www.mail-archive.com/linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg1788086.html
-
-My apologies in advance, but the code at this early stage had not
-adopted the kunit_* prefix and was still using the test_* and mock_*
-prefix. (Hence, struct kunit_stream was known as struct test_stream).
-
-> > > It seems far simpler to get rid of the string stream API and just have a
-> > > struct for this.
-> > >
-> > >         struct kunit_fail_msg {
-> > >                 const char *line;
-> > >                 const char *file;
-> > >                 const char *func;
-> > >                 const char *msg;
-> > >         };
-> > >
-> > > Then you can have the assertion macros create this on the stack (with
-> > > another macro?).
-> > >
-> > >         #define DEFINE_KUNIT_FAIL_MSG(name, _msg) \
-> > >                 struct kunit_fail_msg name = { \
-> > >                         .line =  __LINE__, \
-> > >                         .file = __FILE__, \
-> > >                         .func = __func__, \
-> > >                         .msg = _msg, \
-> > >                 }
-> > >
-> > > I don't want to derail this whole series on this topic, but it seems
-> > > like a bunch of code is there to construct this same set of information
-> > > over and over again into a buffer a little bit at a time and then throw
-> > > it away when nothing fails just because we may want to support the case
-> > > where we have some unstructured data to inform the user about.
+> >         struct kunit_comparison_assert {
+> >                 enum operator operator;
+> >                 const char *left;
+> >                 const char *right;
+> >                 struct kunit_assert assert;
+> >         };
 > >
-> > Yeah, that's fair. I think there are a number of improvements to be
-> > made with how the expectations are defined other than that, but I was
-> > hoping I could do that after this patchset is merged. I just figured
-> > with the kinds of things I would like to do, it would lead to a whole
-> > new round of discussion.
+> >         struct kunit_bool_assert {
+> >                 const char *truth;
+> >                 const char *statement;
+> >                 struct kunit_assert assert;
+> >         };
 > >
-> > In either case, I think I would still like to use the `struct
-> > kunit_stream` as part of the interface to share the failure message
-> > with the test case runner code in test.c, at least eventually, so that
-> > I only have to have one way to receive data from expectations, but I
-> > think I can do that and still do what you suggest by just constructing
-> > the kunit_stream at the end of expectations where it is feasible.
+> >         void kunit_format_comparison(struct kunit_assert *assert)
+> >         {
+> >                 struct kunit_comparison_assert *comp = container_of(assert, ...)
 > >
-> > All in all I agree with what you are saying, but I would rather do it
-> > as a follow up possibly once we have some more code on the table. I
-> > could just see this opening up a whole new can of worms where we
-> > debate about exactly how expectations and assertions work for another
-> > several months, only to rip it all out shortly there after. I know
-> > that's how these things go, but that's my preference.
-> >
-> > I can do what you suggest if you feel strongly about it, but I would
-> > prefer to hold off until later. It's your call.
-> >
->
-> The crux of my complaint is that the string stream API is too loosely
-> defined to be usable. It allows tests to build up a string of
-> unstructured information, but with certain calling constraints so we
-> have to tread carefully. If there was more structure to the data that's
-> being recorded then the test case runner could operate on the data
-> without having to do string/stream operations, allocations, etc. This
-> would make the assertion logic much more concrete and specific to kunit,
-> instead of this small kunit wrapper that's been placed on top of string
-> stream.
+> >                 kunit_printk(...)
+> >         }
 
-Yeah, I can see the point of wanting something that provides more
-structure than the raw `struct kunit_stream` interface. In fact, it is
-something I had already started working on, when I had determined it
-would be a large effort to capture all the variations. I was further
-put off from the idea when I had been asked to convert the KUnit
-intermediate format from what I was using to TAP, because, as it is,
-the current data printed out by KUnit doesn't contain all the data I
-would like to put in it in a way that best takes advantage of the TAP
-specification. One problematic area in particular: TAP already
-provides a way to present a lot of the data I would like to export,
-but it involves JSON serialization which was an idea that some of the
-other reviewers understandably weren't too keen on. TAP also wants to
-report data some time after it is available, which is generally not a
-good idea for test debug information; you want to make it available as
-soon as you can or you risk crashing with the data still inside.
+I started poking around with your suggestion while we are waiting. A
+couple early observations:
 
-Hence, I decided we could probably spend a good long while debating
-how I present the information. So the idea of having a loose
-definition seemed attractive to me in its own right since it would
-likely conform to whatever we ended up deciding in the long run. Also,
-all the better that it was what I already had and no one seemed to
-mind too much.
+1) It is actually easier to do than I previously thought and will probably
+   help with getting more of the planned TAP output stuff working.
 
-The only constant I expect is that `struct kunit` will likely need to
-take an abstract object with a `commit` method, or a `format` method
-or whatever so it could control when data was going to be printed out
-to the user. We will probably also use a string builder in there
-somewhere.
+   That being said, this is still a pretty substantial undertaking and
+   will likely take *at least* a week to implement and properly review.
+   Assuming everything goes extremely well (no unexpected issues on my
+   end, very responsive reviewers, etc).
 
-> TL;DR: If we can get rid of the string stream API I'd view that as an
-> improvement because building arbitrary strings in the kernel is complex,
-> error prone and has calling context concerns.
+2) It *will* eliminate the need for kunit_stream.
 
-True. No argument there.
+3) ...but, it *will not* eliminate the need for string_stream.
 
-> Is the intention that other code besides unit tests will use this string
-> stream API to build up strings? Any targets in mind? This would be a
-> good way to get the API merged upstream given that its 2019 and we
-> haven't had such an API in the kernel so far.
+Based on my early observations, I do think it is worth doing, but I
+don't think it is worth trying to make it in this patchset (unless I
+have already missed the window, or it is going to be open for a while):
+I do think it will make things much cleaner, but I don't think it will
+achieve your desired goal of getting rid of an unstructured
+{kunit|string}_stream style interface; it just adds a layer on top of it
+that makes it harder to misuse.
 
-Someone, (was it you?) asked about code sharing with a string builder
-thingy that was used for creating structured human readable files, but
-that seemed like a pretty massive undertaking.
+I attached a patch of what I have so far at the end of this email so you
+can see what I am talking about. And of course, if you agree with my
+assessment, so we can start working on it as a future patch.
 
-Aside from that, no. I would kind of prefered that nobody used it for
-anything else because I the issues you described.
+A couple things in regard to the patch I attached:
 
-Nevertheless, I think the debate over the usefulness of the
-string_stream and kunit_stream are separate topics. Even if we made
-kunit_stream more structured, I am pretty sure I would want to use
-string_stream or some variation for constructing the message.
+1) I wrote it pretty quickly so there are almost definitely mistakes.
+   You should consider it RFC. I did verify it compiles though.
 
-> An "object oriented" (strong quotes!) approach where kunit_fail_msg is
-> the innermost struct in some assertion specific structure might work
-> nicely and allow the test runner to call a generic 'format' function to
-> print out the message based on the type of assertion/expectation it is.
-> It probably would mean less code size too because the strings that are
-> common will be in the common printing function instead of created twice,
-> in the macros/code and then copied to the heap for the string stream.
->
->         struct kunit_assert {
->                 const char *line;
->                 const char *file;
->                 const char *func;
->                 void (*format)(struct kunit_assert *assert);
->         };
->
->         struct kunit_comparison_assert {
->                 enum operator operator;
->                 const char *left;
->                 const char *right;
->                 struct kunit_assert assert;
->         };
->
->         struct kunit_bool_assert {
->                 const char *truth;
->                 const char *statement;
->                 struct kunit_assert assert;
->         };
->
->         void kunit_format_comparison(struct kunit_assert *assert)
->         {
->                 struct kunit_comparison_assert *comp = container_of(assert, ...)
->
->                 kunit_printk(...)
->         }
+2) Also, I did use kunit_stream in writing it: all occurences should be
+   pretty easy to replace with string_stream; nevertheless, the reason
+   for this is just to make it easier to play with the current APIs. I
+   wanted to have something working before I went through a big tedious
+   refactoring. So sorry if it causes any confusion.
 
-I started working on something similarish, but by the time I ended up
-coming up with a parent object whose definition was loose enough to
-satisfy all the properties required by the child classes it ended up
-basically being the same as what I have now just with a more complex
-hierarchy of message manipulation logic.
+3) I also based the patch on all the KUnit patches I have queued up
+   (includes things like mocking and such) since I want to see how this
+   serialization thing will work with mocks and matchers and things like
+   that.
 
-On the other hand, I didn't have the idea of doing the parent object
-quite the way you did and that would clean up a lot of the duplicated
-first line logic.
+> I started working on something similarish, but by the time I ended up
+> coming up with a parent object whose definition was loose enough to
+> satisfy all the properties required by the child classes it ended up
+> basically being the same as what I have now just with a more complex
+> hierarchy of message manipulation logic.
+> 
+> On the other hand, I didn't have the idea of doing the parent object
+> quite the way you did and that would clean up a lot of the duplicated
+> first line logic.
+> 
+> I would like to give it a try, but I am afraid I am going to get
+> sucked down a really deep rabbit hole.
+> 
+> > Maybe other people have opinions here on if you should do it now or
+> > later. Future coding is not a great argument because it's hard to
+> > predict the future. On the other hand, this patchset is in good shape to
+> 
+> Yeah, that's kind of why I am afraid to go down this road when I have
+> something that works now and I know works with the mocking stuff I
+> want to do.
+> 
+> I would like to try your suggestion, but I want to try to make it work
+> with my mocking patches before I commit to it because otherwise I am
+> just going to have to back it out in a follow up patchset.
+> 
+> > merge and I'd like to use it to write unit tests for code I maintain so
+> > I don't want to see this stall out. Sorry if I'm opening the can of
+> > worms you're talking about.
+> 
+> Don't be sorry. I agree with you that the kunit_stream stuff is not very pretty.
+> 
+> Shuah, have we missed the merge window for 5.3?
+> 
+> I saw you only sent one PR out so far for this release, and there
+> wasn't much in it; I imagine you are going to send at least one more?
+> 
+> I figure, if we still got time to try out your suggestion, Stephen, no
+> harm in trying.
+> 
+> Also if we missed it, then I have another couple months to play around with it.
+> 
+> What do you think?
 
-I would like to give it a try, but I am afraid I am going to get
-sucked down a really deep rabbit hole.
+I attached the patch mentioned above below. Let me know what you think!
 
-> Maybe other people have opinions here on if you should do it now or
-> later. Future coding is not a great argument because it's hard to
-> predict the future. On the other hand, this patchset is in good shape to
+Cheers!
 
-Yeah, that's kind of why I am afraid to go down this road when I have
-something that works now and I know works with the mocking stuff I
-want to do.
+>From 53d475d3d56afcf92b452c6d347dbedfa1a17d34 Mon Sep 17 00:00:00 2001
+From: Brendan Higgins <brendanhiggins@google.com>
+Date: Thu, 18 Jul 2019 16:08:52 -0700
+Subject: [PATCH v1] DO NOT MERGE: started playing around with the
+ serialization api
 
-I would like to try your suggestion, but I want to try to make it work
-with my mocking patches before I commit to it because otherwise I am
-just going to have to back it out in a follow up patchset.
+---
+ include/kunit/assert.h | 130 ++++++++++++++++++++++++++++++
+ include/kunit/mock.h   |   4 +
+ kunit/Makefile         |   3 +-
+ kunit/assert.c         | 179 +++++++++++++++++++++++++++++++++++++++++
+ kunit/mock.c           |   6 +-
+ 5 files changed, 318 insertions(+), 4 deletions(-)
+ create mode 100644 include/kunit/assert.h
+ create mode 100644 kunit/assert.c
 
-> merge and I'd like to use it to write unit tests for code I maintain so
-> I don't want to see this stall out. Sorry if I'm opening the can of
-> worms you're talking about.
-
-Don't be sorry. I agree with you that the kunit_stream stuff is not very pretty.
-
-Shuah, have we missed the merge window for 5.3?
-
-I saw you only sent one PR out so far for this release, and there
-wasn't much in it; I imagine you are going to send at least one more?
-
-I figure, if we still got time to try out your suggestion, Stephen, no
-harm in trying.
-
-Also if we missed it, then I have another couple months to play around with it.
-
-What do you think?
+diff --git a/include/kunit/assert.h b/include/kunit/assert.h
+new file mode 100644
+index 0000000000000..e054fdff4642f
+--- /dev/null
++++ b/include/kunit/assert.h
+@@ -0,0 +1,130 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Assertion and expectation serialization API.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
++ */
++
++#ifndef _KUNIT_ASSERT_H
++#define _KUNIT_ASSERT_H
++
++#include <kunit/test.h>
++#include <kunit/mock.h>
++
++enum kunit_assert_type {
++	KUNIT_ASSERTION,
++	KUNIT_EXPECTATION,
++};
++
++struct kunit_assert {
++	enum kunit_assert_type type;
++	const char *line;
++	const char *file;
++	struct va_format message;
++	void (*format)(struct kunit_assert *assert,
++		       struct kunit_stream *stream);
++};
++
++void kunit_base_assert_format(struct kunit_assert *assert,
++			      struct kunit_stream *stream);
++
++void kunit_assert_print_msg(struct kunit_assert *assert,
++			    struct kunit_stream *stream);
++
++struct kunit_unary_assert {
++	struct kunit_assert assert;
++	const char *condition;
++	bool expected_true;
++};
++
++void kunit_unary_assert_format(struct kunit_assert *assert,
++			       struct kunit_stream *stream);
++
++struct kunit_ptr_not_err_assert {
++	struct kunit_assert assert;
++	const char *text;
++	void *value;
++};
++
++void kunit_ptr_not_err_assert_format(struct kunit_assert *assert,
++				     struct kunit_stream *stream);
++
++struct kunit_binary_assert {
++	struct kunit_assert assert;
++	const char *operation;
++	const char *left_text;
++	long long left_value;
++	const char *right_text;
++	long long right_value;
++};
++
++void kunit_binary_assert_format(struct kunit_assert *assert,
++				struct kunit_stream *stream);
++
++struct kunit_binary_ptr_assert {
++	struct kunit_assert assert;
++	const char *operation;
++	const char *left_text;
++	void *left_value;
++	const char *right_text;
++	void *right_value;
++};
++
++void kunit_binary_ptr_assert_format(struct kunit_assert *assert,
++				    struct kunit_stream *stream);
++
++struct kunit_binary_str_assert {
++	struct kunit_assert assert;
++	const char *operation;
++	const char *left_text;
++	const char *left_value;
++	const char *right_text;
++	const char *right_value;
++};
++
++void kunit_binary_str_assert_format(struct kunit_assert *assert,
++				    struct kunit_stream *stream);
++
++struct kunit_mock_assert {
++	struct kunit_assert assert;
++};
++
++struct kunit_mock_no_expectations {
++	struct kunit_mock_assert assert;
++};
++
++struct kunit_mock_declaration {
++	const char *function_name;
++	const char **type_names;
++	const void **params;
++	int len;
++};
++
++void kunit_mock_declaration_format(struct kunit_mock_declaration *declaration,
++				   struct kunit_stream *stream);
++
++struct kunit_matcher_result {
++	struct kunit_assert assert;
++};
++
++struct kunit_mock_failed_match {
++	struct list_head node;
++	const char *expectation_text;
++	struct kunit_matcher_result *matcher_list;
++	size_t matcher_list_len;
++};
++
++void kunit_mock_failed_match_format(struct kunit_mock_failed_match *match,
++				    struct kunit_stream *stream);
++
++struct kunit_mock_no_match {
++	struct kunit_mock_assert assert;
++	struct kunit_mock_declaration declaration;
++	struct list_head failed_match_list;
++};
++
++void kunit_mock_no_match_format(struct kunit_assert *assert,
++				struct kunit_stream *stream);
++
++#endif /*  _KUNIT_ASSERT_H */
+diff --git a/include/kunit/mock.h b/include/kunit/mock.h
+index 001b96af62f1e..52c9e427c831b 100644
+--- a/include/kunit/mock.h
++++ b/include/kunit/mock.h
+@@ -144,6 +144,10 @@ void mock_register_formatter(struct mock_param_formatter *formatter);
+ 
+ void mock_unregister_formatter(struct mock_param_formatter *formatter);
+ 
++void mock_format_param(struct kunit_stream *stream,
++		       const char *type_name,
++		       const void *param);
++
+ struct mock *mock_get_global_mock(void);
+ 
+ #define MOCK(name) name##_mock
+diff --git a/kunit/Makefile b/kunit/Makefile
+index bbf43fcfb93a9..149d856a30f04 100644
+--- a/kunit/Makefile
++++ b/kunit/Makefile
+@@ -3,7 +3,8 @@ obj-$(CONFIG_KUNIT) +=			test.o \
+ 					common-mocks.o \
+ 					string-stream.o \
+ 					kunit-stream.o \
+-					try-catch.o
++					try-catch.o \
++					assert.o
+ 
+ obj-$(CONFIG_KUNIT_TEST) +=		test-test.o \
+ 					test-mock.o \
+diff --git a/kunit/assert.c b/kunit/assert.c
+new file mode 100644
+index 0000000000000..75bb6922a994e
+--- /dev/null
++++ b/kunit/assert.c
+@@ -0,0 +1,179 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Assertion and expectation serialization API.
++ *
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
++ */
++#include <kunit/assert.h>
++
++void kunit_base_assert_format(struct kunit_assert *assert,
++			      struct kunit_stream *stream)
++{
++	const char *expect_or_assert;
++
++	if (assert->type == KUNIT_EXPECTATION)
++		expect_or_assert = "EXPECTATION";
++	else
++		expect_or_assert = "ASSERTION";
++
++	kunit_stream_add(stream, "%s FAILED at %s:%s\n",
++			 expect_or_assert, assert->file, assert->line);
++}
++
++void kunit_assert_print_msg(struct kunit_assert *assert,
++			    struct kunit_stream *stream)
++{
++	if (assert->message.fmt)
++		kunit_stream_add(stream, "\n%pV", &assert->message);
++}
++
++void kunit_unary_assert_format(struct kunit_assert *assert,
++			       struct kunit_stream *stream)
++{
++	struct kunit_unary_assert *unary_assert = container_of(
++			assert, struct kunit_unary_assert, assert);
++
++	kunit_base_assert_format(assert, stream);
++	if (unary_assert->expected_true)
++		kunit_stream_add(stream,
++				 "\tExpected %s to be true, but is false\n",
++				 unary_assert->condition);
++	else
++		kunit_stream_add(stream,
++				 "\tExpected %s to be false, but is true\n",
++				 unary_assert->condition);
++	kunit_assert_print_msg(assert, stream);
++}
++
++void kunit_ptr_not_err_assert_format(struct kunit_assert *assert,
++				     struct kunit_stream *stream)
++{
++	struct kunit_ptr_not_err_assert *ptr_assert = container_of(
++			assert, struct kunit_ptr_not_err_assert, assert);
++
++	kunit_base_assert_format(assert, stream);
++	if (!ptr_assert->value) {
++		kunit_stream_add(stream,
++				 "\tExpected %s is not null, but is\n",
++				 ptr_assert->text);
++	} else if (IS_ERR(ptr_assert->value)) {
++		kunit_stream_add(stream,
++				 "\tExpected %s is not error, but is: %ld\n",
++				 ptr_assert->text,
++				 PTR_ERR(ptr_assert->value));
++	}
++	kunit_assert_print_msg(assert, stream);
++}
++
++void kunit_binary_assert_format(struct kunit_assert *assert,
++				struct kunit_stream *stream)
++{
++	struct kunit_binary_assert *binary_assert = container_of(
++			assert, struct kunit_binary_assert, assert);
++
++	kunit_base_assert_format(assert, stream);
++	kunit_stream_add(stream,
++			 "\tExpected %s %s %s, but\n",
++			 binary_assert->left_text,
++			 binary_assert->operation,
++			 binary_assert->right_text);
++	kunit_stream_add(stream, "\t\t%s == %lld\n",
++			 binary_assert->left_text,
++			 binary_assert->left_value);
++	kunit_stream_add(stream, "\t\t%s == %lld",
++			 binary_assert->right_text,
++			 binary_assert->right_value);
++	kunit_assert_print_msg(assert, stream);
++}
++
++void kunit_binary_ptr_assert_format(struct kunit_assert *assert,
++				    struct kunit_stream *stream)
++{
++	struct kunit_binary_ptr_assert *binary_assert = container_of(
++			assert, struct kunit_binary_ptr_assert, assert);
++
++	kunit_base_assert_format(assert, stream);
++	kunit_stream_add(stream,
++			 "\tExpected %s %s %s, but\n",
++			 binary_assert->left_text,
++			 binary_assert->operation,
++			 binary_assert->right_text);
++	kunit_stream_add(stream, "\t\t%s == %pK\n",
++			 binary_assert->left_text,
++			 binary_assert->left_value);
++	kunit_stream_add(stream, "\t\t%s == %pK",
++			 binary_assert->right_text,
++			 binary_assert->right_value);
++	kunit_assert_print_msg(assert, stream);
++}
++
++void kunit_binary_str_assert_format(struct kunit_assert *assert,
++				    struct kunit_stream *stream)
++{
++	struct kunit_binary_str_assert *binary_assert = container_of(
++			assert, struct kunit_binary_str_assert, assert);
++
++	kunit_base_assert_format(assert, stream);
++	kunit_stream_add(stream,
++			 "\tExpected %s %s %s, but\n",
++			 binary_assert->left_text,
++			 binary_assert->operation,
++			 binary_assert->right_text);
++	kunit_stream_add(stream, "\t\t%s == %s\n",
++			 binary_assert->left_text,
++			 binary_assert->left_value);
++	kunit_stream_add(stream, "\t\t%s == %s",
++			 binary_assert->right_text,
++			 binary_assert->right_value);
++	kunit_assert_print_msg(assert, stream);
++}
++
++void kunit_mock_declaration_format(struct kunit_mock_declaration *declaration,
++				   struct kunit_stream *stream)
++{
++	int i;
++
++	kunit_stream_add(stream, "%s(", declaration->function_name);
++	for (i = 0; i < declaration->len; i++) {
++		mock_format_param(stream,
++				  declaration->type_names[i],
++				  declaration->params[i]);
++		if (i < declaration->len - 1)
++			kunit_stream_add(stream, ", ");
++	}
++	kunit_stream_add(stream, ")\n");
++}
++
++void kunit_mock_failed_match_format(struct kunit_mock_failed_match *match,
++				    struct kunit_stream *stream)
++{
++	struct kunit_matcher_result *result;
++	size_t i;
++
++	kunit_stream_add(stream,
++			 "Tried expectation: %s, but\n",
++			 match->expectation_text);
++	for (i = 0; i < match->matcher_list_len; i++) {
++		result = &match->matcher_list[i];
++		kunit_stream_add(stream, "\t");
++		result->assert.format(&result->assert, stream);
++		kunit_stream_add(stream, "\n");
++	}
++}
++
++void kunit_mock_no_match_format(struct kunit_assert *assert,
++				struct kunit_stream *stream)
++{
++	struct kunit_mock_assert *mock_assert = container_of(
++			assert, struct kunit_mock_assert, assert);
++	struct kunit_mock_no_match *no_match = container_of(
++			mock_assert, struct kunit_mock_no_match, assert);
++	struct kunit_mock_failed_match *expectation;
++
++	kunit_base_assert_format(assert, stream);
++	kunit_mock_declaration_format(&no_match->declaration, stream);
++
++	list_for_each_entry(expectation, &no_match->failed_match_list, node)
++		kunit_mock_failed_match_format(expectation, stream);
++}
+diff --git a/kunit/mock.c b/kunit/mock.c
+index ccb0abe111402..ab441a58a918c 100644
+--- a/kunit/mock.c
++++ b/kunit/mock.c
+@@ -269,9 +269,9 @@ struct mock_param_formatter *mock_find_formatter(const char *type_name)
+ 	return NULL;
+ }
+ 
+-static void mock_format_param(struct kunit_stream *stream,
+-			      const char *type_name,
+-			      const void *param)
++void mock_format_param(struct kunit_stream *stream,
++		       const char *type_name,
++		       const void *param)
+ {
+ 	struct mock_param_formatter *formatter;
+ 
+-- 
+2.22.0.657.g960e92d24f-goog
