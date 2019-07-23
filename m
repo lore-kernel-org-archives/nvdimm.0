@@ -1,23 +1,12 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like
- logger
-Date: Mon, 22 Jul 2019 17:32:19 -0700
-Message-ID: <CAFd5g46h9XSRfA1H4kZR7u0Eh_F-fgPjoLPzqzLgFTXxeb105g@mail.gmail.com>
-References: <20190712081744.87097-1-brendanhiggins@google.com>
- <CAFd5g47ikJmA0uGoavAFsh+hQvDmgsOi26tyii0612R=rt7iiw@mail.gmail.com>
- <CAFd5g44_axVHNMBzxSURQB_-R+Rif7cZcg7PyZ_SS+5hcy5jZA@mail.gmail.com>
- <20190716175021.9CA412173C@mail.kernel.org>
- <CAFd5g453vXeSUCZenCk_CzJ-8a1ym9RaPo0NVF=FujF9ac-5Ag@mail.gmail.com>
- <20190718175024.C3EC421019@mail.kernel.org>
- <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
- <20190719000834.GA3228@google.com> <20190722200347.261D3218C9@mail.kernel.org>
- <CAFd5g45hdCxEavSxirr0un_uLzo5Z-J4gHRA06qjzcQrTzmjVg@mail.gmail.com>
- <20190722235411.06C1320840@mail.kernel.org>
+From: "Stella Petrovna" <info-HYTaZIW7nQbP0NmT/J328w@public.gmane.org>
+Subject: =?windows-1251?B?yuDqIO/w7uTi6OPg8vwg8eLu/iDq7uzv4O3o?=
+ =?windows-1251?B?/g==?=
+Date: Wed, 24 Jul 2019 01:51:19 +0300
+Message-ID: <8d77a10df93d797558bd0b58ac6f25293ba398c9@posting.icu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="cp1251"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190722235411.06C1320840-+nuXSHJNwjE76Z2rM5mHXA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,108 +16,46 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kbuild <linux-kbuild-u79uwXL29TasMV2rI37PzA@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Mon, Jul 22, 2019 at 4:54 PM Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> Quoting Brendan Higgins (2019-07-22 15:30:49)
-> > On Mon, Jul 22, 2019 at 1:03 PM Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > >
-> > >
-> > > What's the calling context of the assertions and expectations? I still
-> > > don't like the fact that string stream needs to allocate buffers and
-> > > throw them into a list somewhere because the calling context matters
-> > > there.
-> >
-> > The calling context is the same as before, which is anywhere.
->
-> Ok. That's concerning then.
-
-Yeah. Luis suggested just not supporting the IRQ context until later.
-See my later comment.
-
-> > > I'd prefer we just wrote directly to the console/log via printk
-> > > instead. That way things are simple because we use the existing
-> > > buffering path of printk, but maybe there's some benefit to the string
-> > > stream that I don't see? Right now it looks like it builds a string and
-> > > then dumps it to printk so I'm sort of lost what the benefit is over
-> > > just writing directly with printk.
-> >
-> > It's just buffering it so the whole string gets printed uninterrupted.
-> > If we were to print out piecemeal to printk, couldn't we have another
-> > call to printk come in causing it to garble the KUnit message we are
-> > in the middle of printing?
->
-> Yes, printing piecemeal by calling printk many times could lead to
-> interleaving of messages if something else comes in such as an interrupt
-> printing something. Printk has some support to hold "records" but I'm
-> not sure how that would work here because KERN_CONT talks about only
-> being used early on in boot code. I haven't looked at printk in detail
-> though so maybe I'm all wrong and KERN_CONT just works?
-
-It says KERN_CONT is not SMP safe, and it isn't supposed to contain
-newlines, so it doesn't sound like it does any buffering for you. I
-looked at it a while ago and those comments agreed with my
-understanding of the code, but I could be wrong.
-
-> Can printk be called once with whatever is in the struct?
-
-Unfortunately, no. That is part of what I was trying to illustrate
-with this patch. Most of the messages are deterministic, but
-hardcoding all the possible message types would lead to a massive
-number of hard coded strings. However, even this would break down for
-the mocking formatters. All the different ways a function can be
-called are just too complex to encode into a finite set of hard coded
-fmt strings.
-
-> Otherwise if
-> this is about making printk into a structured log then maybe printk
-> isn't the proper solution anyway. Maybe a dev interface should be used
-> instead that can handle starting and stopping tests (via ioctl) in
-> addition to reading test results, records, etc. with read() and a
-> clearing of the records. Then the seqfile API works naturally. All of
-
-Ehhh...I wouldn't mind providing such an interface, but I would really
-like to be able to provide the results without having to depend on a
-userland doing something to get test results. That has always been a
-pretty important goal for me.
-
-> this is a bit premature, but it looks like you're going down the path of
-> making something akin to ftrace that stores binary formatted
-> assertion/expectation records in a lockless ring buffer that then
-> formats those records when the user asks for them.
-
-Like you said, I think it is a bit premature to go that far.
-
-In anycase, I don't see a way to get rid of string_stream, without
-significantly sacrificing usability.
-
-> I can imagine someone wanting to write unit tests that check conditions
-> from a simulated hardirq context via irq works (a driver mock
-> framework?), so this doesn't seem far off.
-
-Yep, I actually presented the first pieces of that in the RFC v1 that
-I linked to you earlier in this discussion. I have a more fleshed out
-example here:
-
-https://kunit.googlesource.com/linux/+/e10484ad2f9fc7926412ec84739fe105981b4771/drivers/i2c/busses/i2c-aspeed-test.c
-
-I actually already have some people at Google playing around with it.
-So yeah, not far off at all! However, in these cases we are not
-actually running in the IRQ context (despite the fact that we are
-testing IRQ code) because we provide a fake IRQ chip, or some other
-fake mechanism that triggers the IRQ. Still, I could see someone
-wanting to do it in a non-fake-IRQ context.
-
-Luis' suggestion was just to hold off on the IRQ safe stuff at the
-outset, since that is going to require a lot more effort to review. I
-know that's kind of the future coding argument again, but maybe the
-answer will be to just restrict what features an IRQ user has access
-to (maybe just really simple expectations, for example). I mean, we
-will probably have to restrict what they are allowed to use anyway.
-
-Luis, do you have any ideas?
-
-Cheers
+z+7k8O7h7eD/IOjt9O7w7OD26P8+CgrP8Ojj6+D44OXsIMLg8Swg4iDO5OXx8fMsINXg8Pzq7uIg
+6OvoIMTt5e/wLCDt4CDs4PHy5fAt6uvg8fEg7vIgwO3k8OX/INTl5O7w6OLgICLP4O/gIOHw5e3k
+4CIKCi0gwvHl7Cwg6vLuIPXu9+XyIOft4PL8LCDq4Oog8e7n5ODy/CDq4Pfl8fLi5e3t++kg4fDl
+7eQg6CDv8OXi8ODy6PL8IOXj7iDiIOzu+e376SDo7fHy8PPs5e3yOwotIMLu5+zu5u3uLCD98u4g
+4fPk5fIg8eDs++kg7+7r5eft++kg7ODx8uXwLerr4PHxIOIg4uD45ekg5ujn7eiFCgrOIPfl7CDs
+4PHy5fAt6uvg8fE/CgrA4vLu8PHq4P8g7OXy7uTo6uAgq8/g7+Ag4fDl7eTguyDu8iDA7eTw5f8g
+1OXk7vDo4uAgliDi5eTz+eXj7iDs4PDq5fLu6+7j4CDC7vHy7vft7ukgxeLw7u/7IOgg1uXt8vDg
+6/zt7ukgwOfo6CDxIDIwLevl8u3o7CDu7/vy7uwg4iDw4Ofi6PLo6CDx7vLl7SDz8e/l+O379SDh
+8OXt5O7iIOIg0+rw4Ojt5SwgyuDn4PXx8uDt5SwgwOfl8OHg6eTm4O3lLCDQ7vHx6OgsIOAg8uDq
+5uUg4iDx8vDg7eD1IMXRIOgg0e7l5Ojt5e3t+/Ug2PLg8uD1LgoKzeAg7/Do7OXw5SDv8ODq8uj3
+5fHq6PUg6uXp8e7iLCDP4O/gIMHw5e3k4CDv7urg5uXyLCDq4Oog7eDz9+jy/PH/IPHu5+Tg4uDy
+/CDh8OXt5Psg7eAg8vPw4fPr5e3y7fv1IPD77erg9SDx8vDg7SDRzcMsIOHw4PL8IOHo5+3l8SDi
+IPHi7ugg8PPq6CDoIOTu4eji4PL88f8g4/Dg7eTo7uft+/Ug8OXn8+v88uDy7uIuIMzg8fLl8C3q
+6+Dx8SDuIPLu7Cwg6uDqIO/w5eLw4PLo8vwg4fDl7eQg4iDs7vnt++kg6O3x8vDz7OXt8iDo5+zl
+7eXt6Okg6CDw7vHy4C4KCsHo5+3l8S3v8O7j8ODs7OA6CgoxLiDK4Oog5ujy/D8g4fDl7eQg6uDq
+IOjt8fLw8+zl7fIg6Ofs5e3l7ejpCsbo5+38LCDz8fLg4iDr/uTl6SDoIPfy7iDxIP3y6Owg5OXr
+4PL8LiDN7uL75SDj5fDu6CDoIO/u9+Xs8yDu7egg6OzoIPHy4OvoCsft4P4gLSDV7vfzIC0gz+vg
+9/MuIMzu5OXr/CBBSURBCgoyLiDP4O/gIOHw5e3k4ArS6O/7IOLr4OTl6/z25eIg4ejn7eXx4C4g
+z+735ezzIO/g7+Ag4fDl7eTgPwrP8O717uTo7CDy5fHyIO3gIO/g7/MuIMAg7fPm5e0g6+gg7ODw
+6uXy6O3jLeTo8OXq8u7wPyAo7fPm5e0pCgozLiDO8uvo9+Dp8f8K0fLw4PLl4+j/ID0gyOTl/y4g
+yuDqIO3g6fLoIPHi7v4g8+3o6uDr/O3z/iDo5OX+Cgo0LiDE7uHw7vLt++kg6uXp8QrP7uHl5Psg
+6CDv8O7i4Ov7IOHw5e3k7uIgzvHy4O3q6O3uLCDP4O/gIOzu5uXyLCDR7vHo8ergLvDzCgo1LiDP
+7vLw5eHo8uXr/ArO5OAg6PHx6+Xk7uLg7ej/7C4KOCDo8fLu9+3o6u7iIO/w4OLk6OLu6SDo7fTu
+8Ozg9ujoIO4g7+7y8OXh6PLl6+UuCsrg6iDo8erg8vwg6O3x4Ony+y4gyuXp8fsg9e7w7vjo9SDo
+IO/r7vXo9YUKCjYuINHy8ODy5ePo/wrW5e3gIC0g9uXt7e7x8vwuIDUg8/Du4u3l6SDz7ejq4Ov8
+7e7x8ugg4fDl7eTgLgrK4Oog8eTl6+Dy/CDy4u7w9+Xx6ujpIO/w7vD74i4Kz/Du8fL75SDo7fHy
+8PPs5e3y+yDk6/8g7/Do5PPs++Lg7ej/LgoKNy4g0ujv6Pft++Ug8fLw4PLl4+joCszu5u3uIOL7
+4fDg8vwg8ujv6Pft8/4g8fLw4PLl4+j+IOgg7eDv7uvt6PL8IOW4IPHs+/Hr7uwuINDg5+Hl8OXs
+8f8sIOrg6iD98u4g8eTl6+Dy/AoKOC4gQnJhbmQgZXhwZXJpZW5jZQrT5O7i6+Xy4u7w5e3o5SDQ
+wMLNziDw5efz6/zy4PIgzMjN09Eg7ubo5ODt6OUgz8XQxcLbz87LzcXNyMUg4uzl8fLuIM/F0MXO
+wcXZwM3I3woKyuDq7ukg8OXn8+v88uDyIOL7IO/u6/P36PLlOgotINPn7eDl8uUsIOrg6iDt4PP3
+6PL88f8g8e7n5ODi4PL8IOHw5e3k+yDt4CDy8/Dh8+vl7fLt+/Ug8Pvt6uD1IPHy8ODtINHNwywg
+4fDg8vwg4ejn7eXxIOIg8eLu6CDw8+roIOgg5O7h6OLg8vzx/yDj8ODt5Oju5+379SDw5efz6/zy
+4PLu4i4KLSDN4PP36PLl8fwg8e7n5ODi4PL8IPEg7fPr/yDo6+gg4u7n4vDg+eDy/CDqIObo5+3o
+IO/r7vXuIPDg4e7y4P756Okg4fDl7eQuIM3gIOv+4e7sIP3y4O/lIOHo5+3l8eAuCgrP7uTw7uHt
+4P8g6O307vDs4Pbo/z4KCs7y6uDnIO7yIO/u9/L7LiDo6+gg7+7m4Ovu4uDy/PH/IO3gINHv4Owh
+Ckxpc3QtVW5zdWJzY3JpYmUgZnJvbSB0aGUgbmV3c2xldHRlciBvciBjb21wbGFpbiBhYm91dCBT
+cGFtIQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
