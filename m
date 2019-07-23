@@ -1,17 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 83CD6212FD4E1
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:17 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 13/13] test: Add a unit test for
- daxctl-reconfigure-device and friends
-Date: Wed, 31 Jul 2019 18:29:32 -0600
-Message-Id: <20190801002932.26430-14-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A649921A07094
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 12:02:13 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id l15so45154469otn.9
+ for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 11:59:47 -0700 (PDT)
 MIME-Version: 1.0
+References: <87a7f45qik.fsf@linux.ibm.com> <877ea85p64.fsf@linux.ibm.com>
+In-Reply-To: <877ea85p64.fsf@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 23 Jul 2019 11:59:35 -0700
+Message-ID: <CAPcyv4hKSfeeo+eLu0=4-wca2TwBx5OJfaxD36o5uG8Vd=DibA@mail.gmail.com>
+Subject: Re: Picking 0th namespace if it is idle
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,162 +25,132 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test to test dax device reconfiguration and memory
-operations. This teaches test/common about daxctl, and adds an ACPI.NFIT
-bus variable. Since we have to operate on the ACPI.NFIT bus, the test is
-marked as destructive.
+On Thu, May 30, 2019 at 1:20 AM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
+>
+> aneesh.kumar@linux.ibm.com (Aneesh Kumar K.V) writes:
+>
+> > Hi Dan,
+> >
+> > With the patch series to mark the namespace disabled if we have mismatch
+> > in pfn superblock, we can endup with namespace0 marked idle/disabled.
+> >
+> > I am wondering why do do the below in ndctl.
+> >
+> >
+> > static struct ndctl_namespace *region_get_namespace(struct ndctl_region *region)
+> > {
+> >       struct ndctl_namespace *ndns;
+> >
+> >       /* prefer the 0th namespace if it is idle */
+> >       ndctl_namespace_foreach(region, ndns)
+> >               if (ndctl_namespace_get_id(ndns) == 0
+> >                               && !is_namespace_active(ndns))
+> >                       return ndns;
+> >       return ndctl_region_get_namespace_seed(region);
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/Makefile.am       |  3 +-
- test/common            | 19 ++++++++--
- test/daxctl-devices.sh | 81 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 99 insertions(+), 4 deletions(-)
- create mode 100755 test/daxctl-devices.sh
+Without this change if you create 2 namespaces, destroy those two
+namespaces and then create another namespace that newest namespace
+might end up being namespace0.1 instead of namespace0.0. This ends up
+confusing end users that don't understand why they end up with
+/dev/pmem0.1 and then at reboot it changes back to /dev/pmem0. So it's
+purely a cosmetic detail.
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 874c4bb..84474d0 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -49,7 +49,8 @@ TESTS +=\
- 	dax.sh \
- 	device-dax \
- 	device-dax-fio.sh \
--	mmap.sh
-+	mmap.sh \
-+	daxctl-devices.sh
- 
- if ENABLE_KEYUTILS
- TESTS += security.sh
-diff --git a/test/common b/test/common
-index 1b9d3da..1814a0c 100644
---- a/test/common
-+++ b/test/common
-@@ -15,12 +15,25 @@ else
- 	exit 1
- fi
- 
--# NFIT_TEST_BUS[01]
-+# DAXCTL
- #
--NFIT_TEST_BUS0=nfit_test.0
--NFIT_TEST_BUS1=nfit_test.1
-+if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
-+	export DAXCTL=../daxctl/daxctl
-+elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
-+	export DAXCTL=./daxctl/daxctl
-+else
-+	echo "Couldn't find an daxctl binary"
-+	exit 1
-+fi
- 
- 
-+# NFIT_TEST_BUS[01]
-+#
-+NFIT_TEST_BUS0="nfit_test.0"
-+NFIT_TEST_BUS1="nfit_test.1"
-+ACPI_BUS="ACPI.NFIT"
-+E820_BUS="e820"
-+
- # Functions
- 
- # err
-diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-new file mode 100755
-index 0000000..04f53f7
---- /dev/null
-+++ b/test/daxctl-devices.sh
-@@ -0,0 +1,81 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2019 Intel Corporation. All rights reserved.
-+
-+rc=77
-+. ./common
-+
-+trap 'cleanup $LINENO' ERR
-+
-+cleanup()
-+{
-+	printf "Error at line %d\n" "$1"
-+	[[ $testdev ]] && reset_dev
-+	exit $rc
-+}
-+
-+find_testdev()
-+{
-+	local rc=77
-+
-+	# find a victim device
-+	testbus="$ACPI_BUS"
-+	testdev=$("$NDCTL" list -b "$testbus" -Ni | jq -er '.[0].dev | .//""')
-+	if [[ ! $testdev  ]]; then
-+		printf "Unable to find a victim device\n"
-+		exit "$rc"
-+	fi
-+	printf "Found victim dev: %s on bus: %s\n" "$testdev" "$testbus"
-+}
-+
-+setup_dev()
-+{
-+	test -n "$testbus"
-+	test -n "$testdev"
-+
-+	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-+	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 256M | \
-+		jq -er '.dev')
-+	test -n "$testdev"
-+}
-+
-+reset_dev()
-+{
-+	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-+}
-+
-+daxctl_get_dev()
-+{
-+	"$NDCTL" list -n "$1" -X | jq -er '.[].daxregion.devices[0].chardev'
-+}
-+
-+daxctl_get_mode()
-+{
-+	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
-+}
-+
-+daxctl_test()
-+{
-+	local daxdev
-+
-+	daxdev=$(daxctl_get_dev "$testdev")
-+	test -n "$daxdev"
-+
-+	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
-+	"$DAXCTL" online-memory "$daxdev"
-+	"$DAXCTL" offline-memory "$daxdev"
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	"$DAXCTL" reconfigure-device -m system-ram "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
-+	"$DAXCTL" reconfigure-device -f -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+}
-+
-+find_testdev
-+setup_dev
-+rc=1
-+daxctl_test
-+reset_dev
-+exit 0
--- 
-2.20.1
+I think we could teach ndctl about how to detect this case as separate
+from a typically idle namespace state. Effectively pfn-device bind
+failures due to missing page size support is a new error state that
+ndctl needs to be made aware of independent of the typical idle state.
+However, all I think is needed here is to fallback to
+ndctl_region_get_namespace_seed() if ndctl_namespace_get_size() is
+non-zero.
 
+> > }
+> >
+> > I have a kernel patch that will create a namespace_seed even if we fail
+> > to ename a pfn backing device. Something like below
+> >
+> > @@ -747,12 +752,23 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
+> >               }
+> >       }
+> >       if (dev->parent && is_nd_region(dev->parent) && probe) {
+> >               nd_region = to_nd_region(dev->parent);
+> >               nvdimm_bus_lock(dev);
+> >               if (nd_region->ns_seed == dev)
+> >                       nd_region_create_ns_seed(nd_region);
+> >               nvdimm_bus_unlock(dev);
+> >       }
+> > +
+> > +     if (dev->parent && is_nd_region(dev->parent) && !probe && (ret == -EOPNOTSUPP)) {
+> > +             nd_region = to_nd_region(dev->parent);
+> > +             nvdimm_bus_lock(dev);
+> > +             if (nd_region->ns_seed == dev)
+> > +                     nd_region_create_ns_seed(nd_region);
+> > +             nvdimm_bus_unlock(dev);
+> > +     }
+> > +
+> >
+> > With that we can end up with something like the below after boot.
+> > :/sys/bus/nd/devices/region0$ sudo ndctl list -Ni
+> > [
+> >   {
+> >     "dev":"namespace0.1",
+> >     "mode":"fsdax",
+> >     "map":"mem",
+> >     "size":0,
+> >     "uuid":"00000000-0000-0000-0000-000000000000",
+> >     "state":"disabled"
+> >   },
+> >   {
+> >     "dev":"namespace0.0",
+> >     "mode":"fsdax",
+> >     "map":"mem",
+> >     "size":2147483648,
+> >     "uuid":"094e703b-4bf8-4078-ad42-50bebc03e538",
+> >     "state":"disabled"
+> >   }
+> > ]
+> >
+> > namespace0.0 is the one we failed to initialize due to PAGE_SIZE
+> > mismatch.
+> >
+> > We do have namespace_seed pointing to namespacece0.1 correct. But a ndtl
+> > create-namespace will pick namespace0.0 even if we have seed file
+> > pointing to namespacec0.1.
+> >
+> >
+> > I am trying to resolve the issues related to creation of new namespaces
+> > when we have some namespace marked disabled due to pfn_sb setting
+> > mismatch.
+> >
+> > -aneesh
+>
+> With that ndctl namespace0.0 selection commented out, we do get pick the
+> right idle namespace.
+>
+> #ndctl list -Ni
+> [
+>   {
+>     "dev":"namespace0.1",
+>     "mode":"fsdax",
+>     "map":"mem",
+>     "size":0,
+>     "uuid":"00000000-0000-0000-0000-000000000000",
+>     "state":"disabled"
+>   },
+>   {
+>     "dev":"namespace0.0",
+>     "mode":"fsdax",
+>     "map":"mem",
+>     "size":2147483648,
+
+Yes, this being non-zero means the namespace is not idle.
+
+Maybe with --force we can ignore the size checking and just reclaim
+the 0th namespace for a new namespace.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
