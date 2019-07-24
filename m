@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 413F72128D681
- for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 16:43:09 -0700 (PDT)
-From: Jane Chu <jane.chu@oracle.com>
-Subject: [PATCH] mm/memory-failure: Poison read receives SIGKILL instead of
- SIGBUS if mmaped more than once
-Date: Tue, 23 Jul 2019 17:38:30 -0600
-Message-Id: <1563925110-19359-1-git-send-email-jane.chu@oracle.com>
+ by ml01.01.org (Postfix) with ESMTPS id 87D66212DC5AD
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:00:15 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v7 07/13] daxctl: add a new reconfigure-device command
+Date: Wed, 24 Jul 2019 15:57:35 -0600
+Message-Id: <20190724215741.18556-8-vishal.l.verma@intel.com>
+In-Reply-To: <20190724215741.18556-1-vishal.l.verma@intel.com>
+References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,96 +18,427 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Mmap /dev/dax more than once, then read the poison location using address
-from one of the mappings. The other mappings due to not having the page
-mapped in will cause SIGKILLs delivered to the process. SIGKILL succeeds
-over SIGBUS, so user process looses the opportunity to handle the UE.
+Add a new command 'daxctl-reconfigure-device'. This is used to switch
+the mode of a dax device between regular 'device_dax' and
+'system-memory'. The command also uses the memory hotplug sysfs
+interfaces to online the newly available memory when converting to
+'system-ram', and to attempt to offline the memory when converting back
+to a DAX device.
 
-Although one may add MAP_POPULATE to mmap(2) to work around the issue,
-MAP_POPULATE makes mapping 128GB of pmem several magnitudes slower, so
-isn't always an option.
-
-Details -
-
-ndctl inject-error --block=10 --count=1 namespace6.0
-
-./read_poison -x dax6.0 -o 5120 -m 2
-mmaped address 0x7f5bb6600000
-mmaped address 0x7f3cf3600000
-doing local read at address 0x7f3cf3601400
-Killed
-
-Console messages in instrumented kernel -
-
-mce: Uncorrected hardware memory error in user-access at edbe201400
-Memory failure: tk->addr = 7f5bb6601000
-Memory failure: address edbe201: call dev_pagemap_mapping_shift
-dev_pagemap_mapping_shift: page edbe201: no PUD
-Memory failure: tk->size_shift == 0
-Memory failure: Unable to find user space address edbe201 in read_poison
-Memory failure: tk->addr = 7f3cf3601000
-Memory failure: address edbe201: call dev_pagemap_mapping_shift
-Memory failure: tk->size_shift = 21
-Memory failure: 0xedbe201: forcibly killing read_poison:22434 because of failure to unmap corrupted page
-  => to deliver SIGKILL
-Memory failure: 0xedbe201: Killing read_poison:22434 due to hardware memory corruption
-  => to deliver SIGBUS
-
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- mm/memory-failure.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ daxctl/Makefile.am |   2 +
+ daxctl/builtin.h   |   1 +
+ daxctl/daxctl.c    |   1 +
+ daxctl/device.c    | 347 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 351 insertions(+)
+ create mode 100644 daxctl/device.c
 
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index d9cc660..7038abd 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -315,7 +315,6 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
+index 94f73f9..66dcc7f 100644
+--- a/daxctl/Makefile.am
++++ b/daxctl/Makefile.am
+@@ -15,10 +15,12 @@ daxctl_SOURCES =\
+ 		daxctl.c \
+ 		list.c \
+ 		migrate.c \
++		device.c \
+ 		../util/json.c
  
- 	if (*tkc) {
- 		tk = *tkc;
--		*tkc = NULL;
- 	} else {
- 		tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
- 		if (!tk) {
-@@ -331,16 +330,21 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
- 		tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+ daxctl_LDADD =\
+ 	lib/libdaxctl.la \
+ 	../libutil.a \
+ 	$(UUID_LIBS) \
++	$(KMOD_LIBS) \
+ 	$(JSON_LIBS)
+diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+index 00ef5e9..756ba2a 100644
+--- a/daxctl/builtin.h
++++ b/daxctl/builtin.h
+@@ -6,4 +6,5 @@
+ struct daxctl_ctx;
+ int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+ int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
++int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
+ #endif /* _DAXCTL_BUILTIN_H_ */
+diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+index 2e41747..e1ba7b8 100644
+--- a/daxctl/daxctl.c
++++ b/daxctl/daxctl.c
+@@ -71,6 +71,7 @@ static struct cmd_struct commands[] = {
+ 	{ "list", .d_fn = cmd_list },
+ 	{ "help", .d_fn = cmd_help },
+ 	{ "migrate-device-model", .d_fn = cmd_migrate },
++	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
+ };
  
- 	/*
--	 * In theory we don't have to kill when the page was
--	 * munmaped. But it could be also a mremap. Since that's
--	 * likely very rare kill anyways just out of paranoia, but use
--	 * a SIGKILL because the error is not contained anymore.
-+	 * Indeed a page could be mmapped N times within a process. And it's possible
-+	 * that not all of those N VMAs contain valid mapping for the page. In which
-+	 * case we don't want to send SIGKILL to the process on behalf of the VMAs
-+	 * that don't have the valid mapping, because doing so will eclipse the SIGBUS
-+	 * delivered on behalf of the active VMA.
- 	 */
- 	if (tk->addr == -EFAULT || tk->size_shift == 0) {
- 		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
- 			page_to_pfn(p), tsk->comm);
--		tk->addr_valid = 0;
-+		if (tk != *tkc)
-+			kfree(tk);
-+		return;
- 	}
-+	if (tk == *tkc)
-+		*tkc = NULL;
- 	get_task_struct(tsk);
- 	tk->tsk = tsk;
- 	list_add_tail(&tk->nd, to_kill);
+ int main(int argc, const char **argv)
+diff --git a/daxctl/device.c b/daxctl/device.c
+new file mode 100644
+index 0000000..a71ebbe
+--- /dev/null
++++ b/daxctl/device.c
+@@ -0,0 +1,347 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++#include <stdio.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <syslog.h>
++#include <unistd.h>
++#include <limits.h>
++#include <util/json.h>
++#include <util/filter.h>
++#include <json-c/json.h>
++#include <daxctl/libdaxctl.h>
++#include <util/parse-options.h>
++#include <ccan/array_size/array_size.h>
++
++static struct {
++	const char *dev;
++	const char *mode;
++	int region_id;
++	bool no_online;
++	bool do_offline;
++	bool human;
++	bool verbose;
++} param = {
++	.region_id = -1,
++};
++
++enum dev_mode {
++	DAXCTL_DEV_MODE_UNKNOWN,
++	DAXCTL_DEV_MODE_DEVDAX,
++	DAXCTL_DEV_MODE_RAM,
++};
++
++static enum dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
++static unsigned long flags;
++
++enum device_action {
++	ACTION_RECONFIG,
++};
++
++#define BASE_OPTIONS() \
++OPT_INTEGER('r', "region", &param.region_id, "restrict to the given region"), \
++OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
++OPT_BOOLEAN('v', "verbose", &param.verbose, "emit more debug messages")
++
++#define RECONFIG_OPTIONS() \
++OPT_STRING('m', "mode", &param.mode, "mode", "mode to switch the device to"), \
++OPT_BOOLEAN('N', "no-online", &param.no_online, \
++	"don't auto-online memory sections"), \
++OPT_BOOLEAN('O', "attempt-offline", &param.do_offline, \
++		"attempt to offline memory sections")
++
++static const struct option reconfig_options[] = {
++	BASE_OPTIONS(),
++	RECONFIG_OPTIONS(),
++	OPT_END(),
++};
++
++static const char *parse_device_options(int argc, const char **argv,
++		enum device_action action, const struct option *options,
++		const char *usage, struct daxctl_ctx *ctx)
++{
++	const char * const u[] = {
++		usage,
++		NULL
++	};
++	int i, rc = 0;
++
++	argc = parse_options(argc, argv, options, u, 0);
++
++	/* Handle action-agnostic non-option arguments */
++	if (argc == 0) {
++		char *action_string;
++
++		switch (action) {
++		case ACTION_RECONFIG:
++			action_string = "reconfigure";
++			break;
++		default:
++			action_string = "<>";
++			break;
++		}
++		fprintf(stderr, "specify a device to %s, or \"all\"\n",
++			action_string);
++		rc = -EINVAL;
++	}
++	for (i = 1; i < argc; i++) {
++		fprintf(stderr, "unknown extra parameter \"%s\"\n", argv[i]);
++		rc = -EINVAL;
++	}
++
++	if (rc) {
++		usage_with_options(u, options);
++		return NULL;
++	}
++
++	/* Handle action-agnostic options */
++	if (param.verbose)
++		daxctl_set_log_priority(ctx, LOG_DEBUG);
++	if (param.human)
++		flags |= UTIL_JSON_HUMAN;
++
++	/* Handle action-specific options */
++	switch (action) {
++	case ACTION_RECONFIG:
++		if (!param.mode) {
++			fprintf(stderr, "error: a 'mode' option is required\n");
++			usage_with_options(u, reconfig_options);
++			rc = -EINVAL;
++		}
++		if (strcmp(param.mode, "system-ram") == 0) {
++			reconfig_mode = DAXCTL_DEV_MODE_RAM;
++			if (param.do_offline) {
++				fprintf(stderr,
++					"can't --attempt-offline for system-ram mode\n");
++				rc = -EINVAL;
++			}
++		} else if (strcmp(param.mode, "devdax") == 0) {
++			reconfig_mode = DAXCTL_DEV_MODE_DEVDAX;
++			if (param.no_online) {
++				fprintf(stderr,
++					"can't --no-online for devdax mode\n");
++				rc =  -EINVAL;
++			}
++		}
++		break;
++	}
++	if (rc) {
++		usage_with_options(u, options);
++		return NULL;
++	}
++
++	return argv[0];
++}
++
++static int disable_devdax_device(struct daxctl_dev *dev)
++{
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *devname = daxctl_dev_get_devname(dev);
++	int rc;
++
++	if (mem) {
++		fprintf(stderr, "%s is in system-ram mode, nothing to do\n",
++			devname);
++		return 1;
++	}
++	rc = daxctl_dev_disable(dev);
++	if (rc) {
++		fprintf(stderr, "%s: disable failed: %s\n",
++			daxctl_dev_get_devname(dev), strerror(-rc));
++		return rc;
++	}
++	return 0;
++}
++
++static int reconfig_mode_system_ram(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_memory *mem;
++	int rc, skip_enable = 0;
++
++	if (daxctl_dev_is_enabled(dev)) {
++		rc = disable_devdax_device(dev);
++		if (rc < 0)
++			return rc;
++		if (rc > 0)
++			skip_enable = 1;
++	}
++
++	if (!skip_enable) {
++		rc = daxctl_dev_enable_ram(dev);
++		if (rc)
++			return rc;
++	}
++
++	if (param.no_online)
++		return 0;
++
++	mem = daxctl_dev_get_memory(dev);
++	if (!mem) {
++		fprintf(stderr, "%s: unable to get the memory object: %s\n",
++			devname, strerror(-rc));
++		return -ENXIO;
++	}
++	rc = daxctl_memory_set_online(mem);
++	if (rc < 0) {
++		fprintf(stderr, "%s: unable to online memory: %s\n",
++			devname, strerror(-rc));
++		return rc;
++	}
++	if (param.verbose)
++		fprintf(stderr, "%s: onlined %d memory sections\n",
++			devname, rc);
++
++	return 0;
++}
++
++static int disable_system_ram_device(struct daxctl_dev *dev)
++{
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *devname = daxctl_dev_get_devname(dev);
++	int rc;
++
++	if (!mem) {
++		fprintf(stderr, "%s: already in devdax mode, nothing to do\n",
++			devname);
++		return 1;
++	}
++
++	if (param.do_offline) {
++		rc = daxctl_memory_set_offline(mem);
++		if (rc < 0) {
++			fprintf(stderr, "%s: unable to offline memory: %s\n",
++				devname, strerror(-rc));
++			return rc;
++		}
++		if (param.verbose)
++			fprintf(stderr, "%s: offlined %d memory sections\n",
++				devname, rc);
++	}
++
++	rc = daxctl_memory_is_online(mem);
++	if (rc < 0) {
++		fprintf(stderr, "%s: unable to determine online state: %s\n",
++			devname, strerror(-rc));
++		return rc;
++	}
++	if (rc > 0) {
++		if (param.verbose) {
++			fprintf(stderr, "%s: found %d memory sections online\n",
++				devname, rc);
++			fprintf(stderr, "%s: refusing to change modes\n",
++				devname);
++		}
++		return -EBUSY;
++	}
++	rc = daxctl_dev_disable(dev);
++	if (rc) {
++		fprintf(stderr, "%s: disable failed: %s\n",
++			daxctl_dev_get_devname(dev), strerror(-rc));
++		return rc;
++	}
++	return 0;
++}
++
++static int reconfig_mode_devdax(struct daxctl_dev *dev)
++{
++	int rc;
++
++	if (daxctl_dev_is_enabled(dev)) {
++		rc = disable_system_ram_device(dev);
++		if (rc)
++			return rc;
++	}
++
++	rc = daxctl_dev_enable_devdax(dev);
++	if (rc)
++		return rc;
++
++	return 0;
++}
++
++static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
++		struct json_object *jdevs)
++{
++	struct json_object *jdev;
++	int rc = 0;
++
++	switch (mode) {
++	case DAXCTL_DEV_MODE_RAM:
++		rc = reconfig_mode_system_ram(dev);
++		break;
++	case DAXCTL_DEV_MODE_DEVDAX:
++		rc = reconfig_mode_devdax(dev);
++		break;
++	default:
++		fprintf(stderr, "%s: unknown mode requested: %d\n",
++			daxctl_dev_get_devname(dev), mode);
++		rc = -EINVAL;
++	}
++
++	jdev = util_daxctl_dev_to_json(dev, flags);
++	if (jdevs && jdev)
++		json_object_array_add(jdevs, jdev);
++
++	return rc;
++}
++
++static int do_xaction_device(const char *device, enum device_action action,
++		struct daxctl_ctx *ctx, int *processed)
++{
++	struct json_object *jdevs = json_object_new_array();
++	struct daxctl_region *region;
++	struct daxctl_dev *dev;
++	int rc = -ENXIO;
++
++	*processed = 0;
++
++	daxctl_region_foreach(ctx, region) {
++		if (param.region_id >= 0 && param.region_id
++				!= daxctl_region_get_id(region))
++			continue;
++
++		daxctl_dev_foreach(region, dev) {
++			if (!util_daxctl_dev_filter(dev, device))
++				continue;
++
++			switch (action) {
++			case ACTION_RECONFIG:
++				rc = do_reconfig(dev, reconfig_mode, jdevs);
++				if (rc == 0)
++					(*processed)++;
++				break;
++			default:
++				rc = -EINVAL;
++				break;
++			}
++		}
++	}
++
++	/*
++	 * jdevs is the containing json array for all devices we are reporting
++	 * on. It therefore needs to be outside the region/device iterators,
++	 * and passed in to the do_<action> functions to add their objects to
++	 */
++	if (jdevs)
++		util_display_json_array(stdout, jdevs, flags);
++
++	return rc;
++}
++
++int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
++{
++	char *usage = "daxctl reconfigure-device <device> [<options>]";
++	const char *device = parse_device_options(argc, argv, ACTION_RECONFIG,
++			reconfig_options, usage, ctx);
++	int processed, rc;
++
++	rc = do_xaction_device(device, ACTION_RECONFIG, ctx, &processed);
++	if (rc < 0)
++		fprintf(stderr, "error reconfiguring devices: %s\n",
++				strerror(-rc));
++
++	fprintf(stderr, "reconfigured %d device%s\n", processed,
++			processed == 1 ? "" : "s");
++	return rc;
++}
 -- 
-1.8.3.1
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
