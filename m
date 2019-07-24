@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A24F6212BF9D6
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:37 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id B31CA212DA5FC
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:00:13 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 08/13] Documentation/daxctl: add a man page for
- daxctl-reconfigure-device
-Date: Wed, 17 Jul 2019 16:53:55 -0600
-Message-Id: <20190717225400.9494-9-vishal.l.verma@intel.com>
-In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
-References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v7 01/13] libdaxctl: add interfaces to get ctx and check
+ device state
+Date: Wed, 24 Jul 2019 15:57:29 -0600
+Message-Id: <20190724215741.18556-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190724215741.18556-1-vishal.l.verma@intel.com>
+References: <20190724215741.18556-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,177 +27,89 @@ To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a man page describing the new daxctl-reconfigure-device command.
+In preparation for libdaxctl and daxctl to grow operational modes for
+DAX devices, add the following supporting APIs:
 
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+  daxctl_dev_get_ctx
+  daxctl_dev_is_enabled
+
 Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/daxctl/Makefile.am              |   3 +-
- .../daxctl/daxctl-reconfigure-device.txt      | 139 ++++++++++++++++++
- 2 files changed, 141 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl/daxctl-reconfigure-device.txt
+ daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  6 ++++++
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 38 insertions(+)
 
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 6aba035..715fbad 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -28,7 +28,8 @@ endif
- man1_MANS = \
- 	daxctl.1 \
- 	daxctl-list.1 \
--	daxctl-migrate-device-model.1
-+	daxctl-migrate-device-model.1 \
-+	daxctl-reconfigure-device.1
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c2e3a52..70f896b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
+ 	}
+ }
  
- CLEANFILES = $(man1_MANS)
- 
-diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
-new file mode 100644
-index 0000000..fb2b36b
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
-@@ -0,0 +1,139 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-reconfigure-device(1)
-+============================
-+
-+NAME
-+----
-+daxctl-reconfigure-device - Reconfigure a dax device into a different mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl reconfigure-device' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode, don't online the memory
-+----
-+# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  }
-+]
-+----
-+
-+* Reconfigure dax0.0 to devdax mode, attempt to offline the memory
-+----
-+# daxctl reconfigure-device --human --mode=devdax --attempt-offline dax0.0
++static int is_enabled(const char *drvpath)
 +{
-+  "chardev":"dax0.0",
-+  "size":"15.63 GiB (16.78 GB)",
-+  "target_node":2,
-+  "mode":"devdax"
++	struct stat st;
++
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
 +}
-+----
 +
-+* Reconfigure all dax devices on region0 to system-ram mode
-+----
-+# daxctl reconfigure-device --mode=system-ram --region=0 all
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  },
-+  {
-+    "chardev":"dax0.1",
-+    "size":16777216000,
-+    "target_node":3,
-+    "mode":"system-ram"
-+  }
-+]
-+----
++DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
++{
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
 +
-+* Run a process called 'some-service' using numactl to restrict its cpu
-+nodes to '0' and '1', and  memory allocations to node 2 (determined using
-+daxctl_dev_get_target_node() or 'daxctl list')
-+----
-+# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  }
-+]
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return 0;
++	}
 +
-+# numactl --cpunodebind=0-1 --membind=2 -- some-service --opt1 --opt2
-+----
++	return is_enabled(path);
++}
 +
-+DESCRIPTION
-+-----------
++DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
++{
++	return dev->region->ctx;
++}
 +
-+Reconfigure the operational mode of a dax device. This can be used to convert
-+a regular 'devdax' mode device to the 'system-ram' mode which allows for the dax
-+range to be hot-plugged into the system as regular memory.
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 84d3a69..c4af9a7 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
+ global:
+ 	daxctl_region_get_path;
+ } LIBDAXCTL_4;
 +
-+NOTE: This is a destructive operation. Any data on the dax device *will* be
-+lost.
-+
-+NOTE: Device reconfiguration depends on the dax-bus device model. If dax-class is
-+in use (via the dax_pmem_compat driver), the reconfiguration will fail. See
-+linkdaxctl:daxctl-migrate-device-model[1] for more information.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-m::
-+--mode=::
-+	Specify the mode to which the dax device(s) should be reconfigured.
-+	- "system-ram": hotplug the device into system memory.
-+
-+	- "devdax": switch to the normal "device dax" mode. This requires the
-+	  kernel to support hot-unplugging 'kmem' based memory. If this is not
-+	  available, a reboot is the only way to switch back to 'devdax' mode.
-+
-+-N::
-+--no-online::
-+	By default, memory sections provided by system-ram devices will be
-+	brought online automatically and immediately with the 'online_movable'
-+	policy. Use this option to disable the automatic onlining behavior.
-+
-+-O::
-+--attempt-offline::
-+	When converting from "system-ram" mode to "devdax", it is expected
-+	that all the memory sections are first made offline. By default,
-+	daxctl won't touch online memory. However with this option, attempt
-+	to offline the memory on the NUMA node associated with the dax device
-+	before converting it back to "devdax" mode.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-list[1],daxctl-migrate-device-model[1]
++LIBDAXCTL_6 {
++global:
++	daxctl_dev_get_ctx;
++	daxctl_dev_is_enabled;
++} LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 1d13ea2..e20ccb4 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
++struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
++int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
 -- 
 2.20.1
 
