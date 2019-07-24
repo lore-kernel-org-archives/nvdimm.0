@@ -1,52 +1,178 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 40218212E15B5
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:21 -0700 (PDT)
-Subject: [ndctl PATCH v2 03/26] ndctl/build: Drop -Wpointer-arith
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:39:36 -0700
-Message-ID: <156426357691.531577.10926120390253347067.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+Subject: Re: [PATCH] mm/memory-failure: Poison read receives SIGKILL instead
+ of SIGBUS if mmaped more than once
+References: <1563925110-19359-1-git-send-email-jane.chu@oracle.com>
+ <CAPcyv4hyvHFnSE4AUbXooxX_Ug-raxAJgzC7jzkHp_mSg_sCmg@mail.gmail.com>
+ <20190724064846.GA17567@hori.linux.bs1.fc.nec.co.jp>
+From: jane.chu@oracle.com
+Message-ID: <2cff94e6-27ea-46c7-bee4-55d789fdc6af@oracle.com>
+Date: Wed, 24 Jul 2019 15:33:10 -0700
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20190724064846.GA17567@hori.linux.bs1.fc.nec.co.jp>
+Content-Type: text/plain; charset=iso-2022-jp; format=flowed; delsp=yes
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Sender: owner-linux-mm@kvack.org
+To: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-It is common kernel practice to do pointer arithmetic on (void *). Drop
-this warning for ndctl.
+Thank you all for your comments!
+I've incorporated them, tested, and have a v2 ready for review.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- configure.ac |    1 -
- 1 file changed, 1 deletion(-)
+Thanks!
+-jane
 
-diff --git a/configure.ac b/configure.ac
-index 6dca96eda395..4737cfff77f2 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -207,7 +207,6 @@ my_CFLAGS="\
- -Wmissing-declarations \
- -Wmissing-prototypes \
- -Wnested-externs \
---Wpointer-arith \
- -Wshadow \
- -Wsign-compare \
- -Wstrict-prototypes \
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+On 7/23/19 11:48 PM, Naoya Horiguchi wrote:
+> Hi Jane, Dan,
+> 
+> On Tue, Jul 23, 2019 at 06:34:35PM -0700, Dan Williams wrote:
+>> On Tue, Jul 23, 2019 at 4:49 PM Jane Chu <jane.chu@oracle.com> wrote:
+>>>
+>>> Mmap /dev/dax more than once, then read the poison location using address
+>>> from one of the mappings. The other mappings due to not having the page
+>>> mapped in will cause SIGKILLs delivered to the process. SIGKILL succeeds
+>>> over SIGBUS, so user process looses the opportunity to handle the UE.
+>>>
+>>> Although one may add MAP_POPULATE to mmap(2) to work around the issue,
+>>> MAP_POPULATE makes mapping 128GB of pmem several magnitudes slower, so
+>>> isn't always an option.
+>>>
+>>> Details -
+>>>
+>>> ndctl inject-error --block=10 --count=1 namespace6.0
+>>>
+>>> ./read_poison -x dax6.0 -o 5120 -m 2
+>>> mmaped address 0x7f5bb6600000
+>>> mmaped address 0x7f3cf3600000
+>>> doing local read at address 0x7f3cf3601400
+>>> Killed
+>>>
+>>> Console messages in instrumented kernel -
+>>>
+>>> mce: Uncorrected hardware memory error in user-access at edbe201400
+>>> Memory failure: tk->addr = 7f5bb6601000
+>>> Memory failure: address edbe201: call dev_pagemap_mapping_shift
+>>> dev_pagemap_mapping_shift: page edbe201: no PUD
+>>> Memory failure: tk->size_shift == 0
+>>> Memory failure: Unable to find user space address edbe201 in read_poison
+>>> Memory failure: tk->addr = 7f3cf3601000
+>>> Memory failure: address edbe201: call dev_pagemap_mapping_shift
+>>> Memory failure: tk->size_shift = 21
+>>> Memory failure: 0xedbe201: forcibly killing read_poison:22434 because of failure to unmap corrupted page
+>>>    => to deliver SIGKILL
+>>> Memory failure: 0xedbe201: Killing read_poison:22434 due to hardware memory corruption
+>>>    => to deliver SIGBUS
+>>>
+>>> Signed-off-by: Jane Chu <jane.chu@oracle.com>
+>>> ---
+>>>   mm/memory-failure.c | 16 ++++++++++------
+>>>   1 file changed, 10 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+>>> index d9cc660..7038abd 100644
+>>> --- a/mm/memory-failure.c
+>>> +++ b/mm/memory-failure.c
+>>> @@ -315,7 +315,6 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+>>>
+>>>          if (*tkc) {
+>>>                  tk = *tkc;
+>>> -               *tkc = NULL;
+>>>          } else {
+>>>                  tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
+>>>                  if (!tk) {
+>>> @@ -331,16 +330,21 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+>>>                  tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+>>>
+>>>          /*
+>>> -        * In theory we don't have to kill when the page was
+>>> -        * munmaped. But it could be also a mremap. Since that's
+>>> -        * likely very rare kill anyways just out of paranoia, but use
+>>> -        * a SIGKILL because the error is not contained anymore.
+>>> +        * Indeed a page could be mmapped N times within a process. And it's possible
+>>> +        * that not all of those N VMAs contain valid mapping for the page. In which
+>>> +        * case we don't want to send SIGKILL to the process on behalf of the VMAs
+>>> +        * that don't have the valid mapping, because doing so will eclipse the SIGBUS
+>>> +        * delivered on behalf of the active VMA.
+>>>           */
+>>>          if (tk->addr == -EFAULT || tk->size_shift == 0) {
+>>>                  pr_info("Memory failure: Unable to find user space address %lx in %s\n",
+>>>                          page_to_pfn(p), tsk->comm);
+>>> -               tk->addr_valid = 0;
+>>> +               if (tk != *tkc)
+>>> +                       kfree(tk);
+>>> +               return;
+> 
+> The immediate return bypasses list_add_tail() below, so we might lose
+> the chance of sending SIGBUS to the process.
+> 
+> tk->size_shift is always non-zero for !is_zone_device_page(), so
+> "tk->size_shift == 0" effectively checks "no mapping on ZONE_DEVICE" now.
+> As you mention above, "no mapping" doesn't means "invalid address"
+> so we can drop "tk->size_shift == 0" check from this if-statement.
+> Going forward in this direction, "tk->addr_valid == 0" is equivalent to
+> "tk->addr == -EFAULT", so we seems to be able to remove ->addr_valid.
+> This observation leads me to the following change, does it work for you?
+> 
+>    --- a/mm/memory-failure.c
+>    +++ b/mm/memory-failure.c
+>    @@ -199,7 +199,6 @@ struct to_kill {
+>     	struct task_struct *tsk;
+>     	unsigned long addr;
+>     	short size_shift;
+>    -	char addr_valid;
+>     };
+>     
+>     /*
+>    @@ -324,7 +323,6 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+>     		}
+>     	}
+>     	tk->addr = page_address_in_vma(p, vma);
+>    -	tk->addr_valid = 1;
+>     	if (is_zone_device_page(p))
+>     		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+>     	else
+>    @@ -336,11 +334,9 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+>     	 * likely very rare kill anyways just out of paranoia, but use
+>     	 * a SIGKILL because the error is not contained anymore.
+>     	 */
+>    -	if (tk->addr == -EFAULT || tk->size_shift == 0) {
+>    +	if (tk->addr == -EFAULT)
+>     		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
+>     			page_to_pfn(p), tsk->comm);
+>    -		tk->addr_valid = 0;
+>    -	}
+>     	get_task_struct(tsk);
+>     	tk->tsk = tsk;
+>     	list_add_tail(&tk->nd, to_kill);
+>    @@ -366,7 +362,7 @@ static void kill_procs(struct list_head *to_kill, int forcekill, bool fail,
+>     			 * make sure the process doesn't catch the
+>     			 * signal and then access the memory. Just kill it.
+>     			 */
+>    -			if (fail || tk->addr_valid == 0) {
+>    +			if (fail || tk->addr == -EFAULT) {
+>     				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
+>     				       pfn, tk->tsk->comm, tk->tsk->pid);
+>     				do_send_sig_info(SIGKILL, SEND_SIG_PRIV,
+> 
+>>>          }
+>>> +       if (tk == *tkc)
+>>> +               *tkc = NULL;
+>>>          get_task_struct(tsk);
+>>>          tk->tsk = tsk;
+>>>          list_add_tail(&tk->nd, to_kill);
+>>
+>>
+>> Concept and policy looks good to me, and I never did understand what
+>> the mremap() case was trying to protect against.
+>>
+>> The patch is a bit difficult to read (not your fault) because of the
+>> odd way that add_to_kill() expects the first 'tk' to be pre-allocated.
+>> May I ask for a lead-in cleanup that moves all the allocation internal
+>> to add_to_kill() and drops the **tk argument?
+> 
+> I totally agree with this cleanup. Thanks for the comment.
+> 
+> Thanks,
+> Naoya Horiguchi
+> 
