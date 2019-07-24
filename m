@@ -1,21 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com
+ [IPv6:2607:f8b0:4864:20::343])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C06621959CB2
- for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 16:07:38 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH v6 07/13] daxctl: add a new reconfigure-device
- command
-Date: Wed, 24 Jul 2019 23:05:09 +0000
-Message-ID: <71c4202212fc6da02a0f80caaf0c1a5d080f6cf8.camel@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E79DC212DA5FA
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:51:31 -0700 (PDT)
+Received: by mail-ot1-x343.google.com with SMTP id j19so11152052otq.2
+ for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:49:05 -0700 (PDT)
+MIME-Version: 1.0
 References: <20190717225400.9494-1-vishal.l.verma@intel.com>
  <20190717225400.9494-8-vishal.l.verma@intel.com>
- <CAPcyv4jcOZUyQQUZWuNp5+K+ciifg4hHSRhRk4PP1-MtKMebhQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4jcOZUyQQUZWuNp5+K+ciifg4hHSRhRk4PP1-MtKMebhQ@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <DF866F3EF1F1964391FC6EA18F470220@intel.com>
-MIME-Version: 1.0
+In-Reply-To: <20190717225400.9494-8-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 24 Jul 2019 15:48:52 -0700
+Message-ID: <CAPcyv4jcOZUyQQUZWuNp5+K+ciifg4hHSRhRk4PP1-MtKMebhQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH v6 07/13] daxctl: add a new reconfigure-device
+ command
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,216 +27,326 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2019-07-24 at 15:48 -0700, Dan Williams wrote:
-> On Wed, Jul 17, 2019 at 3:54 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
-> > Add a new command 'daxctl-reconfigure-device'. This is used to switch
-> > the mode of a dax device between regular 'device_dax' and
-> > 'system-memory'. The command also uses the memory hotplug sysfs
-> > interfaces to online the newly available memory when converting to
-> > 'system-ram', and to attempt to offline the memory when converting back
-> > to a DAX device.
-> > 
-> > Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> > ---
-> >  daxctl/Makefile.am |   2 +
-> >  daxctl/builtin.h   |   1 +
-> >  daxctl/daxctl.c    |   1 +
-> >  daxctl/device.c    | 348 +++++++++++++++++++++++++++++++++++++++++++++
-> >  4 files changed, 352 insertions(+)
-> >  create mode 100644 daxctl/device.c
-> > 
-[..]
-> > +       case ACTION_RECONFIG:
-> > +               if (!param.mode) {
-> > +                       fprintf(stderr, "error: a 'mode' option is required\n");
-> > +                       usage_with_options(u, reconfig_options);
-> > +                       rc = -EINVAL;
-> > +               }
-> > +               if (strcmp(param.mode, "system-ram") == 0) {
-> > +                       reconfig_mode = DAXCTL_DEV_MODE_RAM;
-> > +                       if (param.do_offline) {
-> > +                               fprintf(stderr,
-> > +                                       "can't --attempt-offline for system-ram mode\n");
-> 
-> I'm not sure I grok the --attempt-offline option. That seems like it
-> belongs to its own command, and is required to succeed before daxctl
-> disable-device. Or is this like a "--force" to disable and cleanup
-> system-ram mode before moving to devdax mode. If it's the latter I'd
-> prefer that was a --force option. Otherwise, the error message "can't
-> --attempt-offline for system-ram mode\n" is confusing because
-> offlining only makes sense for system-ram mode.
+On Wed, Jul 17, 2019 at 3:54 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> Add a new command 'daxctl-reconfigure-device'. This is used to switch
+> the mode of a dax device between regular 'device_dax' and
+> 'system-memory'. The command also uses the memory hotplug sysfs
+> interfaces to online the newly available memory when converting to
+> 'system-ram', and to attempt to offline the memory when converting back
+> to a DAX device.
+>
+> Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  daxctl/Makefile.am |   2 +
+>  daxctl/builtin.h   |   1 +
+>  daxctl/daxctl.c    |   1 +
+>  daxctl/device.c    | 348 +++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 352 insertions(+)
+>  create mode 100644 daxctl/device.c
+>
+> diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
+> index 94f73f9..66dcc7f 100644
+> --- a/daxctl/Makefile.am
+> +++ b/daxctl/Makefile.am
+> @@ -15,10 +15,12 @@ daxctl_SOURCES =\
+>                 daxctl.c \
+>                 list.c \
+>                 migrate.c \
+> +               device.c \
+>                 ../util/json.c
+>
+>  daxctl_LDADD =\
+>         lib/libdaxctl.la \
+>         ../libutil.a \
+>         $(UUID_LIBS) \
+> +       $(KMOD_LIBS) \
+>         $(JSON_LIBS)
+> diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+> index 00ef5e9..756ba2a 100644
+> --- a/daxctl/builtin.h
+> +++ b/daxctl/builtin.h
+> @@ -6,4 +6,5 @@
+>  struct daxctl_ctx;
+>  int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+>  int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
+> +int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
+>  #endif /* _DAXCTL_BUILTIN_H_ */
+> diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+> index 2e41747..e1ba7b8 100644
+> --- a/daxctl/daxctl.c
+> +++ b/daxctl/daxctl.c
+> @@ -71,6 +71,7 @@ static struct cmd_struct commands[] = {
+>         { "list", .d_fn = cmd_list },
+>         { "help", .d_fn = cmd_help },
+>         { "migrate-device-model", .d_fn = cmd_migrate },
+> +       { "reconfigure-device", .d_fn = cmd_reconfig_device },
+>  };
+>
+>  int main(int argc, const char **argv)
+> diff --git a/daxctl/device.c b/daxctl/device.c
+> new file mode 100644
+> index 0000000..a1fb698
+> --- /dev/null
+> +++ b/daxctl/device.c
+> @@ -0,0 +1,348 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
+> +#include <stdio.h>
+> +#include <errno.h>
+> +#include <stdlib.h>
+> +#include <syslog.h>
+> +#include <unistd.h>
+> +#include <limits.h>
+> +#include <util/json.h>
+> +#include <util/filter.h>
+> +#include <json-c/json.h>
+> +#include <daxctl/libdaxctl.h>
+> +#include <util/parse-options.h>
+> +#include <ccan/array_size/array_size.h>
+> +
+> +static struct {
+> +       const char *dev;
+> +       const char *mode;
+> +       int region_id;
+> +       bool no_online;
+> +       bool do_offline;
+> +       bool human;
+> +       bool verbose;
+> +} param = {
+> +       .region_id = -1,
+> +};
+> +
+> +static enum daxctl_dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
+> +static unsigned long flags;
+> +
+> +enum device_action {
+> +       ACTION_RECONFIG,
+> +};
+> +
+> +#define BASE_OPTIONS() \
+> +OPT_INTEGER('r', "region", &param.region_id, "restrict to the given region"), \
+> +OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
+> +OPT_BOOLEAN('v', "verbose", &param.verbose, "emit more debug messages")
+> +
+> +#define RECONFIG_OPTIONS() \
+> +OPT_STRING('m', "mode", &param.mode, "mode", "mode to switch the device to"), \
+> +OPT_BOOLEAN('N', "no-online", &param.no_online, \
+> +       "don't auto-online memory sections"), \
+> +OPT_BOOLEAN('O', "attempt-offline", &param.do_offline, \
+> +               "attempt to offline memory sections")
+> +
+> +static const struct option reconfig_options[] = {
+> +       BASE_OPTIONS(),
+> +       RECONFIG_OPTIONS(),
+> +       OPT_END(),
+> +};
+> +
+> +static const char *parse_device_options(int argc, const char **argv,
+> +               enum device_action action, const struct option *options,
+> +               const char *usage, struct daxctl_ctx *ctx)
+> +{
+> +       const char * const u[] = {
+> +               usage,
+> +               NULL
+> +       };
+> +       int i, rc = 0;
+> +
+> +       argc = parse_options(argc, argv, options, u, 0);
+> +
+> +       /* Handle action-agnostic non-option arguments */
+> +       if (argc == 0) {
+> +               char *action_string;
+> +
+> +               switch (action) {
+> +               case ACTION_RECONFIG:
+> +                       action_string = "reconfigure";
+> +                       break;
+> +               default:
+> +                       action_string = "<>";
+> +                       break;
+> +               }
+> +               fprintf(stderr, "specify a device to %s, or \"all\"\n",
+> +                       action_string);
+> +               rc = -EINVAL;
+> +       }
+> +       for (i = 1; i < argc; i++) {
+> +               fprintf(stderr, "unknown extra parameter \"%s\"\n", argv[i]);
+> +               rc = -EINVAL;
+> +       }
+> +
+> +       if (rc) {
+> +               usage_with_options(u, options);
+> +               return NULL;
+> +       }
+> +
+> +       /* Handle action-agnostic options */
+> +       if (param.verbose)
+> +               daxctl_set_log_priority(ctx, LOG_DEBUG);
+> +       if (param.human)
+> +               flags |= UTIL_JSON_HUMAN;
+> +
+> +       /* Handle action-specific options */
+> +       switch (action) {
+> +       case ACTION_RECONFIG:
+> +               if (!param.mode) {
+> +                       fprintf(stderr, "error: a 'mode' option is required\n");
+> +                       usage_with_options(u, reconfig_options);
+> +                       rc = -EINVAL;
+> +               }
+> +               if (strcmp(param.mode, "system-ram") == 0) {
+> +                       reconfig_mode = DAXCTL_DEV_MODE_RAM;
+> +                       if (param.do_offline) {
+> +                               fprintf(stderr,
+> +                                       "can't --attempt-offline for system-ram mode\n");
 
-Yes it is like the --force option to other disable/destroy commands - I
-agree that's clearer. I'll change it.
+I'm not sure I grok the --attempt-offline option. That seems like it
+belongs to its own command, and is required to succeed before daxctl
+disable-device. Or is this like a "--force" to disable and cleanup
+system-ram mode before moving to devdax mode. If it's the latter I'd
+prefer that was a --force option. Otherwise, the error message "can't
+--attempt-offline for system-ram mode\n" is confusing because
+offlining only makes sense for system-ram mode.
 
-> 
-> > +                               rc = -EINVAL;
-> > +                       }
-> > +               } else if (strcmp(param.mode, "devdax") == 0) {
-> > +                       reconfig_mode = DAXCTL_DEV_MODE_DEVDAX;
-> > +                       if (param.no_online) {
-> > +                               fprintf(stderr,
-> > +                                       "can't --no-online for devdax mode\n");
-> 
-> How about "--no-online option incompatible with --mode=devdax"?
+> +                               rc = -EINVAL;
+> +                       }
+> +               } else if (strcmp(param.mode, "devdax") == 0) {
+> +                       reconfig_mode = DAXCTL_DEV_MODE_DEVDAX;
+> +                       if (param.no_online) {
+> +                               fprintf(stderr,
+> +                                       "can't --no-online for devdax mode\n");
 
-Sounds good.
+How about "--no-online option incompatible with --mode=devdax"?
 
-> 
-> > +                               rc =  -EINVAL;
-> > +                       }
-> > +               }
-> > +               break;
-> > +       }
-> > +       if (rc) {
-> > +               usage_with_options(u, options);
-> > +               return NULL;
-> > +       }
-> > +
-> > +       return argv[0];
-> > +}
-> > +
-> > +static int disable_devdax_device(struct daxctl_dev *dev)
-> > +{
-> > +       const char *devname = daxctl_dev_get_devname(dev);
-> > +       enum daxctl_dev_mode mode;
-> > +       int rc;
-> > +
-> > +       mode = daxctl_dev_get_mode(dev);
-> > +       if (mode < 0) {
-> > +               fprintf(stderr, "%s: unable to determine current mode: %s\n",
-> > +                       devname, strerror(-mode));
-> > +               return mode;
-> > +       }
-> > +       if (mode == DAXCTL_DEV_MODE_RAM) {
-> > +               fprintf(stderr, "%s is in system-ram mode, nothing to do\n",
-> > +                       devname);
-> 
-> "Nothing to do" implies "it is already disabled", this is just "not
-> supported" until integrating with v5.3, right?
+> +                               rc =  -EINVAL;
+> +                       }
+> +               }
+> +               break;
+> +       }
+> +       if (rc) {
+> +               usage_with_options(u, options);
+> +               return NULL;
+> +       }
+> +
+> +       return argv[0];
+> +}
+> +
+> +static int disable_devdax_device(struct daxctl_dev *dev)
+> +{
+> +       const char *devname = daxctl_dev_get_devname(dev);
+> +       enum daxctl_dev_mode mode;
+> +       int rc;
+> +
+> +       mode = daxctl_dev_get_mode(dev);
+> +       if (mode < 0) {
+> +               fprintf(stderr, "%s: unable to determine current mode: %s\n",
+> +                       devname, strerror(-mode));
+> +               return mode;
+> +       }
+> +       if (mode == DAXCTL_DEV_MODE_RAM) {
+> +               fprintf(stderr, "%s is in system-ram mode, nothing to do\n",
+> +                       devname);
 
-It implies that we are already in system-ram mode when --mode=system-ram 
-was asked, and there really is nothing to do. Except possibly online the
-memory if it is not online, and we still do that down below. We don't
-really attempt to detect the v5.3 hot-remove support - if it is not
-present, the removal will simply fail.
+"Nothing to do" implies "it is already disabled", this is just "not
+supported" until integrating with v5.3, right?
 
-> 
-> > +               return 1;
-> > +       }
-> > +       rc = daxctl_dev_disable(dev);
-> > +       if (rc) {
-> > +               fprintf(stderr, "%s: disable failed: %s\n",
-> > +                       daxctl_dev_get_devname(dev), strerror(-rc));
-> > +               return rc;
-> > +       }
-> > +       return 0;
-> > +}
-> > +
-> > +static int reconfig_mode_system_ram(struct daxctl_dev *dev)
-> > +{
-> > +       struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> > +       const char *devname = daxctl_dev_get_devname(dev);
-> > +       int rc, skip_enable = 0;
-> > +
-> > +       if (daxctl_dev_is_enabled(dev)) {
-> > +               rc = disable_devdax_device(dev);
-> > +               if (rc < 0)
-> > +                       return rc;
-> > +               if (rc > 0)
-> > +                       skip_enable = 1;
-> > +       }
-> > +
-> > +       if (!skip_enable) {
-> > +               rc = daxctl_dev_enable_ram(dev);
-> > +               if (rc)
-> > +                       return rc;
-> > +       }
-> > +
-> > +       if (param.no_online)
-> > +               return 0;
-> > +
-> > +       rc = daxctl_memory_set_online(mem);
-> > +       if (rc < 0) {
-> > +               fprintf(stderr, "%s: unable to online memory: %s\n",
-> 
-> s/unable/failed/
-> 
-> I didn't comment earlier, but if it's not too late I think
-> 'daxctl_memory_{on,off}line()' is sufficient, no need for 'set_'.
+> +               return 1;
+> +       }
+> +       rc = daxctl_dev_disable(dev);
+> +       if (rc) {
+> +               fprintf(stderr, "%s: disable failed: %s\n",
+> +                       daxctl_dev_get_devname(dev), strerror(-rc));
+> +               return rc;
+> +       }
+> +       return 0;
+> +}
+> +
+> +static int reconfig_mode_system_ram(struct daxctl_dev *dev)
+> +{
+> +       struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> +       const char *devname = daxctl_dev_get_devname(dev);
+> +       int rc, skip_enable = 0;
+> +
+> +       if (daxctl_dev_is_enabled(dev)) {
+> +               rc = disable_devdax_device(dev);
+> +               if (rc < 0)
+> +                       return rc;
+> +               if (rc > 0)
+> +                       skip_enable = 1;
+> +       }
+> +
+> +       if (!skip_enable) {
+> +               rc = daxctl_dev_enable_ram(dev);
+> +               if (rc)
+> +                       return rc;
+> +       }
+> +
+> +       if (param.no_online)
+> +               return 0;
+> +
+> +       rc = daxctl_memory_set_online(mem);
+> +       if (rc < 0) {
+> +               fprintf(stderr, "%s: unable to online memory: %s\n",
 
-Yep, will change both.
+s/unable/failed/
 
-> 
-> > +                       devname, strerror(-rc));
-> > +               return rc;
-> > +       }
-> > +       if (param.verbose)
-> > +               fprintf(stderr, "%s: onlined %d memory sections\n",
-> > +                       devname, rc);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static int disable_system_ram_device(struct daxctl_dev *dev)
-> > +{
-> > +       struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> > +       const char *devname = daxctl_dev_get_devname(dev);
-> > +       enum daxctl_dev_mode mode;
-> > +       int rc;
-> > +
-> > +       mode = daxctl_dev_get_mode(dev);
-> > +       if (mode < 0) {
-> > +               fprintf(stderr, "%s: unable to determine current mode: %s\n",
-> > +                       devname, strerror(-mode));
-> 
-> When would this happen in practice? I can only think it would happen
-> when using the old device model in which case we could fall through to
-> the "already in devdax mode" case.
+I didn't comment earlier, but if it's not too late I think
+'daxctl_memory_{on,off}line()' is sufficient, no need for 'set_'.
 
-Right with the v7 .._get_memory() interface to detect the mode, this
-goes away.
+> +                       devname, strerror(-rc));
+> +               return rc;
+> +       }
+> +       if (param.verbose)
+> +               fprintf(stderr, "%s: onlined %d memory sections\n",
+> +                       devname, rc);
+> +
+> +       return 0;
+> +}
+> +
+> +static int disable_system_ram_device(struct daxctl_dev *dev)
+> +{
+> +       struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> +       const char *devname = daxctl_dev_get_devname(dev);
+> +       enum daxctl_dev_mode mode;
+> +       int rc;
+> +
+> +       mode = daxctl_dev_get_mode(dev);
+> +       if (mode < 0) {
+> +               fprintf(stderr, "%s: unable to determine current mode: %s\n",
+> +                       devname, strerror(-mode));
 
-> 
-> > +               return mode;
-> > +       }
-> > +       if (mode == DAXCTL_DEV_MODE_DEVDAX) {
-> > +               fprintf(stderr, "%s: already in devdax mode, nothing to do\n",
-> > +                       devname);
-> > +               return 1;
-> > +       }
-> > +
-> > +       if (param.do_offline) {
-> > +               rc = daxctl_memory_set_offline(mem);
-> > +               if (rc < 0) {
-> > +                       fprintf(stderr, "%s: unable to offline memory: %s\n",
-> 
-> s/unable/failed/
-> 
-> ...and same comment about dropping '_set'. Is there an api to retrieve
-> the number of memory blocks / sections behind daxctl_memory instance?
-> Then you could also check for the number of sections offlined < total
-> sections case. The most likely case is that a single section is
-> holding up the offline process and someone might want to interrogate
-> which one that is relative to the device instance.
+When would this happen in practice? I can only think it would happen
+when using the old device model in which case we could fall through to
+the "already in devdax mode" case.
 
-There is not an interface to query the number of blocks directly, but if
-we fail to online/offline a given memblock, we print it in debug/verbose
-logging. It wouldn't be too hard to add an interface to get the total
-number of blocks, but it would still be hard for the daxctl side to
-determine /which/ block it was, as it is only libdaxctl that loops
-through all the blocks and sets their state (so to find which one would
-have to go to the debug logs anyway). I think there is still value in
-letting the user know that something unexpected happened - I can look
-into adding that.
+> +               return mode;
+> +       }
+> +       if (mode == DAXCTL_DEV_MODE_DEVDAX) {
+> +               fprintf(stderr, "%s: already in devdax mode, nothing to do\n",
+> +                       devname);
+> +               return 1;
+> +       }
+> +
+> +       if (param.do_offline) {
+> +               rc = daxctl_memory_set_offline(mem);
+> +               if (rc < 0) {
+> +                       fprintf(stderr, "%s: unable to offline memory: %s\n",
 
+s/unable/failed/
+
+...and same comment about dropping '_set'. Is there an api to retrieve
+the number of memory blocks / sections behind daxctl_memory instance?
+Then you could also check for the number of sections offlined < total
+sections case. The most likely case is that a single section is
+holding up the offline process and someone might want to interrogate
+which one that is relative to the device instance.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
