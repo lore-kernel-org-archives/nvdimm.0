@@ -1,13 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 4536E212E844E
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:22 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 3/7] dax: replace mmap entry in case of CoW
-Date: Wed, 31 Jul 2019 19:49:31 +0800
-Message-ID: <20190731114935.11030-4-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F12F4212E158B
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 16:18:27 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH v7 09/13] daxctl: add commands to online and
+ offline memory
+Date: Fri, 26 Jul 2019 23:15:59 +0000
+Message-ID: <f24ed879adf2bb7f114bf72b06eb01c9dd51a7fc.camel@intel.com>
+References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+ <20190724215741.18556-10-vishal.l.verma@intel.com>
+ <CAPcyv4iEs533oD6X5G5-5cL2-br268FekXR8W=gTZOUbBPZBdQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4iEs533oD6X5G5-5cL2-br268FekXR8W=gTZOUbBPZBdQ@mail.gmail.com>
+Content-Language: en-US
+Content-ID: <480FABC737E89441821CEABF98445E26@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,165 +27,142 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
-Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-We replace the existing entry to the newly allocated one
-in case of CoW. Also, we mark the entry as PAGECACHE_TAG_TOWRITE
-so writeback marks this entry as writeprotected. This
-helps us snapshots so new write pagefaults after snapshots
-trigger a CoW.
+On Thu, 2019-07-25 at 19:51 -0700, Dan Williams wrote:
+> On Wed, Jul 24, 2019 at 2:58 PM Vishal Verma <vishal.l.verma@intel.com
+> > wrote:
+> > Add two new commands:
+> > 
+> >   daxctl-online-memory
+> >   daxctl-offline-memory
+> > 
+> > to manage the state of hot-plugged memory from the system-ram mode
+> > for
+> > dax devices. This provides a way for the user to online/offline the
+> > memory as a separate step from the reconfiguration. Without this, a
+> > user
+> > that reconfigures a device into the system-ram mode with the --no-
+> > online
+> > option, would have no way to later online the memory, and would have
+> > to
+> > resort to shell scripting to online them manually via sysfs.
+> > 
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > ---
+> >  daxctl/builtin.h |   2 +
+> >  daxctl/daxctl.c  |   2 +
+> >  daxctl/device.c  | 131
+> > ++++++++++++++++++++++++++++++++++++++++++++++-
+> >  3 files changed, 134 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/daxctl/builtin.h b/daxctl/builtin.h
+> > index 756ba2a..f5a0147 100644
+> > --- a/daxctl/builtin.h
+> > +++ b/daxctl/builtin.h
+> > @@ -7,4 +7,6 @@ struct daxctl_ctx;
+> >  int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
+> >  int cmd_migrate(int argc, const char **argv, struct daxctl_ctx
+> > *ctx);
+> >  int cmd_reconfig_device(int argc, const char **argv, struct
+> > daxctl_ctx *ctx);
+> > +int cmd_online_memory(int argc, const char **argv, struct
+> > daxctl_ctx *ctx);
+> > +int cmd_offline_memory(int argc, const char **argv, struct
+> > daxctl_ctx *ctx);
+> >  #endif /* _DAXCTL_BUILTIN_H_ */
+> > diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+> > index e1ba7b8..1ab0732 100644
+> > --- a/daxctl/daxctl.c
+> > +++ b/daxctl/daxctl.c
+> > @@ -72,6 +72,8 @@ static struct cmd_struct commands[] = {
+> >         { "help", .d_fn = cmd_help },
+> >         { "migrate-device-model", .d_fn = cmd_migrate },
+> >         { "reconfigure-device", .d_fn = cmd_reconfig_device },
+> > +       { "online-memory", .d_fn = cmd_online_memory },
+> > +       { "offline-memory", .d_fn = cmd_offline_memory },
+> >  };
+> > 
+> >  int main(int argc, const char **argv)
+> > diff --git a/daxctl/device.c b/daxctl/device.c
+> > index a71ebbe..64eff04 100644
+> > --- a/daxctl/device.c
+> > +++ b/daxctl/device.c
+> > @@ -36,6 +36,8 @@ static unsigned long flags;
+> > 
+> >  enum device_action {
+> >         ACTION_RECONFIG,
+> > +       ACTION_ONLINE,
+> > +       ACTION_OFFLINE,
+> >  };
+> > 
+> >  #define BASE_OPTIONS() \
+> > @@ -56,6 +58,11 @@ static const struct option reconfig_options[] = {
+> >         OPT_END(),
+> >  };
+> > 
+> > +static const struct option memory_options[] = {
+> > +       BASE_OPTIONS(),
+> > +       OPT_END(),
+> > +};
+> > +
+> >  static const char *parse_device_options(int argc, const char
+> > **argv,
+> >                 enum device_action action, const struct option
+> > *options,
+> >                 const char *usage, struct daxctl_ctx *ctx)
+> > @@ -76,6 +83,12 @@ static const char *parse_device_options(int argc,
+> > const char **argv,
+> >                 case ACTION_RECONFIG:
+> >                         action_string = "reconfigure";
+> >                         break;
+> > +               case ACTION_ONLINE:
+> > +                       action_string = "online memory for";
+> > +                       break;
+> > +               case ACTION_OFFLINE:
+> > +                       action_string = "offline memory for";
+> > +                       break;
+> >                 default:
+> >                         action_string = "<>";
+> >                         break;
+> > @@ -124,6 +137,10 @@ static const char *parse_device_options(int
+> > argc, const char **argv,
+> >                         }
+> >                 }
+> >                 break;
+> > +       case ACTION_ONLINE:
+> > +       case ACTION_OFFLINE:
+> > +               /* nothing special */
+> > +               break;
+> >         }
+> >         if (rc) {
+> >                 usage_with_options(u, options);
+> > @@ -286,10 +303,75 @@ static int do_reconfig(struct daxctl_dev *dev,
+> > enum dev_mode mode,
+> >         return rc;
+> >  }
+> > 
+> > +static int do_xline(struct daxctl_dev *dev, enum device_action
+> > action)
+> > +{
+> > +       struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+> > +       const char *devname = daxctl_dev_get_devname(dev);
+> > +       int rc, num_online;
+> > +
+> > +       if (!daxctl_dev_is_enabled(dev)) {
+> 
+> Can this fail if daxctl_dev_get_memory() succeeded?
+> 
+> Other than that potential code reduction looks good to me.
 
-btrfs does not support hugepages so we don't handle PMD.
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
----
- fs/dax.c | 36 ++++++++++++++++++++++++++++--------
- 1 file changed, 28 insertions(+), 8 deletions(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 084cc21d47a4..8eb065a1ec51 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -700,6 +700,9 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
- 	return 0;
- }
- 
-+#define DAX_IF_DIRTY		(1ULL << 0)
-+#define DAX_IF_COW		(1ULL << 1)
-+
- /*
-  * By this point grab_mapping_entry() has ensured that we have a locked entry
-  * of the appropriate size so we don't have to worry about downgrading PMDs to
-@@ -709,14 +712,17 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
-  */
- static void *dax_insert_entry(struct xa_state *xas,
- 		struct address_space *mapping, struct vm_fault *vmf,
--		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
-+		void *entry, pfn_t pfn, unsigned long flags,
-+		unsigned int insert_flags)
- {
- 	void *new_entry = dax_make_entry(pfn, flags);
-+	bool dirty = insert_flags & DAX_IF_DIRTY;
-+	bool cow = insert_flags & DAX_IF_COW;
- 
- 	if (dirty)
- 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
--	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
-+	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
- 		unsigned long index = xas->xa_index;
- 		/* we are replacing a zero page with block mapping */
- 		if (dax_is_pmd_entry(entry))
-@@ -728,12 +734,12 @@ static void *dax_insert_entry(struct xa_state *xas,
- 
- 	xas_reset(xas);
- 	xas_lock_irq(xas);
--	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
-+	if (cow || (dax_entry_size(entry) != dax_entry_size(new_entry))) {
- 		dax_disassociate_entry(entry, mapping, false);
- 		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
- 	}
- 
--	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-+	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
-@@ -753,6 +759,9 @@ static void *dax_insert_entry(struct xa_state *xas,
- 	if (dirty)
- 		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
- 
-+	if (cow)
-+		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
-+
- 	xas_unlock_irq(xas);
- 	return entry;
- }
-@@ -1040,7 +1049,7 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
- 	vm_fault_t ret;
- 
- 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_ZERO_PAGE, false);
-+			DAX_ZERO_PAGE, 0);
- 
- 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
- 	trace_dax_load_hole(inode, vmf, ret);
-@@ -1310,6 +1319,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	void *entry;
- 	pfn_t pfn;
- 	void *kaddr;
-+	unsigned long insert_flags = 0;
- 
- 	trace_dax_pte_fault(inode, vmf, ret);
- 	/*
-@@ -1371,6 +1381,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 			error = copy_user_dax(iomap.bdev, iomap.dax_dev,
- 					sector, PAGE_SIZE, vmf->cow_page, vaddr);
- 			break;
-+		case IOMAP_COW:
-+			/* Should not be setting this - fallthrough */
- 		default:
- 			WARN_ON_ONCE(1);
- 			error = -EIO;
-@@ -1391,6 +1403,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 
- 	switch (iomap.type) {
- 	case IOMAP_COW:
-+		insert_flags |= DAX_IF_COW;
-+		/* fallthrough */
- 	case IOMAP_MAPPED:
- 		if (iomap.flags & IOMAP_F_NEW) {
- 			count_vm_event(PGMAJFAULT);
-@@ -1401,8 +1415,10 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		if (error < 0)
- 			goto error_finish_iomap;
- 
-+		if (write && !sync)
-+			insert_flags |= DAX_IF_DIRTY;
- 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
--						 0, write && !sync);
-+						 0, insert_flags);
- 
- 		if (iomap.type == IOMAP_COW) {
- 			error = dax_copy_edges(inode, pos, PAGE_SIZE, &srcmap,
-@@ -1490,7 +1506,7 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
- 
- 	pfn = page_to_pfn_t(zero_page);
- 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
--			DAX_PMD | DAX_ZERO_PAGE, false);
-+			DAX_PMD | DAX_ZERO_PAGE, 0);
- 
- 	if (arch_needs_pgtable_deposit()) {
- 		pgtable = pte_alloc_one(vma->vm_mm);
-@@ -1542,6 +1558,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	int error;
- 	pfn_t pfn;
- 	void *kaddr;
-+	unsigned long insert_flags = 0;
- 
- 	/*
- 	 * Check whether offset isn't beyond end of file now. Caller is
-@@ -1627,8 +1644,11 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 		if (error < 0)
- 			goto finish_iomap;
- 
-+		if (write && !sync)
-+			insert_flags |= DAX_IF_DIRTY;
-+
- 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
--						DAX_PMD, write && !sync);
-+						DAX_PMD, insert_flags);
- 
- 		if (iomap.type == IOMAP_COW) {
- 			error = dax_copy_edges(inode, pos, PMD_SIZE, &srcmap,
--- 
-2.17.0
-
-
+Nope, not needed. Removed, and got even more code
+reduction/consolidation as a result of adding the section count
+interface.
 
 _______________________________________________
 Linux-nvdimm mailing list
