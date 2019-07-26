@@ -1,17 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
+ [IPv6:2607:f8b0:4864:20::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 43F9B212E1592
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:09 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 01/13] libdaxctl: add interfaces to get ctx and check
- device state
-Date: Wed, 31 Jul 2019 18:29:20 -0600
-Message-Id: <20190801002932.26430-2-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 844FE212E159A
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 16:47:38 -0700 (PDT)
+Received: by mail-oi1-x242.google.com with SMTP id u15so41456234oiv.0
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 16:45:11 -0700 (PDT)
 MIME-Version: 1.0
+References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+ <20190724215741.18556-12-vishal.l.verma@intel.com>
+ <CAPcyv4g82poaqSNZh+Q_QpdWVqjmz3C=BM74Guoe_Wj7bv6kwQ@mail.gmail.com>
+ <a6ca723887fab20429929217baa08ae26513eb26.camel@intel.com>
+In-Reply-To: <a6ca723887fab20429929217baa08ae26513eb26.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 26 Jul 2019 16:44:58 -0700
+Message-ID: <CAPcyv4gO=mOkW1b8_MLqs=AuYgopNA1njtaFikvKuNh1-uLb8Q@mail.gmail.com>
+Subject: Re: [ndctl PATCH v7 11/13] contrib/ndctl: fix region-id completions
+ for daxctl
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,147 +29,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In preparation for libdaxctl and daxctl to grow operational modes for
-DAX devices, add the following supporting APIs:
+On Fri, Jul 26, 2019 at 4:30 PM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+>
+> On Thu, 2019-07-25 at 19:55 -0700, Dan Williams wrote:
+> > On Wed, Jul 24, 2019 at 2:58 PM Vishal Verma <vishal.l.verma@intel.com
+> > > wrote:
+> > > The completion helpers for daxctl assumed the region arguments for
+> > > specifying daxctl regions were the same as ndctl regions, i.e.
+> > > "regionX". This is not true - daxctl region arguments are a simple
+> > > numeric 'id'.
+> >
+> > Oh, that's an unfortunate difference, but too late to change now I
+> > think, good find.
+> >
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Yep - though I think I like --region=0 better than --region=region0,
+> less redundancy.  But agreed, probably too late to change.
 
-  daxctl_dev_get_ctx
-  daxctl_dev_is_enabled
-
-It also adds and uses a helper to verify the device model for the
-_is_enabled API, since enable/disable only make sense for the dax-bus
-model.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c   | 70 ++++++++++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym |  6 ++++
- daxctl/libdaxctl.h       |  2 ++
- 3 files changed, 78 insertions(+)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c2e3a52..916a49e 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -306,6 +306,43 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
- 	return region;
- }
- 
-+static bool device_model_is_dax_bus(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf, *resolved;
-+	size_t len = dev->buf_len;
-+	struct stat sb;
-+
-+	if (snprintf(path, len, "/dev/%s", devname) < 0)
-+		return false;
-+
-+	if (lstat(path, &sb) < 0) {
-+		err(ctx, "%s: stat for %s failed: %s\n",
-+			devname, path, strerror(errno));
-+		return false;
-+	}
-+
-+	if (snprintf(path, len, "/sys/dev/char/%d:%d/subsystem",
-+			major(sb.st_rdev), minor(sb.st_rdev)) < 0)
-+		return false;
-+
-+	resolved = realpath(path, NULL);
-+	if (!resolved) {
-+		err(ctx, "%s:  unable to determine subsys: %s\n",
-+			devname, strerror(errno));
-+		return false;
-+	}
-+
-+	if (strcmp(resolved, "/sys/bus/dax") == 0) {
-+		free(resolved);
-+		return true;
-+	}
-+
-+	free(resolved);
-+	return false;
-+}
-+
- static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- {
- 	const char *devname = devpath_to_devname(daxdev_base);
-@@ -559,6 +596,39 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
- 	}
- }
- 
-+static int is_enabled(const char *drvpath)
-+{
-+	struct stat st;
-+
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (!device_model_is_dax_bus(dev))
-+		return 1;
-+
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
-+{
-+	return dev->region->ctx;
-+}
-+
- DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
- {
- 	dax_devices_init(region);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 84d3a69..c4af9a7 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
- global:
- 	daxctl_region_get_path;
- } LIBDAXCTL_4;
-+
-+LIBDAXCTL_6 {
-+global:
-+	daxctl_dev_get_ctx;
-+	daxctl_dev_is_enabled;
-+} LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 1d13ea2..e20ccb4 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
-+struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
-+int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- 
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
--- 
-2.20.1
-
+We could teach it to allow both. Something for the backlog, but at
+least the kernel is using a common number allocator for pmem regions
+and hmem regions.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
