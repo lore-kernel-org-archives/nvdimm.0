@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DE18212E2590
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:21 -0700 (PDT)
-Subject: [ndctl PATCH v2 14/26] ndctl/namespace: Handle 'create-namespace'
- in label-less mode
+ by ml01.01.org (Postfix) with ESMTPS id AEAB4212E15B4
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:58 -0700 (PDT)
+Subject: [ndctl PATCH v2 10/26] ndctl/dimm: Add offset and size options to
+ {read, write, zero}-labels
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:36 -0700
-Message-ID: <156426363655.531577.4504452379578995249.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 27 Jul 2019 14:40:13 -0700
+Message-ID: <156426361393.531577.10073127425253098897.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -26,62 +26,326 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-A common confusion with ndctl is that 'create-namespace' does not work
-in the label-less case. In the label-less case there is no capacity to
-allocate as the size if already hard-coded by the region boundary.
-
-However, users typically do something like the following in the
-label-less case:
-
-    # ndctl list
-    {
-      "dev":"namespace1.0",
-      "mode":"raw",
-      "size":"127.00 GiB (136.37 GB)",
-      "sector_size":512,
-      "blockdev":"pmem1"
-    }
-
-    # ndctl destroy-namespace namespace1.0 -f
-    destroyed 1 namespace
-
-    # ndctl create-namespace
-    failed to create namespace: Resource temporarily unavailable
-
-In other words they destroy the raw mode namespace that they don't want,
-and seek to create a new default configuration namespace. Since there is
-no "available_capacity" in the label-less case the 'create' attempt
-fails.
-
-Fix this by recognizing that the user wants a default sized namespace
-and just reconfigure the raw namespace.
+Allow for more precision in label utilities, i.e. stop operating over
+the entire label area.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ Documentation/ndctl/labels-options.txt |    9 ++++++
+ ndctl/dimm.c                           |   49 ++++++++++++++++++++++++--------
+ ndctl/lib/dimm.c                       |   36 ++++++++++++++++++++----
+ ndctl/lib/libndctl.sym                 |    2 +
+ ndctl/lib/private.h                    |    3 --
+ ndctl/libndctl.h                       |    4 +++
+ util/util.h                            |    4 +++
+ 7 files changed, 86 insertions(+), 21 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 58fec194ab94..e5a2b1341cdb 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -837,9 +837,13 @@ static int namespace_create(struct ndctl_region *region)
- 		return -EAGAIN;
+diff --git a/Documentation/ndctl/labels-options.txt b/Documentation/ndctl/labels-options.txt
+index 539ace079557..4aee37969fd5 100644
+--- a/Documentation/ndctl/labels-options.txt
++++ b/Documentation/ndctl/labels-options.txt
+@@ -5,6 +5,15 @@
+ 	operate on every dimm in the system, optionally filtered by bus id (see
+         --bus= option).
+ 
++-s::
++--size=::
++	Limit the operation to the given number of bytes. A size of 0
++	indicates to operate over the entire label capacity.
++
++-O::
++--offset=::
++	Begin the operation at the given offset into the label area.
++
+ -b::
+ --bus=::
+ 	Limit operation to memory devices (dimms) that are on the given bus.
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index be03d9b810bd..603e112f9568 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -47,6 +47,8 @@ static struct parameters {
+ 	const char *infile;
+ 	const char *labelversion;
+ 	const char *kek;
++	unsigned len;
++	unsigned offset;
+ 	bool crypto_erase;
+ 	bool overwrite;
+ 	bool zero_key;
+@@ -77,7 +79,7 @@ static int action_enable(struct ndctl_dimm *dimm, struct action_context *actx)
+ 
+ static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
+ {
+-	return ndctl_dimm_zero_labels(dimm);
++	return ndctl_dimm_zero_label_extent(dimm, param.len, param.offset);
+ }
+ 
+ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
+@@ -299,15 +301,17 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
+ 	return NULL;
+ }
+ 
+-static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size, int rw)
++static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size,
++		unsigned int start_offset, int rw)
+ {
+ 	char buf[4096];
+ 	ssize_t offset, write = 0;
+ 
+-	for (offset = 0; offset < size; offset += sizeof(buf)) {
++	for (offset = start_offset; offset < start_offset + size;
++			offset += sizeof(buf)) {
+ 		ssize_t len = min_t(ssize_t, sizeof(buf), size - offset), rc;
+ 
+-		if (rw) {
++		if (rw == WRITE) {
+ 			len = fread(buf, 1, len, f);
+ 			if (len == 0)
+ 				break;
+@@ -343,9 +347,9 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
+ 		return -EBUSY;
  	}
  
--	available = ndctl_region_get_max_available_extent(region);
--	if (available == ULLONG_MAX)
--		available = ndctl_region_get_available_size(region);
-+	if (ndctl_region_get_nstype(region) == ND_DEVICE_NAMESPACE_IO)
-+		available = ndctl_region_get_size(region);
-+	else {
-+		available = ndctl_region_get_max_available_extent(region);
-+		if (available == ULLONG_MAX)
-+			available = ndctl_region_get_available_size(region);
+-	cmd_read = ndctl_dimm_read_labels(dimm);
++	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
+ 	if (!cmd_read)
+-		return -ENXIO;
++		return -EINVAL;
+ 
+ 	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
+ 	if (!cmd_write) {
+@@ -354,7 +358,7 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	}
+ 
+ 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
+-	rc = rw_bin(actx->f_in, cmd_write, size, 1);
++	rc = rw_bin(actx->f_in, cmd_write, size, param.offset, WRITE);
+ 
+ 	/*
+ 	 * If the dimm is already disabled the kernel is not holding a cached
+@@ -381,9 +385,9 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	ssize_t size;
+ 	int rc = 0;
+ 
+-	cmd_read = ndctl_dimm_read_labels(dimm);
++	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
+ 	if (!cmd_read)
+-		return -ENXIO;
++		return -EINVAL;
+ 
+ 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
+ 	if (actx->jdimms) {
+@@ -394,7 +398,7 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 		else
+ 			rc = -ENOMEM;
+ 	} else
+-		rc = rw_bin(actx->f_out, cmd_read, size, 0);
++		rc = rw_bin(actx->f_out, cmd_read, size, param.offset, READ);
+ 
+ 	ndctl_cmd_unref(cmd_read);
+ 
+@@ -1082,18 +1086,31 @@ OPT_BOOLEAN('z', "zero-key", &param.zero_key, \
+ OPT_BOOLEAN('m', "master-passphrase", &param.master_pass, \
+ 		"use master passphrase")
+ 
++#define LABEL_OPTIONS() \
++OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
++OPT_UINTEGER('O', "offset", &param.offset, \
++	"offset into the label area to start operation")
++
+ static const struct option read_options[] = {
+ 	BASE_OPTIONS(),
++	LABEL_OPTIONS(),
+ 	READ_OPTIONS(),
+ 	OPT_END(),
+ };
+ 
+ static const struct option write_options[] = {
+ 	BASE_OPTIONS(),
++	LABEL_OPTIONS(),
+ 	WRITE_OPTIONS(),
+ 	OPT_END(),
+ };
+ 
++static const struct option zero_options[] = {
++	BASE_OPTIONS(),
++	LABEL_OPTIONS(),
++	OPT_END(),
++};
++
+ static const struct option update_options[] = {
+ 	BASE_OPTIONS(),
+ 	UPDATE_OPTIONS(),
+@@ -1136,6 +1153,7 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		NULL
+ 	};
+ 	unsigned long id;
++	bool json = false;
+ 
+         argc = parse_options(argc, argv, options, u, 0);
+ 
+@@ -1160,7 +1178,14 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (param.json || param.human) {
++	json = param.json || param.human;
++	if (action == action_read && json && (param.len || param.offset)) {
++		fprintf(stderr, "--size and --offset are incompatible with --json\n");
++		usage_with_options(u, options);
++		return -EINVAL;
 +	}
- 	if (!available || p.size > available) {
- 		debug("%s: insufficient capacity size: %llx avail: %llx\n",
- 			devname, p.size, available);
++
++	if (json) {
+ 		actx.jdimms = json_object_new_array();
+ 		if (!actx.jdimms)
+ 			return -ENOMEM;
+@@ -1294,7 +1319,7 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 
+ int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ {
+-	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
++	int count = dimm_action(argc, argv, ctx, action_zero, zero_options,
+ 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
+ 
+ 	fprintf(stderr, "zeroed %d nmem%s\n", count >= 0 ? count : 0,
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 9c5a34e542c3..28b1dfb0bdfa 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -537,7 +537,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *di
+         return NULL;
+ }
+ 
+-NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
++NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_extent(
++		struct ndctl_dimm *dimm, unsigned int len, unsigned int offset)
+ {
+         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+         struct ndctl_cmd *cmd_size, *cmd_read;
+@@ -557,13 +558,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+         cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
+         if (!cmd_read)
+                 goto out_size;
++
++	/*
++	 * For ndctl_read_labels() compat, enable subsequent calls that
++	 * will manipulate labels
++	 */
++	if (len == 0 && offset == 0)
++		init_ndd(&dimm->ndd, cmd_read, cmd_size);
++
++	if (len == 0)
++		len = cmd_size->get_size->config_size;
++	rc = ndctl_cmd_cfg_read_set_extent(cmd_read, len, offset);
++	if (rc < 0)
++		goto out_size;
++
+         rc = ndctl_cmd_submit_xlat(cmd_read);
+         if (rc < 0)
+                 goto out_read;
+ 	ndctl_cmd_unref(cmd_size);
+ 
+-	init_ndd(&dimm->ndd, cmd_read, cmd_size);
+-
+ 	return cmd_read;
+ 
+  out_read:
+@@ -573,15 +586,21 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+         return NULL;
+ }
+ 
+-NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
++NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_read_label_extent(dimm, 0, 0);
++}
++
++NDCTL_EXPORT int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
++		unsigned int len, unsigned int offset)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
+ 	struct ndctl_cmd *cmd_read, *cmd_write;
+ 	int rc;
+ 
+-	cmd_read = ndctl_dimm_read_labels(dimm);
++	cmd_read = ndctl_dimm_read_label_extent(dimm, len, offset);
+ 	if (!cmd_read)
+-		return -ENXIO;
++		return -EINVAL;
+ 
+ 	if (ndctl_dimm_is_active(dimm)) {
+ 		dbg(ctx, "%s: regions active, abort label write\n",
+@@ -623,6 +642,11 @@ NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
+ 	return rc;
+ }
+ 
++NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
++{
++	return ndctl_dimm_zero_label_extent(dimm, 0, 0);
++}
++
+ NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
+ 		struct ndctl_dimm *dimm)
+ {
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 3cd431a90e55..895fb358c43a 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -412,4 +412,6 @@ global:
+ 	ndctl_cmd_cfg_read_set_extent;
+ 	ndctl_cmd_cfg_write_set_extent;
+ 	ndctl_dimm_read_label_index;
++	ndctl_dimm_read_label_extent;
++	ndctl_dimm_zero_label_extent;
+ } LIBNDCTL_19;
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 3fc0290ff6a7..1f6a01c55377 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -242,9 +242,6 @@ struct ndctl_namespace {
+  *
+  * A command may only specify one of @source, or @iter.total_buf, not both.
+  */
+-enum {
+-	READ, WRITE,
+-};
+ struct ndctl_cmd {
+ 	struct ndctl_dimm *dimm;
+ 	struct ndctl_bus *bus;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 8aa4b8bbe6c2..c9d0dc120d3b 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -307,8 +307,12 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_size(struct ndctl_dimm *dimm);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
+ int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
++int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
++		unsigned int len, unsigned int offset);
+ struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
+ struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
++struct ndctl_cmd *ndctl_dimm_read_label_extent(struct ndctl_dimm *dimm,
++		unsigned int len, unsigned int offset);
+ int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
+ enum ndctl_namespace_version {
+ 	NDCTL_NS_VERSION_1_1,
+diff --git a/util/util.h b/util/util.h
+index 001707e8b159..54c6ef18b6d7 100644
+--- a/util/util.h
++++ b/util/util.h
+@@ -73,6 +73,10 @@
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+ #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+ 
++enum {
++	READ, WRITE,
++};
++
+ static inline const char *skip_prefix(const char *str, const char *prefix)
+ {
+         size_t len = strlen(prefix);
 
 _______________________________________________
 Linux-nvdimm mailing list
