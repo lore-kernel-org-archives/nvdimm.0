@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 95370212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:58:02 -0700 (PDT)
-Subject: [ndctl PATCH v2 22/26] ndctl/namespace: Clarify 16M minimum size
- requirement
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:41:18 -0700
-Message-ID: <156426367840.531577.5216422482939398348.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 436B7212E15B1
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:47 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 11/13] contrib/ndctl: fix region-id completions for
+ daxctl
+Date: Fri, 26 Jul 2019 19:52:10 -0600
+Message-Id: <20190727015212.27092-12-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,68 +24,63 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel enforces a minimum size for any "claimed" namespace i.e. any
-namespace that is wrapped in an address abstraction like the btt or
-devdax. The "no such device or address" default print is confusing, so
-replace with an explicit error message.
+The completion helpers for daxctl assumed the region arguments for
+specifying daxctl regions were the same as ndctl regions, i.e.
+"regionX". This is not true - daxctl region arguments are a simple
+numeric 'id'.
 
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add a new helper __daxctl_get_regions() to complete daxctl region IDs
+properly.
+
+While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
+quoting in __daxctl_comp_options()
+
+Fixes: d6790a32f32c ("daxctl: Add bash-completion")
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- ndctl/namespace.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ contrib/ndctl | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 69900c4e4e60..75ea366574f8 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -534,6 +534,7 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	unsigned long long size_align, units = 1, resource;
- 	struct ndctl_pfn *pfn = NULL;
- 	struct ndctl_dax *dax = NULL;
-+	bool default_size = false;
- 	unsigned int ways;
- 	int rc = 0;
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 396a344..cacee2d 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -531,8 +531,14 @@ _ndctl()
  
-@@ -548,10 +549,13 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		p->size = __parse_size64(param.size, &units);
- 	else if (ndns)
- 		p->size = ndctl_namespace_get_size(ndns);
-+	else
-+		default_size = true;
- 
- 	/*
- 	 * Validate available capacity in the create case, in the
--	 * reconfigure case the capacity is already allocated.
-+	 * reconfigure case the capacity is already allocated. A default
-+	 * size will be established from available capacity.
- 	 */
- 	if (!ndns) {
- 		rc = validate_available_capacity(region, p);
-@@ -719,6 +723,21 @@ static int validate_namespace_options(struct ndctl_region *region,
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * Catch attempts to create sub-16M namespaces to match the
-+	 * kernel's restriction (see nd_namespace_store())
-+	 */
-+	if (p->size < SZ_16M && p->mode != NDCTL_NS_MODE_RAW) {
-+		if (default_size) {
-+			debug("%s: insufficient capacity for mode: %s\n",
-+					region_name, util_nsmode_name(p->mode));
-+			return -EAGAIN;
-+		}
-+		error("'--size=' must be >= 16MiB for '%s' mode\n",
-+				util_nsmode_name(p->mode));
-+		return -EINVAL;
-+	}
+ __daxctl_get_devs()
+ {
+-	local opts="--devices $*"
+-	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
++	local opts=("--devices" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
++}
 +
- 	if (param.sector_size) {
- 		struct ndctl_btt *btt;
- 		int num, i;
++__daxctl_get_regions()
++{
++	local opts=("--regions" "$*")
++	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+ }
+ 
+ __daxctlcomp()
+@@ -561,10 +567,10 @@ __daxctl_comp_options()
+ 		local cur_arg=${cur##*=}
+ 		case $cur_subopt in
+ 		--region)
+-			opts=$(__ndctl_get_regions -i)
++			opts="$(__daxctl_get_regions -i)"
+ 			;;
+ 		--dev)
+-			opts=$(__daxctl_get_devs -i)
++			opts="$(__daxctl_get_devs -i)"
+ 			;;
+ 		*)
+ 			return
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
