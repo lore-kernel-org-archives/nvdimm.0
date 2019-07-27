@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 236AD212FD41A
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:16 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 4EE4B212BC46B
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:45 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 11/13] contrib/ndctl: fix region-id completions for
- daxctl
-Date: Wed, 31 Jul 2019 18:29:30 -0600
-Message-Id: <20190801002932.26430-12-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 05/13] daxctl/list: add target_node for device
+ listings
+Date: Fri, 26 Jul 2019 19:52:04 -0600
+Message-Id: <20190727015212.27092-6-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,58 +27,45 @@ To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The completion helpers for daxctl assumed the region arguments for
-specifying daxctl regions were the same as ndctl regions, i.e.
-"regionX". This is not true - daxctl region arguments are a simple
-numeric 'id'.
+The kernel provides a 'target_node' attribute for dax devices. When
+converting a dax device to the system-ram mode, the memory is hotplugged
+into this numa node. It would be helpful to print this in device
+listings so that it is easy for applications to detect the node to
+which the new memory belongs.
 
-Add a new helper __daxctl_get_regions() to complete daxctl region IDs
-properly.
-
-While at it, fix a useless use of 'echo' in __daxctl_get_devs() and
-quoting in __daxctl_comp_options()
-
-Fixes: d6790a32f32c ("daxctl: Add bash-completion")
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- contrib/ndctl | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ util/json.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/contrib/ndctl b/contrib/ndctl
-index 396a344..cacee2d 100755
---- a/contrib/ndctl
-+++ b/contrib/ndctl
-@@ -531,8 +531,14 @@ _ndctl()
- 
- __daxctl_get_devs()
+diff --git a/util/json.c b/util/json.c
+index babdc8c..f521337 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
  {
--	local opts="--devices $*"
--	echo "$(daxctl list $opts | grep -E "^\s*\"chardev\":" | cut -d\" -f4)"
-+	local opts=("--devices" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"chardev\":" | cut -d'"' -f4
-+}
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
++	int node;
+ 
+ 	jdev = json_object_new_object();
+ 	if (!devname || !jdev)
+@@ -284,6 +285,13 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 	if (jobj)
+ 		json_object_object_add(jdev, "size", jobj);
+ 
++	node = daxctl_dev_get_target_node(dev);
++	if (node >= 0) {
++		jobj = json_object_new_int(node);
++		if (jobj)
++			json_object_object_add(jdev, "target_node", jobj);
++	}
 +
-+__daxctl_get_regions()
-+{
-+	local opts=("--regions" "$*")
-+	daxctl list "${opts[@]}" | grep -E "^\s*\"id\":" | grep -Eo "[0-9]+"
+ 	return jdev;
  }
  
- __daxctlcomp()
-@@ -561,10 +567,10 @@ __daxctl_comp_options()
- 		local cur_arg=${cur##*=}
- 		case $cur_subopt in
- 		--region)
--			opts=$(__ndctl_get_regions -i)
-+			opts="$(__daxctl_get_regions -i)"
- 			;;
- 		--dev)
--			opts=$(__daxctl_get_devs -i)
-+			opts="$(__daxctl_get_devs -i)"
- 			;;
- 		*)
- 			return
 -- 
 2.20.1
 
