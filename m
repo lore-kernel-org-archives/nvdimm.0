@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-oi1-f196.google.com (mail-oi1-f196.google.com
- [209.85.167.196])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EC41B212ACEAC
- for <linux-nvdimm@lists.01.org>; Wed,  3 Jul 2019 04:11:10 -0700 (PDT)
-Received: by mail-oi1-f196.google.com with SMTP id g7so1708437oia.8
- for <linux-nvdimm@lists.01.org>; Wed, 03 Jul 2019 04:11:10 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 259BC212E259E
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:37 -0700 (PDT)
+Subject: [ndctl PATCH v2 17/26] ndctl/test: Checkout device-mapper + dax
+ operation
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 27 Jul 2019 14:40:52 -0700
+Message-ID: <156426365289.531577.3024221395183254159.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-References: <156140036490.2951909.1837804994781523185.stgit@dwillia2-desk3.amr.corp.intel.com>
- <156140037770.2951909.3387200938880485927.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156140037770.2951909.3387200938880485927.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 3 Jul 2019 13:10:58 +0200
-Message-ID: <CAJZ5v0gAVXxnu22it_YTTm1HQPiBj5DOuiC1YCg5Eem8RQW0Ww@mail.gmail.com>
-Subject: Re: [PATCH v4 02/10] acpi/numa/hmat: Skip publishing target info for
- nodes with no online memory
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,70 +23,113 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Jun 24, 2019 at 8:33 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> There are multiple scenarios where the HMAT may contain information
-> about proximity domains that are not currently online. Rather than fail
-> to report any HMAT data just elide those offline domains.
->
-> If and when those domains are later onlined they can be added to the
-> HMEM reporting at that point.
->
-> This was found while testing EFI_MEMORY_SP support which reserves
-> "specific purpose" memory from the general allocation pool. If that
-> reservation results in an empty numa-node then the node is not marked
-> online leading a spurious:
->
->     "acpi/hmat: Ignoring HMAT: Invalid table"
->
-> ...result for HMAT parsing.
->
-> Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Given recent kernel changes broke the device-mapper use case, introduce
+a basic unit test to prevent this from regressing in the future.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/Makefile.am |    1 +
+ test/dm.sh       |   75 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 76 insertions(+)
+ create mode 100755 test/dm.sh
 
-> ---
->  drivers/acpi/numa/hmat.c |   14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> index 96b7d39a97c6..2c220cb7b620 100644
-> --- a/drivers/acpi/numa/hmat.c
-> +++ b/drivers/acpi/numa/hmat.c
-> @@ -96,9 +96,6 @@ static __init void alloc_memory_target(unsigned int mem_pxm)
->  {
->         struct memory_target *target;
->
-> -       if (pxm_to_node(mem_pxm) == NUMA_NO_NODE)
-> -               return;
-> -
->         target = find_mem_target(mem_pxm);
->         if (target)
->                 return;
-> @@ -588,6 +585,17 @@ static __init void hmat_register_targets(void)
->         struct memory_target *target;
->
->         list_for_each_entry(target, &targets, node) {
-> +               int nid = pxm_to_node(target->memory_pxm);
-> +
-> +               /*
-> +                * Skip offline nodes. This can happen when memory
-> +                * marked EFI_MEMORY_SP, "specific purpose", is applied
-> +                * to all the memory in a promixity domain leading to
-> +                * the node being marked offline / unplugged, or if
-> +                * memory-only "hotplug" node is offline.
-> +                */
-> +               if (nid == NUMA_NO_NODE || !node_online(nid))
-> +                       continue;
->                 hmat_register_target_initiators(target);
->                 hmat_register_target_perf(target);
->         }
->
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 874c4bbfaa90..2a1e03d26f6c 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -49,6 +49,7 @@ TESTS +=\
+ 	dax.sh \
+ 	device-dax \
+ 	device-dax-fio.sh \
++	dm.sh \
+ 	mmap.sh
+ 
+ if ENABLE_KEYUTILS
+diff --git a/test/dm.sh b/test/dm.sh
+new file mode 100755
+index 000000000000..fb498c95a29b
+--- /dev/null
++++ b/test/dm.sh
+@@ -0,0 +1,75 @@
++#!/bin/bash -x
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2015-2019 Intel Corporation. All rights reserved.
++
++set -e
++
++SKIP=77
++FAIL=1
++SUCCESS=0
++
++. ./common
++
++MNT=test_dax_mnt
++TEST_DM_PMEM=/dev/mapper/test_pmem
++NAME=$(basename $TEST_DM_PMEM)
++
++mkdir -p $MNT
++
++TEST_SIZE=$((1<<30))
++
++rc=$FAIL
++cleanup() {
++	if [ $rc -ne $SUCCESS ]; then
++		echo "test/dm.sh: failed at line $1"
++	fi
++	if mountpoint -q $MNT; then
++		umount $MNT
++	fi
++
++	if [ -L $TEST_DM_PMEM ]; then
++		dmsetup remove $TEST_DM_PMEM
++	fi
++	rmdir $MNT
++	# opportunistic cleanup, not fatal if these fail
++	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
++	for i in $namespaces
++	do
++		if ! $NDCTL destroy-namespace -f $i; then
++			echo "test/sub-section.sh: cleanup() failed to destroy $i"
++		fi
++	done
++	exit $rc
++}
++
++trap 'err $LINENO cleanup' ERR
++
++dev="x"
++json=$($NDCTL create-namespace -b ACPI.NFIT -s $TEST_SIZE -t pmem -m fsdax -n "$NAME")
++eval $(echo $json | json2var )
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++
++pmem0=/dev/$blockdev
++size0=$((size/512))
++
++json=$($NDCTL create-namespace -b ACPI.NFIT -s $TEST_SIZE -t pmem -m fsdax -n "$NAME")
++eval $(echo $json | json2var )
++[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
++[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++
++pmem1=/dev/$blockdev
++size1=$((size/512))
++
++cat <<EOF |
++0 $size0 linear $pmem0 0
++$size0 $size1 linear $pmem1 0
++EOF
++dmsetup create $(basename $NAME)
++
++mkfs.ext4 -b 4096 $TEST_DM_PMEM
++mount -o dax $TEST_DM_PMEM $MNT
++umount $MNT
++
++rc=$SUCCESS
++cleanup $LINENO
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
