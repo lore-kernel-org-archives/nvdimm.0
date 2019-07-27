@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CEF05212BC46B
- for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:45 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 46E4C2129F02A
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:43 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v8 07/13] daxctl: add a new reconfigure-device command
-Date: Fri, 26 Jul 2019 19:52:06 -0600
-Message-Id: <20190727015212.27092-8-vishal.l.verma@intel.com>
-In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
-References: <20190727015212.27092-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 00/13] daxctl: add a new reconfigure-device command
+Date: Fri, 26 Jul 2019 19:51:59 -0600
+Message-Id: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,585 +16,177 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new command 'daxctl-reconfigure-device'. This is used to switch
-the mode of a dax device between regular 'device_dax' and
-'system-memory'. The command also uses the memory hotplug sysfs
-interfaces to online the newly available memory when converting to
-'system-ram', and to attempt to offline the memory when converting back
-to a DAX device.
-
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/Makefile.am |   2 +
- daxctl/builtin.h   |   1 +
- daxctl/daxctl.c    |   1 +
- daxctl/device.c    | 503 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 507 insertions(+)
- create mode 100644 daxctl/device.c
-
-diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-index 94f73f9..66dcc7f 100644
---- a/daxctl/Makefile.am
-+++ b/daxctl/Makefile.am
-@@ -15,10 +15,12 @@ daxctl_SOURCES =\
- 		daxctl.c \
- 		list.c \
- 		migrate.c \
-+		device.c \
- 		../util/json.c
- 
- daxctl_LDADD =\
- 	lib/libdaxctl.la \
- 	../libutil.a \
- 	$(UUID_LIBS) \
-+	$(KMOD_LIBS) \
- 	$(JSON_LIBS)
-diff --git a/daxctl/builtin.h b/daxctl/builtin.h
-index 00ef5e9..756ba2a 100644
---- a/daxctl/builtin.h
-+++ b/daxctl/builtin.h
-@@ -6,4 +6,5 @@
- struct daxctl_ctx;
- int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
-+int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
- #endif /* _DAXCTL_BUILTIN_H_ */
-diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-index 2e41747..e1ba7b8 100644
---- a/daxctl/daxctl.c
-+++ b/daxctl/daxctl.c
-@@ -71,6 +71,7 @@ static struct cmd_struct commands[] = {
- 	{ "list", .d_fn = cmd_list },
- 	{ "help", .d_fn = cmd_help },
- 	{ "migrate-device-model", .d_fn = cmd_migrate },
-+	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
- };
- 
- int main(int argc, const char **argv)
-diff --git a/daxctl/device.c b/daxctl/device.c
-new file mode 100644
-index 0000000..2629804
---- /dev/null
-+++ b/daxctl/device.c
-@@ -0,0 +1,503 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#include <stdio.h>
-+#include <errno.h>
-+#include <stdlib.h>
-+#include <syslog.h>
-+#include <unistd.h>
-+#include <limits.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <sys/sysmacros.h>
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <json-c/json.h>
-+#include <daxctl/libdaxctl.h>
-+#include <util/parse-options.h>
-+#include <ccan/array_size/array_size.h>
-+
-+static struct {
-+	const char *dev;
-+	const char *mode;
-+	int region_id;
-+	bool no_online;
-+	bool force;
-+	bool human;
-+	bool verbose;
-+} param = {
-+	.region_id = -1,
-+};
-+
-+enum dev_mode {
-+	DAXCTL_DEV_MODE_UNKNOWN,
-+	DAXCTL_DEV_MODE_DEVDAX,
-+	DAXCTL_DEV_MODE_RAM,
-+};
-+
-+static enum dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
-+static unsigned long flags;
-+
-+enum device_action {
-+	ACTION_RECONFIG,
-+};
-+
-+#define BASE_OPTIONS() \
-+OPT_INTEGER('r', "region", &param.region_id, "restrict to the given region"), \
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
-+OPT_BOOLEAN('v', "verbose", &param.verbose, "emit more debug messages")
-+
-+#define RECONFIG_OPTIONS() \
-+OPT_STRING('m', "mode", &param.mode, "mode", "mode to switch the device to"), \
-+OPT_BOOLEAN('N', "no-online", &param.no_online, \
-+	"don't auto-online memory sections"), \
-+OPT_BOOLEAN('f', "force", &param.force, \
-+		"attempt to offline memory sections before reconfiguration")
-+
-+static const struct option reconfig_options[] = {
-+	BASE_OPTIONS(),
-+	RECONFIG_OPTIONS(),
-+	OPT_END(),
-+};
-+
-+static const char *parse_device_options(int argc, const char **argv,
-+		enum device_action action, const struct option *options,
-+		const char *usage, struct daxctl_ctx *ctx)
-+{
-+	const char * const u[] = {
-+		usage,
-+		NULL
-+	};
-+	int i, rc = 0;
-+
-+	argc = parse_options(argc, argv, options, u, 0);
-+
-+	/* Handle action-agnostic non-option arguments */
-+	if (argc == 0) {
-+		char *action_string;
-+
-+		switch (action) {
-+		case ACTION_RECONFIG:
-+			action_string = "reconfigure";
-+			break;
-+		default:
-+			action_string = "<>";
-+			break;
-+		}
-+		fprintf(stderr, "specify a device to %s, or \"all\"\n",
-+			action_string);
-+		rc = -EINVAL;
-+	}
-+	for (i = 1; i < argc; i++) {
-+		fprintf(stderr, "unknown extra parameter \"%s\"\n", argv[i]);
-+		rc = -EINVAL;
-+	}
-+
-+	if (rc) {
-+		usage_with_options(u, options);
-+		return NULL;
-+	}
-+
-+	/* Handle action-agnostic options */
-+	if (param.verbose)
-+		daxctl_set_log_priority(ctx, LOG_DEBUG);
-+	if (param.human)
-+		flags |= UTIL_JSON_HUMAN;
-+
-+	/* Handle action-specific options */
-+	switch (action) {
-+	case ACTION_RECONFIG:
-+		if (!param.mode) {
-+			fprintf(stderr, "error: a 'mode' option is required\n");
-+			usage_with_options(u, reconfig_options);
-+			rc = -EINVAL;
-+		}
-+		if (strcmp(param.mode, "system-ram") == 0) {
-+			reconfig_mode = DAXCTL_DEV_MODE_RAM;
-+		} else if (strcmp(param.mode, "devdax") == 0) {
-+			reconfig_mode = DAXCTL_DEV_MODE_DEVDAX;
-+			if (param.no_online) {
-+				fprintf(stderr,
-+					"--no-online is incompatible with --mode=devdax\n");
-+				rc =  -EINVAL;
-+			}
-+		}
-+		break;
-+	}
-+	if (rc) {
-+		usage_with_options(u, options);
-+		return NULL;
-+	}
-+
-+	return argv[0];
-+}
-+
-+static int dev_online_memory(struct daxctl_dev *dev)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	int num_sections, num_on, rc;
-+
-+	if (!mem) {
-+		fprintf(stderr, "%s: failed to get the memory object\n",
-+			devname);
-+		return -ENXIO;
-+	}
-+
-+	/* get total number of sections and sections already online */
-+	num_sections = daxctl_memory_num_sections(mem);
-+	if (num_sections < 0) {
-+		fprintf(stderr, "%s: failed to get number of memory sections\n",
-+			devname);
-+		return num_sections;
-+	}
-+
-+	num_on = daxctl_memory_is_online(mem);
-+	if (num_on < 0) {
-+		fprintf(stderr, "%s: failed to determine online state: %s\n",
-+			devname, strerror(-num_on));
-+		return num_on;
-+	}
-+	if (num_on == num_sections) {
-+		fprintf(stderr, "%s: all memory sections (%d) already online\n",
-+			devname, num_on);
-+		return 1;
-+	}
-+	if (num_on > 0)
-+		fprintf(stderr, "%s: %d memory section%s already online\n",
-+			devname, num_on,
-+			num_on == 1 ? "" : "s");
-+
-+	/* online the remaining sections */
-+	rc = daxctl_memory_online(mem);
-+	if (rc < 0) {
-+		fprintf(stderr, "%s: failed to online memory: %s\n",
-+			devname, strerror(-rc));
-+		return rc;
-+	}
-+	if (param.verbose)
-+		fprintf(stderr, "%s: %d memory section%s onlined\n", devname, rc,
-+			rc == 1 ? "" : "s");
-+
-+	/* all sections should now be online */
-+	num_on = daxctl_memory_is_online(mem);
-+	if (num_on < 0) {
-+		fprintf(stderr, "%s: failed to determine online state: %s\n",
-+			devname, strerror(-num_on));
-+		return num_on;
-+	}
-+	if (num_on < num_sections) {
-+		fprintf(stderr, "%s: failed to online %d memory sections\n",
-+			devname, num_sections - num_on);
-+		return -ENXIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dev_offline_memory(struct daxctl_dev *dev)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	int num_sections, num_on, num_off, rc;
-+
-+	if (!mem) {
-+		fprintf(stderr, "%s: failed to get the memory object\n",
-+			devname);
-+		return -ENXIO;
-+	}
-+
-+	/* get total number of sections and sections already offline */
-+	num_sections = daxctl_memory_num_sections(mem);
-+	if (num_sections < 0) {
-+		fprintf(stderr, "%s: failed to get number of memory sections\n",
-+			devname);
-+		return num_sections;
-+	}
-+
-+	num_on = daxctl_memory_is_online(mem);
-+	if (num_on < 0) {
-+		fprintf(stderr, "%s: failed to determine online state: %s\n",
-+			devname, strerror(-num_on));
-+		return num_on;
-+	}
-+
-+	num_off = num_sections - num_on;
-+	if (num_off == num_sections) {
-+		fprintf(stderr, "%s: all memory sections (%d) already offline\n",
-+			devname, num_off);
-+		return 1;
-+	}
-+	if (num_off)
-+		fprintf(stderr, "%s: %d memory section%s already offline\n",
-+			devname, num_off,
-+			num_off == 1 ? "" : "s");
-+
-+	/* offline the remaining sections */
-+	rc = daxctl_memory_offline(mem);
-+	if (rc < 0) {
-+		fprintf(stderr, "%s: failed to offline memory: %s\n",
-+			devname, strerror(-rc));
-+		return rc;
-+	}
-+	if (param.verbose)
-+		fprintf(stderr, "%s: %d memory section%s offlined\n", devname, rc,
-+			rc == 1 ? "" : "s");
-+
-+	/* all sections should now be ofline */
-+	num_on = daxctl_memory_is_online(mem);
-+	if (num_on < 0) {
-+		fprintf(stderr, "%s: failed to determine online state: %s\n",
-+			devname, strerror(-num_on));
-+		return num_on;
-+	}
-+	if (num_on) {
-+		fprintf(stderr, "%s: failed to offline %d memory sections\n",
-+			devname, num_on);
-+		return -ENXIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int disable_devdax_device(struct daxctl_dev *dev)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	int rc;
-+
-+	if (mem) {
-+		fprintf(stderr, "%s was already in system-ram mode\n",
-+			devname);
-+		return 1;
-+	}
-+	rc = daxctl_dev_disable(dev);
-+	if (rc) {
-+		fprintf(stderr, "%s: disable failed: %s\n",
-+			daxctl_dev_get_devname(dev), strerror(-rc));
-+		return rc;
-+	}
-+	return 0;
-+}
-+
-+static int reconfig_mode_system_ram(struct daxctl_dev *dev)
-+{
-+	int rc, skip_enable = 0;
-+
-+	if (daxctl_dev_is_enabled(dev)) {
-+		rc = disable_devdax_device(dev);
-+		if (rc < 0)
-+			return rc;
-+		if (rc > 0)
-+			skip_enable = 1;
-+	}
-+
-+	if (!skip_enable) {
-+		rc = daxctl_dev_enable_ram(dev);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	if (param.no_online)
-+		return 0;
-+
-+	return dev_online_memory(dev);
-+}
-+
-+static int disable_system_ram_device(struct daxctl_dev *dev)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	int rc;
-+
-+	if (!mem) {
-+		fprintf(stderr, "%s was already in devdax mode\n", devname);
-+		return 1;
-+	}
-+
-+	if (param.force) {
-+		rc = dev_offline_memory(dev);
-+		if (rc < 0)
-+			return rc;
-+	}
-+
-+	rc = daxctl_memory_is_online(mem);
-+	if (rc < 0) {
-+		fprintf(stderr, "%s: failed to determine online state: %s\n",
-+			devname, strerror(-rc));
-+		return rc;
-+	}
-+	if (rc > 0) {
-+		if (param.verbose) {
-+			fprintf(stderr, "%s: found %d memory sections online\n",
-+				devname, rc);
-+			fprintf(stderr, "%s: refusing to change modes\n",
-+				devname);
-+		}
-+		return -EBUSY;
-+	}
-+	rc = daxctl_dev_disable(dev);
-+	if (rc) {
-+		fprintf(stderr, "%s: disable failed: %s\n",
-+			daxctl_dev_get_devname(dev), strerror(-rc));
-+		return rc;
-+	}
-+	return 0;
-+}
-+
-+static int reconfig_mode_devdax(struct daxctl_dev *dev)
-+{
-+	int rc;
-+
-+	if (daxctl_dev_is_enabled(dev)) {
-+		rc = disable_system_ram_device(dev);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	rc = daxctl_dev_enable_devdax(dev);
-+	if (rc)
-+		return rc;
-+
-+	return 0;
-+}
-+
-+static int verify_dax_bus_model(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	char *dev_path, *subsys_path, *resolved;
-+	struct stat sb;
-+	int rc;
-+
-+	if (asprintf(&dev_path, "/dev/%s", devname) < 0)
-+		return -ENOMEM;
-+
-+	rc = lstat(dev_path, &sb);
-+	if (rc < 0) {
-+		rc = -errno;
-+		fprintf(stderr, "%s: stat for %s failed: %s\n",
-+			devname, dev_path, strerror(-rc));
-+		goto out_dev;;
-+	}
-+
-+	if (asprintf(&subsys_path, "/sys/dev/char/%d:%d/subsystem",
-+			major(sb.st_rdev), minor(sb.st_rdev)) < 0) {
-+		rc = -ENOMEM;
-+		goto out_dev;
-+	}
-+
-+	resolved = realpath(subsys_path, NULL);
-+	if (!resolved) {
-+		rc = -errno;
-+		fprintf(stderr, "%s:  unable to determine subsys: %s\n",
-+			devname, strerror(errno));
-+		goto out_subsys;
-+	}
-+
-+	if (strcmp(resolved, "/sys/bus/dax") == 0)
-+		rc = 0;
-+	else
-+		rc = -ENXIO;
-+
-+	free(resolved);
-+out_subsys:
-+	free(subsys_path);
-+out_dev:
-+	free(dev_path);
-+	return rc;
-+}
-+
-+static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
-+		struct json_object **jdevs)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct json_object *jdev;
-+	int rc = 0;
-+
-+	if (verify_dax_bus_model(dev) != 0) {
-+		fprintf(stderr, "%s: dax-class device model unsupported\n",
-+			devname);
-+		return -ENXIO;
-+	}
-+
-+	switch (mode) {
-+	case DAXCTL_DEV_MODE_RAM:
-+		rc = reconfig_mode_system_ram(dev);
-+		break;
-+	case DAXCTL_DEV_MODE_DEVDAX:
-+		rc = reconfig_mode_devdax(dev);
-+		break;
-+	default:
-+		fprintf(stderr, "%s: unknown mode requested: %d\n",
-+			devname, mode);
-+		rc = -EINVAL;
-+	}
-+
-+	*jdevs = json_object_new_array();
-+	if (*jdevs) {
-+		jdev = util_daxctl_dev_to_json(dev, flags);
-+		if (jdev)
-+			json_object_array_add(*jdevs, jdev);
-+	}
-+
-+	return rc;
-+}
-+
-+static int do_xaction_device(const char *device, enum device_action action,
-+		struct daxctl_ctx *ctx, int *processed)
-+{
-+	struct json_object *jdevs = NULL;
-+	struct daxctl_region *region;
-+	struct daxctl_dev *dev;
-+	int rc = -ENXIO;
-+
-+	*processed = 0;
-+
-+	daxctl_region_foreach(ctx, region) {
-+		if (param.region_id >= 0 && param.region_id
-+				!= daxctl_region_get_id(region))
-+			continue;
-+
-+		daxctl_dev_foreach(region, dev) {
-+			if (!util_daxctl_dev_filter(dev, device))
-+				continue;
-+
-+			switch (action) {
-+			case ACTION_RECONFIG:
-+				rc = do_reconfig(dev, reconfig_mode, &jdevs);
-+				if (rc == 0)
-+					(*processed)++;
-+				break;
-+			default:
-+				rc = -EINVAL;
-+				break;
-+			}
-+		}
-+	}
-+
-+	/*
-+	 * jdevs is the containing json array for all devices we are reporting
-+	 * on. It therefore needs to be outside the region/device iterators,
-+	 * and passed in to the do_<action> functions to add their objects to
-+	 */
-+	if (jdevs)
-+		util_display_json_array(stdout, jdevs, flags);
-+
-+	return rc;
-+}
-+
-+int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
-+{
-+	char *usage = "daxctl reconfigure-device <device> [<options>]";
-+	const char *device = parse_device_options(argc, argv, ACTION_RECONFIG,
-+			reconfig_options, usage, ctx);
-+	int processed, rc;
-+
-+	rc = do_xaction_device(device, ACTION_RECONFIG, ctx, &processed);
-+	if (rc < 0)
-+		fprintf(stderr, "error reconfiguring devices: %s\n",
-+				strerror(-rc));
-+
-+	fprintf(stderr, "reconfigured %d device%s\n", processed,
-+			processed == 1 ? "" : "s");
-+	return rc;
-+}
--- 
-2.20.1
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Q2hhbmdlcyBpbiB2ODoKLSByZW5hbWUgdGhlIC0tYXR0ZW1wdC1vZmZsaW5lIG9wdGlvbiB0byAt
+LWZvcmNlIChEYW4pCi0gY2xhcmlmeSB0aGUgbWVzc2FnZXMgd2hlbiBkZXZpY2UgaXMgYWxyZWFk
+eSBpbiB0aGUgcmVxdWVzdGVkIHN0YXRlIChEYW4pCi0gcy91bmFibGUvZmFpbGVkLyBpbiBkZXZp
+Y2UuYyBlcnJvciBtZXNzYWdlcyAoRGFuKQotIGRheGN0bF9tZW1vcnlfe29uLG9mZn1saW5lKCkg
+aW5zdGVhZCBvZiBkYXhjdGxfbWVtb3J5X3NldF97b24sb2ZmfWxpbmUgKERhbikKLSBBZGQgYW4g
+aW50ZXJmYWNlIHRvIGdldCBhIGNvdW50IG9mIHRoZSBtZW1vcnkgc2VjdGlvbnMgYXNzb2NpYXRl
+ZCB3aXRoIGEKICBkZXZpY2UgKERhbikKLSBBcyBhIHJlc3VsdCwgcmVmYWN0b3IgdGhlIHJlYWRk
+aXIgbG9vcCBpbnRvIGEgY29tbW9uIG1lbW9yeV9vcCBmdW5jdGlvbiB0aGF0CiAgY2FuIHNldCB0
+aGUgc3RhdGUsIGdldCB0aGUgb25saW5lIHN0YXRlLCBhbmQgZ2V0IGEgY291bnQgb2YgYWxsIGJs
+b2Nrcy4KLSBVcGRhdGUgdGhlIG9ubGluaW5nL29mZmxpbmluZyByb3V0aW5lcyB1c2VkIGluIGJv
+dGggdGhlIHJlY29uZmlndXJlLWRldmljZQogIGFuZCB7b24sb2ZmfWxpbmUtbWVtb3J5IGNvbW1h
+bmRzIHRvIHVzZSB0aGUgbmV3IGRheGN0bF9tZW1vcnlfbnVtX3NlY3Rpb25zKCkKICBpbnRlcmZh
+Y2UgdG8gdmFsaWRhdGUgdGhlIG51bWJlciBvZiBzZWN0aW9ucyBmb3Igd2hpY2ggd2UgY2hhbmdl
+ZCB0aGUgc3RhdGUuCi0gQWRkIHNvbWUgc21hbGwgY2xhcmlmaWNhdGlvbnMgaW4gdGhlIGRheGN0
+bC1yZWNvbmZpZ3VyZS1kZXZpY2UgbWFuIHBhZ2UgKERhbikKLSBJbiBkZXZpY2UuYyBhZGQgYSB2
+ZXJpZnlfZGF4X2J1c19tb2RlbCgpIGhlbHBlciB0byBjaGVjayBmb3IgdGhlIGRheC1idXMKICBz
+dWJzeXN0ZW0gKERhbikuCgpDaGFuZ2VzIGluIHY3OgotIEZpeCBhIGNvdXBsZSBvZiBjaGVja2Fw
+dGNoIHR5cGUgZXJyb3JzIGluIHRoZSBuZXcgbGluZXMgYWRkZWQgaW4gdjYgKERhbikuCi0gR2V0
+IHJpZCBvZiBkYXhjdGxfZGV2X2dldF9tb2RlLiBkYXhjdGxfZGV2X2dldF9tZW1vcnkgaXMgc3Vm
+ZmljaWVudCB0bwogIGJvdGggY2hlY2sgdGhlIG1vZGUgYW5kIGFsbG9jYXRlIHRoZSBtZW1vcnkg
+cmVsYXRlZCBzdHJ1Y3R1cmVzIG9uIGl0cwogIGZpcnN0IGNhbGwuIChEYW4pCi0gRHVlIHRvIHRo
+ZSBhYm92ZSwgZGF4Y3RsX2Rldl9tb2RlIGlzIG5vdyBwcml2YXRlIHRvIGxpYmRheGN0bCwgYW5k
+IG5vdAogIHBhcnQgb2YgdGhlIEFQSSBleHBvcnRlZCB0aHJvdWdoIGxpYmRheGN0bC5oCi0gQWRk
+IGEgbGFyZ2UgZW5vdWdoIGJ1ZmZlciBhdCBpbml0IHRpbWUgdG8gY29uc3RydWN0IGR5bmFtaWMg
+cGF0aHMsIGFuZCBhdm9pZAogIGFzcHJpbnRmKCkgdHlwZSBhbGxvY2F0aW9ucyBmb3IgbWVtb3J5
+IGJsb2NrcyBhdCBydW50aW1lIChEYW4pLgoKQ2hhbmdlcyBpbiB2NjoKLSBGb3IgbWVtb3J5IGJs
+b2NrIG9ubGluZS9vZmZsaW5lIG9wZXJhdGlvbnMsIHRoZSBrZXJuZWwgcmVzcG9uZHMgd2l0aAog
+IGFuIEVJTlZBTCBmb3IgYm90aCAncmVhbCcgZXJyb3JzLCBhbmQgaWYgdGhlIG1lbW9yeSB3YXMg
+YWxyZWFkeSBpbiB0aGUKICByZXF1ZXN0ZWQgc3RhdGUuIFNpbmNlIHRoZXJlIGlzIGEgVE9DVE9V
+IGhvbGUgYmV0d2VlbiBjaGVja2luZyB0aGUKICBzdGF0ZSBhbmQgc3RvcmluZyBpdCwganVzdCBw
+ZXJmb3JtIGEgc2Vjb25kIGNoZWNrIGlmIHRoZSBzdG9yZSByZXN1bHRzCiAgaW4gYW4gZXJyb3Iu
+IElmIHRoZSBjaGVjayBzaG93cyB0aGUgc3RhdGUgdG8gYmUgdGhlIHNhbWUgYXMgdGhlIG9uZQog
+IHdlJ3JlIGF0dGVtcHRpbmcsIGl0IG1lYW5zIHRoYXQgYW5vdGhlciBhZ2VudCAodXN1YWxseSB1
+ZGV2KSB3b24gdGhlCiAgcmFjZSwgYnV0IHdlIGRvbid0IGNhcmUgc28gbG9uZyBhcyB0aGUgc3Rh
+dGUgY2hhbmdlIGhhcHBlbmVkLCBzbyBkb24ndAogIHJlcG9ydCBhbiBlcnJvci4gKEZhbiBEdSkK
+CkNoYW5nZXMgaW4gdjU6CiAtIGRldmljZS5jOiBjb3JyZWN0bHkgc2V0IGxvZ2xldmVsIGZvciBk
+YXhjdGxfY3R4IGZvciAtLXZlcmJvc2UKIC0gZHJvcCB0aGUgc3Vic3lzIGNhY2hpbmcsIGl0cyBj
+b21wbGV4aXR5IHN0YXJ0ZWQgdG8gZXhjZWVkIGl0cwogICBiZW5lZml0LiBkYXgtY2xhc3MgZGV2
+aWNlIG1vZGVscyB3aWxsIHNpbXBseSBlcnJvciBvdXQgZHVyaW5nCiAgIHJlY29uZmlndXJlLiAo
+RGFuKQogLSBBZGQgYSBub3RlIHRvIHRoZSBtYW4gcGFnZSBmb3IgdGhlIGFib3ZlLgogLSBDbGFy
+aWZ5IHRoZSBvbmxpbmluZyBwb2xpY3kgKG9ubGluZV9tb3ZhYmxlKSBpbiB0aGUgbWFuIHBhZ2UK
+IC0gcmVuYW1lICJudW1hX25vZGUiIHRvICJ0YXJnZXRfbm9kZSIgaW4gZGV2aWNlIGxpc3Rpbmdz
+IChEYW4pCiAtIFdoZW4gcHJpbnRpbmcgYSBkZXZpY2UgJ21vZGUnLCBhc3N1bWUgZGV2ZGF4IGlm
+ICFzeXN0ZW0tcmFtLAogICBhdm9pZGluZyBhICJtb2RlOiB1bmtub3duIiBzaXR1YXRpb24gd2hp
+Y2ggY2FuIGJlIGNvbmZ1c2luZy4gKERhbikKIC0gQWRkIGEgInN0YXRlOiBkaXNhYmxlZCIgYXR0
+cmlidXRlIHRvIHRoZSBkZXZpY2UgbGlzdGluZyBpZiBhIGRyaXZlcgogICBpcyBub3QgYm91bmQu
+IFRoaXMgaXMgbW9yZSBhcHQgdGhhbiB0aGUgcHJldmlvdXMgIm1vZGU6IHVua25vd24iCiAgIGxp
+c3RpbmcuCiAtIGFkZCBhbiBhcGkgdG8gZ2V0ICdkZXYtPnJlc291cmNlJyBwYXJzaW5nIC9wcm9j
+L2lvbWVtIGFzIGEKICAgZmFsbGJhY2sgZm9yIHdoZW4gdGhlIGtlcm5lbCBkb2Vzbid0IHByb3Zp
+ZGUgdGhlIGF0dHJpYnV0ZSAoRGFuKQogLSBjb252ZXJ0IG5vZGVfKiBhcGlzIHRvICdtZW1vcnlf
+KiBhcGlzIHRoYXQgYWN0IG9uIGEgbmV3IGRheGN0bF9tZW1vcnkKICAgb2JqZWN0IChEYW4pCiAt
+IG9ubGluZSBvbmx5IG1lbW9yeSBzZWN0aW9ucyBiZWxvbmdpbmcgdG8gdGhlIGRldmljZSBpbiBx
+dWVzdGlvbiBieQogICBjcm9zcyByZWZlcmVuY2luZyBibG9jayBpbmRpY2VzIHdpdGggdGhlIGRh
+eCBkZXZpY2UgcmVzb3VyY2UgKERhbikKIC0gUmVmdXNlIHRvIHJlY29uZmlndXJlIGEgZGV2aWNl
+IHRoYXQgaXMgYWxyZWFkeSBpbiB0aGUgdGFyZ2V0IG1vZGUuCiAgIFVudGlsIG5vdywgcmVjb25m
+aWd1cmluZyBhIHN5c3RlbS1yYW0gZGV2aWNlIGJhY2sgdG8gc3lzdGVtLXJhbSB3b3VsZAogICBy
+ZXN1bHQgaW4gYSAnb25saW5lIG1lbW9yeSBtYXkgbm90IGJlIGhvdC1yZW1vdmVkJyBrZXJuZWwg
+d2FybmluZy4KIC0gSWYgdGhlIGRldmljZSB3YXMgYWxyZWFkeSBpbiB0aGUgc3lzdGVtLXJhbSBt
+b2RlLCBza2lwCiAgIGRpc2FibGluZy9lbmFibGluZywgYnV0IHN0aWxsIHRyeSB0byBvbmxpbmUg
+dGhlIG1lbW9yeSB1bmxlc3MgdGhlCiAgIC0tbm8tb25saW5lIG9wdGlvbiBpcyBpbiBlZmZlY3Qu
+CiAtIEluIGRheGN0bF91bmJpbmQsIGFsc28gJ3JlbW92ZV9pZCcgdG8gcHJldmVudCBkZXZpY2Vz
+IGF1dG9tYXRpY2FsbHkKICAgYmluZGluZyB0byB0aGUga21lbSBkcml2ZXIgb24gYSBkaXNhYmxl
+ICsgcmUtZW5hYmxlLCB3aGljaCBjYW4gYmUKICAgc3VycHJpc2luZyAoRGFuKS4KIC0gUmV3cml0
+ZSB0aGUgdG9wIGhhbGYgb2YgZGF4Y3RsL2RldmljZS5jIHRvIGJvcnJvdyBlbGVtZW50cyBmcm9t
+CiAgIG5kY3RsL25hbWVzcGFjZS5jIHNvIHRoYXQgaXQgY2FuIHN1cHBvcnQgZ3Jvd2luZyBhZGRp
+dGlvbmFsIGNvbW1hbmRzCiAgIHRoYXQgb3BlcmF0ZSBvbiBkZXZpY2VzIChvbmxpbmUtbWVtb3J5
+IGFuZCBvZmZsaW5lLW1lbW9yeSkKIC0gUmVmYWN0b3IgdGhlIGJvdHRvbSBoYWxmIG9mIGRheGN0
+bC9kZXZpY2UuYyBzbyB3ZSBvbmx5IGRvIHRoZQogICBkaXNhYmxpbmcvb2ZmbGluaW5nIHN0ZXBz
+IGlmIHRoZSBkZXZpY2Ugd2FzIGVuYWJsZWQuCiAtIEFkZCBuZXcgY29tbWFuZHMgdG8gb25saW5l
+IGFuZCBvZmZsaW5lIG1lbW9yeSBzZWN0aW9ucyAoRGFuKQogICBhc3NvY2lhdGVkIHdpdGggYSBn
+aXZlbiBkYXggZGV2aWNlIChEYW4pCiAtIEFkZCBhIG5ldyB0ZXN0IC0gZGF4Y3RsLWRldmljZS5z
+aCAtIHRvIHRlc3QgZGF4Y3RsIHJlY29uZmlndXJlLWRldmljZSwKICAgb25saW5lLW1lbW9yeSwg
+YW5kIG9mZmxpbmUtbWVtb3J5IGNvbW1hbmRzLgogLSBBZGQgYW4gZXhhbXBsZSBpbiBkb2N1bWVu
+dGF0aW9uIGRlbW9uc3RyYXRpbmcgaG93IHRvIHVzZSBudW1hY3RsCiAgIHRvIGJpbmQgYSBwcm9j
+ZXNzIHRvIGEgbm9kZSBzdXJmYWNlZCBmcm9tIGEgZGF4IGRldmljZSAoQW5keSBSdWRvZmYpCgpD
+aGFuZ2VzIGluIHY0OgogLSBEb24ndCBmYWlsIGFkZF9kYXhfZGV2IGZvciBrbW9kIGZhaWx1cmVz
+LiBJbnN0ZWFkIGZhaWwgb25seSB3aGVuIHRoZSBrbW9kCiAgIGxpc3QgaXMgYWN0dWFsbHkgdXNl
+ZCwgaS5lLiBkdXJpbmcgZGF4Y3RsLXJlY29uZmlndXJlLWRldmljZQoKQ2hhbmdlcyBpbiB2MzoK
+IC0gSW4gZGF4Y3RsX2Rldl9nZXRfbW9kZSgpLCByZW1vdmUgdGhlIHN1YnN5c3RlbSB3YXJuaW5n
+LCBkZXRlY3QgZGF4LWNsYXNzCiAgIGFuZCBzaW1wbHkgbWFrZSBpdCByZXR1cm4gZGV2ZGF4CgpD
+aGFuZ2VzIGluIHYyOgogLSBBZGQgZXhhbXBsZXMgdG8gdGhlIGRvY3VtZW50YXRpb24gcGFnZSAo
+RGF2ZSBIYW5zZW4pCiAtIENsYXJpZnkgZG9jdW1lbnRhdGlvbiByZWdhcmRpbmcgdGhlIGNvbnZl
+cnNpb24gZnJvbSBzeXN0ZW0tcmFtIHRvIGRldmRheAogLSBSZW1vdmUgYW55IHJlZmVyZW5jZXMg
+dG8gYSBwZXJzaXN0ZW50IGNvbmZpZyBmcm9tIHRoZSBkb2N1bWVudGF0aW9uIC0KICAgdGhvc2Ug
+Y2FuIGJlIGFkZGVkIHdoZW4gdGhlIGZlYXR1cmUgaXMgYWRkZWQuCiAtIGRldmljZS5jOiB2YWxp
+ZGF0ZSBvcHRpb24gY29tcGF0aWJpbGl0eQogLSBkYXhjdGwtbGlzdDogZGlzcGxheSBudW1hX25v
+ZGUgZm9yIGRldmljZSBsaXN0aW5ncwogLSBkYXhjdGwtbGlzdDogZGlzcGxheSBtb2RlIGZvciBk
+ZXZpY2UgbGlzdGluZ3MKIC0gbWFrZSB0aGUgb3B0aW9ucyBtb3JlIGNvbnNpc3RlbnQgYnkgYWRk
+aW5nIGEgJy1PJyBzaG9ydCBvcHRpb24KICAgZm9yIC0tYXR0ZW1wdC1vZmZsaW5lCgpBZGQgYSBu
+ZXcgZGF4Y3RsLXJlY29uZmlndXJlLWRldmljZSBjb21tYW5kIHRoYXQgbGV0cyB1cyByZWNvbmZp
+Z3VyZSBEQVgKZGV2aWNlcyBiYWNrIGFuZCBmb3J0aCBiZXR3ZWVuICdzeXN0ZW0tcmFtJyBhbmQg
+J2RldmljZS1kYXgnIG1vZGVzLiBJdAphbHNvIGluY2x1ZGVzIGZhY2lsaXRpZXMgdG8gb25saW5l
+IGFueSBuZXdseSBob3QtcGx1Z2dlZCBtZW1vcnkKKGRlZmF1bHQpLCBhbmQgYXR0ZW1wdCB0byBv
+ZmZsaW5lIG1lbW9yeSBiZWZvcmUgY29udmVydGluZyBhd2F5IGZyb20gdGhlCnN5c3RlbS1yYW0g
+bW9kZSAobm90IGRlZmF1bHQsIHJlcXVpcmVzIGEgLS1hdHRlbXB0LW9mZmxpbmUgb3B0aW9uKS4K
+CkN1cnJlbnRseSBtaXNzaW5nIGZyb20gdGhpcyBzZXJpZXMgaXMgYSB3YXkgdG8gcGVyc2lzdGVu
+dGx5IHN0b3JlIHdoaWNoCmRldmljZXMgaGF2ZSBiZWVuICdtYXJrZWQnIGZvciB1c2UgYXMgc3lz
+dGVtLXJhbS4gVGhpcyBkZXBlbmRzIG9uIGEKY29uZmlnIHN5c3RlbSBvdmVyaGF1bCBpbiBuZGN0
+bCwgYW5kIHBhdGNoZXMgZm9yIHRob3NlIHdpbGwgZm9sbG93CnNlcGFyYXRlbHkgYW5kIGFyZSBp
+bmRlcGVuZGVudCBvZiB0aGlzIHdvcmsuCgpFeGFtcGxlIGludm9jYXRpb25zOgoKMS4gUmVjb25m
+aWd1cmUgZGF4MC4wIHRvIHN5c3RlbS1yYW0gbW9kZSwgZG9u4oCZdCBvbmxpbmUgdGhlIG1lbW9y
+eQogICAgIyBkYXhjdGwgcmVjb25maWd1cmUtZGV2aWNlIC0tbW9kZT1zeXN0ZW0tcmFtIC0tbm8t
+b25saW5lIGRheDAuMAogICAgWwogICAgICB7CiAgICAgICAgImNoYXJkZXYiOiJkYXgwLjAiLAog
+ICAgICAgICJzaXplIjoxNjc3NzIxNjAwMCwKICAgICAgICAidGFyZ2V0X25vZGUiOjIsCiAgICAg
+ICAgIm1vZGUiOiJzeXN0ZW0tcmFtIgogICAgICB9CiAgICBdCgoyLiBSZWNvbmZpZ3VyZSBkYXgw
+LjAgdG8gZGV2ZGF4IG1vZGUsIGF0dGVtcHQgdG8gb2ZmbGluZSB0aGUgbWVtb3J5CiAgICAjIGRh
+eGN0bCByZWNvbmZpZ3VyZS1kZXZpY2UgLS1odW1hbiAtLW1vZGU9ZGV2ZGF4IC0tYXR0ZW1wdC1v
+ZmZsaW5lIGRheDAuMAogICAgewogICAgICAiY2hhcmRldiI6ImRheDAuMCIsCiAgICAgICJzaXpl
+IjoiMTUuNjMgR2lCICgxNi43OCBHQikiLAogICAgICAidGFyZ2V0X25vZGUiOjIsCiAgICAgICJt
+b2RlIjoiZGV2ZGF4IgogICAgfQoKMy4gUmVjb25maWd1cmUgYWxsIGRheCBkZXZpY2VzIG9uIHJl
+Z2lvbjAgdG8gc3lzdGVtLXJhbSBtb2RlCiAgICAjIGRheGN0bCByZWNvbmZpZ3VyZS1kZXZpY2Ug
+LS1tb2RlPXN5c3RlbS1yYW0gLS1yZWdpb249MCBhbGwKICAgIFsKICAgICAgewogICAgICAgICJj
+aGFyZGV2IjoiZGF4MC4wIiwKICAgICAgICAic2l6ZSI6MTY3NzcyMTYwMDAsCiAgICAgICAgInRh
+cmdldF9ub2RlIjoyLAogICAgICAgICJtb2RlIjoic3lzdGVtLXJhbSIKICAgICAgfSwKICAgICAg
+ewogICAgICAgICJjaGFyZGV2IjoiZGF4MC4xIiwKICAgICAgICAic2l6ZSI6MTY3NzcyMTYwMDAs
+CiAgICAgICAgInRhcmdldF9ub2RlIjozLAogICAgICAgICJtb2RlIjoic3lzdGVtLXJhbSIKICAg
+ICAgfQogICAgXQoKVGhlc2UgcGF0Y2hlcyBjYW4gYWxzbyBiZSBmb3VuZCBpbiB0aGUgJ2ttZW0t
+cGVuZGluZycgYnJhbmNoIG9uIGdpdGh1YjoKaHR0cHM6Ly9naXRodWIuY29tL3BtZW0vbmRjdGwv
+dHJlZS9rbWVtLXBlbmRpbmcKCkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
+LmNvbT4KQ2M6IERhdmUgSGFuc2VuIDxkYXZlLmhhbnNlbkBsaW51eC5pbnRlbC5jb20+CkNjOiBQ
+YXZlbCBUYXRhc2hpbiA8cGFzaGEudGF0YXNoaW5Ac29sZWVuLmNvbT4KClZpc2hhbCBWZXJtYSAo
+MTMpOgogIGxpYmRheGN0bDogYWRkIGludGVyZmFjZXMgdG8gZ2V0IGN0eCBhbmQgY2hlY2sgZGV2
+aWNlIHN0YXRlCiAgbGliZGF4Y3RsOiBhZGQgaW50ZXJmYWNlcyB0byBlbmFibGUvZGlzYWJsZSBk
+ZXZpY2VzCiAgbGliZGF4Y3RsOiBhZGQgYW4gaW50ZXJmYWNlIHRvIHJldHJpZXZlIHRoZSBkZXZp
+Y2UgcmVzb3VyY2UKICBsaWJkYXhjdGw6IGFkZCBhICdkYXhjdGxfbWVtb3J5JyBvYmplY3QgZm9y
+IG1lbW9yeSBiYXNlZCBvcGVyYXRpb25zCiAgZGF4Y3RsL2xpc3Q6IGFkZCB0YXJnZXRfbm9kZSBm
+b3IgZGV2aWNlIGxpc3RpbmdzCiAgZGF4Y3RsL2xpc3Q6IGRpc3BsYXkgdGhlIG1vZGUgZm9yIGEg
+ZGF4IGRldmljZQogIGRheGN0bDogYWRkIGEgbmV3IHJlY29uZmlndXJlLWRldmljZSBjb21tYW5k
+CiAgRG9jdW1lbnRhdGlvbi9kYXhjdGw6IGFkZCBhIG1hbiBwYWdlIGZvciBkYXhjdGwtcmVjb25m
+aWd1cmUtZGV2aWNlCiAgZGF4Y3RsOiBhZGQgY29tbWFuZHMgdG8gb25saW5lIGFuZCBvZmZsaW5l
+IG1lbW9yeQogIERvY3VtZW50YXRpb246IEFkZCBtYW4gcGFnZXMgZm9yIGRheGN0bC17b24sb2Zm
+fWxpbmUtbWVtb3J5CiAgY29udHJpYi9uZGN0bDogZml4IHJlZ2lvbi1pZCBjb21wbGV0aW9ucyBm
+b3IgZGF4Y3RsCiAgY29udHJpYi9uZGN0bDogYWRkIGJhc2gtY29tcGxldGlvbiBmb3IgdGhlIG5l
+dyBkYXhjdGwgY29tbWFuZHMKICB0ZXN0OiBBZGQgYSB1bml0IHRlc3QgZm9yIGRheGN0bC1yZWNv
+bmZpZ3VyZS1kZXZpY2UgYW5kIGZyaWVuZHMKCiBEb2N1bWVudGF0aW9uL2RheGN0bC9NYWtlZmls
+ZS5hbSAgICAgICAgICAgICAgfCAgIDUgKy0KIC4uLi9kYXhjdGwvZGF4Y3RsLW9mZmxpbmUtbWVt
+b3J5LnR4dCAgICAgICAgICB8ICA3MiArKwogRG9jdW1lbnRhdGlvbi9kYXhjdGwvZGF4Y3RsLW9u
+bGluZS1tZW1vcnkudHh0IHwgIDgwICsrKwogLi4uL2RheGN0bC9kYXhjdGwtcmVjb25maWd1cmUt
+ZGV2aWNlLnR4dCAgICAgIHwgMTU2ICsrKysKIE1ha2VmaWxlLmFtICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAgMyArLQogY29udHJpYi9uZGN0bCAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHwgIDM4ICstCiBkYXhjdGwvTWFrZWZpbGUuYW0gICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgfCAgIDIgKwogZGF4Y3RsL2J1aWx0aW4uaCAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIHwgICAzICsKIGRheGN0bC9kYXhjdGwuYyAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICB8ICAgMyArCiBkYXhjdGwvZGV2aWNlLmMgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgfCA1OTEgKysrKysrKysrKysrKysrKwogZGF4Y3RsL2xpYi9NYWtlZmlsZS5hbSAg
+ICAgICAgICAgICAgICAgICAgICAgIHwgICA1ICstCiBkYXhjdGwvbGliL2xpYmRheGN0bC1wcml2
+YXRlLmggICAgICAgICAgICAgICAgfCAgNDAgKysKIGRheGN0bC9saWIvbGliZGF4Y3RsLmMgICAg
+ICAgICAgICAgICAgICAgICAgICB8IDY2NCArKysrKysrKysrKysrKysrKysKIGRheGN0bC9saWIv
+bGliZGF4Y3RsLnN5bSAgICAgICAgICAgICAgICAgICAgICB8ICAxOSArCiBkYXhjdGwvbGliZGF4
+Y3RsLmggICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTcgKwogdGVzdC9NYWtlZmlsZS5h
+bSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAzICstCiB0ZXN0L2NvbW1vbiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTkgKy0KIHRlc3QvZGF4Y3RsLWRldmlj
+ZXMuc2ggICAgICAgICAgICAgICAgICAgICAgICB8ICA4MSArKysKIHV0aWwvaW9tZW0uYyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAzNyArCiB1dGlsL2lvbWVtLmggICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTIgKwogdXRpbC9qc29uLmMgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIyICsKIDIxIGZpbGVzIGNoYW5nZWQsIDE4NTgg
+aW5zZXJ0aW9ucygrKSwgMTQgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1l
+bnRhdGlvbi9kYXhjdGwvZGF4Y3RsLW9mZmxpbmUtbWVtb3J5LnR4dAogY3JlYXRlIG1vZGUgMTAw
+NjQ0IERvY3VtZW50YXRpb24vZGF4Y3RsL2RheGN0bC1vbmxpbmUtbWVtb3J5LnR4dAogY3JlYXRl
+IG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vZGF4Y3RsL2RheGN0bC1yZWNvbmZpZ3VyZS1kZXZp
+Y2UudHh0CiBjcmVhdGUgbW9kZSAxMDA2NDQgZGF4Y3RsL2RldmljZS5jCiBjcmVhdGUgbW9kZSAx
+MDA3NTUgdGVzdC9kYXhjdGwtZGV2aWNlcy5zaAogY3JlYXRlIG1vZGUgMTAwNjQ0IHV0aWwvaW9t
+ZW0uYwogY3JlYXRlIG1vZGUgMTAwNjQ0IHV0aWwvaW9tZW0uaAoKLS0gCjIuMjAuMQoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
+aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
+L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
