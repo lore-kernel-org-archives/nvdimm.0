@@ -1,35 +1,461 @@
-From: "SEO" <sent-group-qsvJrrU2NvU@public.gmane.org>
-Subject: =?windows-1251?B?z/Du5OLo5uXt6OUg8eDp8u7iIOIg0s7PLTEw?=
- =?windows-1251?B?IEdvb2dsZSAtINHOx8TAzcjFINHAydLOwg==?=
-Date: Mon, 1 Jul 2019 00:55:30 +0300
-Message-ID: <D42E7D58BF6B4CEF33367FC3C7BF31BA@ukr.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 995AD212E15A5
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 02/13] libdaxctl: add interfaces to enable/disable
+ devices
+Date: Fri, 26 Jul 2019 19:52:01 -0600
+Message-Id: <20190727015212.27092-3-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+List-ID: <linux-nvdimm@lists.01.org>
 
-x+Tw4OLx8uLz6fLlLgoKzPsg5+Dt6Ozg5ezx/yDv8O7k4ujm5e3o5ewg8eDp8u7iIOIg0s7PLTEw
-IEdPT0dMRSDv7iDt8+bt++wgwuDsIO/u6PHq7uL77CD08ODn4OwuCgpTRU8g7u/y6Ozo5+D26P8g
-8eDp8uAKCtHu8fLg4uvl7ejlIPHl7ODt8uj35fHq7uPuIP/k8OAKCs3g7+jx4O3o5SBTRU8g7u/y
-6Ozo5+jw7uLg7e379SDx8uDy5ekKCs/w7uTi6Obl7ejlIPHg6fLgIO/uIOrr/vfl4vvsIPTw4Ofg
-7AoKwO3g6+jnIOrg6iDC4Pjl4+4g8eDp8uAsIPLg6iDoIPHg6fLu4iDq7u3q8/Dl7fLu4goK0uDq
-5uUg5+Dt6Ozg5ezx/yDw4Ofw4OHu8uru6SDx4Ony7uI6CgrR4OnyIOLo5+jy6uAg6+Dp8goK0eDp
-8iDi6Ofo8urgCgrB6Oft5fEg8eDp8goKyO3y5fDt5fIg7ODj4Ofo7QoKxfHr6CDC4PEg5+Do7fLl
-8OXx7uLg6+4g5ODt7e7lIO/w5eTr7ubl7ejlIC0g7+j46PLlLCDu8uLl8ujsIOIg7+7k8O7h7e7x
-8v/1LgoKLS0KCtEg0+Lg5uXt6OXsIMLr4OTo7OjwIMDr5erx4O3k8O7i6PcKClRlbDogKzM4KDA5
-NikwNTgyMzQyLiBUZWw6ICszOCgwNjMpNDAxMDc0MQoKc2t5cGU6IG9yZy1yZWVzdHIKCm1haWw6
-IGluZm9ncm91cHBAYmlnbWlyLm5ldApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+Add new libdaxctl interfaces to disable a device_dax based device, and
+to enable it into the given mode. The modes available are 'devdax',
+and 'system-ram', where devdax is the normal device DAX mode used
+via a character device, and 'system-ram' uses the kernel's 'kmem'
+facility to hotplug the device making it usable as normal memory.
+
+This adds the following new interfaces:
+
+  daxctl_dev_disable;
+  daxctl_dev_enable_devdax;
+  daxctl_dev_enable_ram;
+
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/Makefile.am         |   3 +-
+ daxctl/lib/libdaxctl-private.h |  21 +++
+ daxctl/lib/libdaxctl.c         | 234 +++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym       |   3 +
+ daxctl/libdaxctl.h             |   3 +
+ 5 files changed, 263 insertions(+), 1 deletion(-)
+
+diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
+index d3d4852..9f0e444 100644
+--- a/daxctl/lib/Makefile.am
++++ b/daxctl/lib/Makefile.am
+@@ -16,7 +16,8 @@ libdaxctl_la_SOURCES =\
+ 	libdaxctl.c
+ 
+ libdaxctl_la_LIBADD =\
+-	$(UUID_LIBS)
++	$(UUID_LIBS) \
++	$(KMOD_LIBS)
+ 
+ daxctl_modprobe_data_DATA = daxctl.conf
+ 
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index 4a462e7..120137f 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -13,6 +13,8 @@
+ #ifndef _LIBDAXCTL_PRIVATE_H_
+ #define _LIBDAXCTL_PRIVATE_H_
+ 
++#include <libkmod.h>
++
+ #define DAXCTL_EXPORT __attribute__ ((visibility("default")))
+ 
+ enum dax_subsystem {
+@@ -26,6 +28,17 @@ static const char *dax_subsystems[] = {
+ 	[DAX_BUS] = "/sys/bus/dax/devices",
+ };
+ 
++enum daxctl_dev_mode {
++	DAXCTL_DEV_MODE_DEVDAX = 0,
++	DAXCTL_DEV_MODE_RAM,
++	DAXCTL_DEV_MODE_END,
++};
++
++static const char *dax_modules[] = {
++	[DAXCTL_DEV_MODE_DEVDAX] = "device_dax",
++	[DAXCTL_DEV_MODE_RAM] = "kmem",
++};
++
+ /**
+  * struct daxctl_region - container for dax_devices
+  */
+@@ -53,6 +66,14 @@ struct daxctl_dev {
+ 	char *dev_path;
+ 	struct list_node list;
+ 	unsigned long long size;
++	struct kmod_module *module;
++	struct kmod_list *kmod_list;
+ 	struct daxctl_region *region;
+ };
++
++static inline int check_kmod(struct kmod_ctx *kmod_ctx)
++{
++	return kmod_ctx ? 0 : -ENXIO;
++}
++
+ #endif /* _LIBDAXCTL_PRIVATE_H_ */
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 70f896b..85c4fbe 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -46,6 +46,7 @@ struct daxctl_ctx {
+ 	void *userdata;
+ 	int regions_init;
+ 	struct list_head regions;
++	struct kmod_ctx *kmod_ctx;
+ };
+ 
+ /**
+@@ -84,20 +85,32 @@ DAXCTL_EXPORT void daxctl_set_userdata(struct daxctl_ctx *ctx, void *userdata)
+  */
+ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
+ {
++	struct kmod_ctx *kmod_ctx;
+ 	struct daxctl_ctx *c;
++	int rc = 0;
+ 
+ 	c = calloc(1, sizeof(struct daxctl_ctx));
+ 	if (!c)
+ 		return -ENOMEM;
+ 
++	kmod_ctx = kmod_new(NULL, NULL);
++	if (check_kmod(kmod_ctx) != 0) {
++		rc = -ENXIO;
++		goto out;
++	}
++
+ 	c->refcount = 1;
+ 	log_init(&c->ctx, "libdaxctl", "DAXCTL_LOG");
+ 	info(c, "ctx %p created\n", c);
+ 	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
+ 	*ctx = c;
+ 	list_head_init(&c->regions);
++	c->kmod_ctx = kmod_ctx;
+ 
+ 	return 0;
++out:
++	free(c);
++	return rc;
+ }
+ 
+ /**
+@@ -132,6 +145,7 @@ DAXCTL_EXPORT void daxctl_unref(struct daxctl_ctx *ctx)
+ 	list_for_each_safe(&ctx->regions, region, _r, list)
+ 		free_region(region, &ctx->regions);
+ 
++	kmod_unref(ctx->kmod_ctx);
+ 	info(ctx, "context %p released\n", ctx);
+ 	free(ctx);
+ }
+@@ -189,6 +203,7 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ {
+ 	if (head)
+ 		list_del_from(head, &dev->list);
++	kmod_module_unref_list(dev->kmod_list);
+ 	free(dev->dev_buf);
+ 	free(dev->dev_path);
+ 	free(dev);
+@@ -306,6 +321,27 @@ DAXCTL_EXPORT struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx,
+ 	return region;
+ }
+ 
++static struct kmod_list *to_module_list(struct daxctl_ctx *ctx,
++		const char *alias)
++{
++	struct kmod_list *list = NULL;
++	int rc;
++
++	if (!ctx->kmod_ctx || !alias)
++		return NULL;
++	if (alias[0] == 0)
++		return NULL;
++
++	rc = kmod_module_new_from_lookup(ctx->kmod_ctx, alias, &list);
++	if (rc < 0 || !list) {
++		dbg(ctx, "failed to find modules for alias: %s %d list: %s\n",
++				alias, rc, list ? "populated" : "empty");
++		return NULL;
++	}
++
++	return list;
++}
++
+ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ {
+ 	const char *devname = devpath_to_devname(daxdev_base);
+@@ -315,6 +351,7 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	struct daxctl_dev *dev, *dev_dup;
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	struct stat st;
++	int rc;
+ 
+ 	if (!path)
+ 		return NULL;
+@@ -346,6 +383,14 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 		goto err_read;
+ 	dev->buf_len = strlen(daxdev_base) + 50;
+ 
++	sprintf(path, "%s/modalias", daxdev_base);
++	rc = sysfs_read_attr(ctx, path, buf);
++	/* older kernels may be lack the modalias attribute */
++	if (rc < 0 && rc != -ENOENT)
++		goto err_read;
++	if (rc == 0)
++		dev->kmod_list = to_module_list(ctx, buf);
++
+ 	daxctl_dev_foreach(region, dev_dup)
+ 		if (dev_dup->id == dev->id) {
+ 			free_dev(dev, NULL);
+@@ -569,6 +614,92 @@ static int is_enabled(const char *drvpath)
+ 		return 1;
+ }
+ 
++static int daxctl_bind(struct daxctl_ctx *ctx, const char *devname,
++		const char *mod_name)
++{
++	DIR *dir;
++	int rc = 0;
++	char path[200];
++	struct dirent *de;
++	const int len = sizeof(path);
++
++	if (!devname) {
++		err(ctx, "missing devname\n");
++		return -EINVAL;
++	}
++
++	if (snprintf(path, len, "/sys/bus/dax/drivers") >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	dir = opendir(path);
++	if (!dir) {
++		err(ctx, "%s: opendir(\"%s\") failed\n", devname, path);
++		return -ENXIO;
++	}
++
++	while ((de = readdir(dir)) != NULL) {
++		char *drv_path;
++
++		if (de->d_ino == 0)
++			continue;
++		if (de->d_name[0] == '.')
++			continue;
++		if (strcmp(de->d_name, mod_name) != 0)
++			continue;
++
++		if (asprintf(&drv_path, "%s/%s/new_id", path, de->d_name) < 0) {
++			err(ctx, "%s: path allocation failure\n", devname);
++			rc = -ENOMEM;
++			break;
++		}
++		rc = sysfs_write_attr_quiet(ctx, drv_path, devname);
++		free(drv_path);
++
++		if (asprintf(&drv_path, "%s/%s/bind", path, de->d_name) < 0) {
++			err(ctx, "%s: path allocation failure\n", devname);
++			rc = -ENOMEM;
++			break;
++		}
++		rc = sysfs_write_attr_quiet(ctx, drv_path, devname);
++		free(drv_path);
++		break;
++	}
++	closedir(dir);
++
++	if (rc) {
++		dbg(ctx, "%s: bind failed\n", devname);
++		return rc;
++	}
++	return 0;
++}
++
++static int daxctl_unbind(struct daxctl_ctx *ctx, const char *devpath)
++{
++	const char *devname = devpath_to_devname(devpath);
++	char path[200];
++	const int len = sizeof(path);
++	int rc;
++
++	if (snprintf(path, len, "%s/driver/remove_id", devpath) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	rc = sysfs_write_attr(ctx, path, devname);
++	if (rc)
++		return rc;
++
++	if (snprintf(path, len, "%s/driver/unbind", devpath) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	return sysfs_write_attr(ctx, path, devname);
++
++}
++
+ DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
+ {
+ 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
+@@ -584,6 +715,109 @@ DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
+ 	return is_enabled(path);
+ }
+ 
++static int daxctl_insert_kmod_for_mode(struct daxctl_dev *dev,
++		const char *mod_name)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	struct kmod_list *iter;
++	int rc = -ENXIO;
++
++	if (dev->kmod_list == NULL) {
++		err(ctx, "%s: a modalias lookup list was not created\n",
++				devname);
++		return rc;
++	}
++
++	kmod_list_foreach(iter, dev->kmod_list) {
++		struct kmod_module *mod = kmod_module_get_module(iter);
++		const char *name = kmod_module_get_name(mod);
++
++		if (strcmp(name, mod_name) != 0) {
++			kmod_module_unref(mod);
++			continue;
++		}
++		dbg(ctx, "%s inserting module: %s\n", devname, name);
++		rc = kmod_module_probe_insert_module(mod,
++				KMOD_PROBE_APPLY_BLACKLIST, NULL, NULL, NULL,
++				NULL);
++		if (rc < 0) {
++			err(ctx, "%s: insert failure: %d\n", devname, rc);
++			return rc;
++		}
++		dev->module = mod;
++	}
++
++	if (rc == -ENXIO)
++		err(ctx, "%s: Unable to find module: %s in alias list\n",
++				devname, mod_name);
++	return rc;
++}
++
++static int daxctl_dev_enable(struct daxctl_dev *dev, enum daxctl_dev_mode mode)
++{
++	struct daxctl_region *region = daxctl_dev_get_region(dev);
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *mod_name = dax_modules[mode];
++	int rc;
++
++	if (daxctl_dev_is_enabled(dev))
++		return 0;
++
++	if (mode >= DAXCTL_DEV_MODE_END || mod_name == NULL) {
++		err(ctx, "%s: Invalid mode: %d\n", devname, mode);
++		return -EINVAL;
++	}
++
++	rc = daxctl_insert_kmod_for_mode(dev, mod_name);
++	if (rc)
++		return rc;
++
++	rc = daxctl_bind(ctx, devname, mod_name);
++	if (!daxctl_dev_is_enabled(dev)) {
++		err(ctx, "%s: failed to enable\n", devname);
++		return rc ? rc : -ENXIO;
++	}
++
++	region->devices_init = 0;
++	dax_devices_init(region);
++	rc = 0;
++	dbg(ctx, "%s: enabled\n", devname);
++	return rc;
++}
++
++DAXCTL_EXPORT int daxctl_dev_enable_devdax(struct daxctl_dev *dev)
++{
++	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_DEVDAX);
++}
++
++DAXCTL_EXPORT int daxctl_dev_enable_ram(struct daxctl_dev *dev)
++{
++	return daxctl_dev_enable(dev, DAXCTL_DEV_MODE_RAM);
++}
++
++DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++
++	if (!daxctl_dev_is_enabled(dev))
++		return 0;
++
++	daxctl_unbind(ctx, dev->dev_path);
++
++	if (daxctl_dev_is_enabled(dev)) {
++		err(ctx, "%s: failed to disable\n", devname);
++		return -EBUSY;
++	}
++
++	kmod_module_unref(dev->module);
++	dbg(ctx, "%s: disabled\n", devname);
++
++	return 0;
++}
++
+ DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
+ {
+ 	return dev->region->ctx;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index c4af9a7..19904a2 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -55,4 +55,7 @@ LIBDAXCTL_6 {
+ global:
+ 	daxctl_dev_get_ctx;
+ 	daxctl_dev_is_enabled;
++	daxctl_dev_disable;
++	daxctl_dev_enable_devdax;
++	daxctl_dev_enable_ram;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index e20ccb4..407f459 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -69,6 +69,9 @@ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+ struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
+ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
++int daxctl_dev_disable(struct daxctl_dev *dev);
++int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
++int daxctl_dev_enable_ram(struct daxctl_dev *dev);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+-- 
+2.20.1
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
