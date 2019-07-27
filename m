@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id B00EB212DD348
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:29 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 5/7] dax: memcpy before zeroing range
-Date: Wed, 31 Jul 2019 19:49:33 +0800
-Message-ID: <20190731114935.11030-6-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 602EE212E15B4
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:04 -0700 (PDT)
+Subject: [ndctl PATCH v2 11/26] ndctl/dimm: Limit read-labels with --index
+ option
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 27 Jul 2019 14:40:19 -0700
+Message-ID: <156426361963.531577.9756735022332101876.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,154 +23,106 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
-Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Provide a capability to limit the read-labels payload to just the
+index-block data space.
 
-However, this needed more iomap fields, so it was easier
-to pass iomap and compute inside the function rather
-than passing a log of arguments.
-
-Note, there is subtle difference between iomap_sector and
-dax_iomap_sector(). Can we replace dax_iomap_sector with
-iomap_sector()? It would need pos & PAGE_MASK though or else
-bdev_dax_pgoff() return -EINVAL.
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c              | 17 ++++++++++++-----
- fs/iomap.c            |  9 +--------
- include/linux/dax.h   | 11 +++++------
- include/linux/iomap.h |  6 ++++++
- 4 files changed, 24 insertions(+), 19 deletions(-)
+ ndctl/dimm.c |   43 +++++++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 16 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 8111ba93f4d3..c92111950612 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1071,11 +1071,16 @@ static bool dax_range_is_aligned(struct block_device *bdev,
- 	return true;
- }
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 603e112f9568..c7ad621367e9 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -55,6 +55,7 @@ static struct parameters {
+ 	bool master_pass;
+ 	bool human;
+ 	bool force;
++	bool index;
+ 	bool json;
+ 	bool verbose;
+ } param = {
+@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
  
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int size)
-+int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+			  unsigned int offset, unsigned int size)
- {
--	if (dax_range_is_aligned(bdev, offset, size)) {
-+	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
-+	struct block_device *bdev = iomap->bdev;
-+	struct dax_device *dax_dev = iomap->dax_dev;
-+	int ret = 0;
-+
-+	if (!(iomap->type == IOMAP_COW) &&
-+	    dax_range_is_aligned(bdev, offset, size)) {
- 		sector_t start_sector = sector + (offset >> 9);
+ 	if (!jdimm)
+ 		return NULL;
+-	jindex = dump_index_json(cmd_read, size);
+-	if (!jindex)
+-		goto err_jindex;
+-	jlabel = dump_label_json(dimm, cmd_read, size, flags);
+-	if (!jlabel)
+-		goto err_jlabel;
  
- 		return blkdev_issue_zeroout(bdev, start_sector,
-@@ -1095,11 +1100,13 @@ int __dax_zero_page_range(struct block_device *bdev,
- 			dax_read_unlock(id);
- 			return rc;
- 		}
-+		if (iomap->type == IOMAP_COW)
-+			ret = memcpy_mcsafe(kaddr, iomap->inline_data, offset);
- 		memset(kaddr + offset, 0, size);
- 		dax_flush(dax_dev, kaddr + offset, size);
- 		dax_read_unlock(id);
- 	}
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(__dax_zero_page_range);
- 
-diff --git a/fs/iomap.c b/fs/iomap.c
-index 3377a7ec5b7d..b5662b5bac26 100644
---- a/fs/iomap.c
-+++ b/fs/iomap.c
-@@ -99,12 +99,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
- 	return written ? written : ret;
- }
- 
--static sector_t
--iomap_sector(struct iomap *iomap, loff_t pos)
--{
--	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
--}
+ 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+ 	if (!jobj)
+-		goto err_jobj;
 -
- static struct iomap_page *
- iomap_page_create(struct inode *inode, struct page *page)
- {
-@@ -993,8 +987,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
- static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
- 		struct iomap *iomap)
- {
--	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
--			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
-+	return __dax_zero_page_range(iomap, pos, offset, bytes);
- }
++		goto err;
+ 	json_object_object_add(jdimm, "dev", jobj);
++
++	jindex = dump_index_json(cmd_read, size);
++	if (!jindex)
++		goto err;
+ 	json_object_object_add(jdimm, "index", jindex);
++	if (param.index)
++		return jdimm;
++
++	jlabel = dump_label_json(dimm, cmd_read, size, flags);
++	if (!jlabel)
++		goto err;
+ 	json_object_object_add(jdimm, "label", jlabel);
+-	return jdimm;
  
- static loff_t
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 1370d39c91b6..c469d9ff54b4 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -9,6 +9,7 @@
- 
- typedef unsigned long dax_entry_t;
- 
-+struct iomap;
- struct iomap_ops;
- struct dax_device;
- struct dax_operations {
-@@ -163,13 +164,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff,
- 			   const struct iomap_ops *ops);
- 
- #ifdef CONFIG_FS_DAX
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length);
-+int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+		unsigned int offset, unsigned int size);
- #else
--static inline int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length)
-+static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
-+		unsigned int offset, unsigned int size)
- {
- 	return -ENXIO;
- }
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 75b78dd91c3c..3628e57954c6 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -7,6 +7,7 @@
- #include <linux/mm.h>
- #include <linux/types.h>
- #include <linux/mm_types.h>
-+#include <linux/blkdev.h>
- 
- struct address_space;
- struct fiemap_extent_info;
-@@ -122,6 +123,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
+- err_jobj:
+-	json_object_put(jlabel);
+- err_jlabel:
+-	json_object_put(jindex);
+- err_jindex:
++	return jdimm;
++err:
+ 	json_object_put(jdimm);
  	return NULL;
  }
+@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	ssize_t size;
+ 	int rc = 0;
  
-+static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
-+{
-+	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
-+}
+-	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
++	if (param.index)
++		cmd_read = ndctl_dimm_read_label_index(dimm);
++	else
++		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
++				param.offset);
+ 	if (!cmd_read)
+ 		return -EINVAL;
+ 
+@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
+ OPT_STRING('o', "output", &param.outfile, "output-file", \
+ 	"filename to write label area contents"), \
+ OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
+-OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
++OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
++OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
+ 
+ #define WRITE_OPTIONS() \
+ OPT_STRING('i', "input", &param.infile, "input-file", \
+@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
++	if (param.index && param.len) {
++		fprintf(stderr, "pick either --size, or --index, not both\n");
++		usage_with_options(u, options);
++		return -EINVAL;
++	}
 +
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		const struct iomap_ops *ops);
- int iomap_readpage(struct page *page, const struct iomap_ops *ops);
--- 
-2.17.0
-
-
+ 	if (json) {
+ 		actx.jdimms = json_object_new_array();
+ 		if (!actx.jdimms)
 
 _______________________________________________
 Linux-nvdimm mailing list
