@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D97C1212DC5A4
- for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:00:14 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v7 05/13] daxctl/list: add target_node for device
- listings
-Date: Wed, 24 Jul 2019 15:57:33 -0600
-Message-Id: <20190724215741.18556-6-vishal.l.verma@intel.com>
-In-Reply-To: <20190724215741.18556-1-vishal.l.verma@intel.com>
-References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 67E75212E259D
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:41 -0700 (PDT)
+Subject: [ndctl PATCH v2 07/26] ndctl/namespace: Always zero info-blocks
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 27 Jul 2019 14:39:57 -0700
+Message-ID: <156426359741.531577.6721558516702343422.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,50 +23,50 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kernel provides a 'target_node' attribute for dax devices. When
-converting a dax device to the system-ram mode, the memory is hotplugged
-into this numa node. It would be helpful to print this in device
-listings so that it is easy for applications to detect the node to
-which the new memory belongs.
+Do not gate zeroing on whether a namespace is claimed by a personality.
+The namespace might not have been able to be claimed due to info-block
+corruption.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- util/json.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ ndctl/namespace.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/util/json.c b/util/json.c
-index babdc8c..f521337 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -271,6 +271,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 9eec313c2d5b..645aa14882bb 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -930,9 +930,6 @@ static int namespace_destroy(struct ndctl_region *region,
+ 		struct ndctl_namespace *ndns)
  {
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct json_object *jdev, *jobj;
-+	int node;
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
+-	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
+-	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
+ 	bool did_zero = false;
+ 	int rc;
  
- 	jdev = json_object_new_object();
- 	if (!devname || !jdev)
-@@ -284,6 +285,13 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
- 	if (jobj)
- 		json_object_object_add(jdev, "size", jobj);
+@@ -954,13 +951,11 @@ static int namespace_destroy(struct ndctl_region *region,
  
-+	node = daxctl_dev_get_target_node(dev);
-+	if (node >= 0) {
-+		jobj = json_object_new_int(node);
-+		if (jobj)
-+			json_object_object_add(jdev, "target_node", jobj);
-+	}
-+
- 	return jdev;
- }
+ 	ndctl_namespace_set_enforce_mode(ndns, NDCTL_NS_MODE_RAW);
  
--- 
-2.20.1
+-	if (pfn || btt || dax) {
+-		rc = zero_info_block(ndns);
+-		if (rc < 0)
+-			return rc;
+-		if (rc == 0)
+-			did_zero = true;
+-	}
++	rc = zero_info_block(ndns);
++	if (rc < 0)
++		return rc;
++	if (rc == 0)
++		did_zero = true;
+ 
+ 	switch (ndctl_namespace_get_type(ndns)) {
+         case ND_DEVICE_NAMESPACE_PMEM:
 
 _______________________________________________
 Linux-nvdimm mailing list
