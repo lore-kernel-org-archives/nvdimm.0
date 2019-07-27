@@ -1,30 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 106AD2128D875
- for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 08:02:51 -0700 (PDT)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x6NEsnXE133905
- for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 11:00:24 -0400
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2tx2vdd1u5-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 23 Jul 2019 11:00:23 -0400
-Received: from localhost
- by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Tue, 23 Jul 2019 16:00:16 +0100
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: Re: Picking 0th namespace if it is idle
-In-Reply-To: <877ea85p64.fsf@linux.ibm.com>
-References: <87a7f45qik.fsf@linux.ibm.com> <877ea85p64.fsf@linux.ibm.com>
-Date: Tue, 23 Jul 2019 20:30:09 +0530
+ by ml01.01.org (Postfix) with ESMTPS id CC265212BC46B
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 04/13] libdaxctl: add a 'daxctl_memory' object for
+ memory based operations
+Date: Fri, 26 Jul 2019 19:52:03 -0600
+Message-Id: <20190727015212.27092-5-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Message-Id: <8736iwkd8m.fsf@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,155 +23,552 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan,
+Introduce a new 'daxctl_memory' object, which will be used for
+operations related to managing dax devices in 'system-memory' modes.
 
-Can you help with this question?
+Add libdaxctl APIs to get the target_node of a DAX device, and to
+online, offline, and query the state of hotplugged memory sections
+associated with a given device.
 
--aneesh
+This adds the following new interfaces:
 
-Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com> writes:
+  daxctl_dev_get_target_node
+  daxctl_dev_get_memory
+  daxctl_memory_get_dev
+  daxctl_memory_get_node_path
+  daxctl_memory_get_block_size
+  daxctl_memory_online
+  daxctl_memory_offline
+  daxctl_memory_is_online
+  daxctl_memory_num_sections
 
-> aneesh.kumar@linux.ibm.com (Aneesh Kumar K.V) writes:
->
->> Hi Dan,
->>
->> With the patch series to mark the namespace disabled if we have mismatch
->> in pfn superblock, we can endup with namespace0 marked idle/disabled.
->>
->> I am wondering why do do the below in ndctl.
->>
->>
->> static struct ndctl_namespace *region_get_namespace(struct ndctl_region *region)
->> {
->> 	struct ndctl_namespace *ndns;
->>
->> 	/* prefer the 0th namespace if it is idle */
->> 	ndctl_namespace_foreach(region, ndns)
->> 		if (ndctl_namespace_get_id(ndns) == 0
->> 				&& !is_namespace_active(ndns))
->> 			return ndns;
->> 	return ndctl_region_get_namespace_seed(region);
->> }
->>
->> I have a kernel patch that will create a namespace_seed even if we fail
->> to ename a pfn backing device. Something like below
->>  
->> @@ -747,12 +752,23 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
->>  		}
->>  	}
->>  	if (dev->parent && is_nd_region(dev->parent) && probe) {
->>  		nd_region = to_nd_region(dev->parent);
->>  		nvdimm_bus_lock(dev);
->>  		if (nd_region->ns_seed == dev)
->>  			nd_region_create_ns_seed(nd_region);
->>  		nvdimm_bus_unlock(dev);
->>  	}
->> +
->> +	if (dev->parent && is_nd_region(dev->parent) && !probe && (ret == -EOPNOTSUPP)) {
->> +		nd_region = to_nd_region(dev->parent);
->> +		nvdimm_bus_lock(dev);
->> +		if (nd_region->ns_seed == dev)
->> +			nd_region_create_ns_seed(nd_region);
->> +		nvdimm_bus_unlock(dev);
->> +	}
->> +
->>
->> With that we can end up with something like the below after boot.
->> :/sys/bus/nd/devices/region0$ sudo ndctl list -Ni        
->> [                                                                          
->>   {                                                                                                                                                    
->>     "dev":"namespace0.1",                                                  
->>     "mode":"fsdax",                                                        
->>     "map":"mem",                                                           
->>     "size":0,                                                              
->>     "uuid":"00000000-0000-0000-0000-000000000000",                                                                                                     
->>     "state":"disabled"                                                     
->>   },                                                                       
->>   {                                                                        
->>     "dev":"namespace0.0",                                                  
->>     "mode":"fsdax",                  
->>     "map":"mem",                                                           
->>     "size":2147483648,               
->>     "uuid":"094e703b-4bf8-4078-ad42-50bebc03e538",                                                                                                     
->>     "state":"disabled"                                                                                                                                 
->>   }                                                                        
->> ]                                             
->>
->> namespace0.0 is the one we failed to initialize due to PAGE_SIZE
->> mismatch. 
->>
->> We do have namespace_seed pointing to namespacece0.1 correct. But a ndtl
->> create-namespace will pick namespace0.0 even if we have seed file
->> pointing to namespacec0.1.
->>
->>
->> I am trying to resolve the issues related to creation of new namespaces
->> when we have some namespace marked disabled due to pfn_sb setting
->> mismatch.
->>
->> -aneesh
->
-> With that ndctl namespace0.0 selection commented out, we do get pick the
-> right idle namespace.
->
-> #ndctl list -Ni
-> [                         
->   {                
->     "dev":"namespace0.1",
->     "mode":"fsdax",                                                        
->     "map":"mem",      
->     "size":0,
->     "uuid":"00000000-0000-0000-0000-000000000000",
->     "state":"disabled"   
->   },               
->   {             
->     "dev":"namespace0.0",
->     "mode":"fsdax",                                                        
->     "map":"mem",  
->     "size":2147483648,   
->     "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
->     "state":"disabled"
->   }  
-> ]   
->
-> after ndctl create-namespace -s 2G -r region0                   
->
->
-> # ndctl list -Ni                                           
-> [                     
->   {                    
->     "dev":"namespace0.2",
->     "mode":"fsdax",       
->     "map":"mem",   
->     "size":0,   
->     "uuid":"00000000-0000-0000-0000-000000000000",
->     "state":"disabled"
->   },
->   {
->     "dev":"namespace0.1",
->     "mode":"fsdax",
->     "map":"dev",
->     "size":2130706432,
->     "uuid":"60970059-9412-4eeb-9e7a-b314585a4da3",
->     "align":65536,
->     "blockdev":"pmem0.1",
->     "supported_alignments":[
->       65536
->     ]
->   },
->   {
->     "dev":"namespace0.0",
->     "mode":"fsdax",
->     "map":"mem",
->     "size":2147483648,
->     "uuid":"0c31ae4b-b053-43c7-82ff-88574e2585b0",
->     "state":"disabled"
->   }
-> ]
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+[for the memblock-already-online TOCTOU hole]
+Reported-by: Fan Du <fan.du@intel.com>
+Tested-by: Fan Du <fan.du@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ daxctl/lib/libdaxctl-private.h |  18 ++
+ daxctl/lib/libdaxctl.c         | 386 +++++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym       |   9 +
+ daxctl/libdaxctl.h             |  11 +
+ 4 files changed, 424 insertions(+)
+
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index fee67d1..01091de 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -39,6 +39,13 @@ static const char *dax_modules[] = {
+ 	[DAXCTL_DEV_MODE_RAM] = "kmem",
+ };
+ 
++enum memory_op {
++	MEM_SET_OFFLINE,
++	MEM_SET_ONLINE,
++	MEM_IS_ONLINE,
++	MEM_COUNT,
++};
++
+ /**
+  * struct daxctl_region - container for dax_devices
+  */
+@@ -70,8 +77,19 @@ struct daxctl_dev {
+ 	struct kmod_module *module;
+ 	struct kmod_list *kmod_list;
+ 	struct daxctl_region *region;
++	struct daxctl_memory *mem;
++	int target_node;
++};
++
++struct daxctl_memory {
++	struct daxctl_dev *dev;
++	void *mem_buf;
++	size_t buf_len;
++	char *node_path;
++	unsigned long block_size;
+ };
+ 
++
+ static inline int check_kmod(struct kmod_ctx *kmod_ctx)
+ {
+ 	return kmod_ctx ? 0 : -ENXIO;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 9bbf256..a14954b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -200,6 +200,15 @@ DAXCTL_EXPORT void daxctl_region_get_uuid(struct daxctl_region *region, uuid_t u
+ 	uuid_copy(uu, region->uuid);
+ }
+ 
++static void free_mem(struct daxctl_dev *dev)
++{
++	if (dev && dev->mem) {
++		free(dev->mem->node_path);
++		free(dev->mem);
++		dev->mem = NULL;
++	}
++}
++
+ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ {
+ 	if (head)
+@@ -207,6 +216,7 @@ static void free_dev(struct daxctl_dev *dev, struct list_head *head)
+ 	kmod_module_unref_list(dev->kmod_list);
+ 	free(dev->dev_buf);
+ 	free(dev->dev_path);
++	free_mem(dev);
+ 	free(dev);
+ }
+ 
+@@ -343,6 +353,96 @@ static struct kmod_list *to_module_list(struct daxctl_ctx *ctx,
+ 	return list;
+ }
+ 
++static int dev_is_system_ram_capable(struct daxctl_dev *dev)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *mod_path, *mod_base;
++	char path[200];
++	int rc = 0;
++	const int len = sizeof(path);
++
++	if (!daxctl_dev_is_enabled(dev))
++		return rc;
++
++	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n", devname);
++		return -ENXIO;
++	}
++
++	mod_path = realpath(path, NULL);
++	if (!mod_path) {
++		rc = -errno;
++		err(ctx, "%s:  unable to determine module: %s\n", devname,
++			strerror(errno));
++		return rc;
++	}
++
++	mod_base = basename(mod_path);
++	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0)
++		rc = 1;
++	else if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_DEVDAX]) == 0)
++		rc = 0;
++
++	free(mod_path);
++	return rc;
++}
++
++/*
++ * This checks for the device to be in system-ram mode, so calling
++ * daxctl_dev_get_memory() on a devdax mode device will always return NULL.
++ */
++static struct daxctl_memory *daxctl_dev_alloc_mem(struct daxctl_dev *dev)
++{
++	const char *size_path = "/sys/devices/system/memory/block_size_bytes";
++	const char *node_base = "/sys/devices/system/node/node";
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	struct daxctl_memory *mem;
++	char buf[SYSFS_ATTR_SIZE];
++	int node_num;
++
++	if (!dev_is_system_ram_capable(dev))
++		return NULL;
++
++	mem = calloc(1, sizeof(*mem));
++	if (!mem)
++		return NULL;
++
++	mem->dev = dev;
++
++	if (sysfs_read_attr(ctx, size_path, buf) == 0) {
++		mem->block_size = strtoul(buf, NULL, 16);
++		if (mem->block_size == 0 || mem->block_size == ULONG_MAX) {
++			err(ctx, "%s: Unable to determine memblock size: %s\n",
++				devname, strerror(errno));
++			mem->block_size = 0;
++		}
++	}
++
++	node_num = daxctl_dev_get_target_node(dev);
++	if (node_num >= 0) {
++		if (asprintf(&mem->node_path, "%s%d", node_base,
++				node_num) < 0) {
++			err(ctx, "%s: Unable to set node_path\n", devname);
++			goto err_mem;
++		}
++	}
++
++	mem->mem_buf = calloc(1, strlen(node_base) + 256);
++	if (!mem->mem_buf)
++		goto err_node;
++	mem->buf_len = strlen(node_base) + 256;
++
++	return mem;
++
++err_node:
++	free(mem->node_path);
++err_mem:
++	free(mem);
++	return NULL;
++}
++
+ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ {
+ 	const char *devname = devpath_to_devname(daxdev_base);
+@@ -398,6 +498,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	if (rc == 0)
+ 		dev->kmod_list = to_module_list(ctx, buf);
+ 
++	sprintf(path, "%s/target_node", daxdev_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dev->target_node = strtol(buf, NULL, 0);
++	else
++		dev->target_node = -1;
++
+ 	daxctl_dev_foreach(region, dev_dup)
+ 		if (dev_dup->id == dev->id) {
+ 			free_dev(dev, NULL);
+@@ -812,6 +918,9 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+ 	if (!daxctl_dev_is_enabled(dev))
+ 		return 0;
+ 
++	/* If there is a memory object, first free that */
++	free_mem(dev);
++
+ 	daxctl_unbind(ctx, dev->dev_path);
+ 
+ 	if (daxctl_dev_is_enabled(dev)) {
+@@ -894,3 +1003,280 @@ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+ {
+ 	return dev->size;
+ }
++
++DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
++{
++	return dev->target_node;
++}
++
++DAXCTL_EXPORT struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev)
++{
++	if (dev->mem)
++		return dev->mem;
++	else
++		return daxctl_dev_alloc_mem(dev);
++}
++
++DAXCTL_EXPORT struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem)
++{
++	return mem->dev;
++}
++
++DAXCTL_EXPORT const char *daxctl_memory_get_node_path(struct daxctl_memory *mem)
++{
++	return mem->node_path;
++}
++
++DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct daxctl_memory *mem)
++{
++	return mem->block_size;
++}
++
++static int online_one_memblock(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *mode = "online_movable";
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	/*
++	 * if already online, possibly due to kernel config or a udev rule,
++	 * there is nothing to do and we can skip over the memblock
++	 */
++	if (strncmp(buf, "online", 6) == 0)
++		return 1;
++
++	rc = sysfs_write_attr_quiet(ctx, path, mode);
++	if (rc) {
++		/*
++		 * While we performed an already-online check above, there
++		 * is still a TOCTOU hole where someone (such as a udev rule)
++		 * may have raced to online the memory. In such a case,
++		 * the sysfs store will fail, however we can check for this
++		 * by simply reading the state again. If it changed to the
++		 * desired state, then we don't have to error out.
++		 */
++		if (sysfs_read_attr(ctx, path, buf) == 0) {
++			if (strncmp(buf, "online", 6) == 0)
++				return 1;
++		}
++		err(ctx, "%s: Failed to online %s: %s\n",
++			devname, path, strerror(-rc));
++	}
++	return rc;
++}
++
++static int offline_one_memblock(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *mode = "offline";
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	/* if already offline, there is nothing to do */
++	if (strncmp(buf, "offline", 7) == 0)
++		return 1;
++
++	rc = sysfs_write_attr_quiet(ctx, path, mode);
++	if (rc) {
++		/* Close the TOCTOU hole like in online_one_memblock() above */
++		if (sysfs_read_attr(ctx, path, buf) == 0) {
++			if (strncmp(buf, "offline", 7) == 0)
++				return 1;
++		}
++		err(ctx, "%s: Failed to offline %s: %s\n",
++			devname, path, strerror(-rc));
++	}
++	return rc;
++}
++
++static int memblock_is_online(struct daxctl_dev *dev, char *path)
++{
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, path, buf);
++	if (rc) {
++		err(ctx, "%s: Failed to read %s: %s\n",
++			devname, path, strerror(-rc));
++		return rc;
++	}
++
++	if (strncmp(buf, "online", 6) == 0)
++		return 1;
++
++	/* offline */
++	return 0;
++}
++
++static bool memblock_in_dev(struct daxctl_dev *dev, const char *memblock)
++{
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
++	const char *mem_base = "/sys/devices/system/memory/";
++	unsigned long long memblock_res, dev_start, dev_end;
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	unsigned long memblock_size;
++	int path_len = mem->buf_len;
++	char buf[SYSFS_ATTR_SIZE];
++	unsigned long phys_index;
++	char *path = mem->mem_buf;
++
++	if (snprintf(path, path_len, "%s/%s/phys_index",
++			mem_base, memblock) < 0)
++		return false;
++
++	if (sysfs_read_attr(ctx, path, buf) == 0) {
++		phys_index = strtoul(buf, NULL, 16);
++		if (phys_index == 0 || phys_index == ULONG_MAX) {
++			err(ctx, "%s: %s: Unable to determine phys_index: %s\n",
++				devname, memblock, strerror(errno));
++			return false;
++		}
++	} else {
++		err(ctx, "%s: %s: Unable to determine phys_index: %s\n",
++			devname, memblock, strerror(errno));
++		return false;
++	}
++
++	dev_start = daxctl_dev_get_resource(dev);
++	if (!dev_start) {
++		err(ctx, "%s: Unable to determine resource\n", devname);
++		return false;
++	}
++	dev_end = dev_start + daxctl_dev_get_size(dev);
++
++	memblock_size = daxctl_memory_get_block_size(mem);
++	if (!memblock_size) {
++		err(ctx, "%s: Unable to determine memory block size\n",
++			devname);
++		return false;
++	}
++	memblock_res = phys_index * memblock_size;
++
++	if (memblock_res >= dev_start && memblock_res <= dev_end)
++		return true;
++
++	return false;
++}
++
++static int op_for_one_memblock(struct daxctl_memory *mem, char *path,
++		enum memory_op op)
++{
++	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	int rc;
++
++	switch (op) {
++	case MEM_SET_ONLINE:
++		return online_one_memblock(dev, path);
++	case MEM_SET_OFFLINE:
++		return offline_one_memblock(dev, path);
++	case MEM_IS_ONLINE:
++		rc = memblock_is_online(dev, path);
++		if (rc < 0)
++			return rc;
++		/*
++		 * Retain the 'normal' semantics for if (memblock_is_online()),
++		 * but since count needs rc == 0, we'll just flip rc for this op
++		 */
++		return !rc;
++	case MEM_COUNT:
++		return 0;
++	}
++
++	err(ctx, "%s: BUG: unknown op: %d\n", devname, op);
++	return -EINVAL;
++}
++
++static int daxctl_memory_op(struct daxctl_memory *mem, enum memory_op op)
++{
++	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
++	const char *devname = daxctl_dev_get_devname(dev);
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	const char *node_path;
++	int rc, count = 0;
++	struct dirent *de;
++	DIR *node_dir;
++
++	node_path = daxctl_memory_get_node_path(mem);
++	if (!node_path) {
++		err(ctx, "%s: Failed to get node_path\n", devname);
++		return -ENXIO;
++	}
++
++	node_dir = opendir(node_path);
++	if (!node_dir)
++		return -errno;
++
++	errno = 0;
++	while ((de = readdir(node_dir)) != NULL) {
++		char *path = mem->mem_buf;
++		int len = mem->buf_len;
++
++		if (strncmp(de->d_name, "memory", 6) == 0) {
++			if (!memblock_in_dev(dev, de->d_name))
++				continue;
++			rc = snprintf(path, len, "%s/%s/state",
++				node_path, de->d_name);
++			if (rc < 0) {
++				rc = -ENOMEM;
++				goto out_dir;
++			}
++			rc = op_for_one_memblock(mem, path, op);
++			if (rc < 0)
++				goto out_dir;
++			if (rc == 0)
++				count++;
++		}
++		errno = 0;
++	}
++	if (errno) {
++		rc = -errno;
++		goto out_dir;
++	}
++	rc = count;
++
++out_dir:
++	closedir(node_dir);
++	return rc;
++}
++
++DAXCTL_EXPORT int daxctl_memory_online(struct daxctl_memory *mem)
++{
++	return daxctl_memory_op(mem, MEM_SET_ONLINE);
++}
++
++DAXCTL_EXPORT int daxctl_memory_offline(struct daxctl_memory *mem)
++{
++	return daxctl_memory_op(mem, MEM_SET_OFFLINE);
++}
++
++DAXCTL_EXPORT int daxctl_memory_is_online(struct daxctl_memory *mem)
++{
++	return daxctl_memory_op(mem, MEM_IS_ONLINE);
++}
++
++DAXCTL_EXPORT int daxctl_memory_num_sections(struct daxctl_memory *mem)
++{
++	return daxctl_memory_op(mem, MEM_COUNT);
++}
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 1692624..bc18604 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -59,4 +59,13 @@ global:
+ 	daxctl_dev_enable_devdax;
+ 	daxctl_dev_enable_ram;
+ 	daxctl_dev_get_resource;
++	daxctl_dev_get_target_node;
++	daxctl_dev_get_memory;
++	daxctl_memory_get_dev;
++	daxctl_memory_get_node_path;
++	daxctl_memory_get_block_size;
++	daxctl_memory_online;
++	daxctl_memory_offline;
++	daxctl_memory_is_online;
++	daxctl_memory_num_sections;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index adf55f3..fb6c3b1 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -73,6 +73,17 @@ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ int daxctl_dev_disable(struct daxctl_dev *dev);
+ int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
+ int daxctl_dev_enable_ram(struct daxctl_dev *dev);
++int daxctl_dev_get_target_node(struct daxctl_dev *dev);
++
++struct daxctl_memory;
++struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
++struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem);
++const char *daxctl_memory_get_node_path(struct daxctl_memory *mem);
++unsigned long daxctl_memory_get_block_size(struct daxctl_memory *mem);
++int daxctl_memory_online(struct daxctl_memory *mem);
++int daxctl_memory_offline(struct daxctl_memory *mem);
++int daxctl_memory_is_online(struct daxctl_memory *mem);
++int daxctl_memory_num_sections(struct daxctl_memory *mem);
+ 
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
