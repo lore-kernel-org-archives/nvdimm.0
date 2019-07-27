@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 97264212FD413
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:10 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 03/13] libdaxctl: add an interface to retrieve the
- device resource
-Date: Wed, 31 Jul 2019 18:29:22 -0600
-Message-Id: <20190801002932.26430-4-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 95370212E259E
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:58:02 -0700 (PDT)
+Subject: [ndctl PATCH v2 22/26] ndctl/namespace: Clarify 16M minimum size
+ requirement
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 27 Jul 2019 14:41:18 -0700
+Message-ID: <156426367840.531577.5216422482939398348.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,193 +24,68 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an interface to retrieve the 'resource' attribute for a dax device.
+The kernel enforces a minimum size for any "claimed" namespace i.e. any
+namespace that is wrapped in an address abstraction like the btt or
+devdax. The "no such device or address" default print is confusing, so
+replace with an explicit error message.
 
-Attempt to retrieve it as usual via sysfs, but since older kernels may
-be missing this attribute, as a fallback, attempt to retrieve it from
-/proc/iomem
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-[fscanf format string problem and diagnosis]
-Reported-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reported-by: Jane Chu <jane.chu@oracle.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Makefile.am                    |  3 ++-
- daxctl/lib/Makefile.am         |  2 ++
- daxctl/lib/libdaxctl-private.h |  1 +
- daxctl/lib/libdaxctl.c         | 12 +++++++++++
- daxctl/lib/libdaxctl.sym       |  1 +
- daxctl/libdaxctl.h             |  1 +
- util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
- util/iomem.h                   | 12 +++++++++++
- 8 files changed, 68 insertions(+), 1 deletion(-)
- create mode 100644 util/iomem.c
- create mode 100644 util/iomem.h
+ ndctl/namespace.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index df8797e..8d10a10 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
- 	util/wrapper.c \
- 	util/filter.c \
- 	util/bitmap.c \
--	util/abspath.c
-+	util/abspath.c \
-+	util/iomem.c
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 69900c4e4e60..75ea366574f8 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -534,6 +534,7 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 	unsigned long long size_align, units = 1, resource;
+ 	struct ndctl_pfn *pfn = NULL;
+ 	struct ndctl_dax *dax = NULL;
++	bool default_size = false;
+ 	unsigned int ways;
+ 	int rc = 0;
  
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 9f0e444..7704b1b 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
- libdaxctl_la_SOURCES =\
- 	../libdaxctl.h \
- 	libdaxctl-private.h \
-+	../../util/iomem.c \
-+	../../util/iomem.h \
- 	../../util/sysfs.c \
- 	../../util/sysfs.h \
- 	../../util/log.c \
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index 120137f..fee67d1 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -65,6 +65,7 @@ struct daxctl_dev {
- 	size_t buf_len;
- 	char *dev_path;
- 	struct list_node list;
-+	unsigned long long resource;
- 	unsigned long long size;
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index caf661e..aa0d2f2 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -24,6 +24,7 @@
- 
- #include <util/log.h>
- #include <util/sysfs.h>
-+#include <util/iomem.h>
- #include <daxctl/libdaxctl.h>
- #include "libdaxctl-private.h"
- 
-@@ -406,6 +407,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	dev->major = major(st.st_rdev);
- 	dev->minor = minor(st.st_rdev);
- 
-+	sprintf(path, "%s/resource", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->resource = strtoull(buf, NULL, 0);
+@@ -548,10 +549,13 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		p->size = __parse_size64(param.size, &units);
+ 	else if (ndns)
+ 		p->size = ndctl_namespace_get_size(ndns);
 +	else
-+		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
-+
- 	sprintf(path, "%s/size", daxdev_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -928,6 +935,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
- 	return dev->minor;
- }
++		default_size = true;
  
-+DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
-+{
-+	return dev->resource;
-+}
-+
- DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
- {
- 	return dev->size;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..1692624 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -58,4 +58,5 @@ global:
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_get_resource;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 407f459..adf55f3 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
- const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
-+unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
-diff --git a/util/iomem.c b/util/iomem.c
-new file mode 100644
-index 0000000..a3c23f5
---- /dev/null
-+++ b/util/iomem.c
-@@ -0,0 +1,37 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+#include <util/log.h>
-+#include <util/iomem.h>
-+#include <util/sysfs.h>
-+
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *devpath)
-+{
-+	const char *devname = devpath_to_devname(devpath);
-+	FILE *fp = fopen("/proc/iomem", "r");
-+	unsigned long long res;
-+	char name[256];
-+
-+	if (fp == NULL) {
-+		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
-+				strerror(errno));
-+		return 0;
-+	}
-+
-+	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
-+		if (strcmp(name, devname) == 0) {
-+			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
-+					devname, res);
-+			fclose(fp);
-+			return res;
+ 	/*
+ 	 * Validate available capacity in the create case, in the
+-	 * reconfigure case the capacity is already allocated.
++	 * reconfigure case the capacity is already allocated. A default
++	 * size will be established from available capacity.
+ 	 */
+ 	if (!ndns) {
+ 		rc = validate_available_capacity(region, p);
+@@ -719,6 +723,21 @@ static int validate_namespace_options(struct ndctl_region *region,
+ 		return -EINVAL;
+ 	}
+ 
++	/*
++	 * Catch attempts to create sub-16M namespaces to match the
++	 * kernel's restriction (see nd_namespace_store())
++	 */
++	if (p->size < SZ_16M && p->mode != NDCTL_NS_MODE_RAW) {
++		if (default_size) {
++			debug("%s: insufficient capacity for mode: %s\n",
++					region_name, util_nsmode_name(p->mode));
++			return -EAGAIN;
 +		}
++		error("'--size=' must be >= 16MiB for '%s' mode\n",
++				util_nsmode_name(p->mode));
++		return -EINVAL;
 +	}
 +
-+	log_dbg(ctx, "%s: not found in iomem\n", devname);
-+	fclose(fp);
-+	return 0;
-+}
-diff --git a/util/iomem.h b/util/iomem.h
-new file mode 100644
-index 0000000..aaaf6a7
---- /dev/null
-+++ b/util/iomem.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#ifndef _NDCTL_IOMEM_H_
-+#define _NDCTL_IOMEM_H_
-+
-+struct log_ctx;
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *path);
-+
-+#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
-+
-+#endif /* _NDCTL_IOMEM_H_ */
--- 
-2.20.1
+ 	if (param.sector_size) {
+ 		struct ndctl_btt *btt;
+ 		int num, i;
 
 _______________________________________________
 Linux-nvdimm mailing list
