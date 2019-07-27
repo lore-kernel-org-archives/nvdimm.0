@@ -1,21 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-f196.google.com (mail-pl1-f196.google.com
- [209.85.214.196])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 538CE212B0FD3
- for <linux-nvdimm@lists.01.org>; Fri,  5 Jul 2019 13:15:08 -0700 (PDT)
-Received: by mail-pl1-f196.google.com with SMTP id b3so1745278plr.4
- for <linux-nvdimm@lists.01.org>; Fri, 05 Jul 2019 13:15:08 -0700 (PDT)
-Date: Fri, 5 Jul 2019 20:15:05 +0000
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH v6 01/18] kunit: test: add KUnit test runner core
-Message-ID: <20190705201505.GA19023@42.do-not-panic.com>
-References: <20190704003615.204860-1-brendanhiggins@google.com>
- <20190704003615.204860-2-brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id BACC72129F02A
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 03/13] libdaxctl: add an interface to retrieve the
+ device resource
+Date: Fri, 26 Jul 2019 19:52:02 -0600
+Message-Id: <20190727015212.27092-4-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190704003615.204860-2-brendanhiggins@google.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,78 +23,195 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, peterz@infradead.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, yamada.masahiro@socionext.com, mpe@ellerman.id.au, linux-kselftest@vger.kernel.org, shuah@kernel.org, robh@kernel.org, linux-nvdimm@lists.01.org, frowand.list@gmail.com, knut.omang@oracle.com, kieran.bingham@ideasonboard.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, jpoimboe@redhat.com, kunit-dev@googlegroups.com, tytso@mit.edu, richard@nod.at, sboyd@kernel.org, gregkh@linuxfoundation.org, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, keescook@google.com, linux-fsdevel@vger.kernel.org, khilman@baylibre.com
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Jul 03, 2019 at 05:35:58PM -0700, Brendan Higgins wrote:
-> Add core facilities for defining unit tests; this provides a common way
-> to define test cases, functions that execute code which is under test
-> and determine whether the code under test behaves as expected; this also
-> provides a way to group together related test cases in test suites (here
-> we call them test_modules).
-> 
-> Just define test cases and how to execute them for now; setting
-> expectations on code will be defined later.
-> 
-> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+Add an interface to retrieve the 'resource' attribute for a dax device.
 
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+Attempt to retrieve it as usual via sysfs, but since older kernels may
+be missing this attribute, as a fallback, attempt to retrieve it from
+/proc/iomem
 
-But a nitpick below, I think that can be fixed later with a follow up
-patch.
+Cc: Dan Williams <dan.j.williams@intel.com>
+[fscanf format string problem and diagnosis]
+Reported-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ Makefile.am                    |  3 ++-
+ daxctl/lib/Makefile.am         |  2 ++
+ daxctl/lib/libdaxctl-private.h |  1 +
+ daxctl/lib/libdaxctl.c         | 12 +++++++++++
+ daxctl/lib/libdaxctl.sym       |  1 +
+ daxctl/libdaxctl.h             |  1 +
+ util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
+ util/iomem.h                   | 12 +++++++++++
+ 8 files changed, 68 insertions(+), 1 deletion(-)
+ create mode 100644 util/iomem.c
+ create mode 100644 util/iomem.h
 
-> +/**
-> + * struct kunit - represents a running instance of a test.
-> + * @priv: for user to store arbitrary data. Commonly used to pass data created
-> + * in the init function (see &struct kunit_suite).
-> + *
-> + * Used to store information about the current context under which the test is
-> + * running. Most of this data is private and should only be accessed indirectly
-> + * via public functions; the one exception is @priv which can be used by the
-> + * test writer to store arbitrary data.
-> + *
-> + * A brief note on locking:
-> + *
-> + * First off, we need to lock because in certain cases a user may want to use an
-> + * expectation in a thread other than the thread that the test case is running
-> + * in.
+diff --git a/Makefile.am b/Makefile.am
+index df8797e..8d10a10 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
+ 	util/wrapper.c \
+ 	util/filter.c \
+ 	util/bitmap.c \
+-	util/abspath.c
++	util/abspath.c \
++	util/iomem.c
+ 
+ nobase_include_HEADERS = daxctl/libdaxctl.h
+diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
+index 9f0e444..7704b1b 100644
+--- a/daxctl/lib/Makefile.am
++++ b/daxctl/lib/Makefile.am
+@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
+ libdaxctl_la_SOURCES =\
+ 	../libdaxctl.h \
+ 	libdaxctl-private.h \
++	../../util/iomem.c \
++	../../util/iomem.h \
+ 	../../util/sysfs.c \
+ 	../../util/sysfs.h \
+ 	../../util/log.c \
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index 120137f..fee67d1 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -65,6 +65,7 @@ struct daxctl_dev {
+ 	size_t buf_len;
+ 	char *dev_path;
+ 	struct list_node list;
++	unsigned long long resource;
+ 	unsigned long long size;
+ 	struct kmod_module *module;
+ 	struct kmod_list *kmod_list;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 85c4fbe..9bbf256 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -24,6 +24,7 @@
+ 
+ #include <util/log.h>
+ #include <util/sysfs.h>
++#include <util/iomem.h>
+ #include <daxctl/libdaxctl.h>
+ #include "libdaxctl-private.h"
+ 
+@@ -369,6 +370,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	dev->major = major(st.st_rdev);
+ 	dev->minor = minor(st.st_rdev);
+ 
++	sprintf(path, "%s/resource", daxdev_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dev->resource = strtoull(buf, NULL, 0);
++	else
++		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
++
+ 	sprintf(path, "%s/size", daxdev_base);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+ 		goto err_read;
+@@ -878,6 +885,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
+ 	return dev->minor;
+ }
+ 
++DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
++{
++	return dev->resource;
++}
++
+ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+ {
+ 	return dev->size;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 19904a2..1692624 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -58,4 +58,5 @@ global:
+ 	daxctl_dev_disable;
+ 	daxctl_dev_enable_devdax;
+ 	daxctl_dev_enable_ram;
++	daxctl_dev_get_resource;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 407f459..adf55f3 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
+ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
++unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+ struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
+ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+diff --git a/util/iomem.c b/util/iomem.c
+new file mode 100644
+index 0000000..a3c23f5
+--- /dev/null
++++ b/util/iomem.c
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <util/log.h>
++#include <util/iomem.h>
++#include <util/sysfs.h>
++
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *devpath)
++{
++	const char *devname = devpath_to_devname(devpath);
++	FILE *fp = fopen("/proc/iomem", "r");
++	unsigned long long res;
++	char name[256];
++
++	if (fp == NULL) {
++		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
++				strerror(errno));
++		return 0;
++	}
++
++	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
++		if (strcmp(name, devname) == 0) {
++			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
++					devname, res);
++			fclose(fp);
++			return res;
++		}
++	}
++
++	log_dbg(ctx, "%s: not found in iomem\n", devname);
++	fclose(fp);
++	return 0;
++}
+diff --git a/util/iomem.h b/util/iomem.h
+new file mode 100644
+index 0000000..aaaf6a7
+--- /dev/null
++++ b/util/iomem.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++#ifndef _NDCTL_IOMEM_H_
++#define _NDCTL_IOMEM_H_
++
++struct log_ctx;
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *path);
++
++#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
++
++#endif /* _NDCTL_IOMEM_H_ */
+-- 
+2.20.1
 
-This as a prefix to the struct without a lock seems odd. It would be
-clearer I think if you'd explain here what locking mechanism we decided
-to use and why it suffices today.
-
-> +/**
-> + * suite_test() - used to register a &struct kunit_suite with KUnit.
-
-You mean kunit_test_suite()?
-
-> + * @suite: a statically allocated &struct kunit_suite.
-> + *
-> + * Registers @suite with the test framework. See &struct kunit_suite for more
-> + * information.
-> + *
-> + * NOTE: Currently KUnit tests are all run as late_initcalls; this means that
-> + * they cannot test anything where tests must run at a different init phase. One
-> + * significant restriction resulting from this is that KUnit cannot reliably
-> + * test anything that is initialize in the late_init phase.
-                            initialize prior to the late init phase.
-
-
-That is, this is useless to test things running early.
-
-> + *
-> + * TODO(brendanhiggins@google.com): Don't run all KUnit tests as late_initcalls.
-> + * I have some future work planned to dispatch all KUnit tests from the same
-> + * place, and at the very least to do so after everything else is definitely
-> + * initialized.
-
-TODOs are odd to be adding to documentation, this is just not common
-place practice. The NOTE should suffice for you.
-
-  Luis
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
