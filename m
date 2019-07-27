@@ -1,14 +1,13 @@
-From: Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH AUTOSEL 5.2 67/85] device-dax: fix memory and resource leak if
- hotplug fails
-Date: Fri, 26 Jul 2019 09:39:17 -0400
-Message-ID: <20190726133936.11177-67-sashal@kernel.org>
-References: <20190726133936.11177-1-sashal@kernel.org>
+From: pr-tracker-bot-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Subject: Re: [GIT PULL] libnvdimm fixes for 5.3-rc2
+Date: Sat, 27 Jul 2019 16:35:16 +0000
+Message-ID: <156424531666.2399.2050042384173075795.pr-tracker-bot@kernel.org>
+References: <CAPcyv4gqE6zOoSibTgjbWWHE3VVQ0wSJN-NxwF288nTe2Z3yzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190726133936.11177-1-sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <CAPcyv4gqE6zOoSibTgjbWWHE3VVQ0wSJN-NxwF288nTe2Z3yzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,74 +17,19 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yaowei Bai <baiyaowei-0p4V/sDNsUmm0O/7XYngnFaTQe2KTcn/@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sasha Levin <sashal-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Huang Ying <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Tom Lendacky <thomas.lendacky-5C7GfCeVMHo@public.gmane.org>, Pavel Tatashin <pasha.tatashin-2EmBfe737+LQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Fengguang Wu <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-RnJvbTogUGF2ZWwgVGF0YXNoaW4gPHBhc2hhLnRhdGFzaGluQHNvbGVlbi5jb20+CgpbIFVwc3Ry
-ZWFtIGNvbW1pdCAzMWU0Y2E5MmE3ZGQ0Y2RlYmQ3ZmUxNDU2YjNiMGI2YWNlOWE4MTZmIF0KClBh
-dGNoIHNlcmllcyAiIkhvdHJlbW92ZSIgcGVyc2lzdGVudCBtZW1vcnkiLCB2Ni4KClJlY2VudGx5
-LCBhZGRpbmcgYSBwZXJzaXN0ZW50IG1lbW9yeSB0byBiZSB1c2VkIGxpa2UgYSByZWd1bGFyIFJB
-TSB3YXMKYWRkZWQgdG8gTGludXguICBUaGlzIHdvcmsgZXh0ZW5kcyB0aGlzIGZ1bmN0aW9uYWxp
-dHkgdG8gYWxzbyBhbGxvdyBob3QKcmVtb3ZpbmcgcGVyc2lzdGVudCBtZW1vcnkuCgpXZSAoTWlj
-cm9zb2Z0KSBoYXZlIGFuIGltcG9ydGFudCB1c2UgY2FzZSBmb3IgdGhpcyBmdW5jdGlvbmFsaXR5
-LgoKVGhlIHJlcXVpcmVtZW50IGlzIGZvciBwaHlzaWNhbCBtYWNoaW5lcyB3aXRoIHNtYWxsIGFt
-b3VudCBvZiBSQU0gKH44RykKdG8gYmUgYWJsZSB0byByZWJvb3QgaW4gYSB2ZXJ5IHNob3J0IHBl
-cmlvZCBvZiB0aW1lICg8MXMpLiAgWWV0LCB0aGVyZQppcyBhIHVzZXJsYW5kIHN0YXRlIHRoYXQg
-aXMgZXhwZW5zaXZlIHRvIHJlY3JlYXRlICh+MkcpLgoKVGhlIHNvbHV0aW9uIGlzIHRvIGJvb3Qg
-bWFjaGluZXMgd2l0aCAyRyBwcmVzZXJ2ZWQgZm9yIHBlcnNpc3RlbnQKbWVtb3J5LgoKQ29weSB0
-aGUgc3RhdGUsIGFuZCBob3RhZGQgdGhlIHBlcnNpc3RlbnQgbWVtb3J5IHNvIG1hY2hpbmUgc3Rp
-bGwgaGFzCmFsbCA4RyBhdmFpbGFibGUgZm9yIHJ1bnRpbWUuICBCZWZvcmUgcmVib290LCBvZmZs
-aW5lIGFuZCBob3RyZW1vdmUKZGV2aWNlLWRheCAyRywgY29weSB0aGUgbWVtb3J5IHRoYXQgaXMg
-bmVlZGVkIHRvIGJlIHByZXNlcnZlZCB0byBwbWVtMApkZXZpY2UsIGFuZCByZWJvb3QuCgpUaGUg
-c2VyaWVzIG9mIG9wZXJhdGlvbnMgbG9vayBsaWtlIHRoaXM6CgoxLiBBZnRlciBib290IHJlc3Rv
-cmUgL2Rldi9wbWVtMCB0byByYW1kaXNrIHRvIGJlIGNvbnN1bWVkIGJ5IGFwcHMuCiAgIGFuZCBm
-cmVlIHJhbWRpc2suCjIuIENvbnZlcnQgcmF3IHBtZW0wIHRvIGRldmRheAogICBuZGN0bCBjcmVh
-dGUtbmFtZXNwYWNlIC0tbW9kZSBkZXZkYXggLS1tYXAgbWVtIC1lIG5hbWVzcGFjZTAuMCAtZgoz
-LiBIb3RhZGQgdG8gU3lzdGVtIFJBTQogICBlY2hvIGRheDAuMCA+IC9zeXMvYnVzL2RheC9kcml2
-ZXJzL2RldmljZV9kYXgvdW5iaW5kCiAgIGVjaG8gZGF4MC4wID4gL3N5cy9idXMvZGF4L2RyaXZl
-cnMva21lbS9uZXdfaWQKICAgZWNobyBvbmxpbmVfbW92YWJsZSA+IC9zeXMvZGV2aWNlcy9zeXN0
-ZW0vbWVtb3J5WFhYL3N0YXRlCjQuIEJlZm9yZSByZWJvb3QgaG90cmVtb3ZlIGRldmljZS1kYXgg
-bWVtb3J5IGZyb20gU3lzdGVtIFJBTQogICBlY2hvIG9mZmxpbmUgPiAvc3lzL2RldmljZXMvc3lz
-dGVtL21lbW9yeVhYWC9zdGF0ZQogICBlY2hvIGRheDAuMCA+IC9zeXMvYnVzL2RheC9kcml2ZXJz
-L2ttZW0vdW5iaW5kCjUuIENyZWF0ZSByYXcgcG1lbTAgZGV2aWNlCiAgIG5kY3RsIGNyZWF0ZS1u
-YW1lc3BhY2UgLS1tb2RlIHJhdyAgLWUgbmFtZXNwYWNlMC4wIC1mCjYuIENvcHkgdGhlIHN0YXRl
-IHRoYXQgd2FzIHN0b3JlZCBieSBhcHBzIHRvIHJhbWRpc2sgdG8gcG1lbSBkZXZpY2UKNy4gRG8g
-a2V4ZWMgcmVib290IG9yIHJlYm9vdCB0aHJvdWdoIGZpcm13YXJlIGlmIGZpcm13YXJlIGRvZXMg
-bm90CiAgIHplcm8gbWVtb3J5IGluIHBtZW0wIHJlZ2lvbiAoVGhlc2UgbWFjaGluZXMgaGF2ZSBv
-bmx5IHJlZ3VsYXIKICAgdm9sYXRpbGUgbWVtb3J5KS4gU28gdG8gaGF2ZSBwbWVtMCBkZXZpY2Ug
-ZWl0aGVyIG1lbW1hcCBrZXJuZWwKICAgcGFyYW1ldGVyIGlzIHVzZWQsIG9yIGRldmljZXMgbm9k
-ZXMgaW4gZHRiIGFyZSBzcGVjaWZpZWQuCgpUaGlzIHBhdGNoIChvZiAzKToKCldoZW4gYWRkX21l
-bW9yeSgpIGZhaWxzLCB0aGUgcmVzb3VyY2UgYW5kIHRoZSBtZW1vcnkgc2hvdWxkIGJlIGZyZWVk
-LgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yLzIwMTkwNTE3MjE1NDM4LjY0ODctMi1w
-YXNoYS50YXRhc2hpbkBzb2xlZW4uY29tCkZpeGVzOiBjMjIxYzBiMDMwOGYgKCJkZXZpY2UtZGF4
-OiAiSG90cGx1ZyIgcGVyc2lzdGVudCBtZW1vcnkgZm9yIHVzZSBsaWtlIG5vcm1hbCBSQU0iKQpT
-aWduZWQtb2ZmLWJ5OiBQYXZlbCBUYXRhc2hpbiA8cGFzaGEudGF0YXNoaW5Ac29sZWVuLmNvbT4K
-UmV2aWV3ZWQtYnk6IERhdmUgSGFuc2VuIDxkYXZlLmhhbnNlbkBpbnRlbC5jb20+CkNjOiBCam9y
-biBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29nbGUuY29tPgpDYzogQm9yaXNsYXYgUGV0a292IDxicEBz
-dXNlLmRlPgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBE
-YXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AbGludXguaW50ZWwuY29tPgpDYzogRGF2ZSBKaWFuZyA8
-ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+CkNjOiBEYXZpZCBIaWxkZW5icmFuZCA8ZGF2aWRAcmVkaGF0
-LmNvbT4KQ2M6IEZlbmdndWFuZyBXdSA8ZmVuZ2d1YW5nLnd1QGludGVsLmNvbT4KQ2M6IEh1YW5n
-IFlpbmcgPHlpbmcuaHVhbmdAaW50ZWwuY29tPgpDYzogSmFtZXMgTW9ycmlzIDxqbW9ycmlzQG5h
-bWVpLm9yZz4KQ2M6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgpDYzogS2Vp
-dGggQnVzY2ggPGtlaXRoLmJ1c2NoQGludGVsLmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tv
-QHN1c2UuY29tPgpDYzogUm9zcyBad2lzbGVyIDx6d2lzbGVyQGtlcm5lbC5vcmc+CkNjOiBTYXNo
-YSBMZXZpbiA8c2FzaGFsQGtlcm5lbC5vcmc+CkNjOiBUYWthc2hpIEl3YWkgPHRpd2FpQHN1c2Uu
-ZGU+CkNjOiBUb20gTGVuZGFja3kgPHRob21hcy5sZW5kYWNreUBhbWQuY29tPgpDYzogVmlzaGFs
-IFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+CkNjOiBZYW93ZWkgQmFpIDxiYWl5YW93
-ZWlAY21zcy5jaGluYW1vYmlsZS5jb20+ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFr
-cG1AbGludXgtZm91bmRhdGlvbi5vcmc+ClNpZ25lZC1vZmYtYnk6IExpbnVzIFRvcnZhbGRzIDx0
-b3J2YWxkc0BsaW51eC1mb3VuZGF0aW9uLm9yZz4KU2lnbmVkLW9mZi1ieTogU2FzaGEgTGV2aW4g
-PHNhc2hhbEBrZXJuZWwub3JnPgotLS0KIGRyaXZlcnMvZGF4L2ttZW0uYyB8IDUgKysrKy0KIDEg
-ZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL2RheC9rbWVtLmMgYi9kcml2ZXJzL2RheC9rbWVtLmMKaW5kZXggYTAyMzE4YzZk
-MjhhLi40YzAxMzE4NTcxMzMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZGF4L2ttZW0uYworKysgYi9k
-cml2ZXJzL2RheC9rbWVtLmMKQEAgLTY2LDggKzY2LDExIEBAIGludCBkZXZfZGF4X2ttZW1fcHJv
-YmUoc3RydWN0IGRldmljZSAqZGV2KQogCW5ld19yZXMtPm5hbWUgPSBkZXZfbmFtZShkZXYpOwog
-CiAJcmMgPSBhZGRfbWVtb3J5KG51bWFfbm9kZSwgbmV3X3Jlcy0+c3RhcnQsIHJlc291cmNlX3Np
-emUobmV3X3JlcykpOwotCWlmIChyYykKKwlpZiAocmMpIHsKKwkJcmVsZWFzZV9yZXNvdXJjZShu
-ZXdfcmVzKTsKKwkJa2ZyZWUobmV3X3Jlcyk7CiAJCXJldHVybiByYzsKKwl9CiAKIAlyZXR1cm4g
-MDsKIH0KLS0gCjIuMjAuMQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+The pull request you sent on Fri, 26 Jul 2019 15:53:47 -0700:
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.3-rc2
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/523634db145a22cd5562714d4c59ea74686afe38
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
