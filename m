@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 6B799212E8442
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:14:42 -0700 (PDT)
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: [PATCH] libnvdimm: change disk name of virtio pmem disk
-Date: Wed, 31 Jul 2019 16:42:07 +0530
-Message-Id: <20190731111207.12836-1-pagupta@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 6E8C8212BC46B
+ for <linux-nvdimm@lists.01.org>; Fri, 26 Jul 2019 18:54:44 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v8 01/13] libdaxctl: add interfaces to get ctx and check
+ device state
+Date: Fri, 26 Jul 2019 19:52:00 -0600
+Message-Id: <20190727015212.27092-2-vishal.l.verma@intel.com>
+In-Reply-To: <20190727015212.27092-1-vishal.l.verma@intel.com>
+References: <20190727015212.27092-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,44 +23,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-This patch adds prefix 'v' in disk name for virtio pmem.
-This differentiates virtio-pmem disks from the pmem disks.
+In preparation for libdaxctl and daxctl to grow operational modes for
+DAX devices, add the following supporting APIs:
 
-Signed-off-by: Pankaj Gupta <pagupta@redhat.com>
+  daxctl_dev_get_ctx
+  daxctl_dev_is_enabled
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/namespace_devs.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ daxctl/lib/libdaxctl.c   | 30 ++++++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  6 ++++++
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 38 insertions(+)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index a16e52251a30..8e5d29266fb0 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -182,8 +182,12 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
- 		char *name)
- {
- 	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
-+	const char *prefix = "";
- 	const char *suffix = NULL;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c2e3a52..70f896b 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -559,6 +559,36 @@ static void dax_regions_init(struct daxctl_ctx *ctx)
+ 	}
+ }
  
-+	if (!is_nvdimm_sync(nd_region))
-+		prefix = "v";
++static int is_enabled(const char *drvpath)
++{
++	struct stat st;
 +
- 	if (ndns->claim && is_nd_btt(ndns->claim))
- 		suffix = "s";
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
++}
++
++DAXCTL_EXPORT int daxctl_dev_is_enabled(struct daxctl_dev *dev)
++{
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
++
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return 0;
++	}
++
++	return is_enabled(path);
++}
++
++DAXCTL_EXPORT struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev)
++{
++	return dev->region->ctx;
++}
++
+ DAXCTL_EXPORT struct daxctl_dev *daxctl_dev_get_first(struct daxctl_region *region)
+ {
+ 	dax_devices_init(region);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 84d3a69..c4af9a7 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -50,3 +50,9 @@ LIBDAXCTL_5 {
+ global:
+ 	daxctl_region_get_path;
+ } LIBDAXCTL_4;
++
++LIBDAXCTL_6 {
++global:
++	daxctl_dev_get_ctx;
++	daxctl_dev_is_enabled;
++} LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 1d13ea2..e20ccb4 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -67,6 +67,8 @@ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
++struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
++int daxctl_dev_is_enabled(struct daxctl_dev *dev);
  
-@@ -201,7 +205,7 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
- 			sprintf(name, "pmem%d.%d%s", nd_region->id, nsidx,
- 					suffix ? suffix : "");
- 		else
--			sprintf(name, "pmem%d%s", nd_region->id,
-+			sprintf(name, "%spmem%d%s", prefix, nd_region->id,
- 					suffix ? suffix : "");
- 	} else if (is_namespace_blk(&ndns->dev)) {
- 		struct nd_namespace_blk *nsblk;
+ #define daxctl_dev_foreach(region, dev) \
+         for (dev = daxctl_dev_get_first(region); \
 -- 
 2.20.1
 
