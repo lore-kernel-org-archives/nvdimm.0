@@ -1,14 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 93C92212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:57 -0700 (PDT)
-Subject: [ndctl PATCH v2 21/26] ndctl/namespace: Validate namespace size
- within validate_namespace_options()
+ by ml01.01.org (Postfix) with ESMTPS id DE7FB212E259E
+ for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:41 -0700 (PDT)
+Subject: [ndctl PATCH v2 18/26] ndctl/test: Exercise sub-section sized
+ namespace creation/deletion
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:41:13 -0700
-Message-ID: <156426367330.531577.13173216611909512565.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Sat, 27 Jul 2019 14:40:58 -0700
+Message-ID: <156426365799.531577.4076109633772194960.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
@@ -26,99 +26,117 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently validate_namespace_options() handles default option conversion
-for every namespace attribute except size. Move default size validation
-internal to that helper in advance of teaching ndctl to require
-namespace be at least 16M in size to host a metadata personality /
-address abstraction.
+For kernels that have removed the section-aligned namespace constraint
+validate that multiple namespaces can be created / deleted that collide
+within a given section.
+
+While this test acts on the ACPI.NFIT bus it is not marked "destructive"
+because it only operates in available capacity and marks each namespace
+created with a unique volume name ("subsection-test").
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c |   50 +++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 33 insertions(+), 17 deletions(-)
+ test/Makefile.am    |    1 +
+ test/sub-section.sh |   78 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
+ create mode 100755 test/sub-section.sh
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 43a5fccac491..69900c4e4e60 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -489,6 +489,29 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
- 		|| ndctl_namespace_get_btt(ndns));
- }
- 
-+static int validate_available_capacity(struct ndctl_region *region,
-+		struct parsed_parameters *p)
-+{
-+	unsigned long long available;
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 2a1e03d26f6c..decc8377258a 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -45,6 +45,7 @@ if ENABLE_DESTRUCTIVE
+ TESTS +=\
+ 	blk-ns \
+ 	pmem-ns \
++	sub-section.sh \
+ 	dax-dev \
+ 	dax.sh \
+ 	device-dax \
+diff --git a/test/sub-section.sh b/test/sub-section.sh
+new file mode 100755
+index 000000000000..c624fbdb2ce0
+--- /dev/null
++++ b/test/sub-section.sh
+@@ -0,0 +1,78 @@
++#!/bin/bash -x
 +
-+	if (ndctl_region_get_nstype(region) == ND_DEVICE_NAMESPACE_IO)
-+		available = ndctl_region_get_size(region);
-+	else {
-+		available = ndctl_region_get_max_available_extent(region);
-+		if (available == ULLONG_MAX)
-+			available = ndctl_region_get_available_size(region);
-+	}
-+	if (!available || p->size > available) {
-+		debug("%s: insufficient capacity size: %llx avail: %llx\n",
-+			ndctl_region_get_devname(region), p->size, available);
-+		return -EAGAIN;
-+	}
++# SPDX-License-Identifier: GPL-2.0
++# Copyright(c) 2015-2019 Intel Corporation. All rights reserved.
 +
-+	if (p->size == 0)
-+		p->size = available;
-+	return 0;
++set -e
++
++SKIP=77
++FAIL=1
++SUCCESS=0
++
++. ./common
++
++check_min_kver "5.3" || do_skip "may lack align sub-section hotplug support"
++
++MNT=test_dax_mnt
++mkdir -p $MNT
++
++TEST_SIZE=$((16<<20))
++MIN_AVAIL=$((TEST_SIZE*4))
++MAX_NS=10
++NAME="subsection-test"
++
++ndctl list -N | jq -r ".[] | select(.name==\"subsection-test\") | .dev"
++
++rc=$FAIL
++cleanup() {
++	if [ $rc -ne $SUCCESS ]; then
++		echo "test/sub-section.sh: failed at line $1"
++	fi
++	if mountpoint -q $MNT; then
++		umount $MNT
++	fi
++	rmdir $MNT
++	# opportunistic cleanup, not fatal if these fail
++	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
++	for i in $namespaces
++	do
++		if ! $NDCTL destroy-namespace -f $i; then
++			echo "test/sub-section.sh: cleanup() failed to destroy $i"
++		fi
++	done
++	exit $rc
 +}
 +
- /*
-  * validate_namespace_options - init parameters for setup_namespace
-  * @region: parent of the namespace to create / reconfigure
-@@ -526,6 +549,16 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	else if (ndns)
- 		p->size = ndctl_namespace_get_size(ndns);
- 
-+	/*
-+	 * Validate available capacity in the create case, in the
-+	 * reconfigure case the capacity is already allocated.
-+	 */
-+	if (!ndns) {
-+		rc = validate_available_capacity(region, p);
-+		if (rc)
-+			return rc;
-+	}
++trap 'err $LINENO cleanup' ERR
 +
- 	if (param.uuid) {
- 		if (uuid_parse(param.uuid, p->uuid) != 0) {
- 			debug("%s: invalid uuid\n", __func__);
-@@ -797,7 +830,6 @@ static struct ndctl_namespace *region_get_namespace(struct ndctl_region *region)
- static int namespace_create(struct ndctl_region *region)
- {
- 	const char *devname = ndctl_region_get_devname(region);
--	unsigned long long available;
- 	struct ndctl_namespace *ndns;
- 	struct parsed_parameters p;
- 	int rc;
-@@ -812,22 +844,6 @@ static int namespace_create(struct ndctl_region *region)
- 		return -EAGAIN;
- 	}
- 
--	if (ndctl_region_get_nstype(region) == ND_DEVICE_NAMESPACE_IO)
--		available = ndctl_region_get_size(region);
--	else {
--		available = ndctl_region_get_max_available_extent(region);
--		if (available == ULLONG_MAX)
--			available = ndctl_region_get_available_size(region);
--	}
--	if (!available || p.size > available) {
--		debug("%s: insufficient capacity size: %llx avail: %llx\n",
--			devname, p.size, available);
--		return -EAGAIN;
--	}
--
--	if (p.size == 0)
--		p.size = available;
--
- 	ndns = region_get_namespace(region);
- 	if (!ndns || is_namespace_active(ndns)) {
- 		debug("%s: no %s namespace seed\n", devname,
++json=$($NDCTL list -R -b ACPI.NFIT)
++region=$(echo $json | jq -r "[.[] | select(.available_size >= $MIN_AVAIL)][0].dev")
++avail=$(echo $json | jq -r "[.[] | select(.available_size >= $MIN_AVAIL)][0].available_size")
++if [ -z $region ]; then
++	exit $SKIP
++fi
++
++iter=$((avail/TEST_SIZE))
++if [ $iter -gt $MAX_NS ]; then
++	iter=$MAX_NS;
++fi
++
++for i in $(seq 1 $iter)
++do
++	json=$($NDCTL create-namespace -s $TEST_SIZE --no-autorecover -r $region -n "$NAME")
++	dev=$(echo $json | jq -r ".blockdev")
++	mkfs.ext4 -b 4096 /dev/$dev
++	mount -o dax /dev/$dev $MNT
++	umount $MNT
++done
++
++namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
++for i in $namespaces
++do
++	$NDCTL disable-namespace $i
++	$NDCTL enable-namespace $i
++	$NDCTL destroy-namespace $i -f
++done
++
++rc=$SUCCESS
++cleanup $LINENO
 
 _______________________________________________
 Linux-nvdimm mailing list
