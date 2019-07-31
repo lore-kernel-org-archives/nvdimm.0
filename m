@@ -1,16 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E8647212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:58:23 -0700 (PDT)
-Subject: [ndctl PATCH v2 26/26] ndctl/monitor: Allow monitor to be manually
- moved to the background
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:41:39 -0700
-Message-ID: <156426369946.531577.16184152092730982222.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AEA7F212E13C8
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jul 2019 20:53:07 -0700 (PDT)
+Date: Tue, 30 Jul 2019 23:50:36 -0400 (EDT)
+From: Pankaj Gupta <pagupta@redhat.com>
+Message-ID: <1887039269.5822356.1564545036201.JavaMail.zimbra@redhat.com>
+In-Reply-To: <20190730190737.GA14873@redhat.com>
+References: <20190730113708.14660-1-pagupta@redhat.com>
+ <2030283543.5419072.1564486701158.JavaMail.zimbra@redhat.com>
+ <20190730190737.GA14873@redhat.com>
+Subject: Re: dm: fix dax_dev NULL dereference
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,43 +24,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Mike Snitzer <snitzer@redhat.com>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dm-devel@redhat.com, linux-fsdevel@vger.kernel.org, agk@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Currently attempting to place the monitor into the background results in
-an epoll error:
 
-    # ndctl monitor -b nfit_test.0
-    ^Z
-    [1]+  Stopped                 ndctl monitor -b nfit_test.0
-    # bg
-    [1]+ ndctl monitor -b nfit_test.0 &
-    epoll_wait error
+> 
+> I staged the fix (which I tweaked) here:
+> https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-5.3&id=95b9ebb78c4c733f8912a195fbd0bc19960e726e
+> 
+> Also, please note this additional related commit that just serves to
+> improve a related function name and clean up some whitespace:
+> https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-5.3&id=f965f935a89bb174fd3f6d6b51bba91c1ed258c5
+> 
+> I'll likely send these to Linus for 5.2-rc3 later this week.
 
-This error is simply a wakeup from a signal EINTR, so allow the monitor
-to continue assuming the signal is not fatal.
+o.k
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/monitor.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thank you,
+Pankaj
 
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 6829a6b28b58..88adf3e5d6ff 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -357,8 +357,8 @@ static int monitor_event(struct ndctl_ctx *ctx,
- 	while (1) {
- 		did_fail = 0;
- 		nfds = epoll_wait(epollfd, events, mfa->num_dimm, -1);
--		if (nfds <= 0) {
--			err(&monitor, "epoll_wait error\n");
-+		if (nfds <= 0 && errno != EINTR) {
-+			err(&monitor, "epoll_wait error: (%s)\n", strerror(errno));
- 			rc = -errno;
- 			goto out;
- 		}
-
+> 
+> Thanks,
+> Mike
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
