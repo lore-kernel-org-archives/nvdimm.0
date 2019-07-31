@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 602EE212E15B4
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:04 -0700 (PDT)
-Subject: [ndctl PATCH v2 11/26] ndctl/dimm: Limit read-labels with --index
- option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:19 -0700
-Message-ID: <156426361963.531577.9756735022332101876.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 05CCC212DD348
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:28 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 6/7] xfs: Add COW handle for fsdax.
+Date: Wed, 31 Jul 2019 19:49:34 +0800
+Message-ID: <20190731114935.11030-7-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,106 +20,143 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
+Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a capability to limit the read-labels payload to just the
-index-block data space.
+WRITE and ZERO on a shared extent need to perform COW.  For direct io in
+dax mode, it is handled like WRITE, but with block aligned.  So COW
+seems a bit redundant for it.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Because of COW, new extent has been allocated.  The extent list needs to
+be updated at the end.
+
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- ndctl/dimm.c |   43 +++++++++++++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 16 deletions(-)
+ fs/xfs/xfs_iomap.c   | 42 +++++++++++++++++++++++++-----------------
+ fs/xfs/xfs_reflink.c |  1 +
+ 2 files changed, 26 insertions(+), 17 deletions(-)
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 603e112f9568..c7ad621367e9 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -55,6 +55,7 @@ static struct parameters {
- 	bool master_pass;
- 	bool human;
- 	bool force;
-+	bool index;
- 	bool json;
- 	bool verbose;
- } param = {
-@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index 6116a75f03da..ae3b9bf5d784 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -930,10 +930,10 @@ xfs_file_iomap_begin(
+ {
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct xfs_mount	*mp = ip->i_mount;
+-	struct xfs_bmbt_irec	imap;
++	struct xfs_bmbt_irec	imap = { 0 }, cmap = { 0 };
+ 	xfs_fileoff_t		offset_fsb, end_fsb;
+ 	int			nimaps = 1, error = 0;
+-	bool			shared = false;
++	bool			shared = false, need_cow = false;
+ 	unsigned		lockmode;
  
- 	if (!jdimm)
- 		return NULL;
--	jindex = dump_index_json(cmd_read, size);
--	if (!jindex)
--		goto err_jindex;
--	jlabel = dump_label_json(dimm, cmd_read, size, flags);
--	if (!jlabel)
--		goto err_jlabel;
+ 	if (XFS_FORCED_SHUTDOWN(mp))
+@@ -967,6 +967,8 @@ xfs_file_iomap_begin(
+ 	if (error)
+ 		goto out_unlock;
  
- 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
- 	if (!jobj)
--		goto err_jobj;
--
-+		goto err;
- 	json_object_object_add(jdimm, "dev", jobj);
++	cmap = imap;
 +
-+	jindex = dump_index_json(cmd_read, size);
-+	if (!jindex)
-+		goto err;
- 	json_object_object_add(jdimm, "index", jindex);
-+	if (param.index)
-+		return jdimm;
-+
-+	jlabel = dump_label_json(dimm, cmd_read, size, flags);
-+	if (!jlabel)
-+		goto err;
- 	json_object_object_add(jdimm, "label", jlabel);
--	return jdimm;
+ 	if (flags & IOMAP_REPORT) {
+ 		/* Trim the mapping to the nearest shared extent boundary. */
+ 		error = xfs_reflink_trim_around_shared(ip, &imap, &shared);
+@@ -983,8 +985,7 @@ xfs_file_iomap_begin(
+ 	 * been done up front, so we don't need to do them here.
+ 	 */
+ 	if (xfs_is_cow_inode(ip)) {
+-		struct xfs_bmbt_irec	cmap;
+-		bool			directio = (flags & IOMAP_DIRECT);
++		bool directio = flags & IOMAP_DIRECT;
  
-- err_jobj:
--	json_object_put(jlabel);
-- err_jlabel:
--	json_object_put(jindex);
-- err_jindex:
-+	return jdimm;
-+err:
- 	json_object_put(jdimm);
- 	return NULL;
+ 		/* if zeroing doesn't need COW allocation, then we are done. */
+ 		if ((flags & IOMAP_ZERO) &&
+@@ -992,23 +993,21 @@ xfs_file_iomap_begin(
+ 			goto out_found;
+ 
+ 		/* may drop and re-acquire the ilock */
+-		cmap = imap;
+ 		error = xfs_reflink_allocate_cow(ip, &cmap, &shared, &lockmode,
+-				directio);
++						 directio || IS_DAX(inode));
+ 		if (error)
+ 			goto out_unlock;
+ 
+ 		/*
+-		 * For buffered writes we need to report the address of the
+-		 * previous block (if there was any) so that the higher level
+-		 * write code can perform read-modify-write operations; we
+-		 * won't need the CoW fork mapping until writeback.  For direct
+-		 * I/O, which must be block aligned, we need to report the
+-		 * newly allocated address.  If the data fork has a hole, copy
+-		 * the COW fork mapping to avoid allocating to the data fork.
++		 * WRITE and ZERO on a shared extent under dax mode need to
++		 * perform COW, source address will be reported in srcmap.
+ 		 */
+-		if (directio || imap.br_startblock == HOLESTARTBLOCK)
++		if (imap.br_startblock != HOLESTARTBLOCK && IS_DAX(inode) &&
++		    shared) {
++			need_cow = true;
++		} else {
+ 			imap = cmap;
++		}
+ 
+ 		end_fsb = imap.br_startoff + imap.br_blockcount;
+ 		length = XFS_FSB_TO_B(mp, end_fsb) - offset;
+@@ -1044,8 +1043,7 @@ xfs_file_iomap_begin(
+ 	 */
+ 	if (lockmode == XFS_ILOCK_EXCL)
+ 		xfs_ilock_demote(ip, lockmode);
+-	error = xfs_iomap_write_direct(ip, offset, length, &imap,
+-			nimaps);
++	error = xfs_iomap_write_direct(ip, offset, length, &imap, nimaps);
+ 	if (error)
+ 		return error;
+ 
+@@ -1053,7 +1051,15 @@ xfs_file_iomap_begin(
+ 	trace_xfs_iomap_alloc(ip, offset, length, XFS_DATA_FORK, &imap);
+ 
+ out_finish:
+-	return xfs_bmbt_to_iomap(ip, iomap, &imap, shared);
++	if (need_cow) {
++		error = xfs_bmbt_to_iomap(ip, iomap, &cmap, shared);
++		if (error)
++			return error;
++		iomap->flags |= IOMAP_F_NEW;
++		iomap->type = IOMAP_COW;
++		return xfs_bmbt_to_iomap(ip, srcmap, &imap, shared);
++	} else
++		return xfs_bmbt_to_iomap(ip, iomap, &imap, shared);
+ 
+ out_found:
+ 	ASSERT(nimaps);
+@@ -1135,6 +1141,8 @@ xfs_file_iomap_end(
+ 	if ((flags & IOMAP_WRITE) && iomap->type == IOMAP_DELALLOC)
+ 		return xfs_file_iomap_end_delalloc(XFS_I(inode), offset,
+ 				length, written, iomap);
++	else if (iomap->type == IOMAP_COW && written)
++		return xfs_reflink_end_cow(XFS_I(inode), offset, length);
+ 	return 0;
  }
-@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
  
--	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
-+	if (param.index)
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
-+	else
-+		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
-+				param.offset);
- 	if (!cmd_read)
- 		return -EINVAL;
+diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+index 68e4257cebb0..a1b000be3699 100644
+--- a/fs/xfs/xfs_reflink.c
++++ b/fs/xfs/xfs_reflink.c
+@@ -446,6 +446,7 @@ xfs_reflink_allocate_cow(
+ 	 */
+ 	if (!convert_now || imap->br_state == XFS_EXT_NORM)
+ 		return 0;
++	imap->br_state = XFS_EXT_NORM;
+ 	trace_xfs_reflink_convert_cow(ip, imap);
+ 	return xfs_reflink_convert_cow_locked(ip, offset_fsb, count_fsb);
  
-@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
- OPT_STRING('o', "output", &param.outfile, "output-file", \
- 	"filename to write label area contents"), \
- OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
--OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
-+OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
- 
- #define WRITE_OPTIONS() \
- OPT_STRING('i', "input", &param.infile, "input-file", \
-@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
-+	if (param.index && param.len) {
-+		fprintf(stderr, "pick either --size, or --index, not both\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
- 	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
+-- 
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
