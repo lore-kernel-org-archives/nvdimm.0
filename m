@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 36BE0212DA5FC
- for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 15:00:14 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v7 03/13] libdaxctl: add an interface to retrieve the
- device resource
-Date: Wed, 24 Jul 2019 15:57:31 -0600
-Message-Id: <20190724215741.18556-4-vishal.l.verma@intel.com>
-In-Reply-To: <20190724215741.18556-1-vishal.l.verma@intel.com>
-References: <20190724215741.18556-1-vishal.l.verma@intel.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 3E2D4212E8449
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:22 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 4/7] fs: dedup file range to use a compare function
+Date: Wed, 31 Jul 2019 19:49:32 +0800
+Message-ID: <20190731114935.11030-5-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,194 +20,249 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
+To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
+Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add an interface to retrieve the 'resource' attribute for a dax device.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Attempt to retrieve it as usual via sysfs, but since older kernels may
-be missing this attribute, as a fallback, attempt to retrieve it from
-/proc/iomem
+With dax we cannot deal with readpage() etc. So, we create a
+funciton callback to perform the file data comparison and pass
+it to generic_remap_file_range_prep() so it can use iomap-based
+functions.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-[fscanf format string problem and diagnosis]
-Reported-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+This may not be the best way to solve this. Suggestions welcome.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- Makefile.am                    |  3 ++-
- daxctl/lib/Makefile.am         |  2 ++
- daxctl/lib/libdaxctl-private.h |  1 +
- daxctl/lib/libdaxctl.c         | 12 +++++++++++
- daxctl/lib/libdaxctl.sym       |  1 +
- daxctl/libdaxctl.h             |  1 +
- util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
- util/iomem.h                   | 12 +++++++++++
- 8 files changed, 68 insertions(+), 1 deletion(-)
- create mode 100644 util/iomem.c
- create mode 100644 util/iomem.h
+ fs/btrfs/ioctl.c     | 11 ++++++--
+ fs/dax.c             | 65 ++++++++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/file.c      |  2 +-
+ fs/read_write.c      | 11 ++++----
+ fs/xfs/xfs_reflink.c |  2 +-
+ include/linux/dax.h  |  4 +++
+ include/linux/fs.h   |  8 +++++-
+ 7 files changed, 93 insertions(+), 10 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index df8797e..8d10a10 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
- 	util/wrapper.c \
- 	util/filter.c \
- 	util/bitmap.c \
--	util/abspath.c
-+	util/abspath.c \
-+	util/iomem.c
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index cd4e693406a0..8f9c749c4aa6 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -3936,6 +3936,7 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+ 	bool same_inode = inode_out == inode_in;
+ 	u64 wb_len;
+ 	int ret;
++	compare_range_t cmp;
  
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 9f0e444..7704b1b 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
- libdaxctl_la_SOURCES =\
- 	../libdaxctl.h \
- 	libdaxctl-private.h \
-+	../../util/iomem.c \
-+	../../util/iomem.h \
- 	../../util/sysfs.c \
- 	../../util/sysfs.h \
- 	../../util/log.c \
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index 120137f..fee67d1 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -65,6 +65,7 @@ struct daxctl_dev {
- 	size_t buf_len;
- 	char *dev_path;
- 	struct list_node list;
-+	unsigned long long resource;
- 	unsigned long long size;
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 85c4fbe..9bbf256 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -24,6 +24,7 @@
+ 	if (!(remap_flags & REMAP_FILE_DEDUP)) {
+ 		struct btrfs_root *root_out = BTRFS_I(inode_out)->root;
+@@ -3997,8 +3998,14 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+ 	if (ret < 0)
+ 		goto out_unlock;
  
- #include <util/log.h>
- #include <util/sysfs.h>
-+#include <util/iomem.h>
- #include <daxctl/libdaxctl.h>
- #include "libdaxctl-private.h"
- 
-@@ -369,6 +370,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 	dev->major = major(st.st_rdev);
- 	dev->minor = minor(st.st_rdev);
- 
-+	sprintf(path, "%s/resource", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->resource = strtoull(buf, NULL, 0);
+-	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+-					    len, remap_flags);
++	if (IS_DAX(file_inode(file_in)) && IS_DAX(file_inode(file_out)))
++		cmp = btrfs_dax_file_range_compare;
 +	else
-+		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
++		cmp = vfs_dedupe_file_range_compare;
 +
- 	sprintf(path, "%s/size", daxdev_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
- 		goto err_read;
-@@ -878,6 +885,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
- 	return dev->minor;
- }
++	ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
++			pos_out, len, remap_flags, cmp);
++
+ 	if (ret < 0 || *len == 0)
+ 		goto out_unlock;
  
-+DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
+diff --git a/fs/dax.c b/fs/dax.c
+index 8eb065a1ec51..8111ba93f4d3 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -39,6 +39,8 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/fs_dax.h>
+ 
++#define MIN(a, b) (((a) < (b)) ? (a) : (b))
++
+ static inline unsigned int pe_order(enum page_entry_size pe_size)
+ {
+ 	if (pe_size == PE_SIZE_PTE)
+@@ -1817,3 +1819,66 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+ 	return dax_insert_pfn_mkwrite(vmf, pfn, order);
+ }
+ EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
++
++static inline void *iomap_address(struct iomap *iomap, loff_t off, loff_t len)
 +{
-+	return dev->resource;
++	loff_t start;
++	void *addr;
++	start = (get_start_sect(iomap->bdev) << 9) + iomap->addr +
++		(off - iomap->offset);
++	dax_direct_access(iomap->dax_dev, PHYS_PFN(start), PHYS_PFN(len),
++			  &addr, NULL);
++	return addr;
 +}
 +
- DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
- {
- 	return dev->size;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 19904a2..1692624 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -58,4 +58,5 @@ global:
- 	daxctl_dev_disable;
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
-+	daxctl_dev_get_resource;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 407f459..adf55f3 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
- const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
- int daxctl_dev_get_major(struct daxctl_dev *dev);
- int daxctl_dev_get_minor(struct daxctl_dev *dev);
-+unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
-diff --git a/util/iomem.c b/util/iomem.c
-new file mode 100644
-index 0000000..a3c23f5
---- /dev/null
-+++ b/util/iomem.c
-@@ -0,0 +1,37 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+#include <util/log.h>
-+#include <util/iomem.h>
-+#include <util/sysfs.h>
-+
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *devpath)
++int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
++		loff_t destoff, loff_t len, bool *is_same, const struct iomap_ops *ops)
 +{
-+	const char *devname = devpath_to_devname(devpath);
-+	FILE *fp = fopen("/proc/iomem", "r");
-+	unsigned long long res;
-+	char name[256];
++	void *saddr, *daddr;
++	struct iomap s_iomap = {0};
++	struct iomap d_iomap = {0};
++	bool same = true;
++	loff_t cmp_len;
++	int id, ret = 0;
 +
-+	if (fp == NULL) {
-+		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
-+				strerror(errno));
-+		return 0;
-+	}
++	id = dax_read_lock();
++	while (len) {
++		ret = ops->iomap_begin(src, srcoff, len, 0, &s_iomap, NULL);
++		if (ret < 0) {
++			if (ops->iomap_end)
++				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
++			return ret;
++		}
++		cmp_len = len;
++		cmp_len = MIN(len, s_iomap.offset + s_iomap.length - srcoff);
 +
-+	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
-+		if (strcmp(name, devname) == 0) {
-+			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
-+					devname, res);
-+			fclose(fp);
-+			return res;
++		ret = ops->iomap_begin(dest, destoff, cmp_len, 0, &d_iomap, NULL);
++		if (ret < 0) {
++			if (ops->iomap_end) {
++				ops->iomap_end(src, srcoff, len, ret, 0, &s_iomap);
++				ops->iomap_end(dest, destoff, len, ret, 0, &d_iomap);
++			}
++			return ret;
++		}
++		cmp_len = MIN(cmp_len, d_iomap.offset + d_iomap.length - destoff);
++
++		saddr = iomap_address(&s_iomap, srcoff, cmp_len);
++		daddr = iomap_address(&d_iomap, destoff, cmp_len);
++
++		same = !memcmp(saddr, daddr, cmp_len);
++		if (!same)
++			break;
++		len -= cmp_len;
++		srcoff += cmp_len;
++		destoff += cmp_len;
++
++		if (ops->iomap_end) {
++			ret = ops->iomap_end(src, srcoff, len, 0, 0, &s_iomap);
++			ret = ops->iomap_end(dest, destoff, len, 0, 0, &d_iomap);
 +		}
 +	}
-+
-+	log_dbg(ctx, "%s: not found in iomem\n", devname);
-+	fclose(fp);
-+	return 0;
++	dax_read_unlock(id);
++	*is_same = same;
++	return ret;
 +}
-diff --git a/util/iomem.h b/util/iomem.h
-new file mode 100644
-index 0000000..aaaf6a7
---- /dev/null
-+++ b/util/iomem.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
-+#ifndef _NDCTL_IOMEM_H_
-+#define _NDCTL_IOMEM_H_
-+
-+struct log_ctx;
-+unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
-+		const char *path);
-+
-+#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
-+
-+#endif /* _NDCTL_IOMEM_H_ */
++EXPORT_SYMBOL_GPL(dax_file_range_compare);
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index d640c5f8a85d..9d470306cfc3 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2558,7 +2558,7 @@ static loff_t ocfs2_remap_file_range(struct file *file_in, loff_t pos_in,
+ 		goto out_unlock;
+ 
+ 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+-			&len, remap_flags);
++			&len, remap_flags, vfs_dedupe_file_range_compare);
+ 	if (ret < 0 || len == 0)
+ 		goto out_unlock;
+ 
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 61b43ad7608e..c6283802ef1c 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1778,7 +1778,7 @@ static struct page *vfs_dedupe_get_page(struct inode *inode, loff_t offset)
+  * Compare extents of two files to see if they are the same.
+  * Caller must have locked both inodes to prevent write races.
+  */
+-static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
++int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ 					 struct inode *dest, loff_t destoff,
+ 					 loff_t len, bool *is_same)
+ {
+@@ -1845,6 +1845,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+ out_error:
+ 	return error;
+ }
++EXPORT_SYMBOL_GPL(vfs_dedupe_file_range_compare);
+ 
+ /*
+  * Check that the two inodes are eligible for cloning, the ranges make
+@@ -1856,7 +1857,8 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+  */
+ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+ 				  struct file *file_out, loff_t pos_out,
+-				  loff_t *len, unsigned int remap_flags)
++				  loff_t *len, unsigned int remap_flags,
++				  compare_range_t compare)
+ {
+ 	struct inode *inode_in = file_inode(file_in);
+ 	struct inode *inode_out = file_inode(file_out);
+@@ -1915,9 +1917,8 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+ 	 */
+ 	if (remap_flags & REMAP_FILE_DEDUP) {
+ 		bool		is_same = false;
+-
+-		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
+-				inode_out, pos_out, *len, &is_same);
++		ret = (*compare)(inode_in, pos_in,
++			inode_out, pos_out, *len, &is_same);
+ 		if (ret)
+ 			return ret;
+ 		if (!is_same)
+diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+index 680ae7662a78..68e4257cebb0 100644
+--- a/fs/xfs/xfs_reflink.c
++++ b/fs/xfs/xfs_reflink.c
+@@ -1350,7 +1350,7 @@ xfs_reflink_remap_prep(
+ 		goto out_unlock;
+ 
+ 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+-			len, remap_flags);
++			len, remap_flags, vfs_dedupe_file_range_compare);
+ 	if (ret < 0 || *len == 0)
+ 		goto out_unlock;
+ 
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 0dd316a74a29..1370d39c91b6 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -157,6 +157,10 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
++int dax_file_range_compare(struct inode *src, loff_t srcoff,
++			   struct inode *dest, loff_t destoff,
++			   loff_t len, bool *is_same,
++			   const struct iomap_ops *ops);
+ 
+ #ifdef CONFIG_FS_DAX
+ int __dax_zero_page_range(struct block_device *bdev,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index dd28e7679089..0224503e42ce 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1883,10 +1883,16 @@ extern ssize_t vfs_readv(struct file *, const struct iovec __user *,
+ 		unsigned long, loff_t *, rwf_t);
+ extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+ 				   loff_t, size_t, unsigned int);
++extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
++					 struct inode *dest, loff_t destoff,
++					 loff_t len, bool *is_same);
++typedef int (*compare_range_t)(struct inode *src, loff_t srcpos,
++			       struct inode *dest, loff_t destpos,
++			       loff_t len, bool *is_same);
+ extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+ 					 struct file *file_out, loff_t pos_out,
+ 					 loff_t *count,
+-					 unsigned int remap_flags);
++					 unsigned int remap_flags, compare_range_t cmp);
+ extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+ 				  struct file *file_out, loff_t pos_out,
+ 				  loff_t len, unsigned int remap_flags);
 -- 
-2.20.1
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
