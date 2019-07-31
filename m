@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E4CA2194EB7E
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:14 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v9 08/13] Documentation/daxctl: add a man page for
- daxctl-reconfigure-device
-Date: Wed, 31 Jul 2019 18:29:27 -0600
-Message-Id: <20190801002932.26430-9-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id B00EB212DD348
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:29 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 5/7] dax: memcpy before zeroing range
+Date: Wed, 31 Jul 2019 19:49:33 +0800
+Message-ID: <20190731114935.11030-6-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,201 +20,154 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
+To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
+Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a man page describing the new daxctl-reconfigure-device command.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+However, this needed more iomap fields, so it was easier
+to pass iomap and compute inside the function rather
+than passing a log of arguments.
+
+Note, there is subtle difference between iomap_sector and
+dax_iomap_sector(). Can we replace dax_iomap_sector with
+iomap_sector()? It would need pos & PAGE_MASK though or else
+bdev_dax_pgoff() return -EINVAL.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- Documentation/daxctl/Makefile.am              |   3 +-
- .../daxctl/daxctl-reconfigure-device.txt      | 157 ++++++++++++++++++
- 2 files changed, 159 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl/daxctl-reconfigure-device.txt
+ fs/dax.c              | 17 ++++++++++++-----
+ fs/iomap.c            |  9 +--------
+ include/linux/dax.h   | 11 +++++------
+ include/linux/iomap.h |  6 ++++++
+ 4 files changed, 24 insertions(+), 19 deletions(-)
 
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 6aba035..715fbad 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -28,7 +28,8 @@ endif
- man1_MANS = \
- 	daxctl.1 \
- 	daxctl-list.1 \
--	daxctl-migrate-device-model.1
-+	daxctl-migrate-device-model.1 \
-+	daxctl-reconfigure-device.1
+diff --git a/fs/dax.c b/fs/dax.c
+index 8111ba93f4d3..c92111950612 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1071,11 +1071,16 @@ static bool dax_range_is_aligned(struct block_device *bdev,
+ 	return true;
+ }
  
- CLEANFILES = $(man1_MANS)
+-int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int size)
++int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++			  unsigned int offset, unsigned int size)
+ {
+-	if (dax_range_is_aligned(bdev, offset, size)) {
++	sector_t sector = dax_iomap_sector(iomap, pos & PAGE_MASK);
++	struct block_device *bdev = iomap->bdev;
++	struct dax_device *dax_dev = iomap->dax_dev;
++	int ret = 0;
++
++	if (!(iomap->type == IOMAP_COW) &&
++	    dax_range_is_aligned(bdev, offset, size)) {
+ 		sector_t start_sector = sector + (offset >> 9);
  
-diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
-new file mode 100644
-index 0000000..196d692
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
-@@ -0,0 +1,157 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-reconfigure-device(1)
-+============================
-+
-+NAME
-+----
-+daxctl-reconfigure-device - Reconfigure a dax device into a different mode
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl reconfigure-device' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Reconfigure dax0.0 to system-ram mode, don't online the memory
-+----
-+# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  }
-+]
-+----
-+
-+* Reconfigure dax0.0 to devdax mode, attempt to offline the memory
-+----
-+# daxctl reconfigure-device --human --mode=devdax --force dax0.0
+ 		return blkdev_issue_zeroout(bdev, start_sector,
+@@ -1095,11 +1100,13 @@ int __dax_zero_page_range(struct block_device *bdev,
+ 			dax_read_unlock(id);
+ 			return rc;
+ 		}
++		if (iomap->type == IOMAP_COW)
++			ret = memcpy_mcsafe(kaddr, iomap->inline_data, offset);
+ 		memset(kaddr + offset, 0, size);
+ 		dax_flush(dax_dev, kaddr + offset, size);
+ 		dax_read_unlock(id);
+ 	}
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+ 
+diff --git a/fs/iomap.c b/fs/iomap.c
+index 3377a7ec5b7d..b5662b5bac26 100644
+--- a/fs/iomap.c
++++ b/fs/iomap.c
+@@ -99,12 +99,6 @@ iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
+ 	return written ? written : ret;
+ }
+ 
+-static sector_t
+-iomap_sector(struct iomap *iomap, loff_t pos)
+-{
+-	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
+-}
+-
+ static struct iomap_page *
+ iomap_page_create(struct inode *inode, struct page *page)
+ {
+@@ -993,8 +987,7 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
+ static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
+ 		struct iomap *iomap)
+ {
+-	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
+-			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
++	return __dax_zero_page_range(iomap, pos, offset, bytes);
+ }
+ 
+ static loff_t
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 1370d39c91b6..c469d9ff54b4 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -9,6 +9,7 @@
+ 
+ typedef unsigned long dax_entry_t;
+ 
++struct iomap;
+ struct iomap_ops;
+ struct dax_device;
+ struct dax_operations {
+@@ -163,13 +164,11 @@ int dax_file_range_compare(struct inode *src, loff_t srcoff,
+ 			   const struct iomap_ops *ops);
+ 
+ #ifdef CONFIG_FS_DAX
+-int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int length);
++int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++		unsigned int offset, unsigned int size);
+ #else
+-static inline int __dax_zero_page_range(struct block_device *bdev,
+-		struct dax_device *dax_dev, sector_t sector,
+-		unsigned int offset, unsigned int length)
++static inline int __dax_zero_page_range(struct iomap *iomap, loff_t pos,
++		unsigned int offset, unsigned int size)
+ {
+ 	return -ENXIO;
+ }
+diff --git a/include/linux/iomap.h b/include/linux/iomap.h
+index 75b78dd91c3c..3628e57954c6 100644
+--- a/include/linux/iomap.h
++++ b/include/linux/iomap.h
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/types.h>
+ #include <linux/mm_types.h>
++#include <linux/blkdev.h>
+ 
+ struct address_space;
+ struct fiemap_extent_info;
+@@ -122,6 +123,11 @@ static inline struct iomap_page *to_iomap_page(struct page *page)
+ 	return NULL;
+ }
+ 
++static inline sector_t iomap_sector(struct iomap *iomap, loff_t pos)
 +{
-+  "chardev":"dax0.0",
-+  "size":"15.63 GiB (16.78 GB)",
-+  "target_node":2,
-+  "mode":"devdax"
++	return (iomap->addr + pos - iomap->offset) >> SECTOR_SHIFT;
 +}
-+----
 +
-+* Reconfigure all dax devices on region0 to system-ram mode
-+----
-+# daxctl reconfigure-device --mode=system-ram --region=0 all
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  },
-+  {
-+    "chardev":"dax0.1",
-+    "size":16777216000,
-+    "target_node":3,
-+    "mode":"system-ram"
-+  }
-+]
-+----
-+
-+* Run a process called 'some-service' using numactl to restrict its cpu
-+nodes to '0' and '1', and  memory allocations to node 2 (determined using
-+daxctl_dev_get_target_node() or 'daxctl list')
-+----
-+# daxctl reconfigure-device --mode=system-ram dax0.0
-+[
-+  {
-+    "chardev":"dax0.0",
-+    "size":16777216000,
-+    "target_node":2,
-+    "mode":"system-ram"
-+  }
-+]
-+
-+# numactl --cpunodebind=0-1 --membind=2 -- some-service --opt1 --opt2
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Reconfigure the operational mode of a dax device. This can be used to convert
-+a regular 'devdax' mode device to the 'system-ram' mode which arranges for the
-+dax range to be hot-plugged into the system as regular memory.
-+
-+NOTE: This is a destructive operation. Any data on the dax device *will* be
-+lost.
-+
-+NOTE: Device reconfiguration depends on the dax-bus device model. See
-+linkdaxctl:daxctl-migrate-device-model[1] for more information. If dax-class is
-+in use (via the dax_pmem_compat driver), the reconfiguration will fail with an
-+error such as the following:
-+----
-+# daxctl reconfigure-device --mode=system-ram --region=0 all
-+libdaxctl: daxctl_dev_disable: dax3.0: error: device model is dax-class
-+dax3.0: disable failed: Operation not supported
-+error reconfiguring devices: Operation not supported
-+reconfigured 0 devices
-+----
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-m::
-+--mode=::
-+	Specify the mode to which the dax device(s) should be reconfigured.
-+	- "system-ram": hotplug the device into system memory.
-+
-+	- "devdax": switch to the normal "device dax" mode. This requires the
-+	  kernel to support hot-unplugging 'kmem' based memory. If this is not
-+	  available, a reboot is the only way to switch back to 'devdax' mode.
-+
-+-N::
-+--no-online::
-+	By default, memory sections provided by system-ram devices will be
-+	brought online automatically and immediately with the 'online_movable'
-+	policy. Use this option to disable the automatic onlining behavior.
-+
-+	NOTE: While this option prevents daxctl from automatically onlining
-+	the memory sections, there may be other agents, notably system udev
-+	rules, that online new memory sections as they appear. Coordinating
-+	with such rules is out of scope of this utility, and the system
-+	administrator is expected to remove them if they are undesirable.
-+	If such an agent races to online memory sections, daxctl is prepared
-+	to lose the race, and not fail the onlining operation as it only
-+	cares that the memory section was onlined, not that it was the one
-+	to do so.
-+
-+-f::
-+--force::
-+	When converting from "system-ram" mode to "devdax", it is expected
-+	that all the memory sections are first made offline. By default,
-+	daxctl won't touch online memory. However with this option, attempt
-+	to offline the memory on the NUMA node associated with the dax device
-+	before converting it back to "devdax" mode.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-list[1],daxctl-migrate-device-model[1]
+ ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
+ 		const struct iomap_ops *ops);
+ int iomap_readpage(struct page *page, const struct iomap_ops *ops);
 -- 
-2.20.1
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
