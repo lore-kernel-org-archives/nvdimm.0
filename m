@@ -2,14 +2,13 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8BE8B212E4B7A
- for <linux-nvdimm@lists.01.org>; Tue, 30 Jul 2019 22:49:15 -0700 (PDT)
-Date: Wed, 31 Jul 2019 01:46:44 -0400 (EDT)
+ by ml01.01.org (Postfix) with ESMTPS id 7997F212E4B5A
+ for <linux-nvdimm@lists.01.org>; Tue, 30 Jul 2019 17:43:56 -0700 (PDT)
+Date: Tue, 30 Jul 2019 20:41:24 -0400 (EDT)
 From: Yi Zhang <yi.zhang@redhat.com>
-Message-ID: <1497200704.3777491.1564552004435.JavaMail.zimbra@redhat.com>
-In-Reply-To: <1254901996.3735926.1564533684889.JavaMail.zimbra@redhat.com>
-References: <1254901996.3735926.1564533684889.JavaMail.zimbra@redhat.com>
-Subject: Re: create devdax with "-a 1g" failed from 5.3.0-rc1
+Message-ID: <1254901996.3735926.1564533684889.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1529583867.3735830.1564533094419.JavaMail.zimbra@redhat.com>
+Subject: create devdax with "-a 1g" failed from 5.3.0-rc1
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,23 +21,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
-
-seems it blocked the attachment, I paste all the log here:
-
-https://pastebin.com/5APNheTC
-
-Best Regards,
-  Yi Zhang
-
-
------ Original Message -----
-From: "Yi Zhang" <yi.zhang@redhat.com>
-To: "dan j williams" <dan.j.williams@intel.com>
+To: dan.j.williams@intel.com
 Cc: linux-nvdimm@lists.01.org
-Sent: Wednesday, July 31, 2019 8:41:24 AM
-Subject: create devdax with "-a 1g" failed from 5.3.0-rc1
+List-ID: <linux-nvdimm@lists.01.org>
 
 Hi Dan
 
@@ -68,10 +53,6 @@ Best Regards,
   Yi Zhang
 
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
