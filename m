@@ -1,16 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AEAB4212E15B4
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:58 -0700 (PDT)
-Subject: [ndctl PATCH v2 10/26] ndctl/dimm: Add offset and size options to
- {read, write, zero}-labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:13 -0700
-Message-ID: <156426361393.531577.10073127425253098897.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 4536E212E844E
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:22 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 3/7] dax: replace mmap entry in case of CoW
+Date: Wed, 31 Jul 2019 19:49:31 +0800
+Message-ID: <20190731114935.11030-4-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,329 +20,165 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
+Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow for more precision in label utilities, i.e. stop operating over
-the entire label area.
+From: Goldwyn Rodrigues <rgoldwyn@suse.com>
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+We replace the existing entry to the newly allocated one
+in case of CoW. Also, we mark the entry as PAGECACHE_TAG_TOWRITE
+so writeback marks this entry as writeprotected. This
+helps us snapshots so new write pagefaults after snapshots
+trigger a CoW.
+
+btrfs does not support hugepages so we don't handle PMD.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 ---
- Documentation/ndctl/labels-options.txt |    9 ++++++
- ndctl/dimm.c                           |   49 ++++++++++++++++++++++++--------
- ndctl/lib/dimm.c                       |   36 ++++++++++++++++++++----
- ndctl/lib/libndctl.sym                 |    2 +
- ndctl/lib/private.h                    |    3 --
- ndctl/libndctl.h                       |    4 +++
- util/util.h                            |    4 +++
- 7 files changed, 86 insertions(+), 21 deletions(-)
+ fs/dax.c | 36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/ndctl/labels-options.txt b/Documentation/ndctl/labels-options.txt
-index 539ace079557..4aee37969fd5 100644
---- a/Documentation/ndctl/labels-options.txt
-+++ b/Documentation/ndctl/labels-options.txt
-@@ -5,6 +5,15 @@
- 	operate on every dimm in the system, optionally filtered by bus id (see
-         --bus= option).
- 
-+-s::
-+--size=::
-+	Limit the operation to the given number of bytes. A size of 0
-+	indicates to operate over the entire label capacity.
-+
-+-O::
-+--offset=::
-+	Begin the operation at the given offset into the label area.
-+
- -b::
- --bus=::
- 	Limit operation to memory devices (dimms) that are on the given bus.
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index be03d9b810bd..603e112f9568 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -47,6 +47,8 @@ static struct parameters {
- 	const char *infile;
- 	const char *labelversion;
- 	const char *kek;
-+	unsigned len;
-+	unsigned offset;
- 	bool crypto_erase;
- 	bool overwrite;
- 	bool zero_key;
-@@ -77,7 +79,7 @@ static int action_enable(struct ndctl_dimm *dimm, struct action_context *actx)
- 
- static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
- {
--	return ndctl_dimm_zero_labels(dimm);
-+	return ndctl_dimm_zero_label_extent(dimm, param.len, param.offset);
+diff --git a/fs/dax.c b/fs/dax.c
+index 084cc21d47a4..8eb065a1ec51 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -700,6 +700,9 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+ 	return 0;
  }
  
- static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-@@ -299,15 +301,17 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
- 	return NULL;
- }
- 
--static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size, int rw)
-+static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size,
-+		unsigned int start_offset, int rw)
++#define DAX_IF_DIRTY		(1ULL << 0)
++#define DAX_IF_COW		(1ULL << 1)
++
+ /*
+  * By this point grab_mapping_entry() has ensured that we have a locked entry
+  * of the appropriate size so we don't have to worry about downgrading PMDs to
+@@ -709,14 +712,17 @@ static int copy_user_dax(struct block_device *bdev, struct dax_device *dax_dev,
+  */
+ static void *dax_insert_entry(struct xa_state *xas,
+ 		struct address_space *mapping, struct vm_fault *vmf,
+-		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
++		void *entry, pfn_t pfn, unsigned long flags,
++		unsigned int insert_flags)
  {
- 	char buf[4096];
- 	ssize_t offset, write = 0;
+ 	void *new_entry = dax_make_entry(pfn, flags);
++	bool dirty = insert_flags & DAX_IF_DIRTY;
++	bool cow = insert_flags & DAX_IF_COW;
  
--	for (offset = 0; offset < size; offset += sizeof(buf)) {
-+	for (offset = start_offset; offset < start_offset + size;
-+			offset += sizeof(buf)) {
- 		ssize_t len = min_t(ssize_t, sizeof(buf), size - offset), rc;
+ 	if (dirty)
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
  
--		if (rw) {
-+		if (rw == WRITE) {
- 			len = fread(buf, 1, len, f);
- 			if (len == 0)
- 				break;
-@@ -343,9 +347,9 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 		return -EBUSY;
+-	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
++	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
+ 		unsigned long index = xas->xa_index;
+ 		/* we are replacing a zero page with block mapping */
+ 		if (dax_is_pmd_entry(entry))
+@@ -728,12 +734,12 @@ static void *dax_insert_entry(struct xa_state *xas,
+ 
+ 	xas_reset(xas);
+ 	xas_lock_irq(xas);
+-	if (dax_entry_size(entry) != dax_entry_size(new_entry)) {
++	if (cow || (dax_entry_size(entry) != dax_entry_size(new_entry))) {
+ 		dax_disassociate_entry(entry, mapping, false);
+ 		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
  	}
  
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
+-	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
++	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+ 		/*
+ 		 * Only swap our new entry into the page cache if the current
+ 		 * entry is a zero page or an empty entry.  If a normal PTE or
+@@ -753,6 +759,9 @@ static void *dax_insert_entry(struct xa_state *xas,
+ 	if (dirty)
+ 		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
  
- 	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
- 	if (!cmd_write) {
-@@ -354,7 +358,7 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 	}
++	if (cow)
++		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
++
+ 	xas_unlock_irq(xas);
+ 	return entry;
+ }
+@@ -1040,7 +1049,7 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ 	vm_fault_t ret;
  
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
--	rc = rw_bin(actx->f_in, cmd_write, size, 1);
-+	rc = rw_bin(actx->f_in, cmd_write, size, param.offset, WRITE);
+ 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+-			DAX_ZERO_PAGE, false);
++			DAX_ZERO_PAGE, 0);
+ 
+ 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
+ 	trace_dax_load_hole(inode, vmf, ret);
+@@ -1310,6 +1319,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	void *entry;
+ 	pfn_t pfn;
+ 	void *kaddr;
++	unsigned long insert_flags = 0;
+ 
+ 	trace_dax_pte_fault(inode, vmf, ret);
+ 	/*
+@@ -1371,6 +1381,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			error = copy_user_dax(iomap.bdev, iomap.dax_dev,
+ 					sector, PAGE_SIZE, vmf->cow_page, vaddr);
+ 			break;
++		case IOMAP_COW:
++			/* Should not be setting this - fallthrough */
+ 		default:
+ 			WARN_ON_ONCE(1);
+ 			error = -EIO;
+@@ -1391,6 +1403,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_COW:
++		insert_flags |= DAX_IF_COW;
++		/* fallthrough */
+ 	case IOMAP_MAPPED:
+ 		if (iomap.flags & IOMAP_F_NEW) {
+ 			count_vm_event(PGMAJFAULT);
+@@ -1401,8 +1415,10 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		if (error < 0)
+ 			goto error_finish_iomap;
+ 
++		if (write && !sync)
++			insert_flags |= DAX_IF_DIRTY;
+ 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+-						 0, write && !sync);
++						 0, insert_flags);
+ 
+ 		if (iomap.type == IOMAP_COW) {
+ 			error = dax_copy_edges(inode, pos, PAGE_SIZE, &srcmap,
+@@ -1490,7 +1506,7 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+ 
+ 	pfn = page_to_pfn_t(zero_page);
+ 	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+-			DAX_PMD | DAX_ZERO_PAGE, false);
++			DAX_PMD | DAX_ZERO_PAGE, 0);
+ 
+ 	if (arch_needs_pgtable_deposit()) {
+ 		pgtable = pte_alloc_one(vma->vm_mm);
+@@ -1542,6 +1558,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	int error;
+ 	pfn_t pfn;
+ 	void *kaddr;
++	unsigned long insert_flags = 0;
  
  	/*
- 	 * If the dimm is already disabled the kernel is not holding a cached
-@@ -381,9 +385,9 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
+ 	 * Check whether offset isn't beyond end of file now. Caller is
+@@ -1627,8 +1644,11 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		if (error < 0)
+ 			goto finish_iomap;
  
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
- 	if (actx->jdimms) {
-@@ -394,7 +398,7 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 		else
- 			rc = -ENOMEM;
- 	} else
--		rc = rw_bin(actx->f_out, cmd_read, size, 0);
-+		rc = rw_bin(actx->f_out, cmd_read, size, param.offset, READ);
- 
- 	ndctl_cmd_unref(cmd_read);
- 
-@@ -1082,18 +1086,31 @@ OPT_BOOLEAN('z', "zero-key", &param.zero_key, \
- OPT_BOOLEAN('m', "master-passphrase", &param.master_pass, \
- 		"use master passphrase")
- 
-+#define LABEL_OPTIONS() \
-+OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
-+OPT_UINTEGER('O', "offset", &param.offset, \
-+	"offset into the label area to start operation")
++		if (write && !sync)
++			insert_flags |= DAX_IF_DIRTY;
 +
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	READ_OPTIONS(),
- 	OPT_END(),
- };
+ 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+-						DAX_PMD, write && !sync);
++						DAX_PMD, insert_flags);
  
- static const struct option write_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	WRITE_OPTIONS(),
- 	OPT_END(),
- };
- 
-+static const struct option zero_options[] = {
-+	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static const struct option update_options[] = {
- 	BASE_OPTIONS(),
- 	UPDATE_OPTIONS(),
-@@ -1136,6 +1153,7 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		NULL
- 	};
- 	unsigned long id;
-+	bool json = false;
- 
-         argc = parse_options(argc, argv, options, u, 0);
- 
-@@ -1160,7 +1178,14 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
--	if (param.json || param.human) {
-+	json = param.json || param.human;
-+	if (action == action_read && json && (param.len || param.offset)) {
-+		fprintf(stderr, "--size and --offset are incompatible with --json\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
-+	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
- 			return -ENOMEM;
-@@ -1294,7 +1319,7 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- 
- int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- {
--	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
-+	int count = dimm_action(argc, argv, ctx, action_zero, zero_options,
- 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
- 
- 	fprintf(stderr, "zeroed %d nmem%s\n", count >= 0 ? count : 0,
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 9c5a34e542c3..28b1dfb0bdfa 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -537,7 +537,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *di
-         return NULL;
- }
- 
--NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_extent(
-+		struct ndctl_dimm *dimm, unsigned int len, unsigned int offset)
- {
-         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-         struct ndctl_cmd *cmd_size, *cmd_read;
-@@ -557,13 +558,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
-         if (!cmd_read)
-                 goto out_size;
-+
-+	/*
-+	 * For ndctl_read_labels() compat, enable subsequent calls that
-+	 * will manipulate labels
-+	 */
-+	if (len == 0 && offset == 0)
-+		init_ndd(&dimm->ndd, cmd_read, cmd_size);
-+
-+	if (len == 0)
-+		len = cmd_size->get_size->config_size;
-+	rc = ndctl_cmd_cfg_read_set_extent(cmd_read, len, offset);
-+	if (rc < 0)
-+		goto out_size;
-+
-         rc = ndctl_cmd_submit_xlat(cmd_read);
-         if (rc < 0)
-                 goto out_read;
- 	ndctl_cmd_unref(cmd_size);
- 
--	init_ndd(&dimm->ndd, cmd_read, cmd_size);
--
- 	return cmd_read;
- 
-  out_read:
-@@ -573,15 +586,21 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         return NULL;
- }
- 
--NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_read_label_extent(dimm, 0, 0);
-+}
-+
-+NDCTL_EXPORT int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset)
- {
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 	struct ndctl_cmd *cmd_read, *cmd_write;
- 	int rc;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, len, offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	if (ndctl_dimm_is_active(dimm)) {
- 		dbg(ctx, "%s: regions active, abort label write\n",
-@@ -623,6 +642,11 @@ NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_zero_label_extent(dimm, 0, 0);
-+}
-+
- NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
- 		struct ndctl_dimm *dimm)
- {
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 3cd431a90e55..895fb358c43a 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -412,4 +412,6 @@ global:
- 	ndctl_cmd_cfg_read_set_extent;
- 	ndctl_cmd_cfg_write_set_extent;
- 	ndctl_dimm_read_label_index;
-+	ndctl_dimm_read_label_extent;
-+	ndctl_dimm_zero_label_extent;
- } LIBNDCTL_19;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 3fc0290ff6a7..1f6a01c55377 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -242,9 +242,6 @@ struct ndctl_namespace {
-  *
-  * A command may only specify one of @source, or @iter.total_buf, not both.
-  */
--enum {
--	READ, WRITE,
--};
- struct ndctl_cmd {
- 	struct ndctl_dimm *dimm;
- 	struct ndctl_bus *bus;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 8aa4b8bbe6c2..c9d0dc120d3b 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -307,8 +307,12 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_size(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
- int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
-+int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
-+struct ndctl_cmd *ndctl_dimm_read_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
- enum ndctl_namespace_version {
- 	NDCTL_NS_VERSION_1_1,
-diff --git a/util/util.h b/util/util.h
-index 001707e8b159..54c6ef18b6d7 100644
---- a/util/util.h
-+++ b/util/util.h
-@@ -73,6 +73,10 @@
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
- 
-+enum {
-+	READ, WRITE,
-+};
-+
- static inline const char *skip_prefix(const char *str, const char *prefix)
- {
-         size_t len = strlen(prefix);
+ 		if (iomap.type == IOMAP_COW) {
+ 			error = dax_copy_edges(inode, pos, PMD_SIZE, &srcmap,
+-- 
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
