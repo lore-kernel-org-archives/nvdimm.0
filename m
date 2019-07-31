@@ -1,15 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 67E75212E259D
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:56:41 -0700 (PDT)
-Subject: [ndctl PATCH v2 07/26] ndctl/namespace: Always zero info-blocks
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:39:57 -0700
-Message-ID: <156426359741.531577.6721558516702343422.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+ by ml01.01.org (Postfix) with ESMTP id 895AE212E8448
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:19 -0700 (PDT)
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 1/7] dax: Introduce dax_copy_edges() for COW.
+Date: Wed, 31 Jul 2019 19:49:29 +0800
+Message-ID: <20190731114935.11030-2-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,51 +20,133 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
+Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Do not gate zeroing on whether a namespace is claimed by a personality.
-The namespace might not have been able to be claimed due to info-block
-corruption.
+To copy source data to destance address before write.  Change
+dax_iomap_pfn() to return the address as well in order to use it for
+performing a memcpy in case the type is IOMAP_COW.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+dax_copy_edges() is a helper functions performs a copy from one part of
+the device to another for data not page aligned.
+
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- ndctl/namespace.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ fs/dax.c | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 52 insertions(+), 4 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 9eec313c2d5b..645aa14882bb 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -930,9 +930,6 @@ static int namespace_destroy(struct ndctl_region *region,
- 		struct ndctl_namespace *ndns)
+diff --git a/fs/dax.c b/fs/dax.c
+index 88b93796855e..450baafe2ea4 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -984,7 +984,7 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+ }
+ 
+ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+-			 pfn_t *pfnp)
++			 pfn_t *pfnp, void **addr)
  {
- 	const char *devname = ndctl_namespace_get_devname(ndns);
--	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
--	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
--	struct ndctl_btt *btt = ndctl_namespace_get_btt(ndns);
- 	bool did_zero = false;
- 	int rc;
+ 	const sector_t sector = dax_iomap_sector(iomap, pos);
+ 	pgoff_t pgoff;
+@@ -996,11 +996,13 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 		return rc;
+ 	id = dax_read_lock();
+ 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   NULL, pfnp);
++				   addr, pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+ 	}
++	if (!pfnp)
++		goto out_check_addr;
+ 	rc = -EINVAL;
+ 	if (PFN_PHYS(length) < size)
+ 		goto out;
+@@ -1010,6 +1012,12 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 	if (length > 1 && !pfn_t_devmap(*pfnp))
+ 		goto out;
+ 	rc = 0;
++
++out_check_addr:
++	if (!addr)
++		goto out;
++	if (!*addr)
++		rc = -EFAULT;
+ out:
+ 	dax_read_unlock(id);
+ 	return rc;
+@@ -1084,6 +1092,46 @@ int __dax_zero_page_range(struct block_device *bdev,
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
  
-@@ -954,13 +951,11 @@ static int namespace_destroy(struct ndctl_region *region,
++/*
++ * dax_copy_edges - Copies the part of the pages not included in
++ * 		    the write, but required for CoW because
++ * 		    offset/offset+length are not page aligned.
++ */
++static int dax_copy_edges(struct inode *inode, loff_t pos, loff_t length,
++			  struct iomap *srcmap, void *daddr)
++{
++	unsigned offset = pos & (PAGE_SIZE - 1);
++	loff_t end = pos + length;
++	loff_t pg_end = round_up(end, PAGE_SIZE);
++	void *saddr = 0;
++	int ret = 0;
++
++	ret = dax_iomap_pfn(srcmap, pos, length, NULL, &saddr);
++	if (ret)
++		return ret;
++	/*
++	 * Copy the first part of the page
++	 * Note: we pass offset as length
++	 */
++	if (offset) {
++		if (saddr)
++			ret = memcpy_mcsafe(daddr, saddr, offset);
++		else
++			memset(daddr, 0, offset);
++	}
++
++	/* Copy the last part of the range */
++	if (end < pg_end) {
++		if (saddr)
++			ret = memcpy_mcsafe(daddr + offset + length,
++			       saddr + offset + length,	pg_end - end);
++		else
++			memset(daddr + offset + length, 0,
++					pg_end - end);
++	}
++	return ret;
++}
++
+ static loff_t
+ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 		struct iomap *iomap, struct iomap *srcmap)
+@@ -1338,7 +1386,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+ 		}
+-		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
++		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn, NULL);
+ 		if (error < 0)
+ 			goto error_finish_iomap;
  
- 	ndctl_namespace_set_enforce_mode(ndns, NDCTL_NS_MODE_RAW);
+@@ -1555,7 +1603,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
  
--	if (pfn || btt || dax) {
--		rc = zero_info_block(ndns);
--		if (rc < 0)
--			return rc;
--		if (rc == 0)
--			did_zero = true;
--	}
-+	rc = zero_info_block(ndns);
-+	if (rc < 0)
-+		return rc;
-+	if (rc == 0)
-+		did_zero = true;
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
++		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn, NULL);
+ 		if (error < 0)
+ 			goto finish_iomap;
  
- 	switch (ndctl_namespace_get_type(ndns)) {
-         case ND_DEVICE_NAMESPACE_PMEM:
+-- 
+2.17.0
+
+
 
 _______________________________________________
 Linux-nvdimm mailing list
