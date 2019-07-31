@@ -1,53 +1,30 @@
-From: Mike Snitzer <snitzer@redhat.com>
-Subject: Re: dm: fix dax_dev NULL dereference
-Date: Tue, 30 Jul 2019 18:01:02 -0400
-Message-ID: <20190730220102.GA15604@redhat.com>
-References: <20190730113708.14660-1-pagupta@redhat.com>
- <2030283543.5419072.1564486701158.JavaMail.zimbra@redhat.com>
- <20190730190737.GA14873@redhat.com>
- <CAPcyv4i10K3QdSwa3EF9t8pS-QrB9YcBEMy49N1PnYQzCkBJCw@mail.gmail.com>
+From: "Beatrice" <info-zPfP4iR/FuLph/Ezu1j11w@public.gmane.org>
+Subject: I am looking for a soul mate
+Date: Wed, 31 Jul 2019 15:51:10 +0300
+Message-ID: <87c8dc7084400408252096c531f2b8b4b79a43f4@maxito.icu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4i10K3QdSwa3EF9t8pS-QrB9YcBEMy49N1PnYQzCkBJCw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>, device-mapper development <dm-devel@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, jencce.kernel@gmail.com
+Content-Type: text/plain; charset="cp1251"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Jul 30 2019 at  5:38pm -0400,
-Dan Williams <dan.j.williams@intel.com> wrote:
-
-> On Tue, Jul 30, 2019 at 12:07 PM Mike Snitzer <snitzer@redhat.com> wrote:
-> >
-> > I staged the fix (which I tweaked) here:
-> > https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-5.3&id=95b9ebb78c4c733f8912a195fbd0bc19960e726e
-> 
-> Thanks for picking this up Mike, but I'd prefer to just teach
-> dax_synchronous() to return false if the passed in dax_dev is NULL.
-> Thoughts?
-
-I considered that too but I moved away from it because I'm so used to
-the various block interfaces requiring the caller pass a non-NULL
-pointer (e.g. request_queue):
-
-$ grep -ri return drivers/md/dm-table.c | grep \&\&
-drivers/md/dm-table.c:        return dev->dax_dev && dax_synchronous(dev->dax_dev);
-drivers/md/dm-table.c:        return q && blk_queue_zoned_model(q) == *zoned_model;
-drivers/md/dm-table.c:        return q && blk_queue_zone_sectors(q) == *zone_sectors;
-drivers/md/dm-table.c:        return q && (q->queue_flags & flush);
-drivers/md/dm-table.c:        return q && blk_queue_nonrot(q);
-drivers/md/dm-table.c:        return q && !blk_queue_add_random(q);
-drivers/md/dm-table.c:        return q && !q->limits.max_write_same_sectors;
-drivers/md/dm-table.c:        return q && !q->limits.max_write_zeroes_sectors;
-drivers/md/dm-table.c:        return q && !blk_queue_discard(q);
-drivers/md/dm-table.c:        return q && !blk_queue_secure_erase(q);
-drivers/md/dm-table.c:        return q && bdi_cap_stable_pages_required(q->backing_dev_info);
-
-I'm fine with however you'd like to skin this cat though.
-
-Just let me know and I'll keep/drop this patch accordingly.
-
-Thanks,
-Mike
+UnVzc2lhbiBicmlkZSBhZ2VuY3kKPT4gTW9yZT4gaHR0cDovL25ld3VrcmRhdC5pbi51YS8KCi0t
+CgpCZXN0IFJlZ2FyZHMsIKCgCkJlYXRyaWNlIEFydHVyb3ZuYSCgoAoKKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKgpJ
+ZiB5b3UgZG8gbm90IHdpc2ggdG8gcmVjZWl2ZSBmdXJ0aGVyIGVtYWlscywKdGhlbiBwbGVhc2Ug
+Y2xpY2sgaGVyZSB0byBMaXN0LVVuc3Vic2NyaWJlCioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKfCA1Mjk5MiBTYW50
+YSBNb25pY2EgQmx2ZCwgU3VpdGUgNTI5OTIgTG9zIEFuZ2VsZXMsIENBIDUyOTkyLTUyOTkyLCBV
+U0EgfApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
