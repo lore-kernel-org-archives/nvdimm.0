@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5B9C1212BF9D8
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 15:56:39 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 74B13212FD4E3
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:15 -0700 (PDT)
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 13/13] test: Add a unit test for
- daxctl-reconfigure-device and friends
-Date: Wed, 17 Jul 2019 16:54:00 -0600
-Message-Id: <20190717225400.9494-14-vishal.l.verma@intel.com>
-In-Reply-To: <20190717225400.9494-1-vishal.l.verma@intel.com>
-References: <20190717225400.9494-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v9 10/13] Documentation: Add man pages for daxctl-{on,
+ off}line-memory
+Date: Wed, 31 Jul 2019 18:29:29 -0600
+Message-Id: <20190801002932.26430-11-vishal.l.verma@intel.com>
+In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
+References: <20190801002932.26430-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -27,154 +27,200 @@ To: linux-nvdimm@lists.01.org
 Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a new unit test to test dax device reconfiguration and memory
-operations. This teaches test/common about daxctl, and adds an ACPI.NFIT
-bus variable. Since we have to operate on the ACPI.NFIT bus, the test is
-marked as destructive.
+Add man pages for the two new commands: daxctl-online-memory, and
+daxctl-offline-memory.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/Makefile.am       |  3 +-
- test/common            | 19 ++++++++--
- test/daxctl-devices.sh | 81 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 99 insertions(+), 4 deletions(-)
- create mode 100755 test/daxctl-devices.sh
+ Documentation/daxctl/Makefile.am              |  4 +-
+ .../daxctl/daxctl-offline-memory.txt          | 72 +++++++++++++++++
+ Documentation/daxctl/daxctl-online-memory.txt | 80 +++++++++++++++++++
+ 3 files changed, 155 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/daxctl/daxctl-offline-memory.txt
+ create mode 100644 Documentation/daxctl/daxctl-online-memory.txt
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 874c4bb..84474d0 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -49,7 +49,8 @@ TESTS +=\
- 	dax.sh \
- 	device-dax \
- 	device-dax-fio.sh \
--	mmap.sh
-+	mmap.sh \
-+	daxctl-devices.sh
+diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
+index 715fbad..37c3bde 100644
+--- a/Documentation/daxctl/Makefile.am
++++ b/Documentation/daxctl/Makefile.am
+@@ -29,7 +29,9 @@ man1_MANS = \
+ 	daxctl.1 \
+ 	daxctl-list.1 \
+ 	daxctl-migrate-device-model.1 \
+-	daxctl-reconfigure-device.1
++	daxctl-reconfigure-device.1 \
++	daxctl-online-memory.1 \
++	daxctl-offline-memory.1
  
- if ENABLE_KEYUTILS
- TESTS += security.sh
-diff --git a/test/common b/test/common
-index 1b9d3da..1814a0c 100644
---- a/test/common
-+++ b/test/common
-@@ -15,12 +15,25 @@ else
- 	exit 1
- fi
+ CLEANFILES = $(man1_MANS)
  
--# NFIT_TEST_BUS[01]
-+# DAXCTL
- #
--NFIT_TEST_BUS0=nfit_test.0
--NFIT_TEST_BUS1=nfit_test.1
-+if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
-+	export DAXCTL=../daxctl/daxctl
-+elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
-+	export DAXCTL=./daxctl/daxctl
-+else
-+	echo "Couldn't find an daxctl binary"
-+	exit 1
-+fi
- 
- 
-+# NFIT_TEST_BUS[01]
-+#
-+NFIT_TEST_BUS0="nfit_test.0"
-+NFIT_TEST_BUS1="nfit_test.1"
-+ACPI_BUS="ACPI.NFIT"
-+E820_BUS="e820"
-+
- # Functions
- 
- # err
-diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-new file mode 100755
-index 0000000..cfd9362
+diff --git a/Documentation/daxctl/daxctl-offline-memory.txt b/Documentation/daxctl/daxctl-offline-memory.txt
+new file mode 100644
+index 0000000..ba06287
 --- /dev/null
-+++ b/test/daxctl-devices.sh
-@@ -0,0 +1,81 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2019 Intel Corporation. All rights reserved.
++++ b/Documentation/daxctl/daxctl-offline-memory.txt
+@@ -0,0 +1,72 @@
++// SPDX-License-Identifier: GPL-2.0
 +
-+rc=77
-+. ./common
++daxctl-offline-memory(1)
++========================
 +
-+trap 'cleanup $LINENO' ERR
++NAME
++----
++daxctl-offline-memory - Offline the memory for a device that is in system-ram mode
 +
-+cleanup()
++SYNOPSIS
++--------
++[verse]
++'daxctl offline-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
++
++EXAMPLES
++--------
++
++* Reconfigure dax0.0 to system-ram mode
++----
++# daxctl reconfigure-device --mode=system-ram --human dax0.0
 +{
-+	printf "Error at line %d\n" "$1"
-+	[[ $testdev ]] && reset_dev
-+	exit $rc
++  "chardev":"dax0.0",
++  "size":"7.87 GiB (8.45 GB)",
++  "target_node":2,
++  "mode":"system-ram"
 +}
++----
 +
-+find_testdev()
++* Offline the memory
++----
++# daxctl offline-memory dax0.0
++dax0.0: 62 sections offlined
++offlined memory for 1 device
++----
++
++DESCRIPTION
++-----------
++
++Offline the memory sections associated with a device that has been converted
++to the system-ram mode. If one or more blocks are already offline, attempt to
++offline the remaining blocks. If all blocks were already offline, print a
++message and return success without actually doing anything.
++
++This is complementary to the 'daxctl-online-memory' command, and may be used
++when it is wished to offline the memory sections, but not convert the device
++back to 'devdax' mode.
++
++OPTIONS
++-------
++-r::
++--region=::
++	Restrict the operation to devices belonging to the specified region(s).
++	A device-dax region is a contiguous range of memory that hosts one or
++	more /dev/daxX.Y devices, where X is the region id and Y is the device
++	instance id.
++
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
++
++-v::
++--verbose::
++	Emit more debug messages
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkdaxctl:daxctl-reconfigure-device[1],daxctl-online-memory[1]
+diff --git a/Documentation/daxctl/daxctl-online-memory.txt b/Documentation/daxctl/daxctl-online-memory.txt
+new file mode 100644
+index 0000000..5ac1cbf
+--- /dev/null
++++ b/Documentation/daxctl/daxctl-online-memory.txt
+@@ -0,0 +1,80 @@
++// SPDX-License-Identifier: GPL-2.0
++
++daxctl-online-memory(1)
++=======================
++
++NAME
++----
++daxctl-online-memory - Online the memory for a device that is in system-ram mode
++
++SYNOPSIS
++--------
++[verse]
++'daxctl online-memory' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
++
++EXAMPLES
++--------
++
++* Reconfigure dax0.0 to system-ram mode, don't online the memory
++----
++# daxctl reconfigure-device --mode=system-ram --no-online --human dax0.0
 +{
-+	local rc=77
-+
-+	# find a victim device
-+	testbus="$ACPI_BUS"
-+	testdev=$("$NDCTL" list -b "$testbus" -Ni | jq -er '.[0].dev | .//""')
-+	if [[ ! $testdev  ]]; then
-+		printf "Unable to find a victim device\n"
-+		exit "$rc"
-+	fi
-+	printf "Found victim dev: %s on bus: %s\n" "$testdev" "$testbus"
++  "chardev":"dax0.0",
++  "size":"7.87 GiB (8.45 GB)",
++  "target_node":2,
++  "mode":"system-ram"
 +}
++----
 +
-+setup_dev()
-+{
-+	test -n "$testbus"
-+	test -n "$testdev"
++* Online the memory separately
++----
++# daxctl online-memory dax0.0
++dax0.0: 62 new sections onlined
++onlined memory for 1 device
++----
 +
-+	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-+	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 256M | \
-+		jq -er '.dev')
-+	test -n "$testdev"
-+}
++* Onlining memory when some sections were already online
++----
++# daxctl online-memory dax0.0
++dax0.0: 1 section already online
++dax0.0: 61 new sections onlined
++onlined memory for 1 device
++----
 +
-+reset_dev()
-+{
-+	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-+}
++DESCRIPTION
++-----------
 +
-+daxctl_get_dev()
-+{
-+	"$NDCTL" list -n "$1" -X | jq -er '.[].daxregion.devices[0].chardev'
-+}
++Online the memory sections associated with a device that has been converted
++to the system-ram mode. If one or more blocks are already online, print a
++message about them, and attempt to online the remaining blocks.
 +
-+daxctl_get_mode()
-+{
-+	"$DAXCTL" list -d "$1" | jq -er '.[].mode'
-+}
++This is complementary to the 'daxctl-reconfigure-device' command, when used with
++the '--no-online' option to skip onlining memory sections immediately after the
++reconfigure. In these scenarios, the memory can be onlined at a later time using
++'daxctl-online-memory'.
 +
-+daxctl_test()
-+{
-+	local daxdev
++OPTIONS
++-------
++-r::
++--region=::
++	Restrict the operation to devices belonging to the specified region(s).
++	A device-dax region is a contiguous range of memory that hosts one or
++	more /dev/daxX.Y devices, where X is the region id and Y is the device
++	instance id.
 +
-+	daxdev=$(daxctl_get_dev "$testdev")
-+	test -n "$daxdev"
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
 +
-+	"$DAXCTL" reconfigure-device -N -m system-ram "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
-+	"$DAXCTL" online-memory "$daxdev"
-+	"$DAXCTL" offline-memory "$daxdev"
-+	"$DAXCTL" reconfigure-device -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+	"$DAXCTL" reconfigure-device -m system-ram "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "system-ram" ]]
-+	"$DAXCTL" reconfigure-device -O -m devdax "$daxdev"
-+	[[ $(daxctl_get_mode "$daxdev") == "devdax" ]]
-+}
++-v::
++--verbose::
++	Emit more debug messages
 +
-+find_testdev
-+setup_dev
-+rc=1
-+daxctl_test
-+reset_dev
-+exit 0
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkdaxctl:daxctl-reconfigure-device[1],daxctl-offline-memory[1]
 -- 
 2.20.1
 
