@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 259BC212E259E
- for <linux-nvdimm@lists.01.org>; Sat, 27 Jul 2019 14:57:37 -0700 (PDT)
-Subject: [ndctl PATCH v2 17/26] ndctl/test: Checkout device-mapper + dax
- operation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 27 Jul 2019 14:40:52 -0700
-Message-ID: <156426365289.531577.3024221395183254159.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id AFB24212FD41D
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:12 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v9 06/13] daxctl/list: display the mode for a dax device
+Date: Wed, 31 Jul 2019 18:29:25 -0600
+Message-Id: <20190801002932.26430-7-vishal.l.verma@intel.com>
+In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
+References: <20190801002932.26430-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,111 +23,74 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Given recent kernel changes broke the device-mapper use case, introduce
-a basic unit test to prevent this from regressing in the future.
+In preparation for a reconfigure-device command, allow JSON listings to
+display the 'mode' of a dax device. This will allow the
+reconfigure-device command (and via daxctl_dev_to_json(), also
+daxctl-list) to print the mode in device listings via a 'daxctl-list'
+command or immediately after a mode change.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Add a 'state' attribute to the json listings for devices, since a device
+could end up in a state where it is not bound to any driver, and hence,
+'disabled'. The state attribute is only displayed for disabled devices.
+
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/Makefile.am |    1 +
- test/dm.sh       |   75 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 76 insertions(+)
- create mode 100755 test/dm.sh
+ daxctl/lib/libdaxctl.c |  2 ++
+ util/json.c            | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-diff --git a/test/Makefile.am b/test/Makefile.am
-index 874c4bbfaa90..2a1e03d26f6c 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -49,6 +49,7 @@ TESTS +=\
- 	dax.sh \
- 	device-dax \
- 	device-dax-fio.sh \
-+	dm.sh \
- 	mmap.sh
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 949c56f..edb8257 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -12,6 +12,8 @@
+  */
+ #include <stdio.h>
+ #include <errno.h>
++#include <limits.h>
++#include <libgen.h>
+ #include <stdlib.h>
+ #include <dirent.h>
+ #include <unistd.h>
+diff --git a/util/json.c b/util/json.c
+index f521337..9f80b5b 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -269,6 +269,7 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 		unsigned long flags)
+ {
++	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
+ 	int node;
+@@ -292,6 +293,19 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "target_node", jobj);
+ 	}
  
- if ENABLE_KEYUTILS
-diff --git a/test/dm.sh b/test/dm.sh
-new file mode 100755
-index 000000000000..fb498c95a29b
---- /dev/null
-+++ b/test/dm.sh
-@@ -0,0 +1,75 @@
-+#!/bin/bash -x
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright(c) 2015-2019 Intel Corporation. All rights reserved.
++	if (mem)
++		jobj = json_object_new_string("system-ram");
++	else
++		jobj = json_object_new_string("devdax");
++	if (jobj)
++		json_object_object_add(jdev, "mode", jobj);
 +
-+set -e
++	if (!daxctl_dev_is_enabled(dev)) {
++		jobj = json_object_new_string("disabled");
++		if (jobj)
++			json_object_object_add(jdev, "state", jobj);
++	}
 +
-+SKIP=77
-+FAIL=1
-+SUCCESS=0
-+
-+. ./common
-+
-+MNT=test_dax_mnt
-+TEST_DM_PMEM=/dev/mapper/test_pmem
-+NAME=$(basename $TEST_DM_PMEM)
-+
-+mkdir -p $MNT
-+
-+TEST_SIZE=$((1<<30))
-+
-+rc=$FAIL
-+cleanup() {
-+	if [ $rc -ne $SUCCESS ]; then
-+		echo "test/dm.sh: failed at line $1"
-+	fi
-+	if mountpoint -q $MNT; then
-+		umount $MNT
-+	fi
-+
-+	if [ -L $TEST_DM_PMEM ]; then
-+		dmsetup remove $TEST_DM_PMEM
-+	fi
-+	rmdir $MNT
-+	# opportunistic cleanup, not fatal if these fail
-+	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
-+	for i in $namespaces
-+	do
-+		if ! $NDCTL destroy-namespace -f $i; then
-+			echo "test/sub-section.sh: cleanup() failed to destroy $i"
-+		fi
-+	done
-+	exit $rc
-+}
-+
-+trap 'err $LINENO cleanup' ERR
-+
-+dev="x"
-+json=$($NDCTL create-namespace -b ACPI.NFIT -s $TEST_SIZE -t pmem -m fsdax -n "$NAME")
-+eval $(echo $json | json2var )
-+[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
-+[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
-+
-+pmem0=/dev/$blockdev
-+size0=$((size/512))
-+
-+json=$($NDCTL create-namespace -b ACPI.NFIT -s $TEST_SIZE -t pmem -m fsdax -n "$NAME")
-+eval $(echo $json | json2var )
-+[ $dev = "x" ] && echo "fail: $LINENO" && exit 1
-+[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
-+
-+pmem1=/dev/$blockdev
-+size1=$((size/512))
-+
-+cat <<EOF |
-+0 $size0 linear $pmem0 0
-+$size0 $size1 linear $pmem1 0
-+EOF
-+dmsetup create $(basename $NAME)
-+
-+mkfs.ext4 -b 4096 $TEST_DM_PMEM
-+mount -o dax $TEST_DM_PMEM $MNT
-+umount $MNT
-+
-+rc=$SUCCESS
-+cleanup $LINENO
+ 	return jdev;
+ }
+ 
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
