@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id C9199212E13A2
- for <linux-nvdimm@lists.01.org>; Thu, 25 Jul 2019 15:04:17 -0700 (PDT)
-From: Jane Chu <jane.chu@oracle.com>
-Subject: [PATCH v3 1/2] mm/memory-failure.c clean up around tk pre-allocation
-Date: Thu, 25 Jul 2019 16:01:40 -0600
-Message-Id: <1564092101-3865-2-git-send-email-jane.chu@oracle.com>
-In-Reply-To: <1564092101-3865-1-git-send-email-jane.chu@oracle.com>
-References: <1564092101-3865-1-git-send-email-jane.chu@oracle.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1E4CA2194EB7E
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:14 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v9 08/13] Documentation/daxctl: add a man page for
+ daxctl-reconfigure-device
+Date: Wed, 31 Jul 2019 18:29:27 -0600
+Message-Id: <20190801002932.26430-9-vishal.l.verma@intel.com>
+In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
+References: <20190801002932.26430-1-vishal.l.verma@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,136 +19,205 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-add_to_kill() expects the first 'tk' to be pre-allocated, it makes
-subsequent allocations on need basis, this makes the code a bit
-difficult to read. Move all the allocation internal to add_to_kill()
-and drop the **tk argument.
+Add a man page describing the new daxctl-reconfigure-device command.
 
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- mm/memory-failure.c | 40 +++++++++++++---------------------------
- 1 file changed, 13 insertions(+), 27 deletions(-)
+ Documentation/daxctl/Makefile.am              |   3 +-
+ .../daxctl/daxctl-reconfigure-device.txt      | 157 ++++++++++++++++++
+ 2 files changed, 159 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/daxctl/daxctl-reconfigure-device.txt
 
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index d9cc660..51d5b20 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -304,25 +304,19 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
- /*
-  * Schedule a process for later kill.
-  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
-- * TBD would GFP_NOIO be enough?
-  */
- static void add_to_kill(struct task_struct *tsk, struct page *p,
- 		       struct vm_area_struct *vma,
--		       struct list_head *to_kill,
--		       struct to_kill **tkc)
-+		       struct list_head *to_kill)
- {
- 	struct to_kill *tk;
+diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
+index 6aba035..715fbad 100644
+--- a/Documentation/daxctl/Makefile.am
++++ b/Documentation/daxctl/Makefile.am
+@@ -28,7 +28,8 @@ endif
+ man1_MANS = \
+ 	daxctl.1 \
+ 	daxctl-list.1 \
+-	daxctl-migrate-device-model.1
++	daxctl-migrate-device-model.1 \
++	daxctl-reconfigure-device.1
  
--	if (*tkc) {
--		tk = *tkc;
--		*tkc = NULL;
--	} else {
--		tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
--		if (!tk) {
--			pr_err("Memory failure: Out of memory while machine check handling\n");
--			return;
--		}
-+	tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
-+	if (!tk) {
-+		pr_err("Memory failure: Out of memory while machine check handling\n");
-+		return;
- 	}
+ CLEANFILES = $(man1_MANS)
+ 
+diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
+new file mode 100644
+index 0000000..196d692
+--- /dev/null
++++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
+@@ -0,0 +1,157 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- 	tk->addr = page_address_in_vma(p, vma);
- 	tk->addr_valid = 1;
- 	if (is_zone_device_page(p))
-@@ -341,6 +335,7 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
- 			page_to_pfn(p), tsk->comm);
- 		tk->addr_valid = 0;
- 	}
++daxctl-reconfigure-device(1)
++============================
 +
- 	get_task_struct(tsk);
- 	tk->tsk = tsk;
- 	list_add_tail(&tk->nd, to_kill);
-@@ -432,7 +427,7 @@ static struct task_struct *task_early_kill(struct task_struct *tsk,
-  * Collect processes when the error hit an anonymous page.
-  */
- static void collect_procs_anon(struct page *page, struct list_head *to_kill,
--			      struct to_kill **tkc, int force_early)
-+				int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -457,7 +452,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
- 			if (!page_mapped_in_vma(page, vma))
- 				continue;
- 			if (vma->vm_mm == t->mm)
--				add_to_kill(t, page, vma, to_kill, tkc);
-+				add_to_kill(t, page, vma, to_kill);
- 		}
- 	}
- 	read_unlock(&tasklist_lock);
-@@ -468,7 +463,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
-  * Collect processes when the error hit a file mapped page.
-  */
- static void collect_procs_file(struct page *page, struct list_head *to_kill,
--			      struct to_kill **tkc, int force_early)
-+				int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
-@@ -492,7 +487,7 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
- 			 * to be informed of all such data corruptions.
- 			 */
- 			if (vma->vm_mm == t->mm)
--				add_to_kill(t, page, vma, to_kill, tkc);
-+				add_to_kill(t, page, vma, to_kill);
- 		}
- 	}
- 	read_unlock(&tasklist_lock);
-@@ -501,26 +496,17 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
- 
- /*
-  * Collect the processes who have the corrupted page mapped to kill.
-- * This is done in two steps for locking reasons.
-- * First preallocate one tokill structure outside the spin locks,
-- * so that we can kill at least one process reasonably reliable.
-  */
- static void collect_procs(struct page *page, struct list_head *tokill,
- 				int force_early)
- {
--	struct to_kill *tk;
--
- 	if (!page->mapping)
- 		return;
- 
--	tk = kmalloc(sizeof(struct to_kill), GFP_NOIO);
--	if (!tk)
--		return;
- 	if (PageAnon(page))
--		collect_procs_anon(page, tokill, &tk, force_early);
-+		collect_procs_anon(page, tokill, force_early);
- 	else
--		collect_procs_file(page, tokill, &tk, force_early);
--	kfree(tk);
-+		collect_procs_file(page, tokill, force_early);
- }
- 
- static const char *action_name[] = {
++NAME
++----
++daxctl-reconfigure-device - Reconfigure a dax device into a different mode
++
++SYNOPSIS
++--------
++[verse]
++'daxctl reconfigure-device' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
++
++EXAMPLES
++--------
++
++* Reconfigure dax0.0 to system-ram mode, don't online the memory
++----
++# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
++[
++  {
++    "chardev":"dax0.0",
++    "size":16777216000,
++    "target_node":2,
++    "mode":"system-ram"
++  }
++]
++----
++
++* Reconfigure dax0.0 to devdax mode, attempt to offline the memory
++----
++# daxctl reconfigure-device --human --mode=devdax --force dax0.0
++{
++  "chardev":"dax0.0",
++  "size":"15.63 GiB (16.78 GB)",
++  "target_node":2,
++  "mode":"devdax"
++}
++----
++
++* Reconfigure all dax devices on region0 to system-ram mode
++----
++# daxctl reconfigure-device --mode=system-ram --region=0 all
++[
++  {
++    "chardev":"dax0.0",
++    "size":16777216000,
++    "target_node":2,
++    "mode":"system-ram"
++  },
++  {
++    "chardev":"dax0.1",
++    "size":16777216000,
++    "target_node":3,
++    "mode":"system-ram"
++  }
++]
++----
++
++* Run a process called 'some-service' using numactl to restrict its cpu
++nodes to '0' and '1', and  memory allocations to node 2 (determined using
++daxctl_dev_get_target_node() or 'daxctl list')
++----
++# daxctl reconfigure-device --mode=system-ram dax0.0
++[
++  {
++    "chardev":"dax0.0",
++    "size":16777216000,
++    "target_node":2,
++    "mode":"system-ram"
++  }
++]
++
++# numactl --cpunodebind=0-1 --membind=2 -- some-service --opt1 --opt2
++----
++
++DESCRIPTION
++-----------
++
++Reconfigure the operational mode of a dax device. This can be used to convert
++a regular 'devdax' mode device to the 'system-ram' mode which arranges for the
++dax range to be hot-plugged into the system as regular memory.
++
++NOTE: This is a destructive operation. Any data on the dax device *will* be
++lost.
++
++NOTE: Device reconfiguration depends on the dax-bus device model. See
++linkdaxctl:daxctl-migrate-device-model[1] for more information. If dax-class is
++in use (via the dax_pmem_compat driver), the reconfiguration will fail with an
++error such as the following:
++----
++# daxctl reconfigure-device --mode=system-ram --region=0 all
++libdaxctl: daxctl_dev_disable: dax3.0: error: device model is dax-class
++dax3.0: disable failed: Operation not supported
++error reconfiguring devices: Operation not supported
++reconfigured 0 devices
++----
++
++OPTIONS
++-------
++-r::
++--region=::
++	Restrict the operation to devices belonging to the specified region(s).
++	A device-dax region is a contiguous range of memory that hosts one or
++	more /dev/daxX.Y devices, where X is the region id and Y is the device
++	instance id.
++
++-m::
++--mode=::
++	Specify the mode to which the dax device(s) should be reconfigured.
++	- "system-ram": hotplug the device into system memory.
++
++	- "devdax": switch to the normal "device dax" mode. This requires the
++	  kernel to support hot-unplugging 'kmem' based memory. If this is not
++	  available, a reboot is the only way to switch back to 'devdax' mode.
++
++-N::
++--no-online::
++	By default, memory sections provided by system-ram devices will be
++	brought online automatically and immediately with the 'online_movable'
++	policy. Use this option to disable the automatic onlining behavior.
++
++	NOTE: While this option prevents daxctl from automatically onlining
++	the memory sections, there may be other agents, notably system udev
++	rules, that online new memory sections as they appear. Coordinating
++	with such rules is out of scope of this utility, and the system
++	administrator is expected to remove them if they are undesirable.
++	If such an agent races to online memory sections, daxctl is prepared
++	to lose the race, and not fail the onlining operation as it only
++	cares that the memory section was onlined, not that it was the one
++	to do so.
++
++-f::
++--force::
++	When converting from "system-ram" mode to "devdax", it is expected
++	that all the memory sections are first made offline. By default,
++	daxctl won't touch online memory. However with this option, attempt
++	to offline the memory on the NUMA node associated with the dax device
++	before converting it back to "devdax" mode.
++
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
++
++-v::
++--verbose::
++	Emit more debug messages
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkdaxctl:daxctl-list[1],daxctl-migrate-device-model[1]
 -- 
-1.8.3.1
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
