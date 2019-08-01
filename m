@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 22B28212C01D4
- for <linux-nvdimm@lists.01.org>; Wed, 17 Jul 2019 18:24:39 -0700 (PDT)
-Subject: [PATCH v2 1/7] drivers/base: Introduce kill_device()
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 17 Jul 2019 18:07:53 -0700
-Message-ID: <156341207332.292348.14959761496009347574.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156341206785.292348.1660822720191643298.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156341206785.292348.1660822720191643298.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id CC46C212FD4E8
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:16 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v9 12/13] contrib/ndctl: add bash-completion for the new
+ daxctl commands
+Date: Wed, 31 Jul 2019 18:29:31 -0600
+Message-Id: <20190801002932.26430-13-vishal.l.verma@intel.com>
+In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
+References: <20190801002932.26430-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,98 +24,70 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, peterz@infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The libnvdimm subsystem arranges for devices to be destroyed as a result
-of a sysfs operation. Since device_unregister() cannot be called from
-an actively running sysfs attribute of the same device libnvdimm
-arranges for device_unregister() to be performed in an out-of-line async
-context.
+Add bash completion helpers for the new daxctl-reconfigure-device,
+daxctl-online-memory, and daxctl-offline-memory commands.
 
-The driver core maintains a 'dead' state for coordinating its own racing
-async registration / de-registration requests. Rather than add local
-'dead' state tracking infrastructure to libnvdimm device objects, export
-the existing state tracking via a new kill_device() helper.
-
-The kill_device() helper simply marks the device as dead, i.e. that it
-is on its way to device_del(), or returns that the device was already
-dead. This can be used in advance of calling device_unregister() for
-subsystems like libnvdimm that might need to handle multiple user
-threads racing to delete a device.
-
-This refactoring does not change any behavior, but it is a pre-requisite
-for follow-on fixes and therefore marked for -stable.
-
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Fixes: 4d88a97aa9e8 ("libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver...")
-Cc: <stable@vger.kernel.org>
-Tested-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/base/core.c    |   27 +++++++++++++++++++--------
- include/linux/device.h |    1 +
- 2 files changed, 20 insertions(+), 8 deletions(-)
+ contrib/ndctl | 24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index fd7511e04e62..eaf3aa0cb803 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -2211,6 +2211,24 @@ void put_device(struct device *dev)
+diff --git a/contrib/ndctl b/contrib/ndctl
+index cacee2d..680fe6a 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -547,7 +547,7 @@ __daxctlcomp()
+ 
+ 	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
+ 	for cword in "${COMPREPLY[@]}"; do
+-		if [[ "$cword" == @(--region|--dev) ]]; then
++		if [[ "$cword" == @(--region|--dev|--mode) ]]; then
+ 			COMPREPLY[$i]="${cword}="
+ 		else
+ 			COMPREPLY[$i]="${cword} "
+@@ -572,6 +572,9 @@ __daxctl_comp_options()
+ 		--dev)
+ 			opts="$(__daxctl_get_devs -i)"
+ 			;;
++		--mode)
++			opts="system-ram devdax"
++			;;
+ 		*)
+ 			return
+ 			;;
+@@ -582,8 +585,23 @@ __daxctl_comp_options()
+ 
+ __daxctl_comp_non_option_args()
+ {
+-	# there aren't any commands that accept non option arguments yet
+-	return
++	local subcmd=$1
++	local cur=$2
++	local opts
++
++	case $subcmd in
++	reconfigure-device)
++		;&
++	online-memory)
++		;&
++	offline-memory)
++		opts="$(__daxctl_get_devs -i) all"
++		;;
++	*)
++		return
++		;;
++	esac
++	__daxctlcomp "$opts" "$cur"
  }
- EXPORT_SYMBOL_GPL(put_device);
  
-+bool kill_device(struct device *dev)
-+{
-+	/*
-+	 * Require the device lock and set the "dead" flag to guarantee that
-+	 * the update behavior is consistent with the other bitfields near
-+	 * it and that we cannot have an asynchronous probe routine trying
-+	 * to run while we are tearing out the bus/class/sysfs from
-+	 * underneath the device.
-+	 */
-+	lockdep_assert_held(&dev->mutex);
-+
-+	if (dev->p->dead)
-+		return false;
-+	dev->p->dead = true;
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(kill_device);
-+
- /**
-  * device_del - delete device from system.
-  * @dev: device.
-@@ -2230,15 +2248,8 @@ void device_del(struct device *dev)
- 	struct kobject *glue_dir = NULL;
- 	struct class_interface *class_intf;
- 
--	/*
--	 * Hold the device lock and set the "dead" flag to guarantee that
--	 * the update behavior is consistent with the other bitfields near
--	 * it and that we cannot have an asynchronous probe routine trying
--	 * to run while we are tearing out the bus/class/sysfs from
--	 * underneath the device.
--	 */
- 	device_lock(dev);
--	dev->p->dead = true;
-+	kill_device(dev);
- 	device_unlock(dev);
- 
- 	/* Notify clients of device removal.  This call must come
-diff --git a/include/linux/device.h b/include/linux/device.h
-index e85264fb6616..0da5c67f6be1 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -1373,6 +1373,7 @@ extern int (*platform_notify_remove)(struct device *dev);
-  */
- extern struct device *get_device(struct device *dev);
- extern void put_device(struct device *dev);
-+extern bool kill_device(struct device *dev);
- 
- #ifdef CONFIG_DEVTMPFS
- extern int devtmpfs_create_node(struct device *dev);
+ __daxctl_main()
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
