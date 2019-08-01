@@ -1,14 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from tartarus.angband.pl (tartarus.angband.pl
+ [IPv6:2001:41d0:602:dbe::8])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7A9C821A07A82
- for <linux-nvdimm@lists.01.org>; Wed, 24 Jul 2019 14:43:50 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] Documentation/ndctl: fix a typo in ndctl(1)
-Date: Wed, 24 Jul 2019 15:41:13 -0600
-Message-Id: <20190724214113.14454-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2E769212FD41A
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 18:03:29 -0700 (PDT)
+From: Adam Borowski <kilobyte@angband.pl>
+Date: Thu,  1 Aug 2019 03:00:44 +0200
+Message-Id: <20190801010044.56927-1-kilobyte@angband.pl>
 MIME-Version: 1.0
+Subject: [PATCH] daxctl: link against libndctl,
+ in case its use doesn't get pruned
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,33 +23,42 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Steve Scargal <steve.scargall@intel.com>
+Cc: Adam Borowski <kilobyte@angband.pl>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Fix 'namspaces' to 'namespaces' in the ndctl(1) man page.
+util/json.c uses libndctl symbols, and is included by daxctl.  These
+functions should then get pruned as unused, but on some platforms the
+toolchain fails to do so.
 
-Link: https://github.com/pmem/ndctl/issues/100
-Reported-by: Steve Scargal <steve.scargall@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+These platforms are ia64, hppa and 32-bit powerpc.  It's generally a
+waste of our time to build ndctl there, but as the lack of a
+build-dependency requires annoying workarounds higher in the stack,
+this has been requested in https://bugs.debian.org/914348 -- and is
+trivially fixable on the ndctl side.
+
+Thanks to -Wl,--as-needed there's no harm to architectures where the
+pruning works, thus let's not bother with detection.
+
+As daxctl and libdaxctl are separate, there's no circular dependency.
+
+Signed-off-by: Adam Borowski <kilobyte@angband.pl>
 ---
- Documentation/ndctl/ndctl.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ daxctl/Makefile.am | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/ndctl/ndctl.txt b/Documentation/ndctl/ndctl.txt
-index b33e277..c2919de 100644
---- a/Documentation/ndctl/ndctl.txt
-+++ b/Documentation/ndctl/ndctl.txt
-@@ -30,7 +30,7 @@ message interface for platform NVDIMM resources like those defined by
- the ACPI 6.0 NFIT (NVDIMM Firmware Interface Table).  Operations
- supported by the tool include, provisioning capacity (namespaces), as
- well as enumerating/enabling/disabling the devices (dimms, regions,
--namspaces) associated with an NVDIMM bus.
-+namespaces) associated with an NVDIMM bus.
- 
- include::../copyright.txt[]
- 
+diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
+index 94f73f9..a5487d6 100644
+--- a/daxctl/Makefile.am
++++ b/daxctl/Makefile.am
+@@ -21,4 +21,5 @@ daxctl_LDADD =\
+ 	lib/libdaxctl.la \
+ 	../libutil.a \
+ 	$(UUID_LIBS) \
+-	$(JSON_LIBS)
++	$(JSON_LIBS) \
++	../ndctl/lib/libndctl.la
 -- 
-2.20.1
+2.23.0.rc0
 
 _______________________________________________
 Linux-nvdimm mailing list
