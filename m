@@ -1,114 +1,160 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5188E20216B77
- for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 06:36:39 -0700 (PDT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v6 4/7] libnvdimm/pfn_dev: Add page size and struct page size
- to pfn superblock
-Date: Mon, 19 Aug 2019 19:04:48 +0530
-Message-Id: <20190819133451.19737-5-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
-References: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
-MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
-List-ID: <linux-nvdimm@lists.01.org>
+From: Brendan Higgins <brendanhiggins@google.com>
+Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like logger
+Date: Thu, 1 Aug 2019 11:55:20 -0700
+Message-ID: <CAFd5g46iAhDZ5C_chi7oYLVOkwcoj6+0nw+kPWuXhqWwWKd9jA@mail.gmail.com>
+References: <20190716175021.9CA412173C@mail.kernel.org> <CAFd5g453vXeSUCZenCk_CzJ-8a1ym9RaPo0NVF=FujF9ac-5Ag@mail.gmail.com>
+ <20190718175024.C3EC421019@mail.kernel.org> <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
+ <20190719000834.GA3228@google.com> <20190722200347.261D3218C9@mail.kernel.org>
+ <CAFd5g45hdCxEavSxirr0un_uLzo5Z-J4gHRA06qjzcQrTzmjVg@mail.gmail.com>
+ <20190722235411.06C1320840@mail.kernel.org> <20190724073125.xyzfywctrcvg6fmh@pathway.suse.cz>
+ <CAFd5g47v3Mr4GEGOjqyYy9Jwwm+ow7ypbu9j88rxEN06QCzdxQ@mail.gmail.com> <20190726083148.d4gf57w2nt5k7t6n@pathway.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190726083148.d4gf57w2nt5k7t6n@pathway.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Petr Mladek <pmladek@suse.com>
+Cc: Jeff Dike <jdike@addtoit.com>, Kevin Hilman <khilman@baylibre.com>, Logan Gunthorpe <logang@deltatee.com>, Michael Ellerman <mpe@ellerman.id.au>, Daniel Vetter <daniel@ffwll.ch>, Amir Goldstein <amir73il@gmail.com>, Frank Rowand <frowand.list@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, Kees Cook <keescook@google.com>, David Rientjes <rientjes@google.com>, kunit-dev@googlegroups.com, Kieran Bingham <kieran.bingham@ideasonboard.com>, Peter Zijlstra <peterz@infradead.org>, Randy Dunlap <rdunlap@infradead.org>, Joel Stanley <joel@jms.id.au>, Luis Chamberlain <mcgrof@kernel.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, shuah <shuah@kernel.org>, wfg@linux.intel.com, Greg KH <gregkh@linuxfoundation.org>Julia Lawall <j>
+List-Id: linux-nvdimm@lists.01.org
 
-This is needed so that pmem probe don't wrongly initialize a namespace
-which doesn't have enough space reserved for holding struct pages
-with the current kernel.
+On Fri, Jul 26, 2019 at 1:31 AM Petr Mladek <pmladek@suse.com> wrote:
+>
+> On Thu 2019-07-25 13:21:12, Brendan Higgins wrote:
+> > On Wed, Jul 24, 2019 at 12:31 AM Petr Mladek <pmladek@suse.com> wrote:
+> > >
+> > > On Mon 2019-07-22 16:54:10, Stephen Boyd wrote:
+> > > > Quoting Brendan Higgins (2019-07-22 15:30:49)
+> > > > > On Mon, Jul 22, 2019 at 1:03 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> > > > > >
+> > > > > >
+> > > > > > What's the calling context of the assertions and expectations? I still
+> > > > > > don't like the fact that string stream needs to allocate buffers and
+> > > > > > throw them into a list somewhere because the calling context matters
+> > > > > > there.
+> > > > >
+> > > > > The calling context is the same as before, which is anywhere.
+> > > >
+> > > > Ok. That's concerning then.
+> > > >
+> > > > >
+> > > > > > I'd prefer we just wrote directly to the console/log via printk
+> > > > > > instead. That way things are simple because we use the existing
+> > > > > > buffering path of printk, but maybe there's some benefit to the string
+> > > > > > stream that I don't see? Right now it looks like it builds a string and
+> > > > > > then dumps it to printk so I'm sort of lost what the benefit is over
+> > > > > > just writing directly with printk.
+> > > > >
+> > > > > It's just buffering it so the whole string gets printed uninterrupted.
+> > > > > If we were to print out piecemeal to printk, couldn't we have another
+> > > > > call to printk come in causing it to garble the KUnit message we are
+> > > > > in the middle of printing?
+> > > >
+> > > > Yes, printing piecemeal by calling printk many times could lead to
+> > > > interleaving of messages if something else comes in such as an interrupt
+> > > > printing something. Printk has some support to hold "records" but I'm
+> > > > not sure how that would work here because KERN_CONT talks about only
+> > > > being used early on in boot code. I haven't looked at printk in detail
+> > > > though so maybe I'm all wrong and KERN_CONT just works?
+> > >
+> > > KERN_CONT does not guarantee that the message will get printed
+> > > together. The pieces get interleaved with messages printed in
+> > > parallel.
+> > >
+> > > Note that KERN_CONT was originally really meant to be used only during
+> > > boot. It was later used more widely and ended in the best effort category.
+> > >
+> > > There were several attempts to make it more reliable. But it was
+> > > always either too complicated or error prone or both.
+> > >
+> > > You need to use your own buffering if you rely want perfect output.
+> > > The question is if it is really worth the complexity. Also note that
+> > > any buffering reduces the chance that the messages will reach
+> > > the console.
+> >
+> > Seems like that settles it then. Thanks!
+> >
+> > > BTW: There is a work in progress on a lockless printk ring buffer.
+> > > It will make printk() more secure regarding deadlocks. But it might
+> > > make transparent handling of continuous lines even more tricky.
+> > >
+> > > I guess that local buffering, before calling printk(), will be
+> > > even more important then. Well, it might really force us to create
+> > > an API for it.
+> >
+> > Cool! Can you CC me on that discussion?
+>
+> Adding John Oggness into CC.
+>
+> John, please CC Brendan Higgins on the patchsets eventually switching
+> printk() into the lockless buffer. The test framework is going to
+> do its own buffering to keep the related messages together.
+>
+> The lockless ringbuffer might make handling of related (partial)
+> lines worse or better. It might justify KUnit's extra buffering
+> or it might allow to get rid of it.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/nvdimm/pfn.h      |  5 ++++-
- drivers/nvdimm/pfn_devs.c | 25 ++++++++++++++++++++++++-
- 2 files changed, 28 insertions(+), 2 deletions(-)
+Thanks for CC'ing me on the printk ringbuffer thread. It looks like it
+actually probably won't affect my needs for KUnit logging. The biggest
+reason I need some sort of buffering system is to be able to compose
+messages piece meal into a single message that will be printed out to
+the user as a single message with no messages from other printk
+callers printed out in the middle of mine.
 
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index 7381673b7b70..acb19517f678 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -29,7 +29,10 @@ struct nd_pfn_sb {
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
- 	/* minor-version-3 guarantee the padding and flags are zero */
--	u8 padding[4000];
-+	/* minor-version-4 record the page size and struct page size */
-+	__le32 page_size;
-+	__le16 page_struct_size;
-+	u8 padding[3994];
- 	__le64 checksum;
- };
- 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index cd120feb9213..22db77ac3d0e 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -460,6 +460,11 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
- 		pfn_sb->align = 0;
- 
-+	if (__le16_to_cpu(pfn_sb->version_minor) < 4) {
-+		pfn_sb->page_struct_size = cpu_to_le16(64);
-+		pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
-+	}
-+
- 	switch (le32_to_cpu(pfn_sb->mode)) {
- 	case PFN_MODE_RAM:
- 	case PFN_MODE_PMEM:
-@@ -475,6 +480,22 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		align = 1UL << ilog2(offset);
- 	mode = le32_to_cpu(pfn_sb->mode);
- 
-+	if ((le32_to_cpu(pfn_sb->page_size) > PAGE_SIZE) &&
-+	    (mode == PFN_MODE_PMEM)) {
-+		dev_err(&nd_pfn->dev,
-+			"init failed, page size mismatch %d\n",
-+			le32_to_cpu(pfn_sb->page_size));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if ((le16_to_cpu(pfn_sb->page_struct_size) < sizeof(struct page)) &&
-+	     (mode == PFN_MODE_PMEM)) {
-+		dev_err(&nd_pfn->dev,
-+			"init failed, struct page size mismatch %d\n",
-+			le16_to_cpu(pfn_sb->page_struct_size));
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (!nd_pfn->uuid) {
- 		/*
- 		 * When probing a namepace via nd_pfn_probe() the uuid
-@@ -730,8 +751,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(3);
-+	pfn_sb->version_minor = cpu_to_le16(4);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
-+	pfn_sb->page_struct_size = cpu_to_le16(MAX_STRUCT_PAGE_SIZE);
-+	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
--- 
-2.21.0
+The prb does look interesting; however, it appears that to get the
+semantics that I need, I would have to put my entire message in a
+single data block and would consequently need to know the size of my
+message a priori, which is problematic. Consequently, it seems as
+though I will probably need to compose my entire message using my own
+buffering system.
 
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+> > > Note that stroring the messages into the printk log is basically safe in any
+> > > context. It uses temporary per-CPU buffers for recursive messages and
+> > > in NMI. The only problem is panic() when some CPU gets stuck with the
+> > > lock taken. This will get solved by the lockless ringbuffer. Also
+> > > the temporary buffers will not be necessary any longer.
+> >
+> > Sure, I think Stephen's concern is all the supporting code that is
+> > involved. Not printk specifically. It just means a lot more of KUnit
+> > has to be IRQ safe.
+>
+> I see.
+>
+> BTW: I wonder if KUnit could reuse the existing seq_buf implementation
+> for buffering messages.
+>
+> I am sorry if it has already been proposed and rejected for some
+> reason. I might have missed it. Feel free to just point me to
+> same older mail.
+
+Yeah, we discussed it briefly here:
+
+https://lkml.org/lkml/2019/5/17/497
+
+Looks like I forgot to include my reasoning in the commit text, sorry
+about that.
+
+> > > Much bigger problems are with consoles. There are many of them. It
+> > > means a lot of code and more locks involved, including scheduler
+> > > locks. Note that console lock is a semaphore.
+> >
+> > That shouldn't affect us though, right? As long as we continue to use
+> > the printk interface?
+>
+> I guess that it should not affect KUnit.
+>
+> The only problem might be if the testing framework calls printk()
+> inside scheduler or console code. And only when the tested code
+> uses the same locks that will be used by the called printk().
+
+Yeah, well printk will not be our only problem in those instances.
+
+> To be honest I do not fully understand KUnit design. I am not
+> completely sure how the tested code is isolated from the running
+> system. Namely, I do not know if the tested code shares
+> the same locks with the system running the test.
+
+No worries, I don't expect printk to be the hang up in those cases. It
+sounds like KUnit has a long way to evolve before printk is going to
+be a limitation.
+
+Thanks!
