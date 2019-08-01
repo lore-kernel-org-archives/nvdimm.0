@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
- by ml01.01.org (Postfix) with ESMTP id 5DF0C212E8459
- for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 04:52:30 -0700 (PDT)
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH 7/7] xfs: Add dedupe support for fsdax.
-Date: Wed, 31 Jul 2019 19:49:35 +0800
-Message-ID: <20190731114935.11030-8-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
-References: <20190731114935.11030-1-ruansy.fnst@cn.fujitsu.com>
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 97264212FD413
+ for <linux-nvdimm@lists.01.org>; Wed, 31 Jul 2019 17:32:10 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v9 03/13] libdaxctl: add an interface to retrieve the
+ device resource
+Date: Wed, 31 Jul 2019 18:29:22 -0600
+Message-Id: <20190801002932.26430-4-vishal.l.verma@intel.com>
+In-Reply-To: <20190801002932.26430-1-vishal.l.verma@intel.com>
+References: <20190801002932.26430-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,165 +23,194 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, darrick.wong@oracle.com
-Cc: qi.fuli@fujitsu.com, gujx@cn.fujitsu.com, rgoldwyn@suse.de, david@fromorbit.com, linux-kernel@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Tony Luck <tony.luck@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-In dax mode, use a new range compare function provided by dax framework.
-Don't share dax file with non-dax file.  Use xfs lock and
-xfs_break_layouts() to simplify the lock and break layout operation, and
-rename to xfs_reflink_remap_lock_and_break_layout() in order to echo the
-unlock function: xfs_reflink_remap_unlock().
+Add an interface to retrieve the 'resource' attribute for a dax device.
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Attempt to retrieve it as usual via sysfs, but since older kernels may
+be missing this attribute, as a fallback, attempt to retrieve it from
+/proc/iomem
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+[fscanf format string problem and diagnosis]
+Reported-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/xfs/xfs_reflink.c | 83 +++++++++++++++++++++++---------------------
- 1 file changed, 44 insertions(+), 39 deletions(-)
+ Makefile.am                    |  3 ++-
+ daxctl/lib/Makefile.am         |  2 ++
+ daxctl/lib/libdaxctl-private.h |  1 +
+ daxctl/lib/libdaxctl.c         | 12 +++++++++++
+ daxctl/lib/libdaxctl.sym       |  1 +
+ daxctl/libdaxctl.h             |  1 +
+ util/iomem.c                   | 37 ++++++++++++++++++++++++++++++++++
+ util/iomem.h                   | 12 +++++++++++
+ 8 files changed, 68 insertions(+), 1 deletion(-)
+ create mode 100644 util/iomem.c
+ create mode 100644 util/iomem.h
 
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index a1b000be3699..096751d7990a 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1209,39 +1209,37 @@ xfs_reflink_remap_blocks(
-  * src iolock held, and therefore have to back out both locks.
-  */
- static int
--xfs_iolock_two_inodes_and_break_layout(
--	struct inode		*src,
--	struct inode		*dest)
-+xfs_reflink_remap_lock_and_break_layout(
-+	struct file		*file_in,
-+	struct file		*file_out)
- {
- 	int			error;
-+	struct inode		*inode_in = file_inode(file_in);
-+	struct xfs_inode	*src = XFS_I(inode_in);
-+	struct inode		*inode_out = file_inode(file_out);
-+	struct xfs_inode	*dest = XFS_I(inode_out);
-+
-+	uint src_iolock = XFS_IOLOCK_SHARED | XFS_MMAPLOCK_SHARED;
-+	uint dest_iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+diff --git a/Makefile.am b/Makefile.am
+index df8797e..8d10a10 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -74,6 +74,7 @@ libutil_a_SOURCES = \
+ 	util/wrapper.c \
+ 	util/filter.c \
+ 	util/bitmap.c \
+-	util/abspath.c
++	util/abspath.c \
++	util/iomem.c
  
--retry:
--	if (src < dest) {
--		inode_lock_shared(src);
--		inode_lock_nested(dest, I_MUTEX_NONDIR2);
-+	if (src->i_ino < dest->i_ino) {
-+		xfs_ilock(src, src_iolock);
-+		xfs_ilock(dest, dest_iolock);
- 	} else {
--		/* src >= dest */
--		inode_lock(dest);
-+		/* inode_in >= inode_out */
-+		xfs_ilock(dest, dest_iolock);
- 	}
+ nobase_include_HEADERS = daxctl/libdaxctl.h
+diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
+index 9f0e444..7704b1b 100644
+--- a/daxctl/lib/Makefile.am
++++ b/daxctl/lib/Makefile.am
+@@ -9,6 +9,8 @@ lib_LTLIBRARIES = libdaxctl.la
+ libdaxctl_la_SOURCES =\
+ 	../libdaxctl.h \
+ 	libdaxctl-private.h \
++	../../util/iomem.c \
++	../../util/iomem.h \
+ 	../../util/sysfs.c \
+ 	../../util/sysfs.h \
+ 	../../util/log.c \
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index 120137f..fee67d1 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -65,6 +65,7 @@ struct daxctl_dev {
+ 	size_t buf_len;
+ 	char *dev_path;
+ 	struct list_node list;
++	unsigned long long resource;
+ 	unsigned long long size;
+ 	struct kmod_module *module;
+ 	struct kmod_list *kmod_list;
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index caf661e..aa0d2f2 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -24,6 +24,7 @@
  
--	error = break_layout(dest, false);
--	if (error == -EWOULDBLOCK) {
--		inode_unlock(dest);
--		if (src < dest)
--			inode_unlock_shared(src);
--		error = break_layout(dest, true);
--		if (error)
--			return error;
--		goto retry;
--	}
-+	error = xfs_break_layouts(inode_out, &dest_iolock, BREAK_UNMAP);
- 	if (error) {
--		inode_unlock(dest);
--		if (src < dest)
--			inode_unlock_shared(src);
-+		xfs_iunlock(dest, dest_iolock);
-+		if (src->i_ino < dest->i_ino)
-+			xfs_iunlock(src, src_iolock);
- 		return error;
- 	}
--	if (src > dest)
--		inode_lock_shared_nested(src, I_MUTEX_NONDIR2);
+ #include <util/log.h>
+ #include <util/sysfs.h>
++#include <util/iomem.h>
+ #include <daxctl/libdaxctl.h>
+ #include "libdaxctl-private.h"
+ 
+@@ -406,6 +407,12 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 	dev->major = major(st.st_rdev);
+ 	dev->minor = minor(st.st_rdev);
+ 
++	sprintf(path, "%s/resource", daxdev_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0)
++		dev->resource = strtoull(buf, NULL, 0);
++	else
++		dev->resource = iomem_get_dev_resource(ctx, daxdev_base);
 +
-+	if (src->i_ino > dest->i_ino)
-+		xfs_ilock(src, src_iolock);
- 	return 0;
+ 	sprintf(path, "%s/size", daxdev_base);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+ 		goto err_read;
+@@ -928,6 +935,11 @@ DAXCTL_EXPORT int daxctl_dev_get_minor(struct daxctl_dev *dev)
+ 	return dev->minor;
  }
  
-@@ -1257,12 +1255,12 @@ xfs_reflink_remap_unlock(
- 	struct xfs_inode	*dest = XFS_I(inode_out);
- 	bool			same_inode = (inode_in == inode_out);
- 
--	xfs_iunlock(dest, XFS_MMAPLOCK_EXCL);
--	if (!same_inode)
--		xfs_iunlock(src, XFS_MMAPLOCK_SHARED);
--	inode_unlock(inode_out);
-+	uint src_iolock = XFS_IOLOCK_SHARED | XFS_MMAPLOCK_SHARED;
-+	uint dest_iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
-+
-+	xfs_iunlock(dest, dest_iolock);
- 	if (!same_inode)
--		inode_unlock_shared(inode_in);
-+		xfs_iunlock(src, src_iolock);
- }
- 
- /*
-@@ -1285,6 +1283,14 @@ xfs_reflink_zero_posteof(
- 			&xfs_iomap_ops);
- }
- 
-+int xfs_reflink_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+					  struct inode *dest, loff_t destoff,
-+					  loff_t len, bool *is_same)
++DAXCTL_EXPORT unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev)
 +{
-+	return dax_file_range_compare(src, srcoff, dest, destoff, len, is_same,
-+				      &xfs_iomap_ops);
++	return dev->resource;
 +}
 +
- /*
-  * Prepare two files for range cloning.  Upon a successful return both inodes
-  * will have the iolock and mmaplock held, the page cache of the out file will
-@@ -1327,18 +1333,13 @@ xfs_reflink_remap_prep(
- 	struct xfs_inode	*src = XFS_I(inode_in);
- 	struct inode		*inode_out = file_inode(file_out);
- 	struct xfs_inode	*dest = XFS_I(inode_out);
--	bool			same_inode = (inode_in == inode_out);
- 	ssize_t			ret;
-+	compare_range_t		cmp;
- 
- 	/* Lock both files against IO */
--	ret = xfs_iolock_two_inodes_and_break_layout(inode_in, inode_out);
-+	ret = xfs_reflink_remap_lock_and_break_layout(file_in, file_out);
- 	if (ret)
- 		return ret;
--	if (same_inode)
--		xfs_ilock(src, XFS_MMAPLOCK_EXCL);
--	else
--		xfs_lock_two_inodes(src, XFS_MMAPLOCK_SHARED, dest,
--				XFS_MMAPLOCK_EXCL);
- 
- 	/* Check file eligibility and prepare for block sharing. */
- 	ret = -EINVAL;
-@@ -1346,12 +1347,16 @@ xfs_reflink_remap_prep(
- 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
- 		goto out_unlock;
- 
--	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	/* Don't share DAX file data with non-DAX file. */
-+	if (IS_DAX(inode_in) != IS_DAX(inode_out))
- 		goto out_unlock;
-+	if (IS_DAX(inode_in))
-+		cmp = xfs_reflink_dedupe_file_range_compare;
-+	else
-+		cmp = vfs_dedupe_file_range_compare;
- 
- 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			len, remap_flags, vfs_dedupe_file_range_compare);
-+			len, remap_flags, cmp);
- 	if (ret < 0 || *len == 0)
- 		goto out_unlock;
- 
+ DAXCTL_EXPORT unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev)
+ {
+ 	return dev->size;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 19904a2..1692624 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -58,4 +58,5 @@ global:
+ 	daxctl_dev_disable;
+ 	daxctl_dev_enable_devdax;
+ 	daxctl_dev_enable_ram;
++	daxctl_dev_get_resource;
+ } LIBDAXCTL_5;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index 407f459..adf55f3 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -66,6 +66,7 @@ int daxctl_dev_get_id(struct daxctl_dev *dev);
+ const char *daxctl_dev_get_devname(struct daxctl_dev *dev);
+ int daxctl_dev_get_major(struct daxctl_dev *dev);
+ int daxctl_dev_get_minor(struct daxctl_dev *dev);
++unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
+ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+ struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
+ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+diff --git a/util/iomem.c b/util/iomem.c
+new file mode 100644
+index 0000000..a3c23f5
+--- /dev/null
++++ b/util/iomem.c
+@@ -0,0 +1,37 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <util/log.h>
++#include <util/iomem.h>
++#include <util/sysfs.h>
++
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *devpath)
++{
++	const char *devname = devpath_to_devname(devpath);
++	FILE *fp = fopen("/proc/iomem", "r");
++	unsigned long long res;
++	char name[256];
++
++	if (fp == NULL) {
++		log_err(ctx, "%s: open /proc/iomem: %s\n", devname,
++				strerror(errno));
++		return 0;
++	}
++
++	while (fscanf(fp, "%llx-%*x : %254[^\n]\n", &res, name) == 2) {
++		if (strcmp(name, devname) == 0) {
++			log_dbg(ctx, "%s: got resource via iomem: %#llx\n",
++					devname, res);
++			fclose(fp);
++			return res;
++		}
++	}
++
++	log_dbg(ctx, "%s: not found in iomem\n", devname);
++	fclose(fp);
++	return 0;
++}
+diff --git a/util/iomem.h b/util/iomem.h
+new file mode 100644
+index 0000000..aaaf6a7
+--- /dev/null
++++ b/util/iomem.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright(c) 2019 Intel Corporation. All rights reserved. */
++#ifndef _NDCTL_IOMEM_H_
++#define _NDCTL_IOMEM_H_
++
++struct log_ctx;
++unsigned long long __iomem_get_dev_resource(struct log_ctx *ctx,
++		const char *path);
++
++#define iomem_get_dev_resource(c, p) __iomem_get_dev_resource(&(c)->ctx, (p))
++
++#endif /* _NDCTL_IOMEM_H_ */
 -- 
-2.17.0
-
-
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
