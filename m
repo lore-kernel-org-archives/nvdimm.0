@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5CBB72132996A
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:20 -0700 (PDT)
-Subject: [ndctl PATCH v5 5/7] ndctl/namespace: Minimize label data transfer
- for autolabel
+ by ml01.01.org (Postfix) with ESMTPS id 243D021311C11
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 17:11:39 -0700 (PDT)
+Subject: [ndctl PATCH v3 5/8] ndctl/dimm: Limit read-labels with --index option
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 17:09:29 -0700
-Message-ID: <156505016983.848599.11002390849262331259.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 02 Aug 2019 16:54:51 -0700
+Message-ID: <156479009111.707590.17235381898000706283.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -26,27 +25,122 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use the new ndctl_dimm_read_label_index() helper to minimize the amount
-of label I/O needed to execute an autolabel event.
+Provide a capability to limit the read-labels payload to just the
+index-block data space.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/ndctl/ndctl-read-labels.txt |    7 +++++
+ ndctl/dimm.c                              |   43 ++++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 16 deletions(-)
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index a654460ce4c5..26d03358c80d 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -997,7 +997,7 @@ retry:
- 		int num_labels, avail;
+diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
+index 756713ee12d7..b5ddae9c269e 100644
+--- a/Documentation/ndctl/ndctl-read-labels.txt
++++ b/Documentation/ndctl/ndctl-read-labels.txt
+@@ -19,6 +19,13 @@ file.  In the multi-dimm case the data is concatenated.
+ OPTIONS
+ -------
+ include::labels-options.txt[]
++-I::
++--index::
++	Limit the span of the label operation to just the index-block
++	area. This is useful to determine if the dimm label area is
++	initialized. Note that this option and --size/--offset are
++	mutually exclusive.
++
+ -o::
+ --output::
+ 	output file
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 70128dd2df27..5e6fa19bab15 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -55,6 +55,7 @@ static struct parameters {
+ 	bool master_pass;
+ 	bool human;
+ 	bool force;
++	bool index;
+ 	bool json;
+ 	bool verbose;
+ } param = {
+@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
  
- 		ndctl_cmd_unref(cmd_read);
--		cmd_read = ndctl_dimm_read_labels(dimm);
+ 	if (!jdimm)
+ 		return NULL;
+-	jindex = dump_index_json(cmd_read, size);
+-	if (!jindex)
+-		goto err_jindex;
+-	jlabel = dump_label_json(dimm, cmd_read, size, flags);
+-	if (!jlabel)
+-		goto err_jlabel;
+ 
+ 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+ 	if (!jobj)
+-		goto err_jobj;
+-
++		goto err;
+ 	json_object_object_add(jdimm, "dev", jobj);
++
++	jindex = dump_index_json(cmd_read, size);
++	if (!jindex)
++		goto err;
+ 	json_object_object_add(jdimm, "index", jindex);
++	if (param.index)
++		return jdimm;
++
++	jlabel = dump_label_json(dimm, cmd_read, size, flags);
++	if (!jlabel)
++		goto err;
+ 	json_object_object_add(jdimm, "label", jlabel);
+-	return jdimm;
+ 
+- err_jobj:
+-	json_object_put(jlabel);
+- err_jlabel:
+-	json_object_put(jindex);
+- err_jindex:
++	return jdimm;
++err:
+ 	json_object_put(jdimm);
+ 	return NULL;
+ }
+@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	ssize_t size;
+ 	int rc = 0;
+ 
+-	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
++	if (param.index)
 +		cmd_read = ndctl_dimm_read_label_index(dimm);
- 		if (!cmd_read)
- 			continue;
++	else
++		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
++				param.offset);
+ 	if (!cmd_read)
+ 		return -EINVAL;
  
+@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
+ OPT_STRING('o', "output", &param.outfile, "output-file", \
+ 	"filename to write label area contents"), \
+ OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
+-OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
++OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
++OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
+ 
+ #define WRITE_OPTIONS() \
+ OPT_STRING('i', "input", &param.infile, "input-file", \
+@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
++	if (param.index && param.len) {
++		fprintf(stderr, "pick either --size, or --index, not both\n");
++		usage_with_options(u, options);
++		return -EINVAL;
++	}
++
+ 	if (json) {
+ 		actx.jdimms = json_object_new_array();
+ 		if (!actx.jdimms)
 
 _______________________________________________
 Linux-nvdimm mailing list
