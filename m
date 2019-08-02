@@ -1,13 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B399B21309D22
- for <linux-nvdimm@lists.01.org>; Thu,  8 Aug 2019 18:38:12 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl/test: Add xfs reflink dependency
+ by ml01.01.org (Postfix) with ESMTPS id 3A18521311BE1
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 17:11:46 -0700 (PDT)
+Subject: [ndctl PATCH v3 6/8] ndctl/namespace: Minimize label data transfer
+ for autolabel
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 08 Aug 2019 18:21:21 -0700
-Message-ID: <156531368129.2136155.4247732841095137080.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 02 Aug 2019 16:54:56 -0700
+Message-ID: <156479009665.707590.3051993945223301734.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,57 +26,27 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Starting with xfsprogs version 5.1.0 it will enable reflink by default.
-Any scripts, like ndctl unit tests, that were doing:
+Use the new ndctl_dimm_read_label_index() helper to minimize the amount
+of label I/O needed to execute an autolabel event.
 
-    mkfs.xfs $pmem; mount -o dax $pmem $mnt
-
-...must now do:
-
-    mkfs.xfs -m reflink=0 $pmem; mount -o dax $pmem $mnt
-
-Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/dax.sh  |    4 ++--
- test/mmap.sh |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ ndctl/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/test/dax.sh b/test/dax.sh
-index e703e1222dee..3bb44ac0a26c 100755
---- a/test/dax.sh
-+++ b/test/dax.sh
-@@ -69,7 +69,7 @@ json=$($NDCTL create-namespace -m raw -f -e $dev)
- eval $(json2var <<< "$json")
- [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index a654460ce4c5..26d03358c80d 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -997,7 +997,7 @@ retry:
+ 		int num_labels, avail;
  
--mkfs.xfs -f /dev/$blockdev
-+mkfs.xfs -f /dev/$blockdev -m reflink=0
- mount /dev/$blockdev $MNT -o dax
- fallocate -l 1GiB $MNT/$FILE
- run_test
-@@ -80,7 +80,7 @@ json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
- eval $(json2var <<< "$json")
- [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+ 		ndctl_cmd_unref(cmd_read);
+-		cmd_read = ndctl_dimm_read_labels(dimm);
++		cmd_read = ndctl_dimm_read_label_index(dimm);
+ 		if (!cmd_read)
+ 			continue;
  
--mkfs.xfs -f /dev/$blockdev
-+mkfs.xfs -f /dev/$blockdev -m reflink=0
- mount /dev/$blockdev $MNT -o dax
- fallocate -l 1GiB $MNT/$FILE
- run_test
-diff --git a/test/mmap.sh b/test/mmap.sh
-index afe50fd2199b..d072ea289f31 100755
---- a/test/mmap.sh
-+++ b/test/mmap.sh
-@@ -70,7 +70,7 @@ fallocate -l 1GiB $MNT/$FILE
- test_mmap
- umount $MNT
- 
--mkfs.xfs -f $DEV
-+mkfs.xfs -f $DEV -m reflink=0
- mount $DEV $MNT -o dax
- fallocate -l 1GiB $MNT/$FILE
- test_mmap
 
 _______________________________________________
 Linux-nvdimm mailing list
