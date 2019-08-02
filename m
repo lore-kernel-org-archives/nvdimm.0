@@ -1,14 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com
+ [IPv6:2607:f8b0:4864:20::242])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id E794D2020D32A
- for <linux-nvdimm@lists.01.org>; Sat, 31 Aug 2019 12:08:41 -0700 (PDT)
-Subject: [PATCH v3] libnvdimm: Enable unit test infrastructure compile checks
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 31 Aug 2019 11:52:47 -0700
-Message-ID: <156727753022.2310789.16427613406082399871.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 495A021306CFF
+ for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 11:21:53 -0700 (PDT)
+Received: by mail-oi1-x242.google.com with SMTP id c15so2103868oic.3
+ for <linux-nvdimm@lists.01.org>; Fri, 02 Aug 2019 11:19:23 -0700 (PDT)
 MIME-Version: 1.0
+References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156426356654.531577.6142389862764297120.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <c6026e16692b0aae2b8fdef1085940259d40de93.camel@intel.com>
+In-Reply-To: <c6026e16692b0aae2b8fdef1085940259d40de93.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 2 Aug 2019 11:19:11 -0700
+Message-ID: <CAPcyv4h5YWF5hrX+B5iJrW95K03TFA+a2rsQPFtG=PqN8WgigQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2 01/26] ndctl/dimm: Add 'flags' field to
+ read-labels output
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,57 +24,47 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: jgg@ziepe.ca
-Cc: linux-kernel@vger.kernel.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-VGhlIGluZnJhc3RydWN0dXJlIHRvIG1vY2sgY29yZSBsaWJudmRpbW0gcm91dGluZXMgZm9yIHVu
-aXQgdGVzdGluZwpwdXJwb3NlcyBpcyBwcm9uZSB0byBiaXRyb3QgcmVsYXRpdmUgdG8gcmVmYWN0
-b3Jpbmcgb2YgdGhhdCBjb3JlLgpBcnJhbmdlIGZvciB0aGUgdW5pdCB0ZXN0IGNvcmUgdG8gYmUg
-YnVpbHQgd2hlbiBDT05GSUdfQ09NUElMRV9URVNUPXkuClRoaXMgZG9lcyBub3QgcmVzdWx0IGlu
-IGEgZnVuY3Rpb25hbCB1bml0IHRlc3QgZW52aXJvbm1lbnQsIGl0IGlzIG9ubHkgYQpoZWxwZXIg
-Zm9yIDBkYXkgdG8gY2F0Y2ggdW5pdCB0ZXN0IGJ1aWxkIHJlZ3Jlc3Npb25zLgoKTm90ZSB0aGF0
-IHRoZXJlIGFyZSBhIGZldyB4ODZpc21zIGluIHRoZSBpbXBsZW1lbnRhdGlvbiwgc28gdGhpcyBk
-b2VzCm5vdCBib3RoZXIgY29tcGlsZSB0ZXN0aW5nIHRoaXMgYXJjaGl0ZWN0dXJlcyBvdGhlciB0
-aGFuIDY0LWJpdCB4ODYuCgpDYzogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+
-CkNjOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+ClJlcG9ydGVkLWJ5OiBDaHJp
-c3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4KU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxk
-YW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ckxpbms6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL3Iv
-MTU2MDk3MjI0MjMyLjEwODY4NDcuOTQ2Mzg2MTkyNDY4MzM3Mjc0MS5zdGdpdEBkd2lsbGlhMi1k
-ZXNrMy5hbXIuY29ycC5pbnRlbC5jb20KLS0tCkNoYW5nZXMgc2luY2UgdjI6Ci0gRml4ZWQgYSAw
-ZGF5IHJlcG9ydCB3aGVuIHRoZSB1bml0IHRlc3QgaW5mcmFzdHJ1Y3R1cmUgaXMgYnVpbHQtaW4u
-CiAgQXJyYW5nZSBmb3IgaXQgdG8gb25seSBjb21waWxlIGFzIGEgbW9kdWxlLiBUaGlzIGhhcyBy
-ZWNlaXZlZCBhIGJ1aWxkCiAgc3VjY2VzcyBub3RpZmNhdGlvbiBmcm9tIHRoZSByb2JvdCBvdmVy
-IDE0MiBjb25maWdzLgoKSGkgSmFzb24sCgpBcyB3ZSBkaXNjdXNzZWQgcHJldmlvdXNseSBwbGVh
-c2UgdGFrZSB0aGlzIHRocm91Z2ggdGhlIGhtbSB0cmVlIHRvIGdpdmUKY29tcGlsZSBjb3ZlcmFn
-ZSBmb3IgZGV2bV9tZW1yZW1hcF9wYWdlcygpIHVwZGF0ZXMuCgogZHJpdmVycy9udmRpbW0vS2Nv
-bmZpZyAgfCAgIDEyICsrKysrKysrKysrKwogZHJpdmVycy9udmRpbW0vTWFrZWZpbGUgfCAgICA0
-ICsrKysKIDIgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbnZkaW1tL0tjb25maWcgYi9kcml2ZXJzL252ZGltbS9LY29uZmlnCmluZGV4IGE1ZmRl
-MTVlOTFkMy4uMzZhZjdhZjZiN2NmIDEwMDY0NAotLS0gYS9kcml2ZXJzL252ZGltbS9LY29uZmln
-CisrKyBiL2RyaXZlcnMvbnZkaW1tL0tjb25maWcKQEAgLTExOCw0ICsxMTgsMTYgQEAgY29uZmln
-IE5WRElNTV9LRVlTCiAJZGVwZW5kcyBvbiBFTkNSWVBURURfS0VZUwogCWRlcGVuZHMgb24gKExJ
-Qk5WRElNTT1FTkNSWVBURURfS0VZUykgfHwgTElCTlZESU1NPW0KIAorY29uZmlnIE5WRElNTV9U
-RVNUX0JVSUxECisJdHJpc3RhdGUgIkJ1aWxkIHRoZSB1bml0IHRlc3QgY29yZSIKKwlkZXBlbmRz
-IG9uIG0KKwlkZXBlbmRzIG9uIENPTVBJTEVfVEVTVCAmJiBYODZfNjQKKwlkZWZhdWx0IG0gaWYg
-Q09NUElMRV9URVNUCisJaGVscAorCSAgQnVpbGQgdGhlIGNvcmUgb2YgdGhlIHVuaXQgdGVzdCBp
-bmZyYXN0cnVjdHVyZS4gVGhlIHJlc3VsdCBvZgorCSAgdGhpcyBidWlsZCBpcyBub24tZnVuY3Rp
-b25hbCBmb3IgdW5pdCB0ZXN0IGV4ZWN1dGlvbiwgYnV0IGl0CisJICBvdGhlcndpc2UgaGVscHMg
-Y2F0Y2ggYnVpbGQgZXJyb3JzIGluZHVjZWQgYnkgY2hhbmdlcyB0byB0aGUKKwkgIGNvcmUgZGV2
-bV9tZW1yZW1hcF9wYWdlcygpIGltcGxlbWVudGF0aW9uIGFuZCBvdGhlcgorCSAgaW5mcmFzdHJ1
-Y3R1cmUuCisKIGVuZGlmCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9NYWtlZmlsZSBiL2Ry
-aXZlcnMvbnZkaW1tL01ha2VmaWxlCmluZGV4IGNlZmUyMzNlMGI1Mi4uNjU1N2UxMjY4OTJmIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL252ZGltbS9NYWtlZmlsZQorKysgYi9kcml2ZXJzL252ZGltbS9N
-YWtlZmlsZQpAQCAtMjksMyArMjksNyBAQCBsaWJudmRpbW0tJChDT05GSUdfQlRUKSArPSBidHRf
-ZGV2cy5vCiBsaWJudmRpbW0tJChDT05GSUdfTlZESU1NX1BGTikgKz0gcGZuX2RldnMubwogbGli
-bnZkaW1tLSQoQ09ORklHX05WRElNTV9EQVgpICs9IGRheF9kZXZzLm8KIGxpYm52ZGltbS0kKENP
-TkZJR19OVkRJTU1fS0VZUykgKz0gc2VjdXJpdHkubworCitUT09MUyA6PSAuLi8uLi90b29scwor
-VEVTVF9TUkMgOj0gJChUT09MUykvdGVzdGluZy9udmRpbW0vdGVzdAorb2JqLSQoQ09ORklHX05W
-RElNTV9URVNUX0JVSUxEKSA6PSAkKFRFU1RfU1JDKS9pb21hcC5vCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+On Fri, Aug 2, 2019 at 11:01 AM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+>
+> On Sat, 2019-07-27 at 14:39 -0700, Dan Williams wrote:
+> > Recent discussions on some platform implementations setting the LOCAL
+> > bit in namespace labels makes it apparent that this field should be
+> > decoded in the json representation.
+> >
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  ndctl/dimm.c |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+> > index b2b09b6aa9a2..8946dc74fe41 100644
+> > --- a/ndctl/dimm.c
+> > +++ b/ndctl/dimm.c
+> > @@ -141,6 +141,11 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
+> >                       break;
+> >               json_object_object_add(jlabel, "nlabel", jobj);
+> >
+> > +             jobj = json_object_new_int64(le64_to_cpu(nslabel.flags));
+>
+> Should we print this in hex instead?
+
+Ah, yes.
+
+/me goes to check why he didn't do this finds that this support
+arrives in the next patch that adds --human support to read-labels.
+
+So it's there in "ndctl/dimm: Add --human support to read-labels"
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
