@@ -1,12 +1,11 @@
-From: "Aloysius" <worldbusinessgroups-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re:(7) $34010
-Date: Sat, 3 Aug 2019 16:47:42 +0400
-Message-ID: <20190803125016.75C4821303095@ml01.01.org>
+From: =?utf-8?B?6YKT5aWz5aOr?= <apobl-2tSv2KvMkrU@public.gmane.org>
+Subject: =?utf-8?B?5Zue5aSN77ya5Lit6auY5bGC57uP55CG5YWo6Z2i566h55CG5oqA6IO95o+Q5Y2H?=
+Date: Tue, 6 Aug 2019 00:26:43 +0800
+Message-ID: <65F2FB34AD61496AA9D516EB8C7E2BB1@gozq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,12 +15,12 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Hello linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org HPHO2uA
-Only we have a base of 250 million e-mail addresses HPHO2uA
-of businessmen from all over the world for $500. HPHO2uA
-1000 000 e-mail addresses for $2 Cheaper no, no where. HPHO2uA
-Our contacts: email.business.group-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org HPHO2uA
-To unsubscribe send us an email with the topic 'unsubscribe' HPHO2uA
+LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJphcG9ibEBn
+b3pxLmNvbQ0K5Y+R6YCB5pel5pyf77yaMjAxOS04LTYgIDA6MjY6MzUNCuaUtuS7tuS6uu+8mmxp
+bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
