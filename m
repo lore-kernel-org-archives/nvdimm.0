@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D3EAC202BB9AB
- for <linux-nvdimm@lists.01.org>; Thu, 15 Aug 2019 23:56:47 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 4/4] memremap: provide a not device managed memremap_pages
-Date: Fri, 16 Aug 2019 08:54:34 +0200
-Message-Id: <20190816065434.2129-5-hch@lst.de>
-In-Reply-To: <20190816065434.2129-1-hch@lst.de>
-References: <20190816065434.2129-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 7D533213030A2
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 16:45:52 -0700 (PDT)
+Subject: [ndctl PATCH v4 4/7] ndctl/dimm: Limit read-labels with --index option
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 05 Aug 2019 16:29:04 -0700
+Message-ID: <156504774468.847544.10242796068662811547.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,190 +22,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The kvmppc ultravisor code wants a device private memory pool that is
-system wide and not attached to a device.  Instead of faking up one
-provide a low-level memremap_pages for it.  Note that this function is
-not exported, and doesn't have a cleanup routine associated with it to
-discourage use from more driver like users.
+Provide a capability to limit the read-labels payload to just the
+index-block data space.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/memremap.h |  2 +
- mm/memremap.c            | 84 +++++++++++++++++++++++++---------------
- 2 files changed, 54 insertions(+), 32 deletions(-)
+ Documentation/ndctl/ndctl-read-labels.txt |    7 +++++
+ ndctl/dimm.c                              |   43 ++++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 8f0013e18e14..fb2a0bd826b9 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -123,6 +123,8 @@ static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
- }
- 
- #ifdef CONFIG_ZONE_DEVICE
-+void *memremap_pages(struct dev_pagemap *pgmap, int nid);
-+void memunmap_pages(struct dev_pagemap *pgmap);
- void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
- void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
- struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 4e11da4ecab9..9e163fe367ae 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -102,9 +102,8 @@ static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
- 		pgmap->ref = NULL;
- }
- 
--static void devm_memremap_pages_release(void *data)
-+void memunmap_pages(struct dev_pagemap *pgmap)
- {
--	struct dev_pagemap *pgmap = data;
- 	struct resource *res = &pgmap->res;
- 	unsigned long pfn;
- 	int nid;
-@@ -134,6 +133,12 @@ static void devm_memremap_pages_release(void *data)
- 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
- 	devmap_managed_enable_put();
- }
-+EXPORT_SYMBOL_GPL(memunmap_pages);
+diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
+index 756713ee12d7..b5ddae9c269e 100644
+--- a/Documentation/ndctl/ndctl-read-labels.txt
++++ b/Documentation/ndctl/ndctl-read-labels.txt
+@@ -19,6 +19,13 @@ file.  In the multi-dimm case the data is concatenated.
+ OPTIONS
+ -------
+ include::labels-options.txt[]
++-I::
++--index::
++	Limit the span of the label operation to just the index-block
++	area. This is useful to determine if the dimm label area is
++	initialized. Note that this option and --size/--offset are
++	mutually exclusive.
 +
-+static void devm_memremap_pages_release(void *data)
-+{
-+	memunmap_pages(data);
-+}
+ -o::
+ --output::
+ 	output file
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 70128dd2df27..5e6fa19bab15 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -55,6 +55,7 @@ static struct parameters {
+ 	bool master_pass;
+ 	bool human;
+ 	bool force;
++	bool index;
+ 	bool json;
+ 	bool verbose;
+ } param = {
+@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
  
- static void dev_pagemap_percpu_release(struct percpu_ref *ref)
- {
-@@ -143,27 +148,12 @@ static void dev_pagemap_percpu_release(struct percpu_ref *ref)
- 	complete(&pgmap->done);
- }
+ 	if (!jdimm)
+ 		return NULL;
+-	jindex = dump_index_json(cmd_read, size);
+-	if (!jindex)
+-		goto err_jindex;
+-	jlabel = dump_label_json(dimm, cmd_read, size, flags);
+-	if (!jlabel)
+-		goto err_jlabel;
  
--/**
-- * devm_memremap_pages - remap and provide memmap backing for the given resource
-- * @dev: hosting device for @res
-- * @pgmap: pointer to a struct dev_pagemap
-- *
-- * Notes:
-- * 1/ At a minimum the res and type members of @pgmap must be initialized
-- *    by the caller before passing it to this function
-- *
-- * 2/ The altmap field may optionally be initialized, in which case
-- *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
-- *
-- * 3/ The ref field may optionally be provided, in which pgmap->ref must be
-- *    'live' on entry and will be killed and reaped at
-- *    devm_memremap_pages_release() time, or if this routine fails.
-- *
-- * 4/ res is expected to be a host memory range that could feasibly be
-- *    treated as a "System RAM" range, i.e. not a device mmio range, but
-- *    this is not enforced.
-+/*
-+ * Not device managed version of dev_memremap_pages, undone by
-+ * memunmap_pages().  Please use dev_memremap_pages if you have a struct
-+ * device available.
-  */
--void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-+void *memremap_pages(struct dev_pagemap *pgmap, int nid)
- {
- 	struct resource *res = &pgmap->res;
- 	struct dev_pagemap *conflict_pgmap;
-@@ -174,7 +164,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		.altmap = pgmap_altmap(pgmap),
- 	};
- 	pgprot_t pgprot = PAGE_KERNEL;
--	int error, nid, is_ram;
-+	int error, is_ram;
- 	bool need_devmap_managed = true;
- 
- 	switch (pgmap->type) {
-@@ -229,7 +219,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 
- 	conflict_pgmap = get_dev_pagemap(PHYS_PFN(res->start), NULL);
- 	if (conflict_pgmap) {
--		dev_WARN(dev, "Conflicting mapping in same section\n");
-+		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
- 		error = -ENOMEM;
- 		goto err_array;
-@@ -237,7 +227,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 
- 	conflict_pgmap = get_dev_pagemap(PHYS_PFN(res->end), NULL);
- 	if (conflict_pgmap) {
--		dev_WARN(dev, "Conflicting mapping in same section\n");
-+		WARN(1, "Conflicting mapping in same section\n");
- 		put_dev_pagemap(conflict_pgmap);
- 		error = -ENOMEM;
- 		goto err_array;
-@@ -258,7 +248,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	if (error)
- 		goto err_array;
- 
--	nid = dev_to_node(dev);
- 	if (nid < 0)
- 		nid = numa_mem_id();
- 
-@@ -314,12 +303,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 				PHYS_PFN(res->start),
- 				PHYS_PFN(resource_size(res)), pgmap);
- 	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap) - pfn_first(pgmap));
+ 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
+ 	if (!jobj)
+-		goto err_jobj;
 -
--	error = devm_add_action_or_reset(dev, devm_memremap_pages_release,
--			pgmap);
--	if (error)
--		return ERR_PTR(error);
--
- 	return __va(res->start);
++		goto err;
+ 	json_object_object_add(jdimm, "dev", jobj);
++
++	jindex = dump_index_json(cmd_read, size);
++	if (!jindex)
++		goto err;
+ 	json_object_object_add(jdimm, "index", jindex);
++	if (param.index)
++		return jdimm;
++
++	jlabel = dump_label_json(dimm, cmd_read, size, flags);
++	if (!jlabel)
++		goto err;
+ 	json_object_object_add(jdimm, "label", jlabel);
+-	return jdimm;
  
-  err_add_memory:
-@@ -334,6 +317,43 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	devmap_managed_enable_put();
- 	return ERR_PTR(error);
+- err_jobj:
+-	json_object_put(jlabel);
+- err_jlabel:
+-	json_object_put(jindex);
+- err_jindex:
++	return jdimm;
++err:
+ 	json_object_put(jdimm);
+ 	return NULL;
  }
-+EXPORT_SYMBOL_GPL(memremap_pages);
-+
-+/**
-+ * devm_memremap_pages - remap and provide memmap backing for the given resource
-+ * @dev: hosting device for @res
-+ * @pgmap: pointer to a struct dev_pagemap
-+ *
-+ * Notes:
-+ * 1/ At a minimum the res and type members of @pgmap must be initialized
-+ *    by the caller before passing it to this function
-+ *
-+ * 2/ The altmap field may optionally be initialized, in which case
-+ *    PGMAP_ALTMAP_VALID must be set in pgmap->flags.
-+ *
-+ * 3/ The ref field may optionally be provided, in which pgmap->ref must be
-+ *    'live' on entry and will be killed and reaped at
-+ *    devm_memremap_pages_release() time, or if this routine fails.
-+ *
-+ * 4/ res is expected to be a host memory range that could feasibly be
-+ *    treated as a "System RAM" range, i.e. not a device mmio range, but
-+ *    this is not enforced.
-+ */
-+void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
-+{
-+	int error;
-+	void *ret;
-+
-+	ret = memremap_pages(pgmap, dev_to_node(dev));
-+	if (IS_ERR(ret))
-+		return ret;
-+
-+	error = devm_add_action_or_reset(dev, devm_memremap_pages_release,
-+			pgmap);
-+	if (error)
-+		return ERR_PTR(error);
-+	return ret;
-+}
- EXPORT_SYMBOL_GPL(devm_memremap_pages);
+@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
+ 	ssize_t size;
+ 	int rc = 0;
  
- void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap)
--- 
-2.20.1
+-	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
++	if (param.index)
++		cmd_read = ndctl_dimm_read_label_index(dimm);
++	else
++		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
++				param.offset);
+ 	if (!cmd_read)
+ 		return -EINVAL;
+ 
+@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
+ OPT_STRING('o', "output", &param.outfile, "output-file", \
+ 	"filename to write label area contents"), \
+ OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
+-OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
++OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
++OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
+ 
+ #define WRITE_OPTIONS() \
+ OPT_STRING('i', "input", &param.infile, "input-file", \
+@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
++	if (param.index && param.len) {
++		fprintf(stderr, "pick either --size, or --index, not both\n");
++		usage_with_options(u, options);
++		return -EINVAL;
++	}
++
+ 	if (json) {
+ 		actx.jdimms = json_object_new_array();
+ 		if (!actx.jdimms)
 
 _______________________________________________
 Linux-nvdimm mailing list
