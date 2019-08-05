@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0B66820212CA7
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:53 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 08/19] fuse: Keep a list of free dax memory ranges
-Date: Wed, 21 Aug 2019 13:57:09 -0400
-Message-Id: <20190821175720.25901-9-vgoyal@redhat.com>
-In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
-References: <20190821175720.25901-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 639E3213030A2
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 16:45:51 -0700 (PDT)
+Subject: [ndctl PATCH v4 2/7] ndctl/dimm: Minimize data-transfer for
+ init-labels
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 05 Aug 2019 16:28:53 -0700
+Message-ID: <156504773351.847544.8335116234672284361.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,218 +23,144 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: miklos@szeredi.hu, dgilbert@redhat.com, Peng Tao <tao.peng@linux.alibaba.com>, virtio-fs@redhat.com, stefanha@redhat.com
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Divide the dax memory range into fixed size ranges (2MB for now) and put
-them in a list. This will track free ranges. Once an inode requires a
-free range, we will take one from here and put it in interval-tree
-of ranges assigned to inode.
+Currently init-labels implementation reads the entire namespace-label
+capacity, initializes just the namespace index, and then writes the
+entire label capacity. It turns out that DIMM label-area access methods
+can be exceedingly slow.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
+For example, the time to read the entire label area on a single dimm:
+2s, but the time to just read the index block space: 45ms.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/fuse/fuse_i.h    | 23 ++++++++++++
- fs/fuse/inode.c     | 86 +++++++++++++++++++++++++++++++++++++++++++++
- fs/fuse/virtio_fs.c |  2 ++
- 3 files changed, 111 insertions(+)
+ ndctl/dimm.c           |    2 +-
+ ndctl/lib/dimm.c       |   53 +++++++++++++++++++++++++++++++++++++++++++++---
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h       |    1 +
+ 4 files changed, 53 insertions(+), 4 deletions(-)
 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 7b365a29b156..f1059b51c539 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -50,6 +50,10 @@
- /** Number of page pointers embedded in fuse_req */
- #define FUSE_REQ_INLINE_PAGES 1
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index db91f42421e4..d78e0dbc3ec6 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -982,7 +982,7 @@ static int __action_init(struct ndctl_dimm *dimm,
+ 	struct ndctl_cmd *cmd_read;
+ 	int rc;
  
-+/* Default memory range size, 2MB */
-+#define FUSE_DAX_MEM_RANGE_SZ	(2*1024*1024)
-+#define FUSE_DAX_MEM_RANGE_PAGES	(FUSE_DAX_MEM_RANGE_SZ/PAGE_SIZE)
-+
- /** List of active connections */
- extern struct list_head fuse_conn_list;
+-	cmd_read = ndctl_dimm_read_labels(dimm);
++	cmd_read = ndctl_dimm_read_label_index(dimm);
+ 	if (!cmd_read)
+ 		return -ENXIO;
  
-@@ -97,6 +101,18 @@ struct fuse_forget_link {
- 	struct fuse_forget_link *next;
- };
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 22cf4e10b56c..2b5b964fe03d 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -370,14 +370,15 @@ static struct namespace_label *label_base(struct nvdimm_data *ndd)
+ 	return (struct namespace_label *) base;
+ }
  
-+/** Translation information for file offsets to DAX window offsets */
-+struct fuse_dax_mapping {
-+	/* Will connect in fc->free_ranges to keep track of free memory */
-+	struct list_head list;
-+
-+	/** Position in DAX window */
-+	u64 window_offset;
-+
-+	/** Length of mapping, in bytes */
-+	loff_t length;
-+};
-+
- /** FUSE inode */
- struct fuse_inode {
- 	/** Inode data */
-@@ -838,6 +854,13 @@ struct fuse_conn {
+-static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read)
++static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read,
++		struct ndctl_cmd *cmd_size)
+ {
+ 	ndctl_cmd_unref(ndd->cmd_read);
+ 	memset(ndd, 0, sizeof(*ndd));
+ 	ndd->cmd_read = cmd_read;
+ 	ndctl_cmd_ref(cmd_read);
+ 	ndd->data = cmd_read->iter.total_buf;
+-	ndd->config_size = cmd_read->iter.total_xfer;
++	ndd->config_size = cmd_size->get_size->config_size;
+ 	ndd->ns_current = -1;
+ 	ndd->ns_next = -1;
+ }
+@@ -490,6 +491,52 @@ NDCTL_EXPORT int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm)
+ 	return label_validate(&dimm->ndd);
+ }
  
- 	/** DAX device, non-NULL if DAX is supported */
- 	struct dax_device *dax_dev;
++NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm)
++{
++        struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
++        struct ndctl_cmd *cmd_size, *cmd_read;
++	struct nvdimm_data *ndd = &dimm->ndd;
++        int rc;
 +
++        rc = ndctl_bus_wait_probe(bus);
++        if (rc < 0)
++                return NULL;
++
++        cmd_size = ndctl_dimm_cmd_new_cfg_size(dimm);
++        if (!cmd_size)
++                return NULL;
++        rc = ndctl_cmd_submit_xlat(cmd_size);
++        if (rc < 0)
++                goto out_size;
++
++        cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
++        if (!cmd_read)
++                goto out_size;
 +	/*
-+	 * DAX Window Free Ranges. TODO: This might not be best place to store
-+	 * this free list
++	 * To calc the namespace index size use the minimum label
++	 * size which corresponds to the maximum namespace index size.
 +	 */
-+	long nr_free_ranges;
-+	struct list_head free_ranges;
- };
- 
- static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 0f58107a8269..0af147c70558 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -22,6 +22,8 @@
- #include <linux/exportfs.h>
- #include <linux/posix_acl.h>
- #include <linux/pid_namespace.h>
-+#include <linux/dax.h>
-+#include <linux/pfn_t.h>
- 
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
- MODULE_DESCRIPTION("Filesystem in Userspace");
-@@ -598,6 +600,76 @@ static void fuse_pqueue_init(struct fuse_pqueue *fpq)
- 	fpq->connected = 1;
- }
- 
-+static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
-+{
-+	struct fuse_dax_mapping *range, *temp;
++	init_ndd(ndd, cmd_read, cmd_size);
++	ndd->nslabel_size = 128;
++	rc = ndctl_cmd_cfg_read_set_extent(cmd_read,
++			sizeof_namespace_index(ndd) * 2, 0);
++	if (rc < 0)
++		goto out_read;
 +
-+	/* Free All allocated elements */
-+	list_for_each_entry_safe(range, temp, mem_list, list) {
-+		list_del(&range->list);
-+		kfree(range);
-+	}
++        rc = ndctl_cmd_submit_xlat(cmd_read);
++        if (rc < 0)
++                goto out_read;
++	ndctl_cmd_unref(cmd_size);
++
++	return cmd_read;
++
++ out_read:
++        ndctl_cmd_unref(cmd_read);
++ out_size:
++        ndctl_cmd_unref(cmd_size);
++        return NULL;
 +}
 +
-+#ifdef CONFIG_FS_DAX
-+static int fuse_dax_mem_range_init(struct fuse_conn *fc,
-+				   struct dax_device *dax_dev)
-+{
-+	long nr_pages, nr_ranges;
-+	void *kaddr;
-+	pfn_t pfn;
-+	struct fuse_dax_mapping *range;
-+	LIST_HEAD(mem_ranges);
-+	phys_addr_t phys_addr;
-+	int ret = 0, id;
-+	size_t dax_size = -1;
-+	unsigned long i;
-+
-+	id = dax_read_lock();
-+	nr_pages = dax_direct_access(dax_dev, 0, PHYS_PFN(dax_size), &kaddr,
-+					&pfn);
-+	dax_read_unlock(id);
-+	if (nr_pages < 0) {
-+		pr_debug("dax_direct_access() returned %ld\n", nr_pages);
-+		return nr_pages;
-+	}
-+
-+	phys_addr = pfn_t_to_phys(pfn);
-+	nr_ranges = nr_pages/FUSE_DAX_MEM_RANGE_PAGES;
-+	printk("fuse_dax_mem_range_init(): dax mapped %ld pages. nr_ranges=%ld\n", nr_pages, nr_ranges);
-+
-+	for (i = 0; i < nr_ranges; i++) {
-+		range = kzalloc(sizeof(struct fuse_dax_mapping), GFP_KERNEL);
-+		if (!range) {
-+			pr_debug("memory allocation for mem_range failed.\n");
-+			ret = -ENOMEM;
-+			goto out_err;
-+		}
-+		/* TODO: This offset only works if virtio-fs driver is not
-+		 * having some memory hidden at the beginning. This needs
-+		 * better handling
-+		 */
-+		range->window_offset = i * FUSE_DAX_MEM_RANGE_SZ;
-+		range->length = FUSE_DAX_MEM_RANGE_SZ;
-+		list_add_tail(&range->list, &mem_ranges);
-+	}
-+
-+	list_replace_init(&mem_ranges, &fc->free_ranges);
-+	fc->nr_free_ranges = nr_ranges;
-+	return 0;
-+out_err:
-+	/* Free All allocated elements */
-+	fuse_free_dax_mem_ranges(&mem_ranges);
-+	return ret;
-+}
-+#else /* !CONFIG_FS_DAX */
-+static inline int fuse_dax_mem_range_init(struct fuse_conn *fc,
-+					  struct dax_device *dax_dev)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_FS_DAX */
-+
- void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 			struct dax_device *dax_dev,
- 			const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv)
-@@ -628,6 +700,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 	fc->dax_dev = dax_dev;
- 	fc->user_ns = get_user_ns(user_ns);
- 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
-+	INIT_LIST_HEAD(&fc->free_ranges);
- }
- EXPORT_SYMBOL_GPL(fuse_conn_init);
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+ {
+         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+@@ -515,7 +562,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+                 goto out_read;
+ 	ndctl_cmd_unref(cmd_size);
  
-@@ -636,6 +709,8 @@ void fuse_conn_put(struct fuse_conn *fc)
- 	if (refcount_dec_and_test(&fc->count)) {
- 		if (fc->destroy_req)
- 			fuse_request_free(fc->destroy_req);
-+		if (fc->dax_dev)
-+			fuse_free_dax_mem_ranges(&fc->free_ranges);
- 		put_pid_ns(fc->pid_ns);
- 		put_user_ns(fc->user_ns);
- 		fc->release(fc);
-@@ -1147,6 +1222,14 @@ int fuse_fill_super_common(struct super_block *sb,
- 		fc->release = fuse_free_conn;
- 	}
+-	init_ndd(&dimm->ndd, cmd_read);
++	init_ndd(&dimm->ndd, cmd_read, cmd_size);
  
-+	if (mount_data->dax_dev) {
-+		err = fuse_dax_mem_range_init(fc, mount_data->dax_dev);
-+		if (err) {
-+			pr_debug("fuse_dax_mem_range_init() returned %d\n", err);
-+			goto err_free_ranges;
-+		}
-+	}
-+
- 	fud = fuse_dev_alloc_install(fc);
- 	if (!fud)
- 		goto err_put_conn;
-@@ -1208,6 +1291,9 @@ int fuse_fill_super_common(struct super_block *sb,
- 	dput(root_dentry);
-  err_dev_free:
- 	fuse_dev_free(fud);
-+ err_free_ranges:
-+	if (mount_data->dax_dev)
-+		fuse_free_dax_mem_ranges(&fc->free_ranges);
-  err_put_conn:
- 	fuse_conn_put(fc);
- 	sb->s_fs_info = NULL;
-diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-index 32604722a7fb..9198c2b84677 100644
---- a/fs/fuse/virtio_fs.c
-+++ b/fs/fuse/virtio_fs.c
-@@ -453,6 +453,8 @@ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
- 	phys_addr_t offset = PFN_PHYS(pgoff);
- 	size_t max_nr_pages = fs->window_len/PAGE_SIZE - pgoff;
+ 	return cmd_read;
  
-+	pr_debug("virtio_fs_direct_access(): called. nr_pages=%ld max_nr_pages=%zu\n", nr_pages, max_nr_pages);
-+
- 	if (kaddr)
- 		*kaddr = fs->window_kaddr + offset;
- 	if (pfn)
--- 
-2.20.1
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 84359b97b793..648f83bced1b 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -415,4 +415,5 @@ global:
+ LIBNDCTL_21 {
+ 	ndctl_cmd_cfg_read_set_extent;
+ 	ndctl_cmd_cfg_write_set_extent;
++	ndctl_dimm_read_label_index;
+ } LIBNDCTL_20;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 310814fe924c..8aa4b8bbe6c2 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -308,6 +308,7 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
+ int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
+ struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
++struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
+ int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
+ enum ndctl_namespace_version {
+ 	NDCTL_NS_VERSION_1_1,
 
 _______________________________________________
 Linux-nvdimm mailing list
