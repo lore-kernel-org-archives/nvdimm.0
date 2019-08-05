@@ -1,22 +1,79 @@
-Return-Path: <owner-linux-mm@kvack.org>
-From: Christoph Hellwig <hch@lst.de>
-Subject: add a not device managed memremap_pages
-Date: Sun, 11 Aug 2019 10:12:42 +0200
-Message-Id: <20190811081247.22111-1-hch@lst.de>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C9E912131475F
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 12:53:06 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id s20so21252391otp.4
+ for <linux-nvdimm@lists.01.org>; Mon, 05 Aug 2019 12:50:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156479006802.707590.7623788701230232646.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x491rxzr1rq.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4jZVMFqd7G++vsOxCxPWp-bUUQ4KKAq0-oku0=hAE5zzA@mail.gmail.com>
+In-Reply-To: <CAPcyv4jZVMFqd7G++vsOxCxPWp-bUUQ4KKAq0-oku0=hAE5zzA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 5 Aug 2019 12:50:23 -0700
+Message-ID: <CAPcyv4jxgiJ7DD4ybgSsZ_anecv+4rHfYjYOvqzhQFDTufRrUA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 1/8] ndctl/build: Suppress
+ -Waddress-of-packed-member
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Dan and Jason,
-
-Bharata has been working on secure page management for kvmppc guests,
-and one I thing I noticed is that he had to fake up a struct device
-just so that it could be passed to the devm_memremap_pages
-instrastructure for device private memory.
-
-This series adds non-device managed versions of the
-devm_request_free_mem_region and devm_memremap_pages functions for
-his use case.
+T24gTW9uLCBBdWcgNSwgMjAxOSBhdCAxMDozNCBBTSBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
+YW1zQGludGVsLmNvbT4gd3JvdGU6Cj4KPiBPbiBNb24sIEF1ZyA1LCAyMDE5IGF0IDEwOjA2IEFN
+IEplZmYgTW95ZXIgPGptb3llckByZWRoYXQuY29tPiB3cm90ZToKPiA+Cj4gPiBEYW4gV2lsbGlh
+bXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4gd3JpdGVzOgo+ID4KPiA+ID4gZ2NjIDkuMS4x
+IGVtaXRzIGEgc2xldyBvZiB3YXJuaW5ncyBmb3IgbWFueSBvZiB0aGUgY29tbWFuZCBmaWVsZAo+
+ID4gPiBhY2Nlc3Nlcy4gSS5lLiB3YXJuaW5ncyBvZiB0aGUgZm9ybToKPiA+ID4KPiA+ID4gbGli
+bmRjdGwuYzoyNTg2OjIxOiB3YXJuaW5nOiB0YWtpbmcgYWRkcmVzcyBvZiBwYWNrZWQgbWVtYmVy
+IG9mIOKAmHN0cnVjdCBuZF9jbWRfZ2V0X2NvbmZpZ19kYXRhX2hkcuKAmSBtYXkgcmVzdWx0IGlu
+IGFuIHVuYWxpZ25lZCBwb2ludGVyIHZhbHVlIFstV2FkZHJlc3Mtb2YtcGFja2VkLW1lbWJlcl0K
+PiA+ID4gIDI1ODYgfCAgY21kLT5pdGVyLm9mZnNldCA9ICZjbWQtPmdldF9kYXRhLT5pbl9vZmZz
+ZXQ7Cj4gPiA+ICAgICAgIHwgICAgICAgICAgICAgICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+Cj4gPiA+Cj4gPiA+IFN1cHByZXNzIHRoZXNlIGFzIGZpeGluZyB0aGUgd2FybmluZyB3
+b3VsZCBkZWZlYXQgdGhlIGFic3RyYWN0aW9uIG9mIGJlaW5nIGFibGUKPiA+ID4gdG8gaGF2ZSBj
+b21tb24gY29kZSB0aGF0IG9wZXJhdGVzIG9uIGNvbW1hbmRzIHdpdGggY29tbW9uIGZpZWxkcyBh
+dCBkaWZmZXJlbnQKPiA+ID4gb2Zmc2V0cyBpbiB0aGUgcGF5bG9hZC4KPiA+Cj4gPiBBcyBJIHVu
+ZGVyc3RhbmQgaXQsIHRha2luZyBhIHBvaW50ZXIgdG8gdGhpcyBwb3RlbnRpYWxseSB1bmFsaWdu
+ZWQKPiA+IG1lbWJlciBjYW4gcmVzdWx0IGluIGJ1cyBlcnJvcnMgKG9yIHdvcnNlLCBhY2Nlc3Np
+bmcgd3JvbmcgZGF0YSkgb24KPiA+IGFyY2hpdGVjdHVyZXMgdGhhdCBkb24ndCBzdXBwb3J0IHVu
+YWxpZ25lZCBhY2Nlc3Nlcy4gIEknZCBiZSBhIHdob2xlIGxvdAo+ID4gaGFwcGllciB3aXRoIHRo
+aXMgY2hhbmdlbG9nIGlmIGl0IG1lbnRpb25lZCB0aGF0IHlvdSBoYWQgY29uc2lkZXJlZCB3aGF0
+Cj4gPiB0aGUgd2FybmluZyBhY3R1YWxseSBtZWFudCwgYW5kIGRlY2lkZWQgaXQgZGlkbid0IG1h
+dHRlciBmb3IgdGhlCj4gPiBhcmNoaXRlY3R1cmVzIHlvdSB3YW50IHRvIHN1cHBvcnQuCj4KPiBU
+cnVlLCBpdCB3YXMgYSBmbGVldGluZyB0aG91Z2h0LCBidXQgbm90IHNvbWV0aGluZyBJIGNvbnNp
+ZGVyZWQKPiBmbGVzaGluZyBvdXQuLi4gSSdsbCBzZW5kIGEgcmV2aXNpb24uCj4KPiA+Cj4gPiB4
+ODYgaXMsIG9mIGNvdXJzZSwgc2FmZS4gIEkgYmVsaWV2ZSBhYXJjaDY0IGlzLCBhcyB3ZWxsLiAg
+SSBkaWRuJ3QgbG9vawo+ID4gaW50byBvdGhlcnMuCj4gPgo+Cj4gS2VlcCBpbiBtaW5kIHRoYXQg
+dGhpcyBjb2RlIGlzIGZvciBpbnRlcmZhY2luZyB3aXRoIHRoZSBBQ1BJIERTTSBwYXRoLgo+IElm
+IGFuIHVuYWxpZ25lZC1pbmNhcGFibGUgYXJjaGl0ZWN0dXJlIGRlZmluZWQgYW4gTlZESU1NIGNv
+bW1hbmQgc2V0Cj4gaXQgaXMgaGlnaGx5IHVubGlrZWx5IGl0IHdvdWxkIGJlIEFDUEkgYmFzZWQs
+IG9yIHBpY2sgdGhlc2UKPiBwcm9ibGVtYXRpYyBjb21tYW5kIGZvcm1hdHMuIEkgY2FuIGFkZCB0
+aGVzZSBub3RlcyB0byB0aGUgY2hhbmdlbG9nLAo+IGJ1dCB0aGUgdW5mb3J0dW5hdGUgZGVmaW5p
+dGlvbiBvZiB0aGVzZSBwYXlsb2FkcyB0aGF0IHJlcXVpcmUgX19wYWNrZWQKPiBpcyBzb21ldGhp
+bmcgSSBob3BlIG90aGVyIGFyY2hpdGVjdHVyZXMgYXZvaWQuCgouLi5hbmQgaXQgdHVybnMgb3V0
+IHRoaXMgaXMgd3JvbmcgYmVjYXVzZSB3ZSBoYXZlIHRoZSBkZWZhdWx0IGlvY3Rscwp0aGF0IGFs
+c28gdXNlIHRoZXNlIHBhY2tlZCBzdHJ1Y3R1cmVzCgogICAgICAgIE5EX0NNRF9BUlNfQ0FQID0g
+MSwKICAgICAgICBORF9DTURfQVJTX1NUQVJUID0gMiwKICAgICAgICBORF9DTURfQVJTX1NUQVRV
+UyA9IDMsCiAgICAgICAgTkRfQ01EX0NMRUFSX0VSUk9SID0gNCwKCiAgICAgICAgTkRfQ01EX1NN
+QVJUID0gMSwKICAgICAgICBORF9DTURfU01BUlRfVEhSRVNIT0xEID0gMiwKICAgICAgICBORF9D
+TURfRElNTV9GTEFHUyA9IDMsCiAgICAgICAgTkRfQ01EX0dFVF9DT05GSUdfU0laRSA9IDQsCiAg
+ICAgICAgTkRfQ01EX0dFVF9DT05GSUdfREFUQSA9IDUsCiAgICAgICAgTkRfQ01EX1NFVF9DT05G
+SUdfREFUQSA9IDYsCiAgICAgICAgTkRfQ01EX1ZFTkRPUiA9IDksCgpJJ2xsIHRha2UgYSBsb29r
+IGF0IHJld29ya2luZyB0aGlzLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4w
+MS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
