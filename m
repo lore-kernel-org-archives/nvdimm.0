@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DEDEB21324661
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:25:51 -0700 (PDT)
-Subject: [ndctl PATCH v5 0/7] Improvements for namespace creation/interrogation
+ by ml01.01.org (Postfix) with ESMTPS id B2B9B213030A2
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 16:45:30 -0700 (PDT)
+Subject: [ndctl PATCH v4 0/7] Improvements for namespace creation/interrogation
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 17:09:03 -0700
-Message-ID: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 05 Aug 2019 16:28:41 -0700
+Message-ID: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,9 +23,17 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v4:
-- One more static analysis fixup, this time in "ndctl/dimm: Add offset
-  and size options to {read,write,zero}-labels".
+Changes since v3 [1]:
+- Drop the warning suppression for gcc9.1.1 the complains about taking
+  the address of packed structure members. This needs a rethink since
+  even the kernel's common ioctl payloads are defined to be packed. This
+  will require something like the kernel's (get_unaligned()) helpers.
+  (Jeff)
+
+- Fix up a static analysis report introduced by "ndctl/dimm: Minimize
+  data-transfer for init-labels"
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2019-August/022869.html
 
 ---
 
