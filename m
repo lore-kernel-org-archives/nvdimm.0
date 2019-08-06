@@ -1,11 +1,12 @@
-From: "Hope" <info-hrn/2oqy+kZhl2p70BpVqQ@public.gmane.org>
-Subject: The second half of
-Date: Tue, 6 Aug 2019 06:36:00 +0300
-Message-ID: <8a470ea251a882811d18ae02edb993b066b6c5@zbtc.info>
+From: <hxlvsgvrgco-Ax5MxKoT+Wei1XqelY4jhUEOCMrvLtNR@public.gmane.org>
+Subject: I am lonely and I crave love and passion.
+Date: 6 Aug 2019 17:12:37 +0300
+Message-ID: <004501d54c65$033574a4$ebf47c83$@corp.classmates.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,15 +19,17 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-WW91IGdvdCA1MCBuZXcgbWVzc2FnZXMgYXQgTGFkYURhdGUuCgpIb3BlLCAyMwoKRGVhciBncmFk
-aWwhISBoZWxsbyEgSSBvZnRlbiBhc2sgbXlzZWxmIHRoZSBxdWVzdGlvbiAtd2hhdCBpcyBoYXBw
-aW5lc3M/IEhhcHBpbmVzcyBmb3IgbWUgaXMgdG8gYmUgbG92ZWQgYW5kIGhlYWx0aHkuIFdoYXQg
-ZG8gaSBsaWtlIG1vc3QgaW4gdGhlIHdvcmxkPyBJIGxpa2UgdG8gc2VlIHRoZSBzdW4gcmlzaW5n
-IGluIHRoZSBtb3JuaW5nIGFuZCBnaXZpbmcgbWUgYSBob3BlIGZvciB0aGUgZGEgLi4uCgpSZWFk
-IG1lc3NhZ2UKClRoaXMgbWVzc2FnZSBjb250YWluIGxpbmsgdG8geW91ciBwZXJzb25hbCBwYWdl
-IG9uIExhZGFEYXRlLgoKSGF2ZSBhIG5pY2UgZGF5LApMYWRhRGF0ZSBUZWFtCgpJZiB5b3Ugd291
-bGQgbGlrZSB0byByZWNpZXZlIG5ldyBtZXNzYWdlIG5vdGlmeSBwbGVhc2UgYWRkwqBpbmZvQHpi
-dGMuaW5mbyB0byB5b3VyIGNvbnRhY3QgbGlzdC4KClRvIExpc3QtdW5zdWJzY3JpYmUgY2xpY2sg
-aGVyZS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
-bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Hello!
+
+I'm a modest girl and do not know what to write, but for the sake of happiness, i need to overcome my fears. 
+
+My name is Lola, i am 30 years old now. 
+We live in the modern world and many people love to look for a soul mate over the Internet.
+I consider myself as a determined, honest, cheerful.
+
+Most importantly is the fact that my heart is open for love!
+In the next letter I will be able to tell you more about me and of course will send my photos.
+
+If you are interested, please write to my personal e-mail - beautekitty88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+Lola.
