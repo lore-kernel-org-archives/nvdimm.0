@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 42FC32020D322
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:49 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 19/19] fuse: Take inode lock for dax inode truncation
-Date: Wed, 21 Aug 2019 13:57:20 -0400
-Message-Id: <20190821175720.25901-20-vgoyal@redhat.com>
-In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
-References: <20190821175720.25901-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 5CBB72132996A
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:20 -0700 (PDT)
+Subject: [ndctl PATCH v5 5/7] ndctl/namespace: Minimize label data transfer
+ for autolabel
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 05 Aug 2019 17:09:29 -0700
+Message-ID: <156505016983.848599.11002390849262331259.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,44 +23,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: virtio-fs@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a file is opened with O_TRUNC, we need to make sure that any other
-DAX operation is not in progress. DAX expects i_size to be stable.
+Use the new ndctl_dimm_read_label_index() helper to minimize the amount
+of label I/O needed to execute an autolabel event.
 
-In fuse_iomap_begin() we check for i_size at multiple places and we expect
-i_size to not change.
-
-Another problem is, if we setup a mapping in fuse_iomap_begin(), and
-file gets truncated and dax read/write happens, KVM currently hangs.
-It tries to fault in a page which does not exist on host (file got
-truncated). It probably requries fixing in KVM.
-
-So for now, take inode lock. Once KVM is fixed, we might have to
-have a look at it again.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/fuse/file.c | 2 +-
+ ndctl/namespace.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index e369a1f92d85..794c55131bd0 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -524,7 +524,7 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
- 	int err;
- 	bool lock_inode = (file->f_flags & O_TRUNC) &&
- 			  fc->atomic_o_trunc &&
--			  fc->writeback_cache;
-+			  (fc->writeback_cache || IS_DAX(inode));
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index a654460ce4c5..26d03358c80d 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -997,7 +997,7 @@ retry:
+ 		int num_labels, avail;
  
- 	err = generic_file_open(inode, file);
- 	if (err)
--- 
-2.20.1
+ 		ndctl_cmd_unref(cmd_read);
+-		cmd_read = ndctl_dimm_read_labels(dimm);
++		cmd_read = ndctl_dimm_read_label_index(dimm);
+ 		if (!cmd_read)
+ 			continue;
+ 
 
 _______________________________________________
 Linux-nvdimm mailing list
