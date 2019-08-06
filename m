@@ -1,16 +1,34 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 27A3520212CA8
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:49 -0700 (PDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 18/19] fuse: Release file in process context
-Date: Wed, 21 Aug 2019 13:57:19 -0400
-Message-Id: <20190821175720.25901-19-vgoyal@redhat.com>
-In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
-References: <20190821175720.25901-1-vgoyal@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id D5D692130A4E5
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 22:08:26 -0700 (PDT)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x7652UK1147354
+ for <linux-nvdimm@lists.01.org>; Tue, 6 Aug 2019 01:05:56 -0400
+Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2u730t881d-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Aug 2019 01:05:55 -0400
+Received: from localhost
+ by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+ Tue, 6 Aug 2019 06:05:53 +0100
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: Re: [PATCH] ndctl,
+ check: Ensure mmap of BTT sections work with 64K page-size
+In-Reply-To: <2cc108a1f65fb008670c272473df40e51e97b9ad.camel@intel.com>
+References: <20190704025143.22856-1-vaibhav@linux.ibm.com>
+ <b01607421be5f487662e973c30967a0bf8a8389d.camel@intel.com>
+ <878ss721yq.fsf@vajain21.in.ibm.com>
+ <2cc108a1f65fb008670c272473df40e51e97b9ad.camel@intel.com>
+Date: Tue, 06 Aug 2019 10:35:47 +0530
 MIME-Version: 1.0
+Message-Id: <875zna289g.fsf@vajain21.in.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,68 +40,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: virtio-fs@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "harish@linux.ibm.com" <harish@linux.ibm.com>, "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-fuse_file_put(sync) can be called with sync=true/false. If sync=true,
-it waits for release request response and then calls iput() in the
-caller's context. If sync=false, it does not wait for release request
-response, frees the fuse_file struct immediately and req->end function
-does the iput().
+"Verma, Vishal L" <vishal.l.verma@intel.com> writes:
 
-iput() can be a problem with DAX if called in req->end context. If this
-is last reference to inode (VFS has let go its reference already), then
-iput() will clean DAX mappings as well and send REMOVEMAPPING requests
-and wait for completion. (All the the worker thread context which is
-processing fuse replies from daemon on the host).
+> On Mon, 2019-08-05 at 18:39 +0530, Vaibhav Jain wrote:
+>> Thanks for reviewing this patch Vishal. I have prepped a v2 adressing
+>> all your review comments with one exception below:
+>
+> No problem, thanks for fixing this.
+>
+>> 
+>> "Verma, Vishal L" <vishal.l.verma@intel.com> writes:
+>> 
+>> > On Thu, 2019-07-04 at 08:21 +0530, Vaibhav Jain wrote:
+>> > > 
+>> > 
+>> > > +	if (addr != MAP_FAILED)
+>> > > +		addr = (void *) ((uintptr_t)addr + shift);
+>> > 
+>> > The (uintptr_t) cast should be ok to drop, for v66 we are removing
+>> > the
+>> > pointer arithmatic warning:
+>> > https://patchwork.kernel.org/patch/11062697/
+>> > 
+>> > In fact, since 'shift' is in bytes, isn't an unsigned int cast
+>> > actually *wrong*?
+>> Not sure if I understand your review comment correctly. With uintptr_t
+>> cast and 'shift' in bytes, addr will be assigned 'addr + shift'
+>> instead
+>> of 'addr + shift * sizeof (unsigned int)'
+>> 
+>> So I think the arithmetic I am doing here is correct.
+>> 
+> Yes you're right - I conflated a (uintptr_t) cast with an (unsigned int)
+> cast. The latter would actually be wrong, but I see now that uintptr_t
+> is correct. However, given the above patch where we drop the pointer
+> arithmetic warning, I think it should be OK to manipulate the void
+> pointer directly, and this makes the line cleaner and more concise.
+>
+> Thanks,
+> 	-Vishal
 
-That means it blocks worker thread and it stops processing further
-replies and system deadlocks.
+Sure agreed. I have sent out a v2 patch titled "[PATCH v2] ndctl, check:
+Ensure mmap of BTT sections work with 64K page-sizes" with the changes.
 
-So for now, force sync release of file in case of DAX inodes.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/fuse/file.c | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
-
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 2ff7624d58c0..e369a1f92d85 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -579,6 +579,7 @@ void fuse_release_common(struct file *file, bool isdir)
- 	struct fuse_file *ff = file->private_data;
- 	struct fuse_req *req = ff->reserved_req;
- 	int opcode = isdir ? FUSE_RELEASEDIR : FUSE_RELEASE;
-+	bool sync = false;
- 
- 	fuse_prepare_release(fi, ff, file->f_flags, opcode);
- 
-@@ -599,8 +600,20 @@ void fuse_release_common(struct file *file, bool isdir)
- 	 * Make the release synchronous if this is a fuseblk mount,
- 	 * synchronous RELEASE is allowed (and desirable) in this case
- 	 * because the server can be trusted not to screw up.
-+	 *
-+	 * For DAX, fuse server is trusted. So it should be fine to
-+	 * do a sync file put. Doing async file put is creating
-+	 * problems right now because when request finish, iput()
-+	 * can lead to freeing of inode. That means it tears down
-+	 * mappings backing DAX memory and sends REMOVEMAPPING message
-+	 * to server and blocks for completion. Currently, waiting
-+	 * in req->end context deadlocks the system as same worker thread
-+	 * can't process REMOVEMAPPING reply it is waiting for.
- 	 */
--	fuse_file_put(ff, ff->fc->destroy_req != NULL, isdir);
-+	if (IS_DAX(req->misc.release.inode) || ff->fc->destroy_req != NULL)
-+		sync = true;
-+
-+	fuse_file_put(ff, sync, isdir);
- }
- 
- static int fuse_open(struct inode *inode, struct file *file)
+Thanks,
 -- 
-2.20.1
+Vaibhav Jain <vaibhav@linux.ibm.com>
+Linux Technology Center, IBM India Pvt. Ltd.
 
 _______________________________________________
 Linux-nvdimm mailing list
