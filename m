@@ -1,16 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 34F10212FD417
- for <linux-nvdimm@lists.01.org>; Wed,  7 Aug 2019 10:59:41 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: [ANNOUNCE] ndctl v66
-Date: Wed, 7 Aug 2019 17:57:06 +0000
-Message-ID: <1453308d3f525269a42b6e070af712b6e4515c9c.camel@intel.com>
-Content-Language: en-US
-Content-ID: <FCC5837CB78DE04EB1C34377F5C1011C@intel.com>
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id 86DC12130C4B9
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Aug 2019 10:28:26 -0700 (PDT)
+From: Jane Chu <jane.chu@oracle.com>
+Subject: [PATCH v4 0/2] mm/memory-failure: Poison read receives SIGKILL
+ instead of SIGBUS issue
+Date: Tue,  6 Aug 2019 11:25:43 -0600
+Message-Id: <1565112345-28754-1-git-send-email-jane.chu@oracle.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,67 +16,42 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Pathi, Pragyansri" <pragyansri.pathi@intel.com>, Kasten,
+To: n-horiguchi@ah.jp.nec.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This release incorporates functionality up to the 5.3 kernel, and adds a
-number of bug fixes, and improvements.
+Change in v4:
+ - remove trailing white space
 
-Highlights include a new command to reconfigure dax devices to
-different modes (devdax - default, and system-ram - to hotplug the dax
-device as system memory), improvements to ndctl-{read,write,init}-labels
-allowing smaller sized reads/writes, usability fixes to ndctl-monitor,
-and ndctl-create-namespace, and a fix to ndctl-check-namespace allowing
-it to be used on systems with different page sizes.
+Changes in v3:
+ - move **tk cleanup to its own patch
 
-Shortlog for this release:
+Changes in v2:
+ - move 'tk' allocations internal to add_to_kill(), suggested by Dan;
+ - ran checkpatch.pl check, pointed out by Matthew;
+ - Noaya pointed out that v1 would have missed the SIGKILL
+   if "tk->addr == -EFAULT", since the code returns early.
+   Incorporated Noaya's suggestion, also, skip VMAs where
+   "tk->size_shift == 0" for zone device page, and deliver SIGBUS
+   when "tk->size_shift != 0" so the payload is helpful;
+ - added Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 
-Alison Schofield (2):
-      ndctl, test: handle backup_keys in security.sh
-      ndctl, test: move security.sh to the destructive test list
+Jane Chu (2):
+  mm/memory-failure.c clean up around tk pre-allocation
+  mm/memory-failure: Poison read receives SIGKILL instead of SIGBUS if
+    mmaped more than once
 
-Dan Williams (14):
-      ndctl/dimm: Add 'flags' field to read-labels output
-      ndctl/dimm: Add --human support to read-labels
-      ndctl/build: Drop -Wpointer-arith
-      ndctl/namespace: Handle 'create-namespace' in label-less mode
-      ndctl/dimm: Fix init-labels success reporting
-      ndctl/test: Fix device-dax bus-model detection
-      ndctl/monitor: Allow monitor to be manually moved to the background
-      ndctl/dimm: Support small label reads/writes
-      ndctl/dimm: Minimize data-transfer for init-labels
-      ndctl/dimm: Add offset and size options to {read, write, zero}-labels
-      ndctl/dimm: Limit read-labels with --index option
-      ndctl/namespace: Minimize label data transfer for autolabel
-      ndctl/namespace: Continue region search on 'missing seed' event
-      ndctl/namespace: Report ENOSPC when regions are full
+ mm/memory-failure.c | 62 ++++++++++++++++++++++-------------------------------
+ 1 file changed, 26 insertions(+), 36 deletions(-)
 
-Vaibhav Jain (1):
-      ndctl, check: Ensure mmap of BTT sections work with 64K page-sizes
+-- 
+1.8.3.1
 
-Vishal Verma (17):
-      libndctl/inject: Refuse error injection for BTT namespaces
-      Documentation/ndctl: fix a typo in ndctl(1)
-      ndctl/monitor: make the daemon exit message 'info' level
-      libdaxctl: add interfaces to get ctx and check device state
-      libdaxctl: add interfaces to enable/disable devices
-      libdaxctl: add an interface to retrieve the device resource
-      libdaxctl: add a 'daxctl_memory' object for memory based operations
-      daxctl/list: add target_node for device listings
-      daxctl/list: display the mode for a dax device
-      daxctl: add a new reconfigure-device command
-      Documentation/daxctl: add a man page for daxctl-reconfigure-device
-      daxctl: add commands to online and offline memory
-      Documentation: Add man pages for daxctl-{on,off}line-memory
-      contrib/ndctl: fix region-id completions for daxctl
-      contrib/ndctl: add bash-completion for the new daxctl commands
-      test: Add a unit test for daxctl-reconfigure-device and friends
-      ndctl: release v66
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
