@@ -1,7 +1,7 @@
-From: <info-6+cxw9urV81tHqvpvo+IS7NAH6kLmebB@public.gmane.org>
-Subject: I need someone who can love and appreciate me.
-Date: 6 Aug 2019 00:33:15 -0600
-Message-ID: <267846381C1806623C027C585C422678@HUPCJGH>
+From: <steven7001-wQMgFrZCKUUS+FvcfC7Uqw@public.gmane.org>
+Subject: The world is full of love, I want to know this feeling!
+Date: 6 Aug 2019 07:19:17 -0400
+Message-ID: <003e01d54c4b$05d01035$403d24b2@qoeqqv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -29,6 +29,6 @@ I consider myself as a determined, honest, cheerful.
 Most importantly is the fact that my heart is open for love!
 In the next letter I will be able to tell you more about me and of course will send my photos.
 
-If you are interested, please write to my personal e-mail - prettyykz88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+If you are interested, please write to my personal e-mail - beautekitty88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
 Lola.
