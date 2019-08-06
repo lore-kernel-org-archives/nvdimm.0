@@ -1,12 +1,11 @@
-From: <hxlvsgvrgco-Ax5MxKoT+Wei1XqelY4jhUEOCMrvLtNR@public.gmane.org>
-Subject: I am lonely and I crave love and passion.
-Date: 6 Aug 2019 17:12:37 +0300
-Message-ID: <004501d54c65$033574a4$ebf47c83$@corp.classmates.com>
+From: <info-6+cxw9urV81tHqvpvo+IS7NAH6kLmebB@public.gmane.org>
+Subject: I need someone who can love and appreciate me.
+Date: 6 Aug 2019 00:33:15 -0600
+Message-ID: <267846381C1806623C027C585C422678@HUPCJGH>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -30,6 +29,6 @@ I consider myself as a determined, honest, cheerful.
 Most importantly is the fact that my heart is open for love!
 In the next letter I will be able to tell you more about me and of course will send my photos.
 
-If you are interested, please write to my personal e-mail - beautekitty88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+If you are interested, please write to my personal e-mail - prettyykz88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
 Lola.
