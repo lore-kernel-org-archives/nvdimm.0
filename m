@@ -1,15 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 20F5A2021B711
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 17:19:41 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 2/3] Documentation: clarify bus/dimm/region filtering
-Date: Wed, 28 Aug 2019 18:17:34 -0600
-Message-Id: <20190829001735.30289-3-vishal.l.verma@intel.com>
-In-Reply-To: <20190829001735.30289-1-vishal.l.verma@intel.com>
-References: <20190829001735.30289-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 9EF8A2132996B
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:02 -0700 (PDT)
+Subject: [ndctl PATCH v5 2/7] ndctl/dimm: Minimize data-transfer for
+ init-labels
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 05 Aug 2019 17:09:14 -0700
+Message-ID: <156505015445.848599.1999652694513388392.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,66 +24,143 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Steve Scargall <steve.scargall@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Reword the option descriptions in xable-{bus,dimm,region}-options.txt to
-clarify that the options are a filtering restriction rather than a
-directive to perform an action on the supplied objects, especially in
-case of the 'all' keyword.
+Currently init-labels implementation reads the entire namespace-label
+capacity, initializes just the namespace index, and then writes the
+entire label capacity. It turns out that DIMM label-area access methods
+can be exceedingly slow.
 
-Link: https://github.com/pmem/ndctl/issues/106
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Steve Scargal <steve.scargall@intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+For example, the time to read the entire label area on a single dimm:
+2s, but the time to just read the index block space: 45ms.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ndctl/xable-bus-options.txt    | 7 ++++---
- Documentation/ndctl/xable-dimm-options.txt   | 7 ++++---
- Documentation/ndctl/xable-region-options.txt | 7 ++++---
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ ndctl/dimm.c           |    2 +-
+ ndctl/lib/dimm.c       |   53 +++++++++++++++++++++++++++++++++++++++++++++---
+ ndctl/lib/libndctl.sym |    1 +
+ ndctl/libndctl.h       |    1 +
+ 4 files changed, 53 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/ndctl/xable-bus-options.txt b/Documentation/ndctl/xable-bus-options.txt
-index 8813113..6e0435a 100644
---- a/Documentation/ndctl/xable-bus-options.txt
-+++ b/Documentation/ndctl/xable-bus-options.txt
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--Enforce that the operation only be carried on devices that are
--attached to the given bus. Where 'bus' can be a provider name or a bus
--id number.
-+A bus id number, or a provider string (e.g. "ACPI.NFIT"). Restrict the
-+operation to the specified bus(es). The keyword 'all' can be specified
-+to indicate the lack of any restriction, however this is the same as
-+not supplying a --bus option at all.
-diff --git a/Documentation/ndctl/xable-dimm-options.txt b/Documentation/ndctl/xable-dimm-options.txt
-index 8826c2b..c5b9c8c 100644
---- a/Documentation/ndctl/xable-dimm-options.txt
-+++ b/Documentation/ndctl/xable-dimm-options.txt
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--A 'nmemX' device name, or a dimm id number. The keyword 'all' can
--be specified to carry out the operation on every dimm in the system,
--optionally filtered by bus id (see --bus= option).
-+A 'nmemX' device name, or a dimm id number. Restrict the operation to
-+the specified dimm(s). The keyword 'all' can be specified to indicate
-+the lack of any restriction, however this is the same as not supplying
-+a --dimm option at all.
-diff --git a/Documentation/ndctl/xable-region-options.txt b/Documentation/ndctl/xable-region-options.txt
-index d5198f5..e098684 100644
---- a/Documentation/ndctl/xable-region-options.txt
-+++ b/Documentation/ndctl/xable-region-options.txt
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
--A 'regionX' device name, or a region id number. The keyword 'all' can
--be specified to carry out the operation on every region in the system,
--optionally filtered by bus id (see --bus= option).
-+A 'regionX' device name, or a region id number. Restrict the operation to
-+the specified region(s). The keyword 'all' can be specified to indicate
-+the lack of any restriction, however this is the same as not supplying a
-+--region option at all.
--- 
-2.20.1
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index db91f42421e4..d78e0dbc3ec6 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -982,7 +982,7 @@ static int __action_init(struct ndctl_dimm *dimm,
+ 	struct ndctl_cmd *cmd_read;
+ 	int rc;
+ 
+-	cmd_read = ndctl_dimm_read_labels(dimm);
++	cmd_read = ndctl_dimm_read_label_index(dimm);
+ 	if (!cmd_read)
+ 		return -ENXIO;
+ 
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index 22cf4e10b56c..2b5b964fe03d 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -370,14 +370,15 @@ static struct namespace_label *label_base(struct nvdimm_data *ndd)
+ 	return (struct namespace_label *) base;
+ }
+ 
+-static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read)
++static void init_ndd(struct nvdimm_data *ndd, struct ndctl_cmd *cmd_read,
++		struct ndctl_cmd *cmd_size)
+ {
+ 	ndctl_cmd_unref(ndd->cmd_read);
+ 	memset(ndd, 0, sizeof(*ndd));
+ 	ndd->cmd_read = cmd_read;
+ 	ndctl_cmd_ref(cmd_read);
+ 	ndd->data = cmd_read->iter.total_buf;
+-	ndd->config_size = cmd_read->iter.total_xfer;
++	ndd->config_size = cmd_size->get_size->config_size;
+ 	ndd->ns_current = -1;
+ 	ndd->ns_next = -1;
+ }
+@@ -490,6 +491,52 @@ NDCTL_EXPORT int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm)
+ 	return label_validate(&dimm->ndd);
+ }
+ 
++NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm)
++{
++        struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
++        struct ndctl_cmd *cmd_size, *cmd_read;
++	struct nvdimm_data *ndd = &dimm->ndd;
++        int rc;
++
++        rc = ndctl_bus_wait_probe(bus);
++        if (rc < 0)
++                return NULL;
++
++        cmd_size = ndctl_dimm_cmd_new_cfg_size(dimm);
++        if (!cmd_size)
++                return NULL;
++        rc = ndctl_cmd_submit_xlat(cmd_size);
++        if (rc < 0)
++                goto out_size;
++
++        cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
++        if (!cmd_read)
++                goto out_size;
++	/*
++	 * To calc the namespace index size use the minimum label
++	 * size which corresponds to the maximum namespace index size.
++	 */
++	init_ndd(ndd, cmd_read, cmd_size);
++	ndd->nslabel_size = 128;
++	rc = ndctl_cmd_cfg_read_set_extent(cmd_read,
++			sizeof_namespace_index(ndd) * 2, 0);
++	if (rc < 0)
++		goto out_read;
++
++        rc = ndctl_cmd_submit_xlat(cmd_read);
++        if (rc < 0)
++                goto out_read;
++	ndctl_cmd_unref(cmd_size);
++
++	return cmd_read;
++
++ out_read:
++        ndctl_cmd_unref(cmd_read);
++ out_size:
++        ndctl_cmd_unref(cmd_size);
++        return NULL;
++}
++
+ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+ {
+         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+@@ -515,7 +562,7 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
+                 goto out_read;
+ 	ndctl_cmd_unref(cmd_size);
+ 
+-	init_ndd(&dimm->ndd, cmd_read);
++	init_ndd(&dimm->ndd, cmd_read, cmd_size);
+ 
+ 	return cmd_read;
+ 
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 84359b97b793..648f83bced1b 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -415,4 +415,5 @@ global:
+ LIBNDCTL_21 {
+ 	ndctl_cmd_cfg_read_set_extent;
+ 	ndctl_cmd_cfg_write_set_extent;
++	ndctl_dimm_read_label_index;
+ } LIBNDCTL_20;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 310814fe924c..8aa4b8bbe6c2 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -308,6 +308,7 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
+ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
+ int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
+ struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
++struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
+ int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
+ enum ndctl_namespace_version {
+ 	NDCTL_NS_VERSION_1_1,
 
 _______________________________________________
 Linux-nvdimm mailing list
