@@ -1,7 +1,7 @@
-From: =?utf-8?B?6YKT5aWz5aOr?= <apobl-2tSv2KvMkrU@public.gmane.org>
-Subject: =?utf-8?B?5Zue5aSN77ya5Lit6auY5bGC57uP55CG5YWo6Z2i566h55CG5oqA6IO95o+Q5Y2H?=
-Date: Tue, 6 Aug 2019 00:26:43 +0800
-Message-ID: <65F2FB34AD61496AA9D516EB8C7E2BB1@gozq.com>
+From: "Hope" <info-hrn/2oqy+kZhl2p70BpVqQ@public.gmane.org>
+Subject: The second half of
+Date: Tue, 6 Aug 2019 06:36:00 +0300
+Message-ID: <8a470ea251a882811d18ae02edb993b066b6c5@zbtc.info>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -18,9 +18,15 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-LS0tLS0tLS0g6L2s5Y+R6YKu5Lu25L+h5oGvIC0tLS0tLS0tDQrlj5Hku7bkurrvvJphcG9ibEBn
-b3pxLmNvbQ0K5Y+R6YCB5pel5pyf77yaMjAxOS04LTYgIDA6MjY6MzUNCuaUtuS7tuS6uu+8mmxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+WW91IGdvdCA1MCBuZXcgbWVzc2FnZXMgYXQgTGFkYURhdGUuCgpIb3BlLCAyMwoKRGVhciBncmFk
+aWwhISBoZWxsbyEgSSBvZnRlbiBhc2sgbXlzZWxmIHRoZSBxdWVzdGlvbiAtd2hhdCBpcyBoYXBw
+aW5lc3M/IEhhcHBpbmVzcyBmb3IgbWUgaXMgdG8gYmUgbG92ZWQgYW5kIGhlYWx0aHkuIFdoYXQg
+ZG8gaSBsaWtlIG1vc3QgaW4gdGhlIHdvcmxkPyBJIGxpa2UgdG8gc2VlIHRoZSBzdW4gcmlzaW5n
+IGluIHRoZSBtb3JuaW5nIGFuZCBnaXZpbmcgbWUgYSBob3BlIGZvciB0aGUgZGEgLi4uCgpSZWFk
+IG1lc3NhZ2UKClRoaXMgbWVzc2FnZSBjb250YWluIGxpbmsgdG8geW91ciBwZXJzb25hbCBwYWdl
+IG9uIExhZGFEYXRlLgoKSGF2ZSBhIG5pY2UgZGF5LApMYWRhRGF0ZSBUZWFtCgpJZiB5b3Ugd291
+bGQgbGlrZSB0byByZWNpZXZlIG5ldyBtZXNzYWdlIG5vdGlmeSBwbGVhc2UgYWRkwqBpbmZvQHpi
+dGMuaW5mbyB0byB5b3VyIGNvbnRhY3QgbGlzdC4KClRvIExpc3QtdW5zdWJzY3JpYmUgY2xpY2sg
+aGVyZS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
+dXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8v
+bGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
