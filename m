@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0842720294F08
- for <linux-nvdimm@lists.01.org>; Fri, 16 Aug 2019 12:38:31 -0700 (PDT)
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: create devdax with "-a 1g" failed from 5.3.0-rc1
-References: <1254901996.3735926.1564533684889.JavaMail.zimbra@redhat.com>
-Date: Fri, 16 Aug 2019 15:36:39 -0400
-In-Reply-To: <1254901996.3735926.1564533684889.JavaMail.zimbra@redhat.com> (Yi
- Zhang's message of "Tue, 30 Jul 2019 20:41:24 -0400 (EDT)")
-Message-ID: <x498srsdhrs.fsf@segfault.boston.devel.redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id EB33721329975
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:32 -0700 (PDT)
+Subject: [ndctl PATCH v5 7/7] ndctl/namespace: Report ENOSPC when regions
+ are full
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 05 Aug 2019 17:09:42 -0700
+Message-ID: <156505018281.848599.6510034459473826921.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,90 +23,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Yi Zhang <yi.zhang@redhat.com>
-Cc: linux-nvdimm@lists.01.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi, Yi,
+The create-namespace error message:
 
-Yi Zhang <yi.zhang@redhat.com> writes:
+    failed to create namespace: Resource temporarily unavailable
 
-> Hi Dan
->
-> As subject, I found it failed from bellow commit[1], steps list here
-> [2] and I've attached the full dmesg, let me know if you need more
-> info, thanks.
->
-> [1]
-> commit a3619190d62ed9d66416891be2416f6bea2b3ca4 (refs/bisect/bad)
-> Author: Dan Williams <dan.j.williams@intel.com>
-> Date:   Thu Jul 18 15:58:40 2019 -0700
->
->     libnvdimm/pfn: stop padding pmem namespaces to section alignment
->
-> [2]
-> # ./ndctl destroy-namespace all -r all -f
-> destroyed 5 namespaces
-> # ./ndctl create-namespace -r region1 -m devdax -a 1g -s 12G -vv
-> libndctl: ndctl_dax_enable: dax1.0: failed to enable
->   Error: namespace1.0: failed to enable
->
-> failed to create namespace: No such device or address
-> # ./ndctl -v
-> 65
+...is misleading because the lack of capacity is permanent until the
+user frees up space.
 
-Thanks for bisecting.  The problem is that your pmem region is not
-aligned to 1GB.  The current code handles the start offset just fine,
-but does not even consider that the end address might be misaligned.  We
-could bring back end_trunc, and that solves the problem.  Unfortunately,
-it means that if you request a 12GB namespace, for example, you'll only
-get 11GB of usable space.  Note that the old code functioned in this
-manner, too.  A better solution would be to bump the allocation so that
-you get 12GB of usable memory.  I'm not quite sure how to go about that,
-though.  Dan?
+Trap EAGAIN and translate to ENOSPC in case the region capacity search
+fails:
 
-Below is a patch that fixes the regression on my end.  Feel free to give
-it a try.
+    failed to create namespace: No space left on device
 
--Jeff
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ ndctl/namespace.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 3e7b11c..cb98b8f 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -655,6 +655,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	resource_size_t start, size;
- 	struct nd_region *nd_region;
- 	unsigned long npfns, align;
-+	u32 end_trunc;
- 	struct nd_pfn_sb *pfn_sb;
- 	phys_addr_t offset;
- 	const char *sig;
-@@ -696,6 +697,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	size = resource_size(&nsio->res);
- 	npfns = PHYS_PFN(size - SZ_8K);
- 	align = max(nd_pfn->align, (1UL << SUBSECTION_SHIFT));
-+	end_trunc = start + size - ALIGN_DOWN(start + size, align);
- 	if (nd_pfn->mode == PFN_MODE_PMEM) {
- 		/*
- 		 * The altmap should be padded out to the block size used
-@@ -714,7 +716,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		return -ENXIO;
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 5c457224cb13..89113f760bbf 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1415,6 +1415,15 @@ static int do_xaction_namespace(const char *namespace,
+ 		}
  	}
  
--	npfns = PHYS_PFN(size - offset);
-+	npfns = PHYS_PFN(size - offset - end_trunc);
- 	pfn_sb->mode = cpu_to_le32(nd_pfn->mode);
- 	pfn_sb->dataoff = cpu_to_le64(offset);
- 	pfn_sb->npfns = cpu_to_le64(npfns);
-@@ -723,6 +725,7 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
- 	pfn_sb->version_minor = cpu_to_le16(3);
-+	pfn_sb->end_trunc = cpu_to_le32(end_trunc);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
++	if (action == ACTION_CREATE && rc == -EAGAIN) {
++		/*
++		 * Namespace creation searched through all candidate
++		 * regions and all of them said "nope, I don't have
++		 * enough capacity", so report -ENOSPC
++		 */
++		rc = -ENOSPC;
++	}
++
+ 	return rc;
+ }
+ 
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
