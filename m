@@ -1,19 +1,29 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 153EA2130D7DA
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 22:22:23 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2] ndctl, check: Ensure mmap of BTT sections work with
- 64K page-sizes
-Date: Tue, 6 Aug 2019 05:19:51 +0000
-Message-ID: <26253c7e5fa424fcaa832ef7a2a50ea94d181acf.camel@intel.com>
-References: <20190806050334.2267-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20190806050334.2267-1-vaibhav@linux.ibm.com>
-Content-Language: en-US
-Content-ID: <292723714F801748B780ECB675D4FB91@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 8A0DF21309DB8
+ for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 22:06:19 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x76520uv189863
+ for <linux-nvdimm@lists.01.org>; Tue, 6 Aug 2019 01:03:47 -0400
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2u71ceuc00-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Aug 2019 01:03:47 -0400
+Received: from localhost
+ by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+ Tue, 6 Aug 2019 06:03:45 +0100
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: [PATCH v2] ndctl,
+ check: Ensure mmap of BTT sections work with 64K page-sizes
+Date: Tue,  6 Aug 2019 10:33:34 +0530
 MIME-Version: 1.0
+Message-Id: <20190806050334.2267-1-vaibhav@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,226 +35,213 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "vaibhav@linux.ibm.com" <vaibhav@linux.ibm.com>
-Cc: "harish@linux.ibm.com" <harish@linux.ibm.com>, "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>
+To: linux-nvdimm@lists.01.org, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: Harish Sriram <harish@linux.ibm.com>, Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Tue, 2019-08-06 at 10:33 +0530, Vaibhav Jain wrote:
-> On PPC64 which uses a 64K page-size, ndtl-check command fails on a BTT
-> namespace with following error:
-> 
-> $ sudo ndctl check-namespace namespace0.0 -vv
->   namespace0.0: namespace_check: checking namespace0.0
->   namespace0.0: btt_discover_arenas: found 1 BTT arena
->   namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000,
->   	off = 0x1000] failed: Invalid argument
->   error checking namespaces: Invalid argument
->   checked 0 namespaces
-> 
-> An error happens when btt_create_mappings() tries to mmap the sections
-> of the BTT device which are usually 4K offset aligned. However the
-> mmap() syscall expects the 'offset' argument to be in multiples of
-> page-size, hence it returns EINVAL causing the btt_create_mappings()
-> to error out.
-> 
-> As a fix for the issue this patch proposes addition of two new
-> functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
-> map/unmap parts of BTT device to ndctl process address-space. The
-> functions tweaks the requested 'offset' argument to mmap() ensuring
-> that its page-size aligned and then fix-ups the returned pointer such
-> that it points to the requested offset within mmapped region.
-> 
-> With these newly introduced functions the patch updates the call-sites
-> in 'check.c' to use these functions instead of mmap/unmap syscalls.
-> Also since btt_mmap returns NULL if mmap operation fails, the
-> error check call-sites can be made against NULL instead of MAP_FAILED.
-> 
-> Reported-by: Harish Sriram <harish@linux.ibm.com>
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
-> Changelog:
-> 
-> v2:
-> * Updated patch description to include canonical email address of bug
->   reporter. [Vishal]
-> * Improved the comment describing function btt_mmap() in 'check.c'
->   [Vishal]
-> * Simplified the argument list for btt_mmap() to just accept bttc,
->   length and offset. Other arguments for mmap() are derived from these
->   args. [Vishal]
-> * Renamed 'shift' variable in btt_mmap()/unmap() to 'page_offset'
->   [Vishal]
-> * Improved the dbg() messages logged inside
->   btt_mmap()/unmap(). [Vishal]
-> * Return NULL from btt_mmap() in case of an error. [Vishal]
-> * Changed the all sites to btt_mmap() to perform error check against
->   NULL return value instead of MAP_FAILED. [Vishal]
+On PPC64 which uses a 64K page-size, ndtl-check command fails on a BTT
+namespace with following error:
 
-Hi Vaibhav,
+$ sudo ndctl check-namespace namespace0.0 -vv
+  namespace0.0: namespace_check: checking namespace0.0
+  namespace0.0: btt_discover_arenas: found 1 BTT arena
+  namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000,
+  	off = 0x1000] failed: Invalid argument
+  error checking namespaces: Invalid argument
+  checked 0 namespaces
 
-Thanks for the turnaround on these - just one minor nit below, but other
-than that this looks good to me.
+An error happens when btt_create_mappings() tries to mmap the sections
+of the BTT device which are usually 4K offset aligned. However the
+mmap() syscall expects the 'offset' argument to be in multiples of
+page-size, hence it returns EINVAL causing the btt_create_mappings()
+to error out.
 
-> ---
->  ndctl/check.c | 93 +++++++++++++++++++++++++++++++++++++--------------
->  1 file changed, 67 insertions(+), 26 deletions(-)
-> 
-> diff --git a/ndctl/check.c b/ndctl/check.c
-> index 8a7125053865..e72b498f1ce1 100644
-> --- a/ndctl/check.c
-> +++ b/ndctl/check.c
-> @@ -907,59 +907,100 @@ static int btt_discover_arenas(struct btt_chk *bttc)
->  	return ret;
->  }
->  
-> -static int btt_create_mappings(struct btt_chk *bttc)
-> +/*
-> + * Wrap call to mmap(2) to work with btt device offsets that are not aligned
-> + * to system page boundary. It works by rounding down the requested offset
-> + * to sys_page_size when calling mmap(2) and then returning a fixed-up pointer
-> + * to the correct offset in the mmaped region.
-> + */
-> +static void *btt_mmap(struct btt_chk *bttc, size_t length, off_t offset)
->  {
-> -	struct arena_info *a;
-> -	int mmap_flags;
-> -	int i;
-> +	off_t page_offset;
-> +	int prot_flags;
-> +	uint8_t *addr;
->  
->  	if (!bttc->opts->repair)
-> -		mmap_flags = PROT_READ;
-> +		prot_flags = PROT_READ;
->  	else
-> -		mmap_flags = PROT_READ|PROT_WRITE;
-> +		prot_flags = PROT_READ|PROT_WRITE;
-> +
-> +	/* Calculate the page_offset from the system page boundary */
-> +	page_offset = offset - rounddown(offset, bttc->sys_page_size);
-> +
-> +	/* Update the offset and length with the page_offset calculated above */
-> +	offset -= page_offset;
-> +	length += page_offset;
-> +
-> +	addr = mmap(NULL, length, prot_flags, MAP_SHARED, bttc->fd, offset);
-> +
-> +	/* If needed fixup the return pointer to correct offset requested */
-> +	if (addr != MAP_FAILED)
-> +		addr += page_offset;
-> +
-> +	dbg(bttc, "addr = %p length = %#lx offset = %#lx"
-> +	    "page_offset = %#lx\n", (void *) addr, length, offset, page_offset);
+As a fix for the issue this patch proposes addition of two new
+functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
+map/unmap parts of BTT device to ndctl process address-space. The
+functions tweaks the requested 'offset' argument to mmap() ensuring
+that its page-size aligned and then fix-ups the returned pointer such
+that it points to the requested offset within mmapped region.
 
-The string portion of any print shouldn't ever be split across lines to
-preserve greppability (the kernel CodingStyle document we follow
-mentions that, and 'checkpatch.pl' should warn abnout it too. It is ok
-in this case if the line ends up over 80 columns wide. Also maybe add
-commas between the elements - so "addr = %p, length = %#lx, ..."
+With these newly introduced functions the patch updates the call-sites
+in 'check.c' to use these functions instead of mmap/unmap syscalls.
+Also since btt_mmap returns NULL if mmap operation fails, the
+error check call-sites can be made against NULL instead of MAP_FAILED.
 
-Same applies to the print in the unmap function below.
+Reported-by: Harish Sriram <harish@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+Changelog:
 
-> +
-> +	return addr == MAP_FAILED ? NULL : addr;
-> +}
-> +
-> +static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
-> +{
-> +	off_t page_offset;
-> +	uintptr_t addr = (uintptr_t) ptr;
-> +
-> +	/* Calculate the page_offset from system page boundary */
-> +	page_offset = addr - rounddown(addr, bttc->sys_page_size);
-> +
-> +	addr -= page_offset;
-> +	length += page_offset;
-> +
-> +	munmap((void *) addr, length);
-> +	dbg(bttc, "addr = %p length = %#lx page_offset = %#lx\n",
-> +	    (void *) addr, length, page_offset);
-> +}
-> +
-> +static int btt_create_mappings(struct btt_chk *bttc)
-> +{
-> +	struct arena_info *a;
-> +	int i;
->  
->  	for (i = 0; i < bttc->num_arenas; i++) {
->  		a = &bttc->arena[i];
->  		a->map.info_len = BTT_INFO_SIZE;
-> -		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->infooff);
-> -		if (a->map.info == MAP_FAILED) {
-> +		a->map.info = btt_mmap(bttc, a->map.info_len, a->infooff);
-> +		if (!a->map.info) {
->  			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.info_len, a->infooff, strerror(errno));
->  			return -errno;
->  		}
->  
->  		a->map.data_len = a->mapoff - a->dataoff;
-> -		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->dataoff);
-> -		if (a->map.data == MAP_FAILED) {
-> +		a->map.data = btt_mmap(bttc, a->map.data_len, a->dataoff);
-> +		if (!a->map.data) {
->  			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.data_len, a->dataoff, strerror(errno));
->  			return -errno;
->  		}
->  
->  		a->map.map_len = a->logoff - a->mapoff;
-> -		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->mapoff);
-> -		if (a->map.map == MAP_FAILED) {
-> +		a->map.map = btt_mmap(bttc, a->map.map_len, a->mapoff);
-> +		if (!a->map.map) {
->  			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.map_len, a->mapoff, strerror(errno));
->  			return -errno;
->  		}
->  
->  		a->map.log_len = a->info2off - a->logoff;
-> -		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->logoff);
-> -		if (a->map.log == MAP_FAILED) {
-> +		a->map.log = btt_mmap(bttc, a->map.log_len, a->logoff);
-> +		if (!a->map.log) {
->  			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.log_len, a->logoff, strerror(errno));
->  			return -errno;
->  		}
->  
->  		a->map.info2_len = BTT_INFO_SIZE;
-> -		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->info2off);
-> -		if (a->map.info2 == MAP_FAILED) {
-> +		a->map.info2 = btt_mmap(bttc, a->map.info2_len, a->info2off);
-> +		if (!a->map.info2) {
->  			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.info2_len, a->info2off, strerror(errno));
->  			return -errno;
-> @@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
->  	for (i = 0; i < bttc->num_arenas; i++) {
->  		a = &bttc->arena[i];
->  		if (a->map.info)
-> -			munmap(a->map.info, a->map.info_len);
-> +			btt_unmap(bttc, a->map.info, a->map.info_len);
->  		if (a->map.data)
-> -			munmap(a->map.data, a->map.data_len);
-> +			btt_unmap(bttc, a->map.data, a->map.data_len);
->  		if (a->map.map)
-> -			munmap(a->map.map, a->map.map_len);
-> +			btt_unmap(bttc, a->map.map, a->map.map_len);
->  		if (a->map.log)
-> -			munmap(a->map.log, a->map.log_len);
-> +			btt_unmap(bttc, a->map.log, a->map.log_len);
->  		if (a->map.info2)
-> -			munmap(a->map.info2, a->map.info2_len);
-> +			btt_unmap(bttc, a->map.info2, a->map.info2_len);
->  	}
->  }
->  
+v2:
+* Updated patch description to include canonical email address of bug
+  reporter. [Vishal]
+* Improved the comment describing function btt_mmap() in 'check.c'
+  [Vishal]
+* Simplified the argument list for btt_mmap() to just accept bttc,
+  length and offset. Other arguments for mmap() are derived from these
+  args. [Vishal]
+* Renamed 'shift' variable in btt_mmap()/unmap() to 'page_offset'
+  [Vishal]
+* Improved the dbg() messages logged inside
+  btt_mmap()/unmap(). [Vishal]
+* Return NULL from btt_mmap() in case of an error. [Vishal]
+* Changed the all sites to btt_mmap() to perform error check against
+  NULL return value instead of MAP_FAILED. [Vishal]
+---
+ ndctl/check.c | 93 +++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 67 insertions(+), 26 deletions(-)
+
+diff --git a/ndctl/check.c b/ndctl/check.c
+index 8a7125053865..e72b498f1ce1 100644
+--- a/ndctl/check.c
++++ b/ndctl/check.c
+@@ -907,59 +907,100 @@ static int btt_discover_arenas(struct btt_chk *bttc)
+ 	return ret;
+ }
+ 
+-static int btt_create_mappings(struct btt_chk *bttc)
++/*
++ * Wrap call to mmap(2) to work with btt device offsets that are not aligned
++ * to system page boundary. It works by rounding down the requested offset
++ * to sys_page_size when calling mmap(2) and then returning a fixed-up pointer
++ * to the correct offset in the mmaped region.
++ */
++static void *btt_mmap(struct btt_chk *bttc, size_t length, off_t offset)
+ {
+-	struct arena_info *a;
+-	int mmap_flags;
+-	int i;
++	off_t page_offset;
++	int prot_flags;
++	uint8_t *addr;
+ 
+ 	if (!bttc->opts->repair)
+-		mmap_flags = PROT_READ;
++		prot_flags = PROT_READ;
+ 	else
+-		mmap_flags = PROT_READ|PROT_WRITE;
++		prot_flags = PROT_READ|PROT_WRITE;
++
++	/* Calculate the page_offset from the system page boundary */
++	page_offset = offset - rounddown(offset, bttc->sys_page_size);
++
++	/* Update the offset and length with the page_offset calculated above */
++	offset -= page_offset;
++	length += page_offset;
++
++	addr = mmap(NULL, length, prot_flags, MAP_SHARED, bttc->fd, offset);
++
++	/* If needed fixup the return pointer to correct offset requested */
++	if (addr != MAP_FAILED)
++		addr += page_offset;
++
++	dbg(bttc, "addr = %p length = %#lx offset = %#lx"
++	    "page_offset = %#lx\n", (void *) addr, length, offset, page_offset);
++
++	return addr == MAP_FAILED ? NULL : addr;
++}
++
++static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
++{
++	off_t page_offset;
++	uintptr_t addr = (uintptr_t) ptr;
++
++	/* Calculate the page_offset from system page boundary */
++	page_offset = addr - rounddown(addr, bttc->sys_page_size);
++
++	addr -= page_offset;
++	length += page_offset;
++
++	munmap((void *) addr, length);
++	dbg(bttc, "addr = %p length = %#lx page_offset = %#lx\n",
++	    (void *) addr, length, page_offset);
++}
++
++static int btt_create_mappings(struct btt_chk *bttc)
++{
++	struct arena_info *a;
++	int i;
+ 
+ 	for (i = 0; i < bttc->num_arenas; i++) {
+ 		a = &bttc->arena[i];
+ 		a->map.info_len = BTT_INFO_SIZE;
+-		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->infooff);
+-		if (a->map.info == MAP_FAILED) {
++		a->map.info = btt_mmap(bttc, a->map.info_len, a->infooff);
++		if (!a->map.info) {
+ 			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.info_len, a->infooff, strerror(errno));
+ 			return -errno;
+ 		}
+ 
+ 		a->map.data_len = a->mapoff - a->dataoff;
+-		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->dataoff);
+-		if (a->map.data == MAP_FAILED) {
++		a->map.data = btt_mmap(bttc, a->map.data_len, a->dataoff);
++		if (!a->map.data) {
+ 			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.data_len, a->dataoff, strerror(errno));
+ 			return -errno;
+ 		}
+ 
+ 		a->map.map_len = a->logoff - a->mapoff;
+-		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->mapoff);
+-		if (a->map.map == MAP_FAILED) {
++		a->map.map = btt_mmap(bttc, a->map.map_len, a->mapoff);
++		if (!a->map.map) {
+ 			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.map_len, a->mapoff, strerror(errno));
+ 			return -errno;
+ 		}
+ 
+ 		a->map.log_len = a->info2off - a->logoff;
+-		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->logoff);
+-		if (a->map.log == MAP_FAILED) {
++		a->map.log = btt_mmap(bttc, a->map.log_len, a->logoff);
++		if (!a->map.log) {
+ 			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.log_len, a->logoff, strerror(errno));
+ 			return -errno;
+ 		}
+ 
+ 		a->map.info2_len = BTT_INFO_SIZE;
+-		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
+-			MAP_SHARED, bttc->fd, a->info2off);
+-		if (a->map.info2 == MAP_FAILED) {
++		a->map.info2 = btt_mmap(bttc, a->map.info2_len, a->info2off);
++		if (!a->map.info2) {
+ 			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
+ 				i, a->map.info2_len, a->info2off, strerror(errno));
+ 			return -errno;
+@@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
+ 	for (i = 0; i < bttc->num_arenas; i++) {
+ 		a = &bttc->arena[i];
+ 		if (a->map.info)
+-			munmap(a->map.info, a->map.info_len);
++			btt_unmap(bttc, a->map.info, a->map.info_len);
+ 		if (a->map.data)
+-			munmap(a->map.data, a->map.data_len);
++			btt_unmap(bttc, a->map.data, a->map.data_len);
+ 		if (a->map.map)
+-			munmap(a->map.map, a->map.map_len);
++			btt_unmap(bttc, a->map.map, a->map.map_len);
+ 		if (a->map.log)
+-			munmap(a->map.log, a->map.log_len);
++			btt_unmap(bttc, a->map.log, a->map.log_len);
+ 		if (a->map.info2)
+-			munmap(a->map.info2, a->map.info2_len);
++			btt_unmap(bttc, a->map.info2, a->map.info2_len);
+ 	}
+ }
+ 
+-- 
+2.21.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
