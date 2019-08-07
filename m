@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4679920213F05
- for <linux-nvdimm@lists.01.org>; Mon, 26 Aug 2019 18:11:37 -0700 (PDT)
-Subject: [PATCH v2 3/3] libnvdimm/security: Consolidate 'security' operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Aug 2019 17:55:05 -0700
-Message-ID: <156686730515.184120.10522747907309996674.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156686728950.184120.5188743631586996901.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156686728950.184120.5188743631586996901.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id BA3922130A506
+ for <linux-nvdimm@lists.01.org>; Wed,  7 Aug 2019 16:52:28 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH] tools/testing/nvdimm: Fix fallthrough warning
+Date: Wed, 7 Aug 2019 23:49:56 +0000
+Message-ID: <e4279fee162036bc43d12894efbdd0e8e4ce4393.camel@intel.com>
+References: <156521347159.1442374.1381360879102718899.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <156521347159.1442374.1381360879102718899.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+Content-ID: <97D880388598894E976D514BA3DF7688@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -18,303 +20,41 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-The security operations are exported from libnvdimm/security.c to
-libnvdimm/dimm_devs.c, and libnvdimm/security.c is optionally compiled
-based on the CONFIG_NVDIMM_KEYS config symbol.
-
-Rather than export the operations across compile objects, just move the
-__security_store() entry point to live with the helpers.
-
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/dimm_devs.c |   84 -----------------------------------------
- drivers/nvdimm/nd-core.h   |   30 +--------------
- drivers/nvdimm/security.c  |   90 ++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 90 insertions(+), 114 deletions(-)
-
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index d837cb9be83d..196aa44c4936 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -393,88 +393,6 @@ static ssize_t frozen_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(frozen);
- 
--#define OPS							\
--	C( OP_FREEZE,		"freeze",		1),	\
--	C( OP_DISABLE,		"disable",		2),	\
--	C( OP_UPDATE,		"update",		3),	\
--	C( OP_ERASE,		"erase",		2),	\
--	C( OP_OVERWRITE,	"overwrite",		2),	\
--	C( OP_MASTER_UPDATE,	"master_update",	3),	\
--	C( OP_MASTER_ERASE,	"master_erase",		2)
--#undef C
--#define C(a, b, c) a
--enum nvdimmsec_op_ids { OPS };
--#undef C
--#define C(a, b, c) { b, c }
--static struct {
--	const char *name;
--	int args;
--} ops[] = { OPS };
--#undef C
--
--#define SEC_CMD_SIZE 32
--#define KEY_ID_SIZE 10
--
--static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
--{
--	struct nvdimm *nvdimm = to_nvdimm(dev);
--	ssize_t rc;
--	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1],
--		nkeystr[KEY_ID_SIZE+1];
--	unsigned int key, newkey;
--	int i;
--
--	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s"
--			" %"__stringify(KEY_ID_SIZE)"s"
--			" %"__stringify(KEY_ID_SIZE)"s",
--			cmd, keystr, nkeystr);
--	if (rc < 1)
--		return -EINVAL;
--	for (i = 0; i < ARRAY_SIZE(ops); i++)
--		if (sysfs_streq(cmd, ops[i].name))
--			break;
--	if (i >= ARRAY_SIZE(ops))
--		return -EINVAL;
--	if (ops[i].args > 1)
--		rc = kstrtouint(keystr, 0, &key);
--	if (rc >= 0 && ops[i].args > 2)
--		rc = kstrtouint(nkeystr, 0, &newkey);
--	if (rc < 0)
--		return rc;
--
--	if (i == OP_FREEZE) {
--		dev_dbg(dev, "freeze\n");
--		rc = nvdimm_security_freeze(nvdimm);
--	} else if (i == OP_DISABLE) {
--		dev_dbg(dev, "disable %u\n", key);
--		rc = nvdimm_security_disable(nvdimm, key);
--	} else if (i == OP_UPDATE || i == OP_MASTER_UPDATE) {
--		dev_dbg(dev, "%s %u %u\n", ops[i].name, key, newkey);
--		rc = nvdimm_security_update(nvdimm, key, newkey, i == OP_UPDATE
--				? NVDIMM_USER : NVDIMM_MASTER);
--	} else if (i == OP_ERASE || i == OP_MASTER_ERASE) {
--		dev_dbg(dev, "%s %u\n", ops[i].name, key);
--		if (atomic_read(&nvdimm->busy)) {
--			dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
--			return -EBUSY;
--		}
--		rc = nvdimm_security_erase(nvdimm, key, i == OP_ERASE
--				? NVDIMM_USER : NVDIMM_MASTER);
--	} else if (i == OP_OVERWRITE) {
--		dev_dbg(dev, "overwrite %u\n", key);
--		if (atomic_read(&nvdimm->busy)) {
--			dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
--			return -EBUSY;
--		}
--		rc = nvdimm_security_overwrite(nvdimm, key);
--	} else
--		return -EINVAL;
--
--	if (rc == 0)
--		rc = len;
--	return rc;
--}
--
- static ssize_t security_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- 
-@@ -489,7 +407,7 @@ static ssize_t security_store(struct device *dev,
- 	nd_device_lock(dev);
- 	nvdimm_bus_lock(dev);
- 	wait_nvdimm_bus_probe_idle(dev);
--	rc = __security_store(dev, buf, len);
-+	rc = nvdimm_security_store(dev, buf, len);
- 	nvdimm_bus_unlock(dev);
- 	nd_device_unlock(dev);
- 
-diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-index da2bbfd56d9f..454454ba1738 100644
---- a/drivers/nvdimm/nd-core.h
-+++ b/drivers/nvdimm/nd-core.h
-@@ -68,35 +68,11 @@ static inline unsigned long nvdimm_security_flags(
- }
- int nvdimm_security_freeze(struct nvdimm *nvdimm);
- #if IS_ENABLED(CONFIG_NVDIMM_KEYS)
--int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid);
--int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
--		unsigned int new_keyid,
--		enum nvdimm_passphrase_type pass_type);
--int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
--		enum nvdimm_passphrase_type pass_type);
--int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid);
-+ssize_t nvdimm_security_store(struct device *dev, const char *buf, size_t len);
- void nvdimm_security_overwrite_query(struct work_struct *work);
- #else
--static inline int nvdimm_security_disable(struct nvdimm *nvdimm,
--		unsigned int keyid)
--{
--	return -EOPNOTSUPP;
--}
--static inline int nvdimm_security_update(struct nvdimm *nvdimm,
--		unsigned int keyid,
--		unsigned int new_keyid,
--		enum nvdimm_passphrase_type pass_type)
--{
--	return -EOPNOTSUPP;
--}
--static inline int nvdimm_security_erase(struct nvdimm *nvdimm,
--		unsigned int keyid,
--		enum nvdimm_passphrase_type pass_type)
--{
--	return -EOPNOTSUPP;
--}
--static inline int nvdimm_security_overwrite(struct nvdimm *nvdimm,
--		unsigned int keyid)
-+static inline ssize_t nvdimm_security_store(struct device *dev,
-+		const char *buf, size_t len)
- {
- 	return -EOPNOTSUPP;
- }
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index 2166e627383a..9e45b207ff01 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -235,7 +235,7 @@ static int check_security_state(struct nvdimm *nvdimm)
- 	return 0;
- }
- 
--int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
-+static int security_disable(struct nvdimm *nvdimm, unsigned int keyid)
- {
- 	struct device *dev = &nvdimm->dev;
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-@@ -268,7 +268,7 @@ int nvdimm_security_disable(struct nvdimm *nvdimm, unsigned int keyid)
- 	return rc;
- }
- 
--int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
-+static int security_update(struct nvdimm *nvdimm, unsigned int keyid,
- 		unsigned int new_keyid,
- 		enum nvdimm_passphrase_type pass_type)
- {
-@@ -318,7 +318,7 @@ int nvdimm_security_update(struct nvdimm *nvdimm, unsigned int keyid,
- 	return rc;
- }
- 
--int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
-+static int security_erase(struct nvdimm *nvdimm, unsigned int keyid,
- 		enum nvdimm_passphrase_type pass_type)
- {
- 	struct device *dev = &nvdimm->dev;
-@@ -360,7 +360,7 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
- 	return rc;
- }
- 
--int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
-+static int security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
- {
- 	struct device *dev = &nvdimm->dev;
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
-@@ -465,3 +465,85 @@ void nvdimm_security_overwrite_query(struct work_struct *work)
- 	__nvdimm_security_overwrite_query(nvdimm);
- 	nvdimm_bus_unlock(&nvdimm->dev);
- }
-+
-+#define OPS							\
-+	C( OP_FREEZE,		"freeze",		1),	\
-+	C( OP_DISABLE,		"disable",		2),	\
-+	C( OP_UPDATE,		"update",		3),	\
-+	C( OP_ERASE,		"erase",		2),	\
-+	C( OP_OVERWRITE,	"overwrite",		2),	\
-+	C( OP_MASTER_UPDATE,	"master_update",	3),	\
-+	C( OP_MASTER_ERASE,	"master_erase",		2)
-+#undef C
-+#define C(a, b, c) a
-+enum nvdimmsec_op_ids { OPS };
-+#undef C
-+#define C(a, b, c) { b, c }
-+static struct {
-+	const char *name;
-+	int args;
-+} ops[] = { OPS };
-+#undef C
-+
-+#define SEC_CMD_SIZE 32
-+#define KEY_ID_SIZE 10
-+
-+ssize_t nvdimm_security_store(struct device *dev, const char *buf, size_t len)
-+{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	ssize_t rc;
-+	char cmd[SEC_CMD_SIZE+1], keystr[KEY_ID_SIZE+1],
-+		nkeystr[KEY_ID_SIZE+1];
-+	unsigned int key, newkey;
-+	int i;
-+
-+	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s"
-+			" %"__stringify(KEY_ID_SIZE)"s"
-+			" %"__stringify(KEY_ID_SIZE)"s",
-+			cmd, keystr, nkeystr);
-+	if (rc < 1)
-+		return -EINVAL;
-+	for (i = 0; i < ARRAY_SIZE(ops); i++)
-+		if (sysfs_streq(cmd, ops[i].name))
-+			break;
-+	if (i >= ARRAY_SIZE(ops))
-+		return -EINVAL;
-+	if (ops[i].args > 1)
-+		rc = kstrtouint(keystr, 0, &key);
-+	if (rc >= 0 && ops[i].args > 2)
-+		rc = kstrtouint(nkeystr, 0, &newkey);
-+	if (rc < 0)
-+		return rc;
-+
-+	if (i == OP_FREEZE) {
-+		dev_dbg(dev, "freeze\n");
-+		rc = nvdimm_security_freeze(nvdimm);
-+	} else if (i == OP_DISABLE) {
-+		dev_dbg(dev, "disable %u\n", key);
-+		rc = security_disable(nvdimm, key);
-+	} else if (i == OP_UPDATE || i == OP_MASTER_UPDATE) {
-+		dev_dbg(dev, "%s %u %u\n", ops[i].name, key, newkey);
-+		rc = security_update(nvdimm, key, newkey, i == OP_UPDATE
-+				? NVDIMM_USER : NVDIMM_MASTER);
-+	} else if (i == OP_ERASE || i == OP_MASTER_ERASE) {
-+		dev_dbg(dev, "%s %u\n", ops[i].name, key);
-+		if (atomic_read(&nvdimm->busy)) {
-+			dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
-+			return -EBUSY;
-+		}
-+		rc = security_erase(nvdimm, key, i == OP_ERASE
-+				? NVDIMM_USER : NVDIMM_MASTER);
-+	} else if (i == OP_OVERWRITE) {
-+		dev_dbg(dev, "overwrite %u\n", key);
-+		if (atomic_read(&nvdimm->busy)) {
-+			dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
-+			return -EBUSY;
-+		}
-+		rc = security_overwrite(nvdimm, key);
-+	} else
-+		return -EINVAL;
-+
-+	if (rc == 0)
-+		rc = len;
-+	return rc;
-+}
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+T24gV2VkLCAyMDE5LTA4LTA3IGF0IDE0OjMxIC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IFVzZSB0aGUgZXhwZWN0ZWQgJ2ZhbGwgdGhyb3VnaCcgZGVzaWduYXRpb24gdG8gZml4Og0KPiAN
+Cj4gICAgIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jOiBJbiBmdW5jdGlvbg0KPiDi
+gJhuZF9pbnRlbF90ZXN0X2ZpbmlzaF9xdWVyeeKAmToNCj4gICAgIHRvb2xzL3Rlc3RpbmcvbnZk
+aW1tL3Rlc3QvbmZpdC5jOjQzMzoxMzogd2FybmluZzogdGhpcyBzdGF0ZW1lbnQNCj4gbWF5IGZh
+bGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dDQo+ICAgICAgICBmdy0+c3RhdGUg
+PSBGV19TVEFURV9VUERBVEVEOw0KPiAgICAgICAgfn5+fn5+fn5+fl5+fn5+fn5+fn5+fn5+fn5+
+fg0KPiAgICAgdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmM6NDM1OjI6IG5vdGU6IGhl
+cmUNCj4gICAgICAgY2FzZSBGV19TVEFURV9VUERBVEVEOg0KPiAgICAgICBefn5+DQo+IA0KPiBT
+aWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4g
+LS0tDQo+ICB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8ICAgIDMgKy0tDQo+ICAx
+IGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDIgZGVsZXRpb25zKC0pDQoNCkxvb2tzIGdv
+b2QsDQpSZXZpZXdlZC1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
+DQoNCj4gDQo+IGRpZmYgLS1naXQgYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0K
+PiBiL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jDQo+IGluZGV4IDUwN2U2ZjRjYmI1
+My4uYmY2NDIyYTZhZjdmIDEwMDY0NA0KPiAtLS0gYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0
+L25maXQuYw0KPiArKysgYi90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KPiBAQCAt
+NDI4LDEwICs0MjgsOSBAQCBzdGF0aWMgaW50IG5kX2ludGVsX3Rlc3RfZmluaXNoX3F1ZXJ5KHN0
+cnVjdA0KPiBuZml0X3Rlc3QgKnQsDQo+ICAJCQlkZXZfZGJnKGRldiwgIiVzOiBzdGlsbCB2ZXJp
+ZnlpbmdcbiIsIF9fZnVuY19fKTsNCj4gIAkJCWJyZWFrOw0KPiAgCQl9DQo+IC0NCj4gIAkJZGV2
+X2RiZyhkZXYsICIlczogdHJhbnNpdGlvbiBvdXQgdmVyaWZ5XG4iLCBfX2Z1bmNfXyk7DQo+ICAJ
+CWZ3LT5zdGF0ZSA9IEZXX1NUQVRFX1VQREFURUQ7DQo+IC0JCS8qIHdlIGFyZSBnb2luZyB0byBm
+YWxsIHRocm91Z2ggaWYgaXQncyAiZG9uZSIgKi8NCj4gKwkJLyogZmFsbCB0aHJvdWdoICovDQo+
+ICAJY2FzZSBGV19TVEFURV9VUERBVEVEOg0KPiAgCQluZF9jbWQtPnN0YXR1cyA9IDA7DQo+ICAJ
+CS8qIGJvZ3VzIHRlc3QgdmVyc2lvbiAqLw0KPiANCj4gX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18NCj4gTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdA0KPiBM
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnDQo+IGh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtbnZkaW1tDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
+c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
+ZGltbQo=
