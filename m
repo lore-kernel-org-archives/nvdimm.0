@@ -1,30 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com
+ [IPv6:2607:f8b0:4864:20::342])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EE63721303087
- for <linux-nvdimm@lists.01.org>; Tue,  6 Aug 2019 22:45:36 -0700 (PDT)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x775gHOT020090
- for <linux-nvdimm@lists.01.org>; Wed, 7 Aug 2019 01:43:05 -0400
-Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2u7phc42af-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Wed, 07 Aug 2019 01:43:05 -0400
-Received: from localhost
- by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
- Wed, 7 Aug 2019 06:43:03 +0100
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-Subject: Re: [PATCH] nvdimm/of_pmem: Provide a unique name for bus provider
-In-Reply-To: <20190807040029.11344-1-aneesh.kumar@linux.ibm.com>
-References: <20190807040029.11344-1-aneesh.kumar@linux.ibm.com>
-Date: Wed, 07 Aug 2019 11:12:58 +0530
+ by ml01.01.org (Postfix) with ESMTPS id D15E7212E46E5
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Aug 2019 21:55:40 -0700 (PDT)
+Received: by mail-ot1-x342.google.com with SMTP id j19so22600419otq.2
+ for <linux-nvdimm@lists.01.org>; Tue, 06 Aug 2019 21:53:10 -0700 (PDT)
 MIME-Version: 1.0
-Message-Id: <8736id1qfx.fsf@vajain21.in.ibm.com>
+References: <20190807040029.11344-1-aneesh.kumar@linux.ibm.com>
+ <CAPcyv4haXOjn7K-HgPV_WLqbfqRQbbiq=LvLt5Ue=OPAaBWN6A@mail.gmail.com>
+ <c99ecdad-e9de-cd76-1601-841de35602a0@linux.ibm.com>
+In-Reply-To: <c99ecdad-e9de-cd76-1601-841de35602a0@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 6 Aug 2019 21:52:57 -0700
+Message-ID: <CAPcyv4ia5F73Qd0FyOWkHAUGoXrPFFQwA-R3DNXb0mGyOS5fgQ@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm/of_pmem: Provide a unique name for bus provider
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,43 +27,82 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, dan.j.williams@intel.com
-Cc: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
-
-> ndctl utility requires the ndbus to have unique names. If not while
-> enumerating the bus in userspace it drops bus with similar names.
-> This results in us not listing devices beneath the bus.
+On Tue, Aug 6, 2019 at 9:17 PM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
 >
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> ---
->  drivers/nvdimm/of_pmem.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> On 8/7/19 9:43 AM, Dan Williams wrote:
+> > On Tue, Aug 6, 2019 at 9:00 PM Aneesh Kumar K.V
+> > <aneesh.kumar@linux.ibm.com> wrote:
+> >>
+> >> ndctl utility requires the ndbus to have unique names. If not while
+> >> enumerating the bus in userspace it drops bus with similar names.
+> >> This results in us not listing devices beneath the bus.
+> >
+> > It does?
+> >
+> >>
+> >> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> >> ---
+> >>   drivers/nvdimm/of_pmem.c | 2 +-
+> >>   1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+> >> index a0c8dcfa0bf9..97187d6c0bdb 100644
+> >> --- a/drivers/nvdimm/of_pmem.c
+> >> +++ b/drivers/nvdimm/of_pmem.c
+> >> @@ -42,7 +42,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+> >>                  return -ENOMEM;
+> >>
+> >>          priv->bus_desc.attr_groups = bus_attr_groups;
+> >> -       priv->bus_desc.provider_name = "of_pmem";
+> >> +       priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
+> >
+> > This looks ok to me to address support for older ndctl binaries, but
+> > I'd like to also fix the ndctl bug that makes non-unique provider
+> > names fail.
+> >
 >
-> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-> index a0c8dcfa0bf9..97187d6c0bdb 100644
-> --- a/drivers/nvdimm/of_pmem.c
-> +++ b/drivers/nvdimm/of_pmem.c
-> @@ -42,7 +42,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  
->  	priv->bus_desc.attr_groups = bus_attr_groups;
-> -	priv->bus_desc.provider_name = "of_pmem";
-> +	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
->  	priv->bus_desc.module = THIS_MODULE;
->  	priv->bus_desc.of_node = np;
->  
-> -- 
-> 2.21.0
+> 0462269ab121d323a016874ebdd42217f2911ee7 (ndctl: provide a method to
+> invalidate the bus list)
 >
+> This hunk does the filtering.
+>
+> @@ -928,6 +929,14 @@ static int add_bus(void *parent, int id, const char
+> *ctl_base)
+>                 goto err_read;
+>         bus->buf_len = strlen(bus->bus_path) + 50;
+>
+> +       ndctl_bus_foreach(ctx, bus_dup)
+> +               if (strcmp(ndctl_bus_get_provider(bus_dup),
+> +                                       ndctl_bus_get_provider(bus)) == 0) {
+> +                       free_bus(bus, NULL);
+> +                       free(path);
+> +                       return 1;
+> +               }
+> +
 
-Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
--- 
-Vaibhav Jain <vaibhav@linux.ibm.com>
-Linux Technology Center, IBM India Pvt. Ltd.
+Yup, that's broken, does this incremental fix work?
 
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 4d9cc7e29c6b..6596f94edef8 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -889,7 +889,9 @@ static void *add_bus(void *parent, int id, const
+char *ctl_base)
+
+        ndctl_bus_foreach(ctx, bus_dup)
+                if (strcmp(ndctl_bus_get_provider(bus_dup),
+-                                       ndctl_bus_get_provider(bus)) == 0) {
++                                       ndctl_bus_get_provider(bus)) == 0
++                               && strcmp(ndctl_bus_get_devname(bus_dup),
++                                       ndctl_bus_get_devname(bus)) == 0) {
+                        free_bus(bus, NULL);
+                        free(path);
+                        return bus_dup;
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
