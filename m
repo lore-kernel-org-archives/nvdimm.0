@@ -1,17 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8E6802130C486
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 00:48:12 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 32CEB212FE8AC
+ for <linux-nvdimm@lists.01.org>; Tue,  6 Aug 2019 21:41:55 -0700 (PDT)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v5 2/4] mm/nvdimm: Add page size and struct page size to pfn
- superblock
-Date: Fri,  9 Aug 2019 13:15:18 +0530
-Message-Id: <20190809074520.27115-3-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20190809074520.27115-1-aneesh.kumar@linux.ibm.com>
-References: <20190809074520.27115-1-aneesh.kumar@linux.ibm.com>
+Subject: [PATCH] Consider namespace with size as active namespace
+Date: Wed,  7 Aug 2019 10:09:15 +0530
+Message-Id: <20190807043915.30239-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,88 +22,36 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is needed so that we don't wrongly initialize a namespace
-which doesn't have enough space reserved for holding struct pages
-with the current kernel.
+This enables us to mark a namespace as disabled due to pfn_sb
+mismatch. We have pending kernel patches at that will mark the
+namespace disabled when the PAGE_SIZE or struct page size didn't
+match with the value stored in pfn_sb.
+
+We need to make sure we don't use this disabled namespace as seed namespace
+for new namespace creation.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- drivers/nvdimm/pfn.h      |  5 ++++-
- drivers/nvdimm/pfn_devs.c | 27 ++++++++++++++++++++++++++-
- 2 files changed, 30 insertions(+), 2 deletions(-)
+ ndctl/namespace.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index 7381673b7b70..acb19517f678 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -29,7 +29,10 @@ struct nd_pfn_sb {
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
- 	/* minor-version-3 guarantee the padding and flags are zero */
--	u8 padding[4000];
-+	/* minor-version-4 record the page size and struct page size */
-+	__le32 page_size;
-+	__le16 page_struct_size;
-+	u8 padding[3994];
- 	__le64 checksum;
- };
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 58a9e3c53474..1f212a2b3a9b 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -455,7 +455,8 @@ static int is_namespace_active(struct ndctl_namespace *ndns)
+ 	return ndns && (ndctl_namespace_is_enabled(ndns)
+ 		|| ndctl_namespace_get_pfn(ndns)
+ 		|| ndctl_namespace_get_dax(ndns)
+-		|| ndctl_namespace_get_btt(ndns));
++		|| ndctl_namespace_get_btt(ndns)
++		|| ndctl_namespace_get_size(ndns));
+ }
  
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 3e7b11cf1aae..37e96811c2fc 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -460,6 +460,15 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
- 		pfn_sb->align = 0;
- 
-+	if (__le16_to_cpu(pfn_sb->version_minor) < 4) {
-+		/*
-+		 * For a large part we use PAGE_SIZE. But we
-+		 * do have some accounting code using SZ_4K.
-+		 */
-+		pfn_sb->page_struct_size = cpu_to_le16(64);
-+		pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
-+	}
-+
- 	switch (le32_to_cpu(pfn_sb->mode)) {
- 	case PFN_MODE_RAM:
- 	case PFN_MODE_PMEM:
-@@ -475,6 +484,20 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		align = 1UL << ilog2(offset);
- 	mode = le32_to_cpu(pfn_sb->mode);
- 
-+	if (le32_to_cpu(pfn_sb->page_size) != PAGE_SIZE) {
-+		dev_err(&nd_pfn->dev,
-+			"init failed, page size mismatch %d\n",
-+			le32_to_cpu(pfn_sb->page_size));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	if (le16_to_cpu(pfn_sb->page_struct_size) < sizeof(struct page)) {
-+		dev_err(&nd_pfn->dev,
-+			"init failed, struct page size mismatch %d\n",
-+			le16_to_cpu(pfn_sb->page_struct_size));
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (!nd_pfn->uuid) {
- 		/*
- 		 * When probing a namepace via nd_pfn_probe() the uuid
-@@ -722,8 +745,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(3);
-+	pfn_sb->version_minor = cpu_to_le16(4);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
-+	pfn_sb->page_struct_size = cpu_to_le16(sizeof(struct page));
-+	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
+ /*
 -- 
 2.21.0
 
