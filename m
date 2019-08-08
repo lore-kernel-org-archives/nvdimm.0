@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D533213030A2
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 16:45:52 -0700 (PDT)
-Subject: [ndctl PATCH v4 4/7] ndctl/dimm: Limit read-labels with --index option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 16:29:04 -0700
-Message-ID: <156504774468.847544.10242796068662811547.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 96CC221296419
+ for <linux-nvdimm@lists.01.org>; Thu,  8 Aug 2019 11:16:13 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [ndctl PATCH v2] Documentation/namespace-description: Clarify
+ label-less restrictions
+References: <20190808175707.9089-1-vishal.l.verma@intel.com>
+Date: Thu, 08 Aug 2019 14:13:41 -0400
+In-Reply-To: <20190808175707.9089-1-vishal.l.verma@intel.com> (Vishal Verma's
+ message of "Thu, 8 Aug 2019 11:57:07 -0600")
+Message-ID: <x49ef1vcyp6.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,126 +24,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a capability to limit the read-labels payload to just the
-index-block data space.
+Vishal Verma <vishal.l.verma@intel.com> writes:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/ndctl/ndctl-read-labels.txt |    7 +++++
- ndctl/dimm.c                              |   43 ++++++++++++++++++-----------
- 2 files changed, 34 insertions(+), 16 deletions(-)
+> In the ndctl-create-namespace (and related) man pages, add a
+> clarification note regarding some of the restrictions a user may see
+> when operating on label-less namespaces.
+>
+> Link: https://github.com/pmem/ndctl/issues/52
+> Reported-by: Jane Chu <jane.chu@oracle.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>
+> v2:
+> - Remove the part about an address abstraction mechanism; It didn't add
+>   any value (Jeff)
+> - Add an additional sentence about space reclamation semantics (Dan)
 
-diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
-index 756713ee12d7..b5ddae9c269e 100644
---- a/Documentation/ndctl/ndctl-read-labels.txt
-+++ b/Documentation/ndctl/ndctl-read-labels.txt
-@@ -19,6 +19,13 @@ file.  In the multi-dimm case the data is concatenated.
- OPTIONS
- -------
- include::labels-options.txt[]
-+-I::
-+--index::
-+	Limit the span of the label operation to just the index-block
-+	area. This is useful to determine if the dimm label area is
-+	initialized. Note that this option and --size/--offset are
-+	mutually exclusive.
-+
- -o::
- --output::
- 	output file
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 70128dd2df27..5e6fa19bab15 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -55,6 +55,7 @@ static struct parameters {
- 	bool master_pass;
- 	bool human;
- 	bool force;
-+	bool index;
- 	bool json;
- 	bool verbose;
- } param = {
-@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
- 
- 	if (!jdimm)
- 		return NULL;
--	jindex = dump_index_json(cmd_read, size);
--	if (!jindex)
--		goto err_jindex;
--	jlabel = dump_label_json(dimm, cmd_read, size, flags);
--	if (!jlabel)
--		goto err_jlabel;
- 
- 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
- 	if (!jobj)
--		goto err_jobj;
--
-+		goto err;
- 	json_object_object_add(jdimm, "dev", jobj);
-+
-+	jindex = dump_index_json(cmd_read, size);
-+	if (!jindex)
-+		goto err;
- 	json_object_object_add(jdimm, "index", jindex);
-+	if (param.index)
-+		return jdimm;
-+
-+	jlabel = dump_label_json(dimm, cmd_read, size, flags);
-+	if (!jlabel)
-+		goto err;
- 	json_object_object_add(jdimm, "label", jlabel);
--	return jdimm;
- 
-- err_jobj:
--	json_object_put(jlabel);
-- err_jlabel:
--	json_object_put(jindex);
-- err_jindex:
-+	return jdimm;
-+err:
- 	json_object_put(jdimm);
- 	return NULL;
- }
-@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
- 
--	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
-+	if (param.index)
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
-+	else
-+		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
-+				param.offset);
- 	if (!cmd_read)
- 		return -EINVAL;
- 
-@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
- OPT_STRING('o', "output", &param.outfile, "output-file", \
- 	"filename to write label area contents"), \
- OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
--OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
-+OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
- 
- #define WRITE_OPTIONS() \
- OPT_STRING('i', "input", &param.infile, "input-file", \
-@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
-+	if (param.index && param.len) {
-+		fprintf(stderr, "pick either --size, or --index, not both\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
- 	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
+LGTM
 
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+
+-Jeff
+
+>
+>  Documentation/ndctl/namespace-description.txt | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/Documentation/ndctl/namespace-description.txt b/Documentation/ndctl/namespace-description.txt
+> index 94999e5..c59fbef 100644
+> --- a/Documentation/ndctl/namespace-description.txt
+> +++ b/Documentation/ndctl/namespace-description.txt
+> @@ -18,6 +18,15 @@ the kernel's 'memmap=ss!nn' command line option (see the nvdimm wiki on
+>  kernel.org), or NVDIMMs without a valid 'namespace index' in their label
+>  area.
+>  
+> +NOTE: Label-less namespaces lack many of the features of their label-rich
+> +cousins. For example, their size cannot be modified, or they cannot be
+> +fully 'destroyed' (i.e. the space reclaimed). A destroy operation will
+> +zero any mode-specific metadata. Finally, for create-namespace operations
+> +on label-less namespaces, ndctl bypasses the region capacity availability
+> +checks, and always satisfies the request using the full region capacity.
+> +The only reconfiguration operation supported on a label-less namespace
+> +is changing its 'mode'.
+> +
+>  A namespace can be provisioned to operate in one of 4 modes, 'fsdax',
+>  'devdax', 'sector', and 'raw'. Here are the expected usage models for
+>  these modes:
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
