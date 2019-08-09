@@ -1,18 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au
- [211.29.132.249])
- by ml01.01.org (Postfix) with ESMTP id C3D702131474B
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:26:05 -0700 (PDT)
-Date: Sat, 10 Aug 2019 09:22:09 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [RFC PATCH v2 08/19] fs/xfs: Fail truncate if page lease can't
- be broken
-Message-ID: <20190809232209.GA7777@dread.disaster.area>
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 9FD202131D597
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:34 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 08/19] fs/xfs: Fail truncate if page lease can't be
+ broken
+Date: Fri,  9 Aug 2019 15:58:22 -0700
+Message-Id: <20190809225833.6657-9-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
 References: <20190809225833.6657-1-ira.weiny@intel.com>
- <20190809225833.6657-9-ira.weiny@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190809225833.6657-9-ira.weiny@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,50 +23,57 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: ira.weiny@intel.com
-Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 09, 2019 at 03:58:22PM -0700, ira.weiny@intel.com wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> If pages are under a lease fail the truncate operation.  We change the order of
-> lease breaks to directly fail the operation if the lease exists.
-> 
-> Select EXPORT_BLOCK_OPS for FS_DAX to ensure that xfs_break_lease_layouts() is
-> defined for FS_DAX as well as pNFS.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> ---
->  fs/Kconfig        | 1 +
->  fs/xfs/xfs_file.c | 5 +++--
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/Kconfig b/fs/Kconfig
-> index 14cd4abdc143..c10b91f92528 100644
-> --- a/fs/Kconfig
-> +++ b/fs/Kconfig
-> @@ -48,6 +48,7 @@ config FS_DAX
->  	select DEV_PAGEMAP_OPS if (ZONE_DEVICE && !FS_DAX_LIMITED)
->  	select FS_IOMAP
->  	select DAX
-> +	select EXPORTFS_BLOCK_OPS
->  	help
->  	  Direct Access (DAX) can be used on memory-backed block devices.
->  	  If the block device supports DAX and the filesystem supports DAX,
+From: Ira Weiny <ira.weiny@intel.com>
 
-That looks wrong. If you require xfs_break_lease_layouts() outside
-of pnfs context, then move the function in the XFS code base to a
-file that is built in. It's only external dependency is on the
-break_layout() function, and XFS already has other unconditional
-direct calls to break_layout()...
+If pages are under a lease fail the truncate operation.  We change the order of
+lease breaks to directly fail the operation if the lease exists.
 
-Cheers,
+Select EXPORT_BLOCK_OPS for FS_DAX to ensure that xfs_break_lease_layouts() is
+defined for FS_DAX as well as pNFS.
 
-Dave.
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ fs/Kconfig        | 1 +
+ fs/xfs/xfs_file.c | 5 +++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 14cd4abdc143..c10b91f92528 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -48,6 +48,7 @@ config FS_DAX
+ 	select DEV_PAGEMAP_OPS if (ZONE_DEVICE && !FS_DAX_LIMITED)
+ 	select FS_IOMAP
+ 	select DAX
++	select EXPORTFS_BLOCK_OPS
+ 	help
+ 	  Direct Access (DAX) can be used on memory-backed block devices.
+ 	  If the block device supports DAX and the filesystem supports DAX,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 447571e3cb02..850d0a0953a2 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -773,10 +773,11 @@ xfs_break_layouts(
+ 		retry = false;
+ 		switch (reason) {
+ 		case BREAK_UNMAP:
+-			error = xfs_break_dax_layouts(inode, &retry, off, len);
++			error = xfs_break_leased_layouts(inode, iolock, &retry);
+ 			if (error || retry)
+ 				break;
+-			/* fall through */
++			error = xfs_break_dax_layouts(inode, &retry, off, len);
++			break;
+ 		case BREAK_WRITE:
+ 			error = xfs_break_leased_layouts(inode, iolock, &retry);
+ 			break;
 -- 
-Dave Chinner
-david@fromorbit.com
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
