@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EB33721329975
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:32 -0700 (PDT)
-Subject: [ndctl PATCH v5 7/7] ndctl/namespace: Report ENOSPC when regions
- are full
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 17:09:42 -0700
-Message-ID: <156505018281.848599.6510034459473826921.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 585482131BA53
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:28 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 04/19] mm/gup: Ensure F_LAYOUT lease is held prior to
+ GUP'ing pages
+Date: Fri,  9 Aug 2019 15:58:18 -0700
+Message-Id: <20190809225833.6657-5-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,46 +23,185 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The create-namespace error message:
+From: Ira Weiny <ira.weiny@intel.com>
 
-    failed to create namespace: Resource temporarily unavailable
+On FS DAX files users must inform the file system they intend to take
+long term GUP pins on the file pages.  Failure to do so should result in
+an error.
 
-...is misleading because the lack of capacity is permanent until the
-user frees up space.
+Ensure that a F_LAYOUT lease exists at the time the GUP call is made.
+If not return EPERM.
 
-Trap EAGAIN and translate to ENOSPC in case the region capacity search
-fails:
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-    failed to create namespace: No space left on device
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Changes from RFC v1:
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 5c457224cb13..89113f760bbf 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1415,6 +1415,15 @@ static int do_xaction_namespace(const char *namespace,
- 		}
- 	}
- 
-+	if (action == ACTION_CREATE && rc == -EAGAIN) {
-+		/*
-+		 * Namespace creation searched through all candidate
-+		 * regions and all of them said "nope, I don't have
-+		 * enough capacity", so report -ENOSPC
-+		 */
-+		rc = -ENOSPC;
+    The old version had remnants of when GUP was going to take the lease
+    for the user.  Remove this prototype code.
+    Fix issue in gup_device_huge which was setting page reference prior
+    to checking for Layout Lease
+    Re-base to 5.3+
+    Clean up htmldoc comments
+
+ fs/locks.c         | 47 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mm.h |  2 ++
+ mm/gup.c           | 23 +++++++++++++++++++++++
+ mm/huge_memory.c   | 12 ++++++++++++
+ 4 files changed, 84 insertions(+)
+
+diff --git a/fs/locks.c b/fs/locks.c
+index 0c7359cdab92..14892c84844b 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -2971,3 +2971,50 @@ static int __init filelock_init(void)
+ 	return 0;
+ }
+ core_initcall(filelock_init);
++
++/**
++ * mapping_inode_has_layout - ensure a file mapped page has a layout lease
++ * taken
++ * @page: page we are trying to GUP
++ *
++ * This should only be called on DAX pages.  DAX pages which are mapped through
++ * FS DAX do not use the page cache.  As a result they require the user to take
++ * a LAYOUT lease on them prior to be able to pin them for longterm use.
++ * This allows the user to opt-into the fact that truncation operations will
++ * fail for the duration of the pin.
++ *
++ * Return true if the page has a LAYOUT lease associated with it's file.
++ */
++bool mapping_inode_has_layout(struct page *page)
++{
++	bool ret = false;
++	struct inode *inode;
++	struct file_lock *fl;
++
++	if (WARN_ON(PageAnon(page)) ||
++	    WARN_ON(!page) ||
++	    WARN_ON(!page->mapping) ||
++	    WARN_ON(!page->mapping->host))
++		return false;
++
++	inode = page->mapping->host;
++
++	smp_mb();
++	if (inode->i_flctx &&
++	    !list_empty_careful(&inode->i_flctx->flc_lease)) {
++		spin_lock(&inode->i_flctx->flc_lock);
++		ret = false;
++		list_for_each_entry(fl, &inode->i_flctx->flc_lease, fl_list) {
++			if (fl->fl_pid == current->tgid &&
++			    (fl->fl_flags & FL_LAYOUT) &&
++			    (fl->fl_flags & FL_EXCLUSIVE)) {
++				ret = true;
++				break;
++			}
++		}
++		spin_unlock(&inode->i_flctx->flc_lock);
 +	}
 +
- 	return rc;
- }
++	return ret;
++}
++EXPORT_SYMBOL_GPL(mapping_inode_has_layout);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ad6766a08f9b..04f22722b374 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1583,6 +1583,8 @@ int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc);
+ int __account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc,
+ 			struct task_struct *task, bool bypass_rlim);
  
++bool mapping_inode_has_layout(struct page *page);
++
+ /* Container for pinned pfns / pages */
+ struct frame_vector {
+ 	unsigned int nr_allocated;	/* Number of frames we have space for */
+diff --git a/mm/gup.c b/mm/gup.c
+index 80423779a50a..0b05e22ac05f 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -221,6 +221,13 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
+ 			page = pte_page(pte);
+ 		else
+ 			goto no_page;
++
++		if (unlikely(flags & FOLL_LONGTERM) &&
++		    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
++		    !mapping_inode_has_layout(page)) {
++			page = ERR_PTR(-EPERM);
++			goto out;
++		}
+ 	} else if (unlikely(!page)) {
+ 		if (flags & FOLL_DUMP) {
+ 			/* Avoid special (like zero) pages in core dumps */
+@@ -1847,6 +1854,14 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 
+ 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 
++		if (pte_devmap(pte) &&
++		    unlikely(flags & FOLL_LONGTERM) &&
++		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
++		    !mapping_inode_has_layout(head)) {
++			put_user_page(head);
++			goto pte_unmap;
++		}
++
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
+@@ -1895,6 +1910,14 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+ 			undo_dev_pagemap(nr, nr_start, pages);
+ 			return 0;
+ 		}
++
++		if (unlikely(flags & FOLL_LONGTERM) &&
++		    pgmap->type == MEMORY_DEVICE_FS_DAX &&
++		    !mapping_inode_has_layout(page)) {
++			undo_dev_pagemap(nr, nr_start, pages);
++			return 0;
++		}
++
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		get_page(page);
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 1334ede667a8..bc1a07a55be1 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -953,6 +953,12 @@ struct page *follow_devmap_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	if (!*pgmap)
+ 		return ERR_PTR(-EFAULT);
+ 	page = pfn_to_page(pfn);
++
++	if (unlikely(flags & FOLL_LONGTERM) &&
++	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
++	    !mapping_inode_has_layout(page))
++		return ERR_PTR(-EPERM);
++
+ 	get_page(page);
+ 
+ 	return page;
+@@ -1093,6 +1099,12 @@ struct page *follow_devmap_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	if (!*pgmap)
+ 		return ERR_PTR(-EFAULT);
+ 	page = pfn_to_page(pfn);
++
++	if (unlikely(flags & FOLL_LONGTERM) &&
++	    (*pgmap)->type == MEMORY_DEVICE_FS_DAX &&
++	    !mapping_inode_has_layout(page))
++		return ERR_PTR(-EPERM);
++
+ 	get_page(page);
+ 
+ 	return page;
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
