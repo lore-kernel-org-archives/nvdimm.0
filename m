@@ -1,29 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from Galois.linutronix.de (Galois.linutronix.de
- [IPv6:2a0a:51c0:0:12e:550::1])
- (using TLSv1.2 with cipher AES128-SHA (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B56D52194EB7A
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 00:41:03 -0700 (PDT)
-From: John Ogness <john.ogness@linutronix.de>
-Subject: Re: [PATCH v9 04/18] kunit: test: add kunit_stream a std::stream like
- logger
-References: <20190716175021.9CA412173C@mail.kernel.org>
- <CAFd5g453vXeSUCZenCk_CzJ-8a1ym9RaPo0NVF=FujF9ac-5Ag@mail.gmail.com>
- <20190718175024.C3EC421019@mail.kernel.org>
- <CAFd5g46a7C1+R6ZcE_SkqaYqgrH5Rx3M=X7orFyaMgFLDbeYYA@mail.gmail.com>
- <20190719000834.GA3228@google.com>
- <20190722200347.261D3218C9@mail.kernel.org>
- <CAFd5g45hdCxEavSxirr0un_uLzo5Z-J4gHRA06qjzcQrTzmjVg@mail.gmail.com>
- <20190722235411.06C1320840@mail.kernel.org>
- <20190724073125.xyzfywctrcvg6fmh@pathway.suse.cz>
- <CAFd5g47v3Mr4GEGOjqyYy9Jwwm+ow7ypbu9j88rxEN06QCzdxQ@mail.gmail.com>
- <20190726083148.d4gf57w2nt5k7t6n@pathway.suse.cz>
- <CAFd5g46iAhDZ5C_chi7oYLVOkwcoj6+0nw+kPWuXhqWwWKd9jA@mail.gmail.com>
-Date: Fri, 02 Aug 2019 09:37:53 +0200
-In-Reply-To: <CAFd5g46iAhDZ5C_chi7oYLVOkwcoj6+0nw+kPWuXhqWwWKd9jA@mail.gmail.com>
- (Brendan Higgins's message of "Thu, 1 Aug 2019 11:55:20 -0700")
-Message-ID: <871ry4yq3y.fsf@linutronix.de>
+ by ml01.01.org (Postfix) with ESMTPS id A694C21309DCA
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:44 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 13/19] {mm,file}: Add file_pins objects
+Date: Fri,  9 Aug 2019 15:58:27 -0700
+Message-Id: <20190809225833.6657-14-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -36,166 +22,178 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: devicetree <devicetree@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Timothy Bird <Tim.Bird@sony.com>, Frank Rowand <frowand.list@gmail.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Kevin Hilman <khilman@baylibre.com>, Dan Carpenter <dan.carpenter@oracle.com>, Petr Mladek <pmladek@suse.com>, linux-kbuild <linux-kbuild@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Stephen Boyd <sboyd@kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 2019-08-01, Brendan Higgins <brendanhiggins@google.com> wrote:
-> On Fri, Jul 26, 2019 at 1:31 AM Petr Mladek <pmladek@suse.com> wrote:
->> On Thu 2019-07-25 13:21:12, Brendan Higgins wrote:
->>> On Wed, Jul 24, 2019 at 12:31 AM Petr Mladek <pmladek@suse.com> wrote:
->>>> On Mon 2019-07-22 16:54:10, Stephen Boyd wrote:
->>>>> Quoting Brendan Higgins (2019-07-22 15:30:49)
->>>>>> On Mon, Jul 22, 2019 at 1:03 PM Stephen Boyd <sboyd@kernel.org> wrote:
->>>>>>> What's the calling context of the assertions and expectations? I
->>>>>>> still don't like the fact that string stream needs to allocate
->>>>>>> buffers and throw them into a list somewhere because the calling
->>>>>>> context matters there.
->>>>>>
->>>>>> The calling context is the same as before, which is anywhere.
->>>>>
->>>>> Ok. That's concerning then.
->>>>>
->>>>>>> I'd prefer we just wrote directly to the console/log via printk
->>>>>>> instead. That way things are simple because we use the existing
->>>>>>> buffering path of printk, but maybe there's some benefit to the
->>>>>>> string stream that I don't see? Right now it looks like it
->>>>>>> builds a string and then dumps it to printk so I'm sort of lost
->>>>>>> what the benefit is over just writing directly with printk.
->>>>>>
->>>>>> It's just buffering it so the whole string gets printed
->>>>>> uninterrupted.  If we were to print out piecemeal to printk,
->>>>>> couldn't we have another call to printk come in causing it to
->>>>>> garble the KUnit message we are in the middle of printing?
->>>>>
->>>>> Yes, printing piecemeal by calling printk many times could lead to
->>>>> interleaving of messages if something else comes in such as an
->>>>> interrupt printing something. Printk has some support to hold
->>>>> "records" but I'm not sure how that would work here because
->>>>> KERN_CONT talks about only being used early on in boot code. I
->>>>> haven't looked at printk in detail though so maybe I'm all wrong
->>>>> and KERN_CONT just works?
->>>>
->>>> KERN_CONT does not guarantee that the message will get printed
->>>> together. The pieces get interleaved with messages printed in
->>>> parallel.
->>>>
->>>> Note that KERN_CONT was originally really meant to be used only
->>>> during boot. It was later used more widely and ended in the best
->>>> effort category.
->>>>
->>>> There were several attempts to make it more reliable. But it was
->>>> always either too complicated or error prone or both.
->>>>
->>>> You need to use your own buffering if you rely want perfect output.
->>>> The question is if it is really worth the complexity. Also note
->>>> that any buffering reduces the chance that the messages will reach
->>>> the console.
->>>
->>> Seems like that settles it then. Thanks!
->>>
->>>> BTW: There is a work in progress on a lockless printk ring buffer.
->>>> It will make printk() more secure regarding deadlocks. But it might
->>>> make transparent handling of continuous lines even more tricky.
->>>>
->>>> I guess that local buffering, before calling printk(), will be
->>>> even more important then. Well, it might really force us to create
->>>> an API for it.
->>>
->>> Cool! Can you CC me on that discussion?
->>
->> Adding John Oggness into CC.
->>
->> John, please CC Brendan Higgins on the patchsets eventually switching
->> printk() into the lockless buffer. The test framework is going to
->> do its own buffering to keep the related messages together.
->>
->> The lockless ringbuffer might make handling of related (partial)
->> lines worse or better. It might justify KUnit's extra buffering
->> or it might allow to get rid of it.
->
-> Thanks for CC'ing me on the printk ringbuffer thread. It looks like it
-> actually probably won't affect my needs for KUnit logging. The biggest
-> reason I need some sort of buffering system is to be able to compose
-> messages piece meal into a single message that will be printed out to
-> the user as a single message with no messages from other printk
-> callers printed out in the middle of mine.
+From: Ira Weiny <ira.weiny@intel.com>
 
-printk has this same requirement for its CONT messages. You can read
-about how I propose to implement that here[0], using a separate prb
-ringbuffer for buffered storage until all the pieces are available.
+User page pins (aka GUP) needs to track file information of files being
+pinned by those calls.  Depending on the needs of the caller this
+information is stored in 1 of 2 ways.
 
-It is not my goal that multiple subsystems start making use of the prb
-ringbuffer. However, its features can be attractive if you don't want to
-worry about multiple writers/readers or context (including NMI). Before
-writing "yet another ringbuffer" [1] it might be worth the effort to at
-least see if one of the existing implementations can work (or be
-extended to work) for you.
+1) Some subsystems like RDMA associate GUP pins with file descriptors
+   which can be passed around to other process'.  In this case a file
+   being pined must be associated with an owning file object (which can
+   then be resolved back to any of the processes which have a file
+   descriptor 'pointing' to that file object).
 
-John Ogness
+2) Other subsystems do not have an owning file and can therefore
+   associate the file pin directly to the mm of the process which
+   created them.
 
-[0] https://lkml.kernel.org/r/87imt2bl0k.fsf@linutronix.de
-[1] https://lwn.net/Articles/789603/
+This patch introduces the new file pin structures and ensures struct
+file and struct mm_struct are prepared to store them.
 
-> The prb does look interesting; however, it appears that to get the
-> semantics that I need, I would have to put my entire message in a
-> single data block and would consequently need to know the size of my
-> message a priori, which is problematic. Consequently, it seems as
-> though I will probably need to compose my entire message using my own
-> buffering system.
->
->>>> Note that stroring the messages into the printk log is basically
->>>> safe in any context. It uses temporary per-CPU buffers for
->>>> recursive messages and in NMI. The only problem is panic() when
->>>> some CPU gets stuck with the lock taken. This will get solved by
->>>> the lockless ringbuffer. Also the temporary buffers will not be
->>>> necessary any longer.
->>>
->>> Sure, I think Stephen's concern is all the supporting code that is
->>> involved. Not printk specifically. It just means a lot more of KUnit
->>> has to be IRQ safe.
->>
->> I see.
->>
->> BTW: I wonder if KUnit could reuse the existing seq_buf
->> implementation for buffering messages.
->>
->> I am sorry if it has already been proposed and rejected for some
->> reason. I might have missed it. Feel free to just point me to
->> same older mail.
->
-> Yeah, we discussed it briefly here:
->
-> https://lkml.org/lkml/2019/5/17/497
->
-> Looks like I forgot to include my reasoning in the commit text, sorry
-> about that.
->
->>>> Much bigger problems are with consoles. There are many of them. It
->>>> means a lot of code and more locks involved, including scheduler
->>>> locks. Note that console lock is a semaphore.
->>>
->>> That shouldn't affect us though, right? As long as we continue to
->>> use the printk interface?
->>
->> I guess that it should not affect KUnit.
->>
->> The only problem might be if the testing framework calls printk()
->> inside scheduler or console code. And only when the tested code
->> uses the same locks that will be used by the called printk().
->
-> Yeah, well printk will not be our only problem in those instances.
->
->> To be honest I do not fully understand KUnit design. I am not
->> completely sure how the tested code is isolated from the running
->> system. Namely, I do not know if the tested code shares
->> the same locks with the system running the test.
->
-> No worries, I don't expect printk to be the hang up in those cases. It
-> sounds like KUnit has a long way to evolve before printk is going to
-> be a limitation.
->
-> Thanks!
+In subsequent patches the required information will be passed into new
+pin page calls and procfs is enhanced to show this information to the user.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ fs/file_table.c          |  4 ++++
+ include/linux/file.h     | 49 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h       |  2 ++
+ include/linux/mm_types.h |  2 ++
+ kernel/fork.c            |  3 +++
+ 5 files changed, 60 insertions(+)
+
+diff --git a/fs/file_table.c b/fs/file_table.c
+index b07b53f24ff5..38947b9a4769 100644
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -46,6 +46,7 @@ static void file_free_rcu(struct rcu_head *head)
+ {
+ 	struct file *f = container_of(head, struct file, f_u.fu_rcuhead);
+ 
++	WARN_ON(!list_empty(&f->file_pins));
+ 	put_cred(f->f_cred);
+ 	kmem_cache_free(filp_cachep, f);
+ }
+@@ -118,6 +119,9 @@ static struct file *__alloc_file(int flags, const struct cred *cred)
+ 	f->f_mode = OPEN_FMODE(flags);
+ 	/* f->f_version: 0 */
+ 
++	INIT_LIST_HEAD(&f->file_pins);
++	spin_lock_init(&f->fp_lock);
++
+ 	return f;
+ }
+ 
+diff --git a/include/linux/file.h b/include/linux/file.h
+index 3fcddff56bc4..cd79adad5b23 100644
+--- a/include/linux/file.h
++++ b/include/linux/file.h
+@@ -9,6 +9,7 @@
+ #include <linux/compiler.h>
+ #include <linux/types.h>
+ #include <linux/posix_types.h>
++#include <linux/kref.h>
+ 
+ struct file;
+ 
+@@ -91,4 +92,52 @@ extern void fd_install(unsigned int fd, struct file *file);
+ extern void flush_delayed_fput(void);
+ extern void __fput_sync(struct file *);
+ 
++/**
++ * struct file_file_pin
++ *
++ * Associate a pin'ed file with another file owner.
++ *
++ * Subsystems such as RDMA have the ability to pin memory which is associated
++ * with a file descriptor which can be passed to other processes without
++ * necessarily having that memory accessed in the remote processes address
++ * space.
++ *
++ * @file file backing memory which was pined by a GUP caller
++ * @f_owner the file representing the GUP owner
++ * @list of all file pins this owner has
++ *       (struct file *)->file_pins
++ * @ref number of times this pin was taken (roughly the number of pages pinned
++ *      in the file)
++ */
++struct file_file_pin {
++	struct file *file;
++	struct file *f_owner;
++	struct list_head list;
++	struct kref ref;
++};
++
++/*
++ * struct mm_file_pin
++ *
++ * Some GUP callers do not have an "owning" file.  Those pins are accounted for
++ * in the mm of the process that called GUP.
++ *
++ * The tuple {file, inode} is used to track this as a unique file pin and to
++ * track when this pin has been removed.
++ *
++ * @file file backing memory which was pined by a GUP caller
++ * @mm back point to owning mm
++ * @inode backing the file
++ * @list of all file pins this owner has
++ *       (struct mm_struct *)->file_pins
++ * @ref number of times this pin was taken
++ */
++struct mm_file_pin {
++	struct file *file;
++	struct mm_struct *mm;
++	struct inode *inode;
++	struct list_head list;
++	struct kref ref;
++};
++
+ #endif /* __LINUX_FILE_H */
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2e41ce547913..d2e08feb9737 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -963,6 +963,8 @@ struct file {
+ #endif /* #ifdef CONFIG_EPOLL */
+ 	struct address_space	*f_mapping;
+ 	errseq_t		f_wb_err;
++	struct list_head        file_pins;
++	spinlock_t              fp_lock;
+ } __randomize_layout
+   __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
+ 
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 6a7a1083b6fb..4f6ea4acddbd 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -516,6 +516,8 @@ struct mm_struct {
+ 		/* HMM needs to track a few things per mm */
+ 		struct hmm *hmm;
+ #endif
++		struct list_head file_pins;
++		spinlock_t fp_lock; /* lock file_pins */
+ 	} __randomize_layout;
+ 
+ 	/*
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 0e2f9a2c132c..093f2f2fce1a 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -675,6 +675,7 @@ void __mmdrop(struct mm_struct *mm)
+ 	BUG_ON(mm == &init_mm);
+ 	WARN_ON_ONCE(mm == current->mm);
+ 	WARN_ON_ONCE(mm == current->active_mm);
++	WARN_ON(!list_empty(&mm->file_pins));
+ 	mm_free_pgd(mm);
+ 	destroy_context(mm);
+ 	mmu_notifier_mm_destroy(mm);
+@@ -1013,6 +1014,8 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
+ 	mm->pmd_huge_pte = NULL;
+ #endif
+ 	mm_init_uprobes_state(mm);
++	INIT_LIST_HEAD(&mm->file_pins);
++	spin_lock_init(&mm->fp_lock);
+ 
+ 	if (current->mm) {
+ 		mm->flags = current->mm->flags & MMF_INIT_MASK;
+-- 
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
