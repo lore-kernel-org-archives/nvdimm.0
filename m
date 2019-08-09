@@ -2,17 +2,15 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9B04B21306CC3
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 10:17:54 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] daxctl: link against libndctl, in case its use doesn't
- get pruned
-Date: Fri, 2 Aug 2019 17:15:21 +0000
-Message-ID: <47f7555596eae0f7daef0d6a0a9ce0bae96f6af4.camel@intel.com>
-References: <20190801010044.56927-1-kilobyte@angband.pl>
-In-Reply-To: <20190801010044.56927-1-kilobyte@angband.pl>
-Content-Language: en-US
-Content-ID: <1ABDC69972287348A26591A6025BA3A6@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 2CFFD21309D28
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:49 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 17/19] RDMA/umem: Convert to vaddr_[pin|unpin]*
+ operations.
+Date: Fri,  9 Aug 2019 15:58:31 -0700
+Message-Id: <20190809225833.6657-18-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -25,63 +23,187 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "kilobyte@angband.pl" <kilobyte@angband.pl>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2019-08-01 at 03:00 +0200, Adam Borowski wrote:
-> util/json.c uses libndctl symbols, and is included by daxctl.  These
-> functions should then get pruned as unused, but on some platforms the
-> toolchain fails to do so.
-> 
-> These platforms are ia64, hppa and 32-bit powerpc.  It's generally a
-> waste of our time to build ndctl there, but as the lack of a
-> build-dependency requires annoying workarounds higher in the stack,
-> this has been requested in https://bugs.debian.org/914348 -- and is
-> trivially fixable on the ndctl side.
-> 
-> Thanks to -Wl,--as-needed there's no harm to architectures where the
-> pruning works, thus let's not bother with detection.
-> 
-> As daxctl and libdaxctl are separate, there's no circular dependency.
-> 
-> Signed-off-by: Adam Borowski <kilobyte@angband.pl>
-> ---
->  daxctl/Makefile.am | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+From: Ira Weiny <ira.weiny@intel.com>
 
-Hi Adam,
+In order to properly track the pinning information we need to keep a
+vaddr_pin object around.  Store that within the umem object directly.
 
-Thanks for the report and the patch - however, historically, we've
-avoided linking from daxctl to libndctl.
+The vaddr_pin object allows the GUP code to associate any files it pins
+with the RDMA file descriptor associated with this GUP.
 
-I think we can still avoid this by moving the libndctl users in
-util/json.c and util/filter.c into respective ndctl/util/ files.
+Furthermore, use the vaddr_pin object to store the owning mm while we
+are at it.
 
-The same goes for libdaxctl users in those files - they move into
-daxctl/util/
+No references need to be taken on the owing file as the lifetime of that
+object is tied to all the umems being destroyed first.
 
-I think that would be a cleaner approach, and I can take a shot at
-making the split next week, however we're close to a v66 release, and it
-will have to be after that happens.
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ drivers/infiniband/core/umem.c     | 26 +++++++++++++++++---------
+ drivers/infiniband/core/umem_odp.c | 16 ++++++++--------
+ include/rdma/ib_umem.h             |  2 +-
+ 3 files changed, 26 insertions(+), 18 deletions(-)
 
-Perhaps the debian package can temporarily carry your patch for the
-archs that fail?
-
-Thanks,
-	-Vishal
-
-> 
-> diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-> index 94f73f9..a5487d6 100644
-> --- a/daxctl/Makefile.am
-> +++ b/daxctl/Makefile.am
-> @@ -21,4 +21,5 @@ daxctl_LDADD =\
->  	lib/libdaxctl.la \
->  	../libutil.a \
->  	$(UUID_LIBS) \
-> -	$(JSON_LIBS)
-> +	$(JSON_LIBS) \
-> +	../ndctl/lib/libndctl.la
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 965cf9dea71a..a9ce3e3816ef 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -54,7 +54,8 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 
+ 	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
+ 		page = sg_page_iter_page(&sg_iter);
+-		put_user_pages_dirty_lock(&page, 1, umem->writable && dirty);
++		vaddr_unpin_pages_dirty_lock(&page, 1, &umem->vaddr_pin,
++					     umem->writable && dirty);
+ 	}
+ 
+ 	sg_free_table(&umem->sg_head);
+@@ -243,8 +244,15 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ 	umem->length     = size;
+ 	umem->address    = addr;
+ 	umem->writable   = ib_access_writable(access);
+-	umem->owning_mm = mm = current->mm;
+-	mmgrab(mm);
++	umem->vaddr_pin.mm = mm = current->mm;
++	mmgrab(umem->vaddr_pin.mm);
++
++	/* No need to get a reference to the core file object here.  The key is
++	 * that sys_file reference is held by the ufile.  Any duplication of
++	 * sys_file by the core will keep references active until all those
++	 * contexts are closed out.  No matter which process hold them open.
++	 */
++	umem->vaddr_pin.f_owner = context->ufile->sys_file;
+ 
+ 	if (access & IB_ACCESS_ON_DEMAND) {
+ 		if (WARN_ON_ONCE(!context->invalidate_range)) {
+@@ -292,11 +300,11 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ 
+ 	while (npages) {
+ 		down_read(&mm->mmap_sem);
+-		ret = get_user_pages(cur_base,
++		ret = vaddr_pin_pages(cur_base,
+ 				     min_t(unsigned long, npages,
+ 					   PAGE_SIZE / sizeof (struct page *)),
+-				     gup_flags | FOLL_LONGTERM,
+-				     page_list, NULL);
++				     gup_flags,
++				     page_list, &umem->vaddr_pin);
+ 		if (ret < 0) {
+ 			up_read(&mm->mmap_sem);
+ 			goto umem_release;
+@@ -336,7 +344,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ 	free_page((unsigned long) page_list);
+ umem_kfree:
+ 	if (ret) {
+-		mmdrop(umem->owning_mm);
++		mmdrop(umem->vaddr_pin.mm);
+ 		kfree(umem);
+ 	}
+ 	return ret ? ERR_PTR(ret) : umem;
+@@ -345,7 +353,7 @@ EXPORT_SYMBOL(ib_umem_get);
+ 
+ static void __ib_umem_release_tail(struct ib_umem *umem)
+ {
+-	mmdrop(umem->owning_mm);
++	mmdrop(umem->vaddr_pin.mm);
+ 	if (umem->is_odp)
+ 		kfree(to_ib_umem_odp(umem));
+ 	else
+@@ -369,7 +377,7 @@ void ib_umem_release(struct ib_umem *umem)
+ 
+ 	__ib_umem_release(umem->context->device, umem, 1);
+ 
+-	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
++	atomic64_sub(ib_umem_num_pages(umem), &umem->vaddr_pin.mm->pinned_vm);
+ 	__ib_umem_release_tail(umem);
+ }
+ EXPORT_SYMBOL(ib_umem_release);
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 2a75c6f8d827..53085896d718 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -278,11 +278,11 @@ static int get_per_mm(struct ib_umem_odp *umem_odp)
+ 	 */
+ 	mutex_lock(&ctx->per_mm_list_lock);
+ 	list_for_each_entry(per_mm, &ctx->per_mm_list, ucontext_list) {
+-		if (per_mm->mm == umem_odp->umem.owning_mm)
++		if (per_mm->mm == umem_odp->umem.vaddr_pin.mm)
+ 			goto found;
+ 	}
+ 
+-	per_mm = alloc_per_mm(ctx, umem_odp->umem.owning_mm);
++	per_mm = alloc_per_mm(ctx, umem_odp->umem.vaddr_pin.mm);
+ 	if (IS_ERR(per_mm)) {
+ 		mutex_unlock(&ctx->per_mm_list_lock);
+ 		return PTR_ERR(per_mm);
+@@ -355,8 +355,8 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_umem_odp *root,
+ 	umem->writable   = root->umem.writable;
+ 	umem->is_odp = 1;
+ 	odp_data->per_mm = per_mm;
+-	umem->owning_mm  = per_mm->mm;
+-	mmgrab(umem->owning_mm);
++	umem->vaddr_pin.mm  = per_mm->mm;
++	mmgrab(umem->vaddr_pin.mm);
+ 
+ 	mutex_init(&odp_data->umem_mutex);
+ 	init_completion(&odp_data->notifier_completion);
+@@ -389,7 +389,7 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_umem_odp *root,
+ out_page_list:
+ 	vfree(odp_data->page_list);
+ out_odp_data:
+-	mmdrop(umem->owning_mm);
++	mmdrop(umem->vaddr_pin.mm);
+ 	kfree(odp_data);
+ 	return ERR_PTR(ret);
+ }
+@@ -399,10 +399,10 @@ int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access)
+ {
+ 	struct ib_umem *umem = &umem_odp->umem;
+ 	/*
+-	 * NOTE: This must called in a process context where umem->owning_mm
++	 * NOTE: This must called in a process context where umem->vaddr_pin.mm
+ 	 * == current->mm
+ 	 */
+-	struct mm_struct *mm = umem->owning_mm;
++	struct mm_struct *mm = umem->vaddr_pin.mm;
+ 	int ret_val;
+ 
+ 	umem_odp->page_shift = PAGE_SHIFT;
+@@ -581,7 +581,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 			      unsigned long current_seq)
+ {
+ 	struct task_struct *owning_process  = NULL;
+-	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
++	struct mm_struct *owning_mm = umem_odp->umem.vaddr_pin.mm;
+ 	struct page       **local_page_list = NULL;
+ 	u64 page_mask, off;
+ 	int j, k, ret = 0, start_idx, npages = 0;
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 1052d0d62be7..ab677c799e29 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -43,7 +43,6 @@ struct ib_umem_odp;
+ 
+ struct ib_umem {
+ 	struct ib_ucontext     *context;
+-	struct mm_struct       *owning_mm;
+ 	size_t			length;
+ 	unsigned long		address;
+ 	u32 writable : 1;
+@@ -52,6 +51,7 @@ struct ib_umem {
+ 	struct sg_table sg_head;
+ 	int             nmap;
+ 	unsigned int    sg_nents;
++	struct vaddr_pin vaddr_pin;
+ };
+ 
+ /* Returns the offset of the umem start relative to the first page. */
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
