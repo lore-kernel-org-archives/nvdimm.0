@@ -1,16 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4A32D212E8426
- for <linux-nvdimm@lists.01.org>; Sun, 11 Aug 2019 01:15:33 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 3/5] memremap: remove the dev field in struct dev_pagemap
-Date: Sun, 11 Aug 2019 10:12:45 +0200
-Message-Id: <20190811081247.22111-4-hch@lst.de>
-In-Reply-To: <20190811081247.22111-1-hch@lst.de>
-References: <20190811081247.22111-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id DF72321314743
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:26 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 03/19] mm/gup: Pass flags down to __gup_device_huge*
+ calls
+Date: Fri,  9 Aug 2019 15:58:17 -0700
+Message-Id: <20190809225833.6657-4-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,77 +23,111 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The dev field in struct dev_pagemap is only used to print dev_name in
-two places, which are at best nice to have.  Just remove the field
-and thus the name in those two messages.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+In order to support checking for a layout lease on a FS DAX inode these
+calls need to know if FOLL_LONGTERM was specified.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- include/linux/memremap.h | 1 -
- mm/memremap.c            | 6 +-----
- mm/page_alloc.c          | 2 +-
- 3 files changed, 2 insertions(+), 7 deletions(-)
+ mm/gup.c | 26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index f8a5b2a19945..8f0013e18e14 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -109,7 +109,6 @@ struct dev_pagemap {
- 	struct percpu_ref *ref;
- 	struct percpu_ref internal_ref;
- 	struct completion done;
--	struct device *dev;
- 	enum memory_type type;
- 	unsigned int flags;
- 	u64 pci_p2pdma_bus_offset;
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 6ee03a816d67..600a14cbe663 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -96,7 +96,6 @@ static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
- static void devm_memremap_pages_release(void *data)
+diff --git a/mm/gup.c b/mm/gup.c
+index b6a293bf1267..80423779a50a 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1881,7 +1881,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+ 
+ #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++		unsigned long end, struct page **pages, int *nr,
++		unsigned int flags)
  {
- 	struct dev_pagemap *pgmap = data;
--	struct device *dev = pgmap->dev;
- 	struct resource *res = &pgmap->res;
- 	unsigned long pfn;
- 	int nid;
-@@ -123,8 +122,7 @@ static void devm_memremap_pages_release(void *data)
- 
- 	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
- 	pgmap_array_delete(res);
--	dev_WARN_ONCE(dev, pgmap->altmap.alloc,
--		      "%s: failed to free all reserved pages\n", __func__);
-+	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
+ 	int nr_start = *nr;
+ 	struct dev_pagemap *pgmap = NULL;
+@@ -1907,30 +1908,33 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
  }
  
- static void dev_pagemap_percpu_release(struct percpu_ref *ref)
-@@ -245,8 +243,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		goto err_array;
- 	}
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++		unsigned long end, struct page **pages, int *nr,
++		unsigned int flags)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start = *nr;
  
--	pgmap->dev = dev;
--
- 	error = xa_err(xa_store_range(&pgmap_array, PHYS_PFN(res->start),
- 				PHYS_PFN(res->end), pgmap, GFP_KERNEL));
- 	if (error)
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 272c6de1bf4e..b39baa2b1faf 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5982,7 +5982,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 		}
- 	}
+ 	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
+ 		return 0;
  
--	pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
-+	pr_info("%s initialised %lu pages in %ums\n", __func__,
- 		size, jiffies_to_msecs(jiffies - start));
+ 	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
+ 		undo_dev_pagemap(nr, nr_start, pages);
+ 		return 0;
+ 	}
++
+ 	return 1;
  }
  
+ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++		unsigned long end, struct page **pages, int *nr,
++		unsigned int flags)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start = *nr;
+ 
+ 	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
+ 		return 0;
+ 
+ 	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
+@@ -1941,14 +1945,16 @@ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+ }
+ #else
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++		unsigned long end, struct page **pages, int *nr,
++		unsigned int flags)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+ }
+ 
+ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++		unsigned long end, struct page **pages, int *nr,
++		unsigned int flags)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+@@ -2051,7 +2057,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 	if (pmd_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
++		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr,
++					     flags);
+ 	}
+ 
+ 	refs = 0;
+@@ -2092,7 +2099,8 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+ 	if (pud_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
++		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr,
++					     flags);
+ 	}
+ 
+ 	refs = 0;
 -- 
 2.20.1
 
