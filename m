@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au
- [211.29.132.246])
- by ml01.01.org (Postfix) with ESMTP id DDF3021309D25
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:56:23 -0700 (PDT)
-Date: Sat, 10 Aug 2019 09:52:31 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [RFC PATCH v2 01/19] fs/locks: Export F_LAYOUT lease to user space
-Message-ID: <20190809235231.GC7777@dread.disaster.area>
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B18BE21309D28
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:23 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 01/19] fs/locks: Export F_LAYOUT lease to user space
+Date: Fri,  9 Aug 2019 15:58:15 -0700
+Message-Id: <20190809225833.6657-2-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
 References: <20190809225833.6657-1-ira.weiny@intel.com>
- <20190809225833.6657-2-ira.weiny@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20190809225833.6657-2-ira.weiny@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,110 +22,180 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: ira.weiny@intel.com
-Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 09, 2019 at 03:58:15PM -0700, ira.weiny@intel.com wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> In order to support an opt-in policy for users to allow long term pins
-> of FS DAX pages we need to export the LAYOUT lease to user space.
-> 
-> This is the first of 2 new lease flags which must be used to allow a
-> long term pin to be made on a file.
-> 
-> After the complete series:
-> 
-> 0) Registrations to Device DAX char devs are not affected
-> 
-> 1) The user has to opt in to allowing page pins on a file with an exclusive
->    layout lease.  Both exclusive and layout lease flags are user visible now.
-> 
-> 2) page pins will fail if the lease is not active when the file back page is
->    encountered.
-> 
-> 3) Any truncate or hole punch operation on a pinned DAX page will fail.
-> 
-> 4) The user has the option of holding the lease or releasing it.  If they
->    release it no other pin calls will work on the file.
-> 
-> 5) Closing the file is ok.
-> 
-> 6) Unmapping the file is ok
-> 
-> 7) Pins against the files are tracked back to an owning file or an owning mm
->    depending on the internal subsystem needs.  With RDMA there is an owning
->    file which is related to the pined file.
-> 
-> 8) Only RDMA is currently supported
-> 
-> 9) Truncation of pages which are not actively pinned nor covered by a lease
->    will succeed.
+From: Ira Weiny <ira.weiny@intel.com>
 
-This has nothing to do with layout leases or what they provide
-access arbitration over. Layout leases have _nothing_ to do with
-page pinning or RDMA - they arbitrate behaviour the file offset ->
-physical block device mapping within the filesystem and the
-behaviour that will occur when a specific lease is held.
+In order to support an opt-in policy for users to allow long term pins
+of FS DAX pages we need to export the LAYOUT lease to user space.
 
-The commit descripting needs to describe what F_LAYOUT actually
-protects, when they'll get broken, etc, not how RDMA is going to use
-it.
+This is the first of 2 new lease flags which must be used to allow a
+long term pin to be made on a file.
 
-> @@ -2022,8 +2030,26 @@ static int do_fcntl_add_lease(unsigned int fd, struct file *filp, long arg)
->  	struct file_lock *fl;
->  	struct fasync_struct *new;
->  	int error;
-> +	unsigned int flags = 0;
-> +
-> +	/*
-> +	 * NOTE on F_LAYOUT lease
-> +	 *
-> +	 * LAYOUT lease types are taken on files which the user knows that
-> +	 * they will be pinning in memory for some indeterminate amount of
-> +	 * time.
+After the complete series:
 
-Indeed, layout leases have nothing to do with pinning of memory.
-That's something an application taht uses layout leases might do,
-but it largely irrelevant to the functionality layout leases
-provide. What needs to be done here is explain what the layout lease
-API actually guarantees w.r.t. the physical file layout, not what
-some application is going to do with a lease. e.g.
+0) Registrations to Device DAX char devs are not affected
 
-	The layout lease F_RDLCK guarantees that the holder will be
-	notified that the physical file layout is about to be
-	changed, and that it needs to release any resources it has
-	over the range of this lease, drop the lease and then
-	request it again to wait for the kernel to finish whatever
-	it is doing on that range.
+1) The user has to opt in to allowing page pins on a file with an exclusive
+   layout lease.  Both exclusive and layout lease flags are user visible now.
 
-	The layout lease F_RDLCK also allows the holder to modify
-	the physical layout of the file. If an operation from the
-	lease holder occurs that would modify the layout, that lease
-	holder does not get notification that a change will occur,
-	but it will block until all other F_RDLCK leases have been
-	released by their holders before going ahead.
+2) page pins will fail if the lease is not active when the file back page is
+   encountered.
 
-	If there is a F_WRLCK lease held on the file, then a F_RDLCK
-	holder will fail any operation that may modify the physical
-	layout of the file. F_WRLCK provides exclusive physical
-	modification access to the holder, guaranteeing nothing else
-	will change the layout of the file while it holds the lease.
+3) Any truncate or hole punch operation on a pinned DAX page will fail.
 
-	The F_WRLCK holder can change the physical layout of the
-	file if it so desires, this will block while F_RDLCK holders
-	are notified and release their leases before the
-	modification will take place.
+4) The user has the option of holding the lease or releasing it.  If they
+   release it no other pin calls will work on the file.
 
-We need to define the semantics we expose to userspace first.....
+5) Closing the file is ok.
 
-Cheers,
+6) Unmapping the file is ok
 
-Dave.
+7) Pins against the files are tracked back to an owning file or an owning mm
+   depending on the internal subsystem needs.  With RDMA there is an owning
+   file which is related to the pined file.
+
+8) Only RDMA is currently supported
+
+9) Truncation of pages which are not actively pinned nor covered by a lease
+   will succeed.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ fs/locks.c                       | 36 +++++++++++++++++++++++++++-----
+ include/linux/fs.h               |  2 +-
+ include/uapi/asm-generic/fcntl.h |  3 +++
+ 3 files changed, 35 insertions(+), 6 deletions(-)
+
+diff --git a/fs/locks.c b/fs/locks.c
+index 24d1db632f6c..ad17c6ffca06 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -191,6 +191,8 @@ static int target_leasetype(struct file_lock *fl)
+ 		return F_UNLCK;
+ 	if (fl->fl_flags & FL_DOWNGRADE_PENDING)
+ 		return F_RDLCK;
++	if (fl->fl_flags & FL_LAYOUT)
++		return F_LAYOUT;
+ 	return fl->fl_type;
+ }
+ 
+@@ -611,7 +613,8 @@ static const struct lock_manager_operations lease_manager_ops = {
+ /*
+  * Initialize a lease, use the default lock manager operations
+  */
+-static int lease_init(struct file *filp, long type, struct file_lock *fl)
++static int lease_init(struct file *filp, long type, unsigned int flags,
++		      struct file_lock *fl)
+ {
+ 	if (assign_type(fl, type) != 0)
+ 		return -EINVAL;
+@@ -621,6 +624,8 @@ static int lease_init(struct file *filp, long type, struct file_lock *fl)
+ 
+ 	fl->fl_file = filp;
+ 	fl->fl_flags = FL_LEASE;
++	if (flags & FL_LAYOUT)
++		fl->fl_flags |= FL_LAYOUT;
+ 	fl->fl_start = 0;
+ 	fl->fl_end = OFFSET_MAX;
+ 	fl->fl_ops = NULL;
+@@ -629,7 +634,8 @@ static int lease_init(struct file *filp, long type, struct file_lock *fl)
+ }
+ 
+ /* Allocate a file_lock initialised to this type of lease */
+-static struct file_lock *lease_alloc(struct file *filp, long type)
++static struct file_lock *lease_alloc(struct file *filp, long type,
++				     unsigned int flags)
+ {
+ 	struct file_lock *fl = locks_alloc_lock();
+ 	int error = -ENOMEM;
+@@ -637,7 +643,7 @@ static struct file_lock *lease_alloc(struct file *filp, long type)
+ 	if (fl == NULL)
+ 		return ERR_PTR(error);
+ 
+-	error = lease_init(filp, type, fl);
++	error = lease_init(filp, type, flags, fl);
+ 	if (error) {
+ 		locks_free_lock(fl);
+ 		return ERR_PTR(error);
+@@ -1583,7 +1589,7 @@ int __break_lease(struct inode *inode, unsigned int mode, unsigned int type)
+ 	int want_write = (mode & O_ACCMODE) != O_RDONLY;
+ 	LIST_HEAD(dispose);
+ 
+-	new_fl = lease_alloc(NULL, want_write ? F_WRLCK : F_RDLCK);
++	new_fl = lease_alloc(NULL, want_write ? F_WRLCK : F_RDLCK, 0);
+ 	if (IS_ERR(new_fl))
+ 		return PTR_ERR(new_fl);
+ 	new_fl->fl_flags = type;
+@@ -1720,6 +1726,8 @@ EXPORT_SYMBOL(lease_get_mtime);
+  *
+  *	%F_UNLCK to indicate no lease is held.
+  *
++ *	%F_LAYOUT to indicate a layout lease is held.
++ *
+  *	(if a lease break is pending):
+  *
+  *	%F_RDLCK to indicate an exclusive lease needs to be
+@@ -2022,8 +2030,26 @@ static int do_fcntl_add_lease(unsigned int fd, struct file *filp, long arg)
+ 	struct file_lock *fl;
+ 	struct fasync_struct *new;
+ 	int error;
++	unsigned int flags = 0;
++
++	/*
++	 * NOTE on F_LAYOUT lease
++	 *
++	 * LAYOUT lease types are taken on files which the user knows that
++	 * they will be pinning in memory for some indeterminate amount of
++	 * time.  Such as for use with RDMA.  While we don't know what user
++	 * space is going to do with the file we still use a F_RDLOCK level of
++	 * lease.  This ensures that there are no conflicts between
++	 * 2 users.  The conflict should only come from the File system wanting
++	 * to revoke the lease in break_layout()  And this is done by using
++	 * F_WRLCK in the break code.
++	 */
++	if (arg == F_LAYOUT) {
++		arg = F_RDLCK;
++		flags = FL_LAYOUT;
++	}
+ 
+-	fl = lease_alloc(filp, arg);
++	fl = lease_alloc(filp, arg, flags);
+ 	if (IS_ERR(fl))
+ 		return PTR_ERR(fl);
+ 
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 046108cd4ed9..dd60d5be9886 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1004,7 +1004,7 @@ static inline struct file *get_file(struct file *f)
+ #define FL_DOWNGRADE_PENDING	256 /* Lease is being downgraded */
+ #define FL_UNLOCK_PENDING	512 /* Lease is being broken */
+ #define FL_OFDLCK	1024	/* lock is "owned" by struct file */
+-#define FL_LAYOUT	2048	/* outstanding pNFS layout */
++#define FL_LAYOUT	2048	/* outstanding pNFS layout or user held pin */
+ 
+ #define FL_CLOSE_POSIX (FL_POSIX | FL_CLOSE)
+ 
+diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
+index 9dc0bf0c5a6e..baddd54f3031 100644
+--- a/include/uapi/asm-generic/fcntl.h
++++ b/include/uapi/asm-generic/fcntl.h
+@@ -174,6 +174,9 @@ struct f_owner_ex {
+ #define F_SHLCK		8	/* or 4 */
+ #endif
+ 
++#define F_LAYOUT	16      /* layout lease to allow longterm pins such as
++				   RDMA */
++
+ /* operations for bsd flock(), also used by the kernel implementation */
+ #define LOCK_SH		1	/* shared lock */
+ #define LOCK_EX		2	/* exclusive lock */
 -- 
-Dave Chinner
-david@fromorbit.com
+2.20.1
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
