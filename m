@@ -1,13 +1,14 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 9ADC62020F956
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 13:04:12 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl RFC PATCH] ndctl/namespace: create namespaces greedily
-Date: Wed, 28 Aug 2019 14:02:04 -0600
-Message-Id: <20190828200204.21750-1-vishal.l.verma@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 52D0C212DD37D
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 00:48:06 -0700 (PDT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v5 0/4] Mark the namespace disabled on pfn superblock mismatch
+Date: Fri,  9 Aug 2019 13:15:16 +0530
+Message-Id: <20190809074520.27115-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,81 +21,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: Steve Scargal <steve.scargall@intel.com>
+To: dan.j.williams@intel.com
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-When a --region=all option is supplied to ndctl-create-namespace, it
-happily ignores it, since create-namespace has historically only created
-one namespace per invocation.
+We add new members to pfn superblock (PAGE_SIZE and struct page size) in this series.
+This is now checked while initializing the namespace. If we find a mismatch we mark
+the namespace disabled.
 
-This can be cumbersome, so change create-namespace to create namespaces
-greedily. When --region=all is specified, or if a --region option is
-absent (same as 'all' from a filtering standpoint), create namespaces on
-all regions.
+This series also handle configs where hugepage support is not enabled by default.
+This can result in different align restrictions for dax namespace. We mark the
+dax namespace disabled if we find the alignment not supported.
 
-Note that this does has two important implications:
+Aneesh Kumar K.V (4):
+  nvdimm: Consider probe return -EOPNOTSUPP as success
+  mm/nvdimm: Add page size and struct page size to pfn superblock
+  mm/nvdimm: Use correct #defines instead of open coding
+  mm/nvdimm: Pick the right alignment default when creating dax devices
 
-1. The user-facing behavior of create-namespace changes in a potentially
-surprising way. It may be undesirable for an unadorned 'ndctl
-create-namespace' command to suddenly start creating lots of namespaces.
+ arch/powerpc/include/asm/libnvdimm.h |  9 ++++
+ arch/powerpc/mm/Makefile             |  1 +
+ arch/powerpc/mm/nvdimm.c             | 34 +++++++++++++++
+ arch/x86/include/asm/libnvdimm.h     | 19 +++++++++
+ drivers/nvdimm/bus.c                 |  2 +-
+ drivers/nvdimm/label.c               |  2 +-
+ drivers/nvdimm/namespace_devs.c      |  6 +--
+ drivers/nvdimm/nd.h                  |  6 ---
+ drivers/nvdimm/pfn.h                 |  5 ++-
+ drivers/nvdimm/pfn_devs.c            | 62 ++++++++++++++++++++++++++--
+ drivers/nvdimm/pmem.c                | 26 ++++++++++--
+ drivers/nvdimm/region_devs.c         |  8 ++--
+ include/linux/huge_mm.h              |  7 +++-
+ 13 files changed, 163 insertions(+), 24 deletions(-)
+ create mode 100644 arch/powerpc/include/asm/libnvdimm.h
+ create mode 100644 arch/powerpc/mm/nvdimm.c
+ create mode 100644 arch/x86/include/asm/libnvdimm.h
 
-2. Error handling becomes a bit inconsistent. As with all commands
-accepting an 'all' option, error reporting becomes a bit tenuous. With
-this change, we will continue to create namespaces so long as we don't
-hit an error, but if we do, we bail and exit. Because of the special
-ENOSPC detection and handling around this, it can be easy to construct a
-scenario where en existing namespace on the last region in the scan list
-happens to report an error exit, but if the existing namespace was in a
-region at the start of the scan list, it gets passed over as a "just try
-the next region"
-
-RFC comment: Maybe the solution is to keep the create-namespace
-semantics unchanged, and introduce a new command - 'create-namespaces'
-or 'create-names-ace-greedy' with the new behavior. I'm not sure if
-users will care deeply about either of the two points above, hence
-sending this as an RFC.
-
-Link: https://github.com/pmem/ndctl/issues/106
-Reported-by: Steve Scargal <steve.scargall@intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- ndctl/namespace.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index af20a42..856ad82 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1365,9 +1365,12 @@ static int do_xaction_namespace(const char *namespace,
- 				rc = namespace_create(region);
- 				if (rc == -EAGAIN)
- 					continue;
--				if (rc == 0)
--					*processed = 1;
--				return rc;
-+				if (rc == 0) {
-+					(*processed)++;
-+					continue;
-+				} else {
-+					return rc;
-+				}
- 			}
- 			ndctl_namespace_foreach_safe(region, ndns, _n) {
- 				ndns_name = ndctl_namespace_get_devname(ndns);
-@@ -1487,6 +1490,8 @@ int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
- 		rc = do_xaction_namespace(NULL, ACTION_CREATE, ctx, &created);
- 	}
- 
-+	fprintf(stderr, "created %d namespace%s\n", created,
-+			created == 1 ? "" : "s");
- 	if (rc < 0 || (!namespace && created < 1)) {
- 		fprintf(stderr, "failed to %s namespace: %s\n", namespace
- 				? "reconfigure" : "create", strerror(-rc));
 -- 
-2.20.1
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
