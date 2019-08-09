@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 98E4721314731
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 17:11:51 -0700 (PDT)
-Subject: [ndctl PATCH v3 7/8] ndctl/namespace: Continue region search on
- 'missing seed' event
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 02 Aug 2019 16:55:02 -0700
-Message-ID: <156479010259.707590.1692301086864776830.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4756521309DCA
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:29 -0700 (PDT)
+From: ira.weiny@intel.com
+Subject: [RFC PATCH v2 05/19] fs/ext4: Teach ext4 to break layout leases
+Date: Fri,  9 Aug 2019 15:58:19 -0700
+Message-Id: <20190809225833.6657-6-ira.weiny@intel.com>
+In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,80 +22,116 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Consider a scenario where one region is in an error state but another is
-not:
+From: Ira Weiny <ira.weiny@intel.com>
 
-    # ndctl list -Ru
-    [
-      {
-        "dev":"region3",
-        "size":"127.00 GiB (136.37 GB)",
-        "available_size":0,
-        "max_available_extent":0,
-        "type":"pmem",
-        "persistence_domain":"unknown"
-      },
-      {
-        "dev":"region2",
-        "size":"127.00 GiB (136.37 GB)",
-        "available_size":"127.00 GiB (136.37 GB)",
-        "max_available_extent":"127.00 GiB (136.37 GB)",
-        "type":"pmem",
-        "iset_id":"0xba90120012b4dc",
-        "persistence_domain":"unknown"
-      }
-    ]
+ext4 must attempt to break a layout lease if it is held to know if the
+layout can be modified.
 
-    # ndctl create-namespace -m devdax -v
-    [..]
-    namespace_create:887: region3: no idle namespace seed
-    failed to create namespace: No such device
+Split out the logic to determine if a mapping is DAX, export it, and then
+break layout leases if a mapping is DAX.
 
-Instead of failing when probing region3 for capacity, fallback to
-region2.
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-    # ndctl create-namespace -m devdax
-    {
-      "dev":"namespace2.0",
-      "mode":"devdax",
-      "map":"dev",
-      "size":"125.01 GiB (134.23 GB)",
-      "uuid":"c3fa7d2f-6c20-4762-9aa8-627d06275e03",
-      "daxregion":{
-        "id":2,
-        "size":"125.01 GiB (134.23 GB)",
-        "align":2097152,
-        "devices":[
-          {
-            "chardev":"dax2.0",
-            "size":"125.01 GiB (134.23 GB)"
-          }
-        ]
-      },
-      "align":2097152
-    }
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes from RFC v1:
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 26d03358c80d..5c457224cb13 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -811,7 +811,7 @@ static int namespace_create(struct ndctl_region *region)
- 	if (!ndns || is_namespace_active(ndns)) {
- 		debug("%s: no %s namespace seed\n", devname,
- 				ndns ? "idle" : "available");
--		return -ENODEV;
-+		return -EAGAIN;
- 	}
+	Based on feedback from Dave Chinner, add support to fail all
+	other layout breaks when a lease is held.
+
+ fs/dax.c            | 23 ++++++++++++++++-------
+ fs/ext4/inode.c     |  7 +++++++
+ include/linux/dax.h |  6 ++++++
+ 3 files changed, 29 insertions(+), 7 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index b64964ef44f6..a14ec32255d8 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -557,6 +557,21 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 	return xa_mk_internal(VM_FAULT_FALLBACK);
+ }
  
- 	rc = setup_namespace(region, ndns, &p);
++bool dax_mapping_is_dax(struct address_space *mapping)
++{
++	/*
++	 * In the 'limited' case get_user_pages() for dax is disabled.
++	 */
++	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
++		return false;
++
++	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++		return false;
++
++	return true;
++}
++EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
++
+ /**
+  * dax_layout_busy_page - find first pinned page in @mapping
+  * @mapping: address space to scan for a page with ref count > 1
+@@ -579,13 +594,7 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	unsigned int scanned = 0;
+ 	struct page *page = NULL;
+ 
+-	/*
+-	 * In the 'limited' case get_user_pages() for dax is disabled.
+-	 */
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return NULL;
+-
+-	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++	if (!dax_mapping_is_dax(mapping))
+ 		return NULL;
+ 
+ 	/*
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index b2c8d09acf65..f08f48de52c5 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -4271,6 +4271,13 @@ int ext4_break_layouts(struct inode *inode)
+ 	if (WARN_ON_ONCE(!rwsem_is_locked(&ei->i_mmap_sem)))
+ 		return -EINVAL;
+ 
++	/* Break layout leases if active */
++	if (dax_mapping_is_dax(inode->i_mapping)) {
++		error = break_layout(inode, true);
++		if (error)
++			return error;
++	}
++
+ 	do {
+ 		page = dax_layout_busy_page(inode->i_mapping);
+ 		if (!page)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9bd8528bd305..da0768b34b48 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -143,6 +143,7 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct writeback_control *wbc);
+ 
++bool dax_mapping_is_dax(struct address_space *mapping);
+ struct page *dax_layout_busy_page(struct address_space *mapping);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
+@@ -174,6 +175,11 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+ 	return NULL;
+ }
+ 
++static inline bool dax_mapping_is_dax(struct address_space *mapping)
++{
++	return false;
++}
++
+ static inline struct page *dax_layout_busy_page(struct address_space *mapping)
+ {
+ 	return NULL;
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
