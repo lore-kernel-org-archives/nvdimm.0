@@ -1,30 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F264A20216B81
- for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 06:39:35 -0700 (PDT)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
- by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x7JDc5q6040729
- for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:38:08 -0400
-Received: from e34.co.us.ibm.com (e34.co.us.ibm.com [32.97.110.152])
- by mx0b-001b2d01.pphosted.com with ESMTP id 2ufvda12gp-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:38:06 -0400
-Received: from localhost
- by e34.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
- Mon, 19 Aug 2019 14:35:12 +0100
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v6 5/7] libnvdimm/label: Remove the dpa align check
-Date: Mon, 19 Aug 2019 19:04:49 +0530
-In-Reply-To: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
-References: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
+Received: from hqemgate15.nvidia.com (hqemgate15.nvidia.com [216.228.121.64])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 3F4C12131D58F
+ for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 17:09:39 -0700 (PDT)
+Subject: Re: [RFC PATCH v2 10/19] mm/gup: Pass a NULL vaddr_pin through GUP
+ fast
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-11-ira.weiny@intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Message-ID: <8b3cdb1b-863c-b904-edb5-0f7b35038fdf@nvidia.com>
+Date: Fri, 9 Aug 2019 17:06:57 -0700
 MIME-Version: 1.0
-Message-Id: <20190819133451.19737-6-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190809225833.6657-11-ira.weiny@intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,38 +25,270 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: ira.weiny@intel.com, Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-There's no strict requirement why slot_valid() needs to check for page alignment
-and it would seem to actively hurt cross-page-size compatibility. Let's
-delete the check and rely on checksum validation.
+On 8/9/19 3:58 PM, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Internally GUP fast needs to know that fast users will not support file
+> pins.  Pass NULL for vaddr_pin through the fast call stack so that the
+> pin code can return an error if it encounters file backed memory within
+> the address range.
+> 
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/nvdimm/label.c | 5 -----
- 1 file changed, 5 deletions(-)
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 73e197babc2f..47a4828b8b31 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -353,11 +353,6 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
- 	if (slot != __le32_to_cpu(nd_label->slot))
- 		return false;
- 
--	/* check that DPA allocations are page aligned */
--	if ((__le64_to_cpu(nd_label->dpa)
--				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
--		return false;
--
- 	/* check checksum */
- 	if (namespace_label_has(ndd, checksum)) {
- 		u64 sum, sum_save;
+thanks,
 -- 
-2.21.0
+John Hubbard
+NVIDIA
 
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> ---
+>  mm/gup.c | 65 ++++++++++++++++++++++++++++++++++----------------------
+>  1 file changed, 40 insertions(+), 25 deletions(-)
+> 
+> diff --git a/mm/gup.c b/mm/gup.c
+> index 7a449500f0a6..504af3e9a942 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -1813,7 +1813,8 @@ static inline struct page *try_get_compound_head(struct page *page, int refs)
+>  
+>  #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+>  static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+> -			 unsigned int flags, struct page **pages, int *nr)
+> +			 unsigned int flags, struct page **pages, int *nr,
+> +			 struct vaddr_pin *vaddr_pin)
+>  {
+>  	struct dev_pagemap *pgmap = NULL;
+>  	int nr_start = *nr, ret = 0;
+> @@ -1894,7 +1895,8 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+>   * useful to have gup_huge_pmd even if we can't operate on ptes.
+>   */
+>  static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+> -			 unsigned int flags, struct page **pages, int *nr)
+> +			 unsigned int flags, struct page **pages, int *nr,
+> +			 struct vaddr_pin *vaddr_pin)
+>  {
+>  	return 0;
+>  }
+> @@ -1903,7 +1905,7 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+>  #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+>  static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+>  		unsigned long end, struct page **pages, int *nr,
+> -		unsigned int flags)
+> +		unsigned int flags, struct vaddr_pin *vaddr_pin)
+>  {
+>  	int nr_start = *nr;
+>  	struct dev_pagemap *pgmap = NULL;
+> @@ -1938,13 +1940,14 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+>  
+>  static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  		unsigned long end, struct page **pages, int *nr,
+> -		unsigned int flags)
+> +		unsigned int flags, struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long fault_pfn;
+>  	int nr_start = *nr;
+>  
+>  	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+> -	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
+> +	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags,
+> +			       vaddr_pin))
+>  		return 0;
+>  
+>  	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
+> @@ -1957,13 +1960,14 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  
+>  static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+>  		unsigned long end, struct page **pages, int *nr,
+> -		unsigned int flags)
+> +		unsigned int flags, struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long fault_pfn;
+>  	int nr_start = *nr;
+>  
+>  	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+> -	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags))
+> +	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr, flags,
+> +			       vaddr_pin))
+>  		return 0;
+>  
+>  	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
+> @@ -1975,7 +1979,7 @@ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+>  #else
+>  static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  		unsigned long end, struct page **pages, int *nr,
+> -		unsigned int flags)
+> +		unsigned int flags, struct vaddr_pin *vaddr_pin)
+>  {
+>  	BUILD_BUG();
+>  	return 0;
+> @@ -1983,7 +1987,7 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  
+>  static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+>  		unsigned long end, struct page **pages, int *nr,
+> -		unsigned int flags)
+> +		unsigned int flags, struct vaddr_pin *vaddr_pin)
+>  {
+>  	BUILD_BUG();
+>  	return 0;
+> @@ -2075,7 +2079,8 @@ static inline int gup_huge_pd(hugepd_t hugepd, unsigned long addr,
+>  #endif /* CONFIG_ARCH_HAS_HUGEPD */
+>  
+>  static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+> -		unsigned long end, unsigned int flags, struct page **pages, int *nr)
+> +		unsigned long end, unsigned int flags, struct page **pages,
+> +		int *nr, struct vaddr_pin *vaddr_pin)
+>  {
+>  	struct page *head, *page;
+>  	int refs;
+> @@ -2087,7 +2092,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  		if (unlikely(flags & FOLL_LONGTERM))
+>  			return 0;
+>  		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr,
+> -					     flags);
+> +					     flags, vaddr_pin);
+>  	}
+>  
+>  	refs = 0;
+> @@ -2117,7 +2122,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  }
+>  
+>  static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+> -		unsigned long end, unsigned int flags, struct page **pages, int *nr)
+> +		unsigned long end, unsigned int flags, struct page **pages, int *nr,
+> +		struct vaddr_pin *vaddr_pin)
+>  {
+>  	struct page *head, *page;
+>  	int refs;
+> @@ -2129,7 +2135,7 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+>  		if (unlikely(flags & FOLL_LONGTERM))
+>  			return 0;
+>  		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr,
+> -					     flags);
+> +					     flags, vaddr_pin);
+>  	}
+>  
+>  	refs = 0;
+> @@ -2196,7 +2202,8 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsigned long addr,
+>  }
+>  
+>  static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+> -		unsigned int flags, struct page **pages, int *nr)
+> +		unsigned int flags, struct page **pages, int *nr,
+> +		struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long next;
+>  	pmd_t *pmdp;
+> @@ -2220,7 +2227,7 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+>  				return 0;
+>  
+>  			if (!gup_huge_pmd(pmd, pmdp, addr, next, flags,
+> -				pages, nr))
+> +				pages, nr, vaddr_pin))
+>  				return 0;
+>  
+>  		} else if (unlikely(is_hugepd(__hugepd(pmd_val(pmd))))) {
+> @@ -2231,7 +2238,8 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+>  			if (!gup_huge_pd(__hugepd(pmd_val(pmd)), addr,
+>  					 PMD_SHIFT, next, flags, pages, nr))
+>  				return 0;
+> -		} else if (!gup_pte_range(pmd, addr, next, flags, pages, nr))
+> +		} else if (!gup_pte_range(pmd, addr, next, flags, pages, nr,
+> +					  vaddr_pin))
+>  			return 0;
+>  	} while (pmdp++, addr = next, addr != end);
+>  
+> @@ -2239,7 +2247,8 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+>  }
+>  
+>  static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+> -			 unsigned int flags, struct page **pages, int *nr)
+> +			 unsigned int flags, struct page **pages, int *nr,
+> +			 struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long next;
+>  	pud_t *pudp;
+> @@ -2253,13 +2262,14 @@ static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+>  			return 0;
+>  		if (unlikely(pud_huge(pud))) {
+>  			if (!gup_huge_pud(pud, pudp, addr, next, flags,
+> -					  pages, nr))
+> +					  pages, nr, vaddr_pin))
+>  				return 0;
+>  		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
+>  			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
+>  					 PUD_SHIFT, next, flags, pages, nr))
+>  				return 0;
+> -		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr))
+> +		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr,
+> +					  vaddr_pin))
+>  			return 0;
+>  	} while (pudp++, addr = next, addr != end);
+>  
+> @@ -2267,7 +2277,8 @@ static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+>  }
+>  
+>  static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
+> -			 unsigned int flags, struct page **pages, int *nr)
+> +			 unsigned int flags, struct page **pages, int *nr,
+> +			 struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long next;
+>  	p4d_t *p4dp;
+> @@ -2284,7 +2295,8 @@ static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
+>  			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
+>  					 P4D_SHIFT, next, flags, pages, nr))
+>  				return 0;
+> -		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr))
+> +		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr,
+> +					  vaddr_pin))
+>  			return 0;
+>  	} while (p4dp++, addr = next, addr != end);
+>  
+> @@ -2292,7 +2304,8 @@ static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
+>  }
+>  
+>  static void gup_pgd_range(unsigned long addr, unsigned long end,
+> -		unsigned int flags, struct page **pages, int *nr)
+> +		unsigned int flags, struct page **pages, int *nr,
+> +		struct vaddr_pin *vaddr_pin)
+>  {
+>  	unsigned long next;
+>  	pgd_t *pgdp;
+> @@ -2312,7 +2325,8 @@ static void gup_pgd_range(unsigned long addr, unsigned long end,
+>  			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
+>  					 PGDIR_SHIFT, next, flags, pages, nr))
+>  				return;
+> -		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr))
+> +		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr,
+> +					  vaddr_pin))
+>  			return;
+>  	} while (pgdp++, addr = next, addr != end);
+>  }
+> @@ -2374,7 +2388,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+>  	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+>  	    gup_fast_permitted(start, end)) {
+>  		local_irq_save(flags);
+> -		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
+> +		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr,
+> +			      NULL);
+>  		local_irq_restore(flags);
+>  	}
+>  
+> @@ -2445,7 +2460,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
+>  	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+>  	    gup_fast_permitted(start, end)) {
+>  		local_irq_disable();
+> -		gup_pgd_range(addr, end, gup_flags, pages, &nr);
+> +		gup_pgd_range(addr, end, gup_flags, pages, &nr, NULL);
+>  		local_irq_enable();
+>  		ret = nr;
+>  	}
+> 
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
