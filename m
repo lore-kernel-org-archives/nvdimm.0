@@ -1,49 +1,84 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F36AC21BADAB6
- for <linux-nvdimm@lists.01.org>; Wed,  7 Aug 2019 14:47:59 -0700 (PDT)
-Subject: [PATCH] tools/testing/nvdimm: Fix fallthrough warning
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 07 Aug 2019 14:31:11 -0700
-Message-ID: <156521347159.1442374.1381360879102718899.stgit@dwillia2-desk3.amr.corp.intel.com>
+Return-Path: <owner-linux-mm@kvack.org>
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 1/5] resource: pass a name argument to devm_request_free_mem_region
+Date: Sun, 11 Aug 2019 10:12:43 +0200
+Message-Id: <20190811081247.22111-2-hch@lst.de>
+In-Reply-To: <20190811081247.22111-1-hch@lst.de>
+References: <20190811081247.22111-1-hch@lst.de>
 MIME-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+Content-Transfer-Encoding: 8bit
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Bharata B Rao <bharata@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-VXNlIHRoZSBleHBlY3RlZCAnZmFsbCB0aHJvdWdoJyBkZXNpZ25hdGlvbiB0byBmaXg6CgogICAg
-dG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmM6IEluIGZ1bmN0aW9uIOKAmG5kX2ludGVs
-X3Rlc3RfZmluaXNoX3F1ZXJ54oCZOgogICAgdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0
-LmM6NDMzOjEzOiB3YXJuaW5nOiB0aGlzIHN0YXRlbWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2lt
-cGxpY2l0LWZhbGx0aHJvdWdoPV0KICAgICAgIGZ3LT5zdGF0ZSA9IEZXX1NUQVRFX1VQREFURUQ7
-CiAgICAgICB+fn5+fn5+fn5+Xn5+fn5+fn5+fn5+fn5+fn5+CiAgICB0b29scy90ZXN0aW5nL252
-ZGltbS90ZXN0L25maXQuYzo0MzU6Mjogbm90ZTogaGVyZQogICAgICBjYXNlIEZXX1NUQVRFX1VQ
-REFURUQ6CiAgICAgIF5+fn4KClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuY29tPgotLS0KIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIHwg
-ICAgMyArLS0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMiBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyBiL3Rvb2xzL3Rl
-c3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jCmluZGV4IDUwN2U2ZjRjYmI1My4uYmY2NDIyYTZhZjdm
-IDEwMDY0NAotLS0gYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYworKysgYi90b29s
-cy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYwpAQCAtNDI4LDEwICs0MjgsOSBAQCBzdGF0aWMg
-aW50IG5kX2ludGVsX3Rlc3RfZmluaXNoX3F1ZXJ5KHN0cnVjdCBuZml0X3Rlc3QgKnQsCiAJCQlk
-ZXZfZGJnKGRldiwgIiVzOiBzdGlsbCB2ZXJpZnlpbmdcbiIsIF9fZnVuY19fKTsKIAkJCWJyZWFr
-OwogCQl9Ci0KIAkJZGV2X2RiZyhkZXYsICIlczogdHJhbnNpdGlvbiBvdXQgdmVyaWZ5XG4iLCBf
-X2Z1bmNfXyk7CiAJCWZ3LT5zdGF0ZSA9IEZXX1NUQVRFX1VQREFURUQ7Ci0JCS8qIHdlIGFyZSBn
-b2luZyB0byBmYWxsIHRocm91Z2ggaWYgaXQncyAiZG9uZSIgKi8KKwkJLyogZmFsbCB0aHJvdWdo
-ICovCiAJY2FzZSBGV19TVEFURV9VUERBVEVEOgogCQluZF9jbWQtPnN0YXR1cyA9IDA7CiAJCS8q
-IGJvZ3VzIHRlc3QgdmVyc2lvbiAqLwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+Add an explicit resource name argument to devm_request_free_mem_region.
+Besides allowing drivers to request multiple regions per device with
+different names, this also prepares for a not device managed version of
+the function.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/gpu/drm/nouveau/nouveau_dmem.c | 3 ++-
+ include/linux/ioport.h                 | 2 +-
+ kernel/resource.c                      | 5 +++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+index 1333220787a1..aedf18a44789 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -605,7 +605,8 @@ nouveau_dmem_init(struct nouveau_drm *drm)
+ 	 * and latter if we want to do thing like over commit then we
+ 	 * could revisit this.
+ 	 */
+-	res = devm_request_free_mem_region(device, &iomem_resource, size);
++	res = devm_request_free_mem_region(device, &iomem_resource, size,
++			dev_name(device));
+ 	if (IS_ERR(res))
+ 		goto out_free;
+ 	drm->dmem->pagemap.type = MEMORY_DEVICE_PRIVATE;
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 5b6a7121c9f0..0dcc48cafa80 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -296,7 +296,7 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
+ }
+ 
+ struct resource *devm_request_free_mem_region(struct device *dev,
+-		struct resource *base, unsigned long size);
++		struct resource *base, unsigned long size, const char *name);
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif	/* _LINUX_IOPORT_H */
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 7ea4306503c5..0ddc558586a7 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -1650,13 +1650,14 @@ EXPORT_SYMBOL(resource_list_free);
+  * @dev: device struct to bind the resource to
+  * @size: size in bytes of the device memory to add
+  * @base: resource tree to look in
++ * @name: identifying name for the new resource
+  *
+  * This function tries to find an empty range of physical address big enough to
+  * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
+  * memory, which in turn allocates struct pages.
+  */
+ struct resource *devm_request_free_mem_region(struct device *dev,
+-		struct resource *base, unsigned long size)
++		struct resource *base, unsigned long size, const char *name)
+ {
+ 	resource_size_t end, addr;
+ 	struct resource *res;
+@@ -1670,7 +1671,7 @@ struct resource *devm_request_free_mem_region(struct device *dev,
+ 				REGION_DISJOINT)
+ 			continue;
+ 
+-		res = devm_request_mem_region(dev, addr, size, dev_name(dev));
++		res = devm_request_mem_region(dev, addr, size, name);
+ 		if (!res)
+ 			return ERR_PTR(-ENOMEM);
+ 		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
+-- 
+2.20.1
