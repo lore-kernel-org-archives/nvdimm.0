@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
- [148.163.156.1])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 24A50212DD37D
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 00:48:16 -0700 (PDT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v5 3/4] mm/nvdimm: Use correct #defines instead of open coding
-Date: Fri,  9 Aug 2019 13:15:19 +0530
-Message-Id: <20190809074520.27115-4-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20190809074520.27115-1-aneesh.kumar@linux.ibm.com>
-References: <20190809074520.27115-1-aneesh.kumar@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0423C21309D29
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 14:33:43 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [ndctl PATCH] daxctl/test: Skip daxctl-devices.sh on older kernels
+References: <156531368648.2136155.13013612862545053331.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <x49pnlagljr.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4jbLNzF3-v6n5m4gmi-WDK5WWW2K_5We+9CX147v89Bcg@mail.gmail.com>
+Date: Mon, 12 Aug 2019 17:31:23 -0400
+In-Reply-To: <CAPcyv4jbLNzF3-v6n5m4gmi-WDK5WWW2K_5We+9CX147v89Bcg@mail.gmail.com>
+ (Dan Williams's message of "Mon, 12 Aug 2019 14:28:18 -0700")
+Message-ID: <x49blwugjf8.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,89 +25,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Use PAGE_SIZE instead of SZ_4K and sizeof(struct page) instead of 64.
-If we have a kernel built with different struct page size the previous
-patch should handle marking the namespace disabled.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/nvdimm/label.c          | 2 +-
- drivers/nvdimm/namespace_devs.c | 6 +++---
- drivers/nvdimm/pfn_devs.c       | 3 ++-
- drivers/nvdimm/region_devs.c    | 8 ++++----
- 4 files changed, 10 insertions(+), 9 deletions(-)
+> On Mon, Aug 12, 2019 at 1:45 PM Jeff Moyer <jmoyer@redhat.com> wrote:
+>>
+>> Dan Williams <dan.j.williams@intel.com> writes:
+>>
+>> > If the 'kmem' module is missing skip the test to support running the
+>> > unit tests on older -stable kernels pre-v5.1.
+>> >
+>> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>>
+>> Note that the kernel module could also just not be configured.
+>
+> Yes, but then the test would still report "SKIP" and the developer
+> could take a deeper look if they expected to see all "PASS".
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 73e197babc2f..7ee037063be7 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -355,7 +355,7 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
- 
- 	/* check that DPA allocations are page aligned */
- 	if ((__le64_to_cpu(nd_label->dpa)
--				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
-+				| __le64_to_cpu(nd_label->rawsize)) % PAGE_SIZE)
- 		return false;
- 
- 	/* check checksum */
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index a16e52251a30..a9c76df12cb9 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1006,10 +1006,10 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
- 		return -ENXIO;
- 	}
- 
--	div_u64_rem(val, SZ_4K * nd_region->ndr_mappings, &remainder);
-+	div_u64_rem(val, PAGE_SIZE * nd_region->ndr_mappings, &remainder);
- 	if (remainder) {
--		dev_dbg(dev, "%llu is not %dK aligned\n", val,
--				(SZ_4K * nd_region->ndr_mappings) / SZ_1K);
-+		dev_dbg(dev, "%llu is not %ldK aligned\n", val,
-+				(PAGE_SIZE * nd_region->ndr_mappings) / SZ_1K);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 37e96811c2fc..c1d9be609322 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -725,7 +725,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		 * when populating the vmemmap. This *should* be equal to
- 		 * PMD_SIZE for most architectures.
- 		 */
--		offset = ALIGN(start + SZ_8K + 64 * npfns, align) - start;
-+		offset = ALIGN(start + SZ_8K + sizeof(struct page) * npfns,
-+			       align) - start;
- 	} else if (nd_pfn->mode == PFN_MODE_RAM)
- 		offset = ALIGN(start + SZ_8K, align) - start;
- 	else
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index af30cbe7a8ea..20e265a534f8 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -992,10 +992,10 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
- 		struct nvdimm *nvdimm = mapping->nvdimm;
- 
--		if ((mapping->start | mapping->size) % SZ_4K) {
--			dev_err(&nvdimm_bus->dev, "%s: %s mapping%d is not 4K aligned\n",
--					caller, dev_name(&nvdimm->dev), i);
--
-+		if ((mapping->start | mapping->size) % PAGE_SIZE) {
-+			dev_err(&nvdimm_bus->dev,
-+				"%s: %s mapping%d is not %ld aligned\n",
-+				caller, dev_name(&nvdimm->dev), i, PAGE_SIZE);
- 			return NULL;
- 		}
- 
--- 
-2.21.0
+Right, I see this as a good thing.  I meant to point out that your
+commit message was a bit misleading.
 
+>> > ---
+>> >  test/daxctl-devices.sh |    7 +++++++
+>> >  1 file changed, 7 insertions(+)
+>> >
+>> > diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
+>> > index 04f53f7b13ab..4102fb6990ae 100755
+>> > --- a/test/daxctl-devices.sh
+>> > +++ b/test/daxctl-devices.sh
+>> > @@ -18,6 +18,13 @@ find_testdev()
+>> >  {
+>> >       local rc=77
+>> >
+>> > +     # The kmem driver is needed to change the device mode, only
+>> > +     # kernels >= v5.1 might have it available. Skip if not.
+>> > +     if ! modinfo kmem; then
+>> > +             "Unable to find kmem module"
+>>
+>> I think you need a printf, there.
+>
+> Whoops, yes.
+>
+>> Also, do you want the modinfo output in the test log?
+>
+> Don't think it matters either way since it all ends up in the log.
+
+It's tough to say whether it adds value, so sure, leave it in.
+
+Cheers,
+Jeff
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
