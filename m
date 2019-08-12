@@ -1,204 +1,115 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Date: Wed, 14 Aug 2019 18:04:08 +1000
-From: Dave Chinner <david@fromorbit.com>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 628E521A07093
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 11:08:12 -0700 (PDT)
+Date: Mon, 12 Aug 2019 11:05:51 -0700
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [RFC PATCH v2 07/19] fs/xfs: Teach xfs to use new
  dax_layout_busy_page()
-Message-ID: <20190814080408.GI6129@dread.disaster.area>
+Message-ID: <20190812180551.GC19746@iweiny-DESK2.sc.intel.com>
 References: <20190809225833.6657-1-ira.weiny@intel.com>
  <20190809225833.6657-8-ira.weiny@intel.com>
  <20190809233037.GB7777@dread.disaster.area>
- <20190812180551.GC19746@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190812180551.GC19746@iweiny-DESK2.sc.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+In-Reply-To: <20190809233037.GB7777@dread.disaster.area>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Aug 12, 2019 at 11:05:51AM -0700, Ira Weiny wrote:
-> On Sat, Aug 10, 2019 at 09:30:37AM +1000, Dave Chinner wrote:
-> > On Fri, Aug 09, 2019 at 03:58:21PM -0700, ira.weiny@intel.com wrote:
-> > > From: Ira Weiny <ira.weiny@intel.com>
-> > > 
-> > > dax_layout_busy_page() can now operate on a sub-range of the
-> > > address_space provided.
-> > > 
-> > > Have xfs specify the sub range to dax_layout_busy_page()
+On Sat, Aug 10, 2019 at 09:30:37AM +1000, Dave Chinner wrote:
+> On Fri, Aug 09, 2019 at 03:58:21PM -0700, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
 > > 
-> > Hmmm. I've got patches that change all these XFS interfaces to
-> > support range locks. I'm not sure the way the ranges are passed here
-> > is the best way to do it, and I suspect they aren't correct in some
-> > cases, either....
+> > dax_layout_busy_page() can now operate on a sub-range of the
+> > address_space provided.
 > > 
-> > > diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-> > > index ff3c1fae5357..f0de5486f6c1 100644
-> > > --- a/fs/xfs/xfs_iops.c
-> > > +++ b/fs/xfs/xfs_iops.c
-> > > @@ -1042,10 +1042,16 @@ xfs_vn_setattr(
-> > >  		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
-> > >  		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
-> > >  
-> > > -		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
-> > > -		if (error) {
-> > > -			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-> > > -			return error;
-> > > +		if (iattr->ia_size < inode->i_size) {
-> > > +			loff_t                  off = iattr->ia_size;
-> > > +			loff_t                  len = inode->i_size - iattr->ia_size;
-> > > +
-> > > +			error = xfs_break_layouts(inode, &iolock, off, len,
-> > > +						  BREAK_UNMAP);
-> > > +			if (error) {
-> > > +				xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
-> > > +				return error;
-> > > +			}
-> > 
-> > This isn't right - truncate up still needs to break the layout on
-> > the last filesystem block of the file,
+> > Have xfs specify the sub range to dax_layout_busy_page()
 > 
-> I'm not following this?  From a user perspective they can't have done anything
-> with the data beyond the EOF.  So isn't it safe to allow EOF to grow without
-> changing the layout of that last block?
-
-
-You're looking at this from the perspective of what RDMA page
-pinning, not what the guarantees a filesystem has to provide layout
-holders.
-
-For example, truncate up has to zero the portion of the block beyond
-EOF and that requires a data write. What happens if that block is a
-shared extent and hence we have do a copy on write and alter the
-file layout?
-
-Or perhaps that tail block still has dirty data over it that is
-marked for delayed allocation? Truncate up will have to write that
-data to zero the delayed allocation extent that spans EOF, and hence
-the truncate modifies the layout because it triggers allocation.
-
-i.e. just because an operation does not change user data, it does
-not mean that it will not change the file layout. There is a chance
-that truncate up will modify the layout and so we need to break the
-layout leases that span the range from the old size to the new
-size...
-
-> > and truncate down needs to
-> > extend to "maximum file offset" because we remove all extents beyond
-> > EOF on a truncate down.
+> Hmmm. I've got patches that change all these XFS interfaces to
+> support range locks. I'm not sure the way the ranges are passed here
+> is the best way to do it, and I suspect they aren't correct in some
+> cases, either....
 > 
-> Ok, I was trying to allow a user to extend the file without conflicts if they
-> were to have a pin on the 'beginning' of the original file.
-
-If we want to allow file extension under a layout lease, the lease
-has to extend beyond EOF, otherwise the new section of the file is
-not covered by a lease. If leases only extend to the existing
-EOF, then once the new data is written and the file is extended,
-then the lease owner needs to take a new lease on the range they
-just wrote. SO the application ends up having to do write - lease
--write -lease - .... so that it has leases covering the range of the
-file it is extending into.
-
-Much better it to define a lease that extends to max file offset,
-such that it always covers they range past the existing EOF and
-extending writes will automatically be covered. What this then does
-is to trigger layout break notifications on file size change, either
-by write, truncate, fallocate, without having to actually know or
-track the exactly file size in the lease....
-
-> This sounds like
-> you are saying that a layout lease must be dropped to do that?  In some ways I
-> think I understand what you are driving at and I think I see how I may have
-> been playing "fast and loose" with the strictness of the layout lease.  But
-> from a user perspective if there is a part of the file which "does not exist"
-> (beyond EOF) does it matter that the layout there may change?
-
-Yes, it does, because userspace can directly manipulate the layout
-beyond EOF via fallocate(). e.g. we can preallocation beyond EOF
-without changing the file size, such that when we then do an
-extending write no layout change actually takes place. The only
-thing that happens from a layout point of view is that the file size
-changes.
-
-This becomes /interesting/ when you start doing things like
-
-	lseek(fd, offset, SEEK_END);
-	write(fd, buf, len);
-
-which will trigger a write way beyond EOF into allocated space.
-That will also trigger block zeroing at the old tail, and there may
-be block zeroing around the write() as well. We've effectively
-change the layout of the file at EOF,  We've effectively change the
-layout of the file at EOF, and potentially beyond EOF.
-
-Indeed, the app might be expecting the preallocation beyond EOF to
-remain, so it might register a layout over that range to be notified
-if the preallocation is removed or the EOF extends beyond it. It
-needs to be notified on truncate down (which removes that
-preallocated range the lease sits over) and EOF is moved beyond it
-(layout range state has changed from inaccessable to valid file
-data)....
-
-
-> > i.e. when we use preallocation, the extent map extends beyond EOF,
-> > and layout leases need to be able to extend beyond the current EOF
-> > to allow the lease owner to do extending writes, extending truncate,
-> > preallocation beyond EOF, etc safely without having to get a new
-> > lease to cover the new region in the extended file...
+> > diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+> > index ff3c1fae5357..f0de5486f6c1 100644
+> > --- a/fs/xfs/xfs_iops.c
+> > +++ b/fs/xfs/xfs_iops.c
+> > @@ -1042,10 +1042,16 @@ xfs_vn_setattr(
+> >  		xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
+> >  		iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+> >  
+> > -		error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP);
+> > -		if (error) {
+> > -			xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+> > -			return error;
+> > +		if (iattr->ia_size < inode->i_size) {
+> > +			loff_t                  off = iattr->ia_size;
+> > +			loff_t                  len = inode->i_size - iattr->ia_size;
+> > +
+> > +			error = xfs_break_layouts(inode, &iolock, off, len,
+> > +						  BREAK_UNMAP);
+> > +			if (error) {
+> > +				xfs_iunlock(ip, XFS_MMAPLOCK_EXCL);
+> > +				return error;
+> > +			}
 > 
-> I'm not following this.  What determines when preallocation is done?
+> This isn't right - truncate up still needs to break the layout on
+> the last filesystem block of the file,
 
-The application can direct it via fallocate(FALLOC_FL_KEEPSIZE).
-It's typically used for workloads that do appending O_DSYNC or
-direct IO writes to minimise file fragmentation.
+I'm not following this?  From a user perspective they can't have done anything
+with the data beyond the EOF.  So isn't it safe to allow EOF to grow without
+changing the layout of that last block?
 
-The filesystem can ialso choose to do allocation beyond EOFi
-speculatively during writes. XFS does this extensively with delayed
-allocation. And the filesystem can also remove this speculative
-allocation beyond EOF, which it may do if there are no active pages
-dirties on the inode for a period, it is reclaimed, the filesystem
-is running low on space, the user/group is running low on quota
-space, etc.
+> and truncate down needs to
+> extend to "maximum file offset" because we remove all extents beyond
+> EOF on a truncate down.
 
-Again, just because user data does not change, it does not mean that
-the file layout will not change....
+Ok, I was trying to allow a user to extend the file without conflicts if they
+were to have a pin on the 'beginning' of the original file.  This sounds like
+you are saying that a layout lease must be dropped to do that?  In some ways I
+think I understand what you are driving at and I think I see how I may have
+been playing "fast and loose" with the strictness of the layout lease.  But
+from a user perspective if there is a part of the file which "does not exist"
+(beyond EOF) does it matter that the layout there may change?
 
-> Forgive my ignorance on file systems but how can we have a layout for every
-> file which is "maximum file offset" for every file even if a file is only 1
-> page long?
+> 
+> i.e. when we use preallocation, the extent map extends beyond EOF,
+> and layout leases need to be able to extend beyond the current EOF
+> to allow the lease owner to do extending writes, extending truncate,
+> preallocation beyond EOF, etc safely without having to get a new
+> lease to cover the new region in the extended file...
 
-The layout lease doesn't care what the file size it. It doesn't even
-know what the file size is. The layout lease covers a range the
-logical file offset with the intend that any change to the file
-layout within that range will result in a notification. The layout
-lease is not bound to the range of valid data in the file at all -
-it doesn't matter if it points beyond EOF - if the file grows to
-the size the it overlaps the layout lease, then that layout lease
-needs to be notified by break_layouts....
+I'm not following this.  What determines when preallocation is done?
 
-I've had a stinking headache all day, so I'm struggling to make
-sense right now. The best I can describe is that layout lease ranges
-do not imply or require valid file data to exist within the range
-they are taken over - they just cover a file offset range.
+Forgive my ignorance on file systems but how can we have a layout for every
+file which is "maximum file offset" for every file even if a file is only 1
+page long?
 
-FWIW, the fcntl() locking interface uses a length of 0 to
-indicate "to max file offset" rather than a specific length. e.g.
-SETLK and friends:
+Thanks,
+Ira
 
-	Specifying 0 for l_len has the special meaning: lock all
-	bytes starting at the location specified by l_whence and
-	l_start through to the end of file, no  matter
-	how large the file grows.
-
-That's exactly the semantics I'm talking about here - layout leases
-need to be able to specify an extent anywhere within the valid file
-offset range, and also to specify a nebulous "through to the end of
-the layout range" so taht file growth can be done without needing
-new leases to be taken as the file grows....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david@fromorbit.com
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
