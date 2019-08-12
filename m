@@ -1,17 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F351520212C87
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 05:57:19 -0700 (PDT)
-Date: Wed, 21 Aug 2019 14:56:05 +0200
-From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
-Subject: Re: [ndctl PATCH v2 14/26] ndctl/namespace: Handle
- 'create-namespace' in label-less mode
-Message-ID: <20190821145605.206372a0@kitsune.suse.cz>
-In-Reply-To: <156426363655.531577.4504452379578995249.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156426356088.531577.14828880045306313118.stgit@dwillia2-desk3.amr.corp.intel.com>
- <156426363655.531577.4504452379578995249.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 13766212FD508
+ for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 07:05:50 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [ndctl PATCH] ndctl/test: Add xfs reflink dependency
+References: <156531368129.2136155.4247732841095137080.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 12 Aug 2019 10:03:27 -0400
+In-Reply-To: <156531368129.2136155.4247732841095137080.stgit@dwillia2-desk3.amr.corp.intel.com>
+ (Dan Williams's message of "Thu, 08 Aug 2019 18:21:21 -0700")
+Message-ID: <x494l2mjxao.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -28,76 +27,66 @@ To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello,
+Dan Williams <dan.j.williams@intel.com> writes:
 
-this patch is marked as superseded in the patchwork.
+> Starting with xfsprogs version 5.1.0 it will enable reflink by default.
+> Any scripts, like ndctl unit tests, that were doing:
+>
+>     mkfs.xfs $pmem; mount -o dax $pmem $mnt
+>
+> ...must now do:
+>
+>     mkfs.xfs -m reflink=0 $pmem; mount -o dax $pmem $mnt
 
-What is the intended replacement?
+Agreed.  In the future, the options may not be mutually exclusive, but I
+don't see any harm in always testing with reflink=0 for the existing
+tests.
 
-Thanks
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 
-Michal
-
-On Sat, 27 Jul 2019 14:40:36 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
-
-> A common confusion with ndctl is that 'create-namespace' does not work
-> in the label-less case. In the label-less case there is no capacity to
-> allocate as the size if already hard-coded by the region boundary.
-> 
-> However, users typically do something like the following in the
-> label-less case:
-> 
->     # ndctl list
->     {
->       "dev":"namespace1.0",
->       "mode":"raw",
->       "size":"127.00 GiB (136.37 GB)",
->       "sector_size":512,
->       "blockdev":"pmem1"
->     }
-> 
->     # ndctl destroy-namespace namespace1.0 -f
->     destroyed 1 namespace
-> 
->     # ndctl create-namespace
->     failed to create namespace: Resource temporarily unavailable
-> 
-> In other words they destroy the raw mode namespace that they don't want,
-> and seek to create a new default configuration namespace. Since there is
-> no "available_capacity" in the label-less case the 'create' attempt
-> fails.
-> 
-> Fix this by recognizing that the user wants a default sized namespace
-> and just reconfigure the raw namespace.
-> 
+>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  ndctl/namespace.c |   10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 58fec194ab94..e5a2b1341cdb 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -837,9 +837,13 @@ static int namespace_create(struct ndctl_region *region)
->  		return -EAGAIN;
->  	}
+>  test/dax.sh  |    4 ++--
+>  test/mmap.sh |    2 +-
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/test/dax.sh b/test/dax.sh
+> index e703e1222dee..3bb44ac0a26c 100755
+> --- a/test/dax.sh
+> +++ b/test/dax.sh
+> @@ -69,7 +69,7 @@ json=$($NDCTL create-namespace -m raw -f -e $dev)
+>  eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
 >  
-> -	available = ndctl_region_get_max_available_extent(region);
-> -	if (available == ULLONG_MAX)
-> -		available = ndctl_region_get_available_size(region);
-> +	if (ndctl_region_get_nstype(region) == ND_DEVICE_NAMESPACE_IO)
-> +		available = ndctl_region_get_size(region);
-> +	else {
-> +		available = ndctl_region_get_max_available_extent(region);
-> +		if (available == ULLONG_MAX)
-> +			available = ndctl_region_get_available_size(region);
-> +	}
->  	if (!available || p.size > available) {
->  		debug("%s: insufficient capacity size: %llx avail: %llx\n",
->  			devname, p.size, available);
-
+> -mkfs.xfs -f /dev/$blockdev
+> +mkfs.xfs -f /dev/$blockdev -m reflink=0
+>  mount /dev/$blockdev $MNT -o dax
+>  fallocate -l 1GiB $MNT/$FILE
+>  run_test
+> @@ -80,7 +80,7 @@ json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
+>  eval $(json2var <<< "$json")
+>  [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+>  
+> -mkfs.xfs -f /dev/$blockdev
+> +mkfs.xfs -f /dev/$blockdev -m reflink=0
+>  mount /dev/$blockdev $MNT -o dax
+>  fallocate -l 1GiB $MNT/$FILE
+>  run_test
+> diff --git a/test/mmap.sh b/test/mmap.sh
+> index afe50fd2199b..d072ea289f31 100755
+> --- a/test/mmap.sh
+> +++ b/test/mmap.sh
+> @@ -70,7 +70,7 @@ fallocate -l 1GiB $MNT/$FILE
+>  test_mmap
+>  umount $MNT
+>  
+> -mkfs.xfs -f $DEV
+> +mkfs.xfs -f $DEV -m reflink=0
+>  mount $DEV $MNT -o dax
+>  fallocate -l 1GiB $MNT/$FILE
+>  test_mmap
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
