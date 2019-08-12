@@ -1,76 +1,39 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com
- [IPv6:2607:f8b0:4864:20::642])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EC7172132469C
- for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 17:43:35 -0700 (PDT)
-Received: by mail-pl1-x642.google.com with SMTP id y8so6425793plr.12
- for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 17:41:18 -0700 (PDT)
+Return-Path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-References: <20190812182421.141150-1-brendanhiggins@google.com>
- <20190812182421.141150-4-brendanhiggins@google.com>
- <20190812225520.5A67C206A2@mail.kernel.org>
- <20190812233336.GA224410@google.com>
- <20190812235940.100842063F@mail.kernel.org>
-In-Reply-To: <20190812235940.100842063F@mail.kernel.org>
-From: Brendan Higgins <brendanhiggins@google.com>
-Date: Mon, 12 Aug 2019 17:41:05 -0700
-Message-ID: <CAFd5g44xciLPBhH_J3zUcY3TedWTijdnWgF055qffF+dAguhPQ@mail.gmail.com>
-Subject: Re: [PATCH v12 03/18] kunit: test: add string_stream a std::stream
- like string builder
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Stephen Boyd <sboyd@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20190812233336.GA224410@google.com>
+References: <20190812182421.141150-1-brendanhiggins@google.com> <20190812182421.141150-4-brendanhiggins@google.com> <20190812225520.5A67C206A2@mail.kernel.org> <20190812233336.GA224410@google.com>
+Subject: Re: [PATCH v12 03/18] kunit: test: add string_stream a std::stream like string builder
+From: Stephen Boyd <sboyd@kernel.org>
+Date: Mon, 12 Aug 2019 16:59:39 -0700
+Message-Id: <20190812235940.100842063F@mail.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com, devicetree@vger.kernel.org, dri-devel@lists.freedesktop.org, kunit-dev@googlegroups.com, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-um@lists.infradead.org, Alexander.Levin@microsoft.com, Tim.Bird@sony.com, amir73il@gmail.com, dan.carpenter@oracle.com, daniel@ffwll.ch, jdike@addtoit.com, joel@jms.id.au, julia.lawall@lip6.fr, khilman@baylibre.com, knut.omang@oracle.com, logang@deltatee.com, mpe@ellerman.id.au, pmladek@suse.com, rdunlap@infradead.org, richard@nod.at, rientjes@google.com, rostedt@goodmis.org, wfg@linux.intel.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Mon, Aug 12, 2019 at 4:59 PM Stephen Boyd <sboyd@kernel.org> wrote:
->
-> Quoting Brendan Higgins (2019-08-12 16:33:36)
-> > On Mon, Aug 12, 2019 at 03:55:19PM -0700, Stephen Boyd wrote:
-> > > Quoting Brendan Higgins (2019-08-12 11:24:06)
-> > > > +void string_stream_clear(struct string_stream *stream)
-> > > > +{
-> > > > +       struct string_stream_fragment *frag_container, *frag_container_safe;
-> > > > +
-> > > > +       spin_lock(&stream->lock);
-> > > > +       list_for_each_entry_safe(frag_container,
-> > > > +                                frag_container_safe,
-> > > > +                                &stream->fragments,
-> > > > +                                node) {
-> > > > +               list_del(&frag_container->node);
-> > >
-> > > Shouldn't we free the allocation here? Otherwise, if some test is going
-> > > to add, add, clear, add, it's going to leak until the test is over?
-> >
-> > So basically this means I should add a kunit_kfree and
-> > kunit_resource_destroy (respective equivalents to devm_kfree, and
-> > devres_destroy) and use kunit_kfree here?
-> >
->
-> Yes, or drop the API entirely? Does anything need this functionality?
+Quoting Brendan Higgins (2019-08-12 16:33:36)
+> On Mon, Aug 12, 2019 at 03:55:19PM -0700, Stephen Boyd wrote:
+> > Quoting Brendan Higgins (2019-08-12 11:24:06)
+> > > +void string_stream_clear(struct string_stream *stream)
+> > > +{
+> > > +       struct string_stream_fragment *frag_container, *frag_containe=
+r_safe;
+> > > +
+> > > +       spin_lock(&stream->lock);
+> > > +       list_for_each_entry_safe(frag_container,
+> > > +                                frag_container_safe,
+> > > +                                &stream->fragments,
+> > > +                                node) {
+> > > +               list_del(&frag_container->node);
+> >=20
+> > Shouldn't we free the allocation here? Otherwise, if some test is going
+> > to add, add, clear, add, it's going to leak until the test is over?
+>=20
+> So basically this means I should add a kunit_kfree and
+> kunit_resource_destroy (respective equivalents to devm_kfree, and
+> devres_destroy) and use kunit_kfree here?
+>=20
 
-Drop the kunit_resource API? I would strongly prefer not to.
-string_stream uses it; the expectation stuff uses it via string
-stream; some of the tests in this patchset allocate memory as part of
-the test setup that uses it. The intention is that we would provide a
-kunit_res_* version of many (hopefully eventually most) common
-resources required by tests and it would be used in the same way that
-the devm_* stuff is.
-
-Nevertheless, I am fine adding the kunit_resource_destroy, etc. I just
-wanted to make sure I understood what you were asking.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Yes, or drop the API entirely? Does anything need this functionality?
