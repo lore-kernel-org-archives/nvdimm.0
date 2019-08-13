@@ -1,19 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pl1-x649.google.com (mail-pl1-x649.google.com
- [IPv6:2607:f8b0:4864:20::649])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 4369A2130C480
- for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 11:27:18 -0700 (PDT)
-Received: by mail-pl1-x649.google.com with SMTP id v13so2914670plo.4
- for <linux-nvdimm@lists.01.org>; Mon, 12 Aug 2019 11:24:58 -0700 (PDT)
-Date: Mon, 12 Aug 2019 11:24:10 -0700
-In-Reply-To: <20190812182421.141150-1-brendanhiggins@google.com>
-Message-Id: <20190812182421.141150-8-brendanhiggins@google.com>
-Mime-Version: 1.0
-References: <20190812182421.141150-1-brendanhiggins@google.com>
-Subject: [PATCH v12 07/18] kunit: test: add initial tests
-From: Brendan Higgins <brendanhiggins@google.com>
+ by ml01.01.org (Postfix) with ESMTPS id 3E6DA210F254F
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Aug 2019 13:55:10 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH v3] ndctl,
+ check: Ensure mmap of BTT sections work with 64K page-sizes
+References: <20190806105012.15170-1-vaibhav@linux.ibm.com>
+ <x497e7igipm.fsf@segfault.boston.devel.redhat.com>
+ <87h86lzifz.fsf@vajain21.in.ibm.com>
+Date: Tue, 13 Aug 2019 16:52:57 -0400
+In-Reply-To: <87h86lzifz.fsf@vajain21.in.ibm.com> (Vaibhav Jain's message of
+ "Tue, 13 Aug 2019 11:59:52 +0530")
+Message-ID: <x49lfvw949i.fsf@segfault.boston.devel.redhat.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,243 +26,243 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, sboyd@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
+To: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Harish Sriram <harish@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Add a test for string stream along with a simpler example.
+Vaibhav Jain <vaibhav@linux.ibm.com> writes:
 
-Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
----
- kunit/Kconfig              | 21 +++++++++
- kunit/Makefile             |  4 ++
- kunit/example-test.c       | 88 ++++++++++++++++++++++++++++++++++++++
- kunit/string-stream-test.c | 74 ++++++++++++++++++++++++++++++++
- 4 files changed, 187 insertions(+)
- create mode 100644 kunit/example-test.c
- create mode 100644 kunit/string-stream-test.c
+> Thanks for reviewing this patch Jeff.
+>
+> Jeff Moyer <jmoyer@redhat.com> writes:
+>
+>> Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+>>
+>>> On PPC64 which uses a 64K page-size, ndtl-check command fails on a BTT
+>>> namespace with following error:
+>>>
+>>> $ sudo ndctl check-namespace namespace0.0 -vv
+>>>   namespace0.0: namespace_check: checking namespace0.0
+>>>   namespace0.0: btt_discover_arenas: found 1 BTT arena
+>>>   namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000, off = 0x1000] failed: Invalid argument
+>>>   error checking namespaces: Invalid argument
+>>>   checked 0 namespaces
+>>>
+>>> An error happens when btt_create_mappings() tries to mmap the sections
+>>> of the BTT device which are usually 4K offset aligned. However the
+>>> mmap() syscall expects the 'offset' argument to be in multiples of
+>>> page-size, hence it returns EINVAL causing the btt_create_mappings()
+>>> to error out.
+>>>
+>>> As a fix for the issue this patch proposes addition of two new
+>>> functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
+>>> map/unmap parts of BTT device to ndctl process address-space. The
+>>> functions tweaks the requested 'offset' argument to mmap() ensuring
+>>> that its page-size aligned and then fix-ups the returned pointer such
+>>> that it points to the requested offset within mmapped region.
+>>>
+>>> With these newly introduced functions the patch updates the call-sites
+>>> in 'check.c' to use these functions instead of mmap/unmap syscalls.
+>>> Also since btt_mmap returns NULL if mmap operation fails, the
+>>> error check call-sites can be made against NULL instead of MAP_FAILED.
+>>>
+>>> Reported-by: Harish Sriram <harish@linux.ibm.com>
+>>> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+>>> ---
+>>> Changelog:
+>>> v3:
+>>> * Fixed a log string that was splitted across multiple lines [Vishal]
+>>>
+>>> v2:
+>>> * Updated patch description to include canonical email address of bug
+>>>   reporter. [Vishal]
+>>> * Improved the comment describing function btt_mmap() in 'check.c'
+>>>   [Vishal]
+>>> * Simplified the argument list for btt_mmap() to just accept bttc,
+>>>   length and offset. Other arguments for mmap() are derived from these
+>>>   args. [Vishal]
+>>> * Renamed 'shift' variable in btt_mmap()/unmap() to 'page_offset'
+>>>   [Vishal]
+>>> * Improved the dbg() messages logged inside
+>>>   btt_mmap()/unmap(). [Vishal]
+>>> * Return NULL from btt_mmap() in case of an error. [Vishal]
+>>> * Changed the all sites to btt_mmap() to perform error check against
+>>>   NULL return value instead of MAP_FAILED. [Vishal]
+>>> ---
+>>>  ndctl/check.c | 93 +++++++++++++++++++++++++++++++++++++--------------
+>>>  1 file changed, 67 insertions(+), 26 deletions(-)
+>>>
+>>> diff --git a/ndctl/check.c b/ndctl/check.c
+>>> index 8a7125053865..5969012eba84 100644
+>>> --- a/ndctl/check.c
+>>> +++ b/ndctl/check.c
+>>> @@ -907,59 +907,100 @@ static int btt_discover_arenas(struct btt_chk *bttc)
+>>>  	return ret;
+>>>  }
+>>>  
+>>> -static int btt_create_mappings(struct btt_chk *bttc)
+>>> +/*
+>>> + * Wrap call to mmap(2) to work with btt device offsets that are not aligned
+>>> + * to system page boundary. It works by rounding down the requested offset
+>>> + * to sys_page_size when calling mmap(2) and then returning a fixed-up pointer
+>>> + * to the correct offset in the mmaped region.
+>>> + */
+>>> +static void *btt_mmap(struct btt_chk *bttc, size_t length, off_t offset)
+>>>  {
+>>> -	struct arena_info *a;
+>>> -	int mmap_flags;
+>>> -	int i;
+>>> +	off_t page_offset;
+>>> +	int prot_flags;
+>>> +	uint8_t *addr;
+>>>  
+>>>  	if (!bttc->opts->repair)
+>>> -		mmap_flags = PROT_READ;
+>>> +		prot_flags = PROT_READ;
+>>>  	else
+>>> -		mmap_flags = PROT_READ|PROT_WRITE;
+>>> +		prot_flags = PROT_READ|PROT_WRITE;
+>>> +
+>>> +	/* Calculate the page_offset from the system page boundary */
+>>> +	page_offset = offset - rounddown(offset, bttc->sys_page_size);
+>>> +
+>>> +	/* Update the offset and length with the page_offset calculated above */
+>>> +	offset -= page_offset;
+>>> +	length += page_offset;
+>>
+>> Don't you have to ensure that the length is also a multiple of the
+>> system page size?
+>>
+>> -Jeff
+>
+> No, as the BTT info header is 4K in size which isnt in multiple of page
+> size on PPC64 where PAGE_SIZE == 64K.
+>
+> Also I see 'do_mmap()' in kernel always rounding up the 'length' to
+> PAGE_SIZE. So any unaligned value for 'length' arg will be handled by the
+> kernel.
+>
+> Finally mmap(2) doesn't put any constraint on the 'length' argument to
+> mmap except it should > 0. The 'offset' arg on other hand has a
+> constraint which needs to be in multiple of PAGE_SIZE.
 
-diff --git a/kunit/Kconfig b/kunit/Kconfig
-index 330ae83527c23..8541ef95b65ad 100644
---- a/kunit/Kconfig
-+++ b/kunit/Kconfig
-@@ -14,4 +14,25 @@ config KUNIT
- 	  architectures. For more information, please see
- 	  Documentation/dev-tools/kunit/.
- 
-+config KUNIT_TEST
-+	bool "KUnit test for KUnit"
-+	depends on KUNIT
-+	help
-+	  Enables the unit tests for the KUnit test framework. These tests test
-+	  the KUnit test framework itself; the tests are both written using
-+	  KUnit and test KUnit. This option should only be enabled for testing
-+	  purposes by developers interested in testing that KUnit works as
-+	  expected.
-+
-+config KUNIT_EXAMPLE_TEST
-+	bool "Example test for KUnit"
-+	depends on KUNIT
-+	help
-+	  Enables an example unit test that illustrates some of the basic
-+	  features of KUnit. This test only exists to help new users understand
-+	  what KUnit is and how it is used. Please refer to the example test
-+	  itself, kunit/example-test.c, for more information. This option is
-+	  intended for curious hackers who would like to understand how to use
-+	  KUnit for kernel development.
-+
- endmenu
-diff --git a/kunit/Makefile b/kunit/Makefile
-index 6dcbe309036b8..4e46450bcb3a8 100644
---- a/kunit/Makefile
-+++ b/kunit/Makefile
-@@ -1,3 +1,7 @@
- obj-$(CONFIG_KUNIT) +=			test.o \
- 					string-stream.o \
- 					assert.o
-+
-+obj-$(CONFIG_KUNIT_TEST) +=		string-stream-test.o
-+
-+obj-$(CONFIG_KUNIT_EXAMPLE_TEST) +=	example-test.o
-diff --git a/kunit/example-test.c b/kunit/example-test.c
-new file mode 100644
-index 0000000000000..f64a829aa441f
---- /dev/null
-+++ b/kunit/example-test.c
-@@ -0,0 +1,88 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Example KUnit test to show how to use KUnit.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#include <kunit/test.h>
-+
-+/*
-+ * This is the most fundamental element of KUnit, the test case. A test case
-+ * makes a set EXPECTATIONs and ASSERTIONs about the behavior of some code; if
-+ * any expectations or assertions are not met, the test fails; otherwise, the
-+ * test passes.
-+ *
-+ * In KUnit, a test case is just a function with the signature
-+ * `void (*)(struct kunit *)`. `struct kunit` is a context object that stores
-+ * information about the current test.
-+ */
-+static void example_simple_test(struct kunit *test)
-+{
-+	/*
-+	 * This is an EXPECTATION; it is how KUnit tests things. When you want
-+	 * to test a piece of code, you set some expectations about what the
-+	 * code should do. KUnit then runs the test and verifies that the code's
-+	 * behavior matched what was expected.
-+	 */
-+	KUNIT_EXPECT_EQ(test, 1 + 1, 2);
-+}
-+
-+/*
-+ * This is run once before each test case, see the comment on
-+ * example_test_suite for more information.
-+ */
-+static int example_test_init(struct kunit *test)
-+{
-+	kunit_info(test, "initializing\n");
-+
-+	return 0;
-+}
-+
-+/*
-+ * Here we make a list of all the test cases we want to add to the test suite
-+ * below.
-+ */
-+static struct kunit_case example_test_cases[] = {
-+	/*
-+	 * This is a helper to create a test case object from a test case
-+	 * function; its exact function is not important to understand how to
-+	 * use KUnit, just know that this is how you associate test cases with a
-+	 * test suite.
-+	 */
-+	KUNIT_CASE(example_simple_test),
-+	{}
-+};
-+
-+/*
-+ * This defines a suite or grouping of tests.
-+ *
-+ * Test cases are defined as belonging to the suite by adding them to
-+ * `kunit_cases`.
-+ *
-+ * Often it is desirable to run some function which will set up things which
-+ * will be used by every test; this is accomplished with an `init` function
-+ * which runs before each test case is invoked. Similarly, an `exit` function
-+ * may be specified which runs after every test case and can be used to for
-+ * cleanup. For clarity, running tests in a test suite would behave as follows:
-+ *
-+ * suite.init(test);
-+ * suite.test_case[0](test);
-+ * suite.exit(test);
-+ * suite.init(test);
-+ * suite.test_case[1](test);
-+ * suite.exit(test);
-+ * ...;
-+ */
-+static struct kunit_suite example_test_suite = {
-+	.name = "example",
-+	.init = example_test_init,
-+	.test_cases = example_test_cases,
-+};
-+
-+/*
-+ * This registers the above test suite telling KUnit that this is a suite of
-+ * tests that need to be run.
-+ */
-+kunit_test_suite(example_test_suite);
-diff --git a/kunit/string-stream-test.c b/kunit/string-stream-test.c
-new file mode 100644
-index 0000000000000..9cf08f9dadf36
---- /dev/null
-+++ b/kunit/string-stream-test.c
-@@ -0,0 +1,74 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnit test for struct string_stream.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#include <linux/slab.h>
-+#include <kunit/test.h>
-+#include <kunit/string-stream.h>
-+
-+static void string_stream_test_empty_on_creation(struct kunit *test)
-+{
-+	struct string_stream *stream = alloc_string_stream(test, GFP_KERNEL);
-+
-+	KUNIT_EXPECT_TRUE(test, string_stream_is_empty(stream));
-+}
-+
-+static void string_stream_test_not_empty_after_add(struct kunit *test)
-+{
-+	struct string_stream *stream = alloc_string_stream(test, GFP_KERNEL);
-+
-+	string_stream_add(stream, "Foo");
-+
-+	KUNIT_EXPECT_FALSE(test, string_stream_is_empty(stream));
-+}
-+
-+static void string_stream_test_get_string(struct kunit *test)
-+{
-+	struct string_stream *stream = alloc_string_stream(test, GFP_KERNEL);
-+	char *output;
-+
-+	string_stream_add(stream, "Foo");
-+	string_stream_add(stream, " %s", "bar");
-+
-+	output = string_stream_get_string(stream);
-+	KUNIT_EXPECT_STREQ(test, output, "Foo bar");
-+}
-+
-+static void string_stream_test_add_and_clear(struct kunit *test)
-+{
-+	struct string_stream *stream = alloc_string_stream(test, GFP_KERNEL);
-+	char *output;
-+	int i;
-+
-+	for (i = 0; i < 10; i++)
-+		string_stream_add(stream, "A");
-+
-+	output = string_stream_get_string(stream);
-+	KUNIT_EXPECT_STREQ(test, output, "AAAAAAAAAA");
-+	KUNIT_EXPECT_EQ(test, stream->length, (size_t)10);
-+	KUNIT_EXPECT_FALSE(test, string_stream_is_empty(stream));
-+
-+	string_stream_clear(stream);
-+
-+	output = string_stream_get_string(stream);
-+	KUNIT_EXPECT_STREQ(test, output, "");
-+	KUNIT_EXPECT_TRUE(test, string_stream_is_empty(stream));
-+}
-+
-+static struct kunit_case string_stream_test_cases[] = {
-+	KUNIT_CASE(string_stream_test_empty_on_creation),
-+	KUNIT_CASE(string_stream_test_not_empty_after_add),
-+	KUNIT_CASE(string_stream_test_get_string),
-+	KUNIT_CASE(string_stream_test_add_and_clear),
-+	{}
-+};
-+
-+static struct kunit_suite string_stream_test_suite = {
-+	.name = "string-stream-test",
-+	.test_cases = string_stream_test_cases
-+};
-+kunit_test_suite(string_stream_test_suite);
--- 
-2.23.0.rc1.153.gdeed80330f-goog
+Right, this is the part I forgot.  I'd probaby write the map and unmap
+routines a bit differently, but what you wrote works.
 
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+
+
+>>
+>>> +
+>>> +	addr = mmap(NULL, length, prot_flags, MAP_SHARED, bttc->fd, offset);
+>>> +
+>>> +	/* If needed fixup the return pointer to correct offset requested */
+>>> +	if (addr != MAP_FAILED)
+>>> +		addr += page_offset;
+>>> +
+>>> +	dbg(bttc, "addr = %p, length = %#lx, offset = %#lx, page_offset = %#lx\n",
+>>> +	    (void *) addr, length, offset, page_offset);
+>>> +
+>>> +	return addr == MAP_FAILED ? NULL : addr;
+>>> +}
+>>> +
+>>> +static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
+>>> +{
+>>> +	off_t page_offset;
+>>> +	uintptr_t addr = (uintptr_t) ptr;
+>>> +
+>>> +	/* Calculate the page_offset from system page boundary */
+>>> +	page_offset = addr - rounddown(addr, bttc->sys_page_size);
+>>> +
+>>> +	addr -= page_offset;
+>>> +	length += page_offset;
+>>> +
+>>> +	munmap((void *) addr, length);
+>>> +	dbg(bttc, "addr = %p, length = %#lx, page_offset = %#lx\n",
+>>> +	    (void *) addr, length, page_offset);
+>>> +}
+>>> +
+>>> +static int btt_create_mappings(struct btt_chk *bttc)
+>>> +{
+>>> +	struct arena_info *a;
+>>> +	int i;
+>>>  
+>>>  	for (i = 0; i < bttc->num_arenas; i++) {
+>>>  		a = &bttc->arena[i];
+>>>  		a->map.info_len = BTT_INFO_SIZE;
+>>> -		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
+>>> -			MAP_SHARED, bttc->fd, a->infooff);
+>>> -		if (a->map.info == MAP_FAILED) {
+>>> +		a->map.info = btt_mmap(bttc, a->map.info_len, a->infooff);
+>>> +		if (!a->map.info) {
+>>>  			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
+>>>  				i, a->map.info_len, a->infooff, strerror(errno));
+>>>  			return -errno;
+>>>  		}
+>>>  
+>>>  		a->map.data_len = a->mapoff - a->dataoff;
+>>> -		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
+>>> -			MAP_SHARED, bttc->fd, a->dataoff);
+>>> -		if (a->map.data == MAP_FAILED) {
+>>> +		a->map.data = btt_mmap(bttc, a->map.data_len, a->dataoff);
+>>> +		if (!a->map.data) {
+>>>  			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
+>>>  				i, a->map.data_len, a->dataoff, strerror(errno));
+>>>  			return -errno;
+>>>  		}
+>>>  
+>>>  		a->map.map_len = a->logoff - a->mapoff;
+>>> -		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
+>>> -			MAP_SHARED, bttc->fd, a->mapoff);
+>>> -		if (a->map.map == MAP_FAILED) {
+>>> +		a->map.map = btt_mmap(bttc, a->map.map_len, a->mapoff);
+>>> +		if (!a->map.map) {
+>>>  			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
+>>>  				i, a->map.map_len, a->mapoff, strerror(errno));
+>>>  			return -errno;
+>>>  		}
+>>>  
+>>>  		a->map.log_len = a->info2off - a->logoff;
+>>> -		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
+>>> -			MAP_SHARED, bttc->fd, a->logoff);
+>>> -		if (a->map.log == MAP_FAILED) {
+>>> +		a->map.log = btt_mmap(bttc, a->map.log_len, a->logoff);
+>>> +		if (!a->map.log) {
+>>>  			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
+>>>  				i, a->map.log_len, a->logoff, strerror(errno));
+>>>  			return -errno;
+>>>  		}
+>>>  
+>>>  		a->map.info2_len = BTT_INFO_SIZE;
+>>> -		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
+>>> -			MAP_SHARED, bttc->fd, a->info2off);
+>>> -		if (a->map.info2 == MAP_FAILED) {
+>>> +		a->map.info2 = btt_mmap(bttc, a->map.info2_len, a->info2off);
+>>> +		if (!a->map.info2) {
+>>>  			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
+>>>  				i, a->map.info2_len, a->info2off, strerror(errno));
+>>>  			return -errno;
+>>> @@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
+>>>  	for (i = 0; i < bttc->num_arenas; i++) {
+>>>  		a = &bttc->arena[i];
+>>>  		if (a->map.info)
+>>> -			munmap(a->map.info, a->map.info_len);
+>>> +			btt_unmap(bttc, a->map.info, a->map.info_len);
+>>>  		if (a->map.data)
+>>> -			munmap(a->map.data, a->map.data_len);
+>>> +			btt_unmap(bttc, a->map.data, a->map.data_len);
+>>>  		if (a->map.map)
+>>> -			munmap(a->map.map, a->map.map_len);
+>>> +			btt_unmap(bttc, a->map.map, a->map.map_len);
+>>>  		if (a->map.log)
+>>> -			munmap(a->map.log, a->map.log_len);
+>>> +			btt_unmap(bttc, a->map.log, a->map.log_len);
+>>>  		if (a->map.info2)
+>>> -			munmap(a->map.info2, a->map.info2_len);
+>>> +			btt_unmap(bttc, a->map.info2, a->map.info2_len);
+>>>  	}
+>>>  }
+>>
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
