@@ -1,29 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7929C212FD404
- for <linux-nvdimm@lists.01.org>; Tue,  6 Aug 2019 03:52:55 -0700 (PDT)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
- by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x76AgUmB039306
- for <linux-nvdimm@lists.01.org>; Tue, 6 Aug 2019 06:50:24 -0400
-Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
- by mx0a-001b2d01.pphosted.com with ESMTP id 2u780t8b6f-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 06 Aug 2019 06:50:24 -0400
-Received: from localhost
- by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
- Tue, 6 Aug 2019 11:50:22 +0100
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-Subject: [PATCH v3] ndctl,
- check: Ensure mmap of BTT sections work with 64K page-sizes
-Date: Tue,  6 Aug 2019 16:20:12 +0530
+ by ml01.01.org (Postfix) with ESMTPS id CE06C2131D597
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Aug 2019 09:50:30 -0700 (PDT)
 MIME-Version: 1.0
-Message-Id: <20190806105012.15170-1-vaibhav@linux.ibm.com>
+In-Reply-To: <CAFd5g452+-6m1eiVK0ccTDkJ2wH8GBwxRDw5owwC8h3NscE1ag@mail.gmail.com>
+References: <20190812182421.141150-1-brendanhiggins@google.com>
+ <20190812225520.5A67C206A2@mail.kernel.org>
+ <20190812233336.GA224410@google.com>
+ <20190812235940.100842063F@mail.kernel.org>
+ <CAFd5g44xciLPBhH_J3zUcY3TedWTijdnWgF055qffF+dAguhPQ@mail.gmail.com>
+ <20190813045623.F3D9520842@mail.kernel.org>
+ <CAFd5g46PJNTOUAA4GOOrW==74Zy7u1sRESTanL_BXBn6QykscA@mail.gmail.com>
+ <20190813053023.CC86120651@mail.kernel.org>
+ <CAFd5g47v7410QRAizPV8zaHrKrc95-Sk-GNzRRVngN741OKnvg@mail.gmail.com>
+ <CAFd5g452+-6m1eiVK0ccTDkJ2wH8GBwxRDw5owwC8h3NscE1ag@mail.gmail.com>
+Subject: Re: [PATCH v12 03/18] kunit: test: add string_stream a std::stream
+ like string builder
+From: Stephen Boyd <sboyd@kernel.org>
+Date: Tue, 13 Aug 2019 09:48:17 -0700
+Message-Id: <20190813164818.06A2D20842@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,213 +32,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: Harish Sriram <harish@linux.ibm.com>, Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird, Timothy  <Tim.Bird@sony.com>, linux-um@lists.infradead.org, Steven Rostedt" <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On PPC64 which uses a 64K page-size, ndtl-check command fails on a BTT
-namespace with following error:
+Quoting Brendan Higgins (2019-08-13 02:12:54)
+> On Tue, Aug 13, 2019 at 2:04 AM Brendan Higgins
+> <brendanhiggins@google.com> wrote:
+> >
+> > On Mon, Aug 12, 2019 at 10:30 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> > >
+> > > Quoting Brendan Higgins (2019-08-12 22:02:59)
+> > > > However, now that I added the kunit_resource_destroy, I thought it
+> > > > might be good to free the string_stream after I use it in each call to
+> > > > kunit_assert->format(...) in which case I will be using this logic.
+> > > >
+> > > > So I think the right thing to do is to expose string_stream_destroy so
+> > > > kunit_do_assert can clean up when it's done, and then demote
+> > > > string_stream_clear to static. Sound good?
+> > >
+> > > Ok, sure. I don't really see how clearing it explicitly when the
+> > > assertion prints vs. never allocating it to begin with is really any
+> > > different. Maybe I've missed something though.
+> >
+> > It's for the case that we *do* print something out. Once we are doing
+> > printing, we don't want the fragments anymore.
+> 
+> Oops, sorry fat fingered: s/doing/done
 
-$ sudo ndctl check-namespace namespace0.0 -vv
-  namespace0.0: namespace_check: checking namespace0.0
-  namespace0.0: btt_discover_arenas: found 1 BTT arena
-  namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000, off = 0x1000] failed: Invalid argument
-  error checking namespaces: Invalid argument
-  checked 0 namespaces
+Yes, but when we print something out we've run into some sort of problem
+and then the test is over. So freeing the memory when it fails vs. when
+the test is over seems like a minor difference. Or is it also used to
+print other informational messages while the test is running?
 
-An error happens when btt_create_mappings() tries to mmap the sections
-of the BTT device which are usually 4K offset aligned. However the
-mmap() syscall expects the 'offset' argument to be in multiples of
-page-size, hence it returns EINVAL causing the btt_create_mappings()
-to error out.
-
-As a fix for the issue this patch proposes addition of two new
-functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
-map/unmap parts of BTT device to ndctl process address-space. The
-functions tweaks the requested 'offset' argument to mmap() ensuring
-that its page-size aligned and then fix-ups the returned pointer such
-that it points to the requested offset within mmapped region.
-
-With these newly introduced functions the patch updates the call-sites
-in 'check.c' to use these functions instead of mmap/unmap syscalls.
-Also since btt_mmap returns NULL if mmap operation fails, the
-error check call-sites can be made against NULL instead of MAP_FAILED.
-
-Reported-by: Harish Sriram <harish@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Changelog:
-v3:
-* Fixed a log string that was splitted across multiple lines [Vishal]
-
-v2:
-* Updated patch description to include canonical email address of bug
-  reporter. [Vishal]
-* Improved the comment describing function btt_mmap() in 'check.c'
-  [Vishal]
-* Simplified the argument list for btt_mmap() to just accept bttc,
-  length and offset. Other arguments for mmap() are derived from these
-  args. [Vishal]
-* Renamed 'shift' variable in btt_mmap()/unmap() to 'page_offset'
-  [Vishal]
-* Improved the dbg() messages logged inside
-  btt_mmap()/unmap(). [Vishal]
-* Return NULL from btt_mmap() in case of an error. [Vishal]
-* Changed the all sites to btt_mmap() to perform error check against
-  NULL return value instead of MAP_FAILED. [Vishal]
----
- ndctl/check.c | 93 +++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 67 insertions(+), 26 deletions(-)
-
-diff --git a/ndctl/check.c b/ndctl/check.c
-index 8a7125053865..5969012eba84 100644
---- a/ndctl/check.c
-+++ b/ndctl/check.c
-@@ -907,59 +907,100 @@ static int btt_discover_arenas(struct btt_chk *bttc)
- 	return ret;
- }
- 
--static int btt_create_mappings(struct btt_chk *bttc)
-+/*
-+ * Wrap call to mmap(2) to work with btt device offsets that are not aligned
-+ * to system page boundary. It works by rounding down the requested offset
-+ * to sys_page_size when calling mmap(2) and then returning a fixed-up pointer
-+ * to the correct offset in the mmaped region.
-+ */
-+static void *btt_mmap(struct btt_chk *bttc, size_t length, off_t offset)
- {
--	struct arena_info *a;
--	int mmap_flags;
--	int i;
-+	off_t page_offset;
-+	int prot_flags;
-+	uint8_t *addr;
- 
- 	if (!bttc->opts->repair)
--		mmap_flags = PROT_READ;
-+		prot_flags = PROT_READ;
- 	else
--		mmap_flags = PROT_READ|PROT_WRITE;
-+		prot_flags = PROT_READ|PROT_WRITE;
-+
-+	/* Calculate the page_offset from the system page boundary */
-+	page_offset = offset - rounddown(offset, bttc->sys_page_size);
-+
-+	/* Update the offset and length with the page_offset calculated above */
-+	offset -= page_offset;
-+	length += page_offset;
-+
-+	addr = mmap(NULL, length, prot_flags, MAP_SHARED, bttc->fd, offset);
-+
-+	/* If needed fixup the return pointer to correct offset requested */
-+	if (addr != MAP_FAILED)
-+		addr += page_offset;
-+
-+	dbg(bttc, "addr = %p, length = %#lx, offset = %#lx, page_offset = %#lx\n",
-+	    (void *) addr, length, offset, page_offset);
-+
-+	return addr == MAP_FAILED ? NULL : addr;
-+}
-+
-+static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
-+{
-+	off_t page_offset;
-+	uintptr_t addr = (uintptr_t) ptr;
-+
-+	/* Calculate the page_offset from system page boundary */
-+	page_offset = addr - rounddown(addr, bttc->sys_page_size);
-+
-+	addr -= page_offset;
-+	length += page_offset;
-+
-+	munmap((void *) addr, length);
-+	dbg(bttc, "addr = %p, length = %#lx, page_offset = %#lx\n",
-+	    (void *) addr, length, page_offset);
-+}
-+
-+static int btt_create_mappings(struct btt_chk *bttc)
-+{
-+	struct arena_info *a;
-+	int i;
- 
- 	for (i = 0; i < bttc->num_arenas; i++) {
- 		a = &bttc->arena[i];
- 		a->map.info_len = BTT_INFO_SIZE;
--		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->infooff);
--		if (a->map.info == MAP_FAILED) {
-+		a->map.info = btt_mmap(bttc, a->map.info_len, a->infooff);
-+		if (!a->map.info) {
- 			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.info_len, a->infooff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.data_len = a->mapoff - a->dataoff;
--		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->dataoff);
--		if (a->map.data == MAP_FAILED) {
-+		a->map.data = btt_mmap(bttc, a->map.data_len, a->dataoff);
-+		if (!a->map.data) {
- 			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.data_len, a->dataoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.map_len = a->logoff - a->mapoff;
--		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->mapoff);
--		if (a->map.map == MAP_FAILED) {
-+		a->map.map = btt_mmap(bttc, a->map.map_len, a->mapoff);
-+		if (!a->map.map) {
- 			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.map_len, a->mapoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.log_len = a->info2off - a->logoff;
--		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->logoff);
--		if (a->map.log == MAP_FAILED) {
-+		a->map.log = btt_mmap(bttc, a->map.log_len, a->logoff);
-+		if (!a->map.log) {
- 			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.log_len, a->logoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.info2_len = BTT_INFO_SIZE;
--		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->info2off);
--		if (a->map.info2 == MAP_FAILED) {
-+		a->map.info2 = btt_mmap(bttc, a->map.info2_len, a->info2off);
-+		if (!a->map.info2) {
- 			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.info2_len, a->info2off, strerror(errno));
- 			return -errno;
-@@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
- 	for (i = 0; i < bttc->num_arenas; i++) {
- 		a = &bttc->arena[i];
- 		if (a->map.info)
--			munmap(a->map.info, a->map.info_len);
-+			btt_unmap(bttc, a->map.info, a->map.info_len);
- 		if (a->map.data)
--			munmap(a->map.data, a->map.data_len);
-+			btt_unmap(bttc, a->map.data, a->map.data_len);
- 		if (a->map.map)
--			munmap(a->map.map, a->map.map_len);
-+			btt_unmap(bttc, a->map.map, a->map.map_len);
- 		if (a->map.log)
--			munmap(a->map.log, a->map.log_len);
-+			btt_unmap(bttc, a->map.log, a->map.log_len);
- 		if (a->map.info2)
--			munmap(a->map.info2, a->map.info2_len);
-+			btt_unmap(bttc, a->map.info2, a->map.info2_len);
- 	}
- }
- 
--- 
-2.21.0
+I'm not particularly worried here, just trying to see if less code is
+possible.
 
 _______________________________________________
 Linux-nvdimm mailing list
