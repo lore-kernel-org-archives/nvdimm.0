@@ -1,15 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B18C920216B77
- for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 06:36:32 -0700 (PDT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v6 0/7] Mark the namespace disabled on pfn superblock mismatch
-Date: Mon, 19 Aug 2019 19:04:44 +0530
-Message-Id: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1F9262132BD0F
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Aug 2019 10:09:25 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <CAFd5g44Es4emKyQSxUkqckGJ02_o3sAcDLwUCW8ZFGX14j5=xg@mail.gmail.com>
+References: <20190812182421.141150-1-brendanhiggins@google.com>
+ <20190812182421.141150-13-brendanhiggins@google.com>
+ <20190813043140.67FF320644@mail.kernel.org>
+ <CAFd5g44Es4emKyQSxUkqckGJ02_o3sAcDLwUCW8ZFGX14j5=xg@mail.gmail.com>
+Subject: Re: [PATCH v12 12/18] kunit: test: add tests for KUnit managed
+ resources
+From: Stephen Boyd <sboyd@kernel.org>
+Date: Tue, 13 Aug 2019 10:07:12 -0700
+Message-Id: <20190813170712.C89CA20679@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,60 +26,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, Rob Herring <robh@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird," Timothy" <Tim.Bird@sony.com>, Avinash Kondareddy <akndr41@gmail.com>," linux-um@lists.infradead.org, Steven Rostedt <rostedt@goodmis.org>, Julia Lawall <julia.lawall@lip6.fr>, Josh Poimboeuf <jpoimboe@redhat.com>, kunit-dev@googlegroups.com, Theodore Ts'o <tytso@mit.edu>, Richard Weinberger <richard@nod.at>, Greg KH <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Luis Chamberlain <mcgrof@kernel.org>, Daniel Vetter <daniel@ffwll.ch>, Kees Cook <keescook@google.com>, linux-fsdevel@vger.kernel.org, Kevin Hilman <khilman@baylibre.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-We add new members to pfn superblock (PAGE_SIZE and struct page size) in this series.
-This is now checked while initializing the namespace. If we find a mismatch we mark
-the namespace disabled.
+Quoting Brendan Higgins (2019-08-13 00:57:33)
+> On Mon, Aug 12, 2019 at 9:31 PM Stephen Boyd <sboyd@kernel.org> wrote:
+> >
+> > BTW, maybe kunit allocation APIs should
+> > fail the test if they fail to allocate in general. Unless we're unit
+> > testing failure to allocate problems.
+> 
+> Yeah, I thought about that. I wasn't sure how people would feel about
+> it, and I thought it would be a pain to tease out all the issues
+> arising from aborting in different contexts when someone might not
+> expect it.
+> 
+> I am thinking later we can have kunit_kmalloc_or_abort variants? And
+> then we can punt this issue to a later time?
+> 
 
-This series also handle configs where hugepage support is not enabled by default.
-This can result in different align restrictions for dax namespace. We mark the
-dax namespace disabled if we find the alignment not supported.
-
-Changes from v5:
-* Split patch 3
-* Update commit message
-* Add MAX_STRUCT_PAGE_SIZE with value 64 and use that when allocating reserve block
-* Add BUILD_BUG_ON if we find sizeof(struct page) > 64
-
-
-Aneesh Kumar K.V (6):
-  libnvdimm/pmem: Advance namespace seed for specific probe errors
-  libnvdimm/pfn_dev: Add a build check to make sure we notice when
-    struct page size change
-  libnvdimm/pfn_dev: Add page size and struct page size to pfn
-    superblock
-  libnvdimm/label: Remove the dpa align check
-  libnvdimm: Use PAGE_SIZE instead of SZ_4K for align check
-  libnvdimm/dax: Pick the right alignment default when creating dax
-    devices
-
-Dan Williams (1):
-  libnvdimm/region: Rewrite _probe_success() to _advance_seeds()
-
- arch/powerpc/include/asm/libnvdimm.h |  9 ++++
- arch/powerpc/mm/Makefile             |  1 +
- arch/powerpc/mm/nvdimm.c             | 34 +++++++++++++
- arch/x86/include/asm/libnvdimm.h     | 19 +++++++
- drivers/nvdimm/bus.c                 |  8 ++-
- drivers/nvdimm/label.c               |  5 --
- drivers/nvdimm/namespace_devs.c      | 40 +++++++++++----
- drivers/nvdimm/nd-core.h             |  3 +-
- drivers/nvdimm/nd.h                  | 10 ++--
- drivers/nvdimm/pfn.h                 |  5 +-
- drivers/nvdimm/pfn_devs.c            | 67 ++++++++++++++++++++++--
- drivers/nvdimm/pmem.c                | 29 +++++++++--
- drivers/nvdimm/region_devs.c         | 76 +++++-----------------------
- include/linux/huge_mm.h              |  7 ++-
- 14 files changed, 215 insertions(+), 98 deletions(-)
- create mode 100644 arch/powerpc/include/asm/libnvdimm.h
- create mode 100644 arch/powerpc/mm/nvdimm.c
- create mode 100644 arch/x86/include/asm/libnvdimm.h
-
--- 
-2.21.0
+Sure. Sounds good.
 
 _______________________________________________
 Linux-nvdimm mailing list
