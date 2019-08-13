@@ -1,18 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3DF3B2021EBCB
- for <linux-nvdimm@lists.01.org>; Sun, 18 Aug 2019 02:12:04 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 1/4] resource: add a not device managed
- request_free_mem_region variant
-Date: Sun, 18 Aug 2019 11:05:54 +0200
-Message-Id: <20190818090557.17853-2-hch@lst.de>
-In-Reply-To: <20190818090557.17853-1-hch@lst.de>
-References: <20190818090557.17853-1-hch@lst.de>
+Received: from hqemgate15.nvidia.com (hqemgate15.nvidia.com [216.228.121.64])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id BDF2321306CD8
+ for <linux-nvdimm@lists.01.org>; Tue, 13 Aug 2019 10:59:04 -0700 (PDT)
+Subject: Re: [RFC PATCH v2 15/19] mm/gup: Introduce vaddr_pin_pages()
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-16-ira.weiny@intel.com>
+ <20190812122814.GC24457@ziepe.ca>
+ <20190812214854.GF20634@iweiny-DESK2.sc.intel.com>
+ <20190813114706.GA29508@ziepe.ca>
+ <20190813174635.GC11882@iweiny-DESK2.sc.intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Message-ID: <95b05c4f-0bd6-ac31-20a2-28ee761c6238@nvidia.com>
+Date: Tue, 13 Aug 2019 10:56:51 -0700
 MIME-Version: 1.0
+In-Reply-To: <20190813174635.GC11882@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,108 +28,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
+To: Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Factor out the guts of devm_request_free_mem_region so that we can
-implement both a device managed and a manually release version as
-tiny wrappers around it.
+On 8/13/19 10:46 AM, Ira Weiny wrote:
+> On Tue, Aug 13, 2019 at 08:47:06AM -0300, Jason Gunthorpe wrote:
+>> On Mon, Aug 12, 2019 at 02:48:55PM -0700, Ira Weiny wrote:
+>>> On Mon, Aug 12, 2019 at 09:28:14AM -0300, Jason Gunthorpe wrote:
+>>>> On Fri, Aug 09, 2019 at 03:58:29PM -0700, ira.weiny@intel.com wrote:
+>>>>> From: Ira Weiny <ira.weiny@intel.com>
+...
+>>> So I'm open to suggestions.  Jan gave me this one, so I figured it was safer to
+>>> suggest it...
+>>
+>> Should have the word user in it, imho
+> 
+> Fair enough...
+> 
+> user_addr_pin_pages(void __user * addr, ...) ?
+> 
+> uaddr_pin_pages(void __user * addr, ...) ?
+> 
+> I think I like uaddr...
+> 
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
----
- include/linux/ioport.h |  2 ++
- kernel/resource.c      | 45 +++++++++++++++++++++++++++++-------------
- 2 files changed, 33 insertions(+), 14 deletions(-)
+Better to spell out "user". "u" prefixes are used for "unsigned" and it
+is just too ambiguous here. Maybe:
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 5b6a7121c9f0..7bddddfc76d6 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -297,6 +297,8 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
- 
- struct resource *devm_request_free_mem_region(struct device *dev,
- 		struct resource *base, unsigned long size);
-+struct resource *request_free_mem_region(struct resource *base,
-+		unsigned long size, const char *name);
- 
- #endif /* __ASSEMBLY__ */
- #endif	/* _LINUX_IOPORT_H */
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 7ea4306503c5..74877e9d90ca 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1644,19 +1644,8 @@ void resource_list_free(struct list_head *head)
- EXPORT_SYMBOL(resource_list_free);
- 
- #ifdef CONFIG_DEVICE_PRIVATE
--/**
-- * devm_request_free_mem_region - find free region for device private memory
-- *
-- * @dev: device struct to bind the resource to
-- * @size: size in bytes of the device memory to add
-- * @base: resource tree to look in
-- *
-- * This function tries to find an empty range of physical address big enough to
-- * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
-- * memory, which in turn allocates struct pages.
-- */
--struct resource *devm_request_free_mem_region(struct device *dev,
--		struct resource *base, unsigned long size)
-+static struct resource *__request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size, const char *name)
- {
- 	resource_size_t end, addr;
- 	struct resource *res;
-@@ -1670,7 +1659,10 @@ struct resource *devm_request_free_mem_region(struct device *dev,
- 				REGION_DISJOINT)
- 			continue;
- 
--		res = devm_request_mem_region(dev, addr, size, dev_name(dev));
-+		if (dev)
-+			res = devm_request_mem_region(dev, addr, size, name);
-+		else
-+			res = request_mem_region(addr, size, name);
- 		if (!res)
- 			return ERR_PTR(-ENOMEM);
- 		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
-@@ -1679,7 +1671,32 @@ struct resource *devm_request_free_mem_region(struct device *dev,
- 
- 	return ERR_PTR(-ERANGE);
- }
-+
-+/**
-+ * devm_request_free_mem_region - find free region for device private memory
-+ *
-+ * @dev: device struct to bind the resource to
-+ * @size: size in bytes of the device memory to add
-+ * @base: resource tree to look in
-+ *
-+ * This function tries to find an empty range of physical address big enough to
-+ * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
-+ * memory, which in turn allocates struct pages.
-+ */
-+struct resource *devm_request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size)
-+{
-+	return __request_free_mem_region(dev, base, size, dev_name(dev));
-+}
- EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
-+
-+struct resource *request_free_mem_region(struct resource *base,
-+		unsigned long size, const char *name)
-+{
-+	return __request_free_mem_region(NULL, base, size, name);
-+}
-+EXPORT_SYMBOL_GPL(request_free_mem_region);
-+
- #endif /* CONFIG_DEVICE_PRIVATE */
- 
- static int __init strict_iomem(char *str)
+    vaddr_pin_user_pages()
+
+...which also sounds close enough to get_user_pages() that a bit of
+history and continuity is preserved, too.
+
+
+
+thanks,
 -- 
-2.20.1
-
+John Hubbard
+NVIDIA
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
