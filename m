@@ -1,150 +1,59 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v12 09/18] kunit: test: add support for test abort
-Date: Mon, 12 Aug 2019 22:56:14 -0700
-Message-ID: <20190813055615.CA787206C2@mail.kernel.org>
+From: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v12 13/18] kunit: tool: add Python wrappers for running
+ KUnit tests
+Date: Mon, 12 Aug 2019 23:02:00 -0700
+Message-ID: <20190813060201.9658A206C2@mail.kernel.org>
 References: <20190812182421.141150-1-brendanhiggins@google.com>
- <20190812182421.141150-10-brendanhiggins@google.com>
- <20190813042159.46814206C2@mail.kernel.org>
- <CAFd5g44XyQi-oprPcdgx-EPboQYaHY6Ocz8Te6NX2SxV=mVhQA@mail.gmail.com>
+ <20190812182421.141150-14-brendanhiggins@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAFd5g44XyQi-oprPcdgx-EPboQYaHY6Ocz8Te6NX2SxV=mVhQA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Brendan Higgins <brendanhiggins@google.com>
-Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, shuah <shuah@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Frank Rowand <frowand.list@gmail.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, "Bird,
- Timothy" <Tim.Bird>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190812182421.141150-14-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
+Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-UXVvdGluZyBCcmVuZGFuIEhpZ2dpbnMgKDIwMTktMDgtMTIgMjE6NTc6NTUpCj4gT24gTW9uLCBB
-dWcgMTIsIDIwMTkgYXQgOToyMiBQTSBTdGVwaGVuIEJveWQgPHNib3lkQGtlcm5lbC5vcmc+IHdy
-b3RlOgo+ID4KPiA+IFF1b3RpbmcgQnJlbmRhbiBIaWdnaW5zICgyMDE5LTA4LTEyIDExOjI0OjEy
-KQo+ID4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9rdW5pdC90ZXN0LmggYi9pbmNsdWRlL2t1bml0
-L3Rlc3QuaAo+ID4gPiBpbmRleCAyNjI1YmNmZWIxOWFjLi45MzM4MWY4NDFlMDlmIDEwMDY0NAo+
-ID4gPiAtLS0gYS9pbmNsdWRlL2t1bml0L3Rlc3QuaAo+ID4gPiArKysgYi9pbmNsdWRlL2t1bml0
-L3Rlc3QuaAo+ID4gPiBAQCAtMTc2LDYgKzE3OCwxMSBAQCBzdHJ1Y3Qga3VuaXQgewo+ID4gPiAg
-ICAgICAgICAqLwo+ID4gPiAgICAgICAgIGJvb2wgc3VjY2VzczsgLyogUmVhZCBvbmx5IGFmdGVy
-IHRlc3RfY2FzZSBmaW5pc2hlcyEgKi8KPiA+ID4gICAgICAgICBzcGlubG9ja190IGxvY2s7IC8q
-IEdhdXJkcyBhbGwgbXV0YWJsZSB0ZXN0IHN0YXRlLiAqLwo+ID4gPiArICAgICAgIC8qCj4gPiA+
-ICsgICAgICAgICogZGVhdGhfdGVzdCBtYXkgYmUgYm90aCBzZXQgYW5kIHVuc2V0IGZyb20gbXVs
-dGlwbGUgdGhyZWFkcyBpbiBhIHRlc3QKPiA+ID4gKyAgICAgICAgKiBjYXNlLgo+ID4gPiArICAg
-ICAgICAqLwo+ID4gPiArICAgICAgIGJvb2wgZGVhdGhfdGVzdDsgLyogUHJvdGVjdGVkIGJ5IGxv
-Y2suICovCj4gPiA+ICAgICAgICAgLyoKPiA+ID4gICAgICAgICAgKiBCZWNhdXNlIHJlc291cmNl
-cyBpcyBhIGxpc3QgdGhhdCBtYXkgYmUgdXBkYXRlZCBtdWx0aXBsZSB0aW1lcyAod2l0aAo+ID4g
-PiAgICAgICAgICAqIG5ldyByZXNvdXJjZXMpIGZyb20gYW55IHRocmVhZCBhc3NvY2lhdGVkIHdp
-dGggYSB0ZXN0IGNhc2UsIHdlIG11c3QKPiA+ID4gQEAgLTE4NCw2ICsxOTEsMTMgQEAgc3RydWN0
-IGt1bml0IHsKPiA+ID4gICAgICAgICBzdHJ1Y3QgbGlzdF9oZWFkIHJlc291cmNlczsgLyogUHJv
-dGVjdGVkIGJ5IGxvY2suICovCj4gPiA+ICB9Owo+ID4gPgo+ID4gPiArc3RhdGljIGlubGluZSB2
-b2lkIGt1bml0X3NldF9kZWF0aF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgYm9vbCBkZWF0aF90
-ZXN0KQo+ID4gPiArewo+ID4gPiArICAgICAgIHNwaW5fbG9jaygmdGVzdC0+bG9jayk7Cj4gPiA+
-ICsgICAgICAgdGVzdC0+ZGVhdGhfdGVzdCA9IGRlYXRoX3Rlc3Q7Cj4gPiA+ICsgICAgICAgc3Bp
-bl91bmxvY2soJnRlc3QtPmxvY2spOwo+ID4gPiArfQo+ID4KPiA+IFRoZXNlIGdldHRlcnMgYW5k
-IHNldHRlcnMgYXJlIHVzaW5nIHNwaW5sb2NrcyBhZ2Fpbi4gSXQgZG9lc24ndCBtYWtlIGFueQo+
-ID4gc2Vuc2UuIEl0IHByb2JhYmx5IG5lZWRzIGEgcmV3b3JrIGxpa2Ugd2FzIGRvbmUgZm9yIHRo
-ZSBvdGhlciBib29sCj4gPiBtZW1iZXIsIHN1Y2Nlc3MuCj4gCj4gTm8sIHRoaXMgaXMgaW50ZW50
-aW9uYWwuIGRlYXRoX3Rlc3QgY2FuIHRyYW5zaXRpb24gZnJvbSBmYWxzZSB0byB0cnVlCj4gYW5k
-IHRoZW4gYmFjayB0byBmYWxzZSB3aXRoaW4gdGhlIHNhbWUgdGVzdC4gTWF5YmUgdGhhdCBkZXNl
-cnZlcyBhCj4gY29tbWVudD8KClllcy4gSG93IGRvZXMgaXQgdHJhbnNpdGlvbiBmcm9tIHRydWUg
-dG8gZmFsc2UgYWdhaW4/CgpFaXRoZXIgd2F5LCBoYXZpbmcgYSBzcGlubG9jayBhcm91bmQgYSBy
-ZWFkL3dyaXRlIEFQSSBkb2Vzbid0IG1ha2Ugc2Vuc2UKYmVjYXVzZSBpdCBqdXN0IG1ha2VzIHN1
-cmUgdGhhdCB0d28gd3JpdGVzIGRvbid0IG92ZXJsYXAsIGJ1dCBvdGhlcndpc2UKZG9lcyBub3Ro
-aW5nIHRvIGtlZXAgdGhpbmdzIHN5bmNocm9uaXplZC4gRm9yIGV4YW1wbGUgYSBzZXQgdG8gdHJ1
-ZQphZnRlciBhIHNldCB0byBmYWxzZSB3aGVuIHRoZSB0d28gY2FsbHMgdG8gc2V0IHRydWUgb3Ig
-ZmFsc2UgYXJlbid0CnN5bmNocm9uaXplZCBtZWFucyB0aGV5IGNhbiBoYXBwZW4gaW4gYW55IG9y
-ZGVyLiBTbyBJIGRvbid0IHNlZSBob3cgaXQKbmVlZHMgYSBzcGlubG9jay4gVGhlIGxvY2sgbmVl
-ZHMgdG8gYmUgb25lIGxldmVsIGhpZ2hlci4KCj4gCj4gPiA+ICsKPiA+ID4gIHZvaWQga3VuaXRf
-aW5pdF90ZXN0KHN0cnVjdCBrdW5pdCAqdGVzdCwgY29uc3QgY2hhciAqbmFtZSk7Cj4gPiA+Cj4g
-PiA+ICBpbnQga3VuaXRfcnVuX3Rlc3RzKHN0cnVjdCBrdW5pdF9zdWl0ZSAqc3VpdGUpOwo+ID4g
-PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9rdW5pdC90cnktY2F0Y2guaCBiL2luY2x1ZGUva3VuaXQv
-dHJ5LWNhdGNoLmgKPiA+ID4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiA+ID4gaW5kZXggMDAwMDAw
-MDAwMDAwMC4uOGE0MTRhOWFmMGI2NAo+ID4gPiAtLS0gL2Rldi9udWxsCj4gPiA+ICsrKyBiL2lu
-Y2x1ZGUva3VuaXQvdHJ5LWNhdGNoLmgKWy4uLl0KPiA+ID4gKwo+ID4gPiArLyoKPiA+ID4gKyAq
-IHN0cnVjdCBrdW5pdF90cnlfY2F0Y2ggLSBwcm92aWRlcyBhIGdlbmVyaWMgd2F5IHRvIHJ1biBj
-b2RlIHdoaWNoIG1pZ2h0IGZhaWwuCj4gPiA+ICsgKiBAY29udGV4dDogdXNlZCB0byBwYXNzIHVz
-ZXIgZGF0YSB0byB0aGUgdHJ5IGFuZCBjYXRjaCBmdW5jdGlvbnMuCj4gPiA+ICsgKgo+ID4gPiAr
-ICoga3VuaXRfdHJ5X2NhdGNoIHByb3ZpZGVzIGEgZ2VuZXJpYywgYXJjaGl0ZWN0dXJlIGluZGVw
-ZW5kZW50IHdheSB0byBleGVjdXRlCj4gPiA+ICsgKiBhbiBhcmJpdHJhcnkgZnVuY3Rpb24gb2Yg
-dHlwZSBrdW5pdF90cnlfY2F0Y2hfZnVuY190IHdoaWNoIG1heSBiYWlsIG91dCBieQo+ID4gPiAr
-ICogY2FsbGluZyBrdW5pdF90cnlfY2F0Y2hfdGhyb3coKS4gSWYga3VuaXRfdHJ5X2NhdGNoX3Ro
-cm93KCkgaXMgY2FsbGVkLCBAdHJ5Cj4gPiA+ICsgKiBpcyBzdG9wcGVkIGF0IHRoZSBzaXRlIG9m
-IGludm9jYXRpb24gYW5kIEBjYXRjaCBpcyBjYXRjaCBpcyBjYWxsZWQuCj4gPiA+ICsgKgo+ID4g
-PiArICogc3RydWN0IGt1bml0X3RyeV9jYXRjaCBwcm92aWRlcyBhIGdlbmVyaWMgaW50ZXJmYWNl
-IGZvciB0aGUgZnVuY3Rpb25hbGl0eQo+ID4gPiArICogbmVlZGVkIHRvIGltcGxlbWVudCBrdW5p
-dC0+YWJvcnQoKSB3aGljaCBpbiB0dXJuIGlzIG5lZWRlZCBmb3IgaW1wbGVtZW50aW5nCj4gPiA+
-ICsgKiBhc3NlcnRpb25zLiBBc3NlcnRpb25zIGFsbG93IHN0YXRpbmcgYSBwcmVjb25kaXRpb24g
-Zm9yIGEgdGVzdCBzaW1wbGlmeWluZwo+ID4gPiArICogaG93IHRlc3QgY2FzZXMgYXJlIHdyaXR0
-ZW4gYW5kIHByZXNlbnRlZC4KPiA+ID4gKyAqCj4gPiA+ICsgKiBBc3NlcnRpb25zIGFyZSBsaWtl
-IGV4cGVjdGF0aW9ucywgZXhjZXB0IHRoZXkgYWJvcnQgKGNhbGwKPiA+ID4gKyAqIGt1bml0X3Ry
-eV9jYXRjaF90aHJvdygpKSB3aGVuIHRoZSBzcGVjaWZpZWQgY29uZGl0aW9uIGlzIG5vdCBtZXQu
-IFRoaXMgaXMKPiA+ID4gKyAqIHVzZWZ1bCB3aGVuIHlvdSBsb29rIGF0IGEgdGVzdCBjYXNlIGFz
-IGEgbG9naWNhbCBzdGF0ZW1lbnQgYWJvdXQgc29tZSBwaWVjZQo+ID4gPiArICogb2YgY29kZSwg
-d2hlcmUgYXNzZXJ0aW9ucyBhcmUgdGhlIHByZW1pc2VzIGZvciB0aGUgdGVzdCBjYXNlLCBhbmQg
-dGhlCj4gPiA+ICsgKiBjb25jbHVzaW9uIGlzIGEgc2V0IG9mIHByZWRpY2F0ZXMsIHJhdGhlciBl
-eHBlY3RhdGlvbnMsIHRoYXQgbXVzdCBhbGwgYmUKPiA+ID4gKyAqIHRydWUuIElmIHlvdXIgcHJl
-bWlzZXMgYXJlIHZpb2xhdGVkLCBpdCBkb2VzIG5vdCBtYWtlcyBzZW5zZSB0byBjb250aW51ZS4K
-PiA+ID4gKyAqLwo+ID4gPiArc3RydWN0IGt1bml0X3RyeV9jYXRjaCB7Cj4gPiA+ICsgICAgICAg
-LyogcHJpdmF0ZTogaW50ZXJuYWwgdXNlIG9ubHkuICovCj4gPiA+ICsgICAgICAgc3RydWN0IGt1
-bml0ICp0ZXN0Owo+ID4gPiArICAgICAgIHN0cnVjdCBjb21wbGV0aW9uICp0cnlfY29tcGxldGlv
-bjsKPiA+ID4gKyAgICAgICBpbnQgdHJ5X3Jlc3VsdDsKPiA+ID4gKyAgICAgICBrdW5pdF90cnlf
-Y2F0Y2hfZnVuY190IHRyeTsKPiA+ID4gKyAgICAgICBrdW5pdF90cnlfY2F0Y2hfZnVuY190IGNh
-dGNoOwo+ID4KPiA+IENhbiB0aGVzZSBvdGhlciB2YXJpYWJsZXMgYmUgZG9jdW1lbnRlZCBpbiB0
-aGUga2VybmVsIGRvYz8gQW5kIHNob3VsZAo+ID4gY29udGV4dCBiZSBtYXJrZWQgYXMgJ3B1Ymxp
-Yyc/Cj4gCj4gU3VyZSwgSSBjYW4gZG9jdW1lbnQgdGhlbS4KPiAKPiBCdXQgSSBkb24ndCB0aGlu
-ayBjb250ZXh0IHNob3VsZCBiZSBwdWJsaWM7IGl0IHNob3VsZCBvbmx5IGJlIGFjY2Vzc2VkCj4g
-Ynkga3VuaXRfdHJ5X2NhdGNoXyogZnVuY3Rpb25zLiBjb250ZXh0IHNob3VsZCBvbmx5IGJlIHBv
-cHVsYXRlZCBieQo+ICpfaW5pdCwgYW5kIHdpbGwgYmUgcGFzc2VkIGludG8gKnRyeSBhbmQgKmNh
-dGNoIHdoZW4gdGhleSBhcmUgY2FsbGVkCj4gaW50ZXJuYWxseS4KCk9rLiBUaGVuIEkgZ3Vlc3Mg
-anVzdCBkb2N1bWVudCB0aGVtIGFsbCBidXQga2VlcCB0aGVtIGFsbCBtYXJrZWQgYXMKcHJpdmF0
-ZS4KCj4gCj4gPiA+ICsgKi8KPiA+ID4gK3ZvaWQga3VuaXRfZ2VuZXJpY190cnlfY2F0Y2hfaW5p
-dChzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoICp0cnlfY2F0Y2gpOwo+ID4gPiArCj4gPiA+ICsjZW5k
-aWYgLyogX0tVTklUX1RSWV9DQVRDSF9IICovCj4gPiA+IGRpZmYgLS1naXQgYS9rdW5pdC90ZXN0
-LmMgYi9rdW5pdC90ZXN0LmMKPiA+ID4gaW5kZXggZTUwODBhMmM2YjI5Yy4uOTk1Y2I1M2ZlNGVl
-OSAxMDA2NDQKPiA+ID4gLS0tIGEva3VuaXQvdGVzdC5jCj4gPiA+ICsrKyBiL2t1bml0L3Rlc3Qu
-Ywo+ID4gPiBAQCAtMTU4LDYgKzE3MSwyMSBAQCBzdGF0aWMgdm9pZCBrdW5pdF9mYWlsKHN0cnVj
-dCBrdW5pdCAqdGVzdCwgc3RydWN0IGt1bml0X2Fzc2VydCAqYXNzZXJ0KQo+ID4gPiAgICAgICAg
-IGt1bml0X3ByaW50X3N0cmluZ19zdHJlYW0odGVzdCwgc3RyZWFtKTsKPiA+ID4gIH0KPiA+ID4K
-PiA+ID4gK3ZvaWQgX19ub3JldHVybiBrdW5pdF9hYm9ydChzdHJ1Y3Qga3VuaXQgKnRlc3QpCj4g
-PiA+ICt7Cj4gPiA+ICsgICAgICAga3VuaXRfc2V0X2RlYXRoX3Rlc3QodGVzdCwgdHJ1ZSk7Cj4g
-PiA+ICsKPiA+ID4gKyAgICAgICBrdW5pdF90cnlfY2F0Y2hfdGhyb3coJnRlc3QtPnRyeV9jYXRj
-aCk7Cj4gPiA+ICsKPiA+ID4gKyAgICAgICAvKgo+ID4gPiArICAgICAgICAqIFRocm93IGNvdWxk
-IG5vdCBhYm9ydCBmcm9tIHRlc3QuCj4gPiA+ICsgICAgICAgICoKPiA+ID4gKyAgICAgICAgKiBY
-WFg6IHdlIHNob3VsZCBuZXZlciByZWFjaCB0aGlzIGxpbmUhIEFzIGt1bml0X3RyeV9jYXRjaF90
-aHJvdyBpcwo+ID4gPiArICAgICAgICAqIG1hcmtlZCBfX25vcmV0dXJuLgo+ID4gPiArICAgICAg
-ICAqLwo+ID4gPiArICAgICAgIFdBUk5fT05DRSh0cnVlLCAiVGhyb3cgY291bGQgbm90IGFib3J0
-IGZyb20gdGVzdCFcbiIpOwo+ID4KPiA+IFNob3VsZCB0aGlzIGp1c3QgYmUgYSBCVUdfT04/IEl0
-J3Mgc3VwcG9zZWRseSBpbXBvc3NpYmxlLgo+IAo+IEl0IHNob3VsZCBiZSBpbXBvc3NpYmxlOyBp
-dCB3aWxsIG9ubHkgcmVhY2ggdGhpcyBsaW5lIGlmIHRoZXJlIGlzIGEKPiBidWcgaW4ga3VuaXRf
-dHJ5X2NhdGNoX3Rocm93LiBUaGUgcmVhc29uIEkgZGlkbid0IHVzZSBCVUdfT04gd2FzCj4gYmVj
-YXVzZSBJIHByZXZpb3VzbHkgZ290IHllbGxlZCBhdCBmb3IgaGF2aW5nIEJVR19PTiBpbiB0aGlz
-IGNvZGUKPiBwYXRoLgo+IAo+IE5ldmVydGhlbGVzcywgSSB0aGluayBCVUdfT04gaXMgbW9yZSBj
-b3JyZWN0LCBzbyBpZiB5b3Ugd2lsbCBzdGFuZCBieQo+IGl0LCB0aGVuIHRoYXQncyB3aGF0IEkg
-d2lsbCBkby4KClllYWggQlVHX09OIGlzIGFwcHJvcHJpYXRlIGhlcmUgYW5kIHNlbGYgZG9jdW1l
-bnRpbmcgc28gcGxlYXNlIHVzZSBpdC4KCj4gCj4gPiA+ICsgICAgICAgICAgICAgICByZXR1cm47
-Cj4gPiA+ICsgICAgICAgfQo+ID4gPiArCj4gPiA+ICsgICAgICAgaWYgKGt1bml0X2dldF9kZWF0
-aF90ZXN0KHRlc3QpKSB7Cj4gPiA+ICsgICAgICAgICAgICAgICAvKgo+ID4gPiArICAgICAgICAg
-ICAgICAgICogRVhQRUNURUQgREVBVEg6IGt1bml0X3J1bl9jYXNlX2ludGVybmFsIGVuY291bnRl
-cmVkCj4gPiA+ICsgICAgICAgICAgICAgICAgKiBhbnRpY2lwYXRlZCBmYXRhbCBlcnJvci4gRXZl
-cnl0aGluZyBzaG91bGQgYmUgaW4gYSBzYWZlCj4gPiA+ICsgICAgICAgICAgICAgICAgKiBzdGF0
-ZS4KPiA+ID4gKyAgICAgICAgICAgICAgICAqLwo+ID4gPiArICAgICAgICAgICAgICAga3VuaXRf
-cnVuX2Nhc2VfY2xlYW51cCh0ZXN0LCBzdWl0ZSk7Cj4gPiA+ICsgICAgICAgfSBlbHNlIHsKPiA+
-ID4gKyAgICAgICAgICAgICAgIC8qCj4gPiA+ICsgICAgICAgICAgICAgICAgKiBVTkVYUEVDVEVE
-IERFQVRIOiBrdW5pdF9ydW5fY2FzZV9pbnRlcm5hbCBlbmNvdW50ZXJlZCBhbgo+ID4gPiArICAg
-ICAgICAgICAgICAgICogdW5hbnRpY2lwYXRlZCBmYXRhbCBlcnJvci4gV2UgaGF2ZSBubyBpZGVh
-IHdoYXQgdGhlIHN0YXRlIG9mCj4gPiA+ICsgICAgICAgICAgICAgICAgKiB0aGUgdGVzdCBjYXNl
-IGlzIGluLgo+ID4gPiArICAgICAgICAgICAgICAgICovCj4gPiA+ICsgICAgICAgICAgICAgICBr
-dW5pdF9oYW5kbGVfdGVzdF9jcmFzaCh0ZXN0LCBzdWl0ZSwgdGVzdF9jYXNlKTsKPiA+ID4gKyAg
-ICAgICAgICAgICAgIGt1bml0X3NldF9mYWlsdXJlKHRlc3QpOwo+ID4KPiA+IExpa2Ugd2FzIGRv
-bmUgaGVyZS4KPiAKPiBTb3JyeSwgbGlrZSB3aGF0PwoKSnVzdCBzYXlpbmcgdGhpcyBoYXMgYnJh
-Y2VzIGZvciB0aGUgaWYtZWxzZS4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVk
-ZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2RyaS1kZXZlbA==
+Quoting Brendan Higgins (2019-08-12 11:24:16)
+> From: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> 
+> The ultimate goal is to create minimal isolated test binaries; in the
+> meantime we are using UML to provide the infrastructure to run tests, so
+> define an abstract way to configure and run tests that allow us to
+> change the context in which tests are built without affecting the user.
+> This also makes pretty and dynamic error reporting, and a lot of other
+> nice features easier.
+> 
+> kunit_config.py:
+>   - parse .config and Kconfig files.
+> 
+> kunit_kernel.py: provides helper functions to:
+>   - configure the kernel using kunitconfig.
+>   - build the kernel with the appropriate configuration.
+>   - provide function to invoke the kernel and stream the output back.
+> 
+> kunit_parser.py: parses raw logs returned out by kunit_kernel and
+> displays them in a user friendly way.
+> 
+> test_data/*: samples of test data for testing kunit.py, kunit_config.py,
+> etc.
+> 
+> Signed-off-by: Felix Guo <felixguoxiuping-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+> Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> ---
+
+Reviewed-by: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+
+I look forward to the single binary solution, but until then, we have
+this.
