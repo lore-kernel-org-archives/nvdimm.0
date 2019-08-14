@@ -1,18 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 38AD0202BB9AB
- for <linux-nvdimm@lists.01.org>; Thu, 15 Aug 2019 23:56:40 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 1/4] resource: add a not device managed
- request_free_mem_region variant
-Date: Fri, 16 Aug 2019 08:54:31 +0200
-Message-Id: <20190816065434.2129-2-hch@lst.de>
-In-Reply-To: <20190816065434.2129-1-hch@lst.de>
-References: <20190816065434.2129-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id D46C1202EA413
+ for <linux-nvdimm@lists.01.org>; Wed, 14 Aug 2019 00:19:59 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20190814055108.214253-4-brendanhiggins@google.com>
+References: <20190814055108.214253-1-brendanhiggins@google.com>
+ <20190814055108.214253-4-brendanhiggins@google.com>
+Subject: Re: [PATCH v13 03/18] kunit: test: add string_stream a std::stream
+ like string builder
+From: Stephen Boyd <sboyd@kernel.org>
+Date: Wed, 14 Aug 2019 00:17:51 -0700
+Message-Id: <20190814071752.1CF0F2054F@mail.kernel.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,106 +24,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>
+To: Brendan Higgins <brendanhiggins@google.com>, frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, peterz@infradead.org, robh@kernel.org, shuah@kernel.org, tytso@mit.edu, yamada.masahiro@socionext.com
+Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com, dri-devel@lists.freedesktop.org, Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com, dan.carpenter@oracle.com, devicetree@vger.kernel.org, linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org, rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com, richard@nod.at, rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Just add a simple macro that passes a NULL dev argument to
-dev_request_free_mem_region, and call request_mem_region in the
-function for that particular case.
+Quoting Brendan Higgins (2019-08-13 22:50:53)
+> A number of test features need to do pretty complicated string printing
+> where it may not be possible to rely on a single preallocated string
+> with parameters.
+> 
+> So provide a library for constructing the string as you go similar to
+> C++'s std::string. string_stream is really just a string builder,
+> nothing more.
+> 
+> Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
+> Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+> ---
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/ioport.h |  2 ++
- kernel/resource.c      | 45 +++++++++++++++++++++++++++++-------------
- 2 files changed, 33 insertions(+), 14 deletions(-)
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
 
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 5b6a7121c9f0..7bddddfc76d6 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -297,6 +297,8 @@ static inline bool resource_overlaps(struct resource *r1, struct resource *r2)
- 
- struct resource *devm_request_free_mem_region(struct device *dev,
- 		struct resource *base, unsigned long size);
-+struct resource *request_free_mem_region(struct resource *base,
-+		unsigned long size, const char *name);
- 
- #endif /* __ASSEMBLY__ */
- #endif	/* _LINUX_IOPORT_H */
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 7ea4306503c5..74877e9d90ca 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1644,19 +1644,8 @@ void resource_list_free(struct list_head *head)
- EXPORT_SYMBOL(resource_list_free);
- 
- #ifdef CONFIG_DEVICE_PRIVATE
--/**
-- * devm_request_free_mem_region - find free region for device private memory
-- *
-- * @dev: device struct to bind the resource to
-- * @size: size in bytes of the device memory to add
-- * @base: resource tree to look in
-- *
-- * This function tries to find an empty range of physical address big enough to
-- * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
-- * memory, which in turn allocates struct pages.
-- */
--struct resource *devm_request_free_mem_region(struct device *dev,
--		struct resource *base, unsigned long size)
-+static struct resource *__request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size, const char *name)
- {
- 	resource_size_t end, addr;
- 	struct resource *res;
-@@ -1670,7 +1659,10 @@ struct resource *devm_request_free_mem_region(struct device *dev,
- 				REGION_DISJOINT)
- 			continue;
- 
--		res = devm_request_mem_region(dev, addr, size, dev_name(dev));
-+		if (dev)
-+			res = devm_request_mem_region(dev, addr, size, name);
-+		else
-+			res = request_mem_region(addr, size, name);
- 		if (!res)
- 			return ERR_PTR(-ENOMEM);
- 		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
-@@ -1679,7 +1671,32 @@ struct resource *devm_request_free_mem_region(struct device *dev,
- 
- 	return ERR_PTR(-ERANGE);
- }
-+
-+/**
-+ * devm_request_free_mem_region - find free region for device private memory
-+ *
-+ * @dev: device struct to bind the resource to
-+ * @size: size in bytes of the device memory to add
-+ * @base: resource tree to look in
-+ *
-+ * This function tries to find an empty range of physical address big enough to
-+ * contain the new resource, so that it can later be hotplugged as ZONE_DEVICE
-+ * memory, which in turn allocates struct pages.
-+ */
-+struct resource *devm_request_free_mem_region(struct device *dev,
-+		struct resource *base, unsigned long size)
-+{
-+	return __request_free_mem_region(dev, base, size, dev_name(dev));
-+}
- EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
-+
-+struct resource *request_free_mem_region(struct resource *base,
-+		unsigned long size, const char *name)
-+{
-+	return __request_free_mem_region(NULL, base, size, name);
-+}
-+EXPORT_SYMBOL_GPL(request_free_mem_region);
-+
- #endif /* CONFIG_DEVICE_PRIVATE */
- 
- static int __init strict_iomem(char *str)
--- 
-2.20.1
+The spinlocks will probably need to change to be irqsaves in the future,
+but I guess we can cross that bridge when we come to it.
 
 _______________________________________________
 Linux-nvdimm mailing list
