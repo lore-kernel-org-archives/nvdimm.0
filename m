@@ -1,15 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from bombadil.infradead.org (bombadil.infradead.org
+ [IPv6:2607:7c80:54:e::133])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A694C21309DCA
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:44 -0700 (PDT)
-From: ira.weiny@intel.com
-Subject: [RFC PATCH v2 13/19] {mm,file}: Add file_pins objects
-Date: Fri,  9 Aug 2019 15:58:27 -0700
-Message-Id: <20190809225833.6657-14-ira.weiny@intel.com>
-In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
-References: <20190809225833.6657-1-ira.weiny@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 119A9202E291C
+ for <linux-nvdimm@lists.01.org>; Thu, 15 Aug 2019 23:56:44 -0700 (PDT)
+From: Christoph Hellwig <hch@lst.de>
+Subject: [PATCH 3/4] memremap: don't use a separate devm action for
+ devmap_managed_enable_get
+Date: Fri, 16 Aug 2019 08:54:33 +0200
+Message-Id: <20190816065434.2129-4-hch@lst.de>
+In-Reply-To: <20190816065434.2129-1-hch@lst.de>
+References: <20190816065434.2129-1-hch@lst.de>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,175 +24,83 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ira Weiny <ira.weiny@intel.com>
+Just clean up for early failures and then piggy back on
+devm_memremap_pages_release.  This helps with a pending not device
+managed version of devm_memremap_pages.
 
-User page pins (aka GUP) needs to track file information of files being
-pinned by those calls.  Depending on the needs of the caller this
-information is stored in 1 of 2 ways.
-
-1) Some subsystems like RDMA associate GUP pins with file descriptors
-   which can be passed around to other process'.  In this case a file
-   being pined must be associated with an owning file object (which can
-   then be resolved back to any of the processes which have a file
-   descriptor 'pointing' to that file object).
-
-2) Other subsystems do not have an owning file and can therefore
-   associate the file pin directly to the mm of the process which
-   created them.
-
-This patch introduces the new file pin structures and ensures struct
-file and struct mm_struct are prepared to store them.
-
-In subsequent patches the required information will be passed into new
-pin page calls and procfs is enhanced to show this information to the user.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/file_table.c          |  4 ++++
- include/linux/file.h     | 49 ++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h       |  2 ++
- include/linux/mm_types.h |  2 ++
- kernel/fork.c            |  3 +++
- 5 files changed, 60 insertions(+)
+ mm/memremap.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/fs/file_table.c b/fs/file_table.c
-index b07b53f24ff5..38947b9a4769 100644
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -46,6 +46,7 @@ static void file_free_rcu(struct rcu_head *head)
+diff --git a/mm/memremap.c b/mm/memremap.c
+index 416b4129acbb..4e11da4ecab9 100644
+--- a/mm/memremap.c
++++ b/mm/memremap.c
+@@ -21,13 +21,13 @@ DEFINE_STATIC_KEY_FALSE(devmap_managed_key);
+ EXPORT_SYMBOL(devmap_managed_key);
+ static atomic_t devmap_managed_enable;
+ 
+-static void devmap_managed_enable_put(void *data)
++static void devmap_managed_enable_put(void)
  {
- 	struct file *f = container_of(head, struct file, f_u.fu_rcuhead);
- 
-+	WARN_ON(!list_empty(&f->file_pins));
- 	put_cred(f->f_cred);
- 	kmem_cache_free(filp_cachep, f);
- }
-@@ -118,6 +119,9 @@ static struct file *__alloc_file(int flags, const struct cred *cred)
- 	f->f_mode = OPEN_FMODE(flags);
- 	/* f->f_version: 0 */
- 
-+	INIT_LIST_HEAD(&f->file_pins);
-+	spin_lock_init(&f->fp_lock);
-+
- 	return f;
+ 	if (atomic_dec_and_test(&devmap_managed_enable))
+ 		static_branch_disable(&devmap_managed_key);
  }
  
-diff --git a/include/linux/file.h b/include/linux/file.h
-index 3fcddff56bc4..cd79adad5b23 100644
---- a/include/linux/file.h
-+++ b/include/linux/file.h
-@@ -9,6 +9,7 @@
- #include <linux/compiler.h>
- #include <linux/types.h>
- #include <linux/posix_types.h>
-+#include <linux/kref.h>
+-static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
++static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
+ {
+ 	if (!pgmap->ops || !pgmap->ops->page_free) {
+ 		WARN(1, "Missing page_free method\n");
+@@ -36,13 +36,16 @@ static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgm
  
- struct file;
+ 	if (atomic_inc_return(&devmap_managed_enable) == 1)
+ 		static_branch_enable(&devmap_managed_key);
+-	return devm_add_action_or_reset(dev, devmap_managed_enable_put, NULL);
++	return 0;
+ }
+ #else
+-static int devmap_managed_enable_get(struct device *dev, struct dev_pagemap *pgmap)
++static int devmap_managed_enable_get(struct dev_pagemap *pgmap)
+ {
+ 	return -EINVAL;
+ }
++static void devmap_managed_enable_put(void)
++{
++}
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
  
-@@ -91,4 +92,52 @@ extern void fd_install(unsigned int fd, struct file *file);
- extern void flush_delayed_fput(void);
- extern void __fput_sync(struct file *);
+ static void pgmap_array_delete(struct resource *res)
+@@ -129,6 +132,7 @@ static void devm_memremap_pages_release(void *data)
+ 	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
+ 	pgmap_array_delete(res);
+ 	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
++	devmap_managed_enable_put();
+ }
  
-+/**
-+ * struct file_file_pin
-+ *
-+ * Associate a pin'ed file with another file owner.
-+ *
-+ * Subsystems such as RDMA have the ability to pin memory which is associated
-+ * with a file descriptor which can be passed to other processes without
-+ * necessarily having that memory accessed in the remote processes address
-+ * space.
-+ *
-+ * @file file backing memory which was pined by a GUP caller
-+ * @f_owner the file representing the GUP owner
-+ * @list of all file pins this owner has
-+ *       (struct file *)->file_pins
-+ * @ref number of times this pin was taken (roughly the number of pages pinned
-+ *      in the file)
-+ */
-+struct file_file_pin {
-+	struct file *file;
-+	struct file *f_owner;
-+	struct list_head list;
-+	struct kref ref;
-+};
-+
-+/*
-+ * struct mm_file_pin
-+ *
-+ * Some GUP callers do not have an "owning" file.  Those pins are accounted for
-+ * in the mm of the process that called GUP.
-+ *
-+ * The tuple {file, inode} is used to track this as a unique file pin and to
-+ * track when this pin has been removed.
-+ *
-+ * @file file backing memory which was pined by a GUP caller
-+ * @mm back point to owning mm
-+ * @inode backing the file
-+ * @list of all file pins this owner has
-+ *       (struct mm_struct *)->file_pins
-+ * @ref number of times this pin was taken
-+ */
-+struct mm_file_pin {
-+	struct file *file;
-+	struct mm_struct *mm;
-+	struct inode *inode;
-+	struct list_head list;
-+	struct kref ref;
-+};
-+
- #endif /* __LINUX_FILE_H */
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 2e41ce547913..d2e08feb9737 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -963,6 +963,8 @@ struct file {
- #endif /* #ifdef CONFIG_EPOLL */
- 	struct address_space	*f_mapping;
- 	errseq_t		f_wb_err;
-+	struct list_head        file_pins;
-+	spinlock_t              fp_lock;
- } __randomize_layout
-   __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
+ static void dev_pagemap_percpu_release(struct percpu_ref *ref)
+@@ -218,7 +222,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 	}
  
-diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-index 6a7a1083b6fb..4f6ea4acddbd 100644
---- a/include/linux/mm_types.h
-+++ b/include/linux/mm_types.h
-@@ -516,6 +516,8 @@ struct mm_struct {
- 		/* HMM needs to track a few things per mm */
- 		struct hmm *hmm;
- #endif
-+		struct list_head file_pins;
-+		spinlock_t fp_lock; /* lock file_pins */
- 	} __randomize_layout;
- 
- 	/*
-diff --git a/kernel/fork.c b/kernel/fork.c
-index 0e2f9a2c132c..093f2f2fce1a 100644
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -675,6 +675,7 @@ void __mmdrop(struct mm_struct *mm)
- 	BUG_ON(mm == &init_mm);
- 	WARN_ON_ONCE(mm == current->mm);
- 	WARN_ON_ONCE(mm == current->active_mm);
-+	WARN_ON(!list_empty(&mm->file_pins));
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
- 	mmu_notifier_mm_destroy(mm);
-@@ -1013,6 +1014,8 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
- 	mm->pmd_huge_pte = NULL;
- #endif
- 	mm_init_uprobes_state(mm);
-+	INIT_LIST_HEAD(&mm->file_pins);
-+	spin_lock_init(&mm->fp_lock);
- 
- 	if (current->mm) {
- 		mm->flags = current->mm->flags & MMF_INIT_MASK;
+ 	if (need_devmap_managed) {
+-		error = devmap_managed_enable_get(dev, pgmap);
++		error = devmap_managed_enable_get(pgmap);
+ 		if (error)
+ 			return ERR_PTR(error);
+ 	}
+@@ -327,6 +331,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+  err_array:
+ 	dev_pagemap_kill(pgmap);
+ 	dev_pagemap_cleanup(pgmap);
++	devmap_managed_enable_put();
+ 	return ERR_PTR(error);
+ }
+ EXPORT_SYMBOL_GPL(devm_memremap_pages);
 -- 
 2.20.1
 
