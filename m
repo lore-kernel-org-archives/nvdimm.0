@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-ot1-x32d.google.com (mail-ot1-x32d.google.com
- [IPv6:2607:f8b0:4864:20::32d])
+Received: from mail-qt1-x844.google.com (mail-qt1-x844.google.com
+ [IPv6:2607:f8b0:4864:20::844])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5A2112021EBE8
- for <linux-nvdimm@lists.01.org>; Fri, 16 Aug 2019 14:50:11 -0700 (PDT)
-Received: by mail-ot1-x32d.google.com with SMTP id m24so10832052otp.12
- for <linux-nvdimm@lists.01.org>; Fri, 16 Aug 2019 14:48:24 -0700 (PDT)
-MIME-Version: 1.0
-References: <1565991345.8572.28.camel@lca.pw>
-In-Reply-To: <1565991345.8572.28.camel@lca.pw>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 16 Aug 2019 14:48:11 -0700
-Message-ID: <CAPcyv4i9VFLSrU75U0gQH6K2sz8AZttqvYidPdDcS7sU2SFaCA@mail.gmail.com>
-Subject: Re: devm_memremap_pages() triggers a kasan_add_zero_shadow() warning
+ by ml01.01.org (Postfix) with ESMTPS id 2962620251A09
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Aug 2019 14:37:36 -0700 (PDT)
+Received: by mail-qt1-x844.google.com with SMTP id k13so7624124qtm.12
+ for <linux-nvdimm@lists.01.org>; Fri, 16 Aug 2019 14:35:49 -0700 (PDT)
+Message-ID: <1565991345.8572.28.camel@lca.pw>
+Subject: devm_memremap_pages() triggers a kasan_add_zero_shadow() warning
+From: Qian Cai <cai@lca.pw>
+Date: Fri, 16 Aug 2019 17:35:45 -0400
+Mime-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,33 +19,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Qian Cai <cai@lca.pw>
-Cc: Linux MM <linux-mm@kvack.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kasan-dev@googlegroups.com, linux-nvdimm <linux-nvdimm@lists.01.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-mm@kvack.org, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-kernel@vger.kernel.org, kasan-dev@googlegroups.com, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 16, 2019 at 2:36 PM Qian Cai <cai@lca.pw> wrote:
->
-> Every so often recently, booting Intel CPU server on linux-next triggers this
-> warning. Trying to figure out if  the commit 7cc7867fb061
-> ("mm/devm_memremap_pages: enable sub-section remap") is the culprit here.
->
-> # ./scripts/faddr2line vmlinux devm_memremap_pages+0x894/0xc70
-> devm_memremap_pages+0x894/0xc70:
-> devm_memremap_pages at mm/memremap.c:307
-
-Previously the forced section alignment in devm_memremap_pages() would
-cause the implementation to never violate the KASAN_SHADOW_SCALE_SIZE
-(12K on x86) constraint.
-
-Can you provide a dump of /proc/iomem? I'm curious what resource is
-triggering such a small alignment granularity.
-
-Is it truly only linux-next or does latest mainline have this issue as well?
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+RXZlcnkgc28gb2Z0ZW4gcmVjZW50bHksIGJvb3RpbmcgSW50ZWwgQ1BVIHNlcnZlciBvbiBsaW51
+eC1uZXh0IHRyaWdnZXJzIHRoaXMKd2FybmluZy4gVHJ5aW5nIHRvIGZpZ3VyZSBvdXQgaWYgIHRo
+ZSBjb21taXQgN2NjNzg2N2ZiMDYxCigibW0vZGV2bV9tZW1yZW1hcF9wYWdlczogZW5hYmxlIHN1
+Yi1zZWN0aW9uIHJlbWFwIikgaXMgdGhlIGN1bHByaXQgaGVyZS4KCiMgLi9zY3JpcHRzL2ZhZGRy
+MmxpbmUgdm1saW51eCBkZXZtX21lbXJlbWFwX3BhZ2VzKzB4ODk0LzB4YzcwCmRldm1fbWVtcmVt
+YXBfcGFnZXMrMHg4OTQvMHhjNzA6CmRldm1fbWVtcmVtYXBfcGFnZXMgYXQgbW0vbWVtcmVtYXAu
+YzozMDcKClvCoMKgwqAzMi4wNzQ0MTJdW8KgwqBUMjk0XSBXQVJOSU5HOiBDUFU6IDMxIFBJRDog
+Mjk0IGF0IG1tL2thc2FuL2luaXQuYzo0OTYKa2FzYW5fYWRkX3plcm9fc2hhZG93LmNvbGQuMisw
+eGMvMHgzOQpbwqDCoMKgMzIuMDc3NDQ4XVvCoMKgVDI5NF0gTW9kdWxlcyBsaW5rZWQgaW46ClvC
+oMKgwqAzMi4wNzg2MTRdW8KgwqBUMjk0XSBDUFU6IDMxIFBJRDogMjk0IENvbW06IGt3b3JrZXIv
+dTk3OjEgTm90IHRhaW50ZWQgNS4zLjAtCnJjNC1uZXh0LTIwMTkwODE2KyAjNwpbwqDCoMKgMzIu
+MDgxMjk5XVvCoMKgVDI5NF0gSGFyZHdhcmUgbmFtZTogSFAgUHJvTGlhbnQgWEw0MjAgR2VuOS9Q
+cm9MaWFudCBYTDQyMApHZW45LCBCSU9TIFUxOSAxMi8yNy8yMDE1ClvCoMKgwqAzMi4wODQ0MzBd
+W8KgwqBUMjk0XSBXb3JrcXVldWU6IGV2ZW50c191bmJvdW5kIGFzeW5jX3J1bl9lbnRyeV9mbgpb
+wqDCoMKgMzIuMDg2MzQ3XVvCoMKgVDI5NF0gUklQOiAwMDEwOmthc2FuX2FkZF96ZXJvX3NoYWRv
+dy5jb2xkLjIrMHhjLzB4MzkKW8KgwqDCoDMyLjA4ODMwM11bwqDCoFQyOTRdIENvZGU6IGZmIDQ4
+IGM3IGM3IGIwIDA2IDc0IDg2IGU4IDBlIGUyIGRiIGZmIDBmIDBiIGU5IDY0CmY3IGZmIGZmIDQ4
+IDhiIDQ1IDk4IDQ4IDg5IDQ1IGI4IGViIGJlIDQ4IGM3IGM3IGIwIDA2IDc0IDg2IGU4IGYxIGUx
+IGRiIGZmIDwwZj4KMGIgYjggZWEgZmYgZmYgZmYgZTkgYWQgZmUgZmYgZmYgNDggYzcgYzcgYjAg
+MDYgNzQgODYgZTggZDkgZTEKW8KgwqDCoDMyLjA5NDE4M11bwqDCoFQyOTRdIFJTUDogMDAwMDpm
+ZmZmODg4NDQyOGNmNzM4IEVGTEFHUzogMDAwMTAyODIKW8KgwqDCoDMyLjA5NjAzMF1bwqDCoFQy
+OTRdIFJBWDogMDAwMDAwMDAwMDAwMDAyNCBSQlg6IGZmZmY4ODgzM2MxYjgxMDAgUkNYOgpmZmZm
+ZmZmZjg1NzMwYmE4ClvCoMKgwqAzMi4wOTgzOTFdW8KgwqBUMjk0XSBSRFg6IDAwMDAwMDAwMDAw
+MDAwMDAgUlNJOiBkZmZmZmMwMDAwMDAwMDAwIFJESToKZmZmZmZmZmY4Njk2NDc0MApbwqDCoMKg
+MzIuMTAwODAyXVvCoMKgVDI5NF0gUkJQOiBmZmZmODg4NDQyOGNmNzUwIFIwODogZmZmZmZiZmZm
+MGQyYzhlOSBSMDk6CmZmZmZmYmZmZjBkMmM4ZTkKW8KgwqDCoDMyLjEwMzIyOV1bwqDCoFQyOTRd
+IFIxMDogZmZmZmZiZmZmMGQyYzhlOCBSMTE6IGZmZmZmZmZmODY5NjQ3NDMgUjEyOgoxZmZmZjEx
+MDg4NTE5ZWYzClvCoMKgwqAzMi4xMDU1ODFdW8KgwqBUMjk0XSBSMTM6IGZmZmY4ODgzM2RiYzgw
+MTAgUjE0OiAwMDAwMDAwMTdhMDJjMDAwIFIxNToKZmZmZjg4ODMzYzFiODEyOApbwqDCoMKgMzIu
+MTA3OTU2XVvCoMKgVDI5NF0gRlM6wqDCoDAwMDAwMDAwMDAwMDAwMDAoMDAwMCkgR1M6ZmZmZjg4
+ODQ0ZGI4MDAwMCgwMDAwKQprbmxHUzowMDAwMDAwMDAwMDAwMDAwClvCoMKgwqAzMi4xMTA1ODVd
+W8KgwqBUMjk0XSBDUzrCoMKgMDAxMCBEUzogMDAwMCBFUzogMDAwMCBDUjA6IDAwMDAwMDAwODAw
+NTAwMzMKW8KgwqDCoDMyLjExMjYwNl1bwqDCoFQyOTRdIENSMjogMDAwMDAwMDAwMDAwMDAwMCBD
+UjM6IDAwMDAwMDAxNjMwMTIwMDEgQ1I0OgowMDAwMDAwMDAwMTYwNmEwClvCoMKgwqAzMi4xMTI2
+MTBdW8KgwqBUMjk0XSBDYWxsIFRyYWNlOgpbwqDCoMKgMzIuMTEyNjIyXVvCoMKgVDI5NF3CoMKg
+ZGV2bV9tZW1yZW1hcF9wYWdlcysweDg5NC8weGM3MApbwqDCoMKgMzIuMTEyNjM1XVvCoMKgVDI5
+NF3CoMKgPyBkZXZtX21lbXJlbWFwX3BhZ2VzX3JlbGVhc2UrMHg1MTAvMHg1MTAKW8KgwqDCoDMy
+LjExOTI5MV1bwqDCoFQyOTRdwqDCoD8gZG9fcmF3X3JlYWRfdW5sb2NrKzB4MmMvMHg2MApbwqDC
+oMKgMzIuMTIyNDcwXVvCoMKgVDMzMl0gbmFtZXNwYWNlMC4wIGluaXRpYWxpc2VkLCA0MDA4OTYg
+cGFnZXMgaW4gNTBtcwpbwqDCoMKgMzIuMTQzMDg2XVvCoMKgVDI5NF3CoMKgPyBfcmF3X3JlYWRf
+dW5sb2NrKzB4MjcvMHg0MApbwqDCoMKgMzIuMTQzMDk0XVvCoMKgVDI5NF3CoMKgcG1lbV9hdHRh
+Y2hfZGlzaysweDQ5MC8weDg4MApbwqDCoMKgMzIuMTQzMTA2XVvCoMKgVDI5NF3CoMKgPyBwbWVt
+X3BhZ2VtYXBfa2lsbCsweDMwLzB4MzAKW8KgwqDCoDMyLjE4NjgzNF1bwqDCoMKgwqBUMV0gZGVi
+dWc6IHVubWFwcGluZyBpbml0IFttZW0gMHhmZmZmZmZmZjlkNjAyMDAwLQoweGZmZmZmZmZmOWQ3
+ZmZmZmZdClvCoMKgwqAzMi4xOTUzODNdW8KgwqBUMjk0XcKgwqA/IGtmcmVlKzB4MTA2LzB4NDAw
+ClvCoMKgwqAzMi4xOTUzOTRdW8KgwqBUMjk0XcKgwqA/IGtmcmVlX2NvbnN0KzB4MTcvMHgzMApb
+wqDCoMKgMzIuMzE0MTA3XVvCoMKgVDI5NF3CoMKgPyBrb2JqZWN0X3B1dCsweGZiLzB4MjUwClvC
+oMKgwqAzMi4zMzQ1NjldW8KgwqBUMjk0XcKgwqA/IHB1dF9kZXZpY2UrMHgxMy8weDIwClvCoMKg
+wqAzMi4zNTQxNjldW8KgwqBUMjk0XcKgwqBuZF9wbWVtX3Byb2JlKzB4ODMvMHhhMApbwqDCoMKg
+MzIuMzc0MTYyXVvCoMKgVDI5NF3CoMKgbnZkaW1tX2J1c19wcm9iZSsweGFhLzB4MWYwClvCoMKg
+wqAzMi4zOTU5MDFdW8KgwqBUMjk0XcKgwqByZWFsbHlfcHJvYmUrMHgxYTIvMHg2MzAKW8KgwqDC
+oDMyLjQxNjM1Ml1bwqDCoFQyOTRdwqDCoGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhjZC8weDFmMApb
+wqDCoMKgMzIuNDM4OTAxXVvCoMKgVDI5NF3CoMKgX19kZXZpY2VfYXR0YWNoX2RyaXZlcisweGVk
+LzB4MTUwClvCoMKgwqAzMi40NjMwNzRdW8KgwqBUMjk0XcKgwqA/IGRyaXZlcl9hbGxvd3NfYXN5
+bmNfcHJvYmluZysweDkwLzB4OTAKW8KgwqDCoDMyLjQ4OTUzOF1bwqDCoFQyOTRdwqDCoGJ1c19m
+b3JfZWFjaF9kcnYrMHhmYS8weDE2MApbwqDCoMKgMzIuNTExMDM4XVvCoMKgVDI5NF3CoMKgPyBi
+dXNfcmVzY2FuX2RldmljZXMrMHgyMC8weDIwClvCoMKgwqAzMi43MzExNzldW8KgwqBUMjk0XcKg
+wqA/IGRvX3Jhd19zcGluX3VubG9jaysweGE4LzB4MTQwClvCoMKgwqAzMi43NTQ0NzVdW8KgwqBU
+Mjk0XcKgwqBfX2RldmljZV9hdHRhY2grMHgxNmQvMHgyMjAKW8KgwqDCoDMyLjc3NTY0OF1bwqDC
+oFQyOTRdwqDCoD8gZGV2aWNlX2JpbmRfZHJpdmVyKzB4ODAvMHg4MApbwqDCoMKgMzIuNzk4Mzc5
+XVvCoMKgVDI5NF3CoMKgPyBfX2thc2FuX2NoZWNrX3dyaXRlKzB4MTQvMHgyMApbwqDCoMKgMzIu
+ODIxNTUwXVvCoMKgVDI5NF3CoMKgPyB3YWl0X2Zvcl9jb21wbGV0aW9uX2lvKzB4MjAvMHgyMApb
+wqDCoMKgMzIuODQ2MTQzXVvCoMKgVDI5NF3CoMKgZGV2aWNlX2luaXRpYWxfcHJvYmUrMHgxMy8w
+eDIwClvCoMKgwqAzMi44Njg5NTldW8KgwqBUMjk0XcKgwqBidXNfcHJvYmVfZGV2aWNlKzB4MTBm
+LzB4MTMwClvCoMKgwqAzMi44OTEwOTNdW8KgwqBUMjk0XcKgwqBkZXZpY2VfYWRkKzB4YWRiLzB4
+ZDAwClvCoMKgwqAzMi45MTA5NDZdW8KgwqBUMjk0XcKgwqA/IHJvb3RfZGV2aWNlX3VucmVnaXN0
+ZXIrMHg0MC8weDQwClvCoMKgwqAzMi45MzU0NzddW8KgwqBUMjk0XcKgwqA/IG5kX3N5bmNocm9u
+aXplKzB4MjAvMHgyMApbwqDCoMKgMzIuOTU2NzE1XVvCoMKgVDI5NF3CoMKgbmRfYXN5bmNfZGV2
+aWNlX3JlZ2lzdGVyKzB4MTIvMHg0MApbwqDCoMKgMzIuOTgxMTA2XVvCoMKgVDI5NF3CoMKgYXN5
+bmNfcnVuX2VudHJ5X2ZuKzB4N2YvMHgyZDAKW8KgwqDCoDMzLjAwMzUzN11bwqDCoFQyOTRdwqDC
+oHByb2Nlc3Nfb25lX3dvcmsrMHg1M2IvMHhhNzAKW8KgwqDCoDMzLjAyNjY3M11bwqDCoFQyOTRd
+wqDCoD8gcHdxX2RlY19ucl9pbl9mbGlnaHQrMHgxNzAvMHgxNzAKW8KgwqDCoDMzLjA1MTA2MF1b
+wqDCoFQyOTRdwqDCoHdvcmtlcl90aHJlYWQrMHg2My8weDViMApbwqDCoMKgMzMuMDcxNDMxXVvC
+oMKgVDI5NF3CoMKga3RocmVhZCsweDFkZi8weDIwMApbwqDCoMKgMzMuMDg5NzY3XVvCoMKgVDI5
+NF3CoMKgPyBwcm9jZXNzX29uZV93b3JrKzB4YTcwLzB4YTcwClvCoMKgwqAzMy4xMTI2MzVdW8Kg
+wqBUMjk0XcKgwqA/IGt0aHJlYWRfcGFyaysweGMwLzB4YzAKW8KgwqDCoDMzLjEzMjY5OF1bwqDC
+oFQyOTRdwqDCoHJldF9mcm9tX2ZvcmsrMHgzNS8weDQwClvCoMKgwqAzMy4xNTUyMTRdW8KgwqBU
+Mjk0XSAtLS1bIGVuZCB0cmFjZSA2OTE3ZmVlOTViNzJmZmVlIF0tLS0KW8KgwqDCoDMzLjE4MjM2
+NV1bwqDCoMKgwqBUMV0gZGVidWc6IHVubWFwcGluZyBpbml0IFttZW0gMHhmZmZmZmZmZjg2ZTdi
+MDAwLQoweGZmZmZmZmZmODcwMzFmZmZdClvCoMKgwqAzMy4xODQ0OTFdW8KgwqBUMzMyXSBwbWVt
+MDogZGV0ZWN0ZWQgY2FwYWNpdHkgY2hhbmdlIGZyb20gMCB0byAxNjQyMDcwMDE2ClvCoMKgwqAz
+My4yNTEwMjldW8KgwqBUMjk0XSBuZF9wbWVtOiBwcm9iZSBvZiBuYW1lc3BhY2UxLjAgZmFpbGVk
+IHdpdGggZXJyb3IgLTIyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
