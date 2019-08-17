@@ -1,170 +1,120 @@
-Return-Path: <owner-linux-mm@kvack.org>
-Content-Type: text/plain;
-	charset=utf-8
-Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.11\))
-Subject: Re: devm_memremap_pages() triggers a kasan_add_zero_shadow() warning
-From: Qian Cai <cai@lca.pw>
-In-Reply-To: <CAPcyv4gofF-Xf0KTLH4EUkxuXdRO3ha-w+GoxgmiW7gOdS2nXQ@mail.gmail.com>
-Date: Sat, 17 Aug 2019 23:25:28 -0400
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <0AC959D7-5BCB-4A81-BBDC-990E9826EB45@lca.pw>
+Return-Path: <linux-nvdimm-bounces@lists.01.org>
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
+ [IPv6:2607:f8b0:4864:20::341])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 895DA20260CDA
+ for <linux-nvdimm@lists.01.org>; Sat, 17 Aug 2019 10:01:21 -0700 (PDT)
+Received: by mail-ot1-x341.google.com with SMTP id c7so12518992otp.1
+ for <linux-nvdimm@lists.01.org>; Sat, 17 Aug 2019 09:59:40 -0700 (PDT)
+MIME-Version: 1.0
 References: <1565991345.8572.28.camel@lca.pw>
  <CAPcyv4i9VFLSrU75U0gQH6K2sz8AZttqvYidPdDcS7sU2SFaCA@mail.gmail.com>
  <0FB85A78-C2EE-4135-9E0F-D5623CE6EA47@lca.pw>
  <CAPcyv4h9Y7wSdF+jnNzLDRobnjzLfkGLpJsML2XYLUZZZUPsQA@mail.gmail.com>
  <E7A04694-504D-4FB3-9864-03C2CBA3898E@lca.pw>
- <CAPcyv4gofF-Xf0KTLH4EUkxuXdRO3ha-w+GoxgmiW7gOdS2nXQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, kasan-dev@googlegroups.com, Baoquan He <bhe@redhat.com>, Dave Jiang <dave.jiang@intel.com>, Thomas Gleixner <tglx@linutronix.de>
+In-Reply-To: <E7A04694-504D-4FB3-9864-03C2CBA3898E@lca.pw>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 17 Aug 2019 09:59:27 -0700
+Message-ID: <CAPcyv4gofF-Xf0KTLH4EUkxuXdRO3ha-w+GoxgmiW7gOdS2nXQ@mail.gmail.com>
+Subject: Re: devm_memremap_pages() triggers a kasan_add_zero_shadow() warning
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+To: Qian Cai <cai@lca.pw>
+Cc: Linux MM <linux-mm@kvack.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kasan-dev@googlegroups.com, linux-nvdimm <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-
-
-> On Aug 17, 2019, at 12:59 PM, Dan Williams <dan.j.williams@intel.com> =
-wrote:
->=20
-> On Sat, Aug 17, 2019 at 4:13 AM Qian Cai <cai@lca.pw> wrote:
->>=20
->>=20
->>=20
->>> On Aug 16, 2019, at 11:57 PM, Dan Williams =
-<dan.j.williams@intel.com> wrote:
->>>=20
->>> On Fri, Aug 16, 2019 at 8:34 PM Qian Cai <cai@lca.pw> wrote:
->>>>=20
->>>>=20
->>>>=20
->>>>> On Aug 16, 2019, at 5:48 PM, Dan Williams =
-<dan.j.williams@intel.com> wrote:
->>>>>=20
->>>>> On Fri, Aug 16, 2019 at 2:36 PM Qian Cai <cai@lca.pw> wrote:
->>>>>>=20
->>>>>> Every so often recently, booting Intel CPU server on linux-next =
-triggers this
->>>>>> warning. Trying to figure out if  the commit 7cc7867fb061
->>>>>> ("mm/devm_memremap_pages: enable sub-section remap") is the =
-culprit here.
->>>>>>=20
->>>>>> # ./scripts/faddr2line vmlinux devm_memremap_pages+0x894/0xc70
->>>>>> devm_memremap_pages+0x894/0xc70:
->>>>>> devm_memremap_pages at mm/memremap.c:307
->>>>>=20
->>>>> Previously the forced section alignment in devm_memremap_pages() =
-would
->>>>> cause the implementation to never violate the =
-KASAN_SHADOW_SCALE_SIZE
->>>>> (12K on x86) constraint.
->>>>>=20
->>>>> Can you provide a dump of /proc/iomem? I'm curious what resource =
-is
->>>>> triggering such a small alignment granularity.
->>>>=20
->>>> This is with memmap=3D4G!4G ,
->>>>=20
->>>> # cat /proc/iomem
->>> [..]
->>>> 100000000-155dfffff : Persistent Memory (legacy)
->>>> 100000000-155dfffff : namespace0.0
->>>> 155e00000-15982bfff : System RAM
->>>> 155e00000-156a00fa0 : Kernel code
->>>> 156a00fa1-15765d67f : Kernel data
->>>> 157837000-1597fffff : Kernel bss
->>>> 15982c000-1ffffffff : Persistent Memory (legacy)
->>>> 200000000-87fffffff : System RAM
->>>=20
->>> Ok, looks like 4G is bad choice to land the pmem emulation on this
->>> system because it collides with where the kernel is deployed and =
-gets
->>> broken into tiny pieces that violate kasan's. This is a known =
-problem
->>> with memmap=3D. You need to pick an memory range that does not =
-collide
->>> with anything else. See:
->>>=20
->>>   =
-https://nvdimm.wiki.kernel.org/how_to_choose_the_correct_memmap_kernel_par=
-ameter_for_pmem_on_your_system
->>>=20
->>> ...for more info.
->>=20
->> Well, it seems I did exactly follow the information in that link,
->>=20
->> [    0.000000] BIOS-provided physical RAM map:
->> [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x0000000000093fff] =
-usable
->> [    0.000000] BIOS-e820: [mem 0x0000000000094000-0x000000000009ffff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x00000000000e0000-0x00000000000fffff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000005a7a0fff] =
-usable
->> [    0.000000] BIOS-e820: [mem 0x000000005a7a1000-0x000000005b5e0fff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x000000005b5e1000-0x00000000790fefff] =
-usable
->> [    0.000000] BIOS-e820: [mem 0x00000000790ff000-0x00000000791fefff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x00000000791ff000-0x000000007b5fefff] =
-ACPI NVS
->> [    0.000000] BIOS-e820: [mem 0x000000007b5ff000-0x000000007b7fefff] =
-ACPI data
->> [    0.000000] BIOS-e820: [mem 0x000000007b7ff000-0x000000007b7fffff] =
-usable
->> [    0.000000] BIOS-e820: [mem 0x000000007b800000-0x000000008fffffff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x00000000ff800000-0x00000000ffffffff] =
-reserved
->> [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000087fffffff] =
-usable
->>=20
->> Where 4G is good. Then,
->>=20
->> [    0.000000] user-defined physical RAM map:
->> [    0.000000] user: [mem 0x0000000000000000-0x0000000000093fff] =
-usable
->> [    0.000000] user: [mem 0x0000000000094000-0x000000000009ffff] =
-reserved
->> [    0.000000] user: [mem 0x00000000000e0000-0x00000000000fffff] =
-reserved
->> [    0.000000] user: [mem 0x0000000000100000-0x000000005a7a0fff] =
-usable
->> [    0.000000] user: [mem 0x000000005a7a1000-0x000000005b5e0fff] =
-reserved
->> [    0.000000] user: [mem 0x000000005b5e1000-0x00000000790fefff] =
-usable
->> [    0.000000] user: [mem 0x00000000790ff000-0x00000000791fefff] =
-reserved
->> [    0.000000] user: [mem 0x00000000791ff000-0x000000007b5fefff] ACPI =
-NVS
->> [    0.000000] user: [mem 0x000000007b5ff000-0x000000007b7fefff] ACPI =
-data
->> [    0.000000] user: [mem 0x000000007b7ff000-0x000000007b7fffff] =
-usable
->> [    0.000000] user: [mem 0x000000007b800000-0x000000008fffffff] =
-reserved
->> [    0.000000] user: [mem 0x00000000ff800000-0x00000000ffffffff] =
-reserved
->> [    0.000000] user: [mem 0x0000000100000000-0x00000001ffffffff] =
-persistent (type 12)
->> [    0.000000] user: [mem 0x0000000200000000-0x000000087fffffff] =
-usable
->>=20
->> The doc did mention that =E2=80=9CThere seems to be an issue with =
-CONFIG_KSAN at the moment however.=E2=80=9D
->> without more detail though.
->=20
-> Does disabling CONFIG_RANDOMIZE_BASE help? Maybe that workaround has
-> regressed. Effectively we need to find what is causing the kernel to
-> sometimes be placed in the middle of a custom reserved memmap=3D =
-range.
-
-Yes, disabling KASLR works good so far. Assuming the workaround, i.e., =
-f28442497b5c
-(=E2=80=9Cx86/boot: Fix KASLR and memmap=3D collision=E2=80=9D) is =
-correct.
-
-The only other commit that might regress it from my research so far is,
-
-d52e7d5a952c ("x86/KASLR: Parse all 'memmap=3D' boot option entries=E2=80=9D=
-)
+T24gU2F0LCBBdWcgMTcsIDIwMTkgYXQgNDoxMyBBTSBRaWFuIENhaSA8Y2FpQGxjYS5wdz4gd3Jv
+dGU6Cj4KPgo+Cj4gPiBPbiBBdWcgMTYsIDIwMTksIGF0IDExOjU3IFBNLCBEYW4gV2lsbGlhbXMg
+PGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4gd3JvdGU6Cj4gPgo+ID4gT24gRnJpLCBBdWcgMTYs
+IDIwMTkgYXQgODozNCBQTSBRaWFuIENhaSA8Y2FpQGxjYS5wdz4gd3JvdGU6Cj4gPj4KPiA+Pgo+
+ID4+Cj4gPj4+IE9uIEF1ZyAxNiwgMjAxOSwgYXQgNTo0OCBQTSwgRGFuIFdpbGxpYW1zIDxkYW4u
+ai53aWxsaWFtc0BpbnRlbC5jb20+IHdyb3RlOgo+ID4+Pgo+ID4+PiBPbiBGcmksIEF1ZyAxNiwg
+MjAxOSBhdCAyOjM2IFBNIFFpYW4gQ2FpIDxjYWlAbGNhLnB3PiB3cm90ZToKPiA+Pj4+Cj4gPj4+
+PiBFdmVyeSBzbyBvZnRlbiByZWNlbnRseSwgYm9vdGluZyBJbnRlbCBDUFUgc2VydmVyIG9uIGxp
+bnV4LW5leHQgdHJpZ2dlcnMgdGhpcwo+ID4+Pj4gd2FybmluZy4gVHJ5aW5nIHRvIGZpZ3VyZSBv
+dXQgaWYgIHRoZSBjb21taXQgN2NjNzg2N2ZiMDYxCj4gPj4+PiAoIm1tL2Rldm1fbWVtcmVtYXBf
+cGFnZXM6IGVuYWJsZSBzdWItc2VjdGlvbiByZW1hcCIpIGlzIHRoZSBjdWxwcml0IGhlcmUuCj4g
+Pj4+Pgo+ID4+Pj4gIyAuL3NjcmlwdHMvZmFkZHIybGluZSB2bWxpbnV4IGRldm1fbWVtcmVtYXBf
+cGFnZXMrMHg4OTQvMHhjNzAKPiA+Pj4+IGRldm1fbWVtcmVtYXBfcGFnZXMrMHg4OTQvMHhjNzA6
+Cj4gPj4+PiBkZXZtX21lbXJlbWFwX3BhZ2VzIGF0IG1tL21lbXJlbWFwLmM6MzA3Cj4gPj4+Cj4g
+Pj4+IFByZXZpb3VzbHkgdGhlIGZvcmNlZCBzZWN0aW9uIGFsaWdubWVudCBpbiBkZXZtX21lbXJl
+bWFwX3BhZ2VzKCkgd291bGQKPiA+Pj4gY2F1c2UgdGhlIGltcGxlbWVudGF0aW9uIHRvIG5ldmVy
+IHZpb2xhdGUgdGhlIEtBU0FOX1NIQURPV19TQ0FMRV9TSVpFCj4gPj4+ICgxMksgb24geDg2KSBj
+b25zdHJhaW50Lgo+ID4+Pgo+ID4+PiBDYW4geW91IHByb3ZpZGUgYSBkdW1wIG9mIC9wcm9jL2lv
+bWVtPyBJJ20gY3VyaW91cyB3aGF0IHJlc291cmNlIGlzCj4gPj4+IHRyaWdnZXJpbmcgc3VjaCBh
+IHNtYWxsIGFsaWdubWVudCBncmFudWxhcml0eS4KPiA+Pgo+ID4+IFRoaXMgaXMgd2l0aCBtZW1t
+YXA9NEchNEcgLAo+ID4+Cj4gPj4gIyBjYXQgL3Byb2MvaW9tZW0KPiA+IFsuLl0KPiA+PiAxMDAw
+MDAwMDAtMTU1ZGZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkgKGxlZ2FjeSkKPiA+PiAgMTAwMDAw
+MDAwLTE1NWRmZmZmZiA6IG5hbWVzcGFjZTAuMAo+ID4+IDE1NWUwMDAwMC0xNTk4MmJmZmYgOiBT
+eXN0ZW0gUkFNCj4gPj4gIDE1NWUwMDAwMC0xNTZhMDBmYTAgOiBLZXJuZWwgY29kZQo+ID4+ICAx
+NTZhMDBmYTEtMTU3NjVkNjdmIDogS2VybmVsIGRhdGEKPiA+PiAgMTU3ODM3MDAwLTE1OTdmZmZm
+ZiA6IEtlcm5lbCBic3MKPiA+PiAxNTk4MmMwMDAtMWZmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1v
+cnkgKGxlZ2FjeSkKPiA+PiAyMDAwMDAwMDAtODdmZmZmZmZmIDogU3lzdGVtIFJBTQo+ID4KPiA+
+IE9rLCBsb29rcyBsaWtlIDRHIGlzIGJhZCBjaG9pY2UgdG8gbGFuZCB0aGUgcG1lbSBlbXVsYXRp
+b24gb24gdGhpcwo+ID4gc3lzdGVtIGJlY2F1c2UgaXQgY29sbGlkZXMgd2l0aCB3aGVyZSB0aGUg
+a2VybmVsIGlzIGRlcGxveWVkIGFuZCBnZXRzCj4gPiBicm9rZW4gaW50byB0aW55IHBpZWNlcyB0
+aGF0IHZpb2xhdGUga2FzYW4ncy4gVGhpcyBpcyBhIGtub3duIHByb2JsZW0KPiA+IHdpdGggbWVt
+bWFwPS4gWW91IG5lZWQgdG8gcGljayBhbiBtZW1vcnkgcmFuZ2UgdGhhdCBkb2VzIG5vdCBjb2xs
+aWRlCj4gPiB3aXRoIGFueXRoaW5nIGVsc2UuIFNlZToKPiA+Cj4gPiAgICBodHRwczovL252ZGlt
+bS53aWtpLmtlcm5lbC5vcmcvaG93X3RvX2Nob29zZV90aGVfY29ycmVjdF9tZW1tYXBfa2VybmVs
+X3BhcmFtZXRlcl9mb3JfcG1lbV9vbl95b3VyX3N5c3RlbQo+ID4KPiA+IC4uLmZvciBtb3JlIGlu
+Zm8uCj4KPiBXZWxsLCBpdCBzZWVtcyBJIGRpZCBleGFjdGx5IGZvbGxvdyB0aGUgaW5mb3JtYXRp
+b24gaW4gdGhhdCBsaW5rLAo+Cj4gWyAgICAwLjAwMDAwMF0gQklPUy1wcm92aWRlZCBwaHlzaWNh
+bCBSQU0gbWFwOgo+IFsgICAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwMDAw
+MDAwMDAtMHgwMDAwMDAwMDAwMDkzZmZmXSB1c2FibGUKPiBbICAgIDAuMDAwMDAwXSBCSU9TLWU4
+MjA6IFttZW0gMHgwMDAwMDAwMDAwMDk0MDAwLTB4MDAwMDAwMDAwMDA5ZmZmZl0gcmVzZXJ2ZWQK
+PiBbICAgIDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDAwMGUwMDAwLTB4MDAw
+MDAwMDAwMDBmZmZmZl0gcmVzZXJ2ZWQKPiBbICAgIDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0g
+MHgwMDAwMDAwMDAwMTAwMDAwLTB4MDAwMDAwMDA1YTdhMGZmZl0gdXNhYmxlCj4gWyAgICAwLjAw
+MDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA1YTdhMTAwMC0weDAwMDAwMDAwNWI1ZTBm
+ZmZdIHJlc2VydmVkCj4gWyAgICAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA1
+YjVlMTAwMC0weDAwMDAwMDAwNzkwZmVmZmZdIHVzYWJsZQo+IFsgICAgMC4wMDAwMDBdIEJJT1Mt
+ZTgyMDogW21lbSAweDAwMDAwMDAwNzkwZmYwMDAtMHgwMDAwMDAwMDc5MWZlZmZmXSByZXNlcnZl
+ZAo+IFsgICAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwNzkxZmYwMDAtMHgw
+MDAwMDAwMDdiNWZlZmZmXSBBQ1BJIE5WUwo+IFsgICAgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21l
+bSAweDAwMDAwMDAwN2I1ZmYwMDAtMHgwMDAwMDAwMDdiN2ZlZmZmXSBBQ1BJIGRhdGEKPiBbICAg
+IDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDdiN2ZmMDAwLTB4MDAwMDAwMDA3
+YjdmZmZmZl0gdXNhYmxlCj4gWyAgICAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAw
+MDA3YjgwMDAwMC0weDAwMDAwMDAwOGZmZmZmZmZdIHJlc2VydmVkCj4gWyAgICAwLjAwMDAwMF0g
+QklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDBmZjgwMDAwMC0weDAwMDAwMDAwZmZmZmZmZmZdIHJl
+c2VydmVkCj4gWyAgICAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDEwMDAwMDAw
+MC0weDAwMDAwMDA4N2ZmZmZmZmZdIHVzYWJsZQo+Cj4gV2hlcmUgNEcgaXMgZ29vZC4gVGhlbiwK
+Pgo+IFsgICAgMC4wMDAwMDBdIHVzZXItZGVmaW5lZCBwaHlzaWNhbCBSQU0gbWFwOgo+IFsgICAg
+MC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDAwMDAwMDAwLTB4MDAwMDAwMDAwMDA5M2Zm
+Zl0gdXNhYmxlCj4gWyAgICAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwMDAwOTQwMDAt
+MHgwMDAwMDAwMDAwMDlmZmZmXSByZXNlcnZlZAo+IFsgICAgMC4wMDAwMDBdIHVzZXI6IFttZW0g
+MHgwMDAwMDAwMDAwMGUwMDAwLTB4MDAwMDAwMDAwMDBmZmZmZl0gcmVzZXJ2ZWQKPiBbICAgIDAu
+MDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDAwMDEwMDAwMC0weDAwMDAwMDAwNWE3YTBmZmZd
+IHVzYWJsZQo+IFsgICAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDVhN2ExMDAwLTB4
+MDAwMDAwMDA1YjVlMGZmZl0gcmVzZXJ2ZWQKPiBbICAgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4
+MDAwMDAwMDA1YjVlMTAwMC0weDAwMDAwMDAwNzkwZmVmZmZdIHVzYWJsZQo+IFsgICAgMC4wMDAw
+MDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDc5MGZmMDAwLTB4MDAwMDAwMDA3OTFmZWZmZl0gcmVz
+ZXJ2ZWQKPiBbICAgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDA3OTFmZjAwMC0weDAw
+MDAwMDAwN2I1ZmVmZmZdIEFDUEkgTlZTCj4gWyAgICAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAw
+MDAwMDAwN2I1ZmYwMDAtMHgwMDAwMDAwMDdiN2ZlZmZmXSBBQ1BJIGRhdGEKPiBbICAgIDAuMDAw
+MDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDA3YjdmZjAwMC0weDAwMDAwMDAwN2I3ZmZmZmZdIHVz
+YWJsZQo+IFsgICAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDdiODAwMDAwLTB4MDAw
+MDAwMDA4ZmZmZmZmZl0gcmVzZXJ2ZWQKPiBbICAgIDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAw
+MDAwMDBmZjgwMDAwMC0weDAwMDAwMDAwZmZmZmZmZmZdIHJlc2VydmVkCj4gWyAgICAwLjAwMDAw
+MF0gdXNlcjogW21lbSAweDAwMDAwMDAxMDAwMDAwMDAtMHgwMDAwMDAwMWZmZmZmZmZmXSBwZXJz
+aXN0ZW50ICh0eXBlIDEyKQo+IFsgICAgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMjAw
+MDAwMDAwLTB4MDAwMDAwMDg3ZmZmZmZmZl0gdXNhYmxlCj4KPiBUaGUgZG9jIGRpZCBtZW50aW9u
+IHRoYXQg4oCcVGhlcmUgc2VlbXMgdG8gYmUgYW4gaXNzdWUgd2l0aCBDT05GSUdfS1NBTiBhdCB0
+aGUgbW9tZW50IGhvd2V2ZXIu4oCdCj4gd2l0aG91dCBtb3JlIGRldGFpbCB0aG91Z2guCgpEb2Vz
+IGRpc2FibGluZyBDT05GSUdfUkFORE9NSVpFX0JBU0UgaGVscD8gTWF5YmUgdGhhdCB3b3JrYXJv
+dW5kIGhhcwpyZWdyZXNzZWQuIEVmZmVjdGl2ZWx5IHdlIG5lZWQgdG8gZmluZCB3aGF0IGlzIGNh
+dXNpbmcgdGhlIGtlcm5lbCB0bwpzb21ldGltZXMgYmUgcGxhY2VkIGluIHRoZSBtaWRkbGUgb2Yg
+YSBjdXN0b20gcmVzZXJ2ZWQgbWVtbWFwPSByYW5nZS4KX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
