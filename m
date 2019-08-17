@@ -1,100 +1,84 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A27120214B25
- for <linux-nvdimm@lists.01.org>; Sun, 18 Aug 2019 23:35:43 -0700 (PDT)
-Date: Mon, 19 Aug 2019 08:34:12 +0200
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ; -)
-Message-ID: <20190819063412.GA20455@quack2.suse.cz>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Sat, 17 Aug 2019 12:26:03 +1000
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ;-)
+Message-ID: <20190817022603.GW6129@dread.disaster.area>
 References: <20190809225833.6657-1-ira.weiny@intel.com>
  <20190814101714.GA26273@quack2.suse.cz>
  <20190814180848.GB31490@iweiny-DESK2.sc.intel.com>
  <20190815130558.GF14313@quack2.suse.cz>
  <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
- <20190817022603.GW6129@dread.disaster.area>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20190817022603.GW6129@dread.disaster.area>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+In-Reply-To: <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
+Content-Transfer-Encoding: quoted-printable
+Sender: owner-linux-mm@kvack.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Theodore Ts'o <tytso@mit.edu>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gU2F0IDE3LTA4LTE5IDEyOjI2OjAzLCBEYXZlIENoaW5uZXIgd3JvdGU6Cj4gT24gRnJpLCBB
-dWcgMTYsIDIwMTkgYXQgMTI6MDU6MjhQTSAtMDcwMCwgSXJhIFdlaW55IHdyb3RlOgo+ID4gT24g
-VGh1LCBBdWcgMTUsIDIwMTkgYXQgMDM6MDU6NThQTSArMDIwMCwgSmFuIEthcmEgd3JvdGU6Cj4g
-PiA+IE9uIFdlZCAxNC0wOC0xOSAxMTowODo0OSwgSXJhIFdlaW55IHdyb3RlOgo+ID4gPiA+IE9u
-IFdlZCwgQXVnIDE0LCAyMDE5IGF0IDEyOjE3OjE0UE0gKzAyMDAsIEphbiBLYXJhIHdyb3RlOgo+
-ID4gMikgU2Vjb25kIHJlYXNvbiBpcyB0aGF0IEkgdGhvdWdodCBJIGRpZCBub3QgaGF2ZSBhIGdv
-b2Qgd2F5IHRvIHRlbGwgaWYgdGhlCj4gPiAgICBsZWFzZSB3YXMgYWN0dWFsbHkgaW4gdXNlLiAg
-V2hhdCBJIG1lYW4gaXMgdGhhdCBsZXR0aW5nIHRoZSBsZWFzZSBnbyBzaG91bGQKPiA+ICAgIGJl
-IG9rIElGRiB3ZSBkb24ndCBoYXZlIGFueSBwaW5zLi4uICBJIHdhcyB0aGlua2luZyB0aGF0IHdp
-dGhvdXQgSm9obidzIGNvZGUKPiA+ICAgIHdlIGRvbid0IGhhdmUgYSB3YXkgdG8ga25vdyBpZiB0
-aGVyZSBhcmUgYW55IHBpbnMuLi4gIEJ1dCB0aGF0IGlzIHdyb25nLi4uCj4gPiAgICBBbGwgd2Ug
-aGF2ZSB0byBkbyBpcyBjaGVjawo+ID4gCj4gPiAJIWxpc3RfZW1wdHkoZmlsZS0+ZmlsZV9waW5z
-KQo+ID4gCj4gPiBTbyBub3cgd2l0aCB0aGlzIGRldGFpbCBJIHRoaW5rIHlvdSBhcmUgcmlnaHQs
-IHdlIHNob3VsZCBiZSBhYmxlIHRvIGhvbGQgdGhlCj4gPiBsZWFzZSB0aHJvdWdoIHRoZSBzdHJ1
-Y3QgZmlsZSBldmVuIGlmIHRoZSBwcm9jZXNzIG5vIGxvbmdlciBoYXMgYW55Cj4gPiAicmVmZXJl
-bmNlcyIgdG8gaXQgKGllIGNsb3NlcyBhbmQgbXVubWFwcyB0aGUgZmlsZSkuCj4gCj4gSSByZWFs
-bHksIHJlYWxseSBkaXNsaWtlIHRoZSBpZGVhIG9mIHpvbWJpZSBsYXlvdXQgbGVhc2VzLiBJdCdz
-IGEKPiBuYXN0eSBoYWNrIGZvciBwb29yIGFwcGxpY2F0aW9uIGJlaGF2aW91ci4gVGhpcyBpcyBh
-ICJ3ZSBhbGxvdyB1c2UKPiBhZnRlciBsYXlvdXQgbGVhc2UgcmVsZWFzZSIgQVBJLCBhbmQgSSB0
-aGluayBlbmNvZGluZyBsYXJnZWx5Cj4gdW50cmFjZWFibGUgem9tYmllIG9iamVjdHMgaW50byBh
-biBBUEkgaXMgdmVyeSBwb29yIGRlc2lnbi4KPiAKPiBGcm9tIHRoZSBmY250bCBtYW4gcGFnZToK
-PiAKPiBMRUFTRVMKPiAJTGVhc2VzIGFyZSBhc3NvY2lhdGVkIHdpdGggYW4gb3BlbiBmaWxlIGRl
-c2NyaXB0aW9uIChzZWUKPiAJb3BlbigyKSkuICBUaGlzIG1lYW5zIHRoYXQgZHVwbGljYXRlIGZp
-bGUgZGVzY3JpcHRvcnMKPiAJKGNyZWF0ZWQgYnksIGZvciBleGFtcGxlLCBmb3JrKDIpIG9yIGR1
-cCgyKSkgIHJl4oCQIGZlciAgdG8KPiAJdGhlICBzYW1lICBsZWFzZSwgIGFuZCB0aGlzIGxlYXNl
-IG1heSBiZSBtb2RpZmllZCBvcgo+IAlyZWxlYXNlZCB1c2luZyBhbnkgb2YgdGhlc2UgZGVzY3Jp
-cHRvcnMuICBGdXJ0aGVybW9yZSwgdGhlCj4gCWxlYXNlIGlzIHJlbGVhc2VkIGJ5IGVpdGhlciBh
-biBleHBsaWNpdCBGX1VOTENLIG9wZXJhdGlvbiBvbgo+IAlhbnkgb2YgdGhlc2UgZHVwbGljYXRl
-IGZpbGUgZGVzY3JpcHRvcnMsIG9yIHdoZW4gYWxsIHN1Y2gKPiAJZmlsZSBkZXNjcmlwdG9ycyBo
-YXZlIGJlZW4gY2xvc2VkLgo+IAo+IExlYXNlcyBhcmUgYXNzb2NpYXRlZCB3aXRoICpvcGVuKiBm
-aWxlIGRlc2NyaXB0b3JzLCBub3QgdGhlCj4gbGlmZXRpbWUgb2YgdGhlIHN0cnVjdCBmaWxlIGlu
-IHRoZSBrZXJuZWwuIElmIHRoZSBhcHBsaWNhdGlvbiBjbG9zZXMKPiB0aGUgb3BlbiBmZHMgdGhh
-dCByZWZlciB0byB0aGUgbGVhc2UsIHRoZW4gdGhlIGtlcm5lbCBkb2VzIG5vdAo+IGd1YXJhbnRl
-ZSwgYW5kIHRoZSBhcHBsaWNhdGlvbiBoYXMgbm8gcmlnaHQgdG8gZXhwZWN0LCB0aGF0IHRoZQo+
-IGxlYXNlIHJlbWFpbnMgYWN0aXZlIGluIGFueSB3YXkgb25jZSB0aGUgYXBwbGljYXRpb24gY2xv
-c2VzIGFsbAo+IGRpcmVjdCByZWZlcmVuY2VzIHRvIHRoZSBsZWFzZS4KPiAKPiBJT1dzLCBhcHBs
-aWNhdGlvbnMgdXNpbmcgbGF5b3V0IGxlYXNlcyBuZWVkIHRvIGhvbGQgdGhlIGxlYXNlIGZkCj4g
-b3BlbiBmb3IgYXMgbG9uZyBhcyB0aGUgd2FudCBhY2Nlc3MgdG8gdGhlIHBoeXNpY2FsIGZpbGUg
-bGF5b3V0LiBJdAo+IGlzIGEgYWxzbyBhIHJlcXVpcmVtZW50IG9mIHRoZSBsYXlvdXQgbGVhc2Ug
-dGhhdCB0aGUgaG9sZGVyIHJlbGVhc2VzCj4gdGhlIHJlc291cmNlcyBpdCBob2xkcyBvbiB0aGUg
-bGF5b3V0IGJlZm9yZSBpdCByZWxlYXNlcyB0aGUgbGF5b3V0Cj4gbGVhc2UsIGV4Y2x1c2l2ZSBs
-ZWFzZSBvciBub3QuIENsb3NpbmcgdGhlIGZkIGluZGljYXRlcyB0aGV5IGRvIG5vdAo+IG5lZWQg
-YWNjZXNzIHRvIHRoZSBmaWxlIGFueSBtb3JlLCBhbmQgc28gdGhlIGxlYXNlIHNob3VsZCBiZQo+
-IHJlY2xhaW1lZCBhdCB0aGF0IHBvaW50Lgo+IAo+IEknbSBvZiBhIG1pbmQgdG8gbWFrZSB0aGUg
-bGFzdCBjbG9zZSgpIG9uIGEgZmlsZSBibG9jayBpZiB0aGVyZSdzIGFuCj4gYWN0aXZlIGxheW91
-dCBsZWFzZSB0byBwcmV2ZW50IHByb2Nlc3NlcyBmcm9tIHpvbWJpZS1pbmcgbGF5b3V0Cj4gbGVh
-c2VzIGxpa2UgdGhpcy4gaS5lLiB5b3UgY2FuJ3QgY2xvc2UgdGhlIGZkIHVudGlsIHJlc291cmNl
-cyB0aGF0Cj4gcGluIHRoZSBsZWFzZSBoYXZlIGJlZW4gcmVsZWFzZWQuCgpZZWFoLCBzbyB0aGlz
-IHdhcyBteSBpbml0aWFsIHRob3VnaCBhcyB3ZWxsIFsxXS4gQnV0IGFzIHRoZSBkaXNjdXNzaW9u
-IGluCnRoYXQgdGhyZWFkIHJldmVhbGVkLCB0aGUgcHJvYmxlbSB3aXRoIGJsb2NraW5nIGxhc3Qg
-Y2xvc2UgaXMgdGhhdCBrZXJuZWwKZG9lcyBub3QgcmVhbGx5IGV4cGVjdCBjbG9zZSB0byBibG9j
-ay4gWW91IGNvdWxkIGVhc2lseSBkZWFkbG9jayBlLmcuIGlmCnRoZSBwcm9jZXNzIGdldHMgU0lH
-S0lMTCwgZmlsZSB3aXRoIGxlYXNlIGhhcyBmZCAxMCwgYW5kIHRoZSBSRE1BIGNvbnRleHQKaG9s
-ZGluZyBwYWdlcyBwaW5uZWQgaGFzIGZkIDE1LiBPciB5b3UgY291bGQgd2FpdCBmb3IgYW5vdGhl
-ciBwcm9jZXNzIHRvCnJlbGVhc2UgcGFnZSBwaW5zIGFuZCBibG9ja2luZyBTSUdLSUxMIG9uIHRo
-YXQgaXMgYWxzbyBiYWQuIFNvIGluIHRoZSBlbmQKdGhlIGxlYXN0IGJhZCBzb2x1dGlvbiB3ZSd2
-ZSBjb21lIHVwIHdpdGggd2VyZSB0aGVzZSAiem9tYmllIiBsZWFzZXMgYXMgeW91CmNhbGwgdGhl
-bSBhbmQgdHJhY2tpbmcgdGhlbSBpbiAvcHJvYyBzbyB0aGF0IHVzZXJzcGFjZSBhdCBsZWFzdCBo
-YXMgYSB3YXkKb2Ygc2VlaW5nIHRoZW0uIEJ1dCBpZiB5b3UgY2FuIGNvbWUgdXAgd2l0aCBhIGRp
-ZmZlcmVudCBzb2x1dGlvbiwgSSdtCmNlcnRhaW5seSBub3QgYXR0YWNoZWQgdG8gdGhlIGN1cnJl
-bnQgb25lLi4uCgoJCQkJCQkJCUhvbnphCgpbMV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGtt
-bC8yMDE5MDYwNjEwNDIwMy5HRjc0MzNAcXVhY2syLnN1c2UuY3oKLS0gCkphbiBLYXJhIDxqYWNr
-QHN1c2UuY29tPgpTVVNFIExhYnMsIENSCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52
-ZGltbQo=
+On Fri, Aug 16, 2019 at 12:05:28PM -0700, Ira Weiny wrote:
+> On Thu, Aug 15, 2019 at 03:05:58PM +0200, Jan Kara wrote:
+> > On Wed 14-08-19 11:08:49, Ira Weiny wrote:
+> > > On Wed, Aug 14, 2019 at 12:17:14PM +0200, Jan Kara wrote:
+> 2) Second reason is that I thought I did not have a good way to tell if=
+ the
+>    lease was actually in use.  What I mean is that letting the lease go=
+ should
+>    be ok IFF we don't have any pins...  I was thinking that without Joh=
+n's code
+>    we don't have a way to know if there are any pins...  But that is wr=
+ong...
+>    All we have to do is check
+>=20
+> 	!list_empty(file->file_pins)
+>=20
+> So now with this detail I think you are right, we should be able to hol=
+d the
+> lease through the struct file even if the process no longer has any
+> "references" to it (ie closes and munmaps the file).
+
+I really, really dislike the idea of zombie layout leases. It's a
+nasty hack for poor application behaviour. This is a "we allow use
+after layout lease release" API, and I think encoding largely
+untraceable zombie objects into an API is very poor design.
+
+>From the fcntl man page:
+
+LEASES
+	Leases are associated with an open file description (see
+	open(2)).  This means that duplicate file descriptors
+	(created by, for example, fork(2) or dup(2))  re=E2=80=90 fer  to
+	the  same  lease,  and this lease may be modified or
+	released using any of these descriptors.  Furthermore, the
+	lease is released by either an explicit F_UNLCK operation on
+	any of these duplicate file descriptors, or when all such
+	file descriptors have been closed.
+
+Leases are associated with *open* file descriptors, not the
+lifetime of the struct file in the kernel. If the application closes
+the open fds that refer to the lease, then the kernel does not
+guarantee, and the application has no right to expect, that the
+lease remains active in any way once the application closes all
+direct references to the lease.
+
+IOWs, applications using layout leases need to hold the lease fd
+open for as long as the want access to the physical file layout. It
+is a also a requirement of the layout lease that the holder releases
+the resources it holds on the layout before it releases the layout
+lease, exclusive lease or not. Closing the fd indicates they do not
+need access to the file any more, and so the lease should be
+reclaimed at that point.
+
+I'm of a mind to make the last close() on a file block if there's an
+active layout lease to prevent processes from zombie-ing layout
+leases like this. i.e. you can't close the fd until resources that
+pin the lease have been released.
+
+Cheers,
+
+Dave.
+--=20
+Dave Chinner
+david@fromorbit.com
