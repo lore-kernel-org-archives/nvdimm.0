@@ -1,150 +1,170 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-qk1-x744.google.com (mail-qk1-x744.google.com
- [IPv6:2607:f8b0:4864:20::744])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 21D532020D334
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 14:13:19 -0700 (PDT)
-Received: by mail-qk1-x744.google.com with SMTP id p13so3157002qkg.13
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 14:12:11 -0700 (PDT)
-Message-ID: <1566421927.5576.3.camel@lca.pw>
+Return-Path: <owner-linux-mm@kvack.org>
+Content-Type: text/plain;
+	charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 12.4 \(3445.104.11\))
 Subject: Re: devm_memremap_pages() triggers a kasan_add_zero_shadow() warning
 From: Qian Cai <cai@lca.pw>
-Date: Wed, 21 Aug 2019 17:12:07 -0400
-In-Reply-To: <0AC959D7-5BCB-4A81-BBDC-990E9826EB45@lca.pw>
+In-Reply-To: <CAPcyv4gofF-Xf0KTLH4EUkxuXdRO3ha-w+GoxgmiW7gOdS2nXQ@mail.gmail.com>
+Date: Sat, 17 Aug 2019 23:25:28 -0400
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <0AC959D7-5BCB-4A81-BBDC-990E9826EB45@lca.pw>
 References: <1565991345.8572.28.camel@lca.pw>
  <CAPcyv4i9VFLSrU75U0gQH6K2sz8AZttqvYidPdDcS7sU2SFaCA@mail.gmail.com>
  <0FB85A78-C2EE-4135-9E0F-D5623CE6EA47@lca.pw>
  <CAPcyv4h9Y7wSdF+jnNzLDRobnjzLfkGLpJsML2XYLUZZZUPsQA@mail.gmail.com>
  <E7A04694-504D-4FB3-9864-03C2CBA3898E@lca.pw>
  <CAPcyv4gofF-Xf0KTLH4EUkxuXdRO3ha-w+GoxgmiW7gOdS2nXQ@mail.gmail.com>
- <0AC959D7-5BCB-4A81-BBDC-990E9826EB45@lca.pw>
-Mime-Version: 1.0
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Sender: owner-linux-mm@kvack.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Baoquan He <bhe@redhat.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kasan-dev@googlegroups.com, Linux MM <linux-mm@kvack.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrey Ryabinin <aryabinin@virtuozzo.com>, kasan-dev@googlegroups.com, Baoquan He <bhe@redhat.com>, Dave Jiang <dave.jiang@intel.com>, Thomas Gleixner <tglx@linutronix.de>
 List-ID: <linux-nvdimm@lists.01.org>
 
-T24gU2F0LCAyMDE5LTA4LTE3IGF0IDIzOjI1IC0wNDAwLCBRaWFuIENhaSB3cm90ZToKPiA+IE9u
-IEF1ZyAxNywgMjAxOSwgYXQgMTI6NTkgUE0sIERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNA
-aW50ZWwuY29tPiB3cm90ZToKPiA+IAo+ID4gT24gU2F0LCBBdWcgMTcsIDIwMTkgYXQgNDoxMyBB
-TSBRaWFuIENhaSA8Y2FpQGxjYS5wdz4gd3JvdGU6Cj4gPiA+IAo+ID4gPiAKPiA+ID4gCj4gPiA+
-ID4gT24gQXVnIDE2LCAyMDE5LCBhdCAxMTo1NyBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
-aWFtc0BpbnRlbC5jb20+Cj4gPiA+ID4gd3JvdGU6Cj4gPiA+ID4gCj4gPiA+ID4gT24gRnJpLCBB
-dWcgMTYsIDIwMTkgYXQgODozNCBQTSBRaWFuIENhaSA8Y2FpQGxjYS5wdz4gd3JvdGU6Cj4gPiA+
-ID4gPiAKPiA+ID4gPiA+IAo+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IE9uIEF1ZyAxNiwgMjAxOSwg
-YXQgNTo0OCBQTSwgRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4gPiA+
-ID4gPiA+IHdyb3RlOgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gT24gRnJpLCBBdWcgMTYsIDIw
-MTkgYXQgMjozNiBQTSBRaWFuIENhaSA8Y2FpQGxjYS5wdz4gd3JvdGU6Cj4gPiA+ID4gPiA+ID4g
-Cj4gPiA+ID4gPiA+ID4gRXZlcnkgc28gb2Z0ZW4gcmVjZW50bHksIGJvb3RpbmcgSW50ZWwgQ1BV
-IHNlcnZlciBvbiBsaW51eC1uZXh0Cj4gPiA+ID4gPiA+ID4gdHJpZ2dlcnMgdGhpcwo+ID4gPiA+
-ID4gPiA+IHdhcm5pbmcuIFRyeWluZyB0byBmaWd1cmUgb3V0IGlmwqDCoHRoZSBjb21taXQgN2Nj
-Nzg2N2ZiMDYxCj4gPiA+ID4gPiA+ID4gKCJtbS9kZXZtX21lbXJlbWFwX3BhZ2VzOiBlbmFibGUg
-c3ViLXNlY3Rpb24gcmVtYXAiKSBpcyB0aGUKPiA+ID4gPiA+ID4gPiBjdWxwcml0IGhlcmUuCj4g
-PiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gIyAuL3NjcmlwdHMvZmFkZHIybGluZSB2bWxpbnV4
-IGRldm1fbWVtcmVtYXBfcGFnZXMrMHg4OTQvMHhjNzAKPiA+ID4gPiA+ID4gPiBkZXZtX21lbXJl
-bWFwX3BhZ2VzKzB4ODk0LzB4YzcwOgo+ID4gPiA+ID4gPiA+IGRldm1fbWVtcmVtYXBfcGFnZXMg
-YXQgbW0vbWVtcmVtYXAuYzozMDcKPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFByZXZpb3VzbHkg
-dGhlIGZvcmNlZCBzZWN0aW9uIGFsaWdubWVudCBpbiBkZXZtX21lbXJlbWFwX3BhZ2VzKCkKPiA+
-ID4gPiA+ID4gd291bGQKPiA+ID4gPiA+ID4gY2F1c2UgdGhlIGltcGxlbWVudGF0aW9uIHRvIG5l
-dmVyIHZpb2xhdGUgdGhlCj4gPiA+ID4gPiA+IEtBU0FOX1NIQURPV19TQ0FMRV9TSVpFCj4gPiA+
-ID4gPiA+ICgxMksgb24geDg2KSBjb25zdHJhaW50Lgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4g
-Q2FuIHlvdSBwcm92aWRlIGEgZHVtcCBvZiAvcHJvYy9pb21lbT8gSSdtIGN1cmlvdXMgd2hhdCBy
-ZXNvdXJjZSBpcwo+ID4gPiA+ID4gPiB0cmlnZ2VyaW5nIHN1Y2ggYSBzbWFsbCBhbGlnbm1lbnQg
-Z3JhbnVsYXJpdHkuCj4gPiA+ID4gPiAKPiA+ID4gPiA+IFRoaXMgaXMgd2l0aCBtZW1tYXA9NEch
-NEcgLAo+ID4gPiA+ID4gCj4gPiA+ID4gPiAjIGNhdCAvcHJvYy9pb21lbQo+ID4gPiA+IAo+ID4g
-PiA+IFsuLl0KPiA+ID4gPiA+IDEwMDAwMDAwMC0xNTVkZmZmZmYgOiBQZXJzaXN0ZW50IE1lbW9y
-eSAobGVnYWN5KQo+ID4gPiA+ID4gMTAwMDAwMDAwLTE1NWRmZmZmZiA6IG5hbWVzcGFjZTAuMAo+
-ID4gPiA+ID4gMTU1ZTAwMDAwLTE1OTgyYmZmZiA6IFN5c3RlbSBSQU0KPiA+ID4gPiA+IDE1NWUw
-MDAwMC0xNTZhMDBmYTAgOiBLZXJuZWwgY29kZQo+ID4gPiA+ID4gMTU2YTAwZmExLTE1NzY1ZDY3
-ZiA6IEtlcm5lbCBkYXRhCj4gPiA+ID4gPiAxNTc4MzcwMDAtMTU5N2ZmZmZmIDogS2VybmVsIGJz
-cwo+ID4gPiA+ID4gMTU5ODJjMDAwLTFmZmZmZmZmZiA6IFBlcnNpc3RlbnQgTWVtb3J5IChsZWdh
-Y3kpCj4gPiA+ID4gPiAyMDAwMDAwMDAtODdmZmZmZmZmIDogU3lzdGVtIFJBTQo+ID4gPiA+IAo+
-ID4gPiA+IE9rLCBsb29rcyBsaWtlIDRHIGlzIGJhZCBjaG9pY2UgdG8gbGFuZCB0aGUgcG1lbSBl
-bXVsYXRpb24gb24gdGhpcwo+ID4gPiA+IHN5c3RlbSBiZWNhdXNlIGl0IGNvbGxpZGVzIHdpdGgg
-d2hlcmUgdGhlIGtlcm5lbCBpcyBkZXBsb3llZCBhbmQgZ2V0cwo+ID4gPiA+IGJyb2tlbiBpbnRv
-IHRpbnkgcGllY2VzIHRoYXQgdmlvbGF0ZSBrYXNhbidzLiBUaGlzIGlzIGEga25vd24gcHJvYmxl
-bQo+ID4gPiA+IHdpdGggbWVtbWFwPS4gWW91IG5lZWQgdG8gcGljayBhbiBtZW1vcnkgcmFuZ2Ug
-dGhhdCBkb2VzIG5vdCBjb2xsaWRlCj4gPiA+ID4gd2l0aCBhbnl0aGluZyBlbHNlLiBTZWU6Cj4g
-PiA+ID4gCj4gPiA+ID4gwqAgaHR0cHM6Ly9udmRpbW0ud2lraS5rZXJuZWwub3JnL2hvd190b19j
-aG9vc2VfdGhlX2NvcnJlY3RfbWVtbWFwX2tlcm5lbAo+ID4gPiA+IF9wYXJhbWV0ZXJfZm9yX3Bt
-ZW1fb25feW91cl9zeXN0ZW0KPiA+ID4gPiAKPiA+ID4gPiAuLi5mb3IgbW9yZSBpbmZvLgo+ID4g
-PiAKPiA+ID4gV2VsbCwgaXQgc2VlbXMgSSBkaWQgZXhhY3RseSBmb2xsb3cgdGhlIGluZm9ybWF0
-aW9uIGluIHRoYXQgbGluaywKPiA+ID4gCj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSBCSU9TLXBy
-b3ZpZGVkIHBoeXNpY2FsIFJBTSBtYXA6Cj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSBCSU9TLWU4
-MjA6IFttZW0gMHgwMDAwMDAwMDAwMDAwMDAwLTB4MDAwMDAwMDAwMDA5M2ZmZl0KPiA+ID4gdXNh
-YmxlCj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDAw
-MDk0MDAwLTB4MDAwMDAwMDAwMDA5ZmZmZl0KPiA+ID4gcmVzZXJ2ZWQKPiA+ID4gW8KgwqDCoMKg
-MC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwMDAwZTAwMDAtMHgwMDAwMDAwMDAw
-MGZmZmZmXQo+ID4gPiByZXNlcnZlZAo+ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gQklPUy1lODIw
-OiBbbWVtIDB4MDAwMDAwMDAwMDEwMDAwMC0weDAwMDAwMDAwNWE3YTBmZmZdCj4gPiA+IHVzYWJs
-ZQo+ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA1YTdh
-MTAwMC0weDAwMDAwMDAwNWI1ZTBmZmZdCj4gPiA+IHJlc2VydmVkCj4gPiA+IFvCoMKgwqDCoDAu
-MDAwMDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMDViNWUxMDAwLTB4MDAwMDAwMDA3OTBm
-ZWZmZl0KPiA+ID4gdXNhYmxlCj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSBCSU9TLWU4MjA6IFtt
-ZW0gMHgwMDAwMDAwMDc5MGZmMDAwLTB4MDAwMDAwMDA3OTFmZWZmZl0KPiA+ID4gcmVzZXJ2ZWQK
-PiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21lbSAweDAwMDAwMDAwNzkxZmYw
-MDAtMHgwMDAwMDAwMDdiNWZlZmZmXSBBQ1BJCj4gPiA+IE5WUwo+ID4gPiBbwqDCoMKgwqAwLjAw
-MDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3YjVmZjAwMC0weDAwMDAwMDAwN2I3ZmVm
-ZmZdIEFDUEkKPiA+ID4gZGF0YQo+ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gQklPUy1lODIwOiBb
-bWVtIDB4MDAwMDAwMDA3YjdmZjAwMC0weDAwMDAwMDAwN2I3ZmZmZmZdCj4gPiA+IHVzYWJsZQo+
-ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gQklPUy1lODIwOiBbbWVtIDB4MDAwMDAwMDA3YjgwMDAw
-MC0weDAwMDAwMDAwOGZmZmZmZmZdCj4gPiA+IHJlc2VydmVkCj4gPiA+IFvCoMKgwqDCoDAuMDAw
-MDAwXSBCSU9TLWU4MjA6IFttZW0gMHgwMDAwMDAwMGZmODAwMDAwLTB4MDAwMDAwMDBmZmZmZmZm
-Zl0KPiA+ID4gcmVzZXJ2ZWQKPiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIEJJT1MtZTgyMDogW21l
-bSAweDAwMDAwMDAxMDAwMDAwMDAtMHgwMDAwMDAwODdmZmZmZmZmXQo+ID4gPiB1c2FibGUKPiA+
-ID4gCj4gPiA+IFdoZXJlIDRHIGlzIGdvb2QuIFRoZW4sCj4gPiA+IAo+ID4gPiBbwqDCoMKgwqAw
-LjAwMDAwMF0gdXNlci1kZWZpbmVkIHBoeXNpY2FsIFJBTSBtYXA6Cj4gPiA+IFvCoMKgwqDCoDAu
-MDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDAwMDAwOTNmZmZd
-IHVzYWJsZQo+ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwMDAw
-OTQwMDAtMHgwMDAwMDAwMDAwMDlmZmZmXSByZXNlcnZlZAo+ID4gPiBbwqDCoMKgwqAwLjAwMDAw
-MF0gdXNlcjogW21lbSAweDAwMDAwMDAwMDAwZTAwMDAtMHgwMDAwMDAwMDAwMGZmZmZmXSByZXNl
-cnZlZAo+ID4gPiBbwqDCoMKgwqAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwMDAxMDAw
-MDAtMHgwMDAwMDAwMDVhN2EwZmZmXSB1c2FibGUKPiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIHVz
-ZXI6IFttZW0gMHgwMDAwMDAwMDVhN2ExMDAwLTB4MDAwMDAwMDA1YjVlMGZmZl0gcmVzZXJ2ZWQK
-PiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMDViNWUxMDAwLTB4
-MDAwMDAwMDA3OTBmZWZmZl0gdXNhYmxlCj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSB1c2VyOiBb
-bWVtIDB4MDAwMDAwMDA3OTBmZjAwMC0weDAwMDAwMDAwNzkxZmVmZmZdIHJlc2VydmVkCj4gPiA+
-IFvCoMKgwqDCoDAuMDAwMDAwXSB1c2VyOiBbbWVtIDB4MDAwMDAwMDA3OTFmZjAwMC0weDAwMDAw
-MDAwN2I1ZmVmZmZdIEFDUEkgTlZTCj4gPiA+IFvCoMKgwqDCoDAuMDAwMDAwXSB1c2VyOiBbbWVt
-IDB4MDAwMDAwMDA3YjVmZjAwMC0weDAwMDAwMDAwN2I3ZmVmZmZdIEFDUEkgZGF0YQo+ID4gPiBb
-wqDCoMKgwqAwLjAwMDAwMF0gdXNlcjogW21lbSAweDAwMDAwMDAwN2I3ZmYwMDAtMHgwMDAwMDAw
-MDdiN2ZmZmZmXSB1c2FibGUKPiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgw
-MDAwMDAwMDdiODAwMDAwLTB4MDAwMDAwMDA4ZmZmZmZmZl0gcmVzZXJ2ZWQKPiA+ID4gW8KgwqDC
-oMKgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMGZmODAwMDAwLTB4MDAwMDAwMDBmZmZm
-ZmZmZl0gcmVzZXJ2ZWQKPiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAw
-MDAwMTAwMDAwMDAwLTB4MDAwMDAwMDFmZmZmZmZmZl0KPiA+ID4gcGVyc2lzdGVudCAodHlwZSAx
-MikKPiA+ID4gW8KgwqDCoMKgMC4wMDAwMDBdIHVzZXI6IFttZW0gMHgwMDAwMDAwMjAwMDAwMDAw
-LTB4MDAwMDAwMDg3ZmZmZmZmZl0gdXNhYmxlCj4gPiA+IAo+ID4gPiBUaGUgZG9jIGRpZCBtZW50
-aW9uIHRoYXQg4oCcVGhlcmUgc2VlbXMgdG8gYmUgYW4gaXNzdWUgd2l0aCBDT05GSUdfS1NBTiBh
-dAo+ID4gPiB0aGUgbW9tZW50IGhvd2V2ZXIu4oCdCj4gPiA+IHdpdGhvdXQgbW9yZSBkZXRhaWwg
-dGhvdWdoLgo+ID4gCj4gPiBEb2VzIGRpc2FibGluZyBDT05GSUdfUkFORE9NSVpFX0JBU0UgaGVs
-cD8gTWF5YmUgdGhhdCB3b3JrYXJvdW5kIGhhcwo+ID4gcmVncmVzc2VkLiBFZmZlY3RpdmVseSB3
-ZSBuZWVkIHRvIGZpbmQgd2hhdCBpcyBjYXVzaW5nIHRoZSBrZXJuZWwgdG8KPiA+IHNvbWV0aW1l
-cyBiZSBwbGFjZWQgaW4gdGhlIG1pZGRsZSBvZiBhIGN1c3RvbSByZXNlcnZlZCBtZW1tYXA9IHJh
-bmdlLgo+IAo+IFllcywgZGlzYWJsaW5nIEtBU0xSIHdvcmtzIGdvb2Qgc28gZmFyLiBBc3N1bWlu
-ZyB0aGUgd29ya2Fyb3VuZCwgaS5lLiwKPiBmMjg0NDI0OTdiNWMKPiAo4oCceDg2L2Jvb3Q6IEZp
-eCBLQVNMUiBhbmQgbWVtbWFwPSBjb2xsaXNpb27igJ0pIGlzIGNvcnJlY3QuCj4gCj4gVGhlIG9u
-bHkgb3RoZXIgY29tbWl0IHRoYXQgbWlnaHQgcmVncmVzcyBpdCBmcm9tIG15IHJlc2VhcmNoIHNv
-IGZhciBpcywKPiAKPiBkNTJlN2Q1YTk1MmMgKCJ4ODYvS0FTTFI6IFBhcnNlIGFsbCAnbWVtbWFw
-PScgYm9vdCBvcHRpb24gZW50cmllc+KAnSkKPiAKCkl0IHR1cm5zIG91dCB0aGF0IHRoZSBvcmln
-aW4gY29tbWl0IGYyODQ0MjQ5N2I1YyAo4oCceDg2L2Jvb3Q6IEZpeCBLQVNMUiBhbmQKbWVtbWFw
-PSBjb2xsaXNpb27igJ0pIGhhcyBhIGJ1ZyB0aGF0IGlzIHVuYWJsZSB0byBoYW5kbGUgIm1lbW1h
-cD0iIGluCkNPTkZJR19DTURMSU5FIGluc3RlYWQgb2YgYSBwYXJhbWV0ZXIgaW4gYm9vdGxvYWRl
-ciBiZWNhdXNlIHdoZW4gaXQgKGFzIHdlbGwgYXMKdGhlIGNvbW1pdCBkNTJlN2Q1YTk1MmMpIGNh
-bGxzIGdldF9jbWRfbGluZV9wdHIoKSBpbiBvcmRlciB0byBydW4KbWVtX2F2b2lkX21lbW1hcCgp
-LCAiYm9vdF9wYXJhbXMiIGhhcyBubyBrbm93bGVkZ2Ugb2YgQ09ORklHX0NNRExJTkUuIE9ubHkg
-bGF0ZXIKaW4gc2V0dXBfYXJjaCgpLCB0aGUga2VybmVsIHdpbGwgZGVhbCB3aXRoIHBhcmFtZXRl
-cnMgb3ZlciB0aGVyZS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-Cmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+
+
+> On Aug 17, 2019, at 12:59 PM, Dan Williams <dan.j.williams@intel.com> =
+wrote:
+>=20
+> On Sat, Aug 17, 2019 at 4:13 AM Qian Cai <cai@lca.pw> wrote:
+>>=20
+>>=20
+>>=20
+>>> On Aug 16, 2019, at 11:57 PM, Dan Williams =
+<dan.j.williams@intel.com> wrote:
+>>>=20
+>>> On Fri, Aug 16, 2019 at 8:34 PM Qian Cai <cai@lca.pw> wrote:
+>>>>=20
+>>>>=20
+>>>>=20
+>>>>> On Aug 16, 2019, at 5:48 PM, Dan Williams =
+<dan.j.williams@intel.com> wrote:
+>>>>>=20
+>>>>> On Fri, Aug 16, 2019 at 2:36 PM Qian Cai <cai@lca.pw> wrote:
+>>>>>>=20
+>>>>>> Every so often recently, booting Intel CPU server on linux-next =
+triggers this
+>>>>>> warning. Trying to figure out if  the commit 7cc7867fb061
+>>>>>> ("mm/devm_memremap_pages: enable sub-section remap") is the =
+culprit here.
+>>>>>>=20
+>>>>>> # ./scripts/faddr2line vmlinux devm_memremap_pages+0x894/0xc70
+>>>>>> devm_memremap_pages+0x894/0xc70:
+>>>>>> devm_memremap_pages at mm/memremap.c:307
+>>>>>=20
+>>>>> Previously the forced section alignment in devm_memremap_pages() =
+would
+>>>>> cause the implementation to never violate the =
+KASAN_SHADOW_SCALE_SIZE
+>>>>> (12K on x86) constraint.
+>>>>>=20
+>>>>> Can you provide a dump of /proc/iomem? I'm curious what resource =
+is
+>>>>> triggering such a small alignment granularity.
+>>>>=20
+>>>> This is with memmap=3D4G!4G ,
+>>>>=20
+>>>> # cat /proc/iomem
+>>> [..]
+>>>> 100000000-155dfffff : Persistent Memory (legacy)
+>>>> 100000000-155dfffff : namespace0.0
+>>>> 155e00000-15982bfff : System RAM
+>>>> 155e00000-156a00fa0 : Kernel code
+>>>> 156a00fa1-15765d67f : Kernel data
+>>>> 157837000-1597fffff : Kernel bss
+>>>> 15982c000-1ffffffff : Persistent Memory (legacy)
+>>>> 200000000-87fffffff : System RAM
+>>>=20
+>>> Ok, looks like 4G is bad choice to land the pmem emulation on this
+>>> system because it collides with where the kernel is deployed and =
+gets
+>>> broken into tiny pieces that violate kasan's. This is a known =
+problem
+>>> with memmap=3D. You need to pick an memory range that does not =
+collide
+>>> with anything else. See:
+>>>=20
+>>>   =
+https://nvdimm.wiki.kernel.org/how_to_choose_the_correct_memmap_kernel_par=
+ameter_for_pmem_on_your_system
+>>>=20
+>>> ...for more info.
+>>=20
+>> Well, it seems I did exactly follow the information in that link,
+>>=20
+>> [    0.000000] BIOS-provided physical RAM map:
+>> [    0.000000] BIOS-e820: [mem 0x0000000000000000-0x0000000000093fff] =
+usable
+>> [    0.000000] BIOS-e820: [mem 0x0000000000094000-0x000000000009ffff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x00000000000e0000-0x00000000000fffff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x0000000000100000-0x000000005a7a0fff] =
+usable
+>> [    0.000000] BIOS-e820: [mem 0x000000005a7a1000-0x000000005b5e0fff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x000000005b5e1000-0x00000000790fefff] =
+usable
+>> [    0.000000] BIOS-e820: [mem 0x00000000790ff000-0x00000000791fefff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x00000000791ff000-0x000000007b5fefff] =
+ACPI NVS
+>> [    0.000000] BIOS-e820: [mem 0x000000007b5ff000-0x000000007b7fefff] =
+ACPI data
+>> [    0.000000] BIOS-e820: [mem 0x000000007b7ff000-0x000000007b7fffff] =
+usable
+>> [    0.000000] BIOS-e820: [mem 0x000000007b800000-0x000000008fffffff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x00000000ff800000-0x00000000ffffffff] =
+reserved
+>> [    0.000000] BIOS-e820: [mem 0x0000000100000000-0x000000087fffffff] =
+usable
+>>=20
+>> Where 4G is good. Then,
+>>=20
+>> [    0.000000] user-defined physical RAM map:
+>> [    0.000000] user: [mem 0x0000000000000000-0x0000000000093fff] =
+usable
+>> [    0.000000] user: [mem 0x0000000000094000-0x000000000009ffff] =
+reserved
+>> [    0.000000] user: [mem 0x00000000000e0000-0x00000000000fffff] =
+reserved
+>> [    0.000000] user: [mem 0x0000000000100000-0x000000005a7a0fff] =
+usable
+>> [    0.000000] user: [mem 0x000000005a7a1000-0x000000005b5e0fff] =
+reserved
+>> [    0.000000] user: [mem 0x000000005b5e1000-0x00000000790fefff] =
+usable
+>> [    0.000000] user: [mem 0x00000000790ff000-0x00000000791fefff] =
+reserved
+>> [    0.000000] user: [mem 0x00000000791ff000-0x000000007b5fefff] ACPI =
+NVS
+>> [    0.000000] user: [mem 0x000000007b5ff000-0x000000007b7fefff] ACPI =
+data
+>> [    0.000000] user: [mem 0x000000007b7ff000-0x000000007b7fffff] =
+usable
+>> [    0.000000] user: [mem 0x000000007b800000-0x000000008fffffff] =
+reserved
+>> [    0.000000] user: [mem 0x00000000ff800000-0x00000000ffffffff] =
+reserved
+>> [    0.000000] user: [mem 0x0000000100000000-0x00000001ffffffff] =
+persistent (type 12)
+>> [    0.000000] user: [mem 0x0000000200000000-0x000000087fffffff] =
+usable
+>>=20
+>> The doc did mention that =E2=80=9CThere seems to be an issue with =
+CONFIG_KSAN at the moment however.=E2=80=9D
+>> without more detail though.
+>=20
+> Does disabling CONFIG_RANDOMIZE_BASE help? Maybe that workaround has
+> regressed. Effectively we need to find what is causing the kernel to
+> sometimes be placed in the middle of a custom reserved memmap=3D =
+range.
+
+Yes, disabling KASLR works good so far. Assuming the workaround, i.e., =
+f28442497b5c
+(=E2=80=9Cx86/boot: Fix KASLR and memmap=3D collision=E2=80=9D) is =
+correct.
+
+The only other commit that might regress it from my research so far is,
+
+d52e7d5a952c ("x86/KASLR: Parse all 'memmap=3D' boot option entries=E2=80=9D=
+)
