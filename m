@@ -1,15 +1,30 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 000FD202EBECF
- for <linux-nvdimm@lists.01.org>; Wed, 14 Aug 2019 18:36:32 -0700 (PDT)
-Subject: [PATCH 0/3] libnvdimm/security: Enumerate the frozen state and
- other cleanups
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Aug 2019 18:20:13 -0700
-Message-ID: <156583201347.2815870.4687949334637966672.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id F264A20216B81
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 06:39:35 -0700 (PDT)
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x7JDc5q6040729
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:38:08 -0400
+Received: from e34.co.us.ibm.com (e34.co.us.ibm.com [32.97.110.152])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2ufvda12gp-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:38:06 -0400
+Received: from localhost
+ by e34.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Mon, 19 Aug 2019 14:35:12 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v6 5/7] libnvdimm/label: Remove the dpa align check
+Date: Mon, 19 Aug 2019 19:04:49 +0530
+In-Reply-To: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
+References: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
+Message-Id: <20190819133451.19737-6-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,38 +36,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: dan.j.williams@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Jeff reported a scenario where ndctl was failing to unlock DIMMs [1].
-Through the course of debug it was discovered that the security
-interface on the DIMMs was in the 'frozen' state disallowing unlock, or
-any security operation.  Unfortunately the kernel only showed that the
-DIMMs were 'locked', not 'locked' and 'frozen'.
+There's no strict requirement why slot_valid() needs to check for page alignment
+and it would seem to actively hurt cross-page-size compatibility. Let's
+delete the check and rely on checksum validation.
 
-Introduce a new sysfs 'frozen' attribute so that ndctl can reflect the
-"security-operations-allowed" state independently of the lock status.
-Then, followup with cleanups related to replacing a security-state-enum
-with a set of flags.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2019-August/022856.html
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
+ drivers/nvdimm/label.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Dan Williams (3):
-      libnvdimm/security: Introduce a 'frozen' attribute
-      libnvdimm/security: Tighten scope of nvdimm->busy vs security operations
-      libnvdimm/security: Consolidate 'security' operations
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 73e197babc2f..47a4828b8b31 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -353,11 +353,6 @@ static bool slot_valid(struct nvdimm_drvdata *ndd,
+ 	if (slot != __le32_to_cpu(nd_label->slot))
+ 		return false;
+ 
+-	/* check that DPA allocations are page aligned */
+-	if ((__le64_to_cpu(nd_label->dpa)
+-				| __le64_to_cpu(nd_label->rawsize)) % SZ_4K)
+-		return false;
+-
+ 	/* check checksum */
+ 	if (namespace_label_has(ndd, checksum)) {
+ 		u64 sum, sum_save;
+-- 
+2.21.0
 
-
- drivers/acpi/nfit/intel.c        |   65 +++++++-----
- drivers/nvdimm/bus.c             |    2 
- drivers/nvdimm/dimm_devs.c       |  134 ++++++--------------------
- drivers/nvdimm/nd-core.h         |   51 ++++------
- drivers/nvdimm/security.c        |  199 +++++++++++++++++++++++++-------------
- include/linux/libnvdimm.h        |    9 +-
- tools/testing/nvdimm/dimm_devs.c |   19 +---
- 7 files changed, 231 insertions(+), 248 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
