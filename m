@@ -1,20 +1,31 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 70426213281EB
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:00:01 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [ndctl PATCH v9 04/13] libdaxctl: add a 'daxctl_memory' object
- for memory based operations
-Date: Mon, 5 Aug 2019 23:57:28 +0000
-Message-ID: <a772141b4fec163cd52f6edd64fcb5e7e0a3f801.camel@intel.com>
-References: <20190801002932.26430-1-vishal.l.verma@intel.com>
- <20190801002932.26430-5-vishal.l.verma@intel.com>
-In-Reply-To: <20190801002932.26430-5-vishal.l.verma@intel.com>
-Content-Language: en-US
-Content-ID: <8F3CBFC134588347B337D919F31A1B21@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id C9AE720216B77
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 06:36:44 -0700 (PDT)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+ by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x7JDXbCX003863
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:35:18 -0400
+Received: from e35.co.us.ibm.com (e35.co.us.ibm.com [32.97.110.153])
+ by mx0a-001b2d01.pphosted.com with ESMTP id 2ufu5tmdj5-1
+ (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+ for <linux-nvdimm@lists.01.org>; Mon, 19 Aug 2019 09:35:17 -0400
+Received: from localhost
+ by e35.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
+ Violators will be prosecuted
+ for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+ Mon, 19 Aug 2019 14:35:16 +0100
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v6 7/7] libnvdimm/dax: Pick the right alignment default when
+ creating dax devices
+Date: Mon, 19 Aug 2019 19:04:51 +0530
+In-Reply-To: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
+References: <20190819133451.19737-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
+Message-Id: <20190819133451.19737-8-aneesh.kumar@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,636 +37,293 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "pasha.tatashin@soleen.com" <pasha.tatashin@soleen.com>
+To: dan.j.williams@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2019-07-31 at 18:29 -0600, Vishal Verma wrote:
-> Introduce a new 'daxctl_memory' object, which will be used for
-> operations related to managing dax devices in 'system-memory' modes.
-> 
-> Add libdaxctl APIs to get the target_node of a DAX device, and to
-> online, offline, and query the state of hotplugged memory sections
-> associated with a given device.
-> 
-> This adds the following new interfaces:
-> 
->   daxctl_dev_get_target_node
->   daxctl_dev_get_memory
->   daxctl_memory_get_dev
->   daxctl_memory_get_node_path
->   daxctl_memory_get_block_size
->   daxctl_memory_online
->   daxctl_memory_offline
->   daxctl_memory_is_online
->   daxctl_memory_num_sections
-> 
-> Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> [for the memblock-already-online TOCTOU hole]
-> Reported-by: Fan Du <fan.du@intel.com>
-> Tested-by: Fan Du <fan.du@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  daxctl/lib/libdaxctl-private.h |  18 ++
->  daxctl/lib/libdaxctl.c         | 384
-+++++++++++++++++++++++++++++++++
->  daxctl/lib/libdaxctl.sym       |   9 +
->  daxctl/libdaxctl.h             |  11 +
->  4 files changed, 422 insertions(+)
-> 
-[..]
-> +
-> +static bool memblock_in_dev(struct daxctl_dev *dev, const char
-*memblock)
-> +{
-> +	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-> 
-Static analysis complains that this can potentially cause a NULL
-dereference. Fix it by passing the mem object to memblock_in_dev(),
-since it has already been validated by that time.
+Allow arch to provide the supported alignments and use hugepage alignment only
+if we support hugepage. Right now we depend on compile time configs whereas this
+patch switch this to runtime discovery.
 
-3<----
+Architectures like ppc64 can have THP enabled in code, but then can have
+hugepage size disabled by the hypervisor. This allows us to create dax devices
+with PAGE_SIZE alignment in this case.
 
+Existing dax namespace with alignment larger than PAGE_SIZE will fail to
+initialize in this specific case. We still allow fsdax namespace initialization.
 
->From e8bf803e359b784259f645d1ff68e964b2c8618f Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 3 May 2019 13:27:35 -0600
-Subject: [ndctl PATCH] libdaxctl: add a 'daxctl_memory' object for
-memory
- based operations
+With respect to identifying whether to enable hugepage fault for a dax device,
+if THP is enabled during compile, we default to taking hugepage fault and in dax
+fault handler if we find the fault size > alignment we retry with PAGE_SIZE
+fault size.
 
-Introduce a new 'daxctl_memory' object, which will be used for
-operations related to managing dax devices in 'system-memory' modes.
+This also addresses the below failure scenario on ppc64
 
-Add libdaxctl APIs to get the target_node of a DAX device, and to
-online, offline, and query the state of hotplugged memory sections
-associated with a given device.
+ndctl create-namespace --mode=devdax  | grep align
+ "align":16777216,
+ "align":16777216
 
-This adds the following new interfaces:
+cat /sys/devices/ndbus0/region0/dax0.0/supported_alignments
+ 65536 16777216
 
-  daxctl_dev_get_target_node
-  daxctl_dev_get_memory
-  daxctl_memory_get_dev
-  daxctl_memory_get_node_path
-  daxctl_memory_get_block_size
-  daxctl_memory_online
-  daxctl_memory_offline
-  daxctl_memory_is_online
-  daxctl_memory_num_sections
+daxio.static-debug  -z -o /dev/dax0.0
+  Bus error (core dumped)
 
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-[for the memblock-already-online TOCTOU hole]
-Reported-by: Fan Du <fan.du@intel.com>
-Tested-by: Fan Du <fan.du@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+  $ dmesg | tail
+   lpar: Failed hash pte insert with error -4
+   hash-mmu: mm: Hashing failure ! EA=0x7fff17000000 access=0x8000000000000006 current=daxio
+   hash-mmu:     trap=0x300 vsid=0x22cb7a3 ssize=1 base psize=2 psize 10 pte=0xc000000501002b86
+   daxio[3860]: bus error (7) at 7fff17000000 nip 7fff973c007c lr 7fff973bff34 code 2 in libpmem.so.1.0.0[7fff973b0000+20000]
+   daxio[3860]: code: 792945e4 7d494b78 e95f0098 7d494b78 f93f00a0 4800012c e93f0088 f93f0120
+   daxio[3860]: code: e93f00a0 f93f0128 e93f0120 e95f0128 <f9490000> e93f0088 39290008 f93f0110
+
+The failure was due to guest kernel using wrong page size.
+
+The namespaces created with 16M alignment will appear as below on a config with
+16M page size disabled.
+
+$ ndctl list -Ni
+[
+  {
+    "dev":"namespace0.1",
+    "mode":"fsdax",
+    "map":"dev",
+    "size":5351931904,
+    "uuid":"fc6e9667-461a-4718-82b4-69b24570bddb",
+    "align":16777216,
+    "blockdev":"pmem0.1",
+    "supported_alignments":[
+      65536
+    ]
+  },
+  {
+    "dev":"namespace0.0",
+    "mode":"fsdax",    <==== devdax 16M alignment marked disabled.
+    "map":"mem",
+    "size":5368709120,
+    "uuid":"a4bdf81a-f2ee-4bc6-91db-7b87eddd0484",
+    "state":"disabled"
+  }
+]
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- daxctl/lib/libdaxctl-private.h |  18 ++
- daxctl/lib/libdaxctl.c         | 384 +++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |   9 +
- daxctl/libdaxctl.h             |  11 +
- 4 files changed, 422 insertions(+)
+ arch/powerpc/include/asm/libnvdimm.h |  9 ++++++++
+ arch/powerpc/mm/Makefile             |  1 +
+ arch/powerpc/mm/nvdimm.c             | 34 ++++++++++++++++++++++++++++
+ arch/x86/include/asm/libnvdimm.h     | 19 ++++++++++++++++
+ drivers/nvdimm/nd.h                  |  6 -----
+ drivers/nvdimm/pfn_devs.c            | 32 +++++++++++++++++++++++++-
+ include/linux/huge_mm.h              |  7 +++++-
+ 7 files changed, 100 insertions(+), 8 deletions(-)
+ create mode 100644 arch/powerpc/include/asm/libnvdimm.h
+ create mode 100644 arch/powerpc/mm/nvdimm.c
+ create mode 100644 arch/x86/include/asm/libnvdimm.h
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-
-private.h
-index fee67d1..01091de 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -39,6 +39,13 @@ static const char *dax_modules[] = {
- 	[DAXCTL_DEV_MODE_RAM] = "kmem",
- };
- 
-+enum memory_op {
-+	MEM_SET_OFFLINE,
-+	MEM_SET_ONLINE,
-+	MEM_IS_ONLINE,
-+	MEM_COUNT,
-+};
+diff --git a/arch/powerpc/include/asm/libnvdimm.h b/arch/powerpc/include/asm/libnvdimm.h
+new file mode 100644
+index 000000000000..d35fd7f48603
+--- /dev/null
++++ b/arch/powerpc/include/asm/libnvdimm.h
+@@ -0,0 +1,9 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_POWERPC_LIBNVDIMM_H
++#define _ASM_POWERPC_LIBNVDIMM_H
 +
- /**
-  * struct daxctl_region - container for dax_devices
-  */
-@@ -70,8 +77,19 @@ struct daxctl_dev {
- 	struct kmod_module *module;
- 	struct kmod_list *kmod_list;
- 	struct daxctl_region *region;
-+	struct daxctl_memory *mem;
-+	int target_node;
-+};
++#define nd_pfn_supported_alignments nd_pfn_supported_alignments
++extern unsigned long *nd_pfn_supported_alignments(void);
++extern unsigned long nd_pfn_default_alignment(void);
 +
-+struct daxctl_memory {
-+	struct daxctl_dev *dev;
-+	void *mem_buf;
-+	size_t buf_len;
-+	char *node_path;
-+	unsigned long block_size;
- };
- 
++#endif
+diff --git a/arch/powerpc/mm/Makefile b/arch/powerpc/mm/Makefile
+index 0f499db315d6..42e4a399ba5d 100644
+--- a/arch/powerpc/mm/Makefile
++++ b/arch/powerpc/mm/Makefile
+@@ -20,3 +20,4 @@ obj-$(CONFIG_HIGHMEM)		+= highmem.o
+ obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
+ obj-$(CONFIG_PPC_PTDUMP)	+= ptdump/
+ obj-$(CONFIG_KASAN)		+= kasan/
++obj-$(CONFIG_NVDIMM_PFN)		+= nvdimm.o
+diff --git a/arch/powerpc/mm/nvdimm.c b/arch/powerpc/mm/nvdimm.c
+new file mode 100644
+index 000000000000..a29a4510715e
+--- /dev/null
++++ b/arch/powerpc/mm/nvdimm.c
+@@ -0,0 +1,34 @@
++// SPDX-License-Identifier: GPL-2.0
 +
- static inline int check_kmod(struct kmod_ctx *kmod_ctx)
- {
- 	return kmod_ctx ? 0 : -ENXIO;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index aa0d2f2..bcc77b6 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -200,6 +200,15 @@ DAXCTL_EXPORT void daxctl_region_get_uuid(struct
-daxctl_region *region, uuid_t u
- 	uuid_copy(uu, region->uuid);
- }
- 
-+static void free_mem(struct daxctl_dev *dev)
++#include <asm/pgtable.h>
++#include <asm/page.h>
++
++#include <linux/mm.h>
++/*
++ * We support only pte and pmd mappings for now.
++ */
++const unsigned long *nd_pfn_supported_alignments(void)
 +{
-+	if (dev && dev->mem) {
-+		free(dev->mem->node_path);
-+		free(dev->mem);
-+		dev->mem = NULL;
-+	}
-+}
++	static unsigned long supported_alignments[3];
 +
- static void free_dev(struct daxctl_dev *dev, struct list_head *head)
- {
- 	if (head)
-@@ -207,6 +216,7 @@ static void free_dev(struct daxctl_dev *dev, struct
-list_head *head)
- 	kmod_module_unref_list(dev->kmod_list);
- 	free(dev->dev_buf);
- 	free(dev->dev_path);
-+	free_mem(dev);
- 	free(dev);
- }
- 
-@@ -380,6 +390,94 @@ static struct kmod_list *to_module_list(struct
-daxctl_ctx *ctx,
- 	return list;
- }
- 
-+static int dev_is_system_ram_capable(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char *mod_path, *mod_base;
-+	char path[200];
-+	const int len = sizeof(path);
++	supported_alignments[0] = PAGE_SIZE;
 +
-+	if (!device_model_is_dax_bus(dev))
-+		return false;
++	if (has_transparent_hugepage())
++		supported_alignments[1] = HPAGE_PMD_SIZE;
++	else
++		supported_alignments[1] = 0;
 +
-+	if (!daxctl_dev_is_enabled(dev))
-+		return false;
-+
-+	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >=
-len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return false;
-+	}
-+
-+	mod_path = realpath(path, NULL);
-+	if (!mod_path)
-+		return false;
-+
-+	mod_base = basename(mod_path);
-+	if (strcmp(mod_base, dax_modules[DAXCTL_DEV_MODE_RAM]) == 0) {
-+		free(mod_path);
-+		return true;
-+	}
-+
-+	free(mod_path);
-+	return false;
++	supported_alignments[2] = 0;
++	return supported_alignments;
 +}
 +
 +/*
-+ * This checks for the device to be in system-ram mode, so calling
-+ * daxctl_dev_get_memory() on a devdax mode device will always return
-NULL.
++ * Use pmd mapping if supported as default alignment
 + */
-+static struct daxctl_memory *daxctl_dev_alloc_mem(struct daxctl_dev
-*dev)
++unsigned long nd_pfn_default_alignment(void)
 +{
-+	const char *size_path =
-"/sys/devices/system/memory/block_size_bytes";
-+	const char *node_base = "/sys/devices/system/node/node";
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	struct daxctl_memory *mem;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int node_num;
 +
-+	if (!dev_is_system_ram_capable(dev))
-+		return NULL;
++	if (has_transparent_hugepage())
++		return HPAGE_PMD_SIZE;
++	return PAGE_SIZE;
++}
+diff --git a/arch/x86/include/asm/libnvdimm.h b/arch/x86/include/asm/libnvdimm.h
+new file mode 100644
+index 000000000000..3d5361db9164
+--- /dev/null
++++ b/arch/x86/include/asm/libnvdimm.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _ASM_X86_LIBNVDIMM_H
++#define _ASM_X86_LIBNVDIMM_H
 +
-+	mem = calloc(1, sizeof(*mem));
-+	if (!mem)
-+		return NULL;
-+
-+	mem->dev = dev;
-+
-+	if (sysfs_read_attr(ctx, size_path, buf) == 0) {
-+		mem->block_size = strtoul(buf, NULL, 16);
-+		if (mem->block_size == 0 || mem->block_size ==
-ULONG_MAX) {
-+			err(ctx, "%s: Unable to determine memblock size:
-%s\n",
-+				devname, strerror(errno));
-+			mem->block_size = 0;
-+		}
-+	}
-+
-+	node_num = daxctl_dev_get_target_node(dev);
-+	if (node_num >= 0) {
-+		if (asprintf(&mem->node_path, "%s%d", node_base,
-+				node_num) < 0) {
-+			err(ctx, "%s: Unable to set node_path\n",
-devname);
-+			goto err_mem;
-+		}
-+	}
-+
-+	mem->mem_buf = calloc(1, strlen(node_base) + 256);
-+	if (!mem->mem_buf)
-+		goto err_node;
-+	mem->buf_len = strlen(node_base) + 256;
-+
-+	return mem;
-+
-+err_node:
-+	free(mem->node_path);
-+err_mem:
-+	free(mem);
-+	return NULL;
++static inline unsigned long nd_pfn_default_alignment(void)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return HPAGE_PMD_SIZE;
++#else
++	return PAGE_SIZE;
++#endif
 +}
 +
- static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- {
- 	const char *devname = devpath_to_devname(daxdev_base);
-@@ -435,6 +533,12 @@ static void *add_dax_dev(void *parent, int id,
-const char *daxdev_base)
- 	if (rc == 0)
- 		dev->kmod_list = to_module_list(ctx, buf);
- 
-+	sprintf(path, "%s/target_node", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		dev->target_node = strtol(buf, NULL, 0);
-+	else
-+		dev->target_node = -1;
++static inline unsigned long nd_altmap_align_size(unsigned long nd_align)
++{
++	return PMD_SIZE;
++}
 +
- 	daxctl_dev_foreach(region, dev_dup)
- 		if (dev_dup->id == dev->id) {
- 			free_dev(dev, NULL);
-@@ -862,6 +966,9 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct
-daxctl_dev *dev)
- 	if (!daxctl_dev_is_enabled(dev))
- 		return 0;
++#endif
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index e89af4b2d8e9..401a78b02116 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -289,12 +289,6 @@ static inline struct device *nd_btt_create(struct nd_region *nd_region)
+ struct nd_pfn *to_nd_pfn(struct device *dev);
+ #if IS_ENABLED(CONFIG_NVDIMM_PFN)
  
-+	/* If there is a memory object, first free that */
-+	free_mem(dev);
-+
- 	daxctl_unbind(ctx, dev->dev_path);
- 
- 	if (daxctl_dev_is_enabled(dev)) {
-@@ -944,3 +1051,280 @@ DAXCTL_EXPORT unsigned long long
-daxctl_dev_get_size(struct daxctl_dev *dev)
- {
- 	return dev->size;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define PFN_DEFAULT_ALIGNMENT HPAGE_PMD_SIZE
+-#else
+-#define PFN_DEFAULT_ALIGNMENT PAGE_SIZE
+-#endif
+-
+ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns);
+ bool is_nd_pfn(struct device *dev);
+ struct device *nd_pfn_create(struct nd_region *nd_region);
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 22db77ac3d0e..7dc0b5da4c6b 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -10,6 +10,7 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <asm/libnvdimm.h>
+ #include "nd-core.h"
+ #include "pfn.h"
+ #include "nd.h"
+@@ -103,6 +104,8 @@ static ssize_t align_show(struct device *dev,
+ 	return sprintf(buf, "%ld\n", nd_pfn->align);
  }
-+
-+DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
+ 
++#ifndef nd_pfn_supported_alignments
++#define nd_pfn_supported_alignments nd_pfn_supported_alignments
+ static const unsigned long *nd_pfn_supported_alignments(void)
+ {
+ 	/*
+@@ -125,6 +128,7 @@ static const unsigned long *nd_pfn_supported_alignments(void)
+ 
+ 	return data;
+ }
++#endif
+ 
+ static ssize_t align_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+@@ -302,7 +306,7 @@ struct device *nd_pfn_devinit(struct nd_pfn *nd_pfn,
+ 		return NULL;
+ 
+ 	nd_pfn->mode = PFN_MODE_NONE;
+-	nd_pfn->align = PFN_DEFAULT_ALIGNMENT;
++	nd_pfn->align = nd_pfn_default_alignment();
+ 	dev = &nd_pfn->dev;
+ 	device_initialize(&nd_pfn->dev);
+ 	if (ndns && !__nd_attach_ndns(&nd_pfn->dev, ndns, &nd_pfn->ndns)) {
+@@ -412,6 +416,20 @@ static int nd_pfn_clear_memmap_errors(struct nd_pfn *nd_pfn)
+ 	return 0;
+ }
+ 
++static bool nd_supported_alignment(unsigned long align)
 +{
-+	return dev->target_node;
-+}
++	int i;
++	const unsigned long *supported = nd_pfn_supported_alignments();
 +
-+DAXCTL_EXPORT struct daxctl_memory *daxctl_dev_get_memory(struct
-daxctl_dev *dev)
-+{
-+	if (dev->mem)
-+		return dev->mem;
-+	else
-+		return daxctl_dev_alloc_mem(dev);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_dev *daxctl_memory_get_dev(struct
-daxctl_memory *mem)
-+{
-+	return mem->dev;
-+}
-+
-+DAXCTL_EXPORT const char *daxctl_memory_get_node_path(struct
-daxctl_memory *mem)
-+{
-+	return mem->node_path;
-+}
-+
-+DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct
-daxctl_memory *mem)
-+{
-+	return mem->block_size;
-+}
-+
-+static int online_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "online_movable";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/*
-+	 * if already online, possibly due to kernel config or a udev
-rule,
-+	 * there is nothing to do and we can skip over the memblock
-+	 */
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 1;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc) {
-+		/*
-+		 * While we performed an already-online check above,
-there
-+		 * is still a TOCTOU hole where someone (such as a udev
-rule)
-+		 * may have raced to online the memory. In such a case,
-+		 * the sysfs store will fail, however we can check for
-this
-+		 * by simply reading the state again. If it changed to
-the
-+		 * desired state, then we don't have to error out.
-+		 */
-+		if (sysfs_read_attr(ctx, path, buf) == 0) {
-+			if (strncmp(buf, "online", 6) == 0)
-+				return 1;
-+		}
-+		err(ctx, "%s: Failed to online %s: %s\n",
-+			devname, path, strerror(-rc));
-+	}
-+	return rc;
-+}
-+
-+static int offline_one_memblock(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "offline";
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	/* if already offline, there is nothing to do */
-+	if (strncmp(buf, "offline", 7) == 0)
-+		return 1;
-+
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc) {
-+		/* Close the TOCTOU hole like in online_one_memblock()
-above */
-+		if (sysfs_read_attr(ctx, path, buf) == 0) {
-+			if (strncmp(buf, "offline", 7) == 0)
-+				return 1;
-+		}
-+		err(ctx, "%s: Failed to offline %s: %s\n",
-+			devname, path, strerror(-rc));
-+	}
-+	return rc;
-+}
-+
-+static int memblock_is_online(struct daxctl_dev *dev, char *path)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc) {
-+		err(ctx, "%s: Failed to read %s: %s\n",
-+			devname, path, strerror(-rc));
-+		return rc;
-+	}
-+
-+	if (strncmp(buf, "online", 6) == 0)
-+		return 1;
-+
-+	/* offline */
-+	return 0;
-+}
-+
-+static bool memblock_in_dev(struct daxctl_memory *mem, const char
-*memblock)
-+{
-+	const char *mem_base = "/sys/devices/system/memory/";
-+	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
-+	unsigned long long memblock_res, dev_start, dev_end;
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	unsigned long memblock_size;
-+	int path_len = mem->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
-+	unsigned long phys_index;
-+	char *path = mem->mem_buf;
-+
-+	if (snprintf(path, path_len, "%s/%s/phys_index",
-+			mem_base, memblock) < 0)
++	if (align == 0)
 +		return false;
 +
-+	if (sysfs_read_attr(ctx, path, buf) == 0) {
-+		phys_index = strtoul(buf, NULL, 16);
-+		if (phys_index == 0 || phys_index == ULONG_MAX) {
-+			err(ctx, "%s: %s: Unable to determine
-phys_index: %s\n",
-+				devname, memblock, strerror(errno));
-+			return false;
-+		}
-+	} else {
-+		err(ctx, "%s: %s: Unable to determine phys_index: %s\n",
-+			devname, memblock, strerror(errno));
-+		return false;
-+	}
-+
-+	dev_start = daxctl_dev_get_resource(dev);
-+	if (!dev_start) {
-+		err(ctx, "%s: Unable to determine resource\n", devname);
-+		return false;
-+	}
-+	dev_end = dev_start + daxctl_dev_get_size(dev);
-+
-+	memblock_size = daxctl_memory_get_block_size(mem);
-+	if (!memblock_size) {
-+		err(ctx, "%s: Unable to determine memory block size\n",
-+			devname);
-+		return false;
-+	}
-+	memblock_res = phys_index * memblock_size;
-+
-+	if (memblock_res >= dev_start && memblock_res <= dev_end)
-+		return true;
-+
++	for (i = 0; supported[i]; i++)
++		if (align == supported[i])
++			return true;
 +	return false;
 +}
 +
-+static int op_for_one_memblock(struct daxctl_memory *mem, char *path,
-+		enum memory_op op)
-+{
-+	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	int rc;
-+
-+	switch (op) {
-+	case MEM_SET_ONLINE:
-+		return online_one_memblock(dev, path);
-+	case MEM_SET_OFFLINE:
-+		return offline_one_memblock(dev, path);
-+	case MEM_IS_ONLINE:
-+		rc = memblock_is_online(dev, path);
-+		if (rc < 0)
-+			return rc;
-+		/*
-+		 * Retain the 'normal' semantics for if
-(memblock_is_online()),
-+		 * but since count needs rc == 0, we'll just flip rc for
-this op
-+		 */
-+		return !rc;
-+	case MEM_COUNT:
-+		return 0;
-+	}
-+
-+	err(ctx, "%s: BUG: unknown op: %d\n", devname, op);
-+	return -EINVAL;
-+}
-+
-+static int daxctl_memory_op(struct daxctl_memory *mem, enum memory_op
-op)
-+{
-+	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *node_path;
-+	int rc, count = 0;
-+	struct dirent *de;
-+	DIR *node_dir;
-+
-+	node_path = daxctl_memory_get_node_path(mem);
-+	if (!node_path) {
-+		err(ctx, "%s: Failed to get node_path\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	node_dir = opendir(node_path);
-+	if (!node_dir)
-+		return -errno;
-+
-+	errno = 0;
-+	while ((de = readdir(node_dir)) != NULL) {
-+		char *path = mem->mem_buf;
-+		int len = mem->buf_len;
-+
-+		if (strncmp(de->d_name, "memory", 6) == 0) {
-+			if (!memblock_in_dev(mem, de->d_name))
-+				continue;
-+			rc = snprintf(path, len, "%s/%s/state",
-+				node_path, de->d_name);
-+			if (rc < 0) {
-+				rc = -ENOMEM;
-+				goto out_dir;
-+			}
-+			rc = op_for_one_memblock(mem, path, op);
-+			if (rc < 0)
-+				goto out_dir;
-+			if (rc == 0)
-+				count++;
-+		}
-+		errno = 0;
-+	}
-+	if (errno) {
-+		rc = -errno;
-+		goto out_dir;
-+	}
-+	rc = count;
-+
-+out_dir:
-+	closedir(node_dir);
-+	return rc;
-+}
-+
-+DAXCTL_EXPORT int daxctl_memory_online(struct daxctl_memory *mem)
-+{
-+	return daxctl_memory_op(mem, MEM_SET_ONLINE);
-+}
-+
-+DAXCTL_EXPORT int daxctl_memory_offline(struct daxctl_memory *mem)
-+{
-+	return daxctl_memory_op(mem, MEM_SET_OFFLINE);
-+}
-+
-+DAXCTL_EXPORT int daxctl_memory_is_online(struct daxctl_memory *mem)
-+{
-+	return daxctl_memory_op(mem, MEM_IS_ONLINE);
-+}
-+
-+DAXCTL_EXPORT int daxctl_memory_num_sections(struct daxctl_memory *mem)
-+{
-+	return daxctl_memory_op(mem, MEM_COUNT);
-+}
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 1692624..bc18604 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -59,4 +59,13 @@ global:
- 	daxctl_dev_enable_devdax;
- 	daxctl_dev_enable_ram;
- 	daxctl_dev_get_resource;
-+	daxctl_dev_get_target_node;
-+	daxctl_dev_get_memory;
-+	daxctl_memory_get_dev;
-+	daxctl_memory_get_node_path;
-+	daxctl_memory_get_block_size;
-+	daxctl_memory_online;
-+	daxctl_memory_offline;
-+	daxctl_memory_is_online;
-+	daxctl_memory_num_sections;
- } LIBDAXCTL_5;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index adf55f3..fb6c3b1 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -73,6 +73,17 @@ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- int daxctl_dev_disable(struct daxctl_dev *dev);
- int daxctl_dev_enable_devdax(struct daxctl_dev *dev);
- int daxctl_dev_enable_ram(struct daxctl_dev *dev);
-+int daxctl_dev_get_target_node(struct daxctl_dev *dev);
-+
-+struct daxctl_memory;
-+struct daxctl_memory *daxctl_dev_get_memory(struct daxctl_dev *dev);
-+struct daxctl_dev *daxctl_memory_get_dev(struct daxctl_memory *mem);
-+const char *daxctl_memory_get_node_path(struct daxctl_memory *mem);
-+unsigned long daxctl_memory_get_block_size(struct daxctl_memory *mem);
-+int daxctl_memory_online(struct daxctl_memory *mem);
-+int daxctl_memory_offline(struct daxctl_memory *mem);
-+int daxctl_memory_is_online(struct daxctl_memory *mem);
-+int daxctl_memory_num_sections(struct daxctl_memory *mem);
+ /**
+  * nd_pfn_validate - read and validate info-block
+  * @nd_pfn: fsdax namespace runtime state / properties
+@@ -496,6 +514,18 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		return -EOPNOTSUPP;
+ 	}
  
- #define daxctl_dev_foreach(region, dev) \
-         for (dev = daxctl_dev_get_first(region); \
++	/*
++	 * Check whether the we support the alignment. For Dax if the
++	 * superblock alignment is not matching, we won't initialize
++	 * the device.
++	 */
++	if (!nd_supported_alignment(align) &&
++	    !memcmp(pfn_sb->signature, DAX_SIG, PFN_SIG_LEN)) {
++		dev_err(&nd_pfn->dev, "init failed, alignment mismatch: "
++			"%ld:%ld\n", nd_pfn->align, align);
++		return -EOPNOTSUPP;
++	}
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 45ede62aa85b..4fa91f9bd0da 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -108,7 +108,12 @@ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+ 
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+-
++	/*
++	 * For dax let's try to do hugepage fault always. If we don't support
++	 * hugepages we will not have enabled namespaces with hugepage alignment.
++	 * This also means we try to handle hugepage fault on device with
++	 * smaller alignment. But for then we will return with VM_FAULT_FALLBACK
++	 */
+ 	if (vma_is_dax(vma))
+ 		return true;
+ 
 -- 
-2.20.1
-
+2.21.0
 
 _______________________________________________
 Linux-nvdimm mailing list
