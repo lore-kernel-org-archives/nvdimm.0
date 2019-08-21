@@ -1,13 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id B2B9B213030A2
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 16:45:30 -0700 (PDT)
-Subject: [ndctl PATCH v4 0/7] Improvements for namespace creation/interrogation
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 16:28:41 -0700
-Message-ID: <156504772175.847544.11368833704527657055.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D90B821959CB2
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:48 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 03/19] virtio: Add get_shm_region method
+Date: Wed, 21 Aug 2019 13:57:04 -0400
+Message-Id: <20190821175720.25901-4-vgoyal@redhat.com>
+In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -20,52 +22,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: miklos@szeredi.hu, dgilbert@redhat.com, virtio-fs@redhat.com, Sebastien Boeuf <sebastien.boeuf@intel.com>, stefanha@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Changes since v3 [1]:
-- Drop the warning suppression for gcc9.1.1 the complains about taking
-  the address of packed structure members. This needs a rethink since
-  even the kernel's common ioctl payloads are defined to be packed. This
-  will require something like the kernel's (get_unaligned()) helpers.
-  (Jeff)
+From: Sebastien Boeuf <sebastien.boeuf@intel.com>
 
-- Fix up a static analysis report introduced by "ndctl/dimm: Minimize
-  data-transfer for init-labels"
+Virtio defines 'shared memory regions' that provide a continuously
+shared region between the host and guest.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2019-August/022869.html
+Provide a method to find a particular region on a device.
 
+Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Signed-off-by: Dr. David Alan Gilbert <dgilbert@redhat.com>
 ---
+ include/linux/virtio_config.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-This trimmed version includes the extent support for label operations
-which significantly speeds up common label operations like
-'init-labels'. It also fixes up some surprising results from
-'create-namespace' where it would fail even though available capacity is
-present.
+diff --git a/include/linux/virtio_config.h b/include/linux/virtio_config.h
+index bb4cc4910750..c859f000a751 100644
+--- a/include/linux/virtio_config.h
++++ b/include/linux/virtio_config.h
+@@ -10,6 +10,11 @@
+ 
+ struct irq_affinity;
+ 
++struct virtio_shm_region {
++       u64 addr;
++       u64 len;
++};
++
+ /**
+  * virtio_config_ops - operations for configuring a virtio device
+  * Note: Do not assume that a transport implements all of the operations
+@@ -65,6 +70,7 @@ struct irq_affinity;
+  *      the caller can then copy.
+  * @set_vq_affinity: set the affinity for a virtqueue (optional).
+  * @get_vq_affinity: get the affinity for a virtqueue (optional).
++ * @get_shm_region: get a shared memory region based on the index.
+  */
+ typedef void vq_callback_t(struct virtqueue *);
+ struct virtio_config_ops {
+@@ -88,6 +94,8 @@ struct virtio_config_ops {
+ 			       const struct cpumask *cpu_mask);
+ 	const struct cpumask *(*get_vq_affinity)(struct virtio_device *vdev,
+ 			int index);
++	bool (*get_shm_region)(struct virtio_device *vdev,
++			       struct virtio_shm_region *region, u8 id);
+ };
+ 
+ /* If driver didn't advertise the feature, it will never appear. */
+@@ -250,6 +258,15 @@ int virtqueue_set_affinity(struct virtqueue *vq, const struct cpumask *cpu_mask)
+ 	return 0;
+ }
+ 
++static inline
++bool virtio_get_shm_region(struct virtio_device *vdev,
++                         struct virtio_shm_region *region, u8 id)
++{
++	if (!vdev->config->get_shm_region)
++		return false;
++	return vdev->config->get_shm_region(vdev, region, id);
++}
++
+ static inline bool virtio_is_little_endian(struct virtio_device *vdev)
+ {
+ 	return virtio_has_feature(vdev, VIRTIO_F_VERSION_1) ||
+-- 
+2.20.1
 
----
-
-Dan Williams (7):
-      ndctl/dimm: Support small label reads/writes
-      ndctl/dimm: Minimize data-transfer for init-labels
-      ndctl/dimm: Add offset and size options to {read,write,zero}-labels
-      ndctl/dimm: Limit read-labels with --index option
-      ndctl/namespace: Minimize label data transfer for autolabel
-      ndctl/namespace: Continue region search on 'missing seed' event
-      ndctl/namespace: Report ENOSPC when regions are full
-
-
- Documentation/ndctl/labels-options.txt    |    9 ++
- Documentation/ndctl/ndctl-read-labels.txt |    7 ++
- ndctl/dimm.c                              |   92 +++++++++++++++++--------
- ndctl/lib/dimm.c                          |   85 +++++++++++++++++++++--
- ndctl/lib/libndctl.c                      |  108 +++++++++++++++++++++++++----
- ndctl/lib/libndctl.sym                    |    9 ++
- ndctl/lib/private.h                       |    4 -
- ndctl/libndctl.h                          |    9 ++
- ndctl/namespace.c                         |   13 +++
- util/util.h                               |    4 +
- 10 files changed, 285 insertions(+), 55 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
