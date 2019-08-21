@@ -2,12 +2,14 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D67C120212C9D
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:48 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id AC8B620212CB8
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:54 -0700 (PDT)
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH v3 00/19][RFC] virtio-fs: Enable DAX support
-Date: Wed, 21 Aug 2019 13:57:01 -0400
-Message-Id: <20190821175720.25901-1-vgoyal@redhat.com>
+Subject: [PATCH 12/19] fuse, dax: add DAX mmap support
+Date: Wed, 21 Aug 2019 13:57:13 -0400
+Message-Id: <20190821175720.25901-13-vgoyal@redhat.com>
+In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -24,70 +26,110 @@ To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@li
 Cc: virtio-fs@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi,
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-This patch series enables DAX support for virtio-fs filesystem. Patches
-are based on 5.3-rc5 kernel and need first patch series posted for
-virtio-fs support with subject "virtio-fs: shared file system for virtual
-machines".
+Add DAX mmap() support.
 
-https://www.redhat.com/archives/virtio-fs/2019-August/msg00281.html
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+---
+ fs/fuse/file.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-Enabling DAX seems to improve performance for most of the operations
-in general a great deal. I have reported performance numbers in first patch
-series so I am not repeating these here.
-
-Any comments or feedback is welcome.
-
-Thanks
-Vivek
-
-Sebastien Boeuf (3):
-  virtio: Add get_shm_region method
-  virtio: Implement get_shm_region for PCI transport
-  virtio: Implement get_shm_region for MMIO transport
-
-Stefan Hajnoczi (4):
-  dax: remove block device dependencies
-  fuse, dax: add fuse_conn->dax_dev field
-  virtio_fs, dax: Set up virtio_fs dax_device
-  fuse, dax: add DAX mmap support
-
-Vivek Goyal (12):
-  dax: Pass dax_dev to dax_writeback_mapping_range()
-  fuse: Keep a list of free dax memory ranges
-  fuse: implement FUSE_INIT map_alignment field
-  fuse: Introduce setupmapping/removemapping commands
-  fuse, dax: Implement dax read/write operations
-  fuse: Define dax address space operations
-  fuse, dax: Take ->i_mmap_sem lock during dax page fault
-  fuse: Maintain a list of busy elements
-  dax: Create a range version of dax_layout_busy_page()
-  fuse: Add logic to free up a memory range
-  fuse: Release file in process context
-  fuse: Take inode lock for dax inode truncation
-
- drivers/dax/super.c                |    3 +-
- drivers/virtio/virtio_mmio.c       |   32 +
- drivers/virtio/virtio_pci_modern.c |  108 +++
- fs/dax.c                           |   89 +-
- fs/ext2/inode.c                    |    2 +-
- fs/ext4/inode.c                    |    2 +-
- fs/fuse/cuse.c                     |    3 +-
- fs/fuse/dir.c                      |    2 +
- fs/fuse/file.c                     | 1206 +++++++++++++++++++++++++++-
- fs/fuse/fuse_i.h                   |   99 ++-
- fs/fuse/inode.c                    |  138 +++-
- fs/fuse/virtio_fs.c                |  134 +++-
- fs/xfs/xfs_aops.c                  |    2 +-
- include/linux/dax.h                |   12 +-
- include/linux/virtio_config.h      |   17 +
- include/uapi/linux/fuse.h          |   47 +-
- include/uapi/linux/virtio_fs.h     |    3 +
- include/uapi/linux/virtio_mmio.h   |   11 +
- include/uapi/linux/virtio_pci.h    |   11 +-
- 19 files changed, 1868 insertions(+), 53 deletions(-)
-
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index f323b7b04414..32870bb862e7 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2730,10 +2730,15 @@ static const struct vm_operations_struct fuse_file_vm_ops = {
+ 	.page_mkwrite	= fuse_page_mkwrite,
+ };
+ 
++static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma);
+ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fuse_file *ff = file->private_data;
+ 
++	/* DAX mmap is superior to direct_io mmap */
++	if (IS_DAX(file_inode(file)))
++		return fuse_dax_mmap(file, vma);
++
+ 	if (ff->open_flags & FOPEN_DIRECT_IO) {
+ 		/* Can't provide the coherency needed for MAP_SHARED */
+ 		if (vma->vm_flags & VM_MAYSHARE)
+@@ -2765,9 +2770,65 @@ static ssize_t fuse_file_splice_read(struct file *in, loff_t *ppos,
+ 
+ }
+ 
++static int __fuse_dax_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
++			    bool write)
++{
++	vm_fault_t ret;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	struct super_block *sb = inode->i_sb;
++	pfn_t pfn;
++
++	if (write)
++		sb_start_pagefault(sb);
++
++	/* TODO inode semaphore to protect faults vs truncate */
++
++	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
++
++	if (ret & VM_FAULT_NEEDDSYNC)
++		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
++
++	if (write)
++		sb_end_pagefault(sb);
++
++	return ret;
++}
++
++static vm_fault_t fuse_dax_fault(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE,
++				vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_huge_fault(struct vm_fault *vmf,
++			       enum page_entry_size pe_size)
++{
++	return __fuse_dax_fault(vmf, pe_size, vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_page_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static vm_fault_t fuse_dax_pfn_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static const struct vm_operations_struct fuse_dax_vm_ops = {
++	.fault		= fuse_dax_fault,
++	.huge_fault	= fuse_dax_huge_fault,
++	.page_mkwrite	= fuse_dax_page_mkwrite,
++	.pfn_mkwrite	= fuse_dax_pfn_mkwrite,
++};
++
+ static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	return -EINVAL; /* TODO */
++	file_accessed(file);
++	vma->vm_ops = &fuse_dax_vm_ops;
++	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	return 0;
+ }
+ 
+ static int convert_fuse_file_lock(struct fuse_conn *fc,
+@@ -3825,6 +3886,7 @@ static const struct file_operations fuse_file_operations = {
+ 	.release	= fuse_release,
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.flock		= fuse_file_flock,
+ 	.splice_read	= fuse_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
 -- 
 2.20.1
 
