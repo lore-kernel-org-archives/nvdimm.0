@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A3D6E21311BE1
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 17:11:33 -0700 (PDT)
-Subject: [ndctl PATCH v3 4/8] ndctl/dimm: Add offset and size options to
- {read, write, zero}-labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 02 Aug 2019 16:54:45 -0700
-Message-ID: <156479008569.707590.7029357779155212106.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 796722194EB7A
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:55 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 17/19] fuse: Add logic to free up a memory range
+Date: Wed, 21 Aug 2019 13:57:18 -0400
+Message-Id: <20190821175720.25901-18-vgoyal@redhat.com>
+In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,342 +22,814 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: kbuild test robot <lkp@intel.com>, miklos@szeredi.hu, dgilbert@redhat.com, virtio-fs@redhat.com, Liu Bo <bo.liu@linux.alibaba.com>, stefanha@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow for more precision in label utilities, i.e. stop operating over
-the entire label area.
+Add logic to free up a busy memory range. Freed memory range will be
+returned to free pool. Add a worker which can be started to select
+and free some busy memory ranges.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+In certain cases (write path), process can steal one of its busy
+dax ranges (inline reclaim) if free range is not available.
+
+If free range is not available and nothing can't be stolen from same
+inode, caller waits on a waitq for free range to become available.
+
+For reclaiming a range, as of now we need to hold following locks in
+specified order.
+
+	down_write(&fi->i_mmap_sem);
+	down_write(&fi->i_dmap_sem);
+
+
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Liu Bo <bo.liu@linux.alibaba.com>
 ---
- Documentation/ndctl/labels-options.txt |    9 ++++++
- ndctl/dimm.c                           |   49 ++++++++++++++++++++++++--------
- ndctl/lib/dimm.c                       |   36 ++++++++++++++++++++----
- ndctl/lib/libndctl.c                   |    1 +
- ndctl/lib/libndctl.sym                 |    2 +
- ndctl/lib/private.h                    |    3 --
- ndctl/libndctl.h                       |    4 +++
- util/util.h                            |    4 +++
- 8 files changed, 87 insertions(+), 21 deletions(-)
+ fs/fuse/file.c      | 488 +++++++++++++++++++++++++++++++++++++++++++-
+ fs/fuse/fuse_i.h    |  25 +++
+ fs/fuse/inode.c     |   5 +
+ fs/fuse/virtio_fs.c |  10 +
+ 4 files changed, 519 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/ndctl/labels-options.txt b/Documentation/ndctl/labels-options.txt
-index 539ace079557..4aee37969fd5 100644
---- a/Documentation/ndctl/labels-options.txt
-+++ b/Documentation/ndctl/labels-options.txt
-@@ -5,6 +5,15 @@
- 	operate on every dimm in the system, optionally filtered by bus id (see
-         --bus= option).
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 8c1777fb61f7..2ff7624d58c0 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -25,6 +25,8 @@
+ INTERVAL_TREE_DEFINE(struct fuse_dax_mapping, rb, __u64, __subtree_last,
+                      START, LAST, static inline, fuse_dax_interval_tree);
  
-+-s::
-+--size=::
-+	Limit the operation to the given number of bytes. A size of 0
-+	indicates to operate over the entire label capacity.
-+
-+-O::
-+--offset=::
-+	Begin the operation at the given offset into the label area.
-+
- -b::
- --bus=::
- 	Limit operation to memory devices (dimms) that are on the given bus.
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index d78e0dbc3ec6..70128dd2df27 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -47,6 +47,8 @@ static struct parameters {
- 	const char *infile;
- 	const char *labelversion;
- 	const char *kek;
-+	unsigned len;
-+	unsigned offset;
- 	bool crypto_erase;
- 	bool overwrite;
- 	bool zero_key;
-@@ -77,7 +79,7 @@ static int action_enable(struct ndctl_dimm *dimm, struct action_context *actx)
- 
- static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
++static struct fuse_dax_mapping *alloc_dax_mapping_reclaim(struct fuse_conn *fc,
++				struct inode *inode);
+ static int fuse_send_open(struct fuse_conn *fc, u64 nodeid, struct file *file,
+ 			  int opcode, struct fuse_open_out *outargp)
  {
--	return ndctl_dimm_zero_labels(dimm);
-+	return ndctl_dimm_zero_label_extent(dimm, param.len, param.offset);
+@@ -177,6 +179,28 @@ static void fuse_link_write_file(struct file *file)
+ 	spin_unlock(&fi->lock);
  }
  
- static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-@@ -299,15 +301,17 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
- 	return NULL;
++static void
++__kick_dmap_free_worker(struct fuse_conn *fc, unsigned long delay_ms)
++{
++	unsigned long free_threshold;
++
++	/* If number of free ranges are below threshold, start reclaim */
++	free_threshold = max((fc->nr_ranges * FUSE_DAX_RECLAIM_THRESHOLD)/100,
++				(unsigned long)1);
++	if (fc->nr_free_ranges < free_threshold) {
++		pr_debug("fuse: Kicking dax memory reclaim worker. nr_free_ranges=0x%ld nr_total_ranges=%ld\n", fc->nr_free_ranges, fc->nr_ranges);
++		queue_delayed_work(system_long_wq, &fc->dax_free_work,
++				   msecs_to_jiffies(delay_ms));
++	}
++}
++
++static void kick_dmap_free_worker(struct fuse_conn *fc, unsigned long delay_ms)
++{
++	spin_lock(&fc->lock);
++	__kick_dmap_free_worker(fc, delay_ms);
++	spin_unlock(&fc->lock);
++}
++
+ static struct fuse_dax_mapping *alloc_dax_mapping(struct fuse_conn *fc)
+ {
+ 	struct fuse_dax_mapping *dmap = NULL;
+@@ -186,7 +210,7 @@ static struct fuse_dax_mapping *alloc_dax_mapping(struct fuse_conn *fc)
+ 	/* TODO: Add logic to try to free up memory if wait is allowed */
+ 	if (fc->nr_free_ranges <= 0) {
+ 		spin_unlock(&fc->lock);
+-		return NULL;
++		goto out_kick;
+ 	}
+ 
+ 	WARN_ON(list_empty(&fc->free_ranges));
+@@ -197,6 +221,9 @@ static struct fuse_dax_mapping *alloc_dax_mapping(struct fuse_conn *fc)
+ 	list_del_init(&dmap->list);
+ 	fc->nr_free_ranges--;
+ 	spin_unlock(&fc->lock);
++
++out_kick:
++	kick_dmap_free_worker(fc, 0);
+ 	return dmap;
  }
  
--static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size, int rw)
-+static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size,
-+		unsigned int start_offset, int rw)
+@@ -223,6 +250,8 @@ static void __dmap_add_to_free_pool(struct fuse_conn *fc,
  {
- 	char buf[4096];
- 	ssize_t offset, write = 0;
+ 	list_add_tail(&dmap->list, &fc->free_ranges);
+ 	fc->nr_free_ranges++;
++	/* TODO: Wake up only when needed */
++	wake_up(&fc->dax_range_waitq);
+ }
  
--	for (offset = 0; offset < size; offset += sizeof(buf)) {
-+	for (offset = start_offset; offset < start_offset + size;
-+			offset += sizeof(buf)) {
- 		ssize_t len = min_t(ssize_t, sizeof(buf), size - offset), rc;
+ static void dmap_add_to_free_pool(struct fuse_conn *fc,
+@@ -274,9 +303,15 @@ static int fuse_setup_one_mapping(struct inode *inode, loff_t offset,
  
--		if (rw) {
-+		if (rw == WRITE) {
- 			len = fread(buf, 1, len, f);
- 			if (len == 0)
- 				break;
-@@ -343,9 +347,9 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 		return -EBUSY;
- 	}
+ 	dmap->writable = writable;
+ 	if (!upgrade) {
+-		/* TODO: What locking is required here. For now,
+-		 * using fc->lock
++		/*
++		 * We don't take a refernce on inode. inode is valid right now
++		 * and when inode is going away, cleanup logic should first
++		 * cleanup dmap entries.
++		 *
++		 * TODO: Do we need to ensure that we are holding inode lock
++		 * as well.
+ 		 */
++		dmap->inode = inode;
+ 		dmap->start = offset;
+ 		dmap->end = offset + FUSE_DAX_MEM_RANGE_SZ - 1;
+ 		/* Protected by fi->i_dmap_sem */
+@@ -356,6 +391,7 @@ static void dmap_reinit_add_to_free_pool(struct fuse_conn *fc,
+ 		 "window_offset=0x%llx length=0x%llx\n", dmap->start,
+ 		 dmap->end, dmap->window_offset, dmap->length);
+ 	__dmap_remove_busy_list(fc, dmap);
++	dmap->inode = NULL;
+ 	dmap->start = dmap->end = 0;
+ 	__dmap_add_to_free_pool(fc, dmap);
+ }
+@@ -424,6 +460,21 @@ static void inode_reclaim_dmap_range(struct fuse_conn *fc, struct inode *inode,
+ 	spin_unlock(&fc->lock);
+ }
  
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
- 	if (!cmd_write) {
-@@ -354,7 +358,7 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 	}
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
--	rc = rw_bin(actx->f_in, cmd_write, size, 1);
-+	rc = rw_bin(actx->f_in, cmd_write, size, param.offset, WRITE);
- 
- 	/*
- 	 * If the dimm is already disabled the kernel is not holding a cached
-@@ -381,9 +385,9 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
- 	if (actx->jdimms) {
-@@ -394,7 +398,7 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 		else
- 			rc = -ENOMEM;
- 	} else
--		rc = rw_bin(actx->f_out, cmd_read, size, 0);
-+		rc = rw_bin(actx->f_out, cmd_read, size, param.offset, READ);
- 
- 	ndctl_cmd_unref(cmd_read);
- 
-@@ -1082,18 +1086,31 @@ OPT_BOOLEAN('z', "zero-key", &param.zero_key, \
- OPT_BOOLEAN('m', "master-passphrase", &param.master_pass, \
- 		"use master passphrase")
- 
-+#define LABEL_OPTIONS() \
-+OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
-+OPT_UINTEGER('O', "offset", &param.offset, \
-+	"offset into the label area to start operation")
++static int dmap_removemapping_one(struct inode *inode,
++				  struct fuse_dax_mapping *dmap)
++{
++	struct fuse_removemapping_one forget_one;
++	struct fuse_removemapping_in inarg;
 +
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	READ_OPTIONS(),
- 	OPT_END(),
- };
- 
- static const struct option write_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	WRITE_OPTIONS(),
- 	OPT_END(),
- };
- 
-+static const struct option zero_options[] = {
-+	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
-+	OPT_END(),
-+};
++	memset(&inarg, 0, sizeof(inarg));
++	inarg.count = 1;
++	memset(&forget_one, 0, sizeof(forget_one));
++	forget_one.moffset = dmap->window_offset;
++	forget_one.len = dmap->length;
 +
- static const struct option update_options[] = {
- 	BASE_OPTIONS(),
- 	UPDATE_OPTIONS(),
-@@ -1136,6 +1153,7 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		NULL
- 	};
- 	unsigned long id;
-+	bool json = false;
++	return fuse_send_removemapping(inode, &inarg, &forget_one);
++}
++
+ /*
+  * It is called from evict_inode() and by that time inode is going away. So
+  * this function does not take any locks like fi->i_dmap_sem for traversing
+@@ -1816,6 +1867,18 @@ static void fuse_fill_iomap(struct inode *inode, loff_t pos, loff_t length,
+ 		if (flags & IOMAP_FAULT)
+ 			iomap->length = ALIGN(len, PAGE_SIZE);
+ 		iomap->type = IOMAP_MAPPED;
++
++		/*
++		 * increace refcnt so that reclaim code knows this dmap is in
++		 * use. This assumes i_dmap_sem mutex is held either
++		 * shared/exclusive.
++		 */
++		refcount_inc(&dmap->refcnt);
++
++		/* iomap->private should be NULL */
++		WARN_ON_ONCE(iomap->private);
++		iomap->private = dmap;
++
+ 		pr_debug("%s: returns iomap: addr 0x%llx offset 0x%llx"
+ 				" length 0x%llx\n", __func__, iomap->addr,
+ 				iomap->offset, iomap->length);
+@@ -1838,8 +1901,23 @@ static int iomap_begin_setup_new_mapping(struct inode *inode, loff_t pos,
+ 	int ret;
+ 	bool writable = flags & IOMAP_WRITE;
  
-         argc = parse_options(argc, argv, options, u, 0);
- 
-@@ -1160,7 +1178,14 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
--	if (param.json || param.human) {
-+	json = param.json || param.human;
-+	if (action == action_read && json && (param.len || param.offset)) {
-+		fprintf(stderr, "--size and --offset are incompatible with --json\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
+-	alloc_dmap = alloc_dax_mapping(fc);
+-	if (!alloc_dmap)
++	/* Can't do reclaim in fault path yet due to lock ordering.
++	 * Read path takes shared inode lock and that's not sufficient
++	 * for inline range reclaim. Caller needs to drop lock, wait
++	 * and retry.
++	 */
++	if (flags & IOMAP_FAULT || !(flags & IOMAP_WRITE)) {
++		alloc_dmap = alloc_dax_mapping(fc);
++		if (!alloc_dmap)
++			return -ENOSPC;
++	} else {
++		alloc_dmap = alloc_dax_mapping_reclaim(fc, inode);
++		if (IS_ERR(alloc_dmap))
++			return PTR_ERR(alloc_dmap);
 +	}
 +
-+	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
- 			return -ENOMEM;
-@@ -1294,7 +1319,7 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
++	/* If we are here, we should have memory allocated */
++	if (WARN_ON(!alloc_dmap))
+ 		return -EBUSY;
  
- int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	/*
+@@ -1892,14 +1970,25 @@ static int iomap_begin_upgrade_mapping(struct inode *inode, loff_t pos,
+ 	dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, pos, pos);
+ 
+ 	/* We are holding either inode lock or i_mmap_sem, and that should
+-	 * ensure that dmap can't reclaimed or truncated and it should still
+-	 * be there in tree despite the fact we dropped and re-acquired the
+-	 * lock.
++	 * ensure that dmap can't be truncated. We are holding a reference
++	 * on dmap and that should make sure it can't be reclaimed. So dmap
++	 * should still be there in tree despite the fact we dropped and
++	 * re-acquired the i_dmap_sem lock.
+ 	 */
+ 	ret = -EIO;
+ 	if (WARN_ON(!dmap))
+ 		goto out_err;
+ 
++	/* We took an extra reference on dmap to make sure its not reclaimd.
++	 * Now we hold i_dmap_sem lock and that reference is not needed
++	 * anymore. Drop it.
++	 */
++	if (refcount_dec_and_test(&dmap->refcnt)) {
++		/* refcount should not hit 0. This object only goes
++		 * away when fuse connection goes away */
++		WARN_ON_ONCE(1);
++	}
++
+ 	/* Maybe another thread already upgraded mapping while we were not
+ 	 * holding lock.
+ 	 */
+@@ -1968,7 +2057,11 @@ static int fuse_iomap_begin(struct inode *inode, loff_t pos, loff_t length,
+ 			 * two threads to be trying to this simultaneously
+ 			 * for same dmap. So drop shared lock and acquire
+ 			 * exclusive lock.
++			 *
++			 * Before dropping i_dmap_sem lock, take reference
++			 * on dmap so that its not freed by range reclaim.
+ 			 */
++			refcount_inc(&dmap->refcnt);
+ 			up_read(&fi->i_dmap_sem);
+ 			pr_debug("%s: Upgrading mapping at offset 0x%llx"
+ 				 " length 0x%llx\n", __func__, pos, length);
+@@ -2004,6 +2097,16 @@ static int fuse_iomap_end(struct inode *inode, loff_t pos, loff_t length,
+ 			  ssize_t written, unsigned flags,
+ 			  struct iomap *iomap)
  {
--	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
-+	int count = dimm_action(argc, argv, ctx, action_zero, zero_options,
- 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
++	struct fuse_dax_mapping *dmap = iomap->private;
++
++	if (dmap) {
++		if (refcount_dec_and_test(&dmap->refcnt)) {
++			/* refcount should not hit 0. This object only goes
++			 * away when fuse connection goes away */
++			WARN_ON_ONCE(1);
++		}
++	}
++
+ 	/* DAX writes beyond end-of-file aren't handled using iomap, so the
+ 	 * file size is unchanged and there is nothing to do here.
+ 	 */
+@@ -2018,7 +2121,18 @@ static const struct iomap_ops fuse_iomap_ops = {
+ static ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
+ {
+ 	struct inode *inode = file_inode(iocb->ki_filp);
++	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	ssize_t ret;
++	bool retry = false;
++
++retry:
++	if (retry && !(fc->nr_free_ranges > 0)) {
++		ret = -EINTR;
++		if (wait_event_killable_exclusive(fc->dax_range_waitq,
++						  (fc->nr_free_ranges > 0))) {
++			goto out;
++		}
++	}
  
- 	fprintf(stderr, "zeroed %d nmem%s\n", count >= 0 ? count : 0,
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 9c5a34e542c3..28b1dfb0bdfa 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -537,7 +537,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *di
-         return NULL;
+ 	if (iocb->ki_flags & IOCB_NOWAIT) {
+ 		if (!inode_trylock_shared(inode))
+@@ -2030,8 +2144,19 @@ static ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
+ 	ret = dax_iomap_rw(iocb, to, &fuse_iomap_ops);
+ 	inode_unlock_shared(inode);
+ 
++	/* If a dax range could not be allocated and it can't be reclaimed
++	 * inline, then drop inode lock and retry. Range reclaim logic
++	 * requires exclusive access to inode lock.
++	 *
++	 * TODO: What if -ENOSPC needs to be returned to user space. Fix it.
++	 */
++	if (ret == -ENOSPC) {
++		retry = true;
++		goto retry;
++	}
+ 	/* TODO file_accessed(iocb->f_filp) */
+ 
++out:
+ 	return ret;
  }
  
--NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_extent(
-+		struct ndctl_dimm *dimm, unsigned int len, unsigned int offset)
- {
-         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-         struct ndctl_cmd *cmd_size, *cmd_read;
-@@ -557,13 +558,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
-         if (!cmd_read)
-                 goto out_size;
+@@ -2810,10 +2935,21 @@ static int __fuse_dax_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+ 	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+ 	pfn_t pfn;
++	int error = 0;
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	bool retry = false;
+ 
+ 	if (write)
+ 		sb_start_pagefault(sb);
+ 
++retry:
++	if (retry && !(fc->nr_free_ranges > 0)) {
++		ret = -EINTR;
++		if (wait_event_killable_exclusive(fc->dax_range_waitq,
++					(fc->nr_free_ranges > 0)))
++			goto out;
++	}
++
+ 	/*
+ 	 * We need to serialize against not only truncate but also against
+ 	 * fuse dax memory range reclaim. While a range is being reclaimed,
+@@ -2821,13 +2957,20 @@ static int __fuse_dax_fault(struct vm_fault *vmf, enum page_entry_size pe_size,
+ 	 * to populate page cache or access memory we are trying to free.
+ 	 */
+ 	down_read(&get_fuse_inode(inode)->i_mmap_sem);
+-	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
++	ret = dax_iomap_fault(vmf, pe_size, &pfn, &error, &fuse_iomap_ops);
++	if ((ret & VM_FAULT_ERROR) && error == -ENOSPC) {
++		error = 0;
++		retry = true;
++		up_read(&get_fuse_inode(inode)->i_mmap_sem);
++		goto retry;
++	}
+ 
+ 	if (ret & VM_FAULT_NEEDDSYNC)
+ 		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
+ 
+ 	up_read(&get_fuse_inode(inode)->i_mmap_sem);
+ 
++out:
+ 	if (write)
+ 		sb_end_pagefault(sb);
+ 
+@@ -3979,3 +4122,330 @@ void fuse_init_file_inode(struct inode *inode)
+ 		inode->i_data.a_ops = &fuse_dax_file_aops;
+ 	}
+ }
++
++static int dmap_writeback_invalidate(struct inode *inode,
++				     struct fuse_dax_mapping *dmap)
++{
++	int ret;
++
++	ret = filemap_fdatawrite_range(inode->i_mapping, dmap->start,
++				       dmap->end);
++	if (ret) {
++		printk("filemap_fdatawrite_range() failed. err=%d start=0x%llx,"
++			" end=0x%llx\n", ret, dmap->start, dmap->end);
++		return ret;
++	}
++
++	ret = invalidate_inode_pages2_range(inode->i_mapping,
++					    dmap->start >> PAGE_SHIFT,
++					    dmap->end >> PAGE_SHIFT);
++	if (ret)
++		printk("invalidate_inode_pages2_range() failed err=%d\n", ret);
++
++	return ret;
++}
++
++static int reclaim_one_dmap_locked(struct fuse_conn *fc, struct inode *inode,
++				   struct fuse_dax_mapping *dmap)
++{
++	int ret;
++	struct fuse_inode *fi = get_fuse_inode(inode);
 +
 +	/*
-+	 * For ndctl_read_labels() compat, enable subsequent calls that
-+	 * will manipulate labels
++	 * igrab() was done to make sure inode won't go under us, and this
++	 * further avoids the race with evict().
 +	 */
-+	if (len == 0 && offset == 0)
-+		init_ndd(&dimm->ndd, cmd_read, cmd_size);
++	ret = dmap_writeback_invalidate(inode, dmap);
 +
-+	if (len == 0)
-+		len = cmd_size->get_size->config_size;
-+	rc = ndctl_cmd_cfg_read_set_extent(cmd_read, len, offset);
-+	if (rc < 0)
-+		goto out_size;
++	/* TODO: What to do if above fails? For now,
++	 * leave the range in place.
++	 */
++	if (ret)
++		return ret;
 +
-         rc = ndctl_cmd_submit_xlat(cmd_read);
-         if (rc < 0)
-                 goto out_read;
- 	ndctl_cmd_unref(cmd_size);
- 
--	init_ndd(&dimm->ndd, cmd_read, cmd_size);
--
- 	return cmd_read;
- 
-  out_read:
-@@ -573,15 +586,21 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         return NULL;
- }
- 
--NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_read_label_extent(dimm, 0, 0);
++	/* Remove dax mapping from inode interval tree now */
++	fuse_dax_interval_tree_remove(dmap, &fi->dmap_tree);
++	fi->nr_dmaps--;
++
++	ret = dmap_removemapping_one(inode, dmap);
++	if (ret) {
++		pr_warn("Failed to remove mapping. offset=0x%llx len=0x%llx\n",
++			dmap->window_offset, dmap->length);
++	}
++
++	return 0;
 +}
 +
-+NDCTL_EXPORT int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset)
- {
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 	struct ndctl_cmd *cmd_read, *cmd_write;
- 	int rc;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, len, offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	if (ndctl_dimm_is_active(dimm)) {
- 		dbg(ctx, "%s: regions active, abort label write\n",
-@@ -623,6 +642,11 @@ NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
++static void fuse_wait_dax_page(struct inode *inode)
 +{
-+	return ndctl_dimm_zero_label_extent(dimm, 0, 0);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++        up_write(&fi->i_mmap_sem);
++        schedule();
++        down_write(&fi->i_mmap_sem);
 +}
 +
- NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
- 		struct ndctl_dimm *dimm)
- {
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index c1ecdd8c9c61..4d9cc7e29c6b 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -31,6 +31,7 @@
- #include <ccan/build_assert/build_assert.h>
++/* Should be called with fi->i_mmap_sem lock held exclusively */
++static int __fuse_break_dax_layouts(struct inode *inode, bool *retry,
++				    loff_t start, loff_t end)
++{
++	struct page *page;
++
++	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
++	if (!page)
++		return 0;
++
++	*retry = true;
++	return ___wait_var_event(&page->_refcount,
++			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
++			0, 0, fuse_wait_dax_page(inode));
++}
++
++/* dmap_end == 0 leads to unmapping of whole file */
++static int fuse_break_dax_layouts(struct inode *inode, u64 dmap_start,
++				  u64 dmap_end)
++{
++	bool	retry;
++	int	ret;
++
++	do {
++		retry = false;
++		ret = __fuse_break_dax_layouts(inode, &retry, dmap_start,
++					       dmap_end);
++        } while (ret == 0 && retry);
++
++        return ret;
++}
++
++/* First first mapping in the tree and free it. */
++static struct fuse_dax_mapping *
++inode_reclaim_first_dmap_locked(struct fuse_conn *fc, struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_dax_mapping *dmap;
++	int ret;
++
++	/* Find fuse dax mapping at file offset inode. */
++	dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, 0, -1);
++	if (!dmap)
++		return NULL;
++
++	ret = reclaim_one_dmap_locked(fc, inode, dmap);
++	if (ret < 0)
++		return ERR_PTR(ret);
++
++	/* Clean up dmap. Do not add back to free list */
++	dmap_remove_busy_list(fc, dmap);
++	dmap->inode = NULL;
++	dmap->start = dmap->end = 0;
++
++	pr_debug("fuse: reclaimed memory range window_offset=0x%llx,"
++				" length=0x%llx\n", dmap->window_offset,
++				dmap->length);
++	return dmap;
++}
++
++/*
++ * First first mapping in the tree and free it and return it. Do not add
++ * it back to free pool.
++ *
++ * This is called with inode lock held.
++ */
++static struct fuse_dax_mapping *inode_reclaim_first_dmap(struct fuse_conn *fc,
++							 struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_dax_mapping *dmap;
++	int ret;
++
++	down_write(&fi->i_mmap_sem);
++
++	/* Make sure there are references to inode pages using
++	 * get_user_pages()
++	 *
++	 * TODO: Only check for page range inside dmap (and not whole inode)
++	 */
++	ret = fuse_break_dax_layouts(inode, 0, 0);
++	if (ret) {
++		printk("virtio_fs: fuse_break_dax_layouts() failed. err=%d\n",
++		       ret);
++		dmap = ERR_PTR(ret);
++		goto out_mmap_sem;
++	}
++	down_write(&fi->i_dmap_sem);
++	dmap = inode_reclaim_first_dmap_locked(fc, inode);
++	up_write(&fi->i_dmap_sem);
++out_mmap_sem:
++	up_write(&fi->i_mmap_sem);
++	return dmap;
++}
++
++static struct fuse_dax_mapping *alloc_dax_mapping_reclaim(struct fuse_conn *fc,
++					struct inode *inode)
++{
++	struct fuse_dax_mapping *dmap;
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	while(1) {
++		dmap = alloc_dax_mapping(fc);
++		if (dmap)
++			return dmap;
++
++		if (fi->nr_dmaps) {
++			dmap = inode_reclaim_first_dmap(fc, inode);
++			if (dmap)
++				return dmap;
++		}
++		/*
++		 * There are no mappings which can be reclaimed.
++		 * Wait for one.
++		 */
++		if (!(fc->nr_free_ranges > 0)) {
++			if (wait_event_killable_exclusive(fc->dax_range_waitq,
++					(fc->nr_free_ranges > 0)))
++				return ERR_PTR(-EINTR);
++		}
++	}
++}
++
++static int lookup_and_reclaim_dmap_locked(struct fuse_conn *fc,
++					  struct inode *inode, u64 dmap_start)
++{
++	int ret;
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_dax_mapping *dmap;
++
++	/* Find fuse dax mapping at file offset inode. */
++	dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, dmap_start,
++						 dmap_start);
++
++	/* Range already got cleaned up by somebody else */
++	if (!dmap)
++		return 0;
++
++	/* still in use. */
++	if (refcount_read(&dmap->refcnt) > 1)
++		return 0;
++
++	ret = reclaim_one_dmap_locked(fc, inode, dmap);
++	if (ret < 0)
++		return ret;
++
++	/* Cleanup dmap entry and add back to free list */
++	spin_lock(&fc->lock);
++	dmap_reinit_add_to_free_pool(fc, dmap);
++	spin_unlock(&fc->lock);
++	return ret;
++}
++
++/*
++ * Free a range of memory.
++ * Locking.
++ * 1. Take fuse_inode->i_mmap_sem to block dax faults.
++ * 2. Take fuse_inode->i_dmap_sem to protect interval tree and also to make
++ *    sure read/write can not reuse a dmap which we might be freeing.
++ */
++static int lookup_and_reclaim_dmap(struct fuse_conn *fc, struct inode *inode,
++				   u64 dmap_start, u64 dmap_end)
++{
++	int ret;
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	down_write(&fi->i_mmap_sem);
++	ret = fuse_break_dax_layouts(inode, dmap_start, dmap_end);
++	if (ret) {
++		printk("virtio_fs: fuse_break_dax_layouts() failed. err=%d\n",
++		       ret);
++		goto out_mmap_sem;
++	}
++
++	down_write(&fi->i_dmap_sem);
++	ret = lookup_and_reclaim_dmap_locked(fc, inode, dmap_start);
++	up_write(&fi->i_dmap_sem);
++out_mmap_sem:
++	up_write(&fi->i_mmap_sem);
++	return ret;
++}
++
++static int try_to_free_dmap_chunks(struct fuse_conn *fc,
++				   unsigned long nr_to_free)
++{
++	struct fuse_dax_mapping *dmap, *pos, *temp;
++	int ret, nr_freed = 0;
++	u64 dmap_start = 0, window_offset = 0, dmap_end = 0;
++	struct inode *inode = NULL;
++
++	/* Pick first busy range and free it for now*/
++	while(1) {
++		if (nr_freed >= nr_to_free)
++			break;
++
++		dmap = NULL;
++		spin_lock(&fc->lock);
++
++		if (!fc->nr_busy_ranges) {
++			spin_unlock(&fc->lock);
++			return 0;
++		}
++
++		list_for_each_entry_safe(pos, temp, &fc->busy_ranges,
++						busy_list) {
++			/* skip this range if it's in use. */
++			if (refcount_read(&pos->refcnt) > 1)
++				continue;
++
++			inode = igrab(pos->inode);
++			/*
++			 * This inode is going away. That will free
++			 * up all the ranges anyway, continue to
++			 * next range.
++			 */
++			if (!inode)
++				continue;
++			/*
++			 * Take this element off list and add it tail. If
++			 * inode lock can't be obtained, this will help with
++			 * selecting new element
++			 */
++			dmap = pos;
++			list_move_tail(&dmap->busy_list, &fc->busy_ranges);
++			dmap_start = dmap->start;
++			dmap_end = dmap->end;
++			window_offset = dmap->window_offset;
++			break;
++		}
++		spin_unlock(&fc->lock);
++		if (!dmap)
++			return 0;
++
++		ret = lookup_and_reclaim_dmap(fc, inode, dmap_start, dmap_end);
++		iput(inode);
++		if (ret) {
++			printk("%s(window_offset=0x%llx) failed. err=%d\n",
++				__func__, window_offset, ret);
++			return ret;
++		}
++		nr_freed++;
++	}
++	return 0;
++}
++
++/* TODO: This probably should go in inode.c */
++void fuse_dax_free_mem_worker(struct work_struct *work)
++{
++	int ret;
++	struct fuse_conn *fc = container_of(work, struct fuse_conn,
++						dax_free_work.work);
++	pr_debug("fuse: Worker to free memory called. nr_free_ranges=%lu"
++		 " nr_busy_ranges=%lu\n", fc->nr_free_ranges,
++		 fc->nr_busy_ranges);
++
++	ret = try_to_free_dmap_chunks(fc, FUSE_DAX_RECLAIM_CHUNK);
++	if (ret) {
++		pr_debug("fuse: try_to_free_dmap_chunks() failed with err=%d\n",
++			 ret);
++	}
++
++	/* If number of free ranges are still below threhold, requeue */
++	kick_dmap_free_worker(fc, 1);
++}
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 070a5c2b6498..5f2f348536aa 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -57,6 +57,16 @@
+ #define FUSE_DAX_MEM_RANGE_SZ	(2*1024*1024)
+ #define FUSE_DAX_MEM_RANGE_PAGES	(FUSE_DAX_MEM_RANGE_SZ/PAGE_SIZE)
  
- #include <ndctl.h>
-+#include <util/util.h>
- #include <util/size.h>
- #include <util/sysfs.h>
- #include <ndctl/libndctl.h>
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 648f83bced1b..fef2907aa47d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -416,4 +416,6 @@ LIBNDCTL_21 {
- 	ndctl_cmd_cfg_read_set_extent;
- 	ndctl_cmd_cfg_write_set_extent;
- 	ndctl_dimm_read_label_index;
-+	ndctl_dimm_read_label_extent;
-+	ndctl_dimm_zero_label_extent;
- } LIBNDCTL_20;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 3fc0290ff6a7..1f6a01c55377 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -242,9 +242,6 @@ struct ndctl_namespace {
-  *
-  * A command may only specify one of @source, or @iter.total_buf, not both.
++/* Number of ranges reclaimer will try to free in one invocation */
++#define FUSE_DAX_RECLAIM_CHUNK		(10)
++
++/*
++ * Dax memory reclaim threshold in percetage of total ranges. When free
++ * number of free ranges drops below this threshold, reclaim can trigger
++ * Default is 20%
++ * */
++#define FUSE_DAX_RECLAIM_THRESHOLD	(20)
++
+ /** List of active connections */
+ extern struct list_head fuse_conn_list;
+ 
+@@ -109,6 +119,9 @@ struct fuse_forget_link {
+ 
+ /** Translation information for file offsets to DAX window offsets */
+ struct fuse_dax_mapping {
++	/* Pointer to inode where this memory range is mapped */
++	struct inode *inode;
++
+ 	/* Will connect in fc->free_ranges to keep track of free memory */
+ 	struct list_head list;
+ 
+@@ -131,6 +144,9 @@ struct fuse_dax_mapping {
+ 
+ 	/* Is this mapping read-only or read-write */
+ 	bool writable;
++
++	/* reference count when the mapping is used by dax iomap. */
++	refcount_t refcnt;
+ };
+ 
+ /** FUSE inode */
+@@ -895,12 +911,20 @@ struct fuse_conn {
+ 	unsigned long nr_busy_ranges;
+ 	struct list_head busy_ranges;
+ 
++	/* Worker to free up memory ranges */
++	struct delayed_work dax_free_work;
++
++	/* Wait queue for a dax range to become free */
++	wait_queue_head_t dax_range_waitq;
++
+ 	/*
+ 	 * DAX Window Free Ranges. TODO: This might not be best place to store
+ 	 * this free list
+ 	 */
+ 	long nr_free_ranges;
+ 	struct list_head free_ranges;
++
++	unsigned long nr_ranges;
+ };
+ 
+ static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
+@@ -1279,6 +1303,7 @@ unsigned fuse_len_args(unsigned numargs, struct fuse_arg *args);
   */
--enum {
--	READ, WRITE,
--};
- struct ndctl_cmd {
- 	struct ndctl_dimm *dimm;
- 	struct ndctl_bus *bus;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 8aa4b8bbe6c2..c9d0dc120d3b 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -307,8 +307,12 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_size(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
- int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
-+int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
-+struct ndctl_cmd *ndctl_dimm_read_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
- enum ndctl_namespace_version {
- 	NDCTL_NS_VERSION_1_1,
-diff --git a/util/util.h b/util/util.h
-index 001707e8b159..54c6ef18b6d7 100644
---- a/util/util.h
-+++ b/util/util.h
-@@ -73,6 +73,10 @@
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+ u64 fuse_get_unique(struct fuse_iqueue *fiq);
+ void fuse_free_conn(struct fuse_conn *fc);
++void fuse_dax_free_mem_worker(struct work_struct *work);
+ void fuse_cleanup_inode_mappings(struct inode *inode);
  
-+enum {
-+	READ, WRITE,
+ #endif /* _FS_FUSE_I_H */
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index b80e76a307f3..4871933f4557 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -661,11 +661,13 @@ static int fuse_dax_mem_range_init(struct fuse_conn *fc,
+ 		range->window_offset = i * FUSE_DAX_MEM_RANGE_SZ;
+ 		range->length = FUSE_DAX_MEM_RANGE_SZ;
+ 		INIT_LIST_HEAD(&range->busy_list);
++		refcount_set(&range->refcnt, 1);
+ 		list_add_tail(&range->list, &mem_ranges);
+ 	}
+ 
+ 	list_replace_init(&mem_ranges, &fc->free_ranges);
+ 	fc->nr_free_ranges = nr_ranges;
++	fc->nr_ranges = nr_ranges;
+ 	return 0;
+ out_err:
+ 	/* Free All allocated elements */
+@@ -692,6 +694,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 	atomic_set(&fc->dev_count, 1);
+ 	init_waitqueue_head(&fc->blocked_waitq);
+ 	init_waitqueue_head(&fc->reserved_req_waitq);
++	init_waitqueue_head(&fc->dax_range_waitq);
+ 	fuse_iqueue_init(&fc->iq, fiq_ops, fiq_priv);
+ 	INIT_LIST_HEAD(&fc->bg_queue);
+ 	INIT_LIST_HEAD(&fc->entry);
+@@ -712,6 +715,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
+ 	INIT_LIST_HEAD(&fc->free_ranges);
+ 	INIT_LIST_HEAD(&fc->busy_ranges);
++	INIT_DELAYED_WORK(&fc->dax_free_work, fuse_dax_free_mem_worker);
+ }
+ EXPORT_SYMBOL_GPL(fuse_conn_init);
+ 
+@@ -720,6 +724,7 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 	if (refcount_dec_and_test(&fc->count)) {
+ 		if (fc->destroy_req)
+ 			fuse_request_free(fc->destroy_req);
++		flush_delayed_work(&fc->dax_free_work);
+ 		if (fc->dax_dev)
+ 			fuse_free_dax_mem_ranges(&fc->free_ranges);
+ 		put_pid_ns(fc->pid_ns);
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 9198c2b84677..72b97bcd8e44 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -491,6 +491,15 @@ static void virtio_fs_cleanup_dax(void *data)
+ 	put_dax(fs->dax_dev);
+ }
+ 
++static void virtio_fs_pagemap_page_free(struct page *page)
++{
++	wake_up_var(&page->_refcount);
++}
++
++static const struct dev_pagemap_ops virtio_fs_pagemap_ops = {
++	.page_free	= virtio_fs_pagemap_page_free,
 +};
 +
- static inline const char *skip_prefix(const char *str, const char *prefix)
+ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
  {
-         size_t len = strlen(prefix);
+ 	struct virtio_shm_region cache_reg;
+@@ -517,6 +526,7 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ 		return -ENOMEM;
+ 
+ 	pgmap->type = MEMORY_DEVICE_FS_DAX;
++	pgmap->ops = &virtio_fs_pagemap_ops;
+ 
+ 	/* Ideally we would directly use the PCI BAR resource but
+ 	 * devm_memremap_pages() wants its own copy in pgmap.  So
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
