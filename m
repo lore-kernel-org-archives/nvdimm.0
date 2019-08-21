@@ -1,16 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 50C8C21324661
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:07 -0700 (PDT)
-Subject: [ndctl PATCH v5 3/7] ndctl/dimm: Add offset and size options to
- {read, write, zero}-labels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 17:09:19 -0700
-Message-ID: <156505015958.848599.1185870989417514771.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 0DD292194EB7A
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:49 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 16/19] dax: Create a range version of dax_layout_busy_page()
+Date: Wed, 21 Aug 2019 13:57:17 -0400
+Message-Id: <20190821175720.25901-17-vgoyal@redhat.com>
+In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,342 +22,153 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: miklos@szeredi.hu, dgilbert@redhat.com, virtio-fs@redhat.com, stefanha@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-Allow for more precision in label utilities, i.e. stop operating over
-the entire label area.
+While reclaiming a dax range, we do not want to unamap whole file instead
+want to make sure pages in a certain range do not have references taken
+on them. Hence create a version of the function which allows to pass in
+a range.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- Documentation/ndctl/labels-options.txt |    9 ++++++
- ndctl/dimm.c                           |   49 ++++++++++++++++++++++++--------
- ndctl/lib/dimm.c                       |   36 ++++++++++++++++++++----
- ndctl/lib/libndctl.c                   |    1 +
- ndctl/lib/libndctl.sym                 |    2 +
- ndctl/lib/private.h                    |    3 --
- ndctl/libndctl.h                       |    4 +++
- util/util.h                            |    4 +++
- 8 files changed, 87 insertions(+), 21 deletions(-)
+ fs/dax.c            | 66 ++++++++++++++++++++++++++++++++-------------
+ include/linux/dax.h |  6 +++++
+ 2 files changed, 54 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/ndctl/labels-options.txt b/Documentation/ndctl/labels-options.txt
-index 539ace079557..4aee37969fd5 100644
---- a/Documentation/ndctl/labels-options.txt
-+++ b/Documentation/ndctl/labels-options.txt
-@@ -5,6 +5,15 @@
- 	operate on every dimm in the system, optionally filtered by bus id (see
-         --bus= option).
- 
-+-s::
-+--size=::
-+	Limit the operation to the given number of bytes. A size of 0
-+	indicates to operate over the entire label capacity.
-+
-+-O::
-+--offset=::
-+	Begin the operation at the given offset into the label area.
-+
- -b::
- --bus=::
- 	Limit operation to memory devices (dimms) that are on the given bus.
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index d78e0dbc3ec6..70128dd2df27 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -47,6 +47,8 @@ static struct parameters {
- 	const char *infile;
- 	const char *labelversion;
- 	const char *kek;
-+	unsigned len;
-+	unsigned offset;
- 	bool crypto_erase;
- 	bool overwrite;
- 	bool zero_key;
-@@ -77,7 +79,7 @@ static int action_enable(struct ndctl_dimm *dimm, struct action_context *actx)
- 
- static int action_zero(struct ndctl_dimm *dimm, struct action_context *actx)
- {
--	return ndctl_dimm_zero_labels(dimm);
-+	return ndctl_dimm_zero_label_extent(dimm, param.len, param.offset);
+diff --git a/fs/dax.c b/fs/dax.c
+index 60620a37030c..435f5b67e828 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -557,27 +557,20 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 	return xa_mk_internal(VM_FAULT_FALLBACK);
  }
  
- static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
-@@ -299,15 +301,17 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
+-/**
+- * dax_layout_busy_page - find first pinned page in @mapping
+- * @mapping: address space to scan for a page with ref count > 1
+- *
+- * DAX requires ZONE_DEVICE mapped pages. These pages are never
+- * 'onlined' to the page allocator so they are considered idle when
+- * page->count == 1. A filesystem uses this interface to determine if
+- * any page in the mapping is busy, i.e. for DMA, or other
+- * get_user_pages() usages.
+- *
+- * It is expected that the filesystem is holding locks to block the
+- * establishment of new mappings in this address_space. I.e. it expects
+- * to be able to run unmap_mapping_range() and subsequently not race
+- * mapping_mapped() becoming true.
++/*
++ * Partial pages are included. If end is 0, pages in the range from start
++ * to end of the file are inluded.
+  */
+-struct page *dax_layout_busy_page(struct address_space *mapping)
++struct page *dax_layout_busy_page_range(struct address_space *mapping,
++					loff_t start, loff_t end)
+ {
+-	XA_STATE(xas, &mapping->i_pages, 0);
+ 	void *entry;
+ 	unsigned int scanned = 0;
+ 	struct page *page = NULL;
++	pgoff_t start_idx = start >> PAGE_SHIFT;
++	pgoff_t end_idx = end >> PAGE_SHIFT;
++	XA_STATE(xas, &mapping->i_pages, start_idx);
++	loff_t len, lstart = round_down(start, PAGE_SIZE);
+ 
+ 	/*
+ 	 * In the 'limited' case get_user_pages() for dax is disabled.
+@@ -588,6 +581,22 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
+ 		return NULL;
+ 
++	/* If end == 0, all pages from start to till end of file */
++	if (!end) {
++		end_idx = ULONG_MAX;
++		len = 0;
++	} else {
++		/* length is being calculated from lstart and not start.
++		 * This is due to behavior of unmap_mapping_range(). If
++		 * start is say 4094 and end is on 4093 then want to
++		 * unamp two pages, idx 0 and 1. But unmap_mapping_range()
++		 * will unmap only page at idx 0. If we calculate len
++		 * from the rounded down start, this problem should not
++		 * happen.
++		 */
++		len = end - lstart + 1;
++	}
++
+ 	/*
+ 	 * If we race get_user_pages_fast() here either we'll see the
+ 	 * elevated page count in the iteration and wait, or
+@@ -600,10 +609,10 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	 * guaranteed to either see new references or prevent new
+ 	 * references from being established.
+ 	 */
+-	unmap_mapping_range(mapping, 0, 0, 0);
++	unmap_mapping_range(mapping, start, len, 0);
+ 
+ 	xas_lock_irq(&xas);
+-	xas_for_each(&xas, entry, ULONG_MAX) {
++	xas_for_each(&xas, entry, end_idx) {
+ 		if (WARN_ON_ONCE(!xa_is_value(entry)))
+ 			continue;
+ 		if (unlikely(dax_is_locked(entry)))
+@@ -624,6 +633,27 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+ 	xas_unlock_irq(&xas);
+ 	return page;
+ }
++EXPORT_SYMBOL_GPL(dax_layout_busy_page_range);
++
++/**
++ * dax_layout_busy_page - find first pinned page in @mapping
++ * @mapping: address space to scan for a page with ref count > 1
++ *
++ * DAX requires ZONE_DEVICE mapped pages. These pages are never
++ * 'onlined' to the page allocator so they are considered idle when
++ * page->count == 1. A filesystem uses this interface to determine if
++ * any page in the mapping is busy, i.e. for DMA, or other
++ * get_user_pages() usages.
++ *
++ * It is expected that the filesystem is holding locks to block the
++ * establishment of new mappings in this address_space. I.e. it expects
++ * to be able to run unmap_mapping_range() and subsequently not race
++ * mapping_mapped() becoming true.
++ */
++struct page *dax_layout_busy_page(struct address_space *mapping)
++{
++	return dax_layout_busy_page_range(mapping, 0, 0);
++}
+ EXPORT_SYMBOL_GPL(dax_layout_busy_page);
+ 
+ static int __dax_invalidate_entry(struct address_space *mapping,
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index e7f40108f2c9..3ef6686c080b 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -145,6 +145,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct writeback_control *wbc);
+ 
+ struct page *dax_layout_busy_page(struct address_space *mapping);
++struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
+ #else
+@@ -180,6 +181,11 @@ static inline struct page *dax_layout_busy_page(struct address_space *mapping)
  	return NULL;
  }
  
--static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size, int rw)
-+static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size,
-+		unsigned int start_offset, int rw)
- {
- 	char buf[4096];
- 	ssize_t offset, write = 0;
- 
--	for (offset = 0; offset < size; offset += sizeof(buf)) {
-+	for (offset = start_offset; offset < start_offset + size;
-+			offset += sizeof(buf)) {
- 		ssize_t len = min_t(ssize_t, sizeof(buf), size - offset), rc;
- 
--		if (rw) {
-+		if (rw == WRITE) {
- 			len = fread(buf, 1, len, f);
- 			if (len == 0)
- 				break;
-@@ -343,9 +347,9 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 		return -EBUSY;
- 	}
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	cmd_write = ndctl_dimm_cmd_new_cfg_write(cmd_read);
- 	if (!cmd_write) {
-@@ -354,7 +358,7 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 	}
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
--	rc = rw_bin(actx->f_in, cmd_write, size, 1);
-+	rc = rw_bin(actx->f_in, cmd_write, size, param.offset, WRITE);
- 
- 	/*
- 	 * If the dimm is already disabled the kernel is not holding a cached
-@@ -381,9 +385,9 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
- 	if (actx->jdimms) {
-@@ -394,7 +398,7 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 		else
- 			rc = -ENOMEM;
- 	} else
--		rc = rw_bin(actx->f_out, cmd_read, size, 0);
-+		rc = rw_bin(actx->f_out, cmd_read, size, param.offset, READ);
- 
- 	ndctl_cmd_unref(cmd_read);
- 
-@@ -1082,18 +1086,31 @@ OPT_BOOLEAN('z', "zero-key", &param.zero_key, \
- OPT_BOOLEAN('m', "master-passphrase", &param.master_pass, \
- 		"use master passphrase")
- 
-+#define LABEL_OPTIONS() \
-+OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
-+OPT_UINTEGER('O', "offset", &param.offset, \
-+	"offset into the label area to start operation")
-+
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	READ_OPTIONS(),
- 	OPT_END(),
- };
- 
- static const struct option write_options[] = {
- 	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
- 	WRITE_OPTIONS(),
- 	OPT_END(),
- };
- 
-+static const struct option zero_options[] = {
-+	BASE_OPTIONS(),
-+	LABEL_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static const struct option update_options[] = {
- 	BASE_OPTIONS(),
- 	UPDATE_OPTIONS(),
-@@ -1136,6 +1153,7 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		NULL
- 	};
- 	unsigned long id;
-+	bool json = false;
- 
-         argc = parse_options(argc, argv, options, u, 0);
- 
-@@ -1160,7 +1178,14 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
--	if (param.json || param.human) {
-+	json = param.json || param.human;
-+	if (action == action_read && json && (param.len || param.offset)) {
-+		fprintf(stderr, "--size and --offset are incompatible with --json\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
-+	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
- 			return -ENOMEM;
-@@ -1294,7 +1319,7 @@ int cmd_read_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- 
- int cmd_zero_labels(int argc, const char **argv, struct ndctl_ctx *ctx)
- {
--	int count = dimm_action(argc, argv, ctx, action_zero, base_options,
-+	int count = dimm_action(argc, argv, ctx, action_zero, zero_options,
- 			"ndctl zero-labels <nmem0> [<nmem1>..<nmemN>] [<options>]");
- 
- 	fprintf(stderr, "zeroed %d nmem%s\n", count >= 0 ? count : 0,
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 2b5b964fe03d..37db5570102a 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -537,7 +537,8 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *di
-         return NULL;
- }
- 
--NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_label_extent(
-+		struct ndctl_dimm *dimm, unsigned int len, unsigned int offset)
- {
-         struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-         struct ndctl_cmd *cmd_size, *cmd_read;
-@@ -557,13 +558,25 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         cmd_read = ndctl_dimm_cmd_new_cfg_read(cmd_size);
-         if (!cmd_read)
-                 goto out_size;
-+
-+	/*
-+	 * For ndctl_read_labels() compat, enable subsequent calls that
-+	 * will manipulate labels
-+	 */
-+	if (len == 0 && offset == 0)
-+		init_ndd(&dimm->ndd, cmd_read, cmd_size);
-+
-+	if (len == 0)
-+		len = cmd_size->get_size->config_size;
-+	rc = ndctl_cmd_cfg_read_set_extent(cmd_read, len, offset);
-+	if (rc < 0)
-+		goto out_read;
-+
-         rc = ndctl_cmd_submit_xlat(cmd_read);
-         if (rc < 0)
-                 goto out_read;
- 	ndctl_cmd_unref(cmd_size);
- 
--	init_ndd(&dimm->ndd, cmd_read, cmd_size);
--
- 	return cmd_read;
- 
-  out_read:
-@@ -573,15 +586,21 @@ NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
-         return NULL;
- }
- 
--NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
-+NDCTL_EXPORT struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm)
++static inline struct page *dax_layout_busy_page_range(struct address_space *mapping, pgoff_t start, pgoff_t nr_pages)
 +{
-+	return ndctl_dimm_read_label_extent(dimm, 0, 0);
++	return NULL;
 +}
 +
-+NDCTL_EXPORT int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset)
- {
- 	struct ndctl_ctx *ctx = ndctl_dimm_get_ctx(dimm);
- 	struct ndctl_cmd *cmd_read, *cmd_write;
- 	int rc;
- 
--	cmd_read = ndctl_dimm_read_labels(dimm);
-+	cmd_read = ndctl_dimm_read_label_extent(dimm, len, offset);
- 	if (!cmd_read)
--		return -ENXIO;
-+		return -EINVAL;
- 
- 	if (ndctl_dimm_is_active(dimm)) {
- 		dbg(ctx, "%s: regions active, abort label write\n",
-@@ -623,6 +642,11 @@ NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
- 	return rc;
- }
- 
-+NDCTL_EXPORT int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm)
-+{
-+	return ndctl_dimm_zero_label_extent(dimm, 0, 0);
-+}
-+
- NDCTL_EXPORT unsigned long ndctl_dimm_get_available_labels(
- 		struct ndctl_dimm *dimm)
- {
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index c1ecdd8c9c61..4d9cc7e29c6b 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -31,6 +31,7 @@
- #include <ccan/build_assert/build_assert.h>
- 
- #include <ndctl.h>
-+#include <util/util.h>
- #include <util/size.h>
- #include <util/sysfs.h>
- #include <ndctl/libndctl.h>
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index 648f83bced1b..fef2907aa47d 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -416,4 +416,6 @@ LIBNDCTL_21 {
- 	ndctl_cmd_cfg_read_set_extent;
- 	ndctl_cmd_cfg_write_set_extent;
- 	ndctl_dimm_read_label_index;
-+	ndctl_dimm_read_label_extent;
-+	ndctl_dimm_zero_label_extent;
- } LIBNDCTL_20;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 3fc0290ff6a7..1f6a01c55377 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -242,9 +242,6 @@ struct ndctl_namespace {
-  *
-  * A command may only specify one of @source, or @iter.total_buf, not both.
-  */
--enum {
--	READ, WRITE,
--};
- struct ndctl_cmd {
- 	struct ndctl_dimm *dimm;
- 	struct ndctl_bus *bus;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 8aa4b8bbe6c2..c9d0dc120d3b 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -307,8 +307,12 @@ struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_size(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_read(struct ndctl_cmd *cfg_size);
- struct ndctl_cmd *ndctl_dimm_cmd_new_cfg_write(struct ndctl_cmd *cfg_read);
- int ndctl_dimm_zero_labels(struct ndctl_dimm *dimm);
-+int ndctl_dimm_zero_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- struct ndctl_cmd *ndctl_dimm_read_labels(struct ndctl_dimm *dimm);
- struct ndctl_cmd *ndctl_dimm_read_label_index(struct ndctl_dimm *dimm);
-+struct ndctl_cmd *ndctl_dimm_read_label_extent(struct ndctl_dimm *dimm,
-+		unsigned int len, unsigned int offset);
- int ndctl_dimm_validate_labels(struct ndctl_dimm *dimm);
- enum ndctl_namespace_version {
- 	NDCTL_NS_VERSION_1_1,
-diff --git a/util/util.h b/util/util.h
-index 001707e8b159..54c6ef18b6d7 100644
---- a/util/util.h
-+++ b/util/util.h
-@@ -73,6 +73,10 @@
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
- 
-+enum {
-+	READ, WRITE,
-+};
-+
- static inline const char *skip_prefix(const char *str, const char *prefix)
- {
-         size_t len = strlen(prefix);
+ static inline int dax_writeback_mapping_range(struct address_space *mapping,
+ 		struct block_device *bdev, struct dax_device *dax_dev,
+ 		struct writeback_control *wbc)
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
