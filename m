@@ -1,14 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 23460202110DA
- for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 12:07:36 -0700 (PDT)
-Date: Wed, 21 Aug 2019 12:06:25 -0700
+ by ml01.01.org (Postfix) with ESMTPS id 32F8A2020D312
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 11:58:13 -0700 (PDT)
+Date: Wed, 21 Aug 2019 11:57:03 -0700
 From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ; -)
-Message-ID: <20190821190624.GC5965@iweiny-DESK2.sc.intel.com>
-References: <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
+Message-ID: <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
+References: <20190815130558.GF14313@quack2.suse.cz>
+ <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
  <20190817022603.GW6129@dread.disaster.area>
  <20190819063412.GA20455@quack2.suse.cz>
  <20190819092409.GM7777@dread.disaster.area>
@@ -17,10 +18,9 @@ References: <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
  <20190820115515.GA29246@ziepe.ca>
  <20190821180200.GA5965@iweiny-DESK2.sc.intel.com>
  <20190821181343.GH8653@ziepe.ca>
- <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <20190821181343.GH8653@ziepe.ca>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -36,83 +36,56 @@ To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 21, 2019 at 11:57:03AM -0700, 'Ira Weiny' wrote:
-> On Wed, Aug 21, 2019 at 03:13:43PM -0300, Jason Gunthorpe wrote:
-> > On Wed, Aug 21, 2019 at 11:02:00AM -0700, Ira Weiny wrote:
-> > > On Tue, Aug 20, 2019 at 08:55:15AM -0300, Jason Gunthorpe wrote:
-> > > > On Tue, Aug 20, 2019 at 11:12:10AM +1000, Dave Chinner wrote:
-> > > > > On Mon, Aug 19, 2019 at 09:38:41AM -0300, Jason Gunthorpe wrote:
-> > > > > > On Mon, Aug 19, 2019 at 07:24:09PM +1000, Dave Chinner wrote:
-> > > > > > 
-> > > > > > > So that leaves just the normal close() syscall exit case, where the
-> > > > > > > application has full control of the order in which resources are
-> > > > > > > released. We've already established that we can block in this
-> > > > > > > context.  Blocking in an interruptible state will allow fatal signal
-> > > > > > > delivery to wake us, and then we fall into the
-> > > > > > > fatal_signal_pending() case if we get a SIGKILL while blocking.
-> > > > > > 
-> > > > > > The major problem with RDMA is that it doesn't always wait on close() for the
-> > > > > > MR holding the page pins to be destoyed. This is done to avoid a
-> > > > > > deadlock of the form:
-> > > > > > 
-> > > > > >    uverbs_destroy_ufile_hw()
-> > > > > >       mutex_lock()
-> > > > > >        [..]
-> > > > > >         mmput()
-> > > > > >          exit_mmap()
-> > > > > >           remove_vma()
-> > > > > >            fput();
-> > > > > >             file_operations->release()
+On Wed, Aug 21, 2019 at 03:13:43PM -0300, Jason Gunthorpe wrote:
+> On Wed, Aug 21, 2019 at 11:02:00AM -0700, Ira Weiny wrote:
+> > On Tue, Aug 20, 2019 at 08:55:15AM -0300, Jason Gunthorpe wrote:
+> > > On Tue, Aug 20, 2019 at 11:12:10AM +1000, Dave Chinner wrote:
+> > > > On Mon, Aug 19, 2019 at 09:38:41AM -0300, Jason Gunthorpe wrote:
+> > > > > On Mon, Aug 19, 2019 at 07:24:09PM +1000, Dave Chinner wrote:
 > > > > > 
-> > > > > I think this is wrong, and I'm pretty sure it's an example of why
-> > > > > the final __fput() call is moved out of line.
+> > > > > > So that leaves just the normal close() syscall exit case, where the
+> > > > > > application has full control of the order in which resources are
+> > > > > > released. We've already established that we can block in this
+> > > > > > context.  Blocking in an interruptible state will allow fatal signal
+> > > > > > delivery to wake us, and then we fall into the
+> > > > > > fatal_signal_pending() case if we get a SIGKILL while blocking.
+> > > > > 
+> > > > > The major problem with RDMA is that it doesn't always wait on close() for the
+> > > > > MR holding the page pins to be destoyed. This is done to avoid a
+> > > > > deadlock of the form:
+> > > > > 
+> > > > >    uverbs_destroy_ufile_hw()
+> > > > >       mutex_lock()
+> > > > >        [..]
+> > > > >         mmput()
+> > > > >          exit_mmap()
+> > > > >           remove_vma()
+> > > > >            fput();
+> > > > >             file_operations->release()
 > > > > 
-> > > > Yes, I think so too, all I can say is this *used* to happen, as we
-> > > > have special code avoiding it, which is the code that is messing up
-> > > > Ira's lifetime model.
-> > > > 
-> > > > Ira, you could try unraveling the special locking, that solves your
-> > > > lifetime issues?
+> > > > I think this is wrong, and I'm pretty sure it's an example of why
+> > > > the final __fput() call is moved out of line.
 > > > 
-> > > Yes I will try to prove this out...  But I'm still not sure this fully solves
-> > > the problem.
+> > > Yes, I think so too, all I can say is this *used* to happen, as we
+> > > have special code avoiding it, which is the code that is messing up
+> > > Ira's lifetime model.
 > > > 
-> > > This only ensures that the process which has the RDMA context (RDMA FD) is safe
-> > > with regard to hanging the close for the "data file FD" (the file which has
-> > > pinned pages) in that _same_ process.  But what about the scenario.
+> > > Ira, you could try unraveling the special locking, that solves your
+> > > lifetime issues?
 > > 
-> > Oh, I didn't think we were talking about that. Hanging the close of
-> > the datafile fd contingent on some other FD's closure is a recipe for
-> > deadlock..
+> > Yes I will try to prove this out...  But I'm still not sure this fully solves
+> > the problem.
+> > 
+> > This only ensures that the process which has the RDMA context (RDMA FD) is safe
+> > with regard to hanging the close for the "data file FD" (the file which has
+> > pinned pages) in that _same_ process.  But what about the scenario.
 > 
-> The discussion between Jan and Dave was concerning what happens when a user
-> calls
-> 
-> fd = open()
-> fnctl(...getlease...)
-> addr = mmap(fd...)
-> ib_reg_mr() <pin>
-> munmap(addr...)
-> close(fd)
-> 
-> Dave suggested:
-> 
-> "I'm of a mind to make the last close() on a file block if there's an
-> active layout lease to prevent processes from zombie-ing layout
-> leases like this. i.e. you can't close the fd until resources that
-> pin the lease have been released."
-> 
-> 	-- Dave https://lkml.org/lkml/2019/8/16/994
+> Oh, I didn't think we were talking about that. Hanging the close of
+> the datafile fd contingent on some other FD's closure is a recipe for
+> deadlock..
 
-I think this may all be easier if there was a way to block a dup() if it comes
-from an SCM_RIGHTS.  Does anyone know if that is easy?  I assume it would just
-mean passing some flag through the dup() call chain.
-
-Jason, if we did that would it break RDMA use cases?  I personally don't know
-of any.  We could pass data back from vaddr_pin indicating that a file pin has
-been taken and predicate the blocking of SCM_RIGHTS on that? 
-
-Of course if the user called:
+The discussion between Jan and Dave was concerning what happens when a user
+calls
 
 fd = open()
 fnctl(...getlease...)
@@ -120,41 +93,41 @@ addr = mmap(fd...)
 ib_reg_mr() <pin>
 munmap(addr...)
 close(fd)
-fork() <=== in another thread because close is hanging
 
-Would that dup() "fd" above into the child?  Or maybe that would be part of the
-work to make close() hang?  Ensure the fd/file is still in the FD table so it
-gets dupped???
+Dave suggested:
+
+"I'm of a mind to make the last close() on a file block if there's an
+active layout lease to prevent processes from zombie-ing layout
+leases like this. i.e. you can't close the fd until resources that
+pin the lease have been released."
+
+	-- Dave https://lkml.org/lkml/2019/8/16/994
+
+> 
+> IMHO the pin refcnt is held by the driver char dev FD, that is the
+> object you need to make it visible against.
+
+I'm sorry but what do you mean by "driver char dev FD"?
+
+> 
+> Why not just have a single table someplace of all the layout leases
+> with the file they are held on and the FD/socket/etc that is holding
+> the pin? Make it independent of processes and FDs?
+
+If it is independent of processes how will we know which process is blocking
+the truncate?  Using a global table is an interesting idea but I still believe
+the users are going to want to track this to specific processes.  It's not
+clear to me how that would be done with a global table.
+
+I agree the XDP/socket case is bothersome...  I was thinking that somewhere the
+fd of the socket could be hooked up in this case.  But taking a look at it
+reveals that is not going to be easy.  And I assume XDP has the same issue WRT
+SCM_RIGHTS and the ability to share the xdp context?
 
 Ira
 
-
 > 
-> > 
-> > IMHO the pin refcnt is held by the driver char dev FD, that is the
-> > object you need to make it visible against.
-> 
-> I'm sorry but what do you mean by "driver char dev FD"?
-> 
-> > 
-> > Why not just have a single table someplace of all the layout leases
-> > with the file they are held on and the FD/socket/etc that is holding
-> > the pin? Make it independent of processes and FDs?
-> 
-> If it is independent of processes how will we know which process is blocking
-> the truncate?  Using a global table is an interesting idea but I still believe
-> the users are going to want to track this to specific processes.  It's not
-> clear to me how that would be done with a global table.
-> 
-> I agree the XDP/socket case is bothersome...  I was thinking that somewhere the
-> fd of the socket could be hooked up in this case.  But taking a look at it
-> reveals that is not going to be easy.  And I assume XDP has the same issue WRT
-> SCM_RIGHTS and the ability to share the xdp context?
-> 
-> Ira
-> 
-> > 
-> > Jason
+> Jason
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
