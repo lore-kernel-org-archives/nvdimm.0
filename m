@@ -1,29 +1,16 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8A0DF21309DB8
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 22:06:19 -0700 (PDT)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
- by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
- x76520uv189863
- for <linux-nvdimm@lists.01.org>; Tue, 6 Aug 2019 01:03:47 -0400
-Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
- by mx0b-001b2d01.pphosted.com with ESMTP id 2u71ceuc00-1
- (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
- for <linux-nvdimm@lists.01.org>; Tue, 06 Aug 2019 01:03:47 -0400
-Received: from localhost
- by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only!
- Violators will be prosecuted
- for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
- Tue, 6 Aug 2019 06:03:45 +0100
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-Subject: [PATCH v2] ndctl,
- check: Ensure mmap of BTT sections work with 64K page-sizes
-Date: Tue,  6 Aug 2019 10:33:34 +0530
+ by ml01.01.org (Postfix) with ESMTPS id 0B66820212CA7
+ for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:53 -0700 (PDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH 08/19] fuse: Keep a list of free dax memory ranges
+Date: Wed, 21 Aug 2019 13:57:09 -0400
+Message-Id: <20190821175720.25901-9-vgoyal@redhat.com>
+In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-Message-Id: <20190806050334.2267-1-vaibhav@linux.ibm.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,212 +22,218 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org, "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: Harish Sriram <harish@linux.ibm.com>, Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Cc: miklos@szeredi.hu, dgilbert@redhat.com, Peng Tao <tao.peng@linux.alibaba.com>, virtio-fs@redhat.com, stefanha@redhat.com
 List-ID: <linux-nvdimm@lists.01.org>
 
-On PPC64 which uses a 64K page-size, ndtl-check command fails on a BTT
-namespace with following error:
+Divide the dax memory range into fixed size ranges (2MB for now) and put
+them in a list. This will track free ranges. Once an inode requires a
+free range, we will take one from here and put it in interval-tree
+of ranges assigned to inode.
 
-$ sudo ndctl check-namespace namespace0.0 -vv
-  namespace0.0: namespace_check: checking namespace0.0
-  namespace0.0: btt_discover_arenas: found 1 BTT arena
-  namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000,
-  	off = 0x1000] failed: Invalid argument
-  error checking namespaces: Invalid argument
-  checked 0 namespaces
-
-An error happens when btt_create_mappings() tries to mmap the sections
-of the BTT device which are usually 4K offset aligned. However the
-mmap() syscall expects the 'offset' argument to be in multiples of
-page-size, hence it returns EINVAL causing the btt_create_mappings()
-to error out.
-
-As a fix for the issue this patch proposes addition of two new
-functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
-map/unmap parts of BTT device to ndctl process address-space. The
-functions tweaks the requested 'offset' argument to mmap() ensuring
-that its page-size aligned and then fix-ups the returned pointer such
-that it points to the requested offset within mmapped region.
-
-With these newly introduced functions the patch updates the call-sites
-in 'check.c' to use these functions instead of mmap/unmap syscalls.
-Also since btt_mmap returns NULL if mmap operation fails, the
-error check call-sites can be made against NULL instead of MAP_FAILED.
-
-Reported-by: Harish Sriram <harish@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
 ---
-Changelog:
+ fs/fuse/fuse_i.h    | 23 ++++++++++++
+ fs/fuse/inode.c     | 86 +++++++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/virtio_fs.c |  2 ++
+ 3 files changed, 111 insertions(+)
 
-v2:
-* Updated patch description to include canonical email address of bug
-  reporter. [Vishal]
-* Improved the comment describing function btt_mmap() in 'check.c'
-  [Vishal]
-* Simplified the argument list for btt_mmap() to just accept bttc,
-  length and offset. Other arguments for mmap() are derived from these
-  args. [Vishal]
-* Renamed 'shift' variable in btt_mmap()/unmap() to 'page_offset'
-  [Vishal]
-* Improved the dbg() messages logged inside
-  btt_mmap()/unmap(). [Vishal]
-* Return NULL from btt_mmap() in case of an error. [Vishal]
-* Changed the all sites to btt_mmap() to perform error check against
-  NULL return value instead of MAP_FAILED. [Vishal]
----
- ndctl/check.c | 93 +++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 67 insertions(+), 26 deletions(-)
-
-diff --git a/ndctl/check.c b/ndctl/check.c
-index 8a7125053865..e72b498f1ce1 100644
---- a/ndctl/check.c
-+++ b/ndctl/check.c
-@@ -907,59 +907,100 @@ static int btt_discover_arenas(struct btt_chk *bttc)
- 	return ret;
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 7b365a29b156..f1059b51c539 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -50,6 +50,10 @@
+ /** Number of page pointers embedded in fuse_req */
+ #define FUSE_REQ_INLINE_PAGES 1
+ 
++/* Default memory range size, 2MB */
++#define FUSE_DAX_MEM_RANGE_SZ	(2*1024*1024)
++#define FUSE_DAX_MEM_RANGE_PAGES	(FUSE_DAX_MEM_RANGE_SZ/PAGE_SIZE)
++
+ /** List of active connections */
+ extern struct list_head fuse_conn_list;
+ 
+@@ -97,6 +101,18 @@ struct fuse_forget_link {
+ 	struct fuse_forget_link *next;
+ };
+ 
++/** Translation information for file offsets to DAX window offsets */
++struct fuse_dax_mapping {
++	/* Will connect in fc->free_ranges to keep track of free memory */
++	struct list_head list;
++
++	/** Position in DAX window */
++	u64 window_offset;
++
++	/** Length of mapping, in bytes */
++	loff_t length;
++};
++
+ /** FUSE inode */
+ struct fuse_inode {
+ 	/** Inode data */
+@@ -838,6 +854,13 @@ struct fuse_conn {
+ 
+ 	/** DAX device, non-NULL if DAX is supported */
+ 	struct dax_device *dax_dev;
++
++	/*
++	 * DAX Window Free Ranges. TODO: This might not be best place to store
++	 * this free list
++	 */
++	long nr_free_ranges;
++	struct list_head free_ranges;
+ };
+ 
+ static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 0f58107a8269..0af147c70558 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -22,6 +22,8 @@
+ #include <linux/exportfs.h>
+ #include <linux/posix_acl.h>
+ #include <linux/pid_namespace.h>
++#include <linux/dax.h>
++#include <linux/pfn_t.h>
+ 
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+ MODULE_DESCRIPTION("Filesystem in Userspace");
+@@ -598,6 +600,76 @@ static void fuse_pqueue_init(struct fuse_pqueue *fpq)
+ 	fpq->connected = 1;
  }
  
--static int btt_create_mappings(struct btt_chk *bttc)
-+/*
-+ * Wrap call to mmap(2) to work with btt device offsets that are not aligned
-+ * to system page boundary. It works by rounding down the requested offset
-+ * to sys_page_size when calling mmap(2) and then returning a fixed-up pointer
-+ * to the correct offset in the mmaped region.
-+ */
-+static void *btt_mmap(struct btt_chk *bttc, size_t length, off_t offset)
- {
--	struct arena_info *a;
--	int mmap_flags;
--	int i;
-+	off_t page_offset;
-+	int prot_flags;
-+	uint8_t *addr;
- 
- 	if (!bttc->opts->repair)
--		mmap_flags = PROT_READ;
-+		prot_flags = PROT_READ;
- 	else
--		mmap_flags = PROT_READ|PROT_WRITE;
-+		prot_flags = PROT_READ|PROT_WRITE;
++static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
++{
++	struct fuse_dax_mapping *range, *temp;
 +
-+	/* Calculate the page_offset from the system page boundary */
-+	page_offset = offset - rounddown(offset, bttc->sys_page_size);
-+
-+	/* Update the offset and length with the page_offset calculated above */
-+	offset -= page_offset;
-+	length += page_offset;
-+
-+	addr = mmap(NULL, length, prot_flags, MAP_SHARED, bttc->fd, offset);
-+
-+	/* If needed fixup the return pointer to correct offset requested */
-+	if (addr != MAP_FAILED)
-+		addr += page_offset;
-+
-+	dbg(bttc, "addr = %p length = %#lx offset = %#lx"
-+	    "page_offset = %#lx\n", (void *) addr, length, offset, page_offset);
-+
-+	return addr == MAP_FAILED ? NULL : addr;
++	/* Free All allocated elements */
++	list_for_each_entry_safe(range, temp, mem_list, list) {
++		list_del(&range->list);
++		kfree(range);
++	}
 +}
 +
-+static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
++#ifdef CONFIG_FS_DAX
++static int fuse_dax_mem_range_init(struct fuse_conn *fc,
++				   struct dax_device *dax_dev)
 +{
-+	off_t page_offset;
-+	uintptr_t addr = (uintptr_t) ptr;
++	long nr_pages, nr_ranges;
++	void *kaddr;
++	pfn_t pfn;
++	struct fuse_dax_mapping *range;
++	LIST_HEAD(mem_ranges);
++	phys_addr_t phys_addr;
++	int ret = 0, id;
++	size_t dax_size = -1;
++	unsigned long i;
 +
-+	/* Calculate the page_offset from system page boundary */
-+	page_offset = addr - rounddown(addr, bttc->sys_page_size);
++	id = dax_read_lock();
++	nr_pages = dax_direct_access(dax_dev, 0, PHYS_PFN(dax_size), &kaddr,
++					&pfn);
++	dax_read_unlock(id);
++	if (nr_pages < 0) {
++		pr_debug("dax_direct_access() returned %ld\n", nr_pages);
++		return nr_pages;
++	}
 +
-+	addr -= page_offset;
-+	length += page_offset;
++	phys_addr = pfn_t_to_phys(pfn);
++	nr_ranges = nr_pages/FUSE_DAX_MEM_RANGE_PAGES;
++	printk("fuse_dax_mem_range_init(): dax mapped %ld pages. nr_ranges=%ld\n", nr_pages, nr_ranges);
 +
-+	munmap((void *) addr, length);
-+	dbg(bttc, "addr = %p length = %#lx page_offset = %#lx\n",
-+	    (void *) addr, length, page_offset);
++	for (i = 0; i < nr_ranges; i++) {
++		range = kzalloc(sizeof(struct fuse_dax_mapping), GFP_KERNEL);
++		if (!range) {
++			pr_debug("memory allocation for mem_range failed.\n");
++			ret = -ENOMEM;
++			goto out_err;
++		}
++		/* TODO: This offset only works if virtio-fs driver is not
++		 * having some memory hidden at the beginning. This needs
++		 * better handling
++		 */
++		range->window_offset = i * FUSE_DAX_MEM_RANGE_SZ;
++		range->length = FUSE_DAX_MEM_RANGE_SZ;
++		list_add_tail(&range->list, &mem_ranges);
++	}
++
++	list_replace_init(&mem_ranges, &fc->free_ranges);
++	fc->nr_free_ranges = nr_ranges;
++	return 0;
++out_err:
++	/* Free All allocated elements */
++	fuse_free_dax_mem_ranges(&mem_ranges);
++	return ret;
 +}
-+
-+static int btt_create_mappings(struct btt_chk *bttc)
++#else /* !CONFIG_FS_DAX */
++static inline int fuse_dax_mem_range_init(struct fuse_conn *fc,
++					  struct dax_device *dax_dev)
 +{
-+	struct arena_info *a;
-+	int i;
++	return 0;
++}
++#endif /* CONFIG_FS_DAX */
++
+ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 			struct dax_device *dax_dev,
+ 			const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv)
+@@ -628,6 +700,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
+ 	fc->dax_dev = dax_dev;
+ 	fc->user_ns = get_user_ns(user_ns);
+ 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
++	INIT_LIST_HEAD(&fc->free_ranges);
+ }
+ EXPORT_SYMBOL_GPL(fuse_conn_init);
  
- 	for (i = 0; i < bttc->num_arenas; i++) {
- 		a = &bttc->arena[i];
- 		a->map.info_len = BTT_INFO_SIZE;
--		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->infooff);
--		if (a->map.info == MAP_FAILED) {
-+		a->map.info = btt_mmap(bttc, a->map.info_len, a->infooff);
-+		if (!a->map.info) {
- 			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.info_len, a->infooff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.data_len = a->mapoff - a->dataoff;
--		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->dataoff);
--		if (a->map.data == MAP_FAILED) {
-+		a->map.data = btt_mmap(bttc, a->map.data_len, a->dataoff);
-+		if (!a->map.data) {
- 			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.data_len, a->dataoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.map_len = a->logoff - a->mapoff;
--		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->mapoff);
--		if (a->map.map == MAP_FAILED) {
-+		a->map.map = btt_mmap(bttc, a->map.map_len, a->mapoff);
-+		if (!a->map.map) {
- 			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.map_len, a->mapoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.log_len = a->info2off - a->logoff;
--		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->logoff);
--		if (a->map.log == MAP_FAILED) {
-+		a->map.log = btt_mmap(bttc, a->map.log_len, a->logoff);
-+		if (!a->map.log) {
- 			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.log_len, a->logoff, strerror(errno));
- 			return -errno;
- 		}
- 
- 		a->map.info2_len = BTT_INFO_SIZE;
--		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
--			MAP_SHARED, bttc->fd, a->info2off);
--		if (a->map.info2 == MAP_FAILED) {
-+		a->map.info2 = btt_mmap(bttc, a->map.info2_len, a->info2off);
-+		if (!a->map.info2) {
- 			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
- 				i, a->map.info2_len, a->info2off, strerror(errno));
- 			return -errno;
-@@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
- 	for (i = 0; i < bttc->num_arenas; i++) {
- 		a = &bttc->arena[i];
- 		if (a->map.info)
--			munmap(a->map.info, a->map.info_len);
-+			btt_unmap(bttc, a->map.info, a->map.info_len);
- 		if (a->map.data)
--			munmap(a->map.data, a->map.data_len);
-+			btt_unmap(bttc, a->map.data, a->map.data_len);
- 		if (a->map.map)
--			munmap(a->map.map, a->map.map_len);
-+			btt_unmap(bttc, a->map.map, a->map.map_len);
- 		if (a->map.log)
--			munmap(a->map.log, a->map.log_len);
-+			btt_unmap(bttc, a->map.log, a->map.log_len);
- 		if (a->map.info2)
--			munmap(a->map.info2, a->map.info2_len);
-+			btt_unmap(bttc, a->map.info2, a->map.info2_len);
+@@ -636,6 +709,8 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 	if (refcount_dec_and_test(&fc->count)) {
+ 		if (fc->destroy_req)
+ 			fuse_request_free(fc->destroy_req);
++		if (fc->dax_dev)
++			fuse_free_dax_mem_ranges(&fc->free_ranges);
+ 		put_pid_ns(fc->pid_ns);
+ 		put_user_ns(fc->user_ns);
+ 		fc->release(fc);
+@@ -1147,6 +1222,14 @@ int fuse_fill_super_common(struct super_block *sb,
+ 		fc->release = fuse_free_conn;
  	}
- }
  
++	if (mount_data->dax_dev) {
++		err = fuse_dax_mem_range_init(fc, mount_data->dax_dev);
++		if (err) {
++			pr_debug("fuse_dax_mem_range_init() returned %d\n", err);
++			goto err_free_ranges;
++		}
++	}
++
+ 	fud = fuse_dev_alloc_install(fc);
+ 	if (!fud)
+ 		goto err_put_conn;
+@@ -1208,6 +1291,9 @@ int fuse_fill_super_common(struct super_block *sb,
+ 	dput(root_dentry);
+  err_dev_free:
+ 	fuse_dev_free(fud);
++ err_free_ranges:
++	if (mount_data->dax_dev)
++		fuse_free_dax_mem_ranges(&fc->free_ranges);
+  err_put_conn:
+ 	fuse_conn_put(fc);
+ 	sb->s_fs_info = NULL;
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 32604722a7fb..9198c2b84677 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -453,6 +453,8 @@ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	phys_addr_t offset = PFN_PHYS(pgoff);
+ 	size_t max_nr_pages = fs->window_len/PAGE_SIZE - pgoff;
+ 
++	pr_debug("virtio_fs_direct_access(): called. nr_pages=%ld max_nr_pages=%zu\n", nr_pages, max_nr_pages);
++
+ 	if (kaddr)
+ 		*kaddr = fs->window_kaddr + offset;
+ 	if (pfn)
 -- 
-2.21.0
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
