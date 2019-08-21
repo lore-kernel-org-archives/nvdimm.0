@@ -2,14 +2,12 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DABAF2194EB75
+ by ml01.01.org (Postfix) with ESMTPS id D67C120212C9D
  for <linux-nvdimm@lists.01.org>; Wed, 21 Aug 2019 10:58:48 -0700 (PDT)
 From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH 10/19] fuse: Introduce setupmapping/removemapping commands
-Date: Wed, 21 Aug 2019 13:57:11 -0400
-Message-Id: <20190821175720.25901-11-vgoyal@redhat.com>
-In-Reply-To: <20190821175720.25901-1-vgoyal@redhat.com>
-References: <20190821175720.25901-1-vgoyal@redhat.com>
+Subject: [PATCH v3 00/19][RFC] virtio-fs: Enable DAX support
+Date: Wed, 21 Aug 2019 13:57:01 -0400
+Message-Id: <20190821175720.25901-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -23,73 +21,73 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-Cc: miklos@szeredi.hu, dgilbert@redhat.com, Peng Tao <tao.peng@linux.alibaba.com>, virtio-fs@redhat.com, stefanha@redhat.com
+Cc: virtio-fs@redhat.com, dgilbert@redhat.com, stefanha@redhat.com, miklos@szeredi.hu
 List-ID: <linux-nvdimm@lists.01.org>
 
-Introduce two new fuse commands to setup/remove memory mappings. This
-will be used to setup/tear down file mapping in dax window.
+Hi,
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
----
- include/uapi/linux/fuse.h | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+This patch series enables DAX support for virtio-fs filesystem. Patches
+are based on 5.3-rc5 kernel and need first patch series posted for
+virtio-fs support with subject "virtio-fs: shared file system for virtual
+machines".
 
-diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-index 4461fd640cf2..7c2ad3d418df 100644
---- a/include/uapi/linux/fuse.h
-+++ b/include/uapi/linux/fuse.h
-@@ -426,6 +426,8 @@ enum fuse_opcode {
- 	FUSE_RENAME2		= 45,
- 	FUSE_LSEEK		= 46,
- 	FUSE_COPY_FILE_RANGE	= 47,
-+	FUSE_SETUPMAPPING       = 48,
-+	FUSE_REMOVEMAPPING      = 49,
- 
- 	/* CUSE specific operations */
- 	CUSE_INIT		= 4096,
-@@ -850,4 +852,41 @@ struct fuse_copy_file_range_in {
- 	uint64_t	flags;
- };
- 
-+#define FUSE_SETUPMAPPING_ENTRIES 8
-+#define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
-+struct fuse_setupmapping_in {
-+	/* An already open handle */
-+	uint64_t	fh;
-+	/* Offset into the file to start the mapping */
-+	uint64_t	foffset;
-+	/* Length of mapping required */
-+	uint64_t	len;
-+	/* Flags, FUSE_SETUPMAPPING_FLAG_* */
-+	uint64_t	flags;
-+	/* Offset in Memory Window */
-+	uint64_t	moffset;
-+};
-+
-+struct fuse_setupmapping_out {
-+	/* Offsets into the cache of mappings */
-+	uint64_t	coffset[FUSE_SETUPMAPPING_ENTRIES];
-+        /* Lengths of each mapping */
-+        uint64_t	len[FUSE_SETUPMAPPING_ENTRIES];
-+};
-+
-+struct fuse_removemapping_in {
-+	/* number of fuse_removemapping_one follows */
-+	uint32_t        count;
-+};
-+
-+struct fuse_removemapping_one {
-+	/* Offset into the dax window start the unmapping */
-+	uint64_t        moffset;
-+        /* Length of mapping required */
-+        uint64_t	len;
-+};
-+
-+#define FUSE_REMOVEMAPPING_MAX_ENTRY   \
-+		(PAGE_SIZE / sizeof(struct fuse_removemapping_one))
-+
- #endif /* _LINUX_FUSE_H */
+https://www.redhat.com/archives/virtio-fs/2019-August/msg00281.html
+
+Enabling DAX seems to improve performance for most of the operations
+in general a great deal. I have reported performance numbers in first patch
+series so I am not repeating these here.
+
+Any comments or feedback is welcome.
+
+Thanks
+Vivek
+
+Sebastien Boeuf (3):
+  virtio: Add get_shm_region method
+  virtio: Implement get_shm_region for PCI transport
+  virtio: Implement get_shm_region for MMIO transport
+
+Stefan Hajnoczi (4):
+  dax: remove block device dependencies
+  fuse, dax: add fuse_conn->dax_dev field
+  virtio_fs, dax: Set up virtio_fs dax_device
+  fuse, dax: add DAX mmap support
+
+Vivek Goyal (12):
+  dax: Pass dax_dev to dax_writeback_mapping_range()
+  fuse: Keep a list of free dax memory ranges
+  fuse: implement FUSE_INIT map_alignment field
+  fuse: Introduce setupmapping/removemapping commands
+  fuse, dax: Implement dax read/write operations
+  fuse: Define dax address space operations
+  fuse, dax: Take ->i_mmap_sem lock during dax page fault
+  fuse: Maintain a list of busy elements
+  dax: Create a range version of dax_layout_busy_page()
+  fuse: Add logic to free up a memory range
+  fuse: Release file in process context
+  fuse: Take inode lock for dax inode truncation
+
+ drivers/dax/super.c                |    3 +-
+ drivers/virtio/virtio_mmio.c       |   32 +
+ drivers/virtio/virtio_pci_modern.c |  108 +++
+ fs/dax.c                           |   89 +-
+ fs/ext2/inode.c                    |    2 +-
+ fs/ext4/inode.c                    |    2 +-
+ fs/fuse/cuse.c                     |    3 +-
+ fs/fuse/dir.c                      |    2 +
+ fs/fuse/file.c                     | 1206 +++++++++++++++++++++++++++-
+ fs/fuse/fuse_i.h                   |   99 ++-
+ fs/fuse/inode.c                    |  138 +++-
+ fs/fuse/virtio_fs.c                |  134 +++-
+ fs/xfs/xfs_aops.c                  |    2 +-
+ include/linux/dax.h                |   12 +-
+ include/linux/virtio_config.h      |   17 +
+ include/uapi/linux/fuse.h          |   47 +-
+ include/uapi/linux/virtio_fs.h     |    3 +
+ include/uapi/linux/virtio_mmio.h   |   11 +
+ include/uapi/linux/virtio_pci.h    |   11 +-
+ 19 files changed, 1868 insertions(+), 53 deletions(-)
+
 -- 
 2.20.1
 
