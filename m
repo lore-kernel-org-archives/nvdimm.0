@@ -1,12 +1,10 @@
-From: "Nelly" <info-at5KMrWQSLbsG83rWm+8vg@public.gmane.org>
-Subject: =?windows-1251?B?z+Xw5ePu4u7w+yDxIPLu8OPu4vvs6CDx5fL/?=
- =?windows-1251?B?7Og=?=
-Date: Thu, 22 Aug 2019 00:17:05 +0300
-Message-ID: <077a278b7d50a2ae9f6adc8f7bb8f2feea724af6@nell.com.ua>
-Reply-To: Nelly <info-at5KMrWQSLbsG83rWm+8vg@public.gmane.org>
+From: rosie.huynh-YdYl4NJLZN9nhKUy7WhKcAC/G2K4zDHf@public.gmane.org
+Subject: Managed Security Service Providers (MSPs & MSSPs)
+Date: Thu, 22 Aug 2019 07:37:23 -0700
+Message-ID: <CAAJs2D63ULhdmwH1-XWQ=vEjQsrQSU8PQKQzrKGWVRJiafKm_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -20,59 +18,48 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-0+Lg5uDl7PvpIOrr6OXt8iEKCiLP5fDl4+7i7vD7IPEg8u7w4+7i++zoIPHl8v/s6Dog4u7p7eAg
-6OvoIO/g8PLt5fDx8uLuIgoK1/LuIOzu5uXyIOH78vwg4e7r5eUg4vvs4PL74uD++ejsLCDh5fHv
-5fDx7+Xq8uji7fvsIOgg7fPk7fvsLCD35ewg7+Xw5ePu4u7w+ywg5+D45eT46OUg4iDy8+/o6j8K
-wCDl8evoIO7yIP3y6PUg7+Xw5ePu4u7w7uIg5+Di6PHo8iDi4PjlIPTo7eDt8e7i7uUg4evg4+7v
-7uvz9+jlIOgg4evg4+7v7uvz9+jlIOLg+OXj7iDh6Oft5fHgPwrC+yDu4f/n4PLl6/zt7iDi++jj
-8ODl8uUsIOXx6+gg4fPk5fLlIOTl6fHy4u7i4PL8IOLn4uX45e3t7iwg8OX46PLl6/zt7iDoLCDv
-8Ogg/fLu7Cwg4vHl4+TgIJYg8ODn8+zt7i4KCtbl6+gg7/Du4/Dg7Oz7OgqgLSDO7/Dl5OXr6PL8
-IPbl6+gg8ODh7vL7IPEg0tE7CqAtIM7v8OXk5evo8vwg6uv+9+Xi++Ug7+7q4Ofg8uXr6CD99PTl
-6vLo4u3u8fLoIOIg8ODh7vLlINLROwqgLSDN4PP36PL88f8g6uD35fHy4uXt7e4g4+7y7uLo8vzx
-/yDqIO/l8OXj7uLu8ODsOwqgLSDN4PP36PL88f8g7O7k5evo8O7i4PL8IO/l8OXj7uLu8O375SDx
-8vDg8uXj6Ogg4iDn4OLo8ejs7vHy6CDu8iDw4Oft+/Ug9ODq8u7w7uI7CqAtIM3g8/fo8vzx/yDq
-7u3y8O7r6PDu4uDy/CD17uQg7+Xw5ePu4u7w7uIsIO/w7vLo4u7x8u7/8vwg5ODi6+Xt6P4g6CDs
-4O3o7/Pr//bo/+w7CqAtIM3g8/fo8vzx/yD06Orx6PDu4uDy/CDw5efz6/zy4PL7IO/l8OXj7uLu
-8O7iIOgg7u/w5eTl6//y/CDk4Ov87eXp+OjlIPjg4+guIKCgoKAKCs7x7e7i7fvlIOLu7/Du8fs6
-IKCgoKAKCjAuIM3z6+Xi7ukg9ujq6wqgLSDH4Pfl7CDw4OHu8uDy/CDxIPLu8OPu4vvs6CDx5fL/
-7Ogg6CDiIOrg6uj1IPHr8/fg//Ug6/P3+OUg/fLu4+4g6Ofh5ebg8vw/CqAtIM725e3q4CDx6PLz
-4Pbo6Dog4+TlIOz7IPHl6ffg8T8KoC0gz+vg7SDk5enx8uLo6Tog9/LuIOz7IPXu8ujsIO/u6/P3
-6PL8IO7yIPDg4e7y+yDxINLRPwoKMS4gz+7k4+7y7uLq4CDqIO/l8OXj7uLu8ODsCqAtINfy7iDy
-4Oru5SDv5fDl4+7i7vD7IOgg5+D35ewg7u3oIO3z5u37PwqgLSDA7eDr6Ocg6O3y5fDl8e7iIO/u
-8fLg4vno6uAg6CDS0TsKoC0gzu/w5eTl6+Xt6OUg5+7tIOLu5+zu5u379SDk7uPu4u7w5e3t7vHy
-5ek7CqAtIM7v8OXk5evl7ejlIO/g8ODs5fLw7uIg7+Xw5ePu4u7w7uIg6CD25evl6SDv7iDq4Obk
-7uzzIO/g8ODs5fLw8zsKoC0g1O7w7Ojw7uLg7ejlIOzg8vDo9vsg8/Hy8+/u6jsKoC0g1O7w7Ojw
-7uLg7ejlIOLg8Ojg7fLu4iDk7uPu4u7w5e3t7vHy5ek7CqAtIM/u5OPu8u7i6uAg6O307vDs4Pbo
-7u3t+/Ug7ODy5fDo4Ovu4jog7/Dl5+Xt8uD26OgsIO7y9+Xy+ywg7/Du8u7q7uv7OwqgLSDC++Hu
-8CDu7/Lo7ODr/O3u6SDx8vDg8uXj6Ogg4uXk5e3o/yDv5fDl4+7i7vDu4i4KCjIuIM/l8OXj7uLu
-8O375SDx8vDg8uXj6OgKoC0gzvHt7uLt++Ug8fLw4PLl4+joIOgg8fLo6+gg7+7i5eTl7ej/IOIg
-7+Xw5ePu4u7w4PU7CqAtIM/u5+j26Ogg7+Xw5ePu4u7w+ejq7uI7CqAtINDg4e7y4CDiIO/l8OXj
-7uLu8O3u6SDq7uzg7eTlOiDw7uvl4vvlIPH25e3g8OjoIOIg7+Xw5ePu4u7w4PU7CqAtINHy8ODy
-5ePo/yDv5fDl4+7i7vDu4iBXaW4tV2luOiDs6PT7IOjr6CDw5eDr/O3u8fL8LiDK4Oog/fLgIPHy
-8ODy5ePo/yDw4OHu8uDl8iDiIPDl4Ov87e7pIObo5+3oOwqgLSDP5fDl4+7i7vDt++Ug8fLw4PLl
-4+joIOfg6vPv+ejq7uIg6CDq4Oog6Owg4/Dg7O7y7e4g7/Du8uji7vHy7v/y/C4KCjMuIM/l8OXj
-7uLu8O3g/yDy4Ory6OrgCqAtIN3y4O/7IOLl5OXt6P8g7+Xw5ePu4u7w7uI7CqAtIM3l4uXw4eDr
-/O375SDv7uLl5OXt9+Xx6ujlIO/w6Oft4OroIOIg7+Xw5ePu4u7w4PU7CqAtIMrg6iDv7u3/8vwg
-9uXr6CDoIOjt8uXw5fH7IPHi7uj1IO7v7+7t5e3y7uI7CqAtIMru7fLw7uv87fvlIPLu9+roIOIg
-7+Xw5ePu4u7w4PUuCgo0LiDS5fXt6OroIOLr6P/t6P8g6CDz4eXm5OXt6P8KoC0gzODt6O/z6//2
-6Ogg4iDv5fDl4+7i7vDg9TsKoC0gz/Du8uji7uTl6fHy4ujlIOzg7ejv8+v/8u7w4OwsIO/x6PXu
-6+7j6Pfl8eru7PMg5ODi6+Xt6P47CqAtINLl9e3o6ugg/fT05ery6OLt7ukg4PDj8+zl7fLg9ujo
-IOgg8+Hl5uTl7ej/LgoKNS4gx+Di5fD45e3o5SDv5fDl4+7i7vDu4gqgLSDH4Orr/vfo8uXr/O37
-6SD98uDvIOLl5OXt6P8g7+Xw5ePu4u7w7uI7CqAtIMrg6iDu8vHr5eTo8vwg4+7y7uLt7vHy/CDu
-7+/u7eXt8uAg6iDn4OLl8Pjl7ej+IO/l8OXj7uLu8O7iOwqgLSDP8Ojt9ujvICLN5SDn4OLl8Pjg
-5ewg4vHy8OX38ywg7+7q4CDt5SDk7uPu4u7w6Ovo8fwiOwqgLSDU6Orx4Pbo/yDk7vHy6OPt8/L7
-9SDk7uPu4u7w5e3t7vHy5ekuCgo2LiDX8u4g7fPm7e4g8eTl6+Dy/CDv7vHr5SDv5fDl4+7i7vDu
-4j8KoC0gwO3g6+jnIO/l8OXj7uLu8O7iOwqgLSDI8e/u6+3l7ejlIOTu8fLo4+3z8vv1IOTu4+7i
-7vDl7e3u8fLl6TsKLSDX8u4g5OXr4PL8LCDl8evoIPfy7i3y7iDv7vjr7iDt5SDy4OosIOrg6iDi
-+yDk7uPu4u7w6Ovo8fw/Cgo3LiDBzs3T0Tog0OXq7uzl7eTg9ujoIO/uIPDg5+Lo8uj+IO/l8OXj
-7uLu8Pno6u7iOgqgLSDK7ejj6CDoIPTo6/zs+6AKCs/w7unk5fI6IDYg8eXt8v/h8P8goKCgoAoK
-x+D/4urgIO3gIPP34PHy6OU+IGh0dHA6Ly9vdGRlbHNhbGVzLmluLnVhL3RyYWluaW5nLzE0Ni9w
-ZXJlZ292b3JpLXMtdG9yZ292aW1pLXNldHlhbWktdm95bmEtaWxpLXBhcnRuZXJzdHZvLmh0bQoK
-xfHr6CDzIMLg8SDi7uft6Ort8/Ig5O7v7uvt6PLl6/zt++Ug4u7v8O7x+yAtIO7h8OD54Ony5fH8
-LCDs+yDi8eXj5OAg8ODk+yDC4Owg7+7s7vf8ISCgoKCgCgotLQrRINPi4Obl7ejl7Cwg4uD4IMHo
-5+3l8S3W5e3y8CAizeD26O7t4Ov87fvpIgoK1/Lu4fsg7vLv6PHg8vzx/yDu8iDw4PHx++vq6Cwg
-7/Du6eTo8uUg7+4g/fLu6SDx8fvr6uUgzeUg7+7r8/fg8vwg8ODx8fvr6uguCkxpc3QtVW5zdWJz
-Y3JpYmUgZnJvbSB0aGUgbmV3c2xldHRlciDuciBjb21wbGFpbiDgYu51dCBTUMDMLgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
-bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hello,
+
+
+
+Would you be interested in acquiring the updated and verified mailing
+address of* Managed Security Service Providers* (*MSP & MSSPs*)?
+
+
+
+We also have data intelligence of:
+
+
+
+Managed Security Service Providers (MSSPs)
+
+Value Added Resellers (VARs)
+
+Independent Software Vendors (ISVs)
+
+System Integrators (Sis)
+
+VoIP Service Providers.
+
+Telecommunications Service Providers (TSPs)
+
+Application Service Providers (ASPs)
+
+Internet Service Providers (ISPs)
+
+IT Managed Services Providers (ITMSP)
+
+Storage Service Providers (SSPs)
+
+
+
+Please let me know if this is something of interest to you so that I can
+provide you with further information.
+
+
+
+Thanks
+
+Rosie Huyun.
+
+If see no interest please reply *No Need.*
