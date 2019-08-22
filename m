@@ -2,14 +2,18 @@ Return-Path: <linux-nvdimm-bounces@lists.01.org>
 Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0539213030AE
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 12:32:30 -0700 (PDT)
-Date: Fri, 2 Aug 2019 15:29:56 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: [PATCH] dax: dax_layout_busy_page() should not unmap cow pages
-Message-ID: <20190802192956.GA3032@redhat.com>
+ by ml01.01.org (Postfix) with ESMTPS id 170F020213F07
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Aug 2019 13:42:26 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [ndctl PATCH 2/2] libdaxctl: point to migrate-device-model for
+ dax-class errors
+References: <20190822203635.17926-1-vishal.l.verma@intel.com>
+ <20190822203635.17926-2-vishal.l.verma@intel.com>
+Date: Thu, 22 Aug 2019 16:41:23 -0400
+In-Reply-To: <20190822203635.17926-2-vishal.l.verma@intel.com> (Vishal Verma's
+ message of "Thu, 22 Aug 2019 14:36:35 -0600")
+Message-ID: <x49pnkxndak.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,48 +25,47 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
-Cc: linux-fsdevel@vger.kernel.org, virtio-fs@redhat.com
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-As of now dax_layout_busy_page() calls unmap_mapping_range() with last
-argument as 1, which says even unmap cow pages. I am wondering who needs
-to get rid of cow pages as well.
+Vishal Verma <vishal.l.verma@intel.com> writes:
 
-I noticed one interesting side affect of this. I mount xfs with -o dax and
-mmaped a file with MAP_PRIVATE and wrote some data to a page which created
-cow page. Then I called fallocate() on that file to zero a page of file.
-fallocate() called dax_layout_busy_page() which unmapped cow pages as well
-and then I tried to read back the data I wrote and what I get is old
-data from persistent memory. I lost the data I had written. This
-read basically resulted in new fault and read back the data from
-persistent memory.
+> When a dax-bus vs. dax-class expectation causes a failure, such as when
+> reconfiguring device modes, print an error message directly pointing the
+> user to the daxctl-migrate-device-model command.
+>
+> Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
+> Reported-by: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  daxctl/lib/libdaxctl.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+> index 44842b9..c0a859c 100644
+> --- a/daxctl/lib/libdaxctl.c
+> +++ b/daxctl/lib/libdaxctl.c
+> @@ -917,6 +917,7 @@ static int daxctl_dev_enable(struct daxctl_dev *dev, enum daxctl_dev_mode mode)
+>  
+>  	if (!device_model_is_dax_bus(dev)) {
+>  		err(ctx, "%s: error: device model is dax-class\n", devname);
+> +		err(ctx, "%s: see man daxctl-migrate-device-model\n", devname);
+>  		return -EOPNOTSUPP;
+>  	}
+>  
+> @@ -962,6 +963,7 @@ DAXCTL_EXPORT int daxctl_dev_disable(struct daxctl_dev *dev)
+>  
+>  	if (!device_model_is_dax_bus(dev)) {
+>  		err(ctx, "%s: error: device model is dax-class\n", devname);
+> +		err(ctx, "%s: see man daxctl-migrate-device-model\n", devname);
+>  		return -EOPNOTSUPP;
+>  	}
 
-This sounds wrong. Are there any users which need to unmap cow pages
-as well? If not, I am proposing changing it to not unmap cow pages.
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 
-I noticed this while while writing virtio_fs code where when I tried
-to reclaim a memory range and that corrupted the executable and I
-was running from virtio-fs and program got segment violation.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Index: rhvgoyal-linux/fs/dax.c
-===================================================================
---- rhvgoyal-linux.orig/fs/dax.c	2019-08-01 17:03:10.574675652 -0400
-+++ rhvgoyal-linux/fs/dax.c	2019-08-02 14:32:28.809639116 -0400
-@@ -600,7 +600,7 @@ struct page *dax_layout_busy_page(struct
- 	 * guaranteed to either see new references or prevent new
- 	 * references from being established.
- 	 */
--	unmap_mapping_range(mapping, 0, 0, 1);
-+	unmap_mapping_range(mapping, 0, 0, 0);
- 
- 	xas_lock_irq(&xas);
- 	xas_for_each(&xas, entry, ULONG_MAX) {
+Thanks, Vishal!
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
