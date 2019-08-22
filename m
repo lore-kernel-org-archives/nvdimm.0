@@ -1,16 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CA290213281FD
- for <linux-nvdimm@lists.01.org>; Mon,  5 Aug 2019 17:26:12 -0700 (PDT)
-Subject: [ndctl PATCH v5 4/7] ndctl/dimm: Limit read-labels with --index option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 05 Aug 2019 17:09:24 -0700
-Message-ID: <156505016472.848599.421144991652487735.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156505014382.848599.16271067825582995055.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id A13B120213F08
+ for <linux-nvdimm@lists.01.org>; Thu, 22 Aug 2019 06:00:36 -0700 (PDT)
+Date: Thu, 22 Aug 2019 08:59:27 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 11/19] fuse, dax: Implement dax read/write operations
+Message-ID: <20190822125927.GA8999@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
+ <20190821175720.25901-12-vgoyal@redhat.com>
+ <20190821194934.rqswgc52juisunl2@US-160370MP2.local>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190821194934.rqswgc52juisunl2@US-160370MP2.local>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,126 +25,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Liu Bo <bo.liu@linux.alibaba.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, Peng Tao <tao.peng@linux.alibaba.com>, miklos@szeredi.hu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dgilbert@redhat.com, virtio-fs@redhat.com, stefanha@redhat.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a capability to limit the read-labels payload to just the
-index-block data space.
+On Wed, Aug 21, 2019 at 12:49:34PM -0700, Liu Bo wrote:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/ndctl/ndctl-read-labels.txt |    7 +++++
- ndctl/dimm.c                              |   43 ++++++++++++++++++-----------
- 2 files changed, 34 insertions(+), 16 deletions(-)
+[..]
+> > +static int iomap_begin_upgrade_mapping(struct inode *inode, loff_t pos,
+> > +					 loff_t length, unsigned flags,
+> > +					 struct iomap *iomap)
+> > +{
+> > +	struct fuse_inode *fi = get_fuse_inode(inode);
+> > +	struct fuse_dax_mapping *dmap;
+> > +	int ret;
+> > +
+> > +	/*
+> > +	 * Take exclusive lock so that only one caller can try to setup
+> > +	 * mapping and others wait.
+> > +	 */
+> > +	down_write(&fi->i_dmap_sem);
+> > +	dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, pos, pos);
+> > +
+> > +	/* We are holding either inode lock or i_mmap_sem, and that should
+> > +	 * ensure that dmap can't reclaimed or truncated and it should still
+> > +	 * be there in tree despite the fact we dropped and re-acquired the
+> > +	 * lock.
+> > +	 */
+> > +	ret = -EIO;
+> > +	if (WARN_ON(!dmap))
+> > +		goto out_err;
+> > +
+> > +	/* Maybe another thread already upgraded mapping while we were not
+> > +	 * holding lock.
+> > +	 */
+> > +	if (dmap->writable)
+> > +		goto out_fill_iomap;
+> 
+> @ret needs to be reset here.
+> 
 
-diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
-index 756713ee12d7..b5ddae9c269e 100644
---- a/Documentation/ndctl/ndctl-read-labels.txt
-+++ b/Documentation/ndctl/ndctl-read-labels.txt
-@@ -19,6 +19,13 @@ file.  In the multi-dimm case the data is concatenated.
- OPTIONS
- -------
- include::labels-options.txt[]
-+-I::
-+--index::
-+	Limit the span of the label operation to just the index-block
-+	area. This is useful to determine if the dimm label area is
-+	initialized. Note that this option and --size/--offset are
-+	mutually exclusive.
-+
- -o::
- --output::
- 	output file
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 70128dd2df27..5e6fa19bab15 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -55,6 +55,7 @@ static struct parameters {
- 	bool master_pass;
- 	bool human;
- 	bool force;
-+	bool index;
- 	bool json;
- 	bool verbose;
- } param = {
-@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
- 
- 	if (!jdimm)
- 		return NULL;
--	jindex = dump_index_json(cmd_read, size);
--	if (!jindex)
--		goto err_jindex;
--	jlabel = dump_label_json(dimm, cmd_read, size, flags);
--	if (!jlabel)
--		goto err_jlabel;
- 
- 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
- 	if (!jobj)
--		goto err_jobj;
--
-+		goto err;
- 	json_object_object_add(jdimm, "dev", jobj);
-+
-+	jindex = dump_index_json(cmd_read, size);
-+	if (!jindex)
-+		goto err;
- 	json_object_object_add(jdimm, "index", jindex);
-+	if (param.index)
-+		return jdimm;
-+
-+	jlabel = dump_label_json(dimm, cmd_read, size, flags);
-+	if (!jlabel)
-+		goto err;
- 	json_object_object_add(jdimm, "label", jlabel);
--	return jdimm;
- 
-- err_jobj:
--	json_object_put(jlabel);
-- err_jlabel:
--	json_object_put(jindex);
-- err_jindex:
-+	return jdimm;
-+err:
- 	json_object_put(jdimm);
- 	return NULL;
- }
-@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
- 
--	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
-+	if (param.index)
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
-+	else
-+		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
-+				param.offset);
- 	if (!cmd_read)
- 		return -EINVAL;
- 
-@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
- OPT_STRING('o', "output", &param.outfile, "output-file", \
- 	"filename to write label area contents"), \
- OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
--OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
-+OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
- 
- #define WRITE_OPTIONS() \
- OPT_STRING('i', "input", &param.infile, "input-file", \
-@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
-+	if (param.index && param.len) {
-+		fprintf(stderr, "pick either --size, or --index, not both\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
- 	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
+Good catch. Will fix it.
 
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
