@@ -1,25 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au
- [211.29.132.249])
- by ml01.01.org (Postfix) with ESMTP id A95E720215F56
- for <linux-nvdimm@lists.01.org>; Fri, 23 Aug 2019 17:15:15 -0700 (PDT)
-Date: Sat, 24 Aug 2019 10:11:24 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id C29B220215F42
+ for <linux-nvdimm@lists.01.org>; Fri, 23 Aug 2019 10:17:49 -0700 (PDT)
+Date: Fri, 23 Aug 2019 10:15:04 -0700
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ; -)
-Message-ID: <20190824001124.GI1119@dread.disaster.area>
-References: <20190819123841.GC5058@ziepe.ca>
+Message-ID: <20190823171504.GA1092@iweiny-DESK2.sc.intel.com>
+References: <20190815130558.GF14313@quack2.suse.cz>
+ <20190816190528.GB371@iweiny-DESK2.sc.intel.com>
+ <20190817022603.GW6129@dread.disaster.area>
+ <20190819063412.GA20455@quack2.suse.cz>
+ <20190819092409.GM7777@dread.disaster.area>
+ <20190819123841.GC5058@ziepe.ca>
  <20190820011210.GP7777@dread.disaster.area>
  <20190820115515.GA29246@ziepe.ca>
  <20190821180200.GA5965@iweiny-DESK2.sc.intel.com>
- <20190821181343.GH8653@ziepe.ca>
- <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
- <20190821194810.GI8653@ziepe.ca>
- <20190821204421.GE5965@iweiny-DESK2.sc.intel.com>
- <20190823032345.GG1119@dread.disaster.area>
- <20190823120428.GA12968@ziepe.ca>
+ <20190823005914.GF1119@dread.disaster.area>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20190823120428.GA12968@ziepe.ca>
+In-Reply-To: <20190823005914.GF1119@dread.disaster.area>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -31,77 +32,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 23, 2019 at 09:04:29AM -0300, Jason Gunthorpe wrote:
-> On Fri, Aug 23, 2019 at 01:23:45PM +1000, Dave Chinner wrote:
-> 
-> > > But the fact that RDMA, and potentially others, can "pass the
-> > > pins" to other processes is something I spent a lot of time trying to work out.
+On Fri, Aug 23, 2019 at 10:59:14AM +1000, Dave Chinner wrote:
+> On Wed, Aug 21, 2019 at 11:02:00AM -0700, Ira Weiny wrote:
+> > On Tue, Aug 20, 2019 at 08:55:15AM -0300, Jason Gunthorpe wrote:
+> > > On Tue, Aug 20, 2019 at 11:12:10AM +1000, Dave Chinner wrote:
+> > > > On Mon, Aug 19, 2019 at 09:38:41AM -0300, Jason Gunthorpe wrote:
+> > > > > On Mon, Aug 19, 2019 at 07:24:09PM +1000, Dave Chinner wrote:
+> > > > > 
+> > > > > > So that leaves just the normal close() syscall exit case, where the
+> > > > > > application has full control of the order in which resources are
+> > > > > > released. We've already established that we can block in this
+> > > > > > context.  Blocking in an interruptible state will allow fatal signal
+> > > > > > delivery to wake us, and then we fall into the
+> > > > > > fatal_signal_pending() case if we get a SIGKILL while blocking.
+> > > > > 
+> > > > > The major problem with RDMA is that it doesn't always wait on close() for the
+> > > > > MR holding the page pins to be destoyed. This is done to avoid a
+> > > > > deadlock of the form:
+> > > > > 
+> > > > >    uverbs_destroy_ufile_hw()
+> > > > >       mutex_lock()
+> > > > >        [..]
+> > > > >         mmput()
+> > > > >          exit_mmap()
+> > > > >           remove_vma()
+> > > > >            fput();
+> > > > >             file_operations->release()
+> > > > 
+> > > > I think this is wrong, and I'm pretty sure it's an example of why
+> > > > the final __fput() call is moved out of line.
+> > > 
+> > > Yes, I think so too, all I can say is this *used* to happen, as we
+> > > have special code avoiding it, which is the code that is messing up
+> > > Ira's lifetime model.
+> > > 
+> > > Ira, you could try unraveling the special locking, that solves your
+> > > lifetime issues?
 > > 
-> > There's nothing in file layout lease architecture that says you
-> > can't "pass the pins" to another process.  All the file layout lease
-> > requirements say is that if you are going to pass a resource for
-> > which the layout lease guarantees access for to another process,
-> > then the destination process already have a valid, active layout
-> > lease that covers the range of the pins being passed to it via the
-> > RDMA handle.
+> > Yes I will try to prove this out...  But I'm still not sure this fully solves
+> > the problem.
+> > 
+> > This only ensures that the process which has the RDMA context (RDMA FD) is safe
+> > with regard to hanging the close for the "data file FD" (the file which has
+> > pinned pages) in that _same_ process.  But what about the scenario.
+> > 
+> > Process A has the RDMA context FD and data file FD (with lease) open.
+> > 
+> > Process A uses SCM_RIGHTS to pass the RDMA context FD to Process B.
 > 
-> How would the kernel detect and enforce this? There are many ways to
-> pass a FD.
+> Passing the RDMA context dependent on a file layout lease to another
+> process that doesn't have a file layout lease or a reference to the
+> original lease should be considered a violation of the layout lease.
+> Process B does not have an active layout lease, and so by the rules
+> of layout leases, it is not allowed to pin the layout of the file.
+> 
 
-AFAIC, that's not really a kernel problem. It's more of an
-application design constraint than anything else. i.e. if the app
-passes the IB context to another process without a lease, then the
-original process is still responsible for recalling the lease and
-has to tell that other process to release the IB handle and it's
-resources.
+I don't disagree with the semantics of this.  I just don't know how to enforce
+it.
 
-> IMHO it is wrong to try and create a model where the file lease exists
-> independently from the kernel object relying on it. In other words the
-> IB MR object itself should hold a reference to the lease it relies
-> upon to function properly.
+> > Process A attempts to exit (hangs because data file FD is pinned).
+> > 
+> > Admin kills process A.  kill works because we have allowed for it...
+> > 
+> > Process B _still_ has the RDMA context FD open _and_ therefore still holds the
+> > file pins.
+> > 
+> > Truncation still fails.
+> > 
+> > Admin does not know which process is holding the pin.
+> > 
+> > What am I missing?
+> 
+> Application does not hold the correct file layout lease references.
+> Passing the fd via SCM_RIGHTS to a process without a layout lease
+> is equivalent to not using layout leases in the first place.
 
-That still doesn't work. Leases are not individually trackable or
-reference counted objects objects - they are attached to a struct
-file bUt, in reality, they are far more restricted than a struct
-file.
+Ok, So If I understand you correctly you would support a failure of SCM_RIGHTS
+in this case?  I'm ok with that but not sure how to implement it right now.
 
-That is, a lease specifically tracks the pid and the _open fd_ it
-was obtained for, so it is essentially owned by a specific process
-context. Hence a lease is not able to be passed to a separate
-process context and have it still work correctly for lease break
-notifications.  i.e. the layout break signal gets delivered to
-original process that created the struct file, if it still exists
-and has the original fd still open. It does not get sent to the
-process that currently holds a reference to the IB context.
+To that end, I would like to simplify this slightly because I'm not convinced
+that SCM_RIGHTS is a problem we need to solve right now.  ie I don't know of a
+user who wants to do this.
 
-So while a struct file passed to another process might still have
-an active lease, and you can change the owner of the struct file
-via fcntl(F_SETOWN), you can't associate the existing lease with a
-the new fd in the new process and so layout break signals can't be
-directed at the lease fd....
+Right now duplication via SCM_RIGHTS could fail if _any_ file pins (and by
+definition leases) exist underneath the "RDMA FD" (or other direct access FD,
+like XDP etc) being duplicated.  Later, if this becomes a use case we will need
+to code up the proper checks, potentially within each of the subsystems.  This
+is because, with RDMA at least, there are potentially large numbers of MR's and
+file leases which may have to be checked.
 
-This really means that a lease can only be owned by a single process
-context - it can't be shared across multiple processes (so I was
-wrong about dup/pass as being a possible way of passing them)
-because there's only one process that can "own" a struct file, and
-that where signals are sent when the lease needs to be broken.
+Ira
 
-So, fundamentally, if you want to pass a resource that pins a file
-layout between processes, both processes need to hold a layout lease
-on that file range. And that means exclusive leases and passing
-layouts between processes are fundamentally incompatible because you
-can't hold two exclusive leases on the same file range....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
