@@ -1,128 +1,165 @@
-From: shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v14 01/18] kunit: test: add KUnit test runner core
-Date: Fri, 23 Aug 2019 11:05:35 -0600
-Message-ID: <4513d9f3-a69b-a9a4-768b-86c2962b62e0@kernel.org>
+From: shuah <shuah@kernel.org>
+Subject: Re: [PATCH v14 09/18] kunit: test: add support for test abort
+Date: Fri, 23 Aug 2019 11:07:50 -0600
+Message-ID: <93cad898-78c8-2bd4-f1c7-5d34fdfbb7cb@kernel.org>
 References: <20190820232046.50175-1-brendanhiggins@google.com>
- <20190820232046.50175-2-brendanhiggins@google.com>
- <7f2c8908-75f6-b793-7113-ad57c51777ce@kernel.org>
- <CAFd5g44mRK9t4f58i_YMEt=e9RTxwrrhFY_V2LW_E7bUwR3cdg@mail.gmail.com>
+ <20190820232046.50175-10-brendanhiggins@google.com>
+ <ae6722ce-80ac-5840-5c4b-6f6726e4239d@kernel.org>
+ <CAFd5g451bF2-RGZ3wT9gO1FOu+8e8yQO9evvxtQQ9Vkh4UUhVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAFd5g44mRK9t4f58i_YMEt=e9RTxwrrhFY_V2LW_E7bUwR3cdg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAFd5g451bF2-RGZ3wT9gO1FOu+8e8yQO9evvxtQQ9Vkh4UUhVQ@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Amir Goldstein <amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sasha Levin <Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Masahiro Yamada <yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Kevin Hilman <khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Kieran Bingham <kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Joel Stanley <joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Jeff Dike <jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, devicetree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kbuild <linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Brendan Higgins <brendanhiggins@google.com>
+Cc: Petr Mladek <pmladek@suse.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Amir Goldstein <amir73il@gmail.com>, dri-devel <dri-devel@lists.freedesktop.org>, Sasha Levin <Alexander.Levin@microsoft.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Michael Ellerman <mpe@ellerman.id.au>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Kevin Hilman <khilman@baylibre.com>, Knut Omang <knut.omang@oracle.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, wfg@linux.intel.com, Joel Stanley <joel@jms.id.au>, David Rientjes <rientjes@google.com>, Jeff Dike <jdike@addtoit.com>, Dan Carpenter <dan.carpenter@oracle.com>, devicetree <devicetree@vger.kernel.org>, shuah <shuah@kernel.org>, linux-kbuild <linux-kbuild@vger.k>
 List-Id: linux-nvdimm@lists.01.org
 
-On 8/23/19 10:48 AM, Brendan Higgins wrote:
-> On Fri, Aug 23, 2019 at 8:33 AM shuah <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->>
->> Hi Brendan,
->>
->> On 8/20/19 5:20 PM, Brendan Higgins wrote:
->>> Add core facilities for defining unit tests; this provides a common way
->>> to define test cases, functions that execute code which is under test
->>> and determine whether the code under test behaves as expected; this also
->>> provides a way to group together related test cases in test suites (here
->>> we call them test_modules).
->>>
->>> Just define test cases and how to execute them for now; setting
->>> expectations on code will be defined later.
->>>
->>> Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>> Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
->>> Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
->>> Reviewed-by: Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>> Reviewed-by: Stephen Boyd <sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->>> ---
->>>    include/kunit/test.h | 179 ++++++++++++++++++++++++++++++++++++++++
->>>    kunit/Kconfig        |  17 ++++
->>>    kunit/Makefile       |   1 +
->>>    kunit/test.c         | 191 +++++++++++++++++++++++++++++++++++++++++++
->>>    4 files changed, 388 insertions(+)
->>>    create mode 100644 include/kunit/test.h
->>>    create mode 100644 kunit/Kconfig
->>>    create mode 100644 kunit/Makefile
->>>    create mode 100644 kunit/test.c
->>>
->>> diff --git a/include/kunit/test.h b/include/kunit/test.h
->>> new file mode 100644
->>> index 0000000000000..e0b34acb9ee4e
->>> --- /dev/null
->>> +++ b/include/kunit/test.h
->>> @@ -0,0 +1,179 @@
->>> +/* SPDX-License-Identifier: GPL-2.0 */
->>> +/*
->>> + * Base unit test (KUnit) API.
->>> + *
->>> + * Copyright (C) 2019, Google LLC.
->>> + * Author: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
->>> + */
->>> +
->>> +#ifndef _KUNIT_TEST_H
->>> +#define _KUNIT_TEST_H
->>> +
->>> +#include <linux/types.h>
->>> +
->>> +struct kunit;
->>> +
->>> +/**
->>> + * struct kunit_case - represents an individual test case.
->>> + * @run_case: the function representing the actual test case.
->>> + * @name: the name of the test case.
->>> + *
->>> + * A test case is a function with the signature, ``void (*)(struct kunit *)``
->>> + * that makes expectations (see KUNIT_EXPECT_TRUE()) about code under test. Each
->>> + * test case is associated with a &struct kunit_suite and will be run after the
->>> + * suite's init function and followed by the suite's exit function.
->>> + *
->>> + * A test case should be static and should only be created with the KUNIT_CASE()
->>> + * macro; additionally, every array of test cases should be terminated with an
->>> + * empty test case.
->>> + *
->>> + * Example:
->>
->> Can you fix these line continuations. It makes it very hard to read.
->> Sorry for this late comment. These comments lines are longer than 80
->> and wrap.
-> 
-> None of the lines in this commit are over 80 characters in column
-> width. Some are exactly 80 characters (like above).
-> 
-> My guess is that you are seeing the diff added text (+ ), which when
-> you add that to a line which is exactly 80 char in length ends up
-> being over 80 char in email. If you apply the patch you will see that
-> they are only 80 chars.
-> 
->>
->> There are several comment lines in the file that are way too long.
-> 
-> Note that checkpatch also does not complain about any over 80 char
-> lines in this file.
-> 
-> Sorry if I am misunderstanding what you are trying to tell me. Please
-> confirm either way.
-> 
-
-WARNING: Avoid unnecessary line continuations
-#258: FILE: include/kunit/test.h:137:
-+		 */							       \
-
-total: 0 errors, 2 warnings, 388 lines checked
-
-Go ahead fix these. It appears there are few lines that either longer
-than 80. In general, I keep them around 75, so it is easier read.
-
-thanks,
--- Shuah
+T24gOC8yMy8xOSAxMDo1NiBBTSwgQnJlbmRhbiBIaWdnaW5zIHdyb3RlOgo+IE9uIEZyaSwgQXVn
+IDIzLCAyMDE5IGF0IDg6MzYgQU0gc2h1YWggPHNodWFoQGtlcm5lbC5vcmc+IHdyb3RlOgo+Pgo+
+PiBIaSBCcmVuZGFuLAo+Pgo+PiBPbiA4LzIwLzE5IDU6MjAgUE0sIEJyZW5kYW4gSGlnZ2lucyB3
+cm90ZToKPj4+IEFkZCBzdXBwb3J0IGZvciBhYm9ydGluZy9iYWlsaW5nIG91dCBvZiB0ZXN0IGNh
+c2VzLCB3aGljaCBpcyBuZWVkZWQgZm9yCj4+PiBpbXBsZW1lbnRpbmcgYXNzZXJ0aW9ucy4KPj4+
+Cj4+PiBBbiBhc3NlcnRpb24gaXMgbGlrZSBhbiBleHBlY3RhdGlvbiwgYnV0IGJhaWxzIG91dCBv
+ZiB0aGUgdGVzdCBjYXNlCj4+PiBlYXJseSBpZiB0aGUgYXNzZXJ0aW9uIGlzIG5vdCBtZXQuIFRo
+ZSBpZGVhIHdpdGggYXNzZXJ0aW9ucyBpcyB0aGF0IHlvdQo+Pj4gdXNlIHRoZW0gdG8gc3RhdGUg
+YWxsIHRoZSBwcmVjb25kaXRpb25zIGZvciB5b3VyIHRlc3QuIExvZ2ljYWxseQo+Pj4gc3BlYWtp
+bmcsIHRoZXNlIGFyZSB0aGUgcHJlbWlzZXMgb2YgdGhlIHRlc3QgY2FzZSwgc28gaWYgYSBwcmVt
+aXNlIGlzbid0Cj4+PiB0cnVlLCB0aGVyZSBpcyBubyBwb2ludCBpbiBjb250aW51aW5nIHRoZSB0
+ZXN0IGNhc2UgYmVjYXVzZSB0aGVyZSBhcmUgbm8KPj4+IGNvbmNsdXNpb25zIHRoYXQgY2FuIGJl
+IGRyYXduIHdpdGhvdXQgdGhlIHByZW1pc2VzLiBXaGVyZWFzLCB0aGUKPj4+IGV4cGVjdGF0aW9u
+IGlzIHRoZSB0aGluZyB5b3UgYXJlIHRyeWluZyB0byBwcm92ZS4KPj4+Cj4+PiBTaWduZWQtb2Zm
+LWJ5OiBCcmVuZGFuIEhpZ2dpbnMgPGJyZW5kYW5oaWdnaW5zQGdvb2dsZS5jb20+Cj4+PiBSZXZp
+ZXdlZC1ieTogR3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4K
+Pj4+IFJldmlld2VkLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5jb20+Cj4+
+PiBSZXZpZXdlZC1ieTogU3RlcGhlbiBCb3lkIDxzYm95ZEBrZXJuZWwub3JnPgo+Pj4gLS0tCj4+
+PiAgICBpbmNsdWRlL2t1bml0L3Rlc3QuaCAgICAgIHwgICAyICsKPj4+ICAgIGluY2x1ZGUva3Vu
+aXQvdHJ5LWNhdGNoLmggfCAgNzUgKysrKysrKysrKysrKysrKysrKysrCj4+PiAgICBrdW5pdC9N
+YWtlZmlsZSAgICAgICAgICAgIHwgICAzICstCj4+PiAgICBrdW5pdC90ZXN0LmMgICAgICAgICAg
+ICAgIHwgMTM3ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tCj4+PiAgICBr
+dW5pdC90cnktY2F0Y2guYyAgICAgICAgIHwgMTE4ICsrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrCj4+PiAgICA1IGZpbGVzIGNoYW5nZWQsIDMxOSBpbnNlcnRpb25zKCspLCAxNiBkZWxl
+dGlvbnMoLSkKPj4+ICAgIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2t1bml0L3RyeS1jYXRj
+aC5oCj4+PiAgICBjcmVhdGUgbW9kZSAxMDA2NDQga3VuaXQvdHJ5LWNhdGNoLmMKPj4+Cj4+PiBk
+aWZmIC0tZ2l0IGEvaW5jbHVkZS9rdW5pdC90ZXN0LmggYi9pbmNsdWRlL2t1bml0L3Rlc3QuaAo+
+Pj4gaW5kZXggNjkxN2IxODZiNzM3YS4uMzkwY2UwMmY3MTdiNiAxMDA2NDQKPj4+IC0tLSBhL2lu
+Y2x1ZGUva3VuaXQvdGVzdC5oCj4+PiArKysgYi9pbmNsdWRlL2t1bml0L3Rlc3QuaAo+Pj4gQEAg
+LTEwLDYgKzEwLDcgQEAKPj4+ICAgICNkZWZpbmUgX0tVTklUX1RFU1RfSAo+Pj4KPj4+ICAgICNp
+bmNsdWRlIDxrdW5pdC9hc3NlcnQuaD4KPj4+ICsjaW5jbHVkZSA8a3VuaXQvdHJ5LWNhdGNoLmg+
+Cj4+PiAgICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4+PiAgICAjaW5jbHVkZSA8bGludXgv
+c2xhYi5oPgo+Pj4gICAgI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+Cj4+PiBAQCAtMTY3LDYgKzE2
+OCw3IEBAIHN0cnVjdCBrdW5pdCB7Cj4+Pgo+Pj4gICAgICAgIC8qIHByaXZhdGU6IGludGVybmFs
+IHVzZSBvbmx5LiAqLwo+Pj4gICAgICAgIGNvbnN0IGNoYXIgKm5hbWU7IC8qIFJlYWQgb25seSBh
+ZnRlciBpbml0aWFsaXphdGlvbiEgKi8KPj4+ICsgICAgIHN0cnVjdCBrdW5pdF90cnlfY2F0Y2gg
+dHJ5X2NhdGNoOwo+Pj4gICAgICAgIC8qCj4+PiAgICAgICAgICogc3VjY2VzcyBzdGFydHMgYXMg
+dHJ1ZSwgYW5kIG1heSBvbmx5IGJlIHNldCB0byBmYWxzZSBkdXJpbmcgYSB0ZXN0Cj4+PiAgICAg
+ICAgICogY2FzZTsgdGh1cywgaXQgaXMgc2FmZSB0byB1cGRhdGUgdGhpcyBhY3Jvc3MgbXVsdGlw
+bGUgdGhyZWFkcyB1c2luZwo+Pj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUva3VuaXQvdHJ5LWNhdGNo
+LmggYi9pbmNsdWRlL2t1bml0L3RyeS1jYXRjaC5oCj4+PiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+
+Pj4gaW5kZXggMDAwMDAwMDAwMDAwMC4uNDA0ZjMzNmNiZGM4NQo+Pj4gLS0tIC9kZXYvbnVsbAo+
+Pj4gKysrIGIvaW5jbHVkZS9rdW5pdC90cnktY2F0Y2guaAo+Pj4gQEAgLTAsMCArMSw3NSBAQAo+
+Pj4gKy8qIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBHUEwtMi4wICovCj4+PiArLyoKPj4+ICsg
+KiBBbiBBUEkgdG8gYWxsb3cgYSBmdW5jdGlvbiwgdGhhdCBtYXkgZmFpbCwgdG8gYmUgZXhlY3V0
+ZWQsIGFuZCByZWNvdmVyIGluIGEKPj4+ICsgKiBjb250cm9sbGVkIG1hbm5lci4KPj4+ICsgKgo+
+Pj4gKyAqIENvcHlyaWdodCAoQykgMjAxOSwgR29vZ2xlIExMQy4KPj4+ICsgKiBBdXRob3I6IEJy
+ZW5kYW4gSGlnZ2lucyA8YnJlbmRhbmhpZ2dpbnNAZ29vZ2xlLmNvbT4KPj4+ICsgKi8KPj4+ICsK
+Pj4+ICsjaWZuZGVmIF9LVU5JVF9UUllfQ0FUQ0hfSAo+Pj4gKyNkZWZpbmUgX0tVTklUX1RSWV9D
+QVRDSF9ICj4+PiArCj4+PiArI2luY2x1ZGUgPGxpbnV4L3R5cGVzLmg+Cj4+PiArCj4+PiArdHlw
+ZWRlZiB2b2lkICgqa3VuaXRfdHJ5X2NhdGNoX2Z1bmNfdCkodm9pZCAqKTsKPj4+ICsKPj4+ICtz
+dHJ1Y3QgY29tcGxldGlvbjsKPj4+ICtzdHJ1Y3Qga3VuaXQ7Cj4+PiArCj4+PiArLyoqCj4+PiAr
+ICogc3RydWN0IGt1bml0X3RyeV9jYXRjaCAtIHByb3ZpZGVzIGEgZ2VuZXJpYyB3YXkgdG8gcnVu
+IGNvZGUgd2hpY2ggbWlnaHQgZmFpbC4KPj4+ICsgKiBAdGVzdDogVGhlIHRlc3QgY2FzZSB0aGF0
+IGlzIGN1cnJlbnRseSBiZWluZyBleGVjdXRlZC4KPj4+ICsgKiBAdHJ5X2NvbXBsZXRpb246IENv
+bXBsZXRpb24gdGhhdCB0aGUgY29udHJvbCB0aHJlYWQgd2FpdHMgb24gd2hpbGUgdGVzdCBydW5z
+Lgo+Pj4gKyAqIEB0cnlfcmVzdWx0OiBDb250YWlucyBhbnkgZXJybm8gb2J0YWluZWQgd2hpbGUg
+cnVubmluZyB0ZXN0IGNhc2UuCj4+PiArICogQHRyeTogVGhlIGZ1bmN0aW9uLCB0aGUgdGVzdCBj
+YXNlLCB0byBhdHRlbXB0IHRvIHJ1bi4KPj4+ICsgKiBAY2F0Y2g6IFRoZSBmdW5jdGlvbiBjYWxs
+ZWQgaWYgQHRyeSBiYWlscyBvdXQuCj4+PiArICogQGNvbnRleHQ6IHVzZWQgdG8gcGFzcyB1c2Vy
+IGRhdGEgdG8gdGhlIHRyeSBhbmQgY2F0Y2ggZnVuY3Rpb25zLgo+Pj4gKyAqCj4+PiArICoga3Vu
+aXRfdHJ5X2NhdGNoIHByb3ZpZGVzIGEgZ2VuZXJpYywgYXJjaGl0ZWN0dXJlIGluZGVwZW5kZW50
+IHdheSB0byBleGVjdXRlCj4+PiArICogYW4gYXJiaXRyYXJ5IGZ1bmN0aW9uIG9mIHR5cGUga3Vu
+aXRfdHJ5X2NhdGNoX2Z1bmNfdCB3aGljaCBtYXkgYmFpbCBvdXQgYnkKPj4+ICsgKiBjYWxsaW5n
+IGt1bml0X3RyeV9jYXRjaF90aHJvdygpLiBJZiBrdW5pdF90cnlfY2F0Y2hfdGhyb3coKSBpcyBj
+YWxsZWQsIEB0cnkKPj4+ICsgKiBpcyBzdG9wcGVkIGF0IHRoZSBzaXRlIG9mIGludm9jYXRpb24g
+YW5kIEBjYXRjaCBpcyBjYWxsZWQuCj4+PiArICoKPj4+ICsgKiBzdHJ1Y3Qga3VuaXRfdHJ5X2Nh
+dGNoIHByb3ZpZGVzIGEgZ2VuZXJpYyBpbnRlcmZhY2UgZm9yIHRoZSBmdW5jdGlvbmFsaXR5Cj4+
+PiArICogbmVlZGVkIHRvIGltcGxlbWVudCBrdW5pdC0+YWJvcnQoKSB3aGljaCBpbiB0dXJuIGlz
+IG5lZWRlZCBmb3IgaW1wbGVtZW50aW5nCj4+PiArICogYXNzZXJ0aW9ucy4gQXNzZXJ0aW9ucyBh
+bGxvdyBzdGF0aW5nIGEgcHJlY29uZGl0aW9uIGZvciBhIHRlc3Qgc2ltcGxpZnlpbmcKPj4+ICsg
+KiBob3cgdGVzdCBjYXNlcyBhcmUgd3JpdHRlbiBhbmQgcHJlc2VudGVkLgo+Pj4gKyAqCj4+PiAr
+ICogQXNzZXJ0aW9ucyBhcmUgbGlrZSBleHBlY3RhdGlvbnMsIGV4Y2VwdCB0aGV5IGFib3J0IChj
+YWxsCj4+PiArICoga3VuaXRfdHJ5X2NhdGNoX3Rocm93KCkpIHdoZW4gdGhlIHNwZWNpZmllZCBj
+b25kaXRpb24gaXMgbm90IG1ldC4gVGhpcyBpcwo+Pj4gKyAqIHVzZWZ1bCB3aGVuIHlvdSBsb29r
+IGF0IGEgdGVzdCBjYXNlIGFzIGEgbG9naWNhbCBzdGF0ZW1lbnQgYWJvdXQgc29tZSBwaWVjZQo+
+Pj4gKyAqIG9mIGNvZGUsIHdoZXJlIGFzc2VydGlvbnMgYXJlIHRoZSBwcmVtaXNlcyBmb3IgdGhl
+IHRlc3QgY2FzZSwgYW5kIHRoZQo+Pj4gKyAqIGNvbmNsdXNpb24gaXMgYSBzZXQgb2YgcHJlZGlj
+YXRlcywgcmF0aGVyIGV4cGVjdGF0aW9ucywgdGhhdCBtdXN0IGFsbCBiZQo+Pj4gKyAqIHRydWUu
+IElmIHlvdXIgcHJlbWlzZXMgYXJlIHZpb2xhdGVkLCBpdCBkb2VzIG5vdCBtYWtlcyBzZW5zZSB0
+byBjb250aW51ZS4KPj4+ICsgKi8KPj4+ICtzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoIHsKPj4+ICsg
+ICAgIC8qIHByaXZhdGU6IGludGVybmFsIHVzZSBvbmx5LiAqLwo+Pj4gKyAgICAgc3RydWN0IGt1
+bml0ICp0ZXN0Owo+Pj4gKyAgICAgc3RydWN0IGNvbXBsZXRpb24gKnRyeV9jb21wbGV0aW9uOwo+
+Pj4gKyAgICAgaW50IHRyeV9yZXN1bHQ7Cj4+PiArICAgICBrdW5pdF90cnlfY2F0Y2hfZnVuY190
+IHRyeTsKPj4+ICsgICAgIGt1bml0X3RyeV9jYXRjaF9mdW5jX3QgY2F0Y2g7Cj4+PiArICAgICB2
+b2lkICpjb250ZXh0Owo+Pj4gK307Cj4+PiArCj4+PiArdm9pZCBrdW5pdF90cnlfY2F0Y2hfaW5p
+dChzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoICp0cnlfY2F0Y2gsCj4+PiArICAgICAgICAgICAgICAg
+ICAgICAgICBzdHJ1Y3Qga3VuaXQgKnRlc3QsCj4+PiArICAgICAgICAgICAgICAgICAgICAgICBr
+dW5pdF90cnlfY2F0Y2hfZnVuY190IHRyeSwKPj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGt1
+bml0X3RyeV9jYXRjaF9mdW5jX3QgY2F0Y2gpOwo+Pj4gKwo+Pj4gK3ZvaWQga3VuaXRfdHJ5X2Nh
+dGNoX3J1bihzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoICp0cnlfY2F0Y2gsIHZvaWQgKmNvbnRleHQp
+Owo+Pj4gKwo+Pj4gK3ZvaWQgX19ub3JldHVybiBrdW5pdF90cnlfY2F0Y2hfdGhyb3coc3RydWN0
+IGt1bml0X3RyeV9jYXRjaCAqdHJ5X2NhdGNoKTsKPj4+ICsKPj4+ICtzdGF0aWMgaW5saW5lIGlu
+dCBrdW5pdF90cnlfY2F0Y2hfZ2V0X3Jlc3VsdChzdHJ1Y3Qga3VuaXRfdHJ5X2NhdGNoICp0cnlf
+Y2F0Y2gpCj4+PiArewo+Pj4gKyAgICAgcmV0dXJuIHRyeV9jYXRjaC0+dHJ5X3Jlc3VsdDsKPj4+
+ICt9Cj4+PiArCj4+PiArLyoKPj4+ICsgKiBFeHBvc2VkIGZvciB0ZXN0aW5nIG9ubHkuCj4+PiAr
+ICovCj4+PiArdm9pZCBrdW5pdF9nZW5lcmljX3RyeV9jYXRjaF9pbml0KHN0cnVjdCBrdW5pdF90
+cnlfY2F0Y2ggKnRyeV9jYXRjaCk7Cj4+PiArCj4+PiArI2VuZGlmIC8qIF9LVU5JVF9UUllfQ0FU
+Q0hfSCAqLwo+Pj4gZGlmZiAtLWdpdCBhL2t1bml0L01ha2VmaWxlIGIva3VuaXQvTWFrZWZpbGUK
+Pj4+IGluZGV4IDRlNDY0NTBiY2IzYTguLmM5MTc2YzljNTc4YzYgMTAwNjQ0Cj4+PiAtLS0gYS9r
+dW5pdC9NYWtlZmlsZQo+Pj4gKysrIGIva3VuaXQvTWFrZWZpbGUKPj4+IEBAIC0xLDYgKzEsNyBA
+QAo+Pj4gICAgb2JqLSQoQ09ORklHX0tVTklUKSArPSAgICAgICAgICAgICAgICAgICAgICB0ZXN0
+Lm8gXAo+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RyaW5nLXN0
+cmVhbS5vIFwKPj4+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYXNzZXJ0
+Lm8KPj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYXNzZXJ0Lm8gXAo+
+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0cnktY2F0Y2gubwo+Pj4K
+Pj4+ICAgIG9iai0kKENPTkZJR19LVU5JVF9URVNUKSArPSAgICAgICAgIHN0cmluZy1zdHJlYW0t
+dGVzdC5vCj4+Pgo+Pj4gZGlmZiAtLWdpdCBhL2t1bml0L3Rlc3QuYyBiL2t1bml0L3Rlc3QuYwo+
+Pj4gaW5kZXggM2NiY2ViMzRiM2IzNi4uZGVkOTg5NTE0MzIwOSAxMDA2NDQKPj4+IC0tLSBhL2t1
+bml0L3Rlc3QuYwo+Pj4gKysrIGIva3VuaXQvdGVzdC5jCj4+PiBAQCAtNyw3ICs3LDkgQEAKPj4+
+ICAgICAqLwo+Pj4KPj4+ICAgICNpbmNsdWRlIDxrdW5pdC90ZXN0Lmg+Cj4+PiArI2luY2x1ZGUg
+PGt1bml0L3RyeS1jYXRjaC5oPgo+Pj4gICAgI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgo+Pj4g
+KyNpbmNsdWRlIDxsaW51eC9zY2hlZC9kZWJ1Zy5oPgo+Pj4KPj4+ICAgIHN0YXRpYyB2b2lkIGt1
+bml0X3NldF9mYWlsdXJlKHN0cnVjdCBrdW5pdCAqdGVzdCkKPj4+ICAgIHsKPj4+IEBAIC0xNjIs
+NiArMTY0LDE5IEBAIHN0YXRpYyB2b2lkIGt1bml0X2ZhaWwoc3RydWN0IGt1bml0ICp0ZXN0LCBz
+dHJ1Y3Qga3VuaXRfYXNzZXJ0ICphc3NlcnQpCj4+PiAgICAgICAgV0FSTl9PTihzdHJpbmdfc3Ry
+ZWFtX2Rlc3Ryb3koc3RyZWFtKSk7Cj4+PiAgICB9Cj4+Pgo+Pj4gK3N0YXRpYyB2b2lkIF9fbm9y
+ZXR1cm4ga3VuaXRfYWJvcnQoc3RydWN0IGt1bml0ICp0ZXN0KQo+Pj4gK3sKPj4+ICsgICAgIGt1
+bml0X3RyeV9jYXRjaF90aHJvdygmdGVzdC0+dHJ5X2NhdGNoKTsgLyogRG9lcyBub3QgcmV0dXJu
+LiAqLwo+Pj4gKwo+Pj4gKyAgICAgLyoKPj4+ICsgICAgICAqIFRocm93IGNvdWxkIG5vdCBhYm9y
+dCBmcm9tIHRlc3QuCj4+PiArICAgICAgKgo+Pj4gKyAgICAgICogWFhYOiB3ZSBzaG91bGQgbmV2
+ZXIgcmVhY2ggdGhpcyBsaW5lISBBcyBrdW5pdF90cnlfY2F0Y2hfdGhyb3cgaXMKPj4+ICsgICAg
+ICAqIG1hcmtlZCBfX25vcmV0dXJuLgo+Pj4gKyAgICAgICovCj4+PiArICAgICBCVUcoKTsKPj4K
+Pj4KPj4gSSByZWNhbGwgZGlzY3Vzc2lvbiBvbiB0aGlzLiBXaGF0J3MgdGhlIHBvaW50IGluIGtl
+ZXBpbmcgdGhpZQo+PiBCVUcoKSBhcm91bmQgd2hlbiBpdCBkb2Vzbid0IGV2ZW4gcmVhY2g/IEl0
+IGNhbiBldmVuIGJlIGEKPj4gV0FSTl9PTigpIGluIHRoYXQgY2FzZSByaWdodD8KPiAKPiBPcmln
+aW5hbGx5IEkgaGFkIEJVRygpIGhlcmUsIGFuZCBGcmFuayAoSSB0aGluayBpdCB3YXMgRnJhbmss
+IHNvcnJ5IGl0Cj4gd2FzIGEgd2hpbGUgYWdvKSB0b2xkIG1lIGl0IHNob3VsZCBiZSBXQVJOX09O
+KCkuIEluIHYxMiBTdGVwaGVuIHRvbGQKPiBtZSBpdCBzaG91bGQgYmUgQlVHKCksIGFuZCBub2Jv
+ZHkgb2JqZWN0ZWQgc28gSSB3ZW50IGJhY2sgdG8gbWFraW5nIGl0Cj4gYSBCVUcoKSAobm90ZSBJ
+IGFsc28gbWVudGlvbmVkIHRoaXMgY2hhbmdlIG9uIHRoZSBjb3ZlciBsZXR0ZXIgb2YgdjEzCj4g
+YW5kIHN0aWxsIG5vIG9uZSBvYmplY3RlZCkuCj4gCgpZZWFoLiBTb3JyeSBmb3IgdGhlIGNvbmZ1
+c2luZyBhZHZpY2UuIFdBUk5fT04oKSBvciBub3RoaW5nIGlzIHRoZSByaWdodAp0aGluZyBoZXJl
+LiBJIGhhdmUgYmVlbiBjbGVhbmluZyBCVUcoKSBhbmQgV0FSTl9PTigpIHRoYXQgYXJlbid0IG5l
+ZWRlZC4KCkkgd291bGQganVzdCBkZWxldGUgQlVHIGFsbCB0b2dldGhlci4KCnRoYW5rcywKLS0g
+U2h1YWgKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJp
+LWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
