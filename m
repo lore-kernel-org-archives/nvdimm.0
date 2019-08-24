@@ -1,14 +1,12 @@
-From: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v15 18/18] MAINTAINERS: add proc sysctl KUnit test to PROC
- SYSCTL section
-Date: Fri, 23 Aug 2019 18:34:25 -0700
-Message-ID: <20190824013425.175645-19-brendanhiggins@google.com>
-References: <20190824013425.175645-1-brendanhiggins@google.com>
+From: =?utf-8?Q?=E9=A6=99=E6=B8=AF=E5=B1=95=E6=AB=83=E8=A3=BD=E4=BD=9C?=
+ =?utf-8?Q?=E5=8F=8A=E7=A7=9F=E8=B3=83?= <kzstudioltd-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: =?utf-8?B?6aaZ5riv5bGV5quD6KO95L2c5Y+K56ef6LOD?=
+Date: 24 Aug 2019 16:55:08 +0800
+Message-ID: <19617.324012664$1566638858@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190824013425.175645-1-brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,40 +16,32 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, jpoimboe-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, keescook-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kieran.bingham-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sboyd-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
-Cc: pmladek-IBi9RG/b67k@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amir73il-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Alexander.Levin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, khilman-rdvid1DuHRBWk0Htik3J/w@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wfg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, joel-U3u1mxZcP9KHXe+LvDLADg@public.gmane.org, rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Iurii Zaikin <yzaikin-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, jdike-OPE4K8JWMJJBDgjK7y7TUQ@public.gmane.org, dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tim.Bird-7U/KSKJipcs@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, julia.lawall-L2FTfq7BK8M@public.gmane.org, kunit-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, daniel-/w4YWyX8dFk@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-Add entry for the new proc sysctl KUnit test to the PROC SYSCTL section,
-and add Iurii as a maintainer.
-
-Signed-off-by: Brendan Higgins <brendanhiggins-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Iurii Zaikin <yzaikin-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Acked-by: Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- MAINTAINERS | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f0bd77e8a8a2..0cac78807137 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12965,12 +12965,14 @@ F:	Documentation/filesystems/proc.txt
- PROC SYSCTL
- M:	Luis Chamberlain <mcgrof-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- M:	Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-+M:	Iurii Zaikin <yzaikin-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
- L:	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- L:	linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:	Maintained
- F:	fs/proc/proc_sysctl.c
- F:	include/linux/sysctl.h
- F:	kernel/sysctl.c
-+F:	kernel/sysctl-test.c
- F:	tools/testing/selftests/sysctl/
- 
- PS3 NETWORK SUPPORT
--- 
-2.23.0.187.g17f5b7556c-goog
+Jm5ic3A7DQombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsg
+6aaZ5riv5aWH5oCd5bel5L2c5a6k5piv6aaZ5riv5bGV5quD6KO95L2c5Y+K56ef6LOD5L6b5oeJ
+5ZWG44CC55uu5YmN77yM5YWs5Y+45bey5pOB5pyJ5LiA5pSv6auY5rC05rqW55qE56eR56CU55Si
+5ZOB6ZaL55m86ZqK5LyN77yM5buj5rOb5oeJ55So5LiJ57at6LyU5Yqp6Kit6KiI77yM5Lim5a+m
+6KGM5LqG5qiZ5rqW5YyW55Si5ZOB6LOq6YeP566h55CG44CC55Si5ZOB6KaP5qC86b2K5YWo44CB
+57WQ5qeL5paw56mO44CB5bel6Jed57K+5rmb44CB5qqi5ris5a6M5YKZ44CB6LOq6YeP5LiK5LmY
+44CC5aSa5bm05L6G77yM5om/6JKZ56eR56CU5Zau5L2N5ZKM55So5oi255qE5aSn5Yqb5pSv5oyB
+77yM5YWs5Y+45bey55m85bGV5oiQ54K66ZuG55Sf55Si44CB56eR56CU44CB6Yq35ZSu44CB5pyN
+5YuZ54K65LiA6auU55qE5bCI5qWt5YyW5aSn5Z6L5bGV5p6255Sf55Si5LyB5qWt44CCJm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A75qWt5YuZ56+E5ZyNJm5ic3A75bCI5qWt5b6e5LqL5bGV
+6Ka95bGV56S65bel56iL44CB5pyD6K2w562W5YqD5L2I572u77yM5bGV56S65quD44CB55Si5ZOB
+5bGV56S65buz5Lul5Y+K5bCI6ZaA5bqX6Kit6KiI44CB5Ye656ef5bGV5quD44CB6KO95L2c5LiA
+5qKd6b6N55qE5bCI5qWt5YyW5LyB5qWt44CCJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A75Li754ef
+55Si5ZOB5bGV5quD44CB5quD5Y+w44CB5bGV56S65p6244CB55+u6Lqr546755KD5quD44CB6auY
+6Lqr546755KD5quD44CB6Zmz5YiX5a6k44CB5a2U5p2/5Z2R5p2/562J55Si5ZOBJm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A75aaC6ZyA5pu05aSa6Kmz5oOF77yM6KuL55m76Zm45oiR5Y+457ay56uZ
+5p+l6Zax77yaaHR0cHM6Ly9rei1zdHVkaW8uaGsvDQombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDvpppnmuK/lpYfmgJ3lt6XkvZzlrqTmnInpmZDlhazlj7gm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDvoga/nuavkurrvvJrpoY/l
+hYjnlJ8mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDvpm7voqbHvvJrvvIg4NTLv
+vIkyMjQzIDMzMDMmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDvpm7vpg7XvvJom
+bmJzcDtpbmZvQGt6LXN0dWRpby5oayZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNw
+O1doYXRzQXBwIDombmJzcDsgKDg1MikgOTY3NyAyMjA1DQombmJzcDsNCiZuYnNwOwpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcv
+bWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
