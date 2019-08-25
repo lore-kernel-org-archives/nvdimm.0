@@ -1,155 +1,37 @@
-Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au
- [211.29.132.246])
- by ml01.01.org (Postfix) with ESMTP id 2E1E22020F958
- for <linux-nvdimm@lists.01.org>; Sun, 25 Aug 2019 22:57:38 -0700 (PDT)
-Date: Mon, 26 Aug 2019 15:55:10 +1000
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ; -)
-Message-ID: <20190826055510.GL1119@dread.disaster.area>
-References: <20190820115515.GA29246@ziepe.ca>
+Return-Path: <owner-linux-mm@kvack.org>
+Date: Sun, 25 Aug 2019 16:40:49 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ;-)
+Message-ID: <20190825194049.GB21239@ziepe.ca>
+References: <20190819123841.GC5058@ziepe.ca>
+ <20190820011210.GP7777@dread.disaster.area>
+ <20190820115515.GA29246@ziepe.ca>
  <20190821180200.GA5965@iweiny-DESK2.sc.intel.com>
  <20190821181343.GH8653@ziepe.ca>
  <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
  <20190821194810.GI8653@ziepe.ca>
  <20190821204421.GE5965@iweiny-DESK2.sc.intel.com>
  <20190823032345.GG1119@dread.disaster.area>
- <20190823120428.GA12968@ziepe.ca>
- <20190824001124.GI1119@dread.disaster.area>
- <20190824050836.GC1092@iweiny-DESK2.sc.intel.com>
+ <20190824044911.GB1092@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20190824050836.GC1092@iweiny-DESK2.sc.intel.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-nvdimm-bounces@lists.01.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+In-Reply-To: <20190824044911.GB1092@iweiny-DESK2.sc.intel.com>
+Sender: owner-linux-mm@kvack.org
 To: Ira Weiny <ira.weiny@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>, Theodore Ts'o <tytso@mit.edu>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
+Cc: Dave Chinner <david@fromorbit.com>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Theodore Ts'o <tytso@mit.edu>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Fri, Aug 23, 2019 at 10:08:36PM -0700, Ira Weiny wrote:
-> On Sat, Aug 24, 2019 at 10:11:24AM +1000, Dave Chinner wrote:
-> > On Fri, Aug 23, 2019 at 09:04:29AM -0300, Jason Gunthorpe wrote:
-> > > On Fri, Aug 23, 2019 at 01:23:45PM +1000, Dave Chinner wrote:
-> > > 
-> > > > > But the fact that RDMA, and potentially others, can "pass the
-> > > > > pins" to other processes is something I spent a lot of time trying to work out.
-> > > > 
-> > > > There's nothing in file layout lease architecture that says you
-> > > > can't "pass the pins" to another process.  All the file layout lease
-> > > > requirements say is that if you are going to pass a resource for
-> > > > which the layout lease guarantees access for to another process,
-> > > > then the destination process already have a valid, active layout
-> > > > lease that covers the range of the pins being passed to it via the
-> > > > RDMA handle.
-> > > 
-> > > How would the kernel detect and enforce this? There are many ways to
-> > > pass a FD.
-> > 
-> > AFAIC, that's not really a kernel problem. It's more of an
-> > application design constraint than anything else. i.e. if the app
-> > passes the IB context to another process without a lease, then the
-> > original process is still responsible for recalling the lease and
-> > has to tell that other process to release the IB handle and it's
-> > resources.
-> > 
-> > > IMHO it is wrong to try and create a model where the file lease exists
-> > > independently from the kernel object relying on it. In other words the
-> > > IB MR object itself should hold a reference to the lease it relies
-> > > upon to function properly.
-> > 
-> > That still doesn't work. Leases are not individually trackable or
-> > reference counted objects objects - they are attached to a struct
-> > file bUt, in reality, they are far more restricted than a struct
-> > file.
-> > 
-> > That is, a lease specifically tracks the pid and the _open fd_ it
-> > was obtained for, so it is essentially owned by a specific process
-> > context.  Hence a lease is not able to be passed to a separate
-> > process context and have it still work correctly for lease break
-> > notifications.  i.e. the layout break signal gets delivered to
-> > original process that created the struct file, if it still exists
-> > and has the original fd still open. It does not get sent to the
-> > process that currently holds a reference to the IB context.
-> >
-> 
-> The fcntl man page says:
-> 
-> "Leases are associated with an open file description (see open(2)).  This means
-> that duplicate file descriptors (created by, for example, fork(2) or dup(2))
-> refer to the same lease, and this lease may be modified or released using any
-> of these descriptors.  Furthermore,  the lease is released by either an
-> explicit F_UNLCK operation on any of these duplicate file descriptors, or when
-> all such file descriptors have been closed."
+On Fri, Aug 23, 2019 at 09:49:12PM -0700, Ira Weiny wrote:
 
-Right, the lease is attached to the struct file, so it follows
-where-ever the struct file goes. That doesn't mean it's actually
-useful when the struct file is duplicated and/or passed to another
-process. :/
+> So far, I have not been able to get RDMA to have an issue like Jason suggested
+> would happen (or used to happen).  So from that perspective it may be ok to
+> hang the close.
 
-AFAICT, the problem is that when we take another reference to the
-struct file, or when the struct file is passed to a different
-process, nothing updates the lease or lease state attached to that
-struct file.
+No, it is not OK to hang the close. You will deadlock on process
+destruction when the 'lease fd' hangs waiting for the 'uverbs fd'
+which is later in the single threaded destruction sequence.
 
-> From this I took it that the child process FD would have the lease as well
-> _and_ could release it.  I _assumed_ that applied to SCM_RIGHTS but it does not
-> seem to work the same way as dup() so I'm not so sure.
+This is different from the uverbs deadlock I outlined
 
-Sure, that part works because the struct file is passed. It doesn't
-end up with the same fd number in the other process, though.
-
-The issue is that layout leases need to notify userspace when they
-are broken by the kernel, so a lease stores the owner pid/tid in the
-file->f_owner field via __f_setown(). It also keeps a struct fasync
-attached to the file_lock that records the fd that the lease was
-created on.  When a signal needs to be sent to userspace for that
-lease, we call kill_fasync() and that walks the list of fasync
-structures on the lease and calls:
-
-	send_sigio(fown, fa->fa_fd, band);
-
-And it does for every fasync struct attached to a lease. Yes, a
-lease can track multiple fds, but it can only track them in a single
-process context. The moment the struct file is shared with another
-process, the lease is no longer capable of sending notifications to
-all the lease holders.
-
-Yes, you can change the owning process via F_SETOWNER, but that's
-still only a single process context, and you can't change the fd in
-the fasync list. You can add new fd to an existing lease by calling
-F_SETLEASE on the new fd, but you still only have a single process
-owner context for signal delivery.
-
-As such, leases that require callbacks to userspace are currently
-only valid within the process context the lease was taken in.
-Indeed, even closing the fd the lease was taken on without
-F_UNLCKing it first doesn't mean the lease has been torn down if
-there is some other reference to the struct file. That means the
-original lease owner will still get SIGIO delivered to that fd on a
-lease break regardless of whether it is open or not. ANd if we
-implement "layout lease not released within SIGIO response timeout"
-then that process will get killed, despite the fact it may not even
-have a reference to that file anymore.
-
-So, AFAICT, leases that require userspace callbacks only work within
-their original process context while they original fd is still open.
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+Jason
