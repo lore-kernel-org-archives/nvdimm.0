@@ -1,14 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 93793212FD3F1
- for <linux-nvdimm@lists.01.org>; Wed,  7 Aug 2019 13:32:15 -0700 (PDT)
-Subject: [ndctl PATCH] ndctl/lib: Fix duplicate bus detection
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 07 Aug 2019 10:51:39 -0700
-Message-ID: <156520029994.1268132.13388510714364773911.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 36A4720212C8D
+ for <linux-nvdimm@lists.01.org>; Tue, 27 Aug 2019 04:56:26 -0700 (PDT)
+Date: Tue, 27 Aug 2019 07:54:09 -0400
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH 05/19] virtio: Implement get_shm_region for MMIO transport
+Message-ID: <20190827115409.GB30873@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
+ <20190821175720.25901-6-vgoyal@redhat.com>
+ <20190827103943.4c6c9342.cohuck@redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190827103943.4c6c9342.cohuck@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,41 +25,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Cornelia Huck <cohuck@redhat.com>
+Cc: kvm@vger.kernel.org, miklos@szeredi.hu, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, dgilbert@redhat.com, virtio-fs@redhat.com, Sebastien Boeuf <sebastien.boeuf@intel.com>, stefanha@redhat.com, linux-fsdevel@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-After an ndctl_invalidate() event the next add_bus() invocation attempts
-to rescan for new bus objects and drop duplicate instances that match
-existing bus objects. However, the implementation mistakenly expects
-that ndctl_bus_get_provider_name() returns a unique identifier per-bus,
-but it is perfectly acceptable for unique buses to share a 'provider
-name'. Use the bus device-name to disambiguate buses with the same
-'provider name'.
+On Tue, Aug 27, 2019 at 10:39:43AM +0200, Cornelia Huck wrote:
+> On Wed, 21 Aug 2019 13:57:06 -0400
+> Vivek Goyal <vgoyal@redhat.com> wrote:
+> 
+> > From: Sebastien Boeuf <sebastien.boeuf@intel.com>
+> > 
+> > On MMIO a new set of registers is defined for finding SHM
+> > regions.  Add their definitions and use them to find the region.
+> > 
+> > Cc: kvm@vger.kernel.org
+> > Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+> > ---
+> >  drivers/virtio/virtio_mmio.c     | 32 ++++++++++++++++++++++++++++++++
+> >  include/uapi/linux/virtio_mmio.h | 11 +++++++++++
+> >  2 files changed, 43 insertions(+)
+> > 
+> > diff --git a/drivers/virtio/virtio_mmio.c b/drivers/virtio/virtio_mmio.c
+> > index e09edb5c5e06..5c07985c8cb8 100644
+> > --- a/drivers/virtio/virtio_mmio.c
+> > +++ b/drivers/virtio/virtio_mmio.c
+> > @@ -500,6 +500,37 @@ static const char *vm_bus_name(struct virtio_device *vdev)
+> >  	return vm_dev->pdev->name;
+> >  }
+> >  
+> > +static bool vm_get_shm_region(struct virtio_device *vdev,
+> > +			      struct virtio_shm_region *region, u8 id)
+> > +{
+> > +	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
+> > +	u64 len, addr;
+> > +
+> > +	/* Select the region we're interested in */
+> > +	writel(id, vm_dev->base + VIRTIO_MMIO_SHM_SEL);
+> > +
+> > +	/* Read the region size */
+> > +	len = (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_LOW);
+> > +	len |= (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_HIGH) << 32;
+> > +
+> > +	region->len = len;
+> > +
+> > +	/* Check if region length is -1. If that's the case, the shared memory
+> > +	 * region does not exist and there is no need to proceed further.
+> > +	 */
+> > +	if (len == ~(u64)0) {
+> > +		return false;
+> > +	}
+> 
+> I think the curly braces should be dropped here.
 
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- ndctl/lib/libndctl.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Will do.
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 4d9cc7e29c6b..6596f94edef8 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -889,7 +889,9 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
- 
- 	ndctl_bus_foreach(ctx, bus_dup)
- 		if (strcmp(ndctl_bus_get_provider(bus_dup),
--					ndctl_bus_get_provider(bus)) == 0) {
-+					ndctl_bus_get_provider(bus)) == 0
-+				&& strcmp(ndctl_bus_get_devname(bus_dup),
-+					ndctl_bus_get_devname(bus)) == 0) {
- 			free_bus(bus, NULL);
- 			free(path);
- 			return bus_dup;
-
+Thanks
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
