@@ -1,21 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com
- [IPv6:2607:f8b0:4864:20::444])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id CE5EF20212CBF
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 13:27:32 -0700 (PDT)
-Received: by mail-pf1-x444.google.com with SMTP id b24so525256pfp.1
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 13:25:33 -0700 (PDT)
-Date: Wed, 28 Aug 2019 13:25:31 -0700
-From: Kees Cook <keescook@chromium.org>
+ by ml01.01.org (Postfix) with ESMTPS id 0FD8D20212CBF
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 13:26:36 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [PATCH] libnvdimm, region: Use struct_size() in kzalloc()
-Message-ID: <201908281325.1E7C2A9@keescook>
+Date: Wed, 28 Aug 2019 20:24:35 +0000
+Message-ID: <7980d0c0b43bc6f377e0daad4a066f7ab37c2258.camel@intel.com>
 References: <20190610210613.GA21989@embeddedor>
- <3abfb317-76cc-f9a0-243f-9b493a524a98@embeddedor.com>
+ <3e80b36c86942278ee66aebdd5ea2632f104083a.camel@intel.com>
+ <d940183a-c00d-3a96-37bb-9553583f160a@embeddedor.com>
+In-Reply-To: <d940183a-c00d-3a96-37bb-9553583f160a@embeddedor.com>
+Content-Language: en-US
+Content-ID: <3847512B969EEA4C94940FD1F358BBD7@intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <3abfb317-76cc-f9a0-243f-9b493a524a98@embeddedor.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -27,76 +26,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, "Busch, Keith" <keith.busch@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, Aug 28, 2019 at 01:30:24PM -0500, Gustavo A. R. Silva wrote:
-> Hi all,
+On Wed, 2019-08-28 at 14:36 -0500, Gustavo A. R. Silva wrote:
+
+> struct_size() does not apply to those scenarios. See below...
 > 
-> Friendly ping:
+> > [1]: 
+> > https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n1030
 > 
-> Who can take this, please?
+> struct_size() only applies to structures of the following kind:
 > 
-> Thanks
-> --
-> Gustavo
+> struct foo {
+>    int stuff;
+>    struct boo entry[];
+> };
 > 
-> On 6/10/19 4:06 PM, Gustavo A. R. Silva wrote:
-> > One of the more common cases of allocation size calculations is finding
-> > the size of a structure that has a zero-sized array at the end, along
-> > with memory for some number of elements for that array. For example:
-> > 
-> > struct nd_region {
-> > 	...
-> >         struct nd_mapping mapping[0];
-> > };
-> > 
-> > instance = kzalloc(sizeof(struct nd_region) + sizeof(struct nd_mapping) *
-> >                           count, GFP_KERNEL);
-> > 
-> > Instead of leaving these open-coded and prone to type mistakes, we can
-> > now use the new struct_size() helper:
-> > 
-> > instance = kzalloc(struct_size(instance, mapping, count), GFP_KERNEL);
-> > 
-> > This code was detected with the help of Coccinelle.
-> > 
-> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> and this scenario includes two different structures:
+> 
+> struct nd_region {
+> 	...
+>         struct nd_mapping mapping[0];
+> };
+> 
+> struct nd_blk_region {
+> 	...
+>         struct nd_region nd_region;
+> };
 
-FWIW,
+Yep - I neglected to actually look at the structures involved - you're
+right, it doesn't apply here.
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-
--Kees
-
-> > ---
-> >  drivers/nvdimm/region_devs.c | 7 +++----
-> >  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> > [2]: 
+> > https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n96
 > > 
-> > diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> > index b4ef7d9ff22e..88becc87e234 100644
-> > --- a/drivers/nvdimm/region_devs.c
-> > +++ b/drivers/nvdimm/region_devs.c
-> > @@ -1027,10 +1027,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
-> >  		}
-> >  		region_buf = ndbr;
-> >  	} else {
-> > -		nd_region = kzalloc(sizeof(struct nd_region)
-> > -				+ sizeof(struct nd_mapping)
-> > -				* ndr_desc->num_mappings,
-> > -				GFP_KERNEL);
-> > +		nd_region = kzalloc(struct_size(nd_region, mapping,
-> > +						ndr_desc->num_mappings),
-> > +				    GFP_KERNEL);
-> >  		region_buf = nd_region;
-> >  	}
-> >  
-> > 
+> 
+> In this scenario struct_size() does not apply directly because of the
+> following
+> logic before the call to devm_kzalloc():
 
--- 
-Kees Cook
+Agreed, I missed that the calculation was more involved here.
 
+Thanks for the clarifications, you can add:
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
 _______________________________________________
 Linux-nvdimm mailing list
