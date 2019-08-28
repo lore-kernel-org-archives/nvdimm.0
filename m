@@ -1,20 +1,19 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 8666B2020F956
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 14:24:23 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 586DC2020D33A
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 14:18:13 -0700 (PDT)
 From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [ndctl RFC PATCH] ndctl/namespace: create namespaces greedily
-Date: Wed, 28 Aug 2019 21:22:22 +0000
-Message-ID: <ce15fdbdee2135a1b1d698f46d3cc7c9856bb381.camel@intel.com>
+Date: Wed, 28 Aug 2019 21:16:11 +0000
+Message-ID: <1ac1bafeaf3253fb9396c22db334b51deb653f0a.camel@intel.com>
 References: <20190828200204.21750-1-vishal.l.verma@intel.com>
  <x49y2zd6obc.fsf@segfault.boston.devel.redhat.com>
  <507921D13093A64EAF066075F3F6ED13076E485E@ORSMSX111.amr.corp.intel.com>
- <1ac1bafeaf3253fb9396c22db334b51deb653f0a.camel@intel.com>
-In-Reply-To: <1ac1bafeaf3253fb9396c22db334b51deb653f0a.camel@intel.com>
+In-Reply-To: <507921D13093A64EAF066075F3F6ED13076E485E@ORSMSX111.amr.corp.intel.com>
 Content-Language: en-US
-Content-ID: <F63C4D3E466312449397395FAFE73D50@intel.com>
+Content-ID: <3AF5A27AAD481D4E895A74A4E1220556@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -31,66 +30,70 @@ To: "Scargall, Steve" <steve.scargall@intel.com>, "jmoyer@redhat.com" <jmoyer@re
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Wed, 2019-08-28 at 21:16 +0000, Verma, Vishal L wrote:
-> On Wed, 2019-08-28 at 13:47 -0700, Scargall, Steve wrote:
-> > Hi Jeff,
-> > 
-> > The issue is more of repetition.   On an 8-socket system,  should a
-> > user really be expected to type 'ndctl create-namespace' eight times
-> > vs. running 'ndctl create-namespace --region=all' once?   SAP HANA is
-> > an example app the requires one namespace per region.  Scripting is a
-> > viable solution, but that requires somebody to write the script and do
-> > all the error checking & handling.  Each OEM/ISV/SysAdmin would have
-> > their own script.  Pushing the logic to ndctl seems to be a reasonable
-> > approach and let the user handle any errors returned by ndctl.
+On Wed, 2019-08-28 at 13:47 -0700, Scargall, Steve wrote:
+> Hi Jeff,
 > 
-> A scripted solution can indeed be really simple - e.g.:
+> The issue is more of repetition.   On an 8-socket system,  should a
+> user really be expected to type 'ndctl create-namespace' eight times
+> vs. running 'ndctl create-namespace --region=all' once?   SAP HANA is
+> an example app the requires one namespace per region.  Scripting is a
+> viable solution, but that requires somebody to write the script and do
+> all the error checking & handling.  Each OEM/ISV/SysAdmin would have
+> their own script.  Pushing the logic to ndctl seems to be a reasonable
+> approach and let the user handle any errors returned by ndctl.
+
+A scripted solution can indeed be really simple - e.g.:
+
+# while read -r region; do  ndctl create-namespace --region="$region";
+done < <(ndctl list --bus=nfit_test.0 -R  | jq -r '.[].dev')
+
+{
+  "dev":"namespace5.0",
+  "mode":"fsdax",
+  "map":"dev",
+  "size":"62.00 MiB (65.01 MB)",
+  "uuid":"c8014457-c268-4f22-8eae-6386fbf08ceb",
+  "sector_size":512,
+  "align":2097152,
+  "blockdev":"pmem5"
+}
+{
+  "dev":"namespace4.0",
+  "mode":"fsdax",
+  "map":"dev",
+  "size":"30.00 MiB (31.46 MB)",
+  "uuid":"f9498ef6-cdd6-46c7-95f1-86469546ecb9",
+  "sector_size":512,
+  "align":2097152,
+  "blockdev":"pmem4"
+}
+
 > 
-> # while read -r region; do  ndctl create-namespace --region="$region";
-> done < <(ndctl list --bus=nfit_test.0 -R  | jq -r '.[].dev')
+> The ndctl-man-page implies the 'ndctl create-namespace --region=all'
+> feature exists today:
 > 
-> {
->   "dev":"namespace5.0",
->   "mode":"fsdax",
->   "map":"dev",
->   "size":"62.00 MiB (65.01 MB)",
->   "uuid":"c8014457-c268-4f22-8eae-6386fbf08ceb",
->   "sector_size":512,
->   "align":2097152,
->   "blockdev":"pmem5"
-> }
-> {
->   "dev":"namespace4.0",
->   "mode":"fsdax",
->   "map":"dev",
->   "size":"30.00 MiB (31.46 MB)",
->   "uuid":"f9498ef6-cdd6-46c7-95f1-86469546ecb9",
->   "sector_size":512,
->   "align":2097152,
->   "blockdev":"pmem4"
-> }
+>        -r, --region=
 > 
-> > The ndctl-man-page implies the 'ndctl create-namespace --region=all'
-> > feature exists today:
-> > 
-> >        -r, --region=
-> > 
-> >            A regionX device name, or a region id number. The keyword
-> > all can be specified to carry out the operation on every region in the
-> > system, optionally filtered by bus id (see --bus=  option).
-> > 
+>            A regionX device name, or a region id number. The keyword
+> all can be specified to carry out the operation on every region in the
+> system, optionally filtered by bus id (see --bus=  option).
 > 
-> This is true, but unfortunately, the implementation has treated create-
-> namespace as an exception to this since the start, and I agree with Jeff
-> that changing its behavior now can cause other Hyrum's law-esqe [1]
-> breakage.
-> 
-> I think however it should be easy to make a compromise, and retain the
-> legacy behavior of create-namespace, while creating a new create-
-> namespace-greedy command with the new semantics.
-> 
-.. And it doesn't even need to be a new command, a simple --greedy
-option to create-namespace should be sufficient.
+
+This is true, but unfortunately, the implementation has treated create-
+namespace as an exception to this since the start, and I agree with Jeff
+that changing its behavior now can cause other Hyrum's law-esqe [1]
+breakage.
+
+I think however it should be easy to make a compromise, and retain the
+legacy behavior of create-namespace, while creating a new create-
+namespace-greedy command with the new semantics.
+
+Thoughts on that?
+
+Thanks,
+	-Vishal
+
+[1]: http://www.hyrumslaw.com/
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
