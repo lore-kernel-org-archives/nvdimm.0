@@ -1,22 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from gateway20.websitewelcome.com (gateway20.websitewelcome.com
- [192.185.59.4])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 617622020F95D
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 12:39:05 -0700 (PDT)
-Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
- by gateway20.websitewelcome.com (Postfix) with ESMTP id CD61B400D4A78
- for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 13:32:03 -0500 (CDT)
-References: <20190610210613.GA21989@embeddedor>
- <3e80b36c86942278ee66aebdd5ea2632f104083a.camel@intel.com>
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+ by ml01.01.org (Postfix) with ESMTPS id 30B0E2020F956
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 11:53:31 -0700 (PDT)
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Subject: Re: [PATCH] libnvdimm, region: Use struct_size() in kzalloc()
-Message-ID: <d940183a-c00d-3a96-37bb-9553583f160a@embeddedor.com>
-Date: Wed, 28 Aug 2019 14:36:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <3e80b36c86942278ee66aebdd5ea2632f104083a.camel@intel.com>
+Date: Wed, 28 Aug 2019 18:51:28 +0000
+Message-ID: <3e80b36c86942278ee66aebdd5ea2632f104083a.camel@intel.com>
+References: <20190610210613.GA21989@embeddedor>
+In-Reply-To: <20190610210613.GA21989@embeddedor>
 Content-Language: en-US
+Content-ID: <D1589446AC767F47B8FEFD059DCEA60D@intel.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -28,76 +24,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "Busch, Keith" <keith.busch@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, "Busch, Keith" <keith.busch@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hi Vishal,
-
-On 8/28/19 1:51 PM, Verma, Vishal L wrote:
-
-[..]
-
+On Mon, 2019-06-10 at 16:06 -0500, Gustavo A. R. Silva wrote:
+> One of the more common cases of allocation size calculations is
+> finding
+> the size of a structure that has a zero-sized array at the end, along
+> with memory for some number of elements for that array. For example:
 > 
-> Hi Gustavo,
+> struct nd_region {
+> 	...
+>         struct nd_mapping mapping[0];
+> };
 > 
-> The patch looks good to me, however it looks like it might've missed
-> some instances where this replacement can be performed?
+> instance = kzalloc(sizeof(struct nd_region) + sizeof(struct
+> nd_mapping) *
+>                           count, GFP_KERNEL);
 > 
-
-struct_size() does not apply to those scenarios. See below...
-
+> Instead of leaving these open-coded and prone to type mistakes, we can
+> now use the new struct_size() helper:
 > 
-> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n1030
-
-struct_size() only applies to structures of the following kind:
-
-struct foo {
-   int stuff;
-   struct boo entry[];
-};
-
-and this scenario includes two different structures:
-
-struct nd_region {
-
-	...
-
-        struct nd_mapping mapping[0];
-};
-
-struct nd_blk_region {
-
-	...
-
-        struct nd_region nd_region;
-};
-
-> [2]: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n96
+> instance = kzalloc(struct_size(instance, mapping, count), GFP_KERNEL);
 > 
+> This code was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  drivers/nvdimm/region_devs.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/region_devs.c
+> b/drivers/nvdimm/region_devs.c
+> index b4ef7d9ff22e..88becc87e234 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -1027,10 +1027,9 @@ static struct nd_region
+> *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+>  		}
+>  		region_buf = ndbr;
+>  	} else {
+> -		nd_region = kzalloc(sizeof(struct nd_region)
+> -				+ sizeof(struct nd_mapping)
+> -				* ndr_desc->num_mappings,
+> -				GFP_KERNEL);
+> +		nd_region = kzalloc(struct_size(nd_region, mapping,
+> +						ndr_desc->num_mappings),
+> +				    GFP_KERNEL);
+>  		region_buf = nd_region;
+>  	}
+>  
 
-In this scenario struct_size() does not apply directly because of the following
-logic before the call to devm_kzalloc():
+Hi Gustavo,
 
- 	size_t flush_data_size = sizeof(void *);
-	
-	[..]
+The patch looks good to me, however it looks like it might've missed
+some instances where this replacement can be performed?
 
-        for (i = 0; i < nd_region->ndr_mappings; i++) {
+One is just a few lines below from the above, in the 'else' block[1].
+Additionally, maybe the Coccinelle script can be augmented to catch
+devm_kzalloc instances as well - there is one of those in this file[2].
 
-		[..]
+Thanks,
+	-Vishal
 
-                /* at least one null hint slot per-dimm for the "no-hint" case */
-                flush_data_size += sizeof(void *);
-		
-		[..]
+[1]: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n1030
+[2]: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/tree/drivers/nvdimm/region_devs.c#n96
 
-                flush_data_size += nvdimm->num_flush * sizeof(void *);
-        }
-
-Thanks
---
-Gustavo
 
 
 _______________________________________________
