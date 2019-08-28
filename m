@@ -1,15 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx1.redhat.com (mx1.redhat.com [209.132.183.28])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 243D021311C11
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 17:11:39 -0700 (PDT)
-Subject: [ndctl PATCH v3 5/8] ndctl/dimm: Limit read-labels with --index option
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 02 Aug 2019 16:54:51 -0700
-Message-ID: <156479009111.707590.17235381898000706283.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156479006271.707590.298793474092813749.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 4891E2020D336
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 10:59:04 -0700 (PDT)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH v2 2/3] libnvdimm/security: Tighten scope of nvdimm->busy
+ vs security operations
+References: <156686728950.184120.5188743631586996901.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <156686729996.184120.3458026302402493937.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 28 Aug 2019 13:57:02 -0400
+In-Reply-To: <156686729996.184120.3458026302402493937.stgit@dwillia2-desk3.amr.corp.intel.com>
+ (Dan Williams's message of "Mon, 26 Aug 2019 17:55:00 -0700")
+Message-ID: <x497e6x8975.fsf@segfault.boston.devel.redhat.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,126 +25,122 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Provide a capability to limit the read-labels payload to just the
-index-block data space.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/ndctl/ndctl-read-labels.txt |    7 +++++
- ndctl/dimm.c                              |   43 ++++++++++++++++++-----------
- 2 files changed, 34 insertions(+), 16 deletions(-)
+> An attempt to freeze DIMMs currently runs afoul of default blocking of
+> all security operations in the entry to the 'store' routine for the
+> 'security' sysfs attribute.
+>
+> The blanket blocking of all security operations while the DIMM is in
+> active use in a region is too restrictive. The only security operations
+> that need to be aware of the ->busy state are those that mutate the
+> state of data, i.e. erase and overwrite.
+>
+> Refactor the ->busy checks to be applied at the entry common entry point
+> in __security_store() rather than each of the helper routines to enable
+> freeze to be run regardless of busy state.
+>
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-diff --git a/Documentation/ndctl/ndctl-read-labels.txt b/Documentation/ndctl/ndctl-read-labels.txt
-index 756713ee12d7..b5ddae9c269e 100644
---- a/Documentation/ndctl/ndctl-read-labels.txt
-+++ b/Documentation/ndctl/ndctl-read-labels.txt
-@@ -19,6 +19,13 @@ file.  In the multi-dimm case the data is concatenated.
- OPTIONS
- -------
- include::labels-options.txt[]
-+-I::
-+--index::
-+	Limit the span of the label operation to just the index-block
-+	area. This is useful to determine if the dimm label area is
-+	initialized. Note that this option and --size/--offset are
-+	mutually exclusive.
-+
- -o::
- --output::
- 	output file
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 70128dd2df27..5e6fa19bab15 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -55,6 +55,7 @@ static struct parameters {
- 	bool master_pass;
- 	bool human;
- 	bool force;
-+	bool index;
- 	bool json;
- 	bool verbose;
- } param = {
-@@ -276,27 +277,26 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
- 
- 	if (!jdimm)
- 		return NULL;
--	jindex = dump_index_json(cmd_read, size);
--	if (!jindex)
--		goto err_jindex;
--	jlabel = dump_label_json(dimm, cmd_read, size, flags);
--	if (!jlabel)
--		goto err_jlabel;
- 
- 	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
- 	if (!jobj)
--		goto err_jobj;
--
-+		goto err;
- 	json_object_object_add(jdimm, "dev", jobj);
-+
-+	jindex = dump_index_json(cmd_read, size);
-+	if (!jindex)
-+		goto err;
- 	json_object_object_add(jdimm, "index", jindex);
-+	if (param.index)
-+		return jdimm;
-+
-+	jlabel = dump_label_json(dimm, cmd_read, size, flags);
-+	if (!jlabel)
-+		goto err;
- 	json_object_object_add(jdimm, "label", jlabel);
--	return jdimm;
- 
-- err_jobj:
--	json_object_put(jlabel);
-- err_jlabel:
--	json_object_put(jindex);
-- err_jindex:
-+	return jdimm;
-+err:
- 	json_object_put(jdimm);
- 	return NULL;
- }
-@@ -385,7 +385,11 @@ static int action_read(struct ndctl_dimm *dimm, struct action_context *actx)
- 	ssize_t size;
- 	int rc = 0;
- 
--	cmd_read = ndctl_dimm_read_label_extent(dimm, param.len, param.offset);
-+	if (param.index)
-+		cmd_read = ndctl_dimm_read_label_index(dimm);
-+	else
-+		cmd_read = ndctl_dimm_read_label_extent(dimm, param.len,
-+				param.offset);
- 	if (!cmd_read)
- 		return -EINVAL;
- 
-@@ -1054,7 +1058,8 @@ OPT_BOOLEAN('v',"verbose", &param.verbose, "turn on debug")
- OPT_STRING('o', "output", &param.outfile, "output-file", \
- 	"filename to write label area contents"), \
- OPT_BOOLEAN('j', "json", &param.json, "parse label data into json"), \
--OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)")
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats (implies --json)"), \
-+OPT_BOOLEAN('I', "index", &param.index, "limit read to the index block area")
- 
- #define WRITE_OPTIONS() \
- OPT_STRING('i', "input", &param.infile, "input-file", \
-@@ -1185,6 +1190,12 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
-+	if (param.index && param.len) {
-+		fprintf(stderr, "pick either --size, or --index, not both\n");
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
- 	if (json) {
- 		actx.jdimms = json_object_new_array();
- 		if (!actx.jdimms)
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 
+> ---
+>  drivers/nvdimm/dimm_devs.c |   33 ++++++++++++++++-----------------
+>  drivers/nvdimm/security.c  |   10 ----------
+>  2 files changed, 16 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> index 53330625fe07..d837cb9be83d 100644
+> --- a/drivers/nvdimm/dimm_devs.c
+> +++ b/drivers/nvdimm/dimm_devs.c
+> @@ -424,9 +424,6 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+>  	unsigned int key, newkey;
+>  	int i;
+>  
+> -	if (atomic_read(&nvdimm->busy))
+> -		return -EBUSY;
+> -
+>  	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s"
+>  			" %"__stringify(KEY_ID_SIZE)"s"
+>  			" %"__stringify(KEY_ID_SIZE)"s",
+> @@ -451,23 +448,25 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
+>  	} else if (i == OP_DISABLE) {
+>  		dev_dbg(dev, "disable %u\n", key);
+>  		rc = nvdimm_security_disable(nvdimm, key);
+> -	} else if (i == OP_UPDATE) {
+> -		dev_dbg(dev, "update %u %u\n", key, newkey);
+> -		rc = nvdimm_security_update(nvdimm, key, newkey, NVDIMM_USER);
+> -	} else if (i == OP_ERASE) {
+> -		dev_dbg(dev, "erase %u\n", key);
+> -		rc = nvdimm_security_erase(nvdimm, key, NVDIMM_USER);
+> +	} else if (i == OP_UPDATE || i == OP_MASTER_UPDATE) {
+> +		dev_dbg(dev, "%s %u %u\n", ops[i].name, key, newkey);
+> +		rc = nvdimm_security_update(nvdimm, key, newkey, i == OP_UPDATE
+> +				? NVDIMM_USER : NVDIMM_MASTER);
+> +	} else if (i == OP_ERASE || i == OP_MASTER_ERASE) {
+> +		dev_dbg(dev, "%s %u\n", ops[i].name, key);
+> +		if (atomic_read(&nvdimm->busy)) {
+> +			dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
+> +			return -EBUSY;
+> +		}
+> +		rc = nvdimm_security_erase(nvdimm, key, i == OP_ERASE
+> +				? NVDIMM_USER : NVDIMM_MASTER);
+>  	} else if (i == OP_OVERWRITE) {
+>  		dev_dbg(dev, "overwrite %u\n", key);
+> +		if (atomic_read(&nvdimm->busy)) {
+> +			dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
+> +			return -EBUSY;
+> +		}
+>  		rc = nvdimm_security_overwrite(nvdimm, key);
+> -	} else if (i == OP_MASTER_UPDATE) {
+> -		dev_dbg(dev, "master_update %u %u\n", key, newkey);
+> -		rc = nvdimm_security_update(nvdimm, key, newkey,
+> -				NVDIMM_MASTER);
+> -	} else if (i == OP_MASTER_ERASE) {
+> -		dev_dbg(dev, "master_erase %u\n", key);
+> -		rc = nvdimm_security_erase(nvdimm, key,
+> -				NVDIMM_MASTER);
+>  	} else
+>  		return -EINVAL;
+>  
+> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+> index 5862d0eee9db..2166e627383a 100644
+> --- a/drivers/nvdimm/security.c
+> +++ b/drivers/nvdimm/security.c
+> @@ -334,11 +334,6 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+>  			|| !nvdimm->sec.flags)
+>  		return -EOPNOTSUPP;
+>  
+> -	if (atomic_read(&nvdimm->busy)) {
+> -		dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
+> -		return -EBUSY;
+> -	}
+> -
+>  	rc = check_security_state(nvdimm);
+>  	if (rc)
+>  		return rc;
+> @@ -380,11 +375,6 @@ int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
+>  			|| !nvdimm->sec.flags)
+>  		return -EOPNOTSUPP;
+>  
+> -	if (atomic_read(&nvdimm->busy)) {
+> -		dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
+> -		return -EBUSY;
+> -	}
+> -
+>  	if (dev->driver == NULL) {
+>  		dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
+>  		return -EINVAL;
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
