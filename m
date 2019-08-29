@@ -1,17 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bombadil.infradead.org (bombadil.infradead.org
- [IPv6:2607:7c80:54:e::133])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id F122C202BB9AB
- for <linux-nvdimm@lists.01.org>; Thu, 15 Aug 2019 23:56:40 -0700 (PDT)
-From: Christoph Hellwig <hch@lst.de>
-Subject: [PATCH 2/4] memremap: remove the dev field in struct dev_pagemap
-Date: Fri, 16 Aug 2019 08:54:32 +0200
-Message-Id: <20190816065434.2129-3-hch@lst.de>
-In-Reply-To: <20190816065434.2129-1-hch@lst.de>
-References: <20190816065434.2129-1-hch@lst.de>
+ by ml01.01.org (Postfix) with ESMTPS id 9D14D2021B705
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Aug 2019 11:54:08 -0700 (PDT)
+Date: Thu, 29 Aug 2019 11:52:15 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [RFC PATCH v2 06/19] fs/ext4: Teach dax_layout_busy_page() to
+ operate on a sub-range
+Message-ID: <20190829185215.GC18249@iweiny-DESK2.sc.intel.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-7-ira.weiny@intel.com>
+ <20190823151826.GB11009@redhat.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20190823151826.GB11009@redhat.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,79 +26,114 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Bharata B Rao <bharata@linux.ibm.com>
+To: Vivek Goyal <vgoyal@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-The dev field in struct dev_pagemap is only used to print dev_name in
-two places, which are at best nice to have.  Just remove the field
-and thus the name in those two messages.
+On Fri, Aug 23, 2019 at 11:18:26AM -0400, Vivek Goyal wrote:
+> On Fri, Aug 09, 2019 at 03:58:20PM -0700, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > Callers of dax_layout_busy_page() are only rarely operating on the
+> > entire file of concern.
+> > 
+> > Teach dax_layout_busy_page() to operate on a sub-range of the
+> > address_space provided.  Specifying 0 - ULONG_MAX however, will continue
+> > to operate on the "entire file" and XFS is split out to a separate patch
+> > by this method.
+> > 
+> > This could potentially speed up dax_layout_busy_page() as well.
+> 
+> I need this functionality as well for virtio_fs and posted a patch for
+> this.
+> 
+> https://lkml.org/lkml/2019/8/21/825
+> 
+> Given this is an optimization which existing users can benefit from already,
+> this patch could probably be pushed upstream independently.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/memremap.h | 1 -
- mm/memremap.c            | 6 +-----
- mm/page_alloc.c          | 2 +-
- 3 files changed, 2 insertions(+), 7 deletions(-)
+I'm ok with that.
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index f8a5b2a19945..8f0013e18e14 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -109,7 +109,6 @@ struct dev_pagemap {
- 	struct percpu_ref *ref;
- 	struct percpu_ref internal_ref;
- 	struct completion done;
--	struct device *dev;
- 	enum memory_type type;
- 	unsigned int flags;
- 	u64 pci_p2pdma_bus_offset;
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 86432650f829..416b4129acbb 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -102,7 +102,6 @@ static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
- static void devm_memremap_pages_release(void *data)
- {
- 	struct dev_pagemap *pgmap = data;
--	struct device *dev = pgmap->dev;
- 	struct resource *res = &pgmap->res;
- 	unsigned long pfn;
- 	int nid;
-@@ -129,8 +128,7 @@ static void devm_memremap_pages_release(void *data)
- 
- 	untrack_pfn(NULL, PHYS_PFN(res->start), resource_size(res));
- 	pgmap_array_delete(res);
--	dev_WARN_ONCE(dev, pgmap->altmap.alloc,
--		      "%s: failed to free all reserved pages\n", __func__);
-+	WARN_ONCE(pgmap->altmap.alloc, "failed to free all reserved pages\n");
- }
- 
- static void dev_pagemap_percpu_release(struct percpu_ref *ref)
-@@ -251,8 +249,6 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 		goto err_array;
- 	}
- 
--	pgmap->dev = dev;
--
- 	error = xa_err(xa_store_range(&pgmap_array, PHYS_PFN(res->start),
- 				PHYS_PFN(res->end), pgmap, GFP_KERNEL));
- 	if (error)
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 272c6de1bf4e..b39baa2b1faf 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5982,7 +5982,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 		}
- 	}
- 
--	pr_info("%s initialised, %lu pages in %ums\n", dev_name(pgmap->dev),
-+	pr_info("%s initialised %lu pages in %ums\n", __func__,
- 		size, jiffies_to_msecs(jiffies - start));
- }
- 
--- 
-2.20.1
+However, this patch does not apply cleanly to head as I had some other
+additions to dax.h.
+
+> 
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > ---
+> > Changes from RFC v1
+> > 	Fix 0-day build errors
+> > 
+> >  fs/dax.c            | 15 +++++++++++----
+> >  fs/ext4/ext4.h      |  2 +-
+> >  fs/ext4/extents.c   |  6 +++---
+> >  fs/ext4/inode.c     | 19 ++++++++++++-------
+> >  fs/xfs/xfs_file.c   |  3 ++-
+> >  include/linux/dax.h |  6 ++++--
+> >  6 files changed, 33 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/fs/dax.c b/fs/dax.c
+> > index a14ec32255d8..3ad19c384454 100644
+> > --- a/fs/dax.c
+> > +++ b/fs/dax.c
+> > @@ -573,8 +573,11 @@ bool dax_mapping_is_dax(struct address_space *mapping)
+> >  EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
+> >  
+> >  /**
+> > - * dax_layout_busy_page - find first pinned page in @mapping
+> > + * dax_layout_busy_page - find first pinned page in @mapping within
+> > + *                        the range @off - @off + @len
+> >   * @mapping: address space to scan for a page with ref count > 1
+> > + * @off: offset to start at
+> > + * @len: length to scan through
+> >   *
+> >   * DAX requires ZONE_DEVICE mapped pages. These pages are never
+> >   * 'onlined' to the page allocator so they are considered idle when
+> > @@ -587,9 +590,13 @@ EXPORT_SYMBOL_GPL(dax_mapping_is_dax);
+> >   * to be able to run unmap_mapping_range() and subsequently not race
+> >   * mapping_mapped() becoming true.
+> >   */
+> > -struct page *dax_layout_busy_page(struct address_space *mapping)
+> > +struct page *dax_layout_busy_page(struct address_space *mapping,
+> > +				  loff_t off, loff_t len)
+> >  {
+> > -	XA_STATE(xas, &mapping->i_pages, 0);
+> > +	unsigned long start_idx = off >> PAGE_SHIFT;
+> > +	unsigned long end_idx = (len == ULONG_MAX) ? ULONG_MAX
+> > +				: start_idx + (len >> PAGE_SHIFT);
+> > +	XA_STATE(xas, &mapping->i_pages, start_idx);
+> >  	void *entry;
+> >  	unsigned int scanned = 0;
+> >  	struct page *page = NULL;
+> > @@ -612,7 +619,7 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+> >  	unmap_mapping_range(mapping, 0, 0, 1);
+> 
+> Should we unmap only those pages which fall in the range specified by caller.
+> Unmapping whole file seems to be less efficient.
+
+Seems reasonable to me.  I was focused on getting pages which were busy not
+necessarily on what got unmapped.  So I did not consider this.  Thanks for the
+suggestion.
+
+However, I don't understand the math you do for length?  Is this comment/code
+correct?
+
++  /* length is being calculated from lstart and not start.
++   * This is due to behavior of unmap_mapping_range(). If
++   * start is say 4094 and end is on 4093 then want to
++   * unamp two pages, idx 0 and 1. But unmap_mapping_range()
++   * will unmap only page at idx 0. If we calculate len
++   * from the rounded down start, this problem should not
++   * happen.
++   */
++  len = end - lstart + 1;
+
+
+How can end (4093) be < start (4094)?  Is that valid?  And why would a start of
+4094 unmap idx 0?
+
+Ira
 
 _______________________________________________
 Linux-nvdimm mailing list
