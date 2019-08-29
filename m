@@ -1,13 +1,13 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id DC52B21309D22
- for <linux-nvdimm@lists.01.org>; Thu,  8 Aug 2019 18:38:14 -0700 (PDT)
-Subject: [ndctl PATCH] daxctl/test: Skip daxctl-devices.sh on older kernels
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 08 Aug 2019 18:21:26 -0700
-Message-ID: <156531368648.2136155.13013612862545053331.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id D80692021B6F9
+ for <linux-nvdimm@lists.01.org>; Wed, 28 Aug 2019 17:19:40 -0700 (PDT)
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 0/3] greedy namespace creation
+Date: Wed, 28 Aug 2019 18:17:32 -0600
+Message-Id: <20190829001735.30289-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -21,34 +21,47 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 To: linux-nvdimm@lists.01.org
+Cc: Steve Scargall <steve.scargall@intel.com>
 List-ID: <linux-nvdimm@lists.01.org>
 
-If the 'kmem' module is missing skip the test to support running the
-unit tests on older -stable kernels pre-v5.1.
+Patch 1 and 2 refactor and clarify the documentation for the way
+filtering works using --bus=, --region=, and --dimm= options for all
+commands.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- test/daxctl-devices.sh |    7 +++++++
- 1 file changed, 7 insertions(+)
+Patch 3 adds a new --continue option to continue creating as many
+namespaces as possible for the given filter spec.
 
-diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-index 04f53f7b13ab..4102fb6990ae 100755
---- a/test/daxctl-devices.sh
-+++ b/test/daxctl-devices.sh
-@@ -18,6 +18,13 @@ find_testdev()
- {
- 	local rc=77
- 
-+	# The kmem driver is needed to change the device mode, only
-+	# kernels >= v5.1 might have it available. Skip if not.
-+	if ! modinfo kmem; then
-+		"Unable to find kmem module"
-+		exit $rc
-+	fi
-+
- 	# find a victim device
- 	testbus="$ACPI_BUS"
- 	testdev=$("$NDCTL" list -b "$testbus" -Ni | jq -er '.[0].dev | .//""')
+Vishal Verma (3):
+  Documentation: refactor 'bus options' into its own include
+  Documentation: clarify bus/dimm/region filtering
+  ndctl/namespace: add a --continue option to create namespaces greedily
+
+ Documentation/ndctl/ndctl-check-namespace.txt |  4 +++
+ Documentation/ndctl/ndctl-clear-errors.txt    |  4 +++
+ .../ndctl/ndctl-create-namespace.txt          | 11 ++++++++
+ Documentation/ndctl/ndctl-disable-dimm.txt    |  4 +++
+ Documentation/ndctl/ndctl-disable-region.txt  |  4 +++
+ Documentation/ndctl/ndctl-enable-dimm.txt     |  4 +++
+ Documentation/ndctl/ndctl-enable-region.txt   |  4 +++
+ Documentation/ndctl/ndctl-freeze-security.txt |  4 +++
+ Documentation/ndctl/ndctl-inject-error.txt    |  4 +++
+ Documentation/ndctl/ndctl-list.txt            |  4 +++
+ .../ndctl/ndctl-remove-passphrase.txt         |  4 +++
+ Documentation/ndctl/ndctl-sanitize-dimm.txt   |  4 +++
+ .../ndctl/ndctl-setup-passphrase.txt          |  4 +++
+ Documentation/ndctl/ndctl-update-firmware.txt |  4 +++
+ .../ndctl/ndctl-update-passphrase.txt         |  4 +++
+ Documentation/ndctl/ndctl-wait-overwrite.txt  |  4 +++
+ Documentation/ndctl/xable-bus-options.txt     |  5 ++++
+ Documentation/ndctl/xable-dimm-options.txt    | 14 +++--------
+ .../ndctl/xable-namespace-options.txt         |  4 +++
+ Documentation/ndctl/xable-region-options.txt  | 14 +++--------
+ ndctl/namespace.c                             | 25 +++++++++++++++----
+ 21 files changed, 108 insertions(+), 25 deletions(-)
+ create mode 100644 Documentation/ndctl/xable-bus-options.txt
+
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
