@@ -1,22 +1,21 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1E77A20215F59
- for <linux-nvdimm@lists.01.org>; Thu, 29 Aug 2019 12:18:23 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id F0A242021DD4B
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Aug 2019 12:10:44 -0700 (PDT)
+Date: Thu, 29 Aug 2019 13:08:52 -0600
+From: Vishal Verma <vishal.l.verma@intel.com>
 Subject: Re: [ndctl PATCH 3/3] ndctl/namespace: add a --continue option to
  create namespaces greedily
+Message-ID: <20190829190852.GA14129@vverma7-desk1.lm.intel.com>
 References: <20190829001735.30289-1-vishal.l.verma@intel.com>
  <20190829001735.30289-4-vishal.l.verma@intel.com>
- <179261bd-9812-6bba-6710-19a77cf3acc6@oracle.com>
- <e343ace46d7243632eec594f679759fac78814ba.camel@intel.com>
- <CAPcyv4iQ8=yLGA0E2=puqV+mC7HxNW-RP-0EtVeU2hN6HsNxKQ@mail.gmail.com>
-From: jane.chu@oracle.com
-Message-ID: <bca384f1-46c9-54c5-2df3-e2575c57c694@oracle.com>
-Date: Thu, 29 Aug 2019 12:16:28 -0700
+ <CAPcyv4gB-2hkPM=zKCigpDAUxQbzWFVRmZ=UnTF0wsBW3-nmsQ@mail.gmail.com>
+ <44b020035e3245084b2310cfdfe496853e2cf18d.camel@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4iQ8=yLGA0E2=puqV+mC7HxNW-RP-0EtVeU2hN6HsNxKQ@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <44b020035e3245084b2310cfdfe496853e2cf18d.camel@intel.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -24,58 +23,175 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Dan Williams <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "Scargall, Steve" <steve.scargall@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-On 8/29/19 11:28 AM, Dan Williams wrote:
-> On Thu, Aug 29, 2019 at 11:08 AM Verma, Vishal L
-> <vishal.l.verma@intel.com> wrote:
->>
->> On Thu, 2019-08-29 at 10:38 -0700, jane.chu@oracle.com wrote:
->>> Hi, Vishal,
->>>
->>>
->>> On 8/28/19 5:17 PM, Vishal Verma wrote:
->>>> Add a --continue option to ndctl-create-namespaces to allow the creation
->>>> of as many namespaces as possible, that meet the given filter
->>>> restrictions.
->>>>
->>>> The creation loop will be aborted if a failure is encountered at any
->>>> point.
->>>
->>> Just wondering what is the motivation behind providing this option?
->>
->> Hi Jane,
->>
->> See Steve's email here:
->> https://lists.01.org/pipermail/linux-nvdimm/2019-August/023390.html
->>
->> Essentially it lets sysadmins create a simple, maximal configuration
->> without everyone having to script it.
+On 08/29, Verma, Vishal L wrote:
+> On Wed, 2019-08-28 at 19:34 -0700, Dan Williams wrote:
+> > 
+> > Hmm, should "--continue --force" override that policy?
 > 
-> It also gives a touch point to start thinking about parallel namespace
-> creation. The large advancements in boot time that Alex achieved were
-> mainly from parallelizing namespace init. With --continue we could
-> batch the namespace enable calls and kick off a bind thread per
-> namespace.
+> Yep that's a good idea, with a big note in the man page that errors
+> could be lost/meaningless in that case.
 > 
+> > 
+> > Otherwise this looks good to me.
+> 
+> Thanks, I'll send a new version with the above.
+> _______________________________________________
 
-Thanks Dan!  Sorry I was reading email backwards, just caught up with 
-the earlier discussions.
+Here is v2 with the --force change:
 
-With the --continue option, assuming the --size option will be taken if 
-specified, it would be possible to end up with a large number of small 
-namespaces
-with a simple command that runs for a long while, right? can it be 
-killed by ctrl-c once the innocent user regrets? :)
+3<----
 
-thanks,
--jane
+
+>From a91425beabae750227931594f77fe3db72b4cfff Mon Sep 17 00:00:00 2001
+From: Vishal Verma <vishal.l.verma@intel.com>
+Date: Wed, 28 Aug 2019 18:01:38 -0600
+Subject: [ndctl PATCH v2] ndctl/namespace: add a --continue option to create
+ namespaces greedily
+
+Add a --continue option to ndctl-create-namespaces to allow the creation
+of as many namespaces as possible, that meet the given filter
+restrictions.
+
+The creation loop will be aborted if a failure is encountered at any
+point, unless --force is also specified.
+
+Link: https://github.com/pmem/ndctl/issues/106
+Reported-by: Steve Scargal <steve.scargall@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+
+v2: Allow --force to continue in spite of errors (Dan)
+
+ .../ndctl/ndctl-create-namespace.txt          | 11 +++++-
+ ndctl/namespace.c                             | 34 +++++++++++++++----
+ 2 files changed, 38 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/ndctl/ndctl-create-namespace.txt b/Documentation/ndctl/ndctl-create-namespace.txt
+index c9ae27c..e29a5e7 100644
+--- a/Documentation/ndctl/ndctl-create-namespace.txt
++++ b/Documentation/ndctl/ndctl-create-namespace.txt
+@@ -152,6 +152,13 @@ OPTIONS
+ 	namespace directly ("--map=dev"). The overhead is 64-bytes per
+ 	4K (16GB per 1TB) on x86.
+ 
++-c::
++--continue::
++	Do not stop after creating one namespace. Instead, greedily create as
++	many namespaces as possible within the given --bus and --region filter
++	restrictions. This will abort if any creation attempt results in an
++	error unless --force is also supplied.
++
+ -f::
+ --force::
+ 	Unless this option is specified the 'reconfigure namespace'
+@@ -160,7 +167,9 @@ OPTIONS
+ 	the operation is attempted. However, if the namespace is
+ 	mounted then the 'disable namespace' and 'reconfigure
+ 	namespace' operations will be aborted.  The namespace must be
+-	unmounted before being reconfigured.
++	unmounted before being reconfigured. When used in conjunction
++	with --continue, continue the namespace creation loop even
++	if an error is encountered for intermediate namespaces.
+ 
+ -L::
+ --autolabel::
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index af20a42..67768f3 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -41,6 +41,7 @@ static struct parameters {
+ 	bool do_scan;
+ 	bool mode_default;
+ 	bool autolabel;
++	bool greedy;
+ 	const char *bus;
+ 	const char *map;
+ 	const char *type;
+@@ -114,7 +115,9 @@ OPT_STRING('t', "type", &param.type, "type", \
+ OPT_STRING('a', "align", &param.align, "align", \
+ 	"specify the namespace alignment in bytes (default: 2M)"), \
+ OPT_BOOLEAN('f', "force", &force, "reconfigure namespace even if currently active"), \
+-OPT_BOOLEAN('L', "autolabel", &param.autolabel, "automatically initialize labels")
++OPT_BOOLEAN('L', "autolabel", &param.autolabel, "automatically initialize labels"), \
++OPT_BOOLEAN('c', "continue", &param.greedy, \
++	"continue creating namespaces as long as the filter criteria are met")
+ 
+ #define CHECK_OPTIONS() \
+ OPT_BOOLEAN('R', "repair", &repair, "perform metadata repairs"), \
+@@ -1322,10 +1325,10 @@ static int do_xaction_namespace(const char *namespace,
+ 		int *processed)
+ {
+ 	struct ndctl_namespace *ndns, *_n;
++	int rc = -ENXIO, saved_rc = 0;
+ 	struct ndctl_region *region;
+ 	const char *ndns_name;
+ 	struct ndctl_bus *bus;
+-	int rc = -ENXIO;
+ 
+ 	*processed = 0;
+ 
+@@ -1365,8 +1368,16 @@ static int do_xaction_namespace(const char *namespace,
+ 				rc = namespace_create(region);
+ 				if (rc == -EAGAIN)
+ 					continue;
+-				if (rc == 0)
+-					*processed = 1;
++				if (rc == 0) {
++					(*processed)++;
++					if (param.greedy)
++						continue;
++				}
++				if (force) {
++					if (rc)
++						saved_rc = rc;
++					continue;
++				}
+ 				return rc;
+ 			}
+ 			ndctl_namespace_foreach_safe(region, ndns, _n) {
+@@ -1427,10 +1438,18 @@ static int do_xaction_namespace(const char *namespace,
+ 		/*
+ 		 * Namespace creation searched through all candidate
+ 		 * regions and all of them said "nope, I don't have
+-		 * enough capacity", so report -ENOSPC
++		 * enough capacity", so report -ENOSPC. Except during
++		 * greedy namespace creation using --continue as we
++		 * may have created some namespaces already, and the
++		 * last one in the region search may preexist.
+ 		 */
+-		rc = -ENOSPC;
++		if (param.greedy && (*processed) > 0)
++			rc = 0;
++		else
++			rc = -ENOSPC;
+ 	}
++	if (saved_rc)
++		rc = saved_rc;
+ 
+ 	return rc;
+ }
+@@ -1487,6 +1506,9 @@ int cmd_create_namespace(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		rc = do_xaction_namespace(NULL, ACTION_CREATE, ctx, &created);
+ 	}
+ 
++	if (param.greedy)
++		fprintf(stderr, "created %d namespace%s\n", created,
++			created == 1 ? "" : "s");
+ 	if (rc < 0 || (!namespace && created < 1)) {
+ 		fprintf(stderr, "failed to %s namespace: %s\n", namespace
+ 				? "reconfigure" : "create", strerror(-rc));
+-- 
+2.20.1
 
 _______________________________________________
 Linux-nvdimm mailing list
