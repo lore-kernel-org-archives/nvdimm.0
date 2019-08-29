@@ -1,17 +1,22 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 0ACDE21A02937
- for <linux-nvdimm@lists.01.org>; Mon, 26 Aug 2019 18:11:31 -0700 (PDT)
-Subject: [PATCH v2 2/3] libnvdimm/security: Tighten scope of nvdimm->busy vs
- security operations
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 26 Aug 2019 17:55:00 -0700
-Message-ID: <156686729996.184120.3458026302402493937.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <156686728950.184120.5188743631586996901.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156686728950.184120.5188743631586996901.stgit@dwillia2-desk3.amr.corp.intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 1E77A20215F59
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Aug 2019 12:18:23 -0700 (PDT)
+Subject: Re: [ndctl PATCH 3/3] ndctl/namespace: add a --continue option to
+ create namespaces greedily
+References: <20190829001735.30289-1-vishal.l.verma@intel.com>
+ <20190829001735.30289-4-vishal.l.verma@intel.com>
+ <179261bd-9812-6bba-6710-19a77cf3acc6@oracle.com>
+ <e343ace46d7243632eec594f679759fac78814ba.camel@intel.com>
+ <CAPcyv4iQ8=yLGA0E2=puqV+mC7HxNW-RP-0EtVeU2hN6HsNxKQ@mail.gmail.com>
+From: jane.chu@oracle.com
+Message-ID: <bca384f1-46c9-54c5-2df3-e2575c57c694@oracle.com>
+Date: Thu, 29 Aug 2019 12:16:28 -0700
 MIME-Version: 1.0
+In-Reply-To: <CAPcyv4iQ8=yLGA0E2=puqV+mC7HxNW-RP-0EtVeU2hN6HsNxKQ@mail.gmail.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,116 +24,58 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: linux-nvdimm@lists.01.org
-Cc: linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "Scargall, Steve" <steve.scargall@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-An attempt to freeze DIMMs currently runs afoul of default blocking of
-all security operations in the entry to the 'store' routine for the
-'security' sysfs attribute.
+On 8/29/19 11:28 AM, Dan Williams wrote:
+> On Thu, Aug 29, 2019 at 11:08 AM Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+>>
+>> On Thu, 2019-08-29 at 10:38 -0700, jane.chu@oracle.com wrote:
+>>> Hi, Vishal,
+>>>
+>>>
+>>> On 8/28/19 5:17 PM, Vishal Verma wrote:
+>>>> Add a --continue option to ndctl-create-namespaces to allow the creation
+>>>> of as many namespaces as possible, that meet the given filter
+>>>> restrictions.
+>>>>
+>>>> The creation loop will be aborted if a failure is encountered at any
+>>>> point.
+>>>
+>>> Just wondering what is the motivation behind providing this option?
+>>
+>> Hi Jane,
+>>
+>> See Steve's email here:
+>> https://lists.01.org/pipermail/linux-nvdimm/2019-August/023390.html
+>>
+>> Essentially it lets sysadmins create a simple, maximal configuration
+>> without everyone having to script it.
+> 
+> It also gives a touch point to start thinking about parallel namespace
+> creation. The large advancements in boot time that Alex achieved were
+> mainly from parallelizing namespace init. With --continue we could
+> batch the namespace enable calls and kick off a bind thread per
+> namespace.
+> 
 
-The blanket blocking of all security operations while the DIMM is in
-active use in a region is too restrictive. The only security operations
-that need to be aware of the ->busy state are those that mutate the
-state of data, i.e. erase and overwrite.
+Thanks Dan!  Sorry I was reading email backwards, just caught up with 
+the earlier discussions.
 
-Refactor the ->busy checks to be applied at the entry common entry point
-in __security_store() rather than each of the helper routines to enable
-freeze to be run regardless of busy state.
+With the --continue option, assuming the --size option will be taken if 
+specified, it would be possible to end up with a large number of small 
+namespaces
+with a simple command that runs for a long while, right? can it be 
+killed by ctrl-c once the innocent user regrets? :)
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/nvdimm/dimm_devs.c |   33 ++++++++++++++++-----------------
- drivers/nvdimm/security.c  |   10 ----------
- 2 files changed, 16 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 53330625fe07..d837cb9be83d 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -424,9 +424,6 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
- 	unsigned int key, newkey;
- 	int i;
- 
--	if (atomic_read(&nvdimm->busy))
--		return -EBUSY;
--
- 	rc = sscanf(buf, "%"__stringify(SEC_CMD_SIZE)"s"
- 			" %"__stringify(KEY_ID_SIZE)"s"
- 			" %"__stringify(KEY_ID_SIZE)"s",
-@@ -451,23 +448,25 @@ static ssize_t __security_store(struct device *dev, const char *buf, size_t len)
- 	} else if (i == OP_DISABLE) {
- 		dev_dbg(dev, "disable %u\n", key);
- 		rc = nvdimm_security_disable(nvdimm, key);
--	} else if (i == OP_UPDATE) {
--		dev_dbg(dev, "update %u %u\n", key, newkey);
--		rc = nvdimm_security_update(nvdimm, key, newkey, NVDIMM_USER);
--	} else if (i == OP_ERASE) {
--		dev_dbg(dev, "erase %u\n", key);
--		rc = nvdimm_security_erase(nvdimm, key, NVDIMM_USER);
-+	} else if (i == OP_UPDATE || i == OP_MASTER_UPDATE) {
-+		dev_dbg(dev, "%s %u %u\n", ops[i].name, key, newkey);
-+		rc = nvdimm_security_update(nvdimm, key, newkey, i == OP_UPDATE
-+				? NVDIMM_USER : NVDIMM_MASTER);
-+	} else if (i == OP_ERASE || i == OP_MASTER_ERASE) {
-+		dev_dbg(dev, "%s %u\n", ops[i].name, key);
-+		if (atomic_read(&nvdimm->busy)) {
-+			dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
-+			return -EBUSY;
-+		}
-+		rc = nvdimm_security_erase(nvdimm, key, i == OP_ERASE
-+				? NVDIMM_USER : NVDIMM_MASTER);
- 	} else if (i == OP_OVERWRITE) {
- 		dev_dbg(dev, "overwrite %u\n", key);
-+		if (atomic_read(&nvdimm->busy)) {
-+			dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
-+			return -EBUSY;
-+		}
- 		rc = nvdimm_security_overwrite(nvdimm, key);
--	} else if (i == OP_MASTER_UPDATE) {
--		dev_dbg(dev, "master_update %u %u\n", key, newkey);
--		rc = nvdimm_security_update(nvdimm, key, newkey,
--				NVDIMM_MASTER);
--	} else if (i == OP_MASTER_ERASE) {
--		dev_dbg(dev, "master_erase %u\n", key);
--		rc = nvdimm_security_erase(nvdimm, key,
--				NVDIMM_MASTER);
- 	} else
- 		return -EINVAL;
- 
-diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-index 5862d0eee9db..2166e627383a 100644
---- a/drivers/nvdimm/security.c
-+++ b/drivers/nvdimm/security.c
-@@ -334,11 +334,6 @@ int nvdimm_security_erase(struct nvdimm *nvdimm, unsigned int keyid,
- 			|| !nvdimm->sec.flags)
- 		return -EOPNOTSUPP;
- 
--	if (atomic_read(&nvdimm->busy)) {
--		dev_dbg(dev, "Unable to secure erase while DIMM active.\n");
--		return -EBUSY;
--	}
--
- 	rc = check_security_state(nvdimm);
- 	if (rc)
- 		return rc;
-@@ -380,11 +375,6 @@ int nvdimm_security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
- 			|| !nvdimm->sec.flags)
- 		return -EOPNOTSUPP;
- 
--	if (atomic_read(&nvdimm->busy)) {
--		dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
--		return -EBUSY;
--	}
--
- 	if (dev->driver == NULL) {
- 		dev_dbg(dev, "Unable to overwrite while DIMM active.\n");
- 		return -EINVAL;
+thanks,
+-jane
 
 _______________________________________________
 Linux-nvdimm mailing list
