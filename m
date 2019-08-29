@@ -1,19 +1,26 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 113D92130D7E8
- for <linux-nvdimm@lists.01.org>; Fri,  2 Aug 2019 15:33:20 -0700 (PDT)
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH] ndctl, check: Ensure mmap of BTT sections work with 64K
- page-size
-Date: Fri, 2 Aug 2019 22:30:45 +0000
-Message-ID: <b01607421be5f487662e973c30967a0bf8a8389d.camel@intel.com>
-References: <20190704025143.22856-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20190704025143.22856-1-vaibhav@linux.ibm.com>
-Content-Language: en-US
-Content-ID: <7AA208381AB55D4484301C26AD555BF7@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id E55AC2021DD36
+ for <linux-nvdimm@lists.01.org>; Thu, 29 Aug 2019 09:18:22 -0700 (PDT)
+Date: Thu, 29 Aug 2019 09:16:28 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ; -)
+Message-ID: <20190829161627.GB18249@iweiny-DESK2.sc.intel.com>
+References: <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
+ <20190821194810.GI8653@ziepe.ca>
+ <20190821204421.GE5965@iweiny-DESK2.sc.intel.com>
+ <20190823032345.GG1119@dread.disaster.area>
+ <20190823120428.GA12968@ziepe.ca>
+ <20190824001124.GI1119@dread.disaster.area>
+ <20190824050836.GC1092@iweiny-DESK2.sc.intel.com>
+ <20190826055510.GL1119@dread.disaster.area>
+ <20190829020230.GA18249@iweiny-DESK2.sc.intel.com>
+ <3e5c5053-a74a-509c-660c-a6075ed87f11@nvidia.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <3e5c5053-a74a-509c-660c-a6075ed87f11@nvidia.com>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,247 +32,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "vaibhav@linux.ibm.com" <vaibhav@linux.ibm.com>
-Cc: "harish@linux.ibm.com" <harish@linux.ibm.com>, "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-On Thu, 2019-07-04 at 08:21 +0530, Vaibhav Jain wrote:
-> Presently on PPC64 which uses a 64K page-size, ndtl-check command
-
-Drop 'Presently'. Maybe something like "On PPC64, ... ndctl-check-
-namespace would fail.."
-
-Also s/ndtl/ndctl/
-
-> fails on a BTT device with following error:
-
-on a BTT namespace.
-
+On Wed, Aug 28, 2019 at 08:27:23PM -0700, John Hubbard wrote:
+> On 8/28/19 7:02 PM, Ira Weiny wrote:
+> > On Mon, Aug 26, 2019 at 03:55:10PM +1000, Dave Chinner wrote:
+> > > On Fri, Aug 23, 2019 at 10:08:36PM -0700, Ira Weiny wrote:
+> > > > On Sat, Aug 24, 2019 at 10:11:24AM +1000, Dave Chinner wrote:
+> > > > > On Fri, Aug 23, 2019 at 09:04:29AM -0300, Jason Gunthorpe wrote:
+> ...
+> > > 
+> > > Sure, that part works because the struct file is passed. It doesn't
+> > > end up with the same fd number in the other process, though.
+> > > 
+> > > The issue is that layout leases need to notify userspace when they
+> > > are broken by the kernel, so a lease stores the owner pid/tid in the
+> > > file->f_owner field via __f_setown(). It also keeps a struct fasync
+> > > attached to the file_lock that records the fd that the lease was
+> > > created on.  When a signal needs to be sent to userspace for that
+> > > lease, we call kill_fasync() and that walks the list of fasync
+> > > structures on the lease and calls:
+> > > 
+> > > 	send_sigio(fown, fa->fa_fd, band);
+> > > 
+> > > And it does for every fasync struct attached to a lease. Yes, a
+> > > lease can track multiple fds, but it can only track them in a single
+> > > process context. The moment the struct file is shared with another
+> > > process, the lease is no longer capable of sending notifications to
+> > > all the lease holders.
+> > > 
+> > > Yes, you can change the owning process via F_SETOWNER, but that's
+> > > still only a single process context, and you can't change the fd in
+> > > the fasync list. You can add new fd to an existing lease by calling
+> > > F_SETLEASE on the new fd, but you still only have a single process
+> > > owner context for signal delivery.
+> > > 
+> > > As such, leases that require callbacks to userspace are currently
+> > > only valid within the process context the lease was taken in.
+> > 
+> > But for long term pins we are not requiring callbacks.
+> > 
 > 
-> $sudo ndctl check-namespace namespace0.0 -vv
-> namespace0.0: namespace_check: checking namespace0.0
-> namespace0.0: btt_discover_arenas: found 1 BTT arena
-> namespace0.0: btt_create_mappings: mmap arena[0].info [sz = 0x1000, off = 0x1000] failed: Invalid argument
-> error checking namespaces: Invalid argument
-> checked 0 namespaces
-
-Perhaps indent the above by two spaces so it is clearly visible as a
-copy-pasted session.
-
+> Hi Ira,
 > 
-> Error happens when btt_create_mappings() tries to mmap the sections of
-> the BTT device which are usually 4K offset aligned. However the mmap()
-> syscall expects the 'offset' argument to be in multiples of page-size,
-> hence it returns EINVAL causing the btt_create_mappings() to error
-> out.
+> If "require callbacks to userspace" means sending SIGIO, then actually
+> FOLL_LONGTERM *does* require those callbacks. Because we've been, so
+> far, equating FOLL_LONGTERM with the vaddr_pin struct and with a lease.
 > 
-> As a fix for the issue this patch proposes addition of two new
-> functions to 'check.c' namely btt_mmap/btt_unmap that can be used to
-> map/unmap parts of BTT device to ndctl process address-space. The
-> functions tweaks the requested 'offset' argument to mmap() ensuring
-> that its page-size aligned and then fix-ups the returned pointer such
-> that it points to the requested offset within m-mapped region.
+> What am I missing here?
 
-'mmaped region'
+We agreed back in June that the layout lease would have 2 "levels".  The
+"normal" layout lease would cause SIGIO and could be broken and another
+"exclusive" level which could _not_ be broken.
 
-> 
-> Reported-by: harish@linux.ibm.com
+Because we _can't_ _trust_ user space to react to the SIGIO properly the
+"exclusive" lease is required to take the longterm pins.  Also this is the
+lease which causes the truncate to fail (return ETXTBSY) because the kernel
+can't break the lease.
 
-Could you make this the canonical Name <email> format?
+The vaddr_pin struct in the current RFC is there for a couple of reasons.
 
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
->  ndctl/check.c | 71 ++++++++++++++++++++++++++++++++++++++++-----------
->  1 file changed, 56 insertions(+), 15 deletions(-)
-> 
-> diff --git a/ndctl/check.c b/ndctl/check.c
-> index 8a7125053865..18d259048616 100644
-> --- a/ndctl/check.c
-> +++ b/ndctl/check.c
-> @@ -907,6 +907,47 @@ static int btt_discover_arenas(struct btt_chk *bttc)
->  	return ret;
->  }
->  
-> +/* Mmap requested btt region so it works with non 4-K page sizes */
+1) To ensure that we have a way to correlate the long term pin user with the
+   file if the data file FD's are closed.  (ie the application has zombie'd the
+   lease).
 
-Maybe something like "Wrap mmap(2) so that the underlying system call
-can use system page sizes for the mappings, but the checking code
-doesn't have to worry about that detail, and can map smaller-than-page-
-size sections"
+2) And more importantly as a token the vaddr_pin*() callers use to be able to
+   properly ref count the file itself while in use.
 
-> +static void *btt_mmap(struct btt_chk *bttc, void *addr, size_t length,
-> +		      int prot, int flags, off_t offset)
-
-I see you tried to keep the argument list similar to mmap(2), but I
-suspect it can be made much cleaner if we only pass in just what's
-needed.
-
-Since we're passing in bttc, the bttc->opts->repair check to determine
-mmap_flags could be moved into this helper. The NULL and MAP_SHARED
-arguments (addr and prot) are always the same, so no need to pass those.
-With this, the callers look much cleaner:
-
-a->map_info = btt_mmap(bttc, a->map.info_len, a->infooff);
-
-> +{
-> +	off_t shift;
-
-In both of thse wrappers, and especially since we are printing 'shift ='
-in a debug message - 
-
-'shift' sounds more like an arithmatic left/right shift operation, and
-it might be confusing to the user what it means. I'd suggest naming this
-something like 'page_offset', or 'page_start_pad', or something along
-those lines.
-
-> +
-> +	/* Calculate the shift back needed to make offset page aligned */
-
-"Calculate the offset from system page size boundary"
-
-> +	shift = offset - rounddown(offset, bttc->sys_page_size);
-> +
-> +	/* Update the offset and length with the shift calculated above */
-> +	offset -= shift;
-> +	length += shift;
-> +
-> +	addr = mmap(addr, length, prot, flags, bttc->fd, offset);
-> +
-> +	/* If needed fixup the return pointer to correct offset request */
-
-requested
-
-> +	if (addr != MAP_FAILED)
-> +		addr = (void *) ((uintptr_t)addr + shift);
-
-The (uintptr_t) cast should be ok to drop, for v66 we are removing the
-pointer arithmatic warning:
-https://patchwork.kernel.org/patch/11062697/
-
-In fact, since 'shift' is in bytes, isn't an unsigned int cast actually *wrong*?
-
-> +
-> +	dbg(bttc, "mmap: addr=%p length=0x%lx offset=0x%lx shift=0x%lx\n",
-> +	    addr, length, offset, shift);
-
-It would be nice to make this print more consistent with the err()
-prints in btt_create_mappings - so spaces sround the '=', and note you
-can use %#lx instead of 0x%lx
-
-Also the function name 'btt_map' will automatically get prefixed by
-dbg(), so no need for another 'mmap' at the start.
-
-	dbg(bttc, "addr = %p, length = %#lx, offset = %#lx, page_offset = %#lx\n",
-		addr, length, offset, page_offset);
-
-> +
-> +	return addr;
-> +}
-> +
-> +static void btt_unmap(struct btt_chk *bttc, void *ptr, size_t length)
-> +{
-> +	uintptr_t addr = ptr;
-> +	off_t shift;
-> +
-> +	/* Calculate the shift back needed to make offset page aligned */
-> +	shift = addr - rounddown(addr, bttc->sys_page_size);
-> +
-> +	addr -= shift;
-> +	length += shift;
-> +
-> +	munmap((void *)addr, length);
-> +	dbg(bttc, "unmap: addr=%p length=0x%lx shift=0x%lx\n",
-> +	    addr, length, shift);
-
-Similar comments about the print as above.
-
-> +}
-> +
->  static int btt_create_mappings(struct btt_chk *bttc)
->  {
->  	struct arena_info *a;
-> @@ -921,8 +962,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
->  	for (i = 0; i < bttc->num_arenas; i++) {
->  		a = &bttc->arena[i];
->  		a->map.info_len = BTT_INFO_SIZE;
-> -		a->map.info = mmap(NULL, a->map.info_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->infooff);
-> +		a->map.info = btt_mmap(bttc, NULL, a->map.info_len, mmap_flags,
-> +				       MAP_SHARED, a->infooff);
->  		if (a->map.info == MAP_FAILED) {
-
-I wonder if it will also be cleaner to sequester away the MAP_FAILED
-detail of the mmap API into the wrapper. The wrapper can just return
-NULL for MAP_FAILED, and then this check just becomes if (!a->map.info)
-
->  			err(bttc, "mmap arena[%d].info [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.info_len, a->infooff, strerror(errno));
-> @@ -930,8 +971,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
->  		}
->  
->  		a->map.data_len = a->mapoff - a->dataoff;
-> -		a->map.data = mmap(NULL, a->map.data_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->dataoff);
-> +		a->map.data = btt_mmap(bttc, NULL, a->map.data_len, mmap_flags,
-> +				       MAP_SHARED, a->dataoff);
->  		if (a->map.data == MAP_FAILED) {
->  			err(bttc, "mmap arena[%d].data [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.data_len, a->dataoff, strerror(errno));
-> @@ -939,8 +980,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
->  		}
->  
->  		a->map.map_len = a->logoff - a->mapoff;
-> -		a->map.map = mmap(NULL, a->map.map_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->mapoff);
-> +		a->map.map = btt_mmap(bttc, NULL, a->map.map_len, mmap_flags,
-> +				      MAP_SHARED, a->mapoff);
->  		if (a->map.map == MAP_FAILED) {
->  			err(bttc, "mmap arena[%d].map [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.map_len, a->mapoff, strerror(errno));
-> @@ -948,8 +989,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
->  		}
->  
->  		a->map.log_len = a->info2off - a->logoff;
-> -		a->map.log = mmap(NULL, a->map.log_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->logoff);
-> +		a->map.log = btt_mmap(bttc, NULL, a->map.log_len, mmap_flags,
-> +				  MAP_SHARED, a->logoff);
->  		if (a->map.log == MAP_FAILED) {
->  			err(bttc, "mmap arena[%d].log [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.log_len, a->logoff, strerror(errno));
-> @@ -957,8 +998,8 @@ static int btt_create_mappings(struct btt_chk *bttc)
->  		}
->  
->  		a->map.info2_len = BTT_INFO_SIZE;
-> -		a->map.info2 = mmap(NULL, a->map.info2_len, mmap_flags,
-> -			MAP_SHARED, bttc->fd, a->info2off);
-> +		a->map.info2 = btt_mmap(bttc, NULL, a->map.info2_len,
-> +					mmap_flags, MAP_SHARED, a->info2off);
->  		if (a->map.info2 == MAP_FAILED) {
->  			err(bttc, "mmap arena[%d].info2 [sz = %#lx, off = %#lx] failed: %s\n",
->  				i, a->map.info2_len, a->info2off, strerror(errno));
-> @@ -977,15 +1018,15 @@ static void btt_remove_mappings(struct btt_chk *bttc)
->  	for (i = 0; i < bttc->num_arenas; i++) {
->  		a = &bttc->arena[i];
->  		if (a->map.info)
-> -			munmap(a->map.info, a->map.info_len);
-> +			btt_unmap(bttc, a->map.info, a->map.info_len);
->  		if (a->map.data)
-> -			munmap(a->map.data, a->map.data_len);
-> +			btt_unmap(bttc, a->map.data, a->map.data_len);
->  		if (a->map.map)
-> -			munmap(a->map.map, a->map.map_len);
-> +			btt_unmap(bttc, a->map.map, a->map.map_len);
->  		if (a->map.log)
-> -			munmap(a->map.log, a->map.log_len);
-> +			btt_unmap(bttc, a->map.log, a->map.log_len);
->  		if (a->map.info2)
-> -			munmap(a->map.info2, a->map.info2_len);
-> +			btt_unmap(bttc, a->map.info2, a->map.info2_len);
->  	}
->  }
->  
-
+Ira
 
 _______________________________________________
 Linux-nvdimm mailing list
