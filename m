@@ -1,16 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-xb31.google.com (mail-yb1-xb31.google.com
+ [IPv6:2607:f8b0:4864:20::b31])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3C86121309D28
- for <linux-nvdimm@lists.01.org>; Fri,  9 Aug 2019 16:01:50 -0700 (PDT)
-From: ira.weiny@intel.com
-Subject: [RFC PATCH v2 18/19] {mm,procfs}: Add display file_pins proc
-Date: Fri,  9 Aug 2019 15:58:32 -0700
-Message-Id: <20190809225833.6657-19-ira.weiny@intel.com>
-In-Reply-To: <20190809225833.6657-1-ira.weiny@intel.com>
-References: <20190809225833.6657-1-ira.weiny@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 75C4D20216B6A
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Aug 2019 17:40:21 -0700 (PDT)
+Received: by mail-yb1-xb31.google.com with SMTP id c9so3121381ybf.2
+ for <linux-nvdimm@lists.01.org>; Fri, 30 Aug 2019 17:38:39 -0700 (PDT)
 MIME-Version: 1.0
+From: Turritopsis Dohrnii Teo En Ming <tdteoenming@gmail.com>
+Date: Sat, 31 Aug 2019 08:38:24 +0800
+Message-ID: <CANnei0GD25YJC2tGZ91svsP4n5HAggMcHPheKowKQrQUjB5GTg@mail.gmail.com>
+Subject: Singaporean Mr. Teo En Ming's Refugee Seeking Attempts, In The Search
+ of a Substantially Better Life
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,280 +24,86 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, Jan Kara <jack@suse.cz>, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-fsdevel@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+To: linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-From: Ira Weiny <ira.weiny@intel.com>
+Subject: Singaporean Mr. Teo En Ming's Refugee Seeking Attempts, In
+The Search of a Substantially Better Life
 
-Now that we have the file pins information stored add a new procfs entry
-to display them to the user.
+In reverse chronological order:
 
-NOTE output will be dependant on where the file pin is tied to.  Some
-processes may have the pin associated with a file descriptor in which
-case that file is reported as well.
+[1] Petition to the Government of Taiwan for Refugee Status, 5th
+August 2019 Monday
 
-Others are associated directly with the process mm and are reported as
-such.
+Photo #1: At the building of the National Immigration Agency, Ministry
+of the Interior, Taipei, Taiwan, 5th August 2019
 
-For example of a file pinned to an RDMA open context (fd 4) and a file
-pinned to the mm of that process:
+Photo #2: Queue ticket no. 515 at the National Immigration Agency,
+Ministry of the Interior, Taipei, Taiwan, 5th August 2019
 
-4: /dev/infiniband/uverbs0
-   /mnt/pmem/foo
-/mnt/pmem/bar
+Photo #3: Submission of documents/petition to the National Immigration
+Agency, Ministry of the Interior, Taipei, Taiwan, 5th August 2019
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- fs/proc/base.c | 214 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 214 insertions(+)
+Photos #4 and #5: Acknowledgement of Receipt (no. 03142) for the
+submission of documents/petition from the National Immigration Agency,
+Ministry of the Interior, Taipei, Taiwan, 5th August 2019, 10:00 AM
 
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index ebea9501afb8..f4d219172235 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -2995,6 +2995,7 @@ static int proc_stack_depth(struct seq_file *m, struct pid_namespace *ns,
-  */
- static const struct file_operations proc_task_operations;
- static const struct inode_operations proc_task_inode_operations;
-+static const struct file_operations proc_pid_file_pins_operations;
- 
- static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, proc_task_inode_operations, proc_task_operations),
-@@ -3024,6 +3025,7 @@ static const struct pid_entry tgid_base_stuff[] = {
- 	ONE("stat",       S_IRUGO, proc_tgid_stat),
- 	ONE("statm",      S_IRUGO, proc_pid_statm),
- 	REG("maps",       S_IRUGO, proc_pid_maps_operations),
-+	REG("file_pins",  S_IRUGO, proc_pid_file_pins_operations),
- #ifdef CONFIG_NUMA
- 	REG("numa_maps",  S_IRUGO, proc_pid_numa_maps_operations),
- #endif
-@@ -3422,6 +3424,7 @@ static const struct pid_entry tid_base_stuff[] = {
- 	ONE("stat",      S_IRUGO, proc_tid_stat),
- 	ONE("statm",     S_IRUGO, proc_pid_statm),
- 	REG("maps",      S_IRUGO, proc_pid_maps_operations),
-+	REG("file_pins", S_IRUGO, proc_pid_file_pins_operations),
- #ifdef CONFIG_PROC_CHILDREN
- 	REG("children",  S_IRUGO, proc_tid_children_operations),
- #endif
-@@ -3718,3 +3721,214 @@ void __init set_proc_pid_nlink(void)
- 	nlink_tid = pid_entry_nlink(tid_base_stuff, ARRAY_SIZE(tid_base_stuff));
- 	nlink_tgid = pid_entry_nlink(tgid_base_stuff, ARRAY_SIZE(tgid_base_stuff));
- }
-+
-+/**
-+ * file_pin information below.
-+ */
-+
-+struct proc_file_pins_private {
-+	struct inode *inode;
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	struct files_struct *files;
-+	unsigned int nr_pins;
-+	struct xarray fps;
-+} __randomize_layout;
-+
-+static void release_fp(struct proc_file_pins_private *priv)
-+{
-+	up_read(&priv->mm->mmap_sem);
-+	mmput(priv->mm);
-+}
-+
-+static void print_fd_file_pin(struct seq_file *m, struct file *file,
-+			    unsigned long i)
-+{
-+	struct file_file_pin *fp;
-+	struct file_file_pin *tmp;
-+
-+	if (list_empty_careful(&file->file_pins))
-+		return;
-+
-+	seq_printf(m, "%lu: ", i);
-+	seq_file_path(m, file, "\n");
-+	seq_putc(m, '\n');
-+
-+	list_for_each_entry_safe(fp, tmp, &file->file_pins, list) {
-+		seq_puts(m, "   ");
-+		seq_file_path(m, fp->file, "\n");
-+		seq_putc(m, '\n');
-+	}
-+}
-+
-+/* We are storing the index's within the FD table for later retrieval */
-+static int store_fd(const void *priv , struct file *file, unsigned i)
-+{
-+	struct proc_file_pins_private *fp_priv;
-+
-+	/* cast away const... */
-+	fp_priv = (struct proc_file_pins_private *)priv;
-+
-+	if (list_empty_careful(&file->file_pins))
-+		return 0;
-+
-+	/* can't sleep in the iterate of the fd table */
-+	xa_store(&fp_priv->fps, fp_priv->nr_pins, xa_mk_value(i), GFP_ATOMIC);
-+	fp_priv->nr_pins++;
-+
-+	return 0;
-+}
-+
-+static void store_mm_pins(struct proc_file_pins_private *priv)
-+{
-+	struct mm_file_pin *fp;
-+	struct mm_file_pin *tmp;
-+
-+	list_for_each_entry_safe(fp, tmp, &priv->mm->file_pins, list) {
-+		xa_store(&priv->fps, priv->nr_pins, fp, GFP_KERNEL);
-+		priv->nr_pins++;
-+	}
-+}
-+
-+
-+static void *fp_start(struct seq_file *m, loff_t *ppos)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+	unsigned int pos = *ppos;
-+
-+	priv->task = get_proc_task(priv->inode);
-+	if (!priv->task)
-+		return ERR_PTR(-ESRCH);
-+
-+	if (!priv->mm || !mmget_not_zero(priv->mm))
-+		return NULL;
-+
-+	priv->files = get_files_struct(priv->task);
-+	down_read(&priv->mm->mmap_sem);
-+
-+	xa_destroy(&priv->fps);
-+	priv->nr_pins = 0;
-+
-+	/* grab fds of "files" which have pins and store as xa values */
-+	if (priv->files)
-+		iterate_fd(priv->files, 0, store_fd, priv);
-+
-+	/* store mm_file_pins as xa entries */
-+	store_mm_pins(priv);
-+
-+	if (pos >= priv->nr_pins) {
-+		release_fp(priv);
-+		return NULL;
-+	}
-+
-+	return xa_load(&priv->fps, pos);
-+}
-+
-+static void *fp_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	(*pos)++;
-+	if ((*pos) >= priv->nr_pins) {
-+		release_fp(priv);
-+		return NULL;
-+	}
-+
-+	return xa_load(&priv->fps, *pos);
-+}
-+
-+static void fp_stop(struct seq_file *m, void *v)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	if (v)
-+		release_fp(priv);
-+
-+	if (priv->task) {
-+		put_task_struct(priv->task);
-+		priv->task = NULL;
-+	}
-+
-+	if (priv->files) {
-+		put_files_struct(priv->files);
-+		priv->files = NULL;
-+	}
-+}
-+
-+static int show_fp(struct seq_file *m, void *v)
-+{
-+	struct proc_file_pins_private *priv = m->private;
-+
-+	if (xa_is_value(v)) {
-+		struct file *file;
-+		unsigned long fd = xa_to_value(v);
-+
-+		rcu_read_lock();
-+		file = fcheck_files(priv->files, fd);
-+		if (file)
-+			print_fd_file_pin(m, file, fd);
-+		rcu_read_unlock();
-+	} else {
-+		struct mm_file_pin *fp = v;
-+
-+		seq_puts(m, "mm: ");
-+		seq_file_path(m, fp->file, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct seq_operations proc_pid_file_pins_op = {
-+	.start	= fp_start,
-+	.next	= fp_next,
-+	.stop	= fp_stop,
-+	.show	= show_fp
-+};
-+
-+static int proc_file_pins_open(struct inode *inode, struct file *file)
-+{
-+	struct proc_file_pins_private *priv = __seq_open_private(file,
-+						&proc_pid_file_pins_op,
-+						sizeof(*priv));
-+
-+	if (!priv)
-+		return -ENOMEM;
-+
-+	xa_init(&priv->fps);
-+	priv->inode = inode;
-+	priv->mm = proc_mem_open(inode, PTRACE_MODE_READ);
-+	priv->task = NULL;
-+	if (IS_ERR(priv->mm)) {
-+		int err = PTR_ERR(priv->mm);
-+
-+		seq_release_private(inode, file);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static int proc_file_pins_release(struct inode *inode, struct file *file)
-+{
-+	struct seq_file *seq = file->private_data;
-+	struct proc_file_pins_private *priv = seq->private;
-+
-+	/* This is for "protection" not sure when these may end up not being
-+	 * NULL here... */
-+	WARN_ON(priv->files);
-+	WARN_ON(priv->task);
-+
-+	if (priv->mm)
-+		mmdrop(priv->mm);
-+
-+	xa_destroy(&priv->fps);
-+
-+	return seq_release_private(inode, file);
-+}
-+
-+static const struct file_operations proc_pid_file_pins_operations = {
-+	.open		= proc_file_pins_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= proc_file_pins_release,
-+};
--- 
-2.20.1
+References:
 
+(a) Petition to the Government of Taiwan for Refugee Status, 5th
+August 2019 Monday (Blogspot blog)
+
+Link: https://tdtemcerts.blogspot.sg/2019/08/petition-to-government-of-taiwan-for.html
+
+(b) Petition to the Government of Taiwan for Refugee Status, 5th
+August 2019 Monday (Wordpress blog)
+
+Link: https://tdtemcerts.wordpress.com/2019/08/23/petition-to-the-government-of-taiwan-for-refugee-status/
+
+[2] Application for Refugee Status at the United Nations Refugee
+Agency, Bangkok, Thailand, 21st March 2017 Tuesday
+
+References:
+
+(a) [YOUTUBE] Vlog: The Road to Application for Refugee Status at the
+United Nations High Commissioner for Refugees, Bangkok
+
+Link: https://www.youtube.com/watch?v=utpuAa1eUNI
+
+YouTube video Published on March 22nd, 2017
+
+Views as at 31st August 2019: 593
+
+YouTube Channel: Turritopsis Dohrnii Teo En Ming
+Subscribers as at 31st August 2019: 2815
+Link: https://www.youtube.com/channel/UC__F2hzlqNEEGx-IXxQi3hA
+
+
+
+
+
+
+-----BEGIN EMAIL SIGNATURE-----
+
+The Gospel for all Targeted Individuals (TIs):
+
+[The New York Times] Microwave Weapons Are Prime Suspect in Ills of
+U.S. Embassy Workers
+
+Link: https://www.nytimes.com/2018/09/01/science/sonic-attack-cuba-microwave.html
+
+********************************************************************************************
+
+Singaporean Mr. Turritopsis Dohrnii Teo En Ming's Academic
+Qualifications as at 14 Feb 2019
+
+[1] https://tdtemcerts.wordpress.com/
+
+[2] https://tdtemcerts.blogspot.sg/
+
+[3] https://www.scribd.com/user/270125049/Teo-En-Ming
+
+-----END EMAIL SIGNATURE-----
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
